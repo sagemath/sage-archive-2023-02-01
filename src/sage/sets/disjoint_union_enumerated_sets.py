@@ -14,7 +14,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
-# from sage.structure.element import Element
+from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.element_wrapper import ElementWrapper
 from sage.sets.family import Family
@@ -552,13 +552,27 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
             sage: ss = tabs( (s,s) )
             sage: ss[0]
             [[1, 3], [2, 4]]
+
+        We do not coerce when one of the elements is already in the set::
+
+            sage: X = DisjointUnionEnumeratedSets([QQ, ZZ])
+            sage: x = X(2)
+            sage: x.parent() is ZZ
+            True
         """
         if self._keepkey:
             P = self._family[el[0]]
+            if isinstance(el[1], Element) and el[1].parent() == P:
+                return el
             try:
                 return (el[0], P(el[1]))
             except Exception:
                 raise ValueError("cannot coerce `%s` in the parent `%s`"%(el[1], P))
+
+        # Check first to see if the parent of el is in the family
+        if (isinstance(el, Element) and isinstance(self._facade_for, tuple)
+            and el.parent() in self._facade_for):
+            return el
 
         for P in self._family:
             try:

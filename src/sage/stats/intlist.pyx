@@ -32,7 +32,7 @@ from sage.rings.integer import Integer
 from sage.finance.time_series cimport TimeSeries
 include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
-from cpython.bytes cimport *
+from cpython.bytes cimport PyBytes_FromStringAndSize, PyBytes_AsString
 
 
 cdef class IntList:
@@ -557,13 +557,13 @@ cdef IntList new_int_list(Py_ssize_t length):
     return t
 
 
-def unpickle_intlist_v1(v, Py_ssize_t n):
+def unpickle_intlist_v1(bytes v, Py_ssize_t n):
     """
     Version 1 unpickle method.
 
     INPUT:
 
-    v -- a raw char buffer
+    - ``v`` -- a raw char buffer
 
     EXAMPLES::
 

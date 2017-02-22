@@ -46,7 +46,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 include "cysignals/memory.pxi"
-from cpython.bytes cimport *
+from cpython.bytes cimport PyBytes_FromStringAndSize, PyBytes_AsString
 from libc.math cimport exp, floor, log, pow, sqrt
 from libc.string cimport memcpy
 
@@ -2560,7 +2560,7 @@ cdef new_time_series(Py_ssize_t length):
     t._values = <double*> sig_malloc(sizeof(double)*length)
     return t
 
-def unpickle_time_series_v1(v, Py_ssize_t n):
+def unpickle_time_series_v1(bytes v, Py_ssize_t n):
     """
     Version 1 unpickle method.
 

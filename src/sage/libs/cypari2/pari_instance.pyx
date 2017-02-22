@@ -59,6 +59,86 @@ In the PARI interface, "real precision" refers to the precision of real
 numbers, so it is the floating-point precision. This is a non-trivial
 issue, since there are various interfaces for different things.
 
+Internal representation of floating-point numbers in PARI
+---------------------------------------------------------
+
+Real numbers in PARI have a precision associated to them, which is
+always a multiple of the CPU wordsize. So, it is a multiple of 32
+of 64 bits. When converting a ``float`` from Python to PARI, the
+``float`` has 53 bits of precision which is rounded up to 64 bits
+in PARI::
+
+    sage: x = 1.0
+    sage: pari(x)
+    1.00000000000000
+    sage: pari(x).bitprecision()
+    64
+
+It is possible to change the precision of a PARI object with the
+:meth:`Gen.bitprecision` method::
+
+    sage: p = pari(1.0)
+    sage: p.bitprecision()
+    64
+    sage: p = p.bitprecision(100)
+    sage: p.bitprecision()   # Rounded up to a multiple of the wordsize
+    128
+
+Beware that these extra bits are just bogus. For example, this will not
+give a more precision approximation of ``math.pi``:
+
+    sage: p = pari(math.pi)
+    sage: pari("Pi") - p
+    1.22514845490862 E-16
+    sage: p = p.bitprecision(1000)
+    sage: pari("Pi") - p
+    1.22514845490862 E-16
+
+Another way to create numbers with many bits is to use a string with
+many digits::
+
+    sage: p = pari("3.1415926535897932384626433832795028842")
+    sage: p.bitprecision()
+    128
+
+.. _pari_output_precision:
+
+Output precision for printing
+-----------------------------
+
+Even though PARI reals have a precision, not all significant bits are
+printed by default. The maximum number of digits when printing a PARI
+real can be set using the methods
+:meth:`Pari.set_real_precision_bits` or
+:meth:`Pari.set_real_precision`.
+Note that this will also change the input precision for strings,
+see :ref:`pari_input_precision`.
+
+We create a very precise approximation of pi and see how it is printed
+in PARI::
+
+    sage: pi = pari.pi(precision=1024)
+
+The default precision is 15 digits::
+
+    sage: pi
+    3.14159265358979
+
+With a different precision, we see more digits. Note that this does not
+affect the object ``pi`` at all, it only affects how it is printed::
+
+    sage: _ = pari.set_real_precision(50)
+    sage: pi
+    3.1415926535897932384626433832795028841971693993751
+
+Back to the default::
+
+    sage: _ = pari.set_real_precision(15)
+    sage: pi
+    3.14159265358979
+
+.. _pari_input_precision:
+
 Input precision for function calls
 ----------------------------------
 
@@ -88,7 +168,8 @@ In the second case, the precision can be given as the argument
 ``precision`` in the function call, with a default of 53 bits.
 The real precision set by
 :meth:`Pari.set_real_precision_bits` or
-:meth:`Pari.set_real_precision` only affects printing.
+:meth:`Pari.set_real_precision` does not affect the call
+(but it still affects printing).
 
 As explained before, the precision increases to a multiple of the
 wordsize. ::
@@ -114,8 +195,12 @@ wordsize. ::
 In the third case, the precision is determined only by the inexact
 inputs and the ``precision`` argument is ignored::
 
-    sage: pari(float(1.0)).sin(precision=180) - pari(1).sin(precision=180) == 0
-    False
+    sage: pari(1.0).sin(precision=180).bitprecision()
+    64
+    sage: pari(1.0).sin(precision=40).bitprecision()
+    64
+    sage: pari("1.0000000000000000000000000000000000000").sin().bitprecision()
+    128
 
 Elliptic curve functions
 ------------------------

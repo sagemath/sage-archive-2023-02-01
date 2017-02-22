@@ -2890,7 +2890,7 @@ class Polyhedron_base(Element):
 
     def truncation(self, cut_frac=None):
         r"""
-        Return a new polyhedron formed from two points on each edgeis
+        Return a new polyhedron formed from two points on each edge
         between two vertices.
 
         INPUT:

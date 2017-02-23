@@ -9,6 +9,6 @@ fi
 set -e
 
 cd src
-./configure --prefix="$SAGE_LOCAL" --disable-gui
+./configure --prefix="$SAGE_LOCAL" --disable-gui --disable-cups
 $MAKE
 $MAKE install

@@ -2157,7 +2157,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-            - ``certify`` : Boolean, specify whether to return the circumcenter
+        - ``certify`` : Boolean, specify whether to return the circumcenter
               if found
 
         OUTPUT:
@@ -2167,25 +2167,25 @@ class Polyhedron_base(Element):
 
         EXAMPLES::
 
-        sage: q = Polyhedron(vertices = [[1,1,1,1],[-1,-1,1,1],[1,-1,-1,1],
-        ....:                            [-1,1,-1,1],[1,1,1,-1],[-1,-1,1,-1],
-        ....:                            [1,-1,-1,-1],[-1,1,-1,-1],[0,0,10/13,-24/13],
-        ....:                            [0,0,-10/13,-24/13]])
-        sage: q.is_inscribable(True)
-        (True, (0, 0, 0, 0))
+            sage: q = Polyhedron(vertices = [[1,1,1,1],[-1,-1,1,1],[1,-1,-1,1],
+            ....:                            [-1,1,-1,1],[1,1,1,-1],[-1,-1,1,-1],
+            ....:                            [1,-1,-1,-1],[-1,1,-1,-1],[0,0,10/13,-24/13],
+            ....:                            [0,0,-10/13,-24/13]])
+            sage: q.is_inscribable(True)
+            (True, (0, 0, 0, 0))
 
-        sage: cube = polytopes.cube()
-        sage: cube.is_inscribable()
-        (True, None)
+            sage: cube = polytopes.cube()
+            sage: cube.is_inscribable()
+            (True, None)
 
-        sage: translated_cube = Polyhedron(vertices=[v.vector() + vector([1,2,3])
-        ....:                                        for v in cube.vertices()])
-        sage: translated_cube.is_inscribable(True)
-        (True, (1, 2, 3))
+            sage: translated_cube = Polyhedron(vertices=[v.vector() + vector([1,2,3])
+            ....:                                        for v in cube.vertices()])
+            sage: translated_cube.is_inscribable(True)
+            (True, (1, 2, 3))
 
-        sage: truncated_cube = cube.face_truncation(cube.faces(0)[0])
-        sage: truncated_cube.is_inscribable()
-        (False, None)
+            sage: truncated_cube = cube.face_truncation(cube.faces(0)[0])
+            sage: truncated_cube.is_inscribable()
+            (False, None)
 
         """
 

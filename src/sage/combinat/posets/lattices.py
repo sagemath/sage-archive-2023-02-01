@@ -52,6 +52,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_geometric` | Return ``True`` if the lattice is atomic and upper semimodular.
     :meth:`~FiniteLatticePoset.is_complemented` | Return ``True`` if every element of the lattice has at least one complement.
     :meth:`~FiniteLatticePoset.is_sectionally_complemented` | Return ``True`` if every interval from the bottom is complemented.
+    :meth:`~FiniteLatticePoset.is_cosectionally_complemented` | Return ``True`` if every interval to the top is complemented.
     :meth:`~FiniteLatticePoset.is_relatively_complemented` | Return ``True`` if every interval of the lattice is complemented.
     :meth:`~FiniteLatticePoset.is_pseudocomplemented` | Return ``True`` if every element of the lattice has a pseudocomplement.
     :meth:`~FiniteLatticePoset.is_orthocomplemented` | Return ``True`` if the lattice has an orthocomplementation.
@@ -1300,6 +1301,87 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if e is None:
             return (True, None)
         return (False, self._vertex_to_element(e))
+
+    def is_cosectionally_complemented(self, certificate=False):
+        """
+        Return ``True`` if the lattice is cosectionally complemented, and
+        ``False`` otherwise.
+
+        A lattice is *cosectionally complemented* if all intervals to
+        the top element interpreted as sublattices are complemented
+        lattices.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) Whether to return
+          a certificate if the lattice is not cosectionally complemented.
+
+        OUTPUT:
+
+        - If ``certificate=False`` return ``True`` or ``False``.
+          If ``certificate=True`` return either ``(True, None)``
+          or ``(False, (b, e))``, where `b` is an element so that in the
+          sublattice from `b` to the top element has no complement
+          for element `e`.
+
+        EXAMPLES:
+
+        The smallest sectionally but not cosectionally complemented lattice::
+
+            sage: L = LatticePoset({1: [2, 3, 4], 2: [5], 3: [5], 4: [6], 5: [6]})
+            sage: L.is_sectionally_complemented(), L.is_cosectionally_complemented()
+            (True, False)
+
+        A sectionally and cosectionally but not relatively complemented
+        lattice::
+
+            sage: L = LatticePoset(DiGraph('MYi@O?P??D?OG?@?O_?C?Q??O?W?@??O??'))
+            sage: L.is_sectionally_complemented() and L.is_cosectionally_complemented()
+            True
+            sage: L.is_relatively_complemented()
+            False
+
+        Getting a certificate::
+
+            sage: L = LatticePoset(DiGraph('HW?@D?Q?GE?G@??'))
+            sage: L.is_cosectionally_complemented(certificate=True)
+            (False, (2, 7))
+
+        .. SEEALSO::
+
+            - Dual property: :meth:`is_sectionally_complemented`
+            - Weaker properties: :meth:`is_complemented`, :meth:`is_coatomic`
+            - Stronger properties :meth:`is_relatively_complemented`,
+              :meth:`is_regular`
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).is_cosectionally_complemented() for i in range(5)]
+            [True, True, True, False, False]
+        """
+        # Quick check: every sectionally complemented lattice is atomic.
+        if not certificate and not self.is_coatomic():
+            return False
+
+        n = self.cardinality()
+        H = self._hasse_diagram
+        mt = H._meet
+        jn = H._join
+        top = n-1
+
+        for bottom in range(n-3, -1, -1):
+            interval = H.principal_order_filter(bottom)
+            for e in interval:
+                for f in interval:
+                    if mt[e, f] == bottom and jn[e, f] == top:
+                        break
+                else:
+                    if certificate:
+                        return (False, (self._vertex_to_element(bottom),
+                                        self._vertex_to_element(e)))
+                    return False
+
+        return (True, None) if certificate else True
 
     def is_relatively_complemented(self, certificate=False):
         """

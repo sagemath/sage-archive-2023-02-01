@@ -105,16 +105,17 @@ static ex falling_factorial_to_gamma(const function& f)
 }
 
 using tgfun_t = decltype(gamma_to_gamma);
-static std::unordered_map<unsigned int,tgfun_t*> funcmap {{
-        {factorial_SERIAL::serial, &factorial_to_gamma},
-        {tgamma_SERIAL::serial, &gamma_to_gamma},
-        {binomial_SERIAL::serial, &binomial_to_gamma},
-        {rising_factorial_SERIAL::serial, &rising_factorial_to_gamma},
-        {falling_factorial_SERIAL::serial, &falling_factorial_to_gamma},
-}};
 
 static bool has_suitable_form(ex the_ex)
 {
+        static std::unordered_map<unsigned int,tgfun_t*> funcmap {{
+          {factorial_SERIAL::serial, &factorial_to_gamma},
+          {tgamma_SERIAL::serial, &gamma_to_gamma},
+          {binomial_SERIAL::serial, &binomial_to_gamma},
+          {rising_factorial_SERIAL::serial, &rising_factorial_to_gamma},
+          {falling_factorial_SERIAL::serial, &falling_factorial_to_gamma},
+}};
+
         if (is_rational_linear(the_ex))
                 return true;
         if (is_exactly_a<power>(the_ex)) {
@@ -162,6 +163,14 @@ static bool has_suitable_form(ex the_ex)
 
 ex to_gamma(const ex& the_ex)
 {
+        static std::unordered_map<unsigned int,tgfun_t*> funcmap {{
+          {factorial_SERIAL::serial, &factorial_to_gamma},
+          {tgamma_SERIAL::serial, &gamma_to_gamma},
+          {binomial_SERIAL::serial, &binomial_to_gamma},
+          {rising_factorial_SERIAL::serial, &rising_factorial_to_gamma},
+          {falling_factorial_SERIAL::serial, &falling_factorial_to_gamma},
+}};
+
         if (is_rational_linear(the_ex))
                 return the_ex;
         if (is_exactly_a<power>(the_ex)) {

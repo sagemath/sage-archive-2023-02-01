@@ -3626,6 +3626,7 @@ def LinearCodeFromVectorSpace(V, d=None):
       code, if known. This is an optional parameter.
 
     .. note::
+
         The veracity of the minimum distance ``d``, if provided, is not
         checked.
 
@@ -4483,11 +4484,11 @@ class LinearCodeSyndromeDecoder(Decoder):
     the covering radius of the code, this decoder is complete, i.e. it decodes
     every vector in the ambient space.
 
-    .. NOTE:
+    .. NOTE::
 
-    Constructing the lookup table takes time exponential in the length of the
-    code and the size of the code's base field. Afterwards, the individual
-    decodings are fast.
+        Constructing the lookup table takes time exponential in the length of the
+        code and the size of the code's base field. Afterwards, the individual
+        decodings are fast.
 
     INPUT:
 

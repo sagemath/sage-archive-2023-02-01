@@ -106,7 +106,7 @@ cdef class Heilbronn:
         Initialize the list of matrices corresponding to self. (This
         function is automatically called during initialization.)
 
-        .. note:
+        .. note::
 
            This function must be overridden by all derived classes!
 

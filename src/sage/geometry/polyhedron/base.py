@@ -2187,6 +2187,21 @@ class Polyhedron_base(Element):
             sage: truncated_cube.is_inscribable()
             (False, None)
 
+        The method is not implemented for non-full-dimensional polytope or
+        unbounded polyhedra::
+
+            sage: square = Polyhedron(vertices=[[1,0,0],[0,1,0],[1,1,0],[0,0,0]])
+            sage: square.is_inscribable()
+            Traceback (most recent call last)
+            ...
+            NotImplementedError: This function is implemented for full-dimensional polytopes only.
+
+            sage: p = Polyhedron(vertices=[(0,0)],rays=[(1,0),(0,1)])
+            sage: p.is_inscribable()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: This function is implemented for full-dimensional polytopes only.
+
         """
 
         if not self.is_compact() or not self.is_full_dimensional():

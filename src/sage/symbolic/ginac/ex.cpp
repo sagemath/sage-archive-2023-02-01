@@ -29,6 +29,7 @@
 #include "power.h"
 #include "lst.h"
 #include "function.h"
+#include "fderivative.h"
 #include "symbol.h"
 #include "relational.h"
 #include "utils.h"
@@ -36,6 +37,7 @@
 
 #include <iostream>
 #include <stdexcept>
+#include <unordered_map>
 
 namespace GiNaC {
 
@@ -393,6 +395,48 @@ symbolset ex::symbols() const
 {
         symbolset the_set;
         collect_symbols(*this, the_set);
+	return the_set;
+}
+
+static void collect_bound_symbols(const ex& e, symbolset& syms)
+{
+        static unsigned int sum_serial = function::find_function("sum", 4);
+        static unsigned int integral_serial = function::find_function("integrate", 4);
+	if (is_exactly_a<function>(e)) {
+                const function& f = ex_to<function>(e);
+                if (f.get_serial() == sum_serial
+                    and is_exactly_a<symbol>(f.op(1))) {
+                        syms.insert(ex_to<symbol>(f.op(1)));
+                        return collect_bound_symbols(f.op(0), syms);
+                }
+                if (f.get_serial() == integral_serial
+                    and is_exactly_a<symbol>(f.op(1))) {
+                        syms.insert(ex_to<symbol>(f.op(1)));
+                        return collect_bound_symbols(f.op(0), syms);
+                }
+        }
+        else if (is_exactly_a<fderivative>(e)) {
+                const fderivative& d = ex_to<fderivative>(e);
+                for (size_t i=0; i<d.nops(); i++)
+                        if (is_exactly_a<symbol>(d.op(i)))
+                                syms.insert(ex_to<symbol>(d.op(i)));
+                return;
+        }
+	else
+		for (size_t i=0; i < e.nops(); i++)
+                        collect_bound_symbols(e.op(i), syms);
+}
+
+symbolset ex::free_symbols() const
+{
+        symbolset the_set, bound_set;
+        collect_symbols(*this, the_set);
+        collect_bound_symbols(*this, bound_set);
+        for (auto it = the_set.begin(); it != the_set.end(); )
+                if (bound_set.find(*it) != bound_set.end())
+                        it = the_set.erase(it);
+                else
+                        ++it;
 	return the_set;
 }
 

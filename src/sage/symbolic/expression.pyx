@@ -433,13 +433,7 @@ cdef class Expression(CommutativeRingElement):
         """
         self._parent = SR
         cdef Expression exp = self.coerce_in(x)
-        GEx_construct_ex(&self._gobj, exp._gobj)
-
-    def __dealloc__(self):
-        """
-        Delete memory occupied by this expression.
-        """
-        GEx_destruct(&self._gobj)
+        self._gobj = GEx(exp._gobj)
 
     def __getstate__(self):
         """
@@ -576,7 +570,7 @@ cdef class Expression(CommutativeRingElement):
         GArchive_from_str(&ar, state[2], len(state[2]))
 
         # extract the expression from the archive
-        GEx_construct_ex(&self._gobj, ar.unarchive_ex(sym_lst, <unsigned>0))
+        self._gobj = GEx(ar.unarchive_ex(sym_lst, <unsigned>0))
 
     def __copy__(self):
         """
@@ -1698,17 +1692,17 @@ cdef class Expression(CommutativeRingElement):
         # neither was relational, so we can create a symbolic relation
         cdef GEx e
         if op == Py_LT:
-            e = g_lt(l._gobj, r._gobj)
+            e = (l._gobj < r._gobj)
         elif op == Py_EQ:
-            e = g_eq(l._gobj, r._gobj)
+            e = (l._gobj == r._gobj)
         elif op == Py_GT:
-            e = g_gt(l._gobj, r._gobj)
+            e = (l._gobj > r._gobj)
         elif op == Py_LE:
-            e = g_le(l._gobj, r._gobj)
+            e = (l._gobj <= r._gobj)
         elif op == Py_NE:
-            e = g_ne(l._gobj, r._gobj)
+            e = (l._gobj != r._gobj)
         elif op == Py_GE:
-            e = g_ge(l._gobj, r._gobj)
+            e = (l._gobj >= r._gobj)
         else:
             raise TypeError
         return new_Expression_from_GEx(l._parent, e)
@@ -2964,19 +2958,19 @@ cdef class Expression(CommutativeRingElement):
             if is_a_relational(_right._gobj):
                 op = compatible_relation(relational_operator(left._gobj),
                                          relational_operator(_right._gobj))
-                x = relational(gadd(left._gobj.lhs(), _right._gobj.lhs()),
-                               gadd(left._gobj.rhs(), _right._gobj.rhs()),
+                x = relational(left._gobj.lhs() + _right._gobj.lhs(),
+                               left._gobj.rhs() + _right._gobj.rhs(),
                                op)
             else:
-                x = relational(gadd(left._gobj.lhs(), _right._gobj),
-                               gadd(left._gobj.rhs(), _right._gobj),
+                x = relational(left._gobj.lhs() + _right._gobj,
+                               left._gobj.rhs() + _right._gobj,
                                relational_operator(left._gobj))
         elif is_a_relational(_right._gobj):
-            x = relational(gadd(left._gobj, _right._gobj.lhs()),
-                           gadd(left._gobj, _right._gobj.rhs()),
+            x = relational(left._gobj + _right._gobj.lhs(),
+                           left._gobj + _right._gobj.rhs(),
                            relational_operator(_right._gobj))
         else:
-            x = gadd(left._gobj, _right._gobj)
+            x = left._gobj + _right._gobj
         return new_Expression_from_GEx(left._parent, x)
 
     cpdef _sub_(left, right):
@@ -3016,19 +3010,19 @@ cdef class Expression(CommutativeRingElement):
             if is_a_relational(_right._gobj):
                 op = compatible_relation(relational_operator(left._gobj),
                                          relational_operator(_right._gobj))
-                x = relational(gsub(left._gobj.lhs(), _right._gobj.lhs()),
-                               gsub(left._gobj.rhs(), _right._gobj.rhs()),
+                x = relational(left._gobj.lhs() - _right._gobj.lhs(),
+                               left._gobj.rhs() - _right._gobj.rhs(),
                                op)
             else:
-                x = relational(gsub(left._gobj.lhs(), _right._gobj),
-                               gsub(left._gobj.rhs(), _right._gobj),
+                x = relational(left._gobj.lhs() - _right._gobj,
+                               left._gobj.rhs() - _right._gobj,
                                relational_operator(left._gobj))
         elif is_a_relational(_right._gobj):
-            x = relational(gsub(left._gobj, _right._gobj.lhs()),
-                           gsub(left._gobj, _right._gobj.rhs()),
+            x = relational(left._gobj - _right._gobj.lhs(),
+                           left._gobj - _right._gobj.rhs(),
                            relational_operator(_right._gobj))
         else:
-            x = gsub(left._gobj, _right._gobj)
+            x = left._gobj - _right._gobj
         return new_Expression_from_GEx(left._parent, x)
 
     cpdef _mul_(left, right):
@@ -3247,21 +3241,21 @@ cdef class Expression(CommutativeRingElement):
             if is_a_relational(_right._gobj):
                 op = compatible_relation(relational_operator(left._gobj),
                                          relational_operator(_right._gobj))
-                x = relational(gmul(left._gobj.lhs(), _right._gobj.lhs()),
-                               gmul(left._gobj.rhs(), _right._gobj.rhs()),
+                x = relational(left._gobj.lhs() * _right._gobj.lhs(),
+                               left._gobj.rhs() * _right._gobj.rhs(),
                                op)
             else:
                 o = relational_operator(left._gobj)
-                x = relational(gmul(left._gobj.lhs(), _right._gobj),
-                               gmul(left._gobj.rhs(), _right._gobj),
+                x = relational(left._gobj.lhs() * _right._gobj,
+                               left._gobj.rhs() * _right._gobj,
                                o)
         elif is_a_relational(_right._gobj):
             o = relational_operator(_right._gobj)
-            x = relational(gmul(left._gobj, _right._gobj.lhs()),
-                           gmul(left._gobj, _right._gobj.rhs()),
+            x = relational(left._gobj * _right._gobj.lhs(),
+                           left._gobj * _right._gobj.rhs(),
                            o)
         else:
-            x = gmul(left._gobj, _right._gobj)
+            x = left._gobj * _right._gobj
         return new_Expression_from_GEx(left._parent, x)
 
     cpdef _div_(left, right):
@@ -3350,21 +3344,21 @@ cdef class Expression(CommutativeRingElement):
                 if is_a_relational(_right._gobj):
                     op = compatible_relation(relational_operator(left._gobj),
                                              relational_operator(_right._gobj))
-                    x = relational(gdiv(left._gobj.lhs(), _right._gobj.lhs()),
-                                   gdiv(left._gobj.rhs(), _right._gobj.rhs()),
+                    x = relational(left._gobj.lhs() / _right._gobj.lhs(),
+                                   left._gobj.rhs() / _right._gobj.rhs(),
                                    op)
                 else:
                     o = relational_operator(left._gobj)
-                    x = relational(gdiv(left._gobj.lhs(), _right._gobj),
-                                   gdiv(left._gobj.rhs(), _right._gobj),
+                    x = relational(left._gobj.lhs() / _right._gobj,
+                                   left._gobj.rhs() / _right._gobj,
                                    o)
             elif is_a_relational(_right._gobj):
                 o = relational_operator(_right._gobj)
-                x = relational(gdiv(left._gobj, _right._gobj.lhs()),
-                               gdiv(left._gobj, _right._gobj.rhs()),
+                x = relational(left._gobj / _right._gobj.lhs(),
+                               left._gobj / _right._gobj.rhs(),
                                o)
             else:
-                x = gdiv(left._gobj, _right._gobj)
+                x = left._gobj / _right._gobj
             return new_Expression_from_GEx(left._parent, x)
         except Exception as msg:
             # TODO: change this to maybe cleverly do something involving Cython C++ exception handling.
@@ -4121,7 +4115,7 @@ cdef class Expression(CommutativeRingElement):
             x = self._gobj.expand(0).series(symbol0._gobj, cprec, options)
             nex = SymbolicSeries.__new__(SymbolicSeries)
             nex._parent = self._parent
-            GEx_construct_ex(&nex._gobj, x)
+            nex._gobj = GEx(x)
         finally:
             sig_off()
         return nex
@@ -12165,13 +12159,12 @@ cdef Expression new_Expression_from_GEx(parent, GEx juice):
         cls = Expression
 
     nex = <Expression>cls.__new__(cls)
-    GEx_construct_ex(&nex._gobj, juice)
+    nex._gobj = GEx(juice)
     nex._parent = parent
     return nex
 
 cdef Expression new_Expression_from_pyobject(parent, x):
-    cdef GEx exp
-    GEx_construct_pyobject(exp, x)
+    cdef GEx exp = x
     return new_Expression_from_GEx(parent, exp)
 
 cdef class ExpressionIterator:

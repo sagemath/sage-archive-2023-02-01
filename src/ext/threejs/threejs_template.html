@@ -125,7 +125,7 @@
 
     var lights = SAGE_LIGHTS;
     for ( var i=0 ; i < lights.length ; i++ ) {
-        var light = new THREE.DirectionalLight( 0x666666, 1 );
+        var light = new THREE.DirectionalLight( lights[i].color, 1 );
         light.position.set( a[0]*lights[i].x, a[1]*lights[i].y, a[2]*lights[i].z );
         if ( lights[i].parent === 'camera' ) {
             light.target.position.set( a[0]*xMid, a[1]*yMid, a[2]*zMid );
@@ -135,7 +135,8 @@
     }
     scene.add( camera );
 
-    scene.add( new THREE.AmbientLight( 0x999999, 1 ) );
+    var ambient = SAGE_AMBIENT;
+    scene.add( new THREE.AmbientLight( ambient.color, 1 ) );
 
     var controls = new THREE.OrbitControls( camera, renderer.domElement );
     controls.target.set( a[0]*xMid, a[1]*yMid, a[2]*zMid );

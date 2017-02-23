@@ -375,7 +375,10 @@ cdef class Graphics3d(SageObject):
         bounds = '[{{"x":{}, "y":{}, "z":{}}}, {{"x":{}, "y":{}, "z":{}}}]'.format(
                  b[0][0], b[0][1], b[0][2], b[1][0], b[1][1], b[1][2])
 
-        lights = '[{"x":-5, "y":3, "z":0, "parent":"camera"}]'
+        from sage.plot.colors import Color
+        lights = '[{{"x":-5, "y":3, "z":0, "color":"{}", "parent":"camera"}}]'.format(
+                 Color(.5,.5,.5).html_color())
+        ambient = '{{"color":"{}"}}'.format(Color(.5,.5,.5).html_color())
 
         import json
         points, lines, texts = [], [], []
@@ -397,7 +400,7 @@ cdef class Graphics3d(SageObject):
                 if hasattr(p.all[0], 'string'):
                     m = p.get_transformation().get_matrix()
                     texts.append('{{"text":"{}", "x":{}, "y":{}, "z":{}}}'.format(
-                                  p.all[0].string, m[0,3], m[1,3], m[2,3]))
+                                 p.all[0].string, m[0,3], m[1,3], m[2,3]))
 
         points = '[' + ','.join(points) + ']'
         lines = '[' + ','.join(lines) + ']'
@@ -416,6 +419,7 @@ cdef class Graphics3d(SageObject):
         html = html.replace('SAGE_OPTIONS', json.dumps(options))
         html = html.replace('SAGE_BOUNDS', bounds)
         html = html.replace('SAGE_LIGHTS', lights)
+        html = html.replace('SAGE_AMBIENT', ambient)
         html = html.replace('SAGE_TEXTS', str(texts))
         html = html.replace('SAGE_POINTS', str(points))
         html = html.replace('SAGE_LINES', str(lines))

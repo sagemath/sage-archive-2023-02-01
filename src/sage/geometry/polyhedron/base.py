@@ -2140,6 +2140,91 @@ class Polyhedron_base(Element):
         """
         return sqrt(self.radius_square())
 
+    def is_inscribable(self, certify=False):
+        """
+        A full-dimensional compact polytope is inscribable if there exists
+        a point in space which is equidistant to all its vertices.
+
+        This function tests whether this point exists and returns it if
+        specified.
+
+        The function first computes the circumsphere of a full-dimensional
+        simplex with vertices of `self` and then checks if all other vertices
+        are equidistant to the circumcenter of that simplex.
+
+        INPUT:
+
+            - ``certify`` : Boolean, specify whether to return the circumcenter
+              if found
+
+        OUTPUT:
+
+        A tuple containing a boolean and potentially the circumcenter of the
+        polytope.
+
+        EXAMPLES::
+
+        sage: q = Polyhedron(vertices = [[1,1,1,1],[-1,-1,1,1],[1,-1,-1,1],
+        ....:                            [-1,1,-1,1],[1,1,1,-1],[-1,-1,1,-1], 
+        ....:                            [1,-1,-1,-1],[-1,1,-1,-1],[0,0,10/13,-24/13], 
+        ....:                            [0,0,-10/13,-24/13]])
+        sage: q.is_inscribable(True)
+        (True, (0, 0, 0, 0))
+
+        sage: cube = polytopes.cube()
+        sage: cube.is_inscribable()
+        (True, None)
+        
+        sage: translated_cube = Polyhedron(vertices=[v.vector() + vector([1,2,3]) 
+        ....:                                        for v in cube.vertices()])
+        sage: translated_cube.is_inscribable(True)
+        (True, (1, 2, 3))
+        
+        sage: truncated_cube = cube.face_truncation(cube.faces(0)[0])
+        sage: truncated_cube.is_inscribable()
+        (False, None)
+
+        """
+
+        if not self.is_compact() or not self.is_full_dimensional():
+            raise NotImplementedError("This function is implemented for full-dimensional polytopes only.")
+       
+        dimension = self.dimension()
+        vertices = self.vertices()
+        vertex = vertices[0]
+        vertex_neighbors = vertex.neighbors()
+        simplex_vertices = [vertex] + [vertex_neighbors.next() for i in range(dimension)]
+        other_vertices = [v for v in vertices if v not in simplex_vertices]
+
+        row_data = []
+        for vertex in simplex_vertices:
+            vertex_vector = vertex.vector()
+            row_data += [[sum(i**2 for i in vertex_vector)] + \
+                         [i for i in vertex_vector] + [1]]
+        matrix_data = matrix(row_data)
+
+        # The determinant "a" should not be zero because the polytope is full
+        # dimensional and also the simplex.
+        a = matrix_data.matrix_from_columns(range(1,dimension+2)).determinant()
+
+        minors = [(-1)**(i)*matrix_data.matrix_from_columns([j for j in range(dimension+2) if j != i]).determinant()
+                  for i in range(1,dimension+1)]
+        c = (-1)**(dimension+1)*matrix_data.matrix_from_columns(range(dimension+1)).determinant()
+
+        circumcenter = vector([minors[i]/(2*a) for i in range(dimension)])
+        circumradius = sqrt(sum(m**2 for m in minors) - 4 * a * c) / (2*abs(a))
+        
+        # Checking if the circumcenter has the correct sign
+        if (vertex.vector() - circumcenter).norm() != circumradius:
+            circumcenter = - circumcenter
+
+        is_circumscrib = all((v.vector() - circumcenter).norm() == circumradius for v in other_vertices)
+
+        if certify and is_circumscrib:
+            return (is_circumscrib,circumcenter)
+        else:
+            return (is_circumscrib,None)
+
     def is_compact(self):
         """
         Test for boundedness of the polytope.

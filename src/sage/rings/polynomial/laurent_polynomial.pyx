@@ -1549,7 +1549,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: k = tuple(D)[0]
             sage: v = D[k]
             sage: type(k), type(v)
-            (<type 'tuple'>, <type 'sage.rings.integer.Integer'>)
+            (<... 'tuple'>, <type 'sage.rings.integer.Integer'>)
             sage: LQ(D)
             x^-1*y
             sage: tuple(D)[0] is k

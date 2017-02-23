@@ -221,26 +221,33 @@ static void atanh_useries(flint_series_t& fp, flint_series_t& arg, int order)
 }
 
 using usfun_t = decltype(exp_useries);
-static std::unordered_map<unsigned int,usfun_t*> funcmap {{
-        {exp_SERIAL::serial, &exp_useries},
-        {log_SERIAL::serial, &log_useries},
-        {sin_SERIAL::serial, &sin_useries},
-        {cos_SERIAL::serial, &cos_useries},
-        {tan_SERIAL::serial, &tan_useries},
-        {cot_SERIAL::serial, &cot_useries},
-        {sec_SERIAL::serial, &sec_useries},
-        {csc_SERIAL::serial, &csc_useries},
-        {asin_SERIAL::serial, &asin_useries},
-        {atan_SERIAL::serial, &atan_useries},
-        {sinh_SERIAL::serial, &sinh_useries},
-        {cosh_SERIAL::serial, &cosh_useries},
-        {tanh_SERIAL::serial, &tanh_useries},
-        {coth_SERIAL::serial, &coth_useries},
-        {sech_SERIAL::serial, &sech_useries},
-        {csch_SERIAL::serial, &csch_useries},
-        {asinh_SERIAL::serial, &asinh_useries},
-        {atanh_SERIAL::serial, &atanh_useries},
-}};
+using funcmap_t = std::unordered_map<unsigned int,usfun_t*>;
+
+static funcmap_t& funcmap()
+{
+        static funcmap_t _funcmap = {{
+                {exp_SERIAL::serial, &exp_useries},
+                {log_SERIAL::serial, &log_useries},
+                {sin_SERIAL::serial, &sin_useries},
+                {cos_SERIAL::serial, &cos_useries},
+                {tan_SERIAL::serial, &tan_useries},
+                {cot_SERIAL::serial, &cot_useries},
+                {sec_SERIAL::serial, &sec_useries},
+                {csc_SERIAL::serial, &csc_useries},
+                {asin_SERIAL::serial, &asin_useries},
+                {atan_SERIAL::serial, &atan_useries},
+                {sinh_SERIAL::serial, &sinh_useries},
+                {cosh_SERIAL::serial, &cosh_useries},
+                {tanh_SERIAL::serial, &tanh_useries},
+                {coth_SERIAL::serial, &coth_useries},
+                {sech_SERIAL::serial, &sech_useries},
+                {csch_SERIAL::serial, &csch_useries},
+                {asinh_SERIAL::serial, &asinh_useries},
+                {atanh_SERIAL::serial, &atanh_useries},
+        }};
+
+        return _funcmap;
+}
 
 // Fast heuristic that rejects/accepts expressions for the fast
 // expansion via Flint. It can give false positives that must be
@@ -269,7 +276,7 @@ static bool unhandled_elements_in(ex the_ex) {
         }
         if (is_exactly_a<function>(the_ex)) {
                 function f = ex_to<function>(the_ex);
-                if (funcmap.find(f.get_serial()) == funcmap.end())
+                if (funcmap().find(f.get_serial()) == funcmap().end())
                         return true;
                 for (unsigned int i=0; i<f.nops(); i++)
                         if (unhandled_elements_in(f.op(i)))
@@ -567,8 +574,8 @@ void power::useries(flint_series_t& fp, int order) const
 
 void function::useries(flint_series_t& fp, int order) const
 {
-        auto search = funcmap.find(serial);
-        if (search == funcmap.end())
+        auto search = funcmap().find(serial);
+        if (search == funcmap().end())
                 throw std::runtime_error("can't happen in function::useries");
         flint_series_t fp1;
         seq[0].useries(fp1, order);

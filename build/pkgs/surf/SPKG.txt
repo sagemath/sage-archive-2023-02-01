@@ -28,3 +28,6 @@ http://surf.sourceforge.net
 * lib-jpeg
 * zlib
 * ps2pdf (optional)
+
+This package is "experimental" because not all of these dependencies are
+packaged with Sage.

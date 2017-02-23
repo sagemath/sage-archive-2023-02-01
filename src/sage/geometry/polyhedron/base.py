@@ -2152,6 +2152,9 @@ class Polyhedron_base(Element):
         simplex with vertices of `self` and then checks if all other vertices
         are equidistant to the circumcenter of that simplex.
 
+        The circumsphere of the simplex is found by lifting the points on a
+        paraboloid to find the hyperplane on which the circumsphere is lifted.
+
         INPUT:
 
             - ``certify`` : Boolean, specify whether to return the circumcenter

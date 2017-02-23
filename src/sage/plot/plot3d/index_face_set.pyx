@@ -95,7 +95,7 @@ cdef inline format_tachyon_triangle(point_c P, point_c Q, point_c R):
 
 cdef inline format_json_vertex(point_c P):
     cdef char ss[100]
-    cdef Py_ssize_t r = sprintf_3d(ss, "{x:%g,y:%g,z:%g}", P.x, P.y, P.z)
+    cdef Py_ssize_t r = sprintf_3d(ss, '{"x":%g,"y":%g,"z":%g}', P.x, P.y, P.z)
     return PyString_FromStringAndSize(ss, r)
 
 cdef inline format_json_face(face_c face):
@@ -906,7 +906,7 @@ cdef class IndexFaceSet(PrimitiveObject):
 
             sage: G = polygon([(0,0,1), (1,1,1), (2,0,1)])
             sage: G.json_repr(G.default_render_params())
-            ["{vertices:[{x:0,y:0,z:1},{x:1,y:1,z:1},{x:2,y:0,z:1}], faces:[[0,1,2]], color:'#0000ff', opacity:1}"]
+            ['{"vertices":[{"x":0,"y":0,"z":1},{"x":1,"y":1,"z":1},{"x":2,"y":0,"z":1}], "faces":[[0,1,2]], "color":"#0000ff", "opacity":1}']
 
         A simple colored one::
 
@@ -918,7 +918,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: t_list=[Texture(col[i]) for i in range(10)]
             sage: S = IndexFaceSet(face_list, point_list, texture_list=t_list)
             sage: S.json_repr(S.default_render_params())
-            ["{vertices:[{x:2,y:0,z:0},..., face_colors:['#ff0000','#ff9900','#cbff00','#33ff00'], opacity:1}"]
+            ['{"vertices":[{"x":2,"y":0,"z":0},..., "face_colors":["#ff0000","#ff9900","#cbff00","#33ff00"], "opacity":1}']
         """
         cdef Transformation transform = render_params.transform
         cdef point_c res
@@ -941,16 +941,16 @@ cdef class IndexFaceSet(PrimitiveObject):
         opacity = self._extra_kwds.get('opacity', 1)
 
         if self.global_texture:
-            color_str = "'#{}'".format(self.texture.hex_rgb())
-            return ["{{vertices:{}, faces:{}, color:{}, opacity:{}}}".format(
+            color_str = '"#{}"'.format(self.texture.hex_rgb())
+            return ['{{"vertices":{}, "faces":{}, "color":{}, "opacity":{}}}'.format(
                     vertices_str, faces_str, color_str, opacity)]
         else:
-            color_str = "[{}]".format(",".join(["'{}'".format(
+            color_str = "[{}]".format(",".join(['"{}"'.format(
                     Color(self._faces[i].color.r,
                           self._faces[i].color.g,
                           self._faces[i].color.b).html_color())
                                             for i from 0 <= i < self.fcount]))
-            return ["{{vertices:{}, faces:{}, face_colors:{}, opacity:{}}}".format(
+            return ['{{"vertices":{}, "faces":{}, "face_colors":{}, "opacity":{}}}'.format(
                     vertices_str, faces_str, color_str, opacity)]
 
     def obj_repr(self, render_params):

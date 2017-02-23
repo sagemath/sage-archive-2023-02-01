@@ -1195,9 +1195,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: P.<x,y,z> = PolynomialRing(k,3)
             sage: P._singular_()
             polynomial ring, over a field, global ordering
-            //   coefficients: ZZ/3
-            //   1 parameter    : a
-            //   minpoly        : (a^3-a+1)
+            //   coefficients: ZZ/3[a]/(a^3-a+1)
             //   number of vars : 3
             //        block   1 : ordering dp
             //                  : names    x y z
@@ -1268,9 +1266,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: R.<x,y> = PolynomialRing(NumberField(w^2+1,'s'))
             sage: singular(R)
             polynomial ring, over a field, global ordering
-            //   coefficients: QQ
-            //   1 parameter    : s
-            //   minpoly        : (s^2+1)
+            //   coefficients: QQ[s]/(s^2+1)
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y
@@ -1279,9 +1275,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: R = PolynomialRing(GF(2**8,'a'),10,'x', order='invlex')
             sage: singular(R)
             polynomial ring, over a field, global ordering
-            //   characteristic : 2
-            //   1 parameter    : a
-            //   minpoly        : (a^8+a^4+a^3+a^2+1)
+            //   coefficients: ZZ/2[a]/(a^8+a^4+a^3+a^2+1)
             //   number of vars : 10
             //        block   1 : ordering rp
             //                  : names    x0 x1 x2 x3 x4 x5 x6 x7 x8 x9
@@ -1290,7 +1284,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: R = PolynomialRing(GF(127),2,'x', order='invlex')
             sage: singular(R)
             polynomial ring, over a field, global ordering
-            //   characteristic : 127
+            //   coefficients: ZZ/127
             //   number of vars : 2
             //        block   1 : ordering rp
             //                  : names    x0 x1
@@ -1329,7 +1323,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: R = PolynomialRing(GF(127),'x')
             sage: singular(R)
             polynomial ring, over a field, global ordering
-            //   coefficients:
+            //   coefficients: ZZ/127
             //   number of vars : 1
             //        block   1 : ordering lp
             //                  : names    x
@@ -1356,7 +1350,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: R = IntegerModRing(15)['x,y']
             sage: singular(R)
             polynomial ring, over a ring (with zero-divisors), global ordering
-            //   coefficients: ZZ/15
+            //   coefficients: ZZ/bigint(15)
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y

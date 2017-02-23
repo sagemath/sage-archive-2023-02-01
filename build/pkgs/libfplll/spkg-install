@@ -54,7 +54,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Now building fplll..."
-$MAKE V=1
+$MAKE
 if [ $? -ne 0 ]; then
     echo "Error building fplll"
     exit 1

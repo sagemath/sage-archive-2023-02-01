@@ -851,7 +851,9 @@ class ContinuedFraction_base(SageObject):
             sage: a.convergents()
             [0, 1/6, 1/7, 5/34, 6/41, 23/157]
 
-            sage: #TODO: example with infinite list
+        .. TODO::
+
+            Add an example with infinite list.
         """
         if self.length() == Infinity:
             from sage.misc.lazy_list import lazy_list
@@ -863,9 +865,9 @@ class ContinuedFraction_base(SageObject):
         r"""
         Return the list of partial quotients of ``self``.
 
-        If ``self`` is an infinite continued fraction, the the object returned
-        is a :class:`~sage.misc.lazy_list.lazy_list_generic` which behave like an
-        infinite list.
+        If ``self`` is an infinite continued fraction, then the object returned
+        is a :class:`~sage.misc.lazy_list.lazy_list_generic` which behaves
+        like an infinite list.
 
         EXAMPLES::
 
@@ -874,7 +876,9 @@ class ContinuedFraction_base(SageObject):
             sage: a.quotients()
             [0, 6, 1, 4, 1, 3]
 
-            sage: #TODO: example with infinite list
+        .. TODO::
+
+            Add an example with infinite list.
         """
         if self.length() == Infinity:
             from sage.misc.lazy_list import lazy_list

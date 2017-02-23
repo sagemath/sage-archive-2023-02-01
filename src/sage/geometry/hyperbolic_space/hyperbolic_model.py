@@ -794,7 +794,7 @@ class HyperbolicModelUHP(HyperbolicModel):
 
     def _coerce_map_from_(self, X):
         """
-        Return if the there is a coercion map from ``X`` to ``self``.
+        Return if there is a coercion map from ``X`` to ``self``.
 
         EXAMPLES::
 
@@ -1163,7 +1163,7 @@ class HyperbolicModelPD(HyperbolicModel):
 
     def _coerce_map_from_(self, X):
         """
-        Return if the there is a coercion map from ``X`` to ``self``.
+        Return if there is a coercion map from ``X`` to ``self``.
 
         EXAMPLES::
 
@@ -1280,7 +1280,7 @@ class HyperbolicModelKM(HyperbolicModel):
 
     def _coerce_map_from_(self, X):
         """
-        Return if the there is a coercion map from ``X`` to ``self``.
+        Return if there is a coercion map from ``X`` to ``self``.
 
         EXAMPLES::
 
@@ -1391,7 +1391,7 @@ class HyperbolicModelHM(HyperbolicModel):
 
     def _coerce_map_from_(self, X):
         """
-        Return if the there is a coercion map from ``X`` to ``self``.
+        Return if there is a coercion map from ``X`` to ``self``.
 
         EXAMPLES::
 

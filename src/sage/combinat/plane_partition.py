@@ -215,7 +215,7 @@ class PlanePartition(ClonableArray):
 
         OUTPUT:
 
-        A string of the 3D diagram of of the plane partition.
+        A string of the 3D diagram of the plane partition.
 
         EXAMPLES::
 

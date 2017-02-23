@@ -178,7 +178,7 @@ class GrowthDiagram(SageObject):
     checks that ``labels``, when provided, are of the correct
     type, and sets the following attributes:
 
-    - ``self._zero``, the the zero element of the vertices of the
+    - ``self._zero``, the zero element of the vertices of the
       graphs,
 
     - ``self._rank_function``, the rank function of the dual

@@ -1231,8 +1231,8 @@ class GroebnerFan(SageObject):
            (right), c (left), and d (top). The shifting is done modulo the
            number of variables in the polynomial ring. The default is 0.
 
-        -  ``larger`` - bool (default: False); if True, make
-           the triangle larger so that the shape of of the Groebner region
+        -  ``larger`` - bool (default: ``False``); if ``True``, make
+           the triangle larger so that the shape of the Groebner region
            appears. Affects the xfig file but probably not the sage graphics
            (?)
 

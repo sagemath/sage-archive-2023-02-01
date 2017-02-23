@@ -811,7 +811,7 @@ class DiCyclicGroup(PermutationGroup_unique):
     the symmetries of a square.  For `n=3` this is the nonabelian
     group of order 12 that is not the dihedral group `D_6`
     nor the alternating group `A_4`.  This group of order 12 is
-    also the semi-direct product of of `C_2` by `C_4`,
+    also the semi-direct product of `C_2` by `C_4`,
     `C_3\rtimes C_4`.  [Con]_
 
 

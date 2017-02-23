@@ -689,21 +689,22 @@ cdef class ParametricSurface(IndexFaceSet):
         """
         return self
 
+
 class MoebiusStrip(ParametricSurface):
     """
-    Base class for the :class:`MoebiusStrip` graphics type. This sets the the
+    Base class for the :class:`MoebiusStrip` graphics type. This sets the
     basic parameters of the object.
 
     INPUT:
 
-    - ``r`` - A number which can be coerced to a float, serving roughly
-      as the radius of the object.
+    - ``r`` -- a number which can be coerced to a float, serving roughly
+      as the radius of the object
 
-    - ``width`` - A number which can be coerced to a float, which gives the
-      width of the object.
+    - ``width`` -- a number which can be coerced to a float, which gives the
+      width of the object
 
-    - ``twists`` - (default: 1) An integer, giving the number of twists in the
-      object (where one twist is the 'traditional' Möbius strip).
+    - ``twists`` -- (default: 1) an integer, giving the number of twists in the
+      object (where one twist is the 'traditional' Möbius strip)
 
     EXAMPLES::
 

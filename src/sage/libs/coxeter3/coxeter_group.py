@@ -616,7 +616,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
 
         def action(self, v):
             """
-            Return the action of of this Coxeter group element on the root space.
+            Return the action of this Coxeter group element on the root space.
 
             INPUT:
 

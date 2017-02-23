@@ -1897,15 +1897,13 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
     def reduce(self, I):
         """
-        Reduce this polynomial by the the polynomials in I.
+        Reduce this polynomial by the polynomials in `I`.
 
         INPUT:
 
+        - `I` -- a list of polynomials or an ideal
 
-        -  ``I`` - a list of polynomials or an ideal
-
-
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y,z> = QQbar[]
             sage: f1 = -2 * x^2 + x^3

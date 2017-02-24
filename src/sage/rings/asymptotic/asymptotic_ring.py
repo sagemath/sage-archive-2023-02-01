@@ -4416,6 +4416,8 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         """
         from .misc import underlying_class
         return (AsymptoticRingFunctor(self.growth_group,
+                                      default_prec=self.default_prec,
+                                      category=self.category(),
                                       cls=underlying_class(self)),
                 self.coefficient_ring)
 
@@ -4433,6 +4435,10 @@ class AsymptoticRingFunctor(ConstructionFunctor):
     - ``growth_group`` -- a partially ordered group (see
       :class:`AsymptoticRing` or
       :doc:`growth_group` for details).
+
+    - ``default_prec`` -- ``None`` (default) or an integer.
+
+    - ``category`` -- ``None`` (default) or a category.
 
     - ``cls`` -- :class:`AsymptoticRing` (default) or a derived class.
 
@@ -4470,7 +4476,9 @@ class AsymptoticRingFunctor(ConstructionFunctor):
     rank = 13
 
 
-    def __init__(self, growth_group, cls=None):
+    def __init__(self, growth_group,
+                 default_prec=None, category=None,
+                 cls=None):
         r"""
         See :class:`AsymptoticRingFunctor` for details.
 
@@ -4486,6 +4494,8 @@ class AsymptoticRingFunctor(ConstructionFunctor):
             self.cls = AsymptoticRing
         else:
             self.cls = cls
+        self._default_prec_ = default_prec
+        self._category_ = category
 
         from sage.categories.rings import Rings
         super(ConstructionFunctor, self).__init__(
@@ -4553,9 +4563,20 @@ class AsymptoticRingFunctor(ConstructionFunctor):
             sage: P = C['z']
             sage: type(P(2) * A.gen())
             <class '...MyAsymptoticRing_with_category.element_class'>
+
+        :trac:`22396`::
+
+            sage: A.<n> = AsymptoticRing('ZZ^n * n^ZZ', ZZ, default_prec=3)
+            sage: 1/(QQ(1)+n)
+            n^(-1) - n^(-2) + n^(-3) + O(n^(-4))
         """
-        return self.cls(growth_group=self.growth_group,
-                        coefficient_ring=coefficient_ring)
+        kwds = {'growth_group': self.growth_group,
+                'coefficient_ring': coefficient_ring}
+        if self._category_ is not None:
+            kwds['category'] = self._category_
+        if self._default_prec_ is not None:
+            kwds['default_prec'] = self._default_prec_
+        return self.cls(**kwds)
 
 
     def merge(self, other):
@@ -4580,6 +4601,42 @@ class AsymptoticRingFunctor(ConstructionFunctor):
             AsymptoticRing<x^ZZ>
             sage: F_X.merge(F_Y)
             AsymptoticRing<x^ZZ * y^ZZ>
+
+        TESTS:
+
+        :trac:`22396`::
+
+            sage: AN = AsymptoticRing(growth_group='y^ZZ', coefficient_ring=QQ)
+            sage: F_AN = AN.construction()[0]; F_AN._default_prec_ = None
+            sage: A3 = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=QQ, default_prec=3)
+            sage: F_A3 = A3.construction()[0]
+            sage: A5 = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=QQ, default_prec=5)
+            sage: F_A5 = A5.construction()[0]
+
+            sage: F_AN.merge(F_AN)(ZZ).default_prec
+            20
+            sage: F_AN.merge(F_A3)(ZZ).default_prec
+            3
+            sage: F_AN.merge(F_A5)(ZZ).default_prec
+            5
+            sage: F_A3.merge(F_AN)(ZZ).default_prec
+            3
+            sage: F_A3.merge(F_A3)(ZZ).default_prec
+            3
+            sage: F_A3.merge(F_A5)(ZZ).default_prec
+            3
+            sage: F_A5.merge(F_AN)(ZZ).default_prec
+            5
+            sage: F_A5.merge(F_A3)(ZZ).default_prec
+            3
+            sage: F_A5.merge(F_A5)(ZZ).default_prec
+            5
+
+            sage: A = AsymptoticRing(growth_group='y^ZZ', coefficient_ring=QQ)
+            sage: F1 = A.construction()[0]
+            sage: F2 = A.construction()[0]; F2._category_ = Rings()
+            sage: F1.merge(F2)._category_
+            Category of rings
         """
         if self == other:
             return self
@@ -4592,7 +4649,31 @@ class AsymptoticRingFunctor(ConstructionFunctor):
             except TypeError:
                 pass
             else:
-                return AsymptoticRingFunctor(G, self.cls)
+                if (self._default_prec_ is None
+                    and other._default_prec_ is None):
+                    default_prec = None
+                elif self._default_prec_ is None:
+                    default_prec = other._default_prec_
+                elif other._default_prec_ is None:
+                    default_prec = self._default_prec_
+                else:
+                    default_prec = min(self._default_prec_,
+                                       other._default_prec_)
+                if (self._category_ is None
+                    and other._category_ is None):
+                    category = None
+                elif self._category_ is None:
+                    category = other._category_
+                elif other._category_ is None:
+                    category = self._category_
+                else:
+                    category = self._category_ | other._category_
+
+                return AsymptoticRingFunctor(
+                    G,
+                    default_prec=default_prec,
+                    category=category,
+                    cls=self.cls)
 
 
     def __eq__(self, other):
@@ -4620,6 +4701,8 @@ class AsymptoticRingFunctor(ConstructionFunctor):
         """
         return (type(self) == type(other)
                 and self.growth_group == other.growth_group
+                and self._default_prec_ == other._default_prec_
+                and self._category_ == other._category_
                 and self.cls == other.cls)
 
 

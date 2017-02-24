@@ -659,6 +659,35 @@ def _prepare_inequalities_(inequalities, B):
     Split off (simple) inequalities which can be handled better
     without passing them to Omega.
 
+    INPUT:
+
+    - ``inequalitites`` -- a list of tuples
+
+    - ``B`` -- a Laurent polynomial ring
+
+    OUTPUT:
+
+    A triple ``(inequalities, factor, rules)`` with the following properties:
+
+    - ``inequalities`` -- a list of tuples
+
+      Determine the generating function of these inequalities instead
+      of the input.
+
+    - ``factor`` -- a Laurent polynomial
+
+      The numerator of the generating function has to be multiplied
+      with ``factor`` *after* substituting ``rules``.
+
+    - ``rules`` -- a dictionary mapping Laurent polynomial variables to
+      Laurent polynomials
+
+      Substitute ``rules`` into the generating function.
+
+    The generating function of the input ``inequalities`` is equal
+    to the generating function of the output ``inequalities``
+    in which ``rules`` were substitited and ``factor`` was multiplied.
+
     EXAMPLES::
 
         sage: from sage.geometry.polyhedron.generating_function import _prepare_inequalities_
@@ -808,6 +837,29 @@ def _prepare_equations_transformation_(E):
     Return a transformation matrix and indices which variables
     in the equation to "eliminate" and deal with later.
 
+    INPUT:
+
+    - ``E`` -- a matrix whose rows represent equations
+
+    OUTPUT:
+
+    A triple ``(TE, indices, indicesn)`` with the following properties:
+
+    - ``TE`` -- a matrix
+
+      This matrix arises from ``E`` by multiplying a transformation matrix
+      on the left.
+
+    - ``indices`` -- a sorted tuple of integers representing column indices
+
+      The the sub-matrix of ``TE`` with columns ``indices``
+      is the identity matrix.
+
+    - ``indicesn`` -- a sorted tuple of integers representing column indices
+
+      ``indicesn`` contains ``0`` and all indices of the columns of ``E``
+      which are non-zero.
+
     TESTS::
 
         sage: from sage.geometry.polyhedron.generating_function import _prepare_equations_transformation_
@@ -844,6 +896,36 @@ def _prepare_equations_(equations, B):
     r"""
     Prepare the substitutions coming from "eliminated" variables
     in the given equations.
+
+    INPUT:
+
+    - ``equations`` -- a list of tuples
+
+    - ``B`` -- a Laurent polynomial ring
+
+    OUTPUT:
+
+    A triple ``(factor, rules, indices)`` with the following properties:
+
+    - ``factor`` -- a Laurent polynomial
+
+      The numerator of the generating function has to be multiplied
+      with ``factor`` *after* substituting ``rules``.
+
+    - ``rules`` -- a dictionary mapping Laurent polynomial variables to
+      Laurent polynomials
+
+      Substitute ``rules`` into the generating function.
+
+    - ``indices`` -- a sorted tuple of integers representing
+      indices of Laurent polynomial ring variables
+
+      These are exactly the "eliminated" variables which we take care of
+      by ``factor`` and ``rules``.
+
+    The generating function of some inequalities and ``equations`` is equal
+    to the generating function of these inequalities
+    in which ``rules`` were substitited and ``factor`` was multiplied.
 
     EXAMPLES::
 
@@ -893,6 +975,17 @@ def _generate_mods_(equations):
     Extract the moduli and residue classes implied
     by the equations.
 
+    INPUT:
+
+    - ``equations`` -- a list of tuples
+
+    OUTPUT:
+
+    A tuple where each entry represents one possible configuration.
+    Each entry is a dictionary mapping ``i`` to ``(m, r)`` with the following 
+    meaning: The ``i``th coordinate of each element of the polyhedron
+    has to be congruent to ``r`` modulo ``m``.
+
     TESTS::
 
         sage: from sage.geometry.polyhedron.generating_function import _generate_mods_
@@ -932,6 +1025,42 @@ def _generate_mods_(equations):
 def _prepare_mod_(mod, B, *vecs):
     r"""
     Prepare the substitutions coming from the moduli.
+
+    INPUT:
+
+    - ``mod`` -- a dictionary mapping an index ``i`` to ``(m, r)``
+
+      This is one entry of the output tuple of :func:`_generate_mods_`.
+
+    - ``B`` -- a Laurent polynomial ring
+
+    - ``*vecs`` -- each is a list of tuples
+
+      Typically, two ``vec``-arguments are passed, namely
+      ``inequalities`` and ``equations``.
+
+    OUTPUT:
+
+    A tuple ``(factor, rules, *vecs)`` with the following properties:
+
+    - ``factor`` -- a Laurent polynomial
+
+      The numerator of the generating function has to be multiplied
+      with ``factor`` *after* substituting ``rules``.
+
+    - ``rules`` -- a dictionary mapping Laurent polynomial variables to
+      Laurent polynomials
+
+      Substitute ``rules`` into the generating function.
+
+    - ``*vecs`` -- a list of tuples
+
+      Determine the generating function of these ``vecs`` (``inequalities``,
+      ``equations``) instead of the input.
+
+    The generating function of the input ``vecs`` is equal
+    to the generating function of the output ``vecs``
+    in which ``rules`` were substitited and ``factor`` was multiplied.
 
     EXAMPLES::
 

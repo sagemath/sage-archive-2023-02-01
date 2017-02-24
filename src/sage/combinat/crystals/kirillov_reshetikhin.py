@@ -1228,13 +1228,13 @@ class KR_type_vertical(KirillovReshetikhinCrystalFromPromotion):
             sage: T = K.classical_decomposition()
             sage: hw = [ b for b in T if all(b.epsilon(i)==0 for i in [2,3,4]) ]
             sage: f = K.promotion_on_highest_weight_vectors()
-            doctest:...: DeprecationWarning: Call self.promotion_on_highest_weight_vector direclty
+            doctest:...: DeprecationWarning: Call self.promotion_on_highest_weight_vector directly
             See http://trac.sagemath.org/22429 for details.
             sage: f(hw[0])
             [[1, 2], [-2, -1]]
         """
         from sage.misc.superseded import deprecation
-        deprecation(22429, "Call self.promotion_on_highest_weight_vector direclty")
+        deprecation(22429, "Call self.promotion_on_highest_weight_vector directly")
         return self.promotion_on_highest_weight_vector
 
     def from_highest_weight_vector_to_pm_diagram(self, b):

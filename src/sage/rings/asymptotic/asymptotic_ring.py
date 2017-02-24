@@ -4402,8 +4402,22 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             :doc:`asymptotic_ring`,
             :class:`AsymptoticRing`,
             :class:`AsymptoticRingFunctor`.
+
+        TESTS:
+
+        :trac:`22392`::
+
+            sage: from sage.rings.asymptotic.asymptotic_ring import AsymptoticRing
+            sage: class MyAsymptoticRing(AsymptoticRing):
+            ....:     pass
+            sage: A = MyAsymptoticRing(growth_group='x^ZZ', coefficient_ring=QQ)
+            sage: A.construction()[0].cls
+            <class '__main__.MyAsymptoticRing'>
         """
-        return AsymptoticRingFunctor(self.growth_group), self.coefficient_ring
+        from .misc import underlying_class
+        return (AsymptoticRingFunctor(self.growth_group,
+                                      cls=underlying_class(self)),
+                self.coefficient_ring)
 
 
 from sage.categories.pushout import ConstructionFunctor
@@ -4419,6 +4433,8 @@ class AsymptoticRingFunctor(ConstructionFunctor):
     - ``growth_group`` -- a partially ordered group (see
       :class:`AsymptoticRing` or
       :doc:`growth_group` for details).
+
+    - ``cls`` -- :class:`AsymptoticRing` (default) or a derived class.
 
     EXAMPLES::
 
@@ -4454,7 +4470,7 @@ class AsymptoticRingFunctor(ConstructionFunctor):
     rank = 13
 
 
-    def __init__(self, growth_group):
+    def __init__(self, growth_group, cls=None):
         r"""
         See :class:`AsymptoticRingFunctor` for details.
 
@@ -4466,6 +4482,10 @@ class AsymptoticRingFunctor(ConstructionFunctor):
             AsymptoticRing<x^ZZ>
         """
         self.growth_group = growth_group
+        if cls is None:
+            self.cls = AsymptoticRing
+        else:
+            self.cls = cls
 
         from sage.categories.rings import Rings
         super(ConstructionFunctor, self).__init__(
@@ -4484,8 +4504,18 @@ class AsymptoticRingFunctor(ConstructionFunctor):
 
             sage: AsymptoticRing(growth_group='x^ZZ', coefficient_ring=QQ).construction()[0]  # indirect doctest
             AsymptoticRing<x^ZZ>
+
+        :trac:`22392`::
+
+            sage: from sage.rings.asymptotic.asymptotic_ring import AsymptoticRing
+            sage: class MyAsymptoticRing(AsymptoticRing):
+            ....:     pass
+            sage: A = MyAsymptoticRing(growth_group='x^ZZ', coefficient_ring=QQ)
+            sage: A.construction()
+            (MyAsymptoticRing<x^ZZ>, Rational Field)
         """
-        return 'AsymptoticRing<%s>' % (self.growth_group._repr_(condense=True),)
+        return '{}<{}>'.format(self.cls.__name__,
+                               self.growth_group._repr_(condense=True))
 
 
     def _apply_functor(self, coefficient_ring):
@@ -4506,9 +4536,26 @@ class AsymptoticRingFunctor(ConstructionFunctor):
             sage: F, C = A.construction()
             sage: F(C)  # indirect doctest
             Asymptotic Ring <x^ZZ> over Rational Field
+
+        TESTS:
+
+        :trac:`22392`::
+
+            sage: from sage.rings.asymptotic.asymptotic_ring import AsymptoticRing
+            sage: class MyAsymptoticRing(AsymptoticRing):
+            ....:     pass
+            sage: A = MyAsymptoticRing(growth_group='x^ZZ', coefficient_ring=QQ)
+            sage: type(A.construction()[0](ZZ))
+            <class '__main__.MyAsymptoticRing_with_category'>
+
+
+            sage: C = CyclotomicField(3)
+            sage: P = C['z']
+            sage: type(P(2) * A.gen())
+            <class '...MyAsymptoticRing_with_category.element_class'>
         """
-        return AsymptoticRing(growth_group=self.growth_group,
-                              coefficient_ring=coefficient_ring)
+        return self.cls(growth_group=self.growth_group,
+                        coefficient_ring=coefficient_ring)
 
 
     def merge(self, other):
@@ -4537,7 +4584,7 @@ class AsymptoticRingFunctor(ConstructionFunctor):
         if self == other:
             return self
 
-        if isinstance(other, AsymptoticRingFunctor):
+        if isinstance(other, AsymptoticRingFunctor) and self.cls == other.cls:
             from sage.structure.element import get_coercion_model
             cm = get_coercion_model()
             try:
@@ -4545,7 +4592,7 @@ class AsymptoticRingFunctor(ConstructionFunctor):
             except TypeError:
                 pass
             else:
-                return AsymptoticRingFunctor(G)
+                return AsymptoticRingFunctor(G, self.cls)
 
 
     def __eq__(self, other):
@@ -4571,8 +4618,9 @@ class AsymptoticRingFunctor(ConstructionFunctor):
             sage: F_X == F_Y
             False
         """
-        return type(self) == type(other) and \
-            self.growth_group == other.growth_group
+        return (type(self) == type(other)
+                and self.growth_group == other.growth_group
+                and self.cls == other.cls)
 
 
     def __ne__(self, other):

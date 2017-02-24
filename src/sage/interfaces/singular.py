@@ -65,7 +65,7 @@ factorization::
     sage: R1 = singular.ring(0, '(x,y)', 'dp')
     sage: R1
     polynomial ring, over a field, global ordering
-    //   characteristic : 0
+    //   coefficients: QQ
     //   number of vars : 2
     //        block   1 : ordering dp
     //                  : names    x y
@@ -243,7 +243,7 @@ Groebner basis for some ideal, using Singular through Sage.
     sage: singular.lib('poly.lib')
     sage: singular.ring(32003, '(a,b,c,d,e,f)', 'lp')
             polynomial ring, over a field, global ordering
-            //   characteristic : 32003
+            //   coefficients: ZZ/32003
             //   number of vars : 6
             //        block   1 : ordering lp
             //                        : names    a b c d e f
@@ -1000,7 +1000,7 @@ class Singular(ExtraTabCompletion, Expect):
             sage: R = singular.ring(0, '(x,y,z)', 'dp')
             sage: R
             polynomial ring, over a field, global ordering
-            //   characteristic : 0
+            //   coefficients: QQ
             //   number of vars : 3
             //        block   1 : ordering dp
             //                  : names    x y z
@@ -1080,7 +1080,7 @@ class Singular(ExtraTabCompletion, Expect):
             sage: S = singular.ring('real', '(a,b)', 'lp')
             sage: singular.current_ring()
             polynomial ring, over a field, global ordering
-            //   characteristic : 0 (real)
+            //   coefficients: float
             //   number of vars : 2
             //        block   1 : ordering lp
             //                  : names    a b
@@ -1088,7 +1088,7 @@ class Singular(ExtraTabCompletion, Expect):
             sage: singular.set_ring(R)
             sage: singular.current_ring()
             polynomial ring, over a field, local ordering
-            //   characteristic : 7
+            //   coefficients: ZZ/7
             //   number of vars : 2
             //        block   1 : ordering ds
             //                  : names    a b
@@ -1130,14 +1130,14 @@ class Singular(ExtraTabCompletion, Expect):
             sage: r = PolynomialRing(GF(127),3,'xyz', order='invlex')
             sage: r._singular_()
             polynomial ring, over a field, global ordering
-            //   characteristic : 127
+            //   coefficients: ZZ/127
             //   number of vars : 3
             //        block   1 : ordering rp
             //                  : names    x y z
             //        block   2 : ordering C
             sage: singular.current_ring()
             polynomial ring, over a field, global ordering
-            //   characteristic : 127
+            //   coefficients: ZZ/127
             //   number of vars : 3
             //        block   1 : ordering rp
             //                  : names    x y z
@@ -1360,7 +1360,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             sage: cpQ.set_ring()
             sage: cpQ
             polynomial ring, over a field, global ordering
-            //   characteristic : 0
+            //   coefficients: QQ
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y
@@ -1911,7 +1911,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
 
             sage: singular('basering')
             polynomial ring, over a domain, global ordering
-            //   coeff. ring is : ZZ
+            //   coefficients: ZZ
             //   number of vars : 3
             //        block   1 : ordering lp
             //                  : names    x y z
@@ -1996,7 +1996,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             sage: S = singular.ring('real', '(a,b)', 'lp')
             sage: singular.current_ring()
             polynomial ring, over a field, global ordering
-            //   characteristic : 0 (real)
+            //   coefficients: float
             //   number of vars : 2
             //        block   1 : ordering lp
             //                  : names    a b
@@ -2004,7 +2004,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             sage: R.set_ring()
             sage: singular.current_ring()
             polynomial ring, over a field, local ordering
-            //   characteristic : 7
+            //   coefficients: ZZ/7
             //   number of vars : 2
             //        block   1 : ordering ds
             //                  : names    a b
@@ -2260,7 +2260,7 @@ def reduce_load():
 
         sage: loads(dumps(singular.ring()))
         polynomial ring, over a field, global ordering
-        //   characteristic : 0
+        //   coefficients: QQ
         //   number of vars : 1
         //        block   1 : ordering lp
         //                  : names    x

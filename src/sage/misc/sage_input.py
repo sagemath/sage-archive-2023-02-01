@@ -3473,7 +3473,7 @@ def verify_same(a, b):
     from sage.rings.real_mpfi import is_RealIntervalFieldElement
     from sage.rings.complex_interval import is_ComplexIntervalFieldElement
     if is_RealIntervalFieldElement(a) or is_ComplexIntervalFieldElement(a):
-        assert(cmp(a, b) == 0), "Expected %s == %s" % (a, b)
+        assert(a.endpoints() == b.endpoints()), "Expected %s == %s" % (a, b)
         return
 
     if not (a == b):

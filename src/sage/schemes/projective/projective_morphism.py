@@ -723,7 +723,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = Hom(P,P)
-            sage: f = H([x^2+y^2, y^2])
+            sage: f = H([x^2 + y^2, y^2])
             sage: f.dynatomic_polynomial(2)
             x^2 + x*y + 2*y^2
 
@@ -731,7 +731,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: P.<x,y> = ProjectiveSpace(ZZ,1)
             sage: H = Hom(P,P)
-            sage: f = H([x^2+y^2, x*y])
+            sage: f = H([x^2 + y^2, x*y])
             sage: f.dynatomic_polynomial(4)
             2*x^12 + 18*x^10*y^2 + 57*x^8*y^4 + 79*x^6*y^6 + 48*x^4*y^8 + 12*x^2*y^10 + y^12
 
@@ -739,7 +739,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: P.<x,y> = ProjectiveSpace(CC,1)
             sage: H = Hom(P,P)
-            sage: f = H([x^2+y^2, 3*x*y])
+            sage: f = H([x^2 + y^2, 3*x*y])
             sage: f.dynatomic_polynomial(3)
             13.0000000000000*x^6 + 117.000000000000*x^4*y^2 +
             78.0000000000000*x^2*y^4 + y^6
@@ -748,7 +748,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = Hom(P,P)
-            sage: f = H([x^2-10/9*y^2, y^2])
+            sage: f = H([x^2 - 10/9*y^2, y^2])
             sage: f.dynatomic_polynomial([2,1])
             x^4*y^2 - 11/9*x^2*y^4 - 80/81*y^6
 
@@ -756,7 +756,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = Hom(P,P)
-            sage: f = H([x^2-29/16*y^2, y^2])
+            sage: f = H([x^2 - 29/16*y^2, y^2])
             sage: f.dynatomic_polynomial([2,3])
             x^12 - 95/8*x^10*y^2 + 13799/256*x^8*y^4 - 119953/1024*x^6*y^6 +
             8198847/65536*x^4*y^8 - 31492431/524288*x^2*y^10 +
@@ -766,7 +766,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: P.<x,y> = ProjectiveSpace(ZZ,1)
             sage: H = Hom(P,P)
-            sage: f = H([x^2-y^2, y^2])
+            sage: f = H([x^2 - y^2, y^2])
             sage: f.dynatomic_polynomial([1,2])
             x^2 - x*y
 
@@ -774,7 +774,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = Hom(P,P)
-            sage: f = H([x^3-y^3, 3*x*y^2])
+            sage: f = H([x^3 - y^3, 3*x*y^2])
             sage: f.dynatomic_polynomial([0,4])==f.dynatomic_polynomial(4)
             True
 
@@ -782,7 +782,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
             sage: H = Hom(P,P)
-            sage: f = H([x^2+y^2, x*y, z^2])
+            sage: f = H([x^2 + y^2, x*y, z^2])
             sage: f.dynatomic_polynomial(2)
             Traceback (most recent call last):
             ...
@@ -792,7 +792,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: P.<x,y> = ProjectiveSpace(Qp(5),1)
             sage: H = Hom(P,P)
-            sage: f = H([x^2+y^2, y^2])
+            sage: f = H([x^2 + y^2, y^2])
             sage: f.dynatomic_polynomial(2)
             (x^4*y + (2 + O(5^20))*x^2*y^3 - x*y^4 + (2 + O(5^20))*y^5)/(x^2*y -
             x*y^2 + y^3)
@@ -802,7 +802,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: L.<t> = PolynomialRing(QQ)
             sage: P.<x,y> = ProjectiveSpace(L,1)
             sage: H = Hom(P,P)
-            sage: f = H([x^2+t*y^2, y^2])
+            sage: f = H([x^2 + t*y^2, y^2])
             sage: f.dynatomic_polynomial(2)
             x^2 + x*y + (t + 1)*y^2
 
@@ -811,7 +811,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: K.<c> = PolynomialRing(ZZ)
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: H = Hom(P,P)
-            sage: f = H([x^2+ c*y^2, y^2])
+            sage: f = H([x^2 + c*y^2, y^2])
             sage: f.dynatomic_polynomial([1, 2])
             x^2 - x*y + (c + 1)*y^2
 
@@ -819,7 +819,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = Hom(P,P)
-            sage: f = H([x^2+y^2, y^2])
+            sage: f = H([x^2 + y^2, y^2])
             sage: f.dynatomic_polynomial(2)
             x^2 + x*y + 2*y^2
             sage: R.<X> = PolynomialRing(QQ)
@@ -834,7 +834,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = Hom(P,P)
-            sage: f = H([x^2+y^2, x*y])
+            sage: f = H([x^2 + y^2, x*y])
             sage: f.dynatomic_polynomial([2, 2])
             x^4 + 4*x^2*y^2 + y^4
             sage: R.<X> = PolynomialRing(QQ)
@@ -849,7 +849,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: P.<x,y> = ProjectiveSpace(CC, 1)
             sage: H = Hom(P,P)
-            sage: f = H([x^2-CC.0/3*y^2, y^2])
+            sage: f = H([x^2 - CC.0/3*y^2, y^2])
             sage: f.dynatomic_polynomial(2)
             (x^4*y + (-0.666666666666667*I)*x^2*y^3 - x*y^4 + (-0.111111111111111 - 0.333333333333333*I)*y^5)/(x^2*y - x*y^2 + (-0.333333333333333*I)*y^3)
 
@@ -874,8 +874,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: P.<x,y> = ProjectiveSpace(ZZ, 1)
             sage: H = Hom(P,P)
-            sage: f = H([x^2-5*y^2, y^2])
-            sage: f.dynatomic_polynomial([3,0])
+            sage: f = H([x^2 - 5*y^2, y^2])
+            sage: f.dynatomic_polynomial([3,0 ])
             0
 
         TESTS:
@@ -885,7 +885,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y> = ProjectiveSpace(QQbar,1)
             sage: H = End(P)
             sage: R = P.coordinate_ring()
-            sage: f = H([x^2-1/3*y^2, y^2])
+            sage: f = H([x^2 - 1/3*y^2, y^2])
             sage: f.dynatomic_polynomial(2).parent()
             Multivariate Polynomial Ring in x, y over Algebraic Field
 
@@ -895,7 +895,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: S.<t> = PolynomialRing(T)
             sage: P.<x,y> = ProjectiveSpace(FractionField(S),1)
             sage: H = End(P)
-            sage: f = H([t*x^2-1/t*y^2, y^2])
+            sage: f = H([t*x^2 - 1/t*y^2, y^2])
             sage: f.dynatomic_polynomial([1, 2]).parent()
             Multivariate Polynomial Ring in x, y over Fraction Field of Univariate Polynomial
             Ring in t over Number Field in v with defining polynomial x^2 - 33
@@ -904,7 +904,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: P.<x, y> = ProjectiveSpace(QQ, 1)
             sage: H = End(P)
-            sage: f = H([x^3-y^3*2, y^3])
+            sage: f = H([x^3 - y^3*2, y^3])
             sage: f.dynatomic_polynomial(1).parent()
             Multivariate Polynomial Ring in x, y over Rational Field
 
@@ -922,8 +922,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: R.<c> = QQ[]
             sage: P.<x,y> = ProjectiveSpace(ZZ,1)
-            sage: H=End(P)
-            sage: f=H([x^2 + y^2, (1)*y^2 + (1)*x*y])
+            sage: H = End(P)
+            sage: f = H([x^2 + y^2, (1)*y^2 + (1)*x*y])
             sage: f.dynatomic_polynomial([1,2]).parent()
             Multivariate Polynomial Ring in x, y over Integer Ring
 

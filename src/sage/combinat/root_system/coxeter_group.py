@@ -53,7 +53,7 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
 
         sage: W = CoxeterGroup(["A",2])
         sage: W
-        Finite Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+        Finite Coxeter group over Rational Field with Coxeter matrix:
         [1 3]
         [3 1]
 
@@ -65,7 +65,8 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
         [3 2 3 1]
 
         sage: W = CoxeterGroup(['H',3]); W
-        Finite Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+        Finite Coxeter group over Number Field in a with
+        defining polynomial x^2 - 5 with Coxeter matrix:
         [1 3 2]
         [3 1 5]
         [2 5 1]
@@ -86,14 +87,16 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
 
         sage: W = CoxeterGroup(["H",3], implementation="matrix")
         sage: W
-        Finite Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+        Finite Coxeter group over Number Field in a with
+        defining polynomial x^2 - 5 with Coxeter matrix:
         [1 3 2]
         [3 1 5]
         [2 5 1]
 
         sage: W = CoxeterGroup(["H",3], implementation="reflection")
         sage: W
-        Finite Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+        Finite Coxeter group over Number Field in a with
+        defining polynomial x^2 - 5 with Coxeter matrix:
         [1 3 2]
         [3 1 5]
         [2 5 1]

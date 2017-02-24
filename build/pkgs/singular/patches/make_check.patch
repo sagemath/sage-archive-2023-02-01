@@ -1,0 +1,216 @@
+From 3f253bdb1a2093b790df2d04741171aa027ff07d Mon Sep 17 00:00:00 2001
+From: Hans Schoenemann <hannes@mathematik.uni-kl.de>
+Date: Mon, 20 Feb 2017 18:33:27 +0100
+Subject: [PATCH] make check
+
+---
+ Singular/test.cc                 | 1 -
+ kernel/GBEngine/Makefile.am      | 2 +-
+ kernel/GBEngine/test.cc          | 2 +-
+ kernel/Makefile.am               | 2 +-
+ kernel/combinatorics/Makefile.am | 2 +-
+ kernel/combinatorics/test.cc     | 2 +-
+ kernel/fglm/test.cc              | 2 +-
+ kernel/groebner_walk/test.cc     | 2 +-
+ kernel/linear_algebra/test.cc    | 2 +-
+ kernel/maps/test.cc              | 2 +-
+ kernel/numeric/test.cc           | 2 +-
+ kernel/oswrapper/test.cc         | 2 +-
+ kernel/spectrum/test.cc          | 2 +-
+ kernel/test.cc                   | 2 +-
+ libpolys/tests/rings_test.h      | 2 +-
+ 15 files changed, 14 insertions(+), 15 deletions(-)
+
+diff --git a/Singular/test.cc b/Singular/test.cc
+index d5b64e7..45ed707 100644
+--- a/Singular/test.cc
++++ b/Singular/test.cc
+@@ -194,7 +194,6 @@
+ #include <Singular/newstruct.h>
+ #include <Singular/pcv.h>
+ #include <Singular/links/pipeLink.h>
+-#include <Singular/run.h>
+ #include <Singular/sdb.h>
+ #include <Singular/links/silink.h>
+ #include <Singular/links/sing_dbm.h>
+diff --git a/kernel/GBEngine/Makefile.am b/kernel/GBEngine/Makefile.am
+index 3efdcf0..fb8bec3 100644
+--- a/kernel/GBEngine/Makefile.am
++++ b/kernel/GBEngine/Makefile.am
+@@ -17,7 +17,7 @@ TESTS_ENVIRONMENT += SINGULAR_ROOT_DIR='${abs_top_builddir}'
+ TESTS = test
+ check_PROGRAMS = $(TESTS)
+ test_SOURCES = test.cc
+-test_LDADD   = libGBEngine.la ${builddir}/../combinatorics/libcombinatorics.la ${builddir}/../linear_algebra/liblinear_algebra.la ${builddir}/../libkernelCommon.la
++test_LDADD   = libGBEngine.la ${builddir}/../combinatorics/libcombinatorics.la ${builddir}/../linear_algebra/liblinear_algebra.la ${builddir}/../libkernelCommon.la  ${builddir}/../../Singular/libSingular.la
+ 
+ CLEANFILES = $(TESTS)
+ 
+diff --git a/kernel/GBEngine/test.cc b/kernel/GBEngine/test.cc
+index 436a1c8..5336737 100644
+--- a/kernel/GBEngine/test.cc
++++ b/kernel/GBEngine/test.cc
+@@ -93,7 +93,7 @@ void TestGBEngine()
+ 
+ 
+   const int D = 3;
+-  int *order = (int *) omAlloc0(D* sizeof(int));
++  rRingOrder_t *order = (rRingOrder_t *) omAlloc0(D* sizeof(rRingOrder_t));
+   int *block0 = (int *)omAlloc0(D * sizeof(int));
+   int *block1 = (int *)omAlloc0(D * sizeof(int));
+ 
+diff --git a/kernel/Makefile.am b/kernel/Makefile.am
+index 86f6d47..575f215 100644
+--- a/kernel/Makefile.am
++++ b/kernel/Makefile.am
+@@ -51,7 +51,7 @@ TESTS = test
+ check_PROGRAMS = $(TESTS)
+ 
+ test_SOURCES = test.cc
+-test_LDADD   = libkernel.la
++test_LDADD   = libkernel.la ${builddir}/../Singular/libSingular.la
+ 
+ # These files are built first
+ # BUILT_SOURCES = MOD
+diff --git a/kernel/combinatorics/Makefile.am b/kernel/combinatorics/Makefile.am
+index 63a52ec..f8074fe 100644
+--- a/kernel/combinatorics/Makefile.am
++++ b/kernel/combinatorics/Makefile.am
+@@ -17,6 +17,6 @@ TESTS_ENVIRONMENT += SINGULAR_ROOT_DIR='${abs_top_builddir}'
+ TESTS = test
+ check_PROGRAMS = $(TESTS)
+ test_SOURCES = test.cc
+-test_LDADD   = libcombinatorics.la ${builddir}/../libkernelCommon.la
++test_LDADD   = libcombinatorics.la ${builddir}/../libkernelCommon.la  ${builddir}/../../Singular/libSingular.la
+ 
+ CLEANFILES = $(TESTS)
+diff --git a/kernel/combinatorics/test.cc b/kernel/combinatorics/test.cc
+index 056fd57..32e7ae5 100644
+--- a/kernel/combinatorics/test.cc
++++ b/kernel/combinatorics/test.cc
+@@ -99,7 +99,7 @@ void TestGBEngine()
+ 
+ 
+   const int D = 3;
+-  int *order = (int *) omAlloc0(D* sizeof(int));
++  rRingOrder_t *order = (rRingOrder_t *) omAlloc0(D* sizeof(rRingOrder_t));
+   int *block0 = (int *)omAlloc0(D * sizeof(int));
+   int *block1 = (int *)omAlloc0(D * sizeof(int));
+ 
+diff --git a/kernel/fglm/test.cc b/kernel/fglm/test.cc
+index c5182db..597053b 100644
+--- a/kernel/fglm/test.cc
++++ b/kernel/fglm/test.cc
+@@ -97,7 +97,7 @@ void TestGBEngine()
+ 
+ 
+   const int D = 3;
+-  int *order = (int *) omAlloc0(D* sizeof(int));
++  rRingOrder_t *order = (rRingOrder_t *) omAlloc0(D* sizeof(rRingOrder_t));
+   int *block0 = (int *)omAlloc0(D * sizeof(int));
+   int *block1 = (int *)omAlloc0(D * sizeof(int));
+ 
+diff --git a/kernel/groebner_walk/test.cc b/kernel/groebner_walk/test.cc
+index c5182db..597053b 100644
+--- a/kernel/groebner_walk/test.cc
++++ b/kernel/groebner_walk/test.cc
+@@ -97,7 +97,7 @@ void TestGBEngine()
+ 
+ 
+   const int D = 3;
+-  int *order = (int *) omAlloc0(D* sizeof(int));
++  rRingOrder_t *order = (rRingOrder_t *) omAlloc0(D* sizeof(rRingOrder_t));
+   int *block0 = (int *)omAlloc0(D * sizeof(int));
+   int *block1 = (int *)omAlloc0(D * sizeof(int));
+ 
+diff --git a/kernel/linear_algebra/test.cc b/kernel/linear_algebra/test.cc
+index c5182db..597053b 100644
+--- a/kernel/linear_algebra/test.cc
++++ b/kernel/linear_algebra/test.cc
+@@ -97,7 +97,7 @@ void TestGBEngine()
+ 
+ 
+   const int D = 3;
+-  int *order = (int *) omAlloc0(D* sizeof(int));
++  rRingOrder_t *order = (rRingOrder_t *) omAlloc0(D* sizeof(rRingOrder_t));
+   int *block0 = (int *)omAlloc0(D * sizeof(int));
+   int *block1 = (int *)omAlloc0(D * sizeof(int));
+ 
+diff --git a/kernel/maps/test.cc b/kernel/maps/test.cc
+index c5182db..597053b 100644
+--- a/kernel/maps/test.cc
++++ b/kernel/maps/test.cc
+@@ -97,7 +97,7 @@ void TestGBEngine()
+ 
+ 
+   const int D = 3;
+-  int *order = (int *) omAlloc0(D* sizeof(int));
++  rRingOrder_t *order = (rRingOrder_t *) omAlloc0(D* sizeof(rRingOrder_t));
+   int *block0 = (int *)omAlloc0(D * sizeof(int));
+   int *block1 = (int *)omAlloc0(D * sizeof(int));
+ 
+diff --git a/kernel/numeric/test.cc b/kernel/numeric/test.cc
+index c5182db..597053b 100644
+--- a/kernel/numeric/test.cc
++++ b/kernel/numeric/test.cc
+@@ -97,7 +97,7 @@ void TestGBEngine()
+ 
+ 
+   const int D = 3;
+-  int *order = (int *) omAlloc0(D* sizeof(int));
++  rRingOrder_t *order = (rRingOrder_t *) omAlloc0(D* sizeof(rRingOrder_t));
+   int *block0 = (int *)omAlloc0(D * sizeof(int));
+   int *block1 = (int *)omAlloc0(D * sizeof(int));
+ 
+diff --git a/kernel/oswrapper/test.cc b/kernel/oswrapper/test.cc
+index c5182db..597053b 100644
+--- a/kernel/oswrapper/test.cc
++++ b/kernel/oswrapper/test.cc
+@@ -97,7 +97,7 @@ void TestGBEngine()
+ 
+ 
+   const int D = 3;
+-  int *order = (int *) omAlloc0(D* sizeof(int));
++  rRingOrder_t *order = (rRingOrder_t *) omAlloc0(D* sizeof(rRingOrder_t));
+   int *block0 = (int *)omAlloc0(D * sizeof(int));
+   int *block1 = (int *)omAlloc0(D * sizeof(int));
+ 
+diff --git a/kernel/spectrum/test.cc b/kernel/spectrum/test.cc
+index c5182db..597053b 100644
+--- a/kernel/spectrum/test.cc
++++ b/kernel/spectrum/test.cc
+@@ -97,7 +97,7 @@ void TestGBEngine()
+ 
+ 
+   const int D = 3;
+-  int *order = (int *) omAlloc0(D* sizeof(int));
++  rRingOrder_t *order = (rRingOrder_t *) omAlloc0(D* sizeof(rRingOrder_t));
+   int *block0 = (int *)omAlloc0(D * sizeof(int));
+   int *block1 = (int *)omAlloc0(D * sizeof(int));
+ 
+diff --git a/kernel/test.cc b/kernel/test.cc
+index e27acf7..a0c418e 100644
+--- a/kernel/test.cc
++++ b/kernel/test.cc
+@@ -203,7 +203,7 @@ void TestGBEngine()
+ 
+ 
+   const int D = 3;
+-  int *order = (int *) omAlloc0(D* sizeof(int));
++  rRingOrder_t *order = (rRingOrder_t *) omAlloc0(D* sizeof(rRingOrder_t));
+   int *block0 = (int *)omAlloc0(D * sizeof(int));
+   int *block1 = (int *)omAlloc0(D * sizeof(int));
+ 
+diff --git a/libpolys/tests/rings_test.h b/libpolys/tests/rings_test.h
+index f8a66b5..22c92f6 100644
+--- a/libpolys/tests/rings_test.h
++++ b/libpolys/tests/rings_test.h
+@@ -208,7 +208,7 @@ class PolysTestSuite : public CxxTest::TestSuite
+ 
+      const int D = 2;
+      /*order: lp,0*/
+-     int *order = (int *) omAlloc0(D* sizeof(int));
++     rRingOrder_t *order = (rRingOrder_t *) omAlloc0(D* sizeof(rRingOrder_t));
+      int *block0 = (int *)omAlloc0(D * sizeof(int));
+      int *block1 = (int *)omAlloc0(D * sizeof(int));
+      /* ringorder dp for the first block: var 1..N */

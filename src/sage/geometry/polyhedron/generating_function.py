@@ -56,34 +56,44 @@ def generating_function_of_integral_points(polyhedron, split=False,
 
     - ``polyhedron`` -- an instance of
       :class:`~sage.geometry.polyhedron.base.Polyhedron_base`
-      (see also :mod:`sage.geometry.polyhedron.constructor`).
+      (see also :mod:`sage.geometry.polyhedron.constructor`)
 
-    - ``split`` -- (default: ``False``) ``False`` computes the generating
+    - ``split`` -- (default: ``False``) a boolean
+
+      ``False`` computes the generating
       function directly, whereas ``True`` splits the ``polyhedron``
       into several small disjoint polyhedra and adds the results.
       ``split`` may also be a list of disjoint polyhedra.
 
     - ``result_as_tuple`` -- (default: ``None``) a boolean or ``None``
-      specifying whether the output is a (partial) factorization
+
+      This specifies whether the output is a (partial) factorization
       (``result_as_tuple=False``) or a sum of such (partial)
       factorizations (``result_as_tuple=True``). By default
       (``result_as_tuple=None``), this is automatically determined.
       If the output is a sum, it is represented as a tuple whose
       entries are the summands.
 
-    - ``indices`` -- (default: ``None``) a list or tuple. If this
+    - ``indices`` -- (default: ``None``) a list or tuple
+
+      If this
       is ``None``, this is automatically determined.
 
-    - ``prefix_variable_name`` -- (default: ``'y'``) a string.
+    - ``prefix_variable_name`` -- (default: ``'y'``) a string
+
       The variable names of the laurent polynomial ring of the output
       are this string followed by an integer.
 
     - ``Factorization_sort`` (default: ``False``) and
-      ``Factorization_simplify`` (default: ``True``) -- are passed on to
+      ``Factorization_simplify`` (default: ``True``) -- booleans
+
+      These are passed on to
       :class:`sage.structure.factorization.Factorization` when creating
       the result.
 
-    - ``sort_factors`` -- (default: ``False``) a boolean. If set, then
+    - ``sort_factors`` -- (default: ``False``) a boolean
+
+      If set, then
       the factors of the output are sorted such that the numerator is
       first and only then all factors of the denominator. It is ensured
       that the sorting is always the same; use this for doctesting.
@@ -92,7 +102,8 @@ def generating_function_of_integral_points(polyhedron, split=False,
 
     The generating function as a (partial)
     :class:`~sage.structure.factorization.Factorization`
-    of the result whose factors are laurent polynomials.
+    of the result whose factors are laurent polynomials
+
     The result might be a tuple of such factorizations
     (depending on the parameter ``result_as_tuple``) as well.
 
@@ -1105,27 +1116,27 @@ def compositions_mod(u, m, r=0, multidimensional=False):
 
     INPUT:
 
-    - ``m`` -- the modulus as a positive integer.
+    - ``m`` -- the modulus as a positive integer
 
-    - ``multidimensional`` -- (default: ``False``) a boolean.
+    - ``multidimensional`` -- (default: ``False``) a boolean
 
     If ``multidimensional=False``:
 
-    - ``u`` -- the coefficients as a tuple.
+    - ``u`` -- the coefficients as a tuple
 
     - ``r`` -- (default: `0`)
-      the remainder as a nonnegative integer.
+      the remainder as a nonnegative integer
 
     If ``multidimensional=True``:
 
-    - ``u`` -- the coefficients as a tuple of tuples (read column-wise).
+    - ``u`` -- the coefficients as a tuple of tuples (read column-wise)
 
     - ``r`` -- (default: the zero vector)
-      the remainder as a tuple of nonnegative integers.
+      the remainder as a tuple of nonnegative integers
 
     OUTPUT:
 
-    An iterable of tuples; all these tuples have the same size as ``u``.
+    An iterable of tuples; all these tuples have the same size as ``u``
 
     EXAMPLES::
 

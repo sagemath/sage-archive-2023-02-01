@@ -182,7 +182,7 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
 
         sage: W = CoxeterGroup(['D',5], implementation="reflection")
         sage: W
-        Finite Coxeter group over Rational Field with Coxeter matrix:
+        Finite Coxeter group over Integer Ring with Coxeter matrix:
         [1 3 2 2 2]
         [3 1 3 2 2]
         [2 3 1 3 3]
@@ -203,7 +203,7 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
 
         EXAMPLES::
 
-            sage: W1 = CoxeterGroup(['A',2], implementation="reflection", base_ring=QQ)
+            sage: W1 = CoxeterGroup(['A',2], implementation="reflection", base_ring=ZZ)
             sage: W2 = CoxeterGroup([[1,3],[3,1]], index_set=(1,2))
             sage: W1 is W2
             True
@@ -219,11 +219,11 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
         data = CoxeterMatrix(data, index_set=index_set)
 
         if base_ring is None:
-            if data.is_finite():
+            if data.is_simply_laced():
+                base_ring = ZZ
+            elif data.is_finite():
                 letter = data.coxeter_type().cartan_type().type()
-                if letter in ['A', 'D', 'E']:
-                    base_ring = QQ
-                elif letter in ['B', 'C', 'F']:
+                if letter in ['B', 'C', 'F']:
                     base_ring = QuadraticField(2)
                 elif letter == 'G':
                     base_ring = QuadraticField(3)
@@ -421,7 +421,7 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
             [   0 -1/2    1    0]
             [   0 -1/2    0    1]
         """
-        return self._matrix.bilinear_form(self.base_ring())
+        return self._matrix.bilinear_form(self.base_ring().fraction_field())
 
     def is_finite(self):
         """

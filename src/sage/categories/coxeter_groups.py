@@ -551,7 +551,7 @@ class CoxeterGroups(Category_singleton):
 
                 sage: W = WeylGroup("A3")
                 sage: W.canonical_representation()
-                Finite Coxeter group over Rational Field with Coxeter matrix:
+                Finite Coxeter group over Integer Ring with Coxeter matrix:
                 [1 3 2]
                 [3 1 3]
                 [2 3 1]

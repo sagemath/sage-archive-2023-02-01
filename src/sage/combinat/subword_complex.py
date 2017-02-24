@@ -1275,7 +1275,7 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
             sage: w = W.from_reduced_word([1,2,1])
             sage: SC = SubwordComplex([1,2,1,2,1], w)
             sage: SC.group()
-            Finite Coxeter group over Rational Field with Coxeter matrix:
+            Finite Coxeter group over Integer Ring with Coxeter matrix:
             [1 3]
             [3 1]
         """

@@ -374,16 +374,16 @@ def generating_function_of_integral_points(polyhedron, split=False,
         ....:     sort_factors=True)
         Traceback (most recent call last):
         ...
-        NotImplementedError: Cannot compute the generating function of
-        polyhedra with negative coordinates.
+        NotImplementedError: cannot compute the generating function of
+        polyhedra with negative coordinates
         sage: generating_function_of_integral_points(
         ....:     Polyhedron(ieqs=[(0, 0, -1, 0, 1), (0, 0, 1, 0, 0),
         ....:                      (0, 1, 0, 0, -1), (-1, 1, -1, 0, 0)]),
         ....:     sort_factors=True)
         Traceback (most recent call last):
         ...
-        NotImplementedError: Cannot compute the generating function of
-        polyhedra with negative coordinates.
+        NotImplementedError: cannot compute the generating function of
+        polyhedra with negative coordinates
 
     ::
 
@@ -408,7 +408,7 @@ def generating_function_of_integral_points(polyhedron, split=False,
         sage: P.generating_function_of_integral_points()
         Traceback (most recent call last):
         ...
-        TypeError: Base ring Symbolic Ring of the polyhedron is not ZZ or QQ.
+        TypeError: base ring Symbolic Ring of the polyhedron not ZZ or QQ
     """
     import logging
     logger = logging.getLogger(__name__)
@@ -430,15 +430,15 @@ def generating_function_of_integral_points(polyhedron, split=False,
             return result
 
     if polyhedron.base_ring() not in (ZZ, QQ):
-        raise TypeError('Base ring {} of the polyhedron is not '
-                        'ZZ or QQ.'.format(polyhedron.base_ring()))
+        raise TypeError('base ring {} of the polyhedron not '
+                        'ZZ or QQ'.format(polyhedron.base_ring()))
 
     d = polyhedron.ambient_dim()
     nonnegative_orthant = Polyhedron(ieqs=[dd*(0,) + (1,) + (d-dd)*(0,)
                                            for dd in range(1, d+1)])
     if polyhedron & nonnegative_orthant != polyhedron:
-        raise NotImplementedError('Cannot compute the generating function of '
-                                  'polyhedra with negative coordinates.')
+        raise NotImplementedError('cannot compute the generating function of '
+                                  'polyhedra with negative coordinates')
 
     logger.info('%s', polyhedron)
 
@@ -448,13 +448,13 @@ def generating_function_of_integral_points(polyhedron, split=False,
             return result
         else:
             if len(result) != 1:
-                raise ValueError("Cannot unpack result. "
-                                 "(Set 'result_as_tuple=True'.)")
+                raise ValueError("cannot unpack result "
+                                 "(set 'result_as_tuple=True')")
             return result[0]
 
     if d <= 1:
-        raise ValueError('Cannot do splitting with only '
-                         'dimension {}.'.format(d))
+        raise ValueError('cannot do splitting with only '
+                         'dimension {}'.format(d))
 
     if split is True:
         split = iter(
@@ -477,8 +477,8 @@ def generating_function_of_integral_points(polyhedron, split=False,
         result.append(_generating_function_of_integral_points_(
             polyhedron & split_polyhedron, **kwds))
     if not result_as_tuple:
-        raise ValueError("Cannot unpack result."
-                         "(Unset 'result_as_tuple=False'.)")
+        raise ValueError("cannot unpack result"
+                         "(unset 'result_as_tuple=False')")
     return sum(result, ())
 
 
@@ -518,7 +518,7 @@ def _generating_function_of_integral_points_(
     equations = tuple(tuple(entry)
                       for entry in Hrepr if entry.is_equation())
     if len(inequalities) + len(equations) != len(Hrepr):
-        raise ValueError('Cannot handle {}.'.format(polyhedron))
+        raise ValueError('cannot handle {}.'.format(polyhedron))
 
     if not inequalities:
         raise NotImplementedError('no inequality given')
@@ -528,11 +528,11 @@ def _generating_function_of_integral_points_(
 
     n = len(indices) + 1
     if any(len(e) != n for e in inequalities):
-        raise ValueError('Not all coefficient vectors of the inequalities '
-                         'have the same length.')
+        raise ValueError('not all coefficient vectors of the inequalities '
+                         'have the same length')
     if any(len(e) != n for e in equations):
-        raise ValueError('Not all coefficient vectors of the equations '
-                         'have the same length.')
+        raise ValueError('not all coefficient vectors of the equations '
+                         'have the same length')
 
     mods = _generate_mods_(equations)
     logger.debug('splitting by moduli %s', mods)
@@ -1016,7 +1016,7 @@ def _generate_mods_(equations):
                           for i, aa in zip(TEin, a) if aa.modulus() > 1}
                          for a in pre_mods)
     else:
-        raise TypeError('Equations over ZZ or QQ expected, but got '
+        raise TypeError('equations over ZZ or QQ expected, but got '
                         'equations over {}.'.format(TE.base_ring()))
 
     return mods

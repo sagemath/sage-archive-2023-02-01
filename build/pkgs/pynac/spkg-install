@@ -28,7 +28,7 @@ PYNACDIR=${WORKDIR}
 
 patch()
 {
-    true
+    sage-apply-patches
 }
 
 build_pynac()

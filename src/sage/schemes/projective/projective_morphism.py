@@ -870,6 +870,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.dynatomic_polynomial(2)
             x^2 + x*y + (t^2 + 2)*y^2
 
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(ZZ, 1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2-5*y^2, y^2])
+            sage: f.dynatomic_polynomial([3,0])
+            0
+
         TESTS:
 
         We check that the dynatomic polynomial has the right parent (see :trac:`18409`)::
@@ -977,11 +985,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         n = int(period[1])
         if n < 0:
             raise TypeError("period must be a postive integer")
-        if m == 0:
-            if n == 0:
-                return self[0].parent().zero()
-            elif n == 1:
-                return y*F0 - x*F1
+        if n == 0:
+            return self[0].parent().zero()
+        if m == 0 and n == 1:
+            return y*F0 - x*F1
         for d in range(1, n):
             if n % d == 0:
                 PHI = PHI * ((y*F0 - x*F1)**moebius(n//d))

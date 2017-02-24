@@ -9,6 +9,8 @@ from sage.misc.latex import latex_variable_name
 from sage.misc.misc_c import prod
 
 from sage.structure.parent cimport Parent
+from sage.structure.sage_object cimport rich_to_bool, richcmp
+from cpython.object cimport Py_NE
 
 from sage.categories.commutative_rings import CommutativeRings
 _CommutativeRings = CommutativeRings()
@@ -353,25 +355,26 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         return D
 
     def __richcmp__(left, right, int op):
-        return (<Parent>left)._richcmp(right, op)
+        if left is right:
+            return rich_to_bool(op, 0)
 
-    cpdef int _cmp_(left, right) except -2:
+        if not isinstance(right, Parent) or not isinstance(left, Parent):
+            # One is not a parent -- not equal and not ordered
+            return op == Py_NE
+
         if not is_MPolynomialRing(right):
-            return -1  # arbitrary
+            return op == Py_NE
 
+        lft = <MPolynomialRing_generic>left
         other = <MPolynomialRing_generic>right
 
-        lx = (left.base_ring(), left.__ngens,
-              left.variable_names(),
-              left.__term_order)
+        lx = (lft.base_ring(), lft.__ngens,
+              lft.variable_names(),
+              lft.__term_order)
         rx = (other.base_ring(), other.__ngens,
               other.variable_names(),
               other.__term_order)
-        if lx < rx:
-            return -1
-        if lx > rx:
-            return 1
-        return 0
+        return richcmp(lx, rx, op)
 
     def _repr_(self):
         """

@@ -1,4 +1,4 @@
-$(PYTHON) jupyter_core | pip pyzmq
+$(MP_LIBRARY)
 
 ----------
 All lines of this file are ignored except the first.

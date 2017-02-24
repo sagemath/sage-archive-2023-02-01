@@ -61,7 +61,7 @@ Installation
 ============
 
 Si Sage n'est pas installé sur votre ordinateur, vous pouvez essayer
-quelques commandes en ligne à l'adresse http://www.sagenb.org.
+quelques commandes en ligne à l'adresse http://sagecell.sagemath.org.
 
 Des instructions pour installer Sage sur votre ordinateur sont
 disponibles dans le guide d'installation (*Installation Guide*), dans

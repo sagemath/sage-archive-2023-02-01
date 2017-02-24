@@ -410,6 +410,7 @@ factored_b:
         return polynome_to_ex(d, revmap).subs(repl, subs_options::no_pattern);
 }
 
+#if 0
 ex resultantpoly(const ex & ee1, const ex & ee2, const ex & s)
 {
         // Conversion necessary to count needed symbols beforehand
@@ -431,6 +432,7 @@ ex resultantpoly(const ex & ee1, const ex & ee2, const ex & s)
         giac::polynome d = giac::resultant(p, q);
         return polynome_to_ex(d, revmap).subs(repl, subs_options::no_pattern);
 }
+#endif
 
 bool factorpoly(const ex& the_ex, ex& res_prod)
 {

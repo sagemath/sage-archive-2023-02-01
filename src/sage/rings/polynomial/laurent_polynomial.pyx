@@ -1575,7 +1575,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                     self._mon = self._mon.emin(k) # point-wise min of _mon and k
                 else:
                     x = D
-                if len(self._mon.nonzero_positions()) != 0: # factor out _mon
+                if not self._mon.is_constant(): # factor out _mon
                     x = {k.esub(self._mon): x_k for k, x_k in iteritems(x)}
             else: # since x should coerce into parent, _mon should be (0,...,0)
                 self._mon = ETuple({}, int(parent.ngens()))
@@ -1660,7 +1660,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                     e = k
                 else:
                     e = e.emin(k)
-            if len(e.nonzero_positions()) > 0:
+            if not e.is_constant():
                 self._poly = self._poly // self._poly.parent()({e: 1})
                 self._mon = self._mon.eadd(e)
         else:
@@ -1689,7 +1689,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
 
         """
         D = self._poly._mpoly_dict_recursive(self.parent().variable_names(), self.parent().base_ring())
-        if len(self._mon.nonzero_positions()) > 0:
+        if not self._mon.is_constant():
             DD = {}
             for k in D:
                 DD[k.eadd(self._mon)] = D[k]
@@ -2190,11 +2190,11 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         cdef LaurentPolynomial_mpair ans = self._new_c()
         cdef LaurentPolynomial_mpair right = <LaurentPolynomial_mpair>_right
         ans._mon, a, b = self._mon.combine_to_positives(right._mon)
-        if len(a.nonzero_positions()) > 0:
+        if not a.is_constant():
             ans._poly = self._poly * self._poly.parent()({a: 1})
         else:
             ans._poly = self._poly
-        if len(b.nonzero_positions()) > 0:
+        if not b.is_constant():
             ans._poly += right._poly * self._poly.parent()({b: 1})
         else:
             ans._poly += right._poly
@@ -2217,11 +2217,11 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         cdef LaurentPolynomial_mpair right = <LaurentPolynomial_mpair>_right
         cdef ETuple a, b
         ans._mon, a, b = self._mon.combine_to_positives(right._mon)
-        if len(a.nonzero_positions()) > 0:
+        if not a.is_constant():
             ans._poly = self._poly * self._poly.parent()({a: 1})
         else:
             ans._poly = self._poly
-        if len(b.nonzero_positions()) > 0:
+        if not b.is_constant():
             ans._poly -= right._poly * self._poly.parent()({b: 1})
         else:
             ans._poly -= right._poly

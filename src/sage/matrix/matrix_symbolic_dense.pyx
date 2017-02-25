@@ -83,9 +83,9 @@ Test pickling::
 Comparison::
 
     sage: m = matrix(SR, 2, [sqrt(2), 3, pi, e])
-    sage: cmp(m,m)
-    0
-    sage: cmp(m,3) != 0
+    sage: m == m
+    True
+    sage: m != 3
     True
     sage: m = matrix(SR,2,[1..4]); n = m^2
     sage: (exp(m+n) - exp(m)*exp(n)).simplify_rational() == 0       # indirect test

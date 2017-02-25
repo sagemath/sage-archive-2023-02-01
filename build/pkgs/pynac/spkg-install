@@ -26,11 +26,6 @@ fi
 WORKDIR=${PWD}/src
 PYNACDIR=${WORKDIR}
 
-patch()
-{
-    true
-}
-
 build_pynac()
 {
     cd ${PYNACDIR}
@@ -63,8 +58,6 @@ clean_pynac()
 {
     true
 }
-
-patch
 
 
 cd src

@@ -361,6 +361,43 @@ class InfiniteDiscretePseudoValuation(DiscretePseudoValuation):
         """
         return False
 
+class NegativeInfiniteDiscretePseudoValuation(InfiniteDiscretePseudoValuation):
+    r"""
+    Abstract base class for pseudo-valuations which attain the value `\infty`
+    and `-\infty`, i.e., whose domain contains an element of valuation `\infty`
+    and its inverse.
+
+    EXAMPLES:
+
+        sage: from mac_lane import * # optional: standalone
+        sage: R.<x> = QQ[]
+        sage: v = GaussValuation(R, TrivialValuation(QQ)).augmentation(x, infinity)
+        sage: K.<x> = FunctionField(QQ)
+        sage: w = FunctionFieldValuation(K, v)
+
+    TESTS::
+
+        sage: TestSuite(w).run() # long time
+
+    """
+    def is_negative_pseudo_valuation(self):
+        r"""
+        Return whether this valuation attains the value `-\infty`.
+
+        EXAMPLES::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, TrivialValuation(QQ)).augmentation(x, infinity)
+            sage: K.<x> = FunctionField(QQ)
+            sage: w = FunctionFieldValuation(K, v)
+            sage: w.is_negative_pseudo_valuation()
+            True
+
+        """
+        return True
+
+
 class DiscreteValuation(DiscretePseudoValuation):
     r"""
     Abstract base class for discrete valuations.

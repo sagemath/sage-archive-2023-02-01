@@ -41,7 +41,7 @@ from sage.misc.cachefunc import cached_method
 class DiscreteValuationCodomain(UniqueRepresentation, Parent):
     r"""
     The codomain of discrete valuations, the rational numbers extended by
-    `\infty`.
+    `\pm\infty`.
 
     EXAMPLES::
 
@@ -66,7 +66,7 @@ class DiscreteValuationCodomain(UniqueRepresentation, Parent):
         from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
         from sage.categories.additive_monoids import AdditiveMonoids
         UniqueRepresentation.__init__(self)
-        Parent.__init__(self, facade=(QQ, FiniteEnumeratedSet([infinity])), category=AdditiveMonoids())
+        Parent.__init__(self, facade=(QQ, FiniteEnumeratedSet([infinity, -infinity])), category=AdditiveMonoids())
 
     def _element_constructor_(self, x):
         r"""
@@ -84,12 +84,12 @@ class DiscreteValuationCodomain(UniqueRepresentation, Parent):
             sage: DiscreteValuationCodomain()(infinity)
             +Infinity
             sage: DiscreteValuationCodomain()(-infinity)
-            Traceback (most recent call last):
-            ...
-            ValueError: must be a rational number or infinity
+            -Infinity
 
         """
         if x is infinity:
+            return x
+        if x is -infinity:
             return x
         if x not in QQ:
             raise ValueError("must be a rational number or infinity")

@@ -69,7 +69,7 @@ AUTHORS:
 
 """
 #*****************************************************************************
-#       Copyright (C) 2016 Julian Rüth <julian.rueth@fsfe.org>
+#       Copyright (C) 2016-2017 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -95,8 +95,9 @@ class LimitValuationFactory(UniqueFactory):
     INPUT:
 
     - ``base_valuation`` -- a discrete (pseudo-)valuation on a polynomial ring
-      which can be unqiuely augmented (possibly only in the limit) to a
-      pseudo-valuation that sends ``G`` to infinity.
+      which is a discrete valuation on the coefficient ring which can be
+      unqiuely augmented (possibly only in the limit) to a pseudo-valuation
+      that sends ``G`` to infinity.
 
     - ``G`` -- a squarefree polynomial in the domain of ``base_valuation``.
 
@@ -133,6 +134,8 @@ class LimitValuationFactory(UniqueFactory):
         parameters are normalized already.
 
         """
+        if not base_valuation.restriction(G.parent().base_ring()).is_discrete_valuation():
+            raise ValueError("base_valuation must be discrete on the coefficient ring.")
         return base_valuation, G
 
     def create_object(self, version, key):
@@ -946,3 +949,24 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
         f = self.domain().coerce(f)
         self._improve_approximation_for_call(f)
         return self._approximation.upper_bound(f)
+
+    def is_negative_pseudo_valuation(self):
+        r"""
+        Return whether this valuation attains `-\infty`.
+
+        EXAMPLES:
+
+        For a Mac Lane limit valuation, this is never the case, so this
+        method always returns ``False``::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: K = QQ
+            sage: R.<t> = K[]
+            sage: L.<t> = K.extension(t^2 + 1)
+            sage: v = pAdicValuation(QQ, 2)
+            sage: u = v.extension(L)
+            sage: u.is_negative_pseudo_valuation()
+            False
+
+        """
+        return False

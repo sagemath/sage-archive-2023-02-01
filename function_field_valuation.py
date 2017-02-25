@@ -116,6 +116,15 @@ Run test suite for a valuation which is backed by limit valuation::
     sage: w = v.extension(L)
     sage: TestSuite(w).run() # long time
 
+Run test suite for a valuation which sends an element to `-\infty`::
+
+    sage: from mac_lane import * # optional: standalone
+    sage: R.<x> = QQ[]
+    sage: v = GaussValuation(QQ['x'], pAdicValuation(QQ, 2)).augmentation(x, infinity)
+    sage: K.<x> = FunctionField(QQ)
+    sage: w = FunctionFieldValuation(K, v)
+    sage: TestSuite(w).run() # long time
+
 AUTHORS:
 
 - Julian Rüth (2016-10-16): initial version
@@ -140,7 +149,7 @@ from sage.structure.factory import UniqueFactory
 from sage.rings.all import QQ, ZZ, infinity
 from sage.misc.abstract_method import abstract_method
 
-from valuation import DiscreteValuation, DiscretePseudoValuation, InfiniteDiscretePseudoValuation
+from valuation import DiscreteValuation, DiscretePseudoValuation, InfiniteDiscretePseudoValuation, NegativeInfiniteDiscretePseudoValuation
 from trivial_valuation import TrivialValuation
 from mapped_valuation import FiniteExtensionFromLimitValuation, MappedValuation_base
 
@@ -397,9 +406,10 @@ class FunctionFieldValuationFactory(UniqueFactory):
                 return (domain, approximant), {'approximants': approximants}
             else:
                 # on a rational function field K(x), any valuation on K[x] that
-                # is not only a pseudo-valuation extends to a valuation on K(x)
-                if not valuation.is_discrete_valuation():
-                    raise ValueError("valuation must be a discrete valuation but %r is not."%(valuation,))
+                # does not have an element with valuation -infty extends to a
+                # pseudo-valuation on K(x)
+                if valuation.is_negative_pseudo_valuation():
+                    raise ValueError("there must not be an element of valuation -Infinity in the domain of valuation"%(valuation,))
                 return (domain, valuation), {}
 
         if valuation.domain().is_subring(domain.base_field()):
@@ -503,7 +513,7 @@ class FunctionFieldValuationFactory(UniqueFactory):
 
         if domain.base_field() is domain:
             # valuation is a base valuation on K[x] that induces a valuation on K(x)
-            if valuation.restriction(domain.constant_base_field()).is_trivial():
+            if valuation.restriction(domain.constant_base_field()).is_trivial() and valuation.is_discrete_valuation():
                 # valuation corresponds to a finite place
                 return parent.__make_element_class__(FiniteRationalFunctionFieldValuation)(parent, valuation)
             else:
@@ -512,7 +522,7 @@ class FunctionFieldValuationFactory(UniqueFactory):
                 if valuation.is_discrete_valuation():
                     clazz = dynamic_class("NonClassicalRationalFunctionFieldValuation_discrete", (clazz, DiscreteValuation))
                 else:
-                    clazz = dynamic_class("NonClassicalRationalFunctionFieldValuation_infinite", (clazz, InfiniteDiscretePseudoValuation))
+                    clazz = dynamic_class("NonClassicalRationalFunctionFieldValuation_negative_infinite", (clazz, NegativeInfiniteDiscretePseudoValuation))
                 return parent.__make_element_class__(clazz)(parent, valuation)
         else:
             # valuation is a limit valuation that singles out an extension
@@ -988,10 +998,7 @@ class NonClassicalRationalFunctionFieldValuation(InducedFunctionFieldValuation_b
             sage: v = GaussValuation(QQ['x'], pAdicValuation(QQ, 2)).augmentation(x, infinity)
             sage: K.<x> = FunctionField(QQ)
             sage: w = FunctionFieldValuation(K, v)
-            Traceback (most recent call last):
-            ...
-            ValueError: valuation must be a discrete valuation but [ Gauss valuation induced by 2-adic valuation, v(x) = +Infinity ] is not.
-            sage: isinstance(w, NonClassicalRationalFunctionFieldValuation) # not tested
+            sage: isinstance(w, NonClassicalRationalFunctionFieldValuation)
             True
 
         """

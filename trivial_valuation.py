@@ -154,6 +154,20 @@ class TrivialDiscretePseudoValuation_base(DiscretePseudoValuation):
         """
         return True
 
+    def is_negative_pseudo_valuation(self):
+        r"""
+        Return whether this valuatios attains the value `-\infty`.
+
+        EXAMPLES:
+
+            sage: from mac_lane import * # optional: standalone
+            sage: v = TrivialPseudoValuation(QQ)
+            sage: v.is_negative_pseudo_valuation()
+            False
+
+        """
+        return False
+
 class TrivialDiscretePseudoValuation(TrivialDiscretePseudoValuation_base, InfiniteDiscretePseudoValuation):
     r"""
     The trivial pseudo-valuation that is `\infty` everywhere.

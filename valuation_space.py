@@ -71,6 +71,10 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
         valuations (pseudo or not) as this makes the implementation much
         easier.
 
+    .. TODO::
+
+        The comparison problem might be fixed by :trac:`22029` or similar.
+
     TESTS::
 
         sage: TestSuite(H).run() # long time
@@ -315,6 +319,26 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             
             """
 
+        def is_negative_pseudo_valuation(self):
+            r"""
+            Return whether this valuation is a discrete pseudo-valuation that
+            does attain `-\infty`, i.e., it is non-trivial and its domain
+            contains an element with valuation `\infty` that has an inverse.
+
+            EXAMPLES::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: pAdicValuation(QQ, 2).is_negative_pseudo_valuation()
+                False
+
+            """
+            from sage.categories.all import Fields
+            if self.is_discrete_valuation():
+                return False
+            elif self.domain() in Fields():
+                return True
+            raise NotImplementedError
+
         @cached_method
         def is_trivial(self):
             r"""
@@ -506,9 +530,6 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 Rational function field in x over Finite Field of size 2
 
             """
-            if not self.is_discrete_valuation():
-                raise NotImplementedError
-
             ret = self.residue_ring()
             from sage.categories.fields import Fields
             if ret in Fields():
@@ -1008,6 +1029,29 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             """
             return 1
 
+        def _test_is_negative_pseudo_valuation(self, **options):
+            r"""
+            Check that :meth:`is_negative_pseudo_valuation` works correctly.
+
+            TESTS::
+
+                sage: from mac_lane import * # optional: standalone
+                sage: v = pAdicValuation(ZZ, 3)
+                sage: v._test_is_negative_pseudo_valuation()
+
+            """
+            tester = self._tester(**options)
+
+            if self.is_discrete_valuation():
+                tester.assertFalse(self.is_negative_pseudo_valuation())
+                return
+
+            if not self.is_negative_pseudo_valuation():
+                X = self.domain().some_elements()
+                for x in tester.some_elements(X):
+                    from sage.rings.all import infinity
+                    tester.assertNotEqual(self(x), -infinity)
+
         def _test_bounds(self, **options):
             r"""
             Check that :meth:`lower_bound` and :meth:`upper_bound` work
@@ -1047,7 +1091,10 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 # over non-fields (and especially polynomial rings over
                 # non-fields) computation of the residue ring is often
                 # difficult and not very interesting
-                has_residue_ring = False
+                from sage.categories.fields import Fields
+                if self.domain() not in Fields():
+                    return
+                raise
 
             X = self.domain().some_elements()
             for x in tester.some_elements(X):
@@ -1208,6 +1255,8 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             """
             if not self.is_discrete_valuation() and self.is_trivial():
                 return
+            if self.is_negative_pseudo_valuation():
+                return
 
             from sage.rings.all import infinity
             tester = self._tester(**options)
@@ -1238,7 +1287,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             # check that all valuations are in the value group
             for x in tester.some_elements(self.domain().some_elements()):
-                if self(x) is not infinity:
+                if self(x) is not infinity and self(x) is not -infinity:
                     tester.assertIn(self(x), self.value_group())
 
             if not self.is_trivial():
@@ -1305,9 +1354,9 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 # non-fields) computation of the residue ring is often
                 # difficult and not very interesting
                 from sage.categories.fields import Fields
-                if self.domain() in Fields():
-                    raise
-                return
+                if self.domain() not in Fields():
+                    return
+                raise
 
             if r.zero() == r.one():
                 # residue ring is the zero rng
@@ -1338,9 +1387,9 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 # non-fields) computation of the residue ring is often
                 # difficult and not very interesting
                 from sage.categories.fields import Fields
-                if self.domain() in Fields():
-                    raise
-                return
+                if self.domain() not in Fields():
+                    return
+                raise
 
             for x in tester.some_elements(self.domain().some_elements()):
                 if self(x) < 0:
@@ -1378,9 +1427,9 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 # non-fields) computation of the residue ring is often
                 # difficult and not very interesting
                 from sage.categories.fields import Fields
-                if self.domain() in Fields():
-                    raise
-                return
+                if self.domain() not in Fields():
+                    return
+                raise
 
             for X in tester.some_elements(self.residue_ring().some_elements()):
                 x = self.lift(X)
@@ -1479,12 +1528,12 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 return
             except NotImplementedError:
                 # over non-fields (and especially polynomial rings over
-                # non-fields) computation of the residue field is often
+                # non-fields) computation of the residue ring is often
                 # difficult and not very interesting
                 from sage.categories.fields import Fields
-                if self.domain() in Fields():
-                    raise
-                return
+                if self.domain() not in Fields():
+                    return
+                raise
 
             c = self.residue_field().characteristic()
             if c != 0:
@@ -1503,8 +1552,12 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             """
             tester = self._tester(**options)
 
-            from trivial_valuation import TrivialPseudoValuation, TrivialValuation
             tester.assertGreaterEqual(self, self)
+
+            if self.is_negative_pseudo_valuation():
+                return
+
+            from trivial_valuation import TrivialPseudoValuation, TrivialValuation
             tester.assertGreaterEqual(self, TrivialValuation(self.domain()))
             tester.assertLessEqual(self, TrivialPseudoValuation(self.domain()))
 
@@ -1521,8 +1574,12 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             """
             tester = self._tester(**options)
 
-            from trivial_valuation import TrivialPseudoValuation, TrivialValuation
             tester.assertGreaterEqual(self, self)
+
+            if self.is_negative_pseudo_valuation():
+                return
+
+            from trivial_valuation import TrivialPseudoValuation, TrivialValuation
             tester.assertLessEqual(TrivialValuation(self.domain()), self)
             tester.assertGreaterEqual(TrivialPseudoValuation(self.domain()), self)
 

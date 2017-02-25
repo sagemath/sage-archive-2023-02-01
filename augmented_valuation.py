@@ -812,6 +812,25 @@ class AugmentedValuation_base(InductiveValuation):
         """
         return self._base_valuation._relative_size(f)
 
+    def is_negative_pseudo_valuation(self):
+        r"""
+        Return whether this valuation attains `-\infty`.
+
+        EXAMPLES:
+
+        No element in the domain of an augmented valuation can have valuation
+        `-\infty`, so this method always returns ``False``::
+
+            sage: from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, TrivialValuation(QQ))
+            sage: w = v.augmentation(x, infinity)
+            sage: w.is_negative_pseudo_valuation()
+            False
+
+        """
+        return False
+
 
 class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
     r"""

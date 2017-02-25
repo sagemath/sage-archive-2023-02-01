@@ -369,6 +369,7 @@ class TransducerGenerators(object):
     - :meth:`~CountSubblockOccurrences`
     - :meth:`~Wait`
     - :meth:`~GrayCode`
+    - :meth:`~Recursion`
     """
 
     def Identity(self, input_alphabet):

@@ -6297,9 +6297,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         The polynomial of degree $d^k$ where $d$ is the degree, whose
         roots are all $k$-fold products of roots of this polynomial.
         That is, $f*f*\dots*f$ where this is $f$ and
-        $f*f=$f.composed_op(f,operator.mul).
+        $f*f=$ f.composed_op(f,operator.mul).
 
-        TESTS:
+        TESTS::
 
             sage: R.<a,b,c> = ZZ[]
             sage: x = polygen(R)
@@ -6345,7 +6345,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def adams_operator(self, n, monic=False):
         r"""
-        Returns the polynomial whose roots are the $n$th power of the roots of this.
+        Returns the polynomial whose roots are the $n$-th power of the roots of this.
 
         TESTS::
 
@@ -6388,7 +6388,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def symmetric_power(self, k, monic=False):
         r"""
-        Returns the polynomial whose roots are products of $k$th distinct roots of this.
+        Returns the polynomial whose roots are products of $k$-th distinct roots of this.
 
         TESTS::
 

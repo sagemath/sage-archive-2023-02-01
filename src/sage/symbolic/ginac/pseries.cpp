@@ -32,7 +32,6 @@
 #include "relational.h"
 #include "operators.h"
 #include "symbol.h"
-#include "integral.h"
 #include "archive.h"
 #include "utils.h"
 #include "infinity.h"
@@ -1184,61 +1183,6 @@ ex pseries::series(const relational & r, int order, unsigned options) const
 		}
 	} else
 		return convert_to_poly().series(r, order, options);
-}
-
-ex integral::series(const relational & r, int order, unsigned options) const
-{
-	if (x.subs(r) != x)
-		throw std::logic_error("Cannot series expand wrt dummy variable");
-	
-	// Expanding integrant with r substituted taken in boundaries.
-	ex fseries = f.series(r, order, options);
-	epvector fexpansion;
-	fexpansion.reserve(fseries.nops());
-	for (size_t i=0; i<fseries.nops(); ++i) {
-		ex currcoeff = ex_to<pseries>(fseries).coeffop(i);
-		currcoeff = (currcoeff == Order(_ex1))
-			? currcoeff
-			: integral(x, a.subs(r), b.subs(r), currcoeff);
-		if (currcoeff != 0)
-			fexpansion.push_back(
-				expair(currcoeff, ex_to<pseries>(fseries).exponop(i)));
-	}
-
-	// Expanding lower boundary
-	ex result = (new pseries(r, fexpansion))->setflag(status_flags::dynallocated);
-	ex aseries = (a-a.subs(r)).series(r, order, options);
-	fseries = f.series(x == (a.subs(r)), order, options);
-	for (size_t i=0; i<fseries.nops(); ++i) {
-		ex currcoeff = ex_to<pseries>(fseries).coeffop(i);
-		if (is_order_function(currcoeff))
-			break;
-		ex currexpon = ex_to<pseries>(fseries).exponop(i);
-		int orderforf = order-ex_to<numeric>(currexpon).to_int()-1;
-		currcoeff = currcoeff.series(r, orderforf);
-		ex term = ex_to<pseries>(aseries).power_const(ex_to<numeric>(currexpon+1),order);
-		term = ex_to<pseries>(term).mul_const(ex_to<numeric>(-1/(currexpon+1)));
-		term = ex_to<pseries>(term).mul_series(ex_to<pseries>(currcoeff));
-		result = ex_to<pseries>(result).add_series(ex_to<pseries>(term));
-	}
-
-	// Expanding upper boundary
-	ex bseries = (b-b.subs(r)).series(r, order, options);
-	fseries = f.series(x == (b.subs(r)), order, options);
-	for (size_t i=0; i<fseries.nops(); ++i) {
-		ex currcoeff = ex_to<pseries>(fseries).coeffop(i);
-		if (is_order_function(currcoeff))
-			break;
-		ex currexpon = ex_to<pseries>(fseries).exponop(i);
-		int orderforf = order-ex_to<numeric>(currexpon).to_int()-1;
-		currcoeff = currcoeff.series(r, orderforf);
-		ex term = ex_to<pseries>(bseries).power_const(ex_to<numeric>(currexpon+1),order);
-		term = ex_to<pseries>(term).mul_const(ex_to<numeric>(1/(currexpon+1)));
-		term = ex_to<pseries>(term).mul_series(ex_to<pseries>(currcoeff));
-		result = ex_to<pseries>(result).add_series(ex_to<pseries>(term));
-	}
-
-	return result;
 }
 
 

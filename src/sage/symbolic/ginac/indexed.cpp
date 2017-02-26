@@ -33,7 +33,6 @@
 #include "archive.h"
 #include "symbol.h"
 #include "utils.h"
-#include "integral.h"
 #include "matrix.h"
 #include "inifcns.h"
 
@@ -535,13 +534,6 @@ struct is_summation_idx : public std::unary_function<ex, bool> {
 		return is_dummy_pair(e, e);
 	}
 };
-
-exvector integral::get_free_indices() const
-{
-	if ((a.get_free_indices().size() != 0u) || (b.get_free_indices().size() != 0u))
-		throw (std::runtime_error("integral::get_free_indices: boundary values should not have free indices"));
-	return f.get_free_indices();
-}
 
 template<class T> size_t number_of_type(const exvector&v)
 {

@@ -66,6 +66,81 @@ branch -D my_branch`` at the end to delete the local branch that you
 created only to review the ticket.
 
 
+.. _section-git-update-latest:
+
+When developing, quite frequently one ends up with a branch which is
+not based on the latest (beta) version of SageMath. This is perfecly
+fine and usually there is no need to merge in this latest SageMath
+version. However sometimes it is, e.g. if there are conflicts with the
+latest version or one needs a recent feature or simply because the old
+SageMath version is not available on the machine. Then merging in the
+latest version has to be done.
+
+
+Merge in the latest SageMath Version
+------------------------------------
+
+(This is the easy way without minimizing the recompilation time.)
+
+Suppose we are on our current working branch (branch is checked out). Then
+::
+
+   git merge develop
+
+does the merging, i.e. we merge the latest development version into
+our working branch.
+
+However, after this merge, we need to (partially) recompile
+SageMath. Sometimes this can take ages (as many timestamps are
+renewed) and there is a way to avoid it.
+
+
+Minimize the Recompilation Time
+-------------------------------
+
+Suppose we are on some new SageMath (e.g. on branch ``develop``) which
+runs successfully, and we have an "old" branch ``some/code``, that
+we want to bring onto this SageMath version.
+
+We first create a new working tree in a directory ``merge`` and switch
+to this directory::
+
+    git worktree add merge
+    cd merge
+
+Here we have a new copy of our source files. Thus no timestamps
+etc. of the original repository will be changed. Now we do the merge::
+
+    git checkout some/code
+    git merge develop
+
+And go back to our original repository::
+
+    git checkout something/else
+    cd ..
+
+We can now safely checkout ``some/code``::
+
+    git checkout some/code
+
+We still need to call::
+
+    make
+
+but only changed files will be recompiled.
+
+
+Why not Merging the Other Way Round?
+------------------------------------
+
+Being on some new SageMath (e.g. on branch ``develop``) which runs
+successfully, it would be possible to merge in our branch
+``some/code`` into develop. This would produce the same source files
+and avoid unnecessary recompilations. However, it destroys git's
+history. Thus, for example, it is hard to keep track of changes etc.,
+as one cannot simply persue the first parent of each git commit.
+
+
 .. _section-git-recovery:
 
 Reset and Recovery

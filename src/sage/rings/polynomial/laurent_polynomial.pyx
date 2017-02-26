@@ -1534,10 +1534,13 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         if isinstance(x, PolyDict):
             x = x.dict()
         if mon is not None:
-            self._mon = ETuple(mon)
+            if isinstance(mon, ETuple):
+                self._mon = mon
+            else:
+                self._mon = ETuple(mon)
         else:
             if isinstance(x, dict):
-                self._mon = ETuple({},int(parent.ngens()))
+                self._mon = ETuple({}, int(parent.ngens()))
                 for k in x: # ETuple-ize keys, set _mon
                     if not isinstance(k, (tuple, ETuple)) or len(k) != parent.ngens():
                         self._mon = ETuple({}, int(parent.ngens()))
@@ -1553,8 +1556,8 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                     for k in x:
                         D[k.esub(self._mon)] = x[k]
                     x = D
-            elif isinstance(x, LaurentPolynomial_mpair) and \
-                 parent.variable_names() == x.parent().variable_names():
+            elif (isinstance(x, LaurentPolynomial_mpair) and
+                  parent.variable_names() == x.parent().variable_names()):
                 self._mon = (<LaurentPolynomial_mpair>x)._mon
                 x = (<LaurentPolynomial_mpair>x)._poly
             else: # since x should coerce into parent, _mon should be (0,...,0)

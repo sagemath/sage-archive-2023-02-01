@@ -555,9 +555,9 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 from six.moves import range
+from six import iteritems
 
 import os
 from functools import reduce
@@ -2970,9 +2970,9 @@ def list_plot(data, plotjoined=False, **kwargs):
                     "and 'y' against each other, use 'list_plot(list(zip(x,y)))'.")
     if isinstance(data, dict):
         if plotjoined:
-            list_data = sorted(list(data.iteritems()))
+            list_data = sorted(list(iteritems(data)))
         else:
-            list_data = list(data.iteritems())
+            list_data = list(iteritems(data))
         return list_plot(list_data, plotjoined=plotjoined, **kwargs)
     try:
         from sage.rings.all import RDF

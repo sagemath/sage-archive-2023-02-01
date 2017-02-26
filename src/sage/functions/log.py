@@ -219,6 +219,15 @@ class Function_log(GinacFunction):
             3.141592653589793j
             sage: log(x).subs(x=float(-1))
             3.141592653589793j
+
+        :trac:`22142`::
+
+            sage: log(QQbar(sqrt(2)))
+            log(1.414213562373095?)
+            sage: log(QQbar(sqrt(2))*1.)
+            0.346573590279973
+            sage: polylog(QQbar(sqrt(2)),3)
+            polylog(1.414213562373095?, 3)
         """
         GinacFunction.__init__(self, 'log', latex_name=r'\log',
                                conversions=dict(maxima='log', fricas='log'))

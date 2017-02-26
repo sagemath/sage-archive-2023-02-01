@@ -80,8 +80,10 @@ from sage.structure.gens_py                 import multiplicative_iterator
 from sage.structure.parent                  import Parent
 from sage.structure.sequence                import Sequence
 from sage.structure.factory                 import UniqueFactory
+from sage.structure.sage_object import richcmp
 from sage.arith.all import (binomial, bernoulli, kronecker, factor, gcd,
         lcm, fundamental_discriminant, euler_phi, factorial, valuation)
+
 
 def trivial_character(N, base_ring=rings.RationalField()):
     r"""
@@ -104,7 +106,7 @@ TrivialCharacter = trivial_character
 
 def kronecker_character(d):
     """
-    Returns the quadratic Dirichlet character (d/.) of minimal
+    Return the quadratic Dirichlet character (d/.) of minimal
     conductor.
 
     EXAMPLES::
@@ -134,7 +136,7 @@ def kronecker_character(d):
 
 def kronecker_character_upside_down(d):
     """
-    Returns the quadratic Dirichlet character (./d) of conductor d, for
+    Return the quadratic Dirichlet character (./d) of conductor d, for
     d0.
 
     EXAMPLES::
@@ -379,7 +381,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         G = self.parent().change_ring(R)
         return G.element_class(G, [R(x) for x in self.values_on_gens()])
 
-    def _cmp_(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare ``self`` to ``other``.
 
@@ -403,9 +405,8 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: k = DirichletGroup(7)([-1])
             sage: k == e
             False
-
         """
-        return cmp(self.values_on_gens(), other.values_on_gens())
+        return richcmp(self.values_on_gens(), other.values_on_gens(), op)
 
     def __hash__(self):
         """

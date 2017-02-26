@@ -1530,6 +1530,32 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial_mpair
             sage: LaurentPolynomial_mpair(L, {(1,2): 1/42}, mon=(-3, -3))
             1/42*w^-2*z^-1
+
+        :trac:`22398`::
+
+            sage: LQ = LaurentPolynomialRing(QQ, 'x0, x1, x2, y0, y1, y2, y3, y4, y5')
+            sage: LZ = LaurentPolynomialRing(ZZ, 'x0, x1, x2, y0, y1, y2, y3, y4, y5')
+            sage: LQ.inject_variables()
+            Defining x0, x1, x2, y0, y1, y2, y3, y4, y5
+            sage: x2^-1*y0*y1*y2*y3*y4*y5 + x1^-1*x2^-1*y0*y1*y3*y4 + x0^-1 in LZ
+            True
+            sage: x2^-1*y0*y1*y2*y3*y4*y5 + x1^-1*x2^-1*y0*y1*y3*y4 + x0^-1*x1^-1*y0*y3 + x0^-1 in LZ
+            True
+
+        Check that input is not modified::
+
+            sage: LQ.<x,y> = LaurentPolynomialRing(QQ)
+            sage: D = {(-1, 1): 1}
+            sage: k = tuple(D)[0]
+            sage: v = D[k]
+            sage: type(k), type(v)
+            (<... 'tuple'>, <type 'sage.rings.integer.Integer'>)
+            sage: LQ(D)
+            x^-1*y
+            sage: tuple(D)[0] is k
+            True
+            sage: D[k] is v
+            True
         """
         if isinstance(x, PolyDict):
             x = x.dict()
@@ -1541,21 +1567,19 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         else:
             if isinstance(x, dict):
                 self._mon = ETuple({}, int(parent.ngens()))
-                for k in x: # ETuple-ize keys, set _mon
+                D = {}
+                for k, x_k in iteritems(x): # ETuple-ize keys, set _mon
                     if not isinstance(k, (tuple, ETuple)) or len(k) != parent.ngens():
                         self._mon = ETuple({}, int(parent.ngens()))
                         break
                     if isinstance(k, tuple):
-                        a = x[k]
-                        del x[k]
                         k = ETuple(k)
-                        x[k] = a
+                    D[k] = x_k
                     self._mon = self._mon.emin(k) # point-wise min of _mon and k
-                if len(self._mon.nonzero_positions()) != 0: # factor out _mon
-                    D = {}
-                    for k in x:
-                        D[k.esub(self._mon)] = x[k]
+                else:
                     x = D
+                if not self._mon.is_constant(): # factor out _mon
+                    x = {k.esub(self._mon): x_k for k, x_k in iteritems(x)}
             elif (isinstance(x, LaurentPolynomial_mpair) and
                   parent.variable_names() == x.parent().variable_names()):
                 self._mon = (<LaurentPolynomial_mpair>x)._mon
@@ -1642,7 +1666,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                     e = k
                 else:
                     e = e.emin(k)
-            if len(e.nonzero_positions()) > 0:
+            if not e.is_constant():
                 self._poly = self._poly // self._poly.parent()({e: 1})
                 self._mon = self._mon.eadd(e)
         else:
@@ -1671,7 +1695,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
 
         """
         D = self._poly._mpoly_dict_recursive(self.parent().variable_names(), self.parent().base_ring())
-        if len(self._mon.nonzero_positions()) > 0:
+        if not self._mon.is_constant():
             DD = {}
             for k in D:
                 DD[k.eadd(self._mon)] = D[k]
@@ -2172,11 +2196,11 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         cdef LaurentPolynomial_mpair ans = self._new_c()
         cdef LaurentPolynomial_mpair right = <LaurentPolynomial_mpair>_right
         ans._mon, a, b = self._mon.combine_to_positives(right._mon)
-        if len(a.nonzero_positions()) > 0:
+        if not a.is_constant():
             ans._poly = self._poly * self._poly.parent()({a: 1})
         else:
             ans._poly = self._poly
-        if len(b.nonzero_positions()) > 0:
+        if not b.is_constant():
             ans._poly += right._poly * self._poly.parent()({b: 1})
         else:
             ans._poly += right._poly
@@ -2199,11 +2223,11 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         cdef LaurentPolynomial_mpair right = <LaurentPolynomial_mpair>_right
         cdef ETuple a, b
         ans._mon, a, b = self._mon.combine_to_positives(right._mon)
-        if len(a.nonzero_positions()) > 0:
+        if not a.is_constant():
             ans._poly = self._poly * self._poly.parent()({a: 1})
         else:
             ans._poly = self._poly
-        if len(b.nonzero_positions()) > 0:
+        if not b.is_constant():
             ans._poly -= right._poly * self._poly.parent()({b: 1})
         else:
             ans._poly -= right._poly

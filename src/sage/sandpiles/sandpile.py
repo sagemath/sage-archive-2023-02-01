@@ -6722,7 +6722,7 @@ def admissible_partitions(S, k):
           {{0, 1}, {2}, {3}}],
          [{{0}, {1}, {2}, {3}}]]
         sage: for p in P:
-        ...    sum([partition_sandpile(S, i).betti(verbose=False)[-1] for i in p])
+        ....:  sum([partition_sandpile(S, i).betti(verbose=False)[-1] for i in p])
         doctest:...: DeprecationWarning:
         Importing partition_sandpile from here is deprecated. If you need to use it, please import it directly from sage.sandpiles.sandpile
         See http://trac.sagemath.org/18618 for details.
@@ -6769,7 +6769,7 @@ def partition_sandpile(S, p):
         sage: S = sandpiles.Cycle(4)
         sage: P = [admissible_partitions(S, i) for i in [2,3,4]]
         sage: for p in P:
-        ...    sum([partition_sandpile(S, i).betti(verbose=False)[-1] for i in p])
+        ....:  sum([partition_sandpile(S, i).betti(verbose=False)[-1] for i in p])
         6
         8
         3

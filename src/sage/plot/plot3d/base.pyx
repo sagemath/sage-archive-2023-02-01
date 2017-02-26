@@ -329,7 +329,7 @@ cdef class Graphics3d(SageObject):
             sage: out
             OutputSceneCanvas3d container
             sage: out.canvas3d.get()
-            "[{vertices:[{x:0,y:0,z:-1},..., color:'#6666ff', opacity:1}]"
+            '[{"vertices":[{"x":0,"y":0,"z":-1},..., "color":"#6666ff", "opacity":1}]'
         """
         opts = self._process_viewing_options(kwds)
         aspect_ratio = opts['aspect_ratio'] # this necessarily has a value now
@@ -367,9 +367,22 @@ cdef class Graphics3d(SageObject):
         options['axes_labels'] = kwds.get('axes_labels', ['x','y','z'])
         options['decimals'] = int(kwds.get('decimals', 2))
         options['frame'] = kwds.get('frame', True)
+        options['online'] = kwds.get('online', False)
 
         if not options['frame']:
             options['axes_labels'] = False
+
+        if options['online']:
+            scripts = ( """
+<script src=https://cdn.rawgit.com/mrdoob/three.js/r80/build/three.min.js></script>
+<script src=https://cdn.rawgit.com/mrdoob/three.js/r80/examples/js/controls/OrbitControls.js></script>
+            """ )
+        else:
+            from sage.env import SAGE_SHARE
+            scripts = ( """
+<script src={0}/threejs/three.min.js></script>
+<script src={0}/threejs/OrbitControls.js></script>
+            """.format( SAGE_SHARE ) )
 
         lights = "[{x:0, y:0, z:10}, {x:0, y:0, z:-10}]"
 
@@ -413,6 +426,7 @@ cdef class Graphics3d(SageObject):
         html = f.read()
         f.close()
 
+        html = html.replace('SAGE_SCRIPTS', scripts)
         html = html.replace('SAGE_OPTIONS', json.dumps(options))
         html = html.replace('SAGE_LIGHTS', lights)
         html = html.replace('SAGE_BOUNDS', bounds)
@@ -2066,7 +2080,7 @@ class Graphics3dGroup(Graphics3d):
 
             sage: G = sphere() + sphere((1, 2, 3))
             sage: G.json_repr(G.default_render_params())
-            [[["{vertices:..."]], [["{vertices:..."]]]
+            [[['{"vertices":...']], [['{"vertices":...']]]
         """
         return [g.json_repr(render_params) for g in self.all]
 
@@ -2284,7 +2298,7 @@ class TransformGroup(Graphics3dGroup):
 
             sage: G = cube().rotateX(0.2)
             sage: G.json_repr(G.default_render_params())
-            [["{vertices:[{x:0.5,y:0.589368,z:0.390699},..."]]
+            [['{"vertices":[{"x":0.5,"y":0.589368,"z":0.390699},...']]
         """
 
         render_params.push_transform(self.get_transformation())

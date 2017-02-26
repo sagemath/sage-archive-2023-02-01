@@ -437,7 +437,7 @@ Sageで使われる第三のリスト類似データ型が，シーケンスで�
 
 ::
 
-    sage: d.items()
+    sage: list(d.items())
     [(1, 5), ('sage', 17), (Integer Ring, Finite Field of size 7)]
 
 ディクショナリに含まれるキーと値の対を反復に利用する場合に，よく使われるイディオムがある:
@@ -446,7 +446,7 @@ Sageで使われる第三のリスト類似データ型が，シーケンスで�
 ::
 
     sage: d = {2:4, 3:9, 4:16}
-    sage: [a*b for a, b in d.iteritems()]
+    sage: [a*b for a, b in d.items()]
     [8, 27, 64]
 
 最後の出力を見ると判るように，ディクショナリ内は整列されていない．

@@ -1,0 +1,597 @@
+commit 723b30bbad0e9f6aa578c87a843ece37655b4cfd
+Author: Karim Belabas <Karim.Belabas@math.u-bordeaux1.fr>
+Date:   Tue Jan 24 17:24:57 2017 +0100
+
+    34- [libpari] str_init, str_printf, str_putc, str_puts
+
+diff --git a/doc/usersch5.tex b/doc/usersch5.tex
+index 213ddec..02cdf94 100644
+--- a/doc/usersch5.tex
++++ b/doc/usersch5.tex
+@@ -11744,6 +11744,35 @@ not a malloc'ed string.
+ \fun{GEN}{gvsprintf}{const char *fmt, va_list ap} variadic version of
+ \tet{gsprintf}
+ 
++\subsec{Dynamic strings}
++
++A \tet{pari_str} is a dynamic string which grows dynamically as needed.
++This structure contains private data and two public members \kbd{char *string},
++which is the string itself and \kbd{use\_stack} which tells whether the
++string lives
++
++\item on the PARI stack (value $1$), meaning that it will be destroyed by any
++manipulation of the stack, e.g. a \kbd{gerepile} call or resetting
++\kbd{avma};
++
++\item in malloc'ed memory (value $0$), in which case it is impervious to
++stack manipulation but will need to be explicitly freed by the user
++after use, via \kbd{pari\_free(s.string)}.
++
++
++\fun{void}{str_init}{pari_str *S, int use_stack} initializes a dynamic
++string; if \kbd{use\_stack} is 0, then the string is malloc'ed, else
++it lives on the PARI stack.
++
++\fun{void}{str_printf}{pari_str *S, const char *fmt, ...} write to the end
++of $S$ the remaining arguments according to PARI format \kbd{fmt}.
++
++\fun{void}{str_putc}{pari_str *S, char c} write the character $c$ to the end
++of $S$.
++
++\fun{void}{str_puts}{pari_str *S, const char *s} write the string $s$ to the
++end of $S$.
++
+ \section{Output}
+ 
+ \subsec{Output contexts}
+diff --git a/src/headers/paridecl.h b/src/headers/paridecl.h
+index a0da6e6..391873d 100644
+--- a/src/headers/paridecl.h
++++ b/src/headers/paridecl.h
+@@ -2806,6 +2806,10 @@ void    printtex(GEN g);
+ char*   stack_sprintf(const char *fmt, ...);
+ char*   stack_strcat(const char *s, const char *t);
+ char*   stack_strdup(const char *s);
++void    str_init(pari_str *S, int use_stack);
++void    str_printf(pari_str *S, const char *fmt, ...);
++void    str_putc(pari_str *S, char c);
++void    str_puts(pari_str *S, char c);
+ void    strftime_expand(const char *s, char *buf, long max);
+ GEN     Strprintf(const char *fmt, GEN args);
+ FILE*   switchin(const char *name);
+diff --git a/src/headers/paristio.h b/src/headers/paristio.h
+index 7abce5d..a4fec9e 100644
+--- a/src/headers/paristio.h
++++ b/src/headers/paristio.h
+@@ -17,6 +17,14 @@ typedef struct {
+   long s, us;
+ } pari_timer;
+ 
++typedef struct pari_str {
++  char *string; /* start of the output buffer */
++  char *end;    /* end of the output buffer */
++  char *cur;   /* current writing place in the output buffer */
++  size_t size; /* buffer size */
++  int use_stack; /* use stack_malloc instead of malloc ? */
++} pari_str;
++
+ typedef unsigned char *byteptr;
+ typedef ulong pari_sp;
+ 
+diff --git a/src/language/es.c b/src/language/es.c
+index 90ce368..e1bfc8d 100644
+--- a/src/language/es.c
++++ b/src/language/es.c
+@@ -41,23 +41,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
+ 
+ static const char esc = (0x1f & '['); /* C-[ = escape */
+ 
+-typedef struct outString {
+-  char *string; /* start of the output buffer */
+-  char *end;    /* end of the output buffer */
+-  char *cur;   /* current writing place in the output buffer */
+-  size_t size; /* buffer size */
+-  int use_stack; /* use stack_malloc instead of malloc ? */
+-} outString;
++typedef void (*OUT_FUN)(GEN, pariout_t *, pari_str *);
+ 
+-typedef void (*OUT_FUN)(GEN, pariout_t *, outString *);
++static void bruti_sign(GEN g, pariout_t *T, pari_str *S, int addsign);
++static void matbruti(GEN g, pariout_t *T, pari_str *S);
++static void texi_sign(GEN g, pariout_t *T, pari_str *S, int addsign);
+ 
+-static void bruti_sign(GEN g, pariout_t *T, outString *S, int addsign);
+-static void matbruti(GEN g, pariout_t *T, outString *S);
+-static void texi_sign(GEN g, pariout_t *T, outString *S, int addsign);
+-
+-static void bruti(GEN g, pariout_t *T, outString *S)
++static void bruti(GEN g, pariout_t *T, pari_str *S)
+ { bruti_sign(g,T,S,1); }
+-static void texi(GEN g, pariout_t *T, outString *S)
++static void texi(GEN g, pariout_t *T, pari_str *S)
+ { texi_sign(g,T,S,1); }
+ 
+ void
+@@ -877,7 +869,7 @@ absrtostr(GEN x, int sp, char FORMAT, long wanted_dec)
+ 
+ /* l = old len, L = new len */
+ static void
+-str_alloc0(outString *S, long l, long L)
++str_alloc0(pari_str *S, long l, long L)
+ {
+   char *s;
+   if (S->use_stack)
+@@ -896,20 +888,21 @@ str_alloc0(outString *S, long l, long L)
+  * To avoid automatic extension in between av = avma / avma = av pairs
+  * [ would destroy S->string if (S->use_stack) ] */
+ static void
+-str_alloc(outString *S, long l)
++str_alloc(pari_str *S, long l)
+ {
+   l *= 20;
+   if (S->end - S->cur <= l)
+     str_alloc0(S, S->cur - S->string, S->size + maxss(S->size, l));
+ }
+-static void
+-str_putc(outString *S, char c) {
++void
++str_putc(pari_str *S, char c)
++{
+   *S->cur++ = c;
+   if (S->cur == S->end) str_alloc0(S, S->size, S->size << 1);
+ }
+ 
+-static void
+-str_init(outString *S, int use_stack)
++void
++str_init(pari_str *S, int use_stack)
+ {
+   char *s;
+   S->size = 1024;
+@@ -918,14 +911,15 @@ str_init(outString *S, int use_stack)
+     s = (char*)stack_malloc(S->size);
+   else
+     s = (char*)pari_malloc(S->size);
++  *s = 0;
+   S->string = S->cur = s;
+   S->end = S->string + S->size;
+ }
+-static void
+-str_puts(outString *S, const char *s) { while (*s) str_putc(S, *s++); }
++void
++str_puts(pari_str *S, const char *s) { while (*s) str_putc(S, *s++); }
+ 
+ static void
+-str_putscut(outString *S, const char *str, int cut)
++str_putscut(pari_str *S, const char *str, int cut)
+ {
+   if (cut < 0) str_puts(S, str);
+   else {
+@@ -937,7 +931,7 @@ str_putscut(outString *S, const char *str, int cut)
+ static char *
+ stack_GENtostr_fun(GEN x, pariout_t *T, OUT_FUN out)
+ {
+-  outString S; str_init(&S, 1);
++  pari_str S; str_init(&S, 1);
+   out(x, T, &S); *S.cur = 0;
+   return S.string;
+ }
+@@ -951,14 +945,14 @@ static char *
+ GENtostr_fun(GEN x, pariout_t *T, OUT_FUN out)
+ {
+   pari_sp av = avma;
+-  outString S; str_init(&S, 0);
++  pari_str S; str_init(&S, 0);
+   out(x, T, &S); *S.cur = 0;
+   avma = av; return S.string;
+ }
+ 
+ /* lbuf = strlen(buf), len < 0: unset */
+ static void
+-outpad(outString *S, const char *buf, long lbuf, int sign, long ljust, long len, long zpad)
++outpad(pari_str *S, const char *buf, long lbuf, int sign, long ljust, long len, long zpad)
+ {
+   long padlen = len - lbuf;
+   if (padlen < 0) padlen = 0;
+@@ -983,7 +977,7 @@ outpad(outString *S, const char *buf, long lbuf, int sign, long ljust, long len,
+ 
+ /* len < 0 or maxwidth < 0: unset */
+ static void
+-fmtstr(outString *S, const char *buf, int ljust, int len, int maxwidth)
++fmtstr(pari_str *S, const char *buf, int ljust, int len, int maxwidth)
+ {
+   int padlen, lbuf = strlen(buf);
+ 
+@@ -1000,9 +994,10 @@ fmtstr(outString *S, const char *buf, int ljust, int len, int maxwidth)
+ /* abs(base) is 8, 10, 16. If base < 0, some "alternate" form
+  * -- print hex in uppercase
+  * -- prefix octal with 0
+- * signvalue = -1: unsigned, otherwise ' ' or '+' */
++ * signvalue = -1: unsigned, otherwise ' ' or '+'. Leaves a messy stack if
++ * S->use_stack */
+ static void
+-fmtnum(outString *S, long lvalue, GEN gvalue, int base, int signvalue,
++fmtnum(pari_str *S, long lvalue, GEN gvalue, int base, int signvalue,
+        int ljust, int len, int zpad)
+ {
+   int caps;
+@@ -1010,7 +1005,7 @@ fmtnum(outString *S, long lvalue, GEN gvalue, int base, int signvalue,
+   long lbuf, mxl;
+   GEN uvalue = NULL;
+   ulong ulvalue = 0;
+-  pari_sp av = avma; /* Assume !S->use_stack */
++  pari_sp av = avma;
+ 
+   if (gvalue)
+   {
+@@ -1159,7 +1154,7 @@ fmtnum(outString *S, long lvalue, GEN gvalue, int base, int signvalue,
+   lbuf = (buf0 - buf) - 1;
+ END:
+   outpad(S, buf, lbuf, signvalue, ljust, len, zpad);
+-  avma = av;
++  if (!S->use_stack) avma = av;
+ }
+ 
+ static GEN
+@@ -1213,10 +1208,10 @@ get_sigd(GEN gvalue, char ch, int maxwidth)
+ }
+ 
+ static void
+-fmtreal(outString *S, GEN gvalue, int space, int signvalue, int FORMAT,
++fmtreal(pari_str *S, GEN gvalue, int space, int signvalue, int FORMAT,
+         int maxwidth, int ljust, int len, int zpad)
+ {
+-  pari_sp av = avma; /* Assume !S->use_stack */
++  pari_sp av = avma;
+   long sigd;
+   char *buf;
+ 
+@@ -1281,14 +1276,16 @@ fmtreal(outString *S, GEN gvalue, int space, int signvalue, int FORMAT,
+     buf = absrtostr(gvalue, space, FORMAT, sigd);
+   if (signe(gvalue) < 0) signvalue = '-';
+   outpad(S, buf, strlen(buf), signvalue, ljust, len, zpad);
+-  avma = av;
++  if (!S->use_stack) avma = av;
+ }
+-/* format handling "inspired" by the standard draft at
++/* Format handling "inspired" by the standard draft at
+ -- http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1124.pdf pages 274ff
+  * fmt is a standard printf format, except 'P' is a "length modifier"
+- * allowing GEN arguments. Use either the arg_vector or (if NULL) the va_list */
+-static char *
+-sm_dopr(const char *fmt, GEN arg_vector, va_list args)
++ * allowing GEN arguments. Use either the arg_vector or (if NULL) the va_list.
++ * Appent output to the pari_str S, which must be initialized; clean if
++ * !S->use_stack, else leaves objects of stack. */
++static void
++str_arg_vprintf(pari_str *S, const char *fmt, GEN arg_vector, va_list args)
+ {
+   int GENflag = 0, longflag = 0, pointflag = 0;
+   int print_plus, print_blank, with_sharp, ch, ljust, len, maxwidth, zpad;
+@@ -1296,9 +1293,6 @@ sm_dopr(const char *fmt, GEN arg_vector, va_list args)
+   int index = 1;
+   GEN gvalue;
+   const char *save_fmt = fmt;
+-  outString __S, *S = &__S;
+-
+-  str_init(S, 0);
+ 
+   while ((ch = *fmt++) != '\0') {
+     switch(ch) {
+@@ -1453,7 +1447,8 @@ nextch:
+             }
+             if (gvalue) strvalue = GENtostr_unquoted(gvalue);
+             fmtstr(S, strvalue, ljust, len, maxwidth);
+-            avma = av; break;
++            if (!S->use_stack) avma = av;
++            break;
+           }
+           case 'c':
+             if (arg_vector) {
+@@ -1489,7 +1484,8 @@ nextch:
+             }
+             fmtreal(S, gvalue, GP_DATA->fmt->sp, dosign(print_blank,print_plus),
+                     ch, maxwidth, ljust, len, zpad);
+-            avma = av; break;
++            if (!S->use_stack) avma = av;
++            break;
+           }
+           default:
+             pari_err(e_MISC, "invalid conversion or specification %c in format `%s'", ch, save_fmt);
+@@ -1501,7 +1497,6 @@ nextch:
+     } /* first switch on ch */
+   } /* while loop on ch */
+   *S->cur = 0;
+-  return S->string;
+ }
+ 
+ void
+@@ -1976,7 +1971,7 @@ itostr(GEN x) {
+ 
+ /* x != 0 t_INT, write abs(x) to S */
+ static void
+-str_absint(outString *S, GEN x)
++str_absint(pari_str *S, GEN x)
+ {
+   pari_sp av;
+   long l;
+@@ -1993,7 +1988,7 @@ str_absint(outString *S, GEN x)
+ 
+ /* print e to S (more efficient than sprintf) */
+ static void
+-str_ulong(outString *S, ulong e)
++str_ulong(pari_str *S, ulong e)
+ {
+   if (e == 0) str_putc(S, '0');
+   else
+@@ -2010,14 +2005,14 @@ str_ulong(outString *S, ulong e)
+   }
+ }
+ static void
+-str_long(outString *S, long e)
++str_long(pari_str *S, long e)
+ {
+   if (e >= 0) str_ulong(S, (ulong)e);
+   else { str_putc(S, '-'); str_ulong(S, (ulong)(-e)); }
+ }
+ 
+ static void
+-wr_vecsmall(pariout_t *T, outString *S, GEN g)
++wr_vecsmall(pariout_t *T, pari_str *S, GEN g)
+ {
+   long i, l;
+   str_puts(S, "Vecsmall(["); l = lg(g);
+@@ -2103,7 +2098,7 @@ blancs(long nb) { while (nb-- > 0) pari_putc(' '); }
+ 
+ /* write an "address" */
+ static void
+-str_addr(outString *S, ulong x)
++str_addr(pari_str *S, ulong x)
+ { char s[128]; sprintf(s,"%0*lx", BITS_IN_LONG/4, x); str_puts(S, s); }
+ static void
+ dbg_addr(ulong x) { pari_printf("[&=%0*lx] ", BITS_IN_LONG/4, x); }
+@@ -2578,7 +2573,7 @@ isdenom(GEN g)
+ /********************************************************************/
+ /* ^e */
+ static void
+-texexpo(outString *S, long e)
++texexpo(pari_str *S, long e)
+ {
+   if (e != 1) {
+     str_putc(S, '^');
+@@ -2591,27 +2586,27 @@ texexpo(outString *S, long e)
+   }
+ }
+ static void
+-wrexpo(outString *S, long e)
++wrexpo(pari_str *S, long e)
+ { if (e != 1) { str_putc(S, '^'); str_long(S, e); } }
+ 
+ /* v^e */
+ static void
+-VpowE(outString *S, const char *v, long e) { str_puts(S, v); wrexpo(S,e); }
++VpowE(pari_str *S, const char *v, long e) { str_puts(S, v); wrexpo(S,e); }
+ static void
+-texVpowE(outString *S, const char *v, long e) { str_puts(S, v); texexpo(S,e); }
++texVpowE(pari_str *S, const char *v, long e) { str_puts(S, v); texexpo(S,e); }
+ static void
+-monome(outString *S, const char *v, long e)
++monome(pari_str *S, const char *v, long e)
+ { if (e) VpowE(S, v, e); else str_putc(S, '1'); }
+ static void
+-texnome(outString *S, const char *v, long e)
++texnome(pari_str *S, const char *v, long e)
+ { if (e) texVpowE(S, v, e); else str_putc(S, '1'); }
+ 
+ /* ( a ) */
+ static void
+-paren(pariout_t *T, outString *S, GEN a)
++paren(pariout_t *T, pari_str *S, GEN a)
+ { str_putc(S, '('); bruti(a,T,S); str_putc(S, ')'); }
+ static void
+-texparen(pariout_t *T, outString *S, GEN a)
++texparen(pariout_t *T, pari_str *S, GEN a)
+ {
+   if (T->TeXstyle & TEXSTYLE_PAREN)
+     str_puts(S, " (");
+@@ -2626,15 +2621,15 @@ texparen(pariout_t *T, outString *S, GEN a)
+ 
+ /* * v^d */
+ static void
+-times_texnome(outString *S, const char *v, long d)
++times_texnome(pari_str *S, const char *v, long d)
+ { if (d) { str_puts(S, "\\*"); texnome(S,v,d); } }
+ static void
+-times_monome(outString *S, const char *v, long d)
++times_monome(pari_str *S, const char *v, long d)
+ { if (d) { str_putc(S, '*'); monome(S,v,d); } }
+ 
+ /* write a * v^d */
+ static void
+-wr_monome(pariout_t *T, outString *S, GEN a, const char *v, long d)
++wr_monome(pariout_t *T, pari_str *S, GEN a, const char *v, long d)
+ {
+   long sig = isone(a);
+ 
+@@ -2648,7 +2643,7 @@ wr_monome(pariout_t *T, outString *S, GEN a, const char *v, long d)
+   }
+ }
+ static void
+-wr_texnome(pariout_t *T, outString *S, GEN a, const char *v, long d)
++wr_texnome(pariout_t *T, pari_str *S, GEN a, const char *v, long d)
+ {
+   long sig = isone(a);
+ 
+@@ -2666,7 +2661,7 @@ wr_texnome(pariout_t *T, outString *S, GEN a, const char *v, long d)
+ }
+ 
+ static void
+-wr_lead_monome(pariout_t *T, outString *S, GEN a,const char *v, long d, int addsign)
++wr_lead_monome(pariout_t *T, pari_str *S, GEN a,const char *v, long d, int addsign)
+ {
+   long sig = isone(a);
+   if (sig) {
+@@ -2679,7 +2674,7 @@ wr_lead_monome(pariout_t *T, outString *S, GEN a,const char *v, long d, int adds
+   }
+ }
+ static void
+-wr_lead_texnome(pariout_t *T, outString *S, GEN a,const char *v, long d, int addsign)
++wr_lead_texnome(pariout_t *T, pari_str *S, GEN a,const char *v, long d, int addsign)
+ {
+   long sig = isone(a);
+   if (sig) {
+@@ -2693,11 +2688,11 @@ wr_lead_texnome(pariout_t *T, outString *S, GEN a,const char *v, long d, int add
+ }
+ 
+ static void
+-prints(GEN g, pariout_t *T, outString *S)
++prints(GEN g, pariout_t *T, pari_str *S)
+ { (void)T; str_long(S, (long)g); }
+ 
+ static void
+-quote_string(outString *S, char *s)
++quote_string(pari_str *S, char *s)
+ {
+   str_putc(S, '"');
+   while (*s)
+@@ -2720,7 +2715,7 @@ quote_string(outString *S, char *s)
+ }
+ 
+ static int
+-print_0_or_pm1(GEN g, outString *S, int addsign)
++print_0_or_pm1(GEN g, pari_str *S, int addsign)
+ {
+   long r;
+   if (!g) { str_puts(S, "NULL"); return 1; }
+@@ -2735,7 +2730,7 @@ print_0_or_pm1(GEN g, outString *S, int addsign)
+ }
+ 
+ static void
+-print_precontext(GEN g, outString *S, long tex)
++print_precontext(GEN g, pari_str *S, long tex)
+ {
+   if (lg(g)<8 || lg(gel(g,7))==1) return;
+   else
+@@ -2755,7 +2750,7 @@ print_precontext(GEN g, outString *S, long tex)
+ }
+ 
+ static void
+-print_context(GEN g, pariout_t *T, outString *S, long tex)
++print_context(GEN g, pariout_t *T, pari_str *S, long tex)
+ {
+   GEN str = closure_get_text(g);
+   if (lg(g)<8 || lg(gel(g,7))==1) return;
+@@ -2804,7 +2799,7 @@ print_context(GEN g, pariout_t *T, outString *S, long tex)
+ }
+ 
+ static void
+-bruti_intern(GEN g, pariout_t *T, outString *S, int addsign)
++bruti_intern(GEN g, pariout_t *T, pari_str *S, int addsign)
+ {
+   long l,i,j,r, tg = typ(g);
+   GEN a,b;
+@@ -3036,14 +3031,14 @@ bruti_intern(GEN g, pariout_t *T, outString *S, int addsign)
+ }
+ 
+ static void
+-bruti_sign(GEN g, pariout_t *T, outString *S, int addsign)
++bruti_sign(GEN g, pariout_t *T, pari_str *S, int addsign)
+ {
+   if (!print_0_or_pm1(g, S, addsign))
+     bruti_intern(g, T, S, addsign);
+ }
+ 
+ static void
+-matbruti(GEN g, pariout_t *T, outString *S)
++matbruti(GEN g, pariout_t *T, pari_str *S)
+ {
+   long i, j, r, w, l, *pad = NULL;
+   pari_sp av;
+@@ -3060,7 +3055,7 @@ matbruti(GEN g, pariout_t *T, outString *S)
+   {
+     long lgall = 2; /* opening [ and closing ] */
+     pari_sp av2;
+-    outString scratchstr;
++    pari_str scratchstr;
+     pad = cgetg(l*r+1, t_VECSMALL); /* left on stack if (S->use_stack)*/
+     av2 = avma;
+     str_init(&scratchstr, 1);
+@@ -3106,7 +3101,7 @@ matbruti(GEN g, pariout_t *T, outString *S)
+ /********************************************************************/
+ /* this follows bruti_sign */
+ static void
+-texi_sign(GEN g, pariout_t *T, outString *S, int addsign)
++texi_sign(GEN g, pariout_t *T, pari_str *S, int addsign)
+ {
+   long tg,i,j,l,r;
+   GEN a,b;
+@@ -4519,13 +4514,16 @@ out_print0(PariOUT *out, const char *sep, GEN g, long flag)
+   }
+ }
+ static void
+-str_print0(outString *S, GEN g, long flag)
++str_print0(pari_str *S, GEN g, long flag)
+ {
+   pari_sp av = avma;
+   OUT_FUN f = get_fun(flag);
+   long i, l = lg(g);
+-  for (i = 1; i < l; i++, avma = av)
++  for (i = 1; i < l; i++)
++  {
+     str_puts(S, stack_GENtostr_fun_unquoted(gel(g,i), GP_DATA->fmt, f));
++    if (!S->use_stack) avma = av;
++  }
+   *(S->cur) = 0;
+ }
+ 
+@@ -4533,7 +4531,7 @@ str_print0(outString *S, GEN g, long flag)
+ char *
+ pari_sprint0(const char *s, GEN g, long flag)
+ {
+-  outString S;
++  pari_str S;
+   str_init(&S, 0);
+   str_puts(&S, s);
+   str_print0(&S, g, flag);
+@@ -4544,7 +4542,7 @@ static void
+ print0_file(FILE *out, GEN g, long flag)
+ {
+   pari_sp av = avma;
+-  outString S;
++  pari_str S;
+   str_init(&S, 1);
+   str_print0(&S, g, flag);
+   fputs(S.string, out);
+@@ -4559,7 +4557,16 @@ printsep(const char *s, GEN g)
+ void
+ printsep1(const char *s, GEN g) { out_print0(pariOut, s, g, f_RAW); pari_flush(); }
+ 
+-/* dummy needed to pass a (empty!) va_list to sm_dopr */
++static char *
++sm_dopr(const char *fmt, GEN arg_vector, va_list args)
++{
++  pari_str s;
++  str_init(&s, 0);
++  str_arg_vprintf(&s, fmt, arg_vector, args);
++  return s.string;
++}
++
++/* dummy needed to pass an empty va_list to sm_dopr */
+ static char *
+ dopr_arg_vector(GEN arg_vector, const char* fmt, ...)
+ {
+@@ -4625,6 +4632,14 @@ pari_sprintf(const char *fmt, ...) /* variadic version of Strprintf */
+   va_end(ap); return s;
+ }
+ 
++void
++str_printf(pari_str *S, const char *fmt, ...)
++{
++  va_list ap; va_start(ap, fmt);
++  str_arg_vprintf(S, fmt, NULL, ap);
++  va_end(ap);
++}
++
+ char *
+ stack_sprintf(const char *fmt, ...)
+ {

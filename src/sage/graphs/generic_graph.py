@@ -3967,10 +3967,13 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G.add_cycle(["Hey", "Wuuhuu", "Really ?"])
             sage: G.cycle_basis()
-            [[0, 2], [2, 1, 0], ['Really ?', 'Hey', 'Wuuhuu']]
+            [['Really ?', 'Hey', 'Wuuhuu'], [0, 2], [2, 1, 0]]
             sage: G.cycle_basis(output='edge')
-            [[(0, 2, 'a'), (2, 0, 'b')], [(2, 1, 'd'), (1, 0, 'c'), (0, 2, 'a')],
-            [('Really ?', 'Hey', None), ('Hey', 'Wuuhuu', None), ('Wuuhuu', 'Really ?', None)]]
+            [[('Really ?', 'Hey', None),
+              ('Hey', 'Wuuhuu', None),
+              ('Wuuhuu', 'Really ?', None)],
+             [(0, 2, 'a'), (2, 0, 'b')],
+             [(2, 1, 'd'), (1, 0, 'c'), (0, 2, 'a')]]
 
         Graph that allows multiple edges but does not contain any::
 
@@ -11311,7 +11314,7 @@ class GenericGraph(GenericGraph_pyx):
             2
             ...
             2
-            3
+            4
             sage: for i in G.degree_iterator(labels=True):
             ....:  print(i)
             ((0, 1), 3)
@@ -11319,7 +11322,7 @@ class GenericGraph(GenericGraph_pyx):
             ((0, 0), 2)
             ...
             ((0, 3), 2)
-            ((0, 2), 3)
+            ((1, 1), 4)
 
         ::
 

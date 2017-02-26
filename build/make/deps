@@ -146,7 +146,8 @@ sagelib: \
 		$(inst_planarity) \
 		$(inst_ppl) \
 		$(inst_pynac) \
-		$(PYTHON) \
+		$(inst_python2) \
+		$(inst_python3) \
 		$(inst_ratpoints) \
 		$(inst_readline) \
 		$(inst_rw) \

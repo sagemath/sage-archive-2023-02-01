@@ -131,7 +131,7 @@ class Huffman(SageObject):
 
         sage: from sage.coding.source_coding.huffman import Huffman, frequency_table
         sage: h1 = Huffman("There once was a french fry")
-        sage: for letter, code in h1.encoding_table().iteritems():
+        sage: for letter, code in h1.encoding_table().items():
         ....:     print("'{}' : {}".format(letter, code))
         'a' : 0111
         ' ' : 00

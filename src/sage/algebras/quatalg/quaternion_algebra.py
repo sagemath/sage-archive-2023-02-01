@@ -31,8 +31,8 @@ Pickling test::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six.moves import zip
 
 from sage.arith.all import (hilbert_conductor_inverse, hilbert_conductor,
         factor, gcd, lcm, kronecker_symbol, valuation)
@@ -781,8 +781,8 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
                 # for e_n to become p-saturated we still need to sort by
                 # ascending valuation of the quadratic form
                 lst = sorted(zip(e_n, [f[m][1].mod(2) for m in range(4)]),
-                             key = itemgetter(1))
-                e_n = list(zip(*lst)[0])
+                             key=itemgetter(1))
+                e_n = list(next(zip(*lst)))
 
                 # Final step: Enlarge the basis at p
                 if p != 2:

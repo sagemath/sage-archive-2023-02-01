@@ -1922,7 +1922,7 @@ class Func_jacobi_P(OrthogonalFunction):
         from sage.functions.other import gamma
         s = sum(binomial(n,m) * gamma(a+b+n+m+1) / gamma(a+m+1) * ((x-1)/2)**m for m in range(n+1))
         r = gamma(a+n+1) / factorial(n) / gamma(n+a+b+1) * s
-        return r.to_gamma().gamma_normalize()
+        return r.to_gamma().gamma_normalize().normalize()
 
     def _evalf_(self, n, a, b, x, **kwds):
         """

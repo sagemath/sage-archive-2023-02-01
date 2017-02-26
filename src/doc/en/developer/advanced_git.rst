@@ -82,20 +82,31 @@ Introduction
 ------------
 
 When developing, quite frequently one ends up with a branch which is
-not based on the latest (beta) version of SageMath. This is perfecly
-fine and usually there is no need to merge in this latest SageMath
-version. However sometimes it is, e.g. if there are conflicts with the
-latest version or one needs a recent feature or simply because the old
-SageMath version is not available on the machine. Then merging in the
-latest version has to be done.
+not based on the latest (beta) version of SageMath.
+
+.. NOTE::
+
+    Continue working on a feature based on an old branch is perfecly
+    fine and usually there is no need to merge in this latest SageMath
+    version.
+
+However sometimes there is a need for a merge, for example
+
+- if there are conflicts with the latest version or
+- one needs a recent feature or
+- simply because the old SageMath version is not available on your machine
+  any longer.
+
+Then merging in the latest SageMath version has to be done.
 
 
-Merge in the latest SageMath Version
+Merge in the Latest SageMath Version
 ------------------------------------
 
 (This is the easy way without minimizing the recompilation time.)
 
-Suppose we are on our current working branch (branch is checked out). Then
+Suppose we are on our current working branch ``some/code``
+(branch is checked out). Then
 ::
 
    git merge develop
@@ -104,16 +115,17 @@ does the merging, i.e. we merge the latest development version into
 our working branch.
 
 However, after this merge, we need to (partially) recompile
-SageMath. Sometimes this can take ages (as many timestamps are
-renewed) and there is a way to avoid it.
+SageMath. Sometimes this can take ages (as many files are touched and
+their timestamps are renewed) and there is a way to avoid it.
 
 
 Minimize the Recompilation Time
 -------------------------------
 
 Suppose we are on some new SageMath (e.g. on branch ``develop``) which
-runs successfully, and we have an "old" branch ``some/code``, that
-we want to bring onto this SageMath version.
+was already compiled and runs successfully, and we have an "old"
+branch ``some/code``, that we want to bring onto this SageMath version
+(without triggering unnecessary recompilations).
 
 We first create a new working tree in a directory ``merge`` and switch
 to this directory::
@@ -129,7 +141,7 @@ etc. of the original repository will be changed. Now we do the merge::
 
 And go back to our original repository::
 
-    git checkout something/else
+    git checkout develop
     cd ..
 
 We can now safely checkout ``some/code``::

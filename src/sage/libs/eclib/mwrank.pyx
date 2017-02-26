@@ -1003,7 +1003,7 @@ cdef class _two_descent:
           code in ``src/qrank/mrank1.cc`` in DEFAULT_NAUX: currently 8).
           Only relevant for curves with no 2-torsion, where full
           2-descent is carried out.  Worth increasing for curves
-          expected to be of of rank>6 to one or two more than the
+          expected to be of rank > 6 to one or two more than the
           expected rank.
 
         - ``second_descent`` (int, default 1) -- flag specifying

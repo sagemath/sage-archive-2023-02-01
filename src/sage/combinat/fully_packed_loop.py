@@ -8,6 +8,8 @@ from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element
+from sage.structure.sage_object import op_EQ, op_NE
+
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.six_vertex_model import (SquareIceModel,
                                             SixVertexConfiguration,
@@ -614,9 +616,9 @@ class FullyPackedLoop(Element):
 
         return ret
 
-    def __eq__(self, other):
+    def _richcmp_(self, other, op):
         """
-        Check equality.
+        Check equality or inequality.
 
         EXAMPLES::
 
@@ -631,18 +633,7 @@ class FullyPackedLoop(Element):
 
             sage: FullyPackedLoop(M) == M
             False
-        """
-        return repr(self) == repr(other) and \
-        self._end_point_dictionary == other._end_point_dictionary\
-        and self._six_vertex_model == other._six_vertex_model
 
-    def __ne__(self, other):
-        """
-        Check unequality.
-
-        EXAMPLES::
-
-            sage: A = AlternatingSignMatrices(3)
             sage: M = A.random_element()
             sage: FullyPackedLoop(M) != M.to_fully_packed_loop()
             False
@@ -652,8 +643,13 @@ class FullyPackedLoop(Element):
             sage: f0 != f1
             True
         """
-        return not self.__eq__(other)
-    
+        if op not in [op_EQ, op_NE]:
+            return NotImplemented
+        b = (repr(self) == repr(other) and
+             self._end_point_dictionary == other._end_point_dictionary
+             and self._six_vertex_model == other._six_vertex_model)
+        return b == (op == op_EQ)
+
     def to_alternating_sign_matrix(self):
         """
         Return the alternating sign matrix corresponding to this class.

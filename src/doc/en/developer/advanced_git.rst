@@ -68,6 +68,19 @@ created only to review the ticket.
 
 .. _section-git-update-latest:
 
+Update Branch to Latest SageMath Version (and Minimizing Recompilation Time)
+============================================================================
+
+- You have a compiled and working new SageMath version ``n``, and
+- you want to work on a branch ``some/code`` which is based on some old SageMath version ``o``
+- by updating this branch from version ``o`` to ``n``
+- with only recompiling changed files (and not all touched files from ``o`` to ``n``),
+- then continue reading this section.
+
+
+Introduction
+------------
+
 When developing, quite frequently one ends up with a branch which is
 not based on the latest (beta) version of SageMath. This is perfecly
 fine and usually there is no need to merge in this latest SageMath

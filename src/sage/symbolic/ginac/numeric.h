@@ -271,6 +271,8 @@ public:
 	const numeric fibonacci() const;
 	const numeric isqrt() const;
 	const numeric sqrt() const;
+        bool is_square() const;
+        const ex sqrt_as_ex() const;
 	const numeric abs() const;
 	const numeric mod(const numeric &b) const;
 	const numeric _smod(const numeric &b) const;

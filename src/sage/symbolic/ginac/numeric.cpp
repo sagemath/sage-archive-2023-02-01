@@ -2687,6 +2687,62 @@ const numeric numeric::sqrt() const {
         PY_RETURN(py_funcs.py_sqrt);
 }
 
+bool numeric::is_square() const
+{
+        if (is_negative())
+                return false;
+        if (is_zero() or is_one())
+                return true;
+        if (t == MPZ) {
+                return mpz_perfect_square_p(v._bigint);
+        }
+        else if (t == MPQ) {
+                return (mpz_perfect_square_p(mpq_numref(v._bigrat))
+                    and mpz_perfect_square_p(mpq_denref(v._bigrat)));
+        }
+        return false;
+}
+
+// Fast sqrt in case of square, symbolic sqrt else.
+const ex numeric::sqrt_as_ex() const
+{
+        if (is_negative())
+                return I * (-*this).sqrt_as_ex();
+        if (is_zero())
+                return _ex0;
+        if (is_one())
+                return _ex1;
+        if (t == MPZ) {
+                if (mpz_perfect_square_p(v._bigint)) {
+                        mpz_t bigint;
+                        mpz_init(bigint);
+                        mpz_sqrt(bigint, v._bigint);
+                        return ex(numeric(bigint));
+                }
+                return (new GiNaC::power(ex(*this), _ex1_2))->setflag(status_flags::dynallocated | status_flags::evaluated);
+        }
+        else if (t == MPQ) {
+                if (mpz_perfect_square_p(mpq_numref(v._bigrat))
+                    and mpz_perfect_square_p(mpq_denref(v._bigrat))) {
+                        mpz_t bigint;
+                        mpq_t bigrat, obigrat;
+                        mpz_init(bigint);
+                        mpq_init(bigrat);
+                        mpq_init(obigrat);
+                        mpz_sqrt(bigint, mpq_numref(v._bigrat));
+                        mpq_set_z(bigrat, bigint);
+                        mpz_sqrt(bigint, mpq_denref(v._bigrat));
+                        mpq_set_z(obigrat, bigint);
+                        mpq_div(bigrat, bigrat, obigrat);
+                        mpz_clear(bigint);
+                        mpq_clear(obigrat);
+                        return ex(numeric(bigrat));
+                }
+                return (new GiNaC::power(ex(*this), _ex1_2))->setflag(status_flags::dynallocated | status_flags::evaluated);
+        }
+        return sqrt();
+}
+
 const numeric numeric::abs() const {
         if (t == MPZ) {
                 mpz_t bigint;

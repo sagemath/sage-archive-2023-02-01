@@ -233,6 +233,8 @@ public:
 	void unitcontprim(const ex &x, ex &u, ex &c, ex &p) const;
 	ex smod(const numeric &xi) const { return bp->smod(xi); }
 	numeric max_coefficient() const;
+        bool is_linear(const symbol& x, ex& a, ex& b) const;
+        bool is_quadratic(const symbol& x, ex& a, ex& b, ex& c) const;
 
 	// indexed objects
 	exvector get_free_indices() const { return bp->get_free_indices(); }

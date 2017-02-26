@@ -197,6 +197,35 @@ numeric mul::max_coefficient() const
 	return abs(ex_to<numeric>(overall_coeff));
 }
 
+bool ex::is_linear(const symbol& x, ex& a, ex& b) const
+{
+        if (degree(x) > 1)
+                return false;
+        b = coeff(x, 1);
+        if (has_symbol(b,x))
+                return false;
+        a = ((*this) - b*x).expand();
+        if (has_symbol(a,x))
+                return false;
+        return true;
+}
+
+bool ex::is_quadratic(const symbol& x, ex& a, ex& b, ex& c) const
+{
+        if (degree(x) > 2)
+                return false;
+        c = coeff(x, 2);
+        if (has_symbol(c,x))
+                return false;
+        b = coeff(x, 1);
+        if (has_symbol(b,x))
+                return false;
+        a = ((*this) - c*power(x,2) - b*x).expand();
+        if (has_symbol(a,x))
+                return false;
+        return true;
+}
+
 
 /** Apply symmetric modular homomorphism to an expanded multivariate
  *  polynomial.  This function is usually used internally by heur_gcd().

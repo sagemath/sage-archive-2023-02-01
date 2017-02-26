@@ -1911,7 +1911,7 @@ class TransitiveGroupsAll(DisjointUnionEnumeratedSets):
         sage: L = TransitiveGroups(); L
         Transitive Groups
         sage: L.category()
-        Category of infinite enumerated sets
+        Category of facade infinite enumerated sets
         sage: L.cardinality()
         +Infinity
 
@@ -1929,7 +1929,7 @@ class TransitiveGroupsAll(DisjointUnionEnumeratedSets):
 
             sage: S = TransitiveGroups() # optional - database_gap
             sage: S.category() # optional - database_gap
-            Category of infinite enumerated sets
+            Category of facade infinite enumerated sets
         """
         DisjointUnionEnumeratedSets.__init__(self, Family(NonNegativeIntegers(), lambda i: TransitiveGroups(i)) )
 
@@ -2292,7 +2292,7 @@ class PrimitiveGroupsAll(DisjointUnionEnumeratedSets):
         sage: L = PrimitiveGroups(); L
         Primitive Groups
         sage: L.category()
-        Category of infinite enumerated sets
+        Category of facade infinite enumerated sets
         sage: L.cardinality()
         +Infinity
 
@@ -2311,7 +2311,7 @@ class PrimitiveGroupsAll(DisjointUnionEnumeratedSets):
 
             sage: S = PrimitiveGroups() # optional - database_gap
             sage: S.category() # optional - database_gap
-            Category of infinite enumerated sets
+            Category of facade infinite enumerated sets
         """
         DisjointUnionEnumeratedSets.__init__(self, Family(NonNegativeIntegers(), lambda i: PrimitiveGroups(i)) )
 

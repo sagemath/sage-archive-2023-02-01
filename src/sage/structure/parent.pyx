@@ -1198,7 +1198,7 @@ cdef class Parent(category_object.CategoryObject):
 
     def __nonzero__(self):
         """
-        By default, all Parents are treated as True when used in an if
+        By default, all Parents are treated as ``True`` when used in an if
         statement. Override this method if other behavior is desired
         (for example, for empty sets).
 
@@ -1208,36 +1208,6 @@ cdef class Parent(category_object.CategoryObject):
             Yes
         """
         return True
-    
-    cpdef bint _richcmp(left, right, int op) except -2:
-        """
-        Compare left and right.
-
-        This is called by a few parents through their methods `__richcmp__`.
-
-        EXAMPLES::
-
-            sage: ZZ < QQ
-            True
-        """
-        if left is right:
-            return rich_to_bool(op, 0)
-
-        if not isinstance(right, Parent) or not isinstance(left, Parent):
-            # One is not a parent -- not equal and not ordered
-            return op == Py_NE
-
-        try:
-            return left._richcmp_(right, op)
-        except AttributeError:
-            pass
-
-        try:
-            return rich_to_bool(op, left._cmp_(right))
-        except AttributeError:
-            pass
-
-        return op == Py_NE
 
     cpdef int _cmp_(left, right) except -2:
         """

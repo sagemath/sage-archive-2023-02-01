@@ -2762,7 +2762,38 @@ class SimplicialComplex(Parent, GenericCellComplex):
         s = Simplex(simplex)
         for f in self._facets:
             if s.is_face(f):
-                faces.append(Simplex(list(f.set().difference(s.set()))))
+                faces.append(Simplex(f.set().difference(s.set())))
+        return SimplicialComplex(faces, is_mutable=is_mutable)
+
+    def star(self, simplex, is_mutable=True):
+        """
+        The star of a simplex in this simplicial complex.
+
+        The star of a simplex `F` is the simplicial complex formed by
+        all simplices `G` which contain `F`.
+
+        INPUT:
+        
+        - `simplex` -- a simplex in this simplicial complex
+        - `is_mutable` -- (optional) boolean, determines if the output is mutable, default ``True``
+
+        EXAMPLES::
+
+	    sage: X = SimplicialComplex([[0,1,2], [1,2,3]])
+	    sage: X.star(Simplex([0]))
+	    Simplicial complex with vertex set (0, 1, 2) and facets {(0, 1, 2)}
+	    sage: X.star(Simplex([1]))
+	    Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 2), (1, 2, 3)}
+	    sage: X.star(Simplex([1,2]))
+	    Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 2), (1, 2, 3)}
+	    sage: X.star(Simplex([]))
+	    Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 2), (1, 2, 3)}
+        """
+        faces = []
+        s = Simplex(simplex)
+        for f in self._facets:
+            if s.is_face(f):
+                faces.append(f)
         return SimplicialComplex(faces, is_mutable=is_mutable)
 
     def is_cohen_macaulay(self, base_ring=QQ, ncpus=0):

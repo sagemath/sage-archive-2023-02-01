@@ -43,8 +43,7 @@ cdef GEN _INT_to_FFELT(GEN g, GEN x) except NULL:
     Convert the t_INT `x` to an element of the field of definition of
     the t_FFELT `g`.
 
-    This function must be called within ``sig_on()``
-    ... ``sig_off()``.
+    This function must be called within ``sig_on()`` ... ``sig_off()``.
 
     TESTS:
 

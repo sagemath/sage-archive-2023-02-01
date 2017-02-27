@@ -260,10 +260,10 @@ class _Coordinates(object):
             sage: v_phi=array([ 0.,  1.57079637,  3.14159274, 4.71238911,  6.28318548])
             sage: v_theta=array([ 0.,  0.78539819,  1.57079637,  2.35619456,  3.14159274])
             sage: m_r=array([[ 0.16763356,  0.25683223,  0.16649297,  0.10594339, 0.55282422],
-            ... [ 0.16763356,  0.19993708,  0.31403568,  0.47359696, 0.55282422],
-            ... [ 0.16763356,  0.25683223,  0.16649297,  0.10594339, 0.55282422],
-            ... [ 0.16763356,  0.19993708,  0.31403568,  0.47359696, 0.55282422],
-            ... [ 0.16763356,  0.25683223,  0.16649297,  0.10594339, 0.55282422]])
+            ....: [ 0.16763356,  0.19993708,  0.31403568,  0.47359696, 0.55282422],
+            ....: [ 0.16763356,  0.25683223,  0.16649297,  0.10594339, 0.55282422],
+            ....: [ 0.16763356,  0.19993708,  0.31403568,  0.47359696, 0.55282422],
+            ....: [ 0.16763356,  0.25683223,  0.16649297,  0.10594339, 0.55282422]])
             sage: import scipy.interpolate
             sage: f=scipy.interpolate.RectBivariateSpline(v_phi,v_theta,m_r)
             sage: spherical_plot3d(f,(0,2*pi),(0,pi))
@@ -965,7 +965,7 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
         sage: D = plot3d(2,(u,-pi,pi),(v,0,pi),transformation=cylindric_axial,plot_points=[100,100])
         sage: E = plot3d(2,(u,-pi,pi),(v,-pi,pi),transformation=parabolic_cylindrical,plot_points=[100,100])
         sage: @interact
-        ... def _(which_plot=[A,B,C,D,E]):
+        ....: def _(which_plot=[A,B,C,D,E]):
         ....:     show(which_plot)
         <html>...
 
@@ -978,7 +978,7 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
         sage: I = plot3d(g,(u,-pi,pi),(v,0,pi),transformation=cylindric_axial,plot_points=[100,100])
         sage: J = plot3d(g,(u,-pi,pi),(v,0,pi),transformation=parabolic_cylindrical,plot_points=[100,100])
         sage: @interact
-        ... def _(which_plot=[F, G, H, I, J]):
+        ....: def _(which_plot=[F, G, H, I, J]):
         ....:     show(which_plot)
         <html>...
 

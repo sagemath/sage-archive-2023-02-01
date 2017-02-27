@@ -125,7 +125,6 @@ def print_graph_ps(vert_ls, edge_iter, pos_dict):
         ... edge
         ...
         ... edge
-
     """
 
     pos_dict = copy(pos_dict) # assumption: all pos's are -1 <= ... <= 1

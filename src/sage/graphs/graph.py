@@ -5168,9 +5168,9 @@ class Graph(GenericGraph):
 
         :trac:`22424`::
 
-            sage: G1=graphs.Grid2RandomGNP(5,0.5)
+            sage: G1 = graphs.RandomGNP(5,0.5)
             sage: gp1 = G1.graphplot(save_pos=True)
-            sage: G2=G1.to_directed()
+            sage: G2 = G1.to_directed()
             sage: G2.delete_vertex(0)
             sage: G2.add_vertex(5)
             sage: gp2 = G2.graphplot()

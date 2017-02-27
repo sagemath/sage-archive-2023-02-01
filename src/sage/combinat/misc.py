@@ -79,6 +79,20 @@ class DoublyLinkedList():
             self.next_value == other.next_value and
             self.prev_value == other.prev_value)
 
+    def __ne__(self, other):
+        """
+        TESTS::
+
+            sage: dll = sage.combinat.misc.DoublyLinkedList([1,2,3])
+            sage: dll2 = sage.combinat.misc.DoublyLinkedList([1,2,3])
+            sage: dll != dll2
+            False
+            sage: dll.hide(1)
+            sage: dll != dll2
+            True
+        """
+        return not self.__eq__(other)
+
     def __repr__(self):
         """
         TESTS::

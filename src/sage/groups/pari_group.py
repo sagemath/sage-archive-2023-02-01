@@ -53,6 +53,9 @@ class PariGroup(Group):
         return (isinstance(other, PariGroup) and
             (self.__x, self.__degree) == (other.__x, other.__degree))
 
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def _pari_(self):
         return self.__x
 

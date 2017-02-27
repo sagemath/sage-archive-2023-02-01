@@ -2016,6 +2016,17 @@ class RFunction(ExpectFunction):
         return (isinstance(other, RFunction) and
             self._name == other._name)
 
+    def __ne__(self, other):
+        """
+        EXAMPLES::
+
+            sage: r.mean != loads(dumps(r.mean))
+            False
+            sage: r.mean != r.lr
+            True
+        """        
+        return not self.__eq__(other)
+
     def _sage_doc_(self):
         """
         Returns the help for self.

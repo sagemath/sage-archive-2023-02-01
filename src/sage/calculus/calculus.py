@@ -1259,7 +1259,7 @@ lim = limit
 ###################################################################
 # Laplace transform
 ###################################################################
-def laplace(ex, t, s):
+def laplace(ex, t, s, algorithm='maxima'):
     r"""
     Attempts to compute and return the Laplace transform of
     ``self`` with respect to the variable `t` and
@@ -1361,9 +1361,37 @@ def laplace(ex, t, s):
     """
     if not isinstance(ex, (Expression, Function)):
         ex = SR(ex)
-    return ex.parent()(ex._maxima_().laplace(var(t), var(s)))
 
-def inverse_laplace(ex, t, s):
+    if algorithm == 'maxima':
+        return ex.parent()(ex._maxima_().laplace(var(t), var(s)))
+
+    elif algorithm == 'sympy':
+        ex, t, s = [expr._sympy_() for expr in (ex, t, s)]
+        from sympy import laplace_transform
+        result = laplace_transform(ex, t, s)
+        if isinstance(result, tuple):
+            try:
+                (result, a, cond) = result
+                return result._sage_(), a, cond
+            except AttributeError:
+                raise AttributeError("Unable to convert SymPy result (={}) into"
+                        " Sage".format(result))
+        else:
+            return result
+
+    elif algorithm == 'giac':
+        ex = "laplace(%s, %s, %s)" % tuple([repr(expr._giac_()) for expr in (ex, t, s)])
+        from sage.interfaces.giac import giac
+        try:
+            result = giac(ex)
+        except TypeError:
+            raise ValueError("Giac cannot make sense of: %s" % ex)
+        return result.sage()
+
+    else:
+        raise ValueError("Unknown algorithm: %s" % algorithm)
+
+def inverse_laplace(ex, s, t, algorithm='maxima'):
     r"""
     Attempts to compute the inverse Laplace transform of
     ``self`` with respect to the variable `t` and
@@ -1409,7 +1437,31 @@ def inverse_laplace(ex, t, s):
     """
     if not isinstance(ex, Expression):
         ex = SR(ex)
-    return ex.parent()(ex._maxima_().ilt(var(t), var(s)))
+
+    if algorithm == 'maxima':
+        return ex.parent()(ex._maxima_().ilt(var(s), var(t)))
+
+    elif algorithm == 'sympy':
+        ex, s, t = [expr._sympy_() for expr in (ex, s, t)]
+        from sympy import inverse_laplace_transform
+        result = inverse_laplace_transform(ex, s, t)
+        try:
+            return result._sage_()
+        except AttributeError:
+            raise AttributeError("Unable to convert SymPy result (={}) into"
+                    " Sage".format(result))
+
+    elif algorithm == 'giac':
+        ex = "invlaplace(%s, %s, %s)" % tuple([repr(expr._giac_()) for expr in (ex, s, t)])
+        from sage.interfaces.giac import giac
+        try:
+            result = giac(ex)
+        except TypeError:
+            raise ValueError("Giac cannot make sense of: %s" % ex)
+        return result.sage()
+
+    else:
+        raise ValueError("Unknown algorithm: %s" % algorithm)
 
 ###################################################################
 # symbolic evaluation "at" a point
@@ -1776,15 +1828,15 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         2
         sage: var('my_new_var').full_simplify()
         my_new_var
-        
+
     ODE solution constants are treated differently (:trac:`16007`)::
-    
+
         sage: from sage.calculus.calculus import symbolic_expression_from_maxima_string as sefms
         sage: sefms('%k1*x + %k2*y + %c')
         _K1*x + _K2*y + _C
 
     Check that some hypothetical variables don't end up as special constants (:trac:`6882`)::
-    
+
         sage: from sage.calculus.calculus import symbolic_expression_from_maxima_string as sefms
         sage: sefms('%i')^2
         -1
@@ -1848,7 +1900,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     #we apply the square-bracket replacing patterns repeatedly
     #to ensure that nested brackets get handled (from inside to out)
     while True:
-        olds = s 
+        olds = s
         s = polylog_ex.sub('polylog(\\1,', s)
         s = maxima_polygamma.sub('psi(\g<1>,', s) # this replaces psi[n](foo) with psi(n,foo), ensuring that derivatives of the digamma function are parsed properly below
         if s == olds: break
@@ -2108,4 +2160,3 @@ SRM_parser = Parser(make_int      = lambda x: SR(Integer(x)),
                     make_float    = lambda x: SR(RealDoubleElement(x)),
                     make_var      = _find_Mvar,
                     make_function = _find_func)
-

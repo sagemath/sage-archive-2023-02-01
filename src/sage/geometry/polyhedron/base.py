@@ -2211,7 +2211,7 @@ class Polyhedron_base(Element):
         vertices = self.vertices()
         vertex = vertices[0]
         vertex_neighbors = vertex.neighbors()
-        simplex_vertices = [vertex] + [vertex_neighbors.next() for i in range(dimension)]
+        simplex_vertices = [vertex] + [next(vertex_neighbors) for i in range(dimension)]
         other_vertices = [v for v in vertices if v not in simplex_vertices]
 
         row_data = []

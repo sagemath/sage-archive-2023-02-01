@@ -725,9 +725,9 @@ You will need to do this from the command line.  Just run a command like this.
 
 * Linux (assuming you have Sage in ``/usr/bin``)::
 
-    env SAGE_BROWSER=opera /usr/bin/sage -notebook
+    env BROWSER=opera /usr/bin/sage --notebook
 
 * Mac (assuming you are in the directory of your downloaded Sage)::
 
-    SAGE_BROWSER='open -a Firefox' ./sage -notebook
-    SAGE_BROWSER='open -a Google\ Chrome' ./sage -notebook
+    BROWSER='open -a Firefox' ./sage --notebook
+    BROWSER='open -a Google\ Chrome' ./sage --notebook

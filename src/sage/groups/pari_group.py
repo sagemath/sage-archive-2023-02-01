@@ -8,6 +8,7 @@ from sage.libs.all import pari_gen
 from sage.rings.all import Integer
 from sage.structure.parent import Parent
 
+
 class PariGroup(Group):
     def __init__(self, x, degree=None):
         """
@@ -39,19 +40,18 @@ class PariGroup(Group):
                                            "_test_some_elements"])
         """
         if not isinstance(x, pari_gen):
-            raise TypeError("x (=%s) must be a PARI gen"%x)
+            raise TypeError("x (=%s) must be a PARI gen" % x)
         self.__x = x
         self.__degree = degree
         from sage.categories.finite_groups import FiniteGroups
-        Parent.__init__(self, category = FiniteGroups())
+        Parent.__init__(self, category=FiniteGroups())
 
     def __repr__(self):
-        return "PARI group %s of degree %s"%(self.__x, self.__degree)
+        return "PARI group %s of degree %s" % (self.__x, self.__degree)
 
-    def __cmp__(self, other):
-        if not isinstance(other, PariGroup):
-            return cmp(type(self), type(other))
-        return cmp((self.__x, self.__degree), (other.__x, other.__degree))
+    def __eq__(self, other):
+        return (isinstance(other, PariGroup) and
+            (self.__x, self.__degree) == (other.__x, other.__degree))
 
     def _pari_(self):
         return self.__x

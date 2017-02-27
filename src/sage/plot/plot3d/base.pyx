@@ -1954,7 +1954,7 @@ end_scene""" % (render_params.antialiasing,
         return self
 
 # if you add any default parameters you must update some code below
-SHOW_DEFAULTS = {'viewer': 'jmol',
+SHOW_DEFAULTS = {'viewer': 'threejs',
                  'verbosity': 0,
                  'figsize': 5,
                  'aspect_ratio': "automatic",

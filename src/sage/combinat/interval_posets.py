@@ -61,6 +61,7 @@ AUTHORS:
 # ****************************************************************************
 from __future__ import print_function
 from six.moves import range
+from six import add_metaclass
 
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -87,6 +88,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.graphs.digraph import DiGraph
 
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class TamariIntervalPoset(Element):
     r"""
     The class of Tamari interval-posets.
@@ -211,8 +213,6 @@ class TamariIntervalPoset(Element):
         sage: TIP(Poset({}))
         The Tamari interval of size 0 induced by relations []
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
         r"""

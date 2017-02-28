@@ -2004,7 +2004,7 @@ class RFunction(ExpectFunction):
         else:
             self._name = parent._sage_to_r_name(name)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         EXAMPLES::
 
@@ -2013,9 +2013,19 @@ class RFunction(ExpectFunction):
             sage: r.mean == r.lr
             False
         """
-        if not isinstance(other, RFunction):
-            return cmp(type(self), type(other))
-        return cmp(self._name, other._name)
+        return (isinstance(other, RFunction) and
+            self._name == other._name)
+
+    def __ne__(self, other):
+        """
+        EXAMPLES::
+
+            sage: r.mean != loads(dumps(r.mean))
+            False
+            sage: r.mean != r.lr
+            True
+        """        
+        return not (self == other)
 
     def _sage_doc_(self):
         """

@@ -288,7 +288,7 @@ def lattice_paths(t1, t2, length=None):
                     [path + [(t1[-1], t2[-1])] for path
                      in lattice_paths(t1[:-1], t2[:-1], length=length-1)])
 
-def rename_vertex(n, keep, left = True):
+def rename_vertex(n, keep, left=True):
     """
     Rename a vertex: the vertices from the list ``keep`` get
     relabeled 0, 1, 2, ..., in order.  Any other vertex (e.g. 4) gets
@@ -1031,7 +1031,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         good_faces = []
         maximal_simplices = [Simplex(f) for f in maximal_faces]
 
-        if maximality_check: # Sorting is useful to filter maximal faces
+        if maximality_check:  # Sorting is useful to filter maximal faces
             maximal_simplices.sort(key=lambda x: x.dimension(), reverse=True)
         for face in maximal_simplices:
             # check whether each given face is actually maximal
@@ -2773,21 +2773,21 @@ class SimplicialComplex(Parent, GenericCellComplex):
         all simplices `G` which contain `F`.
 
         INPUT:
-        
+
         - `simplex` -- a simplex in this simplicial complex
         - `is_mutable` -- (optional) boolean, determines if the output is mutable, default ``True``
 
         EXAMPLES::
 
-	    sage: X = SimplicialComplex([[0,1,2], [1,2,3]])
-	    sage: X.star(Simplex([0]))
-	    Simplicial complex with vertex set (0, 1, 2) and facets {(0, 1, 2)}
-	    sage: X.star(Simplex([1]))
-	    Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 2), (1, 2, 3)}
-	    sage: X.star(Simplex([1,2]))
-	    Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 2), (1, 2, 3)}
-	    sage: X.star(Simplex([]))
-	    Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 2), (1, 2, 3)}
+            sage: X = SimplicialComplex([[0,1,2], [1,2,3]])
+            sage: X.star(Simplex([0]))
+            Simplicial complex with vertex set (0, 1, 2) and facets {(0, 1, 2)}
+            sage: X.star(Simplex([1]))
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 2), (1, 2, 3)}
+            sage: X.star(Simplex([1,2]))
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 2), (1, 2, 3)}
+            sage: X.star(Simplex([]))
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 2), (1, 2, 3)}
         """
         faces = []
         s = Simplex(simplex)
@@ -3413,29 +3413,28 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
 
         EXAMPLES::
-	    sage: SC = SimplicialComplex([[0,1,2],[1,2,3]])
-	    sage: F1 = Simplex([1,2])
-	    sage: F2 = Simplex([1,3])
-	    sage: F3 = Simplex([1,2,3])
-	    sage: SC.stellar_subdivision(F1)
-	    Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 1, 4), (1, 3, 4), (2, 3, 4), (0, 2, 4)}
-	    sage: SC.stellar_subdivision(F2)
-	    Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 1, 2), (2, 3, 4), (1, 2, 4)}
-	    sage: SC.stellar_subdivision(F3)
-	    Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(1, 3, 4), (0, 1, 2), (2, 3, 4), (1, 2, 4)}
-	    sage: SC.stellar_subdivision(F3,inplace=True)
-	    Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(1, 3, 4), (0, 1, 2), (2, 3, 4), (1, 2, 4)}
-	    sage: SC
-	    Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(1, 3, 4), (0, 1, 2), (2, 3, 4), (1, 2, 4)}
-
+            sage: SC = SimplicialComplex([[0,1,2],[1,2,3]])
+            sage: F1 = Simplex([1,2])
+            sage: F2 = Simplex([1,3])
+            sage: F3 = Simplex([1,2,3])
+            sage: SC.stellar_subdivision(F1)
+            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 1, 4), (1, 3, 4), (2, 3, 4), (0, 2, 4)}
+            sage: SC.stellar_subdivision(F2)
+            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 1, 2), (2, 3, 4), (1, 2, 4)}
+            sage: SC.stellar_subdivision(F3)
+            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(1, 3, 4), (0, 1, 2), (2, 3, 4), (1, 2, 4)}
+            sage: SC.stellar_subdivision(F3,inplace=True)
+            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(1, 3, 4), (0, 1, 2), (2, 3, 4), (1, 2, 4)}
+            sage: SC
+            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(1, 3, 4), (0, 1, 2), (2, 3, 4), (1, 2, 4)}
 
         One can not modify an immutable simplicial complex:
-	    
-	    sage: SC = SimplicialComplex([[0,1,2],[1,2,3]],is_mutable=False)
-	    sage: SC.stellar_subdivision(F1,inplace=True)
-	    Traceback (most recent call last)
+
+            sage: SC = SimplicialComplex([[0,1,2],[1,2,3]],is_mutable=False)
+            sage: SC.stellar_subdivision(F1,inplace=True)
+            Traceback (most recent call last)
             ...
-	    ValueError: This simplicial complex is not mutable
+            ValueError: This simplicial complex is not mutable
 
         """
 

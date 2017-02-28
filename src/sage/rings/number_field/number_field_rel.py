@@ -1075,11 +1075,11 @@ class NumberField_relative(NumberField_generic):
             sage: K.<a> = NumberField(y^2 + y + 1)
             sage: x = polygen(K)
             sage: L.<b> = NumberField(x^4 + a*x + 2)
-            sage: e = a._pari_(); e
+            sage: e = a.__pari__(); e
             Mod(y, y^2 + y + 1)
             sage: L(e)  # Conversion from PARI base field element
             a
-            sage: e = (a*b)._pari_('x'); e
+            sage: e = (a*b).__pari__('x'); e
             Mod(-x^4 - 2, x^8 - x^5 + 4*x^4 + x^2 - 2*x + 4)
             sage: L(e)  # Conversion from PARI absolute number field element
             a*b

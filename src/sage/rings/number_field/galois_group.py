@@ -185,7 +185,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
         else:
             self._galois_closure, self._gc_map = (number_field, number_field.hom(number_field.gen(), number_field))
 
-        self._pari_gc = self._galois_closure._pari_()
+        self._pari_gc = self._galois_closure.__pari__()
 
         g = self._pari_gc.galoisinit()
         self._pari_data = g

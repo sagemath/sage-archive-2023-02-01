@@ -160,7 +160,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
     def int_list(self):
         return eval(str(self.__poly).replace(' ',','))
 
-    def _pari_(self, variable=None):
+    def __pari__(self, variable=None):
         """
         EXAMPLES::
 

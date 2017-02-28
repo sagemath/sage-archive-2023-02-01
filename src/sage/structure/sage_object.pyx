@@ -900,7 +900,7 @@ cdef class SageObject:
         return self._interface_init_(I)
 
     # PARI (slightly different, since is via C library, hence instance is unique)
-    def _pari_(self):
+    def __pari__(self):
         if self._interface_is_cached_():
             try:
                 return self.__pari

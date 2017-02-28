@@ -285,7 +285,7 @@ class MapRelativeVectorSpaceToRelativeNumberField(NumberFieldIsomorphism):
         # Convert v to a PARI polynomial in x with coefficients that
         # are polynomials in y.
         _, to_B = B.structure()
-        h = pari([to_B(a)._pari_('y') for a in v]).Polrev()
+        h = pari([to_B(a).__pari__('y') for a in v]).Polrev()
         # Rewrite the polynomial in terms of an absolute generator for
         # the relative number field.
         g = K._pari_rnfeq()._eltreltoabs(h)

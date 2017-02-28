@@ -60,7 +60,7 @@ cdef class Matrix(matrix0.Matrix):
             v.append( ','.join(tmp))
         return 'Mat([%s])'%(';'.join(v))
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Return the Pari matrix corresponding to self.
 

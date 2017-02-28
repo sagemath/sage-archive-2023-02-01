@@ -624,7 +624,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
                 B = self.reduced_basis.LLL()
                 qf = B*B.transpose()
 
-            count, length, vectors = qf._pari_().qfminim()
+            count, length, vectors = qf.__pari__().qfminim()
             v = vectors.sage().columns()[0]
             w = v*B
         elif algorithm == "fplll":

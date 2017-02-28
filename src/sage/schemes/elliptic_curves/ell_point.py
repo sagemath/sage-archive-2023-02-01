@@ -419,7 +419,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
                 return -1
         return cmp(self._coords, other._coords)
 
-    def _pari_(self):
+    def __pari__(self):
         r"""
         Converts this point to PARI format.
 
@@ -428,12 +428,12 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: E = EllipticCurve([0,0,0,3,0])
             sage: O = E(0)
             sage: P = E.point([1,2])
-            sage: O._pari_()
+            sage: O.__pari__()
             [0]
-            sage: P._pari_()
+            sage: P.__pari__()
             [1, 2]
 
-        The following implicitly calls O._pari_() and P._pari_()::
+        The following implicitly calls O.__pari__() and P.__pari__()::
 
             sage: pari(E).elladd(O,P)
             [1, 2]
@@ -445,9 +445,9 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: E = EllipticCurve(GF(11), [0,0,0,3,0])
             sage: O = E(0)
             sage: P = E.point([1,2])
-            sage: O._pari_()
+            sage: O.__pari__()
             [0]
-            sage: P._pari_()
+            sage: P.__pari__()
             [Mod(1, 11), Mod(2, 11)]
 
         We no longer need to explicitly call ``pari(O)`` and ``pari(P)``

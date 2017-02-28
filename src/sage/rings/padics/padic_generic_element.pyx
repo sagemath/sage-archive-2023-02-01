@@ -192,7 +192,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
     cdef bint _set_prec_both(self, long absprec, long relprec) except -1:
         return 0
 
-    #def _pari_(self):
+    #def __pari__(self):
     #    """
     #    Returns a pari version of this element.
 
@@ -834,7 +834,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
                              'on elements of Zp')
         parent = self.parent()
         if algorithm == 'pari':
-            return parent(self._pari_().gamma())
+            return parent(self.__pari__().gamma())
         elif algorithm == 'sage':
             from sage.misc.all import prod
             p = parent.prime()
@@ -2413,7 +2413,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         from sage.libs.pari.all import PariError
         try:
             # use pari
-            ans = self.parent()(self._pari_().sqrt())
+            ans = self.parent()(self.__pari__().sqrt())
             if all:
                 return [ans, -ans]
             else:

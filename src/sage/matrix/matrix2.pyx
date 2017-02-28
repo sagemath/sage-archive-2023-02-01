@@ -1605,7 +1605,7 @@ cdef class Matrix(matrix1.Matrix):
             # word, use PARI.
             ch = R.characteristic()
             if ch.is_prime() and ch < (2*sys.maxsize):
-                d = R(self._pari_().matdet())
+                d = R(self.__pari__().matdet())
             else:
                 # Lift to ZZ and compute there.
                 d = R(self.apply_map(lambda x : x.lift_centered()).det())
@@ -2560,7 +2560,7 @@ cdef class Matrix(matrix1.Matrix):
         if not is_NumberField(K):
             raise ValueError("_charpoly_over_number_field called with base ring (%s) not a number field" % K)
 
-        paripoly = self._pari_().charpoly()
+        paripoly = self.__pari__().charpoly()
         return K[var](paripoly)
 
     def fcp(self, var='x'):
@@ -3071,7 +3071,7 @@ cdef class Matrix(matrix1.Matrix):
             [0 0 1]
         """
         tm = verbose("computing right kernel matrix over a number field for %sx%s matrix" % (self.nrows(), self.ncols()),level=1)
-        basis = self._pari_().matker()
+        basis = self.__pari__().matker()
         # Coerce PARI representations into the number field
         R = self.base_ring()
         basis = [[R(x) for x in row] for row in basis]

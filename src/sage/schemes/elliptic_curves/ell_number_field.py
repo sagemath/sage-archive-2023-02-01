@@ -890,7 +890,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             r = ((-a2 + s*a1 +s*s)/3).round()
             t = ((-a3 - r*a1)/2).round('up')
         else:
-            pariK = K._pari_()
+            pariK = K.__pari__()
             s = K(pariK.nfeltdiveuc(-a1, 2))
             r = K(pariK.nfeltdiveuc(-a2 + s*a1 + s*s, 3))
             t = K(pariK.nfeltdiveuc(-a3 - r*a1, 2))
@@ -3335,7 +3335,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         r = len(points)
         if height_matrix is None:
             height_matrix = self.height_pairing_matrix(points, precision)
-        U = height_matrix._pari_().lllgram().sage()
+        U = height_matrix.__pari__().lllgram().sage()
         new_points = [sum([U[j, i]*points[j] for j in range(r)])
                       for i in range(r)]
         return new_points, U

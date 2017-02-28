@@ -1490,12 +1490,12 @@ def exponential_integral_1(x, n=0):
         # Add extra bits to the input.
         # (experimentally verified -- Jeroen Demeyer)
         inprec = prec + 5 + math.ceil(math.log(prec))
-        x = RealField(inprec)(x)._pari_()
+        x = RealField(inprec)(x).__pari__()
         return R(x.eint1())
     else:
         # PARI's algorithm is less precise as n grows larger:
         # add extra bits.
         # (experimentally verified -- Jeroen Demeyer)
         inprec = prec + 1 + math.ceil(1.4427 * math.log(n))
-        x = RealField(inprec)(x)._pari_()
+        x = RealField(inprec)(x).__pari__()
         return [R(z) for z in x.eint1(n)]

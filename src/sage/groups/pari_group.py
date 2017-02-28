@@ -53,7 +53,7 @@ class PariGroup(Group):
             return cmp(type(self), type(other))
         return cmp((self.__x, self.__degree), (other.__x, other.__degree))
 
-    def _pari_(self):
+    def __pari__(self):
         return self.__x
 
     def degree(self):

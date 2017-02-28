@@ -1658,8 +1658,8 @@ class FiniteExtFieldMult(Benchmark):
             True
 
         """
-        e = self.e._pari_()
-        f = self.f._pari_()
+        e = self.e.__pari__()
+        f = self.f.__pari__()
         t = cputime()
         v = [e*f for _ in range(self.__times)]
         return cputime(t)
@@ -1782,8 +1782,8 @@ class FiniteExtFieldAdd(Benchmark):
             True
 
         """
-        e = self.e._pari_()
-        f = self.f._pari_()
+        e = self.e.__pari__()
+        f = self.f.__pari__()
         t = cputime()
         v = [e+f for _ in range(self.__times)]
         return cputime(t)

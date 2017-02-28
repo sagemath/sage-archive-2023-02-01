@@ -1172,7 +1172,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             [ 2/27 -4/27  2/27]
             [-1/27  2/27 -1/27]
         """
-        return self.parent()(self._pari_().matadjoint().sage())
+        return self.parent()(self.__pari__().matadjoint().sage())
 
     def _magma_init_(self, magma):
         """
@@ -2594,13 +2594,13 @@ cdef class Matrix_rational_dense(Matrix_dense):
         clear_stack()
         return A
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Return pari version of this matrix.
 
         EXAMPLES::
 
-            sage: matrix(QQ,2,[1/5,-2/3,3/4,4/9])._pari_()
+            sage: matrix(QQ,2,[1/5,-2/3,3/4,4/9]).__pari__()
             [1/5, -2/3; 3/4, 4/9]
         """
         return rational_matrix(self._matrix, self._nrows, self._ncols)

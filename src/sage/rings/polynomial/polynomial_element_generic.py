@@ -500,7 +500,7 @@ class Polynomial_generic_sparse(Polynomial):
             v[n] = x
         return v
 
-    #def _pari_(self, variable=None):
+    #def __pari__(self, variable=None):
     #    if variable is None:
     #        return self.__pari
     #    else:

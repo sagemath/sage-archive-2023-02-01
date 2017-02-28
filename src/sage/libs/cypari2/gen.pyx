@@ -4430,7 +4430,7 @@ cpdef Gen objtogen(s):
     """
     Convert any Sage/Python object to a PARI :class:`Gen`.
 
-    For Sage types, this uses the ``_pari_()`` method on the object.
+    For Sage types, this uses the ``__pari__()`` method on the object.
     Basic Python types like ``int`` are converted directly. For other
     types, the string representation is used.
 
@@ -4520,7 +4520,7 @@ cpdef Gen objtogen(s):
     if isinstance(s, Gen):
         return s
     try:
-        return s._pari_()
+        return s.__pari__()
     except AttributeError:
         pass
 

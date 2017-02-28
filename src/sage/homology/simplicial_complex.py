@@ -3429,7 +3429,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 	    Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(1, 3, 4), (0, 1, 2), (2, 3, 4), (1, 2, 4)}
 
 
-            One can not modify an immutable simplicial complex:
+        One can not modify an immutable simplicial complex:
 	    
 	    sage: SC = SimplicialComplex([[0,1,2],[1,2,3]],is_mutable=False)
 	    sage: SC.stellar_subdivision(F1,inplace=True)

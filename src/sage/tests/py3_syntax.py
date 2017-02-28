@@ -6,11 +6,6 @@ EXAMPLES::
     sage: from sage.tests.py3_syntax import Python3SyntaxTest
     sage: py3_syntax = Python3SyntaxTest('sage', 'sage_setup')
     sage: py3_syntax.run_tests('.py')   # long time
-    Invalid Python 3 syntax found:
-      File "src/sage/combinat/growth.py", line 259
-        self._covers_1 = lambda (a,b): True
-                                ^
-    SyntaxError: invalid syntax
 """
 
 from __future__ import print_function

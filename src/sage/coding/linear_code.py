@@ -326,6 +326,12 @@ class AbstractLinearCode(Module):
       You need of course to complete the constructor by adding any additional parameter
       needed to describe properly the code defined in the subclass.
 
+    - Add the following two lines on the class level::
+
+          _registered_encoders = {}
+          _registered_decoders = {}
+
+
     - fill the dictionary of its encoders in ``sage.coding.__init__.py`` file. Example:
       I want to link the encoder ``MyEncoderClass`` to ``MyNewCodeClass``
       under the name ``MyEncoderName``.
@@ -863,7 +869,7 @@ class AbstractLinearCode(Module):
 
         EXAMPLES::
 
-            sage: C = codes.ExtendedBinaryGolayCode()             #  example 1
+            sage: C = codes.GolayCode(GF(2))             #  example 1
             sage: C.assmus_mattson_designs(5)
             ['weights from C: ',
             [8, 12, 16, 24],
@@ -1147,7 +1153,7 @@ class AbstractLinearCode(Module):
 
         EXAMPLES::
 
-            sage: C = codes.ExtendedBinaryGolayCode()
+            sage: C = codes.GolayCode(GF(2))
             sage: C.characteristic_polynomial()
             -4/3*x^3 + 64*x^2 - 2816/3*x + 4096
         """
@@ -1170,7 +1176,7 @@ class AbstractLinearCode(Module):
             sage: C = codes.HammingCode(GF(2), 3)
             sage: C.chinen_polynomial()       # long time
             1/5*(2*sqrt(2)*t^3 + 2*sqrt(2)*t^2 + 2*t^2 + sqrt(2)*t + 2*t + 1)/(sqrt(2) + 1)
-            sage: C = codes.TernaryGolayCode()
+            sage: C = codes.GolayCode(GF(3), False)
             sage: C.chinen_polynomial()       # long time
             1/7*(3*sqrt(3)*t^3 + 3*sqrt(3)*t^2 + 3*t^2 + sqrt(3)*t + 3*t + 1)/(sqrt(3) + 1)
 
@@ -1224,6 +1230,7 @@ class AbstractLinearCode(Module):
             f = CP/CP(1,s)
             return f(t,sqrt(q))
 
+    @cached_method
     def parity_check_matrix(self):
         r"""
         Returns the parity check matrix of ``self``.
@@ -1259,7 +1266,9 @@ class AbstractLinearCode(Module):
         """
         G = self.generator_matrix()
         H = G.right_kernel()
-        return H.basis_matrix()
+        M = H.basis_matrix()
+        M.set_immutable()
+        return M
 
     @cached_method
     def covering_radius(self):
@@ -1465,7 +1474,7 @@ class AbstractLinearCode(Module):
 
         EXAMPLES::
 
-            sage: C = codes.ExtendedBinaryGolayCode()
+            sage: C = codes.GolayCode(GF(2))
             sage: C.divisor()   # Type II self-dual
             4
             sage: C = codes.QuadraticResidueCodeEvenPair(17,GF(2))[0]
@@ -1492,7 +1501,7 @@ class AbstractLinearCode(Module):
 
         EXAMPLE::
 
-            sage: C = codes.BinaryGolayCode()
+            sage: C = codes.GolayCode(GF(2), False)
             sage: C.is_projective()
             True
             sage: C.dual_code().minimum_distance()
@@ -1554,8 +1563,38 @@ class AbstractLinearCode(Module):
             sage: C = LinearCode(G)
             sage: C.dimension()
             2
+
+        TESTS:
+
+        Check that :trac:`21156` is fixed::
+
+            sage: from sage.coding.linear_code import AbstractLinearCode
+            sage: from sage.coding.encoder import Encoder
+            sage: class MonkeyCode(AbstractLinearCode):
+            ....:     _registered_encoders = {}
+            ....:     _registered_decoders = {}
+            ....:     def __init__(self):
+            ....:         super(MonkeyCode, self).__init__(GF(5), 10, "Monkey", "Syndrome")
+            ....:
+            sage: class MonkeyEncoder(Encoder):
+            ....:     def __init__(self, code):
+            ....:         super(MonkeyEncoder, self).__init__(C)
+            ....:     @cached_method
+            ....:     def generator_matrix(self):
+            ....:         G = identity_matrix(GF(5), 5).augment(matrix(GF(5), 5, 7))
+            ....:         return G
+            ....:
+            sage: MonkeyCode._registered_encoders["Monkey"] = MonkeyEncoder
+            sage: C = MonkeyCode()
+            sage: C.dimension()
+            5
         """
-        return self._dimension
+        try:
+            return self._dimension
+        except AttributeError:
+            dimension = self.generator_matrix().nrows()
+            self._dimension = dimension
+            return self._dimension
 
     def direct_sum(self, other):
         """
@@ -2254,7 +2293,7 @@ class AbstractLinearCode(Module):
 
         EXAMPLES::
 
-            sage: C = codes.ExtendedBinaryGolayCode()
+            sage: C = codes.GolayCode(GF(2))
             sage: C.is_self_dual()
             True
             sage: C = codes.HammingCode(GF(2), 3)
@@ -2272,7 +2311,7 @@ class AbstractLinearCode(Module):
 
         EXAMPLES::
 
-            sage: C = codes.ExtendedBinaryGolayCode()
+            sage: C = codes.GolayCode(GF(2))
             sage: C.is_self_orthogonal()
             True
             sage: C = codes.HammingCode(GF(2), 3)
@@ -2633,7 +2672,7 @@ class AbstractLinearCode(Module):
 
         ::
 
-            sage: C = codes.ExtendedTernaryGolayCode()
+            sage: C = codes.GolayCode(GF(3))
             sage: M11 = MathieuGroup(11)
             sage: M11.order()
             7920
@@ -2646,7 +2685,7 @@ class AbstractLinearCode(Module):
 
         Other examples::
 
-            sage: C = codes.ExtendedBinaryGolayCode()
+            sage: C = codes.GolayCode(GF(2))
             sage: G = C.permutation_automorphism_group()
             sage: G.order()
             244823040
@@ -2667,9 +2706,9 @@ class AbstractLinearCode(Module):
             True
             sage: C.permutation_automorphism_group(algorithm="gap")  # optional - gap_packages (Guava package)
             Permutation Group with generators [(1,3)(4,5), (1,4)(3,5)]
-            sage: C = codes.TernaryGolayCode()
+            sage: C = codes.GolayCode(GF(3), True)
             sage: C.permutation_automorphism_group(algorithm="gap")  # optional - gap_packages (Guava package)
-            Permutation Group with generators [(3,4)(5,7)(6,9)(8,11), (3,5,8)(4,11,7)(6,9,10), (2,3)(4,6)(5,8)(7,10), (1,2)(4,11)(5,8)(9,10)]
+            Permutation Group with generators [(5,7)(6,11)(8,9)(10,12), (4,6,11)(5,8,12)(7,10,9), (3,4)(6,8)(9,11)(10,12), (2,3)(6,11)(8,12)(9,10), (1,2)(5,10)(7,12)(8,9)]
 
         However, the option ``algorithm="gap+verbose"``, will print out::
 
@@ -2879,7 +2918,6 @@ class AbstractLinearCode(Module):
         """
         return self.minimum_distance() / self.length()
 
-
     def rate(self):
         r"""
         Return the ratio of the number of information symbols to
@@ -2892,7 +2930,6 @@ class AbstractLinearCode(Module):
             4/7
         """
         return self.dimension() / self.length()
-
 
     def redundancy_matrix(self):
         r"""
@@ -3852,7 +3889,7 @@ class LinearCode(AbstractLinearCode):
             True
         """
         Str = str(self)
-        G = str(self.generator_matrix()) #str because mutable matrices are unhashable
+        G = self.generator_matrix()
         return hash((Str, G)) ^ hash(Str) ^ hash(G)
 
     def generator_matrix(self, encoder_name=None, **kwargs):
@@ -3877,9 +3914,11 @@ class LinearCode(AbstractLinearCode):
             [2 1 1]
         """
         if encoder_name is None or encoder_name is 'GeneratorMatrix':
-            return self._generator_matrix
-        return super(LinearCode, self).generator_matrix(encoder_name, **kwargs)
-
+            g = self._generator_matrix
+        else:
+            g = super(LinearCode, self).generator_matrix(encoder_name, **kwargs)
+        g.set_immutable()
+        return g
 
 
 
@@ -3973,7 +4012,9 @@ class LinearCodeGeneratorMatrixEncoder(Encoder):
             [0 1 0 1 0 1 0]
             [1 1 0 1 0 0 1]
         """
-        return self.code().generator_matrix()
+        g = self.code().generator_matrix()
+        g.set_immutable()
+        return g
 
 
 
@@ -4061,7 +4102,9 @@ class LinearCodeParityCheckEncoder(Encoder):
             [0 0 1 0 1 1 0]
             [0 0 0 1 1 1 1]
         """
-        return self.code().parity_check_matrix().right_kernel_matrix()
+        g = self.code().parity_check_matrix().right_kernel_matrix()
+        g.set_immutable()
+        return g
 
 
 

@@ -196,7 +196,7 @@ class pAdicLseries(SageObject):
 
             sage: E = EllipticCurve('11a')
             sage: L = E.padic_lseries(11,implementation="pollackstevens",precision=6) # long time
-            sage: L != L
+            sage: L != L  # long time
             False
         """
         return not self.__eq__(other)

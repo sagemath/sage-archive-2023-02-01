@@ -18,7 +18,7 @@ the set:
     \{ (\beta_1 f(\alpha_1), \ldots, \beta_n f(\alpha_n)
     \mid f \in F[x], \deg f < k \}
 
-This file contains the following elements:
+Here is a list of all content related to GRS codes:
 
 - :class:`GeneralizedReedSolomonCode`, the class for GRS codes
 - :class:`GRSEvaluationVectorEncoder`, an encoder with a vectorial message
@@ -714,7 +714,9 @@ class GRSEvaluationVectorEncoder(Encoder):
         C = self.code()
         alphas = C.evaluation_points()
         col_mults = C.column_multipliers()
-        return matrix(C.base_field(), C.dimension(), C.length(), lambda i,j: col_mults[j] * alphas[j]**i)
+        g = matrix(C.base_field(), C.dimension(), C.length(), lambda i,j: col_mults[j] * alphas[j]**i)
+        g.set_immutable()
+        return g
 
 
 

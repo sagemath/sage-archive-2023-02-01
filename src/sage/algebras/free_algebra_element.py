@@ -41,6 +41,9 @@ from sage.structure.element import AlgebraElement
 from sage.structure.sage_object import richcmp
 
 
+import six
+
+
 # We need to have AlgebraElement first to avoid a segfault...
 class FreeAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement):
     """
@@ -162,7 +165,7 @@ class FreeAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement):
         # I don't start with 0, because I don't want to preclude evaluation with
         #arbitrary objects (e.g. matrices) because of funny coercion.
         result = None
-        for m, c in self._monomial_coefficients.iteritems():
+        for m, c in six.iteritems(self._monomial_coefficients):
             if result is None:
                 result = c*m(x)
             else:

@@ -2140,7 +2140,7 @@ class Polyhedron_base(Element):
         """
         return sqrt(self.radius_square())
 
-    def is_inscribable(self, certify=False):
+    def is_inscribable(self, certificate=False):
         """
         A full-dimensional compact polytope is inscribable if there exists
         a point in space which is equidistant to all its vertices.
@@ -2157,7 +2157,7 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``certify`` : Boolean, specify whether to return the circumcenter
+        - ``certificate`` : Boolean, specify whether to return the circumcenter
               if found
 
         OUTPUT:

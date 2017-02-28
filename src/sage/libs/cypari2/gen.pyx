@@ -93,7 +93,39 @@ cdef class Gen(Gen_auto):
         raise RuntimeError("PARI objects cannot be instantiated directly; use pari(x) to convert x to PARI")
 
     def __dealloc__(self):
-        sig_free(<void*>self.b)
+        sig_free(self.chunk)
+
+    cdef new_ref(self, GEN g):
+        """
+        Create a new ``Gen`` pointing to ``g``, which is a component
+        of ``self.g``.
+
+        In this case, ``g`` should point to some location in the memory
+        allocated by ``self``. This will not allocate any new memory:
+        the newly returned ``Gen`` will point to the memory allocated
+        for ``self``.
+
+        .. NOTE::
+
+            Usually, there is only one ``Gen`` pointing to a given PARI
+            ``GEN``.  This function can be used when a complicated
+            ``GEN`` is allocated with a single ``Gen`` pointing to it,
+            and one needs a ``Gen`` pointing to one of its components.
+
+            For example, doing ``x = pari("[1, 2]")`` allocates a ``Gen``
+            pointing to the list ``[1, 2]``.  To create a ``Gen`` pointing
+            to the first element, one can do ``x.new_ref(gel(x.g, 1))``.
+            See :meth:`Gen.__getitem__` for an example of usage.
+
+        EXAMPLES::
+
+            sage: pari("[[1, 2], 3]")[0][1]  # indirect doctest
+            2
+        """
+        cdef Gen x = Gen.__new__(Gen)
+        x.g = g
+        x.parent = self
+        return x
 
     def __repr__(self):
         """
@@ -888,7 +920,8 @@ cdef class Gen(Gen_auto):
             sage: pari([])[::]
             []
         """
-        cdef Py_ssize_t k
+        cdef Py_ssize_t i, j, k
+        cdef object ind
         cdef int pari_type
 
         pari_type = typ(self.g)
@@ -896,30 +929,23 @@ cdef class Gen(Gen_auto):
         if isinstance(n, tuple):
             if pari_type != t_MAT:
                 raise TypeError("self must be of pari type t_MAT")
-            if len(n) != 2:
-                raise IndexError("index must be an integer or a 2-tuple (i,j)")
-            i = int(n[0])
-            j = int(n[1])
 
-            if i < 0 or i >= glength(<GEN>(self.g[1])):
+            i, j = n
+
+            if i < 0 or i >= glength(gel(self.g, 1)):
                 raise IndexError("row index out of range")
             if j < 0 or j >= glength(self.g):
                 raise IndexError("column index out of range")
 
-            ind = (i,j)
+            ind = (i, j)
 
-            if self.refers_to is not None and ind in self.refers_to:
-                return self.refers_to[ind]
+            if self.itemcache is not None and ind in self.itemcache:
+                return self.itemcache[ind]
             else:
-                ## In this case, we're being asked to return
-                ## a GEN that has no Gen pointing to it, so
-                ## we need to create such a gen, add it to
-                ## self.refers_to, and return it.
-                val = new_ref(gmael(self.g, j+1, i+1), self)
-                if self.refers_to is None:
-                    self.refers_to = {ind: val}
-                else:
-                    self.refers_to[ind] = val
+                # Create a new Gen as child of self
+                # and store it in itemcache
+                val = self.new_ref(gmael(self.g, j+1, i+1))
+                self.cache(ind, val)
                 return val
 
         elif isinstance(n, slice):
@@ -940,52 +966,51 @@ cdef class Gen(Gen_auto):
             # slow call
             return objtogen(self[i] for i in inds)
 
+        # Index is not a tuple or slice, convert to integer
+        i = n
+
         ## there are no "out of bounds" problems
         ## for a polynomial or power series, so these go before
         ## bounds testing
         if pari_type == t_POL:
-            return self.polcoeff(n)
+            return self.polcoeff(i)
 
         elif pari_type == t_SER:
             bound = valp(self.g) + lg(self.g) - 2
-            if n >= bound:
+            if i >= bound:
                 raise IndexError("index out of range")
-            return self.polcoeff(n)
+            return self.polcoeff(i)
 
         elif pari_type in (t_INT, t_REAL, t_PADIC, t_QUAD, t_FFELT, t_INTMOD, t_POLMOD):
             # these are definitely scalar!
             raise TypeError("PARI object of type %r cannot be indexed" % self.type())
 
-        elif n < 0 or n >= glength(self.g):
+        elif i < 0 or i >= glength(self.g):
             raise IndexError("index out of range")
 
         elif pari_type == t_VEC or pari_type == t_MAT:
             #t_VEC    : row vector        [ code ] [  x_1  ] ... [  x_k  ]
             #t_MAT    : matrix            [ code ] [ col_1 ] ... [ col_k ]
-            if self.refers_to is not None and n in self.refers_to:
-                return self.refers_to[n]
+            ind = i
+            if self.itemcache is not None and ind in self.itemcache:
+                return self.itemcache[ind]
             else:
-                ## In this case, we're being asked to return
-                ## a GEN that has no Gen pointing to it, so
-                ## we need to create such a gen, add it to
-                ## self.refers_to, and return it.
-                val = new_ref(gel(self.g, n+1), self)
-                if self.refers_to is None:
-                    self.refers_to = {n: val}
-                else:
-                    self.refers_to[n] = val
+                # Create a new Gen as child of self
+                # and store it in itemcache
+                val = self.new_ref(gel(self.g, i+1))
+                self.cache(ind, val)
                 return val
 
         elif pari_type == t_VECSMALL:
             #t_VECSMALL: vec. small ints  [ code ] [ x_1 ] ... [ x_k ]
-            return self.g[n+1]
+            return self.g[i+1]
 
         elif pari_type == t_STR:
             #t_STR    : string            [ code ] [ man_1 ] ... [ man_k ]
-            return chr( (<char *>(self.g+1))[n] )
+            return chr(GSTR(self.g)[i])
 
         elif pari_type == t_LIST:
-            return self.component(n+1)
+            return self.component(i+1)
 
         #elif pari_type in (t_FRAC, t_RFRAC):
             # generic code gives us:
@@ -1003,7 +1028,7 @@ cdef class Gen(Gen_auto):
         else:
             ## generic code, which currently handles cases
             ## as mentioned above
-            return new_ref(gel(self.g,n+1), self)
+            return self.new_ref(gel(self.g, i+1))
 
     def __setitem__(self, n, y):
         r"""
@@ -1092,70 +1117,54 @@ cdef class Gen(Gen_auto):
             sage: type(v[0])
             <type 'sage.libs.cypari2.gen.Gen'>
         """
-        cdef int i, j
+        cdef Py_ssize_t i, j, step
         cdef Gen x = objtogen(y)
         cdef long l
-        cdef Py_ssize_t ii, jj, step
 
-        sig_on()
-        try:
-            if isinstance(n, tuple):
-                if typ(self.g) != t_MAT:
-                    raise TypeError("cannot index PARI type %s by tuple" % typ(self.g))
+        if isinstance(n, tuple):
+            if typ(self.g) != t_MAT:
+                raise TypeError("cannot index PARI type %s by tuple" % typ(self.g))
 
-                if len(n) != 2:
-                    raise ValueError("matrix index must be of the form [row, column]")
+            i, j = n
 
-                i = int(n[0])
-                j = int(n[1])
-                ind = (i,j)
+            if i < 0 or i >= glength(gel(self.g, 1)):
+                raise IndexError("row i(=%s) must be between 0 and %s" % (i, self.nrows()-1))
+            if j < 0 or j >= glength(self.g):
+                raise IndexError("column j(=%s) must be between 0 and %s" % (j, self.ncols()-1))
 
-                if i < 0 or i >= glength(<GEN>(self.g[1])):
-                    raise IndexError("row i(=%s) must be between 0 and %s" % (i, self.nrows()-1))
-                if j < 0 or j >= glength(self.g):
-                    raise IndexError("column j(=%s) must be between 0 and %s" % (j, self.ncols()-1))
-                if self.refers_to is None:
-                    self.refers_to = {ind: x}
-                else:
-                    self.refers_to[ind] = x
-
-                (<GEN>(self.g)[j+1])[i+1] = <long>(x.g)
-                return
-
-            elif isinstance(n, slice):
-                l = glength(self.g)
-                inds = xrange(*n.indices(l))
-                k = len(inds)
-                if k > len(y):
-                    raise ValueError("attempt to assign sequence of size %s to slice of size %s" % (len(y), k))
-
-                # actually set the values
-                for i,j in enumerate(inds):
-                    self[j] = y[i]
-                return
-
-            i = int(n)
-
-            if i < 0 or i >= glength(self.g):
-                raise IndexError("index (%s) must be between 0 and %s" % (i, glength(self.g)-1))
-
-            # so python memory manager will work correctly
-            # and not free x if PARI part of self is the
-            # only thing pointing to it.
-            if self.refers_to is None:
-                self.refers_to = {i: x}
-            else:
-                self.refers_to[i] = x
-
-            ## correct indexing for t_POLs
-            if typ(self.g) == t_POL:
-                i = i + 1
-
-            ## actually set the value
-            (self.g)[i+1] = <long>(x.g)
+            self.cache((i,j), x)
+            set_gcoeff(self.g, i+1, j+1, x.g)
             return
-        finally:
-            sig_off()
+
+        elif isinstance(n, slice):
+            l = glength(self.g)
+            inds = xrange(*n.indices(l))
+            k = len(inds)
+            if k > len(y):
+                raise ValueError("attempt to assign sequence of size %s to slice of size %s" % (len(y), k))
+
+            # actually set the values
+            for a, b in enumerate(inds):
+                self[b] = y[a]
+            return
+
+        # Index is not a tuple or slice, convert to integer
+        i = n
+
+        if i < 0 or i >= glength(self.g):
+            raise IndexError("index (%s) must be between 0 and %s" % (i, glength(self.g)-1))
+
+        # Add a reference to x to prevent Python from garbage
+        # collecting x.
+        self.cache(i, x)
+
+        # Correct indexing for t_POLs
+        if typ(self.g) == t_POL:
+            i += 1
+
+        # Actually set the value
+        set_gel(self.g, i+1, x.g)
+        return
 
     def __len__(self):
         return glength(self.g)
@@ -3897,7 +3906,7 @@ cdef class Gen(Gen_auto):
         if self.ncols() == 0:
             sig_off()
             return 0
-        n = glength(<GEN>(self.g[1]))
+        n = glength(gel(self.g, 1))
         sig_off()
         return n
 
@@ -4361,36 +4370,6 @@ cdef class Gen(Gen_auto):
             NotImplementedError: the method allocatemem() should not be used; use pari.allocatemem() instead
         """
         raise NotImplementedError("the method allocatemem() should not be used; use pari.allocatemem() instead")
-
-
-cdef Gen new_ref(GEN g, Gen parent):
-    """
-    Create a new ``Gen`` pointing to ``g``, which is allocated as a
-    part of ``parent.g``.
-
-    .. NOTE::
-
-        As a rule, there should never be more than one ``Gen``
-        pointing to a given PARI ``GEN``.  This function should only
-        be used when a complicated ``GEN`` is allocated with a single
-        ``Gen`` pointing to it, and one needs a ``Gen`` pointing to
-        one of its components.
-
-        For example, doing ``x = pari("[1, 2]")`` allocates a ``Gen``
-        pointing to the list ``[1, 2]``.  To create a ``Gen`` pointing
-        to the first element, one can do ``new_ref(gel(x.g, 1), x)``.
-        See :meth:`Gen.__getitem__` for an example of usage.
-
-    EXAMPLES::
-
-        sage: pari("[[1, 2], 3]")[0][1]  # indirect doctest
-        2
-    """
-    cdef Gen p = Gen.__new__(Gen)
-    p.g = g
-    p.b = 0
-    p.refers_to = {-1: parent}
-    return p
 
 
 @cython.boundscheck(False)

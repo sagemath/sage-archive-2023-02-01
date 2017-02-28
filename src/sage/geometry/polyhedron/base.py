@@ -2140,9 +2140,9 @@ class Polyhedron_base(Element):
         """
         return sqrt(self.radius_square())
 
-    def is_inscribable(self, certificate=False):
+    def is_inscribed(self, certificate=False):
         """
-        A full-dimensional compact polytope is inscribable if there exists
+        A full-dimensional compact polytope is inscribed if there exists
         a point in space which is equidistant to all its vertices.
 
         This function tests whether this point exists and returns it if
@@ -2171,37 +2171,36 @@ class Polyhedron_base(Element):
             ....:                            [-1,1,-1,1],[1,1,1,-1],[-1,-1,1,-1],
             ....:                            [1,-1,-1,-1],[-1,1,-1,-1],[0,0,10/13,-24/13],
             ....:                            [0,0,-10/13,-24/13]])
-            sage: q.is_inscribable(True)
+            sage: q.is_inscribed(True)
             (True, (0, 0, 0, 0))
 
             sage: cube = polytopes.cube()
-            sage: cube.is_inscribable()
-            (True, None)
+            sage: cube.is_inscribed()
+            True
 
             sage: translated_cube = Polyhedron(vertices=[v.vector() + vector([1,2,3])
             ....:                                        for v in cube.vertices()])
-            sage: translated_cube.is_inscribable(True)
+            sage: translated_cube.is_inscribed(True)
             (True, (1, 2, 3))
 
             sage: truncated_cube = cube.face_truncation(cube.faces(0)[0])
-            sage: truncated_cube.is_inscribable()
-            (False, None)
+            sage: truncated_cube.is_inscribed()
+            False
 
         The method is not implemented for non-full-dimensional polytope or
         unbounded polyhedra::
 
             sage: square = Polyhedron(vertices=[[1,0,0],[0,1,0],[1,1,0],[0,0,0]])
-            sage: square.is_inscribable()
+            sage: square.is_inscribed()
             Traceback (most recent call last)
             ...
             NotImplementedError: This function is implemented for full-dimensional polytopes only.
 
             sage: p = Polyhedron(vertices=[(0,0)],rays=[(1,0),(0,1)])
-            sage: p.is_inscribable()
+            sage: p.is_inscribed()
             Traceback (most recent call last):
             ...
             NotImplementedError: This function is implemented for full-dimensional polytopes only.
-
         """
 
         if not self.is_compact() or not self.is_full_dimensional():
@@ -2212,14 +2211,14 @@ class Polyhedron_base(Element):
         vertex = vertices[0]
         vertex_neighbors = vertex.neighbors()
         simplex_vertices = [vertex] + [next(vertex_neighbors) for i in range(dimension)]
-        other_vertices = [v for v in vertices if v not in simplex_vertices]
+        other_vertices = (v for v in vertices if v not in simplex_vertices)
 
-        row_data = []
+        raw_data = []
         for vertex in simplex_vertices:
             vertex_vector = vertex.vector()
             row_data += [[sum(i**2 for i in vertex_vector)] +
                          [i for i in vertex_vector] + [1]]
-        matrix_data = matrix(row_data)
+        matrix_data = matrix(raw_data)
 
         # The determinant "a" should not be zero because the polytope is full
         # dimensional and also the simplex.
@@ -2230,18 +2229,22 @@ class Polyhedron_base(Element):
         c = (-1)**(dimension+1)*matrix_data.matrix_from_columns(range(dimension+1)).determinant()
 
         circumcenter = vector([minors[i]/(2*a) for i in range(dimension)])
-        circumradius = sqrt(sum(m**2 for m in minors) - 4 * a * c) / (2*abs(a))
+        squared_circumradius = sum(m**2 for m in minors) - 4 * a * c) / (2*abs(a)
 
         # Checking if the circumcenter has the correct sign
-        if (vertex.vector() - circumcenter).norm() != circumradius:
+        test_vector = vertex.vector() - circumcenter
+        if sum(i**2 for i in test_vector) != circumradius:
             circumcenter = - circumcenter
 
-        is_circumscrib = all((v.vector() - circumcenter).norm() == circumradius for v in other_vertices)
+        is_inscribed = all(sum(i**2 for i in v.vector() - circumcenter) == squared_circumradius for v in other_vertices)
 
-        if certify and is_circumscrib:
-            return (is_circumscrib, circumcenter)
+        if certificate:
+            if is_inscribed:
+                return (True, circumcenter)
+            else:
+                return (False, None)
         else:
-            return (is_circumscrib, None)
+            return is_inscribed
 
     def is_compact(self):
         """

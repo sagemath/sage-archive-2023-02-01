@@ -31,7 +31,7 @@ Parents, Elements and Categories
 * :doc:`Basic Infrastructure <structure/index>`
 * :doc:`Coercion <coercion/index>`
 * :doc:`Categories <categories/index>`
-* :doc:`Base Classes for Rings and Related Objects  <rings/index>`
+* :doc:`Base Classes for Rings and Related Objects <rings/index>`
 
 Basic Rings and Fields
 ----------------------
@@ -51,25 +51,6 @@ Linear Algebra
 * :doc:`Vectors and Modules <modules/index>`
 * :doc:`Tensors on free modules of finite rank <tensor_free_modules/index>`
 
-Algebraic Structures
---------------------
-
-* :doc:`Monoids <monoids/index>`
-* :doc:`Groups <groups/index>`
-* :doc:`Semirings <semirings/index>`
-* :doc:`Algebras <algebras/index>`
-
-Discrete Mathematics
---------------------
-
-* :doc:`Combinatorics <combinat/index>`
-* :doc:`Graph Theory <graphs/index>`
-* :doc:`Quivers <quivers/index>`
-* :doc:`Matroid Theory <matroids/index>`
-* :doc:`Discrete Dynamics <dynamics/index>`
-* :doc:`Coding Theory <coding/index>`
-* :doc:`Game Theory <game_theory/index>`
-
 Calculus
 --------
 
@@ -84,6 +65,26 @@ Probability and Statistics
 * :doc:`Probability <probability/index>`
 * :doc:`Statistics <stats/index>`
 * :doc:`Quantitative Finance <finance/index>`
+
+Discrete Mathematics
+--------------------
+
+* :doc:`Combinatorics <combinat/index>`
+* :doc:`Graph Theory <graphs/index>`
+* :doc:`Quivers <quivers/index>`
+* :doc:`Matroid Theory <matroids/index>`
+* :doc:`Discrete Dynamics <dynamics/index>`
+* :doc:`Coding Theory <coding/index>`
+* :doc:`Game Theory <game_theory/index>`
+* :doc:`Symbolic Logic <logic/index>`
+
+Algebraic Structures
+--------------------
+
+* :doc:`Monoids <monoids/index>`
+* :doc:`Groups <groups/index>`
+* :doc:`Semirings <semirings/index>`
+* :doc:`Algebras <algebras/index>`
 
 Geometry and Topology
 ---------------------
@@ -124,14 +125,13 @@ Special Topics
 --------------
 
 * :doc:`Cryptography <cryptography/index>`
-* :doc:`Symbolic Logic <logic/index>`
 * :doc:`Numerical Optimization <numerical/index>`
+* :doc:`SAT solvers <sat/index>`
 
 Miscellaneous
 -------------
 
 * :doc:`Databases <databases/index>`
-* :doc:`SAT solvers <sat/index>`
 * :doc:`Games <games/index>`
 
 Programming

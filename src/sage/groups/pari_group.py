@@ -84,7 +84,7 @@ class PariGroup(Group):
             sage: G1 != G2
             True
         """
-        return not self.__eq__(other)
+        return not (self == other)
 
     def _pari_(self):
         return self.__x

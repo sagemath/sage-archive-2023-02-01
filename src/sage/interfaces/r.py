@@ -2025,7 +2025,7 @@ class RFunction(ExpectFunction):
             sage: r.mean != r.lr
             True
         """        
-        return not self.__eq__(other)
+        return not (self == other)
 
     def _sage_doc_(self):
         """

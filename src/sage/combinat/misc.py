@@ -91,7 +91,7 @@ class DoublyLinkedList():
             sage: dll != dll2
             True
         """
-        return not self.__eq__(other)
+        return not (self == other)
 
     def __repr__(self):
         """

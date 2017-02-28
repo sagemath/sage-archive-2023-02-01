@@ -3089,38 +3089,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             p = pNext(p)
         return pl
 
-    def is_unit(self):
-        """
-        Return ``True`` if self is a unit.
-
-        EXAMPLES::
-
-            sage: R.<x,y> = QQ[]
-            sage: (x+y).is_unit()
-            False
-            sage: R(0).is_unit()
-            False
-            sage: R(-1).is_unit()
-            True
-            sage: R(-1 + x).is_unit()
-            False
-            sage: R(2).is_unit()
-            True
-
-            sage: R.<x,y> = ZZ[]
-            sage: R(1).is_unit()
-            True
-            sage: R(2).is_unit()
-            False
-
-        """
-        cdef bint is_field = self._parent._base.is_field()
-        if is_field:
-            if self._parent_ring != currRing: rChangeCurrRing(self._parent_ring) # bug in p_IsUnit
-            return bool(p_IsUnit(self._poly, self._parent_ring))
-        else:
-            return bool(p_IsConstant(self._poly, self._parent_ring) and self.constant_coefficient().is_unit())
-
     def inverse_of_unit(self):
         """
         Return the inverse of this polynomial if it is a unit.

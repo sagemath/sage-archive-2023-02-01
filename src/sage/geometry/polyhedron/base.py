@@ -2192,7 +2192,7 @@ class Polyhedron_base(Element):
 
             sage: square = Polyhedron(vertices=[[1,0,0],[0,1,0],[1,1,0],[0,0,0]])
             sage: square.is_inscribed()
-            Traceback (most recent call last)
+            Traceback (most recent call last):
             ...
             NotImplementedError: This function is implemented for full-dimensional polytopes only.
 
@@ -2216,7 +2216,7 @@ class Polyhedron_base(Element):
         raw_data = []
         for vertex in simplex_vertices:
             vertex_vector = vertex.vector()
-            row_data += [[sum(i**2 for i in vertex_vector)] +
+            raw_data += [[sum(i**2 for i in vertex_vector)] +
                          [i for i in vertex_vector] + [1]]
         matrix_data = matrix(raw_data)
 
@@ -2236,7 +2236,7 @@ class Polyhedron_base(Element):
         if sum(i**2 for i in test_vector) != squared_circumradius:
             circumcenter = - circumcenter
 
-        is_inscribed = all(sum(i**2 for i in v.vector() - circumcenter) == squared_circumradius \ 
+        is_inscribed = all(sum(i**2 for i in v.vector() - circumcenter) == squared_circumradius 
                            for v in vertices if v not in simplex_vertices)
 
         if certificate:

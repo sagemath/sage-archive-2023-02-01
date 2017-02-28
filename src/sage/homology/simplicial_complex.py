@@ -3402,7 +3402,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         """
         return self.face_poset().order_complex()
 
-    def stellar_subdivision(self,simplex,inplace=False,mutable=True):
+    def stellar_subdivision(self,simplex,inplace=False,is_mutable=True):
         """
         This function returns the stellar subdivision of `simplex` either by
         modifying `self` (when inplace is set to `True`).
@@ -3410,6 +3410,20 @@ class SimplicialComplex(Parent, GenericCellComplex):
         The stellar subdivision of a face is obtained by adding a new vertex to the
         simplicial complex `self` joined to the star of the face and then
         deleting the face `simplex` to the result.
+
+        INPUT:
+
+        - `simplex` -- a simplex face of `self`
+        - `inplace` -- a boolean, determines if the operation is done on `self`
+          or not. Default is `False`
+        - `is_mutable` -- a boolean, determines if the output is mutable or not
+
+        OUTPUT:
+
+        - A simplicial complex obtained by the stellar subdivision of the face
+          `simplex`. If inplace is `True`, the object `self` was modified,
+          otherwise a new simplicial complex is returned. The parameter
+          `is_mutable` determines the mutability of the output. 
 
 
         EXAMPLES::
@@ -3423,23 +3437,32 @@ class SimplicialComplex(Parent, GenericCellComplex):
             Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 1, 2), (2, 3, 4), (1, 2, 4)}
             sage: SC.stellar_subdivision(F3)
             Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(1, 3, 4), (0, 1, 2), (2, 3, 4), (1, 2, 4)}
-            sage: SC.stellar_subdivision(F3,inplace=True)
+            sage: SC.stellar_subdivision(F3,inplace=True);SC
             Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(1, 3, 4), (0, 1, 2), (2, 3, 4), (1, 2, 4)}
-            sage: SC
-            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(1, 3, 4), (0, 1, 2), (2, 3, 4), (1, 2, 4)}
+
+        The simplex to subdivide should be a face of self:
+
+            sage: SC = SimplicialComplex([[0,1,2],[1,2,3]])
+            sage: F4 = Simplex([3,4])
+            sage: SC.stellar_subdivision(F4)
+            Traceback (most recent call last):
+            ...
+            ValueError: The face to subdivide is not a face of self.
 
         One can not modify an immutable simplicial complex:
 
             sage: SC = SimplicialComplex([[0,1,2],[1,2,3]],is_mutable=False)
             sage: SC.stellar_subdivision(F1,inplace=True)
-            Traceback (most recent call last)
+            Traceback (most recent call last):
             ...
-            ValueError: This simplicial complex is not mutable
-
+            ValueError: This simplicial complex is not mutable.
         """
 
         if inplace and not self._is_mutable:
-            raise ValueError("This simplicial complex is not mutable")
+            raise ValueError("This simplicial complex is not mutable.")
+
+        if not Simplex(simplex) in self:
+            raise ValueError("The face to subdivide is not a face of self.")
 
         if inplace:
             working_complex = self
@@ -3460,6 +3483,9 @@ class SimplicialComplex(Parent, GenericCellComplex):
             working_complex.add_face(face)
 
         working_complex.remove_face(simplex)
+
+        if not is_mutable:
+            worksing_complex.set_immutable()
 
         if not inplace:
             return working_complex

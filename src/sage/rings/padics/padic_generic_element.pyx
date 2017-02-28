@@ -192,18 +192,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
     cdef bint _set_prec_both(self, long absprec, long relprec) except -1:
         return 0
 
-    #def __pari__(self):
-    #    """
-    #    Returns a pari version of this element.
-
-    #    EXAMPLES::
-
-    #        sage: R = Zp(5)
-    #        sage: pari(R(1777))
-    #        2 + 5^2 + 4*5^3 + 2*5^4 + O(5^20)
-    #    """
-    #    return pari(self._pari_init_())
-
     def __floordiv__(self, right):
         """
         Divides self by right and throws away the nonintegral part if

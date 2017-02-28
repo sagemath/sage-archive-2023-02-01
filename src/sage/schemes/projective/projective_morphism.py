@@ -851,7 +851,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([x^2-CC.0/3*y^2, y^2])
             sage: f.dynatomic_polynomial(2)
-            0.666666666666667*x^2 + 0.333333333333333*y^2
+            2.00000000000000*x^2 + 0.999999999999999*y^2
 
         ::
 
@@ -2714,7 +2714,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
             sage: H = End(P)
             sage: f = H([x**2 + x*z, y**2, z**2])
-            sage: f.automorphism_group() # long test
+            sage: f.automorphism_group() # long time
             [
             [1 0 0]
             [0 1 0]
@@ -4800,7 +4800,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: f = H([x^2 + y^2, x*y])
             sage: m = matrix(K, 2, 2, [1, 1, 2, 1])
             sage: g = f.conjugate(m)
-            sage: f.conjugating_set(g) # long test
+            sage: f.conjugating_set(g) # long time
             [
             [1 1]  [-1 -1]
             [2 1], [ 2  1]
@@ -4812,7 +4812,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: H = End(P)
             sage: D8 = H([y^3, x^3])
-            sage: D8.conjugating_set(D8) # long test
+            sage: D8.conjugating_set(D8) # long time
             [
             [1 0]  [0 1]  [ 0 -i]  [i 0]  [ 0 -1]  [-1  0]  [-i  0]  [0 i]
             [0 1], [1 0], [ 1  0], [0 1], [ 1  0], [ 0  1], [ 0  1], [1 0]
@@ -4844,7 +4844,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
             sage: H = End(P)
             sage: f = H([x^2 + x*z, y^2, z^2])
-            sage: f.conjugating_set(f) # long test
+            sage: f.conjugating_set(f) # long time
             [
             [1 0 0]
             [0 1 0]
@@ -4938,7 +4938,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: f = H([x^2 + x*y,y^2])
             sage: m = matrix(QQbar, 2, 2, [1, 1, 2, 1])
             sage: g = f.conjugate(m)
-            sage: f.is_conjugate(g) # long test
+            sage: f.is_conjugate(g) # long time
             True
             
         ::

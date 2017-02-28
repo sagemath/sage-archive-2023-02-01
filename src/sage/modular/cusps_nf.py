@@ -142,19 +142,17 @@ def list_of_representatives(N):
         sage: N = k.ideal(713, a + 208)
         sage: L = list_of_representatives(N); L
         (Fractional ideal (1),
-        Fractional ideal (37, a + 12),
-        Fractional ideal (47, a - 9))
+         Fractional ideal (47, a - 9),
+         Fractional ideal (53, a - 16))
 
-    The output of ``list_of_representatives`` has been cached:
-
-    ::
+    The output of ``list_of_representatives`` has been cached::
 
         sage: sage.modular.cusps_nf._list_reprs_cache.keys()
         [Fractional ideal (713, a + 208)]
         sage: sage.modular.cusps_nf._list_reprs_cache[N]
         (Fractional ideal (1),
-        Fractional ideal (37, a + 12),
-        Fractional ideal (47, a - 9))
+         Fractional ideal (47, a - 9),
+         Fractional ideal (53, a - 16))
     """
     if N in _list_reprs_cache:
         lreps = _list_reprs_cache[N]
@@ -1255,9 +1253,9 @@ def NFCusps_ideal_reps_for_levelN(N, nlists=1):
         sage: from sage.modular.cusps_nf import NFCusps_ideal_reps_for_levelN
         sage: NFCusps_ideal_reps_for_levelN(N)
         [(Fractional ideal (1),
-          Fractional ideal (13, a - 2),
-          Fractional ideal (43, a - 1),
-          Fractional ideal (67, a + 17))]
+          Fractional ideal (67, a + 17),
+          Fractional ideal (127, a + 48),
+          Fractional ideal (157, a - 19))]
         sage: L = NFCusps_ideal_reps_for_levelN(N, 5)
         sage: all([len(L[i])==k.class_number() for i in range(len(L))])
         True

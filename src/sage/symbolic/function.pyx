@@ -18,8 +18,8 @@ from __future__ import division
 from sage.libs.pynac.pynac cimport *
 from sage.rings.integer cimport smallInteger
 from sage.structure.sage_object cimport SageObject
-from sage.structure.element cimport Element, parent_c
-from expression cimport new_Expression_from_GEx, Expression
+from sage.structure.element cimport Element, parent
+from .expression cimport new_Expression_from_GEx, Expression
 from ring import SR
 
 from sage.structure.coerce cimport py_scalar_to_element, is_numpy_type, is_mpmath_type
@@ -381,7 +381,7 @@ cdef class Function(SageObject):
         Return types for non-exact input depends on the input type::
 
             sage: type(exp(float(0)))
-            <type 'float'>
+            <... 'float'>
             sage: exp(RR(0)).parent()
             Real Field with 53 bits of precision
 
@@ -395,7 +395,7 @@ cdef class Function(SageObject):
             ...
             TypeError: cannot coerce arguments: ...
             sage: exp(QQbar(I))
-            0.540302305868140 + 0.841470984807897*I
+            e^I
 
         For functions with single argument, if coercion fails we try to call
         a method with the name of the function on the object::
@@ -418,10 +418,10 @@ cdef class Function(SageObject):
             (0, Integer Ring)
             sage: out = sin(int(0))
             sage: (out, parent(out))
-            (0, <type 'int'>)
+            (0, <... 'int'>)
             sage: out = arctan2(int(0), float(1))
             sage: (out, parent(out))
-            (0, <type 'int'>)
+            (0, <... 'int'>)
             sage: out = arctan2(int(0), RR(1))
             sage: (out, parent(out))
             (0, Integer Ring)
@@ -450,7 +450,7 @@ cdef class Function(SageObject):
 
         # if the given input is a symbolic expression, we don't convert it back
         # to a numeric type at the end
-        if any(parent_c(arg) is SR for arg in args):
+        if any(parent(arg) is SR for arg in args):
             symbolic_input = True
         else:
             symbolic_input = False

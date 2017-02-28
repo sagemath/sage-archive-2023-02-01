@@ -1027,7 +1027,7 @@ class WeakTableau_core(WeakTableau_abstract):
             r = self[0].count(1) - i - 1
             for v in range(1,mu[i]):
                 D = self.dictionary_of_coordinates_at_residues(v+1)
-                new_D = {a:b for (a,b) in D.iteritems() if all(x not in already_used for x in b)}
+                new_D = {a:b for (a,b) in six.iteritems(D) if all(x not in already_used for x in b)}
                 r = (r - min([self.k+1 - (x-r)%(self.k+1) for x in new_D]))%(self.k+1)
                 standard_cells.append(new_D[r][-1])
                 already_used += new_D[r]
@@ -1828,8 +1828,6 @@ class WeakTableau_factorized_permutation(WeakTableau_abstract):
         if len(t) > 0:
             if isinstance(t[0], list) or isinstance(t[0], tuple):
                 w_tuple = tuple(W.from_reduced_word(p) for p in t)
-            elif t[0] not in W:
-                raise ValueError("The input must be a list of reduced words or Weyl group elements")
             else:
                 w_tuple = tuple(W(r) for r in t)
         else:
@@ -4651,4 +4649,8 @@ def intermediate_shapes(t):
 
 # Deprecations from trac:18555. July 2016
 from sage.misc.superseded import deprecated_function_alias
+
+import six
+
+
 StrongTableaux.global_options = deprecated_function_alias(18555, StrongTableaux.options)

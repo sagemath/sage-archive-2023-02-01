@@ -3139,7 +3139,7 @@ cdef class Matroid(SageObject):
         OUTPUT:
 
         Boolean,
-        and, if certificate = True, a dictionary giving the isomophism or None
+        and, if certificate = True, a dictionary giving the isomorphism or None
 
         .. NOTE::
 
@@ -5460,9 +5460,9 @@ cdef class Matroid(SageObject):
                         B[x,y]=0
             
             # remove row x1 and y1
-            Xp = range(n)
+            Xp = list(xrange(n))
             Xp.remove(x1)
-            Yp = range(m)
+            Yp = list(xrange(m))
             Yp.remove(y1)
             B = B.matrix_from_rows_and_columns(Xp,Yp)
 

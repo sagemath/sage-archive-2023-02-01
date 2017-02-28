@@ -333,7 +333,7 @@ from sage.functions.log import exp
 from sage.functions.other import binomial
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.graphs.all import DiGraph, Graph, graphs, digraphs
-from sage.gsl.probability_distribution import GeneralDiscreteDistribution
+from sage.probability.probability_distribution import GeneralDiscreteDistribution
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.interfaces.singular import singular
 from sage.matrix.constructor import matrix, identity_matrix
@@ -838,7 +838,7 @@ class Sandpile(DiGraph):
             sage: H.sink()
             (0, 0)
             sage: type(H.sink())
-            <type 'tuple'>
+            <... 'tuple'>
         """
         return self._sink
 
@@ -1557,7 +1557,7 @@ class Sandpile(DiGraph):
         r"""
         The minimal recurrent elements.  If the underlying graph is
         undirected, these are the recurrent elements of least degree.
-        If ``verbose`` is ``False``, the configurations are converted 
+        If ``verbose`` is ``False``, the configurations are converted
         to lists of integers.
 
         INPUT:
@@ -1964,7 +1964,7 @@ class Sandpile(DiGraph):
 
         The vertices 1 and 2 have been swapped::
 
-            sage: T.dict() 
+            sage: T.dict()
             {0: {1: 1}, 1: {0: 1, 2: 1}, 2: {0: 1}}
         """
 
@@ -6722,7 +6722,7 @@ def admissible_partitions(S, k):
           {{0, 1}, {2}, {3}}],
          [{{0}, {1}, {2}, {3}}]]
         sage: for p in P:
-        ...    sum([partition_sandpile(S, i).betti(verbose=False)[-1] for i in p])
+        ....:  sum([partition_sandpile(S, i).betti(verbose=False)[-1] for i in p])
         doctest:...: DeprecationWarning:
         Importing partition_sandpile from here is deprecated. If you need to use it, please import it directly from sage.sandpiles.sandpile
         See http://trac.sagemath.org/18618 for details.
@@ -6769,7 +6769,7 @@ def partition_sandpile(S, p):
         sage: S = sandpiles.Cycle(4)
         sage: P = [admissible_partitions(S, i) for i in [2,3,4]]
         sage: for p in P:
-        ...    sum([partition_sandpile(S, i).betti(verbose=False)[-1] for i in p])
+        ....:  sum([partition_sandpile(S, i).betti(verbose=False)[-1] for i in p])
         6
         8
         3

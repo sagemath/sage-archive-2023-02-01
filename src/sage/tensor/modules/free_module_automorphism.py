@@ -244,7 +244,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
         )
 
     To get the result as an endomorphism, one has to explicitely convert it via
-    the parent of endormophisms, `\mathrm{End}(M)`::
+    the parent of endomorphisms, `\mathrm{End}(M)`::
 
         sage: s = End(M)(a+b) ; s
         Generic endomorphism of Rank-2 free module M over the Integer Ring

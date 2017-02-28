@@ -16,7 +16,7 @@ pour tracer des courbes, mais pas dérivées ou intégrées symboliquement::
 
     sage: def f(z): return z^2
     sage: type(f)
-    <type 'function'>
+    <... 'function'>
     sage: f(3)
     9
     sage: plot(f, 0, 2)

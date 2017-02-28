@@ -1158,7 +1158,7 @@ class Singular(ExtraTabCompletion, Expect):
              sage: singular._tab_completion()
              ['exteriorPower',
               ...
-              'stdfglm']
+              'flintZ']
          """
         p = re.compile("// *([a-z0-9A-Z_]*).*") #compiles regular expression
         proclist = self.eval("listvar(proc)").splitlines()
@@ -1184,7 +1184,7 @@ class Singular(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: singular.version()
-            "Singular ... version 4.0.3 ...
+            "Singular ... version 4.1.0 ...
         """
         return singular_version()
 
@@ -1567,10 +1567,10 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         charstr = singular.eval('charstr(basering)').split(',',1)
         from sage.all import ZZ
         is_extension = len(charstr)==2
-        if charstr[0]=='integer':
+        if charstr[0] in ['integer', 'ZZ']:
             br = ZZ
             is_extension = False
-        elif charstr[0]=='0':
+        elif charstr[0] in ['0', 'QQ']:
             from sage.all import QQ
             br = QQ
         elif charstr[0]=='real':
@@ -1585,7 +1585,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             is_extension = False
         else:
             # it ought to be a finite field
-            q = ZZ(charstr[0])
+            q = ZZ(charstr[0].lstrip('ZZ/'))
             from sage.all import GF
             if q.is_prime():
                 br = GF(q)
@@ -1911,7 +1911,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
 
             sage: singular('basering')
             polynomial ring, over a domain, global ordering
-            //   coeff. ring is : integer
+            //   coeff. ring is : ZZ
             //   number of vars : 3
             //        block   1 : ordering lp
             //                  : names    x y z
@@ -2076,7 +2076,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             sage: R._tab_completion()
             ['exteriorPower',
              ...
-             'stdfglm']
+             'flintZ']
         """
         return self.parent()._tab_completion()
 
@@ -2291,7 +2291,7 @@ def generate_docstring_dictionary():
     nodes.clear()
     node_names.clear()
 
-    singular_docdir = SAGE_LOCAL+"/share/singular/"
+    singular_docdir = SAGE_LOCAL+"/share/info/"
 
     new_node = re.compile("File: singular\.hlp,  Node: ([^,]*),.*")
     new_lookup = re.compile("\* ([^:]*):*([^.]*)\..*")
@@ -2384,7 +2384,7 @@ def singular_version():
     EXAMPLES::
 
         sage: singular.version()
-        "Singular ... version 4.0.3 ...
+        "Singular ... version 4.1.0 ...
     """
     return singular.eval('system("--version");')
 

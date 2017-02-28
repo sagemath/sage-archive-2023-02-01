@@ -1,7 +1,7 @@
 r"""
-Guava error-correcting code constructions
+Constructions of generator matrices using the GUAVA package for GAP
 
-This module only contains Guava wrappers (Guava is an optional GAP package).
+This module only contains Guava wrappers (GUAVA is an optional GAP package).
 
 AUTHORS:
 
@@ -18,8 +18,11 @@ AUTHORS:
 - David Joyner (2009-05): added "optional package" comments, fixed some
   docstrings to to be sphinx compatible
 
-Functions
----------
+
+REFERENCES:
+
+.. [BM] Bazzi and Mitter, {\it Some constructions of codes from group actions}, (preprint
+    March 2003, available on Mitter's MIT website).
 """
 #*****************************************************************************
 #       Copyright (C) 2007 David Joyner <wdj@usna.edu>
@@ -41,12 +44,14 @@ from .linear_code import LinearCode
 
 def QuasiQuadraticResidueCode(p):
     r"""
-    A (binary) quasi-quadratic residue code (or QQR code), as defined by
-    Proposition 2.2 in [BM2003]_, has a generator matrix in the block form `G=(Q,N)`.
-    Here `Q` is a `p \times p` circulant matrix whose top row
-    is `(0,x_1,...,x_{p-1})`, where `x_i=1` if and only if `i`
-    is a quadratic residue `\mod p`, and `N` is a `p \times p` circulant
-    matrix whose top row is `(0,y_1,...,y_{p-1})`, where `x_i+y_i=1` for all `i`.
+    A (binary) quasi-quadratic residue code (or QQR code).
+
+    Follows the definition of Proposition 2.2 in [BM]. The code has a generator
+    matrix in the block form `G=(Q,N)`. Here `Q` is a `p \times p` circulant
+    matrix whose top row is `(0,x_1,...,x_{p-1})`, where `x_i=1` if and only if
+    `i` is a quadratic residue `\mod p`, and `N` is a `p \times p` circulant
+    matrix whose top row is `(0,y_1,...,y_{p-1})`, where `x_i+y_i=1` for all
+    `i`.
 
     INPUT:
 
@@ -60,12 +65,6 @@ def QuasiQuadraticResidueCode(p):
 
         sage: C = codes.QuasiQuadraticResidueCode(11); C   # optional - gap_packages (Guava package)
         [22, 11] linear code over GF(2)
-
-    REFERENCES:
-
-    - [BM2003]_
-
-    - [Joy2006]_
 
     These are self-orthogonal in general and self-dual when $p \\equiv 3 \\pmod 4$.
 

@@ -22,15 +22,16 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 from __future__ import print_function
 
 include "sage/ext/stdsage.pxi"
-import homset
+from . import homset
 import weakref
 from sage.structure.parent cimport Set_PythonType
 from sage.misc.constant_function import ConstantFunction
 from sage.misc.superseded import deprecated_function_alias
-from sage.structure.element cimport parent_c
+from sage.structure.element cimport parent
 from cpython.object cimport PyObject_RichCompare
 
 
@@ -510,7 +511,7 @@ cdef class Map(Element):
 
         .. NOTE::
 
-        By default, the empty string is returned. Subclasses may overload this method.
+            By default, the empty string is returned. Subclasses may overload this method.
 
         EXAMPLE::
 
@@ -771,7 +772,7 @@ cdef class Map(Element):
             ...
             TypeError: 2/3 fails to convert into the map's domain Integer Ring, but a `pushforward` method is not properly implemented
         """
-        P = parent_c(x)
+        P = parent(x)
         cdef Parent D = self.domain()
         if P is D: # we certainly want to call _call_/with_args
             if not args and not kwds:

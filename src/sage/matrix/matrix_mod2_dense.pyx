@@ -35,7 +35,7 @@ EXAMPLES::
     sage: a*b
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 3 by 3 dense matrices over Finite Field of size 2' and 'Full MatrixSpace of 2 by 3 dense matrices over Finite Field of size 2'
+    TypeError: unsupported operand parent(s) for *: 'Full MatrixSpace of 3 by 3 dense matrices over Finite Field of size 2' and 'Full MatrixSpace of 2 by 3 dense matrices over Finite Field of size 2'
     sage: b*a
     [1 0 1]
     [1 0 0]
@@ -99,13 +99,14 @@ TODO:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 include "cysignals/signals.pxi"
 include "cysignals/memory.pxi"
 
-cimport matrix_dense
+cimport sage.matrix.matrix_dense as matrix_dense
 from libc.stdio cimport *
-from sage.structure.element cimport (Matrix, Vector, parent_c,
+from sage.structure.element cimport (Matrix, Vector,
                                      ModuleElement, Element)
 from sage.modules.free_module_element cimport FreeModuleElement
 from sage.libs.gmp.random cimport *

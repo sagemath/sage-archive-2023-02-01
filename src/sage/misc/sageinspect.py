@@ -114,6 +114,7 @@ defined Cython code, and with rather tricky argument lines::
 """
 from __future__ import print_function, absolute_import
 from six.moves import range
+from six import iteritems
 
 import ast
 import inspect
@@ -413,7 +414,7 @@ class SageArgSpecVisitor(ast.NodeVisitor):
             sage: [vis(n) for n in ['True', 'False', 'None', 'foo', 'bar']]
             [True, False, None, 'foo', 'bar']
             sage: [type(vis(n)) for n in ['True', 'False', 'None', 'foo', 'bar']]
-            [<type 'bool'>, <type 'bool'>, <type 'NoneType'>, <type 'str'>, <type 'str'>]
+            [<... 'bool'>, <... 'bool'>, <type 'NoneType'>, <... 'str'>, <... 'str'>]
         """
         what = node.id
         if what == 'None':
@@ -2227,7 +2228,7 @@ def sage_getvariablename(self, omit_underscore_names=True):
     """
     result = []
     for frame in inspect.stack():
-        for name, obj in frame[0].f_globals.iteritems():
+        for name, obj in iteritems(frame[0].f_globals):
             if obj is self:
                 result.append(name)
     if len(result) == 1:

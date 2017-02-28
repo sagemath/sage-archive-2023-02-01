@@ -318,6 +318,7 @@ Working with sandpile divisors::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import zip
 
 from collections import Counter
 from copy import deepcopy
@@ -3129,7 +3130,9 @@ class SandpileConfig(dict):
             sage: c + d
             {1: 4, 2: 4}
         """
-        return SandpileConfig(self.sandpile(),[i+j for i,j in zip(self.values(),other.values())])
+        return SandpileConfig(self.sandpile(),
+                              [i + j for i, j in zip(self.values(),
+                                                     other.values())])
 
     def __sub__(self, other):
         r"""
@@ -4500,7 +4503,9 @@ class SandpileDivisor(dict):
             sage: D + E
             {0: 4, 1: 4, 2: 4}
         """
-        return SandpileDivisor(self.sandpile(),[i+j for i,j in zip(self.values(),other.values())])
+        return SandpileDivisor(self.sandpile(),
+                               [i + j for i, j in zip(self.values(),
+                                                      other.values())])
 
     def __mul__(self, other):
         r"""
@@ -5435,11 +5440,11 @@ class SandpileDivisor(dict):
         if with_firing_vectors:
             fv = [vector(list(i)[:S._sink_ind] + [0] + list(i)[S._sink_ind:]) for i in self._polytope_integer_pts]
         if verbose and with_firing_vectors:
-            return zip(eff,fv)
+            return list(zip(eff, fv))
         elif verbose:   # verbose without firing vectors
             return eff
         elif with_firing_vectors: # not verbose but with firing vectors
-            return zip([i.values() for i in eff],fv)
+            return list(zip([i.values() for i in eff], fv))
         else: # not verbose, no firing vectors
             return [i.values() for i in eff]
 
@@ -5829,7 +5834,7 @@ class SandpileDivisor(dict):
         """
         if with_rank_seq:
             rks = [self.weierstrass_rank_seq(v) for v in self._weierstrass_pts]
-            return zip(self._weierstrass_pts, rks)
+            return list(zip(self._weierstrass_pts, rks))
         return self._weierstrass_pts
 
     def weierstrass_div(self, verbose=True):

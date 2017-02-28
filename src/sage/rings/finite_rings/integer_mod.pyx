@@ -893,7 +893,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             return 0
         # We need to factor the modulus.  We do it here instead of
         # letting PARI do it, so that we can cache the factorisation.
-        return lift.__pari__().Zn_issquare(self._parent.factored_order().__pari__())
+        return lift.__pari__().Zn_issquare(self._parent.factored_order())
 
     def sqrt(self, extend=True, all=False):
         r"""
@@ -2679,7 +2679,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             return 0
         # We need to factor the modulus.  We do it here instead of
         # letting PARI do it, so that we can cache the factorisation.
-        return lift.__pari__().Zn_issquare(self._parent.factored_order().__pari__())
+        return lift.__pari__().Zn_issquare(self._parent.factored_order())
 
     def sqrt(self, extend=True, all=False):
         r"""

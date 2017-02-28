@@ -207,7 +207,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             sage: pari(xb)^10
             Mod(0, x^10)
         """
-        return self._polynomial.__pari__().Mod(self.parent().modulus().__pari__())
+        return self._polynomial.__pari__().Mod(self.parent().modulus())
 
     ##################################################
     # Arithmetic

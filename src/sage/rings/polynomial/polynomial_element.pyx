@@ -6081,7 +6081,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         variable = self.variable_name()
         try:
-            res = self.__pari__().polresultant(other.__pari__(), variable)
+            res = self.__pari__().polresultant(other, variable)
             return self.parent().base_ring()(res)
         except (TypeError, ValueError, PariError, NotImplementedError):
             return self.sylvester_matrix(other).det()

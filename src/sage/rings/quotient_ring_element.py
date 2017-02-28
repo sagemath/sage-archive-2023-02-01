@@ -244,7 +244,7 @@ class QuotientRingElement(RingElement):
         gens = self.parent().defining_ideal().gens()
         if len(gens) != 1:
             raise ValueError("Pari does not support quotients by non-principal ideals")
-        return self.__rep.__pari__().Mod(gens[0].__pari__())
+        return self.__rep.__pari__().Mod(gens[0])
 
     def _add_(self, right):
         """

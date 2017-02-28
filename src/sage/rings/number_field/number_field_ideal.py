@@ -282,7 +282,7 @@ class NumberFieldIdeal(Ideal_generic):
 
         K=self.ring()
         K_pari=K.pari_nf()
-        return K.ideal(K_pari.idealmul(self.__pari__(), other.__pari__()))
+        return K.ideal(K_pari.idealmul(self, other))
 
     def coordinates(self, x):
         r"""
@@ -2468,7 +2468,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         if not self.is_integral():
             raise ValueError("The ideal must be integral")
         k = self.number_field()
-        return k(k.pari_nf().nfeltreduce(f.__pari__(), self.pari_hnf()))
+        return k(k.pari_nf().nfeltreduce(f, self.pari_hnf()))
 
     def _pari_bid_(self, flag=1):
         """
@@ -2658,7 +2658,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         #Now it is important to call _pari_bid_() with flag=2 to make sure
         #we fix a basis, since the log would be different for a different
         #choice of basis.
-        L = [ZZ(_) for _ in k.pari_nf().ideallog(x.__pari__(), self._pari_bid_(2))]
+        L = [ZZ(_) for _ in k.pari_nf().ideallog(x, self._pari_bid_(2))]
 
         if gens is None:
             return L

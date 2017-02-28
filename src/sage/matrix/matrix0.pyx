@@ -3451,7 +3451,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         - [FZ2001] S. Fomin, A. Zelevinsky. Cluster Algebras 1: Foundations, arXiv:math/0104151 (2001).
         """
         cdef dict d = {}
-        cdef list queue = list(xrange( self._ncols))
+        cdef list queue = list(xrange(self._ncols))
         cdef int l, sign, i, j
 
         if skew:

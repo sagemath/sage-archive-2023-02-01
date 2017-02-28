@@ -348,7 +348,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         name_mapping = [(other_vars.index(var) if var in other_vars else -1) for var in self.variable_names()]
         K = self.base_ring()
         D = {}
-        var_range = range(len(self.variable_names()))
+        var_range = xrange(len(self.variable_names()))
         for ix, a in x.dict().iteritems():
             ix = ETuple([0 if name_mapping[t] == -1 else ix[name_mapping[t]] for t in var_range])
             D[ix] = K(a)

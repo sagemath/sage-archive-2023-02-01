@@ -5244,7 +5244,7 @@ cdef class Matrix(matrix1.Matrix):
         # sequence corresponding to the 0-th entries of the iterates,
         # then the 1-th entries, etc.
         if t == 0:
-            R = range(n)
+            R = list(xrange(n))
         else:
             R = [t]
         for i in R:

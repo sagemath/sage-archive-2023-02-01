@@ -3402,6 +3402,69 @@ class SimplicialComplex(Parent, GenericCellComplex):
         """
         return self.face_poset().order_complex()
 
+    def stellar_subdivision(self,simplex,inplace=False,mutable=True):
+        """
+        This function returns the stellar subdivision of `simplex` either by
+        modifying `self` (when inplace is set to `True`).
+
+        The stellar subdivision of a face is obtained by adding a new vertex to the
+        simplicial complex `self` joined to the star of the face and then
+        deleting the face `simplex` to the result.
+
+
+        EXAMPLES::
+	    sage: SC = SimplicialComplex([[0,1,2],[1,2,3]])
+	    sage: F1 = Simplex([1,2])
+	    sage: F2 = Simplex([1,3])
+	    sage: F3 = Simplex([1,2,3])
+	    sage: SC.stellar_subdivision(F1)
+	    Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 1, 4), (1, 3, 4), (2, 3, 4), (0, 2, 4)}
+	    sage: SC.stellar_subdivision(F2)
+	    Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 1, 2), (2, 3, 4), (1, 2, 4)}
+	    sage: SC.stellar_subdivision(F3)
+	    Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(1, 3, 4), (0, 1, 2), (2, 3, 4), (1, 2, 4)}
+	    sage: SC.stellar_subdivision(F3,inplace=True)
+	    Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(1, 3, 4), (0, 1, 2), (2, 3, 4), (1, 2, 4)}
+	    sage: SC
+	    Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(1, 3, 4), (0, 1, 2), (2, 3, 4), (1, 2, 4)}
+
+
+            One can not modify an immutable simplicial complex:
+	    
+	    sage: SC = SimplicialComplex([[0,1,2],[1,2,3]],is_mutable=False)
+	    sage: SC.stellar_subdivision(F1,inplace=True)
+	    Traceback (most recent call last)
+            ...
+	    ValueError: This simplicial complex is not mutable
+
+        """
+
+        if inplace and not self._is_mutable:
+            raise ValueError("This simplicial complex is not mutable")
+
+        if inplace:
+            working_complex = self
+        else:
+            working_complex = copy(self)
+
+        vertices = working_complex.vertices()
+        not_found = True
+        vertex_label = 0
+        while not_found:
+            if vertex_label not in vertices:
+                not_found = False
+            else:
+                vertex_label += 1
+        new_vertex = SimplicialComplex([[vertex_label]])
+        new_faces = new_vertex.join(working_complex.star(simplex),rename_vertices=False)
+        for face in new_faces.facets():
+            working_complex.add_face(face)
+
+        working_complex.remove_face(simplex)
+
+        if not inplace:
+            return working_complex
+
     def graph(self):
         """
         The 1-skeleton of this simplicial complex, as a graph.

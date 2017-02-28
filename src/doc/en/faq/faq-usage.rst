@@ -727,7 +727,13 @@ You will need to do this from the command line.  Just run a command like this.
 
     env BROWSER=opera /usr/bin/sage --notebook
 
-* Mac (assuming you are in the directory of your downloaded Sage)::
+* Mac (assuming you are in the directory of your downloaded Sage).
+  With the Jupyter notebook::
+
+    BROWSER='open -a Firefox %s' ./sage --notebook jupyter
+    BROWSER='open -a Google\ Chrome %s' ./sage --notebook jupyter
+
+  With the old SageNB notebook::
 
     BROWSER='open -a Firefox' ./sage --notebook
     BROWSER='open -a Google\ Chrome' ./sage --notebook

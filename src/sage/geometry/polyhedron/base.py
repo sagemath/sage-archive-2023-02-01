@@ -2229,14 +2229,15 @@ class Polyhedron_base(Element):
         c = (-1)**(dimension+1)*matrix_data.matrix_from_columns(range(dimension+1)).determinant()
 
         circumcenter = vector([minors[i]/(2*a) for i in range(dimension)])
-        squared_circumradius = sum(m**2 for m in minors) - 4 * a * c) / (2*abs(a)
+        squared_circumradius = (sum(m**2 for m in minors) - 4 * a * c) /(4*a**2)
 
         # Checking if the circumcenter has the correct sign
         test_vector = vertex.vector() - circumcenter
-        if sum(i**2 for i in test_vector) != circumradius:
+        if sum(i**2 for i in test_vector) != squared_circumradius:
             circumcenter = - circumcenter
 
-        is_inscribed = all(sum(i**2 for i in v.vector() - circumcenter) == squared_circumradius for v in other_vertices)
+        is_inscribed = all(sum(i**2 for i in v.vector() - circumcenter) == squared_circumradius \ 
+                           for v in vertices if v not in simplex_vertices)
 
         if certificate:
             if is_inscribed:

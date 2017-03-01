@@ -33,6 +33,8 @@ from sage.arith.misc import gcd
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.real_mpfr import RealField_class,RealField
 
+from polydict cimport ETuple
+
 cdef class MPolynomial(CommutativeRingElement):
 
     ####################
@@ -2308,12 +2310,12 @@ cdef class MPolynomial(CommutativeRingElement):
         # Also f is nilpotent if and only if all a_i are nilpotent.
         # This generalizes easily to the multivariate case, by considering
         # K[x,y,...] as K[x][y]...
-        from polydict import ETuple
-        d = self.dict()
-        zero_key = ETuple([0]*self.parent().ngens())
         if not self.constant_coefficient().is_unit():
             return False
-        return all(k == zero_key or c.is_nilpotent() for k,c in d.items())
+        cdef dict d = self.dict()
+        cdef ETuple zero_key = ETuple([0]*self.parent().ngens())
+        d.pop(zero_key, None)
+        return all(d[k].is_nilpotent() for k in d)
 
     def is_nilpotent(self):
         r"""

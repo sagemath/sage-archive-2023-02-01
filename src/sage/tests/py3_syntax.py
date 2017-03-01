@@ -11,7 +11,6 @@ EXAMPLES::
 from __future__ import print_function
 
 import os
-import sys
 import itertools
 import subprocess
 
@@ -44,12 +43,12 @@ class SortedDirectoryWalkerABC(object):
 
         OUTPUT:
 
-        Iterator over triples consisting of path, filename, and file 
-        extension. The iteration order only depends on the filenames 
+        Iterator over triples consisting of path, filename, and file
+        extension. The iteration order only depends on the filenames
         and not on filesystem layout.
 
         EXAMPLES::
-        
+
             sage: from sage.tests.py3_syntax import Python3SyntaxTest
             sage: test = Python3SyntaxTest('sage/tests/french_book')
             sage: next(iter(test))
@@ -70,15 +69,16 @@ class SortedDirectoryWalkerABC(object):
         """
         Run tests
 
-        The abstract :meth:`test` is called on each file with a 
+        The abstract :meth:`test` is called on each file with a
         matching extension.
 
         INPUT:
 
-        -- ``*extensions`` - the file extensions (including the leading dot) 
+        -- ``*extensions`` - the file extensions (including the leading dot)
             to check.
 
-        EXAMPLES::        
+        EXAMPLES::
+
             sage: from sage.tests.py3_syntax import SortedDirectoryWalkerABC
             sage: walker = SortedDirectoryWalkerABC('sage/tests/french_book')
             sage: walker.run_tests('.py')
@@ -135,7 +135,7 @@ class Python3SyntaxTest(SortedDirectoryWalkerABC):
         -- ``filename`` -- string. The full qualified filename to check.
 
         EXAMPLES::
-        
+
             sage: import os, tempfile
             sage: src = tempfile.NamedTemporaryFile(suffix='.py', delete=False)
             sage: src.write('print "invalid print statement')

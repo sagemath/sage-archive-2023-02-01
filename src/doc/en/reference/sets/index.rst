@@ -1,8 +1,8 @@
 Sets
 ====
 
-Constructions
--------------
+Set Constructions
+-----------------
 
 .. toctree::
    :maxdepth: 1

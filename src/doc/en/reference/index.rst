@@ -32,16 +32,6 @@ Parents and Categories
 * :doc:`Coercion <coercion/index>`
 * :doc:`Categories <categories/index>`
 
-Mathematical Structures
------------------------
-
-* :doc:`Sets <sets/index>`
-* :doc:`Monoids <monoids/index>`
-* :doc:`Groups <groups/index>`
-* :doc:`Semirings <semirings/index>`
-* :doc:`Rings <rings/index>`
-* :doc:`Algebras <algebras/index>`
-
 Basic Rings and Fields
 ----------------------
 
@@ -58,7 +48,7 @@ Linear Algebra
 
 * :doc:`Matrices and Spaces of Matrices <matrices/index>`
 * :doc:`Vectors and Modules <modules/index>`
-* :doc:`Tensors on free modules of finite rank <tensor_free_modules/index>`
+* :doc:`Tensors on Free Modules of Finite Rank <tensor_free_modules/index>`
 
 Calculus
 --------
@@ -74,6 +64,16 @@ Probability and Statistics
 * :doc:`Probability <probability/index>`
 * :doc:`Statistics <stats/index>`
 * :doc:`Quantitative Finance <finance/index>`
+
+Mathematical Structures
+-----------------------
+
+* :doc:`Sets <sets/index>`
+* :doc:`Monoids <monoids/index>`
+* :doc:`Groups <groups/index>`
+* :doc:`Semirings <semirings/index>`
+* :doc:`Rings <rings/index>`
+* :doc:`Algebras <algebras/index>`
 
 Discrete Mathematics
 --------------------

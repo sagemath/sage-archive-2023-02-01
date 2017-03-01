@@ -25,13 +25,22 @@ Graphics
 Mathematics
 ===========
 
-Parents, Elements and Categories
---------------------------------
+Parents and Categories
+----------------------
 
-* :doc:`Basic Infrastructure <structure/index>`
+* :doc:`Parents and Elements <structure/index>`
 * :doc:`Coercion <coercion/index>`
 * :doc:`Categories <categories/index>`
-* :doc:`Base Classes for Rings and Related Objects <rings/index>`
+
+Mathematical Structures
+-----------------------
+
+* :doc:`Sets <sets/index>`
+* :doc:`Monoids <monoids/index>`
+* :doc:`Groups <groups/index>`
+* :doc:`Semirings <semirings/index>`
+* :doc:`Rings <rings/index>`
+* :doc:`Algebras <algebras/index>`
 
 Basic Rings and Fields
 ----------------------
@@ -77,14 +86,6 @@ Discrete Mathematics
 * :doc:`Coding Theory <coding/index>`
 * :doc:`Game Theory <game_theory/index>`
 * :doc:`Symbolic Logic <logic/index>`
-
-Algebraic Structures
---------------------
-
-* :doc:`Monoids <monoids/index>`
-* :doc:`Groups <groups/index>`
-* :doc:`Semirings <semirings/index>`
-* :doc:`Algebras <algebras/index>`
 
 Geometry and Topology
 ---------------------

@@ -89,10 +89,10 @@ give a more precision approximation of ``math.pi``:
 
     sage: p = pari(math.pi)
     sage: pari("Pi") - p
-    1.22514845490862 E-16
+    1.225148... E-16
     sage: p = p.bitprecision(1000)
     sage: pari("Pi") - p
-    1.22514845490862 E-16
+    1.225148... E-16
 
 Another way to create numbers with many bits is to use a string with
 many digits::

@@ -2881,7 +2881,9 @@ cdef class Set_PythonType_class(Set_generic):
             return (op == Py_EQ)
         if not isinstance(other, Set_PythonType_class):
             return (op == Py_NE)
-        b = (self._type == other._type)
+        s = <Set_PythonType_class>self
+        o = <Set_PythonType_class>other
+        b = (s._type == o._type)
         return b == (op == Py_EQ)
 
     def __contains__(self, x):

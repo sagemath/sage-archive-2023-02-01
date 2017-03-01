@@ -4513,6 +4513,13 @@ cpdef Gen objtogen(s):
         Traceback (most recent call last):
         ...
         ValueError: Cannot convert None to pari
+
+        sage: class OldStylePari:
+        ....:     def _pari_(self):
+        ....:         return pari(42)
+        sage: pari(OldStylePari())
+        doctest:...: DeprecationWarning: the _pari_ method is deprecated, use __pari__ instead
+        42
     """
     cdef GEN g
     cdef list L
@@ -4520,9 +4527,20 @@ cpdef Gen objtogen(s):
     if isinstance(s, Gen):
         return s
     try:
-        return s.__pari__()
+        m = s.__pari__
     except AttributeError:
         pass
+    else:
+        return m()
+
+    try:
+        m = s._pari_
+    except AttributeError:
+        pass
+    else:
+        from warnings import warn
+        warn("the _pari_ method is deprecated, use __pari__ instead", DeprecationWarning)
+        return m()
 
     # Check basic Python types. Start with strings, which are a very
     # common case.

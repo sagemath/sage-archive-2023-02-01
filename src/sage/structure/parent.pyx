@@ -115,7 +115,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.sets_cat import Sets, EmptySetError
 from copy import copy
 from sage.misc.lazy_format import LazyFormat
-from cpython.object cimport Py_NE
+from cpython.object cimport Py_NE, Py_EQ
 
 
 from sage.misc.lazy_import import LazyImport
@@ -2862,7 +2862,7 @@ cdef class Set_PythonType_class(Set_generic):
         """
         return -hash(self._type)
 
-    cpdef int _cmp_(self, other) except -2:
+    def __richcmp__(self, other, int op):
         """
         Two Python type sets are considered the same if they contain the same
         type.
@@ -2875,12 +2875,14 @@ cdef class Set_PythonType_class(Set_generic):
             sage: S == sage.structure.parent.Set_PythonType(float)
             False
         """
+        if op not in [Py_EQ, Py_NE]:
+            return NotImplemented
         if self is other:
-            return 0
-        if isinstance(other, Set_PythonType_class):
-            return cmp(self._type, other._type)
-        else:
-            return cmp(self._type, other)
+            return (op == Py_EQ)
+        if not isinstance(other, Set_PythonType_class):
+            return (op == Py_NE)
+        b = (self._type == other._type)
+        return b == (op == Py_EQ)
 
     def __contains__(self, x):
         """

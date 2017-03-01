@@ -2142,28 +2142,36 @@ class Polyhedron_base(Element):
 
     def is_inscribed(self, certificate=False):
         """
+        This function tests whether the vertices of the polyhedron are
+        inscribed on a sphere.
+
+        The polyhedron is expected to be compact and full-dimensional. 
         A full-dimensional compact polytope is inscribed if there exists
         a point in space which is equidistant to all its vertices.
 
-        This function tests whether this point exists and returns it if
-        specified.
+        ALGORITHM:
 
         The function first computes the circumsphere of a full-dimensional
-        simplex with vertices of `self` and then checks if all other vertices
-        are equidistant to the circumcenter of that simplex.
-
-        The circumsphere of the simplex is found by lifting the points on a
+        simplex with vertices of `self`. It is found by lifting the points on a
         paraboloid to find the hyperplane on which the circumsphere is lifted.
+        Then, it checks if all other vertices are equidistant to the 
+        circumcenter of that simplex.
 
         INPUT:
 
-        - ``certificate`` : Boolean, specify whether to return the circumcenter
-              if found
+        - ``certificate`` : boolean (default: False). Specifies whether to 
+        return the circumcenter, if found.
 
         OUTPUT:
 
-        A tuple containing a boolean and potentially the circumcenter of the
-        polytope.
+        If ``certificate`` is true, returns a tuple containing:
+        
+        1. Boolean.
+        2. The circumcenter of the polytope or None.
+
+        If ``certificate`` is false:
+
+        - a Boolean.
 
         EXAMPLES::
 
@@ -2171,7 +2179,7 @@ class Polyhedron_base(Element):
             ....:                            [-1,1,-1,1],[1,1,1,-1],[-1,-1,1,-1],
             ....:                            [1,-1,-1,-1],[-1,1,-1,-1],[0,0,10/13,-24/13],
             ....:                            [0,0,-10/13,-24/13]])
-            sage: q.is_inscribed(True)
+            sage: q.is_inscribed(certificate=True)
             (True, (0, 0, 0, 0))
 
             sage: cube = polytopes.cube()
@@ -2180,7 +2188,7 @@ class Polyhedron_base(Element):
 
             sage: translated_cube = Polyhedron(vertices=[v.vector() + vector([1,2,3])
             ....:                                        for v in cube.vertices()])
-            sage: translated_cube.is_inscribed(True)
+            sage: translated_cube.is_inscribed(certificate=True)
             (True, (1, 2, 3))
 
             sage: truncated_cube = cube.face_truncation(cube.faces(0)[0])
@@ -2194,24 +2202,30 @@ class Polyhedron_base(Element):
             sage: square.is_inscribed()
             Traceback (most recent call last):
             ...
-            NotImplementedError: This function is implemented for full-dimensional polytopes only.
+            NotImplementedError: This function is implemented for full-dimensional polyhedron only.
 
             sage: p = Polyhedron(vertices=[(0,0)],rays=[(1,0),(0,1)])
             sage: p.is_inscribed()
             Traceback (most recent call last):
             ...
-            NotImplementedError: This function is implemented for full-dimensional polytopes only.
+            NotImplementedError: This function is not implemented for unbounded polyhedron.
         """
 
-        if not self.is_compact() or not self.is_full_dimensional():
-            raise NotImplementedError("This function is implemented for full-dimensional polytopes only.")
+        if not self.is_compact():
+            raise NotImplementedError("This function is not implemented for unbounded polyhedron.")
+        
+        if not self.is_full_dimensional():
+            raise NotImplementedError("This function is implemented for full-dimensional polyhedron only.")
 
         dimension = self.dimension()
         vertices = self.vertices()
         vertex = vertices[0]
         vertex_neighbors = vertex.neighbors()
+
+        # The following simplex is full-dimensional because `self` is assumed
+        # to be: every vertex has at least `dimension` neighbors and they form
+        # a full simplex with `vertex`.
         simplex_vertices = [vertex] + [next(vertex_neighbors) for i in range(dimension)]
-        other_vertices = (v for v in vertices if v not in simplex_vertices)
 
         raw_data = []
         for vertex in simplex_vertices:

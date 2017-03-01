@@ -1450,7 +1450,7 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
     @cached_method
     def highest_weight_dict(self):
         r"""
-        Return a dictionary between `{1,2,3,4,5}` highest weight elements,
+        Return a dictionary between `\{1,2,3,4,5\}`-highest weight elements,
         and a tuple of affine weights and its classical component.
 
         EXAMPLES::

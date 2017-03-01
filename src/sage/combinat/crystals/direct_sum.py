@@ -53,7 +53,7 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
         sage: [b.f(1) for b in B]
         [2, None, None, None, [[2], [3]], None]
         sage: B.module_generators
-        [1, [[1], [2]]]
+        (1, [[1], [2]])
 
     ::
 
@@ -61,7 +61,7 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
         sage: B.list()
         [(0, 1), (0, 2), (0, 3), (1, 1), (1, 2), (1, 3)]
         sage: B.module_generators
-        [(0, 1), (1, 1)]
+        ((0, 1), (1, 1))
         sage: b = B( tuple([0,C(1)]) )
         sage: b
         (0, 1)

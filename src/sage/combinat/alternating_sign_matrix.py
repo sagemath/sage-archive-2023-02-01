@@ -29,9 +29,8 @@ AUTHORS:
 #*****************************************************************************
 # python3
 from __future__ import division
-from six.moves import range
-from builtins import zip
-from six import itervalues
+from six.moves import range, zip
+from six import itervalues, add_metaclass
 
 import copy
 from sage.misc.classcall_metaclass import ClasscallMetaclass
@@ -57,7 +56,7 @@ from sage.combinat.permutation import Permutation
 from sage.combinat.six_vertex_model import SquareIceModel
 from sage.misc.decorators import rename_keyword
 
-
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class AlternatingSignMatrix(Element):
     r"""
     An alternating sign matrix.
@@ -76,8 +75,6 @@ class AlternatingSignMatrix(Element):
        Volume 34, Issue 3, May 1983, Pages 340--359.
        http://www.sciencedirect.com/science/article/pii/0097316583900687
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, asm):
         """
@@ -1654,6 +1651,8 @@ from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.alternating_sign_matrix', 'AlternatingSignMatrices_n', AlternatingSignMatrices)
 register_unpickle_override('sage.combinat.alternating_sign_matrix', 'MonotoneTriangles_n', MonotoneTriangles)
 
+
+@add_metaclass(ClasscallMetaclass)
 class ContreTableaux(Parent):
     """
     Factory class for the combinatorial class of contre tableaux of size `n`.
@@ -1665,8 +1664,6 @@ class ContreTableaux(Parent):
         sage: ct4.cardinality()
         42
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, n, **kwds):
         r"""
@@ -1816,6 +1813,7 @@ def _previous_column_iterator(column, height, max_value):
     return _next_column_iterator(new_column, height)
 
 
+@add_metaclass(ClasscallMetaclass)
 class TruncatedStaircases(Parent):
     """
     Factory class for the combinatorial class of truncated staircases
@@ -1828,8 +1826,6 @@ class TruncatedStaircases(Parent):
         sage: t4.cardinality()
         4
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, n, last_column, **kwds):
         r"""

@@ -2869,22 +2869,32 @@ cdef class Set_PythonType_class(Set_generic):
 
         EXAMPLES::
 
-            sage: S = sage.structure.parent.Set_PythonType(int)
-            sage: S == S
+            sage: from sage.structure.parent import Set_PythonType
+            sage: S = Set_PythonType(int)
+            sage: T = Set_PythonType(int)
+            sage: U = type(S)(int)  # bypass caching
+            sage: S is T
             True
-            sage: S == sage.structure.parent.Set_PythonType(float)
+            sage: S == T
+            True
+            sage: S is U
+            False
+            sage: S == U
+            True
+            sage: S == Set_PythonType(float)
+            False
+            sage: S == int
             False
         """
-        if op not in [Py_EQ, Py_NE]:
+        if not (op == Py_EQ or op == Py_NE):
             return NotImplemented
         if self is other:
-            return (op == Py_EQ)
+            return rich_to_bool(op, 0)
         if not isinstance(other, Set_PythonType_class):
-            return (op == Py_NE)
-        s = <Set_PythonType_class>self
-        o = <Set_PythonType_class>other
-        b = (s._type == o._type)
-        return b == (op == Py_EQ)
+            return rich_to_bool(op, 1)
+        s = (<Set_PythonType_class>self)._type
+        o = (<Set_PythonType_class>other)._type
+        return rich_to_bool(op, s is not o)
 
     def __contains__(self, x):
         """

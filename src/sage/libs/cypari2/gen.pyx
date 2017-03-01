@@ -1145,6 +1145,7 @@ cdef class Gen(Gen_auto):
 
             # actually set the values
             for a, b in enumerate(inds):
+                sig_check()
                 self[b] = y[a]
             return
 

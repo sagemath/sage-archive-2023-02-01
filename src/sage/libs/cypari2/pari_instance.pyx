@@ -1258,6 +1258,7 @@ cdef class Pari(Pari_auto):
             k = 0
             for i in range(m):
                 for j in range(n):
+                    sig_check()
                     x = self(entries[k])
                     A.cache((i,j), x)
                     set_gcoeff(A.g, i+1, j+1, x.g)

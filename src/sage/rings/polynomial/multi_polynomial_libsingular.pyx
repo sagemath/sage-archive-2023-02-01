@@ -4112,6 +4112,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: P.<x,y> = ZZ[]
             sage: P(2^3*7).factor()
             2^3 * 7
+            sage: P.<x,y> = GF(2)[]
+            sage: P(1).factor()
+            1
 
         Factorization for finite prime fields with characteristic
         `> 2^{29}` is not supported ::

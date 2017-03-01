@@ -2145,7 +2145,7 @@ class Polyhedron_base(Element):
         This function tests whether the vertices of the polyhedron are
         inscribed on a sphere.
 
-        The polyhedron is expected to be compact and full-dimensional. 
+        The polyhedron is expected to be compact and full-dimensional.
         A full-dimensional compact polytope is inscribed if there exists
         a point in space which is equidistant to all its vertices.
 
@@ -2154,18 +2154,18 @@ class Polyhedron_base(Element):
         The function first computes the circumsphere of a full-dimensional
         simplex with vertices of `self`. It is found by lifting the points on a
         paraboloid to find the hyperplane on which the circumsphere is lifted.
-        Then, it checks if all other vertices are equidistant to the 
+        Then, it checks if all other vertices are equidistant to the
         circumcenter of that simplex.
 
         INPUT:
 
-        - ``certificate`` : boolean (default: False). Specifies whether to 
+        - ``certificate`` : boolean (default: False). Specifies whether to
         return the circumcenter, if found.
 
         OUTPUT:
 
         If ``certificate`` is true, returns a tuple containing:
-        
+
         1. Boolean.
         2. The circumcenter of the polytope or None.
 
@@ -2213,7 +2213,7 @@ class Polyhedron_base(Element):
 
         if not self.is_compact():
             raise NotImplementedError("This function is not implemented for unbounded polyhedron.")
-        
+
         if not self.is_full_dimensional():
             raise NotImplementedError("This function is implemented for full-dimensional polyhedron only.")
 
@@ -2243,14 +2243,14 @@ class Polyhedron_base(Element):
         c = (-1)**(dimension+1)*matrix_data.matrix_from_columns(range(dimension+1)).determinant()
 
         circumcenter = vector([minors[i]/(2*a) for i in range(dimension)])
-        squared_circumradius = (sum(m**2 for m in minors) - 4 * a * c) /(4*a**2)
+        squared_circumradius = (sum(m**2 for m in minors) - 4 * a * c) / (4*a**2)
 
         # Checking if the circumcenter has the correct sign
         test_vector = vertex.vector() - circumcenter
         if sum(i**2 for i in test_vector) != squared_circumradius:
             circumcenter = - circumcenter
 
-        is_inscribed = all(sum(i**2 for i in v.vector() - circumcenter) == squared_circumradius 
+        is_inscribed = all(sum(i**2 for i in v.vector() - circumcenter) == squared_circumradius
                            for v in vertices if v not in simplex_vertices)
 
         if certificate:
@@ -4846,7 +4846,7 @@ class Polyhedron_base(Element):
 
         - For ``output="matrixlist"``: a list of matrices.
 
-        REFERENCES: 
+        REFERENCES:
 
         - [BSS2009]_
 

@@ -457,7 +457,7 @@ class pAdicRingFloatingPoint(pAdicRingBaseGeneric, pAdicFloatingPointRingGeneric
         if isinstance(R, pAdicRingFloatingPoint) and R.prime() == self.prime():
             if R.precision_cap() > self.precision_cap():
                 return True
-            elif R.precision_cap() == self.precision_cap() and self._printer.cmp_modes(R._printer) <= 0:
+            elif R.precision_cap() == self.precision_cap() and self._printer.richcmp_modes(R._printer, op_LE):
                 return True
 
     def _repr_(self, do_latex=False):
@@ -784,7 +784,7 @@ class pAdicFieldFloatingPoint(pAdicFieldBaseGeneric, pAdicFloatingPointFieldGene
         if isinstance(R, (pAdicRingFloatingPoint, pAdicFieldFloatingPoint)) and R.prime() == self.prime():
             if R.precision_cap() > self.precision_cap():
                 return True
-            elif R.precision_cap() == self.precision_cap() and self._printer.cmp_modes(R._printer) <= 0:
+            elif R.precision_cap() == self.precision_cap() and self._printer.richcmp_modes(R._printer, op_LE):
                 return True
 
     def _repr_(self, do_latex=False):

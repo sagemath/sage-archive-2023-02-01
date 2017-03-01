@@ -21,7 +21,7 @@ AUTHORS:
 include "sage/libs/linkages/padics/mpz.pxi"
 include "FP_template.pxi"
 
-from sage.libs.cypari2.pari_instance cimport pari_instance as pari
+from sage.libs.pari.all import pari
 from sage.libs.pari.convert_gmp cimport new_gen_from_padic
 from sage.rings.finite_rings.integer_mod import Mod
 

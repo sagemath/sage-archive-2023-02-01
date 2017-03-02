@@ -1597,7 +1597,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         from sage.arith.all import binomial
         ret = [[0]*(i+1) for i in range(self.dimension() + 2)]
         f = self.f_triangle()
-        for i,row in enumerate(ret):
+        for i, row in enumerate(ret):
             for j in range(i+1):
                 row[j] = sum((-1)**(j-k) * binomial(i-k, j-k) * f[i][k]
                              for k in range(j+1))
@@ -2954,7 +2954,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             return False
 
         cur_complex = SimplicialComplex([])
-        for i,F in enumerate(shelling_order):
+        for i, F in enumerate(shelling_order):
             if i > 0:
                 # The shelling condition is precisely that intersection is
                 #    a pure complex of one dimension less and stop if this fails
@@ -3423,10 +3423,11 @@ class SimplicialComplex(Parent, GenericCellComplex):
         - A simplicial complex obtained by the stellar subdivision of the face
           `simplex`. If inplace is `True`, the object `self` was modified,
           otherwise a new simplicial complex is returned. The parameter
-          `is_mutable` determines the mutability of the output. 
+          `is_mutable` determines the mutability of the output.
 
 
         EXAMPLES::
+
             sage: SC = SimplicialComplex([[0,1,2],[1,2,3]])
             sage: F1 = Simplex([1,2])
             sage: F2 = Simplex([1,3])
@@ -3478,7 +3479,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             else:
                 vertex_label += 1
         new_vertex = SimplicialComplex([[vertex_label]])
-        new_faces = new_vertex.join(working_complex.star(simplex),rename_vertices=False)
+        new_faces = new_vertex.join(working_complex.star(simplex), rename_vertices=False)
         for face in new_faces.facets():
             working_complex.add_face(face)
 

@@ -3486,7 +3486,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         working_complex.remove_face(simplex)
 
         if not is_mutable:
-            worksing_complex.set_immutable()
+            working_complex.set_immutable()
 
         if not inplace:
             return working_complex

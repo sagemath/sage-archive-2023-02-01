@@ -8,6 +8,7 @@ fi
 
 cd src
 
+# We add -ltinfo flag to let gdb compile on some 32bit VM, see #22487.
 LDFLAGS="${LDFLAGS} -L${SAGE_LOCAL}/lib -ltinfo"
 export LDFLAGS
 

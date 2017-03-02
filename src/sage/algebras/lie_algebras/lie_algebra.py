@@ -21,6 +21,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from six.moves import range
+from six import iteritems
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -486,9 +487,9 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         assert isinstance(d, dict)
         if coerce:
             R = self.base_ring()
-            d = {key: R(coeff) for key,coeff in d.iteritems()}
+            d = {key: R(coeff) for key,coeff in iteritems(d)}
         if remove_zeros:
-            d = {key: coeff for key, coeff in d.iteritems() if coeff}
+            d = {key: coeff for key, coeff in iteritems(d) if coeff}
         return self.element_class(self, d)
 
     def monomial(self, i):

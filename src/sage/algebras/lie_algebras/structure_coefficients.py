@@ -20,6 +20,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import iteritems
 
 from sage.misc.cachefunc import cached_method
 #from sage.misc.lazy_attribute import lazy_attribute
@@ -372,7 +373,7 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             """
             print_options = self.parent().print_options()
             pos_to_index = dict(enumerate(self.parent()._indices))
-            v = [(pos_to_index[k], c) for k,c in self.value.iteritems()]
+            v = [(pos_to_index[k], c) for k, c in iteritems(self.value)]
             try:
                 v.sort(key=lambda monomial_coeff:
                             print_options['sorting_key'](monomial_coeff[0]),

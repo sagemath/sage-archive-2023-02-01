@@ -38,6 +38,11 @@ from sage.misc.misc import repr_lincomb
 from sage.monoids.free_monoid_element import FreeMonoidElement
 from sage.combinat.free_module import CombinatorialFreeModuleElement
 from sage.structure.element import AlgebraElement
+from sage.structure.sage_object import richcmp
+
+
+import six
+
 
 # We need to have AlgebraElement first to avoid a segfault...
 class FreeAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement):
@@ -160,7 +165,7 @@ class FreeAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement):
         # I don't start with 0, because I don't want to preclude evaluation with
         #arbitrary objects (e.g. matrices) because of funny coercion.
         result = None
-        for m, c in self._monomial_coefficients.iteritems():
+        for m, c in six.iteritems(self._monomial_coefficients):
             if result is None:
                 result = c*m(x)
             else:
@@ -170,7 +175,7 @@ class FreeAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement):
             return self.parent()(0)
         return result
 
-    def __cmp__(left, right):
+    def _richcmp_(left, right, op):
         """
         Compare two free algebra elements with the same parents.
 
@@ -189,7 +194,7 @@ class FreeAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement):
         """
         v = sorted(left._monomial_coefficients.items())
         w = sorted(right._monomial_coefficients.items())
-        return cmp(v, w)
+        return richcmp(v, w, op)
 
     def _mul_(self, y):
         """

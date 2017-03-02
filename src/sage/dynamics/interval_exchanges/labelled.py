@@ -88,8 +88,8 @@ TESTS::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six.moves import zip
 
 from sage.structure.sage_object import SageObject
 from sage.misc.lazy_attribute import lazy_attribute
@@ -107,6 +107,7 @@ from .template import FlippedPermutationIET, FlippedPermutationLI
 from .template import twin_list_iet, twin_list_li
 from .template import RauzyDiagram, FlippedRauzyDiagram
 from .template import interval_conversion, side_conversion
+
 
 class LabelledPermutation(SageObject):
     r"""
@@ -1559,13 +1560,15 @@ class FlippedLabelledPermutation(LabelledPermutation):
             True
         """
         if flips:
-            a0 = zip([self._alphabet.unrank(_) for _ in self._intervals[0]], self._flips[0])
-            a1 = zip([self._alphabet.unrank(_) for _ in self._intervals[1]], self._flips[1])
+            a0 = list(zip([self._alphabet.unrank(_)
+                           for _ in self._intervals[0]], self._flips[0]))
+            a1 = list(zip([self._alphabet.unrank(_)
+                           for _ in self._intervals[1]], self._flips[1]))
         else:
             a0 = [self._alphabet.unrank(_) for _ in self._intervals[0]]
             a1 = [self._alphabet.unrank(_) for _ in self._intervals[1]]
 
-        return [a0,a1]
+        return [a0, a1]
 
     def __getitem__(self,i):
         r"""
@@ -1592,7 +1595,7 @@ class FlippedLabelledPermutation(LabelledPermutation):
         letters = [self._alphabet.unrank(_) for _ in self._intervals[i]]
         flips = self._flips[i]
 
-        return zip(letters,flips)
+        return list(zip(letters, flips))
 
     def __eq__(self,other):
         r"""
@@ -1814,8 +1817,8 @@ class FlippedLabelledPermutationIET(
             f = self._flips
             i = self._intervals
             l = []
-            l.extend([str(j*(1+k)) for j,k in zip(f[0],i[0])])
-            l.extend([str(-j*(1+k)) for j,k in zip(f[1],i[1])])
+            l.extend([str(j*(1+k)) for j, k in zip(f[0],i[0])])
+            l.extend([str(-j*(1+k)) for j, k in zip(f[1],i[1])])
             self._hash = hash(''.join(l))
 
         return self._hash

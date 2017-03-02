@@ -2474,7 +2474,7 @@ cdef class GapElement_Record(GapElement):
         sage: dict(rec)
         {'a': 123, 'b': 456}
         sage: type(_)
-        <type 'dict'>
+        <... 'dict'>
 
     Range checking is performed::
 

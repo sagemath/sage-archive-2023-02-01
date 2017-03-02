@@ -93,6 +93,7 @@ AUTHOR:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 include "cysignals/memory.pxi"
 
@@ -114,8 +115,8 @@ cdef mod_int ivalue(IntegerMod_abstract x) except -1:
 
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 
-cimport free_module_element
-from free_module_element import vector
+cimport sage.modules.free_module_element as free_module_element
+from .free_module_element import vector
 
 cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
     cdef _new_c(self):

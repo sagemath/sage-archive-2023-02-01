@@ -27,6 +27,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 from six.moves import range
+from six import iteritems
 
 from sage.structure.sage_object import SageObject
 
@@ -3521,16 +3522,17 @@ class RauzyDiagram(SageObject):
             Looped multi-digraph on 3 vertices
 
         """
-        G = DiGraph(loops=True,multiedges=True)
+        G = DiGraph(loops=True, multiedges=True)
 
-        for p,neighbours in self._succ.iteritems():
+        for p, neighbours in iteritems(self._succ):
             p = self._vertex_to_permutation(p)
-            for i,n in enumerate(neighbours):
+            for i, n in enumerate(neighbours):
                 if n is not None:
                     q = self._vertex_to_permutation(n)
-                    G.add_edge(p,q,i)
+                    G.add_edge(p, q, i)
 
         return G
+
 
 class FlippedRauzyDiagram(RauzyDiagram):
     r"""

@@ -1658,6 +1658,36 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             return self._distances
 
     @cached_method
+    def dual(self):
+        r"""
+        Return the dual face under face duality of polar reflexive polytopes.
+        
+        This duality extends the correspondence between vertices and facets.
+        
+        OUTPUT:
+        
+        - a :class:`lattice polytope <LatticePolytopeClass>`.
+        
+        EXAMPLES::
+        
+            sage: o = lattice_polytope.cross_polytope(4)
+            sage: e = o.edges()[0]; e
+            1-d face of 4-d reflexive polytope in 4-d lattice M
+            sage: ed = e.dual(); ed
+            2-d face of 4-d reflexive polytope in 4-d lattice N
+            sage: ed.ambient() is e.ambient().polar()
+            True
+            sage: e.ambient_vertex_indices() == ed.ambient_facet_indices()
+            True
+            sage: e.ambient_facet_indices() == ed.ambient_vertex_indices()
+            True
+        """
+        for f in self._ambient.polar().faces(codim=self.dim() + 1):
+            if f._ambient_vertex_indices == self._ambient_facet_indices:
+                f.dual.set_cache(self)
+                return f
+
+    @cached_method
     def dual_lattice(self):
         r"""
         Return the dual of the ambient lattice of ``self``.
@@ -3190,7 +3220,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             permutations = {k:permutations[k] for k in permutations if k < n_s}
             # If the automorphisms are not already completely restricted,
             # update them
-            if not S == range(1, n_v + 1):
+            if not S == list(range(1, n_v + 1)):
                 # Take the old automorphisms and update by
                 # the restrictions the last worked out
                 # row imposes.
@@ -4030,6 +4060,27 @@ class NefPartition(SageObject,
         &=
         \mathrm{Conv} \left(\Delta_0, \Delta_1, \dots, \Delta_{k-1}\right).
 
+    One can also interpret the duality of nef-partitions as the duality of the
+    associated cones. Below $\overline{M} = M \times \ZZ^k$ and
+    $\overline{N} = N \times \ZZ^k$ are dual lattices.
+
+    The **Cayley polytope** $P \subset \overline{M}_\RR$ of a nef-partition is
+    given by $P = \mathrm{Conv}(\Delta_0 \times e_0, \Delta_1 \times e_1,
+    \ldots, \Delta_{k-1} \times e_{k-1})$, where $\{e_i\}_{i=0}^{k-1}$ is the
+    standard basis of $\ZZ^k$. The **dual Cayley polytope**
+    $P^* \subset \overline{N}_\RR$ is the Cayley polytope of the dual
+    nef-partition.
+    
+    The **Cayley cone** $C \subset \overline{M}_\RR$ of a nef-partition is the
+    cone spanned by its Cayley polytope. The **dual Cayley cone**
+    $C^\vee \subset \overline{M}_\RR$ is the usual dual cone of $C$. It turns
+    out, that $C^\vee$ is spanned by $P^*$.
+   
+    It is also possible to go back from the Cayley cone to the Cayley polytope,
+    since $C$ is a reflexive Gorenstein cone supported by $P$: primitive
+    integral ray generators of $C$ are contained in an affine hyperplane and
+    coincide with vertices of $P$.
+
     See Section 4.3.1 in [CK1999]_ and references therein for further details, or
     [BN2008]_ for a purely combinatorial approach.
 
@@ -4056,15 +4107,15 @@ class NefPartition(SageObject,
     intersection") gives decomposition of the vertex set of `\nabla^\circ`::
 
         sage: np.dual()
-        Nef-partition {4, 5, 6} U {1, 3} U {0, 2, 7}
+        Nef-partition {0, 1, 2} U {3, 4} U {5, 6, 7}
         sage: np.nabla_polar().vertices()
-        N( 1,  1,  0),
-        N( 0,  0,  1),
-        N( 0,  1,  0),
-        N( 0,  0, -1),
         N(-1, -1,  0),
         N( 0, -1,  0),
         N(-1,  0,  0),
+        N( 0,  0,  1),
+        N( 0,  0, -1),
+        N( 1,  1,  0),
+        N( 0,  1,  0),
         N( 1,  0,  0)
         in 3-d lattice N
 
@@ -4377,17 +4428,18 @@ class NefPartition(SageObject,
             in 3-d lattice N]
             sage: np.nabla_polar().vertices()
             N( 1, -1,  0),
-            N( 0,  1,  1),
             N( 1,  0,  0),
+            N(-1, -1,  0),
+            N(-1,  0,  0),
+            N( 0,  1,  1),
             N( 0,  0,  1),
             N( 0,  0, -1),
-            N(-1, -1,  0),
-            N( 0,  1, -1),
-            N(-1,  0,  0)
+            N( 0,  1, -1)
             in 3-d lattice N
         """
         return self.dual().nablas()
 
+    @cached_method
     def dual(self):
         r"""
         Return the dual nef-partition.
@@ -4402,6 +4454,12 @@ class NefPartition(SageObject,
 
         See Proposition 3.19 in [BN2008]_.
 
+        .. NOTE::
+        
+            Automatically constructed dual nef-partitions will be ordered, i.e.
+            vertex partition of `\nabla` will look like
+            `\{0, 1, 2\} \sqcup \{3, 4, 5, 6\} \sqcup \{7, 8\}`.
+
         EXAMPLES::
 
             sage: o = lattice_polytope.cross_polytope(3)
@@ -4409,28 +4467,33 @@ class NefPartition(SageObject,
             sage: np
             Nef-partition {0, 1, 3} U {2, 4, 5}
             sage: np.dual()
-            Nef-partition {0, 2, 5, 7} U {1, 3, 4, 6}
+            Nef-partition {0, 1, 2, 3} U {4, 5, 6, 7}
             sage: np.dual().Delta() is np.nabla()
             True
             sage: np.dual().nabla(0) is np.Delta(0)
             True
         """
-        try:
-            return self._dual
-        except AttributeError:
-            # Delta and nabla are interchanged compared to [BN2008]_.
-            nabla_polar = self.nabla_polar()
-            n = nabla_polar.nvertices()
-            vertex_to_part = [-1] * n
-            for i in range(self._nparts):
-                A = nabla_polar.vertices().matrix()*self.nabla(i).vertices()
-                for j in range(n):
-                    if min(A[j]) == -1:
-                        vertex_to_part[j] = i
-            self._dual = NefPartition(vertex_to_part, nabla_polar)
-            self._dual._dual = self
-            self._dual._nabla = self.Delta() # For vertex order consistency
-            return self._dual
+        # Delta and nabla are interchanged compared to [BN2008]_.
+        # The order of vertices of this nabla_polar will be adjusted.
+        nabla_polar = LatticePolytope(
+            reduce(minkowski_sum,
+                   (nabla.vertices() for nabla in self.nablas())),
+            lattice=self._Delta_polar.lattice()).polar()
+        vertex_to_part = []
+        nabla_polar_vertices = []
+        for i in range(self._nparts):
+            A = nabla_polar.vertices().matrix() * self.nabla(i).vertices()
+            for j, row in enumerate(A):
+                if min(row) == -1:
+                    vertex_to_part.append(i)
+                    nabla_polar_vertices.append(nabla_polar.vertex(j))
+        # Make dual look "ordered", like {0,1,2} U {3,4,5,6} U {7,8}.
+        nabla_polar = LatticePolytope(nabla_polar_vertices,
+                                      compute_vertices=False)
+        # If self is a valid nef-partition, the dual is as well.
+        dual = NefPartition(vertex_to_part, nabla_polar, check=False)
+        dual.dual.set_cache(self)
+        return dual
 
     def hodge_numbers(self):
         r"""
@@ -4496,26 +4559,18 @@ class NefPartition(SageObject,
             M(-1, 0, 0)
             in 3-d lattice M
             sage: np.nabla().vertices()
+            M(-1,  0,  1),
             M( 1,  0,  1),
+            M( 0,  1,  1),
+            M(-1, -1,  0),
+            M(-1,  0, -1),
             M( 1, -1,  0),
             M( 1,  0, -1),
-            M( 0,  1,  1),
-            M( 0,  1, -1),
-            M(-1,  0,  1),
-            M(-1, -1,  0),
-            M(-1,  0, -1)
+            M( 0,  1, -1)
             in 3-d lattice M
         """
         if i is None:
-            try:
-                return self._nabla
-            except AttributeError:
-                vertices = reduce(minkowski_sum, (nabla._vertices
-                                                  for nabla in self.nablas()))
-                self._nabla = LatticePolytope(vertices,
-                                        lattice=self.Delta_polar().lattice(),
-                                        compute_vertices=False)
-                return self._nabla
+            return self.dual().Delta()
         else:
             return self.nablas()[i]
 
@@ -4538,13 +4593,13 @@ class NefPartition(SageObject,
             Nef-partition {0, 1, 3} U {2, 4, 5}
             sage: np.nabla_polar().vertices()
             N( 1, -1,  0),
-            N( 0,  1,  1),
             N( 1,  0,  0),
+            N(-1, -1,  0),
+            N(-1,  0,  0),
+            N( 0,  1,  1),
             N( 0,  0,  1),
             N( 0,  0, -1),
-            N(-1, -1,  0),
-            N( 0,  1, -1),
-            N(-1,  0,  0)
+            N( 0,  1, -1)
             in 3-d lattice N
             sage: np.nabla_polar() is np.dual().Delta_polar()
             True
@@ -4616,18 +4671,21 @@ class NefPartition(SageObject,
         """
         return self._nparts
 
-    def part(self, i):
+    def part(self, i, all_points=False):
         r"""
         Return the ``i``-th part of ``self``.
 
         INPUT:
 
-        - ``i`` -- an integer.
+        - ``i`` -- an integer
+        
+        - ``all_points`` -- (default: False) whether to list all lattice points
+          or just vertices
 
         OUTPUT:
 
-        - a tuple of integers, indices of vertices of $\Delta^\circ$ belonging
-          to $V_i$.
+        - a tuple of integers, indices of vertices (or all lattice points) of
+          $\Delta^\circ$ belonging to $V_i$.
 
         See :class:`nef-partition <NefPartition>` class documentation for
         definitions and notation.
@@ -4640,17 +4698,29 @@ class NefPartition(SageObject,
             Nef-partition {0, 1, 3} U {2, 4, 5}
             sage: np.part(0)
             (0, 1, 3)
+            sage: np.part(0, all_points=True)
+            (0, 1, 3)
+            sage: np.dual().part(0)
+            (0, 1, 2, 3)
+            sage: np.dual().part(0, all_points=True)
+            (0, 1, 2, 3, 8)
         """
-        return self.parts()[i]
+        return self.parts(all_points)[i]
 
-    def parts(self):
+    @cached_method
+    def parts(self, all_points=False):
         r"""
         Return all parts of ``self``.
+
+        INPUT:
+
+        - ``all_points`` -- (default: False) whether to list all lattice points
+          or just vertices
 
         OUTPUT:
 
         - a tuple of tuples of integers. The $i$-th tuple contains indices of
-          vertices of $\Delta^\circ$ belonging to $V_i$.
+          vertices (or all lattice points) of $\Delta^\circ$ belonging to $V_i$
 
         See :class:`nef-partition <NefPartition>` class documentation for
         definitions and notation.
@@ -4663,17 +4733,22 @@ class NefPartition(SageObject,
             Nef-partition {0, 1, 3} U {2, 4, 5}
             sage: np.parts()
             ((0, 1, 3), (2, 4, 5))
+            sage: np.parts(all_points=True)
+            ((0, 1, 3), (2, 4, 5))
+            sage: np.dual().parts()
+            ((0, 1, 2, 3), (4, 5, 6, 7))
+            sage: np.dual().parts(all_points=True)
+            ((0, 1, 2, 3, 8), (4, 5, 6, 7, 10))
         """
-        try:
-            return self._parts
-        except AttributeError:
-            parts = []
-            for part in range(self._nparts):
-                parts.append([])
+        parts = [[] for _ in range(self._nparts)]
+        if all_points:
+            for point in range(self._Delta_polar.npoints()):
+                if point != self._Delta_polar.origin():
+                    parts[self.part_of_point(point)].append(point)
+        else:
             for vertex, part in enumerate(self._vertex_to_part):
                 parts[part].append(vertex)
-            self._parts = tuple(tuple(part) for part in parts)
-            return self._parts
+        return tuple(tuple(part) for part in parts)
 
     def part_of(self, i):
         r"""
@@ -4704,6 +4779,7 @@ class NefPartition(SageObject,
         """
         return self._vertex_to_part[i]
 
+    @cached_method
     def part_of_point(self, i):
         r"""
         Return the index of the part containing the ``i``-th point.
@@ -4763,23 +4839,18 @@ class NefPartition(SageObject,
             ....:    if p.origin() != n and np.part_of_point(n) == 1]
             [0, 3, 4, 6, 10, 12]
         """
-        try:
-            ptp = self._point_to_part
-        except AttributeError:
-            ptp = [-1] * self._Delta_polar.npoints()
-            for v, part in enumerate(self._vertex_to_part):
-                ptp[v] = part
-            self._point_to_part = ptp
-        if ptp[i] > 0:
-            return ptp[i]
+        if i < self._Delta_polar.nvertices():
+            return self.part_of(i)
         if i == self._Delta_polar.origin():
             raise ValueError("the origin belongs to all parts!")
         point = self._Delta_polar.point(i)
         for part, nabla in enumerate(self.nablas()):
-            if min(nabla.distances(point)) >= 0:
-                ptp[i] = part
-                break
-        return ptp[i]
+            try:
+                if min(nabla.distances(point)) >= 0:
+                    return part
+            except ArithmeticError:
+                # point is not even in the affine subspace of nabla
+                continue
 
 
 _palp_dimension = None

@@ -181,6 +181,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from six.moves import range
+from six import iteritems
 
 from sage.structure.sage_object import SageObject
 from sage.structure.element import Element
@@ -188,6 +189,7 @@ from sage.structure.sequence import Sequence
 from sage.rings.integer import Integer
 from sage.misc.all import prod
 from sage.misc.cachefunc import cached_method
+
 
 class Factorization(SageObject):
     """
@@ -209,7 +211,7 @@ class Factorization(SageObject):
         sage: F = Factorization([(x,1/3)])
         Traceback (most recent call last):
         ...
-        TypeError: exponents of factors must be integers
+        TypeError: no conversion of this rational to integer
     """
     def __init__(self, x, unit=None, cr=False, sort=True, simplify=True):
         """
@@ -253,7 +255,7 @@ class Factorization(SageObject):
             sage: Factorization([(2,3), (5, 'x')])
             Traceback (most recent call last):
             ...
-            TypeError: exponents of factors must be integers
+            TypeError: unable to convert 'x' to an integer
 
         We create a factorization that puts newlines after each multiply sign
         when printing.  This is mainly useful when the primes are large::
@@ -290,26 +292,16 @@ class Factorization(SageObject):
             (Ambient free module of rank 2 over the principal ideal domain Integer Ring)^5 *
             (Ambient free module of rank 3 over the principal ideal domain Integer Ring)^2
         """
-        if not isinstance(x, list):
-            raise TypeError("x must be a list")
-        for i in range(len(x)):
-            t = x[i]
-            if not (isinstance(t, tuple) and len(t) == 2):
-                raise TypeError("x must be a list of pairs (p, e) with e an integer")
-            if not isinstance(t[1],(int, long, Integer)):
-                try:
-                    x[i]= (t[0], Integer(t[1]))
-                except TypeError:
-                    raise TypeError("exponents of factors must be integers")
+        x = [(p, Integer(e)) for (p, e) in x]
 
         try:
             self.__universe = Sequence(t[0] for t in x).universe()
         except TypeError:
             self.__universe = None
 
-        self.__x = [ (t[0],int(t[1])) for t in x]
+        self.__x = [(t[0], int(t[1])) for t in x]
         if unit is None:
-            if len(x) > 0:
+            if x:
                 try:
                     unit = self.__universe(1)
                 except (AttributeError, TypeError):
@@ -1097,7 +1089,7 @@ class Factorization(SageObject):
             s = {}
             for a in set(d1).union(set(d2)):
                 s[a] = d1.get(a,0) + d2.get(a,0)
-            return Factorization(list(s.iteritems()), unit=self.unit()*other.unit())
+            return Factorization(list(iteritems(s)), unit=self.unit()*other.unit())
         else:
             return Factorization(list(self) + list(other), unit=self.unit()*other.unit())
 
@@ -1248,7 +1240,7 @@ class Factorization(SageObject):
             s = {}
             for a in set(d1).intersection(set(d2)):
                 s[a] = min(d1[a],d2[a])
-            return Factorization(list(s.iteritems()))
+            return Factorization(list(iteritems(s)))
         else:
             raise NotImplementedError("gcd is not implemented for non-commutative factorizations")
 
@@ -1290,7 +1282,7 @@ class Factorization(SageObject):
             s = {}
             for a in set(d1).union(set(d2)):
                 s[a] = max(d1.get(a,0),d2.get(a,0))
-            return Factorization(list(s.iteritems()))
+            return Factorization(list(iteritems(s)))
         else:
             raise NotImplementedError("lcm is not implemented for non-commutative factorizations")
 

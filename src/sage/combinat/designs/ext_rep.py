@@ -43,6 +43,7 @@ from sage.misc.all import tmp_filename
 import sys
 
 # import compatible with py2 and py3
+import six
 from six.moves.urllib.request import urlopen
 from six import string_types
 
@@ -871,7 +872,7 @@ class XTreeProcessor(object):
         elif name == 'designs':
             pass # self.outf.write(' <%s>\n' % name)
         if self.in_item:
-            for k, v in attrs.iteritems():
+            for k, v in six.iteritems(attrs):
                 attrs[k] = _encode_attribute(v)
             new_node = (name, attrs, [])
             self.node_stack.append(new_node)

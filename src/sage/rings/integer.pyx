@@ -151,7 +151,7 @@ from cpython.object cimport *
 from libc.stdint cimport uint64_t
 cimport sage.structure.element
 from sage.structure.element cimport (Element, EuclideanDomainElement,
-        parent_c, coercion_model)
+        parent, coercion_model)
 from sage.structure.parent cimport Parent
 include "sage/ext/python_debug.pxi"
 from sage.libs.cypari2.paridecl cimport *
@@ -2028,7 +2028,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         try:
             nn = pyobject_to_long(n)
         except TypeError:
-            s = parent_c(n)(self)
+            s = parent(n)(self)
             return s**n
         except OverflowError:
             if mpz_cmp_si(_self.value, 1) == 0:
@@ -3346,7 +3346,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n.__float__()
             -57.0
             sage: type(n.__float__())
-            <type 'float'>
+            <... 'float'>
         """
         return mpz_get_d_nearest(self.value)
 

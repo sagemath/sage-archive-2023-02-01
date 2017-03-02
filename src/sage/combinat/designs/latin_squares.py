@@ -128,6 +128,9 @@ from __future__ import absolute_import
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
 
+import six
+
+
 def are_mutually_orthogonal_latin_squares(l, verbose=False):
     r"""
     Check wether the list of matrices in ``l`` form mutually orthogonal latin
@@ -470,7 +473,7 @@ def latin_square_product(M,N,*others):
          for jj in range(n)}
 
     L = lambda i_j: i_j[0] * n + i_j[1]
-    D = {(L(c[0]),L(c[1])): L(v) for c,v in D.iteritems()}
+    D = {(L(c[0]),L(c[1])): L(v) for c,v in six.iteritems(D)}
     P = Matrix(D)
 
     if others:

@@ -89,7 +89,6 @@ from .convert cimport (integer_to_gen, gen_to_integer,
                        new_gen_from_double, new_t_COMPLEX_from_double)
 from .pari_instance cimport (prec_bits_to_words, prec_words_to_bits,
                              default_bitprec, get_var)
-from .pari_instance cimport _pari_instance as pari_instance
 from .stack cimport new_gen, new_gen_noclear, clear_stack
 from .closure cimport objtoclosure
 
@@ -899,6 +898,8 @@ cdef class Gen(Gen_auto):
             [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
             sage: v[:5]
             [0, 1, 2, 3, 4]
+            sage: v[5:5]
+            []
             sage: v
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
             sage: v[-1]
@@ -912,6 +913,7 @@ cdef class Gen(Gen_auto):
             sage: pari([])[::]
             []
         """
+        cdef Py_ssize_t k
         cdef int pari_type
 
         pari_type = typ(self.g)
@@ -950,9 +952,10 @@ cdef class Gen(Gen_auto):
             start, stop, step = n.indices(l)
             inds = xrange(start, stop, step)
             k = len(inds)
-            # fast exit
-            if k==0: 
-                return pari_instance.vector(0)
+            # fast exit for empty vector
+            if k == 0:
+                sig_on()
+                return new_gen(zerovec(0))
             # fast call, beware pari is one based
             if pari_type == t_VEC:
                 if step==1:
@@ -960,10 +963,7 @@ cdef class Gen(Gen_auto):
                 if step==-1:
                     return self.vecextract('"'+str(start+1)+".."+str(stop+2)+'"')
             # slow call
-            v = pari_instance.vector(k)
-            for i,j in enumerate(inds):
-                v[i] = self[j]
-            return v
+            return objtogen(self[i] for i in inds)
 
         ## there are no "out of bounds" problems
         ## for a polynomial or power series, so these go before
@@ -1399,7 +1399,7 @@ cdef class Gen(Gen_auto):
         """
         Convert ``self`` to a Python integer.
 
-        If the number is too large to fit into a Pyhon ``int``, a
+        If the number is too large to fit into a Python ``int``, a
         Python ``long`` is returned instead.
 
         EXAMPLES::
@@ -1428,6 +1428,31 @@ cdef class Gen(Gen_auto):
             sage: int(pari(RealField(63)(2^63+2)))
             9223372036854775810L
         """
+        return gen_to_integer(self)
+
+    def __index__(self):
+        """
+        Coerce ``self`` (which must be a :class:`Gen` of type
+        ``t_INT``) to a Python integer.
+
+        EXAMPLES::
+
+            >>> from operator import index
+            >>> i = pari(2)
+            >>> index(i)
+            2
+            >>> L = [0, 1, 2, 3, 4]
+            >>> L[i]
+            2
+            >>> print(index(pari("2^100")))
+            1267650600228229401496703205376
+            >>> index(pari("2.5"))
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot coerce 2.50000000000000 (type t_REAL) to integer
+        """
+        if typ(self.g) != t_INT:
+            raise TypeError(f"cannot coerce {self!r} (type {self.type()}) to integer")
         return gen_to_integer(self)
 
     def python_list_small(self):
@@ -2097,7 +2122,7 @@ cdef class Gen(Gen_auto):
 
         """
         if precision < 0:
-            precision = pari_instance.get_series_precision()
+            precision = precdl  # Global PARI series precision
         sig_on()
         cdef long vn = get_var(v)
         if typ(f.g) == t_VEC:
@@ -2179,7 +2204,7 @@ cdef class Gen(Gen_auto):
             True
         """
         if typ(x.g) != t_VEC:
-            x = pari_instance.vector(1, [x])
+            x = list_of_Gens_to_Gen([x])
         sig_on()
         return new_gen(Strexpand(x.g))
 
@@ -2210,7 +2235,7 @@ cdef class Gen(Gen_auto):
             "\\frac{ \\left(y\n + 2\\right) \\*x\n + \\left(y\n + 1\\right) }{ \\left(y\n + 1\\right) \\*x}x\n - 1"
         """
         if typ(x.g) != t_VEC:
-            x = pari_instance.vector(1, [x])
+            x = list_of_Gens_to_Gen([x])
         sig_on()
         return new_gen(Strtex(x.g))
 
@@ -2641,7 +2666,7 @@ cdef class Gen(Gen_auto):
         # This is a simple macro, so we don't need sig_on()
         return valp(x.g)
 
-    def bernfrac(x):
+    def bernfrac(self):
         r"""
         The Bernoulli number `B_x`, where `B_0 = 1`,
         `B_1 = -1/2`, `B_2 = 1/6,\ldots,` expressed as a
@@ -2655,9 +2680,10 @@ cdef class Gen(Gen_auto):
             sage: [pari(n).bernfrac() for n in range(10)]
             [1, -1/2, 1/6, 0, -1/30, 0, 1/42, 0, -1/30, 0]
         """
-        return pari_instance.bernfrac(x)
+        sig_on()
+        return new_gen(bernfrac(self))
 
-    def bernreal(x, unsigned long precision=0):
+    def bernreal(self, unsigned long precision=0):
         r"""
         The Bernoulli number `B_x`, as for the function bernfrac,
         but `B_x` is returned as a real number (with the current
@@ -2670,7 +2696,8 @@ cdef class Gen(Gen_auto):
             sage: pari(18).bernreal(precision=192).sage()
             54.9711779448621553884711779448621553884711779448621553885
         """
-        return pari_instance.bernreal(x, precision)
+        sig_on()
+        return new_gen(bernreal(self, prec_bits_to_words(precision)))
 
     def besselk(nu, x, unsigned long precision=0):
         """
@@ -2867,7 +2894,8 @@ cdef class Gen(Gen_auto):
             sage: [pari(n).fibonacci() for n in range(10)]
             [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
         """
-        return pari_instance.fibonacci(self)
+        sig_on()
+        return new_gen(fibo(self))
 
     def issquare(x, find_root=False):
         """
@@ -3076,20 +3104,20 @@ cdef class Gen(Gen_auto):
         if python_ints:
             return [int(x) for x in self.ellaplist(n)]
 
+        sig_on()
         if n < 2:
-            sig_on()
             return new_gen(zerovec(0))
 
-        # 1. Make a table of primes up to n.
-        pari_instance.init_primes(n+1)
-        cdef Gen t0 = objtogen(n)
-        sig_on()
-        cdef GEN g = primes(gtolong(primepi(t0.g)))
+        # Make a table of primes up to n: this returns a t_VECSMALL
+        # that we artificially change to a t_VEC
+        cdef GEN g = primes_upto_zv(n)
+        settyp(g, t_VEC)
 
-        # 2. Replace each prime in the table by ellap of it.
+        # Replace each prime in the table by ellap of it
         cdef long i
-        for i from 0 <= i < glength(g):
-            set_gel(g, i + 1, ellap(self.g, gel(g, i + 1)))
+        cdef GEN curve = self.g
+        for i in range(1, lg(g)):
+            set_gel(g, i, ellap(curve, utoi(g[i])))
         return new_gen(g)
 
     def ellisoncurve(self, x):
@@ -4375,21 +4403,21 @@ cdef class Gen(Gen_auto):
 
 cdef Gen new_ref(GEN g, Gen parent):
     """
-    Create a new ``gen`` pointing to ``g``, which is allocated as a
+    Create a new ``Gen`` pointing to ``g``, which is allocated as a
     part of ``parent.g``.
 
     .. NOTE::
 
-        As a rule, there should never be more than one ``gen``
+        As a rule, there should never be more than one ``Gen``
         pointing to a given PARI ``GEN``.  This function should only
         be used when a complicated ``GEN`` is allocated with a single
-        ``gen`` pointing to it, and one needs a ``gen`` pointing to
+        ``Gen`` pointing to it, and one needs a ``Gen`` pointing to
         one of its components.
 
-        For example, doing ``x = pari("[1, 2]")`` allocates a ``gen``
-        pointing to the list ``[1, 2]``.  To create a ``gen`` pointing
+        For example, doing ``x = pari("[1, 2]")`` allocates a ``Gen``
+        pointing to the list ``[1, 2]``.  To create a ``Gen`` pointing
         to the first element, one can do ``new_ref(gel(x.g, 1), x)``.
-        See :meth:`gen.__getitem__` for an example of usage.
+        See :meth:`Gen.__getitem__` for an example of usage.
 
     EXAMPLES::
 
@@ -4403,11 +4431,44 @@ cdef Gen new_ref(GEN g, Gen parent):
     return p
 
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef Gen list_of_Gens_to_Gen(list s):
+    """
+    Convert a Python list whole elements are all :class:`Gen` objects
+    (this is not checked!) to a single PARI :class:`Gen` of type ``t_VEC``.
+
+    This is called from :func:`objtogen` to convert iterables to PARI.
+
+    TESTS::
+
+        sage: from six.moves import range
+        sage: from sage.libs.cypari2.gen import objtogen
+        sage: objtogen(range(10))
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        sage: objtogen(i^2 for i in range(5))
+        [0, 1, 4, 9, 16]
+        sage: objtogen([pari("Mod(x, x^2+1)")])
+        [Mod(x, x^2 + 1)]
+        sage: objtogen([])
+        []
+    """
+    cdef Py_ssize_t length = len(s)
+
+    sig_on()
+    cdef GEN g = cgetg(length+1, t_VEC)
+
+    cdef Py_ssize_t i
+    for i in range(length):
+        set_gel(g, i+1, (<Gen>s[i]).g)
+    return new_gen(g)
+
+
 cpdef Gen objtogen(s):
     """
-    Convert any Sage/Python object to a PARI gen.
+    Convert any Sage/Python object to a PARI :class:`Gen`.
 
-    For Sage types, this uses the `_pari_()` method on the object.
+    For Sage types, this uses the ``_pari_()`` method on the object.
     Basic Python types like ``int`` are converted directly. For other
     types, the string representation is used.
 
@@ -4513,8 +4574,7 @@ cpdef Gen objtogen(s):
         ValueError: Cannot convert None to pari
     """
     cdef GEN g
-    cdef Py_ssize_t length, i
-    cdef Gen v
+    cdef list L
 
     if isinstance(s, Gen):
         return s
@@ -4536,19 +4596,23 @@ cpdef Gen objtogen(s):
         return new_gen(g)
     if PyInt_Check(s) | PyLong_Check(s):
         return integer_to_gen(s)
-    if isinstance(s, bool):
-        return pari_instance.PARI_ONE if s else pari_instance.PARI_ZERO
     if isinstance(s, float):
         return new_gen_from_double(PyFloat_AS_DOUBLE(s))
     if isinstance(s, complex):
         return new_t_COMPLEX_from_double(PyComplex_RealAsDouble(s), PyComplex_ImagAsDouble(s))
 
-    if isinstance(s, (list, xrange, tuple, types.GeneratorType)):
-        length = len(s)
-        v = pari_instance._empty_vector(length)
-        for i from 0 <= i < length:
-            v[i] = objtogen(s[i])
-        return v
+    # A list is iterable, but we handle the common case of a list
+    # separately as an optimization
+    if isinstance(s, list):
+        L = [objtogen(x) for x in <list>s]
+        return list_of_Gens_to_Gen(L)
+    # Check for iterable object s
+    try:
+        L = [objtogen(x) for x in s]
+    except TypeError:
+        pass
+    else:
+        return list_of_Gens_to_Gen(L)
 
     if callable(s):
         return objtoclosure(s)

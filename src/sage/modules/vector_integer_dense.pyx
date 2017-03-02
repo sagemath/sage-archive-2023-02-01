@@ -52,7 +52,7 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
 
 include 'sage/ext/stdsage.pxi'
 
@@ -60,9 +60,9 @@ from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 
 from sage.rings.integer cimport Integer
 
-cimport free_module_element
+cimport sage.modules.free_module_element as free_module_element
 
-from free_module_element import vector
+from .free_module_element import vector
 
 from sage.libs.gmp.mpz cimport *
 

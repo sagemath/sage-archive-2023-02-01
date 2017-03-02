@@ -171,7 +171,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         cdef ZZ_pE_c c_pE = ZZ_pEX_coeff(self.x, i)
         return self._parent._base(ZZ_pE_c_to_list(c_pE))
 
-    def list(self):
+    cpdef list list(self, bint copy=True):
         """
         Returs the list of coefficients.
 
@@ -191,7 +191,8 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         self._parent._modulus.restore()
 
         K = self._parent.base_ring()
-        return [K(ZZ_pE_c_to_list(ZZ_pEX_coeff(self.x, i))) for i in range(celement_len(&self.x, (<Polynomial_template>self)._cparent))]
+        return [K(ZZ_pE_c_to_list(ZZ_pEX_coeff(self.x, i)))
+                for i in range(celement_len(&self.x, (<Polynomial_template>self)._cparent))]
 
     cpdef _lmul_(self, RingElement left):
         """

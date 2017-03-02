@@ -46,7 +46,7 @@ from six import iteritems, iterkeys
 
 
 from sage.structure.category_object import normalize_names
-from sage.structure.element import is_Element
+from sage.structure.element import is_Element, parent
 from sage.rings.ring import is_Ring
 from sage.rings.infinity import infinity
 from sage.rings.integer import Integer
@@ -1182,6 +1182,17 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             sage: F.<f, g> = LaurentPolynomialRing(D)
             sage: D(F(d*e))
             d*e
+
+        ::
+
+            sage: from sage.rings.polynomial.polydict import ETuple
+            sage: R.<x,y,z> = LaurentPolynomialRing(QQ)
+            sage: mon = ETuple({}, int(3))
+            sage: P = R.polynomial_ring()
+            sage: R(sum(P.gens()), mon)
+            x + y + z
+            sage: R(sum(P.gens()), (-1,-1,-1))
+            y^-1*z^-1 + x^-1*z^-1 + x^-1*y^-1
         """
         from sage.symbolic.expression import Expression
         element_class = LaurentPolynomial_mpair
@@ -1189,41 +1200,33 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
         if mon is not None:
             return element_class(self, x, mon)
 
-        try:
-            P = x.parent()
-        except AttributeError:
-            return element_class(self, x)
-
-        if P is self:
-            return x
-
-        elif P == self:
-            return element_class(self, x)
-
-        elif P is self.polynomial_ring():
+        P = parent(x)
+        if P is self.polynomial_ring():
             from sage.rings.polynomial.polydict import ETuple
-            return element_class(
-                self, x, mon=ETuple({}, int(self.ngens())))
+            return element_class( self, x, mon=ETuple({}, int(self.ngens())) )
 
         elif isinstance(x, Expression):
             return x.laurent_polynomial(ring=self)
 
         elif isinstance(x, (LaurentPolynomial_univariate, LaurentPolynomial_mpair)):
             if self.variable_names() == P.variable_names():
-                return element_class(self, x)
+                # No special processing needed here;    
+                #   handled by LaurentPolynomial_mpair.__init__
+                pass
             elif set(self.variable_names()) & set(P.variable_names()):
                 if isinstance(x, LaurentPolynomial_univariate):
                     d = {(k,): v for k, v in iteritems(x.dict())}
                 else:
                     d = x.dict()
-                return element_class(self, _split_laurent_polynomial_dict_(self, P, d))
+                x = _split_laurent_polynomial_dict_(self, P, d)
             elif self.base_ring().has_coerce_map_from(P):
                 from sage.rings.polynomial.polydict import ETuple
-                return element_class(self, {ETuple({}, int(self.ngens())): self.base_ring()(x)})
-            elif x.is_constant() and self.has_coerce_map_from(x.parent().base_ring()):
+                mz = ETuple({}, int(self.ngens()))
+                return element_class(self, {mz: self.base_ring()(x)}, mz)
+            elif x.is_constant() and self.has_coerce_map_from(P.base_ring()):
                 return self(x.constant_coefficient())
             elif len(self.variable_names()) == len(P.variable_names()):
-                return element_class(self, x.dict())
+                x = x.dict()
 
         return element_class(self, x)
 

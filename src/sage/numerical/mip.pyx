@@ -1016,7 +1016,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         # If indices is None, we actually want to return all constraints
         if indices is None:
-          indices = range(b.nrows())
+          indices = list(xrange(b.nrows()))
 
         # Only one constraint
         if isinstance(indices, int) or isinstance(indices, Integer):
@@ -2223,7 +2223,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: b = p.new_variable(nonnegative=True)
             sage: p.set_objective(sum([b[v] for v in g]))
             sage: for (u,v) in g.edges(labels=None):
-            ...       p.add_constraint(b[u] + b[v], max=1)
+            ....:     p.add_constraint(b[u] + b[v], max=1)
             sage: p.set_binary(b)
             sage: p.solve(objective_only=True)
             4.0

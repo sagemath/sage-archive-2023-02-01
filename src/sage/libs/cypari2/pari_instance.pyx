@@ -445,8 +445,6 @@ cdef void sage_flush():
 
 include 'auto_instance.pxi'
 
-# TODO: this should not be needed
-cdef Pari _pari_instance = Pari()
 
 cdef class Pari(Pari_auto):
     def __cinit__(self):

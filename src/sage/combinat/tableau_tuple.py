@@ -698,10 +698,10 @@ class TableauTuple(CombinatorialElement):
         # attempt to return a tableau of the same type
         try:
             return self.parent()(conj)
-        except StandardError:
+        except Exception:
             try:
                 return self.parent().element_class(self.parent(), conj)
-            except StandardError:
+            except Exception:
                 return Tableau(conj)
 
     def pp(self):

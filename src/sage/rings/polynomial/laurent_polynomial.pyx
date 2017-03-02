@@ -1560,10 +1560,13 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         if isinstance(x, PolyDict):
             x = x.dict()
         if mon is not None:
-            self._mon = ETuple(mon)
+            if isinstance(mon, ETuple):
+                self._mon = mon
+            else:
+                self._mon = ETuple(mon)
         else:
             if isinstance(x, dict):
-                self._mon = ETuple({},int(parent.ngens()))
+                self._mon = ETuple({}, int(parent.ngens()))
                 D = {}
                 for k, x_k in iteritems(x): # ETuple-ize keys, set _mon
                     if not isinstance(k, (tuple, ETuple)) or len(k) != parent.ngens():
@@ -1577,6 +1580,10 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                     x = D
                 if not self._mon.is_constant(): # factor out _mon
                     x = {k.esub(self._mon): x_k for k, x_k in iteritems(x)}
+            elif (isinstance(x, LaurentPolynomial_mpair) and
+                  parent.variable_names() == x.parent().variable_names()):
+                self._mon = (<LaurentPolynomial_mpair>x)._mon
+                x = (<LaurentPolynomial_mpair>x)._poly
             else: # since x should coerce into parent, _mon should be (0,...,0)
                 self._mon = ETuple({}, int(parent.ngens()))
         self._poly = parent.polynomial_ring()(x)
@@ -1591,11 +1598,10 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: loads(dumps(x1)) == x1 # indirect doctest
             True
             sage: z = x1/x2
-            sage: loads(dumps(z)) == z   # not tested (bug)
+            sage: loads(dumps(z)) == z
             True
         """
-        # one should also record the monomial self._mon
-        return self._parent, (self._poly,)  # THIS IS WRONG !
+        return self._parent, (self._poly, self._mon)
 
     def __hash__(self):
         r"""

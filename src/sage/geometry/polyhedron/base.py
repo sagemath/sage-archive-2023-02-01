@@ -2159,8 +2159,8 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``certificate`` : boolean (default: False). Specifies whether to
-        return the circumcenter, if found.
+        - ``certificate`` -- (default: ``False``) boolean; specifies whether to
+            return the circumcenter, if found
 
         OUTPUT:
 

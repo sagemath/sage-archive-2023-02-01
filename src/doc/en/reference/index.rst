@@ -83,7 +83,8 @@ Calculus
 Geometry and Topology
 ---------------------
 
-* :doc:`Combinatorial Geometry <geometry/index>`
+* :doc:`Discrete Geometry <geometry/index>`
+* :doc:`Hyperbolic Geometry <hyperbolic_geometry/index>`
 * :doc:`Cell Complexes and their Homology <homology/index>`
 * :doc:`Differential Forms <tensor/index>`
 * :doc:`Manifolds <manifolds/index>`

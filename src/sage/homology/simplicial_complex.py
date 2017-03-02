@@ -2769,13 +2769,14 @@ class SimplicialComplex(Parent, GenericCellComplex):
         """
         The star of a simplex in this simplicial complex.
 
-        The star of a simplex `F` is the simplicial complex formed by
-        all simplices `G` which contain `F`.
+        The star of ``simplex`` is the simplicial complex formed by
+        all simplices which contain ``simplex``.
 
         INPUT:
 
-        - `simplex` -- a simplex in this simplicial complex
-        - `is_mutable` -- (optional) boolean, determines if the output is mutable, default ``True``
+        - ``simplex`` -- a simplex in this simplicial complex
+        - ``is_mutable`` -- (default: ``True``) boolean; determines if the output
+            is mutable
 
         EXAMPLES::
 
@@ -3028,7 +3029,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         if self.is_pure():
             if any(x < 0 for x in self.h_vector()):
                 return False
-        else: # Non-pure complex
+        else:  # Non-pure complex
             if any(x < 0 for row in self.h_triangle() for x in row):
                 return False
 
@@ -3103,7 +3104,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         # Each time we hit a facet, the complement goes to the restriction
         cur_complex = SimplicialComplex([])
-        for i,F in enumerate(order):
+        for i, F in enumerate(order):
             if i > 0:
                 # The shelling condition is precisely that intersection is
                 #    a pure complex of one dimension less and stop if this fails
@@ -3113,7 +3114,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                 if not intersection.is_pure() or self.dimension() - 1 > intersection.dimension():
                     raise ValueError("not a shelling order")
                 faces = SimplicialComplex([F]).faces()
-                for k,v in intersection.faces().items():
+                for k, v in intersection.faces().items():
                     faces[k] = faces[k].difference(v)
                 for k in sorted(faces.keys()):
                     if faces[k]:
@@ -3265,7 +3266,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                     if new:
                         set_mnf.add(set_candidate)
 
-        for candidate in combinations(vertices, dimension+2): #  Checks for minimal nonfaces in the remaining dimension
+        for candidate in combinations(vertices, dimension+2):  # Checks for minimal nonfaces in the remaining dimension
             set_candidate = frozenset(candidate)
             new = not any(set_candidate.issuperset(mnf) for mnf in set_mnf)
             if new:
@@ -3402,29 +3403,27 @@ class SimplicialComplex(Parent, GenericCellComplex):
         """
         return self.face_poset().order_complex()
 
-    def stellar_subdivision(self,simplex,inplace=False,is_mutable=True):
+    def stellar_subdivision(self, simplex, inplace=False, is_mutable=True):
         """
-        This function returns the stellar subdivision of `simplex` either by
-        modifying `self` (when inplace is set to `True`).
+        This function returns the stellar subdivision of ``simplex`` either by
+        modifying ``self`` (when inplace is set to ``True``).
 
         The stellar subdivision of a face is obtained by adding a new vertex to the
-        simplicial complex `self` joined to the star of the face and then
-        deleting the face `simplex` to the result.
+        simplicial complex ``self`` joined to the star of the face and then
+        deleting the face ``simplex`` to the result.
 
         INPUT:
 
-        - `simplex` -- a simplex face of `self`
-        - `inplace` -- a boolean, determines if the operation is done on `self`
-          or not. Default is `False`
-        - `is_mutable` -- a boolean, determines if the output is mutable or not
+        - ``simplex`` -- a simplex face of ``self``
+        - ``inplace`` -- (default: ``False``) boolean; determines if the
+            operation is done on ``self``
+        - ``is_mutable`` -- (default: ``True``) boolean; determines if the
+            output is mutable
 
         OUTPUT:
 
         - A simplicial complex obtained by the stellar subdivision of the face
-          `simplex`. If inplace is `True`, the object `self` was modified,
-          otherwise a new simplicial complex is returned. The parameter
-          `is_mutable` determines the mutability of the output.
-
+            ``simplex``
 
         EXAMPLES::
 
@@ -3438,10 +3437,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
             Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 1, 2), (2, 3, 4), (1, 2, 4)}
             sage: SC.stellar_subdivision(F3)
             Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(1, 3, 4), (0, 1, 2), (2, 3, 4), (1, 2, 4)}
-            sage: SC.stellar_subdivision(F3,inplace=True);SC
+            sage: SC.stellar_subdivision(F3, inplace=True);SC
             Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(1, 3, 4), (0, 1, 2), (2, 3, 4), (1, 2, 4)}
 
-        The simplex to subdivide should be a face of self:
+        The simplex to subdivide should be a face of self::
 
             sage: SC = SimplicialComplex([[0,1,2],[1,2,3]])
             sage: F4 = Simplex([3,4])
@@ -3450,10 +3449,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
             ...
             ValueError: The face to subdivide is not a face of self.
 
-        One can not modify an immutable simplicial complex:
+        One can not modify an immutable simplicial complex::
 
-            sage: SC = SimplicialComplex([[0,1,2],[1,2,3]],is_mutable=False)
-            sage: SC.stellar_subdivision(F1,inplace=True)
+            sage: SC = SimplicialComplex([[0,1,2],[1,2,3]], is_mutable=False)
+            sage: SC.stellar_subdivision(F1, inplace=True)
             Traceback (most recent call last):
             ...
             ValueError: This simplicial complex is not mutable.

@@ -146,7 +146,7 @@ every change applied to the file simple.py will be automatically updated in Sage
 Can I use SageMath with Python 3.x?
 """""""""""""""""""""""""""""""""""
 
-Currently, no (November 2016). Work in progress aims to allow this in
+Currently, no (February 2017). Work in progress aims to allow this in
 the not-so-far future. Until this task is completed, SageMath will continue
 to use Python 2.x.
 
@@ -387,7 +387,29 @@ e.g. ::
     sage: list(map(ord, "Big Mac"))
     [66, 105, 103, 32, 77, 97, 99]
 
+How can I wrote multiplication implicitly as in Mathematica?
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
+Sage has a function that enables this::
+
+    sage: implicit_multiplication(True)
+    sage: x 2 x  # Not tested
+    2*x^2
+    sage: implicit_multiplication(False)
+
+This is preparsed by Sage into Python code. It may not work in a
+complicated situation. To see what the preparser does::
+
+    sage: implicit_multiplication(True)
+    sage: preparse("2 x")
+    'Integer(2)*x'
+    sage: implicit_multiplication(False)
+    sage: preparse("2 x")
+    'Integer(2) x'
+
+See https://wiki.sagemath.org/sage_mathematica for more information
+about Mathematica vs. SageMath.
+    
 Can I make Sage automatically execute commands on startup?
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""
 

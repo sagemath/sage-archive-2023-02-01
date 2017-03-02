@@ -330,7 +330,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
             sage: E.silverman_bound()
             6.52226179519101...
             sage: type(E.silverman_bound())
-            <type 'float'>
+            <... 'float'>
         """
         return Curvedata_silverman_bound(self.x)
 

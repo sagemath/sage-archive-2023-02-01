@@ -1074,10 +1074,10 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         from sage.rings.polynomial.padics.polynomial_padic import _pari_padic_factorization_to_sage
         return _pari_padic_factorization_to_sage(G, R, self.leading_coefficient())
 
-    def list(self):
+    cpdef list list(self, bint copy=True):
         """
         Return a new copy of the list of the underlying
-        elements of self.
+        elements of ``self``.
 
         EXAMPLES::
 
@@ -1089,7 +1089,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: f.list()
             []
         """
-        return [self[i] for i in range(self.degree()+1)]
+        return [self.get_unsafe(i) for i in range(self.degree()+1)]
 
 
     @coerce_binop

@@ -3,7 +3,7 @@
 >   "Creating a Viable Open Source Alternative to
 >    Magma, Maple, Mathematica, and MATLAB"
 
->   Copyright (C) 2005-2016 The Sage Development Team
+>   Copyright (C) 2005-2017 The Sage Development Team
 
    http://www.sagemath.org
 
@@ -21,7 +21,8 @@ Getting Started
 ---------------
 
 This README.txt contains build instructions for Sage. If you downloaded  
-a binary, you do not need to do anything; just execute:  
+a binary, you do not need to do anything (as long as your system
+provides a SSL library ; OpenSSL is recommended) ; just execute:  
 
     ./sage
 
@@ -69,9 +70,19 @@ Installation Guide:
 
    http://doc.sagemath.org/html/en/installation
 
-__1. Make sure you have the dependencies and 5 GB of free disk space.__
+__1. Make sure your system has an SSL library and its development
+files installed.__
 
-   >* __All Linux versions:__ gcc, make, m4, perl, ranlib, and tar.  
+   >* Like Python, on which it is based, Sage uses the OpenSSL library
+   for added performance if made available by the operating system. It
+   has been shown that Sage can be successfully built against other
+   SSL libraries, with some of its features disabled.
+
+__2. Make sure you have the dependencies and 5 GB of free disk space.__
+
+   >* __All Linux versions:__ gcc, make, m4, perl, ranlib, and tar (a
+   matching set of gcc, gfortran and g++ will avoid the compilation
+   of Sage-specific compilers).__
    
    >* __Fedora or RedHat systems:__ the perl-ExtUtils-MakeMaker package.  
    (install these using your package manager)  
@@ -97,11 +108,11 @@ __1. Make sure you have the dependencies and 5 GB of free disk space.__
 
    >* Other platforms: See detailed instructions below.
 
-__2. Extract the tarball:__
+__3. Extract the tarball:__
 
          tar xvf sage-*.tar
 
-__3. cd into the Sage directory and type make:__
+__4. cd into the Sage directory and type make:__
 
          cd sage-*/
          make

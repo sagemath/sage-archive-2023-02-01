@@ -156,7 +156,7 @@ class PolyhedronFace(SageObject):
             A vertex at (0, 1)
             A vertex at (1, 0)
             sage: type(face.vertex_generator())
-            <type 'generator'>
+            <... 'generator'>
         """
         for V in self.ambient_Vrepresentation():
             if V.is_vertex():

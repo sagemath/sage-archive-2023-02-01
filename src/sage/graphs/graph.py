@@ -417,6 +417,7 @@ Methods
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
+import six
 from six.moves import range
 
 from copy import copy
@@ -1589,14 +1590,16 @@ class Graph(GenericGraph):
         """
         Tests if the graph is a tree
 
+        The empty graph is defined to be not a tree.
+
         INPUT:
 
         - ``certificate`` (boolean) -- whether to return a certificate. The
           method only returns boolean answers when ``certificate = False``
           (default). When it is set to ``True``, it either answers ``(True,
           None)`` when the graph is a tree and ``(False, cycle)`` when it
-          contains a cycle. It returns ``(False, None)`` when the graph is not
-          connected.
+          contains a cycle. It returns ``(False, None)`` when the graph is
+          empty or not connected.
 
         - ``output`` (``'vertex'`` (default) or ``'edge'``) -- whether the
           certificate is given as a list of vertices or a list of
@@ -1610,11 +1613,6 @@ class Graph(GenericGraph):
 
             sage: all(T.is_tree() for T in graphs.trees(15))
             True
-
-        The empty graph is not considered to be a tree::
-
-            sage: graphs.EmptyGraph().is_tree()
-            False
 
         With certificates::
 
@@ -1654,14 +1652,18 @@ class Graph(GenericGraph):
             sage: g.add_cycle(cycle)
             sage: g.size()
             10
+
+        The empty graph::
+
+            sage: graphs.EmptyGraph().is_tree()
+            False
+            sage: graphs.EmptyGraph().is_tree(certificate=True)
+            (False, None)
         """
         if not output in ['vertex', 'edge']:
             raise ValueError('output must be either vertex or edge')
 
-        if self.order() == 0:
-            return False
-
-        if not self.is_connected():
+        if self.order() == 0 or not self.is_connected():
             return (False, None) if certificate else False
 
         if certificate:
@@ -1744,7 +1746,7 @@ class Graph(GenericGraph):
             sage: g.is_forest(certificate=True)
             (True, None)
             sage: (2*g + graphs.PetersenGraph() + g).is_forest(certificate=True)
-            (False, [63, 62, 61, 60, 64])
+            (False, [62, 63, 68, 66, 61])
         """
         number_of_connected_components = len(self.connected_components())
         isit = (self.num_verts() ==
@@ -1766,6 +1768,48 @@ class Graph(GenericGraph):
                 isit, cycle = gg.is_tree(certificate=True, output=output)
                 if not isit:
                     return (False, cycle)
+
+    @doc_index("Graph properties")
+    def is_biconnected(self):
+        """
+        Test if the graph is biconnected.
+
+        A biconnected graph is a connected graph on two or more vertices that is
+        not broken into disconnected pieces by deleting any single vertex.
+
+        .. SEEALSO::
+
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.is_connected`
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.blocks_and_cut_vertices`
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.blocks_and_cuts_tree`
+            - :wikipedia:`Biconnected_graph`
+
+        EXAMPLES::
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.is_biconnected()
+            True
+            sage: G.add_path([0,'a','b'])
+            sage: G.is_biconnected()
+            False
+            sage: G.add_edge('b', 1)
+            sage: G.is_biconnected()
+            True
+
+        TESTS::
+
+            sage: Graph().is_biconnected()
+            False
+            sage: Graph(1).is_biconnected()
+            False
+            sage: graphs.CompleteGraph(2).is_biconnected()
+            True
+        """
+        if self.order() < 2 or not self.is_connected():
+            return False
+        if self.blocks_and_cut_vertices()[1]:
+            return False
+        return True
 
     @doc_index("Graph properties")
     def is_apex(self):
@@ -1986,7 +2030,7 @@ class Graph(GenericGraph):
         # Obviously, we don't test vertices of degree one. Furthermore, if a
         # vertex of degree 2 is an apex, its neighbors also are. So we start
         # with vertices of degree 2.
-        V = sorted([(d,u) for u,d in H.degree(labels=True).iteritems() if d > 1])
+        V = sorted([(d,u) for u,d in six.iteritems(H.degree(labels=True)) if d > 1])
         apex = set()
         for deg,u in V:
 
@@ -2429,7 +2473,7 @@ class Graph(GenericGraph):
 
         Comparison of algorithms::
 
-            sage: for i in range(10): # long test
+            sage: for i in range(10): # long time
             ....:     G = graphs.RandomBarabasiAlbert(50,2)
             ....:     bm = G.is_triangle_free(algorithm='matrix')
             ....:     bb = G.is_triangle_free(algorithm='bitset')
@@ -2442,7 +2486,15 @@ class Graph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: Algorithm 'tip top' not yet implemented. Please contribute.
+
+        Check the empty graph::
+
+            sage: graphs.EmptyGraph().is_triangle_free()
+            True
         """
+        if self.order() == 0:
+            return True
+
         if algorithm=='bitset':
             from sage.data_structures.bitset import Bitset
             N = self.num_verts()
@@ -3201,7 +3253,7 @@ class Graph(GenericGraph):
                 self.is_vertex_transitive())
 
     @doc_index("Connectivity, orientations, trees")
-    def degree_constrained_subgraph(self, bounds=None, solver=None, verbose=0):
+    def degree_constrained_subgraph(self, bounds, solver=None, verbose=0):
         r"""
         Returns a degree-constrained subgraph.
 
@@ -3265,9 +3317,7 @@ class Graph(GenericGraph):
 
         reorder = lambda x,y: (x,y) if x<y else (y,x)
 
-        if bounds is None:
-            raise ValueError("The `bounds` keyword can not be equal to None")
-        elif isinstance(bounds,dict):
+        if isinstance(bounds,dict):
             f_bounds = lambda x: bounds[x]
         else:
             f_bounds = bounds
@@ -3825,7 +3875,7 @@ class Graph(GenericGraph):
         left = set([])
         right = set([])
 
-        for u,s in color.iteritems():
+        for u,s in six.iteritems(color):
             if s:
                 left.add(u)
             else:
@@ -4320,12 +4370,12 @@ class Graph(GenericGraph):
             if value_only:
                 if use_edge_labels:
                     return sum(weight(self.edge_label(u, v))
-                               for u, v in d.iteritems()) / Integer(2)
+                               for u, v in six.iteritems(d)) / Integer(2)
                 else:
                     return Integer(len(d) // 2)
             else:
                 return [(u, v, self.edge_label(u, v))
-                        for u, v in d.iteritems() if u < v]
+                        for u, v in six.iteritems(d) if u < v]
 
         elif algorithm == "LP":
             from sage.numerical.mip import MixedIntegerLinearProgram
@@ -4690,7 +4740,7 @@ class Graph(GenericGraph):
         # setting the minimum to 1/(10 * size of the whole graph )
         # should be safe :-)
         m = 1/(10 *Integer(g.order()))
-        g_mad = g.subgraph([v for v,l in p.get_values(d).iteritems() if l>m ])
+        g_mad = g.subgraph([v for v,l in six.iteritems(p.get_values(d)) if l>m ])
 
         if value_only:
             return g_mad.average_degree()
@@ -6840,6 +6890,11 @@ class Graph(GenericGraph):
           Computer Science Review
           vol 4, number 1, pages 41--59, 2010
           http://www.lirmm.fr/~paul/md-survey.pdf
+
+        TESTS::
+
+            sage: graphs.EmptyGraph().modular_decomposition() # optional -- modular_decomposition
+            ()
         """
         try:
             from sage.graphs.modular_decomposition import modular_decomposition
@@ -6851,6 +6906,9 @@ class Graph(GenericGraph):
         from sage.misc.stopgap import stopgap
         stopgap("Graph.modular_decomposition is known to return wrong results",13744)
 
+        if self.order() == 0:
+            return tuple()
+        
         D = modular_decomposition(self)
 
         id_label = dict(enumerate(self.vertices()))
@@ -6886,7 +6944,14 @@ class Graph(GenericGraph):
 
             sage: (graphs.PetersenGraph() + graphs.BullGraph()).is_prime() # optional - modular_decomposition
             False
+
+        TESTS::
+
+            sage: graphs.EmptyGraph().is_prime()
+            True
         """
+        if self.order() == 0:
+            return True
 
         D = self.modular_decomposition()
 
@@ -7062,7 +7127,12 @@ class Graph(GenericGraph):
             sage: from itertools import combinations
             sage: for u,v in combinations(G,2):
             ....:     assert T.flow(u,v,use_edge_labels=True) == G.flow(u,v,use_edge_labels=True)
+
+            sage: graphs.EmptyGraph().gomory_hu_tree()
+            Graph on 0 vertices
         """
+        if self.order() == 0:
+            return Graph()
         if not self.is_connected():
             g = Graph()
             for cc in self.connected_components_subgraphs():
@@ -7443,8 +7513,7 @@ class Graph(GenericGraph):
 
             sage: G = Graph([[1,-1,'a'], [2,-2, 'b'], [1,-2,'x'], [2,-1,'y']])
             sage: list(G.perfect_matchings(labels=True))
-            [[(-2, 1, 'x'), (-1, 2, 'y')],
-             [(-1, 1, 'a'), (-2, 2, 'b')]]
+            [[(-2, 1, 'x'), (-1, 2, 'y')], [(-2, 2, 'b'), (-1, 1, 'a')]]
 
             sage: G = graphs.CompleteGraph(8)
             sage: mpc = G.matching_polynomial().coefficients(sparse=False)[0]
@@ -7453,9 +7522,9 @@ class Graph(GenericGraph):
 
             sage: G = graphs.PetersenGraph().copy(immutable=True)
             sage: list(G.perfect_matchings())
-            [[(0, 1), (2, 3), (4, 9), (6, 8), (5, 7)],
+            [[(0, 1), (2, 3), (4, 9), (5, 7), (6, 8)],
              [(0, 1), (2, 7), (3, 4), (5, 8), (6, 9)],
-             [(0, 4), (1, 2), (3, 8), (6, 9), (5, 7)],
+             [(0, 4), (1, 2), (3, 8), (5, 7), (6, 9)],
              [(0, 4), (1, 6), (2, 3), (5, 8), (7, 9)],
              [(0, 5), (1, 2), (3, 4), (6, 8), (7, 9)],
              [(0, 5), (1, 6), (2, 7), (3, 8), (4, 9)]]
@@ -7531,6 +7600,9 @@ Graph.lovasz_theta              = lovasz_theta
 from sage.graphs.partial_cube import is_partial_cube
 Graph.is_partial_cube           = is_partial_cube
 
+from sage.graphs.orientations import strong_orientations_iterator
+Graph.strong_orientations_iterator    =    strong_orientations_iterator
+
 _additional_categories = {
     Graph.is_long_hole_free         : "Graph properties",
     Graph.is_long_antihole_free     : "Graph properties",
@@ -7549,6 +7621,7 @@ _additional_categories = {
     Graph.is_partial_cube           : "Graph properties",
     Graph.tutte_polynomial          : "Algorithmically hard stuff",
     Graph.lovasz_theta              : "Leftovers",
+    Graph.strong_orientations_iterator : "Orientations"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

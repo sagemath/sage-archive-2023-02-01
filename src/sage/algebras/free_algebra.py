@@ -613,7 +613,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
                         if T[i]:
                             out.append((i%ngens,T[i]))
                     return M(out)
-                return self.element_class(self, dict([(exp_to_monomial(T),c) for T,c in x.letterplace_polynomial().dict().iteritems()]))
+                return self.element_class(self, dict([(exp_to_monomial(T),c) for T,c in six.iteritems(x.letterplace_polynomial().dict())]))
         # ok, not a free algebra element (or should not be viewed as one).
         if isinstance(x, six.string_types):
             from sage.all import sage_eval
@@ -871,7 +871,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         for i in range(n):
             for j in range(i + 1, n):
                 cmat[i,j] = 1
-        for (to_commute,commuted) in relations.iteritems():
+        for (to_commute,commuted) in six.iteritems(relations):
             #This is dirty, coercion is broken
             assert isinstance(to_commute, FreeAlgebraElement), to_commute.__class__
             assert isinstance(commuted, FreeAlgebraElement), commuted

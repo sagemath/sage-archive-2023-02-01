@@ -14,6 +14,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 from __future__ import absolute_import
+from six import iteritems
 
 
 def runsnake(command):
@@ -237,7 +238,7 @@ def find_objects_from_name(name, module_name=None):
         sage: dt.find_objects_from_name is dt.find_objects_from_name
         True
 
-    .. NOTE:
+    .. NOTE::
 
         It might be a good idea to move this function into
         :mod:`sage.misc.sageinspect`.
@@ -250,7 +251,7 @@ def find_objects_from_name(name, module_name=None):
     import sys
 
     obj = []
-    for smodule_name, smodule in sys.modules.iteritems():
+    for smodule_name, smodule in iteritems(sys.modules):
         if module_name and not smodule_name.startswith(module_name):
             continue
         if hasattr(smodule, '__dict__') and name in smodule.__dict__:
@@ -307,7 +308,7 @@ def find_object_modules(obj):
     # something
     import sys
     module_to_obj = {}
-    for module_name, module in sys.modules.iteritems():
+    for module_name, module in iteritems(sys.modules):
         if module_name != '__main__' and hasattr(module, '__dict__'):
             d = module.__dict__
             names = [key for key in d if d[key] is obj]
@@ -319,7 +320,7 @@ def find_object_modules(obj):
         import re
         dec_pattern = re.compile("^(\w[\w0-9\_]*)\s*=", re.MULTILINE)
         module_to_obj2 = {}
-        for module_name, obj_names in module_to_obj.iteritems():
+        for module_name, obj_names in iteritems(module_to_obj):
             module_to_obj2[module_name] = []
             src = sageinspect.sage_getsource(sys.modules[module_name])
             m = dec_pattern.search(src)

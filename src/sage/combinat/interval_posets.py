@@ -251,7 +251,7 @@ class TamariIntervalPoset(Element):
             Interval-posets
         """
         self._size = size
-        self._poset = Poset((range(1, size + 1), relations))
+        self._poset = Poset((list(range(1, size + 1)), relations))
         if self._poset.cardinality() != size:
             # This can happen as the Poset constructor automatically adds
             # in elements from the relations.

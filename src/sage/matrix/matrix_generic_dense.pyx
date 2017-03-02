@@ -1,17 +1,19 @@
 """
 Dense Matrices over a general ring
 """
+from __future__ import absolute_import
+
 cimport cython
 from cpython.list cimport *
 from cpython.number cimport *
 from cpython.ref cimport *
 
-cimport matrix_dense
-import matrix_dense
+cimport sage.matrix.matrix_dense as matrix_dense
+from . import matrix_dense
 
-cimport matrix
+cimport sage.matrix.matrix as matrix
 
-from sage.structure.element cimport parent_c
+from sage.structure.element cimport parent as parent_c
 
 cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
     r"""

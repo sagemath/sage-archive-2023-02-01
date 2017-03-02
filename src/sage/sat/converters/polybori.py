@@ -35,6 +35,9 @@ from sage.misc.cachefunc import cached_method, cached_function
 from sage.combinat.permutation import Permutations
 from sage.sat.converters import ANF2CNFConverter
 
+import six
+
+
 class CNFEncoder(ANF2CNFConverter):
     """
     ANF to CNF Converter using a Dense/Sparse Strategy. This converter distinguishes two classes of
@@ -278,13 +281,13 @@ class CNFEncoder(ANF2CNFConverter):
         # any zero block of f+1
 
         blocks = self.zero_blocks(f+1)
-        C = [dict([(variable, 1-value) for (variable, value) in b.iteritems()]) for b in blocks ]
+        C = [dict([(variable, 1-value) for (variable, value) in six.iteritems(b)]) for b in blocks ]
 
         def to_dimacs_index(v):
             return v.index()+1
 
         def clause(c):
-            return [to_dimacs_index(variable) if value == 1 else -to_dimacs_index(variable) for (variable, value) in c.iteritems()]
+            return [to_dimacs_index(variable) if value == 1 else -to_dimacs_index(variable) for (variable, value) in six.iteritems(c)]
 
         for c in C:
             self.solver.add_clause(clause(c))

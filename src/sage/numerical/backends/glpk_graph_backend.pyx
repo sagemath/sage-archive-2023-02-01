@@ -174,7 +174,7 @@ cdef class GLPKGraphBackend(object):
         sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
         sage: g = graphs.PappusGraph()
         sage: for ed in g.edges():
-        ...       g.set_edge_label(ed[0], ed[1], {"cap":1})
+        ....:     g.set_edge_label(ed[0], ed[1], {"cap":1})
         sage: gbe = GLPKGraphBackend(g)
         sage: gbe.maxflow_ffalg('1', '2')
         3.0
@@ -297,7 +297,7 @@ cdef class GLPKGraphBackend(object):
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: g = graphs.PappusGraph()
             sage: for ed in g.edges():
-            ...       g.set_edge_label(ed[0], ed[1], {"cap":1})
+            ....:     g.set_edge_label(ed[0], ed[1], {"cap":1})
             sage: gbe = GLPKGraphBackend(g)
             sage: gbe.maxflow_ffalg('1', '2')
             3.0
@@ -666,7 +666,7 @@ cdef class GLPKGraphBackend(object):
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: g = graphs.PappusGraph()
             sage: for ed in g.edges():
-            ...       g.set_edge_label(ed[0], ed[1], {"cap":1})
+            ....:     g.set_edge_label(ed[0], ed[1], {"cap":1})
             sage: gbe = GLPKGraphBackend(g)
             sage: gbe.maxflow_ffalg('1', '2')
             3.0
@@ -1146,14 +1146,14 @@ cdef class GLPKGraphBackend(object):
             sage: vs = gbe.add_vertices([None for i in range(len(vertices))])
             sage: v_dict = {}
             sage: for i, v in enumerate(vs):
-            ...      v_dict[v] = vertices[i]
+            ....:    v_dict[v] = vertices[i]
             sage: gbe.set_vertices_demand(v_dict.items())
             sage: cost = ((8, 6, 10, 9), (9, 12, 13, 7), (14, 9, 16, 5))
             sage: lcost = range(len(cost))
             sage: lcost_0 = range(len(cost[0]))
             sage: for i in lcost:
-            ...      for j in lcost_0:
-            ...           gbe.add_edge(str(i), str(j + len(cost)), {"cost":cost[i][j], "cap":100})
+            ....:    for j in lcost_0:
+            ....:         gbe.add_edge(str(i), str(j + len(cost)), {"cost":cost[i][j], "cap":100})
             sage: gbe.mincost_okalg()
             1020.0
             sage: for ed in gbe.edges():
@@ -1265,9 +1265,9 @@ cdef class GLPKGraphBackend(object):
             sage: gbe = GLPKGraphBackend()
             sage: v = gbe.add_vertices([None for i in range(5)])
             sage: edges = ((0, 1, 2), (0, 2, 3), (1, 2, 3), (1, 3, 4),
-            ...           (3, 4, 1), (2, 4, 2))
+            ....:         (3, 4, 1), (2, 4, 2))
             sage: for a in edges:
-            ...       edge = gbe.add_edge(str(a[0]), str(a[1]), {"cap":a[2]})
+            ....:     edge = gbe.add_edge(str(a[0]), str(a[1]), {"cap":a[2]})
             sage: gbe.maxflow_ffalg('0', '4')
             3.0
             sage: gbe.maxflow_ffalg()

@@ -640,7 +640,7 @@ class ChowGroup_class(FGP_Module_class):
             sage: 1/2 * A_ZZ.an_element() * 1/3
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Rational Field'
+            TypeError: unsupported operand parent(s) for *: 'Rational Field'
             and 'Chow group of 2-d CPR-Fano toric variety covered by 3 affine patches'
             sage: A_ZZ.get_action(ZZ)
             Right scalar multiplication by Integer Ring on Chow group of 2-d

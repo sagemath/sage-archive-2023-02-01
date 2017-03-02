@@ -43,6 +43,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 from __future__ import print_function
+from six.moves import zip
 
 import numpy
 import math, bisect
@@ -55,6 +56,7 @@ from sage.arith.all import lcm, factor, factorial
 from sage.ext.fast_callable import fast_callable
 from sage.functions.log import log, exp
 from sage.symbolic.all import SR
+
 
 class UnionOfIntervals:
     r"""
@@ -139,7 +141,7 @@ class UnionOfIntervals:
             sage: UnionOfIntervals([-infinity, pi, 17, infinity]).intervals()
             [(-Infinity, pi), (17, +Infinity)]
         """
-        return zip(self._endpoints[::2], self._endpoints[1::2])
+        return list(zip(self._endpoints[::2], self._endpoints[1::2]))
 
     def is_empty(self):
         r"""

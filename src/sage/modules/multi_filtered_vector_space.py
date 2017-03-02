@@ -477,7 +477,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
             lines.append(s)
         return '\n'.join(lines)
 
-    def __eq__(self, other):
+    def __cmp__(self, other):
         """
         Compare two multi-filtered vector spaces.
 
@@ -491,23 +491,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
             sage: V == MultiFilteredVectorSpace({'a':F1, 'b':F2})
             False
         """
-        return self._filt == other._filt
-
-    def __ne__(self, other):
-        """
-        Compare two multi-filtered vector spaces.
-
-        EXAMPLES::
-
-            sage: F1 = FilteredVectorSpace(2, 1)
-            sage: F2 = FilteredVectorSpace(1, 3) + FilteredVectorSpace(1,0)
-            sage: V = MultiFilteredVectorSpace({1:F1, 2:F2})
-            sage: V != MultiFilteredVectorSpace({2:F2, 1:F1})
-            False
-            sage: V != MultiFilteredVectorSpace({'a':F1, 'b':F2})
-            True
-        """
-        return not (self == other)
+        return cmp(self._filt, other._filt)
     
     def direct_sum(self, other):
         """

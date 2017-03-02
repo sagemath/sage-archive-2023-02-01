@@ -1429,7 +1429,7 @@ class HyperbolicModelHM(HyperbolicModel):
         """
         if isinstance(p, HyperbolicPoint):
             return p.is_boundary()
-        return len(p) == 3 and bool(p[0]**2 + p[1]**2 - p[2]**2 + 1 < EPSILON)
+        return len(p) == 3 and bool(abs(p[0]**2 + p[1]**2 - p[2]**2 + 1) < EPSILON)
 
     def boundary_point_in_model(self, p):
         r"""

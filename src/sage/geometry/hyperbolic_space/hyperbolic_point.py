@@ -165,11 +165,15 @@ class HyperbolicPoint(Element):
         sage: HyperbolicPlane().KM().get_point((1,0))
         Boundary point in KM (1, 0)
 
-    In the HM model, the coordinates of a poi nt are on the
+    In the HM model, the coordinates of a point are on the
     hyperboloidgiven by `x^2 + y^2 - z^2 = -1`::
 
         sage: HyperbolicPlane().HM().get_point((0,0,1))
         Point in HM (0, 0, 1)
+        sage: HyperbolicPlane().HM().get_point((0,0,2))
+        Traceback (most recent call last):
+        ...
+        ValueError: (0, 0, 2) is not a valid point in the HM model
         sage: HyperbolicPlane().HM().get_point((1,0,0), is_boundary=True)
         Traceback (most recent call last):
         ...

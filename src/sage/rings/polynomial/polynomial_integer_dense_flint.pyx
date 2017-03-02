@@ -1598,7 +1598,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: f.factor_mod(3)
             Traceback (most recent call last):
             ...
-            ValueError: factorization of 0 not defined
+            ArithmeticError: factorization of 0 is not defined
 
             sage: f = 2*x*(x-2)*(x-9)
             sage: f.factor_mod(7)
@@ -1609,7 +1609,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         if not p.is_prime():
             raise ValueError("p must be prime")
         if all([c%p==0 for c in self.coefficients()]):
-            raise ValueError("factorization of 0 not defined")
+            raise ArithmeticError("factorization of 0 is not defined")
         f = self._pari_()
         G = f.factormod(p)
         k = FiniteField(p)

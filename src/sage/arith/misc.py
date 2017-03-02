@@ -2379,7 +2379,7 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
         sage: factor(0)
         Traceback (most recent call last):
         ...
-        ArithmeticError: Prime factorization of 0 not defined.
+        ArithmeticError: factorization of 0 is not defined
         sage: factor(1)
         1
         sage: factor(-1)

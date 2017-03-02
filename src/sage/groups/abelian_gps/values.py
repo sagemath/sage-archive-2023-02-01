@@ -156,7 +156,7 @@ class AbelianGroupWithValuesEmbedding(Morphism):
 
     - ``domain`` -- a :class:`AbelianGroupWithValues_class`
 
-    - ``codomain`` -- the values group (need not be in the cateory of
+    - ``codomain`` -- the values group (need not be in the category of
       groups, e.g. symbolic ring).
 
     EXAMPLES::

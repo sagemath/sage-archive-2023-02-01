@@ -1253,7 +1253,7 @@ class QuiverRepHom(CallMorphism):
 
     def scalar_mult(self, scalar):
         r"""
-        Return the result of the scalar multiplcation ``scalar * self``,
+        Return the result of the scalar multiplication ``scalar * self``,
         where ``scalar`` is an element of the base ring `k`.
 
         EXAMPLES::

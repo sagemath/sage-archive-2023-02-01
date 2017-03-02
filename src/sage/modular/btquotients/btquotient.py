@@ -105,7 +105,7 @@ class DoubleCosetReduction(SageObject):
 
     Here usual denotes that we have rescaled gamma to have unit
     determinant, and so that the result is honestly an element
-    of the arithmetic quarternion group under consideration. In
+    of the arithmetic quaternion group under consideration. In
     practice we store integral multiples and keep track of the
     powers of `p`.
 
@@ -280,7 +280,7 @@ class DoubleCosetReduction(SageObject):
         Image under gamma.
 
         Elements of the arithmetic group can be regarded as elements
-        of the global quarterion order, and hence may be represented
+        of the global quaternion order, and hence may be represented
         exactly. This function computes the image of such an element
         under the local splitting and returns the corresponding `p`-adic
         approximation.

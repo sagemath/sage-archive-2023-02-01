@@ -9666,7 +9666,7 @@ cdef class Expression(CommutativeRingElement):
         Return the expression with any gamma functions that have
         a common base converted to that base.
 
-        Addtionally the expression is normalized so any fractions
+        Additionally the expression is normalized so any fractions
         can be simplified through cancellation.
 
         EXAMPLES::

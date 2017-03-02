@@ -2115,7 +2115,7 @@ def sage_getsourcelines(obj):
     # First, we deal with nested classes. Their name contains a dot, and we
     # have a special function for that purpose.
     if (not hasattr(obj, '__class__')) or hasattr(obj,'__metaclass__'):
-        # That hapens for ParentMethods
+        # That happens for ParentMethods
         # of categories
         if '.' in obj.__name__ or '.' in getattr(obj,'__qualname__',''):
             return _sage_getsourcelines_name_with_dot(obj)

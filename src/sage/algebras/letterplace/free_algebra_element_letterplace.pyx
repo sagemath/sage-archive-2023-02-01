@@ -670,7 +670,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
             sage: G.ring() is F.current_ring()
             True
 
-        Since the element `p` is of degree 5, it is no surrprise
+        Since the element `p` is of degree 5, it is no surprise
         that its reductions with respect to the original generators
         of `I` (of degree 2), or with respect to `G` (Groebner basis
         with degree bound 4), or with respect to the Groebner basis

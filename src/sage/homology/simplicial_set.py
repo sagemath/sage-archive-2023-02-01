@@ -135,7 +135,7 @@ simplicial sets are never equal::
     sage: simplicial_sets.Point() == simplicial_sets.Point()
     True
 
-You can construct subsimplical sets by specifying a list of simplices,
+You can construct subsimplicial sets by specifying a list of simplices,
 and then you can define the quotient simplicial set::
 
     sage: X = simplicial_sets.Simplex(2)
@@ -488,7 +488,7 @@ class AbstractSimplex_class(SageObject):
             sage: v = AbstractSimplex(0)
             sage: w = AbstractSimplex(0)
 
-        At this point, comparision between v and w is random, based on
+        At this point, comparison between v and w is random, based on
         their location in memory. ::
 
             sage: v < w and w < v

@@ -4785,7 +4785,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             ....:      for lam in Partitions(6) )
             True
         """
-        # Convert to the complete homogenenous basis, there apply
+        # Convert to the complete homogeneous basis, there apply
         # Verschiebung componentwise, then convert back.
         parent = self.parent()
         h = parent.realization_of().homogeneous()

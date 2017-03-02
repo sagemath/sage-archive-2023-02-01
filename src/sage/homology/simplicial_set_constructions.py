@@ -1157,7 +1157,7 @@ class PushoutOfSimplicialSets(SimplicialSet_arbitrary, UniqueRepresentation):
         simplex comes from a single `Y_i`, it inherits its
         name. Otherwise it must come from a simplex (or several) in
         `X`, and then it inherits one of those names, and it should be
-        the first alphabetically. For examnple, if vertices `v`, `w`,
+        the first alphabetically. For example, if vertices `v`, `w`,
         and `z` in `X` are glued together, then the resulting vertex
         in the pushout will be called `v`.
 

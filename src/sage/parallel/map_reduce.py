@@ -854,7 +854,7 @@ class RESetMapReduce(object):
     are actually produced. Furthermore, if ``post_process(x)`` returns ``None``,
     then ``x`` won't be output at all.
 
-    Decription of the map/reduce operation:
+    Description of the map/reduce operation:
 
     - ``map_function=f`` -- (default to ``None``)
     - ``reduce_function=red`` -- (default to ``None``)
@@ -1316,7 +1316,7 @@ class RESetMapReduce(object):
 
         OUTPUT:
 
-        A worker for ``self`` chosed at random
+        A worker for ``self`` choosed at random
 
         EXAMPLES::
 

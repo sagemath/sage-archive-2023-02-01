@@ -315,7 +315,7 @@ class GrowthDiagram(SageObject):
         Return the growth diagram with the filling rotated by 180 degrees.
 
         For RSK-growth diagrams and rectangular fillings, this
-        corresponds to evacutation of the P- and the Q-symbol.
+        corresponds to evacuation of the P- and the Q-symbol.
 
         EXAMPLES::
 

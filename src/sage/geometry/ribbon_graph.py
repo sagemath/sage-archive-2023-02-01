@@ -88,12 +88,12 @@ def _clean(l):
     """
     return [list(elt) for elt in l if elt]
 
+
 class RibbonGraph(SageObject, UniqueRepresentation):
     r"""
-    A ribbon graph codified as two elements of a certain permutation.
-    group.
+    A ribbon graph codified as two elements of a certain permutation group.
 
-    A comprenhensive introduction on the topic can be found in the beginning
+    A comprehensive introduction on the topic can be found in the beginning
     of [GGD2011]_ Chapter 4. More concretely, we will use a variation of what
     is called in the reference "The permutation representation pair of a
     dessin". Note that in that book, ribbon graphs are called "dessins

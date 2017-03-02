@@ -222,7 +222,7 @@ After execution of this code, the %R and %%R magics are available :
    possible via the -i and -o options. Do "%R?" in a standalone cell
    to get the documentation.
 
-- %%R alows the execution in R of the whole text of a cell, with
+- %%R allows the execution in R of the whole text of a cell, with
     similar options (do "%%R?" in a standalone cell for
     documentation).
 

@@ -1,5 +1,5 @@
-Combinatorial or Discrete Geometry
-==================================
+Combinatorial and Discrete Geometry
+===================================
 
 Sage includes classes for hyperplane arrangements, polyhedra, toric varieties
 (including polyhedral cones and fans), triangulations and some other helper

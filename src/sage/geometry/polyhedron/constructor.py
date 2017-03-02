@@ -57,6 +57,14 @@ representation. For example, `(0,0)` is a superfluous vertex here::
     sage: triangle.vertices()
     (A vertex at (-1, 0), A vertex at (1, 0), A vertex at (0, 2))
 
+.. SEEALSO::
+
+    If one only needs to keep track of a system of linear system of
+    inequalities, one should also consider the class for mixed integer linear
+    programming.
+
+    - :mod:`Mixed Integer Linear Programming <sage.numerical.mip>`
+
 
 Unbounded Polyhedra
 -------------------

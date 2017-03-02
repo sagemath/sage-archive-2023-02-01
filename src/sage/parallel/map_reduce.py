@@ -1316,7 +1316,7 @@ class RESetMapReduce(object):
 
         OUTPUT:
 
-        A worker for ``self`` choosed at random
+        A worker for ``self`` chosen at random
 
         EXAMPLES::
 

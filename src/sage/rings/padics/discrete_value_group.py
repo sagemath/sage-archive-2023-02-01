@@ -206,7 +206,7 @@ class DiscreteValueGroup(UniqueRepresentation, Parent):
         if not isinstance(other, DiscreteValueGroup):
             raise ValueError("`other` must be a DiscreteValueGroup")
         if other._generator not in self:
-            raise ValueError("`other must be a subgroup of this group")
+            raise ValueError("`other` must be a subgroup of this group")
         if other._generator == 0:
             if self._generator == 0:
                 return ZZ(1)

@@ -195,6 +195,9 @@ ext_modules = [
                language='c++',
                libraries = ["gmp", "m", "ntl"]),
 
+    Extension('sage.algebras.lie_algebras.lie_algebra_element',
+              sources = ["sage/algebras/lie_algebras/lie_algebra_element.pyx"]),
+
     ################################
     ##
     ## sage.arith

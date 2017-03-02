@@ -55,9 +55,8 @@ class SortedDirectoryWalkerABC(object):
             ('src/sage/tests/french_book', 'README', '')
        """
         tree_walk = itertools.chain(*map(os.walk, self._directories))
-        for path, dirs, files in tree_walk:
+        for path, _, files in tree_walk:
             path = os.path.relpath(path)
-            dirs.sort()
             files.sort()
             for filename in files:
                 if filename.startswith('.'):
@@ -138,15 +137,15 @@ class Python3SyntaxTest(SortedDirectoryWalkerABC):
 
             sage: import os, tempfile
             sage: src = tempfile.NamedTemporaryFile(suffix='.py', delete=False)
-            sage: src.write('print "invalid print statement')
+            sage: src.write('print "invalid print statement"')
             sage: src.close()
             sage: from sage.tests.py3_syntax import Python3SyntaxTest
             sage: py3_syntax = Python3SyntaxTest()
             sage: py3_syntax.test(src.name)
             Invalid Python 3 syntax found:
               File "...py", line 1
-                print "invalid print statement
-                                             ^
+                print "invalid print statement"
+                                              ^
             SyntaxError: Missing parentheses in call to 'print'
             sage: os.unlink(src.name)
         """

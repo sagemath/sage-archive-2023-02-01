@@ -194,6 +194,7 @@ Base classes
 Depending on the chosen base ring, a specific class is used to represent the polyhedron object.
 
 .. SEEALSO::
+
     - :mod:`Base class for polyhedra <sage.geometry.polyhedron.base.Polyhedron_base>`
     - :mod:`Base class for polyhedra over integers <sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ>`
     - :mod:`Base class for polyhedra over rationals <sage.geometry.polyhedron.base_QQ.Polyhedron_QQ>`
@@ -207,12 +208,14 @@ Backends
 There are different backends available to deal with polyhedron objects.
 
 .. SEEALSO::
+
     - :mod:`cdd backend for polyhedra <sage.geometry.polyhedron.backend_cdd.Polyhedron_cdd>`
     - :mod:`field backend for polyhedra <sage.geometry.polyhedron.backend_field.Polyhedron_field>`
     - :mod:`normaliz backend for polyhedra <sage.geometry.polyhedron.backend_normaliz.Polyhedron_normaliz>`
     - :mod:`ppl backend for polyhedra <sage.geometry.polyhedron.backend_ppl.Polyhedron_ppl>`
 
 .. NOTE::
+
     Depending on the backend used, it may occur that different methods are
     available or not.
 

@@ -3,6 +3,7 @@
 The Normaliz backend for polyhedral computations
 
 .. NOTE::
+
     This backend requires `PyNormaliz <https://pypi.python.org/pypi/PyNormaliz/1.5>`_.
     To install PyNormaliz, type :code:`sage -i pynormaliz` in the terminal.
 

@@ -115,7 +115,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.sets_cat import Sets, EmptySetError
 from copy import copy
 from sage.misc.lazy_format import LazyFormat
-from cpython.object cimport Py_NE
+from cpython.object cimport Py_NE, Py_EQ
 
 
 from sage.misc.lazy_import import LazyImport
@@ -2832,25 +2832,39 @@ cdef class Set_PythonType_class(Set_generic):
         """
         return -hash(self._type)
 
-    cpdef int _cmp_(self, other) except -2:
+    def __richcmp__(self, other, int op):
         """
         Two Python type sets are considered the same if they contain the same
         type.
 
         EXAMPLES::
 
-            sage: S = sage.structure.parent.Set_PythonType(int)
-            sage: S == S
+            sage: from sage.structure.parent import Set_PythonType
+            sage: S = Set_PythonType(int)
+            sage: T = Set_PythonType(int)
+            sage: U = type(S)(int)  # bypass caching
+            sage: S is T
             True
-            sage: S == sage.structure.parent.Set_PythonType(float)
+            sage: S == T
+            True
+            sage: S is U
+            False
+            sage: S == U
+            True
+            sage: S == Set_PythonType(float)
+            False
+            sage: S == int
             False
         """
+        if not (op == Py_EQ or op == Py_NE):
+            return NotImplemented
         if self is other:
-            return 0
-        if isinstance(other, Set_PythonType_class):
-            return cmp(self._type, other._type)
-        else:
-            return cmp(self._type, other)
+            return rich_to_bool(op, 0)
+        if not isinstance(other, Set_PythonType_class):
+            return rich_to_bool(op, 1)
+        s = (<Set_PythonType_class>self)._type
+        o = (<Set_PythonType_class>other)._type
+        return rich_to_bool(op, s is not o)
 
     def __contains__(self, x):
         """

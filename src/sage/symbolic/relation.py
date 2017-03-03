@@ -449,6 +449,19 @@ def test_relation_maxima(relation):
         sage: test_relation_maxima(f1 - f2 == 0)
         True
         sage: forget()
+        
+    In case one of the solutions while solving an equation is a real number::
+        
+        sage: var('K, d, R')
+        (K, d, R)
+        sage: assume(K>0)
+        sage: assume(K, 'noninteger')
+        sage: assume(R>0)
+        sage: assume(R<1)
+        sage: assume(d<R)
+        sage: assumptions()
+        [K > 0, K is noninteger, R > 0, R < 1, d < R]
+    
 
     """
     m = relation._maxima_()

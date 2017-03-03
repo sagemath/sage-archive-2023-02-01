@@ -446,7 +446,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         INPUT:
 
         - ``threshold`` -- integer (default: 10000); use the naïve
-            algorithm as long as the bounding box is smaller than this
+          algorithm as long as the bounding box is smaller than this
 
         OUTPUT:
 

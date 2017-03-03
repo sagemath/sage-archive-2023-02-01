@@ -4171,11 +4171,13 @@ class Polyhedron_base(Element):
 
     def neighborliness(self):
         r"""
-        Returns the largest k, such that the polyhedron is k-neighborly.
-        (Returns ``d+1`` in case of the d-dimensional simplex)
+        Returns the largest ``k``, such that the polyhedron is ``k``-neighborly.
+
+        In case of the ``d``-dimensional simplex, it returns ``d+1``.
 
 
         EXAMPLES::
+
             sage: cube = polytopes.cube()
             sage: cube.neighborliness()
             1
@@ -4208,21 +4210,25 @@ class Polyhedron_base(Element):
     def is_neighborly(self, k=None):
         r"""
         Return whether the polyhedron is neighborly.
-        If the input k is provided then return whether the polyhedron is k-neighborly
+
+        If the input ``k`` is provided then return whether the polyhedron is ``k``-neighborly
 
         INPUT:
+
         - ``k`` -- the dimension up to which to check if every set of k
-          vertices forms a face. If no k is provided, check up to floor
+          vertices forms a face. If no ``k`` is provided, check up to floor
           of half the dimension of the polyhedron.
 
         OUTPUT:
 
-        ``True`` if the every set of up to k vertices forms a face,
-        ``False`` otherwise
+        - ``True`` if the every set of up to k vertices forms a face,
+        - ``False`` otherwise
 
-        EXAMPLES::
+        EXAMPLES:
 
         Cyclic polytopes are neighborly:
+
+        ::
 
             sage: all([polytopes.cyclic_polytope(i,i+1+j).is_neighborly() for i in range(5) for j in range(3)])
             True
@@ -4236,9 +4242,10 @@ class Polyhedron_base(Element):
 
         The neighborliness of a polyhedron equals floor of dimension half
         (or is large in case of a simplex) if and only if the polyhedron
-        is neighborly:
+        is neighborly::
 
-            sage: [(P.neighborliness()>=floor(P.dim()/2)) == P.is_neighborly() for P in  [polytopes.cube(), polytopes.cyclic_polytope(6,9), polytopes.simplex(6)]]
+            sage: testpolys = [polytopes.cube(), polytopes.cyclic_polytope(6,9), polytopes.simplex(6)]
+            sage: [(P.neighborliness()>=floor(P.dim()/2)) == P.is_neighborly() for P in  testpolys]
             [True, True, True]
 
         """

@@ -2776,7 +2776,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         - ``simplex`` -- a simplex in this simplicial complex
         - ``is_mutable`` -- (default: ``True``) boolean; determines if the output
-            is mutable
+          is mutable
 
         EXAMPLES::
 
@@ -3416,14 +3416,14 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         - ``simplex`` -- a simplex face of ``self``
         - ``inplace`` -- (default: ``False``) boolean; determines if the
-            operation is done on ``self``
+          operation is done on ``self``
         - ``is_mutable`` -- (default: ``True``) boolean; determines if the
-            output is mutable
+          output is mutable
 
         OUTPUT:
 
         - A simplicial complex obtained by the stellar subdivision of the face
-            ``simplex``
+          ``simplex``
 
         EXAMPLES::
 

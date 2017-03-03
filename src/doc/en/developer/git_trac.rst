@@ -532,8 +532,7 @@ end: git downloads both Alice's conflicting commit and her resolution.
 Reviewing
 =========
 
-This section gives an example how to review using the ``sage`` command. For an
-explanation of what should be checked by the reviewer, see
+For an explanation of what should be checked by the reviewer, see
 :ref:`chapter-review`.
 
 If you go to the `web interface to the Sage trac development server
@@ -552,3 +551,21 @@ to use the web interface:
   shows you what is being added, analogous to clicking on the
   "Branch:" field.
 
+To review tickets with minimal recompiling, start on the "develop" branch,
+that is, the latest beta. Just checking out an older ticket would most likely
+reset the Sage tree to an older version, so you would have to compile older
+versions of packages to make it work. Instead, you can create an anonymous
+("detached HEAD") merge of the ticket and the develop branch::
+
+    $ git trac try 12345
+
+This will only touch files that are really modified by the ticket. In particular,
+if only Python files are changed by the ticket (which is true for most tickets)
+then you just have to run ``sage -b`` to rebuild the Sage library. When you are
+finished reviewing, just checkout a named branch, for example ::
+
+    $ git checkout develop
+
+If you want to edit the ticket branch (that is, add additional commits) you cannot
+use ``git trac try``. You must use ``git trac checkout`` to get the actual ticket
+branch as a starting point.

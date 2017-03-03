@@ -2767,7 +2767,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
     def star(self, simplex, is_mutable=True):
         """
-        The star of a simplex in this simplicial complex.
+        Return the star of a simplex in this simplicial complex.
 
         The star of ``simplex`` is the simplicial complex formed by
         all simplices which contain ``simplex``.
@@ -3405,8 +3405,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
     def stellar_subdivision(self, simplex, inplace=False, is_mutable=True):
         """
-        This function returns the stellar subdivision of ``simplex`` either by
-        modifying ``self`` (when inplace is set to ``True``).
+        Return the stellar subdivision of a simplex in this simplicial complex.
 
         The stellar subdivision of a face is obtained by adding a new vertex to the
         simplicial complex ``self`` joined to the star of the face and then
@@ -3416,7 +3415,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         - ``simplex`` -- a simplex face of ``self``
         - ``inplace`` -- (default: ``False``) boolean; determines if the
-          operation is done on ``self``
+          operation is done on ``self`` or on a copy
         - ``is_mutable`` -- (default: ``True``) boolean; determines if the
           output is mutable
 
@@ -3447,7 +3446,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: SC.stellar_subdivision(F4)
             Traceback (most recent call last):
             ...
-            ValueError: The face to subdivide is not a face of self.
+            ValueError: the face to subdivide is not a face of self
 
         One can not modify an immutable simplicial complex::
 
@@ -3455,14 +3454,14 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: SC.stellar_subdivision(F1, inplace=True)
             Traceback (most recent call last):
             ...
-            ValueError: This simplicial complex is not mutable.
+            ValueError: this simplicial complex is not mutable
         """
 
         if inplace and not self._is_mutable:
-            raise ValueError("This simplicial complex is not mutable.")
+            raise ValueError("this simplicial complex is not mutable")
 
         if not Simplex(simplex) in self:
-            raise ValueError("The face to subdivide is not a face of self.")
+            raise ValueError("the face to subdivide is not a face of self")
 
         if inplace:
             working_complex = self

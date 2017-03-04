@@ -3824,7 +3824,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.factor()
             Traceback (most recent call last):
             ...
-            ValueError: factorization of 0 not defined
+            ArithmeticError: factorization of 0 is not defined
 
         ::
 
@@ -4002,7 +4002,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         ## 200 lines of spagetti code is just way to much!
 
         if self.degree() < 0:
-            raise ValueError("factorization of 0 not defined")
+            raise ArithmeticError("factorization of {!r} is not defined".format(self))
         if self.degree() == 0:
             return Factorization([], unit=self[0])
 

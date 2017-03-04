@@ -2971,7 +2971,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (0/1).factor()
             Traceback (most recent call last):
             ...
-            ArithmeticError: Prime factorization of 0 not defined.
+            ArithmeticError: factorization of 0 is not defined
         """
         return self.numerator().factor() * \
            sage.structure.factorization.Factorization([(p,-e) for p, e in self.denominator().factor()])

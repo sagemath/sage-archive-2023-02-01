@@ -76,6 +76,10 @@ REFERENCES:
 .. [Ap1997] \T. Apostol, Modular functions and Dirichlet series in
             number theory, Springer, 1997 (2nd ed), section 3.7--3.9.
 
+.. [APR2001] George E. Andrews, Peter Paule, Axel Riese,
+             *MacMahon's partition analysis: the Omega package*,
+             European J. Combin. 22 (2001), no. 7, 887--904.
+
 .. [Ar2006] D. Armstrong. *Generalized noncrossing partitions and
             combinatorics of Coxeter groups*. Mem. Amer. Math. Soc., 2006.
 
@@ -1127,6 +1131,10 @@ REFERENCES:
 .. [Ma2009] Sarah Mason, An Explicit Construction of Type A Demazure
             Atoms, Journal of Algebraic Combinatorics, Vol. 29,
             (2009), No. 3, p.295-313. :arXiv:`0707.4267`
+
+.. [Mac1915] Percy A. MacMahon, *Combinatory Analysis*,
+             Cambridge University Press (1915--1916).
+             (Reprinted: Chelsea, New York, 1960).
 
 .. [MAR2009] \H. Molina-Abril and P. Réal, *Homology computation using
              spanning trees* in Progress in Pattern Recognition, Image

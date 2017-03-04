@@ -4483,7 +4483,7 @@ class Polyhedron_base(Element):
                 box_min.append(min_coord)
         return (tuple(box_min), tuple(box_max))
 
-    def integral_points_count(self, verbose=False):
+    def integral_points_count(self, verbose=False, use_Hrepresentation=False, **kwds):
         r"""
         Return the number of integral points in the polyhedron.
 
@@ -4493,6 +4493,13 @@ class Polyhedron_base(Element):
 
         - ``verbose`` (boolean; ``False`` by default) -- whether to display
           verbose output.
+
+        - ``use_Hrepresentation`` - (boolean; ``False`` by default) -- whether
+          to send the H or V representation to LattE
+
+        .. SEEALSO::
+
+            :mod:`~sage.interfaces.latte` the interface to LattE interfaces
 
         EXAMPLES::
 
@@ -4517,12 +4524,15 @@ class Polyhedron_base(Element):
             sage: Q.integral_points_count() # optional - latte_int
             Traceback (most recent call last):
             ...
-            RuntimeError: LattE integrale failed (exit code 1) to execute...
-            ...Parse error in CDD-style input file /dev/stdin
+            RuntimeError: LattE integrale program failed (exit code 1):
+            ...
+            Invocation: count '--redundancy-check=none' --cdd /dev/stdin
+            ...
+            Parse error in CDD-style input file /dev/stdin
             sage: Q.integral_points_count(verbose=True) # optional - latte_int
             Traceback (most recent call last):
             ...
-            RuntimeError: LattE integrale failed (exit code 1) to execute count --cdd /dev/stdin, see error message above
+            RuntimeError: LattE integrale program failed (exit code 1), see error message above
 
         TESTS:
 
@@ -4538,40 +4548,12 @@ class Polyhedron_base(Element):
         if self.is_empty():
             return 0
 
-        from subprocess import Popen, PIPE
-        from sage.misc.misc import SAGE_TMP
-        from sage.rings.integer import Integer
-
-        ine = self.cdd_Hrepresentation()
-        args = ['count', '--cdd', '/dev/stdin']
-
-        try:
-            # The cwd argument is needed because latte
-            # always produces diagnostic output files.
-            latte_proc = Popen(args,
-                               stdin=PIPE, stdout=PIPE,
-                               stderr=(None if verbose else PIPE),
-                               cwd=str(SAGE_TMP))
-        except OSError:
-            from sage.misc.package import PackageNotFoundError
-            raise PackageNotFoundError('latte_int')
-
-        ans, err = latte_proc.communicate(ine)
-        ret_code = latte_proc.poll()
-        if ret_code:
-            if err is None:
-                err = ", see error message above"
-            else:
-                err = ":\n" + err
-            raise RuntimeError("LattE integrale failed (exit code {}) to execute {}".format(ret_code, ' '.join(args)) + err.strip())
-
-        try:
-            return Integer(ans.splitlines()[-1])
-        except IndexError:
-            # opening a file is slow (30e-6s), so we read the file
-            # numOfLatticePoints only in case of a IndexError above
-            with open(SAGE_TMP+'/numOfLatticePoints', 'r') as f:
-                return Integer(f.read())
+        from sage.interfaces.latte import count
+        return count(
+                self.cdd_Hrepresentation() if use_Hrepresentation else self.cdd_Vrepresentation(),
+                cdd=True,
+                verbose=verbose,
+                **kwds)
 
     def integral_points(self, threshold=100000):
         r"""

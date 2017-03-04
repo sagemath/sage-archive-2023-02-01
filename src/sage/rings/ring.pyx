@@ -2409,7 +2409,7 @@ cdef class Algebra(Ring):
         except AttributeError:
             raise AttributeError("Basis is not yet implemented for this algebra.")
         try:
-            # TODO: The following code is specific to the quaterion algebra
+            # TODO: The following code is specific to the quaternion algebra
             #   and should belong there
             #step 1
             for i in range(1,4):

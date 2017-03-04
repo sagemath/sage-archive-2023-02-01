@@ -538,7 +538,7 @@ order 16 as a semidirect product of cyclic groups.
 
 The following table shows the groups of order 15 or less, and how to construct
 them in Sage. Repeated commands have been omitted but instead are described
-by the following exmples.
+by the following examples.
 
 The cyclic group of order `n` can be created with a single command:
 

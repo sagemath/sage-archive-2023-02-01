@@ -714,7 +714,7 @@ class PseudoRiemannianMetric(TensorField):
 
         EXAMPLES:
 
-        Levi-Civitation connection associated with the Euclidean metric on
+        Levi-Civita connection associated with the Euclidean metric on
         `\RR^3`::
 
             sage: M = Manifold(3, 'R^3', start_index=1)

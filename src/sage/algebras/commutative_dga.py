@@ -1292,13 +1292,13 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
 
         def is_homogeneous(self, total=False):
             r"""
-            Return ``True`` if ``self`` is homogenous and ``False`` otherwise.
+            Return ``True`` if ``self`` is homogeneous and ``False`` otherwise.
 
             INPUT:
 
             - ``total`` -- boolean (default ``False``); only used in the
               multi-graded case, in which case if ``True``, check to see
-              if ``self`` is homogenenous with respect to total degree
+              if ``self`` is homogeneous with respect to total degree
 
             EXAMPLES::
 

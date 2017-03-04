@@ -1435,17 +1435,17 @@ class ExpectElement(InterfaceElement):
 
 class StdOutContext:
     """
-    A context in which all communation between Sage and a subprocess
+    A context in which all communication between Sage and a subprocess
     interfaced via pexpect is printed to stdout.
     """
     def __init__(self, interface, silent=False, stdout=None):
         """
-        Construct a new context in which all communation between Sage
+        Construct a new context in which all communication between Sage
         and a subprocess interfaced via pexpect is printed to stdout.
 
         INPUT:
 
-        - ``interface`` - the interface whose communcation shall be dumped.
+        - ``interface`` - the interface whose communication shall be dumped.
 
         - ``silent`` - if ``True`` this context does nothing
 

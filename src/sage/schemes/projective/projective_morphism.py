@@ -5210,7 +5210,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
         INPUT:
 
-        - ``return_conjugation`` -- Boolean - True returns conjugatation element of PGL.
+        - ``return_conjugation`` -- Boolean - True returns conjugation element of PGL.
           along with the embedding into the new field. Default: False. (optional)
 
         OUTPUT:

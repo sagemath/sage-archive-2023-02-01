@@ -8,7 +8,7 @@ objects.
 AUTHORS:
 
 - Travis Scrimshaw (2010-09-26): Initial version
-- Travis Scrimshaw (2012-10-25): Added virtual rigged confingurations
+- Travis Scrimshaw (2012-10-25): Added virtual rigged configurations
 """
 
 #*****************************************************************************
@@ -308,7 +308,7 @@ class RiggedConfigurationElement(ClonableArray):
 
     def _repr_vertical(self):
         """
-        Return the string representation of ``self`` verically.
+        Return the string representation of ``self`` vertically.
 
         EXAMPLES::
 

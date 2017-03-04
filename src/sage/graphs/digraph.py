@@ -479,7 +479,7 @@ class DiGraph(GenericGraph):
 
         The position dictionary is not the input one (:trac:`22424`)::
 
-            sage: my_pos = {0:(0,0), 1:(1,1)} 
+            sage: my_pos = {0:(0,0), 1:(1,1)}
             sage: D = DiGraph([[0,1], [(0,1)]], pos=my_pos)
             sage: my_pos == D._pos
             True

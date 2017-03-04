@@ -34,6 +34,7 @@ from sage.misc.cachefunc import cached_method
 from sage.interfaces.tab_completion import ExtraTabCompletion
 
 import pexpect
+from random import randrange
 
 from time import sleep
 from six.moves import range
@@ -179,7 +180,7 @@ class Polymake(ExtraTabCompletion, Expect):
         cl = self._expect.compile_pattern_list(["killed by signal", self._prompt])
         while True:
             try:
-                self._expect.send(chr(3)+chr(3))
+                self._expect.send(chr(3))
             except pexpect.ExceptionPexpect as msg:
                 raise pexpect.ExceptionPexpect("THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
             try:
@@ -188,6 +189,50 @@ class Polymake(ExtraTabCompletion, Expect):
             except pexpect.TIMEOUT:
                 raise RuntimeError("{} interface is not responding".format(self))
         raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
+
+    def _synchronize(self, cmd='print 1+{};\n'):
+        """
+        TEST::
+
+            sage: from sage.interfaces.polymake import polymake
+            sage: Q = polymake.cube(4)
+            sage: polymake('"ok"')
+            ok
+            sage: polymake._expect.sendline()
+            1
+
+        Now the interface is badly of sync::
+
+            sage: polymake('"foobar"')
+            <BLANKLINE>
+            sage: Q.typeof()
+            ('', 'Polymake::polytope::Polytope__Rational\nprint reftype($SAGE...);;')
+            sage: Q.typeof.clear_cache()
+
+        After synchronisation, things work again as expected::
+
+            sage: polymake._synchronize()
+            sage: polymake('"back to normal"')
+            back to normal
+            sage: Q.typeof()
+            ('Polymake::polytope::Polytope__Rational', 'ARRAY')
+
+        """
+        if self._expect is None:
+            return
+        rnd = randrange(2147483647)
+        s = str(rnd+1)
+        self._sendstr(cmd.format(rnd))
+        try:
+            self._expect_expr(timeout=0.5)
+            if not s in self._expect.before:
+                self._expect_expr(s,timeout=0.5)
+                self._expect_expr(timeout=0.5)
+        except pexpect.TIMEOUT:
+            self._interrupt()
+        except pexpect.EOF:
+            self._crash_msg()
+            self.quit()
 
     def _next_var_name(self):
         r"""

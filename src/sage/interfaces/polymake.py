@@ -170,15 +170,23 @@ class Polymake(ExtraTabCompletion, Expect):
         #~ return NotImplemented
 
     def _read_in_file_command(self, filename):
-        return 'load_command("{}");'.format(filename)
+        return 'load_commands "{}";\n'.format(filename)
 
     def _keyboard_interrupt(self):
+        if self._expect is None:
+            raise KeyboardInterrupt
         print("Interrupting %s..." % self)
-        try:
-            self._expect.sendline(chr(3))
-        except pexpect.ExceptionPexpect as msg:
-            raise pexpect.ExceptionPexpect("THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
-        self._expect.expect(self._prompt)
+        cl = self._expect.compile_pattern_list(["killed by signal", self._prompt])
+        while True:
+            try:
+                self._expect.send(chr(3)+chr(3))
+            except pexpect.ExceptionPexpect as msg:
+                raise pexpect.ExceptionPexpect("THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
+            try:
+                if self._expect.expect_list(cl, timeout=0.5): # 1, if self._prompt was found
+                    break
+            except pexpect.TIMEOUT:
+                raise RuntimeError("{} interface is not responding".format(self))
         raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
 
     def _next_var_name(self):

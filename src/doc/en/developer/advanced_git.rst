@@ -72,7 +72,7 @@ Update Branch to Latest SageMath Version (and Minimizing Recompilation Time)
 ============================================================================
 
 - You have a compiled and working new SageMath version ``n``, and
-- you want to work on a branch ``some/code`` which is based on some old SageMath version ``o``
+- you want to work on a branch ``some_code`` which is based on some old SageMath version ``o``
 - by updating this branch from version ``o`` to ``n``
 - with only recompiling changed files (and not all touched files from ``o`` to ``n``),
 - then continue reading this section.
@@ -105,7 +105,7 @@ Merge in the Latest SageMath Version
 
 (This is the easy way without minimizing the recompilation time.)
 
-Suppose we are on our current working branch ``some/code``
+Suppose we are on our current working branch ``some_code``
 (branch is checked out). Then
 ::
 
@@ -124,7 +124,7 @@ Minimize the Recompilation Time
 
 Suppose we are on some new SageMath (e.g. on branch ``develop``) which
 was already compiled and runs successfully, and we have an "old"
-branch ``some/code``, that we want to bring onto this SageMath version
+branch ``some_code``, that we want to bring onto this SageMath version
 (without triggering unnecessary recompilations).
 
 We first create a new working tree in a directory ``merge`` and switch
@@ -136,7 +136,7 @@ to this directory::
 Here we have a new copy of our source files. Thus no timestamps
 etc. of the original repository will be changed. Now we do the merge::
 
-    git checkout some/code
+    git checkout some_code
     git merge develop
 
 And go back to our original repository::
@@ -144,9 +144,9 @@ And go back to our original repository::
     git checkout develop
     cd ..
 
-We can now safely checkout ``some/code``::
+We can now safely checkout ``some_code``::
 
-    git checkout some/code
+    git checkout some_code
 
 We still need to call::
 
@@ -160,7 +160,7 @@ Why not Merging the Other Way Round?
 
 Being on some new SageMath (e.g. on branch ``develop``) which runs
 successfully, it would be possible to merge in our branch
-``some/code`` into develop. This would produce the same source files
+``some_code`` into develop. This would produce the same source files
 and avoid unnecessary recompilations. However, it destroys git's
 history. Thus, for example, it is hard to keep track of changes etc.,
 as one cannot simply persue the first parent of each git commit.

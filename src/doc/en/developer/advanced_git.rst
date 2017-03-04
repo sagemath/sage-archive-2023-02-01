@@ -127,11 +127,11 @@ was already compiled and runs successfully, and we have an "old"
 branch ``some_code``, that we want to bring onto this SageMath version
 (without triggering unnecessary recompilations).
 
-We first create a new working tree in a directory ``merge`` and switch
+We first create a new working tree in a directory ``new_worktree`` and switch
 to this directory::
 
-    git worktree add merge
-    cd merge
+    git worktree add new_worktree
+    cd new_worktree
 
 Here we have a new copy of our source files. Thus no timestamps
 etc. of the original repository will be changed. Now we do the merge::

@@ -170,7 +170,7 @@ class Polymake(ExtraTabCompletion, Expect):
         #~ return NotImplemented
 
     def _read_in_file_command(self, filename):
-        return 'script("{}");'.format(filename)
+        return 'load_command("{}");'.format(filename)
 
     def _keyboard_interrupt(self):
         print("Interrupting %s..." % self)
@@ -402,6 +402,26 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
                 key = str(key)
             return P(self._name+"{"+key+"}")
         raise NotImplementedError("Cannot get items from Perl type {}".format(T))
+
+    def __len__(self):
+        P = self._check_valid()
+        T1,T2 = self.typeof()
+        if T2=='ARRAY':
+            if self._name.startswith('@'):
+                name = self._name[1:]
+            else:
+                name = self._name
+            return int(P.eval('print scalar @{};'.format(name)))
+        if T2=='HASH':
+            if self._name.startswith('%'):
+                name = self._name[1:]
+            else:
+                name = self._name
+            return int(P.eval('print scalar keys %{};'.format(name)))
+        if T1:
+            raise TypeError("Don't know how to compute the length of {} object".format(T1))
+        raise TypeError("Don't know how to compute the length of {} object".format(T2))
+
     @cached_method
     def typeof(self):
         P = self._check_valid()

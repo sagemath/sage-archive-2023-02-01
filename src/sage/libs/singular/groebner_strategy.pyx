@@ -370,7 +370,7 @@ cdef class NCGroebnerStrategy(SageObject):
 
         cdef int j
         if R.base_ring().is_field():
-            for j in range(self._strat.sl+1)[::-1]:
+            for j in range(self._strat.sl,-1,-1):
                 pNorm(self._strat.S[j])
 
         id_Delete(&i, R._ring)

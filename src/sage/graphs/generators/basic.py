@@ -517,11 +517,11 @@ def CompleteBipartiteGraph(n1, n2):
     for i in range(n1):
         x = c1*i + c3
         y = 1
-        pos_dict[i] = (x,y)
-    for i in range(n1+n2)[n1:]:
+        pos_dict[i] = (x, y)
+    for i in range(n1,n1+n2):
         x = c2*(i-n1) + c4
         y = 0
-        pos_dict[i] = (x,y)
+        pos_dict[i] = (x, y)
 
     G = Graph(n1+n2, pos=pos_dict, name="Complete bipartite graph")
     G.add_edges((i,j) for i in range(n1) for j in range(n1,n1+n2))

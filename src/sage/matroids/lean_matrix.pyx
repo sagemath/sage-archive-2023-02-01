@@ -1351,7 +1351,7 @@ cdef class BinaryMatrix(LeanMatrix):
                 if bitset_in(row, cols[g]):
                     bitset_add(row2, gaps[g])
         # record order of the columns in list `order`
-        cdef list order = range(lc)
+        cdef list order = list(xrange(lc))
         g = 0
         for g in xrange(lg):
             order[gaps[g]] = cols[g]
@@ -2033,7 +2033,7 @@ cdef class TernaryMatrix(LeanMatrix):
                     if bitset_in(row1, p):
                         bitset_add(row1_2, q)
         # record order of the columns in list `order`
-        cdef list order = range(lc)
+        cdef list order = list(xrange(lc))
         g = 0
         for g in xrange(lg):
             order[gaps[g]] = cols[g]
@@ -2616,7 +2616,7 @@ cdef class QuaternaryMatrix(LeanMatrix):
                 if bitset_in(row1, p):
                     bitset_add(row1_2, q)
         # record order of the columns in list `order`
-        cdef list order = range(lc)
+        cdef list order = list(xrange(lc))
         g = 0
         for g in xrange(lg):
             order[gaps[g]] = cols[g]

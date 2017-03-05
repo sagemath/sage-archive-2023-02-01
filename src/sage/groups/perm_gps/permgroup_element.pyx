@@ -53,7 +53,7 @@ degree.
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 from __future__ import print_function
-
+    
 import random
 
 import sage.groups.old as group
@@ -226,6 +226,9 @@ def standardize_generator(g, convert_dict=None):
     from sage.libs.pari.all import pari_gen
 
     if isinstance(g, pari_gen):
+        g = list(g)
+
+    if isinstance(g, xrange):
         g = list(g)
 
     needs_conversion = True

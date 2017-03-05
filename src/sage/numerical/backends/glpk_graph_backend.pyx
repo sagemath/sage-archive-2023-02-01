@@ -1149,10 +1149,9 @@ cdef class GLPKGraphBackend(object):
             ....:    v_dict[v] = vertices[i]
             sage: gbe.set_vertices_demand(v_dict.items())
             sage: cost = ((8, 6, 10, 9), (9, 12, 13, 7), (14, 9, 16, 5))
-            sage: lcost = range(len(cost))
-            sage: lcost_0 = range(len(cost[0]))
-            sage: for i in lcost:
-            ....:    for j in lcost_0:
+
+            sage: for i in range(len(cost)):
+            ....:    for j in range(len(cost[0])):
             ....:         gbe.add_edge(str(i), str(j + len(cost)), {"cost":cost[i][j], "cap":100})
             sage: gbe.mincost_okalg()
             1020.0

@@ -534,7 +534,7 @@ class FiniteWord_class(Word_class):
             sage: w.length()
             4
             sage: def f(n):
-            ....:   return range(2,12,2)[n]
+            ....:   return list(range(2,12,2))[n]
             sage: w = Word(f, length=5)
             sage: w.length()
             5

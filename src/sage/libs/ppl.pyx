@@ -102,7 +102,7 @@ Finally, PPL is fast. For example, here is the permutahedron of 5
 basis vectors::
 
     sage: from sage.libs.ppl import Variable, Generator_System, point, C_Polyhedron
-    sage: basis = range(0,5)
+    sage: basis = list(range(5))
     sage: x = [ Variable(i) for i in basis ]
     sage: gs = Generator_System();
     sage: for coeff in Permutations(basis):
@@ -115,7 +115,7 @@ measures it to be 90 microseconds on sage.math). Below we do the same
 computation with cddlib, which needs more than 3 seconds on the same
 hardware::
 
-    sage: basis = range(0,5)
+    sage: basis = list(range(5))
     sage: gs = [ tuple(coeff) for coeff in Permutations(basis) ]
     sage: Polyhedron(vertices=gs, backend='cdd')  # long time (3s on sage.math, 2011)
     A 4-dimensional polyhedron in QQ^5 defined as the convex hull of 120 vertices

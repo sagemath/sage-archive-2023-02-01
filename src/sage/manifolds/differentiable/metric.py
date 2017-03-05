@@ -28,10 +28,12 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from six.moves import range
 
 from sage.rings.integer import Integer
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
+
 
 class PseudoRiemannianMetric(TensorField):
     r"""
@@ -1836,7 +1838,7 @@ class PseudoRiemannianMetric(TensorField):
             dom_resu = self._domain.intersection(pform.domain())
             resu = pform.restrict(dom_resu) * eps.restrict(dom_resu)
         else:
-            args = range(p) + [eps] + range(p)
+            args = list(range(p)) + [eps] + list(range(p))
             resu = pform.contract(*args)
         if p > 1:
             resu = resu / factorial(p)

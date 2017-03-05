@@ -154,6 +154,11 @@ We still need to call::
 
 but only changed files will be recompiled.
 
+To remove the new working tree simply use
+::
+
+    rm -r new_worktree
+
 
 Why not Merging the Other Way Round?
 ------------------------------------

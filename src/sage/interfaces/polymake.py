@@ -24,6 +24,9 @@ from __future__ import absolute_import
 import os
 import re
 import sys
+import six
+
+_name_pattern = re.compile('SAGE[0-9]+')
 
 from sage.structure.parent import Parent
 from .expect import console, Expect, ExpectElement, ExpectFunction, FunctionElement
@@ -39,6 +42,7 @@ from random import randrange
 from time import sleep
 from six.moves import range
 from six import reraise as raise_
+import warnings
 
 class PolymakeError(RuntimeError):
     """
@@ -75,8 +79,14 @@ class Polymake(ExtraTabCompletion, Expect):
                         restart_on_ctrlc=False,
                         logfile=logfile,
                         eval_using_file_cutoff=100)
-        self._seed = seed
 
+        self._seed = seed
+        self.__tab_completion = {}
+
+    @cached_method
+    def version(self):
+        import subprocess
+        return subprocess.check_output(["polymake", "--version"], stderr=subprocess.STDOUT).split()[2]
     # Pickling etc
 
     def __reduce__(self):
@@ -95,8 +105,8 @@ class Polymake(ExtraTabCompletion, Expect):
     def _object_class(self):
         return PolymakeElement
 
-    #~ def _function_element_class(self):
-        #~ return PolymakeFunctionElement
+    def _function_element_class(self):
+        return PolymakeFunctionElement
 
     #~ def _function_class(self):
         #~ return PolymakeFunction
@@ -127,8 +137,10 @@ class Polymake(ExtraTabCompletion, Expect):
             'diff(f(x),x)'
         """
         if kwds:
-            return "%s(%s, {%s})"%(function, ",".join(list(args)), ",".join(list(kwds)))
-        return "%s(%s)"%(function, ",".join(list(args)))
+            if args:
+                return "%s(%s, %s);"%(function, ",".join(list(args)), ",".join(list(kwds)))
+            return "%s(%s);"%(function, ",".join(list(kwds)))
+        return "%s(%s);"%(function, ",".join(list(args)))
 
     def console(self):
         """
@@ -171,26 +183,29 @@ class Polymake(ExtraTabCompletion, Expect):
         #~ return NotImplemented
 
     def _read_in_file_command(self, filename):
-        return 'load_commands "{}";\n'.format(filename)
+        return 'script "{}";\n'.format(filename)
 
     def _keyboard_interrupt(self):
-        if self._expect is None:
+        if not self.is_running():
             raise KeyboardInterrupt
         print("Interrupting %s..." % self)
-        cl = self._expect.compile_pattern_list(["killed by signal", self._prompt])
         while True:
             try:
                 self._expect.send(chr(3))
             except pexpect.ExceptionPexpect as msg:
                 raise pexpect.ExceptionPexpect("THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
-            try:
-                if self._expect.expect_list(cl, timeout=0.5): # 1, if self._prompt was found
-                    break
-            except pexpect.TIMEOUT:
+            i = self._expect.expect_list(self._prompt, timeout=1)
+            if i==0:
+                break
+            elif i==6:  # EOF
+                self._crash_msg()
+                self.quit()
+            elif i==7:  # Timeout
+                self.quit()
                 raise RuntimeError("{} interface is not responding".format(self))
         raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
 
-    def _synchronize(self, cmd='print 1+{};\n'):
+    def _synchronize(self):
         """
         TEST::
 
@@ -201,12 +216,12 @@ class Polymake(ExtraTabCompletion, Expect):
             sage: polymake._expect.sendline()
             1
 
-        Now the interface is badly of sync::
+        Now the interface is badly out of sync::
 
             sage: polymake('"foobar"')
             <BLANKLINE>
             sage: Q.typeof()
-            ('', 'Polymake::polytope::Polytope__Rational\nprint reftype($SAGE...);;')
+            ('', 'Polymake::polytope::Polytope__Rational')
             sage: Q.typeof.clear_cache()
 
         After synchronisation, things work again as expected::
@@ -218,21 +233,44 @@ class Polymake(ExtraTabCompletion, Expect):
             ('Polymake::polytope::Polytope__Rational', 'ARRAY')
 
         """
-        if self._expect is None:
+        if not self.is_running():
             return
         rnd = randrange(2147483647)
-        s = str(rnd+1)
+        res = str(rnd+1)
+        cmd='print 1+{};'+self._expect.linesep
         self._sendstr(cmd.format(rnd))
-        try:
-            self._expect_expr(timeout=0.5)
-            if not s in self._expect.before:
-                self._expect_expr(s,timeout=0.5)
-                self._expect_expr(timeout=0.5)
-        except pexpect.TIMEOUT:
-            self._interrupt()
-        except pexpect.EOF:
+        pat = self._expect.expect(self._prompt,timeout=0.5)
+        if pat == 7: # timeout
+            warnings.warn("A timeout has occured when synchronising {}.".format(self), RuntimeWarning)
+            self.interrupt()
+            # ... but we continue, as that probably means we currently are at the end of the buffer
+        elif pat == 6: # EOF
             self._crash_msg()
             self.quit()
+        elif pat == 0:
+            # We got the right prompt, but perhaps in a wrong position in the stream
+            # The result of the addition should appear *before* our prompt
+            if not res in self._expect.before:
+                try:
+                    self._expect.expect(res,timeout=0.1)
+                    while True:
+                        i = self._expect.expect_list(self._prompt, timeout=0.1)
+                        if i==6:
+                            raise pexpect.EOF
+                        elif i==7: # This time, we do expect a timeout
+                            return
+                        elif i>0:
+                            raise RuntimeError("Didn't expect the pattern {}".format(i))
+                except pexpect.TIMEOUT:
+                    warnings.warn("A timeout has occured when synchronising {}.".format(self), RuntimeWarning)
+                    self._interrupt()
+                except pexpect.EOF:
+                    self._crash_msg()
+                    self.quit()
+            else:
+                raise RuntimeError("got wrong prompt, pattern {}".format(pat))
+        else:
+            raise RuntimeError("got wrong prompt, pattern {}".format(pat))
 
     def _next_var_name(self):
         r"""
@@ -257,25 +295,143 @@ class Polymake(ExtraTabCompletion, Expect):
         else:
             return H
 
-    def eval(self, x, **kwds):
-        s = Expect.eval(self, x, **kwds).lstrip().split(os.linesep)
-        if s[0].startswith('polymake:  ERROR'):
-            raise PolymakeError("\n".join(s))
-        elif s[0].startswith('polymake: '):
-            # presumably there is a comment to be stripped
-            i = 0
-            c = []
-            while s:
-                next_comment = s.pop(0)
-                if next_comment:
-                    c.append(next_comment)
-                else:
-                    break
-            if get_verbose() > 0:
-                for next_comment in c:
-                    print(next_comment)
-                print()
-        return os.linesep.join(s)
+    def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True, restart_if_needed=True):
+        line = line.strip()
+        if allow_use_file and wait_for_prompt and self._eval_using_file_cutoff and len(line) > self._eval_using_file_cutoff:
+            return self._eval_line_using_file(line)
+        try:
+            if not self.is_running():
+                self._start()
+            E = self._expect
+            try:
+                if len(line) >= 4096:
+                    raise RuntimeError("Sending more than 4096 characters with %s on a line may cause a hang and you're sending %s characters"%(self, len(line)))
+                E.sendline(line)
+                if wait_for_prompt == False:
+                    return ''
+
+            except OSError as msg:
+                if restart_if_needed:
+                    # The subprocess most likely crashed.
+                    # If it's really still alive, we fall through
+                    # and raise RuntimeError.
+                    if sys.platform.startswith('sunos'):
+                        # On (Open)Solaris, we might need to wait a
+                        # while because the process might not die
+                        # immediately. See Trac #14371.
+                        for t in [0.5, 1.0, 2.0]:
+                            if E.isalive():
+                                time.sleep(t)
+                            else:
+                                break
+                    if not E.isalive():
+                        try:
+                            self._synchronize()
+                        except (TypeError, RuntimeError):
+                            pass
+                        return self._eval_line(line,allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False)
+                raise_(RuntimeError, "%s\nError evaluating %s in %s"%(msg, line, self), sys.exc_info()[2])
+
+            p_warnings = []
+            p_errors = []
+            have_warning = False
+            have_error = False
+            have_log = False
+            if len(line)>0:
+                first = True
+                while True:
+                    try:
+                        if isinstance(wait_for_prompt, six.string_types):
+                            pat = E.expect(wait_for_prompt)
+                        else:
+                            pat = E.expect_list(self._prompt)
+                    except pexpect.EOF as msg:
+                        try:
+                            if self.is_local():
+                                tmp_to_use = self._local_tmpfile()
+                            else:
+                                tmp_to_use = self._remote_tmpfile()
+                            if self._read_in_file_command(tmp_to_use) in line:
+                                raise pexpect.EOF(msg)
+                        except NotImplementedError:
+                            pass
+                        if self._quit_string() in line:
+                            # we expect to get an EOF if we're quitting.
+                            return ''
+                        elif restart_if_needed==True: # the subprocess might have crashed
+                            try:
+                                self._synchronize()
+                                return self._eval_line(line,allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False)
+                            except (TypeError, RuntimeError):
+                                pass
+                        raise RuntimeError("%s\n%s crashed executing %s"%(msg,self, line))
+                    if self._terminal_echo:
+                        out = E.before
+                    else:
+                        out = E.before.rstrip('\n\r')
+                    if self._terminal_echo and first:
+                        i = out.find("\n")
+                        j = out.rfind("\r")
+                        out = out[i+1:j].replace('\r\n','\n')
+                    else:
+                        out = out.strip().replace('\r\n','\n')
+                    first = False
+                    if have_error:
+                        p_errors.append(out)
+                        have_error = False
+                        out = ""
+                    elif have_warning:
+                        p_warnings.append(out)
+                        have_warning = False
+                        out = ""
+                    elif have_log:
+                        if get_verbose() > 0:
+                            print(out)
+                        have_log = False
+                        out = ""
+                    if pat == 0: # normal prompt
+                        have_log = False
+                        have_error = False
+                        have_warning = False
+                        if E.buffer:
+                            if not E.buffer.strip():
+                                E.send(chr(3))
+                                pat = E.expect_list(self._prompt)
+                                if E.buffer or pat:
+                                    raise RuntimeError("Couldn't return to prompt after command '{}'".format(line))
+                        break
+                    if pat == 1: # unexpected continuation prompt
+                        # Return to normal prompt
+                        while pat != 0:
+                            E.send(chr(3))
+                            pat = E.expect_list(self._prompt)
+                            assert pat==0, "Command '{}': Couldn't return to normal prompt after receiving continuation prompt".format(line)
+                        raise SyntaxError("Incomplete Polymake command '{}'".format(line))
+                    elif pat == 2: # killed by signal
+                        while pat != 0:
+                            E.send(chr(3))
+                            pat = E.expect_list(self._prompt)
+                        RuntimeError("Polymake: Some process was killed by a signal, but we didn't send one!")
+                    elif pat == 3: # Polymake error
+                        have_error = True
+                    elif pat == 4: # Polymake warning
+                        have_warning = True
+                    elif pat == 5: # apparently Polymake prints a comment
+                        have_log = True
+                    else: # we have reached the end of the buffer
+                        warnings.warn("The Polymake interface has reached the end of the input stream unexpectedly", RuntimeWarning)
+                        E.buffer = E.before + E.after + E.buffer
+                        break
+            else:
+                out = ''
+        except KeyboardInterrupt:
+            self._keyboard_interrupt()
+            raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
+        for w in p_warnings:
+            warnings.warn(w, RuntimeWarning)
+        for e in p_errors:
+            raise PolymakeError(e)
+        return out
 
     def get(self, var):
         return self.eval("print {};".format(var))
@@ -293,12 +449,19 @@ class Polymake(ExtraTabCompletion, Expect):
         It is not always the case that the returned functions are
         actually available in the current application.
         """
-        s = self.eval("apropos '';").split(os.linesep)
+        if not self.is_running():
+            self._start()
+        try:
+            return self.__tab_completion[self._application]
+        except KeyError:
+            pass
+        s = self.eval("apropos '';").split(self._expect.linesep)
         out = []
         for name in s:
             if name.startswith("/function"):
                 out.append(name.split("/")[-1])
-        return sorted(out)
+        self.__tab_completion[self._application] = sorted(out)
+        return self.__tab_completion[self._application]
 
     # Polymake specific methods
 
@@ -307,24 +470,18 @@ class Polymake(ExtraTabCompletion, Expect):
         if not self.is_running():
             self._start()
         self._application = app
-        self._change_prompt("{} > ".format(app))
-        self._sendstr('application "{}";{}'.format(app, os.linesep))
-        self._expect.expect(self._prompt)
+        patterns = ["{} > ".format(app), "{} \([0-9]+\)> ".format(app), "killed by signal", "polymake: +ERROR: +", "polymake: +WARNING: +", "polymake: +", pexpect.EOF, pexpect.TIMEOUT]
+        self._change_prompt(self._expect.compile_pattern_list(patterns))
+        self._sendstr('application "{}";{}'.format(app, self._expect.linesep))
+        assert self._expect.expect_list(self._prompt) == 0, "The Polymake prompt '{}' didn't appear".format(self._prompt[0])
 
-    def set_seed(self, seed=None):
-        """
-        Sets the seed for Polymake interface.
-        The seed should be an integer.
-
-        EXAMPLES::
-
-        """
-        if seed is None:
-            seed = self.rand_seed()
-        self.eval("srand(%d);" % seed)
-        self._seed = seed
-        return seed
-
+    def constructor(self, name, *args, **kwds):
+        try:
+            f = self.__new[name]
+        except AttributeError:
+            self.__new = {}
+            f = self.__new[name] = self._function_class()(self, "new {}".format(name))
+        return f(*args, **kwds)
 
 polymake = Polymake()
 
@@ -349,17 +506,39 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
     def _repr_(self):
         T1, T2 = self.typeof()
         P = self._check_valid()
-        if 'Matrix' in T1 or 'Vector' in T1:
-            return P.eval('print '+self._name+";").strip()
-        if 'Polytope' in T1:
-            return P.eval('print @{}[1];'.format(self._name)).strip()
-        if 'RuleChain' in T1:
-            return os.linesep.join(P.eval('print join("##",{}->list);'.format(self._name)).split('##'))
-        if T1=='' and T2=='ARRAY':
-            return P.eval('print @{};'.format(self._name)).strip()
-        if T1=='' and T2=='HASH':
-            return P.eval('print %@{};'.format(self._name)).strip()
-        return P.eval('print '+self._name+";").strip()
+        try:
+            if 'Matrix' in T1 or 'Vector' in T1:
+                out = P.eval('print '+self._name+";").strip()
+            elif 'Polytope' in T1:
+                out = P.eval('print @{}[1];'.format(self._name)).strip()
+                if not out:
+                    out = "{}[{}]".format(P.get("{}->type->full_name".format(self._name)) or "PolymakeElement", self._name[1:])
+            elif 'RuleChain' in T1:
+                out = os.linesep.join(P.eval('print join("##",{}->list);'.format(self._name)).split('##'))
+            elif T1=='' and T2=='ARRAY':
+                out = P.eval('print @{};'.format(self._name)).strip()
+            elif T1=='' and T2=='HASH':
+                out = P.eval('print %@{};'.format(self._name)).strip()
+            else:
+                out = P.eval('print '+self._name+";").strip()
+        except PolymakeError:
+            P._synchronize()
+            raise
+        # Replace variable names by the corresponding string representation, unless
+        # the string representation is too long
+        names = set(_name_pattern.findall(out))
+        if not names:
+            return out
+        subs_dict = {}
+        for name in names:
+            r = P.get("$"+name)
+            if os.linesep not in r:
+                subs_dict[name] = r
+        if self._name[1:] in subs_dict:
+            del subs_dict[self._name[1:]]
+        for name in subs_dict.keys():
+            out.replace(name, subs_dict[name])
+        return out
 
     def __cmp__(self, other):
         """
@@ -396,6 +575,17 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         cmd = '%s %s %s'%(self._name, P._equality_symbol(), t)
         return P.get(cmd) == t
 
+    def known_properties(self):
+        P = self._check_valid()
+        try:
+            return sorted(P.eval('print join(", ", {}->list_properties);'.format(self._name)).split(', '))
+        except PolymakeError:
+            return []
+
+    def schedule(self, name):
+        P = self._check_valid()
+        return P('{}->get_schedule("{}")'.format(self._name, name))
+
     @cached_method
     def _member_list(self):
         ### return the members of a "big" object.
@@ -411,17 +601,6 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             return []
         return sorted(out)
 
-    def known_properties(self):
-        P = self._check_valid()
-        try:
-            return sorted(P.eval('print join(", ", {}->list_properties);'.format(self._name)).split(', '))
-        except PolymakeError:
-            return []
-
-    def get_schedule(self, name):
-        P = self._check_valid()
-        return P('{}->get_schedule("{}")'.format(self._name, name))
-
     def _tab_completion(self):
         return sorted(self._member_list()+self.parent()._tab_completion())
 
@@ -430,11 +609,17 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         if attrname[:1] == "_":
             raise AttributeError
         if attrname not in P._tab_completion():
-            try:
-                return P('{}->{}'.format(self._name, attrname))
-            except (TypeError, PolymakeError):
-                pass
-        return P._function_element_class()(self, attrname)
+            if attrname in self._member_list():
+                try:
+                    return P('{}->{}'.format(self._name, attrname))
+                except (TypeError, PolymakeError):
+                    raise AttributeError
+            else:
+                try:
+                    return P._function_element_class()(self, '{}->{}'.format(self._name, attrname), memberfunction=True)
+                except (TypeError, PolymakeError):
+                    raise AttributeError
+        return P._function_element_class()(self, attrname, memberfunction=False)
 
     def attribute(self, attrname):
         P = self._check_valid()
@@ -480,3 +665,62 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         P = self._check_valid()
         P.eval('use Scalar::Util qw(reftype);')
         return P.get('ref({});'.format(self._name)), P.get('reftype({});'.format(self._name))
+
+    def _sage_doc_(self):
+        """
+        EXAMPLES::
+
+        """
+        P = self._check_valid()
+        T1, T2 = self.typeof()
+        if not T1:
+            if T2:
+                try:
+                    P.eval('help "{}";'.format(T2))
+                except PolymakeError:
+                    return "{} element of unknown type".format(P)
+        try:
+            return P.eval('help "{}";'.format(T1))
+        except PolymakeError:
+            pass
+        names = T1.split('::')
+        # Search backwards (from more specific to more general topics)
+        # in what is separated by "::", and in each topic search forward
+        # in the names separated by "__".
+        for name in reversed(names):
+            try:
+                return P.eval('help "{}";'.format(name))
+            except PolymakeError:
+                pass
+            if "__" in name:
+                for part in name.split("_"):
+                    if not part:
+                        continue
+                    try:
+                        return P.eval('help "{}";'.format(part))
+                    except PolymakeError:
+                        pass
+        return "Undocumented polymake type '{}'".format(T1)
+
+class PolymakeFunctionElement(FunctionElement):
+    """
+    A callable member of a Polymake element.
+    """
+    def __init__(self, obj, name, memberfunction=False):
+        self._obj = obj
+        self._name = name
+        self._is_memberfunc = memberfunction
+    def _repr_(self):
+        if self._is_memberfunc:
+            return "Member function '{}' of {} object".format(self._name.split("->")[-1], self._obj.typeof()[0])
+        return "{} (bound to {} object)".format(self._name, self._obj.typeof()[0])
+
+    def __call__(self, *args, **kwds):
+        if self._is_memberfunc:
+            return self._obj._check_valid().function_call(self._name, list(args), kwds)
+        return self._obj._check_valid().function_call(self._name, [self._obj] + list(args), kwds)
+
+    def _sage_doc_(self):
+        P = self._obj._check_valid()
+        return P.help(self._name.split("->")[-1])
+

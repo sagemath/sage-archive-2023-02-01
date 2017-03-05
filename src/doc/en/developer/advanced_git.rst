@@ -161,8 +161,8 @@ Why not Merging the Other Way Round?
 Being on some new SageMath (e.g. on branch ``develop``) which runs
 successfully, it would be possible to merge in our branch
 ``some_code`` into develop. This would produce the same source files
-and avoid unnecessary recompilations. However, it destroys git's
-history. Thus, for example, it is hard to keep track of changes etc.,
+and avoid unnecessary recompilations. However, it makes reading git's
+history very unpleasant: For example, it is hard to keep track of changes etc.,
 as one cannot simply persue the first parent of each git commit.
 
 

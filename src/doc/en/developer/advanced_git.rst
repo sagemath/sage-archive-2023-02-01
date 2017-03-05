@@ -148,7 +148,8 @@ We can now safely checkout ``some_code``::
 
     git checkout some_code
 
-We still need to call::
+We still need to call
+::
 
     make
 

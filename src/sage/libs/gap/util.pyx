@@ -12,6 +12,7 @@ Utility functions for libGAP
 ###############################################################################
 from __future__ import print_function, absolute_import
 
+from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from sage.env import SAGE_LOCAL, GAP_ROOT_DIR
 from libc.stdint cimport uintptr_t
 from .element cimport *
@@ -59,17 +60,17 @@ cdef class ObjWrapper(object):
         cdef result
         cdef libGAP_Obj self_value = self.value
         cdef libGAP_Obj other_value = other.value
-        if op==0:      # <   0
+        if op == Py_LT:      # <   0
             return self_value < other_value
-        elif op==1:    # <=  1
+        elif op == Py_LE:    # <=  1
             return self_value <= other_value
-        elif op==2:    # ==  2
+        elif op == Py_EQ:    # ==  2
             return self_value == other_value
-        elif op==4:    # >   4
+        elif op == Py_GT:    # >   4
             return self_value > other_value
-        elif op==5:    # >=  5
+        elif op == Py_GE:    # >=  5
             return self_value >= other_value
-        elif op==3:    # !=  3
+        elif op == Py_NE:    # !=  3
             return self_value != other_value
         else:
             assert False  # unreachable

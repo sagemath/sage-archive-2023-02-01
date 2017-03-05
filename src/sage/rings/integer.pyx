@@ -911,7 +911,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 c = mpz_cmp((<Integer>left).value, mpz_tmp)
             elif isinstance(right, float):
                 d = right
-                if isnan(d): return op == 3
+                if isnan(d):
+                    return op == Py_NE
                 c = mpz_cmp_d((<Integer>left).value, d)
             else:
                 return coercion_model.richcmp(left, right, op)
@@ -923,7 +924,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 c = mpz_cmp(mpz_tmp, (<Integer>right).value)
             if isinstance(left, float):
                 d = left
-                if isnan(d): return op == 3
+                if isnan(d):
+                    return op == Py_NE
                 c = -mpz_cmp_d((<Integer>right).value, d)
             else:
                 return coercion_model.richcmp(left, right, op)

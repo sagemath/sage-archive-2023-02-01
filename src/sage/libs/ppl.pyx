@@ -159,6 +159,7 @@ from sage.rings.rational cimport Rational
 include "cysignals/signals.pxi"
 
 from libcpp cimport bool as cppbool
+from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 
 ####################################################
 # Potentially expensive operations:
@@ -3131,17 +3132,17 @@ cdef class Polyhedron(_mutable_or_immutable):
         """
         cdef result
         sig_on()
-        if op==0:      # <   0
+        if op == Py_LT:      # <   0
             result = rhs.strictly_contains(lhs)
-        elif op==1:    # <=  1
+        elif op == Py_LE:    # <=  1
             result = rhs.contains(lhs)
-        elif op==2:    # ==  2
+        elif op == Py_EQ:    # ==  2
             result = (lhs.thisptr[0] == rhs.thisptr[0])
-        elif op==4:    # >   4
+        elif op == Py_GT:    # >   4
             result = lhs.strictly_contains(rhs)
-        elif op==5:    # >=  5
+        elif op == Py_GE:    # >=  5
             result = lhs.contains(rhs)
-        elif op==3:    # !=  3
+        elif op == Py_NE:    # !=  3
             result = (lhs.thisptr[0] != rhs.thisptr[0])
         else:
             assert False  # unreachable

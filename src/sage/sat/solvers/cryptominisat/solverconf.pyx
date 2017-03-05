@@ -41,6 +41,7 @@ AUTHORS:
 ###
 
 from libc.stdint cimport uint32_t, uint64_t
+from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 
 
 cdef class SolverConf(object):
@@ -288,12 +289,12 @@ cdef class SolverConf(object):
             ...
             TypeError: Configurations are not ordered.
         """
-        if op not in (2,3):
+        if op not in (Py_EQ, Py_NE):
             raise TypeError("Configurations are not ordered.")
         res = all(self[name] == other[name] for name in self.trait_names())
-        if op == 2: # ==
+        if op == Py_EQ: # ==
             return res
-        if op == 3: # !=
+        if op == Py_NE: # !=
             return not res
 
     def __copy__(self):

@@ -11115,11 +11115,11 @@ cdef class Matrix(matrix1.Matrix):
         polynomial = not var is None
         if polynomial:
             x = sage.rings.polynomial.polynomial_ring.polygen(R, var)
-            poly = sum([poly[i]*x**i for i in range(len(poly))])
+            poly = sum([poly[i] * x**i for i in range(len(poly))])
         ambient = R**n
         if basis == 'echelon':
             echelon = []
-            pivot_col_row = zip(pivots, range(k))
+            pivot_col_row = [(v, i) for i, v in enumerate(pivots)]
             pivot_col_row.sort()
             aug = augmented.submatrix(0, 0, k, n)
             for _, pivrow in pivot_col_row:

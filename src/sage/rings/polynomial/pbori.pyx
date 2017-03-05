@@ -2607,7 +2607,7 @@ cdef class BooleanMonomial(MonoidElement):
 
     def iterindex(self):
         """
-        Return an iterator over the indicies of the variables in self.
+        Return an iterator over the indices of the variables in self.
 
         EXAMPLES::
 

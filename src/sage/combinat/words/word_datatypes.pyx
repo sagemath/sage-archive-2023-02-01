@@ -13,7 +13,7 @@ Datatypes for finite words
 #*****************************************************************************
 from __future__ import print_function
 
-from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+from cpython.object cimport Py_EQ, Py_NE
 from itertools import islice
 
 

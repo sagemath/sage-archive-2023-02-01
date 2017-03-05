@@ -41,7 +41,7 @@ AUTHORS:
 ###
 
 from libc.stdint cimport uint32_t, uint64_t
-from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+from cpython.object cimport Py_EQ, Py_NE
 
 
 cdef class SolverConf(object):

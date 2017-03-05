@@ -25,7 +25,7 @@ from posix.signal cimport sigaction, sigaction_t
 
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
-from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+from cpython.object cimport Py_EQ, Py_NE
 
 #it would be preferrable to let bint_symbolp wrap an efficient macro
 #but the macro provided in object.h doesn't seem to work

@@ -70,7 +70,7 @@ from __future__ import absolute_import
 from .matroid cimport Matroid
 from .set_system cimport SetSystem
 from .utilities import setprint_s
-from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+from cpython.object cimport Py_EQ, Py_NE
 
 
 cdef class CircuitClosuresMatroid(Matroid):

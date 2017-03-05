@@ -325,7 +325,7 @@ Methods
 #*****************************************************************************
 from __future__ import absolute_import
 
-from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+from cpython.object cimport Py_EQ, Py_NE
 
 from sage.structure.sage_object cimport SageObject
 from itertools import combinations, permutations, product

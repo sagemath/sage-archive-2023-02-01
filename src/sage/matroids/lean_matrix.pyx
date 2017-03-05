@@ -33,7 +33,7 @@ AUTHORS:
 include "cysignals/memory.pxi"
 include 'sage/data_structures/bitset.pxi'
 from libc.string cimport memcpy, memset
-from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+from cpython.object cimport Py_EQ, Py_NE
 
 from sage.matrix.matrix2 cimport Matrix
 from sage.rings.all import ZZ, FiniteField, GF

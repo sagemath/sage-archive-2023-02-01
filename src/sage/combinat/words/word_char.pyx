@@ -17,7 +17,7 @@ include "cysignals/memory.pxi"
 include "sage/data_structures/bitset.pxi"
 
 cimport cython
-from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+from cpython.object cimport Py_EQ, Py_NE
 from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.rational cimport Rational
 from libc.string cimport memcpy, memcmp

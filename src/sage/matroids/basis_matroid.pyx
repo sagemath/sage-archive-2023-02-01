@@ -78,7 +78,7 @@ include 'sage/data_structures/bitset.pxi'
 from .matroid cimport Matroid
 from .basis_exchange_matroid cimport BasisExchangeMatroid
 from .set_system cimport SetSystem
-from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+from cpython.object cimport Py_EQ, Py_NE
 
 from sage.arith.all import binomial
 

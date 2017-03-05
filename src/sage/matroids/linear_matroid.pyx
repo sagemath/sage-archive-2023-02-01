@@ -111,7 +111,7 @@ Methods
 from __future__ import print_function, absolute_import
 
 include 'sage/data_structures/bitset.pxi'
-from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+from cpython.object cimport Py_EQ, Py_NE
 
 from sage.matroids.matroid cimport Matroid
 from sage.matroids.basis_exchange_matroid cimport BasisExchangeMatroid

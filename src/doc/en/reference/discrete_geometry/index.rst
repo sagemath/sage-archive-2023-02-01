@@ -46,6 +46,20 @@ Lattice polyhedra
    sage/geometry/polyhedron/ppl_lattice_polygon
    sage/geometry/polyhedron/ppl_lattice_polytope
 
+Toric geometry
+~~~~~~~~~~~~~~
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/geometry/toric_lattice
+   sage/geometry/cone
+   sage/geometry/fan
+   sage/geometry/fan_morphism
+   sage/geometry/point_collection
+   sage/geometry/toric_plotter
+   sage/rings/polynomial/groebner_fan
+
 Base classes for polyhedra
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -70,19 +84,6 @@ Backends for Polyhedra
    sage/geometry/polyhedron/double_description
    sage/geometry/polyhedron/double_description_inhomogeneous
 
-Toric varieties
----------------
-
-.. toctree::
-   :maxdepth: 1
-
-   sage/geometry/toric_lattice
-   sage/geometry/cone
-   sage/geometry/fan
-   sage/geometry/fan_morphism
-   sage/geometry/point_collection
-   sage/geometry/toric_plotter
-   sage/rings/polynomial/groebner_fan
 
 Triangulations
 --------------

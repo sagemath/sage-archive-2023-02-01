@@ -30,7 +30,7 @@ class CurveArrow(GraphicPrimitive):
         EXAMPLES::
 
             sage: from sage.plot.arrow import CurveArrow
-            sage: b = CurveArrow(path=[[(0,0),(.5,.5),(1,0)],[(.5,1),(0,0)]],options={})
+            sage: b = CurveArrow(path=[[(0,0),(.5,.5),(1,0)],[(.5,1),(0,0)]], options={})
             sage: b
             CurveArrow from (0, 0) to (0, 0)
         """
@@ -86,17 +86,17 @@ class CurveArrow(GraphicPrimitive):
              ('width', 'The width of the shaft of the arrow, in points.'),
              ('zorder', '2-d only: The layer level in which to draw')]
         """
-        return {'width':'The width of the shaft of the arrow, in points.',
-                'rgbcolor':'The color as an RGB tuple.',
-                'hue':'The color given as a hue.',
-                'legend_label':'The label for this item in the legend.',
-                'legend_color':'The color of the legend text.',
-                'arrowstyle': 'todo',
-                'arrowsize':'The size of the arrowhead',
-                'thickness':'The thickness of the arrow.',
-                'zorder':'2-d only: The layer level in which to draw',
-                'head':'2-d only: Which end of the path to draw the head (one of 0 (start), 1 (end) or 2 (both)',
-                'linestyle':"2d only: The style of the line, which is one of "
+        return {'width' : 'The width of the shaft of the arrow, in points.',
+                'rgbcolor' : 'The color as an RGB tuple.',
+                'hue' : 'The color given as a hue.',
+                'legend_label' : 'The label for this item in the legend.',
+                'legend_color' : 'The color of the legend text.',
+                'arrowstyle' : 'todo',
+                'arrowsize' : 'The size of the arrowhead',
+                'thickness' : 'The thickness of the arrow.',
+                'zorder' : '2-d only: The layer level in which to draw',
+                'head' : '2-d only: Which end of the path to draw the head (one of 0 (start), 1 (end) or 2 (both)',
+                'linestyle' : "2d only: The style of the line, which is one of "
                 "'dashed', 'dotted', 'solid', 'dashdot', or '--', ':', '-', '-.', "
                 "respectively."}
 
@@ -197,7 +197,6 @@ class Arrow(GraphicPrimitive):
                 'xmax': max(self.xtail, self.xhead),
                 'ymin': min(self.ytail, self.yhead),
                 'ymax': max(self.ytail, self.yhead)}
-
 
     def _allowed_options(self):
         """
@@ -436,6 +435,7 @@ class Arrow(GraphicPrimitive):
         subplot.add_patch(p)
         return p
 
+
 def arrow(tailpoint=None, headpoint=None, **kwds):
     """
     Returns either a 2-dimensional or 3-dimensional arrow depending
@@ -448,8 +448,20 @@ def arrow(tailpoint=None, headpoint=None, **kwds):
 
         sage: arrow((0,0), (1,1))
         Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        sphinx_plot(arrow((0,0), (1,1)))
+
+    ::
+
         sage: arrow((0,0,1), (1,1,1))
         Graphics3d Object
+
+    .. PLOT::
+
+        sphinx_plot(arrow((0,0,1), (1,1,1)))
+
     """
     try:
         return arrow2d(tailpoint, headpoint, **kwds)
@@ -504,39 +516,79 @@ def arrow2d(tailpoint=None, headpoint=None, path=None, **options):
 
     A straight, blue arrow::
 
-       sage: arrow2d((1, 1), (3, 3))
+       sage: arrow2d((1,1), (3,3))
        Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        sphinx_plot(arrow2d((1,1), (3,3)))
 
     Make a red arrow::
 
-       sage: arrow2d((-1, -1), (2, 3), color=(1,0,0))
+       sage: arrow2d((-1,-1), (2,3), color=(1,0,0))
        Graphics object consisting of 1 graphics primitive
-       sage: arrow2d((-1, -1), (2, 3), color='red')
+
+    .. PLOT::
+
+        sphinx_plot(arrow2d((-1,-1), (2,3), color=(1,0,0)))
+
+    ::
+
+       sage: arrow2d((-1,-1), (2,3), color='red')
        Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        sphinx_plot(arrow2d((-1,-1), (2,3), color='red'))
 
     You can change the width of an arrow::
 
-        sage: arrow2d((1, 1), (3, 3), width=5, arrowsize=15)
+        sage: arrow2d((1,1), (3,3), width=5, arrowsize=15)
         Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        P = arrow2d((1,1), (3,3), width=5, arrowsize=15)
+        sphinx_plot(P)
 
     Use a dashed line instead of a solid one for the arrow::
 
-        sage: arrow2d((1, 1), (3, 3), linestyle='dashed')
+        sage: arrow2d((1,1), (3,3), linestyle='dashed')
         Graphics object consisting of 1 graphics primitive
-        sage: arrow2d((1, 1), (3, 3), linestyle='--')
+        sage: arrow2d((1,1), (3,3), linestyle='--')
         Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        P = arrow2d((1,1), (3,3), linestyle='--')
+        sphinx_plot(P)
 
     A pretty circle of arrows::
 
         sage: sum([arrow2d((0,0), (cos(x),sin(x)), hue=x/(2*pi)) for x in [0..2*pi,step=0.1]])
         Graphics object consisting of 63 graphics primitives
 
+    .. PLOT::
+
+        #P = sum([arrow2d((0,0), (cos(x),sin(x)), hue=x/(2*pi)) for x in [0..2*pi,step=0.1]])
+        #sphinx_plot(P)
+
     If we want to draw the arrow between objects, for example, the
     boundaries of two lines, we can use the arrowshorten option
     to make the arrow shorter by a certain number of points::
 
-        sage: line([(0,0),(1,0)],thickness=10)+line([(0,1),(1,1)], thickness=10)+arrow2d((0.5,0),(0.5,1), arrowshorten=10,rgbcolor=(1,0,0))
+        sage: L1 = line([(0,0), (1,0)], thickness=10)
+        sage: L2 = line([(0,1), (1,1)], thickness=10)
+        sage: A = arrow2d((0.5,0), (0.5,1), arrowshorten=10, rgbcolor=(1,0,0))
+        sage: L1 + L2 + A
         Graphics object consisting of 3 graphics primitives
+
+    .. PLOT::
+
+        L1 = line([(0,0), (1,0)],thickness=10)
+        L2 = line([(0,1), (1,1)], thickness=10)
+        A = arrow2d((0.5,0), (0.5,1), arrowshorten=10, rgbcolor=(1,0,0))
+        sphinx_plot(L1 + L2 + A)
 
     If BOTH headpoint and tailpoint are None, then an empty plot is returned::
 
@@ -547,12 +599,24 @@ def arrow2d(tailpoint=None, headpoint=None, path=None, **options):
 
         sage: arrow((0,0), (0,2), legend_label='up', legend_color='purple')
         Graphics object consisting of 1 graphics primitive
+    
+    .. PLOT::
+
+        P = arrow((0,0), (0,2), legend_label='up', legend_color='purple')
+        sphinx_plot(P)
 
     Extra options will get passed on to show(), as long as they are valid::
 
-        sage: arrow2d((-2, 2), (7,1), frame=True)
+        sage: arrow2d((-2,2), (7,1), frame=True)
         Graphics object consisting of 1 graphics primitive
-        sage: arrow2d((-2, 2), (7,1)).show(frame=True)
+
+    .. PLOT::
+
+        sphinx_plot(arrow2d((-2,2), (7,1), frame=True))
+
+    ::
+        
+        sage: arrow2d((-2,2), (7,1)).show(frame=True)
     """
     from sage.plot.all import Graphics
     g = Graphics()

@@ -4175,34 +4175,39 @@ class Polyhedron_base(Element):
 
         In case of the ``d``-dimensional simplex, it returns ``d + 1``.
 
+        See :wikipedia:`Neighborly_polytope`
 
         EXAMPLES::
 
             sage: cube = polytopes.cube()
             sage: cube.neighborliness()
             1
-            sage: P=Polyhedron(); P
+            sage: P = Polyhedron(); P
             The empty polyhedron in ZZ^0
             sage: P.neighborliness()
             0
-            sage: P=Polyhedron([[0]]); P
+            sage: P = Polyhedron([[0]]); P
             A 0-dimensional polyhedron in ZZ^1 defined as the convex hull of 1 vertex
             sage: P.neighborliness()
             1
-            sage: S=polytopes.simplex(5); S
+            sage: S = polytopes.simplex(5); S
             A 5-dimensional polyhedron in ZZ^6 defined as the convex hull of 6 vertices
             sage: S.neighborliness()
             6
-            sage: C=polytopes.cyclic_polytope(7,10); C
+            sage: C = polytopes.cyclic_polytope(7,10); C
             A 7-dimensional polyhedron in QQ^7 defined as the convex hull of 10 vertices
             sage: C.neighborliness()
             3
-            sage: C=polytopes.cyclic_polytope(6,11); C
+            sage: C = polytopes.cyclic_polytope(6,11); C
             A 6-dimensional polyhedron in QQ^6 defined as the convex hull of 11 vertices
             sage: C.neighborliness()
             3
             sage: [polytopes.cyclic_polytope(5,n).neighborliness() for n in range(6,10)]
             [6, 2, 2, 2]
+
+        SEEALSO:
+
+            :meth:`is_neighborly`
         """
         if self.is_simplex():
             return self.dim() + 1
@@ -4218,15 +4223,18 @@ class Polyhedron_base(Element):
 
         If the input ``k`` is provided then return whether the polyhedron is ``k``-neighborly
 
+        See :wikipedia:`Neighborly_polytope`
+
+
         INPUT:
 
-        - ``k`` -- the dimension up to which to check if every set of k
+        - ``k`` -- the dimension up to which to check if every set of ``k``
           vertices forms a face. If no ``k`` is provided, check up to floor
           of half the dimension of the polyhedron.
 
         OUTPUT:
 
-        - ``True`` if the every set of up to k vertices forms a face,
+        - ``True`` if the every set of up to ``k`` vertices forms a face,
         - ``False`` otherwise
 
         EXAMPLES:
@@ -4253,6 +4261,9 @@ class Polyhedron_base(Element):
             sage: [(P.neighborliness()>=floor(P.dim()/2)) == P.is_neighborly() for P in  testpolys]
             [True, True, True]
 
+        SEEALSO:
+
+            :meth:`neighborliness`
         """
         if k == None:
             k = floor(self.dim()/2)

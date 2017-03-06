@@ -819,12 +819,12 @@ cdef class EclObject:
             sage: EclObject("<")(a,b)
             <ECL: T>
         """
-        if op == Py_EQ: # "=="
+        if op == Py_EQ:
             if not(isinstance(left,EclObject) and isinstance(right,EclObject)):
                 return False
             else:
                 return bint_equal((<EclObject>left).obj,(<EclObject>right).obj)
-        elif op == Py_NE: # "!="
+        elif op == Py_NE:
             if not(isinstance(left,EclObject) and isinstance(right,EclObject)):
                 return True
             else:

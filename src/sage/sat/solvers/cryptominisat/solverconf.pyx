@@ -292,9 +292,9 @@ cdef class SolverConf(object):
         if op not in (Py_EQ, Py_NE):
             raise TypeError("Configurations are not ordered.")
         res = all(self[name] == other[name] for name in self.trait_names())
-        if op == Py_EQ: # ==
+        if op == Py_EQ:
             return res
-        if op == Py_NE: # !=
+        if op == Py_NE:
             return not res
 
     def __copy__(self):

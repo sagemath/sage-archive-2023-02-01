@@ -3544,7 +3544,7 @@ cdef class Matroid(SageObject):
             True
         """
         from . import basis_matroid
-        if op not in [Py_EQ, Py_NE]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if left.__class__ != right.__class__:
             return NotImplemented
@@ -3554,15 +3554,15 @@ cdef class Matroid(SageObject):
         #   sage.matroids.matroid.Matroid.__richcmp__(p, q, 2)
         # Non-abstract subclasses should just call isinstance on both left and right.
         if hash(left) != hash(right):
-            if op == Py_EQ:  # ==
+            if op == Py_EQ:
                 return False
-            if op == Py_NE:  # !=
+            if op == Py_NE:
                 return True
 
         res = (basis_matroid.BasisMatroid(left) == basis_matroid.BasisMatroid(right))   # Default implementation
-        if op == Py_EQ:  # ==
+        if op == Py_EQ:
             return res
-        if op == Py_NE:  # !=
+        if op == Py_NE:
             return not res
 
     # Minors and duality

@@ -1157,9 +1157,9 @@ cdef class BasisMatroid(BasisExchangeMatroid):
             return NotImplemented
         if not isinstance(left, BasisMatroid) or not isinstance(right, BasisMatroid):
             return NotImplemented
-        if op == Py_EQ:  # ==
+        if op == Py_EQ:
             res = True
-        if op == Py_NE:  # !=
+        if op == Py_NE:
             res = False
         # res gets inverted if matroids are deemed different.
         if left.equals(right):

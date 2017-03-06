@@ -60,17 +60,17 @@ cdef class ObjWrapper(object):
         cdef result
         cdef libGAP_Obj self_value = self.value
         cdef libGAP_Obj other_value = other.value
-        if op == Py_LT:      # <   0
+        if op == Py_LT:
             return self_value < other_value
-        elif op == Py_LE:    # <=  1
+        elif op == Py_LE:
             return self_value <= other_value
-        elif op == Py_EQ:    # ==  2
+        elif op == Py_EQ:
             return self_value == other_value
-        elif op == Py_GT:    # >   4
+        elif op == Py_GT:
             return self_value > other_value
-        elif op == Py_GE:    # >=  5
+        elif op == Py_GE:
             return self_value >= other_value
-        elif op == Py_NE:    # !=  3
+        elif op == Py_NE:
             return self_value != other_value
         else:
             assert False  # unreachable

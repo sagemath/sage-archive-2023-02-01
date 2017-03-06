@@ -477,15 +477,15 @@ cdef class CircuitClosuresMatroid(Matroid):
             False
         """
         cdef CircuitClosuresMatroid lt, rt
-        if op not in [Py_EQ, Py_NE]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if not isinstance(left, CircuitClosuresMatroid) or not isinstance(right, CircuitClosuresMatroid):
             return NotImplemented
         lt = <CircuitClosuresMatroid> left
         rt = <CircuitClosuresMatroid> right
-        if op == Py_EQ:  # ==
+        if op == Py_EQ:
             res = True
-        if op == Py_NE:  # !=
+        if op == Py_NE:
             res = False
         # res gets inverted if matroids are deemed different.
         if lt.groundset() != rt.groundset():

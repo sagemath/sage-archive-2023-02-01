@@ -98,17 +98,17 @@ cdef class String:
         s = repr(self)
         o = repr(other)
 
-        if op == Py_EQ: # ==
+        if op == Py_EQ:
             return s == o
-        elif op == Py_NE: # !=
+        elif op == Py_NE:
             return s != o
-        elif op == Py_LT: # <
+        elif op == Py_LT:
             return s < o
-        elif op == Py_LE: # <=
+        elif op == Py_LE:
             return s <= o
-        elif op == Py_GT: # >
+        elif op == Py_GT:
             return s > o
-        elif op == Py_GE: # >=
+        elif op == Py_GE:
             return s >= o
 
     def __len__(self):
@@ -221,17 +221,17 @@ cdef class Type:
         s = repr(self)
         o = repr(other)
 
-        if op == Py_EQ: # ==
+        if op == Py_EQ:
             return s == o
-        elif op == Py_NE: # !=
+        elif op == Py_NE:
             return s != o
-        elif op == Py_LT: # <
+        elif op == Py_LT:
             return s < o
-        elif op == Py_LE: # <=
+        elif op == Py_LE:
             return s <= o
-        elif op == Py_GT: # >
+        elif op == Py_GT:
             return s > o
-        elif op == Py_GE: # >=
+        elif op == Py_GE:
             return s >= o
 
     def __reduce__(self):
@@ -370,17 +370,17 @@ cdef class CoxGroup(SageObject):
         s_r = self.rank()
         o_r = other.rank()
 
-        if op == Py_EQ: # ==
+        if op == Py_EQ:
             return s_t == o_t and s_r == o_r
-        elif op == Py_NE: # !=
+        elif op == Py_NE:
             return s_t != o_t or s_r != o_r
-        elif op == Py_LT: # <
+        elif op == Py_LT:
             return s_t < o_t or (s_t == o_t and s_r < o_r)
-        elif op == Py_LE: # <=
+        elif op == Py_LE:
             return s_t < o_t or (s_t == o_t and s_r <= o_r)
-        elif op == Py_GT: # >
+        elif op == Py_GT:
             return s_t > o_t or (s_t == o_t and s_r > o_r)
-        elif op == Py_GE: # >=
+        elif op == Py_GE:
             return s_t > o_t or (s_t == o_t and s_r >= o_r)
 
     def __reduce__(self):
@@ -867,17 +867,17 @@ cdef class CoxGroupElement:
         s_l = list(self)
         o_l = list(other)
 
-        if op == Py_EQ: # ==
+        if op == Py_EQ:
             return s_p == o_p and s_l == o_l
-        elif op == Py_NE: # !=
+        elif op == Py_NE:
             return s_p != o_p or s_l != o_l
-        elif op == Py_LT: # <
+        elif op == Py_LT:
             return s_p < o_p or (s_p == o_p and s_l < o_l)
-        elif op == Py_LE: # <=
+        elif op == Py_LE:
             return s_p < o_p or (s_p == o_p and s_l <= o_l)
-        elif op == Py_GT: # >
+        elif op == Py_GT:
             return s_p > o_p or (s_p == o_p and s_l > o_l)
-        elif op == Py_GE: # >=
+        elif op == Py_GE:
             return s_p > o_p or (s_p == o_p and s_l >= o_l)
 
     def __iter__(self):

@@ -1222,15 +1222,15 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             sage: M1 == M3  # indirect doctest
             True
         """
-        if op not in [Py_EQ, Py_NE]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if not isinstance(left, LinearMatroid) or not isinstance(right, LinearMatroid):
             return NotImplemented
         if left.__class__ != right.__class__:   # since we have some subclasses, an extra test
             return NotImplemented
-        if op == Py_EQ:  # ==
+        if op == Py_EQ:
             res = True
-        if op == Py_NE:  # !=
+        if op == Py_NE:
             res = False
         # res gets inverted if matroids are deemed different.
         if left.is_field_equivalent(right):

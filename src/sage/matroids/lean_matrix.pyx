@@ -447,15 +447,15 @@ cdef class LeanMatrix:
             False
         """
         cdef long i, j
-        if op not in [Py_EQ, Py_NE]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if not isinstance(left, LeanMatrix) or not isinstance(right, LeanMatrix):
             return NotImplemented
         if type(left) != type(right):
             return NotImplemented
-        if op == Py_EQ:  # ==
+        if op == Py_EQ:
             res = True
-        if op == Py_NE:  # !=
+        if op == Py_NE:
             res = False
         # res gets inverted if matroids are deemed different.
         if left.nrows() != right.nrows():
@@ -911,13 +911,13 @@ cdef class GenericMatrix(LeanMatrix):
             False
         """
         cdef long i, j
-        if op not in [Py_EQ, Py_NE]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if not isinstance(left, GenericMatrix) or not isinstance(right, GenericMatrix):
             return NotImplemented
-        if op == Py_EQ:  # ==
+        if op == Py_EQ:
             res = True
-        if op == Py_NE:  # !=
+        if op == Py_NE:
             res = False
         # res gets inverted if matroids are deemed different.
         if left.nrows() != right.nrows():
@@ -1513,13 +1513,13 @@ cdef class BinaryMatrix(LeanMatrix):
             False
         """
         cdef long i, j
-        if op not in [Py_EQ, Py_NE]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if not isinstance(left, BinaryMatrix) or not isinstance(right, BinaryMatrix):
             return NotImplemented
-        if op == Py_EQ:  # ==
+        if op == Py_EQ:
             res = True
-        if op == Py_NE:  # !=
+        if op == Py_NE:
             res = False
         # res gets inverted if matroids are deemed different.
         if left.nrows() != right.nrows():
@@ -2068,13 +2068,13 @@ cdef class TernaryMatrix(LeanMatrix):
             False
         """
         cdef long i, j
-        if op not in [Py_EQ, Py_NE]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if not isinstance(left, TernaryMatrix) or not isinstance(right, TernaryMatrix):
             return NotImplemented
-        if op == Py_EQ:  # ==
+        if op == Py_EQ:
             res = True
-        if op == Py_NE:  # !=
+        if op == Py_NE:
             res = False
         # res gets inverted if matroids are deemed different.
         if left.nrows() != right.nrows():
@@ -2667,13 +2667,13 @@ cdef class QuaternaryMatrix(LeanMatrix):
             False
         """
         cdef long i, j
-        if op not in [Py_EQ, Py_NE]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if not isinstance(left, QuaternaryMatrix) or not isinstance(right, QuaternaryMatrix):
             return NotImplemented
-        if op == Py_EQ:  # ==
+        if op == Py_EQ:
             res = True
-        if op == Py_NE:  # !=
+        if op == Py_NE:
             res = False
         if left.base_ring() != right.base_ring():
             return not res
@@ -3138,13 +3138,13 @@ cdef class IntegerMatrix(LeanMatrix):
             False
         """
         cdef long i, j
-        if op not in [Py_EQ, Py_NE]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if not isinstance(left, IntegerMatrix) or not isinstance(right, IntegerMatrix):
             return NotImplemented
-        if op == Py_EQ:  # ==
+        if op == Py_EQ:
             res = True
-        if op == Py_NE:  # !=
+        if op == Py_NE:
             res = False
         # res gets inverted if matroids are deemed different.
         if left.nrows() != right.nrows():

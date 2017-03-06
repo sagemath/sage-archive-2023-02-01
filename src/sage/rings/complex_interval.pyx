@@ -1449,7 +1449,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         cdef ComplexIntervalFieldElement lt, rt
         lt = left
         rt = right
-        if op == Py_EQ:  # ==
+        if op == Py_EQ:
             # intervals a == b iff a<=b and b <= a
             # (this gives a result with two comparisons, where the
             # obvious approach would use three)
@@ -1457,7 +1457,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
                 and mpfr_lessequal_p(&rt.__re.right, &lt.__re.left) \
                 and mpfr_lessequal_p(&lt.__im.right, &rt.__im.left) \
                 and mpfr_lessequal_p(&rt.__im.right, &lt.__im.left)
-        elif op == Py_NE:  # !=
+        elif op == Py_NE:
             return mpfr_less_p(&lt.__re.right, &rt.__re.left) \
                 or mpfr_less_p(&rt.__re.right, &lt.__re.left) \
                 or mpfr_less_p(&lt.__im.right, &rt.__im.left) \
@@ -1469,13 +1469,13 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             diff = left - right
             real_diff = diff.real()
             imag_diff = diff.imag()
-            if op == Py_LT:  # <
+            if op == Py_LT:
                 return real_diff < 0 or (real_diff == 0 and imag_diff < 0)
-            elif op == Py_LE:  # <=
+            elif op == Py_LE:
                 return real_diff < 0 or (real_diff == 0 and imag_diff <= 0)
-            elif op == Py_GT:  # >
+            elif op == Py_GT:
                 return real_diff > 0 or (real_diff == 0 and imag_diff > 0)
-            elif op == Py_GE:  # >=
+            elif op == Py_GE:
                 return real_diff > 0 or (real_diff == 0 and imag_diff >= 0)
 
     cpdef int _cmp_(left, right) except -2:

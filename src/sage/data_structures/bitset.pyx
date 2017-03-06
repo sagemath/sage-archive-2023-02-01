@@ -659,17 +659,17 @@ cdef class FrozenBitset:
             left = self
             right = other._larger_capacity_(self._bitset.size)
 
-        if op == Py_EQ:  # ==
+        if op == Py_EQ:
             return bitset_eq(left._bitset, right._bitset)
-        elif op == Py_NE:  # !=
+        elif op == Py_NE:
             return not bitset_eq(left._bitset, right._bitset)
-        elif op == Py_LT:  # <
+        elif op == Py_LT:
             return bitset_issubset(left._bitset, right._bitset) and not bitset_eq(left._bitset, right._bitset)
-        elif op == Py_LE:  # <=
+        elif op == Py_LE:
             return bitset_issubset(left._bitset, right._bitset)
-        elif op == Py_GT:  # >
+        elif op == Py_GT:
             return bitset_issuperset(left._bitset, right._bitset) and not bitset_eq(left._bitset, right._bitset)
-        elif op == Py_GE:  # >=
+        elif op == Py_GE:
             return bitset_issuperset(left._bitset, right._bitset)
 
     cpdef bint issubset(self, FrozenBitset other) except -1:
@@ -1401,17 +1401,17 @@ cdef class Bitset(FrozenBitset):
             left = self
             right = other._larger_capacity_(self._bitset.size)
 
-        if op == Py_EQ:  # ==
+        if op == Py_EQ:
             return bitset_eq(left._bitset, right._bitset)
-        elif op == Py_NE:  # !=
+        elif op == Py_NE:
             return not bitset_eq(left._bitset, right._bitset)
-        elif op == Py_LT:  # <
+        elif op == Py_LT:
             return bitset_issubset(left._bitset, right._bitset) and not bitset_eq(left._bitset, right._bitset)
-        elif op == Py_LE:  # <=
+        elif op == Py_LE:
             return bitset_issubset(left._bitset, right._bitset)
-        elif op == Py_GT:  # >
+        elif op == Py_GT:
             return bitset_issuperset(left._bitset, right._bitset) and not bitset_eq(left._bitset, right._bitset)
-        elif op == Py_GE:  # >=
+        elif op == Py_GE:
             return bitset_issuperset(left._bitset, right._bitset)
 
     cdef FrozenBitset _new(self, long int capacity):

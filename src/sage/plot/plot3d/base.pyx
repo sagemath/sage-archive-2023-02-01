@@ -380,21 +380,26 @@ cdef class Graphics3d(SageObject):
 
         if options['online']:
             scripts = ( """
-<script src=https://cdn.rawgit.com/mrdoob/three.js/r80/build/three.min.js></script>
-<script src=https://cdn.rawgit.com/mrdoob/three.js/r80/examples/js/controls/OrbitControls.js></script>
+<script src="https://cdn.rawgit.com/mrdoob/three.js/r80/build/three.min.js"></script>
+<script src="https://cdn.rawgit.com/mrdoob/three.js/r80/examples/js/controls/OrbitControls.js"></script>
             """ )
         else:
             from sage.repl.rich_output.backend_ipython import BackendIPythonNotebook
             if isinstance(backend, BackendIPythonNotebook):
                 scripts = ( """
-<script src=/nbextensions/threejs/three.min.js></script>
-<script src=/nbextensions/threejs/OrbitControls.js></script>
+<script src="/nbextensions/threejs/three.min.js"></script>
+<script src="/nbextensions/threejs/OrbitControls.js"></script>
+<script>
+  if ( !window.THREE ) document.write('\
+<script src="https://cdn.rawgit.com/mrdoob/three.js/r80/build/three.min.js"><\/script>\
+<script src="https://cdn.rawgit.com/mrdoob/three.js/r80/examples/js/controls/OrbitControls.js"><\/script>');
+</script>
                 """ )
             else:
                 from sage.env import SAGE_SHARE
                 scripts = ( """
-<script src={0}/threejs/three.min.js></script>
-<script src={0}/threejs/OrbitControls.js></script>
+<script src="{0}/threejs/three.min.js"></script>
+<script src="{0}/threejs/OrbitControls.js"></script>
                 """.format( SAGE_SHARE ) )
 
         lights = "[{x:0, y:0, z:10}, {x:0, y:0, z:-10}]"

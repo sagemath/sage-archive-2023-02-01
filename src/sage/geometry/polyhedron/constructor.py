@@ -173,11 +173,14 @@ exact way to work with roots in Sage is the :mod:`Algebraic Real Field
 
 Without specifying the ``base_ring``, the ``sqrt(3)`` would be a
 symbolic ring element and, therefore, the polyhedron defined over the
-symbolic ring. This is possible as well, but rather slow::
+symbolic ring. This is currently not supported as SR is not exact::
 
     sage: Polyhedron([(0,0), (1,0), (1/2, sqrt(3)/2)])
-    A 2-dimensional polyhedron in (Symbolic Ring)^2 defined as the convex 
-    hull of 3 vertices
+    Traceback (most recent call last):
+    ...
+    ValueError: no appropriate backend for computations with Symbolic Ring
+    sage: SR.is_exact()
+    False
 
 Even faster than all algebraic real numbers (the field ``AA``) is
 to take the smallest extension field. For the equilateral

@@ -372,17 +372,35 @@ cdef class Graphics3d(SageObject):
         if not options['frame']:
             options['axes_labels'] = False
 
+        from sage.repl.rich_output import get_display_manager
+        backend = get_display_manager()._backend
+        from sage.repl.rich_output.backend_sagenb import BackendSageNB
+        if isinstance(backend, BackendSageNB):
+            options['online'] = True
+
         if options['online']:
             scripts = ( """
-<script src=https://cdn.rawgit.com/mrdoob/three.js/r80/build/three.min.js></script>
-<script src=https://cdn.rawgit.com/mrdoob/three.js/r80/examples/js/controls/OrbitControls.js></script>
+<script src="https://cdn.rawgit.com/mrdoob/three.js/r80/build/three.min.js"></script>
+<script src="https://cdn.rawgit.com/mrdoob/three.js/r80/examples/js/controls/OrbitControls.js"></script>
             """ )
         else:
-            from sage.env import SAGE_SHARE
-            scripts = ( """
-<script src={0}/threejs/three.min.js></script>
-<script src={0}/threejs/OrbitControls.js></script>
-            """.format( SAGE_SHARE ) )
+            from sage.repl.rich_output.backend_ipython import BackendIPythonNotebook
+            if isinstance(backend, BackendIPythonNotebook):
+                scripts = ( """
+<script src="/nbextensions/threejs/three.min.js"></script>
+<script src="/nbextensions/threejs/OrbitControls.js"></script>
+<script>
+  if ( !window.THREE ) document.write('\
+<script src="https://cdn.rawgit.com/mrdoob/three.js/r80/build/three.min.js"><\/script>\
+<script src="https://cdn.rawgit.com/mrdoob/three.js/r80/examples/js/controls/OrbitControls.js"><\/script>');
+</script>
+                """ )
+            else:
+                from sage.env import SAGE_SHARE
+                scripts = ( """
+<script src="{0}/threejs/three.min.js"></script>
+<script src="{0}/threejs/OrbitControls.js"></script>
+                """.format( SAGE_SHARE ) )
 
         b = self.bounding_box()
         bounds = '[{{"x":{}, "y":{}, "z":{}}}, {{"x":{}, "y":{}, "z":{}}}]'.format(

@@ -4177,6 +4177,10 @@ class Polyhedron_base(Element):
 
         See :wikipedia:`Neighborly_polytope`
 
+        .. SEEALSO::
+
+            :meth:`is_neighborly`
+
         EXAMPLES::
 
             sage: cube = polytopes.cube()
@@ -4205,9 +4209,6 @@ class Polyhedron_base(Element):
             sage: [polytopes.cyclic_polytope(5,n).neighborliness() for n in range(6,10)]
             [6, 2, 2, 2]
 
-        SEEALSO:
-
-            :meth:`is_neighborly`
         """
         if self.is_simplex():
             return self.dim() + 1
@@ -4237,14 +4238,15 @@ class Polyhedron_base(Element):
         - ``True`` if the every set of up to ``k`` vertices forms a face,
         - ``False`` otherwise
 
+        .. SEEALSO::
+
+            :meth:`neighborliness`
+
         EXAMPLES:
 
         Cyclic polytopes are neighborly:
 
         ::
-
-            sage: all([polytopes.cyclic_polytope(i, i + 1 + j).is_neighborly() for i in range(5) for j in range(3)])
-            True
 
             sage: cube = polytopes.hypercube(3)
             sage: cube.is_neighborly()
@@ -4252,22 +4254,21 @@ class Polyhedron_base(Element):
             sage: cube = polytopes.hypercube(4)
             sage: cube.is_neighborly()
             False
+            sage: all([polytopes.cyclic_polytope(i, i + 1 + j).is_neighborly() for i in range(5) for j in range(3)])
+            True
 
         The neighborliness of a polyhedron equals floor of dimension half
-        (or is large in case of a simplex) if and only if the polyhedron
+        (or larger in case of a simplex) if and only if the polyhedron
         is neighborly::
 
             sage: testpolys = [polytopes.cube(), polytopes.cyclic_polytope(6, 9), polytopes.simplex(6)]
             sage: [(P.neighborliness()>=floor(P.dim()/2)) == P.is_neighborly() for P in  testpolys]
             [True, True, True]
 
-        SEEALSO:
-
-            :meth:`neighborliness`
         """
         if k == None:
             k = floor(self.dim()/2)
-        return all(len(self.faces(l)) == binomial(self.n_vertices(), l + 1) for l in range(1, k))
+        return all(len(self.faces(i)) == binomial(self.n_vertices(), i + 1) for i in range(1, k))
 
 
     @cached_method

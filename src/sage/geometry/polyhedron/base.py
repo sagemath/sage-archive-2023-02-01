@@ -1106,7 +1106,7 @@ class Polyhedron_base(Element):
             sage: p=polytopes.icosahedron(base_ring=AA)
             sage: lp, x = p.to_linear_program(return_variable=True)
             sage: lp.set_objective(x[0] + x[1] + x[2])
-            sage: lp.solve()
+            sage: lp.solve()  # long time
             1.309016994374948?
 
         TESTS::

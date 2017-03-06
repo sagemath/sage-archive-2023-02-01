@@ -4266,10 +4266,9 @@ class Polyhedron_base(Element):
             [True, True, True]
 
         """
-        if k == None:
+        if k is None:
             k = floor(self.dim()/2)
         return all(len(self.faces(i)) == binomial(self.n_vertices(), i + 1) for i in range(1, k))
-
 
     @cached_method
     def is_lattice_polytope(self):

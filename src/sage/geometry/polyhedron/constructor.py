@@ -57,6 +57,14 @@ representation. For example, `(0,0)` is a superfluous vertex here::
     sage: triangle.vertices()
     (A vertex at (-1, 0), A vertex at (1, 0), A vertex at (0, 2))
 
+.. SEEALSO::
+
+    If one only needs to keep track of a system of linear system of
+    inequalities, one should also consider the class for mixed integer linear
+    programming.
+
+    - :mod:`Mixed Integer Linear Programming <sage.numerical.mip>`
+
 
 Unbounded Polyhedra
 -------------------
@@ -188,6 +196,36 @@ triangle, that would be::
     A 2-dimensional polyhedron in (Number Field in sqrt3 with defining 
     polynomial x^2 - 3)^2 defined as the convex hull of 3 vertices
 
+Base classes
+------------
+
+Depending on the chosen base ring, a specific class is used to represent the polyhedron object.
+
+.. SEEALSO::
+
+    - :mod:`Base class for polyhedra <sage.geometry.polyhedron.base.Polyhedron_base>`
+    - :mod:`Base class for polyhedra over integers <sage.geometry.polyhedron.base_ZZ.Polyhedron_ZZ>`
+    - :mod:`Base class for polyhedra over rationals <sage.geometry.polyhedron.base_QQ.Polyhedron_QQ>`
+    - :mod:`Base class for polyhedra over RDF <sage.geometry.polyhedron.base_RDF.Polyhedron_RDF>`
+
+The most important base class is **Base class for polyhedra** from which other base classes and backends inherit.
+
+Backends
+--------
+
+There are different backends available to deal with polyhedron objects.
+
+.. SEEALSO::
+
+    - :mod:`cdd backend for polyhedra <sage.geometry.polyhedron.backend_cdd.Polyhedron_cdd>`
+    - :mod:`field backend for polyhedra <sage.geometry.polyhedron.backend_field.Polyhedron_field>`
+    - :mod:`normaliz backend for polyhedra <sage.geometry.polyhedron.backend_normaliz.Polyhedron_normaliz>`
+    - :mod:`ppl backend for polyhedra <sage.geometry.polyhedron.backend_ppl.Polyhedron_ppl>`
+
+.. NOTE::
+
+    Depending on the backend used, it may occur that different methods are
+    available or not.
 
 Appendix
 --------
@@ -195,7 +233,7 @@ Appendix
 REFERENCES:
 
     Komei Fukuda's `FAQ in Polyhedral Computation
-    <http://www.ifor.math.ethz.ch/~fukuda/polyfaq/polyfaq.html>`_
+    <https://www.inf.ethz.ch/personal/fukudak/polyfaq/polyfaq.html>`_
 
 AUTHORS:
 

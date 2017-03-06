@@ -2940,7 +2940,7 @@ class Polyhedron_base(Element):
         ``linear_coefficients``.
 
         To determine how deep the truncation is done, the method uses the
-        parameter ``cut_frac``. By default it is equal to `\frac{1}{3}. Once
+        parameter ``cut_frac``. By default it is equal to `\frac{1}{3}`. Once
         the normal vector of the cutting hyperplane is chosen, the vertices of
         polyhedron are evaluated according to the corresponding linear
         function. The parameter `\frac{1}{3}` means that the cutting

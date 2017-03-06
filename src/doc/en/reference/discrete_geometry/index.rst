@@ -9,13 +9,13 @@ Hyperplane arrangements
 -----------------------
 
 .. toctree::
-:maxdepth: 1
+   :maxdepth: 1
 
-sage/geometry/hyperplane_arrangement/arrangement
-sage/geometry/hyperplane_arrangement/library
-sage/geometry/hyperplane_arrangement/hyperplane
-sage/geometry/hyperplane_arrangement/affine_subspace
-sage/geometry/hyperplane_arrangement/plot
+   sage/geometry/hyperplane_arrangement/arrangement
+   sage/geometry/hyperplane_arrangement/library
+   sage/geometry/hyperplane_arrangement/hyperplane
+   sage/geometry/hyperplane_arrangement/affine_subspace
+   sage/geometry/hyperplane_arrangement/plot
 
 Polyhedral computations
 -----------------------
@@ -24,27 +24,27 @@ Polyhedra
 ~~~~~~~~~
 
 .. toctree::
-:maxdepth: 1
+   :maxdepth: 1
 
-sage/geometry/polyhedron/library
-sage/geometry/polyhedron/constructor
-sage/geometry/polyhedron/parent
-sage/geometry/polyhedron/representation
-sage/geometry/polyhedron/plot
-sage/geometry/polyhedron/face
-sage/geometry/polyhedron/cdd_file_format
+   sage/geometry/polyhedron/library
+   sage/geometry/polyhedron/constructor
+   sage/geometry/polyhedron/parent
+   sage/geometry/polyhedron/representation
+   sage/geometry/polyhedron/plot
+   sage/geometry/polyhedron/face
+   sage/geometry/polyhedron/cdd_file_format
 
 Lattice polyhedra
 ~~~~~~~~~~~~~~~~~
 
 .. toctree::
-:maxdepth: 1
+   :maxdepth: 1
 
-sage/geometry/lattice_polytope
-sage/geometry/polyhedron/lattice_euclidean_group_element
-sage/geometry/polyhedron/palp_database
-sage/geometry/polyhedron/ppl_lattice_polygon
-sage/geometry/polyhedron/ppl_lattice_polytope
+   sage/geometry/lattice_polytope
+   sage/geometry/polyhedron/lattice_euclidean_group_element
+   sage/geometry/polyhedron/palp_database
+   sage/geometry/polyhedron/ppl_lattice_polygon
+   sage/geometry/polyhedron/ppl_lattice_polytope
 
 Toric geometry
 ~~~~~~~~~~~~~~

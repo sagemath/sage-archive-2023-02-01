@@ -73,8 +73,8 @@ Number Theory
 Geometry
 --------
 
-* :ref:`polytutorial`
-* :ref:`polytikz`
+* :ref:`geometry`
+
 
 Combinatorics
 -------------

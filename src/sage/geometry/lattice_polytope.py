@@ -330,10 +330,9 @@ copyreg.constructor(LatticePolytope)   # "safe for unpickling"
 
 def ReflexivePolytope(dim, n):
     r"""
-    Return n-th reflexive polytope from the database of 2- or
-    3-dimensional reflexive polytopes.
+    Return the `n`-th 2- or 3-dimensional reflexive polytope.
 
-    .. note::
+    .. NOTE::
 
        #. Numeration starts with zero: `0 \leq n \leq 15` for `{\rm dim} = 2`
           and `0 \leq n \leq 4318` for `{\rm dim} = 3`.
@@ -346,9 +345,9 @@ def ReflexivePolytope(dim, n):
        #. Equivalent to ``ReflexivePolytopes(dim)[n]`` but checks bounds
           first.
 
-    EXAMPLES: The 3rd 2-dimensional polytope is "the diamond:"
-
-    ::
+    EXAMPLES:
+   
+    The 3rd 2-dimensional polytope is "the diamond"::
 
         sage: ReflexivePolytope(2, 3)
         2-d reflexive polytope #3 in 2-d lattice M
@@ -391,7 +390,7 @@ def ReflexivePolytopes(dim):
     r"""
     Return the sequence of all 2- or 3-dimensional reflexive polytopes.
 
-    .. note::
+    .. NOTE::
 
        During the first call the database is loaded and cached for
        future use, so repetitive calls will return the same object in
@@ -401,13 +400,14 @@ def ReflexivePolytopes(dim):
     :type dim: 2 or 3
     :rtype: list of lattice polytopes
 
-    EXAMPLES: There are 16 reflexive polygons::
+    EXAMPLES:
+   
+    There are 16 reflexive polygons::
 
         sage: len(ReflexivePolytopes(2))
         16
 
     It is not possible to load 4-dimensional polytopes in this way::
-
 
         sage: ReflexivePolytopes(4)
         Traceback (most recent call last):
@@ -426,16 +426,6 @@ def ReflexivePolytopes(dim):
             p.index.set_cache(n)
             # Prevents dimension computation later
             p.dim.set_cache(dim)
-        # Compute "fast" data in one call to PALP
-        all_polars(rp)
-        # Construction of all points via PALP takes more time after the switch
-        # to point collections, which is inconvenient for doctests and using
-        # reflexive polytopes in general, turn it off for now - there was no
-        # promise in documentation that points are precomputed.
-        # all_points(rp + [p._polar for p in rp])
-        # TODO: improve faces representation so that we can uncomment
-        # all_faces(rp)
-        # It adds ~10s for dim=3, which is a bit annoying to wait for.
         _rp[dim] = rp
     return _rp[dim]
 

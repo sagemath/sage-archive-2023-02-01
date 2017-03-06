@@ -4980,7 +4980,7 @@ class Polyhedron_base(Element):
         """
         return self.dim() == self.ambient_dim()
 
-    def is_combinatorially_isomorphic(self, other, algo='bipartite_graph'):
+    def is_combinatorially_isomorphic(self, other, algorithm='bipartite_graph'):
         r"""
         Return whether the polyhedron is combinatorially isomorphic to another polyhedron.
 
@@ -4990,7 +4990,7 @@ class Polyhedron_base(Element):
         INPUT:
 
         - ``other`` -- a polyhedron object.
-        - ``algo`` (default = ``bipartite_graph``) -- the algorithm to use.
+        - ``algorithm`` (default = ``bipartite_graph``) -- the algorithm to use.
           The other possible value is ``face_lattice``.
 
         OUTPUT:
@@ -5010,7 +5010,7 @@ class Polyhedron_base(Element):
             True
 
         All the faces of the 3-dimensional permutahedron are either
-        combinatorially isomorphic to a square or a sixgon::
+        combinatorially isomorphic to a square or a hexagon::
 
             sage: H = polytopes.regular_polygon(6)
             sage: S = polytopes.hypercube(2)
@@ -5018,9 +5018,9 @@ class Polyhedron_base(Element):
             sage: all(F.as_polyhedron().is_combinatorially_isomorphic(S) or F.as_polyhedron().is_combinatorially_isomorphic(H) for F in P.faces(2))
             True
 
-        Checking that a regular simplex intersected with its negative,
-        is combinatorially isomorpic to the intersection of a cube with
-        a hyperplane perpendicular to its long diagonal::
+        Checking that a regular simplex intersected with its reflection
+        through the origin is combinatorially isomorphic to the intersection
+        of a cube with a hyperplane perpendicular to its long diagonal::
 
             polytopes.regular_polygon(4)
             sage: def simplex_intersection(k):
@@ -5038,7 +5038,7 @@ class Polyhedron_base(Element):
             sage: simplex_intersection(3).is_combinatorially_isomorphic(polytopes.octahedron())
             True
 
-        Two polytopes with the same `f`-vector, but different combinatorial type::
+        Two polytopes with the same `f`-vector, but different combinatorial types::
 
             sage: P = Polyhedron([[-605520/1525633, -605520/1525633, -1261500/1525633, -52200/1525633, 11833/1525633],\
              [-720/1769, -600/1769, 1500/1769, 0, -31/1769], [-216/749, 240/749, -240/749, -432/749, 461/749], \
@@ -5068,10 +5068,10 @@ class Polyhedron_base(Element):
             sage: C = polytopes.hypercube(5)
             sage: C.is_combinatorially_isomorphic(C)
             True
-            sage: C.is_combinatorially_isomorphic(C, algo='magic')
+            sage: C.is_combinatorially_isomorphic(C, algorithm='magic')
             Traceback (most recent call last):
             ...
-            AssertionError: algo must be 'bipartite graph' or 'face_lattice'
+            AssertionError: `algorithm` must be 'bipartite graph' or 'face_lattice'
 
             sage: G = Graph()
             sage: C.is_combinatorially_isomorphic(G)
@@ -5090,7 +5090,7 @@ class Polyhedron_base(Element):
         assert isinstance(other, Polyhedron_base), "input `other` must be a polyhedron"
         assert self.is_compact(), "polyhedron `self` must be bounded"
         assert other.is_compact(), "polyhedron `other` must be bounded"
-        assert algo in ['bipartite_graph', 'face_lattice'], "algo must be 'bipartite graph' or 'face_lattice'"
+        assert algorithm in ['bipartite_graph', 'face_lattice'], "`algorithm` must be 'bipartite graph' or 'face_lattice'"
 
         # For speed, we check if the polyhedra have the same number of facets and vertices.
         # This is faster then building the bipartite graphs first and
@@ -5098,7 +5098,7 @@ class Polyhedron_base(Element):
         if self.n_vertices() != other.n_vertices() or self.n_facets() != other.n_facets():
             return False
 
-        if algo == 'bipartite_graph':
+        if algorithm == 'bipartite_graph':
 
             def get_incidences(P):
                 # This function constructs a directed bipartite graph.

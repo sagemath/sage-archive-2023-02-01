@@ -507,7 +507,7 @@ class Polymake(ExtraTabCompletion, Expect):
         self._sendstr('application "{}";{}'.format(app, self._expect.linesep))
         assert self._expect.expect_list(self._prompt) == 0, "The Polymake prompt '{}' didn't appear".format(self._prompt[0])
 
-    def constructor(self, name, *args, **kwds):
+    def new_from_type(self, name, *args, **kwds):
         try:
             f = self.__new[name]
         except AttributeError:
@@ -545,7 +545,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             assert T2 == 'ARRAY'
             out = P.get('{}[1]'.format(name)).strip()
             if not out:
-                out = "{}[{}]".format(P.get("{}->type->full_name".format(name)) or "PolymakeElement", name)
+                out = "{}[{}]".format(P.get("{}->type->full_name".format(name)) or "PolymakeElement", _name_pattern.search(name).group())
         elif 'RuleChain' in T1:
             out = os.linesep.join(P.get('join("##",{}->list)'.format(name)).split('##'))
         elif T1=='' and T2=='ARRAY':

@@ -1055,7 +1055,7 @@ cdef class BooleanFunction(SageObject):
 
         INPUT:
 
-        - ``val`` -- either an integer or a tuple/list of ``GF(2)`` elements
+        - ``val`` -- either an integer or a tuple/list of `\GF{2}` elements
           of length ``self.nvariables()``
 
         .. SEEALSO::
@@ -1123,7 +1123,7 @@ cdef class BooleanFunction(SageObject):
         Return ``True`` if this function has a linear structure.
 
         An `n`-variable Boolean function `f` has a linear structure if
-        there exists a nonzero `a \in \mathbb{F}_2^n` such that
+        there exists a nonzero `a \in \GF{2}^n` such that
         `f(x \oplus a) \oplus f(x)` is a constant function.
 
         .. SEEALSO::
@@ -1152,7 +1152,7 @@ cdef class BooleanFunction(SageObject):
     def linear_structures(self):
         """
         Return all linear structures of this Boolean function as a vector subspace
-        of `\mathbb{F}_2^n`.
+        of `\GF{2}^n`.
 
         .. SEEALSO::
 

@@ -34,8 +34,6 @@ polytopes and polyhedra (with rational or numerical coordinates).
    sage/geometry/polyhedron/ppl_lattice_polygon
    sage/geometry/polyhedron/ppl_lattice_polytope
 
-   sage/geometry/polytope
-
    sage/geometry/pseudolines
 
    sage/geometry/triangulation/point_configuration

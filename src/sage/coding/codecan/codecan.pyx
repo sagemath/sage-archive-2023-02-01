@@ -339,7 +339,7 @@ cdef class InnerGroup:
     cdef void gaussian_elimination(self, object m, int pos, int pivot, list nz_pos):
         r"""
         Minimize the column at position ``pos`` of the matrix ``m`` by the
-        action of ``self``.  We know that the there is some nonzero entry of this
+        action of ``self``. We know that there is some nonzero entry of this
         column at ``pivot >= self.rank``. All nonzero entries are stored in
         the list ``nz_pos``.
 

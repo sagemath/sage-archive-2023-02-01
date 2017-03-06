@@ -3076,7 +3076,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef list pl, ml
 
         pl = list()
-        ml = range(r.N)
+        ml = list(xrange(r.N))
         while p:
             for v from 1 <= v <= r.N:
                 ml[v-1] = p_GetExp(p,v,r)

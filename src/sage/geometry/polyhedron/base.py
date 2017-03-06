@@ -4989,14 +4989,14 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - `other` -- a polyhedron object.
-        - `algo` (default = `bipartite_graph`) -- the algorithm to use.
-          The other possible value is `face_lattice`.
+        - ``other`` -- a polyhedron object.
+        - ``algo`` (default = ``bipartite_graph``) -- the algorithm to use.
+          The other possible value is ``face_lattice``.
 
         OUTPUT:
 
-          - `True` if the two polyhedra are combinatorially isomorphic
-          - `False` otherwise
+          - ``True`` if the two polyhedra are combinatorially isomorphic
+          - ``False`` otherwise
 
         REFERENCES:
 

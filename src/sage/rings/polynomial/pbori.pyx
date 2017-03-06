@@ -1808,10 +1808,9 @@ def get_var_mapping(ring, other):
         sage: sage.rings.polynomial.pbori.get_var_mapping(P, x^2)
         [None, x]
     """
-
-    my_names = list(ring._names) # we need .index(.)
+    my_names = list(ring._names)  # we need .index(.)
     if isinstance(other, (Parent, BooleanMonomialMonoid)):
-        indices = range(other.ngens())
+        indices = list(xrange(other.ngens()))
         ovar_names = other._names
     else:
         ovar_names = other.parent().variable_names()

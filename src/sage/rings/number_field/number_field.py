@@ -4594,11 +4594,13 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         Compute the different fractional ideal of this number field.
 
         The codifferent is the fractional ideal of all `x` in `K`
-        such that the the trace of `xy` is an integer for
+        such that the trace of `xy` is an integer for
         all `y \in O_K`.
 
         The different is the integral ideal which is the inverse of
         the codifferent.
+
+        See :wikipedia:`Different_ideal`
 
         EXAMPLES::
 

@@ -1290,7 +1290,7 @@ Sage uses the following environment variables when it runs:
 - :envvar:`SAGE_PATH` - a colon-separated list of directories which Sage
   searches when trying to locate Python libraries.
 
-- :envvar:`SAGE_BROWSER` - on most platforms, Sage will detect the command to
+- :envvar:`BROWSER` - on most platforms, Sage will detect the command to
   run a web browser, but if this doesn't seem to work on your machine, set this
   variable to the appropriate command.
 

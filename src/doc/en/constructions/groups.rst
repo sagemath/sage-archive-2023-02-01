@@ -502,7 +502,7 @@ to be returned. For example, to construct
     sage: A = groups.presentation.FGAbelian([4,2,2,2])
 
 The output for a given group is the same regardless of the input list of
-integers.  The following example yeilds identical presentations for the
+integers.  The following example yields identical presentations for the
 cyclic group of order 30.
 ::
 
@@ -540,7 +540,7 @@ The following table shows the groups of order 15 or less, and how to construct
 them in Sage. Repeated commands have been omitted but instead are described
 by the following exmples.
 
-The cyclic group of order `n` can be crated with a single command:
+The cyclic group of order `n` can be created with a single command:
 
 .. skip
 

@@ -372,12 +372,12 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
 
             sage: W = CoxeterGroup(['B',3])
             sage: W.base_ring()
-            Universal Cyclotomic Field
+            Number Field in a with defining polynomial x^2 - 2
             sage: g = W.an_element()
             sage: ~g
-            [            -1              1              0]
-            [            -1              0  E(8) - E(8)^3]
-            [-E(8) + E(8)^3              0              1]
+            [-1  1  0]
+            [-1  0  a]
+            [-a  0  1]
         """
         cdef Parent parent = self.parent()
         cdef Matrix M = self._matrix

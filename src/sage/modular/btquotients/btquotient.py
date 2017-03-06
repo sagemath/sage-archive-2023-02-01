@@ -2443,13 +2443,13 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
 
         INPUT:
 
-        - ``exact`` boolean (Default: False). If True, return an
+        - ``exact`` boolean (Default: ``False``). If ``True``, return an
           embedding into a matrix algebra with coefficients in a
           number field. Otherwise, embed into matrices over `p`-adic
           numbers.
 
-        - ``prec`` Integer (Default: None). If specified, return the
-          matrix with precision ``prec``. Otherwise, return the the
+        - ``prec`` Integer (Default: ``None``). If specified, return the
+          matrix with precision ``prec``. Otherwise, return the
           cached matrix (with the current working precision).
 
         OUTPUT:

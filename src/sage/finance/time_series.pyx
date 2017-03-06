@@ -46,7 +46,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 include "cysignals/memory.pxi"
-from cpython.string cimport *
+from cpython.bytes cimport PyBytes_FromStringAndSize, PyBytes_AsString
 from libc.math cimport exp, floor, log, pow, sqrt
 from libc.string cimport memcpy
 
@@ -185,7 +185,7 @@ cdef class TimeSeries:
             sage: loads(dumps(v, compress=False),compress=False) == v
             True
         """
-        buf = PyString_FromStringAndSize(<char*>self._values, self._length*sizeof(double)/sizeof(char))
+        buf = PyBytes_FromStringAndSize(<char*>self._values, self._length*sizeof(double)/sizeof(char))
         return unpickle_time_series_v1, (buf, self._length)
 
     def __cmp__(self, _other):
@@ -2559,7 +2559,7 @@ cdef new_time_series(Py_ssize_t length):
     t._values = <double*> sig_malloc(sizeof(double)*length)
     return t
 
-def unpickle_time_series_v1(v, Py_ssize_t n):
+def unpickle_time_series_v1(bytes v, Py_ssize_t n):
     """
     Version 1 unpickle method.
 
@@ -2581,7 +2581,7 @@ def unpickle_time_series_v1(v, Py_ssize_t n):
         []
     """
     cdef TimeSeries t = new_time_series(n)
-    memcpy(t._values, PyString_AsString(v), n*sizeof(double))
+    memcpy(t._values, PyBytes_AsString(v), n*sizeof(double))
     return t
 
 

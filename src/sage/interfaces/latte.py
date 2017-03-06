@@ -302,3 +302,129 @@ def integrate(arg, polynomial, raw_output=False, verbose=False, **kwds):
     else:
         from sage.rings.rational import Rational
         return Rational(ans)
+
+def volume(arg, algorithm='triangulate', raw_output=False, verbose=False, **kwds):
+    r"""
+    Call to the function integrate from LattE integrale, to compute the volume of a polytope.
+
+    INPUT:
+
+    - ``arg`` -- a cdd or LattE description string
+
+    - ``algorithm`` -- (default: 'triangulate') the integration method. Use 'triangulate' for polytope triangulation
+    or 'cone-decompose' for tangent cone decomposition method.
+
+    - ``raw_output`` -- if ``True`` then return directly the output string from LattE
+
+    - ``verbose`` -- if ``True`` then return directly verbose output from LattE
+
+    - For all other options of the count program, consult the LattE manual
+
+    OUTPUT:
+
+    Either a string (if ``raw_output`` if set to ``True``) or a rational.
+
+    EXAMPLES::
+
+        sage: from sage.interfaces.latte import volume
+        sage: P = 2 * polytopes.cube()
+
+    Computing the volume of a polytope in either the H or V representation::
+
+        sage: volume(P.cdd_Hrepresentation(), cdd=True)   # optional - latte_int
+        64
+        sage: volume(P.cdd_Vrepresentation(), cdd=True)   # optional - latte_int
+        64
+
+    TESTS:
+
+    Testing triangulate algorithm::
+
+        sage: from sage.interfaces.latte import integrate
+        sage: P = polytopes.cuboctahedron()
+        sage: cddin = P.cdd_Vrepresentation()
+        sage: volume(cddin, algorithm='triangulate', cdd=True)  # optional - latte_int
+        20/3
+
+    Testing convex decomposition algorithm::
+
+        sage: from sage.interfaces.latte import integrate
+        sage: P = polytopes.cuboctahedron()
+        sage: cddin = P.cdd_Vrepresentation()
+        sage: volume(cddin, algorithm='cone-decompose', cdd=True)  # optional - latte_int
+        20/3
+
+    Testing raw output::
+
+        sage: from sage.interfaces.latte import integrate
+        sage: P = polytopes.cuboctahedron()
+        sage: cddin = P.cdd_Vrepresentation()
+        sage: volume(cddin, cdd=True, raw_output=True)  # optional - latte_int
+        '20/3'
+
+    Testing the ``verbose`` option::
+
+        sage: ans = volume(cddin, cdd=True, verbose=True, raw_output=True)  # optional - latte_int
+        This is LattE integrale ...
+        ...
+        Invocation: integrate --valuation=volume --triangulate --redundancy-check=none --cdd /dev/stdin
+        ...
+    """
+    from subprocess import Popen, PIPE
+    from sage.misc.misc import SAGE_TMP
+    from sage.rings.integer import Integer
+
+    args = ['integrate']
+    args.append('--valuation=volume')
+
+    if algorithm=='triangulate':
+        args.append('--triangulate')
+    elif algorithm=='cone-decompose':
+        args.append('--cone-decompose')
+
+    if 'redundancy_check' not in kwds:
+        args.append('--redundancy-check=none')
+
+    for key,value in kwds.items():
+        if value is None or value is False:
+            continue
+
+        key = key.replace('_','-')
+        if value is True:
+            args.append('--{}'.format(key))
+        else:
+            args.append('--{}={}'.format(key, value))
+
+    args += ['/dev/stdin']
+
+    try:
+        # The cwd argument is needed because latte
+        # always produces diagnostic output files.
+        latte_proc = Popen(args,
+                           stdin=PIPE, stdout=PIPE,
+                           stderr=(None if verbose else PIPE),
+                           cwd=str(SAGE_TMP))
+    except OSError:
+        from sage.misc.package import PackageNotFoundError
+        raise PackageNotFoundError('latte_int')
+
+    ans, err = latte_proc.communicate(arg)
+    ret_code = latte_proc.poll()
+    if ret_code:
+        if err is None:
+            err = ", see error message above"
+        else:
+            err = ":\n" + err
+        raise RuntimeError("LattE integrale program failed (exit code {})".format(ret_code) + err.strip())
+
+    ans = ans.splitlines()
+
+    ans = ans[-5].split()
+    assert(ans[0]=='Answer:')
+    ans = ans[1]
+
+    if raw_output:
+        return ans
+    else:
+        from sage.rings.rational import Rational
+        return Rational(ans)

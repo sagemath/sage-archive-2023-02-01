@@ -4989,14 +4989,18 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``other`` -- a polyhedron object.
+        - `other` -- a polyhedron object.
         - `algo` (default = `bipartite_graph`) -- the algorithm to use.
-         The other possible value is `face_lattice`.
+          The other possible value is `face_lattice`.
 
         OUTPUT:
 
-        - ``True`` if the two polyhedra are combinatorially isomorphic
-        - ``False`` otherwise
+          - `True` if the two polyhedra are combinatorially isomorphic
+          - `False` otherwise
+
+        REFERENCES:
+
+            For the equivalence of the two algorithms see [KK1995]_, p. 877-878
 
         EXAMPLES:
 
@@ -5017,6 +5021,7 @@ class Polyhedron_base(Element):
         Checking that a regular simplex intersected with its negative,
         is combinatorially isomorpic to the intersection of a cube with
         a hyperplane perpendicular to its long diagonal::
+
             polytopes.regular_polygon(4)
             sage: def simplex_intersection(k):
             ....:   S1 = Polyhedron([vector(v)-vector(polytopes.simplex(k).center()) for v in polytopes.simplex(k).vertices_list()])

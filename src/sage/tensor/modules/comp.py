@@ -1153,6 +1153,13 @@ class Components(SageObject):
             C_01 = 0.33
             C_21 = 0.29
 
+        Check that the bug reported in :trac:`22520` is fixed::
+
+            sage: c = Components(SR, [1, 2], 1)
+            sage: c[0] = SR.var('t', domain='real')
+            sage: c.display('c')
+            c_0 = t
+
         """
         from sage.misc.latex import latex
         from sage.tensor.modules.format_utilities import FormattedExpansion
@@ -1190,7 +1197,8 @@ class Components(SageObject):
         for ind in generator:
             ind_arg = ind + (format_spec,)
             val = self[ind_arg]
-            if val != 0 or not only_nonzero:
+            if not (val == 0) or not only_nonzero:  # val != 0 would not be
+                                                    # correct, see :trac:`22520`
                 indices = ''  # text indices
                 d_indices = '' # LaTeX down indices
                 u_indices = '' # LaTeX up indices
@@ -1336,7 +1344,7 @@ class Components(SageObject):
         # In other words, the full method should be
         #   return self.comp == {}
         for val in itervalues(self._comp):
-            if val != 0:
+            if not (val == 0):
                 return False
         return True
 
@@ -3244,7 +3252,7 @@ class CompWithSym(Components):
         else:
             sign, ind = self._ordered_indices(indices)
             if sign == 0:
-                if value != 0:
+                if not (value == 0):
                     raise ValueError("by antisymmetry, the component cannot " +
                                      "have a nonzero value for the indices " +
                                      str(indices))

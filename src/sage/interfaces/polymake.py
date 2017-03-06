@@ -64,7 +64,7 @@ def polymake_console():
 
 class Polymake(ExtraTabCompletion, Expect):
     def __init__(self, script_subdirectory=None,
-                 logfile=None, server=None,server_tmpdir=None,
+                 logfile="/home/king/Projekte/Polymake/pexpect.log", server=None,server_tmpdir=None,
                  seed=None, command=None):
         if command is None:
             command = "env TERM=dumb {}".format(os.getenv('SAGE_POLYMAKE_COMMAND') or 'polymake')
@@ -160,6 +160,8 @@ class Polymake(ExtraTabCompletion, Expect):
     def _start(self, alt_message=None):
         Expect._start(self, alt_message)
         self.application("polytope")
+        self.eval('use Scalar::Util qw(reftype);')
+        self.eval('use Scalar::Util qw(blessed);')
 
     def _quit_string(self):
         return "exit;"
@@ -221,7 +223,7 @@ class Polymake(ExtraTabCompletion, Expect):
             sage: polymake('"foobar"')
             <BLANKLINE>
             sage: Q.typeof()
-            ('', 'Polymake::polytope::Polytope__Rational')
+            ('', 'Polymake::polytope::Polytope__Rational', '$SAGE...')
             sage: Q.typeof.clear_cache()
 
         After synchronisation, things work again as expected::
@@ -230,7 +232,7 @@ class Polymake(ExtraTabCompletion, Expect):
             sage: polymake('"back to normal"')
             back to normal
             sage: Q.typeof()
-            ('Polymake::polytope::Polytope__Rational', 'ARRAY')
+            ('Polymake::polytope::Polytope__Rational', 'ARRAY', '$SAGE...')
 
         """
         if not self.is_running():
@@ -285,7 +287,38 @@ class Polymake(ExtraTabCompletion, Expect):
             self.__seq += 1
         except AttributeError:
             self.__seq = 0
-        return r'$SAGE%s'%self.__seq
+        return r'SAGE%s'%self.__seq
+
+    def clear(self, var):
+        """
+        Clear the variable named var.
+        """
+        self._available_vars.append(_name_pattern.search(var).group())
+
+    def _create(self, value, name=None):
+        name = self._next_var_name() if name is None else name
+        self.set(name, value)
+        # If value is a list, then @name is now equal to that list.
+        # Otherwise, value is obtained by $name[0]. So, we modify
+        # the name returned by _create so that it can be used to
+        # access the wrapped value.
+        if self.eval('print scalar @{};'.format(name)).strip() == '1':
+            return '$'+name+'[0]'
+        return '@'+name
+
+    def set(self, var, value):
+        """
+        Set the variable var to the given value.
+
+        Eventually, ``var`` is a reference to ``value``.
+        """
+        if isinstance(value, six.string_types):
+            value = value.strip().rstrip(';').strip()
+        cmd = '@%s%s(%s);'%(var,self._assign_symbol(), value)
+        self.eval(cmd)
+
+    def get(self, cmd):
+        return self.eval("print {};".format(cmd)).strip()
 
     def help(self, topic, pager=True):
         H = self.eval('help("{}");\n'.format(topic))
@@ -433,21 +466,20 @@ class Polymake(ExtraTabCompletion, Expect):
             raise PolymakeError(e)
         return out
 
-    def get(self, var):
-        return self.eval("print {};".format(var))
-
     def cputime(self, t=None):
         return NotImplemented
 
-    @cached_method
     def _tab_completion(self):
         """
         Returns a list of Polymake function names.
 
         NOTE:
 
-        It is not always the case that the returned functions are
-        actually available in the current application.
+        - The list of functions depends on the current application. The
+          result is cached, of course separately for each application.
+        - It is generally not the case that all the returned function names
+          can actually successfully be called.
+
         """
         if not self.is_running():
             self._start()
@@ -480,7 +512,7 @@ class Polymake(ExtraTabCompletion, Expect):
             f = self.__new[name]
         except AttributeError:
             self.__new = {}
-            f = self.__new[name] = self._function_class()(self, "new {}".format(name))
+            f = self.__new[name] = self._function_class()(self, "{}->new".format(name))
         return f(*args, **kwds)
 
 polymake = Polymake()
@@ -506,38 +538,36 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
     def _repr_(self):
         T1, T2 = self.typeof()
         P = self._check_valid()
-        try:
-            if 'Matrix' in T1 or 'Vector' in T1:
-                out = P.eval('print '+self._name+";").strip()
-            elif 'Polytope' in T1:
-                out = P.eval('print @{}[1];'.format(self._name)).strip()
-                if not out:
-                    out = "{}[{}]".format(P.get("{}->type->full_name".format(self._name)) or "PolymakeElement", self._name[1:])
-            elif 'RuleChain' in T1:
-                out = os.linesep.join(P.eval('print join("##",{}->list);'.format(self._name)).split('##'))
-            elif T1=='' and T2=='ARRAY':
-                out = P.eval('print @{};'.format(self._name)).strip()
-            elif T1=='' and T2=='HASH':
-                out = P.eval('print %@{};'.format(self._name)).strip()
-            else:
-                out = P.eval('print '+self._name+";").strip()
-        except PolymakeError:
-            P._synchronize()
-            raise
-        # Replace variable names by the corresponding string representation, unless
-        # the string representation is too long
-        names = set(_name_pattern.findall(out))
-        if not names:
-            return out
-        subs_dict = {}
-        for name in names:
-            r = P.get("$"+name)
-            if os.linesep not in r:
-                subs_dict[name] = r
-        if self._name[1:] in subs_dict:
-            del subs_dict[self._name[1:]]
-        for name in subs_dict.keys():
-            out.replace(name, subs_dict[name])
+        name = self._name
+        if 'Matrix' in T1 or 'Vector' in T1:
+            out = P.get(name).strip()
+        elif 'Polytope' in T1:
+            assert T2 == 'ARRAY'
+            out = P.get('{}[1]'.format(name)).strip()
+            if not out:
+                out = "{}[{}]".format(P.get("{}->type->full_name".format(name)) or "PolymakeElement", name)
+        elif 'RuleChain' in T1:
+            out = os.linesep.join(P.get('join("##",{}->list)'.format(name)).split('##'))
+        elif T1=='' and T2=='ARRAY':
+            out = P.get('@{}'.format(name)).strip()
+        elif T1=='' and T2=='HASH':
+            out = P.get('%{}'.format(name)).strip()
+        else:
+            out = P.get(name).strip()
+        #~ # Replace variable names by the corresponding string representation, unless
+        #~ # the string representation is too long
+        #~ names = set(_name_pattern.findall(out))
+        #~ if not names:
+            #~ return out
+        #~ subs_dict = {}
+        #~ for name in names:
+            #~ r = P.get(name)
+            #~ if os.linesep not in r:
+                #~ subs_dict[name] = r
+        #~ if self._name[1:] in subs_dict:
+            #~ del subs_dict[self._name[1:]]
+        #~ for name in subs_dict.keys():
+            #~ out.replace(name, subs_dict[name])
         return out
 
     def __cmp__(self, other):
@@ -549,11 +579,11 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
         """
         P = self._check_valid()
-        if P.get("%s %s %s"%(self.name(), P._equality_symbol(), other.name())) == P._true_symbol():
+        if P.eval("print $%s %s $%s;"%(self.name(), P._equality_symbol(), other.name())).strip() == P._true_symbol():
             return 0
-        if P.get("%s %s %s"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
+        if P.eval("print $%s %s $%s;"%(self.name(), P._lessthan_symbol(), other.name())).strip() == P._true_symbol():
             return -1
-        if P.get("%s %s %s"%(self.name(), P._greaterthan_symbol(), other.name())) == P._true_symbol():
+        if P.eval("print $%s %s $%s;"%(self.name(), P._greaterthan_symbol(), other.name())).strip() == P._true_symbol():
             return 1
         return -2 # that's supposed to be an error value.
 
@@ -572,29 +602,25 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         """
         P = self._check_valid()
         t = P._true_symbol()
-        cmd = '%s %s %s'%(self._name, P._equality_symbol(), t)
+        cmd = '%s %s %s;'%(self._name, P._equality_symbol(), t)
         return P.get(cmd) == t
 
     def known_properties(self):
         P = self._check_valid()
         try:
-            return sorted(P.eval('print join(", ", {}->list_properties);'.format(self._name)).split(', '))
+            return sorted(P.get('join(", ", {}->list_properties)'.format(self._name)).split(', '))
         except PolymakeError:
             return []
-
-    def schedule(self, name):
-        P = self._check_valid()
-        return P('{}->get_schedule("{}")'.format(self._name, name))
 
     @cached_method
     def _member_list(self):
         ### return the members of a "big" object.
         P = self._check_valid()
         try:
-            X = P('typeof {};'.format(self._name))
+            P.eval('$SAGETMP = typeof {+'+self._name+'};')
         except (TypeError, PolymakeError):  # this happens for a perl type that isn't a Polymake type
             return []
-        cmd = 'print join(", ", sorted_uniq(sort { $a cmp $b } map { keys %{$_->properties} }'+X._name + ', @{'+X._name+'->super}));'
+        cmd = 'print join(", ", sorted_uniq(sort { $a cmp $b } map { keys %{$_->properties} }$SAGETMP, @{$SAGETMP->super}));'
         try:
             out = P.eval(cmd).split(', ')
         except PolymakeError, msg:
@@ -627,9 +653,11 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
     def __getitem__(self, key):
         P = self._check_valid()
-        _,T = self.typeof()
+        _, T = self.typeof()
+        if self._name.startswith('@'):
+            return P('${}[{}]'.format(self._name[1:], key))
         if T=='ARRAY':
-            return P('@{}[{}]'.format(self._name, key))
+            return P('{}[{}]'.format(self._name, key))
         if T=='HASH':
             try:
                 if key.parent() is self.parent():
@@ -638,24 +666,17 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
                     key = str(key)
             except AttributeError:
                 key = str(key)
-            return P(self._name+"{"+key+"}")
+            return P(name+"{"+key+"}")
         raise NotImplementedError("Cannot get items from Perl type {}".format(T))
 
     def __len__(self):
         P = self._check_valid()
         T1,T2 = self.typeof()
+        name = self._name
         if T2=='ARRAY':
-            if self._name.startswith('@'):
-                name = self._name[1:]
-            else:
-                name = self._name
-            return int(P.eval('print scalar @{};'.format(name)))
+            return int(P.eval('print scalar @{+%s};'%name))
         if T2=='HASH':
-            if self._name.startswith('%'):
-                name = self._name[1:]
-            else:
-                name = self._name
-            return int(P.eval('print scalar keys %{};'.format(name)))
+            return int(P.eval('print scalar keys %{+%s};'%name))
         if T1:
             raise TypeError("Don't know how to compute the length of {} object".format(T1))
         raise TypeError("Don't know how to compute the length of {} object".format(T2))
@@ -663,8 +684,8 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
     @cached_method
     def typeof(self):
         P = self._check_valid()
-        P.eval('use Scalar::Util qw(reftype);')
-        return P.get('ref({});'.format(self._name)), P.get('reftype({});'.format(self._name))
+        name = self._name
+        return P.eval('print ref({});'.format(name)), P.eval('print reftype({});'.format(name))
 
     def _sage_doc_(self):
         """
@@ -672,7 +693,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
         """
         P = self._check_valid()
-        T1, T2 = self.typeof()
+        T1, T2, _ = self.typeof()
         if not T1:
             if T2:
                 try:
@@ -686,7 +707,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         names = T1.split('::')
         # Search backwards (from more specific to more general topics)
         # in what is separated by "::", and in each topic search forward
-        # in the names separated by "__".
+        # in the names separated by "_".
         for name in reversed(names):
             try:
                 return P.eval('help "{}";'.format(name))

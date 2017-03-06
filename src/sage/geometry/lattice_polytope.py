@@ -108,7 +108,8 @@ from sage.combinat.posets.posets import FinitePoset
 from sage.env import POLYTOPE_DATA_DIR
 from sage.geometry.cone import _ambient_space_point, integral_length
 from sage.geometry.hasse_diagram import Hasse_diagram_from_incidences
-from sage.geometry.point_collection import PointCollection, is_PointCollection
+from sage.geometry.point_collection import PointCollection,\
+    is_PointCollection, read_palp_point_collection
 from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice
 from sage.graphs.graph import DiGraph, Graph
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
@@ -184,8 +185,9 @@ def LatticePolytope(data, compute_vertices=True, n=0, lattice=None):
 
         * a file with matrix data, opened for reading, or
 
-        * a filename of such a file, see :func:`read_palp_matrix` for the
-          file format;
+        * a filename of such a file, see
+          :func:`~sage.geometry.point_collection.read_palp_point_collection`
+          for the file format;
 
     - ``compute_vertices`` -- boolean (default: ``True``). If ``True``, the
        convex hull of the given points will be computed for
@@ -290,10 +292,10 @@ def LatticePolytope(data, compute_vertices=True, n=0, lattice=None):
     if isinstance(data, str):
         f = open(data)
         skip_palp_matrix(f, n)
-        data = read_palp_matrix(data)
+        data = read_palp_point_collection(data)
         f.close()
     if isinstance(data, (file, StringIO)):
-        data = read_palp_matrix(data)
+        data = read_palp_point_collection(data)
     if not is_PointCollection(data) and not isinstance(data, (list, tuple)):
         try:
             data = list(data)
@@ -1127,8 +1129,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         N = self.dual_lattice()
         if self.is_reflexive():
             data.seek(pos)
-            polar = LatticePolytope(read_palp_matrix(data).columns(),
-                                    compute_vertices=False, lattice=N)
+            polar = LatticePolytope(
+                read_palp_point_collection(data, N), compute_vertices=False)
             polar.dim.set_cache(self.dim())
             polar.is_reflexive.set_cache(True)
             polar._constructed_as_polar = True
@@ -1205,8 +1207,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             return
         nvertices = self.nvertices()
         data.readline() # Skip M/N information
-        nef_vertices = read_palp_matrix(data)
-        if self.vertices().column_matrix() != nef_vertices:
+        nef_vertices = read_palp_point_collection(data, self.lattice())
+        if self.vertices() != nef_vertices:
             raise RuntimeError("nef.x changed the order of vertices!")
         line = data.readline()
         if line == "":
@@ -2895,8 +2897,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         if self.dim() < self.lattice_dim():
             raise ValueError("normal form is not defined for %s" % self)
         if algorithm == "palp":
-            result = read_palp_matrix(self.poly_x("N"),
-                                      permutation=permutation)
+            result = read_palp_point_collection(
+                self.poly_x("N"), self.lattice(), permutation=permutation)
         elif algorithm == "palp_native":
             result = self._palp_native_normal_form(permutation=permutation)
         elif algorithm == "palp_modified":
@@ -4955,10 +4957,13 @@ def _palp(command, polytopes, reduce_dimension=False):
         if p.dim() == 0:
             raise ValueError(("Cannot run \"%s\" for the zero-dimensional "
                 + "polytope!\nPolytope: %s") % (command, p))
-        if p.dim() < p.lattice_dim() and not reduce_dimension:
-            raise ValueError(("Cannot run PALP for a %d-dimensional polytope " +
-            "in a %d-dimensional space!") % (p.dim(), p.lattice_dim()))
-        write_palp_matrix(p._pullback(p._vertices), input_file)
+        if p.dim() < p.lattice_dim():
+            if not reduce_dimension:
+                raise ValueError(("Cannot run PALP for a %d-dimensional polytope " +
+                "in a %d-dimensional space!") % (p.dim(), p.lattice_dim()))
+            write_palp_matrix(p._pullback(p._vertices), input_file)
+        else:
+            p._vertices.write_for_palp(input_file)
     input_file.close()
     output_file_name = tmp_filename()
     c = "%s <%s >%s" % (command, input_file_name, output_file_name)
@@ -5594,21 +5599,16 @@ def read_all_polytopes(file_name):
           -1   1  -1
            1   1  -1
         sage: lattice_polytope.read_all_polytopes(result_name)
-        [
-        2-d reflexive polytope #14 in 2-d lattice M,
-        3-d reflexive polytope in 3-d lattice M
-        ]
+        [2-d reflexive polytope #14 in 2-d lattice M,
+         3-d reflexive polytope in 3-d lattice M]
         sage: os.remove(result_name)
     """
-    polytopes = Sequence([], LatticePolytope, cr=True)
-    f = open(file_name)
-    n = 0
-    m = read_palp_matrix(f)
-    while m.nrows() != 0:
-        polytopes.append(LatticePolytope(m.columns(), compute_vertices=False))
-        n += 1
-        m = read_palp_matrix(f)
-    f.close()
+    polytopes = []
+    with open(file_name) as f:
+        pc = read_palp_point_collection(f)
+        while pc is not None:
+            polytopes.append(LatticePolytope(pc, compute_vertices=False))
+            pc = read_palp_point_collection(f)
     return polytopes
 
 

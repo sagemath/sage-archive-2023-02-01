@@ -5079,17 +5079,19 @@ class Polyhedron_base(Element):
         if algo == 'bipartite_graph':
 
             def get_incidences(P):
-                #This function constructs a directed bipartite graph.
-                #The nodes of the graph are the vertices of the polyhedron
-                #and the faces of the polyhedron. There is an directed edge
-                #from a vertex to a face if the vertex is contained in the face.
-                #We obtain this incidence information from the incidence matrix
+                # This function constructs a directed bipartite graph.
+                # The nodes of the graph are the vertices of the polyhedron
+                # and the facets of the polyhedron. There is an directed edge
+                # from a vertex to a face if the vertex is contained in the face.
+                # We obtain this incidence information from the incidence matrix
                 G = DiGraph()
                 M = P.incidence_matrix()
-                #We construct the edges and remove the columns that have all 1s;
-                #those correspond to faces, that contain all vertices (which happens
-                #if the polyhedron is not full-dimensional)
-                edges = [[i, M.ncols()+j] for i, column in enumerate(M.columns())  if any(entry!=1 for entry in column) for j in range(M.nrows()) if  M[j,i]==1]
+                # We construct the edges and remove the columns that have all 1s;
+                # those correspond to faces, that contain all vertices (which happens
+                # if the polyhedron is not full-dimensional)
+                edges = [[i, M.ncols()+j] for i, column in enumerate(M.columns())
+                         if any(entry != 1 for entry in column)
+                         for j in range(M.nrows()) if M[j, i] == 1]
                 G.add_edges(edges)
                 return G
 

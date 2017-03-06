@@ -5310,20 +5310,24 @@ def all_points(polytopes):
     result_name = _palp("poly.x -fp", polytopes, reduce_dimension=True)
     result = open(result_name)
     for p in polytopes:
-        m = p._embed(read_palp_matrix(result))
-        if m.nrows() == 0:
-            raise RuntimeError("Cannot read points of {}".format(p))
-        p._points = points = p._vertices
-        if m.ncols() > p.nvertices():
-            points = list(points)
-            M = p.lattice()
-            for j in range(p.nvertices(), m.ncols()):
-                current = M.zero_vector()
-                for i in range(M.rank()):
-                    current[i] = m[i, j]
-                current.set_immutable()
-                points.append(current)
-            p._points = PointCollection(points, M)
+        M = p.lattice()
+        nv = p.nvertices()
+        if p.dim() == p.lattice_dim():
+            points = read_palp_point_collection(result, M)
+            p._points = points if len(points) > nv else p.vertices()
+        else:
+            m = p._embed(read_palp_matrix(result))
+            if m.ncols() == nv:
+                p._points = p.vertices()
+            else:
+                points = list(p.vertices())
+                for j in range(nv, m.ncols()):
+                    current = M.zero_vector()
+                    for i in range(M.rank()):
+                        current[i] = m[i, j]
+                    current.set_immutable()
+                    points.append(current)
+                p._points = PointCollection(points, M)
     result.close()
     os.remove(result_name)
 

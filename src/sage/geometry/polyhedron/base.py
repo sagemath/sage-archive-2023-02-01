@@ -4242,11 +4242,7 @@ class Polyhedron_base(Element):
 
             :meth:`neighborliness`
 
-        EXAMPLES:
-
-        Cyclic polytopes are neighborly:
-
-        ::
+        EXAMPLES::
 
             sage: cube = polytopes.hypercube(3)
             sage: cube.is_neighborly()
@@ -4254,6 +4250,11 @@ class Polyhedron_base(Element):
             sage: cube = polytopes.hypercube(4)
             sage: cube.is_neighborly()
             False
+
+        Cyclic polytopes are neighborly:
+
+        ::
+
             sage: all([polytopes.cyclic_polytope(i, i + 1 + j).is_neighborly() for i in range(5) for j in range(3)])
             True
 

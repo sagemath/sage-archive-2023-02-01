@@ -736,7 +736,7 @@ class Ideal_generic(MonoidElement):
             sage: I.is_primary()
             False
 
-        .. NOTE:
+        .. NOTE::
 
             This uses the list of associated primes.
 
@@ -1372,7 +1372,7 @@ class Ideal_pid(Ideal_principal):
             ``other``. Also, it seems that this class is used only in PIDs--is
             this redundant?
 
-        .. NOTE:
+        .. NOTE::
 
             The second example is broken.
 

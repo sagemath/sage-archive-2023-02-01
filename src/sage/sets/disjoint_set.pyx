@@ -711,7 +711,7 @@ cdef class DisjointSet_of_hashables(DisjointSet_class):
         cdef int i
         for i from 0 <= i < self.cardinality():
             l.append(self._int_to_el[gs[i]])
-        return zip(self._int_to_el, l)
+        return list(zip(self._int_to_el, l))
 
     def __setstate__(self, l):
         r"""

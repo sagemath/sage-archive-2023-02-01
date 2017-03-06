@@ -4436,7 +4436,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         """
         if self._nrows == 0:
             pivots = []
-            nonpivots = range(self._ncols)
+            nonpivots = list(xrange(self._ncols))
             X = self.__copy__()
             d = Integer(1)
             return pivots, nonpivots, X, d
@@ -4702,7 +4702,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
                 # function with the top part of A (all but last row) and the
                 # row r.
 
-                zz = range(A.nrows()-1)
+                zz = list(xrange(A.nrows() - 1))
                 del zz[i]
                 top_mat = A.matrix_from_rows(zz)
                 new_pivots = list(pivots)

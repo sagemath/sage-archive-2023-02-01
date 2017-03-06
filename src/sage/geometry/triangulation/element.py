@@ -37,6 +37,7 @@ See :mod:`sage.geometry.triangulation.point_configuration` for more details.
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from six import iteritems
 
 from sage.structure.element import Element
 from sage.rings.all import QQ, ZZ
@@ -326,8 +327,6 @@ class Triangulation(Element):
             sage: t1 == t2    # indirect doctest
             True
             sage: abs( cmp(t1, Triangulation(((0,1),(1,2)), pc, check=False) ))
-            1
-            sage: abs( cmp(t2, "not a triangulation") )
             1
         """
         left = self
@@ -688,8 +687,8 @@ class Triangulation(Element):
             frozenset({(0, 1, 7), (0, 2, 7), (0, 4, 7), (1, 2, 7), (1, 4, 7), (2, 4, 7)})
         """
         return frozenset(facet for facet, bounded_simplices
-                         in self._boundary_simplex_dictionary().iteritems()
-                         if len(bounded_simplices)==1)
+                         in iteritems(self._boundary_simplex_dictionary())
+                         if len(bounded_simplices) == 1)
 
     @cached_method
     def interior_facets(self):
@@ -724,8 +723,8 @@ class Triangulation(Element):
             frozenset({(0, 1, 7), (0, 2, 7), (0, 4, 7), (1, 2, 7), (1, 4, 7), (2, 4, 7)})
         """
         return frozenset(facet for facet, bounded_simplices
-                         in self._boundary_simplex_dictionary().iteritems()
-                         if len(bounded_simplices)==2)
+                         in iteritems(self._boundary_simplex_dictionary())
+                         if len(bounded_simplices) == 2)
 
     @cached_method
     def normal_cone(self):

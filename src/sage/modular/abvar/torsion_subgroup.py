@@ -160,8 +160,6 @@ class RationalTorsionSubgroup(FiniteSubgroup):
             True
             sage: G > H
             False
-            sage: G < 5   # random (meaningless since it depends on memory layout)
-            False
         """
         if isinstance(other, RationalTorsionSubgroup):
             return cmp(self.abelian_variety(), other.abelian_variety())

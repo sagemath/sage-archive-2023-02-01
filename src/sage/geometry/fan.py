@@ -1236,8 +1236,6 @@ class RationalPolyhedralFan(IntegralRayCollection,
             0
             sage: f2 is f3
             False
-            sage: cmp(f1, 1) * cmp(1, f1)
-            -1
         """
         if is_Fan(right):
             return cmp(

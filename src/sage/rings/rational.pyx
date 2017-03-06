@@ -2000,7 +2000,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         sig_on()
         mpq_get_str(s, base, self.value)
         sig_off()
-        k = <object> PyString_FromString(s)
+        k = str(s)
         PyMem_Free(s)
         return k
 

@@ -665,30 +665,64 @@ class DiGraphGenerators():
         - ``vertices`` -- 'strings' (default) or 'integers', specifying whether
           the vertices are words build upon an alphabet or integers.
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: db=digraphs.DeBruijn(2,2); db
+        de Bruijn digraph of degree 2 and diameter 2::
+
+            sage: db = digraphs.DeBruijn(2, 2); db
             De Bruijn digraph (k=2, n=2): Looped digraph on 4 vertices
-            sage: db.order()
-            4
-            sage: db.size()
-            8
+            sage: db.order(), db.size()
+            (4, 8)
+            sage: db.diameter()
+            2
 
-        TESTS::
+        Building a de Bruijn digraph on a different alphabet::
 
-            sage: digraphs.DeBruijn(5,0)
+            sage: g = digraphs.DeBruijn(['a', 'b'], 2)
+            sage: g.vertices()
+            ['aa', 'ab', 'ba', 'bb']
+            sage: g.is_isomorphic(db)
+            True
+            sage: g = digraphs.DeBruijn(['AA', 'BB'], 2)
+            sage: g.vertices()
+            ['AA,AA', 'AA,BB', 'BB,AA', 'BB,BB']
+            sage: g.is_isomorphic(db)
+            True
+
+        TESTS:
+
+        Alphabet of null size or words of length zero::
+
+            sage: digraphs.DeBruijn(5, 0)
             De Bruijn digraph (k=5, n=0): Looped multi-digraph on 1 vertex
-            sage: digraphs.DeBruijn(0,0)
+            sage: digraphs.DeBruijn(0, 0)
             De Bruijn digraph (k=0, n=0): Looped multi-digraph on 0 vertices
+
+        :trac:`22355`::
+
+            sage: db = digraphs.DeBruijn(2, 2, vertices='strings')
+            sage: db.vertices()
+            ['00', '01', '10', '11']
+            sage: h = digraphs.DeBruijn(2, 2, vertices='integers')
+            sage: h.vertices()
+            [0, 1, 2, 3]
+            sage: db.is_isomorphic(h)
+            True
+            sage: digraphs.DeBruijn(0, 0, vertices='integers')
+            De Bruijn digraph (k=0, n=0): Looped multi-digraph on 0 vertices
+            sage: digraphs.DeBruijn(2, 2, vertices='circles')
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown type for vertices
         """
         from sage.combinat.words.words import Words
         from sage.rings.integer import Integer
 
-        W = Words(list(range(k)) if isinstance(k, Integer) else k, n)
-        A = Words(list(range(k)) if isinstance(k, Integer) else k, 1)
-        g = DiGraph(loops=True)
-
         if vertices == 'strings':
+            W = Words(list(range(k)) if isinstance(k, Integer) else k, n)
+            A = Words(list(range(k)) if isinstance(k, Integer) else k, 1)
+            g = DiGraph(loops=True)
+
             if n == 0 :
                 g.allow_multiple_edges(True)
                 v = W[0]
@@ -699,9 +733,16 @@ class DiGraphGenerators():
                     ww = w[1:]
                     for a in A:
                         g.add_edge(w.string_rep(), (ww*a).string_rep(), a.string_rep())
+
+        elif vertices == 'integers':
+            d = k if isinstance(k, Integer) else len(list(k))
+            if d == 0:
+                g = DiGraph(loops=True, multiedges=True)
+            else:
+                g = digraphs.GeneralizedDeBruijn(d**n, d)
+
         else:
-            d = W.size_of_alphabet()
-            g = digraphs.GeneralizedDeBruijn(d**n, d)
+            raise ValueError('unknown type for vertices')
 
         g.name( "De Bruijn digraph (k=%s, n=%s)"%(k,n) )
         return g
@@ -915,20 +956,39 @@ class DiGraphGenerators():
             sage: G = digraphs.Kautz(0, 2)
             Traceback (most recent call last):
             ...
-            ValueError: Kautz digraphs are defined for degree at least one.
+            ValueError: Kautz digraphs are defined for degree at least one
 
             sage: G = digraphs.Kautz(['a'], 2)
             Traceback (most recent call last):
             ...
-            ValueError: Kautz digraphs are defined for degree at least one.
+            ValueError: Kautz digraphs are defined for degree at least one
 
         An exception is raised when the diameter of the graph is less than one::
 
             sage: G = digraphs.Kautz(2, 0)
             Traceback (most recent call last):
             ...
-            ValueError: Kautz digraphs are defined for diameter at least one.
+            ValueError: Kautz digraphs are defined for diameter at least one
 
+        :trac:`22355`::
+
+            sage: K = digraphs.Kautz(2, 2, vertices='strings')
+            sage: K.vertices()
+            ['01', '02', '10', '12', '20', '21']
+            sage: h = digraphs.Kautz(2, 2, vertices='integers')
+            sage: h.vertices()
+            [0, 1, 2, 3, 4, 5]
+            sage: h.is_isomorphic(K)
+            True
+            sage: h = digraphs.Kautz([1,'aA','BB'], 2, vertices='integers')
+            sage: h.is_isomorphic(K)
+            True
+            sage: h.vertices()
+            [0, 1, 2, 3, 4, 5]
+            sage: digraphs.Kautz(2, 2, vertices='circles')
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown type for vertices
 
         REFERENCE:
 
@@ -937,16 +997,16 @@ class DiGraphGenerators():
           Final Rep., pp. 20-28, 1968.
         """
         if D < 1:
-            raise ValueError("Kautz digraphs are defined for diameter at least one.")
+            raise ValueError("Kautz digraphs are defined for diameter at least one")
 
         from sage.combinat.words.words import Words
         from sage.rings.integer import Integer
 
-        my_alphabet = Words([str(i) for i in range(k+1)] if isinstance(k, Integer) else k, 1)
-        if my_alphabet.alphabet().cardinality() < 2:
-            raise ValueError("Kautz digraphs are defined for degree at least one.")
-
         if vertices == 'strings':
+
+            my_alphabet = Words([str(i) for i in range(k+1)] if isinstance(k, Integer) else k, 1)
+            if my_alphabet.alphabet().cardinality() < 2:
+                raise ValueError("Kautz digraphs are defined for degree at least one")
 
             # We start building the set of vertices
             V = [i for i in my_alphabet]
@@ -963,11 +1023,16 @@ class DiGraphGenerators():
                     if not u.has_suffix(a):
                         G.add_edge(u.string_rep(), (u[1:]*a).string_rep(), a.string_rep())
 
-        else:
-            d = my_alphabet.size_of_alphabet()-1
+        elif vertices == 'integers':
+            d = k if isinstance(k, Integer) else (len(list(k))-1)
+            if d < 1:
+                raise ValueError("Kautz digraphs are defined for degree at least one")
             G = digraphs.ImaseItoh( (d+1)*(d**(D-1)), d)
 
-        G.name( "Kautz digraph (k=%s, D=%s)"%(k,D) )
+        else:
+            raise ValueError('unknown type for vertices')
+
+        G.name( "Kautz digraph (k={}, D={})".format(k, D) )
         return G
 
     def RandomDirectedGN(self, n, kernel=lambda x:x, seed=None):

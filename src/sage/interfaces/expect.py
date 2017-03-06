@@ -42,6 +42,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 import os
+import signal
 import sys
 import weakref
 import time
@@ -479,6 +480,8 @@ If this all works, you can then make calls like:
                         timeout=None,  # no timeout
                         env=pexpect_env,
                         name=self._repr_(),
+                        # work around python #1652
+                        preexec_fn=lambda: signal.signal(signal.SIGPIPE, signal.SIG_DFL),
                         quit_string=self._quit_string())
             except (ExceptionPexpect, pexpect.EOF) as e:
                 # Change pexpect errors to RuntimeError

@@ -168,6 +168,8 @@ from __future__ import print_function
 include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 
+from cpython.object cimport Py_NE
+
 # singular types
 from sage.libs.singular.decl cimport ring, poly, ideal, intvec, number, currRing
 from sage.libs.singular.decl cimport n_unknown,  n_Zp,  n_Q,   n_R,   n_GF,  n_long_R,  n_algExt,n_transExt,n_long_C,   n_Z,   n_Zn,  n_Znm,  n_Z2m,  n_CF
@@ -235,6 +237,7 @@ from sage.structure.element cimport Element
 from sage.structure.element cimport CommutativeRingElement
 from sage.structure.element cimport coercion_model
 
+from sage.structure.sage_object cimport rich_to_bool, richcmp
 from sage.structure.factorization import Factorization
 from sage.structure.sequence import Sequence
 
@@ -1483,12 +1486,6 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: R.<x,y,z> = PolynomialRing(QQ,order='invlex')
             sage: P == R
             False
-        """
-        return (<Parent>left)._richcmp(right, op)
-
-    cpdef int _cmp_(left, right) except -2:
-        """
-        Compare ``left`` with ``right``.
 
         TEST::
 
@@ -1498,18 +1495,21 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             True
             sage: R == QQ['x','z']
             False
-
         """
-        if not isinstance(right, (MPolynomialRing_libsingular, MPolynomialRing_polydict_domain)):
-            return -1  # arbitrary
+        if left is right:
+            return rich_to_bool(op, 0)
+
+        if not isinstance(right, Parent) or not isinstance(left, Parent):
+            # One is not a parent -- not equal and not ordered
+            return op == Py_NE
+
+        if not isinstance(right, (MPolynomialRing_libsingular,
+                                  MPolynomialRing_polydict_domain)):
+            return op == Py_NE
 
         lx = (left.base_ring(), map(str, left.gens()), left.term_order())
         rx = (right.base_ring(), map(str, right.gens()), right.term_order())
-        if lx < rx:
-            return -1
-        if lx > rx:
-            return 1
-        return 0
+        return richcmp(lx, rx, op)
 
     def __reduce__(self):
         """
@@ -3076,7 +3076,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef list pl, ml
 
         pl = list()
-        ml = range(r.N)
+        ml = list(xrange(r.N))
         while p:
             for v from 1 <= v <= r.N:
                 ml[v-1] = p_GetExp(p,v,r)

@@ -539,8 +539,10 @@ def double_coset_python(S1, S2, partition1, ordering2, n,
 
         sage: def compare_lists(p1,p2,l1,l2,deg):
         ....:     for i in range(len(l1)):
-        ....:         j = cmp(l1[p1[i]], l2[p2[i]])
-        ....:         if j != 0: return j
+        ....:         a1 = l1[p1[i]]
+        ....:         a2 = l2[p2[i]]
+        ....:         if a1 < a2: return -1
+        ....:         if a1 > a2: return 1
         ....:     return 0
 
         sage: double_coset_python([0,0,1], [1,0,0], [[0,1,2]], [0,1,2], 3, acae, rari, compare_lists)

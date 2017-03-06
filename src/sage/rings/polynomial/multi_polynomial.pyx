@@ -294,14 +294,14 @@ cdef class MPolynomial(CommutativeRingElement):
         my_vars = self.parent().variable_names()
         vars = list(vars)
         if len(vars) == 0:
-            indices = range(len(my_vars))
+            indices = list(xrange(len(my_vars)))
         else:
             indices = [vars.index(v) for v in my_vars]
         x = [fast_float_arg(i) for i in indices]
 
         n = len(x)
         expr = fast_float_constant(0)
-        for (m,c) in self.dict().iteritems():
+        for m, c in self.dict().iteritems():
             monom = prod([ x[i]**m[i] for i in range(n) if m[i] != 0], fast_float_constant(c))
             expr = expr + monom
         return expr
@@ -536,8 +536,8 @@ cdef class MPolynomial(CommutativeRingElement):
             D = {}
             m = min([vars.index(z) for z in my_vars])
             prev_vars = vars[:m]
-            var_range = range(len(my_vars))
-            if len(prev_vars) > 0:
+            var_range = list(xrange(len(my_vars)))
+            if prev_vars:
                 mapping = [vars.index(v) - len(prev_vars) for v in my_vars]
                 tmp = [0] * (len(vars) - len(prev_vars))
                 try:

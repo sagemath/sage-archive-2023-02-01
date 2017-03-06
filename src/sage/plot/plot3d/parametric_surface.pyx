@@ -287,7 +287,7 @@ cdef class ParametricSurface(IndexFaceSet):
             sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
             sage: s = P.json_repr(P.default_render_params())
             sage: s[0][:100]
-            '{vertices:[{x:-2,y:-2,z:0},{x:-2,y:-1.89744,z:0.399737},{x:-2,y:-1.79487,z:0.778435},{x:-2,y:-1.6923'
+            '{"vertices":[{"x":-2,"y":-2,"z":0},{"x":-2,"y":-1.89744,"z":0.399737},{"x":-2,"y":-1.79487,"z":0.778'
         """
         self.triangulate(render_params)
         return IndexFaceSet.json_repr(self, render_params)
@@ -689,21 +689,22 @@ cdef class ParametricSurface(IndexFaceSet):
         """
         return self
 
+
 class MoebiusStrip(ParametricSurface):
     """
-    Base class for the :class:`MoebiusStrip` graphics type. This sets the the
+    Base class for the :class:`MoebiusStrip` graphics type. This sets the
     basic parameters of the object.
 
     INPUT:
 
-    - ``r`` - A number which can be coerced to a float, serving roughly
-      as the radius of the object.
+    - ``r`` -- a number which can be coerced to a float, serving roughly
+      as the radius of the object
 
-    - ``width`` - A number which can be coerced to a float, which gives the
-      width of the object.
+    - ``width`` -- a number which can be coerced to a float, which gives the
+      width of the object
 
-    - ``twists`` - (default: 1) An integer, giving the number of twists in the
-      object (where one twist is the 'traditional' Möbius strip).
+    - ``twists`` -- (default: 1) an integer, giving the number of twists in the
+      object (where one twist is the 'traditional' Möbius strip)
 
     EXAMPLES::
 

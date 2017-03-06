@@ -1411,8 +1411,8 @@ def _random_tests(mt, k, mut_class=None, nr_mut=5):
     - ``nr_mut`` (integer, default:5) the number of mutations performed before
       testing
 
-    The idea of of this random test is to start with a mutation type
-    and compute is mutation class (or have this class given). Now,
+    The idea of this random test is to start with a mutation type
+    and compute its mutation class (or have this class given). Now,
     every quiver in this mutation class is slightly changed in order
     to obtain a matrix of the same type or something very similar.
     Now, the new type is computed and checked if it stays stable for

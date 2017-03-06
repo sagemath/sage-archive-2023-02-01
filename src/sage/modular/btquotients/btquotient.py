@@ -2339,7 +2339,9 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         r"""
         Return a list of  matrices representing the different embeddings.
 
-        .. NOTE: The precision is very low (currently set to 5 digits),
+        .. NOTE::
+
+           The precision is very low (currently set to 5 digits),
            since these embeddings are only used to apply a character.
 
         EXAMPLES:
@@ -2441,13 +2443,13 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
 
         INPUT:
 
-        - ``exact`` boolean (Default: False). If True, return an
+        - ``exact`` boolean (Default: ``False``). If ``True``, return an
           embedding into a matrix algebra with coefficients in a
           number field. Otherwise, embed into matrices over `p`-adic
           numbers.
 
-        - ``prec`` Integer (Default: None). If specified, return the
-          matrix with precision ``prec``. Otherwise, return the the
+        - ``prec`` Integer (Default: ``None``). If specified, return the
+          matrix with precision ``prec``. Otherwise, return the
           cached matrix (with the current working precision).
 
         OUTPUT:

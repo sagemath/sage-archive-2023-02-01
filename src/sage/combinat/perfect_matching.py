@@ -53,6 +53,7 @@ REFERENCES:
 # python3
 from __future__ import division, print_function
 from six.moves import range
+from six import add_metaclass
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -70,6 +71,7 @@ from sage.matrix.constructor import Matrix
 from sage.combinat.combinatorial_map import combinatorial_map
 
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class PerfectMatching(ElementWrapper):
     r"""
     Class of perfect matching.
@@ -108,7 +110,6 @@ class PerfectMatching(ElementWrapper):
     __lt__ = ElementWrapper._lt_by_value
     #During the creation of the instance of the class, the function
     #__classcall_private__ will be called instead of __init__ directly.
-    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, p):

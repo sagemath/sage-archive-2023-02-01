@@ -89,7 +89,7 @@ We test corner cases for multiplication::
 
 include "cysignals/signals.pxi"
 from libc.stdint cimport uint64_t
-from cpython.string cimport *
+from cpython.bytes cimport *
 
 include "cysignals/memory.pxi"
 from sage.libs.gmp.mpz cimport *
@@ -644,7 +644,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
                     for j in range(self._ncols):
                         row_um[j] = <mod_int>row_self[j]
 
-            s = PyString_FromStringAndSize(<char*>buf, word_size * self._nrows * self._ncols)
+            s = PyBytes_FromStringAndSize(<char*>buf, word_size * self._nrows * self._ncols)
         finally:
             sig_free(buf)
             sig_off()
@@ -720,7 +720,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             word_size, little_endian_data, s = data
             expectedlen = word_size * self._nrows * self._ncols
 
-            PyString_AsStringAndSize(s, &buf, &buflen)
+            PyBytes_AsStringAndSize(s, &buf, &buflen)
             if buflen != expectedlen:
                 raise ValueError("incorrect size in matrix pickle (expected %d, got %d)"%(expectedlen, buflen))
 

@@ -2893,9 +2893,10 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         if self.dim() < self.lattice_dim():
             raise ValueError("normal form is not defined for %s" % self)
+        M = self.lattice()
         if algorithm == "palp":
             result = read_palp_point_collection(
-                self.poly_x("N"), self.lattice(), permutation=permutation)
+                StringIO(self.poly_x("N")), M, permutation=permutation)
         elif algorithm == "palp_native":
             result = self._palp_native_normal_form(permutation=permutation)
         elif algorithm == "palp_modified":
@@ -2907,13 +2908,11 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             vertices, perm = result
         else:
             vertices = result
-        if algorithm == "palp":
-            vertices = vertices.columns()
-        M = self.lattice()
-        vertices = [M(_) for _ in vertices]
-        for v in vertices:
-            v.set_immutable()
-        vertices = PointCollection(vertices, M)
+        if algorithm != "palp":
+            vertices = [M(_) for _ in vertices]
+            for v in vertices:
+                v.set_immutable()
+            vertices = PointCollection(vertices, M)
         return (vertices, perm) if permutation else vertices
         
     def _palp_modified_normal_form(self, permutation=False):

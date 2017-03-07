@@ -5226,10 +5226,14 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: 0^0
             1
         """
+        from sage.symbolic.expression import Expression
+
         if not self.is_square():
             raise ArithmeticError("self must be a square matrix")
         if ignored is not None:
             raise RuntimeError("__pow__ third argument not used")
+        if isinstance(n, Expression):
+            return self._matrix_power_symbolic(self, n)
         return sage.structure.element.generic_power_c(self, n, None)
 
     ###################################################
@@ -5301,9 +5305,6 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     cdef int _strassen_default_echelon_cutoff(self) except -2:
         return -1
-
-
-
 
 #######################
 # Unpickling

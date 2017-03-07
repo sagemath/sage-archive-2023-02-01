@@ -14898,3 +14898,59 @@ def _jordan_form_vector_in_difference(V, W):
         if v not in W_space:
             return v
     return None
+
+def _matrix_power_symbolic(self, n):
+
+    from sage.rings.qqbar import AlgebraicNumber
+    from sage.calculus.predefined import x
+    from sage.modules.free_module_element import vector, zero_vector
+    from sage.matrix.constructor import matrix
+    from sage.functions.other import factorial
+    from sage.symbolic.ring import SR
+    from sage.rings.qqbar import QQbar
+
+    # power to a given symbolic expression
+    f = x**n
+
+    # we change the matrix into a matrix on the field of algebraic numbers
+    # and compute Jordan matrix J and invertible matrix P s.t. A = P*J*~P
+
+    # try catch using different QQbar
+
+    [J, P] = self.change_ring(QQbar).jordan_form(transformation=True)
+
+    fJ = matrix(SR, J.ncols())
+    num_Jordan_blocks = 1+len(J.subdivisions()[0])
+    fJ.subdivide(J.subdivisions())
+
+    for k in range(num_Jordan_blocks):
+
+        # get Jordan block Jk
+        Jk = J.subdivision(k, k)
+
+        # dimension of Jordan block Jk
+        mk = Jk.ncols()
+
+        fJk = matrix(SR, mk, mk)
+
+        # compute the first row of f(Jk)
+        # before applying a symbolic function to the coefficients of J, we change them into symbolic expressions
+        vk = [f.derivative(x, i)(Jk[i][i].radical_expression())/factorial(i) for i in range(mk)]
+
+        # insert vk into each row (above the main diagonal)
+        for i in range(mk):
+            row_Jk_i = vector(SR, zero_vector(SR, i).list() + vk[0:mk-i])
+            fJk.set_row(i, row_Jk_i)
+
+        fJ.set_block(k, k, fJk)
+
+    # we change the entries of P and P^-1 into symbolic expressions
+    Psym = P.apply_map(AlgebraicNumber.radical_expression)
+    Psyminv = (~P).apply_map(AlgebraicNumber.radical_expression)
+    fA = Psym*fJ*Psyminv
+
+    return fA
+
+def matrix_power_symbolic(self, n):
+
+    return self._matrix_power_symbolic(self, n)

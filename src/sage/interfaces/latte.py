@@ -355,7 +355,28 @@ def integrate(arg, polynomial=None, algorithm='triangulate', raw_output=False, v
         return Rational(ans)
 
 def _to_latte_polynomial(polynomial):
-    # Helper function to transform a polynomial to its LattE description
+    r"""
+    Helper function to transform a polynomial to its LattE description.
+
+    INPUT:
+
+    - ``polynomial`` -- a multivariate polynomial.
+
+    OUTPUT:
+
+    A string that describes the monomials list and exponent vectors.
+
+    TESTS:
+
+    Testing a polynomial in three variables::
+
+        sage: from sage.interfaces.latte import _to_latte_polynomial
+        sage: x, y, z = polygen(QQ, 'x, y, z')
+        sage: f = 3*x^2*y^4*z^6 + 7*y^3*z^5
+        sage: _to_latte_polynomial(f) # optional - latte_int
+        '[[3, [2, 4, 6]], [7, [0, 3, 5]]]'
+    """
+
     coefficients_list = polynomial.coefficients()
     exponents_list = [list(exponent_vector_i) for exponent_vector_i in polynomial.exponents()]
 

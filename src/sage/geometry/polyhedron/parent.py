@@ -441,18 +441,36 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         """
         nargs = len(args)
         convert = kwds.pop('convert', True)
+        def convert_base_ring(lstlst):
+            return [ [self.base_ring()(x) for x in lst] for lst in lstlst]
+        # renormalize before converting when going from QQ to RDF, see trac 21270
+        def convert_base_ring_Hrep(lstlst):
+            newlstlst = []
+            for lst in lstlst:
+                if all(c in QQ for c in lst):
+                    m=max(abs(w) for w in lst)
+                    if m == 0:
+                        newlstlst.append(lst)
+                    else:
+                        newlstlst.append([q/m for q in lst])
+                else:
+                    newlstlst.append(lst)
+            return convert_base_ring(newlstlst)
         if nargs==2:
             Vrep, Hrep = args
-            def convert_base_ring(lstlst):
-                return [ [self.base_ring()(x) for x in lst] for lst in lstlst]
             if convert and Hrep:
-                Hrep = [convert_base_ring(_) for _ in Hrep]
+                if self.base_ring==RDF:
+                    Hrep = [convert_base_ring_Hrep(_) for _ in Hrep]
+                else:
+                    Hrep = [convert_base_ring(_) for _ in Hrep]
             if convert and Vrep:
                 Vrep = [convert_base_ring(_) for _ in Vrep]
             return self.element_class(self, Vrep, Hrep, **kwds)
         if nargs==1 and is_Polyhedron(args[0]):
             polyhedron = args[0]
             Hrep = [ polyhedron.inequality_generator(), polyhedron.equation_generator() ]
+            if self.base_ring()==RDF:
+                Hrep = [convert_base_ring_Hrep(_) for _ in Hrep]
             return self.element_class(self, None, Hrep, **kwds)
         if nargs==1 and args[0]==0:
             return self.zero()

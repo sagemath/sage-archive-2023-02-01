@@ -151,7 +151,7 @@ cdef class ProbabilityDistribution:
         - ``bins`` - (optional) number of bins to divide the samples
           into.
 
-        EXAMPLE:
+        EXAMPLES:
 
         This saves the histogram plot to
         ``my_general_distribution_plot.png`` in the temporary

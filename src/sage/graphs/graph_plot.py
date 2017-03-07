@@ -274,7 +274,7 @@ class GraphPlot(SageObject):
         """
         Returns a string representation of a ``GraphPlot`` object.
 
-        EXAMPLE:
+        EXAMPLES:
 
         This function is called implicitly by the code below::
 

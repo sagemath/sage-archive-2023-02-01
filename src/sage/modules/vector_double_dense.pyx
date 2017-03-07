@@ -109,7 +109,7 @@ cdef class Vector_double_dense(FreeModuleElement):
         This function assumes that self._numpy_dtypeint and
         self._nrows and self._ncols have already been initialized.
 
-        EXAMPLE:
+        EXAMPLES:
 
         In this example, we throw away the current array and make a
         new uninitialized array representing the data for the class. ::

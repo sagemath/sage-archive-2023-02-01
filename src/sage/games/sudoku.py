@@ -43,7 +43,7 @@ def sudoku(m):
     and is included only to replicate that behavior.  It could be
     safely deprecated, since all of its functionality is included in the :class:`~sage.games.sudoku.Sudoku` class.
 
-    EXAMPLE:
+    EXAMPLES:
 
     An example that was used in previous doctests. ::
 

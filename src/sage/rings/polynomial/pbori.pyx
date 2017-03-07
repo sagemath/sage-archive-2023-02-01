@@ -1465,7 +1465,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
            one
 
 
-        EXAMPLE:
+        EXAMPLES:
 
         First we create a random-ish boolean polynomial.
 
@@ -5124,7 +5124,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
         r"""
         Return the variety associated to this boolean ideal.
 
-        EXAMPLE:
+        EXAMPLES:
 
             A Simple example::
 
@@ -6799,7 +6799,7 @@ cdef class GroebnerStrategy:
         """
         Return ``True`` if 1 is in the generating system.
 
-        EXAMPLE:
+        EXAMPLES:
 
         We construct an example which contains ``1`` in the ideal
         spanned by the generators but not in the set of generators::
@@ -7356,7 +7356,7 @@ def interpolate_smallest_lex(zero, one):
 
     - ``one`` - the set of ones
 
-    EXAMPLE:
+    EXAMPLES:
 
     Let V be a set of points in `\GF{2}^n` and f a Boolean
     polynomial. V can be encoded as a ``BooleSet``. Then we are

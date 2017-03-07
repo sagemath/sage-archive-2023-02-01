@@ -1803,7 +1803,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         r"""
         Return the dual module of ``self``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Dual of a free module over `\ZZ`::
 

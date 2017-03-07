@@ -565,7 +565,7 @@ cdef class SubgraphSearch:
         Returns an iterator over all the labeleld subgraphs of `G`
         isomorphic to `H`.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Iterating through all the `P_3` of `P_5`::
 
@@ -596,7 +596,7 @@ cdef class SubgraphSearch:
            Hence it probably is not a good idea to count their number
            before enumerating them :-)
 
-        EXAMPLE:
+        EXAMPLES:
 
         Counting the number of labelled `P_3` in `P_5`::
 
@@ -630,7 +630,7 @@ cdef class SubgraphSearch:
         :meth:`__iter__` or to :meth:`cardinality`, it is cleaner to
         create a dedicated method.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Finding two times the first occurrence through the
         re-initialization of the instance ::

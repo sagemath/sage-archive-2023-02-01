@@ -5706,7 +5706,7 @@ def skip_palp_matrix(data, n=1):
 
     If EOF is reached during the process, raises ValueError exception.
 
-    EXAMPLE: We create a file with vertices of the square and the cube,
+    EXAMPLES: We create a file with vertices of the square and the cube,
     but read only the second set::
 
         sage: d = lattice_polytope.cross_polytope(2)

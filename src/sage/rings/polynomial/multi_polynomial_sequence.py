@@ -902,7 +902,7 @@ class PolynomialSequence_generic(Sequence_generic):
         Split the polynomial system in systems which do not share any
         variables.
 
-        EXAMPLE:
+        EXAMPLES:
 
         As an example consider one part of AES, which naturally
         splits into four subsystems which are independent::

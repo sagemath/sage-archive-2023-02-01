@@ -2957,7 +2957,7 @@ def apparently_feasible_parameters(int n):
     - ``n`` (integer) -- return all a-priori feasible tuples `(v,k,\lambda,\mu)`
       for `v<n`
 
-    EXAMPLE:
+    EXAMPLES:
 
     All sets of parameters with `v<20` which pass basic arithmetic tests are
     feasible::
@@ -3008,7 +3008,7 @@ def _build_small_srg_database():
     parameters of the graph of words of `C`. Another relevant reference is
     Sect.9.8.3 of [BH12]_.
 
-    EXAMPLE:
+    EXAMPLES:
 
         sage: from sage.graphs.strongly_regular_db import _build_small_srg_database
         sage: _build_small_srg_database()

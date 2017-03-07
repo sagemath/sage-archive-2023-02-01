@@ -768,7 +768,7 @@ cdef class SemidefiniteProgram(SageObject):
           ( can also be set to ``None`` or ``0`` when just
           looking for a feasible solution )
 
-        EXAMPLE:
+        EXAMPLES:
 
         Let's solve the following semidefinite program::
 
@@ -825,7 +825,7 @@ cdef class SemidefiniteProgram(SageObject):
               case, arguments ``min`` and ``max`` will be ignored.
         - ``name`` -- A name for the constraint.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Let's solve the following semidefinite program::
 
@@ -1132,7 +1132,7 @@ cdef class SemidefiniteProgram(SageObject):
         This might be useful when acces to additional functions provided by
         the backend is needed.
 
-        EXAMPLE:
+        EXAMPLES:
 
         This example prints a matrix coefficient::
 

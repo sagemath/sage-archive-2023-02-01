@@ -1199,7 +1199,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
     cpdef _rmul_(self, RingElement _c):
         """
-        EXAMPLE:
+        EXAMPLES:
             sage: K.<a> = NumberField(x^2+43)
             sage: (1+a)*3 # indirect doctest
             3*a + 3
@@ -1215,7 +1215,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
     cpdef _lmul_(self, RingElement _c):
         """
-        EXAMPLE:
+        EXAMPLES:
             sage: K.<a> = NumberField(x^2+43)
             sage: 5*(a-1/5) # indirect doctest
             5*a - 1
@@ -2193,7 +2193,7 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
     # We must override these since the basering is now ZZ not QQ.
     cpdef _rmul_(self, RingElement _c):
         """
-        EXAMPLE:
+        EXAMPLES:
             sage: K.<a> = NumberField(x^2-27)
             sage: R = K.ring_of_integers()
             sage: aa = R.gen(1); aa
@@ -2212,7 +2212,7 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
 
     cpdef _lmul_(self, RingElement _c):
         """
-        EXAMPLE:
+        EXAMPLES:
             sage: K.<a> = NumberField(x^2+43)
             sage: R = K.ring_of_integers()
             sage: aa = R.gen(0); aa

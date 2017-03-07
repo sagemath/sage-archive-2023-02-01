@@ -70,7 +70,7 @@ def solve(F, converter=None, solver=None, n=1, target_variables=None, **kwds):
         A list of dictionaries, each of which contains a variable
         assignment solving ``F``.
 
-    EXAMPLE:
+    EXAMPLES:
 
     We construct a very small-scale AES system of equations::
 

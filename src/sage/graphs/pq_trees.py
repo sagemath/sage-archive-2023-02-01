@@ -164,7 +164,7 @@ def reorder_sets(sets):
 
     PQ-Trees
 
-    EXAMPLE:
+    EXAMPLES:
 
     There is only one way (up to reversal) to represent contiguously
     the sequence ofsets `\{i-1, i, i+1\}`::
@@ -480,7 +480,7 @@ class P(PQ):
         function ends. If there is no possibility of doing so, the function
         raises a ``ValueError`` exception.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Ensuring the sets containing ``0`` are continuous::
 
@@ -761,7 +761,7 @@ class Q(PQ):
         function ends. If there is no possibility of doing so, the function
         raises a ``ValueError`` exception.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Ensuring the sets containing ``0`` are continuous::
 

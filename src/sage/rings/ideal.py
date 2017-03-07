@@ -1249,7 +1249,7 @@ class Ideal_principal(Ideal_generic):
         """
         Compare the two ideals.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Comparison with non-principal ideal::
 

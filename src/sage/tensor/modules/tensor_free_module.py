@@ -612,7 +612,7 @@ class TensorFreeModule(FiniteRankFreeModule):
         - instance of :class:`FiniteRankFreeModule` representing the free
           module on which the tensor module is defined.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Base module of a type-(1,2) tensor module::
 

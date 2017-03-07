@@ -31,7 +31,7 @@ class SBox(SageObject):
     This module implements an S-box class which allows an algebraic
     treatment and determine various cryptographic properties.
 
-    EXAMPLE:
+    EXAMPLES:
 
     We consider the S-box of the block cipher PRESENT [PRESENT07]_::
 
@@ -91,7 +91,7 @@ class SBox(SageObject):
         - ``big_endian`` - controls whether bits shall be ordered in
           big endian order (default: ``True``)
 
-        EXAMPLE:
+        EXAMPLES:
 
         We construct a 3-bit S-box where e.g. the bits (0,0,1) are
         mapped to (1,1,1).::
@@ -840,7 +840,7 @@ class SBox(SageObject):
         - ``dimacs_headless`` - a string in DIMACS format, but without
           the header. This is useful for concatenation of outputs.
 
-        EXAMPLE:
+        EXAMPLES:
 
         We give a very small example to explain the output format::
 

@@ -605,7 +605,7 @@ class IncidenceStructure(object):
             sorting). It probably should not be called in a performance-critical
             code.
 
-        EXAMPLE:
+        EXAMPLES:
 
         A Fano plane with one point removed::
 
@@ -672,7 +672,7 @@ class IncidenceStructure(object):
             sorting). It probably should not be called in a performance-critical
             code.
 
-        EXAMPLE:
+        EXAMPLES:
 
         A Baer subplane of order 2 (i.e. a Fano plane) in a projective plane of order 4::
 
@@ -1086,7 +1086,7 @@ class IncidenceStructure(object):
           ``sizes`` to ``5`` has the same effect as ``sizes=[5]``. When set to
           ``None`` (default), behaves as ``sizes=PositiveIntegers()``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The intersection graph of a
         :func:`~sage.combinat.designs.bibd.balanced_incomplete_block_design` is

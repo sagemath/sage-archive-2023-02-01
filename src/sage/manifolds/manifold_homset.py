@@ -387,7 +387,7 @@ class TopologicalManifoldHomset(UniqueRepresentation, Homset):
         - the identity map of `M`, as an instance of
           :class:`~sage.manifolds.continuous_map.ContinuousMap`
 
-        EXAMPLE:
+        EXAMPLES:
 
         The identity map of a 2-dimensional manifold::
 

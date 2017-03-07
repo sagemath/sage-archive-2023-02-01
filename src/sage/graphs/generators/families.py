@@ -1337,7 +1337,7 @@ def MycielskiGraph(k=1, relabel=True):
     - ``relabel`` Relabel the vertices so their names are the integers
       ``range(n)`` where ``n`` is the number of vertices in the graph.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The Mycielski graph `M_k` is triangle-free and has chromatic
     number equal to `k`. ::

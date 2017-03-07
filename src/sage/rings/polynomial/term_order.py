@@ -300,7 +300,7 @@ The product order (or block order) `<` `:=` `(<_1,<_2)` on `k[x,y]` is defined a
 These block orders are constructed in Sage by giving a comma separated list of monomial orders
 with the length of each block attached to them.
 
-EXAMPLE:
+EXAMPLES:
 
 As an example, consider constructing a block order where the
 first four variables are compared using the degree reverse

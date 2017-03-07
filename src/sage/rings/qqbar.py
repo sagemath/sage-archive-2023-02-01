@@ -675,7 +675,7 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
         r"""
         Standard initialization function.
 
-        EXAMPLE:
+        EXAMPLES:
 
         This function calls functions in superclasses which set the category, so we check that.
 

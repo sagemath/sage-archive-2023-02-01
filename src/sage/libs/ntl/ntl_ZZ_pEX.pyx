@@ -1074,7 +1074,7 @@ cdef class ntl_ZZ_pEX(object):
         modulus must be monic, and of positive degree strictly greater
         than the degree of self.
 
-        EXAMPLE:
+        EXAMPLES:
         sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1], 11))
         sage: a = ntl.ZZ_pE([3,2], c)
         sage: b = ntl.ZZ_pE([1,2], c)

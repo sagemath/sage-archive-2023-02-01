@@ -304,7 +304,7 @@ class GlobalCputime:
 
     - Martin Albrecht - (2008-12): initial version
 
-    EXAMPLE:
+    EXAMPLES:
 
     Objects of this type are returned if ``subprocesses=True`` is
     passed to :func:`cputime`::

@@ -39,7 +39,7 @@ its generator as follows::
     sage: parent(x)
     Power Series Ring in x over Integer Ring
 
-EXAMPLE:
+EXAMPLES:
 
 This example illustrates that coercion for power
 series rings is consistent with coercion for polynomial rings.

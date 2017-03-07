@@ -761,7 +761,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         Calculate the character of `K^\times` given by `\chi \circ \mathrm{Norm}_{K/\QQ_p}`.
         Here `K` should be a quadratic extension and `\chi` a character of `\QQ_p^\times`.
 
-        EXAMPLE:
+        EXAMPLES:
 
         When `K` is the unramified quadratic extension, the level of the new character is the same as the old::
 

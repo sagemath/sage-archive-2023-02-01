@@ -691,7 +691,7 @@ class SR_generic(MPolynomialSystemGenerator):
         -  ``b`` - an element in ``self.base_ring()``
 
 
-        EXAMPLE:
+        EXAMPLES:
 
         The S-Box table for `\GF{2^4}`::
 

@@ -592,7 +592,7 @@ class TransducerGenerators(object):
         A transducer mapping an input letter `x` to
         `f(x)`.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following binary transducer realizes component-wise
         absolute value (this transducer is also available as :meth:`.abs`)::
@@ -647,7 +647,7 @@ class TransducerGenerators(object):
         The input alphabet of the generated transducer is the Cartesian
         product of ``number_of_operands`` copies of ``input_alphabet``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following binary transducer realizes component-wise
         addition (this transducer is also available as :meth:`.add`)::
@@ -726,7 +726,7 @@ class TransducerGenerators(object):
         The input alphabet of the generated transducer is the Cartesian
         product of ``number_of_operands`` copies of ``input_alphabet``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following transducer realizes letter-wise
         logical ``and``::
@@ -778,7 +778,7 @@ class TransducerGenerators(object):
         The input alphabet of the generated transducer is the Cartesian
         product of ``number_of_operands`` copies of ``input_alphabet``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following transducer realizes letter-wise
         logical ``or``::
@@ -830,7 +830,7 @@ class TransducerGenerators(object):
         The input alphabet of the generated transducer is the Cartesian
         product of ``number_of_operands`` copies of ``input_alphabet``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following transducer realizes letter-wise
         addition::
@@ -881,7 +881,7 @@ class TransducerGenerators(object):
         The input alphabet of the generated transducer is the Cartesian
         product of two copies of ``input_alphabet``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following transducer realizes letter-wise
         subtraction::
@@ -985,7 +985,7 @@ class TransducerGenerators(object):
         A transducer mapping `i_0\ldots i_k`
         to `|i_0|\ldots |i_k|`.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following transducer realizes letter-wise
         absolute value::

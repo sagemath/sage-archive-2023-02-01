@@ -1789,7 +1789,7 @@ class VectorFunctor(ConstructionFunctor):
         Two constructors of free modules merge, if the module ranks coincide. If both
         have explicitly given inner product matrices, they must coincide as well.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Two modules without explicitly given inner product allow coercion::
 

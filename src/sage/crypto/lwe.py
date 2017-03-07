@@ -259,7 +259,7 @@ class LWE(SageObject):
         - ``m`` - number of allowed samples or ``None`` if no such limit exists
           (default: ``None``)
 
-        EXAMPLE:
+        EXAMPLES:
 
         First, we construct a noise distribution with standard deviation 3.0::
 

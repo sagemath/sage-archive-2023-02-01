@@ -1423,7 +1423,7 @@ def wiener_index(G):
       paths from `\Omega` containing `e`. We then have
       `W(G) = \sum_{e\in E(G)}|\Omega(e)|`.
 
-    EXAMPLE:
+    EXAMPLES:
 
     From [GYLL93c]_, cited in [KRG96b]_::
 

@@ -1977,7 +1977,7 @@ cdef class PartitionStack:
 #        Returns an integer whose bits represent which columns are minimal cell
 #        representatives.
 #
-#        EXAMPLE:
+#        EXAMPLES:
 #            sage: import sage.coding.binary_code
 #            sage: from sage.coding.binary_code import *
 #            sage: P = PartitionStack(2, 6)
@@ -2036,7 +2036,7 @@ cdef class PartitionStack:
 #        Returns an integer whose bits represent which columns are fixed. For
 #        efficiency, mcrs is the output of min_cell_reps.
 #
-#        EXAMPLE:
+#        EXAMPLES:
 #            sage: import sage.coding.binary_code
 #            sage: from sage.coding.binary_code import *
 #            sage: P = PartitionStack(2, 6)
@@ -2095,7 +2095,7 @@ cdef class PartitionStack:
 #        """
 #        Returns an integer representing the first, smallest nontrivial cell of columns.
 #
-#        EXAMPLE:
+#        EXAMPLES:
 #            sage: import sage.coding.binary_code
 #            sage: from sage.coding.binary_code import *
 #            sage: P = PartitionStack(2, 6)
@@ -2304,7 +2304,7 @@ cdef class PartitionStack:
 #        Split column v out, placing it before the rest of the cell it was in.
 #        Returns the location of the split column.
 #
-#        EXAMPLE:
+#        EXAMPLES:
 #            sage: import sage.coding.binary_code
 #            sage: from sage.coding.binary_code import *
 #            sage: P = PartitionStack(2, 6)

@@ -462,7 +462,7 @@ class OperationTable(SageObject):
           strings and the actual elements.  So the keys are the strings and
           the values are the elements of the structure.
 
-        EXAMPLE:
+        EXAMPLES:
         This routine is tested extensively in the :class:`OperationTable`
         and :meth:`change_names` methods.  So we just just demonstrate
         the nature of the output here. ::

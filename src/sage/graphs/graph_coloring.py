@@ -1199,7 +1199,7 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
 
     NP-Hard
 
-    EXAMPLE:
+    EXAMPLES:
 
     Obviously, a square grid has a linear arboricity of 2, as
     the set of horizontal lines and the set of vertical lines
@@ -1395,7 +1395,7 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
 
     Linear Programming
 
-    EXAMPLE:
+    EXAMPLES:
 
     The complete graph on 8 vertices can not be acyclically
     edge-colored with less `\Delta+1` colors, but it can be

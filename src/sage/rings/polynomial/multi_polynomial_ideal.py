@@ -1456,7 +1456,7 @@ class MPolynomialIdeal_singular_repr(
         Return the genus of the projective curve defined by this ideal,
         which must be 1 dimensional.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Consider the hyperelliptic curve `y^2 = 4x^5 - 30x^3 + 45x -
         22` over `\QQ`, it has genus 2::
@@ -2896,7 +2896,7 @@ class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
 
     def _contains_(self,p):
         """
-        EXAMPLE:
+        EXAMPLES:
 
         We define a left and a two-sided ideal::
 
@@ -4076,7 +4076,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             `\sum c_k z^k = \frac{\prod (1 - z^{d_i})}{(1-z)^n}`
 
-        EXAMPLE:
+        EXAMPLES:
 
         We consider a homogeneous example::
 
@@ -4300,7 +4300,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         - ``*args`` and ``**kwds`` are passed to ``R.random_element()`` with
           ``R = self.ring()``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         We compute a uniformly random element up to the provided degree.::
 

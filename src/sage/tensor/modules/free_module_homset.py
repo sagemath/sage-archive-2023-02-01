@@ -485,7 +485,7 @@ class FreeModuleHomset(Homset):
           instance of
           :class:`~sage.tensor.modules.free_module_morphism.FiniteRankFreeModuleMorphism`
 
-        EXAMPLE:
+        EXAMPLES:
 
         Identity element of the set of endomorphisms of a free module
         over `\ZZ`::

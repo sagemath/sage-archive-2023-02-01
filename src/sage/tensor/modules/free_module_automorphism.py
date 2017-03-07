@@ -542,7 +542,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
           class :class:`~sage.tensor.modules.comp.Components`; if such
           components did not exist previously, they are created.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Setting the components of an automorphism of a rank-3 free
         `\ZZ`-module::
@@ -665,7 +665,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
           class :class:`~sage.tensor.modules.comp.Components`;
           if such components did not exist previously, they are created
 
-        EXAMPLE:
+        EXAMPLES:
 
         Adding components to an automorphism of a rank-3 free
         `\ZZ`-module::

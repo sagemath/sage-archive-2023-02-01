@@ -867,7 +867,7 @@ cdef class CPLEXBackend(GenericBackend):
             the solution can not be computed for any reason (none
             exists, or the LP solver was not able to find it, etc...)
 
-        EXAMPLE:
+        EXAMPLES:
 
         A simple maximization problem::
 
@@ -1504,7 +1504,7 @@ cdef class CPLEXBackend(GenericBackend):
            The list of available parameters is available at
            :meth:`sage.numerical.mip.MixedIntegerLinearProgram.solver_parameter`
 
-        EXAMPLE:
+        EXAMPLES:
 
         Set a computation time limit::
 

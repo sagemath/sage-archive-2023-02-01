@@ -1249,7 +1249,7 @@ class FreeModuleTensor(ModuleElement):
         - ``basis`` -- (default: ``None``) basis in which the components are
           kept; if none the module's default basis is assumed
 
-        EXAMPLE:
+        EXAMPLES:
 
         Deleting components of a module element::
 

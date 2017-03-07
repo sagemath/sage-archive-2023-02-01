@@ -1341,7 +1341,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: R('1.2456')
             1.2
 
-        EXAMPLE: Rounding Modes
+        EXAMPLES: Rounding Modes
 
         ::
 

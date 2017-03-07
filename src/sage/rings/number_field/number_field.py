@@ -3816,7 +3816,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         The S-class group of this number field.
 
-        EXAMPLE:
+        EXAMPLES:
 
         A well known example::
 

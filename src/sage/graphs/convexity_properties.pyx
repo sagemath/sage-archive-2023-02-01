@@ -409,7 +409,7 @@ cdef class ConvexityProperties:
         This can actually be seen as a hitting set problem on the complement of
         convex sets.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The Hull number of Petersen's graph::
 

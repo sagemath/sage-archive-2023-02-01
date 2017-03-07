@@ -618,7 +618,7 @@ class LeviCivitaConnection(AffineConnection):
         - the Riemann curvature tensor `R`, as an instance of
           :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
 
-        EXAMPLE:
+        EXAMPLES:
 
         Riemann tensor of the Levi-Civita connection associated with the
         metric of the hyperbolic plane (Poincare disk model)::

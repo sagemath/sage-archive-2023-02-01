@@ -960,7 +960,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         ``lower_bound`` and ``upper_bound`` are numerical values.
 
-        EXAMPLE:
+        EXAMPLES:
 
         First, let us define a small LP::
 
@@ -1484,7 +1484,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
           ( can also be set to ``None`` or ``0`` or any number when just
           looking for a feasible solution )
 
-        EXAMPLE:
+        EXAMPLES:
 
         Let's solve the following linear program::
 
@@ -1586,7 +1586,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         To set a lower and/or upper bound on the variables use the methods
         ``set_min`` and/or ``set_max`` of ``MixedIntegerLinearProgram``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Consider the following linear program::
 
@@ -2506,7 +2506,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         This might be useful when access to additional functions provided by
         the backend is needed.
 
-        EXAMPLE:
+        EXAMPLES:
 
         This example uses the simplex algorithm and prints information::
 

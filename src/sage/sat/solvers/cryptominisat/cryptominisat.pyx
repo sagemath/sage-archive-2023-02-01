@@ -269,7 +269,7 @@ cdef class CryptoMiniSat(SatSolver):
         - If the solver was interrupted before deciding satisfiability
           ``None``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         We construct a simple example::
 

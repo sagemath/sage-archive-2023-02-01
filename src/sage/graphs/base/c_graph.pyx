@@ -341,7 +341,7 @@ cdef class CGraph:
             - :meth:`add_vertex`
               -- add a vertex to a graph.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Adding vertices for sparse graphs::
 

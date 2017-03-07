@@ -529,7 +529,7 @@ def sparse_2term_quotient(rels, n, F):
        the quotient.
 
 
-    EXAMPLE: We quotient out by the relations
+    EXAMPLES: We quotient out by the relations
 
     .. MATH::
 

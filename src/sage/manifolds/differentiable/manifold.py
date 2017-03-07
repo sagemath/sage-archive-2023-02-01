@@ -1015,7 +1015,7 @@ class DifferentiableManifold(TopologicalManifold):
         - the diffeomorphism, as an instance of
           :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
 
-        EXAMPLE:
+        EXAMPLES:
 
         Diffeomorphism between the open unit disk in `\RR^2` and `\RR^2`::
 
@@ -2587,7 +2587,7 @@ class DifferentiableManifold(TopologicalManifold):
         - the affine connection, as an instance of
           :class:`~sage.manifolds.differentiable.affine_connection.AffineConnection`
 
-        EXAMPLE:
+        EXAMPLES:
 
         Affine connection on an open subset of a 3-dimensional smooth manifold::
 
@@ -2639,7 +2639,7 @@ class DifferentiableManifold(TopologicalManifold):
           :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
           representing the defined pseudo-Riemannian metric.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Metric on a 3-dimensional manifold::
 
@@ -2685,7 +2685,7 @@ class DifferentiableManifold(TopologicalManifold):
           :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
           representing the defined Riemannian metric.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Metric of the hyperbolic plane `H^2`::
 
@@ -2768,7 +2768,7 @@ class DifferentiableManifold(TopologicalManifold):
           :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
           representing the defined Lorentzian metric.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Metric of Minkowski spacetime::
 

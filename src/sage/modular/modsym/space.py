@@ -2446,7 +2446,7 @@ class PeriodMapping(SageObject):
         r"""
         Return the codomain of this mapping.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Note that this presently returns the wrong answer, as a consequence of
         various bugs in the free module routines::

@@ -77,7 +77,7 @@ class CNFEncoder(ANF2CNFConverter):
         - ``random_seed`` - the direct conversion method uses
           randomness, this sets the seed (default: 16)
 
-        EXAMPLE:
+        EXAMPLES:
 
         We compare the sparse and the dense strategies, sparse first::
 

@@ -776,7 +776,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         """
         Returns isolating intervals for the real roots of this polynomial.
 
-        EXAMPLE:
+        EXAMPLES:
         We compute the roots of the characteristic polynomial of some Salem numbers::
 
             sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')

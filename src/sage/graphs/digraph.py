@@ -3030,7 +3030,7 @@ class DiGraph(GenericGraph):
 
         - ``v`` -- a vertex
 
-        EXAMPLE:
+        EXAMPLES:
 
         In the symmetric digraph of a graph, the strongly connected components are the connected
         components::
@@ -3054,7 +3054,7 @@ class DiGraph(GenericGraph):
         r"""
         Returns the strongly connected components as a list of subgraphs.
 
-        EXAMPLE:
+        EXAMPLES:
 
         In the symmetric digraph of a graph, the strongly connected components are the connected
         components::
@@ -3080,7 +3080,7 @@ class DiGraph(GenericGraph):
         is an edge from a component `C_1` to a component `C_2` if there is
         an edge from one to the other in `G`.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Such a digraph is always acyclic ::
 
@@ -3162,7 +3162,7 @@ class DiGraph(GenericGraph):
         r"""
         Returns whether the current ``DiGraph`` is strongly connected.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The circuit is obviously strongly connected ::
 

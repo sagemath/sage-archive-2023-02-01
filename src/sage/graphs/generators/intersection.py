@@ -44,7 +44,7 @@ def IntervalGraph(intervals, points_ordered = False):
           to create the graph are saved with the graph and can be recovered
           using ``get_vertex()`` or ``get_vertices()``.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The following line creates the sequence of intervals
     `(i, i+2)` for i in `[0, ..., 8]`::
@@ -296,7 +296,7 @@ def ToleranceGraph(tolrep):
         to create the graph is saved with the graph and can be recovered using
         ``get_vertex()`` or ``get_vertices()``.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The following code creates a tolerance representation ``tolrep``, generates
     its tolerance graph ``g``, and applies some checks::

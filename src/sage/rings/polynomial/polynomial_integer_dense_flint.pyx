@@ -1274,7 +1274,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         Returns isolating intervals for the real roots of this
         polynomial.
 
-        EXAMPLE:
+        EXAMPLES:
         We compute the roots of the characteristic polynomial of some
         Salem numbers::
 

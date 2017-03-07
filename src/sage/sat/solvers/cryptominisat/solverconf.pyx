@@ -1,7 +1,7 @@
 """
 Configuration for CryptoMiniSat.
 
-EXAMPLE:
+EXAMPLES:
 
 We construct a new configuration object::
 

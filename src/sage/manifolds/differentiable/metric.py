@@ -590,7 +590,7 @@ class PseudoRiemannianMetric(TensorField):
           :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
           representing a field of symmetric bilinear forms
 
-        EXAMPLE:
+        EXAMPLES:
 
         Metric defined from a field of symmetric bilinear forms on a
         non-parallelizable 2-dimensional manifold::
@@ -2082,7 +2082,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         - instance of :class:`PseudoRiemannianMetricParal` representing the
           restriction.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Restriction of a Lorentzian metric on `\RR^2` to the upper half plane::
 

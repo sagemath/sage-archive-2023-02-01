@@ -246,7 +246,7 @@ def greedy_is_comparability(g, no_certificate = False, equivalence_class = False
     - If the graph is *not* a comparability graph, this method returns ``False``
       or ``(False, odd_cycle)`` according to the value of ``no_certificate``.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The Petersen Graph is not transitively orientable::
 
@@ -344,7 +344,7 @@ def greedy_is_comparability_with_certificate(g, certificate = False):
       `G`, and a *no* certificates is an odd cycle of sequentially forcing
       edges.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The 5-cycle or the Petersen Graph are not transitively orientable::
 
@@ -412,7 +412,7 @@ def is_comparability_MILP(g, certificate = False):
     - ``certificate`` (boolean) -- whether to return a certificate for
       yes instances. This method can not return negative certificates.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The 5-cycle or the Petersen Graph are not transitively orientable::
 
@@ -601,7 +601,7 @@ def is_permutation(g, algorithm = "greedy", certificate = False, check = True):
         through a call to :meth:`Permutation.show
         <sage.combinat.permutation.Permutation.show>`.
 
-    EXAMPLE:
+    EXAMPLES:
 
     A permutation realizing the bull graph::
 

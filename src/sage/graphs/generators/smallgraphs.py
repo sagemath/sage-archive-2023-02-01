@@ -2209,7 +2209,7 @@ def EllinghamHorton54Graph():
     For more information, see the :wikipedia:`Wikipedia page on the
     Ellingham-Horton graphs <Ellingham-Horton_graph>`
 
-    EXAMPLE:
+    EXAMPLES:
 
     This graph is 3-regular::
 
@@ -2299,7 +2299,7 @@ def EllinghamHorton78Graph():
     Ellingham-Horton graphs
     <http://en.wikipedia.org/wiki/Ellingham%E2%80%93Horton_graph>`
 
-    EXAMPLE:
+    EXAMPLES:
 
     This graph is 3-regular::
 
@@ -3384,7 +3384,7 @@ def KrackhardtKiteGraph():
     to all other nodes in the graph (i.e.: Closeness Centrality).
     Please execute the example for visualization.
 
-    EXAMPLE: Construct and show a Krackhardt kite graph
+    EXAMPLES: Construct and show a Krackhardt kite graph
 
     ::
 
@@ -4108,7 +4108,7 @@ def SchlaefliGraph():
 
         Find a beautiful layout for this beautiful graph.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Checking that the method actually returns the Schläfli graph::
 

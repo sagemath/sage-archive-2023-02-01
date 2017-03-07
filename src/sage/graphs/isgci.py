@@ -394,7 +394,7 @@ class GraphClass(SageObject, CachedRepresentation):
     An instance of this class represents a Graph Class, matching some entry in
     the ISGCI database.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Testing the inclusion of two classes::
 
@@ -670,7 +670,7 @@ class GraphClasses(UniqueRepresentation):
 
             :meth:`~sage.graphs.isgci.GraphClasses.show_all`
 
-        EXAMPLE:
+        EXAMPLES:
 
         With an existing id::
 

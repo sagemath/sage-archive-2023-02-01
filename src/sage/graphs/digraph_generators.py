@@ -568,7 +568,7 @@ class DiGraphGenerators():
 
         The circuit is an oriented ``CycleGraph``
 
-        EXAMPLE:
+        EXAMPLES:
 
         A circuit is the smallest strongly connected digraph::
 

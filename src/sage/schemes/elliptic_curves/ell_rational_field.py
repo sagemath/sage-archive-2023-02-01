@@ -2844,7 +2844,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         The rank of the 2-Selmer group of the curve.
 
-        EXAMPLE: The following is the curve 960D1, which has rank 0, but
+        EXAMPLES: The following is the curve 960D1, which has rank 0, but
         Sha of order 4.
 
         ::
@@ -2895,7 +2895,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         curve.  If the curve has no 2-torsion it is the same as the
         2-selmer rank.
 
-        EXAMPLE: The following is the curve 960D1, which has rank 0, but
+        EXAMPLES: The following is the curve 960D1, which has rank 0, but
         Sha of order 4.
 
         ::

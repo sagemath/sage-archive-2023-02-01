@@ -3106,7 +3106,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
             - :meth:`~PermutationGroup_generic.is_primitive`
 
-        EXAMPLE:
+        EXAMPLES:
 
         Picking an interesting group::
 

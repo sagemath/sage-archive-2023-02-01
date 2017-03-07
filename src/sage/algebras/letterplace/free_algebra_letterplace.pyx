@@ -489,7 +489,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
         bound will be dynamically adapted. It can also be set by
         :meth:`set_degbound`.
 
-        EXAMPLE:
+        EXAMPLES:
 
         In order to avoid we get a free algebras from the cache that
         was created in another doctest and has a different degree
@@ -516,7 +516,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
 
         The degree bound can not be decreased.
 
-        EXAMPLE:
+        EXAMPLES:
 
         In order to avoid we get a free algebras from the cache that
         was created in another doctest and has a different degree

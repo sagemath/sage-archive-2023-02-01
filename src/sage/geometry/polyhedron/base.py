@@ -463,7 +463,7 @@ class Polyhedron_base(Element):
                     for self_V in self.Vrepresentation())
 
     def plot(self,
-             point=None, line=None, polygon=None, #  None means unspecified by the user
+             point=None, line=None, polygon=None,  # None means unspecified by the user
              wireframe='blue', fill='green',
              projection_direction=None,
              **kwds):
@@ -1553,9 +1553,9 @@ class Polyhedron_base(Element):
         if base_ring is None:
             base_ring = self.base_ring()
         m = matrix(base_ring, self.ambient_dim(), self.n_vertices())
-        for i,v in enumerate(self.vertices()):
+        for i, v in enumerate(self.vertices()):
             for j in range(self.ambient_dim()):
-                m[j,i] = v[j]
+                m[j, i] = v[j]
         return m
 
     def ray_generator(self):
@@ -2282,10 +2282,44 @@ class Polyhedron_base(Element):
 
             :meth:`~sage.geometry.polyhedron.base.face_fan`.
 
+        EXAMPLES::
+
+            sage: S = Polyhedron(vertices = [[0, 0], [1, 0], [0, 1]])
+            sage: S.normal_fan()
+            Rational polyhedral fan in 2-d lattice N
+
+            sage: C = polytopes.hypercube(4)
+            sage: NF = C.normal_fan(); NF
+            Rational polyhedral fan in 4-d lattice N
+
+        Currently, it is only possible to get the normal fan of a bounded rational polytope::
+
+            sage: P = Polyhedron(rays = [[1, 0], [0, 1]])
+            sage: P.normal_fan()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: the normal fan is only supported for polytopes (compact polyhedra).
+
+            sage: Q = Polyhedron(vertices = [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+            sage: Q.normal_fan()
+            Traceback (most recent call last):
+            ...
+            ValueError: the normal fan is only defined for full-dimensional polytopes
+
+            sage: R = Polyhedron(vertices = [[0, 0], [AA(sqrt(2)), 0], [0, AA(sqrt(2))]])
+            sage: R.normal_fan()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: normal fan handles only polytopes over the rationals
+
         REFERENCES:
 
         For more information, see Chapter 7 of [Zie2007]_.
         """
+        from sage.geometry.fan import NormalFan
+
+        if not QQ.has_coerce_map_from(self.base_ring()):
+            raise NotImplementedError('normal fan handles only polytopes over the rationals')
 
         return NormalFan(self)
 
@@ -2298,15 +2332,47 @@ class Polyhedron_base(Element):
 
         A complete fan of the ambient space as a
         :class:`~sage.geometry.fan.RationalPolyhedralFan`.
-        
+
         .. SEEALSO::
 
             :meth:`~sage.geometry.polyhedron.base.normal_fan`.
+
+        EXAMPLES::
+
+            sage: T = polytopes.cuboctahedron()
+            sage: T.face_fan()
+            Rational polyhedral fan in 3-d lattice M
+
+        The polytope should contain the origin in the interior::
+
+            sage: P = Polyhedron(vertices = [[1/2, 1], [1, 1/2]])
+            sage: P.face_fan()
+            Traceback (most recent call last):
+            ...
+            ValueError: face fans are defined only for polytopes containing the origin as an interior point!
+
+            sage: Q = Polyhedron(vertices = [[-1, 1/2], [1, -1/2]])
+            sage: Q.contains([0,0])
+            True
+            sage: FF = Q.face_fan(); FF
+            Rational polyhedral fan in 2-d lattice M
+
+        The polytope has to have rational coordinates::
+
+            sage: S = polytopes.dodecahedron()
+            sage: S.face_fan()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: face fan handles only polytopes over the rationals
 
         REFERENCES:
 
         For more information, see Chapter 7 of [Zie2007]_.
         """
+        from sage.geometry.fan import FaceFan
+
+        if not QQ.has_coerce_map_from(self.base_ring()):
+            raise NotImplementedError('face fan handles only polytopes over the rationals')
 
         return FaceFan(self)
 

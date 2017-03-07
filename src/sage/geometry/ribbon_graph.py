@@ -188,7 +188,7 @@ class RibbonGraph(SageObject, UniqueRepresentation):
         Ribbon graph of genus 1 and 1 boundary components
 
     By drawing the picture in a piece of paper, one can see that its
-    thickening has only `1` boundary  component. Since the the thickening
+    thickening has only `1` boundary component. Since the thickening
     is homotopically equivalent to the graph and the graph has Euler
     characteristic `-1`, we find that the thickening has genus `1`::
 

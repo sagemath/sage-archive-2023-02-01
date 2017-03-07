@@ -47,6 +47,7 @@ from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.matrix.constructor import matrix, diagonal_matrix
 from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.sage_object import richcmp, richcmp_not_equal
 from sage.categories.all import WeylGroups, FiniteWeylGroups, AffineWeylGroups
 from sage.sets.family import Family
 from sage.matrix.constructor import Matrix
@@ -813,7 +814,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
                self._parent   == other._parent   and \
                self.matrix()  == other.matrix()
 
-    def _cmp_(self, other):
+    def _richcmp_(self, other, op):
         """
         EXAMPLES::
 
@@ -825,14 +826,13 @@ class WeylGroupElement(MatrixGroupElement_gap):
             False
         """
         if self._parent.cartan_type() != other._parent.cartan_type():
-            return cmp(self._parent.cartan_type(), other._parent.cartan_type())
-        return cmp(self.matrix(), other.matrix())
-
-    __cmp__ = _cmp_
+            return richcmp_not_equal(self._parent.cartan_type(),
+                                     other._parent.cartan_type(), op)
+        return richcmp(self.matrix(), other.matrix(), op)
 
     def action(self, v):
         """
-        Returns the action of self on the vector v.
+        Return the action of self on the vector v.
 
         EXAMPLES::
 

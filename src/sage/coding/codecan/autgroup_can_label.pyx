@@ -263,8 +263,7 @@ class LinearCodeAutGroupCanLabel:
             col2pos.append([b for (a, b) in X ])
             col2P.append([a for (a, b) in X ])
 
-        zipped = zip(col2P, col_set, col2pos)
-        zipped.sort()
+        zipped = sorted(zip(col2P, col_set, col2pos))
 
         col2P = [qty for (qty, c, pos) in zipped]
         col_set = [c for (qty, c, pos) in zipped]

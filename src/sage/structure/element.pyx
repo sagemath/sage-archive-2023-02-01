@@ -2414,7 +2414,7 @@ cdef class RingElement(ModuleElement):
             sage: x^(2^64 + 12345)
             Traceback (most recent call last):
             ...
-            OverflowError: Exponent overflow (2147483648).
+            OverflowError: exponent overflow (2147483648)
 
         Another example from :trac:`2956` which always overflows
         with Singular 4::

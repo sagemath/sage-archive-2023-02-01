@@ -3050,7 +3050,9 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
     def kolyvagin_point(self):
         """
         Return the Kolyvagin point corresponding to this Heegner
-        point.  This is the point obtained by applying the Kolyvagin
+        point.
+
+        This is the point obtained by applying the Kolyvagin
         operator `J_c I_c` in the group ring of the Galois group to
         this Heegner point.   It is a point that defines an element
         of `H^1(K, E[n])`, under certain hypotheses on `n`.

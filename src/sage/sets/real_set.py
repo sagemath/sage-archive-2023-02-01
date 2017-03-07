@@ -1453,4 +1453,54 @@ class RealSet(UniqueRepresentation, Parent):
                     return False
         return True
 
-                
+    def _sage_input_(self, sib, coerced):
+        """
+        Produce an expression which will reproduce this value when evaluated.
+
+        TESTS::
+
+            sage: sage_input(RealSet())
+            RealSet()
+            sage: sage_input(RealSet.open(-oo, +oo))
+            RealSet(-oo, oo)
+            sage: sage_input(RealSet.point(77))
+            RealSet.point(77)
+            sage: sage_input(RealSet.closed_open(0, +oo))
+            RealSet.closed_open(0, oo)
+            sage: sage_input(RealSet.open_closed(-oo, 0))
+            RealSet.open_closed(-oo, 0)
+            sage: sage_input(RealSet.open_closed(-1, 0))
+            RealSet.open_closed(-1, 0)
+            sage: sage_input(RealSet.closed_open(-1, 0))
+            RealSet.closed_open(-1, 0)
+            sage: sage_input(RealSet.closed(0, 1))
+            RealSet.closed(0, 1)
+            sage: sage_input(RealSet.open(0, 1))
+            RealSet.open(0, 1)
+            sage: sage_input(RealSet.open(0, 1) + RealSet.open(1, 2))
+            RealSet.open(0, 1) + RealSet.open(1, 2)
+        """
+
+        def interval_input(i):
+            lower, upper = i.lower(), i.upper()
+            if i.is_point():
+                return sib.name('RealSet.point')(lower)
+            elif lower == minus_infinity and upper == infinity:
+                return sib.name('RealSet')(sib(minus_infinity), sib(infinity))
+            else:
+                if i.lower_closed():
+                    if i.upper_closed():
+                        t = 'RealSet.closed'
+                    else:
+                        t = 'RealSet.closed_open'
+                else:
+                    if i.upper_closed():
+                        t = 'RealSet.open_closed'
+                    else:
+                        t = 'RealSet.open'
+                return sib.name(t)(sib(lower), sib(upper))
+
+        if self.is_empty():
+            return sib.name('RealSet')()
+        else:
+            return sib.sum(interval_input(i) for i in self)

@@ -175,8 +175,8 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-
 from six.moves import range
+from six import add_metaclass
 
 from operator import mul
 from itertools import chain, product
@@ -338,6 +338,8 @@ def centralizer_group_cardinality(la, q = None):
         q = ZZ['q'].gen()
     return q**centralizer_algebra_dim(la)*prod([fq(m, q = q) for m in la.to_exp()])
 
+
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class PrimarySimilarityClassType(Element):
     r"""
     A primary similarity class type is a pair consisting of a partition and a positive
@@ -355,8 +357,6 @@ class PrimarySimilarityClassType(Element):
 
     for some irreducible polynomial `p(t)` of degree `d`.
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, deg, par):
         r"""

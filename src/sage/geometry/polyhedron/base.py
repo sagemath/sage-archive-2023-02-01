@@ -2268,6 +2268,48 @@ class Polyhedron_base(Element):
         A_ker = A.right_kernel()
         return A_ker.basis_matrix().transpose().rows()
 
+    @cached_method
+    def normal_fan(self):
+        r"""
+        Return the normal fan of a compact full-dimensional rational polyhedron.
+
+        OUTPUT:
+
+        A complete fan of the ambient space as a
+        :class:`~sage.geometry.fan.RationalPolyhedralFan`.
+
+        .. SEEALSO::
+
+            :meth:`~sage.geometry.polyhedron.base.face_fan`.
+
+        REFERENCES:
+
+        For more information, see Chapter 7 of [Zie2007]_.
+        """
+
+        return NormalFan(self)
+
+    @cached_method
+    def face_fan(self):
+        r"""
+        Return the face fan of a compact full-dimensional rational polyhedron.
+
+        OUTPUT:
+
+        A complete fan of the ambient space as a
+        :class:`~sage.geometry.fan.RationalPolyhedralFan`.
+        
+        .. SEEALSO::
+
+            :meth:`~sage.geometry.polyhedron.base.normal_fan`.
+
+        REFERENCES:
+
+        For more information, see Chapter 7 of [Zie2007]_.
+        """
+
+        return FaceFan(self)
+
     def triangulate(self, engine='auto', connected=True, fine=False, regular=None, star=None):
         r"""
         Returns a triangulation of the polytope.

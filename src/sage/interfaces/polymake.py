@@ -64,7 +64,7 @@ def polymake_console():
 
 class Polymake(ExtraTabCompletion, Expect):
     def __init__(self, script_subdirectory=None,
-                 logfile="/home/king/Projekte/Polymake/pexpect.log", server=None,server_tmpdir=None,
+                 logfile=None, server=None,server_tmpdir=None,
                  seed=None, command=None):
         if command is None:
             command = "env TERM=dumb {}".format(os.getenv('SAGE_POLYMAKE_COMMAND') or 'polymake')

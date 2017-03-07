@@ -46,9 +46,7 @@ cdef extern from *:
     int sprintf_7i "sprintf" (char*, char*, int, int, int, int, int, int, int)
     int sprintf_9d "sprintf" (char*, char*, double, double, double, double, double, double, double, double, double)
 
-# import the double infinity constant
-cdef extern from "math.h":
-    enum: INFINITY
+from libc.math cimport INFINITY
 
 from cpython.list cimport *
 from cpython.bytes cimport *

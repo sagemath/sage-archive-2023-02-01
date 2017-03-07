@@ -2313,7 +2313,7 @@ cdef class MPolynomial(CommutativeRingElement):
         if not self.constant_coefficient().is_unit():
             return False
         cdef dict d = self.dict()
-        cdef ETuple zero_key = ETuple([0]*self.parent().ngens())
+        cdef ETuple zero_key = ETuple({}, int(self.parent().ngens()))
         d.pop(zero_key, None)
         return all(d[k].is_nilpotent() for k in d)
 

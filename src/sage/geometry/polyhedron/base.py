@@ -2326,11 +2326,11 @@ class Polyhedron_base(Element):
     @cached_method
     def face_fan(self):
         r"""
-        Return the face fan of a compact full-dimensional rational polyhedron.
+        Return the face fan of a compact rational polyhedron.
 
         OUTPUT:
 
-        A complete fan of the ambient space as a
+        A fan of the ambient space as a
         :class:`~sage.geometry.fan.RationalPolyhedralFan`.
 
         .. SEEALSO::

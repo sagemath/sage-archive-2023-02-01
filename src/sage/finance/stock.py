@@ -76,7 +76,7 @@ class OHLC:
         return '%10s %4.2f %4.2f %4.2f %4.2f %10d'%(self.timestamp, self.open, self.high,
                    self.low, self.close, self.volume)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Compare ``self`` and ``other``.
 
@@ -84,13 +84,31 @@ class OHLC:
 
             sage: ohlc = sage.finance.stock.OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
             sage: ohlc2 = sage.finance.stock.OHLC('18-Aug-04', 101.01, 104.06, 95.96, 100.34, 22353092)
-            sage: cmp(ohlc, ohlc2)
-            -1
+            sage: ohlc == ohlc2
+            False
         """
         if not isinstance(other, OHLC):
-            return cmp(type(self), type(other))
-        return cmp((self.timestamp, self.open, self.high, self.low, self.close, self.volume),
-                   (other.timestamp, other.open, other.high, other.low, other.close, other.volume))
+            return False
+        return (self.timestamp == other.timestamp and
+                self.open == other.open and
+                self.high == other.high and
+                self.low == other.low and
+                self.close == other.close and
+                self.volume == other.volume)
+
+    def __ne__(self, other):
+        """
+        Compare ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: ohlc = sage.finance.stock.OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
+            sage: ohlc2 = sage.finance.stock.OHLC('18-Aug-04', 101.01, 104.06, 95.96, 100.34, 22353092)
+            sage: ohlc != ohlc2
+            True
+        """
+        return not (self == other)
+    
 
 class Stock:
     """
@@ -155,7 +173,7 @@ class Stock:
         r"""
         Get Yahoo current price data for this stock.
 
-        This method returns a dictionary wit the following keys:
+        This method returns a dictionary with the following keys:
 
 
         .. csv-table::

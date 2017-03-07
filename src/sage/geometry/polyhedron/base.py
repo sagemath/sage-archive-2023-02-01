@@ -5022,7 +5022,6 @@ class Polyhedron_base(Element):
         through the origin is combinatorially isomorphic to the intersection
         of a cube with a hyperplane perpendicular to its long diagonal::
 
-            polytopes.regular_polygon(4)
             sage: def simplex_intersection(k):
             ....:   S1 = Polyhedron([vector(v)-vector(polytopes.simplex(k).center()) for v in polytopes.simplex(k).vertices_list()])
             ....:   S2 = Polyhedron([-vector(v) for v in S1.vertices_list()])

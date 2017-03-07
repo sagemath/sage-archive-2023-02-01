@@ -685,8 +685,8 @@ def solve(f, *args, **kwds):
         x: -2, y: 4
 
     If there is a parameter in the answer, that will show up as
-    a new variable.  In the following example, ``r1`` is a real free
-    variable (because of the ``r``)::
+    a new variable.  In the following example, ``r1`` is an arbitrary
+    constant (because of the ``r``)::
 
         sage: solve([x+y == 3, 2*x+2*y == 6],x,y)
         [[x == -r1 + 3, y == r1]]

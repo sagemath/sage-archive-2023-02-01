@@ -695,7 +695,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
         """
         P = self._check_valid()
-        T1, T2, _ = self.typeof()
+        T1, T2 = self.typeof()
         if not T1:
             if T2:
                 try:

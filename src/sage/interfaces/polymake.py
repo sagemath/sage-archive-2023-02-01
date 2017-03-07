@@ -507,12 +507,14 @@ class Polymake(ExtraTabCompletion, Expect):
         self._sendstr('application "{}";{}'.format(app, self._expect.linesep))
         assert self._expect.expect_list(self._prompt) == 0, "The Polymake prompt '{}' didn't appear".format(self._prompt[0])
 
-    def new_from_type(self, name, *args, **kwds):
+    def new_object(self, name, *args, **kwds):
         try:
             f = self.__new[name]
         except AttributeError:
             self.__new = {}
-            f = self.__new[name] = self._function_class()(self, "{}->new".format(name))
+            f = self.__new[name] = self._function_class()(self, "new %s"%name)
+        except KeyError:
+            f = self.__new[name] = self._function_class()(self, "new %s"%name)
         return f(*args, **kwds)
 
 polymake = Polymake()

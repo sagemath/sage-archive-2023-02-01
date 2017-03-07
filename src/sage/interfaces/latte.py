@@ -11,6 +11,8 @@ Generic interface to LattE integrale programs
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import six
+
 def count(arg, ehrhart_polynomial=False, multivariate_generating_function=False, raw_output=False, verbose=False, **kwds):
     r"""
     Call to the program count from LattE integrale
@@ -187,17 +189,20 @@ def integrate(arg, polynomial=None, algorithm='triangulate', raw_output=False, v
 
     - ``arg`` -- a cdd or LattE description string
 
-    - ``polynomial`` -- polynomial that is integrated over the polytope.
-    If None, the volume of the polytope is computed.
+    - ``polynomial`` -- if given, the valuation paraameter of LattE's
+    Integrate a polynomial over a polytope. Otherwise, the valuation is set 
+    to volume.
 
-    - ``algorithm`` -- (default: 'triangulate') the integration method. Use 'triangulate' for polytope triangulation
-    or 'cone-decompose' for tangent cone decomposition method.
+    - ``algorithm`` -- (default: 'triangulate') the integration method. Use
+    'triangulate' for polytope triangulation or 'cone-decompose' for tangent
+    cone decomposition method.
 
-    - ``raw_output`` -- if ``True`` then return directly the output string from LattE
+    - ``raw_output`` -- if ``True`` then return directly the output string from
+    LattE
 
     - ``verbose`` -- if ``True`` then return directly verbose output from LattE
 
-    - For all other options of the count program, consult the LattE manual
+    - For all other options of the integrate program, consult the LattE manual.
 
     OUTPUT:
 
@@ -222,6 +227,11 @@ def integrate(arg, polynomial=None, algorithm='triangulate', raw_output=False, v
         64
         sage: integrate(P.cdd_Vrepresentation(), cdd=True)   # optional - latte_int
         64
+
+    Polynomials given as a string in LattE description are also accepted:
+
+        sage: integrate(P.cdd_Hrepresentation(), ```[1,[2,2,2]]```, cdd=True)   # optional - latte_int
+        4096/27
 
     TESTS:
 
@@ -267,6 +277,13 @@ def integrate(arg, polynomial=None, algorithm='triangulate', raw_output=False, v
         sage: integrate(cddin, cdd=True, raw_output=True)  # optional - latte_int
         '20/3'
 
+    Testing polynomial given as a string in LattE description::
+
+        sage: from sage.interfaces.latte import integrate
+        sage: P = polytopes.cuboctahedron()
+        sage: 629/47775 #integrate(P.cdd_Hrepresentation(), ```[[3,[2,4,6]],[7,[0, 3, 5]]]```, cdd=True)   # optional - latte_int
+        629/47775
+
     Testing the ``verbose`` option to compute the volume of a polytope::
 
         sage: from sage.interfaces.latte import integrate
@@ -310,10 +327,12 @@ def integrate(arg, polynomial=None, algorithm='triangulate', raw_output=False, v
             args.append('--{}={}'.format(key, value))
 
     if got_polynomial:
-        # transform polynomial to LattE description
-        monomials_list = _to_latte_polynomial(polynomial)
+        if not isinstance(polynomial, six.string_types):
+            # transform polynomial to LattE description
+            monomials_list = to_latte_polynomial(polynomial)
+        else:
+            monomials_list = str(polynomial)
 
-        # write the polynomial description to a temp file
         from sage.misc.temporary_file import tmp_filename
         filename_polynomial = tmp_filename()
 
@@ -354,7 +373,7 @@ def integrate(arg, polynomial=None, algorithm='triangulate', raw_output=False, v
         from sage.rings.rational import Rational
         return Rational(ans)
 
-def _to_latte_polynomial(polynomial):
+def to_latte_polynomial(polynomial):
     r"""
     Helper function to transform a polynomial to its LattE description.
 
@@ -370,10 +389,10 @@ def _to_latte_polynomial(polynomial):
 
     Testing a polynomial in three variables::
 
-        sage: from sage.interfaces.latte import _to_latte_polynomial
+        sage: from sage.interfaces.latte import to_latte_polynomial
         sage: x, y, z = polygen(QQ, 'x, y, z')
         sage: f = 3*x^2*y^4*z^6 + 7*y^3*z^5
-        sage: _to_latte_polynomial(f) # optional - latte_int
+        sage: to_latte_polynomial(f)
         '[[3, [2, 4, 6]], [7, [0, 3, 5]]]'
     """
 

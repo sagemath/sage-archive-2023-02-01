@@ -3004,7 +3004,7 @@ cdef class NumberFieldElement(FieldElement):
         r"""
         Test whether this number field element is a rational number
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             - :meth:`is_integer` to test if this element is an integer
             - :meth:`is_integral` to test if this element is an algebraic integer
@@ -3029,7 +3029,7 @@ cdef class NumberFieldElement(FieldElement):
         r"""
         Test whether this number field element is an integer
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             - :meth:`is_rational` to test if this element is a rational number
             - :meth:`is_integral` to test if this element is an algebraic integer

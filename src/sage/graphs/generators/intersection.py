@@ -172,7 +172,7 @@ def PermutationGraph(second_permutation, first_permutation = None):
       ``sorted(second_permutation)``, which yields the expected ordering when
       the elements of the graph are integers.
 
-    .. SEEALSO:
+    .. SEEALSO::
 
       - Recognition of Permutation graphs in the :mod:`comparability module
         <sage.graphs.comparability>`.

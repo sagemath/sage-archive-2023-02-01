@@ -1517,7 +1517,7 @@ class DifferentiableManifold(TopologicalManifold):
             sage: t in U.tensor_field_module((2,0))
             True
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             For more examples, see
             :class:`~sage.manifolds.differentiable.tensorfield.TensorField`.

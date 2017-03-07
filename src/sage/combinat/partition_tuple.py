@@ -1622,7 +1622,7 @@ class PartitionTuple(CombinatorialElement):
 
         The defect of a partition tuple is given by
 
-        .. MATH: 
+        .. MATH::
 
             \text{defect}(\beta) = (\Lambda, \beta) - \tfrac12(\beta, \beta)
 

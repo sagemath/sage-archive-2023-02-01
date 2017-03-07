@@ -189,9 +189,9 @@ def integrate(arg, polynomial=None, algorithm='triangulate', raw_output=False, v
 
     - ``arg`` -- a cdd or LattE description string
 
-    - ``polynomial`` -- if given, the valuation paraameter of LattE's
-    Integrate a polynomial over a polytope. Otherwise, the valuation is set 
-    to volume.
+    - ``polynomial`` -- multivariate polynomial or valid LattE polynomial
+    description string. If given, the valuation parameter of LattE is set
+    to integrate, and is set to volume otherwise.
 
     - ``algorithm`` -- (default: 'triangulate') the integration method. Use
     'triangulate' for polytope triangulation or 'cone-decompose' for tangent
@@ -230,7 +230,7 @@ def integrate(arg, polynomial=None, algorithm='triangulate', raw_output=False, v
 
     Polynomials given as a string in LattE description are also accepted:
 
-        sage: integrate(P.cdd_Hrepresentation(), ```[1,[2,2,2]]```, cdd=True)   # optional - latte_int
+        sage: integrate(P.cdd_Hrepresentation(), ``[1,[2,2,2]]``, cdd=True)   # optional - latte_int
         4096/27
 
     TESTS:
@@ -281,7 +281,7 @@ def integrate(arg, polynomial=None, algorithm='triangulate', raw_output=False, v
 
         sage: from sage.interfaces.latte import integrate
         sage: P = polytopes.cuboctahedron()
-        sage: 629/47775 #integrate(P.cdd_Hrepresentation(), ```[[3,[2,4,6]],[7,[0, 3, 5]]]```, cdd=True)   # optional - latte_int
+        sage: integrate(P.cdd_Hrepresentation(), '[[3,[2,4,6]],[7,[0, 3, 5]]]', cdd=True)   # optional - latte_int
         629/47775
 
     Testing the ``verbose`` option to compute the volume of a polytope::

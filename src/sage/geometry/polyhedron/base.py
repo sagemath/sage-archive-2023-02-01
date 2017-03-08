@@ -4375,9 +4375,9 @@ class Polyhedron_base(Element):
             sage: lp.vertices()
             M(-1,  0),
             M( 0, -1),
+            M( 1,  1),
             M( 0,  1),
-            M( 1,  0),
-            M( 1,  1)
+            M( 1,  0)
             in 2-d lattice M
         """
         if not self.is_compact():
@@ -4415,16 +4415,16 @@ class Polyhedron_base(Element):
             sage: Polyhedron(vertices=[(-1,-1),(1,0),(1,1),(0,1)])._integral_points_PALP()
             [M(-1, -1), M(0, 1), M(1, 0), M(1, 1), M(0, 0)]
             sage: Polyhedron(vertices=[(-1/2,-1/2),(1,0),(1,1),(0,1)]).lattice_polytope(True).points()
-            M( 0, -1),
-            M(-1,  0),
             M(-1, -1),
+            M(-1,  0),
+            M( 0, -1),
+            M( 1,  1),
             M( 0,  1),
             M( 1,  0),
-            M( 1,  1),
             M( 0,  0)
             in 2-d lattice M
             sage: Polyhedron(vertices=[(-1/2,-1/2),(1,0),(1,1),(0,1)])._integral_points_PALP()
-            [M(0, 1), M(1, 0), M(1, 1), M(0, 0)]
+            [M(1, 1), M(0, 1), M(1, 0), M(0, 0)]
         """
         if not self.is_compact():
             raise ValueError('Can only enumerate points in a compact polyhedron.')

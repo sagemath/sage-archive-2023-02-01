@@ -706,7 +706,7 @@ cdef class BooleanFunction(SageObject):
 
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: B = BooleanFunction("7969817CC5893BA6AC326E47619F5AD0")
-            sage: sorted([_ for _ in B.absolute_walsh_spectrum().iteritems() ])
+            sage: sorted(B.absolute_walsh_spectrum().items())
             [(0, 64), (16, 64)]
 
             sage: B = BooleanFunction("0113077C165E76A8")
@@ -881,7 +881,7 @@ cdef class BooleanFunction(SageObject):
 
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: B = BooleanFunction("7969817CC5893BA6AC326E47619F5AD0")
-            sage: sorted([ _ for _ in B.absolute_autocorrelation().iteritems() ])
+            sage: sorted(B.absolute_autocorrelation().items())
             [(0, 33), (8, 58), (16, 28), (24, 6), (32, 2), (128, 1)]
         """
         d = {}

@@ -164,17 +164,18 @@ class G_AlgFactory(UniqueFactory):
 
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
             sage: H=A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
-            sage: sorted(H.relations().iteritems(),key=str)
+            sage: sorted(H.relations().items(), key=str)
             [(y*x, x*y - z), (z*x, x*z + 2*x), (z*y, y*z - 2*y)]
-
         """
         # key = (base_ring,names, c,d, order, category)
         # extra args: check
-        base_ring,names,c,d,order,category = key
+        base_ring,names, c, d, order, category = key
         check = extra_args.get('check')
-        return NCPolynomialRing_plural(base_ring, names, c,d, order, category, check)
+        return NCPolynomialRing_plural(base_ring, names, c, d, order,
+                                       category, check)
+
     def create_key_and_extra_args(self, base_ring, c,d, names=None, order=None,
-                                 category=None,check=None):
+                                  category=None,check=None):
         """
         Create a unique key for g-algebras.
 
@@ -2931,7 +2932,7 @@ def ExteriorAlgebra(base_ring, names,order='degrevlex'):
         sage: from sage.rings.polynomial.plural import ExteriorAlgebra
         sage: E = ExteriorAlgebra(QQ, ['x', 'y', 'z']) ; E #random
         Quotient of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*x: -x*z, z*y: -y*z, y*x: -x*y} by the ideal (z^2, y^2, x^2)
-        sage: sorted(E.cover().domain().relations().iteritems(),key=str)
+        sage: sorted(E.cover().domain().relations().items(), key=str)
         [(y*x, -x*y), (z*x, -x*z), (z*y, -y*z)]
         sage: sorted(E.cover().kernel().gens(),key=str)
         [x^2, y^2, z^2]

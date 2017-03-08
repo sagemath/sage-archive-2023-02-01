@@ -88,8 +88,7 @@ def render_3d(projection, *args, **kwds):
         Graphics3d Object
         sage: Polyhedron(vertices=[[1,1,1]], lines=[[0,1,0],[0,0,1]]).plot()                  # R^2 in R^3
         Graphics3d Object
-        sage: Polyhedron(rays=[[0,1,0],[0,0,1]], lines=[[1,0,0]]).plot()
-        # long time quadrant wedge in R^2
+        sage: Polyhedron(rays=[[0,1,0],[0,0,1]], lines=[[1,0,0]]).plot()                      # long time quadrant wedge in R^2
         Graphics3d Object
         sage: Polyhedron(rays=[[0,1,0]], lines=[[1,0,0]]).plot()                              # upper half plane in R^3
         Graphics3d Object

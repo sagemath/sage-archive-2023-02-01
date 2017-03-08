@@ -13,8 +13,6 @@ from .base import Polyhedron_base
 from .base_QQ import Polyhedron_QQ
 from .base_RDF import Polyhedron_RDF
 
-from sage.misc.decorators import rename_keyword
-
 #########################################################################
 class Polyhedron_cdd(Polyhedron_base):
     """
@@ -214,7 +212,6 @@ class Polyhedron_cdd(Polyhedron_base):
             return [int(i)-1 for i in l[2:]]  # make indices pythonic
 
         # nested function
-        @rename_keyword(deprecation=22551, field='base_ring')
         def cdd_convert(string, base_ring=self.base_ring()):
             """
             Converts the cdd output string to a numerical value.

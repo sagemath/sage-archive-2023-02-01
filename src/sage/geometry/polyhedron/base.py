@@ -2032,6 +2032,8 @@ class Polyhedron_base(Element):
         """
         return self.parent().base_ring()
 
+    field = deprecated_function_alias(22551, base_ring)
+
     @cached_method
     def center(self):
         """

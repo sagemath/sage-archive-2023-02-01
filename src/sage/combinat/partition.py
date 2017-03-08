@@ -2401,7 +2401,7 @@ class Partition(CombinatorialElement):
             sage: Partition([2,2]).young_subgroup_generators()
             [1, 3]
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             :meth:`young_subgroup`
         """
@@ -3288,7 +3288,7 @@ class Partition(CombinatorialElement):
 
         The defect of a partition is given by 
 
-        .. MATH: 
+        .. MATH::
 
             \text{defect}(\beta) = (\Lambda, \beta) - \tfrac12(\beta, \beta)
 

@@ -910,7 +910,7 @@ cdef class Matrix(matrix1.Matrix):
         the typo `p_0(A) = 0` in that reference! For applications
         see Theorem 7.2.1 and Theorem 7.2.4.
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             The method :meth:`rook_vector` returns the list of all permanental
             minors.

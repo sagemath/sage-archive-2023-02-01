@@ -1365,7 +1365,7 @@ class Ideal_pid(Ideal_principal):
         ideal ``other``; that is, the largest principal ideal
         contained in both the ideal and ``other``
 
-        .. TODO:
+        .. TODO::
 
             This is not implemented in the case when ``other`` is neither
             principal nor when the generator of ``self`` is contained in
@@ -1493,7 +1493,7 @@ class Ideal_pid(Ideal_principal):
         r"""
         Return the residue class field of this ideal, which must be prime.
 
-        .. TODO:
+        .. TODO::
 
             Implement this for more general rings. Currently only defined
             for `\ZZ` and for number field orders.

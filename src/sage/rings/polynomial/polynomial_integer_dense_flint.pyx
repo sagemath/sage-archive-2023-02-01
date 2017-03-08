@@ -919,7 +919,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         r"""
         Truncated multiplication
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             :meth:`_mul_` for standard multiplication
 

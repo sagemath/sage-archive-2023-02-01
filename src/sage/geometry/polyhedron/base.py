@@ -3965,6 +3965,70 @@ class Polyhedron_base(Element):
         pc = triangulation.point_configuration()
         return sum([ pc.volume(simplex) for simplex in triangulation ]) / ZZ(dim).factorial()
 
+    def integrate(self, polynomial, **kwds):
+        r"""
+        Return the integral of a polynomial over a polytope.
+
+        INPUT:
+
+        - ``P`` -- Polyhedron.
+
+        - ``f`` -- A multivariate polynomial or a valid LattE description string for
+        polynomials.
+
+        - ``**kwds`` -- additional keyword arguments that are passed to the engine.
+
+        OUTPUT:
+
+        The integral of the polynomial over the polytope.
+
+        NOTES:
+
+        The polytope triangulation algorithm is used. This function depends on
+        LattE (latte_int) optional package.
+
+        EXAMPLES::
+
+        sage: P = polytopes.cube()
+        sage: x, y, z = polygens(QQ, 'x, y, z')
+        sage: P.integrate(x^2*y^2*z^2)    # optional - latte_int
+        8/27
+
+        TESTS::
+
+        Testing a three-dimensional integral:
+
+        sage: P = polytopes.octahedron()
+        sage: x, y, z = polygens(QQ, 'x, y, z')
+        sage: P.integrate(2*x^2*y^4*z^6+z^2)    # optional - latte_int
+        630632/4729725
+
+        Testing a polytope with non-rational vertices:
+
+        sage: P = polytopes.icosahedron()
+        sage: P.integrate(x^2*y^2*z^2)    # optional - latte_int
+        Traceback (most recent call last):
+        ...
+        TypeError: The base ring must be ZZ, QQ, or RDF
+
+        Testing a non full-dimensional case:
+
+        sage: P = Polyhedron(vertices=[[0,0],[1,1]])
+        sage: x, y = polygens(QQ, 'x, y')
+        sage: P.integrate(x)    # optional - latte_int
+        Traceback (most recent call last):
+        ...
+        RuntimeError: LattE integrale program failed (exit code -6):
+        ...
+        SetLength: can't change this vector's length
+        """
+        if is_package_installed('latte_int'):
+            from sage.interfaces.latte import integrate
+            return integrate(self.cdd_Hrepresentation(), polynomial, cdd=True)
+
+        else:
+            raise NotImplementedError('You must install the optional latte_int package for this function to work.')
+
     def contains(self, point):
         """
         Test whether the polyhedron contains the given ``point``.
@@ -4700,7 +4764,7 @@ class Polyhedron_base(Element):
 
         - For ``output="matrixlist"``: a list of matrices.
 
-        REFERENCES: 
+        REFERENCES:
 
         - [BSS2009]_
 

@@ -543,33 +543,24 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         name = self._name
         if 'Matrix' in T1 or 'Vector' in T1:
             out = P.get(name).strip()
-        elif 'Polytope' in T1:
-            assert T2 == 'ARRAY'
-            out = P.get('{}[1]'.format(name)).strip()
-            if not out:
-                out = "{}[{}]".format(P.get("{}->type->full_name".format(name)) or "PolymakeElement", _name_pattern.search(name).group())
         elif 'RuleChain' in T1:
             out = os.linesep.join(P.get('join("##",{}->list)'.format(name)).split('##'))
-        elif T1=='' and T2=='ARRAY':
-            out = P.get('@{}'.format(name)).strip()
-        elif T1=='' and T2=='HASH':
-            out = P.get('%{}'.format(name)).strip()
         else:
-            out = P.get(name).strip()
-        #~ # Replace variable names by the corresponding string representation, unless
-        #~ # the string representation is too long
-        #~ names = set(_name_pattern.findall(out))
-        #~ if not names:
-            #~ return out
-        #~ subs_dict = {}
-        #~ for name in names:
-            #~ r = P.get(name)
-            #~ if os.linesep not in r:
-                #~ subs_dict[name] = r
-        #~ if self._name[1:] in subs_dict:
-            #~ del subs_dict[self._name[1:]]
-        #~ for name in subs_dict.keys():
-            #~ out.replace(name, subs_dict[name])
+            try:
+                out = P.get('{}->description'.format(name)).strip()
+            except PolymakeError:
+                out = ''
+            if os.linesep in out:
+                out = ''
+        if not out:
+            if "Polytope" in T1:
+                out = "{}[{}]".format(P.get("{}->type->full_name".format(name)) or "PolymakeElement", _name_pattern.search(name).group())
+            elif T1=='' and T2=='ARRAY':
+                out = P.get('@{}'.format(name)).strip()
+            elif T1=='' and T2=='HASH':
+                out = P.get('%{}'.format(name)).strip()
+            else:
+                out = P.get(name).strip()
         return out
 
     def __cmp__(self, other):

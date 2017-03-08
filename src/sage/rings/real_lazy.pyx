@@ -699,9 +699,7 @@ cdef class LazyFieldElement(FieldElement):
         except TypeError:
             pass
         left, right = self.approx(), other.approx()
-        if op == Py_EQ and left.endpoints() == right.endpoints():
-            return True
-        return richcmp(left, right, op)
+        return richcmp(left.endpoints(), right.endpoints(), op)
 
     def __hash__(self):
         """

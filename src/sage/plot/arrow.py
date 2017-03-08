@@ -145,13 +145,10 @@ class CurveArrow(GraphicPrimitive):
         from matplotlib.patches import FancyArrowPatch
         from matplotlib.path import Path
         bpath = Path(self.vertices, self.codes)
-        a_st = '%s,head_width=%s,head_length=%s' % (style, head_width, head_length)
         p = FancyArrowPatch(path=bpath,
-                            lw=width,
-                            arrowstyle=a_st,
+                            lw=width, arrowstyle='%s,head_width=%s,head_length=%s' % (style, head_width, head_length),
                             fc=color, ec=color)
-        p.set_linestyle(get_matplotlib_linestyle(options['linestyle'],
-                                                 return_type='long'))
+        p.set_linestyle(get_matplotlib_linestyle(options['linestyle'], return_type='long'))
         p.set_zorder(options['zorder'])
         p.set_label(options['legend_label'])
         subplot.add_patch(p)
@@ -286,8 +283,8 @@ class Arrow(GraphicPrimitive):
             'draw line_1 diameter 2 arrow {0.0 0.0 0.0}  {1.0 1.0 0.0} '
 
         Note that we had to index the arrow to get the Arrow graphics
-        primitive.  We can also change the height via the plot3d method
-        of Graphics, but only as a whole::
+        primitive.  We can also change the height via the :meth:`Graphics.plot3d`
+        method, but only as a whole::
 
             sage: A = arrow((0,0),(1,1)).plot3d(3)
             sage: A.jmol_repr(A.testing_render_params())[0][0]
@@ -304,9 +301,7 @@ class Arrow(GraphicPrimitive):
         from sage.plot.plot3d.shapes2 import line3d
         options = self._plot3d_options()
         options.update(kwds)
-        return line3d([(self.xtail, self.ytail, ztail),
-                       (self.xhead, self.yhead, zhead)],
-                      arrow_head=True, **options)
+        return line3d([(self.xtail, self.ytail, ztail), (self.xhead, self.yhead, zhead)], arrow_head=True, **options)
 
     def _repr_(self):
         """
@@ -389,8 +384,7 @@ class Arrow(GraphicPrimitive):
                             arrowstyle='%s,head_width=%s,head_length=%s' % (style, head_width, head_length),
                             shrinkA=arrowshorten_end, shrinkB=arrowshorten_end,
                             fc=color, ec=color)
-        p.set_linestyle(get_matplotlib_linestyle(options['linestyle'],
-                                                 return_type='long'))
+        p.set_linestyle(get_matplotlib_linestyle(options['linestyle'], return_type='long'))
         p.set_zorder(options['zorder'])
         p.set_label(options['legend_label'])
 
@@ -422,9 +416,8 @@ class Arrow(GraphicPrimitive):
                     path = self.get_paths(renderer)[self._n]
                     vert1, code1 = path.vertices, path.codes
                     import numpy as np
-                    b1 = np.array_equal(vert1, tpath.vertices)
-                    b2 = np.array_equal(code1, tpath.codes)
-                    return b1 and b2
+
+                    return np.array_equal(vert1, tpath.vertices) and np.array_equal(code1, tpath.codes)
 
             class ConditionalStroke(pe.RendererBase):
 
@@ -439,8 +432,7 @@ class Arrow(GraphicPrimitive):
 
                 def draw_path(self, renderer, gc, tpath, affine, rgbFace):
 
-                    if self._condition_func(renderer, gc, tpath, affine,
-                                            rgbFace):
+                    if self._condition_func(renderer, gc, tpath, affine, rgbFace):
                         for pe1 in self._pe_list:
                             pe1.draw_path(renderer, gc, tpath, affine, rgbFace)
 
@@ -490,10 +482,10 @@ def arrow(tailpoint=None, headpoint=None, **kwds):
 @options(width=2, rgbcolor=(0,0,1), zorder=2, head=1, linestyle='solid', legend_label=None)
 def arrow2d(tailpoint=None, headpoint=None, path=None, **options):
     """
-    If tailpoint and headpoint are provided, returns an arrow from (xmin, ymin)
-    to (xmax, ymax).  If tailpoint or headpoint is None and path is not None,
-    returns an arrow along the path.  (See further info on paths in
-    bezier_path).
+    If ``tailpoint`` and ``headpoint`` are provided, returns an arrow from
+    (xtail, ytail) to (xhead, yhead).  If ``tailpoint`` or ``headpoint`` is None and
+    ``path`` is not None, returns an arrow along the path.  (See further info on
+    paths in :class:`bezier_path`).
 
     INPUT:
 
@@ -593,7 +585,7 @@ def arrow2d(tailpoint=None, headpoint=None, path=None, **options):
         sphinx_plot(P)
 
     If we want to draw the arrow between objects, for example, the
-    boundaries of two lines, we can use the arrowshorten option
+    boundaries of two lines, we can use the ``arrowshorten`` option
     to make the arrow shorter by a certain number of points::
 
         sage: L1 = line([(0,0), (1,0)], thickness=10)
@@ -609,7 +601,8 @@ def arrow2d(tailpoint=None, headpoint=None, path=None, **options):
         A = arrow2d((0.5,0), (0.5,1), arrowshorten=10, rgbcolor=(1,0,0))
         sphinx_plot(L1 + L2 + A)
 
-    If BOTH headpoint and tailpoint are None, then an empty plot is returned::
+    If BOTH ``headpoint`` and ``tailpoint`` are None, then an empty plot is
+    returned::
 
         sage: arrow2d(headpoint=None, tailpoint=None)
         Graphics object consisting of 0 graphics primitives
@@ -624,7 +617,7 @@ def arrow2d(tailpoint=None, headpoint=None, path=None, **options):
         P = arrow((0,0), (0,2), legend_label='up', legend_color='purple')
         sphinx_plot(P)
 
-    Extra options will get passed on to show(), as long as they are valid::
+    Extra options will get passed on to :meth:`Graphics.show()`, as long as they are valid::
 
         sage: arrow2d((-2,2), (7,1), frame=True)
         Graphics object consisting of 1 graphics primitive

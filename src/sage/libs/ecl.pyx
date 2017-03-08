@@ -25,6 +25,7 @@ from posix.signal cimport sigaction, sigaction_t
 
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
+from cpython.object cimport Py_EQ, Py_NE
 
 #it would be preferrable to let bint_symbolp wrap an efficient macro
 #but the macro provided in object.h doesn't seem to work
@@ -818,13 +819,13 @@ cdef class EclObject:
             sage: EclObject("<")(a,b)
             <ECL: T>
         """
-        if   op == 2: # "=="
-            if not(isinstance(left,EclObject)) or not(isinstance(right,EclObject)):
+        if op == Py_EQ:
+            if not(isinstance(left,EclObject) and isinstance(right,EclObject)):
                 return False
             else:
                 return bint_equal((<EclObject>left).obj,(<EclObject>right).obj)
-        elif op == 3: # "!="
-            if not(isinstance(left,EclObject)) or not(isinstance(right,EclObject)):
+        elif op == Py_NE:
+            if not(isinstance(left,EclObject) and isinstance(right,EclObject)):
                 return True
             else:
                 return not(bint_equal((<EclObject>left).obj,(<EclObject>right).obj))

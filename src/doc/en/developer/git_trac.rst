@@ -551,18 +551,19 @@ to use the web interface:
   shows you what is being added, analogous to clicking on the
   "Branch:" field.
 
-To review tickets with minimal recompiling, start on the "develop" branch,
-that is, the latest beta. Just checking out an older ticket would most likely
-reset the Sage tree to an older version, so you would have to compile older
-versions of packages to make it work. Instead, you can create an anonymous
+To review tickets with minimal recompiling, start by building the "develop"
+branch, that is, the latest beta. Just checking out an older ticket would most
+likely reset the Sage tree to an older version, so you would have to compile
+older versions of packages to make it work. Instead, you can create an anonymous
 ("detached HEAD") merge of the ticket and the develop branch::
 
     $ git trac try 12345
 
 This will only touch files that are really modified by the ticket. In particular,
 if only Python files are changed by the ticket (which is true for most tickets)
-then you just have to run ``sage -b`` to rebuild the Sage library. When you are
-finished reviewing, just checkout a named branch, for example ::
+then you just have to run ``sage -b`` to rebuild the Sage library. If files other
+than Python have been changed, you must run ``make``. When you are finished
+reviewing, just checkout a named branch, for example ::
 
     $ git checkout develop
 

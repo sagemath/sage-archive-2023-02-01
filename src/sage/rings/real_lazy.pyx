@@ -25,6 +25,7 @@ import math
 
 cdef add, sub, mul, div, pow, neg, inv
 from operator import add, sub, mul, div, pow, neg, inv
+from cpython.object cimport Py_EQ
 
 cdef canonical_coercion
 from sage.structure.element import canonical_coercion
@@ -698,6 +699,8 @@ cdef class LazyFieldElement(FieldElement):
         except TypeError:
             pass
         left, right = self.approx(), other.approx()
+        if op == Py_EQ and left.endpoints() == right.endpoints():
+            return True
         return richcmp(left, right, op)
 
     def __hash__(self):
@@ -916,7 +919,7 @@ def make_element(parent, *args):
     EXAMPLES::
 
         sage: a = RLF(pi) + RLF(sqrt(1/2)) # indirect doctest
-        sage: loads(dumps(a)) == a
+        sage: bool(loads(dumps(a)) == a)
         True
     """
     return parent(*args)

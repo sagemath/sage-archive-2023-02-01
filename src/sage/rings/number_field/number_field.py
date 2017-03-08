@@ -1948,12 +1948,12 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             Generic morphism:
               From: Number Field in z0 with defining polynomial x^2 - 5
               To:   Complex Lazy Field
-              Defn: z0 -> 2.236067977499790?
+              Defn: z0 -> 2.23606797749979? + 0.?e-14*I
 
         Check transitivity::
 
             sage: CLF_from_L(L.gen())
-            2.236067977499790?
+            2.23606797749979? + 0.?e-14*I
             sage: CLF_from_K(K_from_L(L.gen()))
             2.23606797749979? + 0.?e-14*I
 
@@ -4332,7 +4332,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
             sage: F, L1_into_F, L2_into_F, k = L1.composite_fields(L2, both_maps=True)[0]
             sage: [CDF(L1_into_F(L1.gen())), CDF(L2_into_F(L2.gen()))]
-            [-0.6293842454258952, -0.7708351267200303]
+            [-0.6293842454258959, -0.7708351267200312]
 
         Let's check that if only one field has an embedding, the resulting
         fields do not have embeddings::
@@ -7233,14 +7233,14 @@ class NumberField_absolute(NumberField_generic):
             True
 
             sage: L1, _, _ = K.subfields(2)[0]; L1, CDF(L1.gen()) # indirect doctest
-            (Number Field in a0 with defining polynomial x^2 - 23, -4.795831523312719)
+            (Number Field in a0 with defining polynomial x^2 - 23, -4.795831523312721)
 
             If we take a different embedding of the large field, we get a
             different embedding of the degree 2 subfield::
 
             sage: K.<a> = NumberField(x^4 - 23, embedding=-50)
             sage: L2, _, _ = K.subfields(2)[0]; L2, CDF(L2.gen()) # indirect doctest
-            (Number Field in a0 with defining polynomial x^2 - 23, -4.795831523312719)
+            (Number Field in a0 with defining polynomial x^2 - 23, -4.795831523312721)
 
         Test for :trac:`7695`::
 

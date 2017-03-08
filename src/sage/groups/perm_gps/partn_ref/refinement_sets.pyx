@@ -383,7 +383,7 @@ def sets_isom_py(generators, set1, set2):
     set2 = uniq(set2)
     if len(generators) == 0:
         if set1 == set2:
-            return range(max(set1)+1)
+            return list(xrange(max(set1) + 1))
         else:
             return False
     cdef int i, j, n = len(generators[0]), n_gens = len(generators)
@@ -806,7 +806,7 @@ def sets_modulo_perm_group(list generators, int max_size, bint indicate_mem_err 
     if len(generators) == 0:
         ll = []
         for i in range(max_size,-1,-1):
-            ll.append(range(i))
+            ll.append(list(xrange(i)))
         return ll
     cdef int n = len(generators[0]), n_gens = len(generators)
     cdef iterator *subset_iterator

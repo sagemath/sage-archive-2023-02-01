@@ -248,6 +248,7 @@ In case of symmetries, only non-redundant components are stored::
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 from __future__ import print_function
+from six.moves import range
 from six import itervalues
 
 from sage.structure.sage_object import SageObject
@@ -255,6 +256,7 @@ from sage.rings.integer import Integer
 from sage.parallel.decorate import parallel
 from sage.parallel.parallelism import Parallelism
 from operator import itemgetter
+
 
 class Components(SageObject):
     r"""
@@ -2530,7 +2532,7 @@ class Components(SageObject):
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         if not pos:
-            pos = range(self._nid)
+            pos = list(range(self._nid))
         else:
             if len(pos) < 2:
                 raise ValueError("at least two index positions must be given")
@@ -2681,7 +2683,7 @@ class Components(SageObject):
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         if not pos:
-            pos = range(self._nid)
+            pos = list(range(self._nid))
         else:
             if len(pos) < 2:
                 raise ValueError("at least two index positions must be given")
@@ -3326,7 +3328,7 @@ class CompWithSym(Components):
         """
         result = self._new_instance()
         # The symmetries:
-        lpos = range(self._nid)
+        lpos = list(range(self._nid))
         new_lpos = lpos[:pos1] + lpos[pos2:pos3] + lpos[pos1:pos2] + lpos[pos3:]
         result._sym = []
         for s in self._sym:
@@ -4141,7 +4143,7 @@ class CompWithSym(Components):
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         if not pos:
-            pos = range(self._nid)
+            pos = list(range(self._nid))
         else:
             if len(pos) < 2:
                 raise ValueError("at least two index positions must be given")
@@ -4403,7 +4405,7 @@ class CompWithSym(Components):
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         if not pos:
-            pos = range(self._nid)
+            pos = list(range(self._nid))
         else:
             if len(pos) < 2:
                 raise ValueError("at least two index positions must be given")

@@ -583,7 +583,7 @@ cdef class GLPKGraphBackend(object):
             sage: gbe.vertices()
             ['A', 'B']
             sage: for ed in gbe.edges():
-            ....:       print((ed[0], ed[1], ed[2]['cap'], ed[2]['cost'], ed[2]['low']))
+            ....:     print((ed[0], ed[1], ed[2]['cap'], ed[2]['cost'], ed[2]['low']))
             ('A', 'B', 10.0, 5.0, 0.0)
             sage: gbe.add_edge("B", "C", {"low":0.0, "cap":10.0, "cost":'5'})
             Traceback (most recent call last):
@@ -1138,7 +1138,7 @@ cdef class GLPKGraphBackend(object):
            the solution can not be computed for any reason (none
            exists, or the LP solver was not able to find it, etc...)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -1146,13 +1146,12 @@ cdef class GLPKGraphBackend(object):
             sage: vs = gbe.add_vertices([None for i in range(len(vertices))])
             sage: v_dict = {}
             sage: for i, v in enumerate(vs):
-            ....:    v_dict[v] = vertices[i]
+            ....:     v_dict[v] = vertices[i]
             sage: gbe.set_vertices_demand(v_dict.items())
             sage: cost = ((8, 6, 10, 9), (9, 12, 13, 7), (14, 9, 16, 5))
-            sage: lcost = range(len(cost))
-            sage: lcost_0 = range(len(cost[0]))
-            sage: for i in lcost:
-            ....:    for j in lcost_0:
+
+            sage: for i in range(len(cost)):
+            ....:     for j in range(len(cost[0])):
             ....:         gbe.add_edge(str(i), str(j + len(cost)), {"cost":cost[i][j], "cap":100})
             sage: gbe.mincost_okalg()
             1020.0

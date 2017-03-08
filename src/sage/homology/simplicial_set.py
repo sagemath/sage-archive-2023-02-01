@@ -251,6 +251,7 @@ copy of the integers::
 #                  http://www.gnu.org/licenses/
 #
 #*****************************************************************************
+from six.moves import range
 
 import copy
 
@@ -2019,7 +2020,8 @@ class SimplicialSet_arbitrary(Parent):
                 raise NotImplementedError('this simplicial set may be infinite, so '
                                           'specify dimensions when computing homology')
             else:
-                if isinstance(dim, (list, tuple)):
+                if isinstance(dim, (list, tuple, range)):
+                    dim = list(dim)
                     max_dim = max(dim)
                     space = self.n_skeleton(max_dim+1)
                     min_dim = min(dim)
@@ -3645,10 +3647,10 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
                                         degree_of_differential=1)
                 return ChainComplex({0: matrix(base_ring, 0, 0)},
                                     degree_of_differential=-1)
-            dimensions = range(self.dimension()+1)
+            dimensions = list(range(self.dimension() + 1))
         else:
             if not isinstance(dimensions, (list, tuple)):
-                dimensions = range(dimensions-1, dimensions+2)
+                dimensions = list(range(dimensions - 1, dimensions + 2))
             else:
                 dimensions = [n for n in dimensions if n >= 0]
             if not dimensions:

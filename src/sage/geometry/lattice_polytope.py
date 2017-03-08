@@ -102,6 +102,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
+from six.moves import range
 
 from sage.arith.all import gcd, lcm
 from sage.combinat.posets.posets import FinitePoset
@@ -3126,7 +3127,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         # The array is such that:
         # S = [i, 1, ..., 1 (ith), j, i+1, ..., i+1 (jth), k ... ]
         # describes the "symmetry blocks"
-        S = range(1, n_v + 1)
+        S = list(range(1, n_v + 1))
         for i in range(1, n_v):
             if b[i-1] == b[i]:
                 S[i] = S[i-1]
@@ -3237,7 +3238,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             permutations = {k:permutations[k] for k in permutations if k < n_s}
             # If the automorphisms are not already completely restricted,
             # update them
-            if not S == list(range(1, n_v + 1)):
+            if S != list(range(1, n_v + 1)):
                 # Take the old automorphisms and update by
                 # the restrictions the last worked out
                 # row imposes.
@@ -3501,10 +3502,10 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             bc = 1/Integer(len(vertices)) * vector(QQ, sum(vertices))
         if show_vindices:
             if vlabels is None:
-                vlabels = range(len(vertices))
-            for i,v in enumerate(vertices):
+                vlabels = list(range(len(vertices)))
+            for i, v in enumerate(vertices):
                 pplot += text3d(vlabels[i], bc+index_shift*(v-bc), rgbcolor=vindex_color)
-        if show_points and len(points) > 0:
+        if show_points and len(points):
             pplot += point3d(points, size=point_size, rgbcolor=point_color)
         if show_pindices:
             for i, p in enumerate(points):
@@ -3833,7 +3834,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]
         """
         if k >= self.dim():
-            return range(self.npoints())
+            return list(range(self.npoints()))
         skeleton = set([])
         for face in self.faces(dim=k):
             skeleton.update(face.ambient_point_indices())

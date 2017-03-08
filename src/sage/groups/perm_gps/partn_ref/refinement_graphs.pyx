@@ -98,7 +98,7 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
             else:
                 if first:
                     partition = partn
-                to = range(n)
+                to = list(xrange(n))
                 frm = to
             if sparse:
                 G = SparseGraph(n)

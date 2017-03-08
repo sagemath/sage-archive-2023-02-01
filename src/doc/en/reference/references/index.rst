@@ -919,6 +919,11 @@ REFERENCES:
 .. [Ke2008] \B. Keller, *Cluster algebras, quiver representations
             and triangulated categories*, :arXiv:`0807.1960`.
 
+.. [KK1995] Victor Klee and Peter Kleinschmidt,
+            *Convex polytopes and related complexes.*, in \R. L. Graham,
+            \M. Grötschel, \L Lovász, *Handbook of combinatorics*,
+            Vol. 1, Chapter 18, 1995
+
 .. [KL2008] Chris Kurth and Ling Long, "Computations with finite index
             subgroups of `{\rm PSL}_2(\ZZ)` using Farey symbols",
             Advances in algebra and combinatorics, 225--242, World

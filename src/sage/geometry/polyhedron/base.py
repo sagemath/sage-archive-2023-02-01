@@ -31,6 +31,7 @@ from sage.matrix.constructor import matrix
 from sage.functions.other import sqrt, floor, ceil, binomial
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.graphs.graph import Graph
+from sage.graphs.digraph import DiGraph
 
 from .constructor import Polyhedron
 
@@ -5183,6 +5184,149 @@ class Polyhedron_base(Element):
             False
         """
         return self.dim() == self.ambient_dim()
+
+    def is_combinatorially_isomorphic(self, other, algorithm='bipartite_graph'):
+        r"""
+        Return whether the polyhedron is combinatorially isomorphic to another polyhedron.
+
+        We only consider bounded polyhedra. By definition, they are
+        combinatorially isomorphic if their faces lattices are isomorphic.
+
+        INPUT:
+
+        - ``other`` -- a polyhedron object.
+        - ``algorithm`` (default = ``bipartite_graph``) -- the algorithm to use.
+          The other possible value is ``face_lattice``.
+
+        OUTPUT:
+
+          - ``True`` if the two polyhedra are combinatorially isomorphic
+          - ``False`` otherwise
+
+        REFERENCES:
+
+            For the equivalence of the two algorithms see [KK1995]_, p. 877-878
+
+        EXAMPLES:
+
+        The square is combinatorially isomorphic to the 2-dimensional cube::
+
+            sage: polytopes.hypercube(2).is_combinatorially_isomorphic(polytopes.regular_polygon(4))
+            True
+
+        All the faces of the 3-dimensional permutahedron are either
+        combinatorially isomorphic to a square or a hexagon::
+
+            sage: H = polytopes.regular_polygon(6)
+            sage: S = polytopes.hypercube(2)
+            sage: P = polytopes.permutahedron(4)
+            sage: all(F.as_polyhedron().is_combinatorially_isomorphic(S) or F.as_polyhedron().is_combinatorially_isomorphic(H) for F in P.faces(2))
+            True
+
+        Checking that a regular simplex intersected with its reflection
+        through the origin is combinatorially isomorphic to the intersection
+        of a cube with a hyperplane perpendicular to its long diagonal::
+
+            sage: def simplex_intersection(k):
+            ....:   S1 = Polyhedron([vector(v)-vector(polytopes.simplex(k).center()) for v in polytopes.simplex(k).vertices_list()])
+            ....:   S2 = Polyhedron([-vector(v) for v in S1.vertices_list()])
+            ....:   return S1.intersection(S2)
+            sage: def cube_intersection(k):
+            ....:    C = polytopes.hypercube(k+1)
+            ....:    H = Polyhedron(eqns=[[0]+[1 for i in range(k+1)]])
+            ....:    return C.intersection(H)
+            sage: [simplex_intersection(k).is_combinatorially_isomorphic(cube_intersection(k)) for k in range(2,5)]
+            [True, True, True]
+            sage: simplex_intersection(2).is_combinatorially_isomorphic(polytopes.regular_polygon(6))
+            True
+            sage: simplex_intersection(3).is_combinatorially_isomorphic(polytopes.octahedron())
+            True
+
+        Two polytopes with the same `f`-vector, but different combinatorial types::
+
+            sage: P = Polyhedron([[-605520/1525633, -605520/1525633, -1261500/1525633, -52200/1525633, 11833/1525633],\
+             [-720/1769, -600/1769, 1500/1769, 0, -31/1769], [-216/749, 240/749, -240/749, -432/749, 461/749], \
+             [-50/181, 50/181, 60/181, -100/181, -119/181], [-32/51, -16/51, -4/51, 12/17, 1/17],\
+             [1, 0, 0, 0, 0], [16/129, 128/129, 0, 0, 1/129], [64/267, -128/267, 24/89, -128/267, 57/89],\
+             [1200/3953, -1200/3953, -1440/3953, -360/3953, -3247/3953], [1512/5597, 1512/5597, 588/5597, 4704/5597, 2069/5597]])
+            sage: C = polytopes.cyclic_polytope(5,10)
+            sage: C.f_vector() == P.f_vector(); C.f_vector()
+            True
+            (1, 10, 45, 100, 105, 42, 1)
+            sage: C.is_combinatorially_isomorphic(P)
+            False
+
+            sage: S = polytopes.simplex(3)
+            sage: S = S.face_truncation(S.faces(0)[0])
+            sage: S = S.face_truncation(S.faces(0)[0])
+            sage: S = S.face_truncation(S.faces(0)[0])
+            sage: T = polytopes.simplex(3)
+            sage: T = T.face_truncation(T.faces(0)[0])
+            sage: T = T.face_truncation(T.faces(0)[0])
+            sage: T = T.face_truncation(T.faces(0)[1])
+            sage: T.is_combinatorially_isomorphic(S)
+            False
+            sage: T.f_vector(), S.f_vector()
+            ((1, 10, 15, 7, 1), (1, 10, 15, 7, 1))
+
+            sage: C = polytopes.hypercube(5)
+            sage: C.is_combinatorially_isomorphic(C)
+            True
+            sage: C.is_combinatorially_isomorphic(C, algorithm='magic')
+            Traceback (most recent call last):
+            ...
+            AssertionError: `algorithm` must be 'bipartite graph' or 'face_lattice'
+
+            sage: G = Graph()
+            sage: C.is_combinatorially_isomorphic(G)
+            Traceback (most recent call last):
+            ...
+            AssertionError: input `other` must be a polyhedron
+
+            sage: H = Polyhedron(eqns=[[0,1,1,1,1]]); H
+            A 3-dimensional polyhedron in QQ^4 defined as the convex hull of 1 vertex and 3 lines
+            sage: C.is_combinatorially_isomorphic(H)
+            Traceback (most recent call last):
+            ...
+            AssertionError: polyhedron `other` must be bounded
+
+        """
+        assert isinstance(other, Polyhedron_base), "input `other` must be a polyhedron"
+        assert self.is_compact(), "polyhedron `self` must be bounded"
+        assert other.is_compact(), "polyhedron `other` must be bounded"
+        assert algorithm in ['bipartite_graph', 'face_lattice'], "`algorithm` must be 'bipartite graph' or 'face_lattice'"
+
+        # For speed, we check if the polyhedra have the same number of facets and vertices.
+        # This is faster then building the bipartite graphs first and
+        # then check that they won't be isomorphic.
+        if self.n_vertices() != other.n_vertices() or self.n_facets() != other.n_facets():
+            return False
+
+        if algorithm == 'bipartite_graph':
+
+            def get_incidences(P):
+                # This function constructs a directed bipartite graph.
+                # The nodes of the graph are the vertices of the polyhedron
+                # and the facets of the polyhedron. There is an directed edge
+                # from a vertex to a face if the vertex is contained in the face.
+                # We obtain this incidence information from the incidence matrix
+                G = DiGraph()
+                M = P.incidence_matrix()
+                # We construct the edges and remove the columns that have all 1s;
+                # those correspond to faces, that contain all vertices (which happens
+                # if the polyhedron is not full-dimensional)
+                edges = [[i, M.ncols()+j] for i, column in enumerate(M.columns())
+                         if any(entry != 1 for entry in column)
+                         for j in range(M.nrows()) if M[j, i] == 1]
+                G.add_edges(edges)
+                return G
+
+            G_self = get_incidences(self)
+            G_other = get_incidences(other)
+
+            return G_self.is_isomorphic(G_other)
+        else:
+            return self.face_lattice().is_isomorphic(other.face_lattice())
 
     def affine_hull(self):
         """

@@ -14,7 +14,7 @@ Pynac interface
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, division, print_function
 
 from cpython cimport *
 from libc cimport math
@@ -29,7 +29,7 @@ from sage.libs.pari.all import pari
 
 from sage.arith.all import gcd, lcm, is_prime, factorial, bernoulli
 
-from sage.structure.element cimport Element, parent
+from sage.structure.element cimport Element, parent, coercion_model
 from sage.structure.sage_object import loads, dumps
 
 from sage.rings.integer_ring import ZZ
@@ -1787,34 +1787,30 @@ cdef py_atan2(x, y):
 
     Check that :trac:`22553` is fixed::
 
-        sage: arctan2(1.5,-1.300000000000001)
+        sage: arctan2(1.5, -1.300000000000001)
         2.284887025407...
-        sage: atan2(2.1000000000000000000000000000000000000,-1.20000000000000000000000000000000)
+        sage: atan2(2.1000000000000000000000000000000000000, -1.20000000000000000000000000000000)
         2.089942441041419571002776071...
     """
     from sage.symbolic.constants import pi, NaN
-    P = parent(x)
-    if P is float and parent(y) is not float:
-        P = RR
+    P = coercion_model.common_parent(x, y)
     if P is ZZ:
         P = RR
-    pi_n = P(pi)
-    cdef int sgn_y
     if y != 0:
-        sgn_y = -1 if y < 0 else 1
         if x > 0:
-            return py_atan(abs(y/x)) * sgn_y
-        elif x == 0:
-            return pi_n/2 * sgn_y
+            res = py_atan(abs(y/x))
+        elif x < 0:
+            res = P(pi) - py_atan(abs(y/x))
         else:
-            return (pi_n - py_atan(abs(y/x))) * sgn_y
+            res = P(pi)/2
+        return res if y > 0 else -res
     else:
         if x > 0:
-            return 0
-        elif x == 0:
-            return P(NaN)
+            return P(0)
+        elif x < 0:
+            return P(pi)
         else:
-            return pi_n
+            return P(NaN)
 
 def py_atan2_for_doctests(x, y):
     """

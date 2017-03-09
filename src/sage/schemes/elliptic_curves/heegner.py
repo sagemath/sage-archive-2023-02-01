@@ -6250,11 +6250,8 @@ def kolyvagin_point(self, D, c=ZZ(1), check=True):
         sage: E = EllipticCurve('37a1')
         sage: P = E.kolyvagin_point(-67); P
         Kolyvagin point of discriminant -67 on elliptic curve of conductor 37
-        sage: xyz = P.numerical_approx(); xyz  # random digits
+        sage: P.numerical_approx()  # abs tol 1e-14
         (6.00000000000000 : -15.0000000000000 : 1.00000000000000)
-        sage: x, y = xyz.xy()
-        sage: max(abs(x - 6), abs(y + 15)) < 1e-14
-        True
         sage: P.index()
         6
         sage: g = E((0,-1,1)) # a generator

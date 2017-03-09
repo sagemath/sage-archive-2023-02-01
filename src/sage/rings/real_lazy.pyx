@@ -25,7 +25,6 @@ import math
 
 cdef add, sub, mul, div, pow, neg, inv
 from operator import add, sub, mul, div, pow, neg, inv
-from cpython.object cimport Py_EQ
 
 cdef canonical_coercion
 from sage.structure.element import canonical_coercion

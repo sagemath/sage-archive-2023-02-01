@@ -3973,7 +3973,7 @@ class Polyhedron_base(Element):
 
         - ``P`` -- Polyhedron.
 
-        - ``f`` -- A multivariate polynomial or a valid LattE description string for
+        - ``polynomial`` -- A multivariate polynomial or a valid LattE description string for
         polynomials.
 
         - ``**kwds`` -- additional keyword arguments that are passed to the engine.
@@ -3982,49 +3982,59 @@ class Polyhedron_base(Element):
 
         The integral of the polynomial over the polytope.
 
-        NOTES:
+        .. NOTE::
 
-        The polytope triangulation algorithm is used. This function depends on
-        LattE (latte_int) optional package.
+            The polytope triangulation algorithm is used. This function depends
+            on LattE (i.e., the ``latte_int`` optional package).
 
         EXAMPLES::
 
-        sage: P = polytopes.cube()
-        sage: x, y, z = polygens(QQ, 'x, y, z')
-        sage: P.integrate(x^2*y^2*z^2)    # optional - latte_int
-        8/27
+            sage: P = polytopes.cube()
+            sage: x, y, z = polygens(QQ, 'x, y, z')
+            sage: P.integrate(x^2*y^2*z^2)    # optional - latte_int
+            8/27
 
         TESTS::
 
-        Testing a three-dimensional integral:
+        Testing a three-dimensional integral::
 
-        sage: P = polytopes.octahedron()
-        sage: x, y, z = polygens(QQ, 'x, y, z')
-        sage: P.integrate(2*x^2*y^4*z^6+z^2)    # optional - latte_int
-        630632/4729725
+            sage: P = polytopes.octahedron()
+            sage: x, y, z = polygens(QQ, 'x, y, z')
+            sage: P.integrate(2*x^2*y^4*z^6+z^2)    # optional - latte_int
+            630632/4729725
 
-        Testing a polytope with non-rational vertices:
+        Testing a polytope with non-rational vertices::
 
-        sage: P = polytopes.icosahedron()
-        sage: P.integrate(x^2*y^2*z^2)    # optional - latte_int
-        Traceback (most recent call last):
-        ...
-        TypeError: The base ring must be ZZ, QQ, or RDF
+            sage: P = polytopes.icosahedron()
+            sage: P.integrate(x^2*y^2*z^2)    # optional - latte_int
+            Traceback (most recent call last):
+            ...
+            TypeError: The base ring must be ZZ, QQ, or RDF
 
-        Testing a non full-dimensional case:
+        Testing a non full-dimensional case::
 
-        sage: P = Polyhedron(vertices=[[0,0],[1,1]])
-        sage: x, y = polygens(QQ, 'x, y')
-        sage: P.integrate(x)    # optional - latte_int
-        Traceback (most recent call last):
-        ...
-        RuntimeError: LattE integrale program failed (exit code -6):
-        ...
-        SetLength: can't change this vector's length
+            sage: P = Polyhedron(vertices=[[0,0],[1,1]])
+            sage: x = polygen(QQ, 'x')
+            sage: P.integrate(x)    # optional - latte_int
+            Traceback (most recent call last):
+            ...
+            RuntimeError: LattE integrale program failed (exit code -6):
+            ...
+            SetLength: can't change this vector's length
+
+        Testing a polytope with floating point coordinates::
+
+            sage: P = Polyhedron(vertices = [[0, 0], [1, 0], [1.1,1.1], [0,1]])
+            sage: P.integrate('[[1,[2,2]]]')    # optional - latte_int
+            384659/2250000
         """
         if is_package_installed('latte_int'):
             from sage.interfaces.latte import integrate
-            return integrate(self.cdd_Hrepresentation(), polynomial, cdd=True)
+            if self.base_ring() == RDF:
+                self_QQ = Polyhedron(vertices=[[QQ(self) for vi in v]  for v in self.vertex_generator()])
+                return integrate(self_QQ.cdd_Hrepresentation(), polynomial, cdd=True)
+            else:
+                return integrate(self.cdd_Hrepresentation(), polynomial, cdd=True)
 
         else:
             raise NotImplementedError('You must install the optional latte_int package for this function to work.')

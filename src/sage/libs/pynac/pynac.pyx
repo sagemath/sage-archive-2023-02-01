@@ -1784,12 +1784,18 @@ cdef py_atan2(x, y):
 
         sage: plot(real(sqrt(x - 1.*I)), (x,0,1))
         Graphics object consisting of 1 graphics primitive
+
+    Check that :trac:`22553` is fixed::
+
+        sage: arctan2(1.5,-1.300000000000001)
+        2.284887025407...
+        sage: atan2(2.1000000000000000000000000000000000000,-1.20000000000000000000000000000000)
+        2.089942441041419571002776071...
     """
     from sage.symbolic.constants import pi, NaN
     P = parent(x)
     if P is float and parent(y) is not float:
         P = RR
-    assert P is parent(y)
     if P is ZZ:
         P = RR
     pi_n = P(pi)

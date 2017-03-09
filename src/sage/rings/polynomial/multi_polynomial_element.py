@@ -911,42 +911,14 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             else:
                 return [tuple(e) for e in self.__exponents]
 
-    def is_unit(self):
-        """
-        Return True if self is a unit.
-
-        EXAMPLES::
-
-            sage: R.<x,y> = QQbar[]
-            sage: (x+y).is_unit()
-            False
-            sage: R(0).is_unit()
-            False
-            sage: R(-1).is_unit()
-            True
-            sage: R(-1 + x).is_unit()
-            False
-            sage: R(2).is_unit()
-            True
-        """
-        d = self.element().dict()
-        k = d.keys()
-        if len(k) != 1:
-            return False
-        k = k[0]
-        if k != polydict.ETuple([0]*self.parent().ngens()):
-            return False
-        return bool(d[k].is_unit())
-
     def inverse_of_unit(self):
         d = self.element().dict()
         k = d.keys()
-        if len(k) != 1:
-            raise ArithmeticError("is not a unit")
-        k = k[0]
-        if k != polydict.ETuple([0]*self.parent().ngens()):
-            raise ArithmeticError("is not a unit")
-        return ~d[k]
+        if self.is_unit():
+            if len(k) != 1:
+                raise NotImplementedError
+            return ~d[k[0]]
+        raise ArithmeticError("is not a unit")        
 
     def is_homogeneous(self):
         """

@@ -1931,7 +1931,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
         # sage.tests.french_book.nonlinear_doctest where the base ring
         # is CC, but the function values lie in the symbolic ring.
         to_base_ring = self.base_ring()
-        points = map(lambda x: map(to_base_ring, x), points)
+        points = [[to_base_ring(u) for u in x] for x in points]
         var = self.gen()
 
         # use the method of divided-difference
@@ -2296,9 +2296,9 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
                     return [ (self.zero(),0) ]
                 else:
                     return []
-            elif k==1 or degree_bound == 0:
+            elif k == 1 or degree_bound == 0:
                 #Either one coefficient left to be computed, or p has only one coefficient
-                py = self(map(lambda c:c[0], p.list())) # py = p(x=0, y)
+                py = self([c[0] for c in p.list()])  # py = p(x=0, y)
                 if py.is_zero():
                     return [ (self.zero(), 0) ]
                 roots = py.roots(multiplicities=False)

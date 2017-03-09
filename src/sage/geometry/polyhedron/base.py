@@ -3895,6 +3895,74 @@ class Polyhedron_base(Element):
 
         raise ValueError("lrs did not return a volume")
 
+    def _volume_latte(self, verbose=False, algorithm='triangulate', **kwargs):
+        """
+        Computes the volume of a polytope using LattE integrale.
+
+        INPUT:
+
+        - ``arg`` -- a cdd or LattE description string.
+
+        - ``polynomial`` -- multivariate polynomial or valid LattE polynomial description string.
+          If given, the valuation parameter of LattE is set to integrate, and is set to volume otherwise.
+
+        - ``algorithm`` -- (default: 'triangulate') the integration method. Use 'triangulate' for
+          polytope triangulation or 'cone-decompose' for tangent cone decomposition method.
+
+        - ``raw_output`` -- if ``True`` then return directly the output string from LattE.
+
+        - ``verbose`` -- if ``True`` then return directly verbose output from LattE.
+
+        - For all other options, consult the LattE manual.
+
+        OUTPUT:
+
+        A rational value, or a string if ``raw_output`` if set to ``True``.
+
+        .. NOTE::
+
+            This function depends on LattE (i.e., the ``latte_int`` optional
+            package). See the LattE documentation for furthe details.
+
+        EXAMPLES::
+
+            sage: polytopes.hypercube(3)._volume_latte() #optional - latte_int
+            8
+            sage: (polytopes.hypercube(3)*2)._volume_latte() #optional - latte_int
+            64
+            sage: polytopes.twenty_four_cell()._volume_latte() #optional - latte_int
+            2
+            sage: polytopes.cuboctahedron()._volume_latte() #optional - latte_int
+            20/3
+
+        TESTS::
+
+        Testing triangulate algorithm::
+
+            sage: polytopes.cuboctahedron()._volume_latte(algorithm='triangulate') #optional - latte_int
+            20/3
+
+        Testing convex decomposition algorithm::
+
+            sage: polytopes.cuboctahedron()._volume_latte(algorithm='cone-decompose') #optional - latte_int
+            20/3
+
+        Testing raw output::
+
+            sage: polytopes.cuboctahedron()._volume_latte(raw_output=True) #optional - latte_int
+            '20/3'
+        """
+        if is_package_installed('latte_int'):
+            from sage.interfaces.latte import integrate
+            if self.base_ring() == RDF:
+                self_QQ = Polyhedron(vertices=[[QQ(self) for vi in v]  for v in self.vertex_generator()])
+                return integrate(self_QQ.cdd_Hrepresentation(), algorithm=algorithm, cdd=True, verbose=verbose, **kwargs)
+            else:
+                return integrate(self.cdd_Hrepresentation(), algorithm=algorithm, cdd=True, verbose=verbose, **kwargs)
+
+        else:
+            raise NotImplementedError('You must install the optional latte_int package for this function to work.')
+
     @cached_method
     def volume(self, engine='auto', **kwds):
         """
@@ -3908,6 +3976,7 @@ class Polyhedron_base(Element):
           * ``'internal'``: see :meth:`triangulate`.
           * ``'TOPCOM'``: see :meth:`triangulate`.
           * ``'lrs'``: use David Avis's lrs program (optional).
+          * ``'latte'``: use LattE integrale program (optional).
 
         - ``**kwds`` -- keyword arguments that are passed to the
           triangulation engine.
@@ -3958,6 +4027,8 @@ class Polyhedron_base(Element):
         """
         if engine == 'lrs':
             return self._volume_lrs(**kwds)
+        elif engine == 'latte':
+            return self._volume_latte(**kwds)
         dim = self.dim()
         if dim < self.ambient_dim():
             return self.base_ring().zero()
@@ -3974,7 +4045,7 @@ class Polyhedron_base(Element):
         - ``P`` -- Polyhedron.
 
         - ``polynomial`` -- A multivariate polynomial or a valid LattE description string for
-        polynomials.
+          polynomials.
 
         - ``**kwds`` -- additional keyword arguments that are passed to the engine.
 
@@ -4011,16 +4082,12 @@ class Polyhedron_base(Element):
             ...
             TypeError: The base ring must be ZZ, QQ, or RDF
 
-        Testing a non full-dimensional case::
+        Testing a univariate polynomial::
 
-            sage: P = Polyhedron(vertices=[[0,0],[1,1]])
+            sage: P = Polyhedron(vertices=[[0],[1]])
             sage: x = polygen(QQ, 'x')
             sage: P.integrate(x)    # optional - latte_int
-            Traceback (most recent call last):
-            ...
-            RuntimeError: LattE integrale program failed (exit code -6):
-            ...
-            SetLength: can't change this vector's length
+            1/2
 
         Testing a polytope with floating point coordinates::
 
@@ -4031,7 +4098,7 @@ class Polyhedron_base(Element):
         if is_package_installed('latte_int'):
             from sage.interfaces.latte import integrate
             if self.base_ring() == RDF:
-                self_QQ = Polyhedron(vertices=[[QQ(self) for vi in v]  for v in self.vertex_generator()])
+                self_QQ = Polyhedron(vertices=[[QQ(vi) for vi in v]  for v in self.vertex_generator()])
                 return integrate(self_QQ.cdd_Hrepresentation(), polynomial, cdd=True)
             else:
                 return integrate(self.cdd_Hrepresentation(), polynomial, cdd=True)

@@ -1,5 +1,5 @@
 r"""
-Generic interface to LattE integrale programs
+Interface to LattE integrale programs
 """
 #*****************************************************************************
 #       Copyright (C) 2017 Vincent Delecroix <vincent.delecroix@gmail.com>
@@ -187,20 +187,17 @@ def integrate(arg, polynomial=None, algorithm='triangulate', raw_output=False, v
 
     INPUT:
 
-    - ``arg`` -- a cdd or LattE description string
+    - ``arg`` -- a cdd or LattE description string.
 
-    - ``polynomial`` -- multivariate polynomial or valid LattE polynomial
-    description string. If given, the valuation parameter of LattE is set
-    to integrate, and is set to volume otherwise.
+    - ``polynomial`` -- multivariate polynomial or valid LattE polynomial description string.
+      If given, the valuation parameter of LattE is set to integrate, and is set to volume otherwise.
 
-    - ``algorithm`` -- (default: 'triangulate') the integration method. Use
-    'triangulate' for polytope triangulation or 'cone-decompose' for tangent
-    cone decomposition method.
+    - ``algorithm`` -- (default: 'triangulate') the integration method. Use 'triangulate' for
+      polytope triangulation or 'cone-decompose' for tangent cone decomposition method.
 
-    - ``raw_output`` -- if ``True`` then return directly the output string from
-    LattE
+    - ``raw_output`` -- if ``True`` then return directly the output string from LattE.
 
-    - ``verbose`` -- if ``True`` then return directly verbose output from LattE
+    - ``verbose`` -- if ``True`` then return directly verbose output from LattE.
 
     - For all other options of the integrate program, consult the LattE manual.
 

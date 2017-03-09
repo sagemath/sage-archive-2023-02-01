@@ -99,7 +99,7 @@ Nous nous limiterons ici à quelques remarques.
    d'environnement.
 
    La documentation de SageTeX se trouve dans le répertoire
-   ``$SAGE_ROOT/local/share/texmf/tex/generic/sagetex/``, où
+   ``$SAGE_ROOT/local/share/texmf/tex/latex/sagetex/``, où
    "``$SAGE_ROOT``" est le répertoire où vous avez installé Sage, par
    exemple ``/opt/sage-4.3.4``.
 

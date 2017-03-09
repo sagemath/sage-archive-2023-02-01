@@ -232,7 +232,7 @@ if (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
                          for i in ('docs', 'README*', 'test',
                                    'unpacked', 'LICENSE')]
 else:
-     extensions.append('sphinx.ext.pngmath')
+     extensions.append('sphinx.ext.imgmath')
 
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,

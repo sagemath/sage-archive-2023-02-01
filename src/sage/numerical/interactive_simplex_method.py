@@ -880,7 +880,6 @@ class InteractiveLPProblem(SageObject):
             ((250, 750), 6250)
         """
         F = self.feasible_set()
-        #R = self.base_ring() see tracn 21270
         R = F.base_ring()
         A, b, c, x = self._Abcx
         if F.n_vertices() == 0:

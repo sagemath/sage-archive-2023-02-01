@@ -438,6 +438,22 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
             sage: P(0)
             A 0-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex
+
+        Check that :trac:`21270` is fixed::
+
+            sage: poly = polytopes.regular_polygon(7)
+            sage: lp, x = poly.to_linear_program(solver='InteractiveLP', return_variable=True)
+            sage: lp.set_objective(x[0] + x[1])
+            sage: b = lp.get_backend()
+            sage: P = b.interactive_lp_problem()
+            sage: p = P.plot()
+
+            sage: Q=Polyhedron(ieqs=[[-499999,1000000],[1499999,-1000000]])
+            sage: P=Polyhedron(ieqs=[[0,1.0],[1.0,-1.0]], base_ring=RDF)
+            sage: Q.intersection(P)
+            A 1-dimensional polyhedron in RDF^1 defined as the convex hull of 2 vertices
+            sage: P.intersection(Q)
+            A 1-dimensional polyhedron in RDF^1 defined as the convex hull of 2 vertices
         """
         nargs = len(args)
         convert = kwds.pop('convert', True)

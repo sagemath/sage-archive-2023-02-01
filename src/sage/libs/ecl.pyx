@@ -385,7 +385,7 @@ def shutdown_ecl():
     that no ECL objects exist at a particular time. Hence, destroying ECL is a
     risky proposition.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.libs.ecl import *
         sage: shutdown_ecl()
@@ -405,7 +405,7 @@ def print_objects():
     small integers do not get linked in. This routine prints the values
     currently stored.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.libs.ecl import *
         sage: a=EclObject("hello")

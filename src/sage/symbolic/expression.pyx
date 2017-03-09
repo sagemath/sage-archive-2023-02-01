@@ -8759,7 +8759,7 @@ cdef class Expression(CommutativeRingElement):
             :meth:`normalize`, :meth:`numerator`, :meth:`denominator`,
             :meth:`combine`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: x, y, a = var("x y a")
             sage: ((x+y)^2/(x-y)^3*x^3).numerator_denominator()

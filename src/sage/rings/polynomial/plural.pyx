@@ -651,7 +651,7 @@ cdef class NCPolynomialRing_plural(Ring):
 
     def _repr_(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A.<x,y> = FreeAlgebra(QQ, 2)
             sage: H.<x,y> = A.g_algebra({y*x:-x*y})
@@ -709,7 +709,7 @@ cdef class NCPolynomialRing_plural(Ring):
         relation. The implicit relations are not provided, unless
         ``add_commutative==True``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
             sage: H.<x,y,z> = A.g_algebra({z*x:x*z+2*x, z*y:y*z-2*y})
@@ -866,7 +866,7 @@ cdef class NCPolynomialRing_plural(Ring):
 #        """
 #        Construct quotient ring of ``self`` and the two-sided Groebner basis of `ideal`
 #
-#        EXAMPLE::
+#        EXAMPLES::
 #
 #            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
 #            sage: H = A.g_algebra(relations={y*x:-x*y},  order='lex')

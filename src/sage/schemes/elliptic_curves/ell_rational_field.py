@@ -511,7 +511,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
               common value.
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve([1, -1, 1, -29372, -1932937])
             sage: E.conductor(algorithm="pari")
@@ -2844,7 +2844,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         The rank of the 2-Selmer group of the curve.
 
-        EXAMPLE: The following is the curve 960D1, which has rank 0, but
+        EXAMPLES: The following is the curve 960D1, which has rank 0, but
         Sha of order 4.
 
         ::
@@ -2895,7 +2895,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         curve.  If the curve has no 2-torsion it is the same as the
         2-selmer rank.
 
-        EXAMPLE: The following is the curve 960D1, which has rank 0, but
+        EXAMPLES: The following is the curve 960D1, which has rank 0, but
         Sha of order 4.
 
         ::
@@ -7015,7 +7015,7 @@ def elliptic_curve_congruence_graph(curves):
     label) and an edge from `E` to `F` labelled `p` if and only if `E` is
     congruent to `F` mod `p`
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.ell_rational_field import elliptic_curve_congruence_graph
         sage: curves = list(cremona_optimal_curves([11..30]))

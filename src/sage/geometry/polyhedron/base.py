@@ -882,7 +882,7 @@ class Polyhedron_base(Element):
             :meth:`cdd_Hrepresentation` -- return the H-representation of the
             polyhedron as a string.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.misc.temporary_file import tmp_filename
             sage: filename = tmp_filename(ext='.ext')
@@ -944,7 +944,7 @@ class Polyhedron_base(Element):
             :meth:`cdd_Vrepresentation` -- return the V-representation of the
             polyhedron as a string.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.misc.temporary_file import tmp_filename
             sage: filename = tmp_filename(ext='.ext')

@@ -252,7 +252,7 @@ cdef class LinearBinaryCodeStruct(BinaryCodeStruct):
         order and a base for which the list of generators is a strong generating
         set.
 
-        EXAMPLE: (For more examples, see self.run())
+        EXAMPLES: (For more examples, see self.run())
             sage: from sage.groups.perm_gps.partn_ref.refinement_binary import LinearBinaryCodeStruct
 
             sage: B = LinearBinaryCodeStruct(matrix(GF(2),[[1,1,1,1]]))
@@ -513,7 +513,7 @@ cdef class NonlinearBinaryCodeStruct(BinaryCodeStruct):
         order and a base for which the list of generators is a strong generating
         set.
 
-        EXAMPLE: (For more examples, see self.run())
+        EXAMPLES: (For more examples, see self.run())
             sage: from sage.groups.perm_gps.partn_ref.refinement_binary import NonlinearBinaryCodeStruct
 
             sage: B = NonlinearBinaryCodeStruct(Matrix(GF(2), [[1,1,1,0,0,0],[1,1,0,1,0,0],[1,0,1,1,0,0],[0,1,1,1,0,0],[0,0,0,0,1,0],[0,0,0,0,0,1]]))

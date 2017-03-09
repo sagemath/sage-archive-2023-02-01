@@ -28,7 +28,7 @@ def is_isomorphic(self, other):
     Return the bijection as a permutation if two lists are isomorphic, return
     False otherwise.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.groups.perm_gps.partn_ref.refinement_lists import is_isomorphic
         sage: is_isomorphic([0,0,1],[1,0,0])

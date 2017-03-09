@@ -258,7 +258,7 @@ def get_fn_serial():
     Return the overall size of the Pynac function registry which
     corresponds to the last serial value plus one.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.libs.pynac.pynac import get_fn_serial
         sage: from sage.symbolic.function import get_sfunction_from_serial

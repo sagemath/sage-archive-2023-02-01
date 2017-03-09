@@ -2447,7 +2447,7 @@ cdef class CommutativeAlgebra(CommutativeRing):
         Standard init function. This just checks that the base is a commutative
         ring and then passes the buck.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sage.rings.ring.CommutativeAlgebra(QQ) # indirect doctest
             <type 'sage.rings.ring.CommutativeAlgebra'>

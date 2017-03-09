@@ -622,7 +622,7 @@ class FGP_Module_class(Module):
         Compute a linear combination of the optimised generators of this module
         as returned by :meth:`.smith_form_gens`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: X = ZZ**2 / span([[3,0],[0,2]], ZZ)
             sage: X.linear_combination_of_smith_form_gens([1])
@@ -1358,7 +1358,7 @@ class FGP_Module_class(Module):
         - ``im_gens`` - a Sequence object giving the images of ``self.gens()``,
           whose universe is some fixed fg R-module
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: class SillyModule(sage.modules.fg_pid.fgp_module.FGP_Module_class):
             ....:     def gens(self):
@@ -1399,7 +1399,7 @@ class FGP_Module_class(Module):
         - ``im_gens`` -- a Sequence object giving the images of the Smith-form
           generators of self, whose universe is some fixed fg R-module
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: class SillyModule(sage.modules.fg_pid.fgp_module.FGP_Module_class):
             ....:     def gens(self):

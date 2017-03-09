@@ -369,7 +369,7 @@ class FreeModuleTensor(ModuleElement):
         r"""
         Return a string representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: t = M.tensor((2,1), name='t')
@@ -419,7 +419,7 @@ class FreeModuleTensor(ModuleElement):
         r"""
         Initialize the derived quantities
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: t = M.tensor((2,1), name='t')
@@ -432,7 +432,7 @@ class FreeModuleTensor(ModuleElement):
         r"""
         Delete the derived quantities
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: t = M.tensor((2,1), name='t')
@@ -862,7 +862,7 @@ class FreeModuleTensor(ModuleElement):
 
         Use method :meth:`display` instead.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 2, 'M')
             sage: e = M.basis('e')
@@ -917,7 +917,7 @@ class FreeModuleTensor(ModuleElement):
         Create a tensor of the same tensor type and with the same symmetries
         as ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: t = M.tensor((2,1), name='t')
@@ -1259,7 +1259,7 @@ class FreeModuleTensor(ModuleElement):
         - ``basis`` -- (default: ``None``) basis in which the components are
           kept; if none the module's default basis is assumed
 
-        EXAMPLE:
+        EXAMPLES:
 
         Deleting components of a module element::
 
@@ -3225,7 +3225,7 @@ class FiniteRankFreeModuleElement(FreeModuleTensor):
         r"""
         Return a string representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')
@@ -3254,7 +3254,7 @@ class FiniteRankFreeModuleElement(FreeModuleTensor):
 
         - an instance of :class:`~sage.tensor.modules.comp.Components`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')
@@ -3275,7 +3275,7 @@ class FiniteRankFreeModuleElement(FreeModuleTensor):
         r"""
         Create an instance of the same class as ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')

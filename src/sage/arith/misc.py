@@ -2295,7 +2295,7 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
        a symbolic computation will not factor the integer, because it is
        considered as an element of a larger symbolic ring.
 
-       EXAMPLE::
+       EXAMPLES::
 
            sage: f(n)=n^2
            sage: is_prime(f(3))

@@ -371,7 +371,7 @@ class FreeModuleAltForm(FreeModuleTensor):
         r"""
         Return the degree of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: a = M.alternating_form(2, name='a')

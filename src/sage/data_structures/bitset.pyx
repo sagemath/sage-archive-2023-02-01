@@ -1302,7 +1302,7 @@ cdef class Bitset(FrozenBitset):
         """
         Raise an error, since mutable ``Bitset``s are not hashable.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: hash(Bitset('110'))
             Traceback (most recent call last):

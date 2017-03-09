@@ -1945,7 +1945,7 @@ class FlippedLabelledPermutationLI(FlippedLabelledPermutation,
 
         permutation -- the associated reduced permutation
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = iet.GeneralizedPermutation('a a','b b c c',flips='a')
             sage: q = iet.GeneralizedPermutation('a a','b b c c',flips='a',reduced=True)
@@ -2213,7 +2213,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
             boolean -- ``True`` if the path is full and ``False`` else
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: p = iet.Permutation('a b c','c b a')
                 sage: r = p.rauzy_diagram()
@@ -2238,7 +2238,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
         WordMorphism -- the WordMorphism corresponding to the edge
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = iet.Permutation('a b c','c b a')
             sage: r = p.rauzy_diagram()
@@ -2268,7 +2268,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
         WordMorphism -- the word morphism corresponding to the edge
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = iet.Permutation('a b c','c b a')
             sage: r = p.rauzy_diagram()
@@ -2304,7 +2304,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
         iterator -- iterator over full loops
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = iet.Permutation('a b','b a')
             sage: r = p.rauzy_diagram()
@@ -2343,7 +2343,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
         iterator -- an iterator over the full loops of given length
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = iet.Permutation('a b','b a')
             sage: d = p.rauzy_diagram()

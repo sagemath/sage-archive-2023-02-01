@@ -110,7 +110,7 @@ cdef class ConvexityProperties:
     code. Trying to optimize may well lead to lost in efficiency on many
     instances.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.convexity_properties import ConvexityProperties
         sage: g = graphs.PetersenGraph()
@@ -132,7 +132,7 @@ cdef class ConvexityProperties:
         r"""
         Constructor
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.convexity_properties import ConvexityProperties
             sage: g = graphs.PetersenGraph()
@@ -213,7 +213,7 @@ cdef class ConvexityProperties:
         r"""
         Destructor
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.convexity_properties import ConvexityProperties
             sage: g = graphs.PetersenGraph()
@@ -308,7 +308,7 @@ cdef class ConvexityProperties:
 
         * ``vertices`` -- A list of vertices.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.convexity_properties import ConvexityProperties
             sage: g = graphs.PetersenGraph()
@@ -409,7 +409,7 @@ cdef class ConvexityProperties:
         This can actually be seen as a hitting set problem on the complement of
         convex sets.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The Hull number of Petersen's graph::
 

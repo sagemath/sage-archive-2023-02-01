@@ -2466,7 +2466,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
 
          - ``i`` -- an integer
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = CombinatorialFreeModule(ZZ, [4,5]); F.__custom_name = "F"
             sage: G = CombinatorialFreeModule(ZZ, [4,6]); G.__custom_name = "G"

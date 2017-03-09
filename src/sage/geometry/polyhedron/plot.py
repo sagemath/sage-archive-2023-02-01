@@ -716,7 +716,7 @@ class Projection(SageObject):
         Deprecated method to show the projection as a graphics
         object.  Use ``Projection.plot()`` instead.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P8 = polytopes.hypercube(4)
             sage: P8.schlegel_projection([2,5,11,17]).show()
@@ -1515,7 +1515,7 @@ class Projection(SageObject):
 
         - LatexExpr -- containing the TikZ picture.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P = Polyhedron(vertices=[[-1, -1, 2],[-1, 2, -1],[2, -1, -1]])
             sage: P

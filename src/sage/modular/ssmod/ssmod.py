@@ -387,7 +387,7 @@ class SupersingularModule(hecke.HeckeModule_free_module):
         r"""
         Create a supersingular module.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: SupersingularModule(3)
             Module of supersingular points on X_0(1)/F_3 over Integer Ring
@@ -717,7 +717,7 @@ class SupersingularModule(hecke.HeckeModule_free_module):
         The prime p is replaced by the smallest prime that doesn't
         divide the level.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: SupersingularModule(37).upper_bound_on_elliptic_factors()
             2

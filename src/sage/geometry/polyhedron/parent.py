@@ -545,7 +545,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
 
         Boolean.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.geometry.polyhedron.parent import Polyhedra
             sage: Polyhedra(QQ,3).has_coerce_map_from( Polyhedra(ZZ,3) )   # indirect doctest

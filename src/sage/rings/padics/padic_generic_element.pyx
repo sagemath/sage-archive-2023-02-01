@@ -398,7 +398,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         r"""
         Returns the multiplicative inverse of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = Zp(7,4,'capped-rel','series'); a = R(3); a
             3 + O(7^4)

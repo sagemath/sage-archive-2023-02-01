@@ -618,7 +618,7 @@ class ExpressionNice(Expression):
         r"""
         LaTeX representation of the object.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: var('x y z')
             (x, y, z)

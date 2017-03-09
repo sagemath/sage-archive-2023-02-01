@@ -521,7 +521,7 @@ class Components(SageObject):
         r"""
         Return a string representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import Components
             sage: c = Components(ZZ, [1,2,3], 2)
@@ -545,7 +545,7 @@ class Components(SageObject):
         This method must be redefined by derived classes of
         :class:`Components`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import Components
             sage: c = Components(ZZ, [1,2,3], 2)
@@ -597,7 +597,7 @@ class Components(SageObject):
         NB: The use case of this method must be rare because zeros are not
             stored in :attr:`_comp`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import Components
             sage: c = Components(ZZ, [1,2,3], 2)
@@ -944,7 +944,7 @@ class Components(SageObject):
           component `T_{ij...}`; in the 1-D case, ``ind_slice`` can be
           a slice of the full list, in the form  ``[a:b]``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import Components
             sage: c = Components(ZZ, [1,2,3], 2)
@@ -981,7 +981,7 @@ class Components(SageObject):
         r"""
         Recursive function to set a list of values to ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import Components
             sage: c = Components(ZZ, [1,2,3], 2)
@@ -1439,7 +1439,7 @@ class Components(SageObject):
 
         - an exact copy of ``self``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import Components
             sage: c = Components(ZZ, [1,2,3], 1)
@@ -1464,7 +1464,7 @@ class Components(SageObject):
 
         - the opposite of the components represented by ``self``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import Components
             sage: c = Components(ZZ, [1,2,3], 1)
@@ -1495,7 +1495,7 @@ class Components(SageObject):
 
         - components resulting from the addition of ``self`` and ``other``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import Components
             sage: a = Components(ZZ, [1,2,3], 1)
@@ -1574,7 +1574,7 @@ class Components(SageObject):
         r"""
         Reflected addition (addition on the right to `other``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import Components
             sage: a = Components(ZZ, [1,2,3], 1)
@@ -1608,7 +1608,7 @@ class Components(SageObject):
 
         - components resulting from the subtraction of ``other`` from ``self``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import Components
             sage: a = Components(ZZ, [1,2,3], 1)
@@ -2717,7 +2717,7 @@ class Components(SageObject):
         r"""
         Convert a set of ring components with 2 indices into a matrix.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import Components
             sage: V = VectorSpace(QQ, 3)
@@ -4652,7 +4652,7 @@ class CompFullySym(CompWithSym):
         r"""
         Return a string representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import CompFullySym
             sage: CompFullySym(ZZ, (1,2,3), 4)
@@ -4667,7 +4667,7 @@ class CompFullySym(CompWithSym):
         Creates a :class:`CompFullySym` instance w.r.t. the same frame,
         and with the same number of indices.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import CompFullySym
             sage: c = CompFullySym(ZZ, (1,2,3), 4)
@@ -5117,7 +5117,7 @@ class CompFullyAntiSym(CompWithSym):
         Creates a :class:`CompFullyAntiSym` instance w.r.t. the same frame,
         and with the same number of indices.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import CompFullyAntiSym
             sage: c = CompFullyAntiSym(ZZ, (1,2,3), 4)
@@ -5326,7 +5326,7 @@ class KroneckerDelta(CompFullySym):
         r"""
         Return a string representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import KroneckerDelta
             sage: KroneckerDelta(ZZ, (1,2,3))
@@ -5340,7 +5340,7 @@ class KroneckerDelta(CompFullySym):
         r"""
         Should not be used (the components of a Kronecker delta are constant)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import KroneckerDelta
             sage: d = KroneckerDelta(ZZ, (1,2,3))

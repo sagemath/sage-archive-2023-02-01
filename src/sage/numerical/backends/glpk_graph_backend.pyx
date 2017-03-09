@@ -189,7 +189,7 @@ cdef class GLPKGraphBackend(object):
         :class:`Graph`. See documentation of :class:`GLPKGraphBackend` for
         details.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -247,7 +247,7 @@ cdef class GLPKGraphBackend(object):
         If no ``name`` is passed as an argument, the new vertex name is
         returned. ``None`` otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -292,7 +292,7 @@ cdef class GLPKGraphBackend(object):
         This function is only used when importing a
         :class:`~sage.graphs.generic_graph.GenericGraph` object.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: g = graphs.PappusGraph()
@@ -345,7 +345,7 @@ cdef class GLPKGraphBackend(object):
         Generated names of new vertices if there is at least one ``None`` value
         present in ``vertices``. ``None`` otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -394,7 +394,7 @@ cdef class GLPKGraphBackend(object):
           sink, or `1` to represent a source and `0` for a neutral vertex). This
           can either be an ``int`` or ``float`` value.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -428,7 +428,7 @@ cdef class GLPKGraphBackend(object):
           to each vertex. For more information, see the documentation of
           :meth:`set_vertex_demand`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -466,7 +466,7 @@ cdef class GLPKGraphBackend(object):
             * "es"   -- The earliest start of task (cpp alg)
             * "ls"   -- The latest start of task (cpp alg)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -508,7 +508,7 @@ cdef class GLPKGraphBackend(object):
         more information, see the documentation of
         :meth:`GLPKGraphBackend.get_vertex`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -536,7 +536,7 @@ cdef class GLPKGraphBackend(object):
            If a vertex in the graph does not have a name / label it will appear
            as ``None`` in the resulting ``list``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -575,7 +575,7 @@ cdef class GLPKGraphBackend(object):
 
             * ``cost`` -- The cost of transporting one unit through the edge
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -629,7 +629,7 @@ cdef class GLPKGraphBackend(object):
           triples of the form ``(u, v, params)`` where params is a ``dict`` as
           described in ``add_edge``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -661,7 +661,7 @@ cdef class GLPKGraphBackend(object):
 
         This function is only used when importing a ``GenericGraph``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: g = graphs.PappusGraph()
@@ -735,7 +735,7 @@ cdef class GLPKGraphBackend(object):
             * ``cost`` -- The cost of transporting one unit through the edge
             * ``x`` -- The actual flow through the edge after solving
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -774,7 +774,7 @@ cdef class GLPKGraphBackend(object):
 
         A ``list`` of ``triples`` representing the edges of the graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -825,7 +825,7 @@ cdef class GLPKGraphBackend(object):
 
         - ``vert`` -- The name (as ``str``) of the vertex to delete.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -866,7 +866,7 @@ cdef class GLPKGraphBackend(object):
         - ``verts`` -- iterable container containing names (as ``str``) of the
           vertices to delete
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -920,7 +920,7 @@ cdef class GLPKGraphBackend(object):
 
             :meth:`delete_edges`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -994,7 +994,7 @@ cdef class GLPKGraphBackend(object):
 
             :meth:`delete_edge`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -1025,7 +1025,7 @@ cdef class GLPKGraphBackend(object):
 
         The index of the vertex or ``-1`` if the vertex is not found
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -1052,7 +1052,7 @@ cdef class GLPKGraphBackend(object):
 
         Zero if the operations was successful otherwise nonzero
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -1081,7 +1081,7 @@ cdef class GLPKGraphBackend(object):
 
         Zero if the operations was successful otherwise nonzero
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -1106,7 +1106,7 @@ cdef class GLPKGraphBackend(object):
 
         Zero if successful, otherwise nonzero
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -1202,7 +1202,7 @@ cdef class GLPKGraphBackend(object):
 
         ``Zero`` if successful, otherwise ``non-zero``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -1258,7 +1258,7 @@ cdef class GLPKGraphBackend(object):
               solution can not be computed for any reason (none exists, or the
               LP solver was not able to find it, etc...)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()
@@ -1324,7 +1324,7 @@ cdef class GLPKGraphBackend(object):
 
         The length of the critical path of the network
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.glpk_graph_backend import GLPKGraphBackend
             sage: gbe = GLPKGraphBackend()

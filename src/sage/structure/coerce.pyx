@@ -1898,7 +1898,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         This function is only called when someone has incorrectly implemented
         a user-defined part of the coercion system (usually, a morphism).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: cm = sage.structure.element.get_coercion_model()
             sage: cm._coercion_error('a', 'f', 'f(a)', 'b', 'g', 'g(b)')

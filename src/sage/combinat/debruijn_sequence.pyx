@@ -121,7 +121,7 @@ def is_debruijn_sequence(seq, k, n):
 
     - ``n,k`` -- Integers.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.debruijn_sequence import is_debruijn_sequence
         sage: s = DeBruijnSequences(2, 3).an_element()
@@ -296,7 +296,7 @@ class DeBruijnSequences(UniqueRepresentation, Parent):
         """
         Provides a string representation of the object's parameter.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: repr(DeBruijnSequences(4, 50))
             'De Bruijn sequences with arity 4 and substring length 50'
@@ -315,7 +315,7 @@ class DeBruijnSequences(UniqueRepresentation, Parent):
         Frank Ruskey. This program is based on a Ruby implementation by Jonas
         Elfström, which is based on the C program by Joe Sadawa.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: DeBruijnSequences(2, 3).an_element()
             [0, 0, 0, 1, 0, 1, 1, 1]
@@ -331,7 +331,7 @@ class DeBruijnSequences(UniqueRepresentation, Parent):
 
         - ``seq`` -- A sequence of integers.
 
-        EXAMPLE:
+        EXAMPLES:
 
            sage: Sequences =  DeBruijnSequences(2, 3)
            sage: Sequences.an_element() in Sequences
@@ -344,7 +344,7 @@ class DeBruijnSequences(UniqueRepresentation, Parent):
         Returns the number of distinct De Bruijn sequences for the object's
         parameters.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: DeBruijnSequences(2, 5).cardinality()
             2048

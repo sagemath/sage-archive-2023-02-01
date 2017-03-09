@@ -1095,7 +1095,7 @@ class FiniteWords(AbstractLanguage):
         - all other argument are transmitted to the random generator of the
           alphabet
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: W = FiniteWords(5)
             sage: W.random_element() # random

@@ -335,7 +335,7 @@ class AbelianGroupWithValuesElement(AbelianGroupElement):
         """
         Return the inverse element.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G.<a,b> = AbelianGroupWithValues([2,-1], [0,4])
             sage: a.inverse()

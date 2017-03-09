@@ -188,7 +188,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     """
     A polynomial.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R.<y> = QQ['y']
         sage: S.<x> = R['x']
@@ -372,7 +372,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         Multiply self on the left by a scalar.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x> = ZZ[]
             sage: f = (x^3 + x + 5)
@@ -392,7 +392,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         Multiply self on the right by a scalar.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x> = ZZ[]
             sage: f = (x^3 + x + 5)
@@ -825,7 +825,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         Returns a quickly-evaluating function on floats.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<t> = QQ[]
             sage: f = t^3-t
@@ -1172,7 +1172,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def __float__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P = PolynomialRing(ZZ, 'x')([1])
             sage: float(P)
@@ -1184,7 +1184,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def __int__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P = PolynomialRing(ZZ, 'x')([3])
             sage: int(P)
@@ -4999,7 +4999,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Create a new constant polynomial from a in P, which MUST be an
         element of the base ring of P (this is not checked).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<w> = PolynomialRing(GF(9,'a'), sparse=True)
             sage: a = w._new_constant_poly(0, R); a
@@ -7872,7 +7872,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def __lshift__(self, k):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x> = ZZ[]
             sage: f = x + 2

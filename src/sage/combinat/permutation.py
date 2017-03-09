@@ -1520,7 +1520,7 @@ class Permutation(CombinatorialElement):
         (This implementation is the best choice for ``size > 410``
         approximately.)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = Permutation([5,9,1,8,2,6,4,7,3])
             sage: p._to_inversion_vector_divide_and_conquer()
@@ -4697,7 +4697,7 @@ class Permutation(CombinatorialElement):
         semi-lengths of the cycles of this graph (see Chapter VII of [Mcd]_ for
         more details, particularly Section VII.2).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Permutation([3, 4, 6, 1, 5, 7, 2, 8]).hyperoctahedral_double_coset_type()
             [3, 1]

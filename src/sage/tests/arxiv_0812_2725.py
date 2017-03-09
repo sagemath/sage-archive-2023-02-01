@@ -198,7 +198,7 @@ def setp_to_edges(p):
     A list of non-loop edges of the set partition. As this code just
     works with crossings, we can ignore the loops.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The main example from the paper::
 

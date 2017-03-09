@@ -3773,7 +3773,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
 
         OUTPUT: A space of harmonic cocycles
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: X = BruhatTitsQuotient(31,7)
             sage: H = X.harmonic_cocycles(2,prec=10)

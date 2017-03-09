@@ -2810,7 +2810,7 @@ class ToricVariety_field(AmbientSpace):
             :arxiv:`1110.4275`,
             :doi:`10.1007/s13366-011-0084-0`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P2 = toric_varieties.P2()
             sage: P2.Demazure_roots()

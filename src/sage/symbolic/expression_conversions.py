@@ -660,7 +660,7 @@ class SympyConverter(Converter):
     """
     Converts any expression to SymPy.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: import sympy
         sage: var('x,y')

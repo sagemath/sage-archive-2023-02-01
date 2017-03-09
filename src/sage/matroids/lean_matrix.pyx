@@ -2853,7 +2853,7 @@ cdef class IntegerMatrix(LeanMatrix):
         """
         Return a Sage Integer, for safety down the line when dividing.
 
-        EXAMPLE:
+        EXAMPLES:
 
         By returning an Integer rather than an int, the following test no
         longer fails::

@@ -89,7 +89,7 @@ class pAdicLseries(SageObject):
         r"""
         Initialize the class
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.padic_lseries import pAdicLseries
             sage: E = EllipticCurve('11a3')
@@ -173,7 +173,7 @@ class pAdicLseries(SageObject):
         r"""
         Compare ``self`` and ``other``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve('11a')
             sage: L = E.padic_lseries(11,implementation="pollackstevens",precision=6) # long time
@@ -192,7 +192,7 @@ class pAdicLseries(SageObject):
         r"""
         Compare ``self`` and ``other``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve('11a')
             sage: L = E.padic_lseries(11,implementation="pollackstevens",precision=6) # long time

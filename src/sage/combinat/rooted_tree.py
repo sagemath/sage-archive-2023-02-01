@@ -976,7 +976,7 @@ class LabelledRootedTrees_all(LabelledRootedTrees):
         """
         Return a labelled tree.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: LabelledRootedTrees().an_element()   # indirect doctest
             alpha[3[], 5[None[]], 42[3[], 3[]]]

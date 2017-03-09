@@ -301,7 +301,7 @@ class Huffman(SageObject):
           are not necessarily integers, but can be real numbers. In general,
           we refer to ``dic`` as a weight table.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.coding.source_coding.huffman import Huffman, frequency_table
             sage: str = "Sage is my most favorite general purpose computer algebra system"

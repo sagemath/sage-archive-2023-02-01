@@ -802,7 +802,7 @@ class Partition(CombinatorialElement):
         This method exists only for compatibility with
         :class:`PartitionTuples`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Partition([4,3,2]).level()
             1
@@ -1249,7 +1249,7 @@ class Partition(CombinatorialElement):
         """
         Return the :class:`standard tableaux<StandardTableaux>` of this shape.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Partition([3,2,2,1]).standard_tableaux()
             Standard tableaux of shape [3, 2, 2, 1]
@@ -2197,7 +2197,7 @@ class Partition(CombinatorialElement):
         entered in order from top to bottom and then left to right down the
         columns of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Partition([3,2]).initial_column_tableau()
             [[1, 3, 5], [2, 4]]

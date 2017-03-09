@@ -108,10 +108,12 @@ REFERENCE:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from __future__ import print_function
 
 from libc.string cimport memcmp, memcpy
-include 'data_structures_pyx.pxi' # includes bitsets
+from .data_structures cimport *
+include "sage/data_structures/bitset.pxi"
 
 cdef inline int agcl_cmp(int a, int b):
     if a < b: return -1

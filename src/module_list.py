@@ -465,40 +465,8 @@ ext_modules = [
     Extension('sage.groups.perm_gps.permgroup_element',
               sources = ['sage/groups/perm_gps/permgroup_element.pyx']),
 
-    Extension('sage.groups.perm_gps.partn_ref.automorphism_group_canonical_label',
-              sources = ['sage/groups/perm_gps/partn_ref/automorphism_group_canonical_label.pyx'],
-              extra_compile_args = ['-std=c99']),
-
-    Extension('sage.groups.perm_gps.partn_ref.canonical_augmentation',
-              sources = ['sage/groups/perm_gps/partn_ref/canonical_augmentation.pyx'],
-              extra_compile_args = ['-std=c99']),
-
-    Extension('sage.groups.perm_gps.partn_ref.double_coset',
-              sources = ['sage/groups/perm_gps/partn_ref/double_coset.pyx'],
-              extra_compile_args = ['-std=c99']),
-
-    Extension('sage.groups.perm_gps.partn_ref.refinement_binary',
-              sources = ['sage/groups/perm_gps/partn_ref/refinement_binary.pyx'],
-              extra_compile_args = ['-std=c99']),
-
-    Extension('sage.groups.perm_gps.partn_ref.refinement_graphs',
-              sources = ['sage/groups/perm_gps/partn_ref/refinement_graphs.pyx'],
-              extra_compile_args = ['-std=c99']),
-
-    Extension('sage.groups.perm_gps.partn_ref.refinement_lists',
-              sources = ['sage/groups/perm_gps/partn_ref/refinement_lists.pyx'],
-              extra_compile_args = ['-std=c99']),
-
-    Extension('sage.groups.perm_gps.partn_ref.refinement_matrices',
-              sources = ['sage/groups/perm_gps/partn_ref/refinement_matrices.pyx'],
-              extra_compile_args = ['-std=c99']),
-
-    Extension('sage.groups.perm_gps.partn_ref.refinement_python',
-              sources = ['sage/groups/perm_gps/partn_ref/refinement_python.pyx'],
-              extra_compile_args = ['-std=c99']),
-
-    Extension('sage.groups.perm_gps.partn_ref.refinement_sets',
-              sources = ['sage/groups/perm_gps/partn_ref/refinement_sets.pyx'],
+    Extension('*',
+              sources = ['sage/groups/perm_gps/partn_ref/*.pyx'],
               extra_compile_args = ['-std=c99']),
 
     Extension('sage.groups.perm_gps.partn_ref2.refinement_generic',

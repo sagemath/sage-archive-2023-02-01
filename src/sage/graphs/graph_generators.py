@@ -166,6 +166,8 @@ __append_to_doc(
      "Tutte12Cage",
      "TutteCoxeterGraph",
      "TutteGraph",
+     "U42Graph216",
+     "U42Graph540",
      "WagnerGraph",
      "WatkinsSnarkGraph",
      "WellsGraph",
@@ -258,6 +260,7 @@ __append_to_doc(
      "TaylorTwographDescendantSRG",
      "TaylorTwographSRG",
      "T2starGeneralizedQuadrangleGraph",
+     "Nowhere0WordsTwoWeightCodeGraph",
      "HaemersGraph",
      "CossidentePenttilaGraph",
      "UnitaryDualPolarGraph",
@@ -1960,6 +1963,8 @@ class GraphGenerators():
     TruncatedTetrahedralGraph= staticmethod(sage.graphs.generators.smallgraphs.TruncatedTetrahedralGraph)
     TutteCoxeterGraph        = staticmethod(sage.graphs.generators.smallgraphs.TutteCoxeterGraph)
     TutteGraph               = staticmethod(sage.graphs.generators.smallgraphs.TutteGraph)
+    U42Graph216              = staticmethod(sage.graphs.generators.smallgraphs.U42Graph216)
+    U42Graph540              = staticmethod(sage.graphs.generators.smallgraphs.U42Graph540)
     WagnerGraph              = staticmethod(sage.graphs.generators.smallgraphs.WagnerGraph)
     WatkinsSnarkGraph        = staticmethod(sage.graphs.generators.smallgraphs.WatkinsSnarkGraph)
     WienerArayaGraph         = staticmethod(sage.graphs.generators.smallgraphs.WienerArayaGraph)
@@ -2035,6 +2040,7 @@ class GraphGenerators():
              staticmethod(sage.graphs.generators.classical_geometries.TaylorTwographDescendantSRG)
     TaylorTwographSRG      = staticmethod(sage.graphs.generators.classical_geometries.TaylorTwographSRG)
     T2starGeneralizedQuadrangleGraph      = staticmethod(sage.graphs.generators.classical_geometries.T2starGeneralizedQuadrangleGraph)
+    Nowhere0WordsTwoWeightCodeGraph = staticmethod(sage.graphs.generators.classical_geometries.Nowhere0WordsTwoWeightCodeGraph)
     HaemersGraph      = staticmethod(sage.graphs.generators.classical_geometries.HaemersGraph)
     CossidentePenttilaGraph = staticmethod(sage.graphs.generators.classical_geometries.CossidentePenttilaGraph)
     UnitaryDualPolarGraph  = staticmethod(sage.graphs.generators.classical_geometries.UnitaryDualPolarGraph)

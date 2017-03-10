@@ -3903,9 +3903,6 @@ class Polyhedron_base(Element):
 
         - ``arg`` -- a cdd or LattE description string.
 
-        - ``polynomial`` -- multivariate polynomial or valid LattE polynomial description string.
-          If given, the valuation parameter of LattE is set to integrate, and is set to volume otherwise.
-
         - ``algorithm`` -- (default: 'triangulate') the integration method. Use 'triangulate' for
           polytope triangulation or 'cone-decompose' for tangent cone decomposition method.
 
@@ -3955,8 +3952,7 @@ class Polyhedron_base(Element):
         if is_package_installed('latte_int'):
             from sage.interfaces.latte import integrate
             if self.base_ring() == RDF:
-                self_QQ = Polyhedron(vertices=[[QQ(vi) for vi in v]  for v in self.vertex_generator()])
-                return integrate(self_QQ.cdd_Hrepresentation(), algorithm=algorithm, cdd=True, verbose=verbose, **kwargs)
+                raise ValueError("LattE integrale cannot be applied over inexact rings.")
             else:
                 return integrate(self.cdd_Hrepresentation(), algorithm=algorithm, cdd=True, verbose=verbose, **kwargs)
 
@@ -4024,6 +4020,8 @@ class Polyhedron_base(Element):
             0
             sage: I.volume(engine='lrs') #optional - lrslib
             1.0
+            sage: I.volume(engine='latte') # optional - latte_int
+            1
         """
         if engine == 'lrs':
             return self._volume_lrs(**kwds)
@@ -4065,6 +4063,14 @@ class Polyhedron_base(Element):
             sage: P.integrate(x^2*y^2*z^2)    # optional - latte_int
             8/27
 
+        If the polyhedron has floating point coordinates, an inexact result can
+        be obtained if we transform to rational coordinates::
+
+            sage: P = 1.4142*polytopes.cube()
+            sage: P_QQ = Polyhedron(vertices = [[QQ(vi) for vi in v] for v in P.vertex_generator()])
+            sage: RDF(P_QQ.integrate(x^2*y^2*z^2))    # optional - latte_int
+            6.703841212195228
+
         TESTS::
 
         Testing a three-dimensional integral::
@@ -4091,15 +4097,16 @@ class Polyhedron_base(Element):
 
         Testing a polytope with floating point coordinates::
 
-            sage: P = Polyhedron(vertices = [[0, 0], [1, 0], [1.1,1.1], [0,1]])
+            sage: P = Polyhedron(vertices = [[0, 0], [1, 0], [1.1, 1.1], [0, 1]])
             sage: P.integrate('[[1,[2,2]]]')    # optional - latte_int
-            384659/2250000
+            Traceback (most recent call last):
+            ...
+            TypeError: LattE integrale cannot be applied over inexact rings.
         """
         if is_package_installed('latte_int'):
             from sage.interfaces.latte import integrate
             if self.base_ring() == RDF:
-                self_QQ = Polyhedron(vertices=[[QQ(vi) for vi in v]  for v in self.vertex_generator()])
-                return integrate(self_QQ.cdd_Hrepresentation(), polynomial, cdd=True)
+                raise ValueError("LattE integrale cannot be applied over inexact rings.")
             else:
                 return integrate(self.cdd_Hrepresentation(), polynomial, cdd=True)
 

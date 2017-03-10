@@ -1,5 +1,5 @@
 r"""
-Interface to Polymake
+Interface to polymake
 
 """
 
@@ -58,7 +58,7 @@ _available_polymake_answers = {
 
 class PolymakeError(RuntimeError):
     """
-    Raised if Polymake yields an error message.
+    Raised if polymake yields an error message.
 
     TESTS::
 
@@ -72,7 +72,7 @@ class PolymakeError(RuntimeError):
 
 def polymake_console():
     """
-    Spawn a new Polymake command-line session.
+    Spawn a new polymake command-line session.
 
     EXAMPLES::
 
@@ -101,24 +101,24 @@ def polymake_console():
 
 class Polymake(ExtraTabCompletion, Expect):
     r"""
-    Interface to the Polymake interpreter.
+    Interface to the polymake interpreter.
 
     In order to use this interface, you need to either install the
-    optional Polymake package for Sage, or install Polymake system-wide
+    optional polymake package for Sage, or install polymake system-wide
     on your computer.
 
     Type ``polymake.[tab]`` for a list of most functions
-    available from your Polymake install. Type
-    ``polymake.Function?`` for Polymake's help about a given ``Function``
+    available from your polymake install. Type
+    ``polymake.Function?`` for polymake's help about a given ``Function``
     Type ``polymake(...)`` to create a new Magma
     object, and ``polymake.eval(...)`` to run a string using
-    Polymake and get the result back as a string.
+    polymake and get the result back as a string.
 
     EXAMPLES::
 
-        sage: p = polymake.rand_sphere(4,20, seed=5)        # optional - polymake
+        sage: p = polymake.rand_sphere(4, 20, seed=5)        # optional - polymake
         sage: p                                             # optional - polymake
-        Random spherical polytope of dimension 4; seed=5
+        Random spherical polytope of dimension 4; seed=5...
         sage: set_verbose(3)
         sage: p.H_VECTOR                                    # optional - polymake
         used package ppl
@@ -173,16 +173,27 @@ class Polymake(ExtraTabCompletion, Expect):
     @cached_method
     def version(self):
         """
-        Version of the Polymake installation.
+        Version of the polymake installation.
+
+        EXAMPLES::
+
+            sage: polymake.version()               # optional - polymake
+            '3...'
 
         TESTS::
 
-            sage: polymake.version()               # optional - polymake
-            '3.0'
+            sage: from sage.interfaces.polymake import Polymake
+            sage: Polymake(command='foobar').version()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: unable to start polymake because the command 'foobar' failed:
+            The command was not found or was not executable: foobar.
+            Please install the optional polymake package for sage (but read its SPKG.txt first!)
+            or install polymake system-wide
 
         """
-        import subprocess
-        return subprocess.check_output(["polymake", "--version"], stderr=subprocess.STDOUT).split()[2]
+        return self.get('$Polymake::Version')
+
     # Pickling etc
 
     def __reduce__(self):
@@ -214,9 +225,12 @@ class Polymake(ExtraTabCompletion, Expect):
         """
         Return the class by which member functions of this interface are implemented.
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: p = polymake.rand_sphere(4,20, seed=5)    # optional - polymake
+        We use ellipses in the tests, to make it more robust against future
+        changes in polymake::
+
+            sage: p = polymake.rand_sphere(4, 20, seed=5)    # optional - polymake
             sage: p.get_schedule                            # optional - polymake  # indirect doctest
             Member function 'get_schedule' of Polymake::polytope::Polytope__Rational object
             sage: p.get_schedule('F_VECTOR')                # optional - polymake
@@ -224,19 +238,8 @@ class Polymake(ExtraTabCompletion, Expect):
             precondition : BOUNDED ( POINTED : )
             POINTED :
             N_INPUT_RAYS : INPUT_RAYS
-            precondition : N_RAYS | N_INPUT_RAYS ( ppl.convex_hull.primal: FACETS, LINEAR_SPAN : RAYS | INPUT_RAYS )
-            sensitivity check for FacetPerm
-            ppl.convex_hull.primal: FACETS, LINEAR_SPAN : RAYS | INPUT_RAYS
-            INPUT_RAYS_IN_FACETS : INPUT_RAYS, FACETS
-            sensitivity check for VertexPerm
-            RAYS_IN_FACETS, RAYS, LINEALITY_SPACE : INPUT_RAYS_IN_FACETS, INPUT_RAYS
-            GRAPH.ADJACENCY : RAYS_IN_FACETS
-            DUAL_GRAPH.ADJACENCY : RAYS_IN_FACETS
-            N_EDGES : ADJACENCY ( applied to GRAPH )
-            N_EDGES : ADJACENCY ( applied to DUAL_GRAPH )
-            precondition : POINTED ( LINEALITY_DIM, LINEALITY_SPACE : )
-            LINEALITY_DIM, LINEALITY_SPACE :
-            COMBINATORIAL_DIM : CONE_DIM, LINEALITY_DIM
+            precondition : ...
+            ...
             N_RAYS : RAYS
             N_FACETS : FACETS
             precondition : COMBINATORIAL_DIM ( F_VECTOR : N_FACETS, N_RAYS, GRAPH.N_EDGES, DUAL_GRAPH.N_EDGES, COMBINATORIAL_DIM )
@@ -249,8 +252,8 @@ class Polymake(ExtraTabCompletion, Expect):
         """
         EXAMPLES::
 
-            sage: polymake.rand_sphere(4,30, seed=15)           # optional - polymake  # indirect doctest
-            Random spherical polytope of dimension 4; seed=15
+            sage: polymake.rand_sphere(4, 30, seed=15)           # optional - polymake  # indirect doctest
+            Random spherical polytope of dimension 4; seed=15...
 
         """
         args, kwds = self._convert_args_kwds(args, kwds)
@@ -276,8 +279,17 @@ class Polymake(ExtraTabCompletion, Expect):
             1 3 7
             1 7 7
             sage: c.GROUP                                               # optional - polymake
-            full combinatorial group on facets of 2-dim cube
-            sage: c.GROUP.GENERATORS                                    # optional - polymake
+            full combinatorial group on facets...
+
+        In future versions, ``GENERATORS`` will be a member function of ``GROUP``,
+        rather than a property. We thus try to make the following test robust
+        against the expected change::
+
+            sage: g = c.GROUP.GENERATORS                                # optional - polymake
+            sage: if isinstance(g, sage.interfaces.polymake.PolymakeElement): # optional - polymake
+            ....:     print g
+            ....: else:
+            ....:     print g()
             1 0 2 3
             2 3 0 1
 
@@ -290,7 +302,7 @@ class Polymake(ExtraTabCompletion, Expect):
 
     def console(self):
         """
-        Spawn a new Polymake command-line session.
+        Spawn a new polymake command-line session.
 
         EXAMPLES::
 
@@ -310,14 +322,15 @@ class Polymake(ExtraTabCompletion, Expect):
         TESTS::
 
             sage: print polymake._install_hints()
-            Please install the optional Polymake package for sage or install Polymake system-wide
+            Please install the optional polymake package for sage (but read its SPKG.txt first!)
+            or install polymake system-wide
 
         """
-        return "Please install the optional Polymake package for sage or install Polymake system-wide"
+        return "Please install the optional polymake package for sage  (but read its SPKG.txt first!)"+os.linesep+"or install polymake system-wide"
 
     def _start(self, alt_message=None):
         """
-        Start the Polymake interface in the application "polytope".
+        Start the polymake interface in the application "polytope".
 
         NOTE:
 
@@ -331,7 +344,7 @@ class Polymake(ExtraTabCompletion, Expect):
             sage: polymake.quit()                           # optional - polymake
             sage: polymake._start()                         # optional - polymake
 
-        Since 'normal_fan' is not defined in the Polymake application 'polytope',
+        Since 'normal_fan' is not defined in the polymake application 'polytope',
         we now get
         ::
 
@@ -544,7 +557,7 @@ class Polymake(ExtraTabCompletion, Expect):
 
     def _create(self, value, name=None):
         """
-        Assign a value to a name in the Polymake interface.
+        Assign a value to a name in the polymake interface.
 
         INPUT:
 
@@ -597,12 +610,14 @@ class Polymake(ExtraTabCompletion, Expect):
 
         NOTE:
 
-        Usually, one won't call this method directly, but indirectly
-        via calling the interface, as in the example below. Generally,
+        Usually, one won't call this method directly, as in the example below,
+        but indirectly via calling the interface, as in other examples. Generally,
         in this implementation of an interface to a Perl based software,
         we treat all variables as arrays. A scalar value (most typically
         a reference) is interpreted as the only item in a length of
-        length one.
+        length one. This is why we need ``'$myvar[0]'`` to access the value.
+        It should, however, never be needed to do this *explicitly* when
+        working with the polymake interface.
 
         EXAMPLES::
 
@@ -618,7 +633,7 @@ class Polymake(ExtraTabCompletion, Expect):
 
     def get(self, cmd):
         """
-        Return the string representation of an object in the Polymake interface.
+        Return the string representation of an object in the polymake interface.
 
         EXAMPLES::
 
@@ -631,26 +646,22 @@ class Polymake(ExtraTabCompletion, Expect):
 
     def help(self, topic, pager=True):
         """
-        Displays Polymake's help on a given topic, as a string.
+        Displays polymake's help on a given topic, as a string.
 
         INPUT:
 
         - ``topic``, a string
-        - ``pager``, optional bool, default '`True``: When True, display help, otherwise return as a string.
+        - ``pager``, optional bool, default ``True``: When True, display help, otherwise return as a string.
 
         EXAMPLES::
 
             sage: print polymake.help('Polytope', pager=False)          # optional - polymake
             objects/Polytope:
-             Not necessarily bounded or unbounded polyhedron.
-             Nonetheless, the name "Polytope" is used for two reasons:
-             Firstly, combinatorially we always deal with polytopes; see the description of VERTICES_IN_FACETS for details.
-             The second reason is historical.
-             We use homogeneous coordinates, which is why Polytope is derived from Cone.
-             Note that a pointed polyhedron is projectively equivalent to a polytope.
-             Scalar is the numeric data type used for the coordinates.
+             Not necessarily bounded or unbounded polyhedron...
+             Nonetheless, the name "Polytope" is used ...
+            ...
 
-        In some cases, Polymake expects user interaction to choose from
+        In some cases, polymake expects user interaction to choose from
         different available help topics. In these cases, a warning is given,
         and the available help topics are displayed resp. printed, without
         user interaction::
@@ -683,7 +694,7 @@ class Polymake(ExtraTabCompletion, Expect):
         """
         Evaluate of a command
 
-        Different reaction types of Polymake, including warnings, comments,
+        Different reaction types of polymake, including warnings, comments,
         errors, request for user interaction, and yielding a continuation prompt,
         are taken into account.
 
@@ -704,7 +715,7 @@ class Polymake(ExtraTabCompletion, Expect):
             sage: polymake.eval('print 3')          # optional - polymake
             Traceback (most recent call last):
             ...
-            SyntaxError: Incomplete Polymake command 'print 3'
+            SyntaxError: Incomplete polymake command 'print 3'
             sage: polymake.eval('print 3;')         # optional - polymake
             '3'
 
@@ -827,8 +838,8 @@ class Polymake(ExtraTabCompletion, Expect):
                         i = pat
                         E.send(chr(3))
                         i = E.expect_list(self._prompt)
-                        assert i==0, "Command '{}': Couldn't return to normal prompt after Polymake {}. Instead, Polymake {}".format(line,_available_polymake_answers[pat],_available_polymake_answers[i])
-                        raise SyntaxError("Incomplete Polymake command '{}'".format(line))
+                        assert i==0, "Command '{}': Couldn't return to normal prompt after polymake {}. Instead, polymake {}".format(line,_available_polymake_answers[pat],_available_polymake_answers[i])
+                        raise SyntaxError("Incomplete polymake command '{}'".format(line))
                     elif pat == 2: # request for user interaction
                         # Return to normal prompt
                         warnings.warn("{} expects user interaction. We abort and return the options that {} provides.".format(self,self))
@@ -848,11 +859,11 @@ class Polymake(ExtraTabCompletion, Expect):
                             E.send(chr(3))
                             i = E.expect_list(self._prompt)
                         RuntimeError("Polymake unexpectedly {}".format(_available_polymake_answers[pat]))
-                    elif pat == 4: # Polymake error
+                    elif pat == 4: # polymake error
                         have_error = True
-                    elif pat == 5: # Polymake warning
+                    elif pat == 5: # polymake warning
                         have_warning = True
-                    elif pat == 6: # apparently Polymake prints a comment
+                    elif pat == 6: # apparently polymake prints a comment
                         have_log = True
                     elif pat == 7: # we have reached the end of the buffer
                         warnings.warn("Polymake unexpectedly {}".format(_available_polymake_answers[pat]), RuntimeWarning)
@@ -873,7 +884,7 @@ class Polymake(ExtraTabCompletion, Expect):
 
     def _tab_completion(self):
         """
-        Returns a list of Polymake function names.
+        Returns a list of polymake function names.
 
         NOTE:
 
@@ -890,7 +901,7 @@ class Polymake(ExtraTabCompletion, Expect):
             sage: polymake.quit()                               # optional - polymake
             sage: polymake._start()                             # optional - polymake
 
-        Since 'normal_fan' is not defined in the Polymake application 'polytope',
+        Since 'normal_fan' is not defined in the polymake application 'polytope',
         we now get
         ::
 
@@ -916,32 +927,35 @@ class Polymake(ExtraTabCompletion, Expect):
 
     def application(self, app):
         """
-        Change to a given Polymake application
+        Change to a given polymake application.
 
         Input:
 
         ``app``, a string, one of "common", "fulton", "group", "matroid", "topaz",
         "fan", "graph", "ideal", "polytope", "tropical"
 
-        TESTS::
+        TESTS:
 
-            sage: polymake.application('fan')                   # optional - polymake
-            sage: 'normal_fan' in dir(polymake)                 # optional - polymake
-            True
-            sage: polymake.quit()                               # optional - polymake
-            sage: polymake._start()                             # optional - polymake
-
-        Since 'normal_fan' is not defined in the Polymake application 'polytope',
-        we now get
+        Since 'tubing_of_graph' is not defined in the polymake application 'polytope'
+        but only in 'tropical', the following shows the effect of changing
+        the application.
         ::
 
-            sage: 'normal_fan' in dir(polymake)                 # optional - polymake
+            sage: polymake.application('polytope')                   # optional - polymake
+            sage: 'tubing_of_graph' in dir(polymake)                # optional - polymake
+            False
+            sage: polymake.application('tropical')                   # optional - polymake
+            sage: 'tubing_of_graph' in dir(polymake)                 # optional - polymake
+            True
+            sage: polymake.application('polytope')                   # optional - polymake
+            sage: 'tubing_of_graph' in dir(polymake)                 # optional - polymake
             False
 
         """
         if not self.is_running():
             self._start()
-        assert app in ["common", "fulton", "group", "matroid", "topaz", "fan", "graph", "ideal", "polytope", "tropical"], "Unknown Polymake application '{}'".format(app)
+        if app not in ["common", "fulton", "group", "matroid", "topaz", "fan", "graph", "ideal", "polytope", "tropical"]:
+            raise ValueError("Unknown polymake application '{}'".format(app))
         self._application = app
         patterns = ["{} > ".format(app),            # 0: normal prompt
                     "{} \([0-9]+\)> ".format(app),  # 1: continuation prompt
@@ -956,7 +970,7 @@ class Polymake(ExtraTabCompletion, Expect):
         self._sendstr('application "{}";{}'.format(app, self._expect.linesep))
         pat = self._expect.expect_list(self._prompt)
         if pat:
-            raise RuntimeError("When changing the application, Polymake unexpectedly {}".format(_available_polymake_answers[pat]))
+            raise RuntimeError("When changing the application, polymake unexpectedly {}".format(_available_polymake_answers[pat]))
 
     def new_object(self, name, *args, **kwds):
         """
@@ -964,7 +978,7 @@ class Polymake(ExtraTabCompletion, Expect):
 
         INPUT:
 
-        - ``name`` of a Polymake class (potentially templated), as string.
+        - ``name`` of a polymake class (potentially templated), as string.
         - further positional or named arguments, to be passed to the constructor.
 
         EXAMPLES::
@@ -996,7 +1010,7 @@ polymake = Polymake()
 
 def reduce_load_Polymake():
     """
-    Returns the Polymake interface object defined in sage.interfaces.polymake.
+    Returns the polymake interface object defined in :mod:`sage.interfaces.polymake`.
 
     EXAMPLES::
 
@@ -1013,18 +1027,18 @@ from warnings import warn
 
 class PolymakeElement(ExtraTabCompletion, ExpectElement):
     """
-    Elements in the Polymake interface.
+    Elements in the polymake interface.
 
     EXAMPLES:
 
-    We support all "big" Polymake types, Perl arrays of length
+    We support all "big" polymake types, Perl arrays of length
     different from one, and Perl scalars::
 
-        sage: p = polymake.rand_sphere(4,20, seed=5)            # optional - polymake
+        sage: p = polymake.rand_sphere(4, 20, seed=5)            # optional - polymake
         sage: p.typename()                                      # optional - polymake
         'Polytope'
         sage: p                                                 # optional - polymake
-        Random spherical polytope of dimension 4; seed=5
+        Random spherical polytope of dimension 4; seed=5...
 
     Now, one can work with that element in Python syntax, for example::
 
@@ -1034,17 +1048,17 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
     """
     def _repr_(self):
         """
-        String representation of Polymake elements.
+        String representation of polymake elements.
 
         EXAMPLES:
 
-        In the case of a "big" object, if Polymake provides a description
+        In the case of a "big" object, if polymake provides a description
         of the object that is not longer than single line, it is used for
         printing::
 
-            sage: p = polymake.rand_sphere(3,12, seed=15)           # optional - polymake
+            sage: p = polymake.rand_sphere(3, 12, seed=15)           # optional - polymake
             sage: p                                                 # optional - polymake
-            Random spherical polytope of dimension 3; seed=15
+            Random spherical polytope of dimension 3; seed=15...
             sage: c = polymake.cube(4)                              # optional - polymake
             sage: c                                                 # optional - polymake
             cube of dimension 4
@@ -1062,7 +1076,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             COMBINATORIAL_DIM, AFFINE_HULL, VERTICES, N_VERTICES
 
         We chose to print rule chains explicitly, so that the user doesn't
-        need to know how to list the rules using Polymake commands::
+        need to know how to list the rules using polymake commands::
 
             sage: r = p.get_schedule('"H_VECTOR"')                  # optional - polymake
             sage: r                                                 # optional - polymake
@@ -1079,7 +1093,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             sage: r.typeof()                                        # optional - polymake
             ('Polymake::Core::Scheduler::RuleChain', 'ARRAY')
 
-        Similarly, Polymake matrices and vectors are explicitly listed::
+        Similarly, polymake matrices and vectors are explicitly listed::
 
             sage: c.VERTICES.typename()                         # optional - polymake
             'Matrix'
@@ -1106,7 +1120,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             1 -1 -1 -1 -1
 
         For other types, we simply use the print representation offered
-        by Polymake::
+        by polymake::
 
             sage: p.TWO_FACE_SIZES.typename()                   # optional - polymake
             'Map'
@@ -1147,14 +1161,14 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
     def __cmp__(self, other):
         """
-        Comparison of Polymake elements.
+        Comparison of polymake elements.
 
         TESTS:
 
         The default for comparing equality for polytopes is *identity*::
 
-            sage: p1 = polymake.rand_sphere(3,12, seed=15)          # optional - polymake
-            sage: p2 = polymake.rand_sphere(3,12, seed=15)          # optional - polymake
+            sage: p1 = polymake.rand_sphere(3, 12, seed=15)          # optional - polymake
+            sage: p2 = polymake.rand_sphere(3, 12, seed=15)          # optional - polymake
             sage: p1 == p2                                          # optional - polymake
             False
 
@@ -1186,7 +1200,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
     def bool(self):
         """
-        Return whether this Polymake element is equal to ``True``.
+        Return whether this polymake element is equal to ``True``.
 
         EXAMPLES::
 
@@ -1208,8 +1222,8 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
         NOTE:
 
-        This is in many cases equivalent to use Polymake's ``list_properties``,
-        which returns a blank separated string representation of the property list.
+        This is in many cases equivalent to use polymake's ``list_properties``,
+        which returns a blank separated string representation of the list of properties.
         However, on some elements, ``list_properties`` would simply result in
         an error.
 
@@ -1221,12 +1235,11 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
              'BOUNDED',
              'CONE_AMBIENT_DIM',
              'CONE_DIM',
-             'FACETS',
-             'FEASIBLE',
+            ...
              'VERTICES_IN_FACETS']
             sage: c.list_properties()                       # optional - polymake
             CONE_AMBIENT_DIM, CONE_DIM, FACETS, AFFINE_HULL, VERTICES_IN_FACETS,
-            BOUNDED, FEASIBLE
+            BOUNDED...
 
         A computation can change the list of known properties::
 
@@ -1265,7 +1278,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
     @cached_method
     def _member_list(self):
         """
-        The list of properties that Polymake knows to compute for this element.
+        The list of properties that polymake knows to compute for this element.
 
         The resulting list is used for tab completion.
 
@@ -1277,12 +1290,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
              'ALTSHULER_DET',
              'BALANCE',
              'BALANCED',
-             ...
-             'VERTICES_IN_INEQUALITIES',
-             'VERY_AMPLE',
-             'VIF_CYCLIC_NORMAL',
-             'VOLUME',
-             'VertexPerm',
+            ...
              'WEAKLY_CENTERED',
              'ZONOTOPE_INPUT_POINTS']
 
@@ -1302,7 +1310,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
     def typename(self):
         """
-        The name of the underlying base type of this element in Polymake.
+        The name of the underlying base type of this element in polymake.
 
         EXAMPLES::
 
@@ -1366,9 +1374,9 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         This currently returns the names of functions defined in the current
         application, regardless whether they can be applied to this element
         or not, together with the list of properties of this element that
-        Polymake knows how to compute. It does not contain the list of available
+        polymake knows how to compute. It does not contain the list of available
         member functions of this element. This may change in future versions
-        of Polymake.
+        of polymake.
 
         EXAMPLES::
 
@@ -1390,7 +1398,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
     def __getattr__(self, attrname):
         """
-        Return a property of this element, or a Polymake function with this
+        Return a property of this element, or a polymake function with this
         element as first argument, or a member function of this element.
 
         NOTE:
@@ -1432,12 +1440,12 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             sage: s.get_schedule                        # optional - polymake
             Member function 'get_schedule' of Polymake::polytope::Polytope__Rational object
             sage: s.get_schedule('F_VECTOR')            # optional - polymake
-            CONE_DIM : RAYS | INPUT_RAYS
-            POINTED : RAYS
+            CONE_DIM...
+            ...
             BOUNDED : VERTICES | POINTS, POINTED
             precondition : BOUNDED ( lrs.convex_hull.count: N_FACETS : RAYS | INPUT_RAYS )
             lrs.convex_hull.count: N_FACETS : RAYS | INPUT_RAYS
-            LINEALITY_DIM : LINEALITY_SPACE
+            ...
             COMBINATORIAL_DIM : CONE_DIM, LINEALITY_DIM
             precondition : COMBINATORIAL_DIM ( F_VECTOR : N_FACETS, N_RAYS, COMBINATORIAL_DIM )
             F_VECTOR : N_FACETS, N_RAYS, COMBINATORIAL_DIM
@@ -1498,7 +1506,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
         EXAMPLES::
 
-            sage: p = polymake.rand_sphere(4,20, seed=5)    # optional - polymake
+            sage: p = polymake.rand_sphere(4, 20, seed=5)    # optional - polymake
 
         Normally, a property would be accessed as follows::
 
@@ -1520,7 +1528,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             Polytope
 
         Note that in the last example calling the erroneously constructed
-        member function `type` still works::
+        member function ``type`` still works::
 
             sage: p.type()                                  # optional - polymake
             Polytope<Rational>[SAGE...]
@@ -1535,7 +1543,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
         EXAMPLES::
 
-            sage: p = polymake.rand_sphere(3,12, seed=15)   # optional - polymake
+            sage: p = polymake.rand_sphere(3, 12, seed=15)   # optional - polymake
             sage: p.VERTICES[3]                             # optional - polymake
             1 -6157731020575175/18014398509481984 4184896164481703/4503599627370496 -2527292586301447/18014398509481984
             sage: p.list_properties()[2]                    # optional - polymake
@@ -1563,7 +1571,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         """
         TESTS::
 
-            sage: p = polymake.rand_sphere(3,12, seed=15)           # optional - polymake
+            sage: p = polymake.rand_sphere(3, 12, seed=15)           # optional - polymake
             sage: len(p.FACETS)                                     # optional - polymake
             20
             sage: len(p.list_properties())                          # optional - polymake
@@ -1584,7 +1592,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
     @cached_method
     def typeof(self):
         """
-        Returns the type of a Polymake "big" object, and its underlying Perl type.
+        Returns the type of a polymake "big" object, and its underlying Perl type.
 
         NOTE:
 
@@ -1592,7 +1600,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
         EXAMPLES::
 
-            sage: p = polymake.rand_sphere(3,13, seed=12)               # optional - polymake
+            sage: p = polymake.rand_sphere(3, 13, seed=12)               # optional - polymake
             sage: p.typeof()                                            # optional - polymake
             ('Polymake::polytope::Polytope__Rational', 'ARRAY')
             sage: p.VERTICES.typeof()                                   # optional - polymake
@@ -1618,13 +1626,9 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             sage: c = polymake.cube(3)                  # optional - polymake
             sage: print c._sage_doc_()                  # optional - polymake
             objects/Polytope:
-             Not necessarily bounded or unbounded polyhedron.
-             Nonetheless, the name "Polytope" is used for two reasons:
-             Firstly, combinatorially we always deal with polytopes; see the description of VERTICES_IN_FACETS for details.
-             The second reason is historical.
-             We use homogeneous coordinates, which is why Polytope is derived from Cone.
-             Note that a pointed polyhedron is projectively equivalent to a polytope.
-             Scalar is the numeric data type used for the coordinates.
+             Not necessarily bounded or unbounded polyhedron...
+             Nonetheless, the name "Polytope" is used ...
+            ...
             <BLANKLINE>
             objects/Polytope/specializations/Polytope<Rational>:
              A rational polyhedron realized in Q^d
@@ -1683,11 +1687,11 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
 class PolymakeFunctionElement(FunctionElement):
     """
-    A callable (function or member function) bound to a Polymake element.
+    A callable (function or member function) bound to a polymake element.
 
     EXAMPLES::
 
-        sage: p = polymake.rand_sphere(3,13, seed=12)               # optional - polymake
+        sage: p = polymake.rand_sphere(3, 13, seed=12)               # optional - polymake
         sage: p.minkowski_sum_fukuda                                # optional - polymake
         minkowski_sum_fukuda (bound to Polymake::polytope::Polytope__Rational object)
         sage: p.get_schedule                                        # optional - polymake
@@ -1699,14 +1703,14 @@ class PolymakeFunctionElement(FunctionElement):
         INPUT:
 
         - Polymake object that this function is bound to
-        - name (string): It actually says how to call this function in Polymake.
+        - name (string): It actually says how to call this function in polymake.
           So, if it is a member function, it will look like `"$SAGE123[0]->func_name"`.
         - ``memberfunction`` (bool, default False): Whether this is a member function
           or a plain function applied with this element as first argument.
 
         EXAMPLES::
 
-            sage: p = polymake.rand_sphere(3,13, seed=12)   # optional - polymake
+            sage: p = polymake.rand_sphere(3, 13, seed=12)   # optional - polymake
             sage: p.minkowski_sum_fukuda                    # optional - polymake
             minkowski_sum_fukuda (bound to Polymake::polytope::Polytope__Rational object)
             sage: p.get_schedule                            # optional - polymake
@@ -1720,7 +1724,7 @@ class PolymakeFunctionElement(FunctionElement):
         """
         EXAMPLES::
 
-            sage: p = polymake.rand_sphere(3,13, seed=12)   # optional - polymake
+            sage: p = polymake.rand_sphere(3, 13, seed=12)   # optional - polymake
             sage: p.minkowski_sum_fukuda                    # optional - polymake
             minkowski_sum_fukuda (bound to Polymake::polytope::Polytope__Rational object)
             sage: p.get_schedule                            # optional - polymake
@@ -1738,7 +1742,7 @@ class PolymakeFunctionElement(FunctionElement):
         We consider both member functions of an element and global functions
         bound to an element::
 
-            sage: p = polymake.rand_sphere(3,13, seed=12)       # optional - polymake
+            sage: p = polymake.rand_sphere(3, 13, seed=12)       # optional - polymake
             sage: p.get_schedule('VERTICES')                    # optional - polymake
             sensitivity check for VertexPerm
             cdd.convex_hull.canon: POINTED, RAYS, LINEALITY_SPACE : INPUT_RAYS
@@ -1761,7 +1765,7 @@ class PolymakeFunctionElement(FunctionElement):
 
         EXAMPLES::
 
-            sage: p = polymake.rand_sphere(3,13, seed=12)           # optional - polymake
+            sage: p = polymake.rand_sphere(3, 13, seed=12)           # optional - polymake
             sage: print p.get_schedule._sage_doc_()                 # optional - polymake
             objects/Core::Object/methods/get_schedule:
             get_schedule(request;  ... ) -> Core::RuleChain
@@ -1769,8 +1773,7 @@ class PolymakeFunctionElement(FunctionElement):
             Arguments:
               String request : name of a property with optional alternatives or a property path in dotted notation.
                 Several requests may be listed.
-            <BLANKLINE>
-            Returns Core::RuleChain
+            ...
             sage: print p.minkowski_sum_fukuda._sage_doc_()         # optional - polymake
             functions/Producing a polytope from polytopes/minkowski_sum_fukuda:
             minkowski_sum_fukuda(summands) -> Polytope<Scalar>

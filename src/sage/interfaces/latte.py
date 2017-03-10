@@ -93,6 +93,14 @@ def count(arg, ehrhart_polynomial=False, multivariate_generating_function=False,
         <BLANKLINE>
         ****  The number of lattice points is:   ****
         Total time: ... sec
+
+    Trivial input for which LattE's preprocessor does all the work::
+
+        sage: P = Polyhedron(vertices=[[0,0,0]])
+        sage: cddin = P.cdd_Hrepresentation()
+        sage: count(cddin, cdd=True, raw_output=False)  # optional - latte_int
+        1
+
     """
     from subprocess import Popen, PIPE
     from sage.misc.misc import SAGE_TMP
@@ -166,7 +174,8 @@ def count(arg, ehrhart_polynomial=False, multivariate_generating_function=False,
         else:
             raise NotImplementedError("there is no Sage object to handle multivariate series from LattE, use raw_output=True")
     else:
-        ans = ans.splitlines()[-1]
+        if ans: # Sometimes (when LattE's preproc does the work), no output appears on stdout.
+            ans = ans.splitlines()[-1]
         if not ans:
             # opening a file is slow (30e-6s), so we read the file
             # numOfLatticePoints only in case of a IndexError above

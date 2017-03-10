@@ -441,6 +441,78 @@ def LollipopGraph(n1, n2):
     return Graph(G, pos=pos_dict, name="Lollipop graph")
 
 
+def TadpoleGraph(n1, n2):
+    r"""
+    Returns a tadpole graph with n1+n2 nodes.
+
+    A tadpole graph is a path graph (order n2) connected to a cycle graph
+    (order n1).
+
+    PLOTTING: Upon construction, the position dictionary is filled to override
+    the spring-layout algorithm. By convention, the cycle graph will be drawn
+    in the lower-left corner with the (n1)th node at a 45 degree angle above
+    the right horizontal center of the cycle graph, leading directly into the
+    path graph.
+
+    EXAMPLES: Construct and show a tadpole graph Cycle = 13, Stick = 4
+
+    ::
+
+        sage: g = graphs.TadpoleGraph(13, 4)
+        sage: g.show() # long time
+
+    Create several tadpole graphs in a Sage graphics array
+
+    ::
+
+        sage: g = []
+        sage: j = []
+        sage: for i in range(6):
+        ....:     k = graphs.TadpoleGraph(i + 3, 4)
+        ....:     g.append(k)
+        sage: for i in range(2):
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3 * i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
+        sage: G = sage.plot.graphics.GraphicsArray(j)
+        sage: G.show() # long time
+
+    TESTS:
+
+        sage: n1, n2 = randint(3, 100), randint(0, 100)
+        sage: g = graphs.TadpoleGraph(n1, n2)
+        sage: g.num_verts() == n1 + n2
+        True
+        sage: g.num_edges() == n1 + n2
+        True
+        sage: g.is_connected()
+        True
+        sage: g.girth() == n1
+        True
+    """
+    pos_dict = {}
+
+    for i in range(n1):
+        x = float(cos((pi/4) - ((2*pi)/n1)*i) - n2/2 - 1)
+        y = float(sin((pi/4) - ((2*pi)/n1)*i) - n2/2 - 1)
+        j = n1-1-i
+        pos_dict[j] = (x,y)
+    for i in range(n1, n1+n2):
+        x = float(i - n1 - n2/2 + 1)
+        y = float(i - n1 - n2/2 + 1)
+        pos_dict[i] = (x,y)
+
+    import networkx
+    G = networkx.cycle_graph(n1)
+    G.add_nodes_from([v for v in range(n1, n1 + n2)])
+    if n2 > 1:
+        G.add_edges_from([(v, v + 1) for v in range(n1, n1 + n2 - 1)])
+    if n1 > 0:
+        G.add_edge(n1 - 1, n1)
+    return Graph(G, pos=pos_dict, name="Tadpole graph")
+
+
 def BubbleSortGraph(n):
     r"""
     Returns the bubble sort graph `B(n)`.

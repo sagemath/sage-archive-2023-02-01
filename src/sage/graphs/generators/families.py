@@ -513,6 +513,43 @@ def TadpoleGraph(n1, n2):
     return Graph(G, pos=pos_dict, name="Tadpole graph")
 
 
+def DipoleGraph(n):
+    r"""
+    Returns a dipole graph with n edges.
+
+    A dipole graph is a multigraph consisting of 2 vertices connected with n
+    parallel edges.
+
+    EXAMPLES: Construct and show a dipole graph with 13 edges.
+
+    ::
+
+        sage: g = graphs.DipoleGraph(13)
+        sage: g.show() # long time
+
+    TESTS:
+
+        sage: n = randint(1, 100)
+        sage: g = graphs.DipoleGraph(n)
+        sage: g.num_verts() == 2
+        True
+        sage: g.num_edges() == n
+        True
+        sage: g.is_connected()
+        True
+        sage: g.diameter() == 1
+        True
+        sage: g.chromatic_number() == 2
+        True
+    """
+    import networkx
+    G = Graph(name="Dipole graph", multiedges=True)
+    G.add_vertices([0, 1])
+    for _ in range(n):
+        G.add_edge(0, 1)
+    return G
+
+
 def BubbleSortGraph(n):
     r"""
     Returns the bubble sort graph `B(n)`.

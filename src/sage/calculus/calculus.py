@@ -1358,6 +1358,15 @@ def laplace(ex, t, s, algorithm='maxima'):
 
         sage: laplace(1/s, s, t)
         laplace(1/s, s, t)
+
+    TESTS::
+
+    Testing giac algorithm::
+
+        sage: var('t, s')
+        (t, s)
+        sage: laplace(heaviside(t-1), t, s, algorithm='giac')
+        e^(-s)/s
     """
     if not isinstance(ex, (Expression, Function)):
         ex = SR(ex)
@@ -1434,6 +1443,15 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
 
         sage: inverse_laplace(cos(s), s, t)
         ilt(cos(s), s, t)
+
+    TESTS::
+
+    Testing giac algorithm::
+
+        sage: var('t, s')
+        (t, s)
+        sage: inverse_laplace(exp(-s)/s, s, t, algorithm='giac')
+        heaviside(t-1)
     """
     if not isinstance(ex, Expression):
         ex = SR(ex)
@@ -1453,12 +1471,13 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
 
     elif algorithm == 'giac':
         ex = "invlaplace(%s, %s, %s)" % tuple([repr(expr._giac_()) for expr in (ex, s, t)])
-        from sage.interfaces.giac import giac
+        from sage.interfaces.giac import giac, un_camel
         try:
             result = giac(ex)
         except TypeError:
             raise ValueError("Giac cannot make sense of: %s" % ex)
-        return result.sage()
+        ans = giac(un_camel(str(result)))
+        return ans.sage()
 
     else:
         raise ValueError("Unknown algorithm: %s" % algorithm)

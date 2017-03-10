@@ -226,7 +226,8 @@ class FunctionHeaviside(BuiltinFunction):
         BuiltinFunction.__init__(self, "heaviside", latex_name="H",
                                  conversions=dict(maxima='hstep',
                                                   mathematica='HeavisideTheta',
-                                                  sympy='Heaviside'))
+                                                  sympy='Heaviside',
+                                                  giac='Heaviside'))
 
     def _eval_(self, x):
         """

@@ -129,12 +129,12 @@ class Polymake(ExtraTabCompletion, Expect):
         sage: set_verbose(0)
         sage: p.F_VECTOR                                    # optional - polymake
         20 101 162 81
-        sage: print p.F_VECTOR._sage_doc_()                 # optional - polymake
+        sage: print p.F_VECTOR._sage_doc_()                 # optional - polymake # random
         property_types/Algebraic Types/Vector:
          A type for vectors with entries of type Element.
-        <BLANKLINE>
+
          You can perform algebraic operations such as addition or scalar multiplication.
-        <BLANKLINE>
+
          You can create a new Vector by entering its elements, e.g.:
             $v = new Vector<Int>(1,2,3);
          or
@@ -237,11 +237,7 @@ class Polymake(ExtraTabCompletion, Expect):
             CONE_DIM : RAYS | INPUT_RAYS
             precondition : BOUNDED ( POINTED : )
             POINTED :
-            N_INPUT_RAYS : INPUT_RAYS
-            precondition : ...
             ...
-            N_RAYS : RAYS
-            N_FACETS : FACETS
             precondition : COMBINATORIAL_DIM ( F_VECTOR : N_FACETS, N_RAYS, GRAPH.N_EDGES, DUAL_GRAPH.N_EDGES, COMBINATORIAL_DIM )
             F_VECTOR : N_FACETS, N_RAYS, GRAPH.N_EDGES, DUAL_GRAPH.N_EDGES, COMBINATORIAL_DIM
 
@@ -269,7 +265,6 @@ class Polymake(ExtraTabCompletion, Expect):
 
         EXAMPLES::
 
-
             sage: polymake._function_call_string('cube', ['2','7','3'], ['group=>1']) # optional - polymake
             'cube(2,7,3, group=>1);'
             sage: c = polymake('cube(2,7,3, group=>1)')                 # optional - polymake
@@ -280,18 +275,6 @@ class Polymake(ExtraTabCompletion, Expect):
             1 7 7
             sage: c.GROUP                                               # optional - polymake
             full combinatorial group on facets...
-
-        In future versions, ``GENERATORS`` will be a member function of ``GROUP``,
-        rather than a property. We thus try to make the following test robust
-        against the expected change::
-
-            sage: g = c.GROUP.GENERATORS                                # optional - polymake
-            sage: if isinstance(g, sage.interfaces.polymake.PolymakeElement): # optional - polymake
-            ....:     print g
-            ....: else:
-            ....:     print g()
-            1 0 2 3
-            2 3 0 1
 
         """
         if kwds:
@@ -654,25 +637,31 @@ class Polymake(ExtraTabCompletion, Expect):
 
         EXAMPLES::
 
-            sage: print polymake.help('Polytope', pager=False)          # optional - polymake
+            sage: print polymake.help('Polytope', pager=False)          # optional - polymake # random
             objects/Polytope:
-             Not necessarily bounded or unbounded polyhedron...
-             Nonetheless, the name "Polytope" is used ...
-            ...
+             Not necessarily bounded or unbounded polyhedron.
+             Nonetheless, the name "Polytope" is used for two reasons:
+             Firstly, combinatorially we always deal with polytopes; see the description of VERTICES_IN_FACETS for details.
+             The second reason is historical.
+             We use homogeneous coordinates, which is why Polytope is derived from Cone.
+             Note that a pointed polyhedron is projectively equivalent to a polytope.
+             Scalar is the numeric data type used for the coordinates.
 
         In some cases, polymake expects user interaction to choose from
         different available help topics. In these cases, a warning is given,
         and the available help topics are displayed resp. printed, without
         user interaction::
 
-            sage: polymake.help('TRIANGULATION')                        # optional - polymake
+            sage: polymake.help('TRIANGULATION')                        # optional - polymake # random
             doctest:warning
             ...
             UserWarning: Polymake expects user interaction. We abort and return the options that Polymake provides.
-            There are ... help topics matching 'TRIANGULATION':
-            1: ...
-            2: ...
-            ...
+            There are 5 help topics matching 'TRIANGULATION':
+            1: objects/Visualization/Visual::Polytope/methods/TRIANGULATION
+            2: objects/Visualization/Visual::PointConfiguration/methods/TRIANGULATION
+            3: objects/Cone/properties/Triangulation and volume/TRIANGULATION
+            4: objects/PointConfiguration/properties/Triangulation and volume/TRIANGULATION
+            5: objects/Polytope/properties/Triangulation and volume/TRIANGULATION
 
         If an unkown help topic is requested, a :class:`PolymakeError` results::
 
@@ -1623,15 +1612,19 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         EXAMPLES::
 
             sage: c = polymake.cube(3)                  # optional - polymake
-            sage: print c._sage_doc_()                  # optional - polymake
+            sage: print c._sage_doc_()                  # optional - polymake # random
             objects/Polytope:
-             Not necessarily bounded or unbounded polyhedron...
-             Nonetheless, the name "Polytope" is used ...
-            ...
+             Not necessarily bounded or unbounded polyhedron.
+             Nonetheless, the name "Polytope" is used for two reasons:
+             Firstly, combinatorially we always deal with polytopes; see the description of VERTICES_IN_FACETS for details.
+             The second reason is historical.
+             We use homogeneous coordinates, which is why Polytope is derived from Cone.
+             Note that a pointed polyhedron is projectively equivalent to a polytope.
+             Scalar is the numeric data type used for the coordinates.
             <BLANKLINE>
             objects/Polytope/specializations/Polytope<Rational>:
              A rational polyhedron realized in Q^d
-            sage: print c.FACETS._sage_doc_()           # optional - polymake
+            sage: print c.FACETS._sage_doc_()           # optional - polymake # random
             property_types/Algebraic Types/SparseMatrix:
              A SparseMatrix is a two-dimensional associative array with row and column indices as keys; elements equal to the default value (ElementType(), which is 0 for most numerical types) are not stored, but implicitly encoded by the gaps in the key set. Each row and column is organized as an AVL-tree.
             <BLANKLINE>
@@ -1765,15 +1758,23 @@ class PolymakeFunctionElement(FunctionElement):
         EXAMPLES::
 
             sage: p = polymake.rand_sphere(3, 13, seed=12)           # optional - polymake
-            sage: print p.get_schedule._sage_doc_()                 # optional - polymake
+            sage: print p.get_schedule._sage_doc_()                  # optional - polymake # random
             objects/Core::Object/methods/get_schedule:
             get_schedule(request;  ... ) -> Core::RuleChain
-            ...
+            <BLANKLINE>
+             Compose an optimal chain of production rules providing all requested properties.
+             The returned RuleChain object can be applied to the original object as well as to any other object
+             with the same initial set of properties.  If no feasible rule chain exists, `undef' is returned.
+            <BLANKLINE>
+             To watch the rule scheduler at work, e.g. to see announcements about tried preconditions,
+             you may temporarily increase the verbosity levels $Verbose::rules and $Verbose::scheduler.
+            <BLANKLINE>
             Arguments:
               String request : name of a property with optional alternatives or a property path in dotted notation.
                 Several requests may be listed.
-            ...
-            sage: print p.minkowski_sum_fukuda._sage_doc_()         # optional - polymake
+            <BLANKLINE>
+            Returns Core::RuleChain
+            sage: print p.minkowski_sum_fukuda._sage_doc_()         # optional - polymake # random
             functions/Producing a polytope from polytopes/minkowski_sum_fukuda:
             minkowski_sum_fukuda(summands) -> Polytope<Scalar>
             <BLANKLINE>

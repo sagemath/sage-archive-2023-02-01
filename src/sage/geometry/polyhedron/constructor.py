@@ -261,13 +261,11 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 from sage.rings.all import QQ, ZZ, RDF, RR
-from sage.misc.decorators import rename_keyword
 
 from .misc import _make_listlist, _common_length_of
 
 
 #########################################################################
-@rename_keyword(deprecation=11634, field='base_ring')
 def Polyhedron(vertices=None, rays=None, lines=None,
                ieqs=None, eqns=None,
                ambient_dim=None, base_ring=None, minimize=True, verbose=False,
@@ -404,7 +402,7 @@ def Polyhedron(vertices=None, rays=None, lines=None,
 
       * Once constructed, a ``Polyhedron`` object is immutable.
 
-      * Although the option ``field=RDF`` allows numerical data to
+      * Although the option ``base_ring=RDF`` allows numerical data to
         be used, it might not give the right answer for degenerate
         input data - the results can depend upon the tolerance
         setting of cdd.

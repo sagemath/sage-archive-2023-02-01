@@ -361,7 +361,7 @@ class Polyhedron_base(Element):
 
     def base_extend(self, base_ring, backend=None):
         """
-        Return a new polyhedron over a larger field.
+        Return a new polyhedron over a larger base ring.
 
         INPUT:
 
@@ -2033,7 +2033,7 @@ class Polyhedron_base(Element):
         """
         return self.parent().base_ring()
 
-    field = base_ring
+    field = deprecated_function_alias(22551, base_ring)
 
     @cached_method
     def center(self):
@@ -2104,7 +2104,7 @@ class Polyhedron_base(Element):
 
         OUTPUT:
 
-        The square of the radius, which is in :meth:`field`.
+        The square of the radius, which is in :meth:`base_ring`.
 
         EXAMPLES::
 
@@ -2789,7 +2789,7 @@ class Polyhedron_base(Element):
         OUTPUT:
 
         The polyhedron dilated by that scalar, possibly coerced to a
-        bigger field.
+        bigger base ring.
 
         EXAMPLES::
 
@@ -2852,7 +2852,7 @@ class Polyhedron_base(Element):
 
         Multiplication by another polyhedron returns the product
         polytope. Multiplication by a scalar returns the polytope
-        dilated by that scalar, possibly coerced to the bigger field.
+        dilated by that scalar, possibly coerced to the bigger base ring.
 
         EXAMPLES::
 

@@ -389,8 +389,7 @@ class Polymake(ExtraTabCompletion, Expect):
         TEST:
 
         For reasons that are not clear to the author, the following test
-        works in an interactive session, but consistently when run as a
-        doctest. Therefore, this test is marked as "not tested".
+        is very flaky. Therefore, this test is marked as "not tested".
 
             sage: c = polymake.cube(15)                         # optional - polymake
             sage: alarm(1)                                      # not tested

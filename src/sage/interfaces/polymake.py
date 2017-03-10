@@ -233,11 +233,26 @@ class Polymake(ExtraTabCompletion, Expect):
             sage: p = polymake.rand_sphere(4, 20, seed=5)    # optional - polymake
             sage: p.get_schedule                            # optional - polymake  # indirect doctest
             Member function 'get_schedule' of Polymake::polytope::Polytope__Rational object
-            sage: p.get_schedule('F_VECTOR')                # optional - polymake
+            sage: p.get_schedule('F_VECTOR')                # optional - polymake  # random
             CONE_DIM : RAYS | INPUT_RAYS
             precondition : BOUNDED ( POINTED : )
             POINTED :
-            ...
+            N_INPUT_RAYS : INPUT_RAYS
+            precondition : N_RAYS | N_INPUT_RAYS ( ppl.convex_hull.primal: FACETS, LINEAR_SPAN : RAYS | INPUT_RAYS )
+            sensitivity check for FacetPerm
+            ppl.convex_hull.primal: FACETS, LINEAR_SPAN : RAYS | INPUT_RAYS
+            INPUT_RAYS_IN_FACETS : INPUT_RAYS, FACETS
+            sensitivity check for VertexPerm
+            RAYS_IN_FACETS, RAYS, LINEALITY_SPACE : INPUT_RAYS_IN_FACETS, INPUT_RAYS
+            GRAPH.ADJACENCY : RAYS_IN_FACETS
+            DUAL_GRAPH.ADJACENCY : RAYS_IN_FACETS
+            N_EDGES : ADJACENCY ( applied to GRAPH )
+            N_EDGES : ADJACENCY ( applied to DUAL_GRAPH )
+            precondition : POINTED ( LINEALITY_DIM, LINEALITY_SPACE : )
+            LINEALITY_DIM, LINEALITY_SPACE :
+            COMBINATORIAL_DIM : CONE_DIM, LINEALITY_DIM
+            N_RAYS : RAYS
+            N_FACETS : FACETS
             precondition : COMBINATORIAL_DIM ( F_VECTOR : N_FACETS, N_RAYS, GRAPH.N_EDGES, DUAL_GRAPH.N_EDGES, COMBINATORIAL_DIM )
             F_VECTOR : N_FACETS, N_RAYS, GRAPH.N_EDGES, DUAL_GRAPH.N_EDGES, COMBINATORIAL_DIM
 
@@ -1058,16 +1073,16 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
         The items of a Perl arrays are shown separated by commas::
 
-            sage: p.get_member('list_properties')                   # optional - polymake
-            POINTS, CONE_AMBIENT_DIM, BOUNDED, FEASIBLE, N_POINTS,
-            POINTED, CONE_DIM, FULL_DIM, LINEALITY_DIM, LINEALITY_SPACE,
+            sage: p.get_member('list_properties')                   # optional - polymake  # random
+            POINTS, CONE_AMBIENT_DIM, BOUNDED, FEASIBLE, N_POINTS, POINTED,
+            CONE_DIM, FULL_DIM, LINEALITY_DIM, LINEALITY_SPACE,
             COMBINATORIAL_DIM, AFFINE_HULL, VERTICES, N_VERTICES
 
         We chose to print rule chains explicitly, so that the user doesn't
         need to know how to list the rules using polymake commands::
 
             sage: r = p.get_schedule('"H_VECTOR"')                  # optional - polymake
-            sage: r                                                 # optional - polymake
+            sage: r                                                 # optional - polymake  # random
             precondition : N_RAYS | N_INPUT_RAYS ( ppl.convex_hull.primal: FACETS, LINEAR_SPAN : RAYS | INPUT_RAYS )
             sensitivity check for FacetPerm
             ppl.convex_hull.primal: FACETS, LINEAR_SPAN : RAYS | INPUT_RAYS
@@ -1087,7 +1102,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             'Matrix'
             sage: c.VERTICES[0].typename()                      # optional - polymake
             'Vector'
-            sage: c.VERTICES                                    # optional - polymake
+            sage: c.VERTICES                                    # optional - polymake # random
             1 -1 -1 -1 -1
             1 1 -1 -1 -1
             1 -1 1 -1 -1
@@ -1425,18 +1440,14 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
         A member function::
 
-            sage: s.get_schedule                        # optional - polymake
-            Member function 'get_schedule' of Polymake::polytope::Polytope__Rational object
-            sage: s.get_schedule('F_VECTOR')            # optional - polymake
-            CONE_DIM...
-            ...
-            BOUNDED : VERTICES | POINTS, POINTED
-            precondition : BOUNDED ( lrs.convex_hull.count: N_FACETS : RAYS | INPUT_RAYS )
-            lrs.convex_hull.count: N_FACETS : RAYS | INPUT_RAYS
-            ...
-            COMBINATORIAL_DIM : CONE_DIM, LINEALITY_DIM
-            precondition : COMBINATORIAL_DIM ( F_VECTOR : N_FACETS, N_RAYS, COMBINATORIAL_DIM )
-            F_VECTOR : N_FACETS, N_RAYS, COMBINATORIAL_DIM
+            sage: c = polymake.cube(2)                          # optional - polymake
+            sage: V = polymake.new_object('Vector', [1,0,0])    # optional - polymake
+            sage: V                                             # optional - polymake
+            1 0 0
+            sage: c.contains                                    # optional - polymake
+            Member function 'contains' of Polymake::polytope::Polytope__Rational object
+            sage: c.contains(V)                                 # optional - polymake
+            1
 
         """
         P = self._check_valid()
@@ -1466,11 +1477,18 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
         EXAMPLES::
 
-            sage: c = polymake.cube(3)                                  # optional - polymake
-            sage: c.get_member_function('get_schedule')                 # optional - polymake
-            Member function 'get_schedule' of Polymake::polytope::Polytope__Rational object
-            sage: c.get_member_function('get_schedule')('N_VERTICES')   # optional - polymake
-            N_RAYS : RAYS_IN_FACETS
+            sage: c = polymake.cube(2)                                  # optional - polymake
+            sage: c.contains                                            # optional - polymake
+            Member function 'contains' of Polymake::polytope::Polytope__Rational object
+            sage: V = polymake.new_object('Vector', [1,0,0])            # optional - polymake
+            sage: V                                                     # optional - polymake
+            1 0 0
+            sage: c.contains(V)                                         # optional - polymake
+            1
+
+        Whether a member function of the given name actually exists for that
+        object will only be clear when calling it::
+
             sage: c.get_member_function('foo')                          # optional - polymake
             Member function 'foo' of Polymake::polytope::Polytope__Rational object
             sage: c.get_member_function('foo')()                        # optional - polymake
@@ -1683,11 +1701,14 @@ class PolymakeFunctionElement(FunctionElement):
 
     EXAMPLES::
 
-        sage: p = polymake.rand_sphere(3, 13, seed=12)               # optional - polymake
-        sage: p.minkowski_sum_fukuda                                # optional - polymake
-        minkowski_sum_fukuda (bound to Polymake::polytope::Polytope__Rational object)
-        sage: p.get_schedule                                        # optional - polymake
-        Member function 'get_schedule' of Polymake::polytope::Polytope__Rational object
+        sage: c = polymake.cube(2)                          # optional - polymake
+        sage: V = polymake.new_object('Vector', [1,0,0])    # optional - polymake
+        sage: V                                             # optional - polymake
+        1 0 0
+        sage: c.contains                                    # optional - polymake
+        Member function 'contains' of Polymake::polytope::Polytope__Rational object
+        sage: c.contains(V)                                 # optional - polymake
+        1
 
     """
     def __init__(self, obj, name, memberfunction=False):
@@ -1716,11 +1737,11 @@ class PolymakeFunctionElement(FunctionElement):
         """
         EXAMPLES::
 
-            sage: p = polymake.rand_sphere(3, 13, seed=12)   # optional - polymake
+            sage: p = polymake.rand_sphere(3, 13, seed=12)  # optional - polymake
             sage: p.minkowski_sum_fukuda                    # optional - polymake
             minkowski_sum_fukuda (bound to Polymake::polytope::Polytope__Rational object)
-            sage: p.get_schedule                            # optional - polymake
-            Member function 'get_schedule' of Polymake::polytope::Polytope__Rational object
+            sage: p.contains                                # optional - polymake
+            Member function 'contains' of Polymake::polytope::Polytope__Rational object
 
         """
         if self._is_memberfunc:
@@ -1734,8 +1755,8 @@ class PolymakeFunctionElement(FunctionElement):
         We consider both member functions of an element and global functions
         bound to an element::
 
-            sage: p = polymake.rand_sphere(3, 13, seed=12)       # optional - polymake
-            sage: p.get_schedule('VERTICES')                    # optional - polymake
+            sage: p = polymake.rand_sphere(3, 13, seed=12)      # optional - polymake
+            sage: p.get_schedule('VERTICES')                    # optional - polymake  # random
             sensitivity check for VertexPerm
             cdd.convex_hull.canon: POINTED, RAYS, LINEALITY_SPACE : INPUT_RAYS
             sage: p.minkowski_sum_fukuda(p).F_VECTOR            # optional - polymake

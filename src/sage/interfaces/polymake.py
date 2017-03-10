@@ -70,7 +70,7 @@ class PolymakeError(RuntimeError):
     """
     pass
 
-def polymake_console():
+def polymake_console(command=''):
     """
     Spawn a new polymake command-line session.
 
@@ -97,7 +97,7 @@ def polymake_console():
     from sage.repl.rich_output.display_manager import get_display_manager
     if not get_display_manager().is_in_terminal():
         raise RuntimeError('Can use the console only in the terminal. Try %%polymake magics instead.')
-    os.system(os.getenv('SAGE_POLYMAKE_COMMAND') or 'polymake')
+    os.system(command or os.getenv('SAGE_POLYMAKE_COMMAND') or 'polymake')
 
 class Polymake(ExtraTabCompletion, Expect):
     r"""
@@ -302,18 +302,17 @@ class Polymake(ExtraTabCompletion, Expect):
 
     def console(self):
         """
-        Spawn a new polymake command-line session.
+        Raise an error, pointing to :meth:`~sage.interfaces.Interface.interact` and :func:`polymake_console`.
 
         EXAMPLES::
 
-            sage: polymake.console()                  # not tested
-            Welcome to polymake version 3.0
+            sage: polymake.console()
+            Traceback (most recent call last):
             ...
-                 For more details:  show_credits;
-            polytope >
+            NotImplementedError: Please use polymake_console() function or the .interact() method
 
         """
-        polymake_console()
+        raise NotImplementedError("Please use polymake_console() function or the .interact() method")
 
     # Methods concerning interface communication
 

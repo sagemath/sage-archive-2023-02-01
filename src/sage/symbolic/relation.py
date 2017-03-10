@@ -449,7 +449,16 @@ def test_relation_maxima(relation):
         sage: test_relation_maxima(f1 - f2 == 0)
         True
         sage: forget()
+        
+    In case an equation is to be solved for non-integers, ''assume()''
+    is used::
     
+        sage: k = var('k')
+        sage: assume(k,'noninteger')
+        sage: solve([k^3==1],k)
+        [k == 1/2*I*sqrt(3) - 1/2, k == -1/2*I*sqrt(3) - 1/2]
+        sage: assumptions()
+        [k is noninteger]
 
     """
     m = relation._maxima_()

@@ -3955,7 +3955,7 @@ class Polyhedron_base(Element):
         if is_package_installed('latte_int'):
             from sage.interfaces.latte import integrate
             if self.base_ring() == RDF:
-                self_QQ = Polyhedron(vertices=[[QQ(self) for vi in v]  for v in self.vertex_generator()])
+                self_QQ = Polyhedron(vertices=[[QQ(vi) for vi in v]  for v in self.vertex_generator()])
                 return integrate(self_QQ.cdd_Hrepresentation(), algorithm=algorithm, cdd=True, verbose=verbose, **kwargs)
             else:
                 return integrate(self.cdd_Hrepresentation(), algorithm=algorithm, cdd=True, verbose=verbose, **kwargs)

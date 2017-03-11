@@ -908,30 +908,29 @@ class DiffMap(ContinuousMap):
         from sage.tensor.modules.comp import (Components, CompWithSym,
                                               CompFullySym, CompFullyAntiSym)
 
-        def _pullback_chart(diff_map, tensor):
+        def _pullback_chart(self, tensor):
             r"""
-            Helper function performing the pullback on chart domains.
+            Helper function performing the pullback on chart domains
+            only.
 
             INPUT:
 
-            - ``diff_map`` -- a restriction of ``self``, whose both domain and
-              codomain are chart domains
-            - ``tensor`` -- a covariant tensor field, whose domain is the codomain
-              of ``diff_map``
+            - ``tensor`` -- a covariant tensor field, whose domain is
+              the codomain of ``self``
 
             OUTPUT:
 
-            - the pull back of ``tensor`` by ``diff_map``
+            - the pull back of ``tensor`` by ``self``
 
             """
-            dom1 = diff_map._domain
-            dom2 = diff_map._codomain
+            dom1 = self._domain
+            dom2 = self._codomain
             ncov = tensor._tensor_type[1]
             resu_name = None ; resu_latex_name = None
-            if diff_map._name is not None and tensor._name is not None:
-                resu_name = diff_map._name + '_*(' + tensor._name + ')'
-            if diff_map._latex_name is not None and tensor._latex_name is not None:
-                resu_latex_name = diff_map._latex_name + '_*' + tensor._latex_name
+            if self._name is not None and tensor._name is not None:
+                resu_name = self._name + '_*(' + tensor._name + ')'
+            if self._latex_name is not None and tensor._latex_name is not None:
+                resu_latex_name = self._latex_name + '_*' + tensor._latex_name
             fmodule1 = dom1.vector_field_module()
             ring1 = fmodule1._ring
             si1 = fmodule1._sindex
@@ -945,7 +944,7 @@ class DiffMap(ContinuousMap):
                     chart2 = frame2._chart
                     for chart1 in dom1._atlas:
                         if (chart1._domain is dom1 and (chart1, chart2) in
-                            diff_map._coord_expression):
+                            self._coord_expression):
                             # Computation at the component level:
                             frame1 = chart1._frame
                             tcomp = tensor._components[frame2]
@@ -967,7 +966,7 @@ class DiffMap(ContinuousMap):
                                 ptcomp = Components(ring1, frame1, ncov,
                                                     start_index=si1,
                                                     output_formatter=of1)
-                            phi = diff_map._coord_expression[(chart1, chart2)]
+                            phi = self._coord_expression[(chart1, chart2)]
                             jacob = phi.jacobian()
                             # X2 coordinates expressed in terms of X1 ones via the
                             # mapping:

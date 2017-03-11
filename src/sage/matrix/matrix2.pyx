@@ -14951,7 +14951,6 @@ def _matrix_power_symbolic(A, k):
         [-1/2*2^(2*k + 1) + 1/2*0^(2*k + 1)  1/2*2^(2*k + 1) + 1/2*0^(2*k + 1)]
     """
     from sage.rings.qqbar import AlgebraicNumber
-    from sage.calculus.var import var
     from sage.modules.free_module_element import vector
     from sage.matrix.constructor import matrix
     from sage.functions.other import factorial
@@ -14961,7 +14960,7 @@ def _matrix_power_symbolic(A, k):
     got_SR = True if A.base_ring() == SR else False
     
     # power to a given symbolic expression
-    x = var('x')
+    x = SR.var('x')
     f = x**k
 
     # transform to QQbar if possible

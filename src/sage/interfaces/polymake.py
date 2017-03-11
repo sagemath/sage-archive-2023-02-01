@@ -932,7 +932,7 @@ class Polymake(ExtraTabCompletion, Expect):
         """
         Change to a given polymake application.
 
-        Input:
+        INPUT:
 
         ``app``, a string, one of "common", "fulton", "group", "matroid", "topaz",
         "fan", "graph", "ideal", "polytope", "tropical"

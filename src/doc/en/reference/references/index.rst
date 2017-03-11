@@ -419,7 +419,7 @@ REFERENCES:
             MOG. *Computational group theory*, ed. M. Atkinson,
             Academic Press, 1984.
 
-.. [Coh1993] Henri Cohen. A Course in Computational Number
+.. [Coh1993] Henri Cohen. A Course in Computational Algebraic Number
              Theory. Graduate Texts in Mathematics 138. Springer, 1993.
 
 .. [Coh2007] Henri Cohen, Number Theory,
@@ -764,6 +764,10 @@ REFERENCES:
 .. [GS1999] Venkatesan Guruswami and Madhu Sudan, Improved Decoding of
             Reed-Solomon Codes and Algebraic-Geometric Codes, 1999
 
+.. [GT1996] \P. Gianni and B. Trager. "Square-free algorithms in
+            positive characteristic". Applicable Algebra in Engineering,
+            Communication and Computing, 7(1), 1-14 (1996)
+
 .. [GT2014] \M.S. Gowda and J. Tao. On the bilinearity rank of a
             proper cone and Lyapunov-like
             transformations. Mathematical Programming, 147 (2014)
@@ -793,9 +797,13 @@ REFERENCES:
             Cryptanalysis* ; 2002' available at
             http://www.engr.mun.ca/~howard/PAPERS/ldc_tutorial.pdf
 
-.. [Hes2002] \F. Hess, "Computing Riemann-Roch spaces in algebraic
+.. [Hes2002] Florian Hess, "Computing Riemann-Roch spaces in algebraic
              function fields and related topics," J. Symbolic
              Comput. 33 (2002), no. 4, 425--445.
+
+.. [Hes2002b] Florian Hess, "An algorithm for computing Weierstrass points,"
+              International Algorithmic Number Theory Symposium (pp. 357-371).
+              Springer Berlin Heidelberg, 2002.
 
 .. [HJ2004] Tom Hoeholdt and Joern Justesen, A Course In
             Error-Correcting Codes, EMS, 2004

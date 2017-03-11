@@ -1,5 +1,32 @@
 r"""
-Function Field Elements
+Elements
+
+This module provides elements of function fields.
+
+EXAMPLES::
+
+    sage: K.<t> = FunctionField(QQ)
+    sage: f = (t-1)^2 * (t+1) / (t^2 - 1/3)^3
+    sage: f.valuation(t-1)
+    2
+    sage: f.valuation(t)
+    0
+    sage: f.valuation(t^2 - 1/3)
+    -3
+
+    sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+    sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+    sage: (y^3 + x).derivative()
+    ((x^2 + 1)/x^2)*y + (x^4 + x^3 + 1)/x^3
+
+In global function fields, the divisor of an element can be computed. ::
+
+    sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+    sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+    sage: y.divisor()
+    -1*Place (1/x, 1/x*y)
+     - Place (x, x*y)
+     + 2*Place (x + 1, x*y)
 
 AUTHORS:
 
@@ -10,6 +37,9 @@ AUTHORS:
 - Julian Rueth (2011-06-28): treat zero correctly
 
 - Maarten Derickx (2011-09-11): added doctests, fixed pickling
+
+- Kwankyu Lee (2017): added elements for global function fields
+
 """
 #*****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
@@ -23,10 +53,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.misc.cachefunc import cached_method
 
 from sage.structure.element cimport FieldElement, RingElement, ModuleElement, Element
 from sage.structure.sage_object cimport richcmp, richcmp_not_equal
-
 
 def is_FunctionFieldElement(x):
     """
@@ -35,9 +65,9 @@ def is_FunctionFieldElement(x):
     EXAMPLES::
 
         sage: t = FunctionField(QQ,'t').gen()
-        sage: sage.rings.function_field.function_field_element.is_FunctionFieldElement(t)
+        sage: sage.rings.function_field.element.is_FunctionFieldElement(t)
         True
-        sage: sage.rings.function_field.function_field_element.is_FunctionFieldElement(0)
+        sage: sage.rings.function_field.element.is_FunctionFieldElement(0)
         False
     """
     if isinstance(x, FunctionFieldElement): return True
@@ -50,7 +80,7 @@ def make_FunctionFieldElement(parent, element_class, representing_element):
 
     EXAMPLES::
 
-        sage: from sage.rings.function_field.function_field_element import make_FunctionFieldElement
+        sage: from sage.rings.function_field.element import make_FunctionFieldElement
         sage: K.<x> = FunctionField(QQ)
         sage: make_FunctionFieldElement(K, K._element_class, (x+1)/x)
         (x + 1)/x
@@ -64,7 +94,7 @@ cdef class FunctionFieldElement(FieldElement):
     EXAMPLES::
 
         sage: t = FunctionField(QQ,'t').gen()
-        sage: isinstance(t, sage.rings.function_field.function_field_element.FunctionFieldElement)
+        sage: isinstance(t, sage.rings.function_field.element.FunctionFieldElement)
         True
     """
 
@@ -313,7 +343,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
             sage: type(y)
-            <type 'sage.rings.function_field.function_field_element.FunctionFieldElement_polymod'>
+            <type 'sage.rings.function_field.element.FunctionFieldElement_polymod'>
         """
         FieldElement.__init__(self, parent)
         if reduce:
@@ -326,6 +356,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         Return the underlying polynomial that represents this element.
 
         EXAMPLES::
+
             sage: K.<x> = FunctionField(QQ); R.<T> = K[]
             sage: L.<y> = K.extension(T^2 - x*T + 4*x^3)
             sage: f = y/x^2 + x/(x^2+1); f
@@ -663,6 +694,8 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
     def numerator(self):
         """
+        Return the numerator of the rational function.
+
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
@@ -675,6 +708,8 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
     def denominator(self):
         """
+        Return the denominator of the rational function.
+
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
@@ -687,6 +722,9 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
     def valuation(self, v):
         """
+        Return the valuation of the rational function with respect to
+        the irreducible `v`.
+
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
@@ -701,9 +739,14 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         R = self._parent._ring
         return self._x.valuation(R(self._parent(v)._x))
 
+    def _valuation(self, place):
+        prime = place.prime_ideal()
+        ideal = prime.ring().ideal(self)
+        return prime.valuation(ideal)
+
     def is_square(self):
         """
-        Returns whether self is a square.
+        Return whether the element is a square.
 
         EXAMPLES::
 
@@ -725,7 +768,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
     def sqrt(self, all=False):
         """
-        Returns the square root of self.
+        Returns the square root of the rational function.
 
         EXAMPLES::
 
@@ -749,7 +792,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
     def factor(self):
         """
-        Factor this rational function.
+        Factor the rational function.
 
         EXAMPLES::
 
@@ -789,3 +832,268 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         assert f.denominator() == 1
         assert self._x.denominator() == 1
         return self.parent()(self._x.numerator().inverse_mod(f.numerator()))
+
+    @cached_method
+    def divisor(self):
+        """
+        Return the divisor of the element.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: f = 1/(x^3 + x^2 + x)
+            sage: f.divisor()
+            3*Place (1/x)
+             - Place (x)
+             - Place (x^2 + x + 1)
+        """
+        if self.is_zero():
+            raise ValueError("divisor not defined for zero")
+
+        F = self.parent()
+        O = F.maximal_order()
+        Oinf = F.maximal_order_infinite()
+
+        I = O.ideal(self)
+        J = Oinf.ideal(self)
+        return I.divisor() + J.divisor()
+
+    def divisor_of_zeros(self):
+        """
+        Return the divisor of zeros for the element.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: f = 1/(x^3 + x^2 + x)
+            sage: f.divisor_of_zeros()
+            3*Place (1/x)
+        """
+        if self.is_zero():
+            raise ValueError("divisor of zeros not defined for zero")
+
+        F = self.parent()
+        O = F.maximal_order()
+        Oinf = F.maximal_order_infinite()
+
+        I = O.ideal(self)
+        J = Oinf.ideal(self)
+        return I.divisor_of_zeros() + J.divisor_of_zeros()
+
+    def divisor_of_poles(self):
+        """
+        Return the divisor of poles for the element.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: f = 1/(x^3 + x^2 + x)
+            sage: f.divisor_of_poles()
+            Place (x)
+             + Place (x^2 + x + 1)
+        """
+        if self.is_zero():
+            raise ValueError("divisor of poles not defined for zero")
+
+        F = self.parent()
+        O = F.maximal_order()
+        Oinf = F.maximal_order_infinite()
+
+        I = O.ideal(self)
+        J = Oinf.ideal(self)
+        return I.divisor_of_poles() + J.divisor_of_poles()
+
+    def differential(self):
+        """
+        Return the differential `dx` where `x` is the element.
+
+        EXAMPLES::
+
+            sage: K.<t> = FunctionField(QQ)
+            sage: f = 1 / t
+            sage: f.differential()
+            (-1/t^2) d(t)
+        """
+        from .differential import differential
+
+        return differential(self.parent(), 1, self)
+
+    def derivative(self):
+        """
+        Return the derivative of the rational function.
+
+        EXAMPLES::
+
+            sage: K.<t> = FunctionField(QQ)
+            sage: f = (t + 1) / (t^2 - 1/3)
+            sage: f.derivative()
+            (-t^2 - 2*t - 1/3)/(t^4 - 2/3*t^2 + 1/9)
+        """
+        D = self.parent().derivation()
+        return D(self)
+
+    def hasse_derivative(self, i, separating_element=None):
+        """
+        Return the `i`-th Hasse derivative of the element with respect to the
+        separating element.
+
+        INPUT:
+
+        - ``i`` -- a nonnegative integer
+
+        - ``separating_element`` -- a separating element of the function field;
+            the default is the generator of the rational function field
+
+        EXAMPLES::
+
+            sage: K.<t> = FunctionField(GF(2))
+            sage: f = t^2
+            sage: f.hasse_derivative(2)
+            1
+        """
+        D = self.parent().hasse_derivation()
+        return D(self, i, separating_element)
+
+cdef class FunctionFieldElement_global(FunctionFieldElement_polymod):
+    """
+    Elements of global function fields
+    """
+    cdef public dict __cached_methods
+
+    def valuation(self, place):
+        """
+        Return the valuation of the element at the place.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p = L.places_infinite()[0]
+            sage: y.valuation(p)
+            -1
+        """
+        prime = place.prime_ideal()
+        ideal = prime.ring().ideal(self)
+        return prime.valuation(ideal)
+
+    # for consistency with rational function field elements
+    _valuation = valuation
+
+    @cached_method
+    def divisor(self):
+        """
+        Return the divisor for the element.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: y.divisor()
+            -1*Place (1/x, 1/x*y)
+             - Place (x, x*y)
+             + 2*Place (x + 1, x*y)
+        """
+        if self.is_zero():
+            raise ValueError("not defined for zero")
+
+        F = self.parent()
+        O = F.maximal_order()
+        Oinf = F.maximal_order_infinite()
+
+        I = O.ideal(self)
+        J = Oinf.ideal(self)
+        return I.divisor() + J.divisor()
+
+    def divisor_of_zeros(self):
+        """
+        Return divisor of zeros for the element.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: (x/y).divisor_of_zeros()
+            3*Place (x, x*y)
+        """
+        if self.is_zero():
+            raise ValueError("divisor of zeros not defined for zero")
+
+        F = self.parent()
+        O = F.maximal_order()
+        Oinf = F.maximal_order_infinite()
+
+        I = O.ideal(self)
+        J = Oinf.ideal(self)
+        return I.divisor_of_zeros() + J.divisor_of_zeros()
+
+    def divisor_of_poles(self):
+        """
+        Return the divisor of poles for the element.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: (x/y).divisor_of_poles()
+            Place (1/x, 1/x*y) + 2*Place (x + 1, x*y)
+        """
+        if self.is_zero():
+            raise ValueError("divisor of poles not defined for zero")
+
+        F = self.parent()
+        O = F.maximal_order()
+        Oinf = F.maximal_order_infinite()
+
+        I = O.ideal(self)
+        J = Oinf.ideal(self)
+        return I.divisor_of_poles() + J.divisor_of_poles()
+
+    def differential(self):
+        """
+        Return the differential `dx` where `x` is the element.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x +1/x)
+            sage: (y^3 + x).differential()
+            (((x^2 + 1)/x^2)*y + (x^4 + x^3 + 1)/x^3) d(x)
+        """
+        M = self.parent().space_of_differentials()
+        return M(self)
+
+    def derivative(self):
+        """
+        Return the derivative of the element.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: (y^3 + x).derivative()
+            ((x^2 + 1)/x^2)*y + (x^4 + x^3 + 1)/x^3
+        """
+        D = self.parent().derivation()
+        return D(self)
+
+    def hasse_derivative(self, i, separating_element=None):
+        """
+        Return the ``i``-th order Hasse derivative of the element with respect
+        to the separating element.
+
+        INPUT:
+
+        - ``i`` -- nonnegative integer
+
+        - ``separating_element`` -- a separating element of the function field;
+          the default is the generator of the base rational function field
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: (y^3 + x).hasse_derivative(2)
+            1/x^3*y + (x^6 + x^4 + x^3 + x^2 + x + 1)/x^5
+        """
+        D = self.parent().hasse_derivation()
+        return D(self, i, separating_element)

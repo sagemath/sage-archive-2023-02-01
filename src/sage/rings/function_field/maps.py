@@ -1,12 +1,7 @@
 r"""
-Function Field Morphisms
+Morphisms
 
-AUTHORS:
-
-- William Stein (2010): initial version
-
-- Julian Rueth (2011-09-14, 2014-06-23): refactored class hierarchy; added
-  derivation classes
+This module provides various maps or morphisms defined on function fields.
 
 EXAMPLES::
 
@@ -14,7 +9,7 @@ EXAMPLES::
     sage: K.hom(1/x)
     Function Field endomorphism of Rational function field in x over Rational Field
       Defn: x |--> 1/x
-    sage: L.<y> = K.extension(y^2-x)
+    sage: L.<y> = K.extension(y^2 - x)
     sage: K.hom(y)
     Function Field morphism:
       From: Rational function field in x over Rational Field
@@ -28,6 +23,27 @@ EXAMPLES::
     Traceback (most recent call last):
     ...
     ValueError: invalid morphism
+
+For global function fields, which have positive characteristics, Hasse
+derivations are available.
+
+EXAMPLES::
+
+    sage: K.<x> = FunctionField(GF(2)); _.<Y>=K[]
+    sage: L.<y> = K.extension(Y^3+x+x^3*Y)
+    sage: h = L.hasse_derivation()
+    sage: h(y^2,2)
+    ((x^7 + 1)/x^2)*y^2 + x^3*y
+
+AUTHORS:
+
+- William Stein (2010): initial version
+
+- Julian Rueth (2011-09-14, 2014-06-23): refactored class hierarchy; added
+  derivation classes
+
+- Kwankyu Lee (2016): added Hasse derivations
+
 """
 from __future__ import absolute_import
 #*****************************************************************************
@@ -39,10 +55,16 @@ from __future__ import absolute_import
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.misc.lazy_import import lazy_import
 
 from sage.categories.morphism import Morphism
 from sage.categories.map import Map
 from sage.rings.morphism import RingHomomorphism
+from sage.modules.free_module_element import vector
+
+from sage.functions.other import binomial
+
+lazy_import('sage.matrix.constructor', 'matrix')
 
 class FunctionFieldDerivation(Map):
     r"""
@@ -178,6 +200,429 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
             return self.codomain().zero()
         else:
             return self._u * self.codomain()( numerator / g**2 )
+
+class FunctionFieldHasseDerivation(Map):
+    """
+    Base class of Hasse derivations on function fields.
+    """
+    def __init__(self, field):
+        """
+        Initialize.
+
+        INPUT:
+
+        - ``field`` -- a function field to which the derivation map is attached
+
+        """
+        Map.__init__(self, field, field)
+
+        self._field = field
+
+class FunctionFieldHasseDerivation_rational(FunctionFieldHasseDerivation):
+    """
+    Hasse derivations of rational function fields.
+    """
+    def __init__(self, field):
+        """
+        Return the Hasse derivation on the rational function field.
+
+        INPUT:
+
+        - ``field`` -- a function field which is the domain and codomain of the
+          derivation
+
+        EXAMPLES::
+
+            sage: F.<x> = FunctionField(GF(2))
+            sage: h = F.hasse_derivation()
+            sage: h
+            Generic map:
+              From: Rational function field in x over Finite Field of size 2
+              To:   Rational function field in x over Finite Field of size 2
+            sage: h(x^2,2)
+            1
+        """
+        FunctionFieldHasseDerivation.__init__(self, field)
+
+        self._p = field.characteristic()
+        self._separating_element = field.gen()
+
+        # elements of prime finite fields do not have pth_root method
+        if field.constant_base_field().is_prime_field():
+            self._pth_root_in_finite_field = lambda e: e
+        else:
+            self._pth_root_in_finite_field = lambda e: e.pth_root()
+
+    def _call_with_args(self, f, args=(), kwds={}):
+        """
+        Call the derivation with ``args`` and ``kwds``.
+
+        EXAMPLES::
+
+            sage: F.<x> = FunctionField(GF(2))
+            sage: h = F.hasse_derivation()
+            sage: h(x^2,2)
+            1
+        """
+        return self._derive(f, *args, **kwds)
+
+    def _derive(self, f, i, separating_element=None):
+        """
+        Return ``i``th derivative of ``f` with respect to the separating
+        element.
+
+        This implements Hess' Algorithm 26 in [Hes2002b]_.
+
+        EXAMPLES::
+
+            sage: F.<x> = FunctionField(GF(2))
+            sage: h = F.hasse_derivation()
+            sage: h._derive(x^3,0)
+            x^3
+            sage: h._derive(x^3,1)
+            x^2
+            sage: h._derive(x^3,2)
+            x
+            sage: h._derive(x^3,3)
+            1
+            sage: h._derive(x^3,4)
+            0
+        """
+        F = self._field
+        p = self._p
+
+        if separating_element is None:
+            x = self._separating_element
+            derivative = lambda f: f.derivative()
+        else:
+            x = separating_element
+            derivative = lambda f: f.derivative() / x.derivative()
+
+        prime_power_representation = self._prime_power_representation
+
+        def derive(f, i):
+            # Step 1: zero-th derivative
+            if i == 0:
+                return f
+            # Step 2:
+            s = i % p
+            r = i // p
+            # Step 3:
+            e = f
+            while s > 0:
+                e = derivative(e) / F(s)
+                s -= 1
+            # Step 4:
+            if r == 0:
+                return e
+            else:
+                # Step 5:
+                lambdas = prime_power_representation(e, x)
+                # Step 6 and 7:
+                der = 0
+                for i in range(p):
+                    mu = derive(lambdas[i], r)
+                    der += mu**p * x**i
+                return der
+
+        return derive(f, i)
+
+    def _prime_power_representation(self, f, separating_element=None):
+        """
+        Return `p`th power representation of the element ``f``.
+
+        Here `p` is the characteristic of the function field.
+
+        This implements Hess' Algorithm 25.
+
+        EXAMPLES::
+
+            sage: F.<x> = FunctionField(GF(2))
+            sage: h = F.hasse_derivation()
+            sage: h._prime_power_representation(x^2 + x + 1)
+            [x + 1, 1]
+            sage: x^2 + x + 1 == _[0]^2 + _[1]^2 * x
+            True
+        """
+        F = self._field
+        p = self._p
+
+        pth_root = self._pth_root
+
+        if separating_element is None:
+            x = self._separating_element
+            derivative = lambda f: f.derivative()
+        else:
+            x = separating_element
+            derivative = lambda f: f.derivative() / x.derivative()
+
+        # Step 1:
+        a = [f]
+        aprev = f
+        j = 1
+        while j < p:
+            aprev = derivative(aprev) / F(j)
+            a.append(aprev)
+            j += 1
+        # Step 2:
+        b = a
+        j = p - 2
+        while j >= 0:
+            b[j] -= sum(binomial(i,j) * b[i] * x**(i-j) for i in range(j+1,p))
+            j -= 1
+        # Step 3
+        return [pth_root(c) for c in b]
+
+    def _pth_root(self, c):
+        """
+        Return the `p`th root of the rational function ``c``.
+
+        EXAMPLES::
+
+            sage: F.<x> = FunctionField(GF(2))
+            sage: h = F.hasse_derivation()
+            sage: h._pth_root((x^2+1)^2)
+            x^2 + 1
+        """
+        from .element import FunctionFieldElement_rational
+        K = self._field
+        p = self._p
+        pth_root = self._pth_root_in_finite_field
+
+        R = K._field.ring()
+
+        poly = c.numerator()
+        num = R([pth_root(poly[i]) for i in range(0,poly.degree()+1,p)])
+        poly = c.denominator()
+        den = R([pth_root(poly[i]) for i in range(0,poly.degree()+1,p)])
+        return FunctionFieldElement_rational(K, num / den)
+
+class FunctionFieldHasseDerivation_global(FunctionFieldHasseDerivation):
+    """
+    Hasse derivations of function fields.
+    """
+    def __init__(self, field):
+        """
+        Return Hasse derivation.
+
+        INPUT:
+
+        - ``field`` -- a function field which is the domain and codomain of the
+          derivation
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+            sage: h = L.hasse_derivation()
+            sage: h
+            Generic map:
+              From: Function field in y defined by y^3 + x^3*y + x
+              To:   Function field in y defined by y^3 + x^3*y + x
+            sage: h(y^2,2)
+            ((x^7 + 1)/x^2)*y^2 + x^3*y
+        """
+        FunctionFieldHasseDerivation.__init__(self, field)
+
+        self._p = field.characteristic()
+        self._separating_element = field(field.base_field().gen())
+
+        p = field.characteristic()
+        y = field.gen()
+
+        # matrix for pth power map; used in _prime_power_representation method
+        self.__pth_root_matrix = matrix([(y**(i*p)).list()
+                                         for i in range(field.degree())]).transpose()
+
+        # elements of prime finite fields do not have pth_root method
+        if field.constant_base_field().is_prime_field():
+            self.__pth_root_in_finite_field = lambda e: e
+        else:
+            self.__pth_root_in_finite_field = lambda e: e.pth_root()
+
+        # cache
+        self._cache = {}
+
+    def _call_with_args(self, f, args=(), kwds={}):
+        """
+        Call the derivation with ``args`` and ``kwds``.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+            sage: h = L.hasse_derivation()
+            sage: h(y^2,2)
+            ((x^7 + 1)/x^2)*y^2 + x^3*y
+        """
+        return self._derive(f, *args, **kwds)
+
+    def _derive(self, f, i, separating_element=None):
+        """
+        Return ``i``-th derivative of ``f` with respect to the separating
+        element.
+
+        This implements Hess' Algorithm 26 in [Hes2002b]_.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+            sage: h = L.hasse_derivation()
+            sage: y^3
+            x^3*y + x
+            sage: h._derive(y^3,0)
+            x^3*y + x
+            sage: h._derive(y^3,1)
+            x^4*y^2 + 1
+            sage: h._derive(y^3,2)
+            x^10*y^2 + (x^8 + x)*y
+            sage: h._derive(y^3,3)
+            (x^9 + x^2)*y^2 + x^7*y
+            sage: h._derive(y^3,4)
+            (x^22 + x)*y^2 + ((x^21 + x^14 + x^7 + 1)/x)*y
+        """
+        F = self._field
+        p = self._p
+        frob = F.frobenius_endomorphism() # p-th power map
+        pth_root = self._pth_root
+
+        if separating_element is None:
+            x = self._separating_element
+            derivative = lambda f: f.derivative()
+        else:
+            x = separating_element
+            xderinv = ~(x.derivative())
+            derivative = lambda f: xderinv * f.derivative()
+
+        # It is not yet clear if cache helps much...
+        try:
+            cache = self._cache[separating_element]
+        except KeyError:
+            cache = self._cache[separating_element] = {}
+
+        def derive(f, i):
+            # Step 1: zero-th derivative
+            if i == 0:
+                return f
+
+            # Step 1.5: use cached result if available
+            try:
+                return cache[f,i]
+            except KeyError:
+                pass
+
+            # Step 2:
+            s = i % p
+            r = i // p
+            # Step 3:
+            e = f
+            while s > 0:
+                e = derivative(e) / F(s)
+                s -= 1
+            # Step 4:
+            if r == 0:
+                der = e
+            else:
+                # Step 5: inlined self._prime_power_representation
+                a = [e]
+                aprev = e
+                j = 1
+                while j < p:
+                    aprev = derivative(aprev) / F(j)
+                    a.append(aprev)
+                    j += 1
+                b = a
+                j = p - 2
+                while j >= 0:
+                    b[j] -= sum(binomial(k,j) * b[k] * x**(k-j) for k in range(j+1,p))
+                    j -= 1
+                lambdas = [pth_root(c) for c in b]
+
+                # Step 6 and 7:
+                der = 0
+                xpow = 1
+                for k in range(p):
+                    mu = derive(lambdas[k], r)
+                    der += frob(mu) * xpow
+                    xpow *= x
+
+            cache[f,i] = der
+            return der
+
+        return derive(f, i)
+
+    def _prime_power_representation(self, f, separating_element=None):
+        """
+        Return `p`th power representation of the element ``f``.
+
+        Here `p` is the characteristic of the function field.
+
+        This implements Hess' Algorithm 25 in [Hes2002b]_.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+            sage: h = L.hasse_derivation()
+            sage: b = h._prime_power_representation(y)
+            sage: y == b[0]^2 + b[1]^2 * x
+            True
+        """
+        F = self._field
+        p = self._p
+
+        pth_root = self._pth_root
+
+        if separating_element is None:
+            x = self._separating_element
+            derivative = lambda f: f.derivative()
+        else:
+            x = separating_element
+            xderinv = ~(x.derivative())
+            derivative = lambda f: xderinv * f.derivative()
+
+        # Step 1:
+        a = [f]
+        aprev = f
+        j = 1
+        while j < p:
+            aprev = derivative(aprev) / F(j)
+            a.append(aprev)
+            j += 1
+        # Step 2:
+        b = a
+        j = p - 2
+        while j >= 0:
+            b[j] -= sum(binomial(i,j) * b[i] * x**(i-j) for i in range(j+1,p))
+            j -= 1
+        # Step 3
+        return [pth_root(c) for c in b]
+
+    def _pth_root(self, c):
+        """
+        Return the `p`th root of function field element ``c``.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+            sage: h = L.hasse_derivation()
+            sage: h._pth_root((x^2 + y^2)^2)
+            y^2 + x^2
+        """
+        K = self._field.base_field() # rational function field
+        p = self._p
+        pth_root = self.__pth_root_in_finite_field
+
+        coeffs = []
+        for d in self.__pth_root_matrix.solve_right(vector(c.list())):
+            poly = d.numerator()
+            num = K([pth_root(poly[i]) for i in range(0,poly.degree()+1,p)])
+            poly = d.denominator()
+            den = K([pth_root(poly[i]) for i in range(0,poly.degree()+1,p)])
+            coeffs.append( num/den )
+        return self._field(coeffs)
 
 class FunctionFieldIsomorphism(Morphism):
     r"""

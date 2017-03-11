@@ -683,86 +683,23 @@ class ReferenceSubBuilder(DocBuilder):
         This is the wrapper around the builder_helper methods that
         goes through and makes sure things are up to date.
         """
-        # Delete the auto-generated .rst files, if the inherited
-        # and/or underscored members options have changed.
-        global options
-        inherit_prev = self.get_cache().get('option_inherited')
-        underscore_prev = self.get_cache().get('option_underscore')
-        if (inherit_prev is None or inherit_prev != options.inherited or
-            underscore_prev is None or underscore_prev != options.underscore):
-            logger.info("Detected change(s) in inherited and/or underscored members option(s).")
-            self.clean_auto()
-            self.get_cache.clear_cache()
-
         # After "sage -clone", refresh the .rst file mtimes in
         # environment.pickle.
         if options.update_mtimes:
             logger.info("Checking for .rst file mtimes to update...")
             self.update_mtimes()
 
-        #Update the .rst files for modified Python modules
-        logger.info("Updating .rst files with modified modules...")
-        for module_name in self.get_modified_modules():
-            self.write_auto_rest_file(module_name.replace(os.path.sep, '.'))
-
-        #Write the .rst files for newly included modules
-        logger.info("Writing .rst files for newly-included modules...")
-        for module_name in self.get_newly_included_modules(save=True):
+        # Write .rst files for new and updated modules.
+        for module_name in self.get_new_and_updated_modules():
             self.write_auto_rest_file(module_name)
 
-        #Copy over the custom .rst files from _sage
+        # Copy over the custom .rst files from _sage
         _sage = os.path.join(self.dir, '_sage')
         if os.path.exists(_sage):
             logger.info("Copying over custom .rst files from %s ...", _sage)
             shutil.copytree(_sage, os.path.join(self.dir, 'sage'))
 
         getattr(DocBuilder, build_type)(self, *args, **kwds)
-
-    def cache_filename(self):
-        """
-        Returns the filename where the pickle of the dictionary of
-        already generated ReST files is stored.
-        """
-        return os.path.join(self._doctrees_dir(), 'reference.pickle')
-
-    @cached_method
-    def get_cache(self):
-        """
-        Retrieve the cache of already generated ReST files.  If it
-        doesn't exist, then we just return an empty dictionary.  If it
-        is corrupted, return an empty dictionary.
-        """
-        filename = self.cache_filename()
-        if not os.path.exists(filename):
-            return {}
-        from six.moves import cPickle
-        file = open(self.cache_filename(), 'rb')
-        try:
-            cache = cPickle.load(file)
-        except Exception:
-            logger.debug("Cache file '%s' is corrupted; ignoring it..."% filename)
-            cache = {}
-        else:
-            logger.debug("Loaded .rst file cache: %s", filename)
-        finally:
-            file.close()
-        return cache
-
-    def save_cache(self):
-        """
-        Save the cache of already generated ReST files.
-        """
-        cache = self.get_cache()
-
-        global options
-        cache['option_inherited'] = options.inherited
-        cache['option_underscore'] = options.underscore
-
-        from six.moves import cPickle
-        file = open(self.cache_filename(), 'wb')
-        cPickle.dump(cache, file)
-        file.close()
-        logger.debug("Saved .rst file cache: %s", self.cache_filename())
 
     def get_sphinx_environment(self):
         """
@@ -840,7 +777,6 @@ class ReferenceSubBuilder(DocBuilder):
             logger.info("Sphinx found %d modified modules", len(changed))
         except OSError as err:
             logger.debug("Sphinx failed to determine modified modules: %s", err)
-            self.clean_auto()
             return
         for name in changed:
             # Only pay attention to files in a directory sage/... In
@@ -880,28 +816,61 @@ class ReferenceSubBuilder(DocBuilder):
             for module in self.get_modules(filename):
                 yield module
 
-    def get_newly_included_modules(self, save=False):
+    def get_new_and_updated_modules(self):
         """
-        Returns an iterator for all modules that appear in the
-        toctrees that don't appear in the cache.
+        Return an iterator for all new and updated modules that appear in
+        the toctrees, and remove obsolete old modules.
         """
-        cache = self.get_cache()
-        new_modules = 0
-        for module in self.get_all_included_modules():
-            if module not in cache:
-                cache[module] = True
-                new_modules += 1
-                yield module
-        logger.info("Found %d newly included modules", new_modules)
-        if save:
-            self.save_cache()
+        env = self.get_sphinx_environment()
 
-    def print_newly_included_modules(self):
+        new_modules = []
+        updated_modules = []
+        old_modules = []
+        for module in self.get_all_included_modules():
+            docname = module.replace('.', os.path.sep)
+
+            if docname not in env.all_docs:
+                new_modules.append(module)
+                yield module
+                continue
+
+            # get the timestamp of the rst doc for the module
+            mtime = env.all_docs[docname]
+            try:
+                __import__(module)
+            except ImportError as err:
+                logger.error("Warning: Could not import %s %s", module, err)
+                raise
+            newtime = os.path.getmtime(sys.modules[module].__file__)
+
+            if newtime > mtime:
+                updated_modules.append(module)
+                yield module
+            else: # keep good old module
+                old_modules.append(module)
+
+        removed_modules = []
+        for docname in env.all_docs.keys():
+            if docname.startswith('sage'):
+                module = docname.replace(os.path.sep, '.')
+                if module not in old_modules and module not in updated_modules:
+                    try:
+                        os.remove(os.path.join(self.dir, docname) + '.rst')
+                    except OSError: # already removed
+                        pass
+                    logger.debug("Deleted auto-generated .rst file %s".format(docname))
+                    removed_modules.append(module)
+
+        logger.info("Found %d new modules", len(new_modules))
+        logger.info("Found %d updated modules", len(updated_modules))
+        logger.info("Removed %d obsolete modules", len(removed_modules))
+
+    def print_new_and_updated_modules(self):
         """
-        Prints all of the modules that appear in the toctrees that
-        don't appear in the cache.
+        Print all the modules that appear in the toctrees that
+        are newly included or updated.
         """
-        for module_name in self.get_newly_included_modules():
+        for module_name in self.get_new_and_updated_modules():
             print(module_name)
 
     def get_modules(self, filename):
@@ -998,23 +967,6 @@ class ReferenceSubBuilder(DocBuilder):
 
         outfile.close()
 
-    def clean_auto(self):
-        """
-        Remove the cache file for the autogenerated files as well as
-        the files themselves.
-        """
-        if os.path.exists(self.cache_filename()):
-            os.unlink(self.cache_filename())
-            logger.debug("Deleted .rst cache file: %s", self.cache_filename())
-
-        import shutil
-        try:
-            shutil.rmtree(os.path.join(self.dir, 'sage'))
-            logger.debug("Deleted auto-generated .rst files in: %s",
-                         os.path.join(self.dir, 'sage'))
-        except OSError:
-            pass
-
     def get_unincluded_modules(self):
         """
         Returns an iterator for all the modules in the Sage library
@@ -1061,7 +1013,6 @@ class ReferenceSubBuilder(DocBuilder):
         """
         for module_name in self.get_all_included_modules():
             print(module_name)
-
 
 class SingleFileBuilder(DocBuilder):
     """
@@ -1329,8 +1280,8 @@ def help_commands(name='all', s=u""):
     # To do: Generate the lists dynamically, using class attributes,
     # as with the Builders above.
     command_dict = { 'reference' : [
-        'print_included_modules',   'print_modified_modules       (*)',
-        'print_unincluded_modules', 'print_newly_included_modules (*)',
+        'print_included_modules',   'print_modified_modules        (*)',
+        'print_unincluded_modules', 'print_new_and_updated_modules (*)',
         ] }
     for doc in command_dict:
         if name == 'all' or doc == name:

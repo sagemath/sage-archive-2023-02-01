@@ -284,10 +284,10 @@ def init_subdoc(app):
             app.builder.info(bold('linking _static directory.'))
             static_dir = os.path.join(app.builder.outdir, '_static')
             master_static_dir = os.path.join('..', '_static')
-            if os.path.exists(static_dir):
-                if os.path.isdir(static_dir) and not os.path.islink(static_dir):
+            if os.path.lexists(static_dir):
+                try:
                     shutil.rmtree(static_dir)
-                else:
+                except OSError:
                     os.unlink(static_dir)
             os.symlink(master_static_dir, static_dir)
 

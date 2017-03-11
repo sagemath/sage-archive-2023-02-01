@@ -1919,9 +1919,11 @@ class TransitiveGroupsAll(DisjointUnionEnumeratedSets):
         sage: (next(p), next(p), next(p), next(p), next(p), next(p), next(p), next(p)) # optional - database_gap
         (Transitive group number 1 of degree 0, Transitive group number 1 of degree 1, Transitive group number 1 of degree 2, Transitive group number 1 of degree 3, Transitive group number 2 of degree 3, Transitive group number 1 of degree 4, Transitive group number 2 of degree 4, Transitive group number 3 of degree 4)
 
-    TESTS::
+    TESTS:
 
-        sage: TestSuite(TransitiveGroups()).run() # optional - database_gap # long time
+    The following test is broken, see :trac:`22576`::
+
+        sage: TestSuite(TransitiveGroups()).run() # known bug # optional - database_gap # long time
     """
     def __init__(self):
         """
@@ -2301,9 +2303,11 @@ class PrimitiveGroupsAll(DisjointUnionEnumeratedSets):
         ....:  next(p), next(p), next(p), next(p))
         (Trivial group, Trivial group, S(2), A(3), S(3), A(4), S(4), C(5))
 
-    TESTS::
+    TESTS:
 
-        sage: TestSuite(PrimitiveGroups()).run() # optional - database_gap # long time
+    The following test is broken, see :trac:`22576`::
+
+        sage: TestSuite(PrimitiveGroups()).run() # known bug # optional - database_gap # long time
     """
     def __init__(self):
         """

@@ -480,15 +480,19 @@ def TadpoleGraph(n1, n2):
 
     TESTS:
 
-        sage: n1, n2 = randint(3, 100), randint(0, 100)
+        sage: n1, n2 = randint(3, 100), randint(0, 10)
         sage: g = graphs.TadpoleGraph(n1, n2)
         sage: g.num_verts() == n1 + n2
         True
         sage: g.num_edges() == n1 + n2
         True
-        sage: g.is_connected()
-        True
         sage: g.girth() == n1
+        True
+        sage: graphs.TadpoleGraph(n1, 0).is_isomorphic(graphs.CycleGraph(n1))
+        True
+        sage: graphs.TadpoleGraph(0, n2).is_isomorphic(graphs.PathGraph(n2))
+        True
+        sage: graphs.TadpoleGraph(0, 0).is_isomorphic(graphs.EmptyGraph())
         True
     """
     pos_dict = {}
@@ -503,14 +507,13 @@ def TadpoleGraph(n1, n2):
         y = float(i - n1 - n2/2 + 1)
         pos_dict[i] = (x,y)
 
-    import networkx
-    G = networkx.cycle_graph(n1)
-    G.add_nodes_from([v for v in range(n1, n1 + n2)])
-    if n2 > 1:
-        G.add_edges_from([(v, v + 1) for v in range(n1, n1 + n2 - 1)])
-    if n1 > 0:
+    G = Graph(pos=pos_dict, name="Tadpole graph")
+    G.add_cycle(list(range(n1)))
+    G.add_path(list(range(n1, n1 + n2)))
+    if n1 * n2 > 0:
         G.add_edge(n1 - 1, n1)
-    return Graph(G, pos=pos_dict, name="Tadpole graph")
+
+    return G
 
 
 def DipoleGraph(n):
@@ -529,25 +532,18 @@ def DipoleGraph(n):
 
     TESTS:
 
-        sage: n = randint(1, 100)
+        sage: n = randint(0, 10)
         sage: g = graphs.DipoleGraph(n)
         sage: g.num_verts() == 2
         True
         sage: g.num_edges() == n
         True
-        sage: g.is_connected()
+        sage: g.is_connected() == (n > 0)
         True
-        sage: g.diameter() == 1
-        True
-        sage: g.chromatic_number() == 2
+        sage: g.diameter() == (1 if n > 0 else infinity)
         True
     """
-    import networkx
-    G = Graph(name="Dipole graph", multiedges=True)
-    G.add_vertices([0, 1])
-    for _ in range(n):
-        G.add_edge(0, 1)
-    return G
+    return Graph([[0,1], [(0,1)]*n], name="Dipole graph", multiedges=True)
 
 
 def BubbleSortGraph(n):

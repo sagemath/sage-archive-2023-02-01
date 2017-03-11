@@ -1040,6 +1040,15 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
             sage: g.quo_rem(f)
             ((1 + O(3^10))*T^3 + (1 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10))*T^2 + (1 + 3 + O(3^10))*T + (1 + 3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10)),
             (2 + 3 + 3^3 + O(3^10)))
+
+        TESTS:
+
+        Verify that :trac:`15188` has been resolved::
+
+            sage: R.<x> = Qp(3)[]
+            sage: x.quo_rem(x)
+            ((1 + O(3^20)), 0)
+
         """
         return self._quo_rem_list(right, secure=secure)
 

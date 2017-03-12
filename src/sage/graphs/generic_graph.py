@@ -83,6 +83,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.degree_iterator` | Return an iterator over the degrees of the (di)graph.
     :meth:`~GenericGraph.degree_sequence` | Return the degree sequence of this (di)graph.
     :meth:`~GenericGraph.random_subgraph` | Return a random subgraph that contains each vertex with prob. p.
+    :meth:`~GenericGraph.add_clique` | Add a clique to the graph with the given vertices.
     :meth:`~GenericGraph.add_cycle` | Add a cycle to the graph with the given vertices.
     :meth:`~GenericGraph.add_path` | Add a cycle to the graph with the given vertices.
     :meth:`~GenericGraph.complement` | Return the complement of the (di)graph.
@@ -16701,6 +16702,48 @@ class GenericGraph(GenericGraph_pyx):
             return value
 
     ### Constructors
+
+    def add_clique(self, vertices, loops=False):
+        """
+        Add a clique to the graph with the given vertices.
+
+        If the vertices are already present, only the edges are added.
+
+        INPUT:
+
+        - ``vertices`` -- a list of vertices for the clique to be added.
+
+        - ``loops`` -- (boolean) whether to add loops or not, i.e., edges from a
+          vertex to itself. Possible only if the (di)graph allows loops.
+
+        EXAMPLES::
+
+            sage: G = Graph()
+            sage: G.add_clique(list(range(4)))
+            sage: G.is_isomorphic(graphs.CompleteGraph(4))
+            True
+            sage: D = DiGraph()
+            sage: D.add_clique(list(range(4)))
+            sage: D.is_isomorphic(digraphs.Complete(4))
+            True
+            sage: D = DiGraph(loops=True)
+            sage: D.add_clique(list(range(4)), loops=True)
+            sage: D.is_isomorphic(digraphs.Complete(4, loops=True))
+            True
+            sage: D = DiGraph(loops=False)
+            sage: D.add_clique(list(range(4)), loops=True)
+            sage: D.is_isomorphic(digraphs.Complete(4, loops=True))
+            False
+            sage: D.is_isomorphic(digraphs.Complete(4, loops=False))
+            True
+        """
+        if vertices:
+            n = len(vertices)
+            self.add_edges((vertices[i],vertices[j]) for i in range(n-1) for j in range(i+1,n))
+            if self.is_directed():
+                self.add_edges((vertices[j],vertices[i]) for i in range(n-1) for j in range(i+1,n))
+            if loops and self.allows_loops():
+                self.add_edges((vertices[i],vertices[i]) for i in range(n))
 
     def add_cycle(self, vertices):
         """

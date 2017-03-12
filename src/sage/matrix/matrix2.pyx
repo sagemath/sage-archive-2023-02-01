@@ -14899,11 +14899,11 @@ def _jordan_form_vector_in_difference(V, W):
             return v
     return None
 
-def _matrix_power_symbolic(A, k):
+def _matrix_power_symbolic(A, n):
     r"""
     Symbolic matrix power.
     
-    This function implements $f(A) = A^k$ assuming that the base ring of A is 
+    This function implements $f(A) = A^n$ assuming that the base ring of A is 
     exact. It relies in the Jordan normal form of A, available for exact rings
     as `jordan_form()`. See Sec. 1.2 of [Hig2008]_ for further details.
     
@@ -14911,34 +14911,34 @@ def _matrix_power_symbolic(A, k):
 
     - ``A`` - a square matrix over an exact field.
 
-    - ``k`` - the symbolic exponent. 
+    - ``n`` - the symbolic exponent. 
 
     OUTPUT:
 
-    Matrix A^k (symbolic).
+    Matrix A^n (symbolic).
     
     EXAMPLES::
     
         sage: A = matrix(QQ, [[2, -1], [1,  0]])
-        sage: k = var('k')
-        sage: A^k
-        [ k + 1     -k]
-        [     k -k + 1]
+        sage: n = var('n')
+        sage: A^n
+        [ n + 1     -n]
+        [     n -n + 1]
 
     TESTS:: 
     
     Testing exponentiation in the symbolic ring::
 
-        sage: k = var('k')
+        sage: n = var('n')
         sage: A = matrix([[pi, e],[0, -2*I]])
-        sage: A^k
-        [                                                              pi^k -(-2*I)^k/(pi*e^(-1) + 2*I*e^(-1)) + pi^k/(pi*e^(-1) + 2*I*e^(-1))]
-        [                                                                 0                                                           (-2*I)^k]
+        sage: A^n
+        [                                                              pi^n -(-2*I)^n/(pi*e^(-1) + 2*I*e^(-1)) + pi^n/(pi*e^(-1) + 2*I*e^(-1))]
+        [                                                                 0                                                           (-2*I)^n]
         
     If the base ring is inexact, the Jordan normal form is not available::
     
         sage: A = matrix(RDF, [[2, -1], [1,  0]]) 
-        sage: A^k
+        sage: A^n
         Traceback (most recent call last):
         ...
         ValueError: Jordan normal form not implemented over inexact rings.
@@ -14946,9 +14946,9 @@ def _matrix_power_symbolic(A, k):
     Testing exponentiation in the integer ring::
     
         sage: A = matrix(ZZ, [[1,-1],[-1,1]])
-        sage: A^(2*k+1)
-        [ 1/2*2^(2*k + 1) + 1/2*0^(2*k + 1) -1/2*2^(2*k + 1) + 1/2*0^(2*k + 1)]
-        [-1/2*2^(2*k + 1) + 1/2*0^(2*k + 1)  1/2*2^(2*k + 1) + 1/2*0^(2*k + 1)]
+        sage: A^(2*n+1)
+        [ 1/2*2^(2*n + 1) -1/2*2^(2*n + 1)]
+        [-1/2*2^(2*n + 1)  1/2*2^(2*n + 1)]
     """
     from sage.rings.qqbar import AlgebraicNumber
     from sage.modules.free_module_element import vector
@@ -14959,10 +14959,6 @@ def _matrix_power_symbolic(A, k):
     
     got_SR = True if A.base_ring() == SR else False
     
-    # power to a given symbolic expression
-    x = SR.var('x')
-    f = x**k
-
     # transform to QQbar if possible
     try:
         A = A.change_ring(QQbar)
@@ -14979,6 +14975,8 @@ def _matrix_power_symbolic(A, k):
     FJ = matrix(SR, J.ncols())
     FJ.subdivide(J.subdivisions())
 
+    factorial_n = factorial(n)
+    
     for k in range(num_jordan_blocks):
 
         # get Jordan block Jk
@@ -14997,7 +14995,9 @@ def _matrix_power_symbolic(A, k):
                 Jk_ii = Jk[i][i].radical_expression()
             else:
                 Jk_ii = Jk[i][i]
-            vk += [f.derivative(x, i)(x=Jk_ii)/factorial(i)] 
+                
+            # corresponds to \frac{D^i(f)}{i!}, with f = x^n and D the differential operator wrt x
+            vk += [(factorial_n/(factorial(n-i)*factorial(i))*Jk_ii**(n-i)).simplify_full()] 
         
         # insert vk into each row (above the main diagonal)
         for i in range(mk):

@@ -226,11 +226,6 @@ def BarbellGraph(n1, n2):
     A barbell graph is a basic structure that consists of a path graph
     of order ``n2`` connecting two complete graphs of order ``n1`` each.
 
-    This constructor depends on `NetworkX <http://networkx.lanl.gov>`_
-    numeric labels. In this case, the ``n1``-th node connects to the
-    path graph from one complete graph and the ``n1 + n2 + 1``-th node
-    connects to the path graph from the other complete graph.
-
     INPUT:
 
     - ``n1`` -- integer `\geq 2`. The order of each of the two
@@ -243,10 +238,6 @@ def BarbellGraph(n1, n2):
 
     A barbell graph of order ``2*n1 + n2``. A ``ValueError`` is
     returned if ``n1 < 2`` or ``n2 < 0``.
-
-    ALGORITHM:
-
-    Uses `NetworkX <http://networkx.lanl.gov>`_.
 
     PLOTTING:
 
@@ -304,32 +295,32 @@ def BarbellGraph(n1, n2):
         sage: graphs.BarbellGraph(1, randint(0, 10^6))
         Traceback (most recent call last):
         ...
-        ValueError: Invalid graph description, n1 should be >= 2
+        ValueError: invalid graph description, n1 should be >= 2
         sage: graphs.BarbellGraph(randint(-10^6, 1), randint(0, 10^6))
         Traceback (most recent call last):
         ...
-        ValueError: Invalid graph description, n1 should be >= 2
+        ValueError: invalid graph description, n1 should be >= 2
 
     The input ``n2`` must be `\geq 0`::
 
         sage: graphs.BarbellGraph(randint(2, 10^6), -1)
         Traceback (most recent call last):
         ...
-        ValueError: Invalid graph description, n2 should be >= 0
+        ValueError: invalid graph description, n2 should be >= 0
         sage: graphs.BarbellGraph(randint(2, 10^6), randint(-10^6, -1))
         Traceback (most recent call last):
         ...
-        ValueError: Invalid graph description, n2 should be >= 0
+        ValueError: invalid graph description, n2 should be >= 0
         sage: graphs.BarbellGraph(randint(-10^6, 1), randint(-10^6, -1))
         Traceback (most recent call last):
         ...
-        ValueError: Invalid graph description, n1 should be >= 2
+        ValueError: invalid graph description, n1 should be >= 2
     """
     # sanity checks
     if n1 < 2:
-        raise ValueError("Invalid graph description, n1 should be >= 2")
+        raise ValueError("invalid graph description, n1 should be >= 2")
     if n2 < 0:
-        raise ValueError("Invalid graph description, n2 should be >= 0")
+        raise ValueError("invalid graph description, n2 should be >= 0")
 
     pos_dict = {}
 
@@ -456,11 +447,27 @@ def TadpoleGraph(n1, n2):
         True
         sage: graphs.TadpoleGraph(n1, 0).is_isomorphic(graphs.CycleGraph(n1))
         True
-        sage: graphs.TadpoleGraph(0, n2).is_isomorphic(graphs.PathGraph(n2))
-        True
-        sage: graphs.TadpoleGraph(0, 0).is_isomorphic(graphs.EmptyGraph())
-        True
+
+    The input ``n1`` must be `\geq 3`::
+
+        sage: graphs.TadpoleGraph(2, randint(0, 10^6))
+        Traceback (most recent call last):
+        ...
+        ValueError: invalid graph description, n1 should be >= 3
+
+    The input ``n2`` must be `\geq 0`::
+
+        sage: graphs.TadpoleGraph(randint(2, 10^6), -1)
+        Traceback (most recent call last):
+        ...
+        ValueError: invalid graph description, n2 should be >= 0
     """
+    # sanity checks
+    if n1 < 3:
+        raise ValueError("invalid graph description, n1 should be >= 3")
+    if n2 < 0:
+        raise ValueError("invalid graph description, n2 should be >= 0")
+
     pos_dict = {}
 
     for i in range(n1):
@@ -508,7 +515,18 @@ def DipoleGraph(n):
         True
         sage: g.diameter() == (1 if n > 0 else infinity)
         True
+
+    The input ``n`` must be `\geq 0`::
+
+        sage: graphs.DipoleGraph(-randint(1, 10))
+        Traceback (most recent call last):
+        ...
+        ValueError: invalid graph description, n should be >= 0
     """
+    # sanity checks
+    if n < 0:
+        raise ValueError("invalid graph description, n should be >= 0")
+
     return Graph([[0,1], [(0,1)]*n], name="Dipole graph", multiedges=True)
 
 

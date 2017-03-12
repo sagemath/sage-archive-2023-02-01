@@ -286,23 +286,6 @@ def BarbellGraph(n1, n2):
         sage: P_n2.is_isomorphic(s_P)
         True
 
-    Create several barbell graphs in a Sage graphics array::
-
-        sage: g = []
-        sage: j = []
-        sage: for i in range(6):
-        ....:     k = graphs.BarbellGraph(i + 2, 4)
-        ....:     g.append(k)
-        ...
-        sage: for i in range(2):
-        ....:     n = []
-        ....:     for m in range(3):
-        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ....:     j.append(n)
-        ...
-        sage: G = sage.plot.graphics.GraphicsArray(j)
-        sage: G.show() # long time
-
     TESTS:
 
         sage: n1, n2 = randint(3, 100), randint(0, 100)
@@ -394,23 +377,6 @@ def LollipopGraph(n1, n2):
         sage: g = graphs.LollipopGraph(13,4)
         sage: g.show() # long time
 
-    Create several lollipop graphs in a Sage graphics array
-
-    ::
-
-        sage: g = []
-        sage: j = []
-        sage: for i in range(6):
-        ....:     k = graphs.LollipopGraph(i+3,4)
-        ....:     g.append(k)
-        sage: for i in range(2):
-        ....:     n = []
-        ....:     for m in range(3):
-        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ....:     j.append(n)
-        sage: G = sage.plot.graphics.GraphicsArray(j)
-        sage: G.show() # long time
-
     TESTS:
 
         sage: n1, n2 = randint(3, 100), randint(0, 100)
@@ -460,23 +426,6 @@ def TadpoleGraph(n1, n2):
 
         sage: g = graphs.TadpoleGraph(13, 4)
         sage: g.show() # long time
-
-    Create several tadpole graphs in a Sage graphics array
-
-    ::
-
-        sage: g = []
-        sage: j = []
-        sage: for i in range(6):
-        ....:     k = graphs.TadpoleGraph(i + 3, 4)
-        ....:     g.append(k)
-        sage: for i in range(2):
-        ....:     n = []
-        ....:     for m in range(3):
-        ....:         n.append(g[3 * i + m].plot(vertex_size=50, vertex_labels=False))
-        ....:     j.append(n)
-        sage: G = sage.plot.graphics.GraphicsArray(j)
-        sage: G.show() # long time
 
     TESTS:
 

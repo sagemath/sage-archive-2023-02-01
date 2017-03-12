@@ -288,7 +288,7 @@ def BarbellGraph(n1, n2):
 
     TESTS:
 
-        sage: n1, n2 = randint(3, 100), randint(0, 100)
+        sage: n1, n2 = randint(3, 10), randint(0, 10)
         sage: g = graphs.BarbellGraph(n1, n2)
         sage: g.num_verts() == 2 * n1 + n2
         True
@@ -351,9 +351,16 @@ def BarbellGraph(n1, n2):
             + (n2 / 2) + 2)
         pos_dict[i] = (x, y)
 
-    import networkx
-    G = networkx.barbell_graph(n1, n2)
-    return Graph(G, pos=pos_dict, name="Barbell graph")
+    G = Graph(pos=pos_dict, name="Barbell graph")
+    G.add_edges(((i, j) for i in range(n1) for j in range(i + 1, n1)))
+    G.add_path(list(range(n1, n1 + n2)))
+    G.add_edges(((i, j) for i in range(n1 + n2, n1 + n2 + n1)
+                 for j in range(i + 1, n1 + n2 + n1)))
+    if n1 > 0:
+        G.add_edge(n1 - 1, n1)
+        G.add_edge(n1 + n2 - 1, n1 + n2)
+
+    return G
 
 
 def LollipopGraph(n1, n2):
@@ -379,7 +386,7 @@ def LollipopGraph(n1, n2):
 
     TESTS:
 
-        sage: n1, n2 = randint(3, 100), randint(0, 100)
+        sage: n1, n2 = randint(3, 10), randint(0, 10)
         sage: g = graphs.LollipopGraph(n1, n2)
         sage: g.num_verts() == n1 + n2
         True
@@ -416,10 +423,6 @@ def LollipopGraph(n1, n2):
 
     return G
 
-    import networkx
-    G = networkx.lollipop_graph(n1, n2)
-    return Graph(G, pos=pos_dict, name="Lollipop graph")
-
 
 def TadpoleGraph(n1, n2):
     r"""
@@ -443,7 +446,7 @@ def TadpoleGraph(n1, n2):
 
     TESTS:
 
-        sage: n1, n2 = randint(3, 100), randint(0, 10)
+        sage: n1, n2 = randint(3, 10), randint(0, 10)
         sage: g = graphs.TadpoleGraph(n1, n2)
         sage: g.num_verts() == n1 + n2
         True

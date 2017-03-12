@@ -389,6 +389,12 @@ def LollipopGraph(n1, n2):
         True
         sage: g.girth() == 3
         True
+        sage: graphs.LollipopGraph(n1, 0).is_isomorphic(graphs.CompleteGraph(n1))
+        True
+        sage: graphs.LollipopGraph(0, n2).is_isomorphic(graphs.PathGraph(n2))
+        True
+        sage: graphs.LollipopGraph(0, 0).is_isomorphic(graphs.EmptyGraph())
+        True
     """
     pos_dict = {}
 
@@ -401,6 +407,14 @@ def LollipopGraph(n1, n2):
         x = float(i - n1 - n2/2 + 1)
         y = float(i - n1 - n2/2 + 1)
         pos_dict[i] = (x,y)
+
+    G = Graph(pos=pos_dict, name="Lollipop graph")
+    G.add_edges(((i, j) for i in range(n1) for j in range(i + 1, n1)))
+    G.add_path(list(range(n1, n1 + n2)))
+    if n1 * n2 > 0:
+        G.add_edge(n1 - 1, n1)
+
+    return G
 
     import networkx
     G = networkx.lollipop_graph(n1, n2)

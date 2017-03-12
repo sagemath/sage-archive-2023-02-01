@@ -393,7 +393,27 @@ def LollipopGraph(n1, n2):
         True
         sage: graphs.LollipopGraph(0, 0).is_isomorphic(graphs.EmptyGraph())
         True
+
+    The input ``n1`` must be `\geq 0`::
+
+        sage: graphs.LollipopGraph(-1, randint(0, 10^6))
+        Traceback (most recent call last):
+        ...
+        ValueError: invalid graph description, n1 should be >= 0
+
+    The input ``n2`` must be `\geq 0`::
+
+        sage: graphs.LollipopGraph(randint(2, 10^6), -1)
+        Traceback (most recent call last):
+        ...
+        ValueError: invalid graph description, n2 should be >= 0
     """
+    # sanity checks
+    if n1 < 0:
+        raise ValueError("invalid graph description, n1 should be >= 0")
+    if n2 < 0:
+        raise ValueError("invalid graph description, n2 should be >= 0")
+
     pos_dict = {}
 
     for i in range(n1):

@@ -368,11 +368,10 @@ def LollipopGraph(n1, n2):
     complete graph, leading directly into the path graph.
 
     EXAMPLES: Construct and show a lollipop graph Candy = 13, Stick =
-    4
+    4::
 
-    ::
-
-        sage: g = graphs.LollipopGraph(13,4)
+        sage: g = graphs.LollipopGraph(13,4); g
+        Lollipop graph: Graph on 17 vertices
         sage: g.show() # long time
 
     TESTS:
@@ -428,11 +427,10 @@ def TadpoleGraph(n1, n2):
     the right horizontal center of the cycle graph, leading directly into the
     path graph.
 
-    EXAMPLES: Construct and show a tadpole graph Cycle = 13, Stick = 4
+    EXAMPLES: Construct and show a tadpole graph Cycle = 13, Stick = 4::
 
-    ::
-
-        sage: g = graphs.TadpoleGraph(13, 4)
+        sage: g = graphs.TadpoleGraph(13, 4); g
+        Tadpole graph: Graph on 17 vertices
         sage: g.show() # long time
 
     TESTS:
@@ -496,11 +494,10 @@ def DipoleGraph(n):
     A dipole graph is a multigraph consisting of 2 vertices connected with n
     parallel edges.
 
-    EXAMPLES: Construct and show a dipole graph with 13 edges.
+    EXAMPLES: Construct and show a dipole graph with 13 edges::
 
-    ::
-
-        sage: g = graphs.DipoleGraph(13)
+        sage: g = graphs.DipoleGraph(13); g
+        Dipole graph: Multi-graph on 2 vertices
         sage: g.show() # long time
 
     TESTS:

@@ -463,7 +463,8 @@ class Polyhedron_base(Element):
                     for other_H in other.Hrepresentation()
                     for self_V in self.Vrepresentation())
 
-    def _vertex_facet_graph(self, labels=True):
+    @cached_method
+    def vertex_facet_graph(self, labels=True):
         r"""
         Return the vertex-facet graph.
 
@@ -474,9 +475,9 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-        - ``labels`` -- boolean (default: ``True``); whether to the graph
-          actually has the vertices/facets of the Polyhedron as nodes or
-          integers as nodes.
+        - ``labels`` -- boolean (default: ``True``); decide how the nodes
+          of the graph are labelled. Either with the original vertices/facets
+          of the Polyhedron or with integers.
 
         OUTPUT:
 
@@ -487,7 +488,7 @@ class Polyhedron_base(Element):
         EXAMPLES::
 
             sage: P = polytopes.cube()
-            sage: G = P._vertex_facet_graph(); G
+            sage: G = P.vertex_facet_graph(); G
             Digraph on 14 vertices
             sage: G.vertices()
             [An inequality (-1, 0, 0) x + 1 >= 0,
@@ -508,9 +509,9 @@ class Polyhedron_base(Element):
             True
             sage: O=polytopes.octahedron(); O
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 6 vertices
-            sage: O._vertex_facet_graph()
+            sage: O.vertex_facet_graph()
             Digraph on 14 vertices
-            sage: H = O._vertex_facet_graph()
+            sage: H = O.vertex_facet_graph()
             sage: G.is_isomorphic(H)
             False
             sage: G.reverse_edges(G.edges())
@@ -4883,7 +4884,7 @@ class Polyhedron_base(Element):
 
         - if ``vertex_graph_only`` is ``False`` (default):
           The automorphism group of the vertex-facet graph of the polyhedron,
-          see :meth:`_vertex_facet_graph`. This group is isomorphic to the
+          see :meth:`vertex_facet_graph`. This group is isomorphic to the
           automorphism group of the face lattice of the polyhedron.
 
         NOTE:
@@ -4936,7 +4937,7 @@ class Polyhedron_base(Element):
         if vertex_graph_only:
             G = self.graph()
         else:
-            G = self._vertex_facet_graph()
+            G = self.vertex_facet_graph()
         group = G.automorphism_group(edge_labels=True)
         self._combinatorial_automorphism_group = group
 
@@ -5418,8 +5419,8 @@ class Polyhedron_base(Element):
             return False
 
         if algorithm == 'bipartite_graph':
-            G_self = self._vertex_facet_graph(False)
-            G_other = other._vertex_facet_graph(False)
+            G_self = self.vertex_facet_graph(False)
+            G_other = other.vertex_facet_graph(False)
 
             return G_self.is_isomorphic(G_other)
         else:

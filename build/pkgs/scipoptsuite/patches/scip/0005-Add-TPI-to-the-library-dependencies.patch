@@ -1,22 +1,22 @@
-From c56ab3fbeea95c232372ba1bafb8f09bedd4c010 Mon Sep 17 00:00:00 2001
+From 77a5582c685616437b7982d1be4203c4d0fb8758 Mon Sep 17 00:00:00 2001
 From: Matthias Koeppe <mkoeppe@math.ucdavis.edu>
-Date: Tue, 26 Jul 2016 11:32:35 -0700
-Subject: [PATCH 1/5] Add dependency of libscip on liblpi*
+Date: Thu, 16 Mar 2017 18:37:43 -0700
+Subject: [PATCH 5/5] Add TPI to the library dependencies
 
 ---
  Makefile | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index d9835fc..b276aa7 100644
+index 103d89b..6a310e9 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -422,7 +422,7 @@ SCIPLIBEXTLIBS	+=	$(READLINE_LDFLAGS)
  endif
  SCIPLIBEXTLIBS	+=	$(ZIMPLLIB) $(LINKRPATH)$(realpath $(LIBDIR)/$(LIBTYPE))
  endif
--
-+SCIPLIBEXTLIBS  +=      $(LPILIBFILE)
+-SCIPLIBEXTLIBS  +=      $(LPILIBFILE) $(NLPILIBFILE)
++SCIPLIBEXTLIBS  +=      $(LPILIBFILE) $(NLPILIBFILE) $(TPILIBFILE)
  
  #-----------------------------------------------------------------------------
  # SCIP Library

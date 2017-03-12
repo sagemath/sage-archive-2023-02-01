@@ -114,9 +114,10 @@ cd $SRC/$SCIP_DIR
 mkdir lib
 cd lib
 
-ln -sv $SRC/$SOPLEX_DIR/lib/libsoplex-$SOPLEX_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT libsoplex.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT
-ln -sv $SRC/$SOPLEX_DIR/src/ spxinc
-touch libsoplex.$OS.$ARCH.gnu.$OPT.a
+mkdir -p shared static include
+ln -sv $SRC/$SOPLEX_DIR/lib/libsoplex-$SOPLEX_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT shared/libsoplex.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT
+ln -sv $SRC/$SOPLEX_DIR/src/ include/spxinc
+touch static/libsoplex.$OS.$ARCH.gnu.$OPT.a
 
 echo "Compiling SCIP"
 
@@ -125,13 +126,15 @@ if [ `uname` = 'Darwin' ] ; then
     arg_LIBBUILDFLAGS=LIBBUILDFLAGS="$LDFLAGS -dynamiclib -undefined dynamic_lookup -flat_namespace"
     SCIP_LIBBUILDFLAGS="-Wl,-install_name,$SAGE_LOCAL/lib/libscip-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT"
     OBJSCIP_LIBBUILDFLAGS="-Wl,-install_name,$SAGE_LOCAL/lib/libobjscip-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT"
-    LPI_LIBBUILDFLAGS="-Wl,-install_name,$SAGE_LOCAL/lib/liblpispx-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT"
+    LPI_LIBBUILDFLAGS="-Wl,-install_name,$SAGE_LOCAL/lib/liblpispx2-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT"
     NLPI_LIBBUILDFLAGS="-Wl,-install_name,$SAGE_LOCAL/lib/libnlpi.cppad-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT"
+    TPI_LIBBUILDFLAGS="-Wl,-install_name,$SAGE_LOCAL/lib/libtpinone-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT"
 else
     SCIP_LIBBUILDFLAGS="-Wl,-soname=$SAGE_LOCAL/lib/libscip-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT"
     OBJSCIP_LIBBUILDFLAGS="-Wl,-soname=$SAGE_LOCAL/lib/libobjscip-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT"
-    LPI_LIBBUILDFLAGS="-Wl,-soname=$SAGE_LOCAL/lib/liblpispx-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT"
+    LPI_LIBBUILDFLAGS="-Wl,-soname=$SAGE_LOCAL/lib/liblpispx2-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT"
     NLPI_LIBBUILDFLAGS="-Wl,-soname=$SAGE_LOCAL/lib/libnlpi.cppad-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT"
+    TPI_LIBBUILDFLAGS="-Wl,-soname=$SAGE_LOCAL/lib/libtpinone-$SCIP_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT"
 fi
 
 cd $SRC/$SCIP_DIR
@@ -145,7 +148,8 @@ $MAKE OPT=$OPT LPSOPT=$OPT VERBOSE=true SHARED=true ZIMPL=false GMP=true ZLIB=tr
      OBJSCIP_LIBBUILDFLAGS=$OBJSCIP_LIBBUILDFLAGS \
      LPI_LIBBUILDFLAGS=$LPI_LIBBUILDFLAGS \
      NLPI_LIBBUILDFLAGS=$NLPI_LIBBUILDFLAGS \
-     SHAREDLIBEXT="$SHAREDLIBEXT" INSTALLDIR="$SAGE_LOCAL" LINKRPATH="" install
+     TPI_LIBBUILDFLAGS=$TPI_LIBBUILDFLAGS \
+     SHAREDLIBEXT="$SHAREDLIBEXT" INSTALLDIR="$SAGE_LOCAL" install
 if [ $? -ne 0 ]; then
     echo "Error building/installing SCIP."
     exit 1

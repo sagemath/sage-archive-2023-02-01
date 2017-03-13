@@ -822,6 +822,10 @@ class ReferenceSubBuilder(DocBuilder):
         the toctrees, and remove obsolete old modules.
         """
         env = self.get_sphinx_environment()
+        if env is None:
+            all_docs = {}
+        else:
+            all_docs = env.all_docs
 
         new_modules = []
         updated_modules = []
@@ -829,13 +833,13 @@ class ReferenceSubBuilder(DocBuilder):
         for module in self.get_all_included_modules():
             docname = module.replace('.', os.path.sep)
 
-            if docname not in env.all_docs:
+            if docname not in all_docs:
                 new_modules.append(module)
                 yield module
                 continue
 
             # get the timestamp of the rst doc for the module
-            mtime = env.all_docs[docname]
+            mtime = all_docs[docname]
             try:
                 __import__(module)
             except ImportError as err:
@@ -850,7 +854,7 @@ class ReferenceSubBuilder(DocBuilder):
                 old_modules.append(module)
 
         removed_modules = []
-        for docname in env.all_docs.keys():
+        for docname in all_docs.keys():
             if docname.startswith('sage'):
                 module = docname.replace(os.path.sep, '.')
                 if module not in old_modules and module not in updated_modules:

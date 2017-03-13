@@ -855,7 +855,7 @@ class ReferenceSubBuilder(DocBuilder):
 
         removed_modules = []
         for docname in all_docs.keys():
-            if docname.startswith('sage'):
+            if docname.startswith('sage' + os.path.sep):
                 module = docname.replace(os.path.sep, '.')
                 if module not in old_modules and module not in updated_modules:
                     try:

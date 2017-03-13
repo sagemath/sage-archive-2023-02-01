@@ -63,7 +63,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_simple` | Return ``True`` if the lattice has no nontrivial congruences.
     :meth:`~FiniteLatticePoset.is_isoform` | Return ``True`` if all congruences of the lattice consists of isoform blocks.
     :meth:`~FiniteLatticePoset.is_uniform` | Return ``True`` if all congruences of the lattice consists of equal-sized blocks.
-    :meth:`~FiniteLatticePoset.is_regular` | Return ``True`` if all congruences of lattice are determined by any of the congruence block.
+    :meth:`~FiniteLatticePoset.is_regular` | Return ``True`` if all congruences of lattice are determined by any of the congruence blocks.
     :meth:`~FiniteLatticePoset.is_subdirectly_reducible` | Return ``True`` if the lattice is a sublattice of the product of smaller lattices.
     :meth:`~FiniteLatticePoset.breadth` | Return the breadth of the lattice.
 

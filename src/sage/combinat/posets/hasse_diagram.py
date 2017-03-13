@@ -1819,7 +1819,7 @@ class HasseDiagram(DiGraph):
             sage: list(H.antichains_iterator())
             [[]]
         """
-        # NOTE: Ordering of antichains as a prefix tree is crusial for
+        # NOTE: Ordering of antichains as a prefix tree is crucial for
         # congruences_iterator() to work. Change it, if you change this.
 
         # Complexity note:

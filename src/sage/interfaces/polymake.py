@@ -300,7 +300,7 @@ class Polymake(ExtraTabCompletion, Expect):
 
     def console(self):
         """
-        Raise an error, pointing to :meth:`~sage.interfaces.Interface.interact` and :func:`polymake_console`.
+        Raise an error, pointing to :meth:`~sage.interfaces.interface.Interface.interact` and :func:`polymake_console`.
 
         EXAMPLES::
 
@@ -693,9 +693,24 @@ class Polymake(ExtraTabCompletion, Expect):
         else:
             return H
 
-    def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True, restart_if_needed=True):
+    def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True, restart_if_needed=True, **kwds):
         """
-        Evaluate of a command
+        Evaluate a command.
+
+        INPUT:
+
+        - ``line``, a command (string) to be avaluated
+        - ``allow_use_file`` (optional bool, default ``True``), whether or not
+          to use a file if the line is very long.
+        - ``wait_for_prompt`` (optional, default ``True``), whether or not
+          to wait before polymake returns a prompt. If it is a string, it is considered
+          as alternative prompt to be waited for.
+        - ``restart_if_needed`` (optional bool, default ``True``), whether or
+          not restart polymake in case something goes wrong
+        - further optional arguments (e.g., timeout) that will be passed to
+          :meth:`pexpect.pty_spawn.spawn.expect`. Note that they are ignored
+          if the line is too long and thus is evaluated via a file. So,
+          if a timeout is defined, it should be accompanied by ``allow_use_file=False``.
 
         Different reaction types of polymake, including warnings, comments,
         errors, request for user interaction, and yielding a continuation prompt,
@@ -706,7 +721,11 @@ class Polymake(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: p = polymake.cube(3)              # optional - polymake  # indirect doctest
-            sage: set_verbose(3)
+
+        Here we see that remarks printed by polymake are displayed if
+        the verbosity is positive::
+
+            sage: set_verbose(1)
             sage: p.N_LATTICE_POINTS                # optional - polymake
             used package latte
               LattE (Lattice point Enumeration) is a computer software dedicated to the
@@ -715,12 +734,43 @@ class Polymake(ExtraTabCompletion, Expect):
               http://www.math.ucdavis.edu/~latte/
             27
             sage: set_verbose(0)
+
+        If a command is incomplete, then polymake returns a continuation
+        prompt. In that case, we raise an error::
+
             sage: polymake.eval('print 3')          # optional - polymake
             Traceback (most recent call last):
             ...
             SyntaxError: Incomplete polymake command 'print 3'
             sage: polymake.eval('print 3;')         # optional - polymake
             '3'
+
+        However, if the command contains line breaks but eventually is complete,
+        no error is raised::
+
+            sage: print polymake.eval('$tmp="abc";\nprint $tmp;') # optional - polymake
+            abc
+
+        By default, we just wait until polymake returns a result. However,
+        it is possible to explicitly set a timeout::
+
+            sage: c = polymake.cube(15)             # optional - polymake
+            sage: polymake.eval('print {}->F_VECTOR;'.format(c.name()), timeout=1)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Polymake fails to respond timely
+
+        We verify that after the timeout, polymake is still able to give answers::
+
+            sage: c                                 # optional - polymake
+            cube of dimension 15
+            sage: c.N_VERTICES                      # optional - polymake
+            32768
+
+        Note, however, that the recovery after a timeout is not perfect.
+        It may happen that in some situation the interface collapses and
+        thus polymake would automatically be restarted, thereby losing all
+        data that have been computed before.
 
         """
         line = line.strip()
@@ -756,7 +806,7 @@ class Polymake(ExtraTabCompletion, Expect):
                             self._synchronize()
                         except (TypeError, RuntimeError):
                             pass
-                        return self._eval_line(line,allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False)
+                        return self._eval_line(line,allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False, **kwds)
                 raise_(RuntimeError, "%s\nError evaluating %s in %s"%(msg, line, self), sys.exc_info()[2])
 
             p_warnings = []
@@ -769,9 +819,9 @@ class Polymake(ExtraTabCompletion, Expect):
                 while True:
                     try:
                         if isinstance(wait_for_prompt, six.string_types):
-                            pat = E.expect(wait_for_prompt)
+                            pat = E.expect(wait_for_prompt, **kwds)
                         else:
-                            pat = E.expect_list(self._prompt)
+                            pat = E.expect_list(self._prompt, **kwds)
                     except pexpect.EOF as msg:
                         try:
                             if self.is_local():
@@ -788,7 +838,7 @@ class Polymake(ExtraTabCompletion, Expect):
                         elif restart_if_needed==True: # the subprocess might have crashed
                             try:
                                 self._synchronize()
-                                return self._eval_line(line,allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False)
+                                return self._eval_line(line,allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False, **kwds)
                             except (TypeError, RuntimeError):
                                 pass
                         raise RuntimeError("%s\n%s crashed executing %s"%(msg,self, line))
@@ -873,7 +923,13 @@ class Polymake(ExtraTabCompletion, Expect):
                         E.buffer = E.before + E.after + E.buffer
                         break
                     else: # timeout or some other problem
-                        raise RuntimeError("Polymake unexpectedly {}".format(_available_polymake_answers[pat]))
+                        # Polymake would still continue with the computation. Thus, we send an interrupt
+                        E.send(chr(3))
+                        while E.expect_list(self._prompt, timeout=0.1):
+                            # ... and since a single Ctrl-c just interrupts *one* of polymake's
+                            # rule chains, we repeat until polymake is running out of rules.
+                            E.send(chr(3))
+                        raise RuntimeError("Polymake {}".format(_available_polymake_answers[pat]))
             else:
                 out = ''
         except KeyboardInterrupt:

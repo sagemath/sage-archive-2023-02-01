@@ -774,7 +774,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         A pair ``F,R``, where ``F`` is a construction functor and ``R`` is a ring,
         so that ``F(R) is self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y> = InfinitePolynomialRing(GF(5))
             sage: R.construction()
@@ -1549,7 +1549,7 @@ class InfinitePolynomialRing_dense(InfinitePolynomialRing_sparse):
         A pair ``F,R``, where ``F`` is a construction functor and ``R`` is a ring,
         so that ``F(R) is self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y> = InfinitePolynomialRing(GF(5))
             sage: R.construction()

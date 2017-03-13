@@ -395,7 +395,7 @@ class FormalSums(UniqueRepresentation, Module):
         r"""
         Return whether there is a coercion from ``X``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: FormalSums(QQ).has_coerce_map_from( FormalSums(ZZ) )   # indirect test
             True

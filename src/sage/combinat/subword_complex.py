@@ -472,7 +472,7 @@ class SubwordComplexFacet(Simplex, Element):
         r"""
         Return the positive roots of the root configuration of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: W = ReflectionGroup(['A',2])                          # optional - gap3
             sage: w = W.from_reduced_word([1,2,1])                      # optional - gap3
@@ -1163,7 +1163,7 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
 
         - ``other`` -- another subword complex.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: W = ReflectionGroup(['A',2])                          # optional - gap3
             sage: w = W.from_reduced_word([1,2,1])                      # optional - gap3

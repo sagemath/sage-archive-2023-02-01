@@ -103,7 +103,7 @@ def compute_G(p, F):
 
     the power series `F(q) / F(q^p)`, to the same precision as `F`
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: E = sage.modular.overconvergent.hecke_series.eisenstein_series_qexp(2, 12, Zmod(9),normalization="constant")
         sage: sage.modular.overconvergent.hecke_series.compute_G(3, E)

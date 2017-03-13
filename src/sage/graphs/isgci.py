@@ -394,7 +394,7 @@ class GraphClass(SageObject, CachedRepresentation):
     An instance of this class represents a Graph Class, matching some entry in
     the ISGCI database.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Testing the inclusion of two classes::
 
@@ -424,7 +424,7 @@ class GraphClass(SageObject, CachedRepresentation):
           return boolan answers to the question : *does ``g`` belong to the
           class represented by ``gc_id`` ?*
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: graph_classes.Chordal  # indirect doctest
             Chordal graphs
@@ -439,7 +439,7 @@ class GraphClass(SageObject, CachedRepresentation):
         r"""
         Returns a short description of the class
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: graph_classes.Chordal  # indirect doctest
             Chordal graphs
@@ -450,7 +450,7 @@ class GraphClass(SageObject, CachedRepresentation):
         r"""
         Returns the class' ID hash
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: hash(graph_classes.Chordal) == hash(graph_classes.Chordal)
             True
@@ -461,7 +461,7 @@ class GraphClass(SageObject, CachedRepresentation):
         r"""
         <= operator
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: graph_classes.Chordal <= graph_classes.Tree
             Unknown
@@ -472,7 +472,7 @@ class GraphClass(SageObject, CachedRepresentation):
         r"""
         >= operator
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: graph_classes.Chordal >= graph_classes.Tree
             True
@@ -488,7 +488,7 @@ class GraphClass(SageObject, CachedRepresentation):
         r"""
         == operator
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: graph_classes.Chordal == graph_classes.Tree
             Unknown
@@ -499,7 +499,7 @@ class GraphClass(SageObject, CachedRepresentation):
         r"""
         >, !=, and < operators
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: graph_classes.Chordal > graph_classes.Tree
             Traceback (most recent call last):
@@ -606,7 +606,7 @@ class GraphClass(SageObject, CachedRepresentation):
         r"""
         Prints the information of ISGCI about the current class.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: graph_classes.Chordal.description()
             Class of graphs : Chordal
@@ -670,7 +670,7 @@ class GraphClasses(UniqueRepresentation):
 
             :meth:`~sage.graphs.isgci.GraphClasses.show_all`
 
-        EXAMPLE:
+        EXAMPLES:
 
         With an existing id::
 
@@ -800,7 +800,7 @@ class GraphClasses(UniqueRepresentation):
         r"""
         Downloads the current version of the ISGCI db
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: graph_classes._download_db() # Not tested -- requires internet
         """
@@ -834,7 +834,7 @@ class GraphClasses(UniqueRepresentation):
         - ``directory`` -- the name of the directory containing the latest
           version of the database.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.env import GRAPHS_DATA_DIR
             sage: graph_classes._parse_db(GRAPHS_DATA_DIR)
@@ -884,7 +884,7 @@ class GraphClasses(UniqueRepresentation):
         sufficient, the XML file are saved instead in the user's directory (in
         the SAGE_DB folder).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: graph_classes.update_db() # Not tested -- requires internet
         """
@@ -915,7 +915,7 @@ class GraphClasses(UniqueRepresentation):
             This method returns the data contained in the most recent ISGCI database
             present on the computer. See :meth:`update_db` to update the latter.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: graph_classes._get_ISGCI()  # long time (4s on sage.math, 2012)
         """
@@ -945,7 +945,7 @@ class GraphClasses(UniqueRepresentation):
         r"""
         Prints all graph classes stored in ISGCI
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: graph_classes.show_all()
             id        | name                                     | type                 | smallgraph
@@ -1010,7 +1010,7 @@ def _XML_to_dict(root):
 
     A dictionary representing the XML data.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: graph_classes.Perfect.description() # indirect doctest
         Class of graphs : Perfect

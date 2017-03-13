@@ -680,7 +680,7 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
         problem (the GAP functions ``EpimorphismFromFreeGroup`` and
         ``PreImagesRepresentative``).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = GL(2,5); G
             General Linear Group of degree 2 over Finite Field of size 5

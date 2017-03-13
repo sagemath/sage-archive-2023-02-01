@@ -12,7 +12,7 @@ def IdealMonoid(R):
     r"""
     Return the monoid of ideals in the ring ``R``.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R = QQ['x']
         sage: sage.rings.ideal_monoid.IdealMonoid(R)
@@ -68,7 +68,7 @@ class IdealMonoid_c(Parent):
         r"""
         Return the ring of which this is the ideal monoid.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = QuadraticField(-23, 'a')
             sage: M = sage.rings.ideal_monoid.IdealMonoid(R); M.ring() is R
@@ -108,7 +108,7 @@ class IdealMonoid_c(Parent):
         r"""
         Used by coercion framework.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = QuadraticField(-23, 'a')
             sage: M = R.ideal_monoid()
@@ -130,7 +130,7 @@ class IdealMonoid_c(Parent):
         r"""
         Comparison function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = QuadraticField(-23, 'a')
             sage: M = R.ideal_monoid()

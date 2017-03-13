@@ -202,7 +202,7 @@ class PariRing(Singleton, ring.Ring):
         - `distribution` -- optional string, so that ``ZZ`` can make sense
           of it as a probability distribution.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = PariRing()
             sage: R.random_element()
@@ -220,7 +220,7 @@ class PariRing(Singleton, ring.Ring):
         """
         Return -1.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = PariRing()
             sage: R.zeta()

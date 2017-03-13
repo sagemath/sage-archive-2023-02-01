@@ -123,7 +123,7 @@ class Homology_abvar(Homology):
         r"""
         Compare self to other.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: J0(37).integral_homology() == J0(41).integral_homology()
             False
@@ -615,7 +615,7 @@ class Homology_submodule(Homology):
         r"""
         Compare self to other.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: J0(37).homology().decomposition() # indirect doctest
             [

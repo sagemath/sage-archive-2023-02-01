@@ -516,7 +516,7 @@ cdef ring *singular_ring_reference(ring *existing_ring) except NULL:
     calling this function `n` times, you need to call :func:`singular_ring_delete`
     `n+1` times to actually deallocate the ring.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: import gc
         sage: _ = gc.collect()

@@ -577,7 +577,7 @@ class RealBallField(UniqueRepresentation, Field):
 
     def gens(self):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: RBF.gens()
             (1.000000000000000,)

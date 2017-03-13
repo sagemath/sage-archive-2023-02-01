@@ -426,7 +426,7 @@ class FinitePosets(CategoryWithAxiom):
                 sage: P = Poset( {} )
                 sage: I = Set({})
                 sage: P.rowmotion(I)
-                Set of elements of {}
+                {}
             """
             result = order_ideal
             for i in reversed(self.linear_extension()):

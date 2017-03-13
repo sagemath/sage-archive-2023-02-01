@@ -360,9 +360,9 @@ def automorphisms(self):
         sage: Q = QuadraticForm(ZZ, 3, [2, 1, 2, 2, 1, 3])
         sage: Q.automorphisms()
         [
-        [1 0 0]  [-1  0  0]
-        [0 1 0]  [ 0 -1  0]
-        [0 0 1], [ 0  0 -1]
+        [-1  0  0]  [1 0 0]
+        [ 0 -1  0]  [0 1 0]
+        [ 0  0 -1], [0 0 1]
         ]
     """
     return [x.matrix() for x in self.automorphism_group().list()]

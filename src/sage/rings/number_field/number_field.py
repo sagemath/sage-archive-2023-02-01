@@ -14,7 +14,7 @@ AUTHORS:
 
 - Simon King (2010-05): Improve coercion from GAP
 
-- Jeroen Demeyer (2010-07, 2011-04): Upgrade PARI (#9343, #10430, #11130)
+- Jeroen Demeyer (2010-07, 2011-04): Upgrade PARI (:trac:`9343`, :trac:`10430`, :trac:`11130`)
 
 - Robert Harron (2012-08): added is_CM(), complex_conjugation(), and
   maximal_totally_real_subfield()
@@ -1470,7 +1470,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         r"""
         Construction of self
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a>=NumberField(x^3+x^2+1,embedding=CC.gen())
             sage: F,R = K.construction()
@@ -2874,7 +2874,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         OUTPUT: A dict of all integral ideals I such that Norm(I) <= bound,
         keyed by norm.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^2 + 23)
             sage: d = K.ideals_of_bdd_norm(10)
@@ -3570,7 +3570,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         INPUT:
 
         - ``proof`` -- If False, assume GRH.  If True, run PARI's
-          ``bnfcertify()`` to make sure that the results are correct.
+          :pari:`bnfcertify` to make sure that the results are correct.
 
         - ``units`` -- (default: True) If True, insist on having
           fundamental units.  If False, the units may or may not be
@@ -3620,7 +3620,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
     def pari_rnfnorm_data(self, L, proof=True):
         """
-        Return the PARI rnfisnorminit() data corresponding to the
+        Return the PARI :pari:`rnfisnorminit` data corresponding to the
         extension L/self.
 
         EXAMPLES::
@@ -3647,7 +3647,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         Create a gap object representing self and return its name
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: z = QQ['z'].0
             sage: K.<zeta> = NumberField(z^2 - 2)
@@ -3816,7 +3816,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         The S-class group of this number field.
 
-        EXAMPLE:
+        EXAMPLES:
 
         A well known example::
 
@@ -3870,7 +3870,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
             For more functionality see the S_unit_group() function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = QuadraticField(-3)
             sage: K.unit_group()
@@ -3933,7 +3933,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
           where ``gen`` is a fractional ideal of self and ``order`` is
           its order in the `S`-class group.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^2+5)
             sage: K._S_class_group_and_units(())
@@ -4594,11 +4594,13 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         Compute the different fractional ideal of this number field.
 
         The codifferent is the fractional ideal of all `x` in `K`
-        such that the the trace of `xy` is an integer for
+        such that the trace of `xy` is an integer for
         all `y \in O_K`.
 
         The different is the integral ideal which is the inverse of
         the codifferent.
+
+        See :wikipedia:`Different_ideal`
 
         EXAMPLES::
 
@@ -5235,7 +5237,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         .. note::
 
            In the non-totally-real case, the LLL routine we call is
-           currently PARI's qflll(), which works with floating point
+           currently PARI's :pari:`qflll`, which works with floating point
            approximations, and so the result is only as good as the
            precision promised by PARI. The matrix returned will always
            be integral; however, it may only be only "almost" LLL-reduced
@@ -5314,7 +5316,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         .. note::
 
            In the non-totally-real case, the LLL routine we call is
-           currently PARI's qflll(), which works with floating point
+           currently PARI's :pari:`qflll`, which works with floating point
            approximations, and so the result is only as good as the
            precision promised by PARI. In particular, in this case,
            the returned matrix will *not* be integral, and may not
@@ -5862,7 +5864,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         ALGORITHM:
 
             Use PARI. More precisely, use the second component of
-            ``idealprimedec`` in the "positive" case. Use `idealappr`
+            :pari:`idealprimedec` in the "positive" case. Use :pari:`idealappr`
             with exponent of -1 and invert the result in the "negative"
             case.
         """
@@ -5882,7 +5884,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         Return generators for the unit group modulo torsion.
 
-        ALGORITHM: Uses PARI's bnfunit command.
+        ALGORITHM: Uses PARI's :pari:`bnfunit` command.
 
         INPUT:
 
@@ -5964,7 +5966,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         Return the unit group (including torsion) of this number field.
         
-        ALGORITHM: Uses PARI's bnfunit command.
+        ALGORITHM: Uses PARI's :pari:`bnfunit` command.
 
         INPUT:
 
@@ -6036,7 +6038,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         Return the S-unit group (including torsion) of this number field.
 
-        ALGORITHM: Uses PARI's bnfsunit command.
+        ALGORITHM: Uses PARI's :pari:`bnfsunit` command.
 
         INPUT:
 
@@ -6400,7 +6402,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         Compute the first n coefficients of the Dedekind zeta function of
         this field as a Dirichlet series.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: x = QQ['x'].0
             sage: NumberField(x^2+1, 'a').zeta_coefficients(10)
@@ -6472,7 +6474,7 @@ class NumberField_absolute(NumberField_generic):
         """
         Function to initialize an absolute number field.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K = NumberField(x^17 + 3, 'a'); K
             Number Field in a with defining polynomial x^17 + 3
@@ -6483,8 +6485,8 @@ class NumberField_absolute(NumberField_generic):
         NumberField_generic.__init__(self, polynomial, name, latex_name, check, embedding,
                                      assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structure=structure)
         self._element_class = number_field_element.NumberFieldElement_absolute
-        self._zero_element = self(0)
-        self._one_element =  self(1)
+        self._zero_element = self._element_class(self, 0)
+        self._one_element =  self._element_class(self, 1)
 
         self._init_embedding_approx()
 
@@ -6961,7 +6963,7 @@ class NumberField_absolute(NumberField_generic):
         only generates the field over its base field (not necessarily over
         `\QQ`).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^2 - 17)
             sage: K.absolute_generator()
@@ -7690,7 +7692,7 @@ class NumberField_absolute(NumberField_generic):
         r"""
         Compute all Galois automorphisms of self.
 
-        This uses PARI's ``nfgaloisconj`` and is much faster than root finding
+        This uses PARI's :pari:`nfgaloisconj` and is much faster than root finding
         for many fields.
 
         EXAMPLES::
@@ -10228,6 +10230,8 @@ class NumberField_quadratic(NumberField_absolute):
         """
         if K is ZZ:
             return number_field_element_quadratic.Z_to_quadratic_field_element(self)
+        if K is int:
+            return self._coerce_map_via([ZZ], int) # faster than direct
         if K is QQ:
             return number_field_element_quadratic.Q_to_quadratic_field_element(self)
         return NumberField_absolute._coerce_map_from_(self, K)

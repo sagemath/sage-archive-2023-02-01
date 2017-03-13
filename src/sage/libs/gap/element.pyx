@@ -2474,7 +2474,7 @@ cdef class GapElement_Record(GapElement):
         sage: dict(rec)
         {'a': 123, 'b': 456}
         sage: type(_)
-        <type 'dict'>
+        <... 'dict'>
 
     Range checking is performed::
 
@@ -2535,7 +2535,7 @@ cdef class GapElement_Record(GapElement):
         first time the string is encountered, a new integer is
         returned(!)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: rec = libgap.eval('rec(first:=123, second:=456)')
             sage: rec.record_name_to_index('first')   # random output

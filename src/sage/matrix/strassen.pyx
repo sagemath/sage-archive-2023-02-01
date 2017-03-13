@@ -262,7 +262,7 @@ def strassen_echelon(MatrixWindow A, cutoff):
 
     OUTPUT: The list of pivot columns
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: A = matrix(QQ, 7, [5, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, -1, 3, 1, 0, -1, 0, 0, -1, 0, 1, 2, -1, 1, 0, -1, 0, 1, 3, -1, 1, 0, 0, -2, 0, 2, 0, 1, 0, 0, -1, 0, 1, 0, 1])
         sage: B = A.__copy__(); B._echelon_strassen(1); B

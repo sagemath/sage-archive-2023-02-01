@@ -38,7 +38,7 @@ if __name__ == "__main__":
     parser.add_option("--file-iterations", "--file_iterations", type=int, default=0, help="repeat each file this many times, stopping on the first failure")
 
     parser.add_option("-i", "--initial", action="store_true", default=False, help="only show the first failure in each file")
-    parser.add_option("--force_lib", "--force-lib", action="store_true", default=False, help="assume all files are Sage library files, regardless of location, ie don't import anything from the file tested")
+    parser.add_option("--force_lib", "--force-lib", action="store_true", default=False, help="do not import anything from the tested file(s)")
     parser.add_option("--abspath", action="store_true", default=False, help="print absolute paths rather than relative paths")
     parser.add_option("--verbose", action="store_true", default=False, help="print debugging output during the test")
     parser.add_option("-d", "--debug", action="store_true", default=False, help="drop into a python debugger when an unexpected error is raised")

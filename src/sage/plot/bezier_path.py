@@ -69,7 +69,7 @@ class BezierPath(GraphicPrimitive_xydata):
         EXAMPLES::
 
             sage: from sage.plot.bezier_path import BezierPath
-            sage: list(sorted(BezierPath([[[-1,2], [14,2.3], [17,4]]], {})._allowed_options().iteritems()))
+            sage: list(sorted(BezierPath([[[-1,2], [14,2.3], [17,4]]], {})._allowed_options().items()))
             [('alpha', 'How transparent the line is.'),
             ('fill', 'Whether or not to fill the polygon.'),
             ('linestyle',

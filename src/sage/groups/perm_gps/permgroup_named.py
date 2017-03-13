@@ -624,7 +624,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         r"""
         Return the class to be used for creating elements of this group.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: SymmetricGroup(17)._element_class()
             <type 'sage.groups.perm_gps.permgroup_element.SymmetricGroupElement'>
@@ -811,7 +811,7 @@ class DiCyclicGroup(PermutationGroup_unique):
     the symmetries of a square.  For `n=3` this is the nonabelian
     group of order 12 that is not the dihedral group `D_6`
     nor the alternating group `A_4`.  This group of order 12 is
-    also the semi-direct product of of `C_2` by `C_4`,
+    also the semi-direct product of `C_2` by `C_4`,
     `C_3\rtimes C_4`.  [Con]_
 
 
@@ -1911,7 +1911,7 @@ class TransitiveGroupsAll(DisjointUnionEnumeratedSets):
         sage: L = TransitiveGroups(); L
         Transitive Groups
         sage: L.category()
-        Category of infinite enumerated sets
+        Category of facade infinite enumerated sets
         sage: L.cardinality()
         +Infinity
 
@@ -1919,9 +1919,11 @@ class TransitiveGroupsAll(DisjointUnionEnumeratedSets):
         sage: (next(p), next(p), next(p), next(p), next(p), next(p), next(p), next(p)) # optional - database_gap
         (Transitive group number 1 of degree 0, Transitive group number 1 of degree 1, Transitive group number 1 of degree 2, Transitive group number 1 of degree 3, Transitive group number 2 of degree 3, Transitive group number 1 of degree 4, Transitive group number 2 of degree 4, Transitive group number 3 of degree 4)
 
-    TESTS::
+    TESTS:
 
-        sage: TestSuite(TransitiveGroups()).run() # optional - database_gap # long time
+    The following test is broken, see :trac:`22576`::
+
+        sage: TestSuite(TransitiveGroups()).run() # known bug # optional - database_gap # long time
     """
     def __init__(self):
         """
@@ -1929,7 +1931,7 @@ class TransitiveGroupsAll(DisjointUnionEnumeratedSets):
 
             sage: S = TransitiveGroups() # optional - database_gap
             sage: S.category() # optional - database_gap
-            Category of infinite enumerated sets
+            Category of facade infinite enumerated sets
         """
         DisjointUnionEnumeratedSets.__init__(self, Family(NonNegativeIntegers(), lambda i: TransitiveGroups(i)) )
 
@@ -2292,7 +2294,7 @@ class PrimitiveGroupsAll(DisjointUnionEnumeratedSets):
         sage: L = PrimitiveGroups(); L
         Primitive Groups
         sage: L.category()
-        Category of infinite enumerated sets
+        Category of facade infinite enumerated sets
         sage: L.cardinality()
         +Infinity
 
@@ -2301,9 +2303,11 @@ class PrimitiveGroupsAll(DisjointUnionEnumeratedSets):
         ....:  next(p), next(p), next(p), next(p))
         (Trivial group, Trivial group, S(2), A(3), S(3), A(4), S(4), C(5))
 
-    TESTS::
+    TESTS:
 
-        sage: TestSuite(PrimitiveGroups()).run() # optional - database_gap # long time
+    The following test is broken, see :trac:`22576`::
+
+        sage: TestSuite(PrimitiveGroups()).run() # known bug # optional - database_gap # long time
     """
     def __init__(self):
         """
@@ -2311,7 +2315,7 @@ class PrimitiveGroupsAll(DisjointUnionEnumeratedSets):
 
             sage: S = PrimitiveGroups() # optional - database_gap
             sage: S.category() # optional - database_gap
-            Category of infinite enumerated sets
+            Category of facade infinite enumerated sets
         """
         DisjointUnionEnumeratedSets.__init__(self, Family(NonNegativeIntegers(), lambda i: PrimitiveGroups(i)) )
 

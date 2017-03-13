@@ -533,7 +533,7 @@ class InterfaceInit(Converter):
             sage: a = df.subs(x=exp(x)); a
             D[0](f)(e^x)
             sage: b = maxima(a); b
-            %at('diff('f(_SAGE_VAR_t0),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=%e^_SAGE_VAR_x])
+            %at('diff('f(_SAGE_VAR_t0),_SAGE_VAR_t0,1),_SAGE_VAR_t0=%e^_SAGE_VAR_x)
             sage: bool(b.sage() == a)
             True
 
@@ -542,7 +542,7 @@ class InterfaceInit(Converter):
             sage: a = df.subs(x=4); a
             D[0](f)(4)
             sage: b = maxima(a); b
-            %at('diff('f(_SAGE_VAR_t0),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=4])
+            %at('diff('f(_SAGE_VAR_t0),_SAGE_VAR_t0,1),_SAGE_VAR_t0=4)
             sage: bool(b.sage() == a)
             True
 
@@ -562,7 +562,7 @@ class InterfaceInit(Converter):
             sage: a = f_x.subs(x=4); a
             D[0](f)(4, y)
             sage: b = maxima(a); b
-            %at('diff('f(_SAGE_VAR_t0,_SAGE_VAR_t1),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=4,_SAGE_VAR_t1=_SAGE_VAR_y])
+            %at('diff('f(_SAGE_VAR_t0,_SAGE_VAR_y),_SAGE_VAR_t0,1),_SAGE_VAR_t0=4)
             sage: bool(b.sage() == a)
             True
 
@@ -571,7 +571,7 @@ class InterfaceInit(Converter):
             sage: a = f_x.subs(x=4).subs(y=8); a
             D[0](f)(4, 8)
             sage: b = maxima(a); b
-            %at('diff('f(_SAGE_VAR_t0,_SAGE_VAR_t1),_SAGE_VAR_t0,1),[_SAGE_VAR_t0=4,_SAGE_VAR_t1=8])
+            %at('diff('f(_SAGE_VAR_t0,8),_SAGE_VAR_t0,1),_SAGE_VAR_t0=4)
             sage: bool(b.sage() == a)
             True
 
@@ -660,7 +660,7 @@ class SympyConverter(Converter):
     """
     Converts any expression to SymPy.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: import sympy
         sage: var('x,y')
@@ -869,6 +869,25 @@ class AlgebraicConverter(Converter):
             Traceback (most recent call last):
             ...
             TypeError: unable to convert zeta(7) to Algebraic Field
+
+        Test :trac:`22571`::
+
+            sage: a.composition(exp(0, hold=True), exp)
+            1
+            sage: a.composition(exp(1, hold=True), exp)
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to represent as an algebraic number
+            sage: a.composition(exp(pi*I*RR(1), hold=True), exp)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Real Field with 53 bits of precision to Rational Field
+            sage: a.composition(exp(pi*CC.gen(), hold=True), exp)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Real Field with 53 bits of precision to Rational Field
+            sage: bool(sin(pi*RR("0.7000000000000002")) > 0)
+            True
         """
         func = operator
         operand, = ex.operands()
@@ -877,16 +896,12 @@ class AlgebraicConverter(Converter):
         # Note that comparing functions themselves goes via maxima, and is SLOW
         func_name = repr(func)
         if func_name == 'exp':
-            rat_arg = (operand.imag()/(2*ex.parent().pi()))._rational_()
-            if rat_arg == 0:
-                # here we will either try and simplify, or return
-                raise ValueError("Unable to represent as an algebraic number.")
-            real = operand.real()
-            if real:
-                mag = exp(operand.real())._algebraic_(QQbar)
-            else:
-                mag = 1
-            res = mag * QQbar.zeta(rat_arg.denom())**rat_arg.numer()
+            if operand.real():
+                raise ValueError("unable to represent as an algebraic number")
+            # Coerce (not convert, see #22571) arg to a rational
+            arg = operand.imag()/(2*ex.parent().pi())
+            rat_arg = QQ.coerce(arg.pyobject())
+            res = QQbar.zeta(rat_arg.denom())**rat_arg.numer()
         elif func_name in ['sin', 'cos', 'tan']:
             exp_ia = exp(SR(-1).sqrt()*operand)._algebraic_(QQbar)
             if func_name == 'sin':
@@ -1137,7 +1152,7 @@ def polynomial(ex, base_ring=None, ring=None):
 
     INPUT:
 
-    - ``ex`` -- a symbolic expression.
+    - ``ex`` -- a symbolic expression
 
     - ``base_ring``, ``ring`` -- Either a
       ``base_ring`` or a polynomial ``ring`` can be
@@ -1198,7 +1213,7 @@ def polynomial(ex, base_ring=None, ring=None):
 class LaurentPolynomialConverter(PolynomialConverter):
     def __init__(self, ex, base_ring=None, ring=None):
         """
-        A converter from symbolic expressions to laurent polynomials.
+        A converter from symbolic expressions to Laurent polynomials.
 
         See :func:`laurent_polynomial` for details.
 
@@ -1216,16 +1231,17 @@ class LaurentPolynomialConverter(PolynomialConverter):
 
         if ring is None and base_ring is not None:
             from sage.rings.all import LaurentPolynomialRing
-            self.ring = LaurentPolynomialRing(self.base_ring, names=self.varnames)
+            self.ring = LaurentPolynomialRing(self.base_ring,
+                                              names=self.varnames)
 
 
 def laurent_polynomial(ex, base_ring=None, ring=None):
     """
-    Return a laurent polynomial from the symbolic expression ``ex``.
+    Return a Laurent polynomial from the symbolic expression ``ex``.
 
     INPUT:
 
-    - ``ex`` -- a symbolic expression.
+    - ``ex`` -- a symbolic expression
 
     - ``base_ring``, ``ring`` -- Either a
       ``base_ring`` or a laurent polynomial ``ring`` can be
@@ -1235,7 +1251,7 @@ def laurent_polynomial(ex, base_ring=None, ring=None):
 
     OUTPUT:
 
-    A laurent polynomial.
+    A Laurent polynomial.
 
     EXAMPLES::
 

@@ -537,8 +537,11 @@ fields instead of the category of fields::
     sage: [p for p in dir(QuotientFields().parent_class) if p not in dir(Fields().parent_class)]
     []
     sage: [p for p in dir(QuotientFields().element_class) if p not in dir(Fields().element_class)]
-    ['_derivative', 'denominator', 'derivative', 'factor',
-     'numerator', 'partial_fraction_decomposition']
+    ['_derivative',
+     'denominator',
+     'derivative',
+     'numerator',
+     'partial_fraction_decomposition']
 
 .. end of output
 

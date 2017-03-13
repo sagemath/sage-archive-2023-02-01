@@ -1558,7 +1558,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         r"""
         Return True if this space is cuspidal.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = ModularForms(Gamma0(11), 2).new_submodule()
             sage: M.is_cuspidal()
@@ -1572,7 +1572,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         r"""
         Return True if this space is Eisenstein.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = ModularForms(Gamma0(11), 2).new_submodule()
             sage: M.is_eisenstein()

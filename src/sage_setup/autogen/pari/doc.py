@@ -63,7 +63,7 @@ def sub_loop(regex, repl, text):
         sage: from sage_setup.autogen.pari.doc import sub_loop
         sage: import re
         sage: sub_loop(re.compile("xx"), "x x", "xxx_xx")
-        u'x x x_x x'
+        'x x x_x x'
     """
     while True:
         text, n = regex.subn(repl, text)

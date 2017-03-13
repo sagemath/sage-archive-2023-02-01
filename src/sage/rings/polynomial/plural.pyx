@@ -164,17 +164,18 @@ class G_AlgFactory(UniqueFactory):
 
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
             sage: H=A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
-            sage: sorted(H.relations().iteritems(),key=str)
+            sage: sorted(H.relations().items(), key=str)
             [(y*x, x*y - z), (z*x, x*z + 2*x), (z*y, y*z - 2*y)]
-
         """
         # key = (base_ring,names, c,d, order, category)
         # extra args: check
-        base_ring,names,c,d,order,category = key
+        base_ring,names, c, d, order, category = key
         check = extra_args.get('check')
-        return NCPolynomialRing_plural(base_ring, names, c,d, order, category, check)
+        return NCPolynomialRing_plural(base_ring, names, c, d, order,
+                                       category, check)
+
     def create_key_and_extra_args(self, base_ring, c,d, names=None, order=None,
-                                 category=None,check=None):
+                                  category=None,check=None):
         """
         Create a unique key for g-algebras.
 
@@ -650,7 +651,7 @@ cdef class NCPolynomialRing_plural(Ring):
 
     def _repr_(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A.<x,y> = FreeAlgebra(QQ, 2)
             sage: H.<x,y> = A.g_algebra({y*x:-x*y})
@@ -708,7 +709,7 @@ cdef class NCPolynomialRing_plural(Ring):
         relation. The implicit relations are not provided, unless
         ``add_commutative==True``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
             sage: H.<x,y,z> = A.g_algebra({z*x:x*z+2*x, z*y:y*z-2*y})
@@ -865,7 +866,7 @@ cdef class NCPolynomialRing_plural(Ring):
 #        """
 #        Construct quotient ring of ``self`` and the two-sided Groebner basis of `ideal`
 #
-#        EXAMPLE::
+#        EXAMPLES::
 #
 #            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
 #            sage: H = A.g_algebra(relations={y*x:-x*y},  order='lex')
@@ -2289,10 +2290,10 @@ cdef class NCPolynomial_plural(RingElement):
         p = self._poly
 
         pl = list()
-        ml = range(r.N)
+        ml = list(xrange(r.N))
         while p:
             for v from 1 <= v <= r.N:
-                ml[v-1] = p_GetExp(p,v,r)
+                ml[v - 1] = p_GetExp(p, v, r)
 
             if as_ETuples:
                 pl.append(ETuple(ml))
@@ -2931,7 +2932,7 @@ def ExteriorAlgebra(base_ring, names,order='degrevlex'):
         sage: from sage.rings.polynomial.plural import ExteriorAlgebra
         sage: E = ExteriorAlgebra(QQ, ['x', 'y', 'z']) ; E #random
         Quotient of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*x: -x*z, z*y: -y*z, y*x: -x*y} by the ideal (z^2, y^2, x^2)
-        sage: sorted(E.cover().domain().relations().iteritems(),key=str)
+        sage: sorted(E.cover().domain().relations().items(), key=str)
         [(y*x, -x*y), (z*x, -x*z), (z*y, -y*z)]
         sage: sorted(E.cover().kernel().gens(),key=str)
         [x^2, y^2, z^2]

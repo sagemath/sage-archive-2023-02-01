@@ -151,7 +151,7 @@ from cpython.object cimport *
 from libc.stdint cimport uint64_t
 cimport sage.structure.element
 from sage.structure.element cimport (Element, EuclideanDomainElement,
-        parent_c, coercion_model)
+        parent, coercion_model)
 from sage.structure.parent cimport Parent
 include "sage/ext/python_debug.pxi"
 from sage.libs.cypari2.paridecl cimport *
@@ -911,7 +911,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 c = mpz_cmp((<Integer>left).value, mpz_tmp)
             elif isinstance(right, float):
                 d = right
-                if isnan(d): return op == 3
+                if isnan(d):
+                    return op == Py_NE
                 c = mpz_cmp_d((<Integer>left).value, d)
             else:
                 return coercion_model.richcmp(left, right, op)
@@ -923,7 +924,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 c = mpz_cmp(mpz_tmp, (<Integer>right).value)
             if isinstance(left, float):
                 d = left
-                if isnan(d): return op == 3
+                if isnan(d):
+                    return op == Py_NE
                 c = -mpz_cmp_d((<Integer>right).value, d)
             else:
                 return coercion_model.richcmp(left, right, op)
@@ -1390,8 +1392,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         ::
 
-            sage: digits = range(15)
-            sage: l=[ZZ(i).digits(15,digits) for i in range(100)]
+            sage: digits = list(range(15))
+            sage: l = [ZZ(i).digits(15,digits) for i in range(100)]
             sage: l[16]
             [1, 1]
 
@@ -2028,7 +2030,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         try:
             nn = pyobject_to_long(n)
         except TypeError:
-            s = parent_c(n)(self)
+            s = parent(n)(self)
             return s**n
         except OverflowError:
             if mpz_cmp_si(_self.value, 1) == 0:
@@ -3346,7 +3348,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n.__float__()
             -57.0
             sage: type(n.__float__())
-            <type 'float'>
+            <... 'float'>
         """
         return mpz_get_d_nearest(self.value)
 
@@ -3683,7 +3685,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef n_factor_t f
 
         if mpz_sgn(self.value) == 0:
-            raise ArithmeticError("Prime factorization of 0 not defined.")
+            raise ArithmeticError("factorization of 0 is not defined")
 
         if mpz_sgn(self.value) > 0:
             n    = self
@@ -3889,7 +3891,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         -  ``p`` - an integer at least 2.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: n = 60
             sage: n.valuation(2)
@@ -3928,7 +3930,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         -  ``u_p(self)`` - ``self`` / `p^{v_p(\mathrm{self})}`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: n = 60
             sage: n.val_unit(2)
@@ -5357,7 +5359,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
           configuration variables to determine which alternative to use (see
           :mod:`proof.arithmetic` or :mod:`sage.structure.proof`).
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             - :meth:`next_prime`
 
@@ -5751,7 +5753,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Returns the integer floor of the square root of self, or raises an
         ``ValueError`` if self is negative.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = Integer(5)
             sage: a.isqrt()
@@ -6221,7 +6223,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         Return the multiplicative inverse of self, as a rational number.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: n = 10
             sage: 1/n
@@ -6334,7 +6336,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         Return the greatest common divisor of self and `n`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: gcd(-1,1)
             1

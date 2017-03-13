@@ -1543,7 +1543,7 @@ In the latter case, please inform the developers.""".format(self.order()))
         """
         Return 1.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = Integers(12345678900)
             sage: R.degree()

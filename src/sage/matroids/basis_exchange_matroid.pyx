@@ -1949,7 +1949,7 @@ cdef class BasisExchangeMatroid(Matroid):
 
     cpdef _weak_invariant(self):
         """
-        Return an isomophism invariant of the matroid.
+        Return an isomorphism invariant of the matroid.
 
         Compared to BasisExchangeMatroid._strong_invariant() this invariant
         distinguishes less frequently between nonisomorphic matroids but takes
@@ -1994,7 +1994,7 @@ cdef class BasisExchangeMatroid(Matroid):
 
     cpdef _strong_invariant(self):
         """
-        Return an isomophism invariant of the matroid.
+        Return an isomorphism invariant of the matroid.
 
         Compared to BasisExchangeMatroid._weak_invariant() this invariant
         distinguishes more frequently between nonisomorphic matroids but takes
@@ -2260,7 +2260,7 @@ cdef class BasisExchangeMatroid(Matroid):
         OUTPUT:
 
         Boolean,
-        and, if certificate = True, a dictionary giving the isomophism or None
+        and, if certificate = True, a dictionary giving the isomorphism or None
 
         .. NOTE::
 

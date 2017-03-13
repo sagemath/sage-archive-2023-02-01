@@ -40,6 +40,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 import operator
 from sage.structure.element import ModuleElement
+from sage.structure.sage_object import op_EQ, op_NE
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.misc.cachefunc import cached_method
@@ -244,9 +245,11 @@ class PSModularSymbolElement(ModuleElement):
             val.normalize(**kwds)
         return self
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
-        Check if self == other. Here self and other have the same parent.
+        Check if self == other.
+
+        Here self and other have the same parent.
 
         EXAMPLES::
 
@@ -260,12 +263,13 @@ class PSModularSymbolElement(ModuleElement):
             sage: psi == phi
             False
         """
-        gens = self.parent().source().gens()
-        for g in gens:
-            c = cmp(self._map[g], other._map[g])
-            if c:
-                return c
-        return 0
+        if op not in [op_EQ, op_NE]:
+            return NotImplemented
+
+        b = all(self._map[g] == other._map[g]
+                for g in self.parent().source().gens())
+
+        return b == (op == op_EQ)
 
     def _add_(self, right):
         """
@@ -1566,7 +1570,7 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
         """
         Return the `p`-adic L-series of this modular symbol.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve('37a')
             sage: phi = E.pollack_stevens_modular_symbol()

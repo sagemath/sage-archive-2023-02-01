@@ -476,7 +476,7 @@ Daten umwandeln:
 
 ::
 
-    sage: d.items()
+    sage: list(d.items())
     [(1, 5), ('sage', 17), (Integer Ring, Finite Field of size 7)]
 
 Eine häufig vorkommende Ausdrucksweise ist über einem Paar in einem
@@ -485,7 +485,7 @@ Dictionary zu iterieren:
 ::
 
     sage: d = {2:4, 4:16, 3:9}
-    sage: [a*b for a, b in d.iteritems()]
+    sage: [a*b for a, b in d.items()]
     [8, 27, 64]
 
 Ein Dictionary ist ungeordnet, wie die letzte Ausgabe verdeutlicht.
@@ -674,18 +674,6 @@ gleichen Typ konvertieren, falls dies möglich ist:
     False
     sage: 2/3 < 3/2;   3/2 < 3/1
     True
-    True
-
-Fast immer können zwei beliebige Objekte verglichen werden. Es gibt
-keine Voraussetzung die besagt, dass die Objekte mit einer totalen Ordnung
-versehen sein müssen.
-
-
-::
-
-    sage: 2 < CC(3.1,1)
-    True
-    sage: 5 < VectorSpace(QQ,3)   # output can be somewhat random
     True
 
 Nutzen Sie bool für symbolische Ungleichungen:

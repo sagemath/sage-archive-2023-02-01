@@ -375,7 +375,7 @@ class FractionField_generic(ring.Field):
            A fraction field is finite if and only if the associated
            integral domain is finite.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Frac(QQ['a','b','c']).is_finite()
             False

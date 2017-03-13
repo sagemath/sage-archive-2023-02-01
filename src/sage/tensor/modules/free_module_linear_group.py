@@ -35,6 +35,9 @@ from sage.categories.groups import Groups
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
 from sage.tensor.modules.free_module_automorphism import FreeModuleAutomorphism
 
+import six
+
+
 class FreeModuleLinearGroup(UniqueRepresentation, Parent):
     r"""
     General linear group of a free module of finite rank over a commutative
@@ -371,7 +374,7 @@ class FreeModuleLinearGroup(UniqueRepresentation, Parent):
             if tens.tensor_type() == (1,1):
                 resu = self.element_class(self._fmodule, name=tens._name,
                                           latex_name=tens._latex_name)
-                for basis, comp in tens._components.iteritems():
+                for basis, comp in six.iteritems(tens._components):
                     resu._components[basis] = comp.copy()
                 # Check whether the tensor is invertible:
                 try:
@@ -388,7 +391,7 @@ class FreeModuleLinearGroup(UniqueRepresentation, Parent):
             if endo.is_endomorphism() and self._fmodule is endo.domain():
                 resu = self.element_class(self._fmodule, name=endo._name,
                                           latex_name=endo._latex_name)
-                for basis, mat in endo._matrices.iteritems():
+                for basis, mat in six.iteritems(endo._matrices):
                     resu.add_comp(basis[0])[:] = mat
                 # Check whether the endomorphism is invertible:
                 try:
@@ -518,7 +521,7 @@ class FreeModuleLinearGroup(UniqueRepresentation, Parent):
         r"""
         Return a string representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 2, name='M')
             sage: GL = M.general_linear_group()
@@ -532,7 +535,7 @@ class FreeModuleLinearGroup(UniqueRepresentation, Parent):
         r"""
         Return a string representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 2, name='M')
             sage: GL = M.general_linear_group()
@@ -553,7 +556,7 @@ class FreeModuleLinearGroup(UniqueRepresentation, Parent):
         - instance of :class:`FiniteRankFreeModule` representing the free
           module of which ``self`` is the general linear group
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 2, name='M')
             sage: GL = M.general_linear_group()

@@ -1,19 +1,19 @@
 r"""
-Linear code constructors that do not preserve the structural information.
+Linear code constructors that do not preserve the structural information
 
 This file contains a variety of constructions which builds the generator matrix
 of special (or random) linear codes and wraps them in a
 :class:`sage.coding.linear_code.LinearCode` object. These constructions are
 therefore not rich objects such as
-:class:`sage.coding.grs.GeneralizedReedSolomonCodes`.
+:class:`sage.coding.grs.GeneralizedReedSolomonCode`.
 
 For deprecation reasons, this file also contains some constructions for which
 Sage now does have rich representations.
 
 All codes available here can be accessed through the ``codes`` object::
 
-    sage: codes.BinaryGolayCode()
-    [23, 12] linear code over GF(2)
+    sage: codes.GolayCode(GF(2),extended=False)
+    [23, 12, 7]  Golay code over Finite Field of size 2
 
 REFERENCES:
 
@@ -384,114 +384,15 @@ def walsh_matrix(m0):
 ##################### main constructions #####################
 
 
-
-def BCHCode(n,delta,F,b=0):
-    r"""
-    A 'Bose-Chaudhuri-Hockenghem code' (or BCH code for short) is the
-    largest possible cyclic code of length n over field F=GF(q), whose
-    generator polynomial has zeros (which contain the set)
-    `Z = \{a^{b},a^{b+1}, ..., a^{b+delta-2}\}`, where a is a
-    primitive `n^{th}` root of unity in the splitting field
-    `GF(q^m)`, b is an integer `0\leq b\leq n-delta+1`
-    and m is the multiplicative order of q modulo n. (The integers
-    `b,...,b+delta-2` typically lie in the range
-    `1,...,n-1`.) The integer `delta \geq 1` is called
-    the "designed distance". The length n of the code and the size q of
-    the base field must be relatively prime. The generator polynomial
-    is equal to the least common multiple of the minimal polynomials of
-    the elements of the set `Z` above.
-
-    Special cases are b=1 (resulting codes are called 'narrow-sense'
-    BCH codes), and `n=q^m-1` (known as 'primitive' BCH
-    codes).
-
-    It may happen that several values of delta give rise to the same
-    BCH code. The largest one is called the Bose distance of the code.
-    The true minimum distance, d, of the code is greater than or equal
-    to the Bose distance, so `d\geq delta`.
-
-    EXAMPLES::
-
-        sage: FF.<a> = GF(3^2,"a")
-        sage: x = PolynomialRing(FF,"x").gen()
-        sage: L = [b.minpoly() for b in [a,a^2,a^3]]; g = LCM(L)
-        sage: f = x^(8)-1
-        sage: g.divides(f)
-        True
-        sage: C = codes.CyclicCode(generator_pol = g, length = 8); C
-        [8, 4] Cyclic Code over GF(3)
-        sage: C.minimum_distance()
-        4
-        sage: C = codes.BCHCode(8, 3, GF(3), 1); C
-        [8, 4] Cyclic Code over GF(3)
-        sage: C.minimum_distance()
-        4
-        sage: C = codes.BCHCode(8, 3, GF(3)); C
-        [8, 5] Cyclic Code over GF(3)
-        sage: C.minimum_distance()
-        3
-        sage: C = codes.BCHCode(26, 5, GF(5), b=1); C
-        [26, 10] Cyclic Code over GF(5)
-    """
-    from sage.coding.cyclic_code import CyclicCode
-    q = F.order()
-    R = IntegerModRing(n)
-    m = R(q).multiplicative_order()
-    FF = GF(q**m,"z")
-    z = FF.gen()
-    e = z.multiplicative_order()/n
-    a = z**e # order n
-    P = PolynomialRing(F,"x")
-    x = P.gen()
-    L1 = []
-    for coset in R.cyclotomic_cosets(q, range(b,b+delta-1)):
-        L1.extend(P((a**j).minpoly()) for j in coset)
-    g = P(LCM(L1))
-
-    if not(g.divides(x**n-1)):
-        raise ValueError("BCH codes does not exist with the given input.")
-    return CyclicCode(generator_pol = g, length = n)
-
-
 def BinaryGolayCode():
-    r"""
-    BinaryGolayCode() returns a binary Golay code. This is a perfect
-    [23,12,7] code. It is also (equivalent to) a cyclic code, with
-    generator polynomial
-    `g(x)=1+x^2+x^4+x^5+x^6+x^{10}+x^{11}`. Extending it yields
-    the extended Golay code (see ExtendedBinaryGolayCode).
-
-    EXAMPLE::
-
-        sage: C = codes.BinaryGolayCode()
-        sage: C
-        [23, 12] linear code over GF(2)
-        sage: C.minimum_distance()
-        7
-        sage: C.minimum_distance(algorithm='gap') # long time, check d=7
-        7
-
-    AUTHORS:
-
-    - David Joyner (2007-05)
     """
-    F = GF(2)
-    B = [[1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],\
-          [0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],\
-          [0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],\
-          [0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],\
-          [0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],\
-          [0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0],\
-          [0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],\
-          [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0],\
-          [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0],\
-          [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0],\
-          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0],\
-          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1]]
-    # MS = MatrixSpace(F,12,23)
-    # V = VectorSpace(F,23)
-    V = span(B, F)
-    return LinearCode(V, d=7)
+    This method is now deprecated.
+    Please use :class:`sage.coding.golay_code.GolayCode` instead.
+    """
+    from sage.misc.superseded import deprecation
+    from .golay_code import GolayCode
+    deprecation(20787, "codes.BinaryGolayCode is now deprecated. Please use codes.GolayCode instead.")
+    return GolayCode(GF(2), False)
 
 def CyclicCodeFromGeneratingPolynomial(n,g,ignore=True):
     r"""
@@ -598,7 +499,7 @@ def DuadicCodeEvenPair(F,S1,S2):
         ([11, 5] Cyclic Code over GF(3),
          [11, 5] Cyclic Code over GF(3))
     """
-    from sage.coding.cyclic_code import CyclicCode
+    from .cyclic_code import CyclicCode
     n = len(S1) + len(S2) + 1
     if not _is_a_splitting(S1,S2,n):
         raise TypeError("%s, %s must be a splitting of %s."%(S1,S2,n))
@@ -645,7 +546,7 @@ def DuadicCodeOddPair(F,S1,S2):
 
     This is consistent with Theorem 6.1.3 in [HP2003]_.
     """
-    from sage.coding.cyclic_code import CyclicCode
+    from .cyclic_code import CyclicCode
     n = len(S1) + len(S2) + 1
     if not _is_a_splitting(S1,S2,n):
         raise TypeError("%s, %s must be a splitting of %s."%(S1,S2,n))
@@ -674,39 +575,13 @@ def DuadicCodeOddPair(F,S1,S2):
 
 def ExtendedBinaryGolayCode():
     """
-    ExtendedBinaryGolayCode() returns the extended binary Golay code.
-    This is a perfect [24,12,8] code. This code is self-dual.
-
-    EXAMPLES::
-
-        sage: C = codes.ExtendedBinaryGolayCode()
-        sage: C
-        [24, 12] linear code over GF(2)
-        sage: C.minimum_distance()
-        8
-        sage: C.minimum_distance(algorithm='gap') # long time, check d=8
-        8
-
-    AUTHORS:
-
-    - David Joyner (2007-05)
+    This method is now deprecated.
+    Please use :class:`sage.coding.golay_code.GolayCode` instead.
     """
-    B = [[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1],\
-         [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0],\
-         [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1],\
-         [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0],\
-         [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1],\
-         [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1],\
-         [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1],\
-         [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0],\
-         [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0],\
-         [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0],\
-         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1],\
-         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1]]
-    V = span(B, GF(2))
-    return LinearCode(V, d=8)
-    # C = BinaryGolayCode()
-    # return C.extended_code()
+    from sage.misc.superseded import deprecation
+    from .golay_code import GolayCode
+    deprecation(20787, "codes.ExtendedBinaryGolayCode is now deprecated. Please use codes.GolayCode instead.")
+    return GolayCode(GF(2))
 
 
 def ExtendedQuadraticResidueCode(n,F):
@@ -753,33 +628,13 @@ def ExtendedQuadraticResidueCode(n,F):
 
 def ExtendedTernaryGolayCode():
     """
-    ExtendedTernaryGolayCode returns a ternary Golay code. This is a
-    self-dual perfect [12,6,6] code.
-
-    EXAMPLES::
-
-        sage: C = codes.ExtendedTernaryGolayCode()
-        sage: C
-        [12, 6] linear code over GF(3)
-        sage: C.minimum_distance()
-        6
-        sage: C.minimum_distance(algorithm='gap') # long time, check d=6
-        6
-
-    AUTHORS:
-
-    - David Joyner (11-2005)
+    This method is now deprecated.
+    Please use :class:`sage.coding.golay_code.GolayCode` instead.
     """
-    B = [[1, 0, 0, 0, 0, 0, 2, 0, 1, 2, 1, 2],\
-         [0, 1, 0, 0, 0, 0, 1, 2, 2, 2, 1, 0],\
-         [0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1],\
-         [0, 0, 0, 1, 0, 0, 1, 1, 0, 2, 2, 2],\
-         [0, 0, 0, 0, 1, 0, 2, 1, 2, 2, 0, 1],\
-         [0, 0, 0, 0, 0, 1, 0, 2, 1, 2, 2, 1]]
-    V = span(B, GF(3))
-    return LinearCode(V, d=6)
-    # C = TernaryGolayCode()
-    # return C.extended_code()
+    from sage.misc.superseded import deprecation
+    from .golay_code import GolayCode
+    deprecation(20787, "codes.ExtendedTernaryGolayCode is now deprecated. Please use codes.GolayCode instead.")
+    return GolayCode(GF(3))
 
 def from_parity_check_matrix(H):
     r"""
@@ -1035,34 +890,14 @@ def ReedSolomonCode(n,k,F,pts = None):
 
 
 def TernaryGolayCode():
-    r"""
-    TernaryGolayCode returns a ternary Golay code. This is a perfect
-    [11,6,5] code. It is also equivalent to a cyclic code, with
-    generator polynomial `g(x)=2+x^2+2x^3+x^4+x^5`.
-
-    EXAMPLES::
-
-        sage: C = codes.TernaryGolayCode()
-        sage: C
-        [11, 6] linear code over GF(3)
-        sage: C.minimum_distance()
-        5
-        sage: C.minimum_distance(algorithm='gap') # long time, check d=5
-        5
-
-    AUTHORS:
-
-    - David Joyner (2007-5)
     """
-    F = GF(3)
-    B = [[2, 0, 1, 2, 1, 1, 0, 0, 0, 0, 0],\
-         [0, 2, 0, 1, 2, 1, 1, 0, 0, 0, 0],\
-         [0, 0, 2, 0, 1, 2, 1, 1, 0, 0, 0],\
-         [0, 0, 0, 2, 0, 1, 2, 1, 1, 0, 0],\
-         [0, 0, 0, 0, 2, 0, 1, 2, 1, 1, 0],\
-         [0, 0, 0, 0, 0, 2, 0, 1, 2, 1, 1]]
-    V = span(B, F)
-    return LinearCode(V, d=5)
+    This method is now deprecated.
+    Please use :class:`sage.coding.golay_code.GolayCode` instead.
+    """
+    from sage.misc.superseded import deprecation
+    from .golay_code import GolayCode
+    deprecation(20787, "codes.TernaryGolayCode is now deprecated. Please use codes.GolayCode instead.")
+    return GolayCode(GF(3), False)
 
 def ToricCode(P,F):
     r"""

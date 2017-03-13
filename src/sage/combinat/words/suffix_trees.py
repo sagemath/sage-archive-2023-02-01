@@ -10,7 +10,7 @@ Suffix Tries and Suffix Trees
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from six.moves import range
 from six import iteritems
 
 from sage.structure.sage_object import SageObject
@@ -277,9 +277,8 @@ class SuffixTrie(SageObject):
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: w = Words([0,1])([0,1,0,1,1])
             sage: t = SuffixTrie(w)
-            sage: [t.transition_function(u,letter) == v \
-                    for ((u,letter),v) in t._transition_function.iteritems()] \
-                    == [True] * len(t._transition_function)
+            sage: all(t.transition_function(u, letter) == v
+            ....:     for ((u, letter), v) in t._transition_function.items())
             True
         """
         if node == -1:
@@ -311,7 +310,7 @@ class SuffixTrie(SageObject):
             sage: s.states()
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
         """
-        return range(len(self._transition_function))
+        return list(range(len(self._transition_function)))
 
     def suffix_link(self, state):
         r"""
@@ -996,7 +995,7 @@ class ImplicitSuffixTree(SageObject):
             sage: t.states()
             [0, 1, 2, 3, 4, 5, 6, 7]
         """
-        return range(len(self._transition_function))
+        return list(range(len(self._transition_function)))
 
     def suffix_link(self, state):
         r"""

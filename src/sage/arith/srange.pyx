@@ -22,7 +22,7 @@ from __future__ import division, print_function
 
 from libc.math cimport ceil
 from sage.rings.integer cimport Integer
-from sage.structure.element cimport parent_c as parent
+from sage.structure.element cimport parent
 from sage.structure.sequence import Sequence
 
 include "cysignals/signals.pxi"

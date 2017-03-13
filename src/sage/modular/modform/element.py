@@ -1133,7 +1133,7 @@ class ModularForm_abstract(ModuleElement):
           (default: 0)
         - ``prec`` (integer, default 53): precision in bits
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CuspForms(1, 16).0.petersson_norm()
             verbose -1 (...: dokchitser.py, __call__) Warning: Loss of 2 decimal digits due to cancellation
@@ -1423,7 +1423,7 @@ class Newform(ModularForm_abstract):
         """
         Return True. For compatibility with elements of modular forms spaces.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Newforms(11, 2)[0].is_cuspidal()
             True

@@ -339,7 +339,7 @@ def shortest_path_all_pairs(G):
     The integer corresponding to a vertex is its index in the list
     ``G.vertices()``.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.distances_all_pairs import shortest_path_all_pairs
         sage: g = graphs.PetersenGraph()
@@ -419,7 +419,7 @@ def distances_all_pairs(G):
     This function returns a double dictionary ``D`` of vertices, in which the
     distance between vertices ``u`` and ``v`` is ``D[u][v]``.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.distances_all_pairs import distances_all_pairs
         sage: g = graphs.PetersenGraph()
@@ -630,7 +630,7 @@ def distances_and_predecessors_all_pairs(G):
     ``G.vertices()``.
 
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.distances_all_pairs import distances_and_predecessors_all_pairs
         sage: g = graphs.PetersenGraph()
@@ -823,7 +823,7 @@ def eccentricity(G, algorithm="standard"):
       ``'standard'`` which performs a BFS from each vertex and ``'bounds'``
       which uses the fast algorithm proposed in [TK13]_ for undirected graphs.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.distances_all_pairs import eccentricity
         sage: g = graphs.PetersenGraph()
@@ -1423,7 +1423,7 @@ def wiener_index(G):
       paths from `\Omega` containing `e`. We then have
       `W(G) = \sum_{e\in E(G)}|\Omega(e)|`.
 
-    EXAMPLE:
+    EXAMPLES:
 
     From [GYLL93c]_, cited in [KRG96b]_::
 

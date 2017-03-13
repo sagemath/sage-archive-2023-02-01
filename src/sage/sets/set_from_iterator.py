@@ -755,7 +755,7 @@ class EnumeratedSetFromIterator_method_caller(Decorator):
             sage: loads(dumps(d.f()))
             Traceback (most recent call last):
             ...
-            PicklingError: Can't pickle <type 'function'>: attribute lookup __builtin__.function failed
+            PicklingError: Can't pickle <... 'function'>: attribute lookup __builtin__.function failed
         """
         self.inst = inst
         self.f = f

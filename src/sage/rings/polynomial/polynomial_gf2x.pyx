@@ -29,7 +29,7 @@ cdef class Polynomial_GF2X(Polynomial_template):
     """
     Univariate Polynomials over GF(2) via NTL's GF2X.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<x> = GF(2)[]
         sage: x^3 + x^2 + 1
@@ -39,7 +39,7 @@ cdef class Polynomial_GF2X(Polynomial_template):
         """
         Create a new univariate polynomials over GF(2).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x> = GF(2)[]
             sage: x^3 + x^2 + 1
@@ -85,7 +85,7 @@ cdef class Polynomial_GF2X(Polynomial_template):
 
     def _pari_(self, variable=None):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x> = GF(2)[]
             sage: f = x^3 + x^2 + 1
@@ -111,7 +111,7 @@ cdef class Polynomial_GF2X(Polynomial_template):
         - ``h`` -- a polynomial
         - ``algorithm`` -- either 'native' or 'ntl' (default: 'native')
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x> = GF(2)[]
             sage: r = 279
@@ -275,7 +275,7 @@ def GF2X_BuildIrred_list(n):
     Return the list of coefficients of the lexicographically smallest
     irreducible polynomial of degree `n` over the field of 2 elements.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.polynomial.polynomial_gf2x import GF2X_BuildIrred_list
         sage: GF2X_BuildIrred_list(2)
@@ -298,7 +298,7 @@ def GF2X_BuildSparseIrred_list(n):
     Return the list of coefficients of an irreducible polynomial of
     degree `n` of minimal weight over the field of 2 elements.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.polynomial.polynomial_gf2x import GF2X_BuildIrred_list, GF2X_BuildSparseIrred_list
         sage: all([GF2X_BuildSparseIrred_list(n) == GF2X_BuildIrred_list(n)
@@ -318,7 +318,7 @@ def GF2X_BuildRandomIrred_list(n):
     Return the list of coefficients of an irreducible polynomial of
     degree `n` of minimal weight over the field of 2 elements.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.polynomial.polynomial_gf2x import GF2X_BuildRandomIrred_list
         sage: GF2X_BuildRandomIrred_list(2)

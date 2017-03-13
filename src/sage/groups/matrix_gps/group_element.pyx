@@ -23,7 +23,7 @@ there::
     sage: g + h
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '+':
+    TypeError: unsupported operand parent(s) for +:
     'Matrix group over Finite Field of size 3 with 2 generators (
     [1 0]  [1 1]
     [0 1], [0 1]
@@ -43,7 +43,7 @@ do it with the underlying matrices::
     sage: 2*g
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '*': 'Integer Ring' and 'Matrix group over Finite Field of size 3 with 2 generators (
+    TypeError: unsupported operand parent(s) for *: 'Integer Ring' and 'Matrix group over Finite Field of size 3 with 2 generators (
     [1 0]  [1 1]
     [0 1], [0 1]
     )'
@@ -372,12 +372,12 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
 
             sage: W = CoxeterGroup(['B',3])
             sage: W.base_ring()
-            Universal Cyclotomic Field
+            Number Field in a with defining polynomial x^2 - 2
             sage: g = W.an_element()
             sage: ~g
-            [            -1              1              0]
-            [            -1              0  E(8) - E(8)^3]
-            [-E(8) + E(8)^3              0              1]
+            [-1  1  0]
+            [-1  0  a]
+            [-a  0  1]
         """
         cdef Parent parent = self.parent()
         cdef Matrix M = self._matrix
@@ -680,7 +680,7 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
         problem (the GAP functions ``EpimorphismFromFreeGroup`` and
         ``PreImagesRepresentative``).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = GL(2,5); G
             General Linear Group of degree 2 over Finite Field of size 5

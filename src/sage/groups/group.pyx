@@ -68,6 +68,13 @@ cdef class Group(Parent):
                                        "_test_pickling",\
                                        "_test_prod",\
                                        "_test_some_elements"])
+
+    Generic groups have very little functionality::
+
+        sage: 4 in G
+        Traceback (most recent call last):
+        ...
+        NotImplementedError
     """
     def __init__(self, base=None, gens=None, category=None):
         """
@@ -110,33 +117,6 @@ cdef class Group(Parent):
                 raise ValueError("%s is not a subcategory of %s"%(category, Groups()))
         Parent.__init__(self, base=base, category=category)
 
-    def __contains__(self, x):
-        r"""
-        Test whether `x` defines a group element.
-
-        INPUT:
-
-        - ``x`` -- anything.
-
-        OUTPUT:
-
-        Boolean.
-
-        EXAMPLES::
-
-            sage: from sage.groups.group import Group
-            sage: G = Group()
-            sage: 4 in G               #indirect doctest
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        try:
-            self(x)
-        except TypeError:
-            return False
-        return True
-
     def is_abelian(self):
         """
         Test whether this group is abelian.
@@ -162,7 +142,7 @@ cdef class Group(Parent):
         (Note for developers: Derived classes should override is_abelian, not
         is_commutative.)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: SL(2, 7).is_commutative()
             False

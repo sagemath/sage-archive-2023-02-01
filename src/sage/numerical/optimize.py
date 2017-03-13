@@ -11,6 +11,7 @@ Functions and Methods
 ----------------------
 """
 from six.moves import range
+from six import iteritems
 
 from sage.modules.free_module_element import vector
 from sage.rings.real_double import RDF
@@ -59,7 +60,7 @@ def find_root(f, a, b, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False
     defined below is positive for all `x \geq 2.01`::
 
         sage: def f(x):
-        ...       return sqrt(x) * log(x) - abs(Li(x) - prime_pi(x))
+        ....:     return sqrt(x) * log(x) - abs(Li(x) - prime_pi(x))
 
     We find where `f` equals, i.e., what value that is slightly smaller
     than `2.01` that could have been used in the formulation of the Riemann
@@ -283,7 +284,7 @@ def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
     Same example with just Python functions::
 
         sage: def rosen(x): # The Rosenbrock function
-        ...      return sum(100.0r*(x[1r:]-x[:-1r]**2.0r)**2.0r + (1r-x[:-1r])**2.0r)
+        ....:    return sum(100.0r*(x[1r:]-x[:-1r]**2.0r)**2.0r + (1r-x[:-1r])**2.0r)
         sage: minimize(rosen,[.1,.3,.4],disp=0)
         (1.00..., 1.00..., 1.00...)
 
@@ -291,18 +292,18 @@ def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
     compute the gradient::
 
         sage: def rosen(x): # The Rosenbrock function
-        ...      return sum(100.0r*(x[1r:]-x[:-1r]**2.0r)**2.0r + (1r-x[:-1r])**2.0r)
+        ....:    return sum(100.0r*(x[1r:]-x[:-1r]**2.0r)**2.0r + (1r-x[:-1r])**2.0r)
         sage: import numpy
         sage: from numpy import zeros
         sage: def rosen_der(x):
-        ...      xm = x[1r:-1r]
-        ...      xm_m1 = x[:-2r]
-        ...      xm_p1 = x[2r:]
-        ...      der = zeros(x.shape,dtype=float)
-        ...      der[1r:-1r] = 200r*(xm-xm_m1**2r) - 400r*(xm_p1 - xm**2r)*xm - 2r*(1r-xm)
-        ...      der[0] = -400r*x[0r]*(x[1r]-x[0r]**2r) - 2r*(1r-x[0])
-        ...      der[-1] = 200r*(x[-1r]-x[-2r]**2r)
-        ...      return der
+        ....:    xm = x[1r:-1r]
+        ....:    xm_m1 = x[:-2r]
+        ....:    xm_p1 = x[2r:]
+        ....:    der = zeros(x.shape,dtype=float)
+        ....:    der[1r:-1r] = 200r*(xm-xm_m1**2r) - 400r*(xm_p1 - xm**2r)*xm - 2r*(1r-xm)
+        ....:    der[0] = -400r*x[0r]*(x[1r]-x[0r]**2r) - 2r*(1r-x[0])
+        ....:    der[-1] = 200r*(x[-1r]-x[-2r]**2r)
+        ....:    return der
         sage: minimize(rosen,[.1,.3,.4],gradient=rosen_der,algorithm="bfgs",disp=0)
         (1.00...,  1.00..., 1.00...)
     """
@@ -502,6 +503,15 @@ def linear_program(c,G,h,A=None,b=None,solver=None):
         sage: sol=linear_program(c,G,h)
         sage: sol['x']
         (0.999..., 1.000...)
+
+    Here we solve the same problem with 'glpk' interface to 'cvxopt'::
+
+        sage: sol=linear_program(c,G,h,solver='glpk')
+        GLPK Simplex Optimizer...
+        ...
+        OPTIMAL LP SOLUTION FOUND
+        sage: sol['x']
+        (1.0, 1.0)
 
     Next, we maximize `x+y-50` subject to `50x + 24y \leq 2400`,
     `30x + 33y \leq 2100`, `x \geq 45`, and `y \geq 5`::
@@ -812,15 +822,12 @@ def binpacking(items,maximum=1,k=None):
     except MIPSolverException:
         raise ValueError("This problem has no solution !")
 
-    box=p.get_values(box)
+    box = p.get_values(box)
 
-    boxes=[[] for i in range(k)]
+    boxes = [[] for i in range(k)]
 
-    for (i,b),value in box.iteritems():
+    for (i, b), value in iteritems(box):
         if value == 1:
             boxes[b].append(items[i])
 
     return boxes
-
-
-

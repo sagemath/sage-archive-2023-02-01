@@ -50,13 +50,14 @@ Linear Algebra
 * :doc:`Vectors and Modules <modules/index>`
 * :doc:`Tensors on Free Modules of Finite Rank <tensor_free_modules/index>`
 
-Calculus
---------
+Calculus and Analysis
+---------------------
 
 * :doc:`Symbolic Calculus <calculus/index>`
 * :doc:`Mathematical Constants <constants/index>`
 * :doc:`Elementary and Special Functions <functions/index>`
 * :doc:`Asymptotic Expansions <asymptotic/index>` (experimental)
+* :doc:`Numerical Optimization <numerical/index>`
 
 Probability and Statistics
 --------------------------
@@ -84,8 +85,10 @@ Discrete Mathematics
 * :doc:`Matroid Theory <matroids/index>`
 * :doc:`Discrete Dynamics <dynamics/index>`
 * :doc:`Coding Theory <coding/index>`
+* :doc:`Cryptography <cryptography/index>`
 * :doc:`Game Theory <game_theory/index>`
 * :doc:`Symbolic Logic <logic/index>`
+* :doc:`SAT solvers <sat/index>`
 
 Geometry and Topology
 ---------------------
@@ -121,13 +124,6 @@ Algebraic and Arithemtic Geometry
 ---------------------------------
 * :doc:`Schemes <schemes/index>`
 * :doc:`Plane, Elliptic and Hyperelliptic Curves <curves/index>`
-
-Special Topics
---------------
-
-* :doc:`Cryptography <cryptography/index>`
-* :doc:`Numerical Optimization <numerical/index>`
-* :doc:`SAT solvers <sat/index>`
 
 Miscellaneous
 -------------

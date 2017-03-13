@@ -120,7 +120,7 @@ Number Theory
 * :doc:`Modular Abelian Varieties <modabvar/index>`
 * :doc:`Miscellaneous Modular-Form-Related Modules <modmisc/index>`
 
-Algebraic and Arithemtic Geometry
+Algebraic and Arithmetic Geometry
 ---------------------------------
 * :doc:`Schemes <schemes/index>`
 * :doc:`Plane, Elliptic and Hyperelliptic Curves <curves/index>`

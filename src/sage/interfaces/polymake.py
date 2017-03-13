@@ -409,8 +409,14 @@ class Polymake(ExtraTabCompletion, Expect):
             ....: except KeyboardInterrupt:
             ....:     pass
             Interrupting Polymake...
+            doctest:warning
+            ...
+            RuntimeWarning: We ignore that Polymake issues warning during keyboard interrupt
+            doctest:warning
+            ...
+            RuntimeWarning: We ignore that Polymake raises error during keyboard interrupt
 
-        Afterwards, the interface is still running::
+        Afterwards, the interface should still be running.  ::
 
             sage: c.N_FACETS                                    # optional - polymake
             30
@@ -424,6 +430,7 @@ class Polymake(ExtraTabCompletion, Expect):
                 self._expect.send(chr(3))
             except pexpect.ExceptionPexpect as msg:
                 raise pexpect.ExceptionPexpect("THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
+            sleep(0.1)
             i = self._expect.expect_list(self._prompt, timeout=1)
             if i==0:
                 break
@@ -576,7 +583,7 @@ class Polymake(ExtraTabCompletion, Expect):
 
         In order to overcome problems with the perl programming language,
         we store *all* data as arrays. If the given value is an array
-        of length different to one, then the new variable contains that
+        of length different from one, then the new variable contains that
         array. Otherwise, the new variable is an array of length one whose
         only entry is the given value, which has to be a scalar (which
         also includes Perl references). In other words, perl hashes
@@ -610,18 +617,47 @@ class Polymake(ExtraTabCompletion, Expect):
 
         Eventually, ``var`` is a reference to ``value``.
 
-        NOTE:
+        WARNING:
 
-        Usually, one won't call this method directly, as in the example below,
-        but indirectly via calling the interface, as in other examples. Generally,
-        in this implementation of an interface to a Perl based software,
-        we treat all variables as arrays. A scalar value (most typically
-        a reference) is interpreted as the only item in a length of
-        length one. This is why we need ``'$myvar[0]'`` to access the value.
-        It should, however, never be needed to do this *explicitly* when
-        working with the polymake interface.
+        This method, although it doesn't start with an underscore, is
+        an internal method and not part of the interface. So, please do
+        not try to call it explicitly. Instead, use the polymake interface
+        as shown in the examples.
+
+        REMARK:
+
+        Polymake's user language is Perl. In Perl, if one wants to assign
+        the return value of a function to a variable, the syntax to do so
+        depends on the type of the return value. While this is fine in
+        compiled code, it seems quite awkward in user interaction.
+
+        To make this polymake pexpect interface a bit more user friendly,
+        we treat *all* variables as arrays. A scalar value (most typically
+        a reference) is thus interpreted as the only item in an array of
+        length one. It is, of course, possible to use the interface without
+        knowing these details.
 
         EXAMPLES::
+
+            sage: c = polymake('cube(3)')                       # optional - polymake # indirect doctest
+            sage: d = polymake.cube(3)                          # optional - polymake
+
+        Equality is, for "big" objects such as polytopes, comparison by
+        identity::
+
+            sage: c == d
+            False
+
+        However, the list of vertices is equal::
+
+            sage: c.VERTICES == d.VERTICES
+            True
+
+        TESTS:
+
+        The following shows how polymake variables are wrapped in our interface.
+        It should, however, **never** be needed to do the following
+        *explicitly*::
 
             sage: polymake.set('myvar', 'cube(3)')              # optional - polymake
             sage: polymake.get('$myvar[0]')                     # optional - polymake
@@ -639,9 +675,15 @@ class Polymake(ExtraTabCompletion, Expect):
 
         EXAMPLES::
 
-            sage: polymake.set('myvar', 'cube(3)')              # optional - polymake
-            sage: polymake.get('$myvar[0]')                     # optional - polymake
+            sage: polymake.get('cube(3)')                     # optional - polymake
             'Polymake::polytope::Polytope__Rational=ARRAY(...)'
+
+        Note that the above string representation is what polymake provides.
+        In our interface, we use what polymake calls a "description"::
+
+            sage: polymake('cube(3)')
+            cube of dimension 3
+
 
         """
         return self.eval("print {};".format(cmd)).strip()
@@ -914,6 +956,7 @@ class Polymake(ExtraTabCompletion, Expect):
                         if E.buffer:
                             if not E.buffer.strip():
                                 E.send(chr(3))
+                                sleep(0.1)
                                 pat = E.expect_list(self._prompt)
                                 if E.buffer or pat:
                                     raise RuntimeError("Couldn't return to prompt after command '{}'".format(line))
@@ -922,6 +965,7 @@ class Polymake(ExtraTabCompletion, Expect):
                         # Return to normal prompt
                         i = pat
                         E.send(chr(3))
+                        sleep(0.1)
                         i = E.expect_list(self._prompt)
                         assert i==0, "Command '{}': Couldn't return to normal prompt after polymake {}. Instead, polymake {}".format(line,_available_polymake_answers[pat],_available_polymake_answers[i])
                         raise SyntaxError("Incomplete polymake command '{}'".format(line))
@@ -931,6 +975,7 @@ class Polymake(ExtraTabCompletion, Expect):
                         i = pat
                         while i:
                             self._expect.send(chr(3))
+                            sleep(0.1)
                             i = self._expect.expect(self._prompt, timeout=0.1)
                         # User interaction is expected to happen when requesting help
                         if line.startswith('help'):
@@ -942,6 +987,7 @@ class Polymake(ExtraTabCompletion, Expect):
                         i = pat
                         while pat != 0:
                             E.send(chr(3))
+                            sleep(0.1)
                             i = E.expect_list(self._prompt)
                         RuntimeError("Polymake unexpectedly {}".format(_available_polymake_answers[pat]))
                     elif pat == 4: # polymake error
@@ -957,10 +1003,12 @@ class Polymake(ExtraTabCompletion, Expect):
                     else: # timeout or some other problem
                         # Polymake would still continue with the computation. Thus, we send an interrupt
                         E.send(chr(3))
+                        sleep(0.1)
                         while E.expect_list(self._prompt, timeout=0.1):
                             # ... and since a single Ctrl-c just interrupts *one* of polymake's
                             # rule chains, we repeat until polymake is running out of rules.
                             E.send(chr(3))
+                            sleep(0.1)
                         raise RuntimeError("Polymake {}".format(_available_polymake_answers[pat]))
             else:
                 out = ''

@@ -116,7 +116,7 @@ class Polymake(ExtraTabCompletion, Expect):
 
     EXAMPLES::
 
-        sage: p = polymake.rand_sphere(4, 20, seed=5)        # optional - polymake
+        sage: p = polymake.rand_sphere(4, 20, seed=5)       # optional - polymake
         sage: p                                             # optional - polymake
         Random spherical polytope of dimension 4; seed=5...
         sage: set_verbose(3)
@@ -129,7 +129,7 @@ class Polymake(ExtraTabCompletion, Expect):
         sage: set_verbose(0)
         sage: p.F_VECTOR                                    # optional - polymake
         20 101 162 81
-        sage: print p.F_VECTOR._sage_doc_()                 # optional - polymake # random
+        sage: print(p.F_VECTOR._sage_doc_())                # optional - polymake # random
         property_types/Algebraic Types/Vector:
          A type for vectors with entries of type Element.
 
@@ -140,6 +140,7 @@ class Polymake(ExtraTabCompletion, Expect):
          or
             $v = new Vector<Int>([1,2,3]);
 
+    .. automethod:: _eval_line
     """
     def __init__(self, script_subdirectory=None,
                  logfile=None, server=None,server_tmpdir=None,
@@ -225,7 +226,7 @@ class Polymake(ExtraTabCompletion, Expect):
         """
         Return the class by which member functions of this interface are implemented.
 
-        EXAMPLES:
+        TESTS:
 
         We use ellipses in the tests, to make it more robust against future
         changes in polymake::
@@ -318,7 +319,7 @@ class Polymake(ExtraTabCompletion, Expect):
         """
         TESTS::
 
-            sage: print polymake._install_hints()
+            sage: print(polymake._install_hints())
             Please install the optional polymake package for sage (but read its SPKG.txt first!)
             or install polymake system-wide
 
@@ -538,6 +539,10 @@ class Polymake(ExtraTabCompletion, Expect):
         """
         Clear the variable named var.
 
+        NOTE:
+
+        This is implicitly done when deleting an element in the interface.
+
         TESTS::
 
             sage: c = polymake.cube(15)                 # optional - polymake
@@ -694,7 +699,7 @@ class Polymake(ExtraTabCompletion, Expect):
             return H
 
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True, restart_if_needed=True, **kwds):
-        """
+        r"""
         Evaluate a command.
 
         INPUT:
@@ -706,7 +711,7 @@ class Polymake(ExtraTabCompletion, Expect):
           to wait before polymake returns a prompt. If it is a string, it is considered
           as alternative prompt to be waited for.
         - ``restart_if_needed`` (optional bool, default ``True``), whether or
-          not restart polymake in case something goes wrong
+          not to restart polymake in case something goes wrong
         - further optional arguments (e.g., timeout) that will be passed to
           :meth:`pexpect.pty_spawn.spawn.expect`. Note that they are ignored
           if the line is too long and thus is evaluated via a file. So,
@@ -735,6 +740,14 @@ class Polymake(ExtraTabCompletion, Expect):
             27
             sage: set_verbose(0)
 
+        If polymake raises an error, the polymake *interface* raises
+        a :class:`PolymakeError`::
+
+            sage: polymake.eval('FOOBAR(3);')       # optional - polymake
+            Traceback (most recent call last):
+            ...
+            PolymakeError: Undefined subroutine &Polymake::User::FOOBAR called at input line 1.
+
         If a command is incomplete, then polymake returns a continuation
         prompt. In that case, we raise an error::
 
@@ -751,11 +764,30 @@ class Polymake(ExtraTabCompletion, Expect):
             sage: print polymake.eval('$tmp="abc";\nprint $tmp;') # optional - polymake
             abc
 
+        When requesting help, polymake sometimes expect the user to choose
+        from a list. In that situation, we abort with a warning, and show
+        the list from which the user can chose; we could demonstrate this using
+        the :meth:`help` method, but here we use an explicit code evaluation::
+
+            sage: print(polymake.eval('help "TRIANGULATION";'))     # optional - polymake # random
+            doctest:warning
+            ...
+            UserWarning: Polymake expects user interaction. We abort and return
+            the options that Polymake provides.
+            There are 5 help topics matching 'TRIANGULATION':
+            1: objects/Cone/properties/Triangulation and volume/TRIANGULATION
+            2: objects/Polytope/properties/Triangulation and volume/TRIANGULATION
+            3: objects/Visualization/Visual::PointConfiguration/methods/TRIANGULATION
+            4: objects/Visualization/Visual::Polytope/methods/TRIANGULATION
+            5: objects/PointConfiguration/properties/Triangulation and volume/TRIANGULATION
+
         By default, we just wait until polymake returns a result. However,
-        it is possible to explicitly set a timeout::
+        it is possible to explicitly set a timeout. The following usually does
+        work in an interactive session and often in doc tests, too. However,
+        sometimes it hangs, and therefore we remove it from the tests, for now::
 
             sage: c = polymake.cube(15)             # optional - polymake
-            sage: polymake.eval('print {}->F_VECTOR;'.format(c.name()), timeout=1)
+            sage: polymake.eval('print {}->F_VECTOR;'.format(c.name()), timeout=1) # optional - polymake # not tested
             Traceback (most recent call last):
             ...
             RuntimeError: Polymake fails to respond timely
@@ -784,7 +816,7 @@ class Polymake(ExtraTabCompletion, Expect):
                 if len(line) >= 4096:
                     raise RuntimeError("Sending more than 4096 characters with %s on a line may cause a hang and you're sending %s characters"%(self, len(line)))
                 E.sendline(line)
-                if wait_for_prompt == False:
+                if not wait_for_prompt:
                     return ''
 
             except OSError as msg:
@@ -835,7 +867,7 @@ class Polymake(ExtraTabCompletion, Expect):
                         if self._quit_string() in line:
                             # we expect to get an EOF if we're quitting.
                             return ''
-                        elif restart_if_needed==True: # the subprocess might have crashed
+                        elif restart_if_needed: # the subprocess might have crashed
                             try:
                                 self._synchronize()
                                 return self._eval_line(line,allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False, **kwds)
@@ -990,18 +1022,59 @@ class Polymake(ExtraTabCompletion, Expect):
 
         INPUT:
 
-        ``app``, a string, one of "common", "fulton", "group", "matroid", "topaz",
-        "fan", "graph", "ideal", "polytope", "tropical"
+        - ``app``, a string, one of "common", "fulton", "group", "matroid", "topaz",
+          "fan", "graph", "ideal", "polytope", "tropical"
+
+        EXAMPLES:
+
+        We expose a computation that uses both the 'polytope' and the 'fan'
+        application of polymake. Let us start by defining a polytope `q` in
+        terms of inequalities. Polymake knows to compute the f- and h-vector
+        and finds that the polytope is very ample::
+
+            sage: q = polymake.new_object("Polytope", INEQUALITIES=[[5,-4,0,1],[-3,0,-4,1],[-2,1,0,0],[-4,4,4,-1],[0,0,1,0],[8,0,0,-1],[1,0,-1,0],[3,-1,0,0]]) # optional - polymake
+            sage: q.H_VECTOR                    # optional - polymake
+            1 5 5 1
+            sage: q.F_VECTOR                    # optional - polymake
+            8 14 8
+            sage: q.VERY_AMPLE                  # optional - polymake
+            1
+
+        In the application 'fan', polymake can now compute the normal fan
+        of `q` and its (primitive) rays::
+
+            sage: polymake.application('fan')   # optional - polymake
+            sage: g = q.normal_fan()            # optional - polymake
+            sage: g.RAYS                        # optional - polymake
+            -1 0 1/4
+            0 -1 1/4
+            1 0 0
+            1 1 -1/4
+            0 1 0
+            0 0 -1
+            0 -1 0
+            -1 0 0
+            sage: g.RAYS.primitive()            # optional - polymake
+            -4 0 1
+            0 -4 1
+            1 0 0
+            4 4 -1
+            0 1 0
+            0 0 -1
+            0 -1 0
+            -1 0 0
+
+        Note that the list of functions available by tab completion depends
+        on the application.
 
         TESTS:
 
         Since 'tubing_of_graph' is not defined in the polymake application 'polytope'
         but only in 'tropical', the following shows the effect of changing
-        the application.
-        ::
+        the application. ::
 
             sage: polymake.application('polytope')                   # optional - polymake
-            sage: 'tubing_of_graph' in dir(polymake)                # optional - polymake
+            sage: 'tubing_of_graph' in dir(polymake)                 # optional - polymake
             False
             sage: polymake.application('tropical')                   # optional - polymake
             sage: 'tubing_of_graph' in dir(polymake)                 # optional - polymake
@@ -1009,6 +1082,22 @@ class Polymake(ExtraTabCompletion, Expect):
             sage: polymake.application('polytope')                   # optional - polymake
             sage: 'tubing_of_graph' in dir(polymake)                 # optional - polymake
             False
+
+        For completeness, we show what happens when asking for an application
+        that doesn't exist::
+
+            sage: polymake.application('killerapp')                  # optional - polymake
+            Traceback (most recent call last):
+            ...
+            ValueError: Unknown polymake application 'killerapp'
+
+        Of course, a different error results when we send an explicit
+        command in polymake to change to an unknown application::
+
+            sage: polymake.eval('application "killerapp";')         # optional - polymake
+            Traceback (most recent call last):
+            ...
+            PolymakeError: Unknown application killerapp
 
         """
         if not self.is_running():
@@ -1222,7 +1311,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         """
         Comparison of polymake elements.
 
-        TESTS:
+        EXAMPLES:
 
         The default for comparing equality for polytopes is *identity*::
 
@@ -1631,7 +1720,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
     def __len__(self):
         """
-        TESTS::
+        EXAMPLES::
 
             sage: p = polymake.rand_sphere(3, 12, seed=15)           # optional - polymake
             sage: len(p.FACETS)                                     # optional - polymake

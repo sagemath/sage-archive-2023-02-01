@@ -64,6 +64,7 @@ Constructions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six import add_metaclass
 
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 import sage.categories.posets
@@ -76,6 +77,7 @@ from sage.graphs.digraph import DiGraph
 from sage.rings.integer import Integer
 
 
+@add_metaclass(ClasscallMetaclass)
 class Posets(object):
     r"""
     A collection of posets and lattices.
@@ -107,9 +109,6 @@ class Posets(object):
         sage: P = Posets
         sage: TestSuite(P).run()
     """
-
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall__(cls, n = None):
         r"""
@@ -1022,12 +1021,12 @@ class Posets(object):
 
         REFERENCES:
 
-        .. [Striker2011] \J. Striker. *A unifying poset perpective on
+        .. [Striker2011] \J. Striker. *A unifying poset perspective on
            alternating sign matrices, plane partitions, Catalan objects,
            tournaments, and tableaux*, Advances in Applied Mathematics 46
            (2011), no. 4, 583-609. :arXiv:`1408.5391`
         """
-        n=n-1
+        n = n - 1
         try:
             n = Integer(n)
         except TypeError:

@@ -52,6 +52,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_geometric` | Return ``True`` if the lattice is atomic and upper semimodular.
     :meth:`~FiniteLatticePoset.is_complemented` | Return ``True`` if every element of the lattice has at least one complement.
     :meth:`~FiniteLatticePoset.is_sectionally_complemented` | Return ``True`` if every interval from the bottom is complemented.
+    :meth:`~FiniteLatticePoset.is_cosectionally_complemented` | Return ``True`` if every interval to the top is complemented.
     :meth:`~FiniteLatticePoset.is_relatively_complemented` | Return ``True`` if every interval of the lattice is complemented.
     :meth:`~FiniteLatticePoset.is_pseudocomplemented` | Return ``True`` if every element of the lattice has a pseudocomplement.
     :meth:`~FiniteLatticePoset.is_orthocomplemented` | Return ``True`` if the lattice has an orthocomplementation.
@@ -60,6 +61,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_dismantlable` | Return ``True`` if the lattice is dismantlable.
     :meth:`~FiniteLatticePoset.is_vertically_decomposable` | Return ``True`` if the lattice is vertically decomposable.
     :meth:`~FiniteLatticePoset.is_simple` | Return ``True`` if the lattice has no nontrivial congruences.
+    :meth:`~FiniteLatticePoset.is_subdirectly_reducible` | Return ``True`` if the lattice is a sublattice of the product of smaller lattices.
     :meth:`~FiniteLatticePoset.breadth` | Return the breadth of the lattice.
 
 **Specific elements**
@@ -1299,6 +1301,87 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if e is None:
             return (True, None)
         return (False, self._vertex_to_element(e))
+
+    def is_cosectionally_complemented(self, certificate=False):
+        """
+        Return ``True`` if the lattice is cosectionally complemented, and
+        ``False`` otherwise.
+
+        A lattice is *cosectionally complemented* if all intervals to
+        the top element interpreted as sublattices are complemented
+        lattices.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) Whether to return
+          a certificate if the lattice is not cosectionally complemented.
+
+        OUTPUT:
+
+        - If ``certificate=False`` return ``True`` or ``False``.
+          If ``certificate=True`` return either ``(True, None)``
+          or ``(False, (b, e))``, where `b` is an element so that in the
+          sublattice from `b` to the top element has no complement
+          for element `e`.
+
+        EXAMPLES:
+
+        The smallest sectionally but not cosectionally complemented lattice::
+
+            sage: L = LatticePoset({1: [2, 3, 4], 2: [5], 3: [5], 4: [6], 5: [6]})
+            sage: L.is_sectionally_complemented(), L.is_cosectionally_complemented()
+            (True, False)
+
+        A sectionally and cosectionally but not relatively complemented
+        lattice::
+
+            sage: L = LatticePoset(DiGraph('MYi@O?P??D?OG?@?O_?C?Q??O?W?@??O??'))
+            sage: L.is_sectionally_complemented() and L.is_cosectionally_complemented()
+            True
+            sage: L.is_relatively_complemented()
+            False
+
+        Getting a certificate::
+
+            sage: L = LatticePoset(DiGraph('HW?@D?Q?GE?G@??'))
+            sage: L.is_cosectionally_complemented(certificate=True)
+            (False, (2, 7))
+
+        .. SEEALSO::
+
+            - Dual property: :meth:`is_sectionally_complemented`
+            - Weaker properties: :meth:`is_complemented`, :meth:`is_coatomic`
+            - Stronger properties :meth:`is_relatively_complemented`,
+              :meth:`is_regular`
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).is_cosectionally_complemented() for i in range(5)]
+            [True, True, True, False, False]
+        """
+        # Quick check: every sectionally complemented lattice is atomic.
+        if not certificate and not self.is_coatomic():
+            return False
+
+        n = self.cardinality()
+        H = self._hasse_diagram
+        mt = H._meet
+        jn = H._join
+        top = n-1
+
+        for bottom in range(n-3, -1, -1):
+            interval = H.principal_order_filter(bottom)
+            for e in interval:
+                for f in interval:
+                    if mt[e, f] == bottom and jn[e, f] == top:
+                        break
+                else:
+                    if certificate:
+                        return (False, (self._vertex_to_element(bottom),
+                                        self._vertex_to_element(e)))
+                    return False
+
+        return (True, None) if certificate else True
 
     def is_relatively_complemented(self, certificate=False):
         """
@@ -3191,6 +3274,79 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             return True
         return (True, [self[e] for e in cert])
 
+    def is_subdirectly_reducible(self, certificate=False):
+        r"""
+        Return ``True`` if the lattice is subdirectly reducible.
+
+        A lattice `M` is a *subdirect product* of `K` and `L` if it
+        is a sublattice of `K \times L`. Lattice `M` is *subdirectly
+        reducible* if there exists such lattices `K` and `L` so that
+        `M` is not a sublattice of either.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - if ``certificate=False``, return only ``True`` or ``False``
+        - if ``certificate=True``, return either
+
+          * ``(True, (K, L))`` such that the lattice is isomorphic to
+            a sublattice of `K \times L`.
+          * ``(False, (a, b))``, where `a` and `b` are elements that are
+            in the same congruence class for every nontrivial congruence
+            of the lattice. Special case: If the lattice has zero or one element,
+            return ``(False, None)``.
+
+        EXAMPLES::
+
+            sage: N5 = Posets.PentagonPoset()
+            sage: N5.is_subdirectly_reducible()
+            False
+
+            sage: hex = LatticePoset({1: [2, 3], 2: [4], 3: [5], 4: [6], 5: [6]})
+            sage: hex.is_subdirectly_reducible()
+            True
+
+            sage: N5.is_subdirectly_reducible(certificate=True)
+            (False, (2, 3))
+            sage: res, cert = hex.is_subdirectly_reducible(certificate=True)
+            sage: cert[0].is_isomorphic(N5)
+            True
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).is_subdirectly_reducible() for i in range(5)]
+            [False, False, False, True, True]
+        """
+        # Todo: Add seealso-link to subdirect_decomposition() when it is done.
+
+        H = self._hasse_diagram
+        A = H.atoms_of_congruence_lattice()
+
+        if not certificate:
+            return len(A) > 1
+
+        # Kind of special cases. How should we define this for empty,
+        # one-element and two-element lattices?
+        if self.cardinality() < 2:
+            return (False, None)
+
+        if len(A) == 1:
+            for a in A[0]:
+                if len(a) > 1:
+                    return (False, (self._vertex_to_element(a[0]),
+                                    self._vertex_to_element(a[1])))
+
+        H_closure = H.transitive_closure()
+        a0 = [min(v) for v in A[0]]
+        a1 = [min(v) for v in A[1]]
+        K0 = LatticePoset(H_closure.subgraph(a0).transitive_reduction())
+        K1 = LatticePoset(H_closure.subgraph(a1).transitive_reduction())
+        return (False, (K0, K1))
+
     def canonical_meetands(self, e):
         r"""
         Return the canonical meetands of `e`.
@@ -3316,6 +3472,187 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                     result = v
             joinands.append(result)
         return [self._vertex_to_element(v) for v in joinands]
+
+    def is_isoform(self, certificate=False):
+        """
+        Return ``True`` if the lattice is isoform and ``False`` otherwise.
+
+        A congruence is *isoform* if all blocks are isomorphic
+        sublattices. A lattice is isoform if it has only isoform
+        congruences.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate if the lattice is not isoform
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, C)``, where `C` is a non-isoform congruence as a
+          :class:`sage.combinat.set_partition.SetPartition`.
+          If ``certificate=False`` return ``True`` or ``False``.
+
+        .. SEEALSO:: :meth:`congruence`
+
+        EXAMPLES::
+
+            sage: L = LatticePoset({1:[2, 3, 4], 2: [5, 6], 3: [6, 7], 4: [7], 5: [8], 6: [8], 7: [8]})
+            sage: L.is_isoform()
+            True
+
+        Every isoform lattice is (trivially) uniform, but the converse is
+        not true::
+
+            sage: L = LatticePoset({1: [2, 3, 6], 2: [4, 5], 3: [5], 4: [9, 8], 5: [7, 8], 6: [9], 7: [10], 8: [10], 9: [10]})
+            sage: L.is_isoform(), L.is_uniform()
+            (False, True)
+
+            sage: L.is_isoform(certificate=True)
+            (False, {{1, 2, 4, 6, 9}, {3, 5, 7, 8, 10}})
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).is_isoform() for i in range(5)]
+            [True, True, True, False, False]
+
+            sage: Posets.DiamondPoset(5).is_isoform()  # Simple, so trivially isoform
+            True
+        """
+        ok = (True, None) if certificate else True
+
+        H = self._hasse_diagram
+        if H.order() == 0:
+            return ok
+        for c in H.congruences_iterator():
+            cong = list(c)
+            d = H.subgraph(cong[0])
+            for part in cong:
+                if not H.subgraph(part).is_isomorphic(d):
+                    if certificate:
+                        from sage.combinat.set_partition import SetPartition
+                        return (False,
+                                SetPartition([[self._vertex_to_element(v) for v in p] for p in cong]))
+                    return False
+        return ok
+
+    def is_uniform(self, certificate=False):
+        """
+        Return ``True`` if the lattice is uniform and ``False`` otherwise.
+
+        A congruence is *uniform* if all blocks are have equal number
+        of elements. A lattice is uniform if it has only uniform
+        congruences.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate if the lattice is not regular
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, C)``, where `C` is a non-uniform congruence as a
+          :class:`sage.combinat.set_partition.SetPartition`.
+          If ``certificate=False`` return ``True`` or ``False``.
+
+        .. SEEALSO:: :meth:`congruence`
+
+        EXAMPLES:
+
+            sage: L = LatticePoset({1: [2, 3, 4], 2: [6, 7], 3: [5], 4: [5], 5: [9, 8], 6: [9], 7: [10], 8: [10], 9: [10]})
+            sage: L.is_uniform()
+            True
+
+        Every uniform lattice is regular, but the converse is not true::
+
+            sage: N6 = LatticePoset({1: [2, 3, 5], 2: [4], 3: [4], 5: [6], 4: [6]})
+            sage: N6.is_uniform(), N6.is_regular()
+            (False, True)
+
+            sage: N6.is_uniform(certificate=True)
+            (False, {{1, 2, 3, 4}, {5, 6}})
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).is_uniform() for i in range(5)]
+            [True, True, True, False, False]
+
+            sage: Posets.DiamondPoset(5).is_uniform()  # Simple, so trivially uniform
+            True
+        """
+        ok = (True, None) if certificate else True
+
+        H = self._hasse_diagram
+        if H.order() == 0:
+            return ok
+
+        for c in H.congruences_iterator():
+            cong = list(c)
+            n = len(cong[0])
+            for part in cong:
+                if len(part) != n:
+                    if certificate:
+                        from sage.combinat.set_partition import SetPartition
+                        return (False,
+                                SetPartition([[self._vertex_to_element(v) for v in p] for p in c]))
+                    return False
+        return ok
+
+    def is_regular(self, certificate=False):
+        """
+        Return ``True`` if the lattice is regular and ``False`` otherwise.
+
+        A congruence of a lattice is *regular* if it is generated
+        by any of it's part. A lattice is regular if it has only
+        regular congruences.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate if the lattice is not regular
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, (C, p))``, where `C` is a non-regular congruence as a
+          :class:`sage.combinat.set_partition.SetPartition` and `p` is a
+          congruence class of `C` such that the congruence generated by `p`
+          is not `C`.
+          If ``certificate=False`` return ``True`` or ``False``.
+
+        .. SEEALSO:: :meth:`congruence`
+
+        EXAMPLES::
+
+            sage: L = LatticePoset({1: [2, 3, 4], 2: [5, 6], 3: [8, 7], 4: [6, 7], 5: [8], 6: [9], 7: [9], 8: [9]})
+            sage: L.is_regular()
+            True
+
+            sage: N5 = Posets.PentagonPoset()
+            sage: N5.is_regular()
+            False
+            sage: N5.is_regular(certificate=True)
+            (False, ({{0}, {1}, {2, 3}, {4}}, [0]))
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).is_regular() for i in range(5)]
+            [True, True, True, False, False]
+        """
+        H = self._hasse_diagram
+        for cong in H.congruences_iterator():
+            for part in cong:
+                if H.congruence([part]) != cong:
+                    if certificate:
+                        from sage.combinat.set_partition import SetPartition
+                        return (False,
+                                (SetPartition([[self._vertex_to_element(v) for v in p] for p in cong]),
+                                 [self._vertex_to_element(v) for v in part]))
+                    return False
+        if certificate:
+            return (True, None)
+        return True
 
     def is_simple(self, certificate=False):
         """

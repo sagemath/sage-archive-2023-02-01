@@ -660,7 +660,7 @@ class QuotientRingElement(RingElement):
         """
         Return the leading term of this quotient ring element.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y,z>=PolynomialRing(GF(7),3,order='lex')
             sage: I = sage.rings.ideal.FieldIdeal(R)
@@ -682,7 +682,7 @@ class QuotientRingElement(RingElement):
         """
         Return the leading monomial of this quotient ring element.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y,z>=PolynomialRing(GF(7),3,order='lex')
             sage: I = sage.rings.ideal.FieldIdeal(R)
@@ -705,7 +705,7 @@ class QuotientRingElement(RingElement):
         """
         Return the leading coefficient of this quotient ring element.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y,z>=PolynomialRing(GF(7),3,order='lex')
             sage: I = sage.rings.ideal.FieldIdeal(R)
@@ -779,7 +779,7 @@ class QuotientRingElement(RingElement):
         -  ``singular`` - a non-standard interpreter may be
            provided
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y>  = PolynomialRing(GF(2),2)
             sage: I = sage.rings.ideal.FieldIdeal(P)
@@ -841,7 +841,7 @@ class QuotientRingElement(RingElement):
         -  ``G`` - a list of quotient ring elements
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<a,b,c,d,e> = PolynomialRing(GF(2), 5, order='lex')
             sage: I1 = ideal([a*b + c*d + 1, a*c*e + d*e, a*b*e + c*e, b*c + c*d*e + 1])

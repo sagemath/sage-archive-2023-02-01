@@ -453,7 +453,7 @@ class DocTestController(SageObject):
             sage: import json
             sage: filename = tmp_filename()
             sage: with open(filename, 'w') as stats_file:
-            ...       json.dump({'sage.doctest.control':{u'walltime':1.0r}}, stats_file)
+            ....:     json.dump({'sage.doctest.control':{u'walltime':1.0r}}, stats_file)
             sage: DC.load_stats(filename)
             sage: DC.stats['sage.doctest.control']
             {u'walltime': 1.0}
@@ -633,13 +633,17 @@ class DocTestController(SageObject):
         """
         opj = os.path.join
         from sage.env import SAGE_SRC, SAGE_DOC_SRC, SAGE_ROOT
-        def all_files():
-            self.files.append(opj(SAGE_SRC, 'sage'))
-            self.files.append(opj(SAGE_SRC, 'sage_setup'))
-            self.files.append(SAGE_DOC_SRC)
-            self.options.sagenb = True
         DOT_GIT= opj(SAGE_ROOT, '.git')
         have_git = os.path.exists(DOT_GIT)
+        def all_files():
+            self.files.append(opj(SAGE_SRC, 'sage'))
+            # Don't run these tests when not in the git repository; they are
+            # of interest for building sage, but not for runtime behavior and
+            # don't make sense to run outside a build environment
+            if have_git:
+                self.files.append(opj(SAGE_SRC, 'sage_setup'))
+            self.files.append(SAGE_DOC_SRC)
+            self.options.sagenb = True
         if self.options.all or (self.options.new and not have_git):
             self.log("Doctesting entire Sage library.")
             all_files()
@@ -745,7 +749,7 @@ class DocTestController(SageObject):
             sage: DC = DocTestController(DD, [dirname])
             sage: DC.expand_files_into_sources()
             sage: for i, source in enumerate(DC.sources):
-            ...       DC.stats[source.basename] = {'walltime': 0.1*(i+1)}
+            ....:     DC.stats[source.basename] = {'walltime': 0.1*(i+1)}
             sage: DC.stats['sage.doctest.control'] = {'failed':True,'walltime':1.0}
             sage: DC.filter_sources()
             Only doctesting files that failed last test.
@@ -775,7 +779,7 @@ class DocTestController(SageObject):
             sage: DC.expand_files_into_sources()
             sage: DC.sources.sort(key=lambda s:s.basename)
             sage: for i, source in enumerate(DC.sources):
-            ...       DC.stats[source.basename] = {'walltime': 0.1*(i+1)}
+            ....:     DC.stats[source.basename] = {'walltime': 0.1*(i+1)}
             sage: DC.sort_sources()
             Sorting sources by runtime so that slower doctests are run first....
             sage: print("\n".join([source.basename for source in DC.sources]))

@@ -98,7 +98,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
     - ``name`` -- string; name (symbol) given to the subset
     - ``latex_name`` --  (default: ``None``) string; LaTeX symbol to
       denote the subset; if none are provided, it is set to ``name``
-    - ``category`` -- (default: ``None``) to specify the categeory;
+    - ``category`` -- (default: ``None``) to specify the category;
       if ``None``, the category for generic subsets is used
 
     EXAMPLES:

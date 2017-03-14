@@ -501,7 +501,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         functions or methods decorated with ``@cached_function`` or
         ``@cached_method`` respectively.
 
-        EXAMPLE:
+        EXAMPLES:
 
         In the following example, ``a`` and ``b`` compare equal. They cannot
         have a meaningful hash value since then their hash value would have to

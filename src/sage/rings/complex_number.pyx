@@ -2373,7 +2373,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         INPUT: Type algdep? at the top level prompt. All additional
         parameters are passed onto the top-level algdep command.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: C = ComplexField()
             sage: z = (1/2)*(1 + sqrt(3.0) *C.0); z
@@ -2401,7 +2401,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         INPUT: Type algdep? at the top level prompt. All additional
         parameters are passed onto the top-level algdep command.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: C = ComplexField()
             sage: z = (1/2)*(1 + sqrt(3.0) *C.0); z

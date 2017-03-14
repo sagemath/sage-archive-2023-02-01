@@ -19,7 +19,7 @@ coefficients where `p` is the characteristic of `k`. It can be defined
 via the formal group as `x+c` in the variable `z=\log_E(t)` for a
 constant `c` such that the constant term `c_0` in `\wp(z)` is zero.
 
-EXAMPLE::
+EXAMPLES::
 
     sage: E = EllipticCurve([0,1])
     sage: E.weierstrass_p()

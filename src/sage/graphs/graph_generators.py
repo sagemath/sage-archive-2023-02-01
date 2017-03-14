@@ -2262,7 +2262,7 @@ def check_aut(aut_gens, cut_vert, n):
     an element of the auto- morphism group that sends cut_vert to n,
     and check_aut generates these for the canaug_traverse function.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Note that the last two entries indicate that none of the
     automorphism group has yet been searched - we are starting at the
@@ -2466,7 +2466,7 @@ def check_aut_edge(aut_gens, cut_edge, i, j, n, dig=False):
     j}, and check_aut generates these for the canaug_traverse
     function.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Note that the last two entries indicate that none of the
     automorphism group has yet been searched - we are starting at the

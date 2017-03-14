@@ -90,7 +90,7 @@ build()
     fi
 
     # Remove old libraries
-    rm -f "$SAGE_LOCAL"/lib/libpython*
+    rm -f "$SAGE_LOCAL"/lib/libpython2*
 
     # Running 'make install' in parallel is a bad idea, so we use
     # only 1 job.
@@ -113,16 +113,18 @@ build()
 
 build
 
-PYTHON_VERSION=$("$SAGE_LOCAL/bin/python" -c 'import sys; print("%d.%d" % sys.version_info[:2])')
+PYTHON_VERSION=$("$SAGE_LOCAL/bin/python2" -c 'import sys; print("%d.%d" % sys.version_info[:2])')
 
 cd "$SAGE_LOCAL/lib"
 
 # Make symbolic link (after removing old link first)
-rm -f python
-ln -s python${PYTHON_VERSION} python
-if [ $? -ne 0 ]; then
-    echo >&2 "Error creating symbolic link"
-    exit 1
+if [ "$SAGE_PYTHON3" != yes ]; then
+    rm -f python
+    ln -s python${PYTHON_VERSION} python
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error creating symbolic link"
+        exit 1
+    fi
 fi
 
 # On OS X with XCode 4, the presence of
@@ -145,7 +147,7 @@ fi
 echo "Testing importing of various modules..."
 import_errors=false
 for module in ctypes math hashlib crypt readline socket ; do
-    if python -c "import $module"; then
+    if python2 -c "import $module"; then
         echo "$module module imported OK"
     else
         echo >&2 "$module module failed to import"
@@ -154,7 +156,7 @@ for module in ctypes math hashlib crypt readline socket ; do
 done
 
 if [ "$UNAME" = "Darwin" ]; then
-    if python -c "import _scproxy"; then
+    if python2 -c "import _scproxy"; then
         echo "_scproxy module imported OK"
     else
         echo >&2 "_scproxy module failed to import"

@@ -956,7 +956,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                 except (TypeError, AttributeError):
                     raise TypeError("polys (=%s) must be elements of %s"%(polys, source_ring))
             polys = Sequence(polys)
-        self._polys = polys
+        self._polys = tuple(polys)
         SchemeMorphism.__init__(self, parent)
 
     def defining_polynomials(self):
@@ -974,7 +974,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             sage: A.<x,y> = AffineSpace(R)
             sage: H = A.Hom(A)
             sage: H([x^3+y, 1-x-y]).defining_polynomials()
-            [x^3 + y, -x - y + 1]
+            (x^3 + y, -x - y + 1)
         """
         return self._polys
 
@@ -1902,11 +1902,12 @@ class SchemeMorphism_point(SchemeMorphism):
 
         EXAMPLES::
 
-            sage: P.<x,y>=ProjectiveSpace(ZZ,1)
-            sage: Q=P(152,113)
-            sage: copy(Q) is Q
+            sage: P.<x,y> = ProjectiveSpace(ZZ, 1)
+            sage: Q = P(152, 113)
+            sage: Q2 = copy(Q)
+            sage: Q2 is Q
             False
-            sage: copy(Q) == Q
+            sage: Q2 == Q
             True
         """
         return(self._codomain.point(self._coords, check=False))
@@ -1991,3 +1992,4 @@ class SchemeMorphism_point(SchemeMorphism):
                 ambient = ambient.change_ring(phi.codomain().base_ring())
         psi = ambient.ambient_space().coordinate_ring().hom([0 for i in range(ambient.ambient_space().ngens())], ambient.base_ring())
         return ambient([psi(phi(t)) for t in self])
+

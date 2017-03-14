@@ -233,7 +233,7 @@ class _uniq(object):
         """
         This ensures uniqueness of these objects.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sage.rings.infinity.UnsignedInfinityRing_class() is sage.rings.infinity.UnsignedInfinityRing_class()
             True
@@ -544,6 +544,25 @@ class AnInfinity(object):
         else:
             return abs(self)
 
+    def _sage_input_(self, sib, coerced):
+        """
+        Produce an expression which will reproduce this value when evaluated.
+
+        TESTS::
+
+            sage: sage_input(-oo)
+            -oo
+            sage: sage_input(oo)
+            oo
+            sage: sage_input(unsigned_infinity)
+            unsigned_infinity
+        """
+        if self._sign == 0:
+            return sib.name('unsigned_infinity')
+        elif self._sign > 0:
+            return sib.name('oo')
+        else:
+            return -sib.name('oo')
 
 class UnsignedInfinityRing_class(Singleton, Ring):
 
@@ -907,7 +926,7 @@ class UnsignedInfinity(_uniq, AnInfinity, InfinityElement):
         """
         Converts ``unsigned_infinity`` to sympy ``zoo``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sympy
             sage: sympy.sympify(unsigned_infinity)
@@ -1593,7 +1612,7 @@ class PlusInfinity(_uniq, AnInfinity, InfinityElement):
         Then you don't have to worry which ``oo`` you use, like in these
         examples:
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sympy
             sage: bool(oo == sympy.oo) # indirect doctest

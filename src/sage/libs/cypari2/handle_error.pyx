@@ -55,7 +55,7 @@ class PariError(RuntimeError):
         """
         Return the message output by PARI when this error occurred.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: try:
             ....:     pari('pi()')

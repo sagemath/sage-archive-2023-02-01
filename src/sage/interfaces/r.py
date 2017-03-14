@@ -222,7 +222,7 @@ After execution of this code, the %R and %%R magics are available :
    possible via the -i and -o options. Do "%R?" in a standalone cell
    to get the documentation.
 
-- %%R alows the execution in R of the whole text of a cell, with
+- %%R allows the execution in R of the whole text of a cell, with
     similar options (do "%%R?" in a standalone cell for
     documentation).
 
@@ -787,7 +787,7 @@ class R(ExtraTabCompletion, Expect):
 
             .. note::
 
-            This is similar to typing r.command?.
+                This is similar to typing r.command?.
         """
         s = self.eval('help("%s")'%command).strip()     # ?cmd is only an unsafe shortcut
         import sage.plot.plot
@@ -2004,7 +2004,7 @@ class RFunction(ExpectFunction):
         else:
             self._name = parent._sage_to_r_name(name)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         EXAMPLES::
 
@@ -2013,9 +2013,19 @@ class RFunction(ExpectFunction):
             sage: r.mean == r.lr
             False
         """
-        if not isinstance(other, RFunction):
-            return cmp(type(self), type(other))
-        return cmp(self._name, other._name)
+        return (isinstance(other, RFunction) and
+            self._name == other._name)
+
+    def __ne__(self, other):
+        """
+        EXAMPLES::
+
+            sage: r.mean != loads(dumps(r.mean))
+            False
+            sage: r.mean != r.lr
+            True
+        """        
+        return not (self == other)
 
     def _sage_doc_(self):
         """

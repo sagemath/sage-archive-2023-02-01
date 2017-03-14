@@ -363,8 +363,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             -1
             sage: cmp(J0(33)[0], J0(33)[1])
             -1
-            sage: cmp(J0(37), 5) #random
-            1
+            sage: J0(37) != ZZ
+            True
         """
         if not isinstance(other, ModularAbelianVariety_abstract):
             return cmp(type(self), type(other))

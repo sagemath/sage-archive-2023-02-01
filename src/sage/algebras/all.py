@@ -56,3 +56,4 @@ lazy_import('sage.algebras.tensor_algebra', 'TensorAlgebra')
 
 lazy_import('sage.algebras.q_system', 'QSystem')
 
+lazy_import('sage.algebras.cluster_algebra', 'ClusterAlgebra')

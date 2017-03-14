@@ -804,7 +804,7 @@ cdef class FiniteField_givaro_iterator:
 
     def __init__(self, Cache_givaro cache):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<a> = GF(3^4)
             sage: i = iter(k) # indirect doctest
@@ -816,7 +816,7 @@ cdef class FiniteField_givaro_iterator:
 
     def __next__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<a> = GF(3^4)
             sage: i = iter(k) # indirect doctest
@@ -836,7 +836,7 @@ cdef class FiniteField_givaro_iterator:
 
     def __repr__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<a> = GF(3^4)
             sage: i = iter(k)
@@ -847,7 +847,7 @@ cdef class FiniteField_givaro_iterator:
 
     def __iter__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(4)
             sage: K.list() # indirect doctest
@@ -899,7 +899,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
 
     def _repr_(FiniteField_givaroElement self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<FOOBAR> = GF(3^4)
             sage: FOOBAR #indirect doctest
@@ -1534,7 +1534,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         Return a string representation of self that MAGMA can
         understand.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<a> = GF(3^5)
 

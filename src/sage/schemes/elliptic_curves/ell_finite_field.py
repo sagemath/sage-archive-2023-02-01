@@ -1280,7 +1280,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         Return the n'th point in self's __points list. This enables users
         to iterate over the curve's point set.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E=EllipticCurve(GF(97),[2,3])
             sage: S=E.points()

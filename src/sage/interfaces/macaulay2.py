@@ -735,7 +735,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
         """
         Quotient of division of self by other.  This is denoted //.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y> = GF(7)[]
 
@@ -770,7 +770,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
         """
         Remainder of division of self by other.  This is denoted %.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y> = GF(7)[]
 

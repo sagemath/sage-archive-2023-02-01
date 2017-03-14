@@ -207,7 +207,7 @@ def find_isomorphism(fan1, fan2, check=False):
     A fan isomorphism. If the fans are not isomorphic, a
     :class:`FanNotIsomorphicError` is raised.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: rays = ((1, 1), (0, 1), (-1, -1), (3, 1))
         sage: cones = [(0,1), (1,2), (2,3), (3,0)]

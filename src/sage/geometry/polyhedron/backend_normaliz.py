@@ -2,6 +2,11 @@
 """
 The Normaliz backend for polyhedral computations
 
+.. NOTE::
+
+    This backend requires `PyNormaliz <https://pypi.python.org/pypi/PyNormaliz/1.5>`_.
+    To install PyNormaliz, type :code:`sage -i pynormaliz` in the terminal.
+
 AUTHORS:
 
 - Matthias Köppe (2016-12): initial version
@@ -297,7 +302,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         EXAMPLES::
 
             sage: p = Polyhedron(vertices=[(0,1/2),(2,0),(4,5/6)],  # indirect doctest # optional - pynormaliz
-            ...                  backend='normaliz')
+            ....:                backend='normaliz')
             sage: set(p.Hrepresentation())                                 # optional - pynormaliz
             {An inequality (1, 4) x - 2 >= 0,
              An inequality (1, -12) x + 6 >= 0,
@@ -330,7 +335,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         EXAMPLES::
 
             sage: p = Polyhedron(vertices=[(0,1/2), (2,0), (4,5/6)],  # indirect doctest # optional - pynormaliz
-            ...                  backend='normaliz')
+            ....:                backend='normaliz')
             sage: set(p.Hrepresentation())                                 # optional - pynormaliz
             {An inequality (1, 4) x - 2 >= 0,
              An inequality (1, -12) x + 6 >= 0,
@@ -441,7 +446,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         INPUT:
 
         - ``threshold`` -- integer (default: 10000); use the naïve
-        algorithm as long as the bounding box is smaller than this
+          algorithm as long as the bounding box is smaller than this
 
         OUTPUT:
 

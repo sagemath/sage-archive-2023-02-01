@@ -25,6 +25,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from six.moves import range
+from six import add_metaclass
 
 from sage.sets.set import Set, is_Set
 
@@ -49,6 +50,7 @@ from sage.combinat.permutation import Permutation
 from functools import reduce
 
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class SetPartition(ClonableArray):
     """
     A partition of a set.
@@ -110,8 +112,6 @@ class SetPartition(ClonableArray):
         sage: s.parent()
         Set partitions
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, parts, check=True):
         """

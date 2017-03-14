@@ -774,7 +774,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         A pair ``F,R``, where ``F`` is a construction functor and ``R`` is a ring,
         so that ``F(R) is self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y> = InfinitePolynomialRing(GF(5))
             sage: R.construction()
@@ -1432,7 +1432,7 @@ class InfinitePolynomialGen(SageObject):
 
     def __getitem__(self, i):
         """
-        Returns the the variable ``x[i]`` where ``x`` is this
+        Return the variable ``x[i]`` where ``x`` is this
         :class:`sage.rings.polynomial.infinite_polynomial_ring.InfinitePolynomialGen`,
         and i is a non-negative integer.
 
@@ -1441,13 +1441,12 @@ class InfinitePolynomialGen(SageObject):
             sage: X.<alpha> = InfinitePolynomialRing(QQ)
             sage: alpha[1]
             alpha_1
-
         """
-        if int(i)!=i:
-            raise ValueError("The index (= %s) must be an integer"%i)
+        if int(i) != i:
+            raise ValueError("The index (= %s) must be an integer" % i)
         i = int(i)
         if i < 0:
-            raise ValueError("The index (= %s) must be non-negative"%i)
+            raise ValueError("The index (= %s) must be non-negative" % i)
         P = self._parent
         from sage.rings.polynomial.infinite_polynomial_element import InfinitePolynomial_dense, InfinitePolynomial_sparse
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -1550,7 +1549,7 @@ class InfinitePolynomialRing_dense(InfinitePolynomialRing_sparse):
         A pair ``F,R``, where ``F`` is a construction functor and ``R`` is a ring,
         so that ``F(R) is self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y> = InfinitePolynomialRing(GF(5))
             sage: R.construction()

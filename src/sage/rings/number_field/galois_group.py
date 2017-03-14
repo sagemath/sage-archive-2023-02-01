@@ -202,7 +202,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
         Return the class to be used for creating elements of this group, which
         is GaloisGroupElement.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<z> = CyclotomicField(7)
             sage: G = F.galois_group()
@@ -255,7 +255,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
         r"""
         Return True if the underlying number field of self is actually Galois.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: NumberField(x^3 - x + 1,'a').galois_group(names='b').is_galois()
             False
@@ -270,7 +270,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
     def ngens(self):
         r""" Number of generators of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: QuadraticField(-23, 'a').galois_group().ngens()
             1
@@ -281,7 +281,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
         r"""
         String representation of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = QuadraticField(-23, 'a').galois_group()
             sage: G._repr_()
@@ -299,7 +299,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
         r"""
         The ambient number field.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K = NumberField(x^3 - x + 1, 'a')
             sage: K.galois_group(names='b').number_field() is K
@@ -311,7 +311,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
         r"""
         The Galois closure of the ambient number field.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K = NumberField(x^3 - x + 1, 'a')
             sage: K.galois_group(names='b').splitting_field()
@@ -325,7 +325,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
         r"""
         List of the elements of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: NumberField(x^3 - 3*x + 1,'a').galois_group().list()
             [(), (1,2,3), (1,3,2)]
@@ -372,7 +372,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
         r"""
         Return the subgroup of self with the given elements. Mostly for internal use.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = NumberField(x^3 - x - 1, 'a').galois_closure('b').galois_group()
             sage: G.subgroup([ G(1), G([(1,2,3),(4,5,6)]), G([(1,3,2),(4,6,5)]) ])
@@ -397,7 +397,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
 
         P can also be an infinite prime, i.e. an embedding into `\RR` or `\CC`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^4 - 2*x^2 + 2,'b').galois_closure()
             sage: P = K.ideal([17, a^2])
@@ -440,7 +440,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
         for a specified embedding P into the complex numbers. If P is not
         specified, use the "standard" embedding, whenever that is well-defined.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: L.<z> = CyclotomicField(7)
             sage: G = L.galois_group()
@@ -482,7 +482,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
         of elements s of self such that s acts trivially modulo P^(v+1). This
         is only defined for Galois fields.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<b> = NumberField(x^3 - 3,'a').galois_closure()
             sage: G=K.galois_group()
@@ -504,7 +504,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
         Return the inertia group of the prime P, i.e. the group of elements acting
         trivially modulo P. This is just the 0th ramification group of P.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<b> = NumberField(x^2 - 3,'a')
             sage: G = K.galois_group()
@@ -523,7 +523,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
         set of indices i such that the ramification group `G_{i+1} \ne G_{i}`.
         This is only defined for Galois fields.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<b> = NumberField(x^8 - 20*x^6 + 104*x^4 - 40*x^2 + 1156)
             sage: G = K.galois_group()
@@ -592,7 +592,7 @@ class GaloisGroup_subgroup(GaloisGroup_v2):
         Create a subgroup of a Galois group with the given elements. It is generally better to
         use the subgroup() method of the parent group.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.number_field.galois_group import GaloisGroup_subgroup
             sage: G = NumberField(x^3 - x - 1, 'a').galois_closure('b').galois_group()
@@ -628,7 +628,7 @@ class GaloisGroup_subgroup(GaloisGroup_v2):
         Return the fixed field of this subgroup (as a subfield of the Galois
         closure of the number field associated to the ambient Galois group).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: L.<a> = NumberField(x^4 + 1)
             sage: G = L.galois_group()
@@ -652,7 +652,7 @@ class GaloisGroup_subgroup(GaloisGroup_v2):
         r"""
         String representation of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = NumberField(x^3 - x - 1, 'a').galois_closure('b').galois_group()
             sage: H = G.subgroup([ G(1), G([(1,2,3),(4,5,6)]), G([(1,3,2),(4,6,5)])])
@@ -667,7 +667,7 @@ class GaloisGroupElement(PermutationGroupElement):
     be made to act on elements of the field (generally returning elements of
     its Galois closure).
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: K.<w> = QuadraticField(-7); G = K.galois_group()
         sage: G[1]
@@ -691,7 +691,7 @@ class GaloisGroupElement(PermutationGroupElement):
         Return the homomorphism L -> L corresponding to self, where L is the
         Galois closure of the ambient number field.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = QuadraticField(-7,'w').galois_group()
             sage: G[1].as_hom()
@@ -729,7 +729,7 @@ class GaloisGroupElement(PermutationGroupElement):
         Return the action of self on an element x in the number field of self
         (or its Galois closure).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<w> = QuadraticField(-7)
             sage: f = K.galois_group()[1]
@@ -746,7 +746,7 @@ class GaloisGroupElement(PermutationGroupElement):
         Return the greatest value of v such that s acts trivially modulo P^v.
         Should only be used if P is prime and s is in the decomposition group of P.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<b> = NumberField(x^3 - 3, 'a').galois_closure()
             sage: G = K.galois_group()

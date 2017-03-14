@@ -61,6 +61,7 @@ import sage
 import re
 from . import real_mpfr
 import weakref
+from cpython.object cimport Py_NE
 
 from sage.structure.parent cimport Parent
 from sage.structure.parent_gens cimport ParentWithGens
@@ -75,6 +76,7 @@ from .complex_field import ComplexField_class
 from sage.misc.randstate cimport randstate, current_randstate
 from .real_mpfr cimport RealField_class, RealNumber
 from .real_mpfr import mpfr_prec_min, mpfr_prec_max
+from sage.structure.sage_object cimport rich_to_bool, richcmp
 
 NumberFieldElement_quadratic = None
 AlgebraicNumber_base = None
@@ -486,9 +488,6 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
         return __create__MPComplexField_version0, (self.__prec, self.__rnd_str)
 
     def __richcmp__(left, right, int op):
-        return (<Parent>left)._richcmp(right, op)
-
-    cpdef int _cmp_(self, right) except -2:
         """
         Compare ``self`` and ``other``, ignoring the rounding mode.
 
@@ -501,16 +500,15 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
             sage: MPComplexField(10,rnd='RNDZN') == MPComplexField(10,rnd='RNDZU')
             True
         """
-        if not isinstance(right, MPComplexField_class):
-            return -1  # arbitrary
+        if left is right:
+            return rich_to_bool(op, 0)
 
-        cdef MPComplexField_class other = <MPComplexField_class>right
-        if self.__prec < other.__prec:
-            return -1
-        elif self.__prec > other.__prec:
-            return 1
-        else:
-            return 0
+        if not isinstance(right, MPComplexField_class):
+            return op == Py_NE
+
+        cdef MPComplexField_class s = <MPComplexField_class>left
+        cdef MPComplexField_class o = <MPComplexField_class>right
+        return richcmp(s.__prec, o.__prec, op)
 
     def gen(self, n=0):
         """
@@ -1562,7 +1560,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         Compute ``self`` raised to the power of exponent, rounded in
         the direction specified by the parent of ``self``.
 
-        .. TODO:
+        .. TODO::
 
             FIXME: Branch cut
 

@@ -27,7 +27,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 from six.moves import range
-from six import iteritems
+from six import iteritems, add_metaclass
 
 from sage.structure.sage_object import SageObject
 
@@ -1980,6 +1980,7 @@ class FlippedPermutationLI(FlippedPermutation, PermutationLI):
         return list(set(res))
 
 
+@add_metaclass(NestedClassMetaclass)
 class RauzyDiagram(SageObject):
     r"""
     Template for Rauzy diagrams.
@@ -1993,7 +1994,6 @@ class RauzyDiagram(SageObject):
     - Vincent Delecroix (2008-12-20): initial version
     """
     # TODO: pickle problem of Path (it does not understand what is its parent)
-    __metaclass__ = NestedClassMetaclass
 
     class Path(SageObject):
         r"""

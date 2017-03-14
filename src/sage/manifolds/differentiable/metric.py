@@ -28,10 +28,12 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from six.moves import range
 
 from sage.rings.integer import Integer
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
+
 
 class PseudoRiemannianMetric(TensorField):
     r"""
@@ -590,7 +592,7 @@ class PseudoRiemannianMetric(TensorField):
           :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
           representing a field of symmetric bilinear forms
 
-        EXAMPLE:
+        EXAMPLES:
 
         Metric defined from a field of symmetric bilinear forms on a
         non-parallelizable 2-dimensional manifold::
@@ -714,7 +716,7 @@ class PseudoRiemannianMetric(TensorField):
 
         EXAMPLES:
 
-        Levi-Civitation connection associated with the Euclidean metric on
+        Levi-Civita connection associated with the Euclidean metric on
         `\RR^3`::
 
             sage: M = Manifold(3, 'R^3', start_index=1)
@@ -1836,7 +1838,7 @@ class PseudoRiemannianMetric(TensorField):
             dom_resu = self._domain.intersection(pform.domain())
             resu = pform.restrict(dom_resu) * eps.restrict(dom_resu)
         else:
-            args = range(p) + [eps] + range(p)
+            args = list(range(p)) + [eps] + list(range(p))
             resu = pform.contract(*args)
         if p > 1:
             resu = resu / factorial(p)
@@ -2082,7 +2084,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         - instance of :class:`PseudoRiemannianMetricParal` representing the
           restriction.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Restriction of a Lorentzian metric on `\RR^2` to the upper half plane::
 
@@ -2139,7 +2141,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
           :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal`
           representing a field of symmetric bilinear forms
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()

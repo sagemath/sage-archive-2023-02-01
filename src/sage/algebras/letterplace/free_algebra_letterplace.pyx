@@ -188,7 +188,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
     as soon as the restriction to homogeneous elements is lifted in
     Singular's "Letterplace algebras".
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: K.<z> = GF(25)
         sage: F.<a,b,c> = FreeAlgebra(K, implementation='letterplace')
@@ -311,7 +311,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
         """
         Return the number of generators.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<a,b,c> = FreeAlgebra(QQ, implementation='letterplace')
             sage: F.ngens()
@@ -331,7 +331,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
 
         Generator number `i`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<a,b,c> = FreeAlgebra(QQ, implementation='letterplace')
             sage: F.1 is F.1  # indirect doctest
@@ -358,7 +358,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
         Return the commutative ring that is used to emulate
         the non-commutative multiplication out to the current degree.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<a,b,c> = FreeAlgebra(QQ, implementation='letterplace')
             sage: F.current_ring()
@@ -381,7 +381,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
 
         This commutative ring is used as a unique key of the free algebra.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<z> = GF(25)
             sage: F.<a,b,c> = FreeAlgebra(K, implementation='letterplace')
@@ -398,7 +398,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
         """
         Return the term order that is used for the commutative version of this free algebra.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: F.term_order_of_block()
@@ -418,7 +418,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
         """
         Tell whether this algebra is commutative, i.e., whether the generator number is one.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: F.is_commutative()
@@ -449,7 +449,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
 
     def _repr_(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: F     # indirect doctest
@@ -469,7 +469,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
         """
         Representation of this free algebra in LaTeX.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<bla,alpha,z> = FreeAlgebra(QQ, implementation='letterplace', degrees=[1,2,3])
             sage: latex(F)
@@ -489,7 +489,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
         bound will be dynamically adapted. It can also be set by
         :meth:`set_degbound`.
 
-        EXAMPLE:
+        EXAMPLES:
 
         In order to avoid we get a free algebras from the cache that
         was created in another doctest and has a different degree
@@ -516,7 +516,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
 
         The degree bound can not be decreased.
 
-        EXAMPLE:
+        EXAMPLES:
 
         In order to avoid we get a free algebras from the cache that
         was created in another doctest and has a different degree
@@ -553,7 +553,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
         """
         Return the class :class:`~sage.algebras.letterplace.letterplace_ideal.LetterplaceIdeal`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: I = [x*y+y*z,x^2+x*y-y*x-y^2]*F
@@ -570,7 +570,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
         """
         Return the monoid of ideals of this free algebra.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<x,y> = FreeAlgebra(GF(2), implementation='letterplace')
             sage: F.ideal_monoid()
@@ -588,7 +588,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
         """
         This auxiliary method is used for the string representation of elements of this free algebra.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<x,y,z> = FreeAlgebra(GF(2), implementation='letterplace')
             sage: x*y*x*z   # indirect doctest
@@ -635,7 +635,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
         """
         This auxiliary method is used for the representation of elements of this free algebra as a latex string.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<z> = GF(25)
             sage: F.<a,b,c> = FreeAlgebra(K, implementation='letterplace', degrees=[1,2,3])
@@ -679,7 +679,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
         An ideal such that reduction of a letterplace polynomial by that ideal corresponds
         to reduction of an element of degree at most ``d`` by ``g``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: I = F*[x*y+y*z,x^2+x*y-y*x-y^2]*F
@@ -769,7 +769,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
         """
         Return an element.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: F.an_element()   # indirect doctest
@@ -859,7 +859,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
         as an expression in the algebra (provided that the
         coefficients are numerical).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<t,y,z> = FreeAlgebra(ZZ, implementation='letterplace', degrees=[4,2,3])
 

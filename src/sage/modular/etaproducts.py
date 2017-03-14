@@ -101,7 +101,7 @@ class EtaGroup_class(AbelianGroup):
         r"""
         Return the data used to construct self. Used for pickling.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: EtaGroup(13).__reduce__()
             (<function EtaGroup at ...>, (13,))
@@ -114,7 +114,7 @@ class EtaGroup_class(AbelianGroup):
         type; otherwise compare by level. EtaGroups of the same level
         compare as identical.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: EtaGroup(12) == 12
             False
@@ -132,7 +132,7 @@ class EtaGroup_class(AbelianGroup):
         r"""
         String representation of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: EtaGroup(12)._repr_()
             'Group of eta products on X_0(12)'
@@ -143,7 +143,7 @@ class EtaGroup_class(AbelianGroup):
         r"""
         Return the identity element of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: EtaGroup(12).one()
             Eta product of level 12 : 1
@@ -156,7 +156,7 @@ class EtaGroup_class(AbelianGroup):
         exponents from the given dictionary. See the docstring for the
         EtaProduct() factory function for how dict is used.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: EtaGroup(2).__call__({1:24, 2:-24})
             Eta product of level 2 : (eta_1)^24 (eta_2)^-24
@@ -185,7 +185,7 @@ class EtaGroup_class(AbelianGroup):
            whether or not to apply LLL-reduction to the calculated basis
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: EtaGroup(5).basis()
             [Eta product of level 5 : (eta_1)^6 (eta_5)^-6]
@@ -359,7 +359,7 @@ class EtaGroupElement(MultiplicativeGroupElement):
         Create an eta product object. Usually called implicitly via
         EtaGroup_class.__call__ or the EtaProduct factory function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: EtaGroupElement(EtaGroup(8), {1:24, 2:-24})
             Eta product of level 8 : (eta_1)^24 (eta_2)^-24
@@ -725,7 +725,7 @@ class CuspFamily(SageObject):
         with `\mathrm{lcm}(r,d) = N`. The cusp doesn't store zeta,
         so we store an arbitrary label instead.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CuspFamily(8, 4)
             (c_{4})
@@ -774,7 +774,7 @@ class CuspFamily(SageObject):
         Return the corresponding element of
         `\mathbb{P}^1(\QQ)`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CuspFamily(10, 1).sage_cusp() # not implemented
             Infinity
@@ -785,7 +785,7 @@ class CuspFamily(SageObject):
         r"""
         Return a string representation of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CuspFamily(16, 4, "1")._repr_()
             '(c_{4,1})'
@@ -962,7 +962,7 @@ def _eta_relations_helper(eta1, eta2, degree, qexp_terms, labels, verbose):
 
     as then 1 will be in the ideal.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.modular.etaproducts import _eta_relations_helper
         sage: r,s = EtaGroup(4).basis()

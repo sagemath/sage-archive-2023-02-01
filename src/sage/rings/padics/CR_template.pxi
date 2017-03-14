@@ -826,7 +826,7 @@ cdef class CRElement(pAdicTemplateElement):
         an equal element with precision set to the minimum of ``self's``
         precision and ``absprec``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = Zp(7,4,'capped-rel','series'); a = R(8); a.add_bigoh(1)
             1 + O(7)

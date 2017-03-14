@@ -264,7 +264,7 @@ cdef class ParentWithGens(ParentWithBase):
            ``im_gens``, in which case return the (if it exists)
            natural map to X.
 
-        EXAMPLE: Polynomial Ring
+        EXAMPLES: Polynomial Ring
         We first illustrate construction of a few homomorphisms
         involving a polynomial ring.
 
@@ -293,7 +293,7 @@ cdef class ParentWithGens(ParentWithBase):
             sage: f(x^2+1)
             3
 
-        EXAMPLE: Natural morphism
+        EXAMPLES: Natural morphism
 
         ::
 

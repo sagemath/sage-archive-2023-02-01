@@ -226,7 +226,7 @@ class GraphPlot(SageObject):
         as some functions to set parameters for vertices and edges.  This constructor
         assumes default options are set.  Defaults are shown in the example below.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.graph_plot import GraphPlot
             sage: options = {
@@ -274,7 +274,7 @@ class GraphPlot(SageObject):
         """
         Returns a string representation of a ``GraphPlot`` object.
 
-        EXAMPLE:
+        EXAMPLES:
 
         This function is called implicitly by the code below::
 
@@ -804,7 +804,7 @@ class GraphPlot(SageObject):
         segment from A to B (xy tuples) and circles centered at A and B, both with
         radius VR.  Returns a tuple of xy tuples representing the two points.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: d = DiGraph({}, loops=True, multiedges=True, sparse=True)
             sage: d.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
@@ -856,7 +856,7 @@ class GraphPlot(SageObject):
             - Any options not used by plot will be passed on to the
               :meth:`~sage.plot.graphics.Graphics.show` method.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: C = graphs.CubeGraph(8)
             sage: P = C.graphplot(vertex_labels=False, vertex_size=0, graph_border=True)
@@ -1369,7 +1369,7 @@ def _circle_embedding(g, vertices, center=(0, 0), radius=1, shift=0):
     circle by an angle of `\alpha 2\pi/n` (where `n` is the number of
     vertices set on the circle).
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.graph_plot import _circle_embedding
         sage: g = graphs.CycleGraph(5)
@@ -1399,7 +1399,7 @@ def _line_embedding(g, vertices, first=(0, 0), last=(0, 1)):
     is the pair ``first`` and the position of ``vertices[-1]`` is
     ``last``. The vertices are evenly spaced.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.graph_plot import _line_embedding
         sage: g = graphs.PathGraph(5)

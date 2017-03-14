@@ -598,7 +598,7 @@ def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
     A pair ``(cost, ordering)`` representing the optimal ordering of the
     vertices and its cost.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Cutwidth of a Cycle graph::
 

@@ -89,7 +89,7 @@ We test corner cases for multiplication::
 
 include "cysignals/signals.pxi"
 from libc.stdint cimport uint64_t
-from cpython.string cimport *
+from cpython.bytes cimport *
 
 include "cysignals/memory.pxi"
 from sage.libs.gmp.mpz cimport *
@@ -524,7 +524,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
     def __hash__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B = random_matrix(GF(127),3,3)
             sage: B.set_immutable()
@@ -644,7 +644,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
                     for j in range(self._ncols):
                         row_um[j] = <mod_int>row_self[j]
 
-            s = PyString_FromStringAndSize(<char*>buf, word_size * self._nrows * self._ncols)
+            s = PyBytes_FromStringAndSize(<char*>buf, word_size * self._nrows * self._ncols)
         finally:
             sig_free(buf)
             sig_off()
@@ -720,7 +720,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             word_size, little_endian_data, s = data
             expectedlen = word_size * self._nrows * self._ncols
 
-            PyString_AsStringAndSize(s, &buf, &buflen)
+            PyBytes_AsStringAndSize(s, &buf, &buflen)
             if buflen != expectedlen:
                 raise ValueError("incorrect size in matrix pickle (expected %d, got %d)"%(expectedlen, buflen))
 
@@ -832,7 +832,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
     def __copy__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(127), 100, 100)
             sage: copy(A) == A
@@ -1316,7 +1316,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
         - ``algorithm`` - 'generic', 'linbox' or 'all' (default: linbox)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(19), 10, 10); A
             [ 3  1  8 10  5 16 18  9  6  1]
@@ -1493,7 +1493,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
              default, unless you first type
              ``proof.linear_algebra(False)``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(17), 10, 10); A
             [ 2 14  0 15 11 10 16  2  9  4]
@@ -1643,7 +1643,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
         - ``var`` - a variable name
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(19), 10, 10); A
             [ 3  1  8 10  5 16 18  9  6  1]
@@ -2032,7 +2032,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         """
         Transforms self in place to its Hessenberg form.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(17), 10, 10, density=0.1); A
             [ 0  0  0  0 12  0  0  0  0  0]
@@ -2129,7 +2129,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
            ints, where the constant term of the characteristic
            polynomial is the 0th coefficient of the vector.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(17), 10, 10, density=0.1); A
             [ 0  0  0  0 12  0  0  0  0  0]
@@ -2449,7 +2449,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         - ``multiple`` - finite field element
         - ``start_col`` - integer
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(GF(19), 4, 4, range(16)); A
             [ 0  1  2  3]
@@ -2537,7 +2537,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         Add ``multiple`` times ``self[row_from]`` to ``self[row_to]``
         statting in column ``start_col``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(37), 10, 10); A
             [24 15  7 27 32 34 16 32 25 23]
@@ -2598,7 +2598,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         Add ``multiple`` times ``self[row_from]`` to ``self[row_to]``
         statting in column ``start_col``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(37), 10, 10); A
             [24 15  7 27 32 34 16 32 25 23]
@@ -2918,7 +2918,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
         - ``ncols`` - integer
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(GF(127), 4, 4, range(16))
             sage: A
@@ -2960,7 +2960,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         """
         Test whether this matrix is zero.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(GF(7), 10, 10, range(100))
             sage: A == 0 # indirect doctest

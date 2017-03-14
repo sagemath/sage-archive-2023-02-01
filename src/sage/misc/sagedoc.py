@@ -54,7 +54,7 @@ from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
 # should instead by taken care of by MathJax -- and nonmath, which
 # should be done always.
 
-# Math substititions: don't forget the leading backslash '\\'. These
+# Math substitutions: don't forget the leading backslash '\\'. These
 # are done using regular expressions, so it works best to also make
 # the strings raw: r'\\blah'.
 math_substitutes = [

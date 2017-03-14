@@ -3411,7 +3411,7 @@ def graphics_array(array, nrows=None, ncols=None):
        if necessary. If only one is specified, the other is chosen
        automatically.
 
-    EXAMPLE: Make some plots of `\sin` functions::
+    EXAMPLES: Make some plots of `\sin` functions::
 
         sage: f(x) = sin(x)
         sage: g(x) = sin(2*x)

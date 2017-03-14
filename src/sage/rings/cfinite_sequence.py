@@ -93,6 +93,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from six.moves import range
+from six import add_metaclass
 
 from sage.categories.fields import Fields
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -167,6 +168,7 @@ def CFiniteSequences(base_ring, names = None, category = None):
     return CFiniteSequences_generic(polynomial_ring, category)
 
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class CFiniteSequence(FieldElement):
     r"""
     Create a C-finite sequence given its ordinary generating function.
@@ -249,9 +251,6 @@ class CFiniteSequence(FieldElement):
         ...
         NotImplementedError: Multidimensional o.g.f. not implemented.
     """
-
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, ogf):
         r"""

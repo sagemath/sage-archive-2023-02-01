@@ -8,6 +8,7 @@ Coxeter Groups
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from sage.misc.cachefunc import cached_function, cached_method
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
@@ -53,19 +54,20 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
 
         sage: W = CoxeterGroup(["A",2])
         sage: W
-        Finite Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+        Finite Coxeter group over Integer Ring with Coxeter matrix:
         [1 3]
         [3 1]
 
         sage: W = CoxeterGroup(["A",3,1]); W
-        Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+        Coxeter group over Integer Ring with Coxeter matrix:
         [1 3 2 3]
         [3 1 3 2]
         [2 3 1 3]
         [3 2 3 1]
 
         sage: W = CoxeterGroup(['H',3]); W
-        Finite Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+        Finite Coxeter group over Number Field in a with
+        defining polynomial x^2 - 5 with Coxeter matrix:
         [1 3 2]
         [3 1 5]
         [2 5 1]
@@ -86,14 +88,16 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
 
         sage: W = CoxeterGroup(["H",3], implementation="matrix")
         sage: W
-        Finite Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+        Finite Coxeter group over Number Field in a with
+        defining polynomial x^2 - 5 with Coxeter matrix:
         [1 3 2]
         [3 1 5]
         [2 5 1]
 
         sage: W = CoxeterGroup(["H",3], implementation="reflection")
         sage: W
-        Finite Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+        Finite Coxeter group over Number Field in a with
+        defining polynomial x^2 - 5 with Coxeter matrix:
         [1 3 2]
         [3 1 5]
         [2 5 1]
@@ -239,16 +243,15 @@ class CoxeterGroupAsPermutationGroup(UniqueRepresentation, PermutationGroup_gene
 
     def index_set(self):
         """
-        Returns the index set of this Coxeter group
+        Return the index set of this Coxeter group.
 
         EXAMPLES::
 
             sage: W = CoxeterGroup(["H",3], implementation = "permutation")  # optional - gap3
             sage: W.index_set() # optional - gap3
             [1, 2, 3]
-
         """
-        return range(1, self._semi_simple_rank+1)
+        return list(range(1, self._semi_simple_rank + 1))
 
     @cached_method
     def reflection(self, i):

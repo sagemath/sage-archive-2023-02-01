@@ -80,7 +80,7 @@ cdef extern from "Solver.h" namespace "CMSat":
                                      #another. NOTE: This precludes using a lot of the algorithms!
         bint      doConglXors        #Do variable elimination at the XOR-level (xor-ing 2 xor
                                      #clauses thereby removing a variable)
-        bint      doHeuleProcess     #Perform local subsitutuion as per Heule's theis
+        bint      doHeuleProcess     #Perform local substitution as per Heule's theis
         bint      doSchedSimp        #Should simplifyProblem() be scheduled regularly? (if set to
                                      #FALSE, a lot of optimisations are disabled)
         bint      doSatELite         #Should try to subsume & self-subsuming resolve &

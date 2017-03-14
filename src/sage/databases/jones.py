@@ -133,7 +133,7 @@ class JonesDatabase:
            been downloaded using wget.
 
 
-        EXAMPLE: This is how to create the database from scratch, assuming
+        EXAMPLES: This is how to create the database from scratch, assuming
         that the number fields are in the default directory above: From a
         cold start of Sage::
 

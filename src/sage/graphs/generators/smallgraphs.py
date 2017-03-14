@@ -624,7 +624,7 @@ def SuzukiGraph():
         It takes approximately 50 seconds to build this graph. Do not be too
         impatient.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: g = graphs.SuzukiGraph(); g            # optional database_gap internet # not tested
         Suzuki graph: Graph on 1782 vertices
@@ -1401,7 +1401,7 @@ def BrouwerHaemersGraph():
     on Andries Brouwer's website
     <http://www.win.tue.nl/~aeb/graphs/Brouwer-Haemers.html>`_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: g = graphs.BrouwerHaemersGraph()
         sage: g
@@ -1568,7 +1568,7 @@ def GossetGraph():
     has with 56 vertices and degree 27. For more information, see the
     :wikipedia:`Gosset_graph`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: g = graphs.GossetGraph(); g
         Gosset Graph: Graph on 56 vertices
@@ -1967,7 +1967,7 @@ def DesarguesGraph():
 
     PLOTTING: The layout chosen is the same as on the cover of [1].
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: D = graphs.DesarguesGraph()
         sage: L = graphs.LCFGraph(20,[5,-5,9,-9],5)
@@ -2209,7 +2209,7 @@ def EllinghamHorton54Graph():
     For more information, see the :wikipedia:`Wikipedia page on the
     Ellingham-Horton graphs <Ellingham-Horton_graph>`
 
-    EXAMPLE:
+    EXAMPLES:
 
     This graph is 3-regular::
 
@@ -2299,7 +2299,7 @@ def EllinghamHorton78Graph():
     Ellingham-Horton graphs
     <http://en.wikipedia.org/wiki/Ellingham%E2%80%93Horton_graph>`
 
-    EXAMPLE:
+    EXAMPLES:
 
     This graph is 3-regular::
 
@@ -2446,7 +2446,7 @@ def F26AGraph():
     The F26A graph is a symmetric bipartite cubic graph with 26 vertices and 39
     edges. For more information, see the :wikipedia:`F26A_graph`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: g = graphs.F26AGraph(); g
         F26A Graph: Graph on 26 vertices
@@ -2519,7 +2519,7 @@ def FolkmanGraph():
     See the :wikipedia:`Wikipedia page on the Folkman Graph
     <Folkman_graph>`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: g = graphs.FolkmanGraph()
         sage: g.order()
@@ -2556,7 +2556,7 @@ def FosterGraph():
     See the :wikipedia:`Wikipedia page on the Foster Graph
     <Foster_graph>`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: g = graphs.FosterGraph()
         sage: g.order()
@@ -3384,7 +3384,7 @@ def KrackhardtKiteGraph():
     to all other nodes in the graph (i.e.: Closeness Centrality).
     Please execute the example for visualization.
 
-    EXAMPLE: Construct and show a Krackhardt kite graph
+    EXAMPLES: Construct and show a Krackhardt kite graph
 
     ::
 
@@ -3412,7 +3412,7 @@ def Klein3RegularGraph():
     :meth:`~sage.graphs.graph_generators.GraphGenerators.Klein7RegularGraph`. For
     more information, see the :wikipedia:`Klein_graphs`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: g = graphs.Klein3RegularGraph(); g
         Klein 3-regular Graph: Graph on 56 vertices
@@ -3445,7 +3445,7 @@ def Klein7RegularGraph():
     :meth:`~sage.graphs.graph_generators.GraphGenerators.Klein3RegularGraph`. For
     more information, see the :wikipedia:`Klein_graphs`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: g = graphs.Klein7RegularGraph(); g
         Klein 7-regular Graph: Graph on 24 vertices
@@ -4036,7 +4036,7 @@ def PerkelGraph():
     `(6,5,2;1,1,3)`. For more information, see the :wikipedia:`Perkel_graph` or
     http://www.win.tue.nl/~aeb/graphs/Perkel.html.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: g = graphs.PerkelGraph(); g
         Perkel Graph: Graph on 57 vertices
@@ -4062,7 +4062,7 @@ def RobertsonGraph():
     See the :wikipedia:`Wikipedia page on the Robertson Graph
     <Robertson_graph>`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: g = graphs.RobertsonGraph()
         sage: g.order()
@@ -4108,7 +4108,7 @@ def SchlaefliGraph():
 
         Find a beautiful layout for this beautiful graph.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Checking that the method actually returns the Schläfli graph::
 
@@ -4244,7 +4244,7 @@ def SylvesterGraph():
 
         * :meth:`~sage.graphs.graph_generators.GraphGenerators.HoffmanSingletonGraph`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: g = graphs.SylvesterGraph(); g
         Sylvester Graph: Graph on 36 vertices
@@ -4283,7 +4283,7 @@ def SimsGewirtzGraph():
 
         * :meth:`~sage.graphs.graph_generators.GraphGenerators.HigmanSimsGraph`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: g = graphs.SimsGewirtzGraph(); g
         Sims-Gewirtz Graph: Graph on 56 vertices
@@ -4450,7 +4450,7 @@ def TruncatedIcosidodecahedralGraph():
     and 180 edges. For more information, see the
     :wikipedia:`Truncated_icosidodecahedron`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: g = graphs.TruncatedIcosidodecahedralGraph(); g
         Truncated Icosidodecahedron: Graph on 120 vertices
@@ -4469,7 +4469,7 @@ def TruncatedTetrahedralGraph():
     The truncated tetrahedron is an Archimedean solid with 12 vertices and 18
     edges. For more information, see the :wikipedia:`Truncated_tetrahedron`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: g = graphs.TruncatedTetrahedralGraph(); g
         Truncated Tetrahedron: Graph on 12 vertices
@@ -4807,7 +4807,7 @@ def MathonStronglyRegularGraph(t):
 
     - ``t`` (integer) -- the number of the graph, from 0 to 2.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.generators.smallgraphs import MathonStronglyRegularGraph
         sage: G = MathonStronglyRegularGraph(0)        # long time
@@ -4840,7 +4840,7 @@ def JankoKharaghaniGraph(v):
 
     - ``v`` (integer) -- one of 936 or 1800.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: g = graphs.JankoKharaghaniGraph(936)   # long time
         sage: g.is_strongly_regular(parameters=True) # long time

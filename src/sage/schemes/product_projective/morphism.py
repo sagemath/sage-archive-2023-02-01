@@ -130,7 +130,7 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
 
         OUTPUT:
 
-        The (multi)-homomgeneous polynomial that is the ``i``-th coordinate.
+        The (multi)-homogeneous polynomial that is the ``i``-th coordinate.
 
         EXAMPLES::
 

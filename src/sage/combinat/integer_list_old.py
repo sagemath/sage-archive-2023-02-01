@@ -767,7 +767,7 @@ class IntegerListsLex(Parent):
     readily implemented in MuPAD-Combinat). Encouragements,
     suggestions, and help are welcome.
 
-    .. TODO:
+    .. TODO::
 
         Integrate all remaining tests from
         http://mupad-combinat.svn.sourceforge.net/viewvc/mupad-combinat/trunk/MuPAD-Combinat/lib/COMBINAT/TEST/MachineIntegerListsLex.tst

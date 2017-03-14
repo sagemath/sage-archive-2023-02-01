@@ -22,16 +22,11 @@ fi
 WORKDIR=${PWD}/src
 PYNACDIR=${WORKDIR}
 
-patch()
-{
-    true
-}
-
 build_pynac()
 {
     cd ${PYNACDIR}
     PKG_CONFIG_PATH=${SAGE_LOCAL}/lib/pkgconfig; export PKG_CONFIG_PATH
-    ./configure --disable-static --prefix=${SAGE_LOCAL} --libdir="$SAGE_LOCAL/lib"
+    ./configure --disable-static --prefix=${SAGE_LOCAL} --with-giac=no --libdir="$SAGE_LOCAL/lib"
     $MAKE
     if [ $? -ne 0 ]; then
         echo "Error building pynac."
@@ -59,8 +54,6 @@ clean_pynac()
 {
     true
 }
-
-patch
 
 
 cd src

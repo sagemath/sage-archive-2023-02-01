@@ -1188,7 +1188,7 @@ class ModuleMorphismFromMatrix(ModuleMorphismByLinearity):
     A class for module morphisms built from a matrix in the
     distinguished bases of the domain and codomain.
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         - :meth:`ModulesWithBasis.ParentMethods.module_morphism`
         - :meth:`ModulesWithBasis.FiniteDimensional.MorphismMethods.matrix`

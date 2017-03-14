@@ -48,6 +48,8 @@ from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.ext.fast_callable import fast_callable
 import sys
+from sage.symbolic.ring import is_SymbolicExpressionRing
+from sage.symbolic.ring import var
 
 class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
     """
@@ -501,6 +503,28 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             Field
               Defn: Defined on coordinates by sending (x0 : x1) to
                     (x0*x1 : 1/2*x0^2 + x0*x1 + 3/2*x1^2)
+
+        ::
+
+            sage: A.<z> = AffineSpace(QQbar, 1)
+            sage: H = End(A)
+            sage: f = H([2*z / (z^2 + 2*z + 3)])
+            sage: f.homogenize(1)
+            Scheme endomorphism of Projective Space of dimension 1 over Algebraic
+            Field
+                Defn: Defined on coordinates by sending (x0 : x1) to
+                    (x0*x1 : 1/2*x0^2 + x0*x1 + 3/2*x1^2)
+
+        ::
+
+            sage: R.<c,d> = QQbar[]
+            sage: A.<x> = AffineSpace(R, 1)
+            sage: H = Hom(A, A)
+            sage: F = H([d*x^2 + c])
+            sage: F.homogenize(1)
+            Scheme endomorphism of Projective Space of dimension 1 over Multivariate Polynomial Ring in c, d over Algebraic Field
+            Defn: Defined on coordinates by sending (x0 : x1) to
+            (d*x0^2 + c*x1^2 : x1^2)
         """
         #it is possible to homogenize the domain and codomain at different coordinates
         if isinstance(n, (tuple, list)):
@@ -539,7 +563,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             #remove possible gcd of coefficients
             gc = gcd([f.content() for f in F])
             F = [S(f/gc) for f in F]
-        except (AttributeError, ValueError): #no gcd
+        except (AttributeError, ValueError, NotImplementedError, TypeError): #no gcd
             pass
         d = max([F[i].degree() for i in range(M+1)])
         F = [F[i].homogenize(str(newvar))*newvar**(d-F[i].degree()) for i in range(M+1)]
@@ -615,7 +639,8 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
             sage: K.<c> = FunctionField(QQ)
             sage: A.<x> = AffineSpace(K, 1)
-            sage: f = Hom(A, A)([x^2 + c])
+            sage: H = Hom(A, A)
+            sage: f = H([x^2 + c])
             sage: f.dynatomic_polynomial(4)
             x^12 + 6*c*x^10 + x^9 + (15*c^2 + 3*c)*x^8 + 4*c*x^7 + (20*c^3 + 12*c^2 + 1)*x^6
             + (6*c^2 + 2*c)*x^5 + (15*c^4 + 18*c^3 + 3*c^2 + 4*c)*x^4 + (4*c^3 + 4*c^2 + 1)*x^3
@@ -629,6 +654,23 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: f = H([z^2+3/z+1/7])
             sage: f.dynatomic_polynomial(1).parent()
             Multivariate Polynomial Ring in z over Rational Field
+
+        ::
+
+            sage: R.<c> = QQ[]
+            sage: A.<z> = AffineSpace(R,1)
+            sage: H = End(A)
+            sage: f = H([z^2 + c])
+            sage: f.dynatomic_polynomial([1,1])
+            z^2 + z + c
+
+        ::
+
+            sage: A.<x> = AffineSpace(CC,1)
+            sage: H = Hom(A,A)
+            sage: F = H([1/2*x^2 + sqrt(3)])
+            sage: F.dynatomic_polynomial([1,1])
+            (2.00000000000000*x^4 + 5.85640646055102*x^2 + 24.0000000000000)/(x^2 + (-2.00000000000000)*x + 3.46410161513775)
         """
         if self.domain() != self.codomain():
             raise TypeError("must have same domain and codomain to iterate")
@@ -637,9 +679,14 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             raise NotImplementedError("not implemented for subschemes")
         if self.domain().dimension_relative()>1:
             raise TypeError("does not make sense in dimension >1")
-        F = self.homogenize(1).dynatomic_polynomial(period)
+        G = self.homogenize(1)
+        F = G.dynatomic_polynomial(period)
+        T = G.domain().coordinate_ring()
         S = self.domain().coordinate_ring()
-        if S(F.denominator()).degree() == 0:
+        if is_SymbolicExpressionRing(F.parent()):
+            u = var(self.domain().coordinate_ring().variable_name())
+            return F.subs({F.variables()[0]:u,F.variables()[1]:1})
+        elif T(F.denominator()).degree() == 0:
             R = F.parent()
             phi = R.hom([S.gen(0), 1], S)
             return(phi(F))

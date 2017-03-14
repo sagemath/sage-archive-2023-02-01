@@ -997,7 +997,7 @@ class ModularForm_abstract(ModuleElement):
           (default: 0)
         - ``prec`` (integer, default 53): precision in bits
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CuspForms(1, 16).0.petersson_norm()
             verbose -1 (...: dokchitser.py, __call__) Warning: Loss of 2 decimal digits due to cancellation
@@ -1360,7 +1360,7 @@ class Newform(ModularForm_abstract):
         of this form is not either trivial or quadratic. If d is not given or
         is None, then d defaults to the level of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: [x.atkin_lehner_eigenvalue() for x in ModularForms(53).newforms('a')]
             [1, -1]
@@ -1665,7 +1665,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         modular form (which is either 1 or -1), or None if this form is not an
         eigenvector for this operator.
 
-        EXAMPLE::
+        EXAMPLES::
 
              sage: CuspForms(1, 30).0.atkin_lehner_eigenvalue()
              1
@@ -1888,7 +1888,7 @@ class ModularFormElement_elliptic_curve(ModularFormElement):
         is attached to an elliptic curve, we can read this off from the root
         number of the curve if d is the level.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: EllipticCurve('57a1').newform().atkin_lehner_eigenvalue()
             1

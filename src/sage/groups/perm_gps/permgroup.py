@@ -602,7 +602,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         it may be overridden in derived subclasses (most importantly
         ``sage.rings.number_field.galois_group.GaloisGroup_v2``).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: AlternatingGroup(17)._element_class()
             <type 'sage.groups.perm_gps.permgroup_element.PermutationGroupElement'>
@@ -1094,7 +1094,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         - ``x,y`` -- two elements of the domain.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = groups.permutation.Cyclic(14)
             sage: g = G.representative_action(1,10)
@@ -3106,7 +3106,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
             - :meth:`~PermutationGroup_generic.is_primitive`
 
-        EXAMPLE:
+        EXAMPLES:
 
         Picking an interesting group::
 
@@ -3316,7 +3316,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         r"""
         Return a minimal generating set
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = graphs.CompleteGraph(4)
             sage: g.relabel(['a','b','c','d'])

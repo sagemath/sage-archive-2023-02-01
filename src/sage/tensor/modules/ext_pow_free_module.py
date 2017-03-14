@@ -457,7 +457,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
         - instance of :class:`FiniteRankFreeModule` representing the free
           module on which the exterior power is defined.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 5, name='M')
             sage: A = M.dual_exterior_power(2)

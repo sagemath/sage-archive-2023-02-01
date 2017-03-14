@@ -5,7 +5,7 @@ Sage interacts are applications of the `@interact decorator <../../sagenb/notebo
 They are conveniently accessible in the Sage Notebook via ``interacts.[TAB].[TAB]()``.
 The first ``[TAB]`` lists categories and the second ``[TAB]`` reveals the interact examples.
 
-EXAMPLE:
+EXAMPLES:
 
 Invoked in the notebook, the following command will produce the fully formatted
 interactive mathlet.  In the command line, it will simply return the underlying
@@ -1238,7 +1238,7 @@ def function_tool(f=sin(x), g=cos(x), xrange=range_slider(-3,3,default=(0,1),lab
       - ``action`` -- select given operation on or combination of functions
       - ``do_plot`` -- if true, a plot is drawn
 
-    EXAMPLE:
+    EXAMPLES:
 
     Invoked in the notebook, the following command will produce
     the fully formatted interactive mathlet.  In the command line,
@@ -1355,7 +1355,7 @@ def julia(expo = slider(-10,10,0.1,2),
         - ``plot_points`` -- number of points to plot
         - ``dpi`` -- dots-per-inch parameter for the plot
 
-    EXAMPLE:
+    EXAMPLES:
 
     Invoked in the notebook, the following command will produce
     the fully formatted interactive mathlet.  In the command line,
@@ -1396,7 +1396,7 @@ def mandelbrot(expo = slider(-10,10,0.1,2),
         - ``plot_points`` -- number of points to plot
         - ``dpi`` -- dots-per-inch parameter for the plot
 
-    EXAMPLE:
+    EXAMPLES:
 
     Invoked in the notebook, the following command will produce
     the fully formatted interactive mathlet.  In the command line,
@@ -1434,7 +1434,7 @@ def cellular_automaton(
         - ``rule_number`` -- rule number (0 to 255)
         - ``size`` -- size of the shown picture
 
-    EXAMPLE:
+    EXAMPLES:
 
     Invoked in the notebook, the following command will produce
     the fully formatted interactive mathlet.  In the command line,
@@ -1489,7 +1489,7 @@ def polar_prime_spiral(
         - ``n`` -- number `n`
         - ``dpi`` -- dots per inch resolution for plotting
 
-    EXAMPLE:
+    EXAMPLES:
 
     Invoked in the notebook, the following command will produce
     the fully formatted interactive mathlet.  In the command line,

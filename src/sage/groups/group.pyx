@@ -142,7 +142,7 @@ cdef class Group(Parent):
         (Note for developers: Derived classes should override is_abelian, not
         is_commutative.)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: SL(2, 7).is_commutative()
             False

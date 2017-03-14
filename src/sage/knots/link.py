@@ -47,6 +47,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import division
+from six.moves import range
 
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
@@ -1319,7 +1320,7 @@ class Link(object):
             return self._pd_code
 
         if self._braid is not None:
-            strings = range(1, self._braid.strands() + 1)
+            strings = list(range(1, self._braid.strands() + 1))
             b = list(self._braid.Tietze())
             pd = []
             strings_max = strings[-1]
@@ -2767,7 +2768,7 @@ class Link(object):
         MLP.set_objective(MLP.sum(v.values()))
         MLP.solve()
         # we store the result in a vector s packing right bends as negative left ones
-        s = range(len(edges))
+        s = list(range(len(edges)))
         values = MLP.get_values(v)
         for i in range(len(edges)):
             s[i] = int(values[2*i] - values[2*i + 1])

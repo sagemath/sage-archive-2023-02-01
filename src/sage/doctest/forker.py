@@ -551,11 +551,15 @@ class SageDocTestRunner(doctest.DocTestRunner):
                 if not quiet:
                     self.report_failure(out, test, example, got, test.globs)
                 failures += 1
+                if self.options.fail_once:
+                    break
             elif outcome is BOOM:
                 if not quiet:
                     self.report_unexpected_exception(out, test, example,
                                                      exc_info)
                 failures += 1
+                if self.options.fail_once:
+                    break
             else:
                 assert False, ("unknown outcome", outcome)
 
@@ -1424,6 +1428,8 @@ class DocTestDispatcher(SageObject):
                 output = outtmpfile.read()
 
             self.controller.reporter.report(source, False, 0, result, output)
+            if self.controller.options.fail_once and result[1].failures:
+                break
 
     def parallel_dispatch(self):
         """

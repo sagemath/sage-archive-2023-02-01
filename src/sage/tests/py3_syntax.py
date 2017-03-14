@@ -1,5 +1,13 @@
-"""
+r"""
 Test that the Sage library uses Python 3 syntax
+
+AUTHORS:
+
+- Volker Braun (2017-02-11): initial version
+
+- Frédéric Chapoton (2017-02-28): fixes
+
+- Julian Rüth (2017-03-14): documentation changes
 
 EXAMPLES::
 
@@ -7,6 +15,17 @@ EXAMPLES::
     sage: py3_syntax = Python3SyntaxTest('sage', 'sage_setup')
     sage: py3_syntax.run_tests('.py')   # long time
 """
+#*****************************************************************************
+#       Copyright (C) 2017 Volker Braun <vbraun.name@gmail.com>
+#                     2017 Frédéric Chapoton <chapoton@math.univ-lyon1.fr>
+#                     2017 Julian Rüth <julian.rueth@fsfe.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 from __future__ import print_function
 
@@ -16,30 +35,35 @@ import subprocess
 
 from sage.env import SAGE_SRC
 
-
 class SortedDirectoryWalkerABC(object):
+    r"""
+    Walks the directory tree in a reproducible manner.
 
+    INPUT:
+
+    - ``*directories`` -- roots of the directory trees to walk
+
+    EXAMPLES::
+
+        sage: from sage.tests.py3_syntax import SortedDirectoryWalkerABC
+        sage: walker = SortedDirectoryWalkerABC('sage/tests')
+
+    """
     def __init__(self, *directories):
-        """
-        Walk directory tree in a reproducible manner
+        r"""
+        TESTS::
 
-        INPUT:
-
-        -- ``*directories`` - Roots of the directory trees to walk.
-
-        EXAMPLES::
-
-            sage: from sage.tests.py3_syntax import Python3SyntaxTest
-            sage: Python3SyntaxTest('sage/tests')
-            <sage.tests.py3_syntax.Python3SyntaxTest object at 0x...>
+            sage: from sage.tests.py3_syntax import Python3SyntaxTest, SortedDirectoryWalkerABC
+            sage: isinstance(Python3SyntaxTest('sage/tests'), SortedDirectoryWalkerABC)
+            True
         """
         self._directories = tuple(
             os.path.join(SAGE_SRC, d) for d in directories
         )
 
     def __iter__(self):
-        """
-        Iterate over files
+        r"""
+        Return an iterator over the files in the directories.
 
         OUTPUT:
 
@@ -65,16 +89,13 @@ class SortedDirectoryWalkerABC(object):
                 yield (path, filename, ext)
 
     def run_tests(self, *extensions):
-        """
-        Run tests
-
-        The abstract :meth:`test` is called on each file with a
-        matching extension.
+        r"""
+        Run :meth:`test` on each file with a matching extension.
 
         INPUT:
 
-        -- ``*extensions`` - the file extensions (including the leading dot)
-            to check.
+        - ``*extensions`` -- the file extensions (including the leading dot) to
+          check
 
         EXAMPLES::
 
@@ -96,14 +117,14 @@ class SortedDirectoryWalkerABC(object):
         self.test(*buf)
 
     def test(self, *filenames):
-        """
-        Test the given filenames
+        r"""
+        Test the given filenames.
 
         To be implemented in derived classes.
 
         INPUT:
 
-        -- ``*filename`` -- string. The full qualified filenames to check.
+        - ``*filenames`` -- the fully qualified filenames to check
 
         EXAMPLES::
 
@@ -122,16 +143,30 @@ class SortedDirectoryWalkerABC(object):
 PYTHON3_ENV = dict(os.environ)
 PYTHON3_ENV.pop('PYTHONPATH', None)
 
-
 class Python3SyntaxTest(SortedDirectoryWalkerABC):
+    r"""
+    Walks the directory tree and tests that all Python files are valid Python 3
+    syntax.
 
+    INPUT:
+
+    - ``*directories`` -- roots of the directory trees to walk
+
+    EXAMPLES::
+
+        sage: from sage.tests.py3_syntax import Python3SyntaxTest
+        sage: walker = Python3SyntaxTest('sage/tests')
+        sage: walker.run_tests('.py')   # long time
+
+    """
     def test(self, *filenames):
         r"""
-        Test that the given filenames are valid Python 3 syntax
+        Print an error message if the given files are not using valid Python 3
+        syntax.
 
         INPUT:
 
-        -- ``filename`` -- string. The full qualified filename to check.
+        - ``*filenames`` -- the fully qualified filenames to check
 
         EXAMPLES::
 

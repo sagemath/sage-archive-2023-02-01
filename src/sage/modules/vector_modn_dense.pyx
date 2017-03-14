@@ -93,6 +93,7 @@ AUTHOR:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 include "cysignals/memory.pxi"
 
@@ -114,8 +115,8 @@ cdef mod_int ivalue(IntegerMod_abstract x) except -1:
 
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 
-cimport free_module_element
-from free_module_element import vector
+cimport sage.modules.free_module_element as free_module_element
+from .free_module_element import vector
 
 cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
     cdef _new_c(self):
@@ -153,6 +154,8 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
     def __init__(self, parent, x, coerce=True, copy=True):
         cdef Py_ssize_t i
         cdef mod_int a, p
+        if isinstance(x, xrange):
+            x = tuple(x)
         if isinstance(x, (list, tuple)):
             if len(x) != self._degree:
                 raise TypeError("x must be a list of the right length")
@@ -161,7 +164,7 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
                 p = R.order()
                 for i from 0 <= i < self._degree:
                     a = int(R(x[i]))
-                    self._entries[i] = a%p
+                    self._entries[i] = a % p
             else:
                 for i from 0 <= i < self._degree:
                     self._entries[i] = x[i]

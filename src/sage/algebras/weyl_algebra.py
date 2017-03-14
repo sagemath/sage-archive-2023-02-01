@@ -23,12 +23,15 @@ import operator
 from sage.categories.rings import Rings
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.sets.family import Family
-from sage.combinat.dict_addition import dict_addition, dict_linear_combination
+import sage.data_structures.blas_dict as blas
 from sage.combinat.free_module import _divide_if_possible
 from sage.rings.ring import Algebra
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 from sage.rings.polynomial.multi_polynomial_ring_generic import MPolynomialRing_generic
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+import six
+
 
 def repr_from_monomials(monomials, term_repr, use_latex=False):
     r"""
@@ -296,7 +299,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             sage: dy - (3*x - z)*dx
             dy + z*dx - 3*x*dx
         """
-        return self.__class__(self.parent(), {m:-c for m,c in self.__monomials.iteritems()})
+        return self.__class__(self.parent(), {m:-c for m,c in six.iteritems(self.__monomials)})
 
     def _add_(self, other):
         """
@@ -310,11 +313,11 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             dx*dy + dz + x^3 - 2
         """
         F = self.parent()
-        return self.__class__(F, dict_addition([self.__monomials, other.__monomials]))
+        return self.__class__(F, blas.add(self.__monomials, other.__monomials))
 
         d = copy(self.__monomials)
         zero = self.parent().base_ring().zero()
-        for m,c in other.__monomials.iteritems():
+        for m,c in six.iteritems(other.__monomials):
             d[m] = d.get(m, zero) + c
             if d[m] == zero:
                 del d[m]
@@ -504,7 +507,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
         if F.base_ring().is_field():
             x = F.base_ring()( x )
             x_inv = x**-1
-            D = dict_linear_combination( [ ( D, x_inv ) ] )
+            D = blas.linear_combination( [ ( D, x_inv ) ] )
 
             return self.__class__(F, D)
 
@@ -670,7 +673,7 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
             return self.element_class(self, {i: R(c) for i,c in x if R(c) != zero})
         x = self._poly_ring(x)
         return self.element_class(self, {(tuple(m), t): c
-                                         for m,c in x.dict().iteritems()})
+                                         for m,c in six.iteritems(x.dict())})
 
     def _coerce_map_from_(self, R):
         """

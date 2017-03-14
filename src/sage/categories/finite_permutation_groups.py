@@ -163,7 +163,7 @@ class FinitePermutationGroups(CategoryWithAxiom):
                 p[1, 1, 1, 1, 1] + 15*p[2, 2, 1] + 20*p[3, 1, 1] + 24*p[5]
 
                 sage: for G in TransitiveGroups(5):               # optional - database_gap # long time
-                ...       G.cardinality() * G.cycle_index()
+                ....:     G.cardinality() * G.cycle_index()
                 p[1, 1, 1, 1, 1] + 4*p[5]
                 p[1, 1, 1, 1, 1] + 5*p[2, 2, 1] + 4*p[5]
                 p[1, 1, 1, 1, 1] + 5*p[2, 2, 1] + 10*p[4, 1] + 4*p[5]

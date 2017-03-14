@@ -239,7 +239,7 @@ The ``SPKG.txt`` file should follow this pattern::
      script, describe what was changed.
 
 
-with ``PACKAGE_NAME`` replaced by the the package name. Legacy
+with ``PACKAGE_NAME`` replaced by the package name. Legacy
 ``SPKG.txt`` files have an additional changelog section, but this
 information is now kept in the git repository.
 

@@ -55,7 +55,7 @@ class PariError(RuntimeError):
         """
         Return the message output by PARI when this error occurred.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: try:
             ....:     pari('pi()')
@@ -74,7 +74,7 @@ class PariError(RuntimeError):
         EXAMPLES::
 
             sage: try:
-            ....:     pari(Mod(2,6))^-1
+            ....:     pari('Mod(2,6)')**-1
             ....: except PariError as e:
             ....:     E = e.errdata()
             sage: E
@@ -196,10 +196,10 @@ cdef void _pari_err_recover(long errnum):
     Perform a computation that requires doubling the default stack
     several times::
 
-        sage: pari.allocatemem(2^12, 2^26)
+        sage: pari.allocatemem(2**12, 2**26)
         PARI stack size set to 4096 bytes, maximum size set to 67108864
         sage: x = pari('2^(2^26)')
-        sage: x == 2^(2^26)
+        sage: x == 2**(2**26)
         True
 
     """

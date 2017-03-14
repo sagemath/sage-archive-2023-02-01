@@ -465,7 +465,7 @@ def is_prime(n):
     except (AttributeError, NotImplementedError):
         return ZZ(n).is_prime()
 
-def is_pseudoprime(n, flag=None):
+def is_pseudoprime(n):
     r"""
     Test whether ``n`` is a pseudo-prime
 
@@ -495,22 +495,10 @@ def is_pseudoprime(n, flag=None):
         False
         sage: is_pseudoprime(-2)
         False
-
-    TESTS:
-
-    Deprecation warning from :trac:`16878`::
-
-        sage: is_pseudoprime(127, flag=0)
-        doctest:...: DeprecationWarning: the keyword 'flag' is deprecated and no longer used
-        See http://trac.sagemath.org/16878 for details.
-        True
     """
-    if flag is not None:
-        from sage.misc.superseded import deprecation
-        deprecation(16878, "the keyword 'flag' is deprecated and no longer used")
     return ZZ(n).is_pseudoprime()
 
-def is_prime_power(n, flag=None, get_data=False):
+def is_prime_power(n, get_data=False):
     r"""
     Test whether ``n`` is a positive power of a prime number
 
@@ -568,9 +556,6 @@ def is_prime_power(n, flag=None, get_data=False):
         ...
         TypeError: unable to convert 'foo' to an integer
     """
-    if flag is not None:
-        from sage.misc.superseded import deprecation
-        deprecation(16878, "the keyword 'flag' is deprecated and no longer used")
     return ZZ(n).is_prime_power(get_data=get_data)
 
 def is_pseudoprime_power(n, get_data=False):
@@ -617,26 +602,6 @@ def is_pseudoprime_power(n, get_data=False):
         (15, 0)
     """
     return ZZ(n).is_prime_power(proof=False, get_data=get_data)
-
-def is_pseudoprime_small_power(n, bound=None, get_data=False):
-    """
-    Deprecated version of ``is_pseudoprime_power``.
-
-    EXAMPLES::
-
-        sage: is_pseudoprime_small_power(1234)
-        doctest:...: DeprecationWarning: the function is_pseudoprime_small_power() is deprecated, use is_pseudoprime_power() instead.
-        See http://trac.sagemath.org/16878 for details.
-        False
-        sage: is_pseudoprime_small_power(3^1024, get_data=True)
-        [(3, 1024)]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(16878, "the function is_pseudoprime_small_power() is deprecated, use is_pseudoprime_power() instead.")
-    if get_data:
-        return [ZZ(n).is_prime_power(proof=False, get_data=True)]
-    else:
-        return ZZ(n).is_prime_power(proof=False)
 
 
 def valuation(m, *args, **kwds):
@@ -2225,10 +2190,6 @@ def rational_reconstruction(a, m, algorithm='fast'):
     """
     if algorithm == 'fast':
         return ZZ(a).rational_reconstruction(m)
-    elif algorithm == 'python':
-        from sage.misc.superseded import deprecation
-        deprecation(17180, 'The %r algorithm for rational_reconstruction is deprecated' % algorithm)
-        return ZZ(a).rational_reconstruction(m)
     else:
         raise ValueError("unknown algorithm %r" % algorithm)
 
@@ -2334,7 +2295,7 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
        a symbolic computation will not factor the integer, because it is
        considered as an element of a larger symbolic ring.
 
-       EXAMPLE::
+       EXAMPLES::
 
            sage: f(n)=n^2
            sage: is_prime(f(3))
@@ -2418,7 +2379,7 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
         sage: factor(0)
         Traceback (most recent call last):
         ...
-        ArithmeticError: Prime factorization of 0 not defined.
+        ArithmeticError: factorization of 0 is not defined
         sage: factor(1)
         1
         sage: factor(-1)
@@ -3212,19 +3173,19 @@ def binomial(x, m, **kwds):
         sage: a = binomial(float(1001), float(1)); a
         1001.0
         sage: type(a)
-        <type 'float'>
+        <... 'float'>
         sage: binomial(float(1000), 1001)
         0.0
 
     Test more output types::
 
         sage: type(binomial(5r, 2))
-        <type 'int'>
+        <... 'int'>
         sage: type(binomial(5, 2r))
         <type 'sage.rings.integer.Integer'>
 
         sage: type(binomial(5.0r, 2))
-        <type 'float'>
+        <... 'float'>
 
         sage: type(binomial(5/1, 2))
         <type 'sage.rings.rational.Rational'>

@@ -661,7 +661,9 @@ class ReedMullerVectorEncoder(Encoder):
                                 degree, submultiset=True)
             matrix_list += [[reduce(mul, [x[i] for i in exponent], 1)
                              for x in points] for exponent in exponents]
-        return matrix(base_field, matrix_list)
+        M = matrix(base_field, matrix_list)
+        M.set_immutable()
+        return M
 
     def points(self):
         r"""

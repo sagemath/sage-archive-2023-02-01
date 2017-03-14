@@ -451,6 +451,8 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
 
       - ``'giac'`` - (optional) use Giac
 
+      - ``'sympy'`` - use SymPy
+
     - ``hold`` - (default: ``False``) if ``True`` don't evaluate
 
     EXAMPLES::
@@ -551,8 +553,24 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
 
     An example of this summation with Giac::
 
-        sage: symbolic_sum(1/(1+k^2), k, -oo, oo, algorithm = 'giac')           # optional - giac
+        sage: symbolic_sum(1/(1+k^2), k, -oo, oo, algorithm = 'giac')
         (pi*e^(2*pi) - pi*e^(-2*pi))/(e^(2*pi) + e^(-2*pi) - 2)
+
+    SymPy can't solve that summation::
+
+        sage: symbolic_sum(1/(1+k^2), k, -oo, oo, algorithm = 'sympy')
+        Traceback (most recent call last):
+        ...
+        AttributeError: Unable to convert SymPy result (=Sum(1/(k**2 + 1),
+        (k, -oo, oo))) into Sage
+
+    SymPy and Maxima 5.39.0 can do the following (see
+    :trac:`22005`)::
+
+        sage: sum(1/((2*n+1)^2-4)^2, n, 0, Infinity, algorithm='sympy')
+        1/64*pi^2
+        sage: sum(1/((2*n+1)^2-4)^2, n, 0, Infinity)
+        1/64*pi^2
 
     Use Maple as a backend for summation::
 
@@ -631,6 +649,16 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
         except TypeError:
             raise ValueError("Giac cannot make sense of: %s" % sum)
         return result.sage()
+
+    elif algorithm == 'sympy':
+        expression,v,a,b = [expr._sympy_() for expr in (expression, v, a, b)]
+        from sympy import summation
+        result = summation(expression, (v, a, b))
+        try:
+            return result._sage_()
+        except AttributeError:
+            raise AttributeError("Unable to convert SymPy result (={}) into"
+                    " Sage".format(result))
 
     else:
         raise ValueError("unknown algorithm: %s" % algorithm)
@@ -1171,20 +1199,6 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         sage: limit(f(x), x = pi/4)
         Infinity
 
-    Check that we give deprecation warnings for 'above' and 'below',
-    :trac:`9200`::
-
-        sage: limit(1/x, x=0, dir='above')
-        doctest:...: DeprecationWarning: the keyword
-        'above' is deprecated. Please use 'right' or '+' instead.
-        See http://trac.sagemath.org/9200 for details.
-        +Infinity
-        sage: limit(1/x, x=0, dir='below')
-        doctest:...: DeprecationWarning: the keyword
-        'below' is deprecated. Please use 'left' or '-' instead.
-        See http://trac.sagemath.org/9200 for details.
-        -Infinity
-
     Check that :trac:`12708` is fixed::
 
         sage: limit(tanh(x),x=0)
@@ -1218,15 +1232,9 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
     if algorithm == 'maxima':
         if dir is None:
             l = maxima.sr_limit(ex, v, a)
-        elif dir in ['plus', '+', 'right', 'above']:
-            if dir == 'above':
-                from sage.misc.superseded import deprecation
-                deprecation(9200, "the keyword 'above' is deprecated. Please use 'right' or '+' instead.")
+        elif dir in ['plus', '+', 'right']:
             l = maxima.sr_limit(ex, v, a, 'plus')
-        elif dir in ['minus', '-', 'left', 'below']:
-            if dir == 'below':
-                from sage.misc.superseded import deprecation
-                deprecation(9200, "the keyword 'below' is deprecated. Please use 'left' or '-' instead.")
+        elif dir in ['minus', '-', 'left']:
             l = maxima.sr_limit(ex, v, a, 'minus')
     elif algorithm == 'maxima_taylor':
         if dir is None:
@@ -1473,7 +1481,7 @@ def at(ex, *args, **kwds):
     """
     if not isinstance(ex, (Expression, Function)):
         ex = SR(ex)
-    kwds={ (k[10:] if k[:10] == "_SAGE_VAR_" else k):v for k,v in kwds.iteritems()}
+    kwds={ (k[10:] if k[:10] == "_SAGE_VAR_" else k):v for k,v in six.iteritems(kwds)}
     if len(args) == 1 and isinstance(args[0],list):
         for c in args[0]:
             kwds[str(c.lhs())]=c.rhs()
@@ -1483,30 +1491,6 @@ def at(ex, *args, **kwds):
 
     return ex.subs(**kwds)
 
-
-#############################################3333
-def var_cmp(x,y):
-    """
-    Return comparison of the two variables x and y, which is just the
-    comparison of the underlying string representations of the
-    variables. This is used internally by the Calculus package.
-
-    INPUT:
-
-    - ``x, y`` - symbolic variables
-
-    OUTPUT: Python integer; either -1, 0, or 1.
-
-    EXAMPLES::
-
-        sage: sage.calculus.calculus.var_cmp(x,x)
-        0
-        sage: sage.calculus.calculus.var_cmp(x,var('z'))
-        -1
-        sage: sage.calculus.calculus.var_cmp(x,var('a'))
-        1
-    """
-    return cmp(repr(x), repr(y))
 
 def dummy_limit(*args):
     """
@@ -1712,6 +1696,9 @@ symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma',\
 
 import re
 
+import six
+
+
 maxima_tick = re.compile("'[a-z|A-Z|0-9|_]*")
 
 maxima_qp = re.compile("\?\%[a-z|A-Z|0-9|_]*")  # e.g., ?%jacobi_cd
@@ -1759,7 +1746,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     :trac:`8459` fixed::
 
         sage: maxima('3*li[2](u)+8*li[33](exp(u))').sage()
-        8*polylog(33, e^u) + 3*polylog(2, u)
+        3*dilog(u) + 8*polylog(33, e^u)
 
     Check if :trac:`8345` is fixed::
 
@@ -1954,7 +1941,7 @@ def maxima_options(**kwds):
         sage: sage.calculus.calculus.maxima_options(an_option=True, another=False, foo='bar')
         'an_option=true,foo=bar,another=false'
     """
-    return ','.join(['%s=%s'%(key,mapped_opts(val)) for key, val in kwds.iteritems()])
+    return ','.join(['%s=%s'%(key,mapped_opts(val)) for key, val in six.iteritems(kwds)])
 
 
 # Parser for symbolic ring elements

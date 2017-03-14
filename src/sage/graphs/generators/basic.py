@@ -517,11 +517,11 @@ def CompleteBipartiteGraph(n1, n2):
     for i in range(n1):
         x = c1*i + c3
         y = 1
-        pos_dict[i] = (x,y)
-    for i in range(n1+n2)[n1:]:
+        pos_dict[i] = (x, y)
+    for i in range(n1,n1+n2):
         x = c2*(i-n1) + c4
         y = 0
-        pos_dict[i] = (x,y)
+        pos_dict[i] = (x, y)
 
     G = Graph(n1+n2, pos=pos_dict, name="Complete bipartite graph")
     G.add_edges((i,j) for i in range(n1) for j in range(n1,n1+n2))
@@ -536,7 +536,7 @@ def CompleteMultipartiteGraph(l):
     - ``l`` -- a list of integers : the respective sizes
       of the components.
 
-    EXAMPLE:
+    EXAMPLES:
 
     A complete tripartite graph with sets of sizes
     `5, 6, 8`::
@@ -665,7 +665,7 @@ def ToroidalGrid2dGraph(n1, n2):
     2-dimensional grid graph with identical parameters to which are added
     the edges `((i,0),(i,n_2-1))` and `((0,i),(n_1-1,i))`.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The toroidal 2-dimensional grid is a regular graph, while the usual
     2-dimensional grid is not ::
@@ -714,7 +714,7 @@ def Toroidal6RegularGrid2dGraph(n1, n2):
 
     - ``n1, n2`` (integers) -- see above.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The toroidal 6-regular grid on `25` elements::
 

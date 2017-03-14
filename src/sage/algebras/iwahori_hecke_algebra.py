@@ -77,7 +77,7 @@ def normalized_laurent_polynomial(R, p):
         u + v^-1 + u^-1
     """
     try:
-        return R({k: R._base(c) for k, c in p.dict().iteritems()})
+        return R({k: R._base(c) for k, c in six.iteritems(p.dict())})
     except (AttributeError, TypeError):
         return R(p)
 
@@ -514,6 +514,26 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         """
         return "Iwahori-Hecke algebra of type {} in {},{} over {}".format(
             self._cartan_type._repr_(compact=True), self._q1, self._q2, self.base_ring())
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: R.<q1,q2> = QQ[]
+            sage: H = IwahoriHeckeAlgebra("A2", q1**2, q2**2, base_ring=Frac(R))
+            sage: latex(H)
+            \mathcal{H}_{q_{1}^{2},q_{2}^{2}}\left(A_{2},
+             \mathrm{Frac}(\Bold{Q}[q_{1}, q_{2}])\right)
+            sage: R.<q> = LaurentPolynomialRing(ZZ)
+            sage: H = IwahoriHeckeAlgebra("A2", q)
+            sage: latex(H)
+            \mathcal{H}_{q,-1}\left(A_{2}, \Bold{Z}[q^{\pm 1}]\right)
+        """
+        from sage.misc.latex import latex
+        return "\\mathcal{{H}}_{{{},{}}}\\left({}, {}\\right)".format(latex(self._q1),
+                latex(self._q2), latex(self._cartan_type), latex(self.base_ring()))
 
     def _bar_on_coefficients(self, c):
         r"""
@@ -2649,5 +2669,9 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
             return (-1)**w.length()*self.realization_of().Cp().to_T_basis(w).hash_involution()
 
 from sage.structure.sage_object import register_unpickle_override
+
+import six
+
+
 register_unpickle_override('sage.algebras.iwahori_hecke_algebra',
                            'IwahoriHeckeAlgebraT', IwahoriHeckeAlgebra)

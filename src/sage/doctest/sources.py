@@ -26,6 +26,7 @@ import sys
 import re
 import random
 import doctest
+from Cython.Utils import is_package_dir
 from sage.repl.preparse import preparse
 from sage.repl.load import load
 from sage.misc.lazy_attribute import lazy_attribute
@@ -574,7 +575,8 @@ class FileDocTestSource(DocTestSource):
     @lazy_attribute
     def in_lib(self):
         """
-        Whether this file should be considered part of the Sage library.
+        Whether this file is part of a package (i.e. is in a directory
+        containing an ``__init__.py`` file).
 
         Such files aren't loaded before running tests.
 
@@ -584,10 +586,14 @@ class FileDocTestSource(DocTestSource):
             sage: from sage.doctest.sources import FileDocTestSource
             sage: from sage.env import SAGE_SRC
             sage: import os
-            sage: filename = os.path.join(SAGE_SRC,'sage','rings','integer.pyx')
-            sage: FDS = FileDocTestSource(filename,DocTestDefaults())
+            sage: filename = os.path.join(SAGE_SRC, 'sage', 'rings', 'integer.pyx')
+            sage: FDS = FileDocTestSource(filename, DocTestDefaults())
             sage: FDS.in_lib
             True
+            sage: filename = os.path.join(SAGE_SRC, 'sage', 'doctest', 'tests', 'abort.rst')
+            sage: FDS = FileDocTestSource(filename, DocTestDefaults())
+            sage: FDS.in_lib
+            False
 
         You can override the default::
 
@@ -598,11 +604,10 @@ class FileDocTestSource(DocTestSource):
             sage: FDS.in_lib
             True
         """
-        return (self.options.force_lib or
-                self.basename.startswith('sage.') or
-                self.basename.startswith('doc.') or
-                self.basename.startswith('sage_setup.docbuild') or
-                self.basename.startswith('sagenb.'))
+        # We need an explicit bool() because is_package_dir() returns
+        # 1/None instead of True/False.
+        return bool(self.options.force_lib or
+                is_package_dir(os.path.dirname(self.path)))
 
     def create_doctests(self, namespace):
         r"""

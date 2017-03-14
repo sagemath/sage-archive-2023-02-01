@@ -252,7 +252,7 @@ def word_problem(words, g, verbose = False):
     (non-deterministic) algorithms for the word problem. Essentially,
     this function is a wrapper for the GAP function 'Factorization'.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: G.<a,b,c> = AbelianGroup(3,[2,3,4]); G
         Multiplicative Abelian group isomorphic to C2 x C3 x C4
@@ -629,7 +629,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         """
         Test whether ``right`` is a subgroup of ``left``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G.<a, b> = AbelianGroup(2)
             sage: H.<c> = AbelianGroup(1)
@@ -642,7 +642,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         """
         Test whether ``left`` is a strict subgroup of ``right``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G.<a, b> = AbelianGroup(2)
             sage: H.<c> = AbelianGroup(1)
@@ -655,7 +655,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         """
         Test whether ``right`` is a strict subgroup of ``left``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G.<a, b> = AbelianGroup(2)
             sage: H.<c> = AbelianGroup(1)
@@ -980,7 +980,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         TESTS::
 
             sage: F = AbelianGroup(3, [2], names='abc')
-            sage: map(type, F.gens_orders())
+            sage: list(map(type, F.gens_orders()))
             [<type 'sage.rings.integer.Integer'>,
              <type 'sage.rings.integer.Integer'>,
              <type 'sage.rings.integer.Integer'>]
@@ -1028,7 +1028,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         TESTS::
 
             sage: F = AbelianGroup(3, [2], names='abc')
-            sage: map(type, F.gens_orders())
+            sage: list(map(type, F.gens_orders()))
             [<type 'sage.rings.integer.Integer'>,
              <type 'sage.rings.integer.Integer'>,
              <type 'sage.rings.integer.Integer'>]
@@ -1395,7 +1395,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         An error will be raised if the elements given are not linearly
         independent over QQ.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = AbelianGroup([4,4])
             sage: G.subgroup( [ G([1,0]), G([1,2]) ])
@@ -1711,7 +1711,7 @@ class AbelianGroup_subgroup(AbelianGroup_class):
         """
         Return the nth generator of this subgroup.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G.<a,b> = AbelianGroup(2)
             sage: A = G.subgroup([a])

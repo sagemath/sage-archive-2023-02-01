@@ -121,7 +121,8 @@ List of Poset methods
     :widths: 30, 70
     :delim: |
 
-    :meth:`~FinitePoset.is_chain_of_poset` | Return ``True`` if the given list is a chain of the poset.
+    :meth:`~FinitePoset.is_chain_of_poset` | Return ``True`` if elements in the given list are comparable.
+    :meth:`~FinitePoset.is_antichain_of_poset` | Return ``True`` if elements in the given list are incomparable.
     :meth:`~FinitePoset.chains` | Return the chains of the poset.
     :meth:`~FinitePoset.antichains` | Return the antichains of the poset.
     :meth:`~FinitePoset.maximal_chains` | Return the maximal chains of the poset.
@@ -253,6 +254,7 @@ Classes and functions
 # python3
 from __future__ import division, print_function, absolute_import
 
+import six
 from six.moves import range
 from six import itervalues
 
@@ -506,7 +508,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
         sage: a + b
         Traceback (most recent call last):
         ...
-        TypeError: unsupported operand parent(s) for '+': 'Finite poset containing 4 elements' and 'Finite poset containing 4 elements'
+        TypeError: unsupported operand parent(s) for +: 'Finite poset containing 4 elements' and 'Finite poset containing 4 elements'
         sage: a.element + b.element
         'ab'
 
@@ -518,7 +520,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
 
         sage: d,c,b,a = list(P)
         sage: type(a)
-        <type 'str'>
+        <... 'str'>
 
     Of course, those strings are not aware of `P`. So to compare two
     such strings, one needs to query `P`::
@@ -551,7 +553,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
 
             sage: G = DiGraph({0:[2,3], 1:[3,4], 2:[5], 3:[5], 4:[5]})
             sage: type(G.vertices()[0])
-            <type 'int'>
+            <... 'int'>
 
         This is worked around by systematically converting back the
         vertices of a poset to :class:`Integer`'s if they are
@@ -605,7 +607,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
 
         sage: P = Poset([[1,2],[3],[3]])
         sage: type(hash(P))
-        <type 'int'>
+        <... 'int'>
 
     Bad input::
 
@@ -1933,7 +1935,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset({0:[2], 1:[2], 2:[3], 3:[4], 4:[]})
             sage: type(P.cover_relations_iterator())
-            <type 'generator'>
+            <... 'generator'>
             sage: [z for z in P.cover_relations_iterator()]
             [[1, 2], [0, 2], [2, 3], [3, 4]]
         """
@@ -2068,7 +2070,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Poset({0:[2], 1:[2], 2:[3], 3:[4], 4:[]})
             sage: it = P.relations_iterator()
             sage: type(it)
-            <type 'generator'>
+            <... 'generator'>
             sage: next(it), next(it)
             ([1, 1], [1, 2])
 
@@ -2652,7 +2654,11 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def is_chain_of_poset(self, elms, ordered=False):
         """
-        Return ``True`` if `elms` is a chain of the poset, and ``False`` otherwise.
+        Return ``True`` if ``elms`` is a chain of the poset,
+        and ``False`` otherwise.
+
+        Set of elements are a *chain* of a poset if they are comparable
+        to each other.
 
         INPUT:
 
@@ -2706,6 +2712,42 @@ class FinitePoset(UniqueRepresentation, Parent):
             # HasseDiagram.
             sorted_o = sorted(elms, key=self._element_to_vertex)
             return all(self.le(a, b) for a, b in zip(sorted_o, sorted_o[1:]))
+
+    def is_antichain_of_poset(self, elms):
+        """
+        Return ``True`` if ``elms`` is an antichain of the poset
+        and ``False`` otherwise.
+
+        Set of elements are an *antichain* of a poset if they are
+        pairwise incomparable.
+
+        EXAMPLES::
+
+            sage: P = Posets.BooleanLattice(5)
+            sage: P.is_antichain_of_poset([3, 5, 7])
+            False
+            sage: P.is_antichain_of_poset([3, 5, 14])
+            True
+
+        TESTS::
+
+            sage: P = Posets.PentagonPoset()
+            sage: P.is_antichain_of_poset([])
+            True
+            sage: P.is_antichain_of_poset([0])
+            True
+            sage: P.is_antichain_of_poset([1, 2, 1])
+            True
+
+        Check :trac:`19078`::
+
+            sage: P.is_antichain_of_poset([0, 1, 'junk'])
+            Traceback (most recent call last):
+            ...
+            ValueError: element (=junk) not in poset
+        """
+        elms_H = [self._element_to_vertex(e) for e in elms]
+        return self._hasse_diagram.is_antichain_of_poset(elms_H)
 
     def is_connected(self):
         """
@@ -2969,7 +3011,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             # We create the digraphs of all color classes
             linear_extensions = [hasse_diagram.copy() for i in range(k)]
-            for ((u,v),i),x in p.get_values(b).iteritems():
+            for ((u,v),i),x in six.iteritems(p.get_values(b)):
                 if x == 1:
                     linear_extensions[i].add_edge(u,v)
 
@@ -3273,7 +3315,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset({0:[2], 1:[2], 2:[3], 3:[]})
             sage: type(P.upper_covers_iterator(0))
-            <type 'generator'>
+            <... 'generator'>
         """
         for e in self._hasse_diagram.neighbor_out_iterator(self._element_to_vertex(x)):
             yield self._vertex_to_element(e)
@@ -3304,7 +3346,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Poset({0:[2], 1:[2], 2:[3], 3:[]})
             sage: l0 = P.lower_covers_iterator(3)
             sage: type(l0)
-            <type 'generator'>
+            <... 'generator'>
             sage: next(l0)
             2
         """
@@ -4891,7 +4933,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         canonical_label = self._hasse_diagram.canonical_label(certificate=True,
                                                               algorithm=algorithm)[1]
-        canonical_label = {self._elements[v]:i for v,i in canonical_label.iteritems()}
+        canonical_label = {self._elements[v]:i for v,i in six.iteritems(canonical_label)}
         return self.relabel(canonical_label)
 
     def with_linear_extension(self, linear_extension):
@@ -5012,7 +5054,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.subposet(["a","b","x"])
             Traceback (most recent call last):
             ...
-            ValueError: <type 'str'> is not an element of this poset
+            ValueError: <... 'str'> is not an element of this poset
             sage: P.subposet(3)
             Traceback (most recent call last):
             ...
@@ -6847,6 +6889,10 @@ class FinitePoset(UniqueRepresentation, Parent):
     def incidence_algebra(self, R, prefix='I'):
         r"""
         Return the incidence algebra of ``self`` over ``R``.
+
+        OUTPUT:
+
+        An instance of :class:`sage.combinat.posets.incidence_algebras.IncidenceAlgebra`.
 
         EXAMPLES::
 

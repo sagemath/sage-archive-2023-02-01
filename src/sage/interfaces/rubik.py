@@ -66,7 +66,7 @@ class SingNot:
     This class is to resolve difference between various Singmaster notation.
     Case is ignored, and the second and third letters may be swapped.
 
-    EXAMPLE:
+    EXAMPLES:
         sage: from sage.interfaces.rubik import SingNot
         sage: SingNot("acb") == SingNot("ACB")
         True

@@ -109,7 +109,7 @@ cdef class Vector_double_dense(FreeModuleElement):
         This function assumes that self._numpy_dtypeint and
         self._nrows and self._ncols have already been initialized.
 
-        EXAMPLE:
+        EXAMPLES:
 
         In this example, we throw away the current array and make a
         new uninitialized array representing the data for the class. ::
@@ -139,7 +139,7 @@ cdef class Vector_double_dense(FreeModuleElement):
         """
         Return a copy of the vector
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = vector(RDF, range(9))
             sage: a == copy(a)
@@ -220,7 +220,7 @@ cdef class Vector_double_dense(FreeModuleElement):
         """
         Return the length of the vector.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: v = vector(RDF, 5); v
             (0.0, 0.0, 0.0, 0.0, 0.0)
@@ -362,7 +362,7 @@ cdef class Vector_double_dense(FreeModuleElement):
         """
         Multiply a scalar and vector
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: v = vector(CDF, range(3))
             sage: 3*v
@@ -379,7 +379,7 @@ cdef class Vector_double_dense(FreeModuleElement):
         """
         Multiply a scalar and vector
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: v = vector(CDF, range(3))
             sage: v*3
@@ -678,7 +678,7 @@ cdef class Vector_double_dense(FreeModuleElement):
         """
         Calculate the arithmetic mean of the vector.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: v = vector(RDF, range(9))
             sage: w = vector(CDF, [k+(9-k)*I for k in range(9)])
@@ -750,7 +750,7 @@ cdef class Vector_double_dense(FreeModuleElement):
         subtracted from the result to give 0.0 for a normal
         distribution. (Paragraph from the scipy.stats docstring.)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: v = vector(RDF, range(9))
             sage: w = vector(CDF, [k+(9-k)*I for k in range(9)])

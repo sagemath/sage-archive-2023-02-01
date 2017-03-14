@@ -64,7 +64,7 @@ objects have different types:
     sage: type(gp('znprimroot(10007)'))
     <class 'sage.interfaces.gp.GpElement'>
     sage: type(pari('znprimroot(10007)'))
-    <type 'sage.libs.cypari2.gen.gen'>
+    <type 'sage.libs.cypari2.gen.Gen'>
 
 So which should you use? It depends on what you're doing. The GP
 interface can do absolutely anything you could do in the usual
@@ -100,9 +100,9 @@ First we create a PARI list from a Python list.
     sage: v
     [1, 2, 3, 4, 5]
     sage: type(v)
-    <type 'sage.libs.cypari2.gen.gen'>
+    <type 'sage.libs.cypari2.gen.Gen'>
 
-Every PARI object is of type ``py_pari.gen``. The PARI type of the
+Every PARI object is of type ``Gen``. The PARI type of the
 underlying object can be obtained using the ``type`` member
 function.
 
@@ -114,7 +114,7 @@ function.
 In PARI, to create an elliptic curve we enter
 ``ellinit([1,2,3,4,5])``. Sage is similar, except that ``ellinit`` is a
 method that can be called on any PARI object, e.g., our
-``t\_VEC v``.
+``t_VEC`` `v`.
 
 ::
 

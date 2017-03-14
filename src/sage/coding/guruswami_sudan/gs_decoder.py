@@ -101,6 +101,25 @@ def roth_ruckenstein_root_finder(p, maxd=None, precision=None):
         p = p.polynomial(gens[1])
     return p.roots(multiplicities=False, degree_bound=maxd, algorithm="Roth-Ruckenstein")
 
+def alekhnovich_root_finder(p, maxd=None, precision=None):
+    """
+    Wrapper for Alekhnovich's algorithm to compute the roots of a polynomial
+    with coefficients in ``F[x]``.
+
+    TESTS::
+
+        sage: from sage.coding.guruswami_sudan.gs_decoder import alekhnovich_root_finder
+        sage: R.<x> = GF(13)[]
+        sage: S.<y> = R[]
+        sage: p = (y - x^2 - x - 1) * (y + x + 1)
+        sage: alekhnovich_root_finder(p, maxd = 2)
+        [12*x + 12, x^2 + x + 1]
+    """
+    gens = p.parent().gens()
+    if len(gens) == 2:
+        p = p.polynomial(gens[1])
+    return p.roots(multiplicities=False, degree_bound=maxd, algorithm="Alekhnovich")
+
 class GRSGuruswamiSudanDecoder(Decoder):
     r"""
     The Guruswami-Sudan list-decoding algorithm for decoding Generalized
@@ -152,6 +171,8 @@ class GRSGuruswamiSudanDecoder(Decoder):
 
     - ``root_finder`` -- (default: ``None``) the rootfinding algorithm that will
       be used. The following possibilities are currently available:
+
+        * ``"Alekhnovich"`` -- uses Alekhnovich's algorithm.
 
         * ``"RothRuckenstein"`` -- uses Roth-Ruckenstein algorithm.
 
@@ -587,8 +608,10 @@ class GRSGuruswamiSudanDecoder(Decoder):
             raise ValueError("Please provide a method or one of the allowed strings for interpolation_alg")
         if hasattr(root_finder, '__call__'):
             self._root_finder = root_finder
-        elif root_finder == None or root_finder == "RothRuckenstein":
+        elif root_finder == "RothRuckenstein":
             self._root_finder = roth_ruckenstein_root_finder
+        elif root_finder == None or root_finder == "Alekhnovich":
+            self._root_finder = alekhnovich_root_finder
         else:
             raise ValueError("Please provide a method or one of the allowed strings for root_finder")
         super(GRSGuruswamiSudanDecoder, self).__init__(code, code.ambient_space(), "EvaluationPolynomial")
@@ -668,11 +691,10 @@ class GRSGuruswamiSudanDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: from sage.coding.guruswami_sudan.gs_decoder import roth_ruckenstein_root_finder
             sage: C = codes.GeneralizedReedSolomonCode(GF(251).list()[:250], 70)
             sage: D = C.decoder("GuruswamiSudan", tau = 97)
             sage: D.rootfinding_algorithm()
-            <function roth_ruckenstein_root_finder at 0x...>
+            <function alekhnovich_root_finder at 0x...>
         """
         return self._root_finder
 
@@ -843,7 +865,7 @@ class GRSGuruswamiSudanDecoder(Decoder):
         return self._tau
 
 
-####################### registration ###############################
+####################### types ###############################
 
 GeneralizedReedSolomonCode._registered_decoders["GuruswamiSudan"] = GRSGuruswamiSudanDecoder
 GRSGuruswamiSudanDecoder._decoder_type = {"list-decoder", "always-succeed", "hard-decision"}

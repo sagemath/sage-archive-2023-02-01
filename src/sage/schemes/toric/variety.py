@@ -261,9 +261,9 @@ Every cone defines a torus orbit closure, and hence a (co)homology class::
 
     sage: HH.gens()
     ([3*z4], [3*z4], [z4], [z4], [z4])
-    sage: map(HH, P4_11133.fan(1))
+    sage: list(map(HH, P4_11133.fan(1)))
     [[3*z4], [3*z4], [z4], [z4], [z4]]
-    sage: map(HH, P4_11133.fan(4) )
+    sage: list(map(HH, P4_11133.fan(4)))
     [[9*z4^4], [9*z4^4], [9*z4^4], [9*z4^4], [9*z4^4]]
     sage: HH(cone)
     [3*z4^3]
@@ -283,9 +283,9 @@ Although computationally less efficient, we can do the same
 computations with the rational Chow group::
 
     sage: AA = P4_11133.Chow_group(QQ)
-    sage: map(AA, P4_11133.fan(1))  # long time (5s on sage.math, 2012)
+    sage: list(map(AA, P4_11133.fan(1)))  # long time (5s on sage.math, 2012)
     [( 0 | 0 | 0 | 3 | 0 ), ( 0 | 0 | 0 | 3 | 0 ), ( 0 | 0 | 0 | 1 | 0 ), ( 0 | 0 | 0 | 1 | 0 ), ( 0 | 0 | 0 | 1 | 0 )]
-    sage: map(AA, P4_11133.fan(4))  # long time (5s on sage.math, 2012)
+    sage: list(map(AA, P4_11133.fan(4)))  # long time (5s on sage.math, 2012)
     [( 1 | 0 | 0 | 0 | 0 ), ( 1 | 0 | 0 | 0 | 0 ), ( 1 | 0 | 0 | 0 | 0 ), ( 1 | 0 | 0 | 0 | 0 ), ( 1 | 0 | 0 | 0 | 0 )]
     sage: AA(cone).intersection_with_divisor(D)  # long time (4s on sage.math, 2013)
     ( 1 | 0 | 0 | 0 | 0 )
@@ -613,7 +613,7 @@ class ToricVariety_field(AmbientSpace):
             0
             sage: P1xP1 is P1xP1b
             False
-            sage: cmp(P1xP1, 1) * cmp(1, P1xP1)
+            sage: cmp(P1xP1, ZZ) * cmp(ZZ, P1xP1)
             -1
         """
         c = cmp(type(self), type(right))
@@ -1736,7 +1736,7 @@ class ToricVariety_field(AmbientSpace):
             sage: TV_res.gens()
             (z0, z1, z2, z3, z4, z5, z6, z7)
             sage: TV_res = TV.resolve(coordinate_names="x+",
-            ...                       make_simplicial=True)
+            ....:                     make_simplicial=True)
             sage: TV_res.gens()
             (x0, x1, x2, x3, x4, x5, x6, x7)
         """
@@ -2135,8 +2135,8 @@ class ToricVariety_field(AmbientSpace):
             [1/3 1/2 1/6]
             sage: A = P2_123.Chow_group(QQ)
             sage: matrix([ [ A(P2_123.divisor(i))
-            ...              .intersection_with_divisor(P2_123.divisor(j))
-            ...              .count_points() for i in range(0,3) ] for j in range(0,3) ])
+            ....:            .intersection_with_divisor(P2_123.divisor(j))
+            ....:            .count_points() for i in range(0,3) ] for j in range(0,3) ])
             [2/3   1 1/3]
             [  1 3/2 1/2]
             [1/3 1/2 1/6]
@@ -2810,7 +2810,7 @@ class ToricVariety_field(AmbientSpace):
             :arxiv:`1110.4275`,
             :doi:`10.1007/s13366-011-0084-0`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P2 = toric_varieties.P2()
             sage: P2.Demazure_roots()

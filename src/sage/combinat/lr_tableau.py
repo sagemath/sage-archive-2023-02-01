@@ -267,6 +267,11 @@ def is_littlewood_richardson(t, heights):
         sage: t = Tableau([[1,1,3],[2,3],[4,4]])
         sage: is_littlewood_richardson(t,[2,2])
         True
+        sage: t = Tableau([[7],[8]])
+        sage: is_littlewood_richardson(t,[2,3,3])
+        False
+        sage: is_littlewood_richardson([[2],[3]],[3,3])
+        False
     """
     from sage.combinat.words.word import Word
     partial = [sum(heights[i] for i in range(j)) for j in range(len(heights)+1)]
@@ -275,7 +280,8 @@ def is_littlewood_richardson(t, heights):
     except AttributeError:  # Not an instance of Tableau
         w = sum(reversed(t), [])
     for i in range(len(heights)):
-        subword = Word([j for j in w if partial[i]+1 <= j <= partial[i+1]])
+        subword = Word([j for j in w if partial[i]+1 <= j <= partial[i+1]],
+                       alphabet=list(range(partial[i]+1,partial[i+1]+1)))
         if not subword.is_yamanouchi():
             return False
     return True

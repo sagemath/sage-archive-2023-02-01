@@ -33,10 +33,13 @@ AUTHORS:
 include "cysignals/memory.pxi"
 include 'sage/data_structures/bitset.pxi'
 from libc.string cimport memcpy, memset
+from cpython.object cimport Py_EQ, Py_NE
+
 from sage.matrix.matrix2 cimport Matrix
 from sage.rings.all import ZZ, FiniteField, GF
 from sage.rings.integer cimport Integer
 import sage.matrix.constructor
+
 
 cdef class LeanMatrix:
     """
@@ -444,15 +447,15 @@ cdef class LeanMatrix:
             False
         """
         cdef long i, j
-        if op in [0, 1, 4, 5]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if not isinstance(left, LeanMatrix) or not isinstance(right, LeanMatrix):
             return NotImplemented
         if type(left) != type(right):
             return NotImplemented
-        if op == 2:  # ==
+        if op == Py_EQ:
             res = True
-        if op == 3:  # !=
+        if op == Py_NE:
             res = False
         # res gets inverted if matroids are deemed different.
         if left.nrows() != right.nrows():
@@ -908,13 +911,13 @@ cdef class GenericMatrix(LeanMatrix):
             False
         """
         cdef long i, j
-        if op in [0, 1, 4, 5]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if not isinstance(left, GenericMatrix) or not isinstance(right, GenericMatrix):
             return NotImplemented
-        if op == 2:  # ==
+        if op == Py_EQ:
             res = True
-        if op == 3:  # !=
+        if op == Py_NE:
             res = False
         # res gets inverted if matroids are deemed different.
         if left.nrows() != right.nrows():
@@ -1351,7 +1354,7 @@ cdef class BinaryMatrix(LeanMatrix):
                 if bitset_in(row, cols[g]):
                     bitset_add(row2, gaps[g])
         # record order of the columns in list `order`
-        cdef list order = range(lc)
+        cdef list order = list(xrange(lc))
         g = 0
         for g in xrange(lg):
             order[gaps[g]] = cols[g]
@@ -1510,13 +1513,13 @@ cdef class BinaryMatrix(LeanMatrix):
             False
         """
         cdef long i, j
-        if op in [0, 1, 4, 5]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if not isinstance(left, BinaryMatrix) or not isinstance(right, BinaryMatrix):
             return NotImplemented
-        if op == 2:  # ==
+        if op == Py_EQ:
             res = True
-        if op == 3:  # !=
+        if op == Py_NE:
             res = False
         # res gets inverted if matroids are deemed different.
         if left.nrows() != right.nrows():
@@ -2033,7 +2036,7 @@ cdef class TernaryMatrix(LeanMatrix):
                     if bitset_in(row1, p):
                         bitset_add(row1_2, q)
         # record order of the columns in list `order`
-        cdef list order = range(lc)
+        cdef list order = list(xrange(lc))
         g = 0
         for g in xrange(lg):
             order[gaps[g]] = cols[g]
@@ -2065,13 +2068,13 @@ cdef class TernaryMatrix(LeanMatrix):
             False
         """
         cdef long i, j
-        if op in [0, 1, 4, 5]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if not isinstance(left, TernaryMatrix) or not isinstance(right, TernaryMatrix):
             return NotImplemented
-        if op == 2:  # ==
+        if op == Py_EQ:
             res = True
-        if op == 3:  # !=
+        if op == Py_NE:
             res = False
         # res gets inverted if matroids are deemed different.
         if left.nrows() != right.nrows():
@@ -2616,7 +2619,7 @@ cdef class QuaternaryMatrix(LeanMatrix):
                 if bitset_in(row1, p):
                     bitset_add(row1_2, q)
         # record order of the columns in list `order`
-        cdef list order = range(lc)
+        cdef list order = list(xrange(lc))
         g = 0
         for g in xrange(lg):
             order[gaps[g]] = cols[g]
@@ -2664,13 +2667,13 @@ cdef class QuaternaryMatrix(LeanMatrix):
             False
         """
         cdef long i, j
-        if op in [0, 1, 4, 5]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if not isinstance(left, QuaternaryMatrix) or not isinstance(right, QuaternaryMatrix):
             return NotImplemented
-        if op == 2:  # ==
+        if op == Py_EQ:
             res = True
-        if op == 3:  # !=
+        if op == Py_NE:
             res = False
         if left.base_ring() != right.base_ring():
             return not res
@@ -2850,7 +2853,7 @@ cdef class IntegerMatrix(LeanMatrix):
         """
         Return a Sage Integer, for safety down the line when dividing.
 
-        EXAMPLE:
+        EXAMPLES:
 
         By returning an Integer rather than an int, the following test no
         longer fails::
@@ -3135,13 +3138,13 @@ cdef class IntegerMatrix(LeanMatrix):
             False
         """
         cdef long i, j
-        if op in [0, 1, 4, 5]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if not isinstance(left, IntegerMatrix) or not isinstance(right, IntegerMatrix):
             return NotImplemented
-        if op == 2:  # ==
+        if op == Py_EQ:
             res = True
-        if op == 3:  # !=
+        if op == Py_NE:
             res = False
         # res gets inverted if matroids are deemed different.
         if left.nrows() != right.nrows():

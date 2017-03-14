@@ -38,6 +38,7 @@ arbitrary indexing set and values are
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import iteritems
 
 from sage.rings.all import QQ, ZZ, RDF, RR, Integer
 from sage.rings.infinity import InfinityRing, infinity, minus_infinity
@@ -186,10 +187,11 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
             sage: MultiFilteredVectorSpace(3, base_ring=QQ).change_ring(RR)
             Unfiltered RR^3
         """
-        if len(self._filt) == 0:
-            return MultiFilteredVectorSpace(self.dimension(), base_ring=base_ring)
-        filtrations = dict()
-        for key, F in self._filt.iteritems():
+        if not self._filt:
+            return MultiFilteredVectorSpace(self.dimension(),
+                                            base_ring=base_ring)
+        filtrations = {}
+        for key, F in iteritems(self._filt):
             filtrations[key] = F.change_ring(base_ring)
         return MultiFilteredVectorSpace(filtrations, base_ring=base_ring)
 
@@ -322,7 +324,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
             sage: V.min_degree()
             1
         """
-        if len(self._filt) == 0:
+        if not self._filt:
             return infinity
         return min(F.min_degree() for F in self._filt.values())
 
@@ -345,7 +347,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
             sage: V.max_degree()
             4
         """
-        if len(self._filt) == 0:
+        if not self._filt:
             return minus_infinity
         return max(F.max_degree() for F in self._filt.values())
 
@@ -453,8 +455,9 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
             sage: MultiFilteredVectorSpace(123, base_ring=RR)
             Unfiltered RR^123
         """
-        if len(self._filt) == 0:
-            F = FilteredVectorSpace(self.dimension(), base_ring=self.base_ring())
+        if not self._filt:
+            F = FilteredVectorSpace(self.dimension(),
+                                    base_ring=self.base_ring())
             return 'Unfiltered ' + repr(F)
         rows = []
         support = self.support()
@@ -489,7 +492,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
             False
         """
         return cmp(self._filt, other._filt)
-
+    
     def direct_sum(self, other):
         """
         Return the direct sum.
@@ -522,8 +525,9 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
                 b: QQ^3 >= QQ^2 >= QQ^2 >= QQ^2 >= 0
         """
         if not self.index_set() == other.index_set():
-            raise ValueError('the index sets of the two summands must be the same')
-        filtrations = dict()
+            raise ValueError('the index sets of the two summands'
+                             ' must be the same')
+        filtrations = {}
         for key in self.index_set():
             filtrations[key] = self._filt[key] + other._filt[key]
         return MultiFilteredVectorSpace(filtrations)
@@ -563,8 +567,9 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
                 b: QQ^2 >= QQ^2 >= QQ^1 >= QQ^1 >= QQ^1 >= 0
         """
         if not self.index_set() == other.index_set():
-            raise ValueError('the index sets of the two summands must be the same')
-        filtrations = dict()
+            raise ValueError('the index sets of the two summands'
+                             ' must be the same')
+        filtrations = {}
         for key in self.index_set():
             filtrations[key] = self._filt[key] * other._filt[key]
         return MultiFilteredVectorSpace(filtrations)
@@ -595,7 +600,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
                 a: QQ^1 >=  0   >= 0
                 b: QQ^1 >= QQ^1 >= 0
         """
-        filtrations = dict()
+        filtrations = {}
         for key in self.index_set():
             filtrations[key] = self._filt[key].exterior_power(n)
         return MultiFilteredVectorSpace(filtrations)
@@ -626,7 +631,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
                 a: QQ^3 >= QQ^3 >= QQ^3 >=  0   >=  0   >=  0   >=  0   >= 0
                 b: QQ^3 >= QQ^2 >= QQ^2 >= QQ^2 >= QQ^1 >= QQ^1 >= QQ^1 >= 0
         """
-        filtrations = dict()
+        filtrations = {}
         for key in self.index_set():
             filtrations[key] = self._filt[key].symmetric_power(n)
         return MultiFilteredVectorSpace(filtrations)
@@ -650,7 +655,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
                 a: QQ^2 >= QQ^2 >= QQ^2 >=  0   >= 0
                 b: QQ^2 >= QQ^1 >= QQ^1 >= QQ^1 >= 0
         """
-        filtrations = dict()
+        filtrations = {}
         for key in self.index_set():
             filtrations[key] = self._filt[key].dual()
         return MultiFilteredVectorSpace(filtrations)
@@ -674,7 +679,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
             sage: V.shift(-5).support()
             (-5, -4, -2)
         """
-        filtrations = dict()
+        filtrations = {}
         for key in self.index_set():
             filtrations[key] = self._filt[key].shift(deg)
         return MultiFilteredVectorSpace(filtrations)
@@ -706,7 +711,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
             Basis matrix:
             [     1 8/1197]
         """
-        filtrations = dict()
+        filtrations = {}
         for key in self.index_set():
             filtrations[key] = self._filt[key].random_deformation(epsilon)
         return MultiFilteredVectorSpace(filtrations)

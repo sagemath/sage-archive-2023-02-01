@@ -12,14 +12,15 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
 
 include "cysignals/signals.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
 from cpython.object cimport Py_EQ, Py_NE
-from cpython.string cimport PyString_AsString
+
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer cimport Integer
@@ -97,7 +98,6 @@ cdef class ntl_ZZ_pE(object):
         cdef ZZ_c temp
         cdef ntl_ZZ_pX tmp_zzpx
         if v is not None:
-            sig_on()
             if isinstance(v, ntl_ZZ_pE):
                 if (<ntl_ZZ_pE>v).c is not self.c:
                     raise ValueError("You cannot cast between rings with different moduli")
@@ -126,8 +126,7 @@ cdef class ntl_ZZ_pE(object):
                 self.x = ZZ_to_ZZ_pE(temp)
             else:
                 v = str(v)
-                ZZ_pE_from_str(&self.x, PyString_AsString(v))
-            sig_off()
+                ZZ_pE_from_str(&self.x, <bytes?>v)
 
     def __cinit__(ntl_ZZ_pE self, v=None, modulus=None):
         #################### WARNING ###################

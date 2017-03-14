@@ -1326,7 +1326,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: D = DictAsObject({'cputime':[],'walltime':[],'err':None})
             sage: DTR.update_results(D)
             0
-            sage: sorted(list(D.iteritems()))
+            sage: sorted(list(D.items()))
             [('cputime', [...]), ('err', None), ('failures', 0), ('walltime', [...])]
         """
         for key in ["cputime","walltime"]:
@@ -2068,7 +2068,7 @@ class DocTestTask(object):
         OUTPUT:
 
         - ``(doctests, result_dict)`` where ``doctests`` is the number of
-          doctests and and ``result_dict`` is a dictionary annotated with
+          doctests and ``result_dict`` is a dictionary annotated with
           timings and error information.
 
         - Also put ``(doctests, result_dict)`` onto the ``result_queue``

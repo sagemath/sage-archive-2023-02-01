@@ -392,7 +392,7 @@ class SearchForest(Parent):
             sage: dumps(S)
             Traceback (most recent call last):
             ....:
-            PicklingError: Can't pickle <type 'function'>: attribute lookup __builtin__.function failed
+            PicklingError: Can't pickle <... 'function'>: attribute lookup __builtin__.function failed
 
         Let us now fake ``children`` being defined in a Python module::
 

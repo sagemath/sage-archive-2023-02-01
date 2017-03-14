@@ -996,7 +996,7 @@ cdef class CachedFunction(object):
 
         This was implemented in :trac:`11115`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y> = QQ[]
             sage: I = P*[x,y]
@@ -1691,7 +1691,7 @@ class CachedMethodPickle(object):
         thing that ``self`` does before disappearing is to call the
         :class:`CachedMethodCaller` and return the result.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<a,b,c,d> = QQ[]
             sage: I = P*[a,b]
@@ -1767,7 +1767,7 @@ cdef class CachedMethodCaller(CachedFunction):
         :class:`CachedMethodCallerNoArgs` for methods that do not take
         arguments.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: class A:
         ....:    @cached_method
@@ -2237,7 +2237,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
         after a lengthy computation, then ``@cached_method`` should not
         be used.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<a,b,c,d> = QQ[]
         sage: I = P*[a,b]
@@ -2368,7 +2368,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
         """
         Call the cached method without using the cache.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<a,b,c,d> = QQ[]
             sage: I = P*[a,b]
@@ -2386,7 +2386,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
         """
         Call the cached method.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<a,b,c,d> = QQ[]
             sage: I = P*[a,b]
@@ -2469,7 +2469,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
             Recall that a cached method without arguments can not cache
             the return value ``None``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y> = QQ[]
             sage: I = P*[x,y]

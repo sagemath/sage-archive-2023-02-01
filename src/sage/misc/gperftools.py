@@ -18,7 +18,7 @@ EXAMPLES::
 REFERENCE:
 
 Uses the `Google performance analysis tools
-<https://code.google.com/p/gperftools>`_. Note that they are not
+<https://github.com/gperftools/gperftools>`_. Note that they are not
 included in Sage, you have to install them yourself on your system.
 
 AUTHORS:

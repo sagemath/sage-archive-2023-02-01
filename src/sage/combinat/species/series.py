@@ -307,7 +307,7 @@ class LazyPowerSeriesRing(Algebra):
 
     def _sum_gen(self, series_list):
         """
-        Returns a generator for the coefficients of the sum the the lazy
+        Return a generator for the coefficients of the sum of the lazy
         power series in series_list.
 
         INPUT:

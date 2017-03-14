@@ -91,6 +91,7 @@ from six import iteritems
 
 # standard Python libraries
 import re
+import six
 
 # Sage library
 from .ring import SR
@@ -500,8 +501,8 @@ def evalunitdict():
         sage: sage.symbolic.units.evalunitdict()
     """
     from sage.misc.all import sage_eval
-    for key, value in unitdict.iteritems():
-        unitdict[key] = dict([(a,sage_eval(repr(b))) for a, b in value.iteritems()])
+    for key, value in six.iteritems(unitdict):
+        unitdict[key] = dict([(a,sage_eval(repr(b))) for a, b in six.iteritems(value)])
 
     # FEATURE IDEA: create a function that would allow users to add
     # new entries to the table without having to know anything about
@@ -510,7 +511,7 @@ def evalunitdict():
     #
     # Format the table for easier use.
     #
-    for k, v in unitdict.iteritems():
+    for k, v in six.iteritems(unitdict):
         for a in v: unit_to_type[a] = k
 
     for w in unitdict:
@@ -1063,9 +1064,9 @@ class Units(ExtraTabCompletion):
         EXAMPLES::
 
             sage: type(units.__getstate__()[0])
-            <type 'str'>
+            <... 'str'>
             sage: type(units.__getstate__()[1])
-            <type 'dict'>
+            <... 'dict'>
             sage: loads(dumps(units)) == units
             True
             sage: loads(dumps(units.area)) == units.area

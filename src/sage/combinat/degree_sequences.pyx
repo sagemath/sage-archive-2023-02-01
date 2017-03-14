@@ -284,7 +284,7 @@ class DegreeSequences:
         information, please refer to the documentation of the
         :mod:`DegreeSequence<sage.combinat.degree_sequences>` module.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: DegreeSequences(8)
             Degree sequences on 8 elements
@@ -309,7 +309,7 @@ class DegreeSequences:
         Checks whether a given integer sequence is the degree sequence
         of a graph on `n` elements
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: [3,3,2,2,2,2,2,2] in DegreeSequences(8)
             True
@@ -389,7 +389,7 @@ class DegreeSequences:
         TODO: THIS SHOULD BE UPDATED AS SOON AS THE YIELD KEYWORD APPEARS IN
         CYTHON. See comment in the class' documentation.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: DS = DegreeSequences(6)
             sage: all(seq in DS for seq in DS)

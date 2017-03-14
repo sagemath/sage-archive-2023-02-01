@@ -875,7 +875,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                     if ind < 0 or ind >= nrows:
                         raise IndexError("matrix index out of range")
             elif isinstance(row_index, slice):
-                row_list = range(*row_index.indices(nrows))
+                row_list = list(xrange(*row_index.indices(nrows)))
             else:
                 if not PyIndex_Check(row_index):
                     raise TypeError("index must be an integer")
@@ -907,7 +907,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                     if ind < 0 or ind >= ncols:
                         raise IndexError("matrix index out of range")
             elif isinstance(col_index, slice):
-                col_list =  range(*col_index.indices(ncols))
+                col_list =  list(xrange(*col_index.indices(ncols)))
             else:
                 if not PyIndex_Check(col_index):
                     raise TypeError("index must be an integer")
@@ -959,7 +959,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                     raise IndexError("matrix index out of range")
             r = self.matrix_from_rows(row_list)
         elif isinstance(row_index, slice):
-            row_list = range(*row_index.indices(nrows))
+            row_list = list(xrange(*row_index.indices(nrows)))
             r = self.matrix_from_rows(row_list)
         else:
             if not PyIndex_Check(row_index):
@@ -2321,7 +2321,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         - ``permutation`` -- a ``PermutationGroupElement``.
 
-        EXAMPLE: We create a matrix::
+        EXAMPLES: We create a matrix::
 
             sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
             sage: M
@@ -2373,7 +2373,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         - A matrix.
 
-        EXAMPLE: We create some matrix::
+        EXAMPLES: We create some matrix::
 
             sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
             sage: M
@@ -2506,7 +2506,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         - ``permutation`` -- a ``PermutationGroupElement``
 
-        EXAMPLE: We create a matrix::
+        EXAMPLES: We create a matrix::
 
             sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
             sage: M
@@ -2556,7 +2556,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         - A matrix.
 
-        EXAMPLE: We create a matrix::
+        EXAMPLES: We create a matrix::
 
             sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
             sage: M
@@ -2601,7 +2601,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         Permute the rows and columns of ``self`` by applying the permutation
         group elements ``row_permutation`` and ``column_permutation``
         respectively.
-        
+
         As a permutation group element acts on integers `\{1,\hdots,n\}`
         the rows and columns are considered as being numbered from 1 for
         this operation.
@@ -2615,7 +2615,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         - A matrix.
 
-        EXAMPLE: We create a matrix::
+        EXAMPLES: We create a matrix::
 
             sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
             sage: M
@@ -2647,7 +2647,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         Return the matrix obtained from permuting the rows and
         columns of ``self`` by applying the permutation group
         elements ``row_permutation`` and ``column_permutation``.
-        
+
         As a permutation group element acts on integers `\{1,\hdots,n\}`
         the rows are considered as being numbered from 1 for this
         operation.
@@ -2661,7 +2661,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         - A matrix.
 
-        EXAMPLE: We create a matrix::
+        EXAMPLES: We create a matrix::
 
             sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
             sage: M
@@ -3451,7 +3451,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         - [FZ2001] S. Fomin, A. Zelevinsky. Cluster Algebras 1: Foundations, arXiv:math/0104151 (2001).
         """
         cdef dict d = {}
-        cdef list queue = range( self._ncols )
+        cdef list queue = list(xrange(self._ncols))
         cdef int l, sign, i, j
 
         if skew:
@@ -4126,104 +4126,6 @@ cdef class Matrix(sage.structure.element.Matrix):
         else:
             raise ValueError("self must be a square matrix")
 
-    def is_weak_popov(self):
-        r"""
-        Return ``True`` if the matrix is in weak Popov form.
-
-        OUTPUT:
-
-        A matrix over an ordered ring is in weak Popov form if all
-        leading positions are different [MS2003]_. A leading position
-        is the position `i` in a row with the highest order (for
-        polynomials this is the degree), for multiple entries with
-        equal but highest order the maximal `i` is chosen (which is
-        the furthest to the right in the matrix).
-
-        .. WARNING::
-
-            This implementation only works for objects implementing a degree
-            function. It is designed to work for polynomials.
-
-        EXAMPLES:
-
-        A matrix with the same leading position in two rows is not in weak
-        Popov form. ::
-
-            sage: PF = PolynomialRing(GF(2^12,'a'),'x')
-            sage: A = matrix(PF,3,[x,x^2,x^3,x^2,x^2,x^2,x^3,x^2,x])
-            sage: A.is_weak_popov()
-            False
-
-        If a matrix has different leading positions, it is in weak Popov
-        form. ::
-
-            sage: B = matrix(PF,3,[1,1,x^3,x^2,1,1,1,x^2,1])
-            sage: B.is_weak_popov()
-            True
-
-        A matrix not over a polynomial ring will give an error. ::
-
-            sage: C = matrix(ZZ,4,[-1, 1, 0, 0, 7, 2, 1, 0, 1, 0, 2, -5, -1, 1, 0, 2])
-            sage: C.is_weak_popov()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: is_weak_popov only implements support for matrices ordered by a function self[x,y].degree()
-
-        Weak Popov form is not restricted to square matrices. ::
-
-            sage: PF = PolynomialRing(GF(7),'x')
-            sage: D = matrix(PF,2,4,[x^2+1,1,2,x,3*x+2,0,0,0])
-            sage: D.is_weak_popov()
-            False
-
-        Even a matrix with more rows than cols can still be in weak Popov
-        form. ::
-
-            sage: E = matrix(PF,4,2,[4*x^3+x,x^2+5*x+2,0,0,4,x,0,0])
-            sage: E.is_weak_popov()
-            True
-
-        But a matrix with less cols than non zero rows is never in weak
-        Popov form. ::
-
-            sage: F = matrix(PF,3,2,[x^2,x,x^3+2,x,4,5])
-            sage: F.is_weak_popov()
-            False
-
-        TESTS:
-
-        A matrix to check if really the rightmost value is taken. ::
-
-            sage: F = matrix(PF,2,2,[x^2,x^2,x,5])
-            sage: F.is_weak_popov()
-            True
-
-        .. SEEALSO::
-
-            - :meth:`weak_popov_form <sage.matrix.matrix2.weak_popov_form>`
-
-        AUTHOR:
-
-        - David Moedinger (2014-07-30)
-        """
-        try:
-            t = set()
-            for r in range(self.nrows()):
-                max = -1
-                for c in range(self.ncols()):
-                    if self[r, c].degree() >= max:
-                        max = self[r, c].degree()
-                        p = c
-                if not max == -1:
-                    if p in t:
-                        return False
-                    t.add(p)
-        except (NotImplementedError, AttributeError):
-            raise NotImplementedError(
-                "is_weak_popov only implements support for matrices ordered" +
-                " by a function self[x,y].degree()")
-        return True
-
     ###################################################
     # Invariants of a matrix
     ###################################################
@@ -4375,7 +4277,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         It is safe to change the resulting list (unless you give the option copy=False).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Matrix(CC, [[1,0],[0,1]], sparse=True)
             sage: M._nonzero_positions_by_row()
@@ -4976,7 +4878,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: d = b+c
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '+': 'Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 7' and 'Full MatrixSpace of 2 by 2 dense matrices over Rational Field'
+            TypeError: unsupported operand parent(s) for +: 'Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 7' and 'Full MatrixSpace of 2 by 2 dense matrices over Rational Field'
             sage: d = b+c.change_ring(GF(7)); d
             [0 2]
             [4 6]
@@ -5028,7 +4930,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: a*v
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 3 dense matrices over Integer Ring' and 'Ambient free module of rank 2 over the principal ideal domain Integer Ring'
+            TypeError: unsupported operand parent(s) for *: 'Full MatrixSpace of 2 by 3 dense matrices over Integer Ring' and 'Ambient free module of rank 2 over the principal ideal domain Integer Ring'
 
         This illustrates how coercion works::
 

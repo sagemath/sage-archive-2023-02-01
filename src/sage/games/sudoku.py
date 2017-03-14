@@ -43,7 +43,7 @@ def sudoku(m):
     and is included only to replicate that behavior.  It could be
     safely deprecated, since all of its functionality is included in the :class:`~sage.games.sudoku.Sudoku` class.
 
-    EXAMPLE:
+    EXAMPLES:
 
     An example that was used in previous doctests. ::
 
@@ -102,7 +102,7 @@ class Sudoku(SageObject):
     - verify_input - default = ``True``, use ``False`` if you know the input is valid
 
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: a = Sudoku('5...8..49...5...3..673....115..........2.8..........187....415..3...2...49..5...3')
         sage: print(a)
@@ -249,7 +249,7 @@ class Sudoku(SageObject):
 
         See the docstring for :func:`to_ascii` for more information on the format.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: s = Sudoku('.4..32....14..3.')
             sage: s._repr_()
@@ -262,7 +262,7 @@ class Sudoku(SageObject):
         r"""nodetex
         Returns a `\LaTeX` representation of a Sudoku puzzle as an array environment.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: s = Sudoku('.4..32....14..3.')
             sage: s._latex_()
@@ -278,7 +278,7 @@ class Sudoku(SageObject):
         The base ring will be `\ZZ` if ``None`` is provided,
         and it is an error to specify any other base ring.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k = Sudoku('.4..32....14..3.')
             sage: matrix(k) # indirect doctest
@@ -311,7 +311,7 @@ class Sudoku(SageObject):
         ``11 = b``, etc.  This scheme limits puzzles to
         at most 36 symbols.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: b = matrix(ZZ, 9, 9, [ [0,0,0,0,1,0,9,0,0], [8,0,0,4,0,0,0,0,0], [2,0,0,0,0,0,0,0,0], [0,7,0,0,3,0,0,0,0], [0,0,0,0,0,0,2,0,4], [0,0,0,0,0,0,0,5,8], [0,6,0,0,0,0,1,3,0], [7,0,0,2,0,0,0,0,0], [0,0,0,8,0,0,0,0,0] ])
             sage: Sudoku(b).to_string()
@@ -355,7 +355,7 @@ class Sudoku(SageObject):
         r"""
         Constructs a list representing a Sudoku puzzle, in row-major order.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: s = Sudoku('1.......2.9.4...5...6...7...5.9.3.......7.......85..4.7.....6...3...9.8...2.....1')
             sage: s.to_list()
@@ -403,7 +403,7 @@ class Sudoku(SageObject):
         Constructs an ASCII-art version of a Sudoku puzzle.
         This is a modified version of the ASCII version of a subdivided matrix.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: s = Sudoku('.4..32....14..3.')
             sage: print(s.to_ascii())
@@ -432,7 +432,7 @@ class Sudoku(SageObject):
         r"""
         Creates a string of `\LaTeX` code representing a Sudoku puzzle or solution.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: s = Sudoku('.4..32....14..3.')
             sage: print(s.to_latex())

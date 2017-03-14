@@ -3016,7 +3016,7 @@ class JoinCategory(CategoryWithParameters):
             and only if it is a sub-category of all super categories
             of this join category.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: cat = Category.join([Rings(), VectorSpaces(QuotientFields().Metric())])
             sage: QQ['x'].category().is_subcategory(cat)  # indirect doctest

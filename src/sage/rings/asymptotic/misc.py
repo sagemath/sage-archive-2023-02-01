@@ -26,10 +26,9 @@ Functions, Classes and Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from __future__ import print_function, absolute_import
 from six.moves import range
-
-import sage   # WHAT !!!
 
 
 def repr_short_to_parent(s):
@@ -119,19 +118,24 @@ def parent_to_repr_short(P):
         sage: parent_to_repr_short(Zmod(3)['g'])
         'Univariate Polynomial Ring in g over Ring of integers modulo 3'
     """
+    from sage.rings.integer_ring import ZZ
+    from sage.rings.rational_field import QQ
+    from sage.symbolic.ring import SR
+    from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+    from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+    from sage.rings.power_series_ring import is_PowerSeriesRing
     def abbreviate(P):
-        if P is sage.rings.integer_ring.ZZ:
+        if P is ZZ:
             return 'ZZ'
-        elif P is sage.rings.rational_field.QQ:
+        elif P is QQ:
             return 'QQ'
-        elif P is sage.symbolic.ring.SR:
+        elif P is SR:
             return 'SR'
         raise ValueError('Cannot abbreviate %s.' % (P,))
 
-    poly = sage.rings.polynomial.polynomial_ring.is_PolynomialRing(P) or \
-           sage.rings.polynomial.multi_polynomial_ring_generic.is_MPolynomialRing(P)
+    poly = is_PolynomialRing(P) or is_MPolynomialRing(P)
     from sage.rings import multi_power_series_ring
-    power = sage.rings.power_series_ring.is_PowerSeriesRing(P) or \
+    power = is_PowerSeriesRing(P) or \
             multi_power_series_ring.is_MPowerSeriesRing(P)
 
     if poly or power:

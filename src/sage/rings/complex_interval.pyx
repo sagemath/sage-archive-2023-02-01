@@ -44,9 +44,10 @@ from __future__ import absolute_import, print_function
 include "cysignals/signals.pxi"
 from sage.libs.gmp.mpz cimport mpz_sgn, mpz_cmpabs_ui
 from sage.libs.flint.fmpz cimport *
-from sage.libs.cypari2.gen cimport gen as pari_gen
+from sage.libs.cypari2.gen cimport Gen as pari_gen
 from sage.libs.mpfr cimport MPFR_RNDU, MPFR_RNDD
 
+from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from sage.structure.element cimport FieldElement, RingElement, Element, ModuleElement
 from sage.structure.parent cimport Parent
 from .complex_number cimport ComplexNumber
@@ -1448,7 +1449,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         cdef ComplexIntervalFieldElement lt, rt
         lt = left
         rt = right
-        if op == 2: #==
+        if op == Py_EQ:
             # intervals a == b iff a<=b and b <= a
             # (this gives a result with two comparisons, where the
             # obvious approach would use three)
@@ -1456,7 +1457,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
                 and mpfr_lessequal_p(&rt.__re.right, &lt.__re.left) \
                 and mpfr_lessequal_p(&lt.__im.right, &rt.__im.left) \
                 and mpfr_lessequal_p(&rt.__im.right, &lt.__im.left)
-        elif op == 3: #!=
+        elif op == Py_NE:
             return mpfr_less_p(&lt.__re.right, &rt.__re.left) \
                 or mpfr_less_p(&rt.__re.right, &lt.__re.left) \
                 or mpfr_less_p(&lt.__im.right, &rt.__im.left) \
@@ -1468,13 +1469,13 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             diff = left - right
             real_diff = diff.real()
             imag_diff = diff.imag()
-            if op == 0: #<
+            if op == Py_LT:
                 return real_diff < 0 or (real_diff == 0 and imag_diff < 0)
-            elif op == 1: #<=
+            elif op == Py_LE:
                 return real_diff < 0 or (real_diff == 0 and imag_diff <= 0)
-            elif op == 4: #>
+            elif op == Py_GT:
                 return real_diff > 0 or (real_diff == 0 and imag_diff > 0)
-            elif op == 5: #>=
+            elif op == Py_GE:
                 return real_diff > 0 or (real_diff == 0 and imag_diff >= 0)
 
     cpdef int _cmp_(left, right) except -2:

@@ -177,7 +177,7 @@ regularly use matroids based on a new data type, you can write a subclass of
 ``Matroid``. You only need to override the ``__init__``, ``_rank()`` and
 ``groundset()`` methods to get a fully working class.
 
-EXAMPLE:
+EXAMPLES:
 
 In a partition matroid, a subset is independent if it has at most one
 element from each partition. The following is a very basic implementation,
@@ -324,6 +324,8 @@ Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
+
+from cpython.object cimport Py_EQ, Py_NE
 
 from sage.structure.sage_object cimport SageObject
 from itertools import combinations, permutations, product
@@ -3139,7 +3141,7 @@ cdef class Matroid(SageObject):
         OUTPUT:
 
         Boolean,
-        and, if certificate = True, a dictionary giving the isomophism or None
+        and, if certificate = True, a dictionary giving the isomorphism or None
 
         .. NOTE::
 
@@ -3542,7 +3544,7 @@ cdef class Matroid(SageObject):
             True
         """
         from . import basis_matroid
-        if op in [0, 1, 4, 5]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if left.__class__ != right.__class__:
             return NotImplemented
@@ -3552,15 +3554,15 @@ cdef class Matroid(SageObject):
         #   sage.matroids.matroid.Matroid.__richcmp__(p, q, 2)
         # Non-abstract subclasses should just call isinstance on both left and right.
         if hash(left) != hash(right):
-            if op == 2:  # ==
+            if op == Py_EQ:
                 return False
-            if op == 3:  # !=
+            if op == Py_NE:
                 return True
 
         res = (basis_matroid.BasisMatroid(left) == basis_matroid.BasisMatroid(right))   # Default implementation
-        if op == 2:  # ==
+        if op == Py_EQ:
             return res
-        if op == 3:  # !=
+        if op == Py_NE:
             return not res
 
     # Minors and duality
@@ -5460,9 +5462,9 @@ cdef class Matroid(SageObject):
                         B[x,y]=0
             
             # remove row x1 and y1
-            Xp = range(n)
+            Xp = list(xrange(n))
             Xp.remove(x1)
-            Yp = range(m)
+            Yp = list(xrange(m))
             Yp.remove(y1)
             B = B.matrix_from_rows_and_columns(Xp,Yp)
 

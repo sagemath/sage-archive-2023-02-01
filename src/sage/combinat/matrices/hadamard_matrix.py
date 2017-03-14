@@ -239,7 +239,7 @@ def is_hadamard_matrix(M, normalized=False, skew=False, verbose=False):
     - ``verbose`` (boolean) -- whether to be verbose when the matrix is not
       Hadamard.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.matrices.hadamard_matrix import is_hadamard_matrix
         sage: h = matrix.hadamard(12)
@@ -768,7 +768,7 @@ def _helper_payley_matrix(n, zero_position=True):
 
         :func:`rshcd_from_close_prime_powers`
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.matrices.hadamard_matrix import _helper_payley_matrix
         sage: _helper_payley_matrix(5)
@@ -1250,7 +1250,7 @@ def szekeres_difference_set_pair(m, check=True):
         from itertools import product, chain
         assert(len(A)==len(B)==m)
         if m>1:
-            assert(sG==set(map(lambda (x,y): x/y, chain(product(A,A), product(B,B)))))
+            assert(sG==set([xy[0]/xy[1] for xy in chain(product(A,A), product(B,B))]))
         assert(all(F.one()/b+F.one() in sG for b in B))
         assert(not any(F.one()/a-F.one() in sG for a in A))
     return G,A,B

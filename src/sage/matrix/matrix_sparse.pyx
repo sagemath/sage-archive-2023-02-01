@@ -9,11 +9,12 @@ Base class for sparse matrices
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 from __future__ import print_function
 
 cimport cython
-cimport matrix
-cimport matrix0
+cimport sage.matrix.matrix as matrix
+cimport sage.matrix.matrix0 as matrix0
 from sage.structure.element cimport Element, RingElement, ModuleElement, Vector
 from sage.structure.sage_object cimport richcmp
 from sage.rings.ring import is_Ring
@@ -492,7 +493,7 @@ cdef class Matrix_sparse(matrix.Matrix):
         proper input.  More thorough documentation is provided
         there.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(ZZ, 2, range(6), sparse=True)
             sage: B = matrix(ZZ, 2, [1,0,2,0,3,0], sparse=True)

@@ -22,6 +22,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 from __future__ import print_function
 
 import math
@@ -30,12 +31,12 @@ import operator
 from sage.structure.element cimport FieldElement, RingElement, Element, ModuleElement
 from sage.categories.map cimport Map
 
-from complex_double cimport ComplexDoubleElement
-from real_mpfr cimport RealNumber
+from .complex_double cimport ComplexDoubleElement
+from .real_mpfr cimport RealNumber
 
 import sage.misc.misc
-import integer
-import infinity
+import sage.rings.integer as integer
+import sage.rings.infinity as infinity
 
 from sage.libs.mpmath.utils cimport mpfr_to_mpfval
 from sage.rings.integer_ring import ZZ
@@ -556,11 +557,11 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: pari(a).type()
             't_COMPLEX'
             sage: type(pari(a))
-            <type 'sage.libs.cypari2.gen.gen'>
+            <type 'sage.libs.cypari2.gen.Gen'>
             sage: a._pari_()
             2.00000000000000 + 1.00000000000000*I
             sage: type(a._pari_())
-            <type 'sage.libs.cypari2.gen.gen'>
+            <type 'sage.libs.cypari2.gen.Gen'>
             sage: a = CC(pi)
             sage: pari(a)
             3.14159265358979
@@ -1116,7 +1117,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: complex(a)
             (2+1j)
             sage: type(complex(a))
-            <type 'complex'>
+            <... 'complex'>
             sage: a.__complex__()
             (2+1j)
         """
@@ -2081,8 +2082,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
             sage: c = ComplexNumber(NaN,2)
             sage: c.log()
-            NaN - NaN*I
-
+            NaN + NaN*I
         """
         if mpfr_nan_p(self.__re):
             return ComplexNumber(self._parent,self.real(),self.real())
@@ -2093,7 +2093,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         if base is None:
             return ComplexNumber(self._parent, rho.log(), theta)
         else:
-            from real_mpfr import RealField
+            from .real_mpfr import RealField
             return ComplexNumber(self._parent, rho.log()/RealNumber(RealField(self.prec()),base).log(), theta/RealNumber(RealField(self.prec()),base).log())
 
     def additive_order(self):
@@ -2357,7 +2357,6 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             Infinity
         """
         if mpfr_zero_p(self.__im) and mpfr_cmp_ui(self.__re, 1) == 0:
-            import infinity
             return infinity.unsigned_infinity
         return self._parent(self._pari_().zeta())
 
@@ -2374,7 +2373,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         INPUT: Type algdep? at the top level prompt. All additional
         parameters are passed onto the top-level algdep command.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: C = ComplexField()
             sage: z = (1/2)*(1 + sqrt(3.0) *C.0); z
@@ -2402,7 +2401,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         INPUT: Type algdep? at the top level prompt. All additional
         parameters are passed onto the top-level algdep command.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: C = ComplexField()
             sage: z = (1/2)*(1 + sqrt(3.0) *C.0); z

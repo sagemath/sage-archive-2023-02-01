@@ -41,6 +41,7 @@ REFERENCES:
 #*****************************************************************************
 # python3
 from __future__ import division, absolute_import
+from six import add_metaclass
 
 from sage.structure.list_clone import ClonableArray
 from sage.combinat.abstract_tree import (AbstractClonableTree,
@@ -60,6 +61,7 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class BinaryTree(AbstractClonableTree, ClonableArray):
     """
     Binary trees.
@@ -119,8 +121,6 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         sage: t1 == t1c
         False
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
         """
@@ -169,7 +169,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         """
         return BinaryTrees_all()
 
-    def __init__(self, parent, children = None, check = True):
+    def __init__(self, parent, children=None, check=True):
         """
         TESTS::
 
@@ -190,8 +190,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             children = literal_eval(children)
         if children is None:
             children = []
-        elif (children == [] or children == ()
-              or isinstance(children, (Integer, int))):
+        elif (children == [] or children == () or
+              isinstance(children, (Integer, int))):
             children = [None, None]
         if (children.__class__ is self.__class__ and
                 children.parent() == parent):
@@ -234,7 +234,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         else:
             return super(BinaryTree, self)._repr_()
 
-    def _ascii_art_( self ):
+    def _ascii_art_(self):
         r"""
         TESTS::
 
@@ -386,7 +386,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
                  / \     / \
                 o   o   o   o
         """
-        node_to_str = lambda bt: str(bt.label()) if hasattr(bt, "label") else "o"
+        def node_to_str(bt):
+            return str(bt.label()) if hasattr(bt, "label") else "o"
 
         if self.is_empty():
             from sage.typeset.ascii_art import empty_ascii_art
@@ -394,31 +395,31 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         from sage.typeset.ascii_art import AsciiArt
         if self[0].is_empty() and self[1].is_empty():
-            bt_repr = AsciiArt( [node_to_str(self)] )
+            bt_repr = AsciiArt([node_to_str(self)])
             bt_repr._root = 1
             return bt_repr
         if self[0].is_empty():
             node = node_to_str(self)
             rr_tree = self[1]._ascii_art_()
             if rr_tree._root > 2:
-                f_line = " " ** Integer( rr_tree._root - 3 ) + node
-                s_line = " " ** Integer( len( node ) + rr_tree._root - 3 ) + "\\"
-                t_repr = AsciiArt( [f_line, s_line] ) * rr_tree
+                f_line = " " ** Integer(rr_tree._root - 3) + node
+                s_line = " " ** Integer(len(node) + rr_tree._root - 3) + "\\"
+                t_repr = AsciiArt([f_line, s_line]) * rr_tree
                 t_repr._root = rr_tree._root - 2
             else:
                 f_line = node
                 s_line = " " + "\\"
-                t_line = " " ** Integer( len( node ) + 1 )
-                t_repr = AsciiArt( [f_line, s_line] ) * ( AsciiArt( [t_line] ) + rr_tree )
+                t_line = " " ** Integer(len(node) + 1)
+                t_repr = AsciiArt([f_line, s_line]) * (AsciiArt([t_line]) + rr_tree)
                 t_repr._root = rr_tree._root
             t_repr._baseline = t_repr._h - 1
             return t_repr
         if self[1].is_empty():
             node = node_to_str(self)
             lr_tree = self[0]._ascii_art_()
-            f_line = " " ** Integer( lr_tree._root + 1 ) + node
-            s_line = " " ** Integer( lr_tree._root ) + "/"
-            t_repr = AsciiArt( [f_line, s_line] ) * lr_tree
+            f_line = " " ** Integer(lr_tree._root + 1) + node
+            s_line = " " ** Integer(lr_tree._root) + "/"
+            t_repr = AsciiArt([f_line, s_line]) * lr_tree
             t_repr._root = lr_tree._root + 2
             t_repr._baseline = t_repr._h - 1
             return t_repr
@@ -427,11 +428,217 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         rr_tree = self[1]._ascii_art_()
         nb_ = lr_tree._l - lr_tree._root + rr_tree._root - 1
         nb_L = nb_ // 2
-        nb_R = nb_L + ( 1 if nb_ % 2 == 1 else 0 )
-        f_line = " " ** Integer( lr_tree._root + 1 ) + "_" ** Integer( nb_L ) + node
-        f_line += "_" ** Integer( nb_R )
-        s_line = " " ** Integer( lr_tree._root ) + "/" + " " ** Integer( len( node ) + rr_tree._root - 1 + ( lr_tree._l - lr_tree._root ) ) + "\\"
-        t_repr = AsciiArt( [f_line, s_line] ) * ( lr_tree + AsciiArt( [" " ** Integer( len( node ) + 2 )] ) + rr_tree )
+        nb_R = nb_L + (nb_ % 2)
+        f_line = " " ** Integer(lr_tree._root + 1) + "_" ** Integer(nb_L) + node
+        f_line += "_" ** Integer(nb_R)
+        s_line = " " ** Integer(lr_tree._root) + "/" + " " ** Integer(len(node) + rr_tree._root - 1 + (lr_tree._l - lr_tree._root)) + "\\"
+        t_repr = AsciiArt([f_line, s_line]) * (lr_tree + AsciiArt([" " ** Integer(len(node) + 2)]) + rr_tree)
+        t_repr._root = lr_tree._root + nb_L + 2
+        t_repr._baseline = t_repr._h - 1
+        return t_repr
+
+    def _unicode_art_(self):
+        r"""
+        TESTS::
+
+            sage: unicode_art(BinaryTree())
+            <BLANKLINE>
+            sage: unicode_art(BinaryTree([]))
+            o
+            sage: for bt in BinaryTrees(3):
+            ....:     print(unicode_art(bt))
+            o
+             ╲
+              o
+               ╲
+                o
+            o
+             ╲
+              o
+             ╱
+            o
+              o
+             ╱ ╲
+            o   o
+              o
+             ╱
+            o
+             ╲
+              o
+                o
+               ╱
+              o
+             ╱
+            o
+            sage: unicode_art(BinaryTree([None,[]]))
+            o
+             ╲
+              o
+            sage: unicode_art(BinaryTree([None,[None,[]]]))
+            o
+             ╲
+              o
+               ╲
+                o
+            sage: unicode_art(BinaryTree([None,[[],None]]))
+            o
+             ╲
+              o
+             ╱
+            o
+            sage: unicode_art(BinaryTree([None,[[[],[]],[]]]))
+                  o
+                   ╲
+                   _o_
+                  ╱   ╲
+                 o     o
+                ╱ ╲
+               o   o
+            sage: unicode_art(BinaryTree([None,[[None,[[],[]]],None]]))
+            o
+             ╲
+              o
+             ╱
+            o
+             ╲
+              o
+             ╱ ╲
+            o   o
+            sage: unicode_art(BinaryTree([[],None]))
+                o
+               ╱
+              o
+            sage: unicode_art(BinaryTree([[[[],None], None],None]))
+                        o
+                       ╱
+                      o
+                     ╱
+                    o
+                   ╱
+                  o
+            sage: unicode_art(BinaryTree([[[],[]],None]))
+                    o
+                   ╱
+                  o
+                 ╱ ╲
+                o   o
+            sage: unicode_art(BinaryTree([[[None,[]],[[[],None],None]], None]))
+                          o
+                         ╱
+                     ___o___
+                    ╱       ╲
+                   o         o
+                    ╲       ╱
+                     o     o
+                          ╱
+                         o
+            sage: unicode_art(BinaryTree([[None,[[],[]]],None]))
+                o
+               ╱
+              o
+               ╲
+                o
+               ╱ ╲
+              o   o
+            sage: unicode_art(BinaryTree([[],[]]))
+                o
+               ╱ ╲
+              o   o
+            sage: unicode_art(BinaryTree([[],[[],None]]))
+                _o_
+               ╱   ╲
+              o     o
+                   ╱
+                  o
+            sage: unicode_art(BinaryTree([[None,[]],[[[],None],None]]))
+                ___o___
+               ╱       ╲
+              o         o
+               ╲       ╱
+                o     o
+                     ╱
+                    o
+            sage: unicode_art(BinaryTree([[[],[]],[[],None]]))
+                    __o__
+                   ╱     ╲
+                  o       o
+                 ╱ ╲     ╱
+                o   o   o
+            sage: unicode_art(BinaryTree([[[],[]],[[],[]]]))
+                    __o__
+                   ╱     ╲
+                  o       o
+                 ╱ ╲     ╱ ╲
+                o   o   o   o
+            sage: unicode_art(BinaryTree([[[[],[]],[[],[]]],[]]))
+                            ___o___
+                           ╱       ╲
+                        __o__       o
+                       ╱     ╲
+                      o       o
+                     ╱ ╲     ╱ ╲
+                    o   o   o   o
+            sage: unicode_art(BinaryTree([[],[[[[],[]],[[],[]]],[]]]))
+                _____o______
+               ╱            ╲
+              o           ___o___
+                         ╱       ╲
+                      __o__       o
+                     ╱     ╲
+                    o       o
+                   ╱ ╲     ╱ ╲
+                  o   o   o   o
+        """
+        def node_to_str(bt):
+            return str(bt.label()) if hasattr(bt, "label") else u"o"
+
+        if self.is_empty():
+            from sage.typeset.unicode_art import empty_unicode_art
+            return empty_unicode_art
+
+        from sage.typeset.unicode_art import UnicodeArt
+        if self[0].is_empty() and self[1].is_empty():
+            bt_repr = UnicodeArt([node_to_str(self)])
+            bt_repr._root = 1
+            return bt_repr
+
+        if self[0].is_empty():
+            node = node_to_str(self)
+            rr_tree = self[1]._unicode_art_()
+            if rr_tree._root > 2:
+                f_line = u" " * Integer(rr_tree._root - 3) + node
+                s_line = u" " * Integer(len(node) + rr_tree._root - 3) + u"╲"
+                t_repr = UnicodeArt([f_line, s_line]) * rr_tree
+                t_repr._root = rr_tree._root - 2
+            else:
+                f_line = node
+                s_line = u" ╲"
+                t_line = u" " * Integer(len(node) + 1)
+                t_repr = UnicodeArt([f_line, s_line]) * (UnicodeArt([t_line]) + rr_tree)
+                t_repr._root = rr_tree._root
+            t_repr._baseline = t_repr._h - 1
+            return t_repr
+
+        if self[1].is_empty():
+            node = node_to_str(self)
+            lr_tree = self[0]._unicode_art_()
+            f_line = u" " * Integer(lr_tree._root + 1) + node
+            s_line = u" " * Integer(lr_tree._root) + u"╱"
+            t_repr = UnicodeArt([f_line, s_line]) * lr_tree
+            t_repr._root = lr_tree._root + 2
+            t_repr._baseline = t_repr._h - 1
+            return t_repr
+
+        node = node_to_str(self)
+        lr_tree = self[0]._unicode_art_()
+        rr_tree = self[1]._unicode_art_()
+        nb_ = lr_tree._l - lr_tree._root + rr_tree._root - 1
+        nb_L = nb_ // 2
+        nb_R = nb_L + (nb_ % 2)
+        f_line = u" " * Integer(lr_tree._root + 1) + u"_" * Integer(nb_L) + node
+        f_line += u"_" * Integer(nb_R)
+        s_line = u" " * Integer(lr_tree._root) + u"╱" + u" " * Integer(len(node) + rr_tree._root - 1 + (lr_tree._l - lr_tree._root)) + u"╲"
+        t_repr = UnicodeArt([f_line, s_line]) * (lr_tree + UnicodeArt([u" " * Integer(len(node) + 2)]) + rr_tree)
         t_repr._root = lr_tree._root + nb_L + 2
         t_repr._baseline = t_repr._h - 1
         return t_repr
@@ -637,7 +844,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             # This is for the border case BinaryTree().show().
             self.graph(with_leaves=with_leaves).show()
 
-    def make_node(self, child_list = [None, None]):
+    def make_node(self, child_list=[None, None]):
         """
         Modify ``self`` so that it becomes a node with children ``child_list``.
 
@@ -1141,7 +1348,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         """
         return self._to_ordered_tree(bijection="right")
 
-    def _postfix_word(self, left_first = True, start = 1):
+    def _postfix_word(self, left_first=True, start=1):
         r"""
         Internal recursive method to obtain a postfix canonical read of the
         binary tree.
@@ -1163,7 +1370,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             return []
         left = self[0]._postfix_word(left_first, start)
         label = start + self[0].node_number()
-        right = self[1]._postfix_word(left_first, start = label + 1)
+        right = self[1]._postfix_word(left_first, start=label + 1)
         if left_first:
             left.extend(right)
             left.append(label)
@@ -1233,7 +1440,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             children = [child.as_ordered_tree(with_leaves) for child in self if not child.is_empty()]
         if self in LabelledBinaryTrees():
             from sage.combinat.ordered_tree import LabelledOrderedTree
-            return LabelledOrderedTree(children, label = self.label())
+            return LabelledOrderedTree(children, label=self.label())
         else:
             from sage.combinat.ordered_tree import OrderedTree
             return OrderedTree(children)
@@ -1362,7 +1569,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         N = N_u + N_v
         resu.append((shift, shift + N - 1))
         return (resu, N)
-    
+
     @combinatorial_map(name="To poset")
     def to_poset(self, with_leaves=False, root_to_leaf=False):
         r"""
@@ -1525,7 +1732,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             res += self[1].left_children_node_number(direction)
         return res
 
-    @combinatorial_map(order = 2, name="Left-right symmetry")
+    @combinatorial_map(order=2, name="Left-right symmetry")
     def left_right_symmetry(self):
         r"""
         Return the left-right symmetrized tree of ``self``.
@@ -1544,9 +1751,9 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         if not self:
             return BinaryTree()
         tree = [self[1].left_right_symmetry(), self[0].left_right_symmetry()]
-        if(not self in LabelledBinaryTrees()):
+        if self not in LabelledBinaryTrees():
             return BinaryTree(tree)
-        return LabelledBinaryTree(tree, label = self.label())
+        return LabelledBinaryTree(tree, label=self.label())
 
     @combinatorial_map(order=2, name="Left border symmetry")
     def left_border_symmetry(self):
@@ -1619,7 +1826,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         also :oeis:`A001181`). We check this in small cases::
 
             sage: [len([(u,v) for u in BinaryTrees(n) for v in BinaryTrees(n)
-            ....:       if map(lambda x:1-x, u.canopee()) == v.canopee()])
+            ....:       if [1 - x for x in u.canopee()] == v.canopee()])
             ....:    for n in range(1, 5)]
             [1, 2, 6, 22]
 
@@ -1832,9 +2039,13 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
              'i']
         """
         if leaf_action is None:
-            leaf_action = lambda x: None
+
+            def leaf_action(x):
+                return None
         if node_action is None:
-            node_action = lambda x: None
+
+            def node_action(x):
+                return None
 
         for node in self.in_order_traversal_iter():
             if node.is_empty():
@@ -3141,9 +3352,13 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             as shuffle
 
         if left_to_right:
-            builder = lambda i, p: [i] + list(p)
+
+            def builder(i, p):
+                return [i] + list(p)
         else:
-            builder = lambda i, p: list(p) + [i]
+
+            def builder(i, p):
+                return list(p) + [i]
 
         shift = self[0].node_number() + 1
         for l, r in product(self[0].sylvester_class(left_to_right=left_to_right),
@@ -3432,7 +3647,7 @@ class BinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
             """
         DisjointUnionEnumeratedSets.__init__(
             self, Family(NonNegativeIntegers(), BinaryTrees_size),
-            facade=True, keepkey = False)
+            facade=True, keepkey=False)
 
     def _repr_(self):
         """
@@ -3531,7 +3746,7 @@ class BinaryTrees_size(BinaryTrees):
             sage: S is BinaryTrees(3)
             True
         """
-        super(BinaryTrees_size, self).__init__(category = FiniteEnumeratedSets())
+        super(BinaryTrees_size, self).__init__(category=FiniteEnumeratedSets())
         self._size = size
 
     def _repr_(self):
@@ -3938,7 +4153,7 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
         """
         LT = self.parent()._element_constructor_
         if not self:
-            return LT([], label = letter)
+            return LT([], label=letter)
         else:
             if letter <= self.label():
                 fils = self[0].binary_search_insert(letter)
@@ -4033,7 +4248,7 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
         """
         LT = self.parent()._element_constructor_
         if not self:
-            return LT([], label = letter)
+            return LT([], label=letter)
         else:
             root_label = self.label()
             if letter < root_label:
@@ -4235,7 +4450,7 @@ class LabelledBinaryTrees(LabelledOrderedTrees):
         """
         Return a labelled binary tree.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: LabelledBinaryTrees().an_element()   # indirect doctest
             toto[42[3[., .], 3[., .]], 5[None[., .], None[., .]]]
@@ -4282,7 +4497,6 @@ class LabelledBinaryTrees(LabelledOrderedTrees):
         return self
 
     Element = LabelledBinaryTree
-
 
 
 ################################################################

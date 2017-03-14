@@ -442,7 +442,7 @@ class QuotientRingElement(RingElement):
             sage: K = R.quotient(x^2 - y^3).fraction_field()
             sage: L.<t> = FunctionField(QQ)
             sage: f = K.hom((t^3, t^2))
-            sage: map(f, K.gens())
+            sage: list(map(f, K.gens()))
             [t^3, t^2]
             sage: xbar, ybar = K.gens()
             sage: f(1/ybar)
@@ -465,7 +465,7 @@ class QuotientRingElement(RingElement):
             sage: int(S(-3))                # indirect doctest
             -3
             sage: type(int(S(-3)))
-            <type 'int'>
+            <... 'int'>
             sage: int(a)
             Traceback (most recent call last):
             ...
@@ -660,7 +660,7 @@ class QuotientRingElement(RingElement):
         """
         Return the leading term of this quotient ring element.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y,z>=PolynomialRing(GF(7),3,order='lex')
             sage: I = sage.rings.ideal.FieldIdeal(R)
@@ -682,7 +682,7 @@ class QuotientRingElement(RingElement):
         """
         Return the leading monomial of this quotient ring element.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y,z>=PolynomialRing(GF(7),3,order='lex')
             sage: I = sage.rings.ideal.FieldIdeal(R)
@@ -705,7 +705,7 @@ class QuotientRingElement(RingElement):
         """
         Return the leading coefficient of this quotient ring element.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y,z>=PolynomialRing(GF(7),3,order='lex')
             sage: I = sage.rings.ideal.FieldIdeal(R)
@@ -779,7 +779,7 @@ class QuotientRingElement(RingElement):
         -  ``singular`` - a non-standard interpreter may be
            provided
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y>  = PolynomialRing(GF(2),2)
             sage: I = sage.rings.ideal.FieldIdeal(P)
@@ -841,7 +841,7 @@ class QuotientRingElement(RingElement):
         -  ``G`` - a list of quotient ring elements
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<a,b,c,d,e> = PolynomialRing(GF(2), 5, order='lex')
             sage: I1 = ideal([a*b + c*d + 1, a*c*e + d*e, a*b*e + c*e, b*c + c*d*e + 1])

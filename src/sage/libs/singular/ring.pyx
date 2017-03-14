@@ -229,7 +229,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         try:
             k = PolynomialRing(RationalField(), 1, [base_ring.variable_name()], 'lex')
         except TypeError:
-            raise TypeError, "The multivariate polynomial ring in a single variable %s in lex order over Rational Field is supposed to be of type %s"%(base_ring.variable_name(), MPolynomialRing_libsingular)
+            raise TypeError("The multivariate polynomial ring in a single variable %s in lex order over Rational Field is supposed to be of type %s" % (base_ring.variable_name(), MPolynomialRing_libsingular))
 
         minpoly = base_ring.polynomial()(k.gen())
 
@@ -248,7 +248,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         _cf = nInitChar( n_algExt,  <void *>&extParam) #
 
         if (_cf is NULL):
-            raise RuntimeError, "Failed to allocate _cf ring."
+            raise RuntimeError("Failed to allocate _cf ring.")
 
         _ring = rDefault (_cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
 
@@ -300,7 +300,7 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         _cf = nInitChar( n_algExt,  <void *>&extParam)
 
         if (_cf is NULL):
-            raise RuntimeError, "Failed to allocate _cf ring."
+            raise RuntimeError("Failed to allocate _cf ring.")
 
         _ring = rDefault (_cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
 
@@ -516,7 +516,7 @@ cdef ring *singular_ring_reference(ring *existing_ring) except NULL:
     calling this function `n` times, you need to call :func:`singular_ring_delete`
     `n+1` times to actually deallocate the ring.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: import gc
         sage: _ = gc.collect()

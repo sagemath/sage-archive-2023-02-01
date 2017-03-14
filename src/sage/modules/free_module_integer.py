@@ -197,7 +197,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
     and BKZ reduced bases for this free module with respect to the standard
     Euclidean norm.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.modules.free_module_integer import IntegerLattice
         sage: L = IntegerLattice(sage.crypto.gen_lattice(type='modular', m=10, seed=1337, dual=True)); L
@@ -309,7 +309,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
         ``self``, where "best" is defined by the Euclidean norm of the
         first row vector.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modules.free_module_integer import IntegerLattice
             sage: L = IntegerLattice(random_matrix(ZZ, 10, 10), lll_reduce=False)
@@ -503,7 +503,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         An integer matrix which is a HKZ-reduced basis for this lattice.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modules.free_module_integer import IntegerLattice
             sage: L = sage.crypto.gen_lattice(type='random', n=1, m=40, q=2^60, seed=1337, lattice=True)
@@ -524,7 +524,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         An integer.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: L = sage.crypto.gen_lattice(m=10, seed=1337, lattice=True)
             sage: L.volume()
@@ -545,7 +545,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         An integer.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: L = sage.crypto.gen_lattice(m=10, seed=1337, lattice=True)
             sage: L.discriminant()
@@ -625,7 +625,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
                 qf = B*B.transpose()
 
             count, length, vectors = qf._pari_().qfminim()
-            v = vectors.python().columns()[0]
+            v = vectors.sage().columns()[0]
             w = v*B
         elif algorithm == "fplll":
             from fpylll import IntegerMatrix, SVP
@@ -651,7 +651,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
         Nothing is returned but the internal state is modified.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modules.free_module_integer import IntegerLattice
             sage: A = sage.crypto.gen_lattice(type='random', n=1, m=30, q=2^40, seed=42)

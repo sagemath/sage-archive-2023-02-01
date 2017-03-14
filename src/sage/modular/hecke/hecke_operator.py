@@ -82,7 +82,7 @@ class HeckeAlgebraElement(AlgebraElement):
         The domain of this operator. This is the Hecke module associated to the
         parent Hecke algebra.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = ModularForms(Gamma0(7), 4).hecke_algebra()
             sage: sage.modular.hecke.hecke_operator.HeckeAlgebraElement(R).domain()
@@ -96,7 +96,7 @@ class HeckeAlgebraElement(AlgebraElement):
         The codomain of this operator. This is the Hecke module associated to the
         parent Hecke algebra.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = ModularForms(Gamma0(7), 4).hecke_algebra()
             sage: sage.modular.hecke.hecke_operator.HeckeAlgebraElement(R).codomain()
@@ -394,7 +394,7 @@ class HeckeAlgebraElement(AlgebraElement):
 
     def __getitem__(self, ij):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = ModularSymbols(1,12)
             sage: T = M.hecke_operator(2).matrix_form()
@@ -488,7 +488,7 @@ class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
         r"""
         Latex representation of self (just prints the matrix)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = ModularSymbols(1,12)
             sage: M.hecke_operator(2).matrix_form()._latex_()
@@ -539,7 +539,7 @@ class DiamondBracketOperator(HeckeAlgebraElement_matrix):
         r"""
         Standard init function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = ModularSymbols(Gamma1(5),6)
             sage: d = M.diamond_bracket_operator(2); d # indirect doctest
@@ -566,7 +566,7 @@ class DiamondBracketOperator(HeckeAlgebraElement_matrix):
 
     def _repr_(self):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ModularSymbols(Gamma1(5), 6).diamond_bracket_operator(2)._repr_()
             'Diamond bracket operator <2> on Modular Symbols space of dimension 10 for Gamma_1(5) of weight 6 with sign 0 and over Rational Field'
@@ -575,7 +575,7 @@ class DiamondBracketOperator(HeckeAlgebraElement_matrix):
 
     def _latex_(self):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: latex(ModularSymbols(Gamma1(5), 12).diamond_bracket_operator(2)) # indirect doctest
             \langle 2 \rangle
@@ -649,7 +649,7 @@ class HeckeOperator(HeckeAlgebraElement):
         r"""
         String representation of self
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ModularSymbols(Gamma0(7), 4).hecke_operator(6)._repr_()
             'Hecke operator T_6 on Modular Symbols space of dimension 4 for Gamma_0(7) of weight 4 with sign 0 over Rational Field'
@@ -660,7 +660,7 @@ class HeckeOperator(HeckeAlgebraElement):
         r"""
         LaTeX representation of self
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ModularSymbols(Gamma0(7), 4).hecke_operator(6)._latex_()
             'T_{6}'

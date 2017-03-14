@@ -170,20 +170,20 @@ cdef class Matrix(matrix0.Matrix):
         EXAMPLES::
 
             sage: M = matrix(ZZ,2,range(4))
-            sage: giac(M)                              # optional - giac
+            sage: giac(M)
             [[0,1],[2,3]]
 
         ::
 
             sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])
-            sage: giac(M)                                      # optional - giac
+            sage: giac(M)
             [[1,2,3],[4/3,5/3,3/2],[7,8,9]]
 
         ::
 
             sage: P.<x> = ZZ[]
             sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5])
-            sage: giac(M)                             # optional - giac
+            sage: giac(M)
             [[-9*x^2-2*x+2,x-1],[x^2+8*x,-3*x^2+5]]
         """
         s = str(self.rows()).replace('(','[').replace(')',']')
@@ -204,7 +204,7 @@ cdef class Matrix(matrix0.Matrix):
             sage: a = maxima(m); a
             matrix([0,1,2],[3,4,5],[6,7,8])
             sage: a.charpoly('x').expand()
-            -x^3+12*x^2+18*x
+            (-x^3)+12*x^2+18*x
             sage: m.charpoly()
             x^3 - 12*x^2 - 18*x
         """

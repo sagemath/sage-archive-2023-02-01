@@ -83,6 +83,7 @@ fi
 # Set various environment variables (needed at configure time)
 ########################################################################
 
+# Assume current directory is SAGE_ROOT.
 SAGE_ROOT=`pwd -P`
 SAGE_SRC="$srcdir"/src
 

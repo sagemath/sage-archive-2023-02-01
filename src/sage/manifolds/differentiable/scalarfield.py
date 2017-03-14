@@ -688,7 +688,7 @@ class DiffScalarField(ScalarField):
 
         - always `(0, 0)`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M')
             sage: c_xy.<x,y> = M.chart()

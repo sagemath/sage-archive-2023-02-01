@@ -422,7 +422,7 @@ def test_a1a3_local(c4,c6,P,a1,a3, debug=False):
     The elliptic curve which is the (a1^2/12,a1/2,a3/2)-transform of
     [0,0,0,-c4/48,-c6/864] if this is integral at P, else False.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.kraus import test_a1a3_local
         sage: K.<a> = NumberField(x^2-10)
@@ -462,7 +462,7 @@ def test_a1a3_global(c4,c6,a1,a3, debug=False):
     [0,0,0,-c4/48,-c6/864] if this is integral at all primes P
     dividing 2, else False.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.kraus import test_a1a3_global
         sage: K.<a> = NumberField(x^2-10)

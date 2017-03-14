@@ -1021,12 +1021,12 @@ class Posets(object):
 
         REFERENCES:
 
-        .. [Striker2011] \J. Striker. *A unifying poset perpective on
+        .. [Striker2011] \J. Striker. *A unifying poset perspective on
            alternating sign matrices, plane partitions, Catalan objects,
            tournaments, and tableaux*, Advances in Applied Mathematics 46
            (2011), no. 4, 583-609. :arXiv:`1408.5391`
         """
-        n=n-1
+        n = n - 1
         try:
             n = Integer(n)
         except TypeError:

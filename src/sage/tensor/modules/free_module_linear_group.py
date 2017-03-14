@@ -521,7 +521,7 @@ class FreeModuleLinearGroup(UniqueRepresentation, Parent):
         r"""
         Return a string representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 2, name='M')
             sage: GL = M.general_linear_group()
@@ -535,7 +535,7 @@ class FreeModuleLinearGroup(UniqueRepresentation, Parent):
         r"""
         Return a string representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 2, name='M')
             sage: GL = M.general_linear_group()
@@ -556,7 +556,7 @@ class FreeModuleLinearGroup(UniqueRepresentation, Parent):
         - instance of :class:`FiniteRankFreeModule` representing the free
           module of which ``self`` is the general linear group
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 2, name='M')
             sage: GL = M.general_linear_group()

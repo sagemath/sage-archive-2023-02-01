@@ -774,7 +774,7 @@ class Graphics(WithEqualityById, SageObject):
         If called with no input, return the current
         ``axes_width`` setting.
 
-        EXAMPLE: We create a plot, see the default axes width (with funny
+        EXAMPLES: We create a plot, see the default axes width (with funny
         Python float rounding), then reset the width to 10 (very fat).
 
         ::
@@ -935,7 +935,7 @@ class Graphics(WithEqualityById, SageObject):
         """
         Returns the ith graphics primitive object:
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = circle((1,1),2) + circle((2,2),5); print(G)
             Graphics object consisting of 2 graphics primitives

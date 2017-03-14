@@ -55,7 +55,7 @@ class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_fi
         Returns the Frobenius as a function on the group of points of
         this elliptic curve.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Qp=pAdicField(13)
             sage: E=EllipticCurve(Qp,[1,1])

@@ -121,7 +121,7 @@ class ModularFormsAmbient_gH_Q(ambient.ModularFormsAmbient):
         r"""
         Compute the matrix of the diamond operator <d> on this space.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ModularForms(GammaH(9, [4]), 7)._compute_diamond_matrix(2)
             [-1  0  0  0  0  0  0  0]
@@ -139,7 +139,7 @@ class ModularFormsAmbient_gH_Q(ambient.ModularFormsAmbient):
         r"""
         Compute the matrix of the Hecke operator T_n acting on this space.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ModularForms(Gamma1(7), 4).hecke_matrix(3) # indirect doctest
             [           0          -42          133            0            0            0            0            0            0]

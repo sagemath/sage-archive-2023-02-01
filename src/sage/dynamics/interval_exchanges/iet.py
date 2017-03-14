@@ -589,7 +589,7 @@ class IntervalExchangeTransformation(SageObject):
         list -- two lists of positive numbers which corresponds to extremities
             of subintervals
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: t = iet.IntervalExchangeTransformation(('a b','b a'),[1/2,3/2])
             sage: t.singularities()

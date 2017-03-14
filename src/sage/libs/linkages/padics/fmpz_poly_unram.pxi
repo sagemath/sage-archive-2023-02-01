@@ -587,7 +587,7 @@ cdef int cteichmuller(celement out, celement value, long prec, PowComputer_ prim
     We use Hensel lifting to solve the equation `f(T)=T^q-T`. Instead of
     dividing by the derivative of `f`, we divide by `( q - 1 )` whose first
     digits coincide with `f'`. This does probably not yield quadratic
-    convergence but taking inverses would be much more expansive than what is
+    convergence but taking inverses would be much more expensive than what is
     done here.
 
     """

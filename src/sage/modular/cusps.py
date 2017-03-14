@@ -166,7 +166,7 @@ class Cusps_class(ParentWithBase):
         The existence of this method is assumed by some
         parts of Sage's coercion model.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Cusps.zero()
             0

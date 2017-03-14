@@ -2684,7 +2684,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         For details on input parameters, see
         :meth:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.LLL`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = Matrix(QQ, 3, 3, [1/n for n in range(1, 10)])
             sage: A.LLL()

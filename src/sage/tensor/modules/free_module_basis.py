@@ -72,8 +72,18 @@ class Basis_abstract(UniqueRepresentation, SageObject):
             [Linear form e^0 on the Rank-3 free module M over the Integer Ring,
              Linear form e^1 on the Rank-3 free module M over the Integer Ring,
              Linear form e^2 on the Rank-3 free module M over the Integer Ring]
+
+        An example with indices starting at 1 instead of 0::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M1',
+            ....:                          start_index=1)
+            sage: e = M.basis('e')
+            sage: list(e)
+            [Element e_1 of the Rank-3 free module M1 over the Integer Ring,
+             Element e_2 of the Rank-3 free module M1 over the Integer Ring,
+             Element e_3 of the Rank-3 free module M1 over the Integer Ring]
         """
-        for i in range(self._fmodule._rank):
+        for i in self._fmodule.irange():
             yield self[i]
 
     def __len__(self):
@@ -350,7 +360,7 @@ class FreeModuleBasis(Basis_abstract):
           :class:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule`
           representing the free module of which ``self`` is a basis
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')

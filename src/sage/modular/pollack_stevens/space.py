@@ -290,7 +290,7 @@ class PollackStevensModularSymbolspace(Module):
         r"""
         Used for comparison and coercion.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M1 = PollackStevensModularSymbols(Gamma0(11), coefficients=Symk(3))
             sage: M2 = PollackStevensModularSymbols(Gamma0(11), coefficients=Symk(3,Qp(11)))

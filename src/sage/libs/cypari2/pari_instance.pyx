@@ -617,7 +617,7 @@ cdef class Pari(Pari_auto):
         (available memory address, think of this as the stack pointer),
         ``bot`` (bottom of stack).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: pari.debugstack()  # random
             top =  0x60b2c60

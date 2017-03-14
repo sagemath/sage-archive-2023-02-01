@@ -286,7 +286,7 @@ class AbelianGroupElementBase(MultiplicativeGroupElement):
         """
         Returns the inverse element.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G.<a,b> = AbelianGroup([0,5])
             sage: a.inverse()

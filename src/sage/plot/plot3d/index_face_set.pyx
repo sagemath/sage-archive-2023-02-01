@@ -46,9 +46,7 @@ cdef extern from *:
     int sprintf_7i "sprintf" (char*, char*, int, int, int, int, int, int, int)
     int sprintf_9d "sprintf" (char*, char*, double, double, double, double, double, double, double, double, double)
 
-# import the double infinity constant
-cdef extern from "math.h":
-    enum: INFINITY
+from libc.math cimport INFINITY
 
 from cpython.list cimport *
 from cpython.bytes cimport *
@@ -746,7 +744,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         which gives the coordinates of opposite corners of the
         bounding box.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: x,y = var('x,y')
             sage: p = plot3d(sqrt(sin(x)*sin(y)), (x,0,2*pi),(y,0,2*pi))
@@ -1155,7 +1153,7 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         Graphics3dGroup of stickers
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.plot.plot3d.shapes import Box
             sage: B = Box(.5,.4,.3, color='black')

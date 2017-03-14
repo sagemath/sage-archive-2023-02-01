@@ -243,7 +243,7 @@ cdef class Matrix_dense(matrix.Matrix):
         proper input.  More thorough documentation is provided
         there.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(ZZ, 2, range(6), sparse=False)
             sage: B = matrix(ZZ, 2, [1,0,2,0,3,0], sparse=False)

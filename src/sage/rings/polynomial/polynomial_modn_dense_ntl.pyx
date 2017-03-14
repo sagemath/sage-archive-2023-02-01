@@ -365,7 +365,7 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         See :func:`sage.rings.polynomial.polynomial_modn_dense_ntl.small_roots`
         for the documentation of this function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: N = 10001
             sage: K = Zmod(10001)

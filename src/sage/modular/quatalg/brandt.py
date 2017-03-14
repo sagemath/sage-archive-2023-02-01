@@ -526,7 +526,7 @@ class BrandtModule_class(AmbientHeckeModule):
 
         Always trivial.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: BrandtModule(11,5).character()
             Dirichlet character modulo 55 of conductor 1 mapping 12 |--> 1, 46 |--> 1

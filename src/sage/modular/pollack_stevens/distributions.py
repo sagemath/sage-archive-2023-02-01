@@ -162,7 +162,7 @@ class Symk_factory(UniqueFactory):
       on the left rather than the right.
     - ``dettwist`` (integer or None) -- power of determinant to twist by
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: D = Symk(4)
         sage: loads(dumps(D)) is D
@@ -196,7 +196,7 @@ class Symk_factory(UniqueFactory):
         r"""
         Sanitize input.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Symk
             sage: Symk(6) # indirect doctest
@@ -215,7 +215,7 @@ class Symk_factory(UniqueFactory):
 
     def create_object(self, version, key):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Symk
             sage: Symk(6) # indirect doctest
@@ -348,7 +348,7 @@ class OverconvergentDistributions_abstract(Module):
         Return the matrix for the action of `g` on ``self``, truncated to
         the first `M` moments.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: V = Symk(3)
             sage: from sage.modular.pollack_stevens.sigma0 import Sigma0
@@ -637,7 +637,7 @@ class Symk_class(OverconvergentDistributions_abstract):
     def __init__(self, k, base, character, adjuster, act_on_left, dettwist,
                  act_padic, implementation):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.modular.pollack_stevens.distributions.Symk(4); D
             Sym^4 Q^2
@@ -655,7 +655,7 @@ class Symk_class(OverconvergentDistributions_abstract):
         r"""
         Return a representative element of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.distributions import Symk
             sage: D = Symk(3, base=QQ); D
@@ -741,7 +741,7 @@ class Symk_class(OverconvergentDistributions_abstract):
         r"""
         Extend scalars to a new base ring.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Symk(3).base_extend(Qp(3))
             Sym^3 Q_3^2

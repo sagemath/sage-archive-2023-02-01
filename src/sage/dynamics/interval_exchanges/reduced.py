@@ -711,7 +711,7 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
         r"""
         Returns the relabelization obtained from this move.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = iet.Permutation('a b c d','d c b a')
             sage: q = p.reduced()
@@ -1237,7 +1237,7 @@ class FlippedReducedPermutation(ReducedPermutation):
         r"""
         Performs a Rauzy move on the right.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = iet.Permutation('a b c','c b a',reduced=True,flips='c')
             sage: p.right_rauzy_move('top')

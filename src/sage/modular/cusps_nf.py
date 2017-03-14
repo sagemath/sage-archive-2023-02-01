@@ -365,7 +365,7 @@ class NFCuspsSpace(ParentWithBase):
         It is not intended that the returned cusp is an additive
         neutral element.
 
-        EXAMPLE::
+        EXAMPLES::
 
              sage: k.<a> = NumberField(x^2 + 5)
              sage: kCusps = NFCusps(k)

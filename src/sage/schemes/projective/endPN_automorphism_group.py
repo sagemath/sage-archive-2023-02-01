@@ -927,7 +927,7 @@ def field_descent(sigma, y):
 
     - the unique element of the subfield if it exists, otherwise ``None``.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R = GF(11^2,'b')
         sage: RR = GF(11)

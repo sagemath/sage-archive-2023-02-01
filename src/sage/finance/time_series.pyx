@@ -1513,7 +1513,7 @@ cdef class TimeSeries:
 
         A time series.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: v = finance.TimeSeries([13,8,15,4,4,12,11,7,14,12])
             sage: v.autocorrelation()
@@ -1547,7 +1547,7 @@ cdef class TimeSeries:
 
         A double.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: v = finance.TimeSeries([1,1,1,2,3]); v
             [1.0000, 1.0000, 1.0000, 2.0000, 3.0000]

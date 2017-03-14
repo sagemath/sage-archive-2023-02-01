@@ -335,15 +335,14 @@ def cython(filename, verbose=False, compile_message=False,
     the create_local_c_file argument was not tested in combination with
     the ``#clang c++`` directive::
 
-        sage: import sage.misc.cython, sage.misc.temporary_file, os
+        sage: import sage.misc.cython
         sage: d = sage.misc.temporary_file.tmp_dir()
-        sage: os.chdir(d)
-        sage: f = open(d+"src.pyx", 'w')
-        sage: f.write("#clang C++\n"
+        sage: pyxfile = os.path.join(d, "src.pyx")
+        sage: with open(pyxfile, 'w') as f:
+        ....:     f.write("#clang C++\n"
         ....:       "from libcpp.vector cimport vector\n"
         ....:       "cdef vector[int] * v = new vector[int](4)\n")
-        sage: f.close()
-        sage: output = sage.misc.cython.cython(d+"src.pyx", create_local_c_file=True)
+        sage: output = sage.misc.cython.cython(pyxfile, create_local_c_file=True)
     """
     if not filename.endswith('pyx'):
         print("Warning: file (={}) should have extension .pyx".format(filename), file=sys.stderr)

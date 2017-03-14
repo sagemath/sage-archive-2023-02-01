@@ -4781,6 +4781,8 @@ class Polyhedron_base(Element):
 
         # for small bounding boxes, it is faster to naively iterate over the points of the box
         box_min, box_max = self.bounding_box(integral_hull=True)
+        if box_min is None:
+            return ()
         box_points = prod(max_coord-min_coord+1 for min_coord, max_coord in zip(box_min, box_max))
         if  not self.is_lattice_polytope() or \
                 (self.is_simplex() and box_points < 1000) or \

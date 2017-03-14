@@ -1723,7 +1723,7 @@ class MagmaFunctionElement(FunctionElement):
         s = sage.misc.misc.word_wrap(s)
         return s
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Return string representation of this partially evaluated function.
 
@@ -1759,7 +1759,7 @@ class MagmaFunctionElement(FunctionElement):
             Partially evaluated Magma function or intrinsic 'Dimension'
             ...
         """
-        M = self._obj.parent()
+        M = self._obj._check_valid()
         try:
             return M.eval('%s`%s' % (self._obj.name(), self._name))
         except RuntimeError:

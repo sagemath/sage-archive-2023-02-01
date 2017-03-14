@@ -649,7 +649,7 @@ class MathematicaElement(ExpectElement):
         i = z.find('=')
         return z[i+1:].strip()
 
-    def __repr__(self):
+    def _repr_(self):
         P = self._check_valid()
         return P.get(self._name, ascii_art=False).strip()
 

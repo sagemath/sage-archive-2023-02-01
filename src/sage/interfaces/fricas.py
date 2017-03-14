@@ -698,11 +698,11 @@ class FriCAS(ExtraTabCompletion, Expect):
         """
         return '~='
 
-    def __repr__(self):
+    def _repr_(self):
         """
         EXAMPLES::
 
-            sage: fricas                                                        # optional - fricas
+            sage: fricas        # indirect doctest
             FriCAS
         """
         return "FriCAS"

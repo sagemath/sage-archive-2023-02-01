@@ -1072,27 +1072,6 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
         """
         return self.parent()._tab_completion()
 
-    def __repr__(self):
-        """
-        Return a string representation of self.
-
-        These examples are optional, and require Maple to be installed. You
-        don't need to install any Sage packages for this.
-
-        EXAMPLES::
-
-            sage: x = var('x')                  # optional - maple
-            sage: maple(x)                      # optional - maple
-            x
-            sage: maple(5)                      # optional - maple
-            5
-            sage: M = matrix(QQ,2,range(4))     # optional - maple
-            sage: maple(M)                      # optional - maple
-            Matrix(2, 2, [[0,1],[2,3]])
-        """
-        self._check_valid()
-        return self.parent().get(self._name)
-
     def _latex_(self):
         r"""
         You can output Maple expressions in latex.

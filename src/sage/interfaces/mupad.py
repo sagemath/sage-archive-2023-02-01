@@ -600,17 +600,6 @@ class MupadElement(ExtraTabCompletion, ExpectElement):
         res = self.parent().completions(self.name()+"::", strip=True)
         return res if res != [] else self.parent()._tab_completion()
 
-    def __repr__(self):
-        """
-        EXAMPLES::
-
-            sage: mupad.package('"MuPAD-Combinat"')  # optional - mupad-Combinat
-            sage: S = mupad.examples.SymmetricFunctions(); S # optional - mupad-Combinat
-            examples::SymmetricFunctions(Dom::ExpressionField())
-        """
-        self._check_valid()
-        return self.parent().get(self._name)
-
     def _latex_(self):
         r"""
         EXAMPLES::

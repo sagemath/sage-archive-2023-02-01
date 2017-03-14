@@ -3886,7 +3886,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         INPUT:
 
-        - ``labels``, a string -- type of elements of resulting lattice
+        - ``labels`` -- a string; the type of elements in the resulting lattice
 
         OUTPUT:
 

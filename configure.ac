@@ -92,7 +92,7 @@ SAGE_LOCAL="$prefix"
 # inspects stuff in the installation prefix at configure time.
 # This is nonstandard.
 if test "$SAGE_LOCAL" = NONE; then
-   SAGE_LOCAL=local
+    SAGE_LOCAL=local
 fi
 SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 

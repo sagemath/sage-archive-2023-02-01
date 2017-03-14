@@ -53,12 +53,11 @@ from __future__ import print_function
 
 from six.moves import range
 
-from sage.misc.cachefunc import cached_method, cached_in_parent_method
+from sage.misc.cachefunc import cached_function, cached_method, cached_in_parent_method
 from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
 from sage.rings.all import ZZ
 from sage.interfaces.gap3 import gap3
 from sage.combinat.root_system.reflection_group_complex import ComplexReflectionGroup, IrreducibleComplexReflectionGroup
-from sage.combinat.root_system.coxeter_group import is_chevie_available
 from sage.misc.sage_eval import sage_eval
 from sage.combinat.root_system.reflection_group_element import RealReflectionGroupElement
 
@@ -223,6 +222,30 @@ def ReflectionGroup(*args,**kwds):
                index_set=kwds.get('index_set', None),
                hyperplane_index_set=kwds.get('hyperplane_index_set', None),
                reflection_index_set=kwds.get('reflection_index_set', None))
+
+@cached_function
+def is_chevie_available():
+    r"""
+    Test whether the GAP3 Chevie package is available.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.root_system.reflection_group_real import is_chevie_available
+        sage: is_chevie_available() # random
+        False
+        sage: is_chevie_available() in [True, False]
+        True
+    """
+    try:
+        from sage.interfaces.gap3 import gap3
+        gap3._start()
+        gap3.load_package("chevie")
+        return True
+    except Exception:
+        return False
+
+#####################################################################
+## Classes
 
 class RealReflectionGroup(ComplexReflectionGroup):
     """
@@ -735,7 +758,6 @@ class RealReflectionGroup(ComplexReflectionGroup):
             return [ (~w) for w in self.right_coset_representatives() ]
 
 class IrreducibleRealReflectionGroup(RealReflectionGroup, IrreducibleComplexReflectionGroup):
-
     def _repr_(self):
         r"""
         Return the string representation of ``self``.

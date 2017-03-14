@@ -263,6 +263,43 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
 
     matrix = to_matrix
 
+    def canonical_matrix(self):
+        r"""
+        Return the matrix of ``self`` in the canonical faithful representation.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup(['A',2], prefix='s', implementation="permutation")
+            sage: for w in W:
+            ....:     w.reduced_word()
+            ....:     w.canonical_matrix()
+            []
+            [1 0]
+            [0 1]
+            [2]
+            [ 1  1]
+            [ 0 -1]
+            [1]
+            [-1  0]
+            [ 1  1]
+            [1, 2]
+            [-1 -1]
+            [ 1  0]
+            [2, 1]
+            [ 0  1]
+            [-1 -1]
+            [1, 2, 1]
+            [ 0 -1]
+            [-1  0]
+        """
+        W = self.parent()
+        Phi = W.roots()
+        inds = [W._index_set_inverse[i] for i in W.independent_roots().keys()]
+        M = Matrix([Phi[self(i+1)-1] for i in inds])
+        mat = W.base_change_matrix() * M
+        mat.set_immutable()
+        return mat
+
     def action(self, vec, on_space="primal"):
         r"""
         Return the image of ``vec`` under the action of ``self``.

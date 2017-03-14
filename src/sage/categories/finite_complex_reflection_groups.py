@@ -641,7 +641,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
             if in_unitary_group or W.is_real():
                 from sage.matrix.special import identity_matrix
                 I = identity_matrix(self.parent().rank())
-                return W.rank() - (self.to_matrix() - I).right_nullity()
+                return W.rank() - (self.canonical_matrix() - I).right_nullity()
             else:
                 return len(self.reduced_word_in_reflections())
 

@@ -261,20 +261,6 @@ class WeylGroup_gens(UniqueRepresentation,
         """
         return self.domain().cartan_type()
 
-    def coxeter_matrix(self):
-        """
-        Return the Coxeter matrix associated to ``self``.
-
-        EXAMPLES::
-
-            sage: G = WeylGroup(['A',3])
-            sage: G.coxeter_matrix()
-            [1 3 2]
-            [3 1 3]
-            [2 3 1]
-        """
-        return self.cartan_type().coxeter_matrix()
-
     @cached_method
     def index_set(self):
         """
@@ -742,6 +728,19 @@ class WeylGroupElement(MatrixGroupElement_gap):
     def __hash__(self):
         return hash(self.matrix())
 
+    def to_matrix(self):
+        """
+        Return ``self`` as a matrix.
+
+        EXAMPLES::
+
+            sage: G = WeylGroup(['A',2])
+            sage: s1 = G.simple_reflection(1)
+            sage: s1.to_matrix() == s1.matrix()
+            True
+        """
+        return self.matrix()
+
     def domain(self):
         """
         Returns the ambient lattice associated with self.
@@ -1187,13 +1186,14 @@ class WeylGroup_permutation(UniqueRepresentation, PermutationGroup_generic):
 
             sage: W = WeylGroup(['A',4], implementation="permutation")
             sage: W.simple_roots()
-            ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))
+            Finite family {1: (1, 0, 0, 0), 2: (0, 1, 0, 0),
+                           3: (0, 0, 1, 0), 4: (0, 0, 0, 1)}
         """
         Q = self._cartan_type.root_system().root_lattice()
         roots = [al.to_vector() for al in Q.simple_roots()]
         for v in roots:
             v.set_immutable()
-        return tuple(roots)
+        return Family(self._index_set, lambda i: roots[self._index_set_inverse[i]])
 
     independent_roots = simple_roots
 

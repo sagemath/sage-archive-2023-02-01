@@ -617,12 +617,12 @@ class Polymake(ExtraTabCompletion, Expect):
 
         Eventually, ``var`` is a reference to ``value``.
 
-        WARNING:
+        .. WARNING::
 
-        This method, although it doesn't start with an underscore, is
-        an internal method and not part of the interface. So, please do
-        not try to call it explicitly. Instead, use the polymake interface
-        as shown in the examples.
+            This method, although it doesn't start with an underscore, is
+            an internal method and not part of the interface. So, please do
+            not try to call it explicitly. Instead, use the polymake interface
+            as shown in the examples.
 
         REMARK:
 
@@ -645,12 +645,12 @@ class Polymake(ExtraTabCompletion, Expect):
         Equality is, for "big" objects such as polytopes, comparison by
         identity::
 
-            sage: c == d
+            sage: c == d                                        # optional - polymake
             False
 
         However, the list of vertices is equal::
 
-            sage: c.VERTICES == d.VERTICES
+            sage: c.VERTICES == d.VERTICES                      # optional - polymake
             True
 
         TESTS:
@@ -681,7 +681,7 @@ class Polymake(ExtraTabCompletion, Expect):
         Note that the above string representation is what polymake provides.
         In our interface, we use what polymake calls a "description"::
 
-            sage: polymake('cube(3)')
+            sage: polymake('cube(3)')                         # optional - polymake
             cube of dimension 3
 
 

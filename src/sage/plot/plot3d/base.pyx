@@ -57,9 +57,7 @@ include "point_c.pxi"
 
 from sage.interfaces.tachyon import tachyon_rt
 
-# import the double infinity constant
-cdef extern from "math.h":
-     enum: INFINITY
+from libc.math cimport INFINITY
 
 
 default_texture = Texture()
@@ -329,7 +327,7 @@ cdef class Graphics3d(SageObject):
             sage: out
             OutputSceneCanvas3d container
             sage: out.canvas3d.get()
-            "[{vertices:[{x:0,y:0,z:-1},..., color:'#6666ff', opacity:1}]"
+            '[{"vertices":[{"x":0,"y":0,"z":-1},..., "color":"#6666ff", "opacity":1}]'
         """
         opts = self._process_viewing_options(kwds)
         aspect_ratio = opts['aspect_ratio'] # this necessarily has a value now
@@ -367,15 +365,49 @@ cdef class Graphics3d(SageObject):
         options['axes_labels'] = kwds.get('axes_labels', ['x','y','z'])
         options['decimals'] = int(kwds.get('decimals', 2))
         options['frame'] = kwds.get('frame', True)
+        options['online'] = kwds.get('online', False)
 
         if not options['frame']:
             options['axes_labels'] = False
 
-        lights = "[{x:0, y:0, z:10}, {x:0, y:0, z:-10}]"
+        from sage.repl.rich_output import get_display_manager
+        backend = get_display_manager()._backend
+        from sage.repl.rich_output.backend_sagenb import BackendSageNB
+        if isinstance(backend, BackendSageNB):
+            options['online'] = True
+
+        if options['online']:
+            scripts = ( """
+<script src="https://cdn.rawgit.com/mrdoob/three.js/r80/build/three.min.js"></script>
+<script src="https://cdn.rawgit.com/mrdoob/three.js/r80/examples/js/controls/OrbitControls.js"></script>
+            """ )
+        else:
+            from sage.repl.rich_output.backend_ipython import BackendIPythonNotebook
+            if isinstance(backend, BackendIPythonNotebook):
+                scripts = ( """
+<script src="/nbextensions/threejs/three.min.js"></script>
+<script src="/nbextensions/threejs/OrbitControls.js"></script>
+<script>
+  if ( !window.THREE ) document.write('\
+<script src="https://cdn.rawgit.com/mrdoob/three.js/r80/build/three.min.js"><\/script>\
+<script src="https://cdn.rawgit.com/mrdoob/three.js/r80/examples/js/controls/OrbitControls.js"><\/script>');
+</script>
+                """ )
+            else:
+                from sage.env import SAGE_SHARE
+                scripts = ( """
+<script src="{0}/threejs/three.min.js"></script>
+<script src="{0}/threejs/OrbitControls.js"></script>
+                """.format( SAGE_SHARE ) )
 
         b = self.bounding_box()
-        bounds = "[{{x:{}, y:{}, z:{}}}, {{x:{}, y:{}, z:{}}}]".format(
+        bounds = '[{{"x":{}, "y":{}, "z":{}}}, {{"x":{}, "y":{}, "z":{}}}]'.format(
                  b[0][0], b[0][1], b[0][2], b[1][0], b[1][1], b[1][2])
+
+        from sage.plot.colors import Color
+        lights = '[{{"x":-5, "y":3, "z":0, "color":"{}", "parent":"camera"}}]'.format(
+                 Color(.5,.5,.5).html_color())
+        ambient = '{{"color":"{}"}}'.format(Color(.5,.5,.5).html_color())
 
         import json
         points, lines, texts = [], [], []
@@ -385,19 +417,19 @@ cdef class Graphics3d(SageObject):
             if hasattr(p, 'loc'):
                 color = p._extra_kwds.get('color', 'blue')
                 opacity = p._extra_kwds.get('opacity', 1)
-                points.append("{{point:{}, size:{}, color:'{}', opacity:{}}}".format(
+                points.append('{{"point":{}, "size":{}, "color":"{}", "opacity":{}}}'.format(
                               json.dumps(p.loc), p.size, color, opacity))
             if hasattr(p, 'points'):
                 color = p._extra_kwds.get('color', 'blue')
                 opacity = p._extra_kwds.get('opacity', 1)
                 thickness = p._extra_kwds.get('thickness', 1)
-                lines.append("{{points:{}, color:'{}', opacity:{}, linewidth:{}}}".format(
+                lines.append('{{"points":{}, "color":"{}", "opacity":{}, "linewidth":{}}}'.format(
                              json.dumps(p.points), color, opacity, thickness))
             if hasattr(p, '_trans'):
                 if hasattr(p.all[0], 'string'):
                     m = p.get_transformation().get_matrix()
-                    texts.append("{{text:'{}', x:{}, y:{}, z:{}}}".format(
-                                  p.all[0].string, m[0,3], m[1,3], m[2,3]))
+                    texts.append('{{"text":"{}", "x":{}, "y":{}, "z":{}}}'.format(
+                                 p.all[0].string, m[0,3], m[1,3], m[2,3]))
 
         points = '[' + ','.join(points) + ']'
         lines = '[' + ','.join(lines) + ']'
@@ -413,9 +445,11 @@ cdef class Graphics3d(SageObject):
         html = f.read()
         f.close()
 
+        html = html.replace('SAGE_SCRIPTS', scripts)
         html = html.replace('SAGE_OPTIONS', json.dumps(options))
-        html = html.replace('SAGE_LIGHTS', lights)
         html = html.replace('SAGE_BOUNDS', bounds)
+        html = html.replace('SAGE_LIGHTS', lights)
+        html = html.replace('SAGE_AMBIENT', ambient)
         html = html.replace('SAGE_TEXTS', str(texts))
         html = html.replace('SAGE_POINTS', str(points))
         html = html.replace('SAGE_LINES', str(lines))
@@ -2066,7 +2100,7 @@ class Graphics3dGroup(Graphics3d):
 
             sage: G = sphere() + sphere((1, 2, 3))
             sage: G.json_repr(G.default_render_params())
-            [[["{vertices:..."]], [["{vertices:..."]]]
+            [[['{"vertices":...']], [['{"vertices":...']]]
         """
         return [g.json_repr(render_params) for g in self.all]
 
@@ -2284,7 +2318,7 @@ class TransformGroup(Graphics3dGroup):
 
             sage: G = cube().rotateX(0.2)
             sage: G.json_repr(G.default_render_params())
-            [["{vertices:[{x:0.5,y:0.589368,z:0.390699},..."]]
+            [['{"vertices":[{"x":0.5,"y":0.589368,"z":0.390699},...']]
         """
 
         render_params.push_transform(self.get_transformation())

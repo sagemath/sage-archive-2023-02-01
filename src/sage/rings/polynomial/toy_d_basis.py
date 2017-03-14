@@ -13,7 +13,7 @@ implementation is a clean and easy presentation.
    coefficient. Also, what is called LM (the leading monomial) in
    Sage is called HT (the head term) in [BW93]_.
 
-EXAMPLE::
+EXAMPLES::
 
     sage: from sage.rings.polynomial.toy_d_basis import d_basis
 
@@ -134,7 +134,7 @@ def spol(g1,g2):
     - ``g1`` - polynomial
     - ``g2`` - polynomial
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.polynomial.toy_d_basis import spol
         sage: P.<x, y, z> = PolynomialRing(IntegerRing(), 3, order='lex')
@@ -166,7 +166,7 @@ def gpol(g1,g2):
     - ``g1`` - polynomial
     - ``g2`` - polynomial
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.polynomial.toy_d_basis import gpol
         sage: P.<x, y, z> = PolynomialRing(IntegerRing(), 3, order='lex')
@@ -197,7 +197,7 @@ def d_basis(F, strat=True):
     - ``F`` - an ideal
     - ``strat`` - use update strategy (default: ``True``)
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.polynomial.toy_d_basis import d_basis
         sage: A.<x,y> = PolynomialRing(ZZ, 2)
@@ -270,7 +270,7 @@ def select(P):
     OUTPUT:
         an element of P
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.polynomial.toy_d_basis import select
         sage: A.<x,y> = PolynomialRing(ZZ, 2)
@@ -308,7 +308,7 @@ def update(G,B,h):
     OUTPUT:
         ``G,B`` where ``G`` and ``B`` are updated
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.polynomial.toy_d_basis import update
         sage: A.<x,y> = PolynomialRing(ZZ, 2)

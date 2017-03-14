@@ -24,7 +24,7 @@ cdef class PolynomialRingHomomorphism_from_base(RingHomomorphism_from_base):
     The canonical ring homomorphism from `R[x]` to `S[x]` induced by a
     ring homomorphism from `R` to `S`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: QQ['x'].coerce_map_from(ZZ['x'])
         Ring morphism:

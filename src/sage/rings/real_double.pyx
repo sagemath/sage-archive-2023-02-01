@@ -160,7 +160,7 @@ cdef class RealDoubleField_class(Field):
         """
         Returns ``False``, because doubles are not exact.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: RDF.is_exact()
             False
@@ -2528,7 +2528,7 @@ cdef class RealDoubleElement(FieldElement):
 
         Uses the PARI C-library ``algdep`` command.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: r = sqrt(RDF(2)); r
             1.4142135623730951
@@ -2629,7 +2629,7 @@ def is_RealDoubleElement(x):
     """
     Check if ``x`` is an element of the real double field.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.real_double import is_RealDoubleElement
         sage: is_RealDoubleElement(RDF(3))

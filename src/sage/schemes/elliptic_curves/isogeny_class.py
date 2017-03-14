@@ -382,7 +382,7 @@ class IsogenyClass_EC(SageObject):
         Returns a graph whose vertices correspond to curves in this
         class, and whose edges correspond to prime degree isogenies.
 
-        .. note:
+        .. note::
 
             There are only finitely many possible isogeny graphs for
             curves over `\QQ` [M78].  This function tries to lay out
@@ -390,7 +390,7 @@ class IsogenyClass_EC(SageObject):
             This could also be done over other number fields, such as
             quadratic fields.
 
-        .. note:
+        .. note::
 
             The vertices are labeled 1 to n rather than 0 to n-1 to
             match LMFDB and Cremona labels for curves over `\QQ`.

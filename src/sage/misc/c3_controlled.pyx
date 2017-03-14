@@ -949,7 +949,7 @@ cpdef tuple C3_sorted_merge(list lists, key=identity):
     #assert C3_merge(lists[:-1]+[suggestion_list]) == out
     return (out, suggestion_list)
 
-class HierarchyElement(object):
+class HierarchyElement(object, metaclass=ClasscallMetaclass):
     """
     A class for elements in a hierarchy.
 
@@ -1042,8 +1042,6 @@ class HierarchyElement(object):
         sage: x.cls.mro()
         [<class '44.cls'>, <class '43.cls'>, <class '42.cls'>, <class '41.cls'>, <class '40.cls'>, <class '39.cls'>, <class '38.cls'>, <class '37.cls'>, <class '36.cls'>, <class '35.cls'>, <class '34.cls'>, <class '33.cls'>, <class '32.cls'>, <class '31.cls'>, <class '30.cls'>, <class '29.cls'>, <class '28.cls'>, <class '27.cls'>, <class '26.cls'>, <class '25.cls'>, <class '24.cls'>, <class '23.cls'>, <class '22.cls'>, <class '21.cls'>, <class '20.cls'>, <class '19.cls'>, <class '18.cls'>, <class '17.cls'>, <class '16.cls'>, <class '15.cls'>, <class '14.cls'>, <class '13.cls'>, <class '12.cls'>, <class '11.cls'>, <class '10.cls'>, <class '9.cls'>, <class '8.cls'>, <class '7.cls'>, <class '6.cls'>, <class '5.cls'>, <class '4.cls'>, <class '3.cls'>, <class '2.cls'>, <class '1.cls'>, <class '0.cls'>, <type 'object'>]
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall__(cls, value, succ, key = None):
         """

@@ -7,7 +7,6 @@ AUTHORS:
 - Florent Hivert (2010-2011): initial revision
 - Frederic Chapoton (2010): contributed some methods
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2010 Florent Hivert <Florent.Hivert@univ-rouen.fr>,
 #
@@ -16,6 +15,8 @@ from __future__ import absolute_import
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+from six import add_metaclass
 
 import itertools
 
@@ -37,6 +38,7 @@ from sage.sets.family import Family
 from sage.rings.infinity import Infinity
 
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class OrderedTree(AbstractClonableTree, ClonableList):
     """
     The class of (ordered rooted) trees.
@@ -177,8 +179,6 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         sage: tt1.__hash__() == tt2.__hash__()
         False
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
         """
@@ -1406,7 +1406,7 @@ class LabelledOrderedTrees(UniqueRepresentation, Parent):
         """
         Return the cardinality of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: LabelledOrderedTrees().cardinality()
             +Infinity
@@ -1417,7 +1417,7 @@ class LabelledOrderedTrees(UniqueRepresentation, Parent):
         """
         Return a labelled ordered tree.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: LabelledOrderedTrees().an_element()   # indirect doctest
             toto[3[], 42[3[], 3[]], 5[None[]]]

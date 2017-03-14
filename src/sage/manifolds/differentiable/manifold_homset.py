@@ -183,7 +183,7 @@ class DifferentiableManifoldHomset(TopologicalManifoldHomset):
         r"""
         Determine whether coercion to ``self`` exists from other parent.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()

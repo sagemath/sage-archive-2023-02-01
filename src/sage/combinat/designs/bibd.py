@@ -289,7 +289,7 @@ def steiner_triple_system(n):
 
     - ``n`` return a Steiner Triple System of `\{0,...,n-1\}`
 
-    EXAMPLE:
+    EXAMPLES:
 
     A Steiner Triple System on `9` elements ::
 
@@ -738,7 +738,7 @@ def _relabel_bibd(B,n,p=None):
 
     - ``p`` (optional) -- the point that will be labeled with n-1.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: designs.balanced_incomplete_block_design(40,4).blocks() # indirect doctest
         [[0, 1, 2, 12], [0, 3, 6, 9], [0, 4, 8, 10],
@@ -912,7 +912,7 @@ def _get_t_u(v):
 
     - ``v`` (integer)
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.bibd import _get_t_u
         sage: _get_t_u(20)
@@ -1255,7 +1255,7 @@ class PairwiseBalancedDesign(GroupDivisibleDesign):
         r"""
         Constructor
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: designs.balanced_incomplete_block_design(13,3) # indirect doctest
             (13,3,1)-Balanced Incomplete Block Design
@@ -1322,7 +1322,7 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
         r"""
         Constructor
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: b=designs.balanced_incomplete_block_design(9,3); b
             (9,3,1)-Balanced Incomplete Block Design
@@ -1340,7 +1340,7 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
         r"""
         A string to describe self
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: b=designs.balanced_incomplete_block_design(9,3); b
             (9,3,1)-Balanced Incomplete Block Design

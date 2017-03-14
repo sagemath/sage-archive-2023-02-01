@@ -369,6 +369,11 @@ class ClusterQuiver(SageObject):
         else:
             raise ValueError("The input data was not recognized.")
 
+        # stopgap for bugs arising from coefficients
+        if self._m != 0:
+            from sage.misc.stopgap import stopgap
+            stopgap("Having frozen nodes is known to produce wrong answers", 22381)
+
     def __eq__(self, other):
         """
         Returns ``True`` if ``self`` and ``other`` represent the same quiver.

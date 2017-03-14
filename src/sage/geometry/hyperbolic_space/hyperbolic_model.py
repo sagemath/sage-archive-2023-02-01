@@ -794,7 +794,7 @@ class HyperbolicModelUHP(HyperbolicModel):
 
     def _coerce_map_from_(self, X):
         """
-        Return if the there is a coercion map from ``X`` to ``self``.
+        Return if there is a coercion map from ``X`` to ``self``.
 
         EXAMPLES::
 
@@ -1163,7 +1163,7 @@ class HyperbolicModelPD(HyperbolicModel):
 
     def _coerce_map_from_(self, X):
         """
-        Return if the there is a coercion map from ``X`` to ``self``.
+        Return if there is a coercion map from ``X`` to ``self``.
 
         EXAMPLES::
 
@@ -1280,7 +1280,7 @@ class HyperbolicModelKM(HyperbolicModel):
 
     def _coerce_map_from_(self, X):
         """
-        Return if the there is a coercion map from ``X`` to ``self``.
+        Return if there is a coercion map from ``X`` to ``self``.
 
         EXAMPLES::
 
@@ -1391,7 +1391,7 @@ class HyperbolicModelHM(HyperbolicModel):
 
     def _coerce_map_from_(self, X):
         """
-        Return if the there is a coercion map from ``X`` to ``self``.
+        Return if there is a coercion map from ``X`` to ``self``.
 
         EXAMPLES::
 
@@ -1429,7 +1429,7 @@ class HyperbolicModelHM(HyperbolicModel):
         """
         if isinstance(p, HyperbolicPoint):
             return p.is_boundary()
-        return len(p) == 3 and bool(p[0]**2 + p[1]**2 - p[2]**2 + 1 < EPSILON)
+        return len(p) == 3 and bool(abs(p[0]**2 + p[1]**2 - p[2]**2 + 1) < EPSILON)
 
     def boundary_point_in_model(self, p):
         r"""

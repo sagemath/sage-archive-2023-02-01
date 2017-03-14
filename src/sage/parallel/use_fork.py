@@ -12,6 +12,7 @@ Parallel iterator built using the ``fork()`` system call
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import, print_function
+from six import iteritems
 
 from cysignals.alarm import AlarmInterrupt, alarm, cancel_alarm
 
@@ -152,7 +153,7 @@ class p_iter_fork:
                     except AlarmInterrupt:
                         cancel_alarm()
                         # Kill workers that are too old
-                        for pid, X in workers.iteritems():
+                        for pid, X in iteritems(workers):
                             if walltime() - X[1] > timeout:
                                 if self.verbose:
                                     print(

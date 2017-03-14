@@ -26,6 +26,7 @@ Classes and methods
 #****************************************************************************
 from __future__ import print_function
 from six.moves import range
+from six import add_metaclass
 
 from sage.rings.rational_field import QQ
 from sage.categories.posets import Posets
@@ -42,6 +43,8 @@ from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.graphs.dot2tex_utils import have_dot2tex
 from sage.structure.list_clone import ClonableArray
 
+
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class LinearExtensionOfPoset(ClonableArray):
     r"""
     A linear extension of a finite poset `P` of size `n` is a total
@@ -89,8 +92,6 @@ class LinearExtensionOfPoset(ClonableArray):
         sage: Q.cover_relations()
         [[1, 2], [1, 4], [3, 4]]
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, linear_extension, poset):
         r"""

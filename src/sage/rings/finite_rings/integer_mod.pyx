@@ -352,7 +352,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         Return the image of ``self`` under the map that sends the
         generators of the parent to ``im_gens``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = Mod(7, 10)
             sage: R = ZZ.quotient(5)
@@ -1376,8 +1376,8 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         TESTS::
 
             sage: for n in range(2,100): # long time
-            ....:     K=Integers(n)
-            ....:     elist = range(1,min(2*n+2,100))
+            ....:     K = Integers(n)
+            ....:     elist = list(range(1,min(2*n+2,100)))
             ....:     for e in random_sublist(elist, 5/len(elist)):
             ....:         for a in random_sublist(range(1,n), min((n+2)//2,10)/(n-1)):
             ....:             b = K(a)

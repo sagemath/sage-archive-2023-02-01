@@ -1120,6 +1120,19 @@ Here are some of the more commonly used variables affecting the build process:
   supports :envvar:`SAGE_SUDO`, into a root-owned installation
   hierarchy (:envvar:`SAGE_LOCAL`).
 
+- :envvar:`SAGE_PYTHON3` - set this to ``yes`` to build Sage using
+  Python 3 rather than Python 2.
+
+  .. WARNING::
+
+     This will probably break your Sage installation!
+
+  .. WARNING::
+
+     This environment variable may not be supported in future versions
+     of Sage; it may be replaced by (for example) ``configure``
+     options.
+
 Variables to set if you're trying to build Sage with an unusual setup, e.g.,
 an unsupported machine or an unusual compiler:
 
@@ -1277,7 +1290,7 @@ Sage uses the following environment variables when it runs:
 - :envvar:`SAGE_PATH` - a colon-separated list of directories which Sage
   searches when trying to locate Python libraries.
 
-- :envvar:`SAGE_BROWSER` - on most platforms, Sage will detect the command to
+- :envvar:`BROWSER` - on most platforms, Sage will detect the command to
   run a web browser, but if this doesn't seem to work on your machine, set this
   variable to the appropriate command.
 

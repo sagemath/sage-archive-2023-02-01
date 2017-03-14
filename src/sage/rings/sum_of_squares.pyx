@@ -94,12 +94,14 @@ cdef int two_squares_c(uint_fast32_t n, uint_fast32_t res[2]):
 
     return 0
 
+
 cdef int three_squares_c(uint_fast32_t n, uint_fast32_t res[3]):
     r"""
-    Return ``1`` if ``n`` is a sum of three squares and ``0`` otherwise.
+    Return `1` if `n` is a sum of three squares and `0` otherwise.
 
-    If ``1`` is returned, the the value of ``res[0]``, ``res[1]`` and ``res[2]``
-    are set to a solution of `a^2 + b^2 + c^2 = n` such that `a \leq b \leq c`.
+    If `1` is returned, then the values of ``res[0]``, ``res[1]`` and
+    ``res[2]`` are set to a solution of `a^2 + b^2 + c^2 = n` such
+    that `a \leq b \leq c`.
     """
     cdef uint_fast32_t fac,i
 

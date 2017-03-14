@@ -1364,7 +1364,7 @@ Other design goals include:
 Upcoming features
 =================
 
-.. TODO:
+.. TODO::
 
     - Implement compatibility axiom / functorial constructions. For
       example, one would want to have::

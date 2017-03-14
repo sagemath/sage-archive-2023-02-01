@@ -22,3 +22,8 @@ much code written for S runs unaltered under R.
  * iconv
  * Readline
  * BLAS/LAPACK
+ * xz
+ * pcre
+ * curl
+ * https-capable SSL
+ 

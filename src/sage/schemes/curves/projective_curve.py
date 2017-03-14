@@ -554,7 +554,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
 
         OUTPUT: Integer.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: x,y,z = PolynomialRing(GF(5), 3, 'xyz').gens()
             sage: C = Curve(y^2*z^7 - x^9 - x*z^8); C
@@ -1568,7 +1568,7 @@ class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve):
 
         A generator of all the rational points on the curve defined over its base field.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = GF(37)
             sage: P2.<X,Y,Z> = ProjectiveSpace(F,2)
@@ -1742,7 +1742,7 @@ class ProjectivePlaneCurve_prime_finite_field(ProjectivePlaneCurve_finite_field)
            computed by Singular.
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: x, y, z = PolynomialRing(GF(5), 3, 'xyz').gens()
             sage: f = y^2*z^7 - x^9 - x*z^8
@@ -1814,7 +1814,7 @@ class ProjectivePlaneCurve_prime_finite_field(ProjectivePlaneCurve_finite_field)
 
         A list of function field elements that form a basis of the Riemann-Roch space
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y,z> = GF(2)[]
             sage: f = x^3*y + y^3*z + x*z^3
@@ -1891,7 +1891,7 @@ class ProjectivePlaneCurve_prime_finite_field(ProjectivePlaneCurve_finite_field)
         -  ``'bn'`` - via Singular's brnoeth package.
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: x, y, z = PolynomialRing(GF(5), 3, 'xyz').gens()
             sage: f = y^2*z^7 - x^9 - x*z^8

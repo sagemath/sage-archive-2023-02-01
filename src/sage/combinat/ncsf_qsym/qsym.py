@@ -36,6 +36,10 @@ REFERENCES:
    *Noncommutative symmetric functions II: Transformations of alphabets*.
    http://www-igm.univ-mlv.fr/~jyt/ARTICLES/NCSF2.ps
 
+.. [HLNT09] F. Hivert, J.-G. Luque, J.-C. Novelli, J.-Y. Thibon,
+   *The (1-E)-transform in combinatorial Hopf algebras*.
+   :arxiv:`math/0912.0184v2`
+   
 .. [LMvW13] Kurt Luoto, Stefan Mykytiuk and Stephanie van Willigenburg,
    *An introduction to quasisymmetric Schur functions -- Hopf algebras,
    quasisymmetric functions, and Young composition tableaux*,

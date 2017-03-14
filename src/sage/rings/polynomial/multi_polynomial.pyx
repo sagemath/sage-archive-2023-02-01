@@ -33,6 +33,8 @@ from sage.arith.misc import gcd
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.real_mpfr import RealField_class,RealField
 
+from polydict cimport ETuple
+
 cdef class MPolynomial(CommutativeRingElement):
 
     ####################
@@ -294,14 +296,14 @@ cdef class MPolynomial(CommutativeRingElement):
         my_vars = self.parent().variable_names()
         vars = list(vars)
         if len(vars) == 0:
-            indices = range(len(my_vars))
+            indices = list(xrange(len(my_vars)))
         else:
             indices = [vars.index(v) for v in my_vars]
         x = [fast_float_arg(i) for i in indices]
 
         n = len(x)
         expr = fast_float_constant(0)
-        for (m,c) in self.dict().iteritems():
+        for m, c in self.dict().iteritems():
             monom = prod([ x[i]**m[i] for i in range(n) if m[i] != 0], fast_float_constant(c))
             expr = expr + monom
         return expr
@@ -536,8 +538,8 @@ cdef class MPolynomial(CommutativeRingElement):
             D = {}
             m = min([vars.index(z) for z in my_vars])
             prev_vars = vars[:m]
-            var_range = range(len(my_vars))
-            if len(prev_vars) > 0:
+            var_range = list(xrange(len(my_vars)))
+            if prev_vars:
                 mapping = [vars.index(v) - len(prev_vars) for v in my_vars]
                 tmp = [0] * (len(vars) - len(prev_vars))
                 try:
@@ -1620,7 +1622,7 @@ cdef class MPolynomial(CommutativeRingElement):
         given an ideal ``I = (f_1,...,f_r)`` and some ``g (== self)`` in ``I``,
         find ``s_1,...,s_r`` such that ``g = s_1 f_1 + ... + s_r f_r``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A.<x,y> = PolynomialRing(CC,2,order='degrevlex')
             sage: I = A.ideal([x^10 + x^9*y^2, y^8 - x^2*y^7 ])
@@ -2268,6 +2270,86 @@ cdef class MPolynomial(CommutativeRingElement):
         if return_conjugation:
             return (self(tuple(M * vector([x,y]))), M)
         return self(tuple(M * vector([x,y])))
+
+    def is_unit(self):
+        r"""
+        Return ``True`` if ``self`` is a unit, that is, has a
+        multiplicative inverse.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQbar[]
+            sage: (x+y).is_unit()
+            False
+            sage: R(0).is_unit()
+            False
+            sage: R(-1).is_unit()
+            True
+            sage: R(-1 + x).is_unit()
+            False
+            sage: R(2).is_unit()
+            True
+
+        Check that :trac:`22454` is fixed::
+
+            sage: _.<x,y> = Zmod(4)[]
+            sage: (1 + 2*x).is_unit()
+            True
+            sage: (x*y).is_unit()
+            False
+            sage: _.<x,y> = Zmod(36)[]
+            sage: (7+ 6*x + 12*y - 18*x*y).is_unit()
+            True
+
+        """
+        # EXERCISE (Atiyah-McDonald, Ch 1): Let `A[x]` be a polynomial
+        # ring in one variable. Then `f=\sum a_i x^i \in A[x]` is a unit\
+        # if and only if `a_0` is a unit and `a_1,\ldots, a_n` are nilpotent.
+        # (Also noted in Dummit and Foote, "Abstract Algebra", 1991,
+        # Section 7.3 Exercise 33).
+        # Also f is nilpotent if and only if all a_i are nilpotent.
+        # This generalizes easily to the multivariate case, by considering
+        # K[x,y,...] as K[x][y]...
+        if not self.constant_coefficient().is_unit():
+            return False
+        cdef dict d = self.dict()
+        cdef ETuple zero_key = ETuple({}, int(self.parent().ngens()))
+        d.pop(zero_key, None)
+        return all(d[k].is_nilpotent() for k in d)
+
+    def is_nilpotent(self):
+        r"""
+        Return ``True`` if ``self`` is nilpotent, i.e., some power of ``self``
+        is 0.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQbar[]
+            sage: (x+y).is_nilpotent()
+            False
+            sage: R(0).is_nilpotent()
+            True
+            sage: _.<x,y> = Zmod(4)[]
+            sage: (2*x).is_nilpotent()
+            True
+            sage: (2+y*x).is_nilpotent()
+            False
+            sage: _.<x,y> = Zmod(36)[]
+            sage: (4+6*x).is_nilpotent()
+            False
+            sage: (6*x + 12*y + 18*x*y + 24*(x^2+y^2)).is_nilpotent()
+            True
+        """
+        # EXERCISE (Atiyah-McDonald, Ch 1): Let `A[x]` be a polynomial
+        # ring in one variable. Then `f=\sum a_i x^i \in A[x]` is 
+        # nilpotent if and only if `a_0,\ldots, a_n` are nilpotent.
+        # (Also noted in Dummit and Foote, "Abstract Algebra", 1991,
+        # Section 7.3 Exercise 33).
+        # This generalizes easily to the multivariate case, by considering
+        # K[x,y,...] as K[x][y]...
+        d = self.dict()
+        return all(c.is_nilpotent() for c in d.values())
+
 
 cdef remove_from_tuple(e, int ind):
     w = list(e)

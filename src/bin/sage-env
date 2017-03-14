@@ -472,6 +472,11 @@ export MAXIMA_PREFIX="$SAGE_LOCAL"
 
 PERL5LIB="$SAGE_LOCAL/lib/perl5:$PERL5LIB" && export PERL5LIB
 
+# Allow SAGE_BROWSER to override BROWSER (Trac #22449)
+if [ -n "$SAGE_BROWSER" ]; then
+    export BROWSER="$SAGE_BROWSER"
+fi
+
 ############ architecture flags
 
 # Support flags to change the build architecture.  Currently, this is

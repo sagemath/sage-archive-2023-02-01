@@ -24,7 +24,7 @@ If `E` is supersingular, the series will have coefficients in a quadratic
 extension of `\QQ_p`, and the coefficients will be unbounded. In this case we
 have only implemented the series for `\eta = 0`. We have also implemented the
 `p`-adic L-series as formulated by Perrin-Riou [BP], which has coefficients in
-the Dieudonne module `D_pE = H^1_{dR}(E/\QQ_p)` of `E`. There is a different
+the Dieudonné module `D_pE = H^1_{dR}(E/\QQ_p)` of `E`. There is a different
 description by Pollack [Po] which is not available here.
 
 According to the `p`-adic version of the Birch and Swinnerton-Dyer conjecture
@@ -712,7 +712,9 @@ class pAdicLseries(SageObject):
           On `p`-adic analogues of the conjectures of Birch and
           Swinnerton-Dyer, Invertiones mathematicae 84, (1986), 1-48.
 
-        .. note: No check on precision is made, so this may fail for huge `D`.
+        .. note::
+
+            No check on precision is made, so this may fail for huge `D`.
 
         EXAMPLES::
 
@@ -1343,7 +1345,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
             `(1-\varphi)^{-2}\cdot L_p(E,T) =` ``v[1]`` `\cdot \omega +` ``v[2]`` `\cdot \varphi(\omega)`
 
-        as an element of the Dieudonne module `D_p(E) = H^1_{dR}(E/\QQ_p)` where
+        as an element of the Dieudonné module `D_p(E) = H^1_{dR}(E/\QQ_p)` where
         `\omega` is the invariant differential and `\varphi` is the Frobenius on `D_p(E)`.
         According to the `p`-adic Birch and Swinnerton-Dyer
         conjecture [BP] this function has a zero of order
@@ -1464,13 +1466,15 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
     def __phi_bpr(self, prec=0):
         r"""
-        This returns a geometric Frobenius `\varphi` on the Dieudonne module `D_p(E)`
+        This returns a geometric Frobenius `\varphi` on the Dieudonné module `D_p(E)`
         with respect to the basis `\omega`, the invariant differential, and `\eta=x\omega`.
         It satisfies  `\varphi^2 - a_p/p\, \varphi + 1/p = 0`.
 
         The algorithm used here is described in bernardi-perrin-riou on page 232.
 
-        .. note: Warning. This function has not been sufficiently tested. It is very slow.
+        .. WARNING::
+
+            This function has not been sufficiently tested. It is very slow.
 
         EXAMPLES::
 
@@ -1587,7 +1591,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
     def Dp_valued_height(self,prec=20):
         r"""
-        Return the canonical `p`-adic height with values in the Dieudonne module `D_p(E)`.
+        Return the canonical `p`-adic height with values in the Dieudonné module `D_p(E)`.
         It is defined to be
 
             `h_{\eta} \cdot \omega - h_{\omega} \cdot \eta`
@@ -1644,11 +1648,9 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
         return height
 
-
-
     def Dp_valued_regulator(self,prec=20,v1=0,v2=0):
         r"""
-        Return the canonical `p`-adic regulator with values in the Dieudonne module `D_p(E)`
+        Return the canonical `p`-adic regulator with values in the Dieudonné module `D_p(E)`
         as defined by Perrin-Riou using the `p`-adic height with values in `D_p(E)`.
         The result is written in the basis `\omega`, `\varphi(\omega)`, and hence the
         coordinates of the result are independent of the chosen Weierstrass equation.
@@ -1659,7 +1661,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
         REFERENCES:
 
-        - [PR] Perrin Riou, Arithmetique des courbes elliptiques a reduction supersinguliere en `p`,
+        - [PR] Perrin Riou, Arithmétique des courbes elliptiques à réduction supersingulière en `p`,
           Experiment. Math. 12 (2003), no. 2, 155-186.
 
         - [SW] William Stein and Christian Wuthrich, Computations About Tate-Shafarevich Groups

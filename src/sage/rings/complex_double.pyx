@@ -65,6 +65,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import operator
+from cpython.object cimport Py_NE
 
 from sage.misc.randstate cimport randstate, current_randstate
 
@@ -83,6 +84,7 @@ cimport sage.rings.integer
 from sage.structure.element cimport RingElement, Element, ModuleElement, FieldElement
 from sage.structure.parent  cimport Parent
 from sage.structure.parent_gens import ParentWithGens
+from sage.structure.sage_object cimport rich_to_bool
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 
@@ -106,7 +108,7 @@ def is_ComplexDoubleField(x):
     """
     Return ``True`` if ``x`` is the complex double field.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.complex_double import is_ComplexDoubleField
         sage: is_ComplexDoubleField(CDF)
@@ -133,7 +135,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         r"""
         Construct field of complex double precision numbers.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.complex_double import ComplexDoubleField_class
             sage: CDF == ComplexDoubleField_class()
@@ -183,7 +185,11 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: CDF == CDF
             True
         """
-        return (<Parent>left)._richcmp(right, op)
+        if left is right:
+            return rich_to_bool(op, 0)
+        if isinstance(right, ComplexDoubleField_class):
+            return rich_to_bool(op, 0)
+        return op == Py_NE
 
     def __hash__(self):
         """
@@ -259,21 +265,6 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             \Bold{C}
         """
         return r"\Bold{C}"
-
-    cpdef int _cmp_(self, x) except -2:
-        """
-        Compare ``x`` to ``self``.
-
-        EXAMPLES::
-
-            sage: CDF == 5 # indirect doctest
-            False
-            sage: loads(dumps(CDF)) == CDF # indirect doctest
-            True
-        """
-        if isinstance(x, ComplexDoubleField_class):
-            return 0
-        return -1  # arbitrary
 
     def __call__(self, x, im=None):
         """
@@ -2530,7 +2521,7 @@ def ComplexDoubleField():
     """
     Returns the field of double precision complex numbers.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: ComplexDoubleField()
         Complex Double Field

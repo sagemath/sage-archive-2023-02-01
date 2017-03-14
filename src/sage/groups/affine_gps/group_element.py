@@ -427,8 +427,6 @@ class AffineGroupElement(MultiplicativeGroupElement):
             False
             sage: g == g
             True
-            sage: abs(cmp(g, 'anything'))
-            1
         """
         assert self.parent() is other.parent()
         c = cmp(self._A, other._A)

@@ -258,11 +258,20 @@ def p_part(f, p):
         X + 5
         sage: f - 5*g
         X^3
+
+    TESTS:
+
+    Return value is supposed to be a polynomial, see :trac:`22402`
+
+        sage: g = p_part(X+1, 2)
+        sage: g.parent()
+        Univariate Polynomial Ring in X over Integer Ring
+
     """
     DX = f.parent()
     (X,) = DX.gens()
-    return sum(c//p * X**i for i, c in enumerate(f.list())
-               if c % p == 0)
+    return DX(sum(c//p * X**i for i, c in enumerate(f.list())
+               if c % p == 0))
 
 
 class ComputeMinimalPolynomials(SageObject):

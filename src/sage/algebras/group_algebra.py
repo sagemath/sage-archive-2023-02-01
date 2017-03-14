@@ -551,7 +551,7 @@ class GroupAlgebra(CombinatorialFreeModule):
         multiplying a random element of the base ring by a random
         element of the group.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: GroupAlgebra(DihedralGroup(6), QQ).random_element()
             -1/95*() - 1/2*(1,4)(2,5)(3,6)

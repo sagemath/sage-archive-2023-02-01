@@ -213,7 +213,7 @@ We compute the projective genus of ideals that define curves over
 ``normal.lib`` library before calling the
 ``genus`` command, or you'll get an error message.
 
-EXAMPLE::
+EXAMPLES::
 
     sage: singular.lib('normal.lib')
     sage: R = singular.ring(0,'(x,y)','dp')
@@ -1291,7 +1291,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         r"""
         Return string representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: r = singular.ring(0,'(x,y)','dp')
             sage: singular(0)
@@ -1485,7 +1485,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         """
         Return the current basering in Singular as a polynomial ring or quotient ring.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: singular.eval('ring r1 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp)')
             ''
@@ -2153,7 +2153,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         resolution withDim - value of type int is the dimension (see dim)
         withMult - value of type int is the multiplicity (see mult)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y,z> = PolynomialRing(QQ)
             sage: I = Ideal([z^2, y*z, y^2, x*z, x*y, x^2])
@@ -2188,7 +2188,7 @@ class SingularFunction(ExpectFunction):
 This function is an automatically generated pexpect wrapper around the Singular
 function '%s'.
 
-EXAMPLE::
+EXAMPLES::
 
     sage: groebner = singular.groebner
     sage: P.<x, y> = PolynomialRing(QQ)
@@ -2278,7 +2278,7 @@ def generate_docstring_dictionary():
     Generate global dictionaries which hold the docstrings for
     Singular functions.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.interfaces.singular import generate_docstring_dictionary
         sage: generate_docstring_dictionary()
@@ -2327,7 +2327,7 @@ def get_docstring(name):
 
     - ``name`` - a Singular function name
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.interfaces.singular import get_docstring
         sage: 'groebner' in get_docstring('groebner')
@@ -2429,7 +2429,7 @@ class SingularGBLogPrettyPrinter:
         - ``verbosity`` - how much information should be printed
           (between 0 and 3)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.interfaces.singular import SingularGBLogPrettyPrinter
             sage: s0 = SingularGBLogPrettyPrinter(verbosity=0)
@@ -2454,7 +2454,7 @@ class SingularGBLogPrettyPrinter:
 
     def write(self, s):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.interfaces.singular import SingularGBLogPrettyPrinter
             sage: s3 = SingularGBLogPrettyPrinter(verbosity=3)
@@ -2553,7 +2553,7 @@ class SingularGBLogPrettyPrinter:
 
     def flush(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.interfaces.singular import SingularGBLogPrettyPrinter
             sage: s3 = SingularGBLogPrettyPrinter(verbosity=3)
@@ -2580,7 +2580,7 @@ class SingularGBDefaultContext:
 
         -  ``singular`` - Singular instance (default: default instance)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.interfaces.singular import SingularGBDefaultContext
             sage: P.<a,b,c> = PolynomialRing(QQ,3, order='lex')
@@ -2623,7 +2623,7 @@ class SingularGBDefaultContext:
 
     def __enter__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.interfaces.singular import SingularGBDefaultContext
             sage: P.<a,b,c> = PolynomialRing(QQ,3, order='lex')
@@ -2661,7 +2661,7 @@ class SingularGBDefaultContext:
 
     def __exit__(self, typ, value, tb):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.interfaces.singular import SingularGBDefaultContext
             sage: P.<a,b,c> = PolynomialRing(QQ,3, order='lex')

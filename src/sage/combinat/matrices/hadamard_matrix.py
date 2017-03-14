@@ -239,7 +239,7 @@ def is_hadamard_matrix(M, normalized=False, skew=False, verbose=False):
     - ``verbose`` (boolean) -- whether to be verbose when the matrix is not
       Hadamard.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.matrices.hadamard_matrix import is_hadamard_matrix
         sage: h = matrix.hadamard(12)
@@ -768,7 +768,7 @@ def _helper_payley_matrix(n, zero_position=True):
 
         :func:`rshcd_from_close_prime_powers`
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.matrices.hadamard_matrix import _helper_payley_matrix
         sage: _helper_payley_matrix(5)

@@ -30,7 +30,7 @@ def gp():
     r"""
     Return a copy of the GP interpreter with the appropriate files loaded.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: sage.modular.buzzard.gp()
         PARI/GP interpreter

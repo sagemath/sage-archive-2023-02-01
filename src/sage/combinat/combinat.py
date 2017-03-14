@@ -143,9 +143,8 @@ Functions and classes
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
-
-import six
 from six.moves import range
+from six import iteritems, add_metaclass
 
 from sage.interfaces.all import maxima
 from sage.rings.all import ZZ, QQ, Integer, infinity
@@ -1223,6 +1222,7 @@ class CombinatorialObject(SageObject):
         return self._list.index(key)
 
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class CombinatorialElement(CombinatorialObject, Element):
     """
     ``CombinatorialElement`` is both a :class:`CombinatorialObject`
@@ -1264,8 +1264,6 @@ class CombinatorialElement(CombinatorialObject, Element):
         sage: Foo(17)
         17
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     def __init__(self, parent, *args, **kwds):
         """
         Initialize this ``CombinatorialElement`` with a parent and a
@@ -1312,6 +1310,7 @@ class CombinatorialElement(CombinatorialObject, Element):
         super(CombinatorialObject, self).__init__(parent)
 
 
+@add_metaclass(ClasscallMetaclass)
 class CombinatorialClass(Parent):
     """
     This class is deprecated, and will disappear as soon as all derived
@@ -1327,8 +1326,6 @@ class CombinatorialClass(Parent):
         sage: InfiniteEnumeratedSets().example()
         An example of an infinite enumerated set: the non negative integers
     """
-    __metaclass__ = ClasscallMetaclass
-
     def __init__(self, category = None):
         """
         TESTS::
@@ -2703,7 +2700,7 @@ def bell_polynomial(n, k):
     for p in Partitions(n, length=k):
         factorial_product = 1
         power_factorial_product = 1
-        for part, count in six.iteritems(p.to_exp_dict()):
+        for part, count in iteritems(p.to_exp_dict()):
             factorial_product *= factorial(count)
             power_factorial_product *= factorial(part)**count
         coefficient = factorial(n) // (factorial_product * power_factorial_product)

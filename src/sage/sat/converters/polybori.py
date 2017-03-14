@@ -77,7 +77,7 @@ class CNFEncoder(ANF2CNFConverter):
         - ``random_seed`` - the direct conversion method uses
           randomness, this sets the seed (default: 16)
 
-        EXAMPLE:
+        EXAMPLES:
 
         We compare the sparse and the dense strategies, sparse first::
 
@@ -153,7 +153,7 @@ class CNFEncoder(ANF2CNFConverter):
         - ``m`` - something the new variables maps to, usually a monomial
         - ``decision`` - is this variable a decision variable?
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.converters.polybori import CNFEncoder
             sage: from sage.sat.solvers.dimacs import DIMACS
@@ -170,7 +170,7 @@ class CNFEncoder(ANF2CNFConverter):
         """
         Map SAT variables to polynomial variables.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.converters.polybori import CNFEncoder
             sage: from sage.sat.solvers.dimacs import DIMACS
@@ -191,7 +191,7 @@ class CNFEncoder(ANF2CNFConverter):
         """
         Divides the zero set of ``f`` into blocks.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: from sage.sat.converters.polybori import CNFEncoder
@@ -259,7 +259,7 @@ class CNFEncoder(ANF2CNFConverter):
         - ``f`` - a :class:`sage.rings.polynomial.pbori.BooleanPolynomial`
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: from sage.sat.converters.polybori import CNFEncoder
@@ -304,7 +304,7 @@ class CNFEncoder(ANF2CNFConverter):
 
         - ``f`` - a :class:`sage.rings.polynomial.pbori.BooleanPolynomial`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: from sage.sat.converters.polybori import CNFEncoder
@@ -352,7 +352,7 @@ class CNFEncoder(ANF2CNFConverter):
 
         OUTPUT: An index for a SAT variable corresponding to ``m``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: from sage.sat.converters.polybori import CNFEncoder
@@ -413,7 +413,7 @@ class CNFEncoder(ANF2CNFConverter):
         - ``length`` - the number of variables
         - ``equal_zero`` - should the sum be equal to zero?
 
-        EXAMPLE::
+        EXAMPLES::
 
 
             sage: from sage.sat.converters.polybori import CNFEncoder
@@ -447,7 +447,7 @@ class CNFEncoder(ANF2CNFConverter):
         - ``monomial_list`` - a list of monomials
         - ``equal_zero`` - is the constant coefficient zero?
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.converters.polybori import CNFEncoder
             sage: from sage.sat.solvers.dimacs import DIMACS
@@ -493,7 +493,7 @@ class CNFEncoder(ANF2CNFConverter):
 
         - ``f`` - a :class:`sage.rings.polynomial.pbori.BooleanPolynomial`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: from sage.sat.converters.polybori import CNFEncoder
@@ -547,7 +547,7 @@ class CNFEncoder(ANF2CNFConverter):
         OUTPUT: An inverse map int -> variable
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: from sage.sat.converters.polybori import CNFEncoder
@@ -590,7 +590,7 @@ class CNFEncoder(ANF2CNFConverter):
 
         - ``c`` - a clause
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B.<a,b,c> = BooleanPolynomialRing()
             sage: from sage.sat.converters.polybori import CNFEncoder

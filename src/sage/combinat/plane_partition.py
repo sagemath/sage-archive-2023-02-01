@@ -22,9 +22,9 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 from __future__ import print_function, absolute_import
 from six.moves import range
+from six import add_metaclass
 
 from sage.structure.list_clone import ClonableArray
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -36,6 +36,8 @@ from sage.rings.integer import Integer
 from sage.misc.all import prod
 from sage.combinat.tableau import Tableau
 
+
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class PlanePartition(ClonableArray):
     r"""
     A plane partition.
@@ -66,8 +68,6 @@ class PlanePartition(ClonableArray):
         sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
         sage: TestSuite(PP).run()
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, PP, box_size=None):
         """
@@ -215,7 +215,7 @@ class PlanePartition(ClonableArray):
 
         OUTPUT:
 
-        A string of the 3D diagram of of the plane partition.
+        A string of the 3D diagram of the plane partition.
 
         EXAMPLES::
 

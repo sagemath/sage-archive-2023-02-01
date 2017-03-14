@@ -94,7 +94,7 @@ class CoordFunction(AlgebraElement):
 
         - a :class:`~sage.manifolds.chart.Chart`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()

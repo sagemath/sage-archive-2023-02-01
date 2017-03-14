@@ -708,7 +708,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
         """
         Return the underlying quiver (i.e., digraph) of this path semigroup.
 
-        .. NOTE:
+        .. NOTE::
 
             The returned digraph always is an immutable copy of the originally
             given digraph that is made weighted.

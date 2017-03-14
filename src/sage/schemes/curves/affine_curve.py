@@ -1496,7 +1496,7 @@ class AffinePlaneCurve_finite_field(AffinePlaneCurve):
         Use *very* naive point enumeration to find all rational points on
         this curve over a finite field.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A.<x,y> = AffineSpace(2,GF(9,'a'))
             sage: C = Curve(x^2 + y^2 - 1)
@@ -1542,7 +1542,7 @@ class AffinePlaneCurve_prime_finite_field(AffinePlaneCurve_finite_field):
 
         OUTPUT: basis of L(Div)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = PolynomialRing(GF(5),2,names = ["x","y"])
             sage: x, y = R.gens()
@@ -1603,7 +1603,7 @@ class AffinePlaneCurve_prime_finite_field(AffinePlaneCurve_finite_field):
            The Brill-Noether package does not always work. When it
            fails a RuntimeError exception is raised.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: x, y = (GF(5)['x,y']).gens()
             sage: f = y^2 - x^9 - x

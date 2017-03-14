@@ -101,7 +101,7 @@ Hier geben wir nur ein paar Kommentare ab.
    einzige Datei in ein Verzeichnis kopieren, welches TeX durchsucht.
 
    Die Dokumentation für SageTeX befindet sich in
-   ``$SAGE_ROOT/local/share/texmf/tex/generic/sagetex/``, wobei
+   ``$SAGE_ROOT/local/share/texmf/tex/latex/sagetex/``, wobei
    "``$SAGE_ROOT``" auf das Verzeichnis zeigt, in welches Sie Sage
    installiert haben, zum Beispiel ``/opt/sage-4.2.1``.
 

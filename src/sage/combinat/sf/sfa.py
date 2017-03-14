@@ -4785,7 +4785,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             ....:      for lam in Partitions(6) )
             True
         """
-        # Convert to the complete homogenenous basis, there apply
+        # Convert to the complete homogeneous basis, there apply
         # Verschiebung componentwise, then convert back.
         parent = self.parent()
         h = parent.realization_of().homogeneous()
@@ -5352,23 +5352,24 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
     def character_to_frobenius_image(self, n):
         r"""
-        Interpret ``self`` as a `Gl_n` character and then take the Frobenius
+        Interpret ``self`` as a `GL_n` character and then take the Frobenius
         image of this character of the permutation matrices `S_n` which
-        naturally sit inside of `Gl_n`.
+        naturally sit inside of `GL_n`.
 
         To know the value of this character at a permutation of cycle structure
         `\rho` the symmetric function ``self`` is evaluated at the
-        eigenvalues of of a permutation of cycle structure `\rho`.  The
+        eigenvalues of a permutation of cycle structure `\rho`.  The
         Frobenius image is then defined as
         `\sum_{\rho \vdash n} f[ \Xi_\rho ] p_\rho/z_\rho`.
 
         .. SEEALSO::
+
             :meth:`eval_at_permutation_roots`
 
         INPUT:
 
         - ``n`` -- a non-negative integer to interpret ``self`` as
-          a character of `Gl_n`
+          a character of `GL_n`
 
         OUTPUT:
 

@@ -31,9 +31,9 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 from six.moves import range
+from six import iteritems
 
 # System imports
 import sys
@@ -387,7 +387,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         Is it faster to copy a zero matrix or is it faster to create a
         new matrix from scratch?
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: MS = MatrixSpace(GF(2),20,20)
             sage: MS._copy_zero
@@ -1789,10 +1789,10 @@ def dict_to_list(entries, nrows, ncols):
         sage: dict_to_list(d, 2, 3)
         [1, 0, 0, 0, 2, 0]
     """
-    v = [0]*(nrows*ncols)
-    for ij, y in entries.iteritems():
-        i,j = ij
-        v[i*ncols + j] = y
+    v = [0] * (nrows * ncols)
+    for ij, y in iteritems(entries):
+        i, j = ij
+        v[i * ncols + j] = y
     return v
 
 def list_to_dict(entries, nrows, ncols, rows=True):

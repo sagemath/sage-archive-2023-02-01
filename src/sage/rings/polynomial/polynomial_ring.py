@@ -2028,7 +2028,7 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
     """
     Univariate polynomial ring over a finite field.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R = PolynomialRing(GF(27, 'a'), 'x')
         sage: type(R)

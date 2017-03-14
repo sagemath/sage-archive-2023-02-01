@@ -129,12 +129,12 @@ cdef class ECModularSymbol:
     may use up some memory, further calls use no more::
 
         sage: from sage.libs.eclib.newforms import ECModularSymbol
-        sage: E = EllipticCurve([1,1,0,-108,-432]) # conductor 930
-        sage: for _ in range(2):  M = ECModularSymbol(E) # long time
-        sage: mem = get_memory_usage()
+        sage: E = EllipticCurve([1,1,0,-108,-432]) # conductor 930  # long time
+        sage: for _ in range(2):  M = ECModularSymbol(E)  # long time
+        sage: mem = get_memory_usage()                    # long time
         sage: for _ in range(10):  M = ECModularSymbol(E) # long time
-        sage: mem2 = get_memory_usage()
-        sage: (mem2==mem) or (mem2 - mem)
+        sage: mem2 = get_memory_usage()                   # long time
+        sage: (mem2==mem) or (mem2 - mem)                 # long time
         True
 
         sage: ECModularSymbol.__new__(ECModularSymbol)

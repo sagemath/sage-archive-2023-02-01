@@ -357,12 +357,13 @@ This creates a new "merge" commit, joining your current branch and
     * Or you definitely need a feature that has been developed as part
       of another branch.
 
-A special case of merging is merging in the ``master`` branch. This
+A special case of merging is merging in the ``develop`` branch. This
 brings your local branch up to date with the newest Sage version. The
 above warning against unnecessary merges still applies, though. Try to
 do all of your development with the Sage version that you originally
-started with. The only reason for merging in the master branch is if
-you need a new feature or if your branch conflicts.
+started with. The only reason for merging in the ``develop`` branch is if
+you need a new feature or if your branch conflicts. See
+:ref:`section-git-update-latest` for details.
 
 
 .. _section-git_trac-collaborate:
@@ -555,7 +556,7 @@ To review tickets with minimal recompiling, start by building the "develop"
 branch, that is, the latest beta. Just checking out an older ticket would most
 likely reset the Sage tree to an older version, so you would have to compile
 older versions of packages to make it work. Instead, you can create an anonymous
-("detached HEAD") merge of the ticket and the develop branch::
+("detached HEAD") merge of the ticket and the develop branch using ::
 
     $ git trac try 12345
 
@@ -563,10 +564,10 @@ This will only touch files that are really modified by the ticket. In particular
 if only Python files are changed by the ticket (which is true for most tickets)
 then you just have to run ``sage -b`` to rebuild the Sage library. If files other
 than Python have been changed, you must run ``make``. When you are finished
-reviewing, just checkout a named branch, for example ::
+reviewing, just check out a named branch, for example ::
 
     $ git checkout develop
 
 If you want to edit the ticket branch (that is, add additional commits) you cannot
-use ``git trac try``. You must use ``git trac checkout`` to get the actual ticket
+use ``git trac try``. You must :ref:`section-git_trac-checkout` to get the actual ticket
 branch as a starting point.

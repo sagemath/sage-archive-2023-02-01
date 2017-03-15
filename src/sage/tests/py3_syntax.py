@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Test that the Sage library uses Python 3 syntax
 

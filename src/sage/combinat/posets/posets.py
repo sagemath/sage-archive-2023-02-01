@@ -4754,19 +4754,27 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def relabel(self, relabeling=None):
         r"""
-        Return a copy of this poset with its elements relabelled.
+        Return a copy of this poset with its elements relabeled.
 
         INPUT:
 
-        - ``relabeling`` -- a function or dictionary
+        - ``relabeling`` -- a function, dictionary, list or tuple
 
-        This function must map each (non-wrapped) element of
-        ``self`` to some distinct object.
+        The given function or dictionary must map each (non-wrapped)
+        element of ``self`` to some distinct object. The given list or tuple
+        must be made of distinct objects.
+
+        When the input is a list or a tuple, the relabeling uses
+        the total ordering of the elements of the poset given by
+        ``list(self)``.
 
         If no relabeling is given, the poset is relabeled by integers
-        according to one of its linear extensions.
+        from `0` to `n` according to one of its linear extensions. This means
+        that `i<j` as integers whenever `i<j` in the relabeled poset.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        Relabeling using a function::
 
             sage: P = Poset((divisors(12), attrcall("divides")), linear_extension=True)
             sage: P.list()
@@ -4779,11 +4787,11 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.cover_relations()
             [[2, 3], [2, 4], [3, 5], [3, 7], [4, 7], [5, 13], [7, 13]]
 
-        Here we relabel the elements of a poset by `\{0,1,2, ...\}`, using
-        a dictionary::
+        Relabeling using a dictionary::
 
             sage: P = Poset((divisors(12), attrcall("divides")), linear_extension=True, facade=False)
-            sage: relabeling = {c.element:i for (i,c) in enumerate(P)}; relabeling
+            sage: relabeling = {c.element:i for (i,c) in enumerate(P)}
+            sage: relabeling
             {1: 0, 2: 1, 3: 2, 4: 3, 6: 4, 12: 5}
             sage: Q = P.relabel(relabeling)
             sage: Q.list()
@@ -4794,18 +4802,20 @@ class FinitePoset(UniqueRepresentation, Parent):
         Mind the ``c.element``; this is because the relabeling is
         applied to the elements of the poset without the wrapping.
         Thanks to this convention, the same relabeling function can
-        be used both for facade or non facade posets::
+        be used both for facade or non facade posets.
 
-            sage: P = Poset((divisors(12), attrcall("divides")), facade = True, linear_extension=True)
-            sage: P.list()
-            [1, 2, 3, 4, 6, 12]
-            sage: Q = P.relabel(lambda x: 12/x)
-            sage: Q.list()
-            [12, 6, 4, 3, 2, 1]
+        Relabeling using a list::
+
+            sage: P = posets.PentagonPoset()
+            sage: list(P)
+            [0, 1, 2, 3, 4]
+            sage: P.cover_relations()
+            [[0, 1], [0, 2], [1, 4], [2, 3], [3, 4]]
+            sage: Q = P.relabel(list('abcde'))
             sage: Q.cover_relations()
-            [[12, 6], [12, 4], [6, 3], [6, 2], [4, 2], [3, 1], [2, 1]]
+            [['a', 'b'], ['a', 'c'], ['b', 'e'], ['c', 'd'], ['d', 'e']]
 
-        An example of the default behaviour (increasing relabeling)::
+        Default behaviour is increasing relabeling::
 
             sage: a2 = posets.ChainPoset(2)
             sage: P = a2 * a2
@@ -4854,13 +4864,24 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: p1 == p3
             True
         """
-        from sage.combinat.posets.lattices import LatticePoset, \
-             JoinSemilattice, MeetSemilattice, FiniteLatticePoset, \
-             FiniteMeetSemilattice, FiniteJoinSemilattice
+        from sage.combinat.posets.lattices import (LatticePoset,
+             JoinSemilattice, MeetSemilattice, FiniteLatticePoset,
+             FiniteMeetSemilattice, FiniteJoinSemilattice)
+
+        if isinstance(self, FiniteLatticePoset):
+            constructor = FiniteLatticePoset
+        elif isinstance(self, FiniteMeetSemilattice):
+            constructor = FiniteMeetSemilattice
+        elif isinstance(self, FiniteJoinSemilattice):
+            constructor = FiniteJoinSemilattice
+        else:
+            constructor = FinitePoset
 
         if relabeling is None:
-            relabeling = {i: i for i in range(len(self._elements))}
-        elif isinstance(relabeling, (list, tuple)):
+            return constructor(self._hasse_diagram, category=self.category(),
+                               facade=self._is_facade)
+
+        if isinstance(relabeling, (list, tuple)):
             relabeling = {i: relabeling[i]
                           for i in range(len(self._elements))}
         else:
@@ -4875,14 +4896,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             elements = tuple(relabeling[self._element_to_vertex(x)]
                              for x in self._elements)
 
-        if isinstance(self, FiniteLatticePoset):
-            constructor = FiniteLatticePoset
-        elif isinstance(self, FiniteMeetSemilattice):
-            constructor = FiniteMeetSemilattice
-        elif isinstance(self, FiniteJoinSemilattice):
-            constructor = FiniteJoinSemilattice
-        else:
-            constructor = FinitePoset
         return constructor(self._hasse_diagram.relabel(relabeling,
                                                        inplace=False),
                            elements=elements, category=self.category(),

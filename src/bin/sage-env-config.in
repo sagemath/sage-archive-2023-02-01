@@ -15,4 +15,6 @@
 #
 ##########################################################################
 
+# SAGE_LOCAL is the installation prefix and can be customized by using
+# ./configure --prefix
 export SAGE_LOCAL="@prefix@"

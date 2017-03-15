@@ -1026,8 +1026,10 @@ class GiacElement(ExpectElement):
         2*cos(sqrt(-x^2 + 1))*cos(1/x)^2*sin(sqrt(-x^2 + 1)) - 4*cos(sqrt(-x^2 + 1))*cos(1/x)*sin(sqrt(-x^2 + 1)) + 2*cos(sqrt(-x^2 + 1))*sin(sqrt(-x^2 + 1))
 
         """
-        result = repr(self)
-        if str(self.type()) != 'DOM_LIST' :
+        result = repr(self) # string representation
+        
+        if str(self.type()) != 'DOM_LIST' :        
+            result = _giac2sage(result)    
             try:
                 from sage.symbolic.all import SR
                 return SR(result)
@@ -1157,20 +1159,34 @@ def __doctest_cleanup():
     import sage.interfaces.quit
     sage.interfaces.quit.expect_quitall()
 
-def un_camel(name):
+def _un_camel(name):
     """
     Convert `CamelCase` to `camel_case`.
 
     EXAMPLES::
 
-    sage: sage.interfaces.giac.un_camel('CamelCase')
-    'camel_case'
-    sage: sage.interfaces.giac.un_camel('Heaviside')
-    'elliptic_e'
-    sage: sage.interfaces.giac.un_camel('Dirac')
-    'dirac'
+    sage: sage.interfaces.giac._un_camel('Heaviside')
+    'heaviside'
     """
     import re
     
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+    
+def _giac2sage(ex):
+    """
+    Parse the Giac output language to the Sage output language.
+    
+    EXAMPLES::
+    
+    sage: sage.interfaces.giac._giac2sage('Heaviside(t-1)')
+    'heaviside(t-1)'
+    """
+    # key: giac (old) -> sage (new)
+    
+    conversions = [('Heaviside', 'heaviside'),
+                    ('Dirac', 'dirac_delta')]
+                               
+    for old, new in conversions:
+                ex = ex.replace(old, new)        
+    return ex

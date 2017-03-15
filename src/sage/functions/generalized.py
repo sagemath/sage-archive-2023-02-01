@@ -117,7 +117,8 @@ class FunctionDiracDelta(BuiltinFunction):
         BuiltinFunction.__init__(self, "dirac_delta", latex_name=r"\delta",
                                    conversions=dict(maxima='delta',
                                                   mathematica='DiracDelta',
-                                                  sympy='DiracDelta'))
+                                                  sympy='DiracDelta',
+                                                  giac='Dirac'))
 
     def _eval_(self, x):
         """
@@ -221,6 +222,8 @@ class FunctionHeaviside(BuiltinFunction):
             sage: latex(heaviside(x))
             H\left(x\right)
             sage: heaviside(x)._sympy_()
+            Heaviside(x)
+            sage: heaviside(x)._giac_()
             Heaviside(x)
         """
         BuiltinFunction.__init__(self, "heaviside", latex_name="H",

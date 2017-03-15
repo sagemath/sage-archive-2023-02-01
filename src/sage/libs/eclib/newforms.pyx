@@ -122,20 +122,7 @@ cdef class ECModularSymbol:
         sage: all((M3(r,-1)==M1(r,-1)) for r in QQ.range_by_height(10))
         True
 
-    TESTS:
-
-    Until :trac:`22164`, eclib had a memory leak.  Here we test that
-    it has gone.  After one call to create an ECModularSymbol, which
-    may use up some memory, further calls use no more::
-
-        sage: from sage.libs.eclib.newforms import ECModularSymbol
-        sage: E = EllipticCurve([1,1,0,-108,-432]) # conductor 930  # long time
-        sage: for _ in range(2):  M = ECModularSymbol(E)  # long time
-        sage: mem = get_memory_usage()                    # long time
-        sage: for _ in range(10):  M = ECModularSymbol(E) # long time
-        sage: mem2 = get_memory_usage()                   # long time
-        sage: (mem2==mem) or (mem2 - mem)                 # long time
-        True
+    TESTS::
 
         sage: ECModularSymbol.__new__(ECModularSymbol)
         Modular symbol with sign 0 over Rational Field attached to None

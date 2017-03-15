@@ -4769,7 +4769,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         ``list(self)``.
 
         If no relabeling is given, the poset is relabeled by integers
-        from `0` to `n` according to one of its linear extensions. This means
+        from `0` to `n-1` according to one of its linear extensions. This means
         that `i<j` as integers whenever `i<j` in the relabeled poset.
 
         EXAMPLES:

@@ -14,7 +14,8 @@ from __future__ import absolute_import
 from __future__ import print_function
 from six.moves import range
 
-import logging, optparse, os, shutil, subprocess, sys, re
+import optparse, os, shutil, subprocess, sys, re
+import logging, warnings
 
 import sphinx.cmdline
 import sphinx.util.console
@@ -903,10 +904,13 @@ class ReferenceSubBuilder(DocBuilder):
                 yield module
                 continue
 
-            # get the timestamp of the rst doc for the module
+            # get the modification timestamp of the reST doc for the module
             mtime = all_docs[docname]
             try:
-                __import__(module)
+                with warnings.catch_warnings():
+                    # primarily intended to ignore deprecation warnings
+                    warnings.simplefilter("ignore")
+                    __import__(module)
             except ImportError as err:
                 logger.error("Warning: Could not import %s %s", module, err)
                 raise

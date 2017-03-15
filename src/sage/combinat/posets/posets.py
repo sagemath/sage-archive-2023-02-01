@@ -254,9 +254,8 @@ Classes and functions
 # python3
 from __future__ import division, print_function, absolute_import
 
-import six
 from six.moves import range
-from six import itervalues
+from six import itervalues, iteritems
 
 import copy
 from sage.misc.cachefunc import cached_method
@@ -3011,7 +3010,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             # We create the digraphs of all color classes
             linear_extensions = [hasse_diagram.copy() for i in range(k)]
-            for ((u,v),i),x in six.iteritems(p.get_values(b)):
+            for ((u,v),i),x in iteritems(p.get_values(b)):
                 if x == 1:
                     linear_extensions[i].add_edge(u,v)
 
@@ -4933,7 +4932,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         canonical_label = self._hasse_diagram.canonical_label(certificate=True,
                                                               algorithm=algorithm)[1]
-        canonical_label = {self._elements[v]:i for v,i in six.iteritems(canonical_label)}
+        canonical_label = {self._elements[v]:i for v,i in iteritems(canonical_label)}
         return self.relabel(canonical_label)
 
     def with_linear_extension(self, linear_extension):
@@ -6373,13 +6372,19 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: Poset().is_slender()  # Test empty poset
             True
+
+        Correct certificate (:trac:`22373`)::
+
+            sage: P = Poset({0:[1,2,3],1:[4],2:[4],3:[4,5]})
+            sage: P.is_slender(True)
+            (False, (0, 4))
         """
         for x in self:
             d = {}
             for y in self.upper_covers(x):
                 for c in self.upper_covers(y):
                     d[c] = d.get(c, 0) + 1
-            for c, y in six.iteritems(d):
+            for c, y in iteritems(d):
                 if y >= 3:
                     if certificate:
                         return (False, (x, c))

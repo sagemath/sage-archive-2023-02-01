@@ -3939,7 +3939,7 @@ class Polyhedron_base(Element):
             sage: polytopes.cuboctahedron()._volume_latte(algorithm='triangulate') #optional - latte_int
             20/3
 
-        Testing convex decomposition algorithm::
+        Testing cone decomposition algorithm::
 
             sage: polytopes.cuboctahedron()._volume_latte(algorithm='cone-decompose') #optional - latte_int
             20/3
@@ -4071,6 +4071,15 @@ class Polyhedron_base(Element):
             sage: RDF(P_QQ.integrate(x^2*y^2*z^2))    # optional - latte_int
             6.703841212195228
 
+        Integral over a non full-dimensional polytope::
+
+            sage: x, y = polygens(QQ, 'x, y')
+            sage: P = Polyhedron(vertices=[[0,0],[1,1]])
+            sage: P.integrate(x*y)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: The polytope must be full-dimensional.
+            
         TESTS::
 
         Testing a three-dimensional integral::
@@ -4107,6 +4116,8 @@ class Polyhedron_base(Element):
             from sage.interfaces.latte import integrate
             if self.base_ring() == RDF:
                 raise ValueError("LattE integrale cannot be applied over inexact rings.")
+            elif not self.is_full_dimensional():
+                raise NotImplementedError("The polytope must be full-dimensional.")
             else:
                 return integrate(self.cdd_Hrepresentation(), polynomial, cdd=True)
 

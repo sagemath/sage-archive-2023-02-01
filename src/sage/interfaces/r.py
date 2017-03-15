@@ -595,7 +595,7 @@ class R(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: print(r._source("c"))
-            function (..., recursive = FALSE)  .Primitive("c")
+            function (...)  .Primitive("c")
         """
         if s[-2:] == "()":
             s = s[-2:]
@@ -614,7 +614,7 @@ class R(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: print(r.source("c"))
-            function (..., recursive = FALSE)  .Primitive("c")
+            function (...)  .Primitive("c")
         """
         return self._source(s)
 

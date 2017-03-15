@@ -4752,7 +4752,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         return constructor(D)
 
-    def relabel(self, relabeling):
+    def relabel(self, relabeling=None):
         r"""
         Return a copy of this poset with its elements relabelled.
 
@@ -4762,6 +4762,9 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         This function must map each (non-wrapped) element of
         ``self`` to some distinct object.
+
+        If no relabeling is given, the poset is relabeled by integers
+        according to one of its linear extensions.
 
         EXAMPLES::
 
@@ -4801,6 +4804,14 @@ class FinitePoset(UniqueRepresentation, Parent):
             [12, 6, 4, 3, 2, 1]
             sage: Q.cover_relations()
             [[12, 6], [12, 4], [6, 3], [6, 2], [4, 2], [3, 1], [2, 1]]
+
+        An example of the default behaviour (increasing relabeling)::
+
+            sage: a2 = posets.ChainPoset(2)
+            sage: P = a2 * a2
+            sage: Q = P.relabel()
+            sage: Q.cover_relations()
+            [[0, 1], [0, 2], [1, 3], [2, 3]]
 
         Relabeling a (semi)lattice gives a (semi)lattice::
 
@@ -4846,12 +4857,18 @@ class FinitePoset(UniqueRepresentation, Parent):
         from sage.combinat.posets.lattices import LatticePoset, \
              JoinSemilattice, MeetSemilattice, FiniteLatticePoset, \
              FiniteMeetSemilattice, FiniteJoinSemilattice
-        if isinstance(relabeling, (list, tuple)):
-            relabeling = {i:relabeling[i] for i in range(len(self._elements))}
+
+        if relabeling is None:
+            relabeling = {i: i for i in range(len(self._elements))}
+        elif isinstance(relabeling, (list, tuple)):
+            relabeling = {i: relabeling[i]
+                          for i in range(len(self._elements))}
         else:
             if isinstance(relabeling, dict):
                 relabeling = relabeling.__getitem__
-            relabeling = {i: relabeling(x) for i,x in enumerate(self._elements)}
+            relabeling = {i: relabeling(x)
+                          for i, x in enumerate(self._elements)}
+
         if not self._with_linear_extension:
             elements = None
         else:

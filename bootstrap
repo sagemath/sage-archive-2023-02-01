@@ -25,18 +25,6 @@ PKG=build/pkgs/configure
 MAKE="${MAKE:-make}"
 CONFVERSION=`cat $PKG/package-version.txt`
 
-setup_bootstrap_env () {
-    # Try to get autotools from our own package into PATH (Trac #21214)
-    # This will fail for initial bootstrap, when sage-env-config has
-    # not been created yet.
-    if [ -r src/bin/sage-env-config ]; then
-        source src/bin/sage-env-config
-    fi
-    if [ -n "$SAGE_LOCAL" ]; then
-        export PATH="$SAGE_LOCAL/bin:$PATH"
-    fi
-    export PATH="`pwd`/build/bin:$PATH"
-}
 
 bootstrap () {
     aclocal -I m4 && \
@@ -137,7 +125,11 @@ fi
 $MAKE bootstrap-clean 2>/dev/null
 mkdir config 2>/dev/null
 
-setup_bootstrap_env
+# Get autotools from our own package into PATH (Trac #21214).
+# If Sage has not been built yet, this will fail due to a missing
+# sage-env-config. We just ignore that error.
+source src/bin/sage-env 2>/dev/null
+
 
 if [ $ALWAYSDOWNLOAD = yes ]; then
     bootstrap-download || exit $?

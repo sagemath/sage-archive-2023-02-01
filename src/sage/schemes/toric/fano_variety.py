@@ -168,7 +168,7 @@ from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_tori
 from sage.schemes.toric.variety import (
                                             ToricVariety_field,
                                             normalize_names)
-from sage.structure.all import get_coercion_model
+from sage.structure.all import coercion_model
 from sage.categories.fields import Fields
 _Fields = Fields()
 
@@ -1451,7 +1451,7 @@ class AnticanonicalHypersurface(AlgebraicScheme_subscheme_toric):
                 else:
                     nonstr.append(c)
             F = add_variables(P_Delta.base_ring(), sorted(variables))
-            F = get_coercion_model().common_parent(F, *nonstr)
+            F = coercion_model.common_parent(F, *nonstr)
             coefficients = [F(_) for _ in coefficients]
         P_Delta = P_Delta.base_extend(F)
         if len(monomial_points) != len(coefficients):
@@ -1581,7 +1581,7 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
                     else:
                         nonstr.append(c)
                 F = add_variables(P_Delta.base_ring(), sorted(variables))
-                F = get_coercion_model().common_parent(F, *nonstr)
+                F = coercion_model.common_parent(F, *nonstr)
                 coefficients[i] = [F(_) for _ in coefficients[i]]
             P_Delta = P_Delta.base_extend(F)
             if len(monomial_points[i]) != len(coefficients[i]):

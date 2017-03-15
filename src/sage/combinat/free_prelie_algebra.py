@@ -15,6 +15,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import iteritems
 
 from sage.misc.lazy_import import lazy_import
 from sage.categories.magmatic_algebras import MagmaticAlgebras
@@ -126,9 +127,10 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: F1 = algebras.FreePreLie(QQ, 'xyz')
-            sage: F2 = algebras.FreePreLie(QQ, ['x','y','z'])
-            sage: F3 = algebras.FreePreLie(QQ, Alphabet('xyz'))
-            sage: F1 is F2 and F1 is F3
+            sage: F2 = algebras.FreePreLie(QQ, 'x,y,z')
+            sage: F3 = algebras.FreePreLie(QQ, ['x','y','z'])
+            sage: F4 = algebras.FreePreLie(QQ, Alphabet('xyz'))
+            sage: F1 is F2 and F1 is F3 and F1 is F4
             True
         """
         if R not in Rings():
@@ -253,6 +255,24 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         """
         Trees = self.basis().keys()
         return Family(self._alphabet, lambda a: self.monomial(Trees([], a)))
+
+    def change_ring(self, R):
+        """
+        Return the free pre-Lie algebra in the same variables over `R`.
+
+        INPUT:
+
+        - `R` -- a ring
+
+        EXAMPLES::
+
+            sage: A = algebras.FreePreLie(ZZ, 'fgh')
+            sage: A.change_ring(QQ)
+            Free PreLie algebra on 3 generators ['f', 'g', 'h'] over
+            Rational Field
+        """
+        return FreePreLieAlgebra(R, names=self.variable_names())
+
 
     def gens(self):
         """
@@ -532,24 +552,22 @@ class PreLieFunctor(ConstructionFunctor):
     EXAMPLES::
 
         sage: P = algebras.FreePreLie(ZZ, 'x,y')
+        sage: x,y = P.gens()
         sage: F = P.construction()[0]; F
         PreLie[x,y]
 
         sage: A = GF(5)['a,b']
-        sage: a,b = A.gens()
+        sage: a, b = A.gens()
         sage: F(A)
         Free PreLie algebra on 2 generators ['x', 'y'] over Multivariate Polynomial Ring in a, b over Finite Field of size 5
 
         sage: f = A.hom([a+b,a-b],A)
         sage: F(f)
-        Ring endomorphism of Free PreLie algebra in x, y over Finite Field of size 5
-          Defn: Induced from base ring by
-                Ring endomorphism of Multivariate Polynomial Ring in a, b over Finite Field of size 5
-                  Defn: a |--> a + b
-                        b |--> a - b
-        sage: F(f)(F(A)(x)*a)
-        (a + b)*x
+        Generic endomorphism of Free PreLie algebra on 2 generators ['x', 'y']
+        over Multivariate Polynomial Ring in a, b over Finite Field of size 5
 
+        sage: F(f)(a * F(A)(x))
+        (a+b)*B[x[]]
     """
     rank = 9
 
@@ -581,6 +599,26 @@ class PreLieFunctor(ConstructionFunctor):
             Free PreLie algebra on 3 generators ['x', 'y', 'z'] over Integer Ring
         """
         return FreePreLieAlgebra(R, self.vars)
+
+    def _apply_functor_to_morphism(self, f):
+        """
+        Apply the functor ``self`` to the ring morphism `f`.
+
+        TEST::
+
+            sage: R = algebras.FreePreLie(ZZ, 'x').construction()[0]
+            sage: R(ZZ.hom(GF(3)))  # indirect doctest
+            Generic morphism:
+              From: Free PreLie algebra on one generator ['x'] over Integer Ring
+              To:   Free PreLie algebra on one generator ['x'] over Finite Field of size 3
+        """
+        dom = self(f.domain())
+        codom = self(f.codomain())
+
+        def action(x):
+            return codom._from_dict({a: f(b)
+                                     for a, b in iteritems(x.monomial_coefficients())})
+        return dom.module_morphism(function=action, codomain=codom)
 
     def __eq__(self, other):
         """

@@ -273,7 +273,6 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         """
         return FreePreLieAlgebra(R, names=self.variable_names())
 
-
     def gens(self):
         """
         Return the generators of ``self`` (as an algebra).

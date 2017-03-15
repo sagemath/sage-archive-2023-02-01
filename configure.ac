@@ -873,24 +873,22 @@ echo >&7
 echo >&7
 
 
-echo >&7 'SCRIPT_SOURCES = \'
-for file in "$SAGE_SRC/bin/"*; do
-    echo >&7 "                 \$(SAGE_SRC)${file#$SAGE_SRC} \\"
-done
-echo >&7
+# We need sage-env-config to exist before running this.
+# TODO: fix this in Trac #21524
+touch "$SAGE_SRC/bin/sage-env-config"
+
 echo >&7 'SCRIPTS = \'
 for file in "$SAGE_SRC/bin/"*; do
-    echo >&7 "                 \$(SAGE_LOCAL)${file#$SAGE_SRC} \\"
-done
-echo >&7
-echo >&7 'EXTCODE_SOURCES = \'
-for file in `find "$SAGE_SRC"/ext -type f`; do
-    echo >&7 "                  \$(SAGE_SRC)${file#$SAGE_SRC} \\"
+    # Skip files with ".in" extension
+    ext=${file##*.}
+    if test "$ext" != in; then
+        echo >&7 "    \$(SAGE_LOCAL)${file#$SAGE_SRC} \\"
+    fi
 done
 echo >&7
 echo >&7 'EXTCODE = \'
 for file in `find "$SAGE_SRC"/ext -type f`; do
-    echo >&7 "                  \$(SAGE_EXTCODE)${file#$SAGE_SRC/ext} \\"
+    echo >&7 "    \$(SAGE_EXTCODE)${file#$SAGE_SRC/ext} \\"
 done
 echo >&7
 

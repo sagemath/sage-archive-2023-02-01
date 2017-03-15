@@ -235,7 +235,8 @@ def cut_lines(pre, post=0, what=None):
 
 
 def between(marker, what=None, keepempty=False, exclude=False):
-    """Return a listener that either keeps, or if *exclude* is True excludes,
+    """
+    Return a listener that either keeps, or if *exclude* is True excludes,
     lines between lines that match the *marker* regular expression.  If no line
     matches, the resulting docstring would be empty, so no change will be made
     unless *keepempty* is true.
@@ -269,7 +270,8 @@ def between(marker, what=None, keepempty=False, exclude=False):
 
 
 def format_annotation(annotation):
-    """Return formatted representation of a type annotation.
+    """
+    Return formatted representation of a type annotation.
 
     Show qualified names for types and additional details for types from
     the ``typing`` module.
@@ -329,7 +331,8 @@ def format_annotation(annotation):
 
 def formatargspec(function, args, varargs=None, varkw=None, defaults=None,
                   kwonlyargs=(), kwonlydefaults={}, annotations={}):
-    """Return a string representation of an ``inspect.FullArgSpec`` tuple.
+    """
+    Return a string representation of an ``inspect.FullArgSpec`` tuple.
 
     An enhanced version of ``inspect.formatargspec()`` that handles typing
     annotations better.

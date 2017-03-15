@@ -110,7 +110,7 @@ def builder_helper(type):
             logger.warning("LaTeX file written to {}".format(output_dir))
         else:
             logger.warning(
-                "Build finished.  The built documents can be found in {}".
+                "Build finished. The built documents can be found in {}".
                 format(output_dir))
 
     f.is_output_format = True
@@ -1548,8 +1548,8 @@ def setup_parser():
 
 def setup_logger(verbose=1, color=True):
     """
-    Sets up and returns a Python Logger instance for the Sage
-    documentation builder.  The optional argument sets logger's level
+    Set up and return a Python Logger instance for the Sage
+    documentation builder. The optional argument sets logger's level
     and message format.
     """
     # Set up colors. Adapted from sphinx.cmdline.

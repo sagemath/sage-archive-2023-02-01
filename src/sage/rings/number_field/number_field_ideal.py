@@ -3250,7 +3250,7 @@ class LiftMap:
             sage: f(R(a/17))
             1
 
-        A relative example, which used to fail but is fixed by #8721::
+        A relative example, which used to fail but is fixed by :trac:`8721`::
 
             sage: L.<a, b> = NumberField([x^2 + 1, x^2 - 5])
             sage: p = L.ideal(2*a + 3)

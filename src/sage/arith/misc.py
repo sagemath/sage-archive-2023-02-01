@@ -1497,7 +1497,7 @@ def gcd(a, b=None, **kwargs):
 
     Note that to take the gcd of `n` elements for `n \not= 2` you must
     put the elements into a list by enclosing them in ``[..]``.  Before
-    #4988 the following wrongly returned 3 since the third parameter
+    :trac:`4988` the following wrongly returned 3 since the third parameter
     was just ignored::
 
         sage: gcd(3,6,2)

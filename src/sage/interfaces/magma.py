@@ -1759,7 +1759,7 @@ class MagmaFunctionElement(FunctionElement):
             Partially evaluated Magma function or intrinsic 'Dimension'
             ...
         """
-        M = self._obj._check_valid()
+        M = self._obj.parent()
         try:
             return M.eval('%s`%s' % (self._obj.name(), self._name))
         except RuntimeError:

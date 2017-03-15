@@ -129,7 +129,7 @@ ptestoptionallong: all
 configure: configure.ac src/bin/sage-version.sh m4/*.m4
 	./bootstrap -d
 
-install:
+install: all
 	@echo "******************************************************************"
 	@echo "The '$@' target is a no-op; 'make' already does 'make install'"
 	@echo "You can change the install prefix from its default"

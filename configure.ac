@@ -85,7 +85,6 @@ fi
 
 # Assume current directory is SAGE_ROOT.
 SAGE_ROOT=`pwd -P`
-SAGE_SRC="$srcdir"/src
 
 SAGE_LOCAL="$prefix"
 # The following line is necessary because the code below
@@ -94,6 +93,7 @@ SAGE_LOCAL="$prefix"
 if test "$SAGE_LOCAL" = NONE; then
     SAGE_LOCAL=local
 fi
+SAGE_SRC="$SAGE_ROOT/src"
 SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 
 #---------------------------------------------------------

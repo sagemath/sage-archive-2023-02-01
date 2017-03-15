@@ -96,6 +96,7 @@ config()
                 --enable-Singular \
                 --enable-factory \
                 --disable-doc \
+                --disable-polymake \
                 $SINGULAR_CONFIGURE
 
     if [ $? -ne 0 ]; then

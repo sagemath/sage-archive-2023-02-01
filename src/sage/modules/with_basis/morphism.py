@@ -337,14 +337,14 @@ class ModuleMorphismByLinearity(ModuleMorphism):
         """
         if op == op_EQ:
             return (self.__class__ is other.__class__
-                    and parent(self) == parent(other)
+                    and self.parent() == other.parent()
                     and self._zero == other._zero
                     and self._on_basis == other._on_basis
                     and self._position == other._position
                     and self._is_module_with_basis_over_same_base_ring == other._is_module_with_basis_over_same_base_ring)
         if op == op_NE:
             return not (self == other)
-        raise NotImplementedError("Operator not implemented")
+        return NotImplemented
 
     def on_basis(self):
         """
@@ -739,7 +739,7 @@ class TriangularModuleMorphism(ModuleMorphism):
                     and self._dominant_item == other._dominant_item)
         if op == op_NE:
             return not (self == other)
-        raise NotImplementedError("Operator not implemented")
+        return NotImplemented
 
     def _test_triangular(self, **options):
         """
@@ -1215,14 +1215,13 @@ class TriangularModuleMorphismByLinearity(ModuleMorphismByLinearity, TriangularM
             ....:           X, on_basis=on_basis, codomain=X)
             sage: phi == phi
             True
-
         """
         if op == op_EQ:
             return (ModuleMorphismByLinearity._richcmp_(self, other, op)
                     and TriangularModuleMorphism._richcmp_(self, other, op))
         if op == op_NE:
             return not (self == other)
-        raise NotImplementedError("Operator not implemented")
+        return NotImplemented
 
 class TriangularModuleMorphismFromFunction(ModuleMorphismFromFunction, TriangularModuleMorphism):
     r"""
@@ -1400,19 +1399,18 @@ class ModuleMorphismFromMatrix(ModuleMorphismByLinearity):
             sage: phi2 = ModuleMorphismFromMatrix(matrix=m2, domain=X, codomain=Y, side="right")
             sage: phi == phi2
             False
-
         """
         if op == op_EQ:
             # We skip the on_basis check since the matrix defines the morphism
             return (self.__class__ is other.__class__
-                    and parent(self) == parent(other)
+                    and self.parent() == other.parent()
                     and self._zero == other._zero
                     and self._position == other._position
                     and self._is_module_with_basis_over_same_base_ring == other._is_module_with_basis_over_same_base_ring
                     and self._matrix == other._matrix)
         if op == op_NE:
             return not (self == other)
-        raise NotImplementedError("Operator not implemented")
+        return NotImplemented
 
 class DiagonalModuleMorphism(ModuleMorphismByLinearity):
     r"""
@@ -1496,11 +1494,11 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
         """
         if op == op_EQ:
             return (self.__class__ is other.__class__
-                    and parent(self) == parent(other)
+                    and self.parent() == other.parent()
                     and self._diagonal == other._diagonal)
         if op == op_NE:
             return not (self == other)
-        raise NotImplementedError("Operator not implemented")
+        return NotImplemented
 
     def _on_basis(self, i):
         """
@@ -1612,9 +1610,9 @@ class PointwiseInverseFunction(SageObject):
             False
             sage: f == g
             True
-
         """
-        return self.__class__ is other.__class__ and self._pointwise_inverse == other._pointwise_inverse
+        return (self.__class__ is other.__class__
+                and self._pointwise_inverse == other._pointwise_inverse)
 
     def __ne__(self, other):
         r"""
@@ -1627,9 +1625,8 @@ class PointwiseInverseFunction(SageObject):
             sage: g = PointwiseInverseFunction(factorial)
             sage: f != g
             False
-
         """
-        return not self == other
+        return not (self == other)
 
     def __call__(self, *args):
         """
@@ -1652,3 +1649,4 @@ class PointwiseInverseFunction(SageObject):
             True
         """
         return self._pointwise_inverse
+

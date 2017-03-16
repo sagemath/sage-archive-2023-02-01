@@ -1104,6 +1104,24 @@ class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
                 and self._is_module_with_basis_over_same_base_ring
                     == other._is_module_with_basis_over_same_base_ring)
 
+    def __ne__(self, other):
+        """
+        Check equality.
+
+        EXAMPLES::
+
+            sage: Psi = NonCommutativeSymmetricFunctions(QQ).Psi()
+            sage: Phi = NonCommutativeSymmetricFunctions(QQ).Phi()
+            sage: f = Psi.algebra_morphism(Phi.antipode_on_generators, codomain=Phi)
+            sage: g = Psi.algebra_morphism(Phi.antipode_on_generators, codomain=Phi)
+            sage: f != g
+            False
+            sage: h = Phi.algebra_morphism(Psi.antipode_on_generators, codomain=Psi)
+            sage: f != h
+            True
+        """
+        return not (self == other)
+
     def _on_basis(self, c):
         r"""
         Computes the image of this morphism on the basis element indexed by

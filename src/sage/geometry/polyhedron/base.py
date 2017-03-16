@@ -2969,12 +2969,12 @@ class Polyhedron_base(Element):
             sage: cube.intersection(oct*2)
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 12 vertices
 
-       As a shorthand, one may use::
+        As a shorthand, one may use::
 
             sage: cube & oct*2
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 12 vertices
 
-       The intersection of two `\ZZ`-polyhedra is not necessarily a `\ZZ`-polyhedron::
+        The intersection of two `\ZZ`-polyhedra is not necessarily a `\ZZ`-polyhedron::
 
             sage: P = Polyhedron([(0,0),(1,1)], base_ring=ZZ)
             sage: P.intersection(P)

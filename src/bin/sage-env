@@ -410,13 +410,8 @@ if [ "$PYTHONUSERBASE" = "" ]; then
     export PYTHONUSERBASE
 fi
 
-if [ -d "$SAGE_LOCAL/lib/python" ]; then
-    PYTHONPATH="$SAGE_LOCAL/lib/python"
-    if [ -n "$SAGE_PATH" ]; then
-        PYTHONPATH="$SAGE_PATH:$PYTHONPATH"
-    fi
+if [ -d "$SAGE_LOCAL" ]; then
     PYTHONHOME="$SAGE_LOCAL"
-    export PYTHONPATH
     export PYTHONHOME
 fi
 

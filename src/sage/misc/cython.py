@@ -307,9 +307,12 @@ def cython(filename, verbose=False, compile_message=False,
     Before :trac:`12975`, it would have been needed to write ``#clang c++``,
     but upper case ``C++`` has resulted in an error::
 
+        sage: import pkgconfig
+        sage: singular_pc = pkgconfig.parse('Singular')
         sage: code = [
         ....: "#clang C++",
-        ....: "#clib m readline Singular givaro ntl gmpxx gmp",
+        ....: "#clib " + " ".join(singular_pc['libraries']),
+        ....: "#cargs " + pkgconfig.cflags('Singular'),
         ....: "from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular",
         ....: "from sage.libs.singular.polynomial cimport singular_polynomial_pow",
         ....: "def test(MPolynomial_libsingular p):",

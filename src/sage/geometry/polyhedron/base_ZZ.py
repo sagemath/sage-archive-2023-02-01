@@ -53,7 +53,7 @@ class Polyhedron_ZZ(Polyhedron_base):
             sage: p._is_zero(1/100000)
             False
         """
-        return x==0
+        return x == 0
 
     def _is_nonneg(self, x):
         """
@@ -75,7 +75,7 @@ class Polyhedron_ZZ(Polyhedron_base):
             sage: p._is_nonneg(-1/100000)
             False
         """
-        return x>=0
+        return x >= 0
 
     def _is_positive(self, x):
         """
@@ -97,7 +97,7 @@ class Polyhedron_ZZ(Polyhedron_base):
             sage: p._is_positive(0)
             False
         """
-        return x>0
+        return x > 0
 
     _base_ring = ZZ
 
@@ -116,8 +116,16 @@ class Polyhedron_ZZ(Polyhedron_base):
             True
             sage: polytopes.regular_polygon(5).is_lattice_polytope()
             False
+
+        TESTS:
+
+        Check :trac:`22622`::
+
+            sage: P1 = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]])
+            sage: P1.is_lattice_polytope()
+            False
         """
-        return True
+        return self.is_compact()
 
     def ehrhart_polynomial(self, verbose=False, dual=None,
             irrational_primal=None, irrational_all_primal=None, maxdet=None,

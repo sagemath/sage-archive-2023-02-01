@@ -530,7 +530,7 @@ class Polymake(ExtraTabCompletion, Expect):
 
         TEST::
 
-            sage: print polymake._next_var_name()
+            sage: print(polymake._next_var_name())
             SAGE...
 
         """
@@ -593,11 +593,11 @@ class Polymake(ExtraTabCompletion, Expect):
 
             sage: polymake._create("('foo', 'bar')", name="my_array")   # optional - polymake
             '@my_array'
-            sage: print polymake.eval('print join(", ", @my_array);')   # optional - polymake
+            sage: print(polymake.eval('print join(", ", @my_array);'))  # optional - polymake
             foo, bar
             sage: polymake._create("'foobar'", name="my_string")        # optional - polymake
             '$my_string[0]'
-            sage: print polymake.eval('print $my_string[0];')           # optional - polymake
+            sage: print(polymake.eval('print $my_string[0];'))          # optional - polymake
             foobar
 
         """
@@ -699,7 +699,7 @@ class Polymake(ExtraTabCompletion, Expect):
 
         EXAMPLES::
 
-            sage: print polymake.help('Polytope', pager=False)          # optional - polymake # random
+            sage: print(polymake.help('Polytope', pager=False))         # optional - polymake # random
             objects/Polytope:
              Not necessarily bounded or unbounded polyhedron.
              Nonetheless, the name "Polytope" is used for two reasons:
@@ -803,7 +803,7 @@ class Polymake(ExtraTabCompletion, Expect):
         However, if the command contains line breaks but eventually is complete,
         no error is raised::
 
-            sage: print polymake.eval('$tmp="abc";\nprint $tmp;') # optional - polymake
+            sage: print(polymake.eval('$tmp="abc";\nprint $tmp;'))  # optional - polymake
             abc
 
         When requesting help, polymake sometimes expect the user to choose
@@ -1823,7 +1823,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         EXAMPLES::
 
             sage: c = polymake.cube(3)                  # optional - polymake
-            sage: print c._sage_doc_()                  # optional - polymake # random
+            sage: print(c._sage_doc_())                 # optional - polymake # random
             objects/Polytope:
              Not necessarily bounded or unbounded polyhedron.
              Nonetheless, the name "Polytope" is used for two reasons:
@@ -1835,7 +1835,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             <BLANKLINE>
             objects/Polytope/specializations/Polytope<Rational>:
              A rational polyhedron realized in Q^d
-            sage: print c.FACETS._sage_doc_()           # optional - polymake # random
+            sage: print(c.FACETS._sage_doc_())          # optional - polymake # random
             property_types/Algebraic Types/SparseMatrix:
              A SparseMatrix is a two-dimensional associative array with row and column indices as keys; elements equal to the default value (ElementType(), which is 0 for most numerical types) are not stored, but implicitly encoded by the gaps in the key set. Each row and column is organized as an AVL-tree.
             <BLANKLINE>
@@ -1972,7 +1972,7 @@ class PolymakeFunctionElement(FunctionElement):
         EXAMPLES::
 
             sage: p = polymake.rand_sphere(3, 13, seed=12)           # optional - polymake
-            sage: print p.get_schedule._sage_doc_()                  # optional - polymake # random
+            sage: print(p.get_schedule._sage_doc_())                 # optional - polymake # random
             objects/Core::Object/methods/get_schedule:
             get_schedule(request;  ... ) -> Core::RuleChain
             <BLANKLINE>
@@ -1988,7 +1988,7 @@ class PolymakeFunctionElement(FunctionElement):
                 Several requests may be listed.
             <BLANKLINE>
             Returns Core::RuleChain
-            sage: print p.minkowski_sum_fukuda._sage_doc_()         # optional - polymake # random
+            sage: print(p.minkowski_sum_fukuda._sage_doc_())        # optional - polymake # random
             functions/Producing a polytope from polytopes/minkowski_sum_fukuda:
             minkowski_sum_fukuda(summands) -> Polytope<Scalar>
             <BLANKLINE>

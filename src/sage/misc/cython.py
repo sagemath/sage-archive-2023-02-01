@@ -305,7 +305,10 @@ def cython(filename, verbose=False, compile_message=False,
     TESTS:
 
     Before :trac:`12975`, it would have been needed to write ``#clang c++``,
-    but upper case ``C++`` has resulted in an error::
+    but upper case ``C++`` has resulted in an error.
+    Using pkgconfig to find the libraries, headers and macros. This is a
+    work around while waiting for :trac:`22461` which will offer a better
+    solution::
 
         sage: import pkgconfig
         sage: singular_pc = pkgconfig.parse('Singular')

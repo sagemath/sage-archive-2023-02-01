@@ -459,10 +459,11 @@ class SkewPartition(CombinatorialElement):
             ┌┬┴┘
             └┘
         """
+        from sage.typeset.unicode_art import UnicodeArt
         out, inn = self
         inn = inn + [0] * (len(out) - len(inn))
         if not self._list:
-            return u'∅'
+            return UnicodeArt(u'∅')
         if self.parent().options.convention == "French":
             s, t, b, l, r, tr, tl, br, bl, x, h = list(u' ┴┬├┤┘└┐┌┼─')
         else:
@@ -504,7 +505,6 @@ class SkewPartition(CombinatorialElement):
 
         if self.parent().options.convention == "French":
             txt = list(reversed(txt))
-        from sage.typeset.unicode_art import UnicodeArt        
         return UnicodeArt(txt, baseline=0)
 
     def inner(self):

@@ -650,7 +650,7 @@ class MathematicaElement(ExpectElement):
         return z[i+1:].strip()
 
     def _repr_(self):
-        P = self._check_valid()
+        P = self.parent()
         return P.get(self._name, ascii_art=False).strip()
 
     def _sage_(self, locals={}):

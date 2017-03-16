@@ -481,9 +481,14 @@ class Polyhedron_base(Element):
 
         OUTPUT:
 
-        - a bipartite DiGraph. If `labels` is `True`, then the nodes
-          of the graph will actually be the vertices and facets of `self`,
+        - a bipartite DiGraph. If ``labels`` is ``True``, then the nodes
+          of the graph will actually be the vertices and facets of ``self``,
           otherwise they will be integers.
+
+        .. SEEALSO::
+
+            :meth:`combinatorial_automorphism_group`,
+            :meth:`is_combinatorially_isomorphic`.
 
         EXAMPLES::
 
@@ -507,7 +512,7 @@ class Polyhedron_base(Element):
              A vertex at (1, 1, 1)]
             sage: G.automorphism_group().is_isomorphic(P.face_lattice().hasse_diagram().automorphism_group())
             True
-            sage: O=polytopes.octahedron(); O
+            sage: O = polytopes.octahedron(); O
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 6 vertices
             sage: O.vertex_facet_graph()
             Digraph on 14 vertices
@@ -4874,10 +4879,10 @@ class Polyhedron_base(Element):
 
         OUTPUT:
 
-          A
-          :class:`PermutationGroup<sage.groups.perm_gps.permgroup.PermutationGroup_generic_with_category'>`
-          that is isomorphic to the combinatorial automorphism group is
-          returned.
+        A
+        :class:`PermutationGroup<sage.groups.perm_gps.permgroup.PermutationGroup_generic_with_category'>`
+        that is isomorphic to the combinatorial automorphism group is
+        returned.
 
         - if ``vertex_graph_only`` is ``True``:
           The automorphism group of the vertex-edge graph of the polyhedron
@@ -4891,6 +4896,12 @@ class Polyhedron_base(Element):
 
             Depending on ``vertex_graph_only``, this method returns groups
             that are not neccessarily isomorphic, see the examples below.
+
+        .. SEEALSO::
+
+            :meth:`is_combinatorially_isomorphic`,
+            :meth:`graph`,
+            :meth:`vertex_facet_graph`.
 
         EXAMPLES::
 
@@ -5316,12 +5327,17 @@ class Polyhedron_base(Element):
 
         OUTPUT:
 
-          - ``True`` if the two polyhedra are combinatorially isomorphic
-          - ``False`` otherwise
+        - ``True`` if the two polyhedra are combinatorially isomorphic
+        - ``False`` otherwise
+
+        .. SEEALSO::
+
+            :meth:`combinatorial_automorphism_group`,
+            :meth:`vertex_facet_graph`.
 
         REFERENCES:
 
-            For the equivalence of the two algorithms see [KK1995]_, p. 877-878
+        For the equivalence of the two algorithms see [KK1995]_, p. 877-878
 
         EXAMPLES:
 

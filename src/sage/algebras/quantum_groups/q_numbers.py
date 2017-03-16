@@ -21,6 +21,7 @@ from sage.misc.all import prod
 from sage.rings.all import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 
+
 @cached_function
 def q_number(n, q=None):
     r"""
@@ -69,10 +70,14 @@ def q_number(n, q=None):
         0
     """
     if q is None:
-        q = LaurentPolynomialRing(ZZ, ['q']).gens()[0]
+        R = LaurentPolynomialRing(ZZ, 'q')
+        q = R.gen()
+    else:
+        R = q.parent()
     if n == 0:
-        return 0
-    return sum(q**(n-2*i-1) for i in range(n))
+        return R.zero()
+    return R.sum(q**(n - 2 * i - 1) for i in range(n))
+
 
 def q_factorial(n, q=None):
     """
@@ -107,10 +112,10 @@ def q_factorial(n, q=None):
         sage: from sage.algebras.quantum_groups.q_numbers import q_factorial
         sage: q_factorial(3)
         q^-3 + 2*q^-1 + 2*q + q^3
-        sage: p = LaurentPolynomialRing(QQ, 'q').gen(0)
+        sage: p = LaurentPolynomialRing(QQ, 'q').gen()
         sage: q_factorial(3, p)
         q^-3 + 2*q^-1 + 2*q + q^3
-        sage: p = ZZ['p'].gen(0)
+        sage: p = ZZ['p'].gen()
         sage: q_factorial(3, p)
         (p^6 + 2*p^4 + 2*p^2 + 1)/p^3
 
@@ -123,8 +128,9 @@ def q_factorial(n, q=None):
         ValueError: argument (-2) must be a nonnegative integer
     """
     if n in ZZ and n >= 0:
-        return prod([q_number(i, q) for i in range(1, n+1)])
+        return prod(q_number(i, q) for i in range(1, n+1))
     raise ValueError("argument ({}) must be a nonnegative integer".format(n))
+
 
 def q_binomial(n, k, q=None):
     r"""
@@ -156,18 +162,15 @@ def q_binomial(n, k, q=None):
 
     EXAMPLES:
 
-    Until Laurent polynomials divide properly, we will use rational functions::
-
         sage: from sage.algebras.quantum_groups.q_numbers import q_binomial
-        sage: q = ZZ['q'].fraction_field().gen(0)
-        sage: q_binomial(2, 1, q)
-        (q^2 + 1)/q
-        sage: q_binomial(2, 0, q)
+        sage: q_binomial(2, 1)
+        q^-1 + q
+        sage: q_binomial(2, 0)
         1
-        sage: q_binomial(4, 1, q)
-        (q^6 + q^4 + q^2 + 1)/q^3
-        sage: q_binomial(4, 3, q)
-        (q^6 + q^4 + q^2 + 1)/q^3
+        sage: q_binomial(4, 1)
+        q^-3 + q^-1 + q + q^3
+        sage: q_binomial(4, 3)
+        q^-3 + q^-1 + q + q^3
 
     TESTS::
 
@@ -180,14 +183,14 @@ def q_binomial(n, k, q=None):
         ValueError: n must be nonnegative
     """
     # sanity checks
-    if not( n in ZZ and k in ZZ ):
+    if not(n in ZZ and k in ZZ):
         raise ValueError("arguments ({}, {}) must be integers".format(n, k))
     if n < 0:
         raise ValueError('n must be nonnegative')
     if not(0 <= k and k <= n):
         return 0
 
-    k = min(n-k,k) # Pick the smallest k
+    k = min(n - k, k) # Pick the smallest k
     denomin = q_factorial(n - k, q) * q_factorial(k, q)
     numerat = q_factorial(n, q)
     try:

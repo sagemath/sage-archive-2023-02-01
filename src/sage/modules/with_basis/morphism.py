@@ -108,7 +108,6 @@ from __future__ import print_function
 from sage.categories.fields import Fields
 from sage.categories.modules import Modules
 from sage.misc.misc import attrcall
-#from sage.misc.cachefunc import cached_method, cached_function
 # The identity function would deserve a more canonical location
 from sage.misc.c3_controlled import identity
 from sage.misc.superseded import deprecated_function_alias, deprecation
@@ -337,7 +336,6 @@ class ModuleMorphismByLinearity(ModuleMorphism):
         """
         if op == op_EQ:
             return (self.__class__ is other.__class__
-                    and self.parent() == other.parent()
                     and self._zero == other._zero
                     and self._on_basis == other._on_basis
                     and self._position == other._position
@@ -731,7 +729,7 @@ class TriangularModuleMorphism(ModuleMorphism):
 
         """
         if op == op_EQ:
-            return (self.__class__ is other.__class__ and self.parent() == other.parent()
+            return (self.__class__ is other.__class__
                     and self._triangular == other._triangular
                     and self._unitriangular == other._unitriangular
                     and self._inverse_on_support == other._inverse_on_support
@@ -1403,7 +1401,6 @@ class ModuleMorphismFromMatrix(ModuleMorphismByLinearity):
         if op == op_EQ:
             # We skip the on_basis check since the matrix defines the morphism
             return (self.__class__ is other.__class__
-                    and self.parent() == other.parent()
                     and self._zero == other._zero
                     and self._position == other._position
                     and self._is_module_with_basis_over_same_base_ring == other._is_module_with_basis_over_same_base_ring
@@ -1494,7 +1491,6 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
         """
         if op == op_EQ:
             return (self.__class__ is other.__class__
-                    and self.parent() == other.parent()
                     and self._diagonal == other._diagonal)
         if op == op_NE:
             return not (self == other)

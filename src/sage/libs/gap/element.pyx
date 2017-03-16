@@ -2644,6 +2644,8 @@ cdef class GapElement_List(GapElement):
 
         if j < 0:
             raise IndexError('index out of range.')
+        return make_any_gap_element(self.parent(),
+                                    ELM_LIST(self.value, i+1))
 
         cdef GapElement celt
         if isinstance(elt, GapElement):

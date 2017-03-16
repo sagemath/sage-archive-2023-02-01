@@ -30,9 +30,6 @@ fi
 
 cd src
 
-# Use newer version of config.guess and config.sub (see Trac #19726)
-cp "$SAGE_ROOT"/config/config.* cnf
-
 # Configure
 echo "Configuring GAP..."
 ./configure \
@@ -45,16 +42,12 @@ if [[ $? -ne 0 ]]; then
 fi
 
 echo "Building GAP..."
-# Building config only works with 1 thread
-$MAKE -j1 config && $MAKE
+$MAKE
 if [[ $? -ne 0 ]]; then
     echo >&2 "Error building GAP."
     exit 1
 fi
-if [[ ! -f bin/gap.sh ]]; then
-    echo "Error building GAP ('gap.sh' not found)."
-    exit 1
-fi
+
 
 # Wipe the installation directory.
 # This fixes https://trac.sagemath.org/ticket/22272
@@ -62,7 +55,8 @@ echo "Removing previous installation of GAP..."
 rm -rf "$INSTALL_DIR"
 
 echo "Installing (copying) files..."
-# gap has no notion of installing itself (similar to sage), copy everything
+# GAP does net yet have a notion of installing itself (similar to sage)
+# so we copy everything
 # See http://trac.sagemath.org/13211 for rationale of the filesystem layout
 mkdir -p "$SAGE_GAP" && mkdir "$INSTALL_DIR" && cp -R * "$INSTALL_DIR"
 if [[ $? -ne 0 ]]; then
@@ -76,9 +70,9 @@ ln -s "$GAP_DIR" "$SAGE_LOCAL/gap/latest"
 
 echo "Copying GAP startup script..."
 rm -f "$SAGE_LOCAL/bin/gap"
-cp bin/gap.sh "$SAGE_LOCAL/bin/gap"
+cp ../gap "$SAGE_LOCAL/bin/gap"
 if [[ $? -ne 0 ]]; then
-    echo >&2 "Error copying customized GAP startup script."
+    echo >&2 "Error copying GAP startup script."
     exit 1
 fi
 
@@ -100,3 +94,32 @@ fi
 rm "$INSTALL_DIR"/tst/testinstall/ctblsolv.tst
 rm "$INSTALL_DIR"/tst/testinstall/grppc.tst
 rm "$INSTALL_DIR"/tst/testinstall/morpheus.tst
+
+# When configuring with and without libgap, a couple different .o
+# files are built differently by the current gap build system. So we
+# need to reconfigure with --enable-libgap and for safety we make a
+# full clean
+
+$MAKE clean
+echo "Configuring libGAP..."
+./configure \
+    --prefix="$SAGE_LOCAL" PREFIX="$SAGE_LOCAL" \
+    --with-gmp="$SAGE_LOCAL" \
+    --enable-libgap \
+    CC="$CC" CXX="$CXX" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS"
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error configuring libGAP."
+    exit 1
+fi
+echo "Building libGAP..."
+$MAKE libgap
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building libGAP."
+    exit 1
+fi
+echo "Installing libGAP..."
+$MAKE install-libgap
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing libGAP."
+    exit 1
+fi

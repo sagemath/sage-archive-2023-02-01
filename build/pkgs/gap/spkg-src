@@ -55,7 +55,7 @@ rm -r !(Makefile.in)
 
 # Write version to gap-version
 cd "$SPKG_ROOT"
-autoconf --trace='AC_INIT:$2' src/cnf/configure.in > src/gap-version
+autoconf --trace='AC_INIT:$2' src/configure.ac > src/gap-version
 rm -rf autom4te.cache
 
 

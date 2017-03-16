@@ -709,12 +709,12 @@ class ReferenceSubBuilder(DocBuilder):
         if force:
             # Write reST files for all modules from scratch.
             self.clean_auto()
-            for module in self.get_all_included_modules():
-                self.write_auto_rest_file(module)
+            for module_name in self.get_all_included_modules():
+                self.write_auto_rest_file(module_name)
         else:
             # Write reST files for new and updated modules.
-            for module in self.get_new_and_updated_modules():
-                self.write_auto_rest_file(module)
+            for module_name in self.get_new_and_updated_modules():
+                self.write_auto_rest_file(module_name)
 
         # Copy over the custom reST files from _sage
         _sage = os.path.join(self.dir, '_sage')
@@ -896,12 +896,12 @@ class ReferenceSubBuilder(DocBuilder):
         new_modules = []
         updated_modules = []
         old_modules = []
-        for module in self.get_all_included_modules():
-            docname = module.replace('.', os.path.sep)
+        for module_name in self.get_all_included_modules():
+            docname = module_name.replace('.', os.path.sep)
 
             if docname not in all_docs:
-                new_modules.append(module)
-                yield module
+                new_modules.append(module_name)
+                yield module_name
                 continue
 
             # get the modification timestamp of the reST doc for the module
@@ -910,29 +910,29 @@ class ReferenceSubBuilder(DocBuilder):
                 with warnings.catch_warnings():
                     # primarily intended to ignore deprecation warnings
                     warnings.simplefilter("ignore")
-                    __import__(module)
+                    __import__(module_name)
             except ImportError as err:
-                logger.error("Warning: Could not import %s %s", module, err)
+                logger.error("Warning: Could not import %s %s", module_name, err)
                 raise
-            newtime = os.path.getmtime(sys.modules[module].__file__)
+            newtime = os.path.getmtime(sys.modules[module_name].__file__)
 
             if newtime > mtime:
-                updated_modules.append(module)
-                yield module
+                updated_modules.append(module_name)
+                yield module_name
             else: # keep good old module
-                old_modules.append(module)
+                old_modules.append(module_name)
 
         removed_modules = []
         for docname in all_docs.keys():
             if docname.startswith('sage' + os.path.sep):
-                module = docname.replace(os.path.sep, '.')
-                if module not in old_modules and module not in updated_modules:
+                module_name = docname.replace(os.path.sep, '.')
+                if not (module_name in old_modules or module_name in updated_modules):
                     try:
                         os.remove(os.path.join(self.dir, docname) + '.rst')
                     except OSError: # already removed
                         pass
                     logger.debug("Deleted auto-generated reST file %s".format(docname))
-                    removed_modules.append(module)
+                    removed_modules.append(module_name)
 
         logger.info("Found %d new modules", len(new_modules))
         logger.info("Found %d updated modules", len(updated_modules))

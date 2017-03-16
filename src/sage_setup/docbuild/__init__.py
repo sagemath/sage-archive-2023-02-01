@@ -111,7 +111,7 @@ def builder_helper(type):
             logger.warning("LaTeX file written to {}".format(output_dir))
         else:
             logger.warning(
-                "Build finished.  The built documents can be found in {}".
+                "Build finished. The built documents can be found in {}".
                 format(output_dir))
 
     f.is_output_format = True

@@ -23,8 +23,6 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
-from six.moves import range
-
 from sage.misc.cachefunc import cached_method#, cached_in_parent_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
@@ -637,7 +635,7 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
         m = lcm([x.conductor() if hasattr(x,"conductor") else 1 for x in M])
         M_gals = [x.galois_conjugates(m) if hasattr(x,"galois_conjugates") else [x] for x in M]
         conjugates = []
-        for i in range(len(M_gals[0])):
+        for i in xrange(len(M_gals[0])):
             conjugates.append(Matrix(rk, [X[i] for X in M_gals]))
         return conjugates
 
@@ -909,10 +907,10 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
         else:
             raise ValueError('side must be "left" or "right"')
         if on_space == "primal":
-            return sum(vec[j] * Phi[w(j+1) - 1] for j in range(n))
+            return sum(vec[j] * Phi[w(j+1) - 1] for j in xrange(n))
         elif on_space == "dual":
             w = ~w
-            return sum(Phi[w(j+1) - 1]*vec[j] for j in range(n))
+            return sum(Phi[w(j+1) - 1]*vec[j] for j in xrange(n))
         else:
             raise ValueError('on_space must be "primal" or "dual"')
 

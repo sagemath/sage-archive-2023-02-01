@@ -6765,25 +6765,23 @@ cpdef LCM_list(v):
     """
     cdef Integer x, z = Integer(1)
 
-    sig_on()
     itr = iter(v)
     for elt in itr:
+        sig_check()
         if isinstance(elt, Integer):
             x = (<Integer>elt)
         elif isinstance(elt, (int, long, str)):
             x = Integer(elt)
         else:
             a,b = coercion_model.canonical_coercion(z, elt)
-            ret = LCM_generic(itr, a.lcm(b))
-            sig_off()
-            return ret
+            return LCM_generic(itr, a.lcm(b))
         mpz_lcm(z.value, z.value, x.value)
-    sig_off()
 
     return z
 
 cdef LCM_generic(itr, ret):
     for vi in itr:
+        sig_check()
         a,b = coercion_model.canonical_coercion(vi, ret)
         ret = a.lcm(b)
         if not ret:

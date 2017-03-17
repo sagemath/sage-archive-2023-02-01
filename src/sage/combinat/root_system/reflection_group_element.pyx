@@ -101,7 +101,7 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
         EXAMPLES::
 
             sage: W = ReflectionGroup(4)                            # optional - gap3
-            sage: for w in W:         # optional - gap3
+            sage: for w in W:                                       # optional - gap3
             ....:     print("{} {}".format(w.reduced_word(), w.length()))
             [] 0
             [1] 1
@@ -128,7 +128,7 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
             [1, 1, 2, 1, 1, 2] 6
             [1, 1, 2, 2, 1, 1] 6
         """
-        return len(self.reduced_word())
+        return ZZ(len(self.reduced_word()))
 
     #@cached_in_parent_method
     def to_matrix(self, on_space="primal"):
@@ -240,10 +240,7 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
         """
         W = self.parent()
         if W._reflection_representation is None:
-            Phi = W.roots()
-            inds = [W._index_set_inverse[i] for i in W.independent_roots().keys()]
-            M = Matrix([Phi[self.perm[i]] for i in inds])
-            mat = W.base_change_matrix() * M
+            mat = self.canonical_matrix()
         else:
             refl_repr = W._reflection_representation
             id_mat = identity_matrix(QQ, refl_repr[W.index_set()[0]].nrows())

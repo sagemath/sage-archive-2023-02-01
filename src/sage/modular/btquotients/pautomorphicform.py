@@ -564,6 +564,19 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
             a + (a + 2)*3 + (2*a + 2)*3^2 + (2*a + 2)*3^3 + 2*a*3^5 + a*3^6 + O(3^7)
             sage: (x4-x3).valuation()
             3
+
+        TESTS:
+
+        Check that :trac:`22634` is fixed::
+
+            sage: X = BruhatTitsQuotient(7,2)
+            sage: H = X.harmonic_cocycles(4,20)
+            sage: A = X.padic_automorphic_forms(4,20,overconvergent=True)
+            sage: f = A.lift(H.basis()[0]).modular_form(method='moments')
+            sage: T.<x> = Qq(7^2,20)
+            sage: a,b,c,d = X.embed_quaternion(X.get_units_of_order()[1]).change_ring(Qp(7,20)).list()
+            sage: (c*x + d)^4 * f(x) == f((a*x + b)/(c*x + d))
+            True
         """
         return self.derivative(z, level, order=0)
 
@@ -1873,7 +1886,7 @@ class pAdicAutomorphicFormElement(ModuleElement):
             sage: A = X.padic_automorphic_forms(2,prec = 5,overconvergent=True)
             sage: a = A.lift(h)
             sage: a._value[0].moment(2)
-            2 + 6*7 + 4*7^2 + O(7^3)
+            2 + 6*7 + 4*7^2 + 4*7^3 + 6*7^4 + O(7^5)
 
         Now that we've lifted our harmonic cocycle to an
         overconvergent automorphic form we simply need to define the

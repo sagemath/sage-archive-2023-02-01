@@ -149,10 +149,10 @@ class BezierPath(GraphicPrimitive_xydata):
 
         .. PLOT::
 
-        b = bezier_path([[(0,0),(0,1),(1,0)]])
-        A = b.plot3d()
-        B = b.plot3d(z=2)
-        sphinx_plot(A + B)
+            b = bezier_path([[(0,0),(0,1),(1,0)]])
+            A = b.plot3d()
+            B = b.plot3d(z=2)
+            sphinx_plot(A + B)
 
         ::
 
@@ -161,7 +161,7 @@ class BezierPath(GraphicPrimitive_xydata):
 
         .. PLOT::
 
-        sphinx_plot(bezier3d([[(0,0,0),(1,0,0),(0,1,0),(0,1,1)]]))
+            sphinx_plot(bezier3d([[(0,0,0),(1,0,0),(0,1,0),(0,1,1)]]))
 
         """
         from sage.plot.plot3d.shapes2 import bezier3d

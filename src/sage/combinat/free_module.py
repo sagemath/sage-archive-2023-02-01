@@ -633,16 +633,14 @@ class CombinatorialFreeModuleElement(Element):
 
         OUTPUT: a dense :func:`FreeModule` vector
 
-        .. WARNING::
-
-            This will result in an error if the module is not known
-            to be finite dimensional.
+        .. WARNING:: This will crash/run forever if ``self`` is infinite dimensional!
 
         .. SEEALSO::
 
             - :func:`vector`
             - :meth:`CombinatorialFreeModule.get_order`
             - :meth:`CombinatorialFreeModule.from_vector`
+            - :meth:`CombinatorialFreeModule._dense_free_module`
 
         EXAMPLES::
 
@@ -696,9 +694,8 @@ class CombinatorialFreeModuleElement(Element):
         parent = self.parent()
         dense_free_module = parent._dense_free_module(new_base_ring)
         d = self._monomial_coefficients
-        zero = dense_free_module.base_ring().zero()
         return dense_free_module.element_class(dense_free_module,
-                                               [d.get(m, zero) for m in parent.get_order()],
+                                               [d.get(m, 0) for m in parent.get_order()],
                                                coerce=True, copy=False)
 
     to_vector = _vector_

@@ -547,9 +547,9 @@ cdef class IndexedFreeModuleElement(Element):
             sage: len(a.monomial_coefficients())
             1
         """
-        return self._parent._from_dict(add(self._monomial_coefficients,
-                                          (<IndexedFreeModuleElement>other)._monomial_coefficients),
-                                       remove_zeros=False)
+        return type(self)(self._parent,
+                          add(self._monomial_coefficients,
+                              (<IndexedFreeModuleElement>other)._monomial_coefficients))
 
     cpdef _neg_(self):
         """
@@ -567,8 +567,7 @@ cdef class IndexedFreeModuleElement(Element):
             sage: -s([2,1]) # indirect doctest
             -s[2, 1]
         """
-        return self._parent._from_dict(negate(self._monomial_coefficients),
-                                       remove_zeros=False)
+        return type(self)(self._parent, negate(self._monomial_coefficients))
 
     cpdef _sub_(self, other):
         """
@@ -585,10 +584,10 @@ cdef class IndexedFreeModuleElement(Element):
             sage: s([2,1]) - s([5,4]) # indirect doctest
             s[2, 1] - s[5, 4]
         """
-        return self._parent._from_dict(axpy(-1,
-                                           (<IndexedFreeModuleElement>other)._monomial_coefficients,
-                                            self._monomial_coefficients),
-                                       remove_zeros=False)
+        return type(self)(self._parent,
+                          axpy(-1,
+                               (<IndexedFreeModuleElement>other)._monomial_coefficients,
+                               self._monomial_coefficients))
 
     cpdef _coefficient_fast(self, m):
         """
@@ -777,8 +776,8 @@ cdef class IndexedFreeModuleElement(Element):
                 return None
 
         D = self._monomial_coefficients
-        return self._parent._from_dict(scal(scalar, D, factor_on_left=not self_on_left),
-                                       remove_zeros=False)
+        return type(self)(self._parent,
+                          scal(scalar, D, factor_on_left=not self_on_left))
 
     def _lmul_(self, other):
         """
@@ -830,8 +829,7 @@ cdef class IndexedFreeModuleElement(Element):
         x = self.base_ring()( x )
         x_inv = x ** -1
         D = self._monomial_coefficients
-        return F._from_dict(scal(x_inv, D),
-                            remove_zeros=False)
+        return type(self)(parent(self), scal(x_inv, D))
 
     __div__ = __truediv__
 

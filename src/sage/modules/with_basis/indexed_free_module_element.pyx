@@ -19,7 +19,7 @@ AUTHORS:
 
 from __future__ import print_function
 
-from sage.structure.element cimport have_same_parent
+from sage.structure.element cimport parent
 from sage.structure.sage_object cimport richcmp, richcmp_not_equal, rich_to_bool
 from cpython.object cimport Py_NE, Py_EQ
 
@@ -144,7 +144,7 @@ cdef class IndexedFreeModuleElement(Element):
             sage: loads(dumps(F.an_element())) == F.an_element()
             True
         """
-        return (_unpickle_element, (self.parent(), self._monomial_coefficients))
+        return (_unpickle_element, (self._parent, self._monomial_coefficients))
 
     cpdef dict monomial_coefficients(self, bint copy=True):
         """
@@ -212,7 +212,7 @@ cdef class IndexedFreeModuleElement(Element):
 
         .. SEEALSO:: :meth:`_repr_`, :meth:`_latex_`, :meth:`print_options`
         """
-        print_options = self.parent().print_options()
+        print_options = self._parent.print_options()
         v = self._monomial_coefficients.items()
         try:
             v.sort(key=lambda monomial_coeff:
@@ -255,8 +255,8 @@ cdef class IndexedFreeModuleElement(Element):
             3*B['ba'] + 2*B['cb'] + B['ac']
         """
         return repr_lincomb(self._sorted_items_for_printing(),
-                            scalar_mult=self.parent()._print_options['scalar_mult'],
-                            repr_monomial = self.parent()._repr_term,
+                            scalar_mult=self._parent._print_options['scalar_mult'],
+                            repr_monomial = self._parent._repr_term,
                             strip_one = True)
 
     def _ascii_art_(self):
@@ -275,8 +275,8 @@ cdef class IndexedFreeModuleElement(Element):
         """
         from sage.misc.misc import coeff_repr
         terms = self._sorted_items_for_printing()
-        scalar_mult = self.parent()._print_options['scalar_mult']
-        repr_monomial = self.parent()._ascii_art_term
+        scalar_mult = self._parent._print_options['scalar_mult']
+        repr_monomial = self._parent._ascii_art_term
         strip_one = True
 
         if repr_monomial is None:
@@ -335,8 +335,8 @@ cdef class IndexedFreeModuleElement(Element):
         """
         from sage.misc.misc import coeff_repr
         terms = self._sorted_items_for_printing()
-        scalar_mult = self.parent()._print_options['scalar_mult']
-        repr_monomial = self.parent()._unicode_art_term
+        scalar_mult = self._parent._print_options['scalar_mult']
+        repr_monomial = self._parent._unicode_art_term
         strip_one = True
 
         if repr_monomial is None:
@@ -422,9 +422,9 @@ cdef class IndexedFreeModuleElement(Element):
             3B_{ba} + 2B_{cb} + B_{ac}
         """
         return repr_lincomb(self._sorted_items_for_printing(),
-                            scalar_mult       = self.parent()._print_options['scalar_mult'],
-                            latex_scalar_mult = self.parent()._print_options['latex_scalar_mult'],
-                            repr_monomial = self.parent()._latex_term,
+                            scalar_mult       = self._parent._print_options['scalar_mult'],
+                            latex_scalar_mult = self._parent._print_options['latex_scalar_mult'],
+                            repr_monomial = self._parent._latex_term,
                             is_latex=True, strip_one=True)
 
     cpdef _richcmp_(self, other, int op):
@@ -518,14 +518,15 @@ cdef class IndexedFreeModuleElement(Element):
             sage: TestSuite(F1).run()
             sage: TestSuite(F).run()
         """
+        cdef IndexedFreeModuleElement elt = <IndexedFreeModuleElement> other
         if op in [Py_EQ, Py_NE]:
-            return richcmp(self._monomial_coefficients, other._monomial_coefficients, op)
+            return richcmp(self._monomial_coefficients, elt._monomial_coefficients, op)
 
-        if self._monomial_coefficients == other._monomial_coefficients:
+        if self._monomial_coefficients == elt._monomial_coefficients:
             return rich_to_bool(op, 0)
 
         v = sorted(self._monomial_coefficients.items())
-        w = sorted(other._monomial_coefficients.items())
+        w = sorted(elt._monomial_coefficients.items())
         return richcmp_not_equal(v, w, op)
 
     cpdef _add_(self, other):
@@ -546,10 +547,9 @@ cdef class IndexedFreeModuleElement(Element):
             sage: len(a.monomial_coefficients())
             1
         """
-        F = self.parent()
-        return F._from_dict(add(self._monomial_coefficients,
-                                other._monomial_coefficients),
-                            remove_zeros=False)
+        return self._parent._from_dict(add(self._monomial_coefficients,
+                                          (<IndexedFreeModuleElement>other)._monomial_coefficients),
+                                       remove_zeros=False)
 
     cpdef _neg_(self):
         """
@@ -567,9 +567,8 @@ cdef class IndexedFreeModuleElement(Element):
             sage: -s([2,1]) # indirect doctest
             -s[2, 1]
         """
-        F = self.parent()
-        return F._from_dict(negate(self._monomial_coefficients),
-                            remove_zeros=False)
+        return self._parent._from_dict(negate(self._monomial_coefficients),
+                                       remove_zeros=False)
 
     cpdef _sub_(self, other):
         """
@@ -586,11 +585,10 @@ cdef class IndexedFreeModuleElement(Element):
             sage: s([2,1]) - s([5,4]) # indirect doctest
             s[2, 1] - s[5, 4]
         """
-        F = self.parent()
-        return F._from_dict(axpy(-1,
-                                 other._monomial_coefficients,
-                                 self._monomial_coefficients),
-                            remove_zeros=False)
+        return self._parent._from_dict(axpy(-1,
+                                           (<IndexedFreeModuleElement>other)._monomial_coefficients,
+                                            self._monomial_coefficients),
+                                       remove_zeros=False)
 
     cpdef _coefficient_fast(self, m):
         """
@@ -700,12 +698,11 @@ cdef class IndexedFreeModuleElement(Element):
              Other use cases may call for different or further
              optimizations.
         """
-        parent = self.parent()
-        dense_free_module = parent._dense_free_module(new_base_ring)
+        dense_free_module = self._parent._dense_free_module(new_base_ring)
         d = self._monomial_coefficients
         zero = dense_free_module.base_ring().zero()
         return dense_free_module.element_class(dense_free_module,
-                                               [d.get(m, zero) for m in parent.get_order()],
+                                               [d.get(m, zero) for m in self._parent.get_order()],
                                                coerce=True, copy=False)
 
     to_vector = _vector_
@@ -772,17 +769,16 @@ cdef class IndexedFreeModuleElement(Element):
         # enough information to detect a priori that this method only
         # accepts scalars; so it tries on some elements(), and we need
         # to make sure to report an error.
-        if isinstance(scalar, Element) and scalar.parent() is not self.base_ring():
+        if isinstance(scalar, Element) and parent(scalar) is not self.base_ring():
             # Temporary needed by coercion (see Polynomial/FractionField tests).
-            if self.base_ring().has_coerce_map_from(scalar.parent()):
+            if self.base_ring().has_coerce_map_from(parent(scalar)):
                 scalar = self.base_ring()( scalar )
             else:
                 return None
 
-        F = self.parent()
         D = self._monomial_coefficients
-        return F._from_dict(scal(scalar, D, factor_on_left=not self_on_left),
-                            remove_zeros=False)
+        return self._parent._from_dict(scal(scalar, D, factor_on_left=not self_on_left),
+                                       remove_zeros=False)
 
     def _lmul_(self, other):
         """
@@ -830,7 +826,7 @@ cdef class IndexedFreeModuleElement(Element):
         if not self.base_ring().is_field():
             return self.map_coefficients(lambda c: _divide_if_possible(c, x))
 
-        F = self.parent()
+        F = parent(self)
         x = self.base_ring()( x )
         x_inv = x ** -1
         D = self._monomial_coefficients

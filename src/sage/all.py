@@ -19,7 +19,7 @@ We exclude the known files and check to see that there are no others::
 
     sage: import os
     sage: allowed = [os.path.join("lib","python","threading.py")]
-    sage: allowed.append(os.path.join("multiprocessing"))
+    sage: allowed.append("multiprocessing")
     sage: allowed.append(os.path.join("sage","doctest"))
     sage: allowed.append(os.path.join("bin","sage-runtests"))
     sage: allowed.append(os.path.join("site-packages","IPython"))

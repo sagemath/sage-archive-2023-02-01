@@ -30,7 +30,6 @@ from sage.structure.coerce import py_scalar_to_element
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer, GCD_list
-from sage.arith.functions import LCM_list
 from sage.rings.rational import Rational
 from sage.rings.real_mpfr import RealNumber
 from sage.rings.complex_number import ComplexNumber
@@ -1625,115 +1624,10 @@ def __GCD_sequence(v, **kwargs):
             return g
     return g
 
-def lcm(a, b=None):
-    """
-    The least common multiple of a and b, or if a is a list and b is
-    omitted the least common multiple of all elements of a.
-
-    Note that LCM is an alias for lcm.
-
-    INPUT:
-
-    -  ``a,b`` -- two elements of a ring with lcm or
-
-    -  ``a`` -- a list or tuple of elements of a ring with lcm
-
-    OUTPUT:
-
-    First, the given elements are coerced into a common parent. Then,
-    their least common multiple *in that parent* is returned.
-
-    EXAMPLES::
-
-        sage: lcm(97,100)
-        9700
-        sage: LCM(97,100)
-        9700
-        sage: LCM(0,2)
-        0
-        sage: LCM(-3,-5)
-        15
-        sage: LCM([1,2,3,4,5])
-        60
-        sage: v = LCM(range(1,10000))   # *very* fast!
-        sage: len(str(v))
-        4349
-
-
-    TESTS:
-
-    The following tests against a bug that was fixed in :trac:`10771`::
-
-        sage: lcm(4/1,2)
-        4
-
-    The following shows that indeed coercion takes place before
-    computing the least common multiple::
-
-        sage: R.<x>=QQ[]
-        sage: S.<x>=ZZ[]
-        sage: p = S.random_element(degree=(0,5))
-        sage: q = R.random_element(degree=(0,5))
-        sage: parent(lcm([1/p,q]))
-        Fraction Field of Univariate Polynomial Ring in x over Rational Field
-
-    Make sure we try QQ and not merely ZZ (:trac:`13014`)::
-
-        sage: bool(lcm(2/5, 3/7) == lcm(SR(2/5), SR(3/7)))
-        True
-
-    Make sure that the lcm of Expressions stays symbolic::
-
-        sage: parent(lcm(2, 4))
-        Integer Ring
-        sage: parent(lcm(SR(2), 4))
-        Symbolic Ring
-        sage: parent(lcm(2, SR(4)))
-        Symbolic Ring
-        sage: parent(lcm(SR(2), SR(4)))
-        Symbolic Ring
-
-    Verify that objects without lcm methods but which can't be
-    coerced to ZZ or QQ raise an error::
-
-        sage: F.<a,b> = FreeMonoid(2)
-        sage: lcm(a,b)
-        Traceback (most recent call last):
-        ...
-        TypeError: unable to find lcm
-
-    Check rational and integers (:trac:`17852`)::
-
-        sage: lcm(1/2, 4)
-        4
-        sage: lcm(4, 1/2)
-        4
-
-    Check that we do not mutate the list (:trac:`22630`)::
-
-        sage: L = [int(1), int(2)]
-        sage: lcm(L)
-        2
-        sage: [type(x) for x in L]
-        [<type 'int'>, <type 'int'>]
-    """
-    # Most common use case first:
-    if b is not None:
-        try:
-            return a.lcm(b)
-        except (AttributeError,TypeError):
-            pass
-        try:
-            return ZZ(a).lcm(ZZ(b))
-        except TypeError:
-            raise TypeError("unable to find lcm")
-
-    return LCM_list(a)
-
-from sage.misc.superseded import deprecated_function_alias
-__LCM_sequence = deprecated_function_alias(22630, LCM_list)
-
-LCM = lcm
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.arith.functions', 'lcm', deprecation=22630)
+lazy_import('sage.arith.functions', 'lcm', '__LCM_sequence', deprecation=22630)
+lazy_import('sage.arith.functions', 'lcm', 'LCM', deprecation=22630)
 
 def xlcm(m, n):
     r"""
@@ -2866,6 +2760,7 @@ def crt(a,b,m=None,n=None):
     q, r = (b - a).quo_rem(g)
     if r != 0:
         raise ValueError("No solution to crt problem since gcd(%s,%s) does not divide %s-%s" % (m, n, a, b))
+    from sage.arith.functions import lcm
     return (a + q*alpha*m) % lcm(m, n)
 
 CRT = crt
@@ -2941,6 +2836,7 @@ def CRT_list(v, moduli):
         return moduli[0].parent()(v[0])
     x = v[0]
     m = moduli[0]
+    from sage.arith.functions import lcm
     for i in range(1, len(v)):
         x = CRT(x,v[i],m,moduli[i])
         m = lcm(m,moduli[i])

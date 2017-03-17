@@ -340,7 +340,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
                 sage: v = vector([0, -1, -3])
                 sage: v._vector_()
-                (0, -1, 3)
+                (0, -1, -3)
                 sage: C = CombinatorialFreeModule(QQ['x'], ['a','b','c'])
                 sage: C.an_element()._vector_()
                 (2, 2, 3)

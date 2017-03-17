@@ -305,7 +305,7 @@ class OverconvergentDistributions_abstract(Module):
 
         self._populate_coercion_lists_(action_list=[self._act])
 
-    def _element_constructor_(self, val):
+    def _element_constructor_(self, val, **kwargs):
         """
         Construct a distribution from data in ``val``
 
@@ -315,7 +315,10 @@ class OverconvergentDistributions_abstract(Module):
             sage: v = V([1,2,3,4,5,6,7]); v
             (1, 2, 3, 4, 5, 6, 7)
         """
-        return self.Element(val, self)
+        ordp = kwargs.get('ord',0)
+        check = kwargs.get('check',True)
+        normalize= kwargs.get('normalize',True)
+        return self.Element(val, self, ordp, check, normalize)
 
     def _coerce_map_from_(self, other):
         """

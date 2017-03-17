@@ -220,6 +220,19 @@ converts automatically the base ring to `RDF`::
 
     :mod:`Parents for polyhedra <sage.geometry.polyhedron.parent.Polyhedra>`
 
+.. TESTS:
+
+Check :trac:`22552`::
+
+    sage: Polyhedron(vertices=[(8.3319544851638732, 7.0567045956967727), (6.4876921900819049, 4.8435898415984129)])
+    Traceback (most recent call last):
+    ...
+    ValueError: no appropriate backend for computations with Real Field with 57 bits of precision
+    sage: Polyhedron(vertices =[(8.3319544851638732, 7.0567045956967727), (6.4876921900819049, 4.8435898415984129)], base_ring=RealField(40))
+    Traceback (most recent call last):
+    ...
+    ValueError: no appropriate backend for computations with Real Field with 40 bits of precision
+
 Base classes
 ------------
 

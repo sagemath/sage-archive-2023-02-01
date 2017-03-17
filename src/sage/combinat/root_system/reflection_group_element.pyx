@@ -298,7 +298,7 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
         mat.set_immutable()
         return mat
 
-    def action(self, vec, on_space="primal"):
+    cpdef action(self, vec, on_space="primal"):
         r"""
         Return the image of ``vec`` under the action of ``self``.
 
@@ -334,29 +334,18 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
         - ``self_on_left`` -- whether the action of ``self`` is on
           the left or on the right
 
-        .. WARNING::
-
-            This coercion is currently only defined for
-            ``self_on_left`` being ``False``.
-
         EXAMPLES::
 
-            sage: W = ReflectionGroup(['A',2])          # optional - gap3
-            sage: w = W.from_reduced_word([1,2])        # optional - gap3
-            sage: for root in W.positive_roots():       # optional - gap3
-            ....:     print("%s -> %s"%(root, w*root))  # optional - gap3
-            (1, 0) -> (0, 1)
-            (0, 1) -> (-1, -1)
-            (1, 1) -> (-1, 0)
-
-            sage: for root in W.positive_roots():       # optional - gap3
-            ....:     print("%s -> %s"%(root, root*w))  # optional - gap3
-            (1, 0) -> (-1, -1)
-            (0, 1) -> (1, 0)
-            (1, 1) -> (0, -1)
+            sage: W = ReflectionGroup((3,1,2))                      # optional - gap3
+            sage: w = W.from_reduced_word([1, 2, 1, 1, 2])          # optional - gap3
+            sage: for alpha in W.independent_roots():               # optional - gap3
+            ....:     print("%s -> %s"%(alpha, w * alpha))          # optional - gap3
+            (1, 0) -> (E(3), 0)
+            (-1, 1) -> (-E(3), E(3)^2)
         """
         if not self_on_left:
-            return self.action(vec, side="right")
+            return (~self).action(vec)
+        return self.action(vec)
 
     cpdef action_on_root_indices(self, i):
         """

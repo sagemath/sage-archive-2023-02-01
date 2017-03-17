@@ -152,9 +152,8 @@ from __future__ import absolute_import
 import os
 
 from .expect import Expect, ExpectElement
+from sage.docs.instancedoc import InstanceDoc
 
-
-#import sage.matrix.matrix_space
 
 class Matlab(Expect):
     """
@@ -321,6 +320,7 @@ for hints on how to do that).
         return MatlabElement
 
 
+@InstanceDoc
 class MatlabElement(ExpectElement):
     def __getitem__(self, n):
         raise RuntimeError("Use parenthesis for MATLAB matrices instead.")

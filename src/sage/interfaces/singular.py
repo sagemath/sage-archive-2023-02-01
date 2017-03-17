@@ -337,6 +337,7 @@ import sage.rings.integer
 
 from sage.misc.misc import get_verbose
 from sage.misc.superseded import deprecation
+from sage.docs.instancedoc import InstanceDoc
 
 from six import reraise as raise_
 
@@ -1260,6 +1261,7 @@ class Singular(ExtraTabCompletion, Expect):
         raise KeyboardInterrupt("Restarting %s (WARNING: all variables defined in previous session are now invalid)" % self)
 
     
+@InstanceDoc
 class SingularElement(ExtraTabCompletion, ExpectElement):
     
     def __init__(self, parent, type, value, is_name=False):
@@ -2172,12 +2174,14 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         else:
             self.parent().eval('attrib(%s,"%s",%d)'%(self.name(),name,value))
 
+
+@InstanceDoc
 class SingularFunction(ExpectFunction):
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         EXAMPLES::
 
-            sage: 'groebner' in singular.groebner._sage_doc_()
+            sage: 'groebner' in singular.groebner.__doc__
             True
         """
         if not nodes:
@@ -2208,14 +2212,16 @@ The Singular documentation for '%s' is given below.
         except KeyError:
             return prefix
 
+
+@InstanceDoc
 class SingularFunctionElement(FunctionElement):
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         r"""
         EXAMPLES::
 
             sage: R = singular.ring(0, '(x,y,z)', 'dp')
             sage: A = singular.matrix(2,2)
-            sage: 'matrix_expression' in A.nrows._sage_doc_()
+            sage: 'matrix_expression' in A.nrows.__doc__
             True
         """
         if not nodes:

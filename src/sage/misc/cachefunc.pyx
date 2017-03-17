@@ -892,7 +892,7 @@ cdef class CachedFunction(object):
     ## We provide some methods explicitly, and
     ## forward other questions to the cached function.
 
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         Provide documentation for the cached function.
 
@@ -924,7 +924,7 @@ cdef class CachedFunction(object):
             sage: @cached_function
             ....: def f():
             ....:     return 3
-            sage: f._sage_doc_()
+            sage: f.__doc__
             'File: ... (starting at line 1)\n'
         """
         from sage.misc.sageinspect import _extract_embedded_position
@@ -3785,3 +3785,13 @@ class disk_cached_function:
             Modular Symbols space of dimension 65 for Gamma_0(389) of weight 2 with sign 0 over Rational Field
         """
         return DiskCachedFunction(f, self._dir, memory_cache=self._memory_cache, key=self._key)
+
+
+# Add support for _instancedoc_
+from sage.docs.instancedoc import InstanceDoc
+InstanceDoc(CachedFunction)
+InstanceDoc(WeakCachedFunction)
+InstanceDoc(CachedMethodCaller)
+InstanceDoc(CachedMethodCallerNoArgs)
+InstanceDoc(GloballyCachedMethodCaller)
+InstanceDoc(DiskCachedFunction)

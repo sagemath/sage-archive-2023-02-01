@@ -28,7 +28,7 @@ from sage.structure.element import Element
 from sage.misc.all import prod
 
 from sage.rings.all import ZZ, QQ
-from sage.rings.integer import LCM_list
+from sage.arith.functions import LCM_list
 from sage.misc.functional import denominator
 from sage.matrix.constructor import matrix, vector
 

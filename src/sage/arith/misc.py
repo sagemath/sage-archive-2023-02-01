@@ -29,7 +29,8 @@ from sage.structure.coerce import py_scalar_to_element
 
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
-from sage.rings.integer import Integer, GCD_list, LCM_list
+from sage.rings.integer import Integer, GCD_list
+from sage.arith.functions import LCM_list
 from sage.rings.rational import Rational
 from sage.rings.real_mpfr import RealNumber
 from sage.rings.complex_number import ComplexNumber

@@ -242,7 +242,7 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
         if W._reflection_representation is None:
             Phi = W.roots()
             inds = [W._index_set_inverse[i] for i in W.independent_roots().keys()]
-            M = Matrix([Phi[self(i+1)-1] for i in inds])
+            M = Matrix([Phi[self.perm[i]] for i in inds])
             mat = W.base_change_matrix() * M
         else:
             refl_repr = W._reflection_representation
@@ -293,7 +293,7 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
         W = self.parent()
         Phi = W.roots()
         inds = [W._index_set_inverse[i] for i in W.independent_roots().keys()]
-        M = Matrix([Phi[self(i+1)-1] for i in inds])
+        M = Matrix([Phi[self.perm[i]] for i in inds])
         mat = W.base_change_matrix() * M
         mat.set_immutable()
         return mat
@@ -358,7 +358,7 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
         if not self_on_left:
             return self.action(vec, side="right")
 
-    def action_on_root_indices(self, i):
+    cpdef action_on_root_indices(self, i):
         """
         Return the right action on the set of roots.
 
@@ -387,7 +387,7 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
             sage: all(sorted([w.action_on_root_indices(i) for i in range(N)]) == list(range(N)) for w in W)   # optional - gap3
             True
         """
-        return self(i + 1) - 1
+        return self.perm[i]
 
     def action_on_root(self, root):
         r"""
@@ -678,12 +678,12 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
         r = self.reflection_length()
         R = W.reflections()
         I = W.reflection_index_set()
-        word = []
+        cdef list word = []
         while r > 0:
             for i in I:
                 w = R[i]._mul_(self)
                 if w.reflection_length() < r:
-                    word += [i]
+                    word.append(i)
                     r -= 1
                     self = w
                     break
@@ -708,7 +708,7 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
             [2, 1] 2
             [1, 2, 1] 3
         """
-        return len(self._reduced_word)
+        return ZZ(len(self._reduced_word))
 
     cpdef bint has_left_descent(self, i):
         r"""
@@ -727,7 +727,8 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
             False
         """
         W = self.parent()
-        return self(W._index_set_inverse[i]+1) > W.number_of_reflections()
+        # we also check == because 0-based indexing
+        return self.perm[W._index_set_inverse[i]] >= W.number_of_reflections()
 
     cpdef bint has_descent(self, i, side="left", positive=False):
         r"""
@@ -825,17 +826,18 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
             True
         """
         W = self.parent()
+        cdef RealReflectionGroupElement w
         if W._reflection_representation is None:
             if side == "left":
-                w = ~self
+                w = <RealReflectionGroupElement>(~self)
             elif side == "right":
-                w = self
+                w = <RealReflectionGroupElement>(self)
             else:
                 raise ValueError('side must be "left" or "right"')
 
             Delta = W.independent_roots()
             Phi = W.roots()
-            M = Matrix([Phi[w(Phi.index(alpha)+1)-1] for alpha in Delta])
+            M = Matrix([Phi[w.perm[Phi.index(alpha)]] for alpha in Delta])
             mat = W.base_change_matrix() * M
         else:
             refl_repr = W._reflection_representation
@@ -858,7 +860,7 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
 
     matrix = to_matrix
 
-    def action(self, vec, side="right", on_space="primal"):
+    cpdef action(self, vec, side="right", on_space="primal"):
         r"""
         Return the image of ``vec`` under the action of ``self``.
 
@@ -900,17 +902,23 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
         W = self.parent()
         n = W.rank()
         Phi = W.roots()
+        cdef RealReflectionGroupElement w
         if side == "right":
-            w = self
+            w = <RealReflectionGroupElement> self
         elif side == "left":
-            w = ~self
+            w = <RealReflectionGroupElement>(~self)
         else:
             raise ValueError('side must be "left" or "right"')
+        ret = Phi[0].parent().zero()
         if on_space == "primal":
-            return sum(vec[j] * Phi[w(j+1) - 1] for j in xrange(n))
+            for j in xrange(n):
+                ret += vec[j] * Phi[w.perm[j]]
+            return ret
         elif on_space == "dual":
-            w = ~w
-            return sum(Phi[w(j+1) - 1]*vec[j] for j in xrange(n))
+            w = <RealReflectionGroupElement>(~w)
+            for j in xrange(n):
+                ret += Phi[w.perm[j]] * vec[j]
+            return ret
         else:
             raise ValueError('on_space must be "primal" or "dual"')
 
@@ -947,7 +955,7 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
         else:
             return self.action(vec,side="right")
 
-    def action_on_root_indices(self, i, side="right"):
+    cpdef action_on_root_indices(self, i, side="right"):
         """
         Return the action on the set of roots.
 
@@ -978,7 +986,7 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
             w = ~self
         else:
             raise ValueError('side must be "left" or "right"')
-        return w(i + 1) - 1
+        return (<RealReflectionGroupElement>w).perm[i]
 
     def action_on_root(self, root, side="right"):
         r"""
@@ -1035,14 +1043,15 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
             [1] [(1, 0)]
             [1, 2] [(1, 0), (1, 1)]
             [2, 1] [(0, 1), (1, 1)]
-            [1, 2, 1] [(0, 1), (1, 0), (1, 1)]
+            [1, 2, 1] [(1, 0), (0, 1), (1, 1)]
 
             sage: W.from_reduced_word([1,2]).inversion_set(side="left") # optional - gap3
             [(0, 1), (1, 1)]
         """
-        Phi_plus = set(self.parent().positive_roots())
-        return [root for root in Phi_plus
-                if self.action_on_root(root,side=side) not in Phi_plus]
+        N = self.parent().number_of_reflections()
+        Phi = self.parent().roots()
+        return [Phi[i] for i in range(N)
+                if self.action_on_root_indices(i, side=side) >= N]
 
 def _gap_factorization(w, gens):
     r"""

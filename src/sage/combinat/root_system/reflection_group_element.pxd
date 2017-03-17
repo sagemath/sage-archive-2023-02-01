@@ -1,8 +1,10 @@
 from sage.groups.perm_gps.permgroup_element cimport PermutationGroupElement
 
 cdef class ComplexReflectionGroupElement(PermutationGroupElement):
-    pass
+    cpdef action_on_root_indices(self, i)
 
 cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
     cpdef bint has_left_descent(self, i)
     cpdef bint has_descent(self, i, side=*, positive=*)
+    cpdef action(self, vec, side=*, on_space=*)
+    cpdef action_on_root_indices(self, i, side=*)

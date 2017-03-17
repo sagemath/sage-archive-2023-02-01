@@ -36,7 +36,7 @@ from __future__ import print_function
 
 from sage.misc.misc import repr_lincomb
 from sage.monoids.free_monoid_element import FreeMonoidElement
-from sage.combinat.free_module import CombinatorialFreeModuleElement
+from sage.modules.with_basis.indexed_free_module_element import IndexedFreeModuleElement
 from sage.structure.element import AlgebraElement
 from sage.structure.sage_object import richcmp
 
@@ -45,7 +45,7 @@ import six
 
 
 # We need to have AlgebraElement first to avoid a segfault...
-class FreeAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement):
+class FreeAlgebraElement(AlgebraElement, IndexedFreeModuleElement):
     """
     A free algebra element.
     """
@@ -71,13 +71,13 @@ class FreeAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement):
         else:
             raise TypeError("Argument x (= {}) is of the wrong type.".format(x))
 
-        CombinatorialFreeModuleElement.__init__(self, A, x)
+        IndexedFreeModuleElement.__init__(self, A, x)
 
     # ...however AlgebraElement has a default error raising version of these
-    #   so we must explicitly pull them from CombinatorialFreeModuleElement
-    _add_ = CombinatorialFreeModuleElement._add_
-    _sub_ = CombinatorialFreeModuleElement._sub_
-    _neg_ = CombinatorialFreeModuleElement._neg_
+    #   so we must explicitly pull them from IndexedFreeModuleElement
+    _add_ = IndexedFreeModuleElement._add_
+    _sub_ = IndexedFreeModuleElement._sub_
+    _neg_ = IndexedFreeModuleElement._neg_
 
     def _repr_(self):
         """

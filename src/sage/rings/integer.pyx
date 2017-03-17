@@ -6706,14 +6706,15 @@ cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1:
 
 cpdef LCM_list(v):
     """
-    Return the LCM of a list v of integers. Elements of v are converted
-    to Sage integers if they aren't already.
+    Return the LCM of an interable ``v`` of integers.
+
+    Elements of ``v`` are converted to Sage integers if they aren't already.
 
     This function is used, e.g., by rings/arith.py
 
     INPUT:
 
-    -  ``v`` - list or tuple
+    -  ``v`` -- an iterable
 
     OUTPUT: integer
 
@@ -6733,28 +6734,61 @@ cpdef LCM_list(v):
         90
         sage: type(w)
         <type 'sage.rings.integer.Integer'>
+
+    TESTS::
+
+        sage: from sage.structure.sequence import Sequence
+        sage: from sage.rings.integer import LCM_list
+        sage: l = Sequence(())
+        sage: LCM_list(l)
+        1
+
+    This is because ``lcm(0,x) = 0`` for all ``x`` (by convention)::
+
+        sage: LCM_list(Sequence(srange(100)))
+        0
+
+    So for the lcm of all integers up to 10 you must do this::
+
+        sage: LCM_list(Sequence(srange(1,100)))
+        69720375229712477164533808935312303556800
+
+    Note that the following example did not work in QQ[] as of 2.11,
+    but does in 3.1.4; the answer is different, though equivalent::
+
+        sage: R.<X> = ZZ[]
+        sage: LCM_list(Sequence((2*X+4,2*X^2,2)))
+        2*X^3 + 4*X^2
+        sage: R.<X> = QQ[]
+        sage: LCM_list(Sequence((2*X+4,2*X^2,2)))
+        X^3 + 2*X^2
     """
-    cdef int i, n = len(v)
-    cdef Integer z = <Integer>PY_NEW(Integer)
-
-    for i from 0 <= i < n:
-        if not isinstance(v[i], Integer):
-            if not isinstance(v, list):
-                v = list(v)
-            v[i] = Integer(v[i])
-
-    if n == 0:
-        return one
-    elif n == 1:
-        return v[0].abs()
+    cdef Integer x, z = Integer(1)
 
     sig_on()
-    mpz_lcm(z.value, (<Integer>v[0]).value, (<Integer>v[1]).value)
-    for i from 2 <= i < n:
-        mpz_lcm(z.value, z.value, (<Integer>v[i]).value)
+    itr = iter(v)
+    for elt in itr:
+        if isinstance(elt, Integer):
+            x = (<Integer>elt)
+        elif isinstance(elt, (int, long, str)):
+            x = Integer(elt)
+        else:
+            a,b = coercion_model.canonical_coercion(z, elt)
+            ret = LCM_generic(itr, a.lcm(b))
+            sig_off()
+            return ret
+        mpz_lcm(z.value, z.value, x.value)
     sig_off()
 
     return z
+
+cdef LCM_generic(itr, ret):
+    for vi in itr:
+        a,b = coercion_model.canonical_coercion(vi, ret)
+        ret = a.lcm(b)
+        if not ret:
+            return ret
+    return ret
 
 def GCD_list(v):
     r"""

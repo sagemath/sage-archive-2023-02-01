@@ -1633,11 +1633,9 @@ def lcm(a, b=None):
 
     INPUT:
 
+    -  ``a,b`` -- two elements of a ring with lcm or
 
-    -  ``a,b`` - two elements of a ring with lcm or
-
-    -  ``a`` - a list or tuple of elements of a ring with
-       lcm
+    -  ``a`` -- a list or tuple of elements of a ring with lcm
 
     OUTPUT:
 
@@ -1709,6 +1707,14 @@ def lcm(a, b=None):
         4
         sage: lcm(4, 1/2)
         4
+
+    Check that we do not mutate the list (:trac:`22630`)::
+
+        sage: L = [int(1), int(2)]
+        sage: lcm(L)
+        2
+        sage: [type(x) for x in L]
+        [<type 'int'>, <type 'int'>]
     """
     # Most common use case first:
     if b is not None:
@@ -1721,70 +1727,12 @@ def lcm(a, b=None):
         except TypeError:
             raise TypeError("unable to find lcm")
 
-    from sage.structure.sequence import Sequence
-    seq = Sequence(a)
-    U = seq.universe()
-    if U is ZZ or U is int or U is long:
-        return LCM_list(a)
-    return __LCM_sequence(seq)
+    return LCM_list(a)
+
+from sage.misc.superseded import deprecated_function_alias
+__LCM_sequence = deprecated_function_alias(22630, LCM_list)
 
 LCM = lcm
-
-def __LCM_sequence(v):
-    """
-    Internal function returning the lcm of the elements of a sequence
-
-    INPUT:
-
-
-    -  ``v`` - A sequence (possibly empty)
-
-
-    OUTPUT: The lcm of the elements of the sequence as an element of
-    the sequence's universe, or the integer 1 if the sequence is
-    empty.
-
-    EXAMPLES::
-
-        sage: from sage.structure.sequence import Sequence
-        sage: from sage.arith.misc import __LCM_sequence
-        sage: l = Sequence(())
-        sage: __LCM_sequence(l)
-        1
-
-    This is because lcm(0,x)=0 for all x (by convention)
-
-    ::
-
-        sage: __LCM_sequence(Sequence(srange(100)))
-        0
-
-    So for the lcm of all integers up to 10 you must do this::
-
-        sage: __LCM_sequence(Sequence(srange(1,100)))
-        69720375229712477164533808935312303556800
-
-    Note that the following example did not work in QQ[] as of 2.11,
-    but does in 3.1.4; the answer is different, though equivalent::
-
-        sage: R.<X>=ZZ[]
-        sage: __LCM_sequence(Sequence((2*X+4,2*X^2,2)))
-        2*X^3 + 4*X^2
-        sage: R.<X>=QQ[]
-        sage: __LCM_sequence(Sequence((2*X+4,2*X^2,2)))
-        X^3 + 2*X^2
-    """
-    if len(v) == 0:
-        return ZZ(1)
-    try:
-        g = v.universe()(1)
-    except AttributeError:
-        g = ZZ(1)
-    for vi in v:
-        g = vi.lcm(g)
-        if not g:
-            return g
-    return g
 
 def xlcm(m, n):
     r"""

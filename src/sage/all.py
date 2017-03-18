@@ -27,8 +27,8 @@ except for the known bad apples::
     ....:     module = inspect.getmodule(frame)
     ....:     if module is None: return False
     ....:     return not any(module.__name__.startswith(name) for name in allowed)
-    sage: [inspect.getmodule(f) for f in frames if is_not_allowed(f)]
-    [<module 'sage.combinat.species.generating_series' from ...>]
+    sage: [inspect.getmodule(f).__name__ for f in frames if is_not_allowed(f)]
+    ['sage.combinat.species.generating_series']
 
 
 Check that the Sage Notebook is not imported at startup (see

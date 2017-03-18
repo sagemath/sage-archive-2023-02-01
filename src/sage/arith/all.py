@@ -22,7 +22,8 @@ from .misc import (algdep, bernoulli, is_prime, is_prime_power,
     Moebius, dedekind_sum,
     prime_factors, prime_range, valuation)
 
-from .functions import lcm, LCM
+from .functions import lcm
+LCM = lcm
 
 from .srange import xsrange, srange, ellipsis_iter, ellipsis_range
 sxrange = xsrange

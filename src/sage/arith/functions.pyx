@@ -5,16 +5,18 @@ Fast Arithmetic Functions
 #*****************************************************************************
 #       Copyright (C) 2017 Travis Scrimshaw <tcscrims at gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 include "cysignals/signals.pxi"
-from sage.libs.gmp.mpz cimport mpz_lcm
+from sage.libs.gmp.mpz cimport mpz_lcm, mpz_set_ui
 from sage.rings.integer cimport Integer
 from sage.structure.element cimport coercion_model
+
 
 def lcm(a, b=None):
     r"""
@@ -86,11 +88,11 @@ def lcm(a, b=None):
     Verify that objects without lcm methods but which can't be
     coerced to `\ZZ` or `\QQ` raise an error::
 
-        sage: F.<a,b> = FreeMonoid(2)
-        sage: lcm(a,b)
+        sage: F.<x,y> = FreeMonoid(2)
+        sage: lcm(x,y)
         Traceback (most recent call last):
         ...
-        TypeError: unable to find lcm
+        TypeError: unable to find lcm of x and y
 
     Check rational and integers (:trac:`17852`)::
 
@@ -107,28 +109,28 @@ def lcm(a, b=None):
         sage: [type(x) for x in L]
         [<type 'int'>, <type 'int'>]
     """
-    # Most common use case first:
-    if b is not None:
-        try:
-            return a.lcm(b)
-        except (AttributeError,TypeError):
-            pass
-        try:
-            return Integer(a).lcm(Integer(b))
-        except TypeError:
-            raise TypeError("unable to find lcm")
+    if b is None:
+        return LCM_list(a)
 
-    return LCM_list(a)
+    try:
+        return a.lcm(b)
+    except (AttributeError,TypeError):
+        pass
+    try:
+        return Integer(a).lcm(Integer(b))
+    except TypeError:
+        pass
+    raise TypeError(f"unable to find lcm of {a!r} and {b!r}")
 
-LCM = lcm
 
 cpdef LCM_list(v):
     """
-    Return the LCM of an interable ``v``.
+    Return the LCM of an iterable ``v``.
 
-    Elements of ``v`` are converted to Sage objects if they aren't already.
+    Elements of ``v`` are converted to Sage objects if they aren't
+    already.
 
-    This function is used, e.g., by :func:`~sage.arith.misc.lcm`.
+    This function is used, e.g., by :func:`~sage.arith.functions.lcm`.
 
     INPUT:
 
@@ -144,11 +146,9 @@ cpdef LCM_list(v):
         sage: type(w)
         <type 'sage.rings.integer.Integer'>
 
-    The inputs are converted to Sage integers.
+    The inputs are converted to Sage integers::
 
-    ::
-
-        sage: w = LCM_list([int(3), int(9), '30']); w
+        sage: w = LCM_list([int(3), int(9), int(30)]); w
         90
         sage: type(w)
         <type 'sage.rings.integer.Integer'>
@@ -160,10 +160,15 @@ cpdef LCM_list(v):
         sage: l = Sequence(())
         sage: LCM_list(l)
         1
+        sage: LCM_list([])
+        1
 
     This is because ``lcm(0,x) = 0`` for all ``x`` (by convention)::
 
         sage: LCM_list(Sequence(srange(100)))
+        0
+        sage: from six.moves import range
+        sage: LCM_list(range(100))
         0
 
     So for the lcm of all integers up to 10 you must do this::
@@ -180,29 +185,47 @@ cpdef LCM_list(v):
         sage: R.<X> = QQ[]
         sage: LCM_list(Sequence((2*X+4,2*X^2,2)))
         X^3 + 2*X^2
+
+    Passing strings works, but this is deprecated::
+
+        sage: LCM_list([int(3), int(9), '30'])
+        doctest:...: DeprecationWarning: passing strings to lcm() is deprecated
+        See http://trac.sagemath.org/22630 for details.
+        90
     """
-    cdef Integer x, z = Integer(1)
+    cdef Integer x
+    cdef Integer z = <Integer>(Integer.__new__(Integer))
+    mpz_set_ui(z.value, 1)
 
     itr = iter(v)
     for elt in itr:
         sig_check()
         if isinstance(elt, Integer):
-            x = (<Integer>elt)
-        elif isinstance(elt, (int, long, str)):
+            x = <Integer>elt
+        elif isinstance(elt, (int, long)):
+            x = Integer(elt)
+        elif isinstance(elt, str):
+            from sage.misc.superseded import deprecation
+            deprecation(22630, "passing strings to lcm() is deprecated")
             x = Integer(elt)
         else:
-            a,b = coercion_model.canonical_coercion(z, elt)
+            # The result is no longer an Integer, pass to generic code
+            a, b = coercion_model.canonical_coercion(z, elt)
             return LCM_generic(itr, a.lcm(b))
         mpz_lcm(z.value, z.value, x.value)
 
     return z
 
+
 cdef LCM_generic(itr, ret):
+    """
+    Return the least common multiple of the element ``ret`` and the
+    elements in the iterable ``itr``.
+    """
     for vi in itr:
         sig_check()
-        a,b = coercion_model.canonical_coercion(vi, ret)
+        a, b = coercion_model.canonical_coercion(vi, ret)
         ret = a.lcm(b)
         if not ret:
             return ret
     return ret
-

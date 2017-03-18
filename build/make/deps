@@ -80,6 +80,9 @@ toolchain-deps:
 # every part of Sage will work.  It does not include Maxima for example.
 SAGERUNTIME = sagelib $(SCRIPTS) $(inst_ipython) $(inst_pexpect) $(inst_psutil)
 
+sageruntime: all-toolchain
+	$(MAKE) $(SAGERUNTIME)
+
 
 # Start Sage at least once to check that it works
 # (i.e. when we just installed Sage for the first time).

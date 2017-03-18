@@ -63,7 +63,7 @@ def mma_free_integrator(expression, v, a=None, b=None):
                 break
         expression = expression.subs({x:shadow_x}).subs({dvar: x})
     params = urlencode({'expr': expression._mathematica_init_(), 'random': 'false'})
-    page = urlopen("http://integrals.wolfram.com/index.jsp", params).read()
+    page = urlopen("http://integrals.wolfram.com/home.jsp", params).read()
     page = page[page.index('"inputForm"'):page.index('"outputForm"')]
     page = re.sub("\s", "", page)
     mexpr = re.match(r".*Integrate.*==</em><br/>(.*)</p>", page).groups()[0]

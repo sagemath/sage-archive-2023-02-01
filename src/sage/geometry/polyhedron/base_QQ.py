@@ -103,6 +103,9 @@ class Polyhedron_QQ(Polyhedron_base):
         - ``use_Hrepresentation`` - (boolean; ``False`` by default) -- whether
           to send the H or V representation to LattE
 
+        - ``preprocess`` - (boolean; ``True`` by default) -- whether, if the integral hull
+          is known to lie in a coordinate hyperplane, to tighten bounds to reduce dimension
+
         .. SEEALSO::
 
             :mod:`~sage.interfaces.latte` the interface to LattE interfaces
@@ -145,13 +148,15 @@ class Polyhedron_QQ(Polyhedron_base):
             ...
             NotImplementedError: ...
 
-        "Fibonacci" knapsacks::
+        "Fibonacci" knapsacks (preprocessing helps a lot)::
 
             sage: def fibonacci_knapsack(d, b, backend=None):
             ....:     lp = MixedIntegerLinearProgram(base_ring=QQ)
             ....:     x = lp.new_variable(nonnegative=True)
             ....:     lp.add_constraint(lp.sum(fibonacci(i+3)*x[i] for i in range(d)) <= b)
             ....:     return lp.polyhedron(backend=backend)
+            sage: fibonacci_knapsack(20, 12).integral_points_count() # does not finish with preprocess=False
+            33
 
         TESTS:
 

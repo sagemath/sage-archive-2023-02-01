@@ -79,8 +79,15 @@ OPT=opt
 arg_LIBBUILDFLAGS=UNUSED=
 
 if [ `uname` = 'Darwin' ] ; then
-    CFLAGS="$CFLAGS -O3 -DTHREADLOCAL="
-    CXXFLAGS="$CXXFLAGS -O3 -DTHREADLOCAL="
+    # Using the GCC 5.4.0 shipped with Sage leads to segmentation fault.
+    # Override.
+    CXX=g++
+    PATH=/usr/bin:$PATH
+    if [ -d "$SAGE_LOCAL/libexec/ccache" ]; then
+        PATH="$SAGE_LOCAL/libexec/ccache:$PATH"
+    fi
+    CFLAGS="-DTHREADLOCAL="
+    CXXFLAGS="-DTHREADLOCAL="
     SHAREDLIBEXT="dylib"
     # regarding "-undefined dynamic_lookup" see https://trac.macports.org/ticket/44596
     arg_LIBBUILDFLAGS=LIBBUILDFLAGS="$LDFLAGS -dynamiclib -undefined dynamic_lookup -flat_namespace -install_name $SAGE_LOCAL/lib/libsoplex-$SOPLEX_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT -lgmp -lz"
@@ -93,7 +100,8 @@ cd $SRC/$SOPLEX_DIR
 ## The Makefile in soplex 2.2.1 forgets to add the library dependencies
 ## "-lgmp -lz", causing the link to fail on Mac OS X.
 LIBBUILDFLAGS="-lgmp -lz -lreadline"
-$MAKE VERBOSE=true OPT=$OPT ZLIB=true READLINE=true SHARED=true USRCFLAGS="$CFLAGS" USRCXXFLAGS="$CXXFLAGS" USRLDFLAGS="$LDFLAGS" "$arg_LIBBUILDFLAGS" SHAREDLIBEXT="$SHAREDLIBEXT"  INSTALLDIR="$SAGE_LOCAL" install
+# Put -Llib first, or otherwise the build will try link the soplex binary against an installed libsoplex from $SAGE_LOCAL/lib.
+$MAKE VERBOSE=true OPT=$OPT ZLIB=true READLINE=true SHARED=true CXX="$CXX" USRCFLAGS="$CFLAGS" USRCXXFLAGS="$CXXFLAGS" USRLDFLAGS="-Llib $LDFLAGS" "$arg_LIBBUILDFLAGS" SHAREDLIBEXT="$SHAREDLIBEXT"  INSTALLDIR="$SAGE_LOCAL" install
 
 if [ $? -ne 0 ]; then
     echo "Error building SOPLEX."

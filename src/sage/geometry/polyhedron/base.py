@@ -4115,7 +4115,7 @@ class Polyhedron_base(Element):
         if is_package_installed('latte_int'):
             from sage.interfaces.latte import integrate
             if self.base_ring() == RDF:
-                raise ValueError("LattE integrale cannot be applied over inexact rings.")
+                raise TypeError("LattE integrale cannot be applied over inexact rings.")
             elif not self.is_full_dimensional():
                 raise NotImplementedError("The polytope must be full-dimensional.")
             else:

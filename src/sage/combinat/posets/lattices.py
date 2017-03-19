@@ -3768,8 +3768,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         for e in L:
             low = L.lower_covers(e)
             if len(low) == 1:  # a join-irreducible element
-                C[e] = congs[max(e, key=lambda x: cong_ji._element_to_vertex(x))]
-            if len(low) > 1:  # "extending" congruence to avoid re-computation
+                C[e] = congs[max(e, key=cong_ji._element_to_vertexx)]
+            elif low:  # "extending" congruence to avoid re-computation
                 low_0 = min(low, key=lambda x: C[x].number_of_subsets())
                 for new_pair in e:
                     if new_pair not in low_0:

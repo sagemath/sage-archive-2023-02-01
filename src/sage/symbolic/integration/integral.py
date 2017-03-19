@@ -763,7 +763,13 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: assume(abs(sqrt(1-c^2)-1) - abs(c) > 0)
         sage: integrate(cos(w+T) / (1+c*cos(T))^2, T, 0, 2*pi)
         2*pi*sqrt(-c^2 + 1)*c*cos(w)/(c^4 - 2*c^2 + 1)
-
+        
+    Check that :trac:`17968` is fixed::
+    
+        sage: N(integrate(exp(x^3), (x, 1, 2)), prec=54).real_part()    # abs tol 1e-13
+        275.510983763312
+        sage: N(integrate(exp(x^3), (x, 1, 2)))    # known bug (non-zero imag part)
+        275.510983763312
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:

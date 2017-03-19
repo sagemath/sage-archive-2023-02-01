@@ -16,6 +16,7 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import ModuleElement
+from sage.structure.sage_object import richcmp
 from sage.categories.category_types import ChainComplexes
 from sage.categories.tensor import tensor
 from sage.combinat.free_module import CombinatorialFreeModule
@@ -676,9 +677,9 @@ class HochschildComplex(UniqueRepresentation, Parent):
                     vectors[d] = vec
             return self.__class__(self.parent(), vectors)
 
-        def __eq__(self, other):
+        def _richcmp_(self, other, op):
             """
-            Return ``True`` if ``self`` is equal to ``other``.
+            Rich comparison of ``self`` to ``other``.
 
             EXAMPLES::
 
@@ -693,22 +694,7 @@ class HochschildComplex(UniqueRepresentation, Parent):
                 True
                 sage: a == H.zero()
                 False
-            """
-            return (type(self) == type(other)
-                    and self.parent() is other.parent()
-                    and self._vec == other._vec)
 
-        def __ne__(self, other):
-            """
-            Return ``True`` if ``self`` is not equal to ``other``.
-
-            EXAMPLES::
-
-                sage: F.<x,y> = FreeAlgebra(ZZ)
-                sage: H = F.hochschild_complex(F)
-                sage: a = H({0: x - y,
-                ....:        1: H.free_module(1).basis().an_element(),
-                ....:        2: H.free_module(2).basis().an_element()})
                 sage: a != 3*a
                 True
                 sage: a + a != 2*a
@@ -716,5 +702,5 @@ class HochschildComplex(UniqueRepresentation, Parent):
                 sage: a != H.zero()
                 True
             """
-            return not self == other
+            return richcmp(self._vec, other._vec, op)
 

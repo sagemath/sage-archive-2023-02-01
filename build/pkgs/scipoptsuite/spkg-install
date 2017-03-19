@@ -79,11 +79,8 @@ OPT=opt
 arg_LIBBUILDFLAGS=UNUSED=
 
 if [ `uname` = 'Darwin' ] ; then
-    # The compiler flags that come with "OPT=opt" on Mac OS X lead to a segfault in SCIP during a call to Soplex. ("stack_not_16_byte_aligned_error")
-    OPT=dbg
-    # instead supply some of our own optimization flags
-    CFLAGS="$CFLAGS -O3"
-    CXXFLAGS="$CXXFLAGS -O3"
+    CFLAGS="$CFLAGS -O3 -DTHREADLOCAL="
+    CXXFLAGS="$CXXFLAGS -O3 -DTHREADLOCAL="
     SHAREDLIBEXT="dylib"
     # regarding "-undefined dynamic_lookup" see https://trac.macports.org/ticket/44596
     arg_LIBBUILDFLAGS=LIBBUILDFLAGS="$LDFLAGS -dynamiclib -undefined dynamic_lookup -flat_namespace -install_name $SAGE_LOCAL/lib/libsoplex-$SOPLEX_VERSION.$OS.$ARCH.gnu.$OPT.$SHAREDLIBEXT -lgmp -lz"

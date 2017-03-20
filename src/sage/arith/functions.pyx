@@ -106,8 +106,8 @@ def lcm(a, b=None):
         sage: L = [int(1), int(2)]
         sage: lcm(L)
         2
-        sage: [type(x) for x in L]
-        [<type 'int'>, <type 'int'>]
+        sage: [type(x).__name__ for x in L]
+        ['int', 'int']
     """
     if b is None:
         return LCM_list(a)

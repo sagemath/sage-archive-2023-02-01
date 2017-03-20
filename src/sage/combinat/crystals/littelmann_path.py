@@ -967,11 +967,11 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
                 sage: b = LS.module_generators[0]
                 sage: c = b.f(1).f(3).f(2)
                 sage: c.weyl_group_representation()
-                [s2*s3*s1, s3*s1]
+                [s2*s1*s3, s1*s3]
             """
             cartan = self.parent().weight.parent().cartan_type().classical()
             I = cartan.index_set()
-            W = WeylGroup(cartan,prefix='s')
+            W = WeylGroup(cartan, prefix='s', implementation="permutation")
             return [W.from_reduced_word(x.to_dominant_chamber(index_set=I, reduced_word=True)[1]) for x in self.value]
 
         @cached_in_parent_method
@@ -1131,7 +1131,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
             ct = P.cartan_type()
             cartan = ct.classical()
             Qv = RootSystem(cartan).coroot_lattice()
-            W = WeylGroup(cartan,prefix='s')
+            W = WeylGroup(cartan, prefix='s', implementation="permutation")
             J = tuple(weight.weyl_stabilizer())
             L = self.weyl_group_representation()
             if ct.is_untwisted_affine() or ct.type() == 'BC':
@@ -1140,7 +1140,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
             else:
                 untwisted = False
                 cartan_dual = cartan.dual()
-                Wd = WeylGroup(cartan_dual, prefix='s')
+                Wd = WeylGroup(cartan_dual, prefix='s', implementation="permutation")
                 G = Wd.quantum_bruhat_graph(J)
                 Qd = RootSystem(cartan_dual).root_lattice()
                 dualize = lambda x: Qv.from_vector(x.to_vector())

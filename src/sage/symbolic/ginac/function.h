@@ -354,6 +354,8 @@ public:
     function(unsigned ser, const ex & param1);
     function(unsigned ser, const ex & param1, const ex & param2);
     function(unsigned ser, const ex & param1, const ex & param2, const ex & param3);
+    function(unsigned ser, const ex & param1, const ex & param2, const ex & param3, const ex & param4);
+    function(unsigned ser, const ex & param1, const ex & param2, const ex & param3, const ex & param4, const ex & param5);
     function(unsigned ser, const ex & param1, const ex & param2, const ex & param3, const ex & param4, const ex & param5, const ex & param6);
 	// end of generated lines
 	function(unsigned ser, exprseq  es);

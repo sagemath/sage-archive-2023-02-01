@@ -553,6 +553,16 @@ function::function(unsigned ser, const ex & param1, const ex & param2, const ex 
 {
 	tinfo_key = &function::tinfo_static;
 }
+function::function(unsigned ser, const ex & param1, const ex & param2, const ex & param3, const ex & param4)
+	: exprseq(param1, param2, param3, param4), serial(ser)
+{
+	tinfo_key = &function::tinfo_static;
+}
+function::function(unsigned ser, const ex & param1, const ex & param2, const ex & param3, const ex & param4, const ex & param5)
+	: exprseq(param1, param2, param3, param4, param5), serial(ser)
+{
+	tinfo_key = &function::tinfo_static;
+}
 function::function(unsigned ser, const ex & param1, const ex & param2, const ex & param3, const ex & param4, const ex & param5, const ex & param6)
 	: exprseq(param1, param2, param3, param4, param5, param6), serial(ser)
 {
@@ -901,6 +911,9 @@ ex function::eval(int level) const
 	case 3:
 		eval_result = ((eval_funcp_3)(opt.eval_f))(seq[1-1], seq[2-1], seq[3-1]);
 		break;
+	case 6:
+		eval_result = ((eval_funcp_6)(opt.eval_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1]);
+		break;
 
 		// end of generated lines
 	default:
@@ -963,6 +976,8 @@ ex function::evalf(int level, PyObject* kwds) const
 		return ((evalf_funcp_2)(opt.evalf_f))(eseq[1-1], eseq[2-1], kwds);
 	case 3:
 		return ((evalf_funcp_3)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], kwds);
+	case 6:
+		return ((evalf_funcp_6)(opt.evalf_f))(eseq[1-1], eseq[2-1], eseq[3-1], eseq[4-1], eseq[5-1], eseq[6-1], kwds);
 
 		// end of generated lines
 	}
@@ -1454,6 +1469,8 @@ ex function::pderivative(unsigned diff_param) const // partial differentiation
 		return ((derivative_funcp_2)(opt.derivative_f))(seq[1-1], seq[2-1],diff_param);
 	case 3:
 		return ((derivative_funcp_3)(opt.derivative_f))(seq[1-1], seq[2-1], seq[3-1],diff_param);
+	case 6:
+		return ((derivative_funcp_6)(opt.derivative_f))(seq[1-1], seq[2-1], seq[3-1], seq[4-1], seq[5-1], seq[6-1], diff_param);
 
 		// end of generated lines
 	}

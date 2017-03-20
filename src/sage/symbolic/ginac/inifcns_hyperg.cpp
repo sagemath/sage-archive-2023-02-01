@@ -35,6 +35,7 @@
 #include "symbol.h"
 #include "pseries.h"
 #include "utils.h"
+#include "py_funcs.h"
 
 #include <vector>
 #include <stdexcept>
@@ -43,6 +44,49 @@
 #include <memory>
 
 namespace GiNaC {
+
+inline void py_error(const char* errmsg) {
+        throw std::runtime_error((PyErr_Occurred() != nullptr) ? errmsg:
+                        "pyerror() called but no error occurred!");
+}
+
+// Creates the hypergeometric Python BuiltinFunction object
+ex _2F1(ex a, ex b, ex c, ex x)
+{
+        exvector avec, bvec;
+        avec.push_back(a);
+        avec.push_back(b);
+        bvec.push_back(c);
+        PyObject *lista = py_funcs.exvector_to_PyTuple(avec);
+        PyObject *listb = py_funcs.exvector_to_PyTuple(bvec);
+        PyObject *z = py_funcs.ex_to_pyExpression(x);
+
+        PyObject* m = PyImport_ImportModule("sage.functions.hypergeometric");
+        if (m == nullptr)
+                py_error("Error importing hypergeometric");
+        PyObject* hypfunc = PyObject_GetAttrString(m, "hypergeometric");
+        if (hypfunc == nullptr)
+                py_error("Error getting hypergeometric attribute");
+
+        PyObject* name = PyString_FromString(const_cast<char*>("__call__"));
+        PyObject* pyresult = PyObject_CallMethodObjArgs(hypfunc, name, lista, listb, z, NULL);
+        Py_DECREF(m);
+        Py_DECREF(name);
+        Py_DECREF(hypfunc);
+        if (pyresult == nullptr) {
+                throw(std::runtime_error("numeric::hypergeometric_pFq(): python function hypergeometric::__call__ raised exception"));
+        }
+        if ( pyresult == Py_None ) {
+                throw(std::runtime_error("numeric::hypergeometric_pFq(): python function hypergeometric::__call__ returned None"));
+        }
+        // convert output Expression to an ex
+        ex eval_result = py_funcs.pyExpression_to_ex(pyresult);
+        Py_DECREF(pyresult);
+        if (PyErr_Occurred() != nullptr) {
+                throw(std::runtime_error("numeric::hypergeometric_pFq(): python function (Expression_to_ex) raised exception"));
+        }
+        return eval_result;
+}
 
 
 //////////
@@ -68,6 +112,15 @@ static ex appellf1_eval(const ex& a, const ex& b1, const ex& b2, const ex& c, co
             and is_exactly_a<numeric>(x) and is_exactly_a<numeric>(y)) {
                 return appellf1_evalf(a, b1, b2, c, x, y, nullptr);
 	}
+
+        if (x.is_zero())
+                return _2F1(a, b2, c, y);
+        if (y.is_zero())
+                return _2F1(a, b1, c, x);
+        if (x.is_equal(y))
+                return _2F1(a, b1+b2, c, x);
+        if (c.is_equal(b1+b2))
+                return power(1-y, -a) * _2F1(a, b1, b1+b2, (x-y)/(_ex1-y));
 
 	return appell_F1(a, b1, b2, c, x, y).hold();
 }

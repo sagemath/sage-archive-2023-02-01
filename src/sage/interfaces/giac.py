@@ -1158,20 +1158,6 @@ def __doctest_cleanup():
     """
     import sage.interfaces.quit
     sage.interfaces.quit.expect_quitall()
-
-def _un_camel(name):
-    """
-    Convert `CamelCase` to `camel_case`.
-
-    EXAMPLES::
-
-    sage: sage.interfaces.giac._un_camel('Heaviside')
-    'heaviside'
-    """
-    import re
-    
-    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
-    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
     
 def _giac2sage(ex):
     """

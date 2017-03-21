@@ -1259,7 +1259,7 @@ lim = limit
 ###################################################################
 # Laplace transform
 ###################################################################
-def laplace(ex, t, s, engine='maxima'):
+def laplace(ex, t, s, algorithm='maxima'):
     r"""
     Return the Laplace transform with respect to the variable `t` and 
     transform parameter `s`, if possible.
@@ -1284,7 +1284,7 @@ def laplace(ex, t, s, engine='maxima'):
 
     - ``s`` - transform parameter
 
-    - ``engine`` - (default: ``'maxima'``)  one of
+    - ``algorithm`` - (default: ``'maxima'``)  one of
 
       - ``'maxima'`` - use Maxima (the default)
 
@@ -1294,7 +1294,7 @@ def laplace(ex, t, s, engine='maxima'):
     
     NOTES:
     
-    - The ``'sympy'` engine returns the tuple (F, a, cond) where $F(s)$ is the Laplace 
+    - The ``'sympy'` algorithm returns the tuple (F, a, cond) where $F(s)$ is the Laplace 
       transform of $f(t)$, $Re(s)>a$ is the half-plane of convergence, and cond 
       are auxiliary convergence conditions.
     
@@ -1376,15 +1376,15 @@ def laplace(ex, t, s, engine='maxima'):
         sage: laplace(heaviside(t-1), t, s)
         laplace(heaviside(t - 1), t, s)
     
-    Heaviside step function can be handled with differente engines. 
+    Heaviside step function can be handled with different interfaces. 
     Try with giac::
         
-        sage: laplace(heaviside(t-1), t, s, engine='giac')
+        sage: laplace(heaviside(t-1), t, s, algorithm='giac')
         e^(-s)/s
         
     Try with SymPy::
     
-        sage: laplace(heaviside(t-1), t, s, engine='sympy')
+        sage: laplace(heaviside(t-1), t, s, algorithm='sympy')
         (e^(-s)/s, 0, True)         
 
     TESTS::
@@ -1393,31 +1393,31 @@ def laplace(ex, t, s, engine='maxima'):
 
         sage: var('t, s')
         (t, s)
-        sage: laplace(5*cos(3*t-2)*heaviside(t-2), t, s, engine='giac')
+        sage: laplace(5*cos(3*t-2)*heaviside(t-2), t, s, algorithm='giac')
         5*(s*cos(4)*e^(-2*s) - 3*e^(-2*s)*sin(4))/(s^2 + 9)
         
     Testing unevaluated expression from Giac::
 
         sage: var('n')
         n
-        sage: laplace(t^n, t, s, engine='giac')
+        sage: laplace(t^n, t, s, algorithm='giac')
         Traceback (most recent call last):
         ...
         NotImplementedError: Unable to parse Giac output: integrate(t^n*exp(-s*t),t,0,+infinity)
         
     Testing SymPy::
 
-        sage: laplace(t^n, t, s, engine='sympy')
+        sage: laplace(t^n, t, s, algorithm='sympy')
         (s^(-n)*gamma(n + 1)/s, 0, -re(n) < 1)
         
     Testing Maxima::
 
-        sage: laplace(t^n, t, s, engine='maxima')
+        sage: laplace(t^n, t, s, algorithm='maxima')
         s^(-n - 1)*gamma(n + 1)    
             
     Testing expression that is not parsed from SymPy to Sage::
 
-        sage: laplace(cos(t^2), t, s, engine='sympy')
+        sage: laplace(cos(t^2), t, s, algorithm='sympy')
         Traceback (most recent call last):
         ...
         AttributeError: Unable to convert SymPy result (=sqrt(pi)*(sqrt(2)*sin(s**2/4)*fresnelc(sqrt(2)*s/(2*sqrt(pi))) - 
@@ -1426,10 +1426,10 @@ def laplace(ex, t, s, engine='maxima'):
     if not isinstance(ex, (Expression, Function)):
         ex = SR(ex)
 
-    if engine == 'maxima':
+    if algorithm == 'maxima':
         return ex.parent()(ex._maxima_().laplace(var(t), var(s)))
 
-    elif engine == 'sympy':
+    elif algorithm == 'sympy':
         ex_sy, t, s = [expr._sympy_() for expr in (ex, t, s)]
         from sympy import laplace_transform
         result = laplace_transform(ex_sy, t, s)
@@ -1445,7 +1445,7 @@ def laplace(ex, t, s, engine='maxima'):
         else:
             return result
 
-    elif engine == 'giac':
+    elif algorithm == 'giac':
         ex_gi = "laplace(%s, %s, %s)" % tuple([repr(expr._giac_()) for expr in (ex, t, s)])
         from sage.interfaces.giac import giac
         try:
@@ -1455,9 +1455,9 @@ def laplace(ex, t, s, engine='maxima'):
         return result.sage() 
 
     else:
-        raise ValueError("Unknown engine: %s" % engine)
+        raise ValueError("Unknown algorithm: %s" % algorithm)
 
-def inverse_laplace(ex, s, t, engine='maxima'):
+def inverse_laplace(ex, s, t, algorithm='maxima'):
     r"""
     Return the inverse Laplace transform with respect to the variable `t` and 
     transform parameter `s`, if possible.
@@ -1485,7 +1485,7 @@ def inverse_laplace(ex, s, t, engine='maxima'):
 
     - ``t`` - independent variable
 
-    - ``engine`` - (default: ``'maxima'``)  one of
+    - ``algorithm`` - (default: ``'maxima'``)  one of
 
       - ``'maxima'`` - use Maxima (the default)
 
@@ -1519,23 +1519,23 @@ def inverse_laplace(ex, s, t, engine='maxima'):
     
     Transform an expression involving time-shifts with SymPy::
 
-        sage: inverse_laplace(1/s^2*exp(-s), s, t, engine='sympy')
+        sage: inverse_laplace(1/s^2*exp(-s), s, t, algorithm='sympy')
         -(log(e^(-t)) + 1)*heaviside(t - 1)
 
     The same instance with Giac::
     
-        sage: inverse_laplace(1/s^2*exp(-s), s, t, engine='giac')
+        sage: inverse_laplace(1/s^2*exp(-s), s, t, algorithm='giac')
         (t - 1)*heaviside(t - 1)
         
     Transform a rational expression::
                     
-        sage: inverse_laplace((2*s^2*exp(-2*s) - exp(-s))/(s^3+1), s, t, engine='giac')
+        sage: inverse_laplace((2*s^2*exp(-2*s) - exp(-s))/(s^3+1), s, t, algorithm='giac')
         -1/3*(sqrt(3)*e^(1/2*t - 1/2)*sin(1/2*sqrt(3)*(t - 1)) - cos(1/2*sqrt(3)*(t - 1))*e^(1/2*t - 1/2) + 
         e^(-t + 1))*heaviside(t - 1) + 2/3*(2*cos(1/2*sqrt(3)*(t - 2))*e^(1/2*t - 1) + e^(-t + 2))*heaviside(t - 2)
         
     Dirac delta function can also be handled::
     
-        sage: inverse_laplace(1, s, t, engine='giac')
+        sage: inverse_laplace(1, s, t, algorithm='giac')
         dirac_delta(t)
                 
     TESTS::
@@ -1549,40 +1549,40 @@ def inverse_laplace(ex, s, t, engine='maxima'):
         
     Testing Giac::
 
-        sage: inverse_laplace(exp(-s)/s, s, t, engine='giac')
+        sage: inverse_laplace(exp(-s)/s, s, t, algorithm='giac')
         heaviside(t - 1)
     
     Testing SymPy::
     
-        sage: inverse_laplace(exp(-s)/s, s, t, engine='sympy')
+        sage: inverse_laplace(exp(-s)/s, s, t, algorithm='sympy')
         heaviside(t - 1)    
         
     Testing unevaluated expression from Giac::
     
         sage: n = var('n')
-        sage: inverse_laplace(1/s^n, s, t, engine='giac')
+        sage: inverse_laplace(1/s^n, s, t, algorithm='giac')
         Traceback (most recent call last):
         ...
         NotImplementedError: Unable to parse Giac output: ilaplace([s^(-n),s,t])
         
     Try with Maxima::
     
-        sage: inverse_laplace(1/s^n, s, t, engine='maxima')
+        sage: inverse_laplace(1/s^n, s, t, algorithm='maxima')
         ilt(1/(s^n), s, t)
     
     Try with SymPy::
     
-        sage: inverse_laplace(1/s^n, s, t, engine='sympy')
+        sage: inverse_laplace(1/s^n, s, t, algorithm='sympy')
         t^(n - 1)*heaviside(t)/gamma(n)
     
     Testing unevaluated expression from sympy::
     
-        sage: inverse_laplace(cos(s), s, t, engine='sympy')
+        sage: inverse_laplace(cos(s), s, t, algorithm='sympy')
         ilt(cos(s), t, s)
     
     Testing unevaluated expression from giac::
     
-        sage: inverse_laplace(cos(s), s, t, engine='giac')
+        sage: inverse_laplace(cos(s), s, t, algorithm='giac')
         Traceback (most recent call last):
         ...
         NotImplementedError: Unable to parse Giac output: ilaplace([cos(s),s,t])
@@ -1590,10 +1590,10 @@ def inverse_laplace(ex, s, t, engine='maxima'):
     if not isinstance(ex, Expression):
         ex = SR(ex)
 
-    if engine == 'maxima':
+    if algorithm == 'maxima':
         return ex.parent()(ex._maxima_().ilt(var(s), var(t)))
 
-    elif engine == 'sympy':
+    elif algorithm == 'sympy':
         ex_sy, s, t = [expr._sympy_() for expr in (ex, s, t)]
         from sympy import inverse_laplace_transform
         result = inverse_laplace_transform(ex_sy, s, t)
@@ -1606,7 +1606,7 @@ def inverse_laplace(ex, s, t, engine='maxima'):
                 raise AttributeError("Unable to convert SymPy result (={}) into"
                                     " Sage".format(result))
 
-    elif engine == 'giac':
+    elif algorithm == 'giac':
         ex_gi = "invlaplace(%s, %s, %s)" % tuple([repr(expr._giac_()) for expr in (ex, s, t)])
         from sage.interfaces.giac import giac
         try:
@@ -1616,7 +1616,7 @@ def inverse_laplace(ex, s, t, engine='maxima'):
         return result.sage() 
 
     else:
-        raise ValueError("Unknown engine: %s" % engine)
+        raise ValueError("Unknown algorithm: %s" % algorithm)
 
 ###################################################################
 # symbolic evaluation "at" a point

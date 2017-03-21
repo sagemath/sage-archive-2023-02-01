@@ -1,0 +1,13 @@
+diff --git a/Modules/_struct.c b/Modules/_struct.c
+index ad9959e..0a5e5ed 100644
+--- a/Modules/_struct.c
++++ b/Modules/_struct.c
+@@ -1627,7 +1627,7 @@ unpackiter_iternext(unpackiterobject *self)
+ }
+ 
+ static PyTypeObject unpackiter_type = {
+-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
++    PyVarObject_HEAD_INIT(NULL, 0)
+     "unpack_iterator",                          /* tp_name */
+     sizeof(unpackiterobject),                   /* tp_basicsize */
+     0,                                          /* tp_itemsize */

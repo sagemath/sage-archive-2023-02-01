@@ -122,10 +122,29 @@ cdef class InstanceDocDescriptor:
     cdef instancedoc
 
     def __init__(self, classdoc, instancedoc):
+        """
+        TESTS::
+
+            sage: from sage.docs.instancedoc import InstanceDocDescriptor
+            sage: InstanceDocDescriptor(None, None)
+            <sage.docs.instancedoc.InstanceDocDescriptor object at ...>
+        """
         self.classdoc = classdoc
         self.instancedoc = instancedoc
 
     def __get__(self, obj, typ):
+        """
+        TESTS::
+
+            sage: from sage.docs.instancedoc import InstanceDocDescriptor
+            sage: def instancedoc(self):
+            ....:     return "Doc for {!r}".format(self)
+            sage: descr = InstanceDocDescriptor("Class doc", instancedoc)
+            sage: descr.__get__(None, object)
+            'Class doc'
+            sage: descr.__get__(42, type(42))
+            'Doc for 42'
+        """
         if obj is None:
             return self.classdoc
         else:

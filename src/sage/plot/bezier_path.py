@@ -270,6 +270,38 @@ def bezier_path(path, **options):
     connecting that endpoint with the control point immediately after or
     immediately preceding it in the list.
 
+    .. PLOT::
+
+        p1 = (0,0)
+        c1 = (1,1)
+        c2 = (1.5,0.5)
+        p2 = (4,-1)
+        c3 = (3.5,0)
+        c4 = (2,1)
+        p3 = (0,2)
+        c5 = (0.5,3)
+        p4 = (1.5,2)
+        p5 = (0,4)
+        path = [[p1, c1, c2, p2], [c3, c4, p3], [c5, p4], [p5]]
+        P = bezier_path(path)
+        P += line([p1,c1], color="red", linestyle="dashed")
+        P += line([p2,c2], color="red", linestyle="dashed")
+        P += line([p2,c3], color="red", linestyle="dashed")
+        P += line([p3,c4], color="red", linestyle="dashed")
+        P += line([p3,c5], color="red", linestyle="dashed")
+        P += text("c1", c1, horizontal_alignment='left')
+        P += text("c2", c2, horizontal_alignment='left')
+        P += text("c3", c3, horizontal_alignment='left')
+        P += text("c4", c4, horizontal_alignment='left')
+        P += text("c5", c5, horizontal_alignment='left')
+        P += text("p1", p1, horizontal_alignment='left')
+        P += text("p2", p2, horizontal_alignment='left')
+        P += text("p3", p3, horizontal_alignment='left')
+        P += text("p4", p4, horizontal_alignment='left')
+        P += text("p5", p5, horizontal_alignment='left')
+        P += point([c1, c2, c3, c4, c5])
+        sphinx_plot(P)
+
     So in our example above, the curve between p1 and p2 is tangent to the
     line through p1 and c1 at p1, and tangent to the line through p2 and c2
     at p2.  Similarly, the curve between p2 and p3 is tangent to line(p2,c3)

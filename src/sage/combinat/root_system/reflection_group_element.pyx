@@ -51,7 +51,7 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
 
         .. SEEALSO:: :meth:`reduced_word_in_reflections`
         """
-        I = self.parent()._index_set
+        I = self._parent._index_set
         return [I[i] for i in self._reduced_word]
 
     @lazy_attribute
@@ -66,7 +66,7 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
             sage: w._reduced_word                                   # optional - gap3
             [0]
         """
-        W = self.parent()
+        W = self._parent
         gens = [W.simple_reflection(j) for j in W._index_set]
         return _gap_factorization(self, gens)
 
@@ -86,10 +86,10 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
         if self.is_one():
             return []
 
-        W = self.parent()
+        W = self._parent
         gens = [W.reflection(j) for j in W._reflection_index_set]
         word = _gap_factorization(self, gens)
-        return [self.parent()._reflection_index_set[i] for i in word]
+        return [self._parent._reflection_index_set[i] for i in word]
 
     def length(self):
         r"""
@@ -238,13 +238,13 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
             [     0 E(3)^2], [   0 E(3)]
             ]
         """
-        W = self.parent()
+        W = self._parent
         if W._reflection_representation is None:
             mat = self.canonical_matrix()
         else:
             refl_repr = W._reflection_representation
             id_mat = identity_matrix(QQ, refl_repr[W.index_set()[0]].nrows())
-            mat = prod([refl_repr[i] for i in self.reduced_word()], id_mat)
+            mat = prod((refl_repr[i] for i in self.reduced_word()), id_mat)
 
         if on_space == "primal":
             pass
@@ -287,11 +287,10 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
             [ 0 -1]
             [-1  0]
         """
-        W = self.parent()
+        W = self._parent
         Phi = W.roots()
-        inds = [W._index_set_inverse[i] for i in W.independent_roots().keys()]
-        M = Matrix([Phi[self.perm[i]] for i in inds])
-        mat = W.base_change_matrix() * M
+        cdef list inds = [W._index_set_inverse[i] for i in W.independent_roots().keys()]
+        mat = W.base_change_matrix() * Matrix([Phi[self.perm[i]] for i in inds])
         mat.set_immutable()
         return mat
 
@@ -403,7 +402,7 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
             sage: all(sorted([w.action_on_root(beta) for beta in Phi]) == Phi for w in W)   # optional - gap3
             True
         """
-        Phi = self.parent().roots()
+        Phi = self._parent.roots()
         return Phi[self.action_on_root_indices(Phi.index(root))]
 
     def to_permutation_of_roots(self):
@@ -473,7 +472,7 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
             [0 1 0]
             [0 0 1]
         """
-        I = identity_matrix(QQ, self.parent().rank())
+        I = identity_matrix(QQ, self._parent.rank())
         return (self.to_matrix() - I).right_kernel()
 
     #@cached_in_parent_method
@@ -516,7 +515,7 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
             [1/2, 1/2]
             [1/4, 3/4]
         """
-        return self.parent().reflection_eigenvalues(self, is_class_representative=is_class_representative)
+        return self._parent.reflection_eigenvalues(self, is_class_representative=is_class_representative)
 
     #@cached_in_parent_method
     def galois_conjugates(self):
@@ -616,11 +615,12 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
              [ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2]
              [-2/3*E(3) + 2/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2]]
         """
-        rk = self.parent().rank()
+        rk = self._parent.rank()
         M = self.to_matrix().list()
         m = lcm([x.conductor() if hasattr(x,"conductor") else 1 for x in M])
-        M_gals = [x.galois_conjugates(m) if hasattr(x,"galois_conjugates") else [x] for x in M]
-        conjugates = []
+        cdef list M_gals = [x.galois_conjugates(m) if hasattr(x,"galois_conjugates") else [x] for x in M]
+        cdef list conjugates = []
+        cdef int i
         for i in xrange(len(M_gals[0])):
             conjugates.append(Matrix(rk, [X[i] for X in M_gals]))
         return conjugates
@@ -638,7 +638,7 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
             sage: [w._reduced_word for w in W]                      # optional - gap3
             [[], [1], [0], [0, 1], [1, 0], [0, 1, 0]]
         """
-        return reduced_word_c(self.parent(),self)
+        return reduced_word_c(self._parent, self)
 
     def reduced_word_in_reflections(self):
         r"""
@@ -660,14 +660,15 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
         if self.is_one():
             return []
 
-        W = self.parent()
+        W = self._parent
         r = self.reflection_length()
         R = W.reflections()
         I = W.reflection_index_set()
         cdef list word = []
+        cdef RealReflectionGroupElement w
         while r > 0:
             for i in I:
-                w = R[i]._mul_(self)
+                w = <RealReflectionGroupElement>(R[i]._mul_(self))
                 if w.reflection_length() < r:
                     word.append(i)
                     r -= 1
@@ -712,7 +713,7 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
             sage: (s[1]*s[2]).has_left_descent(2)                   # optional - gap3
             False
         """
-        W = self.parent()
+        W = self._parent
         # we also check == because 0-based indexing
         return self.perm[W._index_set_inverse[i]] >= W.number_of_reflections()
 
@@ -741,7 +742,7 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
         if not isinstance(positive, bool):
             raise TypeError("%s is not a boolean"%(bool))
 
-        if i not in self.parent().index_set():
+        if i not in self._parent.index_set():
             raise ValueError("the given index %s is not in the index set"%i)
 
         negative = not positive
@@ -811,7 +812,7 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
             sage: all(w.to_matrix(side="right") == W.from_reduced_word(reversed(w.reduced_word())).to_matrix(side="left").transpose() for w in W) # optional - gap3
             True
         """
-        W = self.parent()
+        W = self._parent
         cdef RealReflectionGroupElement w
         if W._reflection_representation is None:
             if side == "left":
@@ -820,15 +821,11 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
                 w = <RealReflectionGroupElement>(self)
             else:
                 raise ValueError('side must be "left" or "right"')
-
-            Delta = W.independent_roots()
-            Phi = W.roots()
-            M = Matrix([Phi[w.perm[Phi.index(alpha)]] for alpha in Delta])
-            mat = W.base_change_matrix() * M
+            mat = w.canonical_matrix()
         else:
             refl_repr = W._reflection_representation
             id_mat = identity_matrix(QQ, refl_repr[W.index_set()[0]].nrows())
-            mat = prod([refl_repr[i] for i in self.reduced_word()], id_mat)
+            mat = prod((refl_repr[i] for i in self.reduced_word()), id_mat)
 
         if on_space == "primal":
             if side == "left":
@@ -885,7 +882,7 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
             ....:     for w in W for alpha in W.simple_roots())     # optional - gap3
             True
         """
-        W = self.parent()
+        W = self._parent
         n = W.rank()
         Phi = W.roots()
         cdef RealReflectionGroupElement w
@@ -895,6 +892,7 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
             w = <RealReflectionGroupElement>(~self)
         else:
             raise ValueError('side must be "left" or "right"')
+        cdef int j
         ret = Phi[0].parent().zero()
         if on_space == "primal":
             for j in xrange(n):
@@ -966,13 +964,14 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
             sage: [w.action_on_root_indices(i,side="left") for i in range(N)]    # optional - gap3
             [4, 3, 5, 1, 0, 2]
         """
+        cdef RealReflectionGroupElement w
         if side == "right":
             w = self
         elif side == "left":
-            w = ~self
+            w = <RealReflectionGroupElement>(~self)
         else:
             raise ValueError('side must be "left" or "right"')
-        return (<RealReflectionGroupElement>w).perm[i]
+        return w.perm[i]
 
     def action_on_root(self, root, side="right"):
         r"""
@@ -1009,7 +1008,7 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
             [2, 1] [(0, 1), (-1, -1), (-1, 0)]
             [1, 2, 1] [(0, -1), (-1, 0), (-1, -1)]
         """
-        Phi = self.parent().roots()
+        Phi = self._parent.roots()
         return Phi[self.action_on_root_indices(Phi.index(root), side=side)]
 
     def inversion_set(self, side="right"):
@@ -1034,10 +1033,14 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
             sage: W.from_reduced_word([1,2]).inversion_set(side="left") # optional - gap3
             [(0, 1), (1, 1)]
         """
-        N = self.parent().number_of_reflections()
-        Phi = self.parent().roots()
-        return [Phi[i] for i in range(N)
-                if self.action_on_root_indices(i, side=side) >= N]
+        N = self._parent.number_of_reflections()
+        Phi = self._parent.roots()
+        cdef int i
+        if side == "left":
+            self = <RealReflectionGroupElement>(~self)
+        elif side != "right":
+            raise ValueError('side must be "left" or "right"')
+        return [Phi[i] for i in xrange(N) if self.perm[i] >= N]
 
 def _gap_factorization(w, gens):
     r"""

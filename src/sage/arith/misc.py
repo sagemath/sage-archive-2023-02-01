@@ -1774,17 +1774,14 @@ def xkcd(n=""):
 
     INPUT:
 
-    -  ``n`` - an integer (optional)
+    - ``n`` -- an integer (optional)
 
-    OUTPUT:
-
-    This function outputs nothing it just prints something. Note that this
-    function does not feel itself at ease in a html deprived environment.
+    OUTPUT: a fragment of HTML
 
     EXAMPLES::
 
-        sage: xkcd(353) # optional - internet
-        <html><font color='black'><h1>Python</h1><img src="http://imgs.xkcd.com/comics/python.png" title="I wrote 20 short programs in Python yesterday.  It was wonderful.  Perl, I'm leaving you."><div>Source: <a href="http://xkcd.com/353" target="_blank">http://xkcd.com/353</a></div></font></html>
+        sage: xkcd(353)  # optional - internet
+        <h1>Python</h1><img src="https://imgs.xkcd.com/comics/python.png" title="I wrote 20 short programs in Python yesterday.  It was wonderful.  Perl, I'm leaving you."><div>Source: <a href="http://xkcd.com/353" target="_blank">http://xkcd.com/353</a></div>
     """
     import contextlib
     import json
@@ -1815,13 +1812,12 @@ def xkcd(n=""):
         alt = data['alt']
         title = data['safe_title']
         link = "http://xkcd.com/{}".format(data['num'])
-        html('<h1>{}</h1><img src="{}" title="{}">'.format(title, img, alt)
+        return html('<h1>{}</h1><img src="{}" title="{}">'.format(title, img, alt)
             + '<div>Source: <a href="{0}" target="_blank">{0}</a></div>'.format(link))
-        return
 
     # TODO: raise this error in such a way that it's not clear that
     # it is produced by sage, see http://xkcd.com/1024/
-    html('<script> alert("Error: -41"); </script>')
+    return html('<script> alert("Error: -41"); </script>')
 
 
 def inverse_mod(a, m):

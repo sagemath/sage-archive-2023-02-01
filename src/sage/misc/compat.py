@@ -22,12 +22,12 @@ from sage.misc.decorators import sage_wraps
 # Replacements (as needed) for Python stdlib functions to provide
 # better platform compatibility
 #################################################################
-from ctypes.util import find_library
+from ctypes.util import find_library as _find_library
 if sys.platform == 'cygwin':
     # find_library that works in cygwin adapted from
     # http://cygwin-ports.svn.sourceforge.net/viewvc/cygwin-ports/ports/trunk/lang/python/2.5.2-ctypes-util-find_library.patch?revision=8245&view=markup
-    @sage_wraps(find_library)
-    def find_library(name):
+    @sage_wraps(_find_library)
+    def _find_library(name):
         for libdir in [os.path.join(SAGE_LOCAL, 'lib'),
                        '/usr/local/lib', '/usr/lib']:
             for libext in ['dll.a', 'a']:
@@ -46,3 +46,26 @@ if sys.platform == 'cygwin':
 
                 if p.returncode == 0:
                     return stdout.strip()
+
+
+@sage_wraps(_find_library)
+def find_library(name):
+    """
+    Returns the shared library filename for a given library.
+
+    The library name is given without any prefixes or suffixes--(e.g.
+    just "Singular", not "libSingular", as shared library naming is
+    platform-specific.
+
+    This does ''not'' currently return the absolute path of the file on most
+    platforms; see https://bugs.python.org/issue21042
+
+    EXAMPLES::
+
+        sage: from sage.misc.compat import find_library
+        sage: find_library('Singular')
+        ...Singular...
+
+    """
+
+    return _find_library(name)

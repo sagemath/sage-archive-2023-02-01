@@ -171,10 +171,18 @@ def InstanceDoc(cls):
 
     TESTS:
 
+    We get a useful error message if ``_instancedoc_`` is not defined::
+
+        sage: from sage.docs.instancedoc import InstanceDoc
+        sage: class X(object): pass
+        sage: InstanceDoc(X)
+        Traceback (most recent call last):
+        ...
+        AttributeError: type object 'X' has no attribute '_instancedoc_'
+
     This does not work on old-style classes or things which are not a
     class at all::
 
-        sage: from sage.docs.instancedoc import InstanceDoc
         sage: InstanceDoc(7)
         Traceback (most recent call last):
         ...

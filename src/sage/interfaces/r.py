@@ -274,7 +274,7 @@ import sage.rings.integer
 from sage.structure.element import parent
 from sage.misc.cachefunc import cached_method
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from sage.docs.instancedoc import InstanceDoc
+from sage.docs.instancedoc import instancedoc
 
 COMMANDS_CACHE = '%s/r_commandlist.sobj'%DOT_SAGE
 PROMPT = '__SAGE__R__PROMPT__> '
@@ -1256,7 +1256,7 @@ rel_re_terms = re.compile('terms\s*=\s*(.*?),')
 rel_re_call = re.compile('call\s*=\s*(.*?)\),')
 
 
-@InstanceDoc
+@instancedoc
 class RElement(ExtraTabCompletion, ExpectElement):
 
     def _tab_completion(self):
@@ -1923,7 +1923,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
         return LatexExpr(P.eval('latex(%s, file="");'%self.name()))
 
 
-@InstanceDoc
+@instancedoc
 class RFunctionElement(FunctionElement):
     def __reduce__(self):
         """
@@ -1981,7 +1981,7 @@ class RFunctionElement(FunctionElement):
         return self._obj.parent().function_call(self._name, args=[self._obj] + list(args), kwds=kwds)
 
 
-@InstanceDoc
+@instancedoc
 class RFunction(ExpectFunction):
     def __init__(self, parent, name, r_name=None):
         """

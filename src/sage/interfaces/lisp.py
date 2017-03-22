@@ -56,7 +56,7 @@ import random
 
 from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled
 from sage.structure.element import RingElement, parent
-from sage.docs.instancedoc import InstanceDoc
+from sage.docs.instancedoc import instancedoc
 
 
 class Lisp(Expect):
@@ -385,7 +385,7 @@ class Lisp(Expect):
 
 
 # Inherit from RingElement to make __pow__ work
-@InstanceDoc
+@instancedoc
 class LispElement(RingElement, ExpectElement):
     def __cmp__(self, other):
         """
@@ -485,7 +485,7 @@ class LispElement(RingElement, ExpectElement):
         return RingElement.__pow__(self, n)
 
 
-@InstanceDoc
+@instancedoc
 class LispFunctionElement(FunctionElement):
     def _instancedoc_(self):
         """
@@ -501,7 +501,7 @@ class LispFunctionElement(FunctionElement):
         return M.help(self._name)
 
 
-@InstanceDoc
+@instancedoc
 class LispFunction(ExpectFunction):
     def _instancedoc_(self):
         """

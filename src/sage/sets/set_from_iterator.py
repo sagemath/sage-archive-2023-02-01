@@ -72,7 +72,7 @@ from sage.categories.sets_cat import EmptySetError
 import os
 from sage.misc.function_mangling import ArgumentFixer
 from sage.misc.lazy_list import lazy_list
-from sage.docs.instancedoc import InstanceDoc
+from sage.docs.instancedoc import instancedoc
 
 
 class EnumeratedSetFromIterator(Parent):
@@ -447,7 +447,7 @@ class EnumeratedSetFromIterator(Parent):
 #
 
 #TODO: move it in sage.misc ?
-@InstanceDoc
+@instancedoc
 class Decorator(object):
     r"""
     Abstract class that manage documentation and sources of the wrapped object.
@@ -562,7 +562,7 @@ class Decorator(object):
         raise NotImplementedError
 
 
-@InstanceDoc
+@instancedoc
 class EnumeratedSetFromIterator_function_decorator(Decorator):
     r"""
     Decorator for :class:`EnumeratedSetFromIterator`.
@@ -722,7 +722,7 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
 set_from_function = EnumeratedSetFromIterator_function_decorator
 
 
-@InstanceDoc
+@instancedoc
 class EnumeratedSetFromIterator_method_caller(Decorator):
     r"""
     Caller for decorated method in class.

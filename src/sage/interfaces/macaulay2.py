@@ -104,7 +104,7 @@ from sage.interfaces.expect import (Expect, ExpectElement, ExpectFunction,
 
 from sage.misc.multireplace import multiple_replace
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from sage.docs.instancedoc import InstanceDoc
+from sage.docs.instancedoc import instancedoc
 
 import re
 
@@ -604,7 +604,7 @@ class Macaulay2(ExtraTabCompletion, Expect):
         return self.new("new %s from %s"%(type.name(), value.name()))
 
 
-@InstanceDoc
+@instancedoc
 class Macaulay2Element(ExtraTabCompletion, ExpectElement):
     def _latex_(self):
         """
@@ -1167,7 +1167,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             raise NotImplementedError("cannot convert %s to a Sage object"%repr_str)
 
 
-@InstanceDoc
+@instancedoc
 class Macaulay2Function(ExpectFunction):
     def _instancedoc_(self):
         """

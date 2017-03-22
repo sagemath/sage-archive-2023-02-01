@@ -187,7 +187,7 @@ from sage.env import DOT_SAGE
 from pexpect import EOF
 from sage.misc.multireplace import multiple_replace
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from sage.docs.instancedoc import InstanceDoc
+from sage.docs.instancedoc import instancedoc
 
 # The Axiom commands ")what thing det" ")show Matrix" and ")display
 # op det" commands, gives a list of all identifiers that begin in
@@ -555,7 +555,7 @@ class Axiom(PanAxiom):
         axiom_console()
 
 
-@InstanceDoc
+@instancedoc
 class PanAxiomElement(ExpectElement):
     def __call__(self, x):
         """
@@ -906,7 +906,7 @@ class PanAxiomElement(ExpectElement):
 AxiomElement = PanAxiomElement
 
 
-@InstanceDoc
+@instancedoc
 class PanAxiomFunctionElement(FunctionElement):
     def __init__(self, object, name):
         """
@@ -929,7 +929,7 @@ class PanAxiomFunctionElement(FunctionElement):
 AxiomFunctionElement = PanAxiomFunctionElement
 
 
-@InstanceDoc
+@instancedoc
 class PanAxiomExpectFunction(ExpectFunction):
     def __init__(self, parent, name):
         """

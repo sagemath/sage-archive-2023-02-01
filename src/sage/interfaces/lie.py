@@ -292,7 +292,7 @@ from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement, Asci
 from sage.misc.all import prod
 from sage.env import DOT_SAGE, SAGE_LOCAL
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from sage.docs.instancedoc import InstanceDoc
+from sage.docs.instancedoc import instancedoc
 import os
 
 
@@ -748,7 +748,7 @@ class LiE(ExtraTabCompletion, Expect):
         return LiEFunctionElement
 
     
-@InstanceDoc
+@instancedoc
 class LiEElement(ExtraTabCompletion, ExpectElement):
     def _tab_completion(self):
         """
@@ -868,7 +868,7 @@ class LiEElement(ExtraTabCompletion, ExpectElement):
             return ExpectElement._sage_(self)
 
 
-@InstanceDoc
+@instancedoc
 class LiEFunctionElement(FunctionElement):
     def _instancedoc_(self):
         """
@@ -882,7 +882,7 @@ class LiEFunctionElement(FunctionElement):
         return M.help(self._name)
 
 
-@InstanceDoc
+@instancedoc
 class LiEFunction(ExpectFunction):
     def _instancedoc_(self):
         """

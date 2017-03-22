@@ -481,7 +481,7 @@ from .maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
                              MaximaAbstractElement,
                              MaximaAbstractFunctionElement,
                              MaximaAbstractElementFunction)
-from sage.docs.instancedoc import InstanceDoc
+from sage.docs.instancedoc import instancedoc
 
 
 # Thanks to the MRO for multiple inheritance used by the Sage's Python,
@@ -1119,7 +1119,7 @@ def is_MaximaElement(x):
     return isinstance(x, MaximaElement)
 
 
-@InstanceDoc
+@instancedoc
 class MaximaElement(MaximaAbstractElement, ExpectElement):
     """
     Element of Maxima through Pexpect interface.
@@ -1189,7 +1189,7 @@ MaximaFunctionElement = MaximaAbstractFunctionElement
 MaximaFunction = MaximaAbstractFunction
 
 
-@InstanceDoc
+@instancedoc
 class MaximaElementFunction(MaximaElement, MaximaAbstractElementFunction):
     """
     Maxima user-defined functions.

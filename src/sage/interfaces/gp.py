@@ -146,7 +146,7 @@ from sage.misc.misc import verbose
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.libs.pari.all import pari
 import sage.rings.complex_field
-from sage.docs.instancedoc import InstanceDoc
+from sage.docs.instancedoc import instancedoc
 
 
 class Gp(ExtraTabCompletion, Expect):
@@ -835,7 +835,7 @@ class Gp(ExtraTabCompletion, Expect):
         return x
 
 
-@InstanceDoc
+@instancedoc
 class GpElement(ExpectElement):
     """
     EXAMPLES: This example illustrates dumping and loading GP elements

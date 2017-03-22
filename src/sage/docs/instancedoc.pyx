@@ -10,20 +10,20 @@ method.
 
 In order to use this, define a class docstring as usual. Also define a
 method ``def _instancedoc_(self)`` which should return the docstring of
-the instance ``self``. Finally, add the decorator ``@InstanceDoc`` to
+the instance ``self``. Finally, add the decorator ``@instancedoc`` to
 the class.
 
 .. WARNING::
 
     Since the ``__doc__`` attribute is never inherited, the decorator
-    ``@InstanceDoc`` must be added to all subclasses of the class
+    ``@instancedoc`` must be added to all subclasses of the class
     defining ``_instancedoc_``. Doing it on the base class is not
     sufficient.
 
 EXAMPLES::
 
-    sage: from sage.docs.instancedoc import InstanceDoc
-    sage: @InstanceDoc
+    sage: from sage.docs.instancedoc import instancedoc
+    sage: @instancedoc
     ....: class X(object):
     ....:     "Class docstring"
     ....:     def _instancedoc_(self):
@@ -34,15 +34,15 @@ EXAMPLES::
     'Instance docstring'
 
 For a Cython ``cdef class``, a decorator cannot be used. Instead, call
-:func:`InstanceDoc` as a function after defining the class::
+:func:`instancedoc` as a function after defining the class::
 
     sage: cython('''
-    ....: from sage.docs.instancedoc import InstanceDoc
+    ....: from sage.docs.instancedoc import instancedoc
     ....: cdef class Y:
     ....:     "Class docstring"
     ....:     def _instancedoc_(self):
     ....:         return "Instance docstring"
-    ....: InstanceDoc(Y)
+    ....: instancedoc(Y)
     ....: ''')
     sage: Y.__doc__
     'File:...\nClass docstring'
@@ -52,9 +52,9 @@ For a Cython ``cdef class``, a decorator cannot be used. Instead, call
 TESTS:
 
 Check that inheritance works (after passing the subclass to
-:func:`InstanceDoc`)::
+:func:`instancedoc`)::
 
-    sage: @InstanceDoc
+    sage: @instancedoc
     ....: class A(object):
     ....:     "Class A docstring"
     ....:     def _instancedoc_(self):
@@ -65,7 +65,7 @@ Check that inheritance works (after passing the subclass to
     'Class B docstring'
     sage: B().__doc__  # Ideally, this would return the instance docstring
     'Class B docstring'
-    sage: B = InstanceDoc(B)
+    sage: B = instancedoc(B)
     sage: B.__doc__
     'Class B docstring'
     sage: B().__doc__
@@ -151,7 +151,7 @@ cdef class InstanceDocDescriptor:
             return self.instancedoc(obj)
 
 
-def InstanceDoc(cls):
+def instancedoc(cls):
     """
     Add support for ``_instancedoc_`` to the class ``cls``.
 
@@ -165,17 +165,17 @@ def InstanceDoc(cls):
 
     .. WARNING::
 
-        ``InstanceDoc`` mutates the given class. So you are *not* supposed
-        to use it as ``newcls = InstanceDoc(cls)`` because that would
+        ``instancedoc`` mutates the given class. So you are *not* supposed
+        to use it as ``newcls = instancedoc(cls)`` because that would
         mutate ``cls`` (and ``newcls`` would be the same object as ``cls``)
 
     TESTS:
 
     We get a useful error message if ``_instancedoc_`` is not defined::
 
-        sage: from sage.docs.instancedoc import InstanceDoc
+        sage: from sage.docs.instancedoc import instancedoc
         sage: class X(object): pass
-        sage: InstanceDoc(X)
+        sage: instancedoc(X)
         Traceback (most recent call last):
         ...
         AttributeError: type object 'X' has no attribute '_instancedoc_'
@@ -183,12 +183,12 @@ def InstanceDoc(cls):
     This does not work on old-style classes or things which are not a
     class at all::
 
-        sage: InstanceDoc(7)
+        sage: instancedoc(7)
         Traceback (most recent call last):
         ...
         TypeError: expected type, got 7
         sage: class OldStyle: pass
-        sage: InstanceDoc(OldStyle)
+        sage: instancedoc(OldStyle)
         Traceback (most recent call last):
         ...
         TypeError: expected type, got <class __main__.OldStyle at ...>

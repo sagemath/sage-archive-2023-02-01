@@ -193,7 +193,7 @@ import pexpect
 
 from sage.env import DOT_SAGE
 from sage.misc.pager import pager
-from sage.docs.instancedoc import InstanceDoc
+from sage.docs.instancedoc import instancedoc
 
 
 COMMANDS_CACHE = '%s/giac_commandlist_cache.sobj'%DOT_SAGE
@@ -753,7 +753,7 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
         return giac('version()')
 
 
-@InstanceDoc
+@instancedoc
 class GiacFunction(ExpectFunction):
     def _instancedoc_(self):
         """
@@ -769,7 +769,7 @@ class GiacFunction(ExpectFunction):
         return M._help(self._name)
 
 
-@InstanceDoc
+@instancedoc
 class GiacFunctionElement(FunctionElement):
     def _instancedoc_(self):
         """
@@ -785,7 +785,7 @@ class GiacFunctionElement(FunctionElement):
         return self._obj.parent()._help(self._name)
 
 
-@InstanceDoc
+@instancedoc
 class GiacElement(ExpectElement):
     def __float__(self):
         """

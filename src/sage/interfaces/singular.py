@@ -337,7 +337,7 @@ import sage.rings.integer
 
 from sage.misc.misc import get_verbose
 from sage.misc.superseded import deprecation
-from sage.docs.instancedoc import InstanceDoc
+from sage.docs.instancedoc import instancedoc
 
 from six import reraise as raise_
 
@@ -1261,7 +1261,7 @@ class Singular(ExtraTabCompletion, Expect):
         raise KeyboardInterrupt("Restarting %s (WARNING: all variables defined in previous session are now invalid)" % self)
 
     
-@InstanceDoc
+@instancedoc
 class SingularElement(ExtraTabCompletion, ExpectElement):
     
     def __init__(self, parent, type, value, is_name=False):
@@ -2175,7 +2175,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             self.parent().eval('attrib(%s,"%s",%d)'%(self.name(),name,value))
 
 
-@InstanceDoc
+@instancedoc
 class SingularFunction(ExpectFunction):
     def _instancedoc_(self):
         """
@@ -2213,7 +2213,7 @@ The Singular documentation for '%s' is given below.
             return prefix
 
 
-@InstanceDoc
+@instancedoc
 class SingularFunctionElement(FunctionElement):
     def _instancedoc_(self):
         r"""

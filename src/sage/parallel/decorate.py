@@ -10,7 +10,7 @@ from sage.rings.all import Integer
 from .reference import parallel_iter as p_iter_reference
 from .use_fork import p_iter_fork
 from . import multiprocessing_sage
-from sage.docs.instancedoc import InstanceDoc
+from sage.docs.instancedoc import instancedoc
 
 
 def normalize_input(a):
@@ -121,7 +121,7 @@ class Parallel:
         return ParallelFunction(self, f)
 
 
-@InstanceDoc
+@instancedoc
 class ParallelFunction(object):
     """
     Class which parallelizes a function or class method.

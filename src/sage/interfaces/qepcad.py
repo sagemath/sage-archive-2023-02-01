@@ -615,7 +615,7 @@ from sage.misc.flatten import flatten
 from sage.misc.sage_eval import sage_eval
 from sage.repl.preparse import implicit_mul
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from sage.docs.instancedoc import InstanceDoc
+from sage.docs.instancedoc import instancedoc
 from .expect import Expect, ExpectFunction, AsciiArtString
 
 
@@ -1360,7 +1360,7 @@ def _format_cell_index(a):
         return str(tuple(a))
 
 
-@InstanceDoc
+@instancedoc
 class QepcadFunction(ExpectFunction):
     r"""
     A wrapper for a QEPCAD command.

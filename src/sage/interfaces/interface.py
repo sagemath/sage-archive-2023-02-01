@@ -48,7 +48,7 @@ from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element, parent
 
 import sage.misc.sage_eval
-from sage.docs.instancedoc import InstanceDoc
+from sage.docs.instancedoc import instancedoc
 
 
 class AsciiArtString(str):
@@ -595,7 +595,7 @@ class Interface(ParentWithBase):
         return AsciiArtString('No help on %s available'%s)
 
 
-@InstanceDoc
+@instancedoc
 class InterfaceFunction(SageObject):
     """
     Interface function.
@@ -621,7 +621,7 @@ class InterfaceFunction(SageObject):
         return M.help(self._name)
 
 
-@InstanceDoc
+@instancedoc
 class InterfaceFunctionElement(SageObject):
     """
     Interface function element.
@@ -655,7 +655,7 @@ def is_InterfaceElement(x):
     return isinstance(x, InterfaceElement)
 
 
-@InstanceDoc
+@instancedoc
 class InterfaceElement(Element):
     """
     Interface element.

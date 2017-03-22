@@ -433,7 +433,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 from .expect import Expect, ExpectElement
-from sage.docs.instancedoc import InstanceDoc
+from sage.docs.instancedoc import instancedoc
 import os
 
 
@@ -668,7 +668,7 @@ class Kash(Expect):
         return kash_version()
 
 
-@InstanceDoc
+@instancedoc
 class KashElement(ExpectElement):
     def __mod__(self, other):
         self._check_valid()

@@ -192,7 +192,7 @@ from __future__ import absolute_import
 import os
 
 from .expect import Expect, ExpectElement
-from sage.docs.instancedoc import InstanceDoc
+from sage.docs.instancedoc import instancedoc
 
 
 class Scilab(Expect):
@@ -426,7 +426,7 @@ class Scilab(Expect):
         return ScilabElement
 
 
-@InstanceDoc
+@instancedoc
 class ScilabElement(ExpectElement):
     def __getitem__(self, n):
         """

@@ -2676,6 +2676,6 @@ cdef class GapElement_RecordIterator(object):
 
 
 # Add support for _instancedoc_
-from sage.docs.instancedoc import InstanceDoc
-InstanceDoc(GapElement_Function)
-InstanceDoc(GapElement_MethodProxy)
+from sage.docs.instancedoc import instancedoc
+instancedoc(GapElement_Function)
+instancedoc(GapElement_MethodProxy)

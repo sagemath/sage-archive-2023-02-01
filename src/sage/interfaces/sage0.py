@@ -26,7 +26,7 @@ import sage.repl.preparse
 
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.structure.sage_object import dumps, load
-from sage.docs.instancedoc import InstanceDoc
+from sage.docs.instancedoc import instancedoc
 
 
 class Sage(ExtraTabCompletion, Expect):
@@ -398,7 +398,7 @@ class Sage(ExtraTabCompletion, Expect):
         return SageElement(self, x)
 
 
-@InstanceDoc
+@instancedoc
 class SageElement(ExpectElement):
 
     def _rich_repr_(self, display_manager, **kwds):
@@ -466,7 +466,7 @@ class SageElement(ExpectElement):
             return load(P._local_tmpfile())
 
 
-@InstanceDoc
+@instancedoc
 class SageFunction(FunctionElement):
     def __call__(self, *args, **kwds):
         """

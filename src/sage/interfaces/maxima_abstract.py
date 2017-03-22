@@ -65,7 +65,7 @@ import sage.server.support
 from .interface import (Interface, InterfaceElement, InterfaceFunctionElement,
   InterfaceFunction, AsciiArtString)
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from sage.docs.instancedoc import InstanceDoc
+from sage.docs.instancedoc import instancedoc
 
 # The Maxima "apropos" command, e.g., apropos(det) gives a list
 # of all identifiers that begin in a certain way.  This could
@@ -1070,7 +1070,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
             self('plot2d('+cmd+','+options+')')
 
 
-@InstanceDoc
+@instancedoc
 class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
     r"""
     Element of Maxima through an abstract interface.

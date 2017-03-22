@@ -183,7 +183,7 @@ from sage.env import SAGE_LOCAL, SAGE_EXTCODE
 from sage.misc.misc import is_in_string
 from sage.misc.superseded import deprecation
 from sage.misc.cachefunc import cached_method
-from sage.docs.instancedoc import InstanceDoc
+from sage.docs.instancedoc import instancedoc
 from sage.interfaces.tab_completion import ExtraTabCompletion
 import re
 import os
@@ -963,7 +963,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
         return self('%s.%s' % (record.name(), name))
 
 
-@InstanceDoc
+@instancedoc
 class GapElement_generic(ExtraTabCompletion, ExpectElement):
     r"""
     Generic interface to the GAP3/GAP4 interpreters.
@@ -1546,7 +1546,7 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
     g.quit()
 
 
-@InstanceDoc
+@instancedoc
 class GapElement(GapElement_generic):
     def __getitem__(self, n):
         """
@@ -1618,7 +1618,7 @@ class GapElement(GapElement_generic):
         return v
 
 
-@InstanceDoc
+@instancedoc
 class GapFunctionElement(FunctionElement):
     def _instancedoc_(self):
         """
@@ -1637,7 +1637,7 @@ class GapFunctionElement(FunctionElement):
         return help
 
 
-@InstanceDoc
+@instancedoc
 class GapFunction(ExpectFunction):
     def _instancedoc(self):
         """

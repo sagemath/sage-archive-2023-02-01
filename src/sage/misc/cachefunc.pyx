@@ -3788,10 +3788,10 @@ class disk_cached_function:
 
 
 # Add support for _instancedoc_
-from sage.docs.instancedoc import InstanceDoc
-InstanceDoc(CachedFunction)
-InstanceDoc(WeakCachedFunction)
-InstanceDoc(CachedMethodCaller)
-InstanceDoc(CachedMethodCallerNoArgs)
-InstanceDoc(GloballyCachedMethodCaller)
-InstanceDoc(DiskCachedFunction)
+from sage.docs.instancedoc import instancedoc
+instancedoc(CachedFunction)
+instancedoc(WeakCachedFunction)
+instancedoc(CachedMethodCaller)
+instancedoc(CachedMethodCallerNoArgs)
+instancedoc(GloballyCachedMethodCaller)
+instancedoc(DiskCachedFunction)

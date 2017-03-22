@@ -97,7 +97,7 @@ import six
 from .ring import SR
 from .expression import Expression
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from sage.docs.instancedoc import InstanceDoc
+from sage.docs.instancedoc import instancedoc
 
 ###############################################################################
 # Unit conversions dictionary.
@@ -986,7 +986,7 @@ def unit_derivations_expr(v):
     return Z
 
 
-@InstanceDoc
+@instancedoc
 class UnitExpression(Expression):
     """
     A symbolic unit.

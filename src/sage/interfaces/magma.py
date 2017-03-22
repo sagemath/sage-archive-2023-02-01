@@ -228,7 +228,7 @@ from sage.env import SAGE_EXTCODE, DOT_SAGE
 import sage.misc.misc
 import sage.misc.sage_eval
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from sage.docs.instancedoc import InstanceDoc
+from sage.docs.instancedoc import instancedoc
 
 INTRINSIC_CACHE = '%s/magma_intrinsic_cache.sobj' % DOT_SAGE
 EXTCODE_DIR = None
@@ -1649,7 +1649,7 @@ class Magma(ExtraTabCompletion, Expect):
         return int(self.eval('GetVerbose("%s")' % type))
 
 
-@InstanceDoc
+@instancedoc
 class MagmaFunctionElement(FunctionElement):
     def __call__(self, *args, **kwds):
         """
@@ -1768,7 +1768,7 @@ class MagmaFunctionElement(FunctionElement):
             return "Partially evaluated Magma function or intrinsic '%s'\n\nSignature:\n\n%s" % (self._name, self._instancedoc_())
 
 
-@InstanceDoc
+@instancedoc
 class MagmaFunction(ExpectFunction):
     def __call__(self, *args, **kwds):
         """
@@ -1849,7 +1849,7 @@ def is_MagmaElement(x):
     return isinstance(x, MagmaElement)
 
 
-@InstanceDoc
+@instancedoc
 class MagmaElement(ExtraTabCompletion, ExpectElement):
     def _ref(self):
         """

@@ -156,7 +156,7 @@ from __future__ import absolute_import
 import os
 from .expect import Expect, ExpectElement
 from sage.misc.misc import verbose
-from sage.docs.instancedoc import InstanceDoc
+from sage.docs.instancedoc import instancedoc
 
 
 class Octave(Expect):
@@ -614,7 +614,7 @@ def to_complex(octave_string, R):
     return R(float(real), float(imag))
 
 
-@InstanceDoc
+@instancedoc
 class OctaveElement(ExpectElement):
     def _get_sage_ring(self):
         r"""

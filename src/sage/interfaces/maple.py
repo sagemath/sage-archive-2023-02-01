@@ -246,7 +246,7 @@ import pexpect
 from sage.env import DOT_SAGE
 from sage.misc.pager import pager
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from sage.docs.instancedoc import InstanceDoc
+from sage.docs.instancedoc import instancedoc
 
 COMMANDS_CACHE = '%s/maple_commandlist_cache.sobj'%DOT_SAGE
 
@@ -840,7 +840,7 @@ connection to a server running Maple; for hints, type
         self.set(var, "'{}'".format(var))
 
 
-@InstanceDoc
+@instancedoc
 class MapleFunction(ExpectFunction):
     def _instancedoc(self):
         """
@@ -876,7 +876,7 @@ class MapleFunction(ExpectFunction):
         return M._source(self._name)
 
 
-@InstanceDoc
+@instancedoc
 class MapleFunctionElement(FunctionElement):
     def _instancedoc_(self):
         """
@@ -911,7 +911,7 @@ class MapleFunctionElement(FunctionElement):
         return self._obj.parent()._source(self._name)
 
     
-@InstanceDoc
+@instancedoc
 class MapleElement(ExtraTabCompletion, ExpectElement):
     
     def __float__(self):

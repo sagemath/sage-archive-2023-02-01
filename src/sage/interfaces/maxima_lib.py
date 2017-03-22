@@ -94,7 +94,7 @@ from sage.libs.ecl import EclObject, ecl_eval
 from .maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
     MaximaAbstractElement, MaximaAbstractFunctionElement,
     MaximaAbstractElementFunction)
-from sage.docs.instancedoc import InstanceDoc
+from sage.docs.instancedoc import instancedoc
 
 
 ## We begin here by initializing Maxima in library mode
@@ -1035,7 +1035,7 @@ def is_MaximaLibElement(x):
     return isinstance(x, MaximaLibElement)
 
 
-@InstanceDoc
+@instancedoc
 class MaximaLibElement(MaximaAbstractElement):
     r"""
     Element of Maxima through library interface.
@@ -1141,7 +1141,7 @@ class MaximaLibElement(MaximaAbstractElement):
 MaximaLibFunctionElement = MaximaAbstractFunctionElement
 MaximaLibFunction = MaximaAbstractFunction
 
-@InstanceDoc
+@instancedoc
 class MaximaLibElementFunction(MaximaLibElement, MaximaAbstractElementFunction):
     pass
 

@@ -22,14 +22,43 @@ We need to setup a proper test environment for widgets::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import unicode_literals
+
 from ipywidgets.widgets import (IntSlider, IntRangeSlider, FloatSlider,
-        FloatRangeSlider, Text, Textarea, ColorPicker,
+        FloatRangeSlider, Text, Textarea, ColorPicker, HTML,
         Label, HBox, VBox, ValueWidget)
 from traitlets import List, Unicode, link
 
 from sage.misc.sage_eval import sage_eval
 from sage.repl.user_globals import get_globals
 from sage.plot.colors import Color
+
+
+class HTMLText(HTML):
+    """
+    A HTML widget whose ``description`` is always empty.
+
+    This is used to display arbitrary HTML text in interacts without
+    a label. The :func:`text_control` function from SageNB is an alias
+    of :class:`HTMLText`.
+
+    EXAMPLES::
+
+        sage: from sage.repl.ipython_kernel.widgets import HTMLText
+        sage: w = HTMLText("Hello")
+        sage: w.description
+        u''
+        sage: w.description = "text"
+        sage: w.description
+        u''
+    """
+    @property
+    def description(self):
+        return ''
+
+    @description.setter
+    def description(self, value):
+        pass
 
 
 class TransformWidget(object):

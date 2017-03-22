@@ -82,7 +82,7 @@ remove_old_version()
         done
     else
         for name in ${libs[*]}; do
-            rm -rf "$SAGE_LOCAL"/lib/lib${name}*.{so,a}
+            rm -rf "$SAGE_LOCAL"/lib/lib${name}*
         done
     fi
 

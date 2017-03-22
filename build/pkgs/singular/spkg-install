@@ -71,7 +71,8 @@ remove_old_version()
         polys
         factory
         omalloc
-        resources
+        resources           # 3.x
+        singular_resources  # 4.x and up
         gfan
     )
     if [ "$UNAME" = "CYGWIN" ]; then

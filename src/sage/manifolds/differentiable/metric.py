@@ -2233,13 +2233,13 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
                                   [[self.comp(frame)[i, j, chart]._express
                                   for j in range(si, nsi)] for i in range(si, nsi)])
                         gmat_inv = gmat.inverse()
-                        for i in range(si, nsi):
-                            for j in range(i, nsi):
-                                cinv_scal[(i,j)].add_expr(simplify_chain_real(
-                                                           gmat_inv[i-si,j-si]),
-                                                          chart=chart)
                     except (KeyError, ValueError):
                         continue
+                    for i in range(si, nsi):
+                        for j in range(i, nsi):
+                            cinv_scal[(i,j)].add_expr(simplify_chain_real(
+                                                       gmat_inv[i-si,j-si]),
+                                                      chart=chart)
                 for i in range(si, nsi):
                     for j in range(i, nsi):
                         cinv[i,j] = cinv_scal[(i,j)]

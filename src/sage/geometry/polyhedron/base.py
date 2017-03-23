@@ -5027,3 +5027,23 @@ class Polyhedron_base(Element):
         rays = [pivot(_) for _ in self.rays()]
         lines = [pivot(_) for _ in self.lines()]
         return Polyhedron(vertices=vertices, rays=rays, lines=lines, base_ring=self.base_ring())
+
+    @cached_method
+    def _polymake_(self):
+        """
+        Return a polymake "Polytope" object corresponding to ``self``.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: PP = P._polymake_()      # optional - polymake
+            sage: PP.N_VERTICES            # optional - polymake
+            8
+            sage: P = Polyhedron(vertices=[[1, 0], [0, 1]])
+            sage: PP = P._polymake_()      # optional - polymake
+            sage: PP.COMBINATORIAL_DIM     # optional - polymake
+            1
+
+        """
+        from sage.interfaces.polymake import polymake
+        return polymake.new_object("Polytope", FACETS=self.inequalities_list(), AFFINE_HULL=self.equations_list())

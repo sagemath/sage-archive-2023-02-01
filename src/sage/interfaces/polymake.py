@@ -166,7 +166,7 @@ class Polymake(ExtraTabCompletion, Expect):
                         script_subdirectory=script_subdirectory,
                         restart_on_ctrlc=False,
                         logfile=logfile,
-                        eval_using_file_cutoff=100)
+                        eval_using_file_cutoff=0)
 
         self._seed = seed
         self.__tab_completion = {}
@@ -662,6 +662,30 @@ class Polymake(ExtraTabCompletion, Expect):
             sage: polymake.set('myvar', 'cube(3)')              # optional - polymake
             sage: polymake.get('$myvar[0]')                     # optional - polymake
             'Polymake::polytope::Polytope__Rational=ARRAY(...)'
+
+        The following tests against :trac:`22658`::
+
+            sage: P = polymake.new_object("Polytope", FACETS=[[12, -2, -3, -5, -8, -13, -21, -34, -55],   # optional - polymake
+            ....:  [0, 1, 0, 0, 0, 0, 0, 0, 0],
+            ....:  [0, 0, 0, 0, 0, 0, 0, 0, 1],
+            ....:  [0, 0, 0, 0, 0, 0, 0, 1, 0],
+            ....:  [0, 0, 0, 0, 0, 0, 1, 0, 0],
+            ....:  [0, 0, 0, 0, 0, 1, 0, 0, 0],
+            ....:  [0, 0, 0, 0, 1, 0, 0, 0, 0],
+            ....:  [0, 0, 0, 1, 0, 0, 0, 0, 0],
+            ....:  [0, 0, 1, 0, 0, 0, 0, 0, 0]])
+            sage: P.VERTICES                        # optional - polymake
+            1 6 0 0 0 0 0 0 0
+            1 0 4 0 0 0 0 0 0
+            1 0 0 0 0 0 0 0 0
+            1 0 0 12/5 0 0 0 0 0
+            1 0 0 0 0 0 0 0 12/55
+            1 0 0 0 0 0 0 6/17 0
+            1 0 0 0 0 0 4/7 0 0
+            1 0 0 0 0 12/13 0 0 0
+            1 0 0 0 3/2 0 0 0 0
+            sage: P.F_VECTOR                        # optional - polymake
+            9 36 84 126 126 84 36 9
 
         """
         if isinstance(value, six.string_types):

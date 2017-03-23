@@ -178,7 +178,7 @@ def instancedoc(cls):
         sage: instancedoc(X)
         Traceback (most recent call last):
         ...
-        AttributeError: type object 'X' has no attribute '_instancedoc_'
+        TypeError: instancedoc requires <class '__main__.X'> to have an '_instancedoc_' attribute
 
     This does not work on old-style classes or things which are not a
     class at all::
@@ -194,7 +194,11 @@ def instancedoc(cls):
         TypeError: expected type, got <class __main__.OldStyle at ...>
     """
     cdef PyTypeObject* tp = TypeObject(cls)
-    docattr = InstanceDocDescriptor(cls.__doc__, cls._instancedoc_)
+    try:
+        instdoc = cls._instancedoc_
+    except AttributeError:
+        raise TypeError(f"instancedoc requires {cls!r} to have an '_instancedoc_' attribute")
+    docattr = InstanceDocDescriptor(cls.__doc__, instdoc)
     PyDict_SetItemString(tp.tp_dict, "__doc__", docattr)
     tp.tp_doc = NULL
     PyType_Modified(tp)

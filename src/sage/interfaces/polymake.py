@@ -1762,18 +1762,31 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
     def __getitem__(self, key):
         """
-        Indexing
+        Indexing and slicing.
+
+        Slicing returns a Python list.
 
         EXAMPLES::
 
-            sage: p = polymake.rand_sphere(3, 12, seed=15)   # optional - polymake
+            sage: p = polymake.rand_sphere(3, 12, seed=15)  # optional - polymake
             sage: p.VERTICES[3]                             # optional - polymake
             1 -6157731020575175/18014398509481984 4184896164481703/4503599627370496 -2527292586301447/18014398509481984
             sage: p.list_properties()[2]                    # optional - polymake
             BOUNDED
 
+        Slicing::
+
+            sage: p.F_VECTOR[:]                             # optional - polymake
+            [12, 30, 20]
+            sage: p.F_VECTOR[0:1]                           # optional - polymake
+            [12]
+            sage: p.F_VECTOR[0:3:2]                         # optional - polymake
+            [12, 20]
         """
         P = self._check_valid()
+        if isinstance(key, slice):
+            indices = key.indices(len(self))
+            return [ self[i] for i in range(*indices) ]
         _, T = self.typeof()
         if self._name.startswith('@'):
             return P('${}[{}]'.format(self._name[1:], key))

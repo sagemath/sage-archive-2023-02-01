@@ -1005,12 +1005,20 @@ class GiacElement(ExpectElement):
         return M(entries)
 
 
-    def _sage_(self):
+    def _sage_(self, locals={}):
         r"""
-        Convert a giac expression back to a Sage expression.
+        Convert a giac expression back to a Sage expression, if possible.
 
-        This currently does not implement a parser for the Giac output language,
-        therefore only very simple expressions will convert successfully.
+        NOTES: 
+        
+        This method works successfully when Giac returns a result
+        or list of results that consist only of:
+        - numbers, i.e. integers, floats, complex numbers;
+        - functions and named constants also present in Sage, where:
+            - Sage knows how to translate the function or constant's name
+            from Giac's naming scheme through the symbols_table, or
+            - you provide a translation dictionary `locals`.
+
         Warning: List conversion is slow.
 
         EXAMPLE::
@@ -1026,13 +1034,22 @@ class GiacElement(ExpectElement):
         2*cos(sqrt(-x^2 + 1))*cos(1/x)^2*sin(sqrt(-x^2 + 1)) - 4*cos(sqrt(-x^2 + 1))*cos(1/x)*sin(sqrt(-x^2 + 1)) + 2*cos(sqrt(-x^2 + 1))*sin(sqrt(-x^2 + 1))
 
         """
+        from sage.libs.pynac.pynac import symbol_table
+        from sage.calculus.calculus import symbolic_expression_from_string
+        
         result = repr(self) # string representation
         
-        if str(self.type()) != 'DOM_LIST' :        
-            result = _giac2sage(result)    
+        if str(self.type()) != 'DOM_LIST' :   
+            
+            # Merge the user-specified locals dictionary and the symbol_table
+            # (locals takes priority)
+            lsymbols = symbol_table['giac'].copy()
+            lsymbols.update(locals)    
+            
             try:
-                from sage.symbolic.all import SR
-                return SR(result)
+                return symbolic_expression_from_string(result, lsymbols,
+                    accept_sequence=True)
+                    
             except Exception:
                 raise NotImplementedError("Unable to parse Giac output: %s" % result)
         else:
@@ -1158,21 +1175,3 @@ def __doctest_cleanup():
     """
     import sage.interfaces.quit
     sage.interfaces.quit.expect_quitall()
-    
-def _giac2sage(ex):
-    """
-    Parse the Giac output language to the Sage output language.
-    
-    EXAMPLES::
-    
-    sage: sage.interfaces.giac._giac2sage('Heaviside(t-1)')
-    'heaviside(t-1)'
-    """
-    # key: giac (old) -> sage (new)
-    
-    conversions = [('Heaviside', 'heaviside'),
-                    ('Dirac', 'dirac_delta')]
-                               
-    for old, new in conversions:
-                ex = ex.replace(old, new)        
-    return ex

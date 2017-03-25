@@ -3202,7 +3202,7 @@ class BlackBoxConstructionFunctor(ConstructionFunctor):
         Gap
         sage: FS(QQ['t'])
         polynomial ring, over a field, global ordering
-        //   characteristic : 0
+        //   coefficients: QQ
         //   number of vars : 1
         //        block   1 : ordering lp
         //                  : names    t

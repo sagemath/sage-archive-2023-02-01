@@ -1410,7 +1410,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: B.<x,y> = BooleanPolynomialRing(2)
             sage: B._singular_() # indirect doctest
             polynomial ring, over a field, global ordering
-            //   characteristic : 2
+            //   coefficients: ZZ/2
             //   number of vars : 2
             //        block   1 : ordering lp
             //                  : names    x y

@@ -786,7 +786,7 @@ class QuotientRingElement(RingElement):
             sage: Q = P.quo(I)
             sage: Q._singular_()
             polynomial ring, over a field, global ordering
-            //   characteristic : 2
+            //   coefficients: ZZ/2
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y

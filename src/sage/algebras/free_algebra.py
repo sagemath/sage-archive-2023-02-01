@@ -613,7 +613,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
                         if T[i]:
                             out.append((i%ngens,T[i]))
                     return M(out)
-                return self.element_class(self, dict([(exp_to_monomial(T),c) for T,c in six.iteritems(x.letterplace_polynomial().dict())]))
+                return self.element_class(self, {exp_to_monomial(T):c for T,c in six.iteritems(x.letterplace_polynomial().dict())})
         # ok, not a free algebra element (or should not be viewed as one).
         if isinstance(x, six.string_types):
             from sage.all import sage_eval

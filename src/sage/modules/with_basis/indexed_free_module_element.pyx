@@ -529,7 +529,7 @@ cdef class IndexedFreeModuleElement(Element):
         w = sorted(elt._monomial_coefficients.items())
         return richcmp_not_equal(v, w, op)
 
-    cpdef _add_(self, other):
+    cdef _add_(self, other):
         """
         EXAMPLES::
 
@@ -551,7 +551,7 @@ cdef class IndexedFreeModuleElement(Element):
                           add(self._monomial_coefficients,
                               (<IndexedFreeModuleElement>other)._monomial_coefficients))
 
-    cpdef _neg_(self):
+    cdef _neg_(self):
         """
         EXAMPLES::
 
@@ -569,7 +569,7 @@ cdef class IndexedFreeModuleElement(Element):
         """
         return type(self)(self._parent, negate(self._monomial_coefficients))
 
-    cpdef _sub_(self, other):
+    cdef _sub_(self, other):
         """
         EXAMPLES::
 
@@ -775,11 +775,11 @@ cdef class IndexedFreeModuleElement(Element):
             else:
                 return None
 
-        D = self._monomial_coefficients
         return type(self)(self._parent,
-                          scal(scalar, D, factor_on_left=not self_on_left))
+                          scal(scalar, self._monomial_coefficients,
+                               factor_on_left=not self_on_left))
 
-    def _lmul_(self, other):
+    cpdef _lmul_(self, RingElement right):
         """
         For backward compatibility.
 
@@ -789,9 +789,9 @@ cdef class IndexedFreeModuleElement(Element):
             sage: C.an_element()._lmul_(2)
             4*B[1] + 4*B[2] + 6*B[3]
         """
-        return self._acted_upon_(other, True)
+        return self._acted_upon_(right, True)
 
-    def _rmul_(self, other):
+    cpdef _rmul_(self, RingElement left):
         """
         For backward compatibility.
 
@@ -801,7 +801,7 @@ cdef class IndexedFreeModuleElement(Element):
             sage: C.an_element()._rmul_(2)
             4*B[1] + 4*B[2] + 6*B[3]
         """
-        return self._acted_upon_(other, False)
+        return self._acted_upon_(left, False)
 
     def __truediv__(self, x):
         """

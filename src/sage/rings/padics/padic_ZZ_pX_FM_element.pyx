@@ -209,7 +209,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             if parent.prime() != x.parent().prime():
                 raise TypeError("Cannot coerce between p-adic parents with different primes.")
         if isinstance(x, GpElement):
-            x = x._pari_()
+            x = x.__pari__()
         if isinstance(x, pari_gen):
             if x.type() == "t_PADIC":
                 if x.variable() != self.prime_pow.prime:

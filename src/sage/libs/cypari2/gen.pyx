@@ -4430,7 +4430,7 @@ cpdef Gen objtogen(s):
     """
     Convert any Sage/Python object to a PARI :class:`Gen`.
 
-    For Sage types, this uses the ``_pari_()`` method on the object.
+    For Sage types, this uses the ``__pari__()`` method on the object.
     Basic Python types like ``int`` are converted directly. For other
     types, the string representation is used.
 
@@ -4513,6 +4513,13 @@ cpdef Gen objtogen(s):
         Traceback (most recent call last):
         ...
         ValueError: Cannot convert None to pari
+
+        sage: class OldStylePari:
+        ....:     def _pari_(self):
+        ....:         return pari(42)
+        sage: pari(OldStylePari())
+        doctest:...: DeprecationWarning: the _pari_ method is deprecated, use __pari__ instead
+        42
     """
     cdef GEN g
     cdef list L
@@ -4520,9 +4527,20 @@ cpdef Gen objtogen(s):
     if isinstance(s, Gen):
         return s
     try:
-        return s._pari_()
+        m = s.__pari__
     except AttributeError:
         pass
+    else:
+        return m()
+
+    try:
+        m = s._pari_
+    except AttributeError:
+        pass
+    else:
+        from warnings import warn
+        warn("the _pari_ method is deprecated, use __pari__ instead", DeprecationWarning)
+        return m()
 
     # Check basic Python types. Start with strings, which are a very
     # common case.

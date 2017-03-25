@@ -434,8 +434,8 @@ cdef class IntegerMod_abstract(FiniteRingElement):
     def _pari_init_(self):
         return 'Mod(%s,%s)'%(str(self), self.__modulus.sageInteger)
 
-    def _pari_(self):
-        return self.lift()._pari_().Mod(self.__modulus.sageInteger)
+    def __pari__(self):
+        return self.lift().__pari__().Mod(self.__modulus.sageInteger)
 
     def _gap_init_(self):
         r"""
@@ -854,7 +854,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             ....:             n = p^ep * q^eq * r^er * 2^e2
             ....:             for _ in range(2):
             ....:                 a = Zmod(n).random_element()
-            ....:                 if a.is_square().__xor__(a._pari_().issquare()):
+            ....:                 if a.is_square().__xor__(a.__pari__().issquare()):
             ....:                     print(a, n)
 
         ALGORITHM: Calculate the Jacobi symbol
@@ -893,7 +893,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             return 0
         # We need to factor the modulus.  We do it here instead of
         # letting PARI do it, so that we can cache the factorisation.
-        return lift._pari_().Zn_issquare(self._parent.factored_order()._pari_())
+        return lift.__pari__().Zn_issquare(self._parent.factored_order())
 
     def sqrt(self, extend=True, all=False):
         r"""
@@ -1618,7 +1618,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             ArithmeticError: multiplicative order of 0 not defined since it is not a unit modulo 5
         """
         try:
-            return sage.rings.integer.Integer(self._pari_().znorder())
+            return sage.rings.integer.Integer(self.__pari__().znorder())
         except PariError:
             raise ArithmeticError("multiplicative order of %s not defined since it is not a unit modulo %s"%(
                 self, self.__modulus.sageInteger))
@@ -2679,7 +2679,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             return 0
         # We need to factor the modulus.  We do it here instead of
         # letting PARI do it, so that we can cache the factorisation.
-        return lift._pari_().Zn_issquare(self._parent.factored_order()._pari_())
+        return lift.__pari__().Zn_issquare(self._parent.factored_order())
 
     def sqrt(self, extend=True, all=False):
         r"""

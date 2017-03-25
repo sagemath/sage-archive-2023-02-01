@@ -152,45 +152,45 @@ cdef class PowerSeries_pari(PowerSeries):
             if f_parent is parent:
                 if prec is infinity:
                     prec = (<PowerSeries>f)._prec
-                g = f._pari_()
+                g = f.__pari__()
             elif R.has_coerce_map_from(f_parent):
-                g = R.coerce(f)._pari_()
+                g = R.coerce(f).__pari__()
             else:
                 if prec is infinity:
                     prec = f.prec()
-                g = f.polynomial().change_ring(R)._pari_()
+                g = f.polynomial().change_ring(R).__pari__()
         elif isinstance(f, Polynomial):
             f_parent = (<Polynomial>f)._parent
             if f_parent is P:
-                g = f._pari_()
+                g = f.__pari__()
             elif R.has_coerce_map_from(f_parent):
-                g = R.coerce(f)._pari_()
+                g = R.coerce(f).__pari__()
             else:
-                g = P.coerce(f)._pari_()
+                g = P.coerce(f).__pari__()
         elif isinstance(f, pari_gen):
             g = f
             t = typ(g.g)
             if t == t_POL:
-                g = P(g)._pari_()
+                g = P(g).__pari__()
             elif t == t_SER and varn(g.g) == get_var(v):
                 if valp(g.g) < 0:
                     raise ValueError('series has negative valuation')
                 if prec is infinity:
                     prec = lg(g.g) - 2 + valp(g.g)
-                g = P(g.Pol(v))._pari_()
+                g = P(g.Pol(v)).__pari__()
             elif t == t_RFRAC:
                 if prec is infinity:
                     prec = parent.default_prec()
-                g = P.fraction_field()(g)._pari_()
+                g = P.fraction_field()(g).__pari__()
                 g = g.Ser(v, prec - g.valuation(v))
             elif t == t_VEC:
-                g = P(g.Polrev(v))._pari_()
+                g = P(g.Polrev(v)).__pari__()
             else:
-                g = R(g)._pari_()
+                g = R(g).__pari__()
         elif isinstance(f, (list, tuple)):
             g = pari([R.coerce(x) for x in f]).Polrev(v)
         else:
-            g = R.coerce(f)._pari_()
+            g = R.coerce(f).__pari__()
 
         if prec is infinity:
             self.g = g
@@ -231,14 +231,14 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         return PowerSeries_pari, (self._parent, self.g, self._prec, False)
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Convert ``self`` to a PARI object.
 
         TESTS::
 
             sage: R.<t> = PowerSeriesRing(GF(7), implementation='pari')
-            sage: (3 - t^3 + O(t^5))._pari_()
+            sage: (3 - t^3 + O(t^5)).__pari__()
             Mod(3, 7) + Mod(6, 7)*t^3 + O(t^5)
 
         """

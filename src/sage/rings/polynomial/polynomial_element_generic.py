@@ -500,12 +500,6 @@ class Polynomial_generic_sparse(Polynomial):
             v[n] = x
         return v
 
-    #def _pari_(self, variable=None):
-    #    if variable is None:
-    #        return self.__pari
-    #    else:
-    #        return self.__pari.subst('x',variable)
-
     def degree(self, gen=None):
         """
         Return the degree of this sparse polynomial.

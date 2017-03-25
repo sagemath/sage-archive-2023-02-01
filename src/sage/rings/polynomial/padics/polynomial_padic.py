@@ -225,7 +225,7 @@ class Polynomial_padic(Polynomial):
         if self_normal.discriminant().valuation() >= absprec:
             raise PrecisionError(
                 "p-adic factorization not well-defined since the discriminant is zero up to the requestion p-adic precision")
-        G = self_normal._pari_().factorpadic(self.base_ring().prime(), absprec)
+        G = self_normal.__pari__().factorpadic(self.base_ring().prime(), absprec)
         return _pari_padic_factorization_to_sage(G, self.parent(), self.leading_coefficient())
 
 def _pari_padic_factorization_to_sage(G, R, leading_coeff):

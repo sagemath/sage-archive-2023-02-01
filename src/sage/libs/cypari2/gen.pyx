@@ -193,11 +193,134 @@ cdef class Gen(Gen_auto):
         sig_off()
         return h
 
-    def list(self):
+    def __iter__(self):
         """
-        Convert self to a list of PARI gens.
+        Iterate over the components of ``self``.
+
+        The items in the iteration are of type :class:`Gen` with the
+        following exceptions:
+
+        - items of a ``t_VECSMALL`` are of type ``int``
+
+        - items of a ``t_STR`` are of type ``str``
 
         EXAMPLES:
+
+        We can iterate over PARI vectors or columns::
+
+            sage: L = pari("vector(10,i,i^2)")
+            sage: L.__iter__()
+            <generator object at ...>
+            sage: [x for x in L]
+            [1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
+            sage: list(L)
+            [1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
+            sage: list(pari("vector(10,i,i^2)~"))
+            [1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
+
+        For polynomials, we iterate over the list of coefficients::
+
+            sage: pol = pari("x^3 + 5/3*x"); list(pol)
+            [0, 5/3, 0, 1]
+
+        For power series or Laurent series, we get all coefficients starting
+        from the lowest degree term.  This includes trailing zeros::
+
+            sage: list(pari('x^2 + O(x^8)'))
+            [1, 0, 0, 0, 0, 0]
+            sage: list(pari('x^-2 + O(x^0)'))
+            [1, 0]
+
+        For matrices, we iterate over the columns::
+
+            sage: M = pari.matrix(3,2,[1,4,2,5,3,6]); M
+            [1, 4; 2, 5; 3, 6]
+            sage: list(M)
+            [[1, 2, 3]~, [4, 5, 6]~]
+
+        Other types are first converted to a vector using :meth:`Vec`::
+
+            sage: Q = pari('Qfb(1, 2, 3)')
+            sage: tuple(Q)
+            (1, 2, 3)
+            sage: Q.Vec()
+            [1, 2, 3]
+
+        We get an error for "scalar" types or for types which cannot be
+        converted to a PARI vector::
+
+            sage: iter(pari(42))
+            Traceback (most recent call last):
+            ...
+            TypeError: PARI object of type 't_INT' is not iterable
+            sage: iter(pari("x->x"))
+            Traceback (most recent call last):
+            ...
+            PariError: incorrect type in gtovec (t_CLOSURE)
+
+        For ``t_VECSMALL``, the items are Python integers::
+
+            sage: v = pari("Vecsmall([1,2,3,4,5,6])")
+            sage: list(v)
+            [1, 2, 3, 4, 5, 6]
+            sage: type(list(v)[0]).__name__
+            'int'
+
+        For ``t_STR``, the items are Python strings::
+
+            sage: v = pari('"hello"')
+            sage: list(v)
+            ['h', 'e', 'l', 'l', 'o']
+
+        TESTS:
+
+        The following are deprecated::
+
+            sage: tuple(pari('3/5'))
+            doctest:...: DeprecationWarning: iterating a PARI 't_FRAC' is deprecated
+            (3, 5)
+            sage: tuple(pari('1 + 5*I'))
+            doctest:...: DeprecationWarning: iterating a PARI 't_COMPLEX' is deprecated
+            (1, 5)
+        """
+        cdef long i
+        cdef long t = typ(self.g)
+        cdef GEN x
+
+        # First convert self to a vector type
+        cdef Gen v
+        if t == t_VEC or t == t_COL or t == t_MAT:
+            # These are vector-like and can be iterated over directly
+            v = self
+        elif t == t_POL:
+            v = self.Vecrev()
+        elif t == t_FRAC or t == t_RFRAC or t == t_COMPLEX:
+            # Also treat as vector
+            # Deprecated, make this an error in the future
+            from warnings import warn
+            warn(f"iterating a PARI {self.type()!r} is deprecated", DeprecationWarning)
+            v = self
+        elif is_scalar_t(t):
+            raise TypeError(f"PARI object of type {self.type()!r} is not iterable")
+        elif t == t_VECSMALL:
+            # Special case: items of type int
+            x = self.g
+            return (x[i] for i in range(1, lg(x)))
+        elif t == t_STR:
+            # Special case: convert to str
+            return iter(GSTR(self.g))
+        else:
+            v = self.Vec()
+
+        # Now iterate over the vector v
+        x = v.g
+        return (v.new_ref(gel(x, i)) for i in range(1, lg(x)))
+
+    def list(self):
+        """
+        Convert ``self`` to a Python list with :class:`Gen` components.
+
+        EXAMPLES::
 
         A PARI vector becomes a Python list::
 
@@ -229,14 +352,21 @@ cdef class Gen(Gen_auto):
             sage: M.list()
             [[1, 2, 3]~, [4, 5, 6]~]
 
-        For "scalar" types, we get a 1-element list containing ``self``::
+        TESTS:
 
-            sage: pari("42").list()
+        For "scalar" types, this is deprecated. Currently, we get a
+        1-element list containing ``self``::
+
+            sage: pari(42).list()
+            doctest:...: DeprecationWarning: calling list() on scalar PARI types is deprecated
             [42]
         """
-        if typ(self.g) == t_POL:
-            return list(self.Vecrev())
-        return list(self.Vec())
+        if is_scalar_t(typ(self.g)):
+            # Deprecated, make this an error in the future
+            from warnings import warn
+            warn("calling list() on scalar PARI types is deprecated", DeprecationWarning)
+            return [self]
+        return [x for x in self]
 
     def __reduce__(self):
         """
@@ -884,12 +1014,12 @@ cdef class Gen(Gen_auto):
             3
             sage: type(sv[2])
             <... 'int'>
-            sage: tuple(pari('3/5'))
-            (3, 5)
-            sage: tuple(pari('1 + 5*I'))
-            (1, 5)
-            sage: tuple(pari('Qfb(1, 2, 3)'))
-            (1, 2, 3)
+            sage: [pari('3/5')[i] for i in range(2)]
+            [3, 5]
+            sage: [pari('1 + 5*I')[i] for i in range(2)]
+            [1, 5]
+            sage: [pari('Qfb(1, 2, 3)')[i] for i in range(3)]
+            [1, 2, 3]
             sage: pari(57)[0]
             Traceback (most recent call last):
             ...

@@ -493,14 +493,14 @@ class R(ExtraTabCompletion, Expect):
         os.system("time echo '%s' | R --vanilla"%cmd)
         print("Please restart Sage in order to use '%s'." % package_name)
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Return string representation of this R interface.
 
         EXAMPLES::
 
-            sage: r.__repr__()
-            'R Interpreter'
+            sage: r                 # indirect doctest
+            R Interpreter
         """
         return 'R Interpreter'
 

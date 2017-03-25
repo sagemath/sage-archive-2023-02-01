@@ -1723,7 +1723,7 @@ class MagmaFunctionElement(FunctionElement):
         s = sage.misc.misc.word_wrap(s)
         return s
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Return string representation of this partially evaluated function.
 

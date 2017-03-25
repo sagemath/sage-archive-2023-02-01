@@ -1287,7 +1287,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             self._name = value
         self._session_number = parent._session_number
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         Return string representation of ``self``.
 
@@ -1305,32 +1305,21 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             15625/103823*x^6*y.., y,
             0,                    1
 
-        Note that the output is truncated
+        Note that the output is truncated, and if ``self`` has a custom name then
+        it is used to print the items of the matrix, rather than abbreviating its
+        contents::
 
-        ::
-
-            sage: M= singular.matrix(2,2,"(25/47*x^2*y^4 + 63/127*x + 27)^3,y,0,1")
+            sage: M = singular.matrix(2,2,"(25/47*x^2*y^4 + 63/127*x + 27)^3,y,0,1")
             sage: M.rename('T')
             sage: M
             T[1,1],y,
             0,         1
 
-        if ``self`` has a custom name, it is used to print the
-        matrix, rather than abbreviating its contents
+
         """
-        try:
-            self._check_valid()
-        except ValueError:
-            return '(invalid object -- defined in terms of closed session)'
-        try:
-            if self._get_using_file:
-                s = self.parent().get_using_file(self._name)
-        except AttributeError:
-            s = self.parent().get(self._name)
+        s = super(SingularElement, self)._repr_()
         if self._name in s:
-            if hasattr(self, '__custom_name'):
-                s =  s.replace(self._name, self.__dict__['__custom_name'])
-            elif self.type() == 'matrix':
+            if (not hasattr(self, "__custom_name")) and self.type() == 'matrix':
                 s = self.parent().eval('pmat(%s,20)'%(self.name()))
         return s
 
@@ -2059,7 +2048,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             [4]:
                _[1]=0
             sage: RL.sage_structured_str_list()
-            ['0', ['x', 'y'], [['dp', '1,\n1 '], ['C', '0 ']], '0']
+            ['0', ['x', 'y'], [['dp', '1,\n1'], ['C', '0']], '0']
         """
         if not (self.type()=='list'):
             return str(self)
@@ -2254,7 +2243,7 @@ def reduce_load():
         sage: reduce_load()
         doctest:...: DeprecationWarning: This function is only used to unpickle invalid objects
         See http://trac.sagemath.org/18848 for details.
-        (invalid object -- defined in terms of closed session)
+        (invalid <class 'sage.interfaces.singular.SingularElement'> object -- The session in which this object was defined is no longer running.)
 
     By :trac:`18848`, pickling actually often works::
 

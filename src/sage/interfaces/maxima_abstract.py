@@ -1089,6 +1089,7 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
         sage: type(xl)
         <class 'sage.interfaces.maxima_lib.MaximaLibElement'>
     """
+    _cached_repr = True
 
     def __str__(self):
         """
@@ -1409,30 +1410,6 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
         """
         P = self._check_valid()
         return P.get(self._name)
-
-    def __repr__(self):
-        """
-        Return print representation of this Maxima object.
-
-        INPUT: none
-
-        OUTPUT: string
-
-        The result is cached.
-
-        EXAMPLES::
-
-            sage: maxima('sqrt(2) + 1/3').__repr__()
-            'sqrt(2)+1/3'
-        """
-        P = self._check_valid()
-        try:
-            return self.__repr
-        except AttributeError:
-            pass
-        r = P.get(self._name)
-        self.__repr = r
-        return r
 
     def diff(self, var='x', n=1):
         """
@@ -2031,7 +2008,7 @@ class MaximaAbstractElementFunction(MaximaAbstractElement):
             args = '(%s)'%args
         return P('%s%s'%(self.name(), args))
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Return print representation of this Maxima function.
 
@@ -2042,7 +2019,7 @@ class MaximaAbstractElementFunction(MaximaAbstractElement):
         EXAMPLES::
 
             sage: f = maxima.function('x,y','sin(x+y)')
-            sage: repr(f)
+            sage: repr(f)    # indirect doctest
             'sin(x+y)'
         """
         return self.definition()

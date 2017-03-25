@@ -940,27 +940,6 @@ class GiacElement(ExpectElement):
         """
         return
 
-    def __repr__(self):
-        """
-        Return a string representation of self.
-
-        These examples are optional, and require Giac to be installed. You
-        don't need to install any Sage packages for this.
-
-        EXAMPLES::
-
-            sage: x = var('x')
-            sage: giac(x)
-            x
-            sage: giac(5)
-            5
-            sage: M = matrix(QQ,2,range(4))
-            sage: giac(M)
-            [[0,1],[2,3]]
-        """
-        self._check_valid()
-        return self.parent().get(self._name)
-
     def _latex_(self):
         r"""
         You can output Giac expressions in latex.

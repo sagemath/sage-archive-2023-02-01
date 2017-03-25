@@ -657,7 +657,7 @@ class Gp(ExtraTabCompletion, Expect):
             10
             sage: gp.quit()  # indirect doctest
             sage: a
-            <repr(<sage.interfaces.gp.GpElement at 0x...>) failed: ValueError: The pari session in which this object was defined is no longer running.>
+            (invalid PARI/GP interpreter object -- The pari session in which this object was defined is no longer running.)
             sage: gp("30!")
             265252859812191058636308480000000
         """

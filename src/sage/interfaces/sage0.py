@@ -488,7 +488,7 @@ class SageFunction(FunctionElement):
             callstr = '%s.%s()' % (self._obj._name, self._name)
         return SageElement(P, callstr)
 
-    def __repr__(self):
+    def _repr_(self):
         """
         EXAMPLES::
 

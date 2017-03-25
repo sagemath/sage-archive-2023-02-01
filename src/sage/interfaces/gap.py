@@ -974,17 +974,6 @@ class GapElement_generic(ExtraTabCompletion, ExpectElement):
       code
 
     """
-    def __repr__(self):
-        """
-        EXAMPLES::
-
-            sage: gap(2)
-            2
-        """
-        s = ExpectElement.__repr__(self)
-        if s.find('must have a value') != -1:
-            raise RuntimeError("An error occurred creating an object in %s from:\n'%s'\n%s"%(self.parent().name(), self._create, s))
-        return s
 
     def bool(self):
         """
@@ -1806,8 +1795,7 @@ def reduce_load():
         sage: reduce_load()
         doctest:...: DeprecationWarning: This function is only used to unpickle invalid objects
         See http://trac.sagemath.org/18848 for details.
-        <repr(<sage.interfaces.gap.GapElement at ...>) failed:
-        ValueError: The session in which this object was defined is no longer running.>
+        (invalid <class 'sage.interfaces.gap.GapElement'> object -- The session in which this object was defined is no longer running.)
 
     By :trac:`18848`, pickling actually often works::
 

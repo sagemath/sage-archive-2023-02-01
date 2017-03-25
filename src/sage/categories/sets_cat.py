@@ -2667,8 +2667,18 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     The subset algebra of {1, 2, 3} over Rational Field
                     sage: A.an_element()        # indirect doctest
                     F[{}] + 2*F[{1}] + 3*F[{2}] + F[{1, 2}]
+
+                TESTS:
+
+                Check that we are consistent no matter which basis is
+                created first::
+
+                    sage: M = posets.BooleanLattice(4).moebius_algebra(QQ)
+                    sage: I = M.I()
+                    sage: M._an_element_()
+                    2*E[0] + 2*E[1] + 3*E[2]
                 """
-                return self.realizations()[0].an_element()
+                return self.a_realization().an_element()
 
             # TODO: maybe this could be taken care of by Sets.Facade()?
             def __contains__(self, x):

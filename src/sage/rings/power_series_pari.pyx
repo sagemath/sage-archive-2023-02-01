@@ -71,7 +71,7 @@ AUTHORS:
 
 from __future__ import absolute_import, division, print_function
 
-from sage.libs.cypari2.gen cimport Gen as pari_gen, new_ref
+from sage.libs.cypari2.gen cimport Gen as pari_gen
 from sage.libs.cypari2.pari_instance cimport get_var
 from sage.libs.cypari2.paridecl cimport gel, typ, lg, valp, varn, t_POL, t_SER, t_RFRAC, t_VEC
 from sage.libs.pari.all import pari
@@ -678,7 +678,7 @@ cdef class PowerSeries_pari(PowerSeries):
             g = g.truncate()
         if typ(g.g) == t_POL and varn(g.g) == vn:
             # t_POL has 2 codewords.  Use new_ref instead of g[i] for speed.
-            return [R(new_ref(gel(g.g, i), g)) for i in range(2, lg(g.g))]
+            return [R(g.new_ref(gel(g.g, i))) for i in range(2, lg(g.g))]
         else:
             return [R(g)]
 
@@ -735,9 +735,9 @@ cdef class PowerSeries_pari(PowerSeries):
         if typ(g.g) == t_POL and varn(g.g) == get_var(self._parent.variable_name()):
             l = lg(g.g) - 2  # t_POL has 2 codewords
             if n <= l:
-                return [R(new_ref(gel(g.g, i + 2), g)) for i in range(n)]
+                return [R(g.new_ref(gel(g.g, i + 2))) for i in range(n)]
             else:
-                return ([R(new_ref(gel(g.g, i + 2), g)) for i in range(l)]
+                return ([R(g.new_ref(gel(g.g, i + 2))) for i in range(l)]
                         + [R.zero()] * (n - l))
         elif typ(g.g) == t_SER and varn(g.g) == get_var(self._parent.variable_name()):
             l = lg(g.g) - 2  # t_SER has 2 codewords
@@ -746,10 +746,10 @@ cdef class PowerSeries_pari(PowerSeries):
                 return [R.zero()] * n
             elif n <= l + m:
                 return ([R.zero()] * m
-                        + [R(new_ref(gel(g.g, i + 2), g)) for i in range(n - m)])
+                        + [R(g.new_ref(gel(g.g, i + 2))) for i in range(n - m)])
             else:
                 return ([R.zero()] * m
-                        + [R(new_ref(gel(g.g, i + 2), g)) for i in range(l)]
+                        + [R(g.new_ref(gel(g.g, i + 2))) for i in range(l)]
                         + [R.zero()] * (n - l - m))
         else:
             return [R(g)] + [R.zero()] * (n - 1)

@@ -155,17 +155,11 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         self._parent = parent
         self.construct_from(x)
 
-    # The Cython constructor __cinit__ is not necessary: according to
-    # the Cython documentation, C attributes are initialised to 0.
-    # def __cinit__(FiniteFieldElement_pari_ffelt self):
-    #     self.block = NULL
-
     def __dealloc__(FiniteFieldElement_pari_ffelt self):
         """
         Cython deconstructor.
         """
-        if self.block:
-            sig_free(self.block)
+        sig_free(self.chunk)
 
     cdef FiniteFieldElement_pari_ffelt _new(FiniteFieldElement_pari_ffelt self):
         """
@@ -183,7 +177,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
 
         This should be called exactly once on every instance.
         """
-        self.val = deepcopy_to_python_heap(g, <pari_sp*>&self.block)
+        self.val = deepcopy_to_python_heap(g, &self.chunk)
         clear_stack()
 
     cdef void construct_from(FiniteFieldElement_pari_ffelt self, object x) except *:

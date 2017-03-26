@@ -869,6 +869,17 @@ cdef class SageObject:
         I = sage.interfaces.octave.octave
         return self._interface_init_(I)
 
+    def _polymake_(self, G=None):
+        if G is None:
+            import sage.interfaces.polymake
+            G = sage.interfaces.polymake.polymake
+        return self._interface_(G)
+
+    def _polymake_init_(self):
+        import sage.interfaces.polymake
+        I = sage.interfaces.polymake.polymake
+        return self._interface_init_(I)
+
     def _r_init_(self):
         """
         Return default string expression that evaluates in R to this

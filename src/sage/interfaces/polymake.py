@@ -1803,6 +1803,23 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
             return P(name+"{"+key+"}")
         raise NotImplementedError("Cannot get items from Perl type {}".format(T))
 
+    def __iter__(self):
+        """
+        Return an iterator for self.
+
+        INPUT: none
+
+        OUTPUT: iterator
+
+        EXAMPLES::
+
+            sage: p = polymake.rand_sphere(3, 12, seed=15)  # optional - polymake
+            sage: [ x for x in p.VERTICES[3] ]              # optional - polymake
+            [1, -6157731020575175/18014398509481984, 4184896164481703/4503599627370496, -2527292586301447/18014398509481984]
+        """
+        for i in range(len(self)):
+            yield self[i]
+
     def __len__(self):
         """
         EXAMPLES::

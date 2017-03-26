@@ -1872,6 +1872,82 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         name = self._name
         return P.eval('print ref({});'.format(name)), P.eval('print reftype({});'.format(name))
 
+    def _sage_(self):
+        """
+        Convert self to a Sage object.
+
+        EXAMPLES::
+
+            sage: a = polymake(1/2); a    # optional - polymake
+            1/2
+            sage: a.sage()                # optional - polymake
+            1/2
+            sage: _.parent()              # optional - polymake
+            Rational Field
+
+        Quadratic extensions::
+
+            sage: K.<sqrt5> = QuadraticField(5)
+            sage: polymake(K(0)).sage()   # optional - polymake
+            0
+            sage: _.parent()              # optional - polymake
+            Rational Field
+            sage: polymake(sqrt5).sage()   # optional - polymake
+            a
+            sage: polymake(-sqrt5).sage()   # optional - polymake
+            -a
+            sage: polymake(1/3-1/2*sqrt5).sage()   # optional - polymake
+            -1/2*a + 1/3
+            sage: polymake(-1+sqrt5).sage()   # optional - polymake
+            a - 1
+
+        Vectors::
+
+            sage: PP = polymake.cube(3)   # optional - polymake
+            sage: PP.F_VECTOR.sage()      # optional - polymake
+            (8, 12, 6)
+            sage: _.parent()              # optional - polymake
+            Ambient free module of rank 3 over the principal ideal domain Integer Ring
+
+        Matrices::
+
+            sage: polymake.unit_matrix(2).sage()   # optional - polymake
+            [1 0]
+            [0 1]
+            sage: _.parent()              # optional - polymake
+            Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
+
+        """
+        T1, T2 = self.typeof()
+        P = self._check_valid()
+        if T1:
+            Temp = self.typename()
+            if Temp:
+                T1 = Temp
+        if T1 == 'QuadraticExtension':
+            # We can't seem to access a, b, r by method calls, so let's parse.
+            from re import match
+            m = match(r'(-?[0-9/]+)[+]?((-?[0-9/]+)r([0-9/]+))?', repr(self))
+            if m is None:
+                raise NotImplementedError("Cannot parse QuadraticExtension element: {}".format(self))
+            a, b, r = m.group(1), m.group(3), m.group(4)
+            from sage.rings.rational_field import QQ
+            if r is None:
+                # Prints like a rational, so we can't know the extension. Coerce to rational.
+                return QQ(a)
+            else:
+                from sage.rings.number_field.number_field import QuadraticField
+                K = QuadraticField(r)
+                return QQ(a) + QQ(b) * K.gen()
+        elif T1 == 'Vector' or T1 == 'SparseVector':
+            from sage.modules.free_module_element import vector
+            return vector([x.sage() for x in self])
+        elif T1 == 'Matrix' or T1 == 'SparseMatrix':
+            from sage.matrix.constructor import matrix
+            return matrix([x.sage() for x in self])
+        else:
+            return super(PolymakeElement, self)._sage_()
+
     def _sage_doc_(self):
         """
         EXAMPLES::

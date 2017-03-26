@@ -5038,11 +5038,54 @@ class Polyhedron_base(Element):
             sage: PP = polymake(P)         # optional - polymake
             sage: PP.N_VERTICES            # optional - polymake
             8
+
+        Lower-dimensional polyhedron::
+
             sage: P = Polyhedron(vertices=[[1, 0], [0, 1]])
             sage: PP = polymake(P)         # optional - polymake
             sage: PP.COMBINATORIAL_DIM     # optional - polymake
             1
+            sage: PP.AFFINE_HULL           # optional - polymake
+            -1 1 1
+
+        Empty polyhedron::
+
+            sage: P = Polyhedron(ambient_dim=2, vertices=[])
+            sage: PP = polymake(P)         # optional - polymake
+            sage: PP.COMBINATORIAL_DIM     # optional - polymake
+            -1
+
+        Pointed unbounded polyhedron::
+
+            sage: P = Polyhedron(vertices=[[1, 0], [0, 1]], rays=[[1, 0]])
+            sage: PP = polymake(P)         # optional - polymake
+            sage: PP.VERTICES              # optional - polymake
+            1 0 1
+            1 1 0
+            0 1 0
+            sage: PP.FACETS                # optional - polymake
+            1 0 -1
+            -1 1 1
+            0 0 1
+
+        Non-pointed polyhedron::
+
+            sage: P = Polyhedron(vertices=[[1, 0], [0, 1]], lines=[[1, 0]])
+            sage: PP = polymake(P)         # optional - polymake
+            sage: PP.VERTICES              # optional - polymake
+            1 0 1
+            1 0 0
+            sage: PP.FACETS                # optional - polymake
+            1 0 -1
+            0 0 1
+            sage: PP.LINEALITY_SPACE       # optional - polymake
+            0 1 0
 
         """
         from sage.interfaces.polymake import polymake
-        return polymake.new_object("Polytope", FACETS=self.inequalities_list(), AFFINE_HULL=self.equations_list())
+        return polymake.new_object("Polytope",
+                                   FACETS=self.inequalities_list(),
+                                   AFFINE_HULL=self.equations_list(),
+                                   VERTICES=   [ [1] + v for v in self.vertices_list() ] \
+                                             + [ [0] + r for r in self.rays_list() ],
+                                   LINEALITY_SPACE=[ [0] + l for l in self.lines_list() ])

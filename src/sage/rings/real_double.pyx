@@ -378,6 +378,17 @@ cdef class RealDoubleField_class(Field):
         """
         return "RealField(%s : Bits := true)" % self.prec()
 
+    def _polymake_init_(self):
+        r"""
+        Return the polymake representation of the real double field.
+
+        EXAMPLES::
+
+            sage: polymake(RDF)    #optional - polymake # indirect doctest
+            Float
+        """
+        return '"Float"'
+
     def precision(self):
         """
         Return the precision of this real double field in bits.

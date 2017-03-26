@@ -1248,6 +1248,18 @@ class RationalField(Singleton, number_field_base.NumberField):
 
     _fricas_init_ = _axiom_init_
 
+    def _polymake_init_(self):
+        r"""
+        Return the polymake representation of `\QQ`.
+
+        EXAMPLES::
+
+            sage: polymake(QQ)    #optional - polymake # indirect doctest
+            Rational
+
+        """
+        return '"Rational"'
+
     def _sage_input_(self, sib, coerced):
         r"""
         Produce an expression which will reproduce this value when evaluated.

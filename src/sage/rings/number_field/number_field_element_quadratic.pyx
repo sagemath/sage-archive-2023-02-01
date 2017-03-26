@@ -259,6 +259,22 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         else:
             NumberFieldElement_absolute._maxima_init_(self, I)
 
+    def _polymake_init_(self):
+        """
+        EXAMPLES::
+
+            sage: K.<sqrt5> = QuadraticField(5)
+            sage: polymake(3+2*sqrt5)                 # optional - polymake
+            3+2r5
+            sage: K.<i> = QuadraticField(-1)
+            sage: polymake(i)                         # optional - polymake
+            Traceback (most recent call last):
+            ...
+            TypeError: Negative values for the root of the extension ... Bad Thing...
+        """
+        x0, x1 = self
+        return "new QuadraticExtension({}, {}, {})".format(x0, x1, self.D)
+
     def __copy__(self):
         r"""
         Returns a new copy of self.

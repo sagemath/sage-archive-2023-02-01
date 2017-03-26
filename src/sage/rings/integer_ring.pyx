@@ -1275,6 +1275,18 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return "ZZ"
 
+    def _polymake_init_(self):
+        r"""
+        Return the polymake representation of the integer ring.
+
+        EXAMPLES::
+
+            sage: polymake(ZZ)    # optional - polymake # indirect doctest
+            Integer
+
+        """
+        return '"Integer"'
+
     def _sage_input_(self, sib, coerced):
         r"""
         Produce an expression which will reproduce this value when

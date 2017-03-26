@@ -770,7 +770,7 @@ class Polymake(ExtraTabCompletion, Expect):
 
         INPUT:
 
-        - ``line``, a command (string) to be avaluated
+        - ``line``, a command (string) to be evaluated
         - ``allow_use_file`` (optional bool, default ``True``), whether or not
           to use a file if the line is very long.
         - ``wait_for_prompt`` (optional, default ``True``), whether or not

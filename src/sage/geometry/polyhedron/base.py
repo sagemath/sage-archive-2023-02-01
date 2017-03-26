@@ -5091,6 +5091,16 @@ class Polyhedron_base(Element):
             sage: sorted(PP.VERTICES[:])[0]
             1 1-1r5 4-2r5 0
 
+        Floating-point polyhedron::
+
+            sage: P = polytopes.dodecahedron(exact=False); P
+            A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 20 vertices
+            sage: print("There may be a recompilation warning"); PP = polymake(P); PP
+            There may be a recompilation warning...
+            Polytope<Float>[...]
+            sage: sorted(PP.VERTICES[:])[0]
+            1 -1.236067978 -0.4721359552 0
+
         """
         from sage.interfaces.polymake import polymake
         polymake_field = polymake(self.base_ring().fraction_field())

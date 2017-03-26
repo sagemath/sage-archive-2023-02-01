@@ -4651,7 +4651,7 @@ class Polyhedron_base(Element):
         return [p for p in lp.points() if self.contains(p)]
 
     @cached_method
-    def bounding_box(self, integral=False):
+    def bounding_box(self, integral=False, integral_hull=False):
         r"""
         Return the coordinates of a rectangular box containing the non-empty polytope.
 
@@ -4659,6 +4659,10 @@ class Polyhedron_base(Element):
 
         - ``integral`` -- Boolean (default: ``False``). Whether to
           only allow integral coordinates in the bounding box.
+
+        - ``integral_hull`` -- Boolean (default: ``False``). If ``True``, return a
+          box containing the integral points of the polytope, or ``None, None`` if it
+          is known that the polytope has no integral points.
 
         OUTPUT:
 
@@ -4673,6 +4677,10 @@ class Polyhedron_base(Element):
             ((1/3, 1/3), (2/3, 2/3))
             sage: Polyhedron([ (1/3,2/3), (2/3, 1/3) ]).bounding_box(integral=True)
             ((0, 0), (1, 1))
+            sage: Polyhedron([ (1/3,2/3), (2/3, 1/3) ]).bounding_box(integral_hull=True)
+            (None, None)
+            sage: Polyhedron([ (1/3,2/3), (3/3, 4/3) ]).bounding_box(integral_hull=True)
+            ((1, 1), (1, 1))
             sage: polytopes.buckyball(exact=False).bounding_box()
             ((-0.8090169944, -0.8090169944, -0.8090169944), (0.8090169944, 0.8090169944, 0.8090169944))
         """
@@ -4686,7 +4694,14 @@ class Polyhedron_base(Element):
             coords = [ v[i] for v in self.vertex_generator() ]
             max_coord = max(coords)
             min_coord = min(coords)
-            if integral:
+            if integral_hull:
+                a = ceil(min_coord)
+                b = floor(max_coord)
+                if a > b:
+                    return None, None
+                box_max.append(b)
+                box_min.append(a)
+            elif integral:
                 box_max.append(ceil(max_coord))
                 box_min.append(floor(min_coord))
             else:
@@ -4816,6 +4831,12 @@ class Polyhedron_base(Element):
             sage: len(simplex.integral_points())
             49
 
+        A case where rounding in the right direction goes a long way::
+
+            sage: P = 1/10*polytopes.hypercube(14)
+            sage: P.integral_points()
+            ((0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),)
+
         Finally, the 3-d reflexive polytope number 4078::
 
             sage: v = [(1,0,0), (0,1,0), (0,0,1), (0,0,-1), (0,-2,1),
@@ -4867,7 +4888,9 @@ class Polyhedron_base(Element):
                 return ()
 
         # for small bounding boxes, it is faster to naively iterate over the points of the box
-        box_min, box_max = self.bounding_box(integral=True)
+        box_min, box_max = self.bounding_box(integral_hull=True)
+        if box_min is None:
+            return ()
         box_points = prod(max_coord-min_coord+1 for min_coord, max_coord in zip(box_min, box_max))
         if  not self.is_lattice_polytope() or \
                 (self.is_simplex() and box_points < 1000) or \

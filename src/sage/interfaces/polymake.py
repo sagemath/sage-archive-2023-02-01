@@ -65,7 +65,7 @@ class PolymakeError(RuntimeError):
         sage: polymake.eval('print foo;')    # optional polymake
         Traceback (most recent call last):
         ...
-        PolymakeError: Unquoted string "foo" may clash with future reserved word at input line 1.
+        PolymakeError: Unquoted string "foo" may clash with future reserved word...
 
     """
     pass
@@ -460,7 +460,7 @@ class Polymake(ExtraTabCompletion, Expect):
             sage: polymake('"foobar"')                          # optional - polymake
             <repr(<sage.interfaces.polymake.PolymakeElement at ...>) failed:
             PolymakeError: Can't locate object method "description" via package "1"
-            (perhaps you forgot to load "1"?) at input line 1.>
+            (perhaps you forgot to load "1"?)...>
             sage: Q.typeof()                                    # optional - polymake
             ('foobar...', 'Polymake::polytope::Polytope__Rational')
             sage: Q.typeof.clear_cache()                        # optional - polymake

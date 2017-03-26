@@ -5081,9 +5081,20 @@ class Polyhedron_base(Element):
             sage: PP.LINEALITY_SPACE       # optional - polymake
             0 1 0
 
+        Algebraic polyhedron::
+
+            sage: P = polytopes.dodecahedron(); P
+            A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^3 defined as the convex hull of 20 vertices
+            sage: print("There may be a recompilation warning"); PP = polymake(P); PP
+            There may be a recompilation warning...
+            Polytope<QuadraticExtension<Rational>>[...]
+            sage: sorted(PP.VERTICES[:])[0]
+            1 1-1r5 4-2r5 0
+
         """
         from sage.interfaces.polymake import polymake
-        return polymake.new_object("Polytope",
+        polymake_field = polymake(self.base_ring().fraction_field())
+        return polymake.new_object("Polytope<{}>".format(polymake_field),
                                    FACETS=self.inequalities_list(),
                                    AFFINE_HULL=self.equations_list(),
                                    VERTICES=   [ [1] + v for v in self.vertices_list() ] \

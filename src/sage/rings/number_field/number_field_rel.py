@@ -1769,7 +1769,7 @@ class NumberField_relative(NumberField_generic):
 
             sage: K.<a, b> = NumberField( [x^2 + x + 1, x^4 + 1] )
             sage: K.roots_of_unity()[:5]
-            [b*a + b, b^2*a, -b^3, a + 1, b*a]
+            [b*a, -b^2*a - b^2, b^3, -a, b*a + b]
         """
         abs = self.absolute_field('a')
         from_abs, _ = abs.structure()

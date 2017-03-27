@@ -24,11 +24,12 @@ al., and *Riemann-Roch and Abel-Jacobi Theory on a Finite Graph* by Baker and
 Norine [BN]_ are recommended.
 
 To describe the ASM, we start with a *sandpile graph*: a directed multigraph
-`\Gamma` with a vertex `s` that is accessible from every vertex (except
-possibly `s`, itself).  By *multigraph*, we mean that each edge of `\Gamma` is
-assigned a nonnegative integer weight.  To say `s` is *accessible* from some
-vertex `v` means that there is a sequence of directed edges starting at `v` and
-ending at `s`.  We call `s` the *sink* of the sandpile graph, even though it might have outgoing edges, for reasons that will be made clear in a moment.
+`\Gamma` with a vertex `s` that is accessible from every vertex.
+By *multigraph*, we mean that each edge of `\Gamma` is assigned a nonnegative
+integer weight.  To say `s` is *accessible* from some vertex `v` means that
+there is a sequence (possibly empty) of directed edges starting at `v` and
+ending at `s`.  We call `s` the *sink* of the sandpile graph, even though it
+might have outgoing edges, for reasons that will be made clear in a moment.
 
 We denoted the vertices of `\Gamma` by `V` and define `\tilde{V} = V\setminus\{s\}`.
 

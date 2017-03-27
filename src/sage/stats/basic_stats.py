@@ -113,6 +113,8 @@ def mode(v):
         [1, 2, 3, 4, 5]
         sage: mode([3,1,2,1,2,3])
         [1, 2, 3]
+        sage: mode([0,2,7,7,13,20,2,13])
+        [2,7,13]
         sage: mode(['sage', 4, I, 3/5, 'sage', pi])
         ['sage']
         sage: class MyClass:
@@ -122,7 +124,6 @@ def mode(v):
         [1]
     """
     if hasattr(v, 'mode'): return v.mode()
-    from operator import itemgetter
 
     freq = {}
     for i in v:
@@ -131,8 +132,10 @@ def mode(v):
         else:
             freq[i] = 1
 
-    s = sorted(freq.items(), key=itemgetter(1), reverse=True)
-    return [i[0] for i in s if i[1]==s[0][1]]
+    s = sorted(freq.items(), key= lambda x:(x[1], x[0]), reverse=True)
+    li = [i[0] for i in s if i[1]==s[0][1]]
+    li.reverse()
+    return li
 
 def std(v, bias=False):
     """

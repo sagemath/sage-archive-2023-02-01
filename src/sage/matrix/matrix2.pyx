@@ -47,8 +47,8 @@ include "cysignals/signals.pxi"
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.coerce cimport py_scalar_parent
 from sage.structure.sequence import Sequence
-from sage.structure.element import (is_Vector, get_coercion_model)
-from sage.structure.element cimport have_same_parent
+from sage.structure.element import is_Vector
+from sage.structure.element cimport have_same_parent, coercion_model
 from sage.misc.misc import verbose, get_verbose
 from sage.rings.ring import is_Ring
 from sage.rings.number_field.number_field_base import is_NumberField
@@ -10663,8 +10663,7 @@ cdef class Matrix(matrix1.Matrix):
             mesg += "maybe the ring is not an integral domain"
             raise ValueError(mesg)
         if not have_same_parent(A, B):
-            cm = get_coercion_model()
-            A, B = cm.canonical_coercion(A, B)
+            A, B = coercion_model.canonical_coercion(A, B)
         # base rings are equal now, via above check
 
         similar = (A.rational_form() == B.rational_form())

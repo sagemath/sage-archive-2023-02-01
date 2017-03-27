@@ -3071,7 +3071,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
-            :meth:`is_doubling_constructible`
+            :meth:`is_constructible_by_doublings`
 
         EXAMPLES::
 
@@ -3477,7 +3477,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             joinands.append(result)
         return [self._vertex_to_element(v) for v in joinands]
 
-    def is_doubling_constructible(self, type):
+    def is_constructible_by_doublings(self, type):
         r"""
         Return ``True`` if the lattice is constructible by doublings, and
         ``False`` otherwise.
@@ -3509,21 +3509,27 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         EXAMPLES::
 
-            sage: Posets.PentagonPoset().is_doubling_constructible('interval')
+            sage: Posets.PentagonPoset().is_constructible_by_doublings('interval')
             True
             sage: L = Posets.BooleanLattice(2)
             sage: L = L.day_doubling([0, 1, 2])  # A lower pseudo-interval
-            sage: L.is_doubling_constructible('interval')
+            sage: L.is_constructible_by_doublings('interval')
             False
-            sage: L.is_doubling_constructible('lower')
+            sage: L.is_constructible_by_doublings('lower')
             True
-            sage: Posets.DiamondPoset(5).is_doubling_constructible('convex')  # Not implemented
+            sage: Posets.DiamondPoset(5).is_constructible_by_doublings('convex')  # Not implemented
             False
 
         TESTS::
 
-            sage: LatticePoset().is_doubling_constructible('interval')
+            sage: LatticePoset().is_constructible_by_doublings('interval')
             True
+
+        ALGORITHM:
+
+        According to [HOLM2016]_ a lattice `L` is lower bounded if and only if
+        `|Ji(L)| = |Ji(Con L)|`, and so dually `|Mi(L)| = |Mi(Con L)|` in
+        upper bounded lattices.
         """
         if type not in ['interval', 'lower', 'upper', 'convex']:
             raise ValueError("type must be one on 'interval', 'lower', 'upper' or 'convex'")

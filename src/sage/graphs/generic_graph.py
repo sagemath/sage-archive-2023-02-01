@@ -312,7 +312,7 @@ Methods
 -------
 """
 from __future__ import print_function, absolute_import, division
-from six.moves import range
+from six.moves import range, zip
 from six import itervalues, iteritems
 
 from copy import copy
@@ -715,7 +715,7 @@ class GenericGraph(GenericGraph_pyx):
             bit = lambda x,y : n_ch_2(max([x,y])) + min([x,y])
         bit_vector = set()
 
-        v_to_int = {v:i for i,v in enumerate(self.vertices())}
+        v_to_int = {v: i for i, v in enumerate(self.vertices())}
         for u,v,_ in self.edge_iterator():
             bit_vector.add(bit(v_to_int[u], v_to_int[v]))
         bit_vector = sorted(bit_vector)
@@ -1486,7 +1486,7 @@ class GenericGraph(GenericGraph_pyx):
             raise ImportError("The package igraph is not available. To " +
                               "install it, run 'sage -i python_igraph'")
 
-        v_to_int = {v:i for i,v in enumerate(self.vertices())}
+        v_to_int = {v: i for i, v in enumerate(self.vertices())}
         edges = [(v_to_int[v], v_to_int[w]) for v,w in self.edge_iterator(labels=False)]
 
         return igraph.Graph(n = self.num_verts(),
@@ -1885,7 +1885,7 @@ class GenericGraph(GenericGraph_pyx):
         from sage.matrix.constructor import matrix
         from sage.rings.integer_ring import ZZ
         m = matrix(ZZ, self.num_verts(), self.num_edges(), sparse=sparse)
-        verts = {v:i for i,v in enumerate(self.vertices())}
+        verts = {v: i for i, v in enumerate(self.vertices())}
 
         if oriented:
             for e, (i, j) in enumerate(self.edge_iterator(labels=False)):
@@ -3302,13 +3302,12 @@ class GenericGraph(GenericGraph_pyx):
 
 
         # list of vertices of odd degree
-        from builtins import zip
         odd = [x for (x, deg) in zip(g.vertex_iterator(), g.degree_iterator())
                if deg % 2 == 1]
 
         # Picks the first vertex, which is preferably an odd one
-        if len(odd)>0:
-            v=odd.pop()
+        if odd:
+            v = odd.pop()
         else:
             v = next(g.edge_iterator(labels=None))[0]
             odd.append(v)
@@ -4329,9 +4328,9 @@ class GenericGraph(GenericGraph_pyx):
 
             # We add edges between consecutive vertices of the boundary (only
             # len(boundary)-1 are actually sufficient)
-            for u,v in zip(boundary[:-1],boundary[1:]):
-                if not graph.has_edge(u,v):
-                    extra_edges.append((u,v))
+            for u, v in zip(boundary[:-1], boundary[1:]):
+                if not graph.has_edge(u, v):
+                    extra_edges.append((u, v))
 
             graph.add_edges(extra_edges)
 
@@ -6714,7 +6713,7 @@ class GenericGraph(GenericGraph_pyx):
         if algorithm == "backtrack":
             from sage.graphs.generic_graph_pyx import find_hamiltonian as fh
             x = fh(self, find_path=True)[1]
-            return self.subgraph(vertices=x, edges=zip(x[:-1], x[1:]))
+            return self.subgraph(vertices=x, edges=list(zip(x[:-1], x[1:])))
 
         ##################
         # LP Formulation #
@@ -8260,7 +8259,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # Reqrites a path as a list of edges :
         # ex : [0,1,2,3,4,5] becomes [(0,1), (1,2), (2,3), (3,4), (4,5)]
-        path_to_edges = lambda P : zip(P[:-1],P[1:])
+        path_to_edges = lambda P : zip(P[:-1], P[1:])
 
         # Rewrites a path as a list of edges labeled with their
         # available capacity
@@ -16658,7 +16657,7 @@ class GenericGraph(GenericGraph_pyx):
             ([0], Digraph on 1 vertex)
 
         """
-        id_inv = dict([(i,v) for (v,i) in zip(self.vertices(),range(self.order()))])
+        id_inv = {i: v for i, v in enumerate(self.vertices())}
         code = [[] for i in range(self.order())]
         m = self.am()
 
@@ -20211,7 +20210,7 @@ class GenericGraph(GenericGraph_pyx):
 
             # vertices() returns a sorted list:
             # this guarantees consistent relabeling
-            perm = dict({v:i for i,v in enumerate(self.vertices())})
+            perm = {v: i for i, v in enumerate(self.vertices())}
             complete_partial_function = False
             check_input = False
 

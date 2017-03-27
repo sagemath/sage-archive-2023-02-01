@@ -8,24 +8,19 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#  Copyright (C) 2013 Travis Scrimshaw <tscrimsh at umn.edu>
+#       Copyright (C) 2013-2017 Travis Scrimshaw <tcscrims at gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty
-#    of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-#
-#  See the GNU General Public License for more details; the full text
-#  is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from copy import copy
 
 from sage.misc.misc import repr_lincomb
-from sage.combinat.free_module import CombinatorialFreeModuleElement
+from sage.combinat.free_module import CombinatorialFreeModule
 from sage.structure.element cimport have_same_parent, coercion_model
 from sage.structure.element_wrapper cimport ElementWrapper
 
@@ -49,7 +44,7 @@ from sage.structure.element_wrapper cimport ElementWrapper
 
 # TODO: Factor out parts of CombinatorialFreeModuleElement into a SparseFreeModuleElement?
 # TODO: Do we want a dense version?
-class LieAlgebraElement(CombinatorialFreeModuleElement):
+class LieAlgebraElement(CombinatorialFreeModule.Element):
     """
     A Lie algebra element.
     """
@@ -103,7 +98,7 @@ class LieAlgebraElement(CombinatorialFreeModuleElement):
         s = UEA.zero()
         if not self:
             return s
-        for t, c in self.monomial_coefficients(copy=False).iteritems():
+        for t, c in self._monomial_coefficients.iteritems():
             s += c * gen_dict[t]
         return s
 
@@ -260,7 +255,7 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
             sage: x + y
             x + y
         """
-        return self.__class__(self.parent(), self.value + right.value)
+        return type(self)(self._parent, self.value + right.value)
 
     cpdef _sub_(self, right):
         """
@@ -273,7 +268,7 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
             sage: x - y
             x - y
         """
-        return self.__class__(self.parent(), self.value - right.value)
+        return type(self)(self._parent, self.value - right.value)
 
     # We need to bypass the coercion framework
     # We let the universal enveloping algebra handle the rest if both
@@ -306,9 +301,9 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
             (2,3) - (1,3)
         """
         if self.value == 0 or x == 0:
-            return self.parent().zero()
+            return self._parent.zero()
         if x in self.base_ring():
-            return x * self
+            return self._acted_upon_(x, True)
         # Otherwise we lift to the UEA
         return self.lift() * x
 
@@ -326,7 +321,7 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
         """
         return self * (~x)
 
-    def _acted_upon_(self, scalar, self_on_left=False):
+    cpdef _acted_upon_(self, scalar, bint self_on_left):
         """
         Return the action of a scalar on ``self``.
 
@@ -361,8 +356,8 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
             else:
                 return None
         if self_on_left:
-            return self.__class__(self.parent(), self.value * scalar)
-        return self.__class__(self.parent(), scalar * self.value)
+            return type(self)(self._parent, self.value * scalar)
+        return type(self)(self._parent, scalar * self.value)
 
     def __neg__(self):
         """
@@ -375,7 +370,7 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
             sage: -x
             -x
         """
-        return self.__class__(self.parent(), -self.value)
+        return type(self)(self._parent, -self.value)
 
     def __getitem__(self, i):
         """
@@ -394,6 +389,9 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
 
 # TODO: Also used for vectors, find a better name
 cdef class LieAlgebraMatrixWrapper(LieAlgebraElementWrapper):
+    """
+    Lie algebra element wrapper around a matrix.
+    """
     def __init__(self, parent, value):
         """
         Initialize ``self``.
@@ -421,8 +419,8 @@ cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
             x - 3/2*y
         """
         return repr_lincomb(self._sorted_items_for_printing(),
-                            scalar_mult=self.parent()._print_options['scalar_mult'],
-                            repr_monomial=self.parent()._repr_generator,
+                            scalar_mult=self._parent._print_options['scalar_mult'],
+                            repr_monomial=self._parent._repr_generator,
                             strip_one=True)
 
     def _latex_(self):
@@ -435,9 +433,9 @@ cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
             x - \frac{3}{2}y
         """
         return repr_lincomb(self._sorted_items_for_printing(),
-                            scalar_mult=self.parent()._print_options['scalar_mult'],
-                            latex_scalar_mult=self.parent()._print_options['latex_scalar_mult'],
-                            repr_monomial=self.parent()._latex_term,
+                            scalar_mult=self._parent._print_options['scalar_mult'],
+                            latex_scalar_mult=self._parent._print_options['latex_scalar_mult'],
+                            repr_monomial=self._parent._latex_term,
                             is_latex=True, strip_one=True)
 
     cpdef bracket(self, right):
@@ -472,26 +470,30 @@ cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
             sage: y._bracket_(x)
             -z
         """
-        P = self.parent()
+        P = self._parent
         cdef dict s_coeff = P._s_coeff
         d = P.dimension()
         cdef list ret = [P.base_ring().zero()]*d
         cdef int i1, i2, i3
+        cdef StructureCoefficientsElement rt = <StructureCoefficientsElement> right
         for i1 in range(d):
             c1 = self.value[i1]
             if not c1:
                 pass
             for i2 in range(d):
-                c2 = right.value[i2]
+                c2 = rt.value[i2]
+                prod_c1_c2 = c1 * c2
                 if not c2:
                     pass
                 if (i1, i2) in s_coeff:
+                    v = s_coeff[i1, i2]
                     for i3 in range(d):
-                        ret[i3] += c1 * c2 * s_coeff[i1, i2][i3]
+                        ret[i3] += prod_c1_c2 * v[i3]
                 elif (i2, i1) in s_coeff:
+                    v = s_coeff[i2, i1]
                     for i3 in range(d):
-                        ret[i3] -= c1 * c2 * s_coeff[i2, i1][i3]
-        return self.__class__(P, P._M(ret))
+                        ret[i3] -= prod_c1_c2 * v[i3]
+        return type(self)(P, P._M(ret))
 
     def __iter__(self):
         """
@@ -556,8 +558,8 @@ cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
             sage: a.monomial_coefficients()
             {'x': 2, 'z': -3/2}
         """
-        I = self.parent()._indices
-        return {I[i]: v for i,v in self.value.monomial_coefficients(copy=False).items()}
+        I = self._parent._indices
+        return {I[i]: v for i,v in self.value.iteritems()}
 
     def __getitem__(self, i):
         """
@@ -570,5 +572,5 @@ cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
             sage: elt['y']
             -3/2
         """
-        return self.value[self.parent()._indices.index(i)]
+        return self.value[self._parent._indices.index(i)]
 

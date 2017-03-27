@@ -5,12 +5,16 @@ AUTHORS:
 
 - Travis Scrimshaw (07-15-2013): Initial implementation
 """
+
 #*****************************************************************************
-#  Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
+#       Copyright (C) 2013-2017 Travis Scrimshaw <tcscrims at gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#******************************************************************************
+#*****************************************************************************
 
 from sage.misc.abstract_method import abstract_method
 #from sage.misc.cachefunc import cached_method
@@ -119,6 +123,25 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             B = self.basis()
             return self.sum(v[i] * B[i] for i in v.support())
+
+        # Remove once #22629 is merged
+        def dimension(self):
+            """
+            Return the dimension of ``self``.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
+                sage: L.dimension()
+                3
+
+            ::
+
+                sage: L = LieAlgebra(QQ, 'x,y', {('x','y'): {'x':1}})
+                sage: L.dimension()
+                2
+            """
+            return self.basis().cardinality()
 
     class ElementMethods:
         def _bracket_(self, y):

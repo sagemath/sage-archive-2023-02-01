@@ -7,19 +7,15 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#  Copyright (C) 2013 Travis Scrimshaw <tscrim@ucdavis.edu>
+#       Copyright (C) 2013-2017 Travis Scrimshaw <tcscrims at gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty
-#    of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-#
-#  See the GNU General Public License for more details; the full text
-#  is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from six.moves import range
 from six import iteritems
 
@@ -238,7 +234,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
 
     REFERENCES:
 
-    - [deGraaf2000]_ Willem A. de Graaf. *Lie Algebras: Theory and Algorithms*.
+    - [deG2000]_ Willem A. de Graaf. *Lie Algebras: Theory and Algorithms*.
     - [Ka1990]_ Victor Kac, *Infinite dimensional Lie algebras*.
     - :wikipedia:`Lie_algebra`
     """
@@ -1274,6 +1270,9 @@ class LiftMorphismToAssociative(LiftMorphism):
                            self.preimage)
 
 class MatrixLieAlgebraFromAssociative(LieAlgebraFromAssociative):
+    """
+    A Lie algebra constructed from a matrix algebra.
+    """
     class Element(LieAlgebraMatrixWrapper, LieAlgebraFromAssociative.Element):
         pass
 

@@ -7,17 +7,12 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#  Copyright (C) 2013 Travis Scrimshaw <tscrim@ucdavis.edu>
+#       Copyright (C) 2013-2017 Travis Scrimshaw <tcscrims at gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty
-#    of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-#
-#  See the GNU General Public License for more details; the full text
-#  is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -193,11 +188,7 @@ class HeisenbergAlgebra_fd(object):
             sage: H.gens()
             (z,)
         """
-        if self._n == 0:
-            return (self.z(),)
-        L  = [self.p(i) for i in range(1, self._n+1)]
-        L += [self.q(i) for i in range(1, self._n+1)]
-        return tuple(L)
+        return tuple(self.lie_algebra_generators())
 
     def gen(self, i):
         """
@@ -222,17 +213,20 @@ class HeisenbergAlgebra_fd(object):
 
             sage: H = lie_algebras.Heisenberg(QQ, 1)
             sage: H.lie_algebra_generators()
-            Finite family {'q1': q1, 'p1': p1, 'z': z}
+            Finite family {'q1': q1, 'p1': p1}
             sage: H = lie_algebras.Heisenberg(QQ, 0)
             sage: H.lie_algebra_generators()
             Finite family {'z': z}
         """
+        if self._n == 0:
+            return Family(['z'], lambda i: self.z())
+        k =  ['p%s'%i for i in range(1, self._n+1)]
+        k += ['q%s'%i for i in range(1, self._n+1)]
         d = {}
         for i in range(1, self._n+1):
             d['p%s'%i] = self.p(i)
             d['q%s'%i] = self.q(i)
-        d['z'] = self.z()
-        return Family(self._indices, lambda i: d[i])
+        return Family(k, lambda i: d[i])
 
     @cached_method
     def basis(self):
@@ -245,15 +239,12 @@ class HeisenbergAlgebra_fd(object):
             sage: H.basis()
             Finite family {'q1': q1, 'p1': p1, 'z': z}
         """
-        k =  ['p%s'%i for i in range(1, self._n+1)]
-        k += ['q%s'%i for i in range(1, self._n+1)]
-        k += ['z']
         d = {}
         for i in range(1, self._n+1):
             d['p%s'%i] = self.p(i)
             d['q%s'%i] = self.q(i)
         d['z'] = self.z()
-        return Family(k, lambda i: d[i])
+        return Family(self._indices, lambda i: d[i])
 
     def _coerce_map_from_(self, H):
         """

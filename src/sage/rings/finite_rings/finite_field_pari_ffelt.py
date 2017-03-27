@@ -104,7 +104,7 @@ class FiniteField_pari_ffelt(FiniteField):
         polynomial ``modulus``, with distinguished generator called
         ``name``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.finite_rings.finite_field_pari_ffelt import FiniteField_pari_ffelt
             sage: R.<x> = PolynomialRing(GF(3))
@@ -132,7 +132,7 @@ class FiniteField_pari_ffelt(FiniteField):
         """
         For pickling.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<b> = FiniteField(5^20, impl='pari_ffelt')
             sage: type(k)
@@ -183,7 +183,7 @@ class FiniteField_pari_ffelt(FiniteField):
         """
         Return the characteristic of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = FiniteField(3^4, 'a', impl='pari_ffelt')
             sage: F.characteristic()
@@ -196,7 +196,7 @@ class FiniteField_pari_ffelt(FiniteField):
         """
         Returns the degree of ``self`` over its prime field.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = FiniteField(3^20, 'a', impl='pari_ffelt')
             sage: F.degree()

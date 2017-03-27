@@ -99,13 +99,15 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
 
-include '../../groups/perm_gps/partn_ref/data_structures_pyx.pxi'
 
 from copy import copy
+from sage.rings.integer cimport Integer
 from sage.matrix.matrix cimport Matrix
 from sage.groups.perm_gps.permgroup import PermutationGroup
 cimport sage.groups.perm_gps.partn_ref2.refinement_generic
 from sage.modules.finite_submodule_iter cimport FiniteFieldsubspace_projPoint_iterator as FFSS_projPoint
+from sage.groups.perm_gps.partn_ref.data_structures cimport *
+include "sage/data_structures/bitset.pxi"
 
 
 cdef class InnerGroup:

@@ -87,7 +87,7 @@ def get_precision():
 
     (int) The current precision in decimal digits.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.libs.eclib.mwrank import get_precision
         sage: get_precision()
@@ -107,7 +107,7 @@ def set_precision(n):
 
     None.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.libs.eclib.mwrank import set_precision
         sage: set_precision(50)
@@ -508,7 +508,7 @@ cdef class _mw:
           rank; useful if an upper bound for the rank is already
           known).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.libs.eclib.mwrank import _mw
             sage: from sage.libs.eclib.mwrank import _Curvedata
@@ -909,7 +909,7 @@ cdef class _mw:
         None.  The effect of the search is to update the list of
         generators.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.libs.eclib.mwrank import _Curvedata
             sage: from sage.libs.eclib.mwrank import _mw

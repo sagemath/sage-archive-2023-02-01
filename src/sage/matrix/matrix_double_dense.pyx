@@ -113,7 +113,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         This function assumes that self._numpy_dtypeint and
         self._nrows and self._ncols have already been initialized.
 
-        EXAMPLE:
+        EXAMPLES:
         In this example, we throw away the current matrix and make a
         new uninitialized matrix representing the data for the class.::
 

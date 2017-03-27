@@ -2409,7 +2409,7 @@ cdef class Algebra(Ring):
         except AttributeError:
             raise AttributeError("Basis is not yet implemented for this algebra.")
         try:
-            # TODO: The following code is specific to the quaterion algebra
+            # TODO: The following code is specific to the quaternion algebra
             #   and should belong there
             #step 1
             for i in range(1,4):
@@ -2447,7 +2447,7 @@ cdef class CommutativeAlgebra(CommutativeRing):
         Standard init function. This just checks that the base is a commutative
         ring and then passes the buck.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sage.rings.ring.CommutativeAlgebra(QQ) # indirect doctest
             <type 'sage.rings.ring.CommutativeAlgebra'>

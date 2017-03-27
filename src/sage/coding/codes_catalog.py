@@ -47,6 +47,7 @@ _lazy_import('sage.coding.code_constructions',
          'ReedSolomonCode', 'TernaryGolayCode',
          'ToricCode', 'WalshCode'])
 
+_lazy_import('sage.coding.bch', 'BCHCode')
 _lazy_import('sage.coding.cyclic_code', 'CyclicCode')
 _lazy_import('sage.coding.extended_code', 'ExtendedCode')
 _lazy_import('sage.coding.golay_code', 'GolayCode')

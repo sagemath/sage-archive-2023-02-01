@@ -8,8 +8,7 @@ The ``codes.decoders`` object may be used to access the decoders that Sage can b
 - :class:`extended_code.ExtendedCodeOriginalCodeDecoder <sage.coding.extended_code.ExtendedCodeOriginalCodeDecoder>`
 
 **Subfield subcode decoder**
-- :class:`subfield_subcode.SubfieldSubcodeOriginalCodeDecoder <sage.coding.subf
-ield_subcode.SubfieldSubcodeOriginalCodeDecoder>`
+- :class:`subfield_subcode.SubfieldSubcodeOriginalCodeDecoder <sage.coding.subfield_subcode.SubfieldSubcodeOriginalCodeDecoder>`
 
 **Generalized Reed-Solomon code decoders**
 
@@ -23,6 +22,14 @@ ield_subcode.SubfieldSubcodeOriginalCodeDecoder>`
 
 - :class:`linear_code.LinearCodeNearestNeighborDecoder <sage.coding.linear_code.LinearCodeNearestNeighborDecoder>`
 - :class:`linear_code.LinearCodeSyndromeDecoder <sage.coding.linear_code.LinearCodeSyndromeDecoder>`
+
+**Cyclic code decoder**
+
+- :class:`cyclic_code.CyclicCodeSurroundingBCHDecoder <sage.coding.cyclic_code.CyclicCodeSurroundingBCHDecoder>`
+
+**BCH code decoder**
+
+- :class:`bch.BCHUnderlyingGRSDecoder <sage.coding.bch.BCHUnderlyingGRSDecoder>`
 
 **Punctured codes decoders**
 
@@ -47,6 +54,8 @@ from __future__ import absolute_import
 
 from sage.misc.lazy_import import lazy_import as _lazy_import
 
+_lazy_import('sage.coding.bch',                        'BCHUnderlyingGRSDecoder')
+_lazy_import('sage.coding.cyclic_code',                'CyclicCodeSurroundingBCHDecoder')
 _lazy_import('sage.coding.extended_code',              'ExtendedCodeOriginalCodeDecoder')
 _lazy_import('sage.coding.grs',                       ['GRSBerlekampWelchDecoder',
                                                        'GRSErrorErasureDecoder',

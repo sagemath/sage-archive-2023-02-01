@@ -5,7 +5,7 @@ This file contains a variety of constructions which builds the generator matrix
 of special (or random) linear codes and wraps them in a
 :class:`sage.coding.linear_code.LinearCode` object. These constructions are
 therefore not rich objects such as
-:class:`sage.coding.grs.GeneralizedReedSolomonCodes`.
+:class:`sage.coding.grs.GeneralizedReedSolomonCode`.
 
 For deprecation reasons, this file also contains some constructions for which
 Sage now does have rich representations.
@@ -384,75 +384,6 @@ def walsh_matrix(m0):
 ##################### main constructions #####################
 
 
-
-def BCHCode(n,delta,F,b=0):
-    r"""
-    A 'Bose-Chaudhuri-Hockenghem code' (or BCH code for short) is the
-    largest possible cyclic code of length n over field F=GF(q), whose
-    generator polynomial has zeros (which contain the set)
-    `Z = \{a^{b},a^{b+1}, ..., a^{b+delta-2}\}`, where a is a
-    primitive `n^{th}` root of unity in the splitting field
-    `GF(q^m)`, b is an integer `0\leq b\leq n-delta+1`
-    and m is the multiplicative order of q modulo n. (The integers
-    `b,...,b+delta-2` typically lie in the range
-    `1,...,n-1`.) The integer `delta \geq 1` is called
-    the "designed distance". The length n of the code and the size q of
-    the base field must be relatively prime. The generator polynomial
-    is equal to the least common multiple of the minimal polynomials of
-    the elements of the set `Z` above.
-
-    Special cases are b=1 (resulting codes are called 'narrow-sense'
-    BCH codes), and `n=q^m-1` (known as 'primitive' BCH
-    codes).
-
-    It may happen that several values of delta give rise to the same
-    BCH code. The largest one is called the Bose distance of the code.
-    The true minimum distance, d, of the code is greater than or equal
-    to the Bose distance, so `d\geq delta`.
-
-    EXAMPLES::
-
-        sage: FF.<a> = GF(3^2,"a")
-        sage: x = PolynomialRing(FF,"x").gen()
-        sage: L = [b.minpoly() for b in [a,a^2,a^3]]; g = LCM(L)
-        sage: f = x^(8)-1
-        sage: g.divides(f)
-        True
-        sage: C = codes.CyclicCode(generator_pol = g, length = 8); C
-        [8, 4] Cyclic Code over GF(3)
-        sage: C.minimum_distance()
-        4
-        sage: C = codes.BCHCode(8, 3, GF(3), 1); C
-        [8, 4] Cyclic Code over GF(3)
-        sage: C.minimum_distance()
-        4
-        sage: C = codes.BCHCode(8, 3, GF(3)); C
-        [8, 5] Cyclic Code over GF(3)
-        sage: C.minimum_distance()
-        3
-        sage: C = codes.BCHCode(26, 5, GF(5), b=1); C
-        [26, 10] Cyclic Code over GF(5)
-    """
-    from sage.coding.cyclic_code import CyclicCode
-    q = F.order()
-    R = IntegerModRing(n)
-    m = R(q).multiplicative_order()
-    FF = GF(q**m,"z")
-    z = FF.gen()
-    e = z.multiplicative_order()/n
-    a = z**e # order n
-    P = PolynomialRing(F,"x")
-    x = P.gen()
-    L1 = []
-    for coset in R.cyclotomic_cosets(q, range(b,b+delta-1)):
-        L1.extend(P((a**j).minpoly()) for j in coset)
-    g = P(LCM(L1))
-
-    if not(g.divides(x**n-1)):
-        raise ValueError("BCH codes does not exist with the given input.")
-    return CyclicCode(generator_pol = g, length = n)
-
-
 def BinaryGolayCode():
     """
     This method is now deprecated.
@@ -568,7 +499,7 @@ def DuadicCodeEvenPair(F,S1,S2):
         ([11, 5] Cyclic Code over GF(3),
          [11, 5] Cyclic Code over GF(3))
     """
-    from sage.coding.cyclic_code import CyclicCode
+    from .cyclic_code import CyclicCode
     n = len(S1) + len(S2) + 1
     if not _is_a_splitting(S1,S2,n):
         raise TypeError("%s, %s must be a splitting of %s."%(S1,S2,n))
@@ -615,7 +546,7 @@ def DuadicCodeOddPair(F,S1,S2):
 
     This is consistent with Theorem 6.1.3 in [HP2003]_.
     """
-    from sage.coding.cyclic_code import CyclicCode
+    from .cyclic_code import CyclicCode
     n = len(S1) + len(S2) + 1
     if not _is_a_splitting(S1,S2,n):
         raise TypeError("%s, %s must be a splitting of %s."%(S1,S2,n))

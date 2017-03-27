@@ -111,6 +111,7 @@ Methods
 from __future__ import print_function, absolute_import
 
 include 'sage/data_structures/bitset.pxi'
+from cpython.object cimport Py_EQ, Py_NE
 
 from sage.matroids.matroid cimport Matroid
 from sage.matroids.basis_exchange_matroid cimport BasisExchangeMatroid
@@ -1221,15 +1222,15 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             sage: M1 == M3  # indirect doctest
             True
         """
-        if op in [0, 1, 4, 5]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if not isinstance(left, LinearMatroid) or not isinstance(right, LinearMatroid):
             return NotImplemented
         if left.__class__ != right.__class__:   # since we have some subclasses, an extra test
             return NotImplemented
-        if op == 2:  # ==
+        if op == Py_EQ:
             res = True
-        if op == 3:  # !=
+        if op == Py_NE:
             res = False
         # res gets inverted if matroids are deemed different.
         if left.is_field_equivalent(right):

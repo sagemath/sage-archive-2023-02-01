@@ -318,7 +318,7 @@ Working with sandpile divisors::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six.moves import zip
+from six.moves import zip, range
 
 from collections import Counter
 from copy import deepcopy
@@ -616,7 +616,7 @@ class Sandpile(DiGraph):
         del self._nonsink_vertices[self._sink_ind]
         # compute Laplacians:
         self._laplacian = self.laplacian_matrix(indegree=False)
-        temp = range(self.num_verts())
+        temp = list(range(self.num_verts()))
         del temp[self._sink_ind]
         self._reduced_laplacian = self._laplacian[temp,temp]
 

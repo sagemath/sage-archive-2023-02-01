@@ -121,7 +121,7 @@ def test_popcount():
    """
    Correction test for popcount32.
 
-   EXAMPLE::
+   EXAMPLES::
 
        sage: from sage.graphs.graph_decompositions.fast_digraph import test_popcount
        sage: test_popcount() # not tested

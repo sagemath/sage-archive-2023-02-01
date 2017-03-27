@@ -112,8 +112,8 @@ integer that is always represented in the simple way, without coercions.
     sage: test_qq_formatter(qq_sage_input_v2)
     [-ZZ(5)/7, -ZZ(5)/7, -5/7, -5/7, ZZ(3)/1, ZZ(3)/1, 3/1, 3/1]
 
-Next let's get rid of the divisions by 1.  These are more complicated,
-since if we're not careful we'll get results in \ZZ instead of \QQ.::
+Next let us get rid of the divisions by 1.  These are more complicated,
+since if we are not careful we will get results in `\ZZ` instead of `\QQ`::
 
     sage: def qq_sage_input_v3(self, sib, coerced):
     ....:     if self.denominator() == 1:

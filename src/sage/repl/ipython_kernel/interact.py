@@ -127,7 +127,7 @@ class sage_interactive(interactive):
         Return the fixed signature of the interactive function (after
         a possible ``auto_update`` parameter was removed).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.repl.ipython_kernel.interact import sage_interactive
             sage: def myfunc(x=[1,2,3], auto_update=False): pass

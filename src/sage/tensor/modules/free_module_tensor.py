@@ -369,7 +369,7 @@ class FreeModuleTensor(ModuleElement):
         r"""
         Return a string representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: t = M.tensor((2,1), name='t')
@@ -419,7 +419,7 @@ class FreeModuleTensor(ModuleElement):
         r"""
         Initialize the derived quantities
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: t = M.tensor((2,1), name='t')
@@ -432,7 +432,7 @@ class FreeModuleTensor(ModuleElement):
         r"""
         Delete the derived quantities
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: t = M.tensor((2,1), name='t')
@@ -641,6 +641,14 @@ class FreeModuleTensor(ModuleElement):
             sage: v.display(format_spec=10)  # 10 bits of precision
             v = 0.33 e_1 - 2.0 e_2
 
+        Check that the bug reported in :trac:`22520` is fixed::
+
+            sage: M = FiniteRankFreeModule(SR, 3, name='M')
+            sage: e = M.basis('e')
+            sage: t = SR.var('t', domain='real')
+            sage: (t*e[0]).display()
+            t e_0
+
         """
         from sage.misc.latex import latex
         from sage.tensor.modules.format_utilities import is_atomic, \
@@ -655,7 +663,9 @@ class FreeModuleTensor(ModuleElement):
         for ind in comp.index_generator():
             ind_arg = ind + (format_spec,)
             coef = comp[ind_arg]
-            if coef != 0:
+            if not (coef == 0):   # NB: coef != 0 would return False for
+                                  # cases in which Sage cannot conclude
+                                  # see :trac:`22520`
                 bases_txt = []
                 bases_latex = []
                 for k in range(n_con):
@@ -852,7 +862,7 @@ class FreeModuleTensor(ModuleElement):
 
         Use method :meth:`display` instead.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 2, 'M')
             sage: e = M.basis('e')
@@ -907,7 +917,7 @@ class FreeModuleTensor(ModuleElement):
         Create a tensor of the same tensor type and with the same symmetries
         as ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: t = M.tensor((2,1), name='t')
@@ -1249,7 +1259,7 @@ class FreeModuleTensor(ModuleElement):
         - ``basis`` -- (default: ``None``) basis in which the components are
           kept; if none the module's default basis is assumed
 
-        EXAMPLE:
+        EXAMPLES:
 
         Deleting components of a module element::
 
@@ -2550,7 +2560,7 @@ class FreeModuleTensor(ModuleElement):
         for pos in range(0,k2):
             if pos not in pos2:
                 nb_con_o += 1
-        if nb_cov_s != 0 and nb_con_o !=0:
+        if nb_cov_s != 0 and nb_con_o != 0:
             # some reodering is necessary:
             p2 = k1 + l1 - ncontr
             p1 = p2 - nb_cov_s
@@ -3215,7 +3225,7 @@ class FiniteRankFreeModuleElement(FreeModuleTensor):
         r"""
         Return a string representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')
@@ -3244,7 +3254,7 @@ class FiniteRankFreeModuleElement(FreeModuleTensor):
 
         - an instance of :class:`~sage.tensor.modules.comp.Components`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')
@@ -3265,7 +3275,7 @@ class FiniteRankFreeModuleElement(FreeModuleTensor):
         r"""
         Create an instance of the same class as ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')

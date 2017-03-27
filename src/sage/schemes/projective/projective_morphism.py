@@ -1263,11 +1263,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def degree_sequence(self, iterates=2):
         r"""
-        Return sequence of degrees of normalized iterates
+        Return sequence of degrees of normalized iterates.
 
         INPUT: ``iterates`` -- positive integer (optional - default: 2)
 
-        OUTPUT: List
+        OUTPUT: list of integers
 
         EXAMPLES::
 
@@ -1294,24 +1294,60 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.degree_sequence(10)
             [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]
 
+        ::
+
+            sage: P2.<X,Y,Z> = ProjectiveSpace(ZZ, 2)
+            sage: H = End(P2)
+            sage: f = H([X*Y, Y*Z+Z^2, Z^2]) 
+            sage: f.degree_sequence(10)
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
         """
         if int(iterates) < 1:
-            raise TypeError("iteration number must be a positive integer")
+            raise TypeError("number of iterates must be a positive integer")
         if not self.is_endomorphism():
             raise TypeError("map is not an endomorphism")
 
         if self.is_morphism():
-            D = [1,self.degree()]
-            for n in range(2, iterates+1):
-                D.append(D[1]**n)
+            d = self.degree()
+            D = [d**t for t in range(iterates+1)]
         else:
-            D = []
-            for n in range(0, iterates+1):
-                fn = self.nth_iterate_map(n)
-                fn.normalize_coordinates()
-                D.append(fn.degree())
+            F = self
+            F.normalize_coordinates()
+            D = [F.degree()]
+            for n in range(2, iterates+1):
+                F = F*self
+                F.normalize_coordinates()
+                D.append(F.degree())
         return D
-    
+
+    def dynamical_degree(self, N=3):
+        r"""
+        Return sequence of degrees of normalized iterates.
+
+        INPUT: ``iterates`` -- positive integer (optional - default: 2)
+
+        OUTPUT: list of integers
+
+        EXAMPLES::
+
+            sage: P2.<X,Y,Z> = ProjectiveSpace(QQ, 2)
+            sage: H = End(P2)
+            sage: f = H([Z^2, X*Y, Y^2]) 
+            sage: f.degree_sequence(15)
+            [1, 2, 3, 5, 8, 11, 17, 24, 31, 45, 56, 68, 91, 93, 184, 275]
+
+        
+        """
+        if int(N) < 1:
+            raise TypeError("number of iterates must be a positive integer")
+        if not self.is_endomorphism():
+            raise TypeError("map is not an endomorphism")
+        if self.is_morphism():
+            return self.degree()
+        else:
+            D = self.nth_iterate_map(N, normalize=True).degree()
+            return D.nth_root(N)
+
     def dehomogenize(self, n):
         r"""
         Returns the standard dehomogenization at the ``n[0]`` coordinate for the domain

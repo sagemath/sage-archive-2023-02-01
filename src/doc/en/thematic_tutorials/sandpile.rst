@@ -31,7 +31,9 @@ there is a sequence (possibly empty) of directed edges starting at `v` and
 ending at `s`.  We call `s` the *sink* of the sandpile graph, even though it
 might have outgoing edges, for reasons that will be made clear in a moment.
 
-We denoted the vertices of `\Gamma` by `V` and define `\tilde{V} = V\setminus\{s\}`.
+We denote the vertex set of `\Gamma` by `V`, and define `\tilde{V} = V\setminus\{s\}`.
+For any vertex `v`, we let `\mbox{out-degree}(v)` (the *out-degree& of
+`v`) be the sum of the weights of all edges leaving `v`.
 
 Configurations and divisors
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -41,8 +43,9 @@ i.e., the assignment of a nonnegative integer to each nonsink vertex.
 We think of each integer as a number of grains of sand being placed at
 the corresponding vertex.  A *divisor* on `\Gamma` is an element of `\ZZ V`,
 i.e., an element in the free abelian group on *all* of the vertices.
-In the context of divisors, it is sometimes useful to think of assigning
-dollars to each vertex, with negative integers signifying a debt.
+In the context of divisors, it is sometimes useful to think of a divisor
+on `\Gamma` as assigning dollars to each vertex, with negative integers
+signifying a debt.
 
 Stabilization
 ^^^^^^^^^^^^^
@@ -54,13 +57,15 @@ at each nonsink vertex.  Otherwise, `c` is *unstable*.
 If `c` is unstable at `v`, the vertex `v` can be *fired* (*toppled*)
 by removing `\mbox{out-degree}(v)` grains of sand from `v` and adding
 grains of sand to the neighbors of `v`, determined by the weights of
-the edges leaving `v` (each neighbor `w` gets as many grains as
-there are edges from `v` to `w`).
+the edges leaving `v` (each vertex `w` gets as many grains as
+the weight of the edge `(v, w)` is, if there is such an edge).
+Note that grains that are added to the sink `s` are not counted (i.e.,
+they "disappear").
 
 Despite our best intentions, we sometimes consider firing a stable vertex,
-resulting in a configuration with a "negative amount" of sand at that vertex.
-We may also *reverse-firing* a vertex, absorbing sand from the vertex's
-neighbors.
+resulting in a "configuration" with a negative amount of sand at that vertex.
+We may also *reverse-fire* a vertex, absorbing sand from the vertex's
+neighbors (including the sink).
 
 **Example.** Consider the graph:
 
@@ -75,8 +80,8 @@ which has weight `2`.  If we let `c = (5,0,1)` with the indicated number of
 grains of sand on vertices 1, 2, and 3, respectively, then only vertex 1,
 whose out-degree is 4, is unstable.  Firing vertex 1 gives a new
 configuration `c' = (1,1,3)`.  Here, `4` grains have left vertex 1.  One of
-these has gone to the sink vertex (and forgotten), one has gone to vertex 1,
-and two have gone to vertex 2, since the edge from 1 to 2 has weight 2.
+these has gone to the sink vertex (and forgotten), one has gone to vertex 2,
+and two have gone to vertex 3, since the edge from 1 to 3 has weight `2`.
 Vertex 3 in the new configuration is now unstable.  The Sage code for this
 example follows. ::
 
@@ -93,7 +98,7 @@ Create the configuration::
     sage: S.out_degree()
     {1: 4, 2: 2, 3: 2, 'sink': 0}
 
-Fire vertex one::
+Fire vertex `1`::
 
     sage: c.fire_vertex(1)
     {1: 1, 2: 1, 3: 3}
@@ -135,13 +140,17 @@ unique stable configuration.
 Laplacian
 ^^^^^^^^^
 
-Fix an order on the vertices of `\Gamma`. The *Laplacian* of `\Gamma` is
+Fix a total order on the vertices of `\Gamma`, thus leading to a labelling of the
+vertices by the numbers `1, 2, \ldots, n` for some `n` (in the given order).
+The *Laplacian* of `\Gamma` is
 
 .. MATH::
 
     L := D-A
 
-where `D` is the diagonal matrix of out-degrees of the vertices and `A` is the
+where `D` is the diagonal matrix of out-degrees of the vertices (i.e., the
+diagonal `n \times n`-matrix whose `(i, i)`-th entry is the out-degree of the
+vertex `i`) and `A` is the
 adjacency matrix whose `(i,j)`-th entry is the weight of the edge from vertex
 `i` to vertex `j`, which we take to be `0` if there is no edge.  The *reduced
 Laplacian*, `\tilde{L}`, is the submatrix of the Laplacian formed by removing
@@ -186,16 +195,16 @@ Recurrent elements
 Imagine an experiment in which grains of sand are dropped one-at-a-time onto a
 graph, pausing to allow the configuration to stabilize between drops.  Some
 configurations will only be seen once in this process.  For example, for most
-graphs, once sand is dropped on the graph, no addition of sand+stabilization
-will result in a graph empty of sand.  Other configurations---the so-called
-*recurrent configurations*---will be seen infinitely often as the process is
-repeated indefinitely.
+graphs, once sand is dropped on the graph, no sequence of additions of sand
+and stabilizations will result in a graph empty of sand.
+Other configurations---the so-called *recurrent configurations*---will be seen
+infinitely often as the process is repeated indefinitely.
 
 To be precise, a configuration `c` is *recurrent* if (i) it is stable, and
 (ii) given any configuration `a`, there is a configuration `b` such that
 `c = \mbox{stab}(a+b)`, the stabilization of `a + b`.
 
-The *maximal-stable* configuration, denoted `c_{\mathrm{max}}` is defined by
+The *maximal-stable* configuration, denoted `c_{\mathrm{max}}`, is defined by
 `c_{\mathrm{max}}(v)=\mbox{out-degree}(v)-1` for all nonsink vertices `v`.
 It is clear that `c_{\mathrm{max}}` is recurrent.  Further, it is not hard
 to see that a configuration is recurrent if and only if it has the form
@@ -240,12 +249,13 @@ Note the various ways of performing addition and stabilization::
 Burning Configuration
 ^^^^^^^^^^^^^^^^^^^^^
 
-A *burning configuration* is a nonnegative integer-linear combination of the
+A *burning configuration* is a `\mathbb{Z}_{\geq 0}`-linear combination of the
 rows of the reduced Laplacian matrix having nonnegative entries and such that
-every vertex has a path from some vertex in its support.  The corresponding
-*burning script* gives the integer-linear combination needed to obtain the
-burning configuration.  So if `b` is the burning configuration, `\sigma` is its
-script, and `\tilde{L}` is the reduced Laplacian, then `\sigma\,\tilde{L} = b`.
+every vertex is accessible from some vertex in its support.  The corresponding
+*burning script* gives the coefficients in the `\mathbb{Z}_{\geq 0}`-linear
+combination needed to obtain the burning configuration.  So if `b` is a burning
+configuration, `\sigma` is its script, and `\tilde{L}` is the reduced
+Laplacian, then `\sigma\,\tilde{L} = b`.
 The *minimal burning configuration* is the one with the minimal script (its
 components are no larger than the components of any other script for a burning
 configuration).

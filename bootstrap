@@ -56,7 +56,7 @@ bootstrap () {
 
 # Bootstrap by downloading the auto-generated files
 bootstrap-download () {
-    sage-download-file configure-$CONFVERSION.tar.gz
+    build/bin/sage-download-file configure-$CONFVERSION.tar.gz
     if [ $? -ne 0 ]; then
         echo >&2 "Error: downloading configure-$CONFVERSION.tar.gz failed"
         exit 1

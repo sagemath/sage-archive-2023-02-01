@@ -19,8 +19,8 @@ Introduction
 These notes provide an introduction to Dhar's abelian sandpile model (ASM) and
 to Sage Sandpiles, a collection of tools in Sage for doing sandpile
 calculations.  For a more thorough introduction to the theory of the ASM, the
-papers *Chip-Firing and Rotor-Routing on Directed Graphs* [H]_, by Holroyd et
-al. and *Riemann-Roch and Abel-Jacobi Theory on a Finite Graph* by Baker and
+papers *Chip-Firing and Rotor-Routing on Directed Graphs* [H]_ by Holroyd et
+al., and *Riemann-Roch and Abel-Jacobi Theory on a Finite Graph* by Baker and
 Norine [BN]_ are recommended.
 
 To describe the ASM, we start with a *sandpile graph*: a directed multigraph
@@ -47,11 +47,14 @@ Stabilization
 ^^^^^^^^^^^^^
 
 A configuration `c` is *stable* at a vertex `v\in\tilde{V}` if
-`c(v) < \mbox{out-degree}(v)`, and `c` itself is stable if it is stable
-at each nonsink vertex.  Otherwise, `c` is *unstable*.  If `c` is
-unstable at `v`, the vertex `v` can be *fired* (*toppled*) by removing
-`\mbox{out-degree}(v)` grains of sand from `v` and adding grains of sand to
-the neighbors of sand, determined by the weights of the edges leaving `v`.
+`c(v) < \mbox{out-degree}(v)`.  Otherwise, `c` is *unstable* at `v`.
+A configuration `c` (in itself) is *stable* if it is stable
+at each nonsink vertex.  Otherwise, `c` is *unstable*.
+If `c` is unstable at `v`, the vertex `v` can be *fired* (*toppled*)
+by removing `\mbox{out-degree}(v)` grains of sand from `v` and adding
+grains of sand to the neighbors of `v`, determined by the weights of
+the edges leaving `v` (each neighbor `w` gets as many grains as
+there are edges from `v` to `w`).
 
 Despite our best intentions, we sometimes consider firing a stable vertex,
 resulting in a configuration with a "negative amount" of sand at that vertex.
@@ -166,7 +169,8 @@ The configuration we considered previously::
     {1: 5, 2: 0, 3: 1}
 
 Firing vertex 1 is the same as subtracting the
-corresponding row from the reduced Laplacian::
+corresponding row of the reduced Laplacian from the configuration
+(regarded as a vector)::
 
     sage: c.fire_vertex(1).values()
     [1, 1, 3]
@@ -379,7 +383,7 @@ A *divisor* on `\Gamma` is an element of the free abelian group on its
 vertices, including the sink.  Suppose, as above, that the `n+1` vertices of
 `\Gamma` have been ordered, and that `\mathcal{L}` is the column span of the
 transpose of the Laplacian.  A divisor is then identified with an element
-`D\in\ZZ^{n+1}` and two divisors are *linearly equivalent* if they
+`D\in\ZZ^{n+1}`, and two divisors are *linearly equivalent* if they
 differ by an element of `\mathcal{L}`.  A divisor `E` is *effective*, written
 `E\geq0`, if `E(v)\geq0` for each `v\in V`, i.e., if `E\in\mathbb{N}^{n+1}`.
 The *degree* of a divisor, `D`, is `deg(D) := \sum_{v\in V}D(v)`.   The
@@ -388,7 +392,7 @@ divisors of degree zero modulo linear equivalence form the *Picard group*, or
 isomorphic to the sandpile group.
 
 The *complete linear system* for a divisor `D`, denoted `|D|`, is the
-collection of effective divisors linearly equivalent to `D.`
+collection of effective divisors linearly equivalent to `D`.
 
 Riemann-Roch
 ~~~~~~~~~~~~
@@ -423,7 +427,7 @@ The effective divisors linearly equivalent to `D`::
     [[0, 1, 1, 4, 1], [1, 2, 2, 0, 2], [4, 0, 0, 3, 0]]
 
 The nonspecial divisors up to linear equivalence (divisors of degree
-g-1 with empty linear systems)::
+`g-1` with empty linear systems)::
 
     sage: N = G.nonspecial_divisors()
     sage: [E.values() for E in N[:5]]   # the first few
@@ -497,7 +501,7 @@ undirected graphs, is the lattice ideal for `\tilde{\mathcal{L}}`:
 where `x^u := \prod_{i=1}^n x^{u_i}` for `u \in \ZZ^n`.
 
 For each `c\in\ZZ^n` define `t(c) = x^{c^+} - x^{c^-}` where
-`c^+_i = \max\{c_i,0\}` and `c^- = \max\{-c_i,0\}` so that `c = c^+ - c^-`.
+`c^+_i = \max\{c_i,0\}` and `c^-_i = \max\{-c_i,0\}`, so that `c = c^+ - c^-`.
 Then, for each `\sigma \in \ZZ^n`, define `T(\sigma) =
 t(\tilde{L}^t\sigma)`.  It then turns out that
 
@@ -509,12 +513,12 @@ where `e_i` is the `i`-th standard basis vector and `b` is any burning
 configuration.
 
 The affine coordinate ring, `\CC[\Gamma_s]/I,` is isomorphic to the group
-algebra of the sandpile group, `\CC[\mathcal{S}(\Gamma)].`
+algebra of the sandpile group, `\CC[\mathcal{S}(\Gamma)]`.
 
-The standard term-ordering on `\CC[\Gamma_s]` is graded reverse lexigraphical
+The standard term-ordering on `\CC[\Gamma_s]` is graded reverse lexicographical
 order with `x_i > x_j` if vertex `v_i` is further from the sink than
 vertex `v_j`. (There are choices to be made for vertices equidistant from
-the sink). If `\sigma_b` is the script for a burning configuration (not
+the sink.) If `\sigma_b` is the script for a burning configuration (not
 necessarily minimal), then
 
 .. MATH::
@@ -544,9 +548,9 @@ This ideal can be calculated by saturating the ideal
 
 with respect to the product of the indeterminates: `\prod_{i=0}^n x_i`
 (extending the `T` operator in the obvious way).  A Groebner basis with
-respect to the degree lexicographic order describe above (with `x_0`
-the smallest vertex), is obtained by homogenizing each element of the
-Groebner basis for the non-homogeneous sandpile ideal with respect to `x_0.`
+respect to the degree lexicographic order described above (with `x_0`
+the smallest vertex) is obtained by homogenizing each element of the
+Groebner basis for the non-homogeneous sandpile ideal with respect to `x_0`.
 
 **Example.**  ::
 
@@ -596,7 +600,7 @@ The Hilbert function::
     sage: S.hilbert_function()
     [1, 5, 11, 15]
 
-and its first differences (which counts the number of superstable
+and its first differences (which count the number of superstable
 configurations in each degree)::
 
     sage: S.h_vector()
@@ -620,11 +624,11 @@ The *zero set* for the sandpile ideal `I` is
 
     Z(I) = \{p\in\CC^n: f(p)=0\mbox{ for all $f\in I$}\},
 
-the set of simultaneous zeros of the polynomials in `I.`  Letting `S^1` denote
+the set of simultaneous zeros of the polynomials in `I`.  Letting `S^1` denote
 the unit circle in the complex plane, `Z(I)` is a finite
 subgroup of `S^1 \times \cdots \times S^1 \subset \CC^n`, isomorphic to
 the sandpile group.  The zero set is actually linearly isomorphic to a
-faithful representation of the sandpile group on `\CC^n.`
+faithful representation of the sandpile group on `\CC^n`.
 
 **Example.** (Continued.) ::
 
@@ -667,13 +671,15 @@ for each monomial `x^c`.  The minimal free resolution of `I^h` has the form
 .. MATH::
 
     0 \leftarrow I^h
-    \leftarrow\oplus_{D\in\mathfrak{S}}S(-D)^{\beta_{0,D}}\leftarrow\oplus_{D\in\mathfrak{S}}S(-D)^{\beta_{1,D}}
-    \leftarrow \cdots \leftarrow
-    \oplus_{D\in\mathfrak{S}}S(-D)^{\beta_{r,D}} \leftarrow 0,
+    \leftarrow \oplus_{D\in\mathfrak{S}} S(-D)^{\beta_{0,D}}
+    \leftarrow \oplus_{D\in\mathfrak{S}} S(-D)^{\beta_{1,D}}
+    \leftarrow \cdots
+    \leftarrow \oplus_{D\in\mathfrak{S}} S(-D)^{\beta_{r,D}}
+    \leftarrow 0,
 
 where the `\beta_{i,D}` are the *Betti numbers* for `I^h`.
 
-For each divisor class `D\in\mathfrak{S}`, define a simplicial complex,
+For each divisor class `D\in\mathfrak{S}`, define a simplicial complex
 
 .. MATH::
 
@@ -785,7 +791,8 @@ vertex.  There are four possible forms for ``graph``:
    Each key is the name of a vertex.  Next to each vertex name `v` is a dictionary
    consisting of pairs: ``vertex: weight``.  Each pair represents a directed edge
    emanating from `v` and ending at ``vertex`` having (non-negative integer) weight
-   equal to ``weight``.  Loops are allowed. In the example above, all of the weights are 1.
+   equal to ``weight``.  Loops are allowed.
+   In the example above, all of the weights are 1.
 
 2. a Python dictionary of lists::
 
@@ -4991,4 +4998,4 @@ additional features and other improvements.
 
 .. [CRS] Robert Cori, Dominique Rossin, and Bruno Salvy, *Polynomial ideals for sandpiles and their Gröbner bases*, Theoretical Computer Science, 276 (2002) no. 1--2, 1--15.
 
-.. [H] Holroyd, Levine, Meszaros, Peres, Propp, Wilson, `Chip-Firing and Rotor-Routing on Directed Graphs <http://front.math.ucdavis.edu/0801.3306>`_. The final version of this paper appears in *In and out of Equilibrium II*, Eds. V. Sidoravicius, M. E. Vares, in the Series Progress in Probability, Birkhauser (2008).
+.. [H] Holroyd, Levine, Meszaros, Peres, Propp, Wilson, `Chip-Firing and Rotor-Routing on Directed Graphs <http://front.math.ucdavis.edu/0801.3306>`_. An older version of this paper appears in *In and out of Equilibrium II*, Eds. V. Sidoravicius, M. E. Vares, in the Series Progress in Probability, Birkhauser (2008).

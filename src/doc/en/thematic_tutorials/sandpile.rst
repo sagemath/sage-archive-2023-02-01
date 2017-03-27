@@ -32,7 +32,7 @@ ending at `s`.  We call `s` the *sink* of the sandpile graph, even though it
 might have outgoing edges, for reasons that will be made clear in a moment.
 
 We denote the vertex set of `\Gamma` by `V`, and define `\tilde{V} = V\setminus\{s\}`.
-For any vertex `v`, we let `\mbox{out-degree}(v)` (the *out-degree& of
+For any vertex `v`, we let `\mbox{out-degree}(v)` (the *out-degree* of
 `v`) be the sum of the weights of all edges leaving `v`.
 
 Configurations and divisors

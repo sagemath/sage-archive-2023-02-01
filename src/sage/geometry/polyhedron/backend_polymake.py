@@ -402,6 +402,13 @@ class Polyhedron_polymake(Polyhedron_base):
     def _polymake_(self, polymake):
         """
         Return a polymake "Polytope" object corresponding to ``self``.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[[1, 0], [0, 1], [0, 0]], backend='polymake')   # optional - polymake
+            sage: PP = polymake(P)         # optional - polymake
+            sage: PP.N_VERTICES            # optional - polymake
+            3
         """
         if self._polymake_polytope.parent() is polymake:
             # Same polymake interface, can just return our object

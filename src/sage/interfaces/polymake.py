@@ -1805,9 +1805,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
     def __iter__(self):
         """
-        Return an iterator for self.
-
-        INPUT: none
+        Return an iterator for ``self``.
 
         OUTPUT: iterator
 

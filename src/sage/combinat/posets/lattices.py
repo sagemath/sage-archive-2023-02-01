@@ -3528,7 +3528,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         ALGORITHM:
 
         According to [HOLM2016]_ a lattice `L` is lower bounded if and only if
-        `|Ji(L)| = |Ji(Con L)|`, and so dually `|Mi(L)| = |Mi(Con L)|` in
+        `|\mathrm{Ji}(L)| = |\mathrm{Ji}(\mathrm{Con}\ L)|`, and so dually
+        `|\mathrm{Mi}(L)| = |\mathrm{Mi}(\mathrm{Con}\ L)|` in
         upper bounded lattices.
         """
         if type not in ['interval', 'lower', 'upper', 'convex']:

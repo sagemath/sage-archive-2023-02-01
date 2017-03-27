@@ -78,6 +78,19 @@ class WeylGroups(Category_singleton):
     Finite = LazyImport('sage.categories.finite_weyl_groups', 'FiniteWeylGroups')
 
     class ParentMethods:
+        def coxeter_matrix(self):
+            """
+            Return the Coxeter matrix associated to ``self``.
+
+            EXAMPLES::
+
+                sage: G = WeylGroup(['A',3])
+                sage: G.coxeter_matrix()
+                [1 3 2]
+                [3 1 3]
+                [2 3 1]
+            """
+            return self.cartan_type().coxeter_matrix()
 
         def pieri_factors(self, *args, **keywords):
             r"""

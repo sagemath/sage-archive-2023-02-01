@@ -607,8 +607,18 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
 
             sage: CartanType(['F',4]).dynkin_diagram().is_irreducible()
             True
+            sage: CM = CartanMatrix([[2,-6],[-4,2]])
+            sage: CM.dynkin_diagram().is_irreducible()
+            True
+            sage: CartanType("A2xB3").dynkin_diagram().is_irreducible()
+            False
+            sage: CM = CartanMatrix([[2,-6,0],[-4,2,0],[0,0,2]])
+            sage: CM.dynkin_diagram().is_irreducible()
+            False
         """
-        return self._cartan_type.is_irreducible()
+        if self._cartan_type is not None:
+            return self._cartan_type.is_irreducible()
+        return self.connected_components_number() == 1
 
     def is_crystallographic(self):
         """

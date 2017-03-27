@@ -21,12 +21,15 @@ from sage.rings.all import ZZ, infinity, LaurentSeries, O
 from sage.functions.all import exp
 from sage.rings.number_field.number_field import QuadraticField
 from sage.symbolic.all import pi
+
 from sage.structure.parent_gens import localvars
+from sage.structure.sage_object import op_NE, op_EQ
+from sage.structure.element import CommutativeAlgebraElement
+from sage.structure.unique_representation import UniqueRepresentation
+
 from sage.modules.free_module_element import vector
 from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
 
-from sage.structure.element import CommutativeAlgebraElement
-from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
@@ -78,10 +81,10 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         The functions ``f_rho, f_i, E2`` can be obtained from
         ``self.parent().graded_ring()``.
 
-        .. NOTE:
+        .. NOTE::
 
-        If ``n=Infinity`` then the variable ``x`` refers to ``E4`` instead
-        of ``f_rho=1``.
+            If ``n=Infinity`` then the variable ``x`` refers to ``E4`` instead
+            of ``f_rho=1``.
 
         INPUT:
 
@@ -133,9 +136,10 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
     # Unfortunately the polynomial ring does not give unique
     # representations of elements (with respect to ==)
-    def __eq__(self, other):
+    def _richcmp_(self, other, op):
         r"""
         Return whether ``self`` is equal to ``other``.
+
         They are considered equal if the corresponding rational
         functions are equal and the groups match up.
 
@@ -152,19 +156,17 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: MeromorphicModularFormsRing(base_ring=CC)(-1/x) == MeromorphicModularFormsRing()(1/(-x))
             True
         """
+        if op not in [op_EQ, op_NE]:
+            return NotImplemented
 
-        if (super(FormsRingElement, self).__eq__(other)):
-            return True
-        elif (isinstance(other, FormsRingElement)):
-            if (self.group() == other.group()):
-                if (self.group().is_arithmetic()):
-                    return (self.rat().subs(d=self.group().dvalue()) == other.rat().subs(d=other.group().dvalue()))
-                else:
-                    return (self.rat() == other.rat())
+        if self.group() == other.group():
+            if self.group().is_arithmetic():
+                b = (self.rat().subs(d=self.group().dvalue()) ==
+                     other.rat().subs(d=other.group().dvalue()))
             else:
-                return False
-        else:
-            return False
+                b = (self.rat() == other.rat())
+
+        return b == (op == op_EQ)
 
     def _repr_(self):
         r"""
@@ -530,7 +532,6 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: QuasiModularForms(n=infinity).Delta().is_cuspidal()
             True
         """
-
         return self.AT("cusp", "quasi") >= self._analytic_type
 
     def is_zero(self):
@@ -553,7 +554,6 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: QuasiModularForms(n=infinity).f_rho().is_zero()
             False
         """
-
         return self.AT(["quasi"]) >= self._analytic_type
 
     def analytic_type(self):
@@ -578,12 +578,12 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: QuasiMeromorphicModularForms(n=infinity).f_inf().analytic_type()
             modular
         """
-
         return self._analytic_type
 
     def numerator(self):
         r"""
         Return the numerator of ``self``.
+
         I.e. the (properly reduced) new form corresponding to
         the numerator of ``self.rat()``.
 
@@ -782,6 +782,30 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
 
         #reduce at the end? See example "sage: ((E4+E6)-E6).parent()"
         return self.parent()(self._rat-other._rat)
+
+    def _neg_(self):
+        r"""
+        Return the negation of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing
+            sage: MR = QuasiMeromorphicModularFormsRing(n=8)
+            sage: Delta = MR.Delta().full_reduce()
+
+            sage: -Delta
+            -q - 41/(128*d)*q^2 - 10887/(262144*d^2)*q^3 - 131447/(50331648*d^3)*q^4 + O(q^5)
+            sage: parent(-Delta)
+            CuspForms(n=8, k=12, ep=1) over Integer Ring
+
+        Negation should be exactly the same as multiplication by -1::
+
+            sage: (-Delta) == (-1) * Delta
+            True
+            sage: parent(-Delta) is parent((-1) * Delta)
+            True
+        """
+        return self.parent()(-self._rat)
 
     def _mul_(self,other):
         r"""
@@ -1008,7 +1032,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
                              To expect a homogeneous result after applying
                              the operator to a homogeneous element it should
                              should be homogeneous operator (with respect
-                             to the the usual, special grading).
+                             to the usual, special grading).
 
         - ``new_parent``  -- Try to convert the result to the specified
                              ``new_parent``. If ``new_parent == None`` (default)
@@ -1245,11 +1269,11 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
         The function is mainly used to be able to work with the correct
         precision for Laurent series.
 
-        .. NOTE:
+        .. NOTE::
 
-        For quasi forms one cannot deduce the analytic type from
-        this order at ``infinity`` since the analytic order is defined by the
-        behavior on each quasi part and not by their linear combination.
+            For quasi forms one cannot deduce the analytic type from
+            this order at ``infinity`` since the analytic order is defined by the
+            behavior on each quasi part and not by their linear combination.
 
         EXAMPLES::
 

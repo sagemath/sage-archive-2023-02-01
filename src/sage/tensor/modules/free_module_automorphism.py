@@ -244,7 +244,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
         )
 
     To get the result as an endomorphism, one has to explicitely convert it via
-    the parent of endormophisms, `\mathrm{End}(M)`::
+    the parent of endomorphisms, `\mathrm{End}(M)`::
 
         sage: s = End(M)(a+b) ; s
         Generic endomorphism of Rank-2 free module M over the Integer Ring
@@ -356,7 +356,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
         r"""
         Delete the derived quantities.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(QQ, 3, name='M')
             sage: e = M.basis('e')
@@ -542,7 +542,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
           class :class:`~sage.tensor.modules.comp.Components`; if such
           components did not exist previously, they are created.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Setting the components of an automorphism of a rank-3 free
         `\ZZ`-module::
@@ -665,7 +665,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
           class :class:`~sage.tensor.modules.comp.Components`;
           if such components did not exist previously, they are created
 
-        EXAMPLE:
+        EXAMPLES:
 
         Adding components to an automorphism of a rank-3 free
         `\ZZ`-module::

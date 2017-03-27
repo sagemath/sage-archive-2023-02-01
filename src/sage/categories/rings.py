@@ -249,7 +249,7 @@ class Rings(CategoryWithAxiom):
               the product is ``self*x``; if ``True``, the
               product is ``x*self``.
 
-            EXAMPLE:
+            EXAMPLES:
 
             As we mentioned above, this method is called
             when a ring is involved that does not inherit
@@ -324,7 +324,7 @@ class Rings(CategoryWithAxiom):
             from that class, such as matrix algebras.  See
             :trac:`7797`.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: MS = MatrixSpace(QQ,2,2)
                 sage: isinstance(MS,Ring)
@@ -412,7 +412,7 @@ class Rings(CategoryWithAxiom):
               whether the resulting ideal is twosided, a left
               ideal or a right ideal.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: MS = MatrixSpace(QQ,2,2)
                 sage: isinstance(MS,Ring)
@@ -614,7 +614,7 @@ class Rings(CategoryWithAxiom):
 
             This is a synonym for :meth:`quotient`.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: MS = MatrixSpace(QQ,2)
                 sage: I = MS*MS.gens()*MS
@@ -656,7 +656,7 @@ class Rings(CategoryWithAxiom):
 
             This is a synonyme for :meth:`quotient`.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: MS = MatrixSpace(QQ,2)
                 sage: I = MS*MS.gens()*MS
@@ -694,7 +694,7 @@ class Rings(CategoryWithAxiom):
             the construction of a quotient ring using division syntax
             is not supported.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: MS = MatrixSpace(QQ,2)
                 sage: I = MS*MS.gens()*MS
@@ -736,6 +736,13 @@ class Rings(CategoryWithAxiom):
                 Multivariate Polynomial Ring in a, b, c over Finite Field of size 17
                 sage: GF(17)['a']['b']
                 Univariate Polynomial Ring in b over Univariate Polynomial Ring in a over Finite Field of size 17
+
+            We can create skew polynomial rings::
+
+                sage: k.<t> = GF(5^3)
+                sage: Frob = k.frobenius_endomorphism()
+                sage: k['x',Frob]
+                Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
 
             We can also create power series rings by using double brackets::
 
@@ -848,6 +855,12 @@ class Rings(CategoryWithAxiom):
                     elts = normalize_arg(arg)
                 from sage.rings.power_series_ring import PowerSeriesRing
                 return PowerSeriesRing(self, elts)
+
+            if isinstance(arg, tuple):
+                from sage.categories.morphism import Morphism
+                if len(arg) == 2 and isinstance(arg[1], Morphism):
+                   from sage.rings.polynomial.skew_polynomial_ring_constructor import SkewPolynomialRing
+                   return SkewPolynomialRing(self, arg[1], names=arg[0])
 
             # 2. Otherwise, if all specified elements are algebraic, try to
             #    return an algebraic extension

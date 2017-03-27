@@ -464,7 +464,10 @@ this data.
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
-from types import ClassType as classobj
+from six.moves import range
+from six.moves.builtins import sorted
+from six import class_types
+
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_import import LazyImport
@@ -475,7 +478,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.global_options import GlobalOptions
 from sage.sets.family import Family
 from sage.misc.decorators import rename_keyword
-from six.moves.builtins import sorted
 
 # TODO:
 # Implement the Kac conventions by relabeling/dual/... of the above
@@ -986,8 +988,8 @@ class CartanType_abstract(object):
 
             sage: C = CartanType(["A",3,1])
             sage: class MyCartanType:
-            ...       def my_method(self):
-            ...           return 'I am here!'
+            ....:     def my_method(self):
+            ....:         return 'I am here!'
             sage: C._add_abstract_superclass(MyCartanType)
             sage: C.__class__
             <class 'sage.combinat.root_system.type_A_affine.CartanType_with_superclass_with_superclass'>
@@ -1000,7 +1002,7 @@ class CartanType_abstract(object):
         .. TODO:: Generalize to :class:`SageObject`?
         """
         from sage.structure.dynamic_class import dynamic_class
-        assert isinstance(classes, (tuple, type, classobj))
+        assert isinstance(classes, (tuple, class_types))
         if not isinstance(classes, tuple):
             classes = (classes,)
         bases = (self.__class__,) + classes
@@ -2010,11 +2012,11 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
         and :meth:`.special_node` are consistent::
 
             sage: for ct in CartanType.samples(affine = True):
-            ...       g1 = ct.classical().dynkin_diagram()
-            ...       g2 = ct.dynkin_diagram()
-            ...       g2.delete_vertex(ct.special_node())
-            ...       assert sorted(g1.vertices()) == sorted(g2.vertices())
-            ...       assert sorted(g1.edges()) == sorted(g2.edges())
+            ....:     g1 = ct.classical().dynkin_diagram()
+            ....:     g2 = ct.dynkin_diagram()
+            ....:     g2.delete_vertex(ct.special_node())
+            ....:     assert sorted(g1.vertices()) == sorted(g2.vertices())
+            ....:     assert sorted(g1.edges()) == sorted(g2.edges())
 
         """
 
@@ -2418,24 +2420,20 @@ class CartanType_standard(UniqueRepresentation, SageObject):
         """
         EXAMPLES::
 
-            sage: t = CartanType(['A', 3, 1])
+            sage: t = CartanType(['B', 3])
             sage: t[0]
-            'A'
+            'B'
             sage: t[1]
             3
             sage: t[2]
-            1
-            sage: t[3]
             Traceback (most recent call last):
             ...
             IndexError: index out of range
         """
         if i == 0:
             return self.letter
-        elif i==1:
+        elif i == 1:
             return self.n
-        elif hasattr(self, 'affine') and i==2:
-            return self.affine
         else:
             raise IndexError("index out of range")
 
@@ -2456,6 +2454,7 @@ class CartanType_standard_finite(CartanType_standard, CartanType_finite):
 
             sage: TestSuite(ct).run(verbose = True)
             running ._test_category() . . . pass
+            running ._test_new() . . . pass
             running ._test_not_implemented_methods() . . . pass
             running ._test_pickling() . . . pass
         """
@@ -2738,7 +2737,7 @@ class CartanType_standard_affine(CartanType_standard, CartanType_affine):
         """
         if i == 0:
             return self.letter
-        elif i==1:
+        elif i == 1:
             return self.n
         elif i == 2:
             return self.affine

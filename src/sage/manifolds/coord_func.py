@@ -94,7 +94,7 @@ class CoordFunction(AlgebraElement):
 
         - a :class:`~sage.manifolds.chart.Chart`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
@@ -1240,7 +1240,7 @@ class MultiCoordFunction(SageObject):
 
         - ``index`` -- index `i` of the function (`0 \leq i \leq m-1`)
 
-        OUTPUT
+        OUTPUT:
 
         -- a :class:`CoordFunction` representing the function
 

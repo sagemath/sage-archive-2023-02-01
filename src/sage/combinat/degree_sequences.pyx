@@ -284,14 +284,24 @@ class DegreeSequences:
         information, please refer to the documentation of the
         :mod:`DegreeSequence<sage.combinat.degree_sequences>` module.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: DegreeSequences(8)
             Degree sequences on 8 elements
             sage: [3,3,2,2,2,2,2,2] in DegreeSequences(8)
             True
 
+        TESTS:
+
+        :trac:`21824`::
+
+            sage: DegreeSequences(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: The input parameter must be >= 0.
         """
+        if n < 0:
+            raise ValueError("The input parameter must be >= 0.")
         self._n = n
 
     def __contains__(self, seq):
@@ -299,7 +309,7 @@ class DegreeSequences:
         Checks whether a given integer sequence is the degree sequence
         of a graph on `n` elements
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: [3,3,2,2,2,2,2,2] in DegreeSequences(8)
             True
@@ -310,6 +320,17 @@ class DegreeSequences:
 
             sage: [2,2,2,2,1,1,1] in DegreeSequences(7)
             False
+
+        :trac:`21824`::
+
+            sage: [d for d in DegreeSequences(0)]
+            [[]]
+            sage: [d for d in DegreeSequences(1)]
+            [[0]]
+            sage: [d for d in DegreeSequences(3)]
+            [[0, 0, 0], [1, 1, 0], [2, 1, 1], [2, 2, 2]]
+            sage: [d for d in DegreeSequences(1)]
+            [[0]]
         """
         cdef int n = self._n
         if len(seq)!=n:
@@ -368,15 +389,13 @@ class DegreeSequences:
         TODO: THIS SHOULD BE UPDATED AS SOON AS THE YIELD KEYWORD APPEARS IN
         CYTHON. See comment in the class' documentation.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: DS = DegreeSequences(6)
             sage: all(seq in DS for seq in DS)
             True
         """
-
-        init(self._n)
-        return iter(sequences)
+        return iter( init(self._n) )
 
     def __dealloc__():
         """

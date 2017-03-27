@@ -131,7 +131,8 @@ from sage.rings.real_mpfr import is_RealField
 from sage.rings.integer import Integer
 from sage.groups.all import AbelianGroup
 import sage.groups.generic as generic
-from sage.libs.pari.pari_instance import pari, prec_words_to_bits
+from sage.libs.pari import pari
+from sage.libs.cypari2.pari_instance import prec_words_to_bits
 from sage.structure.sequence import Sequence
 
 from sage.schemes.curves.projective_curve import Hasse_bounds
@@ -270,7 +271,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         - v -- data determining a point (another point, the integer
                  0, or a tuple of coordinates)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve('43a')
             sage: P = E([2, -4, 2]); P
@@ -333,7 +334,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         """
         Return a string representation of this point.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve('39a')
             sage: P = E([-2, 1, 1])
@@ -346,7 +347,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         """
         Return a LaTeX representation of this point.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve('40a')
             sage: P = E([3, 0])
@@ -359,7 +360,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         """
         Return the n'th coordinate of this point.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve('42a')
             sage: P = E([-17, -51, 17])
@@ -372,7 +373,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         """
         Return the coordinates of this point as a list.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve('37a')
             sage: list(E([0,0]))
@@ -384,7 +385,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         """
         Return the coordinates of this point as a tuple.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve('44a')
             sage: P = E([1, -2, 1])
@@ -504,7 +505,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
            :meth:`additive_order` is a synonym for :meth:`order`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<t>=FractionField(PolynomialRing(QQ,'t'))
             sage: E=EllipticCurve([0,0,0,-t^2,0])
@@ -538,9 +539,9 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         """
         return self.scheme()
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
-        Return True if this is not the zero point on the curve.
+        Return ``True`` if this is not the zero point on the curve.
 
         EXAMPLES::
 
@@ -554,6 +555,8 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             False
         """
         return bool(self[2])
+
+    __nonzero__ = __bool__
 
     def has_finite_order(self):
         """
@@ -2465,7 +2468,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             0.0511114082399688...
 
             sage: def naive_height(P):
-            ...       return log(RR(max(abs(P[0].numerator()), abs(P[0].denominator()))))
+            ....:     return log(RR(max(abs(P[0].numerator()), abs(P[0].denominator()))))
             sage: for n in [1..10]:
             ....:     print(naive_height(2^n*P)/4^n)
             0.000000000000000
@@ -3384,7 +3387,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         Return a string representation of self that ``MAGMA`` can
         use for input.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve(GF(17), [1,-1])
             sage: P = E([13, 4])
@@ -3419,7 +3422,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
 
         - John Cremona. Adapted to use generic functions 2008-04-05.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = GF(3^6,'a')
             sage: a = F.gen()
@@ -3446,7 +3449,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
 
         Since the base field is finite, the answer will always be ``True``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve(GF(7), [1,3])
             sage: P = E.points()[3]

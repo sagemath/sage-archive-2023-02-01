@@ -80,7 +80,7 @@ cdef class FieldConverter_class:
     for elements of prime and non-prime fields; see
     :class:`PrimeFieldConverter_class`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.matrix.matrix_gfpn_dense import FieldConverter_class  # optional: meataxe
         sage: F.<y> = GF(125)
@@ -105,7 +105,7 @@ cdef class FieldConverter_class:
 
         A finite *non-prime* field. This assumption is not tested.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.matrix.matrix_gfpn_dense import FieldConverter_class # optional: meataxe
             sage: F.<y> = GF(125)
@@ -125,7 +125,7 @@ cdef class FieldConverter_class:
         """
         Fetch a python int into the field.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.matrix.matrix_gfpn_dense import FieldConverter_class  # optional: meataxe
             sage: F.<y> = GF(125)
@@ -141,7 +141,7 @@ cdef class FieldConverter_class:
         """
         Represent a field element by a python int.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.matrix.matrix_gfpn_dense import FieldConverter_class  # optional: meataxe
             sage: F.<y> = GF(125)
@@ -163,7 +163,7 @@ cdef class PrimeFieldConverter_class(FieldConverter_class):
     have a common interface for elements of prime and non-prime fields;
     see :class:`FieldConverter_class`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.matrix.matrix_gfpn_dense import PrimeFieldConverter_class # optional: meataxe
         sage: F = GF(5)
@@ -184,7 +184,7 @@ cdef class PrimeFieldConverter_class(FieldConverter_class):
 
         A finite *prime* field. This assumption is not tested.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.matrix.matrix_gfpn_dense import PrimeFieldConverter_class  # optional: meataxe
             sage: F = GF(5)
@@ -204,7 +204,7 @@ cdef class PrimeFieldConverter_class(FieldConverter_class):
         """
         Fetch a python int into the field.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.matrix.matrix_gfpn_dense import PrimeFieldConverter_class  # optional: meataxe
             sage: F = GF(5)
@@ -220,7 +220,7 @@ cdef class PrimeFieldConverter_class(FieldConverter_class):
         """
         Represent a field element by a python int.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.matrix.matrix_gfpn_dense import PrimeFieldConverter_class  # optional: meataxe
             sage: F = GF(5)
@@ -239,7 +239,7 @@ cdef FieldConverter_class FieldConverter(field):
     Return a :class:`FieldConverter_class` or :class:`PrimeFieldConverter_class` instance,
     depending whether the field is prime or not.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: MS = MatrixSpace(GF(5^3,'y'),2)
         sage: A = MS.random_element()
@@ -675,7 +675,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         - ``nonzero`` (optional bool, default ``False``) --
           If true, all inserted marks are non-zero.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: MS = MatrixSpace(GF(27,'z'),6,6)
             sage: M = MS.random_element()       # indirect doctest
@@ -1111,30 +1111,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         """
         if self.Data == NULL:
             raise ValueError("The matrix must not be empty")
-        return self._rmul_(self._base_ring(-1))
-
-    cpdef _rmul_(self, RingElement left):
-        """
-        EXAMPLES::
-
-            sage: M = MatrixSpace(GF(9,'x'),3,3)(sorted(list(GF(9,'x'))))
-            sage: K.<x> = GF(9)
-            sage: M = MatrixSpace(K,3,3)(list(K))
-            sage: x*M    # indirect doctest
-            [      0   x + 1 2*x + 1]
-            [      2     2*x 2*x + 2]
-            [  x + 2       1       x]
-            sage: -M == (-1)*M
-            True
-
-        """
-        if self.Data == NULL:
-            return self.__copy__()
-        FfSetField(self.Data.Field)
-        cdef Matrix_gfpn_dense OUT = self.__copy__()
-        OUT._cache = {}
-        MatMulScalar(OUT.Data, FfFromInt(self._converter.field_to_int(left)))
-        return OUT
+        return self._lmul_(self._base_ring(-1))
 
     cpdef _lmul_(self, RingElement right):
         """
@@ -1144,6 +1121,10 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             sage: K.<x> = GF(9)
             sage: M = MatrixSpace(K,3,3)(sorted(list(K)))
             sage: x*M    # indirect doctest
+            [      0       x     2*x]
+            [  x + 1 2*x + 1       1]
+            [2*x + 2       2   x + 2]
+            sage: M*x    # indirect doctest
             [      0       x     2*x]
             [  x + 1 2*x + 1       1]
             [2*x + 2       2   x + 2]
@@ -1381,10 +1362,10 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         """
         if self.Data == NULL:
             raise ValueError("The matrix must not be empty")
-        if (self.Data.Nor <> self.Data.Noc):
+        if self.Data.Nor != self.Data.Noc:
             raise ValueError("only defined for square matrices")
         o = MatOrder(self.Data)
-        if o==-1:
+        if o == -1:
             raise ArithmeticError("order too large")
         else:
             return o

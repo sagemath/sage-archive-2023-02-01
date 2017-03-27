@@ -135,7 +135,7 @@ illustrated by an example::
 
 I all of the examples above the options are contructed with  single call to
 :class:`GlobalOptions`, however, it is also possible to construct the options
-dynnamically using the :meth:`GlobalOptions._add_to_options` methods.
+dynamically using the :meth:`GlobalOptions._add_to_options` methods.
 
 For more details see :class:`GlobalOptions`.
 
@@ -366,7 +366,7 @@ Tests
 -----
 
 Options classes can only be pickled if they are the options for some standard
-sage class. In this case the class is specified using the arguements to
+sage class. In this case the class is specified using the arguments to
 :class:`GlobalOptions`. For example
 :meth:`~sage.combinat.partition.Partitions.options` is defined as:
 
@@ -416,11 +416,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import, print_function
+from six import iteritems
 
-from __builtin__ import object, str
 from importlib import import_module
 from pickle import PicklingError
 import inspect
+
 
 class Option(object):
     r"""
@@ -862,7 +863,7 @@ class GlobalOptions(object):
               - drink: water
               - food:  apple
         """
-        options=self._value.keys()+self._linked_value.keys()
+        options = list(self._value) + list(self._linked_value)
         for x in self._alt_names:
             options.remove(x)
         if options == []:
@@ -1082,7 +1083,7 @@ class GlobalOptions(object):
         unpickle = options_class.options
         state.pop('option_class')
         state.pop('options_module')
-        for setting in unpickle.__dict__.keys():
+        for setting in unpickle.__dict__:
             self.__dict__[setting] = unpickle.__dict__[setting]
 
         # reset the options in `self` to their defaults
@@ -1127,7 +1128,7 @@ class GlobalOptions(object):
             raise PicklingError('%s cannot be pickled because it is not associated with a class' % self)
 
         pickle={'option_class': self._option_class, 'options_module': self._options_module}
-        for opt in self._value.keys():
+        for opt in self._value:
             if opt not in self._alt_names and self[opt]!=self.__default_value[opt]:
                 pickle[opt] = self[opt]
         for opt in self._linked_value:
@@ -1180,8 +1181,8 @@ class GlobalOptions(object):
         self._legal_values[option] = []
         for spec in sorted(specifications):   # NB: options processed alphabetically!
             if spec == 'alias':
-                self._alias[option]=specifications[spec]
-                self._legal_values[option]+=specifications[spec].keys()
+                self._alias[option] = specifications[spec]
+                self._legal_values[option] += list(specifications[spec])
                 for opt in specifications[spec]:
                     doc[opt] = 'alias for ``%s``'%specifications[spec][opt]
             elif spec == 'alt_name':
@@ -1194,7 +1195,8 @@ class GlobalOptions(object):
                         self._display_values[option] = {val.lower():val for val in self._legal_values[option]}
                         self._legal_values[option] = [val.lower() for val in self._legal_values[option]]
                     if option in self._alias:
-                        self._alias[option] = {k.lower():v.lower() for k,v in self._alias[option].iteritems()}
+                        self._alias[option] = {k.lower():v.lower()
+                                               for k, v in iteritems(self._alias[option])}
                 self._case_sensitive[option] = bool(specifications[spec])
             elif spec == 'checker':
                 if not callable(specifications[spec]):
@@ -1228,11 +1230,11 @@ class GlobalOptions(object):
                     doc[val] = specifications[spec][val]
                 doc.update(specifications[spec])
                 if self._case_sensitive[option]:
-                    self._legal_values[option] += [val for val in specifications[spec].keys()]
-                    self._display_values[option] = {val:val for val in specifications[spec].keys()}
+                    self._legal_values[option] += list(specifications[spec])
+                    self._display_values[option] = {val: val for val in specifications[spec]}
                 else:
-                    self._legal_values[option] += [val.lower() for val in specifications[spec].keys()]
-                    self._display_values[option] = {val.lower():val for val in specifications[spec].keys()}
+                    self._legal_values[option] += [val.lower() for val in specifications[spec]]
+                    self._display_values[option] = {val.lower(): val for val in specifications[spec]}
             elif spec != 'description':
                 raise ValueError('Initialization error in Global options for %s: %s not recognized!'%(self._name, spec))
 
@@ -1245,7 +1247,7 @@ class GlobalOptions(object):
         if option in self._linked_value:
             self._doc[option]=doc
         else:
-            width = max(len(v) for v in doc.keys()) + 4 if doc!={} else 4
+            width = max(len(v) for v in doc) + 4 if doc != {} else 4
             if len(doc) > 0:
                 self._doc[option]='- ``{}`` -- (default: ``{}``)\n{}\n{}\n'.format(
                     option, self._default_value(option),

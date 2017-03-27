@@ -87,9 +87,11 @@ AUTHORS:
 ###############################################################################
 from __future__ import print_function
 from __future__ import absolute_import
+from six import iteritems
 
 # standard Python libraries
 import re
+import six
 
 # Sage library
 from .ring import SR
@@ -499,8 +501,8 @@ def evalunitdict():
         sage: sage.symbolic.units.evalunitdict()
     """
     from sage.misc.all import sage_eval
-    for key, value in unitdict.iteritems():
-        unitdict[key] = dict([(a,sage_eval(repr(b))) for a, b in value.iteritems()])
+    for key, value in six.iteritems(unitdict):
+        unitdict[key] = dict([(a,sage_eval(repr(b))) for a, b in six.iteritems(value)])
 
     # FEATURE IDEA: create a function that would allow users to add
     # new entries to the table without having to know anything about
@@ -509,13 +511,13 @@ def evalunitdict():
     #
     # Format the table for easier use.
     #
-    for k, v in unitdict.iteritems():
+    for k, v in six.iteritems(unitdict):
         for a in v: unit_to_type[a] = k
 
-    for w in unitdict.iterkeys():
-        for j in unitdict[w].iterkeys():
+    for w in unitdict:
+        for j in unitdict[w]:
             if isinstance(unitdict[w][j], tuple): unitdict[w][j] = unitdict[w][j][0]
-        value_to_unit[w] = dict(zip(unitdict[w].itervalues(), unitdict[w].iterkeys()))
+        value_to_unit[w] = {b: a for a, b in iteritems(unitdict[w])}
 
 
 ###############################################################################
@@ -1062,9 +1064,9 @@ class Units(ExtraTabCompletion):
         EXAMPLES::
 
             sage: type(units.__getstate__()[0])
-            <type 'str'>
+            <... 'str'>
             sage: type(units.__getstate__()[1])
-            <type 'dict'>
+            <... 'dict'>
             sage: loads(dumps(units)) == units
             True
             sage: loads(dumps(units.area)) == units.area
@@ -1129,7 +1131,7 @@ class Units(ExtraTabCompletion):
             sage: dir(units.force)
             ['_Units__data', ..., 'dyne', ..., 'ton_force']
         """
-        return sorted([x for x in self.__data.keys() if '/' not in x])
+        return sorted([x for x in self.__data if '/' not in x])
 
     def __getattr__(self, name):
         """

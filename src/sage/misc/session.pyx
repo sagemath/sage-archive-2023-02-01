@@ -60,7 +60,7 @@ AUTHOR:
 from __future__ import print_function, absolute_import
 
 # Standard python imports
-import cPickle
+from six.moves import cPickle
 import os
 import types
 

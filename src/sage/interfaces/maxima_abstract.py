@@ -426,7 +426,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
         EXAMPLES::
 
             sage: maxima.version()
-            '5.35.1'
+            '5.39.0'
         """
         return maxima_version()
 
@@ -845,7 +845,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
             sage: maxima.de_solve('diff(y,x,2) + 3*x = y', ['x','y'])
             y=%k1*%e^x+%k2*%e^-x+3*x
             sage: maxima.de_solve('diff(y,x) + 3*x = y', ['x','y'])
-            y=(%c-3*(-x-1)*%e^-x)*%e^x
+            y=(%c-3*((-x)-1)*%e^-x)*%e^x
             sage: maxima.de_solve('diff(y,x) + 3*x = y', ['x','y'],[1,1])
             y=-%e^-1*(5*%e^x-3*%e*x-3*%e)
         """
@@ -1572,7 +1572,7 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
         ::
 
             sage: f = maxima('exp(x^2)').integral('x',0,1); f
-            -sqrt(%pi)*%i*erf(%i)/2
+            -(sqrt(%pi)*%i*erf(%i))/2 
             sage: f.numer()
             1.46265174590718...
         """
@@ -1759,7 +1759,7 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
             sage: y,d = var('y,d')
             sage: f = function('f')
             sage: latex(maxima(derivative(f(x*y), x)))
-            \left(\left.{{{\it \partial}}\over{{\it \partial}\,  {\it t_0}}}\,f\left({\it t_0}\right)  \right|_{\left[ {\it t_0}={\it x}\,  {\it y} \right] }\right)\,{\it y}
+            \left(\left.{{{\it \partial}}\over{{\it \partial}\,  {\it t_0}}}\,f\left({\it t_0}\right)  \right|_{{\it t_0}={\it x}\,  {\it y}}\right)\,{\it y}
             sage: latex(maxima(derivative(f(x,y,d), d,x,x,y)))
             {{{\it \partial}^4}\over{{\it \partial}\,{\it d}\,  {\it \partial}\,{\it x}^2\,{\it \partial}\,  {\it y}}}\,f\left({\it x} ,  {\it y} , {\it d}\right)
             sage: latex(maxima(d/(d-2)))
@@ -1880,22 +1880,30 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
         """
         return self.partfrac(var)
 
-    def _operation(self, operation, right):
+    def _operation(self, operation, other=None):
         r"""
-        Return the result of "self operation right" in Maxima.
+        Return the result of applying the binary operation
+        ``operation`` on the arguments ``self`` and ``other``, or the
+        unary operation on ``self`` if ``other`` is not given.
+
+        This is a utility function which factors out much of the
+        commonality used in the arithmetic operations for interface
+        elements.
 
         INPUT:
 
-        - ``operation`` - string; operator
+        - ``operation`` -- a string representing the operation
+          being performed. For example, '*', or '1/'.
 
-        - ``right`` - Maxima object; right operand
+        - ``other`` -- the other operand. If ``other`` is ``None``,
+          then the operation is assumed to be unary rather than binary.
 
         OUTPUT: Maxima object
 
-        Note that right's parent should already be Maxima since this should
+        Note that other's parent should already be Maxima since this should
         be called after coercion has been performed.
 
-        If right is a ``MaximaFunction``, then we convert
+        If other is a ``MaximaFunction``, then we convert
         ``self`` to a ``MaximaFunction`` that takes
         no arguments, and let the
         ``MaximaFunction._operation`` code handle everything
@@ -1909,12 +1917,15 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
         """
         P = self._check_valid()
 
-        if isinstance(right, P._object_function_class()):
+        if other is None:
+            cmd = '%s %s'%(operation, self._name)
+        elif isinstance(other, P._object_function_class()):
             fself = P.function('', repr(self))
-            return fself._operation(operation, right)
-
+            return fself._operation(operation, other)
+        else:
+            cmd = '%s %s %s'%(self._name, operation, other._name)
         try:
-            return P.new('%s %s %s'%(self._name, operation, right._name))
+            return P.new(cmd)
         except Exception as msg:
             raise TypeError(msg)
 
@@ -2176,159 +2187,6 @@ class MaximaAbstractElementFunction(MaximaAbstractElement):
 
         return P.function(args,P.eval(defn))
 
-    def _add_(self, f):
-        """
-        This Maxima function as left summand.
-
-        EXAMPLES::
-
-            sage: x,y = var('x,y')
-            sage: f = maxima.function('x','sin(x)')
-            sage: g = maxima.function('x','-cos(x)')
-            sage: f+g
-            sin(x)-cos(x)
-            sage: f+3
-            sin(x)+3
-
-        The Maxima variable ``x`` is different from the Sage symbolic variable::
-
-            sage: (f+maxima.cos(x))
-            cos(_SAGE_VAR_x)+sin(x)
-            sage: (f+maxima.cos(y))
-            cos(_SAGE_VAR_y)+sin(x)
-            
-        Note that you may get unexpected results when calling symbolic expressions
-        and not explicitly giving the variables::
-
-            sage: (f+maxima.cos(x))(2)
-            cos(_SAGE_VAR_x)+sin(2)
-            sage: (f+maxima.cos(y))(2)
-            cos(_SAGE_VAR_y)+sin(2)
-        """
-        return self._operation("+", f)
-
-    def _sub_(self, f):
-        r"""
-        This Maxima function as minuend.
-
-        EXAMPLES::
-
-            sage: x,y = var('x,y')
-            sage: f = maxima.function('x','sin(x)')
-            
-        The Maxima variable ``x`` is different from the Sage symbolic variable::
-
-            sage: (f-maxima.cos(x))
-            sin(x)-cos(_SAGE_VAR_x)
-            sage: (f-maxima.cos(y))
-            sin(x)-cos(_SAGE_VAR_y)
-            
-        Note that you may get unexpected results when calling symbolic expressions
-        and not explicitly giving the variables::
-
-            sage: (f-maxima.cos(x))(2)
-            sin(2)-cos(_SAGE_VAR_x)
-            sage: (f-maxima.cos(y))(2)
-            sin(2)-cos(_SAGE_VAR_y)
-        """
-        return self._operation("-", f)
-
-    def _mul_(self, f):
-        r"""
-        This Maxima function as left factor.
-
-        EXAMPLES::
-
-            sage: f = maxima.function('x','sin(x)')
-            sage: g = maxima('-cos(x)') # not a function!
-            sage: f*g
-            -cos(x)*sin(x)
-            sage: _(2)
-            -cos(2)*sin(2)
-
-        ::
-
-            sage: f = maxima.function('x','sin(x)')
-            sage: g = maxima('-cos(x)')
-            sage: g*f
-            -cos(x)*sin(x)
-            sage: _(2)
-            -cos(2)*sin(2)
-            sage: 2*f
-            2*sin(x)
-        """
-        return self._operation("*", f)
-
-    def _div_(self, f):
-        r"""
-        This Maxima function as dividend.
-
-        EXAMPLES::
-
-            sage: f=maxima.function('x','sin(x)')
-            sage: g=maxima('-cos(x)')
-            sage: f/g
-            -sin(x)/cos(x)
-            sage: _(2)
-            -sin(2)/cos(2)
-
-        ::
-
-            sage: f=maxima.function('x','sin(x)')
-            sage: g=maxima('-cos(x)')
-            sage: g/f
-            -cos(x)/sin(x)
-            sage: _(2)
-            -cos(2)/sin(2)
-            sage: 2/f
-            2/sin(x)
-        """
-        return self._operation("/", f)
-
-    def __neg__(self):
-        r"""
-        Additive inverse of this Maxima function.
-
-        EXAMPLES::
-
-            sage: f=maxima.function('x','sin(x)')
-            sage: -f
-            -sin(x)
-        """
-        return self._operation('-')
-
-    def __inv__(self):
-        r"""
-        Multiplicative inverse of this Maxima function.
-
-        EXAMPLES::
-
-            sage: f = maxima.function('x','sin(x)')
-            sage: ~f
-            1/sin(x)
-        """
-        return self._operation('1/')
-
-    def __pow__(self,f):
-        r"""
-        This Maxima function raised to some power.
-
-        EXAMPLES::
-
-            sage: f=maxima.function('x','sin(x)')
-            sage: g=maxima('-cos(x)')
-            sage: f^g
-            1/sin(x)^cos(x)
-
-        ::
-
-            sage: f=maxima.function('x','sin(x)')
-            sage: g=maxima('-cos(x)') # not a function
-            sage: g^f
-            (-cos(x))^sin(x)
-        """
-        return self._operation("^", f)
-
 
 def reduce_load_MaximaAbstract_function(parent, defn, args, latex):
     r"""
@@ -2355,7 +2213,7 @@ def maxima_version():
 
         sage: from sage.interfaces.maxima_abstract import maxima_version
         sage: maxima_version()
-        '5.35.1'
+        '5.39.0'
     """
     return os.popen('maxima --version').read().split()[-1]
 

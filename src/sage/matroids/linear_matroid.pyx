@@ -108,15 +108,16 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 include 'sage/data_structures/bitset.pxi'
+from cpython.object cimport Py_EQ, Py_NE
 
 from sage.matroids.matroid cimport Matroid
 from sage.matroids.basis_exchange_matroid cimport BasisExchangeMatroid
-from lean_matrix cimport LeanMatrix, GenericMatrix, BinaryMatrix, TernaryMatrix, QuaternaryMatrix, IntegerMatrix, generic_identity
-from set_system cimport SetSystem
-from utilities import newlabel, spanning_stars, spanning_forest, lift_cross_ratios
+from .lean_matrix cimport LeanMatrix, GenericMatrix, BinaryMatrix, TernaryMatrix, QuaternaryMatrix, IntegerMatrix, generic_identity
+from .set_system cimport SetSystem
+from .utilities import newlabel, spanning_stars, spanning_forest, lift_cross_ratios
 from sage.graphs.spanning_tree import kruskal
 from sage.graphs.graph import Graph
 
@@ -1221,15 +1222,15 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             sage: M1 == M3  # indirect doctest
             True
         """
-        if op in [0, 1, 4, 5]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if not isinstance(left, LinearMatroid) or not isinstance(right, LinearMatroid):
             return NotImplemented
         if left.__class__ != right.__class__:   # since we have some subclasses, an extra test
             return NotImplemented
-        if op == 2:  # ==
+        if op == Py_EQ:
             res = True
-        if op == 3:  # !=
+        if op == Py_NE:
             res = False
         # res gets inverted if matroids are deemed different.
         if left.is_field_equivalent(right):
@@ -1406,7 +1407,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         .. TODO::
 
             This important method can (and should) be optimized considerably.
-            See [Hlineny]_ p.1219 for hints to that end.
+            See [Hli2006]_ p.1219 for hints to that end.
 
         EXAMPLES::
 
@@ -1887,7 +1888,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
 
         A linear matroid `N = M([A\ \ b])`, where `A` is a matrix such that
         the current matroid is `M[A]`, and `b` is either given by ``col`` or
-        is a weighted combination of columns of `A`, the weigths being given
+        is a weighted combination of columns of `A`, the weights being given
         by ``chain``.
 
         .. SEEALSO::
@@ -2054,7 +2055,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
 
         A list of linear matroids `N = M([A b])`, where `A` is a matrix such
         that the current matroid is `M[A]`, and `b` is a weighted combination
-        of columns of `A`, the weigths being given by the elements of
+        of columns of `A`, the weights being given by the elements of
         ``chains``.
 
         EXAMPLES::
@@ -3279,7 +3280,7 @@ cdef class BinaryMatroid(LinearMatroid):
         OUTPUT:
 
         Boolean,
-        and, if certificate = True, a dictionary giving the isomophism or None
+        and, if certificate = True, a dictionary giving the isomorphism or None
 
         .. NOTE::
 
@@ -3440,7 +3441,7 @@ cdef class BinaryMatroid(LinearMatroid):
         r"""
         Return a matroid invariant.
 
-        See [Pen12]_ for more information.
+        See [Pen2012]_ for more information.
 
         OUTPUT:
 
@@ -3472,7 +3473,7 @@ cdef class BinaryMatroid(LinearMatroid):
         The *bicycle dimension* of a linear subspace `V` is
         `\dim(V\cap V^\perp)`. The bicycle dimension of a matroid equals the
         bicycle dimension of its cocycle-space, and is an invariant for binary
-        matroids. See [Pen12]_, [GR01]_ for more information.
+        matroids. See [Pen2012]_, [GR2001]_ for more information.
 
         OUTPUT:
 
@@ -3496,7 +3497,7 @@ cdef class BinaryMatroid(LinearMatroid):
         `B(V):=\sum_{v\in V} i^{|v|}`, where `|v|` denotes the number of
         nonzero entries of a binary vector `v`. The value of the Tutte
         Polynomial in the point `(-i, i)` can be expressed in terms of
-        `B(V)`, see [Pen12]_. If `|v|` equals `2` modulo 4 for some
+        `B(V)`, see [Pen2012]_. If `|v|` equals `2` modulo 4 for some
         `v\in V\cap V^\perp`, then `B(V)=0`. In this case, Browns invariant is
         not defined. Otherwise, `B(V)=\sqrt{2}^k \exp(\sigma \pi i/4)` for
         some integers `k, \sigma`. In that case, `k` equals the bycycle
@@ -3536,7 +3537,7 @@ cdef class BinaryMatroid(LinearMatroid):
         for each element `e` of `M`. Then if `F_i` denotes the set of elements
         such that the bicycle dimension of `M\setminus e` is `k + i`, we
         obtain the principal tripartition `(F_{-1}, F_0, F_{1})` of `M`.
-        See [Pen12]_ and [GR01]_.
+        See [Pen2012]_ and [GR2001]_.
 
         OUTPUT:
 
@@ -3565,7 +3566,7 @@ cdef class BinaryMatroid(LinearMatroid):
         """
         Return the projection matrix onto the row space.
 
-        This projection is determined modulo the bicycle space. See [Pen12]_.
+        This projection is determined modulo the bicycle space. See [Pen2012]_.
 
         INPUT:
 
@@ -3637,7 +3638,7 @@ cdef class BinaryMatroid(LinearMatroid):
         r"""
         Run a quick test to see if two binary matroids are isomorphic.
 
-        The test is based on comparing strong invariants. See [Pen12]_ for a
+        The test is based on comparing strong invariants. See [Pen2012]_ for a
         full account of these invariants.
 
         INPUT:
@@ -3740,7 +3741,7 @@ cdef class BinaryMatroid(LinearMatroid):
 
         .. ALGORITHM:
 
-        In a recent paper, Geelen and Gerards [GG12]_ reduced the problem to
+        In a recent paper, Geelen and Gerards [GG2012]_ reduced the problem to
         testing if a system of linear equations has a solution. While not the
         fastest method, and not necessarily constructive (in the presence of
         2-separations especially), it is easy to implement.
@@ -4340,7 +4341,7 @@ cdef class TernaryMatroid(LinearMatroid):
         OUTPUT:
 
         Boolean,
-        and, if certificate = True, a dictionary giving the isomophism or None
+        and, if certificate = True, a dictionary giving the isomorphism or None
 
         .. NOTE::
 
@@ -4442,7 +4443,7 @@ cdef class TernaryMatroid(LinearMatroid):
         r"""
         Return a matroid invariant.
 
-        See [Pen12]_ for more information.
+        See [Pen2012]_ for more information.
 
         OUTPUT:
 
@@ -4474,7 +4475,7 @@ cdef class TernaryMatroid(LinearMatroid):
         The bicycle dimension of a linear subspace `V` is
         `\dim(V\cap V^\perp)`. The bicycle dimension of a matroid equals the
         bicycle dimension of its rowspace, and is a matroid invariant.
-        See [Pen12]_.
+        See [Pen2012]_.
 
         OUTPUT:
 
@@ -4500,7 +4501,7 @@ cdef class TernaryMatroid(LinearMatroid):
         is not divisible by 3. The character does not depend on the choice of
         the orthogonal basis. The character of a ternary matroid equals the
         character of its cocycle-space, and is an invariant for ternary
-        matroids. See [Pen12]_.
+        matroids. See [Pen2012]_.
 
         OUTPUT:
 
@@ -4555,7 +4556,7 @@ cdef class TernaryMatroid(LinearMatroid):
         """
         Return the projection matrix onto the row space.
 
-        This projection is determined modulo the bicycle space. See [Pen12]_.
+        This projection is determined modulo the bicycle space. See [Pen2012]_.
 
         INPUT:
 
@@ -4599,7 +4600,7 @@ cdef class TernaryMatroid(LinearMatroid):
 
            The test is based on comparing strong invariants, including bicycle
            dimension, character, and the principal quadripartition.
-           See also [Pen12]_ .
+           See also [Pen2012]_ .
 
            INPUT:
 
@@ -5279,7 +5280,7 @@ cdef class QuaternaryMatroid(LinearMatroid):
         r"""
         Return a matroid invariant.
 
-        See [Pen12]_ for more information.
+        See [Pen2012]_ for more information.
 
         OUTPUT:
 
@@ -5315,7 +5316,7 @@ cdef class QuaternaryMatroid(LinearMatroid):
         `\GF{4}`.
 
         The bicycle dimension of a matroid equals the bicycle dimension of its
-        rowspace, and is a matroid invariant. See [Pen12]_.
+        rowspace, and is a matroid invariant. See [Pen2012]_.
 
         OUTPUT:
 
@@ -5342,7 +5343,7 @@ cdef class QuaternaryMatroid(LinearMatroid):
         for each element `e` of `M`. Then if `F_i` denotes the set of elements
         such that the bicycle dimension of `M\setminus e` is `k + i`, we
         obtain the principal tripartition `(F_{-1}, F_0, F_{1})` of `M`.
-        See [Pen12]_, [GR01]_.
+        See [Pen2012]_, [GR2001]_.
 
         OUTPUT:
 
@@ -5811,7 +5812,7 @@ cdef class RegularMatroid(LinearMatroid):
         the vector `x` onto the row space of `A`. For regular matroids,
         there is an extended Matrix Tree theorem that derives the fraction of
         bases containing a subset by computing the determinant of the
-        principal submatrix of `Q` corresponding to that subset. See [Lyons]_ .
+        principal submatrix of `Q` corresponding to that subset. See [Lyo2003]_ .
         Due to the scaling, the entries of `P` are integers.
 
         EXAMPLES::
@@ -5978,7 +5979,7 @@ cdef class RegularMatroid(LinearMatroid):
         OUTPUT:
 
         Boolean,
-        and, if certificate = True, a dictionary giving the isomophism or None
+        and, if certificate = True, a dictionary giving the isomorphism or None
 
         .. NOTE::
 
@@ -6084,6 +6085,15 @@ cdef class RegularMatroid(LinearMatroid):
         OUTPUT:
 
         - a dictionary, if the hypergraphs are isomorphic; ``None`` otherwise.
+
+        TESTS:
+
+        Check that :trac:`22263` was fixed::
+
+            sage: m1 = Matroid(graph='H?ABC~}')
+            sage: m2 = Matroid(graph='H?ACNr}')
+            sage: m1.is_isomorphic(m2)
+            False
         """
         from sage.groups.perm_gps.partn_ref.refinement_graphs import isomorphic
         HS = self._hypergraph()
@@ -6092,7 +6102,7 @@ cdef class RegularMatroid(LinearMatroid):
         for X in HO[0]:
             VO.extend(X)
         m = isomorphic(HS[2], HO[2], HS[0], VO, 1, 1)
-        if m is not None:
+        if m:
             idx={str(f):f for f in other.groundset()}
             return {e:idx[m[str(e)]] for e in self.groundset() if str(e) in m}
     
@@ -6201,7 +6211,7 @@ cdef class RegularMatroid(LinearMatroid):
 
         ALGORITHM:
 
-        In a recent paper, Geelen and Gerards [GG12]_ reduced the problem to
+        In a recent paper, Geelen and Gerards [GG2012]_ reduced the problem to
         testing if a system of linear equations has a solution. While not the
         fastest method, and not necessarily constructive (in the presence of
         2-separations especially), it is easy to implement.

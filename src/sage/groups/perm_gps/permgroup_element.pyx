@@ -53,7 +53,7 @@ degree.
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 from __future__ import print_function
-
+    
 import random
 
 import sage.groups.old as group
@@ -71,6 +71,7 @@ from sage.interfaces.gap import is_GapElement
 from sage.interfaces.expect import is_ExpectElement
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 import sage.structure.coerce as coerce
+from sage.structure.sage_object cimport richcmp_not_equal, rich_to_bool
 
 import operator
 
@@ -225,6 +226,9 @@ def standardize_generator(g, convert_dict=None):
     from sage.libs.pari.all import pari_gen
 
     if isinstance(g, pari_gen):
+        g = list(g)
+
+    if isinstance(g, xrange):
         g = list(g)
 
     needs_conversion = True
@@ -607,7 +611,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
         OUTPUT: a permutation group element
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = PermutationGroup([[(1,2,3),(4,5)]],5)
             sage: g = G.gen(0)
@@ -618,7 +622,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         return self.cycles()[i]
 
-    cpdef int _cmp_(self, other) except -2:
+    cpdef _richcmp_(self, other, int op):
         """
         Compare group elements ``self`` and ``other``.
 
@@ -658,11 +662,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         cdef int i
         cdef PermutationGroupElement right = <PermutationGroupElement>other
         for i in range(self.n):  # Equal parents, so self.n == other.n
-            if self.perm[i] < right.perm[i]:
-                return -1
-            elif self.perm[i] > right.perm[i]:
-                return 1
-        return 0
+            li = self.perm[i]
+            ri = right.perm[i]
+            if li != ri:
+                return richcmp_not_equal(li, ri, op)
+        return rich_to_bool(op, 0)
 
     def __call__(self, i):
         """
@@ -670,7 +674,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         Alternately, if i is a list, tuple or string, returns the result of
         self acting on i.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = PermutationGroup(['(1,2,3)(4,5)'])
             sage: G
@@ -937,7 +941,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: v = x.domain(); v
             [2, 1, 4, 3]
             sage: type(v[0])
-            <type 'int'>
+            <... 'int'>
             sage: x = G([2,1]); x
             (1,2)
             sage: x.domain()
@@ -1025,7 +1029,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: v = g.dict(); v
             {1: 2, 2: 3, 3: 4, 4: 1}
             sage: type(v[1])
-            <type 'int'>
+            <... 'int'>
             sage: x = G([2,1]); x
             (1,2)
             sage: x.dict()
@@ -1126,7 +1130,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
         ALGORITHM: Only even cycles contribute to the sign, thus
 
-        .. math::
+        .. MATH::
 
             sign(sigma) = (-1)^{\sum_c len(c)-1}
 
@@ -1442,7 +1446,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         functions "EpimorphismFromFreeGroup" and
         "PreImagesRepresentative".
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]], canonicalize=False)
             sage: g1, g2 = G.gens()

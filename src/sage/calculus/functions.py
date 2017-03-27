@@ -1,5 +1,5 @@
 r"""
-Calculus functions.
+Calculus functions
 """
 from __future__ import absolute_import
 from sage.matrix.all import matrix

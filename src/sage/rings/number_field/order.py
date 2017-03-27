@@ -291,7 +291,7 @@ class Order(IntegralDomain):
         """
         Returns True if this is the maximal order.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<i> = NumberField(x^2 + 1)
             sage: O3 = k.order(3*i); O5 = k.order(5*i); Ok = k.maximal_order(); Osum = O3 + O5
@@ -1109,9 +1109,9 @@ class AbsoluteOrder(Order):
         r"""
         Used in pickling.
 
-        We test that #6462 is fixed. This used to fail because pickling the
-        order also pickled the cached results of the ``basis`` call, which
-        were elements of the order.
+        We test that :trac:`6462` is fixed. This used to fail because
+        pickling the order also pickled the cached results of the
+        ``basis`` call, which were elements of the order.
 
         ::
 
@@ -1434,7 +1434,7 @@ class RelativeOrder(Order):
         """
         Create the relative order.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<a,b> = NumberFieldTower([x^2 - 3, x^2 + 1])
             sage: O = k.maximal_order(); O # indirect doctest
@@ -1466,7 +1466,7 @@ class RelativeOrder(Order):
             sage: S.<y> = OK[]; S
             Univariate Polynomial Ring in y over Maximal Relative Order in Number Field in a with defining polynomial x^2 + 2 over its base field
 
-        We test that trac #4193 is also fixed::
+        We test that :trac:`4193` is also fixed::
 
             sage: K1.<a> = NumberField(x^3 - 2)
             sage: R.<y> = PolynomialRing(K1)
@@ -1550,7 +1550,7 @@ class RelativeOrder(Order):
         r"""
         Used for pickling.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: L.<a, b> = NumberField([x^2 + 1, x^2 - 5])
             sage: O = L.maximal_order()
@@ -1625,7 +1625,7 @@ class RelativeOrder(Order):
         Intersect two relative orders or a relative and absolute order
         (which always results in an absolute order).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: L.<a, b> = NumberField([x^2 + 1, x^2 - 5])
             sage: O1 = L.order([a, 2*b])

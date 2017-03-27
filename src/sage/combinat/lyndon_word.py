@@ -178,7 +178,7 @@ class LyndonWords_class(UniqueRepresentation, Parent):
         TESTS::
 
             sage: LW33 = LyndonWords(3,3)
-            sage: all([lw in LyndonWords() for lw in LW33])
+            sage: all(lw in LyndonWords() for lw in LW33)
             True
         """
         if isinstance(w, list):
@@ -255,7 +255,7 @@ class LyndonWords_evaluation(UniqueRepresentation, Parent):
             False
             sage: [1,1,2,2] in LyndonWords([2,2])
             True
-            sage: all([ lw in LyndonWords([2,1,3,1]) for lw in LyndonWords([2,1,3,1])])
+            sage: all(lw in LyndonWords([2,1,3,1]) for lw in LyndonWords([2,1,3,1]))
             True
         """
         if isinstance(x, list):
@@ -280,9 +280,9 @@ class LyndonWords_evaluation(UniqueRepresentation, Parent):
 
         ::
 
-            sage: comps = [[],[2,2],[3,2,7],[4,2]]+Compositions(4).list()
-            sage: lws = [ LyndonWords(comp) for comp in comps]
-            sage: all( [ lw.cardinality() == len(lw.list()) for lw in lws] )
+            sage: comps = [[],[2,2],[3,2,7],[4,2]] + Compositions(4).list()
+            sage: lws = [LyndonWords(comp) for comp in comps]
+            sage: all(lw.cardinality() == len(lw.list()) for lw in lws)
             True
         """
         evaluation = self._e
@@ -422,7 +422,7 @@ class LyndonWords_nk(UniqueRepresentation, Parent):
         TESTS::
 
             sage: LW33 = LyndonWords(3,3)
-            sage: all([lw in LW33 for lw in LW33])
+            sage: all(lw in LW33 for lw in LW33)
             True
         """
         if isinstance(w, list):
@@ -543,17 +543,18 @@ class StandardBracketedLyndonWords_nk(UniqueRepresentation, Parent):
              [2, [2, 3]],
              [[2, 3], 3]]
         """
-        from itertools import imap
-        return imap(standard_bracketing, self._lyndon)
+        from builtins import map
+        return map(standard_bracketing, self._lyndon)
+
 
 def standard_bracketing(lw):
     """
-    Returns the standard bracketing of a Lyndon word lw.
+    Return the standard bracketing of a Lyndon word ``lw``.
 
     EXAMPLES::
 
         sage: import sage.combinat.lyndon_word as lyndon_word
-        sage: map( lyndon_word.standard_bracketing, LyndonWords(3,3) )
+        sage: [lyndon_word.standard_bracketing(u) for u in LyndonWords(3,3)]
         [[1, [1, 2]],
          [1, [1, 3]],
          [[1, 2], 2],
@@ -566,6 +567,6 @@ def standard_bracketing(lw):
     if len(lw) == 1:
         return lw[0]
 
-    for i in range(1,len(lw)):
+    for i in range(1, len(lw)):
         if lw[i:] in LyndonWords():
-            return [ standard_bracketing( lw[:i] ), standard_bracketing(lw[i:]) ]
+            return [standard_bracketing(lw[:i]), standard_bracketing(lw[i:])]

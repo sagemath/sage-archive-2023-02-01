@@ -696,12 +696,12 @@ class GenericCombinatorialSpecies(SageObject):
 
         ::
 
-            sage: g_c, labels = g.canonical_label(certify=True)
+            sage: g_c, labels = g.canonical_label(certificate=True)
             sage: g.relabel()
             sage: g_r = g.canonical_label()
             sage: g_c == g_r
             True
-            sage: list(sorted(labels.keys()))
+            sage: list(sorted(labels))
             [Combinatorial species,
              Product of (Combinatorial species) and (Combinatorial species),
              Singleton species,

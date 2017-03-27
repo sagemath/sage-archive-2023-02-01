@@ -135,14 +135,14 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
          ([], [1], (1, 'right')),
          ([], [2], (2, 'left')),
          ([], [2], (2, 'right'))]
-        sage: map(sorted, M.j_classes())
+        sage: list(map(sorted, M.j_classes()))
         [[[1], [1, 1]], [[], [2]]]
         sage: M.j_classes_of_idempotents()
         [[[1, 1]], [[]]]
         sage: M.j_transversal_of_idempotents()
         [[1, 1], []]
 
-        sage: map(attrcall('pseudo_order'), M.list())
+        sage: list(map(attrcall('pseudo_order'), M.list()))
         [[1, 0], [3, 1], [2, 0], [2, 1]]
 
     We can also use it to get submonoids from groups. We check that in the
@@ -628,9 +628,9 @@ class AutomaticSemigroup(UniqueRepresentation, Parent):
         if self._constructed:
             return iter(self._elements)
         else:
-            return self._iter_concurent()
+            return self._iter_concurrent()
 
-    def _iter_concurent(self):
+    def _iter_concurrent(self):
         """
         We need to take special care since several iterators may run
         concurrently.

@@ -25,6 +25,7 @@ from sage.categories.enumerated_sets import EnumeratedSets
 from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
 from sage.combinat.integer_lists.base import IntegerListsBackend
+from six import get_method_function
 
 
 class IntegerList(ClonableArray):
@@ -172,9 +173,9 @@ class IntegerLists(Parent):
         a = self._element_constructor
         b = other._element_constructor
         if ismethod(a):
-            a = a.im_func
+            a = get_method_function(a)
         if ismethod(b):
-            b = b.im_func
+            b = get_method_function(b)
         return a == b
 
     def __ne__(self, other):
@@ -256,7 +257,7 @@ class IntegerLists(Parent):
         EXAMPLES::
 
             sage: C = IntegerListsLex(n=2, max_length=3, min_slope=0)
-            sage: all([l in C for l in C])
+            sage: all(l in C for l in C)
             True
         """
         return self.backend._contains(item)

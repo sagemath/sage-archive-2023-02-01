@@ -239,6 +239,9 @@ class Gp(ExtraTabCompletion, Expect):
 
     def _start(self, alt_message=None, block_during_init=True):
         Expect._start(self, alt_message, block_during_init)
+        # disable memory debugging: those warnings can only confuse our
+        # interface
+        self._eval_line('default(debugmem,0);')
         # disable timer
         self._eval_line('default(timer,0);')
         # disable the break loop, otherwise gp will seem to hang on errors
@@ -428,9 +431,9 @@ class Gp(ExtraTabCompletion, Expect):
 
         TESTS:
 
-        We verify that trac 11617 is fixed::
+        We verify that :trac:`11617` is fixed::
 
-            sage: gp._eval_line('a='+str(range(2*10^5)))[:70]
+            sage: gp._eval_line('a='+str(list(range(2*10^5))))[:70]
             '[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,'
         """
         line = line.strip()
@@ -908,7 +911,7 @@ class GpElement(ExpectElement):
             sage: gp(M).sage() == M
             True
         """
-        return pari(str(self)).python()
+        return pari(str(self)).sage()
 
     def is_string(self):
         """
@@ -984,8 +987,7 @@ class GpElement(ExpectElement):
         # Multiplying by CC(1) is necessary here since
         # sage: pari(gp(1+I)).sage().parent()
         # Maximal Order in Number Field in i with defining polynomial x^2 + 1
-
-        return CC((CC(1)*pari(self))._sage_())
+        return CC((CC(1)*pari(self)).sage())
 
     def _complex_double_(self, CDF):
         """

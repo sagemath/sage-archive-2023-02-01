@@ -66,7 +66,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
         sage: S.gens()
         (e_1, e_2, e_3, a, b, c, d)
         sage: S.category()
-        Join of Category of finite semigroups and Category of finite enumerated sets
+        Category of finite enumerated semigroups
 
     In the test suite, we skip the associativity test, as in this example the
     paths used for testing can't be concatenated::
@@ -83,7 +83,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
         sage: M
         Monoid formed by the directed paths of Looped multi-digraph on 1 vertex
         sage: M.category()
-        Join of Category of monoids and Category of infinite enumerated sets
+        Category of infinite enumerated monoids
         sage: TestSuite(M).run()
     """
     Element = QuiverPath
@@ -247,7 +247,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: d*c3
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*':
+            TypeError: unsupported operand parent(s) for *:
              'Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices'
              and 'Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices'
         """
@@ -541,7 +541,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: list(A.basis())
             Traceback (most recent call last):
             ...
-            NotImplementedError: infinite list
+            ValueError: the underlying quiver has cycles, thus, there may be an infinity of directed paths
         """
         from sage.all import ZZ
         if self._quiver.is_directed_acyclic() and not self._quiver.has_loops():
@@ -708,7 +708,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
         """
         Return the underlying quiver (i.e., digraph) of this path semigroup.
 
-        .. NOTE:
+        .. NOTE::
 
             The returned digraph always is an immutable copy of the originally
             given digraph that is made weighted.

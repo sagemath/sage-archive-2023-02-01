@@ -1,7 +1,10 @@
 """
 Fortran compiler
 """
-import os, imp, shutil
+from six import iteritems
+import os
+import imp
+import shutil
 
 from sage.misc.temporary_file import tmp_dir
 
@@ -75,14 +78,6 @@ class InlineFortran:
             sage: os.getcwd() == SAGE_ROOT
             True
         """
-        if len(x.splitlines()) == 1 and os.path.exists(x):
-            from sage.misc.superseded import deprecation
-            deprecation(2891, "Calling fortran() with a filename is deprecated, use fortran(open(f).read) instead")
-            filename = x
-            x = open(x).read()
-            if filename.lower().endswith('.f90'):
-                x = '!f90\n' + x
-
         if globals is None:
             globals = self.globs
 
@@ -139,7 +134,7 @@ class InlineFortran:
                 # This can fail for example over NFS
                 pass
 
-        for k, x in m.__dict__.iteritems():
+        for k, x in iteritems(m.__dict__):
             if k[0] != '_':
                 globals[k] = x
 

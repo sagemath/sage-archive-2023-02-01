@@ -838,8 +838,8 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             sage: phi(E.random_point()) # all points defined over GF(19) are in the kernel
             (0 : 1 : 0)
 
+        Not all polynomials define a finite subgroup (:trac:`6384`)::
 
-            # not all polynomials define a finite subgroup trac #6384
             sage: E = EllipticCurve(GF(31),[1,0,0,1,2])
             sage: phi = E.isogeny([14,27,4,1])
             Traceback (most recent call last):
@@ -848,7 +848,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
         An example in which we construct an invalid morphism, which
         illustrates that the check for correctness of the input is not
-        sufficient. (See trac 11578.)::
+        sufficient. (See :trac:`11578`.)::
 
             sage: R.<x> = QQ[]
             sage: K.<a> = NumberField(x^2-x-1)

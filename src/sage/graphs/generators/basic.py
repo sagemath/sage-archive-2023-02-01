@@ -98,7 +98,7 @@ def ButterflyGraph():
     For more information, see this
     `Wikipedia article on the butterfly graph <http://en.wikipedia.org/wiki/Butterfly_graph>`_.
 
-    .. seealso::
+    .. SEEALSO::
 
         - :meth:`GraphGenerators.FriendshipGraph`
 
@@ -478,7 +478,7 @@ def CompleteBipartiteGraph(n1, n2):
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
 
-    Trac ticket #12155::
+    :trac:`12155`::
 
         sage: graphs.CompleteBipartiteGraph(5,6).complement()
         complement(Complete bipartite graph): Graph on 11 vertices
@@ -517,11 +517,11 @@ def CompleteBipartiteGraph(n1, n2):
     for i in range(n1):
         x = c1*i + c3
         y = 1
-        pos_dict[i] = (x,y)
-    for i in range(n1+n2)[n1:]:
+        pos_dict[i] = (x, y)
+    for i in range(n1,n1+n2):
         x = c2*(i-n1) + c4
         y = 0
-        pos_dict[i] = (x,y)
+        pos_dict[i] = (x, y)
 
     G = Graph(n1+n2, pos=pos_dict, name="Complete bipartite graph")
     G.add_edges((i,j) for i in range(n1) for j in range(n1,n1+n2))
@@ -536,7 +536,7 @@ def CompleteMultipartiteGraph(l):
     - ``l`` -- a list of integers : the respective sizes
       of the components.
 
-    EXAMPLE:
+    EXAMPLES:
 
     A complete tripartite graph with sets of sizes
     `5, 6, 8`::
@@ -558,7 +558,7 @@ def CompleteMultipartiteGraph(l):
 
         '''
         Produce a layout of the vertices so that vertices in the same
-        vertex set are adjecent and clearly separated from vertices in other
+        vertex set are adjacent and clearly separated from vertices in other
         vertex sets.
 
         This is done by calculating the vertices of an r-gon then
@@ -665,7 +665,7 @@ def ToroidalGrid2dGraph(n1, n2):
     2-dimensional grid graph with identical parameters to which are added
     the edges `((i,0),(i,n_2-1))` and `((0,i),(n_1-1,i))`.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The toroidal 2-dimensional grid is a regular graph, while the usual
     2-dimensional grid is not ::
@@ -714,7 +714,7 @@ def Toroidal6RegularGrid2dGraph(n1, n2):
 
     - ``n1, n2`` (integers) -- see above.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The toroidal 6-regular grid on `25` elements::
 

@@ -10,7 +10,7 @@ Point counting on curves
 How do you count points on an elliptic curve over a finite field in
 Sage?
 
-Over prime finite fields, includes both the the baby step giant step
+Over prime finite fields, includes both the baby step giant step
 method and the SEA (Schoof-Elkies-Atkin) algorithm (implemented in PARI
 by Christophe Doche and Sylvain Duquesne). An example taken form the
 Reference manual:
@@ -474,7 +474,7 @@ Next, we compute the Riemann-Roch space.
        _[2]=x2z
 
 That was the basis of the Riemann-Roch space, where each pair of
-fuctions represents the quotient (first function divided by second
+functions represents the quotient (first function divided by second
 function). Each of these basis elements get evaluated at certain
 points to construct the generator matrix of the code. We next
 construct the points.

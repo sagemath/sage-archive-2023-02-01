@@ -199,7 +199,7 @@ class DefiniteIntegral(BuiltinFunction):
             sage: integrate(x^2.7 * e^(-2.4*x), x, 0, 3).n()
             0.154572952320790
         """
-        from sage.gsl.integration import numerical_integral
+        from sage.calculus.integration import numerical_integral
         # The gsl routine returns a tuple, which also contains the error.
         # We only return the result.
         return numerical_integral(f, a, b)[0]
@@ -277,7 +277,7 @@ def _normalize_integral_input(f, v=None, a=None, b=None):
     EXAMPLES::
 
         sage: from sage.symbolic.integration.integral import \
-        ...       _normalize_integral_input
+        ....:     _normalize_integral_input
         sage: _normalize_integral_input(x^2, x, 0, 3)
         (x^2, x, 0, 3)
         sage: _normalize_integral_input(x^2, [x, 0, 3], None, None)
@@ -347,7 +347,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
        - 'mathematica_free' - use http://integrals.wolfram.com/
 
-       - 'fricas' - use FriCAS (the optional fricas spkg has to be installed) 
+       - 'fricas' - use FriCAS (the optional fricas spkg has to be installed)
 
     To prevent automatic evaluation use the ``hold`` argument.
 
@@ -528,8 +528,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
         sage: f(x) = sqrt(x+sqrt(1+x^2))/x
         sage: integrate(f(x), x, algorithm="fricas")      # optional - fricas
-        2*sqrt(x + sqrt(x^2 + 1)) + log(sqrt(x + sqrt(x^2 + 1)) - 1)
-        - log(sqrt(x + sqrt(x^2 + 1)) + 1) - 2*arctan(sqrt(x + sqrt(x^2 + 1)))
+        2*sqrt(x + sqrt(x^2 + 1)) - 2*arctan(sqrt(x + sqrt(x^2 + 1))) - log(sqrt(x + sqrt(x^2 + 1)) + 1) + log(sqrt(x + sqrt(x^2 + 1)) - 1)
 
     The following definite integral is not found with the
     default integrator::
@@ -541,7 +540,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
     Both fricas and sympy give the correct result::
 
         sage: integrate(f(x), x, 1, 2, algorithm="fricas")  # optional - fricas
-        -1/2*pi + arctan(1/2) + arctan(2) + arctan(5) + arctan(8)
+        -1/2*pi + arctan(8) + arctan(5) + arctan(2) + arctan(1/2)
         sage: integrate(f(x), x, 1, 2, algorithm="sympy")
         -1/2*pi + arctan(8) + arctan(5) + arctan(2) + arctan(1/2)
 
@@ -632,10 +631,12 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         ValueError: invalid input (x, 1, 2, 3) - please use variable, with or without two endpoints
 
     Note that this used to be the test, but it is actually divergent
-    (though Maxima currently returns the principal value)::
+    (Maxima currently asks for assumptions on theta)::
 
         sage: integrate(t*cos(-theta*t),(t,-oo,oo))
-        0
+        Traceback (most recent call last):
+        ...
+        ValueError: Computation failed since Maxima requested additional constraints;...
 
     Check if :trac:`6189` is fixed::
 
@@ -752,6 +753,17 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
         sage: integrate(1/(sqrt(x)*((1+sqrt(x))^2)),x,1,9)
         1/2
+
+    Check that :trac:`8728` is fixed::
+
+        sage: forget()
+        sage: c,w,T = var('c,w,T')
+        sage: assume(1-c^2 > 0)
+        sage: assume(abs(c) - sqrt(1-c^2) - 1 > 0)
+        sage: assume(abs(sqrt(1-c^2)-1) - abs(c) > 0)
+        sage: integrate(cos(w+T) / (1+c*cos(T))^2, T, 0, 2*pi)
+        2*pi*sqrt(-c^2 + 1)*c*cos(w)/(c^4 - 2*c^2 + 1)
+
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:

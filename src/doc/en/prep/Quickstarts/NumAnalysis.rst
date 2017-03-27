@@ -257,7 +257,7 @@ above.
 The question mark notation means that the number is contained in the
 interval found by incrementing and decrementing the last digit of the
 number.  See the `documentation for real interval fields
-<http://www.sagemath.org/doc/reference/sage/rings/real_mpfi.html>`_ for
+<http://doc.sagemath.org/html/en/reference/sage/rings/real_mpfi.html>`_ for
 details.  In the above case, Sage is saying that 1/9 is somewhere
 between 0.111 and 0.113.  Below, we see that ``1/a`` is somewhere
 between 8.9 and 9.1.
@@ -282,7 +282,7 @@ Scipy (included in Sage) has a lot of numerical algorithms.  See `the
 Scipy docs <http://docs.scipy.org/doc/scipy/reference/>`_.
 
 Mpmath is also included in Sage, and contains a huge amount of numerical
-stuff.  See `the mpmath codebase <http://code.google.com/p/mpmath/>`_.
+stuff.  See `the mpmath codebase <https://github.com/fredrik-johansson/mpmath/>`_.
 
 The `Decimal python module
 <http://docs.python.org/library/decimal.html>`_ has also been useful for

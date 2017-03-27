@@ -221,6 +221,10 @@ REFERENCES:
 # python3
 from __future__ import division
 
+from builtins import zip
+from six import iteritems
+from six.moves import range
+
 import itertools
 from sage.structure.sage_object import SageObject
 from sage.modules.free_module_element import vector
@@ -376,7 +380,7 @@ def ncube_isometry_group_cosets(n, orientation_preserving=True):
         sage: cosets = ncube_isometry_group_cosets(3, False)
         sage: len(cosets)
         6
-        sage: map(len, cosets)
+        sage: [len(c) for c in cosets]
         [8, 8, 8, 8, 8, 8]
         sage: type(cosets[0][0])
         <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
@@ -676,8 +680,9 @@ class Polyomino(SageObject):
             sage: p.bounding_box()
             [[0, 0, 0], [1, 2, 1]]
         """
-        zipped_coords = zip(*self)
-        return [[min(_) for _ in zipped_coords], [max(_) for _ in zipped_coords]]
+        zipped_coords = list(zip(*self))
+        return [[min(_) for _ in zipped_coords],
+                [max(_) for _ in zipped_coords]]
 
     def canonical(self):
         r"""
@@ -993,11 +998,11 @@ class Polyomino(SageObject):
             vertical[(x+1, y)] -= 1
         edges = []
         h = 0.5
-        for (x, y), coeff in horizontal.iteritems():
-            if coeff != 0:
+        for (x, y), coeff in iteritems(horizontal):
+            if coeff:
                 edges.append(((x-h, y-h), (x+h, y-h)))
-        for (x, y), coeff in vertical.iteritems():
-            if coeff != 0:
+        for (x, y), coeff in iteritems(vertical):
+            if coeff:
                 edges.append(((x-h, y-h), (x-h, y+h)))
         return edges
 
@@ -1273,7 +1278,7 @@ class TilingSolver(SageObject):
             sage: r = Polyomino([(0,0,0), (0,0,1), (0,0,2)])
             sage: T = TilingSolver([p,q,r], box=(1,1,6))
             sage: A = T.coord_to_int_dict()
-            sage: sorted(A.iteritems())
+            sage: sorted(A.items())
             [((0, 0, 0), 3), ((0, 0, 1), 4), ((0, 0, 2), 5), ((0, 0, 3), 6), ((0, 0, 4), 7), ((0, 0, 5), 8)]
 
         Reusable pieces::
@@ -1282,7 +1287,7 @@ class TilingSolver(SageObject):
             sage: q = Polyomino([(0,0), (0,1), (1,0), (1,1)])
             sage: T = TilingSolver([p,q], box=[3,2], reusable=True)
             sage: B = T.coord_to_int_dict()
-            sage: sorted(B.iteritems())
+            sage: sorted(B.items())
             [((0, 0), 0), ((0, 1), 1), ((1, 0), 2), ((1, 1), 3), ((2, 0), 4), ((2, 1), 5)]
         """
         if self._reusable:
@@ -1305,7 +1310,7 @@ class TilingSolver(SageObject):
             sage: r = Polyomino([(0,0,0), (0,0,1), (0,0,2)])
             sage: T = TilingSolver([p,q,r], box=(1,1,6))
             sage: B = T.int_to_coord_dict()
-            sage: sorted(B.iteritems())
+            sage: sorted(B.items())
             [(3, (0, 0, 0)), (4, (0, 0, 1)), (5, (0, 0, 2)), (6, (0, 0, 3)), (7, (0, 0, 4)), (8, (0, 0, 5))]
 
         Reusable pieces::
@@ -1315,7 +1320,7 @@ class TilingSolver(SageObject):
             sage: q = Polyomino([(0,0), (0,1), (1,0), (1,1)])
             sage: T = TilingSolver([p,q], box=[3,2], reusable=True)
             sage: B = T.int_to_coord_dict()
-            sage: sorted(B.iteritems())
+            sage: sorted(B.items())
             [(0, (0, 0)), (1, (0, 1)), (2, (1, 0)), (3, (1, 1)), (4, (2, 0)), (5, (2, 1))]
 
         TESTS:
@@ -1704,7 +1709,7 @@ class TilingSolver(SageObject):
             yield B
             A, B = B, next(it)
             common_prefix = []
-            for a, b in itertools.izip(A, B):
+            for a, b in zip(A, B):
                 if a == b:
                     common_prefix.append(a)
                 else:
@@ -1762,14 +1767,14 @@ class TilingSolver(SageObject):
             yield B
             A, B = B, next(it)
             common_prefix = 0
-            for a, b in itertools.izip(A, B):
+            for a, b in zip(A, B):
                 if a == b:
                     common_prefix += 1
                 else:
                     break
-            for i in xrange(1, len(A)-common_prefix):
+            for i in range(1, len(A)-common_prefix):
                 yield A[:-i]
-            for j in xrange(common_prefix, len(B)):
+            for j in range(common_prefix, len(B)):
                 yield B[:j]
 
     def solve(self, partial=None):

@@ -26,7 +26,7 @@ AUTHORS:
     elements) and lines (for a rank 3 matroid, these are flats of rank 2 of
     size greater than equal to 3) of the geometric representation of the
     matroid. Loops and parallel elements are added as per conventions in
-    [Oxley] using function ``addlp``. The priority order for point placement
+    [Oxl2011]_ using function ``addlp``. The priority order for point placement
     methods used inside plot() and show() is as follows:
 
     1. User Specified points dictionary and lineorders
@@ -44,8 +44,8 @@ AUTHORS:
 REFERENCES
 ==========
 
-[Oxley] James Oxley, "Matroid Theory, Second Edition". Oxford University
-Press, 2011.
+- [Oxl2011]_ James Oxley, "Matroid Theory, Second Edition". Oxford University
+  Press, 2011.
 
 EXAMPLES::
 
@@ -391,7 +391,7 @@ def slp(M1, pos_dict=None, B=None):
       as keys. While simplifying the matroid, all except one element in a
       parallel class that is also specified in ``pos_dict`` will be retained.
     - ``B`` -- (optional) A basis of M1 that has been chosen for placement on
-      vertics of triangle.
+      vertices of triangle.
 
     OUTPUT:
 

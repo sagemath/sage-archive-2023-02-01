@@ -139,7 +139,6 @@ from . import booleval
 from . import logictable
 from . import logicparser
 # import boolopt
-from types import TupleType, ListType
 from sage.misc.flatten import flatten
 
 latex_operators = [('&', '\\wedge '),
@@ -504,7 +503,7 @@ class BooleanFormula(object):
 
     def __eq__(self, other):
         r"""
-        Overload the ``==`` operator to deterine logical equivalence.
+        Overload the ``==`` operator to determine logical equivalence.
 
         INPUT:
 
@@ -1080,11 +1079,11 @@ class BooleanFormula(object):
             :func:`~sage.logic.logicparser.apply_func()` in
             :mod:`~sage.logic.logicparser`.
         """
-        if not isinstance(tree[1], TupleType) and not (tree[1] is None):
+        if not isinstance(tree[1], tuple) and not (tree[1] is None):
             lval = ('prop', tree[1])
         else:
             lval = tree[1]
-        if not isinstance(tree[2], TupleType) and not(tree[2] is None):
+        if not isinstance(tree[2], tuple) and not(tree[2] is None):
             rval = ('prop', tree[2])
         else:
             rval = tree[2]
@@ -1271,7 +1270,7 @@ class BooleanFormula(object):
             as an argument to :func:`~sage.logic.logicparser.apply_func()`
             in :mod:`~sage.logic.logicparser`.
         """
-        if tree[0] == '~' and isinstance(tree[1], ListType):
+        if tree[0] == '~' and isinstance(tree[1], list):
             op = tree[1][0]
             if op != '~':
                 if op == '&':
@@ -1316,11 +1315,11 @@ class BooleanFormula(object):
             as an argument to :func:`~sage.logic.logicparser.apply_func()`
             in :mod:`~sage.logic.logicparser`.
         """
-        if tree[0] == '|' and isinstance(tree[2], ListType) and tree[2][0] == '&':
+        if tree[0] == '|' and isinstance(tree[2], list) and tree[2][0] == '&':
             new_tree = ['&', ['|', tree[1], tree[2][1]],
                         ['|', tree[1], tree[2][2]]]
             return logicparser.apply_func(new_tree, self.dist_ors)
-        if tree[0] == '|' and isinstance(tree[1], ListType) and tree[1][0] == '&':
+        if tree[0] == '|' and isinstance(tree[1], list) and tree[1][0] == '&':
             new_tree = ['&', ['|', tree[1][1], tree[2]],
                         ['|', tree[1][2], tree[2]]]
             return logicparser.apply_func(new_tree, self.dist_ors)

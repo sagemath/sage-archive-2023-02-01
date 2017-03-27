@@ -666,8 +666,8 @@ function in the global namespace, passing it either a string or a module::
 Optional Arguments
 ==================
 
-Run Long Tests
---------------
+Run Long Doctests
+-----------------
 
 Ideally, doctests should not take any noticeable amount of time. If
 you really need longer-running doctests (anything beyond about one
@@ -779,8 +779,8 @@ Finally, you can disable any warnings about long tests with
 
 .. _section-optional-doctest-flag:
 
-Run Optional Tests
-------------------
+Run Optional Doctests
+---------------------
 
 You can run tests that require optional packages by using the
 ``--optional`` flag.  Obviously, you need to have installed the
@@ -863,8 +863,8 @@ To run all tests, regardless of whether they are marked optional, pass ``all`` a
         cpu time: 4.7 seconds
         cumulative wall time: 11.2 seconds
 
-Running Tests in Parallel
--------------------------
+Running Doctests in Parallel
+----------------------------
 
 If you're testing many files, you can get big speedups by using more
 than one thread.  To run doctests in parallel use the ``--nthreads``
@@ -1212,11 +1212,11 @@ Note that even with this option, the tests within a given doctest block are stil
 Testing external files
 ^^^^^^^^^^^^^^^^^^^^^^
 
-When testing a file that's not part of the Sage library, the testing
+When testing a file which is not part of a package (which is not in a
+directory containing an ``__init__.py`` file), the testing
 code loads the globals from that file into the namespace before
-running tests.  To model the behavior used on the Sage library instead
-(where imports must be explicitly specified), use the ``--force-lib``
-flag.
+running tests.  To disable this behaviour (and require imports to be
+explicitly specified), use the ``--force-lib`` option.
 
 Auxilliary files
 ^^^^^^^^^^^^^^^^

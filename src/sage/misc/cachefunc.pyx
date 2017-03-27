@@ -198,7 +198,7 @@ cached methods. We remark, however, that cached methods are
 hardly by used.
 ::
 
-    sage: cython_code = ["from sage.structure.element cimport Element, ElementWithCachedMethod",
+    sage: cython_code = ["from sage.structure.element cimport Element, ElementWithCachedMethod", "from cpython.object cimport PyObject_RichCompare",
     ....: "cdef class MyBrokenElement(Element):",
     ....: "    cdef public object x",
     ....: "    def __init__(self,P,x):",
@@ -210,8 +210,8 @@ hardly by used.
     ....: "        return '<%s>'%self.x",
     ....: "    def __hash__(self):",
     ....: "        return hash(self.x)",
-    ....: "    cpdef int _cmp_(left, right) except -2:",
-    ....: "        return cmp(left.x,right.x)",
+    ....: "    cpdef _richcmp_(left, right, int op):",
+    ....: "        return PyObject_RichCompare(left.x, right.x, op)",
     ....: "    def raw_test(self):",
     ....: "        return -self",
     ....: "cdef class MyElement(ElementWithCachedMethod):",
@@ -225,8 +225,8 @@ hardly by used.
     ....: "        return '<%s>'%self.x",
     ....: "    def __hash__(self):",
     ....: "        return hash(self.x)",
-    ....: "    cpdef int _cmp_(left, right) except -2:",
-    ....: "        return cmp(left.x,right.x)",
+    ....: "    cpdef _richcmp_(left, right, int op):",
+    ....: "        return PyObject_RichCompare(left.x, right.x, op)",
     ....: "    def raw_test(self):",
     ....: "        return -self",
     ....: "from sage.structure.parent cimport Parent",
@@ -996,7 +996,7 @@ cdef class CachedFunction(object):
 
         This was implemented in :trac:`11115`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y> = QQ[]
             sage: I = P*[x,y]
@@ -1691,7 +1691,7 @@ class CachedMethodPickle(object):
         thing that ``self`` does before disappearing is to call the
         :class:`CachedMethodCaller` and return the result.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<a,b,c,d> = QQ[]
             sage: I = P*[a,b]
@@ -1767,7 +1767,7 @@ cdef class CachedMethodCaller(CachedFunction):
         :class:`CachedMethodCallerNoArgs` for methods that do not take
         arguments.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: class A:
         ....:    @cached_method
@@ -2237,7 +2237,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
         after a lengthy computation, then ``@cached_method`` should not
         be used.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<a,b,c,d> = QQ[]
         sage: I = P*[a,b]
@@ -2368,7 +2368,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
         """
         Call the cached method without using the cache.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<a,b,c,d> = QQ[]
             sage: I = P*[a,b]
@@ -2386,7 +2386,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
         """
         Call the cached method.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<a,b,c,d> = QQ[]
             sage: I = P*[a,b]
@@ -2469,7 +2469,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
             Recall that a cached method without arguments can not cache
             the return value ``None``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y> = QQ[]
             sage: I = P*[x,y]
@@ -2919,7 +2919,7 @@ cdef class CachedMethod(object):
                         self.nargs = 1
                     else:
                         self.nargs = 2
-                except:
+                except Exception:
                     pass
             if self.nargs == 0:
                 args, varargs, keywords, defaults = sage_getargspec(f)

@@ -22,6 +22,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 from __future__ import print_function
 
 import math
@@ -30,12 +31,12 @@ import operator
 from sage.structure.element cimport FieldElement, RingElement, Element, ModuleElement
 from sage.categories.map cimport Map
 
-from complex_double cimport ComplexDoubleElement
-from real_mpfr cimport RealNumber
+from .complex_double cimport ComplexDoubleElement
+from .real_mpfr cimport RealNumber
 
 import sage.misc.misc
-import integer
-import infinity
+import sage.rings.integer as integer
+import sage.rings.infinity as infinity
 
 from sage.libs.mpmath.utils cimport mpfr_to_mpfval
 from sage.rings.integer_ring import ZZ
@@ -155,7 +156,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: imag(a)
             1.00000000000000
         """
-        cdef real_mpfr.RealNumber rr, ii
+        cdef RealNumber rr, ii
         self._parent = parent
         self._prec = self._parent._prec
         self._multiplicative_order = None
@@ -259,14 +260,14 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         EXAMPLES::
 
             sage: for prec in (2, 53, 200):
-            ...       fld = ComplexField(prec)
-            ...       var = polygen(fld)
-            ...       ins = [-20, 0, 1, -2^4000, 2^-4000] + [fld._real_field().random_element() for _ in range(3)]
-            ...       for v1 in ins:
-            ...           for v2 in ins:
-            ...               v = fld(v1, v2)
-            ...               _ = sage_input(fld(v), verify=True)
-            ...               _ = sage_input(fld(v) * var, verify=True)
+            ....:     fld = ComplexField(prec)
+            ....:     var = polygen(fld)
+            ....:     ins = [-20, 0, 1, -2^4000, 2^-4000] + [fld._real_field().random_element() for _ in range(3)]
+            ....:     for v1 in ins:
+            ....:         for v2 in ins:
+            ....:             v = fld(v1, v2)
+            ....:             _ = sage_input(fld(v), verify=True)
+            ....:             _ = sage_input(fld(v) * var, verify=True)
             sage: x = polygen(CC)
             sage: for v1 in [-2, 0, 2]:
             ....:     for v2 in [-2, -1, 0, 1, 2]:
@@ -556,11 +557,11 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: pari(a).type()
             't_COMPLEX'
             sage: type(pari(a))
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'sage.libs.cypari2.gen.Gen'>
             sage: a._pari_()
             2.00000000000000 + 1.00000000000000*I
             sage: type(a._pari_())
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'sage.libs.cypari2.gen.Gen'>
             sage: a = CC(pi)
             sage: pari(a)
             3.14159265358979
@@ -694,9 +695,9 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         return self.norm_c()
 
-    cdef real_mpfr.RealNumber norm_c(ComplexNumber self):
-        cdef real_mpfr.RealNumber x
-        x = real_mpfr.RealNumber(self._parent._real_field(), None)
+    cdef RealNumber norm_c(ComplexNumber self):
+        cdef RealNumber x
+        x = RealNumber(self._parent._real_field(), None)
 
         cdef mpfr_t t0, t1
         mpfr_init2(t0, self._prec)
@@ -711,9 +712,9 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         mpfr_clear(t1)
         return x
 
-    cdef real_mpfr.RealNumber abs_c(ComplexNumber self):
-        cdef real_mpfr.RealNumber x
-        x = real_mpfr.RealNumber(self._parent._real_field(), None)
+    cdef RealNumber abs_c(ComplexNumber self):
+        cdef RealNumber x
+        x = RealNumber(self._parent._real_field(), None)
 
         cdef mpfr_t t0, t1
         mpfr_init2(t0, self._prec)
@@ -794,7 +795,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
     def __pow__(self, right, modulus):
         r"""
-        Raise ``self`` to the ``right`` expontent.
+        Raise ``self`` to the ``right`` exponent.
 
         This takes `a^b` and compues `\exp(b \log(a))`.
 
@@ -899,8 +900,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: z.real_part()
             2.0000000000000000000000000000
         """
-        cdef real_mpfr.RealNumber x
-        x = real_mpfr.RealNumber(self._parent._real_field(), None)
+        cdef RealNumber x
+        x = RealNumber(self._parent._real_field(), None)
         mpfr_set(x.value, self.__re, rnd)
         return x
 
@@ -921,8 +922,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: z.imag_part()
             3.0000000000000000000000000000
         """
-        cdef real_mpfr.RealNumber x
-        x = real_mpfr.RealNumber(self._parent._real_field(), None)
+        cdef RealNumber x
+        x = RealNumber(self._parent._real_field(), None)
         mpfr_set(x.value, self.__im, rnd)
         return x
 
@@ -1116,7 +1117,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: complex(a)
             (2+1j)
             sage: type(complex(a))
-            <type 'complex'>
+            <... 'complex'>
             sage: a.__complex__()
             (2+1j)
         """
@@ -1786,7 +1787,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
                 mpfr_set_ui(res.__im, 0, rnd)
                 return res
 
-            # Do the computations to a bit higher precicion so rounding error
+            # Do the computations to a bit higher precision so rounding error
             # won't obscure the termination condition.
             a = ComplexNumber(self._parent.to_prec(self._prec+5), None)
             b = a._new()
@@ -1885,8 +1886,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: (RR('-0.001') - i).argument()
             -1.57179632646156
         """
-        cdef real_mpfr.RealNumber x
-        x = real_mpfr.RealNumber(self._parent._real_field(), None)
+        cdef RealNumber x
+        x = RealNumber(self._parent._real_field(), None)
         mpfr_atan2(x.value, self.__im, self.__re, rnd)
         return x
 
@@ -2081,8 +2082,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
             sage: c = ComplexNumber(NaN,2)
             sage: c.log()
-            NaN - NaN*I
-
+            NaN + NaN*I
         """
         if mpfr_nan_p(self.__re):
             return ComplexNumber(self._parent,self.real(),self.real())
@@ -2093,7 +2093,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         if base is None:
             return ComplexNumber(self._parent, rho.log(), theta)
         else:
-            from real_mpfr import RealField
+            from .real_mpfr import RealField
             return ComplexNumber(self._parent, rho.log()/RealNumber(RealField(self.prec()),base).log(), theta/RealNumber(RealField(self.prec()),base).log())
 
     def additive_order(self):
@@ -2208,7 +2208,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         cdef ComplexNumber z
         z = self._new()
 
-        cdef real_mpfr.RealNumber arg, rho
+        cdef RealNumber arg, rho
         cdef mpfr_t r
         rho = abs(self)
         arg = self.argument() / n
@@ -2224,7 +2224,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             return z
 
         R = self._parent._real_field()
-        cdef real_mpfr.RealNumber theta
+        cdef RealNumber theta
         theta = R.pi()*2/n
         zlist = [z]
         for k in range(1, n):
@@ -2357,7 +2357,6 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             Infinity
         """
         if mpfr_zero_p(self.__im) and mpfr_cmp_ui(self.__re, 1) == 0:
-            import infinity
             return infinity.unsigned_infinity
         return self._parent(self._pari_().zeta())
 
@@ -2374,7 +2373,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         INPUT: Type algdep? at the top level prompt. All additional
         parameters are passed onto the top-level algdep command.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: C = ComplexField()
             sage: z = (1/2)*(1 + sqrt(3.0) *C.0); z
@@ -2402,7 +2401,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         INPUT: Type algdep? at the top level prompt. All additional
         parameters are passed onto the top-level algdep command.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: C = ComplexField()
             sage: z = (1/2)*(1 + sqrt(3.0) *C.0); z

@@ -11,6 +11,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 
 - :class:`algebras.Brauer <sage.combinat.diagram_algebras.BrauerAlgebra>`
 - :class:`algebras.Clifford <sage.algebras.clifford_algebra.CliffordAlgebra>`
+- :class:`algebras.ClusterAlgebra <sage.algebras.cluster_algebra.ClusterAlgebra>`
 - :class:`algebras.Descent <sage.combinat.descent_algebra.DescentAlgebra>`
 - :class:`algebras.DifferentialWeyl
   <sage.algebras.weyl_algebra.DifferentialWeylAlgebra>`
@@ -38,6 +39,8 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :class:`algebras.PlanarPartition <sage.combinat.diagram_algebras.PlanarAlgebra>`
 - :func:`algebras.Quaternion
   <sage.algebras.quatalg.quaternion_algebra.QuaternionAlgebraFactory>`
+- :class:`algebras.RationalCherednik
+  <sage.algebras.rational_cherednik_algebra.RationalCherednikAlgebra>`
 - :class:`algebras.Schur <sage.algebras.schur_algebra.SchurAlgebra>`
 - :class:`algebras.Shuffle <sage.algebras.shuffle_algebra.ShuffleAlgebra>`
 - :class:`algebras.Steenrod
@@ -45,6 +48,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :class:`algebras.TemperleyLieb <sage.combinat.diagram_algebras.TemperleyLiebAlgebra>`
 - :class:`algebras.YokonumaHecke
   <sage.algebras.yokonuma_hecke_algebra.YokonumaHeckeAlgebra>`
+- :class:`algebras.Tensor <sage.algebras.tensor_algebra.TensorAlgebra>`
 """
 
 from sage.algebras.free_algebra import FreeAlgebra as Free
@@ -66,6 +70,7 @@ lazy_import('sage.algebras.orlik_solomon', 'OrlikSolomonAlgebra', 'OrlikSolomon'
 lazy_import('sage.algebras.shuffle_algebra', 'ShuffleAlgebra', 'Shuffle')
 lazy_import('sage.algebras.schur_algebra', 'SchurAlgebra', 'Schur')
 lazy_import('sage.algebras.commutative_dga', 'GradedCommutativeAlgebra', 'GradedCommutative')
+lazy_import('sage.algebras.rational_cherednik_algebra', 'RationalCherednikAlgebra', 'RationalCherednik')
 lazy_import('sage.algebras.yokonuma_hecke_algebra', 'YokonumaHeckeAlgebra', 'YokonumaHecke')
 lazy_import('sage.combinat.posets.incidence_algebras', 'IncidenceAlgebra', 'Incidence')
 lazy_import('sage.combinat.descent_algebra', 'DescentAlgebra', 'Descent')
@@ -75,5 +80,6 @@ lazy_import('sage.combinat.diagram_algebras', 'PlanarAlgebra', 'PlanarPartition'
 lazy_import('sage.combinat.diagram_algebras', 'TemperleyLiebAlgebra', 'TemperleyLieb')
 lazy_import('sage.combinat.posets.moebius_algebra', 'MoebiusAlgebra', 'Moebius')
 lazy_import('sage.combinat.free_prelie_algebra', 'FreePreLieAlgebra', 'FreePreLie')
+lazy_import('sage.algebras.tensor_algebra', 'TensorAlgebra', 'Tensor')
 del lazy_import # We remove the object from here so it doesn't appear under tab completion
 

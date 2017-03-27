@@ -61,7 +61,8 @@ from __future__ import absolute_import
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from six.moves import range
+from six import iteritems
 
 from sage.rings.ring import IntegralDomain
 import sage.rings.fraction_field_element as fraction_field_element
@@ -136,11 +137,11 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
         order = TermOrder(order,n)
         MPolynomialRing_generic.__init__(self, base_ring, n, names, order)
         # Construct the generators
-        v = [0 for _ in xrange(n)]
+        v = [0] * n
         one = base_ring(1);
         self._gens = []
         C = self._poly_class()
-        for i in xrange(n):
+        for i in range(n):
             v[i] = 1  # int's!
             self._gens.append(C(self, {tuple(v):one}))
             v[i] = 0
@@ -357,7 +358,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             sage: P('pi')
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce pi (<class 'sage.symbolic.constants.Pi'>) to Rational
+            TypeError: unable to convert pi to a rational
 
         Check that it is possible to convert strings to iterated
         polynomial rings (see :trac:`13327`)::
@@ -395,6 +396,11 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             sage: f.sage(locals={'a': a, 'd': d})
             a*d
 
+        Check that :trac:`21999` is fixed::
+
+            sage: R = QQbar['s,t']
+            sage: type(R({(1,2): 3}).coefficients()[0])
+            <class 'sage.rings.qqbar.AlgebraicNumber'>
         """
         from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
         import sage.rings.polynomial.polynomial_element as polynomial_element
@@ -430,7 +436,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
                 # no guarantees that this is mathematically solid."
                 K = self.base_ring()
                 D = x.element().dict()
-                for i, a in D.iteritems():
+                for i, a in iteritems(D):
                     D[i] = K(a)
                 return MPolynomial_polydict(self, D)
             elif set(P.variable_names()).issubset(set(self.variable_names())) and self.base_ring().has_coerce_map_from(P.base_ring()):
@@ -454,7 +460,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
                 # no guarantees that this is mathematically solid."
                 K = self.base_ring()
                 D = x.dict()
-                for i, a in D.iteritems():
+                for i, a in iteritems(D):
                     D[i] = K(a)
                 return MPolynomial_polydict(self, D)
             elif set(P.variable_names()).issubset(set(self.variable_names())) and self.base_ring().has_coerce_map_from(P.base_ring()):
@@ -468,6 +474,10 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         elif isinstance(x, PolyDict):
             return MPolynomial_polydict(self, x)
+
+        elif isinstance(x, dict):
+            K = self.base_ring()
+            return MPolynomial_polydict(self, {i: K(a) for i, a in iteritems(x)})
 
         elif isinstance(x, fraction_field_element.FractionFieldElement) and x.parent().ring() == self:
             if x.denominator() == 1:
@@ -514,7 +524,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             # with highest priority, and the x[i] are expressions
             # in the remaining variables.
             v = self.gens_dict_recursive()[str(x.variable())]
-            return sum(self(x[i]) * v**i for i in xrange(x.poldegree() + 1))
+            return sum(self(x[i]) * v ** i for i in range(x.poldegree() + 1))
 
         if isinstance(x, dict):
             return MPolynomial_polydict(self, x)
@@ -543,7 +553,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         OUTPUT: monomial.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
             sage: P.<x,y,z> = MPolynomialRing_polydict_domain(QQ, 3, order='degrevlex')
@@ -634,7 +644,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         OUTPUT: monomial.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
             sage: P.<x,y,z> = MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
@@ -845,7 +855,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         OUTPUT: a list of monomials.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
             sage: P.<x,y,z> = MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')

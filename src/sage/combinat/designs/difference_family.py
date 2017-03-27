@@ -48,8 +48,12 @@ Functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 # python3
-from __future__ import division, print_function
-from __future__ import absolute_import
+from __future__ import division, print_function, absolute_import
+
+from builtins import zip
+import six
+from six import itervalues
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 
@@ -112,7 +116,7 @@ def block_stabilizer(G, B):
         sage: block_stabilizer(C, [C((0,0)),C((2,0)),C((0,1)),C((2,1))])
         [(0, 0), (2, 0)]
 
-        sage: b = map(Zmod(45),[1, 3, 7, 10, 22, 25, 30, 35, 37, 38, 44])
+        sage: b = list(map(Zmod(45),[1, 3, 7, 10, 22, 25, 30, 35, 37, 38, 44]))
         sage: block_stabilizer(Zmod(45),b)
         [0]
     """
@@ -285,7 +289,7 @@ def is_difference_family(G, D, v=None, k=None, l=None, verbose=False):
                 where[gg].add(i)
                 tmp_counter[gg] += 1
 
-        if sum(tmp_counter.itervalues()) != k*(k-1):
+        if sum(itervalues(tmp_counter)) != k * (k - 1):
             if verbose:
                 print("repeated element in the {}-th block {}".format(i,d))
             return False
@@ -421,7 +425,7 @@ def df_q_6_1(K, existence=False, check=True):
     EXAMPLES::
 
         sage: from sage.combinat.designs.difference_family import is_difference_family, df_q_6_1
-        sage: prime_powers = [v for v in xrange(31,500,30) if is_prime_power(v)]
+        sage: prime_powers = [v for v in range(31,500,30) if is_prime_power(v)]
         sage: parameters = [v for v in prime_powers if df_q_6_1(GF(v,'a'), existence=True)]
         sage: parameters
         [31, 151, 181, 211, 241, 271, 331, 361, 421]
@@ -448,7 +452,7 @@ def df_q_6_1(K, existence=False, check=True):
 
     # we now compute the cosets of x**i
     xx = x**5
-    to_coset = {x**i * xx**j: i for i in xrange(5) for j in xrange((v-1)/5)}
+    to_coset = {x**i * xx**j: i for i in range(5) for j in range((v-1)/5)}
 
     for c in to_coset: # the loop runs through all nonzero elements of K
         if c == one or c == r or c == r2:
@@ -457,7 +461,7 @@ def df_q_6_1(K, existence=False, check=True):
             if existence:
                 return True
             B = [one,r,r2,c,c*r,c*r2]
-            D = [[xx**i * b for b in B] for i in xrange(t)]
+            D = [[xx**i * b for b in B] for i in range(t)]
             break
     else:
         if existence:
@@ -472,7 +476,7 @@ def df_q_6_1(K, existence=False, check=True):
 def radical_difference_set(K, k, l=1, existence=False, check=True):
     r"""
     Return a difference set made of a cyclotomic coset in the finite field
-    ``K`` and with paramters ``k`` and ``l``.
+    ``K`` and with parameters ``k`` and ``l``.
 
     Most of these difference sets appear in chapter VI.18.48 of the Handbook of
     combinatorial designs.
@@ -1107,7 +1111,6 @@ def mcfarland_1973_construction(q, s):
     from sage.modules.free_module import VectorSpace
     from sage.rings.finite_rings.integer_mod_ring import Zmod
     from sage.categories.cartesian_product import cartesian_product
-    from itertools import izip
 
     r = (q**(s+1)-1) // (q-1)
     F = GF(q,'a')
@@ -1117,7 +1120,7 @@ def mcfarland_1973_construction(q, s):
     G = cartesian_product([F]*(s+1) + [K])
 
     D = []
-    for k,H in izip(K, V.subspaces(s)):
+    for k, H in zip(K, V.subspaces(s)):
         for v in H:
             D.append(G((tuple(v) + (k,))))
 
@@ -1264,7 +1267,8 @@ def turyn_1965_3x3xK(k=4):
          [(0,0),(1,2),(2,1)],                   # x+y=0
          [(0,0),(0,1),(0,2)]]                   # x=0
 
-    return G, [[G(v+k) for l,k in zip(L,K) for v in l]]
+    return G, [[G(v + k) for l, k in zip(L, K) for v in l]]
+
 
 def difference_family(v, k, l=1, existence=False, explain_construction=False, check=True):
     r"""
@@ -1371,10 +1375,10 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
 
     List available constructions::
 
-        sage: for v in xrange(2,100):
+        sage: for v in range(2,100):
         ....:     constructions = []
-        ....:     for k in xrange(2,10):
-        ....:         for l in xrange(1,10):
+        ....:     for k in range(2,10):
+        ....:         for l in range(1,10):
         ....:             if designs.difference_family(v,k,l,existence=True):
         ....:                 constructions.append((k,l))
         ....:                 _ = designs.difference_family(v,k,l)
@@ -1534,7 +1538,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         elif explain_construction:
             return "The database contains a ({},{},{})-difference family".format(v,k,l)
 
-        vv, blocks = next(DF[v,k,l].iteritems())
+        vv, blocks = next(six.iteritems(DF[v,k,l]))
 
         # Build the group
         from sage.rings.finite_rings.integer_mod_ring import Zmod
@@ -1587,7 +1591,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
     if k == (v-1) and l == (v-2):
         from sage.rings.finite_rings.integer_mod_ring import Zmod
         G = Zmod(v)
-        return G, [range(1,v)]
+        return G, [list(range(1, v))]
 
     factorization = arith.factor(v)
     if len(factorization) == 1:

@@ -1,4 +1,4 @@
-from function_mangling cimport ArgumentFixer
+from .function_mangling cimport ArgumentFixer
 
 cpdef dict_key(o)
 cpdef cache_key(o)

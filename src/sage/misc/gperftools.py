@@ -3,7 +3,7 @@ C Function Profiler Using Google Perftools
 
 Note that the profiler samples 100x per second by default. In
 particular, you cannot profile anything shorter than 10ms. You can
-adjust the rate with the ``CPUPROFILE_FREQUENCY`` evironment variable
+adjust the rate with the ``CPUPROFILE_FREQUENCY`` environment variable
 if you want to change it.
 
 EXAMPLES::
@@ -18,7 +18,7 @@ EXAMPLES::
 REFERENCE:
 
 Uses the `Google performance analysis tools
-<https://code.google.com/p/gperftools>`_. Note that they are not
+<https://github.com/gperftools/gperftools>`_. Note that they are not
 included in Sage, you have to install them yourself on your system.
 
 AUTHORS:

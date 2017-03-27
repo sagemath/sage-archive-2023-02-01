@@ -127,7 +127,7 @@ def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 
 
     -  ``use_eclib`` - deprecated, use ``implementation`` instead
 
-    - ``implementation`` - 'eclib' (default), 'sage', 'pollackstevens';
+    -  ``implementation`` - 'eclib' (default), 'sage', 'pollackstevens';
        Whether to use John Cremona's eclib, the Sage implementation,
        or Pollack-Stevens' implementation of overconvergent
        modular symbols.
@@ -191,11 +191,11 @@ def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 
     Finally, we can use the overconvergent method of Pollack-Stevens.::
 
         sage: e = EllipticCurve('11a')
-        sage: L = e.padic_lseries(3, implementation = 'pollackstevens', precision = 5)
-        sage: L.series(3)
-        2 + 3 + 3^2 + 2*3^3 + O(3^5) + (1 + 3 + 2*3^2 + O(3^3))*T + (1 + 2*3 + O(3^2))*T^2 + O(3)*T^3 + O(3^0)*T^4 + O(T^5)
+        sage: L = e.padic_lseries(3, implementation = 'pollackstevens', precision = 6)
+        sage: L.series(5)
+        2 + 3 + 3^2 + 2*3^3 + 2*3^5 + O(3^6) + (1 + 3 + 2*3^2 + 3^3 + O(3^4))*T + (1 + 2*3 + O(3^2))*T^2 + (3 + O(3^2))*T^3 + O(3^0)*T^4 + O(T^5)
         sage: L[3]
-        O(3)
+        3 + O(3^2)
 
     Another example with a semistable prime.::
 
@@ -252,8 +252,10 @@ def padic_regulator(self, p, prec=20, height=None, check_hypotheses=True):
 
     If the rank is 0, we output 1.
 
-    TODO: - remove restriction that curve must be in minimal
-    Weierstrass form. This is currently required for E.gens().
+    .. TODO::
+
+        Remove restriction that curve must be in minimal
+        Weierstrass form. This is currently required for E.gens().
 
     AUTHORS:
 
@@ -294,7 +296,7 @@ def padic_regulator(self, p, prec=20, height=None, check_hypotheses=True):
         ....:     assert E.padic_regulator(5, prec) == full   # long time
 
     A case where the generator belongs to the formal group already
-    (trac #3632)::
+    (:trac:`3632`)::
 
         sage: E = EllipticCurve([37,0])
         sage: E.padic_regulator(5,10)
@@ -364,8 +366,10 @@ def padic_height_pairing_matrix(self, p, prec=20, height=None, check_hypotheses=
     OUTPUT: The p-adic cyclotomic height pairing matrix of this curve
     to the given precision.
 
-    TODO: - remove restriction that curve must be in minimal
-    Weierstrass form. This is currently required for E.gens().
+    .. TODO::
+
+        remove restriction that curve must be in minimal
+        Weierstrass form. This is currently required for E.gens().
 
     AUTHORS:
 
@@ -488,7 +492,7 @@ def _multiply_point(E, R, P, m):
         sage: -67387681.sqrt() % 625     # sign is flipped here too
         541
 
-    Trivial cases (trac 3632)::
+    Trivial cases (:trac:`3632`)::
 
         sage: _multiply_point(E, R, P, 1)
         (0, 624, 1)
@@ -1382,9 +1386,11 @@ def padic_E2(self, p, prec=20, check=False, check_hypotheses=True, algorithm="au
        then the result will not be returned mod `p^\text{prec}`,
        but it still *will* have prec *digits* of precision.
 
-    TODO: - Once we have a better implementation of the "standard"
-    algorithm, the algorithm selection strategy for "auto" needs to be
-    revisited.
+    .. TODO::
+
+        Once we have a better implementation of the "standard"
+        algorithm, the algorithm selection strategy for "auto" needs to be
+        revisited.
 
     AUTHORS:
 

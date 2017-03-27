@@ -80,6 +80,8 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
+from sage.arith.misc import binomial
+
 from sage.rings.all import (PolynomialRing,
                             Integer,
                             ZZ)
@@ -101,7 +103,9 @@ from sage.misc.all import (latex,
 from sage.structure.category_object import normalize_names
 from sage.arith.all import gcd, binomial
 from sage.combinat.integer_vector import IntegerVectors
+from sage.combinat.permutation import Permutation
 from sage.combinat.tuple import Tuples
+from sage.combinat.tuple import UnorderedTuples
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import prepare
 
@@ -416,6 +420,100 @@ class ProjectiveSpace_ring(AmbientSpace):
         return cmp([self.dimension_relative(), self.coordinate_ring()],
                    [right.dimension_relative(), right.coordinate_ring()])
 
+    def __pow__(self, m):
+        """
+        Return the Cartesian power of this space.
+
+        INPUT: ``m`` -- integer.
+
+        OUTPUT: product of projective spaces.
+
+        EXAMPLES::
+
+            sage: P = ProjectiveSpace(1, QQ, 'x')
+            sage: P3 = P^3; P3
+            Product of projective spaces P^1 x P^1 x P^1 over Rational Field
+            sage: P3.variable_names()
+            ('x0', 'x1', 'x2', 'x3', 'x4', 'x5')
+
+        As you see, custom variable names are not preserved by power operator,
+        since there is no natural way to make new ones in general.
+        """
+        mm = int(m)
+        if mm != m:
+            raise ValueError("m must be an integer")
+        from sage.schemes.product_projective.space import ProductProjectiveSpaces
+        return ProductProjectiveSpaces([self.dimension_relative()] * mm, self.base_ring())
+
+    def __mul__(self, right):
+        r"""
+        Create the product of projective spaces.
+
+        INPUT:
+
+        - ``right`` - a projective space, product of projective spaces, or subscheme.
+
+        OUTPUT: a product of projective spaces or subscheme.
+
+        EXAMPLES::
+
+            sage: P1 = ProjectiveSpace(QQ, 1, 'x')
+            sage: P2 = ProjectiveSpace(QQ, 2, 'y')
+            sage: P1*P2
+            Product of projective spaces P^1 x P^2 over Rational Field
+
+            ::
+
+            sage: S.<t,x,y,z,u,v,w> = ProductProjectiveSpaces([3, 2], QQ)
+            sage: T.<a,b> = ProjectiveSpace(QQ, 1)
+            sage: T*S
+            Product of projective spaces P^1 x P^3 x P^2 over Rational Field
+
+        ::
+
+            sage: S = ProjectiveSpace(ZZ, 2, 't')
+            sage: T = ProjectiveSpace(ZZ, 3, 'x')
+            sage: T.inject_variables()
+            Defining x0, x1, x2, x3
+            sage: X = T.subscheme([x0*x2 - x1*x3])
+            sage: S*X
+            Closed subscheme of Product of projective spaces P^2 x P^3 over Integer Ring defined by:
+              x0*x2 - x1*x3
+
+        ::
+
+            sage: S = ProjectiveSpace(QQ, 3, 'x')
+            sage: T = AffineSpace(2, QQ, 'y')
+            sage: S*T
+            Traceback (most recent call last):
+            ...
+            TypeError: Affine Space of dimension 2 over Rational Field must be a
+            projective space, product of projective spaces, or subscheme
+        """
+        if self.base_ring() != right.base_ring():
+            raise ValueError ('Must have the same base ring')
+
+        from sage.schemes.product_projective.space import ProductProjectiveSpaces_ring
+        from sage.schemes.product_projective.space import ProductProjectiveSpaces
+        from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
+
+        if isinstance(right, (ProductProjectiveSpaces_ring)):
+            return ProductProjectiveSpaces([self] + right.components())
+        elif isinstance(right, ProjectiveSpace_ring):
+            if self is right:
+                return self.__pow__(2)
+            return ProductProjectiveSpaces([self, right])
+        elif isinstance(right, AlgebraicScheme_subscheme):
+            AS = self*right.ambient_space()
+            CR = AS.coordinate_ring()
+            n = self.ambient_space().coordinate_ring().ngens()
+
+            phi = self.ambient_space().coordinate_ring().hom(list(CR.gens()[:n]), CR)
+            psi = right.ambient_space().coordinate_ring().hom(list(CR.gens()[n:]), CR)
+            return AS.subscheme([phi(t) for t in self.defining_polynomials()] + [psi(t) for t in right.defining_polynomials()])
+        else:
+            raise TypeError('%s must be a projective space, product of projective spaces, or subscheme'%right)
+
     def _latex_(self):
         r"""
         Return a LaTeX representation of this projective space.
@@ -449,7 +547,7 @@ class ProjectiveSpace_ring(AmbientSpace):
 
         OUTPUT:
 
-        A matrix of size `{m-1+n \choose n}` x `{d+n \choose n}` where n is the
+        A matrix of size `\binom{m-1+n}{n}` x `\binom{d+n}{n}` where n is the
         relative dimension of self. The base ring of the matrix is a ring that
         contains the base ring of self and the coefficients of the given point.
 
@@ -1102,6 +1200,119 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
                     P[j] = zero
                     j += 1
             i -= 1
+
+    def subscheme_from_Chow_form(self, Ch, dim):
+        r"""
+        Returns the subscheme defined by the Chow equations associated to the Chow form ``Ch``.
+
+        These equations define the subscheme set-theoretically, but only for smooth
+        subschemes and hypersurfaces do they define the subscheme as a scheme.
+
+        ALGORITHM:
+
+        The Chow form is a polynomial in the Plucker coordinates. The Plucker coordinates
+        are the bracket polynomials. We first re-write the Chow form in terms of the dual
+        Plucker coordinates. Then we expand `Ch(span(p,L)` for a generic point `p` and a
+        generic linear subspace `L`. The coefficients as polynomials in the coordinates
+        of `p` are the equations defining the subscheme. [DalbecSturmfels].
+
+        INPUT:
+
+        - ``Ch`` - a homogeneous polynomial.
+
+        - ``dim`` - the dimension of the associated scheme.
+
+        OUTPUT: a projective subscheme.
+
+        EXAMPLES::
+
+            sage: P = ProjectiveSpace(QQ, 4, 'z')
+            sage: R.<x0,x1,x2,x3,x4> = PolynomialRing(QQ)
+            sage: H = x1^2 + x2^2 + 5*x3*x4
+            sage: P.subscheme_from_Chow_form(H,3)
+            Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
+              -5*z0*z1 + z2^2 + z3^2
+
+        ::
+
+            sage: P = ProjectiveSpace(QQ, 3, 'z')
+            sage: R.<x0,x1,x2,x3,x4,x5> = PolynomialRing(QQ)
+            sage: H = x1-x2-x3+x5+2*x0
+            sage: P.subscheme_from_Chow_form(H, 1)
+            Closed subscheme of Projective Space of dimension 3 over Rational Field
+            defined by:
+              -z1 + z3,
+              z0 + z2 + z3,
+              -z1 - 2*z3,
+              -z0 - z1 + 2*z2
+
+        ::
+
+            sage: P.<x0,x1,x2,x3> = ProjectiveSpace(GF(7), 3)
+            sage: X = P.subscheme([x3^2+x1*x2,x2-x0])
+            sage: Ch = X.Chow_form();Ch
+            t0^2 - 2*t0*t3 + t3^2 - t2*t4 - t4*t5
+            sage: Y = P.subscheme_from_Chow_form(Ch, 1); Y
+            Closed subscheme of Projective Space of dimension 3 over Finite Field of
+            size 7 defined by:
+              x1*x2 + x3^2,
+              -x0*x2 + x2^2,
+              -x0*x1 - x1*x2 - 2*x3^2,
+              x0^2 - x0*x2,
+              x0*x1 + x3^2,
+              -2*x0*x3 + 2*x2*x3,
+              2*x0*x3 - 2*x2*x3,
+              x0^2 - 2*x0*x2 + x2^2
+            sage: I = Y.defining_ideal()
+            sage: I.saturation(I.ring().ideal(list(I.ring().gens())))[0]
+            Ideal (x0 - x2, x1*x2 + x3^2) of Multivariate Polynomial Ring in x0, x1,
+            x2, x3 over Finite Field of size 7
+        """
+        if not Ch.is_homogeneous():
+            raise ValueError("Chow form must be a homogeneous polynomial")
+        n = self.dimension_relative()
+        R = Ch.parent()
+        if binomial(n+1,n-dim) != R.ngens():
+            raise ValueError("for given dimension, there should be %d variables in the Chow form" %binomial(n+1,n-dim))
+        vars = list(R.gens())
+        #create the brackets associated to variables
+        L1 = []
+        for t in UnorderedTuples(range(n+1), dim+1):
+            if all([t[i]<t[i+1] for i in range(dim)]):
+                L1.append(t)
+        #create the dual brackets
+        L2 = []
+        signs = []
+        for l in L1:
+            s = []
+            for v in range(n+1):
+                if not v in l:
+                    s.append(v)
+            t1 = [b+1 for b in l]
+            t2 = [b+1 for b in s]
+            perm = Permutation(t1+t2)
+            signs.append(perm.sign())
+            L2.append(s)
+        #create the polys associated to dual brackets
+        if n-dim-1 > 0:
+            S = PolynomialRing(R.base_ring(),n+1,'z')
+            T = PolynomialRing(S,(n+1)*(n-dim-1),'s')
+            M = matrix(T,n-dim,n+1,list(S.gens())+list(T.gens()))
+        else:
+            T = PolynomialRing(R.base_ring(),n+1,'z')
+            M = matrix(T,n-dim,n+1,list(T.gens()))
+        coords=[]
+        for i in range(len(L2)):
+            coords.append(signs[i]*M.matrix_from_columns(L2[i]).det())
+        #substitute in dual brackets to chow form
+        phi = R.hom(coords,T)
+        ch = phi(Ch)
+        #coefficients are polys in zs which are the chow equations for the chow form
+        if n-dim-1 > 0:
+            X = self.subscheme(ch.coefficients())
+        else:
+            X = self.subscheme(ch)
+        return X
 
     def point_transformation_matrix(self, points_source, points_target):
         r"""

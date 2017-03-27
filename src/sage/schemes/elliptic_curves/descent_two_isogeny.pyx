@@ -51,7 +51,7 @@ def test_valuation(a, p):
     """
     Doctest function for cdef long valuation(mpz_t, mpz_t).
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.descent_two_isogeny import test_valuation as tv
         sage: for i in [1..20]:
@@ -110,7 +110,7 @@ def test_padic_square(a, p):
     """
     Doctest function for cdef int padic_square(mpz_t, unsigned long).
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.descent_two_isogeny import test_padic_square as ps
         sage: for i in [1..300]:
@@ -856,7 +856,7 @@ def test_qpls(a,b,c,d,e,p):
     """
     Testing function for Qp_soluble.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.descent_two_isogeny import test_qpls as tq
         sage: tq(1,2,3,4,5,7)
@@ -916,7 +916,7 @@ def test_els(a,b,c,d,e):
     """
     Doctest function for cdef int everywhere_locally_soluble(mpz_t, mpz_t, mpz_t, mpz_t, mpz_t).
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.descent_two_isogeny import test_els
         sage: from sage.libs.ratpoints import ratpoints

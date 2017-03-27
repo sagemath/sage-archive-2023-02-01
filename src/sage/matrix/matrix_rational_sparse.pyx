@@ -20,20 +20,22 @@ TESTS::
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
+from __future__ import absolute_import
 
-include 'sage/modules/binary_search.pxi'
+from sage.data_structures.binary_search cimport *
+from sage.modules.vector_integer_sparse cimport *
+from sage.modules.vector_rational_sparse cimport *
 
-include 'sage/modules/vector_integer_sparse_h.pxi'
-include 'sage/modules/vector_integer_sparse_c.pxi'
-include 'sage/modules/vector_rational_sparse_h.pxi'
-include 'sage/modules/vector_rational_sparse_c.pxi'
 include 'sage/ext/stdsage.pxi'
 include "cysignals/signals.pxi"
 from cpython.sequence cimport *
 
 from sage.rings.rational cimport Rational
 from sage.rings.integer  cimport Integer
-from matrix cimport Matrix
+from .matrix cimport Matrix
+
+from sage.libs.gmp.mpz cimport *
+from sage.libs.gmp.mpq cimport *
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -42,12 +44,12 @@ cimport sage.structure.element
 
 import sage.matrix.matrix_space
 
-from matrix_integer_sparse cimport Matrix_integer_sparse
-from matrix_rational_dense cimport Matrix_rational_dense
+from .matrix_integer_sparse cimport Matrix_integer_sparse
+from .matrix_rational_dense cimport Matrix_rational_dense
 
 from sage.misc.misc import verbose
 
-cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
+cdef class Matrix_rational_sparse(Matrix_sparse):
 
     ########################################################################
     # LEVEL 1 functionality
@@ -60,7 +62,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
     ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):
         # set the parent, nrows, ncols, etc.
-        matrix_sparse.Matrix_sparse.__init__(self, parent)
+        Matrix_sparse.__init__(self, parent)
 
         self._matrix = <mpq_vector*> sig_malloc(parent.nrows()*sizeof(mpq_vector))
         if self._matrix == NULL:
@@ -331,7 +333,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
 
         It is safe to change the resulting list (unless you give the option copy=False).
 
-        EXAMPLE:::
+        EXAMPLES::
 
             sage: M = Matrix(QQ, [[0,0,0,1,0,0,0,0],[0,1,0,0,0,0,1,0]], sparse=True); M
             [0 0 0 1 0 0 0 0]
@@ -605,8 +607,8 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         - height_guess -- integer or None
         - proof -- boolean (default: True)
         """
-        import misc
-        cdef Matrix E = misc.matrix_rational_echelon_form_multimodular(self,
+        from .misc import matrix_rational_echelon_form_multimodular
+        cdef Matrix E = matrix_rational_echelon_form_multimodular(self,
                                  height_guess=height_guess, proof=proof)
         E._parent = self._parent
         return E
@@ -776,11 +778,11 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         EXAMPLES::
 
             sage: A = matrix(QQ, [
-            ...                   [1, 0, 1, -3, 1],
-            ...                   [-5, 1, 0, 7, -3],
-            ...                   [0, -1, -4, 6, -2],
-            ...                   [4, -1, 0, -6, 2]],
-            ...               sparse=True)
+            ....:                 [1, 0, 1, -3, 1],
+            ....:                 [-5, 1, 0, 7, -3],
+            ....:                 [0, -1, -4, 6, -2],
+            ....:                 [4, -1, 0, -6, 2]],
+            ....:             sparse=True)
             sage: result = A._right_kernel_matrix()
             sage: result[0]
             'computed-iml-rational'
@@ -792,7 +794,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
             True
 
         Computed result is the negative of the pivot basis, which
-        is just slighltly more efficient to compute. ::
+        is just slightly more efficient to compute. ::
 
             sage: A.right_kernel_matrix(basis='pivot') == -A.right_kernel_matrix(basis='computed')
             True

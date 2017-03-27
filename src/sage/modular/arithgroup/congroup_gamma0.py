@@ -10,6 +10,7 @@ from __future__ import absolute_import
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from .congroup_gammaH import GammaH_class
 from .congroup_gamma1 import is_Gamma1
@@ -211,7 +212,7 @@ class Gamma0_class(GammaH_class):
         N = self.level()
         if N != 1:
             gcd = arith.gcd
-            H = [ x for x in range(1, N) if gcd(x, N) == 1 ]
+            H = [x for x in range(1, N) if gcd(x, N) == 1]
         else:
             H = [1]
 
@@ -342,7 +343,7 @@ class Gamma0_class(GammaH_class):
         based on Todd-Coxeter enumeration will be used. This tends to return
         far larger sets of generators.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma0(3).generators()
             [
@@ -464,7 +465,7 @@ class Gamma0_class(GammaH_class):
                 else:
                     s.append(Cusp(1,d))
             else:
-                for a in xrange(1, w):
+                for a in range(1, w):
                     if arith.gcd(a, w) == 1:
                         while arith.gcd(a, d//w) != 1:
                             a += w
@@ -493,7 +494,7 @@ class Gamma0_class(GammaH_class):
         0 if `N` is divisible by 4 or any prime congruent to -1 mod 4, and
         otherwise `2^d` where d is the number of odd primes dividing `N`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma0(2).nu2()
             1
@@ -518,7 +519,7 @@ class Gamma0_class(GammaH_class):
         0 if `N` is divisible by 9 or any prime congruent to -1 mod 3, and
         otherwise `2^d` where d is the number of primes other than 3 dividing `N`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma0(2).nu3()
             0
@@ -544,7 +545,7 @@ class Gamma0_class(GammaH_class):
 
         This is given by
 
-        .. math::
+        .. MATH::
 
             N \prod_{\substack{p \mid N \\ \text{$p$ prime}}}\left(1 + \frac{1}{p}\right).
 

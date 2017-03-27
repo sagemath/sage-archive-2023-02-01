@@ -9,7 +9,7 @@ distributed solver. There are solvers that are good at one or the
 other, e.g. ManySat (parallel) or PSolver (distributed), but we wish
 to excel at all." -- http://www.msoos.org/cryptominisat2/
 
-.. note::
+.. NOTE::
 
     Our SAT solver interfaces are 1-based, i.e., literals start at
     1. This is consistent with the popular DIMACS format for SAT
@@ -32,15 +32,15 @@ include "cysignals/signals.pxi"
 include "cysignals/memory.pxi"
 
 from libc.stdint cimport uint32_t
-from decl cimport lbool, Var, Lit, Clause, l_Undef, l_False, RetClause
-from decl cimport vec, vector
-from decl cimport GaussConf
-from solverconf cimport SolverConf
+from .decl cimport lbool, Var, Lit, Clause, l_Undef, l_False, RetClause
+from .decl cimport vec, vector
+from .decl cimport GaussConf
+from .solverconf cimport SolverConf
 
 from sage.misc.misc import get_verbose
 
 cdef extern from "cryptominisat_helper.h":
-     # Cython doesn't handle cdef vec[Lit] foo = solver.get_unitary_learnts() propertly. It will
+     # Cython doesn't handle cdef vec[Lit] foo = solver.get_unitary_learnts() properly. It will
      # declare foo first and then assign the answer of get_unitary_learnts() to foo. This requires
      # that operator= is available which isn't necessarily the case.
      cdef uint32_t*  get_unitary_learnts_helper(Solver* solver, uint32_t* num)
@@ -50,7 +50,7 @@ cdef class CryptoMiniSat(SatSolver):
     """
     The CryptoMiniSat solver.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.sat.solvers import CryptoMiniSat # optional - cryptominisat
         sage: cms = CryptoMiniSat()                      # optional - cryptominisat
@@ -58,7 +58,7 @@ cdef class CryptoMiniSat(SatSolver):
         sage: cms()                                      # optional - cryptominisat
         (None, True, True, False)
 
-    .. note::
+    .. NOTE::
 
         Do not import 'sage.sat.solvers.cryptominisat.cryptominisat'
         directly, but use 'sage.sat.solvers.cryptominisat' which
@@ -75,7 +75,7 @@ cdef class CryptoMiniSat(SatSolver):
         - ``SolverConf`` - a :cls:`sage.sat.solvers.cryptominisat.SolverConf` instance
         - ``**kwds`` - passed to :cls:`sage.sat.solvers.cryptominisat.SolverConf`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers import CryptoMiniSat # optional - cryptominisat
             sage: cms = CryptoMiniSat()                      # optional - cryptominisat
@@ -140,7 +140,7 @@ cdef class CryptoMiniSat(SatSolver):
         - ``decision`` - if ``True`` this variable will be used for
           decisions (default: ``None``, let the solver decide.)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers import CryptoMiniSat # optional - cryptominisat
             sage: cms = CryptoMiniSat()                      # optional - cryptominisat
@@ -163,7 +163,7 @@ cdef class CryptoMiniSat(SatSolver):
         """
         Return the number of variables.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers import CryptoMiniSat # optional - cryptominisat
             sage: cms = CryptoMiniSat()                      # optional - cryptominisat
@@ -184,13 +184,13 @@ cdef class CryptoMiniSat(SatSolver):
 
         - ``lits`` - a tuple of integers != 0
 
-        .. note::
+        .. NOTE::
 
             If any element ``e`` in ``lits`` has ``abs(e)`` greater
             than the number of variables generated so far, then new
             variables are created automatically.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers import CryptoMiniSat # optional - cryptominisat
             sage: cms = CryptoMiniSat()                      # optional - cryptominisat
@@ -222,13 +222,13 @@ cdef class CryptoMiniSat(SatSolver):
         - ``lits`` - a tuple of integers != 0
         - ``isfalse`` - set to ``True`` if the XOR chain should evaluate to ``False``
 
-        .. note::
+        .. NOTE::
 
             If any element ``e`` in ``lits`` has ``abs(e)`` greater
             than the number of variables generated so far, then new
             variables are created automatically.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers import CryptoMiniSat # optional - cryptominisat
             sage: cms = CryptoMiniSat()                      # optional - cryptominisat
@@ -269,7 +269,7 @@ cdef class CryptoMiniSat(SatSolver):
         - If the solver was interrupted before deciding satisfiability
           ``None``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         We construct a simple example::
 
@@ -323,7 +323,7 @@ cdef class CryptoMiniSat(SatSolver):
         Return conflict clause if this instance is UNSAT and the last
         call used assumptions.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers import CryptoMiniSat # optional - cryptominisat
             sage: cms = CryptoMiniSat()                      # optional - cryptominisat
@@ -377,7 +377,7 @@ cdef class CryptoMiniSat(SatSolver):
 
         - ``unitary_only`` - return only unitary learnt clauses (default: ``False``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers import CryptoMiniSat          # optional - cryptominisat
             sage: from sage.sat.converters.polybori import CNFEncoder # optional - cryptominisat

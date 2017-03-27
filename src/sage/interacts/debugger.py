@@ -9,6 +9,8 @@ AUTHOR:
 - William Stein (2012)
 """
 from __future__ import print_function
+from six.moves import range
+
 # Below all tests are done using sage0, which is a pexpect interface
 # to Sage itself.  This allows us to test exploring a stack traceback
 # using the doctest framework.
@@ -70,13 +72,15 @@ class Debug:
             sage: sage0('sage.interacts.debugger.Debug()')
             <sage.interacts.debugger.Debug instance at 0x...>
         """
-        import inspect, sys, traceback
+        import inspect
+        import sys
+        import traceback
         try:
-            tb=sys.last_traceback
+            tb = sys.last_traceback
             #we strip off the 5 outermost frames, since those relate only to
             #the notebook, not user code
-            for i in xrange(5):
-                tb=tb.tb_next
+            for i in range(5):
+                tb = tb.tb_next
             self._stack = inspect.getinnerframes(tb)
         except AttributeError:
             raise RuntimeError("no traceback has been produced; nothing to debug")
@@ -155,14 +159,14 @@ class Debug:
              sage: print(sage0("d.listing(1)"))
                  2...      x = a + b
              --&gt; ...      y = a * b
-                 ...      return x, y, x&lt;y, x&gt;y   # &lt; to ensure HTML is properly escaped
+                 ....:    return x, y, x&lt;y, x&gt;y   # &lt; to ensure HTML is properly escaped
              <hr>> <a href="/src/interacts/debugger.py" target="_new">src/sage/interacts/debugger.py</a>
              sage: print(sage0("d.listing()"))
                  2...
                  ...
-                 ...      x = a + b
+                 ....:    x = a + b
              --&gt; ...      y = a * b
-                 ...      return x, y, x&lt;y, x&gt;y   # &lt; to ensure HTML is properly escaped
+                 ....:    return x, y, x&lt;y, x&gt;y   # &lt; to ensure HTML is properly escaped
                  ...
              sage: _ = sage0.eval('d._curframe_index -= 1')
              sage: print(sage0("d.listing(1)"))

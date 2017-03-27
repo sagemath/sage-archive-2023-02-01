@@ -54,24 +54,29 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import absolute_import, print_function
+
 
 import sage
 import re
-import real_mpfr
+from . import real_mpfr
 import weakref
+from cpython.object cimport Py_NE
 
 from sage.structure.parent cimport Parent
 from sage.structure.parent_gens cimport ParentWithGens
 from sage.structure.element cimport RingElement, Element, ModuleElement
 from sage.categories.map cimport Map
+from sage.libs.pari.all import pari
 
-from integer cimport Integer
-from complex_number cimport ComplexNumber
-from complex_field import ComplexField_class
+from .integer cimport Integer
+from .complex_number cimport ComplexNumber
+from .complex_field import ComplexField_class
 
 from sage.misc.randstate cimport randstate, current_randstate
-from real_mpfr cimport RealField_class, RealNumber
-from real_mpfr import mpfr_prec_min, mpfr_prec_max
+from .real_mpfr cimport RealField_class, RealNumber
+from .real_mpfr import mpfr_prec_min, mpfr_prec_max
+from sage.structure.sage_object cimport rich_to_bool, richcmp
 
 NumberFieldElement_quadratic = None
 AlgebraicNumber_base = None
@@ -104,8 +109,8 @@ def late_import():
         AlgebraicReal = sage.rings.qqbar.AlgebraicReal
         AA = sage.rings.qqbar.AA
         QQbar = sage.rings.qqbar.QQbar
-        from real_lazy import CLF, RLF
-        from complex_double import CDF
+        from .real_lazy import CLF, RLF
+        from .complex_double import CDF
 
 _mpfr_rounding_modes = ['RNDN', 'RNDZ', 'RNDU', 'RNDD']
 
@@ -483,9 +488,6 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
         return __create__MPComplexField_version0, (self.__prec, self.__rnd_str)
 
     def __richcmp__(left, right, int op):
-        return (<Parent>left)._richcmp(right, op)
-
-    cpdef int _cmp_(self, right) except -2:
         """
         Compare ``self`` and ``other``, ignoring the rounding mode.
 
@@ -498,12 +500,15 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
             sage: MPComplexField(10,rnd='RNDZN') == MPComplexField(10,rnd='RNDZU')
             True
         """
-        cdef int c = cmp(type(self), type(right))
-        if c:
-            return c
+        if left is right:
+            return rich_to_bool(op, 0)
 
-        cdef MPComplexField_class other = <MPComplexField_class>right
-        return cmp(self.__prec, other.__prec)
+        if not isinstance(right, MPComplexField_class):
+            return op == Py_NE
+
+        cdef MPComplexField_class s = <MPComplexField_class>left
+        cdef MPComplexField_class o = <MPComplexField_class>right
+        return richcmp(s.__prec, o.__prec, op)
 
     def gen(self, n=0):
         """
@@ -1158,7 +1163,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             sage: complex(a)
             (2+1j)
             sage: type(complex(a))
-            <type 'complex'>
+            <... 'complex'>
             sage: a.__complex__()
             (2+1j)
         """
@@ -1166,6 +1171,49 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         cdef mpc_rnd_t rnd
         rnd = (<MPComplexField_class>self._parent).__rnd
         return complex(mpfr_get_d(self.value.re, rnd_re(rnd)), mpfr_get_d(self.value.im, rnd_im(rnd)))
+
+    def _pari_(self):
+        r"""
+        Convert ``self`` to a PARI object.
+
+        OUTPUT: a PARI ``t_COMPLEX`` object if the input is not purely
+        real. If the input is real, a ``t_REAL`` is returned.
+
+        EXAMPLES::
+
+            sage: MPC = MPComplexField()
+            sage: a = MPC(2,1)
+            sage: a._pari_()
+            2.00000000000000 + 1.00000000000000*I
+            sage: pari(a)
+            2.00000000000000 + 1.00000000000000*I
+            sage: pari(a).type()
+            't_COMPLEX'
+            sage: a = MPC(pi)
+            sage: pari(a)
+            3.14159265358979
+            sage: pari(a).type()
+            't_REAL'
+            sage: a = MPC(-2).sqrt()
+            sage: pari(a)
+            1.41421356237310*I
+
+        The precision is preserved, rounded up to the wordsize::
+
+            sage: MPC = MPComplexField(250)
+            sage: MPC(1,2)._pari_().bitprecision()
+            256
+            sage: MPC(pi)._pari_().bitprecision()
+            256
+        """
+        if mpfr_zero_p(self.value.re):
+            re = pari.PARI_ZERO
+        else:
+            re = self.real()._pari_()
+        if mpfr_zero_p(self.value.im):
+            return re
+        im = self.imag()._pari_()
+        return pari.complex(re, im)
 
     cpdef int _cmp_(self, other) except -2:
         r"""
@@ -1279,7 +1327,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             0.500000000000000 + 0.866025403784439*I
             sage: p = z.algebraic_dependency(5)
             sage: p.factor()
-            (x + 1) * (x^2 - x + 1)^2
+            (x + 1) * x^2 * (x^2 - x + 1)
             sage: z^2 - z + 1
             1.11022302462516e-16
         """
@@ -1512,7 +1560,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         Compute ``self`` raised to the power of exponent, rounded in
         the direction specified by the parent of ``self``.
 
-        .. TODO:
+        .. TODO::
 
             FIXME: Branch cut
 
@@ -2281,7 +2329,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
                 # self = -right
                 mpc_set_ui(res.value, 0, rnd)
                 return res
-            # Do the computations to a bit higher precicion so rounding error
+            # Do the computations to a bit higher precision so rounding error
             # won't obscure the termination condition.
             a = MPComplexNumber(MPComplexField(prec+5), None)
             b = a._new()

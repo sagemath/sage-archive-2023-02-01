@@ -59,7 +59,7 @@ cdef void reset_swap(int n, int *c, int *o):
 
 cdef int next_swap(int n, int *c, int *o):
     """
-    Here's the traslation of Algorithm P.  We've modified
+    Here's the translation of Algorithm P.  We've modified
     it to
 
        a) work on zero-indexed lists

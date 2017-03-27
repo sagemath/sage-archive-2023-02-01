@@ -38,13 +38,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six import iteritems
+import six
 
 import operator
-import six
 
 from sage.structure.sage_object import SageObject
 from sage.structure.parent_base import ParentWithBase
-from sage.structure.element import RingElement, parent
+from sage.structure.element import Element, parent
 
 import sage.misc.sage_eval
 
@@ -476,7 +477,7 @@ class Interface(ParentWithBase):
             sage: args, kwds = gap._convert_args_kwds(args, kwds)
             sage: args
             [5]
-            sage: map(type, args)
+            sage: list(map(type, args))
             [<class 'sage.interfaces.gap.GapElement'>]
             sage: type(kwds['x'])
             <class 'sage.interfaces.gap.GapElement'>
@@ -488,7 +489,7 @@ class Interface(ParentWithBase):
         for i, arg in enumerate(args):
             if not isinstance(arg, InterfaceElement) or arg.parent() is not self:
                 args[i] = self(arg)
-        for key, value in kwds.iteritems():
+        for key, value in iteritems(kwds):
             if not isinstance(value, InterfaceElement) or value.parent() is not self:
                 kwds[key] = self(value)
 
@@ -650,12 +651,13 @@ class InterfaceFunctionElement(SageObject):
 def is_InterfaceElement(x):
     return isinstance(x, InterfaceElement)
 
-class InterfaceElement(RingElement):
+
+class InterfaceElement(Element):
     """
     Interface element.
     """
     def __init__(self, parent, value, is_name=False, name=None):
-        RingElement.__init__(self, parent)
+        Element.__init__(self, parent)
         self._create = value
         if parent is None: return     # means "invalid element"
         # idea: Joe Wetherell -- try to find out if the output
@@ -732,6 +734,7 @@ class InterfaceElement(RingElement):
             PolynomialRing( Rationals, ["x"] )
             sage: S = singular.ring(0, ('x'))
             sage: loads(dumps(S))
+            polynomial ring, over a field, global ordering
             //   characteristic : 0
             //   number of vars : 1
             //        block   1 : ordering lp
@@ -1106,7 +1109,7 @@ class InterfaceElement(RingElement):
             sage: int(maxima('1'))
             1
             sage: type(_)
-            <type 'int'>
+            <... 'int'>
         """
         return int(repr(self))
 
@@ -1116,7 +1119,7 @@ class InterfaceElement(RingElement):
         cmd = '%s %s %s'%(self._name, P._equality_symbol(), t)
         return P.eval(cmd) == t
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         EXAMPLES::
 
@@ -1126,6 +1129,8 @@ class InterfaceElement(RingElement):
             True
         """
         return self.bool()
+
+    __nonzero__ = __bool__
 
     def __long__(self):
         """
@@ -1219,10 +1224,46 @@ class InterfaceElement(RingElement):
         P = self._check_valid()
         return P.new('%s.%s'%(self._name, int(n)))
 
-    def _operation(self, operation, right):
+    def _operation(self, operation, other=None):
+        r"""
+        Return the result of applying the binary operation
+        ``operation`` on the arguments ``self`` and ``other``, or the
+        unary operation on ``self`` if ``other`` is not given.
+
+        This is a utility function which factors out much of the
+        commonality used in the arithmetic operations for interface
+        elements.
+
+        INPUT:
+
+        - ``operation`` -- a string representing the operation
+          being performed. For example, '*', or '1/'.
+
+        - ``other`` -- the other operand. If ``other`` is ``None``,
+          then the operation is assumed to be unary rather than binary.
+
+        OUTPUT: an interface element
+
+        EXAMPLES::
+
+            sage: a = gp('23')
+            sage: b = gp('5')
+            sage: a._operation('%', b)
+            3
+            sage: a._operation('19+')
+            42
+            sage: a._operation('!@#$%')
+            Traceback (most recent call last):
+            ...
+            TypeError: Error executing code in GP:...
+        """
         P = self._check_valid()
+        if other is None:
+            cmd = '%s %s'%(operation, self._name)
+        else:
+            cmd = '%s %s %s'%(self._name, operation, other._name)
         try:
-            return P.new('%s %s %s'%(self._name, operation, right._name))
+            return P.new(cmd)
         except Exception as msg:
             raise TypeError(msg)
 
@@ -1238,6 +1279,31 @@ class InterfaceElement(RingElement):
             cos(_SAGE_VAR_x)+2
             sage: 2 + f
             cos(_SAGE_VAR_x)+2
+
+        ::
+
+            sage: x,y = var('x,y')
+            sage: f = maxima.function('x','sin(x)')
+            sage: g = maxima.function('x','-cos(x)')
+            sage: f+g
+            sin(x)-cos(x)
+            sage: f+3
+            sin(x)+3
+
+        The Maxima variable ``x`` is different from the Sage symbolic variable::
+
+            sage: (f+maxima.cos(x))
+            sin(x)+cos(_SAGE_VAR_x)
+            sage: (f+maxima.cos(y))
+            sin(x)+cos(_SAGE_VAR_y)
+
+        Note that you may get unexpected results when calling symbolic expressions
+        and not explicitly giving the variables::
+
+            sage: (f+maxima.cos(x))(2)
+            cos(_SAGE_VAR_x)+sin(2)
+            sage: (f+maxima.cos(y))(2)
+            cos(_SAGE_VAR_y)+sin(2)
         """
         return self._operation("+", right)
 
@@ -1253,8 +1319,41 @@ class InterfaceElement(RingElement):
             cos(_SAGE_VAR_x)-2
             sage: 2 - f
             2-cos(_SAGE_VAR_x)
+
+        ::
+
+            sage: x,y = var('x,y')
+            sage: f = maxima.function('x','sin(x)')
+
+        The Maxima variable ``x`` is different from the Sage symbolic variable::
+
+            sage: (f-maxima.cos(x))
+            sin(x)-cos(_SAGE_VAR_x)
+            sage: (f-maxima.cos(y))
+            sin(x)-cos(_SAGE_VAR_y)
+
+        Note that you may get unexpected results when calling symbolic expressions
+        and not explicitly giving the variables::
+
+            sage: (f-maxima.cos(x))(2)
+            sin(2)-cos(_SAGE_VAR_x)
+            sage: (f-maxima.cos(y))(2)
+            sin(2)-cos(_SAGE_VAR_y)
         """
         return self._operation('-', right)
+
+    def _neg_(self):
+        """
+        EXAMPLES::
+
+            sage: f = maxima('sin(x)')
+            sage: -f
+            -sin(x)
+            sage: f = maxima.function('x','sin(x)')
+            sage: -f
+            -sin(x)
+        """
+        return self._operation('-')
 
     def _mul_(self, right):
         """
@@ -1266,6 +1365,26 @@ class InterfaceElement(RingElement):
             cos(_SAGE_VAR_x)*sin(_SAGE_VAR_x)
             sage: 2*f
             2*cos(_SAGE_VAR_x)
+
+        ::
+
+            sage: f = maxima.function('x','sin(x)')
+            sage: g = maxima('-cos(x)') # not a function!
+            sage: f*g
+            -cos(x)*sin(x)
+            sage: _(2)
+            -cos(2)*sin(2)
+
+        ::
+
+            sage: f = maxima.function('x','sin(x)')
+            sage: g = maxima('-cos(x)')
+            sage: g*f
+            -cos(x)*sin(x)
+            sage: _(2)
+            -cos(2)*sin(2)
+            sage: 2*f
+            2*sin(x)
         """
         return self._operation('*', right)
 
@@ -1279,8 +1398,52 @@ class InterfaceElement(RingElement):
             cos(_SAGE_VAR_x)/sin(_SAGE_VAR_x)
             sage: f/2
             cos(_SAGE_VAR_x)/2
+
+        ::
+
+            sage: f = maxima.function('x','sin(x)')
+            sage: g = maxima('-cos(x)')
+            sage: f/g
+            -sin(x)/cos(x)
+            sage: _(2)
+            -sin(2)/cos(2)
+
+        ::
+
+            sage: f = maxima.function('x','sin(x)')
+            sage: g = maxima('-cos(x)')
+            sage: g/f
+            -cos(x)/sin(x)
+            sage: _(2)
+            -cos(2)/sin(2)
+            sage: 2/f
+            2/sin(x)
         """
         return self._operation("/", right)
+
+    def __invert__(self):
+        """
+        EXAMPLES::
+
+            sage: f = maxima('sin(x)')
+            sage: ~f
+            1/sin(x)
+            sage: f = maxima.function('x','sin(x)')
+            sage: ~f
+            1/sin(x)
+        """
+        return self._operation('1/')
+
+    def _mod_(self, right):
+        """
+        EXAMPLES::
+
+            sage: f = gp("x^3 + x")
+            sage: g = gp("2*x + 1")
+            sage: f % g
+            -5/8
+        """
+        return self._operation("%", right)
 
     def __pow__(self, n):
         """
@@ -1289,6 +1452,20 @@ class InterfaceElement(RingElement):
             sage: a = maxima('2')
             sage: a^(3/4)
             2^(3/4)
+
+        ::
+
+            sage: f = maxima.function('x','sin(x)')
+            sage: g = maxima('-cos(x)')
+            sage: f^g
+            1/sin(x)^cos(x)
+
+        ::
+
+            sage: f = maxima.function('x','sin(x)')
+            sage: g = maxima('-cos(x)') # not a function
+            sage: g^f
+            (-cos(x))^sin(x)
         """
         P = self._check_valid()
         if parent(n) is not P:

@@ -22,15 +22,18 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 from __future__ import print_function
 
 include "sage/ext/stdsage.pxi"
-import homset
+from . import homset
 import weakref
 from sage.structure.parent cimport Set_PythonType
 from sage.misc.constant_function import ConstantFunction
 from sage.misc.superseded import deprecated_function_alias
-from sage.structure.element cimport parent_c
+from sage.structure.element cimport parent
+from cpython.object cimport PyObject_RichCompare
+
 
 def unpickle_map(_class, parent, _dict, _slots):
     """
@@ -56,7 +59,7 @@ def is_Map(x):
     """
     Auxiliary function: Is the argument a map?
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R.<x,y> = QQ[]
         sage: f = R.hom([x+y, x-y], R)
@@ -152,8 +155,7 @@ cdef class Map(Element):
 
             sage: phi = QQ['x']._internal_coerce_map_from(ZZ)
             sage: phi.domain
-            <weakref at ...; to 'sage.rings.integer_ring.IntegerRing_class'
-            at ... (JoinCategory.parent_class)>
+            <weakref at ...; to 'sage.rings.integer_ring.IntegerRing_class' at ...>
             sage: type(phi)
             <type 'sage.categories.map.FormalCompositeMap'>
             sage: psi = copy(phi)   # indirect doctest
@@ -487,7 +489,7 @@ cdef class Map(Element):
 
             By default, the string ``"Generic"`` is returned. Subclasses may overload this method.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.categories.map import Map
             sage: f = Map(Hom(QQ, ZZ, Rings()))
@@ -509,9 +511,9 @@ cdef class Map(Element):
 
         .. NOTE::
 
-        By default, the empty string is returned. Subclasses may overload this method.
+            By default, the empty string is returned. Subclasses may overload this method.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.categories.map import Map
             sage: f = Map(Hom(QQ, ZZ, Rings()))
@@ -770,7 +772,7 @@ cdef class Map(Element):
             ...
             TypeError: 2/3 fails to convert into the map's domain Integer Ring, but a `pushforward` method is not properly implemented
         """
-        P = parent_c(x)
+        P = parent(x)
         cdef Parent D = self.domain()
         if P is D: # we certainly want to call _call_/with_args
             if not args and not kwds:
@@ -1321,7 +1323,7 @@ cdef class Section(Map):
 
         Call methods are not implemented for the base class ``Section``.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.categories.map import Section
         sage: R.<x,y> = ZZ[]
@@ -1411,6 +1413,23 @@ cdef class Section(Map):
         """
         return "Section"
 
+    def inverse(self):
+        """
+        Return inverse of ``self``.
+
+        TEST::
+
+            sage: from sage.categories.map import Section
+            sage: R.<x,y> = QQ[]
+            sage: f = R.hom([x+y, x-y], R)
+            sage: sf = Section(f)
+            sage: sf.inverse()
+            Ring endomorphism of Multivariate Polynomial Ring in x, y over Rational Field
+              Defn: x |--> x + y
+                    y |--> x - y
+        """
+        return self._inverse
+
 cdef class FormalCompositeMap(Map):
     """
     Formal composite maps.
@@ -1423,7 +1442,7 @@ cdef class FormalCompositeMap(Map):
         When calling a composite with additional arguments, these arguments are
         *only* passed to the second underlying map.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R.<x> = QQ[]
         sage: S.<a> = QQ[]
@@ -1586,7 +1605,7 @@ cdef class FormalCompositeMap(Map):
         _slots['__list'] = self.__list
         return Map._extra_slots(self, _slots)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, int op):
         """
         TEST::
 
@@ -1599,11 +1618,17 @@ cdef class FormalCompositeMap(Map):
             sage: m = FormalCompositeMap(H, f, g)
             sage: m == loads(dumps(m))
             True
+
+            sage: m == None
+            False
+            sage: m == 2
+            False
         """
-        c = cmp(type(self), type(other))
-        if c == 0:
-            c = cmp(self.__list, (<FormalCompositeMap>other).__list)
-        return c
+        if type(self) is not type(other):
+            return NotImplemented
+        left = (<FormalCompositeMap>self).__list
+        right = (<FormalCompositeMap>other).__list
+        return PyObject_RichCompare(left, right, op)
 
     def __hash__(self):
         """
@@ -1788,7 +1813,7 @@ cdef class FormalCompositeMap(Map):
         f_1 \circ f_0`, then ``self.first()`` returns `f_0`.  We have
         ``self == self.then() * self.first()``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x> = QQ[]
             sage: S.<a> = QQ[]
@@ -1812,7 +1837,7 @@ cdef class FormalCompositeMap(Map):
         f_{n-1} \circ \cdots \circ f_1`.  We have ``self ==
         self.then() * self.first()``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x> = QQ[]
             sage: S.<a> = QQ[]
@@ -1833,7 +1858,7 @@ cdef class FormalCompositeMap(Map):
 
         It raises ``NotImplementedError`` if it can't be determined.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: V1 = QQ^2
             sage: V2 = QQ^3
@@ -1879,7 +1904,7 @@ cdef class FormalCompositeMap(Map):
 
         It raises ``NotImplementedError`` if it can't be determined.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.categories.map import FormalCompositeMap
             sage: V3 = QQ^3

@@ -16,6 +16,7 @@ Heilbronn matrix computation
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 import sage.arith.all
 
@@ -31,12 +32,12 @@ from sage.libs.flint.fmpz_poly cimport *
 cdef extern from "<math.h>":
     float roundf(float x)
 
-cimport p1list
-import  p1list
+cimport sage.modular.modsym.p1list as p1list
+from . import  p1list
 cdef p1list.export export
 export = p1list.export()
 
-from apply cimport Apply
+from .apply cimport Apply
 cdef Apply PolyApply= Apply()
 
 from sage.rings.integer cimport Integer
@@ -105,7 +106,7 @@ cdef class Heilbronn:
         Initialize the list of matrices corresponding to self. (This
         function is automatically called during initialization.)
 
-        .. note:
+        .. note::
 
            This function must be overridden by all derived classes!
 

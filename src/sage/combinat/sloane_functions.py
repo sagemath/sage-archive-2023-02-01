@@ -168,18 +168,29 @@ class SloaneSequence(SageObject):
         """
         raise NotImplementedError
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         EXAMPLES::
 
-            sage: cmp(sloane.A000007,sloane.A000045) == 0
+            sage: sloane.A000007 == sloane.A000045
             False
-            sage: cmp(sloane.A000007,sloane.A000007) == 0
+            sage: sloane.A000007 == sloane.A000007
             True
         """
         if not isinstance(other, SloaneSequence):
-            return cmp(type(self), type(other))
-        return cmp(repr(self), repr(other))
+            return False
+        return repr(self) == repr(other)
+
+    def __ne__(self, other):
+        """
+        EXAMPLES::
+
+            sage: sloane.A000007 != sloane.A000045
+            True
+            sage: sloane.A000007 != sloane.A000007
+            False
+        """
+        return not self.__eq__(other)
 
     def _sage_src_(self):
         """
@@ -879,7 +890,7 @@ class A007318(SloaneSequence):
     def __init__(self):
         r"""
         Pascal's triangle read by rows:
-        `C(n,k) = {n \choose k} = \frac {n!} {(k!(n-k)!)}`,
+        `C(n,k) = \binom{n}{k} = \frac {n!} {(k!(n-k)!)}`,
         `0 \le k \le n`.
 
         INPUT:
@@ -4195,20 +4206,17 @@ class A000108(SloaneSequence):
     def __init__(self):
         r"""
         Catalan numbers:
-        `C_n = \frac{{{2n}\choose{n}}}{n+1} = \frac {(2n)!}{n!(n+1)!}`.
+        `C_n = \frac{\binom{2n}{n}}{n+1} = \frac{(2n)!}{n!(n+1)!}`.
+
         Also called Segner numbers.
 
         INPUT:
 
-
         -  ``n`` - non negative integer
-
 
         OUTPUT:
 
-
         -  ``integer`` - function value
-
 
         EXAMPLES::
 
@@ -5120,7 +5128,7 @@ class A000984(SloaneSequence):
     def __init__(self):
         r"""
         Central binomial coefficients:
-        `2n \choose n = \frac {(2n)!} {(n!)^2}`.
+        `\binom{2n}{n} = \frac {(2n)!} {(n!)^2}`.
 
         INPUT:
 
@@ -5175,7 +5183,7 @@ class A001405(SloaneSequence):
     def __init__(self):
         r"""
         Central binomial coefficients:
-        `n \choose \lfloor \frac {n}{ 2} \rfloor`.
+        `\binom{n}{\lfloor \frac {n}{ 2} \rfloor}`.
 
         INPUT:
 
@@ -5231,7 +5239,7 @@ class A000292(SloaneSequence):
     def __init__(self):
         r"""
         Tetrahedral (or pyramidal) numbers:
-        `{n+2} \choose 3 = n(n+1)(n+2)/6`.
+        `\binom{n+2}{3} = n(n+1)(n+2)/6`.
 
         INPUT:
 
@@ -6578,19 +6586,15 @@ class A000204(SloaneSequence):
 class A000217(SloaneSequence):
     def __init__(self):
         r"""
-        Triangular numbers: `a(n) = {n+1} \choose 2) = n(n+1)/2`.
+        Triangular numbers: `a(n) = \binom{n+1}{2} = n(n+1)/2`.
 
         INPUT:
 
-
         -  ``n`` - non negative integer
-
 
         OUTPUT:
 
-
         -  ``integer`` - function value
-
 
         EXAMPLES::
 
@@ -9477,7 +9481,7 @@ class A000110(ExponentialNumbers):
         Let `S(n, k)` denote the Stirling number of the second
         kind. Then
 
-        .. math::
+        .. MATH::
 
             B_n = \sum{k=0}^{n} S(n, k) .
 
@@ -9537,7 +9541,7 @@ class A000587(ExponentialNumbers):
         Let `S(n, k)` denote the Stirling number of the second
         kind. Then
 
-        .. math::
+        .. MATH::
 
             C_n = \sum{k=0}^{n} (-1)^k S(n, k) .
 
@@ -9702,7 +9706,7 @@ class Sloane(SageObject):
         EXAMPLES::
 
             sage: type(sloane.trait_names())
-            <type 'list'>
+            <... 'list'>
         """
         try:
             return self.__trait_names

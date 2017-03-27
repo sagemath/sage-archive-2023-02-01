@@ -158,7 +158,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         # results are stored/cached in the element. Moreover this avoids code duplication.
         # In particular this means we cannot call the method from _matrix_check().
         # Instead it is called here in the __init__ method of the element
-        # (after the prelimenary checks).
+        # (after the preliminary checks).
         if check:
             if self._matrix.determinant() != 1:
                 raise TypeError("The matrix is not an element of {}, it has determinant {} != 1.".format(parent, self._matrix.determinant()))
@@ -651,7 +651,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         I.e. an element which is equal to ``self`` up
         to a sign after taking the appropriate power
         and which itself cannot be written as a non-trivial
-        power (at least for non-elliptic ellements).
+        power (at least for non-elliptic elements).
 
         To construct the representative see
         :meth:`primitive_representative`. To construct
@@ -3078,12 +3078,12 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         It is possible to act on points of ``HyperbolicPlane()``.
 
-        .. NOTE:
+        .. NOTE::
 
-        There is a 1-1 correspondence between hyperbolic
-        fixed points and the corresponding primitive element
-        in the stabilizer. The action in the two cases above
-        is compatible with this correspondence.
+            There is a 1-1 correspondence between hyperbolic
+            fixed points and the corresponding primitive element
+            in the stabilizer. The action in the two cases above
+            is compatible with this correspondence.
 
         INPUT:
 
@@ -3167,10 +3167,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
     def _act_on_(self, other, self_on_left):
         r"""
-        Defines the action by linear fractional transformation of Hecke triangle group
-        elements on complext points (using :meth:`acton`).
+        Define the action by linear fractional transformation of Hecke triangle group
+        elements on complex points (using :meth:`acton`).
 
-        For the action on matrices by conjugation :meth:`acton` has to be used explicitely
+        For the action on matrices by conjugation :meth:`acton` has to be used explicitly
         (to avoid confusion/ambiguity in expressions of the form gamma1*gamma2*z).
 
         EXAMPLES::
@@ -3288,7 +3288,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             try:
                 tau = f.numerator().parent().gen()
             except (ValueError, TypeError, AttributeError):
-                raise ValueError("f={} is not a rational function or a polynomial in one variable, so tau has to be specfied explicitely!".format(f))
+                raise ValueError("f={} is not a rational function or a polynomial in one variable, so tau has to be specified explicitely!".format(f))
 
         if (tau in HyperbolicPlane()):
             tau = tau.to_model('UHP').coordinates()

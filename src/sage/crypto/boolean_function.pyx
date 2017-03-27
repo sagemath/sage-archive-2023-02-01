@@ -27,7 +27,6 @@ AUTHOR:
 - Yann Laigle-Chapuy (2009-08-28): first implementation
 
 """
-
 from libc.string cimport memcpy
 
 from sage.structure.sage_object cimport SageObject
@@ -40,7 +39,6 @@ from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 
 include "sage/data_structures/bitset.pxi"
-from cpython.string cimport *
 
 # for details about the implementation of hamming_weight_int,
 # walsh_hadamard transform, reed_muller transform, and a lot
@@ -60,7 +58,7 @@ cdef walsh_hadamard(long *f, int ldn):
     to a multidimensional discrete Fourier transform of size 2x2x...x2.
     It can be defined by the following formula:
 
-    .. math:: W(j) = \sum_{i\in\{0,1\}^n} (-1)^{f(i)\oplus i \cdot j}
+    .. MATH:: W(j) = \sum_{i\in\{0,1\}^n} (-1)^{f(i)\oplus i \cdot j}
 
     EXAMPLES::
 
@@ -113,13 +111,13 @@ cdef reed_muller(mp_limb_t* f, int ldn):
     The Reed Muller transform (also known as binary Möbius transform)
     is an orthogonal transform. For a function `f` defined by
 
-    .. math:: f(x) = \bigoplus_{I\subset\{1,\ldots,n\}} \left(a_I \prod_{i\in I} x_i\right)
+    .. MATH:: f(x) = \bigoplus_{I\subset\{1,\ldots,n\}} \left(a_I \prod_{i\in I} x_i\right)
 
     it allows to compute efficiently the ANF from the truth table and
     vice versa, using the formulae:
 
-    .. math:: f(x) = \bigoplus_{support(x)\subset I} a_I
-    .. math:: a_i  = \bigoplus_{I\subset support(x)} f(x)
+    .. MATH:: f(x) = \bigoplus_{support(x)\subset I} a_I
+    .. MATH:: a_i  = \bigoplus_{I\subset support(x)} f(x)
 
 
     EXAMPLES::
@@ -349,7 +347,7 @@ cdef class BooleanFunction(SageObject):
 
     def _repr_(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: BooleanFunction(4) #indirect doctest
@@ -364,7 +362,7 @@ cdef class BooleanFunction(SageObject):
         """
         Return the complement Boolean function of `self`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: B=BooleanFunction([0, 1, 1, 0, 1, 0, 0, 0])
@@ -379,7 +377,7 @@ cdef class BooleanFunction(SageObject):
         """
         Return the element wise sum of `self`and `other` which must have the same number of variables.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: A=BooleanFunction([0, 1, 0, 1, 1, 0, 0, 1])
@@ -410,7 +408,7 @@ cdef class BooleanFunction(SageObject):
         """
         Return the elementwise multiplication of `self`and `other` which must have the same number of variables.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: A=BooleanFunction([0, 1, 0, 1, 1, 0, 0, 1])
@@ -441,7 +439,7 @@ cdef class BooleanFunction(SageObject):
         """
         Return the concatenation of `self` and `other` which must have the same number of variables.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: A=BooleanFunction([0, 1, 0, 1])
@@ -468,7 +466,7 @@ cdef class BooleanFunction(SageObject):
         nb_limbs = self._truth_table.limbs
         if nb_limbs == 1:
             L = len(self)
-            for i in range(L):
+            for i in xrange(L):
                 res[i  ]=self[i]
                 res[i+L]=other[i]
             return res
@@ -520,7 +518,7 @@ cdef class BooleanFunction(SageObject):
         """
         The number of variables of this function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: BooleanFunction(4).nvariables()
@@ -538,7 +536,7 @@ cdef class BooleanFunction(SageObject):
         - 'int' : we return a tuple of 0 or 1 values
         - 'hex' : we return a string representing the truth_table in hexadecimal
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: R.<x,y,z> = BooleanPolynomialRing(3)
@@ -579,7 +577,7 @@ cdef class BooleanFunction(SageObject):
         """
         Return the number of different input values.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: len(BooleanFunction(4))
@@ -618,7 +616,7 @@ cdef class BooleanFunction(SageObject):
         - a list - then all elements are evaluated as Booleans
         - an integer - then we consider its binary representation
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: B = BooleanFunction([0,1,0,0])
@@ -647,7 +645,7 @@ cdef class BooleanFunction(SageObject):
         """
         Iterate through the value of the function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: B = BooleanFunction([0,1,1,0,1,0,1,0])
@@ -661,7 +659,7 @@ cdef class BooleanFunction(SageObject):
         """
         Return the cached Walsh Hadamard transform. *Unsafe*, no check.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: B = BooleanFunction(3)
@@ -675,9 +673,9 @@ cdef class BooleanFunction(SageObject):
         r"""
         Compute the Walsh Hadamard transform `W` of the function `f`.
 
-        .. math:: W(j) = \sum_{i\in\{0,1\}^n} (-1)^{f(i)\oplus i \cdot j}
+        .. MATH:: W(j) = \sum_{i\in\{0,1\}^n} (-1)^{f(i)\oplus i \cdot j}
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: R.<x> = GF(2^3,'a')[]
@@ -695,7 +693,7 @@ cdef class BooleanFunction(SageObject):
                 temp[i] = (bitset_in(self._truth_table,i)<<1)-1
 
             walsh_hadamard(temp, self._nvariables)
-            self._walsh_hadamard_transform = tuple( [temp[i] for i in xrange(n)] )
+            self._walsh_hadamard_transform = tuple(temp[i] for i in xrange(n))
             sig_free(temp)
 
         return self._walsh_hadamard_transform
@@ -708,7 +706,7 @@ cdef class BooleanFunction(SageObject):
 
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: B = BooleanFunction("7969817CC5893BA6AC326E47619F5AD0")
-            sage: sorted([_ for _ in B.absolute_walsh_spectrum().iteritems() ])
+            sage: sorted(B.absolute_walsh_spectrum().items())
             [(0, 64), (16, 64)]
 
             sage: B = BooleanFunction("0113077C165E76A8")
@@ -757,7 +755,7 @@ cdef class BooleanFunction(SageObject):
             sage: B.is_symmetric()
             True
         """
-        cdef list T = [ self(2**i-1) for i in range(self._nvariables+1) ]
+        cdef list T = [ self(2**i-1) for i in xrange(self._nvariables+1) ]
         for i in xrange(2**self._nvariables):
             if T[ hamming_weight_int(i) ] != bitset_in(self._truth_table, i):
                 return False
@@ -769,7 +767,7 @@ cdef class BooleanFunction(SageObject):
         to the linear functions, or the number of output ones need to
         change to obtain a linear function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: B = BooleanFunction(5)
@@ -788,7 +786,7 @@ cdef class BooleanFunction(SageObject):
         """
         Return True if the function is bent.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: B = BooleanFunction("0113077C165E76A8")
@@ -850,7 +848,7 @@ cdef class BooleanFunction(SageObject):
         r"""
         Return the autocorrelation fo the function, defined by
 
-        .. math:: \Delta_f(j) = \sum_{i\in\{0,1\}^n} (-1)^{f(i)\oplus f(i\oplus j)}.
+        .. MATH:: \Delta_f(j) = \sum_{i\in\{0,1\}^n} (-1)^{f(i)\oplus f(i\oplus j)}.
 
         EXAMPLES::
 
@@ -870,7 +868,7 @@ cdef class BooleanFunction(SageObject):
                 temp[i] = W[i]*W[i]
 
             walsh_hadamard(temp, self._nvariables)
-            self._autocorrelation = tuple( [temp[i]>>self._nvariables for i in xrange(n)] )
+            self._autocorrelation = tuple(temp[i]>>self._nvariables for i in xrange(n))
             sig_free(temp)
 
         return self._autocorrelation
@@ -883,7 +881,7 @@ cdef class BooleanFunction(SageObject):
 
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: B = BooleanFunction("7969817CC5893BA6AC326E47619F5AD0")
-            sage: sorted([ _ for _ in B.absolute_autocorrelation().iteritems() ])
+            sage: sorted(B.absolute_autocorrelation().items())
             [(0, 33), (8, 58), (16, 28), (24, 6), (32, 2), (128, 1)]
         """
         d = {}
@@ -932,7 +930,7 @@ cdef class BooleanFunction(SageObject):
         Return (if it exists) an annihilator of the boolean function of
         degree at most `d`, that is a Boolean polynomial `g` such that
 
-        .. math::
+        .. MATH::
 
             f(x)g(x) = 0 \forall x.
 
@@ -966,9 +964,9 @@ cdef class BooleanFunction(SageObject):
 
         from sage.matrix.constructor import Matrix
         from sage.arith.all import binomial
-        M = Matrix(GF(2),sum([binomial(self._nvariables,i) for i in xrange(d+1)]),len(s))
+        M = Matrix(GF(2),sum(binomial(self._nvariables,i) for i in xrange(d+1)),len(s))
 
-        for i in xrange(1,d+1):
+        for i in xrange(1, d + 1):
             C = Combinations(self._nvariables,i)
             for c in C:
                 r.append(prod([G[i] for i in c]))
@@ -1020,7 +1018,7 @@ cdef class BooleanFunction(SageObject):
         f = self
         g = ~self
         for i in xrange(self._nvariables):
-            for fun in [f,g]:
+            for fun in [f, g]:
                 A = fun.annihilator(i)
                 if A is not None:
                     if annihilator:
@@ -1046,13 +1044,13 @@ cdef class BooleanFunction(SageObject):
             True
         """
         W = self.absolute_walsh_spectrum()
-        return (len(W) == 1) or (len(W) == 2 and W.has_key(0))
+        return (len(W) == 1) or (len(W) == 2 and 0 in W)
 
     def __setitem__(self, i, y):
         """
         Set a value of the function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: B=BooleanFunction([0,0,1,1])
@@ -1075,7 +1073,7 @@ cdef class BooleanFunction(SageObject):
         """
         Return the value of the function for the given input.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: B=BooleanFunction([0,1,1,1])
@@ -1088,7 +1086,7 @@ cdef class BooleanFunction(SageObject):
         """
         Clear cached values.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: B = BooleanFunction([0,1,1,0])
@@ -1108,7 +1106,7 @@ cdef class BooleanFunction(SageObject):
 
     def __reduce__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: B = BooleanFunction([0,1,1,0])
@@ -1121,7 +1119,7 @@ def unpickle_BooleanFunction(bool_list):
     """
     Specific function to unpickle Boolean functions.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.crypto.boolean_function import BooleanFunction
         sage: B = BooleanFunction([0,1,1,0])
@@ -1138,7 +1136,7 @@ cdef class BooleanFunctionIterator:
         """
         Iterator through the values of a Boolean function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: B = BooleanFunction(3)
@@ -1153,7 +1151,7 @@ cdef class BooleanFunctionIterator:
         """
         Iterator through the values of a Boolean function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: B = BooleanFunction(1)
@@ -1166,7 +1164,7 @@ cdef class BooleanFunctionIterator:
         """
         Next value.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.crypto.boolean_function import BooleanFunction
             sage: B = BooleanFunction(1)
@@ -1188,7 +1186,7 @@ def random_boolean_function(n):
     """
     Returns a random Boolean function with `n` variables.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.crypto.boolean_function import random_boolean_function
         sage: B = random_boolean_function(9)

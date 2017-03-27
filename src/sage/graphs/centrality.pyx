@@ -351,11 +351,11 @@ cdef void _estimate_reachable_vertices_dir(short_digraph g, int* reachL, int* re
     Then, for each vertex ``v``, we set ``reachL[v]=L(C)``, where ``C`` is
     the strongly connected component containing ``v``.
 
-    INPUT
+    INPUT:
 
     ``g`` (short_digraph): the input graph;
 
-    OUTPUT
+    OUTPUT:
 
     ``reachL``, ``reachU``: two arrays that should be allocated outside
     this function and that should have size at least ``g.n``. At the end,

@@ -1170,7 +1170,7 @@ class APngAssembler(object):
         TESTS::
 
             sage: from sage.plot.animate import APngAssembler
-            sage: from StringIO import StringIO
+            sage: from six import StringIO
             sage: buf = StringIO()
             sage: apng = APngAssembler(buf, 2)
             sage: fn = APngAssembler._testData("input1", True)
@@ -1220,7 +1220,7 @@ class APngAssembler(object):
         TESTS::
 
             sage: from sage.plot.animate import APngAssembler
-            sage: from StringIO import StringIO
+            sage: from six import StringIO
             sage: buf = StringIO()
             sage: apng = APngAssembler(buf, 1)
             sage: fn = APngAssembler._testData("input1", True)
@@ -1310,7 +1310,7 @@ class APngAssembler(object):
         TESTS::
 
             sage: from sage.plot.animate import APngAssembler
-            sage: from StringIO import StringIO
+            sage: from six import StringIO
             sage: buf = StringIO()
             sage: apng = APngAssembler(buf, 1)
             sage: apng._seqno()
@@ -1480,7 +1480,7 @@ class APngAssembler(object):
         TESTS::
 
             sage: from sage.plot.animate import APngAssembler
-            sage: from StringIO import StringIO
+            sage: from six import StringIO
             sage: buf = StringIO()
             sage: apng = APngAssembler(buf, 1)
             sage: buf.getvalue()
@@ -1506,7 +1506,7 @@ class APngAssembler(object):
         even if they look like hex digits. This is used for chunk types.
         Other characters which are not hex digits are passed verbatim.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.plot.animate import APngAssembler
             sage: h2b = APngAssembler._hex2bin
@@ -1546,7 +1546,7 @@ class APngAssembler(object):
         - ``asFile``: Whether to return a binary string of the named data
                       or the path of a file containing that data.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.plot.animate import APngAssembler
             sage: APngAssembler._testData("input1", False)
@@ -1623,7 +1623,7 @@ class APngAssembler(object):
             sage: APngAssembler._testCase1()
         """
         from sage.doctest.fixtures import trace_method
-        from StringIO import StringIO
+        from six import StringIO
         buf = StringIO()
         apng = cls(buf, 2)
         if methodToTrace is not None:

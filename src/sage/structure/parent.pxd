@@ -13,7 +13,6 @@ cdef class Parent(category_object.CategoryObject):
     cdef public _element_constructor
     cdef public _convert_method_name
     cdef public bint _element_init_pass_parent
-    cdef public dict __cached_methods
     cdef public _initial_coerce_list
     cdef public _initial_action_list
     cdef public _initial_convert_list
@@ -31,7 +30,6 @@ cdef class Parent(category_object.CategoryObject):
     cpdef register_conversion(self, mor)
     cpdef register_embedding(self, embedding)
 
-    cpdef bint _richcmp(left, right, int op) except -2
     cpdef int _cmp_(left, right) except -2
     cpdef bint is_exact(self) except -2
 

@@ -202,7 +202,7 @@ to put together.
 ::
 
     sage: html('<h2>Sine and unit circle (by Jurgis Pralgauskis)</h2> inspired by <a href="http://www.youtube.com/watch?v=Ohp6Okk_tww&feature=related">this video</a>' )
-    sage: # http://www.sagemath.org/doc/reference/sage/plot/plot.html
+    sage: # http://doc.sagemath.org/html/en/reference/sage/plot/plot.html
     sage: radius = 100 # scale for radius of "unit" circle
     sage: graph_params = dict(xmin = -2*radius,    xmax = 360,
     ....:                    ymin = -(radius+30), ymax = radius+30,
@@ -562,7 +562,7 @@ Sage includes a variety of built\-in graphics objects.  These are
 particularly useful for adding to one's plot certain objects which are
 difficult to describe with equations, but which are basic geometric
 objects nonetheless.  In this section we will try to demonstrate the
-syntax of some of the most useful of them; for most of the the
+syntax of some of the most useful of them; for most of them the
 contextual (remember, append ``?``) help will give more details.
 
 Points
@@ -629,7 +629,7 @@ possible.
     Graphics object consisting of 1 graphics primitive
 
 There are also ellipses and various arcs; see the `full plot
-documentation <http://sagemath.org/doc/reference/plotting/index.html>`_.
+documentation <http://doc.sagemath.org/html/en/reference/plotting/index.html>`_.
 
 Arrows
 ######

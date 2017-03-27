@@ -1507,7 +1507,7 @@ class ParametrizedSurface3D(SageObject):
 
         """
         from sage.ext.fast_eval import fast_float
-        from sage.gsl.ode import ode_solver
+        from sage.calculus.ode import ode_solver
 
         u1 = self.variables[1]
         u2 = self.variables[2]
@@ -1542,7 +1542,7 @@ class ParametrizedSurface3D(SageObject):
         ALGORITHM:
 
         The geodesic equations are integrated forward in time using
-        the ode solvers from ``sage.gsl.ode``.  See the member
+        the ode solvers from ``sage.calculus.ode``.  See the member
         function ``_create_geodesic_ode_system`` for more details.
 
         INPUT:
@@ -1621,7 +1621,7 @@ class ParametrizedSurface3D(SageObject):
         """
 
         from sage.ext.fast_eval import fast_float
-        from sage.gsl.ode import ode_solver
+        from sage.calculus.ode import ode_solver
 
         u1 = self.variables[1]
         u2 = self.variables[2]
@@ -1660,7 +1660,7 @@ class ParametrizedSurface3D(SageObject):
         ALGORITHM:
 
         The parallel transport equations are integrated forward in time using
-        the ode solvers from ``sage.gsl.ode``. See :meth:`_create_pt_ode_system`
+        the ode solvers from ``sage.calculus.ode``. See :meth:`_create_pt_ode_system`
         for more details.
 
         INPUT:

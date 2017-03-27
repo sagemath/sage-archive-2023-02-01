@@ -65,7 +65,7 @@ class CartanType(CartanType_standard, CartanType_simple):
 
     def _repr_(self, compact=False):
         """
-        Return a repsentation of ``self``.
+        Return a representation of ``self``.
 
         TESTS::
 

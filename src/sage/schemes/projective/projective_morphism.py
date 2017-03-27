@@ -1279,7 +1279,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def degree_sequence(self, iterates=2):
         r"""
-        Return sequence of degrees of normalized iterates.
+        Return sequence of degrees of normalized iterates starting with
+        the degree of this map.
 
         INPUT: ``iterates`` -- positive integer (optional - default: 2)
 
@@ -1291,7 +1292,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = End(P2)
             sage: f = H([Z^2, X*Y, Y^2]) 
             sage: f.degree_sequence(15)
-            [1, 2, 3, 5, 8, 11, 17, 24, 31, 45, 56, 68, 91, 93, 184, 275]
+            [2, 3, 5, 8, 11, 17, 24, 31, 45, 56, 68, 91, 93, 184, 275]
 
         ::
 
@@ -1300,7 +1301,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = End(P2)
             sage: f = H([Y*Z, X*Y, Y^2 + t*X*Z]) 
             sage: f.degree_sequence(5)
-            [1, 2, 3, 5, 8, 13]
+            [2, 3, 5, 8, 13]
 
         ::
 
@@ -1308,7 +1309,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = End(P2)
             sage: f = H([X^2, Y^2, Z^2]) 
             sage: f.degree_sequence(10)
-            [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]
+            [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]
 
         ::
 
@@ -1316,7 +1317,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = End(P2)
             sage: f = H([X*Y, Y*Z+Z^2, Z^2]) 
             sage: f.degree_sequence(10)
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+            [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
         """
         if int(iterates) < 1:
             raise TypeError("number of iterates must be a positive integer")
@@ -1325,7 +1326,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         if self.is_morphism():
             d = self.degree()
-            D = [d**t for t in range(iterates+1)]
+            D = [d**t for t in range(1, iterates+1)]
         else:
             F = self
             F.normalize_coordinates()
@@ -1336,33 +1337,46 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                 D.append(F.degree())
         return D
 
-    def dynamical_degree(self, N=3):
+    def dynamical_degree(self, N=3, prec=53):
         r"""
-        Return sequence of degrees of normalized iterates.
+        Return an approximation to the dynamical degree of this map. The
+        dynamical degree is defined as $\lim_{n \to \infty} \sqrt[n]{\deg(f^n)}$.
 
-        INPUT: ``iterates`` -- positive integer (optional - default: 2)
+        INPUT:
 
-        OUTPUT: list of integers
+        - ``N`` -- iterate to use for approximation (optional - default: 3)
+
+        - ``prec`` -- real precision to use when computing root (optional - default: 53)
+
+        OUTPUT: real number
 
         EXAMPLES::
 
-            sage: P2.<X,Y,Z> = ProjectiveSpace(QQ, 2)
-            sage: H = End(P2)
-            sage: f = H([Z^2, X*Y, Y^2]) 
-            sage: f.degree_sequence(15)
-            [1, 2, 3, 5, 8, 11, 17, 24, 31, 45, 56, 68, 91, 93, 184, 275]
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = End(P)
+            sage: f = H([x^2 + (x*y), y^2])
+            sage: f.dynamical_degree()
+            2.00000000000000
 
-        
+        ::
+
+            sage: P2.<X,Y,Z> = ProjectiveSpace(ZZ, 2)
+            sage: H = End(P2)
+            sage: f = H([X*Y, Y*Z+Z^2, Z^2])
+            sage: f.dynamical_degree(N=5, prec=100)
+            1.4309690811052555010452244131
         """
         if int(N) < 1:
             raise TypeError("number of iterates must be a positive integer")
         if not self.is_endomorphism():
             raise TypeError("map is not an endomorphism")
+
+        R = RealField(prec=prec)
         if self.is_morphism():
-            return self.degree()
+            return R(self.degree())
         else:
             D = self.nth_iterate_map(N, normalize=True).degree()
-            return D.nth_root(N)
+            return R(D).nth_root(N)
 
     def dehomogenize(self, n):
         r"""

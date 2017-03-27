@@ -2879,7 +2879,7 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
     if Phi == 'random':
         Phi = {}
         for x in range(m):
-            temp = range(len(ParClasses))
+            temp = list(range(len(ParClasses)))
             for line in L_i[x]:
                 rand = randrange(0, len(temp))
                 Phi[(x, line)] = temp.pop(rand)

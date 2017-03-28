@@ -676,7 +676,9 @@ class sage_build(build):
         """
         from sage_setup.autogen import autogen_all
         log.info("Generating auto-generated sources")
-        self.distribution.packages += autogen_all()
+        for pkg in autogen_all():
+            if pkg not in self.distribution.packages:
+                    self.distribution.packages.append(pkg)
 
     def run(self):
         self.run_autogen()

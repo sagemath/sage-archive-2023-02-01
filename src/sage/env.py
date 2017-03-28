@@ -143,8 +143,8 @@ _add_variable_or_fallback('THEBE_DIR',        opj('$SAGE_SHARE','thebe'))
 
 # locate singular shared object
 if UNAME[:6] == "CYGWIN":
-    SINGULAR_SO = ([None] + glob.glob(os.path.join(
-        SAGE_LOCAL, "bin", "cygSingular-*.dll")))[-1]
+    SINGULAR_SO = glob.glob(os.path.join(
+        SAGE_LOCAL, "bin", "cygSingular-*.dll"))[-1]
 else:
     if UNAME == "Darwin":
         extension = "dylib"

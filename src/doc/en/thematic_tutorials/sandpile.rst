@@ -249,19 +249,21 @@ Note the various ways of performing addition and stabilization::
 Burning Configuration
 ^^^^^^^^^^^^^^^^^^^^^
 
-A *burning configuration* is a `\mathbb{Z}_{\geq 0}`-linear combination of the
+A *burning configuration* is a `\ZZ_{\geq 0}`-linear combination `f` of the
 rows of the reduced Laplacian matrix having nonnegative entries and such that
-every vertex is accessible from some vertex in its support.  The corresponding
-*burning script* gives the coefficients in the `\mathbb{Z}_{\geq 0}`-linear
+every vertex is accessible from some vertex in the support of `f`
+(in other words, for each vertex `w`, there is a path from some
+`v \in \operatorname{supp} f` to `w`).  The corresponding
+*burning script* gives the coefficients in the `\ZZ_{\geq 0}`-linear
 combination needed to obtain the burning configuration.  So if `b` is a burning
 configuration, `\sigma` is its script, and `\tilde{L}` is the reduced
 Laplacian, then `\sigma\,\tilde{L} = b`.
-The *minimal burning configuration* is the one with the minimal script (its
-components are no larger than the components of any other script for a burning
-configuration).
+The *minimal burning configuration* is the one with the minimal script (each
+of its components is no larger than the corresponding component of any other
+script for a burning configuration).
 
-The following are equivalent for a configuration `c` with burning
-configuration `b` having script `\sigma`:
+Given a burning configuration `b` having script `\sigma`, and any
+configuration `c` on the same graph, the following are equivalent:
 
 - `c` is recurrent;
 - `c + b` stabilizes to `c`;
@@ -345,12 +347,12 @@ The sandpile model was introduced by Bak, Tang, and Wiesenfeld in the paper,
 loosely taken to describe a system that naturally evolves to a state that is
 barely stable and such that the instabilities are described by a power law.
 In practice, *self-organized criticality* is often taken to mean *like the
-sandpile model on a grid-graph*.  The grid graph is just a grid with an extra
+sandpile model on a grid graph*.  The grid graph is just a grid with an extra
 sink vertex.  The vertices on the interior of each side have one edge to the
 sink, and the corner vertices have an edge of weight `2`.  Thus, every nonsink
 vertex has out-degree `4`.
 
-Imagine repeatedly dropping grains of sand on and empty grid graph, allowing
+Imagine repeatedly dropping grains of sand on an empty grid graph, allowing
 the sandpile to stabilize in between.  At first there is little activity, but
 as time goes on, the size and extent of the avalanche caused by a single grain
 of sand becomes hard to predict.  Computer experiments---I do not think there
@@ -396,8 +398,9 @@ vertices, including the sink.  Suppose, as above, that the `n+1` vertices of
 transpose of the Laplacian.  A divisor is then identified with an element
 `D\in\ZZ^{n+1}`, and two divisors are *linearly equivalent* if they
 differ by an element of `\mathcal{L}`.  A divisor `E` is *effective*, written
-`E\geq0`, if `E(v)\geq0` for each `v\in V`, i.e., if `E\in\mathbb{N}^{n+1}`.
-The *degree* of a divisor, `D`, is `deg(D) := \sum_{v\in V}D(v)`.   The
+`E\geq0`, if `E(v)\geq0` for each `v\in V`, i.e.,
+if `E\in\mathbb{Z}_{\geq 0}^{n+1}`.
+The *degree* of a divisor `D` is `\deg(D) := \sum_{v\in V} D(v)`.   The
 divisors of degree zero modulo linear equivalence form the *Picard group*, or
 *Jacobian* of the graph. For an undirected graph, the Picard group is
 isomorphic to the sandpile group.
@@ -408,15 +411,16 @@ collection of effective divisors linearly equivalent to `D`.
 Riemann-Roch
 ~~~~~~~~~~~~
 To describe the Riemann-Roch theorem in this context, suppose that `\Gamma` is
-an undirected, unweighted graph. The *dimension*, `r(D)` of the linear system
-`|D|` is `-1` if `|D|=\emptyset` and otherwise is the greatest integer `s` such
+an undirected, unweighted graph. The *dimension*, `r(D)`, of the linear system
+`|D|` is `-1` if `|D|=\emptyset`, and otherwise is the greatest integer `s` such
 that `|D-E|\neq0` for all effective divisors `E` of degree `s`.  Define the
-*canonical divisor* by `K=\sum_{v\in V}(\deg(v)-2)v` and the *genus* by `g =
-\#(E) - \#(V) + 1`.  The Riemann-Roch theorem says that for any divisor `D`,
+*canonical divisor* by `K = \sum_{v\in V} (\deg(v)-2) v`, and the *genus* by
+`g = \#(E) - \#(V) + 1`.  The Riemann-Roch theorem says that for any divisor
+`D`,
 
 .. MATH::
 
-    r(D)-r(K-D)=\deg(D)+1-g.
+    r(D) - r(K-D) = \deg(D) + 1 - g.
 
 **Example.** ::
 
@@ -454,7 +458,7 @@ The nonspecial divisors up to linear equivalence (divisors of degree
 
 Picturing linear systems
 ~~~~~~~~~~~~~~~~~~~~~~~~
-Fix a divisor `D`.  There are at least two natural graphs associated with
+Fix a divisor `D`.  There are at least two natural graphs associated with the
 linear system associated with `D`.  First, consider the directed graph with
 vertex set `|D|` and with an edge from vertex `E` to vertex `F` if `F` is
 attained from `E` by firing a single unstable vertex. ::
@@ -484,7 +488,7 @@ if `F` is obtained from `E` by firing all unstable vertices of `E`. ::
 
    Complete linear system for `(1,1,1,1,2,0)` on `C_6`: parallel firings
 
-Note that in each of the examples, above, starting at any divisor in the
+Note that in each of the examples above, starting at any divisor in the
 linear system and following edges, one is eventually led into a cycle of
 length `6` (cycling the divisor `(1,1,1,1,2,0)`).  Thus, ``D.alive()``
 returns ``True``.  In Sage, one would be able to rotate the above figures
@@ -4344,8 +4348,9 @@ EXAMPLES::
 
 .. NOTE::
 
-    The vertex `v` is a (generalized) Weierstrass point for divisor `D` if the sequence of ranks `r(D - nv)`
-    for `n = 0, 1, 2, \dots` is not `r(D), r(D)-1, \dots, 0, -1, -1, \dots`
+    The vertex `v` is a (generalized) Weierstrass point for divisor `D` if the
+    sequence of ranks `r(D - nv)`
+    for `n = 0, 1, 2, \dots` is not `r(D), r(D)-1, \dots, 0, -1, -1, \dots`.
 
 ---
 
@@ -4770,8 +4775,9 @@ EXAMPLES::
 
 .. NOTE::
 
-    The vertex `v` is a (generalized) Weierstrass point for divisor `D` if the sequence of ranks `r(D - nv)`
-    for `n = 0, 1, 2, \dots`` is not `r(D), r(D)-1, \dots, 0, -1, -1, \dots`
+    The vertex `v` is a (generalized) Weierstrass point for divisor `D` if the
+    sequence of ranks `r(D - nv)`
+    for `n = 0, 1, 2, \dots` is not `r(D), r(D)-1, \dots, 0, -1, -1, \dots`
 
 ---
 
@@ -5003,10 +5009,22 @@ Contact
 Please contact davidp@reed.edu with questions, bug reports, and suggestions for
 additional features and other improvements.
 
-.. [BN] Matthew Baker, Serguei Norine, `Riemann-Roch and Abel-Jacobi Theory on a Finite Graph <http://people.math.gatech.edu/~mbaker/papers.html>`_, Advances in Mathematics 215 (2007), 766--788.
+.. [BN] Matthew Baker, Serguei Norine, `Riemann-Roch and Abel-Jacobi Theory on a
+   Finite Graph <http://people.math.gatech.edu/~mbaker/papers.html>`_,
+   Advances in Mathematics 215 (2007), 766--788.
 
-.. [BTW] Per Bak, Chao Tang and Kurt Wiesenfeld (1987). *Self-organized criticality: an explanation of 1/ƒ noise*, Physical Review Letters 60: 381–384 `Wikipedia article <http://en.wikipedia.org/wiki/Bak-Tang-Wiesenfeld_sandpile>`_.
+.. [BTW] Per Bak, Chao Tang and Kurt Wiesenfeld (1987).
+   *Self-organized criticality: an explanation of 1/ƒ noise*,
+   Physical Review Letters 60: 381–384;
+   :wikipedia:`Bak-Tang-Wiesenfeld_sandpile`.
 
-.. [CRS] Robert Cori, Dominique Rossin, and Bruno Salvy, *Polynomial ideals for sandpiles and their Gröbner bases*, Theoretical Computer Science, 276 (2002) no. 1--2, 1--15.
+.. [CRS] Robert Cori, Dominique Rossin, and Bruno Salvy, *Polynomial ideals for
+   sandpiles and their Gröbner bases*,
+   Theoretical Computer Science, 276 (2002) no. 1--2, 1--15.
 
-.. [H] Holroyd, Levine, Meszaros, Peres, Propp, Wilson, `Chip-Firing and Rotor-Routing on Directed Graphs <http://front.math.ucdavis.edu/0801.3306>`_. An older version of this paper appears in *In and out of Equilibrium II*, Eds. V. Sidoravicius, M. E. Vares, in the Series Progress in Probability, Birkhauser (2008).
+.. [H] Alexander E. Holroyd, Lionel Levine, Karola Meszaros, Yuval Peres,
+   James Propp, David B. Wilson,
+   *Chip-Firing and Rotor-Routing on Directed Graphs*, :arxiv:`0801.3306`.
+   An older version of this paper appears in *In and out of Equilibrium II*,
+   Eds. V. Sidoravicius, M. E. Vares, in the Series Progress in Probability,
+   Birkhauser (2008).

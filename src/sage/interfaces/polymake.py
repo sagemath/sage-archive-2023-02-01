@@ -166,7 +166,7 @@ class Polymake(ExtraTabCompletion, Expect):
                         script_subdirectory=script_subdirectory,
                         restart_on_ctrlc=False,
                         logfile=logfile,
-                        eval_using_file_cutoff=0)
+                        eval_using_file_cutoff=100)
 
         self._seed = seed
         self.__tab_completion = {}
@@ -356,6 +356,7 @@ class Polymake(ExtraTabCompletion, Expect):
         self.application("polytope")
         self.eval('use Scalar::Util qw(reftype);')
         self.eval('use Scalar::Util qw(blessed);')
+        self.eval('use File::Slurp;')
 
     def _quit_string(self):
         """
@@ -389,9 +390,9 @@ class Polymake(ExtraTabCompletion, Expect):
         TEST::
 
             sage: polymake._read_in_file_command('foobar')
-            'script "foobar";\n'
+            'eval read_file "foobar";\n'
         """
-        return 'script "{}";\n'.format(filename)
+        return 'eval read_file "{}";\n'.format(filename)
 
     def _keyboard_interrupt(self):
         """

@@ -3,7 +3,7 @@ Homomorphisms of rings
 
 We give a large number of examples of ring homomorphisms.
 
-EXAMPLE:
+EXAMPLES:
 
 Natural inclusion `\ZZ \hookrightarrow \QQ`::
 

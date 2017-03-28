@@ -1560,7 +1560,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         Compute ``self`` raised to the power of exponent, rounded in
         the direction specified by the parent of ``self``.
 
-        .. TODO:
+        .. TODO::
 
             FIXME: Branch cut
 

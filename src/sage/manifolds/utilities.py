@@ -87,10 +87,10 @@ def simplify_sqrt_real(expr):
     sexpr = str(expr)
     if 'sqrt(' not in sexpr:  # no sqrt to simplify
         return expr
-    if 'D[' in sexpr:
+    if ('D[' in sexpr) or ('diff(' in sexpr):
         return expr    #!# the code below is not capable of simplifying
-                       # expressions with symbolic derivatives denoted by Pynac
-                       # symbols of the type D[0]
+                       # expressions with symbolic derivatives denoted
+                       # by Pynac symbols of the type D[0] or diff(...)
     # Lists to store the positions of all the top-level sqrt's in sexpr:
     pos_sqrts = []  # position of first character, i.e. 's' of 'sqrt(...)'
     pos_after = []  # position of character immediatelty after 'sqrt(...)'
@@ -203,6 +203,10 @@ def simplify_abs_trig(expr):
     sexpr = str(expr)
     if 'abs(sin(' not in sexpr:  # nothing to simplify
         return expr
+    if ('D[' in sexpr) or ('diff(' in sexpr):
+        return expr    #!# the code below is not capable of simplifying
+                       # expressions with symbolic derivatives denoted
+                       # by Pynac symbols of the type D[0] or diff(...)
     tp = []
     val = []
     for pos in range(len(sexpr)):
@@ -614,7 +618,7 @@ class ExpressionNice(Expression):
         r"""
         LaTeX representation of the object.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: var('x y z')
             (x, y, z)

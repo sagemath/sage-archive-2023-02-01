@@ -387,7 +387,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         Is it faster to copy a zero matrix or is it faster to create a
         new matrix from scratch?
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: MS = MatrixSpace(GF(2),20,20)
             sage: MS._copy_zero

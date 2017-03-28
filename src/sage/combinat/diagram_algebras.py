@@ -952,7 +952,7 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
 
     def from_involution_permutation_triple(self, D1_D2_pi):
         r"""
-        Construct a Bruaer diagram of ``self`` from an involution
+        Construct a Brauer diagram of ``self`` from an involution
         permutation triple.
 
         A Brauer diagram can be represented as a triple where the first

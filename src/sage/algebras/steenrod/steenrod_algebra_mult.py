@@ -198,6 +198,7 @@ representing a sum of admissible monomials.
 #  Copyright (C) 2008-2010 John H. Palmieri <palmieri@math.washington.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #*****************************************************************************
+from six.moves import range
 
 from sage.misc.cachefunc import cached_function
 
@@ -251,7 +252,7 @@ def milnor_multiplication(r,s):
     cols = len(s) + 1
     diags = len(r) + len(s)
     # initialize matrix
-    M = range(rows)
+    M = list(range(rows))
     for i in range(rows):
         M[i] = [0]*cols
     for j in range(1,cols):
@@ -491,7 +492,7 @@ def milnor_multiplication_odd(m1,m2,p):
     # Now for the Milnor matrices.  For each entry '(e,r): coeff' in answer,
     # multiply r with s.  Record coefficient for matrix and multiply by coeff.
     # Store in 'result'.
-    if len(s) == 0:
+    if not s:
         result = answer
     else:
         result = {}
@@ -502,7 +503,7 @@ def milnor_multiplication_odd(m1,m2,p):
             cols = len(s) + 1
             diags = len(r) + len(s)
             # initialize matrix
-            M = range(rows)
+            M = list(range(rows))
             for i in range(rows):
                 M[i] = [0]*cols
             for j in range(1,cols):

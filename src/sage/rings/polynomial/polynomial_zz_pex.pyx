@@ -62,7 +62,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
     """
     Univariate Polynomials over GF(p^n) via NTL's ZZ_pEX.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: K.<a>=GF(next_prime(2**60)**3)
         sage: R.<x> = PolynomialRing(K,implementation='NTL')
@@ -73,7 +73,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         """
         Create a new univariate polynomials over GF(p^n).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a>=GF(next_prime(2**60)**3)
             sage: R.<x> = PolynomialRing(K,implementation='NTL')
@@ -175,7 +175,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         """
         Returs the list of coefficients.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(5^3)
             sage: P = PolynomialRing(K, 'x')
@@ -219,7 +219,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         """
         Evaluate polynomial at `a`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<u>=GF(next_prime(2**60)**3)
             sage: R.<x> = PolynomialRing(K,implementation='NTL')
@@ -401,7 +401,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
 
     def shift(self, int n):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a>=GF(next_prime(2**60)**3)
             sage: R.<x> = PolynomialRing(K,implementation='NTL')
@@ -422,7 +422,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
 
     def __lshift__(self, int n):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a>=GF(next_prime(2**60)**3)
             sage: R.<x> = PolynomialRing(K,implementation='NTL')
@@ -436,7 +436,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
 
     def __rshift__(self, int n):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a>=GF(next_prime(2**60)**3)
             sage: R.<x> = PolynomialRing(K,implementation='NTL')

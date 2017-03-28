@@ -178,6 +178,10 @@ class Polyhedron_ZZ(Polyhedron_base):
         for lattice point enumeration (see
         https://www.math.ucdavis.edu/~latte/).
 
+        .. SEEALSO::
+
+            :mod:`~sage.interfaces.latte` the interface to LattE integrale
+
         EXAMPLES::
 
             sage: P = Polyhedron(vertices=[(0,0,0),(3,3,3),(-3,2,1),(1,-1,-2)])
@@ -224,7 +228,7 @@ class Polyhedron_ZZ(Polyhedron_base):
             sage: p = P.ehrhart_polynomial(maxdet=5, verbose=True)  # optional - latte_int
             This is LattE integrale ...
             ...
-            Invocation: count --ehrhart-polynomial '--redundancy-check=none' '--maxdet=5' --cdd ...
+            Invocation: count --ehrhart-polynomial '--redundancy-check=none' --cdd '--maxdet=5' /dev/stdin
             ...
             sage: p    # optional - latte_int
             1/2*t^2 + 3/2*t + 1
@@ -232,7 +236,7 @@ class Polyhedron_ZZ(Polyhedron_base):
             sage: p = P.ehrhart_polynomial(dual=True, verbose=True)  # optional - latte_int
             This is LattE integrale ...
             ...
-            Invocation: count --ehrhart-polynomial '--redundancy-check=none' --dual --cdd ...
+            Invocation: count --ehrhart-polynomial '--redundancy-check=none' --cdd --dual /dev/stdin
             ...
             sage: p   # optional - latte_int
             1/2*t^2 + 3/2*t + 1
@@ -240,7 +244,7 @@ class Polyhedron_ZZ(Polyhedron_base):
             sage: p = P.ehrhart_polynomial(irrational_primal=True, verbose=True)   # optional - latte_int
             This is LattE integrale ...
             ...
-            Invocation: count --ehrhart-polynomial '--redundancy-check=none' --irrational-primal --cdd ...
+            Invocation: count --ehrhart-polynomial '--redundancy-check=none' --cdd --irrational-primal /dev/stdin
             ...
             sage: p   # optional - latte_int
             1/2*t^2 + 3/2*t + 1
@@ -248,7 +252,8 @@ class Polyhedron_ZZ(Polyhedron_base):
             sage: p = P.ehrhart_polynomial(irrational_all_primal=True, verbose=True)  # optional - latte_int
             This is LattE integrale ...
             ...
-            Invocation: count --ehrhart-polynomial '--redundancy-check=none' --irrational-all-primal --cdd ...
+            Invocation: count --ehrhart-polynomial '--redundancy-check=none' --cdd --irrational-all-primal /dev/stdin
+            ...
             sage: p   # optional - latte_int
             1/2*t^2 + 3/2*t + 1
 
@@ -257,21 +262,16 @@ class Polyhedron_ZZ(Polyhedron_base):
             sage: P.ehrhart_polynomial(bim_bam_boum=19)   # optional - latte_int
             Traceback (most recent call last):
             ...
-            RuntimeError: LattE integrale failed with exit code 1 to execute...
+            RuntimeError: LattE integrale program failed (exit code 1):
+            ...
+            Invocation: count --ehrhart-polynomial '--redundancy-check=none' --cdd '--bim-bam-boum=19' /dev/stdin
+            Unknown command/option --bim-bam-boum=19
         """
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        R = PolynomialRing(QQ, 't')
         if self.is_empty():
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            from sage.rings.rational_field import QQ
+            R = PolynomialRing(QQ, 't')
             return R.zero()
-
-        from sage.misc.misc import SAGE_TMP
-        from subprocess import Popen, PIPE
-
-        ine = self.cdd_Hrepresentation()
-
-        args = ['count', '--ehrhart-polynomial']
-        if 'redundancy_check' not in kwds:
-            args.append('--redundancy-check=none')
 
         # note: the options below are explicitely written in the function
         # declaration in order to keep tab completion (see #18211).
@@ -287,40 +287,9 @@ class Polyhedron_ZZ(Polyhedron_base):
             'triangulation'           : triangulation,
             'triangulation_max_height': triangulation_max_height})
 
-        for key,value in kwds.items():
-            if value is None or value is False:
-                continue
-
-            key = key.replace('_','-')
-            if value is True:
-                args.append('--{}'.format(key))
-            else:
-                args.append('--{}={}'.format(key, value))
-        args += ['--cdd', '/dev/stdin']
-
-        try:
-            # The cwd argument is needed because latte
-            # always produces diagnostic output files.
-            latte_proc = Popen(args,
-                               stdin=PIPE, stdout=PIPE,
-                               stderr=(None if verbose else PIPE),
-                               cwd=str(SAGE_TMP))
-        except OSError:
-            from sage.misc.package import PackageNotFoundError
-            raise PackageNotFoundError('latte_int')
-
-        ans, err = latte_proc.communicate(ine)
-        ret_code = latte_proc.poll()
-        if ret_code:
-            if err is None:
-                err = ", see error message above"
-            else:
-                err = ":\n" + err
-            raise RuntimeError("LattE integrale failed with exit code {} to execute {}".format(ret_code, ' '.join(args)) + err.strip())
-
-        p = ans.splitlines()[-2]
-
-        return R(p)
+        from sage.interfaces.latte import count
+        ine = self.cdd_Hrepresentation()
+        return count(ine, cdd=True, ehrhart_polynomial=True, verbose=verbose, **kwds)
 
     @cached_method
     def polar(self):

@@ -3000,7 +3000,7 @@ class MonomialGrowthElement(GenericGrowthElement):
         in `T=\frac{1}{1-\frac{z}{\zeta}}\to \infty` where this element
         is a growth element in `T`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('x^QQ')

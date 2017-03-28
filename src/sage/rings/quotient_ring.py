@@ -730,7 +730,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
 
         The image of the given element in ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y> = PolynomialRing(QQ, 2)
             sage: S = R.quotient(x^2 + y^2)
@@ -1257,7 +1257,7 @@ class QuotientRing_generic(QuotientRing_nc, ring.CommutativeRing):
     r"""
     Creates a quotient ring of a *commutative* ring `R` by the ideal `I`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R.<x> = PolynomialRing(ZZ)
         sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])

@@ -992,7 +992,7 @@ class GiacElement(ExpectElement):
         therefore only very simple expressions will convert successfully.
         Warning: List conversion is slow.
 
-        EXAMPLE::
+        EXAMPLES::
 
         sage: m = giac('x^2 + 5*y')
         sage: m.sage()

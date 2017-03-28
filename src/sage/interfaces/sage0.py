@@ -447,7 +447,7 @@ class SageElement(ExpectElement):
         """
         Return local copy of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system()

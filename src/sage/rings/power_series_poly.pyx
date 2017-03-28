@@ -108,7 +108,7 @@ cdef class PowerSeries_poly(PowerSeries):
         """
         Return the underlying polynomial of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<t> = GF(7)[[]]
             sage: f = 3 - t^3 + O(t^5)
@@ -791,7 +791,7 @@ cdef class PowerSeries_poly(PowerSeries):
         Otherwise, we call _derivative(var) on each coefficient of
         the series.
 
-        SEE ALSO::
+        SEEALSO::
 
             self.derivative()
 

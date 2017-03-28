@@ -2321,7 +2321,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         - ``permutation`` -- a ``PermutationGroupElement``.
 
-        EXAMPLE: We create a matrix::
+        EXAMPLES: We create a matrix::
 
             sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
             sage: M
@@ -2373,7 +2373,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         - A matrix.
 
-        EXAMPLE: We create some matrix::
+        EXAMPLES: We create some matrix::
 
             sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
             sage: M
@@ -2506,7 +2506,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         - ``permutation`` -- a ``PermutationGroupElement``
 
-        EXAMPLE: We create a matrix::
+        EXAMPLES: We create a matrix::
 
             sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
             sage: M
@@ -2556,7 +2556,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         - A matrix.
 
-        EXAMPLE: We create a matrix::
+        EXAMPLES: We create a matrix::
 
             sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
             sage: M
@@ -2615,7 +2615,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         - A matrix.
 
-        EXAMPLE: We create a matrix::
+        EXAMPLES: We create a matrix::
 
             sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
             sage: M
@@ -2661,7 +2661,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         - A matrix.
 
-        EXAMPLE: We create a matrix::
+        EXAMPLES: We create a matrix::
 
             sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
             sage: M
@@ -4277,7 +4277,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         It is safe to change the resulting list (unless you give the option copy=False).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Matrix(CC, [[1,0],[0,1]], sparse=True)
             sage: M._nonzero_positions_by_row()

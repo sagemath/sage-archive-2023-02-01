@@ -30,7 +30,7 @@ The M4RIE library offers two matrix representations:
 
 See http://m4ri.sagemath.org for more details on the M4RIE library.
 
-EXAMPLE::
+EXAMPLES::
 
     sage: K.<a> = GF(2^8)
     sage: A = random_matrix(K, 3,4)
@@ -108,7 +108,7 @@ cdef class M4RIE_finite_field:
 
     def __cinit__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.matrix.matrix_gf2e_dense import M4RIE_finite_field
             sage: K = M4RIE_finite_field(); K
@@ -118,7 +118,7 @@ cdef class M4RIE_finite_field:
 
     def __dealloc__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.matrix.matrix_gf2e_dense import M4RIE_finite_field
             sage: K = M4RIE_finite_field()
@@ -220,7 +220,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         - ``copy`` - ignored, elements are always copied
         - ``coerce`` - ignored, elements are always coerced
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(2^4)
             sage: l = [K.random_element() for _ in range(3*4)]; l
@@ -280,7 +280,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         - ``j`` - column index
         - ``value`` - a finite field element (not checked but assumed)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(2^4)
             sage: A = Matrix(K,3,4,[K.random_element() for _ in range(3*4)]); A
@@ -304,7 +304,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         - ``i`` - row index
         - ``j`` - column index
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(2^4)
             sage: A = random_matrix(K,3,4)
@@ -328,7 +328,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
         - ``right`` - a matrix
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(2^4)
             sage: A = random_matrix(K,3,4); A
@@ -356,7 +356,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
     cpdef _sub_(self, right):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.matrix.matrix_gf2e_dense import Matrix_gf2e_dense
             sage: K.<a> = GF(2^4)
@@ -676,7 +676,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
     def __neg__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(2^4)
             sage: A = random_matrix(K, 3, 4); A
@@ -693,7 +693,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
     cpdef int _cmp_(self, right) except -2:
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(2^4)
             sage: A = random_matrix(K,3,4)
@@ -710,7 +710,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
     def __copy__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(2^4)
             sage: m,n  = 3, 4
@@ -738,7 +738,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
     def _list(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(2^4)
             sage: m,n  = 3, 4
@@ -773,7 +773,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
         -  None, the matrix is modified in-place
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(2^4)
             sage: A = Matrix(K,3,3)
@@ -882,7 +882,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
           guarantee is given that the matrix is *not* reduced if
           ``False`` (default: ``True``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(2^4)
             sage: m,n  = 3, 5
@@ -964,7 +964,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
     def _pivots(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(2^8)
             sage: A = random_matrix(K, 15, 15)
@@ -989,7 +989,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
     def __invert__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(2^3)
             sage: A = random_matrix(K,3,3); A
@@ -1025,7 +1025,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         - ``multiple`` - finite field element to scale by
         - ``start_col`` - only start at this column index.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(2^3)
             sage: A = random_matrix(K,3,3); A
@@ -1058,7 +1058,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         - ``multiple`` -  finite field element
         - ``start_col`` - only start at this column index
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(2^3)
             sage: A = random_matrix(K,3,3); A
@@ -1085,7 +1085,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         - ``row1`` - row index
         - ``row2`` - row index
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(2^3)
             sage: A = random_matrix(K,3,3)
@@ -1111,7 +1111,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         - ``col1`` - column index
         - ``col2`` - column index
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(2^3)
             sage: A = random_matrix(K,3,3)
@@ -1150,7 +1150,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
         - ``right`` - a matrix
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(2^4)
             sage: MS = MatrixSpace(K,3,3)
@@ -1224,7 +1224,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
         - ``other`` - a matrix
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(2^4)
             sage: A = random_matrix(K,2,2); A
@@ -1355,7 +1355,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         """
         Return the rank of this matrix (cached).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(2^4)
             sage: A = random_matrix(K, 1000, 1000)
@@ -1380,7 +1380,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
     def __hash__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(2^4)
             sage: A = random_matrix(K, 1000, 1000)
@@ -1393,7 +1393,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
     def __reduce__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(2^8)
             sage: A = random_matrix(K,70,70)
@@ -1434,7 +1434,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         returns a tuple of matrices `C` whose entry `C_i[x,y]` is the
         coefficient of `c_i` in `A[x,y]` if this matrix is `A`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(2^2)
             sage: A = random_matrix(K, 5, 5); A
@@ -1526,7 +1526,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
         - ``C`` - a list of matrices over GF(2)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(2^2)
             sage: A = matrix(K, 5, 5)
@@ -1612,7 +1612,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
 def unpickle_matrix_gf2e_dense_v0(Matrix_mod2_dense a, base_ring, nrows, ncols):
     r"""
-    EXAMPLE::
+    EXAMPLES::
 
         sage: K.<a> = GF(2^2)
         sage: A = random_matrix(K,10,10)

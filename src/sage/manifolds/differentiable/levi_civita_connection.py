@@ -295,7 +295,7 @@ class LeviCivitaConnection(AffineConnection):
         - instance of :class:`LeviCivitaConnection` representing the
           restriction.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
@@ -562,7 +562,7 @@ class LeviCivitaConnection(AffineConnection):
         - the torsion tensor `T`, as a vanishing instance of
           :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
@@ -618,7 +618,7 @@ class LeviCivitaConnection(AffineConnection):
         - the Riemann curvature tensor `R`, as an instance of
           :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
 
-        EXAMPLE:
+        EXAMPLES:
 
         Riemann tensor of the Levi-Civita connection associated with the
         metric of the hyperbolic plane (Poincare disk model)::

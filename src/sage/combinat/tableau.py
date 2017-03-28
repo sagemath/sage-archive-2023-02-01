@@ -46,7 +46,7 @@ Parent classes:
 
 For display options, see :meth:`Tableaux.options`.
 
-.. TODO:
+.. TODO::
 
     - Move methods that only apply to semistandard tableaux from tableau to
       semistandard tableau
@@ -141,7 +141,7 @@ class Tableau(ClonableList):
         sage: T([[1, 2, 3], [4, 5]])
         [[1, 2, 3], [4, 5]]
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         - :class:`Tableaux`
         - :class:`SemistandardTableaux`
@@ -802,7 +802,7 @@ class Tableau(ClonableList):
 
         This function exists mainly for compatibility with :class:`TableauTuple`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Tableau([[1,2,3],[4,5]]).level()
             1
@@ -4111,7 +4111,7 @@ class SemistandardTableau(Tableau):
         sage: SST([[1, 2, 3], [4, 5]])
         [[1, 2, 3], [4, 5]]
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         - :class:`Tableaux`
         - :class:`Tableau`
@@ -4252,7 +4252,7 @@ class StandardTableau(SemistandardTableau):
         sage: ST([[1, 2, 3], [4, 5]])
         [[1, 2, 3], [4, 5]]
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         - :class:`Tableaux`
         - :class:`Tableau`
@@ -4688,7 +4688,7 @@ class Tableaux(UniqueRepresentation, Parent):
         sage: T.category()
         Category of sets
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         - :class:`Tableau`
         - :class:`SemistandardTableaux`
@@ -5156,7 +5156,7 @@ class SemistandardTableaux(Tableaux):
         sage: SemistandardTableaux()[0]
         []
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         - :class:`Tableaux`
         - :class:`Tableau`
@@ -6411,7 +6411,7 @@ class StandardTableaux(SemistandardTableaux):
         sage: ST.list()
         [[[1, 2, 3]], [[1, 3], [2]], [[1, 2], [3]], [[1], [2], [3]]]
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         - :class:`Tableaux`
         - :class:`Tableau`

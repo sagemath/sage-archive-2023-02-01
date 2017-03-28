@@ -651,8 +651,8 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: (out, err, ret) = test_executable(L) # optional - rst2ipynb
         sage: print(out)                           # optional - rst2ipynb
         {
-         "nbformat_minor": 0,
-         "nbformat": 4,
+         "nbformat_minor": ...,
+         "nbformat": ...,
          "cells": [
           {
            "source": [
@@ -732,8 +732,8 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         ('', '', 0)
         sage: print(open(output, 'r').read()) # optional - rst2ipynb
         {
-         "nbformat_minor": 0,
-         "nbformat": 4,
+         "nbformat_minor": ...,
+         "nbformat": ...,
          "cells": [
           {
            "source": [

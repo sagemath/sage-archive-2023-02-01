@@ -625,8 +625,8 @@ configurations in each degree)::
     sage: sorted(x)
     [0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3]
 
-The degree in which the Hilbert function equals the Hilbert polynomial, the
-latter always being a constant in the case of a sandpile ideal::
+The degree in which the Hilbert function starts equalling the Hilbert
+polynomial, the latter always being a constant in the case of a sandpile ideal::
 
     sage: S.postulation()
     3
@@ -687,10 +687,10 @@ for each monomial `x^c`.  The minimal free resolution of `I^h` has the form
 .. MATH::
 
     0 \leftarrow I^h
-    \leftarrow \oplus_{D\in\mathfrak{S}} S(-D)^{\beta_{0,D}}
-    \leftarrow \oplus_{D\in\mathfrak{S}} S(-D)^{\beta_{1,D}}
+    \leftarrow \bigoplus_{D\in\mathfrak{S}} S(-D)^{\beta_{0,D}}
+    \leftarrow \bigoplus_{D\in\mathfrak{S}} S(-D)^{\beta_{1,D}}
     \leftarrow \cdots
-    \leftarrow \oplus_{D\in\mathfrak{S}} S(-D)^{\beta_{r,D}}
+    \leftarrow \bigoplus_{D\in\mathfrak{S}} S(-D)^{\beta_{r,D}}
     \leftarrow 0,
 
 where the `\beta_{i,D}` are the *Betti numbers* for `I^h`.
@@ -700,7 +700,7 @@ For each divisor class `D\in\mathfrak{S}`, define a simplicial complex
 .. MATH::
 
     \Delta_D := \{I\subseteq\{0,\dots,n\}: I\subseteq\mbox{supp}(E)
-    \mbox{ for some} E \in |D|\}.
+    \mbox{ for some } E \in |D|\}.
 
 The Betti number `\beta_{i,D}` equals the dimension over `\CC` of the
 `i`-th reduced homology group of `\Delta_D`:
@@ -1794,6 +1794,7 @@ REFERENCES:
 
 .. [Levine2014] Lionel Levine. Threshold state and a conjecture of Poghosyan, Poghosyan,
    Priezzhev and Ruelle, Communications in Mathematical Physics.
+   :arxiv:`1402.3283`
 
 ---
 
@@ -1956,7 +1957,7 @@ EXAMPLES::
 
     The "nonspecial divisors" are those divisors of degree `g-1` with
     empty linear system.  The term is only defined for undirected graphs.
-    Here, `g = |E| - |V| + 1` is the genus of the graph (not counted loops
+    Here, `g = |E| - |V| + 1` is the genus of the graph (not counting loops
     as part of `|E|`).  If ``verbose`` is ``False``, the divisors are converted
     to lists of integers.
 

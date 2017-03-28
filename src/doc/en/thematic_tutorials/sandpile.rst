@@ -510,7 +510,7 @@ undirected graphs, is the lattice ideal for `\tilde{\mathcal{L}}`:
 
 .. MATH::
 
-    I = I(\Gamma_s) := \{x^u-x^v : u-v \in
+    I = I(\Gamma_s) := \CC[\Gamma_s] \cdot \{x^u-x^v : u-v \in
     \tilde{\mathcal{L}}\}\subset\CC[\Gamma_s],
 
 where `x^u := \prod_{i=1}^n x^{u_i}` for `u \in \ZZ^n`.
@@ -553,7 +553,8 @@ its transpose, `L^t.`  Then `I^h` is the lattice ideal for `\mathcal{L}`:
 
 .. MATH::
 
-    I^h = I^h(\Gamma) := \{x^u-x^v: u-v \in\mathcal{L}\} \subset \CC[\Gamma].
+    I^h = I^h(\Gamma) := \CC[\Gamma] \cdot \{x^u-x^v: u-v \in\mathcal{L}\}
+    \subset \CC[\Gamma].
 
 This ideal can be calculated by saturating the ideal
 

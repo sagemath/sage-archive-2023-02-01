@@ -5088,8 +5088,8 @@ class Polyhedron_base(Element):
             sage: print("There may be a recompilation warning"); PP = polymake(P); PP
             There may be a recompilation warning...
             Polytope<QuadraticExtension<Rational>>[...]
-            sage: sorted(PP.VERTICES[:])[0]
-            1 1-1r5 4-2r5 0
+            sage: sorted(PP.VERTICES[:], key=repr)[0]
+            1 -1+1r5 -4+2r5 0
 
         Floating-point polyhedron::
 
@@ -5098,8 +5098,8 @@ class Polyhedron_base(Element):
             sage: print("There may be a recompilation warning"); PP = polymake(P); PP
             There may be a recompilation warning...
             Polytope<Float>[...]
-            sage: sorted(PP.VERTICES[:])[0]
-            1 -1.236067978 -0.4721359552 0
+            sage: sorted(PP.VERTICES[:], key=repr)[0]
+            1 -0.472135955 0 -1.236067978
 
         """
         from sage.interfaces.polymake import polymake

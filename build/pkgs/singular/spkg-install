@@ -77,12 +77,12 @@ remove_old_version()
     )
     if [ "$UNAME" = "CYGWIN" ]; then
         for name in ${libs[*]}; do
-            rm -rf "$SAGE_LOCAL"/bin/cyg${name}*.dll
-            rm -rf "$SAGE_LOCAL"/lib/lib${name}*.a
+            rm -f "$SAGE_LOCAL"/bin/cyg${name}*.dll
+            rm -f "$SAGE_LOCAL"/lib/lib${name}*.a
         done
     else
         for name in ${libs[*]}; do
-            rm -rf "$SAGE_LOCAL"/lib/lib${name}*
+            rm -f "$SAGE_LOCAL"/lib/lib${name}*
         done
     fi
 

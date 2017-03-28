@@ -166,7 +166,7 @@ class Polymake(ExtraTabCompletion, Expect):
                         script_subdirectory=script_subdirectory,
                         restart_on_ctrlc=False,
                         logfile=logfile,
-                        eval_using_file_cutoff=100)
+                        eval_using_file_cutoff=1024)   # > 1024 causes hangs
 
         self._seed = seed
         self.__tab_completion = {}
@@ -391,6 +391,19 @@ class Polymake(ExtraTabCompletion, Expect):
 
             sage: polymake._read_in_file_command('foobar')
             'eval read_file "foobar";\n'
+
+        Force use of file::
+
+            sage: L = polymake([42] * 400)
+            sage: len(L)
+            400
+
+        Just below standard file cutoff of 1024::
+
+            sage: L = polymake([42] * 84)
+            sage: len(L)
+            84
+
         """
         return 'eval read_file "{}";\n'.format(filename)
 

@@ -218,8 +218,8 @@ class Lseries_complex(Lseries):
 
             sage: L = J1(31).lseries(); L
             Complex L-series attached to Abelian variety J1(31) of dimension 26
-            sage: L(1)  # long time (about 8 s)
-            3.45014267547611e-7 - 1.60790289150290e-21*I
+            sage: abs(L(1) - 3.45014267547611e-7) < 1e-15  # long time (about 8 s)
+            True
             sage: L.vanishes_at_1()  # long time (about 6 s)
             False
         """

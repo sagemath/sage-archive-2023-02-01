@@ -24,25 +24,7 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from sage.structure.element cimport have_same_parent, coercion_model
 from sage.structure.element_wrapper cimport ElementWrapper
 
-# TODO: Have the other classes inherit from this?
-# TODO: Should this be a mixin class (or moved to the category)?
-#class LieAlgebraElement_generic(ModuleElement):
-#    """
-#    Generic methods for all Lie algebra elements.
-#    """
-#    def __mul__(self, other):
-#        """
-#        If we are multiplying two non-zero elements, automatically
-#        lift up to the universal enveloping algebra.
-#
-#        EXAMPLES::
-#        """
-#        if self == 0 or other == 0:
-#            return self.parent().zero()
-#        # Otherwise we lift to the UEA
-#        return self.lift() * other
-
-# TODO: Factor out parts of CombinatorialFreeModuleElement into a SparseFreeModuleElement?
+# TODO: Inherit from IndexedFreeModuleElement and make cdef once #22632 is merged
 # TODO: Do we want a dense version?
 class LieAlgebraElement(CombinatorialFreeModule.Element):
     """
@@ -60,7 +42,7 @@ class LieAlgebraElement(CombinatorialFreeModule.Element):
             sage: y*x
             x*y - z
         """
-        if self == 0 or y == 0:
+        if self.is_zero() or y.is_zero():
             return self.parent().zero()
         if y in self.base_ring():
             return y * self
@@ -82,7 +64,6 @@ class LieAlgebraElement(CombinatorialFreeModule.Element):
     #    return codomain.sum(c * t._im_gens_(codomain, im_gens, names)
     #                        for t, c in self._monomial_coefficients.iteritems())
 
-    # TODO: Move to the category/lift morphism?
     def lift(self):
         """
         Lift ``self`` to the universal enveloping algebra.
@@ -479,12 +460,12 @@ cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
         for i1 in range(d):
             c1 = self.value[i1]
             if not c1:
-                pass
+                continue
             for i2 in range(d):
                 c2 = rt.value[i2]
-                prod_c1_c2 = c1 * c2
                 if not c2:
-                    pass
+                    continue
+                prod_c1_c2 = c1 * c2
                 if (i1, i2) in s_coeff:
                     v = s_coeff[i1, i2]
                     for i3 in range(d):

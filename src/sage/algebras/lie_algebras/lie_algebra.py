@@ -80,6 +80,10 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
     algebra homomorphism `g : U_L \to A` such that `f = g \circ h`. The
     algebra `U_L` is known as the *universal enveloping algebra* of `L`.
 
+    INPUT:
+
+    See examples below for various input options.
+
     EXAMPLES:
 
     **1.** The simplest examples of Lie algebras are *abelian Lie

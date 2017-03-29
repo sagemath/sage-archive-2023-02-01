@@ -16,6 +16,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import print_function
+
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -126,7 +128,6 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             return tuple(self.basis().keys())
 
-        @cached_method
         def _dense_free_module(self, R=None):
             """
             Return a dense free module associated to ``self`` over ``R``.
@@ -141,6 +142,30 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 R = self.base_ring()
             from sage.modules.free_module import FreeModule
             return FreeModule(R, self.dimension())
+
+        module = _dense_free_module
+
+        def from_vector(self, v):
+            """
+            Return the element of ``self`` corresponding to the
+            vector ``v`` in ``self.module()``.
+
+            Implement this if you implement :meth:`module`; see the
+            documentation of
+            :meth:`sage.categories.lie_algebras.LieAlgebras.module`
+            for how this is to be done.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
+                sage: u = L.from_vector(vector(QQ, (1, 0, 0))); u
+                (1, 0, 0)
+                sage: parent(u) is L
+                True
+            """
+            B = self.basis()
+            return self.sum(v[i] * B[k] for i,k in enumerate(self._basis_ordering)
+                            if v[i] != 0)
 
         def killing_matrix(self, x, y):
             r"""
@@ -273,10 +298,72 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     if not include_zeros and val == zero:
                         continue
                     if self._basis_key(x) > self._basis_key(y):
-                        d[(y, x)] = -val
+                        d[y,x] = -val
                     else:
-                        d[(x, y)] = val
+                        d[x,y] = val
             return Family(d)
+
+        def centralizer_basis(self, S):
+            """
+            Return a basis of the centralizer of ``S`` in ``self``.
+
+            INPUT:
+
+            - ``S`` -- a subalgebra of ``self`` or a list of elements that
+              represent generators for a subalgebra
+
+            .. SEEALSO::
+
+                :meth:`centralizer`
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
+                sage: a,b,c = L.lie_algebra_generators()
+                sage: L.centralizer_basis([a + b, 2*a + c])
+                [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
+
+                sage: H = lie_algebras.Heisenberg(QQ, 2)
+                sage: H.centralizer_basis(H)
+                [z]
+
+
+                sage: D = DescentAlgebra(QQ, 4).D()
+                sage: L = LieAlgebra(associative=D)
+                sage: L.centralizer_basis(L)
+                [D{},
+                 D{1} + D{1, 2} + D{2, 3} + D{3},
+                 D{1, 2, 3} + D{1, 3} + D{2}]
+                sage: D.center_basis()
+                (D{},
+                 D{1} + D{1, 2} + D{2, 3} + D{3},
+                 D{1, 2, 3} + D{1, 3} + D{2})
+            """
+            #from sage.algebras.lie_algebras.subalgebra import LieSubalgebra
+            #if isinstance(S, LieSubalgebra) or S is self:
+            if S is self:
+                from sage.matrix.special import identity_matrix
+                m = identity_matrix(self.base_ring(), self.dimension())
+            elif isinstance(S, (list, tuple)):
+                m = matrix([v.to_vector() for v in self.echelon_form(S)])
+            else:
+                m = self.subalgebra(S).basis_matrix()
+
+            S = self.structure_coefficients()
+            sc = {}
+            for k in S.keys():
+                v = S[k].to_vector()
+                sc[k] = v
+                sc[k[1],k[0]] = -v
+            X = self.basis().keys()
+            d = len(X)
+            c_mat = matrix(self.base_ring(),
+                           [[sum(m[i,j] * sc[x,xp][k] for j,xp in enumerate(X)
+                                 if (x, xp) in sc)
+                             for x in X]
+                            for i in range(d) for k in range(d)])
+            C = c_mat.right_kernel().basis_matrix()
+            return [self.from_vector(v) for v in C]
 
         def centralizer(self, S):
             """
@@ -284,8 +371,12 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             INPUT:
 
-            - ``S`` -- a subalgebra of ``self`` or a set of elements which
+            - ``S`` -- a subalgebra of ``self`` or a list of elements that
               represent generators for a subalgebra
+
+            .. SEEALSO::
+
+                :meth:`centralizer_basis`
 
             EXAMPLES::
 
@@ -299,25 +390,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 [0 1 0]
                 [0 0 1]
             """
-            #from sage.algebras.lie_algebras.subalgebra import LieSubalgebra
-            #if isinstance(S, LieSubalgebra) or S is self:
-            if S is self:
-                K = S
-            else:
-                K = self.subalgebra(S)
-
-            m = K.basis_matrix()
-            S = self.structure_coefficients()
-            sc = {k: S[k].to_vector() for k in S.keys()}
-            X = self.basis().keys()
-            d = self.dimension()
-            K = sc.keys()
-            c_mat = matrix(self.base_ring(),
-                           [[sum(r[j]*sc[x,X[j]][k] for j in range(d) if (x, X[j]) in K)
-                             for x in X]
-                            for r in m for k in range(d)])
-            C = c_mat.right_kernel().basis_matrix()
-            return self.subalgebra([self.from_vector(v) for v in C])
+            return self.subalgebra(self.centralizer_basis(S))
 
         def center(self):
             """
@@ -619,7 +692,34 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             P = self.parent()
             basis = P.basis()
             return matrix(self.base_ring(),
-                          [vector(P.bracket(self, b).to_vector()) for b in basis])
+                          [P.bracket(self, b).to_vector() for b in basis])
+
+        def to_vector(self):
+            """
+            Return the vector in ``g.module()`` corresponding to the
+            element ``self`` of ``g`` (where ``g`` is the parent of
+            ``self``).
+
+            Implement this if you implement ``g.module()``.
+            See :meth:`sage.categories.lie_algebras.LieAlgebras.module`
+            for how this is to be done.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
+                sage: L.an_element().to_vector()
+                (0, 0, 0)
+
+                sage: D = DescentAlgebra(QQ, 4).D()
+                sage: L = LieAlgebra(associative=D)
+                sage: L.an_element().to_vector()
+                (1, 1, 1, 1, 1, 1, 1, 1)
+            """
+            M = self.parent().module()
+            B = M.basis()
+            return M.sum(self[k] * B[i] for i,k in enumerate(self.parent()._basis_ordering))
+
+        _vector_ = to_vector
 
     class Subobjects(SubobjectsCategory):
         """

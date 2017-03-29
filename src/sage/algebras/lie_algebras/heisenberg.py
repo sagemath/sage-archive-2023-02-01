@@ -73,7 +73,9 @@ class HeisenbergAlgebra_abstract(IndexedGenerators):
 
     def z(self):
         """
-        The generator `z` of the Heisenberg algebra.
+        Return the basis element `z` of the Heisenberg algebra.
+
+        The element `z` spans the center of the Heisenberg algebra.
 
         EXAMPLES::
 
@@ -125,15 +127,17 @@ class HeisenbergAlgebra_abstract(IndexedGenerators):
 
         EXAMPLES::
 
-            sage: H = lie_algebras.Heisenberg(QQ, 3)
-            sage: H._latex_term(('p', 1))
+            sage: H = lie_algebras.Heisenberg(QQ, 10)
+            sage: H._latex_term('p1')
             'p_{1}'
             sage: H._latex_term('z')
             'z'
+            sage: latex(H.p(10))
+            p_{10}
         """
         if len(m) == 1:
             return m
-        return "%s_{%s}"%(m[0], m[1]) # else it is of length 2
+        return "%s_{%s}"%(m[0], m[1:]) # else it is of length at least 2
 
     Element = LieAlgebraElement
 
@@ -559,7 +563,7 @@ class HeisenbergAlgebra_matrix(HeisenbergAlgebra_fd, LieAlgebraFromAssociative):
     elementary matrices.
 
     This Lie algebra is isomorphic to the `n`-th Heisenberg algebra
-    cosnstructed in :class:`HeisenbergAlgebra`; the bases correspond to
+    constructed in :class:`HeisenbergAlgebra`; the bases correspond to
     each other.
 
     INPUT:
@@ -691,7 +695,9 @@ class HeisenbergAlgebra_matrix(HeisenbergAlgebra_fd, LieAlgebraFromAssociative):
 
     def z(self):
         """
-        Return the generator `z` of the Heisenberg algebra.
+        Return the basis element `z` of the Heisenberg algebra.
+
+        The element `z` spans the center of the Heisenberg algebra.
 
         EXAMPLES::
 

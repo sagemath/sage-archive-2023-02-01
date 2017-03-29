@@ -826,7 +826,7 @@ class Polymake(ExtraTabCompletion, Expect):
             sage: polymake.eval('FOOBAR(3);')       # optional - polymake
             Traceback (most recent call last):
             ...
-            PolymakeError: Undefined subroutine &Polymake::User::FOOBAR called at input line 1.
+            PolymakeError: Undefined subroutine &Polymake::User::FOOBAR called...
 
         If a command is incomplete, then polymake returns a continuation
         prompt. In that case, we raise an error::

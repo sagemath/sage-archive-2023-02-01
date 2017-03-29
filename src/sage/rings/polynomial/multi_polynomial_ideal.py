@@ -3530,7 +3530,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: gb  # optional - giacpy_sage
             [c^3 - 79/210*c^2 + 1/30*b + 1/70*c, b^2 - 3/5*c^2 - 1/5*b + 1/5*c, b*c + 6/5*c^2 - 1/10*b - 2/5*c, a + 2*b + 2*c - 1]
 
-            sage: ideal(J.transformed_basis()).change_ring(P).interreduced_basis()  # optional - giacpy_sage
+            sage: J.groebner_basis.set_cache(gb)  # optional - giacpy_sage
+            sage: ideal(J.transformed_basis()).change_ring(P).interreduced_basis()  # testing trac 21884
             [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
         Giac's gbasis over `\QQ` can benefit from a probabilistic lifting and

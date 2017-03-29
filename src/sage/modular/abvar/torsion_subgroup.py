@@ -151,7 +151,7 @@ class RationalTorsionSubgroup(FiniteSubgroup):
         Otherwise, the generic behavior for finite abelian variety
         subgroups is used.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = J0(11).rational_torsion_subgroup(); H = J0(13).rational_torsion_subgroup()
             sage: G == G

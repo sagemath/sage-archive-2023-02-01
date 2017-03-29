@@ -1895,7 +1895,7 @@ class TableauTuples(UniqueRepresentation, Parent):
         sage: t.category()
         Category of elements of Tableau tuples of level 3
 
-    .. SEE ALSO::
+    .. SEEALSO::
 
        - :class:`Tableau`
        - :class:`StandardTableau`

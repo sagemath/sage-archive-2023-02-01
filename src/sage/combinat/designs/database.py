@@ -1731,7 +1731,7 @@ def OA_520_plus_x(x):
     This construction is used in :func:`OA(10,520) <OA_10_520>`,
     :func:`OA(12,522) <OA_12_522>`, and :func:`OA(14,524) <OA_14_524>`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
         sage: from sage.combinat.designs.database import OA_520_plus_x
@@ -2066,7 +2066,7 @@ def QDM_19_6_1_1_1():
 
     Given in the Handbook III.3.49 [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import QDM_19_6_1_1_1
         sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
@@ -2100,7 +2100,7 @@ def QDM_21_5_1_1_1():
 
     Given in the Handbook III.3.51 [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import QDM_21_5_1_1_1
         sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
@@ -2147,7 +2147,7 @@ def QDM_21_6_1_1_5():
 
     Given in the Handbook III.3.53 [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import QDM_21_6_1_1_5
         sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
@@ -2187,7 +2187,7 @@ def QDM_25_6_1_1_5():
 
     Given in the Handbook III.3.55 [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import QDM_25_6_1_1_5
         sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
@@ -2232,7 +2232,7 @@ def QDM_33_6_1_1_1():
 
     Given in the Handbook III.3.57 [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import QDM_33_6_1_1_1
         sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
@@ -2275,7 +2275,7 @@ def QDM_37_6_1_1_1():
 
     Given in the Handbook III.3.60 [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import QDM_37_6_1_1_1
         sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
@@ -2313,7 +2313,7 @@ def QDM_35_7_1_1_7():
 
     As explained in the Handbook III.3.63 [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import QDM_35_7_1_1_7
         sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
@@ -2350,7 +2350,7 @@ def QDM_45_7_1_1_9():
 
     As explained in the Handbook III.3.71 [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import QDM_45_7_1_1_9
         sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
@@ -2387,7 +2387,7 @@ def QDM_54_7_1_1_8():
 
     As explained in the Handbook III.3.74 [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import QDM_54_7_1_1_8
         sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
@@ -2424,7 +2424,7 @@ def QDM_57_9_1_1_8():
 
     Construction shared by Julian R. Abel
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import QDM_57_9_1_1_8
         sage: from sage.combinat.designs.designs_pyx import is_quasi_difference_matrix
@@ -4142,7 +4142,7 @@ def BIBD_45_9_8(from_code=False):
     - ``from_code`` (boolean) -- whether to build the design from hardcoded data
       (default) or from the code object (much longer).
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import BIBD_45_9_8
         sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
@@ -4213,7 +4213,7 @@ def BIBD_66_6_1():
     This BIBD was obtained from La Jolla covering repository
     (https://www.ccrwest.org/cover.html) where it is attributed to Colin Barker.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import BIBD_66_6_1
         sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
@@ -4236,7 +4236,7 @@ def BIBD_76_6_1():
     This BIBD was obtained from La Jolla covering repository
     (https://www.ccrwest.org/cover.html) where it is attributed to Colin Barker.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import BIBD_76_6_1
         sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
@@ -4259,7 +4259,7 @@ def BIBD_96_6_1():
     This BIBD was obtained from La Jolla covering repository
     (https://www.ccrwest.org/cover.html) where it is attributed to Colin Barker.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import BIBD_96_6_1
         sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
@@ -4280,7 +4280,7 @@ def BIBD_106_6_1():
 
     This constructions appears in II.3.32 from [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import BIBD_106_6_1
         sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
@@ -4303,7 +4303,7 @@ def BIBD_111_6_1():
 
     This constructions appears in II.3.32 from [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import BIBD_111_6_1
         sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
@@ -4330,7 +4330,7 @@ def BIBD_126_6_1():
 
     This constructions appears in VI.16.92 from [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import BIBD_126_6_1
         sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
@@ -4357,7 +4357,7 @@ def BIBD_136_6_1():
 
     This constructions appears in II.3.32 from [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import BIBD_136_6_1
         sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
@@ -4385,7 +4385,7 @@ def BIBD_141_6_1():
 
     This constructions appears in II.3.32 from [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import BIBD_141_6_1
         sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
@@ -4416,7 +4416,7 @@ def BIBD_171_6_1():
 
     This constructions appears in II.3.32 from [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import BIBD_171_6_1
         sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
@@ -4456,7 +4456,7 @@ def HigmanSimsDesign():
     blocks `A\in W_a` and `B\in W_b` whose intersection has cardinality 2. This
     construction, due to M.Smith, can be found in [KY04]_ or in 10.A.(v) of [BvL84]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: H = designs.HigmanSimsDesign(); H  # optional - gap_packages
         Incidence structure with 176 points and 176 blocks
@@ -4505,7 +4505,7 @@ def BIBD_196_6_1():
 
     This constructions appears in II.3.32 from [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import BIBD_196_6_1
         sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
@@ -4537,7 +4537,7 @@ def BIBD_201_6_1():
 
     This constructions appears in II.3.32 from [DesignHandbook]_.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.database import BIBD_201_6_1
         sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign

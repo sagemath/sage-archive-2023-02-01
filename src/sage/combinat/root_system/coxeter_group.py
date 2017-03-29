@@ -8,6 +8,7 @@ Coxeter Groups
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from sage.misc.cachefunc import cached_function, cached_method
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
@@ -242,16 +243,15 @@ class CoxeterGroupAsPermutationGroup(UniqueRepresentation, PermutationGroup_gene
 
     def index_set(self):
         """
-        Returns the index set of this Coxeter group
+        Return the index set of this Coxeter group.
 
         EXAMPLES::
 
             sage: W = CoxeterGroup(["H",3], implementation = "permutation")  # optional - gap3
             sage: W.index_set() # optional - gap3
             [1, 2, 3]
-
         """
-        return range(1, self._semi_simple_rank+1)
+        return list(range(1, self._semi_simple_rank + 1))
 
     @cached_method
     def reflection(self, i):

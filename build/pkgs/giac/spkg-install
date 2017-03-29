@@ -38,7 +38,7 @@ echo "Configuring giac..."
 
 #    --disable-ao     (avoid libao deps)
 #    --disable-lapack (avoid lapack and blas deps because they could be from the base system)
-
+#    --disable-png    (avoid conflicts with system libpng12 and sage libpng16)
 #   On OS X (10.12) the built in intl is broken
 DISABLENLS=""
 if [ "$UNAME" = "Darwin" ]; then
@@ -46,7 +46,7 @@ if [ "$UNAME" = "Darwin" ]; then
     DISABLENLS="--disable-nls"
 fi
 
-./configure --prefix="$SAGE_LOCAL" --disable-gui --disable-ao --disable-lapack "$DISABLENLS"
+./configure --prefix="$SAGE_LOCAL" --disable-gui --disable-png --disable-ao --disable-lapack "$DISABLENLS"
 
 if [ $? -ne 0 ]; then
     exit 1

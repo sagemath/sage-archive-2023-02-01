@@ -184,7 +184,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
         """
         Returns the ring of which this ring is an extension.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = Zp(5,5)
             sage: S.<x> = R[]

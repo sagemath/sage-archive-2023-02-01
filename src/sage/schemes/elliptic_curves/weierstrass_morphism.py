@@ -86,7 +86,7 @@ class baseWI:
            In a list of automorphisms, there is no guarantee that the
            identity will be first!
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
             sage: baseWI(1,2,3,4)==baseWI(1,2,3,4)

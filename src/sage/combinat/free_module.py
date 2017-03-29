@@ -11,6 +11,7 @@ Free modules
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import range
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element, have_same_parent
@@ -1068,7 +1069,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: F is G
             False
         """
-        from six.moves import range
         if isinstance(basis_keys, range):
             basis_keys = tuple(basis_keys)
         if isinstance(basis_keys, (list, tuple)):
@@ -2406,7 +2406,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
             sage: CP._sets_keys()
             [0, 1]
         """
-        return range(len(self._sets))
+        return list(range(len(self._sets)))
 
     def _repr_(self):
         """
@@ -2466,7 +2466,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
 
          - ``i`` -- an integer
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = CombinatorialFreeModule(ZZ, [4,5]); F.__custom_name = "F"
             sage: G = CombinatorialFreeModule(ZZ, [4,6]); G.__custom_name = "G"

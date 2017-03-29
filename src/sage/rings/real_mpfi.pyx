@@ -864,7 +864,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         """
         Return a list of generators.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: RIF.gens()
             [1]
@@ -1439,7 +1439,7 @@ cdef class RealIntervalFieldElement(RingElement):
 
         (Since this interval is real, this simply returns itself.)
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             :meth:`imag`
 
@@ -2969,7 +2969,7 @@ cdef class RealIntervalFieldElement(RingElement):
         r"""
         Return the nearest integer of this interval as an interval
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             - :meth:`unique_round` -- return the round as an integer if it is
               unique and raises a ``ValueError`` otherwise
@@ -3370,7 +3370,7 @@ cdef class RealIntervalFieldElement(RingElement):
         Return the nearest integer toward zero if it is unique, otherwise raise
         a ``ValueError``.
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             :meth:`trunc` -- return the truncation as an interval (and never
             raise error)

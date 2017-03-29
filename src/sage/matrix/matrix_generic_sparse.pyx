@@ -199,7 +199,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         if entries is None or not entries:
             # be careful here. We might get entries set to be an empty list
             # because of the code implemented in matrix_space.MatrixSpace
-            # So the condtion
+            # So the condition
             #   if entries is None or not entries:
             #       ...
             # is valid. But

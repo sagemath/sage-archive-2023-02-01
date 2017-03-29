@@ -2092,7 +2092,7 @@ class qepcad_formula_factory:
         methods of ``qepcad_formula``, a symbolic equality or
         inequality, or a polynomial $p$ (meaning $p = 0$).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: var('a,b')
             (a, b)
@@ -2119,7 +2119,7 @@ class qepcad_formula_factory:
         methods of ``qepcad_formula``, a symbolic equality or
         inequality, or a polynomial $p$ (meaning $p = 0$).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: var('a,b')
             (a, b)
@@ -2147,7 +2147,7 @@ class qepcad_formula_factory:
         methods of ``qepcad_formula``, a symbolic equality or
         inequality, or a polynomial $p$ (meaning $p = 0$).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: var('a,b')
             (a, b)
@@ -2173,7 +2173,7 @@ class qepcad_formula_factory:
         methods of ``qepcad_formula``, a symbolic equality or
         inequality, or a polynomial $p$ (meaning $p = 0$).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: var('a,b')
             (a, b)
@@ -2200,7 +2200,7 @@ class qepcad_formula_factory:
         methods of ``qepcad_formula``, a symbolic equality or
         inequality, or a polynomial $p$ (meaning $p = 0$).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: var('a,b')
             (a, b)
@@ -2230,7 +2230,7 @@ class qepcad_formula_factory:
         methods of ``qepcad_formula``, a symbolic equality or
         inequality, or a polynomial $p$ (meaning $p = 0$).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: var('a,b')
             (a, b)

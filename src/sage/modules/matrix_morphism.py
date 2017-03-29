@@ -1354,7 +1354,7 @@ class MatrixMorphism(MatrixMorphism_abstract):
         """
         Tell whether ``self`` is injective.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: V1 = QQ^2
             sage: V2 = QQ^3

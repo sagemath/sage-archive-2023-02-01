@@ -724,7 +724,7 @@ class Point(PrimitiveObject):
 
     -  ``size`` -- (default: 1)
 
-    EXAMPLE:
+    EXAMPLES:
 
     We normally access this via the ``point3d`` function.  Note that extra
     keywords are correctly used::

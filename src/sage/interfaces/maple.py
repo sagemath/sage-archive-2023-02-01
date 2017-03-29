@@ -1099,7 +1099,7 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
         This currently does not implement a parser for the Maple output language,
         therefore only very simple expressions will convert successfully.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: m = maple('x^2 + 5*y')                            # optional - maple
             sage: m.sage()                                          # optional - maple

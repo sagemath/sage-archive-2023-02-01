@@ -78,6 +78,7 @@ include 'sage/data_structures/bitset.pxi'
 from .matroid cimport Matroid
 from .basis_exchange_matroid cimport BasisExchangeMatroid
 from .set_system cimport SetSystem
+from cpython.object cimport Py_EQ, Py_NE
 
 from sage.arith.all import binomial
 
@@ -1152,13 +1153,13 @@ cdef class BasisMatroid(BasisExchangeMatroid):
             sage: M == N
             False
         """
-        if op in [0, 1, 4, 5]:  # <, <=, >, >=
+        if op not in (Py_EQ, Py_NE):
             return NotImplemented
         if not isinstance(left, BasisMatroid) or not isinstance(right, BasisMatroid):
             return NotImplemented
-        if op == 2:  # ==
+        if op == Py_EQ:
             res = True
-        if op == 3:  # !=
+        if op == Py_NE:
             res = False
         # res gets inverted if matroids are deemed different.
         if left.equals(right):

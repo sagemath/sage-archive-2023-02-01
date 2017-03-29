@@ -277,7 +277,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         - ``x`` -- a variable of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y,z> = QQ[]
             sage: P.univariate_ring(y)
@@ -505,7 +505,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
           of ``self`` will be represented as ``gap(self.base_ring()).name()``.
         - The result of applying the GAP interface to ``self`` is cached.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = CyclotomicField(8)
             sage: P.<x,y> = F[]

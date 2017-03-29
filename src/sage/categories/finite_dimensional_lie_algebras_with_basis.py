@@ -557,7 +557,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                 \mathfrak{g}_{k+1} = [\mathfrak{g}, \mathfrak{g}_{k}]
 
-            and recall that `\mathfrak{g}_k} \supseteq \mathfrak{g}_{k+1}`.
+            and recall that `\mathfrak{g}_{k} \supseteq \mathfrak{g}_{k+1}`.
             Alternatively we can express this as
 
             .. MATH::

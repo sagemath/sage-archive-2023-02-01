@@ -4907,8 +4907,7 @@ class Polyhedron_base(Element):
 
             sage: quadrangle = Polyhedron(vertices=[(0,0),(1,0),(0,1),(2,3)])
             sage: quadrangle.combinatorial_automorphism_group()
-            Permutation Group with generators [(An inequality (0,1) x + 0 >= 0,An inequality (1,0) x + 0 >= 0)(An inequality (1,-1) x + 1 >= 0,An inequality (-3,1) x + 3 >= 0)(A
-            vertex at (0,1),A vertex at (1,0)), (An inequality (0,1) x + 0 >= 0,An inequality (1,-1) x + 1 >= 0)(A vertex at (0,0),A vertex at (0,1))(A vertex at (1,0),A vertex at (2,3))]
+            Permutation Group with generators [(An inequality (0,1) x + 0 >= 0,An inequality (1,0) x + 0 >= 0)(An inequality (1,-1) x + 1 >= 0,An inequality (-3,1) x + 3 >= 0)(A vertex at (0,1),A vertex at (1,0)), (An inequality (0,1) x + 0 >= 0,An inequality (1,-1) x + 1 >= 0)(A vertex at (0,0),A vertex at (0,1))(A vertex at (1,0),A vertex at (2,3))]
             sage: quadrangle.restricted_automorphism_group()
             Permutation Group with generators [()]
 

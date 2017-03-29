@@ -1265,7 +1265,7 @@ def laplace(ex, t, s, algorithm='maxima'):
     transform parameter `s`, if possible.
     
     If this function cannot find a solution, a formal function is returned. 
-    The function that is returned may be be viewed as a function of `s`.
+    The function that is returned may be viewed as a function of `s`.
 
     DEFINITION:
 
@@ -1294,8 +1294,8 @@ def laplace(ex, t, s, algorithm='maxima'):
     
     NOTES:
     
-    - The ``'sympy'` algorithm returns the tuple (F, a, cond) where $F(s)$ is the Laplace 
-      transform of $f(t)$, $Re(s)>a$ is the half-plane of convergence, and cond 
+    - The ``'sympy'`` algorithm returns the tuple (`F`, `a`, cond) where F is the Laplace 
+      transform of `f(t)`, `Re(s)>a` is the half-plane of convergence, and cond 
       are auxiliary convergence conditions.
     
     EXAMPLES:
@@ -1517,7 +1517,7 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
         sage: inverse_laplace(cos(s), s, t)
         ilt(cos(s), s, t)
     
-    Transform an expression involving time-shifts with SymPy::
+    Transform an expression involving a time-shift, via SymPy::
 
         sage: inverse_laplace(1/s^2*exp(-s), s, t, algorithm='sympy')
         -(log(e^(-t)) + 1)*heaviside(t - 1)
@@ -1575,12 +1575,12 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
         sage: inverse_laplace(1/s^n, s, t, algorithm='sympy')
         t^(n - 1)*heaviside(t)/gamma(n)
     
-    Testing unevaluated expression from sympy::
+    Testing unevaluated expression from SymPy::
     
         sage: inverse_laplace(cos(s), s, t, algorithm='sympy')
         ilt(cos(s), t, s)
     
-    Testing unevaluated expression from giac::
+    Testing unevaluated expression from Giac::
     
         sage: inverse_laplace(cos(s), s, t, algorithm='giac')
         Traceback (most recent call last):

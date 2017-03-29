@@ -744,7 +744,7 @@ def reduce_negative(Q, p, coeffs, offset, exact_form=None):
     in coeffs[offset]. Note that coeffs[i] will be meaningless for i
     offset after this function is finished.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R.<x> = Integers(5^3)['x']
         sage: Q = x^3 - x + R(1/4)
@@ -845,7 +845,7 @@ def reduce_positive(Q, p, coeffs, offset, exact_form=None):
     in coeffs[offset]. Note that coeffs[i] will be meaningless for i
     offset after this function is finished.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R.<x> = Integers(5^3)['x']
         sage: Q = x^3 - x + R(1/4)
@@ -937,7 +937,7 @@ def reduce_zero(Q, coeffs, offset, exact_form=None):
     in coeffs[offset]. This method completely ignores coeffs[i] for i
     != offset.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R.<x> = Integers(5^3)['x']
         sage: Q = x^3 - x + R(1/4)
@@ -996,7 +996,7 @@ def reduce_all(Q, p, coeffs, offset, compute_exact_form=False):
        The algorithm operates in-place, so the data in coeffs is
        destroyed.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R.<x> = Integers(5^3)['x']
         sage: Q = x^3 - x + R(1/4)

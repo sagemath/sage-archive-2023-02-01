@@ -16,6 +16,7 @@ AUTHOR:
 #*****************************************************************************
 
 from sage.structure.element import ModuleElement
+from sage.structure.sage_object import richcmp
 
 # This adds extra maybe-not-necessary checks in the code, but could
 # slow things down.  It can impact what happens in more than just this
@@ -400,7 +401,7 @@ class FGP_Element(ModuleElement):
         else:
             return v.change_ring(base_ring)
 
-    def __cmp__(self, right):
+    def _richcmp_(self, right, op):
         """
         Compare self and right.
 
@@ -420,7 +421,7 @@ class FGP_Element(ModuleElement):
             sage: x + x == 2*x
             True
         """
-        return cmp(self.vector(), right.vector())
+        return richcmp(self.vector(), right.vector(), op)
 
     def additive_order(self):
         """

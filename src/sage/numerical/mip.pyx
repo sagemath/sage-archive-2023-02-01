@@ -413,7 +413,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         - :meth:`default_mip_solver` -- Returns/Sets the default MIP solver.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(maximization=True)
 
@@ -534,7 +534,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
          r"""
          Returns a short description of the ``MixedIntegerLinearProgram``.
 
-         EXAMPLE::
+         EXAMPLES::
 
              sage: p = MixedIntegerLinearProgram(solver='GLPK')
              sage: v = p.new_variable(nonnegative=True)
@@ -558,7 +558,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         r"""
         Returns a copy of the current ``MixedIntegerLinearProgram`` instance.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: v = p.new_variable(nonnegative=True)
@@ -604,7 +604,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         Return a deep copy of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: b = p.new_variable()
@@ -640,7 +640,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         See :meth:`new_variable` for a way to have separate :class:`MIPVariable`s
         each of which have their own key space.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: p.set_objective(p['x'] + p['z'])
@@ -685,7 +685,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         - ``name`` -- A string representing the name of the
           ``MixedIntegerLinearProgram``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: p.set_problem_name("Test program")
@@ -825,7 +825,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         Return the default :class:`MIPVariable` of `self`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: p.default_variable()
@@ -876,7 +876,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             in the backend if it does not exist, and most methods
             do not accept this variable as valid input.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: mip = MixedIntegerLinearProgram(solver='GLPK')
             sage: mip.gen(0)
@@ -892,7 +892,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
       r"""
       Returns the number of constraints assigned so far.
 
-      EXAMPLE::
+      EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: p.add_constraint(p[0] - p[2], min = 1, max = 4)
@@ -913,7 +913,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
       equations, by adding extra variables: `c^T x + y = M`, `0 <= y
       <= M-m`.
 
-      EXAMPLE::
+      EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: p.add_constraint(p[0] - p[2], max = 4)
@@ -960,7 +960,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         ``lower_bound`` and ``upper_bound`` are numerical values.
 
-        EXAMPLE:
+        EXAMPLES:
 
         First, let us define a small LP::
 
@@ -1016,7 +1016,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         # If indices is None, we actually want to return all constraints
         if indices is None:
-          indices = range(b.nrows())
+          indices = list(xrange(b.nrows()))
 
         # Only one constraint
         if isinstance(indices, int) or isinstance(indices, Integer):
@@ -1321,7 +1321,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             - ``True`` -- Outputs the problem in Free MPS
             - ``False`` -- Outputs the problem in Fixed MPS
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver="GLPK")
             sage: x = p.new_variable(nonnegative=True)
@@ -1347,7 +1347,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         - ``filename`` -- The file in which you want the problem
           to be written.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver="GLPK")
             sage: x = p.new_variable(nonnegative=True)
@@ -1384,7 +1384,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             While a variable may be declared as binary or integer, its value as
             returned by the solver is of type ``float``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: x = p.new_variable(nonnegative=True)
@@ -1484,7 +1484,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
           ( can also be set to ``None`` or ``0`` or any number when just
           looking for a feasible solution )
 
-        EXAMPLE:
+        EXAMPLES:
 
         Let's solve the following linear program::
 
@@ -1586,7 +1586,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         To set a lower and/or upper bound on the variables use the methods
         ``set_min`` and/or ``set_max`` of ``MixedIntegerLinearProgram``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Consider the following linear program::
 
@@ -1870,7 +1870,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         - ``i`` -- Index of the constraint to remove.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: x, y = p[0], p[1]
@@ -1907,7 +1907,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         - ``constraints`` -- an iterable containing the indices of the rows to remove.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: x, y = p[0], p[1]
@@ -1974,7 +1974,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         - ``ee`` -- An instance of ``MIPVariable`` or one of
           its elements.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: x = p.new_variable(nonnegative=True)
@@ -2017,7 +2017,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         ``True`` if the variable ``e`` is binary; ``False`` otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: v = p.new_variable(nonnegative=True)
@@ -2039,7 +2039,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         - ``ee`` -- An instance of ``MIPVariable`` or one of
           its elements.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: x = p.new_variable(nonnegative=True)
@@ -2081,7 +2081,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         ``True`` if the variable ``e`` is an integer; ``False`` otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: v = p.new_variable(nonnegative=True)
@@ -2103,7 +2103,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         - ``ee`` -- An instance of ``MIPVariable`` or one of
           its elements.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: x = p.new_variable(nonnegative=True)
@@ -2147,7 +2147,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         ``True`` if the variable is real; ``False`` otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: v = p.new_variable(nonnegative=True)
@@ -2223,7 +2223,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: b = p.new_variable(nonnegative=True)
             sage: p.set_objective(sum([b[v] for v in g]))
             sage: for (u,v) in g.edges(labels=None):
-            ...       p.add_constraint(b[u] + b[v], max=1)
+            ....:     p.add_constraint(b[u] + b[v], max=1)
             sage: p.set_binary(b)
             sage: p.solve(objective_only=True)
             4.0
@@ -2258,7 +2258,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
             - :meth:`get_min` -- get the minimum value of a variable.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: v = p.new_variable(nonnegative=True)
@@ -2298,7 +2298,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         - ``max`` -- the maximum value the variable can take.  When
           ``max=None``, the variable has no upper bound.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: v = p.new_variable(nonnegative=True)
@@ -2337,7 +2337,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         Minimum value of the variable, or ``None`` if the variable has no lower
         bound.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: v = p.new_variable(nonnegative=True)
@@ -2368,7 +2368,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         Maximum value of the variable, or ``None`` if the variable has no upper
         bound.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: v = p.new_variable(nonnegative=True)
@@ -2451,7 +2451,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         - ``value`` -- the parameter's value if it is to be defined,
           or ``None`` (default) to obtain its current value.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver = "GLPK")
             sage: p.solver_parameter("timelimit", 60)
@@ -2506,7 +2506,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         This might be useful when access to additional functions provided by
         the backend is needed.
 
-        EXAMPLE:
+        EXAMPLES:
 
         This example uses the simplex algorithm and prints information::
 
@@ -2518,12 +2518,13 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: b = p.get_backend()
             sage: b.solver_parameter("simplex_or_intopt", "simplex_only")
             sage: b.solver_parameter("verbosity_simplex", "GLP_MSG_ALL")
-            sage: p.solve()  # rel tol 1e-5
-            GLPK Simplex Optimizer, v4.60
+            sage: ans = p.solve()
+            GLPK Simplex Optimizer, v...
             2 rows, 2 columns, 4 non-zeros
             *     0: obj =   7.000000000e+00 inf =   0.000e+00 (2)
             *     2: obj =   9.400000000e+00 inf =   0.000e+00 (0)
             OPTIMAL LP SOLUTION FOUND
+            sage: ans # rel tol 1e-5
             9.4
         """
         return self._backend
@@ -2536,7 +2537,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
            Behaviour is undefined unless ``solve`` has been called before.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver="GLPK")
             sage: x, y = p[0], p[1]
@@ -2565,7 +2566,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
            Has no meaning unless ``solve`` has been called before.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = graphs.CubeGraph(9)
             sage: p = MixedIntegerLinearProgram(solver="GLPK")
@@ -2599,7 +2600,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
            Has no meaning unless ``solve`` has been called before.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = graphs.CubeGraph(9)
             sage: p = MixedIntegerLinearProgram(solver="GLPK")
@@ -2643,7 +2644,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         All variables must have 0 as lower bound and no upper bound.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(names=['m'], solver="GLPK")
             sage: x = p.new_variable(nonnegative=True)
@@ -2768,7 +2769,7 @@ class MIPSolverException(RuntimeError):
     r"""
     Exception raised when the solver fails.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.numerical.mip import MIPSolverException
         sage: e = MIPSolverException("Error")
@@ -2848,7 +2849,7 @@ cdef class MIPVariable(Element):
         For more informations, see the method
         ``MixedIntegerLinearProgram.new_variable``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: p.new_variable(nonnegative=True)
@@ -2866,7 +2867,7 @@ cdef class MIPVariable(Element):
         r"""
         Returns a copy of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: pv = p.new_variable(nonnegative=True)
@@ -2888,7 +2889,7 @@ cdef class MIPVariable(Element):
         r"""
         Returns a copy of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: pv = p.new_variable(nonnegative=True)
@@ -2912,7 +2913,7 @@ cdef class MIPVariable(Element):
 
         Returns the element asked, otherwise creates it.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: v = p.new_variable(nonnegative=True)
@@ -2947,7 +2948,7 @@ cdef class MIPVariable(Element):
         For this to make sense, ``mip`` should have been obtained as a copy of
         ``self.mip()``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: pv = p.new_variable(nonnegative=True)
@@ -3052,7 +3053,7 @@ cdef class MIPVariable(Element):
         r"""
         Returns a representation of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p=MixedIntegerLinearProgram(solver='GLPK')
             sage: v=p.new_variable()
@@ -3065,7 +3066,7 @@ cdef class MIPVariable(Element):
         r"""
         Returns the keys already defined in the dictionary.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: v = p.new_variable(nonnegative=True)
@@ -3079,7 +3080,7 @@ cdef class MIPVariable(Element):
         r"""
         Returns the pairs (keys,value) contained in the dictionary.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: v = p.new_variable(nonnegative=True)
@@ -3093,7 +3094,7 @@ cdef class MIPVariable(Element):
         r"""
         Returns the symbolic variables associated to the current dictionary.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: v = p.new_variable(nonnegative=True)
@@ -3107,7 +3108,7 @@ cdef class MIPVariable(Element):
         r"""
         Returns the :class:`MixedIntegerLinearProgram` in which ``self`` is a variable.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: v = p.new_variable(nonnegative=True)

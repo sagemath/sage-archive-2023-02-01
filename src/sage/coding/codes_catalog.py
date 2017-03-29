@@ -1,5 +1,5 @@
 r"""
-Index of codes
+Index of code constructions
 
 The ``codes`` object may be used to access the codes that Sage can build.
 
@@ -12,37 +12,55 @@ The ``codes`` object may be used to access the codes that Sage can build.
         sage: from sage.coding.codes_catalog import *
 
 """
-from __future__ import absolute_import
+#*****************************************************************************
+#       Copyright (C) 2009 David Lucas <david.lucas@inria.fr>
+#
+#  Distributed under the terms of the GNU General Public License (GPL),
+#  version 2 or later (at your preference).
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 
 # Implementation note:
 #
 # This module is imported as "codes" in all.py so that codes.<tab> is available
 # in the global namespace.
 
+from __future__ import absolute_import
 from sage.misc.lazy_import import lazy_import as _lazy_import
 
 from .linear_code import LinearCode
-from .code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGeneratingPolynomial,
-                                CyclicCode, CyclicCodeFromCheckPolynomial, DuadicCodeEvenPair,
-                                DuadicCodeOddPair, ExtendedBinaryGolayCode,
-                                ExtendedQuadraticResidueCode, ExtendedTernaryGolayCode,
-                                from_parity_check_matrix,
-                                LinearCodeFromCheckMatrix, #deprecated
-                                QuadraticResidueCode, QuadraticResidueCodeEvenPair,
-                                QuadraticResidueCodeOddPair,
-                                random_linear_code,
-                                RandomLinearCode, #deprecated
-                                ReedSolomonCode, TernaryGolayCode,
-                                ToricCode, WalshCode)
+from sage.coding.linear_code import LinearCode
 
-from .grs import GeneralizedReedSolomonCode
-from .reed_muller_code import ReedMullerCode, BinaryReedMullerCode
-from .extended_code import ExtendedCode
-from .subfield_subcode import SubfieldSubcode
+_lazy_import('sage.coding.code_constructions',
+        ['BCHCode', 'BinaryGolayCode', 'CyclicCodeFromGeneratingPolynomial',
+         'CyclicCode', 'CyclicCodeFromCheckPolynomial', 'DuadicCodeEvenPair',
+         'DuadicCodeOddPair', 'ExtendedBinaryGolayCode',
+         'ExtendedQuadraticResidueCode', 'ExtendedTernaryGolayCode',
+         'from_parity_check_matrix',
+         'LinearCodeFromCheckMatrix', #deprecated
+         'QuadraticResidueCode', 'QuadraticResidueCodeEvenPair',
+         'QuadraticResidueCodeOddPair',
+         'random_linear_code',
+         'RandomLinearCode', #deprecated
+         'ReedSolomonCode', 'TernaryGolayCode',
+         'ToricCode', 'WalshCode'])
 
-from .guava import QuasiQuadraticResidueCode, RandomLinearCodeGuava
+_lazy_import('sage.coding.bch', 'BCHCode')
+_lazy_import('sage.coding.cyclic_code', 'CyclicCode')
+_lazy_import('sage.coding.extended_code', 'ExtendedCode')
+_lazy_import('sage.coding.golay_code', 'GolayCode')
+_lazy_import('sage.coding.grs', 'GeneralizedReedSolomonCode')
+_lazy_import('sage.coding.guava', ['QuasiQuadraticResidueCode',
+                                    'RandomLinearCodeGuava'])
+_lazy_import('sage.coding.hamming_code', 'HammingCode')
+_lazy_import('sage.coding.parity_check_code', 'ParityCheckCode')
 _lazy_import('sage.coding.punctured_code', 'PuncturedCode')
-from .hamming_code import HammingCode
+_lazy_import('sage.coding.reed_muller_code', ['BinaryReedMullerCode',
+                                              'ReedMullerCode'])
+_lazy_import('sage.coding.subfield_subcode', 'SubfieldSubcode')
+
 from . import decoders_catalog as decoders
 from . import encoders_catalog as encoders
 from . import bounds_catalog as bounds

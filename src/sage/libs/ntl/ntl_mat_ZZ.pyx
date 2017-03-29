@@ -20,7 +20,7 @@ from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
 from cpython.object cimport PyObject_RichCompare
 
-from ntl_ZZ import unpickle_class_args
+from .ntl_ZZ import unpickle_class_args
 
 cdef inline ntl_ZZ make_ZZ(ZZ_c* x):
     cdef ntl_ZZ y
@@ -320,7 +320,7 @@ cdef class ntl_mat_ZZ(object):
 
     def list(self):
         """
-        EXAMPLE:
+        EXAMPLES:
             sage: m = ntl.mat_ZZ(3, 4, range(12)); m
             [
             [0 1 2 3]
@@ -473,7 +473,7 @@ cdef class ntl_mat_ZZ(object):
             prune -- see above (default: 0)
             verbose -- print verbose output (default: False)
 
-        EXAMPLE:
+        EXAMPLES:
             sage: A = Matrix(ZZ,5,5,range(25))
             sage: a = A._ntl_()
             sage: a.BKZ_FP(); a
@@ -542,7 +542,7 @@ cdef class ntl_mat_ZZ(object):
             prune -- see above (default: 0)
             verbose -- print verbose output (default: False)
 
-        EXAMPLE:
+        EXAMPLES:
             sage: A = Matrix(ZZ,5,5,range(25))
             sage: a = A._ntl_()
             sage: a.BKZ_QP(); a
@@ -611,7 +611,7 @@ cdef class ntl_mat_ZZ(object):
             prune -- see above (default: 0)
             verbose -- print verbose output (default: False)
 
-        EXAMPLE:
+        EXAMPLES:
             sage: A = Matrix(ZZ,5,5,range(25))
             sage: a = A._ntl_()
             sage: a.BKZ_QP1(); a
@@ -680,7 +680,7 @@ cdef class ntl_mat_ZZ(object):
             prune -- see above (default: 0)
             verbose -- print verbose output (default: False)
 
-        EXAMPLE:
+        EXAMPLES:
             sage: A = Matrix(ZZ,5,5,range(25))
             sage: a = A._ntl_()
             sage: a.BKZ_XD(); a
@@ -749,7 +749,7 @@ cdef class ntl_mat_ZZ(object):
             prune -- see above (default: 0)
             verbose -- print verbose output (default: False)
 
-        EXAMPLE:
+        EXAMPLES:
             sage: A = Matrix(ZZ,5,5,range(25))
             sage: a = A._ntl_()
             sage: a.BKZ_RR(); a
@@ -818,7 +818,7 @@ cdef class ntl_mat_ZZ(object):
             prune -- see above (default: 0)
             verbose -- print verbose output (default: False)
 
-        EXAMPLE:
+        EXAMPLES:
             sage: A = Matrix(ZZ,5,5,range(25))
             sage: a = A._ntl_()
             sage: a.G_BKZ_FP(); a
@@ -887,7 +887,7 @@ cdef class ntl_mat_ZZ(object):
             prune -- see above (default: 0)
             verbose -- print verbose output (default: False)
 
-        EXAMPLE:
+        EXAMPLES:
             sage: A = Matrix(ZZ,5,5,range(25))
             sage: a = A._ntl_()
             sage: a.G_BKZ_QP(); a
@@ -956,7 +956,7 @@ cdef class ntl_mat_ZZ(object):
             prune -- see above (default: 0)
             verbose -- print verbose output (default: False)
 
-        EXAMPLE:
+        EXAMPLES:
             sage: A = Matrix(ZZ,5,5,range(25))
             sage: a = A._ntl_()
             sage: a.G_BKZ_QP1(); a
@@ -1025,7 +1025,7 @@ cdef class ntl_mat_ZZ(object):
             prune -- see above (default: 0)
             verbose -- print verbose output (default: False)
 
-        EXAMPLE:
+        EXAMPLES:
             sage: A = Matrix(ZZ,5,5,range(25))
             sage: a = A._ntl_()
             sage: a.G_BKZ_XD(); a
@@ -1094,7 +1094,7 @@ cdef class ntl_mat_ZZ(object):
             prune -- see above (default: 0)
             verbose -- print verbose output (default: False)
 
-        EXAMPLE:
+        EXAMPLES:
             sage: A = Matrix(ZZ,5,5,range(25))
             sage: a = A._ntl_()
             sage: a.G_BKZ_RR(); a
@@ -1182,7 +1182,7 @@ cdef class ntl_mat_ZZ(object):
             above and U is an optional return value if return_U is
             True.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: M=ntl.mat_ZZ(3,3,[1,2,3,4,5,6,7,8,9])
             sage: M.LLL()
             (2, 54)
@@ -1267,7 +1267,7 @@ cdef class ntl_mat_ZZ(object):
             (rank,[U]) where rank and U are as described above and U
             is an optional return value if return_U is True.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: M=ntl.mat_ZZ(3,3,[1,2,3,4,5,6,7,8,9])
             sage: M.LLL_FP()
             2
@@ -1315,7 +1315,7 @@ cdef class ntl_mat_ZZ(object):
         Performs the same reduction as \code{self.LLL_FP} using the
         same calling conventions but with quad float precision.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: M=ntl.mat_ZZ(3,3,[1,2,3,4,5,6,7,8,9])
             sage: M.LLL_QP(delta=0.75)
             2
@@ -1339,7 +1339,7 @@ cdef class ntl_mat_ZZ(object):
         same calling conventions but with extended exponent double
         precision.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: M=ntl.mat_ZZ(3,3,[1,2,3,4,5,6,7,8,9])
             sage: M.LLL_XD(delta=0.75)
             2
@@ -1363,7 +1363,7 @@ cdef class ntl_mat_ZZ(object):
         same calling conventions but with arbitrary precision floating
         point numbers.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: M=ntl.mat_ZZ(3,3,[1,2,3,4,5,6,7,8,9])
             sage: M.LLL_RR(delta=0.75)
             2

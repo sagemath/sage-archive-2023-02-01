@@ -113,7 +113,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         This function assumes that self._numpy_dtypeint and
         self._nrows and self._ncols have already been initialized.
 
-        EXAMPLE:
+        EXAMPLES:
         In this example, we throw away the current matrix and make a
         new uninitialized matrix representing the data for the class.::
 
@@ -2113,7 +2113,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             ([], [], [])
             sage: def shape(x): return (x.nrows(), x.ncols())
             sage: m = matrix(RDF, 2, 3, range(6))
-            sage: map(shape, m.SVD())
+            sage: list(map(shape, m.SVD()))
             [(2, 2), (2, 3), (3, 3)]
             sage: for x in m.SVD(): x.is_immutable()
             True

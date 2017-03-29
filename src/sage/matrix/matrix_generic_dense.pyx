@@ -1,17 +1,19 @@
 """
 Dense Matrices over a general ring
 """
+from __future__ import absolute_import
+
 cimport cython
 from cpython.list cimport *
 from cpython.number cimport *
 from cpython.ref cimport *
 
-cimport matrix_dense
-import matrix_dense
+cimport sage.matrix.matrix_dense as matrix_dense
+from . import matrix_dense
 
-cimport matrix
+cimport sage.matrix.matrix as matrix
 
-from sage.structure.element cimport parent_c
+from sage.structure.element cimport parent as parent_c
 
 cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
     r"""
@@ -33,12 +35,12 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
     Test comparisons::
 
         sage: A = random_matrix(Integers(25)['x'],2)
-        sage: cmp(A,A)
-        0
-        sage: cmp(A,A+1)
-        -1
-        sage: cmp(A+1,A)
-        1
+        sage: A == A
+        True
+        sage: A < A + 1
+        True
+        sage: A+1 < A
+        False
     """
     ########################################################################
     # LEVEL 1 functionality
@@ -184,7 +186,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
 
     ########################################################################
     # LEVEL 2 functionality
-    #    * cdef _add_
+    # X  * cdef _add_
     #    * cdef _mul_
     #    * cpdef _cmp_
     #    * __neg__
@@ -251,6 +253,52 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
         if self._subdivisions is not None:
             A.subdivide(*self.subdivisions())
         return A
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef _add_(self, right):
+        """
+        Add two generic dense matrices with the same parent.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = FreeAlgebra(QQ,2)
+            sage: a = matrix(R, 2, 2, [1,2,x*y,y*x])
+            sage: b = matrix(R, 2, 2, [1,2,y*x,y*x])
+            sage: a._add_(b)
+            [        2         4]
+            [x*y + y*x     2*y*x]
+        """
+        cdef Py_ssize_t k
+        cdef Matrix_generic_dense other = <Matrix_generic_dense> right
+        cdef Matrix_generic_dense res = self._new(self._nrows, self._ncols)
+        res._entries = [None]*(self._nrows*self._ncols)
+        for k in range(self._nrows*self._ncols):
+            res._entries[k] = self._entries[k] + other._entries[k]
+        return res
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef _sub_(self, right):
+        """
+        Subtract two generic dense matrices with the same parent.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = FreeAlgebra(QQ,2)
+            sage: a = matrix(R, 2, 2, [1,2,x*y,y*x])
+            sage: b = matrix(R, 2, 2, [1,2,y*x,y*x])
+            sage: a._sub_(b)
+            [        0         0]
+            [x*y - y*x         0]
+        """
+        cdef Py_ssize_t k
+        cdef Matrix_generic_dense other = <Matrix_generic_dense> right
+        cdef Matrix_generic_dense res = self._new(self._nrows, self._ncols)
+        res._entries = [None]*(self._nrows*self._ncols)
+        for k in range(self._nrows*self._ncols):
+            res._entries[k] = self._entries[k] - other._entries[k]
+        return res
 
     @cython.boundscheck(False)
     @cython.wraparound(False)

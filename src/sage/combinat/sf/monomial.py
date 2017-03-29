@@ -113,8 +113,8 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
         #    return symmetrica.mult_monomial_monomial(left, right)
 
         z_elt = {}
-        for (left_m, left_c) in left._monomial_coefficients.iteritems():
-            for (right_m, right_c) in right._monomial_coefficients.iteritems():
+        for (left_m, left_c) in six.iteritems(left._monomial_coefficients):
+            for (right_m, right_c) in six.iteritems(right._monomial_coefficients):
 
                 #Hack due to symmetrica crashing when both of the
                 #partitions are the empty partition
@@ -172,7 +172,7 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
         """
         assert self.base_ring() == f.base_ring()
         out = self.sum_of_terms((Partition(e), c)
-                                for (e,c) in f.dict().iteritems()
+                                for (e,c) in six.iteritems(f.dict())
                                 if tuple(sorted(e)) == tuple(reversed(e)))
         if check and out.expand(f.parent().ngens(),f.parent().gens()) != f:
             raise ValueError("%s is not a symmetric polynomial"%f)
@@ -223,7 +223,7 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
         """
         assert self.base_ring() == p.parent().base_ring()
         return self.sum_of_terms((Partition(exp=monomial), coeff)
-                                 for (monomial, coeff) in p.dict().iteritems())
+                                 for (monomial, coeff) in six.iteritems(p.dict()))
 
     def antipode_by_coercion(self, element):
         r"""
@@ -302,4 +302,8 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
 
 # Backward compatibility for unpickling
 from sage.structure.sage_object import register_unpickle_override
+
+import six
+
+
 register_unpickle_override('sage.combinat.sf.monomial', 'SymmetricFunctionAlgebraElement_monomial',  SymmetricFunctionAlgebra_monomial.Element)

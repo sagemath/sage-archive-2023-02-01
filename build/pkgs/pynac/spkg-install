@@ -3,17 +3,13 @@
 ## pynac
 ###########################################
 
-
-# The makefile system sets this variable, which screws up autoconf...
-unset PYTHON
-
 if [ "$SAGE_LOCAL" = "" ]; then
     echo "SAGE_LOCAL undefined ... exiting";
     echo "Maybe run 'sage -sh'?"
     exit 1
 fi
 
-CXXFLAGS="-O2 -g"
+export CXXFLAGS="-O2 -g $CXXFLAGS"
 
 if [ "$SAGE64" = "yes" ]; then
     echo "Building a 64-bit version of pynac"
@@ -25,11 +21,6 @@ fi
 
 WORKDIR=${PWD}/src
 PYNACDIR=${WORKDIR}
-
-patch()
-{
-    true
-}
 
 build_pynac()
 {
@@ -63,8 +54,6 @@ clean_pynac()
 {
     true
 }
-
-patch
 
 
 cd src

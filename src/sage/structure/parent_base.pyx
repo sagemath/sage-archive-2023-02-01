@@ -8,12 +8,13 @@ Base class for old-style parent objects with a base ring
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ###############################################################################
+from __future__ import absolute_import
 
 include "sage/ext/stdsage.pxi"
 
-cimport parent
+cimport sage.structure.parent as parent
 
-from coerce_exceptions import CoercionException
+from .coerce_exceptions import CoercionException
 
 cdef inline check_old_coerce(parent.Parent p):
     if p._element_constructor is not None:

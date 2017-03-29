@@ -276,6 +276,92 @@ def slice_unpickle(master, start, stop, step):
     """
     return master[start:stop:step]
 
+
+def lazy_list_formatter(L, name='lazy list',
+                        separator=', ', more='...',
+                        opening_delimiter='[', closing_delimiter=']',
+                        preview=3):
+    r"""
+    Return a string representation of ``L``.
+
+    INPUT:
+
+    - ``L`` -- an iterable object
+
+    - ``name`` -- (default: ``'lazy list'``) a string appearing
+      at first position (i.e., in front of the actual values)
+      in the representation
+
+    - ``opening_delimiter`` -- (default: ``'['``) a string heading
+      the shown entries
+
+    - ``closing_delimiter`` -- (default: ``']'``) a string trailing
+      the shown entries
+
+    - ``separator`` -- (default: ``', '``) a string appearing between
+      two entries
+
+    - ``more`` -- (default: ``'...'``) a string indicating that
+      not all entries of the list are shown
+
+    - ``preview`` -- (default: ``3``) an integer specifying the number of
+      elements shown in the representation string
+
+    OUTPUT:
+
+    A string.
+
+    EXAMPLES::
+
+        sage: from sage.misc.lazy_list import lazy_list_formatter
+        sage: lazy_list_formatter(srange(3, 1000, 5), name='list')
+        'list [3, 8, 13, ...]'
+
+    ::
+
+        sage: from sage.misc.lazy_list import lazy_list
+        sage: L = lazy_list(Primes()); L
+        lazy list [2, 3, 5, ...]
+        sage: repr(L) == lazy_list_formatter(L)
+        True
+        sage: lazy_list_formatter(L, name='primes')
+        'primes [2, 3, 5, ...]'
+        sage: lazy_list_formatter(L, opening_delimiter='(', closing_delimiter=')')
+        'lazy list (2, 3, 5, ...)'
+        sage: lazy_list_formatter(L, opening_delimiter='', closing_delimiter='')
+        'lazy list 2, 3, 5, ...'
+        sage: lazy_list_formatter(L, separator='--')
+        'lazy list [2--3--5--...]'
+        sage: lazy_list_formatter(L, more='and more')
+        'lazy list [2, 3, 5, and more]'
+        sage: lazy_list_formatter(L, preview=10)
+        'lazy list [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, ...]'
+        sage: lazy_list_formatter(L, name='primes',
+        ....:                     opening_delimiter='', closing_delimiter='',
+        ....:                     separator=' ', more='->', preview=7)
+        'primes 2 3 5 7 11 13 17 ->'
+
+    TESTS::
+
+        sage: from itertools import count
+        sage: lazy_list_formatter(count(), name='iterator count')
+        'iterator count [0, 1, 2, ...]'
+    """
+    from itertools import islice
+
+    cdef str s = name
+    if s:
+        s += ' '
+    s += opening_delimiter
+    cdef list P = list(islice(L, preview+1))
+    cdef list E = list(repr(e) for e in P[:preview])
+    if len(P) > preview:
+        E.append(more)
+    s += separator.join(E)
+    s += closing_delimiter
+    return s
+
+
 cdef class lazy_list_generic(object):
     r"""
     A lazy list
@@ -474,6 +560,9 @@ cdef class lazy_list_generic(object):
         r"""
         Return a string representation.
 
+        To customize the string representation, the
+        :func:`lazy_list_formatter` can be used.
+
         TESTS::
 
             sage: from sage.misc.lazy_list import lazy_list
@@ -495,90 +584,7 @@ cdef class lazy_list_generic(object):
             sage: lazy_list([0,1,2,3])
             lazy list [0, 1, 2, ...]
         """
-        return self.str()
-
-
-    def str(self, name=None, separator=None, more=None,
-            opening_delimiter=None, closing_delimiter=None,
-            preview=None):
-        r"""
-        Return a string representation.
-
-        INPUT:
-
-        - ``name`` -- (default: ``'lazy list'``) a string appearing
-          at first position (i.e., in front of the actual values)
-          in the representation.
-
-        - ``opening_delimiter`` -- (default: ``'['``) a string heading
-          the shown entries.
-
-        - ``closing_delimiter`` -- (default: ``']'``) a string trailing
-          the shown entries
-
-        - ``separator`` -- (default: ``', '``) a string appearing between
-          two entries.
-
-        - ``more`` -- (default: ``'...'``) a string indicating that
-          not all entries of the list are shown.
-
-        - ``preview`` -- (default: ``3``) an integer specifying the number of
-          elements shown in the representation string.
-
-        OUTPUT:
-
-        A string.
-
-        EXAMPLES::
-
-            sage: from sage.misc.lazy_list import lazy_list
-            sage: L = lazy_list(Primes()); L
-            lazy list [2, 3, 5, ...]
-            sage: repr(L) == L.str()
-            True
-            sage: L.str(name='primes')
-            'primes [2, 3, 5, ...]'
-            sage: L.str(opening_delimiter='(', closing_delimiter=')')
-            'lazy list (2, 3, 5, ...)'
-            sage: L.str(opening_delimiter='', closing_delimiter='')
-            'lazy list 2, 3, 5, ...'
-            sage: L.str(separator='--')
-            'lazy list [2--3--5--...]'
-            sage: L.str(more='and more')
-            'lazy list [2, 3, 5, and more]'
-            sage: L.str(preview=10)
-            'lazy list [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, ...]'
-            sage: L.str(name='primes',
-            ....:       opening_delimiter='', closing_delimiter='',
-            ....:       separator=' ', more='->', preview=7)
-            'primes 2 3 5 7 11 13 17 ->'
-        """
-        if name is None:
-            name = 'lazy list'
-        if opening_delimiter is None:
-            opening_delimiter = '['
-        if separator is None:
-            separator = ', '
-        if more is None:
-            more = '...'
-        if closing_delimiter is None:
-            closing_delimiter = ']'
-        if preview is None:
-            preview = 3
-
-        cdef str s = name
-        if s:
-            s += ' '
-        s += opening_delimiter
-        cdef list P = list(self[:preview+1])
-        cdef list E = list('{!r}'.format(e)
-                           for e in P[:preview])
-        cdef Py_ssize_t num_elts = 1 + (self.stop-self.start-1) / self.step
-        if num_elts > preview:
-            E.append(more)
-        s += separator.join(E)
-        s += closing_delimiter
-        return s
+        return lazy_list_formatter(self)
 
 
     def __reduce__(self):

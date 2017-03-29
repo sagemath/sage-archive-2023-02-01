@@ -30,6 +30,9 @@ from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 from sage.rings.polynomial.multi_polynomial_ring_generic import MPolynomialRing_generic
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
+import six
+
+
 def repr_from_monomials(monomials, term_repr, use_latex=False):
     r"""
     Return a string representation of an element of a free module
@@ -296,7 +299,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
             sage: dy - (3*x - z)*dx
             dy + z*dx - 3*x*dx
         """
-        return self.__class__(self.parent(), {m:-c for m,c in self.__monomials.iteritems()})
+        return self.__class__(self.parent(), {m:-c for m,c in six.iteritems(self.__monomials)})
 
     def _add_(self, other):
         """
@@ -314,7 +317,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
 
         d = copy(self.__monomials)
         zero = self.parent().base_ring().zero()
-        for m,c in other.__monomials.iteritems():
+        for m,c in six.iteritems(other.__monomials):
             d[m] = d.get(m, zero) + c
             if d[m] == zero:
                 del d[m]
@@ -670,7 +673,7 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
             return self.element_class(self, {i: R(c) for i,c in x if R(c) != zero})
         x = self._poly_ring(x)
         return self.element_class(self, {(tuple(m), t): c
-                                         for m,c in x.dict().iteritems()})
+                                         for m,c in six.iteritems(x.dict())})
 
     def _coerce_map_from_(self, R):
         """

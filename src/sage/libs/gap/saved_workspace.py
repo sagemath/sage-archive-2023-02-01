@@ -8,6 +8,7 @@ workspaces.
 
 import os
 import glob
+from sage.interfaces.gap_workspace import gap_workspace_file
 
 
 def timestamp():
@@ -24,7 +25,7 @@ def timestamp():
         sage: timestamp()   # random output
         1406642467.25684
         sage: type(timestamp())
-        <type 'float'>
+        <... 'float'>
     """
     libgap_dir = os.path.dirname(__file__)
     files = glob.glob(os.path.join(libgap_dir, '*'))
@@ -60,14 +61,10 @@ def workspace(name='workspace'):
         sage: isinstance(up_to_date, bool)
         True
     """
-    import os
-    import glob
-    from sage.env import SAGE_LOCAL, DOT_SAGE
-    workspace = os.path.join(DOT_SAGE, 'gap', 'libgap-{0}-{1}'
-                        .format(name, abs(hash(SAGE_LOCAL))))
+    workspace = gap_workspace_file("libgap", name)
     try:
         workspace_mtime = os.path.getmtime(workspace)
     except OSError:
         # workspace does not exist
         return (workspace, False)
-    return (workspace, workspace_mtime > timestamp())
+    return (workspace, workspace_mtime >= timestamp())

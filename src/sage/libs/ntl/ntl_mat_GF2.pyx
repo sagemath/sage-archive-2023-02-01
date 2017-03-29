@@ -31,7 +31,7 @@ include 'misc.pxi'
 include 'decl.pxi'
 
 from cpython.object cimport Py_EQ, Py_NE
-from ntl_GF2 cimport ntl_GF2
+from .ntl_GF2 cimport ntl_GF2
 from sage.rings.integer cimport Integer
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 
@@ -134,7 +134,7 @@ cdef class ntl_mat_GF2(object):
         """
         Return the string representation of this matrix.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(2),4,4)
             sage: B = ntl.mat_GF2(A); B # indirect doctest
@@ -378,7 +378,7 @@ cdef class ntl_mat_GF2(object):
 
     def __getitem__(self, ij):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = ntl.mat_GF2(3,3,range(9))
             sage: A[0,0]
@@ -650,7 +650,7 @@ cdef class ntl_mat_GF2(object):
         then, the rows of X are computed as basis of A's row space.  X
         is in row echelon form.
 
-        EXAMPLE::
+        EXAMPLES::
             sage: A = random_matrix(GF(2),10,10)
             sage: Abar = ntl.mat_GF2(A)
             sage: A.image()
@@ -688,7 +688,7 @@ cdef class ntl_mat_GF2(object):
         Computes a basis for the kernel of the map x -> x*A. where x
         is a row vector.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(2),10,10)
             sage: Abar = ntl.mat_GF2(A)

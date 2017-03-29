@@ -1038,12 +1038,12 @@ cdef class GapElement(RingElement):
             sage: libgap(False).sage()
             False
             sage: type(_)
-            <type 'bool'>
+            <... 'bool'>
 
             sage: libgap('this is a string').sage()
             'this is a string'
             sage: type(_)
-            <type 'str'>
+            <... 'str'>
         """
         if self.value is NULL:
             return None
@@ -1190,7 +1190,7 @@ cdef class GapElement_Integer(GapElement):
             sage: int(libgap(3))
             3
             sage: type(_)
-            <type 'int'>
+            <... 'int'>
 
             sage: int(libgap(2)**128)
             340282366920938463463374607431768211456L
@@ -1741,7 +1741,7 @@ cdef class GapElement_Boolean(GapElement):
             sage: b.sage()
             True
             sage: type(_)
-            <type 'bool'>
+            <... 'bool'>
 
             sage: libgap.eval('fail')
             fail
@@ -1835,7 +1835,7 @@ cdef class GapElement_String(GapElement):
             sage: s.sage()
             'string'
             sage: type(_)
-            <type 'str'>
+            <... 'str'>
         """
         libgap_enter()
         s = libGAP_CSTR_STRING(self.value)
@@ -2474,7 +2474,7 @@ cdef class GapElement_Record(GapElement):
         sage: dict(rec)
         {'a': 123, 'b': 456}
         sage: type(_)
-        <type 'dict'>
+        <... 'dict'>
 
     Range checking is performed::
 
@@ -2535,7 +2535,7 @@ cdef class GapElement_Record(GapElement):
         first time the string is encountered, a new integer is
         returned(!)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: rec = libgap.eval('rec(first:=123, second:=456)')
             sage: rec.record_name_to_index('first')   # random output

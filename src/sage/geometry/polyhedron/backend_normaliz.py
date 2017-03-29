@@ -2,6 +2,11 @@
 """
 The Normaliz backend for polyhedral computations
 
+.. NOTE::
+
+    This backend requires `PyNormaliz <https://pypi.python.org/pypi/PyNormaliz/1.5>`_.
+    To install PyNormaliz, type :code:`sage -i pynormaliz` in the terminal.
+
 AUTHORS:
 
 - Matthias Köppe (2016-12): initial version
@@ -297,7 +302,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         EXAMPLES::
 
             sage: p = Polyhedron(vertices=[(0,1/2),(2,0),(4,5/6)],  # indirect doctest # optional - pynormaliz
-            ...                  backend='normaliz')
+            ....:                backend='normaliz')
             sage: set(p.Hrepresentation())                                 # optional - pynormaliz
             {An inequality (1, 4) x - 2 >= 0,
              An inequality (1, -12) x + 6 >= 0,
@@ -330,7 +335,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         EXAMPLES::
 
             sage: p = Polyhedron(vertices=[(0,1/2), (2,0), (4,5/6)],  # indirect doctest # optional - pynormaliz
-            ...                  backend='normaliz')
+            ....:                backend='normaliz')
             sage: set(p.Hrepresentation())                                 # optional - pynormaliz
             {An inequality (1, 4) x - 2 >= 0,
              An inequality (1, -12) x + 6 >= 0,
@@ -441,7 +446,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         INPUT:
 
         - ``threshold`` -- integer (default: 10000); use the naïve
-        algorithm as long as the bounding box is smaller than this
+          algorithm as long as the bounding box is smaller than this
 
         OUTPUT:
 
@@ -565,7 +570,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             box_points = prod(max_coord-min_coord+1 for min_coord, max_coord in zip(box_min, box_max))
             if  box_points<threshold:
                 from sage.geometry.integral_points import rectangular_box_points
-                return rectangular_box_points(box_min, box_max, self)
+                return rectangular_box_points(list(box_min), list(box_max), self)
         # Compute with normaliz
         points = []
         cone = self._normaliz_cone

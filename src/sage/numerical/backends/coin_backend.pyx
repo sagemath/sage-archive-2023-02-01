@@ -44,7 +44,7 @@ cdef class CoinBackend(GenericBackend):
         """
         Cython constructor
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")                  # optional - cbc
@@ -98,7 +98,7 @@ cdef class CoinBackend(GenericBackend):
 
         OUTPUT: The index of the newly created variable
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")                  # optional - cbc
@@ -184,7 +184,7 @@ cdef class CoinBackend(GenericBackend):
 
         OUTPUT: The index of the variable created last.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")                         # optional - cbc
@@ -261,7 +261,7 @@ cdef class CoinBackend(GenericBackend):
             *  0  Binary
             * -1 Real
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")   # optional - cbc
@@ -294,7 +294,7 @@ cdef class CoinBackend(GenericBackend):
             * +1 => Maximization
             * -1 => Minimization
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")  # optional - cbc
@@ -317,7 +317,7 @@ cdef class CoinBackend(GenericBackend):
         - ``coeff`` (double) -- its coefficient or ``None`` for
           reading (default: ``None``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")       # optional -- cbc
@@ -345,7 +345,7 @@ cdef class CoinBackend(GenericBackend):
 
         - ``d`` (double) -- the constant term in the linear function (set to `0` by default)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")    # optional - cbc
@@ -383,7 +383,7 @@ cdef class CoinBackend(GenericBackend):
 
         - ``level`` (integer) -- From 0 (no verbosity) to 3.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")   # optional - cbc
@@ -400,7 +400,7 @@ cdef class CoinBackend(GenericBackend):
 
         - ``i`` -- index of the constraint to remove
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='Coin') # optional - cbc
             sage: v = p.new_variable(nonnegative=True)         # optional - cbc
@@ -441,7 +441,7 @@ cdef class CoinBackend(GenericBackend):
 
         - ``constraints`` -- an interable containing the indices of the rows to remove
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='Coin') # optional - cbc
             sage: v = p.new_variable(nonnegative=True)         # optional - cbc
@@ -504,7 +504,7 @@ cdef class CoinBackend(GenericBackend):
 
         - ``name`` - an optional name for this row (default: ``None``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")                              # optional - cbc
@@ -554,7 +554,7 @@ cdef class CoinBackend(GenericBackend):
         associates their coefficient on the model of the
         ``add_linear_constraint`` method.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")  # optional - cbc
@@ -599,7 +599,7 @@ cdef class CoinBackend(GenericBackend):
         to ``None`` if the constraint is not bounded in the
         corresponding direction, and is a real value otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")  # optional - cbc
@@ -635,7 +635,7 @@ cdef class CoinBackend(GenericBackend):
         to ``None`` if the variable is not bounded in the
         corresponding direction, and is a real value otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")  # optional - cbc
@@ -678,7 +678,7 @@ cdef class CoinBackend(GenericBackend):
             ``indices`` and ``coeffs`` are expected to be of the same
             length.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")  # optional - cbc
@@ -716,7 +716,7 @@ cdef class CoinBackend(GenericBackend):
             the solution can not be computed for any reason (none
             exists, or the LP solver was not able to find it, etc...)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")    # optional - cbc
@@ -786,7 +786,7 @@ cdef class CoinBackend(GenericBackend):
 
            Has no meaning unless ``solve`` or ``set_basis_status`` has been called before.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")  # optional - cbc
@@ -813,7 +813,7 @@ cdef class CoinBackend(GenericBackend):
 
            Has no meaning unless ``solve`` or ``set_basis_status`` has been called before.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin") # optional - cbc
@@ -852,7 +852,7 @@ cdef class CoinBackend(GenericBackend):
         r"""
         Returns the number of columns/variables.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")  # optional - cbc
@@ -870,7 +870,7 @@ cdef class CoinBackend(GenericBackend):
         r"""
         Returns the number of rows/constraints.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin") # optional - cbc
@@ -891,7 +891,7 @@ cdef class CoinBackend(GenericBackend):
 
         - ``index`` (integer) -- the variable's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")  # optional - cbc
@@ -917,7 +917,7 @@ cdef class CoinBackend(GenericBackend):
 
         - ``index`` (integer) -- the variable's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")  # optional - cbc
@@ -941,7 +941,7 @@ cdef class CoinBackend(GenericBackend):
 
         - ``index`` (integer) -- the variable's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")  # optional - cbc
@@ -963,7 +963,7 @@ cdef class CoinBackend(GenericBackend):
         r"""
         Tests whether the problem is a maximization
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin") # optional - cbc
@@ -988,7 +988,7 @@ cdef class CoinBackend(GenericBackend):
           variable has not upper bound. When set to ``False``
           (default), the method returns the current value.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")  # optional - cbc
@@ -1032,7 +1032,7 @@ cdef class CoinBackend(GenericBackend):
           variable has not lower bound. When set to ``False``
           (default), the method returns the current value.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")  # optional - cbc
@@ -1072,7 +1072,7 @@ cdef class CoinBackend(GenericBackend):
 
         - ``filename`` (string)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")  # optional - cbc
@@ -1094,7 +1094,7 @@ cdef class CoinBackend(GenericBackend):
 
         - ``filename`` (string)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")  # optional - cbc
@@ -1117,7 +1117,7 @@ cdef class CoinBackend(GenericBackend):
         - ``name`` (``char *``) -- the problem's name. When set to
           ``NULL`` (default), the method returns the problem's name.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")   # optional - cbc
@@ -1142,7 +1142,7 @@ cdef class CoinBackend(GenericBackend):
 
         - ``index`` (integer) -- the row's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")                                     # optional - cbc
@@ -1163,7 +1163,7 @@ cdef class CoinBackend(GenericBackend):
 
         - ``index`` (integer) -- the col's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")          # optional - cbc
@@ -1181,7 +1181,7 @@ cdef class CoinBackend(GenericBackend):
         """
         Returns a copy of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = MixedIntegerLinearProgram(solver = "Coin")        # optional - cbc
@@ -1232,7 +1232,7 @@ cdef class CoinBackend(GenericBackend):
             has been called before.
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")                 # optional - cbc
@@ -1577,7 +1577,7 @@ cdef class CoinBackend(GenericBackend):
             Has no meaning unless ``solve`` or ``set_basis_status`` 
             has been called before.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")                  # optional - cbc
@@ -1616,7 +1616,7 @@ cdef class CoinBackend(GenericBackend):
             Has no meaning unless ``solve`` or ``set_basis_status`` 
             has been called before.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")                  # optional - cbc
@@ -1653,7 +1653,7 @@ cdef class CoinBackend(GenericBackend):
             Has no meaning unless ``solve`` or ``set_basis_status`` 
             has been called before.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")                  # optional - cbc

@@ -92,7 +92,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
             .. SEEALSO::
 
-                :meth:`ComplexRelfectionGroups.Finite.ParentMethods.is_well_generated`
+                :meth:`ComplexReflectionGroups.Finite.ParentMethods.is_well_generated`
 
             EXAMPLES::
 

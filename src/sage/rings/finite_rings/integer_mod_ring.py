@@ -589,7 +589,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: L = R.list_of_elements_of_multiplicative_group(); L
             [1, 5, 7, 11]
             sage: type(L[0])
-            <type 'int'>
+            <... 'int'>
         """
         import sage.rings.fast_arith as a
         if self.__order <= 46340:   # todo: don't hard code
@@ -1543,7 +1543,7 @@ In the latter case, please inform the developers.""".format(self.order()))
         """
         Return 1.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = Integers(12345678900)
             sage: R.degree()

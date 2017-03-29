@@ -50,6 +50,7 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 from __future__ import print_function
 
 from sage.modules.vector_rational_dense cimport Vector_rational_dense
@@ -66,8 +67,8 @@ cimport sage.structure.element
 
 from sage.structure.sequence import Sequence
 from sage.rings.rational cimport Rational
-from matrix cimport Matrix
-from matrix_integer_dense cimport Matrix_integer_dense, _lift_crt
+from .matrix cimport Matrix
+from .matrix_integer_dense cimport Matrix_integer_dense, _lift_crt
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.rings.integer cimport Integer
 from sage.rings.ring import is_Ring
@@ -77,14 +78,14 @@ from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.rational_field import QQ
 from sage.arith.all import gcd
 
-from matrix2 import cmp_pivots, decomp_seq
-from matrix0 import Matrix as Matrix_base
+from .matrix2 import cmp_pivots, decomp_seq
+from .matrix0 import Matrix as Matrix_base
 
 from sage.misc.all import verbose, get_verbose, prod
 
 #########################################################
 # PARI C library
-from sage.libs.cypari2.gen cimport gen
+from sage.libs.cypari2.gen cimport Gen
 from sage.libs.pari.convert_gmp cimport (INTFRAC_to_mpq,
            _new_GEN_from_mpq_t_matrix, rational_matrix)
 from sage.libs.cypari2.stack cimport clear_stack
@@ -1171,7 +1172,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             [ 2/27 -4/27  2/27]
             [-1/27  2/27 -1/27]
         """
-        return self.parent()(self._pari_().matadjoint().python())
+        return self.parent()(self._pari_().matadjoint().sage())
 
     def _magma_init_(self, magma):
         """
@@ -1276,8 +1277,8 @@ cdef class Matrix_rational_dense(Matrix_dense):
         tm = verbose("computing right kernel matrix over the rationals for %sx%s matrix" % (self.nrows(), self.ncols()),level=1)
         # _rational_kernel_flint() gets the zero-row case wrong, fix it there
         if self.nrows()==0:
-            import constructor
-            K = constructor.identity_matrix(QQ, self.ncols())
+            from .constructor import identity_matrix
+            K = identity_matrix(QQ, self.ncols())
         else:
             A, _ = self._clear_denom()
             K = A._rational_kernel_iml().transpose().change_ring(QQ)
@@ -1331,7 +1332,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         """
         if not is_Ring(R):
             raise TypeError("R must be a ring")
-        from matrix_modn_dense_double import MAX_MODULUS
+        from .matrix_modn_dense_double import MAX_MODULUS
         if R == self._base_ring:
             if self._is_immutable:
                 return self
@@ -1673,8 +1674,8 @@ cdef class Matrix_rational_dense(Matrix_dense):
            proof.linear_algebra or sage.structure.proof) Note that the Sage
            global default is proof=True.
         """
-        import misc
-        return misc.matrix_rational_echelon_form_multimodular(self,
+        from .misc import matrix_rational_echelon_form_multimodular
+        return matrix_rational_echelon_form_multimodular(self,
                                  height_guess=height_guess, proof=proof)
 
     def _echelon_in_place_classical(self, steps=None):
@@ -2683,7 +2684,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         For details on input parameters, see
         :meth:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.LLL`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = Matrix(QQ, 3, 3, [1/n for n in range(1, 10)])
             sage: A.LLL()

@@ -352,7 +352,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         Return the image of ``self`` under the map that sends the
         generators of the parent to ``im_gens``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = Mod(7, 10)
             sage: R = ZZ.quotient(5)
@@ -1376,8 +1376,8 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         TESTS::
 
             sage: for n in range(2,100): # long time
-            ....:     K=Integers(n)
-            ....:     elist = range(1,min(2*n+2,100))
+            ....:     K = Integers(n)
+            ....:     elist = list(range(1,min(2*n+2,100)))
             ....:     for e in random_sublist(elist, 5/len(elist)):
             ....:         for a in random_sublist(range(1,n), min((n+2)//2,10)/(n-1)):
             ....:             b = K(a)
@@ -3709,6 +3709,8 @@ def square_root_mod_prime_power(IntegerMod_abstract a, p, e):
         sage: b=square_root_mod_prime_power(a,97,10)
         sage: b^2 == a
         True
+        sage: mod(100, 5^7).sqrt()^2
+        100
     """
     if a.is_zero() or a.is_one():
         return a
@@ -3736,7 +3738,9 @@ def square_root_mod_prime_power(IntegerMod_abstract a, p, e):
     # lift p-adically using Newton iteration
     # this is done to higher precision than necessary except at the last step
     one_half = ~(a._new_c_from_long(2))
-    cdef int n = <int>ceil(log(e)/log(2)) - val//2
+    # need at least (e - val//2) p-adic digits of precision, which doubles
+    # at each step
+    cdef int n = <int>ceil(log(e - val//2)/log(2))
     for i in range(n):
         x = (x+unit/x) * one_half
 

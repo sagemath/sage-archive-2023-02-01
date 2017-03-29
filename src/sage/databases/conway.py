@@ -19,9 +19,10 @@ Frank Luebeck's tables of Conway polynomials over finite fields
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from six import itervalues
+from six import itervalues, iteritems
 
-import collections, os
+import collections
+import os
 
 from sage.env import CONWAY_POLYNOMIALS_DATA_DIR
 
@@ -181,9 +182,9 @@ class ConwayPolynomials(collections.Mapping):
             sage: next(itr)
             (2, 1)
         """
-        for a,b in self._store.iteritems():
+        for a, b in iteritems(self._store):
             for c in b:
-                yield a,c
+                yield a, c
 
     def polynomial(self, p, n):
         """

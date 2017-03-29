@@ -2,8 +2,8 @@ import glob
 import os
 from os.path import join, getmtime, exists
 
-from sage_setup.autogen.pari.generator import PariFunctionGenerator
-from sage_setup.autogen.pari.parser import pari_share, sage_src_pari
+from .generator import PariFunctionGenerator
+from .parser import pari_share, sage_src_pari
 
 
 def rebuild(force=False):

@@ -38,9 +38,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six import iteritems
+import six
 
 import operator
-import six
 
 from sage.structure.sage_object import SageObject
 from sage.structure.parent_base import ParentWithBase
@@ -488,7 +489,7 @@ class Interface(ParentWithBase):
         for i, arg in enumerate(args):
             if not isinstance(arg, InterfaceElement) or arg.parent() is not self:
                 args[i] = self(arg)
-        for key, value in kwds.iteritems():
+        for key, value in iteritems(kwds):
             if not isinstance(value, InterfaceElement) or value.parent() is not self:
                 kwds[key] = self(value)
 
@@ -1108,7 +1109,7 @@ class InterfaceElement(Element):
             sage: int(maxima('1'))
             1
             sage: type(_)
-            <type 'int'>
+            <... 'int'>
         """
         return int(repr(self))
 
@@ -1292,9 +1293,9 @@ class InterfaceElement(Element):
         The Maxima variable ``x`` is different from the Sage symbolic variable::
 
             sage: (f+maxima.cos(x))
-            cos(_SAGE_VAR_x)+sin(x)
+            sin(x)+cos(_SAGE_VAR_x)
             sage: (f+maxima.cos(y))
-            cos(_SAGE_VAR_y)+sin(x)
+            sin(x)+cos(_SAGE_VAR_y)
 
         Note that you may get unexpected results when calling symbolic expressions
         and not explicitly giving the variables::

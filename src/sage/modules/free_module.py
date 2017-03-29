@@ -980,7 +980,7 @@ done from the right side.""")
            ``check=True``, to account for numerical instability
            issues.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = ZZ^4
             sage: M([1,-1,0,1])  #indirect doctest
@@ -3500,7 +3500,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 
         - ``dim`` - int, dimension of subspaces to be generated
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: V = VectorSpace(GF(3), 5)
             sage: len(list(V.subspaces(0)))
@@ -5107,7 +5107,7 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
         """
         Create an element of this vector space.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<a> = GF(3^4)
             sage: VS = k.vector_space()
@@ -5270,7 +5270,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         Returns the functorial construction of self, namely, the subspace
         of the ambient module spanned by the given basis.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = ZZ^3
             sage: W = M.span_of_basis([[1,2,3],[4,5,6]]); W

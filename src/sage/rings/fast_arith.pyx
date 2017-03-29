@@ -45,7 +45,7 @@ from sage.ext.stdsage cimport PY_NEW
 include "sage/ext/cdefs.pxi"
 
 from sage.libs.cypari2.paridecl cimport *
-from sage.libs.cypari2.gen cimport gen as pari_gen
+from sage.libs.cypari2.gen cimport Gen as pari_gen
 from sage.libs.pari.all import pari
 from sage.rings.integer cimport Integer
 

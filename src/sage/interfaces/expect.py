@@ -42,6 +42,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 import os
+import signal
 import sys
 import weakref
 import time
@@ -332,7 +333,7 @@ class Expect(Interface):
         :meth:`quit`, a new sub-process with a new PID is
         automatically started.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: pid = gap.pid()
             sage: gap.eval('quit;')
@@ -479,6 +480,8 @@ If this all works, you can then make calls like:
                         timeout=None,  # no timeout
                         env=pexpect_env,
                         name=self._repr_(),
+                        # work around python #1652
+                        preexec_fn=lambda: signal.signal(signal.SIGPIPE, signal.SIG_DFL),
                         quit_string=self._quit_string())
             except (ExceptionPexpect, pexpect.EOF) as e:
                 # Change pexpect errors to RuntimeError
@@ -1173,7 +1176,7 @@ If this all works, you can then make calls like:
         r"""
         Show a message if the interface crashed.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: singular._crash_msg()
             Singular crashed -- automatically restarting.
@@ -1432,23 +1435,23 @@ class ExpectElement(InterfaceElement):
 
 class StdOutContext:
     """
-    A context in which all communation between Sage and a subprocess
+    A context in which all communication between Sage and a subprocess
     interfaced via pexpect is printed to stdout.
     """
     def __init__(self, interface, silent=False, stdout=None):
         """
-        Construct a new context in which all communation between Sage
+        Construct a new context in which all communication between Sage
         and a subprocess interfaced via pexpect is printed to stdout.
 
         INPUT:
 
-        - ``interface`` - the interface whose communcation shall be dumped.
+        - ``interface`` - the interface whose communication shall be dumped.
 
         - ``silent`` - if ``True`` this context does nothing
 
         - ``stdout`` - optional parameter for alternative stdout device (default: ``None``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.interfaces.expect import StdOutContext
             sage: with StdOutContext(Gp()) as g:
@@ -1461,7 +1464,7 @@ class StdOutContext:
 
     def __enter__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.interfaces.expect import StdOutContext
             sage: with StdOutContext(singular):
@@ -1482,7 +1485,7 @@ class StdOutContext:
 
     def __exit__(self, typ, value, tb):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.interfaces.expect import StdOutContext
             sage: with StdOutContext(gap):

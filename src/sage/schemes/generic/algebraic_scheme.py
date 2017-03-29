@@ -1425,6 +1425,170 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             raise ValueError("other (=%s) must be in the same ambient space as self"%other)
         return A.subscheme(self.defining_ideal().intersection(other.defining_ideal()))
 
+    def __pow__(self, m):
+        """
+        Return the Cartesian power of this space.
+
+        INPUT: ``m`` -- integer.
+
+        OUTPUT: subscheme of product of ambient spaces.
+
+        EXAMPLES::
+
+        sage: P2.<y0,y1,y2> = ProjectiveSpace(ZZ, 2)
+        sage: Z = P2.subscheme([y0^2 - y1*y2, y2])
+        sage: Z**3
+        Closed subscheme of Product of projective spaces P^2 x P^2 x P^2 over
+        Integer Ring defined by:
+          x0^2 - x1*x2,
+          x2,
+          x3^2 - x4*x5,
+          x5,
+          x6^2 - x7*x8,
+          x8
+
+        ::
+
+        sage: A2.<x,y> = AffineSpace(QQ, 2)
+        sage: V = A2.subscheme([x^2-y, x-1])
+        sage: V**4
+        Closed subscheme of Affine Space of dimension 8 over Rational Field
+        defined by:
+          x0^2 - x1,
+          x0 - 1,
+          x2^2 - x3,
+          x2 - 1,
+          x4^2 - x5,
+          x4 - 1,
+          x6^2 - x7,
+          x6 - 1
+
+        ::
+
+        sage: T.<x0,x1,x2,x3,x4,x5> = ProductProjectiveSpaces([2,2], ZZ)
+        sage: X = T.subscheme([x0*x4 - x1*x3])
+        sage: X^2
+        Closed subscheme of Product of projective spaces P^2 x P^2 x P^2 x P^2
+        over Integer Ring defined by:
+          -x1*x3 + x0*x4,
+          -x7*x9 + x6*x10
+
+        ::
+
+        sage: E = EllipticCurve([0,0,0,0,1])
+        sage: E^2
+        Closed subscheme of Product of projective spaces P^2 x P^2 over Rational
+        Field defined by:
+          -x0^3 + x1^2*x2 - x2^3,
+          -x3^3 + x4^2*x5 - x5^3
+        """
+        AS = self.ambient_space().__pow__(m)
+        CR = AS.coordinate_ring()
+        n = self.ambient_space().coordinate_ring().ngens()
+
+        polys = []
+        for i in range(m):
+            phi = self.ambient_space().coordinate_ring().hom(list(CR.gens()[n*i : n*(i+1)]), CR)
+            polys.extend([phi(t) for t in self.defining_polynomials()])
+        return AS.subscheme(polys)
+
+    def __mul__(self, right):
+        r"""
+        Create the product of subschemes.
+
+        INPUT: ``right`` - a subscheme of similar type.
+
+        OUTPUT: a subscheme of a the product of the ambient spaces.
+
+        EXAMPLES::
+
+            sage: S = ProductProjectiveSpaces([1,2,1], ZZ, 't')
+            sage: T = ProductProjectiveSpaces([2,2], ZZ, 'x')
+            sage: T.inject_variables()
+            Defining x0, x1, x2, x3, x4, x5
+            sage: X = T.subscheme([x0*x4 - x1*x3])
+            sage: X*S
+            Closed subscheme of Product of projective spaces P^2 x P^2 x P^1 x P^2 x
+            P^1 over Integer Ring defined by:
+              -x1*x3 + x0*x4
+
+        ::
+
+            sage: S = ProjectiveSpace(ZZ, 2, 't')
+            sage: T.<x0,x1,x2,x3> = ProjectiveSpace(ZZ, 3)
+            sage: X = T.subscheme([x0*x2 - x1*x3])
+            sage: X*S
+            Closed subscheme of Product of projective spaces P^3 x P^2
+            over Integer Ring defined by:
+              x0*x2 - x1*x3
+
+        ::
+
+            sage: A2 = AffineSpace(ZZ, 2, 't')
+            sage: A3.<x0,x1,x2> = AffineSpace(ZZ, 3)
+            sage: X = A3.subscheme([x0*x2 - x1])
+            sage: X*A2
+            Closed subscheme of Affine Space of dimension 5 over Integer Ring
+            defined by:
+              x0*x2 - x1
+
+        ::
+
+            sage: T.<x0,x1,x2,x3,x4,x5> = ProductProjectiveSpaces([2,2], ZZ)
+            sage: X = T.subscheme([x0*x4 - x1*x3])
+            sage: X*X
+            Closed subscheme of Product of projective spaces P^2 x P^2 x P^2 x P^2
+            over Integer Ring defined by:
+              -x1*x3 + x0*x4,
+              -x7*x9 + x6*x10
+
+        ::
+
+            sage: P1.<z0,z1> = ProjectiveSpace(ZZ, 1)
+            sage: Y = P1.subscheme([z0 - z1])
+            sage: T.<x0,x1,x2,x3,x4,x5> = ProductProjectiveSpaces([2,2], ZZ)
+            sage: X = T.subscheme([x0*x4 - x1*x3])
+            sage: X*Y
+            Closed subscheme of Product of projective spaces P^2 x P^2 x P^1 over
+            Integer Ring defined by:
+              -x1*x3 + x0*x4,
+              z0 - z1
+
+        ::
+
+            sage: A3.<x0,x1,x2> = AffineSpace(ZZ, 3)
+            sage: X = A3.subscheme([x0*x2 - x1])
+            sage: P1.<u,v>=ProjectiveSpace(ZZ,1)
+            sage: Y = P1.subscheme([u-v])
+            sage: X*Y
+            Traceback (most recent call last):
+            ...
+            TypeError: Projective Space of dimension 1 over Integer Ring must be an affine space or affine subscheme
+            sage: Y*X
+            Traceback (most recent call last):
+            ...
+            TypeError: Affine Space of dimension 3 over Integer Ring must be a projective space, product of projective spaces, or subscheme
+            sage: PP.<a,b,c,d>=ProductProjectiveSpaces(ZZ, [1,1])
+            sage: Z = PP.subscheme([a*d-b*c])
+            sage: X*Z
+            Traceback (most recent call last):
+            ...
+            TypeError: Product of projective spaces P^1 x P^1 over Integer Ring must be an affine space or affine subscheme
+            sage: Z*X
+            Traceback (most recent call last):
+            ...
+            TypeError: Affine Space of dimension 3 over Integer Ring must be a projective space, product of projective spaces, or subscheme
+        """
+        #This will catch any ambient space mistmatches
+        AS = self.ambient_space()*right.ambient_space()
+        CR = AS.coordinate_ring()
+        n = self.ambient_space().coordinate_ring().ngens()
+
+        phi = self.ambient_space().coordinate_ring().hom(list(CR.gens()[:n]), CR)
+        psi = right.ambient_space().coordinate_ring().hom(list(CR.gens()[n:]), CR)
+        return AS.subscheme([phi(t) for t in self.defining_polynomials()] + [psi(t) for t in right.defining_polynomials()])
+
+
     __add__ = union
 
     def intersection(self, other):
@@ -1760,6 +1924,52 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
                 X = A.subscheme(I)
             self.__weil_restriction = X
         return X
+
+    def specialization(self, D=None, phi=None):
+        r"""
+        Specialization of this subscheme.
+
+        Given a family of maps defined over a polynomial ring. A specialization
+        is a particular member of that family. The specialization can be specified either
+        by a dictionary or a :class:`SpecializationMorphism`.
+
+        INPUT:
+
+        - ``D`` -- dictionary (optional)
+
+        - ``phi`` -- SpecializationMorphism (optional)
+
+        OUTPUT: :class:`SchemeMorphism_polynomial`
+
+        EXAMPLES::
+
+            sage: R.<c> = PolynomialRing(QQ)
+            sage: P.<x,y> = ProjectiveSpace(R, 1)
+            sage: X = P.subscheme([x^2 + c*y^2])
+            sage: X.specialization(dict({c:2}))
+            Closed subscheme of Projective Space of dimension 1 over Rational Field defined by:
+                  x^2 + 2*y^2
+
+        ::
+
+            sage: R.<c> = PolynomialRing(QQ)
+            sage: S.<a,b> = R[]
+            sage: P.<x,y,z> = AffineSpace(S,3)
+            sage: X = P.subscheme([x^2+a*c*y^2 - b*z^2])
+            sage: from sage.rings.polynomial.flatten import SpecializationMorphism
+            sage: phi = SpecializationMorphism(P.coordinate_ring(),dict({c:2,a:1}))
+            sage: X.specialization(phi=phi)
+            Closed subscheme of Affine Space of dimension 3 over Univariate Polynomial Ring in b over Rational Field defined by:
+                  x^2 + 2*y^2 + (-b)*z^2
+        """
+        if D is None:
+            if phi is None:
+                raise ValueError("either the dictionary or the specialization must be provided")
+        else:
+            from sage.rings.polynomial.flatten import SpecializationMorphism
+            phi = SpecializationMorphism(self.ambient_space().coordinate_ring(),D)
+        amb = self.ambient_space().change_ring(phi.codomain().base_ring())
+        return amb.subscheme([phi(g) for g in self.defining_polynomials()])
 
 #*******************************************************************
 # Affine varieties
@@ -3305,8 +3515,8 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         r"""
         Return the degree of this projective subscheme.
 
-        If `P(t) = a_{m}t^m + \ldots + a_{0}` is the the Hilbert polynomial of this subscheme, then
-        the degree is `a_{m}m!`.
+        If `P(t) = a_{m}t^m + \ldots + a_{0}` is the Hilbert
+        polynomial of this subscheme, then the degree is `a_{m} m!`.
 
         OUTPUT: Integer.
 
@@ -3317,14 +3527,10 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             sage: X.degree()
             7
 
-        ::
-
             sage: P.<x,y,z,w> = ProjectiveSpace(GF(13), 3)
             sage: X = P.subscheme([y^3 - w^3, x + 7*z])
             sage: X.degree()
             3
-
-        ::
 
             sage: P.<x,y,z,w,u> = ProjectiveSpace(QQ, 4)
             sage: C = P.curve([x^7 - y*z^3*w^2*u, w*x^2 - y*u^2, z^3 + y^3])
@@ -3332,7 +3538,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             63
         """
         P = self.defining_ideal().hilbert_polynomial()
-        return P.leading_coefficient()*P.degree().factorial()
+        return P.leading_coefficient() * P.degree().factorial()
 
     def intersection_multiplicity(self, X, P):
         r"""

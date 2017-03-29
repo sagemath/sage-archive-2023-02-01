@@ -4075,7 +4075,7 @@ class Polyhedron_base(Element):
 
             sage: x, y = polygens(QQ, 'x, y')
             sage: P = Polyhedron(vertices=[[0,0],[1,1]])
-            sage: P.integrate(x*y)
+            sage: P.integrate(x*y)    # optional - latte_int
             Traceback (most recent call last):
             ...
             NotImplementedError: The polytope must be full-dimensional.

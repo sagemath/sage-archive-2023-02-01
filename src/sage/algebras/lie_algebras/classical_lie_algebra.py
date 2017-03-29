@@ -4,32 +4,20 @@ Classical Lie Algebras
 These are the Lie algebras corresponding to types `A_n`, `B_n`, `C_n`,
 and `D_n`. We also include support for the exceptional types
 `E_{6,7,8}`, `F_4`, and `G_2` in the Chevalley basis, and we
-give the matrix representation given in [HRT00]_.
+give the matrix representation given in [HRT2000]_.
 
 AUTHORS:
 
 - Travis Scrimshaw (2013-05-03): Initial version
-
-REFERENCES:
-
-.. [HRT00] \R.B. Howlett, L.J. Rylands, and D.E. Taylor.
-   *Matrix generators for exceptional groups of Lie type*.
-   J. Symbolic Computation. **11** (2000).
-   http://www.maths.usyd.edu.au/u/bobh/hrt.pdf
 """
 
 #*****************************************************************************
-#  Copyright (C) 2013 Travis Scrimshaw <tscrim@ucdavis.edu>
+#       Copyright (C) 2013-2017 Travis Scrimshaw <tcscrims at gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty
-#    of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-#
-#  See the GNU General Public License for more details; the full text
-#  is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -50,6 +38,7 @@ from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElement
 from sage.algebras.lie_algebras.structure_coefficients import LieAlgebraWithStructureCoefficients
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
+from sage.combinat.root_system.dynkin_diagram import DynkinDiagram_class
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -92,7 +81,10 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
             sage: lie_algebras.ClassicalMatrix(QQ, cartan_type=['D',4])
             Special orthogonal Lie algebra of rank 8 over Rational Field
         """
-        cartan_type = CartanType(cartan_type)
+        if isinstance(cartan_type, (CartanMatrix, DynkinDiagram_class)):
+            cartan_type = cartan_type.cartan_type()
+        else:
+            cartan_type = CartanType(cartan_type)
 
         if not cartan_type.is_finite():
             raise ValueError("only for finite types")
@@ -387,13 +379,14 @@ class gl(LieAlgebraFromAssociative):
 
             sage: g = lie_algebras.gl(QQ, 4)
             sage: x = g.an_element()
-            sage: y = g.basis()[1]
+            sage: y = g.gens()[1]
             sage: g.killing_form(x, y)
             8
         """
-        return 2 * self._n * (x.value * y.value).trace() \
-            - 2 * x.value.trace() * y.value.trace()
+        return (2 * self._n * (x.value * y.value).trace()
+                - 2 * x.value.trace() * y.value.trace())
 
+    @cached_method
     def basis(self):
         """
         Return the basis of ``self``.
@@ -401,13 +394,14 @@ class gl(LieAlgebraFromAssociative):
         EXAMPLES::
 
             sage: g = lie_algebras.gl(QQ, 2)
-            sage: g.basis()
+            sage: tuple(g.basis())
             (
             [1 0]  [0 1]  [0 0]  [0 0]
             [0 0], [0 0], [1 0], [0 1]
             )
         """
-        return self.gens()
+        G = self.gens()
+        return Family(self._indices, lambda i: G[self._indices.index(i)])
 
 class sl(ClassicalMatrixLieAlgebra):
     r"""
@@ -725,7 +719,7 @@ class e6(ExceptionalMatrixLieAlgebra):
     The matrix Lie algebra `\mathfrak{e}_6`.
 
     The simple Lie algebra `\mathfrak{e}_6` of type `E_6`. The matrix
-    representation is given following [HRT00]_.
+    representation is given following [HRT2000]_.
     """
     def __init__(self, R):
         """
@@ -753,7 +747,7 @@ class f4(ExceptionalMatrixLieAlgebra):
     The matrix Lie algebra `\mathfrak{f}_4`.
 
     The simple Lie algebra `\mathfrak{f}_f` of type `F_4`. The matrix
-    representation is given following [HRT00]_.
+    representation is given following [HRT2000]_.
     """
     def __init__(self, R):
         """
@@ -796,7 +790,7 @@ class g2(ExceptionalMatrixLieAlgebra):
     The matrix Lie algebra `\mathfrak{g}_2`.
 
     The simple Lie algebra `\mathfrak{g}_2` of type `G_2`. The matrix
-    representation is given following [HRT00]_.
+    representation is given following [HRT2000]_.
     """
     def __init__(self, R):
         """
@@ -844,14 +838,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
     `N_{\alpha, \beta}` is the maximum such that
     `\alpha - N_{\alpha, \beta} \beta \in \Phi`.
 
-    For computing the signs of the coefficients, see Section 3 of [CMT03]_.
-
-    REFERNCES:
-
-    .. [CMT03] \A. M. Cohen, S. H. Murray, D. E. Talyor.
-       *Computing in groups of Lie type*.
-       Mathematics of Computation. **73** (2003), no 247. pp. 1477--1498.
-       http://www.win.tue.nl/~amc/pub/papers/cmt.pdf
+    For computing the signs of the coefficients, see Section 3 of [CMT2003]_.
     """
     @staticmethod
     def __classcall_private__(cls, R, cartan_type):
@@ -866,8 +853,12 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
             sage: L1 is L2 and L2 is L3
             True
         """
+        if isinstance(cartan_type, (CartanMatrix, DynkinDiagram_class)):
+            cartan_type = cartan_type.cartan_type()
+        else:
+            cartan_type = CartanType(cartan_type)
         return super(LieAlgebraChevalleyBasis, cls).__classcall__(
-            cls, R, CartanType(cartan_type))
+            cls, R, cartan_type)
 
     def __init__(self, R, cartan_type):
         r"""
@@ -883,10 +874,10 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
         alpha = RL.simple_roots()
         p_roots = list(RL.positive_roots_by_height())
         n_roots = [-x for x in p_roots]
+        self._p_roots_index = {al: i for i,al in enumerate(p_roots)}
         alphacheck = RL.simple_coroots()
         roots = frozenset(RL.roots())
         num_sroots = len(alpha)
-        p_root_index = {x: i for i,x in enumerate(p_roots)}
         one = R.one()
 
         # Determine the signs for the structure coefficients from the root system
@@ -959,7 +950,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
                 if s - r in p_roots:
                     c = e_coeff(r, -s)
                     a, b = s-r, r
-                    if p_root_index[a] > p_root_index[b]: # Note a != b
+                    if self._p_roots_index[a] > self._p_roots_index[b]: # Note a != b
                         c *= -sp_sign[(b, a)]
                     else:
                         c *= sp_sign[(a, b)]
@@ -975,11 +966,13 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
                     s_coeffs[(-r, -s)] = {-a: -c}
 
         # Lastly, make sure a < b for all (a, b) in the coefficients and flip if necessary
-        for k in s_coeffs:
+        for k in s_coeffs.keys():
             a,b = k[0], k[1]
-            if self._basis_cmp(a, b) > 0:
-                s_coeffs[(b,a)] = {k: -v for k,v in s_coeffs[k].items()}
+            if self._basis_key(a) > self._basis_key(b):
+                s_coeffs[(b,a)] = [(index, -v) for index,v in s_coeffs[k].items()]
                 del s_coeffs[k]
+            else:
+                s_coeffs[k] = s_coeffs[k].items()
 
         names = ['e{}'.format(i) for i in range(1, num_sroots+1)]
         names += ['f{}'.format(i) for i in range(1, num_sroots+1)]
@@ -988,7 +981,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
         index_set = p_roots + n_roots + list(alphacheck)
         LieAlgebraWithStructureCoefficients.__init__(self, R, s_coeffs, names, index_set,
                                                      category, prefix='E', bracket='[',
-                                                     generator_cmp=self._basis_cmp)
+                                                     sorting_key=self._basis_key)
 
     def _repr_(self):
         """
@@ -1051,7 +1044,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
                                        c * neg_B[index[x-y]],
                                        "incorrect structure coefficient for [{}, {}]".format(x, y))
 
-    def _repr_term(self, m):
+    def _repr_generator(self, m):
         """
         Return a string representation of the basis element indexed by ``m``.
 
@@ -1059,16 +1052,33 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
 
             sage: L = LieAlgebra(QQ, cartan_type=['A', 2])
             sage: K = L.basis().keys()
-            sage: L._repr_term(K[0])
+            sage: L._repr_generator(K[0])
             'E[alpha[2]]'
-            sage: L._repr_term(K[-1])
+            sage: L._repr_generator(K[-1])
             'h2'
         """
         if m in self._cartan_type.root_system().root_lattice().simple_coroots():
             return "h{}".format(m.support()[0])
         return IndexedGenerators._repr_generator(self, m)
 
-    def _basis_cmp(self, x, y):
+    def _latex_generator(self, m):
+        r"""
+        Return a latex representation of the basis element indexed by ``m``.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['A', 2])
+            sage: K = L.basis().keys()
+            sage: L._latex_generator(K[0])
+            'E_{\\alpha_{2}}'
+            sage: L._latex_generator(K[-1])
+            'h_{2}'
+        """
+        if m in self._cartan_type.root_system().root_lattice().simple_coroots():
+            return "h_{{{}}}".format(m.support()[0])
+        return IndexedGenerators._latex_generator(self, m)
+
+    def _basis_key(self, x):
         """
         Compare two basis element indices. We order the basis elements by
         positive roots, coroots, and negative roots and then according to
@@ -1082,7 +1092,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
 
             sage: L = LieAlgebra(QQ, cartan_type=['B', 2])
             sage: K = L.basis().keys()
-            sage: S = sorted(K, cmp=L._basis_cmp); S
+            sage: S = sorted(K, key=L._basis_key); S
             [alpha[2],
              alpha[1],
              alpha[1] + alpha[2],
@@ -1096,30 +1106,15 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
             sage: S == K
             False
         """
-        if x == y:
-            return 0
-
+        if x in self._p_roots_index:
+            return self._p_roots_index[x]
+        if -x in self._p_roots_index:
+            return (len(self._p_roots_index)
+                    + self._cartan_type.rank()
+                    + self._p_roots_index[-x])
         RL = self._cartan_type.root_system().root_lattice()
-        p_roots = list(RL.positive_roots_by_height())
-        n_roots = map(lambda x: -x, p_roots)
-        alphacheck = RL.simple_coroots()
-
-        if x in p_roots:
-            if y in p_roots:
-                return cmp(p_roots.index(x), p_roots.index(y))
-            return -1
-
-        if x in alphacheck:
-            if y in p_roots:
-                return 1
-            if y in alphacheck:
-                return cmp(x, y)
-            return -1
-
-        # x is in n_roots
-        if y not in n_roots:
-            return 1
-        return cmp(n_roots.index(x), n_roots.index(y))
+        alphacheck = list(RL.simple_coroots())
+        return len(self._p_roots_index) + alphacheck.index(x)
 
     def cartan_type(self):
         """

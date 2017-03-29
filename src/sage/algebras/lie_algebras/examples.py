@@ -464,11 +464,11 @@ def so(R, n, representation='bracket'):
         sage: so5([E1, [E1, E2]])
         0
         sage: X = so5([E2, [E2, E1]]); X
-        2*E[alpha[1] + 2*alpha[2]]
+        -2*E[alpha[1] + 2*alpha[2]]
         sage: H1.bracket(X)
         0
         sage: H2.bracket(X)
-        4*E[alpha[1] + 2*alpha[2]]
+        -4*E[alpha[1] + 2*alpha[2]]
         sage: so5([H1, [E1, E2]])
         -E[alpha[1] + alpha[2]]
         sage: so5([H2, [E1, E2]])
@@ -550,9 +550,9 @@ def sp(R, n, representation='bracket'):
         sage: sp4([E2, [E2, E1]])
         0
         sage: X = sp4([E1, [E1, E2]]); X
-        -2*E[2*alpha[1] + alpha[2]]
+        2*E[2*alpha[1] + alpha[2]]
         sage: H1.bracket(X)
-        -4*E[2*alpha[1] + alpha[2]]
+        4*E[2*alpha[1] + alpha[2]]
         sage: H2.bracket(X)
         0
         sage: sp4([H1, [E1, E2]])

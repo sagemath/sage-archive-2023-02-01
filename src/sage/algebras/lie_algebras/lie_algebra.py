@@ -231,7 +231,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         sage: L([[e2, e3], e3])
         0
         sage: L([e2, [e2, e3]])
-        -2*E[2*alpha[2] + alpha[3]]
+        2*E[2*alpha[2] + alpha[3]]
 
         sage: L = LieAlgebra(ZZ, cartan_type=['E',6])
         sage: L

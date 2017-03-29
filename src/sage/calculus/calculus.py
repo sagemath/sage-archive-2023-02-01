@@ -1463,7 +1463,7 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
     transform parameter `s`, if possible.
     
     If this function cannot find a solution, a formal function is returned. 
-    The function that is returned may be be viewed as a function of `t`.
+    The function that is returned may be viewed as a function of `t`.
 
     DEFINITION: 
     

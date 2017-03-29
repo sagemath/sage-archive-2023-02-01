@@ -4,6 +4,7 @@ from __future__ import print_function
 import os, sys, time, errno, platform, subprocess
 from distutils import log
 from distutils.core import setup, DistutilsSetupError
+from distutils.command.build import build
 from distutils.command.build_ext import build_ext
 from distutils.command.install import install
 from distutils.dep_util import newer_group
@@ -698,16 +699,25 @@ class sage_build_ext(build_ext):
             for src in src_files:
                 self.copy_file(src, dst, preserve_mode=False)
 
-#########################################################
-### Generating auto-generated Sources
-### This must be done before discovering and building
-### the python modules. See #22094.
-#########################################################
 
-log.info("Generating auto-generated sources")
-from sage_setup.autogen import autogen_all
+class sage_build(build):
+    def run_autogen(self):
+        """
+        Generate auto-generated sources.
 
-autogen_all()
+        This must be done before building the python modules,
+        see :trac:`22106`.
+        """
+        from sage_setup.autogen import autogen_all
+        log.info("Generating auto-generated sources")
+        for pkg in autogen_all():
+            if pkg not in self.distribution.packages:
+                    self.distribution.packages.append(pkg)
+
+    def run(self):
+        self.run_autogen()
+        build.run(self)
+
 
 #########################################################
 ### Discovering Sources
@@ -798,5 +808,6 @@ code = setup(name = 'sage',
       author_email= 'http://groups.google.com/group/sage-support',
       url         = 'http://www.sagemath.org',
       packages    = python_packages,
-      cmdclass = dict(build_ext=sage_build_ext, install=sage_install),
+      cmdclass = dict(build=sage_build, build_ext=sage_build_ext,
+                      install=sage_install),
       ext_modules = ext_modules)

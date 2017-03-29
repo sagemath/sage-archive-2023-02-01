@@ -579,7 +579,7 @@ cpdef list normalize_index(object key, int size):
             raise IndexError("index out of range")
         return [index]
     elif isinstance(key, slice):
-        return range(*key.indices(size))
+        return list(xrange(*key.indices(size)))
     elif type(key) is tuple:
         index_tuple = key
     elif type(key) is list:

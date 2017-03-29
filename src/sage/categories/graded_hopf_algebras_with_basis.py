@@ -14,6 +14,9 @@ from sage.categories.graded_modules import GradedModulesCategory
 from sage.categories.with_realizations import WithRealizationsCategory
 from sage.misc.cachefunc import cached_method
 
+import six
+
+
 class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
     """
     The category of graded Hopf algebras with a distinguished basis.
@@ -175,7 +178,7 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
                     """
                     return self.linear_combination(
                         (self.antipode_on_basis(mon), coeff)
-                        for mon, coeff in elem.monomial_coefficients().iteritems()
+                        for mon, coeff in six.iteritems(elem.monomial_coefficients())
                     )
 
             class ElementMethods:

@@ -7,6 +7,7 @@ Coxeter Groups implemented with Coxeter3
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import iteritems
 
 from sage.libs.coxeter3.coxeter import get_CoxGroup, CoxGroupElement
 from sage.misc.cachefunc import cached_method
@@ -18,6 +19,7 @@ from sage.structure.parent import Parent
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
 
 class CoxeterGroup(UniqueRepresentation, Parent):
     @staticmethod
@@ -103,7 +105,6 @@ class CoxeterGroup(UniqueRepresentation, Parent):
             (0, 1, 2, 3)
         """
         return self.cartan_type().index_set()
-        #return range(1, self.rank()+1)
 
     def bruhat_interval(self, u, v):
         """
@@ -616,7 +617,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
 
         def action(self, v):
             """
-            Return the action of of this Coxeter group element on the root space.
+            Return the action of this Coxeter group element on the root space.
 
             INPUT:
 
@@ -685,7 +686,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
                     exponent = self.action(exponent)
 
                     monomial = 1
-                    for s, c in exponent.monomial_coefficients().iteritems():
+                    for s, c in iteritems(exponent.monomial_coefficients()):
                         monomial *= Q_gens[basis_to_order[s]]**int(c)
 
                     result += monomial
@@ -694,4 +695,3 @@ class CoxeterGroup(UniqueRepresentation, Parent):
 
             numerator, denominator = results
             return numerator / denominator
-

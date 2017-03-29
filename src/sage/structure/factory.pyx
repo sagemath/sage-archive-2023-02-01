@@ -524,7 +524,7 @@ cdef class UniqueFactory(SageObject):
         change without having to re-write :meth:`__reduce__` methods
         that use it.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: V = FreeModule(ZZ, 5)
             sage: factory, data = FreeModule.reduce_data(V)

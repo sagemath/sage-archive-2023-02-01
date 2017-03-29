@@ -77,7 +77,7 @@ class CartesianProductPoset(CartesianProduct):
         Category of Cartesian products of finite enumerated sets
         sage: TestSuite(Cp).run()
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         :class:`CartesianProduct`
     """

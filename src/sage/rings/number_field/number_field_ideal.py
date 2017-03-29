@@ -793,7 +793,7 @@ class NumberFieldIdeal(Ideal_generic):
         Express this ideal using exactly two generators, the first of
         which is a generator for the intersection of the ideal with `Q`.
 
-        ALGORITHM: uses PARI's ``idealtwoelt`` function, which runs in
+        ALGORITHM: uses PARI's :pari:`idealtwoelt` function, which runs in
         randomized polynomial time and is very fast in practice.
 
         EXAMPLES::
@@ -897,7 +897,7 @@ class NumberFieldIdeal(Ideal_generic):
         r"""
         Return the intersection of self and other.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = QuadraticField(-11)
             sage: p = K.ideal((a + 1)/2); q = K.ideal((a + 3)/2)
@@ -1088,7 +1088,7 @@ class NumberFieldIdeal(Ideal_generic):
         r"""
         Return True if this ideal is principal.
 
-        Since it uses the PARI method ``bnfisprincipal``, specify
+        Since it uses the PARI method :pari:`bnfisprincipal`, specify
         ``proof=True`` (this is the default setting) to prove the correctness
         of the output.
 
@@ -1117,11 +1117,11 @@ class NumberFieldIdeal(Ideal_generic):
 
     def ideal_class_log(self, proof=None):
         r"""
-        Return the output of PARI's ``bnfisprincipal`` for this ideal,
+        Return the output of PARI's :pari:`bnfisprincipal` for this ideal,
         i.e. a vector expressing the class of this ideal in terms of a
         set of generators for the class group.
 
-        Since it uses the PARI method ``bnfisprincipal``, specify
+        Since it uses the PARI method :pari:`bnfisprincipal`, specify
         ``proof=True`` (this is the default setting) to prove the correctness
         of the output.
 
@@ -1410,7 +1410,7 @@ class NumberFieldIdeal(Ideal_generic):
         method of the ``GaloisGroup_v2`` class for further examples
         and doctests.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: QuadraticField(-23, 'w').primes_above(7)[0].decomposition_group()
             Galois group of Number Field in w with defining polynomial x^2 + 23
@@ -1426,7 +1426,7 @@ class NumberFieldIdeal(Ideal_generic):
         ramification_group method of the ``GaloisGroup`` class for
         further examples and doctests.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: QuadraticField(-23, 'w').primes_above(23)[0].ramification_group(0)
             Galois group of Number Field in w with defining polynomial x^2 + 23
@@ -1444,7 +1444,7 @@ class NumberFieldIdeal(Ideal_generic):
         ramification group of self. See the inertia_group method of the
         ``GaloisGroup_v2`` class for further examples and doctests.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: QuadraticField(-23, 'w').primes_above(23)[0].inertia_group()
             Galois group of Number Field in w with defining polynomial x^2 + 23
@@ -1509,7 +1509,7 @@ class NumberFieldIdeal(Ideal_generic):
         See the ``artin_symbol`` method of the ``GaloisGroup_v2``
         class for further documentation and examples.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: QuadraticField(-23, 'w').primes_above(7)[0].artin_symbol()
             (1,2)
@@ -2714,7 +2714,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
 
         An element `r` of the ideal self such that `1-r` is in the ideal other
 
-        AUTHOR: Maite Aranes (modified to use PARI's idealaddtoone by Francis Clarke)
+        AUTHOR: Maite Aranes (modified to use PARI's :pari:`idealaddtoone` by Francis Clarke)
 
         EXAMPLES::
 
@@ -2806,9 +2806,10 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
 
     def prime_to_S_part(self,S):
         r"""
-        Return the part of this fractional ideal which is coprime to the prime ideals in the list ``S``.
+        Return the part of this fractional ideal which is coprime to
+        the prime ideals in the list ``S``.
 
-        .. note::
+        .. NOTE::
 
            This function assumes that `S` is a list of prime ideals,
            but does not check this.  This function will fail if `S` is
@@ -2816,12 +2817,12 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
 
         INPUT:
 
-        - `S` - a list of prime ideals
+        - `S` -- a list of prime ideals
 
         OUTPUT:
 
         A fractional ideal coprime to the primes in `S`, whose prime
-        factorization is that of ``self`` withe the primes in `S`
+        factorization is that of ``self`` with the primes in `S`
         removed.
 
         EXAMPLES::
@@ -2840,7 +2841,6 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             sage: S = [K.ideal(15161*a^4 + 28383*a^3 + 53135*a^2 + 99478*a + 186250),K.ideal(2*a^4 + 3*a^3 + 4*a^2 + 15*a + 11), K.ideal(101)]
             sage: I.prime_to_S_part(S)
             Fractional ideal (24)
-
         """
         a = self
         for p in S:
@@ -3115,9 +3115,9 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
     def ray_class_number(self):
         r"""
         Return the order of the ray class group modulo this ideal. This is a
-        wrapper around Pari's ``bnrclassno()`` function.
+        wrapper around Pari's :pari:`bnrclassno` function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<z> = QuadraticField(-23)
             sage: p = K.primes_above(3)[0]
@@ -3167,7 +3167,7 @@ class QuotientMap:
         """
         Initialize this QuotientMap.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 + 4)
             sage: f = K.ideal(1 + a^2/2).residue_field().reduction_map(); f # indirect doctest
@@ -3191,7 +3191,7 @@ class QuotientMap:
 
             x -- an element of the field
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 + 4)
             sage: f = K.ideal(1 + a^2/2).residue_field().reduction_map()
@@ -3206,7 +3206,7 @@ class QuotientMap:
         """
         Return a string representation of this QuotientMap.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 + 4)
             sage: f = K.ideal(1 + a^2/2).residue_field().reduction_map()
@@ -3224,7 +3224,7 @@ class LiftMap:
         """
         Initialize this LiftMap.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 + 4)
             sage: I = K.ideal(1 + a^2/2)
@@ -3242,7 +3242,7 @@ class LiftMap:
         """
         Apply this LiftMap to an element of the residue field.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 + 4)
             sage: R = K.ideal(1 + a^2/2).residue_field()
@@ -3270,7 +3270,7 @@ class LiftMap:
         """
         Return a string representation of this QuotientMap.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 + 4)
             sage: R = K.ideal(1 + a^2/2).residue_field()

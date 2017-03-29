@@ -23,6 +23,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 from six.moves import range
+from builtins import zip
 
 from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.polynomial.polynomial_element import Polynomial
@@ -211,7 +212,7 @@ class Polynomial_padic(Polynomial):
             (3^2 + 2*3^3 + 2*3^4 + 3^5 + 2*3^6 + O(3^22)) * ((1 + O(3^19))*T + (2*3^-1 + 3 + 3^2 + 2*3^5 + 2*3^6 + 2*3^7 + 3^8 + 3^9 + 2*3^11 + 3^15 + 3^17 + O(3^19))) * ((1 + O(3^20))*T + (2*3 + 3^2 + 3^3 + 3^5 + 2*3^6 + 2*3^7 + 3^8 + 3^10 + 3^11 + 2*3^12 + 2*3^14 + 2*3^15 + 2*3^17 + 2*3^18 + O(3^20)))
         """
         if self == 0:
-            raise ArithmeticError("factorization of 0 not defined")
+            raise ArithmeticError("factorization of {!r} is not defined".format(self))
         # Scale self such that 0 is the lowest valuation
         # amongst the coefficients
         try:

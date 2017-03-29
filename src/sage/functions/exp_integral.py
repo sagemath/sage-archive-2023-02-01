@@ -19,7 +19,7 @@ REFERENCES:
 - `mpmath library`_
 
 .. _`special functions package`: http://maxima.sourceforge.net/docs/manual/en/maxima_15.html
-.. _`mpmath library`: http://code.google.com/p/mpmath/
+.. _`mpmath library`: https://github.com/fredrik-johansson/mpmath/
 
 AUTHORS:
 
@@ -398,7 +398,7 @@ class Function_log_integral(BuiltinFunction):
     - http://en.wikipedia.org/wiki/Logarithmic_integral_function
     - mpmath documentation: `logarithmic-integral`_
 
-    .. _`logarithmic-integral`: http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#logarithmic-integral
+    .. _`logarithmic-integral`: http://mpmath.org/doc/current/functions/expintegrals.html#logarithmic-integral
 
 
     """
@@ -586,7 +586,7 @@ class Function_log_integral_offset(BuiltinFunction):
     - http://en.wikipedia.org/wiki/Logarithmic_integral_function
     - mpmath documentation: `logarithmic-integral`_
 
-    .. _`logarithmic-integral`: http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#logarithmic-integral
+    .. _`logarithmic-integral`: http://mpmath.org/doc/current/functions/expintegrals.html#logarithmic-integral
     """
 
     def __init__(self):
@@ -757,7 +757,7 @@ class Function_sin_integral(BuiltinFunction):
     - http://en.wikipedia.org/wiki/Trigonometric_integral
     - mpmath documentation: `si`_
 
-    .. _`si`: http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#si
+    .. _`si`: http://mpmath.org/doc/current/functions/expintegrals.html#si
 
     """
     def __init__(self):
@@ -930,7 +930,7 @@ class Function_cos_integral(BuiltinFunction):
     - http://en.wikipedia.org/wiki/Trigonometric_integral
     - mpmath documentation: `ci`_
 
-    .. _`ci`: http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#ci
+    .. _`ci`: http://mpmath.org/doc/current/functions/expintegrals.html#ci
 
     """
     def __init__(self):
@@ -1063,7 +1063,7 @@ class Function_sinh_integral(BuiltinFunction):
     - http://en.wikipedia.org/wiki/Trigonometric_integral
     - mpmath documentation: `shi`_
 
-    .. _`shi`: http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#shi
+    .. _`shi`: http://mpmath.org/doc/current/functions/expintegrals.html#shi
 
     """
     def __init__(self):
@@ -1176,7 +1176,7 @@ class Function_cosh_integral(BuiltinFunction):
     numerical integration::
 
         sage: N(euler_gamma + log(3.0) + integrate((cosh(x)-1)/x, x, 0, 3.0) -
-        ...     cosh_integral(3.0)) < 1e-14
+        ....:   cosh_integral(3.0)) < 1e-14
         True
 
     Arbitrary precision and complex arguments are handled::
@@ -1211,7 +1211,7 @@ class Function_cosh_integral(BuiltinFunction):
     - http://en.wikipedia.org/wiki/Trigonometric_integral
     - mpmath documentation: `chi`_
 
-    .. _`chi`: http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#chi
+    .. _`chi`: http://mpmath.org/doc/current/functions/expintegrals.html#chi
 
     """
     def __init__(self):

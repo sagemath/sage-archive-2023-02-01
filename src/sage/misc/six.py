@@ -1,9 +1,12 @@
+# -*- encoding: utf-8 -*-
 """
 Python 2 and 3 Compatibility
 """
+
 from __future__ import absolute_import
 
-from .six import *
+from six import *
+
 
 def with_metaclass(meta, *bases):
     """
@@ -52,3 +55,20 @@ def with_metaclass(meta, *bases):
         def __new__(cls, name, _, __dict__):
             return meta.__new__(meta, name, bases, __dict__)
     return type.__new__(metaclass, 'temporary_class', (), {})
+
+
+def u(x):
+    r"""
+    Convert `x` to unicode, assuming UTF-8 encoding.
+
+    EXAMPLES::
+
+        sage: from sage.misc.six import u
+        sage: u("500 €")
+        u'500 \u20ac'
+        sage: u(u"500 \u20ac")
+        u'500 \u20ac'
+    """
+    if isinstance(x, unicode):
+        return x
+    return str(x).decode("utf-8")

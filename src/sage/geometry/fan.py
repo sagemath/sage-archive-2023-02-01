@@ -244,9 +244,6 @@ from sage.geometry.cone import (Cone,
                                 is_Cone,
                                 normalize_rays)
 from sage.geometry.hasse_diagram import Hasse_diagram_from_incidences
-from sage.geometry.lattice_polytope import (LatticePolytope,
-                                            all_faces,
-                                            all_facet_equations)
 from sage.geometry.point_collection import PointCollection
 from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice
 from sage.geometry.toric_plotter import ToricPlotter
@@ -671,7 +668,7 @@ def FaceFan(polytope, lattice=None):
     if is_LatticePolytope(polytope):
         if any(d <= 0 for d in polytope.distances([0]*polytope.dim())):
             raise interior_point_error
-        cones = (f.ambient_vertex_indices() for f in polytope.facets_lp())
+        cones = (f.ambient_vertex_indices() for f in polytope.facets())
         rays = polytope.vertices()
         is_complete = polytope.dim() == polytope.lattice_dim()
     else:
@@ -760,7 +757,7 @@ def NormalFan(polytope, lattice=None):
         if polytope.dim() != polytope.lattice_dim():
             raise dimension_error
         rays = polytope.facet_normals()
-        cones = (v.ambient_facet_indices() for v in polytope.faces_lp(dim=0))
+        cones = (v.ambient_facet_indices() for v in polytope.faces(dim=0))
     else:
         if polytope.dim() != polytope.ambient_dim():
             raise dimension_error
@@ -1239,8 +1236,6 @@ class RationalPolyhedralFan(IntegralRayCollection,
             0
             sage: f2 is f3
             False
-            sage: cmp(f1, 1) * cmp(1, f1)
-            -1
         """
         if is_Fan(right):
             return cmp(

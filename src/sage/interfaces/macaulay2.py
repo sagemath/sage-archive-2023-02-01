@@ -681,7 +681,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             sage: len(l)                  # optional - macaulay2
             3
             sage: type(_)                 # optional - macaulay2
-            <type 'int'>
+            <... 'int'>
         """
         self._check_valid()
         return int(self.parent()("#%s"%self.name()))
@@ -735,7 +735,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
         """
         Quotient of division of self by other.  This is denoted //.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y> = GF(7)[]
 
@@ -770,7 +770,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
         """
         Remainder of division of self by other.  This is denoted %.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y> = GF(7)[]
 

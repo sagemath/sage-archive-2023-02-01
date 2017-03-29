@@ -178,8 +178,7 @@ Classes and functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-
-from six.moves import range
+from six.moves import range, zip
 
 import operator
 import re
@@ -2905,7 +2904,7 @@ class LPAbstractDictionary(SageObject):
             sage: D.basic_solution(True)
             (0, 0, 1000, 1500)
         """
-        vv = zip(self.basic_variables(), self.constant_terms())
+        vv = list(zip(self.basic_variables(), self.constant_terms()))
         N = self.nonbasic_variables()
         vv += [(v, 0) for v in N]
         vv.sort()   # We use neglex order

@@ -213,7 +213,7 @@ Here is how to do it::
     [(2, 0), (2, 1), (2, 2), (2, 3), (2, 4)]
     sage: el = P.an_element()
     sage: type(el)
-    <type 'tuple'>
+    <... 'tuple'>
 
 Here are the currently implemented policies:
 
@@ -816,7 +816,7 @@ class BareFunctionPolicy(SetFactoryPolicy):
         sage: P = XYPairs(x=2, policy=tuplepolicy)
         sage: el = P.an_element()
         sage: type(el)
-        <type 'tuple'>
+        <... 'tuple'>
     """
     def __init__(self, factory, constructor):
         """
@@ -846,7 +846,7 @@ class BareFunctionPolicy(SetFactoryPolicy):
             sage: from sage.structure.set_factories_example import XYPairs
             sage: pol = BareFunctionPolicy(XYPairs, tuple)
             sage: pol.element_constructor_attributes(())
-            {'_element_constructor_': <type 'tuple'>, '_parent_for': None}
+            {'_element_constructor_': <... 'tuple'>, '_parent_for': None}
         """
         return {'_element_constructor_' : self._constructor, '_parent_for' : None}
 
@@ -857,7 +857,7 @@ class BareFunctionPolicy(SetFactoryPolicy):
             sage: from sage.structure.set_factories import BareFunctionPolicy
             sage: from sage.structure.set_factories_example import XYPairs
             sage: BareFunctionPolicy(XYPairs, tuple)
-            Set factory policy for bare function <type 'tuple'>
+            Set factory policy for bare function <... 'tuple'>
         """
         return "Set factory policy for bare function {}".format(self._constructor)
 

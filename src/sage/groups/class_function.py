@@ -580,7 +580,7 @@ class ClassFunction_gap(SageObject):
             sage: irr = chi.irreducible_constituents(); irr
             (Character of Symmetric group of order 5! as a permutation group,
              Character of Symmetric group of order 5! as a permutation group)
-            sage: map(list, irr)
+            sage: list(map(list, irr))
             [[4, -2, 0, 1, 1, 0, -1], [5, -1, 1, -1, -1, 1, 0]]
             sage: G = GL(2,3)
             sage: chi = ClassFunction(G, [-1, -1, -1, -1, -1, -1, -1, -1])
@@ -596,7 +596,7 @@ class ClassFunction_gap(SageObject):
             sage: ic = chi.irreducible_constituents(); ic
             (Character of General Linear Group of degree 2 over Finite Field of size 3,
              Character of General Linear Group of degree 2 over Finite Field of size 3)
-            sage: map(list, ic)
+            sage: list(map(list, ic))
             [[2, -1, 2, -1, 2, 0, 0, 0], [3, 0, 3, 0, -1, 1, 1, -1]]
         """
         L = self._gap_classfunction.ConstituentsOfCharacter()
@@ -1265,7 +1265,7 @@ class ClassFunction_libgap(SageObject):
             sage: irr = chi.irreducible_constituents(); irr
             (Character of Symmetric group of order 5! as a permutation group,
              Character of Symmetric group of order 5! as a permutation group)
-            sage: map(list, irr)
+            sage: list(map(list, irr))
             [[4, -2, 0, 1, 1, 0, -1], [5, -1, 1, -1, -1, 1, 0]]
 
             sage: G = GL(2,3)
@@ -1282,7 +1282,7 @@ class ClassFunction_libgap(SageObject):
             sage: ic = chi.irreducible_constituents(); ic
             (Character of General Linear Group of degree 2 over Finite Field of size 3,
              Character of General Linear Group of degree 2 over Finite Field of size 3)
-            sage: map(list, ic)
+            sage: list(map(list, ic))
             [[2, -1, 2, -1, 2, 0, 0, 0], [3, 0, 3, 0, -1, 1, 1, -1]]
         """
         L = self._gap_classfunction.ConstituentsOfCharacter()

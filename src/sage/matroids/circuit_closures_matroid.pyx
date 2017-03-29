@@ -70,6 +70,7 @@ from __future__ import absolute_import
 from .matroid cimport Matroid
 from .set_system cimport SetSystem
 from .utilities import setprint_s
+from cpython.object cimport Py_EQ, Py_NE
 
 
 cdef class CircuitClosuresMatroid(Matroid):
@@ -372,7 +373,7 @@ cdef class CircuitClosuresMatroid(Matroid):
         OUTPUT:
 
         Boolean,
-        and, if certificate = True, a dictionary giving the isomophism or None
+        and, if certificate = True, a dictionary giving the isomorphism or None
 
         .. NOTE::
 
@@ -476,15 +477,15 @@ cdef class CircuitClosuresMatroid(Matroid):
             False
         """
         cdef CircuitClosuresMatroid lt, rt
-        if op in [0, 1, 4, 5]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if not isinstance(left, CircuitClosuresMatroid) or not isinstance(right, CircuitClosuresMatroid):
             return NotImplemented
         lt = <CircuitClosuresMatroid> left
         rt = <CircuitClosuresMatroid> right
-        if op == 2:  # ==
+        if op == Py_EQ:
             res = True
-        if op == 3:  # !=
+        if op == Py_NE:
             res = False
         # res gets inverted if matroids are deemed different.
         if lt.groundset() != rt.groundset():

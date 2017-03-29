@@ -147,7 +147,7 @@ def parse_tolerance(source, want):
         sage: from sage.doctest.parsing import parse_tolerance
         sage: marked = parse_tolerance("sage: s.update(abs_tol = .0000001)", "")
         sage: type(marked)
-        <type 'str'>
+        <... 'str'>
         sage: marked = parse_tolerance("sage: s.update(tol = 0.1); s.rel_tol # abs tol     0.01 ", "")
         sage: marked.tol
         0
@@ -330,7 +330,7 @@ class OriginalSource:
         'doctest_var = Integer(42); doctest_var**Integer(2)\n'
         sage: from sage.doctest.parsing import OriginalSource
         sage: with OriginalSource(ex):
-        ...       ex.source
+        ....:     ex.source
         'doctest_var = 42; doctest_var^2\n'
     """
     def __init__(self, example):
@@ -371,7 +371,7 @@ class OriginalSource:
             sage: ex = doctests[0].examples[0]
             sage: from sage.doctest.parsing import OriginalSource
             sage: with OriginalSource(ex): # indirect doctest
-            ...       ex.source
+            ....:     ex.source
             ...
             'doctest_var = 42; doctest_var^2\n'
         """
@@ -392,7 +392,7 @@ class OriginalSource:
             sage: ex = doctests[0].examples[0]
             sage: from sage.doctest.parsing import OriginalSource
             sage: with OriginalSource(ex): # indirect doctest
-            ...       ex.source
+            ....:     ex.source
             ...
             'doctest_var = 42; doctest_var^2\n'
             sage: ex.source # indirect doctest

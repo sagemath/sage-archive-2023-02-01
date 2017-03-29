@@ -251,7 +251,7 @@ cdef class ntl_ZZX(object):
         sage: i
          -7
         sage: type(i)
-         <type 'int'>
+         <... 'int'>
         sage: x.getitem_as_int_doctest(15)
          0
         """
@@ -984,7 +984,7 @@ cdef class ntl_ZZX(object):
         the global default is proof=True) then it may use a randomized
         strategy that errors with probability no more than $2^{-80}$.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: f = ntl.ZZX([1,2,0,3])
             sage: mod = ntl.ZZX([-5,2,0,0,1])
             sage: f.norm_mod(mod)

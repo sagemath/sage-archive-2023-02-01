@@ -163,8 +163,10 @@ graphplot_options.update(
                         '(larger and white).',
                     'graph_border': 'Whether or not to draw a frame around the graph.'})
 
+from six import iteritems
+
 _PLOT_OPTIONS_TABLE = ""
-for key, value in graphplot_options.iteritems():
+for key, value in iteritems(graphplot_options):
     _PLOT_OPTIONS_TABLE += "    ``"+str(key)+"`` | "+str(value)+"\n"
 __doc__ = __doc__.format(PLOT_OPTIONS_TABLE=_PLOT_OPTIONS_TABLE)
 
@@ -188,6 +190,7 @@ from sage.structure.sage_object import SageObject
 from sage.plot.all import Graphics, scatter_plot, bezier_path, line, arrow, text, circle
 from sage.misc.decorators import options
 from math import sqrt, cos, sin, atan, pi
+import six
 from six import text_type as str
 
 DEFAULT_SHOW_OPTIONS = {
@@ -223,7 +226,7 @@ class GraphPlot(SageObject):
         as some functions to set parameters for vertices and edges.  This constructor
         assumes default options are set.  Defaults are shown in the example below.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.graph_plot import GraphPlot
             sage: options = {
@@ -249,7 +252,7 @@ class GraphPlot(SageObject):
 
         """
         # Setting the default values if needed
-        for k,value in DEFAULT_PLOT_OPTIONS.iteritems():
+        for k, value in iteritems(DEFAULT_PLOT_OPTIONS):
             if k not in options:
                 options[k] = value
         self._plot_components = {}
@@ -271,7 +274,7 @@ class GraphPlot(SageObject):
         """
         Returns a string representation of a ``GraphPlot`` object.
 
-        EXAMPLE:
+        EXAMPLES:
 
         This function is called implicitly by the code below::
 
@@ -329,11 +332,11 @@ class GraphPlot(SageObject):
             sage: g = graphs.FruchtGraph()
             sage: gp = g.graphplot()
             sage: set(map(type, flatten(gp._pos.values())))
-            {<type 'float'>}
+            {<... 'float'>}
             sage: g = graphs.BullGraph()
             sage: gp = g.graphplot(save_pos=True)
             sage: set(map(type, flatten(gp._pos.values())))
-            {<type 'float'>}
+            {<... 'float'>}
 
         Non-ascii labels are also possible using unicode (:trac:`21008`)::
 
@@ -342,7 +345,8 @@ class GraphPlot(SageObject):
         """
         self._pos = self._graph.layout(**self._options)
         # make sure the positions are floats (trac #10124)
-        self._pos = dict((k,(float(v[0]), float(v[1]))) for k,v in self._pos.iteritems())
+        self._pos = dict((k, (float(v[0]), float(v[1])))
+                         for k, v in iteritems(self._pos))
 
     def set_vertices(self, **vertex_options):
         """
@@ -800,7 +804,7 @@ class GraphPlot(SageObject):
         segment from A to B (xy tuples) and circles centered at A and B, both with
         radius VR.  Returns a tuple of xy tuples representing the two points.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: d = DiGraph({}, loops=True, multiedges=True, sparse=True)
             sage: d.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
@@ -852,7 +856,7 @@ class GraphPlot(SageObject):
             - Any options not used by plot will be passed on to the
               :meth:`~sage.plot.graphics.Graphics.show` method.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: C = graphs.CubeGraph(8)
             sage: P = C.graphplot(vertex_labels=False, vertex_size=0, graph_border=True)
@@ -866,7 +870,7 @@ class GraphPlot(SageObject):
 
         """
         # Setting the default values if needed
-        for k,value in DEFAULT_SHOW_OPTIONS.iteritems():
+        for k, value in iteritems(DEFAULT_SHOW_OPTIONS):
             if k not in kwds:
                 kwds[k] = value
 
@@ -1365,7 +1369,7 @@ def _circle_embedding(g, vertices, center=(0, 0), radius=1, shift=0):
     circle by an angle of `\alpha 2\pi/n` (where `n` is the number of
     vertices set on the circle).
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.graph_plot import _circle_embedding
         sage: g = graphs.CycleGraph(5)
@@ -1395,7 +1399,7 @@ def _line_embedding(g, vertices, first=(0, 0), last=(0, 1)):
     is the pair ``first`` and the position of ``vertices[-1]`` is
     ``last``. The vertices are evenly spaced.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.graph_plot import _line_embedding
         sage: g = graphs.PathGraph(5)

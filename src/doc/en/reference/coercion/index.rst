@@ -35,7 +35,7 @@ nonsense. Here are some examples::
     sage: GF(5)(1) + CC(I)
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '+': 'Finite Field of size 5' and 'Complex Field with 53 bits of precision'
+    TypeError: unsupported operand parent(s) for +: 'Finite Field of size 5' and 'Complex Field with 53 bits of precision'
 
 Parents and Elements
 ~~~~~~~~~~~~~~~~~~~~
@@ -88,7 +88,7 @@ to be able to reason with them, so their type is used instead::
 
     sage: a = int(10)
     sage: parent(a)
-    <type 'int'>
+    <... 'int'>
 
 In fact, under the hood, a special kind of parent "The set of all
 Python objects of type T" is used in these cases.
@@ -487,7 +487,7 @@ That's all there is to it. Now we can test it out:
     sage: R(1/2) + 1/7
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '+': 'Integer Ring localized at [2]' and 'Rational Field'
+    TypeError: unsupported operand parent(s) for +: 'Integer Ring localized at [2]' and 'Rational Field'
     sage: R(3/4) * 7
     LocalElt(21/4)
 

@@ -156,6 +156,7 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
 
+from sage.structure.sage_object import rich_to_bool
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import FieldElement, parent
 from sage.structure.coerce import py_scalar_to_element
@@ -281,7 +282,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         TESTS::
 
             sage: UCF = UniversalCyclotomicField()
-            sage: map(bool, [UCF.zero(), UCF.one(), UCF.gen(3), UCF.gen(5) + UCF.gen(5,3)])
+            sage: list(map(bool, [UCF.zero(), UCF.one(), UCF.gen(3), UCF.gen(5) + UCF.gen(5,3)]))
             [False, True, True, True]
         """
         return bool(self._obj)
@@ -671,7 +672,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
 
     _mpfr_ = _eval_real_
 
-    def _cmp_(self, other):
+    def _richcmp_(self, other, op):
         r"""
         Comparison (using the complex embedding).
 
@@ -680,10 +681,10 @@ class UniversalCyclotomicFieldElement(FieldElement):
             sage: UCF = UniversalCyclotomicField()
             sage: l = [UCF.gen(3), UCF.gen(3)+1, UCF.gen(5), UCF.gen(5,2),
             ....:      UCF.gen(4), 2*UCF.gen(4), UCF.gen(5)-22/3]
-            sage: lQQbar = map(QQbar,l)
+            sage: lQQbar = list(map(QQbar,l))
             sage: lQQbar.sort()
             sage: l.sort()
-            sage: lQQbar == map(QQbar,l)
+            sage: lQQbar == list(map(QQbar,l))
             True
 
             sage: for i in range(len(l)):
@@ -697,7 +698,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             False
         """
         if self._obj == other._obj:
-            return 0
+            return rich_to_bool(op, 0)
 
         s = self.real_part()
         o = other.real_part()
@@ -715,7 +716,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             R = RealIntervalField(prec)
             sa = s._eval_real_(R)
             oa = o._eval_real_(R)
-        return sa._cmp_(oa)
+        return sa._richcmp_(oa, op)
 
     def denominator(self):
         r"""
@@ -780,7 +781,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         TESTS::
 
             sage: type(E(3).is_rational())
-            <type 'bool'>
+            <... 'bool'>
         """
         return self._obj.IsRat().sage()
 

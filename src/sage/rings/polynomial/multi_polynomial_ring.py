@@ -62,6 +62,7 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from six.moves import range
+from six import iteritems
 
 from sage.rings.ring import IntegralDomain
 import sage.rings.fraction_field_element as fraction_field_element
@@ -395,6 +396,11 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
             sage: f.sage(locals={'a': a, 'd': d})
             a*d
 
+        Check that :trac:`21999` is fixed::
+
+            sage: R = QQbar['s,t']
+            sage: type(R({(1,2): 3}).coefficients()[0])
+            <class 'sage.rings.qqbar.AlgebraicNumber'>
         """
         from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
         import sage.rings.polynomial.polynomial_element as polynomial_element
@@ -430,7 +436,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
                 # no guarantees that this is mathematically solid."
                 K = self.base_ring()
                 D = x.element().dict()
-                for i, a in D.iteritems():
+                for i, a in iteritems(D):
                     D[i] = K(a)
                 return MPolynomial_polydict(self, D)
             elif set(P.variable_names()).issubset(set(self.variable_names())) and self.base_ring().has_coerce_map_from(P.base_ring()):
@@ -454,7 +460,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
                 # no guarantees that this is mathematically solid."
                 K = self.base_ring()
                 D = x.dict()
-                for i, a in D.iteritems():
+                for i, a in iteritems(D):
                     D[i] = K(a)
                 return MPolynomial_polydict(self, D)
             elif set(P.variable_names()).issubset(set(self.variable_names())) and self.base_ring().has_coerce_map_from(P.base_ring()):
@@ -468,6 +474,10 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         elif isinstance(x, PolyDict):
             return MPolynomial_polydict(self, x)
+
+        elif isinstance(x, dict):
+            K = self.base_ring()
+            return MPolynomial_polydict(self, {i: K(a) for i, a in iteritems(x)})
 
         elif isinstance(x, fraction_field_element.FractionFieldElement) and x.parent().ring() == self:
             if x.denominator() == 1:
@@ -543,7 +553,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         OUTPUT: monomial.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
             sage: P.<x,y,z> = MPolynomialRing_polydict_domain(QQ, 3, order='degrevlex')
@@ -634,7 +644,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         OUTPUT: monomial.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
             sage: P.<x,y,z> = MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
@@ -845,7 +855,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         OUTPUT: a list of monomials.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
             sage: P.<x,y,z> = MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')

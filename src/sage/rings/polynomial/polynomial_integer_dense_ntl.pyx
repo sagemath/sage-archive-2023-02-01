@@ -118,7 +118,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: type(f)
             <type 'sage.rings.polynomial.polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl'>
             sage: type(pari(f))
-            <type 'sage.libs.cypari2.gen.gen'>
+            <type 'sage.libs.cypari2.gen.Gen'>
             sage: type(R(pari(f)))
             <type 'sage.rings.polynomial.polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl'>
             sage: R(pari(f))
@@ -776,7 +776,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         """
         Returns isolating intervals for the real roots of this polynomial.
 
-        EXAMPLE:
+        EXAMPLES:
         We compute the roots of the characteristic polynomial of some Salem numbers::
 
             sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
@@ -1012,7 +1012,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: f.factor_mod(3)
             Traceback (most recent call last):
             ...
-            ValueError: factorization of 0 not defined
+            ArithmeticError: factorization of 0 is not defined
 
             sage: f = 2*x*(x-2)*(x-9)
             sage: f.factor_mod(7)
@@ -1023,7 +1023,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         if not p.is_prime():
             raise ValueError("p must be prime")
         if all([c%p==0 for c in self.coefficients()]):
-            raise ValueError("factorization of 0 not defined")
+            raise ArithmeticError("factorization of 0 is not defined")
         f = self._pari_()
         G = f.factormod(p)
         k = FiniteField(p)
@@ -1074,10 +1074,10 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         from sage.rings.polynomial.padics.polynomial_padic import _pari_padic_factorization_to_sage
         return _pari_padic_factorization_to_sage(G, R, self.leading_coefficient())
 
-    def list(self):
+    cpdef list list(self, bint copy=True):
         """
         Return a new copy of the list of the underlying
-        elements of self.
+        elements of ``self``.
 
         EXAMPLES::
 
@@ -1089,7 +1089,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: f.list()
             []
         """
-        return [self[i] for i in range(self.degree()+1)]
+        return [self.get_unsafe(i) for i in range(self.degree()+1)]
 
 
     @coerce_binop

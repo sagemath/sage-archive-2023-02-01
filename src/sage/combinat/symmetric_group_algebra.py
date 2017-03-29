@@ -25,6 +25,7 @@ from sage.modules.all import vector
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 import itertools
 from sage.combinat.permutation_cython import (left_action_same_n, right_action_same_n)
+import six
 
 # TODO: Remove this function and replace it with the class
 # TODO: Create parents for other bases (such as the seminormal basis)
@@ -701,7 +702,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         I = RSm.group()
         pairs = []
         P = Permutations(self.n)
-        for (p, coeff) in f.monomial_coefficients().iteritems():
+        for (p, coeff) in six.iteritems(f.monomial_coefficients()):
             p_ret = P(p).retract_plain(m)
             if p_ret is not None:
                 pairs.append((I(p_ret), coeff))
@@ -767,7 +768,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         I = RSm.group()
         dct = {}
         P = Permutations(self.n)
-        for (p, coeff) in f.monomial_coefficients().iteritems():
+        for (p, coeff) in six.iteritems(f.monomial_coefficients()):
             p_ret = P(p).retract_direct_product(m)
             if p_ret is not None:
                 p_ret = I(p_ret)
@@ -830,7 +831,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         I = RSm.group()
         dct = {}
         P = Permutations(self.n)
-        for (p, coeff) in f.monomial_coefficients().iteritems():
+        for (p, coeff) in six.iteritems(f.monomial_coefficients()):
             p_ret = I(P(p).retract_okounkov_vershik(m))
             if not p_ret in dct:
                 dct[p_ret] = coeff
@@ -1679,7 +1680,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         I = self._indices
         z_elts = {}
         epik = epsilon_ik(it, kt, star=star)
-        for m,c in epik._monomial_coefficients.iteritems():
+        for m,c in six.iteritems(epik._monomial_coefficients):
             z_elts[I(m)] = BR(c)
         z = self._from_dict(z_elts)
 

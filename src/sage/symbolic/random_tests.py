@@ -146,8 +146,8 @@ def choose_from_prob_list(lst):
         (0.900000000000000, True)
         sage: true_count = 0
         sage: for _ in range(10000):
-        ...       if choose_from_prob_list(v)[1]:
-        ...           true_count += 1
+        ....:     if choose_from_prob_list(v)[1]:
+        ....:         true_count += 1
         sage: true_count
         9033
         sage: true_count - (10000 * 9/10)
@@ -208,7 +208,7 @@ def random_expr_helper(n_nodes, internal, leaves, verbose):
 
         sage: from sage.symbolic.random_tests import *
         sage: random_expr_helper(9, [(0.5, operator.add, 2),
-        ...       (0.5, operator.neg, 1)], [(0.5, 1), (0.5, x)], True)
+        ....:     (0.5, operator.neg, 1)], [(0.5, 1), (0.5, x)], True)
         About to apply <built-in function add> to [1, x]
         About to apply <built-in function add> to [x, x + 1]
         About to apply <built-in function neg> to [1]

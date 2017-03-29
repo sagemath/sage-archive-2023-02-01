@@ -19,8 +19,8 @@ Run tests from the ``SAGE_SRC`` directory::
 
 import os, re
 
-from sage_setup.autogen.pari.args import pari_arg_types
-from sage_setup.autogen.pari.ret import pari_ret_types
+from .args import pari_arg_types
+from .ret import pari_ret_types
 
 
 def sage_src_pari():

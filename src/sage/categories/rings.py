@@ -249,7 +249,7 @@ class Rings(CategoryWithAxiom):
               the product is ``self*x``; if ``True``, the
               product is ``x*self``.
 
-            EXAMPLE:
+            EXAMPLES:
 
             As we mentioned above, this method is called
             when a ring is involved that does not inherit
@@ -324,7 +324,7 @@ class Rings(CategoryWithAxiom):
             from that class, such as matrix algebras.  See
             :trac:`7797`.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: MS = MatrixSpace(QQ,2,2)
                 sage: isinstance(MS,Ring)
@@ -412,7 +412,7 @@ class Rings(CategoryWithAxiom):
               whether the resulting ideal is twosided, a left
               ideal or a right ideal.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: MS = MatrixSpace(QQ,2,2)
                 sage: isinstance(MS,Ring)
@@ -614,7 +614,7 @@ class Rings(CategoryWithAxiom):
 
             This is a synonym for :meth:`quotient`.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: MS = MatrixSpace(QQ,2)
                 sage: I = MS*MS.gens()*MS
@@ -656,7 +656,7 @@ class Rings(CategoryWithAxiom):
 
             This is a synonyme for :meth:`quotient`.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: MS = MatrixSpace(QQ,2)
                 sage: I = MS*MS.gens()*MS
@@ -694,7 +694,7 @@ class Rings(CategoryWithAxiom):
             the construction of a quotient ring using division syntax
             is not supported.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: MS = MatrixSpace(QQ,2)
                 sage: I = MS*MS.gens()*MS

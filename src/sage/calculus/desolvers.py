@@ -281,7 +281,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
     Some more types of ODE's::
 
         sage: desolve(x*diff(y,x)^2-(1+x*y)*diff(y,x)+y==0,y,contrib_ode=True,show_method=True)
-        [[y(x) == _C*e^x, y(x) == _C + log(x)], 'factor']
+        [[y(x) == _C + log(x), y(x) == _C*e^x], 'factor']
 
     ::
 
@@ -524,7 +524,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
     soln=soln.sage()
     if is_SymbolicEquation(soln) and soln.lhs() == dvar:
         # Remark: Here we do not check that the right hand side does not depend on dvar.
-        # This probably will not hapen for soutions obtained via ode2, anyway.
+        # This probably will not happen for solutions obtained via ode2, anyway.
         soln = soln.rhs()
     if show_method:
         return [soln,maxima_method.str()]

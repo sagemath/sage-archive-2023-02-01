@@ -196,15 +196,15 @@ class VoronoiDiagram(SageObject):
 
             sage: V = VoronoiDiagram([[1, 3, .3], [2, -2, 1], [-1, 2, -.1]])
             sage: P = V.points()
-            sage: V.regions() == {P[0]: Polyhedron(base_ring=RDF, lines=[(-RDF(0.375), RDF(0.13888888890000001), RDF(1.5277777779999999))],\
-                                                                  rays=[(RDF(9), -RDF(1), -RDF(20)), (RDF(4.5), RDF(1), -RDF(25))],\
-                                                                  vertices=[(-RDF(1.1074999999999999), RDF(1.149444444), RDF(9.0138888890000004))]),\
-                                 P[1]: Polyhedron(base_ring=RDF, lines=[(-RDF(0.375), RDF(0.13888888890000001), RDF(1.5277777779999999))],\
-                                                                  rays=[(RDF(9), -RDF(1), -RDF(20)), (-RDF(2.25), -RDF(1), RDF(2.5))],\
-                                                                  vertices=[(-RDF(1.1074999999999999), RDF(1.149444444), RDF(9.0138888890000004))]),\
-                                 P[2]: Polyhedron(base_ring=RDF, lines=[(-RDF(0.375), RDF(0.13888888890000001), RDF(1.5277777779999999))],\
-                                                                 rays=[(RDF(4.5), RDF(1), -RDF(25)), (-RDF(2.25), -RDF(1), RDF(2.5))],\
-                                                                 vertices=[(-RDF(1.1074999999999999), RDF(1.149444444), RDF(9.0138888890000004))])}
+            sage: V.regions() == {P[0]: Polyhedron(base_ring=RDF, lines=[(-RDF(0.375), RDF(0.13888888890000001), RDF(1.5277777779999999))],
+            ....:                                                 rays=[(RDF(9), -RDF(1), -RDF(20)), (RDF(4.5), RDF(1), -RDF(25))],
+            ....:                                                 vertices=[(-RDF(1.1074999999999999), RDF(1.149444444), RDF(9.0138888890000004))]),
+            ....:                 P[1]: Polyhedron(base_ring=RDF, lines=[(-RDF(0.375), RDF(0.13888888890000001), RDF(1.5277777779999999))],
+            ....:                                                 rays=[(RDF(9), -RDF(1), -RDF(20)), (-RDF(2.25), -RDF(1), RDF(2.5))],
+            ....:                                                  vertices=[(-RDF(1.1074999999999999), RDF(1.149444444), RDF(9.0138888890000004))]),
+            ....:                 P[2]: Polyhedron(base_ring=RDF, lines=[(-RDF(0.375), RDF(0.13888888890000001), RDF(1.5277777779999999))],
+            ....:                                                 rays=[(RDF(4.5), RDF(1), -RDF(25)), (-RDF(2.25), -RDF(1), RDF(2.5))],
+            ....:                                                 vertices=[(-RDF(1.1074999999999999), RDF(1.149444444), RDF(9.0138888890000004))])}
             True
         """
         return self._P

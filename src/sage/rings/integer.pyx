@@ -6703,58 +6703,8 @@ cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1:
         from sage.misc.superseded import deprecation
         deprecation(17413, "use 0o as octal prefix instead of 0\nIf you do not want this number to be interpreted as octal, remove the leading zeros.")
 
-
-cpdef LCM_list(v):
-    """
-    Return the LCM of a list v of integers. Elements of v are converted
-    to Sage integers if they aren't already.
-
-    This function is used, e.g., by rings/arith.py
-
-    INPUT:
-
-    -  ``v`` - list or tuple
-
-    OUTPUT: integer
-
-    EXAMPLES::
-
-        sage: from sage.rings.integer import LCM_list
-        sage: w = LCM_list([3,9,30]); w
-        90
-        sage: type(w)
-        <type 'sage.rings.integer.Integer'>
-
-    The inputs are converted to Sage integers.
-
-    ::
-
-        sage: w = LCM_list([int(3), int(9), '30']); w
-        90
-        sage: type(w)
-        <type 'sage.rings.integer.Integer'>
-    """
-    cdef int i, n = len(v)
-    cdef Integer z = <Integer>PY_NEW(Integer)
-
-    for i from 0 <= i < n:
-        if not isinstance(v[i], Integer):
-            if not isinstance(v, list):
-                v = list(v)
-            v[i] = Integer(v[i])
-
-    if n == 0:
-        return one
-    elif n == 1:
-        return v[0].abs()
-
-    sig_on()
-    mpz_lcm(z.value, (<Integer>v[0]).value, (<Integer>v[1]).value)
-    for i from 2 <= i < n:
-        mpz_lcm(z.value, z.value, (<Integer>v[i]).value)
-    sig_off()
-
-    return z
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.arith.functions', 'LCM_list', deprecation=22630)
 
 def GCD_list(v):
     r"""

@@ -1103,10 +1103,11 @@ def projective_point(p):
         sage: projective_point([F(4), F(8), F(2)])
         [4, 8, 2]
     """
-    from sage.rings.integer import GCD_list, LCM_list
+    from sage.rings.integer import GCD_list
+    from sage.arith.functions import LCM_list
     try:
         p_gcd = GCD_list([x.numerator() for x in p])
-        p_lcm = LCM_list([x.denominator() for x in p])
+        p_lcm = LCM_list(x.denominator() for x in p)
     except AttributeError:
         return p
     scale = p_lcm / p_gcd

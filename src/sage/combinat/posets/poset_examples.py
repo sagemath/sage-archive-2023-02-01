@@ -751,9 +751,19 @@ class Posets(object):
         from sage.rings.semirings.non_negative_integer_semiring import NN
         if n not in NN:
             raise ValueError('n must be an integer')
-        from sage.combinat.set_partition import SetPartitions
+        from sage.combinat.set_partition import SetPartition, SetPartitions
         S = SetPartitions(n)
-        return LatticePoset( ([], [(s, b) for s in S for b in s.coarsenings()]) )
+
+        def covers(x):
+            SP = x.parent()
+            for i, s in enumerate(x):
+                for j in range(i+1, len(x)):
+                    L = list(x)
+                    L[i] = s.union(x[j])
+                    L.pop(j)
+                    yield SP(L)
+
+        return LatticePoset({SetPartition(x): list(covers(x)) for x in S})
 
     @staticmethod
     def SSTPoset(s, f=None):

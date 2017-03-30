@@ -1446,10 +1446,9 @@ def laplace(ex, t, s, algorithm='maxima'):
             return result
 
     elif algorithm == 'giac':
-        ex_gi = "laplace(%s, %s, %s)" % tuple([repr(expr._giac_()) for expr in (ex, t, s)])
         from sage.interfaces.giac import giac
         try:
-            result = giac(ex_gi)
+            result = giac.laplace(ex, t, s)
         except TypeError:
             raise ValueError("Giac cannot make sense of: %s" % ex_gi)
         return result.sage() 
@@ -1607,10 +1606,9 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
                                     " Sage".format(result))
 
     elif algorithm == 'giac':
-        ex_gi = "invlaplace(%s, %s, %s)" % tuple([repr(expr._giac_()) for expr in (ex, s, t)])
         from sage.interfaces.giac import giac
         try:
-            result = giac(ex_gi)
+            result = giac.invlaplace(ex, s, t)
         except TypeError:
             raise ValueError("Giac cannot make sense of: %s" % ex)    
         return result.sage() 

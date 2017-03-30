@@ -1,5 +1,5 @@
 r"""
-Generic interface to LattE integrale programs
+Interface to LattE integrale programs
 """
 #*****************************************************************************
 #       Copyright (C) 2017 Vincent Delecroix <vincent.delecroix@gmail.com>
@@ -196,20 +196,17 @@ def integrate(arg, polynomial=None, algorithm='triangulate', raw_output=False, v
 
     INPUT:
 
-    - ``arg`` -- a cdd or LattE description string
+    - ``arg`` -- a cdd or LattE description string.
 
-    - ``polynomial`` -- multivariate polynomial or valid LattE polynomial
-    description string. If given, the valuation parameter of LattE is set
-    to integrate, and is set to volume otherwise.
+    - ``polynomial`` -- multivariate polynomial or valid LattE polynomial description string.
+      If given, the valuation parameter of LattE is set to integrate, and is set to volume otherwise.
 
-    - ``algorithm`` -- (default: 'triangulate') the integration method. Use
-    'triangulate' for polytope triangulation or 'cone-decompose' for tangent
-    cone decomposition method.
+    - ``algorithm`` -- (default: 'triangulate') the integration method. Use 'triangulate' for
+      polytope triangulation or 'cone-decompose' for tangent cone decomposition method.
 
-    - ``raw_output`` -- if ``True`` then return directly the output string from
-    LattE
+    - ``raw_output`` -- if ``True`` then return directly the output string from LattE.
 
-    - ``verbose`` -- if ``True`` then return directly verbose output from LattE
+    - ``verbose`` -- if ``True`` then return directly verbose output from LattE.
 
     - For all other options of the integrate program, consult the LattE manual.
 
@@ -237,12 +234,12 @@ def integrate(arg, polynomial=None, algorithm='triangulate', raw_output=False, v
         sage: integrate(P.cdd_Vrepresentation(), cdd=True)   # optional - latte_int
         64
 
-    Polynomials given as a string in LattE description are also accepted:
+    Polynomials given as a string in LattE description are also accepted::
 
-        sage: integrate(P.cdd_Hrepresentation(), ``[1,[2,2,2]]``, cdd=True)   # optional - latte_int
+        sage: integrate(P.cdd_Hrepresentation(), '[[1,[2,2,2]]]', cdd=True)   # optional - latte_int
         4096/27
 
-    TESTS:
+    TESTS::
 
     Testing raw output::
 
@@ -394,19 +391,32 @@ def to_latte_polynomial(polynomial):
 
     A string that describes the monomials list and exponent vectors.
 
-    TESTS:
+    TESTS::
 
     Testing a polynomial in three variables::
 
         sage: from sage.interfaces.latte import to_latte_polynomial
-        sage: x, y, z = polygen(QQ, 'x, y, z')
+        sage: x, y, z = polygens(QQ, 'x, y, z')
         sage: f = 3*x^2*y^4*z^6 + 7*y^3*z^5
         sage: to_latte_polynomial(f)
         '[[3, [2, 4, 6]], [7, [0, 3, 5]]]'
+
+    Testing a univariate polynomial::
+
+        sage: x = polygen(QQ, 'x')
+        sage: to_latte_polynomial((x-1)^2)
+        '[[1, [0]], [-2, [1]], [1, [2]]]'
     """
+    from sage.rings.polynomial.polydict import ETuple
 
     coefficients_list = polynomial.coefficients()
-    exponents_list = [list(exponent_vector_i) for exponent_vector_i in polynomial.exponents()]
+
+    # transform list of exponents into a list of lists.
+    # this branch handles the multivariate/univariate case
+    if isinstance(polynomial.exponents()[0], ETuple):
+        exponents_list = [list(exponent_vector_i) for exponent_vector_i in polynomial.exponents()]
+    else:
+        exponents_list = [[exponent_vector_i] for exponent_vector_i in polynomial.exponents()]
 
     # assuming that the order in coefficients() and exponents() methods match
     monomials_list = zip(coefficients_list, exponents_list)

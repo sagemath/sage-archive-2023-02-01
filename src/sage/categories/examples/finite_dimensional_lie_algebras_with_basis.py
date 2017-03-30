@@ -197,6 +197,33 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
         N = self._M.subspace([g.value for g in gens])
         return AbelianLieAlgebra(self.base_ring(), M=N, ambient=self._ambient)
 
+    ideal = subalgebra
+
+    def is_ideal(self, A):
+        """
+        Return if ``self`` is an ideal of the ambient space ``A``.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
+            sage: a, b, c = L.lie_algebra_generators()
+            sage: L.is_ideal(L)
+            True
+            sage: S1 = L.subalgebra([2*a+b, b + c])
+            sage: S1.is_ideal(L)
+            True
+            sage: S2 = L.subalgebra([2*a+b])
+            sage: S2.is_ideal(S1)
+            True
+            sage: S1.is_ideal(S2)
+            False
+        """
+        if A == self or A == self._ambient:
+            return True
+        if self._ambient != A._ambient:
+            return False
+        return self._M.is_submodule(A._M)
+
     def basis(self):
         """
         Return the basis of ``self``.

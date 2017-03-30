@@ -64,7 +64,7 @@ def find_library(name):
 
         sage: from sage.misc.compat import find_library
         sage: find_library('Singular')
-        ...Singular...
+        '...Singular...'
 
     """
 

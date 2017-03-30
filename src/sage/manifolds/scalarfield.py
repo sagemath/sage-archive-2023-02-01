@@ -1062,7 +1062,7 @@ class ScalarField(CommutativeAlgebraElement):
                 if not found:
                     raise ValueError("no starting chart could be found to " +
                                      "compute the expression in the {}".format(chart))
-            change = self._domain._coord_changes[(chart, from_chart)]
+            change = self._domain.coord_changes(chart, from_chart)
             # old coordinates expressed in terms of the new ones:
             coords = [ change._transf._functions[i]._express
                        for i in range(self._manifold.dim()) ]

@@ -753,7 +753,7 @@ class Posets(object):
             raise ValueError('n must be an integer')
         from sage.combinat.set_partition import SetPartitions
         S = SetPartitions(n)
-        return LatticePoset((S, S.is_less_than))
+        return LatticePoset( ([], [(s, b) for s in S for b in s.coarsenings()]) )
 
     @staticmethod
     def SSTPoset(s, f=None):

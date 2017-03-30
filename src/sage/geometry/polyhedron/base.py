@@ -5434,20 +5434,20 @@ class Polyhedron_base(Element):
 
             sage: P = polytopes.dodecahedron(); P
             A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^3 defined as the convex hull of 20 vertices
-            sage: print("There may be a recompilation warning"); PP = polymake(P); PP
+            sage: print("There may be a recompilation warning"); PP = polymake(P); PP # optional - polymake
             There may be a recompilation warning...
             Polytope<QuadraticExtension<Rational>>[...]
-            sage: sorted(PP.VERTICES[:], key=repr)[0]
+            sage: sorted(PP.VERTICES[:], key=repr)[0]  # optional - polymake
             1 -1+1r5 -4+2r5 0
 
         Floating-point polyhedron::
 
-            sage: P = polytopes.dodecahedron(exact=False); P
+            sage: P = polytopes.dodecahedron(exact=False); P  # optional - polymake
             A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 20 vertices
-            sage: print("There may be a recompilation warning"); PP = polymake(P); PP
+            sage: print("There may be a recompilation warning"); PP = polymake(P); PP # optional - polymake
             There may be a recompilation warning...
             Polytope<Float>[...]
-            sage: sorted(PP.VERTICES[:], key=repr)[0]
+            sage: sorted(PP.VERTICES[:], key=repr)[0] # optional - polymake
             1 -0.472135955 0 -1.236067978
 
         """

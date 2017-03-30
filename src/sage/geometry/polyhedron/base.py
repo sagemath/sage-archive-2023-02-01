@@ -5455,7 +5455,7 @@ class Polyhedron_base(Element):
         polymake_field = polymake(self.base_ring().fraction_field())
         polymake_class = "Polytope<{}>".format(polymake_field)
         if self.is_empty():
-            # Polymake 3.0 cannot enter an empty polyhedron using
+            # Polymake 3.1 cannot enter an empty polyhedron using
             # FACETS and AFFINE_HULL.  Use corresponding input properties instead.
             # https://forum.polymake.org/viewtopic.php?f=8&t=545
             return polymake.new_object(polymake_class,

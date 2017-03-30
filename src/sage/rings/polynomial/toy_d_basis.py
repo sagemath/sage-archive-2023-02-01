@@ -86,8 +86,10 @@ there are 4 equations in 3 unknowns).::
 However, when we compute the Groebner basis of I (defined over `\ZZ`), we
 note that there is a certain integer in the ideal which is not 1::
 
-    sage: d_basis(I)
-    [x + 170269749119, y + 2149906854, z + ..., 282687803443]
+    sage: gb = d_basis(I); gb
+    [x ..., y ..., z ..., 282687803443]
+    sage: [p.monomials() for p in gb]
+    [[x, 1], [y, 1], [z, 1], [1]]
 
 Now for each prime `p` dividing this integer 282687803443, the Groebner
 basis of I modulo `p` will be non-trivial and will thus give a solution

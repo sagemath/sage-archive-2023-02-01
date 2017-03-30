@@ -1019,7 +1019,7 @@ class GiacElement(ExpectElement):
             from Giac's naming scheme through the symbols_table, or
             - you provide a translation dictionary `locals`.
             
-        New symbols can be added using Pynac's `register_symbol`. This is the 
+        New conversions can be added using Pynac's `register_symbol`. This is the 
         recommended approach for library code.    
 
         Warning: List conversion is slow.

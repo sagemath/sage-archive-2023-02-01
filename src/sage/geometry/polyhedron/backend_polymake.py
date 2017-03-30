@@ -306,7 +306,19 @@ class Polyhedron_polymake(Polyhedron_base):
         from sage.interfaces.polymake import polymake
         if ieqs is None: ieqs = []
         if eqns is None: eqns = []
+        def filter_out_all_zero(list):
+            if any(all(self._is_zero(x) for x in v) for v in list):
+                return [ v for v in list if not all(self._is_zero(x) for x in v) ]
+            else:
+                return list
+        # Polymake 3.0r2 and 3.1 crash with a segfault for a test case
+        # using QuadraticExtension, when some all-zero inequalities are input.
+        # https://forum.polymake.org/viewtopic.php?f=8&t=547
+        # Filter them out.
+        ieqs = filter_out_all_zero(ieqs)
         if not ieqs:
+            # Put in one trivial (all-zero) inequality.  This is so that
+            # the ambient dimension is set correctly.
             ieqs.append([0] + [0]*self.ambient_dim())
         polymake_field = polymake(self.base_ring().fraction_field())
         p = polymake.new_object("Polytope<{}>".format(polymake_field),

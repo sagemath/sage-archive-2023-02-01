@@ -5442,7 +5442,7 @@ class Polyhedron_base(Element):
 
         Floating-point polyhedron::
 
-            sage: P = polytopes.dodecahedron(exact=False); P  # optional - polymake
+            sage: P = polytopes.dodecahedron(exact=False); P
             A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 20 vertices
             sage: print("There may be a recompilation warning"); PP = polymake(P); PP # optional - polymake
             There may be a recompilation warning...

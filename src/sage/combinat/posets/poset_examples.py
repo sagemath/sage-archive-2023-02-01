@@ -755,15 +755,15 @@ class Posets(object):
         S = SetPartitions(n)
 
         def covers(x):
-            SP = x.parent()
             for i, s in enumerate(x):
                 for j in range(i+1, len(x)):
                     L = list(x)
                     L[i] = s.union(x[j])
                     L.pop(j)
-                    yield SP(L)
+                    yield S(L)
 
-        return LatticePoset({SetPartition(x): list(covers(x)) for x in S})
+        return LatticePoset({x: list(covers(x)) for x in S},
+                            cover_relations=True)
 
     @staticmethod
     def SSTPoset(s, f=None):

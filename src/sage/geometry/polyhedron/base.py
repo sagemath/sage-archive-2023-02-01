@@ -4282,15 +4282,21 @@ class Polyhedron_base(Element):
             raise NotImplementedError('You must install the optional latte_int package for this function to work.')
 
     @cached_method
-    def volume(self, engine='auto', **kwds):
+    def volume(self, measure='ambient', engine='auto', **kwds):
         """
         Return the volume of the polytope.
 
         INPUT:
 
+        - ``measure`` -- string. The measure to use. Allowed values are:
+
+          * ``ambient``: Lebesgue measure of ambient space (volume)
+          * ``induced``: Lebesgue measure of affine hull (relative volume)
+          * ``induced_rational``: TODO: explanation (only makes sense for integer polytopes?!)
+
         - ``engine`` -- string. The backend to use. Allowed values are:
 
-          * ``'auto'`` (default): see :meth:`triangulate`.
+          * ``'auto'`` (default): choose engine according to measure
           * ``'internal'``: see :meth:`triangulate`.
           * ``'TOPCOM'``: see :meth:`triangulate`.
           * ``'lrs'``: use David Avis's lrs program (optional).
@@ -4345,16 +4351,31 @@ class Polyhedron_base(Element):
             sage: I.volume(engine='latte') # optional - latte_int
             1
         """
-        if engine == 'lrs':
+        if engine == 'auto':
+            if measure == 'induced':
+                engine = 'lrs'
+            elif measure == 'induced_rational':
+                engine = 'latte'
+
+        if measure == 'ambient':
+            if self.dim() < self.ambient_dim():
+                    return self.base_ring().zero()
+            if engine == 'lrs':
+                return self._volume_lrs(**kwds)
+            elif engine == 'latte':
+                return self._volume_latte(**kwds)
+            triangulation = self.triangulate(engine=engine, **kwds)
+            pc = triangulation.point_configuration()
+            return sum([pc.volume(simplex) for simplex in triangulation]) / ZZ(self.dim()).factorial()
+        elif measure == 'induced':
+            if self.dim() < self.ambient_dim() and engine != 'lrs':
+                raise TypeError("The induced measure can only be computed with the engine set to `auto` or `lrs`")
             return self._volume_lrs(**kwds)
-        elif engine == 'latte':
+        elif measure == 'induced_rational':
+            if self.dim() < self.ambient_dim() and engine != 'latte':
+                raise TypeError("The induced rational measure can only be computed with the engine set to `auto` or `latte`")
             return self._volume_latte(**kwds)
-        dim = self.dim()
-        if dim < self.ambient_dim():
-            return self.base_ring().zero()
-        triangulation = self.triangulate(engine=engine, **kwds)
-        pc = triangulation.point_configuration()
-        return sum([ pc.volume(simplex) for simplex in triangulation ]) / ZZ(dim).factorial()
+
 
     def integrate(self, polynomial, **kwds):
         r"""

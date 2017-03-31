@@ -670,7 +670,7 @@ def hecke_series_degree_bound(p,N,k,m):
 
 # Returns matrix A modulo p^m from Step 6 of Algorithm 2.
 
-def higher_level_UpGj(p,N,klist,m,modformsring,bound):
+def higher_level_UpGj(p,N,klist,m,modformsring,bound,extra_data=False):
     r"""
     Returns a list ``[A_k]`` of square matrices over ``IntegerRing(p^m)``
     parameterised by the weights k in ``klist``. The matrix `A_k` is the finite
@@ -687,10 +687,12 @@ def higher_level_UpGj(p,N,klist,m,modformsring,bound):
     - ``m`` -- positive integer.
     - ``modformsring`` -- True or False.
     - ``bound`` -- (even) positive integer.
+    - ``extra_data`` -- (default: False) True or False.
 
     OUTPUT:
 
-    - list of square matrices.
+    - list of square matrices. If extra_data is True, return also extra intermediate
+      data, namely the matrix E in [Lau2011] and the integers elldash and mdash.
 
     EXAMPLES::
 
@@ -704,7 +706,8 @@ def higher_level_UpGj(p,N,klist,m,modformsring,bound):
         [ 0  7 20  0 20  0]
         [ 0  1 24  0 20  0]
         ]
-
+        sage: len(higher_level_UpGj(5,3,[4],2,true,6,extra_data=True))
+        4
     """
     t = cputime()
     # Step 1
@@ -769,7 +772,10 @@ def higher_level_UpGj(p,N,klist,m,modformsring,bound):
         Alist.append(MatrixSpace(Zmod(p**m),ell,ell)(A))
         verbose("done step 6", t)
 
-    return Alist
+    if extra_data == True:
+        return Alist, e, elldash, mdash
+    else:
+        return Alist
 
 
 #  *** LEVEL 1 CODE ***
@@ -915,7 +921,7 @@ def katz_expansions(k0,p,ellp,mdash,n):
 
 # *** MAIN FUNCTION FOR LEVEL 1 ***
 
-def level1_UpGj(p,klist,m):
+def level1_UpGj(p,klist,m,extra_data=False):
     r"""
     Returns a list `[A_k]` of square matrices over ``IntegerRing(p^m)``
     parameterised by the weights k in ``klist``. The matrix `A_k` is the finite
@@ -929,10 +935,12 @@ def level1_UpGj(p,klist,m):
     - ``p`` -- prime at least 5.
     - ``klist`` -- list of integers congruent modulo `(p-1)` (the weights).
     - ``m`` -- positive integer.
+    - ``extra_data`` -- (default: False) True or False.
 
     OUTPUT:
 
-    - list of square matrices.
+    - list of square matrices. If extra_data is True, return also extra intermediate
+      data, namely the matrix E in [Lau2011] and the integers elldash and mdash.
 
     EXAMPLES::
 
@@ -945,6 +953,9 @@ def level1_UpGj(p,klist,m):
         [    0  1995  4802     0     0]
         [    0  9212 14406     0     0]
         ]
+        sage: len(level1_UpGj(7,[100],5,extra_data=True))
+        4
+
     """
     # Step 1
     t = cputime()
@@ -1012,7 +1023,10 @@ def level1_UpGj(p,klist,m):
         Alist.append(MatrixSpace(Zmod(p**m),ell,ell)(A))
         verbose("done step 6", t)
 
-    return Alist
+    if extra_data == True:
+        return Alist, e, ell, mdash
+    else:
+        return Alist
 
 # *** CODE FOR GENERAL LEVEL ***
 

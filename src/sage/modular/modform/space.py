@@ -74,6 +74,7 @@ import sage.modular.modform.constructor
 from sage.matrix.constructor import zero_matrix
 from sage.arith.all import gcd
 from sage.rings.infinity import PlusInfinity
+from sage.rings.integer import Integer
 
 WARN=False
 
@@ -132,9 +133,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             WARN=False
         if not arithgroup.is_CongruenceSubgroup(group):
             raise TypeError("group (=%s) must be a congruence subgroup"%group)
-        weight = int(weight)
-        #if not isinstance(weight, int):
-        #    raise TypeError, "weight must be an int"
+        weight = Integer(weight)
         if not ((character is None) or isinstance(character, dirichlet.DirichletCharacter)):
             raise TypeError("character must be a Dirichlet character")
         if not isinstance(base_ring, rings.Ring):

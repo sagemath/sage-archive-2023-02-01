@@ -73,12 +73,12 @@ from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
 
 #########################################################
 # PARI C library
-from sage.libs.cypari2.gen cimport Gen
+from cypari2.gen cimport Gen
 from sage.libs.pari.convert_gmp cimport INT_to_mpz
 from sage.libs.pari.convert_flint cimport (_new_GEN_from_fmpz_mat_t,
            _new_GEN_from_fmpz_mat_t_rotate90, integer_matrix)
-from sage.libs.cypari2.stack cimport clear_stack
-from sage.libs.cypari2.paridecl cimport *
+from cypari2.stack cimport clear_stack
+from cypari2.paridecl cimport *
 #########################################################
 
 include "cysignals/signals.pxi"
@@ -5395,7 +5395,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             sage: pari(a)
             [1, 2; 3, 4]
             sage: type(pari(a))
-            <type 'sage.libs.cypari2.gen.Gen'>
+            <type 'cypari2.gen.Gen'>
         """
         return integer_matrix(self._matrix, self._nrows, self._ncols, 0)
 

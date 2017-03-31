@@ -132,7 +132,7 @@ from sage.rings.integer import Integer
 from sage.groups.all import AbelianGroup
 import sage.groups.generic as generic
 from sage.libs.pari import pari
-from sage.libs.cypari2.pari_instance import prec_words_to_bits
+from cypari2.pari_instance import prec_words_to_bits
 from sage.structure.sequence import Sequence
 
 from sage.schemes.curves.projective_curve import Hasse_bounds

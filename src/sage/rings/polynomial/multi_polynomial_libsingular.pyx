@@ -248,7 +248,7 @@ from sage.interfaces.macaulay2 import macaulay2 as macaulay2_default, is_Macaula
 from sage.misc.all import prod as mul
 from sage.misc.sage_eval import sage_eval
 
-import sage.libs.cypari2.gen
+import cypari2.gen
 import polynomial_element
 
 permstore=[]
@@ -844,7 +844,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                 _p = p_NSet(_n, _ring)
             return new_MP(self, _p)
 
-        if isinstance(element, (SingularElement, sage.libs.cypari2.gen.Gen)):
+        if isinstance(element, (SingularElement, cypari2.gen.Gen)):
             element = str(element)
 
         if isinstance(element, MPolynomial_libsingular) and element.parent() is not self and element.parent() != self:

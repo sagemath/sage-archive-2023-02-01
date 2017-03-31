@@ -69,7 +69,7 @@ from cpython.object cimport Py_NE
 
 from sage.misc.randstate cimport randstate, current_randstate
 
-from sage.libs.cypari2.paridecl cimport *
+from cypari2.paridecl cimport *
 include "cysignals/signals.pxi"
 
 from sage.libs.gsl.complex cimport *
@@ -88,8 +88,8 @@ from sage.structure.sage_object cimport rich_to_bool
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 
-from sage.libs.cypari2.gen cimport Gen as pari_gen
-from sage.libs.cypari2.convert cimport new_gen_from_double, new_t_COMPLEX_from_double
+from cypari2.gen cimport Gen as pari_gen
+from cypari2.convert cimport new_gen_from_double, new_t_COMPLEX_from_double
 
 from . import complex_number
 

@@ -571,12 +571,17 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
 
             sage: X = BruhatTitsQuotient(7,2)
             sage: H = X.harmonic_cocycles(4,20)
+            sage: f0, g0 = H.basis()
             sage: A = X.padic_automorphic_forms(4,20,overconvergent=True)
-            sage: f = A.lift(H.basis()[0]).modular_form(method='moments')
+            sage: f = A.lift(f0).modular_form(method='moments')
             sage: T.<x> = Qq(7^2,20)
             sage: a,b,c,d = X.embed_quaternion(X.get_units_of_order()[1]).change_ring(Qp(7,20)).list()
             sage: (c*x + d)^4 * f(x) == f((a*x + b)/(c*x + d))
             True
+            sage: g = A.lift(g0).modular_form(method='moments')
+            sage: (c*x + d)^4 * f(x) == f((a*x + b)/(c*x + d))
+            True
+
         """
         return self.derivative(z, level, order=0)
 
@@ -1815,25 +1820,18 @@ class pAdicAutomorphicFormElement(ModuleElement):
         U = MMM._U
         S0 = MMM._Sigma0
 
-        orig_moments = [[fval._moments[ii] for ii in range(MMM._n + 1)]
-                            for fval in hc._F]
-        A = S0(Matrix(QQ, 2, 2, [0, 1 / MMM._p, 1, 0]),False)
-        for fval in hc._F:
-            tmp = -(A * fval)
-            orig_moments.append([tmp._moments[ii] for ii in range(MMM._n + 1)])
-
         h1 = MMM([o.lift(M=MMM.precision_cap()) for o in self._value])
-        h2 = MMM._apply_Up_operator(h1, True, orig_moments)
+        h2 = MMM._apply_Up_operator(h1, True)
         verbose("Applied Up once")
         ii = 0
         current_val = 0
-        old_val = -Infinity
         init_val = self.valuation()
+        old_val = init_val - 1
         while current_val > old_val:
             old_val = current_val
             ii += 1
             h1._value = [U(c) for c in h2._value]
-            h2 = MMM._apply_Up_operator(h1, True, orig_moments)
+            h2 = MMM._apply_Up_operator(h1, True)
             current_val = (h2 - h1).valuation() - init_val
             verbose('val  = %s' % current_val)
             if current_val is Infinity:

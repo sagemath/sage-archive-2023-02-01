@@ -546,7 +546,7 @@ def representation_number_list(self, B):
     return ans.sage()
 
 
-def representation_vector_list(self, B, maxvectors=None):
+def representation_vector_list(self, B, maxvectors=10**8):
     """
     Find all vectors `v` where `Q(v) < B`.
 
@@ -579,9 +579,6 @@ def representation_vector_list(self, B, maxvectors=None):
         ...
         TypeError: not available when the form is not positive definite
     """
-    if maxvectors is None:
-        maxvectors = 10 ** 8
-
     if not self.is_positive_definite():
         raise TypeError('not available when the form is not positive definite')
 

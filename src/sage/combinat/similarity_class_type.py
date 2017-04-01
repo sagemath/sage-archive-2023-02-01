@@ -550,11 +550,9 @@ class PrimarySimilarityClassType(Element):
             q^8 - q^6 - q^4 + q^2
         """
         if q is None:
-            R = FractionField(ZZ['q'])
-            q = R.gen()
-        return self.statistic(centralizer_group_cardinality, q = q)
-        #p = q.parent()(prod(map(lambda n:fq(n, q = q), self.partition().to_exp()),1))
-        #return q**self.centralizer_algebra_dim()*p.substitute(q = q**self.degree())
+            q = FractionField(ZZ['q']).gen()
+        return self.statistic(centralizer_group_cardinality, q=q)
+
 
 class PrimarySimilarityClassTypes(UniqueRepresentation, Parent):
     r"""
@@ -1215,7 +1213,8 @@ def dictionary_from_generator(gen):
     setofkeys = list(set(item[0] for item in L))
     return dict((key, sum(entry[1] for entry in (pair for pair in L if pair[0] == key))) for key in setofkeys)
 
-def matrix_similarity_classes(n, q = None, invertible = False):
+
+def matrix_similarity_classes(n, q=None, invertible=False):
     r"""
     Return the number of matrix similarity classes over a finite field of order
     ``q``.
@@ -1231,12 +1230,17 @@ def matrix_similarity_classes(n, q = None, invertible = False):
         15
     """
     if q is None:
-        q = FractionField(QQ['q']).gen()
+        q = ZZ['q'].gen()
+    basering = q.parent()
     if n == 0:
-        return 1
+        return basering.one()
     if invertible:
-        return sum([q**max(la)*((1-q**(-1))**map(lambda x: x>0, la.to_exp()).count(True)) for la in Partitions(n)])
-    return sum([q**max(la) for la in Partitions(n)])
+        tilde = 1 - ~q
+        return sum(q**max(la) *
+                   tilde ** len([x for x in la.to_exp() if x > 0])
+                   for la in Partitions(n))
+    return sum(q**max(la) for la in Partitions(n))
+
 
 def matrix_centralizer_cardinalities(n, q = None, invertible = False):
     """

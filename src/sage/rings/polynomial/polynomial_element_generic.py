@@ -291,8 +291,7 @@ class Polynomial_generic_sparse(Polynomial):
         # calling the coercion model bin_op is much more accurate than using the
         # true division (which is bypassed by polynomials). But it does not work
         # in all cases!!
-        from sage.structure.element import get_coercion_model
-        cm = get_coercion_model()
+        from sage.structure.element import coercion_model as cm
         import operator
         try:
             Q = cm.bin_op(R.one(), ZZ.one(), operator.div).parent()
@@ -499,12 +498,6 @@ class Polynomial_generic_sparse(Polynomial):
         for n, x in six.iteritems(self.__coeffs):
             v[n] = x
         return v
-
-    #def _pari_(self, variable=None):
-    #    if variable is None:
-    #        return self.__pari
-    #    else:
-    #        return self.__pari.subst('x',variable)
 
     def degree(self, gen=None):
         """

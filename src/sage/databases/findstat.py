@@ -125,7 +125,7 @@ We first have to find out, what the maps and the statistic actually do::
     sage: print(list_f[0].code() + "\r\n" + list_f[1].code())               # optional -- internet,random
     def complement(elt):
         n = len(elt)
-        return elt.__class__(elt.parent(), map(lambda x: n - x + 1, elt) )
+        return elt.__class__(elt.parent(), [n - x + 1 for x in elt])
     <BLANKLINE>
     def increasing_tree_shape(elt, compare=min):
         return elt.increasing_tree(compare).shape()

@@ -346,8 +346,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             False
         """
         if parent(self) is not parent(other):
-            from sage.structure.element import get_coercion_model
-            cm = get_coercion_model()
+            from sage.structure.element import coercion_model as cm
             try:
                 self, other = cm.canonical_coercion(self, other)
             except TypeError:

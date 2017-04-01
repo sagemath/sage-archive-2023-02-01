@@ -464,7 +464,7 @@ class Polyhedron_base(Element):
                     for self_V in self.Vrepresentation())
 
     def plot(self,
-             point=None, line=None, polygon=None, #  None means unspecified by the user
+             point=None, line=None, polygon=None,  # None means unspecified by the user
              wireframe='blue', fill='green',
              projection_direction=None,
              **kwds):
@@ -1554,9 +1554,9 @@ class Polyhedron_base(Element):
         if base_ring is None:
             base_ring = self.base_ring()
         m = matrix(base_ring, self.ambient_dim(), self.n_vertices())
-        for i,v in enumerate(self.vertices()):
+        for i, v in enumerate(self.vertices()):
             for j in range(self.ambient_dim()):
-                m[j,i] = v[j]
+                m[j, i] = v[j]
         return m
 
     def ray_generator(self):
@@ -2389,6 +2389,114 @@ class Polyhedron_base(Element):
         A = A.transpose()
         A_ker = A.right_kernel()
         return A_ker.basis_matrix().transpose().rows()
+
+    @cached_method
+    def normal_fan(self):
+        r"""
+        Return the normal fan of a compact full-dimensional rational polyhedron.
+
+        OUTPUT:
+
+        A complete fan of the ambient space as a
+        :class:`~sage.geometry.fan.RationalPolyhedralFan`.
+
+        .. SEEALSO::
+
+            :meth:`~sage.geometry.polyhedron.base.face_fan`.
+
+        EXAMPLES::
+
+            sage: S = Polyhedron(vertices = [[0, 0], [1, 0], [0, 1]])
+            sage: S.normal_fan()
+            Rational polyhedral fan in 2-d lattice N
+
+            sage: C = polytopes.hypercube(4)
+            sage: NF = C.normal_fan(); NF
+            Rational polyhedral fan in 4-d lattice N
+
+        Currently, it is only possible to get the normal fan of a bounded rational polytope::
+
+            sage: P = Polyhedron(rays = [[1, 0], [0, 1]])
+            sage: P.normal_fan()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: the normal fan is only supported for polytopes (compact polyhedra).
+
+            sage: Q = Polyhedron(vertices = [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+            sage: Q.normal_fan()
+            Traceback (most recent call last):
+            ...
+            ValueError: the normal fan is only defined for full-dimensional polytopes
+
+            sage: R = Polyhedron(vertices = [[0, 0], [AA(sqrt(2)), 0], [0, AA(sqrt(2))]])
+            sage: R.normal_fan()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: normal fan handles only polytopes over the rationals
+
+        REFERENCES:
+
+        For more information, see Chapter 7 of [Zie2007]_.
+        """
+        from sage.geometry.fan import NormalFan
+
+        if not QQ.has_coerce_map_from(self.base_ring()):
+            raise NotImplementedError('normal fan handles only polytopes over the rationals')
+
+        return NormalFan(self)
+
+    @cached_method
+    def face_fan(self):
+        r"""
+        Return the face fan of a compact rational polyhedron.
+
+        OUTPUT:
+
+        A fan of the ambient space as a
+        :class:`~sage.geometry.fan.RationalPolyhedralFan`.
+
+        .. SEEALSO::
+
+            :meth:`~sage.geometry.polyhedron.base.normal_fan`.
+
+        EXAMPLES::
+
+            sage: T = polytopes.cuboctahedron()
+            sage: T.face_fan()
+            Rational polyhedral fan in 3-d lattice M
+
+        The polytope should contain the origin in the interior::
+
+            sage: P = Polyhedron(vertices = [[1/2, 1], [1, 1/2]])
+            sage: P.face_fan()
+            Traceback (most recent call last):
+            ...
+            ValueError: face fans are defined only for polytopes containing the origin as an interior point!
+
+            sage: Q = Polyhedron(vertices = [[-1, 1/2], [1, -1/2]])
+            sage: Q.contains([0,0])
+            True
+            sage: FF = Q.face_fan(); FF
+            Rational polyhedral fan in 2-d lattice M
+
+        The polytope has to have rational coordinates::
+
+            sage: S = polytopes.dodecahedron()
+            sage: S.face_fan()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: face fan handles only polytopes over the rationals
+
+        REFERENCES:
+
+        For more information, see Chapter 7 of [Zie2007]_.
+        """
+        from sage.geometry.fan import FaceFan
+
+        if not QQ.has_coerce_map_from(self.base_ring()):
+            raise NotImplementedError('face fan handles only polytopes over the rationals')
+
+        return FaceFan(self)
 
     def triangulate(self, engine='auto', connected=True, fine=False, regular=None, star=None):
         r"""
@@ -4543,7 +4651,7 @@ class Polyhedron_base(Element):
         return [p for p in lp.points() if self.contains(p)]
 
     @cached_method
-    def bounding_box(self, integral=False):
+    def bounding_box(self, integral=False, integral_hull=False):
         r"""
         Return the coordinates of a rectangular box containing the non-empty polytope.
 
@@ -4551,6 +4659,10 @@ class Polyhedron_base(Element):
 
         - ``integral`` -- Boolean (default: ``False``). Whether to
           only allow integral coordinates in the bounding box.
+
+        - ``integral_hull`` -- Boolean (default: ``False``). If ``True``, return a
+          box containing the integral points of the polytope, or ``None, None`` if it
+          is known that the polytope has no integral points.
 
         OUTPUT:
 
@@ -4565,6 +4677,10 @@ class Polyhedron_base(Element):
             ((1/3, 1/3), (2/3, 2/3))
             sage: Polyhedron([ (1/3,2/3), (2/3, 1/3) ]).bounding_box(integral=True)
             ((0, 0), (1, 1))
+            sage: Polyhedron([ (1/3,2/3), (2/3, 1/3) ]).bounding_box(integral_hull=True)
+            (None, None)
+            sage: Polyhedron([ (1/3,2/3), (3/3, 4/3) ]).bounding_box(integral_hull=True)
+            ((1, 1), (1, 1))
             sage: polytopes.buckyball(exact=False).bounding_box()
             ((-0.8090169944, -0.8090169944, -0.8090169944), (0.8090169944, 0.8090169944, 0.8090169944))
         """
@@ -4578,7 +4694,14 @@ class Polyhedron_base(Element):
             coords = [ v[i] for v in self.vertex_generator() ]
             max_coord = max(coords)
             min_coord = min(coords)
-            if integral:
+            if integral_hull:
+                a = ceil(min_coord)
+                b = floor(max_coord)
+                if a > b:
+                    return None, None
+                box_max.append(b)
+                box_min.append(a)
+            elif integral:
                 box_max.append(ceil(max_coord))
                 box_min.append(floor(min_coord))
             else:
@@ -4708,6 +4831,12 @@ class Polyhedron_base(Element):
             sage: len(simplex.integral_points())
             49
 
+        A case where rounding in the right direction goes a long way::
+
+            sage: P = 1/10*polytopes.hypercube(14)
+            sage: P.integral_points()
+            ((0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),)
+
         Finally, the 3-d reflexive polytope number 4078::
 
             sage: v = [(1,0,0), (0,1,0), (0,0,1), (0,0,-1), (0,-2,1),
@@ -4759,7 +4888,9 @@ class Polyhedron_base(Element):
                 return ()
 
         # for small bounding boxes, it is faster to naively iterate over the points of the box
-        box_min, box_max = self.bounding_box(integral=True)
+        box_min, box_max = self.bounding_box(integral_hull=True)
+        if box_min is None:
+            return ()
         box_points = prod(max_coord-min_coord+1 for min_coord, max_coord in zip(box_min, box_max))
         if  not self.is_lattice_polytope() or \
                 (self.is_simplex() and box_points < 1000) or \
@@ -5434,28 +5565,37 @@ class Polyhedron_base(Element):
 
             sage: P = polytopes.dodecahedron(); P
             A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^3 defined as the convex hull of 20 vertices
-            sage: print("There may be a recompilation warning"); PP = polymake(P); PP
+            sage: print("There may be a recompilation warning"); PP = polymake(P); PP # optional - polymake
             There may be a recompilation warning...
             Polytope<QuadraticExtension<Rational>>[...]
-            sage: sorted(PP.VERTICES[:])[0]
-            1 1-1r5 4-2r5 0
+            sage: sorted(PP.VERTICES[:], key=repr)[0]  # optional - polymake
+            1 -1+1r5 -4+2r5 0
 
         Floating-point polyhedron::
 
             sage: P = polytopes.dodecahedron(exact=False); P
             A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 20 vertices
-            sage: print("There may be a recompilation warning"); PP = polymake(P); PP
+            sage: print("There may be a recompilation warning"); PP = polymake(P); PP # optional - polymake
             There may be a recompilation warning...
             Polytope<Float>[...]
-            sage: sorted(PP.VERTICES[:])[0]
-            1 -1.236067978 -0.4721359552 0
+            sage: sorted(PP.VERTICES[:], key=repr)[0] # optional - polymake
+            1 -0.472135955 0 -1.236067978
 
         """
         from sage.interfaces.polymake import polymake
         polymake_field = polymake(self.base_ring().fraction_field())
-        return polymake.new_object("Polytope<{}>".format(polymake_field),
-                                   FACETS=self.inequalities_list(),
-                                   AFFINE_HULL=self.equations_list(),
-                                   VERTICES=   [ [1] + v for v in self.vertices_list() ] \
-                                             + [ [0] + r for r in self.rays_list() ],
-                                   LINEALITY_SPACE=[ [0] + l for l in self.lines_list() ])
+        polymake_class = "Polytope<{}>".format(polymake_field)
+        if self.is_empty():
+            # Polymake 3.1 cannot enter an empty polyhedron using
+            # FACETS and AFFINE_HULL.  Use corresponding input properties instead.
+            # https://forum.polymake.org/viewtopic.php?f=8&t=545
+            return polymake.new_object(polymake_class,
+                                       INEQUALITIES=self.inequalities_list(),
+                                       EQUATIONS=self.equations_list())
+        else:
+            return polymake.new_object(polymake_class,
+                                       FACETS=self.inequalities_list(),
+                                       AFFINE_HULL=self.equations_list(),
+                                       VERTICES=   [ [1] + v for v in self.vertices_list() ] \
+                                                 + [ [0] + r for r in self.rays_list() ],
+                                       LINEALITY_SPACE=[ [0] + l for l in self.lines_list() ])

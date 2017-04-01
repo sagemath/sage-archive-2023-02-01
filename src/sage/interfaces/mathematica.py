@@ -364,6 +364,7 @@ from sage.misc.cachefunc import cached_method
 from sage.interfaces.expect import (Expect, ExpectElement, ExpectFunction,
                                     FunctionElement, AsciiArtString)
 from sage.interfaces.tab_completion import ExtraTabCompletion
+from sage.docs.instancedoc import instancedoc
 
 
 def clean_output(s):
@@ -624,6 +625,8 @@ remote connection to a server running Mathematica -- for hints, type
             raise AttributeError
         return MathematicaFunction(self, attrname)
 
+
+@instancedoc
 class MathematicaElement(ExpectElement):
     def __getitem__(self, n):
         return self.parent().new('%s[[%s]]'%(self._name, n))
@@ -986,14 +989,17 @@ class MathematicaElement(ExpectElement):
         """
         return self._sage_().n(*args, **kwargs)
 
+
+@instancedoc
 class MathematicaFunction(ExpectFunction):
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         M = self._parent
         return M.help(self._name)
 
 
+@instancedoc
 class MathematicaFunctionElement(FunctionElement):
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         M = self._obj.parent()
         return M.help(self._name)
 

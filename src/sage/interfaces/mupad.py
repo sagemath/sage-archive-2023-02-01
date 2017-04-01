@@ -97,9 +97,8 @@ import os
 from .expect import (Expect, ExpectElement, ExpectFunction,
                     FunctionElement, AsciiArtString)
 from sage.interfaces.tab_completion import ExtraTabCompletion
-
-
 from sage.env import DOT_SAGE
+from sage.docs.instancedoc import instancedoc
 
 COMMANDS_CACHE = '%s/mupad_commandlist_cache.sobj'%DOT_SAGE
 PROMPT = ">>"
@@ -443,13 +442,13 @@ command-line version of MuPAD.
         return res if res != [''] else []
 
 
+@instancedoc
 class MupadFunction(ExtraTabCompletion, ExpectFunction):
-    
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         EXAMPLES::
 
-            sage: mupad.diff._sage_doc_()
+            sage: mupad.diff.__doc__
             No help on diff available
         """
         M = self._parent
@@ -481,13 +480,14 @@ class MupadFunction(ExtraTabCompletion, ExpectFunction):
         return res if res != [] else self._parent._tab_completion()
 
 
+@instancedoc
 class MupadFunctionElement(ExtraTabCompletion, FunctionElement):
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         EXAMPLES::
 
-            sage: x = mupad('x') # optional - mupad
-            sage: x.diff._sage_doc_() # optional - mupad
+            sage: x = mupad('x')  # optional - mupad
+            sage: x.diff.__doc__  # optional - mupad
             No help on diff available
 
         """
@@ -551,6 +551,7 @@ class MupadFunctionElement(ExtraTabCompletion, FunctionElement):
             return P.function_call(self._name, [self._obj] + list(args))
 
 
+@instancedoc
 class MupadElement(ExtraTabCompletion, ExpectElement):
 
     def __getattr__(self, attrname):

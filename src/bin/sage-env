@@ -206,9 +206,6 @@ elif [ ! -f "$SAGE_SCRIPTS_DIR/sage-env-config" ]; then
     return 1
 fi
 
-# Make SAGE_SCRIPTS_DIR absolute
-export SAGE_SCRIPTS_DIR="`cd "$SAGE_SCRIPTS_DIR" && pwd -P`"
-
 # Set environment variables (like SAGE_LOCAL) depending on ./configure
 . "$SAGE_SCRIPTS_DIR/sage-env-config"
 if [ $? -ne 0 ]; then

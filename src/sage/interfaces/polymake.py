@@ -65,7 +65,7 @@ class PolymakeError(RuntimeError):
         sage: polymake.eval('print foo;')    # optional polymake
         Traceback (most recent call last):
         ...
-        PolymakeError: Unquoted string "foo" may clash with future reserved word at input line 1.
+        PolymakeError: Unquoted string "foo" may clash with future reserved word...
 
     """
     pass
@@ -166,7 +166,7 @@ class Polymake(ExtraTabCompletion, Expect):
                         script_subdirectory=script_subdirectory,
                         restart_on_ctrlc=False,
                         logfile=logfile,
-                        eval_using_file_cutoff=100)
+                        eval_using_file_cutoff=1024)   # > 1024 causes hangs
 
         self._seed = seed
         self.__tab_completion = {}
@@ -356,6 +356,7 @@ class Polymake(ExtraTabCompletion, Expect):
         self.application("polytope")
         self.eval('use Scalar::Util qw(reftype);')
         self.eval('use Scalar::Util qw(blessed);')
+        self.eval('use File::Slurp;')
 
     def _quit_string(self):
         """
@@ -389,9 +390,22 @@ class Polymake(ExtraTabCompletion, Expect):
         TEST::
 
             sage: polymake._read_in_file_command('foobar')
-            'script "foobar";\n'
+            'eval read_file "foobar";\n'
+
+        Force use of file::
+
+            sage: L = polymake([42] * 400)                      # optional - polymake
+            sage: len(L)                                        # optional - polymake
+            400
+
+        Just below standard file cutoff of 1024::
+
+            sage: L = polymake([42] * 84)                       # optional - polymake
+            sage: len(L)                                        # optional - polymake
+            84
+
         """
-        return 'script "{}";\n'.format(filename)
+        return 'eval read_file "{}";\n'.format(filename)
 
     def _keyboard_interrupt(self):
         """
@@ -460,7 +474,7 @@ class Polymake(ExtraTabCompletion, Expect):
             sage: polymake('"foobar"')                          # optional - polymake
             <repr(<sage.interfaces.polymake.PolymakeElement at ...>) failed:
             PolymakeError: Can't locate object method "description" via package "1"
-            (perhaps you forgot to load "1"?) at input line 1.>
+            (perhaps you forgot to load "1"?)...>
             sage: Q.typeof()                                    # optional - polymake
             ('foobar...', 'Polymake::polytope::Polytope__Rational')
             sage: Q.typeof.clear_cache()                        # optional - polymake
@@ -663,6 +677,30 @@ class Polymake(ExtraTabCompletion, Expect):
             sage: polymake.get('$myvar[0]')                     # optional - polymake
             'Polymake::polytope::Polytope__Rational=ARRAY(...)'
 
+        The following tests against :trac:`22658`::
+
+            sage: P = polymake.new_object("Polytope", FACETS=[[12, -2, -3, -5, -8, -13, -21, -34, -55],   # optional - polymake
+            ....:  [0, 1, 0, 0, 0, 0, 0, 0, 0],
+            ....:  [0, 0, 0, 0, 0, 0, 0, 0, 1],
+            ....:  [0, 0, 0, 0, 0, 0, 0, 1, 0],
+            ....:  [0, 0, 0, 0, 0, 0, 1, 0, 0],
+            ....:  [0, 0, 0, 0, 0, 1, 0, 0, 0],
+            ....:  [0, 0, 0, 0, 1, 0, 0, 0, 0],
+            ....:  [0, 0, 0, 1, 0, 0, 0, 0, 0],
+            ....:  [0, 0, 1, 0, 0, 0, 0, 0, 0]])
+            sage: P.VERTICES                        # optional - polymake
+            1 6 0 0 0 0 0 0 0
+            1 0 4 0 0 0 0 0 0
+            1 0 0 0 0 0 0 0 0
+            1 0 0 12/5 0 0 0 0 0
+            1 0 0 0 0 0 0 0 12/55
+            1 0 0 0 0 0 0 6/17 0
+            1 0 0 0 0 0 4/7 0 0
+            1 0 0 0 0 12/13 0 0 0
+            1 0 0 0 3/2 0 0 0 0
+            sage: P.F_VECTOR                        # optional - polymake
+            9 36 84 126 126 84 36 9
+
         """
         if isinstance(value, six.string_types):
             value = value.strip().rstrip(';').strip()
@@ -746,7 +784,7 @@ class Polymake(ExtraTabCompletion, Expect):
 
         INPUT:
 
-        - ``line``, a command (string) to be avaluated
+        - ``line``, a command (string) to be evaluated
         - ``allow_use_file`` (optional bool, default ``True``), whether or not
           to use a file if the line is very long.
         - ``wait_for_prompt`` (optional, default ``True``), whether or not
@@ -788,7 +826,7 @@ class Polymake(ExtraTabCompletion, Expect):
             sage: polymake.eval('FOOBAR(3);')       # optional - polymake
             Traceback (most recent call last):
             ...
-            PolymakeError: Undefined subroutine &Polymake::User::FOOBAR called at input line 1.
+            PolymakeError: Undefined subroutine &Polymake::User::FOOBAR called...
 
         If a command is incomplete, then polymake returns a continuation
         prompt. In that case, we raise an error::
@@ -1738,18 +1776,31 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
     def __getitem__(self, key):
         """
-        Indexing
+        Indexing and slicing.
+
+        Slicing returns a Python list.
 
         EXAMPLES::
 
-            sage: p = polymake.rand_sphere(3, 12, seed=15)   # optional - polymake
+            sage: p = polymake.rand_sphere(3, 12, seed=15)  # optional - polymake
             sage: p.VERTICES[3]                             # optional - polymake
             1 -6157731020575175/18014398509481984 4184896164481703/4503599627370496 -2527292586301447/18014398509481984
             sage: p.list_properties()[2]                    # optional - polymake
             BOUNDED
 
+        Slicing::
+
+            sage: p.F_VECTOR[:]                             # optional - polymake
+            [12, 30, 20]
+            sage: p.F_VECTOR[0:1]                           # optional - polymake
+            [12]
+            sage: p.F_VECTOR[0:3:2]                         # optional - polymake
+            [12, 20]
         """
         P = self._check_valid()
+        if isinstance(key, slice):
+            indices = key.indices(len(self))
+            return [ self[i] for i in range(*indices) ]
         _, T = self.typeof()
         if self._name.startswith('@'):
             return P('${}[{}]'.format(self._name[1:], key))

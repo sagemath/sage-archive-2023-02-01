@@ -5636,3 +5636,95 @@ class Polyhedron_base(Element):
         rays = [pivot(_) for _ in self.rays()]
         lines = [pivot(_) for _ in self.lines()]
         return Polyhedron(vertices=vertices, rays=rays, lines=lines, base_ring=self.base_ring())
+
+    def _polymake_init_(self):
+        """
+        Return a polymake "Polytope" object corresponding to ``self``.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: PP = polymake(P)         # optional - polymake
+            sage: PP.N_VERTICES            # optional - polymake
+            8
+
+        Lower-dimensional polyhedron::
+
+            sage: P = Polyhedron(vertices=[[1, 0], [0, 1]])
+            sage: PP = polymake(P)         # optional - polymake
+            sage: PP.COMBINATORIAL_DIM     # optional - polymake
+            1
+            sage: PP.AFFINE_HULL           # optional - polymake
+            -1 1 1
+
+        Empty polyhedron::
+
+            sage: P = Polyhedron(ambient_dim=2, vertices=[])
+            sage: PP = polymake(P)         # optional - polymake
+            sage: PP.COMBINATORIAL_DIM     # optional - polymake
+            -1
+
+        Pointed unbounded polyhedron::
+
+            sage: P = Polyhedron(vertices=[[1, 0], [0, 1]], rays=[[1, 0]])
+            sage: PP = polymake(P)         # optional - polymake
+            sage: PP.VERTICES              # optional - polymake
+            1 0 1
+            1 1 0
+            0 1 0
+            sage: PP.FACETS                # optional - polymake
+            1 0 -1
+            -1 1 1
+            0 0 1
+
+        Non-pointed polyhedron::
+
+            sage: P = Polyhedron(vertices=[[1, 0], [0, 1]], lines=[[1, 0]])
+            sage: PP = polymake(P)         # optional - polymake
+            sage: PP.VERTICES              # optional - polymake
+            1 0 1
+            1 0 0
+            sage: PP.FACETS                # optional - polymake
+            1 0 -1
+            0 0 1
+            sage: PP.LINEALITY_SPACE       # optional - polymake
+            0 1 0
+
+        Algebraic polyhedron::
+
+            sage: P = polytopes.dodecahedron(); P
+            A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^3 defined as the convex hull of 20 vertices
+            sage: print("There may be a recompilation warning"); PP = polymake(P); PP # optional - polymake
+            There may be a recompilation warning...
+            Polytope<QuadraticExtension<Rational>>[...]
+            sage: sorted(PP.VERTICES[:], key=repr)[0]  # optional - polymake
+            1 -1+1r5 -4+2r5 0
+
+        Floating-point polyhedron::
+
+            sage: P = polytopes.dodecahedron(exact=False); P
+            A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 20 vertices
+            sage: print("There may be a recompilation warning"); PP = polymake(P); PP # optional - polymake
+            There may be a recompilation warning...
+            Polytope<Float>[...]
+            sage: sorted(PP.VERTICES[:], key=repr)[0] # optional - polymake
+            1 -0.472135955 0 -1.236067978
+
+        """
+        from sage.interfaces.polymake import polymake
+        polymake_field = polymake(self.base_ring().fraction_field())
+        polymake_class = "Polytope<{}>".format(polymake_field)
+        if self.is_empty():
+            # Polymake 3.1 cannot enter an empty polyhedron using
+            # FACETS and AFFINE_HULL.  Use corresponding input properties instead.
+            # https://forum.polymake.org/viewtopic.php?f=8&t=545
+            return polymake.new_object(polymake_class,
+                                       INEQUALITIES=self.inequalities_list(),
+                                       EQUATIONS=self.equations_list())
+        else:
+            return polymake.new_object(polymake_class,
+                                       FACETS=self.inequalities_list(),
+                                       AFFINE_HULL=self.equations_list(),
+                                       VERTICES=   [ [1] + v for v in self.vertices_list() ] \
+                                                 + [ [0] + r for r in self.rays_list() ],
+                                       LINEALITY_SPACE=[ [0] + l for l in self.lines_list() ])

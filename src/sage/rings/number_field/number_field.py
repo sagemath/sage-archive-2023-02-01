@@ -10256,6 +10256,22 @@ class NumberField_quadratic(NumberField_absolute):
         else:
             return NumberField_generic._latex_(self)
 
+    def _polymake_init_(self):
+        r"""
+        Return the polymake representation of this quadratic field.
+
+        This is merely a string, and does not represent a specific quadratic field.
+        In polymake, only the elements know which field they belong to.
+
+        EXAMPLES::
+
+            sage: Z = QuadraticField(7)
+            sage: polymake(Z)    # optional - polymake # indirect doctest
+            QuadraticExtension
+
+        """
+        return '"QuadraticExtension"'
+
     def discriminant(self, v=None):
         """
         Returns the discriminant of the ring of integers of the number

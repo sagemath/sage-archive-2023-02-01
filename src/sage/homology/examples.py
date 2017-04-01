@@ -599,7 +599,7 @@ def PseudoQuaternionicProjectivePlane():
 
 def PoincareHomologyThreeSphere():
     """
-    A triangulation of the Poincare homology 3-sphere.
+    A triangulation of the Poincaré homology 3-sphere.
 
     This is a manifold whose integral homology is identical to the
     ordinary 3-sphere, but it is not simply connected. In particular,
@@ -640,7 +640,7 @@ def PoincareHomologyThreeSphere():
          [9, 10, 11, 12], [9, 10, 11, 16], [9, 10, 15, 16], [9, 11, 14, 16],
          [9, 14, 15, 16], [10, 11, 13, 16], [10, 13, 15, 16],
          [11, 13, 14, 16], [12, 13, 14, 15], [13, 14, 15, 16]],
-        name='Triangulation of the Poincare homology 3-sphere')
+        name='Triangulation of the Poincaré homology 3-sphere')
 
 def RealProjectiveSpace(n):
     r"""

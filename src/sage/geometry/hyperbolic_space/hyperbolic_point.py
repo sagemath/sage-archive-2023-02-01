@@ -363,7 +363,7 @@ class HyperbolicPoint(Element):
             Hyperbolic plane in the Upper Half Plane Model model
 
             sage: HyperbolicPlane().PD().get_point(0).model()
-            Hyperbolic plane in the Poincare Disk Model model
+            Hyperbolic plane in the Poincaré Disk Model model
 
             sage: HyperbolicPlane().KM().get_point((0,0)).model()
             Hyperbolic plane in the Klein Disk Model model

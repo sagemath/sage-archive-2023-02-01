@@ -302,7 +302,7 @@ class HyperbolicGeodesic(SageObject):
 
             sage: PD = HyperbolicPlane().PD()
             sage: PD.get_geodesic(0, I/2).model()
-            Hyperbolic plane in the Poincare Disk Model model
+            Hyperbolic plane in the Poincaré Disk Model model
 
             sage: KM = HyperbolicPlane().KM()
             sage: KM.get_geodesic((0, 0), (0, 1/2)).model()

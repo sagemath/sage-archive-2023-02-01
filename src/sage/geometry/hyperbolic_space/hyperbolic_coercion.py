@@ -139,7 +139,7 @@ class HyperbolicModelCoercion(Morphism):
             sage: ~phi
             Coercion Isometry morphism:
               From: Hyperbolic plane in the Upper Half Plane Model model
-              To:   Hyperbolic plane in the Poincare Disk Model model
+              To:   Hyperbolic plane in the Poincaré Disk Model model
         """
         return self.domain().coerce_map_from(self.codomain())
 

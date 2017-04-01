@@ -1156,7 +1156,7 @@ class HyperbolicModelPD(HyperbolicModel):
         # name should really be 'Poincaré Disk Model', but utf8 is not
         # accepted by repr
         HyperbolicModel.__init__(self, space,
-                                 name=u'Poincare Disk Model', short_name="PD",
+                                 name=u'Poincaré Disk Model', short_name="PD",
                                  bounded=True, conformal=True, dimension=2,
                                  isometry_group="PU(1, 1)",
                                  isometry_group_is_projective=True)

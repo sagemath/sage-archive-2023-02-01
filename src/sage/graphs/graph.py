@@ -3646,9 +3646,9 @@ class Graph(GenericGraph):
         While this is not::
 
             sage: try:
-            ....:    g.bounded_outdegree_orientation(ceil(mad/2-1))
-            ....:    print("Error")
-            ... except ValueError:
+            ....:     g.bounded_outdegree_orientation(ceil(mad/2-1))
+            ....:     print("Error")
+            ....: except ValueError:
             ....:     pass
 
         TESTS:

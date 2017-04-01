@@ -280,7 +280,7 @@ def interred_libsingular(I):
         sage: P.<x,y,z> = PolynomialRing(QQ)
         sage: I = ideal( x^2 - 3*y, y^3 - x*y, z^3 - x, x^4 - y*z + 1 )
         sage: I.interreduced_basis()
-        [y*z^2 - 81*x*y - 9*y - z, z^3 - x, x^2 - 3*y, 9*y^2 - y*z + 1]
+        [y*z^2 - 81*x*y - 9*y - z, z^3 - x, x^2 - 3*y, y^2 - 1/9*y*z + 1/9]
     """
     global singular_options
 
@@ -310,7 +310,7 @@ def interred_libsingular(I):
 
 
     # divide head by coefficients
-    if r.cf.type == n_unknown:
+    if r.cf.type != n_Z and r.cf.type != n_Znm and r.cf.type != n_Zn and r.cf.type != n_Z2m :
         for j from 0 <= j < IDELEMS(result):
             p = result.m[j]
             if p:

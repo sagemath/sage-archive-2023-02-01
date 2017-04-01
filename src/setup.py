@@ -4,6 +4,7 @@ from __future__ import print_function
 import os, sys, time, errno, platform, subprocess
 from distutils import log
 from distutils.core import setup, DistutilsSetupError
+from distutils.command.build import build
 from distutils.command.build_ext import build_ext
 from distutils.command.install import install
 from distutils.dep_util import newer_group
@@ -84,6 +85,9 @@ except KeyError:
 # this depends on SAGE_CYTHONIZED
 include_dirs = sage_include_directories(use_sources=True)
 
+# Look for libraries in $SAGE_LOCAL/lib
+library_dirs = [os.path.join(SAGE_LOCAL, "lib")]
+
 # Manually add -fno-strict-aliasing, which is needed to compile Cython
 # and disappears from the default flags if the user has set CFLAGS.
 extra_compile_args = [ "-fno-strict-aliasing" ]
@@ -163,12 +167,14 @@ if os.path.exists(sage.misc.lazy_import_cache.get_cache_file()):
     os.unlink(sage.misc.lazy_import_cache.get_cache_file())
 
 
-######################################################################
-# CODE for generating C/C++ code from Cython and doing dependency
-# checking, etc.  In theory distutils would run Cython, but I don't
-# trust it at all, and it won't have the more sophisticated dependency
-# checking that we need.
-######################################################################
+########################################################################
+##
+## Customize the Extensions processed by Cython
+##
+########################################################################
+
+from Cython.Build.Dependencies import default_create_extension
+from sage_setup.util import stable_uniq
 
 # Do not put all, but only the most common libraries and their headers
 # (that are likely to change on an upgrade) here:
@@ -179,30 +185,85 @@ lib_headers = { "gmp":     [ os.path.join(SAGE_INC, 'gmp.h') ],   # cf. #8664, #
                 "ntl":     [ os.path.join(SAGE_INC, 'NTL', 'config.h') ]
               }
 
-# In the loop below, don't append to any list, since many of these
-# lists are actually identical Python objects. For every list, we need
-# to write (at least the first time):
-#
-#   list = list + [foo]
-#
-for m in ext_modules:
-    # Make everything depend on *this* setup.py file
-    m.depends = m.depends + [__file__]
 
-    # Add dependencies for the libraries
-    for lib in lib_headers:
-        if lib in m.libraries:
-            m.depends += lib_headers[lib]
+def sage_create_extension(template, kwds):
+    """
+    Create a distutils Extension given data from Cython
 
-    m.extra_compile_args = m.extra_compile_args + extra_compile_args
-    m.extra_link_args = m.extra_link_args + extra_link_args
-    m.library_dirs = m.library_dirs + [os.path.join(SAGE_LOCAL, "lib")]
-    m.include_dirs = m.include_dirs + include_dirs
+    This adjust the ``kwds`` in the following ways:
+
+    - Make everything depend on *this* setup.py file
+
+    - Add dependencies on header files for certain libraries
+
+    - Ensure that C++ extensions link with -lstdc++
+
+    - Sort the libraries according to the library order
+
+    - Add some default compile/link args and directories
+
+    - Drop -std=c99 and similar from C++ extensions
+
+    - Ensure that each flag, library, ... is listed at most once
+    """
+    lang = kwds.get('language', 'c')
+
+    # Libraries: add stdc++ if needed and sort them
+    libs = kwds.get('libraries', [])
+    if lang == 'c++':
+        libs = libs + ['stdc++']
+    kwds['libraries'] = sorted(set(libs),
+            key=lambda lib: library_order.get(lib, 0))
+
+    # Dependencies: add setup.py and lib_headers
+    depends = kwds.get('depends', []) + [__file__]
+    for lib, headers in lib_headers.items():
+        if lib in libs:
+            depends += headers
+    kwds['depends'] = depends  # These are sorted and uniq'ed by Cython
+
+    # Process extra_compile_args
+    cflags = []
+    for flag in kwds.get('extra_compile_args', []):
+        if lang == "c++":
+            if flag.startswith("-std=") and "++" not in flag:
+                continue  # Skip -std=c99 and similar for C++
+        cflags.append(flag)
+    cflags = extra_compile_args + cflags
+    kwds['extra_compile_args'] = stable_uniq(cflags)
+
+    # Process extra_link_args
+    ldflags = kwds.get('extra_link_args', []) + extra_link_args
+    kwds['extra_link_args'] = stable_uniq(ldflags)
+
+    # Process library_dirs
+    lib_dirs = kwds.get('library_dirs', []) + library_dirs
+    kwds['library_dirs'] = stable_uniq(lib_dirs)
+
+    # Process include_dirs
+    inc_dirs = kwds.get('include_dirs', []) + include_dirs
+    kwds['include_dirs'] = stable_uniq(inc_dirs)
+
+    return default_create_extension(template, kwds)
 
 
-#############################################
-###### Parallel Cython execution
-#############################################
+########################################################################
+##
+## Parallel gcc execution
+##
+## This code is responsible for making distutils dispatch the calls to
+## build_ext in parallel. Since distutils doesn't seem to do this by
+## default, we create our own extension builder and override the
+## appropriate methods.  Unfortunately, in distutils, the logic of
+## deciding whether an extension needs to be recompiled and actually
+## making the call to gcc to recompile the extension are in the same
+## function. As a result, we can't just override one function and have
+## everything magically work. Instead, we split this work between two
+## functions. This works fine for our application, but it means that
+## we can't use this modification to make the other parts of Sage that
+## build with distutils call gcc in parallel.
+##
+########################################################################
 
 def run_command(cmd):
     """
@@ -317,24 +378,6 @@ def execute_list_of_commands(command_list):
     print("Time to execute %s: %.2f seconds."%(plural(len(command_list),"command"), time.time() - t))
 
 
-########################################################################
-##
-## Parallel gcc execution
-##
-## This code is responsible for making distutils dispatch the calls to
-## build_ext in parallel. Since distutils doesn't seem to do this by
-## default, we create our own extension builder and override the
-## appropriate methods.  Unfortunately, in distutils, the logic of
-## deciding whether an extension needs to be recompiled and actually
-## making the call to gcc to recompile the extension are in the same
-## function. As a result, we can't just override one function and have
-## everything magically work. Instead, we split this work between two
-## functions. This works fine for our application, but it means that
-## we can't use this modification to make the other parts of Sage that
-## build with distutils call gcc in parallel.
-##
-########################################################################
-
 class sage_build_ext(build_ext):
     def finalize_options(self):
         build_ext.finalize_options(self)
@@ -409,6 +452,7 @@ class sage_build_ext(build_ext):
                 'fast_getattr': True,
                 'profile': profile,
             },
+            create_extension=sage_create_extension,
             # Debugging
             gdb_debug=debug,
             output_dir=SAGE_CYTHONIZED,
@@ -569,15 +613,6 @@ class sage_build_ext(build_ext):
             log.info("building '%s' extension", ext.name)
             need_to_compile = True
 
-        # If we need to compile, adjust the given extension
-        if need_to_compile:
-            libs = ext.libraries
-            if ext.language == 'c++' and 'stdc++' not in libs:
-                libs = libs + ['stdc++']
-
-            # Sort libraries according to library_order
-            ext.libraries = sorted(libs, key=lambda x: library_order.get(x, 0))
-
         return need_to_compile, (sources, ext, ext_filename)
 
     def build_extension(self, p):
@@ -664,16 +699,25 @@ class sage_build_ext(build_ext):
             for src in src_files:
                 self.copy_file(src, dst, preserve_mode=False)
 
-#########################################################
-### Generating auto-generated Sources
-### This must be done before discovering and building
-### the python modules. See #22094.
-#########################################################
 
-log.info("Generating auto-generated sources")
-from sage_setup.autogen import autogen_all
+class sage_build(build):
+    def run_autogen(self):
+        """
+        Generate auto-generated sources.
 
-autogen_all()
+        This must be done before building the python modules,
+        see :trac:`22106`.
+        """
+        from sage_setup.autogen import autogen_all
+        log.info("Generating auto-generated sources")
+        for pkg in autogen_all():
+            if pkg not in self.distribution.packages:
+                    self.distribution.packages.append(pkg)
+
+    def run(self):
+        self.run_autogen()
+        build.run(self)
+
 
 #########################################################
 ### Discovering Sources
@@ -764,5 +808,6 @@ code = setup(name = 'sage',
       author_email= 'http://groups.google.com/group/sage-support',
       url         = 'http://www.sagemath.org',
       packages    = python_packages,
-      cmdclass = dict(build_ext=sage_build_ext, install=sage_install),
+      cmdclass = dict(build=sage_build, build_ext=sage_build_ext,
+                      install=sage_install),
       ext_modules = ext_modules)

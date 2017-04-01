@@ -24,8 +24,7 @@ from __future__ import absolute_import
 from sage.combinat.free_module import CombinatorialFreeModule, \
     CombinatorialFreeModuleElement
 from sage.rings.integer_ring import ZZ
-from sage.structure.element import get_coercion_model
-
+from sage.structure.element import coercion_model
 
 
 class CellComplexReference(object):
@@ -605,8 +604,7 @@ class Cochains(CellComplexReference, CombinatorialFreeModule):
                          for cell, coeff in self)
             R = self.base_ring()
             if R != other.base_ring():
-                cm = get_coercion_model()
-                R = cm.common_parent(R, other.base_ring())
+                R = coercion_model.common_parent(R, other.base_ring())
             return R(result)
 
         def cup_product(self, cochain):
@@ -652,7 +650,7 @@ class Cochains(CellComplexReference, CombinatorialFreeModule):
             right_deg = cochain.parent().degree()
             left_chains = self.parent().dual()
             right_chains = cochain.parent().dual()
-            base_ring = get_coercion_model().common_parent(
+            base_ring = coercion_model.common_parent(
                 left_chains.base_ring(), right_chains.base_ring())
             cx = self.parent().cell_complex()
             codomain = cx.n_chains(

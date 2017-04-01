@@ -3406,7 +3406,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: k.<a> = NumberField(y^2 - 3/2*y + 5/3)
             sage: k.pari_polynomial()
             x^2 - x + 40
-            sage: k.polynomial()._pari_()
+            sage: k.polynomial().__pari__()
             x^2 - 3/2*x + 5/3
             sage: k.pari_polynomial('a')
             a^2 - a + 40
@@ -3535,14 +3535,14 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         return self.pari_nf().nf_get_zk()
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Return the PARI number field corresponding to this field.
 
         EXAMPLES::
 
             sage: k = NumberField(x^2 + x + 1, 'a')
-            sage: k._pari_()
+            sage: k.__pari__()
             [y^2 + y + 1, [0, 1], -3, 1, ... [1, y], [1, 0; 0, 1], [1, 0, 0, -1; 0, 1, 1, -1]]
             sage: pari(k)
             [y^2 + y + 1, [0, 1], -3, 1, ...[1, y], [1, 0; 0, 1], [1, 0, 0, -1; 0, 1, 1, -1]]
@@ -4424,8 +4424,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         f = self.absolute_polynomial()
         g = other.absolute_polynomial()
         R = f.parent()
-        f = f._pari_(); f /= f.content()
-        g = g._pari_(); g /= g.content()
+        f = f.__pari__(); f /= f.content()
+        g = g.__pari__(); g /= g.content()
 
         m = self.degree()
         n = other.absolute_degree()

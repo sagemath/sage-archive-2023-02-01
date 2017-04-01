@@ -853,7 +853,13 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         if basis._domain == self._domain:
             # Adding components on the tensor field domain:
-            return FreeModuleTensor.add_comp(self, basis=basis)
+            # We perform a backup of the restrictions, since
+            # they are deleted by FreeModuleTensor.add_comp (which
+            # invokes del_derived()), and restore them afterwards
+            restrictions_save = self._restrictions.copy()
+            comp = FreeModuleTensor.add_comp(self, basis=basis)
+            self._restrictions = restrictions_save
+            return comp
 
         # Adding components on a subdomain:
         #

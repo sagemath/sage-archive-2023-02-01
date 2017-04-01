@@ -627,25 +627,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         else:
             None
 
-
-    def is_subring(self, other):
-        r"""
-        Return ``True`` if `\ZZ` is a subring of other in a natural way.
-
-        Every ring of characteristic `0` contains `\ZZ` as a subring.
-
-        EXAMPLES::
-
-            sage: ZZ.is_subring(QQ)
-            True
-        """
-        if not ring.is_Ring(other):
-            raise TypeError("other must be a ring")
-        if other.characteristic() == 0:
-            return True
-        else:
-            return False
-
     def random_element(self, x=None, y=None, distribution=None):
         r"""
         Return a random integer.

@@ -82,7 +82,7 @@ from __future__ import absolute_import, print_function
 
 import operator
 from sage.structure.element import (AdditiveGroupElement, RingElement,
-        Element, generic_power, parent, get_coercion_model)
+        Element, generic_power, parent, coercion_model)
 from sage.structure.sequence import Sequence
 from sage.categories.homset import Homset, Hom, End
 from sage.categories.number_fields import NumberFields
@@ -104,8 +104,6 @@ from sage.misc.constant_function import ConstantFunction
 from sage.categories.morphism import SetMorphism
 from sage.categories.morphism import Morphism
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
-
-coercion_model = get_coercion_model()
 
 
 def is_SchemeMorphism(f):

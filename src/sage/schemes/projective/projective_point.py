@@ -198,7 +198,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
             sage: PS = ProjectiveSpace(Zp(5), 1, 'x')
             sage: P = PS([0, 1])
-            sage: P == 0
+            sage: P == PS(0)
             True
 
         ::
@@ -214,7 +214,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
             sage: PS = ProjectiveSpace(ZZ, 2, 'x')
             sage: P = PS([0, 1, 2])
-            sage: P == 0
+            sage: P == PS(0)
             False
 
         ::
@@ -286,7 +286,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
             sage: PS = ProjectiveSpace(Zp(5), 1, 'x')
             sage: P = PS([0, 1])
-            sage: P != 0
+            sage: P != PS(0)
             False
 
         ::
@@ -302,7 +302,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
             sage: PS = ProjectiveSpace(ZZ, 2, 'x')
             sage: P = PS([0, 1, 2])
-            sage: P != 0
+            sage: P != PS(0)
             True
 
         ::

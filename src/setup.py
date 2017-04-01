@@ -284,6 +284,8 @@ class sage_build_cython(Command):
         self.cythonized_files = None
 
     def finalize_options(self):
+        self.extensions = self.distribution.ext_modules
+
         # TODO: Could get source path for Cythonized files from the build
         # command, rather than relying solely on SAGE_CYTHONIZED
         self.build_dir = SAGE_CYTHONIZED
@@ -391,17 +393,12 @@ class sage_build_cython(Command):
 
         Cython.Compiler.Options.embed_pos_in_docstring = True
 
-        # Ensure the build_ext command is finalized so that the extension list
-        # is populated--this command actually overrides the extension list with
-        # the results of cythonize
-        build_ext = self.get_finalized_command('build_ext')
-
         log.info("Updating Cython code....")
         t = time.time()
         # We use [:] to change the list in-place because the same list
         # object is pointed to from different places.
-        build_ext.extensions[:] = cythonize(
-            build_ext.extensions,
+        self.extensions[:] = cythonize(
+            self.extensions,
             nthreads=self.parallel,
             build_dir=self.build_dir,
             force=self.force,

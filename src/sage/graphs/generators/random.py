@@ -193,7 +193,7 @@ def RandomBipartite(n1, n2, p):
         - ``p``   : Probability for an edge to exist
 
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: g=graphs.RandomBipartite(5,2,0.5)
         sage: g.vertices()
@@ -266,7 +266,7 @@ def RandomBoundedToleranceGraph(n):
 
     - ``n`` -- number of vertices of the random graph.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Every (bounded) tolerance graph is perfect. Hence, the
     chromatic number is equal to the clique number ::
@@ -363,7 +363,7 @@ def RandomNewmanWattsStrogatz(n, k, p, seed=None):
     -  ``seed`` - for the random number generator
 
 
-    EXAMPLE: We show the edge list of a random graph on 7 nodes with 2
+    EXAMPLES: We show the edge list of a random graph on 7 nodes with 2
     "nearest neighbors" and probability `p = 0.2`::
 
         sage: graphs.RandomNewmanWattsStrogatz(7, 2, 0.2).edges(labels=False)
@@ -417,7 +417,7 @@ def RandomHolmeKim(n, m, p, seed=None):
     nodes may not be all linked to a new node on the first iteration
     like the BA model.
 
-    EXAMPLE: We show the edge list of a random graph on 8 nodes with 2
+    EXAMPLES: We show the edge list of a random graph on 8 nodes with 2
     random edges per node and a probability `p = 0.5` of
     forming triangles.
 
@@ -469,7 +469,7 @@ def RandomIntervalGraph(n):
     - ``n`` (integer) -- the number of vertices in the random
       graph.
 
-    EXAMPLE:
+    EXAMPLES:
 
     As for any interval graph, the chromatic number is equal to
     the clique number ::
@@ -514,7 +514,7 @@ def RandomLobster(n, p, q, seed=None):
     -  ``seed`` - for the random number generator
 
 
-    EXAMPLE: We show the edge list of a random graph with 3 backbone
+    EXAMPLES: We show the edge list of a random graph with 3 backbone
     nodes and probabilities `p = 0.7` and `q = 0.3`::
 
         sage: graphs.RandomLobster(3, 0.7, 0.3).edges(labels=False)
@@ -549,12 +549,12 @@ def RandomTree(n):
 
     -  ``n`` - number of vertices in the tree
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: G = graphs.RandomTree(10)
         sage: G.is_tree()
         True
-        sage: G.show() # long
+        sage: G.show() # long time
 
     TESTS:
 
@@ -619,7 +619,7 @@ def RandomTreePowerlaw(n, gamma=3, tries=100, seed=None):
     -  ``seed`` - for the random number generator
 
 
-    EXAMPLE: We show the edge list of a random graph with 10 nodes and
+    EXAMPLES: We show the edge list of a random graph with 10 nodes and
     a power law exponent of 2.
 
     ::
@@ -657,7 +657,7 @@ def RandomRegular(d, n, seed=None):
     -  ``seed`` - for the random number generator
 
 
-    EXAMPLE: We show the edge list of a random graph with 8 nodes each
+    EXAMPLES: We show the edge list of a random graph with 8 nodes each
     of degree 3.
 
     ::
@@ -710,7 +710,7 @@ def RandomShell(constructor, seed=None):
     -  ``seed`` - for the random number generator
 
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: G = graphs.RandomShell([(10,20,0.8),(20,40,0.8)])
         sage: G.edges(labels=False)
@@ -742,7 +742,7 @@ def RandomToleranceGraph(n):
 
     - ``n`` -- number of vertices of the random graph.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Every tolerance graph is perfect. Hence, the chromatic number is equal to
     the clique number ::
@@ -1114,3 +1114,213 @@ def RandomTriangulation(n, set_position=False):
         graph.layout(layout="planar", save_pos=True)
 
     return graph
+
+
+def blossoming_contour(t, shift=0):
+    """
+    Return a random blossoming of a binary tree `t`, as a contour word.
+
+    This is doing several things simultaneously:
+
+    - complete the binary tree, by adding leaves labelled ``xb``,
+    - add a vertex labelled ``n`` at the middle of every inner
+      edge, with a leaf labelled ``x`` either on the left or on the
+      right (at random),
+    - number all vertices (but not leaves) by integers starting from `shift`,
+    - compute the counter-clockwise contour word of the result.
+
+    Initial vertices receive the label ``i``.
+
+    This is an auxiliary function, used for the generation of random
+    planar bicubic maps.
+
+    INPUT:
+
+    - `t` -- a binary tree (non-empty)
+
+    - ``shift`` -- an integer (default `0`), used as a starting index
+
+    OUTPUT:
+
+    contour word of a random blossoming of `t`
+
+    EXAMPLES::
+
+        sage: from sage.graphs.generators.random import blossoming_contour
+        sage: print(blossoming_contour(BinaryTrees(1).an_element()))
+        [('i', 0), ('xb',), ('i', 0), ('xb',), ('i', 0)]
+
+        sage: t = BinaryTrees(2).random_element()
+        sage: print(blossoming_contour(t))  # random
+        [('i', 0), ('xb',), ('i', 0), ('n', 2), ('i', 1), ('xb',), ('i', 1),
+        ('xb',), ('i', 1), ('n', 2), ('x',), ('n', 2), ('i', 0)]
+
+        sage: w = blossoming_contour(BinaryTrees(3).random_element()); len(w)
+        21
+        sage: w.count(('xb',))
+        4
+        sage: w.count(('x',))
+        2
+
+    TESTS::
+
+        sage: from sage.graphs.generators.random import blossoming_contour
+        sage: blossoming_contour(BinaryTrees(0).an_element())
+        Traceback (most recent call last):
+        ...
+        ValueError: tree must be non-empty
+    """
+    if not t:
+        raise ValueError('tree must be non-empty')
+    t1, t2 = t
+    leaf_xb = ('xb',)
+    leaf_x = ('x',)
+    n1 = t1.node_number()
+    n = t.node_number()
+
+    # adding buds on edges in t1
+    if not t1:
+        tt1 = [leaf_xb]
+    elif randint(0, 1):
+        label1 = ('n', shift)
+        tt1 = [label1, leaf_x, label1] + blossoming_contour(t1, shift + 1)
+        tt1 += [label1]
+    else:
+        label1 = ('n', shift + 2 * n1 - 1)
+        tt1 = [label1] + blossoming_contour(t1, shift)
+        tt1 += [label1, leaf_x, label1]
+
+    # adding buds on edges in t2
+    if not t2:
+        tt2 = [leaf_xb]
+    elif randint(0, 1):
+        label2 = ('n', shift + 2 * n1 + 1)
+        tt2 = [label2, leaf_x, label2]
+        tt2 += blossoming_contour(t2, shift + 2 * n1 + 2) + [label2]
+    else:
+        label2 = ('n', shift + 2 * n - 2)
+        tt2 = [label2] + blossoming_contour(t2, shift + 2 * n1 + 1)
+        tt2 += [label2, leaf_x, label2]
+
+    label = [('i', shift + 2 * n1)]
+    return label + tt1 + label + tt2 + label
+
+
+def RandomBicubicPlanar(n):
+    """
+    Return the graph of a random bipartite cubic map with `3 n` edges.
+
+    INPUT:
+
+    `n` -- an integer (at least `1`)
+
+    OUTPUT:
+
+    a graph with multiple edges (no embedding is provided)
+
+    The algorithm used is described in [Schaeffer99]_. This samples
+    a random rooted bipartite cubic map, chosen uniformly at random.
+
+    First one creates a random binary tree with `n` vertices. Next one
+    turns this into a blossoming tree (at random) and reads the
+    contour word of this blossoming tree.
+
+    Then one performs a rotation on this word so that this becomes a
+    balanced word. There are three ways to do that, one is picked at
+    random. Then a graph is build from the balanced word by iterated
+    closure (adding edges).
+
+    In the returned graph, the three edges incident to any given
+    vertex are colored by the integers 0, 1 and 2.
+
+    .. SEEALSO:: the auxiliary method :func:`blossoming_contour`
+
+    EXAMPLES::
+
+        sage: n = randint(200, 300)
+        sage: G = graphs.RandomBicubicPlanar(n)
+        sage: G.order() == 2*n
+        True
+        sage: G.size() == 3*n
+        True
+        sage: G.is_bipartite() and G.is_planar() and G.is_regular(3)
+        True
+        sage: dic = {'red':[v for v in G.vertices() if v[0] == 'n'],
+        ....:        'blue': [v for v in G.vertices() if v[0] != 'n']}
+        sage: G.plot(vertex_labels=False,vertex_size=20,vertex_colors=dic)
+        Graphics object consisting of ... graphics primitives
+
+    .. PLOT::
+        :width: 300 px
+
+        G = graphs.RandomBicubicPlanar(200)
+        V0 = [v for v in G.vertices() if v[0] == 'n']
+        V1 = [v for v in G.vertices() if v[0] != 'n']
+        dic = {'red': V0, 'blue': V1}
+        sphinx_plot(G.plot(vertex_labels=False,vertex_colors=dic))
+
+    REFERENCES:
+
+    .. [Schaeffer99] Gilles Schaeffer, *Random Sampling of Large Planar Maps and Convex Polyhedra*,
+       Annual ACM Symposium on Theory of Computing (Atlanta, GA, 1999)
+    """
+    from sage.combinat.binary_tree import BinaryTrees
+    from sage.rings.finite_rings.integer_mod_ring import Zmod
+    if not n:
+        raise ValueError("n must be at least 1")
+    # first pick a random binary tree
+    t = BinaryTrees(n).random_element()
+
+    # next pick a random blossoming of this tree, compute its contour
+    contour = blossoming_contour(t) + [('xb',)]   # adding the final xb
+
+    # first step : rotate the contour word to one of 3 balanced
+    N = len(contour)
+    double_contour = contour + contour
+    pile = []
+    not_touched = [i for i in range(N) if contour[i][0] in ['x', 'xb']]
+    for i, w in enumerate(double_contour):
+        if w[0] == 'x' and i < N:
+            pile.append(i)
+        elif w[0] == 'xb' and (i % N) in not_touched:
+            if pile:
+                j = pile.pop()
+                not_touched.remove(i % N)
+                not_touched.remove(j)
+
+    # random choice among 3 possibilities for a balanced word
+    idx = not_touched[randint(0, 2)]
+    w = contour[idx + 1:] + contour[:idx + 1]
+
+    # second step : create the graph by closure from the balanced word
+    G = Graph(multiedges=True)
+
+    pile = []
+    Z3 = Zmod(3)
+    colour = Z3.zero()
+    not_touched = [i for i, v in enumerate(w) if v[0] in ['x', 'xb']]
+    for i, v in enumerate(w):
+        # internal edges
+        if v[0] == 'i':
+            colour += 1
+            if w[i + 1][0] == 'n':
+                G.add_edge((w[i], w[i + 1], colour))
+        elif v[0] == 'n':
+            colour += 2
+        elif v[0] == 'x':
+            pile.append(i)
+        elif v[0] == 'xb' and i in not_touched:
+            if pile:
+                j = pile.pop()
+                G.add_edge((w[i + 1], w[j - 1], colour))
+                not_touched.remove(i)
+                not_touched.remove(j)
+
+    # there remains to add three edges to elements of "not_touched"
+    # from a new vertex labelled "n"
+    for i in not_touched:
+        taken_colours = [edge[2] for edge in G.edges_incident(w[i - 1])]
+        colour = [u for u in Z3 if u not in taken_colours][0]
+        G.add_edge((('n', -1), w[i - 1], colour))
+
+    return G

@@ -32,7 +32,8 @@ from sage.rings.integer import Integer
 from sage.finance.time_series cimport TimeSeries
 include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
-from cpython.string cimport *
+from cpython.bytes cimport PyBytes_FromStringAndSize, PyBytes_AsString
+
 
 cdef class IntList:
     """
@@ -118,7 +119,8 @@ cdef class IntList:
         Compare self and other.  This has the same semantics
         as list comparison.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = stats.IntList([1,2,3]); w = stats.IntList([1,2])
             sage: v < w
             False
@@ -196,7 +198,7 @@ cdef class IntList:
             sage: type(a[5:-2])
             <type 'sage.stats.intlist.IntList'>
             sage: type(a[5])
-            <type 'int'>
+            <... 'int'>
         """
         cdef Py_ssize_t start, stop, step, j
         cdef IntList t
@@ -297,7 +299,7 @@ cdef class IntList:
             True
 
         """
-        buf = PyString_FromStringAndSize(<char*>self._values, self._length*sizeof(int)/sizeof(char))
+        buf = PyBytes_FromStringAndSize(<char*>self._values, self._length*sizeof(int)/sizeof(char))
         return unpickle_intlist_v1, (buf, self._length)
 
     def list(self):
@@ -313,7 +315,7 @@ cdef class IntList:
             sage: list(a) == a.list()
             True
             sage: type(a.list()[0])
-            <type 'int'>
+            <... 'int'>
         """
         cdef Py_ssize_t i
         return [self._values[i] for i in range(self._length)]
@@ -375,9 +377,10 @@ cdef class IntList:
         Return the number of entries in this time series.
 
         OUTPUT:
-            Python integer
 
-        EXAMPLES:
+        Python integer
+
+        EXAMPLES::
 
             sage: len(stats.IntList([1..15]))
             15
@@ -554,19 +557,20 @@ cdef IntList new_int_list(Py_ssize_t length):
     return t
 
 
-def unpickle_intlist_v1(v, Py_ssize_t n):
+def unpickle_intlist_v1(bytes v, Py_ssize_t n):
     """
     Version 1 unpickle method.
 
     INPUT:
-        v -- a raw char buffer
+
+    - ``v`` -- a raw char buffer
 
     EXAMPLES::
 
         sage: v = stats.IntList([1,2,3])
         sage: s = v.__reduce__()[1][0]
         sage: type(s)
-        <type 'str'>
+        <... 'str'>
         sage: sage.stats.intlist.unpickle_intlist_v1(s, 3)
         [1, 2, 3]
         sage: sage.stats.intlist.unpickle_intlist_v1(s+s,6)
@@ -575,5 +579,5 @@ def unpickle_intlist_v1(v, Py_ssize_t n):
         []
     """
     cdef IntList t = new_int_list(n)
-    memcpy(t._values, PyString_AsString(v), n*sizeof(int))
+    memcpy(t._values, PyBytes_AsString(v), n*sizeof(int))
     return t

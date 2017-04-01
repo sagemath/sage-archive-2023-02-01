@@ -20,6 +20,7 @@ TESTS::
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
+from __future__ import absolute_import
 
 from sage.data_structures.binary_search cimport *
 from sage.modules.vector_integer_sparse cimport *
@@ -31,12 +32,12 @@ include "cysignals/memory.pxi"
 
 from sage.libs.gmp.mpz cimport *
 from sage.rings.integer cimport Integer
-from matrix cimport Matrix
+from .matrix cimport Matrix
 
-from matrix_modn_sparse cimport Matrix_modn_sparse
+from .matrix_modn_sparse cimport Matrix_modn_sparse
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 
-import matrix_space
+import sage.matrix.matrix_space as matrix_space
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
@@ -271,7 +272,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         It is safe to change the resulting list (unless you give the option copy=False).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Matrix(ZZ, [[0,0,0,1,0,0,0,0],[0,1,0,0,0,0,1,0]], sparse=True); M
             [0 0 0 1 0 0 0 0]
@@ -303,7 +304,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         It is safe to change the resulting list (unless you give the option copy=False).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Matrix(ZZ, [[0,0,0,1,0,0,0,0],[0,1,0,0,0,0,1,0]], sparse=True); M
             [0 0 0 1 0 0 0 0]
@@ -390,8 +391,8 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             ...
             ZeroDivisionError: The modulus cannot be zero
         """
-        import misc
-        return misc.matrix_integer_sparse_rational_reconstruction(self, N)
+        from .misc import matrix_integer_sparse_rational_reconstruction
+        return matrix_integer_sparse_rational_reconstruction(self, N)
 
     def _right_kernel_matrix(self, **kwds):
         r"""

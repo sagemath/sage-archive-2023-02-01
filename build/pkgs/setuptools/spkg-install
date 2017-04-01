@@ -18,4 +18,4 @@ export PYTHON_EGG_CACHE="$DOT_SAGE/.python-eggs"
 cd src
 
 # Prevent setuptools from installing itself with easy_install
-python setup.py install --single-version-externally-managed --record=/dev/null
+python setup.py --no-user-cfg install --single-version-externally-managed --record=/dev/null

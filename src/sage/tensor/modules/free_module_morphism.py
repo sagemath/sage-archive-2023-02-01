@@ -31,6 +31,9 @@ from sage.categories.morphism import Morphism
 from sage.categories.homset import Hom
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
 
+import six
+
+
 class FiniteRankFreeModuleMorphism(Morphism):
     r"""
     Homomorphism between free modules of finite rank over a commutative ring.
@@ -714,7 +717,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
             True
         """
         resu = self.__class__(self.parent(), 0)  # 0 = provisory value
-        for bases, mat in self._matrices.iteritems():
+        for bases, mat in six.iteritems(self._matrices):
             resu._matrices[bases] = scalar * mat
         return resu
 
@@ -731,7 +734,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         - an exact copy of ``self``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: N = FiniteRankFreeModule(ZZ, 2, name='N')
@@ -752,7 +755,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
         """
         resu = self.__class__(self.parent(), 0, is_identity=self._is_identity)
                                            # 0 = provisory value
-        for bases, mat in self._matrices.iteritems():
+        for bases, mat in six.iteritems(self._matrices):
             resu._matrices[bases] = +mat
         if self._name is not None:
             resu._name = '+' + self._name
@@ -768,7 +771,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         - the homomorphism `-f`, where `f` is ``self``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: N = FiniteRankFreeModule(ZZ, 2, name='N')
@@ -789,7 +792,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         """
         resu = self.__class__(self.parent(), 0)  # 0 = provisory value
-        for bases, mat in self._matrices.iteritems():
+        for bases, mat in six.iteritems(self._matrices):
             resu._matrices[bases] = -mat
         if self._name is not None:
             resu._name = '-' + self._name
@@ -813,7 +816,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         - the image of ``element`` by ``self``
 
-        EXAMPLE:
+        EXAMPLES:
 
         Images of a homomorphism between two `\ZZ`-modules::
 
@@ -959,7 +962,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
         - ``True`` if ``self`` is a surjective homomorphism and ``False``
           otherwise
 
-        EXAMPLE:
+        EXAMPLES:
 
         This method has not been implemented yet::
 

@@ -75,6 +75,7 @@ from sage.rings.integer cimport Integer
 from cpython.object cimport PyObject_RichCompare
 from sage.categories.map cimport Map
 from sage.rings.morphism cimport Morphism, RingHomomorphism
+from sage.rings.polynomial.polynomial_element cimport _dict_to_list
 from sage.structure.element import coerce_binop
 from sage.misc.superseded import experimental
 
@@ -2120,6 +2121,40 @@ cdef class SkewPolynomial(AlgebraElement):
         """
         return self.parent().variable_name()
 
+    def multi_point_evaluation(self, eval_pts):
+        """
+        Evaluate ``self`` at list of evaluation points.
+
+        INPUT:
+
+        - ``eval_pts`` -- list of points at which ``self`` is to be evaluated
+
+        OUTPUT:
+
+        List of values of ``self`` at the ``eval_pts``.
+
+        .. TODO::
+
+            This method currently trivially calls the evaluation function
+            repeatedly. If fast skew polynomial multiplication is available, an
+            asymptotically faster method is possible using standard divide and
+            conquer techniques and
+            :meth:`sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_general.minimal_vanishing_polynomial`.
+
+        EXAMPLES::
+
+            sage: k.<t> = GF(5^3)
+            sage: Frob = k.frobenius_endomorphism()
+            sage: S.<x> = k['x',Frob]
+            sage: a = x + t
+            sage: eval_pts = [1, t, t^2]
+            sage: c = a.multi_point_evaluation(eval_pts); c
+            [t + 1, 3*t^2 + 4*t + 4, 4*t]
+            sage: c == [ a(e) for e in eval_pts ]
+            True
+        """
+        return [ self(e) for e in eval_pts ]
+
 
 cdef class SkewPolynomial_generic_dense(SkewPolynomial):
     r"""
@@ -2201,7 +2236,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             return
 
         elif isinstance(x, dict):
-            x = self._dict_to_list(x, R.zero())
+            x = _dict_to_list(x, R.zero())
 
         elif not isinstance(x, list):
             x = [x]
@@ -2326,7 +2361,7 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
         except IndexError:
             return self.base_ring().zero()
 
-    cpdef list list(self):
+    cpdef list list(self, bint copy=True):
         r"""
         Return a list of the coefficients of ``self``.
 
@@ -2348,7 +2383,11 @@ cdef class SkewPolynomial_generic_dense(SkewPolynomial):
             sage: a.list()
             [t^2 + 1, 0, t + 1, 0, 1]
         """
-        return list((<SkewPolynomial_generic_dense>self)._coeffs) # This creates a shallow copy
+        if copy:
+            # This creates a shallow copy
+            return list((<SkewPolynomial_generic_dense>self)._coeffs)
+        else:
+            return (<SkewPolynomial_generic_dense>self)._coeffs
 
     cpdef dict dict(self):
         r"""

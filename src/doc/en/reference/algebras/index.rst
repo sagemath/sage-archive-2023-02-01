@@ -42,6 +42,7 @@ Named associative algebras
    sage/algebras/affine_nil_temperley_lieb
    sage/combinat/diagram_algebras
    sage/algebras/clifford_algebra
+   sage/algebras/cluster_algebra
    sage/combinat/descent_algebra
    sage/algebras/hall_algebra
    sage/algebras/iwahori_hecke_algebra
@@ -52,6 +53,7 @@ Named associative algebras
    sage/algebras/orlik_solomon
    sage/combinat/partition_algebra
    sage/algebras/quatalg/quaternion_algebra
+   sage/algebras/rational_cherednik_algebra
    sage/algebras/schur_algebra
    sage/algebras/steenrod/steenrod_algebra
    sage/algebras/steenrod/steenrod_algebra_bases
@@ -68,6 +70,7 @@ Various associative algebras
 
    sage/algebras/associated_graded
    sage/algebras/commutative_dga
+   sage/algebras/q_system
 
 Non-associative algebras
 ------------------------

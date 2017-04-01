@@ -1,7 +1,11 @@
 """
 Fortran compiler
 """
-import os, imp, shutil
+from six import iteritems
+import os
+import imp
+import shutil
+import sys
 
 from sage.misc.temporary_file import tmp_dir
 
@@ -125,13 +129,18 @@ class InlineFortran:
                 print(log_string)
         finally:
             os.chdir(old_cwd)
-            try:
-                shutil.rmtree(mytmpdir)
-            except OSError:
-                # This can fail for example over NFS
-                pass
 
-        for k, x in m.__dict__.iteritems():
+            if sys.platform != 'cygwin':
+                # Do not delete temporary DLLs on Cygwin; this will cause
+                # future forks of this process to fail.  Instead temporary DLLs
+                # will be cleaned up upon process exit
+                try:
+                    shutil.rmtree(mytmpdir)
+                except OSError:
+                    # This can fail for example over NFS
+                    pass
+
+        for k, x in iteritems(m.__dict__):
             if k[0] != '_':
                 globals[k] = x
 

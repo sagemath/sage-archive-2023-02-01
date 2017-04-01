@@ -295,6 +295,7 @@ __doc__ += """
 
 __append_to_doc(
     ["RandomBarabasiAlbert",
+     "RandomBicubicPlanar",
      "RandomBipartite",
      "RandomBoundedToleranceGraph",
      "RandomGNM",
@@ -1014,7 +1015,7 @@ class GraphGenerators():
         The first character is the number of vertices, followed by
         n11,...,n1k,null character,n21,...,n2k',null character, ...
 
-        where the n1* are all neighbors of n1 and all n2* are the 
+        where the n1* are all neighbors of n1 and all n2* are the
         neighbors of n2, ...
         Besides, these neighbors are enumerated in clockwise order.
 
@@ -2066,6 +2067,7 @@ class GraphGenerators():
     import sage.graphs.generators.random
     RandomBarabasiAlbert     = staticmethod(sage.graphs.generators.random.RandomBarabasiAlbert)
     RandomBipartite          = staticmethod(sage.graphs.generators.random.RandomBipartite)
+    RandomBicubicPlanar      = staticmethod(sage.graphs.generators.random.RandomBicubicPlanar)
     RandomBoundedToleranceGraph = staticmethod(sage.graphs.generators.random.RandomBoundedToleranceGraph)
     RandomGNM                = staticmethod(sage.graphs.generators.random.RandomGNM)
     RandomGNP                = staticmethod(sage.graphs.generators.random.RandomGNP)
@@ -2260,7 +2262,7 @@ def check_aut(aut_gens, cut_vert, n):
     an element of the auto- morphism group that sends cut_vert to n,
     and check_aut generates these for the canaug_traverse function.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Note that the last two entries indicate that none of the
     automorphism group has yet been searched - we are starting at the
@@ -2464,7 +2466,7 @@ def check_aut_edge(aut_gens, cut_edge, i, j, n, dig=False):
     j}, and check_aut generates these for the canaug_traverse
     function.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Note that the last two entries indicate that none of the
     automorphism group has yet been searched - we are starting at the

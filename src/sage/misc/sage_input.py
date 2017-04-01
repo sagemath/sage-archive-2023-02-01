@@ -112,8 +112,8 @@ integer that is always represented in the simple way, without coercions.
     sage: test_qq_formatter(qq_sage_input_v2)
     [-ZZ(5)/7, -ZZ(5)/7, -5/7, -5/7, ZZ(3)/1, ZZ(3)/1, 3/1, 3/1]
 
-Next let's get rid of the divisions by 1.  These are more complicated,
-since if we're not careful we'll get results in \ZZ instead of \QQ.::
+Next let us get rid of the divisions by 1.  These are more complicated,
+since if we are not careful we will get results in `\ZZ` instead of `\QQ`::
 
     sage: def qq_sage_input_v3(self, sib, coerced):
     ....:     if self.denominator() == 1:
@@ -161,19 +161,20 @@ AUTHORS:
 - Vincent Delecroix (2015-02): documentation formatting
 """
 
-
-##########################################################################
-#
+#*****************************************************************************
 #       Copyright (C) 2008 Carl Witty <Carl.Witty@gmail.com>
 #                     2015 Vincent Delecroix <20100.delecroix@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#
-##########################################################################
+#*****************************************************************************
+
 from __future__ import print_function, absolute_import
-from six import itervalues
+
+from six import itervalues, iteritems
 
 
 def sage_input(x, preparse=True, verify=False, allow_locals=False):
@@ -1894,7 +1895,8 @@ class SIE_call(SageInputExpression):
         """
         func = repr(self._sie_func)
         args = [repr(arg) for arg in self._sie_args]
-        kwargs = sorted(k + '=' + repr(v) for k, v in self._sie_kwargs.iteritems())
+        kwargs = sorted(k + '=' + repr(v)
+                        for k, v in iteritems(self._sie_kwargs))
         all_args = ', '.join(args + kwargs)
         return "{call: %s(%s)}" % (func, all_args)
 
@@ -1934,9 +1936,11 @@ class SIE_call(SageInputExpression):
         """
         func = sif.format(self._sie_func, _prec_attribute)
         args = [sif.format(arg, 0) for arg in self._sie_args]
-        kwargs = sorted(k + '=' + sif.format(v, 0) for k, v in self._sie_kwargs.iteritems())
+        kwargs = sorted(k + '=' + sif.format(v, 0)
+                        for k, v in iteritems(self._sie_kwargs))
         all_args = ', '.join(args + kwargs)
         return ('%s(%s)' % (func, all_args), _prec_funcall)
+
 
 class SIE_subscript(SageInputExpression):
     r"""
@@ -3466,23 +3470,27 @@ def verify_same(a, b):
         assert(a.parent() == b.parent())
     else:
         assert(type(a) is type(b))
-    if isinstance(a, float):
-        # The IEEE floating-point standard recommends that NaN != NaN
-        # Sage doesn't do this for RDF or RR, but Python does for floats.
-        # So we need to consider the cases: a is/is not NaN, b is/is not NaN.
-        if not (a == a):
-            # a is a NaN; so confirm that b is a NaN
-            assert not (b == b)
-        else:
-            # a is not NaN.  If b is NaN, then the assertion will fail.
-            assert a == b
-        return
     from sage.rings.real_mpfi import is_RealIntervalFieldElement
     from sage.rings.complex_interval import is_ComplexIntervalFieldElement
     if is_RealIntervalFieldElement(a) or is_ComplexIntervalFieldElement(a):
-        assert(cmp(a, b) == 0), "Expected %s == %s" % (a, b)
-    else:
-        assert(a == b), "Expected %s == %s" % (a, b)
+        assert(a.endpoints() == b.endpoints()), "Expected %s == %s" % (a, b)
+        return
+
+    if not (a == b):
+        # Verification failed => raise an AssertionError.
+        #
+        # There is an important exception: the IEEE-754 standard
+        # recommends that NaN != NaN. So this comparison will fail for
+        # any object involving NaN.
+        #
+        # If this case occurs, then a and b do not compare equal to
+        # itself. In that case, we compare the string representations of
+        # a and b.
+        if not (a == a) and not (b == b):
+            if repr(a) == repr(b):
+                return  # Good!
+        raise AssertionError("Expected %r == %r" % (a, b))
+
 
 def verify_si_answer(x, answer, preparse):
     r"""
@@ -3594,6 +3602,6 @@ class SageInputAnswer(tuple):
             return self[0] + self[1]
 
         locals = self[2]
-        locals_text = ''.join('  %s: %r\n' % (k, v) for k, v in locals.iteritems())
+        locals_text = ''.join('  %s: %r\n' % (k, v)
+                              for k, v in iteritems(locals))
         return 'LOCALS:\n' + locals_text + self[0] + self[1]
-

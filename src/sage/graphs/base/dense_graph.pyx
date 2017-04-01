@@ -156,7 +156,7 @@ cdef class DenseGraph(CGraph):
 
         O(  (nverts + extra_vertices)^2  ).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.dense_graph import DenseGraph
             sage: D = DenseGraph(nverts = 10, extra_vertices = 10)
@@ -313,7 +313,7 @@ cdef class DenseGraph(CGraph):
 
          - ``u, v`` -- non-negative integers, must be in self
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.dense_graph import DenseGraph
             sage: G = DenseGraph(5)
@@ -355,7 +355,7 @@ cdef class DenseGraph(CGraph):
         INPUT:
             u, v -- integers
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.dense_graph import DenseGraph
             sage: G = DenseGraph(5)
@@ -399,7 +399,7 @@ cdef class DenseGraph(CGraph):
         The naming of this function is for consistency with ``SparseGraph``. Of
         course, there can be at most one arc for a ``DenseGraph``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.dense_graph import DenseGraph
             sage: G = DenseGraph(5)
@@ -423,7 +423,7 @@ cdef class DenseGraph(CGraph):
 
             Assumes that the graph has no loop.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.dense_graph import DenseGraph
             sage: G = DenseGraph(5)
@@ -631,7 +631,7 @@ def _test_adjacency_sequence_out():
 # Dense Graph Backend
 ###########################################
 
-from c_graph cimport CGraphBackend
+from .c_graph cimport CGraphBackend
 
 cdef class DenseGraphBackend(CGraphBackend):
     """
@@ -674,7 +674,7 @@ cdef class DenseGraphBackend(CGraphBackend):
         """
         Initialize a dense graph with n vertices.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
             sage: D.add_edge(0,1,None,False)
@@ -701,7 +701,7 @@ cdef class DenseGraphBackend(CGraphBackend):
         NOTE:
         The input ``l`` is for consistency with other backends.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
             sage: D.add_edge(0,1,None,False)
@@ -731,7 +731,7 @@ cdef class DenseGraphBackend(CGraphBackend):
            ``(u,v)`` or ``(u,v,l)``
          - ``directed`` - if False, add ``(v,u)`` as well as ``(u,v)``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
             sage: D.add_edges([(0,1), (2,3), (4,5), (5,6)], False)
@@ -759,7 +759,7 @@ cdef class DenseGraphBackend(CGraphBackend):
         NOTE:
         The input ``l`` is for consistency with other backends.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
             sage: D.add_edges([(0,1), (2,3), (4,5), (5,6)], False)
@@ -800,7 +800,7 @@ cdef class DenseGraphBackend(CGraphBackend):
 
          - ``u,v`` - the vertices of the edge
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
             sage: D.add_edges([(0,1), (2,3,7), (4,5), (5,6)], False)
@@ -841,7 +841,7 @@ cdef class DenseGraphBackend(CGraphBackend):
          - ``u,v`` - the vertices of the edge
          - ``l`` - the edge label (ignored)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
             sage: D.add_edges([(0,1), (2,3), (4,5), (5,6)], False)
@@ -864,7 +864,7 @@ cdef class DenseGraphBackend(CGraphBackend):
          - ``vertices`` - a list of vertex labels
          - ``labels`` - boolean, whether to return labels as well
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = sage.graphs.base.dense_graph.DenseGraphBackend(9)
             sage: G.add_edge(1,2,None,False)
@@ -902,7 +902,7 @@ cdef class DenseGraphBackend(CGraphBackend):
          - ``vertices`` - a list of vertex labels
          - ``labels`` - boolean, whether to return labels as well
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = sage.graphs.base.dense_graph.DenseGraphBackend(9)
             sage: G.add_edge(1,2,None,True)
@@ -939,7 +939,7 @@ cdef class DenseGraphBackend(CGraphBackend):
          - ``vertices`` - a list of vertex labels
          - ``labels`` - boolean, whether to return labels as well
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = sage.graphs.base.dense_graph.DenseGraphBackend(9)
             sage: G.add_edge(1,2,None,True)
@@ -1003,7 +1003,7 @@ cdef class DenseGraphBackend(CGraphBackend):
          - ``l`` - the edge label
          - ``directed`` - if False, also set ``(v,u)`` with label ``l``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.graphs.base.dense_graph
             sage: G = sage.graphs.base.dense_graph.DenseGraphBackend(9)

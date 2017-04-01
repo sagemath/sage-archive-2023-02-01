@@ -40,7 +40,7 @@ sage:
 		   SAGE_BUILD_DIR=/doesnotexist							\
 		   SAGE_PKGS=$(abs_top_srcdir)/build/pkgs					\
 		   SAGE_CYTHONIZED=$(abs_builddir)/build/cythonized				\
-	 && python -u setup.py build install)
+	 && python -u setup.py --no-user-cfg build install)
 
 clean:
 	@echo "Deleting Sage library build artifacts..."

@@ -200,7 +200,7 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
         ....:         g.delete_edge(e)  #long time
 
         sage: C = crystals.AlcovePaths(['B',3,1],[0,2,0], highest_weight_crystal=False)
-        sage: g2 = C.digraph_fast() #long time
+        sage: g2 = C.digraph() #long time
         sage: g.is_isomorphic(g2, edge_labels = True) #long time
         True
 
@@ -459,59 +459,22 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
     def digraph_fast(self, depth=None):
         r"""
         Return the crystal :class:`graph <DiGraph>` with maximum depth
-        ``depth`` deep starting at the module generator. Significant speed up
-        for highest_weight_crystals of affine type.
+        ``depth`` deep starting at the module generator.
+
+        Deprecated in :trac:`19625`.
 
         EXAMPLES::
 
             sage: crystals.AlcovePaths(['A',2], [1,1]).digraph_fast(depth=3)
+            doctest:...: DeprecationWarning: digraph_fast is deprecated. Use digraph instead.
+            See http://trac.sagemath.org/19625 for details.
             Digraph on 7 vertices
-
-        TESTS:
-
-        The following example demonstrates the speed improvement.
-        The speedup in non-affine types is small however::
-
-            sage: cartan_type = ['A',2,1] #long time
-            sage: weight = [1,1,0] #long time
-            sage: depth = 5 #long time
-            sage: C = crystals.AlcovePaths(cartan_type, weight) #long time
-            sage: %timeit C.digraph_fast(depth) # not tested
-            10 loops, best of 3: 171 ms per loop
-            sage: %timeit C.digraph(subset=C.subcrystal(max_depth=depth, direction='lower')) #not tested
-            1 loops, best of 3: 19.7 s per loop
-            sage: G1 = C.digraph_fast(depth) #long time
-            sage: G2 = C.digraph(subset=C.subcrystal(max_depth=depth, direction='lower')) #long time
-            sage: G1.is_isomorphic(G2, edge_labels=True) #long time
-            True
-
         """
+        from sage.misc.superseded import deprecation
+        deprecation(19625, 'digraph_fast is deprecated. Use digraph instead.')
         if not self._highest_weight_crystal:
             return super(CrystalOfAlcovePaths, self).digraph()
-
-        if self._cartan_type.is_affine() and depth is None:
-            depth = 10
-        I = self.index_set()
-
-        rank = 0
-        G = { self.module_generators[0]: {} }
-        visited = { self.module_generators[0] }
-
-        while depth is None or rank < depth:
-            recently_visited = set()
-            for x in visited:
-                G.setdefault(x, {}) # does nothing if there's a default
-                for i in I:
-                    xfi = x.f(i)
-                    if xfi is not None:
-                        G[x][xfi] = i
-                        recently_visited.add(xfi)
-            if len(recently_visited) == 0: # No new nodes, nothing more to do
-                break
-            rank += 1
-            visited = recently_visited
-
-        return DiGraph(G)
+        return super(CrystalOfAlcovePaths, self).digraph(depth=depth)
 
     def weight_lattice_realization(self):
         r"""
@@ -1830,11 +1793,10 @@ class RootsWithHeightElement(Element):
             sage: v1 = rl.from_vector(vector([1,1]))
             sage: v2 = rl.from_vector(vector([1]))
             sage: x1 = R(v1,1) ; x2 = R(v1,0) ; x3 = R(v2,1)
-            sage: x1.__cmp__(x2)
-            1
-            sage: x1.__cmp__(x3)
-            -1
-
+            sage: x1 < x2
+            False
+            sage: x1 < x3
+            True
         """
         # I suspect that if you redefine this method to produce a
         # different (valid)  `\lambda`-chain the rest of the
@@ -2096,7 +2058,7 @@ def _test_with_lspaths_crystal(cartan_type, weight, depth=10):
         True
     """
     from sage.combinat.crystals.littelmann_path import CrystalOfLSPaths
-    G1 = CrystalOfAlcovePaths(cartan_type, weight).digraph_fast(depth)
+    G1 = CrystalOfAlcovePaths(cartan_type, weight).digraph(depth=depth)
     C = CrystalOfLSPaths(cartan_type, weight)
     G2 = C.digraph(subset=C.subcrystal(max_depth=depth, direction='lower'))
 

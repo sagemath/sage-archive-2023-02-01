@@ -210,6 +210,8 @@ usage_advanced() {
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo "File conversion:"
+    echo "  -rst2ipynb [...]    -- Generates Jupyter notebook (.ipynb) from standalone"
+    echo "                         reStructuredText source."
     echo "  -rst2txt [...]      -- Generates Sage worksheet text file from standalone"
     echo "                         reStructuredText source."
     echo "  -rst2sws [...]      -- Generates Sage worksheet (.sws) from standalone"
@@ -274,8 +276,26 @@ fi
 # an unclobbered environment before testing unsafe tickets.
 if [ "$1" = '-patchbot' -o "$1" = "--patchbot" ]; then
     shift
-    cd "$SAGE_ROOT"
-    exec local/bin/patchbot/patchbot.py "$@"
+    # We ask the Python from Sage where the patchbot is installed.
+    # We set PYTHONPATH to that directory such that the system Python
+    # should also find the sage_patchbot package.
+    cmd='import sage_patchbot as p; import os; print(os.path.dirname(p.__path__[0]))'
+    export PYTHONPATH=`"$SAGE_ROOT/sage" --python -c "$cmd"`
+    if [ -z "$PYTHONPATH" ]; then
+        # Something went wrong, assume that the patchbot is not installed
+        echo >&2 "Error: cannot find installation path for sage_patchbot"
+        echo >&2 "See https://wiki.sagemath.org/buildbot for instructions"
+        exit 1
+    fi
+
+    # Try "python2.7", then "python2", then "python"
+    shopt -s execfail  # Do not exit if "exec" fails
+    exec python2.7 -m sage_patchbot.patchbot "$@"
+    exec python2 -m sage_patchbot.patchbot "$@"
+    exec python -m sage_patchbot.patchbot "$@"
+    echo >&2 "Error: cannot find a suitable Python program."
+    echo >&2 "The SageMath patchbot requires a system Python installation."
+    exit 127
 fi
 
 # Check for '--upgrade' before sourcing sage-env: the top-level "make"
@@ -539,7 +559,7 @@ fi
 
 if [ "$1" = '-pip' -o "$1" = '--pip' ]; then
     shift
-    exec pip-lock "$@"
+    exec pip "$@"
 fi
 
 if [ "$1" = '-fix-pkg-checksums' -o "$1" = '--fix-pkg-checksums' ]; then
@@ -707,6 +727,11 @@ fi
 #####################################################################
 # File conversion
 #####################################################################
+
+if [ "$1" = '-rst2ipynb' -o "$1" = '--rst2ipynb' ]; then
+    shift
+    exec sage-rst2ipynb "$@"
+fi
 
 if [ "$1" = '-rst2txt' -o "$1" = '--rst2txt' ]; then
     shift

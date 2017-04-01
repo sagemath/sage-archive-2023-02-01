@@ -35,6 +35,7 @@ def find_python_sources(src_dir, modules=('sage',)):
     EXAMPLES::
 
         sage: from sage.env import SAGE_SRC
+        sage: from sage_setup.find import find_python_sources
         sage: py_packages, py_modules = find_python_sources(SAGE_SRC)
         sage: examples = ['sage.structure', 'sage.structure.formal_sum',
         ....:             'sage.structure.sage_object', 'sage.doctest.tests']
@@ -149,6 +150,7 @@ def installed_files_by_module(site_packages, modules=('sage',)):
 
         sage: from site import getsitepackages
         sage: site_packages = getsitepackages()[0]
+        sage: from sage_setup.find import installed_files_by_module
         sage: files_by_module = installed_files_by_module(site_packages)
         sage: from sage.misc.sageinspect import loadable_module_extension
         sage: 'sage/structure/sage_object' + loadable_module_extension() in \

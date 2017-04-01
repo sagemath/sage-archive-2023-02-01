@@ -499,18 +499,18 @@ class QuadraticForm(SageObject):
         return deepcopy(self._external_initialization_list)
 
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Return a PARI-formatted Hessian matrix for Q.
 
         EXAMPLES::
 
             sage: Q = QuadraticForm(ZZ, 2, [1,0,5])
-            sage: Q._pari_()
+            sage: Q.__pari__()
             [2, 0; 0, 10]
 
         """
-        return self.matrix()._pari_()
+        return self.matrix().__pari__()
 
     def _pari_init_(self):
         """

@@ -503,9 +503,9 @@ def xi_rec(self,p):
         [480, 480]
         sage: factor(480)
         2^5 * 3 * 5
-        sage: map(Q1.xi_rec, [-1,2,3,5])
+        sage: list(map(Q1.xi_rec, [-1,2,3,5]))
         [-1, -1, -1, 1]
-        sage: map(Q2.xi_rec, [-1,2,3,5])
+        sage: list(map(Q2.xi_rec, [-1,2,3,5]))
         [-1, -1, -1, -1]
 
     """
@@ -543,7 +543,7 @@ def representation_number_list(self, B):
         [1, 16, 112, 448, 1136, 2016, 3136, 5504, 9328, 12112]
 
     """
-    ans = pari(1).concat(self._pari_().qfrep(B-1, 1) * 2)
+    ans = pari(1).concat(self.__pari__().qfrep(B-1, 1) * 2)
     return ans.sage()
 
 
@@ -565,13 +565,13 @@ def representation_vector_list(self, B, maxvectors = 10**8):
          [],
          [(2, 2), (-2, -2), (2, -2), (-2, 2)],
          [(0, 3), (0, -3), (3, 0), (-3, 0)]]
-        sage: map(len, _)
+        sage: list(map(len, _))
         [1, 4, 4, 0, 4, 8, 0, 0, 4, 4]
         sage: Q.representation_number_list(10)
         [1, 4, 4, 0, 4, 8, 0, 0, 4, 4]
 
     """
-    n, m, vs = self._pari_().qfminim(2*(B-1), maxvectors)
+    n, m, vs = self.__pari__().qfminim(2*(B-1), maxvectors)
     if n != 2 * len(vs):
         raise RuntimeError("insufficient number of vectors")
     ms = [[] for _ in range(B)]

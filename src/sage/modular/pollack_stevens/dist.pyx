@@ -206,7 +206,7 @@ cdef class Dist(ModuleElement):
         r"""
         Return power of `p` by which the moments are shifted.
 
-        .. NOTE:
+        .. NOTE::
 
             This is not necessarily the same as the valuation,
             since the moments could all be divisible by `p`.
@@ -721,7 +721,7 @@ cdef class Dist(ModuleElement):
         r"""
         Check that the precision of ``self`` is sensible.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.modular.pollack_stevens.distributions.Symk(2, base=Qp(5))
             sage: v = D([1, 2, 3])
@@ -830,7 +830,7 @@ cdef class Dist_vector(Dist):
         r"""
         Used for pickling.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.modular.pollack_stevens.distributions.Symk(2)
             sage: x = D([2,3,4])
@@ -1612,7 +1612,7 @@ cdef class Dist_vector(Dist):
 #         r"""
 #         Used in pickling.
 
-#         EXAMPLE::
+#         EXAMPLES::
 
 #             sage: D = OverconvergentDistributions(0, 5, 10)
 #             sage: D([1,2,3,4]).__reduce__()

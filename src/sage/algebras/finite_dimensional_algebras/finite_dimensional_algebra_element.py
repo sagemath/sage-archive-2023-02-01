@@ -321,7 +321,7 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
             True
         """
         if not self.parent().base_ring().has_coerce_map_from(other.parent()):
-            raise TypeError("unsupported operand parent(s) for '*': '{}' and '{}'"
+            raise TypeError("unsupported operand parent(s) for *: '{}' and '{}'"
                             .format(self.parent(), other.parent()))
         return self.__class__(self.parent(), self._vector * other)
 
@@ -335,7 +335,7 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
             True
         """
         if not self.parent().base_ring().has_coerce_map_from(other.parent()):
-            raise TypeError("unsupported operand parent(s) for '*': '{}' and '{}'"
+            raise TypeError("unsupported operand parent(s) for *: '{}' and '{}'"
                             .format(self.parent(), other.parent()))
         return FiniteDimensionalAlgebraElement(self.parent(), other * self._vector) # Note the different order
 

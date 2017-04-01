@@ -313,7 +313,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: SR(int)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert <type 'int'> to a symbolic expression
+            TypeError: unable to convert <... 'int'> to a symbolic expression
             sage: r^(1/2)
             Traceback (most recent call last):
             ...
@@ -357,16 +357,16 @@ cdef class SymbolicRing(CommutativeRing):
             if x.is_NaN():
                 from sage.symbolic.constants import NaN
                 return NaN
-            GEx_construct_pyobject(exp, x)
+            exp = x
         elif isinstance(x, (float, complex)):
             if not (x == x):
                 from sage.symbolic.constants import NaN
                 return NaN
-            GEx_construct_pyobject(exp, x)
+            exp = x
         elif isinstance(x, (Integer, long)):
-            GEx_construct_pyobject(exp, x)
+            exp = x
         elif isinstance(x, int):
-            GEx_construct_long(&exp, x)
+            exp = GEx(<long>x)
         elif x is infinity:
             return new_Expression_from_GEx(self, g_Infinity)
         elif x is minus_infinity:
@@ -374,7 +374,7 @@ cdef class SymbolicRing(CommutativeRing):
         elif x is unsigned_infinity:
             return new_Expression_from_GEx(self, g_UnsignedInfinity)
         elif isinstance(x, (RingElement, Matrix)):
-            GEx_construct_pyobject(exp, x)
+            exp = x
         elif isinstance(x, Factorization):
             from sage.misc.all import prod
             return prod([SR(p)**e for p,e in x], SR(x.unit()))
@@ -444,7 +444,7 @@ cdef class SymbolicRing(CommutativeRing):
         cdef GExprSeq ex_seq
         cdef GExVector ex_v
         if force:
-            GEx_construct_pyobject(exp, x)
+            exp = x
 
         else:
             # first check if we can do it the nice way
@@ -461,11 +461,11 @@ cdef class SymbolicRing(CommutativeRing):
                     obj = SR._force_pyobject(e, force=(not recursive))
                     ex_v.push_back( (<Expression>obj)._gobj )
 
-                GExprSeq_construct_exvector(&ex_seq, ex_v)
+                ex_seq = GExprSeq(ex_v)
 
-                GEx_construct_exprseq(&exp, ex_seq)
+                exp = GEx(ex_seq)
             else:
-                GEx_construct_pyobject(exp, x)
+                exp = x
 
         return new_Expression_from_GEx(self, exp)
 
@@ -689,7 +689,7 @@ cdef class SymbolicRing(CommutativeRing):
                 symb.set_texname(latex_name)
             if domain is not None:
                 symb.set_domain(sage_domain_to_ginac_domain(domain))
-            GEx_construct_symbol(&e._gobj, symb)
+            e._gobj = GEx(symb)
             if domain is not None:
                 send_sage_domain_to_maxima(e, domain)
 
@@ -714,7 +714,7 @@ cdef class SymbolicRing(CommutativeRing):
                 symb = ginac_symbol(name, latex_name, ginac_domain)
                 self.symbols[name] = e
 
-            GEx_construct_symbol(&e._gobj, symb)
+            e._gobj = GEx(symb)
             if domain is not None:
                 send_sage_domain_to_maxima(e, domain)
 
@@ -993,7 +993,7 @@ cdef class SymbolicRing(CommutativeRing):
 
 SR = SymbolicRing()
 
-cdef unsigned sage_domain_to_ginac_domain(object domain) except -1:
+cdef unsigned sage_domain_to_ginac_domain(object domain) except? 3474701533:
     """
     TESTS::
 
@@ -1080,7 +1080,7 @@ cdef class NumpyToSRMorphism(Morphism):
             sage: NumpyToSRMorphism(str)
             Traceback (most recent call last):
             ...
-            TypeError: <type 'str'> is not a numpy number type
+            TypeError: <... 'str'> is not a numpy number type
         """
         Morphism.__init__(self, numpy_type, SR)
 

@@ -9,13 +9,12 @@ from sage.symbolic.expression import Expression
 from sage.libs.pynac.pynac import (register_symbol, symbol_table,
         py_factorial_py, I)
 from sage.symbolic.all import SR
-from sage.rings.all import Integer, Rational, RealField, RR, ZZ, ComplexField
+from sage.rings.all import Integer, Rational, RealField, ZZ, ComplexField
 from sage.rings.complex_number import is_ComplexNumber
 from sage.misc.latex import latex
 import math
 
-import sage.structure.element
-coercion_model = sage.structure.element.get_coercion_model()
+from sage.structure.element import coercion_model
 
 # avoid name conflicts with `parent` as a function parameter
 from sage.structure.all import parent as s_parent
@@ -25,6 +24,7 @@ from sage.functions.log import exp
 from sage.functions.trig import arctan2
 from sage.functions.exp_integral import Ei
 from sage.libs.mpmath import utils as mpmath_utils
+from sage.arith.all import binomial as arith_binomial
 
 one_half = ~SR(2)
 
@@ -67,7 +67,7 @@ class Function_erf(BuiltinFunction):
     REFERENCES:
 
     - http://en.wikipedia.org/wiki/Error_function
-    - http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#error-functions
+    - http://mpmath.org/doc/current/functions/expintegrals.html#error-functions
 
     TESTS:
 
@@ -756,7 +756,7 @@ class Function_frac(BuiltinFunction):
                 return Integer(0)
             elif isinstance(x, (float, complex)):
                 return x - Integer(int(math.floor(x)))
-            elif isinstance(x, sage.symbolic.expression.Expression):
+            elif isinstance(x, Expression):
                 ret = floor(x)
                 if not hasattr(ret, "operator") or not ret.operator() == floor:
                     return x - ret
@@ -1148,7 +1148,7 @@ class Function_gamma_inc(BuiltinFunction):
             sage: r = gamma_inc(float(0), float(1)); r
             0.21938393439552029
             sage: type(r)
-            <type 'float'>
+            <... 'float'>
         """
         R = parent or s_parent(x)
         # C is the complex version of R
@@ -1943,7 +1943,7 @@ class Function_binomial(GinacFunction):
             sage: binomial._evalf_(5.r, 3)
             10.0
             sage: type(binomial._evalf_(5.r, 3))
-            <type 'float'>
+            <... 'float'>
             sage: binomial._evalf_(1/2,1/1)
             1/2
             sage: binomial._evalf_(10^20+1/1,10^20)
@@ -1953,7 +1953,7 @@ class Function_binomial(GinacFunction):
             sage: binomial._evalf_(3/2,SR(1/1))
             3/2
         """
-        return sage.arith.all.binomial(n, k)
+        return arith_binomial(n, k)
 
 binomial = Function_binomial()
 
@@ -2437,7 +2437,7 @@ class Function_real_part(GinacFunction):
         TESTS::
 
             sage: type(real(complex(3, 4)))
-            <type 'float'>
+            <... 'float'>
         """
         if isinstance(x, complex):
             return x.real
@@ -2496,7 +2496,7 @@ class Function_imag_part(GinacFunction):
         TESTS::
 
             sage: type(imag(complex(3, 4)))
-            <type 'float'>
+            <... 'float'>
         """
         if isinstance(x, complex):
             return x.imag

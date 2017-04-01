@@ -9,6 +9,8 @@ from sage.misc.latex import latex_variable_name
 from sage.misc.misc_c import prod
 
 from sage.structure.parent cimport Parent
+from sage.structure.sage_object cimport rich_to_bool, richcmp
+from cpython.object cimport Py_NE
 
 from sage.categories.commutative_rings import CommutativeRings
 _CommutativeRings = CommutativeRings()
@@ -275,7 +277,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
 
         - ``x`` -- a variable of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y,z> = QQ[]
             sage: P.univariate_ring(y)
@@ -346,21 +348,33 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         name_mapping = [(other_vars.index(var) if var in other_vars else -1) for var in self.variable_names()]
         K = self.base_ring()
         D = {}
-        var_range = range(len(self.variable_names()))
+        var_range = xrange(len(self.variable_names()))
         for ix, a in x.dict().iteritems():
             ix = ETuple([0 if name_mapping[t] == -1 else ix[name_mapping[t]] for t in var_range])
             D[ix] = K(a)
         return D
 
     def __richcmp__(left, right, int op):
-        return (<Parent>left)._richcmp(right, op)
+        if left is right:
+            return rich_to_bool(op, 0)
 
-    cpdef int _cmp_(left, right) except -2:
+        if not isinstance(right, Parent) or not isinstance(left, Parent):
+            # One is not a parent -- not equal and not ordered
+            return op == Py_NE
+
         if not is_MPolynomialRing(right):
-            return cmp(type(left),type(right))
-        else:
-            return cmp((left.base_ring(), left.__ngens, left.variable_names(), left.__term_order),
-                       (right.base_ring(), (<MPolynomialRing_generic>right).__ngens, right.variable_names(), (<MPolynomialRing_generic>right).__term_order))
+            return op == Py_NE
+
+        lft = <MPolynomialRing_generic>left
+        other = <MPolynomialRing_generic>right
+
+        lx = (lft.base_ring(), lft.__ngens,
+              lft.variable_names(),
+              lft.__term_order)
+        rx = (other.base_ring(), other.__ngens,
+              other.variable_names(),
+              other.__term_order)
+        return richcmp(lx, rx, op)
 
     def _repr_(self):
         """
@@ -491,7 +505,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
           of ``self`` will be represented as ``gap(self.base_ring()).name()``.
         - The result of applying the GAP interface to ``self`` is cached.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = CyclotomicField(8)
             sage: P.<x,y> = F[]

@@ -1,0 +1,22 @@
+Increase the memory sizes for LaTeX
+
+These increased stack sizes should be sufficient for LaTeX to handle the
+huge index of the Sage PDF reference manual.
+
+diff -ru a/sphinx/texinputs/Makefile_t b/sphinx/texinputs/Makefile_t
+--- a/sphinx/texinputs/Makefile_t	2017-02-20 03:06:00.000000000 +0100
++++ b/sphinx/texinputs/Makefile_t	2017-03-16 20:04:52.393946075 +0100
+@@ -12,8 +12,10 @@
+ # format: pdf or dvi
+ FMT = pdf
+ 
+-LATEX = latex
+-PDFLATEX = {{ latex_engine }}
++LATEXENV = env pool_size=4000000 save_size=50000 extra_mem_top=2000000
++
++LATEX = $(LATEXENV) latex
++PDFLATEX = $(LATEXENV) {{ latex_engine }}
+ MAKEINDEX = makeindex
+ 
+ {% if latex_engine == 'platex' %}
+Only in b/sphinx/texinputs: Makefile_t.orig

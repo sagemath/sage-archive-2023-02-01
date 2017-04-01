@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 r"""
 Word paths
 
@@ -488,7 +488,7 @@ of alphabet (=%s) or half the size of alphabet."%(len(steps),alphabet.cardinalit
 
             sage: d = WordPaths('ab',steps=[(1,2),(3,4)])._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             7
             sage: d['tuple']
@@ -651,7 +651,7 @@ class WordPaths_square_grid(WordPaths_all):
 
             sage: d = WordPaths('abcd')._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             7
             sage: d['tuple']
@@ -732,7 +732,7 @@ class WordPaths_triangle_grid(WordPaths_all):
             sage: len(d)
             7
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: d['tuple']
             <class 'sage.combinat.words.paths.FiniteWordPath_triangle_grid_tuple'>
         """
@@ -798,7 +798,7 @@ class WordPaths_hexagonal_grid(WordPaths_triangle_grid):
 
             sage: d = WordPaths('abcdef', steps='hexagon')._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             7
             sage: d['tuple']
@@ -866,7 +866,7 @@ class WordPaths_cube_grid(WordPaths_all):
 
             sage: d = WordPaths('abcdef', steps='cube')._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             7
             sage: d['tuple']
@@ -933,7 +933,7 @@ class WordPaths_dyck(WordPaths_all):
 
             sage: d = WordPaths('ab', steps='dyck')._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             7
             sage: d['tuple']
@@ -1000,7 +1000,7 @@ class WordPaths_north_east(WordPaths_all):
 
             sage: d = WordPaths('ab', steps='NE')._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             7
             sage: d['tuple']

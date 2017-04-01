@@ -61,6 +61,7 @@ import sage
 import re
 from . import real_mpfr
 import weakref
+from cpython.object cimport Py_NE
 
 from sage.structure.parent cimport Parent
 from sage.structure.parent_gens cimport ParentWithGens
@@ -75,6 +76,7 @@ from .complex_field import ComplexField_class
 from sage.misc.randstate cimport randstate, current_randstate
 from .real_mpfr cimport RealField_class, RealNumber
 from .real_mpfr import mpfr_prec_min, mpfr_prec_max
+from sage.structure.sage_object cimport rich_to_bool, richcmp
 
 NumberFieldElement_quadratic = None
 AlgebraicNumber_base = None
@@ -486,9 +488,6 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
         return __create__MPComplexField_version0, (self.__prec, self.__rnd_str)
 
     def __richcmp__(left, right, int op):
-        return (<Parent>left)._richcmp(right, op)
-
-    cpdef int _cmp_(self, right) except -2:
         """
         Compare ``self`` and ``other``, ignoring the rounding mode.
 
@@ -501,12 +500,15 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
             sage: MPComplexField(10,rnd='RNDZN') == MPComplexField(10,rnd='RNDZU')
             True
         """
-        cdef int c = cmp(type(self), type(right))
-        if c:
-            return c
+        if left is right:
+            return rich_to_bool(op, 0)
 
-        cdef MPComplexField_class other = <MPComplexField_class>right
-        return cmp(self.__prec, other.__prec)
+        if not isinstance(right, MPComplexField_class):
+            return op == Py_NE
+
+        cdef MPComplexField_class s = <MPComplexField_class>left
+        cdef MPComplexField_class o = <MPComplexField_class>right
+        return richcmp(s.__prec, o.__prec, op)
 
     def gen(self, n=0):
         """
@@ -1161,7 +1163,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             sage: complex(a)
             (2+1j)
             sage: type(complex(a))
-            <type 'complex'>
+            <... 'complex'>
             sage: a.__complex__()
             (2+1j)
         """
@@ -1170,7 +1172,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         rnd = (<MPComplexField_class>self._parent).__rnd
         return complex(mpfr_get_d(self.value.re, rnd_re(rnd)), mpfr_get_d(self.value.im, rnd_im(rnd)))
 
-    def _pari_(self):
+    def __pari__(self):
         r"""
         Convert ``self`` to a PARI object.
 
@@ -1181,7 +1183,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
 
             sage: MPC = MPComplexField()
             sage: a = MPC(2,1)
-            sage: a._pari_()
+            sage: a.__pari__()
             2.00000000000000 + 1.00000000000000*I
             sage: pari(a)
             2.00000000000000 + 1.00000000000000*I
@@ -1199,18 +1201,18 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         The precision is preserved, rounded up to the wordsize::
 
             sage: MPC = MPComplexField(250)
-            sage: MPC(1,2)._pari_().bitprecision()
+            sage: MPC(1,2).__pari__().bitprecision()
             256
-            sage: MPC(pi)._pari_().bitprecision()
+            sage: MPC(pi).__pari__().bitprecision()
             256
         """
         if mpfr_zero_p(self.value.re):
             re = pari.PARI_ZERO
         else:
-            re = self.real()._pari_()
+            re = self.real().__pari__()
         if mpfr_zero_p(self.value.im):
             return re
-        im = self.imag()._pari_()
+        im = self.imag().__pari__()
         return pari.complex(re, im)
 
     cpdef int _cmp_(self, other) except -2:
@@ -1558,7 +1560,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         Compute ``self`` raised to the power of exponent, rounded in
         the direction specified by the parent of ``self``.
 
-        .. TODO:
+        .. TODO::
 
             FIXME: Branch cut
 
@@ -2187,7 +2189,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             sage: c.dilog()
             0
         """
-        return self._parent(self._pari_().dilog())
+        return self._parent(self.__pari__().dilog())
 
     def eta(self, omit_frac=False):
         r"""
@@ -2220,7 +2222,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             0.742048775836565 + 0.198831370229911*I
         """
         try:
-            return self._parent(self._pari_().eta(not omit_frac))
+            return self._parent(self.__pari__().eta(not omit_frac))
         except sage.libs.pari.all.PariError:
             raise ValueError("value must be in the upper half plane")
 
@@ -2246,7 +2248,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             Infinity
         """
         try:
-            return self._parent(self._pari_().gamma())
+            return self._parent(self.__pari__().gamma())
         except sage.libs.pari.all.PariError:
             from sage.rings.infinity import UnsignedInfinityRing
             return UnsignedInfinityRing.gen()
@@ -2266,7 +2268,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             0.70709210 - 0.42035364*I
 
         """
-        return self._parent(self._pari_().incgam(t, precision=self.prec()))
+        return self._parent(self.__pari__().incgam(t, precision=self.prec()))
 
     def zeta(self):
         """
@@ -2279,7 +2281,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             sage: z.zeta()
             0.58215806 - 0.92684856*I
         """
-        return self._parent(self._pari_().zeta())
+        return self._parent(self.__pari__().zeta())
 
     def agm(self, right, algorithm="optimal"):
         """
@@ -2298,8 +2300,8 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             -0.410522769709397 + 4.60061063922097*I
         """
         if algorithm=="pari":
-            t = self._parent(right)._pari_()
-            return self._parent(self._pari_().agm(t))
+            t = self._parent(right).__pari__()
+            return self._parent(self.__pari__().agm(t))
 
         cdef MPComplexNumber a, b, d, s, res
         cdef mpfr_t sn,dn

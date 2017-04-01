@@ -93,7 +93,7 @@ computer. Here we merely make a few comments.
    will search.
 
    The documentation for using SageTeX is located in
-   ``$SAGE_ROOT/local/share/texmf/tex/generic/sagetex/``, where
+   ``$SAGE_ROOT/local/share/texmf/tex/latex/sagetex/``, where
    "``$SAGE_ROOT``" refers to the directory where you installed Sage --
    for example, ``/opt/sage-4.2.1``.
 

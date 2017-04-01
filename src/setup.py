@@ -89,6 +89,9 @@ except KeyError:
 # this depends on SAGE_CYTHONIZED
 include_dirs = sage_include_directories(use_sources=True)
 
+# Look for libraries in $SAGE_LOCAL/lib
+library_dirs = [os.path.join(SAGE_LOCAL, "lib")]
+
 # Manually add -fno-strict-aliasing, which is needed to compile Cython
 # and disappears from the default flags if the user has set CFLAGS.
 extra_compile_args = [ "-fno-strict-aliasing" ]
@@ -168,12 +171,14 @@ if os.path.exists(sage.misc.lazy_import_cache.get_cache_file()):
     os.unlink(sage.misc.lazy_import_cache.get_cache_file())
 
 
-######################################################################
-# CODE for generating C/C++ code from Cython and doing dependency
-# checking, etc.  In theory distutils would run Cython, but I don't
-# trust it at all, and it won't have the more sophisticated dependency
-# checking that we need.
-######################################################################
+########################################################################
+##
+## Customize the Extensions processed by Cython
+##
+########################################################################
+
+from Cython.Build.Dependencies import default_create_extension
+from sage_setup.util import stable_uniq
 
 # Do not put all, but only the most common libraries and their headers
 # (that are likely to change on an upgrade) here:
@@ -184,165 +189,66 @@ lib_headers = { "gmp":     [ os.path.join(SAGE_INC, 'gmp.h') ],   # cf. #8664, #
                 "ntl":     [ os.path.join(SAGE_INC, 'NTL', 'config.h') ]
               }
 
-# In the loop below, don't append to any list, since many of these
-# lists are actually identical Python objects. For every list, we need
-# to write (at least the first time):
-#
-#   list = list + [foo]
-#
-for m in ext_modules:
-    # Make everything depend on *this* setup.py file
-    # TODO: This works for the C sources themselves, but this logic
-    # should also apply to Cython sources--shouldn't the be rebuilt
-    # if this file changes?  Alternatively, we could add more details
-    # (e.g. cythonize() flags) to the .cython_version file
-    m.depends = m.depends + [__file__]
 
-    # Add dependencies for the libraries
-    for lib in lib_headers:
-        if lib in m.libraries:
-            m.depends += lib_headers[lib]
-
-    m.extra_compile_args = m.extra_compile_args + extra_compile_args
-    m.extra_link_args = m.extra_link_args + extra_link_args
-    m.library_dirs = m.library_dirs + [os.path.join(SAGE_LOCAL, "lib")]
-    m.include_dirs = m.include_dirs + include_dirs
-
-
-#############################################
-###### Parallel Cython execution
-#############################################
-
-def run_command(cmd):
+def sage_create_extension(template, kwds):
     """
-    INPUT:
+    Create a distutils Extension given data from Cython
 
-    - ``cmd`` -- a string; a command to run
+    This adjust the ``kwds`` in the following ways:
 
-    OUTPUT: prints ``cmd`` to the console and then runs
-    ``os.system(cmd)``.
+    - Make everything depend on *this* setup.py file
+
+    - Add dependencies on header files for certain libraries
+
+    - Ensure that C++ extensions link with -lstdc++
+
+    - Sort the libraries according to the library order
+
+    - Add some default compile/link args and directories
+
+    - Drop -std=c99 and similar from C++ extensions
+
+    - Ensure that each flag, library, ... is listed at most once
     """
-    print(cmd)
-    sys.stdout.flush()
-    return os.system(cmd)
+    lang = kwds.get('language', 'c')
 
-def apply_func_progress(p):
-    """
-    Given a triple p consisting of a function, value and a string,
-    output the string and apply the function to the value.
+    # Libraries: add stdc++ if needed and sort them
+    libs = kwds.get('libraries', [])
+    if lang == 'c++':
+        libs = libs + ['stdc++']
+    kwds['libraries'] = sorted(set(libs),
+            key=lambda lib: library_order.get(lib, 0))
 
-    The string could for example be some progress indicator.
+    # Dependencies: add setup.py and lib_headers
+    depends = kwds.get('depends', []) + [__file__]
+    for lib, headers in lib_headers.items():
+        if lib in libs:
+            depends += headers
+    kwds['depends'] = depends  # These are sorted and uniq'ed by Cython
 
-    This exists solely because we can't pickle an anonymous function
-    in execute_list_of_commands_in_parallel below.
-    """
-    sys.stdout.write(p[2])
-    sys.stdout.flush()
-    return p[0](p[1])
+    # Process extra_compile_args
+    cflags = []
+    for flag in kwds.get('extra_compile_args', []):
+        if lang == "c++":
+            if flag.startswith("-std=") and "++" not in flag:
+                continue  # Skip -std=c99 and similar for C++
+        cflags.append(flag)
+    cflags = extra_compile_args + cflags
+    kwds['extra_compile_args'] = stable_uniq(cflags)
 
-def execute_list_of_commands_in_parallel(command_list, nthreads):
-    """
-    Execute the given list of commands, possibly in parallel, using
-    ``nthreads`` threads.  Terminates ``setup.py`` with an exit code
-    of 1 if an error occurs in any subcommand.
+    # Process extra_link_args
+    ldflags = kwds.get('extra_link_args', []) + extra_link_args
+    kwds['extra_link_args'] = stable_uniq(ldflags)
 
-    INPUT:
+    # Process library_dirs
+    lib_dirs = kwds.get('library_dirs', []) + library_dirs
+    kwds['library_dirs'] = stable_uniq(lib_dirs)
 
-    - ``command_list`` -- a list of commands, each given as a pair of
-       the form ``[function, argument]`` of a function to call and its
-       argument
+    # Process include_dirs
+    inc_dirs = kwds.get('include_dirs', []) + include_dirs
+    kwds['include_dirs'] = stable_uniq(inc_dirs)
 
-    - ``nthreads`` -- integer; number of threads to use
-
-    WARNING: commands are run roughly in order, but of course successive
-    commands may be run at the same time.
-    """
-    # Add progress indicator strings to the command_list
-    N = len(command_list)
-    progress_fmt = "[{:%i}/{}] " % len(str(N))
-    for i in range(N):
-        progress = progress_fmt.format(i+1, N)
-        command_list[i] = command_list[i] + (progress,)
-
-    from multiprocessing import Pool
-    import fpickle_setup #doing this import will allow instancemethods to be pickable
-    # map_async handles KeyboardInterrupt correctly if an argument is
-    # given to get().  Plain map() and apply_async() do not work
-    # correctly, see Trac #16113.
-    pool = Pool(nthreads)
-    result = pool.map_async(apply_func_progress, command_list, 1).get(99999)
-    pool.close()
-    pool.join()
-    process_command_results(result)
-
-def process_command_results(result_values):
-    error = None
-    for r in result_values:
-        if r:
-            print("Error running command, failed with status %s."%r)
-            if not keep_going:
-                sys.exit(1)
-            error = r
-    if error:
-        sys.exit(1)
-
-def execute_list_of_commands(command_list):
-    """
-    INPUT:
-
-    - ``command_list`` -- a list of strings or pairs
-
-    OUTPUT:
-
-    For each entry in command_list, we attempt to run the command.
-    If it is a string, we call ``os.system()``. If it is a pair [f, v],
-    we call f(v).
-
-    If the environment variable :envvar:`SAGE_NUM_THREADS` is set, use
-    that many threads.
-    """
-    t = time.time()
-    # Determine the number of threads from the environment variable
-    # SAGE_NUM_THREADS, which is set automatically by sage-env
-    try:
-        nthreads = int(os.environ['SAGE_NUM_THREADS'])
-    except KeyError:
-        nthreads = 1
-
-    # normalize the command_list to handle strings correctly
-    command_list = [ [run_command, x] if isinstance(x, str) else x for x in command_list ]
-
-    # No need for more threads than there are commands, but at least one
-    nthreads = min(len(command_list), nthreads)
-    nthreads = max(1, nthreads)
-
-    def plural(n,noun):
-        if n == 1:
-            return "1 %s"%noun
-        return "%i %ss"%(n,noun)
-
-    print("Executing %s (using %s)"%(plural(len(command_list),"command"), plural(nthreads,"thread")))
-    execute_list_of_commands_in_parallel(command_list, nthreads)
-    print("Time to execute %s: %.2f seconds."%(plural(len(command_list),"command"), time.time() - t))
-
-
-########################################################################
-##
-## Parallel gcc execution
-##
-## This code is responsible for making distutils dispatch the calls to
-## build_ext in parallel. Since distutils doesn't seem to do this by
-## default, we create our own extension builder and override the
-## appropriate methods.  Unfortunately, in distutils, the logic of
-## deciding whether an extension needs to be recompiled and actually
-## making the call to gcc to recompile the extension are in the same
-## function. As a result, we can't just override one function and have
-## everything magically work. Instead, we split this work between two
-## functions. This works fine for our application, but it means that
-## we can't use this modification to make the other parts of Sage that
-## build with distutils call gcc in parallel.
-##
-########################################################################
+    return default_create_extension(template, kwds)
 
 
 class sage_build_cython(Command):
@@ -507,6 +413,7 @@ class sage_build_cython(Command):
                 'fast_getattr': True,
                 'profile': self.profile,
             },
+            create_extension=sage_create_extension,
             # Debugging
             gdb_debug=self.debug,
             output_dir=self.build_dir,
@@ -526,6 +433,137 @@ class sage_build_cython(Command):
             dst = os.path.join(self.build_lib, dst_dir)
             for src in src_files:
                 self.copy_file(src, dst, preserve_mode=False)
+
+
+########################################################################
+##
+## Parallel gcc execution
+##
+## This code is responsible for making distutils dispatch the calls to
+## build_ext in parallel. Since distutils doesn't seem to do this by
+## default, we create our own extension builder and override the
+## appropriate methods.  Unfortunately, in distutils, the logic of
+## deciding whether an extension needs to be recompiled and actually
+## making the call to gcc to recompile the extension are in the same
+## function. As a result, we can't just override one function and have
+## everything magically work. Instead, we split this work between two
+## functions. This works fine for our application, but it means that
+## we can't use this modification to make the other parts of Sage that
+## build with distutils call gcc in parallel.
+##
+########################################################################
+
+def run_command(cmd):
+    """
+    INPUT:
+
+    - ``cmd`` -- a string; a command to run
+
+    OUTPUT: prints ``cmd`` to the console and then runs
+    ``os.system(cmd)``.
+    """
+    print(cmd)
+    sys.stdout.flush()
+    return os.system(cmd)
+
+def apply_func_progress(p):
+    """
+    Given a triple p consisting of a function, value and a string,
+    output the string and apply the function to the value.
+
+    The string could for example be some progress indicator.
+
+    This exists solely because we can't pickle an anonymous function
+    in execute_list_of_commands_in_parallel below.
+    """
+    sys.stdout.write(p[2])
+    sys.stdout.flush()
+    return p[0](p[1])
+
+def execute_list_of_commands_in_parallel(command_list, nthreads):
+    """
+    Execute the given list of commands, possibly in parallel, using
+    ``nthreads`` threads.  Terminates ``setup.py`` with an exit code
+    of 1 if an error occurs in any subcommand.
+
+    INPUT:
+
+    - ``command_list`` -- a list of commands, each given as a pair of
+       the form ``[function, argument]`` of a function to call and its
+       argument
+
+    - ``nthreads`` -- integer; number of threads to use
+
+    WARNING: commands are run roughly in order, but of course successive
+    commands may be run at the same time.
+    """
+    # Add progress indicator strings to the command_list
+    N = len(command_list)
+    progress_fmt = "[{:%i}/{}] " % len(str(N))
+    for i in range(N):
+        progress = progress_fmt.format(i+1, N)
+        command_list[i] = command_list[i] + (progress,)
+
+    from multiprocessing import Pool
+    import fpickle_setup #doing this import will allow instancemethods to be pickable
+    # map_async handles KeyboardInterrupt correctly if an argument is
+    # given to get().  Plain map() and apply_async() do not work
+    # correctly, see Trac #16113.
+    pool = Pool(nthreads)
+    result = pool.map_async(apply_func_progress, command_list, 1).get(99999)
+    pool.close()
+    pool.join()
+    process_command_results(result)
+
+def process_command_results(result_values):
+    error = None
+    for r in result_values:
+        if r:
+            print("Error running command, failed with status %s."%r)
+            if not keep_going:
+                sys.exit(1)
+            error = r
+    if error:
+        sys.exit(1)
+
+def execute_list_of_commands(command_list):
+    """
+    INPUT:
+
+    - ``command_list`` -- a list of strings or pairs
+
+    OUTPUT:
+
+    For each entry in command_list, we attempt to run the command.
+    If it is a string, we call ``os.system()``. If it is a pair [f, v],
+    we call f(v).
+
+    If the environment variable :envvar:`SAGE_NUM_THREADS` is set, use
+    that many threads.
+    """
+    t = time.time()
+    # Determine the number of threads from the environment variable
+    # SAGE_NUM_THREADS, which is set automatically by sage-env
+    try:
+        nthreads = int(os.environ['SAGE_NUM_THREADS'])
+    except KeyError:
+        nthreads = 1
+
+    # normalize the command_list to handle strings correctly
+    command_list = [ [run_command, x] if isinstance(x, str) else x for x in command_list ]
+
+    # No need for more threads than there are commands, but at least one
+    nthreads = min(len(command_list), nthreads)
+    nthreads = max(1, nthreads)
+
+    def plural(n,noun):
+        if n == 1:
+            return "1 %s"%noun
+        return "%i %ss"%(n,noun)
+
+    print("Executing %s (using %s)"%(plural(len(command_list),"command"), plural(nthreads,"thread")))
+    execute_list_of_commands_in_parallel(command_list, nthreads)
+    print("Time to execute %s: %.2f seconds."%(plural(len(command_list),"command"), time.time() - t))
 
 
 class sage_build_ext(build_ext):
@@ -688,15 +726,6 @@ class sage_build_ext(build_ext):
             log.info("building '%s' extension", ext.name)
             need_to_compile = True
 
-        # If we need to compile, adjust the given extension
-        if need_to_compile:
-            libs = ext.libraries
-            if ext.language == 'c++' and 'stdc++' not in libs:
-                libs = libs + ['stdc++']
-
-            # Sort libraries according to library_order
-            ext.libraries = sorted(libs, key=lambda x: library_order.get(x, 0))
-
         return need_to_compile, (sources, ext, ext_filename)
 
     def build_extension(self, p):
@@ -781,7 +810,9 @@ class sage_build(build):
         """
         from sage_setup.autogen import autogen_all
         log.info("Generating auto-generated sources")
-        self.distribution.packages += autogen_all()
+        for pkg in autogen_all():
+            if pkg not in self.distribution.packages:
+                    self.distribution.packages.append(pkg)
 
     def run(self):
         self.run_autogen()
@@ -876,6 +907,8 @@ code = setup(name = 'sage',
       author_email= 'http://groups.google.com/group/sage-support',
       url         = 'http://www.sagemath.org',
       packages    = python_packages,
-      cmdclass = dict(build_cython=sage_build_cython, build_ext=sage_build_ext,
-                      build=sage_build, install=sage_install),
+      cmdclass = dict(build=sage_build,
+                      build_cython=sage_build_cython,
+                      build_ext=sage_build_ext,
+                      install=sage_install),
       ext_modules = ext_modules)

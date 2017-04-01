@@ -1973,7 +1973,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             #
             # Comm: similarly (Q, C) with Q as above and C a tuple
             # with each entry in t is of the form ((s,t), n),
-            # corresponding to c_{s,t}^n.  here c_{s,t} is the the
+            # corresponding to c_{s,t}^n.  here c_{s,t} is the
             # iterated commutator defined by c_{s,1} = P(p^s) and
             # c_{s,t} = [P(p^{s+t-1}), c_{s,t-1}].
             q_deg = q_degree(t[0], prime=p)
@@ -3357,32 +3357,6 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             """
             a = self.change_basis(basis)
             return a.monomial_coefficients()
-
-        def basis(self, basis):
-            r"""
-            Representation of element with respect to basis.
-
-            INPUT:
-
-            - ``basis`` - string, basis in which to work.
-
-            OUTPUT: Representation of self in given basis
-
-            .. warning::
-
-                Deprecated (December 2010). Use :meth:`change_basis` instead.
-
-            EXAMPLES::
-
-                sage: c = Sq(2) * Sq(1)
-                sage: c.basis('milnor')
-                doctest:...: DeprecationWarning: The .basis() method is deprecated. Use .change_basis() instead.
-                See http://trac.sagemath.org/10052 for details.
-                Sq(0,1) + Sq(3)
-            """
-            from sage.misc.superseded import deprecation
-            deprecation(10052, 'The .basis() method is deprecated. Use .change_basis() instead.')
-            return self.change_basis(basis)
 
         def coproduct(self, algorithm='milnor'):
             """

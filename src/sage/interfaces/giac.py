@@ -788,7 +788,7 @@ class GiacElement(ExpectElement):
             sage: float(giac(1/2))
             0.5
             sage: type(_)
-            <type 'float'>
+            <... 'float'>
         """
         return float(giac.eval('evalf(%s)' % self.name()))
 
@@ -1013,7 +1013,7 @@ class GiacElement(ExpectElement):
         therefore only very simple expressions will convert successfully.
         Warning: List conversion is slow.
 
-        EXAMPLE::
+        EXAMPLES::
 
         sage: m = giac('x^2 + 5*y')
         sage: m.sage()

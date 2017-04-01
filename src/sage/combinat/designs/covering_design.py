@@ -98,7 +98,7 @@ def trivial_covering_design(v,k,t):
 
     `(v,k,t)` covering design
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: C = trivial_covering_design(8,3,1)
         sage: print(C)

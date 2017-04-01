@@ -4,13 +4,14 @@ Power Series Methods
 
 The class ``PowerSeries_poly`` provides additional methods for univariate power series.
 """
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
-from power_series_ring_element cimport PowerSeries
+from .power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport Element, ModuleElement, RingElement
-from infinity import infinity, is_Infinite
-from sage.libs.all import PariError
+from .infinity import infinity, is_Infinite
+from sage.libs.all import pari_gen, PariError
 from sage.misc.superseded import deprecated_function_alias
+
 
 cdef class PowerSeries_poly(PowerSeries):
 
@@ -32,6 +33,16 @@ cdef class PowerSeries_poly(PowerSeries):
             1/27 + 1/27*t^3 + O(t^5)
             sage: a*b
             1 + O(t^5)
+
+        Check that :trac:`22216` is fixed::
+
+            sage: R.<T> = PowerSeriesRing(QQ)
+            sage: R(pari('1 + O(T)'))
+            1 + O(T)
+            sage: R(pari('1/T + O(T)'))
+            Traceback (most recent call last):
+            ...
+            ValueError: series has negative valuation
         """
         R = parent._poly_ring()
         if isinstance(f, Element):
@@ -39,14 +50,20 @@ cdef class PowerSeries_poly(PowerSeries):
                 pass
             elif (<Element>f)._parent == R.base_ring():
                 f = R([f])
-            elif isinstance(f, PowerSeries_poly):
-                prec = (<PowerSeries_poly>f)._prec
-                f = R((<PowerSeries_poly>f).__f)
+            elif isinstance(f, PowerSeries):  # not only PowerSeries_poly
+                prec = (<PowerSeries>f)._prec
+                f = R(f.polynomial())
             else:
                 if f:
                     f = R(f, check=check)
                 else:
                     f = R(None)
+        elif isinstance(f, pari_gen) and f.type() == 't_SER':
+            if f._valp() < 0:
+                raise ValueError('series has negative valuation')
+            if prec is infinity:
+                prec = f.length() + f._valp()
+            f = R(f.truncate())
         else:
             if f:
                 f = R(f, check=check)
@@ -91,7 +108,7 @@ cdef class PowerSeries_poly(PowerSeries):
         """
         Return the underlying polynomial of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<t> = GF(7)[[]]
             sage: f = 3 - t^3 + O(t^5)
@@ -774,7 +791,7 @@ cdef class PowerSeries_poly(PowerSeries):
         Otherwise, we call _derivative(var) on each coefficient of
         the series.
 
-        SEE ALSO::
+        SEEALSO::
 
             self.derivative()
 
@@ -1034,8 +1051,6 @@ cdef class PowerSeries_poly(PowerSeries):
             g += R(k.padded_list(i)[i - 1]/i)*t**i
         g = g.add_bigoh(out_prec)
         return PowerSeries_poly(out_parent, g, out_prec, check=False)
-
-    reversion = deprecated_function_alias(17724, reverse)
 
     def pade(self, m, n):
         r"""

@@ -256,7 +256,7 @@ class BipartiteGraph(Graph):
         Create a bipartite graph. See documentation ``BipartiteGraph?`` for
         detailed information.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P = graphs.PetersenGraph()
             sage: partition = [list(range(5)), list(range(5,10))]
@@ -411,7 +411,7 @@ class BipartiteGraph(Graph):
         r"""
         Returns a short string representation of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B = BipartiteGraph(graphs.CycleGraph(16))
             sage: B
@@ -829,7 +829,7 @@ class BipartiteGraph(Graph):
         r"""
         Returns the underlying bipartition of the bipartite graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B = BipartiteGraph(graphs.CycleGraph(4))
             sage: B.bipartition()
@@ -842,7 +842,7 @@ class BipartiteGraph(Graph):
         Projects ``self`` onto left vertices. Edges are 2-paths in the
         original.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B = BipartiteGraph(graphs.CycleGraph(20))
             sage: G = B.project_left()
@@ -861,7 +861,7 @@ class BipartiteGraph(Graph):
         Projects ``self`` onto right vertices. Edges are 2-paths in the
         original.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B = BipartiteGraph(graphs.CycleGraph(20))
             sage: G = B.project_right()
@@ -879,7 +879,7 @@ class BipartiteGraph(Graph):
         r"""
         Overrides Graph's plot function, to illustrate the bipartite nature.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B = BipartiteGraph(graphs.CycleGraph(20))
             sage: B.plot()
@@ -932,7 +932,7 @@ class BipartiteGraph(Graph):
 
         - ``name`` - optional string for the variable name in the polynomial.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: BipartiteGraph(graphs.CubeGraph(3)).matching_polynomial()
             x^8 - 12*x^6 + 42*x^4 - 44*x^2 + 9
@@ -994,7 +994,7 @@ class BipartiteGraph(Graph):
         http://www.inference.phy.cam.ac.uk/mackay/codes/data.html
         for examples and definition of the format.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: file_name = os.path.join(SAGE_TMP, 'deleteme.alist.txt')
             sage: fi = open(file_name, 'w')
@@ -1082,7 +1082,7 @@ class BipartiteGraph(Graph):
         http://www.inference.phy.cam.ac.uk/mackay/codes/data.html
         for examples and definition of the format.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Matrix([(1,1,1,0,0,0,0), (1,0,0,1,1,0,0),
             ....:             (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
@@ -1165,7 +1165,7 @@ class BipartiteGraph(Graph):
 
         Returns (row index, column index) for the given pair of vertices.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P = graphs.PetersenGraph()
             sage: partition = [list(range(5)), list(range(5,10))]

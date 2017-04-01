@@ -11,7 +11,7 @@ AUTHORS:
 
 - Martin Albrecht (2014-06-28): initial version
 
-EXAMPLE:
+EXAMPLES:
 
 We construct a sampler for the distribution `D_{3,c}` with width `σ=3` and center `c=0`::
 
@@ -116,9 +116,9 @@ from sage.libs.mpfr cimport mpfr_set, MPFR_RNDN
 from sage.rings.integer cimport Integer
 from sage.misc.randstate cimport randstate, current_randstate
 
-from dgs cimport dgs_disc_gauss_mp_init, dgs_disc_gauss_mp_clear, dgs_disc_gauss_mp_flush_cache
-from dgs cimport dgs_disc_gauss_dp_init, dgs_disc_gauss_dp_clear, dgs_disc_gauss_dp_flush_cache
-from dgs cimport DGS_DISC_GAUSS_UNIFORM_TABLE, DGS_DISC_GAUSS_UNIFORM_ONLINE, DGS_DISC_GAUSS_UNIFORM_LOGTABLE, DGS_DISC_GAUSS_SIGMA2_LOGTABLE
+from .dgs cimport dgs_disc_gauss_mp_init, dgs_disc_gauss_mp_clear, dgs_disc_gauss_mp_flush_cache
+from .dgs cimport dgs_disc_gauss_dp_init, dgs_disc_gauss_dp_clear, dgs_disc_gauss_dp_flush_cache
+from .dgs cimport DGS_DISC_GAUSS_UNIFORM_TABLE, DGS_DISC_GAUSS_UNIFORM_ONLINE, DGS_DISC_GAUSS_UNIFORM_LOGTABLE, DGS_DISC_GAUSS_SIGMA2_LOGTABLE
 
 cdef class DiscreteGaussianDistributionIntegerSampler(SageObject):
     r"""
@@ -363,7 +363,7 @@ cdef class DiscreteGaussianDistributionIntegerSampler(SageObject):
         r"""
         Flush the internal cache of random bits.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
 

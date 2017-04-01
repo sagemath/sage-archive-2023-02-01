@@ -284,6 +284,8 @@ from sage.rings.integer import Integer
 from sage.structure.element import ModuleElement
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 from sage.manifolds.differentiable.tensorfield import TensorField
+from sage.parallel.decorate import parallel
+from sage.parallel.parallelism import Parallelism
 
 class TensorFieldParal(FreeModuleTensor, TensorField):
     r"""
@@ -1128,6 +1130,21 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             (-y^3*cos(x) + x^3*cos(y) + 2*x*y*sin(x)) dx
              + (-x^4*sin(y) - 3*x^2*y*cos(y) - y^2*sin(x)) dy
 
+        Parallel computation::
+
+            sage: Parallelism().set('tensor', nproc=2)
+            sage: Parallelism().get('tensor')
+            2
+            sage: om.lie_der(v)
+            1-form on the 2-dimensional differentiable manifold M
+            sage: om.lie_der(v).display()
+            (-y^3*cos(x) + x^3*cos(y) + 2*x*y*sin(x)) dx
+             + (-x^4*sin(y) - 3*x^2*y*cos(y) - y^2*sin(x)) dy
+
+            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
+
+
+
         Check of Cartan identity::
 
             sage: om.lie_der(v) == (v.contract(0, om.exterior_derivative(), 0)
@@ -1151,34 +1168,93 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             if coord_frame is None:
                 raise ValueError("no common coordinate frame found")
             chart = coord_frame._chart
-            #
-            # 2/ Component computation:
-            tc = self._components[coord_frame]
-            vc = vector._components[coord_frame]
-            # the result has the same tensor type and same symmetries as self:
-            resc = self._new_comp(coord_frame)
-            n_con = self._tensor_type[0]
+
             vf_module = vector._fmodule
-            for ind in resc.non_redundant_index_generator():
-                rsum = 0
-                for i in vf_module.irange():
-                    rsum += vc[[i]].coord_function(chart) * \
-                           tc[[ind]].coord_function(chart).diff(i)
-                # loop on contravariant indices:
-                for k in range(n_con):
+            resc = self._new_comp(coord_frame)
+
+            # get n processes
+            nproc = Parallelism().get('tensor')
+            if nproc != 1 :
+
+                # Parallel computation
+                lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
+                ind_list = [ind for ind in resc.non_redundant_index_generator()]
+                ind_step = max(1, int(len(ind_list)/nproc))
+                local_list = lol(ind_list, ind_step)
+                # list of input parameters:
+                listParalInput = [(self, vector, coord_frame, chart, ind_part) for ind_part in local_list]
+
+                @parallel(p_iter='multiprocessing',ncpus=nproc)
+                def paral_lie_deriv(a, b , coord_frame, chart_cp, local_list_ind):
+                    #
+                    # 2/ Component computation:
+                    tc = a._components[coord_frame]
+                    vc = b._components[coord_frame]
+                    # the result has the same tensor type and same symmetries as a:
+                    n_con = a._tensor_type[0]
+                    vf_module = b._fmodule
+
+                    local_res = []
+                    for ind in local_list_ind:
+                        rsum = 0
+                        for i in vf_module.irange():
+                            rsum += vc[[i]].coord_function(chart_cp) * \
+                                   tc[[ind]].coord_function(chart_cp).diff(i)
+                        # loop on contravariant indices:
+                        for k in range(n_con):
+                            for i in vf_module.irange():
+                                indk = list(ind)
+                                indk[k] = i
+                                rsum -= tc[[indk]].coord_function(chart_cp) * \
+                                        vc[[ind[k]]].coord_function(chart_cp).diff(i)
+                        # loop on covariant indices:
+                        for k in range(n_con, a._tensor_rank):
+                            for i in vf_module.irange():
+                                indk = list(ind)
+                                indk[k] = i
+                                rsum += tc[[indk]].coord_function(chart_cp) * \
+                                        vc[[i]].coord_function(chart_cp).diff(ind[k])
+
+                        local_res.append([ind, rsum.scalar_field()])
+
+                    return local_res
+
+                # call to parallel lie derivative
+                for ii,val in paral_lie_deriv(listParalInput):
+                    for jj in val:
+                        resc[[jj[0]]] = jj[1]
+
+            else :
+                # Sequential computation
+                #
+                # 2/ Component computation:
+                tc = self._components[coord_frame]
+                vc = vector._components[coord_frame]
+                # the result has the same tensor type and same symmetries as self:
+                n_con = self._tensor_type[0]
+
+                for ind in resc.non_redundant_index_generator():
+                    rsum = 0
                     for i in vf_module.irange():
-                        indk = list(ind)
-                        indk[k] = i
-                        rsum -= tc[[indk]].coord_function(chart) * \
-                                vc[[ind[k]]].coord_function(chart).diff(i)
-                # loop on covariant indices:
-                for k in range(n_con, self._tensor_rank):
-                    for i in vf_module.irange():
-                        indk = list(ind)
-                        indk[k] = i
-                        rsum += tc[[indk]].coord_function(chart) * \
-                                vc[[i]].coord_function(chart).diff(ind[k])
-                resc[[ind]] = rsum.scalar_field()
+                        rsum += vc[[i]].coord_function(chart) * \
+                               tc[[ind]].coord_function(chart).diff(i)
+                    # loop on contravariant indices:
+                    for k in range(n_con):
+                        for i in vf_module.irange():
+                            indk = list(ind)
+                            indk[k] = i
+                            rsum -= tc[[indk]].coord_function(chart) * \
+                                    vc[[ind[k]]].coord_function(chart).diff(i)
+                    # loop on covariant indices:
+                    for k in range(n_con, self._tensor_rank):
+                        for i in vf_module.irange():
+                            indk = list(ind)
+                            indk[k] = i
+                            rsum += tc[[indk]].coord_function(chart) * \
+                                    vc[[i]].coord_function(chart).diff(ind[k])
+                    resc[[ind]] = rsum.scalar_field()
+
+
             #
             # 3/ Final result (the tensor)
             res = vf_module.tensor_from_comp(self._tensor_type, resc)
@@ -1786,4 +1862,3 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             for ind, val in comp._comp.items():
                 comp_resu._comp[ind] = val(point)
         return resu
-

@@ -216,6 +216,16 @@ class HeckeModuleElement(ModuleElement):
             False
             sage: M.1.is_cuspidal()
             True
+
+        TESTS:
+
+        Verify that :trac:`21497` is fixed::
+
+            sage: M = ModularSymbols(Gamma0(3),weight=22,sign=1)
+            sage: N = next(S for S in M.decomposition(anemic=False) if S.hecke_matrix(3).trace()==-128844)
+            sage: [g.is_cuspidal() for g in N.gens()]
+            [True, True]
+
         """
         return (self in self.parent().ambient().cuspidal_submodule())
 
@@ -244,7 +254,7 @@ class HeckeModuleElement(ModuleElement):
         Return True if this element is p-new. If p is None, return True if the
         element is new.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CuspForms(22, 2).0.is_new(2)
             False
@@ -260,7 +270,7 @@ class HeckeModuleElement(ModuleElement):
         Return True if this element is p-old. If p is None, return True if the
         element is old.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CuspForms(22, 2).0.is_old(11)
             False

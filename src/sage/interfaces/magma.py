@@ -932,7 +932,7 @@ class Magma(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: type(magma.cputime())         # optional - magma
-            <type 'float'>
+            <... 'float'>
             sage: magma.cputime()                # random, optional - magma
             1.9399999999999999
             sage: t = magma.cputime()            # optional - magma
@@ -1749,7 +1749,7 @@ class MagmaFunctionElement(FunctionElement):
             sage: type(V.M)                                      # optional - magma
             <class 'sage.interfaces.magma.MagmaFunctionElement'>
             sage: type(V.M.__repr__())                           # optional - magma
-            <type 'str'>
+            <... 'str'>
 
         Displaying a non-attribute function works as above.
 
@@ -1966,7 +1966,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             sage: z = m.sage(); z               # optional - magma
             (1, 2, (3,))
             sage: type(z)                       # optional - magma
-            <type 'tuple'>
+            <... 'tuple'>
 
         Sequences get converted to lists::
 
@@ -2569,7 +2569,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
         Quotient of division of self by other. This is denoted // ("div" in
         magma).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y,z> = QQ[]
             sage: magma(5)//magma(2)     # optional - magma
@@ -2814,7 +2814,7 @@ class MagmaGBLogPrettyPrinter:
           'sage' only the current degree and the number of pairs in
           the queue is printed (default: "magma").
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y,z> = GF(32003)[]
             sage: I = sage.rings.ideal.Cyclic(P)
@@ -2885,7 +2885,7 @@ class MagmaGBLogPrettyPrinter:
 
     def write(self, s):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y,z> = GF(32003)[]
             sage: I = sage.rings.ideal.Katsura(P)
@@ -2950,7 +2950,7 @@ class MagmaGBLogPrettyPrinter:
 
     def flush(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.interfaces.magma import MagmaGBLogPrettyPrinter
             sage: logs = MagmaGBLogPrettyPrinter()
@@ -2971,7 +2971,7 @@ class MagmaGBDefaultContext:
 
         - ``magma`` - (default: ``magma_default``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.interfaces.magma import MagmaGBDefaultContext
             sage: magma.SetVerbose('Groebner',1) # optional - magma
@@ -2986,7 +2986,7 @@ class MagmaGBDefaultContext:
 
     def __enter__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.interfaces.magma import MagmaGBDefaultContext
             sage: magma.SetVerbose('Groebner',1) # optional - magma
@@ -2998,7 +2998,7 @@ class MagmaGBDefaultContext:
 
     def __exit__(self, typ, value, tb):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.interfaces.magma import MagmaGBDefaultContext
             sage: magma.SetVerbose('Groebner',1) # optional - magma
@@ -3014,7 +3014,7 @@ def magma_gb_standard_options(func):
     """
     Decorator to force default options for Magma.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<a,b,c,d,e> = PolynomialRing(GF(127))
         sage: J = sage.rings.ideal.Cyclic(P).homogenize()

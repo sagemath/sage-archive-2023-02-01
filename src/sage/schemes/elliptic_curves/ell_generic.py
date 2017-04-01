@@ -2889,7 +2889,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: E = EllipticCurve([RR(0), RR(0), RR(1), RR(-1), RR(0)])
             sage: e = E.pari_curve()
             sage: type(e)
-            <type 'sage.libs.cypari2.gen.gen'>
+            <type 'sage.libs.cypari2.gen.Gen'>
             sage: e.type()
             't_VEC'
             sage: e.disc()

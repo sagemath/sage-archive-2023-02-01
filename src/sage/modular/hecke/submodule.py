@@ -242,7 +242,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
 
     def _compute_diamond_matrix(self, d):
         r"""
-        EXAMPLE:
+        EXAMPLES:
 
             sage: f = ModularSymbols(Gamma1(13),2,sign=1).cuspidal_subspace().decomposition()[0]
             sage: a = f.diamond_bracket_operator(2).matrix() # indirect doctest
@@ -889,7 +889,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         r"""
         Return the rank of self as a free module over the base ring.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ModularSymbols(6, 4).cuspidal_subspace().rank()
             2

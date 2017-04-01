@@ -341,7 +341,7 @@ class BoundarySpace(hecke.HeckeModule_generic):
 
     def __cmp__(self, other):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B2 = ModularSymbols(11, 2).boundary_space()
             sage: B4 = ModularSymbols(11, 4).boundary_space()

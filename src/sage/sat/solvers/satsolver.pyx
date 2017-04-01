@@ -21,7 +21,7 @@ cdef class SatSolver:
         """
         Constuct a new SATSolver.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.satsolver import SatSolver
             sage: solver = SatSolver()
@@ -36,7 +36,7 @@ cdef class SatSolver:
 
         - ``decision`` - is this variable a decision variable?
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.satsolver import SatSolver
             sage: solver = SatSolver()
@@ -51,7 +51,7 @@ cdef class SatSolver:
         """
         Return the number of variables.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.satsolver import SatSolver
             sage: solver = SatSolver()
@@ -76,7 +76,7 @@ cdef class SatSolver:
             than the number of variables generated so far, then new
             variables are created automatically.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.satsolver import SatSolver
             sage: solver = SatSolver()
@@ -111,7 +111,7 @@ cdef class SatSolver:
 
         - ``filename`` - The name of a file as a string or a file object
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from six import StringIO # for python 2/3 support
             sage: file_object = StringIO("c A sample .cnf file.\np cnf 3 2\n1 -3 0\n2 3 -1 0 ")
@@ -155,7 +155,7 @@ cdef class SatSolver:
         - If the solver was interrupted before deciding satisfiability
           ``None``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.satsolver import SatSolver
             sage: solver = SatSolver()
@@ -171,7 +171,7 @@ cdef class SatSolver:
         Return conflict clause if this instance is UNSAT and the last
         call used assumptions.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.satsolver import SatSolver
             sage: solver = SatSolver()
@@ -190,7 +190,7 @@ cdef class SatSolver:
 
         - ``unitary_only`` - return only unitary learnt clauses (default: ``False``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.satsolver import SatSolver
             sage: solver = SatSolver()
@@ -236,7 +236,7 @@ cdef class SatSolver:
             clauses is written to that file in DIMACS format.
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.satsolver import SatSolver
             sage: solver = SatSolver()
@@ -249,7 +249,7 @@ cdef class SatSolver:
 
     def __getattr__(self, name):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.satsolver import SatSolver
             sage: solver = SatSolver()
@@ -267,7 +267,7 @@ cdef class SatSolver:
         """
         Allow alias to appear in tab completion.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers.satsolver import SatSolver
             sage: solver = SatSolver()
@@ -296,7 +296,7 @@ def SAT(solver=None):
         - ``None`` (default) -- use CryptoMiniSat if available, and a LP solver
           otherwise.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: SAT(solver="LP")
         an ILP-based SAT Solver

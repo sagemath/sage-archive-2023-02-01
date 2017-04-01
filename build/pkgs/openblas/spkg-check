@@ -15,6 +15,9 @@ cd src
 # We could also patch the Makefile to use a generic symlink pointing
 # to the archive with a specific name
 
+# See #22021 for issues with multithreading
+OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE USE_THREAD=0"
+
 if [ `python -c "from __future__ import print_function; import platform; print(platform.architecture()[0])"` = "32bit" ]; then
     OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE BINARY=32"
 fi

@@ -31,7 +31,7 @@ from sage.libs.flint.fmpq_poly cimport *
 
 from sage.interfaces.all import singular as singular_default
 
-from sage.libs.cypari2.gen import gen as pari_gen
+from sage.libs.cypari2.gen import Gen as pari_gen
 
 from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.integer_ring import ZZ
@@ -125,7 +125,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         x must be a rational or convertible to an int.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x> = QQ[]
             sage: x._new_constant_poly(2/1,R)
@@ -340,9 +340,9 @@ cdef class Polynomial_rational_flint(Polynomial):
             self._parent._singular_(singular).set_ring()  # Expensive!
         return singular(self._singular_init_())
 
-    def list(self):
+    cpdef list list(self, bint copy=True):
         """
-        Returns a list with the coefficients of self.
+        Return a list with the coefficients of ``self``.
 
         EXAMPLES::
 
@@ -355,7 +355,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             []
         """
         cdef unsigned long length = fmpq_poly_length(self.__poly)
-        return [self[n] for n in range(length)]
+        return [self.get_unsafe(n) for n in range(length)]
 
     ###########################################################################
     # Basis access                                                            #
@@ -1392,7 +1392,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         a positive integer denominator (coprime to the content of the
         polynomial), returns the integer polynomial.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<t> = QQ[]
             sage: f = (3 * t^3 + 1) / -3
@@ -1413,7 +1413,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         """
         Returns the denominator of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<t> = QQ[]
             sage: f = (3 * t^3 + 1) / -3

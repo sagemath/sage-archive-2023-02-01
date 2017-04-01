@@ -29,9 +29,8 @@ AUTHORS:
 #*****************************************************************************
 # python3
 from __future__ import division
-from six.moves import range
-from builtins import zip
-from six import itervalues
+from six.moves import range, zip
+from six import itervalues, add_metaclass
 
 import copy
 from sage.misc.classcall_metaclass import ClasscallMetaclass
@@ -41,6 +40,7 @@ from sage.misc.all import prod
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element
+from sage.structure.sage_object import op_NE, richcmp
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
@@ -56,7 +56,7 @@ from sage.combinat.permutation import Permutation
 from sage.combinat.six_vertex_model import SquareIceModel
 from sage.misc.decorators import rename_keyword
 
-
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class AlternatingSignMatrix(Element):
     r"""
     An alternating sign matrix.
@@ -75,8 +75,6 @@ class AlternatingSignMatrix(Element):
        Volume 34, Issue 3, May 1983, Pages 340--359.
        http://www.sciencedirect.com/science/article/pii/0097316583900687
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, asm):
         """
@@ -135,9 +133,9 @@ class AlternatingSignMatrix(Element):
         """
         return repr(self._matrix)
 
-    def __eq__(self, other):
+    def _richcmp_(self, other, op):
         """
-        Check equality.
+        Do the comparison.
 
         EXAMPLES::
 
@@ -147,31 +145,12 @@ class AlternatingSignMatrix(Element):
             True
             sage: M == A([[1, 0, 0],[0, 0, 1],[0, 1, 0]])
             False
-        """
-        if isinstance(other, AlternatingSignMatrix):
-            return self._matrix == other._matrix
-        return self._matrix == other
-
-    def __ne__(self, other):
-        """
-        Check not equals. This is needed, see :trac:`14762`.
-
-        EXAMPLES::
-
             sage: A = AlternatingSignMatrices(3)
             sage: M = A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
             sage: M != A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
             False
             sage: M != A([[1, 0, 0],[0, 0, 1],[0, 1, 0]])
             True
-        """
-        return not self == other
-
-    def __le__(self, other):
-        """
-        Check less than or equal to. This is needed, see :trac:`15372`.
-
-        EXAMPLES::
 
             sage: A = AlternatingSignMatrices(3)
             sage: M = A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
@@ -180,56 +159,9 @@ class AlternatingSignMatrix(Element):
             sage: M <= A([[1, 0, 0],[0, 0, 1],[0, 1, 0]])
             False
         """
-        if isinstance(other, AlternatingSignMatrix):
-            return self._matrix <= other._matrix
-        return False #return False if other is not an ASM
-
-    def __lt__(self, other):
-        """
-        Check less than. This is needed, see :trac:`15372`.
-
-        EXAMPLES::
-
-            sage: A = AlternatingSignMatrices(3)
-            sage: M = A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
-            sage: M < A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
-            False
-        """
-        if isinstance(other, AlternatingSignMatrix):
-            return self._matrix < other._matrix
-        return False #return False if other is not an ASM
-
-    def __ge__(self, other):
-        """
-        Check greater than or equal to. This is needed, see :trac:`15372`.
-
-        EXAMPLES::
-
-            sage: A = AlternatingSignMatrices(3)
-            sage: M = A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
-            sage: M >= A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
-            True
-            sage: M >= A([[1, 0, 0],[0, 0, 1],[0, 1, 0]])
-            True
-        """
-        if isinstance(other, AlternatingSignMatrix):
-            return self._matrix >= other._matrix
-        return False #return False if other is not an ASM
-
-    def __gt__(self, other):
-        """
-        Check greater than. This is needed, see :trac:`15372`.
-
-        EXAMPLES::
-
-            sage: A = AlternatingSignMatrices(3)
-            sage: M = A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
-            sage: M > A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
-            False
-        """
-        if isinstance(other, AlternatingSignMatrix):
-            return self._matrix > other._matrix
-        return False #return False if other is not an ASM
+        if not isinstance(other, AlternatingSignMatrix):
+            return op == op_NE
+        return richcmp(self._matrix, other._matrix, op)
 
     def _latex_(self):
         r"""
@@ -1719,6 +1651,8 @@ from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.alternating_sign_matrix', 'AlternatingSignMatrices_n', AlternatingSignMatrices)
 register_unpickle_override('sage.combinat.alternating_sign_matrix', 'MonotoneTriangles_n', MonotoneTriangles)
 
+
+@add_metaclass(ClasscallMetaclass)
 class ContreTableaux(Parent):
     """
     Factory class for the combinatorial class of contre tableaux of size `n`.
@@ -1730,8 +1664,6 @@ class ContreTableaux(Parent):
         sage: ct4.cardinality()
         42
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, n, **kwds):
         r"""
@@ -1881,6 +1813,7 @@ def _previous_column_iterator(column, height, max_value):
     return _next_column_iterator(new_column, height)
 
 
+@add_metaclass(ClasscallMetaclass)
 class TruncatedStaircases(Parent):
     """
     Factory class for the combinatorial class of truncated staircases
@@ -1893,8 +1826,6 @@ class TruncatedStaircases(Parent):
         sage: t4.cardinality()
         4
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, n, last_column, **kwds):
         r"""

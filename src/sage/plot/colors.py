@@ -1092,7 +1092,7 @@ class ColorsDict(dict):
             sage: from sage.plot.colors import ColorsDict
             sage: cols = ColorsDict()
             sage: set([(type(c), type(cols[c])) for c in cols])
-            {(<type 'str'>, <class 'sage.plot.colors.Color'>)}
+            {(<... 'str'>, <class 'sage.plot.colors.Color'>)}
             sage: sorted(cols)
             ['aliceblue', 'antiquewhite', 'aqua', 'aquamarine', ...]
             sage: len(cols)
@@ -1174,7 +1174,7 @@ def hue(h, s=1, v=1):
 
         sage: p = Graphics()
         sage: for phi in xsrange(0, 2 * pi, 1 / pi):
-        ...       p += plot(sin(x + phi), (x, -7, 7), rgbcolor = hue(phi))
+        ....:     p += plot(sin(x + phi), (x, -7, 7), rgbcolor = hue(phi))
         sage: p
         Graphics object consisting of 20 graphics primitives
 
@@ -1607,7 +1607,7 @@ class Colormaps(collections.MutableMapping):
             sage: maps
             {...}
             sage: type(repr(maps))
-            <type 'str'>
+            <... 'str'>
         """
         self.load_maps()
         return repr(self.maps)

@@ -64,6 +64,7 @@ from sage.categories.monoids import Monoids
 from sage.rings.ideal import Ideal_generic
 import sage
 
+
 class IdealMonoid_nc(IdealMonoid_c):
     """
     Base class for the monoid of ideals over a non-commutative ring.
@@ -98,8 +99,8 @@ class IdealMonoid_nc(IdealMonoid_c):
 
         """
         self._IdealMonoid_c__R = R
-        Parent.__init__(self, base = sage.rings.integer_ring.ZZ,
-                        category = Monoids())
+        Parent.__init__(self, base=sage.rings.integer_ring.ZZ,
+                        category=Monoids())
         self._populate_coercion_lists_()
 
     def _element_constructor_(self, x):
@@ -139,9 +140,10 @@ class IdealMonoid_nc(IdealMonoid_c):
             x = x.gens()
         elif isinstance(x, Ideal_generic):
             x = x.gens()
-        y = self._IdealMonoid_c__R.ideal(x,side=side)
+        y = self._IdealMonoid_c__R.ideal(x, side=side)
         y._set_parent(self)
         return y
+
 
 class Ideal_nc(Ideal_generic):
     """
@@ -186,7 +188,7 @@ class Ideal_nc(Ideal_generic):
          of Full MatrixSpace of 2 by 2 dense matrices over Rational Field
 
     """
-    def __init__(self, ring, gens, coerce=True, side = "twosided"):
+    def __init__(self, ring, gens, coerce=True, side="twosided"):
         """
         Initialize ``self``.
 
@@ -229,7 +231,7 @@ class Ideal_nc(Ideal_generic):
              of Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
 
         """
-        if side not in ['left','right','twosided']:
+        if side not in ['left', 'right', 'twosided']:
             raise ValueError("Ideals are left, right or twosided, but not %s" % side)
         self.__side = side
         Ideal_generic.__init__(self, ring, gens, coerce=coerce)
@@ -249,9 +251,10 @@ class Ideal_nc(Ideal_generic):
             Twosided Ideal (Sq(2) + Sq(4), Sq(1,1)) of mod 2 Steenrod algebra, milnor basis
 
         """
-        return "%s Ideal %s of %s"%(self.__side.capitalize(),self._repr_short(),self.ring())
+        return "%s Ideal %s of %s" % (self.__side.capitalize(),
+                                      self._repr_short(), self.ring())
 
-    def __cmp__(self, right):
+    def __eq__(self, right):
         """
         Ideals of different sidedness do not compare equal. Apart from
         that, the generators are compared.
@@ -262,21 +265,40 @@ class Ideal_nc(Ideal_generic):
              sage: IR = [A.1+A.2,A.1^2]*A
              sage: IL = A*[A.1+A.2,A.1^2]
              sage: IT = A*[A.1+A.2,A.1^2]*A
-             sage: IT==IL
+             sage: IT == IL
              False
-             sage: IR==[A.1+A.2,A.1^2]*A
+             sage: IR == [A.1+A.2,A.1^2]*A
              True
 
         """
-        if not isinstance(right,Ideal_nc):
-            return -1
-        c = cmp(self.side(),right.side())
-        if c: return c
+        if not isinstance(right, Ideal_nc):
+            return False
+        if self.side() != right.side():
+            return False
         S = set(self.gens())
         T = set(right.gens())
         if S == T:
-            return 0
-        return cmp(self.gens(), right.gens())
+            return True
+        return False
+
+    def __ne__(self, right):
+        """
+        Ideals of different sidedness do not compare equal. Apart from
+        that, the generators are compared.
+
+        EXAMPLES::
+
+             sage: A = SteenrodAlgebra(2)
+             sage: IR = [A.1+A.2,A.1^2]*A
+             sage: IL = A*[A.1+A.2,A.1^2]
+             sage: IT = A*[A.1+A.2,A.1^2]*A
+             sage: IT != IL
+             True
+             sage: IR != [A.1+A.2,A.1^2]*A
+             False
+
+        """
+        return not self.__eq__(right)
 
     def side(self):
         """
@@ -343,13 +365,13 @@ class Ideal_nc(Ideal_generic):
             # Perhaps other is a ring and thus has its own
             # multiplication.
             if other == self.ring():
-                if self.side()=='right':
+                if self.side() == 'right':
                     return self
-                return self.ring().ideal(self.gens(),side='twosided')
+                return self.ring().ideal(self.gens(), side='twosided')
         if not isinstance(self, Ideal_nc):
             # This may happen...
             if self == other.ring():
-                if other.side()=='left':
+                if other.side() == 'left':
                     return other
-                return other.ring().ideal(other.gens(),side='twosided')
+                return other.ring().ideal(other.gens(), side='twosided')
         raise NotImplementedError("Can not multiply non-commutative ideals.")

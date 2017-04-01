@@ -71,7 +71,7 @@ class CurveArrow(GraphicPrimitive):
         EXAMPLES::
 
              sage: from sage.plot.arrow import CurveArrow
-             sage: list(sorted(CurveArrow(path=[[(0,0),(2,3)]],options={})._allowed_options().iteritems()))
+             sage: list(sorted(CurveArrow(path=[[(0,0),(2,3)]],options={})._allowed_options().items()))
              [('arrowsize', 'The size of the arrowhead'),
              ('arrowstyle', 'todo'),
              ('head', '2-d only: Which end of the path to draw the head (one of 0 (start), 1 (end) or 2 (both)'),
@@ -206,7 +206,7 @@ class Arrow(GraphicPrimitive):
         EXAMPLES::
 
              sage: from sage.plot.arrow import Arrow
-             sage: list(sorted(Arrow(0,0,2,3,{})._allowed_options().iteritems()))
+             sage: list(sorted(Arrow(0,0,2,3,{})._allowed_options().items()))
              [('arrowshorten', 'The length in points to shorten the arrow.'),
              ('arrowsize', 'The size of the arrowhead'),
              ('head',

@@ -1364,7 +1364,7 @@ Other design goals include:
 Upcoming features
 =================
 
-.. TODO:
+.. TODO::
 
     - Implement compatibility axiom / functorial constructions. For
       example, one would want to have::
@@ -1685,6 +1685,7 @@ all_axioms += ("Flying", "Blue",
                "AdditiveCommutative", "AdditiveAssociative", "AdditiveInverse", "AdditiveUnital",
                "Distributive",
                "Endset",
+               "Pointed"
               )
 
 def uncamelcase(s,separator=" "):

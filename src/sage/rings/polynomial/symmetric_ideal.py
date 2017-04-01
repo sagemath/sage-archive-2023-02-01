@@ -261,7 +261,7 @@ class SymmetricIdeal( Ideal_generic ):
         polynomials. Hence, when multiplying two symmetric ideals, it
         does not suffice to simply multiply the respective generators.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: X.<x> = InfinitePolynomialRing(QQ)
             sage: I=X*(x[1])

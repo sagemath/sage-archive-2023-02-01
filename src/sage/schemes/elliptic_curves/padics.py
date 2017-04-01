@@ -127,7 +127,7 @@ def padic_lseries(self, p, normalize = None, use_eclib = None, implementation = 
 
     -  ``use_eclib`` - deprecated, use ``implementation`` instead
 
-    - ``implementation`` - 'eclib' (default), 'sage', 'pollackstevens';
+    -  ``implementation`` - 'eclib' (default), 'sage', 'pollackstevens';
        Whether to use John Cremona's eclib, the Sage implementation,
        or Pollack-Stevens' implementation of overconvergent
        modular symbols.
@@ -252,8 +252,10 @@ def padic_regulator(self, p, prec=20, height=None, check_hypotheses=True):
 
     If the rank is 0, we output 1.
 
-    TODO: - remove restriction that curve must be in minimal
-    Weierstrass form. This is currently required for E.gens().
+    .. TODO::
+
+        Remove restriction that curve must be in minimal
+        Weierstrass form. This is currently required for E.gens().
 
     AUTHORS:
 
@@ -364,8 +366,10 @@ def padic_height_pairing_matrix(self, p, prec=20, height=None, check_hypotheses=
     OUTPUT: The p-adic cyclotomic height pairing matrix of this curve
     to the given precision.
 
-    TODO: - remove restriction that curve must be in minimal
-    Weierstrass form. This is currently required for E.gens().
+    .. TODO::
+
+        remove restriction that curve must be in minimal
+        Weierstrass form. This is currently required for E.gens().
 
     AUTHORS:
 
@@ -1382,9 +1386,11 @@ def padic_E2(self, p, prec=20, check=False, check_hypotheses=True, algorithm="au
        then the result will not be returned mod `p^\text{prec}`,
        but it still *will* have prec *digits* of precision.
 
-    TODO: - Once we have a better implementation of the "standard"
-    algorithm, the algorithm selection strategy for "auto" needs to be
-    revisited.
+    .. TODO::
+
+        Once we have a better implementation of the "standard"
+        algorithm, the algorithm selection strategy for "auto" needs to be
+        revisited.
 
     AUTHORS:
 

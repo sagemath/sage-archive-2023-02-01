@@ -47,11 +47,6 @@ vertex.
    inherits its methods.  Some of those methods are not listed here;
    see the :mod:`Generic Cell Complex <sage.homology.cell_complex>`
    page instead.
-
-REFERENCES:
-
-- [Hat2002]_
-- [EZ1950]_
 """
 from __future__ import absolute_import
 

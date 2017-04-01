@@ -304,7 +304,7 @@ class GlobalCputime:
 
     - Martin Albrecht - (2008-12): initial version
 
-    EXAMPLE:
+    EXAMPLES:
 
     Objects of this type are returned if ``subprocesses=True`` is
     passed to :func:`cputime`::
@@ -338,7 +338,7 @@ class GlobalCputime:
         Create a new CPU time object which also keeps track of
         subprocesses.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.misc.misc import GlobalCputime
             sage: ct = GlobalCputime(0.0); ct
@@ -350,7 +350,7 @@ class GlobalCputime:
 
     def __repr__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: cputime(subprocesses=True) # indirect doctest, output random
             0.2347431
@@ -359,7 +359,7 @@ class GlobalCputime:
 
     def __add__(self, other):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: t = cputime(subprocesses=True)
             sage: P = PolynomialRing(QQ,7,'x')
@@ -375,7 +375,7 @@ class GlobalCputime:
 
     def __sub__(self, other):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: t = cputime(subprocesses=True)
             sage: P = PolynomialRing(QQ,7,'x')
@@ -391,7 +391,7 @@ class GlobalCputime:
 
     def __float__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: t = cputime(subprocesses=True)
             sage: float(t) #output somewhat random
@@ -456,7 +456,7 @@ def verbose(mesg="", t=0, level=1, caller_name=None):
     OUTPUT: possibly prints a message to stdout; also returns
     cputime()
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: set_verbose(1)
         sage: t = cputime()
@@ -1662,7 +1662,7 @@ class AttrCallObject(object):
             sage: hash(x)       # random # indirect doctest
             210434060
             sage: type(hash(x))
-            <type 'int'>
+            <... 'int'>
             sage: y = attrcall('core', 3, blah = 1, flatten = True)
             sage: hash(y) == hash(x)
             True

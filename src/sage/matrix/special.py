@@ -2058,7 +2058,7 @@ def jordan_block(eigenvalue, size, sparse=False):
     -  ``sparse`` - (default: False) - if True, return a sparse matrix
 
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: jordan_block(5, 3)
         [5 1 0]
@@ -2392,7 +2392,7 @@ def random_rref_matrix(parent, num_pivots):
     Billy Wonderly (2010-07)
     """
 
-    import sage.gsl.probability_distribution as pd
+    import sage.probability.probability_distribution as pd
     from sage.misc.prandom import randint
 
     try:
@@ -2697,7 +2697,7 @@ def random_subspaces_matrix(parent, rank=None):
 
     OUTPUT:
 
-    A matrix whose natrual basis vectors for its four subspaces, when
+    A matrix whose natural basis vectors for its four subspaces, when
     computed, have reasonably sized, integral valued, entries.
 
     .. note::
@@ -2833,7 +2833,7 @@ def random_subspaces_matrix(parent, rank=None):
     Billy Wonderly (2010-07)
     """
 
-    import sage.gsl.probability_distribution as pd
+    import sage.probability.probability_distribution as pd
 
     ring = parent.base_ring()
     rows = parent.nrows()

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 The Chow group of a toric variety
 

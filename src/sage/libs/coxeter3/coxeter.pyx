@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Low level part of the interface to Fokko Ducloux's Coxeter 3 library
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Coercion Maps Between Hyperbolic Plane Models
 

@@ -4,7 +4,7 @@ Educational version of the `d`-Groebner Basis Algorithm over PIDs.
 No attempt was made to optimize this algorithm as the emphasis of this
 implementation is a clean and easy presentation.
 
-.. note::
+.. NOTE::
 
    The notion of 'term' and 'monomial' in [BW93]_ is swapped from the
    notion of those words in Sage (or the other way around, however you
@@ -84,10 +84,12 @@ there are 4 equations in 3 unknowns).::
     [1]
 
 However, when we compute the Groebner basis of I (defined over `\ZZ`), we
-note that there is a certain integer in the ideal which is not 1.::
+note that there is a certain integer in the ideal which is not 1::
 
-    sage: d_basis(I) # random -- waiting on upstream singular fixes at #6051
-    [x + 170269749119, y + 2149906854, z + ..., 282687803443]
+    sage: gb = d_basis(I); gb
+    [x ..., y ..., z ..., 282687803443]
+    sage: [p.monomials() for p in gb]
+    [[x, 1], [y, 1], [z, 1], [1]]
 
 Now for each prime `p` dividing this integer 282687803443, the Groebner
 basis of I modulo `p` will be non-trivial and will thus give a solution
@@ -115,13 +117,13 @@ AUTHOR:
 
 - Martin Albrecht (2008-08): initial version
 """
-
 from sage.rings.integer_ring import ZZ
 from sage.arith.all import xgcd, lcm, gcd
 from sage.rings.polynomial.toy_buchberger import inter_reduction
 from sage.structure.sequence import Sequence
 
-def spol(g1,g2):
+
+def spol(g1, g2):
     """
     Return S-Polynomial of ``g_1`` and ``g_2``.
 
@@ -153,7 +155,8 @@ def spol(g1,g2):
 
     return b1*s1*g1 - b2*s2*g2
 
-def gpol(g1,g2):
+
+def gpol(g1, g2):
     """
     Return G-Polynomial of ``g_1`` and ``g_2``.
 
@@ -187,6 +190,7 @@ def gpol(g1,g2):
 
 LM = lambda f: f.lm()
 LC = lambda f: f.lc()
+
 
 def d_basis(F, strat=True):
     r"""
@@ -259,6 +263,7 @@ def d_basis(F, strat=True):
 
     return Sequence(sorted(inter_reduction(G),reverse=True))
 
+
 def select(P):
     """
     The normal selection strategy.
@@ -291,7 +296,8 @@ def select(P):
             min_pair = fi,fj
     return min_pair
 
-def update(G,B,h):
+
+def update(G, B, h):
     """
     Update ``G`` using the list of critical pairs ``B`` and the
     polynomial ``h`` as presented in [BW93]_, page 230. For this,
@@ -371,4 +377,4 @@ def update(G,B,h):
 
     G_new.add(h)
 
-    return G_new,B_new
+    return G_new, B_new

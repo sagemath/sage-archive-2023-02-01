@@ -542,7 +542,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         s = self.str().replace('*I', 'i').replace('infinity','\\infty')
         return re.sub(r"e(-?\d+)", r" \\times 10^{\1}", s)
 
-    def _pari_(self):
+    def __pari__(self):
         r"""
         Coerces ``self`` into a PARI ``t_COMPLEX`` object,
         or a ``t_REAL`` if ``self`` is real.
@@ -558,9 +558,9 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             't_COMPLEX'
             sage: type(pari(a))
             <type 'sage.libs.cypari2.gen.Gen'>
-            sage: a._pari_()
+            sage: a.__pari__()
             2.00000000000000 + 1.00000000000000*I
-            sage: type(a._pari_())
+            sage: type(a.__pari__())
             <type 'sage.libs.cypari2.gen.Gen'>
             sage: a = CC(pi)
             sage: pari(a)
@@ -572,7 +572,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             1.41421356237310*I
         """
         if self.is_real():
-            return self.real()._pari_()
+            return self.real().__pari__()
         return sage.libs.pari.all.pari.complex(self.real() or 0, self.imag())
 
     def _mpmath_(self, prec=None, rounding=None):
@@ -1243,7 +1243,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: (1+CC(I)).arccos()
             0.904556894302381 - 1.06127506190504*I
         """
-        return self._parent(self._pari_().acos())
+        return self._parent(self.__pari__().acos())
 
     def arccosh(self):
         """
@@ -1254,7 +1254,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: (1+CC(I)).arccosh()
             1.06127506190504 + 0.904556894302381*I
         """
-        return self._parent(self._pari_().acosh())
+        return self._parent(self.__pari__().acosh())
 
     def arcsin(self):
         """
@@ -1265,7 +1265,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: (1+CC(I)).arcsin()
             0.666239432492515 + 1.06127506190504*I
         """
-        return self._parent(self._pari_().asin())
+        return self._parent(self.__pari__().asin())
 
     def arcsinh(self):
         """
@@ -1276,7 +1276,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: (1+CC(I)).arcsinh()
             1.06127506190504 + 0.666239432492515*I
         """
-        return self._parent(self._pari_().asinh())
+        return self._parent(self.__pari__().asinh())
 
     def arctan(self):
         """
@@ -1287,7 +1287,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: (1+CC(I)).arctan()
             1.01722196789785 + 0.402359478108525*I
         """
-        return self._parent(self._pari_().atan())
+        return self._parent(self.__pari__().atan())
 
     def arctanh(self):
         """
@@ -1298,7 +1298,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: (1+CC(I)).arctanh()
             0.402359478108525 + 1.01722196789785*I
         """
-        return self._parent(self._pari_().atanh())
+        return self._parent(self.__pari__().atanh())
 
     def coth(self):
         """
@@ -1525,7 +1525,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             0.742048775836565 + 0.198831370229911*I
         """
         try:
-            return self._parent(self._pari_().eta(not omit_frac))
+            return self._parent(self.__pari__().eta(not omit_frac))
         except sage.libs.pari.all.PariError:
             raise ValueError("value must be in the upper half plane")
 
@@ -1760,8 +1760,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
         """
         if algorithm=="pari":
-            t = self._parent(right)._pari_()
-            return self._parent(self._pari_().agm(t))
+            t = self._parent(right).__pari__()
+            return self._parent(self.__pari__().agm(t))
 
         cdef ComplexNumber a, b, a1, b1, d, e, res
         cdef mp_exp_t rel_prec
@@ -1958,7 +1958,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: c.dilog()
             0.000000000000000
         """
-        return self._parent(self._pari_().dilog())
+        return self._parent(self.__pari__().dilog())
 
     def exp(ComplexNumber self):
         r"""
@@ -2005,7 +2005,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             Infinity
         """
         try:
-            return self._parent(self._pari_().gamma())
+            return self._parent(self.__pari__().gamma())
         except sage.libs.pari.all.PariError:
             from sage.rings.infinity import UnsignedInfinityRing
             return UnsignedInfinityRing.gen()
@@ -2036,7 +2036,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             0.121515644664508695525971545977439666159749344176962379708992904126499444842886620664991650378432544392118359044438541515 + 0.101533909079826033296475736021224621546966200987295663190553587086145836461236284668967411665020429964946098113930918850*I
 
         """
-        return self._parent(self._pari_().incgam(t, precision=self.prec()))
+        return self._parent(self.__pari__().incgam(t, precision=self.prec()))
 
     def log(self,base=None):
         r"""
@@ -2358,7 +2358,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         if mpfr_zero_p(self.__im) and mpfr_cmp_ui(self.__re, 1) == 0:
             return infinity.unsigned_infinity
-        return self._parent(self._pari_().zeta())
+        return self._parent(self.__pari__().zeta())
 
     def algdep(self, n, **kwds):
         """

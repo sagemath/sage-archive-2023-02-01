@@ -85,8 +85,9 @@ EOF
 
 # error_msg(header, command)
 # This is for printing an error message if something went wrong.
-# The first argument is the header to print, the second argument should
-# be some proposed command to run in the subshell, e.g. "make".
+# The first argument is the header to print. If given, the second
+# argument should be some proposed command to run in the subshell
+# such as "make".
 error_msg()
 {
 cat >&2 <<MESSAGE
@@ -94,15 +95,23 @@ cat >&2 <<MESSAGE
 $1
 ************************************************************************
 Please email sage-devel (http://groups.google.com/group/sage-devel)
-explaining the problem and including the relevant part of the log file
+explaining the problem and including the log file
   $SAGE_LOGS/$PKG_NAME.log
 Describe your computer, operating system, etc.
+MESSAGE
+
+if [ -n "$2" ]; then
+cat >&2 <<MESSAGE
 If you want to try to fix the problem yourself, *don't* just cd to
 `pwd` and type '$2' or whatever is appropriate.
 Instead, the following commands setup all environment variables
 correctly and load a subshell for you to debug the error:
   (cd '`pwd`' && '$SAGE_ROOT/sage' --sh)
 When you are done debugging, you can type "exit" to leave the subshell.
+MESSAGE
+fi
+
+cat >&2 <<MESSAGE
 ************************************************************************
 MESSAGE
 }
@@ -145,8 +154,7 @@ fi
 . sage-env
 
 if [ $? -ne 0 ]; then
-    echo >&2 "Error setting environment variables by sourcing sage-env."
-    echo >&2 "possibly contact sage-devel (see http://groups.google.com/group/sage-devel)."
+    error_msg "Error setting environment variables by sourcing sage-env"
     exit 1
 fi
 
@@ -156,7 +164,7 @@ fi
 
 mkdir -p "$SAGE_SPKG_INST"
 if [ $? -ne 0 ]; then
-    echo >&2 "Error creating directory $SAGE_SPKG_INST."
+    error_msg "Error creating directory $SAGE_SPKG_INST"
     exit 1
 fi
 
@@ -348,7 +356,10 @@ fi
 if [ ! -f "$PKG_SRC" ]; then
     if [ -n "$PKG_NAME_UPSTREAM" ]; then
         # This is the new-style package way of downloading the tarball
-        sage-download-file $PKG_NAME_UPSTREAM || exit $?
+        if ! sage-download-file "$PKG_NAME_UPSTREAM"; then
+            error_msg "Error downloading $PKG_NAME_UPSTREAM"
+            exit 1
+        fi
         PKG_SRC="$SAGE_DISTFILES/$PKG_NAME_UPSTREAM"
     else
         # Handle all the legacy cruft. This branch can be deleted once
@@ -372,6 +383,7 @@ if [ ! -f "$PKG_SRC" ]; then
             # like "foo" or "foo-1.2.3".
             MIRROR=$(sage-download-file --print-fastest-mirror)/spkg
             if [ $? -ne 0 ]; then
+                error_msg "Error downloading list of packages"
                 exit 1
             fi
             for repo in optional experimental huge; do
@@ -382,6 +394,7 @@ if [ ! -f "$PKG_SRC" ]; then
                 sage-download-file --quiet "$MIRROR/$repo/list" $repolist
                 if [ $? -ne 0 ]; then
                     rm -f $repolist
+                    error_msg "Error downloading $MIRROR/$repo/list"
                     exit 1
                 fi
 
@@ -478,7 +491,7 @@ EOF
         # Trac #5852: check write permissions
         mkdir -p "$SAGE_DISTFILES"
         if [ ! -w "$SAGE_DISTFILES" ]; then
-            echo >&2 "Error: no write access to packages directory $SAGE_PACKAGES."
+            error_msg "Error: no write access to packages directory $SAGE_PACKAGES"
             exit 1
         fi
         cd "$SAGE_DISTFILES" || exit $?
@@ -491,6 +504,7 @@ EOF
         if [ $? -ne 0 ]; then
             # Delete failed download
             rm -f "$PKG_TMP"
+            error_msg "Error downloading $PKG_URL"
             exit 1
         fi
 
@@ -516,7 +530,7 @@ cd "$SAGE_ROOT" || exit $?
 if [ -n "$SAGE_SPKG_COPY_UPSTREAM" ]; then
     mkdir -p "$SAGE_SPKG_COPY_UPSTREAM" && cp -p "$PKG_SRC" "$SAGE_SPKG_COPY_UPSTREAM"
     if [ $? -ne 0 ]; then
-        echo >&2 "Failed to copy upstream tarball to directory '$SAGE_SPKG_COPY_UPSTREAM'"
+        error_msg "Error copying upstream tarball to directory '$SAGE_SPKG_COPY_UPSTREAM'"
         exit 1
     fi
 fi
@@ -532,7 +546,7 @@ if [ $INFO -ne 0 -a -z "$USE_LOCAL_SCRIPTS" ]; then
         cat "$PKG_SCRIPTS/SPKG.txt"
     sage-uncompress-spkg "$PKG_SRC" "$PKG_NAME/SPKG.txt"
     if [ $? -ne 0 ]; then
-        echo >&2 "No file SPKG.txt in $PKG_NAME"
+        error_msg "Error: no file SPKG.txt in $PKG_NAME"
         exit 1
     fi
     exit 0
@@ -544,13 +558,13 @@ fi
 
 mkdir -p "$SAGE_BUILD_DIR"
 if [ $? -ne 0 ]; then
-    echo >&2 "Error creating directory $SAGE_BUILD_DIR."
+    error_msg "Error creating directory $SAGE_BUILD_DIR"
     exit 1
 fi
 
 # Trac #5852: check write permissions
 if [ ! -w "$SAGE_BUILD_DIR" ]; then
-    echo >&2 "Error: no write access to build directory $SAGE_BUILD_DIR."
+    error_msg "Error: no write access to build directory $SAGE_BUILD_DIR"
     exit 1
 fi
 if [ ! -d "$SAGE_LOCAL" ]; then
@@ -558,7 +572,7 @@ if [ ! -d "$SAGE_LOCAL" ]; then
     mkdir "$SAGE_LOCAL"
 fi
 if [ ! -w "$SAGE_LOCAL" ]; then
-    echo >&2 "Error: no write access to installation directory $SAGE_LOCAL."
+    error_msg "Error: no write access to installation directory $SAGE_LOCAL"
     exit 1
 fi
 
@@ -577,7 +591,7 @@ else
         echo "Moving old directory $PKG_NAME to $SAGE_BUILD_DIR/old..."
         mkdir -p old
         if [ $? -ne 0 ]; then
-            echo >&2 "Error creating directory $SAGE_BUILD_DIR/old."
+            error_msg "Error creating directory $SAGE_BUILD_DIR/old"
             exit 1
         fi
         rm -rf old/"$PKG_NAME"
@@ -586,7 +600,7 @@ else
 fi
 
 if [ -e "$PKG_NAME" ]; then
-    echo >&2 "Error (re)moving $PKG_NAME"
+    error_msg "Error (re)moving $PKG_NAME"
     exit 1
 fi
 
@@ -602,7 +616,7 @@ if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
 
     sage-uncompress-spkg -d src "$PKG_SRC"
     if [ $? -ne 0 ]; then
-        echo >&2 "Error: failed to extract $PKG_SRC"
+        error_msg "Error: failed to extract $PKG_SRC"
         exit 1
     fi
 else
@@ -612,13 +626,13 @@ else
 
     sage-uncompress-spkg "$PKG_SRC"
     if [ $? -ne 0 ]; then
-        echo >&2 "Error: failed to extract $PKG_SRC"
+        error_msg "Error: failed to extract $PKG_SRC"
         exit 1
     fi
 
     cd "$PKG_NAME"
     if [ $? -ne 0 ]; then
-        echo >&2 "Error: after extracting, the directory '$PKG_NAME' does not exist"
+        error_msg "Error: after extracting, the directory '$PKG_NAME' does not exist"
         exit 1
     fi
 fi
@@ -626,7 +640,10 @@ fi
 echo "Finished extraction"
 
 cd src
-sage-apply-patches || exit 1
+if ! sage-apply-patches; then
+    error_msg "Error applying patches"
+    exit 1
+fi
 cd ..
 
 ##################################################################
@@ -706,14 +723,6 @@ export rsync_proxy=$http_proxy
 ##################################################################
 # Actually install
 ##################################################################
-if [ -r spkg-build ]; then
-    # Package has both spkg-build and spkg-install
-    if [ ! -x spkg-build ]; then
-	echo >&2 "WARNING: spkg-build is not executable, making it executable"
-	chmod +x spkg-build
-    fi
-fi
-
 if [ ! -x spkg-install ]; then
     echo >&2 "WARNING: spkg-install is not executable, making it executable"
     chmod +x spkg-install
@@ -723,20 +732,20 @@ if [ -x spkg-build ]; then
     # Package has both spkg-build and spkg-install; execute the latter with SAGE_SUDO
     time ./spkg-build
     if [ $? -ne 0 ]; then
-	error_msg "Error building package $PKG_NAME" "make"
-	exit 1
+        error_msg "Error building package $PKG_NAME" "make"
+        exit 1
     fi
     time $SAGE_SUDO ./spkg-install
     if [ $? -ne 0 ]; then
-	error_msg "Error installing package $PKG_NAME" "make"
-	exit 1
+        error_msg "Error installing package $PKG_NAME" "make"
+        exit 1
     fi
 else
     # Package only has spkg-install
     time ./spkg-install
     if [ $? -ne 0 ]; then
-	error_msg "Error installing package $PKG_NAME" "make"
-	exit 1
+        error_msg "Error installing package $PKG_NAME" "make"
+        exit 1
     fi
 fi
 

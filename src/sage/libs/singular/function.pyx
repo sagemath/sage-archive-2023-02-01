@@ -282,7 +282,7 @@ cdef class RingWrap:
             sage: l = ringlist(P)
             sage: ring = singular_function("ring")
             sage: ring(l, ring=P)._output()
-            //   characteristic : 0
+            //   coefficients: QQ
             //   number of vars : 3
             //        block   1 : ordering dp
             //                  : names    x y z
@@ -1322,13 +1322,13 @@ cdef class SingularFunction(SageObject):
             raise TypeError("Cannot call Singular function '%s' with ring parameter of type '%s'"%(self._name,type(ring)))
         return call_function(self, args, ring, interruptible, attributes)
 
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         EXAMPLES::
 
             sage: from sage.libs.singular.function import singular_function
             sage: groebner = singular_function('groebner')
-            sage: 'groebner' in groebner._sage_doc_()
+            sage: 'groebner' in groebner.__doc__
             True
         """
 
@@ -1876,3 +1876,10 @@ cdef inline RingWrap new_RingWrap(ring* r):
     ring_wrap_result._ring.ref += 1
 
     return ring_wrap_result
+
+
+# Add support for _instancedoc_
+from sage.docs.instancedoc import instancedoc
+instancedoc(SingularFunction)
+instancedoc(SingularLibraryFunction)
+instancedoc(SingularKernelFunction)

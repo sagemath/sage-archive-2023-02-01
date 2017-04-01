@@ -4868,77 +4868,47 @@ class Polyhedron_base(Element):
                 box_min.append(min_coord)
         return (tuple(box_min), tuple(box_max))
 
-    def integral_points_count(self, verbose=False, use_Hrepresentation=False, **kwds):
+    def integral_points_count(self, **kwds):
         r"""
         Return the number of integral points in the polyhedron.
 
-        This method uses the optional package ``latte_int``.
-
-        INPUT:
-
-        - ``verbose`` (boolean; ``False`` by default) -- whether to display
-          verbose output.
-
-        - ``use_Hrepresentation`` - (boolean; ``False`` by default) -- whether
-          to send the H or V representation to LattE
-
-        .. SEEALSO::
-
-            :mod:`~sage.interfaces.latte` the interface to LattE interfaces
+        This generic version of this method simply calls ``integral_points``.
 
         EXAMPLES::
 
             sage: P = polytopes.cube()
-            sage: P.integral_points_count() # optional - latte_int
-            27
-            sage: P.integral_points_count(verbose=True) # optional - latte_int
-            This is LattE integrale...
-            ...
-            Total time:...
+            sage: P.integral_points_count()
             27
 
         We shrink the polyhedron a little bit::
 
             sage: Q = P*(8/9)
-            sage: Q.integral_points_count() # optional - latte_int
+            sage: Q.integral_points_count()
             1
 
-        This no longer works if the coordinates are not rationals::
+        Same for a polyhedron whose coordinates are not rationals.  Note that
+        the answer is an integer even though there are no guarantees for
+        exactness::
 
             sage: Q = P*RDF(8/9)
-            sage: Q.integral_points_count() # optional - latte_int
-            Traceback (most recent call last):
-            ...
-            RuntimeError: LattE integrale program failed (exit code 1):
-            ...
-            Invocation: count '--redundancy-check=none' --cdd /dev/stdin
-            ...
-            Parse error in CDD-style input file /dev/stdin
-            sage: Q.integral_points_count(verbose=True) # optional - latte_int
-            Traceback (most recent call last):
-            ...
-            RuntimeError: LattE integrale program failed (exit code 1), see error message above
-
-        TESTS:
-
-        We check that :trac:`21491` is fixed::
-
-            sage: P = Polyhedron(ieqs=[], eqns=[[-10,0,1],[-10,1,0]])
-            sage: P.integral_points_count() # optional - latte_int
+            sage: Q.integral_points_count()
             1
-            sage: P = Polyhedron(ieqs=[], eqns=[[-11,0,2],[-10,1,0]])
-            sage: P.integral_points_count() # optional - latte_int
-            0
-        """
-        if self.is_empty():
-            return 0
 
-        from sage.interfaces.latte import count
-        return count(
-                self.cdd_Hrepresentation() if use_Hrepresentation else self.cdd_Vrepresentation(),
-                cdd=True,
-                verbose=verbose,
-                **kwds)
+        Unbounded polyhedra (with or without lattice points) are not supported::
+
+            sage: P = Polyhedron(vertices=[[1/2, 1/3]], rays=[[1, 1]])
+            sage: P.integral_points_count()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: ...
+            sage: P = Polyhedron(vertices=[[1, 1]], rays=[[1, 1]])
+            sage: P.integral_points_count()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: ...
+
+        """
+        return len(self.integral_points())
 
     def integral_points(self, threshold=100000):
         r"""

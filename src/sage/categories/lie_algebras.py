@@ -259,7 +259,7 @@ class LieAlgebras(Category_over_base_ring):
 
         @abstract_method(optional=True)
         def module(self):
-            """
+            r"""
             Return an `R`-module which is isomorphic to the
             underlying `R`-module of ``self``.
 

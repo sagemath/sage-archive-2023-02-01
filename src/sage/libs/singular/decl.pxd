@@ -484,8 +484,8 @@ cdef extern from "singular/Singular/libsingular.h":
 
     ring *rDefault(int char , int nvars, char **names)
     ring *rDefault(const n_Procs_s* cf, int nvars, char **names)
-    ring *rDefault(int ch             , int nvars, char **names,int ord_size, int *ord, int *block0, int *block1, int **wvhdl)
-    ring *rDefault(const n_Procs_s* cf, int nvars, char **names,int ord_size, int *ord, int *block0, int *block1, int **wvhdl)
+    ring *rDefault(int ch             , int nvars, char **names,int ord_size, rRingOrder_t *ord, int *block0, int *block1, int **wvhdl)
+    ring *rDefault(const n_Procs_s* cf, int nvars, char **names,int ord_size, rRingOrder_t *ord, int *block0, int *block1, int **wvhdl)
 
 
 

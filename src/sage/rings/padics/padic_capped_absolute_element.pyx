@@ -105,7 +105,7 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
         mpz_set(ans.value, self.value)
         return ans
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Conversion to pari.
 

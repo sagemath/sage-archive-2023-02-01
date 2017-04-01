@@ -1184,21 +1184,6 @@ cdef class Map(Element):
         else:
             return self.post_compose(connecting.__copy__())
 
-    def is_injective(self):
-        """
-        Tells whether the map is injective (not implemented in the base class).
-
-        TEST::
-
-            sage: from sage.categories.map import Map
-            sage: f = Map(Hom(QQ, ZZ, Rings()))
-            sage: f.is_injective()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: <type 'sage.categories.map.Map'>
-        """
-        raise NotImplementedError(type(self))
-
     def is_surjective(self):
         """
         Tells whether the map is surjective (not implemented in the base class).

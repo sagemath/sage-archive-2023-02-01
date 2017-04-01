@@ -1020,7 +1020,7 @@ cdef class PowerSeries_poly(PowerSeries):
 
         # first, try reversion with pari; this is faster than Lagrange inversion
         try:
-            f2 = f._pari_()
+            f2 = f.__pari__()
             g = f2.serreverse()
             return PowerSeries_poly(f.parent(), g.Vec(-out_prec), out_prec)
         except (TypeError,ValueError,AttributeError,PariError):

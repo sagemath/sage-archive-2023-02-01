@@ -7,7 +7,7 @@ if [ -z "$SAGE_LOCAL" ]; then
 fi
 
 if [ "$SAGE_PYTHON3" = yes ]; then
-    echo "Skipping SageNB since it is not Python compatible"
+    echo "Skipping SageNB since it is not Python3 compatible"
     exit 0
 fi
 

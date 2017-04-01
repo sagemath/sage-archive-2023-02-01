@@ -7,24 +7,17 @@ AUTHORS:
 
 REFERENCES:
 
-.. [Bourbaki1989]_ N. Bourbaki. *Lie Groups and Lie Algebras*. Chapers 1-3.
-   Springer. 1989.
-
-.. [Reutenauer2003] Christophe Reutenauer. *Free Lie algebras*. 2003.
+- [Bou1989]_
+- [Reu2003]_
 """
 
 #*****************************************************************************
-#  Copyright (C) 2013 Travis Scrimshaw <tscrim@ucdavis.edu>
+#       Copyright (C) 2013-2017 Travis Scrimshaw <tcscrims at gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty
-#    of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-#
-#  See the GNU General Public License for more details; the full text
-#  is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -33,38 +26,21 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.bindable_class import BindableClass
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.indexed_generators import IndexedGenerators
-
+from sage.structure.indexed_generators import (IndexedGenerators,
+                                               standardize_names_index_set)
 from sage.categories.realizations import Realizations, Category_realization_of_parent
 from sage.categories.lie_algebras import LieAlgebras
 from sage.categories.homset import Hom
 
 from sage.algebras.free_algebra import FreeAlgebra
 from sage.algebras.lie_algebras.lie_algebra import LieAlgebra, FinitelyGeneratedLieAlgebra
-from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator, \
-    GradedLieBracket, LieAlgebraElement
+from sage.algebras.lie_algebras.lie_algebra_element import (LieGenerator,
+                                                            GradedLieBracket,
+                                                            LyndonBracket,
+                                                            FreeLieAlgebraElement)
 from sage.algebras.lie_algebras.morphism import LieAlgebraHomomorphism_im_gens
 
 from sage.rings.all import ZZ
-
-class LyndonBracket(GradedLieBracket):
-    """
-    Lie bracket for the Lyndon basis where the order is defined by `l < r`
-    if `w(l) < w(r)` where `w(l)` is the word corresponding to `l`.
-    """
-    def __lt__(self, rhs):
-        """
-        Compare less than.
-
-        EXAMPLES::
-
-            sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator
-            sage: from sage.algebras.lie_algebras.free_lie_algebra import LyndonBracket
-            sage: x,y,z = map(LieGenerator, ['x', 'y', 'z'])
-            sage: LyndonBracket(x, LyndonBracket(y, z, 2), 3) < LyndonBracket(LyndonBracket(y, z, 2), x, 3)
-            True
-        """
-        return self.to_word() < rhs.to_word()
 
 class FreeLieBasis_abstract(FinitelyGeneratedLieAlgebra, IndexedGenerators, BindableClass):
     """
@@ -162,8 +138,8 @@ class FreeLieBasis_abstract(FinitelyGeneratedLieAlgebra, IndexedGenerators, Bind
             sage: Lyn = LieAlgebra(QQ, 'x,y').Lyndon()
             sage: x = Lyn.monomial('x'); x
             x
-            sage: type(x)
-            <class 'sage.algebras.lie_algebras.free_lie_algebra.FreeLieAlgebra.Lyndon_with_category.element_class'>
+            sage: x.parent() is Lyn
+            True
         """
         if not isinstance(x, (LieGenerator, GradedLieBracket)):
             if isinstance(x, list):
@@ -230,9 +206,7 @@ class FreeLieBasis_abstract(FinitelyGeneratedLieAlgebra, IndexedGenerators, Bind
 
         REFERENCES:
 
-        .. [MKO1998] Hans Munthe--Kaas, Brynjulf Owren.
-           *Computations in a free Lie algebra*. (1998).
-           http://www.math.ntnu.no/num/synode/papers/pdf/munthe-kaas98cia.pdf
+        [MKO1998]_
 
         EXAMPLES::
 
@@ -241,7 +215,7 @@ class FreeLieBasis_abstract(FinitelyGeneratedLieAlgebra, IndexedGenerators, Bind
             sage: [H.graded_dimension(i) for i in range(1, 11)]
             [3, 3, 8, 18, 48, 116, 312, 810, 2184, 5880]
         """
-        from sage.rings.arith import moebius
+        from sage.arith.all import moebius
         s = len(self.lie_algebra_generators())
         k = ZZ(k) # Make sure we have something that is in ZZ
         return sum(moebius(d) * s**(k/d) for d in k.divisors()) // k
@@ -281,81 +255,7 @@ class FreeLieBasis_abstract(FinitelyGeneratedLieAlgebra, IndexedGenerators, Bind
             -[y, [x, [x, z]]] - [[x, y], [x, z]]
         """
 
-    class Element(LieAlgebraElement):
-        # TODO: Move to the category/lift morphism?
-        # TODO: Don't override the LieAlgebraElement.lift or should we move
-        #    LieAlgebraElement.lift because it is for a specific implementation?
-        def lift(self):
-            """
-            Lift ``self`` to the universal enveloping algebra.
-
-            EXAMPLES::
-
-                sage: L = LieAlgebra(QQ, 'x,y,z')
-                sage: Lyn = L.Lyndon()
-                sage: x,y,z = Lyn.gens()
-                sage: a = Lyn([z, [[x, y], x]]); a
-                [x, [x, [y, z]]] + [x, [[x, z], y]] - [[x, y], [x, z]]
-                sage: a.lift()
-                x^2*y*z - 2*x*y*x*z + y*x^2*z - z*x^2*y + 2*z*x*y*x - z*y*x^2
-            """
-            UEA = self.parent().universal_enveloping_algebra()
-            gen_dict = UEA.gens_dict()
-            s = UEA.zero()
-            if not self:
-                return s
-            for t, c in self._monomial_coefficients.iteritems():
-                s += c * t.lift(gen_dict)
-            return s
-
-        def list(self):
-            """
-            Return ``self`` as a list of pairs ``(m, c)`` where ``m`` is a
-            monomial and ``c`` is the coefficient where we also order by the
-            grading.
-
-            EXAMPLES::
-
-                sage: L.<x, y> = LieAlgebra(QQ)
-                sage: elt = x + L.bracket(y, x)
-                sage: elt.list()
-                [([x, y], -1), (x, 1)]
-            """
-            L = self.dict().items()
-            k = lambda x: (-x[0]._grade, x[0]) if isinstance(x[0], GradedLieBracket) else (-1, x[0])
-            L.sort(key=k)
-            return L
-
-        def _bracket_(self, y):
-            """
-            Return the Lie bracket ``[self, y]``.
-
-            EXAMPLES::
-
-                sage: L.<x, y> = LieAlgebra(QQ)
-                sage: L.bracket(x, y)
-                [x, y]
-            """
-            if self == 0 or y == 0 or self.list() == y.list():
-                return self.parent().zero()
-            d = {}
-            for ml, cl in sorted(self.list()): # The left monomials
-                for mr, cr in sorted(y.list()): # The right monomials
-                    if ml == mr:
-                        continue
-                    if ml < mr: # Make sure ml < mr
-                        a, b = ml, mr
-                    else:
-                        a, b = mr, ml
-                        cr = -cr
-                    for b_elt, coeff in self.parent()._rewrite_bracket(a, b).iteritems():
-                        d[b_elt] = d.get(b_elt, 0) + cl * cr * coeff
-                        if d[b_elt] == 0:
-                            del d[b_elt]
-
-            if not d:
-                return self.parent().zero()
-            return self.__class__(self.parent(), d)
+    Element = FreeLieAlgebraElement
 
 class FreeLieAlgebra(Parent, UniqueRepresentation):
     r"""
@@ -412,7 +312,7 @@ class FreeLieAlgebra(Parent, UniqueRepresentation):
             sage: L1 is L2
             True
         """
-        names, index_set = LieAlgebra._standardize_names_index_set(names, index_set)
+        names, index_set = standardize_names_index_set(names, index_set)
         return super(FreeLieAlgebra, cls).__classcall__(cls, R, names, index_set)
 
     def __init__(self, R, names, index_set):
@@ -427,7 +327,7 @@ class FreeLieAlgebra(Parent, UniqueRepresentation):
         self._names = names
         self._indices = index_set
         Parent.__init__(self, base=R, names=names,
-                        category=LieAlgebras(R).WithBasis().WithRealizations())
+                        category=LieAlgebras(R).WithRealizations())
 
     def _repr_(self):
         """
@@ -568,9 +468,9 @@ class FreeLieAlgebra(Parent, UniqueRepresentation):
             # We don't want to do the middle when we're even, so we add 1 and
             #   take the floor after dividing by 2.
             ret = [GradedLieBracket(a, b, k) for i in range(1, (k+1) // 2)
-                                       for a in self._generate_hall_set(i)
-                                       for b in self._generate_hall_set(k-i)
-                                       if b._left <= a]
+                   for a in self._generate_hall_set(i)
+                   for b in self._generate_hall_set(k-i)
+                   if b._left <= a]
 
             # Special case for when k = 4, we get the pairs [[a, b], [x, y]]
             #    where a,b,x,y are all grade 1 elements. Thus if we take
@@ -624,11 +524,11 @@ class FreeLieAlgebra(Parent, UniqueRepresentation):
                 [3, 3, 8, 18, 48, 116, 312, 810, 2184, 5880]
             """
             one = self.base_ring().one()
-            return tuple( map(lambda x: self.element_class(self, {x: one}),
-                          self._generate_hall_set(k)) )
+            return tuple([self.element_class(self, {x: one})
+                          for x in self._generate_hall_set(k)])
 
-        # We require l < r because it is a requirement and to make the caching
-        #    more efficient
+        # We require l < r because it is a requirement and to make the
+        #    caching more efficient
         @cached_method
         def _rewrite_bracket(self, l, r):
             """
@@ -636,7 +536,7 @@ class FreeLieAlgebra(Parent, UniqueRepresentation):
 
             INPUT:
 
-            - ``l``, ``r`` -- two elements in the Hall basis such that ``l < r``
+            - ``l``, ``r`` -- two elements in the Hall basis with ``l < r``
 
             OUTPUT:
 
@@ -814,7 +714,8 @@ class FreeLieAlgebra(Parent, UniqueRepresentation):
             for i in range(1, len(lw)):
                 if is_lyndon(lw[i:]):
                     return LyndonBracket(self._standard_bracket(lw[:i]),
-                           self._standard_bracket(lw[i:]), len(lw))
+                                         self._standard_bracket(lw[i:]),
+                                         len(lw))
 
         @cached_method
         def graded_basis(self, k):
@@ -982,5 +883,4 @@ def is_lyndon(w):
             # we found the first word in the lyndon factorization;
             return False
     return i == 0
-
 

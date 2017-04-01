@@ -19,6 +19,7 @@ AUTHORS:
 
 from copy import copy
 from functools import total_ordering
+from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 
 #from sage.misc.abstract_method import abstract_method
 #from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
@@ -27,7 +28,7 @@ from sage.combinat.free_module import CombinatorialFreeModule
 #from sage.structure.element import ModuleElement, RingElement, coerce_binop
 from sage.structure.element cimport have_same_parent, coercion_model
 from sage.structure.element_wrapper cimport ElementWrapper
-from sage.structure.sage_object cimport SageObject
+from sage.structure.sage_object cimport richcmp, richcmp_not_equal
 
 # TODO: Inherit from IndexedFreeModuleElement and make cdef once #22632 is merged
 # TODO: Do we want a dense version?
@@ -54,20 +55,20 @@ class LieAlgebraElement(CombinatorialFreeModule.Element):
         # Otherwise we lift to the UEA
         return self.lift() * y
 
-    #def _im_gens_(self, codomain, im_gens):
-    #    """
-    #    Return the image of ``self`` in ``codomain`` under the map that sends
-    #    the images of the generators of the parent of ``self`` to the
-    #    tuple of elements of ``im_gens``.
-    #
-    #    EXAMPLES::
-    #    """
-    #    s = codomain.zero()
-    #    if not self: # If we are 0
-    #        return s
-    #    names = self.parent().variable_names()
-    #    return codomain.sum(c * t._im_gens_(codomain, im_gens, names)
-    #                        for t, c in self._monomial_coefficients.iteritems())
+    def _im_gens_(self, codomain, im_gens):
+        """
+        Return the image of ``self`` in ``codomain`` under the map that sends
+        the images of the generators of the parent of ``self`` to the
+        tuple of elements of ``im_gens``.
+
+        EXAMPLES::
+        """
+        s = codomain.zero()
+        if not self: # If we are 0
+            return s
+        names = self.parent().variable_names()
+        return codomain.sum(c * t._im_gens_(codomain, im_gens, names)
+                            for t, c in self._monomial_coefficients.iteritems())
 
     def lift(self):
         """
@@ -560,9 +561,108 @@ cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
         """
         return self.value[self._parent._indices.index(i)]
 
-# TODO: Refactor this with Element wrapper to a generic SageObject wrapper?
-@total_ordering
-class LieGenerator(SageObject):
+class FreeLieAlgebraElement(LieAlgebraElement):
+    """
+    An element of a free Lie algebra.
+    """
+    # TODO: Move to the category/lift morphism?
+    # TODO: Don't override the LieAlgebraElement.lift or should we move
+    #    LieAlgebraElement.lift because it is for a specific implementation?
+    def lift(self):
+        """
+        Lift ``self`` to the universal enveloping algebra.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, 'x,y,z')
+            sage: Lyn = L.Lyndon()
+            sage: x,y,z = Lyn.gens()
+            sage: a = Lyn([z, [[x, y], x]]); a
+            [x, [x, [y, z]]] + [x, [[x, z], y]] - [[x, y], [x, z]]
+            sage: a.lift()
+            x^2*y*z - 2*x*y*x*z + y*x^2*z - z*x^2*y + 2*z*x*y*x - z*y*x^2
+        """
+        UEA = self.parent().universal_enveloping_algebra()
+        gen_dict = UEA.gens_dict()
+        s = UEA.zero()
+        if not self:
+            return s
+        for t, c in self._monomial_coefficients.iteritems():
+            s += c * t.lift(gen_dict)
+        return s
+
+    def list(self):
+        """
+        Return ``self`` as a list of pairs ``(m, c)`` where ``m`` is a
+        monomial and ``c`` is the coefficient where we also order by the
+        grading.
+
+        EXAMPLES::
+
+            sage: L.<x, y> = LieAlgebra(QQ)
+            sage: elt = x + L.bracket(y, x)
+            sage: elt.list()
+            [([x, y], -1), (x, 1)]
+        """
+        k = lambda x: (-x[0]._grade, x[0]) if isinstance(x[0], GradedLieBracket) else (-1, x[0])
+        return sorted(self._monomial_coefficients.iteritems(), key=k)
+
+    def _bracket_(self, y):
+        """
+        Return the Lie bracket ``[self, y]``.
+
+        EXAMPLES::
+
+            sage: L.<x, y> = LieAlgebra(QQ)
+            sage: L.bracket(x, y)
+            [x, y]
+        """
+        if not self or not y:
+            return self.parent().zero()
+
+        cdef dict d = {}
+        zero = self.base_ring().zero()
+        for ml, cl in self._monomial_coefficients.iteritems(): # The left monomials
+            for mr, cr in y._monomial_coefficients.iteritems(): # The right monomials
+                if ml == mr:
+                    continue
+                if ml < mr: # Make sure ml < mr
+                    a, b = ml, mr
+                else:
+                    a, b = mr, ml
+                    cr = -cr
+                for b_elt, coeff in self.parent()._rewrite_bracket(a, b).iteritems():
+                    d[b_elt] = d.get(b_elt, zero) + cl * cr * coeff
+                    if d[b_elt] == zero:
+                        del d[b_elt]
+
+        if not d:
+            return self.parent().zero()
+        return type(self)(self.parent(), d)
+
+#####################################################################
+## Helper classes for free Lie algebras
+
+cdef class LieObject(SageObject):
+    """
+    Abstract base class for :class:`LieGenerator` and :class:`LieBracket`.
+    """
+    cpdef tuple to_word(self):
+        """
+        Return ``self`` as a word.
+
+        TESTS::
+
+            sage: from sage.algebras.lie_algebras.lie_algebra_element import LieObject
+            sage: x = LieObject()
+            sage: x.to_word()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+cdef class LieGenerator(LieObject):
     """
     A wrapper around an object so it can ducktype with and do
     comparison operations with :class:`LieBracket`.
@@ -577,7 +677,19 @@ class LieGenerator(SageObject):
             sage: x = LieGenerator('x')
             sage: TestSuite(x).run()
         """
+        self._word = (name,)
         self._name = name
+
+    def __reduce__(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator
+            sage: x = LieGenerator('x')
+            sage: loads(dumps(x)) == x
+            True
+        """
+        return (LieGenerator, (self._name,))
 
     def _repr_(self):
         """
@@ -593,45 +705,50 @@ class LieGenerator(SageObject):
 
     _latex_ = _repr_
 
-    def __eq__(self, rhs):
+    def __hash__(self):
         """
-        Compare equals.
+        Return the hash value of ``self``.
 
         EXAMPLES::
 
             sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator
             sage: x = LieGenerator('x')
-            sage: y = LieGenerator('y')
-            sage: x == y
-            False
-            sage: z = LieGenerator('x')
-            sage: x == z
+            sage: hash(x) == hash('x')
             True
         """
-        return isinstance(rhs, LieGenerator) and self._name == rhs._name
+        return hash(self._name)
 
-    def __lt__(self, rhs):
+    def __richcmp__(self, rhs, int op):
         """
-        Compare less than.
+        Compare equals.
 
         EXAMPLES::
 
             sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator, LieBracket
             sage: x = LieGenerator('x')
             sage: y = LieGenerator('y')
+            sage: x == y
+            False
             sage: x < y
             True
             sage: y < x
             False
+            sage: z = LieGenerator('x')
+            sage: x == z
+            True
             sage: z = LieBracket(x, y)
             sage: x < z
             True
         """
-        if isinstance(rhs, LieGenerator):
-            return self._name < rhs._name
         if isinstance(rhs, LieBracket):
-            return not rhs.__lt__(self) # Clearly self != rhs
-        return False
+            if op == Py_NE:
+                return True
+            if op == Py_EQ:
+                return False
+            return NotImplemented
+        if isinstance(rhs, LieGenerator):
+            return richcmp(self._name, <LieGenerator>(rhs)._name, op)
+        return op == Py_NE
 
     def _im_gens_(self, codomain, im_gens, names):
         """
@@ -650,7 +767,7 @@ class LieGenerator(SageObject):
         x = im_gens[names.index(self._name)]
         return im_gens[names.index(self._name)]
 
-    def to_word(self):
+    cpdef tuple to_word(self):
         """
         Return ``self`` as a word in the variable names.
 
@@ -659,16 +776,15 @@ class LieGenerator(SageObject):
             sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator
             sage: x = LieGenerator('x')
             sage: x.to_word()
-            ['x']
+            ('x',)
         """
-        return [self._name]
+        return self._word
 
-@total_ordering
-class LieBracket(SageObject): # Does this need to be SageObject?
+cdef class LieBracket(LieObject):
     """
     A Lie bracket. This is the building blocks for Lie algebra elements.
     """
-    def __init__(self, l, r):
+    def __init__(self, LieObject l, LieObject r):
         """
         Initialize ``self``.
 
@@ -682,6 +798,21 @@ class LieBracket(SageObject): # Does this need to be SageObject?
         """
         self._left = l
         self._right = r
+        self._word = ()
+        self._hash = -1
+
+    def __reduce__(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator, LieBracket
+            sage: x = LieGenerator('x')
+            sage: y = LieGenerator('y')
+            sage: z = LieBracket(x, y)
+            sage: loads(dumps(z)) == z
+            True
+        """
+        return (LieBracket, (self._left, self._right))
 
     def _repr_(self):
         """
@@ -738,7 +869,7 @@ class LieBracket(SageObject): # Does this need to be SageObject?
             return self._right
         raise IndexError("must be either 0 or 1")
 
-    def __eq__(self, rhs):
+    def __richcmp__(self, rhs, int op):
         """
         Check equality.
 
@@ -747,53 +878,36 @@ class LieBracket(SageObject): # Does this need to be SageObject?
             sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator, LieBracket
             sage: x = LieGenerator('x')
             sage: y = LieGenerator('y')
+            sage: z = LieGenerator('z')
             sage: b = LieBracket(x, y)
             sage: c = LieBracket(y, x)
             sage: b == c
             False
             sage: b == x
             False
+            sage: b < x
+            False
+            sage: b < z
+            False
             sage: a = LieBracket(x, y)
             sage: a == b
             True
             sage: a == [x, y]
             True
-        """
-        if isinstance(rhs, list):
-            if len(rhs) != 2:
-                return False
-            return self._left == rhs[0] and self._right == rhs[1]
-
-        if not isinstance(rhs, LieBracket):
-            return False
-        return self._left == rhs._left and self._right == rhs._right
-
-    def __lt__(self, rhs):
-        """
-        Check less than.
-
-        EXAMPLES::
-
-            sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator, LieBracket
-            sage: x = LieGenerator('x')
-            sage: y = LieGenerator('y')
-            sage: z = LieGenerator('z')
-            sage: b = LieBracket(x, y)
-            sage: b < x
-            False
-            sage: b < z
-            False
             sage: c = LieBracket(x, z)
             sage: b < c
             True
         """
-        if not isinstance(rhs, LieBracket):
-            return False
-        if self._left < rhs._left:
-            return True
-        elif self._left == rhs._left:
-            return self._right < rhs._right
-        return False
+        cdef LieBracket right
+        if isinstance(rhs, LieBracket):
+            right = <LieBracket>(rhs)
+            return richcmp([self._left, self._right], [right._left, right._right], op)
+        if isinstance(rhs, LieGenerator):
+            # Check this is right as in LieGenerator.__richcmp__
+            return op == Py_NE or op == Py_GT or op == Py_GE
+        if isinstance(rhs, list):
+            return richcmp([self._left, self._right], rhs, op)
+        return op == Py_NE
 
     def __hash__(self):
         """
@@ -809,7 +923,9 @@ class LieBracket(SageObject): # Does this need to be SageObject?
             sage: hash(b) == hash(b)
             True
         """
-        return hash((self._left, self._right))
+        if self._hash == -1:
+            self._hash = hash((self._left, self._right))
+        return self._hash
 
     def _im_gens_(self, codomain, im_gens, names):
         """
@@ -829,7 +945,7 @@ class LieBracket(SageObject): # Does this need to be SageObject?
         return codomain.bracket(self._left._im_gens_(codomain, im_gens, names),
                                 self._right._im_gens_(codomain, im_gens, names))
 
-    def lift(self, UEA_gens_dict):
+    cpdef lift(self, dict UEA_gens_dict):
         """
         Lift ``self`` to the universal enveloping algebra.
 
@@ -855,7 +971,7 @@ class LieBracket(SageObject): # Does this need to be SageObject?
 
         return l*r - r*l
 
-    def to_word(self):
+    cpdef tuple to_word(self):
         """
         Return ``self`` as a word expressed in the variable names.
 
@@ -867,15 +983,17 @@ class LieBracket(SageObject): # Does this need to be SageObject?
             sage: b = LieBracket(x, y)
             sage: c = LieBracket(b, x)
             sage: c.to_word()
-            ['x', 'y', 'x']
+            ('x', 'y', 'x')
         """
-        return self._left.to_word() + self._right.to_word()
+        if not self._word:
+            self._word = self._left.to_word() + self._right.to_word()
+        return self._word
 
-class GradedLieBracket(LieBracket):
+cdef class GradedLieBracket(LieBracket):
     """
     A Lie bracket in a graded Lie algebra.
     """
-    def __init__(self, l, r, grade):
+    def __init__(self, LieObject l, LieObject r, grade):
         """
         Initialize ``self``.
 
@@ -890,7 +1008,20 @@ class GradedLieBracket(LieBracket):
         self._grade = grade
         LieBracket.__init__(self, l, r)
 
-    def __lt__(self, rhs):
+    def __reduce__(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator, GradedLieBracket
+            sage: x = LieGenerator('x')
+            sage: y = LieGenerator('y')
+            sage: b = GradedLieBracket(x, y, 2)
+            sage: loads(dumps(b)) == b
+            True
+        """
+        return (type(self), (self._left, self._right, self._grade))
+
+    def __richcmp__(self, rhs, int op):
         """
         Check less than.
 
@@ -912,11 +1043,15 @@ class GradedLieBracket(LieBracket):
             sage: b < c
             False
         """
-        if isinstance(rhs, GradedLieBracket) and self._grade != rhs._grade:
-            return self._grade < rhs._grade
+        cdef GradedLieBracket right
+        if isinstance(rhs, GradedLieBracket):
+            right = <GradedLieBracket>(rhs)
+            if self._grade != right._grade:
+                return richcmp_not_equal(self._grade, right._grade, op)
+            return richcmp([self._left, self._right], [right._left, right._right], op)
         if isinstance(rhs, LieGenerator):
-            return False # Lie generators have grade 1 and our grade > 1
-        return LieBracket.__lt__(self, rhs)
+            return op == Py_NE or op == Py_GT or op == Py_GE
+        return op == Py_NE
 
     def __hash__(self):
         """
@@ -932,5 +1067,44 @@ class GradedLieBracket(LieBracket):
             sage: hash(b) == hash(b)
             True
         """
-        return hash((self._grade, self._left, self._right))
+        if self._hash == -1:
+            self._hash = hash((self._grade, self._left, self._right))
+        return self._hash
+
+cdef class LyndonBracket(GradedLieBracket):
+    """
+    Lie bracket for the Lyndon basis where the order is defined by `l < r`
+    if `w(l) < w(r)` where `w(l)` is the word corresponding to `l`.
+    """
+    def __richcmp__(self, rhs, op):
+        """
+        Compare ``self`` and ``rhs``.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator, LyndonBracket
+            sage: x,y,z = [LieGenerator(letter) for letter in ['x', 'y', 'z']]
+            sage: LyndonBracket(x, LyndonBracket(y, z, 2), 3) < LyndonBracket(LyndonBracket(y, z, 2), x, 3)
+            True
+        """
+        if not isinstance(rhs, LieObject):
+            return op == Py_NE
+        return richcmp(self.to_word(), <LieObject>(rhs).to_word(), op)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.lie_algebras.lie_algebra_element import LieGenerator, LyndonBracket
+            sage: x = LieGenerator('x')
+            sage: y = LieGenerator('y')
+            sage: b = LyndonBracket(x, y, 2)
+            sage: hash(b) == hash((x, y))
+            True
+        """
+        if self._hash == -1:
+            self._hash = hash(self.to_word())
+        return self._hash
 

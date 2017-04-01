@@ -10,7 +10,10 @@
 
 from sage.structure.sage_object import SageObject
 from sage.interfaces.maxima import MaximaFunctionElement
+from sage.docs.instancedoc import instancedoc
 
+
+@instancedoc
 class MaximaFunctionElementWrapper(MaximaFunctionElement):
     def __call__(self, *args, **kwds):
         """

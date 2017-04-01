@@ -2446,8 +2446,8 @@ def strongly_regular_from_two_intersection_set(M):
     EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import strongly_regular_from_two_intersection_set
-        sage: S=Matrix([(0,0,1),(0,1,0)] + map(lambda x: (1,x^2,x), GF(4,'b')))
-        sage: g=strongly_regular_from_two_intersection_set(S)
+        sage: S = Matrix([(0,0,1),(0,1,0)] + [(1,x^2,x) for x in GF(4,'b')])
+        sage: g = strongly_regular_from_two_intersection_set(S)
         sage: g.is_strongly_regular(parameters=True)
         (64, 18, 2, 6)
 
@@ -2580,13 +2580,15 @@ def SRG_630_85_20_10():
     from sage.graphs.generators.intersection import IntersectionGraph
     from sage.graphs.generators.smallgraphs import HoffmanSingletonGraph
     hs = HoffmanSingletonGraph()
-    P = list(range(5)) + list(range(30, 35))          # a Petersen in hs
+    P = list(range(5)) + list(range(30, 35))  # a Petersen in hs
     mc = [0, 1, 5, 6, 12, 13, 16, 17, 22, 23, 29, 33, 39, 42, 47]
-    assert(hs.subgraph(mc).is_regular(k=0)) # a maximum coclique
+    assert(hs.subgraph(mc).is_regular(k=0))  # a maximum coclique
     assert(hs.subgraph(P).is_regular(k=3))
-    h = hs.automorphism_group().stabilizer(mc,action="OnSets")
-    l = h.orbit(tuple(map(lambda x: (x[0],x[1]), hs.subgraph(P).matching())),"OnSetsSets")
+    h = hs.automorphism_group().stabilizer(mc, action="OnSets")
+    l = h.orbit(tuple((x[0], x[1]) for x in hs.subgraph(P).matching()),
+                "OnSetsSets")
     return IntersectionGraph(l)
+
 
 def SRG_126_50_13_24():
     r"""

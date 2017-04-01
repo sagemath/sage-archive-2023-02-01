@@ -183,6 +183,7 @@ from sage.env import SAGE_LOCAL, SAGE_EXTCODE
 from sage.misc.misc import is_in_string
 from sage.misc.superseded import deprecation
 from sage.misc.cachefunc import cached_method
+from sage.docs.instancedoc import instancedoc
 from sage.interfaces.tab_completion import ExtraTabCompletion
 import re
 import os
@@ -962,6 +963,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
         return self('%s.%s' % (record.name(), name))
 
 
+@instancedoc
 class GapElement_generic(ExtraTabCompletion, ExpectElement):
     r"""
     Generic interface to the GAP3/GAP4 interpreters.
@@ -1533,6 +1535,7 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
     g.quit()
 
 
+@instancedoc
 class GapElement(GapElement_generic):
     def __getitem__(self, n):
         """
@@ -1604,13 +1607,13 @@ class GapElement(GapElement_generic):
         return v
 
 
-
+@instancedoc
 class GapFunctionElement(FunctionElement):
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         EXAMPLES::
 
-            sage: print(gap(4).SymmetricGroup._sage_doc_())
+            sage: print(gap(4).SymmetricGroup.__doc__)
             <BLANKLINE>
             50 Group Libraries
             <BLANKLINE>
@@ -1623,12 +1626,13 @@ class GapFunctionElement(FunctionElement):
         return help
 
 
+@instancedoc
 class GapFunction(ExpectFunction):
-    def _sage_doc_(self):
+    def _instancedoc(self):
         """
         EXAMPLES::
 
-            sage: print(gap.SymmetricGroup._sage_doc_())
+            sage: print(gap.SymmetricGroup.__doc__)
             <BLANKLINE>
             50 Group Libraries
             <BLANKLINE>

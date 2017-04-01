@@ -60,14 +60,12 @@ from sage.env import DOT_SAGE
 COMMANDS_CACHE = '%s/maxima_commandlist_cache.sobj'%DOT_SAGE
 
 from sage.misc.multireplace import multiple_replace
-
 import sage.server.support
-
-##import sage.rings.all
 
 from .interface import (Interface, InterfaceElement, InterfaceFunctionElement,
   InterfaceFunction, AsciiArtString)
 from sage.interfaces.tab_completion import ExtraTabCompletion
+from sage.docs.instancedoc import instancedoc
 
 # The Maxima "apropos" command, e.g., apropos(det) gives a list
 # of all identifiers that begin in a certain way.  This could
@@ -534,7 +532,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
         EXAMPLES::
 
             sage: maxima._function_class()
-            <class 'sage.interfaces.maxima.MaximaFunction'>
+            <class 'sage.interfaces.interface.InterfaceFunction'>
         """
         return MaximaAbstractFunction
 
@@ -564,7 +562,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
         EXAMPLES::
 
             sage: maxima._function_element_class()
-            <class 'sage.interfaces.maxima.MaximaFunctionElement'>
+            <class 'sage.interfaces.interface.InterfaceFunctionElement'>
         """
         return MaximaAbstractFunctionElement
 
@@ -1072,6 +1070,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
             self('plot2d('+cmd+','+options+')')
 
 
+@instancedoc
 class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
     r"""
     Element of Maxima through an abstract interface.
@@ -1907,12 +1906,8 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
             raise TypeError(msg)
 
 
-class MaximaAbstractFunctionElement(InterfaceFunctionElement):
-    pass
-
-
-class MaximaAbstractFunction(InterfaceFunction):
-    pass
+MaximaAbstractFunctionElement = InterfaceFunctionElement
+MaximaAbstractFunction = InterfaceFunction
 
 
 class MaximaAbstractElementFunction(MaximaAbstractElement):

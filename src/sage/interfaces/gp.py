@@ -146,7 +146,8 @@ from sage.misc.misc import verbose
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.libs.pari.all import pari
 import sage.rings.complex_field
-## import sage.rings.all
+from sage.docs.instancedoc import instancedoc
+
 
 class Gp(ExtraTabCompletion, Expect):
     """
@@ -287,9 +288,9 @@ class Gp(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: gp._function_class()
-            <class 'sage.interfaces.gp.GpFunction'>
+            <class 'sage.interfaces.expect.ExpectFunction'>
             sage: type(gp.gcd)
-            <class 'sage.interfaces.gp.GpFunction'>
+            <class 'sage.interfaces.expect.ExpectFunction'>
         """
         return GpFunction
 
@@ -709,12 +710,9 @@ class Gp(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: gp._function_element_class()
-            <class 'sage.interfaces.gp.GpFunctionElement'>
-
-        ::
-
+            <class 'sage.interfaces.expect.FunctionElement'>
             sage: type(gp(2).gcd)
-            <class 'sage.interfaces.gp.GpFunctionElement'>
+            <class 'sage.interfaces.expect.FunctionElement'>
         """
         return GpFunctionElement
 
@@ -837,6 +835,7 @@ class Gp(ExtraTabCompletion, Expect):
         return x
 
 
+@instancedoc
 class GpElement(ExpectElement):
     """
     EXAMPLES: This example illustrates dumping and loading GP elements
@@ -1049,12 +1048,8 @@ class GpElement(ExpectElement):
         return self.parent()._tab_completion()
 
 
-class GpFunctionElement(FunctionElement):
-    pass
-
-class GpFunction(ExpectFunction):
-    pass
-
+GpFunctionElement = FunctionElement
+GpFunction = ExpectFunction
 
 
 def is_GpElement(x):

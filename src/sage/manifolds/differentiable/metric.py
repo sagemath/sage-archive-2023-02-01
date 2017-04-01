@@ -2167,6 +2167,9 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         self._components.clear()
         for frame in symbiform._components:
             self._components[frame] = symbiform._components[frame].copy()
+        for dom, symbiform_rst in symbiform._restrictions.items():
+            rst = self.restrict(dom)
+            rst.set(symbiform_rst)
 
     def inverse(self):
         r"""

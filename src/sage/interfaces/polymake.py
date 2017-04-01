@@ -1538,7 +1538,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         cmd = 'print join(", ", sorted_uniq(sort { $a cmp $b } map { keys %{$_->properties} }$SAGETMP, @{$SAGETMP->super}));'
         try:
             out = P.eval(cmd).split(', ')
-        except PolymakeError, msg:
+        except PolymakeError as msg:
             return []
         return sorted(out)
 

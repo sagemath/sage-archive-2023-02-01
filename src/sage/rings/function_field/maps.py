@@ -190,7 +190,7 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
     - ``L`` -- a function field which is a separable extension of the domain of
       ``d``
 
-    - ``d`` -- a derivation on a function field
+    - ``d`` -- a derivation on the base function field of ``L``
 
     EXAMPLES::
 
@@ -214,20 +214,15 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
             <class 'sage.rings.function_field.maps.FunctionFieldDerivation_separable'>
 
         """
-        if not isinstance(d, FunctionFieldDerivation):
-            raise TypeError("d must be a derivation on a function field")
-        from .function_field import is_FunctionField
-        if not is_FunctionField(L):
-            raise TypeError("L must be a function field")
-        if d.domain() is not L.base_ring():
-            raise ValueError("L must be an extension of the domain of d")
         FunctionFieldDerivation.__init__(self, L)
 
-        self._d = d
         f = self.domain().polynomial()
         if not f.gcd(f.derivative()).is_one():
             raise ValueError("L must be a separable extension of its base field.")
+
         x = self.domain().gen()
+
+        self._d = d
         self._gen_image = - f.map_coefficients(lambda c:d(c))(x) / f.derivative()(x)
 
     def _call_(self, x):
@@ -254,6 +249,7 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
         """
         if x.is_zero():
             return self.codomain().zero()
+
         return x._x.map_coefficients(self._d) \
                + x._x.derivative()(self.domain().gen()) * self._gen_image
 
@@ -282,9 +278,9 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
 
         """
         base = self._d._repr_defn()
-        ret = "%s |--> %s"%(self.domain().gen(),self._gen_image)
+        ret = '{} |--> {}'.format(self.domain().gen(), self._gen_image)
         if base:
-            return base + "\n" + ret
+            return base + '\n' + ret
         else:
             return ret
 

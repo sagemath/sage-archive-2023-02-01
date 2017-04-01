@@ -13,6 +13,7 @@
 #    they won't be available in child programs.
 #  - This script has a version number such that a newer version of
 #    sage-env can be sourced when upgrading.  See below.
+#  - It uses bash features, so it cannot be used with other shells.
 #
 #  If you want to set all environment variables for your shell like
 #  they are during the build of Sage packages, type
@@ -185,24 +186,20 @@ export SAGE_ENV_SOURCED=$SAGE_ENV_VERSION
 
 export SAGE_ROOT="$NEW_SAGE_ROOT"
 
-# SAGE_LOCAL is the installation prefix and can be customized
-if [ -z "$SAGE_LOCAL" ]; then
-    export SAGE_LOCAL="$SAGE_ROOT/local"
-fi
 
-# sage-env must know where the Sage's script files are
+# sage-env must know where the Sage's script files are.
+# Note that SAGE_SCRIPTS_DIR is only used here, so it does not need to
+# be exported.
 if [ -z "$SAGE_SCRIPTS_DIR" ]; then
-    if [ -f "`dirname $0`/sage-env" ]; then
-        SAGE_SCRIPTS_DIR=`dirname $0`
-    elif [ -f "$SAGE_LOCAL/bin/sage-env" ]; then
+    if [ -n "$SAGE_LOCAL" ] && [ -f "$SAGE_LOCAL/bin/sage-env-config" ]; then
         SAGE_SCRIPTS_DIR="$SAGE_LOCAL/bin"
-    elif [ -f "$SAGE_ROOT/src/bin/sage-env" ]; then
+    elif [ -f "$SAGE_ROOT/src/bin/sage-env-config" ]; then
         SAGE_SCRIPTS_DIR="$SAGE_ROOT/src/bin"
     else
-        echo >&2 "Error: You must set the SAGE_SCRIPTS_DIR environment variable to run this"
+        echo >&2 "Error: You must set either the SAGE_LOCAL or SAGE_SCRIPTS_DIR environment variable to run this"
         return 1
     fi
-elif [ ! -f "$SAGE_SCRIPTS_DIR/sage-env" ]; then
+elif [ ! -f "$SAGE_SCRIPTS_DIR/sage-env-config" ]; then
     echo >&2 "Error: SAGE_SCRIPTS_DIR is set to a bad value:"
     echo >&2 "SAGE_SCRIPTS_DIR=$SAGE_SCRIPTS_DIR"
     echo >&2 "You must correct it or erase it and rerun this script"
@@ -211,6 +208,14 @@ fi
 
 # Make SAGE_SCRIPTS_DIR absolute
 export SAGE_SCRIPTS_DIR="`cd "$SAGE_SCRIPTS_DIR" && pwd -P`"
+
+# Set environment variables (like SAGE_LOCAL) depending on ./configure
+. "$SAGE_SCRIPTS_DIR/sage-env-config"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error: failed to source $SAGE_SCRIPTS_DIR/sage-env-config"
+    return 1
+fi
+
 
 # Call with: contains_spaces X${VAR}X
 # i.e., WITHOUT quotes but some character(s) around the environment variable to test.

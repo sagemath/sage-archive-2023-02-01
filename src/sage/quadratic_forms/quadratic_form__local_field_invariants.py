@@ -138,7 +138,7 @@ def rational_diagonal_form(self, return_matrix=False):
     This example cannot be computed by PARI::
 
         sage: Q = QuadraticForm(RIF, 4, range(10))
-        sage: Q._pari_()
+        sage: Q.__pari__()
         Traceback (most recent call last):
         ...
         TypeError
@@ -229,7 +229,7 @@ def _rational_diagonal_form_and_transformation(self):
 
     try:
         # Try PARI if the type is supported
-        pariself = self._pari_()
+        pariself = self.__pari__()
         # Check that conversion back works
         MS(pariself.sage())
     except Exception:

@@ -854,7 +854,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         """
         return self.list()
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Convert ``self`` to a PARI vector.
 
@@ -865,9 +865,9 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         EXAMPLES::
 
             sage: v = vector(range(4))
-            sage: v._pari_()
+            sage: v.__pari__()
             [0, 1, 2, 3]
-            sage: v._pari_().type()
+            sage: v.__pari__().type()
             't_VEC'
 
         A list of vectors::

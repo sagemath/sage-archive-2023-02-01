@@ -3301,7 +3301,7 @@ def binomial(x, m, **kwds):
 
     # case 3: rational, real numbers, complex numbers -> use pari
     if isinstance(x, (Rational, RealNumber, ComplexNumber)):
-        return P(x._pari_().binomial(m))
+        return P(x.__pari__().binomial(m))
 
     # case 4: naive method
     if m < ZZ.zero():

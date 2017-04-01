@@ -72,6 +72,7 @@ from sage.categories.sets_cat import EmptySetError
 import os
 from sage.misc.function_mangling import ArgumentFixer
 from sage.misc.lazy_list import lazy_list
+from sage.docs.instancedoc import instancedoc
 
 
 class EnumeratedSetFromIterator(Parent):
@@ -446,13 +447,14 @@ class EnumeratedSetFromIterator(Parent):
 #
 
 #TODO: move it in sage.misc ?
-class Decorator:
+@instancedoc
+class Decorator(object):
     r"""
     Abstract class that manage documentation and sources of the wrapped object.
 
     The method needs to be stored in the attribute ``self.f``
     """
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         Provide documentation for the wrapped function.
 
@@ -559,6 +561,8 @@ class Decorator:
         """
         raise NotImplementedError
 
+
+@instancedoc
 class EnumeratedSetFromIterator_function_decorator(Decorator):
     r"""
     Decorator for :class:`EnumeratedSetFromIterator`.
@@ -717,6 +721,8 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
 
 set_from_function = EnumeratedSetFromIterator_function_decorator
 
+
+@instancedoc
 class EnumeratedSetFromIterator_method_caller(Decorator):
     r"""
     Caller for decorated method in class.
@@ -863,7 +869,7 @@ class EnumeratedSetFromIterator_method_decorator(object):
         ....:  def f(self): return xsrange(self.n())
         sage: a = A()
         sage: print(a.f.__class__)
-        sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller
+        <class 'sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller'>
         sage: a.f()
         {0, 1, 2, 3, 4, ...}
         sage: A.f(a)
@@ -978,9 +984,9 @@ class EnumeratedSetFromIterator_method_decorator(object):
             ....:  def f(self): return xsrange(self.n())
             sage: a = A()
             sage: print(A.f.__class__)
-            sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller
+            <class 'sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller'>
             sage: print(a.f.__class__)
-            sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller
+            <class 'sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller'>
         """
         # You would hardly ever see an instance of this class alive.
         return EnumeratedSetFromIterator_method_caller(inst, self.f, **self.options)

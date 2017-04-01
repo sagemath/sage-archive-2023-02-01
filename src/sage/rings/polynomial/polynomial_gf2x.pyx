@@ -83,7 +83,7 @@ cdef class Polynomial_GF2X(Polynomial_template):
         cdef long c = GF2_conv_to_long(GF2X_coeff(self.x, i))
         return self._parent._base(c)
 
-    def _pari_(self, variable=None):
+    def __pari__(self, variable=None):
         """
         EXAMPLES::
 

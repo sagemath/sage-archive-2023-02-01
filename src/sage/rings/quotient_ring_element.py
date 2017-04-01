@@ -215,7 +215,7 @@ class QuotientRingElement(RingElement):
         with localvars(R, P.variable_names(), normalize=False):
             return str(self.__rep)
 
-    def _pari_(self):
+    def __pari__(self):
         """
         The Pari representation of this quotient element.
 
@@ -244,7 +244,7 @@ class QuotientRingElement(RingElement):
         gens = self.parent().defining_ideal().gens()
         if len(gens) != 1:
             raise ValueError("Pari does not support quotients by non-principal ideals")
-        return self.__rep._pari_().Mod(gens[0]._pari_())
+        return self.__rep.__pari__().Mod(gens[0])
 
     def _add_(self, right):
         """
@@ -786,7 +786,7 @@ class QuotientRingElement(RingElement):
             sage: Q = P.quo(I)
             sage: Q._singular_()
             polynomial ring, over a field, global ordering
-            //   characteristic : 2
+            //   coefficients: ZZ/2
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y

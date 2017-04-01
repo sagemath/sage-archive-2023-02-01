@@ -670,6 +670,19 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             """
             return self.m_cambrian_lattice(c=c, m=1, on_roots=on_roots)
 
+        def is_real(self):
+            """
+            Return ``True`` since ``self`` is a real reflection group.
+
+            EXMAPLES::
+
+                sage: CoxeterGroup(['F',4]).is_real()
+                True
+                sage: CoxeterGroup(['H',4]).is_real()
+                True
+            """
+            return True
+
     class ElementMethods:
 
         @cached_in_parent_method

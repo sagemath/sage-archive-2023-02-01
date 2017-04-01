@@ -431,6 +431,7 @@ class sage_build_cython(Command):
         # tree into the build-lib tree
         for (dst_dir, src_files) in self.get_cythonized_package_files():
             dst = os.path.join(self.build_lib, dst_dir)
+            self.mkpath(dst)
             for src in src_files:
                 self.copy_file(src, dst, preserve_mode=False)
 

@@ -56,8 +56,7 @@ from sage.schemes.generic.morphism import (SchemeMorphism,
                                            SchemeMorphism_point)
 from sage.structure.element import AdditiveGroupElement
 from sage.structure.sequence import Sequence
-
-
+from sage.structure.sage_object import rich_to_bool, richcmp, op_EQ, op_NE
 
 #*******************************************************************
 # Projective varieties
@@ -167,7 +166,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         self._coords = tuple(v)
 
-    def __eq__(self, right):
+    def _richcmp_(self, right, op):
         """
         Tests the projective equality of two points.
 
@@ -177,7 +176,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         OUTPUT:
 
-        - Boolean - True if ``self`` and ``right`` define the same point. False otherwise.
+        - Boolean
 
         Examples::
 
@@ -266,31 +265,8 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: Q1 = f(P1)
             sage: Q1 == P1
             False
-        """
-        if not isinstance(right, SchemeMorphism_point):
-            try:
-                right = self.codomain()(right)
-            except TypeError:
-                return False
-        if self.codomain() != right.codomain():
-            return False
-        n = len(self._coords)
-        return all([self[i]*right[j] == self[j]*right[i]
-                   for i in range(0,n) for j in range(i+1, n)])
 
-    def __ne__(self,right):
-        """
-        Tests the projective equality of two points.
-
-        INPUT:
-
-        - ``right`` - a point on projective space.
-
-        OUTPUT:
-
-        - Boolean - True if ``self`` and ``right`` define different points. False otherwise.
-
-        Examples::
+        For inequality::
 
             sage: PS = ProjectiveSpace(ZZ, 1, 'x')
             sage: P = PS([1, 2])
@@ -350,15 +326,16 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             try:
                 right = self.codomain()(right)
             except TypeError:
-                return True
+                return NotImplemented
         if self.codomain() != right.codomain():
-            return True
+            return op == op_NE
+
         n = len(self._coords)
-        for i in range(0,n):
-            for j in range(i+1,n):
-                if self._coords[i]*right._coords[j] != self._coords[j]*right._coords[i]:
-                    return True
-        return False
+        if op in [op_EQ, op_NE]:
+            b = all(self[i] * right[j] == self[j] * right[i]
+                    for i in range(n) for j in range(i + 1, n))
+            return b == (op == op_EQ)
+        return richcmp(self._coords, right._coords, op)
 
     def __hash__(self):
         """

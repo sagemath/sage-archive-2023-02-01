@@ -240,7 +240,7 @@ class LieAlgebras(Category_over_base_ring):
             as a coercion).
 
             One should implement this method and the ``lift`` method for
-            the element class to construct the morphism the the universal
+            the element class to construct the morphism the universal
             enveloping algebra.
 
             EXAMPLES::

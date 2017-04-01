@@ -1668,7 +1668,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         - Options to change element look:
 
-          * ``element_colors`` - a dictionary of element colors
+          * ``element_colors`` - a dictionary where keys are colors and values
+            are lists of elements
           * ``element_color`` - a color for elements not set in
             ``element_colors``
           * ``element_shape`` - the shape of elements, like ``'s'`` for
@@ -1676,18 +1677,19 @@ class FinitePoset(UniqueRepresentation, Parent):
           * ``element_size`` (default: 200) - the size of elements
           * ``label_elements`` (default: ``True``) - whether to display
             element labels
-          * ``element_labels`` (default: ``None``) - a dictionary of
-            element labels
+          * ``element_labels`` (default: ``None``) - a dictionary where keys
+            are elements and values are labels to show
 
         - Options to change cover relation look:
 
-          * ``cover_colors`` - a dictionary of element colors
+          * ``cover_colors`` - a dictionary where keys are colors and values
+            are lists of cover relations given as pairs of elements
           * ``cover_color`` - a color for elements not set in
             ``cover_colors``
-          * ``cover_style`` - style for cover relations: ``'solid'``, ``'dashed'``,
-            ``'dotted'`` or ``'dashdot'``
+          * ``cover_style`` - style for cover relations: ``'solid'``,
+            ``'dashed'``, ``'dotted'`` or ``'dashdot'``
           * ``cover_labels`` - a dictionary, list or function representing
-            labels of the covers of ``self``. When set to ``None`` (default)
+            labels of the covers of the poset. When set to ``None`` (default)
             no label is displayed on the edges of the Hasse Diagram.
 
         - Options to change overall look:
@@ -1695,14 +1697,8 @@ class FinitePoset(UniqueRepresentation, Parent):
           * ``figsize`` (default: 8) - size of the whole plot
           * ``title`` - a title for the plot
           * ``fontsize`` - fontsize for the title
-          * ``border`` (default: False) - whether to draw a border over the
+          * ``border`` (default: ``False``) - whether to draw a border over the
             plot
-
-        .. NOTE::
-
-            All options of :meth:`GenericGraph.plot
-            <sage.graphs.generic_graph.GenericGraph.plot>` are also available
-            through this function.
 
         EXAMPLES:
 
@@ -1712,10 +1708,13 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: D12.plot()
             Graphics object consisting of 14 graphics primitives
 
-        Just the abstract form of the poset; an example of relabeling::
+        Just the abstract form of the poset; examples of relabeling::
 
             sage: D12.plot(label_elements=False)
             Graphics object consisting of 8 graphics primitives
+            sage: d = {1: 0, 2: 'a', 3: 'b', 4: 'c', 6: 'd', 12: 1}
+            sage: D12.plot(element_labels=d)
+            Graphics object consisting of 14 graphics primitives
             sage: d = {i:str(factor(i)) for i in D12}
             sage: D12.plot(element_labels=d)
             Graphics object consisting of 14 graphics primitives
@@ -1773,7 +1772,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Poset({})
             sage: P.plot()
             Graphics object consisting of 0 graphics primitives
-
         """
         from collections import defaultdict
         graph = self.hasse_diagram()

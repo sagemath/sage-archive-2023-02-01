@@ -596,7 +596,7 @@ def format(s, embedded=False):
         "   Returns ...  Todo: add tests as in combinat::rankers\n"
 
     In the following use case, the ``nodetex`` directive would have been ignored prior
-    to #11815::
+    to :trac:`11815`::
 
         sage: cython_code = ["def testfunc(x):",
         ....: "    '''",

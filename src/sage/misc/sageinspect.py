@@ -2269,7 +2269,7 @@ def __internal_tests():
         sage: sage_getdef(sage.rings.integer.Integer.factor, obj_name='factor')
         "factor(algorithm='pari', proof=None, limit=None, int_=False, verbose=0)"
 
-    This used to be problematic, but was fixed in #10094::
+    This used to be problematic, but was fixed in :trac:`10094`::
 
         sage: sage_getsource(sage.rings.integer.Integer.__init__)
         '    def __init__(self, x=None, base=0):\n...'

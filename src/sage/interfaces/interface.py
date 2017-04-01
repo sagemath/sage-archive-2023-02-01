@@ -884,7 +884,7 @@ class InterfaceElement(Element):
 
         Here, GAP fails to compare, and so ``False`` is returned.
         In previous Sage versions, this example actually resulted
-        in an error; compare #5962.
+        in an error; compare :trac:`5962`.
         ::
 
             sage: gap('DihedralGroup(8)')==gap('DihedralGroup(8)')

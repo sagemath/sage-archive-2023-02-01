@@ -407,7 +407,7 @@ cdef class IntegerWrapper(Integer):
             sage: n.parent()
             Set of all prime numbers: 2, 3, 5, 7, ...
 
-        Pickling seems to work now (as of #10314)
+        Pickling seems to work now (as of :trac:`10314`)::
 
             sage: nn = loads(dumps(n))
             sage: nn

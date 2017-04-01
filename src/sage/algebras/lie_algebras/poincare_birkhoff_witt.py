@@ -7,17 +7,12 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#  Copyright (C) 2013 Travis Scrimshaw <tscrim@ucdavis.edu>
+#       Copyright (C) 2013-2017 Travis Scrimshaw <tcscrims at gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty
-#    of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-#
-#  See the GNU General Public License for more details; the full text
-#  is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -76,7 +71,9 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
     Next we construct another instance of the PBW basis, but sorted in the
     reverse order::
 
-        sage: PBW2 = L.pbw_basis(prefix='PBW2', basis_cmp=lambda x,y: -cmp(x,y))
+        sage: def neg_key(x):
+        ....:     return -L.basis().keys().index(x)
+        sage: PBW2 = L.pbw_basis(prefix='PBW2', basis_key=neg_key)
 
     We then check the multiplication is preserved::
 
@@ -101,7 +98,7 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
         PBW[-2]*PBW[2]*PBW[3] - PBW[-2]*PBW[5]
     """
     @staticmethod
-    def __classcall_private__(cls, g, basis_cmp=None, prefix='PBW', **kwds):
+    def __classcall_private__(cls, g, basis_key=None, prefix='PBW', **kwds):
         """
         Normalize input to ensure a unique representation.
 
@@ -115,9 +112,9 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             True
         """
         return super(PoincareBirkhoffWittBasis, cls).__classcall__(cls,
-                            g, basis_cmp, prefix, **kwds)
+                            g, basis_key, prefix, **kwds)
 
-    def __init__(self, g, basis_cmp, prefix, **kwds):
+    def __init__(self, g, basis_key, prefix, **kwds):
         """
         Initialize ``self``.
 
@@ -129,85 +126,83 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             sage: TestSuite(PBW).run(elements=[E, F, H])
             sage: TestSuite(PBW).run(elements=[E, F, H, E*F + H]) # long time
         """
-        if basis_cmp is not None:
-            self._basis_cmp = basis_cmp
+        if basis_key is not None:
+            self._basis_key = basis_key
 
         R = g.base_ring()
         self._g = g
         monomials = IndexedFreeAbelianMonoid(g.basis().keys(), prefix,
-                                             generator_cmp=self._monoid_cmp, **kwds)
+                                             sorting_key=self._monoid_key, **kwds)
         CombinatorialFreeModule.__init__(self, R, monomials,
                                          prefix='', bracket=False, latex_bracket=False,
-                                         generator_cmp=self._monomial_cmp,
+                                         sorting_key=self._monomial_key,
                                          category=Algebras(R).WithBasis())
 
-    def _basis_cmp(self, x, y):
+    def _basis_key(self, x):
         """
-        Compare the indices of ``x`` and ``y``.
+        Return a key for sorting for the index ``x``.
 
         TESTS::
 
             sage: L = lie_algebras.sl(QQ, 2)
             sage: PBW = L.pbw_basis()
-            sage: PBW._basis_cmp('E', 'H')
-            -1
+            sage: PBW._basis_key('E') < PBW._basis_key('H')
+            True
 
         ::
 
             sage: L = lie_algebras.sl(QQ, 2)
-            sage: PBW = L.pbw_basis(basis_cmp=lambda x,y: -cmp(x,y))
-            sage: prod(PBW.gens())
+            sage: def neg_key(x):
+            ....:     return -L.basis().keys().index(x)
+            sage: PBW = L.pbw_basis(basis_key=neg_key)
+            sage: prod(PBW.gens())  # indirect doctest
             PBW['H']*PBW['F']*PBW['E'] + PBW['H']^2
         """
         K = self._g.basis().keys()
         if K.cardinality() == float('inf'):
-            return cmp(x, y)
+            return x
         lst = list(K)
-        return cmp(lst.index(x), lst.index(y))
+        return lst.index(x)
 
-    def _monoid_cmp(self, x, y):
+    def _monoid_key(self, x):
         """
         Comparison function for the underlying monoid.
 
         EXAMPLES::
 
             sage: L = lie_algebras.sl(QQ, 2)
-            sage: PBW = L.pbw_basis(basis_cmp=lambda x,y: -cmp(x,y))
+            sage: def neg_key(x):
+            ....:     return -L.basis().keys().index(x)
+            sage: PBW = L.pbw_basis(basis_key=neg_key)
             sage: M = PBW.basis().keys()
-            sage: prod(M.gens()) # indirect doctest
+            sage: prod(M.gens())  # indirect doctest
             PBW['H']*PBW['F']*PBW['E']
         """
-        return self._basis_cmp(x[0], y[0])
+        return self._basis_key(x[0])
 
-    def _monomial_cmp(self, x, y):
+    def _monomial_key(self, x):
         """
-        Compare the monomials ``x`` and ``y`` of ``self`` by reverse
-        degree lexicographic order.
+        Compute the key for ``x`` so that the comparison is done by
+        reverse degree lexicographic order.
 
         EXAMPLES::
 
             sage: L = lie_algebras.sl(QQ, 2)
             sage: PBW = L.pbw_basis()
             sage: E,F,H = sorted(PBW.algebra_generators(), key=str)
-            sage: H*F*F*E # indirect doctest
+            sage: H*F*F*E  # indirect doctest
             PBW['E']*PBW['F']^2*PBW['H'] - 2*PBW['E']*PBW['F']^2
              - 2*PBW['F']*PBW['H']^2 + 6*PBW['F']*PBW['H'] - 4*PBW['F']
 
-            sage: PBW = L.pbw_basis(basis_cmp=lambda x,y: -cmp(x,y))
+            sage: def neg_key(x):
+            ....:     return -L.basis().keys().index(x)
+            sage: PBW = L.pbw_basis(basis_key=neg_key)
             sage: E,F,H = sorted(PBW.algebra_generators(), key=str)
-            sage: E*F*F*H # indirect doctest
+            sage: E*F*F*H  # indirect doctest
             PBW['H']*PBW['F']^2*PBW['E'] + 2*PBW['H']^2*PBW['F']
              + 2*PBW['F']^2*PBW['E'] + 6*PBW['H']*PBW['F'] + 4*PBW['F']
         """
-        c = cmp(len(y), len(x))
-        if c:
-            return c
-        w = y.to_word_list()
-        for i,a in enumerate(x.to_word_list()):
-            c = self._basis_cmp(a, w[i])
-            if c:
-                return c
-        return 0
+        return (-len(x), [self._basis_key(l) for l in x.to_word_list()])
 
     def _repr_(self):
         """
@@ -239,7 +234,9 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
 
         We can go between PBW bases under different sorting orders::
 
-            sage: PBW2 = L.pbw_basis(basis_cmp=lambda x,y: -cmp(x,y))
+            sage: def neg_key(x):
+            ....:     return -L.basis().keys().index(x)
+            sage: PBW2 = L.pbw_basis(basis_key=neg_key)
             sage: E,F,H = sorted(PBW.algebra_generators(), key=str)
             sage: PBW2(E*F*H)
             PBW['H']*PBW['F']*PBW['E'] + PBW['H']^2
@@ -349,7 +346,7 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
         I = self._indices
         trail = lhs.trailing_support()
         lead = rhs.leading_support()
-        if self._basis_cmp(trail, lead) <= 0:
+        if self._basis_key(trail) <= self._basis_key(lead):
             return self.monomial(lhs * rhs)
 
         # Create the commutator

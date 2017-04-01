@@ -143,7 +143,7 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             return self.basis().cardinality()
 
-        def pbw_basis(self, basis_cmp=None, **kwds):
+        def pbw_basis(self, basis_key=None, **kwds):
             """
             Return the Poincare-Birkhoff-Witt basis of the universal
             enveloping algebra corresponding to ``self``.
@@ -155,7 +155,7 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             from sage.algebras.lie_algebras.poincare_birkhoff_witt \
                 import PoincareBirkhoffWittBasis
-            return PoincareBirkhoffWittBasis(self, basis_cmp, **kwds)
+            return PoincareBirkhoffWittBasis(self, basis_key, **kwds)
 
         poincare_birkhoff_witt_basis = pbw_basis
 

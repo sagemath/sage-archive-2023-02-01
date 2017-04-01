@@ -394,14 +394,14 @@ class Polymake(ExtraTabCompletion, Expect):
 
         Force use of file::
 
-            sage: L = polymake([42] * 400)
-            sage: len(L)
+            sage: L = polymake([42] * 400)                      # optional - polymake
+            sage: len(L)                                        # optional - polymake
             400
 
         Just below standard file cutoff of 1024::
 
-            sage: L = polymake([42] * 84)
-            sage: len(L)
+            sage: L = polymake([42] * 84)                       # optional - polymake
+            sage: len(L)                                        # optional - polymake
             84
 
         """

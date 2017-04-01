@@ -409,6 +409,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             return self.centralizer(self)
 
+        @cached_method
         def is_ideal(self, A):
             """
             Return if ``self`` is an ideal of ``A``.

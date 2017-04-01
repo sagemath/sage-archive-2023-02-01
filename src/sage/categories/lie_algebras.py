@@ -205,7 +205,7 @@ class LieAlgebras(Category_over_base_ring):
 
         # Do not override this. Instead implement :meth:`_construct_UEA`;
         #   then, :meth:`lift` and :meth:`universal_enveloping_algebra`
-        #   will automatically setup the coercion
+        #   will automatically setup the coercion.
         def universal_enveloping_algebra(self):
             """
             Return the universal enveloping algebra of ``self``.
@@ -238,6 +238,10 @@ class LieAlgebras(Category_over_base_ring):
             (usually) construct the canonical lift morphism from ``self``
             to the universal enveloping algebra (let alone register it
             as a coercion).
+
+            One should implement this method and the ``lift`` method for
+            the element class to construct the morphism the the universal
+            enveloping algebra.
 
             EXAMPLES::
 

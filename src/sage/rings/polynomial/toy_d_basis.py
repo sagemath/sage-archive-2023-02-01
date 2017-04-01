@@ -78,18 +78,16 @@ Groebner basis of `I` over `\QQ` contains 1, so there are no solutions
 over `\QQ` or an algebraic closure of it (this is not surprising as
 there are 4 equations in 3 unknowns).::
 
-    sage: P.<x, y, z> = PolynomialRing(IntegerRing(), 3)
+    sage: P.<x, y, z> = PolynomialRing(IntegerRing(), 3, order='degneglex')
     sage: I = ideal( x^2 - 3*y, y^3 - x*y, z^3 - x, x^4 - y*z + 1 )
-    sage: I.change_ring( P.change_ring( RationalField() ) ).groebner_basis()
+    sage: I.change_ring(P.change_ring(RationalField())).groebner_basis()
     [1]
 
 However, when we compute the Groebner basis of I (defined over `\ZZ`), we
 note that there is a certain integer in the ideal which is not 1::
 
     sage: gb = d_basis(I); gb
-    [x ..., y ..., z ..., 282687803443]
-    sage: [p.monomials() for p in gb]
-    [[x, 1], [y, 1], [z, 1], [1]]
+    [z - 107196348594952664476180297953816049406949517534824683390654620424703403993052759002989622, y + 84382748470495086324437828161121754084154498572003307352857967748090984550697850484197972764799434672877850291328840, x + 105754645239745824529618668609551113725317621921665293762587811716173, 282687803443]
 
 Now for each prime `p` dividing this integer 282687803443, the Groebner
 basis of I modulo `p` will be non-trivial and will thus give a solution
@@ -99,13 +97,13 @@ of the original system modulo `p`.::
     101 * 103 * 27173681
 
     sage: I.change_ring( P.change_ring( GF(101) ) ).groebner_basis()
-    [x + 19, y + 48, z - 33]
+    [z - 33, y + 48, x + 19]
 
     sage: I.change_ring( P.change_ring( GF(103) ) ).groebner_basis()
-    [x + 39, y + 8, z - 18]
+    [z - 18, y + 8, x + 39]
 
     sage: I.change_ring( P.change_ring( GF(27173681) ) ).groebner_basis()
-    [x - 536027, y + 3186055, z + 10380032]
+    [z + 10380032, y + 3186055, x - 536027]
 
 Of course, modulo any other prime the Groebner basis is trivial so
 there are no other solutions. For example::

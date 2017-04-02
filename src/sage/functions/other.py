@@ -908,12 +908,13 @@ class Function_gamma(GinacFunction):
 
             :meth:`sage.functions.other.gamma`
         """
-        GinacFunction.__init__(self, "gamma", latex_name=r'\Gamma',
-                ginac_name='tgamma',
-                conversions={'mathematica':'Gamma',
-                             'maple':'GAMMA',
-                             'sympy':'gamma',
-                             'fricas':'Gamma'})
+        GinacFunction.__init__(self, 'gamma', latex_name=r"\Gamma",
+                               ginac_name='tgamma',
+                               conversions={'mathematica':'Gamma',
+                                            'maple':'GAMMA',
+                                            'sympy':'gamma',
+                                            'fricas':'Gamma',
+                                            'giac':'Gamma'})
 
 gamma1 = Function_gamma()
 
@@ -2056,11 +2057,13 @@ class Function_beta(GinacFunction):
             sage: beta(-1.3,-0.4)
             -4.92909641669610
         """
-        GinacFunction.__init__(self, "beta", nargs=2,
-                conversions=dict(maxima='beta',
-                                 mathematica='Beta',
-                                 sympy='beta',
-                                 fricas='Beta'))
+        GinacFunction.__init__(self, 'beta', nargs=2,
+                               latex_name=r"\operatorname{B}",
+                               conversions=dict(maxima='beta',
+                                                mathematica='Beta',
+                                                sympy='beta',
+                                                fricas='Beta',
+                                                giac='Beta'))
 
 beta = Function_beta()
 

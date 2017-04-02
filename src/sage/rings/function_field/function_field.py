@@ -358,14 +358,13 @@ class FunctionField(Field):
         return False
 
     def _test_derivation(self, **options):
-        r"""
-        Test the correctness of the derivations of this function field.
+        """
+        Test the correctness of the derivations of the function field.
 
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ)
             sage: TestSuite(K).run() # indirect doctest
-
         """
         tester = self._tester(**options)
         S = tester.some_elements()

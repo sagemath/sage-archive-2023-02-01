@@ -111,15 +111,8 @@ class FunctionFieldDerivation(Map):
         return False
 
 class FunctionFieldDerivation_rational(FunctionFieldDerivation):
-    r"""
+    """
     A derivation on a rational function field.
-
-    INPUT:
-
-    - ``K`` -- a rational function field
-
-    - ``u`` -- an element of ``K``, the image of the generator of ``K`` under
-      the derivation.
 
     EXAMPLES::
 
@@ -127,12 +120,18 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
         sage: d = K.derivation()
         sage: isinstance(d, sage.rings.function_field.maps.FunctionFieldDerivation_rational)
         True
-
     """
     def __init__(self, K, u):
-        r"""
+        """
         Initialize a derivation of ``K`` which sends the generator of ``K`` to
         ``u``.
+
+        INPUT:
+
+        - ``K`` -- a rational function field
+
+        - ``u`` -- an element of ``K``, the image of the generator of ``K`` under
+          the derivation
 
         EXAMPLES::
 
@@ -140,18 +139,13 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
             sage: d = K.derivation() # indirect doctest
             sage: type(d)
             <class 'sage.rings.function_field.maps.FunctionFieldDerivation_rational'>
-
         """
-        from .function_field import is_RationalFunctionField
-        if not is_RationalFunctionField(K):
-            raise ValueError("K must be a rational function field")
-        if u.parent() is not K:
-            raise ValueError("u must be an element in K")
         FunctionFieldDerivation.__init__(self, K)
+
         self._u = u
 
     def _call_(self, x):
-        r"""
+        """
         Compute the derivation of ``x``.
 
         INPUT:
@@ -168,29 +162,19 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
             3*x^2
             sage: d(1/x)
             -1/x^2
-
         """
-        f,g = x.numerator(),x.denominator()
+        f = x.numerator()
+        g = x.denominator()
 
-        if not f.gcd(g).is_one():
-            raise NotImplementedError("derivations only implemented for rational functions with coprime numerator and denominator.")
-
-        numerator = f.derivative()*g - f*g.derivative()
+        numerator = f.derivative() * g - f * g.derivative()
         if numerator.is_zero():
             return self.codomain().zero()
         else:
-            return self._u * self.codomain()( numerator / g**2 )
+            return self._u * self.codomain()(numerator / g**2)
 
 class FunctionFieldDerivation_separable(FunctionFieldDerivation):
-    r"""
+    """
     The unique extension of the derivation ``d`` to ``L``.
-
-    INPUT:
-
-    - ``L`` -- a function field which is a separable extension of the domain of
-      ``d``
-
-    - ``d`` -- a derivation on the base function field of ``L``
 
     EXAMPLES::
 
@@ -198,11 +182,17 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
         sage: R.<y> = K[]
         sage: L.<y> = K.extension(y^2 - x)
         sage: d = L.derivation()
-
     """
     def __init__(self, L, d):
-        r"""
+        """
         Initialization.
+
+        INPUT:
+
+        - ``L`` -- a function field which is a separable extension of the domain of
+          ``d``
+
+        - ``d`` -- a derivation on the base function field of ``L``
 
         EXAMPLES::
 
@@ -212,7 +202,6 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
             sage: d = L.derivation() # indirect doctest
             sage: type(d)
             <class 'sage.rings.function_field.maps.FunctionFieldDerivation_separable'>
-
         """
         FunctionFieldDerivation.__init__(self, L)
 
@@ -245,19 +234,20 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
             (-1/2/-x)*y
             sage: d(y^2)
             1
-
         """
         if x.is_zero():
             return self.codomain().zero()
 
-        return x._x.map_coefficients(self._d) \
-               + x._x.derivative()(self.domain().gen()) * self._gen_image
+        x = x._x
+        y = self.domain().gen()
+
+        return x.map_coefficients(self._d) + x.derivative()(y) * self._gen_image
 
     def _repr_defn(self):
-        r"""
-        Helper method to print this map.
+        """
+        Return the string representation of the map.
 
-        TESTS::
+        EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ)
             sage: R.<y> = K[]
@@ -267,6 +257,7 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
               From: Function field in y defined by y^2 - x
               To:   Function field in y defined by y^2 - x
               Defn: y |--> (-1/2/-x)*y
+
             sage: R.<z> = L[]
             sage: M.<z> = L.extension(z^2 - y)
             sage: M.derivation()
@@ -275,7 +266,6 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
               To:   Function field in z defined by z^2 - y
               Defn: y |--> (-1/2/-x)*y
                     z |--> 1/4/x*z
-
         """
         base = self._d._repr_defn()
         ret = '{} |--> {}'.format(self.domain().gen(), self._gen_image)

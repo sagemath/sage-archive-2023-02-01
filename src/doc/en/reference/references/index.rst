@@ -1176,6 +1176,15 @@ REFERENCES:
 .. [MM2015] \J. Matherne and \G. Muller, *Computing upper cluster algebras*,
             Int. Math. Res. Not. IMRN, 2015, 3121-3149.
 
+.. [MNO1994] Alexander Molev, Maxim Nazarov, and Grigori Olshanski.
+             *Yangians and classical Lie algebras*. (1994)
+             :arxiv:`hep-th/9409025`
+
+.. [Mol2007] Alexander Ivanovich Molev.
+             *Yangians and Classical Lie Algebras*.
+             Mathematical Surveys and Monographs.
+             Providence, RI: American Mathematical Society. (2007)
+
 .. [Mon1998] \K. G. Monks, "Change of basis, monomial relations, and
              `P^s_t` bases for the Steenrod algebra," J. Pure
              Appl. Algebra 125 (1998), no. 1-3, 235-260.

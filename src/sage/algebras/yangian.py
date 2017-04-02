@@ -7,9 +7,13 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#  Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
+#  Copyright (C) 2013 Travis Scrimshaw <tcscrims at gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -204,15 +208,8 @@ class Yangian(CombinatorialFreeModule):
     REFERENCES:
 
     - :wikipedia:`Yangian`
-
-    .. [MNO94] Alexander Molev, Maxim Nazarov, and Grigori Olshanski.
-       *Yangians and classical Lie algebras*.
-       :arxiv:`hep-th/9409025`
-
-    .. [Molev07] Alexander Ivanovich Molev.
-       *Yangians and Classical Lie Algebras*.
-       Mathematical Surveys and Monographs.
-       Providence, RI: American Mathematical Society. (2007)
+    - [MNO1994]_
+    - [Mol2007]_
     """
     @staticmethod
     def __classcall_private__(cls, base_ring, n, level=None,
@@ -368,7 +365,7 @@ class Yangian(CombinatorialFreeModule):
         if isinstance(x, CombinatorialFreeModule.Element):
             if isinstance(x.parent(), Yangian) and x.parent()._n <= self._n:
                 R = self.base_ring()
-                return self._from_dict({i: R(c) for i,c in x})
+                return self._from_dict({i: R(c) for i,c in x}, coerce=False)
         return super(Yangian, self)._element_constructor_(x)
 
     def gen(self, r, i=None, j=None):
@@ -394,7 +391,7 @@ class Yangian(CombinatorialFreeModule):
                 return self.one()
             return self.zero()
         m = self._indices.gen((r,i,j))
-        return self._from_dict({m: self.base_ring().one()}, remove_zeros=False)
+        return self.element_class(self, {m: self.base_ring().one()})
 
     @cached_method
     def algebra_generators(self):

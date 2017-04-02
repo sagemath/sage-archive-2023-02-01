@@ -396,22 +396,33 @@ class BackendIPythonCommandline(BackendIPython):
         """
         return True
 
-    def threejs_offline_scripts(self):
+    def threejs_scripts(self, online):
         """
-        Three.js offline scripts for the IPython command line
+        Three.js scripts for the IPython command line
+
+        INPUT:
+
+        - ``online`` -- Boolean determining script usage context
+
+        OUTPUT:
+
+        String containing script tags
 
         EXAMPLES::
 
             sage: from sage.repl.rich_output.backend_ipython import BackendIPythonCommandline
             sage: backend = BackendIPythonCommandline()
-            sage: backend.threejs_offline_scripts()
+            sage: backend.threejs_scripts(True)
             '...<script ...</script>...'
         """
-        from sage.env import SAGE_SHARE
-        return """
+        if online:
+            return super(BackendIPythonCommandline, self).threejs_scripts(online)
+        else:
+            from sage.env import SAGE_SHARE
+            return """
 <script src="{0}/threejs/three.min.js"></script>
 <script src="{0}/threejs/OrbitControls.js"></script>
-        """.format(SAGE_SHARE)
+            """.format(SAGE_SHARE)
 
 
 
@@ -572,20 +583,31 @@ class BackendIPythonNotebook(BackendIPython):
         else:
             raise TypeError('rich_output type not supported')
 
-    def threejs_offline_scripts(self):
+    def threejs_scripts(self, online):
         """
-        Three.js offline scripts for the IPython notebook
+        Three.js scripts for the IPython notebook
+
+        INPUT:
+
+        - ``online`` -- Boolean determining script usage context
+
+        OUTPUT:
+
+        String containing script tags
 
         EXAMPLES::
 
             sage: from sage.repl.rich_output.backend_ipython import BackendIPythonNotebook
             sage: backend = BackendIPythonNotebook()
-            sage: backend.threejs_offline_scripts()
+            sage: backend.threejs_scripts(True)
             '...<script ...</script>...'
         """
-        from sage.misc.package import installed_packages
-        version = installed_packages()['threejs']
-        return """
+        if online:
+            return super(BackendIPythonNotebook, self).threejs_scripts(online)
+        else:
+            from sage.misc.package import installed_packages
+            version = installed_packages()['threejs']
+            return """
 <script src="/nbextensions/threejs/three.min.js"></script>
 <script src="/nbextensions/threejs/OrbitControls.js"></script>
 <script>
@@ -593,4 +615,4 @@ class BackendIPythonNotebook(BackendIPython):
 <script src="https://cdn.rawgit.com/mrdoob/three.js/{0}/build/three.min.js"><\/script>\
 <script src="https://cdn.rawgit.com/mrdoob/three.js/{0}/examples/js/controls/OrbitControls.js"><\/script>');
 </script>
-        """.format(version)
+            """.format(version)

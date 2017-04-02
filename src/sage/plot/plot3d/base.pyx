@@ -356,7 +356,7 @@ cdef class Graphics3d(SageObject):
 
         EXAMPLES::
 
-            sage: sphere()._rich_repr_threejs()
+            sage: sphere(online=True)._rich_repr_threejs()
             OutputSceneThreejs container
         """
         options = {}
@@ -372,19 +372,7 @@ cdef class Graphics3d(SageObject):
 
         from sage.repl.rich_output import get_display_manager
         backend = get_display_manager()._backend
-        from sage.repl.rich_output.backend_sagenb import BackendSageNB
-        if isinstance(backend, BackendSageNB):
-            options['online'] = True
-
-        if options['online']:
-            from sage.misc.package import installed_packages
-            version = installed_packages()['threejs']
-            scripts = """
-<script src="https://cdn.rawgit.com/mrdoob/three.js/{0}/build/three.min.js"></script>
-<script src="https://cdn.rawgit.com/mrdoob/three.js/{0}/examples/js/controls/OrbitControls.js"></script>
-            """.format(version)
-        else:
-            scripts = backend.threejs_offline_scripts()
+        scripts = backend.threejs_scripts(options['online'])
 
         b = self.bounding_box()
         bounds = '[{{"x":{}, "y":{}, "z":{}}}, {{"x":{}, "y":{}, "z":{}}}]'.format(

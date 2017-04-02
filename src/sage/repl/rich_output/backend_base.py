@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 r"""
-Base class for Backends
+Base Class for Backends
 
 The display backends are the commandline, the SageNB notebook, the
-ipython notebook, the Emacs sage mode, the Sage doctester, .... All of
+IPython notebook, the Emacs sage mode, the Sage doctester, .... All of
 these have different capabilities for what they can display.
 
 To implement a new display backend, you need to subclass
@@ -593,6 +593,35 @@ class BackendBase(SageObject):
             NotImplementedError: derived classes must implement this method
         """
         raise NotImplementedError('derived classes must implement this method')
+
+    def threejs_scripts(self, online):
+        """
+        Three.js scripts for the backend base
+
+        INPUT:
+
+        - ``online`` -- Boolean determining script usage context
+
+        OUTPUT:
+
+        String containing script tags
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_base import BackendBase
+            sage: backend = BackendBase()
+            sage: backend.threejs_scripts(True)
+            '...<script ...</script>...'
+        """
+        if online:
+            from sage.misc.package import installed_packages
+            version = installed_packages()['threejs']
+            return """
+<script src="https://cdn.rawgit.com/mrdoob/three.js/{0}/build/three.min.js"></script>
+<script src="https://cdn.rawgit.com/mrdoob/three.js/{0}/examples/js/controls/OrbitControls.js"></script>
+            """.format(version)
+        else:
+            raise ValueError('online should be true for the backend base')
 
 
 class BackendSimple(BackendBase):

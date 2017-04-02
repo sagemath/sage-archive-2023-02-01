@@ -3159,7 +3159,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
           cycle graph. Default: ``variety``.
 
         - ``return_scheme`` - return a subscheme of the ambient space which defines the
-          ``n``th periodic points.
+          ``n`` th periodic points.
 
         OUTPUT:
 

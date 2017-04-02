@@ -602,17 +602,14 @@ class BackendIPythonNotebook(BackendIPython):
             sage: backend.threejs_scripts(True)
             '...<script ...</script>...'
         """
+        CDN_scripts = super(BackendIPythonNotebook, self).threejs_scripts(True)
         if online:
-            return super(BackendIPythonNotebook, self).threejs_scripts(online)
+            return CDN_scripts
         else:
-            from sage.misc.package import installed_packages
-            version = installed_packages()['threejs']
             return """
 <script src="/nbextensions/threejs/three.min.js"></script>
 <script src="/nbextensions/threejs/OrbitControls.js"></script>
 <script>
-  if ( !window.THREE ) document.write('\
-<script src="https://cdn.rawgit.com/mrdoob/three.js/{0}/build/three.min.js"><\/script>\
-<script src="https://cdn.rawgit.com/mrdoob/three.js/{0}/examples/js/controls/OrbitControls.js"><\/script>');
+  if ( !window.THREE ) document.write('{}');
 </script>
-            """.format(version)
+            """.format(CDN_scripts)

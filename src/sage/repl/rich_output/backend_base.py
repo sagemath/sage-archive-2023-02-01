@@ -605,13 +605,23 @@ class BackendBase(SageObject):
         OUTPUT:
 
         String containing script tags
+        
+        .. NOTE::
+        
+            This base method handles ``online=True`` case only, serving CDN
+            script tags. Location of scripts for off-line usage is
+            backend-specific.
 
         EXAMPLES::
 
             sage: from sage.repl.rich_output.backend_base import BackendBase
             sage: backend = BackendBase()
             sage: backend.threejs_scripts(True)
-            '...<script ...</script>...'
+            '\n<script src="https://cdn.rawgit.com/mrdoob/three.js/...'
+            sage: backend.threejs_scripts(False)
+            Traceback (most recent call last):
+            ...
+            ValueError: online should be true for the backend base
         """
         if online:
             from sage.misc.package import installed_packages

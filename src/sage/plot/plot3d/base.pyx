@@ -359,13 +359,14 @@ cdef class Graphics3d(SageObject):
             sage: sphere(online=True)._rich_repr_threejs()
             OutputSceneThreejs container
         """
-        options = {}
-        options['aspect_ratio'] = [float(i) for i in kwds.get('aspect_ratio', [1,1,1])]
-        options['axes'] = kwds.get('axes', False)
-        options['axes_labels'] = kwds.get('axes_labels', ['x','y','z'])
-        options['decimals'] = int(kwds.get('decimals', 2))
-        options['frame'] = kwds.get('frame', True)
-        options['online'] = kwds.get('online', False)
+        options = self._process_viewing_options(kwds)
+        # Threejs specific options
+        options.setdefault('axes_labels', ['x','y','z'])
+        options.setdefault('decimals', 2)
+        options.setdefault('online', False)
+        # Normalization of options values for proper JSONing
+        options['aspect_ratio'] = [float(i) for i in options['aspect_ratio']]
+        options['decimals'] = int(options['decimals'])
 
         if not options['frame']:
             options['axes_labels'] = False
@@ -414,10 +415,9 @@ cdef class Graphics3d(SageObject):
         surfaces = '[' + ','.join(surfaces) + ']'
 
         from sage.env import SAGE_EXTCODE
-        filename = os.path.join(SAGE_EXTCODE, 'threejs', 'threejs_template.html')
-        f = open(filename, 'r')
-        html = f.read()
-        f.close()
+        with open(os.path.join(
+                SAGE_EXTCODE, 'threejs', 'threejs_template.html')) as f:
+            html = f.read()
 
         html = html.replace('SAGE_SCRIPTS', scripts)
         html = html.replace('SAGE_OPTIONS', json.dumps(options))

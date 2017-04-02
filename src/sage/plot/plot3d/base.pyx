@@ -372,8 +372,7 @@ cdef class Graphics3d(SageObject):
             options['axes_labels'] = False
 
         from sage.repl.rich_output import get_display_manager
-        backend = get_display_manager()._backend
-        scripts = backend.threejs_scripts(options['online'])
+        scripts = get_display_manager().threejs_scripts(options['online'])
 
         b = self.bounding_box()
         bounds = '[{{"x":{}, "y":{}, "z":{}}}, {{"x":{}, "y":{}, "z":{}}}]'.format(

@@ -396,13 +396,9 @@ class BackendIPythonCommandline(BackendIPython):
         """
         return True
 
-    def threejs_scripts(self, online):
+    def threejs_offline_scripts(self):
         """
         Three.js scripts for the IPython command line
-
-        INPUT:
-
-        - ``online`` -- Boolean determining script usage context
 
         OUTPUT:
 
@@ -412,18 +408,14 @@ class BackendIPythonCommandline(BackendIPython):
 
             sage: from sage.repl.rich_output.backend_ipython import BackendIPythonCommandline
             sage: backend = BackendIPythonCommandline()
-            sage: backend.threejs_scripts(True)
+            sage: backend.threejs_offline_scripts()
             '...<script ...</script>...'
         """
-        if online:
-            return super(BackendIPythonCommandline, self).threejs_scripts(online)
-        else:
-            from sage.env import SAGE_SHARE
-            return """
+        from sage.env import SAGE_SHARE
+        return """
 <script src="{0}/threejs/three.min.js"></script>
 <script src="{0}/threejs/OrbitControls.js"></script>
-            """.format(SAGE_SHARE)
-
+        """.format(SAGE_SHARE)
 
 
 IFRAME_TEMPLATE = \
@@ -583,13 +575,9 @@ class BackendIPythonNotebook(BackendIPython):
         else:
             raise TypeError('rich_output type not supported')
 
-    def threejs_scripts(self, online):
+    def threejs_offline_scripts(self):
         """
         Three.js scripts for the IPython notebook
-
-        INPUT:
-
-        - ``online`` -- Boolean determining script usage context
 
         OUTPUT:
 
@@ -599,17 +587,15 @@ class BackendIPythonNotebook(BackendIPython):
 
             sage: from sage.repl.rich_output.backend_ipython import BackendIPythonNotebook
             sage: backend = BackendIPythonNotebook()
-            sage: backend.threejs_scripts(True)
-            '...<script ...</script>...'
+            sage: backend.threejs_offline_scripts()
+            '\n<script src="/nbextensions/threejs/three.min.js"></script>...'
         """
-        CDN_scripts = super(BackendIPythonNotebook, self).threejs_scripts(True)
-        if online:
-            return CDN_scripts
-        else:
-            return """
+        from sage.repl.rich_output import get_display_manager
+        CDN_scripts = get_display_manager().threejs_scripts(online=True)
+        return """
 <script src="/nbextensions/threejs/three.min.js"></script>
 <script src="/nbextensions/threejs/OrbitControls.js"></script>
 <script>
   if ( !window.THREE ) document.write('{}');
 </script>
-            """.format(CDN_scripts)
+        """.format(CDN_scripts)

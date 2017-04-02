@@ -713,6 +713,48 @@ class DisplayManager(SageObject):
         buf = OutputBuffer.from_file(filename)
         return output_container(buf)
 
+    def threejs_scripts(self, online):
+        """
+        Return three.js script tags for the current backend.
+
+        INPUT:
+
+        - ``online`` -- Boolean determining script usage context
+
+        OUTPUT:
+
+        String containing script tags
+        
+        .. NOTE::
+        
+            This base method handles ``online=True`` case only, serving CDN
+            script tags. Location of scripts for off-line usage is
+            backend-specific.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: get_display_manager().threejs_scripts(online=True)
+            '\n<script src="https://cdn.rawgit.com/mrdoob/three.js/...'
+            sage: get_display_manager().threejs_scripts(online=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: current backend does not support
+            offline threejs graphics
+        """
+        if online:
+            from sage.misc.package import installed_packages
+            version = installed_packages()['threejs']
+            return """
+<script src="https://cdn.rawgit.com/mrdoob/three.js/{0}/build/three.min.js"></script>
+<script src="https://cdn.rawgit.com/mrdoob/three.js/{0}/examples/js/controls/OrbitControls.js"></script>
+            """.format(version)
+        try:
+            return self._backend.threejs_offline_scripts()
+        except AttributeError:
+            raise ValueError(
+                'current backend does not support offline threejs graphics')
+
     def supported_output(self):
         """
         Return the output container classes that can be used.

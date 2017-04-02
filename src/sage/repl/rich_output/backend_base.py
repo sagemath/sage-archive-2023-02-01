@@ -594,45 +594,6 @@ class BackendBase(SageObject):
         """
         raise NotImplementedError('derived classes must implement this method')
 
-    def threejs_scripts(self, online):
-        """
-        Three.js scripts for the backend base
-
-        INPUT:
-
-        - ``online`` -- Boolean determining script usage context
-
-        OUTPUT:
-
-        String containing script tags
-        
-        .. NOTE::
-        
-            This base method handles ``online=True`` case only, serving CDN
-            script tags. Location of scripts for off-line usage is
-            backend-specific.
-
-        EXAMPLES::
-
-            sage: from sage.repl.rich_output.backend_base import BackendBase
-            sage: backend = BackendBase()
-            sage: backend.threejs_scripts(True)
-            '\n<script src="https://cdn.rawgit.com/mrdoob/three.js/...'
-            sage: backend.threejs_scripts(False)
-            Traceback (most recent call last):
-            ...
-            ValueError: online should be true for the backend base
-        """
-        if online:
-            from sage.misc.package import installed_packages
-            version = installed_packages()['threejs']
-            return """
-<script src="https://cdn.rawgit.com/mrdoob/three.js/{0}/build/three.min.js"></script>
-<script src="https://cdn.rawgit.com/mrdoob/three.js/{0}/examples/js/controls/OrbitControls.js"></script>
-            """.format(version)
-        else:
-            raise ValueError('online should be true for the backend base')
-
 
 class BackendSimple(BackendBase):
     """

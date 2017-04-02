@@ -2357,7 +2357,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
               x0*x1*y2^2 + 3*x2^2*y2^2
             sage: Y = x0*y0 + x1*y1 + x2*y2
             sage: X = WehlerK3Surface([Z, Y])
-            sage: T = PP(0, 0, 1, 1, 0, 0)
+            sage: T = X(0, 0, 1, 1, 0, 0)
             sage: X.orbit_psi(T, 2, normalize = True)
             [(0 : 0 : 1 , 1 : 0 : 0), (0 : 0 : 1 , 0 : 1 : 0), (-1 : 0 : 1 , 1 : 1/9 : 1)]
             sage: X.orbit_psi(T,[2,3], normalize = True)

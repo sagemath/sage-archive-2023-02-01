@@ -1,3 +1,4 @@
+from sage.structure.element cimport Element
 from sage.structure.element_wrapper cimport ElementWrapper
 
 cdef class LieAlgebraElementWrapper(ElementWrapper):
@@ -13,4 +14,14 @@ cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
     cpdef to_vector(self)
     cpdef dict monomial_coefficients(self, bint copy=*)
     #cpdef lift(self)
+
+cdef class UntwistedAffineLieAlgebraElement(Element):
+    cdef dict _t_dict
+    cdef _c_coeff
+    cdef _delta_coeff
+
+    cpdef bracket(self, y)
+    cpdef _bracket_(self, y)
+    cpdef lie_derivative(self)
+    cpdef monomial_coefficients(self, bint copy=*)
 

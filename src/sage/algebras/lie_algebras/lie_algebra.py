@@ -301,6 +301,10 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         if ct is not None:
             from sage.combinat.root_system.cartan_type import CartanType
             ct = CartanType(ct)
+            if ct.is_affine():
+                from sage.algebras.lie_algebras.affine_lie_algebra import AffineLieAlgebra
+                return AffineLieAlgebra(R, cartan_type=ct,
+                                        kac_moody=kwds.get("kac_moody", True))
             if not ct.is_finite():
                 raise NotImplementedError("non-finite types are not implemented yet, see trac #14901 for details")
             rep = kwds.get("representation", "bracket")

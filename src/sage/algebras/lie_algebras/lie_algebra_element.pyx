@@ -21,8 +21,9 @@ from copy import copy
 
 from sage.misc.misc import repr_lincomb
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.structure.element cimport have_same_parent, coercion_model
+from sage.structure.element cimport have_same_parent, coercion_model, parent
 from sage.structure.element_wrapper cimport ElementWrapper
+from sage.data_structures.blas_dict cimport axpy, negate, scal
 
 # TODO: Inherit from IndexedFreeModuleElement and make cdef once #22632 is merged
 # TODO: Do we want a dense version?
@@ -43,8 +44,8 @@ class LieAlgebraElement(CombinatorialFreeModule.Element):
             x*y - z
         """
         if self.is_zero() or y.is_zero():
-            return self.parent().zero()
-        if y in self.base_ring():
+            return parent(self).zero()
+        if y in parent(self).base_ring():
             return y * self
         # Otherwise we lift to the UEA
         return self.lift() * y
@@ -281,9 +282,11 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
             sage: S(elt)  # not tested: needs #16822
             (2,3) - (1,3)
         """
-        if self.value == 0 or x == 0:
-            return self._parent.zero()
-        if x in self.base_ring():
+        if not isinstance(self, LieAlgebraElementWrapper):
+            x, self = self, x
+        if not self or not x:
+            return parent(self).zero()
+        if x in parent(self).base_ring():
             return self._acted_upon_(x, True)
         # Otherwise we lift to the UEA
         return self.lift() * x
@@ -330,10 +333,10 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
         # enough information to detect apriori that this method only
         # accepts scalars; so it tries on some elements(), and we need
         # to make sure to report an error.
-        if hasattr( scalar, 'parent' ) and scalar.parent() != self.base_ring():
+        if hasattr( scalar, 'parent' ) and scalar.parent() != self._parent.base_ring():
             # Temporary needed by coercion (see Polynomial/FractionField tests).
-            if self.base_ring().has_coerce_map_from(scalar.parent()):
-                scalar = self.base_ring()( scalar )
+            if self._parent.base_ring().has_coerce_map_from(scalar.parent()):
+                scalar = self._parent.base_ring()( scalar )
             else:
                 return None
         if self_on_left:
@@ -487,7 +490,7 @@ cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
             sage: list(elt)
             [('x', 1), ('y', -3/2)]
         """
-        zero = self.base_ring().zero()
+        zero = self.parent().base_ring().zero()
         I = self.parent()._indices
         cdef int i
         for i,v in enumerate(self.value):
@@ -554,4 +557,170 @@ cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
             -3/2
         """
         return self.value[self._parent._indices.index(i)]
+
+cdef class UntwistedAffineLieAlgebraElement(Element):
+    def __init__(self, parent, dict t_dict, c_coeff, delta_coeff):
+        Element.__init__(self, parent)
+        self._t_dict = t_dict
+        self._c_coeff = c_coeff
+        self._delta_coeff = delta_coeff
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+        """
+        ret = ' + '.join('({})#t^{}'.format(g, t)
+                         for t,g in self._t_dict.iteritems())
+        if self._c_coeff != 0:
+            if ret:
+                ret += ' + '
+            if self._c_coeff != 1:
+                ret += repr(self._c_coeff) + '*c'
+            else:
+                ret += 'c'
+
+        if self._delta_coeff != 0:
+            if ret:
+                ret += ' + '
+            if self._delta_coeff != 1:
+                ret += repr(self._delta_coeff) + '*delta'
+            else:
+                ret += 'delta'
+
+        if not ret:
+            return '0'
+        return ret
+
+    def _latex_(self):
+        """
+        Return a latex representation of ``self``.
+        """
+        from sage.misc.latex import latex
+        ret = ' + '.join('({}) \otimes t^{{{}}}'.format(latex(g), t)
+                         for t,g in self._t_dict.iteritems())
+        if self._c_coeff != 0:
+            if ret:
+                ret += ' + '
+            if self._c_coeff != 1:
+                ret += latex(self._c_coeff) + ' c'
+            else:
+                ret += 'c'
+
+        if self._delta_coeff != 0:
+            if ret:
+                ret += ' + '
+            if self._delta_coeff != 1:
+                ret += latex(self._delta_coeff) + ' \\delta'
+            else:
+                ret += '\\delta'
+
+        if not ret:
+            return '0'
+        return ret
+
+    def __nonzero__(self):
+        return bool(self._t_dict) or bool(self._c_coeff) or bool(self._delta_coeff)
+
+    cdef _add_(self, other):
+        cdef UntwistedAffineLieAlgebraElement rt = <UntwistedAffineLieAlgebraElement> other
+        return type(self)(self._parent, axpy(1, self._t_dict, rt._t_dict.copy()),
+                          self._c_coeff + rt._c_coeff,
+                          self._delta_coeff + rt._delta_coeff)
+
+    cdef _sub_(self, other):
+        cdef UntwistedAffineLieAlgebraElement rt = <UntwistedAffineLieAlgebraElement> other
+        return type(self)(self._parent, axpy(-1, self._t_dict, rt._t_dict.copy()),
+                          self._c_coeff - rt._c_coeff,
+                          self._delta_coeff - rt._delta_coeff)
+
+    cdef _neg_(self):
+        return type(self)(self._parent, negate(self._t_dict),
+                          -self._c_coeff, -self._delta_coeff)
+
+    cpdef _acted_upon_(self, x, bint self_on_left):
+        return type(self)(self._parent, scal(x, self._t_dict, self_on_left),
+                          x * self._c_coeff,
+                          x * self._delta_coeff)
+
+    cpdef monomial_coefficients(self, bint copy=True):
+        cdef dict d = {}
+        for t,g in self._t_dict.iteritems():
+            for k,c in g.monomial_coefficients(copy=False).iteritems():
+                d[k,t] = c
+        if self._c_coeff:
+            d['c'] = self._c_coeff
+        if self._delta_coeff:
+            d['delta'] = self._delta_coeff
+        return d
+
+    cpdef bracket(self, right):
+        """
+        Return the Lie bracket ``[self, right]``.
+
+        EXAMPLES::
+        """
+        if not have_same_parent(self, right):
+            self, right = coercion_model.canonical_coercion(self, right)
+        return self._bracket_(right)
+
+    cpdef _bracket_(self, y):
+        """
+        Return the Lie bracket ``[self, y]``.
+        """
+        if not self or not y:
+            return self._parent.zero()
+        gd = self._parent._g.basis()
+        cdef dict d = {}
+        cdef UntwistedAffineLieAlgebraElement rt = <UntwistedAffineLieAlgebraElement>(y)
+        c = self._parent.base_ring().zero()
+        for tl,gl in self._t_dict.iteritems():
+            # \delta contribution from the left
+            if rt._delta_coeff:
+                if tl in d:
+                    d[tl] -= rt._delta_coeff * gl * tl
+                else:
+                    d[tl] = -rt._delta_coeff * gl * tl
+                if not d[tl]:
+                    del d[tl]
+            # main bracket of the central extension
+            for tr,gr in rt._t_dict.iteritems():
+                b = gl.bracket(gr)
+                if b:
+                    if tl+tr in d:
+                        d[tl+tr] += b
+                    else:
+                        d[tl+tr] = b
+                    if not d[tl+tr]:
+                        del d[tl+tr]
+                if tl + tr == 0:
+                    c += gl.killing_form(gr) * tl
+
+        # \delta contribution from the right
+        if self._delta_coeff:
+            for tr,gr in rt._t_dict.iteritems():
+                if tr in d:
+                    d[tr] += self._delta_coeff * gr * tr
+                else:
+                    d[tr] = self._delta_coeff * gr * tr
+                if not d[tr]:
+                    del d[tr]
+
+        return type(self)(self._parent, d, c,
+                          self._parent.base_ring().zero())
+
+    cpdef lie_derivative(self):
+        r"""
+        Return the Lie derivative `\delta` applied to ``self``.
+
+        The Lie derivative `\delta` is defined as
+
+        .. MATH::
+
+            \delta(a \otimes t^m + \alpha c) = a \otimes m t^m.
+
+        Another formulation is by `\delta = t \frac{d}{dt}`.
+        """
+        cdef dict d = {tl: tl * gl for tl,gl in self._t_dict.iteritems() if tl != 0}
+        zero = self._parent.base_ring().zero()
+        return type(self)(self.parent(), d, zero, zero)
 

@@ -9,7 +9,7 @@ The polymake backend for polyhedral computations
 
 AUTHORS:
 
-- Matthias Köppe (2016-12): initial version
+- Matthias Köppe (2017-03): initial version
 """
 
 #*****************************************************************************
@@ -25,12 +25,8 @@ AUTHORS:
 from __future__ import absolute_import, print_function
 
 from sage.structure.element import Element
-from sage.misc.all import prod
 
 from sage.rings.all import ZZ, QQ
-from sage.rings.integer import LCM_list
-from sage.misc.functional import denominator
-from sage.matrix.constructor import matrix, vector
 
 from .base import Polyhedron_base
 from .base_QQ import Polyhedron_QQ

@@ -495,21 +495,21 @@ class Polyhedron_base(Element):
             sage: P = polytopes.cube()
             sage: G = P.vertex_facet_graph(); G
             Digraph on 14 vertices
-            sage: G.vertices()
-            [An inequality (-1, 0, 0) x + 1 >= 0,
-             An inequality (0, -1, 0) x + 1 >= 0,
-             An inequality (0, 0, -1) x + 1 >= 0,
-             An inequality (0, 0, 1) x + 1 >= 0,
-             An inequality (0, 1, 0) x + 1 >= 0,
-             An inequality (1, 0, 0) x + 1 >= 0,
-             A vertex at (-1, -1, -1),
+            sage: G.vertices(key = lambda v: str(v))
+            [A vertex at (-1, -1, -1),
              A vertex at (-1, -1, 1),
              A vertex at (-1, 1, -1),
              A vertex at (-1, 1, 1),
              A vertex at (1, -1, -1),
              A vertex at (1, -1, 1),
              A vertex at (1, 1, -1),
-             A vertex at (1, 1, 1)]
+             A vertex at (1, 1, 1),
+             An inequality (-1, 0, 0) x + 1 >= 0,
+             An inequality (0, -1, 0) x + 1 >= 0,
+             An inequality (0, 0, -1) x + 1 >= 0,
+             An inequality (0, 0, 1) x + 1 >= 0,
+             An inequality (0, 1, 0) x + 1 >= 0,
+             An inequality (1, 0, 0) x + 1 >= 0]
             sage: G.automorphism_group().is_isomorphic(P.face_lattice().hasse_diagram().automorphism_group())
             True
             sage: O = polytopes.octahedron(); O
@@ -4906,8 +4906,8 @@ class Polyhedron_base(Element):
         EXAMPLES::
 
             sage: quadrangle = Polyhedron(vertices=[(0,0),(1,0),(0,1),(2,3)])
-            sage: quadrangle.combinatorial_automorphism_group()
-            Permutation Group with generators [(An inequality (0,1) x + 0 >= 0,An inequality (1,0) x + 0 >= 0)(An inequality (1,-1) x + 1 >= 0,An inequality (-3,1) x + 3 >= 0)(A vertex at (0,1),A vertex at (1,0)), (An inequality (0,1) x + 0 >= 0,An inequality (1,-1) x + 1 >= 0)(A vertex at (0,0),A vertex at (0,1))(A vertex at (1,0),A vertex at (2,3))]
+            sage: quadrangle.combinatorial_automorphism_group().is_isomorphic(groups.permutation.Dihedral(4))
+            True
             sage: quadrangle.restricted_automorphism_group()
             Permutation Group with generators [()]
 

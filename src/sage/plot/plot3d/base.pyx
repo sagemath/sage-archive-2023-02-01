@@ -420,6 +420,8 @@ cdef class Graphics3d(SageObject):
             html = f.read()
 
         html = html.replace('SAGE_SCRIPTS', scripts)
+        options = dict((key, options[key]) for key in
+            ['aspect_ratio', 'axes', 'axes_labels', 'decimals', 'frame'])
         html = html.replace('SAGE_OPTIONS', json.dumps(options))
         html = html.replace('SAGE_BOUNDS', bounds)
         html = html.replace('SAGE_LIGHTS', lights)

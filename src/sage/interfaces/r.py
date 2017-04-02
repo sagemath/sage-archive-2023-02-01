@@ -274,7 +274,7 @@ import sage.rings.integer
 from sage.structure.element import parent
 from sage.misc.cachefunc import cached_method
 from sage.interfaces.tab_completion import ExtraTabCompletion
-
+from sage.docs.instancedoc import instancedoc
 
 COMMANDS_CACHE = '%s/r_commandlist.sobj'%DOT_SAGE
 PROMPT = '__SAGE__R__PROMPT__> '
@@ -595,7 +595,7 @@ class R(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: print(r._source("c"))
-            function (..., recursive = FALSE)  .Primitive("c")
+            function (...)  .Primitive("c")
         """
         if s[-2:] == "()":
             s = s[-2:]
@@ -614,7 +614,7 @@ class R(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: print(r.source("c"))
-            function (..., recursive = FALSE)  .Primitive("c")
+            function (...)  .Primitive("c")
         """
         return self._source(s)
 
@@ -1255,6 +1255,8 @@ rel_re_integer = re.compile('([^\d])([\d]+)L')
 rel_re_terms = re.compile('terms\s*=\s*(.*?),')
 rel_re_call = re.compile('call\s*=\s*(.*?)\),')
 
+
+@instancedoc
 class RElement(ExtraTabCompletion, ExpectElement):
 
     def _tab_completion(self):
@@ -1921,7 +1923,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
         return LatexExpr(P.eval('latex(%s, file="");'%self.name()))
 
 
-
+@instancedoc
 class RFunctionElement(FunctionElement):
     def __reduce__(self):
         """
@@ -1937,7 +1939,7 @@ class RFunctionElement(FunctionElement):
         """
         raise NotImplementedError("pickling of R element methods is not yet supported")
 
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         Returns the help for self as a string.
 
@@ -1945,7 +1947,7 @@ class RFunctionElement(FunctionElement):
 
             sage: a = r([1,2,3])
             sage: length = a.length
-            sage: print(length._sage_doc_())
+            sage: print(length.__doc__)
             length                 package:base                 R Documentation
             ...
             <BLANKLINE>
@@ -1979,6 +1981,7 @@ class RFunctionElement(FunctionElement):
         return self._obj.parent().function_call(self._name, args=[self._obj] + list(args), kwds=kwds)
 
 
+@instancedoc
 class RFunction(ExpectFunction):
     def __init__(self, parent, name, r_name=None):
         """
@@ -2027,14 +2030,14 @@ class RFunction(ExpectFunction):
         """        
         return not (self == other)
 
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         Returns the help for self.
 
         EXAMPLES::
 
             sage: length = r.length
-            sage: print(length._sage_doc_())
+            sage: print(length.__doc__)
             length                 package:base                 R Documentation
             ...
             <BLANKLINE>

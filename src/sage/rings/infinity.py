@@ -297,7 +297,7 @@ class AnInfinity(object):
         else:
             return r"%minusInfinity"
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Convert ``self`` to a Pari object.
 

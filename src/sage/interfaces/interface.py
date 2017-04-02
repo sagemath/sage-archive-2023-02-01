@@ -48,6 +48,7 @@ from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element, parent
 
 import sage.misc.sage_eval
+from sage.docs.instancedoc import instancedoc
 
 
 class AsciiArtString(str):
@@ -614,6 +615,7 @@ class Interface(ParentWithBase):
         return AsciiArtString('No help on %s available'%s)
 
 
+@instancedoc
 class InterfaceFunction(SageObject):
     """
     Interface function.
@@ -628,17 +630,18 @@ class InterfaceFunction(SageObject):
     def __call__(self, *args, **kwds):
         return self._parent.function_call(self._name, list(args), kwds)
 
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         EXAMPLES::
 
-            sage: gp.gcd._sage_doc_()
+            sage: gp.gcd.__doc__
             'gcd(x,{y}): greatest common divisor of x and y.'
         """
         M = self._parent
         return M.help(self._name)
 
 
+@instancedoc
 class InterfaceFunctionElement(SageObject):
     """
     Interface function element.
@@ -654,13 +657,13 @@ class InterfaceFunctionElement(SageObject):
         return self._obj.parent().function_call(self._name, [self._obj] + list(args), kwds)
 
     def help(self):
-        print(self._sage_doc_())
+        print(self.__doc__)
 
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         EXAMPLES::
 
-            sage: gp(2).gcd._sage_doc_()
+            sage: gp(2).gcd.__doc__
             'gcd(x,{y}): greatest common divisor of x and y.'
         """
         M = self._obj.parent()
@@ -672,6 +675,7 @@ def is_InterfaceElement(x):
     return isinstance(x, InterfaceElement)
 
 
+@instancedoc
 class InterfaceElement(Element):
     """
     Interface element.
@@ -755,7 +759,7 @@ class InterfaceElement(Element):
             sage: S = singular.ring(0, ('x'))
             sage: loads(dumps(S))
             polynomial ring, over a field, global ordering
-            //   characteristic : 0
+            //   coefficients: QQ
             //   number of vars : 1
             //        block   1 : ordering lp
             //                  : names    x
@@ -834,12 +838,11 @@ class InterfaceElement(Element):
             x = P.new(x)
         return P._contains(x.name(), self.name())
 
-
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         EXAMPLES::
 
-            sage: gp(2)._sage_doc_()
+            sage: gp(2).__doc__
             '2'
         """
         return str(self)

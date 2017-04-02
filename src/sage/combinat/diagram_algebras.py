@@ -987,7 +987,7 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
             raise ValueError("argument %s not in correct form; must be a tuple (D1, D2, pi)" % D1_D2_pi)
         D1 = [[abs(x) for x in b] for b in D1 if len(b) == 2] # not needed if argument correctly passed at outset.
         D2 = [[abs(x) for x in b] for b in D2 if len(b) == 2] # ditto.
-        nD2 = [map(lambda i: -i,b) for b in D2]
+        nD2 = [[-i for i in b] for b in D2]
         pi = list(pi)
         nn = set(range(1, self.order+1))
         dom = sorted(nn.difference(flatten([list(x) for x in D1])))

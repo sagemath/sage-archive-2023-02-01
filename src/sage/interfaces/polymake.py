@@ -166,7 +166,7 @@ class Polymake(ExtraTabCompletion, Expect):
                         script_subdirectory=script_subdirectory,
                         restart_on_ctrlc=False,
                         logfile=logfile,
-                        eval_using_file_cutoff=0)
+                        eval_using_file_cutoff=1024)   # > 1024 causes hangs
 
         self._seed = seed
         self.__tab_completion = {}
@@ -356,6 +356,7 @@ class Polymake(ExtraTabCompletion, Expect):
         self.application("polytope")
         self.eval('use Scalar::Util qw(reftype);')
         self.eval('use Scalar::Util qw(blessed);')
+        self.eval('use File::Slurp;')
 
     def _quit_string(self):
         """
@@ -389,9 +390,22 @@ class Polymake(ExtraTabCompletion, Expect):
         TEST::
 
             sage: polymake._read_in_file_command('foobar')
-            'script "foobar";\n'
+            'eval read_file "foobar";\n'
+
+        Force use of file::
+
+            sage: L = polymake([42] * 400)                      # optional - polymake
+            sage: len(L)                                        # optional - polymake
+            400
+
+        Just below standard file cutoff of 1024::
+
+            sage: L = polymake([42] * 84)                       # optional - polymake
+            sage: len(L)                                        # optional - polymake
+            84
+
         """
-        return 'script "{}";\n'.format(filename)
+        return 'eval read_file "{}";\n'.format(filename)
 
     def _keyboard_interrupt(self):
         """
@@ -812,7 +826,7 @@ class Polymake(ExtraTabCompletion, Expect):
             sage: polymake.eval('FOOBAR(3);')       # optional - polymake
             Traceback (most recent call last):
             ...
-            PolymakeError: Undefined subroutine &Polymake::User::FOOBAR called at input line 1.
+            PolymakeError: Undefined subroutine &Polymake::User::FOOBAR called...
 
         If a command is incomplete, then polymake returns a continuation
         prompt. In that case, we raise an error::
@@ -1524,7 +1538,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
         cmd = 'print join(", ", sorted_uniq(sort { $a cmp $b } map { keys %{$_->properties} }$SAGETMP, @{$SAGETMP->super}));'
         try:
             out = P.eval(cmd).split(', ')
-        except PolymakeError, msg:
+        except PolymakeError as msg:
             return []
         return sorted(out)
 

@@ -44,16 +44,19 @@ cdef extern from "eclib/isogs.h":
 
 cdef extern from "eclib/curve.h":
     cdef cppclass Curve:
+        Curve()
         Curve(bigint aa1, bigint aa2, bigint aa3, bigint aa4, bigint aa6)
         void getai(bigint a1, bigint a2, bigint a3, bigint a4, bigint a6)
 
     cdef cppclass Curvedata:
+        Curvedata()
         Curvedata(Curve C, int m)
         Curvedata(bigint a1, bigint a2, bigint a3, bigint a4, bigint a6,
                 int min_on_init)
         void getai(bigint a1, bigint a2, bigint a3, bigint a4, bigint a6)
 
     cdef cppclass CurveRed:
+        CurveRed()
         CurveRed(Curvedata CD)
 
     bigint getconductor(CurveRed CR)

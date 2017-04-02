@@ -193,6 +193,8 @@ import pexpect
 
 from sage.env import DOT_SAGE
 from sage.misc.pager import pager
+from sage.docs.instancedoc import instancedoc
+
 
 COMMANDS_CACHE = '%s/giac_commandlist_cache.sobj'%DOT_SAGE
 
@@ -750,22 +752,26 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
         """
         return giac('version()')
 
+
+@instancedoc
 class GiacFunction(ExpectFunction):
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         Returns the Giac help for this function. This gets called when
         doing "?" on self.
 
         EXAMPLES::
 
-            sage: giac.gcd._sage_doc_()  # not tested ; output may vary LANG
+            sage: giac.gcd.__doc__  # random
             "gcd - greatest common divisor of polynomials...
         """
         M = self._parent
         return M._help(self._name)
 
+
+@instancedoc
 class GiacFunctionElement(FunctionElement):
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         Returns the Giac help for this function. This gets called when
         doing "?" on self.
@@ -773,11 +779,13 @@ class GiacFunctionElement(FunctionElement):
         EXAMPLES::
 
             sage: two = giac(2)
-            sage: two.gcd._sage_doc_() # not tested; output may vary LANG
+            sage: two.gcd.__doc__  # random
             "...gcd - greatest common divisor of polynomials...
         """
         return self._obj.parent()._help(self._name)
 
+
+@instancedoc
 class GiacElement(ExpectElement):
     def __float__(self):
         """

@@ -1589,7 +1589,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             #however the coercion from a Pari object to a sage object breaks
             #in the case of QQbar, so we just pass it into the macaulay resultant
             try:
-                res = (f.lc() ** (d - g.degree()) * g.lc() ** (d - f.degree()) * f._pari_().polresultant(g, x))
+                res = (f.lc() ** (d - g.degree()) * g.lc() ** (d - f.degree()) * f.__pari__().polresultant(g, x))
                 return(self.domain().base_ring()(res))
             except (TypeError, PariError):
                 pass

@@ -566,7 +566,7 @@ class Polyhedron_normaliz(Polyhedron_base):
                 return ()
         # for small bounding boxes, it is faster to naively iterate over the points of the box
         if threshold > 1:
-            box_min, box_max = self.bounding_box(integral=True)
+            box_min, box_max = self.bounding_box(integral_hull=True)
             box_points = prod(max_coord-min_coord+1 for min_coord, max_coord in zip(box_min, box_max))
             if  box_points<threshold:
                 from sage.geometry.integral_points import rectangular_box_points

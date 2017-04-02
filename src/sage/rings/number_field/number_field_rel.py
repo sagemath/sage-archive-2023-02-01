@@ -111,7 +111,6 @@ from sage.libs.pari.all import pari_gen
 
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
-from sage.rings.real_mpfi import RIF
 import sage.rings.complex_interval_field
 CIF = sage.rings.complex_interval_field.ComplexIntervalField()
 
@@ -1768,8 +1767,11 @@ class NumberField_relative(NumberField_generic):
         EXAMPLES::
 
             sage: K.<a, b> = NumberField( [x^2 + x + 1, x^4 + 1] )
-            sage: K.roots_of_unity()[:5]
-            [b*a, -b^2*a - b^2, b^3, -a, b*a + b]
+            sage: rts = K.roots_of_unity()
+            sage: len(rts)
+            24
+            sage: all(u in rts for u in [b*a, -b^2*a - b^2, b^3, -a, b*a + b])
+            True
         """
         abs = self.absolute_field('a')
         from_abs, _ = abs.structure()
@@ -2170,7 +2172,6 @@ class NumberField_relative(NumberField_generic):
         L = self.absolute_field('a')
         pl = L.places(all_complex, prec)
         return [self.hom(p, p.codomain()) for p in pl]
-
 
     def absolute_different(self):
         r"""

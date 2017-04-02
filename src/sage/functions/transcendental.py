@@ -124,7 +124,7 @@ class Function_zeta(GinacFunction):
             sage: (zeta(x) * 1/(1 - exp(-x))).residue(x==2*pi*I)
             zeta(2*I*pi)
         """
-        GinacFunction.__init__(self, "zeta")
+        GinacFunction.__init__(self, 'zeta', conversions={'giac':'Zeta'})
 
 zeta = Function_zeta()
 

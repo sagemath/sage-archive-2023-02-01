@@ -581,7 +581,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
                 t^5 + 4*t^4 + 6*t^3 + 5*t^2 + 3*t + 1
 
                 sage: rw = sage.combinat.permutation.from_reduced_word           # optional - coxeter3
-                sage: p = map(attrcall('poincare_polynomial'), W)                # optional - coxeter3
+                sage: p = list(map(attrcall('poincare_polynomial'), W))                # optional - coxeter3
                 sage: [rw(w.reduced_word()) for i,w in enumerate(W) if p[i] != p[i].reverse()] # optional - coxeter3
                 [[3, 4, 1, 2], [4, 2, 3, 1]]
             """

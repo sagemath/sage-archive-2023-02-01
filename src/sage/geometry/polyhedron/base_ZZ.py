@@ -17,13 +17,14 @@ from __future__ import absolute_import
 from sage.rings.all import ZZ, QQ
 from sage.misc.all import cached_method
 from sage.modules.free_module_element import vector
+from .base_QQ import Polyhedron_QQ
 from sage.arith.all import gcd
 from .constructor import Polyhedron
 from .base import Polyhedron_base
 
 
 #########################################################################
-class Polyhedron_ZZ(Polyhedron_base):
+class Polyhedron_ZZ(Polyhedron_QQ):
     """
     Base class for Polyhedra over `\ZZ`
 
@@ -33,71 +34,6 @@ class Polyhedron_ZZ(Polyhedron_base):
         A 0-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex
         sage: TestSuite(p).run(skip='_test_pickling')
     """
-    def _is_zero(self, x):
-        """
-        Test whether ``x`` is zero.
-
-        INPUT:
-
-        - ``x`` -- a number in the base ring.
-
-        OUTPUT:
-
-        Boolean.
-
-        EXAMPLES::
-
-            sage: p = Polyhedron([(0,0)], base_ring=ZZ)
-            sage: p._is_zero(0)
-            True
-            sage: p._is_zero(1/100000)
-            False
-        """
-        return x==0
-
-    def _is_nonneg(self, x):
-        """
-        Test whether ``x`` is nonnegative.
-
-        INPUT:
-
-        - ``x`` -- a number in the base ring.
-
-        OUTPUT:
-
-        Boolean.
-
-        EXAMPLES::
-
-            sage: p = Polyhedron([(0,0)], base_ring=ZZ)
-            sage: p._is_nonneg(1)
-            True
-            sage: p._is_nonneg(-1/100000)
-            False
-        """
-        return x>=0
-
-    def _is_positive(self, x):
-        """
-        Test whether ``x`` is positive.
-
-        INPUT:
-
-        - ``x`` -- a number in the base ring.
-
-        OUTPUT:
-
-        Boolean.
-
-        EXAMPLES::
-
-            sage: p = Polyhedron([(0,0)], base_ring=ZZ)
-            sage: p._is_positive(1)
-            True
-            sage: p._is_positive(0)
-            False
-        """
-        return x>0
 
     _base_ring = ZZ
 

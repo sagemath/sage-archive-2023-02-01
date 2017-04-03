@@ -91,6 +91,7 @@ and testing to make sure nothing funny is going on).
    sage/interfaces/mwrank
    sage/interfaces/octave
    sage/interfaces/phc
+   sage/interfaces/polymake
    sage/interfaces/povray
    sage/interfaces/psage
    sage/interfaces/qepcad

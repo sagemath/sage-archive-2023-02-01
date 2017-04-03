@@ -143,8 +143,7 @@ cdef void _pari_init_error_handling():
 
 cdef int _pari_err_handle(GEN E) except 0:
     """
-    Convert a PARI error into a Sage exception, unless the error was
-    a stack overflow, in which case we enlarge the stack.
+    Convert a PARI error into a Sage exception.
 
     This function is a callback from the PARI error handler.
 
@@ -161,28 +160,28 @@ cdef int _pari_err_handle(GEN E) except 0:
 
     """
     cdef long errnum = E[1]
-
-    sig_block()
     cdef char* errstr
     cdef const char* s
-    try:
-        if errnum == e_STACK:
-            # Custom error message for PARI stack overflow
-            pari_error_string = "the PARI stack overflows (current size: {}; maximum size: {})\n"
-            pari_error_string += "You can use pari.allocatemem() to change the stack size and try again"
-            pari_error_string = pari_error_string.format(pari_mainstack.size, pari_mainstack.vsize)
-        else:
+
+    if errnum == e_STACK:
+        # Custom error message for PARI stack overflow
+        pari_error_string = "the PARI stack overflows (current size: {}; maximum size: {})\n"
+        pari_error_string += "You can use pari.allocatemem() to change the stack size and try again"
+        pari_error_string = pari_error_string.format(pari_mainstack.size, pari_mainstack.vsize)
+    else:
+        sig_block()
+        try:
             errstr = pari_err2str(E)
             pari_error_string = errstr.decode('ascii')
             pari_free(errstr)
+        finally:
+            sig_unblock()
 
-        s = closure_func_err()
-        if s is not NULL:
-            pari_error_string = s.decode('ascii') + ": " + pari_error_string
+    s = closure_func_err()
+    if s is not NULL:
+        pari_error_string = s.decode('ascii') + ": " + pari_error_string
 
-        raise PariError(errnum, pari_error_string, new_gen_noclear(E))
-    finally:
-        sig_unblock()
+    raise PariError(errnum, pari_error_string, new_gen_noclear(E))
 
 
 cdef void _pari_err_recover(long errnum):

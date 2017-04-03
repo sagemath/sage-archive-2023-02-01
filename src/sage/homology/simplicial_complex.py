@@ -195,8 +195,8 @@ def lattice_paths(t1, t2, length=None):
     :param length: if not ``None``, then an integer, the length of the desired
         path.
     :type length: integer or ``None``; optional, default ``None``
-    :type t1: tuple, list, other iterable
-    :type t2: tuple, list, other iterable
+    :type t1: list, other iterable
+    :type t2: list, other iterable
     :return: list of lists of vertices making up the paths as described above
     :rtype: list of lists
 
@@ -333,7 +333,7 @@ class Simplex(SageObject):
     tuple of the vertices.
 
     :param X: set of vertices
-    :type X: integer or list, tuple, or other iterable
+    :type X: integer, list, other iterable
     :return: simplex with those vertices
 
     ``X`` may be a non-negative integer `n`, in which case the

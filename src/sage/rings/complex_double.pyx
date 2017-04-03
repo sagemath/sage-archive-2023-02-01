@@ -1103,13 +1103,13 @@ cdef class ComplexDoubleElement(FieldElement):
         s = str(self).replace('*I', 'i')
         return re.sub(r"e\+?(-?\d+)", r" \\times 10^{\1}", s)
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Return PARI version of ``self``, as ``t_COMPLEX`` or ``t_REAL``.
 
         EXAMPLES::
 
-            sage: CDF(1,2)._pari_()
+            sage: CDF(1,2).__pari__()
             1.00000000000000 + 2.00000000000000*I
             sage: pari(CDF(1,2))
             1.00000000000000 + 2.00000000000000*I
@@ -2169,7 +2169,7 @@ cdef class ComplexDoubleElement(FieldElement):
             return ComplexDoubleElement(0,0)
 
         cdef int flag = 0 if omit_frac else 1
-        return pari_to_cdf(self._pari_().eta(flag))
+        return pari_to_cdf(self.__pari__().eta(flag))
 
     def agm(self, right, algorithm="optimal"):
         r"""
@@ -2232,7 +2232,7 @@ cdef class ComplexDoubleElement(FieldElement):
         cdef double d, e, eps = 2.0**-51
 
         if algorithm == "pari":
-            return pari_to_cdf(self._pari_().agm(right))
+            return pari_to_cdf(self.__pari__().agm(right))
 
         if not isinstance(right, ComplexDoubleElement):
             right = CDF(right)
@@ -2282,7 +2282,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(10000000,10000000).dilog()
             -134.411774490731 + 38.79396299904504*I
         """
-        return pari_to_cdf(self._pari_().dilog())
+        return pari_to_cdf(self.__pari__().dilog())
 
     def gamma(self):
         r"""
@@ -2310,7 +2310,7 @@ cdef class ComplexDoubleElement(FieldElement):
                     return CC(self).gamma()
             except TypeError:
                 pass
-        return pari_to_cdf(self._pari_().gamma())
+        return pari_to_cdf(self.__pari__().gamma())
 
     def gamma_inc(self, t):
         r"""
@@ -2325,7 +2325,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(2,0).gamma_inc(CDF(1,1))
             0.7070920963459381 - 0.4203536409598115*I
         """
-        return pari_to_cdf(self._pari_().incgam(t))
+        return pari_to_cdf(self.__pari__().incgam(t))
 
     def zeta(self):
         """
@@ -2344,7 +2344,7 @@ cdef class ComplexDoubleElement(FieldElement):
         if self._complex.dat[0] == 1 and self._complex.dat[1] == 0:
             from .infinity import unsigned_infinity
             return unsigned_infinity
-        return pari_to_cdf(self._pari_().zeta())
+        return pari_to_cdf(self.__pari__().zeta())
 
     def algdep(self, long n):
         """
@@ -2377,7 +2377,7 @@ cdef class ComplexDoubleElement(FieldElement):
         from .polynomial.polynomial_ring_constructor import PolynomialRing
         from .integer_ring import ZZ
         R = PolynomialRing(ZZ ,'x')
-        return R(self._pari_().algdep(n))
+        return R(self.__pari__().algdep(n))
 
 
 cdef class FloatToCDF(Morphism):

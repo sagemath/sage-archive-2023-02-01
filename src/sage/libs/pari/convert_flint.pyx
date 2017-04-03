@@ -86,7 +86,7 @@ cdef Gen integer_matrix(fmpz_mat_t B, Py_ssize_t nr, Py_ssize_t nc, bint permute
     """
     EXAMPLES::
 
-        sage: matrix(ZZ,2,[1..6])._pari_()   # indirect doctest
+        sage: matrix(ZZ,2,[1..6]).__pari__()   # indirect doctest
         [1, 2, 3; 4, 5, 6]
     """
     sig_on()

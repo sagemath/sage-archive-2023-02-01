@@ -5537,7 +5537,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         """
         dom = self.domain()
         AS = dom.ambient_space()
-        return AS.subscheme(list(dom.defining_polynomials()) + self.defining_polynomials())
+        return AS.subscheme(list(dom.defining_polynomials()) + list(self.defining_polynomials()))
 
     def indeterminacy_points(self, F=None):
         r"""

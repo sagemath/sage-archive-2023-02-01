@@ -142,7 +142,8 @@ solver to play with it::
     sage: q = QuantuminoSolver(0)
     sage: T = q.tiling_solver()
     sage: T
-    Tiling solver of 16 pieces into the box (5, 8, 2)
+    Tiling solver of 16 pieces into the box
+    Rectangle Polyomino: [0,5[ x [0,8[ x [0,2[, Color: gray
     Rotation allowed: True
     Reflection allowed: False
     Reusing pieces allowed: False
@@ -453,17 +454,20 @@ class QuantuminoSolver(SageObject):
 
             sage: from sage.games.quantumino import QuantuminoSolver
             sage: QuantuminoSolver(0).tiling_solver()
-            Tiling solver of 16 pieces into the box (5, 8, 2)
+            Tiling solver of 16 pieces into the box
+            Rectangle Polyomino: [0,5[ x [0,8[ x [0,2[, Color: gray
             Rotation allowed: True
             Reflection allowed: False
             Reusing pieces allowed: False
             sage: QuantuminoSolver(14).tiling_solver()
-            Tiling solver of 16 pieces into the box (5, 8, 2)
+            Tiling solver of 16 pieces into the box
+            Rectangle Polyomino: [0,5[ x [0,8[ x [0,2[, Color: gray
             Rotation allowed: True
             Reflection allowed: False
             Reusing pieces allowed: False
             sage: QuantuminoSolver(14, box=(5,4,4)).tiling_solver()
-            Tiling solver of 16 pieces into the box (5, 4, 4)
+            Tiling solver of 16 pieces into the box
+            Rectangle Polyomino: [0,5[ x [0,4[ x [0,4[, Color: gray
             Rotation allowed: True
             Reflection allowed: False
             Reusing pieces allowed: False

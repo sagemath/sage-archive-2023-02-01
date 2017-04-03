@@ -417,77 +417,95 @@ def ncube_isometry_group_cosets(n, orientation_preserving=True):
 ##############################
 # Class Polyomino
 ##############################
-class Polyomino(SageObject):
+class Polyomino_generic(SageObject):
     r"""
-    Return the polyomino defined by a set of coordinates.
 
-    The polyomino is the union of the unit square (or cube, or n-cube)
-    centered at those coordinates. Such an object should be connected, but
-    the code do not make this assumption.
+    Methods to be implemented in the herited classes:
 
-    INPUT:
+     - ``__repr__`` 
+     - ``__len__`` 
+     - ``frozenset``
 
-    - ``coords`` - iterable of tuple
-    - ``color`` - string (optional, default: ``'gray'``), the color
+    By default the following methods depend on the previous::
 
-    EXAMPLES::
-
-        sage: from sage.combinat.tiling import Polyomino
-        sage: Polyomino([(0,0,0), (0,1,0), (1,1,0), (1,1,1)], color='blue')
-        Polyomino: [(0, 0, 0), (0, 1, 0), (1, 1, 0), (1, 1, 1)], Color: blue
+     - ``sorted_list`` depends on ``frozenset``
+     - ``__len__`` depends on ``frozenset``
+     - ``__iter__`` depends on ``sorted_list``
+     - ``bounding_box`` depends on ``__iter__``
     """
-    def __init__(self, coords, color='gray'):
-        r"""
-        INPUT:
-
-        - ``coords`` - iterable of tuple
-        - ``color`` - string (optional, default: ``'gray'``), the color
-
-        EXAMPLES::
-
-            sage: from sage.combinat.tiling import Polyomino
-            sage: Polyomino([(0,0,0), (0,1,0), (1,1,0), (1,1,1)], color='blue')
-            Polyomino: [(0, 0, 0), (0, 1, 0), (1, 1, 0), (1, 1, 1)], Color: blue
-
-        ::
-
-            sage: from sage.combinat.tiling import Polyomino
-            sage: Polyomino([(0,0), (1,0), (2,0)])
-            Polyomino: [(0, 0), (1, 0), (2, 0)], Color: gray
-        """
+    def __init__(self, dimension, color='gray'):
         from sage.modules.free_module import FreeModule
         from sage.rings.integer_ring import ZZ
+        self._dimension = ZZ(dimension)
+        self._free_module = FreeModule(ZZ, self._dimension)
 
         if not isinstance(color, str):
             raise TypeError("color = ({!r}) must be a string".format(color))
         self._color = color
 
-        if not isinstance(coords, (tuple,list)):
-            coords = list(coords)
-        if not coords:
-            raise ValueError("Polyomino must be non empty")
-        self._dimension = ZZ(len(coords[0]))
-        self._free_module = FreeModule(ZZ, self._dimension)
-
-        self._blocs = coords
-        self._blocs = map(self._free_module, self._blocs)
-        for b in self._blocs:
-            b.set_immutable()
-        self._blocs = tuple(sorted(set(self._blocs)))
-
-    def __repr__(self):
+    def color(self):
         r"""
-        String representation.
+        Return the color of the polyomino.
 
         EXAMPLES::
 
             sage: from sage.combinat.tiling import Polyomino
-            sage: Polyomino([(0,0,0), (0,1,0), (1,1,0), (1,1,1)], color='red')
-            Polyomino: [(0, 0, 0), (0, 1, 0), (1, 1, 0), (1, 1, 1)], Color: red
+            sage: p = Polyomino([(0,0,0), (0,1,0), (1,1,0), (1,1,1)], color='blue')
+            sage: p.color()
+            'blue'
         """
-        s = "Polyomino: %s, " % sorted(self._blocs)
-        s += "Color: %s" % self._color
-        return s
+        return self._color
+
+    def __len__(self):
+        raise NotImplementedError
+
+    @cached_method
+    def frozenset(self):
+        raise NotImplementedError
+
+    @cached_method
+    def sorted_list(self):
+        return sorted(self.frozenset())
+
+    def __len__(self):
+        r"""
+        Return the size of the polyomino, i.e. the number of n-dimensional
+        unit cubes.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.tiling import Polyomino
+            sage: p = Polyomino([(0,0,0), (0,1,0), (1,1,0), (1,1,1)], color='blue')
+            sage: len(p)
+            4
+        """
+        return len(self.frozenset())
+
+    def __iter__(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.combinat.tiling import Polyomino
+            sage: p = Polyomino([(0,0,0), (0,1,0), (1,1,0), (1,1,1)], color='blue')
+            sage: it = iter(p)
+            sage: next(it)
+            (0, 0, 0)
+        """
+        return iter(self.sorted_list())
+
+    @cached_method
+    def bounding_box(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.combinat.tiling import Polyomino
+            sage: p = Polyomino([(0,0,0),(1,0,0),(1,1,0),(1,1,1),(1,2,0)], color='deeppink')
+            sage: p.bounding_box()
+            [[0, 0, 0], [1, 2, 1]]
+        """
+        zipped_coords = list(zip(*self))
+        return [[min(_) for _ in zipped_coords],
+                [max(_) for _ in zipped_coords]]
 
     def __hash__(self):
         r"""
@@ -498,7 +516,7 @@ class Polyomino(SageObject):
             sage: hash(p)     # random
             2059134902
         """
-        return hash(self._blocs)
+        return hash(self.frozenset())
 
     def __eq__(self, other):
         r"""
@@ -523,7 +541,7 @@ class Polyomino(SageObject):
             sage: p == r
             False
         """
-        return isinstance(other, Polyomino) and self._blocs == other._blocs
+        return isinstance(other, Polyomino_generic) and self.frozenset() == other.frozenset()
 
     def __ne__(self, other):
         r"""
@@ -548,46 +566,55 @@ class Polyomino(SageObject):
             sage: p != r
             True
         """
-        return not self._blocs == other._blocs
+        return not self.frozenset() == other.frozenset()
 
-    def __iter__(self):
+    def __le__(self, other):
         r"""
-        EXAMPLES::
+        Return whether self is inside of other.
 
-            sage: from sage.combinat.tiling import Polyomino
-            sage: p = Polyomino([(0,0,0), (0,1,0), (1,1,0), (1,1,1)], color='blue')
-            sage: it = iter(p)
-            sage: next(it)
-            (0, 0, 0)
-        """
-        return iter(self._blocs)
+        INPUT:
 
-    def color(self):
-        r"""
-        Return the color of the polyomino.
+        - ``other`` - a polyomino
+
+        OUTPUT:
+
+            boolean
 
         EXAMPLES::
 
-            sage: from sage.combinat.tiling import Polyomino
-            sage: p = Polyomino([(0,0,0), (0,1,0), (1,1,0), (1,1,1)], color='blue')
-            sage: p.color()
-            'blue'
+            sage: from sage.combinat.tiling import RectanglePolyomino, Polyomino
+            sage: p = Polyomino([(0,0)])
+            sage: b = RectanglePolyomino([0,0], [2,3])
+            sage: p <= b
+            True
+            sage: b <= p
+            False
         """
-        return self._color
+        return isinstance(other, Polyomino_generic) and self.frozenset() <= other.frozenset()
 
-    def __len__(self):
+    def __ge__(self, other):
         r"""
-        Return the size of the polyomino, i.e. the number of n-dimensional
-        unit cubes.
+        Return whether self contains other.
+
+        INPUT:
+
+        - ``other`` - a polyomino
+
+        OUTPUT:
+
+            boolean
 
         EXAMPLES::
 
-            sage: from sage.combinat.tiling import Polyomino
-            sage: p = Polyomino([(0,0,0), (0,1,0), (1,1,0), (1,1,1)], color='blue')
-            sage: len(p)
-            4
+            sage: from sage.combinat.tiling import RectanglePolyomino, Polyomino
+            sage: p = Polyomino([(0,0)])
+            sage: b = RectanglePolyomino([0,0], [2,3])
+            sage: p >= b
+            False
+            sage: b >= p
+            True
         """
-        return len(self._blocs)
+        return isinstance(other, Polyomino_generic) and self.frozenset() >= other.frozenset()
 
     def __sub__(self, v):
         r"""
@@ -670,19 +697,6 @@ class Polyomino(SageObject):
             raise ValueError("Dimension of input matrix must match the "
                              "dimension of the polyomino")
         return Polyomino([m * p for p in self], color=self._color)
-
-    def bounding_box(self):
-        r"""
-        EXAMPLES::
-
-            sage: from sage.combinat.tiling import Polyomino
-            sage: p = Polyomino([(0,0,0),(1,0,0),(1,1,0),(1,1,1),(1,2,0)], color='deeppink')
-            sage: p.bounding_box()
-            [[0, 0, 0], [1, 2, 1]]
-        """
-        zipped_coords = list(zip(*self))
-        return [[min(_) for _ in zipped_coords],
-                [max(_) for _ in zipped_coords]]
 
     def canonical(self):
         r"""
@@ -770,11 +784,11 @@ class Polyomino(SageObject):
     def translated_copies(self, box):
         r"""
         Returns an iterator over the translated images of self inside a
-        box.
+        polyomino.
 
         INPUT:
 
-        - ``box`` -- tuple of integers, size of the box
+        - ``box`` -- Polyomino or tuple of integers (size of a box)
 
         OUTPUT:
 
@@ -829,17 +843,46 @@ class Polyomino(SageObject):
             []
             sage: list(p.translated_copies(box=(1,1,1)))
             []
-            sage: list(p.translated_copies(box=(1,1,-1)))
-            []
+
+        Using a RectanglePolyomino as input::
+
+            sage: from sage.combinat.tiling import RectanglePolyomino
+            sage: b = RectanglePolyomino([0,0], [2,3])
+            sage: p = Polyomino([(0,0)])
+            sage: list(p.translated_copies(b))
+            [Polyomino: [(0, 0)], Color: gray,
+             Polyomino: [(0, 1)], Color: gray,
+             Polyomino: [(0, 2)], Color: gray,
+             Polyomino: [(1, 0)], Color: gray,
+             Polyomino: [(1, 1)], Color: gray,
+             Polyomino: [(1, 2)], Color: gray]
+
+        ::
+
+            sage: p = Polyomino([(0,0), (1,0), (0,1)])
+            sage: b = Polyomino([(0,0), (1,0), (2,0), (0,1), (1,1), (0,2)])
+            sage: list(p.translated_copies(b))
+            [Polyomino: [(0, 0), (0, 1), (1, 0)], Color: gray,
+             Polyomino: [(0, 1), (0, 2), (1, 1)], Color: gray,
+             Polyomino: [(1, 0), (1, 1), (2, 0)], Color: gray]
         """
-        if not len(box) == self._dimension:
+        if not isinstance(box, Polyomino_generic):
+            dim = len(box)
+            box = RectanglePolyomino([0]*dim, box)
+        if not box._dimension == self._dimension:
             raise ValueError("Dimension of input box must match the "
                              "dimension of the polyomino")
         minxyz, maxxyz = map(vector, self.bounding_box())
         size = maxxyz - minxyz
+        boxminxyz, boxmaxxyz = box.bounding_box()
+        ranges = [range(a, b-c+1) for (a,b,c) in zip(boxminxyz,
+                                                   boxmaxxyz,
+                                                   size)]
         cano = self.canonical()
-        for v in xmrange(vector(box) - vector(size), tuple):
-            yield cano + v
+        for v in itertools.product(*ranges):
+            translated = cano + v
+            if translated <= box:
+                yield translated
 
     def isometric_copies(self, box, orientation_preserving=True,
             mod_box_isometries=False):
@@ -848,7 +891,7 @@ class Polyomino(SageObject):
 
         INPUT:
 
-        - ``box`` -- tuple of integers, size of the box
+        - ``box`` -- Polyomino or tuple of integers (size of a box)
 
         - ``orientation_preserving`` -- bool (optional, default: ``True``),
           If True, the group of isometries of the `n`-cube is restricted to
@@ -879,13 +922,29 @@ class Polyomino(SageObject):
             sage: L = list(p.isometric_copies((5,8,2), mod_box_isometries=True))
             sage: len(L)
             45
+
+        ::
+
+            sage: p = Polyomino([(0,0), (1,0), (0,1)])
+            sage: b = Polyomino([(0,0), (1,0), (2,0), (0,1), (1,1), (0,2)])
+            sage: list(p.isometric_copies(b))
+            [Polyomino: [(0, 0), (1, 0), (1, 1)], Color: gray,
+             Polyomino: [(0, 0), (0, 1), (1, 0)], Color: gray,
+             Polyomino: [(0, 1), (0, 2), (1, 1)], Color: gray,
+             Polyomino: [(1, 0), (1, 1), (2, 0)], Color: gray,
+             Polyomino: [(0, 0), (0, 1), (1, 1)], Color: gray,
+             Polyomino: [(0, 1), (1, 0), (1, 1)], Color: gray]
         """
-        if not len(box) == self._dimension:
+        if not isinstance(box, Polyomino_generic):
+            dim = len(box)
+            box = RectanglePolyomino([0]*dim, box)
+        if not box._dimension == self._dimension:
             raise ValueError("Dimension of input box must match the "
                              "dimension of the polyomino")
-        if mod_box_isometries and len(set(box)) < len(box):
+        if mod_box_isometries and len(set(b-a for (a,b) in zip(box._min_coords, 
+                                      box._max_coords))) < box._dimension:
             raise NotImplementedError("The code below assumes that the" 
-                    " coordinates of the box (={}) are all distinct when"
+                    " sizes of the box (={}) are all distinct when"
                     " argument `mod_box_isometries` is True.".format(box))
         all_distinct_cano = self.canonical_isometric_copies(orientation_preserving,
                                                             mod_box_isometries)
@@ -895,11 +954,11 @@ class Polyomino(SageObject):
 
     def neighbor_edges(self):
         r"""
-        Return an iterator over the pairs of neighbor coordinates of the
-        polyomino.
+        Return an iterator over the pairs of neighbor coordinates inside of
+        the polyomino.
 
-        Two points `P` and `Q` are neighbor if `P - Q` has one coordinate
-        equal to `+1` or `-1` and zero everywhere else.
+        Two points `P` and `Q` in the polyomino are neighbor if `P - Q` has
+        one coordinate equal to `+1` or `-1` and zero everywhere else.
 
         EXAMPLES::
 
@@ -1078,6 +1137,146 @@ class Polyomino(SageObject):
     canonical_orthogonals = deprecated_function_alias(19107, canonical_isometric_copies)
     translated = deprecated_function_alias(19107, translated_copies)
     translated_orthogonals = deprecated_function_alias(19107, isometric_copies)
+class Polyomino(Polyomino_generic):
+    r"""
+    Return the polyomino defined by a set of coordinates.
+
+    The polyomino is the union of the unit square (or cube, or n-cube)
+    centered at those coordinates. Such an object should be connected, but
+    the code do not make this assumption.
+
+    INPUT:
+
+    - ``coords`` - iterable of tuple
+    - ``color`` - string (optional, default: ``'gray'``), the color
+
+    EXAMPLES::
+
+        sage: from sage.combinat.tiling import Polyomino
+        sage: Polyomino([(0,0,0), (0,1,0), (1,1,0), (1,1,1)], color='blue')
+        Polyomino: [(0, 0, 0), (0, 1, 0), (1, 1, 0), (1, 1, 1)], Color: blue
+    """
+    def __init__(self, coords, color='gray'):
+        r"""
+        INPUT:
+
+        - ``coords`` - iterable of tuple
+        - ``color`` - string (optional, default: ``'gray'``), the color
+
+        EXAMPLES::
+
+            sage: from sage.combinat.tiling import Polyomino
+            sage: Polyomino([(0,0,0), (0,1,0), (1,1,0), (1,1,1)], color='blue')
+            Polyomino: [(0, 0, 0), (0, 1, 0), (1, 1, 0), (1, 1, 1)], Color: blue
+
+        ::
+
+            sage: from sage.combinat.tiling import Polyomino
+            sage: Polyomino([(0,0), (1,0), (2,0)])
+            Polyomino: [(0, 0), (1, 0), (2, 0)], Color: gray
+        """
+        if not isinstance(coords, (tuple,list)):
+            coords = list(coords)
+        if not coords:
+            raise ValueError("Polyomino must be non empty")
+
+        dimension = len(coords[0])
+        Polyomino_generic.__init__(self, dimension, color)
+
+        self._blocs = coords
+        self._blocs = map(self._free_module, self._blocs)
+        for b in self._blocs:
+            b.set_immutable()
+        #self._blocs = tuple(sorted(set(self._blocs)))
+        self._blocs = frozenset(self._blocs)
+
+    def __repr__(self):
+        r"""
+        String representation.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.tiling import Polyomino
+            sage: Polyomino([(0,0,0), (0,1,0), (1,1,0), (1,1,1)], color='red')
+            Polyomino: [(0, 0, 0), (0, 1, 0), (1, 1, 0), (1, 1, 1)], Color: red
+        """
+        s = "Polyomino: %s, " % sorted(self._blocs)
+        s += "Color: %s" % self._color
+        return s
+
+    def frozenset(self):
+        r"""
+        """
+        return self._blocs
+
+class RectanglePolyomino(Polyomino_generic):
+    r"""
+    """
+    def __init__(self, min_coords, max_coords, color='gray'):
+        self._min_coords = min_coords
+        self._max_coords = max_coords
+        dimension = len(min_coords)
+        Polyomino_generic.__init__(self, dimension, color)
+
+    def __repr__(self):
+        r"""
+        String representation.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.tiling import RectanglePolyomino
+            sage: b = RectanglePolyomino([0,0], [2,3])
+            sage: b
+            Rectangle Polyomino: [0,2[ x [0,3[, Color: gray
+        """
+        b = ' x '.join("[{},{}[".format(a,b) for (a,b) in zip(self._min_coords, 
+                                                        self._max_coords))
+        s = "Rectangle Polyomino: %s, " % b
+        s += "Color: %s" % self._color
+        return s
+
+    def __len__(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.combinat.tiling import RectanglePolyomino
+            sage: b = RectanglePolyomino([0,0], [2,3])
+            sage: len(b)
+            6
+            sage: b = RectanglePolyomino([0,0,0], [2,3,5])
+            sage: len(b)
+            30
+        """
+        from sage.misc.misc_c import prod
+        return prod(b-a for (a,b) in zip(self._min_coords, 
+                                         self._max_coords))
+
+    def __iter__(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.combinat.tiling import RectanglePolyomino
+            sage: b = RectanglePolyomino([0,0], [2,3])
+            sage: list(b)
+            [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2)]
+        """
+        ranges = [range(a,b) for (a,b) in zip(self._min_coords,
+                                              self._max_coords)]
+        for v in itertools.product(*ranges):
+            v = self._free_module(v)
+            v.set_immutable()
+            yield v
+
+    def frozenset(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.combinat.tiling import RectanglePolyomino
+            sage: b = RectanglePolyomino([0,0], [2,3])
+            sage: b.frozenset()
+            frozenset({(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2)})
+        """
+        return frozenset(self)
 
 #######################
 # General tiling solver
@@ -1092,13 +1291,13 @@ class TilingSolver(SageObject):
 
     INPUT:
 
-    - ``pieces`` - iterable of Polyominoes
-    - ``box`` - tuple, size of the box
-    - ``rotation`` - bool (optional, default: ``True``), whether to allow
+    - ``pieces`` -- iterable of Polyominoes
+    - ``box`` -- Polyomino or tuple of integers (size of a box)
+    - ``rotation`` -- bool (optional, default: ``True``), whether to allow
       rotations
-    - ``reflection`` - bool (optional, default: ``False``), whether to allow
+    - ``reflection`` -- bool (optional, default: ``False``), whether to allow
       reflections
-    - ``reusable`` - bool (optional, default: ``False``), whether to allow
+    - ``reusable`` -- bool (optional, default: ``False``), whether to allow
       the pieces to be reused
 
     EXAMPLES:
@@ -1111,7 +1310,8 @@ class TilingSolver(SageObject):
         sage: r = Polyomino([(0,0,0), (0,0,1), (0,0,2)])
         sage: T = TilingSolver([p,q,r], box=(1,1,6))
         sage: T
-        Tiling solver of 3 pieces into the box (1, 1, 6)
+        Tiling solver of 3 pieces into the box
+        Rectangle Polyomino: [0,1[ x [0,1[ x [0,6[, Color: gray
         Rotation allowed: True
         Reflection allowed: False
         Reusing pieces allowed: False
@@ -1130,6 +1330,14 @@ class TilingSolver(SageObject):
         Polyomino: [(0, 0, 0)], Color: gray
         Polyomino: [(0, 0, 1), (0, 0, 2), (0, 0, 3)], Color: gray
         Polyomino: [(0, 0, 4), (0, 0, 5)], Color: gray
+
+    Tiling of a polyomino by polyominoes::
+
+        sage: b = Polyomino([(0,0), (1,0), (1,1), (2,1), (1,2), (2,2), (0,3), (1,3)])
+        sage: p = Polyomino([(0,0), (1,0)])
+        sage: T = TilingSolver([p], box=b, reusable=True)
+        sage: T.number_of_solutions()
+        2
 
     TESTS::
 
@@ -1151,14 +1359,19 @@ class TilingSolver(SageObject):
             sage: r = Polyomino([(0,0,0), (0,0,1), (0,0,2)])
             sage: T = TilingSolver([p,q,r], box=(1,1,6))
             sage: T
-            Tiling solver of 3 pieces into the box (1, 1, 6)
+            Tiling solver of 3 pieces into the box
+            Rectangle Polyomino: [0,1[ x [0,1[ x [0,6[, Color: gray
             Rotation allowed: True
             Reflection allowed: False
             Reusing pieces allowed: False
         """
         self._pieces = pieces
         self._free_module = self._pieces[0]._free_module
-        self._box = box
+        if not isinstance(box, Polyomino_generic):
+            dim = len(box)
+            self._box = RectanglePolyomino([0]*dim, box)
+        else:
+            self._box = box
         self._rotation = rotation
         self._reflection = reflection
         if not self._rotation and self._reflection:
@@ -1177,14 +1390,15 @@ class TilingSolver(SageObject):
             sage: q = Polyomino([(0,0,0), (0,0,1)])
             sage: r = Polyomino([(0,0,0), (0,0,1), (0,0,2)])
             sage: TilingSolver([p,q,r], box=(1,1,6))
-            Tiling solver of 3 pieces into the box (1, 1, 6)
+            Tiling solver of 3 pieces into the box
+            Rectangle Polyomino: [0,1[ x [0,1[ x [0,6[, Color: gray
             Rotation allowed: True
             Reflection allowed: False
             Reusing pieces allowed: False
 
         """
-        N = len(self._pieces)
-        s = "Tiling solver of %s pieces into the box %s\n" % (N, self._box)
+        s = "Tiling solver of %s pieces into the box\n" % len(self._pieces)
+        s += "%s\n" % self._box
         s += "Rotation allowed: %s\n" % self._rotation
         s += "Reflection allowed: %s\n" % self._reflection
         s += "Reusing pieces allowed: %s" % self._reusable
@@ -1216,7 +1430,7 @@ class TilingSolver(SageObject):
             return len(self.rows()) != 0
         else:
             from sage.misc.misc_c import prod
-            return (sum(len(p) for p in self.pieces()) == prod(self._box)
+            return (sum(len(p) for p in self.pieces()) == len(self._box)
                     and len(self.rows()) != 0)
 
     def pieces(self):
@@ -1244,7 +1458,7 @@ class TilingSolver(SageObject):
     def space(self):
         r"""
         Returns an iterator over all the non negative integer coordinates
-        contained in the box.
+        contained in the space to tile.
 
         EXAMPLES::
 
@@ -1256,10 +1470,7 @@ class TilingSolver(SageObject):
             sage: list(T.space())
             [(0, 0, 0), (0, 0, 1), (0, 0, 2), (0, 0, 3), (0, 0, 4), (0, 0, 5)]
         """
-        for v in xmrange(self._box, tuple):
-            v = self._free_module(v)
-            v.set_immutable()
-            yield v
+        return iter(self._box)
 
     @cached_method
     def coord_to_int_dict(self):
@@ -1380,16 +1591,16 @@ class TilingSolver(SageObject):
             sage: T.rows_for_piece(0)
             [[0, 3, 5, 6],
              [0, 4, 6, 7],
-             [0, 2, 5, 6],
-             [0, 3, 6, 7],
              [0, 2, 3, 6],
              [0, 3, 4, 7],
              [0, 2, 3, 5],
-             [0, 3, 4, 6]]
+             [0, 3, 4, 6],
+             [0, 2, 5, 6],
+             [0, 3, 6, 7]]
             sage: T.rows_for_piece(0, mod_box_isometries=True)
-            [[0, 2, 5, 6], [0, 3, 6, 7]]
+            [[0, 2, 3, 6], [0, 3, 4, 7]]
             sage: T.rows_for_piece(1, mod_box_isometries=True)
-            [[1, 2, 5, 6], [1, 3, 6, 7]]
+            [[1, 2, 3, 6], [1, 3, 4, 7]]
         """
         p = self._pieces[i]
         if self._rotation:
@@ -1471,20 +1682,20 @@ class TilingSolver(SageObject):
             sage: p = Polyomino([(0,0,0), (1,0,0), (1,1,0), (1,0,1), (2,0,1)], color='red')
             sage: T = TilingSolver([p], box=(3,4,2))
             sage: T._rows_mod_box_isometries(0)
-            [[0, 2, 10, 11, 12, 20],
-             [0, 4, 12, 13, 14, 22],
-             [0, 6, 14, 15, 16, 24],
-             [0, 1, 9, 10, 11, 18],
-             [0, 3, 11, 12, 13, 20],
-             [0, 5, 13, 14, 15, 22],
-             [0, 4, 6, 10, 11, 12],
-             [0, 6, 8, 12, 13, 14],
-             [0, 12, 14, 18, 19, 20],
-             [0, 14, 16, 20, 21, 22],
-             [0, 4, 9, 11, 12, 14],
-             [0, 6, 11, 13, 14, 16],
-             [0, 12, 17, 19, 20, 22],
-             [0, 14, 19, 21, 22, 24]]
+            [[0, 2, 3, 4, 5, 11],
+            [0, 4, 5, 6, 7, 13],
+            [0, 10, 11, 12, 13, 19],
+            [0, 12, 13, 14, 15, 21],
+            [0, 1, 9, 10, 12, 18],
+            [0, 3, 11, 12, 14, 20],
+            [0, 5, 13, 14, 16, 22],
+            [0, 2, 9, 10, 12, 20],
+            [0, 4, 11, 12, 14, 22],
+            [0, 6, 13, 14, 16, 24],
+            [0, 1, 3, 4, 11, 13],
+            [0, 3, 5, 6, 13, 15],
+            [0, 9, 11, 12, 19, 21],
+            [0, 11, 13, 14, 21, 23]]
 
         We test that there are four times less rows for that polyomino::
 
@@ -1587,7 +1798,7 @@ class TilingSolver(SageObject):
         ::
 
             sage: T.row_to_polyomino(7)
-            Polyomino: [(0, 0, 1), (0, 0, 2), (1, 0, 1)], Color: blue
+            Polyomino: [(0, 0, 1), (1, 0, 1), (1, 0, 2)], Color: blue
 
         ::
 
@@ -1683,25 +1894,25 @@ class TilingSolver(SageObject):
             sage: y = Polyomino([(0,0),(1,0),(2,0),(3,0),(2,1)], color='yellow')
             sage: T = TilingSolver([y], box=(5,10), reusable=True, reflection=True)
             sage: for a in T._dlx_common_prefix_solutions_iterator(): a
-            [0, 65, 177, 164, 87, 44, 109, 70, 160, 129]
-            [0, 65, 177, 164, 87]
-            [0, 65, 177, 164, 87, 182, 109, 70, 160, 83]
-            [0]
-            [0, 111, 177, 26, 87, 44, 109, 70, 160, 129]
-            [0, 111, 177, 26, 87]
-            [0, 111, 177, 26, 87, 182, 109, 70, 160, 83]
-            [0, 111, 177]
-            [0, 111, 177, 125, 21, 70, 109, 44, 30, 134]
+            [64, 83, 149, 44, 179, 62, 35, 162, 132, 101]
+            [64, 83, 149, 44, 179]
+            [64, 83, 149, 44, 179, 154, 35, 162, 132, 175]
+            [64, 83, 149]
+            [64, 83, 149, 97, 39, 162, 35, 62, 48, 106]
+            [64]
+            [64, 157, 149, 136, 179, 62, 35, 162, 132, 101]
+            [64, 157, 149, 136, 179]
+            [64, 157, 149, 136, 179, 154, 35, 162, 132, 175]
             []
-            [110, 147, 40, 125, 20, 69, 54, 45, 168, 135]
-            [110, 147, 40, 125, 20]
-            [110, 147, 40, 125, 20, 115, 54, 45, 30, 135]
-            [110, 147]
-            [110, 147, 178, 79, 20, 69, 54, 45, 168, 135]
-            [110, 147, 178, 79, 20]
-            [110, 147, 178, 79, 20, 115, 54, 45, 30, 135]
-            [110, 147, 178]
-            [110, 147, 178, 164, 88, 45, 54, 69, 159, 83]
+            [82, 119, 58, 97, 38, 87, 8, 63, 48, 107]
+            [82, 119, 58, 97, 38]
+            [82, 119, 58, 97, 38, 161, 8, 63, 140, 107]
+            [82, 119]
+            [82, 119, 150, 136, 180, 63, 8, 161, 131, 175]
+            [82, 119, 150]
+            [82, 119, 150, 171, 38, 87, 8, 63, 48, 107]
+            [82, 119, 150, 171, 38]
+            [82, 119, 150, 171, 38, 161, 8, 63, 140, 107]
         """
         it = self._dlx_solutions_iterator()
         B = next(it)
@@ -1748,16 +1959,16 @@ class TilingSolver(SageObject):
             sage: y = Polyomino([(0,0),(1,0),(2,0),(3,0),(2,1)], color='yellow')
             sage: T = TilingSolver([y], box=(5,10), reusable=True, reflection=True)
             sage: for a in T._dlx_solutions_iterator(): a
-            [0, 65, 177, 164, 87, 44, 109, 70, 160, 129]
-            [0, 65, 177, 164, 87, 182, 109, 70, 160, 83]
-            [0, 111, 177, 26, 87, 44, 109, 70, 160, 129]
-            [0, 111, 177, 26, 87, 182, 109, 70, 160, 83]
-            [0, 111, 177, 125, 21, 70, 109, 44, 30, 134]
-            [110, 147, 40, 125, 20, 69, 54, 45, 168, 135]
-            [110, 147, 40, 125, 20, 115, 54, 45, 30, 135]
-            [110, 147, 178, 79, 20, 69, 54, 45, 168, 135]
-            [110, 147, 178, 79, 20, 115, 54, 45, 30, 135]
-            [110, 147, 178, 164, 88, 45, 54, 69, 159, 83]
+            [64, 83, 149, 44, 179, 62, 35, 162, 132, 101]
+            [64, 83, 149, 44, 179, 154, 35, 162, 132, 175]
+            [64, 83, 149, 97, 39, 162, 35, 62, 48, 106]
+            [64, 157, 149, 136, 179, 62, 35, 162, 132, 101]
+            [64, 157, 149, 136, 179, 154, 35, 162, 132, 175]
+            [82, 119, 58, 97, 38, 87, 8, 63, 48, 107]
+            [82, 119, 58, 97, 38, 161, 8, 63, 140, 107]
+            [82, 119, 150, 136, 180, 63, 8, 161, 131, 175]
+            [82, 119, 150, 171, 38, 87, 8, 63, 48, 107]
+            [82, 119, 150, 171, 38, 161, 8, 63, 140, 107]
             sage: len(list(T._dlx_incremental_solutions_iterator()))
             123
         """
@@ -1967,7 +2178,7 @@ class TilingSolver(SageObject):
             sage: a                                         # not tested
             Animation with 13 frames
         """
-        dimension = len(self._box)
+        dimension = self._box._dimension
         if dimension == 2:
             from sage.plot.graphics import Graphics
             from sage.plot.animate import Animation
@@ -1975,10 +2186,10 @@ class TilingSolver(SageObject):
             it = itertools.islice(it, stop)
             L = [sum([piece.show2d(size)
                       for piece in solution], Graphics()) for solution in it]
-            xmax, ymax = self._box
-            xmax = xmax-0.5
-            ymax = ymax-0.5
-            a = Animation(L, xmin=-0.5, ymin=-0.5,
+            (xmin,ymin), (xmax,ymax) = self._box.bounding_box()
+            xmax = xmax+0.5
+            ymax = ymax+0.5
+            a = Animation(L, xmin=xmin-0.5, ymin=ymin-0.5,
                           xmax=xmax, ymax=ymax, aspect_ratio=1, axes=axes)
             return a
         elif dimension == 3:

@@ -1700,6 +1700,12 @@ class FinitePoset(UniqueRepresentation, Parent):
           * ``border`` (default: ``False``) - whether to draw a border over the
             plot
 
+        .. NOTE::
+
+            All options of :meth:`GenericGraph.plot
+            <sage.graphs.generic_graph.GenericGraph.plot>` are also available
+            through this function.
+
         EXAMPLES:
 
         This function can be used without any parameters::

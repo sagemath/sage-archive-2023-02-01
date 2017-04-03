@@ -271,6 +271,7 @@ class sage_build_cython(Command):
     boolean_options = ['debug', 'profile', 'force']
 
     def initialize_options(self):
+        self.extensions = None
         self.build_dir = None
 
         # Always have Cython produce debugging info by default, unless

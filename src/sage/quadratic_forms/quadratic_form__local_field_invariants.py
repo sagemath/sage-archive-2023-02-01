@@ -743,54 +743,28 @@ def is_isotropic(self, p):
 
 def anisotropic_primes(self):
     """
-    Returns a list with all of the anisotropic primes of the quadratic form.
+    Return a list with all of the anisotropic primes of the quadratic form.
 
-
-    INPUT:
-
-        None
-
-    OUTPUT:
-
-        Returns a list of prime numbers >0.
+    The infinite prime is denoted by `-1`.
 
     EXAMPLES::
 
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
         sage: Q.anisotropic_primes()
-        [2]
-
-    ::
+        [2, -1]
 
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1])
         sage: Q.anisotropic_primes()
-        [2]
-
-    ::
+        [2, -1]
 
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1,1])
         sage: Q.anisotropic_primes()
-        []
-
+        [-1]
     """
-
-    ## Look at all prime divisors of 2 * Det(Q) to find the anisotropic primes...
+    # Look at all prime divisors of 2 * Det(Q) to find the
+    # anisotropic primes...
     possible_primes = prime_divisors(2 * self.det()) + [-1]
-    AnisoPrimes = []
-
-    ## DIAGNSOTIC
-    #print " Possible anisotropic primes are: " + str(possible_primes)
-
-    for p in possible_primes:
-        if (self.is_anisotropic(p)):
-            AnisoPrimes += [p]
-
-    ## DIAGNSOTIC
-    #print " leaving anisotropic_primes..."
-
-    return AnisoPrimes
-
-
+    return [p for p in possible_primes if self.is_anisotropic(p)]
 
 
 def compute_definiteness(self):

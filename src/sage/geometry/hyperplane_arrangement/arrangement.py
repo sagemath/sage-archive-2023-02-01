@@ -789,11 +789,11 @@ class HyperplaneArrangementElement(Element):
     @cached_method
     def poincare_polynomial(self):
         r"""
-        Return the Poincare polynomial of the hyperplane arrangement.
+        Return the Poincaré polynomial of the hyperplane arrangement.
 
         OUTPUT:
 
-        The Poincare polynomial in `\QQ[x]`.
+        The Poincaré polynomial in `\QQ[x]`.
 
         EXAMPLES::
 

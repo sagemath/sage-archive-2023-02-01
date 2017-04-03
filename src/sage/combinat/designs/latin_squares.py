@@ -122,11 +122,13 @@ REFERENCES:
 Functions
 ---------
 """
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six import iteritems
+from six.moves import zip
 
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
+
 
 def are_mutually_orthogonal_latin_squares(l, verbose=False):
     r"""
@@ -199,7 +201,8 @@ def are_mutually_orthogonal_latin_squares(l, verbose=False):
             return False
 
     from .designs_pyx import is_orthogonal_array
-    return is_orthogonal_array(zip(*[[x for R in M for x in R] for M in l]),k,n, verbose=verbose, terminology="MOLS")
+    return is_orthogonal_array(list(zip(*[[x for R in M for x in R] for M in l])),k,n, verbose=verbose, terminology="MOLS")
+
 
 def mutually_orthogonal_latin_squares(k,n, partitions = False, check = True, existence=False):
     r"""
@@ -470,7 +473,7 @@ def latin_square_product(M,N,*others):
          for jj in range(n)}
 
     L = lambda i_j: i_j[0] * n + i_j[1]
-    D = {(L(c[0]),L(c[1])): L(v) for c,v in D.iteritems()}
+    D = {(L(c[0]), L(c[1])): L(v) for c, v in iteritems(D)}
     P = Matrix(D)
 
     if others:

@@ -3,11 +3,14 @@ Fully packed loops
 """
 # python3
 from __future__ import division, print_function
+from six import iteritems, add_metaclass
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element
+from sage.structure.sage_object import op_EQ, op_NE
+
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.six_vertex_model import (SquareIceModel,
                                             SixVertexConfiguration,
@@ -22,6 +25,7 @@ from sage.misc.all import prod
 from sage.misc.lazy_attribute import lazy_attribute
 
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class FullyPackedLoop(Element):
     r"""
     A class for fully packed loops.
@@ -409,8 +413,6 @@ class FullyPackedLoop(Element):
        Electron. J. Combin. 22 (2015) no. 2
        :arxiv:`1503.08898`
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, generator):
         """
@@ -611,9 +613,9 @@ class FullyPackedLoop(Element):
 
         return ret
 
-    def __eq__(self, other):
+    def _richcmp_(self, other, op):
         """
-        Check equality.
+        Check equality or inequality.
 
         EXAMPLES::
 
@@ -628,14 +630,26 @@ class FullyPackedLoop(Element):
 
             sage: FullyPackedLoop(M) == M
             False
+
+            sage: M = A.random_element()
+            sage: FullyPackedLoop(M) != M.to_fully_packed_loop()
+            False
+
+            sage: f0 = FullyPackedLoop(A([[1, 0, 0],[0, 1, 0],[0, 0, 1]]))
+            sage: f1 = FullyPackedLoop(A([[1, 0, 0],[0, 0, 1],[0, 1, 0]]))
+            sage: f0 != f1
+            True
         """
-        return repr(self) == repr(other) and \
-        self._end_point_dictionary == other._end_point_dictionary\
-        and self._six_vertex_model == other._six_vertex_model
+        if op not in [op_EQ, op_NE]:
+            return NotImplemented
+        b = (repr(self) == repr(other) and
+             self._end_point_dictionary == other._end_point_dictionary
+             and self._six_vertex_model == other._six_vertex_model)
+        return b == (op == op_EQ)
 
     def to_alternating_sign_matrix(self):
         """
-        Returns the alternating sign matrix corresponding to this class.
+        Return the alternating sign matrix corresponding to this class.
 
         .. SEEALSO::
 
@@ -1112,7 +1126,7 @@ class FullyPackedLoop(Element):
             for j in range(n):
                 vertices[(i, j)] = 0
 
-        for end, vertex in self._end_point_dictionary.iteritems():
+        for end, vertex in iteritems(self._end_point_dictionary):
             vertices[vertex] = end
 
         return vertices

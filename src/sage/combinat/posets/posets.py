@@ -255,7 +255,7 @@ Classes and functions
 from __future__ import division, print_function, absolute_import
 
 from six.moves import range
-from six import itervalues
+from six import itervalues, iteritems
 
 import copy
 from sage.misc.cachefunc import cached_method
@@ -507,7 +507,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
         sage: a + b
         Traceback (most recent call last):
         ...
-        TypeError: unsupported operand parent(s) for '+': 'Finite poset containing 4 elements' and 'Finite poset containing 4 elements'
+        TypeError: unsupported operand parent(s) for +: 'Finite poset containing 4 elements' and 'Finite poset containing 4 elements'
         sage: a.element + b.element
         'ab'
 
@@ -519,7 +519,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
 
         sage: d,c,b,a = list(P)
         sage: type(a)
-        <type 'str'>
+        <... 'str'>
 
     Of course, those strings are not aware of `P`. So to compare two
     such strings, one needs to query `P`::
@@ -552,7 +552,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
 
             sage: G = DiGraph({0:[2,3], 1:[3,4], 2:[5], 3:[5], 4:[5]})
             sage: type(G.vertices()[0])
-            <type 'int'>
+            <... 'int'>
 
         This is worked around by systematically converting back the
         vertices of a poset to :class:`Integer`'s if they are
@@ -606,7 +606,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
 
         sage: P = Poset([[1,2],[3],[3]])
         sage: type(hash(P))
-        <type 'int'>
+        <... 'int'>
 
     Bad input::
 
@@ -1934,7 +1934,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset({0:[2], 1:[2], 2:[3], 3:[4], 4:[]})
             sage: type(P.cover_relations_iterator())
-            <type 'generator'>
+            <... 'generator'>
             sage: [z for z in P.cover_relations_iterator()]
             [[1, 2], [0, 2], [2, 3], [3, 4]]
         """
@@ -2069,7 +2069,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Poset({0:[2], 1:[2], 2:[3], 3:[4], 4:[]})
             sage: it = P.relations_iterator()
             sage: type(it)
-            <type 'generator'>
+            <... 'generator'>
             sage: next(it), next(it)
             ([1, 1], [1, 2])
 
@@ -3010,7 +3010,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             # We create the digraphs of all color classes
             linear_extensions = [hasse_diagram.copy() for i in range(k)]
-            for ((u,v),i),x in p.get_values(b).iteritems():
+            for ((u,v),i),x in iteritems(p.get_values(b)):
                 if x == 1:
                     linear_extensions[i].add_edge(u,v)
 
@@ -3314,7 +3314,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset({0:[2], 1:[2], 2:[3], 3:[]})
             sage: type(P.upper_covers_iterator(0))
-            <type 'generator'>
+            <... 'generator'>
         """
         for e in self._hasse_diagram.neighbor_out_iterator(self._element_to_vertex(x)):
             yield self._vertex_to_element(e)
@@ -3345,7 +3345,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Poset({0:[2], 1:[2], 2:[3], 3:[]})
             sage: l0 = P.lower_covers_iterator(3)
             sage: type(l0)
-            <type 'generator'>
+            <... 'generator'>
             sage: next(l0)
             2
         """
@@ -4782,18 +4782,29 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         return constructor(D)
 
-    def relabel(self, relabeling):
+    def relabel(self, relabeling=None):
         r"""
-        Return a copy of this poset with its elements relabelled.
+        Return a copy of this poset with its elements relabeled.
 
         INPUT:
 
-        - ``relabeling`` -- a function or dictionary
+        - ``relabeling`` -- a function, dictionary, list or tuple
 
-        This function must map each (non-wrapped) element of
-        ``self`` to some distinct object.
+        The given function or dictionary must map each (non-wrapped)
+        element of ``self`` to some distinct object. The given list or tuple
+        must be made of distinct objects.
 
-        EXAMPLES::
+        When the input is a list or a tuple, the relabeling uses
+        the total ordering of the elements of the poset given by
+        ``list(self)``.
+
+        If no relabeling is given, the poset is relabeled by integers
+        from `0` to `n-1` according to one of its linear extensions. This means
+        that `i<j` as integers whenever `i<j` in the relabeled poset.
+
+        EXAMPLES:
+
+        Relabeling using a function::
 
             sage: P = Poset((divisors(12), attrcall("divides")), linear_extension=True)
             sage: P.list()
@@ -4806,11 +4817,11 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.cover_relations()
             [[2, 3], [2, 4], [3, 5], [3, 7], [4, 7], [5, 13], [7, 13]]
 
-        Here we relabel the elements of a poset by `\{0,1,2, ...\}`, using
-        a dictionary::
+        Relabeling using a dictionary::
 
             sage: P = Poset((divisors(12), attrcall("divides")), linear_extension=True, facade=False)
-            sage: relabeling = {c.element:i for (i,c) in enumerate(P)}; relabeling
+            sage: relabeling = {c.element:i for (i,c) in enumerate(P)}
+            sage: relabeling
             {1: 0, 2: 1, 3: 2, 4: 3, 6: 4, 12: 5}
             sage: Q = P.relabel(relabeling)
             sage: Q.list()
@@ -4821,16 +4832,26 @@ class FinitePoset(UniqueRepresentation, Parent):
         Mind the ``c.element``; this is because the relabeling is
         applied to the elements of the poset without the wrapping.
         Thanks to this convention, the same relabeling function can
-        be used both for facade or non facade posets::
+        be used both for facade or non facade posets.
 
-            sage: P = Poset((divisors(12), attrcall("divides")), facade = True, linear_extension=True)
-            sage: P.list()
-            [1, 2, 3, 4, 6, 12]
-            sage: Q = P.relabel(lambda x: 12/x)
-            sage: Q.list()
-            [12, 6, 4, 3, 2, 1]
+        Relabeling using a list::
+
+            sage: P = posets.PentagonPoset()
+            sage: list(P)
+            [0, 1, 2, 3, 4]
+            sage: P.cover_relations()
+            [[0, 1], [0, 2], [1, 4], [2, 3], [3, 4]]
+            sage: Q = P.relabel(list('abcde'))
             sage: Q.cover_relations()
-            [[12, 6], [12, 4], [6, 3], [6, 2], [4, 2], [3, 1], [2, 1]]
+            [['a', 'b'], ['a', 'c'], ['b', 'e'], ['c', 'd'], ['d', 'e']]
+
+        Default behaviour is increasing relabeling::
+
+            sage: a2 = posets.ChainPoset(2)
+            sage: P = a2 * a2
+            sage: Q = P.relabel()
+            sage: Q.cover_relations()
+            [[0, 1], [0, 2], [1, 3], [2, 3]]
 
         Relabeling a (semi)lattice gives a (semi)lattice::
 
@@ -4873,20 +4894,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: p1 == p3
             True
         """
-        from sage.combinat.posets.lattices import LatticePoset, \
-             JoinSemilattice, MeetSemilattice, FiniteLatticePoset, \
-             FiniteMeetSemilattice, FiniteJoinSemilattice
-        if isinstance(relabeling, (list, tuple)):
-            relabeling = {i:relabeling[i] for i in range(len(self._elements))}
-        else:
-            if isinstance(relabeling, dict):
-                relabeling = relabeling.__getitem__
-            relabeling = {i: relabeling(x) for i,x in enumerate(self._elements)}
-        if not self._with_linear_extension:
-            elements = None
-        else:
-            elements = tuple(relabeling[self._element_to_vertex(x)]
-                             for x in self._elements)
+        from sage.combinat.posets.lattices import (LatticePoset,
+             JoinSemilattice, MeetSemilattice, FiniteLatticePoset,
+             FiniteMeetSemilattice, FiniteJoinSemilattice)
 
         if isinstance(self, FiniteLatticePoset):
             constructor = FiniteLatticePoset
@@ -4896,6 +4906,26 @@ class FinitePoset(UniqueRepresentation, Parent):
             constructor = FiniteJoinSemilattice
         else:
             constructor = FinitePoset
+
+        if relabeling is None:
+            return constructor(self._hasse_diagram, category=self.category(),
+                               facade=self._is_facade)
+
+        if isinstance(relabeling, (list, tuple)):
+            relabeling = {i: relabeling[i]
+                          for i in range(len(self._elements))}
+        else:
+            if isinstance(relabeling, dict):
+                relabeling = relabeling.__getitem__
+            relabeling = {i: relabeling(x)
+                          for i, x in enumerate(self._elements)}
+
+        if not self._with_linear_extension:
+            elements = None
+        else:
+            elements = tuple(relabeling[self._element_to_vertex(x)]
+                             for x in self._elements)
+
         return constructor(self._hasse_diagram.relabel(relabeling,
                                                        inplace=False),
                            elements=elements, category=self.category(),
@@ -4963,7 +4993,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         canonical_label = self._hasse_diagram.canonical_label(certificate=True,
                                                               algorithm=algorithm)[1]
-        canonical_label = {self._elements[v]:i for v,i in canonical_label.iteritems()}
+        canonical_label = {self._elements[v]:i for v,i in iteritems(canonical_label)}
         return self.relabel(canonical_label)
 
     def with_linear_extension(self, linear_extension):
@@ -5084,7 +5114,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.subposet(["a","b","x"])
             Traceback (most recent call last):
             ...
-            ValueError: <type 'str'> is not an element of this poset
+            ValueError: <... 'str'> is not an element of this poset
             sage: P.subposet(3)
             Traceback (most recent call last):
             ...
@@ -5492,8 +5522,8 @@ class FinitePoset(UniqueRepresentation, Parent):
         G.add_vertices(L)
         for i in range(len(L)):
             for j in range(i):
-                tmp = map(lambda x,y: x != y, L[i], L[j])
-                if tmp.count(True) == 2 and tmp[tmp.index(True)+1]:
+                tmp = [x != y for x, y in zip(L[i], L[j])]
+                if tmp.count(True) == 2 and tmp[tmp.index(True) + 1]:
                     G.add_edge(L[i], L[j])
         return G
 
@@ -6403,16 +6433,23 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: Poset().is_slender()  # Test empty poset
             True
+
+        Correct certificate (:trac:`22373`)::
+
+            sage: P = Poset({0:[1,2,3],1:[4],2:[4],3:[4,5]})
+            sage: P.is_slender(True)
+            (False, (0, 4))
         """
         for x in self:
             d = {}
             for y in self.upper_covers(x):
                 for c in self.upper_covers(y):
                     d[c] = d.get(c, 0) + 1
-            if not all(y < 3 for y in itervalues(d)):
-                if certificate:
-                    return (False, (x, c))
-                return False
+            for c, y in iteritems(d):
+                if y >= 3:
+                    if certificate:
+                        return (False, (x, c))
+                    return False
         if certificate:
             return (True, None)
         return True

@@ -44,7 +44,7 @@ def IntervalGraph(intervals, points_ordered = False):
           to create the graph are saved with the graph and can be recovered
           using ``get_vertex()`` or ``get_vertices()``.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The following line creates the sequence of intervals
     `(i, i+2)` for i in `[0, ..., 8]`::
@@ -172,7 +172,7 @@ def PermutationGraph(second_permutation, first_permutation = None):
       ``sorted(second_permutation)``, which yields the expected ordering when
       the elements of the graph are integers.
 
-    .. SEEALSO:
+    .. SEEALSO::
 
       - Recognition of Permutation graphs in the :mod:`comparability module
         <sage.graphs.comparability>`.
@@ -296,7 +296,7 @@ def ToleranceGraph(tolrep):
         to create the graph is saved with the graph and can be recovered using
         ``get_vertex()`` or ``get_vertices()``.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The following code creates a tolerance representation ``tolrep``, generates
     its tolerance graph ``g``, and applies some checks::
@@ -518,7 +518,7 @@ def IntersectionGraph(S):
             The elements of `S` must be finite, hashable, and the elements of
             any `s\in S` must be hashable too.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: graphs.IntersectionGraph([(1,2,3),(3,4,5),(5,6,7)])
         Intersection Graph: Graph on 3 vertices

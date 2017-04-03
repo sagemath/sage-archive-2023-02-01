@@ -247,13 +247,20 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.rings.asymptotic.growth_group_cartesian', 'CartesianProductGrowthGroups')
 
+from sage.categories.pushout import ConstructionFunctor
+from sage.misc.superseded import experimental
+from sage.structure.element import MultiplicativeGroupElement
+from sage.structure.factory import UniqueFactory
+from sage.structure.parent import Parent
+from sage.structure.sage_object import SageObject
+from sage.structure.unique_representation import CachedRepresentation
+from sage.structure.unique_representation import UniqueRepresentation
 
-class Variable(sage.structure.unique_representation.CachedRepresentation,
-               sage.structure.sage_object.SageObject):
+
+class Variable(CachedRepresentation, SageObject):
     r"""
     A class managing the variable of a growth group.
 
@@ -902,7 +909,7 @@ def _rpow_(self, base):
         Traceback (most recent call last):
         ...
         ArithmeticError: Cannot construct 2^(x^2) in Growth Group QQ^x * x^ZZ
-        > *previous* TypeError: unsupported operand parent(s) for '*':
+        > *previous* TypeError: unsupported operand parent(s) for *:
         'Growth Group QQ^x * x^ZZ' and 'Growth Group ZZ^(x^2)'
 
     ::
@@ -948,7 +955,7 @@ def _rpow_(self, base):
                             (repr_op(base, '^', var), self.parent())), e)
 
 
-class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
+class GenericGrowthElement(MultiplicativeGroupElement):
     r"""
     A basic implementation of a generic growth element.
 
@@ -1509,9 +1516,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
                                   'not implemented '.format(self))
 
 
-class GenericGrowthGroup(
-        sage.structure.unique_representation.UniqueRepresentation,
-        sage.structure.parent.Parent):
+class GenericGrowthGroup(UniqueRepresentation, Parent):
     r"""
     A basic implementation for growth groups.
 
@@ -1635,7 +1640,7 @@ class GenericGrowthGroup(
             TypeError: Asymptotic Ring <z^ZZ> over Rational Field is not a valid base.
         """
         from .asymptotic_ring import AsymptoticRing
-        if not isinstance(base, sage.structure.parent.Parent) or \
+        if not isinstance(base, Parent) or \
            isinstance(base, AsymptoticRing):
             raise TypeError('%s is not a valid base.' % (base,))
 
@@ -1668,7 +1673,7 @@ class GenericGrowthGroup(
             cls, base, var, category)
 
 
-    @sage.misc.superseded.experimental(trac_number=17601)
+    @experimental(trac_number=17601)
     def __init__(self, base, var, category):
         r"""
         See :class:`GenericGrowthElement` for more information.
@@ -2395,7 +2400,6 @@ class GenericGrowthGroup(
     CartesianProduct = CartesianProductGrowthGroups
 
 
-from sage.categories.pushout import ConstructionFunctor
 class AbstractGrowthGroupFunctor(ConstructionFunctor):
     r"""
     A base class for the functors constructing growth groups.
@@ -2436,13 +2440,16 @@ class AbstractGrowthGroupFunctor(ConstructionFunctor):
             sage: AbstractGrowthGroupFunctor('x', Groups())
             AbstractGrowthGroup[x]
         """
+        from sage.categories.monoids import Monoids
+        from sage.categories.posets import Posets
+
         if var is None:
             var = Variable('')
         elif not isinstance(var, Variable):
             var = Variable(var)
         self.var = var
         super(ConstructionFunctor, self).__init__(
-            domain, sage.categories.monoids.Monoids() & sage.categories.posets.Posets())
+            domain, Monoids() & Posets())
 
 
     def _repr_(self):
@@ -2993,7 +3000,7 @@ class MonomialGrowthElement(GenericGrowthElement):
         in `T=\frac{1}{1-\frac{z}{\zeta}}\to \infty` where this element
         is a growth element in `T`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('x^QQ')
@@ -3417,8 +3424,10 @@ class MonomialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
             sage: MonomialGrowthGroupFunctor('x')
             MonomialGrowthGroup[x]
         """
+        from sage.categories.commutative_additive_monoids import CommutativeAdditiveMonoids
+
         super(MonomialGrowthGroupFunctor, self).__init__(var,
-            sage.categories.commutative_additive_monoids.CommutativeAdditiveMonoids())
+            CommutativeAdditiveMonoids())
 
 
     def _apply_functor(self, base):
@@ -3964,9 +3973,11 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             else:
                 return  # end of parsing
 
-        from sage.symbolic.ring import SymbolicRing
         import operator
+        from sage.functions.log import Function_exp
         from sage.symbolic.operators import mul_vararg
+        from sage.symbolic.ring import SymbolicRing
+
         if isinstance(P, SymbolicRing):
             op = data.operator()
             if op == operator.pow:
@@ -3975,7 +3986,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
                     return base
                 elif exponent.operator() == mul_vararg:
                     return base ** (exponent / P(var))
-            elif isinstance(op, sage.functions.log.Function_exp):
+            elif isinstance(op, Function_exp):
                 from sage.functions.log import exp
                 base = exp(1)
                 exponent = data.operands()[0]
@@ -4102,8 +4113,10 @@ class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
             sage: ExponentialGrowthGroupFunctor('x')
             ExponentialGrowthGroup[x]
         """
+        from sage.categories.monoids import Monoids
+
         super(ExponentialGrowthGroupFunctor, self).__init__(var,
-            sage.categories.monoids.Monoids())
+            Monoids())
 
 
     def _apply_functor(self, base):
@@ -4128,7 +4141,7 @@ class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
         return ExponentialGrowthGroup(base, self.var)
 
 
-class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
+class GrowthGroupFactory(UniqueFactory):
     r"""
     A factory creating asymptotic growth groups.
 

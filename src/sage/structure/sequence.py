@@ -127,7 +127,7 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
 
         sage: v = Sequence(range(10))
         sage: v.universe()
-        <type 'int'>
+        <... 'int'>
         sage: v
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
@@ -311,7 +311,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
 
         sage: v = Sequence(range(10))
         sage: v.universe()
-        <type 'int'>
+        <... 'int'>
         sage: v
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
@@ -779,7 +779,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
 
         To make this object immutable use :meth:`set_immutable`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: v = Sequence([1,2,3,4/5])
             sage: v[0] = 5

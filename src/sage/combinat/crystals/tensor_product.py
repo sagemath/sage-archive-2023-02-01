@@ -1928,7 +1928,7 @@ class CrystalOfTableaux(CrystalOfWords):
         crystal of given shape. The module generator is the unique tableau with equal
         shape and content.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: T = crystals.Tableaux(['D',3], shape = [1,1])
             sage: T.module_generator([1,1])
@@ -2161,7 +2161,7 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
             sage: type(t)
             <class 'sage.combinat.tableau.Tableaux_all_with_category.element_class'>
             sage: type(t[0][0])
-            <type 'int'>
+            <... 'int'>
             sage: T = crystals.Tableaux(['D',3], shape = [1,1])
             sage: t=T(rows=[[-3],[3]]).to_tableau(); t
             [[-3], [3]]

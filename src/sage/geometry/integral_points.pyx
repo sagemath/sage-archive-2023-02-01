@@ -555,8 +555,8 @@ cpdef rectangular_box_points(list box_min, list box_max,
     cdef list diameter_index = [x[1] for x in diameter]
 
     # Construct the inverse permutation
-    cdef list orig_perm = range(len(diameter_index))
-    for i,j in enumerate(diameter_index):
+    cdef list orig_perm = list(xrange(len(diameter_index)))
+    for i, j in enumerate(diameter_index):
         orig_perm[j] = i
 
     box_min = perm_action(diameter_index, box_min)

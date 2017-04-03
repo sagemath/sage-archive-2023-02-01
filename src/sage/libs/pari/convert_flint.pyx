@@ -6,7 +6,7 @@ Utility function to convert PARI ``GEN``s to/from flint types.
 AUTHORS:
 
 - Luca De Feo (2016-09-06): Separate Sage-specific components from
-  generic C-interface in ``PariInstance`` (:trac:`20241`)
+  generic C-interface in ``Pari`` (:trac:`20241`)
 """
 
 #*****************************************************************************
@@ -82,11 +82,11 @@ cdef GEN _new_GEN_from_fmpz_mat_t_rotate90(fmpz_mat_t B, Py_ssize_t nr, Py_ssize
     return A
 
 
-cdef gen integer_matrix(fmpz_mat_t B, Py_ssize_t nr, Py_ssize_t nc, bint permute_for_hnf):
+cdef Gen integer_matrix(fmpz_mat_t B, Py_ssize_t nr, Py_ssize_t nc, bint permute_for_hnf):
     """
     EXAMPLES::
 
-        sage: matrix(ZZ,2,[1..6])._pari_()   # indirect doctest
+        sage: matrix(ZZ,2,[1..6]).__pari__()   # indirect doctest
         [1, 2, 3; 4, 5, 6]
     """
     sig_on()

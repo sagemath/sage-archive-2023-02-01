@@ -427,13 +427,10 @@ class InfinitePolynomial_sparse(RingElement):
 
     def is_unit(self):
         r"""
-        Answers whether ``self`` is a unit
+        Answer whether ``self`` is a unit.
 
         EXAMPLES::
 
-            sage: R1.<x,y> = InfinitePolynomialRing(ZZ)
-            sage: R2.<x,y> = InfinitePolynomialRing(QQ)
-            sage: p = 1 + x[2]
             sage: R1.<x,y> = InfinitePolynomialRing(ZZ)
             sage: R2.<a,b> = InfinitePolynomialRing(QQ)
             sage: (1+x[2]).is_unit()
@@ -447,16 +444,49 @@ class InfinitePolynomial_sparse(RingElement):
             sage: (1+a[2]).is_unit()
             False
 
+        Check that :trac:`22454` is fixed::
+
+            sage: _.<x> = InfinitePolynomialRing(Zmod(4))
+            sage: (1 + 2*x[0]).is_unit()
+            True
+            sage: (x[0]*x[1]).is_unit()
+            False
+            sage: _.<x> = InfinitePolynomialRing(Zmod(900))
+            sage: (7+150*x[0] + 30*x[1] + 120*x[1]*x[100]).is_unit()
+            True
+
         TESTS::
 
             sage: R.<x> = InfinitePolynomialRing(ZZ.quotient_ring(8))
             sage: [R(i).is_unit() for i in range(8)]
             [False, True, False, True, False, True, False, True]
         """
-        if len(self.variables()) > 0:
-            return False
-        else:
-            return self.base_ring()(self._p).is_unit()
+        return self._p.is_unit()
+
+    def is_nilpotent(self):
+        r"""
+        Return ``True`` if ``self`` is nilpotent, i.e., some power of ``self``
+        is 0.
+
+        EXAMPLES::
+
+            sage: R.<x> = InfinitePolynomialRing(QQbar)
+            sage: (x[0]+x[1]).is_nilpotent()
+            False
+            sage: R(0).is_nilpotent()
+            True
+            sage: _.<x> = InfinitePolynomialRing(Zmod(4))
+            sage: (2*x[0]).is_nilpotent()
+            True
+            sage: (2+x[4]*x[7]).is_nilpotent()
+            False
+            sage: _.<y> = InfinitePolynomialRing(Zmod(100))
+            sage: (5+2*y[0] + 10*(y[0]^2+y[1]^2)).is_nilpotent()
+            False
+            sage: (10*y[2] + 20*y[5] - 30*y[2]*y[5] + 70*(y[2]^2+y[5]^2)).is_nilpotent()
+            True
+        """
+        return self._p.is_nilpotent()
 
     @cached_method
     def variables(self):

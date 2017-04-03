@@ -22,7 +22,9 @@ from __future__ import absolute_import
 
 from .padic_generic import pAdicGeneric
 from .padic_base_generic import pAdicBaseGeneric
+from sage.structure.sage_object import op_EQ
 from functools import reduce
+
 
 class pAdicExtensionGeneric(pAdicGeneric):
     def __init__(self, poly, prec, print_mode, names, element_class):
@@ -81,11 +83,13 @@ class pAdicExtensionGeneric(pAdicGeneric):
                 from sage.rings.padics.qadic_flint_CR import pAdicCoercion_CR_frac_field as coerce_map
             return coerce_map(R, self)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
-        Returns 0 if self == other, and 1 or -1 otherwise.
+        Return ``True`` if ``self == other`` and ``False`` otherwise.
 
-        We consider two p-adic rings or fields to be equal if they are equal mathematically, and also have the same precision cap and printing parameters.
+        We consider two `p`-adic rings or fields to be equal if they are
+        equal mathematically, and also have the same precision cap and
+        printing parameters.
 
         EXAMPLES::
 
@@ -99,19 +103,26 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: R is S
             True
         """
-        c = cmp(type(self), type(other))
-        if c != 0:
-            return c
-        groundcmp = self.ground_ring().__cmp__(other.ground_ring())
-        if groundcmp != 0:
-            return groundcmp
-        c = cmp(self.defining_polynomial(), other.defining_polynomial())
-        if c != 0:
-            return c
-        c = cmp(self.precision_cap(), other.precision_cap())
-        if c != 0:
-            return c
-        return self._printer.cmp_modes(other._printer)
+        if not isinstance(other, pAdicExtensionGeneric):
+            return False
+
+        return (self.ground_ring() == other.ground_ring() and
+                self.defining_polynomial() == other.defining_polynomial() and
+                self.precision_cap() == other.precision_cap() and
+                self._printer.richcmp_modes(other._printer, op_EQ))
+
+    def __ne__(self, other):
+        """
+        Test inequality.
+
+        EXAMPLES::
+
+            sage: R.<a> = Qq(27)
+            sage: S.<a> = Qq(27,print_mode='val-unit')
+            sage: R != S
+            True
+        """
+        return not self.__eq__(other)
 
     #def absolute_discriminant(self):
     #    raise NotImplementedError
@@ -173,7 +184,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
         """
         Returns the ring of which this ring is an extension.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = Zp(5,5)
             sage: S.<x> = R[]

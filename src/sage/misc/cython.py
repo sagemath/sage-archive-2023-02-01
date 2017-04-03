@@ -14,14 +14,14 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six.moves import builtins
+from six import iteritems
 
 import os
 import sys
 import platform
-from six.moves import builtins
+
 
 from sage.env import SAGE_LOCAL, SAGE_SRC
 from .misc import SPYX_TMP
@@ -305,11 +305,17 @@ def cython(filename, verbose=False, compile_message=False,
     TESTS:
 
     Before :trac:`12975`, it would have been needed to write ``#clang c++``,
-    but upper case ``C++`` has resulted in an error::
+    but upper case ``C++`` has resulted in an error.
+    Using pkgconfig to find the libraries, headers and macros. This is a
+    work around while waiting for :trac:`22461` which will offer a better
+    solution::
 
+        sage: import pkgconfig
+        sage: singular_pc = pkgconfig.parse('Singular')
         sage: code = [
         ....: "#clang C++",
-        ....: "#clib m readline Singular givaro ntl gmpxx gmp",
+        ....: "#clib " + " ".join(singular_pc['libraries']),
+        ....: "#cargs " + pkgconfig.cflags('Singular'),
         ....: "from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular",
         ....: "from sage.libs.singular.polynomial cimport singular_polynomial_pow",
         ....: "def test(MPolynomial_libsingular p):",
@@ -708,7 +714,7 @@ def cython_import_all(filename, globals, verbose=False, compile_message=False,
     m = cython_import(filename, verbose=verbose, compile_message=compile_message,
                      use_cache=use_cache,
                      create_local_c_file=create_local_c_file)
-    for k, x in m.__dict__.iteritems():
+    for k, x in iteritems(m.__dict__):
         if k[0] != '_':
             globals[k] = x
 

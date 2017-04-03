@@ -3,7 +3,7 @@ Homomorphisms of rings
 
 We give a large number of examples of ring homomorphisms.
 
-EXAMPLE:
+EXAMPLES:
 
 Natural inclusion `\ZZ \hookrightarrow \QQ`::
 
@@ -356,6 +356,10 @@ from __future__ import print_function
 
 import ideal
 import homset
+from cpython.object cimport Py_EQ, Py_NE
+from sage.structure.sage_object cimport (richcmp, rich_to_bool,
+                                         richcmp_not_equal)
+
 
 def is_RingHomomorphism(phi):
     """
@@ -495,7 +499,7 @@ cdef class RingMap_lift(RingMap):
         _slots['S'] = self.S
         return Morphism._extra_slots(self, _slots)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, int op):
         """
         Compare a ring lifting maps ``self`` to ``other``.
 
@@ -522,12 +526,14 @@ cdef class RingMap_lift(RingMap):
             False
         """
         if not isinstance(other, RingMap_lift):
-            return cmp(type(self), type(other))
+            if op in [Py_EQ, Py_NE]:
+                return (op == Py_NE)
+            return NotImplemented
 
         # Since they are lifting maps they are determined by their
         # parents, i.e., by the domain and codomain, since we just
         # compare those.
-        return cmp(self.parent(), other.parent())
+        return richcmp(self.parent(), other.parent(), op)
 
     def __hash__(self):
         """
@@ -795,24 +801,6 @@ cdef class RingHomomorphism(RingMap):
                     pass
         return sage.categories.map.Map._composition_(self, right, homset)
 
-    def is_injective(self):
-        """
-        Return whether or not this morphism is injective, or raise
-        a ``NotImplementedError``.
-
-        EXAMPLES:
-
-        Note that currently this is not implemented in most
-        interesting cases::
-
-            sage: f = ZZ.hom(QQ)
-            sage: f.is_injective()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
-
     def is_zero(self):
         r"""
         Return ``True`` if this is the zero map and ``False`` otherwise.
@@ -955,7 +943,7 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
         """
         return "Ring Coercion"
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, int op):
         """
         Compare a ring coercion morphism ``self`` to ``other``.
 
@@ -978,12 +966,14 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
             False
         """
         if not isinstance(other, RingHomomorphism_coercion):
-            return cmp(type(self), type(other))
+            if op in [Py_EQ, Py_NE]:
+                return (op == Py_NE)
+            return NotImplemented
 
         # Since they are coercion morphisms they are determined by
         # their parents, i.e., by the domain and codomain, so we just
         # compare those.
-        return cmp(self.parent(), other.parent())
+        return richcmp(self.parent(), other.parent(), op)
 
     def __hash__(self):
         """
@@ -1138,7 +1128,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
         _slots['__im_gens'] = self.__im_gens
         return RingHomomorphism._extra_slots(self, _slots)
 
-    cpdef int _cmp_(self, other) except -2:
+    cpdef _richcmp_(self, other, int op):
         r"""
         EXAMPLES:
 
@@ -1165,10 +1155,8 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
         ::
 
             sage: R.<x,y> = QQ[]; f = R.hom([x,x+y]); g = R.hom([y,x])
-            sage: cmp(f,g)             # indirect doctest
-            1
-            sage: cmp(g,f)
-            -1
+            sage: f == g             # indirect doctest
+            False
 
         EXAMPLES:
 
@@ -1195,8 +1183,11 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             True
         """
         if not isinstance(other, RingHomomorphism_im_gens):
-            return cmp(type(self), type(other))
-        return cmp(self.__im_gens, (<RingHomomorphism_im_gens>other).__im_gens)
+            if op in [Py_EQ, Py_NE]:
+                return (op == Py_NE)
+            return NotImplemented
+
+        return richcmp(self.__im_gens, (<RingHomomorphism_im_gens>other).__im_gens, op)
 
     def __hash__(self):
         """
@@ -1436,7 +1427,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
         _slots['__underlying'] = self.__underlying
         return RingHomomorphism._extra_slots(self, _slots)
 
-    cpdef int _cmp_(self, other) except -2:
+    cpdef _richcmp_(self, other, int op):
         r"""
         EXAMPLES:
 
@@ -1462,10 +1453,8 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
             sage: R.<x,y> = QQ[]; f = R.hom([x,x+y]); g = R.hom([y,x])
             sage: S.<z> = R[]
             sage: fS = S.hom(f,S); gS = S.hom(g,S)
-            sage: cmp(fS,gS)   # indirect doctest
-            1
-            sage: cmp(gS,fS)   # indirect doctest
-            -1
+            sage: fS != gS   # indirect doctest
+            True
 
         EXAMPLES:
 
@@ -1488,8 +1477,10 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
             True
         """
         if not isinstance(other, RingHomomorphism_from_base):
-            return cmp(type(self), type(other))
-        return cmp(self.__underlying, (<RingHomomorphism_from_base>other).__underlying)
+            if op in [Py_EQ, Py_NE]:
+                return (op == Py_NE)
+            return NotImplemented
+        return richcmp(self.__underlying, (<RingHomomorphism_from_base>other).__underlying, op)
 
     def _repr_defn(self):
         """
@@ -1647,7 +1638,7 @@ cdef class RingHomomorphism_cover(RingHomomorphism):
         """
         return self.codomain().defining_ideal()
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, int op):
         """
         Compare ``self`` to ``other``.
 
@@ -1662,8 +1653,10 @@ cdef class RingHomomorphism_cover(RingHomomorphism):
             False
         """
         if not isinstance(other, RingHomomorphism_cover):
-            return cmp(type(self), type(other))
-        return cmp(self.parent(), other.parent())
+            if op in [Py_EQ, Py_NE]:
+                return (op == Py_NE)
+            return NotImplemented
+        return richcmp(self.parent(), other.parent(), op)
 
     def __hash__(self):
         """
@@ -1840,7 +1833,7 @@ cdef class RingHomomorphism_from_quotient(RingHomomorphism):
         """
         return self.phi
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Compare ``self`` to ``other``.
 
@@ -1857,8 +1850,12 @@ cdef class RingHomomorphism_from_quotient(RingHomomorphism):
             True
         """
         if not isinstance(other, RingHomomorphism_from_quotient):
-            return cmp(type(self), type(other))
-        return cmp(self.phi, (<RingHomomorphism_from_quotient>other).phi)
+            if op in [Py_EQ, Py_NE]:
+                return (op == Py_NE)
+            return NotImplemented
+        cdef RingHomomorphism_from_quotient left = self
+        cdef RingHomomorphism_from_quotient right = other
+        return richcmp(left.phi, right.phi, op)
 
     def __hash__(self):
         """
@@ -2028,7 +2025,7 @@ cdef class FrobeniusEndomorphism_generic(RingHomomorphism):
 
     def power(self):
         """
-        Return an integer `n` such that this endormorphism
+        Return an integer `n` such that this endomorphism
         is the `n`-th power of the absolute (arithmetic)
         Frobenius.
 
@@ -2096,19 +2093,29 @@ cdef class FrobeniusEndomorphism_generic(RingHomomorphism):
         codomain = self.codomain()
         return hash((domain, codomain, ('Frob', self._power)))
 
-    cpdef int _cmp_(left, right) except -2:
-        if left is right: return 0
-        domain = left.domain()
-        c = cmp(domain, right.domain())
-        if c: return c
-        c = cmp(left.codomain(), right.codomain())
-        if c: return c
+    cpdef _richcmp_(left, right, int op):
+        if left is right:
+            return rich_to_bool(op, 0)
+
+        l_domain = left.domain()
+        r_domain = right.domain()
+        if l_domain != r_domain:
+            return richcmp_not_equal(l_domain, r_domain, op)
+
+        l_codomain = left.codomain()
+        r_codomain = right.codomain()
+        if l_codomain != r_codomain:
+            return richcmp_not_equal(l_codomain, r_codomain, op)
+
         if isinstance(right, FrobeniusEndomorphism_generic):
-            return cmp(left._power, (<FrobeniusEndomorphism_generic>right)._power)
+            return richcmp(left._power, (<FrobeniusEndomorphism_generic>right)._power, op)
+
         try:
-            gens = domain.gens()
-            for x in gens:
-                c = cmp(left(x), right(x))
-                if c: return c
+            for x in l_domain.gens():
+                lx = left(x)
+                rx = right(x)
+                if lx != rx:
+                    return richcmp_not_equal(lx, rx, op)
+            return rich_to_bool(op, 0)
         except (AttributeError, NotImplementedError):
             raise NotImplementedError

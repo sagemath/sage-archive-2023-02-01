@@ -420,6 +420,100 @@ class ProjectiveSpace_ring(AmbientSpace):
         return cmp([self.dimension_relative(), self.coordinate_ring()],
                    [right.dimension_relative(), right.coordinate_ring()])
 
+    def __pow__(self, m):
+        """
+        Return the Cartesian power of this space.
+
+        INPUT: ``m`` -- integer.
+
+        OUTPUT: product of projective spaces.
+
+        EXAMPLES::
+
+            sage: P = ProjectiveSpace(1, QQ, 'x')
+            sage: P3 = P^3; P3
+            Product of projective spaces P^1 x P^1 x P^1 over Rational Field
+            sage: P3.variable_names()
+            ('x0', 'x1', 'x2', 'x3', 'x4', 'x5')
+
+        As you see, custom variable names are not preserved by power operator,
+        since there is no natural way to make new ones in general.
+        """
+        mm = int(m)
+        if mm != m:
+            raise ValueError("m must be an integer")
+        from sage.schemes.product_projective.space import ProductProjectiveSpaces
+        return ProductProjectiveSpaces([self.dimension_relative()] * mm, self.base_ring())
+
+    def __mul__(self, right):
+        r"""
+        Create the product of projective spaces.
+
+        INPUT:
+
+        - ``right`` - a projective space, product of projective spaces, or subscheme.
+
+        OUTPUT: a product of projective spaces or subscheme.
+
+        EXAMPLES::
+
+            sage: P1 = ProjectiveSpace(QQ, 1, 'x')
+            sage: P2 = ProjectiveSpace(QQ, 2, 'y')
+            sage: P1*P2
+            Product of projective spaces P^1 x P^2 over Rational Field
+
+            ::
+
+            sage: S.<t,x,y,z,u,v,w> = ProductProjectiveSpaces([3, 2], QQ)
+            sage: T.<a,b> = ProjectiveSpace(QQ, 1)
+            sage: T*S
+            Product of projective spaces P^1 x P^3 x P^2 over Rational Field
+
+        ::
+
+            sage: S = ProjectiveSpace(ZZ, 2, 't')
+            sage: T = ProjectiveSpace(ZZ, 3, 'x')
+            sage: T.inject_variables()
+            Defining x0, x1, x2, x3
+            sage: X = T.subscheme([x0*x2 - x1*x3])
+            sage: S*X
+            Closed subscheme of Product of projective spaces P^2 x P^3 over Integer Ring defined by:
+              x0*x2 - x1*x3
+
+        ::
+
+            sage: S = ProjectiveSpace(QQ, 3, 'x')
+            sage: T = AffineSpace(2, QQ, 'y')
+            sage: S*T
+            Traceback (most recent call last):
+            ...
+            TypeError: Affine Space of dimension 2 over Rational Field must be a
+            projective space, product of projective spaces, or subscheme
+        """
+        if self.base_ring() != right.base_ring():
+            raise ValueError ('Must have the same base ring')
+
+        from sage.schemes.product_projective.space import ProductProjectiveSpaces_ring
+        from sage.schemes.product_projective.space import ProductProjectiveSpaces
+        from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
+
+        if isinstance(right, (ProductProjectiveSpaces_ring)):
+            return ProductProjectiveSpaces([self] + right.components())
+        elif isinstance(right, ProjectiveSpace_ring):
+            if self is right:
+                return self.__pow__(2)
+            return ProductProjectiveSpaces([self, right])
+        elif isinstance(right, AlgebraicScheme_subscheme):
+            AS = self*right.ambient_space()
+            CR = AS.coordinate_ring()
+            n = self.ambient_space().coordinate_ring().ngens()
+
+            phi = self.ambient_space().coordinate_ring().hom(list(CR.gens()[:n]), CR)
+            psi = right.ambient_space().coordinate_ring().hom(list(CR.gens()[n:]), CR)
+            return AS.subscheme([phi(t) for t in self.defining_polynomials()] + [psi(t) for t in right.defining_polynomials()])
+        else:
+            raise TypeError('%s must be a projective space, product of projective spaces, or subscheme'%right)
+
     def _latex_(self):
         r"""
         Return a LaTeX representation of this projective space.

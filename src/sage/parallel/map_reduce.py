@@ -545,7 +545,7 @@ def proc_number(max_proc = None):
 
     - ``max_proc`` -- the maximum number of process used
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.parallel.map_reduce import proc_number
         sage: proc_number() # random
@@ -854,7 +854,7 @@ class RESetMapReduce(object):
     are actually produced. Furthermore, if ``post_process(x)`` returns ``None``,
     then ``x`` won't be output at all.
 
-    Decription of the map/reduce operation:
+    Description of the map/reduce operation:
 
     - ``map_function=f`` -- (default to ``None``)
     - ``reduce_function=red`` -- (default to ``None``)
@@ -1316,7 +1316,7 @@ class RESetMapReduce(object):
 
         OUTPUT:
 
-        A worker for ``self`` chosed at random
+        A worker for ``self`` chosen at random
 
         EXAMPLES::
 
@@ -1802,7 +1802,7 @@ class RESetMPExample(RESetMapReduce):
     This compute the generating series of permutations counted by their size
     upto size ``maxl``.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.parallel.map_reduce import RESetMPExample
         sage: EX = RESetMPExample()
@@ -1830,7 +1830,7 @@ class RESetMPExample(RESetMapReduce):
         r"""
         Return the empty permutation
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.parallel.map_reduce import RESetMPExample
             sage: RESetMPExample().roots()
@@ -1850,7 +1850,7 @@ class RESetMPExample(RESetMapReduce):
 
         the lists of ``len(l)`` inserted at all possible positions into ``l``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.parallel.map_reduce import RESetMPExample
             sage: RESetMPExample().children([1,0])
@@ -1871,7 +1871,7 @@ class RESetMPExample(RESetMapReduce):
 
         ``x^len(l)``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.parallel.map_reduce import RESetMPExample
             sage: RESetMPExample().map_function([1,0])
@@ -1888,7 +1888,7 @@ class RESetParallelIterator(RESetMapReduce):
     a recursively enumerated sets for which the computations are done in
     parallel.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.parallel.map_reduce import RESetParallelIterator
         sage: S = RESetParallelIterator( [[]],
@@ -1904,7 +1904,7 @@ class RESetParallelIterator(RESetMapReduce):
 
         OUTPUT: ``(z, )``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.parallel.map_reduce import RESetParallelIterator
             sage: S = RESetParallelIterator( [[]],
@@ -1918,7 +1918,7 @@ class RESetParallelIterator(RESetMapReduce):
 
     def __iter__(self):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.parallel.map_reduce import RESetParallelIterator
             sage: S = RESetParallelIterator( [[]],

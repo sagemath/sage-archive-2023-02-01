@@ -1,0 +1,41 @@
+Make R_HOME_DIR relative to SAGE_LOCAL by setting
+R_HOME_DIR to "${SAGE_LOCAL}/lib/R/" when running R.
+
+Also remove the sed scripts hardcoding R_*_DIR's in the "frontend" R script.
+See Sage trac #9668.
+
+This allows to move Sage install tree.
+diff -ru src/src/scripts/R.sh.in src.new/src/scripts/R.sh.in
+--- src/src/scripts/R.sh.in	2011-10-03 00:02:35.000000000 +0200
++++ src.new/src/scripts/R.sh.in	2012-03-30 17:17:12.409254535 +0200
+@@ -26,6 +26,12 @@
+   esac
+ fi
+ 
++# Make R_HOME_DIR relative to SAGE_LOCAL
++# unless SAGE_BUILDING_R is set (as spkg-install does).
++if test -z "$SAGE_BUILDING_R"; then
++    R_HOME_DIR="$SAGE_LOCAL/lib/R/"
++fi
++
+ if test -n "${R_HOME}" && \
+    test "${R_HOME}" != "${R_HOME_DIR}"; then
+   echo "WARNING: ignoring environment value of R_HOME"
+
+--- src/src/scripts/Makefile.in	2012-03-01 15:02:25.000000000 -0800
++++ src/src/scripts/Makefile.in	2013-03-17 08:48:56.000000000 -0700
+@@ -89,12 +89,7 @@
+ 
+ install: installdirs install-cmds
+ 	@rm -f $(DESTDIR)$(bindir)/R
+-	@(d=`$(ECHO) '$(rhome)' | sed 's,/,\\\/,g';`; \
+-	  d2=`$(ECHO) '$(rsharedir)' | sed 's,/,\\\/,g';`; \
+-	  d3=`$(ECHO) '$(rincludedir)' | sed 's,/,\\\/,g';`; \
+-	  d4=`$(ECHO) '$(rdocdir)' | sed 's,/,\\\/,g';`; \
+-	  sed -e "1,/R_HOME_DIR=/s/\\(R_HOME_DIR=\\).*/\\1$${d}/;" -e "s/\\(R_SHARE_DIR=\\).*/\\1$${d2}/;" -e  "s/\\(R_INCLUDE_DIR=\\).*/\\1$${d3}/;" -e "s/\\(R_DOC_DIR=\\).*/\\1$${d4}/;"\
+-	  < R.fe > "$(DESTDIR)$(Rexecbindir)/R")
++	@cat R.fe > "$(DESTDIR)$(Rexecbindir)/R"
+ 	@$(INSTALL_SCRIPT)  "$(DESTDIR)$(Rexecbindir)/R" "$(DESTDIR)$(bindir)/R"
+ 	@chmod 755 "$(DESTDIR)$(bindir)/R" "$(DESTDIR)$(Rexecbindir)/R"
+ ## why of all the scripts does this alone chmod just one copy?
+

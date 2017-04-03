@@ -33,13 +33,16 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
 
     - ``ambient_dim`` -- integer. The ambient space dimension.
 
-    - ``backend`` -- string. The name of the backend for computations. Currently there are three backends implemented:
+    - ``backend`` -- string. The name of the backend for computations. There are
+       several backends implemented:
 
          * ``backend="ppl"`` uses the Parma Polyhedra Library
 
          * ``backend="cdd"`` uses CDD
 
          * ``backend="normaliz"`` uses normaliz
+
+         * ``backend="field"`` a generic Sage implementation
 
     OUTPUT:
 
@@ -66,6 +69,17 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
 
         sage: Polyhedra(ZZ, 3, backend='cdd')
         Polyhedra in QQ^3
+
+    TESTS::
+
+        sage: Polyhedra(RR, 3, backend='field')
+        Traceback (most recent call last):
+        ...
+        ValueError: the 'field' backend for polyhedron can not be used with non-exact fields
+        sage: Polyhedra(RR, 3)
+        Traceback (most recent call last):
+        ...
+        ValueError: no appropriate backend for computations with Real Field with 53 bits of precision
     """
     if backend is None:
         if base_ring is ZZ:
@@ -74,8 +88,11 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
             backend = 'ppl'
         elif base_ring is RDF:
             backend = 'cdd'
-        else:
+        elif base_ring.is_exact():
             backend = 'field'
+        else:
+            raise ValueError("no appropriate backend for computations with {}".format(base_ring))
+
     if backend == 'ppl' and base_ring is QQ:
         return Polyhedra_QQ_ppl(base_ring, ambient_dim)
     elif backend == 'ppl' and base_ring is ZZ:
@@ -89,6 +106,8 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
     elif backend == 'cdd' and base_ring is RDF:
         return Polyhedra_RDF_cdd(RDF, ambient_dim)
     elif backend == 'field':
+        if not base_ring.is_exact():
+            raise ValueError("the 'field' backend for polyhedron can not be used with non-exact fields")
         return Polyhedra_field(base_ring.fraction_field(), ambient_dim)
     else:
         raise ValueError('No such backend (='+str(backend)+
@@ -545,7 +564,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
 
         Boolean.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.geometry.polyhedron.parent import Polyhedra
             sage: Polyhedra(QQ,3).has_coerce_map_from( Polyhedra(ZZ,3) )   # indirect doctest

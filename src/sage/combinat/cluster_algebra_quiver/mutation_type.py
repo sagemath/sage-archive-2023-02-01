@@ -2,9 +2,7 @@ r"""
 This file contains helper functions for detecting the mutation type of
 a cluster algebra or quiver.
 
-For the compendium on the cluster algebra and quiver package see
-
-:arxiv:`1102.4844`
+For the compendium on the cluster algebra and quiver package see [MS2011]_
 
 AUTHORS:
 
@@ -792,8 +790,7 @@ def _connected_mutation_type_AAtildeD(dg, ret_conn_vert=False):
 
     For all other types (including affine D), outputs 'unknown'
 
-    See :arxiv:`0906.0487` (by Bastian, Prellberg, Rubey, and Stump)
-    and :arxiv:`0810.4789v1` (by Vatne) for theoretical details.
+    See [BPRS2009]_ and [Vat2008]_ (by Vatne) for theoretical details.
 
     .. TODO::
 
@@ -1414,8 +1411,8 @@ def _random_tests(mt, k, mut_class=None, nr_mut=5):
     - ``nr_mut`` (integer, default:5) the number of mutations performed before
       testing
 
-    The idea of of this random test is to start with a mutation type
-    and compute is mutation class (or have this class given). Now,
+    The idea of this random test is to start with a mutation type
+    and compute its mutation class (or have this class given). Now,
     every quiver in this mutation class is slightly changed in order
     to obtain a matrix of the same type or something very similar.
     Now, the new type is computed and checked if it stays stable for

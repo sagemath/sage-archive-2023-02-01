@@ -224,7 +224,7 @@ def random_rings(level=MAX_LEVEL):
 
         sage: import sage.rings.tests
         sage: type(sage.rings.tests.random_rings())
-        <type 'generator'>
+        <... 'generator'>
     """
     v = rings0()
     if level >= 1:

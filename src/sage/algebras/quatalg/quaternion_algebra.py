@@ -31,8 +31,8 @@ Pickling test::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six.moves import zip
 
 from sage.arith.all import (hilbert_conductor_inverse, hilbert_conductor,
         factor, gcd, lcm, kronecker_symbol, valuation)
@@ -781,8 +781,8 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
                 # for e_n to become p-saturated we still need to sort by
                 # ascending valuation of the quadratic form
                 lst = sorted(zip(e_n, [f[m][1].mod(2) for m in range(4)]),
-                             key = itemgetter(1))
-                e_n = list(zip(*lst)[0])
+                             key=itemgetter(1))
+                e_n = list(next(zip(*lst)))
 
                 # Final step: Enlarge the basis at p
                 if p != 2:
@@ -858,24 +858,34 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         """
         return self._a, self._b
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Compare self and other.
 
         EXAMPLES::
 
-            sage: cmp(QuaternionAlgebra(-1,-7), QuaternionAlgebra(-1,-7))
-            0
-            sage: cmp(QuaternionAlgebra(-1,-7), QuaternionAlgebra(-1,-5))
-            -1
-            sage: cmp(QuaternionAlgebra(-1,-7), QuaternionAlgebra(-1,-10))
-            1
+            sage: QuaternionAlgebra(-1,-7) == QuaternionAlgebra(-1,-7)
+            True
+            sage: QuaternionAlgebra(-1,-7) == QuaternionAlgebra(-1,-5)
+            False
         """
         if not isinstance(other, QuaternionAlgebra_abstract):
-            return cmp(type(self), type(other))
-        c = cmp(self.base_ring(), other.base_ring())
-        if c: return c
-        return cmp((self._a, self._b), (other._a, other._b))
+            return False
+        return (self.base_ring() == other.base_ring() and
+                (self._a, self._b) == (other._a, other._b))
+
+    def __ne__(self, other):
+        """
+        Compare self and other.
+
+        EXAMPLES::
+
+            sage: QuaternionAlgebra(-1,-7) != QuaternionAlgebra(-1,-7)
+            False
+            sage: QuaternionAlgebra(-1,-7) != QuaternionAlgebra(-1,-5)
+            True
+        """
+        return not self.__eq__(other)
 
     def gen(self, i=0):
         """
@@ -1236,6 +1246,7 @@ def unpickle_QuaternionAlgebra_v0(*key):
     """
     return QuaternionAlgebra(*key)
 
+
 class QuaternionOrder(Algebra):
     """
     An order in a quaternion algebra.
@@ -1397,7 +1408,7 @@ class QuaternionOrder(Algebra):
         """
         return self.__basis[n]
 
-    def __cmp__(self, R):
+    def __eq__(self, R):
         """
         Compare orders self and other.  Two orders are equal if they
         have the same basis and are in the same quaternion algebra.
@@ -1409,15 +1420,28 @@ class QuaternionOrder(Algebra):
             True
             sage: R == QuaternionAlgebra(-1,-1).maximal_order()
             False
-            sage: R==5
+            sage: R == 5
             False
         """
         if not isinstance(R, QuaternionOrder):
-            return cmp(type(self), type(R))
-        c = cmp(self.__quaternion_algebra, R.__quaternion_algebra)
-        if c: return c
-        return cmp(self.__basis, R.__basis)
+            return False
+        return (self.__quaternion_algebra == R.__quaternion_algebra and
+                self.__basis == R.__basis)
 
+    def __ne__(self, other):
+        """
+        Compare orders self and other.  Two orders are equal if they
+        have the same basis and are in the same quaternion algebra.
+
+        EXAMPLES::
+
+            sage: R = QuaternionAlgebra(-11,-1).maximal_order()
+            sage: R != R                       # indirect doctest
+            False
+            sage: R != QuaternionAlgebra(-1,-1).maximal_order()
+            True
+        """
+        return not self.__eq__(other)
 
     def basis(self):
         """
@@ -2046,11 +2070,13 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         """
         return self.__basis
 
-    def __cmp__(self, right):
+    def __eq__(self, right):
         """
-        Compare this fractional quaternion ideal to ``right``. If
-        ``right`` is not a fractional quaternion ideal a TypeError is
-        raised.  If the fractional ideals are in different ambient
+        Compare this fractional quaternion ideal to ``right``.
+
+        If ``right`` is not a fractional quaternion ideal, return ``False``.
+
+        If the fractional ideals are in different ambient
         quaternion algebras, then the quaternion algebras themselves
         are compared.
 
@@ -2067,8 +2093,24 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             False
         """
         if not isinstance(right, QuaternionFractionalIdeal_rational):
-            raise TypeError
-        return cmp(self.__basis, right.__basis)
+            return False
+        return self.__basis == right.__basis
+
+    def __ne__(self, other):
+        """
+        Compare this fractional quaternion ideal to ``right``.
+
+        INPUT:
+
+        - ``right`` - another fractional quaternion ideal
+
+        EXAMPLES::
+
+            sage: I = QuaternionAlgebra(-11,-1).maximal_order().unit_ideal()
+            sage: I != I                # indirect doctest
+            False
+        """
+        return not self.__eq__(other)
 
     def basis_matrix(self):
         r"""

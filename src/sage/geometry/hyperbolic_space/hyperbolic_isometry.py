@@ -361,7 +361,7 @@ class HyperbolicIsometry(Morphism):
             Hyperbolic plane in the Upper Half Plane Model model
 
             sage: HyperbolicPlane().PD().get_isometry(identity_matrix(2)).model()
-            Hyperbolic plane in the Poincaré Disk Model model
+            Hyperbolic plane in the Poincare Disk Model model
 
             sage: HyperbolicPlane().KM().get_isometry(identity_matrix(3)).model()
             Hyperbolic plane in the Klein Disk Model model

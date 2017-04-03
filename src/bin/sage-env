@@ -415,14 +415,9 @@ if [ "$PYTHONUSERBASE" = "" ]; then
     export PYTHONUSERBASE
 fi
 
-if [ -d "$SAGE_LOCAL/lib/python" ]; then
-    PYTHONPATH="$SAGE_LOCAL/lib/python"
-    if [ -n "$SAGE_PATH" ]; then
-        PYTHONPATH="$SAGE_PATH:$PYTHONPATH"
-    fi
-    PYTHONHOME="$SAGE_LOCAL"
-    export PYTHONPATH
-    export PYTHONHOME
+if [ -n "$PYTHONHOME" ]; then
+    >&2 echo "Warning: PYTHONHOME must not be set when running Sage, clearing env..."
+    unset PYTHONHOME
 fi
 
 LDFLAGS="-L$SAGE_LOCAL/lib -Wl,-rpath,$SAGE_LOCAL/lib $LDFLAGS"

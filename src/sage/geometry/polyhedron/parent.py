@@ -42,6 +42,8 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
 
          * ``backend="normaliz"`` uses normaliz
 
+         * ``backend="polymake"`` uses polymake
+
          * ``backend="field"`` a generic Sage implementation
 
     OUTPUT:
@@ -105,6 +107,8 @@ def Polyhedra(base_ring, ambient_dim, backend=None):
         return Polyhedra_QQ_cdd(QQ, ambient_dim)
     elif backend == 'cdd' and base_ring is RDF:
         return Polyhedra_RDF_cdd(RDF, ambient_dim)
+    elif backend == 'polymake':
+        return Polyhedra_polymake(base_ring.fraction_field(), ambient_dim)
     elif backend == 'field':
         if not base_ring.is_exact():
             raise ValueError("the 'field' backend for polyhedron can not be used with non-exact fields")
@@ -853,6 +857,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
 from sage.geometry.polyhedron.backend_cdd import Polyhedron_QQ_cdd, Polyhedron_RDF_cdd
 from sage.geometry.polyhedron.backend_ppl import Polyhedron_ZZ_ppl, Polyhedron_QQ_ppl
 from sage.geometry.polyhedron.backend_normaliz import Polyhedron_ZZ_normaliz, Polyhedron_QQ_normaliz
+from sage.geometry.polyhedron.backend_polymake import Polyhedron_polymake
 from sage.geometry.polyhedron.backend_field import Polyhedron_field
 
 class Polyhedra_ZZ_ppl(Polyhedra_base):
@@ -872,6 +877,9 @@ class Polyhedra_QQ_cdd(Polyhedra_base):
 
 class Polyhedra_RDF_cdd(Polyhedra_base):
     Element = Polyhedron_RDF_cdd
+
+class Polyhedra_polymake(Polyhedra_base):
+    Element = Polyhedron_polymake
 
 class Polyhedra_field(Polyhedra_base):
     Element = Polyhedron_field

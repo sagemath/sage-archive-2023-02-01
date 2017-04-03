@@ -320,6 +320,10 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         (:mod:`~sage.geometry.polyhedron.backend_normaliz`) with `\ZZ` or
         `\QQ` coefficients depending on ``base_ring``.
 
+      * ``'polymake'``: use polymake
+        (:mod:`~sage.geometry.polyhedron.backend_polymake`) with `\QQ`, `\RDF` or
+        ``QuadraticField`` coefficients depending on ``base_ring``.
+
       * ``'ppl'``: use ppl
         (:mod:`~sage.geometry.polyhedron.backend_ppl`) with `\ZZ` or
         `\QQ` coefficients depending on ``base_ring``.

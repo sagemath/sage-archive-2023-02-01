@@ -7291,11 +7291,9 @@ class NumberField_absolute(NumberField_generic):
 
             if both_maps and K.degree() == self.degree():
                 g = K['x'](self.polynomial())
-                v = g.roots()
                 a = from_K(K.gen())
-                for i in range(len(v)):
-                    r = g.roots()[i][0]
-                    to_K = self.hom([r])    # check=False here ??
+                for root in g.roots(multiplicities=False):
+                    to_K = self.hom([root])    # check=False here ??
                     if to_K(a) == K.gen():
                         break
             else:

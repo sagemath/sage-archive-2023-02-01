@@ -724,9 +724,9 @@ class DisplayManager(SageObject):
         OUTPUT:
 
         String containing script tags
-        
+
         .. NOTE::
-        
+
             This base method handles ``online=True`` case only, serving CDN
             script tags. Location of scripts for offline usage is
             backend-specific.
@@ -735,7 +735,7 @@ class DisplayManager(SageObject):
 
             sage: from sage.repl.rich_output import get_display_manager
             sage: get_display_manager().threejs_scripts(online=True)
-            '\n<script src="https://cdn.rawgit.com/mrdoob/three.js/...'
+            '...<script src="https://cdn.rawgit.com/mrdoob/three.js/...'
             sage: get_display_manager().threejs_scripts(online=False)
             Traceback (most recent call last):
             ...

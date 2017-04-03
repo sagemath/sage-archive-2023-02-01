@@ -96,6 +96,7 @@ Triangulations
    sage/geometry/triangulation/base
    sage/geometry/triangulation/element
 
+
 Miscellaneous
 -------------
 
@@ -106,6 +107,7 @@ Miscellaneous
    sage/geometry/newton_polygon
    sage/geometry/ribbon_graph
    sage/geometry/pseudolines
+   sage/geometry/voronoi_diagram
 
 Helper functions
 ----------------

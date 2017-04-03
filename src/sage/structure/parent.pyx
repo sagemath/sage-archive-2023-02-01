@@ -91,16 +91,6 @@ This came up in some subtle bug once::
 
     sage: gp(2) + gap(3)
     5
-
-::
-
-    sage: sage.structure.parent.normalize_names(5, 'x')
-    doctest:...: DeprecationWarning:
-    Importing normalize_names from here is deprecated. If you need to use it, please import it directly from sage.structure.category_object
-    See http://trac.sagemath.org/19675 for details.
-    ('x0', 'x1', 'x2', 'x3', 'x4')
-    sage: sage.structure.parent.normalize_names(2, ['x','y'])
-    ('x', 'y')
 """
 from __future__ import print_function
 
@@ -116,10 +106,6 @@ from sage.categories.sets_cat import Sets, EmptySetError
 from copy import copy
 from sage.misc.lazy_format import LazyFormat
 from cpython.object cimport Py_NE, Py_EQ
-
-
-from sage.misc.lazy_import import LazyImport
-normalize_names = LazyImport("sage.structure.category_object", "normalize_names", deprecation=19675)
 
 
 cdef _record_exception():

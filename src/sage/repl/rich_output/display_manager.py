@@ -715,7 +715,7 @@ class DisplayManager(SageObject):
 
     def threejs_scripts(self, online):
         """
-        Return three.js script tags for the current backend.
+        Return Three.js script tags for the current backend.
 
         INPUT:
 
@@ -728,7 +728,7 @@ class DisplayManager(SageObject):
         .. NOTE::
         
             This base method handles ``online=True`` case only, serving CDN
-            script tags. Location of scripts for off-line usage is
+            script tags. Location of scripts for offline usage is
             backend-specific.
 
         EXAMPLES::

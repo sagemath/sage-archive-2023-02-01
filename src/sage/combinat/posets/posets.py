@@ -3569,23 +3569,24 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return self._hasse_diagram.coxeter_transformation().charpoly()
 
-    def meet_matrix(self):
-        """
-        Deprecated as a function of posets, moved to lattices.
-
-        Convert a poset `P` to meet-semilattice and use it like
-        ``MeetSemilattice(P).join_matrix()``.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(17216, "Function moved from posets to lattices.")
-        return self._hasse_diagram.meet_matrix()
-
-    def is_meet_semilattice(self):
+    def is_meet_semilattice(self, certificate=False):
         r"""
         Return ``True`` if the poset has a meet operation, and
         ``False`` otherwise.
 
         A meet is the greatest lower bound for given elements, if it exists.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, (a, b))`` where elements `a` and `b` have no
+          greatest lower bound. If ``certificate=False`` return
+          ``True`` or ``False``.
 
         EXAMPLES::
 
@@ -3597,6 +3598,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.is_meet_semilattice()
             False
 
+            sage: V = Posets.IntegerPartitions(5)
+            sage: V.is_meet_semilattice(certificate=True)
+            (False, ((2, 2, 1), (3, 1, 1)))
+
         .. SEEALSO:: :meth:`is_join_semilattice`, :meth:`~sage.categories.finite_posets.FinitePosets.ParentMethods.is_lattice`
 
         TESTS::
@@ -3605,26 +3610,53 @@ class FinitePoset(UniqueRepresentation, Parent):
             True
             sage: len([P for P in Posets(4) if P.is_meet_semilattice()])
             5
-        """
-        return self._hasse_diagram.is_meet_semilattice()
 
-    def join_matrix(self):
+            sage: P = Poset({1: [2], 3: []})
+            sage: P.is_meet_semilattice(certificate=True)
+            (False, (3, 1))
         """
-        Deprecated as a function of posets, moved to lattices.
+        from sage.combinat.posets.hasse_diagram import LatticeError
+        try:
+            self._hasse_diagram._meet
+        except LatticeError as error:
+            if not certificate:
+                return False
+            x = self._vertex_to_element(error.x)
+            y = self._vertex_to_element(error.y)
+            return (False, (x, y))
+        except ValueError as error:
+            if error.args[0] != 'not a meet-semilattice: no bottom element':
+                raise
+            if not certificate:
+                return False
+            i = 1
+            while self._hasse_diagram.in_degree(i) > 0:
+                i += 1
+            x = self._vertex_to_element(0)
+            y = self._vertex_to_element(i)
+            return (False, (x, y))
+        if certificate:
+            return (True, None)
+        return True
 
-        Convert a poset `P` to join-semilattice and use it like
-        ``JoinSemilattice(P).join_matrix()``.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(17216, "Function moved from posets to lattices.")
-        return self._hasse_diagram.join_matrix()
-
-    def is_join_semilattice(self):
+    def is_join_semilattice(self, certificate=False):
         """
         Return ``True`` if the poset has a join operation, and ``False``
         otherwise.
 
         A join is the least upper bound for given elements, if it exists.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, (a, b))`` where elements `a` and `b` have no
+          least upper bound. If ``certificate=False`` return
+          ``True`` or ``False``.
 
         EXAMPLES::
 
@@ -3632,12 +3664,11 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.is_join_semilattice()
             True
 
-        Elements 3 and 4 have no common upper bound at all; elements
-        1 and 2 have upper bounds 3 and 4, but no least upper bound::
-
-            sage: P = Poset({1:[3, 4], 2:[3, 4]})
+            sage: P = Poset({1:[3, 4], 2:[3, 4], 3:[5], 4:[5]})
             sage: P.is_join_semilattice()
             False
+            sage: P.is_join_semilattice(certificate=True)
+            (False, (2, 1))
 
         .. SEEALSO:: :meth:`is_meet_semilattice`, :meth:`~sage.categories.finite_posets.FinitePosets.ParentMethods.is_lattice`
 
@@ -3647,8 +3678,35 @@ class FinitePoset(UniqueRepresentation, Parent):
             True
             sage: len([P for P in Posets(4) if P.is_join_semilattice()])
             5
+
+            sage: X = Poset({1: [3], 2: [3], 3: [4, 5]})
+            sage: X.is_join_semilattice(certificate=True)
+            (False, (5, 4))
         """
-        return self._hasse_diagram.is_join_semilattice()
+        from sage.combinat.posets.hasse_diagram import LatticeError
+        try:
+            self._hasse_diagram._join
+        except LatticeError as error:
+            if not certificate:
+                return False
+            x = self._vertex_to_element(error.x)
+            y = self._vertex_to_element(error.y)
+            return (False, (x, y))
+        except ValueError as error:
+            if error.args[0] != 'not a join-semilattice: no top element':
+                raise
+            if not certificate:
+                return False
+            n = self.cardinality()-1
+            i = n - 1
+            while self._hasse_diagram.out_degree(i) > 0:
+                i -= 1
+            x = self._vertex_to_element(n)
+            y = self._vertex_to_element(i)
+            return (False, (x, y))
+        if certificate:
+            return (True, None)
+        return True
 
     def is_isomorphic(self, other):
         """

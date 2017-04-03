@@ -11,6 +11,7 @@ Free modules
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import range
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element, have_same_parent
@@ -29,6 +30,9 @@ from sage.categories.all import Category, Sets, ModulesWithBasis
 import sage.data_structures.blas_dict as blas
 from sage.typeset.ascii_art import AsciiArt, empty_ascii_art
 from sage.typeset.unicode_art import UnicodeArt, empty_unicode_art
+
+import six
+
 
 # TODO: move the content of this class to CombinatorialFreeModule.Element and ModulesWithBasis.Element
 class CombinatorialFreeModuleElement(Element):
@@ -67,7 +71,7 @@ class CombinatorialFreeModuleElement(Element):
             sage: [i for i in sorted(a)]
             [([2, 1], 1), ([3], 1)]
         """
-        return self._monomial_coefficients.iteritems()
+        return six.iteritems(self._monomial_coefficients)
 
     def __contains__(self, x):
         """
@@ -168,7 +172,7 @@ class CombinatorialFreeModuleElement(Element):
             sage: a = s([2,1])+2*s([3,2])
             sage: d = a.monomial_coefficients()
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: d[ Partition([2,1]) ]
             1
             sage: d[ Partition([3,2]) ]
@@ -1065,7 +1069,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: F is G
             False
         """
-        from six.moves import range
         if isinstance(basis_keys, range):
             basis_keys = tuple(basis_keys)
         if isinstance(basis_keys, (list, tuple)):
@@ -1650,7 +1653,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             True
         """
         cc = self.get_order()
-        return self._from_dict(dict( (cc[index], coeff) for (index,coeff) in vector.iteritems()))
+        return self._from_dict(dict( (cc[index], coeff) for (index,coeff) in six.iteritems(vector)))
 
     def __cmp__(self, other):
         """
@@ -1880,9 +1883,9 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         assert isinstance(d, dict)
         if coerce:
             R = self.base_ring()
-            d = {key: R(coeff) for key,coeff in d.iteritems()}
+            d = {key: R(coeff) for key,coeff in six.iteritems(d)}
         if remove_zeros:
-            d = {key: coeff for key, coeff in d.iteritems() if coeff}
+            d = {key: coeff for key, coeff in six.iteritems(d) if coeff}
         return self.element_class( self, d )
 
 class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
@@ -1912,7 +1915,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
         The basis of T is indexed by tuples of basis indices of F and G::
 
             sage: T.basis().keys()
-            Image of Cartesian product of {1, 2}, {3, 4} by <type 'tuple'>
+            Image of Cartesian product of {1, 2}, {3, 4} by <... 'tuple'>
             sage: T.basis().keys().list()
             [(1, 3), (1, 4), (2, 3), (2, 4)]
 
@@ -2403,7 +2406,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
             sage: CP._sets_keys()
             [0, 1]
         """
-        return range(len(self._sets))
+        return list(range(len(self._sets)))
 
     def _repr_(self):
         """
@@ -2463,7 +2466,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
 
          - ``i`` -- an integer
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = CombinatorialFreeModule(ZZ, [4,5]); F.__custom_name = "F"
             sage: G = CombinatorialFreeModule(ZZ, [4,6]); G.__custom_name = "G"

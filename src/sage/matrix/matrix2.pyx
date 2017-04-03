@@ -47,8 +47,8 @@ include "cysignals/signals.pxi"
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.coerce cimport py_scalar_parent
 from sage.structure.sequence import Sequence
-from sage.structure.element import (is_Vector, get_coercion_model)
-from sage.structure.element cimport have_same_parent
+from sage.structure.element import is_Vector
+from sage.structure.element cimport have_same_parent, coercion_model
 from sage.misc.misc import verbose, get_verbose
 from sage.rings.ring import is_Ring
 from sage.rings.number_field.number_field_base import is_NumberField
@@ -910,7 +910,7 @@ cdef class Matrix(matrix1.Matrix):
         the typo `p_0(A) = 0` in that reference! For applications
         see Theorem 7.2.1 and Theorem 7.2.4.
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             The method :meth:`rook_vector` returns the list of all permanental
             minors.
@@ -1605,7 +1605,7 @@ cdef class Matrix(matrix1.Matrix):
             # word, use PARI.
             ch = R.characteristic()
             if ch.is_prime() and ch < (2*sys.maxsize):
-                d = R(self._pari_().matdet())
+                d = R(self.__pari__().matdet())
             else:
                 # Lift to ZZ and compute there.
                 d = R(self.apply_map(lambda x : x.lift_centered()).det())
@@ -2560,7 +2560,7 @@ cdef class Matrix(matrix1.Matrix):
         if not is_NumberField(K):
             raise ValueError("_charpoly_over_number_field called with base ring (%s) not a number field" % K)
 
-        paripoly = self._pari_().charpoly()
+        paripoly = self.__pari__().charpoly()
         return K[var](paripoly)
 
     def fcp(self, var='x'):
@@ -3071,7 +3071,7 @@ cdef class Matrix(matrix1.Matrix):
             [0 0 1]
         """
         tm = verbose("computing right kernel matrix over a number field for %sx%s matrix" % (self.nrows(), self.ncols()),level=1)
-        basis = self._pari_().matker()
+        basis = self.__pari__().matker()
         # Coerce PARI representations into the number field
         R = self.base_ring()
         basis = [[R(x) for x in row] for row in basis]
@@ -5244,7 +5244,7 @@ cdef class Matrix(matrix1.Matrix):
         # sequence corresponding to the 0-th entries of the iterates,
         # then the 1-th entries, etc.
         if t == 0:
-            R = range(n)
+            R = list(xrange(n))
         else:
             R = [t]
         for i in R:
@@ -6979,52 +6979,7 @@ cdef class Matrix(matrix1.Matrix):
             extended.set_immutable()
         return extended
 
-    def weak_popov_form(self, transformation=None, ascend=None, old_call=True):
-        """
-        Returns a matrix in weak Popov form which is row space-equivalent to
-        the input matrix, if the input is over `k[x]` or `k(x)`.
-
-        A matrix is in weak Popov form if the (row-wise) leading positions of
-        the non-zero rows are all different. The leading position of a row is
-        the right-most position whose entry has maximal degree of the entries in
-        that row.
-
-        .. WARNING::
-
-            This function currently does **not** compute the weak Popov form of a
-            matrix, but rather a row reduced form (which is a slightly weaker
-            requirement). See :meth:`row_reduced_form`.
-
-        INPUT:
-
-        - `transformation` - A boolean (default: `True`). If this is set to
-          ``True``, the transformation matrix `U` will be returned as well: this
-          is an invertible matrix over `k(x)` such that ``self`` equals `UW`,
-          where `W` is the output matrix.
-
-          Warning: the default of `transformation` will soon be set to ``False``,
-          see :trac:`16896`. Until then, this function will print a deprecation
-          warning as long as `transformation` was not explicitly set to ``True``
-          or ``False``.
-
-        - `ascend` - Deprecated and has no effect.
-
-        - `old_call` - For backwards compatibility until the old calling
-          convention will be deprecated (default: `True`). If `True`, then
-          return `(W,U,d)`, where `U` is as when `transformation = True`, and
-          `d` is a list of the degrees of the rows of `W`.
-        """
-        from sage.misc.superseded import deprecation
-        depr_message = \
-"""This function currently does *not* compute a weak Popov form, but rather a \
-row reduced form. This function will soon be fixed (see Ticket #16742)."""
-        deprecation(16888, depr_message)
-
-        return self.row_reduced_form(transformation=transformation,
-                ascend=ascend, old_call=old_call)
-
-
-    def row_reduced_form(self, transformation=None, ascend=None, old_call=True):
+    def row_reduced_form(self, transformation=None):
         r"""
         This function computes a row reduced form of a matrix over a rational
         function field `k(x)`, where `k` is a field.
@@ -7038,17 +6993,10 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
 
         INPUT:
 
-        - `transformation` - A boolean (default: ``False``). If this is set to
+        - ``transformation`` -- A boolean (default: ``False``). If this is set to
           ``True``, the transformation matrix `U` will be returned as well: this
           is an invertible matrix over `k(x)` such that ``self`` equals `UW`,
           where `W` is the output matrix.
-
-        - `ascend` - Deprecated and has no effect.
-
-        - `old_call` - For backwards compatibility until the old calling
-          convention will be deprecated (default: `True`). If `True`, then
-          return `(W,U,d)`, where `U` is as when `transformation = True`, and
-          `d` is a list of the degrees of the rows of `W`.
 
         OUTPUT:
 
@@ -7066,9 +7014,11 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
             sage: R.<t> = GF(3)['t']
             sage: K = FractionField(R)
             sage: M = matrix([[(t-1)^2/t],[(t-1)]])
-            sage: M.row_reduced_form(transformation=False, old_call=False)
-            [(2*t + 1)/t]
-            [          0]
+            sage: M.row_reduced_form()
+            doctest:...: DeprecationWarning: Row reduced form will soon be supported only for matrices of polynomials.
+            See http://trac.sagemath.org/21024 for details.
+            [        0]
+            [(t + 2)/t]
 
         If ``self`` is an `n \times 1` matrix with at least one non-zero entry,
         `W` has a single non-zero entry and that entry is a scalar multiple of
@@ -7077,7 +7027,7 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
         ::
 
             sage: M1 = matrix([[t*(t-1)*(t+1)],[t*(t-2)*(t+2)],[t]])
-            sage: output1 = M1.row_reduced_form(transformation=False, old_call=False)
+            sage: output1 = M1.row_reduced_form()
             sage: output1
             [0]
             [0]
@@ -7090,7 +7040,7 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
         ::
 
             sage: M2 = M1.change_ring(K)
-            sage: output2 = M2.row_reduced_form(transformation=False, old_call=False)
+            sage: output2 = M2.row_reduced_form()
             sage: output1 == output2
             True
             sage: output1.base_ring() is R
@@ -7105,7 +7055,7 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
 
             sage: R.<t> = QQ['t']
             sage: M = matrix([[t^3 - t,t^2 - 2],[0,t]]).transpose()
-            sage: M.row_reduced_form(transformation=False, old_call=False)
+            sage: M.row_reduced_form(transformation=False)
             [      t    -t^2]
             [t^2 - 2       t]
 
@@ -7116,21 +7066,19 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
             sage: R.<t> = GF(5)['t']
             sage: K = FractionField(R)
             sage: M = matrix([[K(0),K(0)],[K(0),K(0)]])
-            sage: M.row_reduced_form(transformation=False, old_call=False)
+            sage: M.row_reduced_form()
             [0 0]
             [0 0]
 
-        In the following example, ``self`` has more rows than columns. Note also
-        that the output is row reduced but not in weak Popov form (see
-        :meth:`weak_popov_form`).
+        In the following example, ``self`` has more rows than columns.
 
         ::
 
             sage: R.<t> = QQ['t']
             sage: M = matrix([[t,t,t],[0,0,t]])
-            sage: M.row_reduced_form(transformation=False, old_call=False)
-            [t t t]
-            [0 0 t]
+            sage: M.row_reduced_form()
+            [ t  t  t]
+            [-t -t  0]
 
         The next example shows that `M` must be a matrix with coefficients in
         `k(t)` or in `k[t]` for some field `k`.
@@ -7138,14 +7086,14 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
         ::
 
             sage: M = matrix([[1,0],[1,1]])
-            sage: M.row_reduced_form(transformation=False, old_call=False)
+            sage: M.row_reduced_form()
             Traceback (most recent call last):
             ...
             TypeError: the coefficients of M must lie in a univariate polynomial ring over a field
 
             sage: PZ.<y> = ZZ[]
             sage: M = matrix([[y,0],[1,y]])
-            sage: M.row_reduced_form(transformation=False, old_call=False)
+            sage: M.row_reduced_form()
             Traceback (most recent call last):
             ...
             TypeError: the coefficients of M must lie in a univariate polynomial ring over a field
@@ -7157,11 +7105,11 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
             sage: Fq.<a> = GF(2^3)
             sage: Fx.<x> = Fq[]
             sage: A = matrix(Fx,[[x^2+a,x^4+a],[x^3,a*x^4]])
-            sage: W,U = A.row_reduced_form(transformation=True,old_call=False);
+            sage: W,U = A.row_reduced_form(transformation=True);
             sage: W,U
             (
-            [(a^2 + 1)*x^3 + x^2 + a                       a]  [      1 a^2 + 1]
-            [                    x^3                   a*x^4], [      0                 1]
+            [          x^2 + a           x^4 + a]  [1 0]
+            [x^3 + a*x^2 + a^2               a^2], [a 1]
             )
             sage: U*W == A
             True
@@ -7171,7 +7119,7 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
         NOTES:
 
          - For consistency with LLL and other algorithms in Sage, we have opted
-           for row operations; however, references such as [Hes2002]_ transpose and use
+           for row operations; however, some references e.g. [Hes2002]_ transpose and use
            column operations.
 
         REFERENCES:
@@ -7180,52 +7128,14 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
         - [Kal1980]_
 
         """
-        from sage.matrix.matrix_misc import row_reduced_form
-
         from sage.misc.superseded import deprecation
-        if ascend is not None:
-            ascend_message = \
-"""row_reduced_form: The `ascend` argument is deprecated and has no effect (see \
-Ticket #16742)."""
-            deprecation(16888, ascend_message)
-        if old_call == True:
-            oldcall_message = \
-"""row_reduced_form: The old calling convention is deprecated. In the future, \
-only the matrix in row reduced form will be returned. Set `old_call = False` for \
-that behaviour now, and to avoid this message (see Ticket #16742)."""
-            deprecation(16888, oldcall_message)
+        # When deprecation period runs out, this method should simply be removed from this class.
+        # matrix_polynomial_dense already has the replacement row_reduced_form method.
+        # The function matrix_misc.row_reduced_form should then probably just be removed.
+        deprecation(21024, "Row reduced form will soon be supported only for matrices of univariate polynomials.")
 
-        get_transformation = False
-        if transformation is None:
-            transformation_message = \
-"""row_reduced_form: The `transformation` argument will soon change to have\
-default value to `False` from the current default value `True`. For now, \
-explicitly setting the argument to `True` or `False` will avoid this message."""
-            deprecation(16888, transformation_message)
-            get_transformation = True
-        elif old_call == True or transformation == True:
-            get_transformation = True
-
-        W_maybe_U = sage.matrix.matrix_misc.row_reduced_form(self,get_transformation)
-
-        if old_call == False:
-            return W_maybe_U
-        else:
-            W,U = W_maybe_U
-            from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-            if is_PolynomialRing(W.base_ring()):
-                row_deg = lambda r: max([e.degree() for e in r])
-            else:
-                row_deg = lambda r: max([e.numerator().degree() - e.denominator().degree() for e in r])
-            d = []
-            from sage.rings.all import infinity
-            for r in W.rows():
-                d.append(row_deg(r))
-                if d[-1] < 0:
-                    d[-1] = -infinity
-            return (W,U,d)
-
-
+        from sage.matrix.matrix_misc import row_reduced_form
+        return row_reduced_form(self, transformation)
 
     ##########################################################################
     # Functions for symmetries of a matrix under row and column permutations #
@@ -7421,7 +7331,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
                 aM.append(aN)
         # We construct line l:
         for l in range(1, nrows - 1):
-            if not S == range(first_row[0] + ncols, first_row[0], -1):
+            if not S == list(xrange(first_row[0] + ncols, first_row[0], -1)):
                 # Sort each row with respect to S for the first matrix in X = MS
                 X = copy(MS)
                 SM = [sorted([(S[j], X[0][k][j]) for j in range(ncols)], reverse=True)
@@ -7823,7 +7733,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             []
             sage: M.subdivision(2,4)
             [37 41 43 47]
-        
+
         Indices do not need to be in the right order (:trac:`14064`)::
 
             sage: M.subdivide([4, 2], [3, 1]); M
@@ -7869,7 +7779,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         Before a subdivision is set, the only valid arguments are (0,0)
         which returns self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = matrix(3, 4, range(12))
             sage: M.subdivide(1,2); M
@@ -7982,7 +7892,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         preserved in ``self``, but if the two sets of row subdivisions
         are incompatible, they are removed.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(QQ, 3, 4, range(12))
             sage: B = matrix(QQ, 3, 6, range(18))
@@ -8027,7 +7937,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         preserved in ``self``, but if the two sets of solumn subdivisions
         are incompatible, they are removed.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(QQ, 3, 2, range(6))
             sage: B = matrix(QQ, 4, 2, range(8))
@@ -8143,7 +8053,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: E = C.tensor_product(B)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Finite Field of size 29' and 'Full MatrixSpace of 3 by 4 dense matrices over Finite Field of size 23'
+            TypeError: unsupported operand parent(s) for *: 'Finite Field of size 29' and 'Full MatrixSpace of 3 by 4 dense matrices over Finite Field of size 23'
 
         The input is checked to be sure it is a matrix.  ::
 
@@ -8596,7 +8506,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
             - :meth:`~sage.geometry.polyhedron.library.Polytopes.Birkhoff_polytope`
 
-        EXAMPLE:
+        EXAMPLES:
 
         We create a bistochastic matrix from a convex sum of permutations, then
         try to deduce the decomposition from the matrix ::
@@ -8648,7 +8558,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         Bitmap image as an instance of
         :class:`~sage.repl.image.Image`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = random_matrix(CC, 5, 7)
             sage: for i in range(5):  M[i,i] = 0
@@ -8713,7 +8623,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         positions and the self.nrows() \* self.ncols(), i.e. the number of
         possible nonzero positions.
 
-        EXAMPLE:
+        EXAMPLES:
 
         First, note that the density parameter does not ensure the density
         of a matrix, it is only an upper bound.
@@ -10753,8 +10663,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             mesg += "maybe the ring is not an integral domain"
             raise ValueError(mesg)
         if not have_same_parent(A, B):
-            cm = get_coercion_model()
-            A, B = cm.canonical_coercion(A, B)
+            A, B = coercion_model.canonical_coercion(A, B)
         # base rings are equal now, via above check
 
         similar = (A.rational_form() == B.rational_form())
@@ -10908,7 +10817,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         be similar.  The main difference is that it "discovers" the
         dimension of the subspace as quickly as possible.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(QQ, [[5,4,2,1],[0,1,-1,-1],[-1,-1,3,0],[1,1,-1,2]])
             sage: v = vector(QQ, [0,1,0,0])
@@ -11205,11 +11114,11 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         polynomial = not var is None
         if polynomial:
             x = sage.rings.polynomial.polynomial_ring.polygen(R, var)
-            poly = sum([poly[i]*x**i for i in range(len(poly))])
+            poly = sum([poly[i] * x**i for i in range(len(poly))])
         ambient = R**n
         if basis == 'echelon':
             echelon = []
-            pivot_col_row = zip(pivots, range(k))
+            pivot_col_row = [(v, i) for i, v in enumerate(pivots)]
             pivot_col_row.sort()
             aug = augmented.submatrix(0, 0, k, n)
             for _, pivrow in pivot_col_row:
@@ -11976,7 +11885,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
                 M = self.change_ring(F)
             m, n = M._nrows, M._ncols
             d = min(m, n)
-            perm = range(m)
+            perm = list(xrange(m))
             zero = F(0)
             for k in range(d):
                 max_location = -1
@@ -13592,7 +13501,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         [Sto1998]_, where the former is more
         representative of the code here.
 
-        EXAMPLE:
+        EXAMPLES:
 
             sage: A = matrix(QQ, [[-68,   69, -27, -11, -65,   9, -181, -32],
             ....:                 [-52,   52, -27,  -8, -52, -16, -133, -14],
@@ -14500,7 +14409,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         r"""
         Returns the transpose of a matrix.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(QQ, 5, range(25))
             sage: A.T
@@ -14517,7 +14426,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         r"""
         Returns the conjugate matrix.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(QQbar, [[     -3,  5 - 3*I, 7 - 4*I],
             ....:                    [7 + 3*I, -1 + 6*I, 3 + 5*I],
@@ -14535,7 +14444,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         r"""
         Returns the conjugate-transpose (Hermitian) matrix.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(QQbar, [[     -3,  5 - 3*I, 7 - 4*I],
             ....:                    [7 + 3*I, -1 + 6*I, 3 + 5*I],
@@ -14590,7 +14499,7 @@ def _smith_diag(d):
     If any of the d's is a unit, it replaces it with 1 (but no other
     attempt is made to pick "good" representatives of ideals).
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.matrix.matrix2 import _smith_diag
         sage: OE = EquationOrder(x^2 - x + 2, 'w')
@@ -14770,7 +14679,7 @@ def _smith_onestep(m):
     determinant 1, and the zeroth row and column of b have no nonzero
     entries except b[0,0].
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.matrix.matrix2 import _smith_onestep
         sage: OE.<w> = EquationOrder(x^2 - x + 2)
@@ -14889,7 +14798,7 @@ def _choose(Py_ssize_t n, Py_ssize_t t):
     cdef Py_ssize_t j, temp
 
     x = []               # initialize T1
-    c = range(t)
+    c = list(xrange(t))
     if t == n:
         x.append(c)
         return x
@@ -14987,4 +14896,4 @@ def _jordan_form_vector_in_difference(V, W):
     for v in V:
         if v not in W_space:
             return v
-    return None 
+    return None

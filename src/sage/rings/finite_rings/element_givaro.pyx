@@ -49,6 +49,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 from __future__ import print_function
 
 include "cysignals/signals.pxi"
@@ -58,13 +59,13 @@ from sage.libs.cypari2.paridecl cimport *
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.rings.finite_rings.finite_field_base cimport FiniteField
 from sage.rings.ring cimport Ring
-from element_ext_pari import FiniteField_ext_pariElement
+from .element_ext_pari import FiniteField_ext_pariElement
 from .element_pari_ffelt cimport FiniteFieldElement_pari_ffelt
 from sage.structure.sage_object cimport SageObject, richcmp
 from sage.structure.element cimport Element, ModuleElement, RingElement
 import operator
 import sage.arith.all
-import finite_field_constructor as finite_field
+import sage.rings.finite_rings.finite_field_constructor as finite_field
 
 import sage.interfaces.gap
 from sage.libs.pari.all import pari
@@ -432,7 +433,7 @@ cdef class Cache_givaro(SageObject):
 
         elif isinstance(e, FiniteFieldElement_pari_ffelt) or isinstance(e, FiniteField_ext_pariElement):
             # Reduce to pari
-            e = e._pari_()
+            e = e.__pari__()
 
         elif sage.interfaces.gap.is_GapElement(e):
             from sage.interfaces.gap import gfq_gap_to_sage
@@ -803,7 +804,7 @@ cdef class FiniteField_givaro_iterator:
 
     def __init__(self, Cache_givaro cache):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<a> = GF(3^4)
             sage: i = iter(k) # indirect doctest
@@ -815,7 +816,7 @@ cdef class FiniteField_givaro_iterator:
 
     def __next__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<a> = GF(3^4)
             sage: i = iter(k) # indirect doctest
@@ -835,7 +836,7 @@ cdef class FiniteField_givaro_iterator:
 
     def __repr__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<a> = GF(3^4)
             sage: i = iter(k)
@@ -846,7 +847,7 @@ cdef class FiniteField_givaro_iterator:
 
     def __iter__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(4)
             sage: K.list() # indirect doctest
@@ -898,7 +899,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
 
     def _repr_(FiniteField_givaroElement self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<FOOBAR> = GF(3^4)
             sage: FOOBAR #indirect doctest
@@ -1533,7 +1534,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         Return a string representation of self that MAGMA can
         understand.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k.<a> = GF(3^5)
 

@@ -46,7 +46,7 @@ Parent classes:
 
 For display options, see :meth:`Tableaux.options`.
 
-.. TODO:
+.. TODO::
 
     - Move methods that only apply to semistandard tableaux from tableau to
       semistandard tableau
@@ -67,9 +67,8 @@ For display options, see :meth:`Tableaux.options`.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import range
-
-from builtins import zip
+from six.moves import range, zip
+from six import add_metaclass
 
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
@@ -95,6 +94,8 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
 from sage.combinat.combinatorial_map import combinatorial_map
 
+
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class Tableau(ClonableList):
     """
     A class to model a tableau.
@@ -140,7 +141,7 @@ class Tableau(ClonableList):
         sage: T([[1, 2, 3], [4, 5]])
         [[1, 2, 3], [4, 5]]
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         - :class:`Tableaux`
         - :class:`SemistandardTableaux`
@@ -160,8 +161,6 @@ class Tableau(ClonableList):
         ValueError: A tableau must be a list of iterables.
 
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, t):
         r"""
@@ -803,7 +802,7 @@ class Tableau(ClonableList):
 
         This function exists mainly for compatibility with :class:`TableauTuple`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Tableau([[1,2,3],[4,5]]).level()
             1
@@ -4112,7 +4111,7 @@ class SemistandardTableau(Tableau):
         sage: SST([[1, 2, 3], [4, 5]])
         [[1, 2, 3], [4, 5]]
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         - :class:`Tableaux`
         - :class:`Tableau`
@@ -4253,7 +4252,7 @@ class StandardTableau(SemistandardTableau):
         sage: ST([[1, 2, 3], [4, 5]])
         [[1, 2, 3], [4, 5]]
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         - :class:`Tableaux`
         - :class:`Tableau`
@@ -4689,7 +4688,7 @@ class Tableaux(UniqueRepresentation, Parent):
         sage: T.category()
         Category of sets
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         - :class:`Tableau`
         - :class:`SemistandardTableaux`
@@ -5157,7 +5156,7 @@ class SemistandardTableaux(Tableaux):
         sage: SemistandardTableaux()[0]
         []
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         - :class:`Tableaux`
         - :class:`Tableau`
@@ -6412,7 +6411,7 @@ class StandardTableaux(SemistandardTableaux):
         sage: ST.list()
         [[[1, 2, 3]], [[1, 3], [2]], [[1, 2], [3]], [[1], [2], [3]]]
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         - :class:`Tableaux`
         - :class:`Tableau`

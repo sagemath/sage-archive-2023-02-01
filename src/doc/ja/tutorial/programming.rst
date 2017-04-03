@@ -437,7 +437,7 @@ Sageで使われる第三のリスト類似データ型が，シーケンスで�
 
 ::
 
-    sage: d.items()
+    sage: list(d.items())
     [(1, 5), ('sage', 17), (Integer Ring, Finite Field of size 7)]
 
 ディクショナリに含まれるキーと値の対を反復に利用する場合に，よく使われるイディオムがある:
@@ -446,7 +446,7 @@ Sageで使われる第三のリスト類似データ型が，シーケンスで�
 ::
 
     sage: d = {2:4, 3:9, 4:16}
-    sage: [a*b for a, b in d.iteritems()]
+    sage: [a*b for a, b in d.items()]
     [8, 27, 64]
 
 最後の出力を見ると判るように，ディクショナリ内は整列されていない．
@@ -629,17 +629,6 @@ Sageに付属している関数 ``kronecker`` は，PARIのCライブラリを�
     sage: 2/3 < 3/2;   3/2 < 3/1
     True
     True
-
-比較演算は，ほとんどいかなる組合せの二つのオブジェクトに対しても行ないうると考えてよい．
-対象となるオブジェクトは，全順序付け(total ordering)されなくても構わない．
-
-
-::
-
-    sage: 2 < CC(3.1,1)
-    True
-    sage: 5 < VectorSpace(QQ,3)   # random 出力は一定しない。
-    False
 
 記号を含む不等号の判定には  ``bool`` 関数を用いる:
 

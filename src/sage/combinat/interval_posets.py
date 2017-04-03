@@ -61,6 +61,7 @@ AUTHORS:
 # ****************************************************************************
 from __future__ import print_function
 from six.moves import range
+from six import add_metaclass
 
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -83,10 +84,12 @@ from sage.sets.family import Family
 from sage.structure.element import Element
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
+from sage.structure.sage_object import op_NE, op_EQ, op_LT, op_LE, op_GT, op_GE
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.graphs.digraph import DiGraph
 
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class TamariIntervalPoset(Element):
     r"""
     The class of Tamari interval-posets.
@@ -211,8 +214,6 @@ class TamariIntervalPoset(Element):
         sage: TIP(Poset({}))
         The Tamari interval of size 0 induced by relations []
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
         r"""
@@ -251,7 +252,7 @@ class TamariIntervalPoset(Element):
             Interval-posets
         """
         self._size = size
-        self._poset = Poset((range(1, size + 1), relations))
+        self._poset = Poset((list(range(1, size + 1)), relations))
         if self._poset.cardinality() != size:
             # This can happen as the Poset constructor automatically adds
             # in elements from the relations.
@@ -1088,7 +1089,7 @@ class TamariIntervalPoset(Element):
                           self.increasing_cover_relations() +
                           self.decreasing_cover_relations())
 
-    def __eq__(self, other):
+    def _richcmp_(self, other, op):
         r"""
         TESTS::
 
@@ -1100,29 +1101,8 @@ class TamariIntervalPoset(Element):
             True
             sage: TamariIntervalPoset(3,[(1,2),(3,2)]) == TamariIntervalPoset(3,[(1,2)])
             False
-        """
-        if (not isinstance(other, TamariIntervalPoset)):
-            return False
-        return self.size() == other.size() and self._cover_relations == other._cover_relations
-
-    def __ne__(self, other):
-        r"""
-        TESTS::
-
-            sage: TamariIntervalPoset(0,[]) != TamariIntervalPoset(0,[])
-            False
-            sage: TamariIntervalPoset(1,[]) != TamariIntervalPoset(0,[])
-            True
             sage: TamariIntervalPoset(3,[(1,2),(3,2)]) != TamariIntervalPoset(3,[(3,2),(1,2)])
             False
-            sage: TamariIntervalPoset(3,[(1,2),(3,2)]) != TamariIntervalPoset(3,[(1,2)])
-            True
-        """
-        return not (self == other)
-
-    def __le__(self, el2):
-        r"""
-        TESTS::
 
             sage: ip1 = TamariIntervalPoset(4,[(1,2),(2,3),(4,3)])
             sage: ip2 = TamariIntervalPoset(4,[(1,2),(2,3)])
@@ -1133,52 +1113,22 @@ class TamariIntervalPoset(Element):
             sage: ip2 <= ip1
             False
         """
-        return self.parent().le(self, el2)
-
-    def __lt__(self, el2):
-        r"""
-        TESTS::
-
-            sage: ip1 = TamariIntervalPoset(4,[(1,2),(2,3),(4,3)])
-            sage: ip2 = TamariIntervalPoset(4,[(1,2),(2,3)])
-            sage: ip1 < ip2
-            True
-            sage: ip1 < ip1
-            False
-            sage: ip2 < ip1
-            False
-        """
-        return self.parent().lt(self, el2)
-
-    def __ge__(self, el2):
-        r"""
-        TESTS::
-
-            sage: ip1 = TamariIntervalPoset(4,[(1,2),(2,3),(4,3)])
-            sage: ip2 = TamariIntervalPoset(4,[(1,2),(2,3)])
-            sage: ip1 >= ip2
-            False
-            sage: ip1 >= ip1
-            True
-            sage: ip2 >= ip1
-            True
-        """
-        return self.parent().ge(self, el2)
-
-    def __gt__(self, el2):
-        r"""
-        TESTS::
-
-            sage: ip1 = TamariIntervalPoset(4,[(1,2),(2,3),(4,3)])
-            sage: ip2 = TamariIntervalPoset(4,[(1,2),(2,3)])
-            sage: ip1 > ip2
-            False
-            sage: ip1 > ip1
-            False
-            sage: ip2 > ip1
-            True
-        """
-        return self.parent().gt(self, el2)
+        if not isinstance(other, TamariIntervalPoset):
+            return op == op_NE
+        if op == op_EQ:
+            return (self.size() == other.size() and
+                    self._cover_relations == other._cover_relations)
+        if op == op_NE:
+            return not(self.size() == other.size() and
+                       self._cover_relations == other._cover_relations)
+        if op == op_LT:
+            return self.parent().lt(self, other)
+        if op == op_LE:
+            return self.parent().le(self, other)
+        if op == op_GT:
+            return self.parent().gt(self, other)
+        if op == op_GE:
+            return self.parent().ge(self, other)
 
     def __iter__(self):
         r"""

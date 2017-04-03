@@ -259,6 +259,15 @@ ext_modules = [
 
     ################################
     ##
+    ## sage.docs
+    ##
+    ################################
+
+    Extension('*', ['sage/docs/*.pyx']),
+
+
+    ################################
+    ##
     ## sage.ext
     ##
     ################################
@@ -465,40 +474,8 @@ ext_modules = [
     Extension('sage.groups.perm_gps.permgroup_element',
               sources = ['sage/groups/perm_gps/permgroup_element.pyx']),
 
-    Extension('sage.groups.perm_gps.partn_ref.automorphism_group_canonical_label',
-              sources = ['sage/groups/perm_gps/partn_ref/automorphism_group_canonical_label.pyx'],
-              extra_compile_args = ['-std=c99']),
-
-    Extension('sage.groups.perm_gps.partn_ref.canonical_augmentation',
-              sources = ['sage/groups/perm_gps/partn_ref/canonical_augmentation.pyx'],
-              extra_compile_args = ['-std=c99']),
-
-    Extension('sage.groups.perm_gps.partn_ref.double_coset',
-              sources = ['sage/groups/perm_gps/partn_ref/double_coset.pyx'],
-              extra_compile_args = ['-std=c99']),
-
-    Extension('sage.groups.perm_gps.partn_ref.refinement_binary',
-              sources = ['sage/groups/perm_gps/partn_ref/refinement_binary.pyx'],
-              extra_compile_args = ['-std=c99']),
-
-    Extension('sage.groups.perm_gps.partn_ref.refinement_graphs',
-              sources = ['sage/groups/perm_gps/partn_ref/refinement_graphs.pyx'],
-              extra_compile_args = ['-std=c99']),
-
-    Extension('sage.groups.perm_gps.partn_ref.refinement_lists',
-              sources = ['sage/groups/perm_gps/partn_ref/refinement_lists.pyx'],
-              extra_compile_args = ['-std=c99']),
-
-    Extension('sage.groups.perm_gps.partn_ref.refinement_matrices',
-              sources = ['sage/groups/perm_gps/partn_ref/refinement_matrices.pyx'],
-              extra_compile_args = ['-std=c99']),
-
-    Extension('sage.groups.perm_gps.partn_ref.refinement_python',
-              sources = ['sage/groups/perm_gps/partn_ref/refinement_python.pyx'],
-              extra_compile_args = ['-std=c99']),
-
-    Extension('sage.groups.perm_gps.partn_ref.refinement_sets',
-              sources = ['sage/groups/perm_gps/partn_ref/refinement_sets.pyx'],
+    Extension('*',
+              sources = ['sage/groups/perm_gps/partn_ref/*.pyx'],
               extra_compile_args = ['-std=c99']),
 
     Extension('sage.groups.perm_gps.partn_ref2.refinement_generic',
@@ -901,6 +878,9 @@ ext_modules = [
     Extension('sage.matrix.matrix_mpolynomial_dense',
               sources = ['sage/matrix/matrix_mpolynomial_dense.pyx']),
 
+    Extension('sage.matrix.matrix_polynomial_dense',
+              sources = ['sage/matrix/matrix_polynomial_dense.pyx']),
+
     Extension('sage.matrix.matrix_rational_dense',
               sources = ['sage/matrix/matrix_rational_dense.pyx'],
               extra_compile_args = ["-std=c99", "-D_XPG6"] + m4ri_extra_compile_args,
@@ -1213,7 +1193,7 @@ ext_modules = [
 
     Extension('sage.rings.bernoulli_mod_p',
               sources = ['sage/rings/bernoulli_mod_p.pyx'],
-              libraries=['ntl'],
+              libraries=['ntl', 'gmp'],
               language = 'c++'),
 
     Extension("sage.rings.complex_arb",
@@ -1274,6 +1254,9 @@ ext_modules = [
 
     Extension('sage.rings.power_series_poly',
               sources = ['sage/rings/power_series_poly.pyx']),
+
+    Extension('sage.rings.power_series_pari',
+              sources = ['sage/rings/power_series_pari.pyx']),
 
     Extension('sage.rings.power_series_ring_element',
               sources = ['sage/rings/power_series_ring_element.pyx']),
@@ -1374,7 +1357,7 @@ ext_modules = [
 
     Extension('sage.rings.number_field.number_field_element_quadratic',
               sources = ['sage/rings/number_field/number_field_element_quadratic.pyx'],
-              libraries=['ntl', 'mpfi'],
+              libraries=['ntl', 'mpfr', 'mpfi'],
               language = 'c++'),
 
     Extension('sage.rings.number_field.number_field_morphisms',
@@ -1524,7 +1507,7 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.polynomial_zz_pex',
               sources = ['sage/rings/polynomial/polynomial_zz_pex.pyx'],
-              libraries = ['ntl'],
+              libraries = ['ntl', 'gmp'],
               language = 'c++'),
 
     Extension('sage.rings.polynomial.polynomial_zmod_flint',
@@ -1539,7 +1522,7 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.polynomial_integer_dense_ntl',
               sources = ['sage/rings/polynomial/polynomial_integer_dense_ntl.pyx'],
-              libraries = ['ntl'],
+              libraries = ['ntl', 'gmp'],
               language = 'c++'),
 
     Extension('sage.rings.polynomial.polynomial_rational_flint',
@@ -1549,7 +1532,7 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.polynomial_modn_dense_ntl',
               sources = ['sage/rings/polynomial/polynomial_modn_dense_ntl.pyx'],
-              libraries = ['ntl'],
+              libraries = ['ntl', 'gmp'],
               language = 'c++'),
 
     Extension('sage.rings.polynomial.polynomial_ring_homomorphism',

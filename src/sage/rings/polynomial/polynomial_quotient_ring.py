@@ -281,7 +281,18 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         sage: first_class == Q.__class__
         False
         sage: [s for s in dir(Q.category().element_class) if not s.startswith('_')]
-        ['cartesian_product', 'euclidean_degree', 'gcd', 'is_idempotent', 'is_one', 'is_unit', 'lcm', 'lift', 'powers', 'quo_rem', 'xgcd']
+        ['cartesian_product',
+         'euclidean_degree',
+         'factor',
+         'gcd',
+         'is_idempotent',
+         'is_one',
+         'is_unit',
+         'lcm',
+         'lift',
+         'powers',
+         'quo_rem',
+         'xgcd']
 
     As one can see, the elements are now inheriting additional
     methods: lcm and gcd. Even though ``Q.an_element()`` belongs to
@@ -601,7 +612,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: Q = P.quo([(x^2+1)])
             sage: singular(Q)        # indirect doctest
             polynomial ring, over a field, global ordering
-            //   characteristic : 0
+            //   coefficients: QQ
             //   number of vars : 1
             //        block   1 : ordering lp
             //                  : names    xbar
@@ -938,7 +949,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         fields.  This is an internal function used by
         :meth:.S_class_group, :meth:.S_units and :meth:.selmer_group.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = QuadraticField(-5)
             sage: R.<x> = K[]

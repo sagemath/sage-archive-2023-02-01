@@ -12,7 +12,14 @@ linking to PARI. This file should consist only of typedefs and macros
 from PARI's include files.
 """
 
-cdef extern from "sage/libs/cypari2/cypari.h":
+#*****************************************************************************
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+cdef extern from "<pari/pari.h>":
     ctypedef unsigned long ulong "pari_ulong"
 
     ctypedef long* GEN
@@ -83,3 +90,10 @@ cdef extern from "sage/libs/cypari2/cypari.h":
     struct GENbin
     struct hashentry
     struct hashtable
+
+
+cdef extern from "sage/libs/cypari2/cypari.h":
+    GEN set_gel(GEN x, long n, GEN z)              # gel(x, n) = z
+    GEN set_gmael(GEN x, long i, long j, GEN z)    # gmael(x, i, j) = z
+    GEN set_gcoeff(GEN x, long i, long j, GEN z)   # gcoeff(x, i, j) = z
+    GEN set_uel(GEN x, long n, ulong z)            # uel(x, n) = z

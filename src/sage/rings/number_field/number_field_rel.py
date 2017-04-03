@@ -675,7 +675,7 @@ class NumberField_relative(NumberField_generic):
         not implemented, so that a user cannot mistake the absolute degree
         for the relative degree, or vice versa.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberFieldTower([x^2 - 17, x^3 - 2])
             sage: K.degree()
@@ -1075,11 +1075,11 @@ class NumberField_relative(NumberField_generic):
             sage: K.<a> = NumberField(y^2 + y + 1)
             sage: x = polygen(K)
             sage: L.<b> = NumberField(x^4 + a*x + 2)
-            sage: e = a._pari_(); e
+            sage: e = a.__pari__(); e
             Mod(y, y^2 + y + 1)
             sage: L(e)  # Conversion from PARI base field element
             a
-            sage: e = (a*b)._pari_('x'); e
+            sage: e = (a*b).__pari__('x'); e
             Mod(-x^4 - 2, x^8 - x^5 + 4*x^4 + x^2 - 2*x + 4)
             sage: L(e)  # Conversion from PARI absolute number field element
             a*b
@@ -1267,7 +1267,7 @@ class NumberField_relative(NumberField_generic):
         r"""
         Return True if for this relative extension `L/K`, `L` is a Galois extension of `\QQ`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 - 2)
             sage: y = polygen(K); L.<b> = K.extension(y^2 - a)
@@ -1488,7 +1488,7 @@ class NumberField_relative(NumberField_generic):
         deliberately not implemented, so that a user cannot confuse
         :meth:`~relative_vector_space` with :meth:`~absolute_vector_space`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberFieldTower([x^2 - 17, x^3 - 2])
             sage: K.vector_space()
@@ -1949,7 +1949,7 @@ class NumberField_relative(NumberField_generic):
         not implemented.  Either :meth:`~relative_polynomial` or
         :meth:`~absolute_polynomial` must be used.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberFieldTower([x^2 + x + 1, x^3 + x + 1])
             sage: K.polynomial()
@@ -2214,7 +2214,7 @@ class NumberField_relative(NumberField_generic):
         not implemented, so that a user cannot mistake the absolute different
         for the relative different, or vice versa.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberFieldTower([x^2 + x + 1, x^3 + x + 1])
             sage: K.different()
@@ -2293,7 +2293,7 @@ class NumberField_relative(NumberField_generic):
         not implemented, so that a user cannot mistake the absolute discriminant
         for the relative discriminant, or vice versa.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberFieldTower([x^2 + x + 1, x^3 + x + 1])
             sage: K.discriminant()
@@ -2309,7 +2309,7 @@ class NumberField_relative(NumberField_generic):
         not implemented, so that a user cannot mistake the absolute discriminant
         for the relative discriminant, or vice versa.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberFieldTower([x^2 + x + 1, x^3 + x + 1])
             sage: K.disc()

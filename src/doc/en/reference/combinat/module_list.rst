@@ -158,6 +158,7 @@ Comprehensive Module list
     sage/combinat/ordered_tree
     sage/combinat/output
     sage/combinat/parking_functions
+    sage/combinat/plane_partition
     sage/combinat/partition
     sage/combinat/partition_algebra
     sage/combinat/partition_tuple

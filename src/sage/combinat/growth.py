@@ -178,7 +178,7 @@ class GrowthDiagram(SageObject):
     checks that ``labels``, when provided, are of the correct
     type, and sets the following attributes:
 
-    - ``self._zero``, the the zero element of the vertices of the
+    - ``self._zero``, the zero element of the vertices of the
       graphs,
 
     - ``self._rank_function``, the rank function of the dual
@@ -235,7 +235,9 @@ class GrowthDiagram(SageObject):
           ``shape``.  Otherwise it can be a dictionary with keys
           being coordinates and integer values, a sequence of
           sequences of integers (including matrices), or a word with
-          integer letters (including permutations).
+          integer letters (including permutations).  In the latter
+          case, words with negative letters but without repetitions
+          are allowed and interpreted as coloured permutations.
 
         - ``shape`` is a (possibly skew) partition or ``None``.  In
           the latter case it is determined as the Ferrers shape given
@@ -254,13 +256,13 @@ class GrowthDiagram(SageObject):
           initialise ``labels``.
         """
         try:
-            self._covers_1((self._zero, self._zero))
+            self._covers_1(self._zero, self._zero)
         except AttributeError:
-            self._covers_1 = lambda (a,b): True
+            self._covers_1 = lambda a,b: True
         try:
-            self._covers_2((self._zero, self._zero))
+            self._covers_2(self._zero, self._zero)
         except AttributeError:
-            self._covers_2 = lambda (a,b): True
+            self._covers_2 = lambda a,b: True
 
         if filling is None:
             if labels is None:
@@ -315,7 +317,7 @@ class GrowthDiagram(SageObject):
         Return the growth diagram with the filling rotated by 180 degrees.
 
         For RSK-growth diagrams and rectangular fillings, this
-        corresponds to evacutation of the P- and the Q-symbol.
+        corresponds to evacuation of the P- and the Q-symbol.
 
         EXAMPLES::
 
@@ -449,6 +451,11 @@ class GrowthDiagram(SageObject):
                     if v == 1:
                         if w[i] == 0:
                             w[i] = j+1
+                        else:
+                            raise ValueError("Can only convert fillings with at most one entry per column to words.")
+                    elif v == -1:
+                        if w[i] == 0:
+                            w[i] = -(j+1)
                         else:
                             raise ValueError("Can only convert fillings with at most one entry per column to words.")
                     else:
@@ -614,10 +621,10 @@ class GrowthDiagram(SageObject):
         """
         def right_left(la, mu):
             if self._rank_function(la) < self._rank_function(mu):
-                assert self._covers_1((mu, la)), "%s has smaller rank than %s but isn't covered by it!" %(la, mu)
+                assert self._covers_1(mu, la), "%s has smaller rank than %s but isn't covered by it!" %(la, mu)
                 return 1
             elif self._rank_function(la) > self._rank_function(mu):
-                assert self._covers_2((la, mu)), "%s has smaller rank than %s but isn't covered by it!" %(mu, la)
+                assert self._covers_2(la, mu), "%s has smaller rank than %s but isn't covered by it!" %(mu, la)
                 return 0
             else:
                 raise ValueError("Can only determine the shape of the growth diagram if ranks of successive labels differ.")
@@ -823,9 +830,12 @@ class GrowthDiagram(SageObject):
                     shape = [len(row) for row in filling]
 
             except TypeError:
-                # it is a word
+                # it is a word - for convenience we allow signed words
                 for i, l in enumerate(filling):
-                    F[(i, l-1)] = 1
+                    if l > 0:
+                        F[(i, l-1)] = 1
+                    else:
+                        F[(i, -l-1)] = -1
 
         if shape is None:
             if F == {}:
@@ -1020,8 +1030,8 @@ class GrowthDiagramBinWord(GrowthDiagram):
             labels = [Word(la, alphabet=[0,1]) for la in labels]
         self._zero = Word([], alphabet=[0,1])
         self._rank_function = lambda w: len(w)
-        self._covers_1 = lambda (w, v): w[:-1] == v
-        self._covers_2 = lambda (w, v): v.is_subword_of(w)
+        self._covers_1 = lambda w, v: w[:-1] == v
+        self._covers_2 = lambda w, v: v.is_subword_of(w)
         super(GrowthDiagramBinWord, self).__init__(filling = filling,
                                                    shape = shape,
                                                    labels = labels)
@@ -1161,6 +1171,13 @@ class GrowthDiagramSylvester(GrowthDiagram):
         sage: G._zero
         .
 
+        sage: for pi in Permutations(5):
+        ....:     G = GrowthDiagramSylvester(pi)
+        ....:     R = LabelledBinaryTree(None)
+        ....:     for i in pi:
+        ....:         R = R.binary_search_insert(i)
+        ....:     assert BinaryTree(R) == G.P_chain()[-1]
+
     """
     def __init__(self,
                  filling = None,
@@ -1177,7 +1194,7 @@ class GrowthDiagramSylvester(GrowthDiagram):
     __init__.__doc__ = GrowthDiagram.__init__.__doc__
 
     @staticmethod
-    def _forward_rule(y, t, x, content):
+    def _forward_rule(x, t, y, content):
         r"""
         Return the output shape given three shapes and the content.
 
@@ -1188,8 +1205,8 @@ class GrowthDiagramSylvester(GrowthDiagram):
         - ``y, t, x`` -- three binary trees from a cell in a growth
           diagram, labelled as::
 
-              t x
-              y
+              t y
+              x
 
         - ``content`` -- 0 or 1, the content of the cell.
 
@@ -1224,15 +1241,15 @@ class GrowthDiagramSylvester(GrowthDiagram):
 
             sage: ascii_art(G._forward_rule(R, N, L, 0))
               o
+             / \
+            o   o
+
+            sage: ascii_art(G._forward_rule(L, N, R, 0))
+              o
              /
             o
              \
               o
-
-            sage: ascii_art(G._forward_rule(L, N, R, 0))
-              o
-             / \
-            o   o
 
         if ``x == y != t``, obtain ``z`` from ``y`` by adding a node
         as left child to the right most node::
@@ -1247,6 +1264,18 @@ class GrowthDiagramSylvester(GrowthDiagram):
             o     o
                  /
                 o
+            sage: ascii_art(G._forward_rule(L, N, L, 0))
+                o
+               /
+              o
+             /
+            o
+            sage: ascii_art(G._forward_rule(R, N, R, 0))
+            o
+             \
+              o
+             /
+            o
 
         """
         def successors(b):
@@ -1282,18 +1311,6 @@ class GrowthDiagramSylvester(GrowthDiagram):
                     return t
             raise ValueError("Couldn't find union of %s and %s" %(x,y))
 
-        def add_left_child_to_right_most_node(b):
-            """
-            Return the tree obtained from ``b`` by adding a node as left
-            child to the right most node.
-            """
-            if b.is_empty():
-                raise ValueError("Cannot add left child to empty tree")
-            elif b == BinaryTree([]):
-                return BinaryTree([[], None])
-            else:
-                return BinaryTree([b[0], add_left_child_to_right_most_node(b[1])])
-
         if x == t == y:
             if content == 0:
                 z = x
@@ -1308,51 +1325,8 @@ class GrowthDiagramSylvester(GrowthDiagram):
         elif x == t != y:
             z = y
         else:
-            if x != y:
-                return union(x, y)
-            elif x == y != t:
-                z = add_left_child_to_right_most_node(y)
-            else:
-                raise NotImplementedError
+            z = union(x, y)
         return z
-
-    @staticmethod
-    def _backward_rule(y, z, x):
-        r"""
-        Return the content and the input shape.
-
-        See [Fom1995]_ Lemma 4.6.1, page 40.
-
-        - ``y, z, x`` -- three binary words from a cell in a growth diagram,
-          labelled as::
-
-                x
-              y z
-
-        OUTPUT:
-
-        A pair ``(t, content)`` consisting of the shape of the fourth
-        word and the content of the cell acording to Viennot's
-        bijection [Vie1983]_.
-
-        TEST::
-
-            sage: w = [4,1,8,3,6,5,2,7,9]; G = GrowthDiagramBinWord(w);
-            sage: GrowthDiagramBinWord(labels=G.out_labels()).to_word() == w    # indirect doctest
-            True
-
-        """
-        if x == y == z:
-            return (x, 0)
-        elif x == z != y:
-            return (y, 0)
-        elif x != z == y:
-            return (x, 0)
-        else:
-            if x != y or (len(z) > 0 and z[-1] == 0):
-                return (x[:-1], 0)
-            elif x == y and len(z) > 0 and z[-1] == 1:
-                return (x, 1)
 
 class GrowthDiagramYoungFibonacci(GrowthDiagram):
     r"""
@@ -1429,7 +1403,7 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
                     yield Word(d, alphabet=[1,2])
                     break
 
-        self._covers_1 = self._covers_2 = lambda (w, v): w in covers(v)
+        self._covers_1 = self._covers_2 = lambda w, v: w in covers(v)
 
         super(GrowthDiagramYoungFibonacci, self).__init__(filling = filling,
                                                           shape = shape,
@@ -1848,6 +1822,22 @@ class GrowthDiagramDomino(GrowthDiagramOnPartitions):
         1  2  4  1  3  3
         3  3     4  4
 
+    TESTS::
+
+        sage: G = GrowthDiagramDomino([[0,1,0],[0,0,-1],[1,0,0]]); G
+        0  1  0
+        0  0 -1
+        1  0  0
+
+        sage: ascii_art(G.P_symbol(), G.Q_symbol())
+        1  1  1  1
+        2  3  2  2
+        2  3  3  3
+
+        sage: l = [GrowthDiagramDomino(pi) for pi in SignedPermutations(4)]
+        sage: len(Set([(G.P_symbol(), G.Q_symbol()) for G in l]))
+        384
+
     .. automethod:: _forward_rule
     """
     @staticmethod
@@ -1886,7 +1876,7 @@ class GrowthDiagramDomino(GrowthDiagramOnPartitions):
         Rule 2::
 
             sage: G._forward_rule([1,1], [1,1], [1,1], -1)
-            [2, 2]
+            [1, 1, 1, 1]
 
         Rule 3::
 
@@ -1912,31 +1902,33 @@ class GrowthDiagramDomino(GrowthDiagramOnPartitions):
 
             sage: G._forward_rule([1,1,1,1], [1,1], [1,1,1,1], 0)
             [2, 2, 1, 1]
+
+            sage: G._forward_rule([2,1,1], [2], [4], 0)
+            [4, 1, 1]
         """
+        def union(la, mu):
+            """
+            Return the union of the two partitions.
+            """
+            from six.moves import zip_longest
+            return [max(p,q) for (p,q) in zip_longest(la, mu, fillvalue=0)]
+
         if content not in [0,1,-1]:
             raise ValueError("Domino: The content of the filling must be in {-1,0,1}")
 
         if content == 1:
+            assert shape1 == shape2 == shape3
             if shape2 == []:
                 shape4 = [2]
             else:
                 shape4 = [shape2[0] + 2] + shape2[1:]
 
         elif content == -1:
-            if shape2 == []:
-                shape4 = [1,1]
-            elif len(shape2) == 1:
-                shape4 = [shape2[0] + 1] + [1]
-            else:
-                shape4 = [shape2[0] + 1, shape2[1] + 1] + shape2[2:]
+            assert shape1 == shape2 == shape3
+            shape4 = shape2 + [1,1]
 
         elif content == 0 and (shape2 == shape1 or shape2 == shape3):
-            if len(shape1) > len(shape3):
-                shape4 = shape1
-            elif len(shape1) < len(shape3):
-                shape4 = shape3
-            else:
-                shape4 = [max(p,q) for (p,q) in zip(shape1, shape3)]
+            shape4 = union(shape1, shape3)
 
         else:
             # content == 0 and shape2 differs from shape1 and shape3 by
@@ -1945,23 +1937,13 @@ class GrowthDiagramDomino(GrowthDiagramOnPartitions):
             # the following is certainly very slow
             gamma3 = set(SkewPartition([shape3, shape2]).cells())
             gamma1 = set(SkewPartition([shape1, shape2]).cells())
-
             diff = gamma1.intersection(gamma3)
             cell1, cell2 = gamma3
-            shape4 = copy(shape1)
-
             if len(diff) == 0:
-                # add gamma3 to shape1
-                if len(shape4) <= cell1[0]:
-                    shape4 += [1]
-                else:
-                    shape4[cell1[0]] += 1
-                if len(shape4) <= cell2[0]:
-                    shape4 += [1]
-                else:
-                    shape4[cell2[0]] += 1
+                shape4 = union(shape1, shape3)
 
             elif len(diff) == 1:
+                shape4 = copy(shape1)
                 # diff is a single cell
                 (k,l) = diff.pop()
                 # add (k+1, l+1) to shape1
@@ -1976,22 +1958,25 @@ class GrowthDiagramDomino(GrowthDiagramOnPartitions):
                         shape4[k+1] += 2
 
             # diff has size 2, that is shape1 == shape3
-
             elif cell1[0] == cell2[0]:
-                # a horizontal domino
+                shape4 = copy(shape1)
+                # a horizontal domino - add 2 to row below of gamma
                 if len(shape4) <= cell1[0]+1:
                     shape4 += [2]
                 else:
                     shape4[cell1[0]+1] += 2
+
             else:
-                # a vertical domino
-                # find first row shorter than cell1[1]
+                shape4 = copy(shape1)
+                # a vertical domino - add 2 to column right of gamma
+                # find first row shorter than cell1[1]+1
                 for r, p in enumerate(shape4):
-                    if p <= cell1[1]:
+                    if p <= cell1[1]+1:
                         shape4[r] += 1
                         shape4[r+1] += 1
+                        break
                 else:
-                    shape4[0] += 1
-                    shape4[1] += 1
+                    raise NotImplementedError("Domino: cannot call forward rule with shapes %s and content %s"
+                                              %((shape3, shape2, shape1), content))
 
         return shape4

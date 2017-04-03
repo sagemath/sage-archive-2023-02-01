@@ -1,5 +1,5 @@
 r"""
-Fast binary code routines
+Optimized low-level binary code representation
 
 Some computations with linear binary codes. Fix a basis for $GF(2)^n$.
 A linear binary code is a linear subspace of $GF(2)^n$, together with
@@ -695,7 +695,7 @@ cdef class BinaryCode:
     """
     Minimal, but optimized, binary code object.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: import sage.coding.binary_code
         sage: from sage.coding.binary_code import *
@@ -852,7 +852,7 @@ cdef class BinaryCode:
         Returns the generator matrix of the BinaryCode, i.e. the code is the
         rowspace of B.matrix().
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Matrix(GF(2), [[1,1,1,1,0,0],[0,0,1,1,1,1]])
             sage: from sage.coding.binary_code import *
@@ -981,7 +981,7 @@ cdef class BinaryCode:
         """
         String representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -1007,7 +1007,7 @@ cdef class BinaryCode:
         coefficients of the basis given by self.matrix(). This function returns
         a string representation of that word.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.coding.binary_code import *
             sage: M = Matrix(GF(2), [[1,1,1,1]])
@@ -1032,7 +1032,7 @@ cdef class BinaryCode:
         as integers, which represent linear combinations of the rows of the
         generator matrix of the code.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -1068,7 +1068,7 @@ cdef class BinaryCode:
         - word_gamma -- permutation sending i |--> word_gamma[i] acting
           on the words.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -1120,10 +1120,10 @@ cdef class BinaryCode:
 
         - labeling -- a list permutation of the columns
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.coding.binary_code import *
-            sage: B = BinaryCode(codes.ExtendedBinaryGolayCode().generator_matrix())
+            sage: B = BinaryCode(codes.GolayCode(GF(2)).generator_matrix())
             sage: B
             Binary [24,12] linear code, generator matrix
             [100000000000101011100011]
@@ -1193,7 +1193,7 @@ cdef class BinaryCode:
         Put the code in binary form, which is defined by an identity matrix on
         the left, augmented by a matrix of data.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.coding.binary_code import *
             sage: M = Matrix(GF(2), [[1,1,1,1,0,0],[0,0,1,1,1,1]])
@@ -1304,7 +1304,7 @@ cdef class OrbitPartition:
         """
         Return a string representation of the orbit partition.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -1341,7 +1341,7 @@ cdef class OrbitPartition:
         """
         Returns the root of word.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -1369,7 +1369,7 @@ cdef class OrbitPartition:
         """
         Join the cells containing x and y.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -1415,7 +1415,7 @@ cdef class OrbitPartition:
         """
         Returns the root of col.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -1443,7 +1443,7 @@ cdef class OrbitPartition:
         """
         Join the cells containing x and y.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -1491,7 +1491,7 @@ cdef class OrbitPartition:
         then after merge_perm, a and b will be in the same cell. Returns 0 if
         nothing was done, otherwise returns 1.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -1667,7 +1667,7 @@ cdef class PartitionStack:
         """
         Prints all data for self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -1789,7 +1789,7 @@ cdef class PartitionStack:
         """
         Return a string representation of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -1813,7 +1813,7 @@ cdef class PartitionStack:
         """
         Gives a string representing the partition at level k:
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.coding.binary_code import *
             sage: P = PartitionStack(2, 6); P
@@ -1844,7 +1844,7 @@ cdef class PartitionStack:
         """
         Returns whether the partition at level k is discrete.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -1884,7 +1884,7 @@ cdef class PartitionStack:
         """
         Returns the number of cells in the partition at level k.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -1922,7 +1922,7 @@ cdef class PartitionStack:
         Lemma 2.25 in Brendan McKay's Practical Graph Isomorphism paper (see
         sage/graphs/graph_isom.pyx.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -1977,7 +1977,7 @@ cdef class PartitionStack:
 #        Returns an integer whose bits represent which columns are minimal cell
 #        representatives.
 #
-#        EXAMPLE:
+#        EXAMPLES:
 #            sage: import sage.coding.binary_code
 #            sage: from sage.coding.binary_code import *
 #            sage: P = PartitionStack(2, 6)
@@ -2036,7 +2036,7 @@ cdef class PartitionStack:
 #        Returns an integer whose bits represent which columns are fixed. For
 #        efficiency, mcrs is the output of min_cell_reps.
 #
-#        EXAMPLE:
+#        EXAMPLES:
 #            sage: import sage.coding.binary_code
 #            sage: from sage.coding.binary_code import *
 #            sage: P = PartitionStack(2, 6)
@@ -2095,7 +2095,7 @@ cdef class PartitionStack:
 #        """
 #        Returns an integer representing the first, smallest nontrivial cell of columns.
 #
-#        EXAMPLE:
+#        EXAMPLES:
 #            sage: import sage.coding.binary_code
 #            sage: from sage.coding.binary_code import *
 #            sage: P = PartitionStack(2, 6)
@@ -2204,7 +2204,7 @@ cdef class PartitionStack:
         """
         For debugging only.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -2233,7 +2233,7 @@ cdef class PartitionStack:
         """
         Do one round of bubble sort on ents.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -2268,7 +2268,7 @@ cdef class PartitionStack:
         """
         Do one round of bubble sort on ents.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -2304,7 +2304,7 @@ cdef class PartitionStack:
 #        Split column v out, placing it before the rest of the cell it was in.
 #        Returns the location of the split column.
 #
-#        EXAMPLE:
+#        EXAMPLES:
 #            sage: import sage.coding.binary_code
 #            sage: from sage.coding.binary_code import *
 #            sage: P = PartitionStack(2, 6)
@@ -2370,7 +2370,7 @@ cdef class PartitionStack:
             column. See the 'flag' attribute of the PartitionStack object:
             If vertex&flag is not zero, it is a word.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -2428,7 +2428,7 @@ cdef class PartitionStack:
         Returns the number of words in the cell specified by wd_ptr that have a
         1 in the col-th column.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -2469,7 +2469,7 @@ cdef class PartitionStack:
         Returns the number of columns in the cell specified by col_ptr that are
         1 in wd.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -2519,7 +2519,7 @@ cdef class PartitionStack:
         - k -- at what level of refinement the partition of interest lies
         - degrees -- the counts to sort by
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -2591,7 +2591,7 @@ cdef class PartitionStack:
         - k -- at what level of refinement the partition of interest lies
         - degrees -- the counts to sort by
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -2655,7 +2655,7 @@ cdef class PartitionStack:
 
     def _refine(self, k, alpha, CG):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -2792,7 +2792,7 @@ cdef class PartitionStack:
 
     def _clear(self, k):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -2885,7 +2885,7 @@ cdef class PartitionStack:
 
     def print_basis(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -2919,7 +2919,7 @@ cdef class PartitionStack:
 
     def _find_basis(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -2970,7 +2970,7 @@ cdef class PartitionStack:
 
     def _get_permutation(self, other):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.coding.binary_code
             sage: from sage.coding.binary_code import *
@@ -3803,12 +3803,12 @@ cdef class BinaryCodeClassifier:
         pivots to the front so that the generator matrix is of the form: the
         identity matrix augmented to the right by arbitrary data.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.coding.binary_code import *
             sage: BC = BinaryCodeClassifier()
-            sage: B = BinaryCode(codes.ExtendedBinaryGolayCode().generator_matrix())
-            sage: B.apply_permutation(list(range(24,-1,-1)))
+            sage: B = BinaryCode(codes.GolayCode(GF(2)).generator_matrix())
+            sage: B.apply_permutation(range(24,-1,-1))
             sage: B
             Binary [24,12] linear code, generator matrix
             [011000111010100000000000]
@@ -3858,7 +3858,7 @@ cdef class BinaryCodeClassifier:
           ensures that all doubly-even canonically augmented children are
           generated.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.coding.binary_code import *
             sage: BC = BinaryCodeClassifier()

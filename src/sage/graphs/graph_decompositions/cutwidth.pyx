@@ -325,7 +325,7 @@ def cutwidth(G, algorithm="exponential", cut_off=0, solver=None, verbose=False):
     Comparison of algorithms::
 
         sage: from sage.graphs.graph_decompositions.cutwidth import cutwidth
-        sage: for i in range(2):  # long test
+        sage: for i in range(2):  # long time
         ....:     G = graphs.RandomGNP(7, 0.3)
         ....:     ve, le = cutwidth(G, algorithm="exponential")
         ....:     vm, lm = cutwidth(G, algorithm="MILP", solver='GLPK')
@@ -598,7 +598,7 @@ def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
     A pair ``(cost, ordering)`` representing the optimal ordering of the
     vertices and its cost.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Cutwidth of a Cycle graph::
 
@@ -634,7 +634,7 @@ def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
     Comparison with exponential algorithm::
 
         sage: from sage.graphs.graph_decompositions import cutwidth
-        sage: for i in range(2):  # long test
+        sage: for i in range(2):  # long time
         ....:     G = graphs.RandomGNP(7, 0.3)
         ....:     ve, le = cutwidth.cutwidth_dyn(G)
         ....:     vm, lm = cutwidth.cutwidth_MILP(G, solver='GLPK')

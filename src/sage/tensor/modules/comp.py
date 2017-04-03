@@ -248,6 +248,7 @@ In case of symmetries, only non-redundant components are stored::
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 from __future__ import print_function
+from six.moves import range
 from six import itervalues
 
 from sage.structure.sage_object import SageObject
@@ -255,6 +256,7 @@ from sage.rings.integer import Integer
 from sage.parallel.decorate import parallel
 from sage.parallel.parallelism import Parallelism
 from operator import itemgetter
+
 
 class Components(SageObject):
     r"""
@@ -519,7 +521,7 @@ class Components(SageObject):
         r"""
         Return a string representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import Components
             sage: c = Components(ZZ, [1,2,3], 2)
@@ -543,7 +545,7 @@ class Components(SageObject):
         This method must be redefined by derived classes of
         :class:`Components`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import Components
             sage: c = Components(ZZ, [1,2,3], 2)
@@ -595,7 +597,7 @@ class Components(SageObject):
         NB: The use case of this method must be rare because zeros are not
             stored in :attr:`_comp`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import Components
             sage: c = Components(ZZ, [1,2,3], 2)
@@ -942,7 +944,7 @@ class Components(SageObject):
           component `T_{ij...}`; in the 1-D case, ``ind_slice`` can be
           a slice of the full list, in the form  ``[a:b]``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import Components
             sage: c = Components(ZZ, [1,2,3], 2)
@@ -979,7 +981,7 @@ class Components(SageObject):
         r"""
         Recursive function to set a list of values to ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import Components
             sage: c = Components(ZZ, [1,2,3], 2)
@@ -1153,6 +1155,13 @@ class Components(SageObject):
             C_01 = 0.33
             C_21 = 0.29
 
+        Check that the bug reported in :trac:`22520` is fixed::
+
+            sage: c = Components(SR, [1, 2], 1)
+            sage: c[0] = SR.var('t', domain='real')
+            sage: c.display('c')
+            c_0 = t
+
         """
         from sage.misc.latex import latex
         from sage.tensor.modules.format_utilities import FormattedExpansion
@@ -1190,7 +1199,8 @@ class Components(SageObject):
         for ind in generator:
             ind_arg = ind + (format_spec,)
             val = self[ind_arg]
-            if val != 0 or not only_nonzero:
+            if not (val == 0) or not only_nonzero:  # val != 0 would not be
+                                                    # correct, see :trac:`22520`
                 indices = ''  # text indices
                 d_indices = '' # LaTeX down indices
                 u_indices = '' # LaTeX up indices
@@ -1336,7 +1346,7 @@ class Components(SageObject):
         # In other words, the full method should be
         #   return self.comp == {}
         for val in itervalues(self._comp):
-            if val != 0:
+            if not (val == 0):
                 return False
         return True
 
@@ -1429,7 +1439,7 @@ class Components(SageObject):
 
         - an exact copy of ``self``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import Components
             sage: c = Components(ZZ, [1,2,3], 1)
@@ -1454,7 +1464,7 @@ class Components(SageObject):
 
         - the opposite of the components represented by ``self``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import Components
             sage: c = Components(ZZ, [1,2,3], 1)
@@ -1485,7 +1495,7 @@ class Components(SageObject):
 
         - components resulting from the addition of ``self`` and ``other``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import Components
             sage: a = Components(ZZ, [1,2,3], 1)
@@ -1564,7 +1574,7 @@ class Components(SageObject):
         r"""
         Reflected addition (addition on the right to `other``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import Components
             sage: a = Components(ZZ, [1,2,3], 1)
@@ -1598,7 +1608,7 @@ class Components(SageObject):
 
         - components resulting from the subtraction of ``other`` from ``self``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import Components
             sage: a = Components(ZZ, [1,2,3], 1)
@@ -2522,7 +2532,7 @@ class Components(SageObject):
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         if not pos:
-            pos = range(self._nid)
+            pos = list(range(self._nid))
         else:
             if len(pos) < 2:
                 raise ValueError("at least two index positions must be given")
@@ -2673,7 +2683,7 @@ class Components(SageObject):
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         if not pos:
-            pos = range(self._nid)
+            pos = list(range(self._nid))
         else:
             if len(pos) < 2:
                 raise ValueError("at least two index positions must be given")
@@ -2707,7 +2717,7 @@ class Components(SageObject):
         r"""
         Convert a set of ring components with 2 indices into a matrix.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import Components
             sage: V = VectorSpace(QQ, 3)
@@ -3244,7 +3254,7 @@ class CompWithSym(Components):
         else:
             sign, ind = self._ordered_indices(indices)
             if sign == 0:
-                if value != 0:
+                if not (value == 0):
                     raise ValueError("by antisymmetry, the component cannot " +
                                      "have a nonzero value for the indices " +
                                      str(indices))
@@ -3318,7 +3328,7 @@ class CompWithSym(Components):
         """
         result = self._new_instance()
         # The symmetries:
-        lpos = range(self._nid)
+        lpos = list(range(self._nid))
         new_lpos = lpos[:pos1] + lpos[pos2:pos3] + lpos[pos1:pos2] + lpos[pos3:]
         result._sym = []
         for s in self._sym:
@@ -3829,7 +3839,7 @@ class CompWithSym(Components):
         Indices on a 2-dimensional space::
 
             sage: from sage.tensor.modules.comp import Components, CompWithSym, \
-            ...    CompFullySym, CompFullyAntiSym
+            ....:  CompFullySym, CompFullyAntiSym
             sage: V = VectorSpace(QQ, 2)
             sage: c = CompFullySym(QQ, V.basis(), 2)
             sage: list(c.non_redundant_index_generator())
@@ -4133,7 +4143,7 @@ class CompWithSym(Components):
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         if not pos:
-            pos = range(self._nid)
+            pos = list(range(self._nid))
         else:
             if len(pos) < 2:
                 raise ValueError("at least two index positions must be given")
@@ -4247,7 +4257,7 @@ class CompWithSym(Components):
         Antisymmetrization of 3-indices components on a 3-dimensional space::
 
             sage: from sage.tensor.modules.comp import Components, CompWithSym, \
-            ...    CompFullySym, CompFullyAntiSym
+            ....:  CompFullySym, CompFullyAntiSym
             sage: V = VectorSpace(QQ, 3)
             sage: a = Components(QQ, V.basis(), 1)
             sage: a[:] = (-2,1,3)
@@ -4395,7 +4405,7 @@ class CompWithSym(Components):
         """
         from sage.groups.perm_gps.permgroup_named import SymmetricGroup
         if not pos:
-            pos = range(self._nid)
+            pos = list(range(self._nid))
         else:
             if len(pos) < 2:
                 raise ValueError("at least two index positions must be given")
@@ -4642,7 +4652,7 @@ class CompFullySym(CompWithSym):
         r"""
         Return a string representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import CompFullySym
             sage: CompFullySym(ZZ, (1,2,3), 4)
@@ -4657,7 +4667,7 @@ class CompFullySym(CompWithSym):
         Creates a :class:`CompFullySym` instance w.r.t. the same frame,
         and with the same number of indices.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import CompFullySym
             sage: c = CompFullySym(ZZ, (1,2,3), 4)
@@ -5107,7 +5117,7 @@ class CompFullyAntiSym(CompWithSym):
         Creates a :class:`CompFullyAntiSym` instance w.r.t. the same frame,
         and with the same number of indices.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import CompFullyAntiSym
             sage: c = CompFullyAntiSym(ZZ, (1,2,3), 4)
@@ -5316,7 +5326,7 @@ class KroneckerDelta(CompFullySym):
         r"""
         Return a string representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import KroneckerDelta
             sage: KroneckerDelta(ZZ, (1,2,3))
@@ -5330,7 +5340,7 @@ class KroneckerDelta(CompFullySym):
         r"""
         Should not be used (the components of a Kronecker delta are constant)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.tensor.modules.comp import KroneckerDelta
             sage: d = KroneckerDelta(ZZ, (1,2,3))

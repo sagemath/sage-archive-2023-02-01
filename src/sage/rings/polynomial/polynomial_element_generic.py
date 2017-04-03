@@ -30,6 +30,7 @@ We test coercion in a particularly complicated situation::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+import six
 from six.moves import range
 
 from sage.rings.polynomial.polynomial_element import Polynomial, Polynomial_generic_dense, Polynomial_generic_dense_inexact
@@ -97,7 +98,7 @@ class Polynomial_generic_sparse(Polynomial):
                 x = {0:x}
             else:
                 w = {}
-                for n, c in x.dict().iteritems():
+                for n, c in six.iteritems(x.dict()):
                     w[n] = R(c)
                 # The following line has been added in trac ticket #9944.
                 # Apparently, the "else" case has never occured before.
@@ -114,7 +115,7 @@ class Polynomial_generic_sparse(Polynomial):
             x = {0:x}   # constant polynomials
         if check:
             self.__coeffs = {}
-            for i, z in x.iteritems():
+            for i, z in six.iteritems(x):
                 self.__coeffs[i] = R(z)
         else:
             self.__coeffs = x
@@ -152,7 +153,7 @@ class Polynomial_generic_sparse(Polynomial):
             [5, 1, 7]
         """
         if sparse:
-          return [c[1] for c in sorted(self.__coeffs.iteritems())]
+          return [c[1] for c in sorted(six.iteritems(self.__coeffs))]
         else:
           return [self.__coeffs[i] if i in self.__coeffs else 0
                   for i in range(self.degree() + 1)]
@@ -229,11 +230,11 @@ class Polynomial_generic_sparse(Polynomial):
         if var is not None and var is not P.gen():
             # call _derivative() recursively on coefficients
             return P(dict([(n, c._derivative(var)) \
-                                     for (n, c) in self.__coeffs.iteritems()]))
+                                     for (n, c) in six.iteritems(self.__coeffs)]))
 
         # compute formal derivative with respect to generator
         d = {}
-        for n, c in self.__coeffs.iteritems():
+        for n, c in six.iteritems(self.__coeffs):
             d[n-1] = n*c
         if -1 in d:
             del d[-1]
@@ -290,8 +291,7 @@ class Polynomial_generic_sparse(Polynomial):
         # calling the coercion model bin_op is much more accurate than using the
         # true division (which is bypassed by polynomials). But it does not work
         # in all cases!!
-        from sage.structure.element import get_coercion_model
-        cm = get_coercion_model()
+        from sage.structure.element import coercion_model as cm
         import operator
         try:
             Q = cm.bin_op(R.one(), ZZ.one(), operator.div).parent()
@@ -300,9 +300,9 @@ class Polynomial_generic_sparse(Polynomial):
             Q = R.change_ring(F)
 
         if var is not None and var != R.gen():
-            return Q({k:v.integral(var) for k,v in self.__coeffs.iteritems()}, check=False)
+            return Q({k:v.integral(var) for k,v in six.iteritems(self.__coeffs)}, check=False)
 
-        return Q({ k+1:v/(k+1) for k,v in self.__coeffs.iteritems()}, check=False)
+        return Q({ k+1:v/(k+1) for k,v in six.iteritems(self.__coeffs)}, check=False)
 
     def _dict_unsafe(self):
         """
@@ -349,7 +349,7 @@ class Polynomial_generic_sparse(Polynomial):
         if name is None:
             name = self.parent().variable_name()
         atomic_repr = self.parent().base_ring()._repr_option('element_is_atomic')
-        coeffs = sorted(self.__coeffs.iteritems())
+        coeffs = sorted(six.iteritems(self.__coeffs))
         for (n, x) in reversed(coeffs):
             if x:
                 if n != m-1:
@@ -375,7 +375,7 @@ class Polynomial_generic_sparse(Polynomial):
 
     def __normalize(self):
         x = self.__coeffs
-        D = [n for n, z in x.iteritems() if not z]
+        D = [n for n, z in six.iteritems(x) if not z]
         for n in D:
             del x[n]
 
@@ -481,7 +481,7 @@ class Polynomial_generic_sparse(Polynomial):
         else:
             x[n] = value
 
-    def list(self):
+    def list(self, copy=True):
         """
         Return a new copy of the list of the underlying
         elements of ``self``.
@@ -493,17 +493,11 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f.list()
             [0, 17, 15, 0, 0, 13]
         """
-        zero = self.base_ring()(0)
+        zero = self.base_ring().zero()
         v = [zero] * (self.degree()+1)
-        for n, x in self.__coeffs.iteritems():
+        for n, x in six.iteritems(self.__coeffs):
             v[n] = x
         return v
-
-    #def _pari_(self, variable=None):
-    #    if variable is None:
-    #        return self.__pari
-    #    else:
-    #        return self.__pari.subst('x',variable)
 
     def degree(self, gen=None):
         """
@@ -535,7 +529,7 @@ class Polynomial_generic_sparse(Polynomial):
         """
         output = dict(self.__coeffs)
 
-        for (index, coeff) in right.__coeffs.iteritems():
+        for (index, coeff) in six.iteritems(right.__coeffs):
             if index in output:
                 output[index] += coeff
             else:
@@ -556,7 +550,7 @@ class Polynomial_generic_sparse(Polynomial):
             -x^10000000
         """
         output = { }
-        for (index, coeff) in self.__coeffs.iteritems():
+        for (index, coeff) in six.iteritems(self.__coeffs):
             output[index] = -coeff
         output = self.parent()(output, check=False)
         return output
@@ -576,8 +570,8 @@ class Polynomial_generic_sparse(Polynomial):
         """
         output = {}
 
-        for (index1, coeff1) in self.__coeffs.iteritems():
-            for (index2, coeff2) in right.__coeffs.iteritems():
+        for (index1, coeff1) in six.iteritems(self.__coeffs):
+            for (index2, coeff2) in six.iteritems(right.__coeffs):
                 product = coeff1 * coeff2
                 index = index1 + index2
                 if index in output:
@@ -605,7 +599,7 @@ class Polynomial_generic_sparse(Polynomial):
         """
         output = {}
 
-        for (index, coeff) in self.__coeffs.iteritems():
+        for (index, coeff) in six.iteritems(self.__coeffs):
             output[index] = left * coeff
 
         output = self.parent()(output, check=False)
@@ -628,7 +622,7 @@ class Polynomial_generic_sparse(Polynomial):
         """
         output = {}
 
-        for (index, coeff) in self.__coeffs.iteritems():
+        for (index, coeff) in six.iteritems(self.__coeffs):
             output[index] = coeff * right
 
         output = self.parent()(output, check=False)
@@ -732,10 +726,10 @@ class Polynomial_generic_sparse(Polynomial):
         if n == 0:
             return self
         if n > 0:
-            output = {index+n: coeff for index, coeff in self.__coeffs.iteritems()}
+            output = {index+n: coeff for index, coeff in six.iteritems(self.__coeffs)}
             return self.parent()(output, check=False)
         if n < 0:
-            output = {index+n:coeff for index, coeff in self.__coeffs.iteritems() if index + n >= 0}
+            output = {index+n:coeff for index, coeff in six.iteritems(self.__coeffs) if index + n >= 0}
             return self.parent()(output, check=False)
 
     @coerce_binop
@@ -924,7 +918,7 @@ class Polynomial_generic_sparse(Polynomial):
             degree = self.degree()
         if not isinstance(degree, (int,Integer)):
             raise ValueError("degree argument must be a nonnegative integer, got %s"%degree)
-        d = {degree-k: v for k,v in self.__coeffs.iteritems() if degree >= k}
+        d = {degree-k: v for k,v in six.iteritems(self.__coeffs) if degree >= k}
         return self.parent()(d, check=False)
 
     def truncate(self, n):

@@ -41,7 +41,7 @@ TESTS::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
 
 include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
@@ -56,14 +56,14 @@ from sage.misc.long cimport pyobject_to_long
 import sage.misc.misc as misc
 import sage.rings.rational_field
 
-cimport integer
+cimport sage.rings.integer as integer
 from .integer cimport Integer
 
 from sage.libs.cypari2.paridecl cimport *
 from sage.libs.cypari2.gen cimport Gen as pari_gen
 from sage.libs.pari.convert_gmp cimport INT_to_mpz, INTFRAC_to_mpq, new_gen_from_mpq_t
 
-from integer_ring import ZZ
+from .integer_ring import ZZ
 from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
 
 from sage.structure.coerce cimport is_numpy_type
@@ -2000,7 +2000,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         sig_on()
         mpq_get_str(s, base, self.value)
         sig_off()
-        k = <object> PyString_FromString(s)
+        k = str(s)
         PyMem_Free(s)
         return k
 
@@ -2847,7 +2847,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         Return the numerator of this rational number.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: x = -5/11
             sage: x.numer()
@@ -2862,7 +2862,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         Return the numerator of this rational number.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: x = 5/11
             sage: x.numerator()
@@ -2971,7 +2971,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (0/1).factor()
             Traceback (most recent call last):
             ...
-            ArithmeticError: Prime factorization of 0 not defined.
+            ArithmeticError: factorization of 0 is not defined
         """
         return self.numerator().factor() * \
            sage.structure.factorization.Factorization([(p,-e) for p, e in self.denominator().factor()])
@@ -3621,14 +3621,14 @@ cdef class Rational(sage.structure.element.FieldElement):
     # Support for interfaces
     ##################################################
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Returns the PARI version of this rational number.
 
         EXAMPLES::
 
             sage: n = 9390823/17
-            sage: m = n._pari_(); m
+            sage: m = n.__pari__(); m
             9390823/17
             sage: type(m)
             <type 'sage.libs.cypari2.gen.Gen'>

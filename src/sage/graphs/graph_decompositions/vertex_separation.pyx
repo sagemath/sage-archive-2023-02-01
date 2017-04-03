@@ -309,7 +309,7 @@ def lower_bound(G):
         This method runs in exponential time but has no memory constraint.
 
 
-    EXAMPLE:
+    EXAMPLES:
 
     On a circuit::
 
@@ -406,7 +406,7 @@ def linear_ordering_to_path_decomposition(G, L):
         1
         sage: h = linear_ordering_to_path_decomposition(g, L)
         sage: h.vertices()
-        [{3, 4}, {0, 1}, {2, 3}, {1, 2}]
+        [{0, 1}, {3, 4}, {2, 3}, {1, 2}]
         sage: h.edges(labels=None)
         [({0, 1}, {1, 2}), ({2, 3}, {3, 4}), ({1, 2}, {2, 3})]
 
@@ -536,7 +536,7 @@ def pathwidth(self, k=None, certificate=False, algorithm="BAB", verbose=False,
         * :meth:`~sage.graphs.graph_decompositions.vertex_separation.vertex_separation`
           -- computes the vertex separation of a (di)graph
 
-    EXAMPLE:
+    EXAMPLES:
 
     The pathwidth of a cycle is equal to 2::
 
@@ -650,7 +650,7 @@ def path_decomposition(G, algorithm = "BAB", cut_off=None, upper_bound=None, ver
 
         * :meth:`Graph.treewidth` -- computes the treewidth of a graph
 
-    EXAMPLE:
+    EXAMPLES:
 
     The pathwidth of a cycle is equal to 2::
 
@@ -903,7 +903,7 @@ def vertex_separation_exp(G, verbose = False):
         graphs on less than 32 vertices. This can be changed to 54 if necessary,
         but 32 vertices already require 4GB of memory.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The vertex separation of a circuit is equal to 1::
 
@@ -1093,7 +1093,7 @@ def is_valid_ordering(G, L):
     otherwise.
 
 
-    EXAMPLE:
+    EXAMPLES:
 
     Path decomposition of a cycle::
 
@@ -1279,7 +1279,7 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
     A pair ``(cost, ordering)`` representing the optimal ordering of the
     vertices and its cost.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Vertex separation of a De Bruijn digraph::
 

@@ -19,7 +19,7 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
 
     -  ``zrange`` - a 2-tuple (z_min, z_maz) or a 3-tuple (z, z_min, z_maz)
 
-    -  ``plot_points`` - (default: "automatic", which is 50) the number of
+    -  ``plot_points`` - (default: "automatic", which is 40) the number of
        function evaluations in each direction. (The number of cubes in the
        marching cubes algorithm will be one less than this). Can be a triple of
        integers, to specify a different resolution in each of x,y,z.

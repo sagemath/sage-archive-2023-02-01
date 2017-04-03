@@ -76,7 +76,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         """
         Initialization.
 
-        .. NOTE:
+        .. NOTE::
 
             This initialization function is not called for Integers
             and Rationals since a conversion morphism has been

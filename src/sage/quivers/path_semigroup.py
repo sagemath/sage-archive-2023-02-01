@@ -247,7 +247,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: d*c3
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*':
+            TypeError: unsupported operand parent(s) for *:
              'Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices'
              and 'Partial semigroup formed by the directed paths of Multi-digraph on 3 vertices'
         """
@@ -708,7 +708,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
         """
         Return the underlying quiver (i.e., digraph) of this path semigroup.
 
-        .. NOTE:
+        .. NOTE::
 
             The returned digraph always is an immutable copy of the originally
             given digraph that is made weighted.

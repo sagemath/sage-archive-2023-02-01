@@ -57,7 +57,7 @@ def ratpoints(list coeffs, long H, verbose=False, long max=0,
     `y^2 = a_n x^n + \cdots + a_1 x z^{n-1} + a_0 z^n` while if n is odd, it is
     `y^2 = a_n x^n z + \cdots + a_1 x z^n + a_0 z^{n+1}`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.libs.ratpoints import ratpoints
         sage: for x,y,z in ratpoints([1..6], 200):

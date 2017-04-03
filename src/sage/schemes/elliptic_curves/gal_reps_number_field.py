@@ -482,7 +482,7 @@ def _maybe_borels(E, L, patience=100):
     Borel subgroup, using straight-forward checking of traces of
     Frobenius.
 
-    .. NOTE:
+    .. NOTE::
 
        This function will sometimes return primes for which the image
        is not contained in a Borel subgroup.  This issue cannot always

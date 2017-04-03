@@ -77,6 +77,7 @@ from sage.rings.integer import Integer
 from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.sage_object import richcmp_not_equal, richcmp
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 from sage.combinat.root_system.cartan_type import CartanType
@@ -364,7 +365,7 @@ class KleberTreeNode(Element):
         """
         return hash(self.depth) ^ hash(self.weight)
 
-    def __cmp__(self, rhs):
+    def _richcmp_(self, rhs, op):
         r"""
         Check whether two nodes are equal.
 
@@ -377,24 +378,26 @@ class KleberTreeNode(Element):
             sage: KT = KleberTree(['A', 2, 1], [[1,1]])
             sage: n = KT(WS.sum_of_terms([(1,5), (2,2)]), R.zero())
             sage: n2 = KT(WS.sum_of_terms([(1,5), (2,2)]), R.zero(), n)
-            sage: cmp(n2, n)
-            1
+            sage: n2 > n
+            True
             sage: n3 = KT(WS.sum_of_terms([(1,5), (2,2)]), R.zero(), n)
-            sage: cmp(n2, n3)
-            0
+            sage: n2 == n3
+            True
             sage: n3 = KT(WS.sum_of_terms([(1,5), (2,3)]), R.zero(), n)
-            sage: cmp(n2, n3)
-            -1
+            sage: n2 < n3
+            True
         """
-        if isinstance(rhs, KleberTreeNode):
-            if self.depth < rhs.depth:
-                return -1
-            elif self.depth > rhs.depth:
-                return 1
-            elif self.parent_node is not rhs.parent_node:
-                return cmp(self.parent_node, rhs.parent_node)
-            return cmp(self.weight, rhs.weight)
-        return cmp(type(self), type(rhs))
+        lx = self.depth
+        rx = rhs.depth
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = self.parent_node
+        rx = rhs.parent_node
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        return richcmp(self.weight, rhs.weight, op)
 
     def _repr_(self):
         r"""

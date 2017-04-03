@@ -14,7 +14,7 @@ AUTHORS:
 - Robert Bradshaw (2007-04): Cython version
 - Simon King (2012-08): use category and coercion framework, :trac:`13412`
 
-EXAMPLE::
+EXAMPLES::
 
     sage: R.<x> = PowerSeriesRing(ZZ)
     sage: TestSuite(R).run()
@@ -39,7 +39,7 @@ its generator as follows::
     sage: parent(x)
     Power Series Ring in x over Integer Ring
 
-EXAMPLE:
+EXAMPLES:
 
 This example illustrates that coercion for power
 series rings is consistent with coercion for polynomial rings.
@@ -2057,13 +2057,13 @@ cdef class PowerSeries(AlgebraElement):
     ogf = deprecated_function_alias(15705, egf_to_ogf)
     egf = deprecated_function_alias(15705, ogf_to_egf)
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Return a PARI representation of this series.
 
         There are currently limits to the possible base rings over which this
         function works.  See the documentation for
-        ``sage.rings.polynomial.polynomial_element.Polynomial._pari_``
+        ``sage.rings.polynomial.polynomial_element.Polynomial.__pari__``
 
         EXAMPLES::
 
@@ -2087,7 +2087,7 @@ cdef class PowerSeries(AlgebraElement):
             O(x^0)
         """
         n = self.prec()
-        s = self.truncate()._pari_()  # PARI polynomial
+        s = self.truncate().__pari__()  # PARI polynomial
         if n is not infinity:
             v = s.variable()
             s = s.Ser(v, n - s.valuation(v) if s else n)

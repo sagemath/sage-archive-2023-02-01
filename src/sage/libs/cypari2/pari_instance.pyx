@@ -59,63 +59,49 @@ In the PARI interface, "real precision" refers to the precision of real
 numbers, so it is the floating-point precision. This is a non-trivial
 issue, since there are various interfaces for different things.
 
-Internal representation and conversion between Sage and PARI
-------------------------------------------------------------
+Internal representation of floating-point numbers in PARI
+---------------------------------------------------------
 
 Real numbers in PARI have a precision associated to them, which is
 always a multiple of the CPU wordsize. So, it is a multiple of 32
-of 64 bits. When converting from Sage to PARI, the precision is rounded
-up to the nearest multiple of the wordsize::
+of 64 bits. When converting a ``float`` from Python to PARI, the
+``float`` has 53 bits of precision which is rounded up to 64 bits
+in PARI::
 
     sage: x = 1.0
-    sage: x.precision()
-    53
     sage: pari(x)
     1.00000000000000
     sage: pari(x).bitprecision()
     64
 
-With a higher precision::
+It is possible to change the precision of a PARI object with the
+:meth:`Gen.bitprecision` method::
 
-    sage: x = RealField(100).pi()
-    sage: x.precision()
-    100
-    sage: pari(x).bitprecision()
+    sage: p = pari(1.0)
+    sage: p.bitprecision()
+    64
+    sage: p = p.bitprecision(100)
+    sage: p.bitprecision()   # Rounded up to a multiple of the wordsize
     128
 
-When converting back to Sage, the precision from PARI is taken::
+Beware that these extra bits are just bogus. For example, this will not
+give a more precision approximation of ``math.pi``:
 
-    sage: x = RealField(100).pi()
-    sage: y = pari(x).sage()
-    sage: y
-    3.1415926535897932384626433832793333156
-    sage: parent(y)
-    Real Field with 128 bits of precision
+    sage: p = pari(math.pi)
+    sage: pari("Pi") - p
+    1.225148... E-16
+    sage: p = p.bitprecision(1000)
+    sage: pari("Pi") - p
+    1.225148... E-16
 
-So ``pari(x).sage()`` is definitely not equal to ``x`` since it has
-28 bogus bits.
+Another way to create numbers with many bits is to use a string with
+many digits::
 
-Therefore, some care must be taken when juggling reals back and forth
-between Sage and PARI. The correct way of avoiding this is to convert
-``pari(x).sage()`` back into a domain with the right precision. This has
-to be done by the user (or by Sage functions that use PARI library
-functions). For instance, if we want to use the PARI library to compute
-``sqrt(pi)`` with a precision of 100 bits::
-
-    sage: R = RealField(100)
-    sage: s = R(pi); s
-    3.1415926535897932384626433833
-    sage: p = pari(s).sqrt()
-    sage: x = p.sage(); x    # wow, more digits than I expected!
-    1.7724538509055160272981674833410973484
-    sage: x.prec()           # has precision 'improved' from 100 to 128?
+    sage: p = pari("3.1415926535897932384626433832795028842")
+    sage: p.bitprecision()
     128
-    sage: x == RealField(128)(pi).sqrt()  # sadly, no!
-    False
-    sage: R(x)               # x should be brought back to precision 100
-    1.7724538509055160272981674833
-    sage: R(x) == s.sqrt()
-    True
+
+.. _pari_output_precision:
 
 Output precision for printing
 -----------------------------
@@ -125,18 +111,21 @@ printed by default. The maximum number of digits when printing a PARI
 real can be set using the methods
 :meth:`Pari.set_real_precision_bits` or
 :meth:`Pari.set_real_precision`.
+Note that this will also change the input precision for strings,
+see :ref:`pari_input_precision`.
 
 We create a very precise approximation of pi and see how it is printed
 in PARI::
 
-    sage: pi = pari(RealField(1000).pi())
+    sage: pi = pari.pi(precision=1024)
 
 The default precision is 15 digits::
 
     sage: pi
     3.14159265358979
 
-With a different precision::
+With a different precision, we see more digits. Note that this does not
+affect the object ``pi`` at all, it only affects how it is printed::
 
     sage: _ = pari.set_real_precision(50)
     sage: pi
@@ -147,6 +136,8 @@ Back to the default::
     sage: _ = pari.set_real_precision(15)
     sage: pi
     3.14159265358979
+
+.. _pari_input_precision:
 
 Input precision for function calls
 ----------------------------------
@@ -177,32 +168,39 @@ In the second case, the precision can be given as the argument
 ``precision`` in the function call, with a default of 53 bits.
 The real precision set by
 :meth:`Pari.set_real_precision_bits` or
-:meth:`Pari.set_real_precision` is irrelevant.
+:meth:`Pari.set_real_precision` does not affect the call
+(but it still affects printing).
 
-In these examples, we convert to Sage to ensure that PARI's real
-precision is not used when printing the numbers. As explained before,
-this artificically increases the precision to a multiple of the
+As explained before, the precision increases to a multiple of the
 wordsize. ::
 
-    sage: s = pari(1).sin(precision=180).sage(); print(s); print(parent(s))
-    0.841470984807896506652502321630298999622563060798371065673
-    Real Field with 192 bits of precision
-    sage: s = pari(1).sin(precision=40).sage(); print(s); print(parent(s))
-    0.841470984807896507
-    Real Field with 64 bits of precision
-    sage: s = pari(1).sin().sage(); print(s); print(parent(s))
-    0.841470984807896507
-    Real Field with 64 bits of precision
+    sage: a = pari(1).sin(precision=180); a
+    0.841470984807897
+    sage: a.bitprecision()
+    192
+    sage: b = pari(1).sin(precision=40); b
+    0.841470984807897
+    sage: b.bitprecision()
+    64
+    sage: c = pari(1).sin(); c
+    0.841470984807897
+    sage: c.bitprecision()
+    64
+    sage: pari.set_real_precision_bits(90)
+    sage: print(a); print(b); print(c)
+    0.841470984807896506652502322
+    0.8414709848078965067
+    0.8414709848078965067
 
 In the third case, the precision is determined only by the inexact
 inputs and the ``precision`` argument is ignored::
 
-    sage: pari(1.0).sin(precision=180).sage()
-    0.841470984807896507
-    sage: pari(1.0).sin(precision=40).sage()
-    0.841470984807896507
-    sage: pari(RealField(100).one()).sin().sage()
-    0.84147098480789650665250232163029899962
+    sage: pari(1.0).sin(precision=180).bitprecision()
+    64
+    sage: pari(1.0).sin(precision=40).bitprecision()
+    64
+    sage: pari("1.0000000000000000000000000000000000000").sin().bitprecision()
+    128
 
 Elliptic curve functions
 ------------------------
@@ -232,7 +230,7 @@ Check that ``default()`` works properly::
     sage: pari.default("debug")
     0
     sage: pari.default("debug", 3)
-    sage: pari(2^67+1).factor()
+    sage: pari(2**67+1).factor()
     IFAC: cracking composite
             49191317529892137643
     IFAC: factor 6713103182899
@@ -246,7 +244,7 @@ Check that ``default()`` works properly::
     IFAC: found 2 large prime (power) factors.
     [3, 1; 7327657, 1; 6713103182899, 1]
     sage: pari.default("debug", 0)
-    sage: pari(2^67+1).factor()
+    sage: pari(2**67+1).factor()
     [3, 1; 7327657, 1; 6713103182899, 1]
 """
 
@@ -445,8 +443,6 @@ cdef void sage_flush():
 
 include 'auto_instance.pxi'
 
-# TODO: this should not be needed
-cdef Pari _pari_instance = Pari()
 
 cdef class Pari(Pari_auto):
     def __cinit__(self):
@@ -528,14 +524,14 @@ cdef class Pari(Pari_auto):
         EXAMPLES::
 
             sage: from sage.libs.cypari2.pari_instance import Pari
-            sage: pari2 = Pari(10^7)
+            sage: pari2 = Pari(10**7)
             sage: pari2
             Interface to the PARI C library
             sage: pari2 is pari
             False
             sage: pari2.PARI_ZERO == pari.PARI_ZERO
             True
-            sage: pari2 = Pari(10^6)
+            sage: pari2 = Pari(10**6)
             sage: pari.stacksize(), pari2.stacksize()
             (10000000, 10000000)
 
@@ -554,8 +550,8 @@ cdef class Pari(Pari_auto):
 
         .. NOTE::
 
-           In Sage, the PARI stack is different than in GP or the
-           PARI C library. In Sage, instead of the PARI stack
+           In CyPari2, the PARI stack is different than in GP or the
+           PARI C library. In CyPari2, instead of the PARI stack
            holding the results of all computations, it *only* holds
            the results of an individual computation. Each time a new
            Python/PARI object is computed, it it copied to its own
@@ -593,9 +589,9 @@ cdef class Pari(Pari_auto):
         EXAMPLES::
 
             sage: from sage.libs.cypari2.pari_instance import Pari
-            sage: pari2 = Pari(10^7)
+            sage: pari2 = Pari(10**7)
             sage: pari2._close()
-            sage: pari2 = Pari(10^6)
+            sage: pari2 = Pari(10**6)
             sage: pari.stacksize()
             1000000
 
@@ -621,7 +617,7 @@ cdef class Pari(Pari_auto):
         (available memory address, think of this as the stack pointer),
         ``bot`` (bottom of stack).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: pari.debugstack()  # random
             top =  0x60b2c60
@@ -718,7 +714,7 @@ cdef class Pari(Pari_auto):
         printing. It is the number of digits *IN DECIMAL* in which real
         numbers are printed. It also determines the precision of objects
         created by parsing strings (e.g. pari('1.2')), which is *not* the
-        normal way of creating new pari objects in Sage. It has *no*
+        normal way of creating new PARI objects in CyPari2. It has *no*
         effect on the precision of computations within the pari library.
 
         Returns the previous PARI real precision.
@@ -747,7 +743,7 @@ cdef class Pari(Pari_auto):
         printing. It is the number of digits *IN DECIMAL* in which real
         numbers are printed. It also determines the precision of objects
         created by parsing strings (e.g. pari('1.2')), which is *not* the
-        normal way of creating new pari objects in Sage. It has *no*
+        normal way of creating new PARI objects in CyPari2. It has *no*
         effect on the precision of computations within the pari library.
 
         .. seealso:: :meth:`get_real_precision_bits` to get the
@@ -787,7 +783,8 @@ cdef class Pari(Pari_auto):
             1.00000000000000 E30
             sage: pari.double_to_gen(0)
             0.E-15
-            sage: pari.double_to_gen(-sqrt(RDF(2)))
+            sage: import math
+            sage: pari.double_to_gen(-math.sqrt(2))
             -1.41421356237310
         """
         # Deprecated in https://trac.sagemath.org/ticket/20241
@@ -810,19 +807,15 @@ cdef class Pari(Pari_auto):
 
         EXAMPLES::
 
+            sage: pari(0)
+            0
             sage: pari([2,3,5])
             [2, 3, 5]
-            sage: pari(Matrix(2,2,range(4)))
-            [0, 1; 2, 3]
-            sage: pari(x^2-3)
-            x^2 - 3
 
         ::
 
             sage: a = pari(1); a, a.type()
             (1, 't_INT')
-            sage: a = pari(1/2); a, a.type()
-            (1/2, 't_FRAC')
             sage: a = pari(1/2); a, a.type()
             (1/2, 't_FRAC')
 
@@ -883,7 +876,7 @@ cdef class Pari(Pari_auto):
 
             sage: pari.stacksize()
             1000000
-            sage: pari.allocatemem(2^18, silent=True)
+            sage: pari.allocatemem(2**18, silent=True)
             sage: pari.stacksize()
             262144
         """
@@ -904,7 +897,7 @@ cdef class Pari(Pari_auto):
 
         EXAMPLES::
 
-            sage: pari.allocatemem(2^18, 2^26, silent=True)
+            sage: pari.allocatemem(2**18, 2**26, silent=True)
             sage: pari.stacksizemax()
             67108864
         """
@@ -943,13 +936,13 @@ cdef class Pari(Pari_auto):
 
         EXAMPLES::
 
-            sage: pari.allocatemem(10^7)
+            sage: pari.allocatemem(10**7)
             PARI stack size set to 10000000 bytes, maximum size set to 67108864
             sage: pari.allocatemem()  # Double the current size
             PARI stack size set to 20000000 bytes, maximum size set to 67108864
             sage: pari.stacksize()
             20000000
-            sage: pari.allocatemem(10^6)
+            sage: pari.allocatemem(10**6)
             PARI stack size set to 1000000 bytes, maximum size set to 67108864
 
         The following computation will automatically increase the PARI
@@ -966,7 +959,7 @@ cdef class Pari(Pari_auto):
 
         Setting a small maximum size makes this fail::
 
-            sage: pari.allocatemem(10^6, 2^22)
+            sage: pari.allocatemem(10**6, 2**22)
             PARI stack size set to 1000000 bytes, maximum size set to 4194304
             sage: a = pari('2^100000000')
             Traceback (most recent call last):
@@ -979,15 +972,15 @@ cdef class Pari(Pari_auto):
         Do the same without using the string interface and starting
         from a very small stack size::
 
-            sage: pari.allocatemem(1, 2^26)
+            sage: pari.allocatemem(1, 2**26)
             PARI stack size set to 1024 bytes, maximum size set to 67108864
-            sage: a = pari(2)^100000000
+            sage: a = pari(2)**100000000
             sage: pari.stacksize()  # random
             12500024
 
         We do not allow ``sizemax`` less than ``s``::
 
-            sage: pari.allocatemem(10^7, 10^6)
+            sage: pari.allocatemem(10**7, 10**6)
             Traceback (most recent call last):
             ...
             ValueError: the maximum size (10000000) should be at least the stack size (1000000)
@@ -1028,7 +1021,7 @@ cdef class Pari(Pari_auto):
 
         We make sure that ticket :trac:`11741` has been fixed::
 
-            sage: pari.init_primes(2^30)
+            sage: pari.init_primes(2**30)
             Traceback (most recent call last):
             ...
             ValueError: Cannot compute primes beyond 436273290
@@ -1084,7 +1077,7 @@ cdef class Pari(Pari_auto):
             [11, 13, 17, 19, 23, 29]
             sage: pari.primes(end=29)
             [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
-            sage: pari.primes(10^30, 10^30 + 100)
+            sage: pari.primes(10**30, 10**30 + 100)
             [1000000000000000000000000000057, 1000000000000000000000000000099]
 
         TESTS::
@@ -1247,6 +1240,11 @@ cdef class Pari(Pari_auto):
         """
         matrix(long m, long n, entries=None): Create and return the m x n
         PARI matrix with given list of entries.
+
+        EXAMPLES::
+
+            sage: pari.matrix(3,3,range(9))
+            [0, 1, 2; 3, 4, 5; 6, 7, 8]
         """
         cdef long i, j, k
         cdef Gen A
@@ -1258,13 +1256,13 @@ cdef class Pari(Pari_auto):
             if len(entries) != m*n:
                 raise IndexError("len of entries (=%s) must be %s*%s=%s"%(len(entries),m,n,m*n))
             k = 0
-            A.refers_to = {}
-            for i from 0 <= i < m:
-                for j from 0 <= j < n:
+            for i in range(m):
+                for j in range(n):
+                    sig_check()
                     x = self(entries[k])
-                    A.refers_to[(i,j)] = x
-                    (<GEN>(A.g)[j+1])[i+1] = <long>(x.g)
-                    k = k + 1
+                    A.cache((i,j), x)
+                    set_gcoeff(A.g, i+1, j+1, x.g)
+                    k += 1
         return A
 
     def genus2red(self, P, P0=None):
@@ -1278,8 +1276,8 @@ cdef class Pari(Pari_auto):
 
         EXAMPLES::
 
-            sage: x = polygen(QQ)
-            sage: pari.genus2red([-5*x^5, x^3 - 2*x^2 - 2*x + 1])
+            sage: x = pari('x')
+            sage: pari.genus2red([-5*x**5, x**3 - 2*x**2 - 2*x + 1])
             [1416875, [2, -1; 5, 4; 2267, 1], x^6 - 240*x^4 - 2550*x^3 - 11400*x^2 - 24100*x - 19855, [[2, [2, [Mod(1, 2)]], []], [5, [1, []], ["[V] page 156", [3]]], [2267, [2, [Mod(432, 2267)]], ["[I{1-0-0}] page 170", []]]]]
         """
         cdef Gen t0 = objtogen(P)
@@ -1359,17 +1357,6 @@ cdef long get_var(v) except -2:
         Traceback (most recent call last):
         ...
         PariError: incorrect priority in gtopoly: variable x <= xx
-
-    TESTS:
-
-    The following example caused Sage to crash before
-    :trac:`20630`::
-
-        sage: R.<theta> = QQ[]
-        sage: K.<a> = NumberField(theta^2 + 1)
-        sage: K.galois_group(type='pari')
-        Galois group PARI group [2, -1, 1, "S2"] of degree 2 of the Number Field in a with defining polynomial theta^2 + 1
-
     """
     if v is None:
         return -1

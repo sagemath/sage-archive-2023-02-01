@@ -228,6 +228,7 @@ from sage.env import SAGE_EXTCODE, DOT_SAGE
 import sage.misc.misc
 import sage.misc.sage_eval
 from sage.interfaces.tab_completion import ExtraTabCompletion
+from sage.docs.instancedoc import instancedoc
 
 INTRINSIC_CACHE = '%s/magma_intrinsic_cache.sobj' % DOT_SAGE
 EXTCODE_DIR = None
@@ -932,7 +933,7 @@ class Magma(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: type(magma.cputime())         # optional - magma
-            <type 'float'>
+            <... 'float'>
             sage: magma.cputime()                # random, optional - magma
             1.9399999999999999
             sage: t = magma.cputime()            # optional - magma
@@ -1648,6 +1649,7 @@ class Magma(ExtraTabCompletion, Expect):
         return int(self.eval('GetVerbose("%s")' % type))
 
 
+@instancedoc
 class MagmaFunctionElement(FunctionElement):
     def __call__(self, *args, **kwds):
         """
@@ -1692,7 +1694,7 @@ class MagmaFunctionElement(FunctionElement):
                                params=kwds,
                                nvals=nvals)
 
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         Return the docstring for this function of an element.
 
@@ -1702,10 +1704,10 @@ class MagmaFunctionElement(FunctionElement):
 
             sage: n = magma(-15)             # optional - magma
             sage: f = n.Factorisation        # optional - magma
-            sage: print(f._sage_doc_())      # optional - magma
+            sage: print(f.__doc__)           # optional - magma
             (<RngIntElt> n) -> RngIntEltFact, RngIntElt, SeqEnum
             ...
-            sage: print(n.Factorisation._sage_doc_())    # optional - magma
+            sage: print(n.Factorisation.__doc__)    # optional - magma
             (<RngIntElt> n) -> RngIntEltFact, RngIntElt, SeqEnum
             ...
         """
@@ -1723,11 +1725,11 @@ class MagmaFunctionElement(FunctionElement):
         s = sage.misc.misc.word_wrap(s)
         return s
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Return string representation of this partially evaluated function.
 
-        This is basically the docstring (as returned by _sage_doc_)
+        This is basically the docstring (as returned by ``_instancedoc_``)
         unless self._name is the name of an attribute of the object, in
         which case this returns the value of that attribute.
 
@@ -1763,9 +1765,10 @@ class MagmaFunctionElement(FunctionElement):
         try:
             return M.eval('%s`%s' % (self._obj.name(), self._name))
         except RuntimeError:
-            return "Partially evaluated Magma function or intrinsic '%s'\n\nSignature:\n\n%s" % (self._name, self._sage_doc_())
+            return "Partially evaluated Magma function or intrinsic '%s'\n\nSignature:\n\n%s" % (self._name, self._instancedoc_())
 
 
+@instancedoc
 class MagmaFunction(ExpectFunction):
     def __call__(self, *args, **kwds):
         """
@@ -1802,7 +1805,7 @@ class MagmaFunction(ExpectFunction):
                                params=kwds,
                                nvals=nvals)
 
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         Return docstring about this function.
 
@@ -1813,7 +1816,7 @@ class MagmaFunction(ExpectFunction):
             sage: f = magma.Factorisation
             sage: type(f)
             <class 'sage.interfaces.magma.MagmaFunction'>
-            sage: print(f._sage_doc_())                   # optional - magma
+            sage: print(f.__doc__)                   # optional - magma
             Intrinsic 'Factorisation'
             ...
         """
@@ -1846,6 +1849,7 @@ def is_MagmaElement(x):
     return isinstance(x, MagmaElement)
 
 
+@instancedoc
 class MagmaElement(ExtraTabCompletion, ExpectElement):
     def _ref(self):
         """
@@ -1966,7 +1970,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             sage: z = m.sage(); z               # optional - magma
             (1, 2, (3,))
             sage: type(z)                       # optional - magma
-            <type 'tuple'>
+            <... 'tuple'>
 
         Sequences get converted to lists::
 
@@ -2569,7 +2573,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
         Quotient of division of self by other. This is denoted // ("div" in
         magma).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y,z> = QQ[]
             sage: magma(5)//magma(2)     # optional - magma
@@ -2814,7 +2818,7 @@ class MagmaGBLogPrettyPrinter:
           'sage' only the current degree and the number of pairs in
           the queue is printed (default: "magma").
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y,z> = GF(32003)[]
             sage: I = sage.rings.ideal.Cyclic(P)
@@ -2885,7 +2889,7 @@ class MagmaGBLogPrettyPrinter:
 
     def write(self, s):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y,z> = GF(32003)[]
             sage: I = sage.rings.ideal.Katsura(P)
@@ -2950,7 +2954,7 @@ class MagmaGBLogPrettyPrinter:
 
     def flush(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.interfaces.magma import MagmaGBLogPrettyPrinter
             sage: logs = MagmaGBLogPrettyPrinter()
@@ -2971,7 +2975,7 @@ class MagmaGBDefaultContext:
 
         - ``magma`` - (default: ``magma_default``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.interfaces.magma import MagmaGBDefaultContext
             sage: magma.SetVerbose('Groebner',1) # optional - magma
@@ -2986,7 +2990,7 @@ class MagmaGBDefaultContext:
 
     def __enter__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.interfaces.magma import MagmaGBDefaultContext
             sage: magma.SetVerbose('Groebner',1) # optional - magma
@@ -2998,7 +3002,7 @@ class MagmaGBDefaultContext:
 
     def __exit__(self, typ, value, tb):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.interfaces.magma import MagmaGBDefaultContext
             sage: magma.SetVerbose('Groebner',1) # optional - magma
@@ -3014,7 +3018,7 @@ def magma_gb_standard_options(func):
     """
     Decorator to force default options for Magma.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<a,b,c,d,e> = PolynomialRing(GF(127))
         sage: J = sage.rings.ideal.Cyclic(P).homogenize()

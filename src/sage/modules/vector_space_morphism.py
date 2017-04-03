@@ -920,7 +920,7 @@ class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
         r"""
         A LaTeX representation of this vector space morphism.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: H = Hom(QQ^3, QQ^2)
             sage: f = H(matrix(3, 2, range(6)))
@@ -941,7 +941,7 @@ class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
         r"""
         A text representation of this vector space morphism.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: H = Hom(QQ^3, QQ^2)
             sage: f = H(matrix(3, 2, range(6)))

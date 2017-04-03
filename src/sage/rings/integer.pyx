@@ -151,7 +151,7 @@ from cpython.object cimport *
 from libc.stdint cimport uint64_t
 cimport sage.structure.element
 from sage.structure.element cimport (Element, EuclideanDomainElement,
-        parent_c, coercion_model)
+        parent, coercion_model)
 from sage.structure.parent cimport Parent
 include "sage/ext/python_debug.pxi"
 from sage.libs.cypari2.paridecl cimport *
@@ -911,7 +911,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 c = mpz_cmp((<Integer>left).value, mpz_tmp)
             elif isinstance(right, float):
                 d = right
-                if isnan(d): return op == 3
+                if isnan(d):
+                    return op == Py_NE
                 c = mpz_cmp_d((<Integer>left).value, d)
             else:
                 return coercion_model.richcmp(left, right, op)
@@ -923,7 +924,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 c = mpz_cmp(mpz_tmp, (<Integer>right).value)
             if isinstance(left, float):
                 d = left
-                if isnan(d): return op == 3
+                if isnan(d):
+                    return op == Py_NE
                 c = -mpz_cmp_d((<Integer>right).value, d)
             else:
                 return coercion_model.richcmp(left, right, op)
@@ -1390,8 +1392,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         ::
 
-            sage: digits = range(15)
-            sage: l=[ZZ(i).digits(15,digits) for i in range(100)]
+            sage: digits = list(range(15))
+            sage: l = [ZZ(i).digits(15,digits) for i in range(100)]
             sage: l[16]
             [1, 1]
 
@@ -2028,7 +2030,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         try:
             nn = pyobject_to_long(n)
         except TypeError:
-            s = parent_c(n)(self)
+            s = parent(n)(self)
             return s**n
         except OverflowError:
             if mpz_cmp_si(_self.value, 1) == 0:
@@ -3346,7 +3348,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n.__float__()
             -57.0
             sage: type(n.__float__())
-            <type 'float'>
+            <... 'float'>
         """
         return mpz_get_d_nearest(self.value)
 
@@ -3683,7 +3685,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef n_factor_t f
 
         if mpz_sgn(self.value) == 0:
-            raise ArithmeticError("Prime factorization of 0 not defined.")
+            raise ArithmeticError("factorization of 0 is not defined")
 
         if mpz_sgn(self.value) > 0:
             n    = self
@@ -3889,7 +3891,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         -  ``p`` - an integer at least 2.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: n = 60
             sage: n.valuation(2)
@@ -3928,7 +3930,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         -  ``u_p(self)`` - ``self`` / `p^{v_p(\mathrm{self})}`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: n = 60
             sage: n.val_unit(2)
@@ -4394,7 +4396,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: (-64).perfect_power()
             (-4, 3)
         """
-        parians = self._pari_().ispower()
+        parians = self.__pari__().ispower()
         return Integer(parians[1]), Integer(parians[0])
 
     def global_height(self, prec=None):
@@ -4751,9 +4753,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 proof = get_flag(proof, "arithmetic")
 
             if proof:
-                n, pari_p = self._pari_().isprimepower()
+                n, pari_p = self.__pari__().isprimepower()
             else:
-                n, pari_p = self._pari_().ispseudoprimepower()
+                n, pari_p = self.__pari__().ispseudoprimepower()
 
             if n:
                 return (Integer(pari_p), smallInteger(n)) if get_data else True
@@ -4830,9 +4832,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             from sage.structure.proof.proof import get_flag
             proof = get_flag(proof, "arithmetic")
         if proof:
-            return self._pari_().isprime()
+            return self.__pari__().isprime()
         else:
-            return self._pari_().ispseudoprime()
+            return self.__pari__().ispseudoprime()
 
     cdef bint _pseudoprime_is_prime(self, proof) except -1:
         """
@@ -4854,7 +4856,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             from sage.structure.proof.proof import get_flag
             proof = get_flag(proof, "arithmetic")
         if proof:
-            return self._pari_().isprime()
+            return self.__pari__().isprime()
         else:
             return True
 
@@ -4879,7 +4881,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
         """
         cdef Integer n = self if self >= 0 else -self
-        return n._pari_().isprime()
+        return n.__pari__().isprime()
 
     def is_pseudoprime(self):
         r"""
@@ -4899,7 +4901,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: z.is_pseudoprime()
             False
         """
-        return self._pari_().ispseudoprime()
+        return self.__pari__().ispseudoprime()
 
     def is_pseudoprime_power(self, get_data=False):
         r"""
@@ -5302,7 +5304,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 144168.next_probable_prime()
             144169
         """
-        return Integer( self._pari_().nextprime(True) )
+        return Integer( self.__pari__().nextprime(True) )
 
     def next_prime(self, proof=None):
         r"""
@@ -5338,9 +5340,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             1009
         """
         # Use PARI to compute the next *pseudo*-prime
-        p = Integer(self._pari_().nextprime(True))
+        p = Integer(self.__pari__().nextprime(True))
         while not p._pseudoprime_is_prime(proof):
-            p = Integer(p._pari_().nextprime(True))
+            p = Integer(p.__pari__().nextprime(True))
         return p
 
     def previous_prime(self, proof=None):
@@ -5357,7 +5359,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
           configuration variables to determine which alternative to use (see
           :mod:`proof.arithmetic` or :mod:`sage.structure.proof`).
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             - :meth:`next_prime`
 
@@ -5385,10 +5387,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if mpz_cmp_ui(self.value, 2) <= 0:
             raise ValueError("no prime less than 2")
         cdef Integer p = self-1
-        p = Integer(p._pari_().precprime())
+        p = Integer(p.__pari__().precprime())
         while not p._pseudoprime_is_prime(proof):
             mpz_sub_ui(p.value, p.value, 1)
-            p = Integer(p._pari_().precprime())
+            p = Integer(p.__pari__().precprime())
         return p
 
     def next_prime_power(self, proof=None):
@@ -5580,16 +5582,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 0.is_squarefree()
             False
         """
-        return self._pari_().issquarefree()
+        return self.__pari__().issquarefree()
 
-    cpdef _pari_(self):
+    cpdef __pari__(self):
         """
         Returns the PARI version of this integer.
 
         EXAMPLES::
 
             sage: n = 9390823
-            sage: m = n._pari_(); m
+            sage: m = n.__pari__(); m
             9390823
             sage: type(m)
             <type 'sage.libs.cypari2.gen.Gen'>
@@ -5597,7 +5599,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         TESTS::
 
             sage: n = 10^10000000
-            sage: m = n._pari_() ## crash from trac 875
+            sage: m = n.__pari__() ## crash from trac 875
             sage: m % 1234567
             1041334
 
@@ -5751,7 +5753,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Returns the integer floor of the square root of self, or raises an
         ``ValueError`` if self is negative.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = Integer(5)
             sage: a.isqrt()
@@ -6221,7 +6223,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         Return the multiplicative inverse of self, as a rational number.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: n = 10
             sage: 1/n
@@ -6334,7 +6336,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         Return the greatest common divisor of self and `n`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: gcd(-1,1)
             1
@@ -6551,7 +6553,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 raise OverflowError("m must fit in an unsigned long")
             return x
         elif algorithm == 'pari':
-            return the_integer_ring(self._pari_().binomial(mm))
+            return the_integer_ring(self.__pari__().binomial(mm))
         else:
             raise ValueError("algorithm must be one of: 'pari', 'mpir'")
 

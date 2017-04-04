@@ -3787,7 +3787,7 @@ class Polyhedron_base(Element):
             sage: square = polytopes.hypercube(2);  square
             A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices
             sage: egyptian_pyramid = square.pyramid();  egyptian_pyramid
-            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 5 vertices
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 5 vertices
             sage: egyptian_pyramid.n_vertices()
             5
             sage: for v in egyptian_pyramid.vertex_generator(): print(v)

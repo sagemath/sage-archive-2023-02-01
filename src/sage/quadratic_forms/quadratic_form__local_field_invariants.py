@@ -621,7 +621,7 @@ def is_hyperbolic(self, p):
     if p == 2:
         return (QQ(self.det() * (-1) ** m).is_padic_square(p) and
                 self.hasse_invariant(p) ==
-                hilbert_symbol(-1, -1, p) ** m.binomial(2))
+                (-1) ** m.binomial(2))  # here -1 is hilbert_symbol(-1,-1,2)
 
     return (QQ(self.det() * (-1) ** m).is_padic_square(p) and
             self.hasse_invariant(p) == 1)
@@ -745,7 +745,7 @@ def anisotropic_primes(self):
     """
     Return a list with all of the anisotropic primes of the quadratic form.
 
-    The infinite prime is denoted by `-1`.
+    The infinite place is denoted by `-1`.
 
     EXAMPLES::
 
@@ -837,12 +837,10 @@ def compute_definiteness(self):
     n = self.dim()
     M = self.matrix()
 
-
     ## Deal with the zero-diml form
     if n == 0:
         self.__definiteness_string = "zero"
         return
-
 
     sig_pos, sig_neg, sig_zer = self.signature_vector()
 

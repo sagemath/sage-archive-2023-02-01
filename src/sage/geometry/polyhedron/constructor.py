@@ -479,6 +479,9 @@ def Polyhedron(vertices=None, rays=None, lines=None,
                 elif common_ring is RR:   # DWIM: replace with RDF
                     base_ring = RDF
                     convert = True
+                elif common_ring is float:
+                    base_ring = RDF
+                    convert = True
                 else:
                     base_ring = common_ring
                     convert = True

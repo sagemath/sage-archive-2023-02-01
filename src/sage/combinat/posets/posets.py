@@ -5641,10 +5641,10 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = posets.AntichainPoset(3)
             sage: Q = P.order_polytope();Q
-            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 8 vertices
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices
             sage: P = posets.PentagonPoset()
             sage: Q = P.order_polytope();Q
-            A 5-dimensional polyhedron in QQ^5 defined as the convex hull of 8 vertices
+            A 5-dimensional polyhedron in ZZ^5 defined as the convex hull of 8 vertices
 
             sage: P = Poset([[1,2,3],[[1,2],[1,3]]])
             sage: Q = P.order_polytope()
@@ -5659,13 +5659,13 @@ class FinitePoset(UniqueRepresentation, Parent):
            Discrete Comput. Geom. (1986), :doi:`10.1007/BF02187680`
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
-        ineqs = [[0] + [ZZ(j==v)-ZZ(j==u) for j in self]
-                 for u,v,w in self.hasse_diagram().edges()]
+        ineqs = [[0] + [ZZ(j==v) - ZZ(j==u) for j in self]
+                 for u, v, w in self.hasse_diagram().edges()]
         for i in self.maximal_elements():
             ineqs += [[1] + [-ZZ(j==i) for j in self]]
         for i in self.minimal_elements():
             ineqs += [[0] + [ZZ(j==i) for j in self]]
-        return Polyhedron(ieqs=ineqs)
+        return Polyhedron(ieqs=ineqs, base_ring=ZZ)
 
     def chain_polytope(self):
         r"""
@@ -5692,16 +5692,17 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = posets.AntichainPoset(3)
             sage: Q = P.chain_polytope();Q
-            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 8 vertices
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices
             sage: P = posets.PentagonPoset()
             sage: Q = P.chain_polytope();Q
-            A 5-dimensional polyhedron in QQ^5 defined as the convex hull of 8 vertices
+            A 5-dimensional polyhedron in ZZ^5 defined as the convex hull of 8 vertices
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
-        ineqs=[[1]+[-ZZ(j in chain) for j in self] for chain in self.maximal_chains()]
+        ineqs = [[1] + [-ZZ(j in chain) for j in self]
+               for chain in self.maximal_chains()]
         for i in self:
-            ineqs+=[[0]+[ZZ(j==i) for j in self]]
-        return Polyhedron(ieqs=ineqs)
+            ineqs += [[0] + [ZZ(j==i) for j in self]]
+        return Polyhedron(ieqs=ineqs, base_ring=ZZ)
 
     def zeta_polynomial(self):
         r"""

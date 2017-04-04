@@ -51,24 +51,29 @@ AUTHOR:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+# Keep OLD division semantics for Python 2 compatibility, such that
+# lazy imports support old and true division.
 from __future__ import absolute_import
 
+cimport cython
 from cpython.object cimport PyObject_RichCompare
+from cpython.number cimport PyNumber_TrueDivide, PyNumber_Power, PyNumber_Index
 
 import os
 from six.moves import cPickle as pickle
-import operator
 import inspect
 from . import sageinspect
 
 from .lazy_import_cache import get_cache_file
 
-cdef binop(op, left, right):
-    if isinstance(left, LazyImport):
-        left = (<LazyImport>left)._get_object()
-    if isinstance(right, LazyImport):
-        right = (<LazyImport>right)._get_object()
-    return op(left, right)
+
+cdef inline obj(x):
+    if isinstance(x, LazyImport):
+        return (<LazyImport>x)._get_object()
+    else:
+        return x
+
 
 # boolean to determine whether Sage is still starting up
 cdef bint startup_guard = True
@@ -120,18 +125,25 @@ cpdef test_fake_startup():
         sage: from sage.misc.lazy_import import lazy_import
         sage: lazy_import('sage.rings.all', 'ZZ', 'my_ZZ')
         sage: my_ZZ(123)
-        -------------------------------------------------------------------------------
-        Resolving lazy import ZZ during startup
-        Calling stack:
-        ...
-        -------------------------------------------------------------------------------
-        123
+        Traceback (most recent call last):
+          File "/usr/local/src/sage-config/local/lib/python2.7/site-packages/sage/doctest/forker.py", line 498, in _run
+            self.compile_and_execute(example, compiler, test.globs)
+          File "/usr/local/src/sage-config/local/lib/python2.7/site-packages/sage/doctest/forker.py", line 861, in compile_and_execute
+            exec(compiled, globs)
+          File "<doctest sage.misc.lazy_import.test_fake_startup[3]>", line 1, in <module>
+            my_ZZ(Integer(123))
+          File "sage/misc/lazy_import.pyx", line 346, in sage.misc.lazy_import.LazyImport.__call__ (build/cythonized/sage/misc/lazy_import.c:3495)
+            return self._get_object()(*args, **kwds)
+          File "sage/misc/lazy_import.pyx", line 210, in sage.misc.lazy_import.LazyImport._get_object (build/cythonized/sage/misc/lazy_import.c:2139)
+            raise RuntimeError(f"resolving lazy import {self._name} during startup")
+        RuntimeError: resolving lazy import ZZ during startup
         sage: sage.misc.lazy_import.finish_startup()
     """
     global startup_guard
     startup_guard = True
 
 
+@cython.final
 cdef class LazyImport(object):
     """
     EXAMPLES::
@@ -147,16 +159,15 @@ cdef class LazyImport(object):
         ...
         TypeError: no conversion of this rational to integer
     """
-
-    cdef readonly _object
+    cdef readonly _object  # The actual object if imported, None otherwise
     cdef _module
     cdef _name
     cdef _as_name
     cdef _namespace
-    cdef _at_startup
+    cdef bint _at_startup
     cdef _deprecation
 
-    def __init__(self, module, name, as_name=None, namespace=None, at_startup=False, deprecation=None):
+    def __init__(self, module, name, as_name=None, at_startup=False, namespace=None, deprecation=None):
         """
         EXAMPLES::
 
@@ -167,25 +178,17 @@ cdef class LazyImport(object):
             sage: my_isprime(55)
             False
         """
+        self._object = None
         self._module = module
         self._name = name
-        self._object = None
-        self._as_name = as_name
+        self._as_name = name if as_name is None else as_name
         self._namespace = namespace
         self._at_startup = at_startup
         self._deprecation = deprecation
 
-    cpdef _get_object(self, owner=None):
+    cpdef _get_object(self):
         """
         Return the wrapped object, importing it if necessary.
-
-        INPUT:
-
-        - ``owner`` -- ``None`` or the class (or subclass thereof)
-          which contains this :class:`LazyImport` object in its
-          ``__dict__``.
-        - ``at_startup`` -- a boolean (default: False)
-          whether the lazy import is supposed to be resolved at startup time.
 
         OUTPUT:
 
@@ -205,70 +208,30 @@ cdef class LazyImport(object):
             sage: my_integer_ring
             Option ``at_startup=True`` for lazy import ZZ not needed anymore
             Integer Ring
-
-        .. NOTE::
-
-           For a :class:`LazyImport` object that appears in a class
-           namespace, we need to do something special. Indeed, the
-           class namespace dictionary at the time of the class
-           definition is not the one that actually gets used. Thus,
-           when this function is called, :meth:`__get__`, ``owner``
-           should be set to the ``owner`` class passed into
-           ``__get__``::
-
-               sage: class Foo(object):
-               ....:     lazy_import('sage.all', 'plot')
-               sage: class Bar(Foo):
-               ....:     pass
-               sage: type(Foo.__dict__['plot'])
-               <type 'sage.misc.lazy_import.LazyImport'>
-
-           Here is how :meth:`_get_object` is called internally upon
-           ``Bar.plot``::
-
-               sage: Foo.__dict__['plot']._get_object(Bar)
-               <function plot at ...>
-
-           Now ``Bar`` has been replaced in the dictionary of ``Foo``::
-
-               sage: type(Foo.__dict__['plot'])
-               <... 'function'>
         """
         if self._object is not None:
             return self._object
 
         if startup_guard and not self._at_startup:
-            import sys, traceback
-            print('-' * 79)
-            print('Resolving lazy import {0} during startup'.format(self._name))
-            print('Calling stack:')
-            traceback.print_stack(None, None, sys.stdout)
-            print('-' * 79)
+            raise RuntimeError(f"resolving lazy import {self._name} during startup")
         elif self._at_startup and not startup_guard:
             print('Option ``at_startup=True`` for lazy import {0} not needed anymore'.format(self._name))
         self._object = getattr(__import__(self._module, {}, {}, [self._name]), self._name)
-        alias = self._as_name or self._name
+        name = self._as_name
         if self._deprecation is not None:
             from sage.misc.superseded import deprecation
             try:
                 trac_number, message = self._deprecation
             except TypeError:
                 trac_number = self._deprecation
-                message = None
-            if message is None:
                 message = ('\nImporting {name} from here is deprecated. ' +
                     'If you need to use it, please import it directly from' +
-                    ' {module_name}').format(name=alias, module_name=self._module)
+                    ' {module_name}').format(name=name, module_name=self._module)
             deprecation(trac_number, message)
-        if owner is None:
-            if self._namespace and self._namespace[alias] is self:
-                self._namespace[alias] = self._object
-        else:
-            from inspect import getmro
-            for cls in getmro(owner):
-                if cls.__dict__.get(alias, None) is self:
-                    setattr(cls, alias, self._object)
-                    break
+        # Replace the lazy import in the namespace by the actual object
+        if self._namespace is not None:
+            if self._namespace.get(name) is self:
+                self._namespace[name] = self._object
         return self._object
 
     def _get_deprecation_ticket(self):
@@ -467,11 +430,7 @@ cdef class LazyImport(object):
             sage: lazy_ZZ == 1.parent()
             True
         """
-        if isinstance(left, LazyImport):
-            left = (<LazyImport>left)._get_object()
-        if isinstance(right, LazyImport):
-            right = (<LazyImport>right)._get_object()
-        return PyObject_RichCompare(left, right, op)
+        return PyObject_RichCompare(obj(left), obj(right), op)
 
     def __len__(self):
         """
@@ -516,11 +475,49 @@ cdef class LazyImport(object):
         :class:`LazyImport` object with the actual object. See the
         documentation of :meth:`_get_object` for an explanation of
         this.
+
+        .. NOTE::
+
+           For a :class:`LazyImport` object that appears in a class
+           namespace, we need to do something special. Indeed, the
+           class namespace dictionary at the time of the class
+           definition is not the one that actually gets used. Thus,
+           ``__get__`` needs to manually modify the class dict::
+
+               sage: class Foo(object):
+               ....:     lazy_import('sage.all', 'plot')
+               sage: class Bar(Foo):
+               ....:     pass
+               sage: type(Foo.__dict__['plot'])
+               <type 'sage.misc.lazy_import.LazyImport'>
+
+           We access the ``plot`` method::
+
+               sage: Bar.plot
+               <unbound method Bar.plot>
+
+           Now ``plot`` has been replaced in the dictionary of ``Foo``::
+
+               sage: type(Foo.__dict__['plot'])
+               <... 'function'>
         """
-        obj = self._get_object(owner)
-        if hasattr(obj, "__get__"):
-            return obj.__get__(instance, owner)
-        return obj
+        # Don't use the namespace of the class definition
+        self._namespace = None
+        obj = self._get_object()
+
+        name = self._as_name
+        for cls in inspect.getmro(owner):
+            if cls.__dict__.get(name) is self:
+                setattr(cls, name, obj)
+                break
+
+        # Check whether the imported object is itself a descriptor
+        try:
+            get = obj.__get__
+        except AttributeError:
+            return obj
+        else:
+            return get(instance, owner)
 
     def __getitem__(self, key):
         """
@@ -603,7 +600,7 @@ cdef class LazyImport(object):
             sage: foo + 1
             11
         """
-        return binop(operator.add, left, right)
+        return obj(left) + obj(right)
 
     def __sub__(left, right):
         """
@@ -616,7 +613,7 @@ cdef class LazyImport(object):
             sage: foo - 1
             9
         """
-        return binop(operator.sub, left, right)
+        return obj(left) - obj(right)
 
     def __mul__(left, right):
         """
@@ -629,7 +626,23 @@ cdef class LazyImport(object):
             sage: foo * 2
             20
         """
-        return binop(operator.mul, left, right)
+        return obj(left) * obj(right)
+
+    def __matmul__(left, right):
+        """
+        TESTS::
+
+            sage: from sympy import Matrix
+            sage: sage.all.foo = Matrix([[1,1],[0,1]])
+            sage: lazy_import('sage.all', 'foo')
+            sage: type(foo)
+            <type 'sage.misc.lazy_import.LazyImport'>
+            sage: foo.__matmul__(foo)
+            Matrix([
+            [1, 2],
+            [0, 1]])
+        """
+        return obj(left) @ obj(right)
 
     def __div__(left, right):
         """
@@ -642,7 +655,7 @@ cdef class LazyImport(object):
             sage: foo / 2
             5
         """
-        return binop(operator.div, left, right)
+        return obj(left) / obj(right)
 
     def __floordiv__(left, right):
         """
@@ -655,7 +668,7 @@ cdef class LazyImport(object):
             sage: foo  // 3
             3
         """
-        return binop(operator.floordiv, left, right)
+        return obj(left) // obj(right)
 
     def __truediv__(left, right):
         """
@@ -668,7 +681,7 @@ cdef class LazyImport(object):
             sage: operator.truediv(foo, 3)
             10/3
         """
-        return binop(operator.truediv, left, right)
+        return PyNumber_TrueDivide(obj(left), obj(right))
 
     def __pow__(left, right, mod):
         """
@@ -681,14 +694,7 @@ cdef class LazyImport(object):
             sage: foo ** 2
             100
         """
-        if isinstance(left, LazyImport):
-            left = (<LazyImport>left)._get_object()
-        if isinstance(right, LazyImport):
-            right = (<LazyImport>right)._get_object()
-        if mod is None:
-            return left ** right
-        else:
-            return left.__pow__(right, mod)
+        return PyNumber_Power(obj(left), obj(right), obj(mod))
 
     def __mod__(left, right):
         """
@@ -701,7 +707,7 @@ cdef class LazyImport(object):
             sage: foo % 7
             3
         """
-        return binop(operator.mod, left, right)
+        return obj(left) % obj(right)
 
     def __lshift__(left, right):
         """
@@ -714,7 +720,7 @@ cdef class LazyImport(object):
             sage: foo << 3
             80
         """
-        return binop(operator.lshift, left, right)
+        return obj(left) << obj(right)
 
     def __rshift__(left, right):
         """
@@ -727,7 +733,7 @@ cdef class LazyImport(object):
             sage: foo >> 2
             2
         """
-        return binop(operator.rshift, left, right)
+        return obj(left) >> obj(right)
 
     def __and__(left, right):
         """
@@ -740,7 +746,7 @@ cdef class LazyImport(object):
             sage: foo & 7
             2
         """
-        return binop(operator.and_, left, right)
+        return obj(left) & obj(right)
 
     def __or__(left, right):
         """
@@ -753,7 +759,7 @@ cdef class LazyImport(object):
             sage: foo | 7
             15
         """
-        return binop(operator.or_, left, right)
+        return obj(left) | obj(right)
 
     def __xor__(left, right):
         """
@@ -766,7 +772,7 @@ cdef class LazyImport(object):
             sage: foo ^^ 7
             13
         """
-        return binop(operator.xor, left, right)
+        return obj(left) ^ obj(right)
 
     def __neg__(self):
         """
@@ -909,7 +915,7 @@ cdef class LazyImport(object):
             sage: range(100)[foo]
             10
         """
-        return operator.index(self._get_object())
+        return PyNumber_Index(self._get_object())
 
     def __copy__(self):
         """
@@ -966,7 +972,8 @@ cdef class LazyImport(object):
         return issubclass(x, self._get_object())
 
 
-def lazy_import(module, names, _as=None, namespace=None, bint overwrite=True, at_startup=False, deprecation=None):
+def lazy_import(module, names, as_=None, *,
+    at_startup=False, namespace=None, overwrite=None, deprecation=None):
     """
     Create a lazy import object and inject it into the caller's global
     namespace. For the purposes of introspection and calling, this is
@@ -980,17 +987,15 @@ def lazy_import(module, names, _as=None, namespace=None, bint overwrite=True, at
     - ``names`` -- a string or list of strings representing the names to
       import from module
 
-    - ``_as`` -- (optional) a string or list of strings representing the
-      aliases of the names imported
-
-    - ``namespace`` -- the namespace where importing the names; by default,
-      import the names to current namespace
-
-    - ``overwrite`` -- (default: ``True``) if set to ``True`` and a name is
-      already in the namespace, overwrite it with the lazy_import-ed name
+    - ``as_`` -- (optional) a string or list of strings representing the
+      names of the objects in the importing module. This is analogous to
+      ``from ... import ... as ...``.
 
     - ``at_startup`` -- a boolean (default: ``False``);
       whether the lazy import is supposed to be resolved at startup time
+
+    - ``namespace`` -- the namespace where importing the names; by default,
+      import the names to current namespace
 
     - ``deprecation`` -- (optional) if not ``None``, a deprecation warning
       will be issued when the object is actually imported;
@@ -1060,21 +1065,26 @@ def lazy_import(module, names, _as=None, namespace=None, bint overwrite=True, at
         See http://trac.sagemath.org/14275 for details.
         5-adic Field with capped relative precision 20
     """
-    if _as is None:
-        _as = names
-    if isinstance(names, str):
+    if overwrite is not None:
+        from sage.misc.superseded import deprecation
+        deprecation(22755, "lazy_import(overwrite=False) is no longer supported")
+    if as_ is None:
+        as_ = names
+    if isinstance(names, basestring):
         names = [names]
-        _as = [_as]
+        as_ = [as_]
+    else:
+        names = list(names)
+        as_ = list(as_)
     if namespace is None:
         namespace = inspect.currentframe().f_locals
     if "*" in names:
         ix = names.index("*")
-        names[ix:ix+1] = get_star_imports(module)
-        _as[ix:ix+1] = [None] * (len(names) - len(_as) + 1)
-    for name, alias in zip(names, _as):
-        if not overwrite and (alias or name) in namespace:
-            continue
-        namespace[alias or name] = LazyImport(module, name, alias, namespace, at_startup, deprecation)
+        all = get_star_imports(module)
+        names[ix:ix+1] = all
+        as_[ix:ix+1] = all
+    for name, alias in zip(names, as_):
+        namespace[alias] = LazyImport(module, name, alias, at_startup, namespace, deprecation)
 
 
 star_imports = None

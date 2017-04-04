@@ -577,11 +577,8 @@ def representation_vector_list(self, B, maxvectors=10**8):
         sage: R.representation_vector_list(10)
         Traceback (most recent call last):
         ...
-        TypeError: not available when the form is not positive definite
+        PariError: domain error in minim0: form is not positive definite
     """
-    if not self.is_positive_definite():
-        raise TypeError('not available when the form is not positive definite')
-
     n, m, vs = self.__pari__().qfminim(2 * (B - 1), maxvectors)
 
     if n != 2 * len(vs):

@@ -69,7 +69,7 @@ from .lazy_import_cache import get_cache_file
 
 
 cdef inline obj(x):
-    if isinstance(x, LazyImport):
+    if type(x) is LazyImport:
         return (<LazyImport>x)._get_object()
     else:
         return x

@@ -1773,7 +1773,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.plot(element_labels=elem_labels, heights=heights)
             Graphics object consisting of 8 graphics primitives
 
-        Plot of the empy poset::
+        Plot of the empty poset::
 
             sage: P = Poset({})
             sage: P.plot()

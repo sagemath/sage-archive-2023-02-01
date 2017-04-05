@@ -17,9 +17,10 @@ intended effect of your patch.
 
 We exclude the known files and check to see that there are no others::
 
-    sage: import os
+    sage: import os, sys
+    sage: python_version = "{}.{}".format(*sys.version_info[:2])
     sage: allowed = [os.path.join("lib","python","threading.py")]
-    sage: allowed.append(os.path.join("lib","python","multiprocessing"))
+    sage: allowed.append(os.path.join("lib","python"+python_version,"multiprocessing"))
     sage: allowed.append(os.path.join("sage","doctest"))
     sage: allowed.append(os.path.join("bin","sage-runtests"))
     sage: allowed.append(os.path.join("site-packages","IPython"))

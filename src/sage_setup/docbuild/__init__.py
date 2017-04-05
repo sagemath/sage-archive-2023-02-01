@@ -882,7 +882,7 @@ class ReferenceSubBuilder(DocBuilder):
             for module in self.get_modules(filename):
                 yield module
 
-    def get_new_and_updated_modules(self, save=False):
+    def get_new_and_updated_modules(self):
         """
         Return an iterator for all new and updated modules that appear in
         the toctrees, and remove obsolete old modules.
@@ -937,22 +937,6 @@ class ReferenceSubBuilder(DocBuilder):
         logger.info("Found %d new modules", len(new_modules))
         logger.info("Found %d updated modules", len(updated_modules))
         logger.info("Removed %d obsolete modules", len(removed_modules))
-
-    def get_newly_included_modules(self, save=False):
-        """
-        Returns an iterator for all modules that appear in the
-        toctrees that don't appear in the cache.
-        """
-        cache = self.get_cache()
-        new_modules = 0
-        for module in self.get_all_included_modules():
-            if module not in cache:
-                cache[module] = True
-                new_modules += 1
-                yield module
-        logger.info("Found %d newly included modules", new_modules)
-        if save:
-            self.save_cache()
 
     def print_new_and_updated_modules(self):
         """

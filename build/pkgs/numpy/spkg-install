@@ -44,7 +44,7 @@ export NUMPY_FCONFIG="config_fc --noopt --noarch"
 
 ################################################
 
-rm -rf "$SAGE_LOCAL/lib/python/site-packages/numpy"
+rm -rf "$SAGE_LOCAL/lib/python*/site-packages/numpy"
 
 # Program around a bug in SciPY's distutils.
 unset CFLAGS

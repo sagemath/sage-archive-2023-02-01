@@ -459,9 +459,88 @@ class Polyhedron_base(Element):
             sage: Q._is_subpolyhedron(P)
             True
         """
-        return all( other_H.contains(self_V)
-                    for other_H in other.Hrepresentation() \
+        return all(other_H.contains(self_V)
+                    for other_H in other.Hrepresentation()
                     for self_V in self.Vrepresentation())
+
+    @cached_method
+    def vertex_facet_graph(self, labels=True):
+        r"""
+        Return the vertex-facet graph.
+
+        This function constructs a directed bipartite graph.
+        The nodes of the graph correspond to the vertices of the polyhedron
+        and the facets of the polyhedron. There is an directed edge
+        from a vertex to a face if and only if the vertex is incident to the face.
+
+        INPUT:
+
+        - ``labels`` -- boolean (default: ``True``); decide how the nodes
+          of the graph are labelled. Either with the original vertices/facets
+          of the Polyhedron or with integers.
+
+        OUTPUT:
+
+        - a bipartite DiGraph. If ``labels`` is ``True``, then the nodes
+          of the graph will actually be the vertices and facets of ``self``,
+          otherwise they will be integers.
+
+        .. SEEALSO::
+
+            :meth:`combinatorial_automorphism_group`,
+            :meth:`is_combinatorially_isomorphic`.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: G = P.vertex_facet_graph(); G
+            Digraph on 14 vertices
+            sage: G.vertices(key = lambda v: str(v))
+            [A vertex at (-1, -1, -1),
+             A vertex at (-1, -1, 1),
+             A vertex at (-1, 1, -1),
+             A vertex at (-1, 1, 1),
+             A vertex at (1, -1, -1),
+             A vertex at (1, -1, 1),
+             A vertex at (1, 1, -1),
+             A vertex at (1, 1, 1),
+             An inequality (-1, 0, 0) x + 1 >= 0,
+             An inequality (0, -1, 0) x + 1 >= 0,
+             An inequality (0, 0, -1) x + 1 >= 0,
+             An inequality (0, 0, 1) x + 1 >= 0,
+             An inequality (0, 1, 0) x + 1 >= 0,
+             An inequality (1, 0, 0) x + 1 >= 0]
+            sage: G.automorphism_group().is_isomorphic(P.face_lattice().hasse_diagram().automorphism_group())
+            True
+            sage: O = polytopes.octahedron(); O
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 6 vertices
+            sage: O.vertex_facet_graph()
+            Digraph on 14 vertices
+            sage: H = O.vertex_facet_graph()
+            sage: G.is_isomorphic(H)
+            False
+            sage: G.reverse_edges(G.edges())
+            sage: G.is_isomorphic(H)
+            True
+
+        """
+
+        # We construct the edges and remove the columns that have all 1s;
+        # those correspond to faces, that contain all vertices (which happens
+        # if the polyhedron is not full-dimensional)
+        G = DiGraph()
+        if labels:
+            edges = [[v, f] for f in self.Hrep_generator()
+                     if any(not(f.is_incident(v)) for v in self.Vrep_generator())
+                     for v in self.vertices() if f.is_incident(v)]
+        else:
+            #  here we obtain this incidence information from the incidence matrix
+            M = self.incidence_matrix()
+            edges = [[i, M.ncols()+j] for i, column in enumerate(M.columns())
+                     if any(entry != 1 for entry in column)
+                     for j in range(M.nrows()) if M[j, i] == 1]
+        G.add_edges(edges)
+        return G
 
     def plot(self,
              point=None, line=None, polygon=None,  # None means unspecified by the user
@@ -5043,30 +5122,52 @@ class Polyhedron_base(Element):
         return tuple(points)
 
     @cached_method
-    def combinatorial_automorphism_group(self):
+    def combinatorial_automorphism_group(self, vertex_graph_only=False):
         """
-        Computes the combinatorial automorphism group of the vertex
-        graph of the polyhedron.
+        Computes the combinatorial automorphism group.
+
+        If ``vertex_graph_only`` is ``True``,  the automorphism group
+        of the vertex-edge graph of the polyhedron is returned. Otherwise
+        the automorphism group of the vertex-facet graph, which is
+        isomorphic to the automorphism group of the face lattice is returned.
+
+        INPUT:
+
+        - ``vertex_graph_only`` -- boolean (default: ``False``); whether
+          to return the automorphism group of the vertex edges graph or
+          of the lattice.
 
         OUTPUT:
 
         A
-        :class:`PermutationGroup<sage.groups.perm_gps.permgroup.PermutationGroup_generic>`
+        :class:`PermutationGroup<sage.groups.perm_gps.permgroup.PermutationGroup_generic_with_category'>`
         that is isomorphic to the combinatorial automorphism group is
         returned.
 
-        Note that in Sage, permutation groups always act on positive
-        integers while ``self.Vrepresentation()`` is indexed by
-        nonnegative integers. The indexing of the permutation group is
-        chosen to be shifted by ``+1``. That is, ``i`` in the
-        permutation group corresponds to the V-representation object
-        ``self.Vrepresentation(i-1)``.
+        - if ``vertex_graph_only`` is ``True``:
+          The automorphism group of the vertex-edge graph of the polyhedron
+
+        - if ``vertex_graph_only`` is ``False`` (default):
+          The automorphism group of the vertex-facet graph of the polyhedron,
+          see :meth:`vertex_facet_graph`. This group is isomorphic to the
+          automorphism group of the face lattice of the polyhedron.
+
+        NOTE:
+
+            Depending on ``vertex_graph_only``, this method returns groups
+            that are not neccessarily isomorphic, see the examples below.
+
+        .. SEEALSO::
+
+            :meth:`is_combinatorially_isomorphic`,
+            :meth:`graph`,
+            :meth:`vertex_facet_graph`.
 
         EXAMPLES::
 
             sage: quadrangle = Polyhedron(vertices=[(0,0),(1,0),(0,1),(2,3)])
-            sage: quadrangle.combinatorial_automorphism_group()
-            Permutation Group with generators [(2,3), (1,2)(3,4)]
+            sage: quadrangle.combinatorial_automorphism_group().is_isomorphic(groups.permutation.Dihedral(4))
+            True
             sage: quadrangle.restricted_automorphism_group()
             Permutation Group with generators [()]
 
@@ -5074,18 +5175,43 @@ class Polyhedron_base(Element):
         with rays, and lines with lines::
 
             sage: P = Polyhedron(vertices=[(1,0,0), (1,1,0)], rays=[(1,0,0)], lines=[(0,0,1)])
-            sage: P.combinatorial_automorphism_group()
-            Permutation Group with generators [(3,4)]
-        """
-        G = Graph()
-        for u,v in self.vertex_graph().edges(labels=False):
-            i = u.index()
-            j = v.index()
-            G.add_edge(i+1, j+1, (u.type(), v.type()) )
+            sage: P.combinatorial_automorphism_group(vertex_graph_only=True)
+            Permutation Group with generators [(A vertex at (1,0,0),A vertex at (1,1,0))]
 
+        This shows an example of two polytopes whose vertex-edge graphs are isomorphic,
+        but their face_lattices are not isomorphic::
+
+            sage: Q=Polyhedron([[-123984206864/2768850730773, -101701330976/922950243591, -64154618668/2768850730773, -2748446474675/2768850730773],
+            ....: [-11083969050/98314591817, -4717557075/98314591817, -32618537490/98314591817, -91960210208/98314591817],
+            ....: [-9690950/554883199, -73651220/554883199, 1823050/554883199, -549885101/554883199], [-5174928/72012097, 5436288/72012097, -37977984/72012097, 60721345/72012097],
+            ....: [-19184/902877, 26136/300959, -21472/902877, 899005/902877], [53511524/1167061933, 88410344/1167061933, 621795064/1167061933, 982203941/1167061933],
+            ....: [4674489456/83665171433, -4026061312/83665171433, 28596876672/83665171433, -78383796375/83665171433], [857794884940/98972360190089, -10910202223200/98972360190089, 2974263671400/98972360190089, -98320463346111/98972360190089]])
+            sage: C = polytopes.cyclic_polytope(4,8)
+            sage: C.is_combinatorially_isomorphic(Q)
+            False
+            sage: C.combinatorial_automorphism_group(vertex_graph_only=True).is_isomorphic(Q.combinatorial_automorphism_group(vertex_graph_only=True))
+            True
+            sage: C.combinatorial_automorphism_group(vertex_graph_only=False).is_isomorphic(Q.combinatorial_automorphism_group(vertex_graph_only=False))
+            False
+
+        The automorphism group of the face lattice is isomorphic to the combinatorial automorphism group::
+
+            sage: CG = C.face_lattice().hasse_diagram().automorphism_group()
+            sage: C.combinatorial_automorphism_group().is_isomorphic(CG)
+            True
+            sage: QG = Q.face_lattice().hasse_diagram().automorphism_group()
+            sage: Q.combinatorial_automorphism_group().is_isomorphic(QG)
+            True
+
+        """
+        if vertex_graph_only:
+            G = self.graph()
+        else:
+            G = self.vertex_facet_graph()
         group = G.automorphism_group(edge_labels=True)
         self._combinatorial_automorphism_group = group
-        return group
+
+        return self._combinatorial_automorphism_group
 
     @cached_method
     def restricted_automorphism_group(self, output="abstract"):
@@ -5460,12 +5586,17 @@ class Polyhedron_base(Element):
 
         OUTPUT:
 
-          - ``True`` if the two polyhedra are combinatorially isomorphic
-          - ``False`` otherwise
+        - ``True`` if the two polyhedra are combinatorially isomorphic
+        - ``False`` otherwise
+
+        .. SEEALSO::
+
+            :meth:`combinatorial_automorphism_group`,
+            :meth:`vertex_facet_graph`.
 
         REFERENCES:
 
-            For the equivalence of the two algorithms see [KK1995]_, p. 877-878
+        For the equivalence of the two algorithms see [KK1995]_, p. 877-878
 
         EXAMPLES:
 
@@ -5563,26 +5694,8 @@ class Polyhedron_base(Element):
             return False
 
         if algorithm == 'bipartite_graph':
-
-            def get_incidences(P):
-                # This function constructs a directed bipartite graph.
-                # The nodes of the graph are the vertices of the polyhedron
-                # and the facets of the polyhedron. There is an directed edge
-                # from a vertex to a face if the vertex is contained in the face.
-                # We obtain this incidence information from the incidence matrix
-                G = DiGraph()
-                M = P.incidence_matrix()
-                # We construct the edges and remove the columns that have all 1s;
-                # those correspond to faces, that contain all vertices (which happens
-                # if the polyhedron is not full-dimensional)
-                edges = [[i, M.ncols()+j] for i, column in enumerate(M.columns())
-                         if any(entry != 1 for entry in column)
-                         for j in range(M.nrows()) if M[j, i] == 1]
-                G.add_edges(edges)
-                return G
-
-            G_self = get_incidences(self)
-            G_other = get_incidences(other)
+            G_self = self.vertex_facet_graph(False)
+            G_other = other.vertex_facet_graph(False)
 
             return G_self.is_isomorphic(G_other)
         else:

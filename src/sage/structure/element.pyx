@@ -294,14 +294,14 @@ from cpython.ref cimport PyObject
 from sage.ext.stdsage cimport *
 
 import types
-cdef add, sub, mul, truediv, floordiv, mod, pow
+cdef add, sub, mul, truediv, floordiv, mod, matmul, pow
 cdef iadd, isub, imul, itruediv, ifloordiv, imod, ipow
-from operator import (add, sub, mul, truediv, floordiv, mod, pow,
-                      iadd, isub, imul, itruediv, ifloordiv, imod, ipow)
+from operator import (add, sub, mul, truediv, floordiv, mod, matmul, pow,
+                      iadd, isub, imul, itruediv, ifloordiv, imod, imatmul, ipow)
 
 cdef dict _coerce_op_symbols = dict(
-        add='+', sub='-', mul='*', truediv='/', floordiv='//', mod='%', pow='^',
-        iadd='+', isub='-', imul='*', itruediv='/', ifloordiv='//', imod='%', ipow='^')
+        add='+', sub='-', mul='*', truediv='/', floordiv='//', mod='%', matmul='@', pow='^',
+        iadd='+', isub='-', imul='*', itruediv='/', ifloordiv='//', imod='%', imatmul='@', ipow='^')
 
 from sage.structure.richcmp cimport rich_to_bool
 from sage.structure.coerce cimport py_scalar_to_element, coercion_model
@@ -1577,6 +1577,98 @@ cdef class Element(SageObject):
             (42, 42)
         """
         return coercion_model.bin_op(self, n, mul)
+
+    def __matmul__(left, right):
+        """
+        Top-level matrix multiplication operator for :class:`Element`
+        invoking the coercion model.
+
+        See :ref:`element_arithmetic`.
+
+        EXAMPLES::
+
+            sage: from sage.structure.element import Element
+            sage: class MyElement(Element):
+            ....:     def _matmul_(self, other):
+            ....:         return 42
+            sage: e = MyElement(Parent())
+            sage: from operator import matmul
+            sage: matmul(e, e)
+            42
+
+        TESTS::
+
+            sage: e = Element(Parent())
+            sage: matmul(e, e)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for @: '<type 'sage.structure.parent.Parent'>' and '<type 'sage.structure.parent.Parent'>'
+            sage: matmul(1, e)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for @: 'Integer Ring' and '<type 'sage.structure.parent.Parent'>'
+            sage: matmul(e, 1)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for @: '<type 'sage.structure.parent.Parent'>' and 'Integer Ring'
+            sage: matmul(int(1), e)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for @: 'int' and 'sage.structure.element.Element'
+            sage: matmul(e, int(1))
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for @: 'sage.structure.element.Element' and 'int'
+            sage: matmul(None, e)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for @: 'NoneType' and 'sage.structure.element.Element'
+            sage: matmul(e, None)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for @: 'sage.structure.element.Element' and 'NoneType'
+        """
+        cdef int cl = classify_elements(left, right)
+        if HAVE_SAME_PARENT(cl):
+            return (<Element>left)._matmul_(right)
+        if BOTH_ARE_ELEMENT(cl):
+            return coercion_model.bin_op(left, right, matmul)
+
+        try:
+            return coercion_model.bin_op(left, right, matmul)
+        except TypeError:
+            return NotImplemented
+
+    cdef _matmul_(self, other):
+        """
+        Virtual matrix multiplication method for elements with
+        identical parents.
+
+        This default Cython implementation of ``_matmul_`` calls the
+        Python method ``self._matmul_`` if it exists. This method may
+        be defined in the ``ElementMethods`` of the category of the
+        parent. If the method is not found, a ``TypeError`` is raised
+        indicating that the operation is not supported.
+
+        See :ref:`element_arithmetic`.
+
+        EXAMPLES:
+
+        This method is not visible from Python::
+
+            sage: from sage.structure.element import Element
+            sage: e = Element(Parent())
+            sage: e._matmul_(e)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.structure.element.Element' object has no attribute '_matmul_'
+        """
+        try:
+            python_op = (<object>self)._matmul_
+        except AttributeError:
+            raise bin_op_exception('@', self, other)
+        else:
+            return python_op(other)
 
     def __truediv__(left, right):
         """

@@ -118,6 +118,7 @@ from os.path import getmtime
 from .generator import InterpreterGenerator, AUTOGEN_WARN
 from .instructions import *
 from .memory import *
+from .specs.base import *
 from .specs.cdf import *
 from .specs.element import *
 from .specs.python import *
@@ -125,6 +126,26 @@ from .specs.rdf import *
 from .specs.rr import *
 from .storage import *
 from .utils import *
+
+
+# Gather up a list of all interpreter classes imported into this module
+# A better way might be to recursively iterate InterpreterSpec.__subclasses__
+# or to use a registry, but this is fine for now.
+_INTERPRETERS = sorted(filter(lambda c: (isinstance(c, type) and
+                                         issubclass(c, InterpreterSpec) and
+                                         c.name),
+                              globals().values()),
+                       key=lambda c: c.name)
+
+# Tuple of (filename_root, extension, method) where filename_root is the
+# root of the filename to be joined with "_<interpeter_name>".ext and
+# method is the name of a get_ method on InterpreterGenerator that returns
+# the contents of that file
+_INTERPRETER_SOURCES = [
+    ('interp', 'c', 'interpreter'),
+    ('wrapper', 'pxd', 'pxd'),
+    ('wrapper', 'pyx', 'wrapper')
+]
 
 
 def build_interp(interp_spec, dir):
@@ -144,16 +165,11 @@ def build_interp(interp_spec, dir):
 
     ig = InterpreterGenerator(interp_spec)
 
-    interp_files = [
-        ('interp', 'c', ig.get_interpreter()),
-        ('wrapper', 'pxd', ig.get_pxd()),
-        ('wrapper', 'pyx', ig.get_wrapper())
-    ]
-
-    for filename_root, ext, contents in interp_files:
+    for filename_root, ext, method in _INTERPRETER_SOURCES:
         filename = '{}_{}.{}'.format(filename_root, interp_spec.name, ext)
+        method = getattr(ig, 'get_{}'.format(method))
         path = os.path.join(dir, filename)
-        write_if_changed(path, contents)
+        write_if_changed(path, method())
 
 
 def rebuild(dirname, force=False):
@@ -189,20 +205,8 @@ def rebuild(dirname, force=False):
         if getmtime(gen_file) > getmtime(src_file) and not force:
             return
 
-    interp = RDFInterpreter()
-    build_interp(interp, dirname)
-
-    interp = CDFInterpreter()
-    build_interp(interp, dirname)
-
-    interp = RRInterpreter()
-    build_interp(interp, dirname)
-
-    interp = PythonInterpreter()
-    build_interp(interp, dirname)
-
-    interp = ElementInterpreter()
-    build_interp(interp, dirname)
+    for interp in _INTERPRETERS:
+        build_interp(interp(), dirname)
 
     with open(os.path.join(dirname, '__init__.py'), 'w') as f:
         f.write("# " + AUTOGEN_WARN)

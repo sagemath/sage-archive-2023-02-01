@@ -425,9 +425,19 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: L.<x,y> = LieAlgebra(QQ, {('x','y'):{'x':1}})
                 sage: L.is_ideal(L)
                 True
+
+                sage: F = LieAlgebra(QQ, 'F', representation='polynomial')
+                sage: L.is_ideal(F)
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: A must be a finite dimensional Lie algebra
+                 with basis
             """
             if A == self:
                 return True
+            if A not in LieAlgebras(self.base_ring()).FiniteDimensional().WithBasis():
+                raise NotImplementedError("A must be a finite dimensional"
+                                          " Lie algebra with basis")
             B = self.basis()
             AB = A.basis()
             try:

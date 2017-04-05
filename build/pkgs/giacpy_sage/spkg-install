@@ -19,10 +19,10 @@ cd src
 # old giacpy spkg files <0.6 but no dir in case someone put a python version of giacpy.
 echo "Deleting $SAGE_LOCAL/lib/python*/site-packages/giacpy-*"
 rm -f "$SAGE_LOCAL"/lib/python*/site-packages/giacpy-*
-echo "Deleting $SAGE_LOCAL/lib/python/site-packages/giacpy.so"
+echo "Deleting $SAGE_LOCAL/lib/python*/site-packages/giacpy.so"
 rm -f "$SAGE_LOCAL"/lib/python*/site-packages/giacpy.so
 # new giacpy spkg files >0.6
-echo "Deleting $SAGE_LOCAL/lib/python/site-packages/giacpy_sage*"
+echo "Deleting $SAGE_LOCAL/lib/python*/site-packages/giacpy_sage*"
 rm -f "$SAGE_LOCAL"/lib/python*/site-packages/giacpy_sage*
 
 

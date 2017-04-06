@@ -1297,7 +1297,10 @@ def laplace(ex, t, s, algorithm='maxima'):
     - The ``'sympy'`` algorithm returns the tuple (`F`, `a`, ``cond``) where `F` is the Laplace 
       transform of `f(t)`, `Re(s)>a` is the half-plane of convergence, and cond 
       are auxiliary convergence conditions.
-    
+
+    .. SEEALSO::
+        :func:`inverse_laplace`
+            
     EXAMPLES:
 
     We compute a few Laplace transforms::
@@ -1491,7 +1494,10 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
       - ``'sympy'`` - use SymPy
 
       - ``'giac'`` - use Giac
-      
+
+    .. SEEALSO::
+        :func:`laplace`
+              
     EXAMPLES::
 
         sage: var('w, m')

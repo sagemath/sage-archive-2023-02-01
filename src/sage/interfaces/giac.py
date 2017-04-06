@@ -1017,10 +1017,10 @@ class GiacElement(ExpectElement):
         - functions and named constants also present in Sage, where:
             - Sage knows how to translate the function or constant's name
             from Giac's naming scheme through the symbols_table, or
-            - you provide a translation dictionary `locals`.
+            - you provide a translation dictionary ``locals``.
             
-        New conversions can be added using Pynac's `register_symbol`. This is the 
-        recommended approach for library code.    
+        New conversions can be added using Pynac's ``register_symbol``.
+        This is the recommended approach for library code.
 
         Warning: List conversion is slow.
 
@@ -1036,13 +1036,13 @@ class GiacElement(ExpectElement):
         sage: m.trigexpand().sage()
         2*cos(sqrt(-x^2 + 1))*cos(1/x)^2*sin(sqrt(-x^2 + 1)) - 4*cos(sqrt(-x^2 + 1))*cos(1/x)*sin(sqrt(-x^2 + 1)) + 2*cos(sqrt(-x^2 + 1))*sin(sqrt(-x^2 + 1))
 
-        Converting a custom name using the `locals` dictionary::
+        Converting a custom name using the ``locals`` dictionary::
         
         sage: ex = giac('myFun(x)')
         sage: ex._sage_({'myFun': sin})
         sin(x)
         
-        Same but by adding a new entry to the `symbols_table`::
+        Same but by adding a new entry to the ``symbols_table``::
         
         sage: ex = giac('myFun(x)')
         sage: sage.libs.pynac.pynac.register_symbol(sin, {'giac':'myFun'})

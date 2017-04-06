@@ -1294,7 +1294,7 @@ def laplace(ex, t, s, algorithm='maxima'):
     
     NOTES:
     
-    - The ``'sympy'`` algorithm returns the tuple (`F`, `a`, cond) where F is the Laplace 
+    - The ``'sympy'`` algorithm returns the tuple (`F`, `a`, ``cond``) where `F` is the Laplace 
       transform of `f(t)`, `Re(s)>a` is the half-plane of convergence, and cond 
       are auxiliary convergence conditions.
     

@@ -56,9 +56,9 @@ AUTHORS:
 
 - Gregg Musiker (2006-02-02): initial version.
 
-- F. Han: adapted to giac
+- Frederic Han: adapted to giac.
 
-- M. Forets (2017-04-06): conversions and cleanup  
+- Marcelo Forets (2017-04-06): conversions and cleanup.
 
 This tutorial is based on the Maple Tutorial for number theory from
 http://www.math.mun.ca/~drideout/m3370/numtheory.html.

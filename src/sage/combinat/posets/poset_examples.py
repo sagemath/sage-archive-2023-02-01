@@ -11,6 +11,14 @@ Moreover, the set of all posets of order `n` is represented by ``Posets(n)``::
     sage: Posets(5)
     Posets containing 5 elements
 
+The infinite set of all posets can be used to find minimal examples::
+
+    sage: for P in Posets():
+    ....:     if not P.is_series_parallel():
+    ....:         break
+    sage: P
+    Finite poset containing 4 elements
+
 **Catalog of common posets:**
 
 .. csv-table::
@@ -25,7 +33,7 @@ Moreover, the set of all posets of order `n` is represented by ``Posets(n)``::
     :meth:`~Posets.DivisorLattice` | Return the divisor lattice of an integer.
     :meth:`~Posets.IntegerCompositions` | Return the poset of integer compositions of `n`.
     :meth:`~Posets.IntegerPartitions` | Return the poset of integer partitions of ``n``.
-    :meth:`~Posets.IntegerPartitionsDominanceOrder` | Return the poset of integer partitions on the integer `n` ordered by dominance.
+    :meth:`~Posets.IntegerPartitionsDominanceOrder` | Return the lattice of integer partitions on the integer `n` ordered by dominance.
     :meth:`~Posets.PentagonPoset` | Return the Pentagon poset.
     :meth:`~Posets.RandomLattice` | Return a random lattice on `n` elements.
     :meth:`~Posets.RandomPoset` | Return a random poset on `n` elements.
@@ -442,10 +450,11 @@ class Posets(object):
     def RestrictedIntegerPartitions(n):
         """
         Return the poset of integer partitions on the integer `n`
-        ordered by restricted refinement. That is, if `p` and `q`
-        are integer partitions of `n`, then `p` covers `q` if and
-        only if `q` is obtained from `p` by joining two distinct
-        parts of `p` (and sorting, if necessary).
+        ordered by restricted refinement.
+
+        That is, if `p` and `q` are integer partitions of `n`, then
+        `p` covers `q` if and only if `q` is obtained from `p` by
+        joining two distinct parts of `p` (and sorting, if necessary).
 
         EXAMPLES::
 
@@ -453,6 +462,7 @@ class Posets(object):
             Finite poset containing 15 elements
             sage: len(P.cover_relations())
             17
+
         """
         def lower_covers(partition):
             r"""
@@ -479,7 +489,7 @@ class Posets(object):
     @staticmethod
     def IntegerPartitionsDominanceOrder(n):
         r"""
-        Return the poset of integer partitions on the integer `n`
+        Return the lattice of integer partitions on the integer `n`
         ordered by dominance.
 
         That is, if `p=(p_1,\ldots,p_i)` and `q=(q_1,\ldots,q_j)` are
@@ -751,9 +761,19 @@ class Posets(object):
         from sage.rings.semirings.non_negative_integer_semiring import NN
         if n not in NN:
             raise ValueError('n must be an integer')
-        from sage.combinat.set_partition import SetPartitions
+        from sage.combinat.set_partition import SetPartition, SetPartitions
         S = SetPartitions(n)
-        return LatticePoset((S, S.is_less_than))
+
+        def covers(x):
+            for i, s in enumerate(x):
+                for j in range(i+1, len(x)):
+                    L = list(x)
+                    L[i] = s.union(x[j])
+                    L.pop(j)
+                    yield S(L)
+
+        return LatticePoset({x: list(covers(x)) for x in S},
+                            cover_relations=True)
 
     @staticmethod
     def SSTPoset(s, f=None):

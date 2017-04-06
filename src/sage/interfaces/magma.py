@@ -536,11 +536,11 @@ class Magma(ExtraTabCompletion, Expect):
 
             sage: nl=chr(10) # newline character
             sage: magma.eval(  # optional - magma
-            ... "_<x>:=PolynomialRing(Rationals());"+nl+
-            ... "repeat"+nl+
-            ... "  g:=3*b*x^4+18*c*x^3-6*b^2*x^2-6*b*c*x-b^3-9*c^2 where b:=Random([-10..10]) where c:=Random([-10..10]);"+nl+
-            ... "until g ne 0 and Roots(g) ne [];"+nl+
-            ... "print \"success\";")
+            ....: "_<x>:=PolynomialRing(Rationals());"+nl+
+            ....: "repeat"+nl+
+            ....: "  g:=3*b*x^4+18*c*x^3-6*b^2*x^2-6*b*c*x-b^3-9*c^2 where b:=Random([-10..10]) where c:=Random([-10..10]);"+nl+
+            ....: "until g ne 0 and Roots(g) ne [];"+nl+
+            ....: "print \"success\";")
             'success'
 
         Verify that :trac:`11401` is fixed::

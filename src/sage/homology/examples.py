@@ -599,7 +599,7 @@ def PseudoQuaternionicProjectivePlane():
 
 def PoincareHomologyThreeSphere():
     """
-    A triangulation of the Poincare homology 3-sphere.
+    A triangulation of the Poincaré homology 3-sphere.
 
     This is a manifold whose integral homology is identical to the
     ordinary 3-sphere, but it is not simply connected. In particular,

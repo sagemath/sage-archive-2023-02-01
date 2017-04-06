@@ -534,7 +534,8 @@ class ReferenceBuilder(AllBuilder):
                          'default.css', 'doctools.js', 'favicon.ico',
                          'file.png', 'jquery.js', 'minus.png',
                          'pdf.png', 'plus.png', 'pygments.css',
-                         'sage.css', 'sageicon.png', 'sagelogo.png',
+                         'sage.css', 'sageicon.png',
+                         'logo_sagemath.svg', 'logo_sagemath_black.svg',
                          'searchtools.js', 'sidebar.js', 'underscore.js']
                 sage_makedirs(os.path.join(output_dir, '_static'))
                 for f in static_files:

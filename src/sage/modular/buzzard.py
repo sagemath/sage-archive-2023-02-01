@@ -19,8 +19,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
-__doc_exclude = ['gp', '_gp', 'Gp', 'Integer', 'sage_eval']
-
 from sage.interfaces.gp import Gp
 from sage.misc.all import sage_eval
 

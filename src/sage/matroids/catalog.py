@@ -34,6 +34,7 @@ Functions
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from itertools import combinations
 
@@ -769,7 +770,7 @@ def CompleteGraphic(n):
         sage: M.is_valid()
         True
     """
-    M = Matroid(groundset=range((n * (n - 1)) // 2),
+    M = Matroid(groundset=list(range((n * (n - 1)) // 2)),
                 graph=graphs.CompleteGraph(n))
     M.rename('M(K' + str(n) + '): ' + repr(M))
     return M
@@ -922,13 +923,13 @@ def Uniform(r, n):
         sage: M.is_valid()
         True
 
-    Check that bug #15292 was fixed::
+    Check that bug :trac:`15292` was fixed::
 
         sage: M = matroids.Uniform(4,4)
         sage: len(M.circuit_closures())
         0
     """
-    E = range(n)
+    E = list(range(n))
     if r < n:
         CC = {r: [E]}
     else:

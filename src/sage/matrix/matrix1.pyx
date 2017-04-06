@@ -344,6 +344,25 @@ cdef class Matrix(matrix0.Matrix):
         s = str(self.rows()).replace('(','[').replace(')',']')
         return "Matrix(%s,%s,%s)"%(self.nrows(), self.ncols(), s)
 
+    def _polymake_(self, polymake=None):
+        """
+        Tries to coerce this matrix to a polymake matrix.
+
+        EXAMPLES::
+
+            sage: M = matrix(ZZ,2,range(4))
+            sage: polymake(M)                   # optional - polymake
+            0 1
+            2 3
+            sage: K.<sqrt5> = QuadraticField(5)
+            sage: M = matrix(K, [[1, 2], [sqrt5, 3]])
+            sage: polymake(M)                   # optional - polymake
+            1 2
+            0+1r5 3
+        """
+        P = polymake(self.parent())
+        return polymake.new_object(P, [ list(r) for r in self.rows(copy=False) ])
+
     def _singular_(self, singular=None):
         """
         Tries to coerce this matrix to a singular matrix.

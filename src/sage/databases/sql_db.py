@@ -909,10 +909,10 @@ class SQLDatabase(SageObject):
         is the name of a column::
 
             sage: table_skeleton = {
-            ... 'graph6':{'sql':'TEXT', 'index':True, 'primary_key':True},
-            ... 'vertices':{'sql':'INTEGER'},
-            ... 'edges':{'sql':'INTEGER'}
-            ... }
+            ....: 'graph6':{'sql':'TEXT', 'index':True, 'primary_key':True},
+            ....: 'vertices':{'sql':'INTEGER'},
+            ....: 'edges':{'sql':'INTEGER'}
+            ....: }
 
         Then we create the table::
 
@@ -1378,10 +1378,10 @@ class SQLDatabase(SageObject):
 
             sage: D = SQLDatabase()
             sage: table_skeleton = {
-            ... 'graph6':{'sql':'TEXT', 'index':True, 'primary_key':True},
-            ... 'vertices':{'sql':'INTEGER'},
-            ... 'edges':{'sql':'INTEGER'}
-            ... }
+            ....: 'graph6':{'sql':'TEXT', 'index':True, 'primary_key':True},
+            ....: 'vertices':{'sql':'INTEGER'},
+            ....: 'edges':{'sql':'INTEGER'}
+            ....: }
             sage: D.create_table('simon', table_skeleton)
             sage: D.show('simon')
             edges                graph6               vertices

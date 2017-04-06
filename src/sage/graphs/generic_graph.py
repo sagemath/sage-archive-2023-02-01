@@ -21147,8 +21147,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.is_isomorphic(h, certificate=True)
             (True, None)
 
-        Deprecation from #21111::
-
+        Deprecation from :trac:`21111`::
+ 
             sage: G = DiGraph({'a':['b']})
             sage: H = DiGraph({0:[1]})
             sage: G.is_isomorphic(H, certify=True)

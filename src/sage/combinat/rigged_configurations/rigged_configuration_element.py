@@ -2230,7 +2230,7 @@ class KRRCNonSimplyLacedElement(KRRiggedConfigurationElement, RCNonSimplyLacedEl
         sigma = vct.folding_orbit()
         gamma = vct.scaling_factors()
         for a, p in enumerate(self):
-            t_check = ZZ(len(sigma[a + 1])) * gamma[a+1] / gamma[0]
+            t_check = len(sigma[a + 1]) * gamma[a+1] // gamma[0]
             for pos, i in enumerate(p._list):
                 # Add the rigging
                 rigging_sum += t_check * p.rigging[pos]

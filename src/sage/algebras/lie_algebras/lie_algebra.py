@@ -31,7 +31,6 @@ from sage.categories.rings import Rings
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
 
-from sage.algebras.free_algebra import FreeAlgebra
 from sage.algebras.lie_algebras.lie_algebra_element import (LieAlgebraElementWrapper,
                                                             LieAlgebraMatrixWrapper)
 from sage.rings.all import ZZ
@@ -384,6 +383,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             # Construct the free Lie algebra from polynomials in the
             #   free (associative unital) algebra
             # TODO: Change this to accept an index set once FreeAlgebra accepts one
+            from sage.algebras.free_algebra import FreeAlgebra
             F = FreeAlgebra(R, names)
             if index_set is None:
                 index_set = F.variable_names()

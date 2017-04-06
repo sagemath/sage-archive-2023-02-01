@@ -73,9 +73,28 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
     .. NOTE::
 
         Our terminology is following that of :wikipedia:`Affine_Lie_algebra`.
+
+    INPUT:
+
+    Can be one of the following:
+
+    - a base ring and an affine Cartan type: constructs the affine
+      (Kac-Moody) Lie algebra of the classical Lie algebra in the
+      bracket representation over the base ring
+
+    - a classical Lie algebra: constructs the corresponding affine
+      (Kac-Moody) Lie algebra
+
+    There is the optional argument ``kac_moody``, which can be set
+    to ``False`` to obtain the affine Lie algebra instead of the affine
+    Kac-Moody algebra.
+
+    REFERENCES:
+
+    - :wikipedia:`Affine_Lie_algebra`
     """
     @staticmethod
-    def __classcall_private__(cls, arg0, kac_moody=True, cartan_type=None):
+    def __classcall_private__(cls, arg0, cartan_type=None, kac_moody=True):
         """
         Parse input to ensure a unique representation.
 
@@ -85,6 +104,14 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
         - ``cartan_type`` -- a Cartan type
 
         EXAMPLES::
+
+            sage: L1 = lie_algebras.Affine(QQ, ['A',4,1])
+            sage: cl = lie_algebras.sl(QQ, 5)
+            sage: L2 = lie_algebras.Affine(cl)
+            sage: L1 is L2
+            True
+            sage: cl.affine() is L1
+            True
         """
         if isinstance(arg0, LieAlgebra):
             ct = arg0.cartan_type()
@@ -106,9 +133,14 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
     def __init__(self, g, kac_moody):
         """
         Initalize ``self``.
+
+        EXAMPLES::
+
+            sage: asl = lie_algebras.Affine(QQ, ['A',4,1])
+            sage: TestSuite(asl).run()
         """
         self._g = g
-        self._cartan_type = g.cartan_type()
+        self._cartan_type = g.cartan_type().affine()
         R = g.base_ring()
         names = list(g.variable_names()) + ['e0', 'f0', 'c']
 
@@ -117,12 +149,21 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
         self._kac_moody = kac_moody
 
         names = tuple(names)
+        self._ordered_indices = names
         cat = LieAlgebras(R).WithBasis()
         FinitelyGeneratedLieAlgebra.__init__(self, R, names, names, category=cat)
 
     def _repr_(self):
         """
         Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['D',4,1])
+            sage: L
+            Affine Kac-Moody algebra of ['D', 4] in the Chevalley basis
+            sage: L.derived_subalgebra()
+            Affine Lie algebra of ['D', 4] in the Chevalley basis
         """
         base = "Affine "
         rep = repr(self._g)
@@ -137,42 +178,119 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
     def basis(self):
         """
         Return the basis of ``self``.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['D',4,1])
+            sage: B = L.basis()
+            sage: al = RootSystem(['D',4]).root_lattice().simple_roots()
+            sage: B[al[1]+al[2]+al[4],4]
+            (E[alpha[1] + alpha[2] + alpha[4]])#t^4
+            sage: B[-al[1]-2*al[2]-al[3]-al[4],2]
+            (E[-alpha[1] - 2*alpha[2] - alpha[3] - alpha[4]])#t^2
+            sage: B[al[4],-2]
+            (E[alpha[4]])#t^-2
+            sage: B['c']
+            c
+            sage: B['delta']
+            delta
         """
         K = cartesian_product([self._g.basis().keys(), ZZ])
+        from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+        c = FiniteEnumeratedSet(['c'])
         if self._kac_moody:
-            keys = DisjointUnionEnumeratedSets([('c',), ('delta',), K])
+            delta = FiniteEnumeratedSet(['delta'])
+            keys = DisjointUnionEnumeratedSets([c, delta, K])
         else:
-            keys = DisjointUnionEnumeratedSets([('c',), K])
+            keys = DisjointUnionEnumeratedSets([c, K])
         return Family(keys, self.monomial)
 
     def derived_subalgebra(self):
         """
         Return the derived subalgebra of ``self``.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['B',3,1])
+            sage: L
+            Affine Kac-Moody algebra of ['B', 3] in the Chevalley basis
+            sage: D = L.derived_subalgebra(); D
+            Affine Lie algebra of ['B', 3] in the Chevalley basis
+            sage: D.derived_subalgebra() == D
+            True
         """
         if self._kac_moody:
-            return AffineLieAlgebra(self._g, False)
-        raise NotImplementedError # I think this is self...
+            return AffineLieAlgebra(self._g, kac_moody=False)
+        return self
+
+    def derived_series(self):
+        """
+        Return the derived series of ``self``.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['B',3,1])
+            sage: L.derived_series()
+            [Affine Kac-Moody algebra of ['B', 3] in the Chevalley basis,
+             Affine Lie algebra of ['B', 3] in the Chevalley basis]
+            sage: L.lower_central_series()
+            [Affine Kac-Moody algebra of ['B', 3] in the Chevalley basis,
+             Affine Lie algebra of ['B', 3] in the Chevalley basis]
+
+            sage: D = L.derived_subalgebra()
+            sage: D.derived_series()
+            [Affine Lie algebra of ['B', 3] in the Chevalley basis]
+        """
+        if self._kac_moody:
+            return [self, self.derived_subalgebra()]
+        return [self]
+
+    lower_central_series = derived_series
+
+    def is_nilpotent(self):
+        """
+        Return ``False`` as ``self`` is semisimple.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['B',3,1])
+            sage: L.is_nilpotent()
+            False
+            sage: L.is_solvable()
+            False
+        """
+        return False
+
+    is_solvable = is_nilpotent
 
     def cartan_type(self):
         """
         Return the Cartan type of ``self``.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['C',3,1])
+            sage: L.cartan_type()
+            ['C', 3, 1]
         """
         return self._cartan_type
 
     def classical(self):
         """
         Return the classical Lie algebra of ``self``.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['F',4,1])
+            sage: L.classical()
+            Lie algebra of ['F', 4] in the Chevalley basis
+
+            sage: so5 = lie_algebras.so(QQ, 5, 'matrix')
+            sage: A = so5.affine()
+            sage: A.classical() == so5
+            True
         """
         return self._g
-
-    def _construct_UEA(self):
-        """
-        Construct the universal enveloping algebra of ``self``.
-        """
-        # These are placeholders and will require something more complex
-        if self._kac_moody:
-            PolynomialRing(self._g.universal_enveloping_algebra(), 't,c,delta')
-        return PolynomialRing(self._g.universal_enveloping_algebra(), 't,c')
 
     @cached_method
     def zero(self):
@@ -181,7 +299,7 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
 
         EXAMPLES::
 
-            sage: L.<x,y> = LieAlgebra(QQ, representation="polynomial")
+            sage: L = LieAlgebra(QQ, cartan_type=['F',4,1])
             sage: L.zero()
             0
         """
@@ -189,19 +307,66 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
         return self.element_class(self, {}, zero, zero)
 
     @cached_method
+    def c(self):
+        r"""
+        Return the canonical central element `c` of ``self``.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['A',3,1])
+            sage: L.c()
+            c
+        """
+        R = self.base_ring()
+        return self.element_class(self, {}, R.one(), R.zero())
+
+    @cached_method
+    def delta(self):
+        r"""
+        Return the Lie derivative element `\delta` or ``self``.
+
+        If ``self`` is the affine Lie algebra, then this returns 0.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['A',3,1])
+            sage: L.delta()
+            delta
+            sage: D = L.derived_subalgebra()
+            sage: D.delta()
+            0
+        """
+        if not self._kac_moody:
+            return self.zero()
+        R = self.base_ring()
+        return self.element_class(self, {}, R.zero(), R.one())
+
+    @cached_method
     def lie_algebra_generators(self):
         """
         Return the Lie algebra generators of ``self``.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['A',1,1])
+            sage: list(L.lie_algebra_generators())
+            [(E[alpha[1]])#t^0,
+             (E[-alpha[1]])#t^0,
+             (h1)#t^0,
+             (E[-alpha[1]])#t^1,
+             (E[alpha[1]])#t^-1,
+             c,
+             delta]
         """
         zero = self.base_ring().zero()
         one = self.base_ring().one()
         d = {}
         if self._kac_moody:
-            d['delta'] = self.element_class(self, {}, zero, one)
-        d['c'] = self.element_class(self, {}, one, zero)
+            d['delta'] = self.delta()
+        d['c'] = self.c()
         try:
             finite_gens = dict(self._g.lie_algebra_generators(True))
-        except (TypeError):
+        except TypeError:
             finite_gens = dict(self._g.lie_algebra_generators())
         for k,g in finite_gens.items():
             d[k] = self.element_class(self, {0: g}, zero, zero)
@@ -216,12 +381,29 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
     def monomial(self, m):
         """
         Construct the monomial indexed by ``m``.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['B',4,1])
+            sage: al = RootSystem(['B',4]).root_lattice().simple_roots()
+            sage: L.monomial((al[1]+al[2]+al[3],4))
+            (E[alpha[1] + alpha[2] + alpha[3]])#t^4
+            sage: L.monomial((-al[1]-al[2]-2*al[3]-2*al[4],2))
+            (E[-alpha[1] - alpha[2] - 2*alpha[3] - 2*alpha[4]])#t^2
+            sage: L.monomial((al[4],-2))
+            (E[alpha[4]])#t^-2
+            sage: L.monomial('c')
+            c
+            sage: L.monomial('delta')
+            delta
         """
-        if m == 'c' or m == 'delta':
-            return self.lie_algebra_generators()[m]
-        G = self._g.lie_algebra_generators()
+        if m == 'c':
+            return self.c()
+        if m == 'delta':
+            return self.delta()
+        G = self._g.basis()
         zero = self.base_ring().zero()
-        return self.element_class(self, {m[0]: G[m[1]]}, zero, zero)
+        return self.element_class(self, {m[1]: G[m[0]]}, zero, zero)
 
     Element = UntwistedAffineLieAlgebraElement
 

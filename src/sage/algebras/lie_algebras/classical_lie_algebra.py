@@ -310,7 +310,15 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
 
     def affine(self, kac_moody=False):
         """
-        Return the (untwisted) affine (Kac-Moody) Lie algebra of ``self``.
+        Return the affine (Kac-Moody) Lie algebra of ``self``.
+
+        EXAMPLES::
+
+            sage: so5 = lie_algebras.so(QQ, 5, 'matrix')
+            sage: so5
+            Special orthogonal Lie algebra of rank 5 over Rational Field
+            sage: so5.affine()
+            Affine Special orthogonal Lie algebra of rank 5 over Rational Field
         """
         from sage.algebras.lie_algebras.affine_lie_algebra import AffineLieAlgebra
         return AffineLieAlgebra(self, kac_moody)
@@ -1147,7 +1155,15 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
 
     def affine(self, kac_moody=False):
         """
-        Return the (untwisted) affine Lie algebra of ``self``.
+        Return the affine Lie algebra of ``self``.
+
+        EXAMPLES::
+
+            sage: sp6 = lie_algebras.sp(QQ, 6)
+            sage: sp6
+            Lie algebra of ['C', 3] in the Chevalley basis
+            sage: sp6.affine()
+            Affine Lie algebra of ['C', 3] in the Chevalley basis
         """
         from sage.algebras.lie_algebras.affine_lie_algebra import AffineLieAlgebra
         return AffineLieAlgebra(self, kac_moody)

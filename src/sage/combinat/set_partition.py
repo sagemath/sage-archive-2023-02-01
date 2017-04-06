@@ -11,7 +11,7 @@ AUTHORS:
   entry point through :class:`SetPartition`.
 
 This module defines a class for immutable partitioning of a set. For
-mutable version see :class:`DisjointSet_class`.
+mutable version see :func:`DisjointSet`.
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,

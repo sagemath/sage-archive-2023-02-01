@@ -3532,7 +3532,7 @@ cdef class Expression(CommutativeRingElement):
             -1
             sage: cmp(log(8), 3*log(2))
             0
-            sage: RLF(1) < RLF(sqrt(2))
+            sage: bool(RLF(1) < RLF(sqrt(2)))
             True
             sage: RealSet((0, pi),[pi, pi],(pi,4))
             (0, 4)

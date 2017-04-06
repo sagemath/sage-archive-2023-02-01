@@ -15,6 +15,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 #                         http://www.gnu.org/licenses/
 ###########################################################################
 from __future__ import print_function
+from six.moves import range
 
 # import from Sage library
 from sage.graphs.graph import Graph
@@ -198,11 +199,12 @@ def CircularLadderGraph(n):
         pos_dict[i] = (x,y)
 
     G = Graph(pos=pos_dict, name="Circular Ladder graph")
-    G.add_vertices( range(2*n) )
-    G.add_cycle( range(n) )
-    G.add_cycle( range(n,2*n) )
+    G.add_vertices(range(2 * n))
+    G.add_cycle(list(range(n)))
+    G.add_cycle(list(range(n, 2 * n)))
     G.add_edges( (i,i+n) for i in range(n) )
     return G
+
 
 def ClawGraph():
     """
@@ -298,9 +300,9 @@ def CycleGraph(n):
     for i in range(n):
         x = float(cos((pi/2) + ((2*pi)/n)*i))
         y = float(sin((pi/2) + ((2*pi)/n)*i))
-        pos_dict[i] = (x,y)
-    G = graph.Graph(n,pos=pos_dict, name="Cycle graph")
-    G.add_cycle(range(n))
+        pos_dict[i] = (x, y)
+    G = graph.Graph(n, pos=pos_dict, name="Cycle graph")
+    G.add_cycle(list(range(n)))
     return G
 
 def CompleteGraph(n):
@@ -1033,8 +1035,8 @@ def LadderGraph(n):
         pos_dict[i] = (x,0)
     G = Graph(pos=pos_dict, name="Ladder graph")
     G.add_vertices( range(2*n) )
-    G.add_path( range(n) )
-    G.add_path( range(n,2*n) )
+    G.add_path(list(range(n)))
+    G.add_path(list(range(n, 2 * n)))
     G.add_edges( (i,i+n) for i in range(n) )
     return G
 
@@ -1206,10 +1208,10 @@ def StarGraph(n):
         sage: G.show() # long time
     """
     pos_dict = {}
-    pos_dict[0] = (0,0)
-    for i in range(1,n+1):
+    pos_dict[0] = (0, 0)
+    for i in range(1, n+1):
         x = float(cos((pi/2) + ((2*pi)/n)*(i-1)))
         y = float(sin((pi/2) + ((2*pi)/n)*(i-1)))
-        pos_dict[i] = (x,y)
-    return graph.Graph({0:range(1,n+1)}, pos=pos_dict, name="Star graph")
-
+        pos_dict[i] = (x, y)
+    return graph.Graph({0: list(range(1, n + 1))},
+                       pos=pos_dict, name="Star graph")

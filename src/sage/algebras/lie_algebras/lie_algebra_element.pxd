@@ -21,6 +21,10 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
     cdef _delta_coeff
     cdef long _hash
 
+    cpdef dict t_dict(self)
+    cpdef c_coefficient(self)
+    cpdef delta_coefficient(self)
+
     cpdef bracket(self, y)
     cpdef _bracket_(self, y)
     cpdef lie_derivative(self)

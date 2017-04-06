@@ -693,6 +693,48 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
             return '0'
         return ret
 
+    cpdef dict t_dict(self):
+        r"""
+        Return the ``dict``, whose keys are powers of `t` and values are
+        elements of the classical Lie algebra, of ``self``.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.Affine(QQ, ['A',1,1])
+            sage: x = L.an_element()
+            sage: x.t_dict()
+            {-1: E[alpha[1]],
+             0: E[alpha[1]] + h1 + E[-alpha[1]],
+             1: E[-alpha[1]]}
+        """
+        return self._t_dict.copy()
+
+    cpdef c_coefficient(self):
+        r"""
+        Return the coefficient of `c` of ``self``.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.Affine(QQ, ['A',1,1])
+            sage: x = L.an_element() - 3 * L.c()
+            sage: x.c_coefficient()
+            -2
+        """
+        return self._c_coeff
+
+    cpdef delta_coefficient(self):
+        r"""
+        Return the coefficient of `\delta` of ``self``.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.Affine(QQ, ['A',1,1])
+            sage: x = L.an_element() + L.delta()
+            sage: x.delta_coefficient()
+            2
+        """
+        return self._delta_coeff
+
     cpdef _richcmp_(self, other, int op):
         """
         Return the rich comparison of ``self`` with ``other``.

@@ -4,8 +4,6 @@ Affine Lie Algebras
 AUTHORS:
 
 - Travis Scrimshaw (2013-05-03): Initial version
-
-EXAMPLES::
 """
 
 #*****************************************************************************
@@ -20,7 +18,7 @@ EXAMPLES::
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import repr_lincomb
-from sage.structure.element import RingElement
+from sage.structure.element import RingElement, parent
 from sage.categories.lie_algebras import LieAlgebras
 
 from sage.algebras.lie_algebras.lie_algebra import LieAlgebra, FinitelyGeneratedLieAlgebra
@@ -88,6 +86,45 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
     There is the optional argument ``kac_moody``, which can be set
     to ``False`` to obtain the affine Lie algebra instead of the affine
     Kac-Moody algebra.
+
+    EXAMPLES:
+
+    We begin by constructing an affine Kac-Moody algebra of type `G_2^{(1)}`
+    from the classical Lie algebra of type `G_2`::
+
+        sage: L = LieAlgebra(QQ, cartan_type=['G',2])
+        sage: A = L.affine()
+        sage: A
+        Affine Kac-Moody algebra of ['G', 2] in the Chevalley basis
+
+    Next, we construct the generators and perform some computations::
+
+        sage: A.inject_variables()
+        Defining e1, e2, f1, f2, h1, h2, e0, f0, c, delta
+        sage: e1.bracket(f1)
+        (h1)#t^0
+        sage: e0.bracket(f0)
+        (-h1 - 2*h2)#t^0 + 8*c
+        sage: e0.bracket(f1)
+        0
+        sage: A[delta, f0]
+        (-E[3*alpha[1] + 2*alpha[2]])#t^-1
+        sage: A([[e0, e2], [[[e1, e2], [e0, [e1, e2]]], e1]])
+        (-6*E[-3*alpha[1] - alpha[2]])#t^2
+        sage: f0.bracket(f1)
+        0
+        sage: f0.bracket(f2)
+        (E[3*alpha[1] + alpha[2]])#t^-1
+        sage: A[h1+3*h2, A[[[f0, f2], f1], [f1,f2]] + f1]
+        (E[-alpha[1]])#t^0 + (2*E[alpha[1]])#t^-1
+
+    We can construct its derived subalgebra, the affine Lie algebra
+    of type `G_2^{(1)}`. In this case, there is no Lie derivative,
+    so the generator `\delta` is `0`::
+
+        sage: D = A.derived_subalgebra()
+        sage: D.delta()
+        0
 
     REFERENCES:
 
@@ -204,6 +241,49 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
         else:
             keys = DisjointUnionEnumeratedSets([c, K])
         return Family(keys, self.monomial)
+
+    def _element_constructor_(self, x):
+        """
+        Construct an element of ``self`` from ``x``.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['A',1])
+            sage: A = L.affine()
+            sage: D = A.derived_subalgebra()
+            sage: A(D.an_element())
+            (E[alpha[1]] + h1 + E[-alpha[1]])#t^0
+             + (E[-alpha[1]])#t^1 + (E[alpha[1]])#t^-1 + c
+            sage: A(L.an_element())
+            (E[alpha[1]] + h1 + E[-alpha[1]])#t^0
+        """
+        P = parent(x)
+        if P is self.derived_subalgebra():
+            return self.element_class(self, x.t_dict(), x.c_coefficient(),
+                                      x.delta_coefficient())
+        if P == self._g:
+            zero = self.base_ring().zero()
+            return self.element_class(self, {0: x}, zero, zero)
+        return super(AffineLieAlgebra, self)._element_constructor_(x)
+
+    def _coerce_map_from_(self, R):
+        """
+        Return the coerce map from ``R`` to ``self`` or ``True`` if
+        a coerce map exists.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['G',2])
+            sage: A = L.affine()
+            sage: A.has_coerce_map_from(L)
+            True
+            sage: D = A.derived_subalgebra()
+            sage: A.has_coerce_map_from(D)
+            True
+        """
+        if R is self.derived_subalgebra() or R is self._g:
+            return True
+        return super(AffineLieAlgebra, self)._coerce_map_from_(R)
 
     def derived_subalgebra(self):
         """

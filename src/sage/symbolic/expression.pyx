@@ -3540,6 +3540,17 @@ cdef class Expression(CommutativeRingElement):
             [0, 4)
             sage: RealSet((0, pi),[0, 3.5],(pi,4))
             [0, 4)
+
+        More sanity tests::
+
+            sage: bool(pi < pi)
+            False
+            sage: bool(e < e)
+            False
+            sage: bool(sqrt(2) < sqrt(2))
+            False
+            sage: bool(pi < SR.zero())
+            False
         """
         return mixed_order(left, right)
 

@@ -116,8 +116,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, division, absolute_import
 
 import math
 
@@ -129,6 +128,7 @@ from sage.rings.padics.precision_error import PrecisionError
 import sage.rings.all as rings
 from sage.rings.real_mpfr import is_RealField
 from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 from sage.groups.all import AbelianGroup
 import sage.groups.generic as generic
 from sage.libs.pari import pari
@@ -3001,7 +3001,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         if is_minimal:
             E = self.curve()
             P = self
-            offset = 0
+            offset = ZZ.zero()
         else:
             E = self.curve().local_minimal_model(v)
             P = self.curve().isomorphism_to(E)(self)
@@ -3029,14 +3029,14 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             r = -C/4
         r -= offset/6
         if not r:
-            return rings.QQ(0)
+            return rings.QQ.zero()
         else:
             if E.base_ring() is rings.QQ:
                 Nv = Integer(v)
             else:
                 Nv = v.norm()
                 if not weighted:
-                    r /= v.ramification_index() * v.residue_class_degree()
+                    r = r / v.ramification_index() * v.residue_class_degree()
             return r * log(Nv)
 
     nonarchimedian_local_height = deprecated_function_alias(13951, non_archimedean_local_height)

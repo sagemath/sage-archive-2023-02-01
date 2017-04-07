@@ -41,6 +41,8 @@ EXAMPLES::
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
+from six.moves import range
+
 from sage.modules.module import Module
 from sage.structure.parent import Parent
 from sage.rings.padics.factory import ZpCA, QpCR
@@ -663,7 +665,7 @@ class Symk_class(OverconvergentDistributions_abstract):
             sage: D.an_element()                  # indirect doctest
             (0, 1, 2, 3)
         """
-        return self(range(self.weight() + 1))
+        return self(list(range(self.weight() + 1)))
 
     def _repr_(self):
         """

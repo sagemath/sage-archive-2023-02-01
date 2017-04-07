@@ -135,6 +135,8 @@ List of (semi)lattice methods
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
+from six import iteritems
 
 from sage.categories.finite_lattice_posets import FiniteLatticePosets
 from sage.combinat.posets.posets import Poset, FinitePoset
@@ -145,7 +147,7 @@ from sage.combinat.posets.hasse_diagram import LatticeError
 
 from sage.misc.decorators import rename_keyword
 
-import six
+
 
 ####################################################################################
 
@@ -1477,7 +1479,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         for e1 in range(n-1):
             C = Counter(flatten([H.neighbors_out(e2) for e2 in H.neighbors_out(e1)]))
-            for e3, c in six.iteritems(C):
+            for e3, c in iteritems(C):
                 if c == 1 and len(H.closed_interval(e1, e3)) == 3:
                     if not certificate:
                         return False
@@ -4013,7 +4015,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         minimal_vertices = [part[0] for part in parts_H]
         H = self._hasse_diagram.transitive_closure().subgraph(minimal_vertices).transitive_reduction()
         if labels == 'integer':
-            H.relabel(range(len(minimal_vertices)))
+            H.relabel(list(range(len(minimal_vertices))))
             return LatticePoset(H)
         part_dict = {m[0]:[self._vertex_to_element(x) for x in m] for m
                      in parts_H}

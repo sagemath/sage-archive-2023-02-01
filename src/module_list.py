@@ -562,8 +562,9 @@ ext_modules = [
     
     OptionalExtension('sage.libs.sirocco',
                       sources = ["sage/libs/sirocco.pyx"],
-                      libraries = ["sirocco"],
-                      package="sirocco"),
+                      libraries = ["sirocco", "mpfr", "gmp"],
+                      package="sirocco",
+                      language = 'c++'),
 
     Extension('*', ['sage/libs/linbox/*.pyx']),
 

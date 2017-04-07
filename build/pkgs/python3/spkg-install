@@ -34,7 +34,6 @@ if [ "$SAGE_VALGRIND" = "yes" ]; then
 fi
 
 if [ "$UNAME" = Darwin ]; then
-    PYTHON_CONFIGURE="--disable-toolbox-glue $PYTHON_CONFIGURE"
     if [ $MACOSX_VERSION -ge 16 ]; then
         echo "OS X 10.$[$MACOSX_VERSION-4] Building with clang."
         CC=clang
@@ -56,7 +55,7 @@ fi
 build()
 {
     ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
-        --enable-unicode=ucs4 --enable-shared $PYTHON_CONFIGURE
+        --enable-shared $PYTHON_CONFIGURE
 
     if [ $? -ne 0 ]; then
         echo >&2 "Error configuring Python."

@@ -21,6 +21,13 @@ The output is a list of tuples. Each tuple represents the x value (between 0 and
 and the real and imaginary parts of the y value of a vertex in the piecewise linear
 approximation of the path tracked by the root.
 
+The function contpath_mp mimics contpath, but with the following differences:
+
+- The floating point numbers can be arbitrary precission RealNumbers
+
+- A extra argument is needed, indicating the bits of precission used in the
+computations.
+
 AUTHORS:
 
 - Miguel Marco (2016-07-19): initial version.
@@ -29,6 +36,7 @@ AUTHORS:
 
 include 'cysignals/signals.pxi'
 include "sage/ext/stdsage.pxi" 
+
 
 from sage.libs.mpfr cimport *
 from sage.rings.real_mpfr cimport RealNumber
@@ -45,13 +53,6 @@ cdef extern from "sirocco.h":
 
 
 
-def devuelve(RealNumber a):
-    cdef mpfr_prec_t ap = mpfr_get_prec(a.value)
-    cdef RealNumber my_number = RealField(ap)()
-    mpfr_set(my_number.value, a.value, MPFR_RNDN)
-    return my_number
-
-
 def contpath_mp(deg, values, RealNumber y0r, RealNumber y0i, int prec):
     cdef int cdeg = deg
     cdef mpfr_t* cvalues = <mpfr_t*> sage_malloc(sizeof(mpfr_t)*len(values))
@@ -64,7 +65,7 @@ def contpath_mp(deg, values, RealNumber y0r, RealNumber y0i, int prec):
         mpfr_set(cvalues[j], (<RealNumber>values[j]).value, MPFR_RNDN)
         sig_off()
     cdef mpfr_t y0R
-    cdef mpfr_t y0I 
+    cdef mpfr_t y0I
     sig_on()
     mpfr_init2(y0R, prec)
     mpfr_set(y0R, (<RealNumber>y0r).value, MPFR_RNDN)
@@ -81,11 +82,11 @@ def contpath_mp(deg, values, RealNumber y0r, RealNumber y0i, int prec):
     if rop == NULL:
         raise ValueError("libsirocco could not guarantee one step")
     cdef int n = mpfr_get_si(rop[0], MPFR_RNDN)
-    
+
     #cdef RealNumber res = RealField(53)()
     cdef double res
     l = []
-    
+
     for i in range(1, 3*n+1):
         RN = RealField(prec)()
         sig_on()
@@ -95,7 +96,7 @@ def contpath_mp(deg, values, RealNumber y0r, RealNumber y0i, int prec):
         l.append(RN)
     free(rop)
     return [(l[3*i], l[3*i+1], l[3*i+2]) for i in range(len(l)/3)]
-    
+
 
 
 
@@ -105,9 +106,9 @@ def contpath(deg,values,y0r,y0i):
     cdef int clen = <int> len(values)
     for i,v in enumerate(values):
         c_values[i] = values[i]
-        
-        
-    
+
+
+
     cdef double y0R = y0r
     cdef double y0I = y0i
     sig_on()

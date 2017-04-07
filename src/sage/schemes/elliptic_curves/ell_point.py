@@ -3036,7 +3036,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             else:
                 Nv = v.norm()
                 if not weighted:
-                    r = r / v.ramification_index() * v.residue_class_degree()
+                    r = r / (v.ramification_index() * v.residue_class_degree())
             return r * log(Nv)
 
     nonarchimedian_local_height = deprecated_function_alias(13951, non_archimedean_local_height)

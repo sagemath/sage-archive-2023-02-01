@@ -74,9 +74,9 @@ List of (semi)lattice methods
     :widths: 30, 70
     :delim: |
 
-    :meth:`~FiniteLatticePoset.atoms` | Return the list of elements covering the bottom element.
-    :meth:`~FiniteLatticePoset.coatoms` | Return the list of elements covered by the top element.
-    :meth:`~FiniteLatticePoset.double_irreducibles` | Return the list of double irreducible elements.
+    :meth:`~FiniteMeetSemilattice.atoms()` | Return elements covering the bottom element.
+    :meth:`~FiniteJoinSemilattice.coatoms()` | Return elements covered by the top element.
+    :meth:`~FiniteLatticePoset.double_irreducibles` | Return double irreducible elements.
     :meth:`~FiniteLatticePoset.join_primes` | Return the join prime elements.
     :meth:`~FiniteLatticePoset.meet_primes` | Return the meet prime elements.
     :meth:`~FiniteLatticePoset.complements` | Return the list of complements of an element, or the dictionary of complements for all elements.
@@ -312,6 +312,33 @@ class FiniteMeetSemilattice(FinitePoset):
             m = self._hasse_diagram._meet[i, m]
         return self._vertex_to_element(m)
 
+    def atoms(self):
+        """
+        Return the list atoms of this (semi)lattice.
+
+        An *atom* of a lattice is an element covering the bottom element.
+
+        .. SEEALSO::
+
+            :meth:`~FiniteJoinSemilattice.coatoms()`.
+
+        EXAMPLES::
+
+            sage: L = Posets.DivisorLattice(60)
+            sage: sorted(L.atoms())
+            [2, 3, 5]
+
+        TESTS::
+
+            sage: LatticePoset().atoms()
+            []
+            sage: LatticePoset({0: []}).atoms()
+            []
+        """
+        if self.cardinality() == 0:
+            return []
+        return self.upper_covers(self.bottom())
+
     def pseudocomplement(self, element):
         """
         Return the pseudocomplement of ``element``, if it exists.
@@ -537,8 +564,34 @@ class FiniteJoinSemilattice(FinitePoset):
             j = self._hasse_diagram._join[i, j]
         return self._vertex_to_element(j)
 
+    def coatoms(self):
+        """
+        Return the list of co-atoms of this (semi)lattice.
 
-####################################################################################
+        A *co-atom* of a lattice is an element covered by the top element.
+
+        .. SEEALSO::
+
+            :meth:`~FiniteMeetSemilattice.atoms()`.
+
+        EXAMPLES::
+
+            sage: L = Posets.DivisorLattice(60)
+            sage: sorted(L.coatoms())
+            [12, 20, 30]
+
+        TESTS::
+
+            sage: LatticePoset().coatoms()
+            []
+            sage: LatticePoset({0: []}).coatoms()
+            []
+        """
+        if self.cardinality() == 0:
+            return []
+        return self.lower_covers(self.top())
+
+###############################################################################
 
 def LatticePoset(data=None, *args, **options):
     r"""
@@ -649,60 +702,6 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if self._with_linear_extension:
             s += " with distinguished linear extension"
         return s
-
-    def atoms(self):
-        """
-        Return the atoms of this lattice.
-
-        An *atom* of a lattice is an element covering the bottom element.
-
-        .. SEEALSO::
-
-            :meth:`coatoms`
-
-        EXAMPLES::
-
-            sage: L = Posets.DivisorLattice(60)
-            sage: sorted(L.atoms())
-            [2, 3, 5]
-
-        TESTS::
-
-            sage: LatticePoset().atoms()
-            []
-            sage: LatticePoset({0: []}).atoms()
-            []
-        """
-        if self.cardinality() == 0:
-            return []
-        return self.upper_covers(self.bottom())
-
-    def coatoms(self):
-        """
-        Return the co-atoms of this lattice.
-
-        A *co-atom* of a lattice is an element covered by the top element.
-
-        .. SEEALSO::
-
-            :meth:`atoms`
-
-        EXAMPLES::
-
-            sage: L = Posets.DivisorLattice(60)
-            sage: sorted(L.coatoms())
-            [12, 20, 30]
-
-        TESTS::
-
-            sage: LatticePoset().coatoms()
-            []
-            sage: LatticePoset({0: []}).coatoms()
-            []
-        """
-        if self.cardinality() == 0:
-            return []
-        return self.lower_covers(self.top())
 
     def double_irreducibles(self):
         """

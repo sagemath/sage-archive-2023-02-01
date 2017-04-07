@@ -618,7 +618,8 @@ class Posets(object):
           * ``None``, no restrictions for lattices to create
           * ``'planar'``, the lattice has an upward planar drawing
           * ``'dismantlable'`` (implicated by ``'planar'``)
-          * ``'distributive'``
+          * ``'distributive'`` (implicated by ``'stone'``)
+          * ``'stone'``
 
         OUTPUT:
 
@@ -708,7 +709,7 @@ class Posets(object):
         else:
             properties = set(properties)
 
-        known_properties = set(['planar', 'dismantlable', 'distributive'])
+        known_properties = set(['planar', 'dismantlable', 'distributive', 'stone'])
         errors = properties.difference(known_properties)
         if errors:
             raise ValueError("unknown value %s for 'properties'" % errors.pop())
@@ -717,9 +718,11 @@ class Posets(object):
             # Change this, if property='complemented' is added
             return Posets.ChainPoset(n)
 
-        # Handling properties. Every planar lattice is also dismantlable.
+        # Handling properties: planar => dismantlable, stone => distributive
         if 'planar' in properties:
             properties.discard('dismantlable')
+        if 'stone' in properties:
+            properties.discard('distributive')
 
         # Test property combinations that are not implemented.
         if 'distributive' in properties and len(properties) > 1:
@@ -732,6 +735,11 @@ class Posets(object):
 
         if properties == set(['dismantlable']):
             D = _random_dismantlable_lattice(n)
+            D.relabel([i-1 for i in Permutations(n).random_element()])
+            return LatticePoset(D)
+
+        if properties == set(['stone']):
+            D = _random_stone_lattice(n)
             D.relabel([i-1 for i in Permutations(n).random_element()])
             return LatticePoset(D)
 
@@ -1535,7 +1543,11 @@ def _random_distributive_lattice(n):
     from sage.combinat.posets.hasse_diagram import HasseDiagram
     from copy import copy
     from sage.combinat.subset import Subsets
+    from sage.graphs.digraph_generators import digraphs
 
+    if n < 4:
+        return digraphs.Path(n-1)
+    
     H = HasseDiagram({0: []})
     while sum(1 for _ in H.antichains_iterator()) < n:
         D = copy(H)
@@ -1558,5 +1570,54 @@ def _random_distributive_lattice(n):
             D.relabel({z:z-1 for z in range(to_delete + 1, D.order() + 1)})
             H = HasseDiagram(D)
     return D
+
+def _random_stone_lattice(n):
+    """
+    Return a random Stone lattice of `n` elements.
+    
+    INPUT:
+    
+    - ``n`` -- number of elements, a non-negative integer
+    
+    OUTPUT:
+    
+    A random lattice (as DiGraph) of `n` elements.
+    
+    EXAMPLES::
+    
+        sage: g = sage.combinat.posets.poset_examples._random_stone_lattice(10)
+        sage: LatticePoset(g).is_stone()
+        True
+    
+    ALGORITHM:
+    
+    Randomly split `n` to some factors. For every factor `p` generate
+    a random distributive lattice on `p-1` elements and add a new new bottom
+    element to it. Compute the cartesian product of those lattices.
+    """
+    from sage.arith.misc import factor
+    from sage.combinat.partition import Partitions
+    from sage.misc.misc_c import prod
+    from copy import copy
+
+    factors = sum([[f[0]]*f[1] for f in factor(n)], [])
+    sage.misc.prandom.shuffle(factors)
+
+    part_lengths = list(Partitions(len(factors)).random_element())
+    parts = []
+    while part_lengths:
+        x = part_lengths.pop()
+        parts.append(prod(factors[:x]))
+        factors = factors[x:]
+
+    result = DiGraph(1)
+    for p in parts:
+        g = _random_distributive_lattice(p-1)
+        g = copy(Poset(g).order_ideals_lattice(as_ideals=False)._hasse_diagram)
+        g.add_edge('bottom', 0)
+        result = result.cartesian_product(g)
+        result.relabel()
+
+    return result
 
 posets = Posets

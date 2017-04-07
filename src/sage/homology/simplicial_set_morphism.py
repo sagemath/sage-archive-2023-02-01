@@ -484,7 +484,7 @@ class SimplicialSetMorphism(Morphism):
             if constant is not None:
                 self._constant = constant
                 check = False
-                data = {sigma: constant.apply_degeneracies(*list(range(sigma.dimension()-1,-1,-1)))
+                data = {sigma: constant.apply_degeneracies(*range(sigma.dimension()-1,-1,-1))
                         for sigma in domain.nondegenerate_simplices()}
 
         if (not isinstance(domain, SimplicialSet_arbitrary)
@@ -635,7 +635,7 @@ class SimplicialSetMorphism(Morphism):
             raise ValueError('element is not a simplex in the domain')
         if self.is_constant():
             target = self._constant
-            return target.apply_degeneracies(*list(range(x.dimension()-1,-1,-1)))
+            return target.apply_degeneracies(*range(x.dimension()-1, -1, -1))
         if self._is_identity:
             return x
         return self._dictionary[x.nondegenerate()].apply_degeneracies(*x.degeneracies())

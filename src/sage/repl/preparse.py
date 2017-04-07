@@ -831,7 +831,7 @@ def preparse_calculus(code):
 
     TESTS:
 
-    The arguments in the definition must be symbolic variables #10747::
+    The arguments in the definition must be symbolic variables (:trac:`10747`)::
 
         sage: preparse_calculus(";f(_sage_const_)=x;")
         Traceback (most recent call last):

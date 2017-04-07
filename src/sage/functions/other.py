@@ -2181,7 +2181,7 @@ def sqrt(x, *args, **kwds):
             ...
             TypeError: _do_sqrt() got an unexpected keyword argument 'hold'
 
-        This illustrates that the bug reported in #6171 has been fixed::
+        This illustrates that the bug reported in :trac:`6171` has been fixed::
 
             sage: a = 1.1
             sage: a.sqrt(prec=100)  # this is supposed to fail

@@ -815,7 +815,7 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
 
         TESTS:
 
-        The bug reported at #12211 has been fixed::
+        The bug reported at :trac:`12211` has been fixed::
 
             sage: P.<x, y, z, w> = ProjectiveSpace(3, QQ)
             sage: S = P.subscheme([x])

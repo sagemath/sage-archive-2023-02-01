@@ -830,6 +830,10 @@ REFERENCES:
              Introduction to Mathematical
              Cryptography*. Springer, 2008.
 
+.. [HOLM2016] Tristan Holmes and \J. \B. Nation,
+              *Inflation of finite lattices along all-or-nothing sets*.
+              http://www.math.hawaii.edu/~jb/inflation.pdf
+
 .. [HR2016]  Clemens Heuberger and Roswitha Rissner, "Computing
              `J`-Ideals of a Matrix Over a Principal Ideal Domain",
              :arxiv:`1611.10308`, 2016.
@@ -1132,6 +1136,9 @@ REFERENCES:
 .. _ref-M:
 
 **M**
+
+.. [Mat2002] Jiří Matousek, "Lectures on Discrete Geometry", Springer,
+             2002
 
 .. [Ma2009] Sarah Mason, An Explicit Construction of Type A Demazure
             Atoms, Journal of Algebraic Combinatorics, Vol. 29,

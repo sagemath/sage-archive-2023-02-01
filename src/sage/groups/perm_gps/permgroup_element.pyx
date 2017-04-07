@@ -77,7 +77,7 @@ import operator
 from sage.rings.fast_arith cimport arith_llong
 cdef arith_llong arith = arith_llong()
 cdef extern from *:
-    long long LONG_LONG_MAX
+    long long LLONG_MAX
 
 #import permgroup_named
 
@@ -1079,7 +1079,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                 order = order.lcm(cycle_len)
             else:
                 order_c = (order_c * cycle_len) / arith.c_gcd_longlong(order_c, cycle_len)
-                if order_c > LONG_LONG_MAX / (self.n - i):
+                if order_c > LLONG_MAX / (self.n - i):
                     order = Integer(order_c)
         sig_free(seen)
         return Integer(order_c) if order is None else order

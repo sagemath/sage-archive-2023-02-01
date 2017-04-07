@@ -36,7 +36,6 @@ sage:
 		   SAGE_SRC=/doesnotexist							\
 		   SAGE_SRC_ROOT=/doesnotexist							\
 		   SAGE_DOC_SRC=/doesnotexist							\
-		   SAGE_SCRIPTS_DIR=/doesnotexist						\
 		   SAGE_BUILD_DIR=/doesnotexist							\
 		   SAGE_PKGS=$(abs_top_srcdir)/build/pkgs					\
 		   SAGE_CYTHONIZED=$(abs_builddir)/build/cythonized				\

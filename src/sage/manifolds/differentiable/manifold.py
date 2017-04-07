@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Differentiable Manifolds
 
@@ -2690,7 +2691,7 @@ class DifferentiableManifold(TopologicalManifold):
         Metric of the hyperbolic plane `H^2`::
 
             sage: H2 = Manifold(2, 'H^2', start_index=1)
-            sage: X.<x,y> = H2.chart('x y:(0,+oo)')  # Poincare half-plane coord.
+            sage: X.<x,y> = H2.chart('x y:(0,+oo)')  # Poincaré half-plane coord.
             sage: g = H2.riemannian_metric('g')
             sage: g[1,1], g[2,2] = 1/y^2, 1/y^2
             sage: g

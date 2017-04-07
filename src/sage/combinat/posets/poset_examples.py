@@ -1547,7 +1547,7 @@ def _random_distributive_lattice(n):
 
     if n < 4:
         return digraphs.Path(n-1)
-    
+
     H = HasseDiagram({0: []})
     while sum(1 for _ in H.antichains_iterator()) < n:
         D = copy(H)
@@ -1574,23 +1574,23 @@ def _random_distributive_lattice(n):
 def _random_stone_lattice(n):
     """
     Return a random Stone lattice of `n` elements.
-    
+
     INPUT:
-    
+
     - ``n`` -- number of elements, a non-negative integer
-    
+
     OUTPUT:
-    
+
     A random lattice (as DiGraph) of `n` elements.
-    
+
     EXAMPLES::
-    
+
         sage: g = sage.combinat.posets.poset_examples._random_stone_lattice(10)
         sage: LatticePoset(g).is_stone()
         True
-    
+
     ALGORITHM:
-    
+
     Randomly split `n` to some factors. For every factor `p` generate
     a random distributive lattice on `p-1` elements and add a new new bottom
     element to it. Compute the cartesian product of those lattices.

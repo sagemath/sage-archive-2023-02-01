@@ -1,7 +1,10 @@
-from six.moves import configparser as ConfigParser
+try:
+    from configparser import SafeConfigParser   # Python 3
+except ImportError:
+    from ConfigParser import SafeConfigParser   # Python 2
 import os
 
-config = ConfigParser.SafeConfigParser()
+config = SafeConfigParser()
 
 config.add_section('directories')
 config.set('directories', 'basedirlist', os.environ['SAGE_LOCAL'])

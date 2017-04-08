@@ -114,7 +114,7 @@ class FinitePermutationGroups(CategoryWithAxiom):
                (default: the symmetric functions over the rational field in the `p` basis)
 
             The *cycle index* of a permutation group `G`
-            (:wikipedia`Cycle_index`) is a gadget counting the
+            (:wikipedia:`Cycle_index`) is a gadget counting the
             elements of `G` by cycle type, averaged over the group:
 
             .. MATH::

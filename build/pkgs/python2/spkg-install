@@ -117,14 +117,12 @@ PYTHON_VERSION=$("$SAGE_LOCAL/bin/python2" -c 'import sys; print("%d.%d" % sys.v
 
 cd "$SAGE_LOCAL/lib"
 
-# Make symbolic link (after removing old link first)
-if [ "$SAGE_PYTHON3" != yes ]; then
-    rm -f python
-    ln -s python${PYTHON_VERSION} python
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error creating symbolic link"
-        exit 1
-    fi
+# Make symbolic link (python always refers to python2)
+# Note: python3 will not overwrite the symlink if it exists already
+ln -sf python2 "$SAGE_LOCAL/bin/python"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error creating symbolic link"
+    exit 1
 fi
 
 # On OS X with XCode 4, the presence of

@@ -92,16 +92,6 @@ build()
 
 build
 
-# Make symbolic link (after removing old link first)
-if [ "$SAGE_PYTHON3" = yes ]; then
-    rm -f "$SAGE_LOCAL/bin/python"
-    ln -s python3 "$SAGE_LOCAL/bin/python"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error creating symbolic link"
-        exit 1
-    fi
-fi
-
 PYTHON_VERSION=$("$SAGE_LOCAL/bin/python3" -c 'import sys; print("%d.%d" % sys.version_info[:2])')
 
 # On OS X with XCode 4, the presence of

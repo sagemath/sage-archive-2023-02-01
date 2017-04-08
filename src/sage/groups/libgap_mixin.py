@@ -13,6 +13,7 @@ just raise ``NotImplemented``.
 
 from sage.libs.all import libgap
 from sage.misc.cachefunc import cached_method
+from sage.groups.class_function import ClassFunction_libgap
 
 class GroupMixinLibGAP(object):
 
@@ -287,10 +288,91 @@ class GroupMixinLibGAP(object):
         """
         Irr = self.gap().Irr()
         L = []
-        from sage.groups.class_function import ClassFunction_libgap
         for irr in Irr:
             L.append(ClassFunction_libgap(self, irr))
         return tuple(L)
+
+    def character(self, values):
+        r"""
+        Returns a group character from ``values``, where ``values`` is
+        a list of the values of the character evaluated on the conjugacy
+        classes.
+
+        INPUT:
+
+        - ``values`` - a list of values of the character
+
+        OUTPUT: a group character
+
+        EXAMPLES::
+
+            sage: G = MatrixGroup(AlternatingGroup(4))
+            sage: G.character([1]*len(G.conjugacy_class_representatives()))
+            Character of Matrix group over Integer Ring with 12 generators
+        """
+        return ClassFunction_libgap(self, values)
+
+    def trivial_character(self):
+        r"""
+        Returns the trivial character of this group.
+
+        OUTPUT: a group character
+
+        EXAMPLES::
+
+            sage: MatrixGroup(SymmetricGroup(3)).trivial_character()
+            Character of Matrix group over Integer Ring with 6 generators
+        """
+        values = [1]*self._gap_().NrConjugacyClasses().sage()
+        return self.character(values)
+
+    def character_table(self):
+        r"""
+        Returns the matrix of values of the irreducible characters of this
+        group `G` at its conjugacy classes.
+
+        The columns represent the conjugacy classes of
+        `G` and the rows represent the different irreducible
+        characters in the ordering given by GAP.
+
+        OUTPUT: a matrix defined over a cyclotomic field
+
+        EXAMPLES::
+
+            sage: MatrixGroup(SymmetricGroup(2)).character_table()
+            [ 1 -1]
+            [ 1  1]
+            sage: MatrixGroup(SymmetricGroup(3)).character_table()
+            [ 1  1 -1]
+            [ 2 -1  0]
+            [ 1  1  1]
+            sage: MatrixGroup(SymmetricGroup(5)).character_table()
+            [ 1  1  1  1  1  1  1]
+            [ 1 -1 -1  1 -1  1  1]
+            [ 4  0  1 -1 -2  1  0]
+            [ 4  0 -1 -1  2  1  0]
+            [ 5 -1  1  0  1 -1  1]
+            [ 5  1 -1  0 -1 -1  1]
+            [ 6  0  0  1  0  0 -2]
+        """
+        #code from function in permgroup.py, but modified for
+        #how gap handles these groups.
+        G    = self._gap_()
+        cl   = self.conjugacy_classes()
+        from sage.rings.all import Integer
+        n    = Integer(len(cl))
+        irrG = G.Irr()
+        ct   = [[irrG[i][j] for j in range(n)] for i in range(n)]
+
+        from sage.rings.all import CyclotomicField
+        e = irrG.Flat().Conductor()
+        K = CyclotomicField(e)
+        ct = [[K(x) for x in v] for v in ct]
+
+        # Finally return the result as a matrix.
+        from sage.matrix.all import MatrixSpace
+        MS = MatrixSpace(K, n)
+        return MS(ct)
 
     def random_element(self):
         """

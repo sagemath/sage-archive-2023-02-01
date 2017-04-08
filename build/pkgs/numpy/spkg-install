@@ -59,7 +59,7 @@ sage-python setup.py \
 # Touch all includes such that dependency checking works properly:
 # the timestamp of the includes should be *now*, not the time when
 # the numpy package was created.
-python <<EOF
+sage-python <<EOF
 import os
 os.chdir(os.environ["SAGE_ROOT"])  # Import numpy from safe location
 import numpy

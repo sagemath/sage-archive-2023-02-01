@@ -34,7 +34,7 @@ else
     export LDFLAGS="${LDFLAGS} -shared"
 fi
 
-python "${CUR}"/lapack_conf.py
+sage-python "${CUR}"/lapack_conf.py
 
 # Make sure that the fortran objects are compiled with -fPIC
 export FFLAGS="$FFLAGS -fPIC"
@@ -49,7 +49,7 @@ rm -rf "$SAGE_LOCAL/lib/python/site-packages/numpy"
 # Program around a bug in SciPY's distutils.
 unset CFLAGS
 
-python setup.py \
+sage-python setup.py \
         --no-user-cfg \
        install \
        --single-version-externally-managed \

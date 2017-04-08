@@ -652,7 +652,7 @@ def EmptyGraph():
         4
         sage: for i in range(3):
         ....:     empty2.add_edge(i,i+1) # add edges {[0:1],[1:2],[2:3]}
-        sage: for i in range(4)[1:]:
+        sage: for i in range(1, 4):
         ....:     empty2.add_edge(4,i) # add edges {[1:4],[2:4],[3:4]}
         sage: empty2.show() # long time
     """

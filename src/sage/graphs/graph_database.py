@@ -137,13 +137,15 @@ def subgraphs_to_query(subgraphs, db):
         'SELECT ,,,,,  FROM misc WHERE ( ( misc.induced_subgraphs regexp ? ) AND (
         misc.induced_subgraphs regexp ? ) ) AND ( misc.induced_subgraphs regexp ? )'
     """
-    q = GraphQuery(graph_db=db,induced_subgraphs=subgraphs[1])
+    q = GraphQuery(graph_db=db, induced_subgraphs=subgraphs[1])
     if subgraphs[0] == 'all_of':
-        for i in range(len(subgraphs))[2:]:
-            q.intersect(GraphQuery(graph_db=db, induced_subgraphs=subgraphs[i]),in_place=True)
+        for i in range(2, len(subgraphs)):
+            q.intersect(GraphQuery(graph_db=db, induced_subgraphs=subgraphs[i]),
+                        in_place=True)
     elif subgraphs[0] == 'one_of':
-        for i in range(len(subgraphs))[2:]:
-            q.union(GraphQuery(graph_db=db, induced_subgraphs=subgraphs[i]),in_place=True)
+        for i in range(2, len(subgraphs)):
+            q.union(GraphQuery(graph_db=db, induced_subgraphs=subgraphs[i]),
+                    in_place=True)
     else:
         raise KeyError('Unable to initiate query:  Illegal input format for induced_subgraphs.')
     return q

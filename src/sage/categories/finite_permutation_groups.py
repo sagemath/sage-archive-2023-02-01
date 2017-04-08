@@ -226,10 +226,9 @@ class FinitePermutationGroups(CategoryWithAxiom):
             elif not hasattr(parent, "term") and hasattr(parent, "sum"):
                 raise ValueError("`parent` should be (or behave as) a free module with basis indexed by partitions")
             base_ring = parent.base_ring()
-            return parent.sum( parent.term( C.an_element().cycle_type(), base_ring(C.cardinality()) )
-                               for C in self.conjugacy_classes()
-                             ) / self.cardinality()
-
+            return parent.sum_of_terms([C.an_element().cycle_type(), base_ring(C.cardinality())]
+                                       for C in self.conjugacy_classes()
+                                      ) / self.cardinality()
 
     class ElementMethods:
         # TODO: put abstract_methods for

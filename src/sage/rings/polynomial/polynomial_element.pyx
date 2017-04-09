@@ -6319,25 +6319,27 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def compose_power(self, k, algorithm=None, monic=False):
         r"""
-        Return the k'th iterate of the composed product of this
+        Return the `k`-th iterate of the composed product of this
         polynomial with itself.
 
         INPUT:
 
-        - ``k`` - a non-negative integer
+        - `k` -- a non-negative integer
 
-        - ``algorithm`` - None (default), "resultant" or "BFSS". See :meth:`.composed_op`
+        - ``algorithm`` -- ``None`` (default), ``"resultant"`` or ``"BFSS"``.
+          See :meth:`.composed_op`
 
-        - ``monic`` - False (default) or True. See :meth:`.composed_op`
+        - ``monic`` - ``False`` (default) or ``True``.
+          See :meth:`.composed_op`
 
         OUTPUT:
 
-        The polynomial of degree $d^k$ where $d$ is the degree, whose
-        roots are all $k$-fold products of roots of this polynomial.
-        That is, $f*f*\dots*f$ where this is $f$ and
-        $f*f=$ f.composed_op(f,operator.mul).
+        The polynomial of degree `d^k` where `d` is the degree, whose
+        roots are all `k`-fold products of roots of this polynomial.
+        That is, `f*f*\dots*f` where this is `f` and
+        `f*f=` f.composed_op(f,operator.mul).
 
-        TESTS::
+        EXAMPLES::
 
             sage: R.<a,b,c> = ZZ[]
             sage: x = polygen(R)
@@ -6363,14 +6365,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
            k = ZZ(k)
         except ValueError("Cannot iterate {} times".format(k)):
            return self
-        if k<0:
+        if k < 0:
            raise ValueError("Cannot iterate a negative number {} of times".format(k))
-        if k==0:
-           return self.variables()[0]-1
-        if k==1:
+        if k == 0:
+           return self.variables()[0] - 1
+        if k == 1:
            return self
-        if k==2:
-           return self.composed_op(self, operator.mul, algorithm=algorithm, monic=monic)
+        if k == 2:
+           return self.composed_op(self, operator.mul,
+                                   algorithm=algorithm, monic=monic)
         k2, k1 = k.quo_rem(2)
         # recurse to get the k/2 -iterate where k=2*k2+k1:
         R = self.compose_power(k2, algorithm=algorithm, monic=monic)
@@ -6383,9 +6386,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def adams_operator(self, n, monic=False):
         r"""
-        Returns the polynomial whose roots are the $n$-th power of the roots of this.
+        Return the polynomial whose roots are the `n`-th power
+        of the roots of this.
 
-        TESTS::
+        INPUT:
+
+        - `n` -- an integer
+
+        - ``monic`` -- boolean (default ``False``)
+          if set to ``True``, force the output to be monic
+
+        EXAMPLES::
 
             sage: f = cyclotomic_polynomial(30)
             sage: f.adams_operator(7)==f
@@ -6405,7 +6416,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             x^2 + 1024
 
         When f is monic the output will have leading coefficient
-        $\pm1$ depending on the degree, but we can force it to be
+        `\pm1` depending on the degree, but we can force it to be
         monic::
 
             sage: R.<a,b,c> = ZZ[]
@@ -6417,21 +6428,22 @@ cdef class Polynomial(CommutativeAlgebraElement):
             (x - c^3) * (x - b^3) * (x - a^3)
 
         """
-        u,v = PolynomialRing(self.parent().base_ring(),['u','v']).gens()
-        R = (u-v**n).resultant(self(v),v)
-        R = R([self.variables()[0],0])
+        u, v = PolynomialRing(self.parent().base_ring(), ['u', 'v']).gens()
+        R = (u - v**n).resultant(self(v), v)
+        R = R([self.variables()[0], 0])
         if monic:
            R = R.monic()
         return R
 
     def symmetric_power(self, k, monic=False):
         r"""
-        Returns the polynomial whose roots are products of $k$-th distinct roots of this.
+        Return the polynomial whose roots are products of `k`-th distinct
+        roots of this.
 
-        TESTS::
+        EXAMPLES::
 
             sage: x = polygen(QQ)
-            sage: f=x^4-x+2
+            sage: f = x^4-x+2
             sage: [f.symmetric_power(k) for k in range(5)]
             [x - 1, x^4 - x + 2, x^6 - 2*x^4 - x^3 - 4*x^2 + 8, x^4 - x^3 + 8, x - 2]
 
@@ -6459,52 +6471,54 @@ cdef class Polynomial(CommutativeAlgebraElement):
         except (ValueError, TypeError):
            raise ValueError("Cannot compute k'th symmetric power for k={}".format(k))
         n = self.degree()
-        if k<0 or k>n:
+        if k < 0 or k > n:
            raise ValueError("Cannot compute k'th symmetric power for k={}".format(k))
         x = self.variables()[0]
-        if k==0:
-           return x-1
-        if k==1:
+        if k == 0:
+           return x - 1
+        if k == 1:
            if monic:
               return self.monic()
            return self
         c = (-1)**n * self(0)
-        if k==n:
-            return x-c
-        if k>n-k: # use (n-k)'th symmetric power
-            g = self.symmetric_power(n-k, monic=monic)
+        if k == n:
+            return x - c
+        if k > n - k:  # use (n-k)'th symmetric power
+            g = self.symmetric_power(n - k, monic=monic)
             from sage.arith.all import binomial
             g = ((-x)**binomial(n,k) * g(c/x) / c**binomial(n-1,k)).numerator()
             if monic:
                g = g.monic()
             return g
-        def star(g,h):
+
+        def star(g, h):
             return g.composed_op(h, operator.mul, monic=True)
-        def rpow(g,n):
+
+        def rpow(g, n):
             return g.adams_operator(n, monic=True)
-        if k==2:
-            g = (star(self, self) // rpow(self,2)).nth_root(2)
+        if k == 2:
+            g = (star(self, self) // rpow(self, 2)).nth_root(2)
             if monic:
                g = g.monic()
             return g
-        if k==3:
-            g = star(self.symmetric_power(2, monic=monic), self) * rpow(self,3)
-            h = star(rpow(self,2),self)
+        if k == 3:
+            g = star(self.symmetric_power(2, monic=monic), self) * rpow(self, 3)
+            h = star(rpow(self, 2), self)
             g = (g // h).nth_root(3)
             if monic:
                g = g.monic()
             return g
 
         fkn = fkd = self.parent().one()
-        for j in range(1,k+1):
-            g = star(rpow(self,j), self.symmetric_power(k-j))
-            if j%2:
+        for j in range(1, k + 1):
+            g = star(rpow(self, j), self.symmetric_power(k - j))
+            if j % 2:
                 fkn *= g
             else:
                 fkd *= g
 
-        fk = fkn//fkd
-        assert fk*fkd==fkn
+        fk = fkn // fkd
+        assert fk * fkd == fkn
         g = fk.nth_root(k)
         if monic:
            g = g.monic()
@@ -10200,7 +10214,7 @@ cdef class Polynomial_generic_dense_inexact(Polynomial_generic_dense):
         indistinguishable from 0), an error is raised
 
         If ``secure`` is False, the returned value is the largest
-        $n$ so that the coefficient of $x^n$ does not compare equal
+        `n` so that the coefficient of `x^n` does not compare equal
         to `0`.
 
         EXAMPLES::

@@ -5,7 +5,7 @@ Galois representations for elliptic curves over number fields.
 This file contains the code to compute for which primes the Galois
 representation attached to an elliptic curve (over an arbitrary
 number field) is surjective. The functions in this file are called by
-the `is_surjective` and `non_surjective` methods of an elliptic curve
+the ``is_surjective`` and ``non_surjective`` methods of an elliptic curve
 over a number field.
 
 EXAMPLES::
@@ -36,7 +36,7 @@ REFERENCES:
     courbes elliptiques. Inventiones mathematicae, 1972.
 
 .. [Sutherland12] Sutherland. A local-global principle for rational
-    isogenies of prime degree. Journal de Theorie des Nombres de Bordeaux,
+    isogenies of prime degree. Journal de Théorie des Nombres de Bordeaux,
     2012.
 
 """
@@ -70,7 +70,7 @@ class GaloisRepresentation(SageObject):
     and a rational prime number `p`, the `p^n`-torsion
     `E[p^n]` points of `E` is a representation of the
     absolute Galois group `G_K` of `K`. As `n` varies
-    we obtain the Tate module `T_p E` which is a
+    we obtain the Tate module `T_p E` which is
     a representation of `G_K` on a free `\ZZ_p`-module
     of rank `2`. As `p` varies the representations
     are compatible.
@@ -169,12 +169,12 @@ class GaloisRepresentation(SageObject):
 
         INPUT:
 
-        * ``A`` - int (a bound on the number of traces of Frobenius to use
-                     while trying to prove surjectivity).
+        - ``A`` -- int (a bound on the number of traces of Frobenius to use
+          while trying to prove surjectivity).
 
         OUTPUT:
 
-        - ``list`` - A list of primes where mod-`p` representation is
+        - ``list`` -- A list of primes where mod-`p` representation is
           very likely not surjective. At any prime not in this list,
           the representation is definitely surjective. If `E` has CM,
           the list [0] is returned.
@@ -271,7 +271,7 @@ class GaloisRepresentation(SageObject):
 
     def isogeny_bound(self, A=100):
         r"""
-        Returns a list of primes `p` including all primes for which
+        Return a list of primes `p` including all primes for which
         the image of the mod-`p` representation is contained in a
         Borel.
 
@@ -282,9 +282,9 @@ class GaloisRepresentation(SageObject):
 
         INPUT:
 
-        - ``A`` - int (a bound on the number of traces of Frobenius to
-                     use while trying to prove the mod-`p`
-                     representation is not contained in a Borel).
+        - ``A`` -- int (a bound on the number of traces of Frobenius to
+          use while trying to prove the mod-`p`
+          representation is not contained in a Borel).
 
         OUTPUT:
 
@@ -361,7 +361,7 @@ class GaloisRepresentation(SageObject):
 
     def reducible_primes(self):
         r"""
-        Returns a list of primes `p` for which the mod-`p`
+        Return a list of primes `p` for which the mod-`p`
         representation is reducible, or [0] for CM curves.
 
         OUTPUT:
@@ -413,7 +413,7 @@ class GaloisRepresentation(SageObject):
 
 def _non_surjective(E, patience=100):
     r"""
-    Returns a list of primes `p` including all primes for which the mod-`p`
+    Return a list of primes `p` including all primes for which the mod-`p`
     representation might not be surjective.
 
     INPUT:
@@ -491,17 +491,19 @@ def _maybe_borels(E, L, patience=100):
 
     INPUT:
 
-    - ``E`` - EllipticCurve - over a number field.
+    - ``E`` -- EllipticCurve - over a number field.
 
-    - ``L`` - list - a list of prime numbers.
+    - ``L`` -- list - a list of prime numbers.
 
-    - ``patience`` - int (a positive integer bounding the number of
-                          traces of Frobenius to use while trying to
-                          prove irreducibility).
+    - ``patience`` -- int (a positive integer bounding the number of
+      traces of Frobenius to use while trying to
+      prove irreducibility).
 
-    OUTPUT: list - The list of all primes `\ell` in L for which the
-                   mod `\ell` image might be contained in a Borel
-                   subgroup of `GL_2(\mathbf{F}_{\ell})`.
+    OUTPUT:
+
+    - list -- The list of all primes `\ell` in L for which the
+      mod `\ell` image might be contained in a Borel
+      subgroup of `GL_2(\mathbf{F}_{\ell})`.
 
     EXAMPLES::
 
@@ -585,10 +587,12 @@ def _exceptionals(E, L, patience=1000):
     - ``L`` - list - a list of prime numbers.
 
     - ``patience`` - int (a bound on the number of traces of Frobenius to
-                          use while trying to prove surjectivity).
+      use while trying to prove surjectivity).
 
-    OUTPUT: list - The list of all primes l in L for which the mod l image
-                   might fail to be surjective.
+    OUTPUT:
+
+    - list -- The list of all primes l in L for which the mod l image
+      might fail to be surjective.
 
     EXAMPLES::
 
@@ -821,7 +825,7 @@ def _semistable_reducible_primes(E, verbose=False):
         sage: 5 in sage.schemes.elliptic_curves.gal_reps_number_field._semistable_reducible_primes(E)
         True
 
-    This example, over a quintic field with Galois group $S_5$, took a
+    This example, over a quintic field with Galois group `S_5`, took a
     very long time before :trac:`22343`::
 
         sage: K.<a> = NumberField(x^5 - 6*x^3 + 8*x - 1)

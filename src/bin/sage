@@ -383,7 +383,15 @@ fi
 # Prepare for running Sage, either interactively or non-interactively.
 sage_setup() {
     # Check that we're not in a source tarball which hasn't been built yet (#13561).
-    if ! python -c 'import sage.version' 2> /dev/null ; then
+    if [ ! -x "$SAGE_LOCAL/bin/python" ]; then
+        sage_built=no
+    else
+        PYTHON_VERSION=$("$SAGE_LOCAL/bin/python" -c 'import sys; print("%d.%d" % sys.version_info[:2])')
+        if [ ! -d "$SAGE_LOCAL/lib/python$PYTHON_VERSION/site-packages/sage" ]; then
+            sage_built=no
+        fi
+    fi
+    if [ $sage_built = no ]; then
         echo >&2 '************************************************************************'
         echo >&2 'It seems that you are attempting to run Sage from an unpacked source'
         echo >&2 'tarball, but you have not compiled it yet (or maybe the build has not'

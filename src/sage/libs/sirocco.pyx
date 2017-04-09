@@ -8,10 +8,10 @@ The function contpath takes the following input:
 - An integer, representing the degree of the polynomial
 
 - A list of floating point numbers. Each four consecutive elements 
-of this list represent the interval corresponding to a coefficient.
-Coefficients are listed in increasing deglex order, and inside each
-coefficients, the four numbers represent the lower real, upper real,
-lower imaginary and real imaginary limits of the interval.
+  of this list represent the interval corresponding to a coefficient.
+  Coefficients are listed in increasing deglex order, and inside each
+  coefficients, the four numbers represent the lower real, upper real,
+  lower imaginary and real imaginary limits of the interval.
 
 - A float representing the real part of the initial root approximation
 
@@ -26,7 +26,7 @@ The function contpath_mp mimics contpath, but with the following differences:
 - The floating point numbers can be arbitrary precission RealNumbers
 
 - A extra argument is needed, indicating the bits of precission used in the
-computations.
+  computations.
 
 AUTHORS:
 
@@ -49,17 +49,16 @@ cdef extern from "stdlib.h":
 
 cdef extern from "sirocco.h":
     mpfr_t* homotopyPath_mp (int degree, mpfr_t *_coef, mpfr_t _y0R, mpfr_t _y0I, int prec)
-    double * homotopyPath (int degree, double *_coef, double _y0R, double _y0I)
+    double* homotopyPath (int degree, double *_coef, double _y0R, double _y0I)
 
 
 
-def contpath_mp(deg, values, RealNumber y0r, RealNumber y0i, int prec):
+cpdef list[list] contpath_mp(int deg, list values, RealNumber y0r, RealNumber y0i, int prec):
     cdef int cdeg = deg
     cdef mpfr_t* cvalues = <mpfr_t*> sage_malloc(sizeof(mpfr_t)*len(values))
     cdef mpfr_t* rop
     cdef int j
-    for i in range(len(values)):
-        j = <int>i
+    for j in range(len(values)):
         sig_on()
         mpfr_init2(cvalues[j], prec)
         mpfr_set(cvalues[j], (<RealNumber>values[j]).value, MPFR_RNDN)
@@ -73,8 +72,7 @@ def contpath_mp(deg, values, RealNumber y0r, RealNumber y0i, int prec):
     mpfr_set(y0I, (<RealNumber>y0i).value, MPFR_RNDN)
     rop = homotopyPath_mp(cdeg, cvalues, y0R, y0I, prec)
     sig_off()
-    for i in range(len(values)):
-        j = <int>i
+    for j in range(len(values)):
         sig_on()
         mpfr_clear(cvalues[j])
         sig_off()
@@ -82,15 +80,12 @@ def contpath_mp(deg, values, RealNumber y0r, RealNumber y0i, int prec):
     if rop == NULL:
         raise ValueError("libsirocco could not guarantee one step")
     cdef int n = mpfr_get_si(rop[0], MPFR_RNDN)
-
-    #cdef RealNumber res = RealField(53)()
-    cdef double res
     l = []
-
+    field = RealField(prec)
     for i in range(1, 3*n+1):
-        RN = RealField(prec)()
+        RN = field()
         sig_on()
-        res = mpfr_set((<RealNumber>RN).value, rop[i], MPFR_RNDN)
+        mpfr_set((<RealNumber>RN).value, rop[i], MPFR_RNDN)
         mpfr_clear(rop[i])
         sig_off()
         l.append(RN)
@@ -100,24 +95,21 @@ def contpath_mp(deg, values, RealNumber y0r, RealNumber y0i, int prec):
 
 
 
-def contpath(deg,values,y0r,y0i):
+cpdef list[list] contpath(int deg, list values, double y0r,  double y0i):
     cdef double* rop
     cdef double* c_values = <double*> sage_malloc(sizeof(double)*len(values))
     cdef int clen = <int> len(values)
     for i,v in enumerate(values):
         c_values[i] = values[i]
-
-
-
     cdef double y0R = y0r
     cdef double y0I = y0i
     sig_on()
-    rop = homotopyPath (int(deg), c_values, y0R, y0I)
+    rop = homotopyPath (deg, c_values, y0R, y0I)
     sig_off()
     if rop == NULL:
         raise ValueError("libsirocco could not guarantee one step")
-    n=int(rop[0])
-    l=[0 for i in range(n)]
+    n = int(rop[0])
+    l = [0 for i in range(n)]
     for i in range(n):
         l[i]=(rop[3*i+1],rop[3*i+2],rop[3*i+3])
     free(rop)

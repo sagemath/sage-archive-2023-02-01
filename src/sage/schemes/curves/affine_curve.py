@@ -1519,41 +1519,6 @@ class AffinePlaneCurve(AffineCurve):
         f = self.defining_polynomial()
         return fundamental_group(f, projective=False)
     
-    
-    def fundamental_group(self):
-        """
-        Return a presentation of the fundamental group of the complement of the curve.
-        In order to compute it, the curve must be defined over the rationals or a number
-        field with an embedding over QQbar.
-        
-        EXAMPLES::
-        
-            sage: A.<x,y> = AffineSpace(QQ, 2)
-            sage: C = A.curve(y^2 - x^3 - x^2)
-            sage: C.fundamental_group() # optional - sirocco
-            Finitely presented group < x0 |  >
-            
-        In the case of number fields, they need to have an embedding to the algebraic field::
-        
-            sage: a = QQ[x](x^2+5).roots(QQbar)[0][0]
-            sage: F = NumberField(a.minpoly(), 'a', embedding=a)
-            sage: F.inject_variables()
-            Defining a
-            sage: A.<x,y> = AffineSpace(F, 2)
-            sage: C = A.curve(y^2 - a*x^3 - x^2)
-            sage: C.fundamental_group() # optional - sirocco
-            Finitely presented group < x0 |  >
-        
-        .. WARNING: This functionality requires the sirocco package to be installed.
-        """
-        from sage.schemes.curves.zariski_vankampen import fundamental_group
-        F = self.base_ring()
-        from sage.rings.qqbar import QQbar
-        if QQbar.coerce_map_from(F) is None:
-            raise NotImplementedError('The base field must have an embeding to the algebraic field')
-        f = self.defining_polynomial()
-        return fundamental_group(f, projective=False)
-    
 
 class AffinePlaneCurve_finite_field(AffinePlaneCurve):
 

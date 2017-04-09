@@ -71,7 +71,7 @@ def braid_from_piecewise(strands):
     INPUT: 
     
     - A list of lists of tuples (t, c), where t is a number bewteen 0 and 1,
-    and c is a complex number.
+      and c is a complex number.
     
     OUTPUT: 
     
@@ -244,7 +244,7 @@ def followstrand(f, x0, x1, y0a, prec=53):
         sage: f = x^2 + y^3
         sage: x0 = CC(1, 0)
         sage: x1 = CC(1, 0.5)
-        sage: followstrand(f, x0, x1, -1.0) # optional 
+        sage: followstrand(f, x0, x1, -1.0) # optional - sirocco
         [(0.0, -1.0, 0.0),
         (0.063125, -1.0001106593601545, -0.02104011456212618),
         (0.12230468750000001, -1.0004151100003031, -0.04075695242737829),
@@ -310,7 +310,7 @@ def braid_in_segment(f, x0, x1):
         sage: f = x^2 + y^3
         sage: x0 = CC(1,0)
         sage: x1 = CC(1, 0.5)
-        sage: braid_in_segment(f, x0, x1) # optional -
+        sage: braid_in_segment(f, x0, x1) # optional - sirocco
         s1
 
     """
@@ -361,15 +361,15 @@ def fundamental_group(f, simplified=True, projective = False):
             or a number field with a fixed embedding in QQbar.
     
     - ``simplified`` -- boolean (default: True). If set to True the presentation will be
-                    simplified. Otherwise, the returned presentation has as many generators
-                    as degree of the polynomial times the points in the base used to create
-                    the segments that surround the discriminant. In this case, the generators
-                    are granted to be meridians of the curve.
+                        simplified. Otherwise, the returned presentation has as many generators
+                        as degree of the polynomial times the points in the base used to create
+                        the segments that surround the discriminant. In this case, the generators
+                        are granted to be meridians of the curve.
                     
     -- ``projective`` -- boolean (default: False). If set to True, the fundamental group of
-                    the complement of the projective completion of the curve will be computed.
-                    Otherwise, the fundamental group of the complement in the affine plane will
-                    be computed.
+                         the complement of the projective completion of the curve will be computed.
+                         Otherwise, the fundamental group of the complement in the affine plane will
+                         be computed.
              
     OUTPUT: 
     
@@ -379,9 +379,9 @@ def fundamental_group(f, simplified=True, projective = False):
     
         sage: R.<x,y> = QQ[]
         sage: f = x^2 + y^3
-        sage: fundamental_group(f) # optional -
+        sage: fundamental_group(f) # optional - sirocco
         Finitely presented group < x0, x1 | x0^-1*x1*x0*x1*x0^-1*x1^-1 >
-        sage: fundamental_group(f, simplified=False) # optional
+        sage: fundamental_group(f, simplified=False) # optional - sirocco
         Finitely presented group < x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11 | x3*x9^-1, x4*x5*x4^-1*x10^-1, x4*x11^-1, x0*x1*x0^-1*x3^-1, x0*x4^-1, x2*x5^-1, x0*x6^-1, x2*x7^-1, x2^-1*x1*x2*x8^-1, x7*x9^-1, x7^-1*x6*x7*x10^-1, x8*x11^-1 >
 
 
@@ -389,7 +389,7 @@ def fundamental_group(f, simplified=True, projective = False):
     
         sage: R.<x,y> = QQ[]
         sage: f = y^3 + x^3
-        sage: fundamental_group(f) # optional
+        sage: fundamental_group(f) # optional - sirocco
         Finitely presented group < x0, x1, x2 | x1*x2*x1^-1*x0^-1*x2^-1*x0, x2*x0*x1*x0^-1*x2^-1*x1^-1 >
         
     It is also possible to have coefficients in a number field with a fixed embedding in QQbar::
@@ -404,7 +404,7 @@ def fundamental_group(f, simplified=True, projective = False):
         Defining zeta
         sage: R.<x,y> = F[] 
         sage: f = y^3 + x^3 +zeta *x + 1
-        sage: fundamental_group(f)
+        sage: fundamental_group(f) # optional - sirocco
         Finitely presented group < x0 |  >
 
 

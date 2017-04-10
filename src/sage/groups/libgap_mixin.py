@@ -14,6 +14,8 @@ just raise ``NotImplemented``.
 from sage.libs.all import libgap
 from sage.misc.cachefunc import cached_method
 from sage.groups.class_function import ClassFunction_libgap
+from sage.misc.superseded import deprecated_function_alias
+
 
 class GroupMixinLibGAP(object):
 
@@ -103,7 +105,7 @@ class GroupMixinLibGAP(object):
     order = cardinality
 
     @cached_method
-    def conjugacy_class_representatives(self):
+    def conjugacy_classes_representatives(self):
         """
         Return a set of representatives for each of the conjugacy classes
         of the group.
@@ -111,22 +113,34 @@ class GroupMixinLibGAP(object):
         EXAMPLES::
 
             sage: G = SU(3,GF(2))
-            sage: len(G.conjugacy_class_representatives())
+            sage: len(G.conjugacy_classes_representatives())
             16
 
             sage: G = GL(2,GF(3))
-            sage: G.conjugacy_class_representatives()
+            sage: G.conjugacy_classes_representatives()
             (
             [1 0]  [0 2]  [2 0]  [0 2]  [0 2]  [0 1]  [0 1]  [2 0]
             [0 1], [1 1], [0 2], [1 2], [1 0], [1 2], [1 1], [0 1]
             )
 
-            sage: len(GU(2,GF(5)).conjugacy_class_representatives())
+            sage: len(GU(2,GF(5)).conjugacy_classes_representatives())
             36
+
+        ::
+
+            sage: GL(2,ZZ).conjugacy_classes_representatives()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Only implemented for finite groups
+
         """
+        if not self.is_finite():
+            raise NotImplementedError("Only implemented for finite groups")
         G = self.gap()
         reps = [ cc.Representative() for cc in G.ConjugacyClasses() ]
         return tuple(self(g) for g in reps)
+
+    conjugacy_class_representatives = deprecated_function_alias(22783, conjugacy_classes_representatives)
 
     def conjugacy_classes(self):
         r"""
@@ -142,9 +156,18 @@ class GroupMixinLibGAP(object):
              [1 0] in Special Linear Group of degree 2 over Finite Field of size 2,
              Conjugacy class of [0 1]
              [1 1] in Special Linear Group of degree 2 over Finite Field of size 2)
+
+        ::
+
+            sage: GL(2,ZZ).conjugacy_classes()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Only implemented for finite groups
         """
+        if not self.is_finite():
+            raise NotImplementedError("Only implemented for finite groups")
         from sage.groups.conjugacy_classes import ConjugacyClassGAP
-        return tuple(ConjugacyClassGAP(self, self(g)) for g in self.conjugacy_class_representatives())
+        return tuple(ConjugacyClassGAP(self, self(g)) for g in self.conjugacy_classes_representatives())
 
     def conjugacy_class(self, g):
         r"""
@@ -272,7 +295,7 @@ class GroupMixinLibGAP(object):
     @cached_method
     def irreducible_characters(self):
         """
-        Returns the irreducible characters of the group.
+        Return the irreducible characters of the group.
 
         OUTPUT:
 
@@ -285,7 +308,16 @@ class GroupMixinLibGAP(object):
             (Character of General Linear Group of degree 2 over Finite Field of size 2,
              Character of General Linear Group of degree 2 over Finite Field of size 2,
              Character of General Linear Group of degree 2 over Finite Field of size 2)
+
+        ::
+
+            sage: GL(2,ZZ).irreducible_characters()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Only implemented for finite groups
         """
+        if not self.is_finite():
+            raise NotImplementedError("Only implemented for finite groups")
         Irr = self.gap().Irr()
         L = []
         for irr in Irr:
@@ -300,16 +332,26 @@ class GroupMixinLibGAP(object):
 
         INPUT:
 
-        - ``values`` - a list of values of the character
+        - ``values`` -- a list of values of the character
 
         OUTPUT: a group character
 
         EXAMPLES::
 
             sage: G = MatrixGroup(AlternatingGroup(4))
-            sage: G.character([1]*len(G.conjugacy_class_representatives()))
+            sage: G.character([1]*len(G.conjugacy_classes_representatives()))
             Character of Matrix group over Integer Ring with 12 generators
+
+        ::
+
+            sage: G = GL(2,ZZ)
+            sage: G.character([1,1,1,1])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Only implemented for finite groups
         """
+        if not self.is_finite():
+            raise NotImplementedError("Only implemented for finite groups")
         return ClassFunction_libgap(self, values)
 
     def trivial_character(self):
@@ -322,7 +364,16 @@ class GroupMixinLibGAP(object):
 
             sage: MatrixGroup(SymmetricGroup(3)).trivial_character()
             Character of Matrix group over Integer Ring with 6 generators
+
+        ::
+
+            sage: GL(2,ZZ).trivial_character()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Only implemented for finite groups
         """
+        if not self.is_finite():
+            raise NotImplementedError("Only implemented for finite groups")
         values = [1]*self._gap_().NrConjugacyClasses().sage()
         return self.character(values)
 

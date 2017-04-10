@@ -9,7 +9,7 @@ EXAMPLES::
     sage: F = GF(3)
     sage: gens = [matrix(F,2, [1,0, -1,1]), matrix(F,2, [1,1,0,1])]
     sage: G = MatrixGroup(gens)
-    sage: G.conjugacy_class_representatives()
+    sage: G.conjugacy_classes_representatives()
     (
     [1 0]  [0 2]  [0 1]  [2 0]  [0 2]  [0 1]  [0 2]
     [0 1], [1 1], [2 1], [0 2], [1 2], [2 2], [1 0]

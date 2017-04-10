@@ -24,7 +24,7 @@ AUTHORS:
 
 EXAMPLES::
 
-    sage: from sage.schemes.curves.zariski_vankampen import fundamental_group
+    sage: from sage.schemes.curves.zariski_vankampen import fundamental_group # optional - sirocco
     sage: R.<x,y> = QQ[]
     sage: f = y^3 + x^3 -1
     sage: fundamental_group(f) # optional - sirocco
@@ -79,8 +79,9 @@ def braid_from_piecewise(strands):
     
     EXAMPLES::
     
+        sage: from sage.schemes.curves.zariski_vankampen import braid_from_piecewise
         sage: paths = [[(0, I), (0.2, -1 - 0.5*I), (0.8, -1), (1, -I)], [(0, -1), (0.5, -I), (1, 1)], [(0, 1), (0.5, 1 + I), (1, I)]]
-        sage: braid_from_piecewise(paths)
+        sage: braid_from_piecewise(paths) 
         s0*s1
 
     """
@@ -153,6 +154,7 @@ def discrim(f):
     
     EXAMPLES::
     
+        sage: from sage.schemes.curves.zariski_vankampen import discrim
         sage: R.<x,y> = QQ[]
         sage: f = (y^3 + x^3 -1) * (x+y)
         sage: discrim(f)
@@ -181,6 +183,7 @@ def segments(points):
     
     EXAMPLES::
     
+        sage: from sage.schemes.curves.zariski_vankampen import discrim, segments
         sage: R.<x,y> = QQ[]
         sage: f = y^3 + x^3 -1          
         sage: disc = discrim(f)
@@ -240,27 +243,16 @@ def followstrand(f, x0, x1, y0a, prec=53):
           
     EXAMPLES::
     
+        sage: from sage.schemes.curves.zariski_vankampen import followstrand
         sage: R.<x,y> = QQ[]
         sage: f = x^2 + y^3
         sage: x0 = CC(1, 0)
         sage: x1 = CC(1, 0.5)
         sage: followstrand(f, x0, x1, -1.0) # optional - sirocco
         [(0.0, -1.0, 0.0),
-        (0.063125, -1.0001106593601545, -0.02104011456212618),
-        (0.12230468750000001, -1.0004151100003031, -0.04075695242737829),
-        (0.17778564453125, -1.0008762007617709, -0.059227299979315154),
-        (0.28181243896484376, -1.0021948141328698, -0.09380038023464156),
-        (0.3728358840942383, -1.0038270754728402, -0.123962953123039),
-        (0.4524813985824585, -1.005613540368227, -0.15026634875747985),
-        (0.5221712237596512, -1.0074443351354077, -0.17320066690539515),
-        (0.5831498207896948, -1.009246118007067, -0.1931978258913501),
-        (0.636506093190983, -1.0109719597443307, -0.21063630045261386),
-        (0.6831928315421101, -1.0125937110987449, -0.2258465242053158),
-        (0.7648946236565826, -1.0156754074572174, -0.2523480191006915),
-        (0.8261709677424369, -1.0181837235093538, -0.2721208327884435),
-        (0.8721282258068277, -1.0201720738092597, -0.2868892148703381),
-        (0.9410641129034139, -1.0233210275568283, -0.3089391941950436),
-        (1.0, -1.026166099551513, -0.3276894025360433)]
+         (0.7500000000000001, -1.015090921153253, -0.24752813818386948),
+         (1.0, -1.026166099551513, -0.32768940253604323)]
+
         
     """
     CIF = ComplexIntervalField(prec)
@@ -306,6 +298,7 @@ def braid_in_segment(f, x0, x1):
     
     EXAMPLES::
     
+        sage: from sage.schemes.curves.zariski_vankampen import braid_in_segment
         sage: R.<x,y> = QQ[]
         sage: f = x^2 + y^3
         sage: x0 = CC(1,0)
@@ -319,7 +312,7 @@ def braid_in_segment(f, x0, x1):
     I = QQbar.gen()
     X0 = QQ(x0.real()) + I*QQ(x0.imag())
     X1 = QQ(x1.real()) + I*QQ(x1.imag())
-    F0 = QQbar[y](f(x=X0))
+    F0 = QQbar[y](f(X0, y))
     y0s = F0.roots(multiplicities=False)
     strands = [followstrand(f, x0, x1, CC(a)) for a in y0s]
     complexstrands = [[(a[0], CC(a[1], a[2])) for a in b] for b in strands]
@@ -335,7 +328,7 @@ def braid_in_segment(f, x0, x1):
         used.append(y0)
         initialstrands.append([(0, CC(y0)), (1, y0ap)])
     initialbraid = braid_from_piecewise(initialstrands)
-    F1 = QQbar[y](f(x=X1))
+    F1 = QQbar[y](f(X1,y))
     y1s = F1.roots(multiplicities=False)
     finalstrands = []
     y1aps = [c[-1][1] for c in complexstrands]
@@ -377,37 +370,37 @@ def fundamental_group(f, simplified=True, projective = False):
     
     EXAMPLES::
     
+        sage: from sage.schemes.curves.zariski_vankampen import fundamental_group
         sage: R.<x,y> = QQ[]
         sage: f = x^2 + y^3
         sage: fundamental_group(f) # optional - sirocco
-        Finitely presented group < x0, x1 | x0^-1*x1*x0*x1*x0^-1*x1^-1 >
+        Finitely presented group < ... >
         sage: fundamental_group(f, simplified=False) # optional - sirocco
-        Finitely presented group < x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11 | x3*x9^-1, x4*x5*x4^-1*x10^-1, x4*x11^-1, x0*x1*x0^-1*x3^-1, x0*x4^-1, x2*x5^-1, x0*x6^-1, x2*x7^-1, x2^-1*x1*x2*x8^-1, x7*x9^-1, x7^-1*x6*x7*x10^-1, x8*x11^-1 >
+        Finitely presented group < ... >
 
 
     ::
     
+        sage: from sage.schemes.curves.zariski_vankampen import fundamental_group
         sage: R.<x,y> = QQ[]
         sage: f = y^3 + x^3
         sage: fundamental_group(f) # optional - sirocco
-        Finitely presented group < x0, x1, x2 | x1*x2*x1^-1*x0^-1*x2^-1*x0, x2*x0*x1*x0^-1*x2^-1*x1^-1 >
+        Finitely presented group < ... >
+
         
     It is also possible to have coefficients in a number field with a fixed embedding in QQbar::
     
+        sage: from sage.schemes.curves.zariski_vankampen import fundamental_group
         sage: zeta = QQbar['x']('x^2+x+1').roots(multiplicities = False)[0]
         sage: zeta
         -0.50000000000000000? - 0.866025403784439?*I
-        sage: F = NumberField(zeta.minpoly(), 'zeta', embedding = zeta)                
-        sage: F.inj
-        F.inject_variables  F.injvar            
+        sage: F = NumberField(zeta.minpoly(), 'zeta', embedding = zeta)                          
         sage: F.inject_variables()
         Defining zeta
         sage: R.<x,y> = F[] 
         sage: f = y^3 + x^3 +zeta *x + 1
         sage: fundamental_group(f) # optional - sirocco
         Finitely presented group < x0 |  >
-
-
 
 
     """

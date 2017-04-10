@@ -128,7 +128,7 @@ class NamedMatrixGroup_generic(UniqueRepresentation, MatrixGroup_generic):
 
         - ``degree`` -- integer. The degree (number of rows/columns of matrices).
 
-        - ``base_ring`` -- rinrg. The base ring of the matrices.
+        - ``base_ring`` -- ring. The base ring of the matrices.
 
         - ``special`` -- boolean. Whether the matrix group is special,
           that is, elements have determinant one.

@@ -131,11 +131,11 @@ class GroupMixinLibGAP(object):
             sage: GL(2,ZZ).conjugacy_classes_representatives()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Only implemented for finite groups
+            NotImplementedError: only implemented for finite groups
 
         """
         if not self.is_finite():
-            raise NotImplementedError("Only implemented for finite groups")
+            raise NotImplementedError("only implemented for finite groups")
         G = self.gap()
         reps = [ cc.Representative() for cc in G.ConjugacyClasses() ]
         return tuple(self(g) for g in reps)
@@ -162,10 +162,10 @@ class GroupMixinLibGAP(object):
             sage: GL(2,ZZ).conjugacy_classes()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Only implemented for finite groups
+            NotImplementedError: only implemented for finite groups
         """
         if not self.is_finite():
-            raise NotImplementedError("Only implemented for finite groups")
+            raise NotImplementedError("only implemented for finite groups")
         from sage.groups.conjugacy_classes import ConjugacyClassGAP
         return tuple(ConjugacyClassGAP(self, self(g)) for g in self.conjugacy_classes_representatives())
 
@@ -314,10 +314,10 @@ class GroupMixinLibGAP(object):
             sage: GL(2,ZZ).irreducible_characters()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Only implemented for finite groups
+            NotImplementedError: only implemented for finite groups
         """
         if not self.is_finite():
-            raise NotImplementedError("Only implemented for finite groups")
+            raise NotImplementedError("only implemented for finite groups")
         Irr = self.gap().Irr()
         L = []
         for irr in Irr:
@@ -348,10 +348,10 @@ class GroupMixinLibGAP(object):
             sage: G.character([1,1,1,1])
             Traceback (most recent call last):
             ...
-            NotImplementedError: Only implemented for finite groups
+            NotImplementedError: only implemented for finite groups
         """
         if not self.is_finite():
-            raise NotImplementedError("Only implemented for finite groups")
+            raise NotImplementedError("only implemented for finite groups")
         return ClassFunction_libgap(self, values)
 
     def trivial_character(self):
@@ -370,10 +370,10 @@ class GroupMixinLibGAP(object):
             sage: GL(2,ZZ).trivial_character()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Only implemented for finite groups
+            NotImplementedError: only implemented for finite groups
         """
         if not self.is_finite():
-            raise NotImplementedError("Only implemented for finite groups")
+            raise NotImplementedError("only implemented for finite groups")
         values = [1]*self._gap_().NrConjugacyClasses().sage()
         return self.character(values)
 

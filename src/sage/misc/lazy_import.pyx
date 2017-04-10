@@ -60,6 +60,9 @@ cimport cython
 from cpython.object cimport PyObject_RichCompare
 from cpython.number cimport PyNumber_TrueDivide, PyNumber_Power, PyNumber_Index
 
+cdef extern from *:
+    int likely(int) nogil  # Defined by Cython
+
 import os
 from six.moves import cPickle as pickle
 import inspect
@@ -70,7 +73,7 @@ from .lazy_import_cache import get_cache_file
 
 cdef inline obj(x):
     if type(x) is LazyImport:
-        return (<LazyImport>x)._get_object()
+        return (<LazyImport>x).get_object()
     else:
         return x
 
@@ -186,6 +189,14 @@ cdef class LazyImport(object):
         self._at_startup = at_startup
         self._deprecation = deprecation
 
+    cdef inline get_object(self):
+        """
+        Faster, Cython-only partially-inlined version of ``_get_object``.
+        """
+        if likely(self._object is not None):
+            return self._object
+        return self._get_object()
+
     cpdef _get_object(self):
         """
         Return the wrapped object, importing it if necessary.
@@ -277,7 +288,7 @@ cdef class LazyImport(object):
             sage: 'A subset of the real line' in RealSet.__doc__
             True
         """
-        return sageinspect.sage_getdoc_original(self._get_object())
+        return sageinspect.sage_getdoc_original(self.get_object())
 
     def _sage_src_(self):
         """
@@ -290,7 +301,7 @@ cdef class LazyImport(object):
             sage: 'def is_prime(' in my_isprime._sage_src_()
             True
         """
-        return sageinspect.sage_getsource(self._get_object())
+        return sageinspect.sage_getsource(self.get_object())
 
     def _sage_argspec_(self):
         """
@@ -303,7 +314,7 @@ cdef class LazyImport(object):
             sage: rm._sage_argspec_()
             ArgSpec(args=['ring', 'nrows', 'ncols', 'algorithm'], varargs='args', keywords='kwds', defaults=(None, 'randomize'))
         """
-        return sageinspect.sage_getargspec(self._get_object())
+        return sageinspect.sage_getargspec(self.get_object())
 
     def __getattr__(self, attr):
         """
@@ -317,7 +328,7 @@ cdef class LazyImport(object):
             sage: my_integer.sqrt is Integer.sqrt
             True
         """
-        return getattr(self._get_object(), attr)
+        return getattr(self.get_object(), attr)
 
     # We need to wrap all the slot methods, as they are not forwarded
     # via getattr.
@@ -334,7 +345,7 @@ cdef class LazyImport(object):
             sage: dir(my_ZZ) == dir(ZZ)
             True
         """
-        return dir(self._get_object())
+        return dir(self.get_object())
 
     def __call__(self, *args, **kwds):
         """
@@ -349,7 +360,7 @@ cdef class LazyImport(object):
             sage: my_isprime(13)
             True
         """
-        return self._get_object()(*args, **kwds)
+        return self.get_object()(*args, **kwds)
 
     def __repr__(self):
         """
@@ -363,7 +374,7 @@ cdef class LazyImport(object):
             sage: repr(lazy_ZZ)
             'Integer Ring'
         """
-        return repr(self._get_object())
+        return repr(self.get_object())
 
     def __str__(self):
         """
@@ -373,7 +384,7 @@ cdef class LazyImport(object):
             sage: str(lazy_ZZ)
             'Integer Ring'
         """
-        return str(self._get_object())
+        return str(self.get_object())
 
     def __unicode__(self):
         """
@@ -383,7 +394,7 @@ cdef class LazyImport(object):
             sage: unicode(lazy_ZZ)
             u'Integer Ring'
         """
-        return unicode(self._get_object())
+        return unicode(self.get_object())
 
     def __nonzero__(self):
         """
@@ -393,7 +404,7 @@ cdef class LazyImport(object):
             sage: not lazy_ZZ
             True
         """
-        return not self._get_object()
+        return not self.get_object()
 
     def __hash__(self):
         """
@@ -403,7 +414,7 @@ cdef class LazyImport(object):
             sage: hash(lazy_ZZ) == hash(1.parent())
             True
         """
-        return hash(self._get_object())
+        return hash(self.get_object())
 
     def __cmp__(left, right):
         """
@@ -442,7 +453,7 @@ cdef class LazyImport(object):
             sage: len(version_info)
             5
         """
-        return len(self._get_object())
+        return len(self.get_object())
 
     def __get__(self, instance, owner):
         """
@@ -503,7 +514,7 @@ cdef class LazyImport(object):
         """
         # Don't use the namespace of the class definition
         self._namespace = None
-        obj = self._get_object()
+        obj = self.get_object()
 
         name = self._as_name
         for cls in inspect.getmro(owner):
@@ -529,7 +540,7 @@ cdef class LazyImport(object):
             sage: version_info[0]
             2
         """
-        return self._get_object()[key]
+        return self.get_object()[key]
 
     def __setitem__(self, key, value):
         """
@@ -543,7 +554,7 @@ cdef class LazyImport(object):
             sage: print(foo)
             [0, 100, 2, 3, 4, 5, 6, 7, 8, 9]
         """
-        self._get_object()[key] = value
+        self.get_object()[key] = value
 
     def __delitem__(self, key):
         """
@@ -557,7 +568,7 @@ cdef class LazyImport(object):
             sage: print(foo)
             [0, 2, 3, 4, 5, 6, 7, 8, 9]
         """
-        del self._get_object()[key]
+        del self.get_object()[key]
 
     def __iter__(self):
         """
@@ -569,7 +580,7 @@ cdef class LazyImport(object):
             sage: iter(version_info)
             <iterator object at ...>
         """
-        return iter(self._get_object())
+        return iter(self.get_object())
 
     def __contains__(self, item):
         """
@@ -587,7 +598,7 @@ cdef class LazyImport(object):
             sage: 2000 not in version_info
             True
         """
-        return item in self._get_object()
+        return item in self.get_object()
 
     def __add__(left, right):
         """
@@ -785,7 +796,7 @@ cdef class LazyImport(object):
             sage: -foo
             -10
         """
-        return -self._get_object()
+        return -self.get_object()
 
     def __pos__(self):
         """
@@ -798,7 +809,7 @@ cdef class LazyImport(object):
             sage: +foo
             10
         """
-        return +self._get_object()
+        return +self.get_object()
 
     def __abs__(self):
         """
@@ -811,7 +822,7 @@ cdef class LazyImport(object):
             sage: abs(foo)
             1000
         """
-        return abs(self._get_object())
+        return abs(self.get_object())
 
     def __invert__(self):
         """
@@ -824,7 +835,7 @@ cdef class LazyImport(object):
             sage: ~foo
             1/10
         """
-        return ~self._get_object()
+        return ~self.get_object()
 
     def __complex__(self):
         """
@@ -837,7 +848,7 @@ cdef class LazyImport(object):
             sage: complex(foo)
             (10+0j)
         """
-        return complex(self._get_object())
+        return complex(self.get_object())
 
     def __int__(self):
         """
@@ -850,7 +861,7 @@ cdef class LazyImport(object):
             sage: int(foo)
             10
         """
-        return int(self._get_object())
+        return int(self.get_object())
 
     def __long__(self):
         """
@@ -863,7 +874,7 @@ cdef class LazyImport(object):
             sage: long(foo)
             10L
         """
-        return long(self._get_object())
+        return long(self.get_object())
 
     def __float__(self):
         """
@@ -876,7 +887,7 @@ cdef class LazyImport(object):
             sage: float(foo)
             10.0
         """
-        return float(self._get_object())
+        return float(self.get_object())
 
     def __oct__(self):
         """
@@ -889,7 +900,7 @@ cdef class LazyImport(object):
             sage: oct(foo)
             '12'
         """
-        return oct(self._get_object())
+        return oct(self.get_object())
 
     def __hex__(self):
         """
@@ -902,7 +913,7 @@ cdef class LazyImport(object):
             sage: hex(foo)
             'a'
         """
-        return hex(self._get_object())
+        return hex(self.get_object())
 
     def __index__(self):
         """
@@ -915,7 +926,7 @@ cdef class LazyImport(object):
             sage: range(100)[foo]
             10
         """
-        return PyNumber_Index(self._get_object())
+        return PyNumber_Index(self.get_object())
 
     def __copy__(self):
         """
@@ -930,7 +941,7 @@ cdef class LazyImport(object):
             sage: copy(foo)
             10
         """
-        return self._get_object()
+        return self.get_object()
 
     def __deepcopy__(self, memo=None):
         """
@@ -945,7 +956,7 @@ cdef class LazyImport(object):
             sage: deepcopy(foo)
             10
         """
-        return self._get_object()
+        return self.get_object()
 
     def __instancecheck__(self, x):
         """
@@ -957,7 +968,7 @@ cdef class LazyImport(object):
             sage: isinstance(QQ, RationalField)
             True
         """
-        return isinstance(x, self._get_object())
+        return isinstance(x, self.get_object())
 
     def __subclasscheck__(self, x):
         """
@@ -969,7 +980,7 @@ cdef class LazyImport(object):
             sage: issubclass(RationalField, Parent)
             True
         """
-        return issubclass(x, self._get_object())
+        return issubclass(x, self.get_object())
 
 
 def lazy_import(module, names, as_=None, *,

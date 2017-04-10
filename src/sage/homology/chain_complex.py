@@ -1641,7 +1641,7 @@ class ChainComplex_class(Parent):
                 # construct list of bdries
                 col = mat.column(idx)
                 nonzero_pos = col.nonzero_positions()
-                if col.nonzero_positions():
+                if nonzero_pos:
                     for j in nonzero_pos:
                         entry = col[j]
                         if entry > 0:

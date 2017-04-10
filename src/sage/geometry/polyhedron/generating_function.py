@@ -467,6 +467,7 @@ def generating_function_of_integral_points(polyhedron, split=False,
         raise ValueError('cannot do splitting with only '
                          'dimension {}'.format(d))
 
+    parts = None
     if split is True:
         split = iter(
             (Polyhedron(
@@ -478,13 +479,21 @@ def generating_function_of_integral_points(polyhedron, split=False,
                      'b{}'.format(b-1)
                      for a, b in zip(pi[:-1], pi[1:])))
             for pi in Permutations(d))
+        from sage.functions.other import factorial
+        parts = ZZ(d).factorial()
     else:
+        if isinstance(split, (list, tuple)):
+            parts = len(split)
         split = iter((ph, ph.repr_pretty_Hrepresentation(prefix='b'))
                      for ph in split)
 
     result = []
-    for split_polyhedron, pi_log in split:
-        logger.info('split polyhedron by %s', pi_log)
+    for part, (split_polyhedron, pi_log) in enumerate(split):
+        if parts is None:
+            parts_log = str(part+1)
+        else:
+            parts_log = '{}/{}'.format(part+1, parts)
+        logger.info('(%s) split polyhedron by %s', parts_log, pi_log)
         result.append(_generating_function_of_integral_points_(
             polyhedron & split_polyhedron, **kwds))
     if not result_as_tuple:
@@ -636,7 +645,8 @@ def __generating_function_of_integral_points__(
     while repr(numerator.parent().gen()).startswith(mu):
         logger.info('applying Omega[%s]...', numerator.parent().gen())
         logger.debug('...on terms denominator %s', terms)
-        logger.debug('...(numerator has %s)', numerator.number_of_terms())
+        logger.debug('...(numerator has %s terms)', numerator.number_of_terms())
+        logger.debug('...numerator %s', numerator)
 
         decoded_factors, other_factors = \
             partition((decode_factor(factor) for factor in terms),

@@ -177,7 +177,7 @@ def compute_wp_pari(E,prec):
         sage: compute_wp_pari(E, prec=30)
         z^-2 - 1/7*z^4 + 1/637*z^10 - 1/84721*z^16 + 3/38548055*z^22 - 4/8364927935*z^28 + O(z^30)
     """
-    ep = E._pari_()
+    ep = E.__pari__()
     wpp = ep.ellwp(n=prec)
     k = E.base_ring()
     R = LaurentSeriesRing(k,'z')

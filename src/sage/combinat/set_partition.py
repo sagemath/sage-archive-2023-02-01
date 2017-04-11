@@ -1887,7 +1887,7 @@ def _listbloc(n, nbrepets, listint=None):
         True
     """
     if isinstance(listint, (int, Integer)) or listint is None:
-        listint = Set(list(range(1,n+1)))
+        listint = Set(range(1,n+1))
 
     if nbrepets == 1:
         yield Set([listint])

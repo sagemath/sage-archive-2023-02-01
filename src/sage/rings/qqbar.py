@@ -1711,7 +1711,7 @@ def do_polred(poly):
         sage: do_polred(x^4 - 4294967296*x^2 + 54265257667816538374400)
         (1/4*x, 4*x, x^4 - 268435456*x^2 + 211973662764908353025)
     """
-    new_poly, elt_back = poly._pari_().polredbest(flag=1)
+    new_poly, elt_back = poly.__pari__().polredbest(flag=1)
 
     parent = poly.parent()
     elt_fwd = elt_back.modreverse()

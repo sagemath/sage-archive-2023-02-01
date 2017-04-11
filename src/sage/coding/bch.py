@@ -481,7 +481,7 @@ class BCHUnderlyingGRSDecoder(Decoder):
                     c_bch = self.grs_word_to_bch(c)
                     if c_bch in self.code():
                         l.append(c_bch)
-                except ValueError, e:
+                except ValueError:
                     pass
             return l
         return self.grs_word_to_bch(cgrs)

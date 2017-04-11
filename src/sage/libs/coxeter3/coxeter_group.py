@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Coxeter Groups implemented with Coxeter3
 """
@@ -567,7 +568,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
 
         def poincare_polynomial(self):
             """
-            Return the Poincare polynomial associated with this element.
+            Return the Poincaré polynomial associated with this element.
 
             EXAMPLES::
 

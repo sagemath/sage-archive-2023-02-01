@@ -469,13 +469,10 @@ from __future__ import absolute_import
 import os
 import re
 import pexpect
-#cygwin = os.uname()[0][:6]=="CYGWIN"
 
 from random import randrange
 
 from sage.env import DOT_SAGE, SAGE_LOCAL
-
-##import sage.rings.all
 
 from .expect import (Expect, ExpectElement, FunctionElement,
                     ExpectFunction, gc_disabled)
@@ -484,6 +481,8 @@ from .maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
                              MaximaAbstractElement,
                              MaximaAbstractFunctionElement,
                              MaximaAbstractElementFunction)
+from sage.docs.instancedoc import instancedoc
+
 
 # Thanks to the MRO for multiple inheritance used by the Sage's Python,
 # this should work as expected
@@ -1046,7 +1045,7 @@ class Maxima(MaximaAbstract, Expect):
         EXAMPLES::
 
             sage: maxima._function_class()
-            <class 'sage.interfaces.maxima.MaximaFunction'>
+            <class 'sage.interfaces.interface.InterfaceFunction'>
         """
         return MaximaFunction
 
@@ -1068,7 +1067,7 @@ class Maxima(MaximaAbstract, Expect):
         EXAMPLES::
 
             sage: maxima._function_element_class()
-            <class 'sage.interfaces.maxima.MaximaFunctionElement'>
+            <class 'sage.interfaces.interface.InterfaceFunctionElement'>
         """
         return MaximaFunctionElement
 
@@ -1119,8 +1118,8 @@ def is_MaximaElement(x):
     """
     return isinstance(x, MaximaElement)
 
-# Thanks to the MRO for multiple inheritance used by the Sage's Python,
-# this should work as expected
+
+@instancedoc
 class MaximaElement(MaximaAbstractElement, ExpectElement):
     """
     Element of Maxima through Pexpect interface.
@@ -1186,26 +1185,11 @@ class MaximaElement(MaximaAbstractElement, ExpectElement):
             return s
 
 
-# Thanks to the MRO for multiple inheritance used by the Sage's Python,
-# this should work as expected
-class MaximaFunctionElement(MaximaAbstractFunctionElement, FunctionElement):
-    pass
-#    def __init__(self, obj, name):
-#        MaximaAbstractFunctionElement.__init__(self, obj, name)
-#        FunctionElement.__init__(self, obj, name)
+MaximaFunctionElement = MaximaAbstractFunctionElement
+MaximaFunction = MaximaAbstractFunction
 
 
-# Thanks to the MRO for multiple inheritance used by the Sage's Python,
-# this should work as expected
-class MaximaFunction(MaximaAbstractFunction, ExpectFunction):
-    pass
-#    def __init__(self, parent, name):
-#        MaximaAbstractFunction.__init__(self, parent, name)
-#        ExpectFunction.__init__(self, parent, name)
-
-
-# Thanks to the MRO for multiple inheritance used by the Sage's Python,
-# this should work as expected
+@instancedoc
 class MaximaElementFunction(MaximaElement, MaximaAbstractElementFunction):
     """
     Maxima user-defined functions.

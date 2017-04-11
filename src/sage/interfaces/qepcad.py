@@ -615,8 +615,9 @@ from sage.misc.flatten import flatten
 from sage.misc.sage_eval import sage_eval
 from sage.repl.preparse import implicit_mul
 from sage.interfaces.tab_completion import ExtraTabCompletion
-
+from sage.docs.instancedoc import instancedoc
 from .expect import Expect, ExpectFunction, AsciiArtString
+
 
 def _qepcad_atoms(formula):
     r"""
@@ -1359,11 +1360,12 @@ def _format_cell_index(a):
         return str(tuple(a))
 
 
+@instancedoc
 class QepcadFunction(ExpectFunction):
     r"""
     A wrapper for a QEPCAD command.
     """
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         r"""
         Return the documentation for a QEPCAD command, from
         ``qepcad.help``.
@@ -1372,7 +1374,7 @@ class QepcadFunction(ExpectFunction):
 
             sage: qe = qepcad(x == 17, interact=True) # optional - qepcad
             sage: cmd = qe.approx_precision # optional - qepcad
-            sage: cmd._sage_doc_() # optional - qepcad
+            sage: cmd.__doc__  # optional - qepcad
             'approx-precision N\n\nApproximate algeraic numbers to N decimal places.\n'
         """
         _update_command_info()

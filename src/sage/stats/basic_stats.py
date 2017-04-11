@@ -265,20 +265,21 @@ def variance(v, bias=False):
 
     TESTS:
 
-    The performance issue from #10019 is solved::
+    The performance issue from :trac:`10019` is solved::
 
         sage: variance([1] * 2^18)
         0
     """
-    if hasattr(v, 'variance'): return v.variance(bias=bias)
+    if hasattr(v, 'variance'):
+        return v.variance(bias=bias)
     import numpy
 
     x = 0
     if isinstance(v, numpy.ndarray):
         # accounts for numpy arrays
-        if bias == True:
+        if bias is True:
             return v.var()
-        elif bias == False:
+        elif bias is False:
             return v.var(ddof=1)
     if len(v) == 0:
         # variance of empty set defined as NaN

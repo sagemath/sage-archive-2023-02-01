@@ -3206,9 +3206,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             1.00000000000000
 
         Check that the denominator is an element over the base whenever the base
-        has no denominator function. This closes #9063.
-
-        ::
+        has no denominator function. This closes :trac:`9063`. ::
 
             sage: R.<a> = GF(5)[]
             sage: x = R(0)
@@ -4054,7 +4052,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return Factorization(v, from_M(F.unit()))
 
         elif is_FiniteField(R):
-            v = [x._pari_("a") for x in self.list()]
+            v = [x.__pari__("a") for x in self.list()]
             f = pari(v).Polrev()
             G = list(f.factor())
 
@@ -5615,7 +5613,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         ALGORITHM: Uses PARI if `lengths` is `False`.
         """
         if not lengths:
-            f = self._pari_()
+            f = self.__pari__()
             v = list(f.newtonpoly(p))
             return [sage.rings.rational.Rational(x) for x in v]
 
@@ -5731,7 +5729,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     #####################################################################
     # Conversions to other systems
     #####################################################################
-    def _pari_(self):
+    def __pari__(self):
         r"""
         Return polynomial as a PARI object.
 
@@ -5819,7 +5817,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def _pari_or_constant(self, name=None):
         r"""
-        Convert ``self`` to PARI.  This behaves identical to :meth:`_pari_`
+        Convert ``self`` to PARI.  This behaves identical to :meth:`__pari__`
         or :meth:`_pari_with_name` except for constant polynomials:
         then the constant is returned instead of a constant polynomial.
 
@@ -5842,13 +5840,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             7
             sage: pol._pari_or_constant().type()
             't_INT'
-            sage: pol._pari_().type()
+            sage: pol.__pari__().type()
             't_POL'
             sage: PolynomialRing(IntegerModRing(101), 't')()._pari_or_constant()
             Mod(0, 101)
         """
         if self.is_constant():
-            return self[0]._pari_()
+            return self[0].__pari__()
         if name is None:
             name = self.parent().variable_name()
         return self._pari_with_name(name)
@@ -5868,11 +5866,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: (2*a^2 + a)._pari_with_name('y')
             2*y^2 + y
         """
-        vals = [x._pari_() for x in self.list()]
+        vals = [x.__pari__() for x in self.list()]
         return pari(vals).Polrev(name)
 
     def _pari_init_(self):
-        return repr(self._pari_())
+        return repr(self.__pari__())
 
     def _magma_init_(self, magma):
         """
@@ -6081,7 +6079,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         variable = self.variable_name()
         try:
-            res = self._pari_().polresultant(other._pari_(), variable)
+            res = self.__pari__().polresultant(other, variable)
             return self.parent().base_ring()(res)
         except (TypeError, ValueError, PariError, NotImplementedError):
             return self.sylvester_matrix(other).det()
@@ -7172,7 +7170,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if algorithm == 'pari':
                 if not input_arbprec:
                     self = self.change_ring(CC if input_complex else RR)
-                ext_rts = self._pari_().polroots(precision=L.prec())
+                ext_rts = self.__pari__().polroots(precision=L.prec())
 
             if output_complex:
                 rts = sort_complex_numbers_for_display([L(root) for root in ext_rts])
@@ -8384,7 +8382,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return f.is_cyclotomic(certificate=certificate, algorithm=algorithm)
 
         if algorithm == "pari":
-            ans = self._pari_().poliscyclo()
+            ans = self.__pari__().poliscyclo()
             return Integer(ans) if certificate else bool(ans)
 
         elif algorithm != "sage":
@@ -8473,7 +8471,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 return False
             return f.is_cyclotomic_product()
 
-        return bool(self._pari_().poliscycloprod())
+        return bool(self.__pari__().poliscycloprod())
 
     def cyclotomic_part(self):
         """

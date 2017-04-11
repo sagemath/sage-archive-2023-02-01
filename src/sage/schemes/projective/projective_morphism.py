@@ -1030,7 +1030,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                     pass
         return PHI
 
-    def nth_iterate_map(self, n):
+    def nth_iterate_map(self, n, normalize=False):
         r"""
         Returns the ``n``-th iterate of this map as a new map.
 
@@ -1044,6 +1044,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         INPUT:
 
         - ``n`` -- a positive integer.
+
+        - ``normalize`` -- a boolean, remove gcd's during iteration
 
         OUTPUT:
 
@@ -1109,6 +1111,17 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
               To:   Projective Space of dimension 2 over Rational Field
               Defn: Defined on coordinates by sending (x : y) to
                     (x^2 : y^2 : x^2 - y^2)
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: H = Hom(P, P)
+            sage: f = H([y^2 * z^3, y^3 * z^2, x^5])
+            sage: f.nth_iterate_map( 5, normalize=True)
+            Scheme endomorphism of Projective Space of dimension 2 over Rational
+            Field
+            Defn: Defined on coordinates by sending (x : y : z) to
+            (y^202*z^443 : x^140*y^163*z^342 : x^645)
         """
         D = int(n)
         if D < 0:
@@ -1117,22 +1130,25 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             return self
         if not self.is_endomorphism():
             raise TypeError("map is not an endomorphism")
-
+        H= End(self.domain())
         N = self.codomain().ambient_space().dimension_relative() + 1
-        F = list(self._polys)
+        F = copy(self)
         Coord_ring = self.codomain().coordinate_ring()
         if isinstance(Coord_ring, QuotientRing_generic):
-            PHI = [Coord_ring.gen(i).lift() for i in range(N)]
+            PHI = H([Coord_ring.gen(i).lift() for i in range(N)])#makes a mapping
         else:
-            PHI = [Coord_ring.gen(i) for i in range(N)]
-
+            PHI = H([Coord_ring.gen(i) for i in range(N)])
         while D:
             if D&1:
-                PHI = [PHI[j](*F) for j in range(N)]
+                PHI = PHI*F
+                if normalize:
+                    PHI.normalize_coordinates()
             if D > 1: #avoid extra iterate
-                F = [F[j](*F) for j in range(N)] #'square'
+                F = F*F
+            if normalize:
+                F.normalize_coordinates()
             D >>= 1
-        return End(self.domain())(PHI)
+        return PHI
 
     def nth_iterate(self, P, n, **kwds):
         r"""
@@ -1589,7 +1605,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             #however the coercion from a Pari object to a sage object breaks
             #in the case of QQbar, so we just pass it into the macaulay resultant
             try:
-                res = (f.lc() ** (d - g.degree()) * g.lc() ** (d - f.degree()) * f._pari_().polresultant(g, x))
+                res = (f.lc() ** (d - g.degree()) * g.lc() ** (d - f.degree()) * f.__pari__().polresultant(g, x))
                 return(self.domain().base_ring()(res))
             except (TypeError, PariError):
                 pass

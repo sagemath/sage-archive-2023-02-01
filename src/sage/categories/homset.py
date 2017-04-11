@@ -22,9 +22,8 @@ Nonetheless, garbage collection occurs when the original references are
 overwritten::
 
     sage: for p in prime_range(200):
-    ....:   K = GF(p)
-    ....:   H = Hom(ZZ, K)
-    ...
+    ....:     K = GF(p)
+    ....:     H = Hom(ZZ, K)
     sage: import gc
     sage: _ = gc.collect()
     sage: from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_modn as FF
@@ -551,7 +550,6 @@ class Homset(Set_generic):
             ....:         return Y(x[0])
             ....:     def _an_element_(self):
             ....:         return sage.categories.morphism.SetMorphism(self, self.my_function)
-            ...
             sage: import __main__; __main__.MyHomset = MyHomset # fakes MyHomset being defined in a Python module
             sage: H = MyHomset(X, Y, category=Monoids(), base = ZZ)
             sage: H
@@ -928,8 +926,8 @@ class Homset(Set_generic):
             algebraic properties of domain and codomain, it should be
             implemented in ``C.MorphismMethods``.
 
-            At this point, the homset element classes takes precedence over
-            the morphism classes. But this may be subject to change.
+            At this point, the homset element classes take precedence over the
+            morphism classes. But this may be subject to change.
 
 
         .. TODO::
@@ -1198,7 +1196,6 @@ class HomsetWithBase(Homset):
             ....:         return Y(x[0])
             ....:     def _an_element_(self):
             ....:         return sage.categories.morphism.SetMorphism(self, self.my_function)
-            ...
             sage: import __main__; __main__.MyHomset = MyHomset # fakes MyHomset being defined in a Python module
             sage: H = MyHomset(X, Y, category=Monoids())
             sage: H

@@ -28,7 +28,7 @@ from sage.arith.srange import xsrange
 from sage.modular.dirichlet import DirichletGroup
 from sage.misc.superseded import deprecated_function_alias
 from sage.arith.all import lcm, divisors, moebius, sigma, factor
-from sage.structure.element import get_coercion_model, ModuleElement
+from sage.structure.element import coercion_model, ModuleElement
 
 
 def is_ModularFormElement(x):
@@ -1460,7 +1460,6 @@ class Newform(ModularForm_abstract):
 
         """
         from sage.modular.all import CuspForms
-        coercion_model = get_coercion_model()
         R = coercion_model.common_parent(self.base_ring(), chi.base_ring())
         N = self.level()
         epsilon = self.character()
@@ -1772,7 +1771,6 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         """
         from sage.modular.all import CuspForms, ModularForms
         from sage.rings.all import PowerSeriesRing
-        coercion_model = get_coercion_model()
         R = coercion_model.common_parent(self.base_ring(), chi.base_ring())
         N = self.level()
         Q = chi.modulus()

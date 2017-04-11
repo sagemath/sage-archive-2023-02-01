@@ -670,7 +670,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: H = Hom(A,A)
             sage: F = H([1/2*x^2 + sqrt(3)])
             sage: F.dynatomic_polynomial([1,1])
-            (2.00000000000000*x^4 + 5.85640646055102*x^2 + 24.0000000000000)/(x^2 + (-2.00000000000000)*x + 3.46410161513775)
+            (0.125000000000000*x^4 + 0.366025403784439*x^2 + 1.50000000000000)/(0.500000000000000*x^2 - x + 1.73205080756888)
         """
         if self.domain() != self.codomain():
             raise TypeError("must have same domain and codomain to iterate")

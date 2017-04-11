@@ -259,6 +259,15 @@ ext_modules = [
 
     ################################
     ##
+    ## sage.docs
+    ##
+    ################################
+
+    Extension('*', ['sage/docs/*.pyx']),
+
+
+    ################################
+    ##
     ## sage.ext
     ##
     ################################
@@ -472,14 +481,6 @@ ext_modules = [
     Extension('sage.groups.perm_gps.partn_ref2.refinement_generic',
               sources = ['sage/groups/perm_gps/partn_ref2/refinement_generic.pyx'],
               extra_compile_args=["-std=c99"]),
-
-    ################################
-    ##
-    ## sage.gsl
-    ##
-    ################################
-
-    Extension('*', ['sage/gsl/*.pyx']),
 
     ################################
     ##

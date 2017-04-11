@@ -1819,6 +1819,9 @@ class HasseDiagram(DiGraph):
             sage: list(H.antichains_iterator())
             [[]]
         """
+        # NOTE: Ordering of antichains as a prefix tree is crucial for
+        # congruences_iterator() to work. Change it, if you change this.
+
         # Complexity note:
         # antichains_queues never grows longer than self.cardinality().
         # Indeed, if a appears before b in antichains_queues, then

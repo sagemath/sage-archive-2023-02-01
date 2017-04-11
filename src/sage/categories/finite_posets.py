@@ -426,7 +426,7 @@ class FinitePosets(CategoryWithAxiom):
                 sage: P = Poset( {} )
                 sage: I = Set({})
                 sage: P.rowmotion(I)
-                Set of elements of {}
+                {}
             """
             result = order_ideal
             for i in reversed(self.linear_extension()):
@@ -1736,9 +1736,9 @@ class FinitePosets(CategoryWithAxiom):
                 @cached_function
                 def is_above(a, xb):
                     return any(self.is_lequal(xa, xb) for xa in a)
-                def cmp(a, b):
+                def compare(a, b):
                     return all(is_above(a, xb) for xb in b)
-                return LatticePoset((antichains, cmp), facade=facade)
+                return LatticePoset((antichains, compare), facade=facade)
 
         @abstract_method(optional = True)
         def antichains(self):

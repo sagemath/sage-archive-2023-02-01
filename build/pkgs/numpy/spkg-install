@@ -20,8 +20,8 @@ if [ "x$SAGE64" = xyes ] ; then
 fi
 
 # Make sure we do not include conflicting complex.h from cephes Sage package
-CC="$CC -D__CEPHES_COMPLEX_H"
-export CC
+CFLAGS="$CFLAGS -D__CEPHES_COMPLEX_H"
+export CFLAGS
 
 cd src
 

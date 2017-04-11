@@ -1448,4 +1448,3 @@ class MultiCoordFunction(SageObject):
         J = self.jacobian()
         J = [[J[i,j] for i in range(self._nc)] for j in range(self._nc)]
         return simple_determinant(J)
-

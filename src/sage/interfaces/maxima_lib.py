@@ -1208,7 +1208,7 @@ sage_op_dict = {
     sage.functions.log.log : "%LOG",
     sage.functions.log.lambert_w : "%LAMBERT_W",
     sage.functions.other.factorial : "MFACTORIAL",
-    sage.functions.other.erf : "%ERF",
+    sage.functions.error.erf : "%ERF",
     sage.functions.other.gamma_inc : "%GAMMA_INCOMPLETE",
 }
 #we compile the dictionary

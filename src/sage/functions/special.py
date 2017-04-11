@@ -1012,35 +1012,3 @@ class EllipticPi(BuiltinFunction):
  
 elliptic_pi = EllipticPi()
 
-
-def error_fcn(t):
-    r"""
-    The complementary error function
-    `\frac{2}{\sqrt{\pi}}\int_t^\infty e^{-x^2} dx` (t belongs
-    to RR).  This function is currently always
-    evaluated immediately.
-
-    EXAMPLES::
-
-        sage: error_fcn(6)
-        2.15197367124989e-17
-        sage: error_fcn(RealField(100)(1/2))
-        0.47950012218695346231725334611
-
-    Note this is literally equal to `1 - erf(t)`::
-
-        sage: 1 - error_fcn(0.5)
-        0.520499877813047
-        sage: erf(0.5)
-        0.520499877813047
-    """
-    try:
-        return t.erfc()
-    except AttributeError:
-        try:
-            return RR(t).erfc()
-        except Exception:
-            raise NotImplementedError
-
-
-

@@ -37,6 +37,11 @@ from sage.rings.complex_number import ComplexNumber
 import sage.rings.fast_arith as fast_arith
 prime_range = fast_arith.prime_range
 
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.arith.all', 'lcm', deprecation=22630)
+lazy_import('sage.arith.all', 'lcm', '__LCM_sequence', deprecation=22630)
+lazy_import('sage.arith.all', 'lcm', 'LCM', deprecation=22630)
+
 
 ##################################################################
 # Elementary Arithmetic
@@ -1628,11 +1633,6 @@ def __GCD_sequence(v, **kwargs):
         if g == one:
             return g
     return g
-
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.arith.functions', 'lcm', deprecation=22630)
-lazy_import('sage.arith.functions', 'lcm', '__LCM_sequence', deprecation=22630)
-lazy_import('sage.arith.functions', 'lcm', 'LCM', deprecation=22630)
 
 def xlcm(m, n):
     r"""

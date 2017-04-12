@@ -415,6 +415,11 @@ REFERENCES:
              of the Advanced Encryption Standard*\; Springer Verlag
              2006
 
+.. [CMT2003] \A. M. Cohen, S. H. Murray, D. E. Talyor.
+             *Computing in groups of Lie type*.
+             Mathematics of Computation. **73** (2003), no 247. pp. 1477--1498.
+             http://www.win.tue.nl/~amc/pub/papers/cmt.pdf
+
 .. [Co1984] \J. Conway, Hexacode and tetracode - MINIMOG and
             MOG. *Computational group theory*, ed. M. Atkinson,
             Academic Press, 1984.
@@ -841,6 +846,11 @@ REFERENCES:
 .. [HR2016]  Clemens Heuberger and Roswitha Rissner, "Computing
              `J`-Ideals of a Matrix Over a Principal Ideal Domain",
              :arxiv:`1611.10308`, 2016.
+
+.. [HRT2000] \R.B. Howlett, L.J. Rylands, and D.E. Taylor.
+             *Matrix generators for exceptional groups of Lie type*.
+             J. Symbolic Computation. **11** (2000).
+             http://www.maths.usyd.edu.au/u/bobh/hrt.pdf
 
 .. [Hsu1996] Tim Hsu, "Identifying congruence subgroups of the modular
              group", Proc. AMS 124, no. 5, 1351-1359 (1996)

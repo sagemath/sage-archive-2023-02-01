@@ -189,46 +189,11 @@ def generating_function_of_integral_points(polyhedron, split=False,
               An inequality (0, 1, 1, -1) x + 1 >= 0,
               An inequality (1, 0, 0, 0) x + 0 >= 0,
               An inequality (1, 1, 0, -1) x + 1 >= 0)
-        (y0^7*y1^6*y2^3*y3^5 + y0^7*y1^5*y2^4*y3^4 + y0^6*y1^7*y2^2*y3^5 -
-         y0^7*y1^5*y2^3*y3^4 + y0^6*y1^6*y2^3*y3^4 - y0^6*y1^6*y2^2*y3^5 -
-         2*y0^6*y1^6*y2^2*y3^4 - 3*y0^6*y1^5*y2^3*y3^4 - y0^6*y1^5*y2^2*y3^5 -
-         y0^6*y1^5*y2^3*y3^3 - y0^6*y1^4*y2^4*y3^3 + y0^6*y1^5*y2^2*y3^4 -
-         2*y0^5*y1^6*y2^2*y3^4 - 2*y0^6*y1^4*y2^3*y3^4 - y0^5*y1^6*y2*y3^5 +
-         y0^6*y1^5*y2^2*y3^3 + y0^6*y1^4*y2^3*y3^3 - y0^5*y1^5*y2^3*y3^3 -
-         y0^6*y1^3*y2^4*y3^3 + y0^6*y1^4*y2^2*y3^4 - y0^5*y1^5*y2^2*y3^4 +
-         y0^5*y1^5*y2*y3^5 + 3*y0^5*y1^5*y2^2*y3^3 + y0^6*y1^3*y2^3*y3^3 +
-         2*y0^5*y1^5*y2*y3^4 - y0^4*y1^6*y2*y3^4 + 4*y0^5*y1^4*y2^2*y3^4 +
-         y0^5*y1^4*y2^3*y3^2 + 3*y0^5*y1^4*y2^2*y3^3 + 4*y0^5*y1^3*y2^3*y3^3 -
-         y0^5*y1^4*y2*y3^4 + 3*y0^4*y1^5*y2*y3^4 + y0^5*y1^3*y2^2*y3^4 -
-         y0^5*y1^4*y2^2*y3^2 + y0^5*y1^3*y2^3*y3^2 + y0^5*y1^2*y2^4*y3^2 -
-         y0^5*y1^4*y2*y3^3 + 2*y0^4*y1^5*y2*y3^3 - 2*y0^5*y1^3*y2^2*y3^3 +
-         5*y0^4*y1^4*y2^2*y3^3 + y0^5*y1^2*y2^3*y3^3 - y0^5*y1^3*y2^2*y3^2 -
-         y0^5*y1^2*y2^3*y3^2 + 2*y0^4*y1^3*y2^3*y3^2 - 4*y0^4*y1^4*y2*y3^3 +
-         2*y0^3*y1^5*y2*y3^3 - y0^5*y1^2*y2^2*y3^3 - y0^4*y1^3*y2^2*y3^3 +
-         y0^3*y1^5*y3^4 - y0^4*y1^3*y2*y3^4 - y0^4*y1^4*y2*y3^2 -
-         5*y0^4*y1^3*y2^2*y3^2 + y0^3*y1^4*y2^2*y3^2 - y0^4*y1^2*y2^3*y3^2 -
-         2*y0^4*y1^3*y2*y3^3 - y0^3*y1^4*y2*y3^3 - 3*y0^4*y1^2*y2^2*y3^3 -
-         y0^3*y1^4*y3^4 - y0^4*y1^2*y2^3*y3 + y0^4*y1^3*y2*y3^2 -
-         3*y0^3*y1^4*y2*y3^2 - y0^4*y1^2*y2^2*y3^2 - 2*y0^3*y1^3*y2^2*y3^2 -
-         y0^4*y1*y2^3*y3^2 - 2*y0^3*y1^4*y3^3 + y0^4*y1^2*y2*y3^3 -
-         5*y0^3*y1^3*y2*y3^3 + y0^4*y1^2*y2^2*y3 - y0^3*y1^3*y2^2*y3 +
-         y0^4*y1^2*y2*y3^2 - y0^3*y1^3*y2*y3^2 - y0^2*y1^4*y2*y3^2 +
-         y0^4*y1*y2^2*y3^2 - 4*y0^3*y1^2*y2^2*y3^2 + y0^3*y1^3*y3^3 -
-         2*y0^2*y1^4*y3^3 + y0^3*y1^2*y2*y3^3 + y0^3*y1^3*y2*y3 -
-         y0^3*y1*y2^3*y3 + y0^3*y1^3*y3^2 + 5*y0^3*y1^2*y2*y3^2 -
-         2*y0^2*y1^3*y2*y3^2 + y0^3*y1*y2^2*y3^2 + y0^2*y1^3*y3^3 +
-         y0^3*y1^2*y2*y3 + y0^2*y1^3*y2*y3 + 2*y0^3*y1*y2^2*y3 -
-         y0^2*y1^2*y2^2*y3 + 3*y0^2*y1^3*y3^2 + 4*y0^2*y1^2*y2*y3^2 +
-         y0^2*y1^2*y3^3 - y0^3*y1*y2*y3 + 4*y0^2*y1^2*y2*y3 +
-         2*y0^2*y1*y2^2*y3 + y0^2*y1^2*y3^2 + y0*y1^3*y3^2 +
-         2*y0^2*y1*y2*y3^2 + y0^2*y1*y2^2 - y0^2*y1^2*y3 - y0^2*y1*y2*y3 +
-         y0*y1^2*y2*y3 + y0^2*y2^2*y3 - y0^2*y1*y3^2 + y0*y1^2*y3^2 -
-         y0^2*y1*y2 - y0^2*y1*y3 - y0*y1^2*y3 - y0^2*y2*y3 - 2*y0*y1*y3^2 -
-         y0*y1*y2 - 3*y0*y1*y3 - 2*y0*y2*y3 -
-         y0*y2 + y0*y3 - y1*y3 + y0 + y3 + 1) *
-         (-y1 + 1)^-1 * (-y2 + 1)^-1 * (-y0*y2 + 1)^-1 * (-y1*y3 + 1)^-1 *
-         (-y0*y1*y2 + 1)^-1 * (-y0*y1*y3 + 1)^-1 * (-y0*y1*y3 + 1)^-1 *
-         (-y0*y2*y3 + 1)^-1 * (-y0*y1^2*y3 + 1)^-1 * (-y0^2*y1*y2*y3 + 1)^-1
+        (y0^2*y1*y2*y3^2 + y0^2*y2^2*y3 + y0*y1^2*y3^2 - y0^2*y2*y3 +
+         y0*y1*y2*y3 - y0*y1*y3^2 - 2*y0*y1*y3 - 2*y0*y2*y3 - y0*y2 +
+         y0*y3 - y1*y3 + y0 + y3 + 1) *
+        (-y1 + 1)^-1 * (-y2 + 1)^-1 * (-y0*y2 + 1)^-1 *
+        (-y1*y3 + 1)^-1 * (-y0*y1*y3 + 1)^-1 * (-y0*y2*y3 + 1)^-1
         [0, 2]: (An equation (1, 0, -1, -1) x - 1 == 0,
                  An inequality (-1, 1, 1, 0) x + 1 >= 0,
                  An inequality (1, 0, -1, 0) x - 1 >= 0,
@@ -521,10 +486,8 @@ def _generating_function_of_integral_points_(
         ....:     Polyhedron(ieqs=[(0, 1, 0, 0), (0, -1, 1, 0)],
         ....:                eqns=[(0, -1, -1, 2)]),
         ....:     result_as_tuple=True, sort_factors=True)
-        ((-y0^2*y1^2*y2^2 + 1) * (-y1^2*y2 + 1)^-1 *
-         (-y0^2*y1^2*y2^2 + 1)^-1 * (-y0^2*y1^2*y2^2 + 1)^-1,
-         (-y0^3*y1^3*y2^3 + y0*y1*y2) * (-y1^2*y2 + 1)^-1 *
-         (-y0^2*y1^2*y2^2 + 1)^-1 * (-y0^2*y1^2*y2^2 + 1)^-1)
+        (1 * (-y1^2*y2 + 1)^-1 * (-y0^2*y1^2*y2^2 + 1)^-1,
+         y0*y1*y2 * (-y1^2*y2 + 1)^-1 * (-y0^2*y1^2*y2^2 + 1)^-1)
     """
     import logging
     logger = logging.getLogger(__name__)
@@ -590,8 +553,7 @@ def __generating_function_of_integral_points__(
         sage: __generating_function_of_integral_points__(
         ....:     srange(3), [(0, 1, 0, 0), (0, -1, 1, 0)], [(0, -1, -1, 2)],
         ....:     {0: (2, 1), 1: (2, 1)}, sort_factors=True)
-        (-y0^3*y1^3*y2^3 + y0*y1*y2) *
-        (-y1^2*y2 + 1)^-1 * (-y0^2*y1^2*y2^2 + 1)^-1 * (-y0^2*y1^2*y2^2 + 1)^-1
+        y0*y1*y2 * (-y1^2*y2 + 1)^-1 * (-y0^2*y1^2*y2^2 + 1)^-1
     """
     import logging
     logger = logging.getLogger(__name__)
@@ -742,76 +704,187 @@ class SplitOffSimpleInequalities(TransformHrepresentation):
 
     EXAMPLES::
 
-        sage: from sage.geometry.polyhedron.generating_function import SplitOffSimpleInequalities
+        sage: from sage.geometry.polyhedron.generating_function import SplitOffSimpleInequalities as prepare
+        sage: from sage.geometry.polyhedron.generating_function import _generating_function_via_Omega_ as gf
 
-        sage: def prepare_inequalities(inequalities, B):
-        ....:     T = SplitOffSimpleInequalities(inequalities, [], B)
-        ....:     return T.inequalities, T.factor, T.rules
+        sage: def eq(A, B):
+        ....:     return (A[0] == B[0] and
+        ....:             sorted(A[1], key=repr) == sorted(B[1], key=repr))
 
         sage: B = LaurentPolynomialRing(ZZ, 'y', 3)
-        sage: prepare_inequalities([(0, -1, 1, 0), (2, -1, -1, 1)], B)
+
+        sage: ieqs = [(0, -1, 1, 0), (2, -1, -1, 1)]
+        sage: T = prepare(ieqs, [], B); T.inequalities, T.factor, T.rules
         ([(2, -2, -1, 1)], 1, {y2: y2, y1: y1, y0: y0*y1})
-        sage: prepare_inequalities([(-1, -1, 1, 0), (2, -1, -1, 1)], B)
+        sage: T.apply_rules(*gf(T.inequalities, B))
+        (y0*y1^3*y2^3 - y0*y1^3*y2^2 + y0*y1^2*y2^3 - y0*y1^2*y2^2
+         - y0*y1*y2^2 - y1^2*y2 + y0*y1 + y1^2 - y1*y2 + y1 + 1,
+         (y2, y1*y2, y0*y1*y2^2))
+        sage: eq(_, gf(ieqs, B))
+        True
+
+        sage: ieqs = [(-1, -1, 1, 0), (2, -1, -1, 1)]
+        sage: T = prepare(ieqs, [], B); T.inequalities, T.factor, T.rules
         ([(1, -2, -1, 1)], y1, {y2: y2, y1: y1, y0: y0*y1})
-        sage: prepare_inequalities([(2, -1, 1, 0), (2, -1, -1, 1)], B)
-        ([(4, -2, -1, 1)], y1^-2, {y2: y2, y1: y1, y0: y0*y1})
+        sage: T.apply_rules(*gf(T.inequalities, B))
+        (y0*y1^3*y2^3 - y0*y1^3*y2^2 - y0*y1^2*y2^2
+         + y0*y1^2*y2 - y1^2*y2 + y1^2 + y1,
+         (y2, y1*y2, y0*y1*y2^2))
+        sage: eq(_, gf(ieqs, B))
+        True
+
+        sage: ieqs = [(-2, -1, 1, 0), (2, -1, -1, 1)]
+        sage: T = prepare(ieqs, [], B); T.inequalities, T.factor, T.rules
+        ([(0, -2, -1, 1)], y1^2, {y2: y2, y1: y1, y0: y0*y1})
+        sage: T.apply_rules(*gf(T.inequalities, B))
+        (y1^2, (y2, y1*y2, y0*y1*y2^2))
+        sage: eq(_, gf(ieqs, B))
+        True
+
+        sage: ieqs = [(2, -1, 1, 0), (2, -1, -1, 1)]
+        sage: T = prepare(ieqs, [], B); T.inequalities, T.factor, T.rules
+        ([(2, -1, 1, 0), (2, -1, -1, 1)], 1, {y2: y2, y1: y1, y0: y0})
+        sage: eq(T.apply_rules(*gf(T.inequalities, B)), gf(ieqs, B))
+        True
 
     TESTS::
 
+        sage: def eq2(A, B):
+        ....:     a = SR(repr(A[0])) * prod(1-SR(repr(t)) for t in B[1])
+        ....:     b = SR(repr(B[0])) * prod(1-SR(repr(t)) for t in A[1])
+        ....:     return bool((a-b).full_simplify() == 0)
+
         sage: B = LaurentPolynomialRing(ZZ, 'y', 3)
-        sage: prepare_inequalities([(1, 1, -1, 0), (1, -1, 0, 1),
-        ....:                       (2, -1, -1, 3)], B)
-        ([(-3, 2, 1, 3)], y0^-1*y2^-2, {y2: y2, y1: y0*y1*y2, y0: y0*y2})
+        sage: ieqs = [(-2, 1, -1, 0), (-2, -1, 0, 1), (-1, -1, -1, 3)]
+        sage: T = prepare(ieqs, [], B); T.inequalities, T.factor, T.rules
+        ([(9, 2, 1, 3)], y0^2*y2^4, {y2: y2, y1: y0*y1*y2, y0: y0*y2})
+        sage: T.apply_rules(*gf(T.inequalities, B))
+        (y0^2*y2^4, (y2, y0*y2, y0*y1*y2))
+        sage: eq2(_, gf(ieqs, B))
+        True
 
         sage: B = LaurentPolynomialRing(ZZ, 'y', 4)
-        sage: prepare_inequalities([(-1, 1, -1, 0, 0)], B)
+        sage: ieqs = [(-1, 1, -1, 0, 0)]
+        sage: T = prepare(ieqs, [], B); T.inequalities, T.factor, T.rules
         ([], y0, {y3: y3, y2: y2, y1: y0*y1, y0: y0})
-        sage: prepare_inequalities([(0, 0, -1, 0, 1), (0, 0, 1, 0, 0),
-        ....:                       (0, 1, 0, 0, -1), (-1, 1, -1, 0, 0)], B)
+        sage: T.apply_rules(*gf(T.inequalities, B))
+        (y0, (y0, y0*y1, y2, y3))
+        sage: eq(_, gf(ieqs, B))
+        True
+
+        sage: ieqs = [(0, 0, -1, 0, 1), (0, 0, 1, 0, 0),
+        ....:         (0, 1, 0, 0, -1), (-1, 1, -1, 0, 0)]
+        sage: T = prepare(ieqs, [], B); T.inequalities, T.factor, T.rules
         ([(1, 1, 0, 0, -1)], y0, {y3: y3, y2: y2, y1: y0*y1*y3, y0: y0})
-        sage: prepare_inequalities([(-2, 1, -1, 0, 0)], B)
+        sage: T.apply_rules(*gf(T.inequalities, B))
+        (-y0^2*y3 + y0*y3 + y0, (y0*y1*y3, y2, y0, y0*y3))
+        sage: eq(_, gf(ieqs, B))
+        True
+
+        sage: ieqs = [(-2, 1, -1, 0, 0)]
+        sage: T = prepare(ieqs, [], B); T.inequalities, T.factor, T.rules
         ([], y0^2, {y3: y3, y2: y2, y1: y0*y1, y0: y0})
 
-        sage: prepare_inequalities([(0, -1, 1, 0, 0), (-2, 0, -1, 0, 1),
-        ....:                       (0, -1, 0, 1, 0), (-3, 0, 0, -1, 1)], B)
+        sage: T.apply_rules(*gf(T.inequalities, B))
+        (y0^2, (y0, y0*y1, y2, y3))
+        sage: eq(_, gf(ieqs, B))
+        True
+
+        sage: ieqs = [(0, -1, 1, 0, 0), (-2, 0, -1, 0, 1),
+        ....:         (0, -1, 0, 1, 0), (-3, 0, 0, -1, 1)]
+        sage: T = prepare(ieqs, [], B); T.inequalities, T.factor, T.rules
         ([(1, 0, -1, 1, 1)],
          y3^3,
          {y3: y3, y2: y2*y3, y1: y1, y0: y0*y1*y2*y3})
-        sage: prepare_inequalities([(0, -1, 1, 0, 0), (-3, 0, -1, 0, 1),
-        ....:                       (0, -1, 0, 1, 0), (-2, 0, 0, -1, 1)], B)
+        sage: T.apply_rules(*gf(T.inequalities, B))
+        (-y1*y2*y3^4 - y1*y3^4 + y1*y3^3 + y3^3,
+         (y0*y1*y2*y3, y2*y3, y3, y1*y2*y3, y1*y3))
+        sage: eq(_, gf(ieqs, B))
+        True
+
+        sage: ieqs = [(0, -1, 1, 0, 0), (-3, 0, -1, 0, 1),
+        ....:         (0, -1, 0, 1, 0), (-2, 0, 0, -1, 1)]
+        sage: T = prepare(ieqs, [], B); T.inequalities, T.factor, T.rules
         ([(1, 0, 1, -1, 1)],
          y3^3,
          {y3: y3, y2: y2, y1: y1*y3, y0: y0*y1*y2*y3})
-        sage: prepare_inequalities([(0, -1, 1, 0, 0), (-2, 0, -1, 0, 1),
-        ....:                       (-3, -1, 0, 1, 0), (0, 0, 0, -1, 1)], B)
+        sage: T.apply_rules(*gf(T.inequalities, B))
+        (-y1*y2*y3^4 - y2*y3^4 + y2*y3^3 + y3^3,
+         (y0*y1*y2*y3, y1*y3, y3, y1*y2*y3, y2*y3))
+        sage: eq(_,  gf(ieqs, B))
+        True
+
+        sage: ieqs = [(0, -1, 1, 0, 0), (-2, 0, -1, 0, 1),
+        ....:         (-3, -1, 0, 1, 0), (0, 0, 0, -1, 1)]
+        sage: T = prepare(ieqs, [], B); T.inequalities, T.factor, T.rules
         ([(1, 0, -1, 1, 1)],
          y2^3*y3^3,
          {y3: y3, y2: y2*y3, y1: y1, y0: y0*y1*y2*y3})
-        sage: prepare_inequalities([(0, -1, 1, 0, 0), (-3, 0, -1, 0, 1),
-        ....:                       (-2, -1, 0, 1, 0), (0, 0, 0, -1, 1)], B)
+        sage: T.apply_rules(*gf(T.inequalities, B))
+        (-y1*y2^4*y3^4 - y1*y2^3*y3^4 + y1*y2^3*y3^3 + y2^3*y3^3,
+         (y0*y1*y2*y3, y2*y3, y3, y1*y2*y3, y1*y3))
+        sage: eq(_, gf(ieqs, B))
+        True
+
+        sage: ieqs = [(0, -1, 1, 0, 0), (-3, 0, -1, 0, 1),
+        ....:         (-2, -1, 0, 1, 0), (0, 0, 0, -1, 1)]
+        sage: T = prepare(ieqs, [], B); T.inequalities, T.factor, T.rules
         ([(1, 0, 1, -1, 1)],
          y2^2*y3^3,
          {y3: y3, y2: y2, y1: y1*y3, y0: y0*y1*y2*y3})
-        sage: prepare_inequalities([(-2, -1, 1, 0, 0), (0, 0, -1, 0, 1),
-        ....:                       (0, -1, 0, 1, 0), (-3, 0, 0, -1, 1)], B)
+        sage: T.apply_rules(*gf(T.inequalities, B))
+        (-y1*y2^3*y3^4 - y2^3*y3^4 + y2^3*y3^3 + y2^2*y3^3,
+         (y0*y1*y2*y3, y1*y3, y3, y1*y2*y3, y2*y3))
+        sage: eq(_, gf(ieqs, B))
+        True
+
+        sage: ieqs = [(-2, -1, 1, 0, 0), (0, 0, -1, 0, 1),
+        ....:         (0, -1, 0, 1, 0), (-3, 0, 0, -1, 1)]
+        sage: T = prepare(ieqs, [], B); T.inequalities, T.factor, T.rules
         ([(1, 0, -1, 1, 1)],
          y1^2*y3^3,
          {y3: y3, y2: y2*y3, y1: y1, y0: y0*y1*y2*y3})
-        sage: prepare_inequalities([(-3, -1, 1, 0, 0), (0, 0, -1, 0, 1),
-        ....:                       (0, -1, 0, 1, 0), (-2, 0, 0, -1, 1)], B)
+        sage: T.apply_rules(*gf(T.inequalities, B))
+        (-y1^3*y2*y3^4 - y1^3*y3^4 + y1^3*y3^3 + y1^2*y3^3,
+         (y0*y1*y2*y3, y2*y3, y3, y1*y2*y3, y1*y3))
+        sage: eq(_, gf(ieqs, B))
+        True
+
+        sage: ieqs = [(-3, -1, 1, 0, 0), (0, 0, -1, 0, 1),
+        ....:         (0, -1, 0, 1, 0), (-2, 0, 0, -1, 1)]
+        sage: T = prepare(ieqs, [], B); T.inequalities, T.factor, T.rules
         ([(1, 0, 1, -1, 1)],
          y1^3*y3^3,
          {y3: y3, y2: y2, y1: y1*y3, y0: y0*y1*y2*y3})
-        sage: prepare_inequalities([(-2, -1, 1, 0, 0), (0, 0, -1, 0, 1),
-        ....:                       (-3, -1, 0, 1, 0), (0, 0, 0, -1, 1)], B)
+        sage: T.apply_rules(*gf(T.inequalities, B))
+        (-y1^4*y2*y3^4 - y1^3*y2*y3^4 + y1^3*y2*y3^3 + y1^3*y3^3,
+         (y0*y1*y2*y3, y1*y3, y3, y1*y2*y3, y2*y3))
+        sage: eq(_, gf(ieqs, B))
+        True
+
+        sage: ieqs = [(-2, -1, 1, 0, 0), (0, 0, -1, 0, 1),
+        ....:         (-3, -1, 0, 1, 0), (0, 0, 0, -1, 1)]
+        sage: T = prepare(ieqs, [], B); T.inequalities, T.factor, T.rules
         ([(1, 0, -1, 1, 1)],
          y1^2*y2^3*y3^3,
          {y3: y3, y2: y2*y3, y1: y1, y0: y0*y1*y2*y3})
-        sage: prepare_inequalities([(-3, -1, 1, 0, 0), (0, 0, -1, 0, 1),
-        ....:                       (-2, -1, 0, 1, 0), (0, 0, 0, -1, 1)], B)
+        sage: T.apply_rules(*gf(T.inequalities, B))
+        (-y1^3*y2^4*y3^4 - y1^3*y2^3*y3^4 + y1^3*y2^3*y3^3 + y1^2*y2^3*y3^3,
+         (y0*y1*y2*y3, y2*y3, y3, y1*y2*y3, y1*y3))
+        sage: eq(_, gf(ieqs, B))
+        True
+
+        sage: ieqs = [(-3, -1, 1, 0, 0), (0, 0, -1, 0, 1),
+        ....:         (-2, -1, 0, 1, 0), (0, 0, 0, -1, 1)]
+        sage: T = prepare(ieqs, [], B); T.inequalities, T.factor, T.rules
         ([(1, 0, 1, -1, 1)],
          y1^3*y2^2*y3^3,
          {y3: y3, y2: y2, y1: y1*y3, y0: y0*y1*y2*y3})
+        sage: T.apply_rules(*gf(T.inequalities, B))
+        (-y1^4*y2^3*y3^4 - y1^3*y2^3*y3^4 + y1^3*y2^3*y3^3 + y1^3*y2^2*y3^3,
+         (y0*y1*y2*y3, y1*y3, y3, y1*y2*y3, y2*y3))
+        sage: eq(_, gf(ieqs, B))
+        True
     """
 
     def _transform_(self):

@@ -614,11 +614,12 @@ def __generating_function_of_integral_points__(
     extra_factor_mod, rules_mod, inequalities, equations = \
         _prepare_mod_(mod, B, inequalities, equations)
 
-    extra_factor_equations, rules_equations, indices_equations = \
-        _prepare_equations_(equations, B)
+    T_equations = EliminateByEquations(inequalities, equations, B)
+    inequalities = T_equations.inequalities
+    equations = T_equations.equations
+    indices_equations = T_equations.indices
 
-    T_inequalities = SplitOffSimpleInequalities(
-        inequalities, equations, B)
+    T_inequalities = SplitOffSimpleInequalities(inequalities, equations, B)
     inequalities = T_inequalities.inequalities
     equations = T_inequalities.equations
 
@@ -664,11 +665,10 @@ def __generating_function_of_integral_points__(
         terms = other_factors + factors_denominator
 
     numerator, terms = T_inequalities.apply_rules(numerator, terms)
-    numerator = \
-        ((numerator.subs(rules_equations) * extra_factor_equations
-         ).subs(rules_mod) * extra_factor_mod)
+    numerator, terms = T_equations.apply_rules(numerator, terms)
+    numerator = numerator.subs(rules_mod) * extra_factor_mod
     terms = tuple(
-        t.subs(rules_equations).subs(rules_mod)
+        t.subs(rules_mod)
         for t in terms)
 
     if sort_factors:
@@ -980,38 +980,45 @@ class EliminateByEquations(TransformHrepresentation):
 
     EXAMPLES::
 
-        sage: from sage.geometry.polyhedron.generating_function import _prepare_equations_
+        sage: from sage.geometry.polyhedron.generating_function import EliminateByEquations
+
+        sage: def prepare_equations(equations, B):
+        ....:     T = EliminateByEquations([], equations, B)
+        ....:     return T.factor, T.rules, T.indices
 
         sage: B = LaurentPolynomialRing(ZZ, 'y', 4)
-        sage: _prepare_equations_([(1, 1, 1, -1, 0)], B)
+        sage: prepare_equations([(1, 1, 1, -1, 0)], B)
         (y2, {y1: y1*y2, y0: y0*y2}, (2,))
-        sage: _prepare_equations_([(0, 1, 0, -1, 0)], B)
+        sage: prepare_equations([(0, 1, 0, -1, 0)], B)
         (1, {y0: y0*y2}, (2,))
-        sage: _prepare_equations_([(-1, 0, 1, -1, -1), (1, 1, 0, 1, 2)], B)
+        sage: prepare_equations([(-1, 0, 1, -1, -1), (1, 1, 0, 1, 2)], B)
         (y2^-1, {y1: y1*y2^2*y3^-1, y0: y0*y2*y3^-1}, (2, 3))
 
     TESTS::
 
         sage: B = LaurentPolynomialRing(ZZ, 'y', 4)
-        sage: _prepare_equations_([(0, 0, 1, 0, -1), (-1, 1, -1, -1, 0)], B)
+        sage: prepare_equations([(0, 0, 1, 0, -1), (-1, 1, -1, -1, 0)], B)
         (y2^-1, {y1: y1*y2^-1*y3, y0: y0*y2}, (2, 3))
 
         sage: B = LaurentPolynomialRing(ZZ, 'y', 5)
-        sage: _prepare_equations_([(0, 0, 0, 1, 0, -1), (0, 1, 0, 0, -1, 0),
+        sage: prepare_equations([(0, 0, 0, 1, 0, -1), (0, 1, 0, 0, -1, 0),
         ....:                    (0, 1, -1, 0, 0, 0)], B)
         (1, {y2: y2*y4, y0: y0*y1*y3}, (1, 3, 4))
     """
 
     def _transform_(self):
-        equations = self.equations
-        B = self.B
-
         from sage.matrix.constructor import matrix
         from sage.misc.misc_c import prod
 
+        equations = self.equations
+        B = self.B
+
         E = matrix(equations)
         if not E:
-            return 1, {}, ()
+            self.factor = 1
+            self.rules = {}
+            self.indices = ()
+            return
 
         TE, indices, indicesn = _prepare_equations_transformation_(E)
 
@@ -1020,10 +1027,9 @@ class EliminateByEquations(TransformHrepresentation):
         gens_cols = zip(gens, TE.columns())
         rules_pre = iter((y, y * prod(zz**(-c) for zz, c in zip(z, col)))
                          for y, col in (gens_cols[i] for i in indicesn))
-        factor = next(rules_pre)[1]
-        rules = dict(rules_pre)
-
-        return factor, rules, tuple(i-1 for i in indices)
+        self.factor = next(rules_pre)[1]
+        self.rules = dict(rules_pre)
+        self.indices = tuple(i-1 for i in indices)
 
 
 def _generate_mods_(equations):

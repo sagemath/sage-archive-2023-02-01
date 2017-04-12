@@ -596,11 +596,8 @@ def __generating_function_of_integral_points__(
     import logging
     logger = logging.getLogger(__name__)
 
-    from .representation import repr_pretty
     from sage.rings.integer_ring import ZZ
     from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
-    from sage.rings.polynomial.omega import _Omega_
-    from sage.rings.polynomial.omega import partition
     from sage.structure.factorization import Factorization
 
     B = LaurentPolynomialRing(
@@ -623,13 +620,39 @@ def __generating_function_of_integral_points__(
     T_inequalities = SplitOffSimpleInequalities(inequalities, equations, B)
     inequalities = T_inequalities.inequalities
     equations = T_inequalities.equations
+    #assert not equations
 
     logger.info('%s inequalities left; using Omega...', len(inequalities))
+    numerator, terms = _generating_function_via_Omega_(
+        inequalities, B, skip_indices=indices_equations)
+
+    numerator, terms = T_inequalities.apply_rules(numerator, terms)
+    numerator, terms = T_equations.apply_rules(numerator, terms)
+    numerator, terms = T_mod.apply_rules(numerator, terms)
+
+    if sort_factors:
+        def key(t):
+            D = t.dict().popitem()[0]
+            return (-sum(abs(d) for d in D), D)
+        terms = sorted(terms, key=key, reverse=True)
+    return Factorization([(numerator, 1)] +
+                         list((1-t, -1) for t in terms),
+                         sort=Factorization_sort,
+                         simplify=Factorization_simplify)
+
+def _generating_function_via_Omega_(inequalities, B, skip_indices=()):
+    import logging
+    logger = logging.getLogger(__name__)
+
+    from .representation import repr_pretty
+    from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+    from sage.rings.polynomial.omega import _Omega_
+    from sage.rings.polynomial.omega import partition
 
     numerator = B(1)
     terms = B.gens()
     L = B
-    mu = 'mu' if not prefix_variable_name.startswith('mu') else 'nu'
+    mu = 'mu' if not repr(B.gen()).startswith('mu') else 'nu'
     for i, coeffs in enumerate(inequalities):
         L = LaurentPolynomialRing(L, mu + str(i), sparse=True)
         l = L.gen()
@@ -639,9 +662,9 @@ def __generating_function_of_integral_points__(
         assert numerator.parent() == L
         terms = tuple(l**c * t for c, t in zip(it_coeffs, terms))
     assert all(y == t for y, t in
-               (zip(B.gens(), terms)[i] for i in indices_equations))
+               (zip(B.gens(), terms)[i] for i in skip_indices))
     terms = tuple(t for i, t in enumerate(terms)
-                  if i not in indices_equations)
+                  if i not in skip_indices)
 
     logger.debug('terms denominator %s', terms)
 
@@ -665,19 +688,7 @@ def __generating_function_of_integral_points__(
             _Omega_(numerator.dict(), tuple(decoded_factors))
         terms = other_factors + factors_denominator
 
-    numerator, terms = T_inequalities.apply_rules(numerator, terms)
-    numerator, terms = T_equations.apply_rules(numerator, terms)
-    numerator, terms = T_mod.apply_rules(numerator, terms)
-
-    if sort_factors:
-        def key(t):
-            D = t.dict().popitem()[0]
-            return (-sum(abs(d) for d in D), D)
-        terms = sorted(terms, key=key, reverse=True)
-    return Factorization([(numerator, 1)] +
-                         list((1-t, -1) for t in terms),
-                         sort=Factorization_sort,
-                         simplify=Factorization_simplify)
+    return numerator, terms
 
 
 class TransformHrepresentation(object):

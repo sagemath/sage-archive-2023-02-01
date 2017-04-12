@@ -858,16 +858,14 @@ class SplitOffSimpleInequalities(TransformHrepresentation):
                 inequalities_extra.append(tuple(coeffs))
         T = matrix(ZZ, dim, dim, D)
 
-        inequalities = list(tuple(T*vector(ieq))
-                            for ieq in inequalities_filtered) + \
-                       inequalities_extra
+        self.inequalities = list(tuple(T*vector(ieq))
+                                 for ieq in inequalities_filtered) + \
+                            inequalities_extra
 
         rules_pre = iter((y, B({tuple(row[1:]): 1}))
                          for y, row in zip((1,) + B.gens(), T.rows()))
-        factor = next(rules_pre)[1]
-        rules = dict(rules_pre)
-
-        return inequalities, factor, rules
+        self.factor = next(rules_pre)[1]
+        self.rules = dict(rules_pre)
 
 
 def _prepare_inequalities_(inequalities, B):

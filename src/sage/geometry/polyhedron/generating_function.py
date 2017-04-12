@@ -960,7 +960,7 @@ class EliminateByEquations(TransformHrepresentation):
             self.indices = ()
             return
 
-        TE, indices, indicesn = _prepare_equations_transformation_(E)
+        TE, indices, indicesn = EliminateByEquations.prepare_equations_transformation(E)
 
         gens = (1,) + B.gens()
         z = tuple(gens[i] for i in indices)
@@ -971,7 +971,8 @@ class EliminateByEquations(TransformHrepresentation):
         self.rules = dict(rules_pre)
         self.indices = tuple(i-1 for i in indices)
 
-    def _prepare_equations_transformation_(E):
+    @staticmethod
+    def prepare_equations_transformation(E):
         r"""
         Return a transformation matrix and indices which variables
         in the equation to "eliminate" and deal with later.
@@ -1001,11 +1002,11 @@ class EliminateByEquations(TransformHrepresentation):
 
         TESTS::
 
-            sage: from sage.geometry.polyhedron.generating_function import _prepare_equations_transformation_
+            sage: from sage.geometry.polyhedron.generating_function import EliminateByEquations
 
-            sage: _prepare_equations_transformation_(matrix([(0, 1, 0, -2)]))
+            sage: EliminateByEquations.prepare_equations_transformation(matrix([(0, 1, 0, -2)]))
             ([   0 -1/2    0    1], (3,), (0, 1))
-            sage: _prepare_equations_transformation_(matrix([(0, 1, -2, 0), (0, 2, 0, -3)]))
+            sage: EliminateByEquations.prepare_equations_transformation(matrix([(0, 1, -2, 0), (0, 2, 0, -3)]))
             (
             [   0 -1/2    1    0]
             [   0 -2/3    0    1], (2, 3), (0, 1)
@@ -1058,7 +1059,7 @@ def _generate_mods_(equations):
     from sage.rings.integer_ring import ZZ
     from sage.rings.rational_field import QQ
 
-    TE, TEi, TEin = _prepare_equations_transformation_(matrix(equations))
+    TE, TEi, TEin = EliminateByEquations.prepare_equations_transformation(matrix(equations))
     TEin = TEin[1:]
     if TE.base_ring() == ZZ:
         mods = [{}]

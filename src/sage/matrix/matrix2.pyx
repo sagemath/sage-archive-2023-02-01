@@ -14903,19 +14903,19 @@ def _matrix_power_symbolic(A, n):
     r"""
     Symbolic matrix power.
     
-    This function implements $f(A) = A^n$ assuming that the base ring of A is 
-    exact. It relies in the Jordan normal form of A, available for exact rings
-    as `jordan_form()`. See Sec. 1.2 of [Hig2008]_ for further details.
+    This function implements `f(A) = A^n` and relies in the Jordan normal form
+    of `A`, available for exact rings as ``jordan_form()``.
+    See Sec. 1.2 of [Hig2008]_ for further details.
     
     INPUT:
 
-    - ``A`` - a square matrix over an exact field.
+    - ``A`` -- a square matrix over an exact field
 
-    - ``n`` - the symbolic exponent. 
+    - ``n`` -- the symbolic exponent
 
     OUTPUT:
 
-    Matrix A^n (symbolic).
+    Matrix `A^n` (symbolic).
     
     EXAMPLES::
     
@@ -14971,7 +14971,7 @@ def _matrix_power_symbolic(A, n):
     # the number of Jordan blocks
     num_jordan_blocks = 1+len(J.subdivisions()[0])
     
-    # FJ stores the application of f to the Jordan blocks
+    # FJ stores the application of f = x^n to the Jordan blocks
     FJ = matrix(SR, J.ncols())
     FJ.subdivide(J.subdivisions())
 

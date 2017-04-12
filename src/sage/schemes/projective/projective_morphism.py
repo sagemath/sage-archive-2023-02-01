@@ -25,7 +25,6 @@ AUTHORS:
 
 - Ben Hutz (2015-11): iteration of subschemes
 
-
 """
 
 #*****************************************************************************
@@ -1277,6 +1276,107 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             2
         """
         return(self._polys[0].degree())
+
+    def degree_sequence(self, iterates=2):
+        r"""
+        Return sequence of degrees of normalized iterates starting with
+        the degree of this map.
+
+        INPUT: ``iterates`` -- positive integer (optional - default: 2)
+
+        OUTPUT: list of integers
+
+        EXAMPLES::
+
+            sage: P2.<X,Y,Z> = ProjectiveSpace(QQ, 2)
+            sage: H = End(P2)
+            sage: f = H([Z^2, X*Y, Y^2]) 
+            sage: f.degree_sequence(15)
+            [2, 3, 5, 8, 11, 17, 24, 31, 45, 56, 68, 91, 93, 184, 275]
+
+        ::
+
+            sage: F.<t> = PolynomialRing(QQ)
+            sage: P2.<X,Y,Z> = ProjectiveSpace(F, 2)
+            sage: H = End(P2)
+            sage: f = H([Y*Z, X*Y, Y^2 + t*X*Z]) 
+            sage: f.degree_sequence(5)
+            [2, 3, 5, 8, 13]
+
+        ::
+
+            sage: P2.<X,Y,Z> = ProjectiveSpace(QQ, 2)
+            sage: H = End(P2)
+            sage: f = H([X^2, Y^2, Z^2]) 
+            sage: f.degree_sequence(10)
+            [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]
+
+        ::
+
+            sage: P2.<X,Y,Z> = ProjectiveSpace(ZZ, 2)
+            sage: H = End(P2)
+            sage: f = H([X*Y, Y*Z+Z^2, Z^2]) 
+            sage: f.degree_sequence(10)
+            [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        """
+        if int(iterates) < 1:
+            raise TypeError("number of iterates must be a positive integer")
+        if not self.is_endomorphism():
+            raise TypeError("map is not an endomorphism")
+
+        if self.is_morphism():
+            d = self.degree()
+            D = [d**t for t in range(1, iterates+1)]
+        else:
+            F = self
+            F.normalize_coordinates()
+            D = [F.degree()]
+            for n in range(2, iterates+1):
+                F = F*self
+                F.normalize_coordinates()
+                D.append(F.degree())
+        return D
+
+    def dynamical_degree(self, N=3, prec=53):
+        r"""
+        Return an approximation to the dynamical degree of this map. The
+        dynamical degree is defined as $\lim_{n \to \infty} \sqrt[n]{\deg(f^n)}$.
+
+        INPUT:
+
+        - ``N`` -- iterate to use for approximation (optional - default: 3)
+
+        - ``prec`` -- real precision to use when computing root (optional - default: 53)
+
+        OUTPUT: real number
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = End(P)
+            sage: f = H([x^2 + (x*y), y^2])
+            sage: f.dynamical_degree()
+            2.00000000000000
+
+        ::
+
+            sage: P2.<X,Y,Z> = ProjectiveSpace(ZZ, 2)
+            sage: H = End(P2)
+            sage: f = H([X*Y, Y*Z+Z^2, Z^2])
+            sage: f.dynamical_degree(N=5, prec=100)
+            1.4309690811052555010452244131
+        """
+        if int(N) < 1:
+            raise TypeError("number of iterates must be a positive integer")
+        if not self.is_endomorphism():
+            raise TypeError("map is not an endomorphism")
+
+        R = RealField(prec=prec)
+        if self.is_morphism():
+            return R(self.degree())
+        else:
+            D = self.nth_iterate_map(N, normalize=True).degree()
+            return R(D).nth_root(N)
 
     def dehomogenize(self, n):
         r"""
@@ -3204,7 +3304,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             ch += P.canonical_height(F, **kwds)
         return(ch)
 
-    def periodic_points(self, n, minimal=True, R=None, algorithm='variety'):
+    def periodic_points(self, n, minimal=True, R=None, algorithm='variety', return_scheme=False):
         r"""
         Computes the periodic points of period ``n`` of this map
         defined over the ring ``R`` or the base ring of the map.
@@ -3218,7 +3318,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         but is slow as the defining equations of the variety get more
         complicated.
 
-        The map must be a projective morphism.
+        For rational map, where there are potentially infinitely many peiodic points
+        of a given period, you must use the ``return_scheme`` option. Note
+        that this scheme will include the indeterminacy locus.
 
         INPUT:
 
@@ -3233,9 +3335,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
           on the appropriate variety or ``cyclegraph`` to find the cycles from the
           cycle graph. Default: ``variety``.
 
+        - ``return_scheme`` - return a subscheme of the ambient space which defines the
+          ``n`` th periodic points.
+
         OUTPUT:
 
-        - a list of periodic points of this map.
+        - a list of periodic points of this map or the subscheme defining the periodic points
 
         EXAMPLES::
 
@@ -3333,9 +3438,46 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = End(P)
             sage: f = H([3*x^2+5*y^2,y^2])
             sage: f.periodic_points(2, R=GF(3), minimal=False)
+            [(2 : 1)]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: H = End(P)
+            sage: f = H([x^2, x*y, z^2])
+            sage: f.periodic_points(1)
             Traceback (most recent call last):
             ...
-            NotImplementedError: must be a projective morphism
+            TypeError: use return_scheme=True
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: K.<u> = NumberField(x^2 - x + 3)
+            sage: P.<x,y,z> = ProjectiveSpace(K,2)
+            sage: X = P.subscheme(2*x-y)
+            sage: H = End(X)
+            sage: f = H([x^2-y^2, 2*(x^2-y^2), y^2-z^2])
+            sage: f.periodic_points(2)
+            [(-1/5*u - 1/5 : -2/5*u - 2/5 : 1), (1/5*u - 2/5 : 2/5*u - 4/5 : 1)]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: H = End(P)
+            sage: f = H([x^2-y^2, x^2-z^2, y^2-z^2])
+            sage: f.periodic_points(1)
+            [(-1 : 0 : 1)]
+            sage: f.periodic_points(1, return_scheme=True)
+            Closed subscheme of Projective Space of dimension 2 over Rational Field
+            defined by:
+              -x^3 + x^2*y - y^3 + x*z^2,
+              -x*y^2 + x^2*z - y^2*z + x*z^2,
+              -y^3 + x^2*z + y*z^2 - z^3
+            sage: f.periodic_points(2, minimal=True, return_scheme=True)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: return_subscheme only implemented for minimal=False
         """
         if n <= 0:
             raise ValueError("a positive integer period must be specified")
@@ -3346,54 +3488,66 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             R = self.base_ring()
         else:
             f = self.change_ring(R)
-        if not f.is_morphism():
-            # if not, the variety is not dimension 0 and
-            # can cannot construct the cyclegraph due to
-            #indeterminacies
-            raise NotImplementedError("must be a projective morphism")
-        PS = f.codomain()
-        if algorithm == 'variety':
-            if R in NumberFields() or R is QQbar or R in FiniteFields():
-                N = PS.dimension_relative() + 1
-                R = PS.coordinate_ring()
-                F = f.nth_iterate_map(n)
-                L = [F[i]*R.gen(j) - F[j]*R.gen(i) for i in range(0,N) for j in range(i+1, N)]
-                X = PS.subscheme(L)
-                points = [PS(Q) for Q in X.rational_points()]
-
-                if not minimal:
-                    return points
+        CR = f.coordinate_ring()
+        dom = f.domain()
+        PS = f.codomain().ambient_space()
+        N = PS.dimension_relative() + 1
+        if algorithm == 'cyclegraph':
+                if R in FiniteFields():
+                    g = f.cyclegraph()
+                    points = []
+                    for cycle in g.all_simple_cycles():
+                        m = len(cycle)-1
+                        if minimal:
+                            if m == n:
+                                points = points + cycle[:-1]
+                        else:
+                            if n % m == 0:
+                                points = points + cycle[:-1]
+                    return(points)
                 else:
-                    #we want only the points with minimal period n
-                    #so we go through the list and remove any that
-                    #have smaller period by checking the iterates
-                    rem_indices = []
-                    for i in range(len(points)-1,-1,-1):
-                        # iterate points to check if minimal
-                        P = points[i]
-                        for j in range(1,n):
-                            P = f(P)
-                            if P == points[i]:
-                                points.pop(i)
-                                break
-                    return points
-            else:
-                raise NotImplementedError("ring must a number field or finite field")
-        elif algorithm == 'cyclegraph':
-            if R in FiniteFields():
-                g = f.cyclegraph()
-                points = []
-                for cycle in g.all_simple_cycles():
-                    m = len(cycle)-1
-                    if minimal:
-                        if m == n:
-                            points = points + cycle[:-1]
+                    raise TypeError("ring must be finite to generate cyclegraph")
+        elif algorithm == 'variety':
+            F = f.nth_iterate_map(n)
+            L = [F[i]*CR.gen(j) - F[j]*CR.gen(i) for i in range(0,N) for j in range(i+1, N)]
+            L = [t for t in L if t != 0]
+            X = PS.subscheme(L + list(dom.defining_polynomials()))
+            if return_scheme: #this includes the indeterminancy locus points!
+                if minimal and n != 1:
+                    raise NotImplementedError("return_subscheme only implemented for minimal=False")
+                return X
+            if X.dimension() == 0:
+                if R in NumberFields() or R is QQbar or R in FiniteFields():
+                    Z = f.indeterminacy_locus()
+                    points = [dom(Q) for Q in X.rational_points()]
+                    good_points = []
+                    for Q in points:
+                        try:
+                            Z(list(Q))
+                        except TypeError:
+                            good_points.append(Q)
+                    points = good_points
+
+                    if not minimal:
+                        return points
                     else:
-                        if n % m == 0:
-                            points = points + cycle[:-1]
-                return(points)
-            else:
-                raise TypeError("ring must be finite to generate cyclegraph")
+                        #we want only the points with minimal period n
+                        #so we go through the list and remove any that
+                        #have smaller period by checking the iterates
+                        rem_indices = []
+                        for i in range(len(points)-1,-1,-1):
+                            # iterate points to check if minimal
+                            P = points[i]
+                            for j in range(1,n):
+                                P = f(P)
+                                if P == points[i]:
+                                    points.pop(i)
+                                    break
+                        return points
+                else:
+                    raise NotImplementedError("ring must a number field or finite field")
+            else: #a higher dimensional scheme
+                raise TypeError("use return_scheme=True")
         else:
             raise ValueError("algorithm must be either 'variety' or 'cyclegraph'")
 
@@ -5452,9 +5606,9 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: f.indeterminacy_locus()
             Closed subscheme of Projective Space of dimension 2 over Rational Field
             defined by:
-                x,
-                y,
-                z
+                x^2,
+                y^2,
+                z^2
 
         ::
 
@@ -5481,16 +5635,25 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
               x^3,
               x*y^2,
               x*z^2
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: X = P.subscheme(x-y)
+            sage: H = End(X)
+            sage: f = H([x^2-4*y^2, y^2-z^2, 4*z^2-x^2])
+            sage: Z = f.indeterminacy_locus(); Z
+            Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+              x - y,
+              x^2 - 4*y^2,
+              y^2 - z^2,
+              -x^2 + 4*z^2
+            sage: Z.dimension()
+            -1
         """
-        from sage.schemes.projective.projective_space import is_ProjectiveSpace
         dom = self.domain()
-        if not is_ProjectiveSpace(dom):
-            raise NotImplementedError("not implemented for subschemes")
-        defPolys = self.defining_polynomials()
-        locus = dom.subscheme(defPolys)
-        if locus.dimension() < 0:
-            locus = dom.subscheme(dom.gens())
-        return locus 
+        AS = dom.ambient_space()
+        return AS.subscheme(list(dom.defining_polynomials()) + list(self.defining_polynomials()))
 
     def indeterminacy_points(self, F=None):
         r"""

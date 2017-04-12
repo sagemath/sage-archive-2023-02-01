@@ -1030,58 +1030,6 @@ class EliminateByEquations(TransformHrepresentation):
         return TE, indices, indicesn
 
 
-def _generate_mods_(equations):
-    r"""
-    Extract the moduli and residue classes implied
-    by the equations.
-
-    INPUT:
-
-    - ``equations`` -- a list of tuples
-
-    OUTPUT:
-
-    A tuple where each entry represents one possible configuration.
-    Each entry is a dictionary mapping ``i`` to ``(m, r)`` with the following 
-    meaning: The ``i``th coordinate of each element of the polyhedron
-    has to be congruent to ``r`` modulo ``m``.
-
-    TESTS::
-
-        sage: from sage.geometry.polyhedron.generating_function import _generate_mods_
-        sage: _generate_mods_([(0, 1, 1, -2)])
-        ({0: (2, 0), 1: (2, 0)}, {0: (2, 1), 1: (2, 1)})
-    """
-    from sage.arith.misc import lcm
-    from sage.matrix.constructor import matrix
-    from sage.rings.integer_ring import ZZ
-    from sage.rings.rational_field import QQ
-
-    TE, TEi, TEin = EliminateByEquations.prepare_equations_transformation(matrix(equations))
-    TEin = TEin[1:]
-    if TE.base_ring() == ZZ:
-        mods = [{}]
-    elif TE.base_ring() == QQ:
-        m = lcm([e.denominator() for e in TE.list()])
-        if m == 1:
-            mods = [{}]
-        else:
-            cols = TE.columns()
-            assert all(cols[j][i] == 1 for i, j in enumerate(TEi))
-            pre_mods = compositions_mod((tuple(ZZ(cc*m) for cc in cols[i])
-                                         for i in TEin),
-                                        m, r=(-cc*m for cc in cols[0]),
-                                        multidimensional=True)
-            mods = tuple({i-1: (aa.modulus(), ZZ(aa))
-                          for i, aa in zip(TEin, a) if aa.modulus() > 1}
-                         for a in pre_mods)
-    else:
-        raise TypeError('equations over ZZ or QQ expected, but got '
-                        'equations over {}.'.format(TE.base_ring()))
-
-    return mods
-
-
 class TransformMod(TransformHrepresentation):
     r"""
     Prepare the substitutions coming from the moduli.
@@ -1170,6 +1118,57 @@ class TransformMod(TransformHrepresentation):
 
         self.inequalities = list(tuple(vector(e)*T) for e in self.inequalities)
         self.equations = list(tuple(vector(e)*T) for e in self.equations)
+
+    def _generate_mods_(equations):
+        r"""
+        Extract the moduli and residue classes implied
+        by the equations.
+
+        INPUT:
+
+        - ``equations`` -- a list of tuples
+
+        OUTPUT:
+
+        A tuple where each entry represents one possible configuration.
+        Each entry is a dictionary mapping ``i`` to ``(m, r)`` with the following 
+        meaning: The ``i``th coordinate of each element of the polyhedron
+        has to be congruent to ``r`` modulo ``m``.
+
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.generating_function import _generate_mods_
+            sage: _generate_mods_([(0, 1, 1, -2)])
+            ({0: (2, 0), 1: (2, 0)}, {0: (2, 1), 1: (2, 1)})
+        """
+        from sage.arith.misc import lcm
+        from sage.matrix.constructor import matrix
+        from sage.rings.integer_ring import ZZ
+        from sage.rings.rational_field import QQ
+
+        TE, TEi, TEin = EliminateByEquations.prepare_equations_transformation(matrix(equations))
+        TEin = TEin[1:]
+        if TE.base_ring() == ZZ:
+            mods = [{}]
+        elif TE.base_ring() == QQ:
+            m = lcm([e.denominator() for e in TE.list()])
+            if m == 1:
+                mods = [{}]
+            else:
+                cols = TE.columns()
+                assert all(cols[j][i] == 1 for i, j in enumerate(TEi))
+                pre_mods = compositions_mod((tuple(ZZ(cc*m) for cc in cols[i])
+                                             for i in TEin),
+                                            m, r=(-cc*m for cc in cols[0]),
+                                            multidimensional=True)
+                mods = tuple({i-1: (aa.modulus(), ZZ(aa))
+                              for i, aa in zip(TEin, a) if aa.modulus() > 1}
+                             for a in pre_mods)
+        else:
+            raise TypeError('equations over ZZ or QQ expected, but got '
+                            'equations over {}.'.format(TE.base_ring()))
+
+        return mods
 
 
 def compositions_mod(u, m, r=0, multidimensional=False):

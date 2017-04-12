@@ -943,7 +943,7 @@ def _prepare_equations_transformation_(E):
     return TE, indices, indicesn
 
 
-def _prepare_equations_(equations, B):
+class EliminateByEquations(TransformHrepresentation):
     r"""
     Prepare the substitutions coming from "eliminated" variables
     in the given equations.
@@ -1001,6 +1001,11 @@ def _prepare_equations_(equations, B):
         ....:                    (0, 1, -1, 0, 0, 0)], B)
         (1, {y2: y2*y4, y0: y0*y1*y3}, (1, 3, 4))
     """
+
+    def _transform_(self):
+        equations = self.equations
+        B = self.B
+
     from sage.matrix.constructor import matrix
     from sage.misc.misc_c import prod
 

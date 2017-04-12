@@ -617,8 +617,10 @@ def __generating_function_of_integral_points__(
     extra_factor_equations, rules_equations, indices_equations = \
         _prepare_equations_(equations, B)
 
-    inequalities, extra_factor_inequalities, rules_inequalities = \
-        _prepare_inequalities_(inequalities, B)
+    T_inequalities = SplitOffSimpleInequalities(
+        inequalities, equations, B)
+    inequalities = T_inequalities.inequalities
+    equations = T_inequalities.equations
 
     logger.info('%s inequalities left; using Omega...', len(inequalities))
 
@@ -661,12 +663,12 @@ def __generating_function_of_integral_points__(
             _Omega_(numerator.dict(), tuple(decoded_factors))
         terms = other_factors + factors_denominator
 
+    numerator, terms = T_inequalities.apply_rules(numerator, terms)
     numerator = \
-        (((numerator.subs(rules_inequalities) * extra_factor_inequalities
-          ).subs(rules_equations) * extra_factor_equations
+        ((numerator.subs(rules_equations) * extra_factor_equations
          ).subs(rules_mod) * extra_factor_mod)
     terms = tuple(
-        t.subs(rules_inequalities).subs(rules_equations).subs(rules_mod)
+        t.subs(rules_equations).subs(rules_mod)
         for t in terms)
 
     if sort_factors:
@@ -732,68 +734,72 @@ class SplitOffSimpleInequalities(TransformHrepresentation):
 
     EXAMPLES::
 
-        sage: from sage.geometry.polyhedron.generating_function import _prepare_inequalities_
+        sage: from sage.geometry.polyhedron.generating_function import SplitOffSimpleInequalities
+
+        sage: def prepare_inequalities(inequalities, B):
+        ....:     T = SplitOffSimpleInequalities(inequalities, [], B)
+        ....:     return T.inequalities, T.factor, T.rules
 
         sage: B = LaurentPolynomialRing(ZZ, 'y', 3)
-        sage: _prepare_inequalities_([(0, -1, 1, 0), (2, -1, -1, 1)], B)
+        sage: prepare_inequalities([(0, -1, 1, 0), (2, -1, -1, 1)], B)
         ([(2, -2, -1, 1)], 1, {y2: y2, y1: y1, y0: y0*y1})
-        sage: _prepare_inequalities_([(-1, -1, 1, 0), (2, -1, -1, 1)], B)
+        sage: prepare_inequalities([(-1, -1, 1, 0), (2, -1, -1, 1)], B)
         ([(1, -2, -1, 1)], y1, {y2: y2, y1: y1, y0: y0*y1})
-        sage: _prepare_inequalities_([(2, -1, 1, 0), (2, -1, -1, 1)], B)
+        sage: prepare_inequalities([(2, -1, 1, 0), (2, -1, -1, 1)], B)
         ([(4, -2, -1, 1)], y1^-2, {y2: y2, y1: y1, y0: y0*y1})
 
     TESTS::
 
         sage: B = LaurentPolynomialRing(ZZ, 'y', 3)
-        sage: _prepare_inequalities_([(1, 1, -1, 0), (1, -1, 0, 1),
+        sage: prepare_inequalities([(1, 1, -1, 0), (1, -1, 0, 1),
         ....:                       (2, -1, -1, 3)], B)
         ([(-3, 2, 1, 3)], y0^-1*y2^-2, {y2: y2, y1: y0*y1*y2, y0: y0*y2})
 
         sage: B = LaurentPolynomialRing(ZZ, 'y', 4)
-        sage: _prepare_inequalities_([(-1, 1, -1, 0, 0)], B)
+        sage: prepare_inequalities([(-1, 1, -1, 0, 0)], B)
         ([], y0, {y3: y3, y2: y2, y1: y0*y1, y0: y0})
-        sage: _prepare_inequalities_([(0, 0, -1, 0, 1), (0, 0, 1, 0, 0),
+        sage: prepare_inequalities([(0, 0, -1, 0, 1), (0, 0, 1, 0, 0),
         ....:                       (0, 1, 0, 0, -1), (-1, 1, -1, 0, 0)], B)
         ([(1, 1, 0, 0, -1)], y0, {y3: y3, y2: y2, y1: y0*y1*y3, y0: y0})
-        sage: _prepare_inequalities_([(-2, 1, -1, 0, 0)], B)
+        sage: prepare_inequalities([(-2, 1, -1, 0, 0)], B)
         ([], y0^2, {y3: y3, y2: y2, y1: y0*y1, y0: y0})
 
-        sage: _prepare_inequalities_([(0, -1, 1, 0, 0), (-2, 0, -1, 0, 1),
+        sage: prepare_inequalities([(0, -1, 1, 0, 0), (-2, 0, -1, 0, 1),
         ....:                       (0, -1, 0, 1, 0), (-3, 0, 0, -1, 1)], B)
         ([(1, 0, -1, 1, 1)],
          y3^3,
          {y3: y3, y2: y2*y3, y1: y1, y0: y0*y1*y2*y3})
-        sage: _prepare_inequalities_([(0, -1, 1, 0, 0), (-3, 0, -1, 0, 1),
+        sage: prepare_inequalities([(0, -1, 1, 0, 0), (-3, 0, -1, 0, 1),
         ....:                       (0, -1, 0, 1, 0), (-2, 0, 0, -1, 1)], B)
         ([(1, 0, 1, -1, 1)],
          y3^3,
          {y3: y3, y2: y2, y1: y1*y3, y0: y0*y1*y2*y3})
-        sage: _prepare_inequalities_([(0, -1, 1, 0, 0), (-2, 0, -1, 0, 1),
+        sage: prepare_inequalities([(0, -1, 1, 0, 0), (-2, 0, -1, 0, 1),
         ....:                       (-3, -1, 0, 1, 0), (0, 0, 0, -1, 1)], B)
         ([(1, 0, -1, 1, 1)],
          y2^3*y3^3,
          {y3: y3, y2: y2*y3, y1: y1, y0: y0*y1*y2*y3})
-        sage: _prepare_inequalities_([(0, -1, 1, 0, 0), (-3, 0, -1, 0, 1),
+        sage: prepare_inequalities([(0, -1, 1, 0, 0), (-3, 0, -1, 0, 1),
         ....:                       (-2, -1, 0, 1, 0), (0, 0, 0, -1, 1)], B)
         ([(1, 0, 1, -1, 1)],
          y2^2*y3^3,
          {y3: y3, y2: y2, y1: y1*y3, y0: y0*y1*y2*y3})
-        sage: _prepare_inequalities_([(-2, -1, 1, 0, 0), (0, 0, -1, 0, 1),
+        sage: prepare_inequalities([(-2, -1, 1, 0, 0), (0, 0, -1, 0, 1),
         ....:                       (0, -1, 0, 1, 0), (-3, 0, 0, -1, 1)], B)
         ([(1, 0, -1, 1, 1)],
          y1^2*y3^3,
          {y3: y3, y2: y2*y3, y1: y1, y0: y0*y1*y2*y3})
-        sage: _prepare_inequalities_([(-3, -1, 1, 0, 0), (0, 0, -1, 0, 1),
+        sage: prepare_inequalities([(-3, -1, 1, 0, 0), (0, 0, -1, 0, 1),
         ....:                       (0, -1, 0, 1, 0), (-2, 0, 0, -1, 1)], B)
         ([(1, 0, 1, -1, 1)],
          y1^3*y3^3,
          {y3: y3, y2: y2, y1: y1*y3, y0: y0*y1*y2*y3})
-        sage: _prepare_inequalities_([(-2, -1, 1, 0, 0), (0, 0, -1, 0, 1),
+        sage: prepare_inequalities([(-2, -1, 1, 0, 0), (0, 0, -1, 0, 1),
         ....:                       (-3, -1, 0, 1, 0), (0, 0, 0, -1, 1)], B)
         ([(1, 0, -1, 1, 1)],
          y1^2*y2^3*y3^3,
          {y3: y3, y2: y2*y3, y1: y1, y0: y0*y1*y2*y3})
-        sage: _prepare_inequalities_([(-3, -1, 1, 0, 0), (0, 0, -1, 0, 1),
+        sage: prepare_inequalities([(-3, -1, 1, 0, 0), (0, 0, -1, 0, 1),
         ....:                       (-2, -1, 0, 1, 0), (0, 0, 0, -1, 1)], B)
         ([(1, 0, 1, -1, 1)],
          y1^3*y2^2*y3^3,
@@ -875,11 +881,6 @@ class SplitOffSimpleInequalities(TransformHrepresentation):
                          for y, row in zip((1,) + B.gens(), T.rows()))
         self.factor = next(rules_pre)[1]
         self.rules = dict(rules_pre)
-
-
-def _prepare_inequalities_(inequalities, B):
-    T = SplitOffSimpleInequalities(inequalities, [], B)
-    return T.inequalities, T.factor, T.rules
 
 
 def _prepare_equations_transformation_(E):

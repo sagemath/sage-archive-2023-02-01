@@ -675,6 +675,23 @@ def __generating_function_of_integral_points__(
                          simplify=Factorization_simplify)
 
 
+class TransformHrepresentation(object):
+
+    def __init__(self, inequalities, equations, B):
+        self.inequalities = inequalities
+        self.equations = equations
+        self.B = B
+
+    def _transform_(self):
+        raise NotImplementedError
+
+
+class SplitOffSimpleInequalities(TransformHrepresentation):
+
+    def _transform_(self):
+        pass  # TODO
+
+
 def _prepare_inequalities_(inequalities, B):
     r"""
     Split off (simple) inequalities which can be handled better

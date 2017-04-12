@@ -1006,24 +1006,24 @@ class EliminateByEquations(TransformHrepresentation):
         equations = self.equations
         B = self.B
 
-    from sage.matrix.constructor import matrix
-    from sage.misc.misc_c import prod
+        from sage.matrix.constructor import matrix
+        from sage.misc.misc_c import prod
 
-    E = matrix(equations)
-    if not E:
-        return 1, {}, ()
+        E = matrix(equations)
+        if not E:
+            return 1, {}, ()
 
-    TE, indices, indicesn = _prepare_equations_transformation_(E)
+        TE, indices, indicesn = _prepare_equations_transformation_(E)
 
-    gens = (1,) + B.gens()
-    z = tuple(gens[i] for i in indices)
-    gens_cols = zip(gens, TE.columns())
-    rules_pre = iter((y, y * prod(zz**(-c) for zz, c in zip(z, col)))
-                     for y, col in (gens_cols[i] for i in indicesn))
-    factor = next(rules_pre)[1]
-    rules = dict(rules_pre)
+        gens = (1,) + B.gens()
+        z = tuple(gens[i] for i in indices)
+        gens_cols = zip(gens, TE.columns())
+        rules_pre = iter((y, y * prod(zz**(-c) for zz, c in zip(z, col)))
+                         for y, col in (gens_cols[i] for i in indicesn))
+        factor = next(rules_pre)[1]
+        rules = dict(rules_pre)
 
-    return factor, rules, tuple(i-1 for i in indices)
+        return factor, rules, tuple(i-1 for i in indices)
 
 
 def _generate_mods_(equations):

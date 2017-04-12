@@ -1146,29 +1146,29 @@ class TransformMod(TransformHrepresentation):
         vecs = (self.inequalities, self.equations)
 
 def _prepare_mod_(mod, B, *vecs):
-    from sage.matrix.constructor import matrix
-    from sage.modules.free_module_element import vector
-    from sage.rings.integer_ring import ZZ
+        from sage.matrix.constructor import matrix
+        from sage.modules.free_module_element import vector
+        from sage.rings.integer_ring import ZZ
 
-    if not mod:
-        return (1, {}) + vecs
+        if not mod:
+            return (1, {}) + vecs
 
-    n = len(B.gens()) + 1
+        n = len(B.gens()) + 1
 
-    D = {(i, i): 1 for i in range(n)}
-    for i, mr in iteritems(mod):
-        D[(i+1, i+1)] = mr[0]
-        D[(i+1, 0)] = mr[1]
-    T = matrix(ZZ, n, n, D)
+        D = {(i, i): 1 for i in range(n)}
+        for i, mr in iteritems(mod):
+            D[(i+1, i+1)] = mr[0]
+            D[(i+1, 0)] = mr[1]
+        T = matrix(ZZ, n, n, D)
 
-    rules_pre = iter((y, B({tuple(row[1:]): 1}))
-                     for y, row in zip((1,) + B.gens(), T.columns()))
-    factor = next(rules_pre)[1]
-    rules = dict(rules_pre)
+        rules_pre = iter((y, B({tuple(row[1:]): 1}))
+                         for y, row in zip((1,) + B.gens(), T.columns()))
+        factor = next(rules_pre)[1]
+        rules = dict(rules_pre)
 
-    vecs = tuple(tuple(tuple(vector(e)*T) for e in vec) for vec in vecs)
+        vecs = tuple(tuple(tuple(vector(e)*T) for e in vec) for vec in vecs)
 
-    return (factor, rules) + vecs
+        return (factor, rules) + vecs
 
 
 def compositions_mod(u, m, r=0, multidimensional=False):

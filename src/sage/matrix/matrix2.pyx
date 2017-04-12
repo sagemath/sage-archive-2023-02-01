@@ -14951,9 +14951,8 @@ def _matrix_power_symbolic(A, n):
         [-1/2*2^(2*n + 1)  1/2*2^(2*n + 1)]
     """
     from sage.rings.qqbar import AlgebraicNumber
-    from sage.modules.free_module_element import vector
     from sage.matrix.constructor import matrix
-    from sage.functions.other import factorial
+    from sage.functions.other import binomial
     from sage.symbolic.ring import SR
     from sage.rings.qqbar import QQbar
     
@@ -14974,8 +14973,6 @@ def _matrix_power_symbolic(A, n):
     # FJ stores the application of f = x^n to the Jordan blocks
     FJ = matrix(SR, J.ncols())
     FJ.subdivide(J.subdivisions())
-
-    factorial_n = factorial(n)
     
     for k in range(num_jordan_blocks):
 
@@ -14991,17 +14988,16 @@ def _matrix_power_symbolic(A, n):
         # compute the first row of f(Jk)
         vk = []
         for i in range(mk):
-            if hasattr(Jk[i][i], 'radical_expression'):
-                Jk_ii = Jk[i][i].radical_expression()
-            else:
-                Jk_ii = Jk[i][i]
+            Jk_ii = Jk[i, i]
+            if hasattr(Jk_ii, 'radical_expression'):
+                Jk_ii = Jk_ii.radical_expression()
                 
             # corresponds to \frac{D^i(f)}{i!}, with f = x^n and D the differential operator wrt x
-            vk += [(factorial_n/(factorial(n-i)*factorial(i))*Jk_ii**(n-i)).simplify_full()] 
+            vk += [(binomial(n, i) * Jk_ii**(n-i)).simplify_full()]
         
         # insert vk into each row (above the main diagonal)
         for i in range(mk):
-            Jk_row_i = vector(SR, vector(SR, i).list() + vk[0:mk-i])
+            Jk_row_i = [SR.zero()]*i + vk[0:mk-i]
             FJ_k.set_row(i, Jk_row_i)
 
         FJ.set_block(k, k, FJ_k)

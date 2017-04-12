@@ -615,16 +615,15 @@ def __generating_function_of_integral_points__(
     T_equations = EliminateByEquations(inequalities, equations, B)
     inequalities = T_equations.inequalities
     equations = T_equations.equations
-    indices_equations = T_equations.indices
 
     T_inequalities = SplitOffSimpleInequalities(inequalities, equations, B)
     inequalities = T_inequalities.inequalities
     equations = T_inequalities.equations
-    #assert not equations
+    assert not equations
 
     logger.info('%s inequalities left; using Omega...', len(inequalities))
     numerator, terms = _generating_function_via_Omega_(
-        inequalities, B, skip_indices=indices_equations)
+        inequalities, B, skip_indices=T_equations.indices)
 
     numerator, terms = T_inequalities.apply_rules(numerator, terms)
     numerator, terms = T_equations.apply_rules(numerator, terms)
@@ -639,6 +638,7 @@ def __generating_function_of_integral_points__(
                          list((1-t, -1) for t in terms),
                          sort=Factorization_sort,
                          simplify=Factorization_simplify)
+
 
 def _generating_function_via_Omega_(inequalities, B, skip_indices=()):
     import logging
@@ -979,6 +979,7 @@ class EliminateByEquations(TransformHrepresentation):
         self.factor = next(rules_pre)[1]
         self.rules = dict(rules_pre)
         self.indices = tuple(i-1 for i in indices)
+        self.equations = []
 
     @staticmethod
     def prepare_equations_transformation(E):

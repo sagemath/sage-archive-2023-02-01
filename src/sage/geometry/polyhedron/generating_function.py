@@ -611,8 +611,9 @@ def __generating_function_of_integral_points__(
     logger.info('preprocessing %s inequalities and %s equations...',
                  len(inequalities), len(equations))
 
-    extra_factor_mod, rules_mod, inequalities, equations = \
-        _prepare_mod_(mod, B, inequalities, equations)
+    T_mod = TransformMod(inequalities, equations, B, mod)
+    inequalities = T_mod.inequalities
+    equations = T_mod.equations
 
     T_equations = EliminateByEquations(inequalities, equations, B)
     inequalities = T_equations.inequalities
@@ -666,10 +667,7 @@ def __generating_function_of_integral_points__(
 
     numerator, terms = T_inequalities.apply_rules(numerator, terms)
     numerator, terms = T_equations.apply_rules(numerator, terms)
-    numerator = numerator.subs(rules_mod) * extra_factor_mod
-    terms = tuple(
-        t.subs(rules_mod)
-        for t in terms)
+    numerator, terms = T_mod.apply_rules(numerator, terms)
 
     if sort_factors:
         def key(t):
@@ -1126,32 +1124,36 @@ class TransformMod(TransformHrepresentation):
 
     EXAMPLES::
 
-        sage: from sage.geometry.polyhedron.generating_function import _prepare_mod_
+        sage: from sage.geometry.polyhedron.generating_function import TransformMod
+
+        sage: def prepare_mod(mod, B, *vecs):
+        ....:     inequalities, equations = vecs
+        ....:     T = TransformMod(inequalities, equations, B, mod)
+        ....:     return T.factor, T.rules, T.inequalities, T.equations
 
         sage: B = LaurentPolynomialRing(ZZ, 'y', 3)
-        sage: _prepare_mod_({0: (2, 1)}, B, [(1, -1, 0, 2)])
-        (y0, {y2: y2, y1: y1, y0: y0^2}, ((0, -2, 0, 2),))
-        sage: _prepare_mod_({0: (2, 1), 1: (2, 1)}, B,
+        sage: prepare_mod({0: (2, 1)}, B, [(1, -1, 0, 2)], [])
+        (y0, {y2: y2, y1: y1, y0: y0^2}, [(0, -2, 0, 2)], [])
+        sage: prepare_mod({0: (2, 1), 1: (2, 1)}, B,
         ....:             [(0, -1, -1, 2)], [(0, -1, 1, 0)])
         (y0*y1, {y2: y2, y1: y1^2, y0: y0^2},
-         ((-2, -2, -2, 2),), ((0, -2, 2, 0),))
+         [(-2, -2, -2, 2)], [(0, -2, 2, 0)])
     """
     def __init__(self, inequalities, equations, B, mod):
         self.mod = mod
-        super(TransformHrepresentation, self).__init__(inequalities, equations, B)
+        super(TransformMod, self).__init__(inequalities, equations, B)
 
     def _transform_(self):
-        mod = self.mod
-        B = self.B
-        vecs = (self.inequalities, self.equations)
-
-def _prepare_mod_(mod, B, *vecs):
         from sage.matrix.constructor import matrix
         from sage.modules.free_module_element import vector
         from sage.rings.integer_ring import ZZ
 
+        mod = self.mod
+        B = self.B
+
         if not mod:
-            return (1, {}) + vecs
+            self.factor = 1
+            self.rules = {}
 
         n = len(B.gens()) + 1
 
@@ -1163,12 +1165,11 @@ def _prepare_mod_(mod, B, *vecs):
 
         rules_pre = iter((y, B({tuple(row[1:]): 1}))
                          for y, row in zip((1,) + B.gens(), T.columns()))
-        factor = next(rules_pre)[1]
-        rules = dict(rules_pre)
+        self.factor = next(rules_pre)[1]
+        self.rules = dict(rules_pre)
 
-        vecs = tuple(tuple(tuple(vector(e)*T) for e in vec) for vec in vecs)
-
-        return (factor, rules) + vecs
+        self.inequalities = list(tuple(vector(e)*T) for e in self.inequalities)
+        self.equations = list(tuple(vector(e)*T) for e in self.equations)
 
 
 def compositions_mod(u, m, r=0, multidimensional=False):

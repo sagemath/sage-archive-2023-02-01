@@ -1084,7 +1084,7 @@ def _generate_mods_(equations):
     return mods
 
 
-def _prepare_mod_(mod, B, *vecs):
+class TransformMod(TransformHrepresentation):
     r"""
     Prepare the substitutions coming from the moduli.
 
@@ -1136,6 +1136,16 @@ def _prepare_mod_(mod, B, *vecs):
         (y0*y1, {y2: y2, y1: y1^2, y0: y0^2},
          ((-2, -2, -2, 2),), ((0, -2, 2, 0),))
     """
+    def __init__(self, inequalities, equations, B, mod):
+        self.mod = mod
+        super(TransformHrepresentation, self).__init__(inequalities, equations, B)
+
+    def _transform_(self):
+        mod = self.mod
+        B = self.B
+        vecs = (self.inequalities, self.equations)
+
+def _prepare_mod_(mod, B, *vecs):
     from sage.matrix.constructor import matrix
     from sage.modules.free_module_element import vector
     from sage.rings.integer_ring import ZZ

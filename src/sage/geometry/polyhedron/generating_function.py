@@ -559,7 +559,7 @@ def _generating_function_of_integral_points_(
         raise ValueError('not all coefficient vectors of the equations '
                          'have the same length')
 
-    mods = generate_mods(equations)
+    mods = TransformMod.generate_mods(equations)
     logger.debug('splitting by moduli %s', mods)
 
     return tuple(__generating_function_of_integral_points__(
@@ -1038,7 +1038,7 @@ class TransformMod(TransformHrepresentation):
 
     - ``mod`` -- a dictionary mapping an index ``i`` to ``(m, r)``
 
-      This is one entry of the output tuple of :func:`generate_mods`.
+      This is one entry of the output tuple of :meth:`generate_mods`.
 
     - ``B`` -- a Laurent polynomial ring
 
@@ -1119,6 +1119,7 @@ class TransformMod(TransformHrepresentation):
         self.inequalities = list(tuple(vector(e)*T) for e in self.inequalities)
         self.equations = list(tuple(vector(e)*T) for e in self.equations)
 
+    @staticmethod
     def generate_mods(equations):
         r"""
         Extract the moduli and residue classes implied
@@ -1137,8 +1138,8 @@ class TransformMod(TransformHrepresentation):
 
         TESTS::
 
-            sage: from sage.geometry.polyhedron.generating_function import generate_mods
-            sage: generate_mods([(0, 1, 1, -2)])
+            sage: from sage.geometry.polyhedron.generating_function import TransformMod
+            sage: TransformMod.generate_mods([(0, 1, 1, -2)])
             ({0: (2, 0), 1: (2, 0)}, {0: (2, 1), 1: (2, 1)})
         """
         from sage.arith.misc import lcm

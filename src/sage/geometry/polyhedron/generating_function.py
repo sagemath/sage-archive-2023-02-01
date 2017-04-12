@@ -845,7 +845,7 @@ class SplitOffSimpleInequalities(TransformHrepresentation):
                 if constant < 0:
                     # This case could be cleverly skipped...
                     inequalities_filtered.append(coeffs)
-            elif len(ones) == 1 and len(mones) == 1 and not absgetwo:
+            elif len(ones) == 1 and len(mones) == 1 and not absgetwo and constant <= 0:
                 logger.debug('handling %s',
                              repr_pretty(coeffs, 0))
                 chain_links[(mones[0], ones[0])] = constant

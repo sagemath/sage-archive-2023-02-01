@@ -681,18 +681,13 @@ class TransformHrepresentation(object):
         self.inequalities = inequalities
         self.equations = equations
         self.B = B
+        self._transform_()
 
     def _transform_(self):
         raise NotImplementedError
 
 
 class SplitOffSimpleInequalities(TransformHrepresentation):
-
-    def _transform_(self):
-        pass  # TODO
-
-
-def _prepare_inequalities_(inequalities, B):
     r"""
     Split off (simple) inequalities which can be handled better
     without passing them to Omega.
@@ -795,6 +790,11 @@ def _prepare_inequalities_(inequalities, B):
          y1^3*y2^2*y3^3,
          {y3: y3, y2: y2, y1: y1*y3, y0: y0*y1*y2*y3})
     """
+
+    def _transform_(self):
+        inequalities = self.inequalities
+        B = self.B
+
     import logging
     logger = logging.getLogger(__name__)
 
@@ -868,6 +868,11 @@ def _prepare_inequalities_(inequalities, B):
     rules = dict(rules_pre)
 
     return inequalities, factor, rules
+
+
+def _prepare_inequalities_(inequalities, B):
+    T = SplitOffSimpleInequalities(inequalities, [], B)
+    return T.inequalities, T.factor, T.rules
 
 
 def _prepare_equations_transformation_(E):

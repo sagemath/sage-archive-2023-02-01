@@ -795,79 +795,79 @@ class SplitOffSimpleInequalities(TransformHrepresentation):
         inequalities = self.inequalities
         B = self.B
 
-    import logging
-    logger = logging.getLogger(__name__)
+        import logging
+        logger = logging.getLogger(__name__)
 
-    from itertools import takewhile
-    from .representation import repr_pretty
-    from sage.graphs.digraph import DiGraph
-    from sage.matrix.constructor import matrix
-    from sage.modules.free_module_element import vector
-    from sage.rings.integer_ring import ZZ
+        from itertools import takewhile
+        from .representation import repr_pretty
+        from sage.graphs.digraph import DiGraph
+        from sage.matrix.constructor import matrix
+        from sage.modules.free_module_element import vector
+        from sage.rings.integer_ring import ZZ
 
-    inequalities_filtered = []
-    chain_links = {}
-    for coeffs in inequalities:
-        dim = len(coeffs)
-        if all(c >= 0 for c in coeffs):
-            logger.debug('skipping %s (all coefficients >= 0)',
-                         repr_pretty(coeffs, 0))
-            continue
-        constant = coeffs[0]
-        ones = tuple(i+1 for i, c in enumerate(coeffs[1:]) if c == 1)
-        mones = tuple(i+1 for i, c in enumerate(coeffs[1:]) if c == -1)
-        absgetwo = tuple(i+1 for i, c in enumerate(coeffs[1:]) if abs(c) >= 2)
-        if len(ones) == 1 and not mones and not absgetwo:
-            if constant < 0:
-                # This case could be cleverly skipped...
+        inequalities_filtered = []
+        chain_links = {}
+        for coeffs in inequalities:
+            dim = len(coeffs)
+            if all(c >= 0 for c in coeffs):
+                logger.debug('skipping %s (all coefficients >= 0)',
+                             repr_pretty(coeffs, 0))
+                continue
+            constant = coeffs[0]
+            ones = tuple(i+1 for i, c in enumerate(coeffs[1:]) if c == 1)
+            mones = tuple(i+1 for i, c in enumerate(coeffs[1:]) if c == -1)
+            absgetwo = tuple(i+1 for i, c in enumerate(coeffs[1:]) if abs(c) >= 2)
+            if len(ones) == 1 and not mones and not absgetwo:
+                if constant < 0:
+                    # This case could be cleverly skipped...
+                    inequalities_filtered.append(coeffs)
+            elif len(ones) == 1 and len(mones) == 1 and not absgetwo:
+                logger.debug('handling %s',
+                             repr_pretty(coeffs, 0))
+                chain_links[(mones[0], ones[0])] = constant
+            else:
                 inequalities_filtered.append(coeffs)
-        elif len(ones) == 1 and len(mones) == 1 and not absgetwo:
-            logger.debug('handling %s',
-                         repr_pretty(coeffs, 0))
-            chain_links[(mones[0], ones[0])] = constant
-        else:
-            inequalities_filtered.append(coeffs)
 
-    G = DiGraph(chain_links, format='list_of_edges')
-    potential = {}
-    paths = {}
-    D = {}
-    inequalities_extra = []
-    for i in range(dim):
-        D[(i, i)] = 1
-    for v in G.topological_sort():
-        NP = iter(sorted(((n, potential[n] + chain_links[(n, v)])
-                          for n in G.neighbor_in_iterator(v)),
-                         key=lambda k: k[1]))
-        n, p = next(NP, (None, 0))
-        potential[v] = p
-        D[(0, v)] = -p
-        paths[v] = paths.get(n, ()) + (v,)
-        for u in paths[v]:
-            D[(u, v)] = 1
+        G = DiGraph(chain_links, format='list_of_edges')
+        potential = {}
+        paths = {}
+        D = {}
+        inequalities_extra = []
+        for i in range(dim):
+            D[(i, i)] = 1
+        for v in G.topological_sort():
+            NP = iter(sorted(((n, potential[n] + chain_links[(n, v)])
+                              for n in G.neighbor_in_iterator(v)),
+                             key=lambda k: k[1]))
+            n, p = next(NP, (None, 0))
+            potential[v] = p
+            D[(0, v)] = -p
+            paths[v] = paths.get(n, ()) + (v,)
+            for u in paths[v]:
+                D[(u, v)] = 1
 
-        for n, p in NP:
-            ell = len(tuple(takewhile(lambda u: u[0] == u[1],
-                                      zip(paths[n], paths[v]))))
-            coeffs = dim*[0]
-            for u in paths[v][ell:]:
-                coeffs[u] = 1
-            for u in paths[n][ell:]:
-                coeffs[u] = -1
-            coeffs[0] = p - potential[v]
-            inequalities_extra.append(tuple(coeffs))
-    T = matrix(ZZ, dim, dim, D)
+            for n, p in NP:
+                ell = len(tuple(takewhile(lambda u: u[0] == u[1],
+                                          zip(paths[n], paths[v]))))
+                coeffs = dim*[0]
+                for u in paths[v][ell:]:
+                    coeffs[u] = 1
+                for u in paths[n][ell:]:
+                    coeffs[u] = -1
+                coeffs[0] = p - potential[v]
+                inequalities_extra.append(tuple(coeffs))
+        T = matrix(ZZ, dim, dim, D)
 
-    inequalities = list(tuple(T*vector(ieq))
-                        for ieq in inequalities_filtered) + \
-                   inequalities_extra
+        inequalities = list(tuple(T*vector(ieq))
+                            for ieq in inequalities_filtered) + \
+                       inequalities_extra
 
-    rules_pre = iter((y, B({tuple(row[1:]): 1}))
-                     for y, row in zip((1,) + B.gens(), T.rows()))
-    factor = next(rules_pre)[1]
-    rules = dict(rules_pre)
+        rules_pre = iter((y, B({tuple(row[1:]): 1}))
+                         for y, row in zip((1,) + B.gens(), T.rows()))
+        factor = next(rules_pre)[1]
+        rules = dict(rules_pre)
 
-    return inequalities, factor, rules
+        return inequalities, factor, rules
 
 
 def _prepare_inequalities_(inequalities, B):

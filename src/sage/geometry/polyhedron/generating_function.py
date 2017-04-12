@@ -883,66 +883,6 @@ class SplitOffSimpleInequalities(TransformHrepresentation):
         self.rules = dict(rules_pre)
 
 
-def _prepare_equations_transformation_(E):
-    r"""
-    Return a transformation matrix and indices which variables
-    in the equation to "eliminate" and deal with later.
-
-    INPUT:
-
-    - ``E`` -- a matrix whose rows represent equations
-
-    OUTPUT:
-
-    A triple ``(TE, indices, indicesn)`` with the following properties:
-
-    - ``TE`` -- a matrix
-
-      This matrix arises from ``E`` by multiplying a transformation matrix
-      on the left.
-
-    - ``indices`` -- a sorted tuple of integers representing column indices
-
-      The the sub-matrix of ``TE`` with columns ``indices``
-      is the identity matrix.
-
-    - ``indicesn`` -- a sorted tuple of integers representing column indices
-
-      ``indicesn`` contains ``0`` and all indices of the columns of ``E``
-      which are non-zero.
-
-    TESTS::
-
-        sage: from sage.geometry.polyhedron.generating_function import _prepare_equations_transformation_
-
-        sage: _prepare_equations_transformation_(matrix([(0, 1, 0, -2)]))
-        ([   0 -1/2    0    1], (3,), (0, 1))
-        sage: _prepare_equations_transformation_(matrix([(0, 1, -2, 0), (0, 2, 0, -3)]))
-        (
-        [   0 -1/2    1    0]
-        [   0 -2/3    0    1], (2, 3), (0, 1)
-        )
-    """
-    indices_nonzero = tuple(i for i, col in enumerate(E.columns())
-                            if i > 0 and not col.is_zero())
-    indices = []
-    r = 0
-    for i in reversed(indices_nonzero):
-        indices.append(i)
-        r1 = E.matrix_from_columns(indices).rank()
-        if r1 > r:
-            r = r1
-            if len(indices) >= E.nrows():
-                break
-        else:
-            indices = indices[:-1]
-    assert len(indices) == E.nrows()
-    indices = tuple(reversed(indices))
-    indicesn = (0,) + tuple(i for i in indices_nonzero if i not in indices)
-    TE = E.matrix_from_columns(indices).inverse() * E
-    return TE, indices, indicesn
-
-
 class EliminateByEquations(TransformHrepresentation):
     r"""
     Prepare the substitutions coming from "eliminated" variables
@@ -1030,6 +970,65 @@ class EliminateByEquations(TransformHrepresentation):
         self.factor = next(rules_pre)[1]
         self.rules = dict(rules_pre)
         self.indices = tuple(i-1 for i in indices)
+
+    def _prepare_equations_transformation_(E):
+        r"""
+        Return a transformation matrix and indices which variables
+        in the equation to "eliminate" and deal with later.
+
+        INPUT:
+
+        - ``E`` -- a matrix whose rows represent equations
+
+        OUTPUT:
+
+        A triple ``(TE, indices, indicesn)`` with the following properties:
+
+        - ``TE`` -- a matrix
+
+          This matrix arises from ``E`` by multiplying a transformation matrix
+          on the left.
+
+        - ``indices`` -- a sorted tuple of integers representing column indices
+
+          The the sub-matrix of ``TE`` with columns ``indices``
+          is the identity matrix.
+
+        - ``indicesn`` -- a sorted tuple of integers representing column indices
+
+          ``indicesn`` contains ``0`` and all indices of the columns of ``E``
+          which are non-zero.
+
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.generating_function import _prepare_equations_transformation_
+
+            sage: _prepare_equations_transformation_(matrix([(0, 1, 0, -2)]))
+            ([   0 -1/2    0    1], (3,), (0, 1))
+            sage: _prepare_equations_transformation_(matrix([(0, 1, -2, 0), (0, 2, 0, -3)]))
+            (
+            [   0 -1/2    1    0]
+            [   0 -2/3    0    1], (2, 3), (0, 1)
+            )
+        """
+        indices_nonzero = tuple(i for i, col in enumerate(E.columns())
+                                if i > 0 and not col.is_zero())
+        indices = []
+        r = 0
+        for i in reversed(indices_nonzero):
+            indices.append(i)
+            r1 = E.matrix_from_columns(indices).rank()
+            if r1 > r:
+                r = r1
+                if len(indices) >= E.nrows():
+                    break
+            else:
+                indices = indices[:-1]
+        assert len(indices) == E.nrows()
+        indices = tuple(reversed(indices))
+        indicesn = (0,) + tuple(i for i in indices_nonzero if i not in indices)
+        TE = E.matrix_from_columns(indices).inverse() * E
+        return TE, indices, indicesn
 
 
 def _generate_mods_(equations):

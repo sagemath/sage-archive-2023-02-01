@@ -588,7 +588,7 @@ class TensorFreeModule(FiniteRankFreeModule):
         r"""
         Return a string representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(QQ, 2, name='M')
             sage: M.tensor_module(1,1)
@@ -612,7 +612,7 @@ class TensorFreeModule(FiniteRankFreeModule):
         - instance of :class:`FiniteRankFreeModule` representing the free
           module on which the tensor module is defined.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Base module of a type-(1,2) tensor module::
 
@@ -635,7 +635,7 @@ class TensorFreeModule(FiniteRankFreeModule):
         - pair `(k,l)` such that ``self`` is the module tensor product
           `T^{(k,l)}(M)`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3)
             sage: T = M.tensor_module(1,2)

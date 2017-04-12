@@ -334,7 +334,7 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
         that the return value is a coset representative of the domain
         modulo the kernel of the morphism.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: X = QQ**2
             sage: V = X.span([[2, 0], [0, 8]], ZZ)

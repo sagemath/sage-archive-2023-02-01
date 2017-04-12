@@ -1494,10 +1494,10 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
         sage: X.nef_complete_intersection(np)
         Closed subscheme of 3-d CPR-Fano toric variety
         covered by 8 affine patches defined by:
-          a1*z0^2*z1 + a4*z0*z1*z3 + a3*z1*z3^2
-          + a0*z0^2*z4 + a5*z0*z3*z4 + a2*z3^2*z4,
-          b0*z1*z2^2 + b1*z2^2*z4 + b4*z1*z2*z5
-          + b5*z2*z4*z5 + b3*z1*z5^2 + b2*z4*z5^2
+          a2*z0^2*z1 + a5*z0*z1*z3 + a1*z1*z3^2
+          + a3*z0^2*z4 + a4*z0*z3*z4 + a0*z3^2*z4,
+          b1*z1*z2^2 + b2*z2^2*z4 + b5*z1*z2*z5
+          + b4*z2*z4*z5 + b3*z1*z5^2 + b0*z4*z5^2
 
     See :meth:`CPRFanoToricVariety_field.nef_complete_intersection` for a
     more elaborate example.
@@ -1520,10 +1520,10 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
             sage: NefCompleteIntersection(X, np)
             Closed subscheme of 3-d CPR-Fano toric variety
             covered by 8 affine patches defined by:
-              a1*z0^2*z1 + a4*z0*z1*z3 + a3*z1*z3^2
-              + a0*z0^2*z4 + a5*z0*z3*z4 + a2*z3^2*z4,
-              b0*z1*z2^2 + b1*z2^2*z4 + b4*z1*z2*z5
-              + b5*z2*z4*z5 + b3*z1*z5^2 + b2*z4*z5^2
+              a2*z0^2*z1 + a5*z0*z1*z3 + a1*z1*z3^2
+              + a3*z0^2*z4 + a4*z0*z3*z4 + a0*z3^2*z4,
+              b1*z1*z2^2 + b2*z2^2*z4 + b5*z1*z2*z5
+              + b4*z2*z4*z5 + b3*z1*z5^2 + b0*z4*z5^2
         """
         if not is_CPRFanoToricVariety(P_Delta):
             raise TypeError("nef complete intersections can only be "
@@ -1618,10 +1618,10 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
             sage: CI
             Closed subscheme of 3-d CPR-Fano toric variety
             covered by 8 affine patches defined by:
-              a1*z0^2*z1 + a4*z0*z1*z3 + a3*z1*z3^2
-              + a0*z0^2*z4 + a5*z0*z3*z4 + a2*z3^2*z4,
-              b0*z1*z2^2 + b1*z2^2*z4 + b4*z1*z2*z5
-              + b5*z2*z4*z5 + b3*z1*z5^2 + b2*z4*z5^2
+              a2*z0^2*z1 + a5*z0*z1*z3 + a1*z1*z3^2
+              + a3*z0^2*z4 + a4*z0*z3*z4 + a0*z3^2*z4,
+              b1*z1*z2^2 + b2*z2^2*z4 + b5*z1*z2*z5
+              + b4*z2*z4*z5 + b3*z1*z5^2 + b0*z4*z5^2
             sage: CI.cohomology_class()
             [2*z3*z4 + 4*z3*z5 + 2*z4*z5]
         """
@@ -1651,10 +1651,10 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
             sage: CI
             Closed subscheme of 3-d CPR-Fano toric variety
             covered by 8 affine patches defined by:
-              a1*z0^2*z1 + a4*z0*z1*z3 + a3*z1*z3^2
-              + a0*z0^2*z4 + a5*z0*z3*z4 + a2*z3^2*z4,
-              b0*z1*z2^2 + b1*z2^2*z4 + b4*z1*z2*z5
-              + b5*z2*z4*z5 + b3*z1*z5^2 + b2*z4*z5^2
+              a2*z0^2*z1 + a5*z0*z1*z3 + a1*z1*z3^2
+              + a3*z0^2*z4 + a4*z0*z3*z4 + a0*z3^2*z4,
+              b1*z1*z2^2 + b2*z2^2*z4 + b5*z1*z2*z5
+              + b4*z2*z4*z5 + b3*z1*z5^2 + b0*z4*z5^2
             sage: CI.nef_partition()
             Nef-partition {0, 1, 3} U {2, 4, 5}
             sage: CI.nef_partition() is np

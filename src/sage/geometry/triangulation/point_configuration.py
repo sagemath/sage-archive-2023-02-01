@@ -1525,7 +1525,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         A tuple of all circuits with `C_-` = ``negative``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = PointConfiguration([(1,0,0),(0,1,0),(0,0,1),(-2,0,-1),(-2,-1,0),(-3,-1,-1),(1,1,1),(-1,0,0),(0,0,0)])
             sage: p.positive_circuits(8)

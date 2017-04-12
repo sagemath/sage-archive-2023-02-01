@@ -36,7 +36,7 @@ def _get(key):
     -  ``key`` - hashable
 
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: sage.modular.abvar.constructor._saved('a', J0(37))
         Abelian variety J0(37) of dimension 2

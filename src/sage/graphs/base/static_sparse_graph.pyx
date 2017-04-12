@@ -579,7 +579,7 @@ def tarjan_strongly_connected_components(G):
     For more information, see the
     :wikipedia:`Wikipedia article on Tarjan's algorithm <Tarjan's_strongly_connected_components_algorithm>`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components
         sage: tarjan_strongly_connected_components(digraphs.Path(3))
@@ -719,7 +719,7 @@ def strongly_connected_components_digraph(G):
     to each vertex ``v`` the number of the SCC of ``v``, as it appears in
     ``g_scc``.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.base.static_sparse_graph import strongly_connected_components_digraph
         sage: strongly_connected_components_digraph(digraphs.Path(3))
@@ -795,7 +795,7 @@ def triangles_count(G):
 
     - `G`-- a graph
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.base.static_sparse_graph import triangles_count
         sage: triangles_count(graphs.PetersenGraph())

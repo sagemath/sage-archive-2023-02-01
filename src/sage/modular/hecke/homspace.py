@@ -46,7 +46,7 @@ class HeckeModuleHomspace(sage.categories.homset.HomsetWithBase):
         Create the space of homomorphisms between X and Y, which must have the
         same base ring.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = ModularForms(Gamma0(7), 4)
             sage: M.Hom(M)

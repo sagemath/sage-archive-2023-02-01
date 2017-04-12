@@ -239,8 +239,8 @@ Comparisons with numpy types are right (see :trac:`17758` and :trac:`18076`)::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
 
 import math # for log
 import sys
@@ -249,7 +249,6 @@ import operator
 include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
 from cpython.mem cimport *
-from cpython.string cimport *
 from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_LE, Py_GT, Py_GE
 
 cimport sage.rings.ring
@@ -865,7 +864,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         """
         Return a list of generators.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: RIF.gens()
             [1]
@@ -1440,7 +1439,7 @@ cdef class RealIntervalFieldElement(RingElement):
 
         (Since this interval is real, this simply returns itself.)
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             :meth:`imag`
 
@@ -1902,7 +1901,7 @@ cdef class RealIntervalFieldElement(RingElement):
                 sig_on()
                 mpz_get_str(zz_str, base, self_zz)
                 sig_off()
-                v = PyString_FromString(zz_str)
+                v = str(zz_str)
                 PyMem_Free(zz_str)
                 return v
 
@@ -2121,10 +2120,10 @@ cdef class RealIntervalFieldElement(RingElement):
         digits = strlen(tmp_cstr)
         if tmp_cstr[0] == '-':
             digits -= 1
-            mant_string = <object> PyString_FromString(tmp_cstr+1)
+            mant_string = str(tmp_cstr+1)
             sign_string = '-'
         else:
-            mant_string = <object> PyString_FromString(tmp_cstr)
+            mant_string = str(tmp_cstr)
             sign_string = ''
         PyMem_Free(tmp_cstr)
 
@@ -2135,7 +2134,7 @@ cdef class RealIntervalFieldElement(RingElement):
             if tmp_cstr == NULL:
                 raise MemoryError("Unable to allocate memory for the error of an interval")
             mpz_get_str(tmp_cstr, 10, cur_error)
-            error_string = <object> PyString_FromString(tmp_cstr)
+            error_string = str(tmp_cstr)
             PyMem_Free(tmp_cstr)
 
         mpz_clear(lower_mpz)
@@ -2970,7 +2969,7 @@ cdef class RealIntervalFieldElement(RingElement):
         r"""
         Return the nearest integer of this interval as an interval
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             - :meth:`unique_round` -- return the round as an integer if it is
               unique and raises a ``ValueError`` otherwise
@@ -3371,7 +3370,7 @@ cdef class RealIntervalFieldElement(RingElement):
         Return the nearest integer toward zero if it is unique, otherwise raise
         a ``ValueError``.
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             :meth:`trunc` -- return the truncation as an interval (and never
             raise error)

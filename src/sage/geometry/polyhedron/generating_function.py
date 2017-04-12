@@ -691,6 +691,10 @@ class TransformHrepresentation(object):
     def _transform_(self):
         raise NotImplementedError
 
+    def apply_rules(self, numerator, terms):
+        return (numerator.subs(self.rules) * self.factor,
+                tuple(t.subs(self.rules) for t in terms))
+
 
 class SplitOffSimpleInequalities(TransformHrepresentation):
     r"""

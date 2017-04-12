@@ -646,8 +646,7 @@ def _generating_function_via_Omega_(inequalities, B, skip_indices=()):
 
     from .representation import repr_pretty
     from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
-    from sage.rings.polynomial.omega import _Omega_
-    from sage.rings.polynomial.omega import partition
+    from sage.rings.polynomial.omega import _Omega_, _simplify_, partition
 
     numerator = B(1)
     terms = B.gens()
@@ -688,7 +687,7 @@ def _generating_function_via_Omega_(inequalities, B, skip_indices=()):
             _Omega_(numerator.dict(), tuple(decoded_factors))
         terms = other_factors + factors_denominator
 
-    return numerator, terms
+    return _simplify_(numerator, terms)
 
 
 class TransformHrepresentation(object):

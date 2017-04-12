@@ -8,7 +8,7 @@ from __future__ import absolute_import
 from six import *
 
 
-def with_metaclass(*args):
+def with_metaclass(meta, *bases):
     """
     Create a base class with a metaclass.
 
@@ -63,8 +63,8 @@ def with_metaclass(*args):
     # a dummy class which will setup the correct metaclass when this
     # dummy class is used as base class.
     #
-    # In detail: let T = with_metaclass(*args). When the user does
-    # "class X(with_metaclass(*args))", Python will first determine
+    # In detail: let T = with_metaclass(meta, *bases). When the user does
+    # "class X(with_metaclass(meta, *bases))", Python will first determine
     # the metaclass of X from its bases. So, the metaclass will be
     # type(T).
     # Next, Python will call type(T)("X", (T,), methods) and it is this
@@ -74,7 +74,7 @@ def with_metaclass(*args):
     # The metaclass type(T) is returned by _WithMetaclass.get(...) and
     # the dummy() method creates an instance of this metaclass, which
     # is a regular class.
-    return _WithMetaclass.get(*args).dummy()
+    return _WithMetaclass.get(meta, bases).dummy()
 
 
 class _WithMetaclass(type):
@@ -82,7 +82,7 @@ class _WithMetaclass(type):
     Metaclasses to be used in ``with_metaclass``.
     """
     @classmethod
-    def get(cls, meta, *bases):
+    def get(cls, meta, bases):
         """
         Return a metaclass which, if an instance of it is used as base
         class, will create a class with metaclass ``meta`` and bases

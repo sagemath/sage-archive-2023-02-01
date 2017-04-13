@@ -24,7 +24,7 @@ from sage.structure.element import Element, coerce_binop, is_Vector
 from sage.misc.all import cached_method, prod
 from sage.misc.package import is_package_installed
 
-from sage.rings.all import QQ, ZZ
+from sage.rings.all import QQ, ZZ, AA
 from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix
@@ -4400,7 +4400,7 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             NotImplementedError: The polytope must be full-dimensional.
-            
+
         TESTS::
 
         Testing a three-dimensional integral::
@@ -5713,18 +5713,30 @@ class Polyhedron_base(Element):
         else:
             return self.face_lattice().is_isomorphic(other.face_lattice())
 
-    def affine_hull(self):
+    def affine_hull(self, algorithm='projection'):
         """
         Return the affine hull.
 
         Each polyhedron is contained in some smallest affine subspace
         (possibly the entire ambient space). The affine hull is the
         same polyhedron but thought of as a full-dimensional
-        polyhedron in this subspace.
+        polyhedron in this subspace. Depending on how the smallest affine
+        subspace is coordinatized, the resulting polyhedron might or
+        might not be isometric to the original polyhedron. In any case
+        they will be affinely equivalent.
+
+        INPUT:
+
+         - ``algorithm`` (default = ``projection``) -- the algorithm to use.
+          The other possible value is ``isometry``.
 
         OUTPUT:
 
         A full-dimensional polyhedron.
+
+        .. TODO::
+
+        Make the algorithm ``isometry`` work with unbounded polyhedra.
 
         EXAMPLES::
 
@@ -5737,11 +5749,96 @@ class Polyhedron_base(Element):
             sage: half3d.affine_hull().Vrepresentation()
             (A ray in the direction (1), A vertex at (3))
 
+        The different algorithms lead to different affine hulls::
+
+            sage: L = Polyhedron([[1,0],[0,1]]); L
+            A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
+            sage: A = L.affine_hull(); A
+            A 1-dimensional polyhedron in ZZ^1 defined as the convex hull of 2 vertices
+            sage: A.vertices()
+            (A vertex at (0), A vertex at (1))
+            sage: A = L.affine_hull(algorithm="isometry"); A
+            A 1-dimensional polyhedron in AA^1 defined as the convex hull of 2 vertices
+            sage: A.vertices()
+            (A vertex at (0), A vertex at (1.414213562373095?))
+
+        More generally::
+
+            sage: S = polytopes.simplex(); S
+            A 3-dimensional polyhedron in ZZ^4 defined as the convex hull of 4 vertices
+            sage: A = S.affine_hull(); A
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices
+            sage: A.vertices()
+            (A vertex at (0, 0, 0),
+             A vertex at (0, 0, 1),
+             A vertex at (0, 1, 0),
+             A vertex at (1, 0, 0))
+            sage: A = S.affine_hull(algorithm="isometry"); A
+            A 3-dimensional polyhedron in AA^3 defined as the convex hull of 4 vertices
+            sage: A.vertices()
+            (A vertex at (0, 0, 0),
+             A vertex at (1.414213562373095?, 0, 0),
+             A vertex at (0.7071067811865475?, 1.224744871391589?, 0),
+             A vertex at (0.7071067811865475?, 0.4082482904638630?, 1.154700538379252?))
+
+        Another example of the dependeny of the result on the algorithm::
+
+            sage: P = polytopes.permutahedron(3); P
+            A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 6 vertices
+            sage: set([F.as_polyhedron().affine_hull(algorithm="isometry").volume() for F in P.affine_hull().faces(1)]) == {1, sqrt(AA(2))}
+            True
+            sage: set([F.as_polyhedron().affine_hull(algorithm="isometry").volume() for F in P.affine_hull(algorithm="isometry").faces(1)]) == {sqrt(AA(2))}
+            True
+
+        The affine hull is combinatorially equivalent to the input::
+
+            sage: P.is_combinatorially_isomorphic(P.affine_hull())
+            True
+            sage: P.is_combinatorially_isomorphic(P.affine_hull(algorithm="isometry"))
+            True
+
+
+        For unbounded, non full-dimensional polyhedra, the algorithm ``isometry``
+        is not implemented::
+
+            sage: P = Polyhedron(ieqs=[[0, 1, 0], [0, 0, 1], [0, 0, -1]]); P
+            A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 ray
+            sage: P.is_compact()
+            False
+            sage: P.is_full_dimensional()
+            False
+            sage: P.affine_hull(algorithm="isometry")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Algorithm "isometry" works only for compact polyhedra
+
         TESTS::
 
             sage: Polyhedron([(2,3,4)]).affine_hull()
             A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
         """
+        if algorithm == 'isometry':
+            #if the self is full-dimensional, return it immediately
+            if self.ambient_dim() == self.dim():
+                return self
+            if not self.is_compact():
+                raise NotImplementedError('Algorithm "isometry" works only for compact polyhedra')
+            #translate 0th vertex to the origin
+            Q = self.translation(-vector(self.vertices()[0]))
+            v = Q.vertices()[0]
+            #check that translation didn't change the order of the vertices
+            assert list(v) == self.ambient_dim()*[0]
+            #choose as an affine basis the neighbors of the origin vertex in Q
+            M = matrix([list(w) for w in itertools.islice(v.neighbors(), self.dim())])
+            #switch base_ring to AA for integer and rational polytopes,
+            #since gram_schmidt needs to be able to take square roots
+            if self.base_ring() in [ZZ,QQ]:
+                M = matrix(AA,M)
+            #Pick orthonormal basis and transform all vertices accordingly
+            A = M.gram_schmidt(orthonormal = True)[0]
+            return Polyhedron([A*vector(v) for v in Q.vertices()])
+
+
         # translate one vertex to the origin
         v0 = self.vertices()[0].vector()
         gens = []

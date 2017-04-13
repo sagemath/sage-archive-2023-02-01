@@ -236,6 +236,7 @@ class LieAlgebraHomset(Homset):
     def zero(self):
         """
         Return the zero morphism.
+
         EXAMPLES::
 
             sage: L = LieAlgebra(QQ, 'x,y,z')

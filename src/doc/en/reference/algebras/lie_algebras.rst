@@ -6,6 +6,7 @@ Lie Algebras
 
    sage/algebras/lie_algebras/abelian
    sage/algebras/lie_algebras/examples
+   sage/algebras/lie_algebras/free_lie_algebra
    sage/algebras/lie_algebras/heisenberg
    sage/algebras/lie_algebras/lie_algebra
    sage/algebras/lie_algebras/lie_algebra_element

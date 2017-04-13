@@ -438,6 +438,12 @@ def _Omega_(A, decoded_factors):
         (42, ())
         sage: _Omega_({-1: 42}, [])
         (0, ())
+
+
+    ::
+
+        sage: MacMahonOmega(mu, 1 - x^2, [1 - x*mu, 1 - y/mu])
+        (x + 1) * (-x*y + 1)^-1
     """
     if not decoded_factors:
         return sum(c for a, c in iteritems(A) if a >= 0), tuple()
@@ -462,7 +468,8 @@ def _Omega_(A, decoded_factors):
 
     if numerator == 0:
         factors_denominator = tuple()
-    return numerator, tuple(f.subs(rules) for f in factors_denominator)
+    return _simplify_(numerator,
+                      tuple(f.subs(rules) for f in factors_denominator))
 
 
 @cached_function

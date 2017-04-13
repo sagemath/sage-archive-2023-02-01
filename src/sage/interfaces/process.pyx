@@ -156,11 +156,9 @@ cdef class ContainChildren(object):
             return
 
         # We are a child process!
-        cdef int exitcode
+        cdef int exitcode = self.exitcode
         try:
-            if exc[0] is None:  # No exception
-                exitcode = self.exitcode
-            else:               # Exception was raised
+            if exc[0] is not None:  # Exception was raised
                 exitcode = self.exceptcode
                 if not self.silent:
                     sys.stderr.write("Exception raised by child process with pid=%s:\n"%pid)

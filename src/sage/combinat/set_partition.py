@@ -417,10 +417,9 @@ class SetPartition(ClonableArray):
 
         - ``tikz_scale`` -- (default: 1) scale for use with tikz package
 
-        - ``plot`` -- (default: ``''``) ``''`` returns the set notation,
+        - ``plot`` -- (default: None) None returns the set notation,
           ``linear`` returns a linear plot, ``cyclic`` returns a cyclic
           plot
-
 
         - ``color`` -- (default: black) the arc colors
 
@@ -457,8 +456,8 @@ class SetPartition(ClonableArray):
             if key not in valid_args:
                 raise ValueError("unknown keyword argument: %s"%key)
             if key == 'plot':
-                if kwargs['plot'] != 'cyclic' and kwargs['plot'] != 'linear' and kwargs['plot'] != '':
-                    raise ValueError("plot must be blank, 'cyclic', or 'linear'")
+                if kwargs['plot'] != 'cyclic' and kwargs['plot'] != 'linear' and kwargs['plot'] != None:
+                    raise ValueError("plot must be None, 'cyclic', or 'linear'")
 
             for opt in kwargs:
                 self._latex_options[opt] = kwargs[opt]
@@ -468,7 +467,7 @@ class SetPartition(ClonableArray):
         Return the latex options for use in the ``_latex_`` function as a
         dictionary. The default values are set using the global options.
 
-        Options can be found in set_latex_options()
+        Options can be found in :meth:`set_latex_options`
 
         EXAMPLES::
 
@@ -476,7 +475,7 @@ class SetPartition(ClonableArray):
             {'angle': 0,
              'color': 'black',
              'fill': False,
-             'plot': '',
+             'plot': None,
              'radius': '1cm',
              'show_labels': True,
              'tikz_scale': 1}
@@ -485,7 +484,7 @@ class SetPartition(ClonableArray):
         if "tikz_scale" not in opts:
             opts["tikz_scale"] = 1
         if "plot" not in opts:
-            opts["plot"] = ''
+            opts["plot"] = None
         if "color" not in opts:
             opts['color']= 'black'
         if "fill" not in opts:
@@ -528,83 +527,83 @@ class SetPartition(ClonableArray):
 
         """
         latex_options = self.latex_options()
-        if latex_options["plot"] == "":
+        if latex_options["plot"] == None:
             return repr(self).replace("{",r"\{").replace("}",r"\}")
+        
+        latex.add_package_to_preamble_if_available("tikz")
+        res = "\\begin{tikzpicture}[scale="+str(latex_options['tikz_scale'])+"]\n"
+
+        cardinality = self.base_set_cardinality()
+        base_set = self.base_set().list()
+        color= latex_options['color']
+
+        # If we want cyclic plots
+        if latex_options['plot'] == 'cyclic':
+            degrees = 360 / cardinality
+            radius = latex_options['radius']
+
+            # Add nodes
+            for k,i in enumerate(base_set):
+                location = (cardinality - k) * degrees - 270
+                res += "\\node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black"
+                if latex_options['show_labels']:
+                    res += ",label=" + str(location) + ":" + str(i)
+                res += "] (" + str(k) + ") at (" + str(location) + ":" + radius + ") {};\n"
+
+            # Add the circle
+            for k,i in enumerate(base_set):
+                xangle = k * degrees
+                yangle = (k+1) * degrees
+                res += "\\draw[-] (" + str(xangle) + ":" + radius + ")"
+                res += " arc "
+                res += "(" + str(xangle) + ":" + str(yangle) + ":" + radius + ");\n"
+
+            # Setup partitions
+            for partition in self:
+                res += "\\draw[-,thick,color="+color
+                if latex_options['fill'] != False:
+                    if isinstance(latex_options['fill'],str):
+                        res += ",fill="+latex_options['fill']
+                    else:
+                        res += ",fill={rgb:" + color + ",1;white,10}"
+                res += "] "
+                firstDone = False
+                for j in partition:
+                    if firstDone:
+                        res += " -- (" + str(base_set.index(j)) + ".center)"
+                    else:
+                        firstDone = True
+                        res += "(" + str(base_set.index(j)) + ".center)"
+                res += " -- cycle;\n"
+
+        # If we want line plots
+        elif latex_options['plot'] == 'linear':
+            angle = latex_options['angle']
+            # setup line
+            for k,i in enumerate(base_set):
+                if latex_options['show_labels']:
+                    res += "\\node[below=.05cm] at (" + str(k) + ",0) {$" + str(i) + "$};\n"
+                res += "\\node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black] "
+                res += "(" + str(k) + ") at (" + str(k) + ",0) {};\n"
+            #res += "\t\\draw (0) -- (" + str(cardinality - 1) + ");\n"
+
+            # setup arcs
+            for partition in self:
+                if partition.cardinality() > 1:
+                    for k,i in enumerate(partition.list()):
+                        if k != 0:
+                            #res += "\\draw (" + str(base_set.index(partition[0])) + ")"
+                            #res += " to [out=90,in=90] "
+                            #res += "(" + str(base_set.index(partition[-1])) + ");"
+                        #else:
+                            res += "\\draw[color=" + color + "] (" + str(base_set.index(partition[k])) + ")"
+                            res += " to [out=" + str(90+angle) + ",in=" + str(90-angle) + "] "
+                            res += "(" + str(base_set.index(partition[k-1])) + ");\n"
         else:
-            latex.add_package_to_preamble_if_available("tikz")
-            res = "\\begin{tikzpicture}[scale="+str(latex_options['tikz_scale'])+"]\n"
+            raise ValueError("plot must be None, 'cyclic', or 'linear'")
 
-            cardinality = self.base_set_cardinality()
-            base_set = self.base_set().list()
-            color= latex_options['color']
-
-            # If we want cyclic plots
-            if latex_options['plot'] == 'cyclic':
-                degrees = 360 / cardinality
-                radius = latex_options['radius']
-
-                # Add nodes
-                for k,i in enumerate(base_set):
-                    location = (cardinality - k) * degrees - 270
-                    res += "\\node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black"
-                    if latex_options['show_labels']:
-                        res += ",label=" + str(location) + ":" + str(i)
-                    res += "] (" + str(k) + ") at (" + str(location) + ":" + radius + ") {};\n"
-
-                # Add the circle
-                for k,i in enumerate(base_set):
-                    xangle = k * degrees
-                    yangle = (k+1) * degrees
-                    res += "\\draw[-] (" + str(xangle) + ":" + radius + ")"
-                    res += " arc "
-                    res += "(" + str(xangle) + ":" + str(yangle) + ":" + radius + ");\n"
-
-                # Setup partitions
-                for partition in self:
-                    res += "\\draw[-,thick,color="+color
-                    if latex_options['fill'] != False:
-                        if isinstance(latex_options['fill'],str):
-                            res += ",fill="+latex_options['fill']
-                        else:
-                            res += ",fill={rgb:" + color + ",1;white,10}"
-                    res += "] "
-                    firstDone = False
-                    for j in partition:
-                        if firstDone:
-                            res += " -- (" + str(base_set.index(j)) + ".center)"
-                        else:
-                            firstDone = True
-                            res += "(" + str(base_set.index(j)) + ".center)"
-                    res += " -- cycle;\n"
-
-            # If we want line plots
-            elif latex_options['plot'] == 'linear':
-                angle = latex_options['angle']
-                # setup line
-                for k,i in enumerate(base_set):
-                    if latex_options['show_labels']:
-                        res += "\\node[below=.05cm] at (" + str(k) + ",0) {$" + str(i) + "$};\n"
-                    res += "\\node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black] "
-                    res += "(" + str(k) + ") at (" + str(k) + ",0) {};\n"
-                #res += "\t\\draw (0) -- (" + str(cardinality - 1) + ");\n"
-
-                # setup arcs
-                for partition in self:
-                    if partition.cardinality() > 1:
-                        for k,i in enumerate(partition.list()):
-                            if k != 0:
-                                #res += "\\draw (" + str(base_set.index(partition[0])) + ")"
-                                #res += " to [out=90,in=90] "
-                                #res += "(" + str(base_set.index(partition[-1])) + ");"
-                            #else:
-                                res += "\\draw[color=" + color + "] (" + str(base_set.index(partition[k])) + ")"
-                                res += " to [out=" + str(90+angle) + ",in=" + str(90-angle) + "] "
-                                res += "(" + str(base_set.index(partition[k-1])) + ");\n"
-            else:
-                raise ValueError("plot must be blank, 'cyclic', or 'linear'")
-
-            res += "\\end{tikzpicture}"
-            return res
+        res += "\\end{tikzpicture}"
+        return res
 
     cardinality = ClonableArray.__len__
 
@@ -1185,32 +1184,32 @@ class SetPartition(ClonableArray):
             Arc with center (1.0,-1.0) radii (1.41421356237,1.41421356237) angle 0.0 inside the sector (0.785398163397,2.35619449019)
             Arc with center (2.5,-0.5) radii (0.707106781187,0.707106781187) angle 0.0 inside the sector (0.785398163397,2.35619449019)
             Arc with center (2.5,-1.5) radii (2.12132034356,2.12132034356) angle 0.0 inside the sector (0.785398163397,2.35619449019)
-            sage: p=SetPartition([['a','c'],['b',-1],[20.2]])
+            sage: p=SetPartition([['a','c'],['b','d'],['e']])
             sage: print(p.plot().description())
             Point set defined by 1 point(s):  [(0.0, 0.0)]
             Point set defined by 1 point(s):    [(1.0, 0.0)]
             Point set defined by 1 point(s):    [(2.0, 0.0)]
             Point set defined by 1 point(s):    [(3.0, 0.0)]
             Point set defined by 1 point(s):    [(4.0, 0.0)]
-            Text '-1' at the point (0.0,-0.1)
-            Text '20.2000000000000' at the point (1.0,-0.1)
-            Text 'a' at the point (2.0,-0.1)
-            Text 'b' at the point (3.0,-0.1)
-            Text 'c' at the point (4.0,-0.1)
-            Arc with center (1.5,-1.5) radii (2.12132034356,2.12132034356) angle 0.0 inside the sector (0.785398163397,2.35619449019)
-            Arc with center (3.0,-1.0) radii (1.41421356237,1.41421356237) angle 0.0 inside the sector (0.785398163397,2.35619449019)
-            sage: p=SetPartition([['a','c'],['b',-1],[20.2]])
-            sage: print(p.plot(base_set_dict={'a':0,'b':1,'c':2,-1:-2.3,20.2:5.4}).description())
+            Text 'a' at the point (0.0,-0.1)
+            Text 'b' at the point (1.0,-0.1)
+            Text 'c' at the point (2.0,-0.1)
+            Text 'd' at the point (3.0,-0.1)
+            Text 'e' at the point (4.0,-0.1)
+            Arc with center (1.0,-1.0) radii (1.41421356237,1.41421356237) angle 0.0 inside the sector (0.785398163397,2.35619449019)
+            Arc with center (2.0,-1.0) radii (1.41421356237,1.41421356237) angle 0.0 inside the sector (0.785398163397,2.35619449019)
+            sage: p=SetPartition([['a','c'],['b','d'],['e']])
+            sage: print(p.plot(base_set_dict={'a':0,'b':1,'c':2,'d':-2.3,'e':5.4}).description())
             Point set defined by 1 point(s):    [(-2.3, 0.0)]
             Point set defined by 1 point(s):    [(0.0, 0.0)]
             Point set defined by 1 point(s):    [(1.0, 0.0)]
             Point set defined by 1 point(s):    [(2.0, 0.0)]
             Point set defined by 1 point(s):    [(5.4, 0.0)]
-            Text '-1' at the point (-2.3,-0.1)
-            Text '20.2000000000000' at the point (5.4,-0.1)
             Text 'a' at the point (0.0,-0.1)
             Text 'b' at the point (1.0,-0.1)
             Text 'c' at the point (2.0,-0.1)
+            Text 'd' at the point (-2.3,-0.1)
+            Text 'e' at the point (5.4,-0.1)
             Arc with center (-0.65,-1.65) radii (2.33345237792,2.33345237792) angle 0.0 inside the sector (0.785398163397,2.35619449019)
             Arc with center (1.0,-1.0) radii (1.41421356237,1.41421356237) angle 0.0 inside the sector (0.785398163397,2.35619449019)
 
@@ -1247,7 +1246,10 @@ class SetPartition(ClonableArray):
             # TODO: change 0.1 to something proportional to the height of the picture
         for (k,j) in self.arcs():
             pos_k,pos_j = float(vertices_dict[k]),float(vertices_dict[j])
-            diag += arc(center=((pos_k+pos_j)/2,-abs(pos_j-pos_k)/(2*tan(angle))), r1=abs((pos_j-pos_k)/(2*sin(angle))), sector=(sgn(angle)*(pi/2-angle),sgn(angle)*(pi/2+angle)),color=color)
+            center = ((pos_k+pos_j)/2,-abs(pos_j-pos_k)/(2*tan(angle)))
+            r1 = abs((pos_j-pos_k)/(2*sin(angle)))
+            sector = (sgn(angle)*(pi/2-angle),sgn(angle)*(pi/2+angle))
+            diag += arc(center=center, r1=r1, sector=sector, color=color)
         diag.axes(False)
         return diag
 

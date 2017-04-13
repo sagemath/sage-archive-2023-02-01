@@ -1012,3 +1012,21 @@ class EllipticPi(BuiltinFunction):
  
 elliptic_pi = EllipticPi()
 
+
+def error_fcn(x):
+    """
+    Deprecated. Please use erfc().
+
+    EXAMPLES::
+
+        sage: error_fcn(x)
+        doctest:warning
+        ...
+        DeprecationWarning: error_fcn() is deprecated. Please use erfc()
+        See http://trac.sagemath.org/21819 for details.
+        erfc(x)
+    """
+    from .error import erfc
+    from sage.misc.superseded import deprecation
+    deprecation(21819, "error_fcn() is deprecated. Please use erfc()")
+    return erfc(x)

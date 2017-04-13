@@ -4,8 +4,7 @@ from sage.misc.lazy_import import lazy_import
 
 lazy_import('sage.functions.piecewise_old', 'Piecewise')   # deprecated
 lazy_import('sage.functions.piecewise', 'piecewise')
-lazy_import('sage.functions.error', ['erf', 'erfi', 'erfc',
-                                     'erfinv', 'error_fcn'])
+lazy_import('sage.functions.error', ['erf', 'erfc', 'erfi', 'erfinv'])
 
 from .trig import ( sin, cos, sec, csc, cot, tan,
                    asin, acos, atan,
@@ -41,7 +40,7 @@ from .bessel import (bessel_I, bessel_J, bessel_K, bessel_Y,
 
 from .special import (spherical_harmonic, elliptic_e,
                      elliptic_f, elliptic_ec, elliptic_eu,
-                     elliptic_kc, elliptic_pi, elliptic_j)
+                     elliptic_kc, elliptic_pi, elliptic_j, error_fcn)
 
 from .jacobi import (jacobi, inverse_jacobi, jacobi_nd, jacobi_ns, jacobi_nc,
                     jacobi_dn, jacobi_ds, jacobi_dc, jacobi_sn, jacobi_sd,

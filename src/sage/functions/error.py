@@ -47,7 +47,6 @@ from sage.symbolic.expression import Expression
 from sage.functions.all import sqrt, exp
 from sage.symbolic.constants import pi
 from sage.rings.infinity import unsigned_infinity
-from sage.misc.superseded import deprecation
 
 class Function_erf(BuiltinFunction):
     r"""
@@ -443,22 +442,6 @@ class Function_erfc(BuiltinFunction):
         return -2*exp(-x**2)/sqrt(pi)
 
 erfc = Function_erfc()
-
-def error_fcn(x):
-    """
-    Deprecated. Please use erfc().
-
-    EXAMPLES::
-
-        sage: error_fcn(x)
-        doctest:warning
-        ...
-        DeprecationWarning: error_fcn() is deprecated. Please use erfc()
-        See http://trac.sagemath.org/21819 for details.
-        erfc(x)
-    """
-    deprecation(21819, "error_fcn() is deprecated. Please use erfc()")
-    return erfc(x)
 
 
 class Function_erfinv(BuiltinFunction):

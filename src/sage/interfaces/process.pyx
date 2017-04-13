@@ -15,11 +15,13 @@ Utilities for subprocess management.
 import errno
 import signal
 import sys
-import time
 
 from contextlib import contextmanager
 
 from posix.unistd cimport getpid, _exit
+
+from cysignals.pselect import PSelecter
+from cysignals.pysignals import changesignal
 
 
 cdef class ContainChildren(object):
@@ -178,9 +180,8 @@ def terminate(sp, interval=1, signals=[signal.SIGTERM, signal.SIGKILL]):
     when it is no longer needed, in case the process does not end on its
     own.
 
-    Although this can be used to send other signals besides SIGTERM and SIGKILL
-    it should be used mainly for process termination, as it also first closes
-    all standard I/O pipes, which should send a SIGHUP.
+    Before sending signals, the standard I/O pipes are closed, which
+    might cause the application to quit by itself.
 
     INPUT:
 
@@ -202,7 +203,7 @@ def terminate(sp, interval=1, signals=[signal.SIGTERM, signal.SIGKILL]):
         ....:                              'sys.stdout.flush()\n'
         ....:                              'while True: pass']
         sage: sp = Popen(cmd, stdout=PIPE)
-        sage: with terminate(sp):
+        sage: with terminate(sp, interval=0.2):
         ....:     print(sp.stdout.readline())
         y
         <BLANKLINE>
@@ -218,11 +219,31 @@ def terminate(sp, interval=1, signals=[signal.SIGTERM, signal.SIGKILL]):
         ....:          'print("y"); sys.stdout.flush()\n' \
         ....:          'while True: pass'
         sage: sp = Popen(cmd, stdout=PIPE)
-        sage: with terminate(sp):
+        sage: with terminate(sp, interval=0.2):
         ....:     print(sp.stdout.readline())
         y
         <BLANKLINE>
         sage: sp.wait() == -signal.SIGKILL
+        True
+
+    If the process dies by itself, we don't need to wait too long::
+
+        sage: cmd = [sys.executable, '-c', 'from time import sleep; sleep(0.5)']
+        sage: t0 = walltime()
+        sage: sp = Popen(cmd)
+        sage: with terminate(sp, interval=5.0):
+        ....:     pass
+        sage: t = walltime() - t0
+        sage: t <= 4.0 or t
+        True
+
+    If the process is already dead, nothing happens::
+
+        sage: t0 = walltime()
+        sage: with terminate(sp, interval=5.0):
+        ....:     raise Exception("just testing")
+        sage: t = walltime() - t0
+        sage: t <= 4.0 or t
         True
 
     """
@@ -230,28 +251,29 @@ def terminate(sp, interval=1, signals=[signal.SIGTERM, signal.SIGKILL]):
     try:
         yield sp
     finally:
-        for stream in [sp.stdin, sp.stdout, sp.stderr]:
-            if stream:
-                stream.close()
+        # This "with" block ensures that SIGCHLD will certainly
+        # interrupt the sel.sleep() call without race conditions.
+        with PSelecter([signal.SIGCHLD]) as sel, \
+                changesignal(signal.SIGCHLD, lambda *args: None):
+            if sp.poll() is not None:
+                return
 
-        if sp.poll() is None:
-            time.sleep(interval)
+            for stream in [sp.stdin, sp.stdout, sp.stderr]:
+                try:
+                    stream.close()
+                except Exception:
+                    pass
 
-        for signal in signals:
-            if sp.poll() is None:
-                # There is a possible race here--between here and the poll()
-                # call the process may have ended, so that calling send_signal
-                # may result in a 'No such process' error (on some platforms)
+            for sig in signals:
+                sel.sleep(interval)
+                if sp.poll() is not None:
+                    return
                 try:
                     # Try to force the process to end
-                    sp.send_signal(signal)
+                    sp.send_signal(sig)
                 except OSError as exc:
                     if exc.errno == errno.ESRCH:
-                        break
-
-                    raise
-            else:
-                break
-
-            # Wait a bit before trying the next signal
-            time.sleep(interval)
+                        # No such process => process is dead
+                        return
+                    else:
+                        raise

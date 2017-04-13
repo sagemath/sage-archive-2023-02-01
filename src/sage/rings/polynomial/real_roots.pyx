@@ -152,11 +152,10 @@ from sage.rings.real_mpfr cimport RealNumber
 
 cimport numpy
 
-# TODO: Just for the fabs function below
-from math import fabs
+from libc.math cimport fabs, sqrt, ldexp, frexp
 
-include "sage/ext/cdefs.pxi"
-
+from sage.libs.gmp.mpz cimport *
+from sage.libs.gmp.mpq cimport *
 from sage.libs.mpfr cimport *
 
 cdef class interval_bernstein_polynomial:

@@ -79,9 +79,9 @@ def braid_from_piecewise(strands):
     
     EXAMPLES::
     
-        sage: from sage.schemes.curves.zariski_vankampen import braid_from_piecewise
+        sage: from sage.schemes.curves.zariski_vankampen import braid_from_piecewise # optional - sirocco
         sage: paths = [[(0, I), (0.2, -1 - 0.5*I), (0.8, -1), (1, -I)], [(0, -1), (0.5, -I), (1, 1)], [(0, 1), (0.5, 1 + I), (1, I)]]
-        sage: braid_from_piecewise(paths) 
+        sage: braid_from_piecewise(paths) # optional - sirocco
         s0*s1
 
     """
@@ -154,10 +154,10 @@ def discrim(f):
     
     EXAMPLES::
     
-        sage: from sage.schemes.curves.zariski_vankampen import discrim
+        sage: from sage.schemes.curves.zariski_vankampen import discrim # optional - sirocco
         sage: R.<x,y> = QQ[]
         sage: f = (y^3 + x^3 -1) * (x+y)
-        sage: discrim(f)
+        sage: discrim(f) # optional - sirocco
         [1,
         -0.500000000000000? - 0.866025403784439?*I,
         -0.500000000000000? + 0.866025403784439?*I]
@@ -183,11 +183,11 @@ def segments(points):
     
     EXAMPLES::
     
-        sage: from sage.schemes.curves.zariski_vankampen import discrim, segments
+        sage: from sage.schemes.curves.zariski_vankampen import discrim, segments # optional - sirocco
         sage: R.<x,y> = QQ[]
         sage: f = y^3 + x^3 -1          
-        sage: disc = discrim(f)
-        sage: segments(disc)
+        sage: disc = discrim(f) # optional - sirocco
+        sage: segments(disc) # optional - sirocco
         [(-2.84740787203333 - 2.84740787203333*I,
         -2.14285714285714 + 1.11022302462516e-16*I),
         (-2.84740787203333 + 2.84740787203333*I,
@@ -243,7 +243,7 @@ def followstrand(f, x0, x1, y0a, prec=53):
           
     EXAMPLES::
     
-        sage: from sage.schemes.curves.zariski_vankampen import followstrand
+        sage: from sage.schemes.curves.zariski_vankampen import followstrand # optional - sirocco
         sage: R.<x,y> = QQ[]
         sage: f = x^2 + y^3
         sage: x0 = CC(1, 0)
@@ -298,7 +298,7 @@ def braid_in_segment(f, x0, x1):
     
     EXAMPLES::
     
-        sage: from sage.schemes.curves.zariski_vankampen import braid_in_segment
+        sage: from sage.schemes.curves.zariski_vankampen import braid_in_segment # optional - sirocco
         sage: R.<x,y> = QQ[]
         sage: f = x^2 + y^3
         sage: x0 = CC(1,0)
@@ -370,7 +370,7 @@ def fundamental_group(f, simplified=True, projective = False):
     
     EXAMPLES::
     
-        sage: from sage.schemes.curves.zariski_vankampen import fundamental_group
+        sage: from sage.schemes.curves.zariski_vankampen import fundamental_group # optional - sirocco
         sage: R.<x,y> = QQ[]
         sage: f = x^2 + y^3
         sage: fundamental_group(f) # optional - sirocco
@@ -381,7 +381,7 @@ def fundamental_group(f, simplified=True, projective = False):
 
     ::
     
-        sage: from sage.schemes.curves.zariski_vankampen import fundamental_group
+        sage: from sage.schemes.curves.zariski_vankampen import fundamental_group # optional - sirocco
         sage: R.<x,y> = QQ[]
         sage: f = y^3 + x^3
         sage: fundamental_group(f) # optional - sirocco
@@ -390,7 +390,7 @@ def fundamental_group(f, simplified=True, projective = False):
         
     It is also possible to have coefficients in a number field with a fixed embedding in QQbar::
     
-        sage: from sage.schemes.curves.zariski_vankampen import fundamental_group
+        sage: from sage.schemes.curves.zariski_vankampen import fundamental_group # optional - sirocco
         sage: zeta = QQbar['x']('x^2+x+1').roots(multiplicities = False)[0]
         sage: zeta
         -0.50000000000000000? - 0.866025403784439?*I

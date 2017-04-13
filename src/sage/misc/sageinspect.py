@@ -204,11 +204,6 @@ def _extract_embedded_position(docstring):
 
         sage: cython('''cpdef test_funct(x,y): return''')
         sage: print(open(_extract_embedded_position(inspect.getdoc(test_funct))[1]).read())
-        <BLANKLINE>
-        include "cysignals/signals.pxi"  # ctrl-c interrupt block support
-        include "stdsage.pxi"
-        <BLANKLINE>
-        include "cdefs.pxi"
         cpdef test_funct(x,y): return
 
     AUTHORS:
@@ -1997,7 +1992,7 @@ def sage_getsourcelines(obj):
 
         sage: cython('''cpdef test_funct(x,y): return''')
         sage: sage_getsourcelines(test_funct)
-        (['cpdef test_funct(x,y): return\n'], 6)
+        (['cpdef test_funct(x,y): return\n'], 1)
 
     The following tests that an instance of ``functools.partial`` is correctly
     dealt with (see :trac:`9976`)::

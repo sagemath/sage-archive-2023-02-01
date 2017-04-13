@@ -1,7 +1,7 @@
 r"""
 Generating Function of Polyhedron's Integral Points
 
-This module provides :func:`generating_function_of_polyhedron` which
+This module provides :func:`generating_function_of_integral_points` which
 computes the generating function of the integral points of a polyhedron.
 
 The main function is accessible via

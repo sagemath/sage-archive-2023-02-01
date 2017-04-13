@@ -200,7 +200,7 @@ class FreeLieBasis_abstract(FinitelyGeneratedLieAlgebra, IndexedGenerators, Bind
 
         .. MATH::
 
-            \frac{1}{k} \sum_{d \mid k} \mu(d) n^(r/d)
+            \frac{1}{k} \sum_{d \mid k} \mu(d) n^(k/d)
 
         where `\mu` is the Mobius function.
 
@@ -862,8 +862,8 @@ def is_lyndon(w):
     """
     Modified form of ``Word(w).is_lyndon()`` which uses the default order
     (this will either be the natural integer order or lex order) and assumes
-    the input ``w`` behavies like a list. This function is here and designed
-    for speed.
+    the input ``w`` behaves like a list.
+    This function here is designed for speed.
 
     EXAMPLES::
 

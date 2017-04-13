@@ -1180,7 +1180,7 @@ REFERENCES:
 
 .. [MKO1998] Hans Munthe--Kaas and Brynjulf Owren.
              *Computations in a free Lie algebra*. (1998).
-             http://www.math.ntnu.no/num/synode/papers/pdf/munthe-kaas98cia.pdf
+             http://hans.munthe-kaas.no/work/Blog/Entries/1999/1/1_Article__Computations_in_a_Free_Lie-algebra.html
 
 .. [Mil1958] \J. W. Milnor, "The Steenrod algebra and its dual,"
              Ann. of Math. (2) 67 (1958), 150-171.
@@ -1379,7 +1379,10 @@ REFERENCES:
              Math. Soc. Monogr. (N.S.). Oxford University
              Press. (1993).
 
-.. [Reu2003] Christophe Reutenauer. *Free Lie algebras*. 2003.
+.. [Reu2003] Christophe Reutenauer. *Free Lie algebras*.
+             Preprint of a chapter in the Handbook of Algebra,
+             2003.
+             `Downloadable from Reutenauer's website <http://www.lacim.uqam.ca/~christo/Publi%C3%A9s/2003/free%20Lie%20algebras.pdf>`_
 
 .. [Rho69] John Rhodes, *Characters and complexity of finite semigroups*
            \J. Combinatorial Theory, vol 6, 1969

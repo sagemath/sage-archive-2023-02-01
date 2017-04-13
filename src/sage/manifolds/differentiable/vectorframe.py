@@ -748,7 +748,7 @@ class VectorFrame(FreeModuleBasis):
           :class:`~sage.tensor.modules.comp.CompWithSym`
           with 3 indices ordered as `(k,i,j)`.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Structure coefficients of the orthonormal frame associated to
         spherical coordinates in the Euclidean space `\RR^3`::

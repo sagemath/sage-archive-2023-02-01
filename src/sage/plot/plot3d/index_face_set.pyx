@@ -46,9 +46,7 @@ cdef extern from *:
     int sprintf_7i "sprintf" (char*, char*, int, int, int, int, int, int, int)
     int sprintf_9d "sprintf" (char*, char*, double, double, double, double, double, double, double, double, double)
 
-# import the double infinity constant
-cdef extern from "math.h":
-    enum: INFINITY
+from libc.math cimport INFINITY
 
 from cpython.list cimport *
 from cpython.bytes cimport *
@@ -746,7 +744,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         which gives the coordinates of opposite corners of the
         bounding box.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: x,y = var('x,y')
             sage: p = plot3d(sqrt(sin(x)*sin(y)), (x,0,2*pi),(y,0,2*pi))
@@ -763,7 +761,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         low.x, low.y, low.z = INFINITY, INFINITY, INFINITY
         high.x, high.y, high.z = -INFINITY, -INFINITY, -INFINITY
 
-        for i in range(0,self.vcount):
+        for i in range(self.vcount):
             point_c_update_finite_lower_bound(&low, self.vs[i])
             point_c_update_finite_upper_bound(&high, self.vs[i])
         return ((low.x, low.y, low.z), (high.x, high.y, high.z))
@@ -1155,7 +1153,7 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         Graphics3dGroup of stickers
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.plot.plot3d.shapes import Box
             sage: B = Box(.5,.4,.3, color='black')
@@ -1169,7 +1167,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         ct = len(colors)
         for k in range(len(colors)):
             if colors[k]:
-                all.append(self.sticker(range(k, n, ct), width, hover,
+                all.append(self.sticker(list(xrange(k, n, ct)), width, hover,
                                         texture=colors[k]))
         return Graphics3dGroup(all)
 

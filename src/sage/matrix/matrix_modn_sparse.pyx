@@ -540,7 +540,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
         It is safe to change the resulting list (unless you give the option copy=False).
 
-        EXAMPLE::
+        EXAMPLES::
             sage: M = Matrix(GF(7), [[0,0,0,1,0,0,0,0],[0,1,0,0,0,0,1,0]], sparse=True); M
             [0 0 0 1 0 0 0 0]
             [0 1 0 0 0 0 1 0]
@@ -596,7 +596,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         """
         Return the transpose of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(GF(127),3,3,[0,1,0,2,0,0,3,0,0],sparse=True)
             sage: A
@@ -640,7 +640,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         -  ``rows`` - list or tuple of row indices
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = MatrixSpace(GF(127),3,3,sparse=True)
             sage: A = M(range(9)); A
@@ -747,7 +747,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
            False)
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(127),200,200,density=0.01,sparse=True)
             sage: r1 = A.rank(gauss=False)

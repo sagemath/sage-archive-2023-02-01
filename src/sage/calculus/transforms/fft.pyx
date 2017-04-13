@@ -115,7 +115,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
         """
         Frees allocated memory.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = FastFourierTransform(128)
             sage: del a
@@ -129,7 +129,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
 
         OUTPUT: The size of the array.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = FastFourierTransform(48)
             sage: len(a)
@@ -148,7 +148,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
         - ``i`` -- An integer peresenting the index.
         - ``xy`` -- An object to store as `i`-th element of the array ``self[i]``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: I = CC(I)
             sage: a = FastFourierTransform(4)
@@ -238,7 +238,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
 
         This method should not be called directly. See :meth:`plot` for the details.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = FastFourierTransform(4)
             sage: a._plot_polar(0,2)
@@ -276,7 +276,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
 
         This method should not be called directly. See :meth:`plot` for the details.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = FastFourierTransform(4)
             sage: a._plot_rect(0,3)
@@ -312,7 +312,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
 
         - A plot of the array.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = FastFourierTransform(16)
             sage: for i in range(16): a[i] = (random(),random())

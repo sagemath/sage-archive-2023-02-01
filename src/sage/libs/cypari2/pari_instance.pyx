@@ -617,7 +617,7 @@ cdef class Pari(Pari_auto):
         (available memory address, think of this as the stack pointer),
         ``bot`` (bottom of stack).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: pari.debugstack()  # random
             top =  0x60b2c60
@@ -1256,13 +1256,13 @@ cdef class Pari(Pari_auto):
             if len(entries) != m*n:
                 raise IndexError("len of entries (=%s) must be %s*%s=%s"%(len(entries),m,n,m*n))
             k = 0
-            A.refers_to = {}
-            for i from 0 <= i < m:
-                for j from 0 <= j < n:
+            for i in range(m):
+                for j in range(n):
+                    sig_check()
                     x = self(entries[k])
-                    A.refers_to[(i,j)] = x
-                    (<GEN>(A.g)[j+1])[i+1] = <long>(x.g)
-                    k = k + 1
+                    A.cache((i,j), x)
+                    set_gcoeff(A.g, i+1, j+1, x.g)
+                    k += 1
         return A
 
     def genus2red(self, P, P0=None):

@@ -72,7 +72,7 @@ def is_MPolynomial(x):
 class MPolynomial_element(MPolynomial):
     def __init__(self, parent, x):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<cuberoot2> = NumberField(x^3 - 2)
             sage: L.<cuberoot3> = K.extension(x^3 - 3)
@@ -86,7 +86,7 @@ class MPolynomial_element(MPolynomial):
 
     def _repr_(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y,z> = PolynomialRing(QQbar)
             sage: x + QQbar.random_element() # indirect doctest
@@ -383,7 +383,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         x must be an element of the base ring of P. That assumption is
         not verified.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y> = QQ['t'][]
             sage: x._new_constant_poly(R.base_ring()(2),R)
@@ -911,42 +911,14 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             else:
                 return [tuple(e) for e in self.__exponents]
 
-    def is_unit(self):
-        """
-        Return True if self is a unit.
-
-        EXAMPLES::
-
-            sage: R.<x,y> = QQbar[]
-            sage: (x+y).is_unit()
-            False
-            sage: R(0).is_unit()
-            False
-            sage: R(-1).is_unit()
-            True
-            sage: R(-1 + x).is_unit()
-            False
-            sage: R(2).is_unit()
-            True
-        """
-        d = self.element().dict()
-        k = d.keys()
-        if len(k) != 1:
-            return False
-        k = k[0]
-        if k != polydict.ETuple([0]*self.parent().ngens()):
-            return False
-        return bool(d[k].is_unit())
-
     def inverse_of_unit(self):
         d = self.element().dict()
         k = d.keys()
-        if len(k) != 1:
-            raise ArithmeticError("is not a unit")
-        k = k[0]
-        if k != polydict.ETuple([0]*self.parent().ngens()):
-            raise ArithmeticError("is not a unit")
-        return ~d[k]
+        if self.is_unit():
+            if len(k) != 1:
+                raise NotImplementedError
+            return ~d[k[0]]
+        raise ArithmeticError("is not a unit")        
 
     def is_homogeneous(self):
         """
@@ -1704,7 +1676,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: P(0).factor()
             Traceback (most recent call last):
             ...
-            ArithmeticError: Prime factorization of 0 not defined.
+            ArithmeticError: factorization of 0 is not defined
 
         Check if we can factor a constant polynomial, see :trac:`8207`::
 
@@ -1730,8 +1702,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         R = self.parent()
 
         # raise error if trying to factor zero
-        if self == 0:
-            raise ArithmeticError("Prime factorization of 0 not defined.")
+        if not self:
+            raise ArithmeticError("factorization of {!r} is not defined".format(self))
 
         # if number of variables is zero ...
         if R.ngens() == 0:
@@ -1778,7 +1750,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
         ALGORITHM: Use Singular.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A.<x,y> = PolynomialRing(CC,2,order='degrevlex')
             sage: I = A.ideal([x^10 + x^9*y^2, y^8 - x^2*y^7 ])
@@ -1803,7 +1775,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         """
         Returns quotient and remainder of self and right.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y> = CC[]
             sage: f = y*x^2 + x + 1
@@ -1901,7 +1873,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
         INPUT:
 
-        - `I` -- a list of polynomials or an ideal
+        -  ``I`` - a list of polynomials or an ideal
 
         EXAMPLES::
 
@@ -2022,7 +1994,7 @@ def degree_lowest_rational_function(r,x):
     ::
 
         sage: r = f/g; r
-        (-2*b*c^2 - 1)/(2*a*b^3*c^6 + a*c)
+        (-b*c^2 + 2)/(a*b^3*c^6 - 2*a*c)
         sage: degree_lowest_rational_function(r,a)
         (-1, 3)
         sage: degree_lowest_rational_function(r,b)

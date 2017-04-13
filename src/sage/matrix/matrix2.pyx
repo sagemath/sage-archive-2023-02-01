@@ -47,8 +47,8 @@ include "cysignals/signals.pxi"
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.coerce cimport py_scalar_parent
 from sage.structure.sequence import Sequence
-from sage.structure.element import (is_Vector, get_coercion_model)
-from sage.structure.element cimport have_same_parent
+from sage.structure.element import is_Vector
+from sage.structure.element cimport have_same_parent, coercion_model
 from sage.misc.misc import verbose, get_verbose
 from sage.rings.ring import is_Ring
 from sage.rings.number_field.number_field_base import is_NumberField
@@ -910,7 +910,7 @@ cdef class Matrix(matrix1.Matrix):
         the typo `p_0(A) = 0` in that reference! For applications
         see Theorem 7.2.1 and Theorem 7.2.4.
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             The method :meth:`rook_vector` returns the list of all permanental
             minors.
@@ -1605,7 +1605,7 @@ cdef class Matrix(matrix1.Matrix):
             # word, use PARI.
             ch = R.characteristic()
             if ch.is_prime() and ch < (2*sys.maxsize):
-                d = R(self._pari_().matdet())
+                d = R(self.__pari__().matdet())
             else:
                 # Lift to ZZ and compute there.
                 d = R(self.apply_map(lambda x : x.lift_centered()).det())
@@ -2560,7 +2560,7 @@ cdef class Matrix(matrix1.Matrix):
         if not is_NumberField(K):
             raise ValueError("_charpoly_over_number_field called with base ring (%s) not a number field" % K)
 
-        paripoly = self._pari_().charpoly()
+        paripoly = self.__pari__().charpoly()
         return K[var](paripoly)
 
     def fcp(self, var='x'):
@@ -3071,7 +3071,7 @@ cdef class Matrix(matrix1.Matrix):
             [0 0 1]
         """
         tm = verbose("computing right kernel matrix over a number field for %sx%s matrix" % (self.nrows(), self.ncols()),level=1)
-        basis = self._pari_().matker()
+        basis = self.__pari__().matker()
         # Coerce PARI representations into the number field
         R = self.base_ring()
         basis = [[R(x) for x in row] for row in basis]
@@ -7779,7 +7779,7 @@ cdef class Matrix(matrix1.Matrix):
         Before a subdivision is set, the only valid arguments are (0,0)
         which returns self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = matrix(3, 4, range(12))
             sage: M.subdivide(1,2); M
@@ -7892,7 +7892,7 @@ cdef class Matrix(matrix1.Matrix):
         preserved in ``self``, but if the two sets of row subdivisions
         are incompatible, they are removed.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(QQ, 3, 4, range(12))
             sage: B = matrix(QQ, 3, 6, range(18))
@@ -7937,7 +7937,7 @@ cdef class Matrix(matrix1.Matrix):
         preserved in ``self``, but if the two sets of solumn subdivisions
         are incompatible, they are removed.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(QQ, 3, 2, range(6))
             sage: B = matrix(QQ, 4, 2, range(8))
@@ -8506,7 +8506,7 @@ cdef class Matrix(matrix1.Matrix):
 
             - :meth:`~sage.geometry.polyhedron.library.Polytopes.Birkhoff_polytope`
 
-        EXAMPLE:
+        EXAMPLES:
 
         We create a bistochastic matrix from a convex sum of permutations, then
         try to deduce the decomposition from the matrix ::
@@ -8558,7 +8558,7 @@ cdef class Matrix(matrix1.Matrix):
         Bitmap image as an instance of
         :class:`~sage.repl.image.Image`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = random_matrix(CC, 5, 7)
             sage: for i in range(5):  M[i,i] = 0
@@ -8623,7 +8623,7 @@ cdef class Matrix(matrix1.Matrix):
         positions and the self.nrows() \* self.ncols(), i.e. the number of
         possible nonzero positions.
 
-        EXAMPLE:
+        EXAMPLES:
 
         First, note that the density parameter does not ensure the density
         of a matrix, it is only an upper bound.
@@ -9249,7 +9249,7 @@ cdef class Matrix(matrix1.Matrix):
         columns but rank 3, so the orthogonal set has just 3 vectors
         as well.  Orthogonality comes from the Hermitian inner product
         so we need to check with the conjugate-transpose.  This
-        example verifies that the bug on #10791 is fixed.  ::
+        example verifies that the bug on :trac:`10791` is fixed.  ::
 
             sage: F.<a> = QuadraticField(-5)
             sage: A = matrix(F, [[    1,   a - 3,   a - 2, a + 1],
@@ -10663,8 +10663,7 @@ cdef class Matrix(matrix1.Matrix):
             mesg += "maybe the ring is not an integral domain"
             raise ValueError(mesg)
         if not have_same_parent(A, B):
-            cm = get_coercion_model()
-            A, B = cm.canonical_coercion(A, B)
+            A, B = coercion_model.canonical_coercion(A, B)
         # base rings are equal now, via above check
 
         similar = (A.rational_form() == B.rational_form())
@@ -10818,7 +10817,7 @@ cdef class Matrix(matrix1.Matrix):
         be similar.  The main difference is that it "discovers" the
         dimension of the subspace as quickly as possible.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(QQ, [[5,4,2,1],[0,1,-1,-1],[-1,-1,3,0],[1,1,-1,2]])
             sage: v = vector(QQ, [0,1,0,0])
@@ -11115,11 +11114,11 @@ cdef class Matrix(matrix1.Matrix):
         polynomial = not var is None
         if polynomial:
             x = sage.rings.polynomial.polynomial_ring.polygen(R, var)
-            poly = sum([poly[i]*x**i for i in range(len(poly))])
+            poly = sum([poly[i] * x**i for i in range(len(poly))])
         ambient = R**n
         if basis == 'echelon':
             echelon = []
-            pivot_col_row = zip(pivots, range(k))
+            pivot_col_row = [(v, i) for i, v in enumerate(pivots)]
             pivot_col_row.sort()
             aug = augmented.submatrix(0, 0, k, n)
             for _, pivrow in pivot_col_row:
@@ -13502,7 +13501,7 @@ cdef class Matrix(matrix1.Matrix):
         [Sto1998]_, where the former is more
         representative of the code here.
 
-        EXAMPLE:
+        EXAMPLES:
 
             sage: A = matrix(QQ, [[-68,   69, -27, -11, -65,   9, -181, -32],
             ....:                 [-52,   52, -27,  -8, -52, -16, -133, -14],
@@ -14410,7 +14409,7 @@ cdef class Matrix(matrix1.Matrix):
         r"""
         Returns the transpose of a matrix.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(QQ, 5, range(25))
             sage: A.T
@@ -14427,7 +14426,7 @@ cdef class Matrix(matrix1.Matrix):
         r"""
         Returns the conjugate matrix.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(QQbar, [[     -3,  5 - 3*I, 7 - 4*I],
             ....:                    [7 + 3*I, -1 + 6*I, 3 + 5*I],
@@ -14445,7 +14444,7 @@ cdef class Matrix(matrix1.Matrix):
         r"""
         Returns the conjugate-transpose (Hermitian) matrix.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(QQbar, [[     -3,  5 - 3*I, 7 - 4*I],
             ....:                    [7 + 3*I, -1 + 6*I, 3 + 5*I],
@@ -14500,7 +14499,7 @@ def _smith_diag(d):
     If any of the d's is a unit, it replaces it with 1 (but no other
     attempt is made to pick "good" representatives of ideals).
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.matrix.matrix2 import _smith_diag
         sage: OE = EquationOrder(x^2 - x + 2, 'w')
@@ -14680,7 +14679,7 @@ def _smith_onestep(m):
     determinant 1, and the zeroth row and column of b have no nonzero
     entries except b[0,0].
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.matrix.matrix2 import _smith_onestep
         sage: OE.<w> = EquationOrder(x^2 - x + 2)

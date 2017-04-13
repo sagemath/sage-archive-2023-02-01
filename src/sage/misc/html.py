@@ -499,8 +499,8 @@ class HTMLFragmentFactory(SageObject):
             <iframe height="400" width="800"
             src="file:///home/admin/0/data/filename"></iframe>
             sage: pretty_print(html.iframe('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA'
-            ... 'AUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBA'
-            ... 'AO9TXL0Y4OHwAAAABJRU5ErkJggg=="'))
+            ....: 'AUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBA'
+            ....: 'AO9TXL0Y4OHwAAAABJRU5ErkJggg=="'))
             <iframe height="400" width="800" 
             src="http://data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==""></iframe>
         """

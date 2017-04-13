@@ -413,15 +413,15 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
             sage: import gc
             sage: for i in range(10):
-            ...      A = random_matrix(GF(7),1000,1000)
-            ...      B = random_matrix(Integers(10),1000,1000)
-            ...      C = random_matrix(GF(16007),1000,1000)
-            ...      D = random_matrix(Integers(1000),1000,1000)
-            ...      del A
-            ...      del B
-            ...      del C
-            ...      del D
-            ...      _ = gc.collect()
+            ....:      A = random_matrix(GF(7),1000,1000)
+            ....:      B = random_matrix(Integers(10),1000,1000)
+            ....:      C = random_matrix(GF(16007),1000,1000)
+            ....:      D = random_matrix(Integers(1000),1000,1000)
+            ....:      del A
+            ....:      del B
+            ....:      del C
+            ....:      del D
+            ....:      _ = gc.collect()
 
         """
         if self._entries == NULL:
@@ -524,7 +524,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
     def __hash__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B = random_matrix(GF(127),3,3)
             sage: B.set_immutable()
@@ -832,7 +832,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
     def __copy__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(127), 100, 100)
             sage: copy(A) == A
@@ -1316,7 +1316,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
         - ``algorithm`` - 'generic', 'linbox' or 'all' (default: linbox)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(19), 10, 10); A
             [ 3  1  8 10  5 16 18  9  6  1]
@@ -1374,8 +1374,8 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         TESTS::
 
             sage: for i in range(10):
-            ...       A = random_matrix(GF(17), 50, 50, density=0.1)
-            ...       _ = A.characteristic_polynomial(algorithm='all')
+            ....:     A = random_matrix(GF(17), 50, 50, density=0.1)
+            ....:     _ = A.characteristic_polynomial(algorithm='all')
 
             sage: A = random_matrix(GF(19), 0, 0)
             sage: A.minimal_polynomial()
@@ -1493,7 +1493,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
              default, unless you first type
              ``proof.linear_algebra(False)``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(17), 10, 10); A
             [ 2 14  0 15 11 10 16  2  9  4]
@@ -1643,7 +1643,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
         - ``var`` - a variable name
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(19), 10, 10); A
             [ 3  1  8 10  5 16 18  9  6  1]
@@ -1871,9 +1871,9 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             (0, 1)
 
             sage: for p in (3,17,97,127,1048573):
-            ...      for i in range(10):
-            ...          A = random_matrix(GF(3), 100, 100)
-            ...          A.echelonize(algorithm='all')
+            ....:    for i in range(10):
+            ....:        A = random_matrix(GF(3), 100, 100)
+            ....:        A.echelonize(algorithm='all')
         """
         x = self.fetch('in_echelon_form')
         if not x is None:
@@ -2032,7 +2032,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         """
         Transforms self in place to its Hessenberg form.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(17), 10, 10, density=0.1); A
             [ 0  0  0  0 12  0  0  0  0  0]
@@ -2129,7 +2129,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
            ints, where the constant term of the characteristic
            polynomial is the 0th coefficient of the vector.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(17), 10, 10, density=0.1); A
             [ 0  0  0  0 12  0  0  0  0  0]
@@ -2449,7 +2449,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         - ``multiple`` - finite field element
         - ``start_col`` - integer
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(GF(19), 4, 4, range(16)); A
             [ 0  1  2  3]
@@ -2537,7 +2537,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         Add ``multiple`` times ``self[row_from]`` to ``self[row_to]``
         statting in column ``start_col``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(37), 10, 10); A
             [24 15  7 27 32 34 16 32 25 23]
@@ -2598,7 +2598,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         Add ``multiple`` times ``self[row_from]`` to ``self[row_to]``
         statting in column ``start_col``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(37), 10, 10); A
             [24 15  7 27 32 34 16 32 25 23]
@@ -2918,7 +2918,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
         - ``ncols`` - integer
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(GF(127), 4, 4, range(16))
             sage: A
@@ -2960,7 +2960,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         """
         Test whether this matrix is zero.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(GF(7), 10, 10, range(100))
             sage: A == 0 # indirect doctest

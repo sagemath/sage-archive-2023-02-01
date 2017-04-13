@@ -341,7 +341,7 @@ cdef class CGraph:
             - :meth:`add_vertex`
               -- add a vertex to a graph.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Adding vertices for sparse graphs::
 
@@ -593,7 +593,7 @@ cdef class CGraph:
 
         - A list of all vertices in this graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: S = SparseGraph(nverts=4, extra_vertices=4)
@@ -767,7 +767,7 @@ cdef class CGraph:
             - :meth:`add_arc <sage.graphs.base.dense_graph.DenseGraph.add_arc>`
               -- ``add_arc`` method for dense graphs.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.c_graph import CGraph
             sage: G = CGraph()
@@ -802,7 +802,7 @@ cdef class CGraph:
             - :meth:`has_arc <sage.graphs.base.dense_graph.DenseGraph.has_arc>`
               -- ``has_arc`` method for dense graphs.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.c_graph import CGraph
             sage: G = CGraph()
@@ -837,7 +837,7 @@ cdef class CGraph:
             - :meth:`del_all_arcs <sage.graphs.base.dense_graph.DenseGraph.del_all_arcs>`
               -- ``del_all_arcs`` method for dense graphs.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.c_graph import CGraph
             sage: G = CGraph()
@@ -950,7 +950,7 @@ cdef class CGraph:
             - :meth:`all_arcs <sage.graphs.base.sparse_graph.SparseGraph.all_arcs>`
               -- ``all_arcs`` method for sparse graphs.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.c_graph import CGraph
             sage: G = CGraph()
@@ -983,7 +983,7 @@ cdef class CGraph:
             - :meth:`in_neighbors <sage.graphs.base.dense_graph.DenseGraph.in_neighbors>`
               -- ``in_neighbors`` method for dense graphs.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.c_graph import CGraph
             sage: G = CGraph()
@@ -1016,7 +1016,7 @@ cdef class CGraph:
             - :meth:`out_neighbors <sage.graphs.base.dense_graph.DenseGraph.out_neighbors>`
               -- ``out_neighbors`` implementation for dense graphs.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.c_graph import CGraph
             sage: G = CGraph()
@@ -1039,7 +1039,7 @@ cdef class CGraph:
 
         - The number of in-neighbors of ``v``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: SparseGraph(7)._in_degree(3)
@@ -1071,7 +1071,7 @@ cdef class CGraph:
 
         - The number of out-neighbors of ``v``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: SparseGraph(7)._out_degree(3)
@@ -1097,7 +1097,7 @@ cdef class CGraph:
 
         - The order of this graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: SparseGraph(7)._num_verts()
@@ -1121,7 +1121,7 @@ cdef class CGraph:
 
         - The size of this graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: SparseGraph(7)._num_arcs()
@@ -1292,7 +1292,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         - ``True`` if ``v`` is a vertex of this graph; ``False`` otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraphBackend
             sage: B = SparseGraphBackend(7)
@@ -1333,7 +1333,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         - The degree of vertex ``v``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraphBackend
             sage: B = SparseGraphBackend(7)
@@ -1468,7 +1468,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         - ``v`` -- a vertex of the graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
 
             sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
@@ -1495,7 +1495,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         - ``v`` -- a vertex of the graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
 
             sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
@@ -1531,7 +1531,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             - :meth:`has_vertex`
               -- returns whether or not this graph has a specific vertex.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
             sage: D.add_vertex(10)
@@ -1583,7 +1583,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             - :meth:`add_vertex`
               -- add a vertex to this graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(1)
             sage: D.add_vertices([1,2,3])
@@ -1637,7 +1637,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             - :meth:`del_vertices`
               -- delete a bunch of vertices from this graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
             sage: D.del_vertex(0)
@@ -1682,7 +1682,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             - :meth:`del_vertex`
               -- delete a vertex of this graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.graphs.base.dense_graph
             sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
@@ -1727,7 +1727,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             - :meth:`iterator_verts`
               -- returns an iterator over a given set of vertices.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P = Graph(graphs.PetersenGraph(), implementation="c_graph")
             sage: list(P._backend.iterator_nbrs(0))
@@ -1759,7 +1759,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             - :meth:`iterator_out_nbrs`
               -- returns an iterator over the out-neighbors of a vertex.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P = DiGraph(graphs.PetersenGraph().to_directed(), implementation="c_graph")
             sage: list(P._backend.iterator_in_nbrs(0))
@@ -1797,7 +1797,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             - :meth:`iterator_in_nbrs`
               -- returns an iterator over the in-neighbors of a vertex.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P = DiGraph(graphs.PetersenGraph().to_directed(), implementation="c_graph")
             sage: list(P._backend.iterator_out_nbrs(0))
@@ -1835,7 +1835,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             - :meth:`iterator_nbrs`
               -- returns an iterator over the neighbors of a vertex.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P = Graph(graphs.PetersenGraph(), implementation="c_graph")
             sage: list(P._backend.iterator_verts(P))
@@ -1888,7 +1888,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         - If ``new`` is a boolean, set the self-loop permission of this graph
           according to the boolean value of ``new``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = Graph(implementation='c_graph')
             sage: G._backend.loops()
@@ -1923,7 +1923,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             - :meth:`num_verts`
               -- return the order of this graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
             sage: G._backend.num_edges(False)
@@ -2024,7 +2024,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             - :meth:`num_edges`
               -- return the number of (directed) edges in this graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
             sage: G._backend.num_verts()
@@ -2090,7 +2090,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         - A list of vertices in the shortest path from ``x`` to ``y``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
             sage: G.shortest_path(0, 1)
@@ -2221,7 +2221,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         - A list of vertices in the shortest path from ``x`` to ``y``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
             sage: for (u,v) in G.edges(labels=None):
@@ -2234,7 +2234,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         TEST:
 
-        Bugfix from #7673 ::
+        Bugfix from :trac:`7673` ::
 
             sage: G = Graph([(0,1,9),(0,2,8),(1,2,7)])
             sage: G.shortest_path_length(0,1,by_weight=True)
@@ -2950,7 +2950,7 @@ cdef class Search_iterator:
       the graph to be traversed. For undirected graphs, we consider both
       the in- and out-neighbors.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: g = graphs.PetersenGraph()
         sage: list(g.breadth_first_search(0))
@@ -2997,7 +2997,7 @@ cdef class Search_iterator:
           relevant to digraphs. If ``graph`` is a digraph, ignore all
           orientations and consider the graph as undirected.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = graphs.PetersenGraph()
             sage: list(g.breadth_first_search(0))
@@ -3054,7 +3054,7 @@ cdef class Search_iterator:
         r"""
         Return an iterator object over a traversal of a graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = graphs.PetersenGraph()
             sage: g.breadth_first_search(0)
@@ -3066,7 +3066,7 @@ cdef class Search_iterator:
         r"""
         Return the next vertex in a traversal of a graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = graphs.PetersenGraph()
             sage: g.breadth_first_search(0)

@@ -123,7 +123,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         The given value has to be in the base ring of P. This assumption is not
         verified.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x> = ZZ[]
             sage: x._new_constant_poly(2,R)
@@ -919,7 +919,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         r"""
         Truncated multiplication
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             :meth:`_mul_` for standard multiplication
 
@@ -1274,7 +1274,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         Returns isolating intervals for the real roots of this
         polynomial.
 
-        EXAMPLE:
+        EXAMPLES:
         We compute the roots of the characteristic polynomial of some
         Salem numbers::
 
@@ -1399,7 +1399,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
     # Alias for discriminant
     disc = discriminant
 
-    def _pari_(self, variable=None):
+    def __pari__(self, variable=None):
         """
         EXAMPLES::
 
@@ -1407,7 +1407,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: f = t^3 + 3*t - 17
             sage: pari(f)
             t^3 + 3*t - 17
-            sage: f._pari_(variable='y')
+            sage: f.__pari__(variable='y')
             y^3 + 3*y - 17
         """
         if variable is None:
@@ -1598,7 +1598,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: f.factor_mod(3)
             Traceback (most recent call last):
             ...
-            ValueError: factorization of 0 not defined
+            ArithmeticError: factorization of 0 is not defined
 
             sage: f = 2*x*(x-2)*(x-9)
             sage: f.factor_mod(7)
@@ -1609,8 +1609,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         if not p.is_prime():
             raise ValueError("p must be prime")
         if all([c%p==0 for c in self.coefficients()]):
-            raise ValueError("factorization of 0 not defined")
-        f = self._pari_()
+            raise ArithmeticError("factorization of 0 is not defined")
+        f = self.__pari__()
         G = f.factormod(p)
         k = FiniteField(p)
         R = k[self.parent().variable_name()]

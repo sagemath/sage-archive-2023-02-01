@@ -29,9 +29,6 @@ AUTHORS:
 - David Roe (2008-2-23): created
 - David Loeffler (2009-07-10): cleaned up docstrings
 """
-from __future__ import absolute_import
-from six import iteritems, iterkeys
-
 #*****************************************************************************
 #       Copyright (C) 2008 David Roe <roed@math.harvard.edu>,
 #                          William Stein <wstein@gmail.com>,
@@ -43,7 +40,9 @@ from six import iteritems, iterkeys
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
+from six import iteritems, iterkeys
+from six.moves import range
 
 from sage.structure.category_object import normalize_names
 from sage.structure.element import is_Element, parent
@@ -518,7 +517,7 @@ def _split_laurent_polynomial_dict_(P, M, d):
         return R(M(d))
 
     group_by = tuple(index(vars_M, var) for var in vars_P)
-    indices = range(len(vars_M))
+    indices = list(range(len(vars_M)))
     for g in group_by:
         if g is not None:
             indices[g] = None
@@ -528,6 +527,7 @@ def _split_laurent_polynomial_dict_(P, M, d):
     except (ValueError, TypeError):
         pass
     return sum(P({k: 1}) * value(v, P) for k, v in iteritems(D)).dict()
+
 
 class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
     """

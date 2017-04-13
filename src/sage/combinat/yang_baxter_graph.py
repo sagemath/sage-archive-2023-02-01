@@ -15,6 +15,8 @@ Yang-Baxter Graphs
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
+
 from sage.graphs.digraph import DiGraph
 from sage.structure.sage_object import SageObject
 from sage.misc.lazy_attribute import lazy_attribute
@@ -582,7 +584,7 @@ class YangBaxterGraph_partition(YangBaxterGraph_generic):
         """
         self._partition = partition
         beta = sorted(self._partition, reverse=True)
-        root = tuple(sum(map(range,beta), []))[::-1]
+        root = sum([tuple(range(b)) for b in beta], tuple())[::-1]
         operators = [SwapIncreasingOperator(i) for i in range(sum(partition)-1)]
         super(YangBaxterGraph_partition, self).__init__(root, operators)
 

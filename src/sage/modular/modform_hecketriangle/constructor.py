@@ -57,7 +57,7 @@ def rational_type(f, n=ZZ(3), base_ring=ZZ):
 
     - ``homo``           -- ``True`` if `f` also has a homogeneous numerator.
 
-    - ``k``              -- ``None`` if `f` is not homogeneneous, otherwise
+    - ``k``              -- ``None`` if `f` is not homogeneous, otherwise
                             the weight of `f` (which is the first component
                             of its degree).
 

@@ -52,7 +52,7 @@ cdef class Mutability:
 
         To make this object immutable use self.set_immutable().
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: v = Sequence([1,2,3,4/5])
             sage: v[0] = 5

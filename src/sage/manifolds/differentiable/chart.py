@@ -33,6 +33,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.misc.cachefunc import cached_method
 from sage.manifolds.chart import Chart, RealChart, CoordChange
 from sage.manifolds.differentiable.vectorframe import CoordFrame
 
@@ -970,9 +971,6 @@ class DiffCoordChange(CoordChange):
         CoordChange.__init__(self, chart1, chart2, *transformations)
         # Jacobian matrix:
         self._jacobian  = self._transf.jacobian()
-        # Jacobian determinant:
-        if self._n1 == self._n2:
-            self._jacobian_det = self._transf.jacobian_det()
         # If the two charts are on the same open subset, the Jacobian matrix is
         # added to the dictionary of changes of frame:
         if chart1._domain == chart2._domain:
@@ -994,3 +992,82 @@ class DiffCoordChange(CoordChange):
                 vf_module._basis_changes[(frame1, frame2)] = ch_basis_inv
                 for sdom in domain._supersets:
                     sdom._frame_changes[(frame1, frame2)] = ch_basis_inv
+
+    def jacobian(self):
+        r"""
+        Return the Jacobian matrix of ``self``.
+
+        If ``self`` corresponds to the change of coordinates
+
+        .. MATH::
+
+            y^i = Y^i(x^1,\ldots,x^n)\qquad 1\leq i \leq n
+
+        the Jacobian matrix `J` is given by
+
+        .. MATH::
+
+            J_{ij} = \frac{\partial Y^i}{\partial x^j}
+
+        where `i` is the row index and `j` the column one.
+
+        OUTPUT:
+
+        - Jacobian matrix `J`, the elements `J_{ij}` of which being
+          coordinate functions
+          (cf. :class:`~sage.manifolds.coord_func.CoordFunction`)
+
+        EXAMPLES:
+
+        Jacobian matrix of a 2-dimensional transition map::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: Y.<u,v> = M.chart()
+            sage: X_to_Y = X.transition_map(Y, [x+y^2, 3*x-y])
+            sage: X_to_Y.jacobian()
+            [  1 2*y]
+            [  3  -1]
+
+        Each element of the Jacobian matrix is a coordinate function::
+
+            sage: parent(X_to_Y.jacobian()[0,0])
+            Ring of coordinate functions on Chart (M, (x, y))
+
+        """
+        return self._jacobian  # has been computed in __init__
+
+    @cached_method
+    def jacobian_det(self):
+        r"""
+        Return the Jacobian determinant of ``self``.
+
+        The Jacobian determinant is the determinant of the Jacobian
+        matrix (see :meth:`jacobian`).
+
+        OUTPUT:
+
+        - determinant of the Jacobian matrix `J` as a coordinate
+          function
+          (cf. :class:`~sage.manifolds.coord_func.CoordFunction`)
+
+        EXAMPLES:
+
+        Jacobian determinant of a 2-dimensional transition map::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: Y.<u,v> = M.chart()
+            sage: X_to_Y = X.transition_map(Y, [x+y^2, 3*x-y])
+            sage: X_to_Y.jacobian_det()
+            -6*y - 1
+            sage: X_to_Y.jacobian_det() == det(X_to_Y.jacobian())
+            True
+
+        The Jacobian determinant is a coordinate function::
+
+            sage: parent(X_to_Y.jacobian_det())
+            Ring of coordinate functions on Chart (M, (x, y))
+
+        """
+        return self._transf.jacobian_det()

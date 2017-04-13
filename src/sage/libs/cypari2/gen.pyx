@@ -93,7 +93,39 @@ cdef class Gen(Gen_auto):
         raise RuntimeError("PARI objects cannot be instantiated directly; use pari(x) to convert x to PARI")
 
     def __dealloc__(self):
-        sig_free(<void*>self.b)
+        sig_free(self.chunk)
+
+    cdef new_ref(self, GEN g):
+        """
+        Create a new ``Gen`` pointing to ``g``, which is a component
+        of ``self.g``.
+
+        In this case, ``g`` should point to some location in the memory
+        allocated by ``self``. This will not allocate any new memory:
+        the newly returned ``Gen`` will point to the memory allocated
+        for ``self``.
+
+        .. NOTE::
+
+            Usually, there is only one ``Gen`` pointing to a given PARI
+            ``GEN``.  This function can be used when a complicated
+            ``GEN`` is allocated with a single ``Gen`` pointing to it,
+            and one needs a ``Gen`` pointing to one of its components.
+
+            For example, doing ``x = pari("[1, 2]")`` allocates a ``Gen``
+            pointing to the list ``[1, 2]``.  To create a ``Gen`` pointing
+            to the first element, one can do ``x.new_ref(gel(x.g, 1))``.
+            See :meth:`Gen.__getitem__` for an example of usage.
+
+        EXAMPLES::
+
+            sage: pari("[[1, 2], 3]")[0][1]  # indirect doctest
+            2
+        """
+        cdef Gen x = Gen.__new__(Gen)
+        x.g = g
+        x.parent = self
+        return x
 
     def __repr__(self):
         """
@@ -161,11 +193,134 @@ cdef class Gen(Gen_auto):
         sig_off()
         return h
 
-    def list(self):
+    def __iter__(self):
         """
-        Convert self to a list of PARI gens.
+        Iterate over the components of ``self``.
+
+        The items in the iteration are of type :class:`Gen` with the
+        following exceptions:
+
+        - items of a ``t_VECSMALL`` are of type ``int``
+
+        - items of a ``t_STR`` are of type ``str``
 
         EXAMPLES:
+
+        We can iterate over PARI vectors or columns::
+
+            sage: L = pari("vector(10,i,i^2)")
+            sage: L.__iter__()
+            <generator object at ...>
+            sage: [x for x in L]
+            [1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
+            sage: list(L)
+            [1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
+            sage: list(pari("vector(10,i,i^2)~"))
+            [1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
+
+        For polynomials, we iterate over the list of coefficients::
+
+            sage: pol = pari("x^3 + 5/3*x"); list(pol)
+            [0, 5/3, 0, 1]
+
+        For power series or Laurent series, we get all coefficients starting
+        from the lowest degree term.  This includes trailing zeros::
+
+            sage: list(pari('x^2 + O(x^8)'))
+            [1, 0, 0, 0, 0, 0]
+            sage: list(pari('x^-2 + O(x^0)'))
+            [1, 0]
+
+        For matrices, we iterate over the columns::
+
+            sage: M = pari.matrix(3,2,[1,4,2,5,3,6]); M
+            [1, 4; 2, 5; 3, 6]
+            sage: list(M)
+            [[1, 2, 3]~, [4, 5, 6]~]
+
+        Other types are first converted to a vector using :meth:`Vec`::
+
+            sage: Q = pari('Qfb(1, 2, 3)')
+            sage: tuple(Q)
+            (1, 2, 3)
+            sage: Q.Vec()
+            [1, 2, 3]
+
+        We get an error for "scalar" types or for types which cannot be
+        converted to a PARI vector::
+
+            sage: iter(pari(42))
+            Traceback (most recent call last):
+            ...
+            TypeError: PARI object of type 't_INT' is not iterable
+            sage: iter(pari("x->x"))
+            Traceback (most recent call last):
+            ...
+            PariError: incorrect type in gtovec (t_CLOSURE)
+
+        For ``t_VECSMALL``, the items are Python integers::
+
+            sage: v = pari("Vecsmall([1,2,3,4,5,6])")
+            sage: list(v)
+            [1, 2, 3, 4, 5, 6]
+            sage: type(list(v)[0]).__name__
+            'int'
+
+        For ``t_STR``, the items are Python strings::
+
+            sage: v = pari('"hello"')
+            sage: list(v)
+            ['h', 'e', 'l', 'l', 'o']
+
+        TESTS:
+
+        The following are deprecated::
+
+            sage: tuple(pari('3/5'))
+            doctest:...: DeprecationWarning: iterating a PARI 't_FRAC' is deprecated
+            (3, 5)
+            sage: tuple(pari('1 + 5*I'))
+            doctest:...: DeprecationWarning: iterating a PARI 't_COMPLEX' is deprecated
+            (1, 5)
+        """
+        cdef long i
+        cdef long t = typ(self.g)
+        cdef GEN x
+
+        # First convert self to a vector type
+        cdef Gen v
+        if t == t_VEC or t == t_COL or t == t_MAT:
+            # These are vector-like and can be iterated over directly
+            v = self
+        elif t == t_POL:
+            v = self.Vecrev()
+        elif t == t_FRAC or t == t_RFRAC or t == t_COMPLEX:
+            # Also treat as vector
+            # Deprecated, make this an error in the future
+            from warnings import warn
+            warn(f"iterating a PARI {self.type()!r} is deprecated", DeprecationWarning)
+            v = self
+        elif is_scalar_t(t):
+            raise TypeError(f"PARI object of type {self.type()!r} is not iterable")
+        elif t == t_VECSMALL:
+            # Special case: items of type int
+            x = self.g
+            return (x[i] for i in range(1, lg(x)))
+        elif t == t_STR:
+            # Special case: convert to str
+            return iter(GSTR(self.g))
+        else:
+            v = self.Vec()
+
+        # Now iterate over the vector v
+        x = v.g
+        return (v.new_ref(gel(x, i)) for i in range(1, lg(x)))
+
+    def list(self):
+        """
+        Convert ``self`` to a Python list with :class:`Gen` components.
+
+        EXAMPLES::
 
         A PARI vector becomes a Python list::
 
@@ -197,14 +352,21 @@ cdef class Gen(Gen_auto):
             sage: M.list()
             [[1, 2, 3]~, [4, 5, 6]~]
 
-        For "scalar" types, we get a 1-element list containing ``self``::
+        TESTS:
 
-            sage: pari("42").list()
+        For "scalar" types, this is deprecated. Currently, we get a
+        1-element list containing ``self``::
+
+            sage: pari(42).list()
+            doctest:...: DeprecationWarning: calling list() on scalar PARI types is deprecated
             [42]
         """
-        if typ(self.g) == t_POL:
-            return list(self.Vecrev())
-        return list(self.Vec())
+        if is_scalar_t(typ(self.g)):
+            # Deprecated, make this an error in the future
+            from warnings import warn
+            warn("calling list() on scalar PARI types is deprecated", DeprecationWarning)
+            return [self]
+        return [x for x in self]
 
     def __reduce__(self):
         """
@@ -852,12 +1014,12 @@ cdef class Gen(Gen_auto):
             3
             sage: type(sv[2])
             <... 'int'>
-            sage: tuple(pari('3/5'))
-            (3, 5)
-            sage: tuple(pari('1 + 5*I'))
-            (1, 5)
-            sage: tuple(pari('Qfb(1, 2, 3)'))
-            (1, 2, 3)
+            sage: [pari('3/5')[i] for i in range(2)]
+            [3, 5]
+            sage: [pari('1 + 5*I')[i] for i in range(2)]
+            [1, 5]
+            sage: [pari('Qfb(1, 2, 3)')[i] for i in range(3)]
+            [1, 2, 3]
             sage: pari(57)[0]
             Traceback (most recent call last):
             ...
@@ -888,7 +1050,8 @@ cdef class Gen(Gen_auto):
             sage: pari([])[::]
             []
         """
-        cdef Py_ssize_t k
+        cdef Py_ssize_t i, j, k
+        cdef object ind
         cdef int pari_type
 
         pari_type = typ(self.g)
@@ -896,30 +1059,23 @@ cdef class Gen(Gen_auto):
         if isinstance(n, tuple):
             if pari_type != t_MAT:
                 raise TypeError("self must be of pari type t_MAT")
-            if len(n) != 2:
-                raise IndexError("index must be an integer or a 2-tuple (i,j)")
-            i = int(n[0])
-            j = int(n[1])
 
-            if i < 0 or i >= glength(<GEN>(self.g[1])):
+            i, j = n
+
+            if i < 0 or i >= glength(gel(self.g, 1)):
                 raise IndexError("row index out of range")
             if j < 0 or j >= glength(self.g):
                 raise IndexError("column index out of range")
 
-            ind = (i,j)
+            ind = (i, j)
 
-            if self.refers_to is not None and ind in self.refers_to:
-                return self.refers_to[ind]
+            if self.itemcache is not None and ind in self.itemcache:
+                return self.itemcache[ind]
             else:
-                ## In this case, we're being asked to return
-                ## a GEN that has no Gen pointing to it, so
-                ## we need to create such a gen, add it to
-                ## self.refers_to, and return it.
-                val = new_ref(gmael(self.g, j+1, i+1), self)
-                if self.refers_to is None:
-                    self.refers_to = {ind: val}
-                else:
-                    self.refers_to[ind] = val
+                # Create a new Gen as child of self
+                # and store it in itemcache
+                val = self.new_ref(gmael(self.g, j+1, i+1))
+                self.cache(ind, val)
                 return val
 
         elif isinstance(n, slice):
@@ -940,52 +1096,51 @@ cdef class Gen(Gen_auto):
             # slow call
             return objtogen(self[i] for i in inds)
 
+        # Index is not a tuple or slice, convert to integer
+        i = n
+
         ## there are no "out of bounds" problems
         ## for a polynomial or power series, so these go before
         ## bounds testing
         if pari_type == t_POL:
-            return self.polcoeff(n)
+            return self.polcoeff(i)
 
         elif pari_type == t_SER:
             bound = valp(self.g) + lg(self.g) - 2
-            if n >= bound:
+            if i >= bound:
                 raise IndexError("index out of range")
-            return self.polcoeff(n)
+            return self.polcoeff(i)
 
         elif pari_type in (t_INT, t_REAL, t_PADIC, t_QUAD, t_FFELT, t_INTMOD, t_POLMOD):
             # these are definitely scalar!
             raise TypeError("PARI object of type %r cannot be indexed" % self.type())
 
-        elif n < 0 or n >= glength(self.g):
+        elif i < 0 or i >= glength(self.g):
             raise IndexError("index out of range")
 
         elif pari_type == t_VEC or pari_type == t_MAT:
             #t_VEC    : row vector        [ code ] [  x_1  ] ... [  x_k  ]
             #t_MAT    : matrix            [ code ] [ col_1 ] ... [ col_k ]
-            if self.refers_to is not None and n in self.refers_to:
-                return self.refers_to[n]
+            ind = i
+            if self.itemcache is not None and ind in self.itemcache:
+                return self.itemcache[ind]
             else:
-                ## In this case, we're being asked to return
-                ## a GEN that has no Gen pointing to it, so
-                ## we need to create such a gen, add it to
-                ## self.refers_to, and return it.
-                val = new_ref(gel(self.g, n+1), self)
-                if self.refers_to is None:
-                    self.refers_to = {n: val}
-                else:
-                    self.refers_to[n] = val
+                # Create a new Gen as child of self
+                # and store it in itemcache
+                val = self.new_ref(gel(self.g, i+1))
+                self.cache(ind, val)
                 return val
 
         elif pari_type == t_VECSMALL:
             #t_VECSMALL: vec. small ints  [ code ] [ x_1 ] ... [ x_k ]
-            return self.g[n+1]
+            return self.g[i+1]
 
         elif pari_type == t_STR:
             #t_STR    : string            [ code ] [ man_1 ] ... [ man_k ]
-            return chr( (<char *>(self.g+1))[n] )
+            return chr(GSTR(self.g)[i])
 
         elif pari_type == t_LIST:
-            return self.component(n+1)
+            return self.component(i+1)
 
         #elif pari_type in (t_FRAC, t_RFRAC):
             # generic code gives us:
@@ -1003,7 +1158,7 @@ cdef class Gen(Gen_auto):
         else:
             ## generic code, which currently handles cases
             ## as mentioned above
-            return new_ref(gel(self.g,n+1), self)
+            return self.new_ref(gel(self.g, i+1))
 
     def __setitem__(self, n, y):
         r"""
@@ -1092,70 +1247,55 @@ cdef class Gen(Gen_auto):
             sage: type(v[0])
             <type 'sage.libs.cypari2.gen.Gen'>
         """
-        cdef int i, j
+        cdef Py_ssize_t i, j, step
         cdef Gen x = objtogen(y)
         cdef long l
-        cdef Py_ssize_t ii, jj, step
 
-        sig_on()
-        try:
-            if isinstance(n, tuple):
-                if typ(self.g) != t_MAT:
-                    raise TypeError("cannot index PARI type %s by tuple" % typ(self.g))
+        if isinstance(n, tuple):
+            if typ(self.g) != t_MAT:
+                raise TypeError("cannot index PARI type %s by tuple" % typ(self.g))
 
-                if len(n) != 2:
-                    raise ValueError("matrix index must be of the form [row, column]")
+            i, j = n
 
-                i = int(n[0])
-                j = int(n[1])
-                ind = (i,j)
+            if i < 0 or i >= glength(gel(self.g, 1)):
+                raise IndexError("row i(=%s) must be between 0 and %s" % (i, self.nrows()-1))
+            if j < 0 or j >= glength(self.g):
+                raise IndexError("column j(=%s) must be between 0 and %s" % (j, self.ncols()-1))
 
-                if i < 0 or i >= glength(<GEN>(self.g[1])):
-                    raise IndexError("row i(=%s) must be between 0 and %s" % (i, self.nrows()-1))
-                if j < 0 or j >= glength(self.g):
-                    raise IndexError("column j(=%s) must be between 0 and %s" % (j, self.ncols()-1))
-                if self.refers_to is None:
-                    self.refers_to = {ind: x}
-                else:
-                    self.refers_to[ind] = x
-
-                (<GEN>(self.g)[j+1])[i+1] = <long>(x.g)
-                return
-
-            elif isinstance(n, slice):
-                l = glength(self.g)
-                inds = xrange(*n.indices(l))
-                k = len(inds)
-                if k > len(y):
-                    raise ValueError("attempt to assign sequence of size %s to slice of size %s" % (len(y), k))
-
-                # actually set the values
-                for i,j in enumerate(inds):
-                    self[j] = y[i]
-                return
-
-            i = int(n)
-
-            if i < 0 or i >= glength(self.g):
-                raise IndexError("index (%s) must be between 0 and %s" % (i, glength(self.g)-1))
-
-            # so python memory manager will work correctly
-            # and not free x if PARI part of self is the
-            # only thing pointing to it.
-            if self.refers_to is None:
-                self.refers_to = {i: x}
-            else:
-                self.refers_to[i] = x
-
-            ## correct indexing for t_POLs
-            if typ(self.g) == t_POL:
-                i = i + 1
-
-            ## actually set the value
-            (self.g)[i+1] = <long>(x.g)
+            self.cache((i,j), x)
+            set_gcoeff(self.g, i+1, j+1, x.g)
             return
-        finally:
-            sig_off()
+
+        elif isinstance(n, slice):
+            l = glength(self.g)
+            inds = xrange(*n.indices(l))
+            k = len(inds)
+            if k > len(y):
+                raise ValueError("attempt to assign sequence of size %s to slice of size %s" % (len(y), k))
+
+            # actually set the values
+            for a, b in enumerate(inds):
+                sig_check()
+                self[b] = y[a]
+            return
+
+        # Index is not a tuple or slice, convert to integer
+        i = n
+
+        if i < 0 or i >= glength(self.g):
+            raise IndexError("index (%s) must be between 0 and %s" % (i, glength(self.g)-1))
+
+        # Add a reference to x to prevent Python from garbage
+        # collecting x.
+        self.cache(i, x)
+
+        # Correct indexing for t_POLs
+        if typ(self.g) == t_POL:
+            i += 1
+
+        # Actually set the value
+        set_gel(self.g, i+1, x.g)
+        return
 
     def __len__(self):
         return glength(self.g)
@@ -2546,7 +2686,7 @@ cdef class Gen(Gen_auto):
 
         OUTPUT: int (a Python int)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: pari('1').sizebyte()
             12           # 32-bit
@@ -3897,7 +4037,7 @@ cdef class Gen(Gen_auto):
         if self.ncols() == 0:
             sig_off()
             return 0
-        n = glength(<GEN>(self.g[1]))
+        n = glength(gel(self.g, 1))
         sig_off()
         return n
 
@@ -4309,7 +4449,7 @@ cdef class Gen(Gen_auto):
         r"""
         Show the internal structure of self (like the ``\x`` command in gp).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: pari('[1/2, 1.0*I]').debug()  # random addresses
             [&=0000000004c5f010] VEC(lg=3):2200000000000003 0000000004c5eff8 0000000004c5efb0
@@ -4363,36 +4503,6 @@ cdef class Gen(Gen_auto):
         raise NotImplementedError("the method allocatemem() should not be used; use pari.allocatemem() instead")
 
 
-cdef Gen new_ref(GEN g, Gen parent):
-    """
-    Create a new ``Gen`` pointing to ``g``, which is allocated as a
-    part of ``parent.g``.
-
-    .. NOTE::
-
-        As a rule, there should never be more than one ``Gen``
-        pointing to a given PARI ``GEN``.  This function should only
-        be used when a complicated ``GEN`` is allocated with a single
-        ``Gen`` pointing to it, and one needs a ``Gen`` pointing to
-        one of its components.
-
-        For example, doing ``x = pari("[1, 2]")`` allocates a ``Gen``
-        pointing to the list ``[1, 2]``.  To create a ``Gen`` pointing
-        to the first element, one can do ``new_ref(gel(x.g, 1), x)``.
-        See :meth:`Gen.__getitem__` for an example of usage.
-
-    EXAMPLES::
-
-        sage: pari("[[1, 2], 3]")[0][1]  # indirect doctest
-        2
-    """
-    cdef Gen p = Gen.__new__(Gen)
-    p.g = g
-    p.b = 0
-    p.refers_to = {-1: parent}
-    return p
-
-
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cdef Gen list_of_Gens_to_Gen(list s):
@@ -4430,7 +4540,7 @@ cpdef Gen objtogen(s):
     """
     Convert any Sage/Python object to a PARI :class:`Gen`.
 
-    For Sage types, this uses the ``_pari_()`` method on the object.
+    For Sage types, this uses the ``__pari__()`` method on the object.
     Basic Python types like ``int`` are converted directly. For other
     types, the string representation is used.
 
@@ -4513,6 +4623,13 @@ cpdef Gen objtogen(s):
         Traceback (most recent call last):
         ...
         ValueError: Cannot convert None to pari
+
+        sage: class OldStylePari:
+        ....:     def _pari_(self):
+        ....:         return pari(42)
+        sage: pari(OldStylePari())
+        doctest:...: DeprecationWarning: the _pari_ method is deprecated, use __pari__ instead
+        42
     """
     cdef GEN g
     cdef list L
@@ -4520,9 +4637,20 @@ cpdef Gen objtogen(s):
     if isinstance(s, Gen):
         return s
     try:
-        return s._pari_()
+        m = s.__pari__
     except AttributeError:
         pass
+    else:
+        return m()
+
+    try:
+        m = s._pari_
+    except AttributeError:
+        pass
+    else:
+        from warnings import warn
+        warn("the _pari_ method is deprecated, use __pari__ instead", DeprecationWarning)
+        return m()
 
     # Check basic Python types. Start with strings, which are a very
     # common case.

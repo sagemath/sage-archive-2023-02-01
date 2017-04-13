@@ -687,3 +687,24 @@ class Fields(CategoryWithAxiom):
                 return (P.one(), P.zero(), ~other)
             # else both are 0
             return (P.zero(), P.zero(), P.zero())
+
+        def factor(self):
+            """
+            Return a factorization of ``self``.
+
+            Since ``self`` is either a unit or zero, this function is trivial.
+
+            EXAMPLES::
+
+                sage: x = GF(7)(5)
+                sage: x.factor()
+                5
+                sage: RR(0).factor()
+                Traceback (most recent call last):
+                ...
+                ArithmeticError: factorization of 0.000000000000000 is not defined
+            """
+            if not self:
+                raise ArithmeticError("factorization of {!r} is not defined".format(self))
+            from sage.structure.factorization import Factorization
+            return Factorization([], self)  # No factor; "self" as unit

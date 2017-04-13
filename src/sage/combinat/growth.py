@@ -235,7 +235,9 @@ class GrowthDiagram(SageObject):
           ``shape``.  Otherwise it can be a dictionary with keys
           being coordinates and integer values, a sequence of
           sequences of integers (including matrices), or a word with
-          integer letters (including permutations).
+          integer letters (including permutations).  In the latter
+          case, words with negative letters but without repetitions
+          are allowed and interpreted as coloured permutations.
 
         - ``shape`` is a (possibly skew) partition or ``None``.  In
           the latter case it is determined as the Ferrers shape given
@@ -315,7 +317,7 @@ class GrowthDiagram(SageObject):
         Return the growth diagram with the filling rotated by 180 degrees.
 
         For RSK-growth diagrams and rectangular fillings, this
-        corresponds to evacutation of the P- and the Q-symbol.
+        corresponds to evacuation of the P- and the Q-symbol.
 
         EXAMPLES::
 
@@ -449,6 +451,11 @@ class GrowthDiagram(SageObject):
                     if v == 1:
                         if w[i] == 0:
                             w[i] = j+1
+                        else:
+                            raise ValueError("Can only convert fillings with at most one entry per column to words.")
+                    elif v == -1:
+                        if w[i] == 0:
+                            w[i] = -(j+1)
                         else:
                             raise ValueError("Can only convert fillings with at most one entry per column to words.")
                     else:
@@ -823,9 +830,12 @@ class GrowthDiagram(SageObject):
                     shape = [len(row) for row in filling]
 
             except TypeError:
-                # it is a word
+                # it is a word - for convenience we allow signed words
                 for i, l in enumerate(filling):
-                    F[(i, l-1)] = 1
+                    if l > 0:
+                        F[(i, l-1)] = 1
+                    else:
+                        F[(i, -l-1)] = -1
 
         if shape is None:
             if F == {}:
@@ -1812,6 +1822,22 @@ class GrowthDiagramDomino(GrowthDiagramOnPartitions):
         1  2  4  1  3  3
         3  3     4  4
 
+    TESTS::
+
+        sage: G = GrowthDiagramDomino([[0,1,0],[0,0,-1],[1,0,0]]); G
+        0  1  0
+        0  0 -1
+        1  0  0
+
+        sage: ascii_art(G.P_symbol(), G.Q_symbol())
+        1  1  1  1
+        2  3  2  2
+        2  3  3  3
+
+        sage: l = [GrowthDiagramDomino(pi) for pi in SignedPermutations(4)]
+        sage: len(Set([(G.P_symbol(), G.Q_symbol()) for G in l]))
+        384
+
     .. automethod:: _forward_rule
     """
     @staticmethod
@@ -1850,7 +1876,7 @@ class GrowthDiagramDomino(GrowthDiagramOnPartitions):
         Rule 2::
 
             sage: G._forward_rule([1,1], [1,1], [1,1], -1)
-            [2, 2]
+            [1, 1, 1, 1]
 
         Rule 3::
 
@@ -1876,31 +1902,33 @@ class GrowthDiagramDomino(GrowthDiagramOnPartitions):
 
             sage: G._forward_rule([1,1,1,1], [1,1], [1,1,1,1], 0)
             [2, 2, 1, 1]
+
+            sage: G._forward_rule([2,1,1], [2], [4], 0)
+            [4, 1, 1]
         """
+        def union(la, mu):
+            """
+            Return the union of the two partitions.
+            """
+            from six.moves import zip_longest
+            return [max(p,q) for (p,q) in zip_longest(la, mu, fillvalue=0)]
+
         if content not in [0,1,-1]:
             raise ValueError("Domino: The content of the filling must be in {-1,0,1}")
 
         if content == 1:
+            assert shape1 == shape2 == shape3
             if shape2 == []:
                 shape4 = [2]
             else:
                 shape4 = [shape2[0] + 2] + shape2[1:]
 
         elif content == -1:
-            if shape2 == []:
-                shape4 = [1,1]
-            elif len(shape2) == 1:
-                shape4 = [shape2[0] + 1] + [1]
-            else:
-                shape4 = [shape2[0] + 1, shape2[1] + 1] + shape2[2:]
+            assert shape1 == shape2 == shape3
+            shape4 = shape2 + [1,1]
 
         elif content == 0 and (shape2 == shape1 or shape2 == shape3):
-            if len(shape1) > len(shape3):
-                shape4 = shape1
-            elif len(shape1) < len(shape3):
-                shape4 = shape3
-            else:
-                shape4 = [max(p,q) for (p,q) in zip(shape1, shape3)]
+            shape4 = union(shape1, shape3)
 
         else:
             # content == 0 and shape2 differs from shape1 and shape3 by
@@ -1909,23 +1937,13 @@ class GrowthDiagramDomino(GrowthDiagramOnPartitions):
             # the following is certainly very slow
             gamma3 = set(SkewPartition([shape3, shape2]).cells())
             gamma1 = set(SkewPartition([shape1, shape2]).cells())
-
             diff = gamma1.intersection(gamma3)
             cell1, cell2 = gamma3
-            shape4 = copy(shape1)
-
             if len(diff) == 0:
-                # add gamma3 to shape1
-                if len(shape4) <= cell1[0]:
-                    shape4 += [1]
-                else:
-                    shape4[cell1[0]] += 1
-                if len(shape4) <= cell2[0]:
-                    shape4 += [1]
-                else:
-                    shape4[cell2[0]] += 1
+                shape4 = union(shape1, shape3)
 
             elif len(diff) == 1:
+                shape4 = copy(shape1)
                 # diff is a single cell
                 (k,l) = diff.pop()
                 # add (k+1, l+1) to shape1
@@ -1940,22 +1958,25 @@ class GrowthDiagramDomino(GrowthDiagramOnPartitions):
                         shape4[k+1] += 2
 
             # diff has size 2, that is shape1 == shape3
-
             elif cell1[0] == cell2[0]:
-                # a horizontal domino
+                shape4 = copy(shape1)
+                # a horizontal domino - add 2 to row below of gamma
                 if len(shape4) <= cell1[0]+1:
                     shape4 += [2]
                 else:
                     shape4[cell1[0]+1] += 2
+
             else:
-                # a vertical domino
-                # find first row shorter than cell1[1]
+                shape4 = copy(shape1)
+                # a vertical domino - add 2 to column right of gamma
+                # find first row shorter than cell1[1]+1
                 for r, p in enumerate(shape4):
-                    if p <= cell1[1]:
+                    if p <= cell1[1]+1:
                         shape4[r] += 1
                         shape4[r+1] += 1
+                        break
                 else:
-                    shape4[0] += 1
-                    shape4[1] += 1
+                    raise NotImplementedError("Domino: cannot call forward rule with shapes %s and content %s"
+                                              %((shape3, shape2, shape1), content))
 
         return shape4

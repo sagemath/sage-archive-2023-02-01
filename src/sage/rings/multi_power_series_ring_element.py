@@ -1737,7 +1737,7 @@ class MPowerSeries(PowerSeries):
         """
         raise NotImplementedError("egf")
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Method from univariate power series not yet implemented
 
@@ -1745,12 +1745,12 @@ class MPowerSeries(PowerSeries):
 
             sage: T.<a,b> = PowerSeriesRing(ZZ,2)
             sage: f = a + b + a*b + T.O(5)
-            sage: f._pari_()
+            sage: f.__pari__()
             Traceback (most recent call last):
             ...
-            NotImplementedError: _pari_
+            NotImplementedError: __pari__
         """
-        raise NotImplementedError("_pari_")
+        raise NotImplementedError("__pari__")
 
 
 

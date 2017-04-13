@@ -387,7 +387,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         Is it faster to copy a zero matrix or is it faster to create a
         new matrix from scratch?
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: MS = MatrixSpace(GF(2),20,20)
             sage: MS._copy_zero
@@ -1772,6 +1772,21 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         else:
             s = 'RMatrixSpace(%s,%s,%s)'%(K.name(), self.__nrows, self.__ncols)
         return s
+
+    def _polymake_init_(self):
+        r"""
+        Return the polymake representation of the matrix space.
+
+        EXAMPLES::
+
+            sage: polymake(MatrixSpace(QQ,3))                   # optional - polymake
+            Matrix<Rational>
+            sage: polymake(MatrixSpace(QuadraticField(5),3))    # optional - polymake
+            Matrix<QuadraticExtension>
+        """
+        from sage.interfaces.polymake import polymake
+        K = polymake(self.base_ring())
+        return '"Matrix<{}>"'.format(K)
 
 def dict_to_list(entries, nrows, ncols):
     """

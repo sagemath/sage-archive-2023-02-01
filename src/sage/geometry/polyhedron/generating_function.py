@@ -603,6 +603,39 @@ def __generating_function_of_integral_points__(
 
 
 def _generating_function_via_Omega_(inequalities, B, skip_indices=()):
+    r"""
+    Compute the generating function of the integral points of the
+    polyhedron specified by ``inequalities`` via
+    :func:`MacMahon's Omega operator <sage.rings.polynomial.omega.MacMahonOmega>`.
+
+    INPUT:
+
+    - ``inequalities`` -- a list or other iterable of tuples
+      of numbers.
+
+    - ``B`` -- a Laurent polynomial ring
+
+    - ``skip_indices`` -- a list or tuple of indices
+
+      The variables corresponding to ``skip_indices`` are not handled
+      (e.g. because they are determined by an equation).
+
+    OUTPUT:
+
+    A pair of
+
+    - a Laurent polynomial specifying the numerator and
+
+    - a tuple of Laurent polynomials specifying the denominator;
+      each entry `t` corresponds to a factor `1 - t`.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.polyhedron.generating_function import _generating_function_via_Omega_
+        sage: B = LaurentPolynomialRing(ZZ, 'y', 3)
+        sage: _generating_function_via_Omega_([(0, -1, -1, 1)], B)
+        (1, (y2, y0*y2, y1*y2))
+    """
     import logging
     logger = logging.getLogger(__name__)
 
@@ -653,40 +686,25 @@ def _generating_function_via_Omega_(inequalities, B, skip_indices=()):
 
 
 class TransformHrepresentation(object):
-
-    def __init__(self, inequalities, equations, B):
-        self.inequalities = inequalities
-        self.equations = equations
-        self.B = B
-        self._transform_()
-
-    def _transform_(self):
-        raise NotImplementedError
-
-    def apply_rules(self, numerator, terms):
-        return (numerator.subs(self.rules) * self.factor,
-                tuple(t.subs(self.rules) for t in terms))
-
-
-class SplitOffSimpleInequalities(TransformHrepresentation):
     r"""
-    Split off (simple) inequalities which can be handled better
-    without passing them to Omega.
+    An abstract base class for transformations of the
+    Hrepresentation of a polyhedron together with its
+    back-substitutions of the corresponding generating function.
 
     INPUT:
 
-    - ``inequalitites`` -- a list of tuples
+    - ``inequalities`` -- a list of tuples of numbers
+
+    - ``equations`` -- a list of tuples of numbers
 
     - ``B`` -- a Laurent polynomial ring
 
-    OUTPUT:
+    ATTRIBUTES:
 
-    A triple ``(inequalities, factor, rules)`` with the following properties:
+    - ``inequalities``, ``equations`` -- list of tuples
 
-    - ``inequalities`` -- a list of tuples
-
-      Determine the generating function of these inequalities instead
-      of the input.
+      Determine the generating function of these inequalities
+      and equations instead of the input.
 
     - ``factor`` -- a Laurent polynomial
 
@@ -698,9 +716,118 @@ class SplitOffSimpleInequalities(TransformHrepresentation):
 
       Substitute ``rules`` into the generating function.
 
-    The generating function of the input ``inequalities`` is equal
-    to the generating function of the output ``inequalities``
-    in which ``rules`` were substitited and ``factor`` was multiplied.
+    The generating function of the input ``inequalities`` and
+    ``equations`` is equal to the generating function of the
+    attributes ``inequalities`` and ``equations`` in which ``rules``
+    were substitited and ``factor`` was multiplied (via
+    :meth:`~TransformHrepresentation.apply_rules`).
+    """
+
+    def __init__(self, inequalities, equations, B):
+        r"""
+        See :class:`TransformHrepresentation` for details.
+
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.generating_function import TransformHrepresentation
+            sage: B = LaurentPolynomialRing(ZZ, 'y', 2)
+            sage: TransformHrepresentation([(1, 2, 3)], [(0, -1, 1)], B)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        self.inequalities = inequalities
+        self.equations = equations
+        self.B = B
+        self._transform_()
+
+    def _transform_(self):
+        r"""
+        Transform the input given on construction of this object.
+
+        This is called during :meth:`__init__`. Overload this method
+        in derived classes.
+
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.generating_function import TransformHrepresentation
+            sage: B = LaurentPolynomialRing(ZZ, 'y', 2)
+            sage: TransformHrepresentation([(1, 2, 3)], [(0, -1, 1)], B)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+    def apply_rules(self, numerator, terms):
+        r"""
+        Substitute the generated rules.
+
+        INPUT:
+
+        - ``numerator`` -- a Laurent polynomial
+
+        - ``terms`` -- a tuple or other iterable of Laurent polynomials
+
+          The denominator is the product of factors `1 - t` for each
+          `t` in ``terms``.
+
+        OUTPUT:
+
+        A pair of a Laurent polynomial and a tuple of Laurent polynomials
+        representing numerator and denominator as described in the
+        INPUT-section.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.generating_function import SplitOffSimpleInequalities as prepare
+            sage: from sage.geometry.polyhedron.generating_function import _generating_function_via_Omega_ as gf
+            sage: B = LaurentPolynomialRing(ZZ, 'y', 3)
+            sage: ieqs = [(0, -1, 1, 0)]
+            sage: T = prepare(ieqs, [], B); T.inequalities, T.factor, T.rules
+            ([], 1, {y2: y2, y1: y1, y0: y0*y1})
+            sage: T.apply_rules(*gf(T.inequalities, B))
+            (1, (y0*y1, y1, y2))
+        """
+        return (numerator.subs(self.rules) * self.factor,
+                tuple(t.subs(self.rules) for t in terms))
+
+
+class SplitOffSimpleInequalities(TransformHrepresentation):
+    r"""
+    Split off (simple) inequalities which can be handled better
+    without passing them to Omega.
+
+    INPUT:
+
+    - ``inequalities`` -- a list of tuples of numbers
+
+    - ``equations`` -- a list of tuples of numbers
+
+    - ``B`` -- a Laurent polynomial ring
+
+    ATTRIBUTES:
+
+    - ``inequalities``, ``equations`` -- list of tuples
+
+      Determine the generating function of these inequalities
+      and equations instead of the input.
+
+    - ``factor`` -- a Laurent polynomial
+
+      The numerator of the generating function has to be multiplied
+      with ``factor`` *after* substituting ``rules``.
+
+    - ``rules`` -- a dictionary mapping Laurent polynomial variables to
+      Laurent polynomials
+
+      Substitute ``rules`` into the generating function.
+
+    The generating function of the input ``inequalities`` and
+    ``equations`` is equal to the generating function of the
+    attributes ``inequalities`` and ``equations`` in which ``rules``
+    were substitited and ``factor`` was multiplied (via
+    :meth:`~TransformHrepresentation.apply_rules`).
 
     EXAMPLES::
 
@@ -888,6 +1015,18 @@ class SplitOffSimpleInequalities(TransformHrepresentation):
     """
 
     def _transform_(self):
+        r"""
+        Do the actual transformation.
+
+        This is called during initialization.
+        See :class:`SplitOffSimpleInequalities` for details.
+
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.generating_function import SplitOffSimpleInequalities
+            sage: B = LaurentPolynomialRing(ZZ, 'y', 2)
+            sage: T = SplitOffSimpleInequalities([(1, 1, 1)], [], B)  # indirect doctest
+        """
         inequalities = self.inequalities
         B = self.B
 
@@ -971,13 +1110,18 @@ class EliminateByEquations(TransformHrepresentation):
 
     INPUT:
 
-    - ``equations`` -- a list of tuples
+    - ``inequalities`` -- a list of tuples of numbers
+
+    - ``equations`` -- a list of tuples of numbers
 
     - ``B`` -- a Laurent polynomial ring
 
-    OUTPUT:
+    ATTRIBUTES:
 
-    A triple ``(factor, rules, indices)`` with the following properties:
+    - ``inequalities``, ``equations`` -- list of tuples
+
+      Determine the generating function of these inequalities
+      and equations instead of the input.
 
     - ``factor`` -- a Laurent polynomial
 
@@ -995,9 +1139,11 @@ class EliminateByEquations(TransformHrepresentation):
       These are exactly the "eliminated" variables which we take care of
       by ``factor`` and ``rules``.
 
-    The generating function of some inequalities and ``equations`` is equal
-    to the generating function of these inequalities
-    in which ``rules`` were substitited and ``factor`` was multiplied.
+    The generating function of the input ``inequalities`` and
+    ``equations`` is equal to the generating function of the
+    attributes ``inequalities`` and ``equations`` in which ``rules``
+    were substitited and ``factor`` was multiplied (via
+    :meth:`~TransformHrepresentation.apply_rules`).
 
     EXAMPLES::
 
@@ -1028,6 +1174,18 @@ class EliminateByEquations(TransformHrepresentation):
     """
 
     def _transform_(self):
+        r"""
+        Do the actual transformation.
+
+        This is called during initialization.
+        See :class:`EliminateByEquations` for details.
+
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.generating_function import EliminateByEquations
+            sage: B = LaurentPolynomialRing(ZZ, 'y', 2)
+            sage: T = EliminateByEquations([], [], B)  # indirect doctest
+        """
         from sage.matrix.constructor import matrix
         from sage.misc.misc_c import prod
 
@@ -1120,20 +1278,22 @@ class TransformMod(TransformHrepresentation):
 
     INPUT:
 
+    - ``inequalities`` -- a list of tuples of numbers
+
+    - ``equations`` -- a list of tuples of numbers
+
+    - ``B`` -- a Laurent polynomial ring
+
     - ``mod`` -- a dictionary mapping an index ``i`` to ``(m, r)``
 
       This is one entry of the output tuple of :meth:`generate_mods`.
 
-    - ``B`` -- a Laurent polynomial ring
+    ATTRIBUTES:
 
-    - ``*vecs`` -- each is a list of tuples
+    - ``inequalities``, ``equations`` -- list of tuples
 
-      Typically, two ``vec``-arguments are passed, namely
-      ``inequalities`` and ``equations``.
-
-    OUTPUT:
-
-    A tuple ``(factor, rules, *vecs)`` with the following properties:
+      Determine the generating function of these inequalities
+      and equations instead of the input.
 
     - ``factor`` -- a Laurent polynomial
 
@@ -1145,14 +1305,11 @@ class TransformMod(TransformHrepresentation):
 
       Substitute ``rules`` into the generating function.
 
-    - ``*vecs`` -- a list of tuples
-
-      Determine the generating function of these ``vecs`` (``inequalities``,
-      ``equations``) instead of the input.
-
-    The generating function of the input ``vecs`` is equal
-    to the generating function of the output ``vecs``
-    in which ``rules`` were substitited and ``factor`` was multiplied.
+    The generating function of the input ``inequalities`` and
+    ``equations`` is equal to the generating function of the
+    attributes ``inequalities`` and ``equations`` in which ``rules``
+    were substitited and ``factor`` was multiplied (via
+    :meth:`~TransformHrepresentation.apply_rules`).
 
     EXAMPLES::
 
@@ -1171,11 +1328,34 @@ class TransformMod(TransformHrepresentation):
         (y0*y1, {y2: y2, y1: y1^2, y0: y0^2},
          [(-2, -2, -2, 2)], [(0, -2, 2, 0)])
     """
+
     def __init__(self, inequalities, equations, B, mod):
+        r"""
+        See :class:`TransformMod` for details.
+
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.generating_function import TransformMod
+            sage: B = LaurentPolynomialRing(ZZ, 'y', 2)
+            sage: TransformMod([], [], B, {})
+            <...TransformMod object at 0x...>
+        """
         self.mod = mod
         super(TransformMod, self).__init__(inequalities, equations, B)
 
     def _transform_(self):
+        r"""
+        Do the actual transformation.
+
+        This is called during initialization.
+        See :class:`TransformMod` for details.
+
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.generating_function import TransformMod
+            sage: B = LaurentPolynomialRing(ZZ, 'y', 2)
+            sage: T = TransformMod([], [], B, {})  # indirect doctest
+        """
         from sage.matrix.constructor import matrix
         from sage.modules.free_module_element import vector
         from sage.rings.integer_ring import ZZ
@@ -1217,7 +1397,7 @@ class TransformMod(TransformHrepresentation):
 
         A tuple where each entry represents one possible configuration.
         Each entry is a dictionary mapping ``i`` to ``(m, r)`` with the following 
-        meaning: The ``i``th coordinate of each element of the polyhedron
+        meaning: The ``i``-th coordinate of each element of the polyhedron
         has to be congruent to ``r`` modulo ``m``.
 
         TESTS::

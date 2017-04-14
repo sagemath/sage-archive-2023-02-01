@@ -2929,7 +2929,7 @@ def polygen(ring_or_element, name="x"):
         return t.gens()
     return t.gen()
 
-def polygens(base_ring, names="x"):
+def polygens(base_ring, names="x", *args):
     """
     Return indeterminates over the given base ring with the given
     names.
@@ -2944,6 +2944,11 @@ def polygens(base_ring, names="x"):
         sage: t = polygens(QQ,['x','yz','abc'])
         sage: t
         (x, yz, abc)
+
+    The number of generators can be passed as a third argument::
+
+        sage: polygens(QQ, 'x', 4)
+        (x0, x1, x2, x3)
     """
     from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-    return PolynomialRing(base_ring, names).gens()
+    return PolynomialRing(base_ring, names, *args).gens()

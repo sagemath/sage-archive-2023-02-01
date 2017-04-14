@@ -5713,7 +5713,7 @@ class Polyhedron_base(Element):
         else:
             return self.face_lattice().is_isomorphic(other.face_lattice())
 
-    def affine_hull(self, algorithm='projection'):
+    def affine_hull(self, force_isometry=False):
         """
         Return the affine hull.
 
@@ -5722,13 +5722,14 @@ class Polyhedron_base(Element):
         same polyhedron but thought of as a full-dimensional
         polyhedron in this subspace. Depending on how the smallest affine
         subspace is coordinatized, the resulting polyhedron might or
-        might not be isometric to the original polyhedron. In any case
+        might not be isometric to the original polyhedron. This can be
+        controlled with the ``force_isometry`` parameter. In any case
         they will be affinely equivalent.
 
         INPUT:
 
-         - ``algorithm`` (default = ``projection``) -- the algorithm to use.
-          The other possible value is ``isometry``.
+         - ``force_isometry`` (default = ``False``) -- if ``True``, the
+         resulting affine hull will be isometric to the polyhedron provided
 
         OUTPUT:
 
@@ -5736,7 +5737,7 @@ class Polyhedron_base(Element):
 
         .. TODO::
 
-        Make the algorithm ``isometry`` work with unbounded polyhedra.
+        Make the parmeter ``force_isometry`` work with unbounded polyhedra.
 
         EXAMPLES::
 
@@ -5749,7 +5750,7 @@ class Polyhedron_base(Element):
             sage: half3d.affine_hull().Vrepresentation()
             (A ray in the direction (1), A vertex at (3))
 
-        The different algorithms lead to different affine hulls::
+        The resulting affine hulls depends on the ``force_isometry`` parameter::
 
             sage: L = Polyhedron([[1,0],[0,1]]); L
             A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
@@ -5757,7 +5758,7 @@ class Polyhedron_base(Element):
             A 1-dimensional polyhedron in ZZ^1 defined as the convex hull of 2 vertices
             sage: A.vertices()
             (A vertex at (0), A vertex at (1))
-            sage: A = L.affine_hull(algorithm="isometry"); A
+            sage: A = L.affine_hull(force_isometry=True); A
             A 1-dimensional polyhedron in AA^1 defined as the convex hull of 2 vertices
             sage: A.vertices()
             (A vertex at (0), A vertex at (1.414213562373095?))
@@ -5773,7 +5774,7 @@ class Polyhedron_base(Element):
              A vertex at (0, 0, 1),
              A vertex at (0, 1, 0),
              A vertex at (1, 0, 0))
-            sage: A = S.affine_hull(algorithm="isometry"); A
+            sage: A = S.affine_hull(force_isometry=True); A
             A 3-dimensional polyhedron in AA^3 defined as the convex hull of 4 vertices
             sage: A.vertices()
             (A vertex at (0, 0, 0),
@@ -5781,24 +5782,24 @@ class Polyhedron_base(Element):
              A vertex at (0.7071067811865475?, 1.224744871391589?, 0),
              A vertex at (0.7071067811865475?, 0.4082482904638630?, 1.154700538379252?))
 
-        Another example of the dependeny of the result on the algorithm::
+        Another example of the dependeny on ``force_isometry``::
 
             sage: P = polytopes.permutahedron(3); P
             A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 6 vertices
-            sage: set([F.as_polyhedron().affine_hull(algorithm="isometry").volume() for F in P.affine_hull().faces(1)]) == {1, sqrt(AA(2))}
+            sage: set([F.as_polyhedron().affine_hull(force_isometry=True).volume() for F in P.affine_hull().faces(1)]) == {1, sqrt(AA(2))}
             True
-            sage: set([F.as_polyhedron().affine_hull(algorithm="isometry").volume() for F in P.affine_hull(algorithm="isometry").faces(1)]) == {sqrt(AA(2))}
+            sage: set([F.as_polyhedron().affine_hull(force_isometry=True).volume() for F in P.affine_hull(force_isometry=True).faces(1)]) == {sqrt(AA(2))}
             True
 
         The affine hull is combinatorially equivalent to the input::
 
             sage: P.is_combinatorially_isomorphic(P.affine_hull())
             True
-            sage: P.is_combinatorially_isomorphic(P.affine_hull(algorithm="isometry"))
+            sage: P.is_combinatorially_isomorphic(P.affine_hull(force_isometry=True))
             True
 
 
-        For unbounded, non full-dimensional polyhedra, the algorithm ``isometry``
+        For unbounded, non full-dimensional polyhedra, the ``force_isometry``
         is not implemented::
 
             sage: P = Polyhedron(ieqs=[[0, 1, 0], [0, 0, 1], [0, 0, -1]]); P
@@ -5807,27 +5808,27 @@ class Polyhedron_base(Element):
             False
             sage: P.is_full_dimensional()
             False
-            sage: P.affine_hull(algorithm="isometry")
+            sage: P.affine_hull(force_isometry=True)
             Traceback (most recent call last):
             ...
-            NotImplementedError: Algorithm "isometry" works only for compact polyhedra
+            NotImplementedError: "force_isometry=True" works only for compact polyhedra
 
         TESTS::
 
             sage: Polyhedron([(2,3,4)]).affine_hull()
             A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
         """
-        if algorithm == 'isometry':
+        if force_isometry:
             #if the self is full-dimensional, return it immediately
             if self.ambient_dim() == self.dim():
                 return self
             if not self.is_compact():
-                raise NotImplementedError('Algorithm "isometry" works only for compact polyhedra')
+                raise NotImplementedError('"force_isometry=True" works only for compact polyhedra')
             #translate 0th vertex to the origin
             Q = self.translation(-vector(self.vertices()[0]))
             v = Q.vertices()[0]
             #check that translation didn't change the order of the vertices
-            assert list(v) == self.ambient_dim()*[0]
+            assert v.vector() == Q.ambient_space().zero()
             #choose as an affine basis the neighbors of the origin vertex in Q
             M = matrix([list(w) for w in itertools.islice(v.neighbors(), self.dim())])
             #switch base_ring to AA for integer and rational polytopes,

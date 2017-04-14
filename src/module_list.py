@@ -195,6 +195,9 @@ ext_modules = [
                language='c++',
                libraries = ["gmp", "m", "ntl"]),
 
+    Extension('sage.algebras.lie_algebras.lie_algebra_element',
+              sources = ["sage/algebras/lie_algebras/lie_algebra_element.pyx"]),
+
     ################################
     ##
     ## sage.arith
@@ -481,14 +484,6 @@ ext_modules = [
     Extension('sage.groups.perm_gps.partn_ref2.refinement_generic',
               sources = ['sage/groups/perm_gps/partn_ref2/refinement_generic.pyx'],
               extra_compile_args=["-std=c99"]),
-
-    ################################
-    ##
-    ## sage.gsl
-    ##
-    ################################
-
-    Extension('*', ['sage/gsl/*.pyx']),
 
     ################################
     ##

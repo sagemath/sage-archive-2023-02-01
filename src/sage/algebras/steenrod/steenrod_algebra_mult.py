@@ -424,7 +424,7 @@ def milnor_multiplication_odd(m1,m2,p):
         sage: (a+b)*c == a*c + b*c
         True
 
-    Test that the bug reported in #7212 has been fixed::
+    Test that the bug reported in :trac:`7212` has been fixed::
 
         sage: A.P(36,6)*A.P(27,9,81)
         2 P(13,21,83) + P(14,24,82) + P(17,20,83) + P(25,18,83) + P(26,21,82) + P(36,15,80,1) + P(49,12,83) + 2 P(50,15,82) + 2 P(53,11,83) + 2 P(63,15,81)

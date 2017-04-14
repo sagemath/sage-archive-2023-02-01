@@ -2416,8 +2416,38 @@ cdef class pAdicGenericElement(LocalGenericElement):
             else:
                 raise ValueError("element is not a square")
 
-    #def _unit_part(self):
-    #    raise NotImplementedError
+    def __abs__(self):
+        """
+        Return the `p`-adic absolute value of ``self``.
+
+        This is normalized so that the absolute value of `p` is `1/p`.
+
+        EXAMPLES::
+
+            sage: abs(Qp(5)(15))
+            1/5
+            sage: abs(Qp(7)(0))
+            0
+
+        An unramified extension::
+
+            sage: R = Zp(5,5)
+            sage: P.<x> = PolynomialRing(R)
+            sage: Z25.<u> = R.ext(x^2 - 3)
+            sage: abs(u)
+            1
+            sage: abs(u^24-1)
+            1/5
+
+        A ramified extension::
+
+            sage: W.<w> = R.ext(x^5 + 75*x^3 - 15*x^2 + 125*x - 5)
+            sage: abs(w)
+            0.724779663677696
+            sage: abs(W(0))
+            0.000000000000000
+        """
+        return self.abs()
 
     cpdef abs(self, prec=None):
         """

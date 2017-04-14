@@ -1522,9 +1522,7 @@ cdef class MPolynomial(CommutativeRingElement):
             1.00000000000000
 
         Check that the denominator is an element over the base whenever the base
-        has no denominator function. This closes #9063
-
-        ::
+        has no denominator function. This closes :trac:`9063`::
 
             sage: R.<a,b,c> = GF(5)[]
             sage: x = R(0)

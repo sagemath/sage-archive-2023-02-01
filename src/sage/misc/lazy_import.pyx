@@ -906,7 +906,7 @@ cdef class LazyImport(object):
             sage: lazy_import('sage.all', 'foo')
             sage: type(foo)
             <type 'sage.misc.lazy_import.LazyImport'>
-            sage: range(100)[foo]
+            sage: list(range(100))[foo]
             10
         """
         return operator.index(self._get_object())

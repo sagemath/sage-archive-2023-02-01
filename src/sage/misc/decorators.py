@@ -61,7 +61,7 @@ def sage_wraps(wrapped, assigned=WRAPPER_ASSIGNMENTS, updated=WRAPPER_UPDATES):
         ....:       return f(x)*f(x)
         ....:   return new_f
         sage: @square
-        ... def g(x):
+        ....: def g(x):
         ....:   "My little function"
         ....:   return x
         sage: g(2)
@@ -84,7 +84,7 @@ def sage_wraps(wrapped, assigned=WRAPPER_ASSIGNMENTS, updated=WRAPPER_UPDATES):
         ....:       return f(y+some_def_arg)
         ....:   return new_f
         sage: @diff_arg_dec
-        ... def g(x):
+        ....: def g(x):
         ....:   return x
         sage: g(1)
         3
@@ -378,22 +378,20 @@ def decorator_defaults(func):
 
         sage: from sage.misc.decorators import decorator_defaults
         sage: @decorator_defaults
-        ... def my_decorator(f,*args,**kwds):
+        ....: def my_decorator(f,*args,**kwds):
         ....:   print(kwds)
         ....:   print(args)
         ....:   print(f.__name__)
-        ...
+
         sage: @my_decorator
-        ... def my_fun(a,b):
+        ....: def my_fun(a,b):
         ....:   return a,b
-        ...
         {}
         ()
         my_fun
         sage: @my_decorator(3,4,c=1,d=2)
-        ... def my_fun(a,b):
+        ....: def my_fun(a,b):
         ....:   return a,b
-        ...
         {'c': 1, 'd': 2}
         (3, 4)
         my_fun

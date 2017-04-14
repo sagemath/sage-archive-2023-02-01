@@ -442,7 +442,7 @@ def linear_ordering_to_path_decomposition(G, L):
         ...
         ValueError: the first parameter must be a Graph
         sage: g = graphs.CycleGraph(6)
-        sage: linear_ordering_to_path_decomposition(g, range(7))
+        sage: linear_ordering_to_path_decomposition(g, list(range(7)))
         Traceback (most recent call last):
         ...
         ValueError: the input linear vertex ordering L is not valid for G

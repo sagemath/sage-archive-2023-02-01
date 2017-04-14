@@ -34,7 +34,6 @@ class Polyhedron_ZZ(Polyhedron_QQ):
         A 0-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex
         sage: TestSuite(p).run(skip='_test_pickling')
     """
-
     _base_ring = ZZ
 
     def is_lattice_polytope(self):
@@ -52,8 +51,16 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             True
             sage: polytopes.regular_polygon(5).is_lattice_polytope()
             False
+
+        TESTS:
+
+        Check :trac:`22622`::
+
+            sage: P1 = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]])
+            sage: P1.is_lattice_polytope()
+            False
         """
-        return True
+        return self.is_compact()
 
     def ehrhart_polynomial(self, verbose=False, dual=None,
             irrational_primal=None, irrational_all_primal=None, maxdet=None,

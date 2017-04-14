@@ -123,6 +123,7 @@ AUTHORS:
 
 # just used for handy .load, .save, etc.
 from __future__ import print_function, absolute_import
+from six.moves import range
 
 import inspect
 from sage.structure.sage_object import SageObject
@@ -306,7 +307,7 @@ class SloaneSequence(SageObject):
         # The dirty work of generating indices is left to a range list
         # This could be slow but in practice seems fine
         # NOTE: n is a SLICE, not an index
-        return [ self(i) for i in range(0, LENGTH)[n] if i >= self.offset ]
+        return [self(i) for i in list(range(LENGTH))[n] if i >= self.offset]
 
 ########################################################################
 # II. Actual implementations of Sloane sequences.

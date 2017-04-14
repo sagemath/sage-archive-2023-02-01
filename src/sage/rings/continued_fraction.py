@@ -506,7 +506,7 @@ class ContinuedFraction_base(SageObject):
             + \frac{\displaystyle 1}{\displaystyle 2
             + \frac{\displaystyle 1}{\displaystyle 1
             + \frac{\displaystyle 1}{\displaystyle \dots}}}}}}}}}}
-            sage: print cf_pi._latex_(nterms=3)
+            sage: print(cf_pi._latex_(nterms=3))
             3
             + \frac{\displaystyle 1}{\displaystyle 7
             + \frac{\displaystyle 1}{\displaystyle 15
@@ -515,12 +515,12 @@ class ContinuedFraction_base(SageObject):
         nterms = int(nterms)
         if nterms <= 0:
             raise ValueError("nterms must be positive")
-        v=[self.quotient(i) for i in range(nterms+1)]
-        s = str(v[0])+'\n'
-        for i in range(1,min(len(v)-1,nterms)):
+        v = [self.quotient(i) for i in range(nterms + 1)]
+        s = str(v[0]) + '\n'
+        for i in range(1, min(len(v) - 1, nterms)):
             s += '+ \\frac{\\displaystyle 1}{\\displaystyle %s\n' % v[i]
         s += '+ \\frac{\\displaystyle 1}{\\displaystyle \dots'
-        s += '}'*(len(v)-1)
+        s += '}' * (len(v) - 1)
         return s
 
     def __abs__(self):

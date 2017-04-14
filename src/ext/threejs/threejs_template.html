@@ -150,7 +150,7 @@ SAGE_SCRIPTS
 
     var texts = SAGE_TEXTS;
     for ( var i=0 ; i < texts.length ; i++ )
-        addLabel( texts[i].text, texts[i].x, texts[i].y, texts[i].z );
+        addLabel( texts[i].text, a[0]*texts[i].x, a[1]*texts[i].y, a[2]*texts[i].z );
 
     var points = SAGE_POINTS;
     for ( var i=0 ; i < points.length ; i++ ) addPoint( points[i] );

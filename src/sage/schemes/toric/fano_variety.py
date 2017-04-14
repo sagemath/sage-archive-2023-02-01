@@ -153,6 +153,7 @@ implementing them on your own as a patch for inclusion!
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import range
 
 import re
 
@@ -565,16 +566,16 @@ def CPRFanoToricVariety(Delta=None,
         raise ValueError("Delta_polar must be reflexive!")
     # Check/normalize coordinate_points and construct fan rays
     if coordinate_points is None:
-        coordinate_points = range(Delta_polar.nvertices())
+        coordinate_points = list(range(Delta_polar.nvertices()))
         if charts is not None:
             for chart in charts:
                 for point in chart:
                     if point not in coordinate_points:
                         coordinate_points.append(point)
     elif coordinate_points == "vertices":
-        coordinate_points = range(Delta_polar.nvertices())
+        coordinate_points = list(range(Delta_polar.nvertices()))
     elif coordinate_points == "all":
-        coordinate_points = range(Delta_polar.npoints())
+        coordinate_points = list(range(Delta_polar.npoints()))
         coordinate_points.remove(Delta_polar.origin())
     elif coordinate_points == "all but facets":
         coordinate_points = Delta_polar.skeleton_points(Delta_polar.dim() - 2)
@@ -587,7 +588,7 @@ def CPRFanoToricVariety(Delta=None,
             raise ValueError(
                 "no repetitions are allowed for coordinate points!\nGot: %s"
                 % coordinate_points)
-        if not cp_set.issuperset(range(Delta_polar.nvertices())):
+        if not cp_set.issuperset(list(range(Delta_polar.nvertices()))):
             raise ValueError("all %d vertices of Delta_polar must be used "
                 "for coordinates!\nGot: %s"
                 % (Delta_polar.nvertices(), coordinate_points))
@@ -1416,11 +1417,11 @@ class AnticanonicalHypersurface(AlgebraicScheme_subscheme_toric):
         Delta_polar = Delta.polar()
         # Monomial points normalization
         if monomial_points == "vertices":
-            monomial_points = range(Delta.nvertices())
+            monomial_points = list(range(Delta.nvertices()))
         elif monomial_points == "all":
-            monomial_points = range(Delta.npoints())
+            monomial_points = list(range(Delta.npoints()))
         elif monomial_points == "vertices+origin":
-            monomial_points = range(Delta.nvertices())
+            monomial_points = list(range(Delta.nvertices()))
             monomial_points.append(Delta.origin())
         elif monomial_points == "simplified" or monomial_points is None:
             monomial_points = Delta.skeleton_points(Delta.dim() - 2)
@@ -1550,11 +1551,11 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
             Delta_i = nef_partition.Delta(i)
             # Monomial points normalization
             if monomial_points[i] == "vertices":
-                monomial_points[i] = range(Delta_i.nvertices())
+                monomial_points[i] = list(range(Delta_i.nvertices()))
             elif monomial_points[i] == "all":
-                monomial_points[i] = range(Delta_i.npoints())
+                monomial_points[i] = list(range(Delta_i.npoints()))
             elif monomial_points[i] == "vertices+origin":
-                monomial_points[i] = range(Delta_i.nvertices())
+                monomial_points[i] = list(range(Delta_i.nvertices()))
                 if (Delta_i.origin() is not None
                     and Delta_i.origin() >= Delta_i.nvertices()):
                     monomial_points[i].append(Delta_i.origin())

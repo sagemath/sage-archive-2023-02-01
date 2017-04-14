@@ -254,6 +254,24 @@ class WittLieAlgebra_charp(FinitelyGeneratedLieAlgebra, IndexedGenerators):
 
     Element = LieAlgebraElement
 
+def _basis_key(x):
+    """
+    Helper function that generates a key for the basis elements
+    of the Virasoro algebra.
+
+    EXAMPLES::
+
+        sage: from sage.algebras.lie_algebras.virasoro import _basis_key
+        sage: _basis_key('c')
+        +Infinity
+        sage: _basis_key(2)
+        2
+    """
+    if x == 'c':
+        from sage.rings.infinity import infinity
+        return infinity
+    return x
+
 class VirasoroAlgebra(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
     r"""
     The Virasoro algebra.
@@ -297,7 +315,8 @@ class VirasoroAlgebra(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
         """
         cat = LieAlgebras(R).WithBasis()
         InfinitelyGeneratedLieAlgebra.__init__(self, R, index_set=ZZ, category=cat)
-        IndexedGenerators.__init__(self, ZZ, prefix='d', bracket='[')
+        IndexedGenerators.__init__(self, ZZ, prefix='d', bracket='[',
+                                   sorting_key=_basis_key)
 
     def _repr_term(self, m):
         """

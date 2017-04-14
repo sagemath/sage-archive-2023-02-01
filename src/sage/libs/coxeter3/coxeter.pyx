@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Low level part of the interface to Fokko Ducloux's Coxeter 3 library
 
@@ -1060,7 +1061,7 @@ cdef class CoxGroupElement:
 
     def poincare_polynomial(self):
         """
-        Return the Poincare polynomial associated with the Bruhat
+        Return the Poincaré polynomial associated with the Bruhat
         interval between the identity element and this one.
 
         EXAMPLES::

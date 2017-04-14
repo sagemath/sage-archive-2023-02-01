@@ -102,7 +102,6 @@ from sage.misc.abstract_method import abstract_method, abstract_methods_of_class
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.c3_controlled import _cmp_key, _cmp_key_named, C3_sorted_merge
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.lazy_import import lazy_import
 from sage.misc.unknown import Unknown
 from sage.misc.weak_dict import WeakValueDictionary
 
@@ -2652,7 +2651,6 @@ def category_graph(categories = None):
                 g.add_edge([source._repr_object_names(), target._repr_object_names()])
     return g
 
-lazy_import('sage.categories.homsets', 'Homsets', 'HomCategory', deprecation=10668)
 
 ##############################################################################
 # Parametrized categories whose parent/element class depend only on

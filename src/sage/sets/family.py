@@ -532,7 +532,7 @@ class FiniteFamily(AbstractFamily):
             sage: f = FiniteFamily({3: 'a', 4: 'b', 7: 'd'})
             sage: TestSuite(f).run()
 
-        Check for bug #5538::
+        Check for bug :trac:`5538`::
 
             sage: d = {1:"a", 3:"b", 4:"c"}
             sage: f = Family(d)
@@ -541,12 +541,12 @@ class FiniteFamily(AbstractFamily):
             Finite family {1: 'a', 3: 'b', 4: 'c'}
             """
         # TODO: use keys to specify the order of the elements
-        Parent.__init__(self, category = FiniteEnumeratedSets())
+        Parent.__init__(self, category=FiniteEnumeratedSets())
         self._dictionary = dict(dictionary)
         self._keys = keys
         if keys is None:
             # Note: this overrides the two methods keys and values!
-            self.keys   = dictionary.keys
+            self.keys = dictionary.keys
             self.values = dictionary.values
 
     @cached_method

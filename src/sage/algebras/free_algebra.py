@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Free algebras
 
@@ -899,7 +900,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
 
     def poincare_birkhoff_witt_basis(self):
         """
-        Return the Poincare-Birkhoff-Witt (PBW) basis of ``self``.
+        Return the Poincaré-Birkhoff-Witt (PBW) basis of ``self``.
 
         EXAMPLES::
 
@@ -913,7 +914,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
 
     def pbw_element(self, elt):
         """
-        Return the element ``elt`` in the Poincare-Birkhoff-Witt basis.
+        Return the element ``elt`` in the Poincaré-Birkhoff-Witt basis.
 
         EXAMPLES::
 
@@ -1020,7 +1021,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
 
 class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
     """
-    The Poincare-Birkhoff-Witt basis of the free algebra.
+    The Poincaré-Birkhoff-Witt basis of the free algebra.
 
     EXAMPLES::
 
@@ -1309,7 +1310,7 @@ class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
 
     def expansion(self, t):
         """
-        Return the expansion of the element ``t`` of the Poincare-Birkhoff-Witt
+        Return the expansion of the element ``t`` of the Poincaré-Birkhoff-Witt
         basis in the monomials of the free algebra.
 
         EXAMPLES::

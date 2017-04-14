@@ -29,13 +29,18 @@ from sage.structure.coerce import py_scalar_to_element
 
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
-from sage.rings.integer import Integer, GCD_list, LCM_list
+from sage.rings.integer import Integer, GCD_list
 from sage.rings.rational import Rational
 from sage.rings.real_mpfr import RealNumber
 from sage.rings.complex_number import ComplexNumber
 
 import sage.rings.fast_arith as fast_arith
 prime_range = fast_arith.prime_range
+
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.arith.all', 'lcm', deprecation=22630)
+lazy_import('sage.arith.all', 'lcm', '__LCM_sequence', deprecation=22630)
+lazy_import('sage.arith.all', 'lcm', 'LCM', deprecation=22630)
 
 
 ##################################################################
@@ -44,11 +49,8 @@ prime_range = fast_arith.prime_range
 
 def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_digits=None, height_bound=None, proof=False):
     """
-    Returns a polynomial of degree at most `degree` which is
-    approximately satisfied by the number `z`. Note that the returned
-    polynomial need not be irreducible, and indeed usually won't be if
-    `z` is a good approximation to an algebraic number of degree less
-    than `degree`.
+    Returns an irreducible polynomial of degree at most `degree` which
+    is approximately satisfied by the number `z`.
 
     You can specify the number of known bits or digits of `z` with
     ``known_bits=k`` or ``known_digits=k``. PARI is then told to
@@ -96,12 +98,8 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
 
         sage: z = (1/2)*(1 + RDF(sqrt(3)) *CC.0); z
         0.500000000000000 + 0.866025403784439*I
-        sage: p = algdep(z, 6); p
-        x^3 + 1
-        sage: p.factor()
-        (x + 1) * (x^2 - x + 1)
-        sage: z^2 - z + 1   # abs tol 2e-16
-        0.000000000000000
+        sage: algdep(z, 6)
+        x^2 - x + 1
 
     This example involves a `p`-adic number::
 
@@ -168,18 +166,28 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
 
         sage: algdep(complex("1+2j"), 4)
         x^2 - 2*x + 5
+
+    We get an irreducible polynomial even if PARI returns a reducible
+    one::
+
+        sage: z = CDF(1, RR(3).sqrt())/2
+        sage: pari(z).algdep(5)
+        x^5 + x^2
+        sage: algdep(z, 5)
+        x^2 - x + 1
     """
     if proof and not height_bound:
         raise ValueError("height_bound must be given for proof=True")
 
-    x = ZZ['x'].gen()
+    R = ZZ['x']
+    x = R.gen()
 
     z = py_scalar_to_element(z)
 
     if isinstance(z, Integer):
         if height_bound and abs(z) >= height_bound:
             return None
-        return x - ZZ(z)
+        return x - z
 
     degree = ZZ(degree)
 
@@ -244,7 +252,9 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
         y = pari(z)
         f = y.algdep(degree)
 
-    return x.parent()(f)
+    # f might be reducible. Find the best fitting irreducible factor
+    factors = [p for p, e in R(f).factor()]
+    return min(factors, key=lambda f: abs(f(z)))
 
 
 algebraic_dependency = algdep
@@ -1497,7 +1507,7 @@ def gcd(a, b=None, **kwargs):
 
     Note that to take the gcd of `n` elements for `n \not= 2` you must
     put the elements into a list by enclosing them in ``[..]``.  Before
-    #4988 the following wrongly returned 3 since the third parameter
+    :trac:`4988` the following wrongly returned 3 since the third parameter
     was just ignored::
 
         sage: gcd(3,6,2)
@@ -1621,168 +1631,6 @@ def __GCD_sequence(v, **kwargs):
     for vi in v:
         g = vi.gcd(g, **kwargs)
         if g == one:
-            return g
-    return g
-
-def lcm(a, b=None):
-    """
-    The least common multiple of a and b, or if a is a list and b is
-    omitted the least common multiple of all elements of a.
-
-    Note that LCM is an alias for lcm.
-
-    INPUT:
-
-
-    -  ``a,b`` - two elements of a ring with lcm or
-
-    -  ``a`` - a list or tuple of elements of a ring with
-       lcm
-
-    OUTPUT:
-
-    First, the given elements are coerced into a common parent. Then,
-    their least common multiple *in that parent* is returned.
-
-    EXAMPLES::
-
-        sage: lcm(97,100)
-        9700
-        sage: LCM(97,100)
-        9700
-        sage: LCM(0,2)
-        0
-        sage: LCM(-3,-5)
-        15
-        sage: LCM([1,2,3,4,5])
-        60
-        sage: v = LCM(range(1,10000))   # *very* fast!
-        sage: len(str(v))
-        4349
-
-
-    TESTS:
-
-    The following tests against a bug that was fixed in :trac:`10771`::
-
-        sage: lcm(4/1,2)
-        4
-
-    The following shows that indeed coercion takes place before
-    computing the least common multiple::
-
-        sage: R.<x>=QQ[]
-        sage: S.<x>=ZZ[]
-        sage: p = S.random_element(degree=(0,5))
-        sage: q = R.random_element(degree=(0,5))
-        sage: parent(lcm([1/p,q]))
-        Fraction Field of Univariate Polynomial Ring in x over Rational Field
-
-    Make sure we try QQ and not merely ZZ (:trac:`13014`)::
-
-        sage: bool(lcm(2/5, 3/7) == lcm(SR(2/5), SR(3/7)))
-        True
-
-    Make sure that the lcm of Expressions stays symbolic::
-
-        sage: parent(lcm(2, 4))
-        Integer Ring
-        sage: parent(lcm(SR(2), 4))
-        Symbolic Ring
-        sage: parent(lcm(2, SR(4)))
-        Symbolic Ring
-        sage: parent(lcm(SR(2), SR(4)))
-        Symbolic Ring
-
-    Verify that objects without lcm methods but which can't be
-    coerced to ZZ or QQ raise an error::
-
-        sage: F.<a,b> = FreeMonoid(2)
-        sage: lcm(a,b)
-        Traceback (most recent call last):
-        ...
-        TypeError: unable to find lcm
-
-    Check rational and integers (:trac:`17852`)::
-
-        sage: lcm(1/2, 4)
-        4
-        sage: lcm(4, 1/2)
-        4
-    """
-    # Most common use case first:
-    if b is not None:
-        try:
-            return a.lcm(b)
-        except (AttributeError,TypeError):
-            pass
-        try:
-            return ZZ(a).lcm(ZZ(b))
-        except TypeError:
-            raise TypeError("unable to find lcm")
-
-    from sage.structure.sequence import Sequence
-    seq = Sequence(a)
-    U = seq.universe()
-    if U is ZZ or U is int or U is long:
-        return LCM_list(a)
-    return __LCM_sequence(seq)
-
-LCM = lcm
-
-def __LCM_sequence(v):
-    """
-    Internal function returning the lcm of the elements of a sequence
-
-    INPUT:
-
-
-    -  ``v`` - A sequence (possibly empty)
-
-
-    OUTPUT: The lcm of the elements of the sequence as an element of
-    the sequence's universe, or the integer 1 if the sequence is
-    empty.
-
-    EXAMPLES::
-
-        sage: from sage.structure.sequence import Sequence
-        sage: from sage.arith.misc import __LCM_sequence
-        sage: l = Sequence(())
-        sage: __LCM_sequence(l)
-        1
-
-    This is because lcm(0,x)=0 for all x (by convention)
-
-    ::
-
-        sage: __LCM_sequence(Sequence(srange(100)))
-        0
-
-    So for the lcm of all integers up to 10 you must do this::
-
-        sage: __LCM_sequence(Sequence(srange(1,100)))
-        69720375229712477164533808935312303556800
-
-    Note that the following example did not work in QQ[] as of 2.11,
-    but does in 3.1.4; the answer is different, though equivalent::
-
-        sage: R.<X>=ZZ[]
-        sage: __LCM_sequence(Sequence((2*X+4,2*X^2,2)))
-        2*X^3 + 4*X^2
-        sage: R.<X>=QQ[]
-        sage: __LCM_sequence(Sequence((2*X+4,2*X^2,2)))
-        X^3 + 2*X^2
-    """
-    if len(v) == 0:
-        return ZZ(1)
-    try:
-        g = v.universe()(1)
-    except AttributeError:
-        g = ZZ(1)
-    for vi in v:
-        g = vi.lcm(g)
-        if not g:
             return g
     return g
 
@@ -2917,6 +2765,7 @@ def crt(a,b,m=None,n=None):
     q, r = (b - a).quo_rem(g)
     if r != 0:
         raise ValueError("No solution to crt problem since gcd(%s,%s) does not divide %s-%s" % (m, n, a, b))
+    from sage.arith.functions import lcm
     return (a + q*alpha*m) % lcm(m, n)
 
 CRT = crt
@@ -2992,6 +2841,7 @@ def CRT_list(v, moduli):
         return moduli[0].parent()(v[0])
     x = v[0]
     m = moduli[0]
+    from sage.arith.functions import lcm
     for i in range(1, len(v)):
         x = CRT(x,v[i],m,moduli[i])
         m = lcm(m,moduli[i])

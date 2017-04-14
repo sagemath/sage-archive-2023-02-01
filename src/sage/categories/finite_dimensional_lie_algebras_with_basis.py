@@ -409,9 +409,53 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             return self.centralizer(self)
 
-        def product_space(self, L):
+        @cached_method
+        def is_ideal(self, A):
+            """
+            Return if ``self`` is an ideal of ``A``.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
+                sage: a, b, c = L.lie_algebra_generators()
+                sage: I = L.ideal([2*a - c, b + c])
+                sage: I.is_ideal(L)
+                True
+
+                sage: L.<x,y> = LieAlgebra(QQ, {('x','y'):{'x':1}})
+                sage: L.is_ideal(L)
+                True
+
+                sage: F = LieAlgebra(QQ, 'F', representation='polynomial')
+                sage: L.is_ideal(F)
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: A must be a finite dimensional Lie algebra
+                 with basis
+            """
+            if A == self:
+                return True
+            if A not in LieAlgebras(self.base_ring()).FiniteDimensional().WithBasis():
+                raise NotImplementedError("A must be a finite dimensional"
+                                          " Lie algebra with basis")
+            B = self.basis()
+            AB = A.basis()
+            try:
+                b_mat = matrix(A.base_ring(), [A.bracket(b, ab).to_vector()
+                                               for b in B for ab in AB])
+            except (ValueError, TypeError):
+                return False
+            return b_mat.row_space().is_submodule(self.module())
+
+        def product_space(self, L, submodule=False):
             r"""
             Return the product space ``[self, L]``.
+
+            INPUT:
+
+            - ``L`` -- a Lie subalgebra of ``self``
+            - ``submodule`` -- (default: ``False``) if ``True``, then the
+              result is forced to be a submodule of ``self``
 
             EXAMPLES::
 
@@ -429,6 +473,13 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                  the 0-dimensional abelian Lie algebra over Rational
                  Field with basis matrix:
                 []
+
+            ::
+
+                sage: H = lie_algebras.Heisenberg(ZZ, 4)
+                sage: Hp = H.product_space(H, submodule=True).basis()
+                sage: [H.from_vector(v) for v in Hp]
+                [z]
 
             ::
 
@@ -458,17 +509,16 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             B = self.basis()
             LB = L.basis()
-            K = B.keys()
-            LK = LB.keys()
+            b_mat = matrix(A.base_ring(), [A.bracket(b, lb).to_vector()
+                                           for b in B for lb in LB])
+            if submodule is True or not (self.is_ideal(A) and L.is_ideal(A)):
+                return b_mat.row_space()
             # We echelonize the matrix here
             # TODO: Do we want to?
-            b_mat = matrix(A.base_ring(), [A.bracket(B[a], LB[b]).to_vector()
-                                           for a in K for b in LK])
             b_mat.echelonize()
             r = b_mat.rank()
-            I = A._basis_ordering
             gens = [A.from_vector(row) for row in b_mat.rows()[:r]]
-            return A.subalgebra(gens)
+            return A.ideal(gens)
 
         @cached_method
         def derived_subalgebra(self):

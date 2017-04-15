@@ -251,12 +251,45 @@ class RingHomomorphism_coercion_patched(sage.rings.morphism.RingHomomorphism_coe
             sage: QQ.coerce_map_from(ZZ).is_injective() # indirect doctest
             True
 
+            sage: Hom(ZZ,QQ['x']).natural_map().is_injective()
+            True
+
         """
         from sage.categories.fields import Fields
         if self.domain() in Fields(): return True
         coercion = self.codomain().coerce_map_from(self.domain())
         if coercion is not None:
-            return coercion.is_injective()
+            try:
+                return coercion.is_injective()
+            except NotImplementedError:
+                # PolynomialBaseringInjection does not implement is_surjective/is_injective
+                if isinstance(coercion, sage.categories.map.FormalCompositeMap):
+                    if all([f.is_injective() for f in list(coercion)]):
+                        return True
+            except AttributeError: # DefaultConvertMap_unique does not implement is_injective/surjective at all
+                pass
+        raise NotImplementedError
+    def is_surjective(self):
+        r"""
+        TESTS::
+
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
+            sage: QQ.coerce_map_from(ZZ).is_surjective() # indirect doctest
+            False
+
+        """
+        from sage.categories.fields import Fields
+        if self.domain() in Fields(): return True
+        coercion = self.codomain().coerce_map_from(self.domain())
+        if coercion is not None:
+            try:
+                return coercion.is_surjective()
+            except AttributeError: # DefaultConvertMap_unique does not implement is_injective/surjective at all
+                # PolynomialBaseringInjection does not implement is_surjective/is_injective (TODO: fix the logic of FormalCompositeMap, i.e., postpone without_bij)
+                if isinstance(coercion, sage.categories.map.FormalCompositeMap):
+                    if all([f.is_surjective() for f in list(coercion)]):
+                        return True
+                pass
         raise NotImplementedError
 sage.rings.homset.RingHomset_generic.natural_map = patch_is_injective(sage.rings.homset.RingHomset_generic.natural_map, {sage.rings.morphism.RingHomomorphism_coercion: (lambda coercion: RingHomomorphism_coercion_patched(coercion.parent()))})
 
@@ -322,6 +355,16 @@ class Z_to_Q_patched(sage.rings.rational.Z_to_Q):
 
         """
         return True
+    def is_surjective(self):
+        r"""
+        TESTS::
+
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
+            sage: QQ.coerce_map_from(ZZ).is_surjective()
+            False
+
+        """
+        return False
 from sage.rings.all import QQ
 QQ.coerce_map_from = patch_is_injective(QQ.coerce_map_from, {sage.rings.rational.Z_to_Q: (lambda morphism: Z_to_Q_patched())})
 

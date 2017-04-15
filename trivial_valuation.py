@@ -4,7 +4,7 @@ Trivial valuations
 
 EXAMPLES::
 
-    sage: from mac_lane import * # optional: standalone
+    sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
     sage: v = TrivialValuation(QQ); v
     Trivial valuation on Rational Field
     sage: v(1)
@@ -48,13 +48,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-# Fix doctests so they work in standalone mode (when invoked with sage -t, they run within the mac_lane/ directory)
-import sys, os
-if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__main__'].DC.options.optional:
-    sys.path.append(os.getcwd())
-    sys.path.append(os.path.dirname(os.getcwd()))
-
 from valuation import DiscretePseudoValuation, DiscreteValuation, InfiniteDiscretePseudoValuation
 from valuation_space import DiscretePseudoValuationSpace
 from sage.structure.factory import UniqueFactory
@@ -65,6 +58,7 @@ class TrivialValuationFactory(UniqueFactory):
 
     EXAMPLES::
 
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: v = TrivialValuation(QQ); v
         Trivial valuation on Rational Field
         sage: v(1)
@@ -75,6 +69,8 @@ class TrivialValuationFactory(UniqueFactory):
         r"""
         TESTS::
 
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
+            sage: from mac_lane.trivial_valuation import TrivialValuationFactory
             sage: isinstance(TrivialValuation, TrivialValuationFactory)
             True
 
@@ -89,6 +85,7 @@ class TrivialValuationFactory(UniqueFactory):
 
         EXAMPLES::
 
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: TrivialValuation(QQ) is TrivialValuation(QQ) # indirect doctest
             True
 
@@ -101,6 +98,7 @@ class TrivialValuationFactory(UniqueFactory):
 
         EXAMPLES::
 
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: TrivialValuation(QQ) # indirect doctest
             Trivial valuation on Rational Field
 
@@ -115,7 +113,7 @@ class TrivialDiscretePseudoValuation_base(DiscretePseudoValuation):
 
     EXAMPLES::
 
-        sage: from mac_lane import * # optional: standalone
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: v = TrivialPseudoValuation(ZZ); v
         Trivial pseudo-valuation on Integer Ring
 
@@ -130,7 +128,7 @@ class TrivialDiscretePseudoValuation_base(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = TrivialPseudoValuation(ZZ)
             sage: v.uniformizer()
             Traceback (most recent call last):
@@ -146,7 +144,7 @@ class TrivialDiscretePseudoValuation_base(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = TrivialPseudoValuation(QQ)
             sage: v.is_trivial()
             True
@@ -160,7 +158,7 @@ class TrivialDiscretePseudoValuation_base(DiscretePseudoValuation):
 
         EXAMPLES:
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = TrivialPseudoValuation(QQ)
             sage: v.is_negative_pseudo_valuation()
             False
@@ -174,7 +172,7 @@ class TrivialDiscretePseudoValuation(TrivialDiscretePseudoValuation_base, Infini
 
     EXAMPLES::
 
-        sage: from mac_lane import * # optional: standalone
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: v = TrivialPseudoValuation(QQ); v
         Trivial pseudo-valuation on Rational Field
 
@@ -187,7 +185,7 @@ class TrivialDiscretePseudoValuation(TrivialDiscretePseudoValuation_base, Infini
         r"""
         TESTS::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = TrivialPseudoValuation(QQ)
             sage: isinstance(v, TrivialDiscretePseudoValuation)
             True
@@ -202,7 +200,7 @@ class TrivialDiscretePseudoValuation(TrivialDiscretePseudoValuation_base, Infini
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = TrivialPseudoValuation(QQ)
             sage: v(0)
             +Infinity
@@ -219,7 +217,7 @@ class TrivialDiscretePseudoValuation(TrivialDiscretePseudoValuation_base, Infini
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: TrivialPseudoValuation(QQ) # indirect doctest
             Trivial pseudo-valuation on Rational Field
 
@@ -234,7 +232,7 @@ class TrivialDiscretePseudoValuation(TrivialDiscretePseudoValuation_base, Infini
 
         A trivial discrete pseudo-valuation has no value group::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = TrivialPseudoValuation(QQ)
             sage: v.value_group()
             Traceback (most recent call last):
@@ -250,7 +248,7 @@ class TrivialDiscretePseudoValuation(TrivialDiscretePseudoValuation_base, Infini
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: TrivialPseudoValuation(QQ).residue_ring()
             Quotient of Rational Field by the ideal (1)
 
@@ -263,7 +261,7 @@ class TrivialDiscretePseudoValuation(TrivialDiscretePseudoValuation_base, Infini
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = TrivialPseudoValuation(QQ)
             sage: v.reduce(1)
             0
@@ -278,7 +276,7 @@ class TrivialDiscretePseudoValuation(TrivialDiscretePseudoValuation_base, Infini
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = TrivialPseudoValuation(QQ)
             sage: v.lift(v.residue_ring().zero())
             0
@@ -294,7 +292,7 @@ class TrivialDiscretePseudoValuation(TrivialDiscretePseudoValuation_base, Infini
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = TrivialPseudoValuation(QQ)
             sage: w = TrivialValuation(QQ)
             sage: v >= w
@@ -310,7 +308,7 @@ class TrivialDiscreteValuation(TrivialDiscretePseudoValuation_base, DiscreteValu
 
     EXAMPLES::
 
-        sage: from mac_lane import * # optional: standalone
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: v = TrivialValuation(QQ); v
         Trivial valuation on Rational Field
 
@@ -323,7 +321,7 @@ class TrivialDiscreteValuation(TrivialDiscretePseudoValuation_base, DiscreteValu
         r"""
         TESTS::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = TrivialValuation(QQ)
             sage: isinstance(v, TrivialDiscreteValuation)
             True
@@ -338,7 +336,7 @@ class TrivialDiscreteValuation(TrivialDiscretePseudoValuation_base, DiscreteValu
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = TrivialValuation(QQ)
             sage: v(0)
             +Infinity
@@ -355,7 +353,7 @@ class TrivialDiscreteValuation(TrivialDiscretePseudoValuation_base, DiscreteValu
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: TrivialValuation(QQ) # indirect doctest
             Trivial valuation on Rational Field
 
@@ -370,7 +368,7 @@ class TrivialDiscreteValuation(TrivialDiscretePseudoValuation_base, DiscreteValu
 
         A trivial discrete valuation has a trivial value group::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = TrivialValuation(QQ)
             sage: v.value_group()
             Trivial Additive Abelian Group
@@ -385,6 +383,7 @@ class TrivialDiscreteValuation(TrivialDiscretePseudoValuation_base, DiscreteValu
 
         EXAMPLES::
 
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: TrivialValuation(QQ).residue_ring()
             Rational Field
 
@@ -397,7 +396,7 @@ class TrivialDiscreteValuation(TrivialDiscretePseudoValuation_base, DiscreteValu
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = TrivialValuation(QQ)
             sage: v.reduce(1)
             1
@@ -411,7 +410,7 @@ class TrivialDiscreteValuation(TrivialDiscretePseudoValuation_base, DiscreteValu
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = TrivialValuation(QQ)
             sage: v.lift(v.residue_ring().zero())
             0
@@ -425,7 +424,7 @@ class TrivialDiscreteValuation(TrivialDiscretePseudoValuation_base, DiscreteValu
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = TrivialValuation(ZZ)
             sage: v.extensions(QQ)
             [Trivial valuation on Rational Field]
@@ -442,7 +441,7 @@ class TrivialDiscreteValuation(TrivialDiscretePseudoValuation_base, DiscreteValu
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: v = TrivialPseudoValuation(QQ)
             sage: w = TrivialValuation(QQ)
             sage: w >= v

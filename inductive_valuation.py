@@ -27,13 +27,6 @@ polynomial rings. Transactions of the American Mathematical Society, 40(3),
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-# Fix doctests so they work in standalone mode (when invoked with sage -t, they run within the mac_lane/ directory)
-import sys, os
-if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__main__'].DC.options.optional:
-    sys.path.append(os.getcwd())
-    sys.path.append(os.path.dirname(os.getcwd()))
-
 from valuation import DiscreteValuation, InfiniteDiscretePseudoValuation
 from developing_valuation import DevelopingValuation
 
@@ -47,7 +40,7 @@ class InductiveValuation(DevelopingValuation):
 
     EXAMPLES::
 
-        sage: from mac_lane import * # optional: standalone
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, pAdicValuation(QQ, 5))
 
@@ -67,7 +60,7 @@ class InductiveValuation(DevelopingValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R = Zp(2,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -108,7 +101,7 @@ class InductiveValuation(DevelopingValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R = Zp(3,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -216,7 +209,7 @@ class InductiveValuation(DevelopingValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: v.mu()
@@ -240,7 +233,7 @@ class InductiveValuation(DevelopingValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: S.<x> = Qp(3,5)[]
             sage: v = GaussValuation(S)
             sage: v.equivalence_unit(2)
@@ -271,7 +264,7 @@ class InductiveValuation(DevelopingValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -287,7 +280,7 @@ class InductiveValuation(DevelopingValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -304,7 +297,7 @@ class InductiveValuation(DevelopingValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -320,7 +313,7 @@ class InductiveValuation(DevelopingValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -338,7 +331,7 @@ class InductiveValuation(DevelopingValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: v.monic_integral_model(5*x^2 + 1/2*x + 1/4)
@@ -357,7 +350,7 @@ class InductiveValuation(DevelopingValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: v.element_with_valuation(-2)
@@ -381,7 +374,7 @@ class InductiveValuation(DevelopingValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: v._test_element_with_valuation_inductive_valuation()
@@ -413,7 +406,7 @@ class InductiveValuation(DevelopingValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -437,7 +430,7 @@ class InductiveValuation(DevelopingValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, TrivialValuation(QQ))
             sage: v._test_augmentation_chain()
@@ -456,7 +449,7 @@ class InductiveValuation(DevelopingValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, TrivialValuation(QQ))
             sage: v._test_equivalence_unit()
@@ -489,7 +482,7 @@ class InductiveValuation(DevelopingValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, TrivialValuation(QQ))
             sage: v._test_is_equivalence_unit()
@@ -504,7 +497,7 @@ class InductiveValuation(DevelopingValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, TrivialValuation(QQ))
             sage: v._test_equivalence_reciprocal()
@@ -535,7 +528,7 @@ class InductiveValuation(DevelopingValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, TrivialValuation(QQ))
             sage: v._test_inductive_valuation_inheritance()
@@ -554,7 +547,7 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
 
     EXAMPLES::
 
-        sage: from mac_lane import * # optional: standalone
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, TrivialValuation(QQ))
 
@@ -563,7 +556,7 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
         r"""
         TESTS::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, TrivialValuation(QQ))
             sage: isinstance(v, FiniteInductiveValuation)
@@ -579,7 +572,7 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = ZZ[]
             sage: v = GaussValuation(R, TrivialValuation(ZZ))
             sage: K.<x> = FunctionField(QQ)
@@ -604,7 +597,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
     EXAMPLES::
 
-        sage: from mac_lane import * # optional: standalone
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: R.<u> = Qq(4,5)
         sage: S.<x> = R[]
         sage: v = GaussValuation(S)
@@ -615,7 +608,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         r"""
         TESTS::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -646,7 +639,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -718,7 +711,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         TESTS::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: K.<x> = FunctionField(QQ)
             sage: S.<y> = K[]
             sage: F = y^2 - x^2 - x^3 - 3
@@ -897,7 +890,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -943,7 +936,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4, 5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -1032,7 +1025,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: v._equivalence_reduction(2*x^6 + 4*x^5 + 2*x^4 + 8)
@@ -1091,7 +1084,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -1160,7 +1153,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4,10)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -1315,7 +1308,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4,10)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -1391,7 +1384,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<u> = Qq(4,10)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -1408,7 +1401,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, TrivialValuation(QQ))
             sage: v._test_lift_to_key()
@@ -1458,7 +1451,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, TrivialValuation(QQ))
             sage: v._test_is_equivalence_irreducible()
@@ -1485,7 +1478,7 @@ class FinalInductiveValuation(InductiveValuation):
 
     TESTS::
 
-        sage: from mac_lane import * # optional: standalone
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, TrivialValuation(QQ))
         sage: w = v.augmentation(x^2 + x + 1, infinity)
@@ -1502,7 +1495,7 @@ class InfiniteInductiveValuation(FinalInductiveValuation, InfiniteDiscretePseudo
 
     EXAMPLES::
 
-        sage: from mac_lane import * # optional: standalone
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
         sage: w = v.augmentation(x^2 + x + 1, infinity)
@@ -1512,7 +1505,7 @@ class InfiniteInductiveValuation(FinalInductiveValuation, InfiniteDiscretePseudo
         r"""
         TESTS::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
             sage: w = v.augmentation(x^2 + x + 1, infinity)
@@ -1530,7 +1523,8 @@ def _lift_to_maximal_precision(c):
 
     EXAMPLES::
 
-        sage: from mac_lane import * # optional: standalone
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
+        sage: from mac_lane.inductive_valuation import _lift_to_maximal_precision # optional: standalone
         sage: R = Zp(2,5)
         sage: x = R(1,2); x
         1 + O(2^2)

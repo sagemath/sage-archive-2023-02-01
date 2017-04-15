@@ -64,6 +64,7 @@ def to_polynomial(self, x):
     r"""
     TESTS::
 
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(QQ)
         sage: K(x) in K._ring # indirect doctest
         True
@@ -79,6 +80,7 @@ def to_constant(self, x):
     r"""
     TESTS::
 
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(QQ)
         sage: K(1) in QQ # indirect doctest
         True
@@ -97,6 +99,7 @@ def __init__(self, *args, **kwargs):
     r"""
     TESTS::
 
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(QQ)
         sage: K(1/2) in QQ
         True
@@ -119,6 +122,7 @@ del(to_polynomial)
 r"""
 TESTS::
 
+    sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
     sage: NP = sage.geometry.newton_polygon.NewtonPolygon([(0,1),(1,0),(2,1)])
     sage: NP.principal_part()
     Infinite Newton polygon with 2 vertices: (0, 1), (1, 0) ending by an infinite line of slope 0
@@ -136,6 +140,7 @@ class DefaultConvertMap_unique_patched2(sage.structure.coerce_maps.DefaultConver
         r"""
         TESTS::
 
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: K.<x> = FunctionField(QQ)
             sage: R.fraction_field().is_subring(K) # indirect doctest
@@ -151,6 +156,7 @@ def _coerce_map_from_(target, source):
     r"""
     TESTS::
 
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(QQ)
         sage: L.<x> = FunctionField(GaussianIntegers().fraction_field())
         sage: L.has_coerce_map_from(K)
@@ -223,6 +229,7 @@ def patch_is_injective(method, patch_map):
 
     TESTS::
 
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: QQ.coerce_map_from(ZZ).is_injective() # indirect doctest
         True
 
@@ -240,6 +247,7 @@ class RingHomomorphism_coercion_patched(sage.rings.morphism.RingHomomorphism_coe
         r"""
         TESTS::
 
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: QQ.coerce_map_from(ZZ).is_injective() # indirect doctest
             True
 
@@ -258,6 +266,7 @@ class PolynomialRingHomomorphism_from_base_patched(sage.rings.polynomial.polynom
         r"""
         TESTS::
 
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: QQ['x'].coerce_map_from(ZZ['x']).is_injective() # indirect doctest
             True
     
@@ -282,6 +291,7 @@ class Q_to_quadratic_field_element_patched(sage.rings.number_field.number_field_
         r"""
         TESTS::
 
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: GaussianIntegers().fraction_field().coerce_map_from(QQ).is_injective()
             True
 
@@ -292,6 +302,7 @@ class Z_to_quadratic_field_element_patched(sage.rings.number_field.number_field_
         r"""
         TESTS::
 
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: GaussianIntegers().fraction_field().coerce_map_from(ZZ).is_injective()
             True
 
@@ -305,6 +316,7 @@ class Z_to_Q_patched(sage.rings.rational.Z_to_Q):
         r"""
         TESTS::
 
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: QQ.coerce_map_from(ZZ).is_injective()
             True
 
@@ -319,6 +331,7 @@ class DefaultConvertMap_unique_patched(sage.structure.coerce_maps.DefaultConvert
         r"""
         TESTS::
 
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: CyclotomicField(5).maximal_order().coerce_map_from(ZZ).is_injective()
             True
 
@@ -332,6 +345,7 @@ def _coerce_map_from_patched(self, domain):
     r"""
     TESTS::
 
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: CyclotomicField(5).maximal_order().coerce_map_from(ZZ).is_injective() # indirect doctest
         True
 
@@ -350,6 +364,7 @@ class DefaultConvertMap_unique_patched3(sage.structure.coerce_maps.DefaultConver
         r"""
         TESTS::
 
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = ZZ[]
             sage: S.<x> = QQ[]
             sage: S.quo(x^2 + 1).coerce_map_from(R.quo(x^2 + 1)).is_injective()
@@ -365,6 +380,7 @@ def _coerce_map_from_patched(self, domain):
     r"""
     TESTS::
 
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: R.<x> = ZZ[]
         sage: S.<x> = QQ[]
         sage: S.quo(x^2 + 1).coerce_map_from(R.quo(x^2 + 1)).is_injective() # indirect doctest
@@ -391,6 +407,7 @@ class CallableConvertMap_patched(sage.rings.fraction_field.CallableConvertMap):
         r"""
         TESTS::
         
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: R.is_subring(R.fraction_field()) # indirect doctest
             True
@@ -402,6 +419,7 @@ class CallableConvertMap_patched(sage.rings.fraction_field.CallableConvertMap):
         r"""
         TESTS::
         
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: R.fraction_field().coerce_map_from(R).is_surjective()
             False
@@ -416,6 +434,7 @@ def inverse_of_unit(self):
     r"""
     TESTS::
 
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: R.<x> = ZZ[]
         sage: S = R.quo(x^2+x+1)
         sage: S(1).inverse_of_unit()
@@ -435,6 +454,7 @@ def _factor_univariate_polynomial(self, f):
     r"""
     TESTS::
 
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: K = GF(2)
         sage: R.<x> = K[]
         sage: L.<x> = K.extension(x^2 + x + 1)
@@ -476,6 +496,7 @@ def absolute_extension(self):
 
     EXAMPLES::
 
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: k.<a> = GF(4)
         sage: R.<b> = k[]
         sage: l.<b> = k.extension(b^2+b+a); l
@@ -551,6 +572,7 @@ def vector_space(self):
     r"""
     TESTS::
 
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: K = GF(2)
         sage: R.<x> = K[]
         sage: L.<x> = K.extension(x^2 + x + 1)
@@ -572,6 +594,7 @@ def some_elements(self):
     r"""
     TESTS::
 
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: K = GaussianIntegers().fraction_field()
         sage: list(K.some_elements())
         [I, 0, 1, 1/2, 2*I, -I, -2, 0, 0]
@@ -587,6 +610,7 @@ def some_elements(self):
     r"""
     TESTS::
 
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(QQ)
         sage: list(K.some_elements()) == list(K.some_elements())
         True
@@ -603,6 +627,7 @@ def some_elements(self):
     r"""
     TESTS::
 
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: K.<x> = FunctionField(QQ)
         sage: R.<y> = K[]
         sage: L.<y> = K.extension(y^2 - x)
@@ -620,6 +645,7 @@ def some_elements(self):
     r"""
     TESTS::
 
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: R.<x> = QQ[]
         sage: K = R.fraction_field()
         sage: len(list(K.some_elements()))
@@ -637,6 +663,7 @@ def some_elements(self):
     r"""
     TESTS::
 
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: R = GaussianIntegers()
         sage: list(R.some_elements())
         [I, 0, 1, 2*I, -I, -2, 0, 0]

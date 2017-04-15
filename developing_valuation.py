@@ -18,13 +18,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-# Fix doctests so they work in standalone mode (when invoked with sage -t, they run within the mac_lane/ directory)
-import sys, os
-if hasattr(sys.modules['__main__'], 'DC') and 'standalone' in sys.modules['__main__'].DC.options.optional:
-    sys.path.append(os.getcwd())
-    sys.path.append(os.path.dirname(os.getcwd()))
-
 from valuation import DiscretePseudoValuation
 from sage.misc.abstract_method import abstract_method
 
@@ -37,7 +30,7 @@ class DevelopingValuation(DiscretePseudoValuation):
 
     EXAMPLES::
 
-        sage: from mac_lane import * # optional: standalone
+        sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
         sage: R.<x> = QQ[]
         sage: v = GaussValuation(R, pAdicValuation(QQ, 7))
 
@@ -50,7 +43,7 @@ class DevelopingValuation(DiscretePseudoValuation):
         r"""
         TESTS::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(R, pAdicValuation(QQ, 7))
             sage: isinstance(v, DevelopingValuation)
@@ -76,7 +69,7 @@ class DevelopingValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R = Zp(2,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -100,7 +93,7 @@ class DevelopingValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R = Zp(2,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -132,7 +125,7 @@ class DevelopingValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R = Zp(2,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -164,7 +157,7 @@ class DevelopingValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R = Qp(2,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -199,7 +192,7 @@ class DevelopingValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: S.<x> = QQ[]
             sage: v = GaussValuation(S, pAdicValuation(QQ, 2))
             sage: v._quo_rem(x^2 + 1)
@@ -218,7 +211,7 @@ class DevelopingValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R = Qp(2,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -250,7 +243,7 @@ class DevelopingValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R = Qp(2,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)
@@ -296,7 +289,7 @@ class DevelopingValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R = Qp(2,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S, pAdicValuation(R))
@@ -312,7 +305,7 @@ class DevelopingValuation(DiscretePseudoValuation):
 
         EXAMPLES::
 
-            sage: from mac_lane import * # optional: standalone
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
             sage: R = Zp(2,5)
             sage: S.<x> = R[]
             sage: v = GaussValuation(S)

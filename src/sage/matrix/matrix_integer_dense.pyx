@@ -54,11 +54,12 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+
+from __future__ import absolute_import, print_function
 
 from libc.stdint cimport int64_t
-include "sage/ext/cdefs.pxi"
+from libc.string cimport strcpy, strlen
+from sage.libs.gmp.mpz cimport *
 
 from sage.modules.vector_integer_dense cimport Vector_integer_dense
 

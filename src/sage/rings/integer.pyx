@@ -126,22 +126,25 @@ real field R::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
 
 # Do not create any Integer, especially non cdef'ed ones, before the hooked
 # creation and deletion are setup by the call to hook_fast_tp_functions
 
 cimport cython
+from libc.math cimport ldexp
+from libc.string cimport memcpy
 
 import operator
-
 import sys
 
+from sage.libs.gmp.mpz cimport *
+from sage.libs.gmp.mpq cimport *
 from sage.misc.superseded import deprecated_function_alias
 from sage.misc.long cimport pyobject_to_long
 
 include "cysignals/signals.pxi"
-include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
 include "cysignals/memory.pxi"
 from cpython.list cimport *
@@ -337,7 +340,7 @@ from sage.structure.element cimport EuclideanDomainElement, ModuleElement, Eleme
 from sage.structure.element import  bin_op
 from sage.structure.coerce_exceptions import CoercionException
 
-import integer_ring
+from . import integer_ring
 cdef Parent the_integer_ring = integer_ring.ZZ
 
 # The documentation for the ispseudoprime() function in the PARI
@@ -2277,8 +2280,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef int pow_2
         cdef size_t upper,lower,middle
 
-        import real_mpfi
-        R=real_mpfi.RIF
+        from .real_mpfi import RIF as R
 
         rif_self = R(self)
 
@@ -2458,8 +2460,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 # (suggested by David Harvey and Carl Witty)
                 # "for randomly distributed integers, the chance of this
                 # interval-based comparison failing is absurdly low"
-                import real_mpfi
-                approx_compare = real_mpfi.RIF(m)**guess
+                from .real_mpfi import RIF
+                approx_compare = RIF(m)**guess
                 if self > approx_compare:
                     guess_filled = 1
                 elif self < approx_compare:
@@ -6837,7 +6839,6 @@ cdef class int_to_Z(Morphism):
             sage: f.parent()
             Set of Morphisms from Set of Python objects of type 'int' to Integer Ring in Category of sets
         """
-        import integer_ring
         import sage.categories.homset
         from sage.structure.parent import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), integer_ring.ZZ))
@@ -6891,7 +6892,6 @@ cdef class long_to_Z(Morphism):
         -10000000000000000000001
     """
     def __init__(self):
-        import integer_ring
         import sage.categories.homset
         from sage.structure.parent import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(long), integer_ring.ZZ))

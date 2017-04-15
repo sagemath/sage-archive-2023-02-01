@@ -5177,7 +5177,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             if not B[self._nrows-1, self._ncols-1]:
                 raise ZeroDivisionError("input matrix must be nonsingular")
 
-        return B.matrix_from_columns(range(self._ncols, 2*self._ncols))
+        return B.matrix_from_columns(list(xrange(self._ncols, 2 * self._ncols)))
 
     def __pos__(self):
         """

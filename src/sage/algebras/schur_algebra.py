@@ -28,6 +28,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 import itertools
 
@@ -428,7 +429,7 @@ class SchurTensorModule(CombinatorialFreeModule_Tensor):
             sage: T = SchurTensorModule(QQ, 2, 3)
             sage: TestSuite(T).run()
         """
-        C = CombinatorialFreeModule(R, range(1, n + 1))
+        C = CombinatorialFreeModule(R, list(range(1, n + 1)))
         self._n = n
         self._r = r
         self._sga = SymmetricGroupAlgebra(R, r)
@@ -465,7 +466,7 @@ class SchurTensorModule(CombinatorialFreeModule_Tensor):
             B[1] # B[1] # B[2] + B[1] # B[2] # B[1] + B[2] # B[1] # B[1]
         """
         ret = []
-        for i in itertools.product(range(1, self._n + 1), repeat=self._r):
+        for i in itertools.product(list(range(1, self._n + 1)), repeat=self._r):
             if schur_representative_from_index(i, v) == xi:
                 ret.append(tuple(i))
         return self.sum_of_monomials(ret)
@@ -580,7 +581,7 @@ def GL_irreducible_character(n, mu, KK):
 
     #make ST the superstandard tableau of shape mu
     from sage.combinat.tableau import from_shape_and_word
-    ST = from_shape_and_word(mu, range(1, r + 1), convention='English')
+    ST = from_shape_and_word(mu, list(range(1, r + 1)), convention='English')
 
     #make ell the reading word of the highest weight tableau of shape mu
     ell = [i + 1 for i, l in enumerate(mu) for dummy in range(l)]

@@ -193,12 +193,12 @@ class FinitePermutationGroups(CategoryWithAxiom):
                 sage: P.parent() is F
                 True
 
-            This parent should have a ``term`` and ``sum`` method::
+            This parent should be a module with basis indexed by partitions::
 
                 sage: CyclicPermutationGroup(6).cycle_index(parent = QQ)
                 Traceback (most recent call last):
                   ...
-                ValueError: `parent` should be (or behave as) a free module with basis indexed by partitions
+                ValueError: `parent` should be a module with basis indexed by partitions
 
             REFERENCES:
 
@@ -219,12 +219,13 @@ class FinitePermutationGroups(CategoryWithAxiom):
                 sage: P.cycle_index()
                 p[1]
             """
+            from sage.categories.modules import Modules
             if parent is None:
                  from sage.rings.rational_field import QQ
                  from sage.combinat.sf.sf import SymmetricFunctions
                  parent = SymmetricFunctions(QQ).powersum()
-            elif not hasattr(parent, "term") and hasattr(parent, "sum"):
-                raise ValueError("`parent` should be (or behave as) a free module with basis indexed by partitions")
+            elif not parent in Modules.WithBasis:
+                raise ValueError("`parent` should be a module with basis indexed by partitions")
             base_ring = parent.base_ring()
             return parent.sum_of_terms([C.an_element().cycle_type(), base_ring(C.cardinality())]
                                        for C in self.conjugacy_classes()

@@ -289,7 +289,7 @@ def cython(filename, verbose=False, compile_message=False,
       Cython file, don't recompile, just reuse the .so file.
 
     - ``create_local_c_file`` (bool, default False) - if True, save a
-      copy of the .c file in the current directory.
+      copy of the ``.c`` or ``.cpp`` file in the current directory.
 
     - ``annotate`` (bool, default True) - if True, create an html file which
       annotates the conversion from .pyx to .c. By default this is only created
@@ -335,6 +335,20 @@ def cython(filename, verbose=False, compile_message=False,
         sage: cython("#clang C++\n"+
         ....:        "from libcpp.vector cimport vector\n"
         ....:        "cdef vector[int] * v = new vector[int](4)\n")
+
+    Check that compiling c++ code works, when creating a local c file,
+    first moving to a tempdir to avoid clutter.  Before :trac:`22113`,
+    the create_local_c_file argument was not tested in combination with
+    the ``#clang c++`` directive::
+
+        sage: import sage.misc.cython
+        sage: d = sage.misc.temporary_file.tmp_dir()
+        sage: os.chdir(d)
+        sage: with open("test.pyx", 'w') as f:
+        ....:     f.write("#clang C++\n"
+        ....:       "from libcpp.vector cimport vector\n"
+        ....:       "cdef vector[int] * v = new vector[int](4)\n")
+        sage: output = sage.misc.cython.cython("test.pyx", create_local_c_file=True)
     """
     if not filename.endswith('pyx'):
         print("Warning: file (={}) should have extension .pyx".format(filename), file=sys.stderr)
@@ -462,10 +476,8 @@ setup(ext_modules = ext_modules,
         NAME=name)
 
     if create_local_c_file:
-        target_c = '%s/_%s.c'%(os.path.abspath(os.curdir), base)
-        if language == 'c++':
-            target_c = target_c + "pp"
-        cmd += " && cp '%s.c' '%s'"%(name, target_c)
+        target_c = '%s/_%s.%s'%(os.path.abspath(os.curdir), base, extension)
+        cmd += " && cp '%s.%s' '%s'"%(name, extension, target_c)
         if annotate:
             target_html = '%s/_%s.html'%(os.path.abspath(os.curdir), base)
             cmd += " && cp '%s.html' '%s'"%(name, target_html)

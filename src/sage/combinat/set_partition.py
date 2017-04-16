@@ -9,6 +9,9 @@ AUTHORS:
 
 - Travis Scrimshaw (2013-02-28): Removed ``CombinatorialClass`` and added
   entry point through :class:`SetPartition`.
+
+This module defines a class for immutable partitioning of a set. For
+mutable version see :func:`DisjointSet`.
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,

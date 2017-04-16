@@ -9249,7 +9249,7 @@ cdef class Matrix(matrix1.Matrix):
         columns but rank 3, so the orthogonal set has just 3 vectors
         as well.  Orthogonality comes from the Hermitian inner product
         so we need to check with the conjugate-transpose.  This
-        example verifies that the bug on #10791 is fixed.  ::
+        example verifies that the bug on :trac:`10791` is fixed.  ::
 
             sage: F.<a> = QuadraticField(-5)
             sage: A = matrix(F, [[    1,   a - 3,   a - 2, a + 1],

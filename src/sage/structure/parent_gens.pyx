@@ -56,14 +56,6 @@ This example illustrates generators for a free module over `\ZZ`.
     (1, 0, 0, 0)
     sage: M.gens()
     ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))
-
-TESTS::
-
-    sage: sage.structure.parent_gens.normalize_names(5, 'x')
-    doctest:...: DeprecationWarning:
-    Importing normalize_names from here is deprecated. If you need to use it, please import it directly from sage.structure.category_object
-    See http://trac.sagemath.org/19675 for details.
-    ('x0', 'x1', 'x2', 'x3', 'x4')
 """
 
 #*****************************************************************************
@@ -86,10 +78,6 @@ from . import gens_py
 cimport sage.structure.parent as parent
 from sage.structure.coerce_dict import MonoDict
 cimport sage.structure.category_object as category_object
-
-from sage.misc.lazy_import import LazyImport
-normalize_names = LazyImport("sage.structure.category_object",
-        "normalize_names", deprecation=19675)
 
 
 cdef inline check_old_coerce(parent.Parent p):

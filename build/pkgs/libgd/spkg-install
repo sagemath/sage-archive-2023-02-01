@@ -13,11 +13,6 @@ rm "$SAGE_LOCAL"/lib/libgd.*
 
 cd src
 
-# Needed to correctly pickup libiconv on FreeBSD
-if [ "$UNAME" = "FreeBSD" ] ; then
-   LDFLAGS="-L/usr/local/lib $LDFLAGS"
-fi
-
 if [ "$SAGE64" = "yes" ]; then
    CFLAGS=" -m64 -g $CFLAGS"
    LDFLAGS="-m64 $LDFLAGS"

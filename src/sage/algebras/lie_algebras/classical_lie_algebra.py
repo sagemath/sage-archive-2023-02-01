@@ -318,7 +318,7 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
             sage: so5
             Special orthogonal Lie algebra of rank 5 over Rational Field
             sage: so5.affine()
-            Affine Special orthogonal Lie algebra of rank 5 over Rational Field
+            Affine Special orthogonal Kac-Moody algebra of rank 5 over Rational Field
         """
         from sage.algebras.lie_algebras.affine_lie_algebra import AffineLieAlgebra
         return AffineLieAlgebra(self, kac_moody)
@@ -1163,7 +1163,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
             sage: sp6
             Lie algebra of ['C', 3] in the Chevalley basis
             sage: sp6.affine()
-            Affine Lie algebra of ['C', 3] in the Chevalley basis
+            Affine Kac-Moody algebra of ['C', 3] in the Chevalley basis
         """
         from sage.algebras.lie_algebras.affine_lie_algebra import AffineLieAlgebra
         return AffineLieAlgebra(self, kac_moody)

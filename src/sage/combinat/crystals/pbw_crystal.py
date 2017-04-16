@@ -347,15 +347,39 @@ class PBWCrystal(Parent, UniqueRepresentation):
 
     A model of the crystal `\mathcal{B}(\infty)` whose elements are
     PBW datum up to equivalence by the tropical Plücker relations.
+    The crystal structure on Lusztig data `x = (x_1, \ldots, x_m)`
+    for the reduced word `s_{i_1} \cdots s_{i_m} = w_0` is given as
+    follows. Suppose `i_1 = j`, then `f_j x = (x_1 + 1, x_2, \ldots, x_m)`.
+    If `i_1 \neq j`, then we use the tropical Plücker relations to
+    change the reduced expression such that `i_1' = j` and then we
+    change back to the original word.
 
     EXAMPLES::
 
         sage: PBW = crystals.infinity.PBW(['B', 3])
         sage: hw = PBW.highest_weight_vector()
-        sage: hw.f_string([1,2,2,3,3,1,3,3,2,3,2,1,3,1,2,3,1,2,1,3,2])
+        sage: x = hw.f_string([1,2,2,3,3,1,3,3,2,3,2,1,3,1,2,3,1,2,1,3,2]); x
         PBW monomial with Lusztig datum (1, 1, 1, 3, 1, 0, 0, 1, 1)
+
+    Elements are expressed in terms of Lusztig datum for a fixed
+    reduced expression of `w_0`::
+
+        sage: PBW.default_long_word()
+        [1, 3, 2, 3, 1, 2, 3, 1, 2]
+        sage: PBW.set_default_long_word([2,1,3,2,1,3,2,3,1])
+        sage: x
+        PBW monomial with Lusztig datum (3, 1, 1, 0, 1, 0, 1, 3, 4)
+        sage: PBW.set_default_long_word([1, 3, 2, 3, 1, 2, 3, 1, 2])
+
+    We can construct elements by giving it Lusztig data (with respect
+    to the default long word)::
+
         sage: PBW([1,1,1,3,1,0,0,1,1])
         PBW monomial with Lusztig datum (1, 1, 1, 3, 1, 0, 0, 1, 1)
+
+    We can also construct elements by passing in a reduced expression
+    for a long word::
+
         sage: x = PBW([1,1,1,3,1,0,0,1,1], [3,2,1,3,2,3,2,1,2]); x
         PBW monomial with Lusztig datum (1, 1, 1, 0, 1, 0, 5, 1, 1)
         sage: x.to_highest_weight()[1]

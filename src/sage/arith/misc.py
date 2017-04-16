@@ -37,6 +37,11 @@ from sage.rings.complex_number import ComplexNumber
 import sage.rings.fast_arith as fast_arith
 prime_range = fast_arith.prime_range
 
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.arith.all', 'lcm', deprecation=22630)
+lazy_import('sage.arith.all', 'lcm', '__LCM_sequence', deprecation=22630)
+lazy_import('sage.arith.all', 'lcm', 'LCM', deprecation=22630)
+
 
 ##################################################################
 # Elementary Arithmetic
@@ -44,11 +49,8 @@ prime_range = fast_arith.prime_range
 
 def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_digits=None, height_bound=None, proof=False):
     """
-    Returns a polynomial of degree at most `degree` which is
-    approximately satisfied by the number `z`. Note that the returned
-    polynomial need not be irreducible, and indeed usually won't be if
-    `z` is a good approximation to an algebraic number of degree less
-    than `degree`.
+    Returns an irreducible polynomial of degree at most `degree` which
+    is approximately satisfied by the number `z`.
 
     You can specify the number of known bits or digits of `z` with
     ``known_bits=k`` or ``known_digits=k``. PARI is then told to
@@ -96,12 +98,8 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
 
         sage: z = (1/2)*(1 + RDF(sqrt(3)) *CC.0); z
         0.500000000000000 + 0.866025403784439*I
-        sage: p = algdep(z, 6); p
-        x^3 + 1
-        sage: p.factor()
-        (x + 1) * (x^2 - x + 1)
-        sage: z^2 - z + 1   # abs tol 2e-16
-        0.000000000000000
+        sage: algdep(z, 6)
+        x^2 - x + 1
 
     This example involves a `p`-adic number::
 
@@ -168,18 +166,28 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
 
         sage: algdep(complex("1+2j"), 4)
         x^2 - 2*x + 5
+
+    We get an irreducible polynomial even if PARI returns a reducible
+    one::
+
+        sage: z = CDF(1, RR(3).sqrt())/2
+        sage: pari(z).algdep(5)
+        x^5 + x^2
+        sage: algdep(z, 5)
+        x^2 - x + 1
     """
     if proof and not height_bound:
         raise ValueError("height_bound must be given for proof=True")
 
-    x = ZZ['x'].gen()
+    R = ZZ['x']
+    x = R.gen()
 
     z = py_scalar_to_element(z)
 
     if isinstance(z, Integer):
         if height_bound and abs(z) >= height_bound:
             return None
-        return x - ZZ(z)
+        return x - z
 
     degree = ZZ(degree)
 
@@ -244,7 +252,9 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
         y = pari(z)
         f = y.algdep(degree)
 
-    return x.parent()(f)
+    # f might be reducible. Find the best fitting irreducible factor
+    factors = [p for p, e in R(f).factor()]
+    return min(factors, key=lambda f: abs(f(z)))
 
 
 algebraic_dependency = algdep
@@ -1623,11 +1633,6 @@ def __GCD_sequence(v, **kwargs):
         if g == one:
             return g
     return g
-
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.arith.functions', 'lcm', deprecation=22630)
-lazy_import('sage.arith.functions', 'lcm', '__LCM_sequence', deprecation=22630)
-lazy_import('sage.arith.functions', 'lcm', 'LCM', deprecation=22630)
 
 def xlcm(m, n):
     r"""

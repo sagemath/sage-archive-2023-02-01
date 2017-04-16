@@ -217,6 +217,7 @@ def BalancedTree(r, h):
     import networkx
     return Graph(networkx.balanced_tree(r, h), name="Balanced tree")
 
+
 def BarbellGraph(n1, n2):
     r"""
     Returns a barbell graph with ``2*n1 + n2`` nodes. The argument ``n1``
@@ -224,11 +225,6 @@ def BarbellGraph(n1, n2):
 
     A barbell graph is a basic structure that consists of a path graph
     of order ``n2`` connecting two complete graphs of order ``n1`` each.
-
-    This constructor depends on `NetworkX <http://networkx.lanl.gov>`_
-    numeric labels. In this case, the ``n1``-th node connects to the
-    path graph from one complete graph and the ``n1 + n2 + 1``-th node
-    connects to the path graph from the other complete graph.
 
     INPUT:
 
@@ -242,10 +238,6 @@ def BarbellGraph(n1, n2):
 
     A barbell graph of order ``2*n1 + n2``. A ``ValueError`` is
     returned if ``n1 < 2`` or ``n2 < 0``.
-
-    ALGORITHM:
-
-    Uses `NetworkX <http://networkx.lanl.gov>`_.
 
     PLOTTING:
 
@@ -285,56 +277,50 @@ def BarbellGraph(n1, n2):
         sage: P_n2.is_isomorphic(s_P)
         True
 
-    Create several barbell graphs in a Sage graphics array::
-
-        sage: g = []
-        sage: j = []
-        sage: for i in range(6):
-        ....:     k = graphs.BarbellGraph(i + 2, 4)
-        ....:     g.append(k)
-        ...
-        sage: for i in range(2):
-        ....:     n = []
-        ....:     for m in range(3):
-        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ....:     j.append(n)
-        ...
-        sage: G = sage.plot.graphics.GraphicsArray(j)
-        sage: G.show() # long time
-
     TESTS:
+
+        sage: n1, n2 = randint(3, 10), randint(0, 10)
+        sage: g = graphs.BarbellGraph(n1, n2)
+        sage: g.num_verts() == 2 * n1 + n2
+        True
+        sage: g.num_edges() == 2 * binomial(n1, 2) + n2 + 1
+        True
+        sage: g.is_connected()
+        True
+        sage: g.girth() == 3
+        True
 
     The input ``n1`` must be `\geq 2`::
 
         sage: graphs.BarbellGraph(1, randint(0, 10^6))
         Traceback (most recent call last):
         ...
-        ValueError: Invalid graph description, n1 should be >= 2
+        ValueError: invalid graph description, n1 should be >= 2
         sage: graphs.BarbellGraph(randint(-10^6, 1), randint(0, 10^6))
         Traceback (most recent call last):
         ...
-        ValueError: Invalid graph description, n1 should be >= 2
+        ValueError: invalid graph description, n1 should be >= 2
 
     The input ``n2`` must be `\geq 0`::
 
         sage: graphs.BarbellGraph(randint(2, 10^6), -1)
         Traceback (most recent call last):
         ...
-        ValueError: Invalid graph description, n2 should be >= 0
+        ValueError: invalid graph description, n2 should be >= 0
         sage: graphs.BarbellGraph(randint(2, 10^6), randint(-10^6, -1))
         Traceback (most recent call last):
         ...
-        ValueError: Invalid graph description, n2 should be >= 0
+        ValueError: invalid graph description, n2 should be >= 0
         sage: graphs.BarbellGraph(randint(-10^6, 1), randint(-10^6, -1))
         Traceback (most recent call last):
         ...
-        ValueError: Invalid graph description, n1 should be >= 2
+        ValueError: invalid graph description, n1 should be >= 2
     """
     # sanity checks
     if n1 < 2:
-        raise ValueError("Invalid graph description, n1 should be >= 2")
+        raise ValueError("invalid graph description, n1 should be >= 2")
     if n2 < 0:
-        raise ValueError("Invalid graph description, n2 should be >= 0")
+        raise ValueError("invalid graph description, n2 should be >= 0")
 
     pos_dict = {}
 
@@ -356,9 +342,215 @@ def BarbellGraph(n1, n2):
             + (n2 / 2) + 2)
         pos_dict[i] = (x, y)
 
-    import networkx
-    G = networkx.barbell_graph(n1, n2)
-    return Graph(G, pos=pos_dict, name="Barbell graph")
+    G = Graph(pos=pos_dict, name="Barbell graph")
+    G.add_edges(((i, j) for i in range(n1) for j in range(i + 1, n1)))
+    G.add_path(list(range(n1, n1 + n2)))
+    G.add_edges(((i, j) for i in range(n1 + n2, n1 + n2 + n1)
+                 for j in range(i + 1, n1 + n2 + n1)))
+    if n1 > 0:
+        G.add_edge(n1 - 1, n1)
+        G.add_edge(n1 + n2 - 1, n1 + n2)
+
+    return G
+
+
+def LollipopGraph(n1, n2):
+    r"""
+    Returns a lollipop graph with n1+n2 nodes.
+
+    A lollipop graph is a path graph (order n2) connected to a complete
+    graph (order n1). (A barbell graph minus one of the bells).
+
+    PLOTTING: Upon construction, the position dictionary is filled to
+    override the spring-layout algorithm. By convention, the complete
+    graph will be drawn in the lower-left corner with the (n1)th node
+    at a 45 degree angle above the right horizontal center of the
+    complete graph, leading directly into the path graph.
+
+    EXAMPLES:
+
+    Construct and show a lollipop graph Candy = 13, Stick = 4::
+
+        sage: g = graphs.LollipopGraph(13,4); g
+        Lollipop graph: Graph on 17 vertices
+        sage: g.show() # long time
+
+    TESTS:
+
+        sage: n1, n2 = randint(3, 10), randint(0, 10)
+        sage: g = graphs.LollipopGraph(n1, n2)
+        sage: g.num_verts() == n1 + n2
+        True
+        sage: g.num_edges() == binomial(n1, 2) + n2
+        True
+        sage: g.is_connected()
+        True
+        sage: g.girth() == 3
+        True
+        sage: graphs.LollipopGraph(n1, 0).is_isomorphic(graphs.CompleteGraph(n1))
+        True
+        sage: graphs.LollipopGraph(0, n2).is_isomorphic(graphs.PathGraph(n2))
+        True
+        sage: graphs.LollipopGraph(0, 0).is_isomorphic(graphs.EmptyGraph())
+        True
+
+    The input ``n1`` must be `\geq 0`::
+
+        sage: graphs.LollipopGraph(-1, randint(0, 10^6))
+        Traceback (most recent call last):
+        ...
+        ValueError: invalid graph description, n1 should be >= 0
+
+    The input ``n2`` must be `\geq 0`::
+
+        sage: graphs.LollipopGraph(randint(2, 10^6), -1)
+        Traceback (most recent call last):
+        ...
+        ValueError: invalid graph description, n2 should be >= 0
+    """
+    # sanity checks
+    if n1 < 0:
+        raise ValueError("invalid graph description, n1 should be >= 0")
+    if n2 < 0:
+        raise ValueError("invalid graph description, n2 should be >= 0")
+
+    pos_dict = {}
+
+    for i in range(n1):
+        x = float(cos((pi/4) - ((2*pi)/n1)*i) - n2/2 - 1)
+        y = float(sin((pi/4) - ((2*pi)/n1)*i) - n2/2 - 1)
+        j = n1-1-i
+        pos_dict[j] = (x,y)
+    for i in range(n1, n1+n2):
+        x = float(i - n1 - n2/2 + 1)
+        y = float(i - n1 - n2/2 + 1)
+        pos_dict[i] = (x,y)
+
+    G = Graph(pos=pos_dict, name="Lollipop graph")
+    G.add_edges(((i, j) for i in range(n1) for j in range(i + 1, n1)))
+    G.add_path(list(range(n1, n1 + n2)))
+    if n1 * n2 > 0:
+        G.add_edge(n1 - 1, n1)
+
+    return G
+
+
+def TadpoleGraph(n1, n2):
+    r"""
+    Returns a tadpole graph with n1+n2 nodes.
+
+    A tadpole graph is a path graph (order n2) connected to a cycle graph
+    (order n1).
+
+    PLOTTING: Upon construction, the position dictionary is filled to override
+    the spring-layout algorithm. By convention, the cycle graph will be drawn
+    in the lower-left corner with the (n1)th node at a 45 degree angle above
+    the right horizontal center of the cycle graph, leading directly into the
+    path graph.
+
+    EXAMPLES:
+
+    Construct and show a tadpole graph Cycle = 13, Stick = 4::
+
+        sage: g = graphs.TadpoleGraph(13, 4); g
+        Tadpole graph: Graph on 17 vertices
+        sage: g.show() # long time
+
+    TESTS:
+
+        sage: n1, n2 = randint(3, 10), randint(0, 10)
+        sage: g = graphs.TadpoleGraph(n1, n2)
+        sage: g.num_verts() == n1 + n2
+        True
+        sage: g.num_edges() == n1 + n2
+        True
+        sage: g.girth() == n1
+        True
+        sage: graphs.TadpoleGraph(n1, 0).is_isomorphic(graphs.CycleGraph(n1))
+        True
+
+    The input ``n1`` must be `\geq 3`::
+
+        sage: graphs.TadpoleGraph(2, randint(0, 10^6))
+        Traceback (most recent call last):
+        ...
+        ValueError: invalid graph description, n1 should be >= 3
+
+    The input ``n2`` must be `\geq 0`::
+
+        sage: graphs.TadpoleGraph(randint(2, 10^6), -1)
+        Traceback (most recent call last):
+        ...
+        ValueError: invalid graph description, n2 should be >= 0
+    """
+    # sanity checks
+    if n1 < 3:
+        raise ValueError("invalid graph description, n1 should be >= 3")
+    if n2 < 0:
+        raise ValueError("invalid graph description, n2 should be >= 0")
+
+    pos_dict = {}
+
+    for i in range(n1):
+        x = float(cos((pi/4) - ((2*pi)/n1)*i) - n2/2 - 1)
+        y = float(sin((pi/4) - ((2*pi)/n1)*i) - n2/2 - 1)
+        j = n1-1-i
+        pos_dict[j] = (x,y)
+    for i in range(n1, n1+n2):
+        x = float(i - n1 - n2/2 + 1)
+        y = float(i - n1 - n2/2 + 1)
+        pos_dict[i] = (x,y)
+
+    G = Graph(pos=pos_dict, name="Tadpole graph")
+    G.add_cycle(list(range(n1)))
+    G.add_path(list(range(n1, n1 + n2)))
+    if n1 * n2 > 0:
+        G.add_edge(n1 - 1, n1)
+
+    return G
+
+
+def DipoleGraph(n):
+    r"""
+    Returns a dipole graph with n edges.
+
+    A dipole graph is a multigraph consisting of 2 vertices connected with n
+    parallel edges.
+
+    EXAMPLES:
+
+    Construct and show a dipole graph with 13 edges::
+
+        sage: g = graphs.DipoleGraph(13); g
+        Dipole graph: Multi-graph on 2 vertices
+        sage: g.show() # long time
+
+    TESTS:
+
+        sage: n = randint(0, 10)
+        sage: g = graphs.DipoleGraph(n)
+        sage: g.num_verts() == 2
+        True
+        sage: g.num_edges() == n
+        True
+        sage: g.is_connected() == (n > 0)
+        True
+        sage: g.diameter() == (1 if n > 0 else infinity)
+        True
+
+    The input ``n`` must be `\geq 0`::
+
+        sage: graphs.DipoleGraph(-randint(1, 10))
+        Traceback (most recent call last):
+        ...
+        ValueError: invalid graph description, n should be >= 0
+    """
+    # sanity checks
+    if n < 0:
+        raise ValueError("invalid graph description, n should be >= 0")
+
+    return Graph([[0,1], [(0,1)]*n], name="Dipole graph", multiedges=True)
+
 
 def BubbleSortGraph(n):
     r"""
@@ -993,6 +1185,7 @@ def FuzzyBallGraph(partition, q):
         g.add_edges([(curr_vertex+i, 'a{0}'.format(e+1)) for i in range(p)])
         curr_vertex+=p
     return g
+
 
 def FibonacciTree(n):
     r"""

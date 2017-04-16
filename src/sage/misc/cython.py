@@ -289,7 +289,7 @@ def cython(filename, verbose=False, compile_message=False,
       Cython file, don't recompile, just reuse the .so file.
 
     - ``create_local_c_file`` (bool, default False) - if True, save a
-      copy of the .c file in the current directory.
+      copy of the ``.c`` or ``.cpp`` file in the current directory.
 
     - ``annotate`` (bool, default True) - if True, create an html file which
       annotates the conversion from .pyx to .c. By default this is only created
@@ -343,12 +343,12 @@ def cython(filename, verbose=False, compile_message=False,
 
         sage: import sage.misc.cython
         sage: d = sage.misc.temporary_file.tmp_dir()
-        sage: pyxfile = os.path.join(d, "src.pyx")
-        sage: with open(pyxfile, 'w') as f:
+        sage: os.chdir(d)
+        sage: with open("test.pyx", 'w') as f:
         ....:     f.write("#clang C++\n"
         ....:       "from libcpp.vector cimport vector\n"
         ....:       "cdef vector[int] * v = new vector[int](4)\n")
-        sage: output = sage.misc.cython.cython(pyxfile, create_local_c_file=True)
+        sage: output = sage.misc.cython.cython("test.pyx", create_local_c_file=True)
     """
     if not filename.endswith('pyx'):
         print("Warning: file (={}) should have extension .pyx".format(filename), file=sys.stderr)

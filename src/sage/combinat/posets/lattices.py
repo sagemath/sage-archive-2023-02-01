@@ -1016,13 +1016,13 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
     def is_stone(self, certificate=False):
         r"""
-        Return ``True`` if the lattice is Stone lattice, and ``False``
+        Return ``True`` if the lattice is a Stone lattice, and ``False``
         otherwise.
 
         The lattice is expected to be distributive (and hence
         pseudocomplemented).
 
-        A pseudocomplemented lattice is Stone lattice if
+        A pseudocomplemented lattice is a Stone lattice if
 
         .. MATH::
 
@@ -1062,7 +1062,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             True
 
             sage: L = LatticePoset(DiGraph('GW?_W@?W@?O?'))
-            sage: L.is_stone()  # Pass the fast check, but not Stone lattice
+            sage: L.is_stone()  # Pass the fast check, but not a Stone lattice
             False
         """
         from sage.arith.misc import factor
@@ -1079,7 +1079,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             return ok
 
         # Quick check:
-        # Stone lattice is direct product of distributive lattices with
+        # A Stone lattice is direct product of distributive lattices with
         # one atom. Return False if for example the lattice has two atoms
         # and odd number of elements.
         atoms_n = self._hasse_diagram.out_degree(0)

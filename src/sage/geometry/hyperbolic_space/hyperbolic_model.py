@@ -143,6 +143,38 @@ class HyperbolicModel(Parent, UniqueRepresentation, BindableClass):
         from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicModels
         Parent.__init__(self, category=HyperbolicModels(space))
 
+    def __eq__(self, other):
+        """
+        Test equality of ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: PD = HyperbolicPlane().PD()
+            sage: KM = HyperbolicPlane().KM()
+            sage: KM == KM
+            True
+            sage: PD == KM
+            False
+        """
+        if not isinstance(other, HyperbolicModel):
+            return False
+        return self._name == other._name
+
+    def __ne__(self, other):
+        """
+        Test unequality of ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: PD = HyperbolicPlane().PD()
+            sage: KM = HyperbolicPlane().KM()
+            sage: KM != KM
+            False
+            sage: PD != KM
+            True
+        """
+        return not (self == other)
+
     def _repr_(self):  # Abstract
         """
         Return a string representation of ``self``.
@@ -150,9 +182,9 @@ class HyperbolicModel(Parent, UniqueRepresentation, BindableClass):
         EXAMPLES::
 
             sage: HyperbolicPlane().UHP()
-            Hyperbolic plane in the Upper Half Plane Model model
+            Hyperbolic plane in the Upper Half Plane Model
         """
-        return u'Hyperbolic plane in the {} model'.format(self._name)
+        return u'Hyperbolic plane in the {}'.format(self._name)
 
     def _element_constructor_(self, x, is_boundary=None, **graphics_options): #Abstract
         """

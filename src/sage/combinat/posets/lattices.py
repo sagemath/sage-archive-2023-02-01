@@ -1086,11 +1086,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if atoms_n == 1:
             return ok
         if not certificate:
-            if (sum([x[1] for x in factor(self.cardinality())]) <
-                atoms_n):
+            if sum([x[1] for x in factor(self.cardinality())]) < atoms_n:
                 return False
-            if (self._hasse_diagram.in_degree(self.cardinality()-1) <
-                atoms_n):
+            if self._hasse_diagram.in_degree(self.cardinality()-1) < atoms_n:
                 return False
 
         # Quick check failed

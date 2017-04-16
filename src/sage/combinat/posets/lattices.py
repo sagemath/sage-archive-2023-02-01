@@ -1065,13 +1065,13 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L.is_stone()  # Pass the fast check, but not a Stone lattice
             False
         """
-        from sage.arith.misc import factor
         # TODO: For now we can factor only undirected graphs. When that
         # is extended to directed, use that; see comment below.
 
         if not self.is_distributive():
             raise ValueError("the lattice is not distributive")
 
+        from sage.arith.misc import factor
         ok = (True, None) if certificate else True
 
         # Needed for the empty lattice that has no bottom element.

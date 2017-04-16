@@ -27,6 +27,7 @@ mutable version see :func:`DisjointSet`.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function, absolute_import, division
 from six.moves import range
 from six import add_metaclass
 
@@ -51,7 +52,6 @@ from sage.combinat.set_partition_ordered import OrderedSetPartitions
 from sage.combinat.combinat import bell_number, stirling_number2
 from sage.combinat.permutation import Permutation
 from functools import reduce
-from sage.misc.latex import latex
 
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
@@ -420,22 +420,23 @@ class SetPartition(ClonableArray):
 
         - ``tikz_scale`` -- (default: 1) scale for use with tikz package
 
-        - ``plot`` -- (default: None) None returns the set notation,
+        - ``plot`` -- (default: ``None``) ``None`` returns the set notation,
           ``linear`` returns a linear plot, ``cyclic`` returns a cyclic
           plot
 
-        - ``color`` -- (default: black) the arc colors
+        - ``color`` -- (default: ``'black'``) the arc colors
 
-        - ``fill`` -- (default: False) if True then fills black, else you can
-          pass in a color to alter the fill color - *only works with cyclic plot*
+        - ``fill`` -- (default: ``False``) if True then fills black, else
+          you can pass in a color to alter the fill color -
+          *only works with cyclic plot*
 
-        - ``show_labels`` -- (default: True) if True shows labels - *only works
-          with plots*
+        - ``show_labels`` -- (default: ``True``) if ``True`` shows labels -
+          *only works with plots*
 
-        - ``radius`` -- (default: "1cm") radius of circle for cyclic plot - *Only
-          works with cyclic plot*
+        - ``radius`` -- (default: ``"1cm"``) radius of circle for cyclic
+          plot - *only works with cyclic plot*
 
-        - ``angle`` -- (default: 0) angle for linear
+        - ``angle`` -- (default: 0) angle for linear plot
 
         EXAMPLES::
 
@@ -459,11 +460,13 @@ class SetPartition(ClonableArray):
             if key not in valid_args:
                 raise ValueError("unknown keyword argument: %s"%key)
             if key == 'plot':
-                if kwargs['plot'] != 'cyclic' and kwargs['plot'] != 'linear' and kwargs['plot'] != None:
+                if not (kwargs['plot'] == 'cyclic'
+                        or kwargs['plot'] == 'linear'
+                        or kwargs['plot'] is None):
                     raise ValueError("plot must be None, 'cyclic', or 'linear'")
 
-            for opt in kwargs:
-                self._latex_options[opt] = kwargs[opt]
+        for opt in kwargs:
+            self._latex_options[opt] = kwargs[opt]
 
     def latex_options(self):
         r"""
@@ -489,7 +492,7 @@ class SetPartition(ClonableArray):
         if "plot" not in opts:
             opts["plot"] = None
         if "color" not in opts:
-            opts['color']= 'black'
+            opts['color'] = 'black'
         if "fill" not in opts:
             opts["fill"] = False
         if "show_labels" not in opts:
@@ -530,9 +533,10 @@ class SetPartition(ClonableArray):
 
         """
         latex_options = self.latex_options()
-        if latex_options["plot"] == None:
+        if latex_options["plot"] is None:
             return repr(self).replace("{",r"\{").replace("}",r"\}")
-        
+
+        from sage.misc.latex import latex
         latex.add_package_to_preamble_if_available("tikz")
         res = "\\begin{tikzpicture}[scale="+str(latex_options['tikz_scale'])+"]\n"
 
@@ -542,7 +546,7 @@ class SetPartition(ClonableArray):
 
         # If we want cyclic plots
         if latex_options['plot'] == 'cyclic':
-            degrees = 360 / cardinality
+            degrees = 360 // cardinality
             radius = latex_options['radius']
 
             # Add nodes
@@ -1152,27 +1156,33 @@ class SetPartition(ClonableArray):
         return arcs
 
     def plot(self, angle=None, color='black', base_set_dict=None):
-        """
+        r"""
         Return a plot of ``self``.
-
-        .. PLOT::
-
-            p=SetPartition([[1,10,11],[2,3,7],[4,5,6],[8,9]])
-            sphinx_plot(p.plot())
 
         INPUT:
 
-        - ``angle`` -- the angle at which the arcs take off (if angle is negative,
-          the arcs are drawn below the horizontal line)
+        - ``angle`` -- (default: `\pi/4`) the angle at which the arcs take off
+          (if angle is negative, the arcs are drawn below the horizontal line)
 
-        - ``color`` -- color of the arcs
+        - ``color`` -- (default: ``'black'``) color of the arcs
 
-        - ``base_set_dict`` -- dictionary with keys elements of self.base_set()
-          and values as integer or float
+        - ``base_set_dict`` -- (optional) dictionary with keys elements
+          of :meth:`base_set()` and values as integer or float
 
         EXAMPLES::
 
-            sage: p=SetPartition([[1,3,4],[2,5]])
+            sage: p = SetPartition([[1,10,11],[2,3,7],[4,5,6],[8,9]])
+            sage: p.plot()
+            Graphics object consisting of 29 graphics primitives
+
+        .. PLOT::
+
+            p = SetPartition([[1,10,11],[2,3,7],[4,5,6],[8,9]])
+            sphinx_plot(p.plot())
+
+        ::
+
+            sage: p = SetPartition([[1,3,4],[2,5]])
             sage: print(p.plot().description())
             Point set defined by 1 point(s):    [(0.0, 0.0)]
             Point set defined by 1 point(s):    [(1.0, 0.0)]
@@ -1184,10 +1194,13 @@ class SetPartition(ClonableArray):
             Text '3' at the point (2.0,-0.1)
             Text '4' at the point (3.0,-0.1)
             Text '5' at the point (4.0,-0.1)
-            Arc with center (1.0,-1.0) radii (1.41421356237,1.41421356237) angle 0.0 inside the sector (0.785398163397,2.35619449019)
-            Arc with center (2.5,-0.5) radii (0.707106781187,0.707106781187) angle 0.0 inside the sector (0.785398163397,2.35619449019)
-            Arc with center (2.5,-1.5) radii (2.12132034356,2.12132034356) angle 0.0 inside the sector (0.785398163397,2.35619449019)
-            sage: p=SetPartition([['a','c'],['b','d'],['e']])
+            Arc with center (1.0,-1.0) radii (1.41421356237,1.41421356237)
+             angle 0.0 inside the sector (0.785398163397,2.35619449019)
+            Arc with center (2.5,-0.5) radii (0.707106781187,0.707106781187)
+             angle 0.0 inside the sector (0.785398163397,2.35619449019)
+            Arc with center (2.5,-1.5) radii (2.12132034356,2.12132034356)
+             angle 0.0 inside the sector (0.785398163397,2.35619449019)
+            sage: p = SetPartition([['a','c'],['b','d'],['e']])
             sage: print(p.plot().description())
             Point set defined by 1 point(s):  [(0.0, 0.0)]
             Point set defined by 1 point(s):    [(1.0, 0.0)]
@@ -1199,9 +1212,11 @@ class SetPartition(ClonableArray):
             Text 'c' at the point (2.0,-0.1)
             Text 'd' at the point (3.0,-0.1)
             Text 'e' at the point (4.0,-0.1)
-            Arc with center (1.0,-1.0) radii (1.41421356237,1.41421356237) angle 0.0 inside the sector (0.785398163397,2.35619449019)
-            Arc with center (2.0,-1.0) radii (1.41421356237,1.41421356237) angle 0.0 inside the sector (0.785398163397,2.35619449019)
-            sage: p=SetPartition([['a','c'],['b','d'],['e']])
+            Arc with center (1.0,-1.0) radii (1.41421356237,1.41421356237)
+             angle 0.0 inside the sector (0.785398163397,2.35619449019)
+            Arc with center (2.0,-1.0) radii (1.41421356237,1.41421356237)
+             angle 0.0 inside the sector (0.785398163397,2.35619449019)
+            sage: p = SetPartition([['a','c'],['b','d'],['e']])
             sage: print(p.plot(base_set_dict={'a':0,'b':1,'c':2,'d':-2.3,'e':5.4}).description())
             Point set defined by 1 point(s):    [(-2.3, 0.0)]
             Point set defined by 1 point(s):    [(0.0, 0.0)]
@@ -1213,9 +1228,10 @@ class SetPartition(ClonableArray):
             Text 'c' at the point (2.0,-0.1)
             Text 'd' at the point (-2.3,-0.1)
             Text 'e' at the point (5.4,-0.1)
-            Arc with center (-0.65,-1.65) radii (2.33345237792,2.33345237792) angle 0.0 inside the sector (0.785398163397,2.35619449019)
-            Arc with center (1.0,-1.0) radii (1.41421356237,1.41421356237) angle 0.0 inside the sector (0.785398163397,2.35619449019)
-
+            Arc with center (-0.65,-1.65) radii (2.33345237792,2.33345237792)
+             angle 0.0 inside the sector (0.785398163397,2.35619449019)
+            Arc with center (1.0,-1.0) radii (1.41421356237,1.41421356237)
+             angle 0.0 inside the sector (0.785398163397,2.35619449019)
         """
         from sage.plot.graphics import Graphics
         from sage.plot.point import point
@@ -1223,36 +1239,34 @@ class SetPartition(ClonableArray):
         from sage.plot.arc import arc
         from sage.functions.other import sqrt
         from sage.symbolic.constants import pi
-        from sage.functions.trig import tan
-        from sage.functions.trig import sin
+        from sage.functions.trig import tan, sin
         from sage.functions.generalized import sgn
 
         diag = Graphics()
-        sorted_vertices_list=list(self.base_set())
+        sorted_vertices_list = list(self.base_set())
         sorted_vertices_list.sort()
-        vertices_dict = dict()
 
-        if not angle:
-            angle = pi/4
-            # the case angle = 0 should maybe treated separately
+        if angle is None:
+            angle = pi / 4
 
-        if base_set_dict:
+        if base_set_dict is not None:
             vertices_dict = base_set_dict
         else:
-            for pos in range(len(sorted_vertices_list)):
-                vertices_dict[sorted_vertices_list[pos]]=pos
+            vertices_dict = {val: pos for pos,val in enumerate(sorted_vertices_list)}
 
         for elt in vertices_dict:
             pos = vertices_dict[elt]
-            diag += point((pos,0),size=30, color=color)
-            diag += text(elt, (pos,-sgn(angle)*0.1), color=color)
+            diag += point((pos,0), size=30, color=color)
+            diag += text(elt, (pos, -sgn(angle)*0.1), color=color)
             # TODO: change 0.1 to something proportional to the height of the picture
+
         for (k,j) in self.arcs():
             pos_k,pos_j = float(vertices_dict[k]),float(vertices_dict[j])
-            center = ((pos_k+pos_j)/2,-abs(pos_j-pos_k)/(2*tan(angle)))
-            r1 = abs((pos_j-pos_k)/(2*sin(angle)))
-            sector = (sgn(angle)*(pi/2-angle),sgn(angle)*(pi/2+angle))
+            center = ((pos_k+pos_j) / 2, -abs(pos_j-pos_k) / (2*tan(angle)))
+            r1 = abs((pos_j-pos_k) / (2*sin(angle)))
+            sector = (sgn(angle) * (pi/2 - angle), sgn(angle) * (pi/2 + angle))
             diag += arc(center=center, r1=r1, sector=sector, color=color)
+
         diag.axes(False)
         return diag
 

@@ -69,6 +69,20 @@ cdef class ImmutableListWithParent(ClonableArray):
         """
         return hash(tuple(self._list))
 
+    def __setstate__(self, state):
+        """
+        For unpickling old pickles.
+
+        EXAMPLES::
+
+            sage: T = crystals.Tableaux(['A',2], shape=[2,1])
+            sage: b = T.module_generators[0]
+            sage: b.__setstate__([T, {'_list': list(b)}])
+        """
+        self._parent = state[0]
+        self._list = state[1]['_list']
+        self._is_immutable = True
+
     def reversed(self):
         """
         Return a copy of ``self`` but in the reversed order.

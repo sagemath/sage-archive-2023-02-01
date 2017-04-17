@@ -160,6 +160,8 @@ class CrystalOfWords(UniqueRepresentation, Parent):
             return sum(q**(c[0].energy_function())*B.sum(B(P0(b.weight())) for b in c) for c in C)
         return B.sum(q**(b.energy_function())*B(P0(b.weight())) for b in self)
 
+    Element = TensorProductOfCrystalsElement
+
 
 class TensorProductOfCrystals(CrystalOfWords):
     r"""
@@ -549,7 +551,7 @@ class TensorProductOfCrystalsWithGenerators(TensorProductOfCrystals):
         Parent.__init__(self, category = category)
         self.crystals = crystals
         self._cartan_type = cartan_type
-        self.module_generators = [ self(*x) for x in generators ]
+        self.module_generators = tuple([self(*x) for x in generators])
 
     def _repr_(self):
         """
@@ -672,8 +674,6 @@ class FullTensorProductOfCrystals(TensorProductOfCrystals):
         cm = get_coercion_model()
         return cm.common_parent(*[crystal.weight_lattice_realization()
                                   for crystal in self.crystals])
-
-CrystalOfWords.Element = TensorProductOfCrystalsElement
 
 class FullTensorProductOfRegularCrystals(FullTensorProductOfCrystals):
     """

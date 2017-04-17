@@ -5818,10 +5818,11 @@ class Polyhedron_base(Element):
             sage: Polyhedron([(2,3,4)]).affine_hull()
             A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
         """
+        #if the self is full-dimensional, return it immediately
+        if self.ambient_dim() == self.dim():
+            return self
         if force_isometry:
-            #if the self is full-dimensional, return it immediately
-            if self.ambient_dim() == self.dim():
-                return self
+            #see TODO
             if not self.is_compact():
                 raise NotImplementedError('"force_isometry=True" works only for compact polyhedra')
             #translate 0th vertex to the origin

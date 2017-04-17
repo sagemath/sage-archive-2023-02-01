@@ -27,7 +27,7 @@ import os
 
 from sage.env import CONWAY_POLYNOMIALS_DATA_DIR
 
-_CONWAYDATA = os.path.join(CONWAY_POLYNOMIALS_DATA_DIR, 'conway_polynomials.sobj')
+_CONWAYDATA = os.path.join(CONWAY_POLYNOMIALS_DATA_DIR, 'conway_polynomials.p')
 _conwaydict = None
 
 class DictInMapping(collections.Mapping):

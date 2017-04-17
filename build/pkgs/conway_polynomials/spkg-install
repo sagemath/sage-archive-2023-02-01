@@ -15,7 +15,7 @@ def create_db():
         db[p][n] = v
     if not os.path.exists(install_root):
         os.makedirs(install_root)
-    with open('conway_polynomials.p', 'wb') as f:
+    with open(os.path.join(install_root, 'conway_polynomials.p'), 'wb') as f:
         pickle.dump(db, f)
 
 if __name__ == '__main__':

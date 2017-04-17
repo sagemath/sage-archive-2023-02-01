@@ -20,6 +20,7 @@ Frank Luebeck's tables of Conway polynomials over finite fields
 #*****************************************************************************
 
 from six import itervalues, iteritems
+from six.moves import cPickle as pickle
 
 import collections
 import os
@@ -92,6 +93,7 @@ class DictInMapping(collections.Mapping):
         """
         return repr(self._store)
 
+
 class ConwayPolynomials(collections.Mapping):
     def __init__(self):
         """
@@ -107,9 +109,9 @@ class ConwayPolynomials(collections.Mapping):
         if _conwaydict is None:
             if not os.path.exists(_CONWAYDATA):
                 raise RuntimeError('In order to initialize the database, '
-                        + '%s must exist.'%_CONWAYDATA)
-            from sage.structure.sage_object import load
-            _conwaydict = load(_CONWAYDATA)
+                        + '%s must exist.' % _CONWAYDATA)
+            with open(_CONWAYDATA, 'rb') as f:
+                _conwaydict = pickle.load(f)
         self._store = _conwaydict
 
     def __repr__(self):

@@ -211,7 +211,7 @@ def HighestWeightCrystal(dominant_weight, model=None):
         if cartan_type.type() != 'A':
             raise NotImplementedError("only for affine type A")
         # Make sure it's in the weight lattice
-        P = dominant_weight.parent().root_system.weight_lattice()
+        P = dominant_weight.parent().root_system.weight_lattice(extended=True)
         wt = P.sum_of_terms((i, c) for i,c in dominant_weight)
         return CrystalOfGeneralizedYoungWalls(cartan_type.rank()-1, wt)
 

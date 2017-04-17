@@ -420,7 +420,7 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
                 0
                 sage: mg = B.highest_weight_vector()
                 sage: mg.f(1).phi(0)
-                -1
+                1
             """
             h = self.parent().weight_lattice_realization().simple_coroots()
             return self.epsilon(i) + self.weight().scalar(h[i])
@@ -434,11 +434,11 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
                 sage: B = crystals.infinity.Multisegments(2)
                 sage: b = B([(4,2), (3,0), (3,1), (1,1), (1,0)])
                 sage: b.weight()
-                4*delta
+                -4*delta
             """
             WLR = self.parent().weight_lattice_realization()
             alpha = WLR.simple_roots()
             n = self.parent()._cartan_type.rank()
-            return WLR.sum(alpha[j % n] for k,i in self.value
+            return WLR.sum(-1*alpha[j % n] for k,i in self.value
                            for j in range(ZZ(i),ZZ(i)+k))
 

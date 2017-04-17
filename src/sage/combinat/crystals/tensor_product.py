@@ -1149,7 +1149,6 @@ class LocalEnergyFunction(Map):
 
         return self._known_values[x]
 
-
 # deprecations from trac:18555
 from sage.misc.superseded import deprecated_function_alias
 TensorProductOfCrystals.global_options=deprecated_function_alias(18555, TensorProductOfCrystals.options)

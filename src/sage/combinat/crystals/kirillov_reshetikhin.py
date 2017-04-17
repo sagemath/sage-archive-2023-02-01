@@ -1411,10 +1411,10 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
 
             sage: K = crystals.KirillovReshetikhin(['E',6,1],2,1)
             sage: K.highest_weight_dict()
-            {[]: ((0, 0, 0, 0, 0, 0, 0), 0),
-             [[(2, -1), (1,)]]: ((-2, 0, 1, 0, 0, 0, 0), 1),
-             [[(6, -2), (-6, 2)]]: ((0, 0, 0, 0, 0, 0, 0), 1),
+            {[[(2, -1), (1,)]]: ((-2, 0, 1, 0, 0, 0, 0), 1),
              [[(3, -1, -6), (1,)]]: ((-1, 0, 0, 1, 0, 0, -1), 1),
+             []: ((0, 0, 0, 0, 0, 0, 0), 0),
+             [[(6, -2), (-6, 2)]]: ((0, 0, 0, 0, 0, 0, 0), 1),
              [[(5, -2, -6), (-6, 2)]]: ((0, 0, 0, 0, 0, 1, -2), 1)}
         """
         hw = [x for x in self.hw_auxiliary() if x.epsilon(1) == 0]
@@ -1452,10 +1452,10 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
 
             sage: K = crystals.KirillovReshetikhin(['E',6,1],2,1)
             sage: [[x[0], K.automorphism_on_affine_weight(x[0])] for x in K.highest_weight_dict().values()]
-            [[(0, 0, 0, 0, 0, 0, 0), (0, 0, 0, 0, 0, 0, 0)],
+            [[(-1, 0, 0, 1, 0, 0, -1), (-1, -1, 0, 0, 0, 1, 0)],
+             [(0, 0, 0, 0, 0, 0, 0), (0, 0, 0, 0, 0, 0, 0)],
              [(0, 0, 0, 0, 0, 0, 0), (0, 0, 0, 0, 0, 0, 0)],
              [(-2, 0, 1, 0, 0, 0, 0), (0, -2, 0, 1, 0, 0, 0)],
-             [(-1, 0, 0, 1, 0, 0, -1), (-1, -1, 0, 0, 0, 1, 0)],
              [(0, 0, 0, 0, 0, 1, -2), (-2, 0, 1, 0, 0, 0, 0)]]
         """
         f = self.dynkin_diagram_automorphism
@@ -1472,10 +1472,10 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
             sage: K = crystals.KirillovReshetikhin(['E',6,1],2,1)
             sage: dic = K.promotion_on_highest_weight_vectors()
             sage: dic
-            {[]: [[(1, -3), (-1, 3)]],
-             [[(2, -1), (1,)]]: [[(-1,), (-1, 3)]],
-             [[(6, -2), (-6, 2)]]: [],
+            {[[(2, -1), (1,)]]: [[(-1,), (-1, 3)]],
              [[(3, -1, -6), (1,)]]: [[(5, -3), (-1, 3)]],
+             []: [[(1, -3), (-1, 3)]],
+             [[(6, -2), (-6, 2)]]: [],
              [[(5, -2, -6), (-6, 2)]]: [[(2, -1), (1,)]]}
         """
         dic = self.highest_weight_dict()

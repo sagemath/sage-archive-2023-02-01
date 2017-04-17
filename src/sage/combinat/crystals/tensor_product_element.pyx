@@ -57,6 +57,18 @@ cdef class ImmutableListWithParent(ClonableArray):
         """
         ClonableArray.__init__(self, parent, list, check=False)
 
+    cpdef long _hash_(self) except? -1:
+        """
+        Return the hash of ``self``.
+
+        TESTS::
+
+            sage: b = crystals.Tableaux(['A',2], shape=[2,1]).module_generators[0]
+            sage: b._hash_() == hash(b)
+            True
+        """
+        return hash(tuple(self._list))
+
     def reversed(self):
         """
         Return a copy of ``self`` but in the reversed order.
@@ -1328,4 +1340,8 @@ cdef class InfinityCrystalOfTableauxElementTypeD(InfinityCrystalOfTableauxElemen
             for j in range(i-1):
                 ret._list.insert(0, self._parent.letters(j+1))
         return ret
+
+# for unpickling
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.combinat.crystals.tensor_product', 'ImmutableListWithParent',  ImmutableListWithParent)
 

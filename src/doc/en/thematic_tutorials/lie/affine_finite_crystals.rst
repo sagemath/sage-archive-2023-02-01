@@ -68,7 +68,7 @@ the methods ``lift`` and ``retract``::
     sage: b.lift()
     [[1], [3]]
     sage: type(b.lift())
-    <class 'sage.combinat.crystals.tensor_product.CrystalOfTableaux_with_category.element_class'>
+    <type 'sage.combinat.crystals.tensor_product_element.CrystalOfTableauxElement'>
 
     sage: b = crystals.Tableaux(['A',3], shape = [1,1])(rows=[[1],[3]])
     sage: K.retract(b)

@@ -391,9 +391,9 @@ class Crystals(Category_singleton):
                 sage: len(S)
                 6
                 sage: list(C.subcrystal(index_set=[1,3], generators=[C(1,4)]))
-                [[[1, 4]], [[2, 4]], [[1, 3]], [[2, 3]]]
+                [[[1, 4]], [[1, 3]], [[2, 4]], [[2, 3]]]
                 sage: list(C.subcrystal(index_set=[1,3], generators=[C(1,4)], max_depth=1))
-                [[[1, 4]], [[2, 4]], [[1, 3]]]
+                [[[1, 4]], [[1, 3]], [[2, 4]]]
                 sage: list(C.subcrystal(index_set=[1,3], generators=[C(1,4)], direction='upper'))
                 [[[1, 4]], [[1, 3]]]
                 sage: list(C.subcrystal(index_set=[1,3], generators=[C(1,4)], direction='lower'))
@@ -592,7 +592,7 @@ class Crystals(Category_singleton):
                          [The crystal of tableaux of type ['A', 2] and shape(s) [[1]],
                           The crystal of tableaux of type ['A', 2] and shape(s) [[1]],
                           The crystal of tableaux of type ['A', 2] and shape(s) [[1]]]
-                  Defn: [2, 1, 1] |--> [[[1]], [[2]], [[1]]]
+                  Defn: [[1, 1], [2]] |--> [[[1]], [[2]], [[1]]]
                 sage: b = B.module_generators[0]
                 sage: b.pp()
                   1  1
@@ -634,7 +634,7 @@ class Crystals(Category_singleton):
                 ['D', 4] -> ['D', 4, 1] Virtual Crystal morphism:
                   From: The crystal of tableaux of type ['D', 4] and shape(s) [[1, 1]]
                   To:   Kirillov-Reshetikhin crystal of type ['D', 4, 1] with (r,s)=(2,2)
-                  Defn: [2, 1] |--> [[1], [2]]
+                  Defn: [[1], [2]] |--> [[1], [2]]
                 sage: b = B.module_generators[0]
                 sage: psi(b)
                 [[1], [2]]
@@ -1655,9 +1655,9 @@ class Crystals(Category_singleton):
                 sage: C = crystals.KirillovReshetikhin(['A',3,1], 1, 2)
                 sage: elt = C(1,4)
                 sage: list(elt.subcrystal(index_set=[1,3]))
-                [[[1, 4]], [[2, 4]], [[1, 3]], [[2, 3]]]
+                [[[1, 4]], [[1, 3]], [[2, 4]], [[2, 3]]]
                 sage: list(elt.subcrystal(index_set=[1,3], max_depth=1))
-                [[[1, 4]], [[2, 4]], [[1, 3]]]
+                [[[1, 4]], [[1, 3]], [[2, 4]]]
                 sage: list(elt.subcrystal(index_set=[1,3], direction='upper'))
                 [[[1, 4]], [[1, 3]]]
                 sage: list(elt.subcrystal(index_set=[1,3], direction='lower'))
@@ -1990,8 +1990,8 @@ class CrystalMorphismByGenerators(CrystalMorphism):
             sage: psi = H((None, b, b, None), generators=T.highest_weight_vectors())
             sage: print(psi._repr_defn())
             [[[1]], [[1]], [[1]]] |--> None
-            [[[2]], [[1]], [[1]]] |--> [2, 1, 1]
-            [[[1]], [[2]], [[1]]] |--> [2, 1, 1]
+            [[[2]], [[1]], [[1]]] |--> [[1, 1], [2]]
+            [[[1]], [[2]], [[1]]] |--> [[1, 1], [2]]
             [[[3]], [[2]], [[1]]] |--> None
         """
         return '\n'.join(['{} |--> {}'.format(mg, im)
@@ -2314,7 +2314,7 @@ class CrystalHomset(Homset):
           To:   Direct sum of the crystals Family
            (The crystal of tableaux of type ['A', 1] and shape(s) [[2]],
             The crystal of tableaux of type ['A', 1] and shape(s) [[]])
-          Defn: [[[1]], [[1]]] |--> [1, 1]
+          Defn: [[[1]], [[1]]] |--> [[1, 1]]
                 [[[2]], [[1]]] |--> []
         sage: psi.is_isomorphism()
         True
@@ -2368,15 +2368,15 @@ class CrystalHomset(Homset):
         ['B', 3] -> ['D', 4] Virtual Crystal morphism:
           From: The crystal of tableaux of type ['B', 3] and shape(s) [[1]]
           To:   The crystal of tableaux of type ['D', 4] and shape(s) [[2]]
-          Defn: [1] |--> [1, 1]
+          Defn: [[1]] |--> [[1, 1]]
         sage: for b in B: print("{} |--> {}".format(b, psi(b)))
-        [1] |--> [1, 1]
-        [2] |--> [2, 2]
-        [3] |--> [3, 3]
-        [0] |--> [3, -3]
-        [-3] |--> [-3, -3]
-        [-2] |--> [-2, -2]
-        [-1] |--> [-1, -1]
+        [[1]] |--> [[1, 1]]
+        [[2]] |--> [[2, 2]]
+        [[3]] |--> [[3, 3]]
+        [[0]] |--> [[3, -3]]
+        [[-3]] |--> [[-3, -3]]
+        [[-2]] |--> [[-2, -2]]
+        [[-1]] |--> [[-1, -1]]
     """
     def __init__(self, X, Y, category=None):
         """
@@ -2416,7 +2416,7 @@ class CrystalHomset(Homset):
             sage: H = Hom(B, B)
             sage: H(H.an_element()) # indirect doctest
             ['B', 3] Crystal endomorphism of The crystal of tableaux of type ['B', 3] and shape(s) [[2, 1]]
-              Defn: [2, 1, 1] |--> None
+              Defn: [[1, 1], [2]] |--> None
         """
         if not isinstance(x, CrystalMorphism):
             raise TypeError
@@ -2502,7 +2502,7 @@ class CrystalHomset(Homset):
             ['A', 2] Crystal morphism:
               From: The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]]
               To:   The infinity crystal of tableaux of type ['A', 2]
-              Defn: [2, 1, 1] |--> None
+              Defn: [[1, 1], [2]] |--> None
         """
         return self.element_class(self, lambda x: None)
 

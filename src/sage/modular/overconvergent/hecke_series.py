@@ -926,12 +926,15 @@ def katz_expansions(k0,p,ellp,mdash,n):
 
 # *** MAIN FUNCTION FOR LEVEL 1 ***
 
-def level1_UpGj(p,klist,m,extra_data=False):
+def level1_UpGj(p, klist, m, extra_data=False):
     r"""
-    Returns a list `[A_k]` of square matrices over ``IntegerRing(p^m)``
-    parameterised by the weights k in ``klist``. The matrix `A_k` is the finite
-    square matrix which occurs on input p,k and m in Step 6 of Algorithm 1 in
-    [Lau2011]_. Notational change from paper: In Step 1 following Wan we defined
+    Return a list `[A_k]` of square matrices over ``IntegerRing(p^m)``
+    parameterised by the weights k in ``klist``.
+
+    The matrix `A_k` is the finite square matrix which occurs on input
+    p, k and m in Step 6 of Algorithm 1 in [Lau2011]_.
+
+    Notational change from paper: In Step 1 following Wan we defined
     j by `k = k_0 + j(p-1)` with `0 \le k_0 < p-1`. Here we replace j by
     ``kdiv`` so that we may use j as a column index for matrices.
 
@@ -940,12 +943,13 @@ def level1_UpGj(p,klist,m,extra_data=False):
     - ``p`` -- prime at least 5.
     - ``klist`` -- list of integers congruent modulo `(p-1)` (the weights).
     - ``m`` -- positive integer.
-    - ``extra_data`` -- (default: False) True or False.
+    - ``extra_data`` -- (default: ``False``) boolean
 
     OUTPUT:
 
-    - list of square matrices. If extra_data is True, return also extra intermediate
-      data, namely the matrix E in [Lau2011] and the integers elldash and mdash.
+    - list of square matrices. If ``extra_data`` is ``True``, return also
+      extra intermediate data, namely the matrix `E` in [Lau2011]_ and
+      the integers ``elldash`` and ``mdash``.
 
     EXAMPLES::
 
@@ -1028,7 +1032,7 @@ def level1_UpGj(p,klist,m,extra_data=False):
         Alist.append(MatrixSpace(Zmod(p**m),ell,ell)(A))
         verbose("done step 6", t)
 
-    if extra_data == True:
+    if extra_data:
         return Alist, e, ell, mdash
     else:
         return Alist

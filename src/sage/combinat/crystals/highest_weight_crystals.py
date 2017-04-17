@@ -30,6 +30,7 @@ from sage.combinat.crystals.littelmann_path import CrystalOfLSPaths
 from sage.combinat.crystals.generalized_young_walls import CrystalOfGeneralizedYoungWalls
 from sage.combinat.crystals.monomial_crystals import CrystalOfNakajimaMonomials
 from sage.combinat.rigged_configurations.rc_crystal import CrystalOfRiggedConfigurations
+from sage.combinat.crystals.kleshchev import KleshchevCrystal
 
 def HighestWeightCrystal(dominant_weight, model=None):
     r"""
@@ -63,6 +64,8 @@ def HighestWeightCrystal(dominant_weight, model=None):
         <sage.combinat.crystals.alcove_path.CrystalOfAlcovePaths>`
       * ``'GeneralizedYoungWalls'`` - :class:`generalized Young walls
         <sage.combinat.crystals.generalized_young_walls.CrystalOfGeneralizedYoungWalls>`
+      * ``'KleshchevPartitions'`` - :class:` Kleshchev multipartitions
+        <sage.combinat.crystals.kleshchev.KleshchevCrystal>`
       * ``'RiggedConfigurations'`` - :class:`rigged configurations
         <sage.combinat.rigged_configurations.rc_crystal.CrystalOfRiggedConfigurations>`
 
@@ -152,6 +155,13 @@ def HighestWeightCrystal(dominant_weight, model=None):
         Highest weight crystal of alcove paths of type ['F', 4] and weight Lambda[1] + Lambda[4]
         sage: crystals.HighestWeight(wt, model='RiggedConfigurations')
         Crystal of rigged configurations of type ['F', 4] and weight Lambda[1] + Lambda[4]
+        sage: La = RootSystem(['A',3,1]).weight_lattice().fundamental_weights()
+        sage: wt = La[0] + La[2]
+        sage: crystals.HighestWeight(wt, model='GeneralizedYoungWalls')
+        Highest weight crystal of generalized Young walls of
+         Cartan type ['A', 3, 1] and highest weight Lambda[0] + Lambda[2]
+        sage: crystals.HighestWeight(wt, model='KleshchevPartitions')
+        The crystal of multipartitions of type ['A', 4, 1] and residues (0, 2)
     """
     cartan_type = dominant_weight.parent().cartan_type()
     if model is None:
@@ -206,9 +216,18 @@ def HighestWeightCrystal(dominant_weight, model=None):
         if cartan_type.type() != 'A':
             raise NotImplementedError("only for affine type A")
         # Make sure it's in the weight lattice
-        P = dominant_weight.parent().root_system.weight_space()
+        P = dominant_weight.parent().root_system.weight_lattice()
         wt = P.sum_of_terms((i, c) for i,c in dominant_weight)
-        return CrystalOfGeneralizedYoungWalls(cartan_type.rank(), wt)
+        return CrystalOfGeneralizedYoungWalls(cartan_type.rank()-1, wt)
+
+    if model == 'KleshchevPartitions':
+        if not cartan_type.is_affine():
+            raise ValueError("only for affine types")
+        if cartan_type.type() != 'A':
+            raise NotImplementedError("only for affine type A")
+        from sage.misc.flatten import flatten
+        wt = flatten([[i]*c for i,c in dominant_weight])
+        return KleshchevCrystal(cartan_type.rank(), wt)
 
     if model == 'RiggedConfigurations':
         # Make sure it's in the weight lattice

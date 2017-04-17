@@ -57,6 +57,11 @@ REFERENCES:
 .. [Aj1996] \M. Ajtai. Generating hard instances of lattice problems
             (extended abstract). STOC, pp. 99--108, ACM, 1996.
 
+
+.. [AJL2011] Susumu Ariki, Nicolas Jacon, and Cedric Lecouvey.
+             *The modular branching rule for affine Hecke algebras of type A*.
+             Adv. Math. 228:481-526 (2011).
+
 .. [Al1947] \A. A. Albert, *A Structure Theory for Jordan
             Algebras*. Annals of Mathematics, Second Series, Vol. 48,
             No. 3 (Jul., 1947), pp. 546--567.
@@ -876,6 +881,10 @@ REFERENCES:
 
 .. [Ja1971] \N. Jacobson. *Exceptional Lie Algebras*. Marcel Dekker,
             Inc. New York. 1971. IBSN No. 0-8247-1326-5.
+
+.. [JL2009] Nicolas Jacon and Cedric Lecouvey.
+            *Kashiwara and Zelevinsky involutions in affine type A*.
+            Pac. J. Math. 243(2):287-311 (2009).
 
 .. [Joh1990] \D.L. Johnson. *Presentations of Groups*. Cambridge
              University Press. (1990).

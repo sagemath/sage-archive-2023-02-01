@@ -1,9 +1,10 @@
 r"""
-Crystal of Bernstien-Zelevinsky Multisegments
+Crystal of Bernstein-Zelevinsky Multisegments
 """
 
 #*****************************************************************************
-#       Copyright (C) 2013 Travis Scrimshaw <tcscrims at gmail.com>
+#       Copyright (C) 2015 Ben Salisbury <salis1bt at cmich.edu>
+#                          Travis Scrimshaw <tscrim at ucdavis.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,47 +27,94 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
     The type `A_n^{(1)}` crystal `B(\infty)` realized using
     Bernstein-Zelevinsky (BZ) multisegments.
 
-    Using the notation in [TingleyLN]_, a segment is a pair `(k; i]` where
-    `k \in \ZZ_{>0}` and `i \in \ZZ / n\ZZ`, and a multisegment is a multiset
-    of segments. We define a crystal structure on multisegments as follows:
+    Using (a modified version of the) notation from [JL2009]_, for `\ell \in
+    \ZZ_{>0}` and `i \in \ZZ /(n+1)\ZZ`, a segment of length `\ell` and head `i`
+    is the sequence of consecutive residues `[i,i+1,\dots,i+\ell-1]`.  The
+    notation  for a segment of length `\ell` and head `i` is simplified to
+    `[i;\ell)`.  Similarly, a segment of length `\ell` and tail `i` is the
+    sequence of consecutive residues `[i-\ell+1,\dots,i-1,i]`.  The latter is
+    denoted simply by `(\ell;i]`.  Finally, a multisegment is a formal linear
+    combination of segments, usually written in the form
 
-    We create an `i`-sigature of the multisegment `\psi` by removing all
-    segments `(k; j]` where `j \not\equiv i, i-1`, and let `\psi^{\prime}`
-    denote the resulting multiset. Next we sort `\psi^{\prime}` to a sequence
-    `L` decreasing in `k` and `(k; i-1]` comes before `(k; i]`. Assign to
-    each `(k; i-1]` a `+` and `(k^{\prime}; i]` a `-`, and then cancel
-    all `+-` pairs until the resulting `\pm`-string is of the form
-    `- \cdots - + \cdots +`. The Kashiwara operators are then defined by:
+    .. MATH::
 
-    * `e_i` changes `(k; i]` to `(k-1; i-1]` corresponding to the leftmost
-      `-` or `0` (``None``) if no `-` exists,
-    * `f_i` changes `(k; i-1]` to `(k+1; i]` corresponding to
-      the rightmost `+` or adds a new segment of `(1; i]` if no `+` exists.
+        \psi =
+        \sum_{\substack{i \in \ZZ/(n+1)\ZZ \\ \ell \in \ZZ_{>0}}}
+        m_{(\ell;i]}(\ell;i].
 
-    We remove any segments of the form `(0; j]`.
+    Such a multisegment is called aperiodic if, for every `\ell>0`, there exists
+    some `i \in \ZZ/(n+1)\ZZ` such that `(\ell;i]` does not appear in `\psi`.
+    Denote the set of all periodic multisegments, together with the empty
+    multisegment `\varnothing`, by `\Psi`.  We define a crystal
+    structure on multisegments as follows.  Set `S_{\ell,i} = \sum_{k\ge \ell}
+    (m_{(k;i-1]} - m_{(k;i]})` and let `\ell_f` be the minimal `\ell` that
+    attains the value `\min_{\ell>0} S_{\ell,i}`. Then `f_i\psi =
+    \psi_{\ell_f,i}`, where
+
+    .. MATH::
+
+        \psi_{\ell_f,i} =
+        \begin{cases}
+         \psi + (1;i] & \text{ if } \ell_f = 1,\\
+         \psi + (\ell_f;i] - (\ell_f-1;i-1] & \text{ if } \ell_f > 1.
+        \end{cases}
+
+    Similarly, let `\ell_e` be the maximal `\ell` that attains the value
+    `\min_{\ell>0} S_{\ell,i}`.  Then `e_i\psi = \psi_{\ell_e,i}`, where
+
+    .. MATH::
+
+        \psi_{\ell_e,i} =
+        \begin{cases}
+         0 & \text{ if } \min_{\ell>0} S_{\ell,i} = 0, \\
+         \psi + (1;i] & \text{ if } \ell_e = 1,\\
+         \psi - (\ell_e;i] + (\ell_e-1;i-1] & \text{ if } \ell_e > 1.
+        \end{cases}
+
+    Alternatively, the crystal operators may be defined using a signature rule,
+    as detailed in Section 4 of [JL2009]_ (following [AJL2011]_).  For
+    `\psi \in \Psi` and `i \in \ZZ/(n+1)\ZZ`, encode all segments in `\psi` with
+    tail `i` by the symbol `R` and all segments in `\psi` with tail `i-1` by
+    `A`.  For `\ell> 0`, set
+    `w_{i,\ell} = R^{m_{(\ell,i]}} A^{m_{(\ell,i-1]}}` and
+    `w_i = \prod_{\ell\ge 1} w_{i,\ell}`.  By successively canceling out as many
+    `RA` factors as possible, set
+    `\widetilde{w}_i = A^{a_i(\psi)}R^{r_i(\psi)}`.  If `a_i(\psi)>0`, denote
+    by `\ell_f > 0` the length of the rightmost segment `A` in
+    `\widetilde{w}_i`.  If `a_i(\psi) = 0`, set `\ell_f = 0`.  Then
+
+    .. MATH::
+
+        f_i\psi =
+        \begin{cases}
+         \psi + (1;i] & \text{ if } a_i(\psi) = 0,\\
+         \psi + (\ell_f;i] - (\ell_f-1;i-1] & \text{ if } a_i(\psi) > 0.
+        \end{cases}
+
+    The rule for computing `e_i\psi` is similar.
 
     INPUT:
 
     - ``n`` -- for type `A_n^{(1)}`
 
-    EXAMPLES::
-
-        sage: B = crystals.infinity.Multisegments(2)
-        sage: x = B([(8,1),(6,0),(5,1),(5,0),(4,0),(4,1),(4,1),(3,0),(3,0),(3,1),(3,1),(1,0),(1,2),(1,2)]); x
-        {(8; 1], (6; 0], (5; 0], (5; 1], (4; 0], (4; 1], (4; 1],
-         (3; 0], (3; 0], (3; 1], (3; 1], (1; 0], (1; 2], (1; 2]}
-        sage: x.f(1)
-        {(8; 1], (6; 0], (5; 0], (5; 1], (4; 0], (4; 1], (4; 1],
-         (3; 0], (3; 0], (3; 1], (3; 1], (2; 1], (1; 2], (1; 2]}
-        sage: x.f(1).f(1)
-        {(8; 1], (6; 0], (5; 0], (5; 1], (4; 0], (4; 1], (4; 1], (3; 0],
-         (3; 0], (3; 1], (3; 1], (2; 1], (1; 1], (1; 2], (1; 2]}
-        sage: x.e(1)
-        {(7; 0], (6; 0], (5; 0], (5; 1], (4; 0], (4; 1], (4; 1], (3; 0], (3; 0], (3; 1], (3; 1], (1; 0], (1; 2], (1; 2]}
-        sage: x.e(1).e(1)
-        sage: x.f(0)
-        {(8; 1], (6; 0], (5; 0], (5; 1], (4; 0], (4; 1], (4; 1],
-         (3; 0], (3; 0], (3; 1], (3; 1], (2; 0], (1; 0], (1; 2]}
+#     EXAMPLES::
+#
+#         sage: B = crystals.infinity.Multisegments(2)
+#         sage: x = B([(8,1),(6,0),(5,1),(5,0),(4,0),(4,1),(4,1),(3,0),(3,0),(3,1),(3,1),(1,0),(1,2),(1,2)]); x
+#         {(8; 1], (6; 0], (5; 0], (5; 1], (4; 0], (4; 1], (4; 1],
+#          (3; 0], (3; 0], (3; 1], (3; 1], (1; 0], (1; 2], (1; 2]}
+#         sage: x.f(1)
+#         {(8; 1], (6; 0], (5; 0], (5; 1], (4; 0], (4; 1], (4; 1],
+#          (3; 0], (3; 0], (3; 1], (3; 1], (2; 1], (1; 2], (1; 2]}
+#         sage: x.f(1).f(1)
+#         {(8; 1], (6; 0], (5; 0], (5; 1], (4; 0], (4; 1], (4; 1], (3; 0],
+#          (3; 0], (3; 1], (3; 1], (2; 1], (1; 1], (1; 2], (1; 2]}
+#         sage: x.e(1)
+#         {(7; 0], (6; 0], (5; 0], (5; 1], (4; 0], (4; 1], (4; 1], (3; 0], (3; 0], (3; 1], (3; 1], (1; 0], (1; 2], (1; 2]}
+#         sage: x.e(1).e(1)
+#         sage: x.f(0)
+#         {(8; 1], (6; 0], (5; 0], (5; 1], (4; 0], (4; 1], (4; 1],
+#          (3; 0], (3; 0], (3; 1], (3; 1], (2; 0], (1; 0], (1; 2]}
 
     We check an `\widehat{\mathfrak{sl}}_2` example against the generalized
     Young walls::
@@ -82,7 +130,17 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
 
     REFERENCES:
 
-    - [LTV1999]_
+    .. [AJL2011] Susumu Ariki, Nicolas Jacon, and Cedric Lecouvey.
+       *The modular branching rule for affine Hecke algebras of type A*.
+       Adv. Math. 228:481-526 (2011).
+
+    .. [JL2009] Nicolas Jacon and Cedric Lecouvey.
+       *Kashiwara and Zelevinsky involutions in affine type A*.
+       Pac. J. Math. 243(2):287-311 (2009).
+
+    .. [LTV1999] Bernard Leclerc, Jean-Yves Thibon, and Eric Vasserot.
+       *Zelevinsky's involution at roots of unity*.
+       J. Reine Angew. Math. 513:33-51 (1999).
     """
     def __init__(self, n):
         """
@@ -104,9 +162,9 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: crystals.infinity.Multisegments(2)
-            The infinity crystal of BZ-multisegments of type ['A', 2, 1]
+            The infinity crystal of multisegments of type ['A', 2, 1]
         """
-        return "The infinity crystal of BZ-multisegments of type {}".format(self._cartan_type)
+        return "The infinity crystal of multisegments of type {}".format(self._cartan_type)
 
     def module_generator(self):
         """
@@ -122,16 +180,15 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
 
     def weight_lattice_realization(self):
         """
-        Return a realization of the weight lattice of ``self``. Since the
-        weights are all in `Q^-`, return the root lattice of type `A_n^(1)`.
+        Return a realization of the weight lattice of ``self``.
 
         EXAMPLES::
 
             sage: B = crystals.infinity.Multisegments(2)
             sage: B.weight_lattice_realization()
-            Root lattice of the Root system of type ['A', 2, 1]
+            Extended weight lattice of the Root system of type ['A', 2, 1]
         """
-        return self._cartan_type.root_system().root_lattice()
+        return self._cartan_type.root_system().weight_lattice(extended=True)
 
     class Element(ElementWrapper):
         """
@@ -157,11 +214,11 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
             r"""
             Return a string representation of ``self``.
 
-            EXAMPLES::
-
-                sage: B = crystals.infinity.Multisegments(2)
-                sage: B([(4,2), (3,0), (3,1), (1,1), (1,0)])
-                {(4; 2], (3; 0], (3; 1], (1; 0], (1; 1]}
+#             EXAMPLES::
+#
+#                 sage: B = crystals.infinity.Multisegments(2)
+#                 sage: B([(4,2), (3,0), (3,1), (1,1), (1,0)])
+#                 {(4; 2], (3; 0], (3; 1], (1; 0], (1; 1]}
             """
             seg = lambda x: "({}; {}]".format(x[0], x[1])
             return "{" + ", ".join(seg(x) for x in self.value) + "}"
@@ -170,11 +227,11 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
             r"""
             Return a LaTeX representation of ``self``.
 
-            EXAMPLES::
-
-                sage: B = crystals.infinity.Multisegments(2)
-                sage: latex(B([(4,2), (3,0), (3,1), (1,1), (1,0)]))
-                \bigl\{(4; 2], (3; 0], (3; 1], (1; 0], (1; 1]\bigr\}
+#             EXAMPLES::
+#
+#                 sage: B = crystals.infinity.Multisegments(2)
+#                 sage: latex(B([(4,2), (3,0), (3,1), (1,1), (1,0)]))
+#                 \bigl\{(4; 2], (3; 0], (3; 1], (1; 0], (1; 1]\bigr\}
             """
             seg = lambda x: "({}; {}]".format(x[0], x[1])
             return "\\bigl\\{" + ", ".join(seg(x) for x in self.value) + "\\bigr\\}"
@@ -194,14 +251,14 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
             if there is no such block and ``ep`` is the number of unmatched
             `-`.
 
-            EXAMPLES::
-
-                sage: B = crystals.infinity.Multisegments(2)
-                sage: b = B([(4,2), (3,0), (3,1), (1,1), (1,0)])
-                sage: b._sig(0)
-                (1, None, 1)
-                sage: b._sig(1)
-                (None, None, 0)
+#             EXAMPLES::
+#
+#                 sage: B = crystals.infinity.Multisegments(2)
+#                 sage: b = B([(4,2), (3,0), (3,1), (1,1), (1,0)])
+#                 sage: b._sig(0)
+#                 (1, None, 1)
+#                 sage: b._sig(1)
+#                 (None, None, 0)
             """
             if not self.value:
                 return (None, None)
@@ -247,15 +304,15 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
 
             - ``i`` -- an element of the index set
 
-            EXAMPLES::
-
-                sage: B = crystals.infinity.Multisegments(2)
-                sage: b = B([(4,2), (3,0), (3,1), (1,1), (1,0)])
-                sage: b.e(0)
-                {(4; 2], (3; 0], (3; 1], (1; 1]}
-                sage: b.e(1)
-                sage: b.e(2)
-                {(3; 0], (3; 1], (3; 1], (1; 0], (1; 1]}
+#             EXAMPLES::
+#
+#                 sage: B = crystals.infinity.Multisegments(2)
+#                 sage: b = B([(4,2), (3,0), (3,1), (1,1), (1,0)])
+#                 sage: b.e(0)
+#                 {(4; 2], (3; 0], (3; 1], (1; 1]}
+#                 sage: b.e(1)
+#                 sage: b.e(2)
+#                 {(3; 0], (3; 1], (3; 1], (1; 0], (1; 1]}
             """
             i = IntegerModRing(self.parent()._cartan_type.rank())(i)
             m = self._sig(i)[0]
@@ -277,16 +334,16 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
 
             - ``i`` -- an element of the index set
 
-            EXAMPLES::
-
-                sage: B = crystals.infinity.Multisegments(2)
-                sage: b = B([(4,2), (3,0), (3,1), (1,1), (1,0)])
-                sage: b.f(0)
-                {(4; 2], (3; 0], (3; 1], (1; 0], (1; 0], (1; 1]}
-                sage: b.f(1)
-                {(4; 2], (3; 0], (3; 1], (1; 0], (1; 1], (1; 1]}
-                sage: b.f(2)
-                {(4; 2], (4; 2], (3; 0], (1; 0], (1; 1]}
+#             EXAMPLES::
+#
+#                 sage: B = crystals.infinity.Multisegments(2)
+#                 sage: b = B([(4,2), (3,0), (3,1), (1,1), (1,0)])
+#                 sage: b.f(0)
+#                 {(4; 2], (3; 0], (3; 1], (1; 0], (1; 0], (1; 1]}
+#                 sage: b.f(1)
+#                 {(4; 2], (3; 0], (3; 1], (1; 0], (1; 1], (1; 1]}
+#                 sage: b.f(2)
+#                 {(4; 2], (4; 2], (3; 0], (1; 0], (1; 1]}
             """
             i = IntegerModRing(self.parent()._cartan_type.rank())(i)
             p = self._sig(i)[1]
@@ -305,16 +362,16 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
 
             - ``i`` -- an element of the index set
 
-            EXAMPLES::
-
-                sage: B = crystals.infinity.Multisegments(2)
-                sage: b = B([(4,2), (3,0), (3,1), (1,1), (1,0)])
-                sage: b.epsilon(0)
-                1
-                sage: b.epsilon(1)
-                0
-                sage: b.epsilon(2)
-                1
+#             EXAMPLES::
+#
+#                 sage: B = crystals.infinity.Multisegments(2)
+#                 sage: b = B([(4,2), (3,0), (3,1), (1,1), (1,0)])
+#                 sage: b.epsilon(0)
+#                 1
+#                 sage: b.epsilon(1)
+#                 0
+#                 sage: b.epsilon(2)
+#                 1
             """
             i = IntegerModRing(self.parent()._cartan_type.rank())(i)
             return self._sig(i)[2]
@@ -323,10 +380,10 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
             r"""
             Return `\varphi_i` of ``self``.
 
-            Let `T \in \mathcal{B}(\infty)` Define `\varphi_i(T) :=
-            \varepsilon_i(T) + \langle h_i, \mathrm{wt}(T) \rangle`, where `h_i`
-            is the `i`-th simple coroot and `\mathrm{wt}(T)` is the :meth:`weight`
-            of `T`.
+            Let `\psi \in \Psi`. Define `\varphi_i(\psi) :=
+            \varepsilon_i(\psi) + \langle h_i, \mathrm{wt}(\psi) \rangle`,
+            where `h_i` is the `i`-th simple coroot and `\mathrm{wt}(\psi)` is the
+            :meth:`weight` of `\psi`.
 
             INPUT:
 
@@ -334,15 +391,15 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: B = crystals.infinity.Multisegments(2)
-                sage: b = B([(4,2), (3,0), (3,1), (1,1), (1,0)])
-                sage: b.phi(0)
-                1
-                sage: b.phi(1)
-                0
-                sage: mg = B.module_generator()
-                sage: mg.f(1).phi(0)
-                -1
+#                 sage: B = crystals.infinity.Multisegments(2)
+#                 sage: b = B([(4,2), (3,0), (3,1), (1,1), (1,0)])
+#                 sage: b.phi(0)
+#                 1
+#                 sage: b.phi(1)
+#                 0
+#                 sage: mg = B.module_generator()
+#                 sage: mg.f(1).phi(0)
+#                 -1
             """
             h = self.parent().weight_lattice_realization().simple_coroots()
             return self.epsilon(i) + self.weight().scalar(h[i])
@@ -353,10 +410,10 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: B = crystals.infinity.Multisegments(2)
-                sage: b = B([(4,2), (3,0), (3,1), (1,1), (1,0)])
-                sage: b.weight()
-                4*alpha[0] + 4*alpha[1] + 4*alpha[2]
+#                 sage: B = crystals.infinity.Multisegments(2)
+#                 sage: b = B([(4,2), (3,0), (3,1), (1,1), (1,0)])
+#                 sage: b.weight()
+#                 4*delta
             """
             WLR = self.parent().weight_lattice_realization()
             alpha = WLR.simple_roots()

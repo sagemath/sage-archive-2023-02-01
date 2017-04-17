@@ -1,4 +1,8 @@
-zlib readline sqlite libpng | bzip2
+zlib readline sqlite libpng | bzip2 python2
+
+
+Note: depends on python2 so the python -> python2 symlink is created
+first. Python 3 will not overwrite that symlink if it already exists.
 
 ----------
 All lines of this file are ignored except the first.

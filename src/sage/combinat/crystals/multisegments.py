@@ -3,8 +3,7 @@ Crystal of Bernstein-Zelevinsky Multisegments
 """
 
 #*****************************************************************************
-#       Copyright (C) 2015 Ben Salisbury <salis1bt at cmich.edu>
-#                          Travis Scrimshaw <tscrim at ucdavis.edu>
+#       Copyright (C) 2017 Travis Scrimshaw <tcscrims at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

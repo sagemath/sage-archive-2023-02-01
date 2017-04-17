@@ -6295,7 +6295,39 @@ cdef class Matrix(matrix1.Matrix):
 
     right_eigenmatrix = eigenmatrix_right
 
+    def eigenvalue_multiplicity(self, s):
+        r"""
+        Return the multiplicity of s as a generalized eigenvalue of the matrix.
 
+        EXAMPLES::
+        
+            sage: M = Matrix(QQ, [[0,1],[0,0]])
+            sage: M.eigenvalue_multiplicity(0)
+            2
+            sage: M.eigenvalue_multiplicity(1)
+            0
+        
+        """
+        if not self.is_square():
+            msg = 'matrix must be square, not {0} x {1}'
+            raise TypeError(msg.format(self.nrows(), self.ncols()))
+
+        r = self.dimensions()[0]
+        if self.dimensions()[1] != r:
+            raise 
+        n = 0
+        m1 = self - s
+        while True:
+            m1 *= m1
+            m2 = m1.extended_echelon_form(subdivide=True)
+            t = r - m2.subdivisions()[0][0]
+            n += t
+            if t == 0 or t == r: return n
+            m3 = m2.subdivision(0,0)
+            m4 = m2.submatrix(0,r,r,r)
+            m5 = m3 * m4.inverse()
+            m1 = m5.submatrix(0,0,r-t,r-t)
+            r -= t
 
     #####################################################################################
     # Generic Echelon Form

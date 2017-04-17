@@ -17,11 +17,12 @@ AUTHORS:
 #*****************************************************************************
 
 include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "sage/data_structures/bitset.pxi"
 
 from cpython.ref cimport *
 from cython.operator cimport predecrement as predec, postincrement as postinc
+from sage.structure.sage_object cimport richcmp_not_equal, rich_to_bool
 from sage.libs.gmp.mpn cimport mpn_cmp
 from libc.stdlib cimport free
 
@@ -287,7 +288,7 @@ freelist.pool = <path_term_t**>check_allocarray(poolsize, sizeof(path_term_t*))
 cdef inline path_term_t *term_free_force(path_term_t *T):
     mon_free(T.mon)
     cdef path_term_t *out = T.nxt
-    sage_free(T)
+    sig_free(T)
     return out
 
 cdef class _FreeListProtector:
@@ -314,8 +315,8 @@ cdef class _FreeListProtector:
         for i in range(freelist.used):
             term_free_force(freelist.pool[i])
             sig_check()
-        sage_free(freelist.pool)
-        sage_free(freelist)
+        sig_free(freelist.pool)
+        sig_free(freelist)
 
 _freelist_protector = _FreeListProtector()
 
@@ -635,7 +636,7 @@ cdef inline void poly_dealloc(path_poly_t *P):
 # used by the polynomial.
 cdef inline void poly_free(path_poly_t *P):
     poly_dealloc(P)
-    sage_free(P)
+    sig_free(P)
 
 # Fill "out" with a copy of the terms of P. Note that previous contents
 # of "out" will NOT be freed---this function should thus only be called
@@ -665,7 +666,7 @@ cdef bint poly_icopy_scale(path_poly_t *out, path_poly_t *P, object coef) except
     out.lead = NULL
     while res.coef == NULL:
         sig_check()
-        sage_free(res)
+        sig_free(res)
         T = T.nxt
         if T == NULL:
             return True
@@ -677,7 +678,7 @@ cdef bint poly_icopy_scale(path_poly_t *out, path_poly_t *P, object coef) except
         sig_check()
         res.nxt = term_scale(T, coef)
         if res.nxt.coef == NULL:
-            sage_free(res.nxt)
+            sig_free(res.nxt)
         else:
             res = res.nxt
             out.nterms += 1
@@ -718,27 +719,31 @@ cdef bint poly_inplace_unpickle(path_poly_t *P, list data) except -1:
 ##
 ## Polynomial arithmetics
 
-# Comparison of P1 and P2, using the given monomial ordering cmp_terms.
-# Return -1, 0, 1, if P1<P2, P1==P2, P1>P2, respectively.
-cdef int poly_cmp(path_poly_t *P1, path_poly_t *P2, path_order_t cmp_terms) except -2:
+# Rich comparison of P1 and P2, using the given monomial ordering cmp_terms.
+# Return a boolean.
+cdef bint poly_richcmp(path_poly_t *P1, path_poly_t *P2, path_order_t cmp_terms, int op):
     cdef path_term_t *T1 = P1.lead
     cdef path_term_t *T2 = P2.lead
     cdef int c
+    cdef object t1
+    cdef object t2
     while T1 != NULL and T2 != NULL:
         sig_check()
         c = cmp_terms(T1.mon, T2.mon)
-        if c != 0:
-            return c
-        c = cmp(<object>T1.coef, <object>T2.coef)
-        if c != 0:
-            return c
+        if c:
+            return rich_to_bool(op, c)
+
+        t1 = <object>T1.coef
+        t2 = <object>T2.coef
+        if t1 != t2:
+            return richcmp_not_equal(t1, t2, op)
         T1 = T1.nxt
         T2 = T2.nxt
     if T1 == NULL:
         if T2 == NULL:
-            return 0
-        return -1
-    return 1
+            return rich_to_bool(op, 0)
+        return rich_to_bool(op, -1)
+    return rich_to_bool(op, 1)
 
 # Hash of a polynomial. Probably not a very strong hash.
 cdef inline long poly_hash(path_poly_t *P):
@@ -764,7 +769,7 @@ cdef inline void term_iadd(path_term_t *T1, path_term_t *T2):
 # Change P inplace to P+T. It is assumed that initially the terms of P are
 # decreasingly sorted wrt. cmp_terms, and then it is guaranteed that they
 # are decreasingly sorted wrt. cmp_terms after adding T.
-# The adddition is "destructive" for T, which means that one MUST NOT
+# The addition is "destructive" for T, which means that one MUST NOT
 # call term_free(T) after the addition!
 cdef bint poly_iadd_term_d(path_poly_t *P, path_term_t *T, path_order_t cmp_terms) except -1:
     if P.lead == NULL:
@@ -860,7 +865,8 @@ cdef bint poly_iadd_d(path_poly_t *P1, path_poly_t *P2, path_order_t cmp_terms) 
             return 1
         elif T2 == NULL:
             if P2.nterms != 0:
-                print "term counting of second summand was wrong!",P2.nterms
+                print("term counting of second summand was wrong! " +
+                      str(P2.nterms))
             P2.lead = NULL
             return 1
         c = cmp_terms(T1.mon, T2.mon)
@@ -1203,7 +1209,7 @@ cdef void homog_poly_free(path_homog_poly_t *P):
     while P!=NULL:
         nxt = P.nxt
         poly_free(P.poly)
-        sage_free(P)
+        sig_free(P)
         P = nxt
 
 # Return a copy of H

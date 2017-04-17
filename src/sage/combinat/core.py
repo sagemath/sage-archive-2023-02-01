@@ -149,7 +149,7 @@ class Core(CombinatorialElement):
         return self._hash
 
     def _latex_(self):
-        """
+        r"""
         Output the LaTeX representation of this core as a partition.
 
         See the ``_latex_`` method of :class:`Partition`.
@@ -362,7 +362,7 @@ class Core(CombinatorialElement):
 
         - a list of integers in `\{0,1,\ldots,k-1\}` representing a reduced word for the transposition `t`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: c = Core([],4)
             sage: c._transposition_to_reduced_word([2, 5])

@@ -15,7 +15,7 @@ quadratic forms over the rationals.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from six.moves import range
 
 ###########################################################################
 ## TO DO: Add routines for hasse invariants at all places, anisotropic
@@ -138,7 +138,7 @@ def rational_diagonal_form(self, return_matrix=False):
     This example cannot be computed by PARI::
 
         sage: Q = QuadraticForm(RIF, 4, range(10))
-        sage: Q._pari_()
+        sage: Q.__pari__()
         Traceback (most recent call last):
         ...
         TypeError
@@ -229,7 +229,7 @@ def _rational_diagonal_form_and_transformation(self):
 
     try:
         # Try PARI if the type is supported
-        pariself = self._pari_()
+        pariself = self.__pari__()
         # Check that conversion back works
         MS(pariself.sage())
     except Exception:
@@ -397,7 +397,7 @@ def hasse_invariant(self, p):
     Cassels's book.  If Q is diagonal with coefficients `a_i`, then the
     (Cassels) Hasse invariant is given by
 
-    .. math::
+    .. MATH::
 
         c_p = \prod_{i < j} (a_i, a_j)_p
 
@@ -488,7 +488,7 @@ def hasse_invariant__OMeara(self, p):
     p167 of O'Meara's book.  If Q is diagonal with coefficients `a_i`,
     then the (Cassels) Hasse invariant is given by
 
-    .. math::
+    .. MATH::
 
         c_p = \prod_{i <= j} (a_i, a_j)_p
 
@@ -955,7 +955,7 @@ def compute_definiteness_string_by_determinants(self):
     ## Check the sign of the ratios of consecutive determinants of the upper triangular r x r submatrices
     first_coeff = self[0,0]
     for r in range(1,n+1):
-        I = range(r)
+        I = list(range(r))
         new_det = M.matrix_from_rows_and_columns(I, I).det()
 
         ## Check for a (non-degenerate) zero -- so it's indefinite

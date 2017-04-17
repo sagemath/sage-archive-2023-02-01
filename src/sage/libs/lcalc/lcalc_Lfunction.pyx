@@ -20,7 +20,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
 
@@ -57,10 +56,10 @@ cdef class Lfunction:
             sage: Lfunction_from_character(DirichletGroup(5)[1])
             L-function with complex Dirichlet coefficients
         """
-        cdef int i              #for indexing loops
-        cdef Integer tmpi       #for accessing integer values
-        cdef RealNumber tmpr    #for accessing real values
-        cdef ComplexNumber tmpc #for accessing complexe values
+        cdef int i              # for indexing loops
+        cdef Integer tmpi       # for accessing integer values
+        cdef RealNumber tmpr    # for accessing real values
+        cdef ComplexNumber tmpc # for accessing complex values
 
         cdef char *NAME = name
         cdef int what_type = what_type_L
@@ -249,7 +248,7 @@ cdef class Lfunction:
         change in signs of areal valued function whose zeros coincide with
         the zeros of L-function.
 
-        Use find_zeros_via_N for slower but more rigorous computation.
+        Use :meth:`find_zeros_via_N` for slower but more rigorous computation.
 
         INPUT:
         
@@ -308,21 +307,20 @@ cdef class Lfunction:
 
         INPUT:
 
-         - ``count`` - number of zeros to be found
-         - ``do_negative`` - (default: False) False to ignore zeros below the
-           real axis.
-         - ``max_refine`` - when some zeros are found to be missing, the step
-           size used to find zeros is refined. max_refine gives an upper limit
-           on when lcalc should give up. Use default value unless you know
-           what you are doing.
-         - ``rank`` - integer (default: -1) analytic rank of the L-function.
-           If -1 is passed, then we attempt to compute it. (Use default if in
-           doubt)
-         - ``test_explicit_formula`` - integer (default: 0) If nonzero, test
-           the explicit fomula for additional confidence that all the zeros
-           have been found and are accurate. This is still being tested, so
-           using the default is recommended.
-
+        - ``count`` - number of zeros to be found
+        - ``do_negative`` - (default: False) False to ignore zeros below the
+          real axis.
+        - ``max_refine`` - when some zeros are found to be missing, the step
+          size used to find zeros is refined. max_refine gives an upper limit
+          on when lcalc should give up. Use default value unless you know
+          what you are doing.
+        - ``rank`` - integer (default: -1) analytic rank of the L-function.
+          If -1 is passed, then we attempt to compute it. (Use default if in
+          doubt)
+        - ``test_explicit_formula`` - integer (default: 0) If nonzero, test
+          the explicit fomula for additional confidence that all the zeros
+          have been found and are accurate. This is still being tested, so
+          using the default is recommended.
 
         OUTPUT:
         
@@ -396,43 +394,41 @@ cdef class Lfunction_I(Lfunction):
     with integer Dirichlet Coefficients. We assume that L-functions
     satisfy the following functional equation.
 
-    .. math::
+    .. MATH::
 
         \Lambda(s) = \omega Q^s \overline{\Lambda(1-\bar s)}
 
     where
 
-    .. math::
+    .. MATH::
 
         \Lambda(s) = Q^s \left( \prod_{j=1}^a \Gamma(\kappa_j s + \gamma_j) \right) L(s)
-
 
 
     See (23) in http://arxiv.org/abs/math/0412181
 
     INPUT:
 
-      - ``what_type_L`` - integer, this should be set to 1 if the coefficients are
-        periodic and 0 otherwise.
+    - ``what_type_L`` - integer, this should be set to 1 if the coefficients are
+      periodic and 0 otherwise.
 
-      - ``dirichlet_coefficient`` - List of dirichlet coefficients of the
-        L-function. Only first `M` coefficients are needed if they are periodic.
+    - ``dirichlet_coefficient`` - List of dirichlet coefficients of the
+      L-function. Only first `M` coefficients are needed if they are periodic.
 
-      - ``period`` - If the coefficients are periodic, this should be the
-        period of the coefficients.
+    - ``period`` - If the coefficients are periodic, this should be the
+      period of the coefficients.
 
-      - ``Q`` - See above
+    - ``Q`` - See above
 
-      - ``OMEGA`` - See above
+    - ``OMEGA`` - See above
 
-      - ``kappa`` - List of the values of `\kappa_j` in the functional equation
+    - ``kappa`` - List of the values of `\kappa_j` in the functional equation
 
+    - ``gamma`` - List of the values of `\gamma_j` in the functional equation
 
-      - ``gamma`` - List of the values of `\gamma_j` in the functional equation
+    - ``pole`` - List of the poles of L-function
 
-      - ``pole`` - List of the poles of L-function
-
-      - ``residue`` - List of the residues of the L-function
+    - ``residue`` - List of the residues of the L-function
 
     NOTES:
 
@@ -536,13 +532,13 @@ cdef class Lfunction_D(Lfunction):
     with real Dirichlet coefficients. We assume that L-functions
     satisfy the following functional equation.
 
-    .. math::
+    .. MATH::
 
         \Lambda(s) = \omega Q^s \overline{\Lambda(1-\bar s)}
 
     where
 
-    .. math::
+    .. MATH::
 
         \Lambda(s) = Q^s \left( \prod_{j=1}^a \Gamma(\kappa_j s + \gamma_j) \right) L(s)
 
@@ -550,28 +546,29 @@ cdef class Lfunction_D(Lfunction):
 
     INPUT:
 
-      - ``what_type_L`` - integer, this should be set to 1 if the coefficients are
-        periodic and 0 otherwise.
+    - ``what_type_L`` - integer, this should be set to 1 if the coefficients are
+      periodic and 0 otherwise.
 
-      - ``dirichlet_coefficient`` - List of dirichlet coefficients of the
-        L-function. Only first `M` coefficients are needed if they are periodic.
+    - ``dirichlet_coefficient`` - List of dirichlet coefficients of the
+      L-function. Only first `M` coefficients are needed if they are periodic.
 
-      - ``period`` - If the coefficients are periodic, this should be the
-        period of the coefficients.
+    - ``period`` - If the coefficients are periodic, this should be the
+      period of the coefficients.
 
-      - ``Q`` - See above
+    - ``Q`` - See above
 
-      - ``OMEGA`` - See above
+    - ``OMEGA`` - See above
 
-      - ``kappa`` - List of the values of `\kappa_j` in the functional equation
+    - ``kappa`` - List of the values of `\kappa_j` in the functional equation
 
-      - ``gamma`` - List of the values of `\gamma_j` in the functional equation
+    - ``gamma`` - List of the values of `\gamma_j` in the functional equation
 
-      - ``pole`` - List of the poles of L-function
+    - ``pole`` - List of the poles of L-function
 
-      - ``residue`` - List of the residues of the L-function
+    - ``residue`` - List of the residues of the L-function
 
     NOTES:
+
         If an L-function satisfies `\Lambda(s) = \omega Q^s \Lambda(k-s)`,
         by replacing `s` by `s+(k-1)/2`, one can get it in the form we need.
     """
@@ -674,13 +671,13 @@ cdef class Lfunction_C:
     with complex Dirichlet Coefficients. We assume that L-functions
     satisfy the following functional equation.
 
-    .. math::
+    .. MATH::
 
         \Lambda(s) = \omega Q^s \overline{\Lambda(1-\bar s)}
 
     where
 
-    .. math::
+    .. MATH::
 
         \Lambda(s) = Q^s \left( \prod_{j=1}^a \Gamma(\kappa_j s + \gamma_j) \right) L(s)
 
@@ -688,28 +685,29 @@ cdef class Lfunction_C:
 
     INPUT:
 
-      - ``what_type_L`` - integer, this should be set to 1 if the coefficients are
-        periodic and 0 otherwise.
+    - ``what_type_L`` - integer, this should be set to 1 if the coefficients are
+      periodic and 0 otherwise.
 
-      - ``dirichlet_coefficient`` - List of dirichlet coefficients of the
-        L-function. Only first `M` coefficients are needed if they are periodic.
+    - ``dirichlet_coefficient`` - List of dirichlet coefficients of the
+      L-function. Only first `M` coefficients are needed if they are periodic.
 
-      - ``period`` - If the coefficients are periodic, this should be the
-        period of the coefficients.
+    - ``period`` - If the coefficients are periodic, this should be the
+      period of the coefficients.
 
-      - ``Q`` - See above
+    - ``Q`` - See above
 
-      - ``OMEGA`` - See above
+    - ``OMEGA`` - See above
 
-      - ``kappa`` - List of the values of `\kappa_j` in the functional equation
+    - ``kappa`` - List of the values of `\kappa_j` in the functional equation
 
-      - ``gamma`` - List of the values of `\gamma_j` in the functional equation
+    - ``gamma`` - List of the values of `\gamma_j` in the functional equation
 
-      - ``pole`` - List of the poles of L-function
+    - ``pole`` - List of the poles of L-function
 
-      - ``residue`` - List of the residues of the L-function
+    - ``residue`` - List of the residues of the L-function
 
     NOTES:
+
         If an L-function satisfies `\Lambda(s) = \omega Q^s \Lambda(k-s)`,
         by replacing `s` by `s+(k-1)/2`, one can get it in the form we need.
     """
@@ -868,13 +866,13 @@ def Lfunction_from_character(chi, type="complex"):
 
     INPUT:
 
-     - `chi` - A Dirichlet character
-     - `use_type` - string (default: "complex") type used for the Dirichlet
-       coefficients. This can be "int", "double" or "complex".
+    - ``chi`` - A Dirichlet character
+    - ``use_type`` - string (default: "complex") type used for the Dirichlet
+      coefficients. This can be "int", "double" or "complex".
 
     OUTPUT:
 
-    L-function object for `chi`.
+    L-function object for ``chi``.
 
     EXAMPLES::
 
@@ -907,17 +905,17 @@ def Lfunction_from_character(chi, type="complex"):
     OMEGA=1.0/ ( CCC(0,1)**a * (CCC(modulus)).sqrt()/chi.gauss_sum() )
 
     if type == "complex":
-        dir_coeffs=[CCC(chi(n)) for n in xrange(1,modulus+1)]
+        dir_coeffs = [CCC(chi(n)) for n in xrange(1, modulus + 1)]
         return Lfunction_C("", 1,dir_coeffs, period,Q,OMEGA,[.5],[a/2.],poles,residues)
     if not type in ["double","int"]:
         raise ValueError("unknown type")
     if chi.order() != 2:
         raise ValueError("For non quadratic characters you must use type=\"complex\"")
     if type == "double":
-        dir_coeffs=[RRR(chi(n)) for n in xrange(1,modulus+1)]
+        dir_coeffs = [RRR(chi(n)) for n in xrange(1, modulus + 1)]
         return Lfunction_D("", 1,dir_coeffs, period,Q,OMEGA,[.5],[a/2.],poles,residues)
     if type == "int":
-        dir_coeffs=[Integer(chi(n)) for n in xrange(1,modulus+1)]
+        dir_coeffs = [Integer(chi(n)) for n in xrange(1, modulus + 1)]
         return Lfunction_I("", 1,dir_coeffs, period,Q,OMEGA,[.5],[a/2.],poles,residues)
 
 
@@ -949,11 +947,13 @@ def Lfunction_from_elliptic_curve(E, number_of_coeffs=10000):
         sage: L.value(0.5, derivative=1)
         0.305999...
     """
-    Q=(RRR(E.conductor())).sqrt()/(RRR(2*pi))
-    poles=[]
-    residues=[]
     import sage.libs.lcalc.lcalc_Lfunction
-    dir_coeffs=E.anlist(number_of_coeffs)
-    dir_coeffs=[RRR(dir_coeffs[i])/(RRR(i)).sqrt() for i in xrange(1,number_of_coeffs)]
-    OMEGA=E.root_number()
-    return Lfunction_D("", 2,dir_coeffs, 0,Q,OMEGA,[1],[.5],poles,residues)
+    Q = RRR(E.conductor()).sqrt() / RRR(2 * pi)
+    poles = []
+    residues = []
+    dir_coeffs = E.anlist(number_of_coeffs)
+    dir_coeffs = [RRR(dir_coeffs[i]) / (RRR(i)).sqrt()
+                  for i in xrange(1, number_of_coeffs)]
+    OMEGA = E.root_number()
+    return Lfunction_D("", 2, dir_coeffs, 0, Q, OMEGA, [1], [.5],
+                       poles, residues)

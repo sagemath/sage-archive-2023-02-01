@@ -234,16 +234,19 @@ loaded.
 #
 #                  http://www.gnu.org/licenses/
 #############################################################################
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 
-from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled
+from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled
 
 import pexpect
 
 from sage.env import DOT_SAGE
 from sage.misc.pager import pager
 from sage.interfaces.tab_completion import ExtraTabCompletion
+from sage.docs.instancedoc import instancedoc
 
 COMMANDS_CACHE = '%s/maple_commandlist_cache.sobj'%DOT_SAGE
 
@@ -327,7 +330,7 @@ class Maple(ExtraTabCompletion, Expect):
             ...
             RuntimeError: Ctrl-c pressed while running Maple
         """
-        print "Interrupting %s..." % self
+        print("Interrupting %s..." % self)
         self._expect.sendline(chr(3))  # send ctrl-c
         self._expect.expect(self._prompt)
         raise RuntimeError("Ctrl-c pressed while running %s" % self)
@@ -394,7 +397,7 @@ class Maple(ExtraTabCompletion, Expect):
 
         EXAMPLES::
 
-            sage: print maple._install_hints()
+            sage: print(maple._install_hints())
             In order...
         """
         return """
@@ -403,7 +406,7 @@ In order to use the Maple interface you need to have Maple installed
 and have a script in your PATH called "maple" that runs the
 command-line version of Maple.  Alternatively, you could use a remote
 connection to a server running Maple; for hints, type
-    print maple._install_hints_ssh()
+    print(maple._install_hints_ssh())
 
   (1) You might have to buy Maple (http://webstore.maplesoft.com/).
 
@@ -518,10 +521,10 @@ connection to a server running Maple; for hints, type
             v = sum([self.completions(chr(65+n)) for n in range(26)], []) + \
                 sum([self.completions(chr(97+n)) for n in range(26)], [])
         except RuntimeError:
-            print "\n"*3
-            print "*"*70
-            print "WARNING: You do not have a working version of Maple installed!"
-            print "*"*70
+            print("\n" * 3)
+            print("*" * 70)
+            print("WARNING: You do not have a working version of Maple installed!")
+            print("*" * 70)
             v = []
         v.sort()
         return v
@@ -550,9 +553,9 @@ connection to a server running Maple; for hints, type
                 except IOError:
                     pass
             if verbose:
-                print "\nBuilding Maple command completion list (this takes"
-                print "a few seconds only the first time you do it)."
-                print "To force rebuild later, delete %s."%COMMANDS_CACHE
+                print("\nBuilding Maple command completion list (this takes")
+                print("a few seconds only the first time you do it).")
+                print("To force rebuild later, delete %s." % COMMANDS_CACHE)
             v = self._commands()
             self.__tab_completion = v
             if len(v) > 200:
@@ -717,7 +720,7 @@ connection to a server running Maple; for hints, type
 
         EXAMPLES::
 
-            sage: print maple._source('curry').strip()  # optional - maple
+            sage: print(maple._source('curry').strip())  # optional - maple
             p -> subs('_X' = args[2 .. nargs], () -> p(_X, args))
             sage: maple._source('ZZZ')                  #not tested
             Traceback (most recent call last):
@@ -836,15 +839,17 @@ connection to a server running Maple; for hints, type
         """
         self.set(var, "'{}'".format(var))
 
+
+@instancedoc
 class MapleFunction(ExpectFunction):
-    def _sage_doc_(self):
+    def _instancedoc(self):
         """
         Returns the Maple help for this function. This gets called when
         doing "?" on self.
 
         EXAMPLES::
 
-            sage: txt = maple.gcd._sage_doc_()  # optional - maple
+            sage: txt = maple.gcd.__doc__  # optional - maple
             sage: txt.find('gcd - greatest common divisor') > 0 # optional - maple
             True
         """
@@ -860,7 +865,7 @@ class MapleFunction(ExpectFunction):
 
         EXAMPLES::
 
-            sage: print maple.curry._sage_src_().strip() # optional - maple
+            sage: print(maple.curry._sage_src_().strip()) # optional - maple
             p -> subs('_X' = args[2 .. nargs], () -> p(_X, args))
             sage: maple.ZZZ._sage_src_()                 #not tested 
             Traceback (most recent call last):
@@ -871,8 +876,9 @@ class MapleFunction(ExpectFunction):
         return M._source(self._name)
 
 
+@instancedoc
 class MapleFunctionElement(FunctionElement):
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         Returns the Maple help for this function.
 
@@ -881,7 +887,7 @@ class MapleFunctionElement(FunctionElement):
         EXAMPLES::
 
             sage: two = maple(2)  # optional - maple
-            sage: txt = two.gcd._sage_doc_() # optional - maple
+            sage: txt = two.gcd.__doc__  # optional - maple
             sage: txt.find('gcd - greatest common divisor') > 0 # optional - maple
             True
         """
@@ -894,7 +900,7 @@ class MapleFunctionElement(FunctionElement):
         EXAMPLES::
 
             sage: g = maple('gcd')                   # optional - maple
-            sage: print g.curry._sage_src_().strip() # optional - maple
+            sage: print(g.curry._sage_src_().strip()) # optional - maple
             p -> subs('_X' = args[2 .. nargs], () -> p(_X, args))
             sage: m = maple('2')                     # optional - maple
             sage: m.ZZZ._sage_src_()                 #not tested 
@@ -905,6 +911,7 @@ class MapleFunctionElement(FunctionElement):
         return self._obj.parent()._source(self._name)
 
     
+@instancedoc
 class MapleElement(ExtraTabCompletion, ExpectElement):
     
     def __float__(self):
@@ -916,7 +923,7 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             sage: float(maple(1/2))  # optional - maple
             0.5
             sage: type(_)            # optional - maple
-            <type 'float'>
+            <... 'float'>
         """
         return float(maple.eval('evalf(%s)' % self.name()))
 
@@ -1070,38 +1077,17 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
         """
         return self.parent()._tab_completion()
 
-    def __repr__(self):
-        """
-        Return a string representation of self.
-
-        These examples are optional, and require Maple to be installed. You
-        don't need to install any Sage packages for this.
-
-        EXAMPLES::
-
-            sage: x = var('x')                  # optional - maple
-            sage: maple(x)                      # optional - maple
-            x
-            sage: maple(5)                      # optional - maple
-            5
-            sage: M = matrix(QQ,2,range(4))     # optional - maple
-            sage: maple(M)                      # optional - maple
-            Matrix(2, 2, [[0,1],[2,3]])
-        """
-        self._check_valid()
-        return self.parent().get(self._name)
-
     def _latex_(self):
         r"""
         You can output Maple expressions in latex.
 
         EXAMPLES::
 
-            sage: print latex(maple('(x^4 - y)/(y^2-3*x)'))      # optional - maple
+            sage: print(latex(maple('(x^4 - y)/(y^2-3*x)')))   # optional - maple
             {\frac {{x}^{4}-y}{{y}^{2}-3\,x}}
-            sage: print latex(maple(pi - e^3))                   # optional - maple
+            sage: print(latex(maple(pi - e^3)))                 # optional - maple
             \pi-{{\rm e}^{3}}
-            sage: print maple(pi - e^3)._latex_()                # optional - maple
+            sage: print(maple(pi - e^3)._latex_())              # optional - maple
             \pi-{{\rm e}^{3}}
  
         .. note::
@@ -1118,7 +1104,7 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
         This currently does not implement a parser for the Maple output language,
         therefore only very simple expressions will convert successfully.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: m = maple('x^2 + 5*y')                            # optional - maple
             sage: m.sage()                                          # optional - maple

@@ -1,5 +1,5 @@
 """
-Randomized tests of GiNaC / PyNaC.
+Randomized tests of GiNaC / PyNaC
 """
 
 ###############################################################################
@@ -10,13 +10,14 @@ Randomized tests of GiNaC / PyNaC.
 #  version 2 or any later version.  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ###############################################################################
+from __future__ import print_function
 
 
 from sage.misc.prandom import randint, random
 import operator
 from sage.rings.all import QQ
 from sage.symbolic.ring import SR
-import sage.symbolic.pynac
+from sage.libs.pynac.pynac import symbol_table
 from sage.symbolic.constants import (pi, e, golden_ratio, log2, euler_gamma,
                                      catalan, khinchin, twinprime, mertens)
 from sage.functions.hypergeometric import hypergeometric
@@ -49,7 +50,7 @@ def _mk_full_functions():
     random_expr will fail as well.  That's OK; just fix the doctest
     to match the new output.
     """
-    items = sorted(sage.symbolic.pynac.symbol_table['functions'].items())
+    items = sorted(symbol_table['functions'].items())
     return [(1.0, f, f.number_of_arguments())
             for (name, f) in items
             if hasattr(f, 'number_of_arguments') and
@@ -145,8 +146,8 @@ def choose_from_prob_list(lst):
         (0.900000000000000, True)
         sage: true_count = 0
         sage: for _ in range(10000):
-        ...       if choose_from_prob_list(v)[1]:
-        ...           true_count += 1
+        ....:     if choose_from_prob_list(v)[1]:
+        ....:         true_count += 1
         sage: true_count
         9033
         sage: true_count - (10000 * 9/10)
@@ -207,7 +208,7 @@ def random_expr_helper(n_nodes, internal, leaves, verbose):
 
         sage: from sage.symbolic.random_tests import *
         sage: random_expr_helper(9, [(0.5, operator.add, 2),
-        ...       (0.5, operator.neg, 1)], [(0.5, 1), (0.5, x)], True)
+        ....:     (0.5, operator.neg, 1)], [(0.5, 1), (0.5, x)], True)
         About to apply <built-in function add> to [1, x]
         About to apply <built-in function add> to [x, x + 1]
         About to apply <built-in function neg> to [1]
@@ -228,7 +229,7 @@ def random_expr_helper(n_nodes, internal, leaves, verbose):
         nodes_per_child = random_integer_vector(n_spare_nodes, n_children)
         children = [random_expr_helper(n+1, internal, leaves, verbose) for n in nodes_per_child]
         if verbose:
-            print "About to apply %r to %r" % (r[1], children)
+            print("About to apply %r to %r" % (r[1], children))
         return r[1](*children)
 
 def random_expr(size, nvars=1, ncoeffs=None, var_frac=0.5,
@@ -338,8 +339,8 @@ def assert_strict_weak_order(a,b,c, cmp_func):
         ....:         cmp[i,j] = x[i].__cmp__(x[j])
         sage: cmp
         [ 0 -1 -1]
-        [ 1  0  1]
-        [ 1 -1  0]
+        [ 1  0 -1]
+        [ 1  1  0]
     """
     from sage.matrix.constructor import matrix
     from sage.combinat.permutation import Permutations
@@ -397,12 +398,13 @@ def test_symbolic_expression_order(repetitions=100):
         return randint(-100,100)/randint(1,100)
 
     def make_random_expr():
+        from sage.symbolic.random_tests import random_expr, fast_nodes
         while True:
             try:
-                return sage.symbolic.random_tests.random_expr(
+                return random_expr(
                     rnd_length, nvars=nvars, ncoeffs=ncoeffs, var_frac=var_frac,
                     nullary_frac=nullary_frac, coeff_generator=coeff_generator,
-                    internal=sage.symbolic.random_tests.fast_nodes)
+                    internal=fast_nodes)
             except (ZeroDivisionError, ValueError):
                 pass
 

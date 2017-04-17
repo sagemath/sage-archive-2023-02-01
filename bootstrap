@@ -14,7 +14,7 @@
 # If optional argument -d is given and bootstrapping failed, instead
 # extract the files from a local configure tarball, downloading it if
 # needed. If -D is given, don't try to bootstrap and always extract or
-# donwload.
+# download.
 ########################################################################
 
 # Either run this script from SAGE_ROOT or make sure that SAGE_ROOT
@@ -24,6 +24,7 @@ test -z "$SAGE_ROOT" || cd "$SAGE_ROOT"
 PKG=build/pkgs/configure
 MAKE="${MAKE:-make}"
 CONFVERSION=`cat $PKG/package-version.txt`
+
 
 bootstrap () {
     aclocal -I m4 && \
@@ -55,8 +56,7 @@ bootstrap () {
 
 # Bootstrap by downloading the auto-generated files
 bootstrap-download () {
-    source src/bin/sage-env
-    sage-download-file configure-$CONFVERSION.tar.gz
+    build/bin/sage-download-file configure-$CONFVERSION.tar.gz
     if [ $? -ne 0 ]; then
         echo >&2 "Error: downloading configure-$CONFVERSION.tar.gz failed"
         exit 1
@@ -124,6 +124,12 @@ fi
 # Start cleanly (it's not a problem if this fails)
 $MAKE bootstrap-clean 2>/dev/null
 mkdir config 2>/dev/null
+
+# Get autotools from our own package into PATH (Trac #21214).
+# If Sage has not been built yet, this will fail due to a missing
+# sage-env-config. We just ignore that error.
+source src/bin/sage-env 2>/dev/null
+
 
 if [ $ALWAYSDOWNLOAD = yes ]; then
     bootstrap-download || exit $?

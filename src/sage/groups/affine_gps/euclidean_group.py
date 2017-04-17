@@ -92,7 +92,7 @@ class EuclideanGroup(AffineGroup):
         space. If an integer is given, it must be a prime power and
         the corresponding finite field is constructed.
 
-      * ``var`` -- (Defalut: ``'a'``) Keyword argument to specify the finite
+      * ``var`` -- (default: ``'a'``) Keyword argument to specify the finite
         field generator name in the case where ``ring`` is a prime power.
 
     EXAMPLES::

@@ -5,7 +5,7 @@ Sage interacts are applications of the `@interact decorator <../../sagenb/notebo
 They are conveniently accessible in the Sage Notebook via ``interacts.[TAB].[TAB]()``.
 The first ``[TAB]`` lists categories and the second ``[TAB]`` reveals the interact examples.
 
-EXAMPLE:
+EXAMPLES:
 
 Invoked in the notebook, the following command will produce the fully formatted
 interactive mathlet.  In the command line, it will simply return the underlying
@@ -46,8 +46,8 @@ def library_interact(f):
 
         sage: import sage.interacts.library as library
         sage: @library.library_interact
-        ... def f(n=5): print n
-        ...
+        ....: def f(n=5): print(n)
+        ....:
         sage: f()  # an interact appears, if using the notebook, else code
         <html>...</html>
     """
@@ -80,7 +80,7 @@ def demo(n=tuple(range(10)), m=tuple(range(10))):
         sage: interacts.demo()
         <html>...</html>
     """
-    print n+m
+    print(n + m)
 
 @library_interact
 def taylor_polynomial(
@@ -765,7 +765,7 @@ def bisection_method(
     try:
         c, intervals = _bisection_method(f, float(a), float(b), maxn, h)
     except ValueError:
-        print "f must have opposite sign at the endpoints of the interval"
+        print("f must have opposite sign at the endpoints of the interval")
         show(plot(f, a, b, color='red'), xmin=a, xmax=b)
     else:
         html(r"$\text{Precision }h = 10^{-d}=10^{-%s}=%.5f$"%(d, float(h)))
@@ -825,7 +825,7 @@ def secant_method(
     a, b = interval
     h = 10**(-d)
     if float(f(a)*f(b)) > 0:
-        print "f must have opposite sign at the endpoints of the interval"
+        print("f must have opposite sign at the endpoints of the interval")
         show(plot(f, a, b, color='red'), xmin=a, xmax=b)
     else:
         c, intervals = _secant_method(f, float(a), float(b), maxn, h)
@@ -1238,7 +1238,7 @@ def function_tool(f=sin(x), g=cos(x), xrange=range_slider(-3,3,default=(0,1),lab
       - ``action`` -- select given operation on or combination of functions
       - ``do_plot`` -- if true, a plot is drawn
 
-    EXAMPLE:
+    EXAMPLES:
 
     Invoked in the notebook, the following command will produce
     the fully formatted interactive mathlet.  In the command line,
@@ -1252,8 +1252,8 @@ def function_tool(f=sin(x), g=cos(x), xrange=range_slider(-3,3,default=(0,1),lab
     try:
         f = SR(f); g = SR(g); a = SR(a)
     except TypeError as msg:
-        print msg[-200:]
-        print "Unable to make sense of f,g, or a as symbolic expressions in single variable x."
+        print(msg[-200:])
+        print("Unable to make sense of f,g, or a as symbolic expressions in single variable x.")
         return
     if not (isinstance(xrange, tuple) and len(xrange) == 2):
           xrange = (0,1)
@@ -1355,7 +1355,7 @@ def julia(expo = slider(-10,10,0.1,2),
         - ``plot_points`` -- number of points to plot
         - ``dpi`` -- dots-per-inch parameter for the plot
 
-    EXAMPLE:
+    EXAMPLES:
 
     Invoked in the notebook, the following command will produce
     the fully formatted interactive mathlet.  In the command line,
@@ -1396,7 +1396,7 @@ def mandelbrot(expo = slider(-10,10,0.1,2),
         - ``plot_points`` -- number of points to plot
         - ``dpi`` -- dots-per-inch parameter for the plot
 
-    EXAMPLE:
+    EXAMPLES:
 
     Invoked in the notebook, the following command will produce
     the fully formatted interactive mathlet.  In the command line,
@@ -1434,7 +1434,7 @@ def cellular_automaton(
         - ``rule_number`` -- rule number (0 to 255)
         - ``size`` -- size of the shown picture
 
-    EXAMPLE:
+    EXAMPLES:
 
     Invoked in the notebook, the following command will produce
     the fully formatted interactive mathlet.  In the command line,
@@ -1489,7 +1489,7 @@ def polar_prime_spiral(
         - ``n`` -- number `n`
         - ``dpi`` -- dots per inch resolution for plotting
 
-    EXAMPLE:
+    EXAMPLES:
 
     Invoked in the notebook, the following command will produce
     the fully formatted interactive mathlet.  In the command line,
@@ -1514,13 +1514,13 @@ def polar_prime_spiral(
     from sage.plot.colors import hue
 
     if start < 1 or end <= start:
-        print "invalid start or end value"
+        print("invalid start or end value")
         return
     if n > end:
-        print "WARNING: n is greater than end value"
+        print("WARNING: n is greater than end value")
         return
     if n < start:
-        print "n < start value"
+        print("n < start value")
         return
     nn = SR.var('nn')
     f1 = fast_float(sqrt(nn)*cos(2*pi*sqrt(nn)), 'nn')

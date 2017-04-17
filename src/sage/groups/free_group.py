@@ -318,7 +318,7 @@ class FreeGroupElement(ElementLibGAP):
         TESTS::
 
             sage: type(a.Tietze())
-            <type 'tuple'>
+            <... 'tuple'>
             sage: type(a.Tietze()[0])
             <type 'sage.rings.integer.Integer'>
         """
@@ -857,7 +857,7 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
         `i_1 \dots i_j`, such that the abelianization of the
         group is isomorphic to
 
-        .. math::
+        .. MATH::
 
             \ZZ / (i_1) \times \dots \times \ZZ / (i_j)
 

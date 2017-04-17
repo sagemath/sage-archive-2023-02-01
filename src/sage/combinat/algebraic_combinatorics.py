@@ -34,8 +34,7 @@ Combinatorial Hopf Algebras
 Groups and Algebras
 -------------------
 
-.. TODO:: add link to the catalog of algebras when it exists
-
+- :ref:`Catalog of algebras <sage.algebras.catalog>`
 - :ref:`Groups <sage.groups.groups_catalog>`
 - :class:`SymmetricGroup`, :class:`CoxeterGroup`, :class:`WeylGroup`
 - :class:`~sage.combinat.diagram_algebras.PartitionAlgebra`

@@ -44,8 +44,8 @@ Basic arithmetic with C integers
 from sage.ext.stdsage cimport PY_NEW
 include "sage/ext/cdefs.pxi"
 
-from sage.libs.pari.paridecl cimport *
-from sage.libs.pari.gen cimport gen as pari_gen
+from sage.libs.cypari2.paridecl cimport *
+from sage.libs.cypari2.gen cimport Gen as pari_gen
 from sage.libs.pari.all import pari
 from sage.rings.integer cimport Integer
 
@@ -244,7 +244,7 @@ cdef class arith_int:
         cdef int g, s, t
         g = self.c_xgcd_int(a,m, &s, &t)
         if g != 1:
-            raise ArithmeticError, "The inverse of %s modulo %s is not defined."%(a,m)
+            raise ArithmeticError("The inverse of %s modulo %s is not defined." % (a, m))
         s = s % m
         if s < 0:
             s = s + m

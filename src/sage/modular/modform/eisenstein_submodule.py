@@ -2,6 +2,8 @@
 """
 The Eisenstein Subspace
 """
+from __future__ import absolute_import
+from six.moves import range
 
 from sage.structure.all import Sequence
 from sage.misc.all import verbose
@@ -12,9 +14,9 @@ from sage.rings.all import CyclotomicField
 from sage.arith.all import lcm, euler_phi
 
 
-import eis_series
-import element
-import submodule
+from . import eis_series
+from . import element
+from . import submodule
 
 class EisensteinSubmodule(submodule.ModularFormsSubmodule):
     """
@@ -164,7 +166,7 @@ class EisensteinSubmodule_params(EisensteinSubmodule):
         r"""
         Return the new submodule of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: e = EisensteinForms(Gamma0(225), 2).new_submodule(); e
             Modular Forms subspace of dimension 3 of Modular Forms space of dimension 42 for Congruence Subgroup Gamma0(225) of weight 2 over Rational Field
@@ -310,7 +312,7 @@ class EisensteinSubmodule_params(EisensteinSubmodule):
         r"""
         Return a list of the Eisenstein series in this space that are new.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EisensteinForms(25, 4)
             sage: E.new_eisenstein_series()
@@ -437,11 +439,11 @@ class EisensteinSubmodule_gH_Q(EisensteinSubmodule_params):
             [ 0  0  9  0]
             [ 0  1 -4 10]
         """
-        from cuspidal_submodule import _convert_matrix_from_modsyms
+        from .cuspidal_submodule import _convert_matrix_from_modsyms
         symbs = self.modular_symbols(sign=0)
         d = self.rank()
         wrong_mat, pivs = _convert_matrix_from_modsyms(symbs, A)
-        c = Matrix(self.base_ring(), d, [self.basis()[i][j+1] for i in xrange(d) for j in pivs])
+        c = Matrix(self.base_ring(), d, [self.basis()[i][j+1] for i in range(d) for j in pivs])
         return c * wrong_mat * ~c
 
     def _compute_hecke_matrix(self, n, bound=None):
@@ -474,7 +476,7 @@ class EisensteinSubmodule_gH_Q(EisensteinSubmodule_params):
             a_{i,j}(T_n* T_m)`. But we can't find the constant terms
             by this method, so an extra step is required.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: EisensteinForms(Gamma1(6), 3).hecke_matrix(3) # indirect doctest
             [ 1  0 72  0]
@@ -491,7 +493,7 @@ class EisensteinSubmodule_gH_Q(EisensteinSubmodule_params):
         Calculate the matrix of the diamond bracket operator <d> on this space,
         using modular symbols.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EisensteinForms(Gamma1(7), 3)
             sage: E._compute_diamond_matrix(3)

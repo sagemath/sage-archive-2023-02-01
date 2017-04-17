@@ -55,7 +55,7 @@ Sageのかなりの部分がPythonを使って実装されているものの，�
 インストール
 ==============
 
-まだSageをコンピュータにインストールしていないけれども何かコマンドを実行してはみたいというなら， http://www.sagenb.org 上でオンライン実行してみる手がある．
+まだSageをコンピュータにインストールしていないけれども何かコマンドを実行してはみたいというなら， http://sagecell.sagemath.org 上でオンライン実行してみる手がある．
 
 Sageを自分のコンピュータへインストールする手順については，本家Sageウェブページ [SA]_ のドキュメンテーション部にある "Sage Installation Guide"を見てほしい．
 ここではいくつかコメントしておくだけにしよう．
@@ -68,12 +68,12 @@ Sageを自分のコンピュータへインストールする手順について�
    ファイルを入手したら展開して ``sage`` コマンドを実行するだけで出来上がりだ．
 
 #. SageTeXパッケージを使いたいのならば(SageTeXはSageの処理結果をLaTeX文書に埋め込み可能にしてくれる)，使用すべきTeXディストリビューションをSageTeXに教えてやる必要がある．
-   設定法については， `Sage installation guide <http://www.sagemath.org/doc/>`_ 中の "Make SageTeX known to TeX" を参照してほしい(ローカルシステム上の `ここ <../../en/installation/index.html>`_ にもインストールガイドがある)．
+   設定法については， `Sage installation guide <http://doc.sagemath.org/html/en/>`_ 中の "Make SageTeX known to TeX" を参照してほしい(ローカルシステム上の `ここ <../../en/installation/index.html>`_ にもインストールガイドがある)．
    手順はごく簡単で，環境変数を一つ設定するか，あるいはTeX配下のディレクトリにファイルを1個コピーしてやるだけである．
 
 
 SageTeXの利用に関する解説は
-``$SAGE_ROOT/local/share/texmf/tex/generic/sagetex/`` にある．
+``$SAGE_ROOT/local/share/texmf/tex/latex/sagetex/`` にある．
 ``$SAGE_ROOT`` はSageがインストールされているディレクトリで，例えば ``/opt/sage-4.2.1`` などとなっているはずだ．
 
 

@@ -14,6 +14,9 @@ from sage.categories.graded_modules import GradedModulesCategory
 from sage.categories.with_realizations import WithRealizationsCategory
 from sage.misc.cachefunc import cached_method
 
+import six
+
+
 class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
     """
     The category of graded Hopf algebras with a distinguished basis.
@@ -157,7 +160,7 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
                     else:
                         S = self.antipode_on_basis
                         x__S_Id = tensor([self, self]).module_morphism(
-                            lambda (a, b): S(a) * self.monomial(b),
+                            lambda ab: S(ab[0]) * self.monomial(ab[1]),
                             codomain=self)
                         return -x__S_Id(
                             self.monomial(index).coproduct()
@@ -173,12 +176,10 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
                         P140
 
                     """
-                    import itertools
-                    return self.linear_combination(itertools.imap(
-                        lambda (mon, coeff): \
-                            (self.antipode_on_basis(mon), coeff),
-                        elem.monomial_coefficients().iteritems()
-                    ))
+                    return self.linear_combination(
+                        (self.antipode_on_basis(mon), coeff)
+                        for mon, coeff in six.iteritems(elem.monomial_coefficients())
+                    )
 
             class ElementMethods:
 

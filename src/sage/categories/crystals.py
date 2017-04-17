@@ -7,6 +7,8 @@ Crystals
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
+from builtins import zip
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
@@ -75,6 +77,7 @@ class Crystals(Category_singleton):
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
           running ._test_eq() . . . pass
+          running ._test_new() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
           running ._test_stembridge_local_axioms() . . . pass
@@ -88,6 +91,7 @@ class Crystals(Category_singleton):
         running ._test_enumerated_set_iter_list() . . . pass
         running ._test_eq() . . . pass
         running ._test_fast_iter() . . . pass
+        running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
         running ._test_some_elements() . . . pass
@@ -685,7 +689,7 @@ class Crystals(Category_singleton):
                 ....:                          scaling_factors={1:1, 2:1})
                 sage: for x in G:
                 ....:     ascii_art(x, psi(x), sep='  |-->  ')
-                ....:     print ""
+                ....:     print("")
                              1
                   1  |-->    2
                 <BLANKLINE>
@@ -754,21 +758,21 @@ class Crystals(Category_singleton):
 
                 sage: C = Crystals().example(3)
                 sage: G = C.digraph()
-                sage: view(G, tightpage=True)  # optional - dot2tex graphviz, not tested (opens external window)
+                sage: view(G)  # optional - dot2tex graphviz, not tested (opens external window)
 
             One may also overwrite the colors::
 
                 sage: C = Crystals().example(3)
                 sage: G = C.digraph()
                 sage: G.set_latex_options(color_by_label = {1:"red", 2:"purple", 3:"blue"})
-                sage: view(G, tightpage=True)  # optional - dot2tex graphviz, not tested (opens external window)
+                sage: view(G)  # optional - dot2tex graphviz, not tested (opens external window)
 
             Or one may add colors to yet unspecified edges::
 
                 sage: C = Crystals().example(4)
                 sage: G = C.digraph()
                 sage: C.cartan_type()._index_set_coloring[4]="purple"
-                sage: view(G, tightpage=True)  # optional - dot2tex graphviz, not tested (opens external window)
+                sage: view(G)  # optional - dot2tex graphviz, not tested (opens external window)
 
             Here is an example of how to take the top part up to a
             given depth of an infinite dimensional crystal::
@@ -795,7 +799,7 @@ class Crystals(Category_singleton):
                 sage: list(D)
                 [[[1, 1], [2]], [[1, 1], [3]], [[1, 2], [2]],
                  [[1, 3], [2]], [[1, 3], [3]]]
-                sage: view(D, tightpage=True)  # optional - dot2tex graphviz, not tested (opens external window)
+                sage: view(D)  # optional - dot2tex graphviz, not tested (opens external window)
 
             We can also choose to display particular arrows using the
             ``index_set`` option::
@@ -804,7 +808,20 @@ class Crystals(Category_singleton):
                 sage: G = C.digraph(index_set=[1,3])
                 sage: len(G.edges())
                 20
-                sage: view(G, tightpage=True)  # optional - dot2tex graphviz, not tested (opens external window)
+                sage: view(G)  # optional - dot2tex graphviz, not tested (opens external window)
+
+            TESTS:
+
+            We check that infinite crystals raise an error (:trac:`21986`)::
+
+                sage: B = crystals.infinity.Tableaux(['A',2])
+                sage: B.digraph()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: crystals not known to be finite
+                 must specify either the subset or depth
+                sage: B.digraph(depth=10)
+                Digraph on 161 vertices
 
             .. TODO:: Add more tests.
             """
@@ -818,6 +835,9 @@ class Crystals(Category_singleton):
 
             # Parse optional arguments
             if subset is None:
+                if self not in Crystals().Finite():
+                    raise NotImplementedError("crystals not known to be finite"
+                                              " must specify the subset")
                 subset = self
             if index_set is None:
                 index_set = self.index_set()
@@ -878,7 +898,7 @@ class Crystals(Category_singleton):
                 sage: T = crystals.Tableaux(['A',2],shape=[1])
                 sage: T._latex_()  # optional - dot2tex graphviz
                 '...tikzpicture...'
-                sage: view(T, tightpage = True) # optional - dot2tex graphviz, not tested (opens external window)
+                sage: view(T) # optional - dot2tex graphviz, not tested (opens external window)
 
             One can for example also color the edges using the following options::
 
@@ -1945,7 +1965,7 @@ class CrystalMorphismByGenerators(CrystalMorphism):
         elif isinstance(on_gens, (list, tuple)):
             if len(self._gens) != len(on_gens):
                 raise ValueError("invalid generator images")
-            d = {x: y for x,y in zip(self._gens, on_gens)}
+            d = {x: y for x, y in zip(self._gens, on_gens)}
             f = lambda x: d[x]
         else:
             f = on_gens
@@ -1968,14 +1988,14 @@ class CrystalMorphismByGenerators(CrystalMorphism):
             sage: H = Hom(T, B)
             sage: b = B.highest_weight_vector()
             sage: psi = H((None, b, b, None), generators=T.highest_weight_vectors())
-            sage: print psi._repr_defn()
+            sage: print(psi._repr_defn())
             [[[1]], [[1]], [[1]]] |--> None
             [[[2]], [[1]], [[1]]] |--> [2, 1, 1]
             [[[1]], [[2]], [[1]]] |--> [2, 1, 1]
             [[[3]], [[2]], [[1]]] |--> None
         """
         return '\n'.join(['{} |--> {}'.format(mg, im)
-                          for mg,im in zip(self._gens, self.im_gens())])
+                          for mg, im in zip(self._gens, self.im_gens())])
 
     def _check(self):
         """
@@ -2044,7 +2064,7 @@ class CrystalMorphismByGenerators(CrystalMorphism):
         """
         mg, ef, indices = self.to_module_generator(x)
         cur = self._on_gens(mg)
-        for op,i in reversed(zip(ef, indices)):
+        for op, i in reversed(list(zip(ef, indices))):
             if cur is None:
                 return None
 
@@ -2058,7 +2078,7 @@ class CrystalMorphismByGenerators(CrystalMorphism):
                 cur = cur.e_string(s)
         return cur
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return if ``self`` is a non-zero morphism.
 
@@ -2074,6 +2094,8 @@ class CrystalMorphismByGenerators(CrystalMorphism):
             False
         """
         return any(self._on_gens(mg) is not None for mg in self._gens)
+
+    __nonzero__ = __bool__
 
     # TODO: Does this belong in the element_class of the Crystals() category?
     def to_module_generator(self, x):
@@ -2347,7 +2369,7 @@ class CrystalHomset(Homset):
           From: The crystal of tableaux of type ['B', 3] and shape(s) [[1]]
           To:   The crystal of tableaux of type ['D', 4] and shape(s) [[2]]
           Defn: [1] |--> [1, 1]
-        sage: for b in B: print "{} |--> {}".format(b, psi(b))
+        sage: for b in B: print("{} |--> {}".format(b, psi(b)))
         [1] |--> [1, 1]
         [2] |--> [2, 2]
         [3] |--> [3, 3]

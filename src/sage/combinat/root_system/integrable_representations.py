@@ -10,6 +10,7 @@ Integrable Representations of Affine Lie Algebras
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.category_object import CategoryObject
@@ -33,8 +34,7 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
 
     REFERENCES:
 
-    .. [Kac] Kac, *Infinite-dimensional Lie algebras*, Third Edition.
-       Cambridge, 1990.
+    - [Ka1990]_
 
     .. [KMPS] Kass, Moody, Patera and Slansky, *Affine Lie algebras,
        weight multiplicities, and branching rules*. Vols. 1, 2. University
@@ -61,10 +61,10 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
     where `(\, | \,)` is the invariant inner product on the weight
     lattice and `\rho` is the Weyl vector. Moreover if `m(\mu)>0`
     then `\mu\in\operatorname{supp}(V)` differs from `\Lambda` by an element
-    of the root lattice ([Kac]_, Propositions 11.3 and 11.4).
+    of the root lattice ([Ka1990]_, Propositions 11.3 and 11.4).
     
     Let `\delta` be the nullroot, which is the lowest positive imaginary
-    root. Then by [Kac]_, Proposition 11.3 or Corollary 11.9, for fixed `\mu`
+    root. Then by [Ka1990]_, Proposition 11.3 or Corollary 11.9, for fixed `\mu`
     the function `m(\mu - k\delta)` is a monotone increasing function of
     `k`. It is useful to take `\mu` to be such that this function is nonzero
     if and only if `k \geq 0`. Therefore we make the following definition.  If
@@ -185,7 +185,10 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
 
             sage: Lambda = RootSystem(['A',3,1]).weight_lattice(extended=true).fundamental_weights()
             sage: V = IntegrableRepresentation(Lambda[1]+Lambda[2]+Lambda[3])
-            sage: TestSuite(V).run()
+
+        Some methods required by the category are not implemented::
+
+            sage: TestSuite(V).run()  # known bug (#21387)
         """
         CategoryObject.__init__(self, base=ZZ, category=Modules(ZZ))
 
@@ -265,7 +268,7 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
         Return the level of ``self``.
 
         The level of a highest weight representation `V_{\Lambda}` is
-        defined as `(\Lambda | \delta)` See [Kac]_ section 12.4.
+        defined as `(\Lambda | \delta)` See [Ka1990]_ section 12.4.
 
         EXAMPLES::
 
@@ -280,7 +283,7 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
         """
         Return the Coxeter number of the Cartan type of ``self``.
 
-        The Coxeter number is defined in [Kac]_ Chapter 6, and commonly
+        The Coxeter number is defined in [Ka1990]_ Chapter 6, and commonly
         denoted `h`.
 
         EXAMPLES::
@@ -297,7 +300,7 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
         r"""
         Return the dual Coxeter number of the Cartan type of ``self``.
 
-        The dual Coxeter number is defined in [Kac]_ Chapter 6, and commonly
+        The dual Coxeter number is defined in [Ka1990]_ Chapter 6, and commonly
         denoted `h^{\vee}`.
 
         EXAMPLES::
@@ -365,7 +368,7 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
             [   0    0   -1    1 -1/2]
             [   0    0    0 -1/2    1]
 
-        .. WARNING:
+        .. WARNING::
 
             If ``qelt1`` or ``qelt1`` accidentally gets coerced into
             the extended weight lattice, this will return an answer,
@@ -630,7 +633,7 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
         Iterate over the set of real positive roots `\alpha \in \Delta^+`
         in ``self`` such that `\nu - \alpha \in Q^+`.
         
-        See [Kac]_ Proposition 6.3 for the way to compute the set of real
+        See [Ka1990]_ Proposition 6.3 for the way to compute the set of real
         roots for twisted affine case.
         
         INPUT:
@@ -854,7 +857,7 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
 
         A weight `\mu` is *maximal* if it has nonzero multiplicity but
         `\mu + \delta`` has multiplicity zero. There are a finite number
-        of dominant maximal weights. Indeed, [Kac]_ Proposition 12.6
+        of dominant maximal weights. Indeed, [Ka1990]_ Proposition 12.6
         shows that the dominant maximal weights are in bijection with
         the classical weights in `k \cdot F` where `F` is the fundamental
         alcove and `k` is the level. The construction used in this
@@ -932,7 +935,7 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
             sage: V = IntegrableRepresentation(2*Lambda[0])
             sage: S = V.strings(depth=25)
             sage: for k in S:
-            ....:     print "{}: {}".format(k, ' '.join(str(x) for x in S[k]))
+            ....:     print("{}: {}".format(k, ' '.join(str(x) for x in S[k])))
             2*Lambda[0]: 1 1 3 5 10 16 28 43 70 105 161 236 350 501 722 1016 1431 1981 2741 3740 5096 6868 9233 12306 16357
             2*Lambda[1] - delta: 1 2 4 7 13 21 35 55 86 130 196 287 420 602 858 1206 1687 2331 3206 4368 5922 7967 10670 14193 18803
         """
@@ -966,7 +969,7 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
         The modular characteristic is a rational number introduced
         by Kac and Peterson [KacPeterson]_, required to interpret the
         string functions as Fourier coefficients of modular forms. See
-        [Kac]_ Section 12.7. Let `k` be the level, and let `h^\vee`
+        [Ka1990]_ Section 12.7. Let `k` be the level, and let `h^\vee`
         be the dual Coxeter number. Then
 
         .. MATH::

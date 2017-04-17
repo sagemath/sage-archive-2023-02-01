@@ -3,7 +3,7 @@ Guruswami-Sudan utility methods
 
 AUTHORS:
 
-- Johan S. R. Nielsen, original implementation (see [Nielsen]_ for details)
+- Johan S. R. Nielsen, original implementation (see [Nie]_ for details)
 - David Lucas, ported the original implementation in Sage
 """
 
@@ -22,6 +22,8 @@ AUTHORS:
 from sage.functions.other import binomial, floor, sqrt
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
+from sage.arith.all import lcm
+from sage.combinat.permutation import Permutation
 
 def polynomial_to_list(p, len):
     r"""
@@ -132,4 +134,35 @@ def solve_degree2_to_integer_range(a,b,c):
     if mini > maxi:
         return (-2,-1)
     else:
-        return (mini, maxi)
+        return (mini,maxi)
+
+def _degree_of_vector(v, shifts=None):
+    r"""
+    Returns the greatest degree among the entries of the polynomial vector `v`.
+
+    INPUT:
+
+    - ``v`` -- a vector of polynomials.
+
+    - ``shifts`` -- (default: ``None``) a list of integer shifts to consider
+      ``v`` under, i.e. compute `\max(\deg v_i + s_i)`, where `s_1,\ldots, s_n`
+      is the list of shifts.
+
+      If ``None``, all shifts are considered as ``0``.
+
+    EXAMPLES::
+
+        sage: from sage.coding.guruswami_sudan.utils import _degree_of_vector
+        sage: F.<x> = GF(7)[]
+        sage: v = vector(F, [0, 1, x, x^2])
+        sage: _degree_of_vector(v)
+        2
+        sage: _degree_of_vector(v, shifts=[10, 1, 0, -3])
+        1
+    """
+    if not shifts:
+        return max( vi.degree() for vi in v )
+    else:
+        if v.is_zero():
+            -1
+        return max( degi + si for (degi,si) in zip([ vi.degree() for vi in v ],shifts) if degi > -1 )

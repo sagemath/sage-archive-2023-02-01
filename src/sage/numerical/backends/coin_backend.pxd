@@ -197,7 +197,7 @@ cdef class CoinBackend(GenericBackend):
     cdef list col_names, row_names
     cdef str prob_name
 
-    cpdef CoinBackend copy(self)
+    cpdef __copy__(self)
     cpdef get_basis_status(self)
     cpdef int set_basis_status(self, list cstat, list rstat) except -1
     cpdef get_binva_row(self, int i)

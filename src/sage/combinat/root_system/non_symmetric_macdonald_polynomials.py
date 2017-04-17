@@ -271,7 +271,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
 
     .. RUBRIC:: Nonsymmetric Macdonald polynomials
 
-    We can now finally define the nonsymmetric Macdonald polyomials.
+    We can now finally define the nonsymmetric Macdonald polynomials.
     Because the Cherednik operators commute (and there is no radical),
     they can be simultaneously diagonalized; namely, `K[L_0]` admits a
     `K`-basis of joint eigenvectors for the `Y_\lambda`.  For `\mu \in
@@ -342,15 +342,15 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
 
     REFERENCES:
 
-    .. [Haiman ICM] M. Haiman, Cherednik algebras, Macdonald polynomials and combinatorics,
+    .. [HaimanICM] \M. Haiman, Cherednik algebras, Macdonald polynomials and combinatorics,
        Proceedings of the International Congress of Mathematicians,
        Madrid 2006, Vol. III, 843-872.
 
-    .. [HHL06] J. Haglund, M. Haiman and N. Loehr,
+    .. [HHL06] \J. Haglund, M. Haiman and N. Loehr,
        A combinatorial formula for nonsymmetric Macdonald polynomials,
        Amer. J. Math. 130, No. 2 (2008), 359-383.
 
-    .. [LNSSS12] C. Lenart, S. Naito, D. Sagaki, A. Schilling, M. Shimozono,
+    .. [LNSSS12] \C. Lenart, S. Naito, D. Sagaki, A. Schilling, M. Shimozono,
        A uniform model for Kirillov-Reshetikhin crystals I: Lifting
        the parabolic quantum Bruhat graph, preprint arXiv.1211.2042
        [math.QA]
@@ -984,8 +984,8 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
         sage: E[2*omega[2]]
         ((q*q1+q*q2)/(q*q1+q2))*B[(1, 2, 1)] + ((q*q1+q*q2)/(q*q1+q2))*B[(2, 1, 1)] + B[(2, 2, 0)]
         sage: for d in range(4):                                    # long time (9s)
-        ...       for weight in IntegerVectors(d,3).map(list).map(L0):
-        ...           eigenvalues = E.eigenvalues(E[L0(weight)])
+        ....:     for weight in IntegerVectors(d,3).map(list).map(L0):
+        ....:         eigenvalues = E.eigenvalues(E[L0(weight)])
 
     Some type `C` calculations::
 

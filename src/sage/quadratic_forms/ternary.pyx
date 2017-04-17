@@ -11,6 +11,7 @@ Helper code for ternary quadratic forms
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 
 from sage.rings.integer_ring import ZZ
@@ -21,13 +22,11 @@ from sage.quadratic_forms.extras import extend_to_primitive
 from sage.rings.finite_rings.integer_mod import mod
 from sage.misc.prandom import randint
 from sage.functions.other import ceil, floor
-from __builtin__ import max
-
 
 
 def red_mfact(a,b):
     """
-    Auxiliar function for reduction that finds the reduction factor of a, b integers.
+    Auxiliary function for reduction that finds the reduction factor of a, b integers.
 
     INPUT:
 
@@ -55,7 +54,7 @@ def red_mfact(a,b):
 def _reduced_ternary_form_eisenstein_with_matrix(a1, a2, a3, a23, a13, a12):
     """
     Find the coefficients of the equivalent unique reduced ternary form according to the conditions
-    of Dickson's "Studies in the Theory of Numbers", pp164-171, and the tranformation matrix.
+    of Dickson's "Studies in the Theory of Numbers", pp164-171, and the transformation matrix.
     See TernaryQF.is_eisenstein_reduced for the conditions.
 
     EXAMPLES::
@@ -535,7 +534,8 @@ def pseudorandom_primitive_zero_mod_p(a, b, c, r, s, t, p):
 def _find_zeros_mod_p_odd(long long a, long long b, long long c, long long r, long long s, long long t, long long p, v):
     """
     Find the zeros mod p, where p is an odd prime, of a ternary quadratic form given by its coefficients and a given zero of the form v.
-    The prime p doesn't divides the discriminant of the form.
+
+    The prime p does not divide the discriminant of the form.
 
     EXAMPLES::
 
@@ -604,8 +604,10 @@ def _find_zeros_mod_p_odd(long long a, long long b, long long c, long long r, lo
 
 def _find_zeros_mod_p(a, b, c, r, s, t, p):
     """
-    Finds the zeros mod p of the ternary quadratic form given by the coefficients (a, b, c, r, s, t), where p is
-    a prime that doesn't divides the discriminant of the form.
+    Find the zeros mod `p` of the ternary quadratic form.
+
+    The quadratic form is given by the coefficients (a, b, c, r, s, t),
+    and `p` is a prime that does not divide the discriminant of the form.
 
     EXAMPLES::
 
@@ -686,12 +688,12 @@ def _find_all_ternary_qf_by_level_disc(long long N, long long d):
     l=[]
 
     if (4*d)%N!=0:
-         raise ValueError, "There are no ternary forms of this level and discriminant"
+         raise ValueError("There are no ternary forms of this level and discriminant")
     else:
         m=4*d//N
 
     if (N**2)%d!=0:
-        raise ValueError, "There are no ternary forms of this level and discriminant"
+        raise ValueError("There are no ternary forms of this level and discriminant")
     else:
         mu=N*N//d
 
@@ -827,12 +829,12 @@ def _find_a_ternary_qf_by_level_disc(long long N, long long d):
 
 
     if (4*d)%N!=0:
-         raise ValueError, "There are no ternary forms of this level and discriminant"
+         raise ValueError("There are no ternary forms of this level and discriminant")
     else:
         m=4*d//N
 
     if (N**2)%d!=0:
-        raise ValueError, "There are no ternary forms of this level and discriminant"
+        raise ValueError("There are no ternary forms of this level and discriminant")
     else:
         mu=N*N//d
 
@@ -1095,7 +1097,7 @@ def _basic_lemma_vec(a, b, c, r, s, t, n):
     elif t%n != 0:
         return 1, 1, 0
 
-    raise ValueError, "not primitive form"
+    raise ValueError("not primitive form")
 
 def _basic_lemma(a, b, c, r, s, t, n):
     """
@@ -1128,5 +1130,4 @@ def _basic_lemma(a, b, c, r, s, t, n):
     elif t%n != 0:
         return a + b + t
 
-    raise ValueError, "not primitive form"
-
+    raise ValueError("not primitive form")

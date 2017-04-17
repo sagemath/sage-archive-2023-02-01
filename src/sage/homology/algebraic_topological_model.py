@@ -12,6 +12,7 @@ AUTHORS:
 
 - John H. Palmieri (2015-09)
 """
+from __future__ import absolute_import
 
 ########################################################################
 #       Copyright (C) 2015 John H. Palmieri <palmieri@math.washington.edu>
@@ -22,6 +23,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from six import iteritems
 
 # TODO: cythonize this.
 
@@ -29,9 +31,9 @@ from sage.modules.free_module_element import vector
 from sage.modules.free_module import VectorSpace
 from sage.matrix.constructor import matrix, zero_matrix
 from sage.matrix.matrix_space import MatrixSpace
-from chain_complex import ChainComplex
-from chain_complex_morphism import ChainComplexMorphism
-from chain_homotopy import ChainContraction
+from .chain_complex import ChainComplex
+from .chain_complex_morphism import ChainComplexMorphism
+from .chain_homotopy import ChainContraction
 from sage.rings.rational_field import QQ
 
 def algebraic_topological_model(K, base_ring=None):
@@ -49,7 +51,7 @@ def algebraic_topological_model(K, base_ring=None):
     - chain contraction ``phi``
     - chain complex `M`
 
-    This construction appears in a paper by Pilarczyk and Réal [PR]_.
+    This construction appears in a paper by Pilarczyk and Réal [PR2015]_.
     Given a cell complex `K` and a field `F`, there is a chain complex
     `C` associated to `K` with coefficients in `F`. The *algebraic
     topological model* for `K` is a chain complex `M` with trivial
@@ -73,7 +75,7 @@ def algebraic_topological_model(K, base_ring=None):
 
     Given an algebraic topological model for `K`, it is then easy to
     compute cup products and cohomology operations on the cohomology
-    of `K`, as described in [G-DR03]_ and [PR]_.
+    of `K`, as described in [GDR2003]_ and [PR2015]_.
 
     Implementation details: the cell complex `K` must have an
     :meth:`~sage.homology.cell_complex.GenericCellComplex.n_cells`
@@ -219,7 +221,7 @@ def algebraic_topological_model(K, base_ring=None):
             c_bar = c_vec
             bdry_c = diff * c_vec
             # Apply phi to bdry_c and subtract from c_bar.
-            for (idx, coord) in bdry_c.iteritems():
+            for (idx, coord) in iteritems(bdry_c):
                 try:
                     c_bar -= coord * phi_dict[dim-1][idx]
                 except KeyError:
@@ -230,7 +232,7 @@ def algebraic_topological_model(K, base_ring=None):
             # Evaluate pi(bdry(c_bar)).
             pi_bdry_c_bar = zero
 
-            for (idx, coeff) in bdry_c_bar.iteritems():
+            for (idx, coeff) in iteritems(bdry_c_bar):
                 try:
                     pi_bdry_c_bar += coeff * pi_dict[dim-1][idx]
                 except KeyError:
@@ -249,7 +251,7 @@ def algebraic_topological_model(K, base_ring=None):
             else:
                 # Take any u in gens so that lambda_i = <u, pi(bdry(c_bar))> != 0.
                 # u_idx will be the index of the corresponding cell.
-                for (u_idx, lambda_i) in pi_bdry_c_bar.iteritems():
+                for (u_idx, lambda_i) in iteritems(pi_bdry_c_bar):
                     # Now find the actual cell.
                     u = old_cells[u_idx]
                     if u in gens[dim-1]:
@@ -309,7 +311,7 @@ def algebraic_topological_model(K, base_ring=None):
             # First pi:
             if idx in pi_dict[n]:
                 column = vector(base_ring, M_rows)
-                for (entry, coeff) in pi_dict[n][idx].iteritems():
+                for (entry, coeff) in iteritems(pi_dict[n][idx]):
                     # Translate from cells in n_cells to cells in gens[n].
                     column[gens[n].index(n_cells[entry])] = coeff
             else:
@@ -521,7 +523,7 @@ def algebraic_topological_model_delta_complex(K, base_ring=None):
                 # Take any u in gens so that lambda_i = <u, pi(bdry(c_bar))> != 0.
                 # u_idx will be the index of the corresponding cell.
                 (u_idx, lambda_i) = pi_bdry_c_bar.leading_item()
-                for (u_idx, lambda_i) in pi_bdry_c_bar.iteritems():
+                for (u_idx, lambda_i) in iteritems(pi_bdry_c_bar):
                     if u_idx not in to_be_deleted:
                         break
                 # This element/column needs to be deleted from gens and

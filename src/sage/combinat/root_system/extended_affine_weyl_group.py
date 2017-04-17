@@ -97,7 +97,7 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear=None, **print_options):
 
     .. [Bour] Bourbaki, *Lie Groups and Lie Algebras* IV.2
 
-    .. [Kac]_
+    - [Ka1990]_
 
     .. RUBRIC:: Notation
 
@@ -450,7 +450,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
             self._n = self._cartan_type.n + 1
         else:
             self._general_linear = False
-        for option in print_options.keys():
+        for option in print_options:
             if option == 'translation':
                 self._prefixt = print_options['translation']
             elif option == 'fundamental':

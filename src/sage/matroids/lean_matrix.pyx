@@ -30,13 +30,16 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 include 'sage/data_structures/bitset.pxi'
 from libc.string cimport memcpy, memset
+from cpython.object cimport Py_EQ, Py_NE
+
 from sage.matrix.matrix2 cimport Matrix
 from sage.rings.all import ZZ, FiniteField, GF
 from sage.rings.integer cimport Integer
 import sage.matrix.constructor
+
 
 cdef class LeanMatrix:
     """
@@ -444,15 +447,15 @@ cdef class LeanMatrix:
             False
         """
         cdef long i, j
-        if op in [0, 1, 4, 5]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if not isinstance(left, LeanMatrix) or not isinstance(right, LeanMatrix):
             return NotImplemented
         if type(left) != type(right):
             return NotImplemented
-        if op == 2:  # ==
+        if op == Py_EQ:
             res = True
-        if op == 3:  # !=
+        if op == Py_NE:
             res = False
         # res gets inverted if matroids are deemed different.
         if left.nrows() != right.nrows():
@@ -908,13 +911,13 @@ cdef class GenericMatrix(LeanMatrix):
             False
         """
         cdef long i, j
-        if op in [0, 1, 4, 5]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if not isinstance(left, GenericMatrix) or not isinstance(right, GenericMatrix):
             return NotImplemented
-        if op == 2:  # ==
+        if op == Py_EQ:
             res = True
-        if op == 3:  # !=
+        if op == Py_NE:
             res = False
         # res gets inverted if matroids are deemed different.
         if left.nrows() != right.nrows():
@@ -986,7 +989,7 @@ cdef class BinaryMatrix(LeanMatrix):
         cdef long i, j
         self._nrows = m
         self._ncols = n
-        self._M = <bitset_t* > sage_malloc(self._nrows * sizeof(bitset_t))
+        self._M = <bitset_t* > sig_malloc(self._nrows * sizeof(bitset_t))
         if isinstance(M, BinaryMatrix):
             j = max(1, (<BinaryMatrix>M)._ncols)
         else:
@@ -1035,7 +1038,7 @@ cdef class BinaryMatrix(LeanMatrix):
         cdef long i
         for i from 0 <= i < self._nrows:
             bitset_free(self._M[i])
-        sage_free(self._M)
+        sig_free(self._M)
         bitset_free(self._temp)
 
     def __repr__(self):
@@ -1095,9 +1098,9 @@ cdef class BinaryMatrix(LeanMatrix):
             for i from k <= i < self._nrows:
                 bitset_free(self._M[i])
             self._nrows = k
-            self._M = <bitset_t* > sage_realloc(self._M, k * sizeof(bitset_t))
+            self._M = <bitset_t* > sig_realloc(self._M, k * sizeof(bitset_t))
         if k > self._nrows:
-            self._M = <bitset_t* > sage_realloc(self._M, k * sizeof(bitset_t))
+            self._M = <bitset_t* > sig_realloc(self._M, k * sizeof(bitset_t))
             c = max(1, self._ncols)
             for i from self._nrows <= i < k:
                 bitset_init(self._M[i], c)
@@ -1321,7 +1324,7 @@ cdef class BinaryMatrix(LeanMatrix):
         cdef bitset_t mask
         bitset_init(mask, lc)
         bitset_clear(mask)
-        cols = <mp_bitcnt_t*>sage_malloc(lc*sizeof(mp_bitcnt_t))
+        cols = <mp_bitcnt_t*>sig_malloc(lc*sizeof(mp_bitcnt_t))
         g = 0
         for c in columns:
             if c<lc:
@@ -1331,7 +1334,7 @@ cdef class BinaryMatrix(LeanMatrix):
                 g = g+1
         # write [ c for c in range(lc) if c not in columns] as array `gaps`
         cdef mp_bitcnt_t *gaps
-        gaps = <mp_bitcnt_t*>sage_malloc(lc*sizeof(mp_bitcnt_t))
+        gaps = <mp_bitcnt_t*>sig_malloc(lc*sizeof(mp_bitcnt_t))
         bitset_complement(mask, mask)
         g = 0
         c = bitset_first(mask)
@@ -1351,13 +1354,13 @@ cdef class BinaryMatrix(LeanMatrix):
                 if bitset_in(row, cols[g]):
                     bitset_add(row2, gaps[g])
         # record order of the columns in list `order`
-        cdef list order = range(lc)
+        cdef list order = list(xrange(lc))
         g = 0
         for g in xrange(lg):
             order[gaps[g]] = cols[g]
         # free up the two arrays and the bitset
-        sage_free(gaps)
-        sage_free(cols)
+        sig_free(gaps)
+        sig_free(cols)
         bitset_free(mask)
         return A, order
 
@@ -1510,13 +1513,13 @@ cdef class BinaryMatrix(LeanMatrix):
             False
         """
         cdef long i, j
-        if op in [0, 1, 4, 5]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if not isinstance(left, BinaryMatrix) or not isinstance(right, BinaryMatrix):
             return NotImplemented
-        if op == 2:  # ==
+        if op == Py_EQ:
             res = True
-        if op == 3:  # !=
+        if op == Py_NE:
             res = False
         # res gets inverted if matroids are deemed different.
         if left.nrows() != right.nrows():
@@ -1602,8 +1605,8 @@ cdef class TernaryMatrix(LeanMatrix):
 
         self._nrows = m
         self._ncols = n
-        self._M0 = <bitset_t* > sage_malloc(self._nrows * sizeof(bitset_t))
-        self._M1 = <bitset_t* > sage_malloc(self._nrows * sizeof(bitset_t))
+        self._M0 = <bitset_t* > sig_malloc(self._nrows * sizeof(bitset_t))
+        self._M1 = <bitset_t* > sig_malloc(self._nrows * sizeof(bitset_t))
 
         if isinstance(M, TernaryMatrix):
             j = max(1, (<TernaryMatrix>M)._ncols)
@@ -1659,8 +1662,8 @@ cdef class TernaryMatrix(LeanMatrix):
         for i from 0 <= i < self._nrows:
             bitset_free(self._M0[i])
             bitset_free(self._M1[i])
-        sage_free(self._M0)
-        sage_free(self._M1)
+        sig_free(self._M0)
+        sig_free(self._M1)
         bitset_free(self._s)
         bitset_free(self._t)
         bitset_free(self._u)
@@ -1744,11 +1747,11 @@ cdef class TernaryMatrix(LeanMatrix):
                 bitset_free(self._M0[i])
                 bitset_free(self._M1[i])
             self._nrows = k
-            self._M0 = <bitset_t* > sage_realloc(self._M0, k * sizeof(bitset_t))
-            self._M1 = <bitset_t* > sage_realloc(self._M1, k * sizeof(bitset_t))
+            self._M0 = <bitset_t* > sig_realloc(self._M0, k * sizeof(bitset_t))
+            self._M1 = <bitset_t* > sig_realloc(self._M1, k * sizeof(bitset_t))
         if k > self._nrows:
-            self._M0 = <bitset_t* > sage_realloc(self._M0, k * sizeof(bitset_t))
-            self._M1 = <bitset_t* > sage_realloc(self._M1, k * sizeof(bitset_t))
+            self._M0 = <bitset_t* > sig_realloc(self._M0, k * sizeof(bitset_t))
+            self._M1 = <bitset_t* > sig_realloc(self._M1, k * sizeof(bitset_t))
             c = max(1, self._ncols)
             for i from self._nrows <= i < k:
                 bitset_init(self._M0[i], c)
@@ -1995,7 +1998,7 @@ cdef class TernaryMatrix(LeanMatrix):
         cdef bitset_t mask
         bitset_init(mask, lc)
         bitset_clear(mask)
-        cols = <mp_bitcnt_t*>sage_malloc(lc*sizeof(mp_bitcnt_t))
+        cols = <mp_bitcnt_t*>sig_malloc(lc*sizeof(mp_bitcnt_t))
         g = 0
         for c in columns:
             if c<lc:
@@ -2005,7 +2008,7 @@ cdef class TernaryMatrix(LeanMatrix):
                 g = g+1
         # write [ c for c in range(lc) if c not in columns] as array `gaps`
         cdef mp_bitcnt_t *gaps
-        gaps = <mp_bitcnt_t*>sage_malloc(lc*sizeof(mp_bitcnt_t))
+        gaps = <mp_bitcnt_t*>sig_malloc(lc*sizeof(mp_bitcnt_t))
         bitset_complement(mask, mask)
         g = 0
         c = bitset_first(mask)
@@ -2033,13 +2036,13 @@ cdef class TernaryMatrix(LeanMatrix):
                     if bitset_in(row1, p):
                         bitset_add(row1_2, q)
         # record order of the columns in list `order`
-        cdef list order = range(lc)
+        cdef list order = list(xrange(lc))
         g = 0
         for g in xrange(lg):
             order[gaps[g]] = cols[g]
         # free up the two arrays and the bitset
-        sage_free(gaps)
-        sage_free(cols)
+        sig_free(gaps)
+        sig_free(cols)
         bitset_free(mask)
         return A, order
 
@@ -2065,13 +2068,13 @@ cdef class TernaryMatrix(LeanMatrix):
             False
         """
         cdef long i, j
-        if op in [0, 1, 4, 5]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if not isinstance(left, TernaryMatrix) or not isinstance(right, TernaryMatrix):
             return NotImplemented
-        if op == 2:  # ==
+        if op == Py_EQ:
             res = True
-        if op == 3:  # !=
+        if op == Py_NE:
             res = False
         # res gets inverted if matroids are deemed different.
         if left.nrows() != right.nrows():
@@ -2152,8 +2155,8 @@ cdef class QuaternaryMatrix(LeanMatrix):
         cdef long i, j
         self._nrows = m
         self._ncols = n
-        self._M0 = <bitset_t* > sage_malloc(self._nrows * sizeof(bitset_t))
-        self._M1 = <bitset_t* > sage_malloc(self._nrows * sizeof(bitset_t))
+        self._M0 = <bitset_t* > sig_malloc(self._nrows * sizeof(bitset_t))
+        self._M1 = <bitset_t* > sig_malloc(self._nrows * sizeof(bitset_t))
 
         if isinstance(M, QuaternaryMatrix):
             j = max(1, (<QuaternaryMatrix>M)._ncols)
@@ -2234,8 +2237,8 @@ cdef class QuaternaryMatrix(LeanMatrix):
         for i from 0 <= i < self._nrows:
             bitset_free(self._M0[i])
             bitset_free(self._M1[i])
-        sage_free(self._M0)
-        sage_free(self._M1)
+        sig_free(self._M0)
+        sig_free(self._M1)
         bitset_free(self._s)
         bitset_free(self._t)
         bitset_free(self._u)
@@ -2345,11 +2348,11 @@ cdef class QuaternaryMatrix(LeanMatrix):
                 bitset_free(self._M0[i])
                 bitset_free(self._M1[i])
             self._nrows = k
-            self._M0 = <bitset_t* > sage_realloc(self._M0, k * sizeof(bitset_t))
-            self._M1 = <bitset_t* > sage_realloc(self._M1, k * sizeof(bitset_t))
+            self._M0 = <bitset_t* > sig_realloc(self._M0, k * sizeof(bitset_t))
+            self._M1 = <bitset_t* > sig_realloc(self._M1, k * sizeof(bitset_t))
         if k > self._nrows:
-            self._M0 = <bitset_t* > sage_realloc(self._M0, k * sizeof(bitset_t))
-            self._M1 = <bitset_t* > sage_realloc(self._M1, k * sizeof(bitset_t))
+            self._M0 = <bitset_t* > sig_realloc(self._M0, k * sizeof(bitset_t))
+            self._M1 = <bitset_t* > sig_realloc(self._M1, k * sizeof(bitset_t))
             c = max(1, self._ncols)
             for i from self._nrows <= i < k:
                 bitset_init(self._M0[i], c)
@@ -2578,7 +2581,7 @@ cdef class QuaternaryMatrix(LeanMatrix):
         cdef bitset_t mask
         bitset_init(mask, lc)
         bitset_clear(mask)
-        cols = <mp_bitcnt_t*>sage_malloc(lc*sizeof(mp_bitcnt_t))
+        cols = <mp_bitcnt_t*>sig_malloc(lc*sizeof(mp_bitcnt_t))
         g = 0
         for c in columns:
             if c<lc:
@@ -2588,7 +2591,7 @@ cdef class QuaternaryMatrix(LeanMatrix):
                 g = g+1
         # write [ c for c in range(lc) if c not in columns] as array `gaps`
         cdef mp_bitcnt_t *gaps
-        gaps = <mp_bitcnt_t*>sage_malloc(lc*sizeof(mp_bitcnt_t))
+        gaps = <mp_bitcnt_t*>sig_malloc(lc*sizeof(mp_bitcnt_t))
         bitset_complement(mask, mask)
         g = 0
         c = bitset_first(mask)
@@ -2616,13 +2619,13 @@ cdef class QuaternaryMatrix(LeanMatrix):
                 if bitset_in(row1, p):
                     bitset_add(row1_2, q)
         # record order of the columns in list `order`
-        cdef list order = range(lc)
+        cdef list order = list(xrange(lc))
         g = 0
         for g in xrange(lg):
             order[gaps[g]] = cols[g]
         # free up the two arrays and the bitset
-        sage_free(gaps)
-        sage_free(cols)
+        sig_free(gaps)
+        sig_free(cols)
         bitset_free(mask)
         return A, order
     
@@ -2664,13 +2667,13 @@ cdef class QuaternaryMatrix(LeanMatrix):
             False
         """
         cdef long i, j
-        if op in [0, 1, 4, 5]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if not isinstance(left, QuaternaryMatrix) or not isinstance(right, QuaternaryMatrix):
             return NotImplemented
-        if op == 2:  # ==
+        if op == Py_EQ:
             res = True
-        if op == 3:  # !=
+        if op == Py_NE:
             res = False
         if left.base_ring() != right.base_ring():
             return not res
@@ -2782,7 +2785,7 @@ cdef class IntegerMatrix(LeanMatrix):
         cdef long i, j
         self._nrows = nrows
         self._ncols = ncols
-        self._entries = <int* > sage_malloc(nrows * ncols * sizeof(int))
+        self._entries = <int* > sig_malloc(nrows * ncols * sizeof(int))
         memset(self._entries, 0, nrows * ncols * sizeof(int))
 
     def __init__(self, long nrows, long ncols, M=None, ring=None):
@@ -2825,7 +2828,7 @@ cdef class IntegerMatrix(LeanMatrix):
             2
             sage: A = None
         """
-        sage_free(self._entries)
+        sig_free(self._entries)
 
     def __repr__(self):
         """
@@ -2850,7 +2853,7 @@ cdef class IntegerMatrix(LeanMatrix):
         """
         Return a Sage Integer, for safety down the line when dividing.
 
-        EXAMPLE:
+        EXAMPLES:
 
         By returning an Integer rather than an int, the following test no
         longer fails::
@@ -2886,10 +2889,10 @@ cdef class IntegerMatrix(LeanMatrix):
         """
         cdef long l = self._ncols * (self._nrows - k)
         if l > 0:
-            sage_realloc(self._entries, self._ncols * k * sizeof(int))
+            sig_realloc(self._entries, self._ncols * k * sizeof(int))
             memset(self._entries + self._nrows * self._ncols, 0, l * self._ncols * sizeof(int))
         elif l < 0:
-            sage_realloc(self._entries, self._ncols * k * sizeof(int))
+            sig_realloc(self._entries, self._ncols * k * sizeof(int))
         self._nrows = k
         return 0
 
@@ -2991,13 +2994,13 @@ cdef class IntegerMatrix(LeanMatrix):
         Swap rows ``x`` and ``y``.
         """
         cdef int* tmp
-        tmp = <int* > sage_malloc(self._ncols * sizeof(int))
+        tmp = <int* > sig_malloc(self._ncols * sizeof(int))
         if not tmp:
             raise MemoryError
         memcpy(tmp, self._entries + x * self._ncols, self._ncols * sizeof(int))
         memcpy(self._entries + x * self._ncols, self._entries + y * self._ncols, self._ncols * sizeof(int))
         memcpy(self._entries + y * self._ncols, tmp, self._ncols * sizeof(int))
-        sage_free(tmp)
+        sig_free(tmp)
         return 0
 
     cdef int rescale_row_c(self, long x, s, bint col_start) except -1:
@@ -3006,7 +3009,6 @@ cdef class IntegerMatrix(LeanMatrix):
         compatibility, and is ignored.
         """
         cdef long i
-        # print "row-scale: ", x, ", ", s
         for i from 0 <= i < self._ncols:
             self.set(x, i, s * self.get(x, i))
         return 0
@@ -3136,13 +3138,13 @@ cdef class IntegerMatrix(LeanMatrix):
             False
         """
         cdef long i, j
-        if op in [0, 1, 4, 5]:  # <, <=, >, >=
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
         if not isinstance(left, IntegerMatrix) or not isinstance(right, IntegerMatrix):
             return NotImplemented
-        if op == 2:  # ==
+        if op == Py_EQ:
             res = True
-        if op == 3:  # !=
+        if op == Py_NE:
             res = False
         # res gets inverted if matroids are deemed different.
         if left.nrows() != right.nrows():

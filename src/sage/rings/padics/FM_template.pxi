@@ -82,7 +82,10 @@ cdef class FMElement(pAdicTemplateElement):
             4*5^2 + 2*5^3 + O(5^5)
         """
         cconstruct(self.value, self.prime_pow)
-        cconv(self.value, x, self.prime_pow.prec_cap, 0, self.prime_pow)
+        if isinstance(x,FMElement) and x.parent() is self.parent():
+            cshift(self.value, (<FMElement>x).value, 0, 0, self.prime_pow, False)
+        else:
+            cconv(self.value, x, self.prime_pow.prec_cap, 0, self.prime_pow)
 
     cdef FMElement _new_c(self):
         """
@@ -155,7 +158,7 @@ cdef class FMElement(pAdicTemplateElement):
         """
         return unpickle_fme_v2, (self.__class__, self.parent(), cpickle(self.value, self.prime_pow))
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         r"""
         Return the additive inverse of this element.
 
@@ -170,7 +173,7 @@ cdef class FMElement(pAdicTemplateElement):
         creduce_small(ans.value, ans.value, ans.prime_pow.prec_cap, ans.prime_pow)
         return ans
 
-    cpdef ModuleElement _add_(self, ModuleElement _right):
+    cpdef _add_(self, _right):
         r"""
         Return the sum of this element and ``_right``.
 
@@ -190,7 +193,7 @@ cdef class FMElement(pAdicTemplateElement):
         creduce_small(ans.value, ans.value, ans.prime_pow.prec_cap, ans.prime_pow)
         return ans
 
-    cpdef ModuleElement _sub_(self, ModuleElement _right):
+    cpdef _sub_(self, _right):
         r"""
         Return the difference of this element and ``_right``.
 
@@ -235,7 +238,7 @@ cdef class FMElement(pAdicTemplateElement):
         cinvert(ans.value, self.value, ans.prime_pow.prec_cap, ans.prime_pow)
         return ans
 
-    cpdef RingElement _mul_(self, RingElement _right):
+    cpdef _mul_(self, _right):
         r"""
         Return the product of this element and ``_right``.
 
@@ -253,7 +256,7 @@ cdef class FMElement(pAdicTemplateElement):
         creduce(ans.value, ans.value, ans.prime_pow.prec_cap, ans.prime_pow)
         return ans
 
-    cpdef RingElement _div_(self, RingElement _right):
+    cpdef _div_(self, _right):
         r"""
         Return the quotient of this element and ``right``. ``right`` must have
         valuation zero.
@@ -960,7 +963,7 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism_coercion):
 
 cdef class pAdicConvert_FM_ZZ(RingMap):
     """
-    The map from a fixed modulus ring back to ZZ that returns the the smallest
+    The map from a fixed modulus ring back to ZZ that returns the smallest
     non-negative integer approximation to its input which is accurate up to the precision.
 
     If the input is not in the closure of the image of ZZ, raises a ValueError.
@@ -1137,7 +1140,7 @@ def unpickle_fme_v2(cls, parent, value):
     """
     cdef FMElement ans = cls.__new__(cls)
     ans._parent = parent
-    ans.prime_pow = <PowComputer_class?>parent.prime_pow
+    ans.prime_pow = <PowComputer_?>parent.prime_pow
     cconstruct(ans.value, ans.prime_pow)
     cunpickle(ans.value, value, ans.prime_pow)
     return ans

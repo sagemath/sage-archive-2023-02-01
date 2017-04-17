@@ -8,7 +8,7 @@ example, we derive the quadratic formula as follows::
     sage: qe = (a*x^2 + b*x + c == 0)
     sage: qe
     a*x^2 + b*x + c == 0
-    sage: print solve(qe, x)
+    sage: print(solve(qe, x))
     [
     x == -1/2*(b + sqrt(b^2 - 4*a*c))/a,
     x == -1/2*(b - sqrt(b^2 - 4*a*c))/a
@@ -76,7 +76,7 @@ Multiply two symbolic equations::
 
     sage: x = var('x')
     sage: m = x == 5*x + 1
-    sage: n = sin(x) == sin(x+2*pi)
+    sage: n = sin(x) == sin(x+2*pi, hold=True)
     sage: m * n
     x*sin(x) == (5*x + 1)*sin(2*pi + x)
     sage: m = 2*x == 3*x^2 - 5
@@ -87,11 +87,11 @@ Divide two symbolic equations::
 
     sage: x = var('x')
     sage: m = x == 5*x + 1
-    sage: n = sin(x) == sin(x+2*pi)
+    sage: n = sin(x) == sin(x+2*pi, hold=True)
     sage: m/n
     x/sin(x) == (5*x + 1)/sin(2*pi + x)
     sage: m = x != 5*x + 1
-    sage: n = sin(x) != sin(x+2*pi)
+    sage: n = sin(x) != sin(x+2*pi, hold=True)
     sage: m/n
     x/sin(x) != (5*x + 1)/sin(2*pi + x)
 
@@ -247,8 +247,8 @@ LaTeX output::
     sage: latex(x^(3/5) >= pi)
     x^{\frac{3}{5}} \geq \pi
 
-When working with the symbolic complex number `I`, notice that comparison do not
-automatically simplifies even in trivial situations::
+When working with the symbolic complex number `I`, notice that comparisons do not
+automatically simplify even in trivial situations::
 
     sage: I^2 == -1
     -1 == -1
@@ -328,6 +328,9 @@ AUTHORS:
 - William Stein (2007-07-16): added arithmetic with symbolic equations
 
 """
+from __future__ import print_function
+from six.moves import range
+
 import operator
 
 
@@ -446,6 +449,19 @@ def test_relation_maxima(relation):
         sage: test_relation_maxima(f1 - f2 == 0)
         True
         sage: forget()
+        
+    In case one of the solutions while solving an equation is a real number::
+        
+        sage: var('K, d, R')
+        (K, d, R)
+        sage: assume(K>0)
+        sage: assume(K, 'noninteger')
+        sage: assume(R>0)
+        sage: assume(R<1)
+        sage: assume(d<R)
+        sage: assumptions()
+        [K > 0, K is noninteger, R > 0, R < 1, d < R]
+    
 
     """
     m = relation._maxima_()
@@ -596,7 +612,7 @@ def solve(f, *args, **kwds):
         sage: solve([sqrt(x) + sqrt(y) == 5, x + y == 10], x, y)
         [[x == -5/2*I*sqrt(5) + 5, y == 5/2*I*sqrt(5) + 5], [x == 5/2*I*sqrt(5) + 5, y == -5/2*I*sqrt(5) + 5]]
         sage: solutions=solve([x^2+y^2 == 1, y^2 == x^3 + x + 1], x, y, solution_dict=True)
-        sage: for solution in solutions: print solution[x].n(digits=3), ",", solution[y].n(digits=3)
+        sage: for solution in solutions: print("{} , {}".format(solution[x].n(digits=3), solution[y].n(digits=3)))
         -0.500 - 0.866*I , -1.27 + 0.341*I
         -0.500 - 0.866*I , 1.27 - 0.341*I
         -0.500 + 0.866*I , -1.27 - 0.341*I
@@ -664,7 +680,7 @@ def solve(f, *args, **kwds):
         sage: solve([x^2-4*x+4],x,solution_dict=True)
         [{x: 2}]
         sage: res = solve([x^2 == y, y == 4],x,y,solution_dict=True)
-        sage: for soln in res: print "x: %s, y: %s"%(soln[x], soln[y])
+        sage: for soln in res: print("x: %s, y: %s" % (soln[x], soln[y]))
         x: 2, y: 4
         x: -2, y: 4
 
@@ -728,7 +744,7 @@ def solve(f, *args, **kwds):
 
        sage: x,y=var('x y'); c1(x,y)=(x-5)^2+y^2-16; c2(x,y)=(y-3)^2+x^2-9
        sage: solve([c1(x,y),c2(x,y)],[x,y])
-       [[x == -9/68*sqrt(55) + 135/68, y == -15/68*sqrt(11)*sqrt(5) + 123/68], [x == 9/68*sqrt(55) + 135/68, y == 15/68*sqrt(11)*sqrt(5) + 123/68]]
+       [[x == -9/68*sqrt(55) + 135/68, y == -15/68*sqrt(55) + 123/68], [x == 9/68*sqrt(55) + 135/68, y == 15/68*sqrt(55) + 123/68]]
 
     TESTS::
 
@@ -740,7 +756,7 @@ def solve(f, *args, **kwds):
         TypeError:  The first argument must be a symbolic expression or a list of symbolic expressions.
 
     Test if the empty list is returned, too, when (a list of)
-    dictionaries (is) are requested (#8553)::
+    dictionaries (is) are requested (:trac:`8553`)::
 
         sage: solve([SR(0)==1],x)
         []
@@ -753,7 +769,7 @@ def solve(f, *args, **kwds):
         sage: solve((x==1,x==-1),x,solution_dict=0)
         []
 
-    Relaxed form, suggested by Mike Hansen (#8553)::
+    Relaxed form, suggested by Mike Hansen (:trac:`8553`)::
 
         sage: solve([x^2-1],x,solution_dict=-1)
         [{x: -1}, {x: 1}]
@@ -775,7 +791,7 @@ def solve(f, *args, **kwds):
         sage: solve([a+b+a*b == 1], a)
         Traceback (most recent call last):
         ...
-        TypeError: The first argument to solve() should be a symbolic expression or a list of symbolic expressions, cannot handle <type 'bool'>
+        TypeError: The first argument to solve() should be a symbolic expression or a list of symbolic expressions, cannot handle <... 'bool'>
         sage: solve([a, b], (1, a))
         Traceback (most recent call last):
         ...
@@ -1086,7 +1102,7 @@ def _solve_mod_prime_power(eqns, p, m, vars):
 
     TESTS:
 
-    Confirm we can reproduce the first few terms of OEIS A187719::
+    Confirm we can reproduce the first few terms of :oeis:`A187719`::
 
         sage: from sage.symbolic.relation import _solve_mod_prime_power
         sage: [sorted(_solve_mod_prime_power([x^2==41], 10, i, [x]))[0][0] for i in [1..13]]
@@ -1100,15 +1116,15 @@ def _solve_mod_prime_power(eqns, p, m, vars):
 
     mrunning = 1
     ans = []
-    for mi in xrange(m):
+    for mi in range(m):
         mrunning *= p
         R = Integers(mrunning)
         S = PolynomialRing(R, len(vars), vars)
         eqns_mod = [S(eq) for eq in eqns]
         if mi == 0:
-            possibles = cartesian_product_iterator([xrange(len(R)) for _ in xrange(len(vars))])
+            possibles = cartesian_product_iterator([range(len(R)) for _ in range(len(vars))])
         else:
-            shifts = cartesian_product_iterator([xrange(p) for _ in xrange(len(vars))])
+            shifts = cartesian_product_iterator([range(p) for _ in range(len(vars))])
             pairs = cartesian_product_iterator([shifts, ans])
             possibles = (tuple(vector(t)+vector(shift)*(mrunning//p)) for shift, t in pairs)
         ans = list(t for t in possibles if all(e(*t) == 0 for e in eqns_mod))
@@ -1164,7 +1180,7 @@ def solve_ineq_univar(ineq):
 
 def solve_ineq_fourier(ineq,vars=None):
     """
-    Solves sytem of inequalities using Maxima and fourier elimination
+    Solves system of inequalities using Maxima and Fourier elimination
 
     Can be used for system of linear inequalities and for some types
     of nonlinear inequalities. For examples see the section EXAMPLES
@@ -1175,7 +1191,7 @@ def solve_ineq_fourier(ineq,vars=None):
 
     - ``ineq`` - list with system of inequalities
 
-    - ``vars`` - optionally list with variables for fourier elimination.
+    - ``vars`` - optionally list with variables for Fourier elimination.
 
     OUTPUT:
 
@@ -1240,7 +1256,7 @@ def solve_ineq(ineq, vars=None):
     Solves inequalities and systems of inequalities using Maxima.
     Switches between rational inequalities
     (sage.symbolic.relation.solve_ineq_rational)
-    and fourier elimination (sage.symbolic.relation.solve_ineq_fouried).
+    and Fourier elimination (sage.symbolic.relation.solve_ineq_fouried).
     See the documentation of these functions for more details.
 
     INPUT:
@@ -1260,7 +1276,7 @@ def solve_ineq(ineq, vars=None):
       for a big gallery of problems covered by this algorithm.
 
     - ``vars`` - optional parameter with list of variables. This list
-      is used only if fourier elimination is used. If omitted or if
+      is used only if Fourier elimination is used. If omitted or if
       rational inequality is solved, then variables are determined
       automatically.
 

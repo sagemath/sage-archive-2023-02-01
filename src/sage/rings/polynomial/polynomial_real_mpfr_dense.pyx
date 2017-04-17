@@ -21,15 +21,15 @@ Check that operations with numpy elements work well (see :trac:`18076` and
     sage: numpy.float32('1.5') * x
     1.50000000000000*x
 """
+from __future__ import absolute_import
 
-include "sage/ext/stdsage.pxi"
 include "cysignals/signals.pxi"
-from sage.ext.memory cimport check_reallocarray, check_allocarray, sage_free
+include "cysignals/memory.pxi"
 
 from cpython cimport PyInt_AS_LONG, PyFloat_AS_DOUBLE
 
 from sage.structure.parent cimport Parent
-from polynomial_element cimport Polynomial
+from .polynomial_element cimport Polynomial, _dict_to_list
 from sage.rings.real_mpfr cimport RealField_class, RealNumber
 from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.rational cimport Rational
@@ -100,7 +100,7 @@ cdef class PolynomialRealDense(Polynomial):
             sage: (a*x).complex_roots()
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert x (='a') to real number.
+            TypeError: unable to convert 'a' to a real number
 
         Check that :trac:`17190` is fixed::
 
@@ -123,7 +123,7 @@ cdef class PolynomialRealDense(Polynomial):
         elif isinstance(x, (int, float, Integer, Rational, RealNumber)):
             x = [x]
         elif isinstance(x, dict):
-            x = self._dict_to_list(x,self._base_ring.zero())
+            x = _dict_to_list(x, self._base_ring.zero())
         elif isinstance(x, pari_gen):
             x = [self._base_ring(w) for w in x.list()]
         elif not isinstance(x, list):
@@ -165,7 +165,7 @@ cdef class PolynomialRealDense(Polynomial):
         if self._coeffs != NULL:
             for i from 0 <= i <= self._degree:
                 mpfr_clear(self._coeffs[i])
-            sage_free(self._coeffs)
+            sig_free(self._coeffs)
 
     def __reduce__(self):
         """
@@ -344,7 +344,7 @@ cdef class PolynomialRealDense(Polynomial):
                 mpfr_set(f._coeffs[i], self._coeffs[i-n], self._base_ring.rnd)
         return f
 
-    def list(self):
+    cpdef list list(self, bint copy=True):
         """
         EXAMPLES::
 
@@ -379,7 +379,7 @@ cdef class PolynomialRealDense(Polynomial):
             mpfr_neg(f._coeffs[i], self._coeffs[i], rnd)
         return f
 
-    cpdef ModuleElement _add_(left, ModuleElement _right):
+    cpdef _add_(left, _right):
         """
         EXAMPLES::
 
@@ -412,7 +412,7 @@ cdef class PolynomialRealDense(Polynomial):
         f._normalize()
         return f
 
-    cpdef ModuleElement _sub_(left, ModuleElement _right):
+    cpdef _sub_(left, _right):
         """
         EXAMPLES::
 
@@ -443,10 +443,7 @@ cdef class PolynomialRealDense(Polynomial):
         f._normalize()
         return f
 
-    cpdef ModuleElement _rmul_(self, RingElement c):
-        return self._lmul_(c)
-
-    cpdef ModuleElement _lmul_(self, RingElement c):
+    cpdef _lmul_(self, RingElement c):
         """
         EXAMPLES::
 
@@ -468,7 +465,7 @@ cdef class PolynomialRealDense(Polynomial):
             mpfr_mul(f._coeffs[i], self._coeffs[i], a.value, rnd)
         return f
 
-    cpdef RingElement _mul_(left, RingElement _right):
+    cpdef _mul_(left, _right):
         """
         Here we use the naive `O(n^2)` algorithm, as asymptotically faster algorithms such
         as Karatsuba can have very inaccurate results due to intermediate rounding errors.

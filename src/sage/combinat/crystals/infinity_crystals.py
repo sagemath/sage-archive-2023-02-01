@@ -124,19 +124,19 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
 
     REFERENCES:
 
-    .. [BN10] D. Bump and M. Nakasuji.
+    .. [BN10] \D. Bump and M. Nakasuji.
        Integration on `p`-adic groups and crystal bases.
        Proc. Amer. Math. Soc. 138(5), pp. 1595--1605.
 
-    .. [LS12] K.-H. Lee and B. Salisbury.
+    .. [LS12] \K.-H. Lee and B. Salisbury.
        Young tableaux, canonical bases, and the Gindikin-Karpelevich formula.
        :arXiv:`1205.6006`.
 
-    .. [HL08] J. Hong and H. Lee.
+    .. [HL08] \J. Hong and H. Lee.
        Young tableaux and crystal `B(\infty)` for finite simple Lie algebras.
        J. Algebra 320, pp. 3680--3693, 2008.
 
-    .. [KM94] S.-J. Kang and K. C. Misra.
+    .. [KM94] \S.-J. Kang and K. C. Misra.
        Crystal bases and tensor product decompositions of `U_q(G_2)`-modules.
        J. Algebra 163, pp. 675--691, 1994.
 
@@ -654,53 +654,6 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
                     elif entry != i+1:
                         count += 1
             return count
-
-        def string_parameters(self,word):
-            r"""
-            Return the string parametrization of ``self`` with respect to ``word``.
-
-            For `w` in the Weyl group, let `R(w)` denote the set of reduced
-            expressions for `w`; that is, if `w = s_{i_1} s_{i_2} \cdots
-            s_{i_{\ell}}` is a reduced expression, then
-            `(i_1, i_2, \ldots, i_{\ell}) \in R(w)`.  For brevity, such words
-            are denoted by `\mathbf{i}`.
-
-            For `T \in \mathcal{T}(\infty)` and
-            `\mathbf{i} = (i_1, \ldots, i_{\ell}) \in R(w)`,
-            the string parametrization `(a_1, \ldots, a_{\ell})` of `T` in the
-            direction `\mathbf{i}` is defined recursively by `a_1 =
-            \varepsilon_{i_1}(T)` and `a_j = \varepsilon_{i_j}
-            (\widetilde{e}_{i_{j-1}}^{\, a_{j-1}} \cdots \widetilde{e}_{i_1}^{\,
-            a_1} T)` for `j = 2, \ldots, \ell`. If `w = w_0` is the longest
-            element of the Weyl group, then the path determined by the string
-            parametrization terminates at the highest weight vector.
-
-            INPUT:
-
-            - ``word`` -- A word in the alphabet of the index set
-
-            EXAMPLES::
-
-                sage: B = crystals.infinity.Tableaux("A5")
-                sage: b = B(rows=[[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,6,6,6,6,6,6],[2,2,2,2,2,2,2,2,2,4,5,5,5,6],[3,3,3,3,3,3,3,5],[4,4,4,6,6,6],[5,6]])
-                sage: b.string_parameters([1,2,1,3,2,1,4,3,2,1,5,4,3,2,1])
-                [0, 1, 1, 1, 1, 0, 4, 4, 3, 0, 11, 10, 7, 7, 6]
-
-                sage: B = crystals.infinity.Tableaux("G2")
-                sage: b = B(rows=[[1,1,1,1,1,3,3,0,-3,-3,-2,-2,-1,-1,-1,-1],[2,3,3,3]])
-                sage: b.string_parameters([2,1,2,1,2,1])
-                [5, 13, 11, 15, 4, 4]
-                sage: b.string_parameters([1,2,1,2,1,2])
-                [7, 12, 15, 8, 10, 0]
-            """
-            ret = []
-            for i in word:
-                a = 0
-                while self.e(i) is not None:
-                    self = self.e(i)
-                    a += 1
-                ret.append(a)
-            return ret
 
 
 class InfinityCrystalOfTableauxTypeD(InfinityCrystalOfTableaux):

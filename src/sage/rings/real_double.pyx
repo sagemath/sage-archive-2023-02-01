@@ -39,6 +39,7 @@ Test NumPy conversions::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from cpython.object cimport *
 from cpython.float cimport *
@@ -53,9 +54,7 @@ gsl_set_error_handler_off()
 
 import math, operator
 
-import sage.libs.pari.pari_instance
-from sage.libs.pari.pari_instance cimport PariInstance
-cdef PariInstance pari = sage.libs.pari.pari_instance.pari
+from sage.libs.cypari2.convert cimport new_gen_from_double
 
 import sage.rings.integer
 import sage.rings.rational
@@ -66,6 +65,7 @@ from sage.rings.integer_ring import ZZ
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 from sage.misc.randstate cimport randstate, current_randstate
+from sage.structure.sage_object cimport rich_to_bool
 
 
 def is_RealDoubleField(x):
@@ -160,7 +160,7 @@ cdef class RealDoubleField_class(Field):
         """
         Returns ``False``, because doubles are not exact.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: RDF.is_exact()
             False
@@ -221,7 +221,7 @@ cdef class RealDoubleField_class(Field):
             return True
         return super(RealDoubleField_class, self)._repr_option(key)
 
-    def __cmp__(self, x):
+    def __richcmp__(self, x, op):
         """
         Compare ``self`` to ``x``.
 
@@ -233,8 +233,10 @@ cdef class RealDoubleField_class(Field):
             True
         """
         if isinstance(x, RealDoubleField_class):
-            return 0
-        return cmp(type(self), type(x))
+            return rich_to_bool(op, 0)
+        if op == Py_NE:
+            return True
+        return NotImplemented
 
     def construction(self):
         r"""
@@ -376,6 +378,17 @@ cdef class RealDoubleField_class(Field):
         """
         return "RealField(%s : Bits := true)" % self.prec()
 
+    def _polymake_init_(self):
+        r"""
+        Return the polymake representation of the real double field.
+
+        EXAMPLES::
+
+            sage: polymake(RDF)    #optional - polymake # indirect doctest
+            Float
+        """
+        return '"Float"'
+
     def precision(self):
         """
         Return the precision of this real double field in bits.
@@ -423,7 +436,7 @@ cdef class RealDoubleField_class(Field):
             (1.0,)
         """
         if n != 0:
-            raise ValueError, "only 1 generator"
+            raise ValueError("only 1 generator")
         return RealDoubleElement(1)
 
     def ngens(self):
@@ -554,7 +567,7 @@ cdef class RealDoubleField_class(Field):
             9.332621544394415e+157
         """
         if n < 0:
-            raise ArithmeticError, "n must be nonnegative"
+            raise ArithmeticError("n must be nonnegative")
         return self(gsl_sf_fact(n))
 
     def zeta(self, n=2):
@@ -577,7 +590,7 @@ cdef class RealDoubleField_class(Field):
             return self(1)
         elif n == 2:
             return self(-1)
-        raise ValueError, "No %sth root of unity in self"%n
+        raise ValueError("No %sth root of unity in self" % n)
 
     def NaN(self):
         """
@@ -1085,9 +1098,9 @@ cdef class RealDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: print RDF(-2/3)
+            sage: print(RDF(-2/3))
             -0.666666666667
-            sage: print RDF(oo)
+            sage: print(RDF(oo))
             +infinity
         """
         return double_str(self._value)
@@ -1151,7 +1164,7 @@ cdef class RealDoubleElement(FieldElement):
             TypeError: Attempt to get integer part of NaN
         """
         if gsl_isnan(self._value):
-            raise TypeError, "Attempt to get integer part of NaN"
+            raise TypeError("Attempt to get integer part of NaN")
         else:
             return Integer(int(self._value))
 
@@ -1217,7 +1230,7 @@ cdef class RealDoubleElement(FieldElement):
         x._value = 1.0 / self._value
         return x
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Add two real numbers with the same parent.
 
@@ -1230,7 +1243,7 @@ cdef class RealDoubleElement(FieldElement):
         x._value = self._value + (<RealDoubleElement>right)._value
         return x
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Subtract two real numbers with the same parent.
 
@@ -1243,7 +1256,7 @@ cdef class RealDoubleElement(FieldElement):
         x._value = self._value - (<RealDoubleElement>right)._value
         return x
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Multiply two real numbers with the same parent.
 
@@ -1256,7 +1269,7 @@ cdef class RealDoubleElement(FieldElement):
         x._value = self._value * (<RealDoubleElement>right)._value
         return x
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Divide ``self`` by ``right``.
 
@@ -1340,7 +1353,7 @@ cdef class RealDoubleElement(FieldElement):
             ...
             TypeError: unsupported operand type(s) for <<
         """
-        raise TypeError, "unsupported operand type(s) for <<"
+        raise TypeError("unsupported operand type(s) for <<")
 
     def __rshift__(x, y):
         """
@@ -1354,7 +1367,7 @@ cdef class RealDoubleElement(FieldElement):
             ...
             TypeError: unsupported operand type(s) for >>
         """
-        raise TypeError, "unsupported operand type(s) for >>"
+        raise TypeError("unsupported operand type(s) for >>")
 
     def multiplicative_order(self):
         r"""
@@ -1492,7 +1505,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: float(RDF(1.5))
             1.5
             sage: type(float(RDF(1.5)))
-            <type 'float'>
+            <... 'float'>
         """
         return self._value
 
@@ -1507,7 +1520,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: n._rpy_()
             2.0
             sage: type(n._rpy_())
-            <type 'float'>
+            <... 'float'>
         """
         return self.__float__()
 
@@ -1571,16 +1584,16 @@ cdef class RealDoubleElement(FieldElement):
         """
         return CDF(self._value)
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Return a PARI representation of ``self``.
 
         EXAMPLES::
 
-            sage: RDF(1.5)._pari_()
+            sage: RDF(1.5).__pari__()
             1.50000000000000
         """
-        return pari.double_to_gen_c(self._value)
+        return new_gen_from_double(self._value)
 
 
     ###########################################
@@ -1645,7 +1658,7 @@ cdef class RealDoubleElement(FieldElement):
         """
         return gsl_isinf(self._value)
 
-    cpdef _richcmp_(left, Element right, int op):
+    cpdef _richcmp_(left, right, int op):
         """
         Rich comparison of ``left`` and ``right``.
 
@@ -1672,15 +1685,15 @@ cdef class RealDoubleElement(FieldElement):
         # correctly with NaNs.
         cdef double x = (<RealDoubleElement>left)._value
         cdef double y = (<RealDoubleElement>right)._value
-        if op == 0:
+        if op == Py_LT:
             return x < y
-        elif op == 1:
+        elif op == Py_LE:
             return x <= y
-        elif op == 2:
+        elif op == Py_EQ:
             return x == y
-        elif op == 3:
+        elif op == Py_NE:
             return x != y
-        elif op == 4:
+        elif op == Py_GT:
             return x > y
         else:
             return x >= y
@@ -1757,7 +1770,7 @@ cdef class RealDoubleElement(FieldElement):
             else:
                 return x
         if not extend:
-            raise ValueError, "negative number %s does not have a square root in the real field"%self
+            raise ValueError("negative number %s does not have a square root in the real field" % self)
         import sage.rings.complex_double
         return self._complex_double_(sage.rings.complex_double.CDF).sqrt(all=all)
 
@@ -1979,8 +1992,8 @@ cdef class RealDoubleElement(FieldElement):
             ....:   diff = R(log_RDF) - log_RR
             ....:   if abs(diff) < log_RDF.ulp():
             ....:       return True
-            ....:   print "logarithm check failed for %s (diff = %s ulp)"% \
-            ....:       (x, diff/log_RDF.ulp())
+            ....:   print("logarithm check failed for %s (diff = %s ulp)"% \
+            ....:       (x, diff/log_RDF.ulp()))
             ....:   return False
             sage: all( check_error(2^x) for x in range(-100,100) )
             True
@@ -2526,7 +2539,7 @@ cdef class RealDoubleElement(FieldElement):
 
         Uses the PARI C-library ``algdep`` command.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: r = sqrt(RDF(2)); r
             1.4142135623730951
@@ -2627,7 +2640,7 @@ def is_RealDoubleElement(x):
     """
     Check if ``x`` is an element of the real double field.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.real_double import is_RealDoubleElement
         sage: is_RealDoubleElement(RDF(3))
@@ -2814,8 +2827,8 @@ def pool_stats():
         Used pool 0 / 0 times
         Pool contains 1 / 50 items
     """
-    print "Used pool %s / %s times" % (use_pool, total_alloc)
-    print "Pool contains %s / %s items" % (element_pool_count, element_pool_size)
+    print("Used pool %s / %s times" % (use_pool, total_alloc))
+    print("Pool contains %s / %s items" % (element_pool_count, element_pool_size))
 
 cdef double_repr(double x):
     """

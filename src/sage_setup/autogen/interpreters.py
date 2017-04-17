@@ -109,6 +109,8 @@ from jinja2.runtime import StrictUndefined
 from collections import defaultdict
 from distutils.extension import Extension
 
+from os.path import getmtime
+
 ##############################
 # This module is used during the Sage build process, so it should not
 # use any other Sage modules.  (In particular, it MUST NOT use any
@@ -475,7 +477,7 @@ class StorageType(object):
             sage: from sage_setup.autogen.interpreters import *
             sage: print(ty_mpfr.alloc_chunk_data('args', 'MY_LENGTH'))
                     self._n_args = MY_LENGTH
-                    self._args = <mpfr_t*>sage_malloc(sizeof(mpfr_t) * MY_LENGTH)
+                    self._args = <mpfr_t*>sig_malloc(sizeof(mpfr_t) * MY_LENGTH)
                     if self._args == NULL: raise MemoryError
                     for i in range(MY_LENGTH):
                         mpfr_init2(self._args[i], self.domain.prec())
@@ -483,7 +485,7 @@ class StorageType(object):
         """
         return je("""
         self._n_{{ name }} = {{ len }}
-        self._{{ name }} = <{{ myself.c_ptr_type() }}>sage_malloc(sizeof({{ myself.c_decl_type() }}) * {{ len }})
+        self._{{ name }} = <{{ myself.c_ptr_type() }}>sig_malloc(sizeof({{ myself.c_decl_type() }}) * {{ len }})
         if self._{{ name }} == NULL: raise MemoryError
 {% if myself.needs_cython_init_clear() %}
         for i in range({{ len }}):
@@ -502,13 +504,13 @@ class StorageType(object):
             sage: from sage_setup.autogen.interpreters import *
             sage: print(ty_double.dealloc_chunk_data('args'))
                     if self._args:
-                        sage_free(self._args)
+                        sig_free(self._args)
             <BLANKLINE>
             sage: print(ty_mpfr.dealloc_chunk_data('constants'))
                     if self._constants:
                         for i in range(self._n_constants):
                             mpfr_clear(self._constants[i])
-                        sage_free(self._constants)
+                        sig_free(self._constants)
             <BLANKLINE>
         """
         return je("""
@@ -517,7 +519,7 @@ class StorageType(object):
             for i in range(self._n_{{ name }}):
                 {{ myself.cython_clear('self._%s[i]' % name) }}
 {%     endif %}
-            sage_free(self._{{ name }})
+            sig_free(self._{{ name }})
 """, myself=self, name=name)
 
 class StorageTypeAssignable(StorageType):
@@ -1093,7 +1095,7 @@ class MemoryChunk(object):
             sage: print(mc.init_class_members())
                     count = args['args']
                     self._n_args = count
-                    self._args = <mpfr_t*>sage_malloc(sizeof(mpfr_t) * count)
+                    self._args = <mpfr_t*>sig_malloc(sizeof(mpfr_t) * count)
                     if self._args == NULL: raise MemoryError
                     for i in range(count):
                         mpfr_init2(self._args[i], self.domain.prec())
@@ -1115,7 +1117,7 @@ class MemoryChunk(object):
                     if self._args:
                         for i in range(self._n_args):
                             mpfr_clear(self._args[i])
-                        sage_free(self._args)
+                        sig_free(self._args)
             <BLANKLINE>
         """
         return ""
@@ -1270,7 +1272,7 @@ class MemoryChunkLonglivedArray(MemoryChunk):
             sage: print(mc.init_class_members())
                     count = args['args']
                     self._n_args = count
-                    self._args = <double*>sage_malloc(sizeof(double) * count)
+                    self._args = <double*>sig_malloc(sizeof(double) * count)
                     if self._args == NULL: raise MemoryError
             <BLANKLINE>
         """
@@ -1293,7 +1295,7 @@ class MemoryChunkLonglivedArray(MemoryChunk):
                     if self._args:
                         for i in range(self._n_args):
                             mpfr_clear(self._args[i])
-                        sage_free(self._args)
+                        sig_free(self._args)
             <BLANKLINE>
         """
         return self.storage_type.dealloc_chunk_data(self.name)
@@ -1333,7 +1335,7 @@ class MemoryChunkConstants(MemoryChunkLonglivedArray):
             sage: print(mc.init_class_members())
                     val = args['constants']
                     self._n_constants = len(val)
-                    self._constants = <mpfr_t*>sage_malloc(sizeof(mpfr_t) * len(val))
+                    self._constants = <mpfr_t*>sig_malloc(sizeof(mpfr_t) * len(val))
                     if self._constants == NULL: raise MemoryError
                     for i in range(len(val)):
                         mpfr_init2(self._constants[i], self.domain.prec())
@@ -2527,14 +2529,12 @@ static inline double complex cpow_int(double complex z, int exp) {
         self.pxd_header = """
 # This is to work around a header incompatibility with PARI using
 # "I" as variable conflicting with the complex "I".
-cdef extern from "pari/paricfg.h":
-    pass
-cdef extern from "pari/pari.h":
-    pass
-cdef extern from "pari/paripriv.h":
-    pass
+# If we cimport pari earlier, we avoid this problem.
+cimport sage.libs.cypari2.types
 
-# Cython does not (yet) support complex numbers natively, so this is a bit hackish.
+# We need the type double_complex to work around
+#   http://trac.cython.org/ticket/869
+# so this is a bit hackish.
 cdef extern from "complex.h":
     ctypedef double double_complex "double complex"
 """
@@ -2543,11 +2543,10 @@ from sage.rings.complex_double cimport ComplexDoubleElement
 import sage.rings.complex_double
 cdef object CDF = sage.rings.complex_double.CDF
 
-cdef extern from "solaris_fixes.h": pass
+cdef extern from "solaris_fixes.h":
+    pass
 
-# Cython does not (yet) support complex numbers natively, so this is a bit hackish.
 cdef extern from "complex.h":
-    ctypedef double double_complex "double complex"
     cdef double creal(double_complex)
     cdef double cimag(double_complex)
     cdef double_complex _Complex_I
@@ -2994,8 +2993,8 @@ class InterpreterGenerator(object):
             sage: from sage_setup.autogen.interpreters import *
             sage: interp = RDFInterpreter()
             sage: gen = InterpreterGenerator(interp)
-            sage: import cStringIO
-            sage: buff = cStringIO.StringIO()
+            sage: from six.moves import cStringIO as StringIO
+            sage: buff = StringIO()
             sage: instrs = dict([(ins.name, ins) for ins in interp.instr_descs])
             sage: gen.gen_code(instrs['div'], buff.write)
             sage: print(buff.getvalue())
@@ -3182,8 +3181,8 @@ class InterpreterGenerator(object):
             sage: from sage_setup.autogen.interpreters import *
             sage: interp = RDFInterpreter()
             sage: gen = InterpreterGenerator(interp)
-            sage: import cStringIO
-            sage: buff = cStringIO.StringIO()
+            sage: from six.moves import cStringIO as StringIO
+            sage: buff = StringIO()
             sage: gen.write_interpreter(buff.write)
             sage: print(buff.getvalue())
             /* Automatically generated by ...
@@ -3227,8 +3226,8 @@ error:
             sage: from sage_setup.autogen.interpreters import *
             sage: interp = RDFInterpreter()
             sage: gen = InterpreterGenerator(interp)
-            sage: import cStringIO
-            sage: buff = cStringIO.StringIO()
+            sage: from six.moves import cStringIO as StringIO
+            sage: buff = StringIO()
             sage: gen.write_wrapper(buff.write)
             sage: print(buff.getvalue())
             # Automatically generated by ...
@@ -3271,7 +3270,7 @@ interp_{{ s.name }}(args
 # distutils: sources = sage/ext/interpreters/interp_{{ s.name }}.c
 {{ s.pyx_header }}
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 from cpython.ref cimport PyObject
 cdef extern from "Python.h":
     void Py_DECREF(PyObject *o)
@@ -3394,8 +3393,8 @@ metadata = InterpreterMetadata(by_opname={
             sage: from sage_setup.autogen.interpreters import *
             sage: interp = RDFInterpreter()
             sage: gen = InterpreterGenerator(interp)
-            sage: import cStringIO
-            sage: buff = cStringIO.StringIO()
+            sage: from six.moves import cStringIO as StringIO
+            sage: buff = StringIO()
             sage: gen.write_pxd(buff.write)
             sage: print(buff.getvalue())
             # Automatically generated by ...
@@ -3583,7 +3582,7 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
 
             sage: print(rdf_wrapper)
             # Automatically generated by ...
-            include "sage/ext/stdsage.pxi"
+            include "cysignals/memory.pxi"
             from cpython.ref cimport PyObject
             cdef extern from "Python.h":
                 void Py_DECREF(PyObject *o)
@@ -3655,7 +3654,7 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
             # ...
                     val = args['constants']
                     self._n_constants = len(val)
-                    self._constants = <double*>sage_malloc(sizeof(double) * len(val))
+                    self._constants = <double*>sig_malloc(sizeof(double) * len(val))
                     if self._constants == NULL: raise MemoryError
                     for i in range(len(val)):
                         self._constants[i] = val[i]
@@ -3673,7 +3672,7 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
             ...
                     val = args['constants']
                     self._n_constants = len(val)
-                    self._constants = <mpfr_t*>sage_malloc(sizeof(mpfr_t) * len(val))
+                    self._constants = <mpfr_t*>sig_malloc(sizeof(mpfr_t) * len(val))
                     if self._constants == NULL: raise MemoryError
                     for i in range(len(val)):
                         mpfr_init2(self._constants[i], self.domain.prec())
@@ -3704,7 +3703,7 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
                 def __dealloc__(self):
             ...
                     if self._constants:
-                        sage_free(self._constants)
+                        sig_free(self._constants)
             ...
 
         The RRInterpreter code is more complicated again because it has
@@ -3718,7 +3717,7 @@ cdef class Wrapper_{{ s.name }}(Wrapper):
                     if self._constants:
                         for i in range(self._n_constants):
                             mpfr_clear(self._constants[i])
-                        sage_free(self._constants)
+                        sig_free(self._constants)
             ...
 
         But the ElementInterpreter code is extremely simple --
@@ -4042,7 +4041,7 @@ def build_interp(interp_spec, dir):
     write_if_changed(wrapper_fn, wrapper)
     write_if_changed(pxd_fn, pxd)
 
-def rebuild(dir):
+def rebuild(dir, force=False):
     r"""
     Check whether the interpreter and wrapper sources have been written
     since the last time this module was changed.  If not, write them.
@@ -4064,6 +4063,16 @@ def rebuild(dir):
         os.makedirs(dir)
     except OSError:
         pass
+
+    # Although multiple files are generated by this function, since
+    # they are all generated at once it suffices to make sure if just
+    # one of the generated files is older than the generator sources
+    src_file = __file__
+    gen_file = os.path.join(dir, '__init__.py')
+
+    if os.path.exists(gen_file):
+        if getmtime(gen_file) > getmtime(src_file) and not force:
+            return
 
     interp = RDFInterpreter()
     build_interp(interp, dir)

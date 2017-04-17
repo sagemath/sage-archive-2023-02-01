@@ -12,6 +12,7 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
@@ -24,6 +25,7 @@ from sage.rings.integer cimport Integer
 from sage.libs.ntl.convert cimport PyLong_to_ZZ
 from sage.misc.randstate cimport randstate, current_randstate
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+from cpython.int cimport PyInt_AS_LONG
 
 ZZ_sage = IntegerRing()
 
@@ -81,9 +83,9 @@ cdef class ntl_ZZ(object):
         """
         if isinstance(v, ntl_ZZ):
             self.x = (<ntl_ZZ>v).x
-        elif PyInt_Check(v):
+        elif isinstance(v, int):
             ZZ_conv_from_int(self.x, PyInt_AS_LONG(v))
-        elif PyLong_Check(v):
+        elif isinstance(v, long):
             PyLong_to_ZZ(&self.x, v)
         elif isinstance(v, Integer):
             self.set_from_sage_int(v)
@@ -94,7 +96,7 @@ cdef class ntl_ZZ(object):
             if not ((v[0].isdigit() or v[0] == '-') and \
                     (v[1:-1].isdigit() or (len(v) <= 2)) and \
                     (v[-1].isdigit() or (v[-1].lower() in ['l','r']))):
-               raise ValueError, "invalid integer: %s"%v
+               raise ValueError("invalid integer: %s" % v)
             sig_on()
             ZZ_from_str(&self.x, v)
             sig_off()
@@ -249,7 +251,7 @@ cdef class ntl_ZZ(object):
             sage: ntl.ZZ(22).__int__()
             22
             sage: type(ntl.ZZ(22).__int__())
-            <type 'int'>
+            <... 'int'>
 
             sage: ntl.ZZ(10^30).__int__()
             1000000000000000000000000000000L
@@ -275,10 +277,10 @@ cdef class ntl_ZZ(object):
 
         sage: x = ntl.ZZ(42)
         sage: i = x.get_as_int_doctest()
-        sage: print i
+        sage: i
          42
-        sage: print type(i)
-         <type 'int'>
+        sage: type(i)
+         <... 'int'>
         """
         return self.get_as_int()
 

@@ -5,6 +5,8 @@ AUTHORS:
 
 - Vincent Delacroix, Travis Scrimshaw (2014-11-23)
 """
+from __future__ import print_function
+from six.moves import range
 
 from sage.groups.conjugacy_classes import ConjugacyClass, ConjugacyClassGAP
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
@@ -257,7 +259,7 @@ def default_representative(part, G):
         sage: from sage.groups.perm_gps.symgp_conjugacy_class import default_representative
         sage: S = SymmetricGroup(4)
         sage: for p in Partitions(4):
-        ....:     print default_representative(p, S)
+        ....:     print(default_representative(p, S))
         (1,2,3,4)
         (1,2,3)
         (1,2)(3,4)
@@ -296,17 +298,17 @@ def conjugacy_class_iterator(part, S=None):
     EXAMPLES::
 
         sage: from sage.groups.perm_gps.symgp_conjugacy_class import conjugacy_class_iterator
-        sage: for p in conjugacy_class_iterator([2,2]): print p
+        sage: for p in conjugacy_class_iterator([2,2]): print(p)
         [(1, 2), (3, 4)]
         [(1, 3), (2, 4)]
         [(1, 4), (2, 3)]
 
-    In order to get permutations, one can use ``imap`` from the Python
-    module ``itertools``::
+    In order to get permutations, one can use ``map``
+    from the Python module ``builtins`` (works with Python 2 and Python 3)::
 
-        sage: from itertools import imap
+        sage: from builtins import map
         sage: S = SymmetricGroup(5)
-        sage: for p in imap(S, conjugacy_class_iterator([3,2])): print p
+        sage: for p in map(S, conjugacy_class_iterator([3,2])): print(p)
         (1,2)(3,4,5)
         (1,2)(3,5,4)
         (1,3)(2,4,5)
@@ -347,5 +349,5 @@ def conjugacy_class_iterator(part, S=None):
         rests = [t[1:] for t in s]
         iterator = tuple(itertools.permutations(r) for r in rests)
         for r in itertools.product(*iterator):
-            yield [(firsts[i],)+r[i] for i in xrange(m)]
+            yield [(firsts[i],) + r[i] for i in range(m)]
 

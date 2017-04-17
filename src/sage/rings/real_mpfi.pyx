@@ -124,9 +124,12 @@ COMPARISONS:
 
 Comparison operations (``==``, ``!=``, ``<``, ``<=``, ``>``, ``>=``)
 return ``True`` if every value in the first interval has the given relation
-to every value in the second interval. The ``cmp(a, b)`` function works
+to every value in the second interval.
+
+The ``cmp(a, b)`` function works
 differently; it compares two intervals lexicographically. (However, the
 behavior is not specified if given a non-interval and an interval.)
+Note that ``cmp`` will disappear in Python3.
 
 This convention for comparison operators has good and bad points.  The
 good:
@@ -237,6 +240,8 @@ Comparisons with numpy types are right (see :trac:`17758` and :trac:`18076`)::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import absolute_import, print_function
+
 import math # for log
 import sys
 import operator
@@ -244,18 +249,19 @@ import operator
 include "cysignals/signals.pxi"
 include "sage/ext/cdefs.pxi"
 from cpython.mem cimport *
-from cpython.string cimport *
+from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_LE, Py_GT, Py_GE
 
 cimport sage.rings.ring
 cimport sage.structure.element
 from sage.structure.element cimport RingElement, Element, ModuleElement
+from sage.structure.sage_object cimport richcmp
 
-cimport real_mpfr
-from real_mpfr cimport RealField_class, RealNumber, RealField
+cimport sage.rings.real_mpfr as real_mpfr
+from .real_mpfr cimport RealField_class, RealNumber, RealField
 from sage.libs.mpfr cimport MPFR_RNDN, MPFR_RNDZ, MPFR_RNDU, MPFR_RNDD, MPFR_RNDA
 
-from integer cimport Integer
-from real_double cimport RealDoubleElement
+from .integer cimport Integer
+from .real_double cimport RealDoubleElement
 
 import sage.rings.complex_field
 import sage.rings.infinity
@@ -425,7 +431,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
     ::
 
         sage: def check(x):
-        ...       return (x, x.lower() == x.upper())
+        ....:     return (x, x.lower() == x.upper())
         sage: check(RIF(pi))
         (3.141592653589794?, False)
         sage: check(RIF(RR(pi)))
@@ -490,8 +496,8 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             Real Interval Field with 200 bits of precision
         """
         if prec < MPFR_PREC_MIN or prec > MPFR_PREC_MAX:
-            raise ValueError, "prec (=%s) must be >= %s and <= %s."%(
-                prec, MPFR_PREC_MIN, MPFR_PREC_MAX)
+            raise ValueError("prec (=%s) must be >= %s and <= %s." % (
+                prec, MPFR_PREC_MIN, MPFR_PREC_MAX))
         self.__prec = prec
         self.sci_not = sci_not
         self.__lower_field = RealField(prec, sci_not, "RNDD")
@@ -734,13 +740,13 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             if (<RealField_class> P).__prec >= self.__prec:
                 return self(x)
             else:
-                raise TypeError, "Canonical coercion from lower to higher precision not defined"
+                raise TypeError("Canonical coercion from lower to higher precision not defined")
         if isinstance(x, RealIntervalFieldElement):
             P = x.parent()
             if (<RealIntervalField_class> P).__prec >= self.__prec:
                 return self(x)
             else:
-                raise TypeError, "Canonical coercion from lower to higher precision not defined"
+                raise TypeError("Canonical coercion from lower to higher precision not defined")
         if isinstance(x, (Integer, Rational)):
             return self(x)
         cdef RealNumber lower, upper
@@ -749,9 +755,9 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             upper = self.__upper_field._coerce_(x)
             return self(lower, upper)
         except TypeError as msg:
-            raise TypeError, "no canonical coercion of element into self"
+            raise TypeError("no canonical coercion of element into self")
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, int op):
         """
         Compare ``self`` to ``other``.
 
@@ -767,12 +773,15 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             False
         """
         if not isinstance(other, RealIntervalField_class):
-            return -1
-        cdef RealIntervalField_class _other
-        _other = other  # to access C structure
-        if self.__prec == _other.__prec:
-            return 0
-        return 1
+            if op in [Py_EQ, Py_NE]:
+                return (op == Py_NE)
+            return NotImplemented
+
+        cdef RealIntervalField_class left
+        cdef RealIntervalField_class right
+        left = self
+        right = other  # to access C structure
+        return richcmp(left.__prec, right.__prec, op)
 
     def __reduce__(self):
         """
@@ -855,7 +864,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         """
         Return a list of generators.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: RIF.gens()
             [1]
@@ -1108,7 +1117,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
             return self(1)
         elif n == 2:
             return self(-1)
-        raise ValueError, "No %sth root of unity in self"%n
+        raise ValueError("No %sth root of unity in self" % n)
 
 
 #*****************************************************************************
@@ -1302,7 +1311,7 @@ cdef class RealIntervalFieldElement(RingElement):
 
     def _latex_(self):
         """
-        Return a latex represention of ``self``.
+        Return a latex representation of ``self``.
 
         EXAMPLES::
 
@@ -1430,7 +1439,7 @@ cdef class RealIntervalFieldElement(RingElement):
 
         (Since this interval is real, this simply returns itself.)
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             :meth:`imag`
 
@@ -1645,7 +1654,7 @@ cdef class RealIntervalFieldElement(RingElement):
             0.025000000000000002?
         """
         if base < 2 or base > 36:
-            raise ValueError, "the base (=%s) must be between 2 and 36"%base
+            raise ValueError("the base (=%s) must be between 2 and 36" % base)
 
         # If self is a NaN, always use brackets style.
         if mpfi_nan_p(self.value):
@@ -1684,7 +1693,7 @@ cdef class RealIntervalFieldElement(RingElement):
             return self._str_question_style(base, error_digits, e, prefer_sci)
 
         else:
-            raise ValueError, 'Illegal interval printing style %s'%printing_style
+            raise ValueError('Illegal interval printing style %s' % printing_style)
 
     cpdef _str_question_style(self, int base, int error_digits, e, bint prefer_sci):
         r"""
@@ -1748,9 +1757,9 @@ cdef class RealIntervalFieldElement(RingElement):
             ...
             ValueError: _str_question_style on NaN or infinity
             sage: for i in range(1, 9):
-            ...       print RIF(-10^i, 12345).str(style='brackets')
-            ...       print RIF(-10^i, 12345)._str_question_style(10, 0, 'e', False)
-            ...       print RIF(-10^i, 12345)._str_question_style(10, 3, 'e', False)
+            ....:     print(RIF(-10^i, 12345).str(style='brackets'))
+            ....:     print(RIF(-10^i, 12345)._str_question_style(10, 0, 'e', False))
+            ....:     print(RIF(-10^i, 12345)._str_question_style(10, 3, 'e', False))
             [-10.000000000000000 .. 12345.000000000000]
             0.?e5
             6.17?618e3
@@ -1790,8 +1799,8 @@ cdef class RealIntervalFieldElement(RingElement):
             sage: RIF(-85, 85)._str_question_style(10, 0, 'e', False)
             '0.?e2'
             sage: for i in range(-6, 7):
-            ...       v = RIF(2).sqrt() * 10^i
-            ...       print v._str_question_style(10, 0, 'e', False)
+            ....:     v = RIF(2).sqrt() * 10^i
+            ....:     print(v._str_question_style(10, 0, 'e', False))
             1.414213562373095?e-6
             0.00001414213562373095?
             0.0001414213562373095?
@@ -1843,9 +1852,9 @@ cdef class RealIntervalFieldElement(RingElement):
 
         """
         if not(mpfr_number_p(&self.value.left) and mpfr_number_p(&self.value.right)):
-            raise ValueError, "_str_question_style on NaN or infinity"
+            raise ValueError("_str_question_style on NaN or infinity")
         if base < 2 or base > 36:
-            raise ValueError, "the base (=%s) must be between 2 and 36"%base
+            raise ValueError("the base (=%s) must be between 2 and 36" % base)
         if error_digits < 0 or error_digits > 1000:
             # The restriction to 1000 is not essential.  The reason to have
             # a restriction is that this code is not efficient for
@@ -1856,7 +1865,7 @@ cdef class RealIntervalFieldElement(RingElement):
             # purpose of question_style is to be human-readable, and
             # the human-readability will go way down after about 6
             # error digits; 1000 error digits is just silly.
-            raise ValueError, "error_digits (=%s) must be between 0 and 1000"%error_digits
+            raise ValueError("error_digits (=%s) must be between 0 and 1000" % error_digits)
 
         cdef mp_exp_t self_exp
         cdef mpz_t self_zz
@@ -1888,11 +1897,11 @@ cdef class RealIntervalFieldElement(RingElement):
                 zz_str = <char *>PyMem_Malloc(zz_str_maxlen)
                 if zz_str == NULL:
                     mpz_clear(self_zz)
-                    raise MemoryError, "Unable to allocate memory for integer representation of interval"
+                    raise MemoryError("Unable to allocate memory for integer representation of interval")
                 sig_on()
                 mpz_get_str(zz_str, base, self_zz)
                 sig_off()
-                v = PyString_FromString(zz_str)
+                v = str(zz_str)
                 PyMem_Free(zz_str)
                 return v
 
@@ -1922,9 +1931,9 @@ cdef class RealIntervalFieldElement(RingElement):
         sig_off()
 
         if lower_s == <char*> 0:
-            raise RuntimeError, "Unable to convert interval lower bound to a string"
+            raise RuntimeError("unable to convert interval lower bound to a string")
         if upper_s == <char*> 0:
-            raise RuntimeError, "Unable to convert interval upper bound to a string"
+            raise RuntimeError("unable to convert interval upper bound to a string")
 
         # MPFR returns an exponent assuming that the implicit radix point
         # is to the left of the first mantissa digit.  We'll be doing
@@ -2111,10 +2120,10 @@ cdef class RealIntervalFieldElement(RingElement):
         digits = strlen(tmp_cstr)
         if tmp_cstr[0] == '-':
             digits -= 1
-            mant_string = <object> PyString_FromString(tmp_cstr+1)
+            mant_string = str(tmp_cstr+1)
             sign_string = '-'
         else:
-            mant_string = <object> PyString_FromString(tmp_cstr)
+            mant_string = str(tmp_cstr)
             sign_string = ''
         PyMem_Free(tmp_cstr)
 
@@ -2125,7 +2134,7 @@ cdef class RealIntervalFieldElement(RingElement):
             if tmp_cstr == NULL:
                 raise MemoryError("Unable to allocate memory for the error of an interval")
             mpz_get_str(tmp_cstr, 10, cur_error)
-            error_string = <object> PyString_FromString(tmp_cstr)
+            error_string = str(tmp_cstr)
             PyMem_Free(tmp_cstr)
 
         mpz_clear(lower_mpz)
@@ -2561,7 +2570,7 @@ cdef class RealIntervalFieldElement(RingElement):
     #   Basic Arithmetic
     ########################
 
-    cpdef ModuleElement _add_(self, ModuleElement other):
+    cpdef _add_(self, other):
         """
         Add two real intervals with the same parent.
 
@@ -2607,7 +2616,7 @@ cdef class RealIntervalFieldElement(RingElement):
         mpfi_inv(x.value, self.value)
         return x
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Subtract two real intervals with the same parent.
 
@@ -2626,7 +2635,7 @@ cdef class RealIntervalFieldElement(RingElement):
         mpfi_sub(x.value, self.value, (<RealIntervalFieldElement>right).value)
         return x
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Multiply two real intervals with the same parent.
 
@@ -2664,7 +2673,7 @@ cdef class RealIntervalFieldElement(RingElement):
         return x
 
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Divide ``self`` by ``right``, where both are real intervals with the
         same parent.
@@ -2692,7 +2701,7 @@ cdef class RealIntervalFieldElement(RingElement):
                  (<RealIntervalFieldElement>right).value)
         return x
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         """
         Return the additive "inverse" of this interval. (Technically,
         non-precise intervals don't have additive inverses.)
@@ -2789,7 +2798,7 @@ cdef class RealIntervalFieldElement(RingElement):
         """
         cdef RealIntervalFieldElement x
         if n > sys.maxsize:
-            raise OverflowError, "n (=%s) must be <= %s"%(n, sys.maxsize)
+            raise OverflowError("n (=%s) must be <= %s" % (n, sys.maxsize))
         x = self._new()
         mpfi_mul_2exp(x.value, self.value, n)
         return x
@@ -2960,7 +2969,7 @@ cdef class RealIntervalFieldElement(RingElement):
         r"""
         Return the nearest integer of this interval as an interval
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             - :meth:`unique_round` -- return the round as an integer if it is
               unique and raises a ``ValueError`` otherwise
@@ -3136,9 +3145,9 @@ cdef class RealIntervalFieldElement(RingElement):
         elif field.rnd == MPFR_RNDU:
             mpfi_get_right(x.value, self.value)
         elif field.rnd == MPFR_RNDZ:
-            if mpfi_is_strictly_pos_default(self.value):    # interval is > 0
+            if mpfi_is_strictly_pos(self.value):    # interval is > 0
                 mpfi_get_left(x.value, self.value)
-            elif mpfi_is_strictly_neg_default(self.value):  # interval is < 0
+            elif mpfi_is_strictly_neg(self.value):  # interval is < 0
                 mpfi_get_right(x.value, self.value)
             else:
                 mpfr_set_zero(x.value, 1)                   # interval contains 0
@@ -3361,7 +3370,7 @@ cdef class RealIntervalFieldElement(RingElement):
         Return the nearest integer toward zero if it is unique, otherwise raise
         a ``ValueError``.
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             :meth:`trunc` -- return the truncation as an interval (and never
             raise error)
@@ -3457,7 +3466,7 @@ cdef class RealIntervalFieldElement(RingElement):
         """
         if mpfr_equal_p(&self.value.left, &self.value.right):
             if low_open or high_open:
-                raise ValueError, 'simplest_rational() on open, empty interval'
+                raise ValueError('simplest_rational() on open, empty interval')
             return self.lower().exact_rational()
 
         if mpfi_has_zero(self.value):
@@ -3536,9 +3545,11 @@ cdef class RealIntervalFieldElement(RingElement):
         """
         return mpfi_nan_p(self.value)
 
-    cpdef _richcmp_(left, Element right, int op):
+    cpdef _richcmp_(left, right, int op):
         """
-        Implements comparisons between intervals. (See the file header
+        Implements comparisons between intervals.
+
+        (See the file header
         comment for more information on interval comparison.)
 
         EXAMPLES::
@@ -3712,22 +3723,22 @@ cdef class RealIntervalFieldElement(RingElement):
         lt = left
         rt = right
 
-        if op == 0: #<
+        if op == Py_LT:  # <
             return mpfr_less_p(&lt.value.right, &rt.value.left)
-        elif op == 2: #==
-            # a == b iff a<=b and b <= a
+        elif op == Py_EQ:  # ==
+            # a == b iff a <= b and b <= a
             # (this gives a result with two comparisons, where the
             # obvious approach would use three)
             return mpfr_lessequal_p(&lt.value.right, &rt.value.left) \
                 and mpfr_lessequal_p(&rt.value.right, &lt.value.left)
-        elif op == 4: #>
+        elif op == Py_GT:  # >
             return mpfr_less_p(&rt.value.right, &lt.value.left)
-        elif op == 1: #<=
+        elif op == Py_LE:  # <=
             return mpfr_lessequal_p(&lt.value.right, &rt.value.left)
-        elif op == 3: #!=
+        elif op == Py_NE:  # !=
             return mpfr_less_p(&lt.value.right, &rt.value.left) \
                 or mpfr_less_p(&rt.value.right, &lt.value.left)
-        elif op == 5: #>=
+        elif op == Py_GE:  # >=
             return mpfr_lessequal_p(&rt.value.right, &lt.value.left)
 
     def __nonzero__(self):
@@ -3736,20 +3747,20 @@ cdef class RealIntervalFieldElement(RingElement):
 
         EXAMPLES::
 
-            sage: RIF(0).__nonzero__()
+            sage: bool(RIF(0))
             False
-            sage: RIF(1).__nonzero__()
+            sage: bool(RIF(1))
             True
-            sage: RIF(1, 2).__nonzero__()
+            sage: bool(RIF(1, 2))
             True
-            sage: RIF(0, 1).__nonzero__()
+            sage: bool(RIF(0, 1))
             True
-            sage: RIF(-1, 1).__nonzero__()
+            sage: bool(RIF(-1, 1))
             True
         """
         return not (mpfr_zero_p(&self.value.left) and mpfr_zero_p(&self.value.right))
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         Compare two intervals lexicographically.
 
@@ -3899,7 +3910,7 @@ cdef class RealIntervalFieldElement(RingElement):
 
         mpfi_intersect(x.value, self.value, other_intv.value)
         if mpfr_less_p(&x.value.right, &x.value.left):
-            raise ValueError, "intersection of non-overlapping intervals"
+            raise ValueError("intersection of non-overlapping intervals")
         return x
 
     def union(self, other):
@@ -4200,7 +4211,7 @@ cdef class RealIntervalFieldElement(RingElement):
                 ValueError: self (=0.?e1) is not >= 0
             """
         if self.lower() < 0:
-            raise ValueError, "self (=%s) is not >= 0"%self
+            raise ValueError("self (=%s) is not >= 0" % self)
         return self.square_root()
 
 
@@ -5244,11 +5255,11 @@ def RealInterval(s, upper=None, int base=10, int pad=0, min_prec=53):
 
         sage: ks = 5*10**5, 10**6
         sage: for k in ks:
-        ...      try:
-        ...          z = RealInterval("1." + "1"*k)
-        ...          assert len(str(z))-4 >= k
-        ...      except TypeError:
-        ...          pass
+        ....:    try:
+        ....:        z = RealInterval("1." + "1"*k)
+        ....:        assert len(str(z))-4 >= k
+        ....:    except TypeError:
+        ....:        pass
 
     """
     if not isinstance(s, str):

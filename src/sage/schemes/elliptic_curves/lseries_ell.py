@@ -21,6 +21,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from sage.structure.sage_object import SageObject
 from sage.rings.all import RealField, RationalField
@@ -231,7 +232,7 @@ class Lseries_ell(SageObject):
         EXAMPLES::
 
             sage: E = EllipticCurve('37a')
-            sage: print E.lseries().sympow_derivs(1,16,2)      # not tested -- requires precomputing "sympow('-new_data 2')"
+            sage: print(E.lseries().sympow_derivs(1,16,2))    # not tested -- requires precomputing "sympow('-new_data 2')"
             sympow 1.018 RELEASE  (c) Mark Watkins --- see README and COPYING for details
             Minimal model of curve  is [0,0,1,-1,0]
             At 37: Inertia Group is  C1 MULTIPLICATIVE REDUCTION
@@ -532,7 +533,7 @@ class Lseries_ell(SageObject):
         L = R.zero()
         error = Rerror.zero()
 
-        for n in xrange(1,k+1):
+        for n in range(1, k + 1):
             term = (zpow * an[n])/n
             zpow *= z
             L += term
@@ -687,7 +688,7 @@ class Lseries_ell(SageObject):
         # Sum of |an[n]|/n
         sumann = Rerror.zero()
 
-        for n in xrange(1,k+1):
+        for n in range(1, k + 1):
             term = (v[n-1] * an[n])/n
             L += term
             error += term.epsilon(Rerror)*5 + L.ulp(Rerror)

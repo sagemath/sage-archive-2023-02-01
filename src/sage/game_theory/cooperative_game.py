@@ -251,26 +251,6 @@ class CooperativeGame(SageObject):
         True
         sage: letter_game.is_symmetric({'A': 0, 'C': 35, 'B': 3})
         True
-
-    REFERENCES:
-
-    .. [CEW2011] Georgios Chalkiadakis, Edith Elkind, and Michael Wooldridge.
-       *Computational Aspects of Cooperative Game Theory*.
-       Morgan & Claypool Publishers, (2011).
-       ISBN 9781608456529, :doi:`10.2200/S00355ED1V01Y201107AIM016`.
-
-    .. [MSZ2013] Michael Maschler, Solan Eilon, and Zamir Shmuel.
-       *Game Theory*.
-       Cambridge: Cambridge University Press, (2013).
-       ISBN 9781107005488.
-
-    .. [XP1994] Deng Xiaotie, and Christos Papadimitriou.
-       *On the complexity of cooperative solution concepts.*
-       Mathematics of Operations Research 19.2 (1994): 257-266.
-
-    .. [SWJ2008] Fatima Shaheen, Michael Wooldridge, and Nicholas Jennings.
-       *A linear approximation method for the Shapley value.*
-       Artificial Intelligence 172.14 (2008): 1673-1699.
     """
     def __init__(self, characteristic_function):
         r"""
@@ -404,7 +384,7 @@ class CooperativeGame(SageObject):
         for player in self.player_list:
             weighted_contribution = 0
             for coalition in powerset(self.player_list):
-                if coalition: # If non-empty
+                if coalition:  # If non-empty
                     k = Integer(len(coalition))
                     weight = 1 / (n.binomial(k) * k)
                     t = tuple(p for p in coalition if p != player)
@@ -617,7 +597,7 @@ class CooperativeGame(SageObject):
         cf = self.ch_f
         output = "v(c) = \\begin{cases}\n"
         for key in sorted(cf.keys(), key=lambda key: len(key)):
-            if not key: # == ()
+            if not key:  # == ()
                 coalition = "\\emptyset"
             else:
                 coalition = "\\{" + ", ".join(str(player) for player in key) + "\\}"
@@ -860,4 +840,3 @@ class CooperativeGame(SageObject):
             if all(results) and payoff_vector[c1[0]] != payoff_vector[c2[0]]:
                 return False
         return True
-

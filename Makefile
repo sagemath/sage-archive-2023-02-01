@@ -13,6 +13,7 @@ build: all-build
 
 # Defer unknown targets to build/make/Makefile
 %::
+	@if [ -x relocate-once.py ]; then ./relocate-once.py; fi
 	$(MAKE) build/make/Makefile
 	+build/bin/sage-logger \
 		"cd build/make && ./install '$@'" logs/install.log
@@ -42,6 +43,9 @@ download:
 	export PATH=$$SAGE_ROOT/src/bin:$$PATH && \
 	./src/bin/sage-download-upstream
 
+dist: build/make/Makefile
+	./sage --sdist
+
 # ssl: build Sage, and also install pyOpenSSL. This is necessary for
 # running the secure notebook. This make target requires internet
 # access. Note that this requires that your system have OpenSSL
@@ -55,7 +59,7 @@ misc-clean:
 	rm -rf logs
 	rm -rf dist
 	rm -rf tmp
-	rm -f aclocal.m4 config.log config.status confcache
+	rm -f aclocal.m4 config.log config.status confcache src/bin/sage-env-config
 	rm -rf autom4te.cache
 	rm -f build/make/Makefile build/make/Makefile-auto
 	rm -f .BUILDSTART
@@ -90,56 +94,49 @@ test: all
 check: test
 
 testall: all
-	$(TESTALL) --optional=all --logfile=logs/testall.log
+	$(TESTALL) --optional=sage,optional,external --logfile=logs/testall.log
 
 testlong: all
 	$(TESTALL) --long --logfile=logs/testlong.log
 
 testalllong: all
-	$(TESTALL) --long --optional=all --logfile=logs/testalllong.log
+	$(TESTALL) --long --optional=sage,optional,external --logfile=logs/testalllong.log
 
 ptest: all
 	$(PTESTALL) --logfile=logs/ptest.log
 
 ptestall: all
-	$(PTESTALL) --optional=all --logfile=logs/ptestall.log
+	$(PTESTALL) --optional=sage,optional,external --logfile=logs/ptestall.log
 
 ptestlong: all
 	$(PTESTALL) --long --logfile=logs/ptestlong.log
 
 ptestalllong: all
-	$(PTESTALL) --long --optional=all --logfile=logs/ptestalllong.log
+	$(PTESTALL) --long --optional=sage,optional,external --logfile=logs/ptestalllong.log
 
+testoptional: all
+	$(TESTALL) --optional=sage,optional --logfile=logs/testoptional.log
 
-testoptional: testall # just an alias
+testoptionallong: all
+	$(TESTALL) --long --optional=sage,optional --logfile=logs/testoptionallong.log
 
-testoptionallong: testalllong # just an alias
+ptestoptional: all
+	$(PTESTALL) --optional=sage,optional --logfile=logs/ptestoptional.log
 
-ptestoptional: ptestall # just an alias
-
-ptestoptionallong: ptestalllong # just an alias
+ptestoptionallong: all
+	$(PTESTALL) --long --optional=sage,optional --logfile=logs/ptestoptionallong.log
 
 configure: configure.ac src/bin/sage-version.sh m4/*.m4
 	./bootstrap -d
 
-install:
-	echo "Experimental use only!"
-	if [ "$(DESTDIR)" = "" ]; then \
-		echo >&2 "Set the environment variable DESTDIR to the install path."; \
-		exit 1; \
-	fi
-	# Make sure we remove only an existing directory. If $(DESTDIR)/sage is
-	# a file instead of a directory then the mkdir statement later will fail
-	if [ -d "$(DESTDIR)"/sage ]; then \
-		rm -rf "$(DESTDIR)"/sage; \
-	fi
-	mkdir -p "$(DESTDIR)"/sage
-	mkdir -p "$(DESTDIR)"/bin
-	cp -Rp * "$(DESTDIR)"/sage
-	rm -f "$(DESTDIR)"/bin/sage
-	ln -s ../sage/sage "$(DESTDIR)"/bin/sage
-	"$(DESTDIR)"/bin/sage -c # Run sage-location
-
+install: all
+	@echo "******************************************************************"
+	@echo "The '$@' target is a no-op; 'make' already does 'make install'"
+	@echo "You can change the install prefix from its default"
+	@echo "(the subdirectory 'local') by using ./configure --prefix=PREFIX"
+	@echo "You can also consider using the binary packaging scripts"
+	@echo "from https://github.com/sagemath/binary-pkg"
+	@echo "******************************************************************"
 
 .PHONY: default build install micro_release \
 	misc-clean bdist-clean distclean bootstrap-clean maintainer-clean \

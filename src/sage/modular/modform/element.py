@@ -2,7 +2,6 @@
 """
 Elements of modular forms spaces
 """
-
 #*****************************************************************************
 #       Copyright (C) 2004-2008 William Stein <wstein@gmail.com>
 #
@@ -12,23 +11,24 @@ Elements of modular forms spaces
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+from six.moves import range
 
-import space
 import sage.modular.hecke.element as element
-import sage.rings.all as rings
 
+from sage.rings.all import ZZ, QQ, Integer, RealField, ComplexField
 from sage.rings.fast_arith import prime_range
 from sage.rings.morphism import RingHomomorphism
 from sage.rings.number_field.number_field_morphisms import NumberFieldEmbedding
 from sage.modular.modsym.space import is_ModularSymbolsSpace
 from sage.modular.modsym.modsym import ModularSymbols
-from sage.modules.module_element import ModuleElement
 from sage.modules.free_module_element import vector
-from sage.misc.misc import verbose, sxrange
+from sage.misc.misc import verbose
+from sage.arith.srange import xsrange
 from sage.modular.dirichlet import DirichletGroup
 from sage.misc.superseded import deprecated_function_alias
 from sage.arith.all import lcm, divisors, moebius, sigma, factor
-from sage.structure.element import get_coercion_model
+from sage.structure.element import coercion_model, ModuleElement
 
 
 def is_ModularFormElement(x):
@@ -189,7 +189,7 @@ class ModularForm_abstract(ModuleElement):
         """
         Same as ``self.q_expansion(prec)``.
 
-        .. seealso:: :meth:`q_expansion`
+        .. SEEALSO:: :meth:`q_expansion`
 
         EXAMPLES::
 
@@ -299,8 +299,8 @@ class ModularForm_abstract(ModuleElement):
             self.__coefficients
         except AttributeError:
             self.__coefficients = {}
-        if isinstance(X, rings.Integer):
-            X = range(1,X+1)
+        if isinstance(X, Integer):
+            X = list(range(1, X + 1))
         Y = [n for n in X   if  not (n in self.__coefficients.keys())]
         v = self._compute(Y)
         for i in range(len(v)):
@@ -410,16 +410,18 @@ class ModularForm_abstract(ModuleElement):
                 vals.append(df[i] / self[i])
             return G(vals)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
-        Return True if self is nonzero, and False if not.
+        Return ``True`` if ``self`` is nonzero, and ``False`` if not.
 
         EXAMPLES::
 
-            sage: ModularForms(25,6).6.__nonzero__()
+            sage: bool(ModularForms(25,6).6)
             True
         """
         return not self.element().is_zero()
+
+    __nonzero__ = __bool__
 
     def prec(self):
         """
@@ -478,7 +480,7 @@ class ModularForm_abstract(ModuleElement):
         """
         if prec is None:
             prec = self.parent().prec()
-        prec = rings.Integer(prec)
+        prec = Integer(prec)
         try:
             current_prec, f = self.__q_expansion
         except AttributeError:
@@ -533,7 +535,7 @@ class ModularForm_abstract(ModuleElement):
         is defined by the following integral over the complex upper
         half-plane, for any `\alpha` in `\Bold{P}^1(\QQ)`:
 
-        .. math::
+        .. MATH::
 
             P_f(M) = 2 \pi i \int_\alpha^{M(\alpha)} f(z) dz.
 
@@ -570,20 +572,20 @@ class ModularForm_abstract(ModuleElement):
 
         The elliptic curve `E` has a pair of modular symbols attached
         to it, which can be computed using the method
-        `:meth:~sage.schemes.elliptic_curves.ell_rational_field.EllipticCurve_rational_field.modular_symbol`.
+        :meth:`sage.schemes.elliptic_curves.ell_rational_field.EllipticCurve_rational_field.modular_symbol`.
         These can be used to express the periods of `f` as exact
-        linear combinations of a basis for the period lattice of `E`::
+        linear combinations of the real and the imaginary period of `E`::
 
             sage: s = E.modular_symbol(sign=+1)
-            sage: t = E.modular_symbol(sign=-1)
+            sage: t = E.modular_symbol(sign=-1, implementation="sage")
             sage: s(3/11), t(3/11)
-            (1/10, 1)
-            sage: s(3/11)*omega1 + t(3/11)*omega2.imag()*I
+            (1/10, 1/2)
+            sage: s(3/11)*omega1 + t(3/11)*2*omega2.imag()*I
             0.634604652139777 + 1.45881661693850*I
 
         ALGORITHM:
 
-        We use the series expression from [Cremona]_, Chapter II,
+        We use the series expression from [Cre1997]_, Chapter II,
         Proposition 2.10.3.  The algorithm sums the first `T` terms of
         this series, where `T` is chosen in such a way that the result
         would approximate `P_f(M)` with an absolute error of at most
@@ -591,11 +593,6 @@ class ModularForm_abstract(ModuleElement):
 
         Since the actual precision is finite, the output is currently
         *not* guaranteed to be correct to ``prec`` bits of precision.
-
-        REFERENCE:
-
-        .. [Cremona] J. E. Cremona, Algorithms for Modular Elliptic
-           Curves.  Cambridge University Press, 1997.
 
         TESTS::
 
@@ -635,7 +632,7 @@ class ModularForm_abstract(ModuleElement):
             -1.35975973348831 + 1.09365931898146e-16*I
 
         """
-        R = rings.RealField(prec)
+        R = RealField(prec)
 
         N = self.level()
         if not self.character().is_trivial():
@@ -846,16 +843,16 @@ class ModularForm_abstract(ModuleElement):
         if isinstance(embedding, RingHomomorphism):
             # Target of embedding might have precision less than desired, so
             # need to refine
-            emb = NumberFieldEmbedding(K, rings.ComplexField(prec), embedding(K.gen()))
+            emb = NumberFieldEmbedding(K, ComplexField(prec), embedding(K.gen()))
         else:
-            emb = self.base_ring().embeddings(rings.ComplexField(prec))[embedding]
+            emb = self.base_ring().embeddings(ComplexField(prec))[embedding]
 
         s = 'coeff = %s;' % [emb(_) for _ in coeffs]
         L.init_coeffs('coeff[k+1]',pari_precode = s,
                       max_imaginary_part=max_imaginary_part,
                       max_asymp_coeffs=max_asymp_coeffs)
         L.check_functional_equation()
-        if K == rings.QQ:
+        if K == QQ:
             L.rename('L-series associated to the cusp form %s'%self)
         else:
             L.rename('L-series associated to the cusp form %s, %s=%s' \
@@ -899,7 +896,7 @@ class ModularForm_abstract(ModuleElement):
             sage: phi = K.embeddings(RR)[0]
             sage: L = F.symsquare_lseries(embedding=phi)
             sage: L(5)
-            verbose -1 (370: dokchitser.py, __call__) Warning: Loss of 8 decimal digits due to cancellation
+            verbose -1 (...: dokchitser.py, __call__) Warning: Loss of 8 decimal digits due to cancellation
             -3.57698266793901e19
 
         TESTS::
@@ -917,7 +914,7 @@ class ModularForm_abstract(ModuleElement):
         """
         from sage.lfunctions.all import Dokchitser
         weight = self.weight()
-        C = rings.ComplexField(prec)
+        C = ComplexField(prec)
         if self.level() != 1:
             raise NotImplementedError("Symmetric square L-functions only implemented for level 1")
 
@@ -926,9 +923,9 @@ class ModularForm_abstract(ModuleElement):
             # Target of embedding might have precision less than desired, so
             # need to refine
             K = self.base_ring()
-            emb = NumberFieldEmbedding(K, rings.ComplexField(prec), embedding(K.gen()))
+            emb = NumberFieldEmbedding(K, ComplexField(prec), embedding(K.gen()))
         else:
-            emb = self.base_ring().embeddings(rings.ComplexField(prec))[embedding]
+            emb = self.base_ring().embeddings(ComplexField(prec))[embedding]
 
         if chi is None:
             eps = 1
@@ -936,7 +933,7 @@ class ModularForm_abstract(ModuleElement):
         else:
             assert chi.is_primitive()
             chi = chi.change_ring(C)
-            eps = chi.gauss_sum()**3 / chi.base_ring()(chi.conductor())**rings.QQ( (3, 2) )
+            eps = chi.gauss_sum()**3 / chi.base_ring()(chi.conductor())**QQ( (3, 2) )
             N = chi.conductor()**3
 
         L = Dokchitser(N, [0, 1, -weight + 2], 2 * weight - 1, eps, prec=prec)
@@ -949,20 +946,20 @@ class ModularForm_abstract(ModuleElement):
         # utility function for Dirichlet convolution of series
         def dirichlet_convolution(A, B):
             return [sum(A[d-1] * B[n/d - 1] for d in divisors(n))
-                for n in xrange(1, 1 + min(len(A), len(B)))]
+                for n in range(1, 1 + min(len(A), len(B)))]
 
         # The Dirichlet series for \zeta(2 s - 2 k + 2)
         riemann_series = [ n**(weight - 1) if n.is_square() else 0
-                       for n in sxrange(1, lcoeffs_prec + 1) ]
+                       for n in xsrange(1, lcoeffs_prec + 1) ]
         # The Dirichlet series for 1 / \zeta(s - k + 1)
-        mu_series = [ moebius(n) * n**(weight - 1) for n in sxrange(1, lcoeffs_prec + 1) ]
+        mu_series = [ moebius(n) * n**(weight - 1) for n in xsrange(1, lcoeffs_prec + 1) ]
         conv_series = dirichlet_convolution(mu_series, riemann_series)
 
         dirichlet_series = dirichlet_convolution(conv_series, F_series)
 
         # If the base ring is QQ we pass the coefficients to GP/PARI as exact
         # rationals. Otherwise, need to use the embedding.
-        if self.base_ring() != rings.QQ:
+        if self.base_ring() != QQ:
             dirichlet_series = map(emb, dirichlet_series)
 
         if chi is not None:
@@ -981,7 +978,7 @@ class ModularForm_abstract(ModuleElement):
         r"""
         Compute the Petersson scalar product of f with itself:
 
-        .. math::
+        .. MATH::
 
             \langle f, f \rangle = \int_{\Gamma_0(N) \backslash \mathbb{H}} |f(x + iy)|^2 y^k\, \mathrm{d}x\, \mathrm{d}y.
 
@@ -989,7 +986,7 @@ class ModularForm_abstract(ModuleElement):
         coefficients. The norm is computed as a special value of the symmetric
         square L-function, using the identity
 
-        .. math::
+        .. MATH::
 
             \langle f, f \rangle = \frac{(k-1)! L(\mathrm{Sym}^2 f, k)}{2^{2k-1} \pi^{k+1}}
 
@@ -1000,10 +997,10 @@ class ModularForm_abstract(ModuleElement):
           (default: 0)
         - ``prec`` (integer, default 53): precision in bits
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CuspForms(1, 16).0.petersson_norm()
-            verbose -1 (370: dokchitser.py, __call__) Warning: Loss of 2 decimal digits due to cancellation
+            verbose -1 (...: dokchitser.py, __call__) Warning: Loss of 2 decimal digits due to cancellation
             2.16906134759063e-6
 
         The Petersson norm depends on a choice of embedding::
@@ -1024,10 +1021,10 @@ class ModularForm_abstract(ModuleElement):
             sage: (X(F + G) + X(F - G) - 2*X(F) - 2*X(G)).abs() < 1e-25
             True
         """
-        pi = rings.RealField(prec).pi()
+        pi = RealField(prec).pi()
         L = self.symsquare_lseries(prec=prec, embedding=embedding)
         k = self.weight()
-        return (rings.ZZ(k - 1).factorial() / 2**(2*k - 1) / pi**(k+1)) * L(k).real_part()
+        return (ZZ(k - 1).factorial() / 2**(2*k - 1) / pi**(k+1)) * L(k).real_part()
 
 class Newform(ModularForm_abstract):
     def __init__(self, parent, component, names, check=True):
@@ -1055,8 +1052,9 @@ class Newform(ModularForm_abstract):
             sage: f = Newforms(DirichletGroup(5).0, 7,names='a')[0]; f[2].trace(f.base_ring().base_field())
             -5*zeta4 - 5
         """
+        from .space import is_ModularFormsSpace
         if check:
-            if not space.is_ModularFormsSpace(parent):
+            if not is_ModularFormsSpace(parent):
                 raise TypeError("parent must be a space of modular forms")
             if not is_ModularSymbolsSpace(component):
                 raise TypeError("component must be a space of modular symbols")
@@ -1187,6 +1185,32 @@ class Newform(ModularForm_abstract):
         """
         return self.__hecke_eigenvalue_field
 
+    def coefficient(self, n):
+        """
+        Return the coefficient of `q^n` in the power series of self.
+
+        INPUT:
+
+        - ``n`` - a positive integer
+
+        OUTPUT:
+
+        - the coefficient of `q^n` in the power series of self.
+
+        EXAMPLES::
+
+            sage: f = Newforms(11)[0]; f
+            q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
+            sage: f.coefficient(100)
+            -8
+
+            sage: g = Newforms(23, names='a')[0]; g
+            q + a0*q^2 + (-2*a0 - 1)*q^3 + (-a0 - 1)*q^4 + 2*a0*q^5 + O(q^6)
+            sage: g.coefficient(3)
+            -2*a0 - 1
+        """
+        return self.modular_symbols(1).eigenvalue(n, self._name())
+
     def _compute(self, X):
         """
         Compute the coefficients of `q^n` of the power series of self,
@@ -1198,12 +1222,23 @@ class Newform(ModularForm_abstract):
             sage: f = Newforms(39,4,names='a')[1] ; f
             q + a1*q^2 - 3*q^3 + (2*a1 + 5)*q^4 + (-2*a1 + 14)*q^5 + O(q^6)
             sage: f._compute([2,3,7])
-            [alpha, -3, -2*alpha + 2]
+            [a1, -3, -2*a1 + 2]
             sage: f._compute([])
             []
+
+        Check that :trac:`20793` is fixed::
+
+            sage: f = Newforms(83, 2, names='a')[1]; f
+            q + a1*q^2 + (1/2*a1^4 - 1/2*a1^3 - 7/2*a1^2 + 3/2*a1 + 4)*q^3 + (a1^2 - 2)*q^4 + (-1/2*a1^5 - 1/2*a1^4 + 9/2*a1^3 + 7/2*a1^2 - 8*a1 - 2)*q^5 + O(q^6)
+            sage: K = f.hecke_eigenvalue_field(); K
+            Number Field in a1 with defining polynomial x^6 - x^5 - 9*x^4 + 7*x^3 + 20*x^2 - 12*x - 8
+            sage: l = f.coefficients(20); l[-1]
+            -a1^4 + 5*a1^2 - 4
+            sage: l[-1].parent() is K
+            True
         """
         M = self.modular_symbols(1)
-        return [M.eigenvalue(x) for x in X]
+        return [M.eigenvalue(x, name=self._name()) for x in X]
 
     def element(self):
         """
@@ -1291,16 +1326,18 @@ class Newform(ModularForm_abstract):
         """
         return self._defining_modular_symbols().ambient().cuspidal_subspace().new_subspace().decomposition().index(self._defining_modular_symbols())
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
-        Return True, as newforms are never zero.
+        Return ``True``, as newforms are never zero.
 
         EXAMPLES::
 
-            sage: Newforms(14,2)[0].__nonzero__()
+            sage: bool(Newforms(14,2)[0])
             True
         """
         return True
+
+    __nonzero__ = __bool__
 
     def character(self):
         r"""
@@ -1323,7 +1360,7 @@ class Newform(ModularForm_abstract):
         of this form is not either trivial or quadratic. If d is not given or
         is None, then d defaults to the level of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: [x.atkin_lehner_eigenvalue() for x in ModularForms(53).newforms('a')]
             [1, -1]
@@ -1342,14 +1379,14 @@ class Newform(ModularForm_abstract):
         If ``self`` is a newform `f` with character `\epsilon` and
         `q`-expansion
 
-        .. math::
+        .. MATH::
 
             f(q) = \sum_{n=1}^\infty a_n q^n,
 
         then the twist by `\chi` is the unique newform `f\otimes\chi`
         with character `\epsilon\chi^2` and `q`-expansion
 
-        .. math::
+        .. MATH::
 
             (f\otimes\chi)(q) = \sum_{n=1}^\infty b_n q^n
 
@@ -1363,7 +1400,7 @@ class Newform(ModularForm_abstract):
 
         - ``level`` -- (optional) the level `N` of the twisted form.
           By default, the algorithm tries to compute `N` using
-          [Atkin-Li]_, Theorem 3.1.
+          [AL1978]_, Theorem 3.1.
 
         - ``check`` -- (optional) boolean; if ``True`` (default), ensure that
           the space of modular symbols that is computed is genuinely simple and
@@ -1423,7 +1460,6 @@ class Newform(ModularForm_abstract):
 
         """
         from sage.modular.all import CuspForms
-        coercion_model = get_coercion_model()
         R = coercion_model.common_parent(self.base_ring(), chi.base_ring())
         N = self.level()
         epsilon = self.character()
@@ -1435,7 +1471,7 @@ class Newform(ModularForm_abstract):
             epsilon_chi = G(epsilon) * G(chi)
             N_epsilon_chi = epsilon_chi.conductor()
             for q in N_chi.prime_divisors():
-                # See [Atkin-Li], Theorem 3.1.
+                # See [AL1978], Theorem 3.1.
                 alpha = N_epsilon.valuation(q)
                 beta = N_chi.valuation(q)
                 gamma = N.valuation(q)
@@ -1493,7 +1529,8 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             sage: f.parent()
             Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
         """
-        if not isinstance(parent, space.ModularFormsSpace):
+        from .space import ModularFormsSpace
+        if not isinstance(parent, ModularFormsSpace):
             raise TypeError("First argument must be an ambient space of modular forms.")
         element.HeckeModuleElement.__init__(self, parent, x)
 
@@ -1575,7 +1612,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
 
         TESTS:
 
-        This shows that the issue at trac ticket #7548 is fixed::
+        This shows that the issue at :trac:`7548` is fixed::
 
             sage: M = CuspForms(Gamma0(5*3^2), 2)
             sage: f = M.basis()[0]
@@ -1606,13 +1643,13 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             verbose("character of product not determined")
 
         # now do the math
-        from constructor import ModularForms
+        from .constructor import ModularForms
         if newchar is not None:
             verbose("creating a parent with char")
             newparent = ModularForms(newchar, self.weight() + other.weight(), base_ring = newchar.base_ring())
             verbose("parent is %s" % newparent)
         else:
-            newparent = ModularForms(self.group(), self.weight() + other.weight(), base_ring = rings.ZZ)
+            newparent = ModularForms(self.group(), self.weight() + other.weight(), base_ring = ZZ)
         m = newparent.sturm_bound()
         newqexp = self.qexp(m) * other.qexp(m)
 
@@ -1627,7 +1664,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         modular form (which is either 1 or -1), or None if this form is not an
         eigenvector for this operator.
 
-        EXAMPLE::
+        EXAMPLES::
 
              sage: CuspForms(1, 30).0.atkin_lehner_eigenvalue()
              1
@@ -1656,14 +1693,14 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         If ``self`` is a modular form `f` with character `\epsilon`
         and `q`-expansion
 
-        .. math::
+        .. MATH::
 
             f(q) = \sum_{n=0}^\infty a_n q^n,
 
         then the twist by `\chi` is a modular form `f_\chi` with
         character `\epsilon\chi^2` and `q`-expansion
 
-        .. math::
+        .. MATH::
 
             f_\chi(q) = \sum_{n=0}^\infty \chi(n) a_n q^n.
 
@@ -1673,8 +1710,8 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
 
         - ``level`` -- (optional) the level `N` of the twisted form.
           By default, the algorithm chooses some not necessarily
-          minimal value for `N` using [Atkin-Li]_, Proposition 3.1,
-          (See also [Koblitz]_, Proposition III.3.17, for a simpler
+          minimal value for `N` using [AL1978]_, Proposition 3.1,
+          (See also [Kob1993]_, Proposition III.3.17, for a simpler
           but slightly weaker bound.)
 
         OUTPUT:
@@ -1691,7 +1728,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
             sage: eps = DirichletGroup(3).0
             sage: eps.parent()
-            Group of Dirichlet characters of modulus 3 over Cyclotomic Field of order 2 and degree 1
+            Group of Dirichlet characters modulo 3 with values in Cyclotomic Field of order 2 and degree 1
             sage: f_eps = f.twist(eps)
             sage: f_eps.parent()
             Cuspidal subspace of dimension 9 of Modular Forms space of dimension 16 for Congruence Subgroup Gamma0(99) of weight 2 over Cyclotomic Field of order 2 and degree 1
@@ -1721,12 +1758,9 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
 
         REFERENCES:
 
-        .. [Atkin-Li] A. O. L. Atkin and Wen-Ch'ing Winnie Li, Twists
-           of newforms and pseudo-eigenvalues of `W`-operators.
-           Inventiones math. 48 (1978), 221-243.
+        - [AL1978]_
 
-        .. [Koblitz] Neal Koblitz, Introduction to Elliptic Curves and
-           Modular Forms.  Springer GTM 97, 1993.
+        - [Kob1993]_
 
         AUTHORS:
 
@@ -1737,7 +1771,6 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         """
         from sage.modular.all import CuspForms, ModularForms
         from sage.rings.all import PowerSeriesRing
-        coercion_model = get_coercion_model()
         R = coercion_model.common_parent(self.base_ring(), chi.base_ring())
         N = self.level()
         Q = chi.modulus()
@@ -1748,19 +1781,19 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         constructor = CuspForms if self.is_cuspidal() else ModularForms
         if epsilon is not None:
             if level is None:
-                # See [Atkin-Li], Proposition 3.1.
+                # See [AL1978], Proposition 3.1.
                 level = lcm([N, epsilon.conductor() * Q, Q**2])
             G = DirichletGroup(level, base_ring=R)
             M = constructor(G(epsilon) * G(chi)**2, self.weight(), base_ring=R)
         else:
             from sage.modular.arithgroup.all import Gamma1
             if level is None:
-                # See [Atkin-Li], Proposition 3.1.
+                # See [AL1978], Proposition 3.1.
                 level = lcm([N, Q]) * Q
             M = constructor(Gamma1(level), self.weight(), base_ring=R)
         bound = M.sturm_bound() + 1
         S = PowerSeriesRing(R, 'q')
-        f_twist = S([self[i] * chi(i) for i in xrange(bound)], prec=bound)
+        f_twist = S([self[i] * chi(i) for i in range(bound)], prec=bound)
         return M(f_twist)
 
 
@@ -1853,7 +1886,7 @@ class ModularFormElement_elliptic_curve(ModularFormElement):
         is attached to an elliptic curve, we can read this off from the root
         number of the curve if d is the level.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: EllipticCurve('57a1').newform().atkin_lehner_eigenvalue()
             1
@@ -1949,7 +1982,7 @@ class EisensteinSeries(ModularFormElement):
         """
         if prec is None:
             prec = self.parent().prec()
-        F = self._compute(range(prec))
+        F = self._compute(list(range(prec)))
         R = self.parent()._q_expansion_ring()
         return R(F, prec)
 
@@ -2012,7 +2045,7 @@ class EisensteinSeries(ModularFormElement):
         `\psi` is a primitive character of conductor `M` We have
         `MLt \mid N`, and
 
-        .. math::
+        .. MATH::
 
           E_k(chi,psi,t) =
            c_0 + sum_{m \geq 1}[sum_{n|m} psi(n) * chi(m/n) * n^(k-1)] q^{mt},

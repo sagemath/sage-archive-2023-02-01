@@ -12,6 +12,7 @@ in a subprocess call to sphinx, see :func:`builder_helper`.
 
 from __future__ import absolute_import
 from __future__ import print_function
+from six.moves import range
 
 import logging, optparse, os, shutil, subprocess, sys, re
 
@@ -239,6 +240,37 @@ class DocBuilder(object):
     # import the customized builder for object.inv files
     inventory = builder_helper('inventory')
 
+
+if NUM_THREADS > 1:
+    def build_many(target, args):
+        from multiprocessing import Pool
+        pool = Pool(NUM_THREADS, maxtasksperchild=1)
+        # map_async handles KeyboardInterrupt correctly. Plain map and
+        # apply_async does not, so don't use it.
+        x = pool.map_async(target, args, 1)
+        try:
+            ret = x.get(99999)
+            pool.close()
+            pool.join()
+        except Exception:
+            pool.terminate()
+            if ABORT_ON_ERROR:
+                raise
+        return ret
+else:
+    def build_many(target, args):
+        results = []
+
+        for arg in args:
+            try:
+                results.append(target(arg))
+            except Exception:
+                if ABORT_ON_ERROR:
+                    raise
+
+        return results
+
+
 ##########################################
 #      Parallel Building Ref Manual      #
 ##########################################
@@ -288,20 +320,8 @@ class AllBuilder(object):
             getattr(get_builder(document), name)(*args, **kwds)
 
         # build the other documents in parallel
-        from multiprocessing import Pool
-        pool = Pool(NUM_THREADS, maxtasksperchild=1)
         L = [(doc, name, kwds) + args for doc in others]
-        # map_async handles KeyboardInterrupt correctly. Plain map and
-        # apply_async does not, so don't use it.
-        x = pool.map_async(build_other_doc, L, 1)
-        try:
-            x.get(99999)
-            pool.close()
-            pool.join()
-        except Exception:
-            pool.terminate()
-            if ABORT_ON_ERROR:
-                raise
+        build_many(build_other_doc, L)
         logger.warning("Elapsed time: %.1f seconds."%(time.time()-start))
         logger.warning("Done building the documentation!")
 
@@ -486,19 +506,8 @@ class ReferenceBuilder(AllBuilder):
             if not os.path.exists(refdir):
                 continue
             output_dir = self._output_dir(format, lang)
-            from multiprocessing import Pool
-            pool = Pool(NUM_THREADS, maxtasksperchild=1)
             L = [(doc, lang, format, kwds) + args for doc in self.get_all_documents(refdir)]
-            # (See comment in AllBuilder._wrapper about using map instead of apply.)
-            x = pool.map_async(build_ref_doc, L, 1)
-            try:
-                x.get(99999)
-                pool.close()
-                pool.join()
-            except Exception:
-                pool.terminate()
-                if ABORT_ON_ERROR:
-                    raise
+            build_many(build_ref_doc, L)
             # The html refman must be build at the end to ensure correct
             # merging of indexes and inventories.
             # Sphinx is run here in the current process (not in a
@@ -525,7 +534,8 @@ class ReferenceBuilder(AllBuilder):
                          'default.css', 'doctools.js', 'favicon.ico',
                          'file.png', 'jquery.js', 'minus.png',
                          'pdf.png', 'plus.png', 'pygments.css',
-                         'sage.css', 'sageicon.png', 'sagelogo.png',
+                         'sage.css', 'sageicon.png',
+                         'logo_sagemath.svg', 'logo_sagemath_black.svg',
                          'searchtools.js', 'sidebar.js', 'underscore.js']
                 sage_makedirs(os.path.join(output_dir, '_static'))
                 for f in static_files:
@@ -726,7 +736,7 @@ class ReferenceSubBuilder(DocBuilder):
         filename = self.cache_filename()
         if not os.path.exists(filename):
             return {}
-        import cPickle
+        from six.moves import cPickle
         file = open(self.cache_filename(), 'rb')
         try:
             cache = cPickle.load(file)
@@ -749,7 +759,7 @@ class ReferenceSubBuilder(DocBuilder):
         cache['option_inherited'] = options.inherited
         cache['option_underscore'] = options.underscore
 
-        import cPickle
+        from six.moves import cPickle
         file = open(self.cache_filename(), 'wb')
         cPickle.dump(cache, file)
         file.close()
@@ -767,7 +777,7 @@ class ReferenceSubBuilder(DocBuilder):
 
         env_pickle = os.path.join(self._doctrees_dir(), 'environment.pickle')
         try:
-            env = BuildEnvironment.frompickle(config, env_pickle)
+            env = BuildEnvironment.frompickle(self.dir, config, env_pickle)
             logger.debug("Opened Sphinx environment: %s", env_pickle)
             return env
         except IOError as err:
@@ -797,7 +807,8 @@ class ReferenceSubBuilder(DocBuilder):
             # env.topickle(env_pickle), which first writes a temporary
             # file.  We adapt sphinx.environment's
             # BuildEnvironment.topickle:
-            import cPickle, types
+            from six.moves import cPickle
+            import types
 
             # remove unpicklable attributes
             env.set_warnfunc(None)
@@ -807,7 +818,7 @@ class ReferenceSubBuilder(DocBuilder):
             for key, val in vars(env.config).items():
                 if key.startswith('_') or isinstance(val, (types.ModuleType,
                                                            types.FunctionType,
-                                                           types.ClassType)):
+                                                           type)):
                     del env.config[key]
             try:
                 cPickle.dump(env, picklefile, cPickle.HIGHEST_PROTOCOL)
@@ -1213,7 +1224,7 @@ def format_columns(lst, align='<', cols=None, indent=4, pad=3, width=80):
         import math
         cols = math.trunc((width - indent) / size)
     s = " " * indent
-    for i in xrange(len(lst)):
+    for i in range(len(lst)):
         if i != 0 and i % cols == 0:
             s += "\n" + " " * indent
         s += "{0:{1}{2}}".format(lst[i], align, size)
@@ -1444,9 +1455,9 @@ def setup_parser():
     standard.add_option("--no-plot", dest="no_plot",
                         action="store_true",
                         help="do not include graphics auto-generated using the '.. plot' markup")
-    standard.add_option("--no-tests", dest="skip_tests", default=False,
-                        action="store_true",
-                        help="do not include TESTS blocks in the reference manual")
+    standard.add_option("--include-tests-blocks", dest="skip_tests", default=True,
+                        action="store_false",
+                        help="include TESTS blocks in the reference manual")
     standard.add_option("--no-pdf-links", dest="no_pdf_links",
                         action="store_true",
                         help="do not include PDF links in DOCUMENT 'website'; FORMATs: html, json, pickle, web")
@@ -1513,7 +1524,7 @@ def setup_logger(verbose=1, color=True):
     colors = ['darkblue', 'darkred', 'brown', 'reset']
     styles = ['reset', 'reset', 'reset', 'reset']
     format_debug = ""
-    for i in xrange(len(fields)):
+    for i in range(len(fields)):
         format_debug += c.colorize(styles[i], c.colorize(colors[i], fields[i]))
         if i != len(fields):
             format_debug += " "
@@ -1620,7 +1631,7 @@ def main():
     # Delete empty directories. This is needed in particular for empty
     # directories due to "git checkout" which never deletes empty
     # directories it leaves behind. See Trac #20010.
-    delete_empty_directories(SAGE_DOC)
+    delete_empty_directories(SAGE_DOC_SRC)
 
     # Set up Intersphinx cache
     C = IntersphinxCache()

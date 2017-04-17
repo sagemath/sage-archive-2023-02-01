@@ -32,10 +32,9 @@ AUTHORS:
 
 from sage.structure.element cimport ModuleElement, RingElement
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
-from sage.rings.padics.pow_computer cimport PowComputer_class
 
 cdef class pAdicTemplateElement(pAdicGenericElement):
-    cdef PowComputer_class prime_pow
+    cdef PowComputer_ prime_pow
     cdef int _set(self, x, long val, long xprec, absprec, relprec) except -1
     cdef pAdicTemplateElement _lshift_c(self, long shift)
     cdef pAdicTemplateElement _rshift_c(self, long shift)

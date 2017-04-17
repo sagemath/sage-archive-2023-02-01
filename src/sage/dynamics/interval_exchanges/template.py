@@ -25,6 +25,9 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from six.moves import range
+from six import iteritems, add_metaclass
 
 from sage.structure.sage_object import SageObject
 
@@ -672,7 +675,7 @@ class Permutation(SageObject):
 
         - ``winner`` - 'top' or 'bottom' corresponding to the interval
 
-        - ``side`` - 'left' or 'right' (defaut)
+        - ``side`` - 'left' or 'right' (default)
 
 
         OUTPUT:
@@ -732,7 +735,7 @@ class Permutation(SageObject):
 
         - ``winner`` - 'top' or 'bottom' interval
 
-        - ``side`` - 'right' or 'left' (defaut: 'right') corresponding
+        - ``side`` - 'right' or 'left' (default: 'right') corresponding
           to the side on which the Rauzy move must be performed.
 
         - ``iteration`` - a non negative integer
@@ -892,7 +895,7 @@ class PermutationIET(Permutation):
 
         This `d*d` antisymmetric matrix is given by the rule :
 
-        .. math::
+        .. MATH::
 
             m_{ij} = \begin{cases}
                 1 & \text{$i < j$ and $\pi(i) > \pi(j)$} \\
@@ -1058,7 +1061,7 @@ class PermutationIET(Permutation):
             sage: iet.Permutation('a b c d','d c b a').separatrix_diagram()
             [[('d', 'a'), 'b', 'c', ('d', 'a'), 'b', 'c']]
         """
-        separatrices = range(len(self)) # bottom intervals
+        separatrices = list(range(len(self))) # bottom intervals
         labels = self[1] # their labels
 
         singularities = []
@@ -1137,15 +1140,15 @@ class PermutationIET(Permutation):
         EXAMPLES::
 
             sage: p = iet.Permutation('a b c', 'c b a')
-            sage: print p.stratum()
+            sage: p.stratum()
             H(0, 0)
 
             sage: p = iet.Permutation('a b c d', 'd a b c')
-            sage: print p.stratum()
+            sage: p.stratum()
             H(0, 0, 0)
 
             sage: p = iet.Permutation(range(9), [8,5,2,7,4,1,6,3,0])
-            sage: print p.stratum()
+            sage: p.stratum()
             H(1, 1, 1, 1)
 
         You can specify that you want to attach the singularity on the left (or
@@ -1227,10 +1230,10 @@ class PermutationIET(Permutation):
             sage: b1 = [3,2,4,6,5,7,9,8,1,0]
             sage: b0 = [6,5,4,3,2,7,9,8,1,0]
             sage: p1 = iet.Permutation(a,b1)
-            sage: print p1.arf_invariant()
+            sage: p1.arf_invariant()
             1
             sage: p0 = iet.Permutation(a,b0)
-            sage: print p0.arf_invariant()
+            sage: p0.arf_invariant()
             0
 
         Permutations from the odd and even component of H(4,4)::
@@ -1239,10 +1242,10 @@ class PermutationIET(Permutation):
             sage: b1 = [3,2,5,4,6,8,7,10,9,1,0]
             sage: b0 = [5,4,3,2,6,8,7,10,9,1,0]
             sage: p1 = iet.Permutation(a,b1)
-            sage: print p1.arf_invariant()
+            sage: p1.arf_invariant()
             1
             sage: p0 = iet.Permutation(a,b0)
-            sage: print p0.arf_invariant()
+            sage: p0.arf_invariant()
             0
 
         REFERENCES:
@@ -1265,23 +1268,23 @@ class PermutationIET(Permutation):
             a = C.row(i)
 
             a_indices = []
-            for k in xrange(n):
+            for k in range(n):
                 if a[k] != 0: a_indices.append(k)
 
             t_a = len(a_indices) % 2
-            for j1 in xrange(len(a_indices)):
-                for j2 in xrange(j1+1,len(a_indices)):
+            for j1 in range(len(a_indices)):
+                for j2 in range(j1+1,len(a_indices)):
                     t_a = (t_a + M[a_indices[j1], a_indices[j2]]) % 2
 
             b = C.row(g+i)
 
             b_indices = []
-            for k in xrange(n):
+            for k in range(n):
                 if b[k] != 0: b_indices.append(k)
 
             t_b = len(b_indices) % 2
-            for j1 in xrange(len(b_indices)):
-                for j2 in xrange(j1+1,len(b_indices)):
+            for j1 in range(len(b_indices)):
+                for j2 in range(j1+1,len(b_indices)):
                     t_b = (t_b + M[b_indices[j1],b_indices[j2]]) % 2
 
             s = (s + t_a * t_b) % 2
@@ -1303,11 +1306,11 @@ class PermutationIET(Permutation):
             sage: p_hyp = iet.Permutation(a, b_hyp)
             sage: p_odd = iet.Permutation(a, b_odd)
             sage: p_even = iet.Permutation(a, b_even)
-            sage: print p_hyp.connected_component()
+            sage: p_hyp.connected_component()
             H_hyp(6)
-            sage: print p_odd.connected_component()
+            sage: p_odd.connected_component()
             H_odd(6)
-            sage: print p_even.connected_component()
+            sage: p_even.connected_component()
             H_even(6)
 
         Permutations from the stratum H(4,4)::
@@ -1321,15 +1324,15 @@ class PermutationIET(Permutation):
             sage: p_even = iet.Permutation(a,b_even)
             sage: p_hyp.stratum() == AbelianStratum(4,4)
             True
-            sage: print p_hyp.connected_component()
+            sage: p_hyp.connected_component()
             H_hyp(4, 4)
             sage: p_odd.stratum() == AbelianStratum(4,4)
             True
-            sage: print p_odd.connected_component()
+            sage: p_odd.connected_component()
             H_odd(4, 4)
             sage: p_even.stratum() == AbelianStratum(4,4)
             True
-            sage: print p_even.connected_component()
+            sage: p_even.connected_component()
             H_even(4, 4)
 
         As for stratum you can specify that you want to attach the singularity
@@ -1481,14 +1484,14 @@ class PermutationIET(Permutation):
         Acta Arith. 34, no. 3, 203-212, 1980
 
         M. Kontsevich, A. Zorich "Connected components of the moduli space
-        of Abelian differentials with prescripebd singularities" Invent. math.
+        of Abelian differentials with prescribed singularities" Invent. math.
         153, 631-678 (2003)
         """
         test = self.erase_marked_points()
 
         n = test.length_top()
         cylindric = test.cylindric()
-        return cylindric._twin[0] == range(n-1,-1,-1)
+        return cylindric._twin[0] == list(range(n - 1, -1, -1))
 
     def cylindric(self):
         r"""
@@ -1644,7 +1647,7 @@ class PermutationLI(Permutation):
         A quadratic (or generalized) permutation is *reducible* if there exists
         a decomposition
 
-        .. math::
+        .. MATH::
 
            A1 u B1 | ... | B1 u A2
 
@@ -1652,7 +1655,7 @@ class PermutationLI(Permutation):
 
         where no corners is empty, or exactly one corner is empty
         and it is on the left, or two and they are both on the
-        right or on the left. The definition is due to [BL08]_ where they prove
+        right or on the left. The definition is due to [BL2008]_ where they prove
         that the property of being irreducible is stable under Rauzy induction.
 
         INPUT:
@@ -1745,17 +1748,17 @@ class PermutationLI(Permutation):
                 break
             A11 = s0[:i11]
 
-            for i21 in xrange(0, l1) :
+            for i21 in range(0, l1) :
                 if i21 > 0 and s1[i21-1] in A21:
                     break
                 A21 = s1[:i21]
 
-                for i12 in xrange(l0 - 1, i11 - 1, -1) :
+                for i12 in range(l0 - 1, i11 - 1, -1) :
                     if s0[i12] in A12 or s0[i12] in A21:
                         break
                     A12 = s0[i12:]
 
-                    for i22 in xrange(l1 - 1, i21 - 1, -1) :
+                    for i22 in range(l1 - 1, i21 - 1, -1) :
                         if s1[i22] in A22 or s1[i22] in A11:
                             break
                         A22 = s1[i22:]
@@ -1900,10 +1903,10 @@ class FlippedPermutation(Permutation):
         TESTS::
 
             sage: p = iet.GeneralizedPermutation('a a','b b',flips='a')
-            sage: print p.str()
+            sage: print(p.str())
             -a -a
              b  b
-             sage: print p.str('/')
+             sage: print(p.str('/'))
              -a -a/ b  b
         """
         l = self.list(flips=True)
@@ -1977,6 +1980,7 @@ class FlippedPermutationLI(FlippedPermutation, PermutationLI):
         return list(set(res))
 
 
+@add_metaclass(NestedClassMetaclass)
 class RauzyDiagram(SageObject):
     r"""
     Template for Rauzy diagrams.
@@ -1990,7 +1994,6 @@ class RauzyDiagram(SageObject):
     - Vincent Delecroix (2008-12-20): initial version
     """
     # TODO: pickle problem of Path (it does not understand what is its parent)
-    __metaclass__ = NestedClassMetaclass
 
     class Path(SageObject):
         r"""
@@ -2477,12 +2480,13 @@ class RauzyDiagram(SageObject):
                 sage: r = p.rauzy_diagram()
                 sage: g = r.path(p)
                 sage: for q in g:
-                ....:     print p
+                ....:     print(p)
                 a b c
                 c b a
                 sage: g = r.path(p, 't', 't')
                 sage: for q in g:
-                ....:     print q, "\n*****"
+                ....:     print(q)
+                ....:     print("*****")
                 a b c
                 c b a
                 *****
@@ -2494,7 +2498,8 @@ class RauzyDiagram(SageObject):
                 *****
                 sage: g = r.path(p,'b','t')
                 sage: for q in g:
-                ....:     print q, "\n*****"
+                ....:     print(q)
+                ....:     print("*****")
                 a b c
                 c b a
                 *****
@@ -2564,7 +2569,7 @@ class RauzyDiagram(SageObject):
 
             - ``function`` - function must be of the form (indice,type) -> element. Moreover function(None,None) must be an identity element for initialization.
 
-            - ``composition`` - the composition function for the function. * if None (defaut None)
+            - ``composition`` - the composition function for the function. * if None (default None)
 
             TEST::
 
@@ -2766,7 +2771,7 @@ class RauzyDiagram(SageObject):
         EXAMPLES::
 
             sage: r = iet.RauzyDiagram('a b','b a')
-            sage: for p in r.vertices(): print p
+            sage: for p in r.vertices(): print(p)
             a b
             b a
         """
@@ -2779,21 +2784,21 @@ class RauzyDiagram(SageObject):
         EXAMPLES::
 
             sage: r = iet.RauzyDiagram('a b','b a')
-            sage: for p in r.vertex_iterator(): print p
+            sage: for p in r.vertex_iterator(): print(p)
             a b
             b a
 
         ::
 
             sage: r = iet.RauzyDiagram('a b c d','d c b a')
-            sage: from itertools import ifilter
-            sage: r_1n = ifilter(lambda x: x.is_cylindric(), r)
-            sage: for p in r_1n: print p
+            sage: from six.moves import filter
+            sage: r_1n = filter(lambda x: x.is_cylindric(), r)
+            sage: for p in r_1n: print(p)
             a b c d
             d c b a
         """
-        from itertools import imap
-        return imap(
+        from builtins import map
+        return map(
             lambda x: self._vertex_to_permutation(x),
             self._succ.keys())
 
@@ -2818,7 +2823,7 @@ class RauzyDiagram(SageObject):
             sage: p = iet.Permutation('a b','b a')
             sage: r = p.rauzy_diagram()
             sage: for e in r.edge_iterator():
-            ....:  print e[0].str(sep='/'), '-->', e[1].str(sep='/')
+            ....:     print(e[0].str(sep='/') + ' --> ' + e[1].str(sep='/'))
             a b/b a --> a b/b a
             a b/b a --> a b/b a
         """
@@ -3066,7 +3071,7 @@ class RauzyDiagram(SageObject):
             2: symmetric()
         """
         for i,(edge_type,t) in enumerate(self._edge_types):
-            print str(i) + ": " + edge_type + str(t)
+            print(str(i) + ": " + edge_type + str(t))
 
     def alphabet(self, data=None):
         r"""
@@ -3133,7 +3138,7 @@ class RauzyDiagram(SageObject):
 
             sage: p = iet.Permutation('a b c','c b a')
             sage: d = p.rauzy_diagram()
-            sage: print d.edge_to_matrix(p,1)
+            sage: d.edge_to_matrix(p,1)
             [1 0 1]
             [0 1 0]
             [0 0 1]
@@ -3212,14 +3217,14 @@ class RauzyDiagram(SageObject):
             sage: r = p.rauzy_diagram()
             sage: g0 = r.path(p)
             sage: for g in r._all_npath_extension(g0,0):
-            ....:     print g
+            ....:     print(g)
             Path of length 0 in a Rauzy diagram
             sage: for g in r._all_npath_extension(g0,1):
-            ....:     print g
+            ....:     print(g)
             Path of length 1 in a Rauzy diagram
             Path of length 1 in a Rauzy diagram
             sage: for g in r._all_npath_extension(g0,2):
-            ....:     print g
+            ....:     print(g)
             Path of length 2 in a Rauzy diagram
             Path of length 2 in a Rauzy diagram
             Path of length 2 in a Rauzy diagram
@@ -3263,10 +3268,10 @@ class RauzyDiagram(SageObject):
             sage: r = p.rauzy_diagram()
             sage: g0 = r.path(p)
             sage: for g in r._all_path_extension(g0,0):
-            ....:     print g
+            ....:     print(g)
             Path of length 0 in a Rauzy diagram
             sage: for g in r._all_path_extension(g0, 1):
-            ....:     print g
+            ....:     print(g)
             Path of length 0 in a Rauzy diagram
             Path of length 1 in a Rauzy diagram
             Path of length 1 in a Rauzy diagram
@@ -3301,16 +3306,16 @@ class RauzyDiagram(SageObject):
         EXAMPLES::
 
             sage: r = iet.RauzyDiagram('a b','b a')
-            sage: for p in r: print p
+            sage: for p in r: print(p)
             a b
             b a
             sage: r = iet.RauzyDiagram('a b c','c b a')
-            sage: for p in r: print p.stratum()
+            sage: for p in r: print(p.stratum())
             H(0, 0)
             H(0, 0)
             H(0, 0)
         """
-        for data in self._succ.iterkeys():
+        for data in self._succ:
             yield self._vertex_to_permutation(data)
 
     def __contains__(self, element):
@@ -3332,7 +3337,7 @@ class RauzyDiagram(SageObject):
             sage: q in s
             True
         """
-        for p in self._succ.iterkeys():
+        for p in self._succ:
             if self._vertex_to_permutation(p) == element:
                 return True
 
@@ -3517,16 +3522,17 @@ class RauzyDiagram(SageObject):
             Looped multi-digraph on 3 vertices
 
         """
-        G = DiGraph(loops=True,multiedges=True)
+        G = DiGraph(loops=True, multiedges=True)
 
-        for p,neighbours in self._succ.iteritems():
+        for p, neighbours in iteritems(self._succ):
             p = self._vertex_to_permutation(p)
-            for i,n in enumerate(neighbours):
+            for i, n in enumerate(neighbours):
                 if n is not None:
                     q = self._vertex_to_permutation(n)
-                    G.add_edge(p,q,i)
+                    G.add_edge(p, q, i)
 
         return G
+
 
 class FlippedRauzyDiagram(RauzyDiagram):
     r"""

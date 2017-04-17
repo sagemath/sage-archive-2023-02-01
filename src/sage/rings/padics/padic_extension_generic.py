@@ -7,6 +7,7 @@ AUTHORS:
 
 - David Roe
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
@@ -19,9 +20,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from padic_generic import pAdicGeneric
-from padic_base_generic import pAdicBaseGeneric
+from .padic_generic import pAdicGeneric
+from .padic_base_generic import pAdicBaseGeneric
+from sage.structure.sage_object import op_EQ
 from functools import reduce
+
 
 class pAdicExtensionGeneric(pAdicGeneric):
     def __init__(self, poly, prec, print_mode, names, element_class):
@@ -72,13 +75,21 @@ class pAdicExtensionGeneric(pAdicGeneric):
         """
         # Far more functionality needs to be added here later.
         if isinstance(R, pAdicExtensionGeneric) and R.fraction_field() is self:
-            return True
+            if self._implementation == 'NTL':
+                return True
+            elif R._prec_type() == 'capped-abs':
+                from sage.rings.padics.qadic_flint_CA import pAdicCoercion_CA_frac_field as coerce_map
+            elif R._prec_type() == 'capped-rel':
+                from sage.rings.padics.qadic_flint_CR import pAdicCoercion_CR_frac_field as coerce_map
+            return coerce_map(R, self)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
-        Returns 0 if self == other, and 1 or -1 otherwise.
+        Return ``True`` if ``self == other`` and ``False`` otherwise.
 
-        We consider two p-adic rings or fields to be equal if they are equal mathematically, and also have the same precision cap and printing parameters.
+        We consider two `p`-adic rings or fields to be equal if they are
+        equal mathematically, and also have the same precision cap and
+        printing parameters.
 
         EXAMPLES::
 
@@ -92,19 +103,26 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: R is S
             True
         """
-        c = cmp(type(self), type(other))
-        if c != 0:
-            return c
-        groundcmp = self.ground_ring().__cmp__(other.ground_ring())
-        if groundcmp != 0:
-            return groundcmp
-        c = cmp(self.defining_polynomial(), other.defining_polynomial())
-        if c != 0:
-            return c
-        c = cmp(self.precision_cap(), other.precision_cap())
-        if c != 0:
-            return c
-        return self._printer.cmp_modes(other._printer)
+        if not isinstance(other, pAdicExtensionGeneric):
+            return False
+
+        return (self.ground_ring() == other.ground_ring() and
+                self.defining_polynomial() == other.defining_polynomial() and
+                self.precision_cap() == other.precision_cap() and
+                self._printer.richcmp_modes(other._printer, op_EQ))
+
+    def __ne__(self, other):
+        """
+        Test inequality.
+
+        EXAMPLES::
+
+            sage: R.<a> = Qq(27)
+            sage: S.<a> = Qq(27,print_mode='val-unit')
+            sage: R != S
+            True
+        """
+        return not self.__eq__(other)
 
     #def absolute_discriminant(self):
     #    raise NotImplementedError
@@ -166,7 +184,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
         """
         Returns the ring of which this ring is an extension.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = Zp(5,5)
             sage: S.<x> = R[]
@@ -259,9 +277,9 @@ class pAdicExtensionGeneric(pAdicGeneric):
         #we don't want to set the print options due to the ground ring since
         #different extension fields (with different options) can share the same ground ring.
         if self.is_lazy():
-            return K.extension(self._pre_poly, prec = self.precision_cap(), halt = self.halting_parameter(), res_name = self.residue_field().variable_name(), print_mode=print_mode)
+            return K.extension(self._pre_poly, prec = self.precision_cap(), halt = self.halting_parameter(), res_name = self.residue_field().variable_name(), print_mode=print_mode, implementation=self._implementation)
         else:
-            return K.extension(self._pre_poly, prec = self.precision_cap(), res_name = self.residue_field().variable_name(), print_mode=print_mode)
+            return K.extension(self._pre_poly, prec = self.precision_cap(), res_name = self.residue_field().variable_name(), print_mode=print_mode, implementation=self._implementation)
 
     def integer_ring(self, print_mode=None):
         r"""
@@ -316,10 +334,11 @@ class pAdicExtensionGeneric(pAdicGeneric):
         EXAMPLES::
 
             sage: R.<a> = Zq(125, 5); R.random_element()
-            3*a + (2*a + 1)*5 + (4*a^2 + 3*a + 4)*5^2 + (a^2 + 2*a)*5^3 + (a + 2)*5^4 + O(5^5)
+            (3*a^2 + 3*a + 3) + (a^2 + 4*a + 1)*5 + (3*a^2 + 4*a + 1)*5^2 + 
+            (2*a^2 + 3*a + 3)*5^3 + (4*a^2 + 3)*5^4 + O(5^5)
             sage: R = Zp(5,3); S.<x> = ZZ[]; f = x^5 + 25*x^2 - 5; W.<w> = R.ext(f)
             sage: W.random_element()
-            3 + 4*w + 3*w^2 + w^3 + 4*w^4 + w^5 + w^6 + 3*w^7 + w^8 + 2*w^10 + 4*w^11 + w^12 + 2*w^13 + 4*w^14 + O(w^15)
+            4 + 3*w + w^2 + 4*w^3 + w^5 + 3*w^6 + w^7 + 4*w^10 + 2*w^12 + 4*w^13 + 3*w^14 + O(w^15)
         """
         return reduce(lambda x,y: x+y,
                       [self.ground_ring().random_element() * self.gen()**i for i in

@@ -5,6 +5,7 @@ This module defines a HTML fragment class, which holds a piece of
 HTML. This is primarily used in browser-based notebooks, though it
 might be useful for creating static pages as well.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
@@ -150,7 +151,7 @@ class HtmlFragment(str, SageObject):
             sage: from sage.repl.rich_output import get_display_manager
             sage: dm = get_display_manager()
             sage: h = sage.misc.html.HtmlFragment('<b>old</b>')
-            sage: h._rich_repr_(dm)    # the doctest backend does not suppot html
+            sage: h._rich_repr_(dm)    # the doctest backend does not support html
             OutputPlainText container
         """
         OutputHtml = display_manager.types.OutputHtml
@@ -460,7 +461,7 @@ class HTMLFragmentFactory(SageObject):
         """
         from sage.misc.superseded import deprecation
         deprecation(18292, 'use table() instead of html.table()')
-        from table import table
+        from .table import table
         return table(x, header_row=header)._html_()
 
     @old_and_deprecated_wrapper
@@ -498,8 +499,8 @@ class HTMLFragmentFactory(SageObject):
             <iframe height="400" width="800"
             src="file:///home/admin/0/data/filename"></iframe>
             sage: pretty_print(html.iframe('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA'
-            ... 'AUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBA'
-            ... 'AO9TXL0Y4OHwAAAABJRU5ErkJggg=="'))
+            ....: 'AUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBA'
+            ....: 'AO9TXL0Y4OHwAAAABJRU5ErkJggg=="'))
             <iframe height="400" width="800" 
             src="http://data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==""></iframe>
         """

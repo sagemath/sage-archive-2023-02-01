@@ -21,8 +21,10 @@ other types will also coerce to the integers, when it makes sense.
 
 ::
 
-    sage: a = Z(1234); b = Z(5678); print a, b
-    1234 5678
+    sage: a = Z(1234); a
+    1234
+    sage: b = Z(5678); b
+    5678
     sage: type(a)
     <type 'sage.rings.integer.Integer'>
     sage: a + b
@@ -40,7 +42,8 @@ other types will also coerce to the integers, when it makes sense.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
+from __future__ import print_function
 
 include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
@@ -48,6 +51,7 @@ include "cysignals/signals.pxi"
 
 from cpython.int cimport *
 from cpython.list cimport *
+from cpython.object cimport Py_NE
 
 import sage.rings.infinity
 import sage.rings.rational
@@ -61,15 +65,17 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.structure.coerce cimport is_numpy_type
 from sage.structure.parent_gens import ParentWithGens
 from sage.structure.parent cimport Parent
+from sage.structure.sage_object cimport rich_to_bool
 from sage.structure.sequence import Sequence
+
 from sage.misc.misc_c import prod
 from sage.misc.randstate cimport randstate, current_randstate, SAGE_RAND_MAX
 from sage.libs.ntl.convert cimport ZZ_to_mpz
 
-cimport integer
-cimport rational
+cimport sage.rings.integer as integer
+cimport sage.rings.rational as rational
 
-import ring
+from . import ring
 
 arith = None
 cdef void late_import():
@@ -133,7 +139,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
     ``0o`` are interpreted as octal::
 
         sage: parent('37')
-        <type 'str'>
+        <... 'str'>
         sage: parent(Z('37'))
         Integer Ring
         sage: Z('0x10')
@@ -176,8 +182,10 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     We next illustrate basic arithmetic in `\ZZ`::
 
-        sage: a = Z(1234); b = Z(5678); print a, b
-        1234 5678
+        sage: a = Z(1234); a
+        1234
+        sage: b = Z(5678); b
+        5678
         sage: type(a)
         <type 'sage.rings.integer.Integer'>
         sage: a + b
@@ -354,35 +362,26 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def __richcmp__(left, right, int op):
         """
-        Rich comparsion of ``left`` and ``right``.
+        Rich comparison of ``left`` and ``right``.
 
         TESTS::
 
             sage: from sage.rings.integer_ring import IntegerRing_class
-            sage: cmp(ZZ,ZZ)
-            0
-            sage: cmp(ZZ,QQ)
-            -1
+            sage: ZZ == ZZ
+            True
+            sage: ZZ != QQ
+            True
         """
-        return (<Parent>left)._richcmp(right, op)
+        if left is right:
+            return rich_to_bool(op, 0)
 
-    cpdef int _cmp_(left, right) except -2:
-        """
-        Compare ``left`` and ``right``.
+        if isinstance(right, IntegerRing_class):
+            return rich_to_bool(op, 0)
 
-        TESTS::
-
-            sage: from sage.rings.integer_ring import IntegerRing_class
-            sage: IntegerRing_class._cmp_(ZZ,ZZ)
-            0
-            sage: IntegerRing_class._cmp_(ZZ,QQ)
-            -1
-        """
-        if isinstance(right,IntegerRing_class):
-            return 0
         if isinstance(right, sage.rings.rational_field.RationalField):
-            return -1
-        return cmp(type(left), type(right))
+            return rich_to_bool(op, -1)
+
+        return op == Py_NE
 
     def _repr_(self):
         """
@@ -405,27 +404,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             \Bold{Z}
         """
         return "\\Bold{Z}"
-
-    def _div(self, integer.Integer left, integer.Integer right):
-        """
-        TESTS::
-
-            sage: from sage.rings.integer_ring import IntegerRing_class
-            sage: A = IntegerRing_class()
-            sage: A._div(12,7)
-            12/7
-            sage: A._div(12,0)
-            Traceback (most recent call last):
-            ...
-            ZeroDivisionError: rational division by zero
-        """
-        cdef rational.Rational x = rational.Rational.__new__(rational.Rational)
-        if mpz_sgn(right.value) == 0:
-            raise ZeroDivisionError('rational division by zero')
-        mpz_set(mpq_numref(x.value), left.value)
-        mpz_set(mpq_denref(x.value), right.value)
-        mpq_canonicalize(x.value)
-        return x
 
     def __getitem__(self, x):
         """
@@ -499,7 +477,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             start = PY_NEW(Integer) # 0
         if step is None:
             step = 1
-        if not PyInt_CheckExact(step):
+        if type(step) is not int:
             if not isinstance(step, integer.Integer):
                 step = integer.Integer(step)
             if mpz_fits_slong_p((<Integer>step).value):
@@ -516,7 +494,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         cdef integer.Integer zstep, last
 
         L = []
-        if PyInt_CheckExact(step):
+        if type(step) is int:
             istep = PyInt_AS_LONG(step)
             step_sign = istep
         else:
@@ -527,7 +505,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         while mpz_cmp(a.value, b.value)*step_sign < 0:
             last = a
             a = PY_NEW(Integer)
-            if PyInt_CheckExact(step): # count on branch prediction...
+            if type(step) is int: # count on branch prediction...
                 if istep > 0:
                     mpz_add_ui(a.value, last.value, istep)
                 else:
@@ -545,7 +523,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         EXAMPLES::
 
             sage: for n in ZZ:
-            ....:  if n < 3: print n
+            ....:  if n < 3: print(n)
             ....:  else: break
             0
             1
@@ -649,25 +627,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         else:
             None
 
-
-    def is_subring(self, other):
-        r"""
-        Return ``True`` if `\ZZ` is a subring of other in a natural way.
-
-        Every ring of characteristic `0` contains `\ZZ` as a subring.
-
-        EXAMPLES::
-
-            sage: ZZ.is_subring(QQ)
-            True
-        """
-        if not ring.is_Ring(other):
-            raise TypeError, "other must be a ring"
-        if other.characteristic() == 0:
-            return True
-        else:
-            return False
-
     def random_element(self, x=None, y=None, distribution=None):
         r"""
         Return a random integer.
@@ -766,8 +725,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: from collections import defaultdict
             sage: d = defaultdict(lambda: 0)
             sage: for _ in range(1000):
-            ...       samp = ZZ.random_element()
-            ...       d[samp] = d[samp] + 1
+            ....:     samp = ZZ.random_element()
+            ....:     d[samp] = d[samp] + 1
 
             sage: sorted(d.items())
             [(-1955, 1), (-1026, 1), (-357, 1), (-248, 1), (-145, 1), (-81, 1), (-80, 1), (-79, 1), (-75, 1), (-69, 1), (-68, 1), (-63, 2), (-61, 1), (-57, 1), (-50, 1), (-37, 1), (-35, 1), (-33, 1), (-29, 2), (-27, 1), (-25, 1), (-23, 2), (-22, 3), (-20, 1), (-19, 1), (-18, 1), (-16, 4), (-15, 3), (-14, 1), (-13, 2), (-12, 2), (-11, 2), (-10, 7), (-9, 3), (-8, 3), (-7, 7), (-6, 8), (-5, 13), (-4, 24), (-3, 34), (-2, 75), (-1, 206), (0, 208), (1, 189), (2, 63), (3, 35), (4, 13), (5, 11), (6, 10), (7, 4), (8, 3), (10, 1), (11, 1), (12, 1), (13, 1), (14, 1), (16, 3), (18, 2), (19, 1), (26, 2), (27, 1), (28, 2), (29, 1), (30, 1), (32, 1), (33, 2), (35, 1), (37, 1), (39, 1), (41, 1), (42, 1), (52, 1), (91, 1), (94, 1), (106, 1), (111, 1), (113, 2), (132, 1), (134, 1), (232, 1), (240, 1), (2133, 1), (3636, 1)]
@@ -781,9 +740,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         cdef integer.Integer z
         z = <integer.Integer>PY_NEW(integer.Integer)
         if x is not None and y is None and x <= 0:
-            raise TypeError, "x must be > 0"
+            raise TypeError("x must be > 0")
         if x is not None and y is not None and x >= y:
-            raise TypeError, "x must be < y"
+            raise TypeError("x must be < y")
         self._randomize_mpz(z.value, x, y, distribution)
         return z
 
@@ -841,7 +800,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
                 _prev_discrete_gaussian_integer_sampler = (x, D)
             mpz_set(value, r.value)
         else:
-            raise ValueError, "Unknown distribution for the integers: %s"%distribution
+            raise ValueError("Unknown distribution for the integers: %s" % distribution)
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         r"""
@@ -880,7 +839,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         See :meth:`sage.structure.parent._repr_option` for details.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ZZ._repr_option('element_is_atomic')
             True
@@ -925,7 +884,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return sage.rings.rational_field.Q
 
-    def extension(self, poly, names=None, embedding=None):
+    def extension(self, poly, names, **kwds):
         """
         Return the order generated by the specified list of polynomials.
 
@@ -957,11 +916,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             Relative Order in Number Field in a with defining polynomial
             x^2 + 1 over its base field
         """
-        if embedding is not None:
-            if embedding!=[None]*len(embedding):
-                raise NotImplementedError
         from sage.rings.number_field.order import EquationOrder
-        return EquationOrder(poly, names)
+        return EquationOrder(poly, names=names, **kwds)
 
     def quotient(self, I, names=None):
         r"""
@@ -984,10 +940,10 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             n = I
         elif sage.rings.ideal.is_Ideal(I):
             if not (I.ring() is self):
-                raise TypeError, "I must be an ideal of ZZ"
+                raise TypeError("I must be an ideal of ZZ")
             n = I.gens()[0]
         else:
-            raise TypeError, "I must be an ideal of ZZ or an integer"
+            raise TypeError("I must be an ideal of ZZ or an integer")
         if n == 0:
             return self
         return sage.rings.finite_rings.integer_mod_ring.IntegerModRing(n)
@@ -1050,12 +1006,12 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             p = self.ideal(prime)
         elif sage.rings.ideal.is_Ideal(prime):
             if not (prime.ring() is self):
-                raise TypeError, "%s is not an ideal of ZZ"%prime
+                raise TypeError("%s is not an ideal of ZZ" % prime)
             p = prime
         else:
-            raise TypeError, "%s is neither an ideal of ZZ nor an integer"%prime
+            raise TypeError("%s is neither an ideal of ZZ nor an integer" % prime)
         if check and not p.is_prime():
-            raise TypeError, "%s is not prime"%prime
+            raise TypeError("%s is not prime" % prime)
         from sage.rings.finite_rings.residue_field import ResidueField
         return ResidueField(p, names = None, check = check)
 
@@ -1095,7 +1051,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         if n == 0:
             return self(1)
         else:
-            raise IndexError, "n must be 0"
+            raise IndexError("n must be 0")
 
     def ngens(self):
         """
@@ -1227,7 +1183,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         - an ``n``-th root of unity in `\ZZ`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ZZ.zeta()
             -1
@@ -1299,6 +1255,18 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             ZZ
         """
         return "ZZ"
+
+    def _polymake_init_(self):
+        r"""
+        Return the polymake representation of the integer ring.
+
+        EXAMPLES::
+
+            sage: polymake(ZZ)    # optional - polymake # indirect doctest
+            Integer
+
+        """
+        return '"Integer"'
 
     def _sage_input_(self, sib, coerced):
         r"""
@@ -1390,7 +1358,7 @@ def crt_basis(X, xgcd=None):
         (0, 0, 0, 1)
     """
     if not isinstance(X, list):
-        raise TypeError, "X must be a list"
+        raise TypeError("X must be a list")
     if len(X) == 0:
         return []
 
@@ -1398,12 +1366,12 @@ def crt_basis(X, xgcd=None):
 
     Y = []
     # 2. Compute extended GCD's
-    ONE=X[0].parent()(1)
+    ONE = X[0].parent().one()
     for i in range(len(X)):
         p = X[i]
-        others = P//p
-        g,s,t = p.xgcd(others)
+        others = P // p
+        g, s, t = p.xgcd(others)
         if g != ONE:
             raise ArithmeticError("the elements of the list X must be coprime in pairs")
-        Y.append(t*others)
+        Y.append(t * others)
     return Y

@@ -66,6 +66,8 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
 import weakref
 
@@ -74,7 +76,7 @@ import sage.misc.latex as latex
 import sage.rings.ring as ring
 import sage.rings.integer
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
-import free_module
+from . import free_module
 
 ###############################################################################
 #
@@ -360,13 +362,20 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
             sage: P = M.span([[1,2,3], [1,1,1]])
             sage: P.discriminant()
             6
+        
+        TESTS::
+        
+            sage: M=FreeQuadraticModule(ZZ,2,matrix.identity(2))
+            sage: M.discriminant()
+            -1
+            sage: M=FreeQuadraticModule(QQ,3,matrix.identity(3))
+            sage: M.discriminant()
+            -1
+            
         """
         n = self.rank()
-        if n%2 == 0:
-            r = n//2
-        else:
-            r = (n-1)//2
-        return (-1)^r*self.gram_matrix().determinant()
+        r = n//2
+        return (-1)**r*self.gram_matrix().determinant()
 
     def gram_matrix(self):
         """
@@ -765,24 +774,24 @@ class FreeQuadraticModule_ambient(
 
             sage: R = ZZ.quo(12)
             sage: M = R^12
-            sage: print M
+            sage: M
             Ambient free module of rank 12 over Ring of integers modulo 12
-            sage: print M._repr_()
+            sage: print(M._repr_())
             Ambient free module of rank 12 over Ring of integers modulo 12
 
         The system representation can be overwritten, but leaves
         :meth:`_repr_` unmodified::
 
             sage: M.rename('M')
-            sage: print M
+            sage: M
             M
-            sage: print M._repr_()
+            sage: print(M._repr_())
             Ambient free module of rank 12 over Ring of integers modulo 12
 
         Sparse modules print this fact::
 
             sage: N = FreeModule(R,12,sparse=True)
-            sage: print N
+            sage: N
             Ambient sparse free module of rank 12 over Ring of integers modulo 12
         """
         if self.is_sparse():
@@ -944,24 +953,24 @@ class FreeQuadraticModule_ambient_domain(
 
             sage: R = PolynomialRing(ZZ,'x')
             sage: M = FreeModule(R,7)
-            sage: print M
+            sage: M
             Ambient free module of rank 7 over the integral domain Univariate Polynomial Ring in x over Integer Ring
-            sage: print M._repr_()
+            sage: print(M._repr_())
             Ambient free module of rank 7 over the integral domain Univariate Polynomial Ring in x over Integer Ring
 
         The system representation can be overwritten, but leaves
         :meth:`_repr_` unmodified::
 
             sage: M.rename('M')
-            sage: print M
+            sage: M
             M
-            sage: print M._repr_()
+            sage: print(M._repr_())
             Ambient free module of rank 7 over the integral domain Univariate Polynomial Ring in x over Integer Ring
 
         Sparse modules print this fact::
 
             sage: N = FreeModule(R,7,sparse=True)
-            sage: print N
+            sage: N
             Ambient sparse free module of rank 7 over the integral domain Univariate Polynomial Ring in x over Integer Ring
 
         Here is a construction of a free quadratic module with generic
@@ -1062,24 +1071,24 @@ class FreeQuadraticModule_ambient_pid(
         is simpler::
 
             sage: M = FreeModule(ZZ,7)
-            sage: print M
+            sage: M
             Ambient free module of rank 7 over the principal ideal domain Integer Ring
-            sage: print M._repr_()
+            sage: print(M._repr_())
             Ambient free module of rank 7 over the principal ideal domain Integer Ring
 
         The system representation can be overwritten, but leaves
         :meth:`_repr_` unmodified::
 
             sage: M.rename('M')
-            sage: print M
+            sage: M
             M
-            sage: print M._repr_()
+            sage: print(M._repr_())
             Ambient free module of rank 7 over the principal ideal domain Integer Ring
 
         Sparse modules print this fact::
 
             sage: N = FreeModule(ZZ,7,sparse=True)
-            sage: print N
+            sage: N
             Ambient sparse free module of rank 7 over the principal ideal domain Integer Ring
 
         """
@@ -1135,24 +1144,24 @@ class FreeQuadraticModule_ambient_field(
         EXAMPLES::
 
             sage: V = FreeModule(QQ,7)
-            sage: print V
+            sage: V
             Vector space of dimension 7 over Rational Field
-            sage: print V._repr_()
+            sage: print(V._repr_())
             Vector space of dimension 7 over Rational Field
 
         The system representation can be overwritten, but leaves
         :meth:`_repr_` unmodified::
 
             sage: V.rename('V')
-            sage: print V
+            sage: V
             V
-            sage: print V._repr_()
+            sage: print(V._repr_())
             Vector space of dimension 7 over Rational Field
 
         Sparse modules print this fact::
 
             sage: U = FreeModule(QQ,7,sparse=True)
-            sage: print U
+            sage: U
             Sparse vector space of dimension 7 over Rational Field
         """
         if self.is_sparse():
@@ -1415,7 +1424,7 @@ class FreeQuadraticModule_submodule_pid(
 
             sage: M = FreeModule(ZZ,8,inner_product_matrix=1)
             sage: L = M.submodule([ M.gen(i) - M.gen(0) for i in range(1,8) ])
-            sage: print L # indirect doctest
+            sage: L # indirect doctest
             Free module of degree 8 and rank 7 over Integer Ring
             Echelon basis matrix:
             [ 1  0  0  0  0  0  0 -1]
@@ -1523,14 +1532,14 @@ class FreeQuadraticModule_submodule_with_basis_field(
 
             sage: V = VectorSpace(QQ,5)
             sage: U = V.submodule([ V.gen(i) - V.gen(0) for i in range(1,5) ])
-            sage: print U # indirect doctest
+            sage: U # indirect doctest
             Vector space of degree 5 and dimension 4 over Rational Field
             Basis matrix:
             [ 1  0  0  0 -1]
             [ 0  1  0  0 -1]
             [ 0  0  1  0 -1]
             [ 0  0  0  1 -1]
-            sage: print U._repr_()
+            sage: print(U._repr_())
             Vector space of degree 5 and dimension 4 over Rational Field
             Basis matrix:
             [ 1  0  0  0 -1]
@@ -1542,9 +1551,9 @@ class FreeQuadraticModule_submodule_with_basis_field(
         :meth:`_repr_` unmodified::
 
             sage: U.rename('U')
-            sage: print U
+            sage: U
             U
-            sage: print U._repr_()
+            sage: print(U._repr_())
             Vector space of degree 5 and dimension 4 over Rational Field
             Basis matrix:
             [ 1  0  0  0 -1]
@@ -1556,7 +1565,7 @@ class FreeQuadraticModule_submodule_with_basis_field(
 
             sage: V = VectorSpace(QQ,5,sparse=True)
             sage: U = V.submodule([ V.gen(i) - V.gen(0) for i in range(1,5) ])
-            sage: print U # indirect doctest
+            sage: U # indirect doctest
             Sparse vector space of degree 5 and dimension 4 over Rational Field
             Basis matrix:
             [ 1  0  0  0 -1]
@@ -1632,14 +1641,14 @@ class FreeQuadraticModule_submodule_field(
 
             sage: V = VectorSpace(QQ,5)
             sage: U = V.submodule([ V.gen(i) - V.gen(0) for i in range(1,5) ])
-            sage: print U # indirect doctest
+            sage: U # indirect doctest
             Vector space of degree 5 and dimension 4 over Rational Field
             Basis matrix:
             [ 1  0  0  0 -1]
             [ 0  1  0  0 -1]
             [ 0  0  1  0 -1]
             [ 0  0  0  1 -1]
-            sage: print U._repr_()
+            sage: print(U._repr_())
             Vector space of degree 5 and dimension 4 over Rational Field
             Basis matrix:
             [ 1  0  0  0 -1]
@@ -1651,9 +1660,9 @@ class FreeQuadraticModule_submodule_field(
         :meth:`_repr_` unmodified::
 
             sage: U.rename('U')
-            sage: print U
+            sage: U
             U
-            sage: print U._repr_()
+            sage: print(U._repr_())
             Vector space of degree 5 and dimension 4 over Rational Field
             Basis matrix:
             [ 1  0  0  0 -1]
@@ -1665,7 +1674,7 @@ class FreeQuadraticModule_submodule_field(
 
             sage: V = VectorSpace(QQ,5,sparse=True)
             sage: U = V.submodule([ V.gen(i) - V.gen(0) for i in range(1,5) ])
-            sage: print U # indirect doctest
+            sage: U # indirect doctest
             Sparse vector space of degree 5 and dimension 4 over Rational Field
             Basis matrix:
             [ 1  0  0  0 -1]

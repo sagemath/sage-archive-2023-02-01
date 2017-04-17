@@ -21,12 +21,12 @@ than the minimal valuation at that prime; we provide a function to
 return such a model.
 
 The implementation of this functionality is based on work of Kraus
-[Kraus] which gives a local condition for when a pair of number field
+[Kraus]_ which gives a local condition for when a pair of number field
 elements \(c_4\), \(c_6\) belong to a Weierstrass model which is
 integral at a prime \(P\), together with a global version. Only primes
 dividing 2 or 3 are hard to deal with. In order to compute the
 corresponding integral model one then needs to combine together the
-local transformations implicit in [Kraus] into a single global one.
+local transformations implicit in [Kraus]_ into a single global one.
 
 Various utility functions relating to the testing and use of Kraus's
 conditions are included here.
@@ -37,9 +37,9 @@ AUTHORS:
 
 REFERENCES:
 
-- [Kraus] Kraus, Alain, Quelques remarques a propos des invariants
-  \(c_4\), \(c_6\) et \(\Delta\) d'une courbe elliptique, Acta
-  Arith. 54 (1989), 75-80.
+.. [Kraus] Kraus, Alain, Quelques remarques à propos des invariants
+   \(c_4\), \(c_6\) et \(\Delta\) d'une courbe elliptique, Acta
+   Arith. 54 (1989), 75-80.
 """
 
 ##############################################################################
@@ -57,6 +57,7 @@ REFERENCES:
 #
 #                  http://www.gnu.org/licenses/
 ##############################################################################
+from __future__ import print_function
 
 from sage.all import prod
 from sage.rings.all import RealField, RR
@@ -421,7 +422,7 @@ def test_a1a3_local(c4,c6,P,a1,a3, debug=False):
     The elliptic curve which is the (a1^2/12,a1/2,a3/2)-transform of
     [0,0,0,-c4/48,-c6/864] if this is integral at P, else False.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.kraus import test_a1a3_local
         sage: K.<a> = NumberField(x^2-10)
@@ -461,7 +462,7 @@ def test_a1a3_global(c4,c6,a1,a3, debug=False):
     [0,0,0,-c4/48,-c6/864] if this is integral at all primes P
     dividing 2, else False.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.kraus import test_a1a3_global
         sage: K.<a> = NumberField(x^2-10)
@@ -475,11 +476,11 @@ def test_a1a3_global(c4,c6,a1,a3, debug=False):
     E = c4c6_model(c4,c6).rst_transform(a1**2/12,a1/2,a3/2)
     if not (c4,c6) == E.c_invariants():
         if debug:
-            print "wrong c-invariants"
+            print("wrong c-invariants")
         return False
     if not all([E.is_local_integral_model(P) for P in c4.parent().primes_above(2)]):
         if debug:
-            print "not integral at all primes above 2"
+            print("not integral at all primes above 2")
         return False
     return E
 
@@ -904,6 +905,24 @@ def semi_global_minimal_model(E, debug=False):
         Elliptic Curve defined by y^2 + 3*x*y + (2*a-11)*y = x^3 + (a-10)*x^2 + (-152*a-415)*x + (1911*a+5920) over Number Field in a with defining polynomial x^2 - 10
         sage: E.minimal_discriminant_ideal()*P**12 == K.ideal(Emin.discriminant())
         True
+
+    TESTS (see :trac:`20737`): a curve with no global minimal model
+    whose non-minimality class has order 3 in the class group, which
+    has order 3315.  The smallest prime in that ideal class has norm
+    23567::
+
+    sage: K.<a> = NumberField(x^2-x+31821453)
+    sage: ainvs = (0, 0, 0, -382586771000351226384*a - 2498023791133552294513515, 358777608829102441023422458989744*a + 1110881475104109582383304709231832166)
+    sage: E = EllipticCurve(ainvs)
+    sage: from sage.schemes.elliptic_curves.kraus import semi_global_minimal_model
+    sage: Emin, p = semi_global_minimal_model(E) # long time (15s)
+    sage: p                                      # long time
+    Fractional ideal (23567, a + 2270)
+    sage: p.norm()                               # long time
+    23567
+    sage: Emin.discriminant().norm().factor()    # long time
+    23567^12
+
     """
     c = E.global_minimality_class()
     I = c.ideal()
@@ -913,7 +932,14 @@ def semi_global_minimal_model(E, debug=False):
     else:
         if debug:
             print("No global minimal model, obstruction class = %s of order %s" % (c,c.order()))
-        P = c.representative_prime()
+        bound = E.base_field().minkowski_bound()
+        have_prime = False
+        while not have_prime:
+            try:
+                P = c.representative_prime(norm_bound=bound)
+                have_prime = True
+            except RuntimeError:
+                bound *=2
         if debug:
             print("Using a prime in that class: %s" % P)
         I = I/P

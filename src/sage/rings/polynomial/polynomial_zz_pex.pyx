@@ -62,7 +62,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
     """
     Univariate Polynomials over GF(p^n) via NTL's ZZ_pEX.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: K.<a>=GF(next_prime(2**60)**3)
         sage: R.<x> = PolynomialRing(K,implementation='NTL')
@@ -73,7 +73,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         """
         Create a new univariate polynomials over GF(p^n).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a>=GF(next_prime(2**60)**3)
             sage: R.<x> = PolynomialRing(K,implementation='NTL')
@@ -171,11 +171,11 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         cdef ZZ_pE_c c_pE = ZZ_pEX_coeff(self.x, i)
         return self._parent._base(ZZ_pE_c_to_list(c_pE))
 
-    def list(self):
+    cpdef list list(self, bint copy=True):
         """
         Returs the list of coefficients.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(5^3)
             sage: P = PolynomialRing(K, 'x')
@@ -191,14 +191,18 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         self._parent._modulus.restore()
 
         K = self._parent.base_ring()
-        return [K(ZZ_pE_c_to_list(ZZ_pEX_coeff(self.x, i))) for i in range(celement_len(&self.x, (<Polynomial_template>self)._cparent))]
+        return [K(ZZ_pE_c_to_list(ZZ_pEX_coeff(self.x, i)))
+                for i in range(celement_len(&self.x, (<Polynomial_template>self)._cparent))]
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _lmul_(self, RingElement left):
         """
-        EXAMPLE::
+        EXAMPLES::
+
             sage: K.<a>=GF(next_prime(2**60)**3)
             sage: R.<x> = PolynomialRing(K,implementation='NTL')
             sage: (2*a+1)*x # indirect doctest
+            (2*a + 1)*x
+            sage: x*(2*a+1) # indirect doctest
             (2*a + 1)*x
         """
         cdef ntl_ZZ_pE d
@@ -215,7 +219,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         """
         Evaluate polynomial at `a`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<u>=GF(next_prime(2**60)**3)
             sage: R.<x> = PolynomialRing(K,implementation='NTL')
@@ -227,7 +231,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
 
         TESTS:
 
-        The following was fixed at trac ticket #10475::
+        The following was fixed at :trac:`10475`::
 
             sage: F.<x> = GF(4)
             sage: P.<y> = F[]
@@ -250,7 +254,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         Check that polynomial evaluation works when using logarithmic
         representation of finite field elements (:trac:`16383`)::
 
-            sage: for i in xrange(10):
+            sage: for i in range(10):
             ....:     F = FiniteField(random_prime(15) ** ZZ.random_element(2, 5), 'a', repr='log')
             ....:     b = F.random_element()
             ....:     P = PolynomialRing(F, 'x')
@@ -367,9 +371,9 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             raise ValueError("unknown algorithm")
         return res != 0
 
-    cpdef int _cmp_(left,Element right) except -2:
+    cpdef _richcmp_(self, other, int op):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a>=GF(next_prime(2**60)**3)
             sage: R.<x> = PolynomialRing(K,implementation='NTL')
@@ -378,7 +382,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             sage: P1 < P2 # indirect doctests
             False
 
-        TEST::
+        TESTS::
 
             sage: P3 = (a**2+a+1)*x^2+  x+1
             sage: P4 =                  x+1
@@ -393,25 +397,11 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             sage: P1 > P4
             True
         """
-        cdef long ld, rd, i
-
-        left._parent._modulus.restore()
-        ld = left.degree()
-        rd = right.degree()
-        if ld < rd: return -1
-        if ld > rd: return 1
-        # degrees are equal
-        for i in range(ld,-1,-1):
-            li = left[i]
-            ri = right[i]
-            t = li.__cmp__(ri)
-            if t != 0:
-                return t
-        return 0
+        return Polynomial._richcmp_(self, other, op)
 
     def shift(self, int n):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a>=GF(next_prime(2**60)**3)
             sage: R.<x> = PolynomialRing(K,implementation='NTL')
@@ -432,7 +422,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
 
     def __lshift__(self, int n):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a>=GF(next_prime(2**60)**3)
             sage: R.<x> = PolynomialRing(K,implementation='NTL')
@@ -446,7 +436,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
 
     def __rshift__(self, int n):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a>=GF(next_prime(2**60)**3)
             sage: R.<x> = PolynomialRing(K,implementation='NTL')

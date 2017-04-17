@@ -1,4 +1,4 @@
-$(INST)/$(PYTHON) $(INST)/$(IPYTHON_GENUTILS) $(INST)/$(DECORATOR)
+$(PYTHON) | pip ipython_genutils decorator six enum34
 
 ----------
 All lines of this file are ignored except the first.

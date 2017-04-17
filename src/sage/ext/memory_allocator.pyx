@@ -1,5 +1,9 @@
-from sage.ext.memory cimport *
 include "cysignals/signals.pxi"
+include "cysignals/memory.pxi"
+
+cdef extern from *:
+    int unlikely(int) nogil  # Defined by Cython
+
 
 cdef class MemoryAllocator:
     r"""
@@ -104,6 +108,6 @@ cdef class MemoryAllocator:
         """
         cdef size_t i
         for i in range(self.n):
-            sage_free(self.pointers[i])
+            sig_free(self.pointers[i])
         if self.pointers != self.static_pointers:
-            sage_free(self.pointers)
+            sig_free(self.pointers)

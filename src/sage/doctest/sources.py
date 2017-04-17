@@ -18,14 +18,20 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
-import os, sys, re, random
+import os
+import sys
+import re
+import random
 import doctest
+from Cython.Utils import is_package_dir
 from sage.repl.preparse import preparse
 from sage.repl.load import load
 from sage.misc.lazy_attribute import lazy_attribute
-from parsing import SageDocTestParser
-from util import NestedName
+from .parsing import SageDocTestParser
+from .util import NestedName
 from sage.structure.dynamic_class import dynamic_class
 from sage.env import SAGE_SRC, SAGE_LOCAL
 
@@ -401,7 +407,7 @@ class StringDocTestSource(DocTestSource):
             sage: PythonStringSource = dynamic_class('PythonStringSource',(StringDocTestSource, PythonSource))
             sage: PSS = PythonStringSource('<runtime>', s, DocTestDefaults(), 'runtime')
             sage: for n, line in PSS:
-            ....:     print n, line,
+            ....:     print("{} {}".format(n, line))
             0 '''
             1     sage: 2 + 2
             2     4
@@ -435,7 +441,7 @@ class StringDocTestSource(DocTestSource):
             sage: PSS = PythonStringSource('<runtime>', s, DocTestDefaults(), 'runtime')
             sage: dt, tabs = PSS.create_doctests({})
             sage: for t in dt:
-            ....:     print t.name, t.examples[0].sage_source
+            ....:     print("{} {}".format(t.name, t.examples[0].sage_source))
             <runtime> 2 + 2
         """
         return self._create_doctests(namespace)
@@ -506,7 +512,7 @@ class FileDocTestSource(DocTestSource):
             sage: open(filename, 'w').write(s)
             sage: FDS = FileDocTestSource(filename, DocTestDefaults())
             sage: for n, line in FDS:
-            ....:     print n, line,
+            ....:     print("{} {}".format(n, line))
             0 '''
             1     sage: 2 + 2
             2     4
@@ -569,7 +575,8 @@ class FileDocTestSource(DocTestSource):
     @lazy_attribute
     def in_lib(self):
         """
-        Whether this file should be considered part of the Sage library.
+        Whether this file is part of a package (i.e. is in a directory
+        containing an ``__init__.py`` file).
 
         Such files aren't loaded before running tests.
 
@@ -579,10 +586,14 @@ class FileDocTestSource(DocTestSource):
             sage: from sage.doctest.sources import FileDocTestSource
             sage: from sage.env import SAGE_SRC
             sage: import os
-            sage: filename = os.path.join(SAGE_SRC,'sage','rings','integer.pyx')
-            sage: FDS = FileDocTestSource(filename,DocTestDefaults())
+            sage: filename = os.path.join(SAGE_SRC, 'sage', 'rings', 'integer.pyx')
+            sage: FDS = FileDocTestSource(filename, DocTestDefaults())
             sage: FDS.in_lib
             True
+            sage: filename = os.path.join(SAGE_SRC, 'sage', 'doctest', 'tests', 'abort.rst')
+            sage: FDS = FileDocTestSource(filename, DocTestDefaults())
+            sage: FDS.in_lib
+            False
 
         You can override the default::
 
@@ -593,11 +604,10 @@ class FileDocTestSource(DocTestSource):
             sage: FDS.in_lib
             True
         """
-        return (self.options.force_lib or
-                self.basename.startswith('sage.') or
-                self.basename.startswith('doc.') or
-                self.basename.startswith('sage_setup.docbuild') or
-                self.basename.startswith('sagenb.'))
+        # We need an explicit bool() because is_package_dir() returns
+        # 1/None instead of True/False.
+        return bool(self.options.force_lib or
+                is_package_dir(os.path.dirname(self.path)))
 
     def create_doctests(self, namespace):
         r"""
@@ -717,6 +727,7 @@ class FileDocTestSource(DocTestSource):
             There are 8 tests in sage/combinat/root_system/type_G.py that are not being run
             There are 3 unexpected tests being run in sage/doctest/parsing.py
             There are 1 unexpected tests being run in sage/doctest/reporting.py
+            There are 15 tests in sage/manifolds/manifold.py that are not being run
             There are 3 tests in sage/rings/invariant_theory.py that are not being run
             sage: os.chdir(cwd)
         """
@@ -763,19 +774,19 @@ class FileDocTestSource(DocTestSource):
                 if dif != e - s:
                     break
             else:
-                print "There are %s tests in %s that are shifted by %s"%(len(shortfall),self.path,dif)
+                print("There are %s tests in %s that are shifted by %s" % (len(shortfall), self.path, dif))
                 if verbose:
-                    print "    The correct line numbers are %s"%(", ".join([str(n) for n in shortfall]))
+                    print("    The correct line numbers are %s" % (", ".join([str(n) for n in shortfall])))
                 return
         elif len(actual) < len(expected):
-            print "There are %s tests in %s that are not being run"%(len(expected) - len(actual), self.path)
+            print("There are %s tests in %s that are not being run" % (len(expected) - len(actual), self.path))
         elif check_extras:
-            print "There are %s unexpected tests being run in %s"%(len(actual) - len(expected), self.path)
+            print("There are %s unexpected tests being run in %s" % (len(actual) - len(expected), self.path))
         if verbose:
             if shortfall:
-                print "    Tests on lines %s are not run"%(", ".join([str(n) for n in shortfall]))
+                print("    Tests on lines %s are not run" % (", ".join([str(n) for n in shortfall])))
             if check_extras and extras:
-                print "    Tests on lines %s seem extraneous"%(", ".join([str(n) for n in extras]))
+                print("    Tests on lines %s seem extraneous" % (", ".join([str(n) for n in extras])))
 
 class SourceLanguage:
     """
@@ -887,20 +898,20 @@ class PythonSource(SourceLanguage):
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','sources.py')
             sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: FDS._init()
-            sage: FDS._update_quotetype('\"\"\"'); print " ".join(list(FDS.quotetype))
+            sage: FDS._update_quotetype('\"\"\"'); print(" ".join(list(FDS.quotetype)))
             " " "
-            sage: FDS._update_quotetype("'''"); print " ".join(list(FDS.quotetype))
+            sage: FDS._update_quotetype("'''"); print(" ".join(list(FDS.quotetype)))
             " " "
-            sage: FDS._update_quotetype('\"\"\"'); print FDS.quotetype
+            sage: FDS._update_quotetype('\"\"\"'); print(FDS.quotetype)
             None
             sage: FDS._update_quotetype("triple_quotes = re.compile(\"\\s*[rRuU]*((''')|(\\\"\\\"\\\"))\")")
-            sage: print FDS.quotetype
+            sage: print(FDS.quotetype)
             None
             sage: FDS._update_quotetype("''' Single line triple quoted string \\''''")
-            sage: print FDS.quotetype
+            sage: print(FDS.quotetype)
             None
             sage: FDS._update_quotetype("' Lots of \\\\\\\\'")
-            sage: print FDS.quotetype
+            sage: print(FDS.quotetype)
             None
         """
         def _update_parens(start,end=None):
@@ -1082,7 +1093,7 @@ class PythonSource(SourceLanguage):
             sage: s = "'''\n    sage: 2 + 2\n    4\n'''"
             sage: PythonStringSource = dynamic_class('PythonStringSource',(StringDocTestSource, PythonSource))
             sage: PSS = PythonStringSource('<runtime>', s, DocTestDefaults(), 'runtime')
-            sage: print PSS._neutralize_doctests(0),
+            sage: print(PSS._neutralize_doctests(0))
             '''
                 safe: 2 + 2
                 4
@@ -1454,10 +1465,10 @@ class RestSource(SourceLanguage):
             sage: len(tests)
             2
             sage: for ex in tests[0].examples:
-            ....:     print ex.sage_source,
+            ....:     print(ex.sage_source)
             test3()
             sage: for ex in tests[1].examples:
-            ....:     print ex.sage_source,
+            ....:     print(ex.sage_source)
             test1()
             test2()
             sig_on_count() # check sig_on/off pairings (virtual doctest)

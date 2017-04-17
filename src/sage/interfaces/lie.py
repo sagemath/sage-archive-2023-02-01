@@ -95,7 +95,7 @@ You can also work with matrices in LiE. ::
          ,[-1, 9, 8,0]
          ,[ 3,-5,-2,9]
          ]
-    sage: print lie.eval('*'+m._name) # optional - lie
+    sage: print(lie.eval('*'+m._name))  # optional - lie
          [[1,12,-1, 3]
          ,[0, 4, 9,-5]
          ,[3,-4, 8,-2]
@@ -189,7 +189,7 @@ do not show up when using tab-completion. ::
 LiE's help can be accessed through lie.help('functionname') where
 functionname is the function you want to receive help for. ::
 
-   sage: print lie.help('diagram') # optional - lie
+   sage: print(lie.help('diagram'))  # optional - lie
    diagram(g).   Prints the Dynkin diagram of g, also indicating
       the type of each simple component printed, and labeling the nodes as
       done by Bourbaki (for the second and further simple components the
@@ -218,7 +218,7 @@ Vectors::
     sage: b = a.sage(); b # optional - lie
     [1, 2, 3]
     sage: type(b) # optional - lie
-    <type 'list'>
+    <... 'list'>
 
 Matrices::
 
@@ -243,7 +243,7 @@ Text::
     sage: b = a.sage(); b # optional - lie
     'text'
     sage: type(b) # optional - lie
-    <type 'str'>
+    <... 'str'>
 
 
 LiE can be programmed using the Sage interface as well. Section 5.1.5
@@ -252,13 +252,13 @@ which evaluates a polynomial at a point.  Below is a (roughly) direct
 translation of that program into Python / Sage. ::
 
     sage: def eval_pol(p, pt): # optional - lie
-    ...       s = 0
-    ...       for i in range(1,p.length().sage()+1):
-    ...           m = 1
-    ...           for j in range(1,pt.size().sage()+1):
-    ...               m *= pt[j]^p.expon(i)[j]
-    ...           s += p.coef(i)*m
-    ...       return s
+    ....:     s = 0
+    ....:     for i in range(1,p.length().sage()+1):
+    ....:         m = 1
+    ....:         for j in range(1,pt.size().sage()+1):
+    ....:             m *= pt[j]^p.expon(i)[j]
+    ....:         s += p.coef(i)*m
+    ....:     return s
     sage: a = lie('X[1,2]') # optional - lie
     sage: b1 = lie('[1,2]') # optional - lie
     sage: b2 = lie('[2,3]') # optional - lie
@@ -285,11 +285,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #
 ##########################################################################
+from __future__ import print_function
+from __future__ import absolute_import
 
-from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, AsciiArtString
+from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement, AsciiArtString
 from sage.misc.all import prod
 from sage.env import DOT_SAGE, SAGE_LOCAL
 from sage.interfaces.tab_completion import ExtraTabCompletion
+from sage.docs.instancedoc import instancedoc
 import os
 
 
@@ -745,6 +748,7 @@ class LiE(ExtraTabCompletion, Expect):
         return LiEFunctionElement
 
     
+@instancedoc
 class LiEElement(ExtraTabCompletion, ExpectElement):
     def _tab_completion(self):
         """
@@ -864,27 +868,29 @@ class LiEElement(ExtraTabCompletion, ExpectElement):
             return ExpectElement._sage_(self)
 
 
+@instancedoc
 class LiEFunctionElement(FunctionElement):
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         EXAMPLES::
 
             sage: a4 = lie('A4')  # optional - lie
-            sage: a4.diagram._sage_doc_() # optional - lie
+            sage: a4.diagram.__doc__  # optional - lie
             'diagram(g)...'
         """
         M = self._obj.parent()
         return M.help(self._name)
 
 
+@instancedoc
 class LiEFunction(ExpectFunction):
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         Returns the help for self.
 
         EXAMPLES::
 
-            sage: lie.diagram._sage_doc_() # optional - lie
+            sage: lie.diagram.__doc__  # optional - lie
             'diagram(g)...'
         """
         M = self._parent

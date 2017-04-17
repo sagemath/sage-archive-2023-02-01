@@ -14,7 +14,7 @@ all multilinear maps
 that vanish whenever any of two of their arguments are equal.
 Note that `\Lambda^1(M^*) = M^*` (the dual of `M`).
 
-`\Lambda^p(M^*)` is a free module of rank `\left({n\atop p}\right)` over `R`,
+`\Lambda^p(M^*)` is a free module of rank `\binom{n}{p}` over `R`,
 where `n` is the rank of `M`.
 Accordingly, exterior powers of free modules are implemented by a class,
 :class:`ExtPowerFreeModule`, which inherits from the class
@@ -44,6 +44,9 @@ from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 from sage.tensor.modules.free_module_alt_form import FreeModuleAltForm
 
+import six
+
+
 class ExtPowerFreeModule(FiniteRankFreeModule):
     r"""
     Class for the exterior powers of the dual of a free module of finite rank
@@ -62,7 +65,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
     that vanish whenever any of two of their arguments are equal.
     Note that `\Lambda^1(M^*) = M^*` (the dual of `M`).
 
-    `\Lambda^p(M^*)` is a free module of rank `\left({n\atop p}\right)` over
+    `\Lambda^p(M^*)` is a free module of rank `\binom{n}{p}` over
     `R`, where `n` is the rank of `M`.
     Accordingly, the class :class:`ExtPowerFreeModule` inherits from the class
     :class:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule`.
@@ -103,7 +106,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
     ``A`` is a module (actually a free module) over `\ZZ`::
 
         sage: A.category()
-        Category of modules over Integer Ring
+        Category of finite dimensional modules over Integer Ring
         sage: A in Modules(ZZ)
         True
         sage: A.rank()
@@ -320,7 +323,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
                                          tensor.base_module() is self._fmodule:
                 resu = self.element_class(self._fmodule, 1, name=tensor._name,
                                           latex_name=tensor._latex_name)
-                for basis, comp in tensor._components.iteritems():
+                for basis, comp in six.iteritems(tensor._components):
                     resu._components[basis] = comp.copy()
                 return resu
             else:
@@ -454,7 +457,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
         - instance of :class:`FiniteRankFreeModule` representing the free
           module on which the exterior power is defined.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 5, name='M')
             sage: A = M.dual_exterior_power(2)

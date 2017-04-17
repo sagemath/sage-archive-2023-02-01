@@ -38,6 +38,7 @@ This is a result of Kinnersley [Kin92]_ and Bodlaender [Bod98]_.
     :widths: 30, 70
     :delim: |
 
+    :meth:`pathwidth` | Computes the pathwidth of ``self`` (and provides a decomposition)
     :meth:`path_decomposition` | Returns the pathwidth of the given graph and the ordering of the vertices resulting in a corresponding path decomposition
     :meth:`vertex_separation` | Returns an optimal ordering of the vertices and its cost for vertex-separation
     :meth:`vertex_separation_exp` | Computes the vertex separation of `G` using an exponential time and space algorithm
@@ -46,6 +47,7 @@ This is a result of Kinnersley [Kin92]_ and Bodlaender [Bod98]_.
     :meth:`lower_bound` | Returns a lower bound on the vertex separation of `G`
     :meth:`is_valid_ordering` | Test if the linear vertex ordering `L` is valid for (di)graph `G`
     :meth:`width_of_path_decomposition` | Returns the width of the path decomposition induced by the linear ordering `L` of the vertices of `G`
+    :meth:`linear_ordering_to_path_decomposition`| Return the path decomposition encoded in the ordering `L`
 
 
 Exponential algorithm for vertex separation
@@ -96,7 +98,7 @@ knows that having `S` in a sequence means a total cost of at least `c'(S) +
 5`. For this reason, for each set `S` we store the value of `c'(S)`, and replace
 it by `\max (c'(S), \min_{\text{next}})` (where `\min_{\text{next}}` is the
 minimum of the costs of the out-neighbors of `S`) once the costs of these
-out-neighbors have been evaluated by the algrithm.
+out-neighbors have been evaluated by the algorithm.
 
 .. NOTE::
 
@@ -268,8 +270,9 @@ Authors
 Methods
 -------
 """
+from __future__ import print_function
 
-include 'sage/ext/stdsage.pxi'
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 include 'sage/ext/cdefs.pxi'
 from sage.graphs.graph_decompositions.fast_digraph cimport FastDigraph, compute_out_neighborhood_cardinality, popcount32
@@ -306,7 +309,7 @@ def lower_bound(G):
         This method runs in exponential time but has no memory constraint.
 
 
-    EXAMPLE:
+    EXAMPLES:
 
     On a circuit::
 
@@ -347,7 +350,7 @@ def lower_bound(G):
     cdef int n = FD.n
 
     # minimums[i] is means to store the value of c'_{i+1}
-    minimums = <uint8_t *> sage_malloc(sizeof(uint8_t)* n)
+    minimums = <uint8_t *> sig_malloc(sizeof(uint8_t)* n)
     cdef unsigned int i
 
     # They are initialized to n
@@ -370,13 +373,226 @@ def lower_bound(G):
 
     cdef int min = minimums[0]
 
-    sage_free(minimums)
+    sig_free(minimums)
 
     return min
+
+###################################################################
+# Method for turning an ordering to a path decomposition and back #
+###################################################################
+
+def linear_ordering_to_path_decomposition(G, L):
+    """
+    Return the path decomposition encoded in the ordering L
+
+    INPUT:
+
+    - ``G`` -- a Graph
+
+    - ``L`` -- a linear ordering for G
+
+    OUTPUT:
+
+    A path graph whose vertices are the bags of the path decomposition.
+
+    EXAMPLES:
+
+    The bags of an optimal path decomposition of a path-graph have two vertices each::
+
+        sage: from sage.graphs.graph_decompositions.vertex_separation import vertex_separation
+        sage: from sage.graphs.graph_decompositions.vertex_separation import linear_ordering_to_path_decomposition
+        sage: g = graphs.PathGraph(5)
+        sage: pw, L = vertex_separation(g, algorithm = "BAB"); pw
+        1
+        sage: h = linear_ordering_to_path_decomposition(g, L)
+        sage: h.vertices()
+        [{0, 1}, {3, 4}, {2, 3}, {1, 2}]
+        sage: h.edges(labels=None)
+        [({0, 1}, {1, 2}), ({2, 3}, {3, 4}), ({1, 2}, {2, 3})]
+
+    Giving a non-optimal linear ordering::
+
+        sage: g = graphs.PathGraph(5)
+        sage: L = [1, 4, 0, 2, 3]
+        sage: from sage.graphs.graph_decompositions.vertex_separation import width_of_path_decomposition
+        sage: width_of_path_decomposition(g, L)
+        3
+        sage: h = linear_ordering_to_path_decomposition(g, L)
+        sage: h.vertices()
+        [{0, 2, 3, 4}, {0, 1, 2}]
+        
+    The bags of the path decomposition of a cycle have three vertices each::
+
+        sage: g = graphs.CycleGraph(6)
+        sage: pw, L = vertex_separation(g, algorithm = "BAB"); pw
+        2
+        sage: h = linear_ordering_to_path_decomposition(g, L)
+        sage: h.vertices()
+        [{1, 2, 5}, {2, 3, 4}, {0, 1, 5}, {2, 4, 5}]
+        sage: h.edges(labels=None)
+        [({1, 2, 5}, {2, 4, 5}), ({0, 1, 5}, {1, 2, 5}), ({2, 4, 5}, {2, 3, 4})]
+
+
+    TESTS::
+
+        sage: linear_ordering_to_path_decomposition(Graph(), [])
+        Graph on 0 vertices
+        sage: linear_ordering_to_path_decomposition(DiGraph(), [])
+        Traceback (most recent call last):
+        ...
+        ValueError: the first parameter must be a Graph
+        sage: g = graphs.CycleGraph(6)
+        sage: linear_ordering_to_path_decomposition(g, list(range(7)))
+        Traceback (most recent call last):
+        ...
+        ValueError: the input linear vertex ordering L is not valid for G
+    """
+    from sage.graphs.graph import Graph
+    if not isinstance(G, Graph):
+        raise ValueError("the first parameter must be a Graph")
+    if not G:
+        return Graph()
+    if not is_valid_ordering(G, L):
+        raise ValueError("the input linear vertex ordering L is not valid for G")
+
+    cdef set seen    = set()  # already treated vertices
+    cdef set covered = set()  # vertices in the neighborhood of seen but not in seen
+    cdef list bags   = list() # The bags of the path decomposition
+
+    # We build the bags of the path-decomposition, and avoid adding useless bags
+    for u in L:
+        seen.add(u)
+        covered.update(G.neighbors(u))
+        covered.difference_update(seen)
+        new_bag = covered.union([u])
+        if bags:
+            if new_bag.issubset(bags[-1]):
+                continue
+            if new_bag.issuperset(bags[-1]):
+                bags.pop()
+
+        bags.append(new_bag)
+
+    # We now build a graph whose vertices are bags
+    from sage.sets.set import Set
+    H = Graph()
+    H.add_path([Set(bag) for bag in bags])
+    return H
+
+
 
 ##################################################################
 # Front end methods for path decomposition and vertex separation #
 ##################################################################
+
+def pathwidth(self, k=None, certificate=False, algorithm="BAB", verbose=False,
+              max_prefix_length=20, max_prefix_number=10**6):
+    """
+    Computes the pathwidth of ``self`` (and provides a decomposition)
+
+    INPUT:
+
+    - ``k`` (integer) -- the width to be considered. When ``k`` is an integer,
+      the method checks that the graph has pathwidth `\leq k`. If ``k`` is
+      ``None`` (default), the method computes the optimal pathwidth.
+
+    - ``certificate`` -- whether to return the path-decomposition itself.
+
+    - ``algorithm`` -- (default: ``"BAB"``) Specify the algorithm to use among
+
+      - ``"BAB"`` -- Use a branch-and-bound algorithm. This algorithm has no
+        size restriction but could take a very long time on large graphs. It can
+        also be used to test is the input graph has pathwidth `\leq k`, in which
+        cas it will return the first found solution with width `\leq k` is
+        ``certificate==True``.
+
+      - ``exponential`` -- Use an exponential time and space algorithm. This
+        algorithm only works of graphs on less than 32 vertices.
+
+      - ``MILP`` -- Use a mixed integer linear programming formulation. This
+        algorithm has no size restriction but could take a very long time.
+
+    - ``verbose`` (boolean) -- whether to display information on the
+      computations.
+
+    - ``max_prefix_length`` -- (default: 20) limits the length of the stored
+      prefixes to prevent storing too many prefixes. This parameter is used only
+      when ``algorithm=="BAB"``.
+
+    - ``max_prefix_number`` -- (default: 10**6) upper bound on the number of
+      stored prefixes used to prevent using too much memory. This parameter is
+      used only when ``algorithm=="BAB"``.
+
+    OUTPUT:
+
+    Return the pathwidth of ``self``. When ``k`` is specified, it returns
+    ``False`` when no path-decomposition of width `\leq k` exists or ``True``
+    otherwise. When ``certificate=True``, the path-decomposition is also
+    returned.
+
+    .. SEEALSO::
+
+        * :meth:`Graph.treewidth` -- computes the treewidth of a graph
+        * :meth:`~sage.graphs.graph_decompositions.vertex_separation.vertex_separation`
+          -- computes the vertex separation of a (di)graph
+
+    EXAMPLES:
+
+    The pathwidth of a cycle is equal to 2::
+
+        sage: g = graphs.CycleGraph(6)
+        sage: g.pathwidth()
+        2
+        sage: pw, decomp = g.pathwidth(certificate=True)
+        sage: decomp.vertices()
+        [{1, 2, 5}, {2, 3, 4}, {0, 1, 5}, {2, 4, 5}]
+
+    The pathwidth of a Petersen graph is 5::
+
+        sage: g = graphs.PetersenGraph()
+        sage: g.pathwidth()
+        5
+        sage: g.pathwidth(k=2)
+        False
+        sage: g.pathwidth(k=6)
+        True
+        sage: g.pathwidth(k=6, certificate=True)
+        (True, Graph on 5 vertices)
+
+    TESTS:
+
+    Given anything else than a Graph::
+
+        sage: from sage.graphs.graph_decompositions.vertex_separation import pathwidth
+        sage: pathwidth(DiGraph())
+        Traceback (most recent call last):
+        ...
+        ValueError: the parameter must be a Graph
+
+    Given a wrong algorithm::
+
+        sage: from sage.graphs.graph_decompositions.vertex_separation import pathwidth
+        sage: pathwidth(Graph(), algorithm="SuperFast")
+        Traceback (most recent call last):
+        ...
+        ValueError: Algorithm "SuperFast" has not been implemented yet. Please contribute.
+    """
+    from sage.graphs.graph import Graph
+    if not isinstance(self, Graph):
+        raise ValueError("the parameter must be a Graph")
+
+    pw, L = vertex_separation(self, algorithm=algorithm, verbose=verbose,
+                              cut_off=k, upper_bound=None if k is None else (k+1),
+                              max_prefix_length=max_prefix_length,
+                              max_prefix_number=max_prefix_number)
+
+    if k is None:
+        return (pw, linear_ordering_to_path_decomposition(self, L)) if certificate else pw
+    if pw < 0:
+        # no solution found
+        return (False, Graph()) if certificate else False
+    return (pw <= k, linear_ordering_to_path_decomposition(self, L)) if certificate else pw <= k
+
 
 def path_decomposition(G, algorithm = "BAB", cut_off=None, upper_bound=None, verbose = False,
                        max_prefix_length=20, max_prefix_number=10**6):
@@ -434,7 +650,7 @@ def path_decomposition(G, algorithm = "BAB", cut_off=None, upper_bound=None, ver
 
         * :meth:`Graph.treewidth` -- computes the treewidth of a graph
 
-    EXAMPLE:
+    EXAMPLES:
 
     The pathwidth of a cycle is equal to 2::
 
@@ -551,7 +767,7 @@ def vertex_separation(G, algorithm = "BAB", cut_off=None, upper_bound=None, verb
 
         sage: from sage.graphs.graph_decompositions.vertex_separation import vertex_separation
         sage: D = digraphs.Path(8)
-        sage: print vertex_separation(D)
+        sage: print(vertex_separation(D))
         (0, [7, 6, 5, 4, 3, 2, 1, 0])
         sage: D = DiGraph( random_DAG(30) )
         sage: vs,L = vertex_separation(D); vs
@@ -559,12 +775,12 @@ def vertex_separation(G, algorithm = "BAB", cut_off=None, upper_bound=None, verb
         sage: K4 = DiGraph( graphs.CompleteGraph(4) )
         sage: D = K4+K4
         sage: D.add_edge(0, 4)
-        sage: print vertex_separation(D)
+        sage: print(vertex_separation(D))
         (3, [4, 5, 6, 7, 0, 1, 2, 3])
         sage: D = K4+K4+K4
         sage: D.add_edge(0, 4)
         sage: D.add_edge(0, 8)
-        sage: print vertex_separation(D)
+        sage: print(vertex_separation(D))
         (3, [8, 9, 10, 11, 4, 5, 6, 7, 0, 1, 2, 3])
 
     TESTS:
@@ -687,7 +903,7 @@ def vertex_separation_exp(G, verbose = False):
         graphs on less than 32 vertices. This can be changed to 54 if necessary,
         but 32 vertices already require 4GB of memory.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The vertex separation of a circuit is equal to 1::
 
@@ -732,13 +948,13 @@ def vertex_separation_exp(G, verbose = False):
     cdef FastDigraph g = FastDigraph(G)
 
     if verbose:
-        print "Memory allocation"
+        print("Memory allocation")
         g.print_adjacency_matrix()
 
     sig_on()
 
     cdef unsigned int mem = 1 << g.n
-    cdef uint8_t * neighborhoods = <uint8_t *> sage_malloc(mem)
+    cdef uint8_t * neighborhoods = <uint8_t *> sig_malloc(mem)
 
     if neighborhoods == NULL:
         sig_off()
@@ -747,20 +963,20 @@ def vertex_separation_exp(G, verbose = False):
     memset(neighborhoods, <uint8_t> -1, mem)
 
     cdef int i,j , k
-    for k in range(g.n):
+    for k in xrange(g.n):
         if verbose:
-            print "Looking for a strategy of cost", str(k)
+            print("Looking for a strategy of cost", str(k))
 
         if exists(g, neighborhoods, 0, k) <= k:
             break
 
     if verbose:
-        print "... Found !"
-        print "Now computing the ordering"
+        print("... Found !")
+        print("Now computing the ordering")
 
     cdef list order = find_order(g, neighborhoods, k)
 
-    sage_free(neighborhoods)
+    sig_free(neighborhoods)
     sig_off()
 
     return k, list( g.int_to_vertices[i] for i in order )
@@ -790,7 +1006,7 @@ cdef inline int exists(FastDigraph g, uint8_t * neighborhoods, int current, int 
     cdef int next_set
 
 
-    for i in range(g.n):
+    for i in xrange(g.n):
         if (current >> i)&1:
             continue
 
@@ -821,7 +1037,7 @@ cdef list find_order(FastDigraph g, uint8_t * neighborhoods, int cost):
     while n:
         # We look for n vertices
 
-        for i in range(g.n):
+        for i in xrange(g.n):
             if (current >> i)&1:
                 continue
 
@@ -874,10 +1090,10 @@ def is_valid_ordering(G, L):
     OUTPUT:
 
     Returns ``True`` if `L` is a valid vertex ordering for `G`, and ``False``
-    oterwise.
+    otherwise.
 
 
-    EXAMPLE:
+    EXAMPLES:
 
     Path decomposition of a cycle::
 
@@ -1063,7 +1279,7 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
     A pair ``(cost, ordering)`` representing the optimal ordering of the
     vertices and its cost.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Vertex separation of a De Bruijn digraph::
 
@@ -1089,11 +1305,11 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
 
         sage: from sage.graphs.graph_decompositions import vertex_separation
         sage: for i in range(10):
-        ...       G = digraphs.RandomDirectedGNP(10, 0.2)
-        ...       ve, le = vertex_separation.vertex_separation(G)
-        ...       vm, lm = vertex_separation.vertex_separation_MILP(G)
-        ...       if ve != vm:
-        ...          print "The solution is not optimal!"
+        ....:     G = digraphs.RandomDirectedGNP(10, 0.2)
+        ....:     ve, le = vertex_separation.vertex_separation(G)
+        ....:     vm, lm = vertex_separation.vertex_separation_MILP(G)
+        ....:     if ve != vm:
+        ....:        print("The solution is not optimal!")
 
     Comparison with different values of the integrality parameter::
 
@@ -1103,7 +1319,7 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
         ....:     va, la = vertex_separation.vertex_separation_MILP(G, integrality=False)
         ....:     vb, lb = vertex_separation.vertex_separation_MILP(G, integrality=True)
         ....:     if va != vb:
-        ....:        print "The integrality parameter changes the result!"
+        ....:        print("The integrality parameter changes the result!")
 
     Giving anything else than a Graph or a DiGraph::
 
@@ -1134,7 +1350,7 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
     # (2) x[v,t] <= x[v,t+1]   for all v in V, and for t:=0..N-2
     # (3) y[v,t] <= y[v,t+1]   for all v in V, and for t:=0..N-2
     for v in V:
-        for t in xrange(N-1):
+        for t in xrange(N - 1):
             p.add_constraint( x[v,t] - x[v,t+1] <= 0 )
             p.add_constraint( y[v,t] - y[v,t+1] <= 0 )
 
@@ -1384,17 +1600,17 @@ def vertex_separation_BAB(G,
     cdef binary_matrix_t bm_pool
     binary_matrix_init(bm_pool, 3*n+2, n)
 
-    cdef int * prefix    = <int *>sage_malloc(n * sizeof(int))
-    cdef int * positions = <int *>sage_malloc(n * sizeof(int))
+    cdef int * prefix    = <int *>sig_malloc(n * sizeof(int))
+    cdef int * positions = <int *>sig_malloc(n * sizeof(int))
     if prefix==NULL or positions==NULL:
-        sage_free(prefix)
-        sage_free(positions)
+        sig_free(prefix)
+        sig_free(positions)
         binary_matrix_free(H)
         binary_matrix_free(bm_pool)
         raise MemoryError("Unable to allocate data strutures.")
 
-    cdef list best_seq = range(n)
-    for i in range(n):
+    cdef list best_seq = list(range(n))
+    for i in xrange(n):
         prefix[i] = i
         positions[i] = i
 
@@ -1425,13 +1641,13 @@ def vertex_separation_BAB(G,
         sig_off()
 
         # ==> Build the final ordering
-        order = [int_to_vertex[best_seq[i]] for i in range(n)]
+        order = [int_to_vertex[best_seq[i]] for i in xrange(n)]
 
     finally:
         if verbose:
-            print 'Stored prefixes: {}'.format(len(prefix_storage))
-        sage_free(prefix)
-        sage_free(positions)
+            print('Stored prefixes: {}'.format(len(prefix_storage)))
+        sig_free(prefix)
+        sig_free(positions)
         binary_matrix_free(H)
         binary_matrix_free(bm_pool)
 
@@ -1519,10 +1735,10 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
 
     if level==n:
         if current_cost < upper_bound:
-            for i in range(n):
+            for i in xrange(n):
                 best_seq[i] = prefix[i]
             if verbose:
-                print "New upper bound: {}".format(current_cost)
+                print("New upper bound: {}".format(current_cost))
 
         return current_cost
 
@@ -1583,10 +1799,10 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
     #
     if loc_level==n:
         if current_cost < upper_bound:
-            for i in range(n):
+            for i in xrange(n):
                 best_seq[i] = prefix[i]
             if verbose:
-                print "New upper bound: {}".format(current_cost)
+                print("New upper bound: {}".format(current_cost))
 
         return current_cost
 
@@ -1599,7 +1815,7 @@ cdef int vertex_separation_BAB_C(binary_matrix_t H,
     cdef frozenset frozen_prefix
 
     if loc_level<=max_prefix_length:
-        frozen_prefix = frozenset([prefix[i] for i in range(loc_level)])
+        frozen_prefix = frozenset([prefix[i] for i in xrange(loc_level)])
         if frozen_prefix in prefix_storage:
             return upper_bound
 

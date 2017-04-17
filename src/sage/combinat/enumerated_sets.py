@@ -119,6 +119,7 @@ Backtracking solvers and generic enumerated sets
 
 - :func:`~sage.sets.recursively_enumerated_set.RecursivelyEnumeratedSet`
 - :class:`~sage.combinat.backtrack.GenericBacktracker`
+- :mod:`sage.parallel.map_reduce`
 - :ref:`sage.combinat.tiling`
 - :ref:`sage.combinat.dlx`
 - :ref:`sage.combinat.matrices.dlxcpp`

@@ -22,8 +22,8 @@ AUTHORS:
 
 REFERENCES:
 
-.. [CW2005] J. E. Cremona and M. Watkins. Computing isogenies of elliptic curves. preprint, 2005.
-.. [KT2013] K. Tsukazaki, Explicit Isogenies of Elliptic Curves,
+.. [CW2005] \J. E. Cremona and M. Watkins. Computing isogenies of elliptic curves. preprint, 2005.
+.. [KT2013] \K. Tsukazaki, Explicit Isogenies of Elliptic Curves,
    PhD thesis, University of Warwick, 2013.
 
 
@@ -176,7 +176,7 @@ def Psi(l, use_stored=True):
     - ``use_stored`` (boolean, default True) -- If True, use
       precomputed values, otherwise compute them on the fly.
 
-    .. note:
+    .. note::
 
        This computation takes a negligible time for `l=2,3,5,7`
        but more than 100s for `l=13`.  The reason
@@ -368,7 +368,10 @@ def _sporadic_Q_data(j):
     ``([a4,a6],coeffs)`` where ``[a4,a6]`` are the coefficients of a
     short Weierstrass equation of an elliptic curve E with j(E)=``j``,
     and ``coeffs`` is a list of coefficients of a polynomial defining
-    the kernel of an l-isogeny from E.
+    the kernel of an l-isogeny from E.  In all but one case this
+    polynomial is monic with integer coefficients.  In one case
+    ($\ell=37$, $j=-162677523113838677$) the constant coefficient has
+    denominator $37$.
 
     Whenever we have a curve of j-invariant ``j``, we can compute the
     corresponding l-isogeny by just scaling ``coeffs`` by the right
@@ -386,7 +389,7 @@ def _sporadic_Q_data(j):
         sage: from sage.schemes.elliptic_curves.isogeny_small_degree import sporadic_j, _sporadic_Q_data
         sage: [_sporadic_Q_data(j) for j in sorted(sporadic_j.keys()) if j != -262537412640768000]
         [([-269675595, -1704553285050],
-          [-855506888466179262477032094260950275409164148942611063430052125977143159,
+          [-31653754873248632711650187487655160190139073510876609346911928661154296875/37,
            -1469048260972089939455942042937882262144594798448952781325533511718750,
            -1171741935131505774747142644126089902595908234671576131857702734375,
            -574934780393177024547076427530739751753985644656221274606250000,
@@ -517,6 +520,20 @@ def _sporadic_Q_data(j):
            8160,
            1]),
          ([-3267, -280962], [1480352841, -56169531, -2829222, 10890, 429, 1])]
+
+    See :trac:`22328`.  This used to fail on l=37,
+    j=-162677523113838677 for which the kernel polynomial is not
+    integral::
+
+        sage: R = PolynomialRing(QQ,'x')
+        sage: for j in sporadic_j:
+        ....:     ell = sporadic_j[j]
+        ....:     if ell==163: continue # takes 40s
+        ....:     E = EllipticCurve(j=j).short_weierstrass_model()
+        ....:     f = R(_sporadic_Q_data(j)[1])
+        ....:     g = E.division_polynomial(ell)
+        ....:     assert g%f==0
+
     """
     from sage.rings.all import RealField
     from sage.misc.all import prod
@@ -535,7 +552,10 @@ def _sporadic_Q_data(j):
     if j in [-121, -24729001, -162677523113838677, QQ(-882216989)/131072]:
         w = 2*w2-w1 # imaginary period
     kerpol = prod(([X-L.elliptic_exponential(n*w/ell)[0] for n in range(1,(ell+1)//2)]))
-    kerpolcoeffs = [c.real().round() for c in list(kerpol)]
+    if j==-162677523113838677:
+        kerpolcoeffs = [(37*c.real()).round()/37 for c in list(kerpol)]
+    else:
+        kerpolcoeffs = [c.real().round() for c in list(kerpol)]
     return (a4a6,kerpolcoeffs)
 
 def isogenies_sporadic_Q(E, l=None):
@@ -1455,23 +1475,30 @@ def Psi2(l):
 
     The generic `l`-kernel polynomial.
 
-    TESTS::
+    EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.isogeny_small_degree import Psi2
         sage: Psi2(11)
         x^5 - 55*x^4*u + 994*x^3*u^2 - 8774*x^2*u^3 + 41453*x*u^4 - 928945/11*u^5 + 33*x^4 + 276*x^3*u - 7794*x^2*u^2 + 4452*x*u^3 + 1319331/11*u^4 + 216*x^3*v - 4536*x^2*u*v + 31752*x*u^2*v - 842616/11*u^3*v + 162*x^3 + 38718*x^2*u - 610578*x*u^2 + 33434694/11*u^3 - 4536*x^2*v + 73872*x*u*v - 2745576/11*u^2*v - 16470*x^2 + 580068*x*u - 67821354/11*u^2 - 185976*x*v + 14143896/11*u*v + 7533*x - 20437029/11*u - 12389112/11*v + 19964151/11
+        sage: Psi2(71)  # long time (1 second)
+        -2209380711722505179506258739515288584116147237393815266468076436521/71*u^210 + ... - 14790739586438315394567393301990769678157425619440464678252277649/71
 
+    TESTS::
+
+        sage: Psi2(13)
+        Traceback (most recent call last):
+        ...
+        ValueError: 13 must be one of [11, 17, 19, 23, 29, 31, 41, 47, 59, 71].
     """
-    if not l in hyperelliptic_primes:
-        raise ValueError("%s must be one of %s."%(l,hyperelliptic_primes))
-
     data = _hyperelliptic_isogeny_data(l)
-    R = PolynomialRing(QQ,['x','u'])
-    x, u = R.gens()
-    L = PolynomialRing(R,'y')
-    y = L.gen()
-    K = R.extension(y**2-R(data['hyper_poly']),name = 'v')
+
+    R = PolynomialRing(QQ, 'u')
+    u = R.gen()
+    L = PolynomialRing(R, 'v')
+    v = L.gen()
+    K = R.extension(v*v - R(data['hyper_poly']), 'v')
     v = K.gen()
+
     from sage.categories.homset import Hom
     h = Hom(K,K)(-v)
 
@@ -1482,20 +1509,21 @@ def Psi2(l):
     s1 = K(data['A2'])
 
     d = (l-1)//2
-    s = [1]
-    t = [d,s1,((1-10*d)*A - Abar)*(1/QQ(30))]
-    t += [((1-28*d)*B - 42*t[1]*A - Bbar)*(1/QQ(70))]
-    c = [0,6*t[2] + 2*A*t[0],10*t[3] + 6*A*t[1] + 4*B*t[0]]
+    s = [K(1)]
+    t = [d, s1, ((1-10*d)*A - Abar) * QQ((1,30))]
+    t.append(((1-28*d)*B - 42*t[1]*A - Bbar) * QQ((1,70)))
+    c = [0, 6*t[2] + 2*A*t[0], 10*t[3] + 6*A*t[1] + 4*B*t[0]]
     for n in range(2,d):
         k = sum(c[i]*c[n-i] for i in range(1,n))
-        c += [(3*k-(2*n-1)*(n-1)*A*c[n-1]-(2*n-2)*(n-2)*B*c[n-2])*(1/QQ((n-1)*(2*n+5)))]
+        c.append((3*k-(2*n-1)*(n-1)*A*c[n-1]-(2*n-2)*(n-2)*B*c[n-2]) * QQ((1,(2*n+5)*(n-1))))
     for n in range(3,d):
-        t += [(c[n]-(4*n-2)*A*t[n-1]-(4*n-4)*B*t[n-2])*(1/QQ(4*n+2))]
+        t.append((c[n]-(4*n-2)*A*t[n-1]-(4*n-4)*B*t[n-2]) * QQ((1,4*n+2)))
     for n in range(1,d+1):
-        s += [(-1/QQ(n))*sum((-1)**i*t[i]*s[n-i] for i in range(1,n+1))]
-    psi = sum((-1)**i*s[i]*x**(d-i) for i in range(0,d+1))
-    R = PolynomialRing(QQ,['x','u','v'])
-    return R(psi)
+        s.append(QQ((-1,n)) * sum((-1)**i*t[i]*s[n-i] for i in range(1,n+1)))
+
+    R = PolynomialRing(QQ, ('x', 'u', 'v'))
+    x = R.gen(0)
+    return sum((-1)**i * x**(d-i) * R(s[i].lift()) for i in range(0,d+1))
 
 
 def isogenies_prime_degree_genus_plus_0(E, l=None):
@@ -2004,7 +2032,7 @@ def isogenies_prime_degree_general(E, l):
     # This function permutes the factors of a given degree, replacing
     # the factor with roots alpha with the one whose roots are
     # m(alpha), where m(x) is the rational function giving the
-    # multiplcation-by-a map on the X-coordinates.  Here, a is a
+    # multiplication-by-a map on the X-coordinates.  Here, a is a
     # generator for (Z/lZ)^* / <-1> (a so-called semi-primitive root).
     def mult(g):
         # Find f such that f(m) = 0 mod g

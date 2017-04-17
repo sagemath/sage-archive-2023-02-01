@@ -1,6 +1,7 @@
 """
 Subset Species
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
 #
@@ -15,11 +16,12 @@ Subset Species
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
-from species import GenericCombinatorialSpecies
-from set_species import SetSpecies
-from generating_series import _integers_from, factorial_stream
-from structure import GenericSpeciesStructure
+from .species import GenericCombinatorialSpecies
+from .set_species import SetSpecies
+from .generating_series import _integers_from, factorial_stream
+from .structure import GenericSpeciesStructure
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_function
 from sage.combinat.species.misc import accept_size
@@ -46,7 +48,7 @@ class SubsetSpeciesStructure(GenericSpeciesStructure):
             sage: [s.canonical_label() for s in S]
             [{}, {'a'}, {'a'}, {'a'}, {'a', 'b'}, {'a', 'b'}, {'a', 'b'}, {'a', 'b', 'c'}]
         """
-        rng = range(1, len(self._list)+1)
+        rng = list(range(1, len(self._list) + 1))
         return self.__class__(self.parent(), self._labels, rng)
 
 
@@ -215,7 +217,7 @@ class SubsetSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         r"""
         The cycle index series for the species of subsets satisfies
 
-        .. math::
+        .. MATH::
 
              Z_{\mathfrak{p}} = Z_{\mathcal{E}} \cdot Z_{\mathcal{E}}
 

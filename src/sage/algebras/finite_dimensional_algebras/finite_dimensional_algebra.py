@@ -1,7 +1,6 @@
 """
 Finite-Dimensional Algebras
 """
-
 #*****************************************************************************
 #  Copyright (C) 2011 Johan Bosman <johan.g.bosman@gmail.com>
 #  Copyright (C) 2011, 2013 Peter Bruin <peter.bruin@math.uzh.ch>
@@ -12,9 +11,11 @@ Finite-Dimensional Algebras
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+from six.moves import range
 
-from finite_dimensional_algebra_element import FiniteDimensionalAlgebraElement
-from finite_dimensional_algebra_ideal import FiniteDimensionalAlgebraIdeal
+from .finite_dimensional_algebra_element import FiniteDimensionalAlgebraElement
+from .finite_dimensional_algebra_ideal import FiniteDimensionalAlgebraIdeal
 
 from sage.rings.integer_ring import ZZ
 
@@ -279,7 +280,7 @@ class FiniteDimensionalAlgebra(UniqueRepresentation, Algebra):
             sage: A.gen(0)
             e0
         """
-        return self.element_class(self, [j == i for j in xrange(self.ngens())])
+        return self.element_class(self, [j == i for j in range(self.ngens())])
 
     def basis(self):
         """
@@ -370,7 +371,7 @@ class FiniteDimensionalAlgebra(UniqueRepresentation, Algebra):
         """
         B = self.table()
         n = self.degree()
-        table = [Matrix([B[j][i] for j in xrange(n)]) for i in xrange(n)]
+        table = [Matrix([B[j][i] for j in range(n)]) for i in range(n)]
         for b in table:
             b.set_immutable()
         return tuple(table)
@@ -457,10 +458,10 @@ class FiniteDimensionalAlgebra(UniqueRepresentation, Algebra):
         """
         B = self.table()
         n = self.degree()
-        for i in xrange(n):
-            for j in xrange(n):
+        for i in range(n):
+            for j in range(n):
                 eiej = B[j][i]
-                if B[i]*B[j] != sum(eiej[k] * B[k] for k in xrange(n)):
+                if B[i]*B[j] != sum(eiej[k] * B[k] for k in range(n)):
                     return False
         return True
 
@@ -481,8 +482,8 @@ class FiniteDimensionalAlgebra(UniqueRepresentation, Algebra):
         """
         # Equivalent to self.table() == self.left_table()
         B = self.table()
-        for i in xrange(self.degree()):
-            for j in xrange(i):
+        for i in range(self.degree()):
+            for j in range(i):
                 if B[j][i] != B[i][j]:
                     return False
         return True

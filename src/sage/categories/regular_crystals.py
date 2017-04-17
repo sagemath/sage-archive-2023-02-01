@@ -16,6 +16,7 @@ Regular Crystals
 #
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
+from __future__ import print_function
 
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_singleton import Category_singleton
@@ -63,6 +64,7 @@ class RegularCrystals(Category_singleton):
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
           running ._test_eq() . . . pass
+          running ._test_new() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
           running ._test_stembridge_local_axioms() . . . pass
@@ -76,6 +78,7 @@ class RegularCrystals(Category_singleton):
         running ._test_enumerated_set_iter_list() . . . pass
         running ._test_eq() . . . pass
         running ._test_fast_iter() . . . pass
+        running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
         running ._test_some_elements() . . . pass
@@ -222,7 +225,7 @@ class RegularCrystals(Category_singleton):
             - ``reduced_word`` -- a reduced word of the Weyl group of the
               same type as the underlying crystal
             - ``only_support`` -- (default: ``True``) only include arrows
-              corresponding the the support of ``reduced_word``
+              corresponding to the support of ``reduced_word``
 
             OUTPUT:
 
@@ -337,7 +340,7 @@ class RegularCrystals(Category_singleton):
                 If the index set is not an ordered interval, we let
                 `i - 1` mean the index appearing before `i` in `I`.
 
-            This definition comes from [Assaf08]_ Section 4 (where our
+            This definition comes from [As2008]_ Section 4 (where our
             `\varphi_j(b)` and `\varepsilon_j(b)` are denoted by
             `\epsilon(b, j)` and `-\delta(b, j)`, respectively).
 
@@ -350,7 +353,7 @@ class RegularCrystals(Category_singleton):
             .. NOTE::
 
                 This dual equivalence graph is a generalization of
-                `\mathcal{G}\left(\mathcal{X}\right)` in [Assaf08]_
+                `\mathcal{G}\left(\mathcal{X}\right)` in [As2008]_
                 Section 4 except we do not require
                 `\varepsilon_i(b) = 0, 1` for all `i`.
 
@@ -375,14 +378,6 @@ class RegularCrystals(Category_singleton):
             .. SEEALSO::
 
                 :meth:`sage.combinat.partition.Partition.dual_equivalence_graph`
-
-            REFERENCES:
-
-            .. [Assaf08] Sami Assaf. *A combinatorial realization of Schur-Weyl
-               duality via crystal graphs and dual equivalence graphs*.
-               FPSAC 2008, 141-152, Discrete Math. Theor. Comput. Sci. Proc.,
-               AJ, Assoc. Discrete Math. Theor. Comput. Sci., (2008).
-               :arxiv:`0804.1587v1`
 
             EXAMPLES::
 
@@ -537,12 +532,9 @@ class RegularCrystals(Category_singleton):
 
             REFERENCES:
 
-            .. [L1995] Peter Littelmann, Crystal graphs and Young tableaux,
-               J. Algebra 175 (1995), no. 1, 65--87.
+            - [Li1995]_
 
-            .. [K1993] Masaki Kashiwara, The crystal base and Littelmann's
-               refined Demazure character formula,
-               Duke Math. J. 71 (1993), no. 3, 839--858.
+            - [Ka1993]_
 
             EXAMPLES::
 
@@ -735,10 +727,7 @@ class RegularCrystals(Category_singleton):
 
             REFERENCES:
 
-            .. [S2003] John R. Stembridge, A local characterization of
-               simply-laced crystals,
-               Transactions of the American Mathematical Society, Vol. 355,
-               No. 12 (Dec., 2003), pp. 4807--4823
+            - [Ste2003]_
 
             EXAMPLES::
 
@@ -761,7 +750,7 @@ class RegularCrystals(Category_singleton):
                     #Test axioms P3 and P4.
                     if not triple[0]==triple[1]+triple[2] or triple[1]>0 or triple[2]>0:
                         if verbose:
-                            print 'Warning: Failed axiom P3 or P4 at vector ', self, 'i,j=', i, j, 'Stembridge triple:', self.stembridgeTriple(i,j)
+                            print('Warning: Failed axiom P3 or P4 at vector ', self, 'i,j=', i, j, 'Stembridge triple:', self.stembridgeTriple(i, j))
                             goodness=False
                         else:
                             tester.fail()
@@ -769,7 +758,7 @@ class RegularCrystals(Category_singleton):
                         #check E_i E_j(x)= E_j E_i(x)
                         if self.e(i).e(j)!=self.e(j).e(i) or self.e(i).e(j).stembridgeDel_rise(j, i)!=0:
                             if verbose:
-                                print 'Warning: Failed axiom P5 at: vector ', self, 'i,j=', i, j, 'Stembridge triple:', self.stembridgeTriple(i,j)
+                                print('Warning: Failed axiom P5 at: vector ', self, 'i,j=', i, j, 'Stembridge triple:', self.stembridgeTriple(i, j))
                                 goodness=False
                             else:
                                 tester.fail()
@@ -781,7 +770,7 @@ class RegularCrystals(Category_singleton):
                         b=y2.stembridgeDel_rise(i, j)
                         if y1!=y2 or a!=-1 or b!=-1:
                             if verbose:
-                                print 'Warning: Failed axiom P6 at: vector ', self, 'i,j=', i, j, 'Stembridge triple:', self.stembridgeTriple(i,j)
+                                print('Warning: Failed axiom P6 at: vector ', self, 'i,j=', i, j, 'Stembridge triple:', self.stembridgeTriple(i, j))
                                 goodness=False
                             else:
                                 tester.fail()
@@ -804,7 +793,7 @@ class RegularCrystals(Category_singleton):
             of weight `0` with respect to `I`; that is, we need to have
             `\varepsilon_j(b) = \varphi_j(b)` for all `j \in I`.
 
-            See [Assaf08]_. See also :meth:`dual_equivalence_graph` for
+            See [As2008]_. See also :meth:`dual_equivalence_graph` for
             a definition of `i`-elementary dual equivalence
             transformations.
 

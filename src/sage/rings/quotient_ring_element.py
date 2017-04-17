@@ -126,7 +126,7 @@ class QuotientRingElement(RingElement):
         """
         return self.__rep
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return True if quotient ring element is non-zero in the
         quotient ring `R/I`, by determining whether the element
@@ -143,12 +143,12 @@ class QuotientRingElement(RingElement):
 
         TESTS::
 
-            sage: S(0).__nonzero__()
-            False
-            sage: (a-a).__nonzero__()
+            sage: bool(a - a)
             False
         """
         return self.__rep not in self.parent().defining_ideal()
+
+    __nonzero__ = __bool__
 
     def is_unit(self):
         """
@@ -189,7 +189,7 @@ class QuotientRingElement(RingElement):
             sage: a-2*a*b     # indirect doctest
             -2*a*b + a
 
-        In trac ticket #11068, the case of quotient rings without
+        In :trac:`11068`, the case of quotient rings without
         assigned names has been covered as well::
 
             sage: S = SteenrodAlgebra(2)
@@ -215,7 +215,7 @@ class QuotientRingElement(RingElement):
         with localvars(R, P.variable_names(), normalize=False):
             return str(self.__rep)
 
-    def _pari_(self):
+    def __pari__(self):
         """
         The Pari representation of this quotient element.
 
@@ -244,7 +244,7 @@ class QuotientRingElement(RingElement):
         gens = self.parent().defining_ideal().gens()
         if len(gens) != 1:
             raise ValueError("Pari does not support quotients by non-principal ideals")
-        return self.__rep._pari_().Mod(gens[0]._pari_())
+        return self.__rep.__pari__().Mod(gens[0])
 
     def _add_(self, right):
         """
@@ -442,7 +442,7 @@ class QuotientRingElement(RingElement):
             sage: K = R.quotient(x^2 - y^3).fraction_field()
             sage: L.<t> = FunctionField(QQ)
             sage: f = K.hom((t^3, t^2))
-            sage: map(f, K.gens())
+            sage: list(map(f, K.gens()))
             [t^3, t^2]
             sage: xbar, ybar = K.gens()
             sage: f(1/ybar)
@@ -465,7 +465,7 @@ class QuotientRingElement(RingElement):
             sage: int(S(-3))                # indirect doctest
             -3
             sage: type(int(S(-3)))
-            <type 'int'>
+            <... 'int'>
             sage: int(a)
             Traceback (most recent call last):
             ...
@@ -660,7 +660,7 @@ class QuotientRingElement(RingElement):
         """
         Return the leading term of this quotient ring element.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y,z>=PolynomialRing(GF(7),3,order='lex')
             sage: I = sage.rings.ideal.FieldIdeal(R)
@@ -682,7 +682,7 @@ class QuotientRingElement(RingElement):
         """
         Return the leading monomial of this quotient ring element.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y,z>=PolynomialRing(GF(7),3,order='lex')
             sage: I = sage.rings.ideal.FieldIdeal(R)
@@ -703,9 +703,9 @@ class QuotientRingElement(RingElement):
 
     def lc(self):
         """
-        Return the leading coefficent of this quotient ring element.
+        Return the leading coefficient of this quotient ring element.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y,z>=PolynomialRing(GF(7),3,order='lex')
             sage: I = sage.rings.ideal.FieldIdeal(R)
@@ -779,13 +779,14 @@ class QuotientRingElement(RingElement):
         -  ``singular`` - a non-standard interpreter may be
            provided
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y>  = PolynomialRing(GF(2),2)
             sage: I = sage.rings.ideal.FieldIdeal(P)
             sage: Q = P.quo(I)
             sage: Q._singular_()
-            //   characteristic : 2
+            polynomial ring, over a field, global ordering
+            //   coefficients: ZZ/2
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y
@@ -840,7 +841,7 @@ class QuotientRingElement(RingElement):
         -  ``G`` - a list of quotient ring elements
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<a,b,c,d,e> = PolynomialRing(GF(2), 5, order='lex')
             sage: I1 = ideal([a*b + c*d + 1, a*c*e + d*e, a*b*e + c*e, b*c + c*d*e + 1])

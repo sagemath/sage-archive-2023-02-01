@@ -21,7 +21,7 @@ rings but rather quotients of them (see module
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from sage.structure.category_object import normalize_names
 from sage.structure.element import is_Element
@@ -40,6 +40,9 @@ from sage.categories.unique_factorization_domains import UniqueFactorizationDoma
 from sage.categories.integral_domains import IntegralDomains
 from sage.categories.commutative_rings import CommutativeRings
 _CommutativeRings = CommutativeRings()
+from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationRings, CompleteDiscreteValuationFields
+_CompleteDiscreteValuationRings = CompleteDiscreteValuationRings()
+_CompleteDiscreteValuationFields = CompleteDiscreteValuationFields()
 
 import sage.misc.weak_dict
 _cache = sage.misc.weak_dict.WeakValueDictionary()
@@ -130,14 +133,13 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         However, you can very easily change the names within a ``with`` block::
 
             sage: with localvars(R, ['z','w']):
-            ...     print f
-            ...
+            ....:     print(f)
             z^2 - 2*w^2
 
         After the ``with`` block the names revert to what they were before.
         ::
 
-            sage: print f
+            sage: print(f)
             x^2 - 2*y^2
 
     SQUARE BRACKETS NOTATION: You can alternatively create a single or
@@ -523,6 +525,12 @@ def _single_variate(base_ring, name, sparse, implementation):
 
         elif isinstance(base_ring, padic_base_leaves.pAdicRingFixedMod):
             R = m.PolynomialRing_dense_padic_ring_fixed_mod(base_ring, name)
+
+        elif base_ring in _CompleteDiscreteValuationRings:
+            R = m.PolynomialRing_cdvr(base_ring, name, sparse)
+
+        elif base_ring in _CompleteDiscreteValuationFields:
+            R = m.PolynomialRing_cdvf(base_ring, name, sparse)
 
         elif base_ring.is_field(proof = False):
             R = m.PolynomialRing_field(base_ring, name, sparse)

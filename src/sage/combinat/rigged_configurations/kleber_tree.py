@@ -65,6 +65,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from six.moves import range
 import itertools
 
 from sage.misc.lazy_attribute import lazy_attribute
@@ -76,6 +77,7 @@ from sage.rings.integer import Integer
 from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.sage_object import richcmp_not_equal, richcmp
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 from sage.combinat.root_system.cartan_type import CartanType
@@ -145,7 +147,7 @@ def _draw_tree(tree_node, node_label=True, style_point=None, style_node='fill=wh
     lines_str = ''
 
     # Getting children string
-    for i in xrange(nb_children):
+    for i in range(nb_children):
         if i == half and nb_children % 2 == 0:
             pos[0] = start[0]
             start[0] += hspace
@@ -324,7 +326,6 @@ class KleberTreeNode(Element):
             return Integer(1)
 
         mult = Integer(1)
-        CM = self.parent()._classical_ct.cartan_matrix()
         I = self.parent()._classical_ct.index_set()
         for a,m in self.up_root:
             p = self.weight[a]
@@ -364,7 +365,7 @@ class KleberTreeNode(Element):
         """
         return hash(self.depth) ^ hash(self.weight)
 
-    def __cmp__(self, rhs):
+    def _richcmp_(self, rhs, op):
         r"""
         Check whether two nodes are equal.
 
@@ -377,24 +378,26 @@ class KleberTreeNode(Element):
             sage: KT = KleberTree(['A', 2, 1], [[1,1]])
             sage: n = KT(WS.sum_of_terms([(1,5), (2,2)]), R.zero())
             sage: n2 = KT(WS.sum_of_terms([(1,5), (2,2)]), R.zero(), n)
-            sage: cmp(n2, n)
-            1
+            sage: n2 > n
+            True
             sage: n3 = KT(WS.sum_of_terms([(1,5), (2,2)]), R.zero(), n)
-            sage: cmp(n2, n3)
-            0
+            sage: n2 == n3
+            True
             sage: n3 = KT(WS.sum_of_terms([(1,5), (2,3)]), R.zero(), n)
-            sage: cmp(n2, n3)
-            -1
+            sage: n2 < n3
+            True
         """
-        if isinstance(rhs, KleberTreeNode):
-            if self.depth < rhs.depth:
-                return -1
-            elif self.depth > rhs.depth:
-                return 1
-            elif self.parent_node is not rhs.parent_node:
-                return cmp(self.parent_node, rhs.parent_node)
-            return cmp(self.weight, rhs.weight)
-        return cmp(type(self), type(rhs))
+        lx = self.depth
+        rx = rhs.depth
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        lx = self.parent_node
+        rx = rhs.parent_node
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+
+        return richcmp(self.weight, rhs.weight, op)
 
     def _repr_(self):
         r"""
@@ -848,7 +851,7 @@ class KleberTree(UniqueRepresentation, Parent):
         L = [range(val + 1) for val in node.up_root.to_vector()]
 
         it = itertools.product(*L)
-        it.next() # First element is the zero element
+        next(it)  # First element is the zero element
         for root in it:
             # Convert the list to an honest root in the root space
             converted_root = RS.sum_of_terms([[I[i], val] for i, val in enumerate(root)])
@@ -989,7 +992,6 @@ class KleberTree(UniqueRepresentation, Parent):
 
         if have_dot2tex():
             G.set_latex_options(format="dot2tex", edge_labels=True)
-                                # edge_options = lambda (u,v,label): ({"backward":label ==0}))
         return G
 
     def plot(self, **options):

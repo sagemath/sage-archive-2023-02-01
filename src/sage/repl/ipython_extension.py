@@ -15,6 +15,8 @@ A Sage extension which adds sage-specific features:
 
   - ``%mode`` (like ``%maxima``, etc.)
 
+  - ``%%cython``
+
 * preparsing of input
 
 * loading Sage library
@@ -55,12 +57,13 @@ In contrast, input to the ``%time`` magic command is preparsed::
     2 * 3^3 * 11
     sage: shell.quit()
 """
+from __future__ import absolute_import
 
-from IPython.core.magic import Magics, magics_class, line_magic
+from IPython.core.magic import Magics, magics_class, line_magic, cell_magic
 
 from sage.repl.load import load_wrap
-
 from sage.env import SAGE_IMPORTALL, SAGE_STARTUP_FILE
+from sage.misc.lazy_import import LazyImport
 
 @magics_class
 class SageMagics(Magics):
@@ -138,10 +141,9 @@ class SageMagics(Magics):
         Note that the doctests are never really at the command prompt, so
         we call the input hook manually::
 
-            sage: shell.run_cell('from sage.repl.inputhook import sage_inputhook')
-            sage: shell.run_cell('sage_inputhook()')
+            sage: shell.run_cell('from sage.repl.attach import reload_attached_files_if_modified')
+            sage: shell.run_cell('reload_attached_files_if_modified()')
             ### reloading attached file run_cell.py modified at ... ###
-            0
 
             sage: shell.run_cell('a')
             3
@@ -321,6 +323,38 @@ class SageMagics(Magics):
             except ValueError as err:
                 print(err)  # do not show traceback
 
+    @cell_magic
+    def cython(self, line, cell):
+        """
+        Cython cell magic
+
+        This is syntactic sugar on the
+        :func:`~sage.misc.cython_c.cython` function.
+
+        INPUT:
+
+        - ``line`` -- ignored.
+
+        - ``cell`` -- string. The Cython source code to process.
+
+        OUTPUT:
+
+        None. The Cython code is compiled and loaded.
+
+        EXAMPLES::
+
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.run_cell('''
+            ....: %%cython
+            ....: def f():
+            ....:     print('test')
+            ....: ''')
+            ....: shell.run_cell('f()')
+        """
+        from sage.misc.cython_c import cython_compile
+        return cython_compile(cell)
+
 
 class SageCustomizations(object):
 
@@ -338,9 +372,6 @@ class SageCustomizations(object):
 
         self.init_inspector()
         self.init_line_transforms()
-
-        import inputhook
-        inputhook.install()
 
         import sage.all # until sage's import hell is fixed
 
@@ -369,14 +400,28 @@ class SageCustomizations(object):
         import atexit
         atexit.register(quit)
 
+    @staticmethod
+    def all_globals():
+        """
+        Return a Python module containing all globals which should be
+        made available to the user.
+
+        EXAMPLES::
+
+            sage: from sage.repl.ipython_extension import SageCustomizations
+            sage: SageCustomizations.all_globals()
+            <module 'sage.all_cmdline' ...>
+        """
+        from sage import all_cmdline
+        return all_cmdline
+
     def init_environment(self):
         """
         Set up Sage command-line environment
         """
         # import outside of cell so we don't get a traceback
-        from sage import all_cmdline
         from sage.repl.user_globals import initialize_globals
-        initialize_globals(all_cmdline, self.shell.user_ns)
+        initialize_globals(self.all_globals(), self.shell.user_ns)
         self.run_init()
 
     def run_init(self):
@@ -394,24 +439,40 @@ class SageCustomizations(object):
         # that we could override; however, IPython looks them up in
         # the global :class:`IPython.core.oinspect` module namespace.
         # Thus, we have to monkey-patch.
-        import sage.misc.sagedoc as sagedoc
-        import sage.misc.sageinspect as sageinspect
         import IPython.core.oinspect
-        IPython.core.oinspect.getdoc = sageinspect.sage_getdoc
-        IPython.core.oinspect.getsource = sagedoc.my_getsource
-        IPython.core.oinspect.find_file = sageinspect.sage_getfile
-        IPython.core.oinspect.getargspec = sageinspect.sage_getargspec
+        IPython.core.oinspect.getdoc = LazyImport("sage.misc.sageinspect", "sage_getdoc")
+        IPython.core.oinspect.getsource = LazyImport("sage.misc.sagedoc", "my_getsource")
+        IPython.core.oinspect.find_file = LazyImport("sage.misc.sageinspect", "sage_getfile")
+        IPython.core.oinspect.getargspec = LazyImport("sage.misc.sageinspect", "sage_getargspec")
 
     def init_line_transforms(self):
         """
         Set up transforms (like the preparser).
         """
-        from interpreter import (SagePreparseTransformer,
+        from .interpreter import (SagePreparseTransformer,
                                  SagePromptTransformer)
 
         for s in (self.shell.input_splitter, self.shell.input_transformer_manager):
             s.physical_line_transforms.insert(1, SagePromptTransformer())
             s.python_line_transforms.append(SagePreparseTransformer())
+
+
+class SageJupyterCustomizations(SageCustomizations):
+    @staticmethod
+    def all_globals():
+        """
+        Return a Python module containing all globals which should be
+        made available to the user when running the Jupyter notebook.
+
+        EXAMPLES::
+
+            sage: from sage.repl.ipython_extension import SageJupyterCustomizations
+            sage: SageJupyterCustomizations.all_globals()
+            <module 'sage.repl.ipython_kernel.all_jupyter' ...>
+        """
+        from .ipython_kernel import all_jupyter
+        return all_jupyter
+
 
 # from http://stackoverflow.com/questions/4103773/efficient-way-of-having-a-function-only-execute-once-in-a-loop
 from functools import wraps

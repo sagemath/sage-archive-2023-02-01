@@ -6,6 +6,7 @@ AUTHORS:
 - Jonas Jermann (2013): initial version
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2013-2014 Jonas Jermann <jjermann2@gmail.com>
@@ -25,9 +26,9 @@ from sage.structure.parent                       import Parent
 from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
 from sage.categories.rings                       import Rings
 
-from constructor                                 import FormsSpace, FormsRing
-from abstract_space                              import FormsSpace_abstract
-from subspace                                    import SubSpaceForms
+from .constructor                                 import FormsSpace, FormsRing
+from .abstract_space                              import FormsSpace_abstract
+from .subspace                                    import SubSpaceForms
 
 
 def _get_base_ring(ring, var_name="d"):
@@ -125,7 +126,7 @@ def ConstantFormsSpaceFunctor(group):
     r"""
     Construction functor for the space of constant forms.
 
-    When determening a common parent between a ring
+    When determining a common parent between a ring
     and a forms ring or space this functor is first
     applied to the ring.
 
@@ -137,8 +138,7 @@ def ConstantFormsSpaceFunctor(group):
         sage: ConstantFormsSpaceFunctor(4)
         ModularFormsFunctor(n=4, k=0, ep=1)
     """
-
-    return FormsSpaceFunctor("holo", group, QQ(0), ZZ(1))
+    return FormsSpaceFunctor("holo", group, QQ.zero(), ZZ.one())
 
 
 class FormsSubSpaceFunctor(ConstructionFunctor):
@@ -347,7 +347,7 @@ class FormsSpaceFunctor(ConstructionFunctor):
     between a forms space and a ring which is not a ``BaseFacade``).
     """
 
-    from analytic_type import AnalyticType
+    from .analytic_type import AnalyticType
     AT = AnalyticType()
 
     rank = 10
@@ -383,7 +383,7 @@ class FormsSpaceFunctor(ConstructionFunctor):
         """
 
         Functor.__init__(self, Rings(), CommutativeAdditiveGroups())
-        from space import canonical_parameters
+        from .space import canonical_parameters
         (self._group, R, self._k, self._ep, n) = canonical_parameters(group, ZZ, k, ep)
 
         self._analytic_type = self.AT(analytic_type)
@@ -538,7 +538,7 @@ class FormsRingFunctor(ConstructionFunctor):
     between a forms ring and a ring which is not a ``BaseFacade``).
     """
 
-    from analytic_type import AnalyticType
+    from .analytic_type import AnalyticType
     AT = AnalyticType()
 
     rank = 10
@@ -574,7 +574,7 @@ class FormsRingFunctor(ConstructionFunctor):
         """
 
         Functor.__init__(self, Rings(), Rings())
-        from graded_ring import canonical_parameters
+        from .graded_ring import canonical_parameters
         (self._group, R, red_hom, n) = canonical_parameters(group, ZZ, red_hom)
         self._red_hom = bool(red_hom)
         self._analytic_type = self.AT(analytic_type)

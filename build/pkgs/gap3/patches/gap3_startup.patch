@@ -1,0 +1,49 @@
+diff --git a/bin/gap.sh b/bin/gap.sh
+index f6d41db..37c7ce2 100755
+--- a/bin/gap.sh
++++ b/bin/gap.sh
+@@ -1,4 +1,10 @@
+-#!/bin/bash
++#!/usr/bin/env bash
++
++if [ $SAGE_LOCAL"" = "" ]; then
++    echo "Set the environment variable SAGE_LOCAL."
++    exit 1
++fi
++
+ #############################################################################
+ ##
+ ##  gap.sh                      GAP                          Martin Schoenert
+@@ -19,7 +25,7 @@
+ ##  You have to change this unless you have installed  GAP in this  location.
+ ##
+ #GAP_DIR=/usr/local/lib/gap3-jm5
+-GAP_DIR=/home/jmichel/gap3-jm5
++GAP_DIR="$SAGE_LOCAL/gap3/latest/gap3"
+ 
+ #############################################################################
+ ##
+@@ -31,7 +37,13 @@ GAP_DIR=/home/jmichel/gap3-jm5
+ ##  If you are not going to run  GAP  in parallel with other programs you may
+ ##  want to set this value close to the  amount of memory your  computer has.
+ ##
+-GAP_MEM=512m
++
++ARCH=`getconf LONG_BIT`
++if [[ "$ARCH" == '32' ]]; then
++   GAP_MEM=512m
++elif [[ "$ARCH" == '64' ]]; then
++   GAP_MEM=1024m
++fi
+ 
+ #############################################################################
+ ##
+@@ -44,7 +56,7 @@ GAP_MEM=512m
+ ##        gap.mac for Mac OSX on powerPC
+ ##        gap.macx86 for Mac OSX on X86 
+ ##
+-GAP_PRG=gap.x86linux64
++GAP_PRG=gap3
+ 
+ #############################################################################
+ ##

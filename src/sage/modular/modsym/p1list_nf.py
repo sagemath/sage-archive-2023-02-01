@@ -294,7 +294,7 @@ class MSymbol(SageObject):
         INPUT:
 
         - ``n`` -- integer (0 or 1, since the list defined by an M-symbol has
-        length 2)
+          length 2)
 
         EXAMPLES::
 
@@ -580,7 +580,7 @@ class P1NFList(SageObject):
             sage: type(P)
             <class 'sage.modular.modsym.p1list_nf.P1NFList'>
             sage: type(P.list())
-            <type 'list'>
+            <... 'list'>
         """
         return self.__list
 

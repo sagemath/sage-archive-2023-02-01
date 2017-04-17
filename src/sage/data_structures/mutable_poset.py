@@ -43,7 +43,7 @@ Let us look at the poset again::
 
 We see that they elements are sorted using `\leq` which exists on the
 integers `\ZZ`. Since this is even a total order, we could have used a
-more efficient data structure. Alternativly, we can write
+more efficient data structure. Alternatively, we can write
 ::
 
     sage: MP([42, 7, 13, 3])
@@ -89,7 +89,7 @@ smallest first. This does not (directly) show more structural
 information. We can overcome this and display a "wiring layout" by
 typing::
 
-    sage: print Q.repr_full(reverse=True)
+    sage: print(Q.repr_full(reverse=True))
     poset((3, 3), (2, 3), (3, 2), (2, 2), (4, 1), (1, 1))
     +-- oo
     |   +-- no successors
@@ -148,6 +148,9 @@ Classes and their Methods
 #  the License, or (at your option) any later version.
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
+from six import itervalues
 
 from sage.structure.sage_object import SageObject
 
@@ -212,7 +215,6 @@ class MutablePosetShell(SageObject):
         self._successors_ = set()
         super(MutablePosetShell, self).__init__()
 
-
     @property
     def poset(self):
         r"""
@@ -232,7 +234,6 @@ class MutablePosetShell(SageObject):
             True
         """
         return self._poset_
-
 
     @property
     def element(self):
@@ -254,7 +255,6 @@ class MutablePosetShell(SageObject):
             (1, 2)
         """
         return self._element_
-
 
     @property
     def key(self):
@@ -286,7 +286,7 @@ class MutablePosetShell(SageObject):
         Test the caching of the key::
 
             sage: def k(k):
-            ....:     print 'key %s' % (k,)
+            ....:     print('key %s' % (k,))
             ....:     return k
             sage: R = MP(key=k)
             sage: h = MutablePosetShell(R, (1, 2))
@@ -296,7 +296,6 @@ class MutablePosetShell(SageObject):
             (1, 2)
         """
         return self._key_
-
 
     def predecessors(self, reverse=False):
         r"""
@@ -329,7 +328,6 @@ class MutablePosetShell(SageObject):
             return self._successors_
         return self._predecessors_
 
-
     def successors(self, reverse=False):
         r"""
         Return the successors of this shell.
@@ -360,7 +358,6 @@ class MutablePosetShell(SageObject):
         if reverse:
             return self._predecessors_
         return self._successors_
-
 
     def is_special(self):
         r"""
@@ -394,7 +391,6 @@ class MutablePosetShell(SageObject):
         """
         return self.element is None
 
-
     def is_null(self):
         r"""
         Return whether this shell contains the null-element, i.e., the element
@@ -422,7 +418,6 @@ class MutablePosetShell(SageObject):
         """
         return self.element is None and not self.predecessors()
 
-
     def is_oo(self):
         r"""
         Return whether this shell contains the infinity-element, i.e., the element
@@ -449,7 +444,6 @@ class MutablePosetShell(SageObject):
             True
         """
         return self.element is None and not self.successors()
-
 
     def _repr_(self):
         r"""
@@ -490,7 +484,6 @@ class MutablePosetShell(SageObject):
         else:
             return repr(self.element)
 
-
     def __hash__(self):
         r"""
         Return the hash of this shell.
@@ -515,7 +508,6 @@ class MutablePosetShell(SageObject):
             True
         """
         return hash(self.key)
-
 
     def le(self, other, reverse=False):
         r"""
@@ -612,9 +604,7 @@ class MutablePosetShell(SageObject):
 
         return self.key <= other.key
 
-
     __le__ = le
-
 
     def eq(self, other):
         r"""
@@ -677,9 +667,7 @@ class MutablePosetShell(SageObject):
             return self.is_null() == other.is_null()
         return self.key == other.key
 
-
     __eq__ = eq
-
 
     def _copy_all_linked_(self, memo, poset, mapping):
         r"""
@@ -744,7 +732,6 @@ class MutablePosetShell(SageObject):
                 new.successors(reverse).add(e._copy_all_linked_(memo, poset, mapping))
 
         return new
-
 
     def lower_covers(self, shell, reverse=False):
         r"""
@@ -826,7 +813,6 @@ class MutablePosetShell(SageObject):
                                if e.le(shell, reverse)))
         return covers or set([self])
 
-
     def upper_covers(self, shell, reverse=False):
         r"""
         Return the upper covers of the specified ``shell``;
@@ -901,7 +887,6 @@ class MutablePosetShell(SageObject):
         """
         return self.lower_covers(shell, not reverse)
 
-
     def _iter_depth_first_visit_(self, marked,
                                  reverse=False, key=None,
                                  condition=None):
@@ -969,7 +954,6 @@ class MutablePosetShell(SageObject):
                                                     key, condition):
                 yield e
 
-
     def iter_depth_first(self, reverse=False, key=None, condition=None):
         r"""
         Iterate over all shells in depth first order.
@@ -1027,7 +1011,6 @@ class MutablePosetShell(SageObject):
         """
         marked = set()
         return self._iter_depth_first_visit_(marked, reverse, key, condition)
-
 
     def _iter_topological_visit_(self, marked,
                                  reverse=False, key=None,
@@ -1097,7 +1080,6 @@ class MutablePosetShell(SageObject):
                 yield e
         yield self
 
-
     def iter_topological(self, reverse=False, key=None, condition=None):
         r"""
         Iterate over all shells in topological order.
@@ -1109,7 +1091,7 @@ class MutablePosetShell(SageObject):
           ``True`` searches towards ``'null'``.
 
         - ``key`` -- (default: ``None``) a function used for sorting
-          the direct predeccessors of a shell (used in case of a
+          the direct predecessors of a shell (used in case of a
           tie). If this is ``None``, no sorting occurs.
 
         - ``condition`` -- (default: ``None``) a function mapping a
@@ -1131,18 +1113,9 @@ class MutablePosetShell(SageObject):
 
         ALGORITHM:
 
-        Here a simplified version of the algorithm found in [T1976]_
+        Here a simplified version of the algorithm found in [Tar1976]_
         and [CLRS2001]_ is used. See also
         :wikipedia:`Topological_sorting`.
-
-        .. [T1976] Robert E. Tarjan, *Edge-disjoint spanning trees and
-           depth-first search*, Acta Informatica 6 (2), 1976, 171-185,
-           :doi:`10.1007/BF00268499`.
-
-        .. [CLRS2001] Thomas H. Cormen, Charles E. Leiserson, Ronald
-           L. Rivest and Clifford Stein, *Section 22.4: Topological
-           sort*, Introduction to Algorithms (2nd ed.), MIT Press and
-           McGraw-Hill, 2001, 549-552, ISBN 0-262-03293-7.
 
         EXAMPLES::
 
@@ -1157,8 +1130,8 @@ class MutablePosetShell(SageObject):
 
             sage: for e in P.shells_topological(include_special=True,
             ....:                               reverse=True):
-            ....:     print e
-            ....:     print list(e.iter_topological(reverse=True, key=repr))
+            ....:     print(e)
+            ....:     print(list(e.iter_topological(reverse=True, key=repr)))
             oo
             [oo]
             (4, 4)
@@ -1180,8 +1153,8 @@ class MutablePosetShell(SageObject):
 
             sage: for e in P.shells_topological(include_special=True,
             ....:                               reverse=True):
-            ....:     print e
-            ....:     print list(e.iter_topological(reverse=False, key=repr))
+            ....:     print(e)
+            ....:     print(list(e.iter_topological(reverse=False, key=repr)))
             oo
             [null, (1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (4, 4), oo]
             (4, 4)
@@ -1215,7 +1188,6 @@ class MutablePosetShell(SageObject):
         """
         marked = set()
         return self._iter_topological_visit_(marked, reverse, key, condition)
-
 
     def merge(self, element, check=True, delete=True):
         r"""
@@ -1462,7 +1434,6 @@ class MutablePoset(SageObject):
                 self.union_update(it)
         super(MutablePoset, self).__init__()
 
-
     def clear(self):
         r"""
         Remove all elements from this poset.
@@ -1488,7 +1459,7 @@ class MutablePoset(SageObject):
             sage: P.add(42); P
             poset(42)
             sage: P.clear()
-            sage: print P.repr_full()
+            sage: print(P.repr_full())
             poset()
             +-- null
             |   +-- no predecessors
@@ -1502,7 +1473,6 @@ class MutablePoset(SageObject):
         self._null_.successors().add(self._oo_)
         self._oo_.predecessors().add(self._null_)
         self._shells_ = {}
-
 
     def __len__(self):
         r"""
@@ -1536,7 +1506,6 @@ class MutablePoset(SageObject):
         """
         return len(self._shells_)
 
-
     @property
     def null(self):
         r"""
@@ -1560,7 +1529,6 @@ class MutablePoset(SageObject):
         """
         return self._null_
 
-
     @property
     def oo(self):
         r"""
@@ -1583,7 +1551,6 @@ class MutablePoset(SageObject):
             :meth:`MutablePosetShell.is_special`.
         """
         return self._oo_
-
 
     def shell(self, key):
         r"""
@@ -1619,7 +1586,6 @@ class MutablePoset(SageObject):
         """
         return self._shells_[key]
 
-
     def element(self, key):
         r"""
         Return the element corresponding to ``key``.
@@ -1648,7 +1614,6 @@ class MutablePoset(SageObject):
             :meth:`get_key`.
         """
         return self.shell(key).element
-
 
     def get_key(self, element):
         r"""
@@ -1682,7 +1647,6 @@ class MutablePoset(SageObject):
         if element is None:
             return None
         return self._key_(element)
-
 
     def _copy_shells_(self, other, mapping):
         r"""
@@ -1724,10 +1688,8 @@ class MutablePoset(SageObject):
         memo = {}
         self._null_ = other._null_._copy_all_linked_(memo, self, mapping)
         self._oo_ = memo[id(other._oo_)]
-        self._shells_ = dict((f.key, f) for f in
-                             iter(memo[id(e)] for e in
-                                  other._shells_.itervalues()))
-
+        self._shells_ = {f.key: f for f in iter(memo[id(e)] for e in
+                                                itervalues(other._shells_))}
 
     def copy(self, mapping=None):
         r"""
@@ -1759,14 +1721,14 @@ class MutablePoset(SageObject):
             True
         """
         if mapping is None:
-            mapping = lambda element: element
+
+            def mapping(element):
+                return element
         new = self.__class__()
         new._copy_shells_(self, mapping)
         return new
 
-
     __copy__ = copy
-
 
     def shells(self, include_special=False):
         r"""
@@ -1808,11 +1770,10 @@ class MutablePoset(SageObject):
         """
         if include_special:
             yield self.null
-        for e in self._shells_.itervalues():
+        for e in itervalues(self._shells_):
             yield e
         if include_special:
             yield self.oo
-
 
     def shells_topological(self, include_special=False,
                            reverse=False, key=None):
@@ -1877,7 +1838,6 @@ class MutablePoset(SageObject):
         return iter(e for e in shell.iter_topological(reverse, key)
                     if include_special or not e.is_special())
 
-
     def elements(self, **kwargs):
         r"""
         Return an iterator over all elements.
@@ -1922,9 +1882,7 @@ class MutablePoset(SageObject):
         for shell in self.shells(**kwargs):
             yield shell.element
 
-
     __iter__ = elements
-
 
     def elements_topological(self, **kwargs):
         r"""
@@ -1966,7 +1924,6 @@ class MutablePoset(SageObject):
         """
         for shell in self.shells_topological(**kwargs):
             yield shell.element
-
 
     def keys(self, **kwargs):
         r"""
@@ -2013,7 +1970,6 @@ class MutablePoset(SageObject):
         for shell in self.shells(**kwargs):
             yield shell.key
 
-
     def keys_topological(self, **kwargs):
         r"""
         Return an iterator over all keys of the elements in
@@ -2037,9 +1993,9 @@ class MutablePoset(SageObject):
              (2, <type 'sage.rings.integer.Integer'>),
              (4, <type 'sage.rings.integer.Integer'>)]
             sage: [(v, type(v)) for v in P.elements_topological()]
-            [((1, 1), <type 'tuple'>),
-             ((2, 1), <type 'tuple'>),
-             ((4, 4), <type 'tuple'>)]
+            [((1, 1), <... 'tuple'>),
+             ((2, 1), <... 'tuple'>),
+             ((4, 4), <... 'tuple'>)]
             sage: [(v, type(v)) for v in P.shells_topological()]
             [((1, 1), <class 'sage.data_structures.mutable_poset.MutablePosetShell'>),
              ((2, 1), <class 'sage.data_structures.mutable_poset.MutablePosetShell'>),
@@ -2057,7 +2013,6 @@ class MutablePoset(SageObject):
         """
         for shell in self.shells_topological(**kwargs):
             yield shell.key
-
 
     def repr(self, include_special=False, reverse=False):
         r"""
@@ -2083,7 +2038,7 @@ class MutablePoset(SageObject):
         TESTS::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
-            sage: print MP().repr()
+            sage: print(MP().repr())
             poset()
         """
         s = 'poset('
@@ -2091,7 +2046,6 @@ class MutablePoset(SageObject):
                        self.shells_topological(include_special, reverse))
         s += ')'
         return s
-
 
     def repr_full(self, reverse=False):
         r"""
@@ -2113,7 +2067,7 @@ class MutablePoset(SageObject):
         TESTS::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
-            sage: print MP().repr_full(reverse=True)
+            sage: print(MP().repr_full(reverse=True))
             poset()
             +-- oo
             |   +-- no successors
@@ -2138,9 +2092,7 @@ class MutablePoset(SageObject):
                 strings.append(s)
         return '\n'.join(strings)
 
-
     _repr_ = repr
-
 
     def contains(self, key):
         r"""
@@ -2175,9 +2127,7 @@ class MutablePoset(SageObject):
         """
         return key in self._shells_
 
-
     __contains__ = contains
-
 
     def add(self, element):
         r"""
@@ -2200,7 +2150,7 @@ class MutablePoset(SageObject):
             ....:         return all(l <= r for l, r in zip(left, right))
             sage: P = MP([T((1, 1)), T((1, 3)), T((2, 1)),
             ....:         T((4, 4)), T((1, 2))])
-            sage: print P.repr_full(reverse=True)
+            sage: print(P.repr_full(reverse=True))
             poset((4, 4), (1, 3), (1, 2), (2, 1), (1, 1))
             +-- oo
             |   +-- no successors
@@ -2224,7 +2174,7 @@ class MutablePoset(SageObject):
             |   +-- successors:   (1, 1)
             |   +-- no predecessors
             sage: P.add(T((2, 2)))
-            sage: reprP = P.repr_full(reverse=True); print reprP
+            sage: reprP = P.repr_full(reverse=True); print(reprP)
             poset((4, 4), (1, 3), (2, 2), (1, 2), (2, 1), (1, 1))
             +-- oo
             |   +-- no successors
@@ -2299,7 +2249,7 @@ class MutablePoset(SageObject):
             sage: R = MP([(1, 1, 42), (1, 3, 42), (2, 1, 7),
             ....:         (4, 4, 42), (1, 2, 7), (2, 2, 7)],
             ....:        key=lambda k: T(k[2:3]))
-            sage: print R.repr_full(reverse=True)
+            sage: print(R.repr_full(reverse=True))
             poset((1, 1, 42), (2, 1, 7))
             +-- oo
             |   +-- no successors
@@ -2345,7 +2295,6 @@ class MutablePoset(SageObject):
 
         self._shells_[key] = new
 
-
     def remove(self, key, raise_key_error=True):
         r"""
         Remove the given object from the poset.
@@ -2383,7 +2332,7 @@ class MutablePoset(SageObject):
             ....:         return all(l <= r for l, r in zip(left, right))
             sage: P = MP([T((1, 1)), T((1, 3)), T((2, 1)),
             ....:         T((4, 4)), T((1, 2)), T((2, 2))])
-            sage: print P.repr_full(reverse=True)
+            sage: print(P.repr_full(reverse=True))
             poset((4, 4), (1, 3), (2, 2), (1, 2), (2, 1), (1, 1))
             +-- oo
             |   +-- no successors
@@ -2410,7 +2359,7 @@ class MutablePoset(SageObject):
             |   +-- successors:   (1, 1)
             |   +-- no predecessors
             sage: P.remove(T((1, 2)))
-            sage: print P.repr_full(reverse=True)
+            sage: print(P.repr_full(reverse=True))
             poset((4, 4), (1, 3), (2, 2), (2, 1), (1, 1))
             +-- oo
             |   +-- no successors
@@ -2446,7 +2395,7 @@ class MutablePoset(SageObject):
             sage: Q = MP([(1, 1, 42), (1, 3, 42), (2, 1, 7),
             ....:         (4, 4, 42), (1, 2, 7), (2, 2, 7)],
             ....:        key=lambda k: T(k[0:2]))
-            sage: print Q.repr_full(reverse=True)
+            sage: print(Q.repr_full(reverse=True))
             poset((4, 4, 42), (1, 3, 42), (2, 2, 7),
                   (1, 2, 7), (2, 1, 7), (1, 1, 42))
             +-- oo
@@ -2474,7 +2423,7 @@ class MutablePoset(SageObject):
             |   +-- successors:   (1, 1, 42)
             |   +-- no predecessors
             sage: Q.remove((1,1))
-            sage: print Q.repr_full(reverse=True)
+            sage: print(Q.repr_full(reverse=True))
             poset((4, 4, 42), (1, 3, 42), (2, 2, 7), (1, 2, 7), (2, 1, 7))
             +-- oo
             |   +-- no successors
@@ -2525,7 +2474,6 @@ class MutablePoset(SageObject):
                 S.update(shell.successors(reverse))
                 S.difference_update(D)
         del self._shells_[key]
-
 
     def discard(self, key, raise_key_error=False):
         r"""
@@ -2580,7 +2528,6 @@ class MutablePoset(SageObject):
         """
         return self.remove(key, raise_key_error)
 
-
     def pop(self, **kwargs):
         r"""
         Remove and return an arbitrary poset element.
@@ -2628,7 +2575,6 @@ class MutablePoset(SageObject):
             raise KeyError('pop from an empty poset')
         self.remove(shell.key)
         return shell.element
-
 
     def union(self, *other):
         r"""
@@ -2687,7 +2633,6 @@ class MutablePoset(SageObject):
         new = self.copy()
         new.update(*other)
         return new
-
 
     def union_update(self, *other):
         r"""
@@ -2752,12 +2697,10 @@ class MutablePoset(SageObject):
             for element in it:
                 self.add(element)
 
-
     update = union_update  # as in a Python set
     r"""
     Alias of :meth:`union_update`.
     """
-
 
     def difference(self, *other):
         r"""
@@ -2813,7 +2756,6 @@ class MutablePoset(SageObject):
         new.difference_update(*other)
         return new
 
-
     def difference_update(self, *other):
         r"""
         Remove all elements of another poset from this poset.
@@ -2862,7 +2804,6 @@ class MutablePoset(SageObject):
                 it = iter(o)
             for key in it:
                 self.discard(key)
-
 
     def intersection(self, *other):
         r"""
@@ -2913,7 +2854,6 @@ class MutablePoset(SageObject):
         new.intersection_update(*other)
         return new
 
-
     def intersection_update(self, *other):
         r"""
         Update this poset with the intersection of itself and another poset.
@@ -2962,7 +2902,6 @@ class MutablePoset(SageObject):
             if any(key not in o for o in other):
                 self.discard(key)
 
-
     def symmetric_difference(self, other):
         r"""
         Return the symmetric difference of two posets as a new poset.
@@ -3003,7 +2942,6 @@ class MutablePoset(SageObject):
         new = self.copy()
         new.symmetric_difference_update(other)
         return new
-
 
     def symmetric_difference_update(self, other):
         r"""
@@ -3051,7 +2989,6 @@ class MutablePoset(SageObject):
         self.difference_update(other)
         self.union_update(T)
 
-
     def is_disjoint(self, other):
         r"""
         Return whether another poset is disjoint to this poset.
@@ -3094,12 +3031,10 @@ class MutablePoset(SageObject):
         """
         return all(key not in other for key in self.keys())
 
-
     isdisjoint = is_disjoint  # as in a Python set
     r"""
     Alias of :meth:`is_disjoint`.
     """
-
 
     def is_subset(self, other):
         r"""
@@ -3148,12 +3083,10 @@ class MutablePoset(SageObject):
         """
         return all(key in other for key in self.keys())
 
-
     issubset = is_subset  # as in a Python set
     r"""
     Alias of :meth:`is_subset`.
     """
-
 
     def is_superset(self, other):
         r"""
@@ -3206,12 +3139,10 @@ class MutablePoset(SageObject):
             it = iter(other)
         return all(key in self for key in it)
 
-
     issuperset = is_superset  # as in a Python set
     r"""
     Alias of :meth:`is_superset`.
     """
-
 
     def merge(self, key=None, reverse=False):
         r"""
@@ -3272,7 +3203,7 @@ class MutablePoset(SageObject):
             ....:        key=key, merge=add, can_merge=can_add)
             sage: Q = copy(P)
             sage: Q.merge(T((1, 3)))
-            sage: print Q.repr_full(reverse=True)
+            sage: print(Q.repr_full(reverse=True))
             poset((4, 4, 'd'), (1, 3, 'abe'), (2, 2, 'f'), (2, 1, 'c'))
             +-- oo
             |   +-- no successors
@@ -3295,7 +3226,7 @@ class MutablePoset(SageObject):
             sage: for k in P.keys():
             ....:     Q = copy(P)
             ....:     Q.merge(k)
-            ....:     print 'merging %s: %s' % (k, Q)
+            ....:     print('merging %s: %s' % (k, Q))
             merging (1, 2): poset((1, 2, 'ae'), (1, 3, 'b'),
                                   (2, 1, 'c'), (2, 2, 'f'), (4, 4, 'd'))
             merging (1, 3): poset((1, 3, 'abe'), (2, 1, 'c'),
@@ -3348,6 +3279,7 @@ class MutablePoset(SageObject):
             return
 
         shell = self.shell(key)
+
         def can_merge(other):
             return self._can_merge_(shell.element, other.element)
         for rev in (reverse, not reverse):
@@ -3362,7 +3294,6 @@ class MutablePoset(SageObject):
                 if m.is_special():
                     continue
                 shell.merge(m.element, check=False, delete=True)
-
 
     def maximal_elements(self):
         r"""
@@ -3395,7 +3326,6 @@ class MutablePoset(SageObject):
                     for shell in self.oo.predecessors()
                     if not shell.is_special())
 
-
     def minimal_elements(self):
         r"""
         Return an iterator over the minimal elements of this poset.
@@ -3426,7 +3356,6 @@ class MutablePoset(SageObject):
         return iter(shell.element
                     for shell in self.null.successors()
                     if not shell.is_special())
-
 
     def map(self, function, topological=False, reverse=False):
         r"""
@@ -3488,7 +3417,6 @@ class MutablePoset(SageObject):
                 remove.append(shell.key)
         for key in remove:
             self.remove(key)
-
 
     def mapped(self, function):
         r"""

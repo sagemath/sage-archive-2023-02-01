@@ -48,7 +48,7 @@ TESTS::
     sage: loads(dumps(H)) == H
     True
 
-See trac 5886::
+See :trac:`5886`::
 
     sage: V = (ZZ^2).span_of_basis([[1,2],[3,4]])
     sage: V.hom([V.0, V.1])
@@ -57,6 +57,7 @@ See trac 5886::
     [0 1]...
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #  Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -75,7 +76,6 @@ See trac 5886::
 
 import sage.categories.homset
 import sage.matrix.all as matrix
-import free_module_morphism
 from inspect import isfunction
 from sage.misc.cachefunc import cached_method
 
@@ -153,8 +153,8 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             sage: phi(V.0) == V.1
             True
 
-        The following tests against a bug that was fixed in trac
-        ticket #9944. The method ``zero()`` calls this hom space with
+        The following tests against a bug that was fixed in
+        :trac:`9944`. The method ``zero()`` calls this hom space with
         a function, not with a matrix, and that case had previously
         not been taken care of::
 
@@ -170,6 +170,7 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             Echelon ...
 
         """
+        from . import free_module_morphism
         if not sage.matrix.matrix.is_Matrix(A):
             # Compute the matrix of the morphism that sends the
             # generators of the domain to the elements of A.
@@ -277,7 +278,7 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
         r"""
         Return identity morphism in an endomorphism ring.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: V=FreeModule(ZZ,5)
             sage: H=V.Hom(V)

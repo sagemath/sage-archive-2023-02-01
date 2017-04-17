@@ -16,6 +16,19 @@ TESTS::
 
     sage: m = matrix(ZZ['x'], 2, 3, [1..6])
     sage: TestSuite(m).run()
+
+Check that a pair consisting of a matrix and its echelon form is
+pickled correctly (this used to give a wrong answer due to a Python
+bug, see :trac:`17527`)::
+
+    sage: K.<x> = FractionField(QQ['x'])
+    sage: m = Matrix([[1], [x]])
+    sage: t = (m, m.echelon_form())
+    sage: loads(dumps(t))
+    (
+    [1]  [1]
+    [x], [0]
+    )
 """
 
 #*****************************************************************************
@@ -26,14 +39,16 @@ TESTS::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
-include "sage/ext/python.pxi"
+from cpython cimport *
 include "cysignals/signals.pxi"
 
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.coerce cimport py_scalar_parent
 from sage.structure.sequence import Sequence
 from sage.structure.element import is_Vector
+from sage.structure.element cimport have_same_parent, coercion_model
 from sage.misc.misc import verbose, get_verbose
 from sage.rings.ring import is_Ring
 from sage.rings.number_field.number_field_base import is_NumberField
@@ -42,8 +57,11 @@ from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ, is_RationalField
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
+from sage.rings.real_mpfr import RealField
+from sage.rings.complex_field import ComplexField
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.misc.derivative import multi_derivative
+from sage.arith.numerical_approx cimport digits_to_bits
 from copy import copy
 
 import sage.modules.free_module
@@ -51,6 +69,7 @@ import matrix_space
 import berlekamp_massey
 from sage.modules.free_module_element import is_FreeModuleElement
 from sage.matrix.matrix_misc import permanental_minor_polynomial
+
 
 cdef class Matrix(matrix1.Matrix):
     def _backslash_(self, B):
@@ -179,7 +198,7 @@ cdef class Matrix(matrix1.Matrix):
         `B` is a vector then `X` is a vector and if
         `B` is a matrix, then `X` is a matrix.
 
-        .. note::
+        .. NOTE::
 
            In Sage one can also write ``A \backslash  B`` for
            ``A.solve_right(B)``, i.e., Sage implements the "the
@@ -197,7 +216,7 @@ cdef class Matrix(matrix1.Matrix):
 
         OUTPUT: a matrix or vector
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`solve_left`
 
@@ -353,16 +372,16 @@ cdef class Matrix(matrix1.Matrix):
 
         if is_Vector(B):
             if self.nrows() != B.degree():
-                raise ValueError, "number of rows of self must equal degree of B"
+                raise ValueError("number of rows of self must equal degree of B")
         else:
             if self.nrows() != B.nrows():
-                raise ValueError, "number of rows of self must equal number of rows of B"
+                raise ValueError("number of rows of self must equal number of rows of B")
 
         K = self.base_ring()
         if not K.is_integral_domain():
             from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
             if is_IntegerModRing(K):
-                from sage.libs.pari.all import pari
+                from sage.libs.pari import pari
                 A = pari(self.lift())
                 b = pari(B).lift()
                 if b.type() == "t_MAT":
@@ -376,7 +395,7 @@ cdef class Matrix(matrix1.Matrix):
                 if is_Vector(B):
                     return (K ** self.ncols())(ret)
                 return self.matrix_space(self.ncols(), 1)(ret)
-            raise TypeError, "base ring must be an integral domain or a ring of integers mod n"
+            raise TypeError("base ring must be an integral domain or a ring of integers mod n")
         if not K.is_field():
             K = K.fraction_field()
             self = self.change_ring(K)
@@ -412,7 +431,7 @@ cdef class Matrix(matrix1.Matrix):
         If self is a matrix `A` of full rank, then this function
         returns a matrix `X` such that `A X = B`.
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`solve_right` and :meth:`solve_left`
 
@@ -515,7 +534,7 @@ cdef class Matrix(matrix1.Matrix):
         if check:
             # Have to check that we actually solved the equation.
             if self*X != B:
-                raise ValueError, "matrix equation has no solutions"
+                raise ValueError("matrix equation has no solutions")
         return X
 
     def prod_of_row_sums(self, cols):
@@ -549,7 +568,7 @@ cdef class Matrix(matrix1.Matrix):
             tmp = []
             for c in cols:
 #               if c<0 or c >= self._ncols:
-#                   raise IndexError, "matrix column index out of range"
+#                   raise IndexError("matrix column index out of range")
                 tmp.append(self.get_unsafe(row, c))
             pr = pr * sum(tmp)
         return pr
@@ -593,8 +612,8 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: A = matrix(ZZ, 2, range(6))
-            sage: B = matrix(QQ, 2, [5, 1/3, 2/7, 11/2, -3/2, 8])
+            sage: A = matrix(ZZ, 2, 3, range(6))
+            sage: B = matrix(QQ, 2, 3, [5, 1/3, 2/7, 11/2, -3/2, 8])
             sage: C = A.elementwise_product(B)
             sage: C
             [   0  1/3  4/7]
@@ -657,7 +676,7 @@ cdef class Matrix(matrix1.Matrix):
         Some pairs of rings do not have a common parent where
         multiplication makes sense.  This will raise an error. ::
 
-            sage: A = matrix(QQ, 3, range(6))
+            sage: A = matrix(QQ, 3, 2, range(6))
             sage: B = matrix(GF(3), 3, [2]*6)
             sage: A.elementwise_product(B)
             Traceback (most recent call last):
@@ -668,9 +687,9 @@ cdef class Matrix(matrix1.Matrix):
         Notice how if base rings are unequal, both operands must be sparse
         to get a sparse result. ::
 
-            sage: A = matrix(ZZ, 5, range(30), sparse=False)
-            sage: B = matrix(ZZ, 5, range(30), sparse=True)
-            sage: C = matrix(QQ, 5, range(30), sparse=True)
+            sage: A = matrix(ZZ, 5, 6, range(30), sparse=False)
+            sage: B = matrix(ZZ, 5, 6, range(30), sparse=True)
+            sage: C = matrix(QQ, 5, 6, range(30), sparse=True)
             sage: A.elementwise_product(C).is_dense()
             True
             sage: B.elementwise_product(C).is_sparse()
@@ -858,7 +877,7 @@ cdef class Matrix(matrix1.Matrix):
         m = self._nrows
         n = self._ncols
         if not m <= n:
-            raise ValueError, "must have m <= n, but m (=%s) and n (=%s)"%(m,n)
+            raise ValueError("must have m <= n, but m (=%s) and n (=%s)"%(m,n))
 
         for r from 1 <= r < m+1:
             lst = _choose(n, r)
@@ -891,7 +910,7 @@ cdef class Matrix(matrix1.Matrix):
         the typo `p_0(A) = 0` in that reference! For applications
         see Theorem 7.2.1 and Theorem 7.2.4.
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             The method :meth:`rook_vector` returns the list of all permanental
             minors.
@@ -987,6 +1006,159 @@ cdef class Matrix(matrix1.Matrix):
             for rows in _choose(m,k):
                 pm = pm + self.matrix_from_rows_and_columns(rows, cols).permanent()
         return pm
+
+    def pseudoinverse(self, *, algorithm=None):
+        """
+        Return the Moore-Penrose pseudoinverse of this matrix.
+
+        INPUT:
+
+        - ``algorithm`` (default: guess) -- one of the following:
+
+          - ``"numpy"`` -- Use numpy's ``linalg.pinv()`` which is
+            suitable over real or complex fields.
+
+          - ``"exact"`` -- Use a simple algorithm which is not
+            numerically stable but useful over exact fields. Assume that
+            no conjugation is needed, that the conjugate transpose is
+            just the transpose.
+
+          - ``"exactconj"`` -- Like ``exact`` but use the conjugate
+            transpose.
+
+        OUTPUT: a matrix
+
+        EXAMPLES::
+
+            sage: M = diagonal_matrix(CDF, [0, I, 1+I])
+            sage: M
+            [        0.0         0.0         0.0]
+            [        0.0       1.0*I         0.0]
+            [        0.0         0.0 1.0 + 1.0*I]
+            sage: M.pseudoinverse()  # tol 1e-15
+            [        0.0         0.0         0.0]
+            [        0.0      -1.0*I         0.0]
+            [        0.0         0.0 0.5 - 0.5*I]
+
+        We check the properties of the pseudoinverse over an exact
+        field::
+
+            sage: M = random_matrix(QQ, 6, 3) * random_matrix(QQ, 3, 5)
+            sage: Mx = M.pseudoinverse()
+            sage: M * Mx * M == M
+            True
+            sage: Mx * M * Mx == Mx
+            True
+            sage: (M * Mx).is_symmetric()
+            True
+            sage: (Mx * M).is_symmetric()
+            True
+
+        Beware that the ``exact`` algorithm is not numerically stable,
+        but the default ``numpy`` algorithm is::
+
+            sage: M = matrix(RR, 3, 3, [1,2,3,1/3,2/3,3/3,1/5,2/5,3/5])
+            sage: M.pseudoinverse()  # tol 1e-15
+            [0.0620518477661335 0.0206839492553778 0.0124103695532267]
+            [ 0.124103695532267 0.0413678985107557 0.0248207391064534]
+            [ 0.186155543298400 0.0620518477661335 0.0372311086596801]
+            sage: M.pseudoinverse(algorithm="numpy")  # tol 1e-15
+            [0.0620518477661335 0.0206839492553778 0.0124103695532267]
+            [ 0.124103695532267 0.0413678985107557 0.0248207391064534]
+            [ 0.186155543298400 0.0620518477661335 0.0372311086596801]
+            sage: M.pseudoinverse(algorithm="exact")
+            [ 0.125000000000000 0.0625000000000000 0.0312500000000000]
+            [ 0.250000000000000  0.125000000000000 0.0625000000000000]
+            [ 0.000000000000000  0.000000000000000 0.0625000000000000]
+
+        When multiplying the given matrix with the pseudoinverse, the
+        result is symmetric for the ``exact`` algorithm or hermitian
+        for the ``exactconj`` algorithm::
+
+            sage: M = matrix(QQbar, 2, 2, [1, sqrt(-3), -sqrt(-3), 3])
+            sage: M * M.pseudoinverse()
+            [   0.2500000000000000?  0.4330127018922193?*I]
+            [-0.4330127018922193?*I     0.750000000000000?]
+            sage: M * M.pseudoinverse(algorithm="exactconj")
+            [                   1/4  0.4330127018922193?*I]
+            [-0.4330127018922193?*I                    3/4]
+            sage: M * M.pseudoinverse(algorithm="exact")
+            [                -1/2 0.866025403784439?*I]
+            [0.866025403784439?*I                  3/2]
+
+        For an invertible matrix, the pseudoinverse is just the
+        inverse::
+
+            sage: M = matrix([[1,2], [3,4]])
+            sage: ~M
+            [  -2    1]
+            [ 3/2 -1/2]
+            sage: M.pseudoinverse()
+            [  -2    1]
+            [ 3/2 -1/2]
+
+        Numpy gives a strange answer due to rounding errors::
+
+            sage: M.pseudoinverse(algorithm="numpy")  # random
+            [-1286742750677287/643371375338643 1000799917193445/1000799917193444]
+            [  519646110850445/346430740566963  -300239975158034/600479950316067]
+
+        TESTS::
+
+            sage: M.pseudoinverse(algorithm="exact")
+            [  -2    1]
+            [ 3/2 -1/2]
+            sage: M.pseudoinverse(algorithm="whatever")
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown algorithm 'whatever', valid values are ('numpy', 'exact', 'exactconj')
+            sage: M.change_ring(RealField(54)).pseudoinverse()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: pseudoinverse for real/complex field is only implemented for <= 53 bits of precision
+        """
+        ring = self.base_ring()
+        if algorithm is None:
+            # Choose algorithm depending on base ring
+            is_complex = ComplexField(2).has_coerce_map_from(ring)
+            if is_complex:
+                if ring.is_exact():
+                    is_real = RealField(2).has_coerce_map_from(ring)
+                    algorithm = "exact" if is_real else "exactconj"
+                else:
+                    if ring.precision() <= 53:
+                        algorithm = "numpy"
+                    else:
+                        raise NotImplementedError("pseudoinverse for real/complex field is only implemented for <= 53 bits of precision")
+            else:
+                algorithm = "exact"
+        else:
+            algos = ("numpy", "exact", "exactconj")
+            if algorithm not in algos:
+                raise ValueError("unknown algorithm {!r}, valid values are {}".format(algorithm, algos))
+
+        if algorithm == "numpy":
+            from numpy.linalg import pinv
+            from sage.matrix.constructor import matrix
+            ans = pinv(self.numpy())
+            return matrix(ring.fraction_field(), ans)
+
+        # We use a simple algorithm taken from
+        # https://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_pseudoinverse#Rank_decomposition
+        # Write self as A * B such that A and B both have full rank.
+        B = self.row_space().basis_matrix()
+        A = B.solve_left(self)
+
+        if algorithm.endswith("conj"):
+            At = A.conjugate_transpose()
+            Bt = B.conjugate_transpose()
+        else:
+            At = A.transpose()
+            Bt = B.transpose()
+
+        # Now the pseudoinverse is B^t (A^t A B B^t)^-1 A^t.
+        Q = (At * A) * (B * Bt)
+        return Bt * ~Q * At
 
     def rook_vector(self, algorithm="ButeraPernici", complement=False, use_complement=None):
         r"""
@@ -1089,7 +1261,7 @@ cdef class Matrix(matrix1.Matrix):
 
             r_k(A) = \sum_{j=0}^k (-1)^j \binom{m-j}{k-j} \binom{n-j}{k-j} (k-j)! r_j(B)
 
-        see [Riordan] or the introductory text [Allenby]. This can be done
+        see [Rio1958]_ or the introductory text [AS2011]_. This can be done
         setting the argument ``use_complement`` to ``True``.
 
         An example with an exotic matrix (for which only Butera-Pernici and
@@ -1128,18 +1300,11 @@ cdef class Matrix(matrix1.Matrix):
             sage: for algorithm in ("Godsil","Ryser","ButeraPernici"):
             ....:     v = m.rook_vector(complement=True, use_complement=True, algorithm=algorithm)
             ....:     if v != [1, 16, 78, 128, 53]:
-            ....:         print "ERROR with algorithm={} use_complement=True".format(algorithm)
+            ....:         print("ERROR with algorithm={} use_complement=True".format(algorithm))
             ....:     v = m.rook_vector(complement=True, use_complement=False, algorithm=algorithm)
             ....:     v = m.rook_vector(complement=True, use_complement=False)
             ....:     if v != [1, 16, 78, 128, 53]:
-            ....:         print "ERROR with algorithm={} use_complement=False".format(algorithm)
-
-        REFERENCES:
-
-        .. [Riordan] J. Riordan, "An Introduction to Combinatorial Analysis",
-           Dover Publ. (1958)
-
-        .. [Allenby] R.B.J.T Allenby and A. Slomson, "How to count", CRC Press (2011)
+            ....:         print("ERROR with algorithm={} use_complement=False".format(algorithm))
 
         AUTHORS:
 
@@ -1264,8 +1429,15 @@ cdef class Matrix(matrix1.Matrix):
             sage: A = Matrix(P,2,3,[x0*x1, x0, x1, x2, x2 + 16, x2 + 5*x1 ])
             sage: A.minors(2)
             [x0*x1*x2 + 16*x0*x1 - x0*x2, 5*x0*x1^2 + x0*x1*x2 - x1*x2, 5*x0*x1 + x0*x2 - x1*x2 - 16*x1]
+
+        This test addresses an issue raised at :trac:`20512`::
+
+            sage: A.minors(0)[0].parent() == P
+            True
         """
         from sage.combinat.combination import Combinations
+        if k == 0:
+            return [self.base_ring().one()]
         all_rows = range(self.nrows())
         all_cols = range(self.ncols())
         m = []
@@ -1371,8 +1543,8 @@ cdef class Matrix(matrix1.Matrix):
         properly::
 
             sage: A = matrix(RR, [ [1, 0, 1/2],
-            ...                    [0, 1, 0  ],
-            ...                    [0, 0, -2 ] ])
+            ....:                  [0, 1, 0  ],
+            ....:                  [0, 0, -2 ] ])
             sage: B = copy(A)
             sage: _ = A.charpoly()
             sage: A.determinant() == B.determinant()
@@ -1383,7 +1555,7 @@ cdef class Matrix(matrix1.Matrix):
           - Unknown: No author specified in the file from 2009-06-25
           - Sebastian Pancratz (2009-06-25): Use the division-free
             algorithm for charpoly
-          - Thierry Monteil (2010-10-05): Bugfix for trac ticket #10063,
+          - Thierry Monteil (2010-10-05): Bugfix for :trac:`10063`,
             so that the determinant is computed even for rings for which
             the is_field method is not implemented.
         """
@@ -1391,7 +1563,7 @@ cdef class Matrix(matrix1.Matrix):
         from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 
         if self._nrows != self._ncols:
-            raise ValueError, "self must be a square matrix"
+            raise ValueError("self must be a square matrix")
 
         d = self.fetch('det')
         if not d is None:
@@ -1433,7 +1605,7 @@ cdef class Matrix(matrix1.Matrix):
             # word, use PARI.
             ch = R.characteristic()
             if ch.is_prime() and ch < (2*sys.maxsize):
-                d = R(self._pari_().matdet())
+                d = R(self.__pari__().matdet())
             else:
                 # Lift to ZZ and compute there.
                 d = R(self.apply_map(lambda x : x.lift_centered()).det())
@@ -1567,7 +1739,7 @@ cdef class Matrix(matrix1.Matrix):
         `n \times n` matrix `U` and any alternating `n \times n`
         matrix `A`.
 
-        See [Kn95]_, [DW95]_ and [Rote2001]_, just to name three
+        See [Knu1995]_, [DW1995]_ and [Rot2001]_, just to name three
         sources, for further properties of Pfaffians.
 
         ALGORITHM:
@@ -1578,29 +1750,10 @@ cdef class Matrix(matrix1.Matrix):
         is alternating, a non-discrete base ring might prevent Sage
         from being able to check this).
 
-        REFERENCES:
-
-        .. [Kn95] Donald E. Knuth, *Overlapping Pfaffians*,
-           :arxiv:`math/9503234v1`.
-
-        .. [Rote2001] Gunter Rote,
-           *Division-Free Algorithms for the Determinant and the
-           Pfaffian: Algebraic and Combinatorial Approaches*,
-           H. Alt (Ed.): Computational Discrete Mathematics, LNCS
-           2122, pp. 119–135, 2001.
-           http://page.mi.fu-berlin.de/rote/Papers/pdf/Division-free+algorithms.pdf
-
-        .. [DW95] Andreas W.M. Dress, Walter Wenzel,
-           *A Simple Proof of an Identity Concerning Pfaffians of
-           Skew Symmetric Matrices*,
-           Advances in Mathematics, volume 112, Issue 1, April
-           1995, pp. 120-134.
-           http://www.sciencedirect.com/science/article/pii/S0001870885710298
-
         .. TODO::
 
             Implement faster algorithms, including a division-free one.
-            Does [Rote2001]_, section 3.3 give one?
+            Does [Rot2001]_, section 3.3 give one?
 
             Check the implementation of the matchings used here for
             performance?
@@ -1741,7 +1894,7 @@ cdef class Matrix(matrix1.Matrix):
         # TypeError with the following kind of message:
         #   absolute value is not defined on matrices. If you want the
         #   L^1-norm use m.norm(1) and if you want the matrix obtained by
-        #   applying the absolute value to the coefficents use
+        #   applying the absolute value to the coefficients use
         #   m.apply_map(abs).
         from sage.misc.superseded import deprecation
         deprecation(17443, "abs(matrix) is deprecated. Use matrix.det()"
@@ -1765,7 +1918,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: m = matrix(ZZ, 3, range(9))
+            sage: m = matrix(ZZ, 3, 3, range(9))
             sage: phi = ZZ.hom(GF(5))
             sage: m.apply_morphism(phi)
             [0 1 2]
@@ -1813,7 +1966,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: m = matrix(ZZ, 3, range(9))
+            sage: m = matrix(ZZ, 3, 3, range(9))
             sage: k.<a> = GF(9)
             sage: f = lambda x: k(x)
             sage: n = m.apply_map(f); n
@@ -1937,7 +2090,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: a = matrix(QQ, 4, range(16))
+            sage: a = matrix(QQ, 4, 4, range(16))
             sage: a.minimal_polynomial('z')
             z^3 - 30*z^2 - 80*z
             sage: a.minpoly()
@@ -2085,7 +2238,7 @@ cdef class Matrix(matrix1.Matrix):
         It's a little difficult to distinguish the variables. To fix this,
         we temporarily view the indeterminate as `Z`::
 
-            sage: with localvars(f.parent(), 'Z'): print f
+            sage: with localvars(f.parent(), 'Z'): print(f)
             Z^2 + (-y^2 - x)*Z - x^2*y + x*y^2
 
         We could also compute f in terms of Z from the start::
@@ -2138,8 +2291,8 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: z = Zp(p=5)
             sage: A = matrix(z, [ [3 + O(5^1), 4 + O(5^1), 4 + O(5^1)],
-            ...                   [2*5^2 + O(5^3), 2 + O(5^1), 1 + O(5^1)],
-            ...                   [5 + O(5^2), 1 + O(5^1), 1 + O(5^1)] ])
+            ....:                 [2*5^2 + O(5^3), 2 + O(5^1), 1 + O(5^1)],
+            ....:                 [5 + O(5^2), 1 + O(5^1), 1 + O(5^1)] ])
             sage: A.charpoly(algorithm='hessenberg')
             Traceback (most recent call last):
             ...
@@ -2153,7 +2306,7 @@ cdef class Matrix(matrix1.Matrix):
         not cached::
 
             sage: M = MatrixSpace(RR, 2)
-            sage: A = M(range(0, 2^2))
+            sage: A = M(range(2^2))
             sage: type(A)
             <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
             sage: A.charpoly('x')
@@ -2405,9 +2558,9 @@ cdef class Matrix(matrix1.Matrix):
         """
         K = self.base_ring()
         if not is_NumberField(K):
-            raise ValueError, "_charpoly_over_number_field called with base ring (%s) not a number field" % K
+            raise ValueError("_charpoly_over_number_field called with base ring (%s) not a number field" % K)
 
-        paripoly = self._pari_().charpoly()
+        paripoly = self.__pari__().charpoly()
         return K[var](paripoly)
 
     def fcp(self, var='x'):
@@ -2473,11 +2626,11 @@ cdef class Matrix(matrix1.Matrix):
             sage: K.<z> = CyclotomicField(3)
             sage: M = MatrixSpace(K,3,sparse=True)
             sage: A = M([(1+z)/3,(2+z)/3,z/3,1,1+z,-2,1,5,-1+z])
-            sage: print A
+            sage: print(A)
             [1/3*z + 1/3 1/3*z + 2/3       1/3*z]
             [          1       z + 1          -2]
             [          1           5       z - 1]
-            sage: print A.denominator()
+            sage: print(A.denominator())
             3
         """
         if self.nrows() == 0 or self.ncols() == 0:
@@ -2487,12 +2640,12 @@ cdef class Matrix(matrix1.Matrix):
         try:
             d = x[0].denominator()
         except AttributeError:
-            raise TypeError, "denominator not defined for elements of the base ring"
+            raise TypeError("denominator not defined for elements of the base ring")
         try:
             for y in x:
                 d = d.lcm(y.denominator())
         except AttributeError:
-            raise TypeError, "lcm function not defined for elements of the base ring"
+            raise TypeError("lcm function not defined for elements of the base ring")
         return d
 
     def diagonal(self):
@@ -2554,7 +2707,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: a = matrix(3,range(9)); a
+            sage: a = matrix(3,3,range(9)); a
             [0 1 2]
             [3 4 5]
             [6 7 8]
@@ -2568,7 +2721,7 @@ cdef class Matrix(matrix1.Matrix):
             34/3
         """
         if self._nrows != self._ncols:
-            raise ValueError, "self must be a square matrix"
+            raise ValueError("self must be a square matrix")
         R = self._base_ring
         cdef Py_ssize_t i
         cdef object s
@@ -2591,7 +2744,7 @@ cdef class Matrix(matrix1.Matrix):
             -1629
         """
         if self._nrows != other._ncols or other._nrows != self._ncols:
-            raise ArithmeticError, "incompatible dimensions"
+            raise ArithmeticError("incompatible dimensions")
         s = self._base_ring(0)
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
@@ -2634,7 +2787,7 @@ cdef class Matrix(matrix1.Matrix):
                 H = self.change_ring(K)
                 H.hessenbergize()
             except TypeError as msg:
-                raise TypeError, "%s\nHessenberg form only possible for matrices over a field"%msg
+                raise TypeError("%s\nHessenberg form only possible for matrices over a field"%msg)
         else:
             H = self.__copy__()
             H.hessenbergize()
@@ -2685,10 +2838,10 @@ cdef class Matrix(matrix1.Matrix):
         tm = verbose("Computing Hessenberg Normal Form of %sx%s matrix"%(n,n))
 
         if not self.is_square():
-            raise TypeError, "self must be square"
+            raise TypeError("self must be square")
 
         if not self._base_ring.is_field():
-            raise TypeError, "Hessenbergize only possible for matrices over a field"
+            raise TypeError("Hessenbergize only possible for matrices over a field")
 
         self.check_mutability()
 
@@ -2748,19 +2901,19 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: matrix(QQ,3,range(9))._charpoly_hessenberg('Z')
+            sage: matrix(QQ,3,3,range(9))._charpoly_hessenberg('Z')
             Z^3 - 12*Z^2 - 18*Z
-            sage: matrix(ZZ,3,range(9))._charpoly_hessenberg('Z')
+            sage: matrix(ZZ,3,3,range(9))._charpoly_hessenberg('Z')
             Z^3 - 12*Z^2 - 18*Z
-            sage: matrix(GF(7),3,range(9))._charpoly_hessenberg('Z')
+            sage: matrix(GF(7),3,3,range(9))._charpoly_hessenberg('Z')
             Z^3 + 2*Z^2 + 3*Z
-            sage: matrix(QQ['x'],3,range(9))._charpoly_hessenberg('Z')
+            sage: matrix(QQ['x'],3,3,range(9))._charpoly_hessenberg('Z')
             Z^3 - 12*Z^2 - 18*Z
-            sage: matrix(ZZ['ZZ'],3,range(9))._charpoly_hessenberg('Z')
+            sage: matrix(ZZ['ZZ'],3,3,range(9))._charpoly_hessenberg('Z')
             Z^3 - 12*Z^2 - 18*Z
         """
         if self._nrows != self._ncols:
-            raise ArithmeticError, "charpoly not defined for non-square matrix."
+            raise ArithmeticError("charpoly not defined for non-square matrix.")
 
         # Replace self by its Hessenberg form
         # (note the entries might now live in the fraction field)
@@ -2862,7 +3015,7 @@ cdef class Matrix(matrix1.Matrix):
 
         ::
 
-            sage: A = matrix(ZZ,3,range(9))
+            sage: A = matrix(ZZ,3,3,range(9))
             sage: A.right_nullity()
             1
         """
@@ -2890,7 +3043,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: Q = QuadraticField(-7)
             sage: a = Q.gen(0)
             sage: A = matrix(Q, [[  2, 5-a, 15-a],
-            ...                  [2+a,   a, -7 + 5*a]])
+            ....:                [2+a,   a, -7 + 5*a]])
             sage: result = A._right_kernel_matrix_over_number_field()
             sage: result[0]
             'pivot-pari-numberfield'
@@ -2918,7 +3071,7 @@ cdef class Matrix(matrix1.Matrix):
             [0 0 1]
         """
         tm = verbose("computing right kernel matrix over a number field for %sx%s matrix" % (self.nrows(), self.ncols()),level=1)
-        basis = self._pari_().matker()
+        basis = self.__pari__().matker()
         # Coerce PARI representations into the number field
         R = self.base_ring()
         basis = [[R(x) for x in row] for row in basis]
@@ -2943,8 +3096,8 @@ cdef class Matrix(matrix1.Matrix):
             sage: C = CyclotomicField(14)
             sage: a = C.gen(0)
             sage: A = matrix(C, 3, 4, [[  1,    a,    1+a,  a^3+a^5],
-            ...                        [  a,  a^4,  a+a^4,  a^4+a^8],
-            ...                        [a^2, a^6, a^2+a^6, a^5+a^10]])
+            ....:                      [  a,  a^4,  a+a^4,  a^4+a^8],
+            ....:                      [a^2, a^6, a^2+a^6, a^5+a^10]])
             sage: result = A._right_kernel_matrix_over_field()
             sage: result[0]
             'pivot-generic'
@@ -3017,7 +3170,7 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: R.<y> = QQ[]
             sage: A = matrix(R, [[  1,   y, 1+y^2],
-            ...                  [y^3, y^2, 2*y^3]])
+            ....:                [y^3, y^2, 2*y^3]])
             sage: result = A._right_kernel_matrix_over_domain()
             sage: result[0]
             'computed-smith-form'
@@ -3102,7 +3255,7 @@ cdef class Matrix(matrix1.Matrix):
         format).  Conversely, repeated calls on the same matrix will always
         start from scratch.
 
-        .. note::
+        .. NOTE::
 
             If you want to get the most basic description of a kernel, with a
             minimum of overhead, then ask for the right kernel matrix with
@@ -3126,9 +3279,9 @@ cdef class Matrix(matrix1.Matrix):
         of the vectors in the 'pivot' format. ::
 
             sage: A = matrix(QQ, [[1, 0, 1, -3, 1],
-            ...                   [-5, 1, 0, 7, -3],
-            ...                   [0, -1, -4, 6, -2],
-            ...                   [4, -1, 0, -6, 2]])
+            ....:                 [-5, 1, 0, 7, -3],
+            ....:                 [0, -1, -4, 6, -2],
+            ....:                 [4, -1, 0, -6, 2]])
             sage: C = A.right_kernel_matrix(algorithm='default', basis='computed'); C
             [-1  2 -2 -1  0]
             [ 1  2  0  0 -1]
@@ -3151,9 +3304,9 @@ cdef class Matrix(matrix1.Matrix):
         available for any field by using the 'generic' keyword. ::
 
             sage: A = matrix(QQ, [[1, 0, 1, -3, 1],
-            ...                   [-5, 1, 0, 7, -3],
-            ...                   [0, -1, -4, 6, -2],
-            ...                   [4, -1, 0, -6, 2]])
+            ....:                 [-5, 1, 0, 7, -3],
+            ....:                 [0, -1, -4, 6, -2],
+            ....:                 [4, -1, 0, -6, 2]])
             sage: G = A.right_kernel_matrix(algorithm='generic', basis='echelon'); G
             [   1    0    1  1/2 -1/2]
             [   0    1 -1/2 -1/4 -1/4]
@@ -3164,10 +3317,10 @@ cdef class Matrix(matrix1.Matrix):
         dense and sparse rational matrices, with equal result. ::
 
             sage: A = matrix(QQ, [[1, 0, 1, -3, 1],
-            ...                   [-5, 1, 0, 7, -3],
-            ...                   [0, -1, -4, 6, -2],
-            ...                   [4, -1, 0, -6, 2]],
-            ...              sparse=False)
+            ....:                 [-5, 1, 0, 7, -3],
+            ....:                 [0, -1, -4, 6, -2],
+            ....:                 [4, -1, 0, -6, 2]],
+            ....:            sparse=False)
             sage: B = copy(A).sparse_matrix()
             sage: set_verbose(1)
             sage: D = A.right_kernel(); D
@@ -3198,7 +3351,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: Q = QuadraticField(-7)
             sage: a = Q.gen(0)
             sage: A = matrix(Q, [[2, 5-a, 15-a, 16+4*a],
-            ...                  [2+a, a, -7 + 5*a, -3+3*a]])
+            ....:                [2+a, a, -7 + 5*a, -3+3*a]])
             sage: C = A.right_kernel_matrix(algorithm='default', basis='computed'); C
             [    -a     -3      1      0]
             [    -2 -a - 1      0      1]
@@ -3254,8 +3407,8 @@ cdef class Matrix(matrix1.Matrix):
         method. There are no options for the algorithm used.  ::
 
             sage: A = matrix(GF(2),[[0, 1, 1, 0, 0, 0],
-            ...                     [1, 0, 0, 0, 1, 1,],
-            ...                     [1, 0, 0, 0, 1, 1]])
+            ....:                   [1, 0, 0, 0, 1, 1,],
+            ....:                   [1, 0, 0, 0, 1, 1]])
             sage: E = A.right_kernel_matrix(algorithm='default', format='echelon'); E
             [1 0 0 0 0 1]
             [0 1 1 0 0 0]
@@ -3270,8 +3423,8 @@ cdef class Matrix(matrix1.Matrix):
         same effect as there is no optional behavior. ::
 
             sage: A = matrix(GF(2),[[0, 1, 1, 0, 0, 0],
-            ...                     [1, 0, 0, 0, 1, 1,],
-            ...                     [1, 0, 0, 0, 1, 1]])
+            ....:                   [1, 0, 0, 0, 1, 1,],
+            ....:                   [1, 0, 0, 0, 1, 1]])
             sage: P = A.right_kernel_matrix(algorithm='generic', basis='pivot'); P
             [0 1 1 0 0 0]
             [0 0 0 1 0 0]
@@ -3295,8 +3448,8 @@ cdef class Matrix(matrix1.Matrix):
         We test that the mod 2 code is called for matrices over GF(2). ::
 
             sage: A = matrix(GF(2),[[0, 1, 1, 0, 0, 0],
-            ...                     [1, 0, 0, 0, 1, 1,],
-            ...                     [1, 0, 0, 0, 1, 1]])
+            ....:                   [1, 0, 0, 0, 1, 1,],
+            ....:                   [1, 0, 0, 0, 1, 1]])
             sage: set_verbose(1)
             sage: A.right_kernel(algorithm='default')
             verbose ...
@@ -3319,8 +3472,8 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: F.<a> = FiniteField(5^2)
             sage: A = matrix(F, 3, 4, [[  1,   a,     1+a,  a^3+a^5],
-            ...                        [  a, a^4,   a+a^4,  a^4+a^8],
-            ...                        [a^2, a^6, a^2+a^6, a^5+a^10]])
+            ....:                      [  a, a^4,   a+a^4,  a^4+a^8],
+            ....:                      [a^2, a^6, a^2+a^6, a^5+a^10]])
             sage: P = A.right_kernel_matrix(algorithm='default', basis='pivot'); P
             [      4       4       1       0]
             [  a + 2 3*a + 3       0       1]
@@ -3340,8 +3493,8 @@ cdef class Matrix(matrix1.Matrix):
         basis. ::
 
             sage: A = matrix(QQ, 3, 4, [[1,3,-2,4],
-            ...                         [2,0,2,2],
-            ...                         [-1,1,-2,0]])
+            ....:                       [2,0,2,2],
+            ....:                       [-1,1,-2,0]])
             sage: G = A.right_kernel_matrix(algorithm='generic'); G
             [   1    0 -1/2 -1/2]
             [   0    1  1/2 -1/2]
@@ -3358,8 +3511,8 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: F.<a> = FiniteField(5^2)
             sage: A = matrix(F, 3, 4, [[  1,   a,     1+a,  a^3+a^5],
-            ...                        [  a, a^4,   a+a^4,  a^4+a^8],
-            ...                        [a^2, a^6, a^2+a^6, a^5+a^10]])
+            ....:                      [  a, a^4,   a+a^4,  a^4+a^8],
+            ....:                      [a^2, a^6, a^2+a^6, a^5+a^10]])
             sage: set_verbose(1)
             sage: A.right_kernel(algorithm='default')
             verbose ...
@@ -3383,9 +3536,9 @@ cdef class Matrix(matrix1.Matrix):
         integers are not a field.  ::
 
             sage: A = matrix(ZZ, [[8, 0, 7, 1, 3, 4, 6],
-            ...                   [4, 0, 3, 4, 2, 7, 7],
-            ...                   [1, 4, 6, 1, 2, 8, 5],
-            ...                   [0, 3, 1, 2, 3, 6, 2]])
+            ....:                 [4, 0, 3, 4, 2, 7, 7],
+            ....:                 [1, 4, 6, 1, 2, 8, 5],
+            ....:                 [0, 3, 1, 2, 3, 6, 2]])
 
             sage: X = A.right_kernel_matrix(algorithm='default', basis='echelon'); X
             [  1  12   3  14  -3 -10   1]
@@ -3419,10 +3572,10 @@ cdef class Matrix(matrix1.Matrix):
         defined over the integers, both dense and sparse, with equal result. ::
 
             sage: A = matrix(ZZ, [[8, 0, 7, 1, 3, 4, 6],
-            ...                   [4, 0, 3, 4, 2, 7, 7],
-            ...                   [1, 4, 6, 1, 2, 8, 5],
-            ...                   [0, 3, 1, 2, 3, 6, 2]],
-            ...              sparse=False)
+            ....:                 [4, 0, 3, 4, 2, 7, 7],
+            ....:                 [1, 4, 6, 1, 2, 8, 5],
+            ....:                 [0, 3, 1, 2, 3, 6, 2]],
+            ....:            sparse=False)
             sage: B = copy(A).sparse_matrix()
             sage: set_verbose(1)
             sage: D = A.right_kernel(); D
@@ -3459,7 +3612,7 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: R.<y> = QQ[]
             sage: A = matrix(R, [[  1,   y, 1+y^2],
-            ...                  [y^3, y^2, 2*y^3]])
+            ....:                [y^3, y^2, 2*y^3]])
             sage: E = A.right_kernel_matrix(algorithm='default', basis='echelon'); E
             [-1 -y  1]
             sage: A*E.transpose() == zero_matrix(ZZ, 2, 1)
@@ -3471,7 +3624,7 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: D.<x> = ZZ[]
             sage: A = matrix(D, 2, 2, [[x^2 - x, -x + 5],
-            ...                        [x^2 - 8, -x + 2]])
+            ....:                      [x^2 - 8, -x + 2]])
             sage: A.right_kernel_matrix()
             Traceback (most recent call last):
             ...
@@ -3482,7 +3635,7 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: R.<y> = QQ[]
             sage: A = matrix(R, [[  1,   y, 1+y^2],
-            ...                  [y^3, y^2, 2*y^3]])
+            ....:                [y^3, y^2, 2*y^3]])
             sage: set_verbose(1)
             sage: A.right_kernel(algorithm='default', basis='echelon')
             verbose ...
@@ -3694,7 +3847,7 @@ cdef class Matrix(matrix1.Matrix):
         Returns the right kernel of this matrix, as a vector space or
         free module. This is the set of vectors ``x`` such that ``self*x = 0``.
 
-        .. note::
+        .. NOTE::
 
             For the left kernel, use :meth:`left_kernel`.  The method
             :meth:`kernel` is exactly equal to :meth:`left_kernel`.
@@ -3739,7 +3892,7 @@ cdef class Matrix(matrix1.Matrix):
         but with a different basis format, will return the cached result
         with the format from the first computation.
 
-        .. note::
+        .. NOTE::
 
            For more detailed documentation on the selection of algorithms
            used and a more flexible method for computing a basis matrix
@@ -3750,9 +3903,9 @@ cdef class Matrix(matrix1.Matrix):
         EXAMPLES::
 
             sage: A = matrix(QQ, [[0, 0, 1, 2, 2, -5, 3],
-            ...                   [-1, 5, 2, 2, 1, -7, 5],
-            ...                   [0, 0, -2, -3, -3, 8, -5],
-            ...                   [-1, 5, 0, -1, -2, 1, 0]])
+            ....:                 [-1, 5, 2, 2, 1, -7, 5],
+            ....:                 [0, 0, -2, -3, -3, 8, -5],
+            ....:                 [-1, 5, 0, -1, -2, 1, 0]])
             sage: K = A.right_kernel(); K
             Vector space of degree 7 and dimension 4 over Rational Field
             Basis matrix:
@@ -3770,9 +3923,9 @@ cdef class Matrix(matrix1.Matrix):
         the base ring is a field. ::
 
             sage: A = matrix(QQ, [[0, 0, 1, 2, 2, -5, 3],
-            ...                   [-1, 5, 2, 2, 1, -7, 5],
-            ...                   [0, 0, -2, -3, -3, 8, -5],
-            ...                   [-1, 5, 0, -1, -2, 1, 0]])
+            ....:                 [-1, 5, 2, 2, 1, -7, 5],
+            ....:                 [0, 0, -2, -3, -3, 8, -5],
+            ....:                 [-1, 5, 0, -1, -2, 1, 0]])
             sage: A.rref()
             [ 1 -5  0  0  1  1 -1]
             [ 0  0  1  0  0 -1  1]
@@ -3802,8 +3955,8 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: F.<a> = FiniteField(5^2)
             sage: A = matrix(F, 3, 4, [[  1,   a,     1+a,  a^3+a^5],
-            ...                        [  a, a^4,   a+a^4,  a^4+a^8],
-            ...                        [a^2, a^6, a^2+a^6, a^5+a^10]])
+            ....:                      [  a, a^4,   a+a^4,  a^4+a^8],
+            ....:                      [a^2, a^6, a^2+a^6, a^5+a^10]])
             sage: K = A.right_kernel(); K
             Vector space of degree 4 and dimension 2 over Finite Field in a of size 5^2
             Basis matrix:
@@ -3840,7 +3993,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: Q = QuadraticField(-7)
             sage: a = Q.gen(0)
             sage: A = matrix(Q, [[  2, 5-a,     15-a, 16+4*a],
-            ...                  [2+a,   a, -7 + 5*a, -3+3*a]])
+            ....:                [2+a,   a, -7 + 5*a, -3+3*a]])
             sage: K = A.right_kernel(algorithm='default'); K
             Vector space of degree 4 and dimension 2 over Number Field in a with defining polynomial x^2 + 7
             Basis matrix:
@@ -3867,10 +4020,10 @@ cdef class Matrix(matrix1.Matrix):
         mildly influence the LLL basis. ::
 
             sage: A = matrix(ZZ, [[0, -1, -1, 2, 9, 4, -4],
-            ...                   [-1, 1, 0, -2, -7, -1, 6],
-            ...                   [2, 0, 1, 0, 1, -5, -2],
-            ...                   [-1, -1, -1, 3, 10, 10, -9],
-            ...                   [-1, 2, 0, -3, -7, 1, 6]])
+            ....:                 [-1, 1, 0, -2, -7, -1, 6],
+            ....:                 [2, 0, 1, 0, 1, -5, -2],
+            ....:                 [-1, -1, -1, 3, 10, 10, -9],
+            ....:                 [-1, 2, 0, -3, -7, 1, 6]])
             sage: A.right_kernel(basis='echelon')
             Free module of degree 7 and rank 2 over Integer Ring
             Echelon basis matrix:
@@ -3905,7 +4058,7 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: R.<y> = QQ[]
             sage: A = matrix(R, [[  1,   y, 1+y^2],
-            ...                  [y^3, y^2, 2*y^3]])
+            ....:                [y^3, y^2, 2*y^3]])
             sage: K = A.right_kernel(algorithm='default', basis='echelon'); K
             Free module of degree 3 and rank 1 over Univariate Polynomial Ring in y over Rational Field
             Echelon basis matrix:
@@ -3918,7 +4071,7 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: D.<x> = ZZ[]
             sage: A = matrix(D, 2, 2, [[x^2 - x, -x + 5],
-            ...                        [x^2 - 8, -x + 2]])
+            ....:                      [x^2 - 8, -x + 2]])
             sage: A.right_kernel()
             Traceback (most recent call last):
             ...
@@ -3938,9 +4091,9 @@ cdef class Matrix(matrix1.Matrix):
         use the same routines as the dense versions. ::
 
             sage: A = matrix(ZZ, [[0, -1, 1, 1, 2],
-            ...                   [1, -2, 0, 1, 3],
-            ...                   [-1, 2, 0, -1, -3]],
-            ...              sparse=True)
+            ....:                 [1, -2, 0, 1, 3],
+            ....:                 [-1, 2, 0, -1, -3]],
+            ....:            sparse=True)
             sage: A.right_kernel()
             Free module of degree 5 and rank 3 over Integer Ring
             Echelon basis matrix:
@@ -3989,7 +4142,7 @@ cdef class Matrix(matrix1.Matrix):
         :meth:`right_kernel_matrix` method, which does not
         cache its results and is more flexible. ::
 
-            sage: A = matrix(QQ, 3, range(9))
+            sage: A = matrix(QQ, 3, 3, range(9))
             sage: K1 = A.right_kernel(basis='echelon')
             sage: K1
             Vector space of degree 3 and dimension 1 over Rational Field
@@ -4050,7 +4203,7 @@ cdef class Matrix(matrix1.Matrix):
         Returns the left kernel of this matrix, as a vector space or free module.
         This is the set of vectors ``x`` such that ``x*self = 0``.
 
-        .. note::
+        .. NOTE::
 
             For the right kernel, use :meth:`right_kernel`.  The method
             :meth:`kernel` is exactly equal to :meth:`left_kernel`.
@@ -4095,7 +4248,7 @@ cdef class Matrix(matrix1.Matrix):
         but with a different basis format, will return the cached result
         with the format from the first computation.
 
-        .. note::
+        .. NOTE::
 
            For much more detailed documentation of the various options see
            :meth:`right_kernel`, since this method just computes
@@ -4106,10 +4259,10 @@ cdef class Matrix(matrix1.Matrix):
         Over the rationals with a basis matrix in echelon form. ::
 
             sage: A = matrix(QQ, [[1, 2, 4, -7, 4],
-            ...                   [1, 1, 0, 2, -1],
-            ...                   [1, 0, 3, -3, 1],
-            ...                   [0, -1, -1, 3, -2],
-            ...                   [0, 0, -1, 2, -1]])
+            ....:                 [1, 1, 0, 2, -1],
+            ....:                 [1, 0, 3, -3, 1],
+            ....:                 [0, -1, -1, 3, -2],
+            ....:                 [0, 0, -1, 2, -1]])
             sage: A.left_kernel()
             Vector space of degree 5 and dimension 2 over Rational Field
             Basis matrix:
@@ -4119,9 +4272,9 @@ cdef class Matrix(matrix1.Matrix):
         Over a finite field, with a basis matrix in "pivot" format. ::
 
             sage: A = matrix(FiniteField(7), [[5, 0, 5, 2, 4],
-            ...                               [1, 3, 2, 3, 6],
-            ...                               [1, 1, 6, 5, 3],
-            ...                               [2, 5, 6, 0, 0]])
+            ....:                             [1, 3, 2, 3, 6],
+            ....:                             [1, 1, 6, 5, 3],
+            ....:                             [2, 5, 6, 0, 0]])
             sage: A.kernel(basis='pivot')
             Vector space of degree 4 and dimension 2 over Finite Field of size 7
             User basis matrix:
@@ -4264,7 +4417,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: ker.0 * k
             (0, 0, 0, 0)
 
-        Test that trac ticket #9425 is fixed.
+        Test that :trac:`9425` is fixed.
 
         ::
 
@@ -4418,7 +4571,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: t = matrix(QQ, 3, range(9)); t
+            sage: t = matrix(QQ, 3, 3, range(9)); t
             [0 1 2]
             [3 4 5]
             [6 7 8]
@@ -4455,7 +4608,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: t = matrix(QQ, 3, range(9)); t
+            sage: t = matrix(QQ, 3, 3, range(9)); t
             [0 1 2]
             [3 4 5]
             [6 7 8]
@@ -4532,7 +4685,7 @@ cdef class Matrix(matrix1.Matrix):
            be diagonalizable, set this to True, which might speed up the
            algorithm in some cases.
 
-        .. note::
+        .. NOTE::
 
            If the base ring is not a field, the kernel algorithm is
            used.
@@ -4553,7 +4706,7 @@ cdef class Matrix(matrix1.Matrix):
         EXAMPLES::
 
             sage: A = matrix(ZZ, 4, [3,4,5,6,7,3,8,10,14,5,6,7,2,2,10,9])
-            sage: B = matrix(QQ, 6, range(36))
+            sage: B = matrix(QQ, 6, 6, range(36))
             sage: B*11
             [  0  11  22  33  44  55]
             [ 66  77  88  99 110 121]
@@ -4588,7 +4741,7 @@ cdef class Matrix(matrix1.Matrix):
                 return X, Y
             return X
         else:
-            raise ValueError, "no algorithm '%s'"%algorithm
+            raise ValueError("no algorithm '%s'"%algorithm)
 
     def _decomposition_spin_generic(self, is_diagonalizable=False):
         r"""
@@ -4605,10 +4758,10 @@ cdef class Matrix(matrix1.Matrix):
         - William Stein
         """
         if not self.is_square():
-            raise ValueError, "self must be a square matrix"
+            raise ValueError("self must be a square matrix")
 
         if not self.base_ring().is_field():
-            raise TypeError, "self must be over a field."
+            raise TypeError("self must be over a field.")
 
         if self.nrows() == 0:
             return decomp_seq([])
@@ -4685,7 +4838,7 @@ cdef class Matrix(matrix1.Matrix):
                         W.rank(), m*g.degree()), level=2, caller_name='generic spin decomp')
                     tries += 1
                     if tries > 1000*m:  # avoid an insanely long infinite loop
-                        raise RuntimeError, "likely bug in decomposition"
+                        raise RuntimeError("likely bug in decomposition")
                 # end if
             #end while
         #end for
@@ -4693,7 +4846,7 @@ cdef class Matrix(matrix1.Matrix):
 
     def _decomposition_using_kernels(self, is_diagonalizable=False, dual=False):
         if not self.is_square():
-            raise ValueError, "self must be a square matrix"
+            raise ValueError("self must be a square matrix")
 
         if self.nrows() == 0:
             return decomp_seq([])
@@ -4804,15 +4957,14 @@ cdef class Matrix(matrix1.Matrix):
             True
         """
         if not sage.modules.free_module.is_FreeModule(M):
-            raise TypeError, "M must be a free module."
+            raise TypeError("M must be a free module.")
         if not self.is_square():
-            raise ArithmeticError, "self must be a square matrix"
+            raise ArithmeticError("self must be a square matrix")
         if M.base_ring() != self.base_ring():
-            raise ArithmeticError, "base rings must be the same, but self is over %s and module is over %s"%(
-                self.base_ring(), M.base_ring())
+            raise ArithmeticError("base rings must be the same, but self is over %s and module is over %s"%(
+                self.base_ring(), M.base_ring()))
         if M.degree() != self.ncols():
-            raise ArithmeticError, \
-               "M must be a subspace of an %s-dimensional space"%self.ncols()
+            raise ArithmeticError("M must be a subspace of an %s-dimensional space" % self.ncols())
 
         time = verbose(t=0)
 
@@ -4895,12 +5047,11 @@ cdef class Matrix(matrix1.Matrix):
             ArithmeticError: subspace is not invariant under matrix
         """
         if not isinstance(V, sage.modules.free_module.FreeModule_generic):
-            raise TypeError, "V must be a free module"
+            raise TypeError("V must be a free module")
         #if V.base_ring() != self.base_ring():
-        #     raise ValueError, "matrix and module must have the same base ring, but matrix is over %s and module is over %s"%(self.base_ring(), V.base_ring())
+        #     raise ValueError("matrix and module must have the same base ring, but matrix is over %s and module is over %s"%(self.base_ring(), V.base_ring()))
         if V.degree() != self.nrows():
-            raise IndexError, "degree of V (=%s) must equal number of rows of self (=%s)"%(\
-                V.degree(), self.nrows())
+            raise IndexError("degree of V (=%s) must equal number of rows of self (=%s)" % (V.degree(), self.nrows()))
         if V.rank() == 0 or V.degree() == 0:
             return self.new_matrix(nrows=0, ncols=0)
 
@@ -4914,7 +5065,7 @@ cdef class Matrix(matrix1.Matrix):
                 # todo optimize so only involves matrix multiplies ?
                 C = [V.coordinate_vector(b*self) for b in V.basis()]
             except ArithmeticError:
-                raise ArithmeticError, "subspace is not invariant under matrix"
+                raise ArithmeticError("subspace is not invariant under matrix")
             return self.new_matrix(n, n, C, sparse=False)
 
     def restrict_domain(self, V):
@@ -4931,7 +5082,7 @@ cdef class Matrix(matrix1.Matrix):
            which self acts)
 
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`restrict`
 
@@ -4967,7 +5118,7 @@ cdef class Matrix(matrix1.Matrix):
            ``self.ncols()``) that contains the image of self.
 
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`restrict`, :meth:`restrict_domain`
 
@@ -5022,7 +5173,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: t = matrix(QQ, 3, range(9)); t
+            sage: t = matrix(QQ, 3, 3, range(9)); t
             [0 1 2]
             [3 4 5]
             [6 7 8]
@@ -5039,7 +5190,7 @@ cdef class Matrix(matrix1.Matrix):
         if v == 0:
             return []
         if not is_FreeModuleElement(v):
-            raise TypeError, "v must be a FreeModuleElement"
+            raise TypeError("v must be a FreeModuleElement")
         VS = v.parent()
         V = VS.span([v])
         w = v
@@ -5071,7 +5222,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: t = matrix(QQ, 3, range(9)); t
+            sage: t = matrix(QQ, 3, 3, range(9)); t
             [0 1 2]
             [3 4 5]
             [6 7 8]
@@ -5082,7 +5233,7 @@ cdef class Matrix(matrix1.Matrix):
         """
         i = int(i); t=int(t)
         if self.nrows() != self.ncols():
-            raise ArithmeticError, "self must be a square matrix"
+            raise ArithmeticError("self must be a square matrix")
         n = self.nrows()
         v = sage.modules.free_module.VectorSpace(self.base_ring(), n).gen(i)
         tm = verbose('computing iterates...')
@@ -5093,7 +5244,7 @@ cdef class Matrix(matrix1.Matrix):
         # sequence corresponding to the 0-th entries of the iterates,
         # then the 1-th entries, etc.
         if t == 0:
-            R = range(n)
+            R = list(xrange(n))
         else:
             R = [t]
         for i in R:
@@ -5273,7 +5424,7 @@ cdef class Matrix(matrix1.Matrix):
 
         The same computation, but with implicit base change to a field.  ::
 
-            sage: A = matrix(ZZ,3,range(9)); A
+            sage: A = matrix(ZZ,3,3,range(9)); A
             [0 1 2]
             [3 4 5]
             [6 7 8]
@@ -5820,7 +5971,7 @@ cdef class Matrix(matrix1.Matrix):
         K = self.base_ring()
         try:
             is_field = K.is_field()
-        except (ValueError,AttributeError):
+        except (ValueError, AttributeError):
             is_field = False
 
         if not is_field:
@@ -5830,8 +5981,8 @@ cdef class Matrix(matrix1.Matrix):
 
         try:
             A = K.algebraic_closure()
-        except (AttributeError,ValueError):
-            raise NotImplementedError("algebraic closure is not implemented for %s"%K)
+        except (AttributeError, ValueError):
+            raise NotImplementedError("algebraic closure is not implemented for %s" % K)
 
         res = []
         for f, e in self.charpoly().change_ring(K).factor():
@@ -5920,7 +6071,7 @@ cdef class Matrix(matrix1.Matrix):
                     try:
                         eigval_conj = eigval.galois_conjugates(QQbar)
                     except AttributeError:
-                        raise NotImplementedError, "eigenvectors are not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar"
+                        raise NotImplementedError("eigenvectors are not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar")
 
                     for e in eigval_conj:
                         m = hom(eigval.parent(), e.parent(), e)
@@ -6159,9 +6310,9 @@ cdef class Matrix(matrix1.Matrix):
         If the matrix is over a ring, then an equivalent matrix is
         constructed over the fraction field, and then row reduced.
 
-        All arguments are passed on to :meth:``echelon_form``.
+        All arguments are passed on to :meth:`echelon_form`.
 
-        .. note::
+        .. NOTE::
 
             Because the matrix is viewed as a matrix over a field,
             every leading coefficient of the returned matrix will be
@@ -6305,7 +6456,7 @@ cdef class Matrix(matrix1.Matrix):
         cdef bint transformation = 'transformation' in kwds and kwds['transformation']
         if self._base_ring == ZZ:
             if 'include_zero_rows' in kwds and not kwds['include_zero_rows']:
-                raise ValueError, "cannot echelonize in place and delete zero rows"
+                raise ValueError("cannot echelonize in place and delete zero rows")
             if transformation:
                 d, a = self.dense_matrix().echelon_form(**kwds)
             else:
@@ -6320,7 +6471,7 @@ cdef class Matrix(matrix1.Matrix):
             try:
                 a, d, p = self._echelon_form_PID()
             except TypeError as msg:
-                raise NotImplementedError, "%s\nechelon form over %s not yet implemented"%(msg, self.base_ring())
+                raise NotImplementedError("%s\nechelon form over %s not yet implemented"%(msg, self.base_ring()))
 
             for c from 0 <= c < self.ncols():
                for r from 0 <= r < self.nrows():
@@ -6338,7 +6489,7 @@ cdef class Matrix(matrix1.Matrix):
         Transform ``self`` into a matrix in echelon form over the same
         base ring as self.
 
-        .. note::
+        .. NOTE::
 
             This row reduction does not use division if the
             matrix is not over a field (e.g., if the matrix is over
@@ -6374,7 +6525,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: a = matrix(QQ,3,range(9)); a
+            sage: a = matrix(QQ,3,3,range(9)); a
             [0 1 2]
             [3 4 5]
             [6 7 8]
@@ -6387,7 +6538,7 @@ cdef class Matrix(matrix1.Matrix):
         An immutable matrix cannot be transformed into echelon form. Use
         ``self.echelon_form()`` instead::
 
-            sage: a = matrix(QQ,3,range(9)); a.set_immutable()
+            sage: a = matrix(QQ,3,3,range(9)); a.set_immutable()
             sage: a.echelonize()
             Traceback (most recent call last):
             ...
@@ -6401,7 +6552,7 @@ cdef class Matrix(matrix1.Matrix):
         Echelon form over the integers is what is also classically often
         known as Hermite normal form::
 
-            sage: a = matrix(ZZ,3,range(9))
+            sage: a = matrix(ZZ,3,3,range(9))
             sage: a.echelonize(); a
             [ 3  0 -3]
             [ 0  1  2]
@@ -6424,7 +6575,7 @@ cdef class Matrix(matrix1.Matrix):
 
         Echelon form is not defined over arbitrary rings::
 
-            sage: a = matrix(Integers(9),3,range(9))
+            sage: a = matrix(Integers(9),3,3,range(9))
             sage: a.echelon_form()
             Traceback (most recent call last):
             ...
@@ -6466,19 +6617,19 @@ cdef class Matrix(matrix1.Matrix):
                 elif algorithm == 'strassen':
                     self._echelon_strassen(cutoff)
                 else:
-                    raise ValueError, "Unknown algorithm '%s'"%algorithm
+                    raise ValueError("Unknown algorithm '%s'" % algorithm)
             else:
                 if not (algorithm in ['classical', 'strassen']):
                     kwds['algorithm'] = algorithm
                 return self._echelonize_ring(**kwds)
         except ArithmeticError as msg:
-            raise NotImplementedError, "%s\nEchelon form not implemented over '%s'."%(msg,self.base_ring())
+            raise NotImplementedError("%s\nEchelon form not implemented over '%s'."%(msg,self.base_ring()))
 
     def echelon_form(self, algorithm="default", cutoff=0, **kwds):
         """
         Return the echelon form of self.
 
-        .. note::
+        .. NOTE::
 
             This row reduction does not use division if the
             matrix is not over a field (e.g., if the matrix is over
@@ -6587,7 +6738,7 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLES::
 
-            sage: t = matrix(QQ, 3, range(9)); t
+            sage: t = matrix(QQ, 3, 3, range(9)); t
             [0 1 2]
             [3 4 5]
             [6 7 8]
@@ -6672,7 +6823,7 @@ cdef class Matrix(matrix1.Matrix):
         column space, left kernel and right kernel of ``self``.  See the
         examples below.
 
-        .. note::
+        .. NOTE::
 
             This method returns an echelon form.  If the base ring
             is not a field, no atttempt is made to move to the fraction field.
@@ -6683,10 +6834,10 @@ cdef class Matrix(matrix1.Matrix):
         The four relationships at the end of this example hold in general. ::
 
             sage: A = matrix(QQ, [[2, -1, 7, -1, 0, -3],
-            ...                   [-1, 1, -5, 3, 4, 4],
-            ...                   [2, -1, 7, 0, 2, -2],
-            ...                   [2, 0, 4, 3, 6, 1],
-            ...                   [2, -1, 7, 0, 2, -2]])
+            ....:                 [-1, 1, -5, 3, 4, 4],
+            ....:                 [2, -1, 7, 0, 2, -2],
+            ....:                 [2, 0, 4, 3, 6, 1],
+            ....:                 [2, -1, 7, 0, 2, -2]])
             sage: E = A.extended_echelon_form(subdivide=True); E
             [   1    0    2    0    0   -1|   0   -1    0    1   -1]
             [   0    1   -3    0   -2    0|   0   -2    0    2   -3]
@@ -6735,10 +6886,10 @@ cdef class Matrix(matrix1.Matrix):
         But you can easily change to the fraction field if necessary.  ::
 
             sage: A = matrix(ZZ, [[16, 20, 4, 5, -4, 13, 5],
-            ...                   [10, 13, 3, -3, 7, 11, 6],
-            ...                   [-12, -15, -3, -3, 2, -10, -4],
-            ...                   [10, 13, 3, 3, -1, 9, 4],
-            ...                   [4, 5, 1, 8, -10, 1, -1]])
+            ....:                 [10, 13, 3, -3, 7, 11, 6],
+            ....:                 [-12, -15, -3, -3, 2, -10, -4],
+            ....:                 [10, 13, 3, 3, -1, 9, 4],
+            ....:                 [4, 5, 1, 8, -10, 1, -1]])
             sage: E = A.extended_echelon_form(subdivide=True); E
             [ 2  0 -2  2 -9 -3 -4| 0  4 -3 -9  4]
             [ 0  1  1  2  0  1  1| 0  1  2  1  1]
@@ -6828,52 +6979,7 @@ cdef class Matrix(matrix1.Matrix):
             extended.set_immutable()
         return extended
 
-    def weak_popov_form(self, transformation=None, ascend=None, old_call=True):
-        """
-        Returns a matrix in weak Popov form which is row space-equivalent to
-        the input matrix, if the input is over `k[x]` or `k(x)`.
-
-        A matrix is in weak Popov form if the (row-wise) leading positions of
-        the non-zero rows are all different. The leading position of a row is
-        the right-most position whose entry has maximal degree of the entries in
-        that row.
-
-        .. WARNING::
-
-            This function currently does **not** compute the weak Popov form of a
-            matrix, but rather a row reduced form (which is a slightly weaker
-            requirement). See :meth:`row_reduced_form`.
-
-        INPUT:
-
-        - `transformation` - A boolean (default: `True`). If this is set to
-          ``True``, the transformation matrix `U` will be returned as well: this
-          is an invertible matrix over `k(x)` such that ``self`` equals `UW`,
-          where `W` is the output matrix.
-
-          Warning: the default of `transformation` will soon be set to ``False``,
-          see Ticket #16896. Until then, this function will print a deprecation
-          warning as long as `transformation` was not explicitly set to ``True``
-          or ``False``.
-
-        - `ascend` - Deprecated and has no effect.
-
-        - `old_call` - For backwards compatibility until the old calling
-          convention will be deprecated (default: `True`). If `True`, then
-          return `(W,U,d)`, where `U` is as when `transformation = True`, and
-          `d` is a list of the degrees of the rows of `W`.
-        """
-        from sage.misc.superseded import deprecation
-        depr_message = \
-"""This function currently does *not* compute a weak Popov form, but rather a \
-row reduced form. This function will soon be fixed (see Ticket #16742)."""
-        deprecation(16888, depr_message)
-
-        return self.row_reduced_form(transformation=transformation,
-                ascend=ascend, old_call=old_call)
-
-
-    def row_reduced_form(self, transformation=None, ascend=None, old_call=True):
+    def row_reduced_form(self, transformation=None):
         r"""
         This function computes a row reduced form of a matrix over a rational
         function field `k(x)`, where `k` is a field.
@@ -6887,17 +6993,10 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
 
         INPUT:
 
-        - `transformation` - A boolean (default: ``False``). If this is set to
+        - ``transformation`` -- A boolean (default: ``False``). If this is set to
           ``True``, the transformation matrix `U` will be returned as well: this
           is an invertible matrix over `k(x)` such that ``self`` equals `UW`,
           where `W` is the output matrix.
-
-        - `ascend` - Deprecated and has no effect.
-
-        - `old_call` - For backwards compatibility until the old calling
-          convention will be deprecated (default: `True`). If `True`, then
-          return `(W,U,d)`, where `U` is as when `transformation = True`, and
-          `d` is a list of the degrees of the rows of `W`.
 
         OUTPUT:
 
@@ -6915,9 +7014,11 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
             sage: R.<t> = GF(3)['t']
             sage: K = FractionField(R)
             sage: M = matrix([[(t-1)^2/t],[(t-1)]])
-            sage: M.row_reduced_form(transformation=False, old_call=False)
-            [(2*t + 1)/t]
-            [          0]
+            sage: M.row_reduced_form()
+            doctest:...: DeprecationWarning: Row reduced form will soon be supported only for matrices of polynomials.
+            See http://trac.sagemath.org/21024 for details.
+            [        0]
+            [(t + 2)/t]
 
         If ``self`` is an `n \times 1` matrix with at least one non-zero entry,
         `W` has a single non-zero entry and that entry is a scalar multiple of
@@ -6926,7 +7027,7 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
         ::
 
             sage: M1 = matrix([[t*(t-1)*(t+1)],[t*(t-2)*(t+2)],[t]])
-            sage: output1 = M1.row_reduced_form(transformation=False, old_call=False)
+            sage: output1 = M1.row_reduced_form()
             sage: output1
             [0]
             [0]
@@ -6934,12 +7035,12 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
 
         We check that the output is the same for a matrix `M` if its entries are
         rational functions instead of polynomials. We also check that the type of
-        the output follows the documentation. See #9063
+        the output follows the documentation. See :trac:`9063`
 
         ::
 
             sage: M2 = M1.change_ring(K)
-            sage: output2 = M2.row_reduced_form(transformation=False, old_call=False)
+            sage: output2 = M2.row_reduced_form()
             sage: output1 == output2
             True
             sage: output1.base_ring() is R
@@ -6947,14 +7048,14 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
             sage: output2.base_ring() is K
             True
 
-        The following is the first half of example 5 in [H] *except* that we
-        have transposed ``self``; [H] uses column operations and we use row.
+        The following is the first half of example 5 in [Hes2002]_ *except* that we
+        have transposed ``self``; [Hes2002]_ uses column operations and we use row.
 
         ::
 
             sage: R.<t> = QQ['t']
             sage: M = matrix([[t^3 - t,t^2 - 2],[0,t]]).transpose()
-            sage: M.row_reduced_form(transformation=False, old_call=False)
+            sage: M.row_reduced_form(transformation=False)
             [      t    -t^2]
             [t^2 - 2       t]
 
@@ -6965,21 +7066,19 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
             sage: R.<t> = GF(5)['t']
             sage: K = FractionField(R)
             sage: M = matrix([[K(0),K(0)],[K(0),K(0)]])
-            sage: M.row_reduced_form(transformation=False, old_call=False)
+            sage: M.row_reduced_form()
             [0 0]
             [0 0]
 
-        In the following example, ``self`` has more rows than columns. Note also
-        that the output is row reduced but not in weak Popov form (see
-        :meth:`weak_popov_form`).
+        In the following example, ``self`` has more rows than columns.
 
         ::
 
             sage: R.<t> = QQ['t']
-            sage: M = matrix([[t,t,t],[0,0,t]], ascend=False)
-            sage: M.row_reduced_form(transformation=False, old_call=False)
-            [t t t]
-            [0 0 t]
+            sage: M = matrix([[t,t,t],[0,0,t]])
+            sage: M.row_reduced_form()
+            [ t  t  t]
+            [-t -t  0]
 
         The next example shows that `M` must be a matrix with coefficients in
         `k(t)` or in `k[t]` for some field `k`.
@@ -6987,14 +7086,14 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
         ::
 
             sage: M = matrix([[1,0],[1,1]])
-            sage: M.row_reduced_form(transformation=False, old_call=False)
+            sage: M.row_reduced_form()
             Traceback (most recent call last):
             ...
             TypeError: the coefficients of M must lie in a univariate polynomial ring over a field
 
             sage: PZ.<y> = ZZ[]
             sage: M = matrix([[y,0],[1,y]])
-            sage: M.row_reduced_form(transformation=False, old_call=False)
+            sage: M.row_reduced_form()
             Traceback (most recent call last):
             ...
             TypeError: the coefficients of M must lie in a univariate polynomial ring over a field
@@ -7006,11 +7105,11 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
             sage: Fq.<a> = GF(2^3)
             sage: Fx.<x> = Fq[]
             sage: A = matrix(Fx,[[x^2+a,x^4+a],[x^3,a*x^4]])
-            sage: W,U = A.row_reduced_form(transformation=True,old_call=False);
+            sage: W,U = A.row_reduced_form(transformation=True);
             sage: W,U
             (
-            [(a^2 + 1)*x^3 + x^2 + a                       a]  [      1 a^2 + 1]
-            [                    x^3                   a*x^4], [      0                 1]
+            [          x^2 + a           x^4 + a]  [1 0]
+            [x^3 + a*x^2 + a^2               a^2], [a 1]
             )
             sage: U*W == A
             True
@@ -7020,64 +7119,23 @@ row reduced form. This function will soon be fixed (see Ticket #16742)."""
         NOTES:
 
          - For consistency with LLL and other algorithms in Sage, we have opted
-           for row operations; however, references such as [H] transpose and use
+           for row operations; however, some references e.g. [Hes2002]_ transpose and use
            column operations.
 
         REFERENCES:
 
-        .. [H] F. Hess, "Computing Riemann-Roch spaces in algebraic function
-          fields and related topics," J. Symbolic Comput. 33 (2002), no. 4,
-          425--445.
-
-        .. [K] T. Kaliath, "Linear Systems", Prentice-Hall, 1980, 383--386.
+        - [Hes2002]_
+        - [Kal1980]_
 
         """
-        from sage.matrix.matrix_misc import row_reduced_form
-
         from sage.misc.superseded import deprecation
-        if ascend is not None:
-            ascend_message = \
-"""row_reduced_form: The `ascend` argument is deprecated and has no effect (see \
-Ticket #16742)."""
-            deprecation(16888, ascend_message)
-        if old_call == True:
-            oldcall_message = \
-"""row_reduced_form: The old calling convention is deprecated. In the future, \
-only the matrix in row reduced form will be returned. Set `old_call = False` for \
-that behaviour now, and to avoid this message (see Ticket #16742)."""
-            deprecation(16888, oldcall_message)
+        # When deprecation period runs out, this method should simply be removed from this class.
+        # matrix_polynomial_dense already has the replacement row_reduced_form method.
+        # The function matrix_misc.row_reduced_form should then probably just be removed.
+        deprecation(21024, "Row reduced form will soon be supported only for matrices of univariate polynomials.")
 
-        get_transformation = False
-        if transformation is None:
-            transformation_message = \
-"""row_reduced_form: The `transformation` argument will soon change to have\
-default value to `False` from the current default value `True`. For now, \
-explicitly setting the argument to `True` or `False` will avoid this message."""
-            deprecation(16888, transformation_message)
-            get_transformation = True
-        elif old_call == True or transformation == True:
-            get_transformation = True
-
-        W_maybe_U = sage.matrix.matrix_misc.row_reduced_form(self,get_transformation)
-
-        if old_call == False:
-            return W_maybe_U
-        else:
-            W,U = W_maybe_U
-            from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-            if is_PolynomialRing(W.base_ring()):
-                row_deg = lambda r: max([e.degree() for e in r])
-            else:
-                row_deg = lambda r: max([e.numerator().degree() - e.denominator().degree() for e in r])
-            d = []
-            from sage.rings.all import infinity
-            for r in W.rows():
-                d.append(row_deg(r))
-                if d[-1] < 0:
-                    d[-1] = -infinity
-            return (W,U,d)
-
-
+        from sage.matrix.matrix_misc import row_reduced_form
+        return row_reduced_form(self, transformation)
 
     ##########################################################################
     # Functions for symmetries of a matrix under row and column permutations #
@@ -7273,7 +7331,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
                 aM.append(aN)
         # We construct line l:
         for l in range(1, nrows - 1):
-            if not S == range(first_row[0] + ncols, first_row[0], -1):
+            if not S == list(xrange(first_row[0] + ncols, first_row[0], -1)):
                 # Sort each row with respect to S for the first matrix in X = MS
                 X = copy(MS)
                 SM = [sorted([(S[j], X[0][k][j]) for j in range(ncols)], reverse=True)
@@ -7408,7 +7466,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         """
         ncols = self.ncols()
         nrows = self.nrows()
-        if N.ncols() <> ncols or N.nrows() <> nrows:
+        if N.ncols() != ncols or N.nrows() != nrows:
             if check:
                 return (False, None)
             else:
@@ -7416,7 +7474,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         M_B = self.as_bipartite_graph()
         N_B = N.as_bipartite_graph()
         if check:
-            truth, perm = N_B.is_isomorphic(M_B, certify=True, edge_labels=True)
+            truth, perm = N_B.is_isomorphic(M_B, certificate=True, edge_labels=True)
             from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
             if perm:
                 s = sorted(perm.items(), key=lambda x:x[0])
@@ -7425,7 +7483,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
                 perm = (PermutationGroupElement(row_perms), PermutationGroupElement(col_perms))
             return truth, perm
         else:
-            return N_B.is_isomorphic(M_B, certify=False, edge_labels=True)
+            return N_B.is_isomorphic(M_B, certificate=False, edge_labels=True)
 
     #####################################################################################
     # Windowed Strassen Matrix Multiplication and Echelon
@@ -7449,7 +7507,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         EXAMPLES::
 
-            sage: a = matrix(ZZ,4,range(16))
+            sage: a = matrix(ZZ,4,4,range(16))
             sage: a._multiply_strassen(a,2)
             [ 56  62  68  74]
             [152 174 196 218]
@@ -7457,15 +7515,15 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             [344 398 452 506]
         """
         if self._ncols != right._nrows:
-            raise ArithmeticError, "Number of columns of self must equal number of rows of right."
+            raise ArithmeticError("Number of columns of self must equal number of rows of right.")
         if not self._base_ring is right.base_ring():
-            raise TypeError, "Base rings must be the same."
+            raise TypeError("Base rings must be the same.")
 
         if cutoff == 0:
             cutoff = self._strassen_default_cutoff(right)
 
         if cutoff <= 0:
-            raise ValueError, "cutoff must be at least 1"
+            raise ValueError("cutoff must be at least 1")
 
         output = self.new_matrix(self._nrows, right._ncols)
         # The following used to be a little faster, but meanwhile
@@ -7506,13 +7564,13 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         self.check_mutability()
 
         if not self._base_ring.is_field():
-            raise ValueError, "Echelon form not defined over this base ring."
+            raise ValueError("Echelon form not defined over this base ring.")
 
         if cutoff == 0:
             cutoff = self._strassen_default_echelon_cutoff()
 
         if cutoff < 1:
-            raise ValueError, "cutoff must be at least 1"
+            raise ValueError("cutoff must be at least 1")
 
         if self._nrows < cutoff or self._ncols < cutoff:
             self._echelon_in_place_classical()
@@ -7531,7 +7589,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         EXAMPLES::
 
-            sage: A = matrix(QQ, 3, range(9))
+            sage: A = matrix(QQ, 3, 3, range(9))
             sage: A.matrix_window(1,1, 2, 1)
             Matrix window of size 2 x 1 at (1,1):
             [0 1 2]
@@ -7564,7 +7622,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             ncols = self._ncols - col
         if check and (row < 0 or col < 0 or row + nrows > self._nrows or \
            col + ncols > self._ncols):
-            raise IndexError, "matrix window index out of range"
+            raise IndexError("matrix window index out of range")
         return matrix_window.MatrixWindow(self, row, col, nrows, ncols)
 
     def set_block(self, row, col, block):
@@ -7606,15 +7664,15 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
 
         -  ``row_lines`` - None, an integer, or a list of
-           integers
+           integers (lines at which self must be split).
 
         -  ``col_lines`` - None, an integer, or a list of
-           integers
+           integers (columns at which self must be split).
 
 
         OUTPUT: changes self
 
-        .. note::
+        .. NOTE::
 
            One may also pass a tuple into the first argument which
            will be interpreted as (row_lines, col_lines)
@@ -7647,9 +7705,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             [53|59 61|67 71]
             [73|79 83|89 97]
 
-        Degenerate cases work too.
-
-        ::
+        Degenerate cases work too::
 
             sage: M.subdivide([2,5], [0,1,3]); M
             [| 2| 3  5| 7 11]
@@ -7678,6 +7734,18 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: M.subdivision(2,4)
             [37 41 43 47]
 
+        Indices do not need to be in the right order (:trac:`14064`)::
+
+            sage: M.subdivide([4, 2], [3, 1]); M
+            [ 2| 3  5| 7 11]
+            [13|17 19|23 29]
+            [--+-----+-----]
+            [31|37 41|43 47]
+            [53|59 61|67 71]
+            [--+-----+-----]
+            [73|79 83|89 97]
+
+
         AUTHORS:
 
         - Robert Bradshaw (2007-06-14)
@@ -7695,11 +7763,13 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             col_lines = []
         elif not isinstance(col_lines, list):
             col_lines = [col_lines]
-        row_lines = [0] + [int(ZZ(x)) for x in row_lines] + [self._nrows]
-        col_lines = [0] + [int(ZZ(x)) for x in col_lines] + [self._ncols]
+        l_row = sorted(row_lines)
+        l_col = sorted(col_lines)
+        l_row = [0] + [int(ZZ(x)) for x in l_row] + [self._nrows]
+        l_col = [0] + [int(ZZ(x)) for x in l_col] + [self._ncols]
         if self._subdivisions is not None:
             self.clear_cache()
-        self._subdivisions = (row_lines, col_lines)
+        self._subdivisions = (l_row, l_col)
 
     def subdivision(self, i, j):
         """
@@ -7709,7 +7779,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         Before a subdivision is set, the only valid arguments are (0,0)
         which returns self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = matrix(3, 4, range(12))
             sage: M.subdivide(1,2); M
@@ -7798,10 +7868,10 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             if not i and not j:
                 return self[x,y]
             else:
-                raise IndexError, "No such submatrix %s, %s"%(i,j)
+                raise IndexError("No such submatrix %s, %s"%(i,j))
         if x >= self._subdivisions[0][i+1]-self._subdivisions[0][i] or \
            y >= self._subdivisions[1][j+1]-self._subdivisions[1][j]:
-            raise IndexError, "Submatrix %s,%s has no entry %s,%s"%(i,j, x, y)
+            raise IndexError("Submatrix %s,%s has no entry %s,%s"%(i,j, x, y))
         return self[self._subdivisions[0][i] + x , self._subdivisions[1][j] + y]
 
     def _subdivide_on_augment(self, left, right):
@@ -7822,7 +7892,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         preserved in ``self``, but if the two sets of row subdivisions
         are incompatible, they are removed.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(QQ, 3, 4, range(12))
             sage: B = matrix(QQ, 3, 6, range(18))
@@ -7867,7 +7937,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         preserved in ``self``, but if the two sets of solumn subdivisions
         are incompatible, they are removed.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(QQ, 3, 2, range(6))
             sage: B = matrix(QQ, 4, 2, range(8))
@@ -7983,11 +8053,11 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: E = C.tensor_product(B)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Finite Field of size 29' and 'Full MatrixSpace of 3 by 4 dense matrices over Finite Field of size 23'
+            TypeError: unsupported operand parent(s) for *: 'Finite Field of size 29' and 'Full MatrixSpace of 3 by 4 dense matrices over Finite Field of size 23'
 
         The input is checked to be sure it is a matrix.  ::
 
-            sage: A = matrix(QQ, 2, range(4))
+            sage: A = matrix(QQ, 2, 2, range(4))
             sage: A.tensor_product('junk')
             Traceback (most recent call last):
             ...
@@ -8002,7 +8072,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         Replace a proportion of the entries of a matrix by random elements,
         leaving the remaining entries unchanged.
 
-        .. note::
+        .. NOTE::
 
            The locations of the entries of the matrix to change are
            determined randomly, with the total number of locations
@@ -8111,7 +8181,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         EXAMPLES::
 
-            sage: m = matrix(QQ,2,range(4))
+            sage: m = matrix(QQ,2,2,range(4))
             sage: m.is_one()
             False
             sage: m = matrix(QQ,2,[5,0,0,5])
@@ -8124,25 +8194,25 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: m.is_one()
             False
         """
-        return self.is_scalar(1)
+        return self.is_scalar(self.base_ring().one())
 
     def is_scalar(self, a = None):
         """
         Return True if this matrix is a scalar matrix.
 
-        INPUT
+        INPUT:
 
         - base_ring element a, which is chosen as self[0][0] if
           a = None
 
-        OUTPUT
+        OUTPUT:
 
         - whether self is a scalar matrix (in fact the scalar matrix
           aI if a is input)
 
         EXAMPLES::
 
-            sage: m = matrix(QQ,2,range(4))
+            sage: m = matrix(QQ,2,2,range(4))
             sage: m.is_scalar(5)
             False
             sage: m = matrix(QQ,2,[5,0,0,5])
@@ -8164,11 +8234,10 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             a = self.get_unsafe(0,0)
         else:
             a = self.base_ring()(a)
-        zero = self.base_ring()(0)
-        for i from 0 <= i < self._nrows:
-            for j from 0 <= j < self._ncols:
+        for i in range(self._nrows):
+            for j in range(self._ncols):
                 if i != j:
-                    if self.get_unsafe(i,j) != zero:
+                    if not self.get_unsafe(i,j).is_zero():
                         return False
                 else:
                     if self.get_unsafe(i, i) != a:
@@ -8197,8 +8266,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         EXAMPLES::
 
             sage: A = matrix(QQbar, [[(1/sqrt(5))*(1+i), (1/sqrt(55))*(3+2*I), (1/sqrt(22))*(2+2*I)],
-            ...                      [(1/sqrt(5))*(1-i), (1/sqrt(55))*(2+2*I),  (1/sqrt(22))*(-3+I)],
-            ...                      [    (1/sqrt(5))*I, (1/sqrt(55))*(3-5*I),    (1/sqrt(22))*(-2)]])
+            ....:                    [(1/sqrt(5))*(1-i), (1/sqrt(55))*(2+2*I),  (1/sqrt(22))*(-3+I)],
+            ....:                    [    (1/sqrt(5))*I, (1/sqrt(55))*(3-5*I),    (1/sqrt(22))*(-2)]])
             sage: A.is_unitary()
             True
 
@@ -8314,7 +8383,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         Hermitian matrices are normal.  ::
 
-            sage: A = matrix(QQ, 5, range(25)) + I*matrix(QQ, 5, range(0, 50, 2))
+            sage: A = matrix(QQ, 5, 5, range(25)) + I*matrix(QQ, 5, 5, range(0, 50, 2))
             sage: B = A*A.conjugate_transpose()
             sage: B.is_hermitian()
             True
@@ -8331,7 +8400,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         Skew-symmetric matrices are normal.  ::
 
-            sage: A = matrix(QQ, 5, range(25))
+            sage: A = matrix(QQ, 5, 5, range(25))
             sage: B = A - A.transpose()
             sage: B.is_skew_symmetric()
             True
@@ -8342,7 +8411,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         of normal matrices.  ::
 
             sage: A = matrix(ZZ, [[1, -1],
-            ...                   [1,  1]])
+            ....:                 [1,  1]])
             sage: A.is_normal()
             True
             sage: not A.is_hermitian() and not A.is_skew_symmetric()
@@ -8353,8 +8422,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
             sage: F.<b> = QuadraticField(-7)
             sage: C = matrix(F, [[-2*b - 3,  7*b - 6, -b + 3],
-            ...                  [-2*b - 3, -3*b + 2,   -2*b],
-            ...                  [   b + 1,        0,     -2]])
+            ....:                [-2*b - 3, -3*b + 2,   -2*b],
+            ....:                [   b + 1,        0,     -2]])
             sage: C = C*C.conjugate_transpose()
             sage: C.is_normal()
             True
@@ -8363,8 +8432,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         diagonal entry. ::
 
             sage: A = matrix(QQbar, [[    2,   2-I, 1+4*I],
-            ...                      [  2+I,   3+I, 2-6*I],
-            ...                      [1-4*I, 2+6*I,     5]])
+            ....:                    [  2+I,   3+I, 2-6*I],
+            ....:                    [1-4*I, 2+6*I,     5]])
             sage: A.is_normal()
             False
             sage: A[1,1] = 132
@@ -8437,7 +8506,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
             - :meth:`~sage.geometry.polyhedron.library.Polytopes.Birkhoff_polytope`
 
-        EXAMPLE:
+        EXAMPLES:
 
         We create a bistochastic matrix from a convex sum of permutations, then
         try to deduce the decomposition from the matrix ::
@@ -8449,7 +8518,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: L.append((2,Permutation([1, 4, 2, 3, 5])))
             sage: M = sum([c * p.to_matrix() for (c,p) in L])
             sage: decomp = sage.combinat.permutation.bistochastic_as_sum_of_permutations(M)
-            sage: print decomp
+            sage: print(decomp)
             2*B[[1, 4, 2, 3, 5]] + 3*B[[3, 1, 4, 2, 5]] + 9*B[[4, 1, 3, 5, 2]] + 6*B[[5, 3, 4, 1, 2]]
 
         An exception is raised when the matrix is not bistochastic::
@@ -8489,7 +8558,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         Bitmap image as an instance of
         :class:`~sage.repl.image.Image`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = random_matrix(CC, 5, 7)
             sage: for i in range(5):  M[i,i] = 0
@@ -8504,10 +8573,17 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: img.save(filename)
             sage: open(filename).read().startswith('\x89PNG')
             True
+
+        TESTS:
+
+        Test :trac:`17341`::
+
+            sage: random_matrix(GF(2), 8, 586, sparse=True).visualize_structure()
+            512x6px 24-bit RGB image
         """
-        cdef int x, y, _x, _y, v, bi, bisq
-        cdef int ir,ic
-        cdef float b, fct
+        cdef Py_ssize_t x, y, _x, _y, v, bi, bisq
+        cdef Py_ssize_t ir, ic
+        cdef double b, fct
         mr, mc = self.nrows(), self.ncols()
         if maxsize is None:
             ir = mc
@@ -8522,20 +8598,20 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             ir = mc
             ic = mr
             b = 1.0
-        bi = round(b)
+        bi = int(round(b))
         bisq = bi*bi
         fct = 255.0/bisq
         from sage.repl.image import Image
         img = Image('RGB', (ir, ic))
         pixel = img.pixels()
-        for x from 0 <= x < ic:
-            for y from 0 <= y < ir:
+        for x in range(ic):
+            for y in range(ir):
                 v = bisq
-                for _x from 0 <= _x < bi:
-                    for _y from 0 <= _y < bi:
-                        if not self.get_unsafe(<int>(x*b + _x), <int>(y*b + _y)).is_zero():
-                            v-=1 #increase darkness
-                v = round(v*fct)
+                for _x in range(bi):
+                    for _y in range(bi):
+                        if not self.get_unsafe(<Py_ssize_t>(x*b + _x), <Py_ssize_t>(y*b + _y)).is_zero():
+                            v -= 1 #increase darkness
+                v = <Py_ssize_t>(v * fct + 0.5)
                 pixel[y, x] = (v, v, v)
         return img
 
@@ -8547,7 +8623,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         positions and the self.nrows() \* self.ncols(), i.e. the number of
         possible nonzero positions.
 
-        EXAMPLE:
+        EXAMPLES:
 
         First, note that the density parameter does not ensure the density
         of a matrix, it is only an upper bound.
@@ -8615,9 +8691,6 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: ~m
             [  -2    1]
             [ 3/2 -1/2]
-            sage: m.I
-            [  -2    1]
-            [ 3/2 -1/2]
 
         TESTS::
 
@@ -8676,7 +8749,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         """
 
         if self._nrows != self._ncols:
-            raise ValueError, "self must be a square matrix"
+            raise ValueError("self must be a square matrix")
 
         X = self.fetch('adjoint')
         if not X is None:
@@ -8857,7 +8930,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         The results obtained when ``full=True`` are cached,
         hence `Q` and `R` are immutable matrices in this case.
 
-        .. note::
+        .. NOTE::
 
             This is an exact computation, so limited to exact rings.
             Also the base ring needs to have a fraction field implemented
@@ -8870,36 +8943,36 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         ALGORITHM:
 
-        "Modified Gram-Schmidt," Algorithm 8.1 of [TREFETHEN-BAU]_.
+        "Modified Gram-Schmidt," Algorithm 8.1 of [TB1997]_.
 
         EXAMPLES:
 
         For a nonsingular matrix, the QR decomposition is unique. ::
 
             sage: A = matrix(QQbar, [[-2, 0, -4, -1, -1],
-            ...                      [-2, 1, -6, -3, -1],
-            ...                      [1, 1, 7, 4, 5],
-            ...                      [3, 0, 8, 3, 3],
-            ...                      [-1, 1, -6, -6, 5]])
+            ....:                    [-2, 1, -6, -3, -1],
+            ....:                    [1, 1, 7, 4, 5],
+            ....:                    [3, 0, 8, 3, 3],
+            ....:                    [-1, 1, -6, -6, 5]])
             sage: Q, R = A.QR()
             sage: Q
-            [ -0.4588314677411235?  -0.1260506983326509?   0.3812120831224489?   -0.394573711338418?      -0.687440062597?]
-            [ -0.4588314677411235?   0.4726901187474409? -0.05198346588033394?    0.717294125164660?      -0.220962877263?]
-            [  0.2294157338705618?   0.6617661662464172?   0.6619227988762521?   -0.180872093737548?      0.1964114464561?]
-            [  0.6882472016116853?   0.1890760474989764?  -0.2044682991293135?    0.096630296654307?      -0.662888631790?]
+            [ -0.4588314677411235?  -0.1260506983326509?   0.3812120831224489?   -0.394573711338418?     -0.6874400625964?]
+            [ -0.4588314677411235?   0.4726901187474409? -0.05198346588033394?   0.7172941251646595?     -0.2209628772631?]
+            [  0.2294157338705618?   0.6617661662464172?   0.6619227988762521?  -0.1808720937375480?      0.1964114464561?]
+            [  0.6882472016116853?   0.1890760474989764?  -0.2044682991293135?   0.0966302966543065?     -0.6628886317894?]
             [ -0.2294157338705618?   0.5357154679137663?   -0.609939332995919?   -0.536422031427112?      0.0245514308070?]
             sage: R
             [  4.358898943540674? -0.4588314677411235?   13.07669683062202?   6.194224814505168?   2.982404540317303?]
             [                   0   1.670171752907625?  0.5987408170800917?  -1.292019657909672?   6.207996892883057?]
-            [                   0                    0   5.444401659866974?   5.468660610611130?  -0.682716185228386?]
-            [                   0                    0                    0   1.027626039419836?   -3.61930014968662?]
-            [                   0                    0                    0                    0    0.02455143080702?]
+            [                   0                    0   5.444401659866974?   5.468660610611130? -0.6827161852283857?]
+            [                   0                    0                    0   1.027626039419836?  -3.619300149686620?]
+            [                   0                    0                    0                    0   0.024551430807012?]
             sage: Q.conjugate_transpose()*Q
-            [1.000000000000000?            0.?e-18            0.?e-17            0.?e-15            0.?e-12]
-            [           0.?e-18 1.000000000000000?            0.?e-16            0.?e-15            0.?e-12]
-            [           0.?e-17            0.?e-16 1.000000000000000?            0.?e-15            0.?e-12]
-            [           0.?e-15            0.?e-15            0.?e-15 1.000000000000000?            0.?e-12]
-            [           0.?e-12            0.?e-12            0.?e-12            0.?e-12    1.000000000000?]
+            [1.000000000000000?            0.?e-18            0.?e-17            0.?e-16            0.?e-13]
+            [           0.?e-18 1.000000000000000?            0.?e-17            0.?e-16            0.?e-13]
+            [           0.?e-17            0.?e-17 1.000000000000000?            0.?e-16            0.?e-13]
+            [           0.?e-16            0.?e-16            0.?e-16 1.000000000000000?            0.?e-13]
+            [           0.?e-13            0.?e-13            0.?e-13            0.?e-13   1.0000000000000?]
             sage: Q*R == A
             True
 
@@ -8908,37 +8981,37 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         numbers. ::
 
             sage: A = matrix(QQbar, [[-8, 4*I + 1, -I + 2, 2*I + 1],
-            ...                      [1, -2*I - 1, -I + 3, -I + 1],
-            ...                      [I + 7, 2*I + 1, -2*I + 7, -I + 1],
-            ...                      [I + 2, 0, I + 12, -1]])
+            ....:                    [1, -2*I - 1, -I + 3, -I + 1],
+            ....:                    [I + 7, 2*I + 1, -2*I + 7, -I + 1],
+            ....:                    [I + 2, 0, I + 12, -1]])
             sage: Q, R = A.QR()
             sage: Q
             [                          -0.7302967433402215?    0.2070566455055649? + 0.5383472783144687?*I    0.2463049809998642? - 0.0764456358723292?*I    0.2381617683194332? - 0.1036596032779695?*I]
-            [                           0.0912870929175277?   -0.2070566455055649? - 0.3778783780476559?*I    0.3786559533863032? - 0.1952221495524667?*I      0.701244450214469? - 0.364371165098660?*I]
-            [   0.6390096504226938? + 0.0912870929175277?*I    0.1708217325420910? + 0.6677576817554466?*I -0.03411475806452072? + 0.04090198741767143?*I    0.3140171085506763? - 0.0825191718705412?*I]
+            [                           0.0912870929175277?   -0.2070566455055649? - 0.3778783780476559?*I    0.3786559533863033? - 0.1952221495524667?*I     0.701244450214469? - 0.3643711650986595?*I]
+            [   0.6390096504226938? + 0.0912870929175277?*I    0.1708217325420910? + 0.6677576817554466?*I -0.03411475806452072? + 0.04090198741767143?*I    0.3140171085506764? - 0.0825191718705412?*I]
             [   0.1825741858350554? + 0.0912870929175277?*I  -0.03623491296347385? + 0.0724698259269477?*I   0.8632284069415110? + 0.06322839976356195?*I   -0.4499694867611521? - 0.0116119181208918?*I]
             sage: R
             [                          10.95445115010333?               0.?e-18 - 1.917028951268082?*I    5.385938482134133? - 2.190890230020665?*I  -0.2738612787525831? - 2.190890230020665?*I]
-            [                                           0               4.829596256417300? + 0.?e-17*I   -0.869637911123373? - 5.864879483945125?*I   0.993871898426712? - 0.3054085521207082?*I]
+            [                                           0               4.829596256417300? + 0.?e-18*I   -0.869637911123373? - 5.864879483945125?*I   0.993871898426712? - 0.3054085521207082?*I]
             [                                           0                                            0               12.00160760935814? + 0.?e-16*I -0.2709533402297273? + 0.4420629644486323?*I]
             [                                           0                                            0                                            0               1.942963944258992? + 0.?e-16*I]
             sage: Q.conjugate_transpose()*Q
             [1.000000000000000? + 0.?e-19*I            0.?e-18 + 0.?e-17*I            0.?e-17 + 0.?e-17*I            0.?e-16 + 0.?e-16*I]
             [           0.?e-18 + 0.?e-17*I 1.000000000000000? + 0.?e-17*I            0.?e-17 + 0.?e-17*I            0.?e-16 + 0.?e-16*I]
-            [           0.?e-17 + 0.?e-17*I            0.?e-17 + 0.?e-17*I 1.000000000000000? + 0.?e-16*I            0.?e-16 + 0.?e-16*I]
-            [           0.?e-16 + 0.?e-16*I            0.?e-16 + 0.?e-16*I            0.?e-16 + 0.?e-16*I 1.000000000000000? + 0.?e-15*I]
+            [           0.?e-17 + 0.?e-17*I            0.?e-17 + 0.?e-17*I 1.000000000000000? + 0.?e-17*I            0.?e-16 + 0.?e-16*I]
+            [           0.?e-16 + 0.?e-16*I            0.?e-16 + 0.?e-16*I            0.?e-16 + 0.?e-16*I 1.000000000000000? + 0.?e-16*I]
             sage: Q*R - A
             [            0.?e-17 0.?e-17 + 0.?e-17*I 0.?e-16 + 0.?e-16*I 0.?e-16 + 0.?e-16*I]
-            [            0.?e-18 0.?e-17 + 0.?e-17*I 0.?e-16 + 0.?e-16*I 0.?e-15 + 0.?e-15*I]
+            [            0.?e-18 0.?e-17 + 0.?e-17*I 0.?e-16 + 0.?e-16*I 0.?e-16 + 0.?e-16*I]
             [0.?e-17 + 0.?e-18*I 0.?e-17 + 0.?e-17*I 0.?e-16 + 0.?e-16*I 0.?e-16 + 0.?e-16*I]
-            [0.?e-18 + 0.?e-18*I 0.?e-18 + 0.?e-17*I 0.?e-16 + 0.?e-16*I 0.?e-15 + 0.?e-16*I]
+            [0.?e-18 + 0.?e-18*I 0.?e-18 + 0.?e-18*I 0.?e-16 + 0.?e-16*I 0.?e-16 + 0.?e-16*I]
 
         A rank-deficient rectangular matrix, with both values of the ``full`` keyword.  ::
 
             sage: A = matrix(QQbar, [[2, -3, 3],
-            ...                      [-1, 1, -1],
-            ...                      [-1, 3, -3],
-            ...                      [-5, 1, -1]])
+            ....:                    [-1, 1, -1],
+            ....:                    [-1, 3, -3],
+            ....:                    [-5, 1, -1]])
             sage: Q, R = A.QR()
             sage: Q
             [  0.3592106040535498?  -0.5693261797050169?   0.7239227659930268?   0.1509015305256380?]
@@ -8973,8 +9046,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         as a reduced decomposition. ::
 
             sage: A = matrix(QQbar, [[-3*I - 3, I - 3, -12*I + 1, -2],
-            ...                      [-I - 1, -2, 5*I - 1, -I - 2],
-            ...                      [-4*I - 4, I - 5, -7*I, -I - 4]])
+            ....:                    [-I - 1, -2, 5*I - 1, -I - 2],
+            ....:                    [-4*I - 4, I - 5, -7*I, -I - 4]])
             sage: Q, R = A.QR(full=False)
             sage: Q
             [ -0.4160251471689219? - 0.4160251471689219?*I   0.5370861555295747? + 0.1790287185098583?*I]
@@ -8984,12 +9057,12 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             [                        7.211102550927979?  3.328201177351375? - 5.269651864139676?*I   7.904477796209515? + 8.45917799243475?*I  4.021576422632911? - 2.634825932069838?*I]
             [                                         0                         1.074172311059150?  -1.611258466588724? - 9.13046464400277?*I 1.611258466588724? + 0.5370861555295747?*I]
             sage: Q.conjugate_transpose()*Q
-            [1.000000000000000? + 0.?e-18*I            0.?e-18 + 0.?e-18*I]
-            [           0.?e-17 + 0.?e-17*I 1.000000000000000? + 0.?e-17*I]
+            [1 0]
+            [0 1]
             sage: Q*R-A
-            [0.?e-18 + 0.?e-18*I 0.?e-18 + 0.?e-18*I 0.?e-17 + 0.?e-17*I 0.?e-18 + 0.?e-18*I]
-            [0.?e-18 + 0.?e-18*I 0.?e-18 + 0.?e-18*I 0.?e-18 + 0.?e-17*I 0.?e-18 + 0.?e-18*I]
-            [0.?e-18 + 0.?e-18*I 0.?e-17 + 0.?e-18*I 0.?e-17 + 0.?e-17*I 0.?e-18 + 0.?e-18*I]
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
 
         Results of full decompositions are cached and thus returned
         immutable.  ::
@@ -9025,7 +9098,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         Inexact rings are caught and ``CDF`` suggested.  ::
 
-            sage: A = matrix(RealField(100), 2, range(4))
+            sage: A = matrix(RealField(100), 2, 2, range(4))
             sage: A.QR()
             Traceback (most recent call last):
             ...
@@ -9033,7 +9106,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         Without a fraction field, we cannot hope to run the algorithm. ::
 
-            sage: A = matrix(Integers(6), 2, range(4))
+            sage: A = matrix(Integers(6), 2, 2, range(4))
             sage: A.QR()
             Traceback (most recent call last):
             ...
@@ -9042,13 +9115,13 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         The biggest obstacle is making unit vectors, thus requiring square
         roots, though some small cases pass through.  ::
 
-            sage: A = matrix(ZZ, 3, range(9))
+            sage: A = matrix(ZZ, 3, 3, range(9))
             sage: A.QR()
             Traceback (most recent call last):
             ...
             TypeError: QR decomposition unable to compute square roots in Rational Field
 
-            sage: A = matrix(ZZ, 2, range(4))
+            sage: A = matrix(ZZ, 2, 2, range(4))
             sage: Q, R = A.QR()
             sage: Q
             [0 1]
@@ -9056,12 +9129,6 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: R
             [2 3]
             [0 1]
-
-        REFERENCES:
-
-        .. [TREFETHEN-BAU] Trefethen, Lloyd N., Bau, David, III
-           "Numerical Linear Algebra"
-           SIAM, Philadelphia, 1997.
 
         AUTHOR:
 
@@ -9158,8 +9225,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         check to step up to ``QQ``.  ::
 
             sage: A = matrix(ZZ, [[-1, -3,  0, -1],
-            ...                   [ 1,  2, -1,  2],
-            ...                   [-3, -6,  4, -7]])
+            ....:                 [ 1,  2, -1,  2],
+            ....:                 [-3, -6,  4, -7]])
             sage: Q,R = A._gram_schmidt_noscale()
             sage: Q
             [    -1 -10/11      0]
@@ -9182,14 +9249,14 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         columns but rank 3, so the orthogonal set has just 3 vectors
         as well.  Orthogonality comes from the Hermitian inner product
         so we need to check with the conjugate-transpose.  This
-        example verifies that the bug on #10791 is fixed.  ::
+        example verifies that the bug on :trac:`10791` is fixed.  ::
 
             sage: F.<a> = QuadraticField(-5)
             sage: A = matrix(F, [[    1,   a - 3,   a - 2, a + 1],
-            ...                  [    a, 2*a + 1, 3*a + 1,     1],
-            ...                  [a + 1,   a - 6, 2*a - 5,     1],
-            ...                  [  2*a,       a,     3*a,    -3],
-            ...                  [    1,   a - 1,       a, a - 1]])
+            ....:                [    a, 2*a + 1, 3*a + 1,     1],
+            ....:                [a + 1,   a - 6, 2*a - 5,     1],
+            ....:                [  2*a,       a,     3*a,    -3],
+            ....:                [    1,   a - 1,       a, a - 1]])
             sage: A.rank()
             3
             sage: Q, R = A._gram_schmidt_noscale()
@@ -9236,7 +9303,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         Without a fraction field, we cannot hope to proceed. ::
 
-            sage: A = matrix(Integers(6), 2, range(4))
+            sage: A = matrix(Integers(6), 2, 2, range(4))
             sage: A._gram_schmidt_noscale()
             Traceback (most recent call last):
             ...
@@ -9328,8 +9395,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         First, the inexact rings, ``CDF`` and ``RDF``.  ::
 
             sage: A = matrix(CDF, [[ 0.6454 + 0.7491*I, -0.8662 + 0.1489*I,  0.7656 - 0.00344*I],
-            ...                    [-0.2913 + 0.8057*I,  0.8321 + 0.8170*I, -0.6744 + 0.9248*I],
-            ...                    [ 0.2554 + 0.3517*I, -0.4454 - 0.1715*I,  0.8325 - 0.6282*I]])
+            ....:                  [-0.2913 + 0.8057*I,  0.8321 + 0.8170*I, -0.6744 + 0.9248*I],
+            ....:                  [ 0.2554 + 0.3517*I, -0.4454 - 0.1715*I,  0.8325 - 0.6282*I]])
             sage: G, M = A.gram_schmidt()
             sage: G.round(6)  # random signs
             [-0.422243 - 0.490087*I  0.566698 - 0.097416*I -0.500882 + 0.002251*I]
@@ -9352,7 +9419,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         is ignored in these cases.  ::
 
             sage: A = matrix(RDF, [[-0.978325, -0.751994, 0.925305, -0.200512, 0.420458],
-            ...                    [-0.474877, -0.983403, 0.089836,  0.132218, 0.672965]])
+            ....:                  [-0.474877, -0.983403, 0.089836,  0.132218, 0.672965]])
             sage: G, M = A.gram_schmidt(orthonormal=False)
             sage: G.round(6).zero_at(10^-6)
             [-0.607223 -0.466745  0.574315 -0.124453  0.260968]
@@ -9407,10 +9474,10 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         ``orthonormal`` keyword.  ::
 
             sage: A = matrix(QQbar, [[6, -8,  1],
-            ...                      [4,  1,  3],
-            ...                      [6,  3,  3],
-            ...                      [7,  1, -5],
-            ...                      [7, -3,  5]])
+            ....:                    [4,  1,  3],
+            ....:                    [6,  3,  3],
+            ....:                    [7,  1, -5],
+            ....:                    [7, -3,  5]])
             sage: G, M = A.gram_schmidt(orthonormal=True)
             sage: G
             [ 0.5970223141259934? -0.7960297521679913? 0.09950371902099891?]
@@ -9437,10 +9504,10 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         ``AA``::
 
             sage: A = matrix(AA, [[6, -8,  1],
-            ...                   [4,  1,  3],
-            ...                   [6,  3,  3],
-            ...                   [7,  1, -5],
-            ...                   [7, -3,  5]])
+            ....:                 [4,  1,  3],
+            ....:                 [6,  3,  3],
+            ....:                 [7,  1, -5],
+            ....:                 [7, -3,  5]])
             sage: G, M = A.gram_schmidt(orthonormal=True)
             sage: G
             [ 0.5970223141259934? -0.7960297521679913? 0.09950371902099891?]
@@ -9458,8 +9525,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         orthonormality. ::
 
             sage: A = matrix(QQbar, [[  -2,    -I - 1, 4*I + 2,       -1],
-            ...                      [-4*I, -2*I + 17,       0,  9*I + 1],
-            ...                      [   1,  -2*I - 6, -I + 11, -5*I + 1]])
+            ....:                    [-4*I, -2*I + 17,       0,  9*I + 1],
+            ....:                    [   1,  -2*I - 6, -I + 11, -5*I + 1]])
             sage: G, M = A.gram_schmidt(orthonormal=True)
             sage: (M*G-A).norm() < 10^-10
             True
@@ -9474,9 +9541,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         are a basis for the row space of ``A``.  ::
 
             sage: A = matrix(QQbar, [[2, -6, 3, 8],
-            ...                      [1, -3, 2, 5],
-            ...                      [0,  0, 2, 4],
-            ...                      [2, -6, 3, 8]])
+            ....:                    [1, -3, 2, 5],
+            ....:                    [0,  0, 2, 4],
+            ....:                    [2, -6, 3, 8]])
             sage: A.change_ring(QQ).rank()
             2
             sage: G, M = A.gram_schmidt(orthonormal=True)
@@ -9510,9 +9577,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         First, in the rationals, without involving ``QQbar``.  ::
 
             sage: A = matrix(QQ, [[-1,  3,  2,  2],
-            ...                   [-1,  0, -1,  0],
-            ...                   [-1, -2, -3, -1],
-            ...                   [ 1,  1,  2,  0]])
+            ....:                 [-1,  0, -1,  0],
+            ....:                 [-1, -2, -3, -1],
+            ....:                 [ 1,  1,  2,  0]])
             sage: A.rank()
             3
             sage: G, M = A.gram_schmidt()
@@ -9541,8 +9608,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
             sage: C.<z> = CyclotomicField(5)
             sage: A = matrix(C, [[              -z^3 - 2*z,             -z^3 - 1, 2*z^3 - 2*z^2 + 2*z,             1],
-            ...                  [         z^3 - 2*z^2 + 1, -z^3 + 2*z^2 - z - 1,                  -1,       z^2 + z],
-            ...                  [-1/2*z^3 - 2*z^2 + z + 1,         -z^3 + z - 2,    -2*z^3 + 1/2*z^2, 2*z^2 - z + 2]])
+            ....:                [         z^3 - 2*z^2 + 1, -z^3 + 2*z^2 - z - 1,                  -1,       z^2 + z],
+            ....:                [-1/2*z^3 - 2*z^2 + z + 1,         -z^3 + z - 2,    -2*z^3 + 1/2*z^2, 2*z^2 - z + 2]])
             sage: G, M = A.gram_schmidt(orthonormal=False)
             sage: G
             [                                                      -z^3 - 2*z                                                         -z^3 - 1                                              2*z^3 - 2*z^2 + 2*z                                                                1]
@@ -9619,7 +9686,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         This computation is performed in a naive way using the ranks of powers
         of `A-xI`, where `x` is an eigenvalue of the matrix `A`.  If desired,
         a transformation matrix `P` can be returned, which is such that the
-        Jordan canonical form is given by `P^{-1} A P`.
+        Jordan canonical form is given by `P^{-1} A P`; if the matrix is
+        diagonalizable, this equals to *eigendecomposition* or *spectral
+        decomposition*.
 
         INPUT:
 
@@ -9682,7 +9751,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             [0 1 1 0]
             [0 0 1 0]
             [0 0 0 1]
-            sage: b = matrix(ZZ,3,range(9)); b
+            sage: b = matrix(ZZ,3,3,range(9)); b
             [0 1 2]
             [3 4 5]
             [6 7 8]
@@ -9765,7 +9834,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: jf == ~P*m*P
             True
 
-        We verify that the bug from trac ticket #6942 is fixed::
+        We verify that the bug from :trac:`6942` is fixed::
 
             sage: M = Matrix(GF(2),[[1,0,1,0,0,0,1],[1,0,0,1,1,1,0],[1,1,0,1,1,1,1],[1,1,1,0,1,1,1],[1,1,1,0,0,1,0],[1,1,1,0,1,0,0],[1,1,1,1,1,1,0]])
             sage: J, T = M.jordan_form(transformation=True)
@@ -9787,7 +9856,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: M.rank()
             7
 
-        We verify that the bug from trac ticket #6932 is fixed::
+        We verify that the bug from :trac:`6932` is fixed::
 
             sage: M=Matrix(1,1,[1])
             sage: M.jordan_form(transformation=True)
@@ -9951,7 +10020,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         from sage.combinat.partition import Partition
 
         if self.ncols() != self.nrows():
-            raise ValueError, "Jordan normal form not implemented for non-square matrices."
+            raise ValueError("Jordan normal form not implemented for non-square matrices.")
 
         # Set ``n`` to the number of rows and handle trivial cases, regardless
         # of the underlying ring.
@@ -10109,7 +10178,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         if there is an invertible matrix `S` and a diagonal matrix
         `D` such that
 
-        .. math::
+        .. MATH::
 
             S^{-1}AS = D
 
@@ -10136,10 +10205,10 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         by its Jordan form.  ::
 
             sage: A = matrix(QQ, [[-7, 16, 12,  0,    6],
-            ...                   [-9, 15,  0,  12, -27],
-            ...                   [ 9, -8, 11, -12,  51],
-            ...                   [ 3, -4,  0,  -1,   9],
-            ...                   [-1,  0, -4,   4, -12]])
+            ....:                 [-9, 15,  0,  12, -27],
+            ....:                 [ 9, -8, 11, -12,  51],
+            ....:                 [ 3, -4,  0,  -1,   9],
+            ....:                 [-1,  0, -4,   4, -12]])
             sage: A.jordan_form(subdivide=False)
             [ 2  0  0  0  0]
             [ 0  3  0  0  0]
@@ -10153,10 +10222,10 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         by its Jordan form.  ::
 
             sage: A = matrix(QQ, [[-3, -14, 2, -1, 15],
-            ...                   [4, 6, -2, 3, -8],
-            ...                   [-2, -14, 0, 0, 10],
-            ...                   [3, 13, -2, 0, -11],
-            ...                   [-1, 6, 1, -3, 1]])
+            ....:                 [4, 6, -2, 3, -8],
+            ....:                 [-2, -14, 0, 0, 10],
+            ....:                 [3, 13, -2, 0, -11],
+            ....:                 [-1, 6, 1, -3, 1]])
             sage: A.jordan_form(subdivide=False)
             [-1  1  0  0  0]
             [ 0 -1  0  0  0]
@@ -10171,10 +10240,10 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         "expanded" to contain the eigenvalues.  ::
 
             sage: A = matrix(QQ, [[1,  0,  1,  1, -1],
-            ...                   [0,  1,  0,  4,  8],
-            ...                   [2,  1,  3,  5,  1],
-            ...                   [2, -1,  1,  0, -2],
-            ...                   [0, -1, -1, -5, -8]])
+            ....:                 [0,  1,  0,  4,  8],
+            ....:                 [2,  1,  3,  5,  1],
+            ....:                 [2, -1,  1,  0, -2],
+            ....:                 [0, -1, -1, -5, -8]])
 
             sage: [e in QQ for e in A.eigenvalues()]
             [False, False, False, False, False]
@@ -10194,9 +10263,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
             sage: F.<b> = FiniteField(5^2)
             sage: A = matrix(F, [[      4, 3*b + 2, 3*b + 1, 3*b + 4],
-            ...                  [2*b + 1,     4*b,       0,       2],
-            ...                  [    4*b,   b + 2, 2*b + 3,       3],
-            ...                  [    2*b,     3*b, 4*b + 4, 3*b + 3]])
+            ....:                [2*b + 1,     4*b,       0,       2],
+            ....:                [    4*b,   b + 2, 2*b + 3,       3],
+            ....:                [    2*b,     3*b, 4*b + 4, 3*b + 3]])
             sage: A.jordan_form()
             [      4       1|      0       0]
             [      0       4|      0       0]
@@ -10208,9 +10277,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
             sage: F.<c> = QuadraticField(-7)
             sage: A = matrix(F, [[   c + 3,   2*c - 2,   -2*c + 2,     c - 1],
-            ...                  [2*c + 10, 13*c + 15, -13*c - 17, 11*c + 31],
-            ...                  [2*c + 10, 14*c + 10, -14*c - 12, 12*c + 30],
-            ...                  [       0,   2*c - 2,   -2*c + 2,   2*c + 2]])
+            ....:                [2*c + 10, 13*c + 15, -13*c - 17, 11*c + 31],
+            ....:                [2*c + 10, 14*c + 10, -14*c - 12, 12*c + 30],
+            ....:                [       0,   2*c - 2,   -2*c + 2,   2*c + 2]])
             sage: A.jordan_form(subdivide=False)
             [    4     0     0     0]
             [    0    -2     0     0]
@@ -10277,45 +10346,84 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
     def is_similar(self, other, transformation=False):
         r"""
-        Returns ``True`` if ``self`` and ``other`` are similar,
+        Return ``True`` if ``self`` and ``other`` are similar,
         i.e. related by a change-of-basis matrix.
 
         INPUT:
 
-        - ``other`` - a matrix, which should be square, and of the same size
-          as ``self``, where the entries of the matrix have a fraction field
-          equal to that of ``self``.  Inexact rings are not supported.
+        - ``other`` -- a matrix, which should be square, and of the same size
+          as ``self``.
 
-        - ``transformation`` - default: ``False`` - if ``True``, the output
-          will include the change-of-basis matrix.  See below for an exact
-          description.
+        - ``transformation`` -- default: ``False`` - if ``True``, the output
+          may include the change-of-basis matrix (also known as the similarity
+          transformation). See below for an exact description.
 
         OUTPUT:
 
-        Two matrices, $A$ and $B$ are similar if there is an invertible
-        matrix $S$ such that $A=S^{-1}BS$.  $S$ can be interpreted as a
-        change-of-basis matrix if $A$ and $B$ are viewed as matrix
-        representations of the same linear transformation.
+        Two matrices, `A` and `B` are similar if they are square
+        matrices of the same size and there is an invertible matrix
+        `S` such that `A=S^{-1}BS`. `S` can be interpreted as a
+        change-of-basis matrix if `A` and `B` are viewed as matrix
+        representations of the same linear transformation from a vector space
+        to itself.
 
         When ``transformation=False`` this method will return ``True`` if
-        such a matrix $S$ exists, otherwise it will return ``False``.  When
-        ``transformation=True`` the method returns a pair.  The first part
+        such a matrix `S` exists, otherwise it will return ``False``.  When
+        ``transformation=True`` the method returns a pair. The first part
         of the pair is ``True`` or ``False`` depending on if the matrices
-        are similar and the second part is the change-of-basis matrix, or
-        ``None`` should it not exist.
+        are similar. The second part of the pair is the change-of-basis
+        matrix when the matrices are similar and ``None`` when the matrices
+        are not similar.
 
-        When the transformation matrix is requested, it will satisfy
-        ``self = S.inverse()*other*S``.
+        When a similarity transformation matrix ``S``  is requested,
+        it will satisfy ``self = S.inverse()*other*S``.
 
-        If the base rings for any of the matrices is the integers, the
-        rationals, or the field of algebraic numbers (``QQbar``), then the
-        matrices are converted to have ``QQbar`` as their base ring prior
-        to checking the equality of the base rings.
+        .. RUBRIC:: rings and coefficients
 
-        It is possible for this routine to fail over most fields, even when
-        the matrices are similar.  However, since the field of algebraic
-        numbers is algebraically closed, the routine will always produce
-        a result for matrices with rational entries.
+        Inexact rings are not supported. Only rings having a
+        fraction field can be used as coefficients.
+
+        The base rings for the matrices are promoted to a common
+        field for the similarity check using rational form over this field.
+
+        If the fraction fields of both matrices are the same, this
+        field is used. Otherwise, if the fraction fields are only
+        related by a canonical coercion, the common coercion field
+        is used.
+
+        In all cases, the result is about similarity over a common field.
+
+        .. RUBRIC:: similarity transformation
+
+        For computation of the similarity transformation, the
+        matrices are first checked to be similar over their common
+        field.
+
+        In this case, a similarity transformation is then
+        searched for over the common field. If this fails, the
+        matrices are promoted to the algebraic closure of their
+        common field (whenever it is available) and a similarity
+        transformation is looked for over the algebraic closure.
+
+        For example, matrices over the rationals
+        may be promoted to the field of algebraic numbers (``QQbar``)
+        for computation of the similarity transformation.
+
+        .. WARNING::
+
+            When the two matrices are similar, this routine may
+            fail to find the similarity transformation.  A technical
+            explanation follows.
+
+        The similarity check is accomplished with rational form, which
+        will be successful for any pair of matrices over the same field.
+        However, the computation of rational form does not provide a
+        transformation. So we instead compute Jordan form, which does
+        provide a transformation.  But Jordan form will require that
+        the eigenvalues of the matrix can be represented within Sage,
+        requiring the existence of the appropriate extension field.
+        When this is not possible, a ``RuntimeError`` is raised, as
+        demonstrated in an example below.
 
         EXAMPLES:
 
@@ -10325,18 +10433,18 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         (which may not always be possible). ::
 
             sage: A = matrix(ZZ, [[-5, 2, -11],
-            ...                   [-6, 7, -42],
-            ...                   [0, 1, -6]])
+            ....:                 [-6, 7, -42],
+            ....:                 [0, 1, -6]])
             sage: B = matrix(ZZ, [[ 1, 12,  3],
-            ...                   [-1, -6, -1],
-            ...                   [ 0,  6,  1]])
+            ....:                 [-1, -6, -1],
+            ....:                 [ 0,  6,  1]])
             sage: A.is_similar(B)
             True
             sage: _, T = A.is_similar(B, transformation=True)
             sage: T
-            [ 1.0000000000000? + 0.?e-13*I           0.?e-13 + 0.?e-13*I           0.?e-13 + 0.?e-13*I]
-            [-0.6666666666667? + 0.?e-13*I 0.16666666666667? + 0.?e-14*I -0.8333333333334? + 0.?e-13*I]
-            [ 0.6666666666667? + 0.?e-13*I           0.?e-13 + 0.?e-13*I  -0.333333333334? + 0.?e-13*I]
+            [ 1.00000000000000? + 0.?e-14*I            0.?e-14 + 0.?e-14*I            0.?e-14 + 0.?e-14*I]
+            [-0.66666666666667? + 0.?e-15*I 0.166666666666667? + 0.?e-15*I -0.83333333333334? + 0.?e-14*I]
+            [ 0.66666666666667? + 0.?e-14*I            0.?e-14 + 0.?e-14*I -0.33333333333333? + 0.?e-14*I]
             sage: T.change_ring(QQ)
             [   1    0    0]
             [-2/3  1/6 -5/6]
@@ -10348,11 +10456,11 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
             sage: F.<a> = FiniteField(7^2)
             sage: A = matrix(F,[[2*a + 5, 6*a + 6,   a + 3],
-            ...                 [  a + 3, 2*a + 2, 4*a + 2],
-            ...                 [2*a + 6, 5*a + 5,     3*a]])
+            ....:               [  a + 3, 2*a + 2, 4*a + 2],
+            ....:               [2*a + 6, 5*a + 5,     3*a]])
             sage: B = matrix(F,[[5*a + 5, 6*a + 4,   a + 1],
-            ...                 [  a + 5, 4*a + 3, 3*a + 3],
-            ...                 [3*a + 5,   a + 4, 5*a + 6]])
+            ....:               [  a + 5, 4*a + 3, 3*a + 3],
+            ....:               [3*a + 5,   a + 4, 5*a + 6]])
             sage: A.is_similar(B)
             True
             sage: B.is_similar(A)
@@ -10369,13 +10477,13 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         cannot possibly be similar. ::
 
             sage: A = matrix(QQ, [[ 2,  3, -3, -6],
-            ...                   [ 0,  1, -2, -8],
-            ...                   [-3, -3,  4,  3],
-            ...                   [-1, -2,  2,  6]])
+            ....:                 [ 0,  1, -2, -8],
+            ....:                 [-3, -3,  4,  3],
+            ....:                 [-1, -2,  2,  6]])
             sage: B = matrix(QQ, [[ 1,  1,  2,  4],
-            ...                   [-1,  2, -3, -7],
-            ...                   [-2,  3, -4, -7],
-            ...                   [ 0, -1,  0,  0]])
+            ....:                 [-1,  2, -3, -7],
+            ....:                 [-2,  3, -4, -7],
+            ....:                 [ 0, -1,  0,  0]])
             sage: A.eigenvalues() == B.eigenvalues()
             False
             sage: A.is_similar(B, transformation=True)
@@ -10383,46 +10491,43 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         Similarity is an equivalence relation, so this routine computes
         a representative of the equivalence class for each matrix, the
-        Jordan form, as provided by :meth:`jordan_form`.  The matrices
+        rational form, as provided by :meth:`rational_form`.  The matrices
         below have identical eigenvalues (as evidenced by equal
-        characteristic polynomials), but slightly different Jordan forms,
+        characteristic polynomials), but slightly different rational forms,
         and hence are not similar.  ::
 
             sage: A = matrix(QQ, [[ 19, -7, -29],
-            ...                   [-16, 11,  30],
-            ...                   [ 15, -7, -25]])
+            ....:                 [-16, 11,  30],
+            ....:                 [ 15, -7, -25]])
             sage: B = matrix(QQ, [[-38, -63,  42],
-            ...                   [ 14,  25, -14],
-            ...                   [-14, -21,  18]])
+            ....:                 [ 14,  25, -14],
+            ....:                 [-14, -21,  18]])
             sage: A.charpoly() == B.charpoly()
             True
-            sage: A.jordan_form()
-            [-3| 0  0]
+            sage: A.rational_form()
+            [  0   0 -48]
+            [  1   0   8]
+            [  0   1   5]
+            sage: B.rational_form()
+            [ 4| 0  0]
             [--+-----]
-            [ 0| 4  1]
-            [ 0| 0  4]
-            sage: B.jordan_form()
-            [-3| 0| 0]
-            [--+--+--]
-            [ 0| 4| 0]
-            [--+--+--]
-            [ 0| 0| 4]
+            [ 0| 0 12]
+            [ 0| 1  1]
             sage: A.is_similar(B)
             False
 
-        Obtaining the Jordan form requires computing the eigenvalues of
-        the matrix, which may not lie in the field used for entries of
-        the matrix.  So the routine first checks the characteristic
-        polynomials - if they are unequal, then the matrices cannot be
-        similar. However, when the characteristic polynomials are equal,
-        we must examine the Jordan form. In this case, the method may fail,
-        EVEN when the matrices are similar.  This is not the case for
-        matrices over the integers, rationals or algebraic numbers,
-        since the computations are done in the algebraically closed
-        field of algebraic numbers.
-
-        Here is an example where the similarity is obvious, but the
-        routine fails to compute a result.  ::
+        Obtaining the transformation between two similar matrices
+        requires the Jordan form, which requires computing the
+        eigenvalues of the matrix, which may not lie in the field
+        used for entries of the matrix.  In this unfortunate case,
+        the computation of the transformation may fail with a
+        ``RuntimeError``, EVEN when the matrices are similar.  This
+        is not the case for matrices over the integers, rationals
+        or algebraic numbers, since the computations are done in
+        the algebraically closed field of algebraic numbers.
+        Here is an example where the similarity is obvious by
+        design, but we are not able to resurrect a similarity
+        transformation.  ::
 
             sage: F.<a> = FiniteField(7^2)
             sage: C = matrix(F,[[  a + 2, 5*a + 4],
@@ -10431,48 +10536,77 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             ....:                [1, 0]])
             sage: D = S.inverse()*C*S
             sage: C.is_similar(D)
+            True
+            sage: C.is_similar(D, transformation=True)
             Traceback (most recent call last):
             ...
-            ValueError: unable to compute Jordan canonical form for a matrix
+            RuntimeError: unable to compute transformation for similar matrices
             sage: C.jordan_form()
             Traceback (most recent call last):
             ...
-            RuntimeError: Some eigenvalue does not exist in Finite Field in a of size 7^2.
+            RuntimeError: Some eigenvalue does not exist in
+            Finite Field in a of size 7^2.
 
-        Inexact rings and fields are also not supported.  ::
+        An example over a finite field of prime order, which uses the
+        algebraic closure of this field to find the change-of-basis
+        matrix::
+
+            sage: cox = posets.TamariLattice(3).coxeter_transformation()
+            sage: M = cox.change_ring(GF(3))
+            sage: M.is_similar(M**3, True)  # long time
+            (
+                  [1 0 0 0 0]
+                  [0 1 1 0 2]
+                  [0 0 0 0 1]
+                  [1 2 0 2 1]
+            True, [0 0 1 0 0]
+            )
+
+        Inexact rings and fields are not supported.  ::
 
             sage: A = matrix(CDF, 2, 2, range(4))
             sage: B = copy(A)
             sage: A.is_similar(B)
             Traceback (most recent call last):
             ...
-            ValueError: unable to compute Jordan canonical form for a matrix
+            TypeError: matrix entries must come from an exact field,
+            not Complex Double Field
 
-        Rectangular matrices and mismatched sizes return quickly.  ::
+        Base rings for the matrices need to have a fraction field. So
+        in particular, the ring needs to be at least an integral domain.  ::
 
-            sage: A = matrix(3, 2, range(6))
-            sage: B = copy(A)
-            sage: A.is_similar(B)
-            False
-            sage: A = matrix(2, 2, range(4))
-            sage: B = matrix(3, 3, range(9))
-            sage: A.is_similar(B, transformation=True)
-            (False, None)
+            sage: Z6 = Integers(6)
+            sage: A = matrix(Z6, 2, 2, range(4))
+            sage: A.is_similar(A)
+            Traceback (most recent call last):
+            ...
+            ValueError: base ring of a matrix needs a fraction field,
+            maybe the ring is not an integral domain
 
-        If the fraction fields of the entries are unequal, it is an error,
-        except in the case when the rationals gets promoted to the
-        algebraic numbers.  ::
+        If the fraction fields of the entries are unequal and do not
+        coerce in a common field, it is an error.  ::
 
-            sage: A = matrix(ZZ, 2, 2, range(4))
+            sage: A = matrix(GF(3), 2, 2, range(4))
             sage: B = matrix(GF(2), 2, 2, range(4))
             sage: A.is_similar(B, transformation=True)
             Traceback (most recent call last):
             ...
-            TypeError: matrices need to have entries with identical fraction fields, not Algebraic Field and Finite Field of size 2
+            TypeError: no common canonical parent for objects with parents:
+            'Full MatrixSpace of 2 by 2 dense matrices over Finite Field
+            of size 3' and
+            'Full MatrixSpace of 2 by 2 dense matrices over Finite Field
+            of size 2'
+
+        A matrix over the integers and a matrix over the algebraic
+        numbers will be compared over the algebraic numbers (by coercion
+        of ``QQ`` in ``QQbar``).  ::
+
             sage: A = matrix(ZZ, 2, 2, range(4))
             sage: B = matrix(QQbar, 2, 2, range(4))
             sage: A.is_similar(B)
             True
+
+        TESTS:
 
         Inputs are checked.  ::
 
@@ -10485,66 +10619,82 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: A.is_similar(B, transformation='junk')
             Traceback (most recent call last):
             ...
-            ValueError: transformation keyword must be True or False, not junk
+            ValueError: transformation keyword must be True or False
+
+        Mismatched sizes raise an error::
+
+            sage: A = matrix(2, 2, range(4))
+            sage: B = matrix(3, 3, range(9))
+            sage: A.is_similar(B, transformation=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrices do not have the same size
+
+        Rectangular matrices and mismatched sizes raise an error::
+
+            sage: A = matrix(3, 2, range(6))
+            sage: B = copy(A)
+            sage: A.is_similar(B)
+            Traceback (most recent call last):
+            ...
+            ValueError: similarity only makes sense for square matrices
+
+        AUTHOR:
+
+        - Rob Beezer (2011-03-15, 2015-05-25)
         """
-        import sage.matrix.matrix
-        import sage.rings.qqbar
-        if not sage.matrix.matrix.is_Matrix(other):
+        from sage.matrix.matrix import is_Matrix
+
+        if not is_Matrix(other):
             raise TypeError('similarity requires a matrix as an argument, not {0}'.format(other))
         if transformation not in [True, False]:
-            raise ValueError('transformation keyword must be True or False, not {0}'.format(transformation))
-        # easy false situations
+            raise ValueError('transformation keyword must be True or False')
         if not self.is_square() or not other.is_square():
-            if transformation:
-                return (False, None)
-            else:
-                return False
+            raise ValueError('similarity only makes sense for square matrices')
         if self.nrows() != other.nrows():
-            if transformation:
-                return (False, None)
-            else:
-                return False
+            raise ValueError('matrices do not have the same size')
+
         # convert to fraction fields for base rings
-        A = self.matrix_over_field()
-        B = other.matrix_over_field()
-        # move rationals to algebraically closed algebraic numbers
-        if A.base_ring() == QQ:
-            A = A.change_ring(sage.rings.qqbar.QQbar)
-        if B.base_ring() == QQ:
-            B = B.change_ring(sage.rings.qqbar.QQbar)
-        # require identical base fields
-        if A.base_ring() != B.base_ring():
-            raise TypeError('matrices need to have entries with identical fraction fields, not {0} and {1}'.format(A.base_ring(), B.base_ring()))
-        # unequal characteristic polynomials implies not similar
-        # and avoids any problems with eigenvalues not in the base field
-        if A.charpoly() != B.charpoly():
-            if transformation:
-                return (False, None)
-            else:
-                return False
-        # now more precisely compare Jordan form, and optionally get transformations
         try:
-            if transformation:
-                JA, SA = A.jordan_form(transformation=True)
-            else:
-                JA = A.jordan_form(transformation=False)
-        except Exception:
-            raise ValueError('unable to compute Jordan canonical form for a matrix')
-        try:
-            if transformation:
-                JB, SB = B.jordan_form(transformation=True)
-            else:
-                JB = B.jordan_form(transformation=False)
-        except Exception:
-            raise ValueError('unable to compute Jordan canonical form for a matrix')
-        similar = (JA == JB)
-        transform = None
-        if similar and transformation:
-            transform = SB*SA.inverse()
-        if transformation:
-            return (similar, transform)
-        else:
+            A = self.matrix_over_field()
+            B = other.matrix_over_field()
+        except TypeError:
+            mesg = "base ring of a matrix needs a fraction field, "
+            mesg += "maybe the ring is not an integral domain"
+            raise ValueError(mesg)
+        if not have_same_parent(A, B):
+            A, B = coercion_model.canonical_coercion(A, B)
+        # base rings are equal now, via above check
+
+        similar = (A.rational_form() == B.rational_form())
+        if not transformation:
             return similar
+        elif not similar:
+            return (False, None)
+        else:
+            # rational form routine does not provide transformation
+            # so if possible, get transformations to Jordan form
+
+            # first try to look for Jordan forms over the fraction field
+            try:
+                _, SA = A.jordan_form(transformation=True)
+                _, SB = B.jordan_form(transformation=True)
+                return (True, SB * SA.inverse())
+            except (ValueError, RuntimeError):
+                pass
+
+            # now move to the algebraic closure
+            # so as to contain potential complex eigenvalues
+            try:
+                ring = A.base_ring()
+                closure = ring.algebraic_closure()
+                A = A.change_ring(closure)
+                B = B.change_ring(closure)
+                _, SA = A.jordan_form(transformation=True)
+                _, SB = B.jordan_form(transformation=True)
+                return (True, SB * SA.inverse())
+            except (ValueError, RuntimeError, NotImplementedError):
+                raise RuntimeError('unable to compute transformation for similar matrices')
 
     def symplectic_form(self):
         r"""
@@ -10610,7 +10760,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         For a square matrix `A` and a vector `v`, the cyclic subspace
         is spanned by the vectors
 
-        .. math::
+        .. MATH::
 
             \{v, Av, A^2v, A^3v, \dots \}
 
@@ -10667,7 +10817,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         be similar.  The main difference is that it "discovers" the
         dimension of the subspace as quickly as possible.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(QQ, [[5,4,2,1],[0,1,-1,-1],[-1,-1,3,0],[1,1,-1,2]])
             sage: v = vector(QQ, [0,1,0,0])
@@ -10748,7 +10898,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         These subspaces are also known as Krylov subspaces.  They are
         spanned by the vectors
 
-        .. math::
+        .. MATH::
 
             \{v, Av, A^2v, A^3v, \dots \}
 
@@ -10822,15 +10972,15 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         will create a matrix that annihilates the vector.  ::
 
             sage: A = matrix(QQ, [[15, 37/3, -16, -104/3, -29, -7/3, 35, 2/3, -29/3, -1/3],
-            ...                   [ 2, 9, -1, -6, -6, 0, 7, 0, -2, 0],
-            ...                   [24, 74/3, -29, -208/3, -58, -14/3, 70, 4/3, -58/3, -2/3],
-            ...                   [-6, -19, 3, 21, 19, 0, -21, 0, 6, 0],
-            ...                   [2, 6, -1, -6, -3, 0, 7, 0, -2, 0],
-            ...                   [-96, -296/3, 128, 832/3, 232, 65/3, -279, -16/3, 232/3, 8/3],
-            ...                   [0, 0, 0, 0, 0, 0, 3, 0, 0, 0],
-            ...                   [20, 26/3, -30, -199/3, -42, -14/3, 70, 13/3, -55/3, -2/3],
-            ...                   [18, 57, -9, -54, -57, 0, 63, 0, -15, 0],
-            ...                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 3]])
+            ....:                 [ 2, 9, -1, -6, -6, 0, 7, 0, -2, 0],
+            ....:                 [24, 74/3, -29, -208/3, -58, -14/3, 70, 4/3, -58/3, -2/3],
+            ....:                 [-6, -19, 3, 21, 19, 0, -21, 0, 6, 0],
+            ....:                 [2, 6, -1, -6, -3, 0, 7, 0, -2, 0],
+            ....:                 [-96, -296/3, 128, 832/3, 232, 65/3, -279, -16/3, 232/3, 8/3],
+            ....:                 [0, 0, 0, 0, 0, 0, 3, 0, 0, 0],
+            ....:                 [20, 26/3, -30, -199/3, -42, -14/3, 70, 13/3, -55/3, -2/3],
+            ....:                 [18, 57, -9, -54, -57, 0, 63, 0, -15, 0],
+            ....:                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 3]])
             sage: u = zero_vector(QQ, 10); u[0] = 1
             sage: p, S = A.cyclic_subspace(u, var='t', basis='iterates')
             sage: S
@@ -10964,11 +11114,11 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         polynomial = not var is None
         if polynomial:
             x = sage.rings.polynomial.polynomial_ring.polygen(R, var)
-            poly = sum([poly[i]*x**i for i in range(len(poly))])
+            poly = sum([poly[i] * x**i for i in range(len(poly))])
         ambient = R**n
         if basis == 'echelon':
             echelon = []
-            pivot_col_row = zip(pivots, range(k))
+            pivot_col_row = [(v, i) for i, v in enumerate(pivots)]
             pivot_col_row.sort()
             aug = augmented.submatrix(0, 0, k, n)
             for _, pivrow in pivot_col_row:
@@ -10996,7 +11146,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
                 try:
                     L[k, k] = A[k, k].sqrt()
                 except TypeError:
-                    raise ValueError, "The input matrix was not symmetric and positive definite"
+                    raise ValueError("The input matrix was not symmetric and positive definite")
 
                 for s in range(k+1, n):
                     L[s, k] = A[s, k] / L[k, k]
@@ -11026,12 +11176,12 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         For a matrix `A` the routine returns a lower triangular
         matrix `L` such that,
 
-        .. math::
+        .. MATH::
 
             A = LL^\ast
 
         where `L^\ast` is the conjugate-transpose in the complex case,
-        and just the transpose in the real case.  If the matrix
+        and just the transpose in the real case. If the matrix
         fails to be positive definite (perhaps because it is not
         symmetric or Hermitian), then a ``ValueError`` results.
 
@@ -11042,7 +11192,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         indefinite factorization (see :meth:`indefinite_factorization`)
         which caches its result.  This algorithm is of an order `n^3/3`.
         If the matrix is positive definite, this computation always
-        succeeds, using just field operations.  The transistion to a
+        succeeds, using just field operations.  The transition to a
         Cholesky decomposition "only" requires computing square roots
         of the positive (real) entries of the diagonal matrix produced in
         the indefinite factorization.  Hence, there is no real penalty
@@ -11056,9 +11206,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         in the field of rational numbers.  ::
 
             sage: A = matrix(QQ, [[ 4, -2,  4,  2],
-            ...                   [-2, 10, -2, -7],
-            ...                   [ 4, -2,  8,  4],
-            ...                   [ 2, -7,  4,  7]])
+            ....:                 [-2, 10, -2, -7],
+            ....:                 [ 4, -2,  8,  4],
+            ....:                 [ 2, -7,  4,  7]])
             sage: A.is_symmetric()
             True
             sage: L = A.cholesky()
@@ -11078,9 +11228,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         of algebraic numbers.  ::
 
             sage: A = matrix(ZZ, [[ 78, -30, -37,  -2],
-            ...                   [-30, 102, 179, -18],
-            ...                   [-37, 179, 326, -38],
-            ...                   [ -2, -18, -38,  15]])
+            ....:                 [-30, 102, 179, -18],
+            ....:                 [-37, 179, 326, -38],
+            ....:                 [ -2, -18, -38,  15]])
             sage: A.is_symmetric()
             True
             sage: L = A.cholesky()
@@ -11090,7 +11240,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             [ -4.189425026335004?   17.32383862241232?   2.886751345948129?                    0]
             [-0.2264554068289192?  -1.973397116652010?  -1.649572197684645?   2.886751345948129?]
             sage: L.parent()
-            Full MatrixSpace of 4 by 4 dense matrices over Algebraic Field
+            Full MatrixSpace of 4 by 4 dense matrices over Algebraic Real Field
             sage: L*L.transpose() == A
             True
 
@@ -11100,9 +11250,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
             sage: C.<I> = QuadraticField(-1)
             sage: A = matrix(C, [[        23,  17*I + 3,  24*I + 25,     21*I],
-            ...                  [ -17*I + 3,        38, -69*I + 89, 7*I + 15],
-            ...                  [-24*I + 25, 69*I + 89,        976, 24*I + 6],
-            ...                  [     -21*I, -7*I + 15,  -24*I + 6,       28]])
+            ....:                [ -17*I + 3,        38, -69*I + 89, 7*I + 15],
+            ....:                [-24*I + 25, 69*I + 89,        976, 24*I + 6],
+            ....:                [     -21*I, -7*I + 15,  -24*I + 6,       28]])
             sage: A.is_hermitian()
             True
             sage: L = A.cholesky()
@@ -11120,15 +11270,15 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         computation.  ::
 
             sage: A = matrix(QQbar, [[        2,   4 + 2*I,   6 - 4*I],
-            ...                      [ -2*I + 4,        11, 10 - 12*I],
-            ...                      [  4*I + 6, 10 + 12*I,        37]])
+            ....:                    [ -2*I + 4,        11, 10 - 12*I],
+            ....:                    [  4*I + 6, 10 + 12*I,        37]])
             sage: A.is_hermitian()
             True
             sage: L = A.cholesky()
             sage: L
-            [                       1.414213562373095?         0                   0]
-            [2.828427124746190? - 1.414213562373095?*I         1                   0]
-            [4.242640687119285? + 2.828427124746190?*I  -2*I + 2  1.732050807568878?]
+            [                       1.414213562373095?          0                    0]
+            [2.828427124746190? - 1.414213562373095?*I          1                    0]
+            [4.242640687119285? + 2.828427124746190?*I   -2*I + 2   1.732050807568878?]
             sage: L.parent()
             Full MatrixSpace of 3 by 3 dense matrices over Algebraic Field
             sage: (L*L.conjugate_transpose() - A.change_ring(QQbar)).norm() < 10^-10
@@ -11139,9 +11289,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         if you need to make a change.  ::
 
             sage: A = matrix(QQ, [[ 4, -2,  4,  2],
-            ...                   [-2, 10, -2, -7],
-            ...                   [ 4, -2,  8,  4],
-            ...                   [ 2, -7,  4,  7]])
+            ....:                 [-2, 10, -2, -7],
+            ....:                 [ 4, -2,  8,  4],
+            ....:                 [ 2, -7,  4,  7]])
             sage: L = A.cholesky()
             sage: L.is_immutable()
             True
@@ -11175,8 +11325,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: A.cholesky()
             Traceback (most recent call last):
             ...
-            ValueError: unable to check positive definiteness because
-            Unable to create the fraction field of Ring of integers modulo 6
+            ValueError: Could not see Ring of integers modulo 6 as a subring of
+            the real or complex numbers
 
         The base field may not have elements that are comparable to zero.  ::
 
@@ -11185,8 +11335,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: A.cholesky()
             Traceback (most recent call last):
             ...
-            ValueError: unable to check positive definiteness because
-            cannot convert computations from Finite Field in a of size 5^4 into real numbers
+            ValueError: Could not see Finite Field in a of size 5^4 as a subring
+            of the real or complex numbers
 
         The algebraic closure of the fraction field of the base ring may not be implemented.  ::
 
@@ -11195,15 +11345,15 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: A.cholesky()
             Traceback (most recent call last):
             ...
-            TypeError: base field needs an algebraic closure with square roots,
-            not Ring of integers modulo 7
+            ValueError: Could not see Ring of integers modulo 7 as a subring of
+            the real or complex numbers
 
         The matrix may not be positive definite.  ::
 
             sage: C.<I> = QuadraticField(-1)
             sage: B = matrix(C, [[      2, 4 - 2*I, 2 + 2*I],
-            ...                  [4 + 2*I,       8,    10*I],
-            ...                  [2 - 2*I,   -10*I,      -3]])
+            ....:                [4 + 2*I,       8,    10*I],
+            ....:                [2 - 2*I,   -10*I,      -3]])
             sage: B.is_positive_definite()
             False
             sage: B.cholesky()
@@ -11216,9 +11366,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         lack a Cholesky decomposition.  ::
 
             sage: A = matrix(QQ, [[21, 15, 12, -3],
-            ...                   [15, 12,  9,  12],
-            ...                   [12,  9,  7,  3],
-            ...                   [-3,  12,  3,  8]])
+            ....:                 [15, 12,  9,  12],
+            ....:                 [12,  9,  7,  3],
+            ....:                 [-3,  12,  3,  8]])
             sage: A.is_positive_definite()
             False
             sage: [A[:i,:i].determinant() for i in range(1,A.nrows()+1)]
@@ -11228,25 +11378,6 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             ...
             ValueError: matrix is not positive definite,
             so cannot compute Cholesky decomposition
-
-        In certain cases, the algorithm can find an analogue of the
-        Cholesky decomposition over finite fields::
-
-            sage: F.<a> = FiniteField(5^3)
-            sage: A = matrix(F, [[         4,       2*a^2 + 3,         4*a + 1],
-            ...                  [ 2*a^2 + 3,         2*a + 2, 4*a^2 + 4*a + 4],
-            ...                  [   4*a + 1, 4*a^2 + 4*a + 4,       a^2 + 4*a]])
-            sage: A.is_symmetric()
-            True
-            sage: L = A.cholesky()
-            sage: L*L.transpose() == A
-            True
-
-            sage: F = FiniteField(7)
-            sage: A = matrix(F, [[4, 0], [0, 3]])
-            sage: A.cholesky()
-            [       2        0]
-            [       0 2*z2 + 6]
 
         TESTS:
 
@@ -11263,6 +11394,17 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             [ 1.414213562373095?                   0]
             [0.7071067811865475? 0.7071067811865475?]
 
+        We check that if the input is a real matrix then the output is real as
+        well (:trac:`18381`)::
+
+            sage: E = matrix(QQ, [[4, 2], [2, 10/9]])
+            sage: E.cholesky().base_ring()
+            Rational Field
+
+            sage: E = matrix(QQ, [[2, 1], [1, 1]])
+            sage: E.cholesky().base_ring()
+            Algebraic Real Field
+
         AUTHOR:
 
         - Rob Beezer (2012-05-27)
@@ -11276,41 +11418,39 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             if not self.base_ring().is_exact():
                 msg = 'base ring of the matrix must be exact, not {0}'
                 raise TypeError(msg.format(self.base_ring()))
-            try:
-                posdef = self.is_positive_definite()
-            except (ValueError, TypeError) as e:
-                msg = "unable to check positive definiteness because {0}"
-                raise ValueError(msg.format(e))
-            if not posdef:
-                msg = "matrix is not positive definite, so cannot compute Cholesky decomposition"
+            if not self.is_positive_definite():
+                msg = 'matrix is not positive definite, so cannot compute Cholesky decomposition'
                 raise ValueError(msg)
             # the successful positive definite check will cache a Hermitian
             # or symmetric indefinite factorization, as appropriate
             factors = self.fetch('indefinite_factorization_hermitian')
             if factors is None:
                 factors = self.fetch('indefinite_factorization_symmetric')
+                from sage.rings.qqbar import AA as F_ac
+            else:
+                from sage.rings.qqbar import QQbar as F_ac
+
             L = factors[0]
             d = factors[1]
             F = L.base_ring()  # field really
             splits = []        # square roots of diagonal entries
+            extend = False
             for x in d:
-                try:
-                    sqrt = F(x.sqrt())
-                except (TypeError, ValueError):
-                    try:
-                        F = F.algebraic_closure()
-                    except (NotImplementedError, AttributeError):
-                        msg = "base field needs an algebraic closure with square roots, not {0}"
-                        raise TypeError(msg.format(F))
-                    sqrt = F(x).sqrt()
+                if not extend and x.is_square():
+                    sqrt = x.sqrt()
+                else:
+                    extend = True
+                    sqrt = F_ac(x).sqrt()
                 splits.append(sqrt)
             # move square root of the diagonal matrix
             # into the lower triangular matrix
             # We need a copy, to break immutability
             # and the field may have changed as well
-            C = copy(L)
-            if F != C.base_ring():
-                C = C.change_ring(F)
+            if extend:
+                C = L.change_ring(F_ac)
+            else:
+                C = L.__copy__()
+
             for c in range(C.ncols()):
                 C.rescale_col(c, splits[c])
             C.set_immutable()
@@ -11360,7 +11500,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         returned as an `m\times m` permutation matrix `P` such
         that
 
-        .. math::
+        .. MATH::
 
             A = PLU
 
@@ -11404,7 +11544,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         it only acts "below the diagonal", as would be predicted
         from a theoretical analysis of the algorithms.
 
-        .. note::
+        .. NOTE::
 
             This is an exact computation, so limited to exact
             rings. If you need numerical results, convert the
@@ -11416,7 +11556,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         ALGORITHM:
 
             "Gaussian Elimination with Partial Pivoting,"
-            Algorithm 21.1 of [TREFETHEN-BAU]_.
+            Algorithm 21.1 of [TB1997]_.
 
         EXAMPLES:
 
@@ -11425,10 +11565,10 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         has absolute value 1 or less.  ::
 
             sage: A = matrix(QQ, [[1, -1,  0,  2,  4,  7, -1],
-            ...                   [2, -1,  0,  6,  4,  8, -2],
-            ...                   [2,  0,  1,  4,  2,  6,  0],
-            ...                   [1,  0, -1,  8, -1, -1, -3],
-            ...                   [1,  1,  2, -2, -1,  1,  3]])
+            ....:                 [2, -1,  0,  6,  4,  8, -2],
+            ....:                 [2,  0,  1,  4,  2,  6,  0],
+            ....:                 [1,  0, -1,  8, -1, -1, -3],
+            ....:                 [1,  1,  2, -2, -1,  1,  3]])
             sage: P, L, U = A.LU(pivot='partial')
             sage: P
             [0 0 0 0 1]
@@ -11475,10 +11615,10 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         An example of the compact format.  ::
 
             sage: B = matrix(QQ, [[ 1,  3,  5,  5],
-            ...                   [ 1,  4,  7,  8],
-            ...                   [-1, -4, -6, -6],
-            ...                   [ 0, -2, -5, -8],
-            ...                   [-2, -6, -6, -2]])
+            ....:                 [ 1,  4,  7,  8],
+            ....:                 [-1, -4, -6, -6],
+            ....:                 [ 0, -2, -5, -8],
+            ....:                 [-2, -6, -6, -2]])
             sage: perm, M = B.LU(format='compact')
             sage: perm
             (4, 3, 0, 1, 2)
@@ -11493,9 +11633,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         the two formats with a square matrix.  ::
 
             sage: C = matrix(QQ, [[-2,  3, -2, -5],
-            ...                   [ 1, -2,  1,  3],
-            ...                   [-4,  7, -3, -8],
-            ...                   [-3,  8, -1, -5]])
+            ....:                 [ 1, -2,  1,  3],
+            ....:                 [-4,  7, -3, -8],
+            ....:                 [-3,  8, -1, -5]])
             sage: P, L, U = C.LU(format='plu')
             sage: perm, M = C.LU(format='compact')
             sage: (L - identity_matrix(4)) + U == M
@@ -11513,11 +11653,11 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         on the diagonal.  ::
 
             sage: D = matrix(QQ, [[ 1,  0,  2,  0, -2, -1],
-            ...                   [ 3, -2,  3, -1,  0,  6],
-            ...                   [-4,  2, -3,  1, -1, -8],
-            ...                   [-2,  2, -3,  2,  1,  0],
-            ...                   [ 0, -1, -1,  0,  2,  5],
-            ...                   [-1,  2, -4, -1,  5, -3]])
+            ....:                 [ 3, -2,  3, -1,  0,  6],
+            ....:                 [-4,  2, -3,  1, -1, -8],
+            ....:                 [-2,  2, -3,  2,  1,  0],
+            ....:                 [ 0, -1, -1,  0,  2,  5],
+            ....:                 [-1,  2, -4, -1,  5, -3]])
             sage: P, L, U = D.LU(pivot='nonzero')
             sage: P
             [1 0 0 0 0 0]
@@ -11587,9 +11727,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
             sage: F.<a> = FiniteField(5^2)
             sage: C = matrix(F, [[a + 3, 4*a + 4, 2, 4*a + 2],
-            ...                  [3, 2*a + 4, 2*a + 4, 2*a + 1],
-            ...                  [3*a + 1, a + 3, 2*a + 4, 4*a + 3],
-            ...                  [a, 3, 3*a + 1, a]])
+            ....:                [3, 2*a + 4, 2*a + 4, 2*a + 1],
+            ....:                [3*a + 1, a + 3, 2*a + 4, 4*a + 3],
+            ....:                [a, 3, 3*a + 1, a]])
             sage: P, L, U = C.LU(pivot='nonzero')
             sage: P
             [1 0 0 0]
@@ -11631,10 +11771,10 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         the pivots columns or rank in evidence.  ::
 
             sage: A = matrix(QQ, [[ 1, -4,  1,  0, -2,  1, 3,  3,  2],
-            ...                   [-1,  4,  0, -4,  0, -4, 5, -7, -7],
-            ...                   [ 0,  0,  1, -4, -1, -3, 6, -5, -6],
-            ...                   [-2,  8, -1, -4,  2, -4, 1, -8, -7],
-            ...                   [ 1, -4,  2, -4, -3,  2, 5,  6,  4]])
+            ....:                 [-1,  4,  0, -4,  0, -4, 5, -7, -7],
+            ....:                 [ 0,  0,  1, -4, -1, -3, 6, -5, -6],
+            ....:                 [-2,  8, -1, -4,  2, -4, 1, -8, -7],
+            ....:                 [ 1, -4,  2, -4, -3,  2, 5,  6,  4]])
             sage: P, L, U = A.LU()
             sage: U
             [   -2     8    -1    -4     2    -4     1    -8    -7]
@@ -11681,7 +11821,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             True
 
         Partial pivoting is based on the absolute values of entries
-        of a column.  Trac #12208 shows that the return value of the
+        of a column. :trac:`12208` shows that the return value of the
         absolute value must be handled carefully.  This tests that
         situation in the case of cylotomic fields.  ::
 
@@ -11745,7 +11885,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
                 M = self.change_ring(F)
             m, n = M._nrows, M._ncols
             d = min(m, n)
-            perm = range(m)
+            perm = list(xrange(m))
             zero = F(0)
             for k in range(d):
                 max_location = -1
@@ -11824,7 +11964,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         matrix is ``D``.  Then, for a symmetric matrix, these items
         are related as:
 
-        .. math::
+        .. MATH::
 
             A = LDL^T
 
@@ -11844,9 +11984,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         A simple symmetric matrix. ::
 
             sage: A = matrix(QQ, [[ 4, -2,  4,  2],
-            ...                   [-2, 10, -2, -7],
-            ...                   [ 4, -2,  8,  4],
-            ...                   [ 2, -7,  4,  7]])
+            ....:                 [-2, 10, -2, -7],
+            ....:                 [ 4, -2,  8,  4],
+            ....:                 [ 2, -7,  4,  7]])
             sage: A.is_symmetric()
             True
             sage: L, d = A._indefinite_factorization('symmetric')
@@ -11865,9 +12005,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: x = var('x')
             sage: C.<I> = NumberField(x^2 + 1)
             sage: A = matrix(C, [[        23,  17*I + 3,  24*I + 25,     21*I],
-            ...                  [ -17*I + 3,        38, -69*I + 89, 7*I + 15],
-            ...                  [-24*I + 25, 69*I + 89,        976, 24*I + 6],
-            ...                  [     -21*I, -7*I + 15,  -24*I + 6,       28]])
+            ....:                [ -17*I + 3,        38, -69*I + 89, 7*I + 15],
+            ....:                [-24*I + 25, 69*I + 89,        976, 24*I + 6],
+            ....:                [     -21*I, -7*I + 15,  -24*I + 6,       28]])
             sage: A.is_hermitian()
             True
             sage: L, d = A._indefinite_factorization('hermitian')
@@ -11889,7 +12029,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: A = matrix(QQ, [[4, 6, 1], [6, 9, 5], [1, 5, 2]])
             sage: B = A[0:2, 0:2]; B.determinant()
             0
-            sage: A._indefinite_factorization('symmetric')
+            sage: A.indefinite_factorization(algorithm='symmetric')
             Traceback (most recent call last):
             ...
             ValueError: 2x2 leading principal submatrix is singular,
@@ -11953,9 +12093,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         to the ``algorithm``.  ::
 
             sage: A = matrix(QQ, [[ 4, -2,  4,  2],
-            ...                   [-2, 10, -2, -7],
-            ...                   [ 4, -2,  8,  4],
-            ...                   [ 2, -7,  4,  7]])
+            ....:                 [-2, 10, -2, -7],
+            ....:                 [ 4, -2,  8,  4],
+            ....:                 [ 2, -7,  4,  7]])
             sage: Ls, ds = A._indefinite_factorization('symmetric')
             sage: Lh, dh = A._indefinite_factorization('hermitian')
             sage: Ls.is_immutable(), Lh.is_immutable()
@@ -12023,14 +12163,14 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             conjugate = (algorithm == 'hermitian')
             # we need a copy no matter what, so we
             # (potentially) change to fraction field at the same time
-            L = self.change_ring(F)
-            # The change ring doesn't necessarily return a copy if ``self``
-            #   is immutable and ``F`` is the same as the base ring
-            if L is self:
+            if R is F:
                 L = self.__copy__()
+            else:
+                L = self.change_ring(F)
+
             m = L._nrows
-            zero = F(0)
-            one = F(1)
+            zero = F.zero()
+            one = F.one()
             d = []
             d_inv = []
             for i in range(m):
@@ -12043,9 +12183,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
                         for k in range(j):
                             t -= L.get_unsafe(k,i)*L.get_unsafe(j,k)
                     if i == j:
-                        if t == zero:
-                            msg = "{0}x{0} leading principal submatrix is singular, so cannot create indefinite factorization"
-                            raise ValueError(msg.format(i+1))
+                        if not t:
+                            self.cache(cache_string, (False,i+1))
+                            return (False, i+1)
                         d.append(t)
                         d_inv.append(one/t)
                         L.set_unsafe(i, i, one)
@@ -12057,8 +12197,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
                 for j in range(i+1, m):
                     L.set_unsafe(i, j, zero)
             L.set_immutable()
-            d = tuple(d)
-            factors = (L, d)
+            factors = (L, tuple(d))
             self.cache(cache_string, factors)
         return factors
 
@@ -12090,7 +12229,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         For a symmetric matrix, `A`, these will be related by
 
-        .. math::
+        .. MATH::
 
             A = LDL^T
 
@@ -12104,7 +12243,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         ALGORITHM:
 
         The algorithm employed only uses field operations,
-        but the compuation of each diagonal entry has the potential
+        but the computation of each diagonal entry has the potential
         for division by zero.  The number of operations is of order
         `n^3/3`, which is half the count for an LU decomposition.
         This makes it an appropriate candidate for solving systems
@@ -12117,10 +12256,10 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         matrix.  The default is that the input matrix is symmetric. ::
 
             sage: A = matrix(QQ, [[ 3,  -6,   9,   6,  -9],
-            ...                   [-6,  11, -16, -11,  17],
-            ...                   [ 9, -16,  28,  16, -40],
-            ...                   [ 6, -11,  16,   9, -19],
-            ...                   [-9,  17, -40, -19,  68]])
+            ....:                 [-6,  11, -16, -11,  17],
+            ....:                 [ 9, -16,  28,  16, -40],
+            ....:                 [ 6, -11,  16,   9, -19],
+            ....:                 [-9,  17, -40, -19,  68]])
             sage: A.is_symmetric()
             True
             sage: L, d = A.indefinite_factorization()
@@ -12148,8 +12287,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
             sage: C.<I> = QuadraticField(-1)
             sage: B = matrix(C, [[      2, 4 - 2*I, 2 + 2*I],
-            ...                  [4 + 2*I,       8,    10*I],
-            ...                  [2 - 2*I,   -10*I,      -3]])
+            ....:                [4 + 2*I,       8,    10*I],
+            ....:                [2 - 2*I,   -10*I,      -3]])
             sage: B.is_hermitian()
             True
             sage: L, d = B.indefinite_factorization(algorithm='hermitian')
@@ -12170,9 +12309,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         definite matrix.  ::
 
             sage: A = matrix(QQ, [[21, 15, 12, -2],
-            ...                   [15, 12,  9,  6],
-            ...                   [12,  9,  7,  3],
-            ...                   [-2,  6,  3,  8]])
+            ....:                 [15, 12,  9,  6],
+            ....:                 [12,  9,  7,  3],
+            ....:                 [-2,  6,  3,  8]])
             sage: A.is_symmetric()
             True
             sage: A[0:3,0:3].det() == 0
@@ -12190,10 +12329,10 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
             sage: F.<a> = FiniteField(5^3)
             sage: A = matrix(F,
-            ...       [[      a^2 + 2*a, 4*a^2 + 3*a + 4,       3*a^2 + a, 2*a^2 + 2*a + 1],
-            ...        [4*a^2 + 3*a + 4,       4*a^2 + 2,             3*a, 2*a^2 + 4*a + 2],
-            ...        [      3*a^2 + a,             3*a,       3*a^2 + 2, 3*a^2 + 2*a + 3],
-            ...        [2*a^2 + 2*a + 1, 2*a^2 + 4*a + 2, 3*a^2 + 2*a + 3, 3*a^2 + 2*a + 4]])
+            ....:     [[      a^2 + 2*a, 4*a^2 + 3*a + 4,       3*a^2 + a, 2*a^2 + 2*a + 1],
+            ....:      [4*a^2 + 3*a + 4,       4*a^2 + 2,             3*a, 2*a^2 + 4*a + 2],
+            ....:      [      3*a^2 + a,             3*a,       3*a^2 + 2, 3*a^2 + 2*a + 3],
+            ....:      [2*a^2 + 2*a + 1, 2*a^2 + 4*a + 2, 3*a^2 + 2*a + 3, 3*a^2 + 2*a + 4]])
             sage: A.is_symmetric()
             True
             sage: L, d = A.indefinite_factorization()
@@ -12217,6 +12356,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         """
         from sage.modules.free_module_element import vector
         L, d = self._indefinite_factorization(algorithm, check=check)
+        if L is False:
+            msg = "{0}x{0} leading principal submatrix is singular, so cannot create indefinite factorization"
+            raise ValueError(msg.format(d))
         return L, vector(L.base_ring(), d)
 
     def is_positive_definite(self):
@@ -12227,7 +12369,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         symmetric with real entries or Hermitan with complex entries,
         and for every non-zero vector `\vec{x}`
 
-        .. math::
+        .. MATH::
 
             \vec{x}^\ast A\vec{x} > 0
 
@@ -12266,9 +12408,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         determinants of the leading principal submatrices. ::
 
             sage: A = matrix(QQ, [[ 4, -2,  4,  2],
-            ...                   [-2, 10, -2, -7],
-            ...                   [ 4, -2,  8,  4],
-            ...                   [ 2, -7,  4,  7]])
+            ....:                 [-2, 10, -2, -7],
+            ....:                 [ 4, -2,  8,  4],
+            ....:                 [ 2, -7,  4,  7]])
             sage: A.is_positive_definite()
             True
             sage: _, d = A.indefinite_factorization(algorithm='symmetric')
@@ -12281,10 +12423,10 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         with a vector that makes the quadratic form negative. ::
 
             sage: A = matrix(QQ, [[ 3,  -6,   9,   6,  -9],
-            ...                   [-6,  11, -16, -11,  17],
-            ...                   [ 9, -16,  28,  16, -40],
-            ...                   [ 6, -11,  16,   9, -19],
-            ...                   [-9,  17, -40, -19,  68]])
+            ....:                 [-6,  11, -16, -11,  17],
+            ....:                 [ 9, -16,  28,  16, -40],
+            ....:                 [ 6, -11,  16,   9, -19],
+            ....:                 [-9,  17, -40, -19,  68]])
             sage: A.is_positive_definite()
             False
             sage: _, d = A.indefinite_factorization(algorithm='symmetric')
@@ -12301,9 +12443,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         The vector ``u`` makes the quadratic form zero.  ::
 
             sage: A = matrix(QQ, [[21, 15, 12, -2],
-            ...                   [15, 12,  9,  6],
-            ...                   [12,  9,  7,  3],
-            ...                   [-2,  6,  3,  8]])
+            ....:                 [15, 12,  9,  6],
+            ....:                 [12,  9,  7,  3],
+            ....:                 [-2,  6,  3,  8]])
             sage: A.is_positive_definite()
             False
             sage: [A[:i,:i].determinant() for i in range(1,A.nrows()+1)]
@@ -12314,11 +12456,11 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         An Hermitian matrix that is positive definite.  ::
 
-            sage: C.<I> = NumberField(x^2 + 1)
+            sage: C.<I> = NumberField(x^2 + 1, embedding=CC(0,1))
             sage: A = matrix(C, [[        23,  17*I + 3,  24*I + 25,     21*I],
-            ...                  [ -17*I + 3,        38, -69*I + 89, 7*I + 15],
-            ...                  [-24*I + 25, 69*I + 89,        976, 24*I + 6],
-            ...                  [     -21*I, -7*I + 15,  -24*I + 6,       28]])
+            ....:                [ -17*I + 3,        38, -69*I + 89, 7*I + 15],
+            ....:                [-24*I + 25, 69*I + 89,        976, 24*I + 6],
+            ....:                [     -21*I, -7*I + 15,  -24*I + 6,       28]])
             sage: A.is_positive_definite()
             True
             sage: _, d = A.indefinite_factorization(algorithm='hermitian')
@@ -12332,8 +12474,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
             sage: C.<I> = QuadraticField(-1)
             sage: B = matrix(C, [[      2, 4 - 2*I, 2 + 2*I],
-            ...                  [4 + 2*I,       8,    10*I],
-            ...                  [2 - 2*I,   -10*I,      -3]])
+            ....:                [4 + 2*I,       8,    10*I],
+            ....:                [2 - 2*I,   -10*I,      -3]])
             sage: B.is_positive_definite()
             False
             sage: _, d = B.indefinite_factorization(algorithm='hermitian')
@@ -12348,8 +12490,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         A positive definite matrix over an algebraically closed field.  ::
 
             sage: A = matrix(QQbar, [[        2,   4 + 2*I,   6 - 4*I],
-            ...                      [ -2*I + 4,        11, 10 - 12*I],
-            ...                      [  4*I + 6, 10 + 12*I,        37]])
+            ....:                    [ -2*I + 4,        11, 10 - 12*I],
+            ....:                    [  4*I + 6, 10 + 12*I,        37]])
             sage: A.is_positive_definite()
             True
             sage: [A[:i,:i].determinant() for i in range(1,A.nrows()+1)]
@@ -12370,57 +12512,48 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             AttributeError: 'sage.rings.finite_rings.element_givaro.FiniteField_givaroElement'
             object has no attribute 'conjugate'
             sage: A = matrix(F,
-            ...       [[      a^2 + 2*a, 4*a^2 + 3*a + 4,       3*a^2 + a, 2*a^2 + 2*a + 1],
-            ...        [4*a^2 + 3*a + 4,       4*a^2 + 2,             3*a, 2*a^2 + 4*a + 2],
-            ...        [      3*a^2 + a,             3*a,       3*a^2 + 2, 3*a^2 + 2*a + 3],
-            ...        [2*a^2 + 2*a + 1, 2*a^2 + 4*a + 2, 3*a^2 + 2*a + 3, 3*a^2 + 2*a + 4]])
+            ....:     [[      a^2 + 2*a, 4*a^2 + 3*a + 4,       3*a^2 + a, 2*a^2 + 2*a + 1],
+            ....:      [4*a^2 + 3*a + 4,       4*a^2 + 2,             3*a, 2*a^2 + 4*a + 2],
+            ....:      [      3*a^2 + a,             3*a,       3*a^2 + 2, 3*a^2 + 2*a + 3],
+            ....:      [2*a^2 + 2*a + 1, 2*a^2 + 4*a + 2, 3*a^2 + 2*a + 3, 3*a^2 + 2*a + 4]])
             sage: A.is_positive_definite()
             Traceback (most recent call last):
             ...
-            TypeError: cannot convert computations from
-            Finite Field in a of size 5^3 into real numbers
+            ValueError: Could not see Finite Field in a of size 5^3 as a subring
+            of the real or complex numbers
 
         AUTHOR:
 
         - Rob Beezer (2012-05-24)
         """
-        from sage.rings.all import RR
-        # check to see if the Hermitian routine is usable
-        # otherwise we will assume the symmetric case
-        imaginary = True
-        a = self.base_ring().an_element()
-        try:
-            a.conjugate()
-        except AttributeError:
-            imaginary = False
-        if imaginary:
-            if not self.is_hermitian():
-                return False
-        else:
+        from sage.rings.real_lazy import RLF,CLF
+
+        R = self.base_ring()
+        if RLF.has_coerce_map_from(R):
             if not self.is_symmetric():
                 return False
-        try:
-            if imaginary:
-                _, d = self._indefinite_factorization('hermitian', check=False)
-            else:
-                _, d = self._indefinite_factorization('symmetric', check=False)
-        except ValueError as e:
-            # a zero singular leading principal submatrix is one
-            # indicator that the matrix is not positive definite
-            if str(e).find('leading principal submatrix is singular') != -1:
+            L, d = self._indefinite_factorization('symmetric', check=False)
+            real = True
+        elif CLF.has_coerce_map_from(R):
+            if not self.is_hermitian():
                 return False
-            else:
-                raise ValueError(e)
+            L, d = self._indefinite_factorization('hermitian', check=False)
+            real = False
+        else:
+            raise ValueError("Could not see {} as a subring of the "
+                    "real or complex numbers".format(R))
+
+        if L is False:
+            return False
+
         # Now have diagonal entries (hopefully real) and so can
         # test with a generator (which will short-circuit)
         # positive definite iff all entries of d are positive
-        try:
-            posdef = all( RR(x) > 0 for x in d )
-        except TypeError:
-            universe = Sequence(d).universe()
-            msg = "cannot convert computations from {0} into real numbers"
-            raise TypeError(msg.format(universe))
-        return posdef
+        zero = R.fraction_field().zero()
+        if real:
+            return all(x > zero for x in d)
+        else:
+            return all(x.real() > zero for x in d)
 
     def hadamard_bound(self):
         r"""
@@ -12611,7 +12744,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         r"""
         Returns the transpose of ``self`` after each entry has been converted to its complex conjugate.
 
-        .. note::
+        .. NOTE::
             This function is sometimes known as the "adjoint" of a matrix,
             though there is substantial variation and some confusion with
             the use of that term.
@@ -12780,23 +12913,21 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         if p == 'frob':
             return sum([i**2 for i in A.list()]).sqrt()
 
-    def _numerical_approx(self, prec=None, digits=None, algorithm=None):
+    def numerical_approx(self, prec=None, digits=None, algorithm=None):
         r"""
-        Return a numerical approximation of ``self`` as either
-        a real or complex number with at least the requested number of bits
-        or digits of precision.
+        Return a numerical approximation of ``self`` with ``prec`` bits
+        (or decimal ``digits``) of precision.
 
         INPUT:
 
+        - ``prec`` -- precision in bits
 
-        -  ``prec`` - an integer: the number of bits of
-           precision
+        - ``digits`` -- precision in decimal digits (only used if
+          ``prec`` is not given)
 
-        -  ``digits`` - an integer: digits of precision
+        - ``algorithm`` -- ignored for matrices
 
-
-        OUTPUT: A matrix coerced to a real or complex field with prec bits
-        of precision.
+        OUTPUT: A matrix converted to a real or complex field
 
         EXAMPLES::
 
@@ -12852,25 +12983,15 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             [0.750000000000000 0.800000000000000 0.833333333333333]
             [0.857142857142857 0.875000000000000 0.888888888888889]
             [0.900000000000000 0.909090909090909 0.916666666666667]
-
         """
-
         if prec is None:
-            if digits is None:
-                prec = 53
-            else:
-                prec = int(digits * 3.4) + 2
+            prec = digits_to_bits(digits)
 
         try:
             return self.change_ring(sage.rings.real_mpfr.RealField(prec))
         except TypeError:
             # try to return a complex result
             return self.change_ring(sage.rings.complex_field.ComplexField(prec))
-
-    #This line is added so the doctest are visible
-    numerical_approx=_numerical_approx
-    n=_numerical_approx
-    N=_numerical_approx
 
     def plot(self, *args, **kwds):
         """
@@ -12912,9 +13033,6 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         from sage.plot.plot import matrix_plot
         return matrix_plot(self, *args, **kwds)
 
-    #added this to make doctests visible to users
-    numerical_approx=_numerical_approx
-
     def derivative(self, *args):
         """
         Derivative with respect to variables supplied in args.
@@ -12944,7 +13062,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         r"""
         Calculate the exponential of this matrix X, which is the matrix
 
-        .. math::
+        .. MATH::
 
            e^X = \sum_{k=0}^{\infty} \frac{X^k}{k!}.
 
@@ -12990,7 +13108,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         where `r` and `s` are the number of rows and
         columns of self, such that the cokernel of self is isomorphic to
 
-        .. math::
+        .. MATH::
 
            R/(d_1) \oplus R/(d_2) \oplus R/(d_k)
 
@@ -13005,7 +13123,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: m.elementary_divisors()
             [1, -w + 9]
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`smith_form`
         """
@@ -13036,7 +13154,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         ALGORITHM: Lifted wholesale from
         http://en.wikipedia.org/wiki/Smith_normal_form
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`elementary_divisors`
 
@@ -13126,9 +13244,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         # data type checks on R
         if not R.is_integral_domain() or not R.is_noetherian():
-            raise TypeError, "Smith form only defined over Noetherian integral domains"
+            raise TypeError("Smith form only defined over Noetherian integral domains")
         if not R.is_exact():
-            raise NotImplementedError, "Smith form over non-exact rings not implemented at present"
+            raise NotImplementedError("Smith form over non-exact rings not implemented at present")
 
         # first clear the first row and column
         u,t,v = _smith_onestep(self)
@@ -13219,7 +13337,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         - David Loeffler (2009-06-01)
 
         - Moritz Minzlaff (2011-03-17): corrected code for matrices of one row;
-          this fixed trac 9053
+          this fixed :trac:`9053`
 
         EXAMPLES::
 
@@ -13258,16 +13376,16 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         A larger example::
 
             sage: m = matrix(OL, 3, 5, [a^2 - 3*a - 1, a^2 - 3*a + 1, a^2 + 1,
-            ...     -a^2 + 2, -3*a^2 - a - 1, -6*a - 1, a^2 - 3*a - 1,
-            ...     2*a^2 + a + 5, -2*a^2 + 5*a + 1, -a^2 + 13*a - 3,
-            ...     -2*a^2 + 4*a - 2, -2*a^2 + 1, 2*a, a^2 - 6, 3*a^2 - a ])
+            ....:   -a^2 + 2, -3*a^2 - a - 1, -6*a - 1, a^2 - 3*a - 1,
+            ....:   2*a^2 + a + 5, -2*a^2 + 5*a + 1, -a^2 + 13*a - 3,
+            ....:   -2*a^2 + 4*a - 2, -2*a^2 + 1, 2*a, a^2 - 6, 3*a^2 - a ])
             sage: r,s,p = m._echelon_form_PID()
             sage: s[2]
             (0, 0, -3*a^2 - 18*a + 34, -68*a^2 + 134*a - 53, -111*a^2 + 275*a - 90)
             sage: r * m == s and r.det() == 1
             True
 
-        We verify that trac 9053 is resolved::
+        We verify that :trac:`9053` is resolved::
 
             sage: R.<x> = GF(7)[]
             sage: A = R^3
@@ -13294,11 +13412,11 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         # data type checks on R
         if not R.is_integral_domain():
-            raise TypeError, ( "Generic echelon form only defined over "
-                "integral domains" )
+            raise TypeError("Generic echelon form only defined over "
+                "integral domains")
         if not R.is_exact():
-            raise NotImplementedError, ( "Echelon form over generic non-exact "
-                "rings not implemented at present" )
+            raise NotImplementedError("Echelon form over generic non-exact "
+                "rings not implemented at present")
 
         left_mat, a = _generic_clear_column(self)
         assert left_mat * self == a
@@ -13334,7 +13452,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         return left_mat, a, pivs
 
-    def _zigzag_form(self, basis=True):
+    def _zigzag_form(self, bint basis=True):
         r"""
         Helper method for computation of ZigZag form.
 
@@ -13357,7 +13475,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         `A` is the matrix, `U` is the change-of-basis matrix and `Z` is
         the ZigZag form, then
 
-        .. math::
+        .. MATH::
 
             U^{-1}*A*U = Z
 
@@ -13372,27 +13490,27 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         When ``basis=False`` only three items are returned.  These are
         just as above, but without the change-of-basis matrix.
 
-        The compuation of the change-of-basis matrix has not been optimized.
+        The computation of the change-of-basis matrix has not been optimized.
         As a helper method, no error checking is performed on the inputs -
         that should be performed by the calling method.
 
         ALGORITHM:
 
         ZigZag form, and its computation, are due to Arne Storjohann
-        and are  described in [STORJOHANN-THESIS]_ and
-        [STORJOHANN-ISACC98]_, where the former is more
+        and are  described in [Sto2000]_ and
+        [Sto1998]_, where the former is more
         representative of the code here.
 
-        EXAMPLE:
+        EXAMPLES:
 
             sage: A = matrix(QQ, [[-68,   69, -27, -11, -65,   9, -181, -32],
-            ...                   [-52,   52, -27,  -8, -52, -16, -133, -14],
-            ...                   [ 92,  -97,  47,  14,  90,  32,  241,  18],
-            ...                   [139, -144,  60,  18, 148, -10,  362,  77],
-            ...                   [ 40,  -41,  12,   6,  45, -24,  105,  42],
-            ...                   [-46,   48, -20,  -7, -47,   0, -122, -22],
-            ...                   [-26,   27, -13,  -4, -29,  -6,  -66, -14],
-            ...                   [-33,   34, -13,  -5, -35,   7,  -87, -23]])
+            ....:                 [-52,   52, -27,  -8, -52, -16, -133, -14],
+            ....:                 [ 92,  -97,  47,  14,  90,  32,  241,  18],
+            ....:                 [139, -144,  60,  18, 148, -10,  362,  77],
+            ....:                 [ 40,  -41,  12,   6,  45, -24,  105,  42],
+            ....:                 [-46,   48, -20,  -7, -47,   0, -122, -22],
+            ....:                 [-26,   27, -13,  -4, -29,  -6,  -66, -14],
+            ....:                 [-33,   34, -13,  -5, -35,   7,  -87, -23]])
             sage: Z, polys, corners = A._zigzag_form(basis=False)
             sage: Z
             [  0   0   0  40   1   0   0   0]
@@ -13429,23 +13547,22 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
         - Rob Beezer (2011-06-09)
         """
-        import sage.matrix.constructor
         cdef Py_ssize_t n, s, c, i, j, k
 
         n = self._ncols
         R = self.base_ring()
-        zero = R(0)
-        one = R(1)
-        cdef Matrix Z
-        Z = self.__copy__()
-        polys = []    # coefficients for polynomials of companion matrices
-        corners = []  # zero or one in corner of off-diagonal blocks
+        zero = R.zero()
+        one = R.one()
+        cdef Matrix Z = self.__copy__()
+        cdef list polys = []    # coefficients for polynomials of companion matrices
+        cdef list corners = []  # zero or one in corner of off-diagonal blocks
         if basis:
+            import sage.matrix.constructor
             U = sage.matrix.constructor.identity_matrix(R, n) # transformation matrix
         # parity switch, True iff working on transpose
         # if False, mimic row operations only on U
         # if True,  mimic column operations only on U
-        trans = False
+        cdef bint trans = False, zigging
         s = 0  # index of top row of current block
         c = 0  # index of current row of current block
         while s < n:
@@ -13454,7 +13571,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             while zigging:  # zigging means we are building a block
                 nonzero = -1
                 for i in range(c+1, n):
-                    if Z[i, c] != 0:
+                    if Z.get_unsafe(i,c):
                         nonzero = i
                         break
                 zigging = (nonzero != -1)
@@ -13468,19 +13585,19 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
                             U.swap_rows(nonzero, c+1)
 
                     # create a subdiagonal entry 1
-                    scale = Z[c+1, c]
+                    scale = Z.get_unsafe(c+1, c)
                     Z.rescale_row(c+1, 1/scale)
                     Z.rescale_col(c+1, scale)
                     if basis:
                         if trans:
                             U.rescale_col(c+1, scale)
                         else:
-                            U.rescale_row(c+1, 1/scale)
+                            U.rescale_row(c+1, ~scale)
 
                     # clear column throughout the block,and in all rows below
                     for i in range(s, n):
                         if i != c+1:
-                            scale = Z[i, c]
+                            scale = Z.get_unsafe(i, c)
                             Z.add_multiple_of_row(i, c+1, -scale)
                             Z.add_multiple_of_column(c+1, i, scale)
                             if basis:
@@ -13498,10 +13615,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             # (inclusive), use it to clear entries to the right
             # but first record polynomial for block just built
             # this is the full monic polynomial, with correct coefficients
-            p = []
-            for i in range(s, c+1):
-                p.append(-Z[i, c])
-            p.append(R(1))
+            p = [-Z.get_unsafe(i,c) for i in range(s,c+1)]
+            p.append(one)
             polys.append(p)
 
             # use new unit columns (i) to clear rows to right (j)
@@ -13509,7 +13624,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             # it is important that the loop on  i  goes in reverse
             for i in range(c-1, s-1, -1):
                 for j in range(c+1, n):
-                    scale = Z[i+1, j]
+                    scale = Z.get_unsafe(i+1, j)
                     # Effectively: Z.add_multiple_of_column(j, i, -scale)
                     Z.set_unsafe(i+1, j, zero)
                     # row j leads with zeros, up to, and including column c
@@ -13528,7 +13643,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             nonzero = -1
             # locate a nonzero entry in row  s
             for j in range(c+1, n):
-                if Z[s, j] != 0:
+                if Z.get_unsafe(s, j):
                     nonzero = j
                     break
             if (nonzero != -1):
@@ -13541,16 +13656,16 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
                             U.swap_columns(c+1, nonzero)
                         else:
                             U.swap_rows(c+1, nonzero)
-                scale = Z[s, c+1]
-                Z.rescale_col(c+1, 1/scale)
+                scale = Z.get_unsafe(s, c+1)
+                Z.rescale_col(c+1, ~scale)
                 Z.rescale_row(c+1, scale)
                 if basis:
                     if trans:
-                        U.rescale_col(c+1, 1/scale)
+                        U.rescale_col(c+1, ~scale)
                     else:
                         U.rescale_row(c+1, scale)
                 for j in range(c+2, n):
-                    scale = Z[s, j]
+                    scale = Z.get_unsafe(s, j)
                     # exploiting leading zeros does not seem too beneficial here
                     Z.add_multiple_of_column(j, c+1, -scale)
                     Z.add_multiple_of_row(c+1, j, scale)
@@ -13562,7 +13677,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
             # maybe move this closer to where we know which it is
             if c < n-1:
-                corners.append(Z[s, c+1])
+                corners.append(Z.get_unsafe(s, c+1))
             # reset indices for constructing next block
             # transpose all elements, this is a zig or a zag
             c = c+1
@@ -13623,7 +13738,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         If ``transformation`` is ``True``, then the output is a pair of
         matrices.  The first is the form ``Z`` and the second is an invertible
         matrix ``U`` such that ``U.inverse()*self*U`` equals ``Z``.  In other
-        words, the repsentation of ``self`` with respect to the columns
+        words, the representation of ``self`` with respect to the columns
         of ``U`` will be ``Z``.
 
         If subdivide is ``True`` then the matrix returned as the form is
@@ -13633,9 +13748,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         For output that may be more useful as input to other routines,
         see the helper method :meth:`_zigzag_form`.
 
-        .. note::
+        .. NOTE::
 
-            An efffort has been made to optimize computation of the form,
+            An effort has been made to optimize computation of the form,
             but no such work has been done for the computation of the
             transformation matrix, so for fastest results do not request the
             transformation matrix.
@@ -13643,8 +13758,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         ALGORITHM:
 
         ZigZag form, and its computation, are due to Arne Storjohann
-        and are  described in [STORJOHANN-THESIS]_ and
-        [STORJOHANN-ISACC98]_, where the former is more
+        and are  described in [Sto2000]_ and
+        [Sto1998]_, where the former is more
         representative of the code here.
 
         EXAMPLES:
@@ -13658,13 +13773,13 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         matrix representation.  ::
 
             sage: A = matrix(QQ, [[-68,   69, -27, -11, -65,   9, -181, -32],
-            ...                   [-52,   52, -27,  -8, -52, -16, -133, -14],
-            ...                   [ 92,  -97,  47,  14,  90,  32,  241,  18],
-            ...                   [139, -144,  60,  18, 148, -10,  362,  77],
-            ...                   [ 40,  -41,  12,   6,  45, -24,  105,  42],
-            ...                   [-46,   48, -20,  -7, -47,   0, -122, -22],
-            ...                   [-26,   27, -13,  -4, -29,  -6,  -66, -14],
-            ...                   [-33,   34, -13,  -5, -35,   7,  -87, -23]])
+            ....:                 [-52,   52, -27,  -8, -52, -16, -133, -14],
+            ....:                 [ 92,  -97,  47,  14,  90,  32,  241,  18],
+            ....:                 [139, -144,  60,  18, 148, -10,  362,  77],
+            ....:                 [ 40,  -41,  12,   6,  45, -24,  105,  42],
+            ....:                 [-46,   48, -20,  -7, -47,   0, -122, -22],
+            ....:                 [-26,   27, -13,  -4, -29,  -6,  -66, -14],
+            ....:                 [-33,   34, -13,  -5, -35,   7,  -87, -23]])
             sage: Z, U = A.zigzag_form(transformation=True)
             sage: Z
             [  0   0   0  40|  1   0|  0   0]
@@ -13681,13 +13796,13 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             True
 
             sage: B = matrix(QQ, [[ 16,  69, -13,   2, -52,  143,   90,  -3],
-            ...                   [ 26,  54,   6,  -5, -28,   73,   73, -48],
-            ...                   [-16, -79,  12, -10,  64, -142, -115,  41],
-            ...                   [ 27,  -7,  21, -33,  39,  -20,  -42,  43],
-            ...                   [  8, -75,  34, -32,  86, -156, -130,  42],
-            ...                   [  2, -17,   7,  -8,  20,  -33,  -31,  16],
-            ...                   [-24, -80,   7,  -3,  56, -136, -112,  42],
-            ...                   [ -6, -19,   0,  -1,  13,  -28,  -27,  15]])
+            ....:                 [ 26,  54,   6,  -5, -28,   73,   73, -48],
+            ....:                 [-16, -79,  12, -10,  64, -142, -115,  41],
+            ....:                 [ 27,  -7,  21, -33,  39,  -20,  -42,  43],
+            ....:                 [  8, -75,  34, -32,  86, -156, -130,  42],
+            ....:                 [  2, -17,   7,  -8,  20,  -33,  -31,  16],
+            ....:                 [-24, -80,   7,  -3,  56, -136, -112,  42],
+            ....:                 [ -6, -19,   0,  -1,  13,  -28,  -27,  15]])
             sage: Z, U = B.zigzag_form(transformation=True)
             sage: Z
             [   0    0    0    0    0 1000|   0|   0]
@@ -13713,13 +13828,13 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         Jordan canonical forms are equal. ::
 
             sage: C = matrix(QQ, [[2,  31, -10,  -9, -125,  13,  62, -12],
-            ...                   [0,  48, -16, -16, -188,  20,  92, -16],
-            ...                   [0,   9,  -1,   2,  -33,   5,  18,   0],
-            ...                   [0,  15,  -5,   0,  -59,   7,  30,  -4],
-            ...                   [0, -21,   7,   2,   84, -10, -42,   5],
-            ...                   [0, -42,  14,   8,  167, -17, -84,  13],
-            ...                   [0, -50,  17,  10,  199, -23, -98,  14],
-            ...                   [0,  15,  -5,  -2,  -59,   7,  30, -2]])
+            ....:                 [0,  48, -16, -16, -188,  20,  92, -16],
+            ....:                 [0,   9,  -1,   2,  -33,   5,  18,   0],
+            ....:                 [0,  15,  -5,   0,  -59,   7,  30,  -4],
+            ....:                 [0, -21,   7,   2,   84, -10, -42,   5],
+            ....:                 [0, -42,  14,   8,  167, -17, -84,  13],
+            ....:                 [0, -50,  17,  10,  199, -23, -98,  14],
+            ....:                 [0,  15,  -5,  -2,  -59,   7,  30, -2]])
             sage: Z, U = C.zigzag_form(transformation=True)
             sage: Z
             [2|1|0|0|0|0|0|0]
@@ -13741,13 +13856,13 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             True
 
             sage: D = matrix(QQ, [[ -4,   3,    7,   2,  -4,   5,    7,   -3],
-            ...                   [ -6,   5,    7,   2,  -4,   5,    7,   -3],
-            ...                   [ 21, -12,   89,  25,   8,  27,   98,  -95],
-            ...                   [ -9,   5,  -44, -11,  -3, -13,  -48,   47],
-            ...                   [ 23, -13,   74,  21,  12,  22,   85,  -84],
-            ...                   [ 31, -18,  135,  38,  12,  47,  155, -147],
-            ...                   [-33,  19, -138, -39, -13, -45, -156,  151],
-            ...                   [ -7,   4,  -29,  -8,  -3, -10,  -34,  34]])
+            ....:                 [ -6,   5,    7,   2,  -4,   5,    7,   -3],
+            ....:                 [ 21, -12,   89,  25,   8,  27,   98,  -95],
+            ....:                 [ -9,   5,  -44, -11,  -3, -13,  -48,   47],
+            ....:                 [ 23, -13,   74,  21,  12,  22,   85,  -84],
+            ....:                 [ 31, -18,  135,  38,  12,  47,  155, -147],
+            ....:                 [-33,  19, -138, -39, -13, -45, -156,  151],
+            ....:                 [ -7,   4,  -29,  -8,  -3, -10,  -34,  34]])
             sage: Z, U = D.zigzag_form(transformation=True)
             sage: Z
             [ 0 -4| 0  0| 0  0| 0  0]
@@ -13773,9 +13888,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
             sage: F.<a> = GF(5^4)
             sage: A = matrix(F, [[     a,      0,  0, a + 3],
-            ...                  [     0,a^2 + 1,  0,     0],
-            ...                  [     0,      0,a^3,     0],
-            ...                  [a^2 +4 ,     0,   0,a + 2]])
+            ....:                [     0,a^2 + 1,  0,     0],
+            ....:                [     0,      0,a^3,     0],
+            ....:                [a^2 +4 ,     0,   0,a + 2]])
             sage: A.zigzag_form()
             [                    0 a^3 + 2*a^2 + 2*a + 2|                    0|                    0]
             [                    1               2*a + 2|                    0|                    0]
@@ -13792,9 +13907,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
             sage: F.<a> = GF(5^4)
             sage: A = matrix(F, [[     a,      0,  0, a + 3],
-            ...                  [     0,a^2 + 1,  0,     0],
-            ...                  [     0,      0,a^3,     0],
-            ...                  [a^2 +4 ,     0,   0,a + 2]])
+            ....:                [     0,a^2 + 1,  0,     0],
+            ....:                [     0,      0,a^3,     0],
+            ....:                [a^2 +4 ,     0,   0,a + 2]])
             sage: A.zigzag_form(subdivide=False)
             [                    0 a^3 + 2*a^2 + 2*a + 2                     0                     0]
             [                    1               2*a + 2                     0                     0]
@@ -13832,18 +13947,6 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             Traceback (most recent call last):
             ...
             ValueError: 'subdivide' keyword must be True or False, not garbage
-
-        .. rubric:: Citations
-
-        .. [STORJOHANN-THESIS] A. Storjohann, Algorithms
-           for Matrix Canonical Forms. PhD Thesis. Department
-           of Computer Science, Swiss Federal Institute of
-           Technology -- ETH, 2000.
-
-        .. [STORJOHANN-ISACC98] A. Storjohann, An O(n^3)
-           algorithm for Frobenius normal form. Proceedings
-           of the International Symposium on Symbolic and
-           Algebraic Computation (ISSAC'98), ACM Press, 1998, pp. 101-104.
 
         AUTHOR:
 
@@ -13934,7 +14037,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         We begin with ZigZag form, which is due to Arne Storjohann
         and is documented at :meth:`zigzag_form`.  Then we eliminate
         ''corner'' entries enroute to rational form via an additional
-        algorithm of Storjohann's [STORJOHANN-EMAIL]_.
+        algorithm of Storjohann's [Sto2011]_.
 
         EXAMPLES:
 
@@ -13946,19 +14049,19 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         characteristic polynomials are easy to determine from this list. ::
 
             sage: A = matrix(QQ, [[ 11,  14, -15,  -4, -38, -29,  1,  23,  14, -63,  17,  24,  36,  32],
-            ...                   [ 18,   6, -17, -11, -31, -43, 12,  26,   0, -69,  11,  13,  17,  24],
-            ...                   [ 11,  16, -22,  -8, -48, -34,  0,  31,  16, -82,  26,  31,  39,  37],
-            ...                   [ -8, -18,  22,  10,  46,  33,  3, -27, -12,  70, -19, -20, -42, -31],
-            ...                   [-13, -21,  16,  10,  52,  43,  4, -28, -25,  89, -37, -20, -53, -62],
-            ...                   [ -2,  -6,   0,   0,   6,  10,  1,   1,  -7,  14, -11,  -3, -10, -18],
-            ...                   [ -9, -19,  -3,   4,  23,  30,  8,  -3, -27,  55, -40,  -5, -40, -69],
-            ...                   [  4,  -8,  -1,  -1,   5,  -4,  9,   5, -11,   4, -14,  -2, -13, -17],
-            ...                   [  1,  -2,  16,  -1,  19,  -2, -1, -17,   2,  19,   5, -25,  -7,  14],
-            ...                   [  7,   7, -13,  -4, -26,  -21, 3,  18,   5, -40,   7,  15,  20,  14],
-            ...                   [ -6,  -7, -12,   4,  -1,  18,  3,   8, -11,  15, -18,  17, -15, -41],
-            ...                   [  5,  11, -11,  -3, -26, -19, -1,  14,  10, -42,  14,  17,  25,  23],
-            ...                   [-16, -15,   3,  10,  29,  45, -1, -13, -19,  71, -35,  -2, -35, -65],
-            ...                   [  4,   2,   3,  -2,  -2, -10,  1,   0,   3, -11,   6,  -4,   6,  17]])
+            ....:                 [ 18,   6, -17, -11, -31, -43, 12,  26,   0, -69,  11,  13,  17,  24],
+            ....:                 [ 11,  16, -22,  -8, -48, -34,  0,  31,  16, -82,  26,  31,  39,  37],
+            ....:                 [ -8, -18,  22,  10,  46,  33,  3, -27, -12,  70, -19, -20, -42, -31],
+            ....:                 [-13, -21,  16,  10,  52,  43,  4, -28, -25,  89, -37, -20, -53, -62],
+            ....:                 [ -2,  -6,   0,   0,   6,  10,  1,   1,  -7,  14, -11,  -3, -10, -18],
+            ....:                 [ -9, -19,  -3,   4,  23,  30,  8,  -3, -27,  55, -40,  -5, -40, -69],
+            ....:                 [  4,  -8,  -1,  -1,   5,  -4,  9,   5, -11,   4, -14,  -2, -13, -17],
+            ....:                 [  1,  -2,  16,  -1,  19,  -2, -1, -17,   2,  19,   5, -25,  -7,  14],
+            ....:                 [  7,   7, -13,  -4, -26,  -21, 3,  18,   5, -40,   7,  15,  20,  14],
+            ....:                 [ -6,  -7, -12,   4,  -1,  18,  3,   8, -11,  15, -18,  17, -15, -41],
+            ....:                 [  5,  11, -11,  -3, -26, -19, -1,  14,  10, -42,  14,  17,  25,  23],
+            ....:                 [-16, -15,   3,  10,  29,  45, -1, -13, -19,  71, -35,  -2, -35, -65],
+            ....:                 [  4,   2,   3,  -2,  -2, -10,  1,   0,   3, -11,   6,  -4,   6,  17]])
             sage: A.rational_form()
             [   0   -4|   0    0    0    0|   0    0    0    0    0    0    0    0]
             [   1    4|   0    0    0    0|   0    0    0    0    0    0    0    0]
@@ -13999,13 +14102,13 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         polynomials though ``E``'s minimal polynomial differs. ::
 
             sage: C = matrix(QQ, [[2,  31, -10,  -9, -125,  13,  62, -12],
-            ...                   [0,  48, -16, -16, -188,  20,  92, -16],
-            ...                   [0,   9,  -1,   2,  -33,   5,  18,   0],
-            ...                   [0,  15,  -5,   0,  -59,   7,  30,  -4],
-            ...                   [0, -21,   7,   2,   84, -10, -42,   5],
-            ...                   [0, -42,  14,   8,  167, -17, -84,  13],
-            ...                   [0, -50,  17,  10,  199, -23, -98,  14],
-            ...                   [0,  15,  -5,  -2,  -59,   7,  30, -2]])
+            ....:                 [0,  48, -16, -16, -188,  20,  92, -16],
+            ....:                 [0,   9,  -1,   2,  -33,   5,  18,   0],
+            ....:                 [0,  15,  -5,   0,  -59,   7,  30,  -4],
+            ....:                 [0, -21,   7,   2,   84, -10, -42,   5],
+            ....:                 [0, -42,  14,   8,  167, -17, -84,  13],
+            ....:                 [0, -50,  17,  10,  199, -23, -98,  14],
+            ....:                 [0,  15,  -5,  -2,  -59,   7,  30, -2]])
             sage: C.minimal_polynomial().factor()
             (x - 2)^2
             sage: C.characteristic_polynomial().factor()
@@ -14024,13 +14127,13 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             [ 0  0| 0  0| 0  0| 1  4]
 
             sage: D = matrix(QQ, [[ -4,   3,    7,   2,  -4,   5,    7,   -3],
-            ...                   [ -6,   5,    7,   2,  -4,   5,    7,   -3],
-            ...                   [ 21, -12,   89,  25,   8,  27,   98,  -95],
-            ...                   [ -9,   5,  -44, -11,  -3, -13,  -48,   47],
-            ...                   [ 23, -13,   74,  21,  12,  22,   85,  -84],
-            ...                   [ 31, -18,  135,  38,  12,  47,  155, -147],
-            ...                   [-33,  19, -138, -39, -13, -45, -156,  151],
-            ...                   [ -7,   4,  -29,  -8,  -3, -10,  -34,  34]])
+            ....:                 [ -6,   5,    7,   2,  -4,   5,    7,   -3],
+            ....:                 [ 21, -12,   89,  25,   8,  27,   98,  -95],
+            ....:                 [ -9,   5,  -44, -11,  -3, -13,  -48,   47],
+            ....:                 [ 23, -13,   74,  21,  12,  22,   85,  -84],
+            ....:                 [ 31, -18,  135,  38,  12,  47,  155, -147],
+            ....:                 [-33,  19, -138, -39, -13, -45, -156,  151],
+            ....:                 [ -7,   4,  -29,  -8,  -3, -10,  -34,  34]])
             sage: D.minimal_polynomial().factor()
             (x - 2)^2
             sage: D.characteristic_polynomial().factor()
@@ -14049,13 +14152,13 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             [ 0  0| 0  0| 0  0| 1  4]
 
             sage: E = matrix(QQ, [[ 0, -8,   4, -6, -2,   5, -3,  11],
-            ...                   [-2, -4,   2, -4, -2,   4, -2,   6],
-            ...                   [ 5, 14,  -7, 12,  3,  -8,  6, -27],
-            ...                   [-3, -8,   7, -5,  0,   2, -6,  17],
-            ...                   [ 0,  5,   0,  2,  4,  -4,  1,   2],
-            ...                   [-3, -7,   5, -6, -1,   5, -4,  14],
-            ...                   [ 6, 18, -10, 14,  4, -10, 10, -28],
-            ...                   [-2, -6,   4, -5, -1,   3,  -3, 13]])
+            ....:                 [-2, -4,   2, -4, -2,   4, -2,   6],
+            ....:                 [ 5, 14,  -7, 12,  3,  -8,  6, -27],
+            ....:                 [-3, -8,   7, -5,  0,   2, -6,  17],
+            ....:                 [ 0,  5,   0,  2,  4,  -4,  1,   2],
+            ....:                 [-3, -7,   5, -6, -1,   5, -4,  14],
+            ....:                 [ 6, 18, -10, 14,  4, -10, 10, -28],
+            ....:                 [-2, -6,   4, -5, -1,   3,  -3, 13]])
             sage: E.minimal_polynomial().factor()
             (x - 2)^3
             sage: E.characteristic_polynomial().factor()
@@ -14083,18 +14186,18 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         the rest are complex (`-1\pm 2i`).  ::
 
             sage: A = matrix(QQ,
-            ...   [[-154,  -3,  -54,   44,   48, -244,  -19,   67, -326,   85,   355,   581],
-            ...    [ 504,  25,  156, -145, -171,  793,   99, -213, 1036, -247, -1152, -1865],
-            ...    [ 294,  -1,  112,  -89,  -90,  469,   36, -128,  634, -160,  -695, -1126],
-            ...    [ -49,  -32,  25,    7,   37,  -64,  -58,   12,  -42,  -14,    72,   106],
-            ...    [-261, -123,  65,   47,  169, -358, -254,   70, -309,  -29,   454,   673],
-            ...    [-448, -123, -10,  109,  227, -668, -262,  163, -721,   95,   896,  1410],
-            ...    [  38,    7,   8,  -14,  -17,   66,    6,  -23,   73,  -29,   -78,  -143],
-            ...    [ -96,   10, -55,   37,   24, -168,   17,   56, -231,   88,   237,   412],
-            ...    [ 310,   67,  31,  -81, -143,  473,  143, -122,  538,  -98,  -641, -1029],
-            ...    [ 139,  -35,  99,  -49,  -18,  236,  -41,  -70,  370, -118,  -377,  -619],
-            ...    [ 243,    9,  81,  -72,  -81,  386,   43, -105,  508, -124,  -564,  -911],
-            ...    [-155,   -3, -55,   45,   50, -245,  -27,   65, -328,   77,   365,  583]])
+            ....: [[-154,  -3,  -54,   44,   48, -244,  -19,   67, -326,   85,   355,   581],
+            ....:  [ 504,  25,  156, -145, -171,  793,   99, -213, 1036, -247, -1152, -1865],
+            ....:  [ 294,  -1,  112,  -89,  -90,  469,   36, -128,  634, -160,  -695, -1126],
+            ....:  [ -49,  -32,  25,    7,   37,  -64,  -58,   12,  -42,  -14,    72,   106],
+            ....:  [-261, -123,  65,   47,  169, -358, -254,   70, -309,  -29,   454,   673],
+            ....:  [-448, -123, -10,  109,  227, -668, -262,  163, -721,   95,   896,  1410],
+            ....:  [  38,    7,   8,  -14,  -17,   66,    6,  -23,   73,  -29,   -78,  -143],
+            ....:  [ -96,   10, -55,   37,   24, -168,   17,   56, -231,   88,   237,   412],
+            ....:  [ 310,   67,  31,  -81, -143,  473,  143, -122,  538,  -98,  -641, -1029],
+            ....:  [ 139,  -35,  99,  -49,  -18,  236,  -41,  -70,  370, -118,  -377,  -619],
+            ....:  [ 243,    9,  81,  -72,  -81,  386,   43, -105,  508, -124,  -564,  -911],
+            ....:  [-155,   -3, -55,   45,   50, -245,  -27,   65, -328,   77,   365,  583]])
             sage: A.characteristic_polynomial().factor()
             (x^2 - 2)^2 * (x^2 + 2*x + 5)^4
             sage: A.eigenvalues(extend=False)
@@ -14124,17 +14227,17 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
 
             sage: F.<a> = FiniteField(7^2)
             sage: A = matrix(F,
-            ...   [[5*a + 3, 4*a + 1, 6*a + 2, 2*a + 5,       6, 4*a + 5, 4*a + 5,       5,   a + 6,      5,  4*a + 4],
-            ...    [6*a + 3, 2*a + 4,       0,       6, 5*a + 5,     2*a, 5*a + 1,       1, 5*a + 2,     4*a, 5*a + 6],
-            ...    [3*a + 1, 6*a + 6,   a + 6,       2,       0, 3*a + 6, 5*a + 4, 5*a + 6, 5*a + 2,       3, 4*a + 2],
-            ...    [    3*a,     6*a,     3*a,     4*a, 4*a + 4, 3*a + 6,     6*a,       4, 3*a + 4, 6*a + 2,     4*a],
-            ...    [4*a + 5,   a + 1, 4*a + 3, 6*a + 5, 5*a + 2, 5*a + 2,     6*a, 4*a + 6, 6*a + 4, 5*a + 3, 3*a + 1],
-            ...    [    3*a,     6*a, 4*a + 1, 6*a + 2, 2*a + 5, 4*a + 6,       2,   a + 5, 2*a + 4, 2*a + 1, 2*a + 1],
-            ...    [4*a + 5, 3*a + 3,       6, 4*a + 1, 4*a + 3, 6*a + 3,       6, 3*a + 3,       3,   a + 3,       0],
-            ...    [6*a + 6,   a + 4, 2*a + 6, 3*a + 5, 4*a + 3,       2,       a, 3*a + 4,     5*a, 2*a + 5, 4*a + 3],
-            ...    [3*a + 5, 6*a + 2,     4*a,   a + 5,       0,     5*a, 6*a + 5, 2*a + 1, 3*a + 1, 3*a + 5, 4*a + 2],
-            ...    [3*a + 2,   a + 3, 3*a + 6,       a, 3*a + 5, 5*a + 1, 3*a + 2,   a + 3,   a + 2, 6*a + 1, 3*a + 3],
-            ...    [6*a + 6, 5*a + 1,     4*a,       2, 5*a + 5, 3*a + 5, 3*a + 1,     2*a,     2*a, 2*a + 4, 4*a + 2]])
+            ....: [[5*a + 3, 4*a + 1, 6*a + 2, 2*a + 5,       6, 4*a + 5, 4*a + 5,       5,   a + 6,      5,  4*a + 4],
+            ....:  [6*a + 3, 2*a + 4,       0,       6, 5*a + 5,     2*a, 5*a + 1,       1, 5*a + 2,     4*a, 5*a + 6],
+            ....:  [3*a + 1, 6*a + 6,   a + 6,       2,       0, 3*a + 6, 5*a + 4, 5*a + 6, 5*a + 2,       3, 4*a + 2],
+            ....:  [    3*a,     6*a,     3*a,     4*a, 4*a + 4, 3*a + 6,     6*a,       4, 3*a + 4, 6*a + 2,     4*a],
+            ....:  [4*a + 5,   a + 1, 4*a + 3, 6*a + 5, 5*a + 2, 5*a + 2,     6*a, 4*a + 6, 6*a + 4, 5*a + 3, 3*a + 1],
+            ....:  [    3*a,     6*a, 4*a + 1, 6*a + 2, 2*a + 5, 4*a + 6,       2,   a + 5, 2*a + 4, 2*a + 1, 2*a + 1],
+            ....:  [4*a + 5, 3*a + 3,       6, 4*a + 1, 4*a + 3, 6*a + 3,       6, 3*a + 3,       3,   a + 3,       0],
+            ....:  [6*a + 6,   a + 4, 2*a + 6, 3*a + 5, 4*a + 3,       2,       a, 3*a + 4,     5*a, 2*a + 5, 4*a + 3],
+            ....:  [3*a + 5, 6*a + 2,     4*a,   a + 5,       0,     5*a, 6*a + 5, 2*a + 1, 3*a + 1, 3*a + 5, 4*a + 2],
+            ....:  [3*a + 2,   a + 3, 3*a + 6,       a, 3*a + 5, 5*a + 1, 3*a + 2,   a + 3,   a + 2, 6*a + 1, 3*a + 3],
+            ....:  [6*a + 6, 5*a + 1,     4*a,       2, 5*a + 5, 3*a + 5, 3*a + 1,     2*a,     2*a, 2*a + 4, 4*a + 2]])
             sage: A.rational_form()
             [  a + 2|      0       0       0|      0       0       0       0       0       0       0]
             [-------+-----------------------+-------------------------------------------------------]
@@ -14170,9 +14273,9 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         :meth:`sage.matrix.constructor.companion_matrix`, for more information. ::
 
             sage: A = matrix(QQ, [[35, -18, -2, -45],
-            ...                   [22, -22, 12, -16],
-            ...                   [ 5, -12, 12,   4],
-            ...                   [16,  -6, -4, -23]])
+            ....:                 [22, -22, 12, -16],
+            ....:                 [ 5, -12, 12,   4],
+            ....:                 [16,  -6, -4, -23]])
             sage: A.rational_form(format='right')
             [ 2| 0  0  0]
             [--+--------]
@@ -14230,10 +14333,6 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             ...
             ValueError: 'subdivide' keyword must be True or False, not garbage
 
-        .. rubric:: Citations
-
-        .. [STORJOHANN-EMAIL] A. Storjohann, Email Communication. 30 May 2011.
-
         AUTHOR:
 
         - Rob Beezer (2011-06-09)
@@ -14253,22 +14352,22 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             raise ValueError("'subdivide' keyword must be True or False, not {0}".format(subdivide))
 
         _, polys, corners = self._zigzag_form(basis=False)
-        k = len(polys)
+        cdef Py_ssize_t k = len(polys), j, i
         F = sage.rings.polynomial.polynomial_ring_constructor.PolynomialRing(R, 'x')
-        C = [F(p) for p in polys]
-        B = [(b == 1) for b in corners]
+        cdef list C = [F(p) for p in polys]
+        cdef list B = [b.is_one() for b in corners]
         B.append(False)  # no last block, so no corner
 
         if B[0]:
-            V = [F(1)]
+            V = [F.one()]
         else:
-            V = [F(0)]
+            V = [F.zero()]
 
         for j in range(1, k):
-            V[j-1] = gcd([V[j-1],C[j],C[j-1]])
+            V[j-1] = gcd([V[j-1], C[j], C[j-1]])
             for i in range(j-2, -1, -1):
                 V[i] = gcd([V[i], V[i+1], C[i]])
-            m = F(-1)
+            m = -F.one()
             for i in range(j):
                 g = gcd(m*V[i], C[i])
                 q, _ = C[i].quo_rem(g)
@@ -14276,22 +14375,22 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
                 if B[j]:
                     _, V[i] = m.quo_rem(C[i])
                 else:
-                    V[i] = F(0)
+                    V[i] = F.zero()
                 m = m * q
             C[j] = m * C[j]
             if B[j]:
                 V.append(m)
             else:
-                V.append(F(0))
+                V.append(F.zero())
 
         # Leading constant polynomials in C are size zero blocks, so toss them
         # Massage remainder to have leading coefficient 1
-        while (len(C) > 0) and C[0].degree() == 0:
-            C.remove(C[0])
+        while C and not C[0].degree():
+            del C[0]
         for i in range(len(C)):
-            unit = C[i].list()[-1]
-            if unit != R(1):
-                C[i] = (1/unit)*C[i]
+            unit = C[i].leading_coefficient()
+            if not unit.is_one():
+                C[i] = ~unit*C[i]
 
         if format == 'invariants':
             inv = []
@@ -14310,7 +14409,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         r"""
         Returns the transpose of a matrix.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(QQ, 5, range(25))
             sage: A.T
@@ -14327,11 +14426,11 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         r"""
         Returns the conjugate matrix.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(QQbar, [[     -3,  5 - 3*I, 7 - 4*I],
-            ...                      [7 + 3*I, -1 + 6*I, 3 + 5*I],
-            ...                      [3 + 3*I, -3 + 6*I, 5 +   I]])
+            ....:                    [7 + 3*I, -1 + 6*I, 3 + 5*I],
+            ....:                    [3 + 3*I, -3 + 6*I, 5 +   I]])
             sage: A.C
             [      -3  5 + 3*I  7 + 4*I]
             [ 7 - 3*I -1 - 6*I  3 - 5*I]
@@ -14345,17 +14444,18 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         r"""
         Returns the conjugate-transpose (Hermitian) matrix.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(QQbar, [[     -3,  5 - 3*I, 7 - 4*I],
-            ...                      [7 + 3*I, -1 + 6*I, 3 + 5*I],
-            ...                      [3 + 3*I, -3 + 6*I, 5 +   I]])
+            ....:                    [7 + 3*I, -1 + 6*I, 3 + 5*I],
+            ....:                    [3 + 3*I, -3 + 6*I, 5 +   I]])
             sage: A.H
             [      -3  7 - 3*I  3 - 3*I]
             [ 5 + 3*I -1 - 6*I -3 - 6*I]
             [ 7 + 4*I  3 - 5*I  5 - 1*I]
         """
         return self.conjugate().transpose()
+
 
     @property
     def I(self):
@@ -14365,24 +14465,28 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
         EXAMPLES::
 
             sage: A = matrix(QQ, [[-5, -3, -1, -7],
-            ...                   [ 1,  1,  1,  0],
-            ...                   [-1, -2, -2,  0],
-            ...                   [-2, -1,  0, -4]])
+            ....:                 [ 1,  1,  1,  0],
+            ....:                 [-1, -2, -2,  0],
+            ....:                 [-2, -1,  0, -4]])
             sage: A.I
+            doctest:...: DeprecationWarning: The I property on matrices has been deprecated. Please use the inverse() method instead.
+            See http://trac.sagemath.org/20904 for details.
             [ 0  2  1  0]
             [-4 -8 -2  7]
             [ 4  7  1 -7]
             [ 1  1  0 -2]
 
             sage: B = matrix(QQ, [[-11, -5, 18,  -6],
-            ...                   [  1,  2, -6,   8],
-            ...                   [ -4, -2,  7,  -3],
-            ...                   [  1, -2,  5, -11]])
+            ....:                 [  1,  2, -6,   8],
+            ....:                 [ -4, -2,  7,  -3],
+            ....:                 [  1, -2,  5, -11]])
             sage: B.I
             Traceback (most recent call last):
             ...
             ZeroDivisionError: input matrix must be nonsingular
         """
+        from sage.misc.superseded import deprecation
+        deprecation(20904, "The I property on matrices has been deprecated. Please use the inverse() method instead.")
         return ~self
 
 
@@ -14395,7 +14499,7 @@ def _smith_diag(d):
     If any of the d's is a unit, it replaces it with 1 (but no other
     attempt is made to pick "good" representatives of ideals).
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.matrix.matrix2 import _smith_diag
         sage: OE = EquationOrder(x^2 - x + 2, 'w')
@@ -14497,7 +14601,7 @@ def _generic_clear_column(m):
         left_mat[k,0] = -1
         a = left_mat*a
         if left_mat * m != a:
-            raise ArithmeticError, "Something went wrong"
+            raise ArithmeticError("Something went wrong")
 
     # case 2: if there is an entry at position (k,j) such that a_{0,j}
     # does not divide a_{k,j}, then we know that there are c,d in R such
@@ -14517,9 +14621,9 @@ def _generic_clear_column(m):
             try:
                 v = R.ideal(a[0,0], a[k,0]).gens_reduced()
             except Exception as msg:
-                raise ArithmeticError, "%s\nCan't create ideal on %s and %s" % (msg, a[0,0], a[k,0])
+                raise ArithmeticError("%s\nCan't create ideal on %s and %s" % (msg, a[0,0], a[k,0]))
             if len(v) > 1:
-                raise ArithmeticError, "Ideal %s not principal" %  R.ideal(a[0,0], a[k,0])
+                raise ArithmeticError("Ideal %s not principal" % R.ideal(a[0,0], a[k,0]))
             B = v[0]
 
             # now we find c,d, using the fact that c * (a_{0,0}/B) - d *
@@ -14575,7 +14679,7 @@ def _smith_onestep(m):
     determinant 1, and the zeroth row and column of b have no nonzero
     entries except b[0,0].
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.matrix.matrix2 import _smith_onestep
         sage: OE.<w> = EquationOrder(x^2 - x + 2)
@@ -14624,19 +14728,6 @@ def _smith_onestep(m):
 
     return left_mat, a, right_mat
 
-def _dim_cmp(x,y):
-    """
-    Used internally by matrix functions. Given 2-tuples (x,y), returns
-    their comparison based on the first component.
-
-    EXAMPLES::
-
-        sage: from sage.matrix.matrix2 import _dim_cmp
-        sage: V = [(QQ^3, 2), (QQ^2, 1)]
-        sage: _dim_cmp(V[0], V[1])
-        1
-    """
-    return cmp(x[0].dimension(), y[0].dimension())
 
 def decomp_seq(v):
     """
@@ -14654,7 +14745,7 @@ def decomp_seq(v):
         (Vector space of dimension 3 over Rational Field, 2)
         ]
     """
-    list.sort(v, _dim_cmp)
+    list.sort(v, key=lambda x: x[0].dimension())
     return Sequence(v, universe=tuple, check=False, cr=True)
 
 
@@ -14707,7 +14798,7 @@ def _choose(Py_ssize_t n, Py_ssize_t t):
     cdef Py_ssize_t j, temp
 
     x = []               # initialize T1
-    c = range(t)
+    c = list(xrange(t))
     if t == n:
         x.append(c)
         return x
@@ -14805,4 +14896,4 @@ def _jordan_form_vector_in_difference(V, W):
     for v in V:
         if v not in W_space:
             return v
-    return None 
+    return None

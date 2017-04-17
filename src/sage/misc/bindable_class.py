@@ -7,6 +7,7 @@ Bindable classes
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import functools
 from sage.misc.nested_class import NestedClassMetaclass
@@ -28,18 +29,18 @@ class BindableClass(object):
 
         sage: from sage.misc.nested_class import NestedClassMetaclass
         sage: class Outer:
-        ...       __metaclass__ = NestedClassMetaclass # just a workaround for Python misnaming nested classes
+        ....:     __metaclass__ = NestedClassMetaclass # just a workaround for Python misnaming nested classes
         ...
-        ...       class Inner:
-        ...           def __init__(self, *args):
-        ...               print args
+        ....:     class Inner:
+        ....:         def __init__(self, *args):
+        ....:             print(args)
         ...
-        ...       def f(self, *args):
-        ...           print self, args
+        ....:     def f(self, *args):
+        ....:         print("{} {}".format(self, args))
         ...
-        ...       @staticmethod
-        ...       def f_static(*args):
-        ...           print args
+        ....:     @staticmethod
+        ....:     def f_static(*args):
+        ....:         print(args)
         ...
         sage: outer = Outer()
 
@@ -79,12 +80,12 @@ class BindableClass(object):
 
         sage: from sage.misc.bindable_class import BindableClass
         sage: class Outer:
-        ...       __metaclass__ = NestedClassMetaclass # just a workaround for Python misnaming nested classes
+        ....:     __metaclass__ = NestedClassMetaclass # just a workaround for Python misnaming nested classes
         ...
-        ...       class Inner(BindableClass):
-        ...           " some documentation "
-        ...           def __init__(self, outer, *args):
-        ...               print outer, args
+        ....:     class Inner(BindableClass):
+        ....:         " some documentation "
+        ....:         def __init__(self, outer, *args):
+        ....:             print("{} {}".format(outer, args))
 
     Calling ``Outer.Inner`` returns the (unbound) class as usual::
 

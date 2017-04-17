@@ -22,13 +22,16 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+from six.moves import range
 
 from sage.interfaces.all import gap
 from sage.rings.all import ZZ, Integer
 from sage.arith.all import binomial
-from combinat import CombinatorialClass
-from integer_vector import IntegerVectors
+from .combinat import CombinatorialClass
+from .integer_vector import IntegerVectors
 from sage.misc.misc import uniq
+
 
 def Combinations(mset, k=None):
     """
@@ -159,7 +162,7 @@ def Combinations(mset, k=None):
 
     #Check to see if everything in mset is unique
     if isinstance(mset, (int, Integer)):
-        mset = range(mset)
+        mset = list(range(mset))
     else:
         mset = list(mset)
 
@@ -261,7 +264,7 @@ class Combinations_set(Combinations_mset):
         EXAMPLES::
 
             sage: c = Combinations([1,2,3])
-            sage: c.list() == map(c.unrank, range(c.cardinality()))
+            sage: c.list() == list(map(c.unrank, range(c.cardinality())))
             True
         """
         k = 0
@@ -280,7 +283,7 @@ class Combinations_set(Combinations_mset):
         EXAMPLES::
 
             sage: c = Combinations([1,2,3])
-            sage: range(c.cardinality()) == map(c.rank, c)
+            sage: list(range(c.cardinality())) == list(map(c.rank, c))
             True
         """
         x = [self.mset.index(_) for _ in x]
@@ -447,7 +450,7 @@ class Combinations_setk(Combinations_msetk):
         EXAMPLES::
 
             sage: c = Combinations([1,2,3], 2)
-            sage: c.list() == map(c.unrank, range(c.cardinality()))
+            sage: c.list() == list(map(c.unrank, range(c.cardinality())))
             True
         """
         return [self.mset[i] for i in from_rank(r, len(self.mset), self.k)]
@@ -458,7 +461,7 @@ class Combinations_setk(Combinations_msetk):
         EXAMPLES::
 
             sage: c = Combinations([1,2,3], 2)
-            sage: range(c.cardinality()) == map(c.rank, c.list())
+            sage: list(range(c.cardinality())) == list(map(c.rank, c.list()))
             True
         """
         x = [self.mset.index(_) for _ in x]
@@ -512,14 +515,14 @@ def rank(comb, n, check=True):
         if k > n:
             raise ValueError("len(comb) must be <= n")
         comb = [int(_) for _ in comb]
-        for i in xrange(k - 1):
+        for i in range(k - 1):
             if comb[i + 1] <= comb[i]:
                 raise ValueError("comb must be a subword of (0,1,...,n)")
 
     #Generate the combinadic from the
     #combination
 
-    #w = [n-1-comb[i] for i in xrange(k)]
+    #w = [n-1-comb[i] for i in range(k)]
 
     #Calculate the integer that is the dual of
     #the lexicographic index of the combination
@@ -588,13 +591,13 @@ def from_rank(r, n, k):
     x = binomial(n, k) - 1 - r  # x is the 'dual' of m
     comb = [None] * k
 
-    for i in xrange(k):
+    for i in range(k):
         comb[i] = _comb_largest(a, b, x)
         x = x - binomial(comb[i], b)
         a = comb[i]
         b = b - 1
 
-    for i in xrange(k):
+    for i in range(k):
         comb[i] = (n - 1) - comb[i]
 
     return tuple(comb)
@@ -618,7 +621,7 @@ class ChooseNK(Combinations_setk):
             Combinations of [0, 1, 2, 3, 4] of length 2
         """
         self.__class__ = Combinations_setk
-        Combinations_setk.__init__(self, range(state['_n']), state['_k'])
+        Combinations_setk.__init__(self, list(range(state['_n'])), state['_k'])
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override("sage.combinat.choose_nk", "ChooseNK", ChooseNK)

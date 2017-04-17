@@ -52,7 +52,7 @@ def is_triangular_number(n, return_value=False):
         sage: F1 == F2
         True
 
-        sage: for n in xrange(1000):
+        sage: for n in range(1000):
         ....:     res,v = is_triangular_number(n,return_value=True)
         ....:     assert res == is_triangular_number(n)
         ....:     if res: assert v*(v+1)/2 == n
@@ -200,7 +200,7 @@ def least_quadratic_nonresidue(p):
     ## default case (first needed for p=71):
     if not p.is_prime():
         raise ValueError("Oops!  p must be a prime number > 2.")
-    from sage.misc.misc import xsrange
+    from sage.arith.srange import xsrange
     for r in xsrange(7,p):
         if legendre_symbol(r, p) == -1:
             return ZZ(r)

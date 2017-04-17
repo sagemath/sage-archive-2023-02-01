@@ -15,7 +15,11 @@ Arithmetic functions using the arb library
 from ..flint.types cimport ulong
 from ..flint.fmpq cimport fmpq_t, fmpq_init, fmpq_clear, fmpq_get_mpq
 from .bernoulli cimport bernoulli_fmpq_ui
+from .acb_modular cimport acb_modular_hilbert_class_poly
 from sage.rings.rational cimport Rational
+from sage.rings.polynomial.polynomial_integer_dense_flint cimport Polynomial_integer_dense_flint
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.integer_ring import ZZ
 
 def bernoulli(n):
     """
@@ -52,3 +56,30 @@ def bernoulli(n):
     fmpq_get_mpq(q.value, x)
     fmpq_clear(x)
     return q
+
+def hilbert_class_polynomial(D):
+    """
+    Return the Hilbert class polynomial for discriminant ``D`` using ``arb``.
+
+    If ``D`` is not a quadratic discriminant, the result is the zero polynomial.
+
+    INPUT:
+
+    - ``D`` -- negative integer
+
+    OUTPUT: an integer polynomial.
+
+    EXAMPLES::
+
+        sage: from sage.libs.arb.arith import hilbert_class_polynomial
+        sage: hilbert_class_polynomial(-163)
+        x + 262537412640768000
+        sage: hilbert_class_polynomial(-162)
+        0
+    """
+    cdef long n = D
+    cdef Polynomial_integer_dense_flint poly
+    poly = PolynomialRing(ZZ, "x", implementation="FLINT")()
+    acb_modular_hilbert_class_poly(poly.__poly, n)
+    return poly
+

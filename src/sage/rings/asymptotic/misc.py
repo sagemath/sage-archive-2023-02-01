@@ -27,7 +27,8 @@ Functions, Classes and Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage
+from __future__ import print_function, absolute_import
+from six.moves import range
 
 
 def repr_short_to_parent(s):
@@ -117,19 +118,24 @@ def parent_to_repr_short(P):
         sage: parent_to_repr_short(Zmod(3)['g'])
         'Univariate Polynomial Ring in g over Ring of integers modulo 3'
     """
+    from sage.rings.integer_ring import ZZ
+    from sage.rings.rational_field import QQ
+    from sage.symbolic.ring import SR
+    from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+    from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+    from sage.rings.power_series_ring import is_PowerSeriesRing
     def abbreviate(P):
-        if P is sage.rings.integer_ring.ZZ:
+        if P is ZZ:
             return 'ZZ'
-        elif P is sage.rings.rational_field.QQ:
+        elif P is QQ:
             return 'QQ'
-        elif P is sage.symbolic.ring.SR:
+        elif P is SR:
             return 'SR'
         raise ValueError('Cannot abbreviate %s.' % (P,))
 
-    poly = sage.rings.polynomial.polynomial_ring.is_PolynomialRing(P) or \
-           sage.rings.polynomial.multi_polynomial_ring_generic.is_MPolynomialRing(P)
+    poly = is_PolynomialRing(P) or is_MPolynomialRing(P)
     from sage.rings import multi_power_series_ring
-    power = sage.rings.power_series_ring.is_PowerSeriesRing(P) or \
+    power = is_PowerSeriesRing(P) or \
             multi_power_series_ring.is_MPowerSeriesRing(P)
 
     if poly or power:
@@ -296,7 +302,7 @@ def repr_op(left, op, right=None, latex=False):
 
     ::
 
-        sage: print repr_op(r'\frac{1}{2}', '^', 'c', latex=True)
+        sage: print(repr_op(r'\frac{1}{2}', '^', 'c', latex=True))
         \left(\frac{1}{2}\right)^c
     """
     left = str(left)
@@ -518,7 +524,7 @@ def merge_overlapping(A, B, key=None):
     def find_overlapping_index(A, B):
         if len(B) > len(A) - 2:
             raise StopIteration
-        matches = iter(i for i in xrange(1, len(A) - len(B))
+        matches = iter(i for i in range(1, len(A) - len(B))
                        if A[i:i+len(B)] == B)
         return next(matches)
 
@@ -530,7 +536,7 @@ def merge_overlapping(A, B, key=None):
 
         Adapted from http://stackoverflow.com/a/30056066/1052778.
         """
-        matches = iter(i for i in xrange(min(len(A), len(B)), 0, -1)
+        matches = iter(i for i in range(min(len(A), len(B)), 0, -1)
                        if A[-i:] == B[:i])
         return next(matches, 0)
 
@@ -620,7 +626,7 @@ class NotImplementedOZero(NotImplementedError):
             NotImplementedOZero: The error term in the result is O(0)
             which means 0 for sufficiently large m.
         """
-        from asymptotic_ring import AsymptoticRing
+        from .asymptotic_ring import AsymptoticRing
         if isinstance(data, AsymptoticRing) or var is not None:
             if var is None:
                 var = ', '.join(str(g) for g in data.gens())

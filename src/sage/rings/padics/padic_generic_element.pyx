@@ -27,8 +27,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
-
+from sage.ext.stdsage cimport PY_NEW
 cimport sage.rings.padics.local_generic_element
 from sage.libs.gmp.mpz cimport mpz_set_si
 from sage.rings.padics.local_generic_element cimport LocalGenericElement
@@ -41,7 +40,7 @@ from sage.structure.element import coerce_binop
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 
 cdef class pAdicGenericElement(LocalGenericElement):
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         First compare valuations, then compare normalized
         residue of unit part.
@@ -146,7 +145,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
     cdef int _set_inexact_zero(self, long absprec) except -1:
         raise NotImplementedError
     cdef int _set_exact_zero(self) except -1:
-        raise TypeError, "this type of p-adic does not support exact zeros"
+        raise TypeError("this type of p-adic does not support exact zeros")
 
     cpdef bint _is_exact_zero(self) except -1:
         """
@@ -192,18 +191,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     cdef bint _set_prec_both(self, long absprec, long relprec) except -1:
         return 0
-
-    #def _pari_(self):
-    #    """
-    #    Returns a pari version of this element.
-
-    #    EXAMPLES::
-
-    #        sage: R = Zp(5)
-    #        sage: pari(R(1777))
-    #        2 + 5^2 + 4*5^3 + 2*5^4 + O(5^20)
-    #    """
-    #    return pari(self._pari_init_())
 
     def __floordiv__(self, right):
         """
@@ -288,7 +275,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 raise ZeroDivisionError("cannot divide by zero")
             return self._floordiv_(right)
 
-    cpdef RingElement _floordiv_(self, RingElement right):
+    cpdef _floordiv_(self, right):
         """
         Implements floor division.
 
@@ -399,7 +386,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         r"""
         Returns the multiplicative inverse of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = Zp(7,4,'capped-rel','series'); a = R(3); a
             3 + O(7^4)
@@ -412,7 +399,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         return ~self.parent().fraction_field()(self, relprec = self.precision_relative())
 
-    def __mod__(self, right):
+    cpdef _mod_(self, right):
         """
         If self is in a field, returns 0.  If in a ring, returns a
         p-adic integer such that
@@ -469,21 +456,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
         EXAMPLES::
 
             sage: R = ZpCA(5); a = R(129378); b = R(2398125)
-            sage: a // b
-            3 + 3*5 + 4*5^2 + 2*5^4 + 2*5^6 + 4*5^7 + 5^9 + 5^10 + 5^11 + O(5^12)
-            sage: a / b
-            4*5^-4 + 3*5^-3 + 2*5^-2 + 5^-1 + 3 + 3*5 + 4*5^2 + 2*5^4 + 2*5^6 + 4*5^7 + 5^9 + 5^10 + 5^11 + O(5^12)
-            sage: a % b #indirect doctest
+            sage: a % b
             3 + 5^4 + 3*5^5 + 2*5^6 + 4*5^7 + 5^8 + O(5^16)
-
-            The alternative definition:
-
-            sage: a
-            3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^20)
-            sage: c = ((a - 3)>>4)/b.unit_part(); c
-            1 + 2*5 + 2*5^3 + 4*5^4 + 5^6 + 5^7 + 5^8 + 4*5^9 + 2*5^10 + 4*5^11 + 4*5^12 + 2*5^13 + 3*5^14 + O(5^16)
-            sage: c*b + 3
-            3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^20)
         """
         if right == 0:
             raise ZeroDivisionError
@@ -619,7 +593,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             5 + O(5^6)
         """
         if (ground is not None) and (ground != self.parent()):
-            raise ValueError, "Ground ring not a subring"
+            raise ValueError("Ground ring not a subring")
         else:
             return self
 
@@ -848,7 +822,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
                              'on elements of Zp')
         parent = self.parent()
         if algorithm == 'pari':
-            return parent(self._pari_().gamma())
+            return parent(self.__pari__().gamma())
         elif algorithm == 'sage':
             from sage.misc.all import prod
             p = parent.prime()
@@ -1041,7 +1015,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         EXAMPLES:
 
         The greatest common divisor is either zero or a power of the
-        uniformizing paramter::
+        uniformizing parameter::
 
             sage: R = Zp(3)
             sage: R.zero().xgcd(R.zero())
@@ -1440,7 +1414,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             ValueError: Ring (5-adic Field with capped relative precision 4) residue field of the wrong characteristic.
         """
         if not p is None and p != self.parent().prime():
-            raise ValueError, 'Ring (%s) residue field of the wrong characteristic.'%self.parent()
+            raise ValueError('Ring (%s) residue field of the wrong characteristic.' % self.parent())
         cdef long v = self.valuation_c()
         if v == maxordp:
             return infinity
@@ -1533,10 +1507,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: R = Zp(5,20,'capped-rel')
             sage: for i in range(11):
-            ...       for j in range(1,10):
-            ...           if j == 5:
-            ...               continue
-            ...           assert i/j == R(i/j).rational_reconstruction()
+            ....:     for j in range(1,10):
+            ....:         if j == 5:
+            ....:             continue
+            ....:         assert i/j == R(i/j).rational_reconstruction()
         """
         if self.is_zero(self.precision_absolute()):
             return Rational(0)
@@ -1722,9 +1696,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         .. TODO::
 
-        There is a soft-linear time algorith for logarithm described
-        by Dan Berstein at
-        http://cr.yp.to/lineartime/multapps-20041007.pdf
+            There is a soft-linear time algorithm for logarithm described
+            by Dan Berstein at
+            http://cr.yp.to/lineartime/multapps-20041007.pdf
 
         ALGORITHM:
 
@@ -1908,11 +1882,11 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: K = Zp(p, max_prec)
             sage: full_log = (K(1 + p)).log()
             sage: for prec in range(2, max_prec):
-            ...       ll1 = (K(1+p).add_bigoh(prec)).log()
-            ...       ll2 = K(1+p).log(prec)
-            ...       assert ll1 == full_log
-            ...       assert ll2 == full_log
-            ...       assert ll1.precision_absolute() == prec
+            ....:     ll1 = (K(1+p).add_bigoh(prec)).log()
+            ....:     ll2 = K(1+p).log(prec)
+            ....:     assert ll1 == full_log
+            ....:     assert ll2 == full_log
+            ....:     assert ll1.precision_absolute() == prec
 
         Check that ``aprec`` works for fixed-mod elements::
 
@@ -2125,15 +2099,15 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: K = Zp(p, max_prec)
             sage: full_exp = (K(p)).exp()
             sage: for prec in range(2, max_prec):
-            ...       ll = (K(p).add_bigoh(prec)).exp()
-            ...       assert ll == full_exp
-            ...       assert ll.precision_absolute() == prec
+            ....:     ll = (K(p).add_bigoh(prec)).exp()
+            ....:     assert ll == full_exp
+            ....:     assert ll.precision_absolute() == prec
             sage: K = Qp(p, max_prec)
             sage: full_exp = (K(p)).exp()
             sage: for prec in range(2, max_prec):
-            ...       ll = (K(p).add_bigoh(prec)).exp()
-            ...       assert ll == full_exp
-            ...       assert ll.precision_absolute() == prec
+            ....:     ll = (K(p).add_bigoh(prec)).exp()
+            ....:     assert ll == full_exp
+            ....:     assert ll.precision_absolute() == prec
 
         Check that this also works for capped-absolute implementations::
 
@@ -2227,7 +2201,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         INPUT:
 
-        - ``aprec`` -- an integer, the precison to which to compute the
+        - ``aprec`` -- an integer, the precision to which to compute the
           exponential
 
         EXAMPLES::
@@ -2427,7 +2401,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         from sage.libs.pari.all import PariError
         try:
             # use pari
-            ans = self.parent()(self._pari_().sqrt())
+            ans = self.parent()(self.__pari__().sqrt())
             if all:
                 return [ans, -ans]
             else:
@@ -2436,14 +2410,44 @@ cdef class pAdicGenericElement(LocalGenericElement):
             # todo: should eventually change to return an element of
             # an extension field
             if extend:
-                raise NotImplementedError, "extending using the sqrt function not yet implemented"
+                raise NotImplementedError("extending using the sqrt function not yet implemented")
             elif all:
                 return []
             else:
-                raise ValueError, "element is not a square"
+                raise ValueError("element is not a square")
 
-    #def _unit_part(self):
-    #    raise NotImplementedError
+    def __abs__(self):
+        """
+        Return the `p`-adic absolute value of ``self``.
+
+        This is normalized so that the absolute value of `p` is `1/p`.
+
+        EXAMPLES::
+
+            sage: abs(Qp(5)(15))
+            1/5
+            sage: abs(Qp(7)(0))
+            0
+
+        An unramified extension::
+
+            sage: R = Zp(5,5)
+            sage: P.<x> = PolynomialRing(R)
+            sage: Z25.<u> = R.ext(x^2 - 3)
+            sage: abs(u)
+            1
+            sage: abs(u^24-1)
+            1/5
+
+        A ramified extension::
+
+            sage: W.<w> = R.ext(x^5 + 75*x^3 - 15*x^2 + 125*x - 5)
+            sage: abs(w)
+            0.724779663677696
+            sage: abs(W(0))
+            0.000000000000000
+        """
+        return self.abs()
 
     cpdef abs(self, prec=None):
         """

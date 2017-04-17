@@ -666,8 +666,8 @@ function in the global namespace, passing it either a string or a module::
 Optional Arguments
 ==================
 
-Run Long Tests
---------------
+Run Long Doctests
+-----------------
 
 Ideally, doctests should not take any noticeable amount of time. If
 you really need longer-running doctests (anything beyond about one
@@ -779,8 +779,8 @@ Finally, you can disable any warnings about long tests with
 
 .. _section-optional-doctest-flag:
 
-Run Optional Tests
-------------------
+Run Optional Doctests
+---------------------
 
 You can run tests that require optional packages by using the
 ``--optional`` flag.  Obviously, you need to have installed the
@@ -830,6 +830,25 @@ In order to just run the tests that are marked as requiring magma, omit ``sage``
         cpu time: 0.1 seconds
         cumulative wall time: 2.0 seconds
 
+If you want Sage to detect external software or other capabilities
+(such as magma, latex, internet) automatically and run all of the
+relevant tests, then add ``external``::
+
+    $ sage -t --optional=external src/sage/rings/real_mpfr.pyx 
+    Running doctests with ID 2016-03-16-14-10-21-af2ebb67.
+    Using --optional=external
+    External software to be detected: cplex,gurobi,internet,latex,macaulay2,magma,maple,mathematica,matlab,octave,scilab
+    Doctesting 1 file.
+    sage -t --warn-long 28.0 src/sage/rings/real_mpfr.pyx
+        [5 tests, 0.04 s]
+    ----------------------------------------------------------------------
+    All tests passed!
+    ----------------------------------------------------------------------
+    Total time for all tests: 0.5 seconds
+        cpu time: 0.0 seconds
+        cumulative wall time: 0.0 seconds
+    External software detected for doctesting: magma
+
 To run all tests, regardless of whether they are marked optional, pass ``all`` as the ``optional`` tag::
 
     [roed@sage sage-6.0]$ sage -t --optional=all src/sage/rings/real_mpfr.pyx
@@ -844,8 +863,8 @@ To run all tests, regardless of whether they are marked optional, pass ``all`` a
         cpu time: 4.7 seconds
         cumulative wall time: 11.2 seconds
 
-Running Tests in Parallel
--------------------------
+Running Doctests in Parallel
+----------------------------
 
 If you're testing many files, you can get big speedups by using more
 than one thread.  To run doctests in parallel use the ``--nthreads``
@@ -1193,11 +1212,11 @@ Note that even with this option, the tests within a given doctest block are stil
 Testing external files
 ^^^^^^^^^^^^^^^^^^^^^^
 
-When testing a file that's not part of the Sage library, the testing
+When testing a file which is not part of a package (which is not in a
+directory containing an ``__init__.py`` file), the testing
 code loads the globals from that file into the namespace before
-running tests.  To model the behavior used on the Sage library instead
-(where imports must be explicitly specified), use the ``--force-lib``
-flag.
+running tests.  To disable this behaviour (and require imports to be
+explicitly specified), use the ``--force-lib`` option.
 
 Auxilliary files
 ^^^^^^^^^^^^^^^^

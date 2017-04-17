@@ -8,6 +8,9 @@ free open source license as defined at http://www.opensource.org/.
 The whole Sage software distribution is licensed under the General
 Public License, version 3 (no other versions!).
 
+All Sage documentation is licensed under Creative Commons 3.0 BY-SA
+License.
+
 Some of the code available in *optional* Sage packages (not included
 in sage-*.tar) are licensed under more restrictive conditions.
 
@@ -89,6 +92,7 @@ mpmath                      Modified BSD
 networkx                    Modified BSD
 ntl                         GPLv2+
 numpy                       Modified BSD
+openblas                    Modified BSD
 palp                        GPLv3
 pari                        GPLv2+
 patch                       GPLv2+
@@ -800,7 +804,7 @@ at the notice in config.guess or ltmain.sh.)
 
 The atomic_ops library contains some code that is covered by the GNU General
 Public License, but is not needed by, nor linked into the collector library.
-It is included here only becuase the atomic_ops distribution is, for
+It is included here only because the atomic_ops distribution is, for
 simplicity, included in its entirety.
 
 ================================================================================

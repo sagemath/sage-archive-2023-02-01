@@ -14,17 +14,29 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 
 from sage.numerical.mip import MIPSolverException
 
 cdef class CPLEXBackend(GenericBackend):
 
+    """
+    MIP Backend that uses the CPLEX solver.
+
+    TESTS:
+
+    General backend testsuite::
+
+        sage: p = MixedIntegerLinearProgram(solver="CPLEX")                 # optional - CPLEX
+        sage: TestSuite(p.get_backend()).run(skip="_test_pickling")         # optional - CPLEX
+
+    """
+
     def __cinit__(self, maximization = True):
         """
         Constructor
 
-        EXAMPLE::
+        EXAMPLES::
 
         sage: from sage.numerical.mip import MixedIntegerLinearProgram      # optional - CPLEX
         sage: p = MixedIntegerLinearProgram(solver="CPLEX")                 # optional - CPLEX
@@ -71,7 +83,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         OUTPUT: The index of the newly created variable
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")                  # optional - CPLEX
@@ -160,7 +172,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         OUTPUT: The index of the variable created last.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")                         # optional - CPLEX
@@ -170,8 +182,21 @@ cdef class CPLEXBackend(GenericBackend):
             4
             sage: p.ncols()                                                # optional - CPLEX
             5
-            sage: p.add_variables(2, lower_bound=-2.0, integer=True, names=['a','b']) # optional - CPLEX
+            sage: p.add_variables(2, lower_bound=-2.0, integer=True, obj=42.0, names=['a','b']) # optional - CPLEX
             6
+
+        TESTS:
+
+        Check that arguments are used::
+
+            sage: p.col_bounds(5) # tol 1e-8, optional - CPLEX
+            (-2.0, None)
+            sage: p.is_variable_integer(5)   # optional - CPLEX
+            True
+            sage: p.col_name(5)              # optional - CPLEX
+            'a'
+            sage: p.objective_coefficient(5) # tol 1e-8, optional - CPLEX
+            42.0
         """
         cdef char * c_name
         cdef double c_coeff = obj
@@ -180,6 +205,9 @@ cdef class CPLEXBackend(GenericBackend):
             continuous = True
         elif vtype != 1:
             raise ValueError("Exactly one parameter of 'binary', 'integer' and 'continuous' must be 'True'.")
+
+        cdef int numcols_before
+        numcols_before = CPXgetnumcols(self.env, self.lp)
 
         cdef int status
         status = CPXnewcols(self.env, self.lp, number, NULL, NULL, NULL, NULL, NULL)
@@ -191,24 +219,24 @@ cdef class CPLEXBackend(GenericBackend):
         cdef int i, j
 
         for 0<= i < number:
+            j = numcols_before + i
+
             if lower_bound != 0.0:
-                self.variable_lower_bound(n - i, lower_bound)
+                self.variable_lower_bound(j, lower_bound)
             if upper_bound is not None:
-                self.variable_upper_bound(n - i, upper_bound)
+                self.variable_upper_bound(j, upper_bound)
 
             if binary:
-                self.set_variable_type(n - i,0)
+                self.set_variable_type(j, 0)
             elif integer:
-                self.set_variable_type(n - i,1)
+                self.set_variable_type(j, 1)
 
             if names:
-                j = n - i
                 c_name = names[i]
                 status = CPXchgcolname(self.env, self.lp, 1, &j, &c_name)
                 check(status)
 
             if c_coeff:
-                j = n - i
                 status = CPXchgobj(self.env, self.lp, 1, &j, &c_coeff)
                 check(status)
 
@@ -228,7 +256,7 @@ cdef class CPLEXBackend(GenericBackend):
             *  0  Binary
             * -1 Real
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")   # optional - CPLEX
@@ -265,7 +293,7 @@ cdef class CPLEXBackend(GenericBackend):
             * +1 => Maximization
             * -1 => Minimization
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
@@ -289,7 +317,7 @@ cdef class CPLEXBackend(GenericBackend):
         - ``coeff`` (double) -- its coefficient or ``None`` for
           reading (default: ``None``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")       # optional -- CPLEX
@@ -324,12 +352,12 @@ cdef class CPLEXBackend(GenericBackend):
         - ``name`` (``char *``) -- the problem's name. When set to
           ``NULL`` (default), the method returns the problem's name.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")   # optional - CPLEX
             sage: p.problem_name("There once was a french fry") # optional - CPLEX
-            sage: print p.problem_name()                        # optional - CPLEX
+            sage: print(p.problem_name())                       # optional - CPLEX
             There once was a french fry
         """
 
@@ -338,11 +366,11 @@ cdef class CPLEXBackend(GenericBackend):
         cdef char * n
         if name == NULL:
 
-            n = <char*> sage_malloc(500*sizeof(char))
+            n = <char*> sig_malloc(500*sizeof(char))
             status = CPXgetprobname(self.env, self.lp, n, 500, &zero)
             check(status)
             s = str(n)
-            sage_free(n)
+            sig_free(n)
             return s
 
 
@@ -362,14 +390,14 @@ cdef class CPLEXBackend(GenericBackend):
 
         - ``d`` (double) -- the constant term in the linear function (set to `0` by default)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")    # optional - CPLEX
             sage: p.add_variables(5)                                 # optional - CPLEX
             4
             sage: p.set_objective([1, 1, 2, 1, 3])                   # optional - CPLEX
-            sage: map(lambda x :p.objective_coefficient(x), range(5))  # optional - CPLEX
+            sage: [p.objective_coefficient(x) for x in range(5)]  # optional - CPLEX
             [1.0, 1.0, 2.0, 1.0, 3.0]
 
         Constants in the objective function are respected::
@@ -387,8 +415,8 @@ cdef class CPLEXBackend(GenericBackend):
 
         cdef int status
         cdef int n = self.ncols()
-        cdef double * c_coeff = <double *> sage_malloc(n * sizeof(double))
-        cdef int * c_indices = <int *> sage_malloc(n * sizeof(int))
+        cdef double * c_coeff = <double *> sig_malloc(n * sizeof(double))
+        cdef int * c_indices = <int *> sig_malloc(n * sizeof(int))
 
         for i,v in enumerate(coeff):
             c_coeff[i] = v
@@ -397,8 +425,8 @@ cdef class CPLEXBackend(GenericBackend):
         status = CPXchgobj(self.env, self.lp, n, c_indices, c_coeff)
         check(status)
 
-        sage_free(c_coeff)
-        sage_free(c_indices)
+        sig_free(c_coeff)
+        sig_free(c_indices)
 
         self.obj_constant_term = d
 
@@ -411,7 +439,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         - ``level`` (integer) -- From 0 (no verbosity) to 3.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")   # optional - CPLEX
@@ -435,7 +463,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         - ``i`` -- index of the constraint to remove
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='CPLEX')# optional - CPLEX
             sage: var = p.new_variable(nonnegative=True)       # optional - CPLEX
@@ -470,7 +498,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         - ``names`` - an optional list of names (default: ``None``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")       # optional - CPLEX
@@ -487,11 +515,11 @@ cdef class CPLEXBackend(GenericBackend):
             raise ValueError("At least one of 'upper_bound' or 'lower_bound' must be set.")
 
         cdef int status
-        cdef char * sense = <char *> sage_malloc(number * sizeof(char))
-        cdef double * bound = <double *> sage_malloc(number * sizeof(double))
+        cdef char * sense = <char *> sig_malloc(number * sizeof(char))
+        cdef double * bound = <double *> sig_malloc(number * sizeof(double))
         cdef double * rng = NULL
         cdef int i
-        cdef char ** c_names = <char **> sage_malloc(number * sizeof(char *))
+        cdef char ** c_names = <char **> sig_malloc(number * sizeof(char *))
 
         if upper_bound == lower_bound:
             sense[0] = 'E'
@@ -501,7 +529,7 @@ cdef class CPLEXBackend(GenericBackend):
             if  upper_bound < lower_bound:
                 raise ValueError("The upper bound must be at least equal to the lower bound !")
 
-            rng = <double *> sage_malloc(number * sizeof(double))
+            rng = <double *> sig_malloc(number * sizeof(double))
 
             sense[0] = 'R'
             bound[0] = lower_bound
@@ -528,9 +556,9 @@ cdef class CPLEXBackend(GenericBackend):
 
         status = CPXnewrows(self.env, self.lp, number, bound, sense, rng, c_names if names else NULL)
 
-        sage_free(sense)
-        sage_free(bound)
-        sage_free(c_names)
+        sig_free(sense)
+        sig_free(bound)
+        sig_free(c_names)
         check(status)
 
     cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound, name = None):
@@ -549,7 +577,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         - ``name`` - an optional name for this row (default: ``None``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")                             # optional - CPLEX
@@ -583,9 +611,9 @@ cdef class CPLEXBackend(GenericBackend):
         cdef double rng
         cdef double c
 
-        c_coeff = <double *> sage_malloc(n * sizeof(double))
-        c_indices = <int *> sage_malloc(n * sizeof(int))
-        c_row = <int *> sage_malloc(n * sizeof(int))
+        c_coeff = <double *> sig_malloc(n * sizeof(double))
+        c_indices = <int *> sig_malloc(n * sizeof(int))
+        c_row = <int *> sig_malloc(n * sizeof(int))
 
         for i, (j, c) in enumerate(coefficients):
             c_coeff[i] = c
@@ -625,9 +653,9 @@ cdef class CPLEXBackend(GenericBackend):
         check(status)
 
         # Free memory
-        sage_free(c_coeff)
-        sage_free(c_indices)
-        sage_free(c_row)
+        sig_free(c_coeff)
+        sig_free(c_indices)
+        sig_free(c_row)
 
     cpdef row(self, int index):
         r"""
@@ -644,7 +672,7 @@ cdef class CPLEXBackend(GenericBackend):
         associates their coefficient on the model of the
         ``add_linear_constraint`` method.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
@@ -663,8 +691,8 @@ cdef class CPLEXBackend(GenericBackend):
         cdef list indices = []
         cdef list values = []
 
-        cdef double * c_coeff = <double *> sage_malloc((self.ncols()+10) * sizeof(double))
-        cdef int * c_indices = <int *> sage_malloc((self.ncols()+10) * sizeof(int))
+        cdef double * c_coeff = <double *> sig_malloc((self.ncols()+10) * sizeof(double))
+        cdef int * c_indices = <int *> sig_malloc((self.ncols()+10) * sizeof(int))
 
         status = CPXgetrows(self.env, self.lp, &n, &zero, c_indices, c_coeff, self.ncols()+3, &zero, index, index)
 
@@ -674,8 +702,8 @@ cdef class CPLEXBackend(GenericBackend):
             indices.append(c_indices[i])
             values.append(c_coeff[i])
 
-        sage_free(c_coeff)
-        sage_free(c_indices)
+        sig_free(c_coeff)
+        sig_free(c_indices)
 
         return (indices, values)
 
@@ -693,7 +721,7 @@ cdef class CPLEXBackend(GenericBackend):
         to ``None`` if the constraint is not bounded in the
         corresponding direction, and is a real value otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
@@ -741,7 +769,7 @@ cdef class CPLEXBackend(GenericBackend):
         to ``None`` if the variable is not bounded in the
         corresponding direction, and is a real value otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
@@ -773,7 +801,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         INPUT:
 
-        - ``indices`` (list of integers) -- this list constains the
+        - ``indices`` (list of integers) -- this list contains the
           indices of the constraints in which the variable's
           coefficient is nonzero
 
@@ -788,7 +816,7 @@ cdef class CPLEXBackend(GenericBackend):
             ``indices`` and ``coeffs`` are expected to be of the same
             length.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")                  # optional - CPLEX
@@ -812,9 +840,9 @@ cdef class CPLEXBackend(GenericBackend):
 
         check(status)
 
-        cdef double * c_coeff = <double *> sage_malloc(n * sizeof(double))
-        cdef int * c_indices = <int *> sage_malloc(n * sizeof(int))
-        cdef int * c_col = <int *> sage_malloc(n * sizeof(int))
+        cdef double * c_coeff = <double *> sig_malloc(n * sizeof(double))
+        cdef int * c_indices = <int *> sig_malloc(n * sizeof(int))
+        cdef int * c_col = <int *> sig_malloc(n * sizeof(int))
 
         for 0<= i < n:
             c_coeff[i] = coeffs[i]
@@ -825,9 +853,9 @@ cdef class CPLEXBackend(GenericBackend):
         status = CPXchgcoeflist(self.env, self.lp, n, c_indices, c_col, c_coeff)
         check(status)
 
-        sage_free(c_coeff)
-        sage_free(c_indices)
-        sage_free(c_col)
+        sig_free(c_coeff)
+        sig_free(c_indices)
+        sig_free(c_col)
 
     cpdef int solve(self) except -1:
         r"""
@@ -839,7 +867,7 @@ cdef class CPLEXBackend(GenericBackend):
             the solution can not be computed for any reason (none
             exists, or the LP solver was not able to find it, etc...)
 
-        EXAMPLE:
+        EXAMPLES:
 
         A simple maximization problem::
 
@@ -861,7 +889,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: p.solve()                                                      # optional - CPLEX
             Traceback (most recent call last):
             ...
-            MIPSolverException: 'CPLEX: The primal has no feasible solution'
+            MIPSolverException: CPLEX: The problem is infeasible or unbounded
         """
         cdef int status
         cdef int ptype
@@ -878,16 +906,27 @@ cdef class CPLEXBackend(GenericBackend):
 
         check(status)
 
+        stat = CPXgetstat(self.env, self.lp)
+        if stat == CPX_STAT_OPTIMAL or stat == CPXMIP_OPTIMAL:
+            return 0
+        elif stat == CPX_STAT_INFEASIBLE or stat == CPXMIP_INFEASIBLE:
+            raise MIPSolverException("CPLEX: The problem has no feasible solution")
+        elif stat == CPX_STAT_UNBOUNDED or stat == CPXMIP_UNBOUNDED:
+            raise MIPSolverException("CPLEX: The problem is unbounded")
+        elif stat == CPX_STAT_INForUNBD or stat == CPXMIP_INForUNBD:
+            raise MIPSolverException("CPLEX: The problem is infeasible or unbounded")
+        else:
+            # TODO: Many more stats to be handled.
+            pass
+
+        # No exception should be raised when CPX_STAT_ABORT_... or CPXMIP_ABORT_...
+        # This is so that when a time limit etc. is reached, we obtain meaningful information.
+
         status = CPXsolninfo(self.env, self.lp, &solnmethod_p, &solntype_p, &pfeasind_p, &dfeasind_p)
         check(status)
 
-        if solntype_p == CPX_NO_SOLN:
-            if not pfeasind_p:
-                raise MIPSolverException("CPLEX: The primal has no feasible solution")
-            elif not dfeasind_p:
-                raise MIPSolverException("CPLEX: The problem is unbounded")
-            else:
-                raise MIPSolverException("CPLEX: No solution has been found, but no idea why")
+        if solntype_p == CPX_NO_SOLN or not pfeasind_p:
+            raise MIPSolverException("CPLEX: No solution known to be primal feasible is available")
 
         return 0
 
@@ -899,7 +938,7 @@ cdef class CPLEXBackend(GenericBackend):
 
            Has no meaning unless ``solve`` has been called before.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
@@ -945,7 +984,7 @@ cdef class CPLEXBackend(GenericBackend):
            ``CPLEX`` has already solved the model to optimality but continues to
            search for additional solutions.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver="CPLEX")        # optional - CPLEX
             sage: b = p.new_variable(binary=True)                      # optional - CPLEX
@@ -984,7 +1023,7 @@ cdef class CPLEXBackend(GenericBackend):
 
            Has no meaning unless ``solve`` has been called before.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver="CPLEX")        # optional - CPLEX
             sage: b = p.new_variable(binary=True)                      # optional - CPLEX
@@ -995,8 +1034,6 @@ cdef class CPLEXBackend(GenericBackend):
             2.0
             sage: pb = p.get_backend()                                 # optional - CPLEX
             sage: pb.get_objective_value()                             # optional - CPLEX
-            2.0
-            sage: pb.get_best_objective_value()                        # optional - CPLEX
             2.0
             sage: pb.get_relative_objective_gap()                      # optional - CPLEX
             0.0
@@ -1016,7 +1053,7 @@ cdef class CPLEXBackend(GenericBackend):
 
            Has no meaning unless ``solve`` has been called before.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX") # optional - CPLEX
@@ -1049,7 +1086,7 @@ cdef class CPLEXBackend(GenericBackend):
         r"""
         Returns the number of columns/variables.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
@@ -1067,7 +1104,7 @@ cdef class CPLEXBackend(GenericBackend):
         r"""
         Returns the number of rows/constraints.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX") # optional - CPLEX
@@ -1088,7 +1125,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         - ``index`` (integer) -- the row's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver       # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")                                     # optional - CPLEX
@@ -1101,15 +1138,15 @@ cdef class CPLEXBackend(GenericBackend):
         cdef int zero
         cdef char * n
 
-        n = <char *>sage_malloc(500*sizeof(char))
+        n = <char *>sig_malloc(500*sizeof(char))
         status = CPXgetrowname(self.env, self.lp, &n, n, 500, &zero, index, index)
         if status == 1219:
-            sage_free(n)
+            sig_free(n)
             return ""
         check(status)
 
         s = str(n)
-        sage_free(n)
+        sig_free(n)
 
         return s
 
@@ -1121,7 +1158,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         - ``index`` (integer) -- the col's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")         # optional - CPLEX
@@ -1135,15 +1172,15 @@ cdef class CPLEXBackend(GenericBackend):
         cdef char * n
         cdef int zero
 
-        n = <char *>sage_malloc(500*sizeof(char))
+        n = <char *>sig_malloc(500*sizeof(char))
         status = CPXgetcolname(self.env, self.lp, &n, n, 500, &zero, index, index)
         if status == 1219:
-            sage_free(n)
+            sig_free(n)
             return ""
         check(status)
 
         s = str(n)
-        sage_free(n)
+        sig_free(n)
         return s
 
     cpdef bint is_variable_binary(self, int index):
@@ -1154,7 +1191,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         - ``index`` (integer) -- the variable's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
@@ -1190,7 +1227,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         - ``index`` (integer) -- the variable's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
@@ -1225,7 +1262,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         - ``index`` (integer) -- the variable's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
@@ -1259,7 +1296,7 @@ cdef class CPLEXBackend(GenericBackend):
         r"""
         Tests whether the problem is a maximization
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX") # optional - CPLEX
@@ -1284,7 +1321,7 @@ cdef class CPLEXBackend(GenericBackend):
           variable has not upper bound. When set to ``False``
           (default), the method returns the current value.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
@@ -1336,7 +1373,7 @@ cdef class CPLEXBackend(GenericBackend):
           variable has not lower bound. When set to ``False``
           (default), the method returns the current value.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
@@ -1384,7 +1421,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         - ``filename`` (string)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
@@ -1408,7 +1445,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         - ``filename`` (string)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
@@ -1424,11 +1461,11 @@ cdef class CPLEXBackend(GenericBackend):
         status = CPXwriteprob(self.env, self.lp, filename, ext)
         check(status)
 
-    cpdef CPLEXBackend copy(self):
+    cpdef __copy__(self):
         r"""
         Returns a copy of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = MixedIntegerLinearProgram(solver = "CPLEX")        # optional - CPLEX
@@ -1438,7 +1475,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: copy(p).solve()                              # optional - CPLEX
             6.0
         """
-        cdef CPLEXBackend p = CPLEXBackend()
+        cdef CPLEXBackend p = type(self)()
 
         p.lp = CPXcloneprob(p.env, self.lp, &status)
         check(status)
@@ -1467,7 +1504,7 @@ cdef class CPLEXBackend(GenericBackend):
            The list of available parameters is available at
            :meth:`sage.numerical.mip.MixedIntegerLinearProgram.solver_parameter`
 
-        EXAMPLE:
+        EXAMPLES:
 
         Set a computation time limit::
 
@@ -1509,7 +1546,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: p.solve()                                            # optional - CPLEX
             2.0
             sage: with open(filename,'r') as f:                        # optional - CPLEX
-            ....:     print f.read()                                   # optional - CPLEX
+            ....:     print(f.read())                                  # optional - CPLEX
             Found incumbent of value ...
             Reduced MIP has 5 rows, 5 columns, and 10 nonzeros.
             ...
@@ -1564,10 +1601,10 @@ cdef class CPLEXBackend(GenericBackend):
                 check(CPXgetdblparam(self.env, paramid, &doublev))
                 return doublev
             else:
-                strv = <char *>sage_malloc(500*sizeof(char))
+                strv = <char *>sig_malloc(500*sizeof(char))
                 status = CPXgetstrparam(self.env, paramid, strv)
                 s = str(strv)
-                sage_free(strv)
+                sig_free(strv)
                 check(status)
                 return s
         else:

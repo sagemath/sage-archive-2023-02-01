@@ -66,7 +66,7 @@ Another colored example::
 
     actually remove unused points, fix the below code::
 
-        S = ParametricSurface(f=(lambda (x,y):(x,y,0)), domain=(range(10),range(10)))
+        S = ParametricSurface(f=lambda xy: (xy[0],xy[1],0), domain=(range(10),range(10)))
 """
 #*****************************************************************************
 #      Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
@@ -82,18 +82,19 @@ Another colored example::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include "sage/ext/stdsage.pxi"
+include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
-
-include "point_c.pxi"
 
 from math import cos, sin
 from sage.rings.all import RDF
 
-from base import RenderParams
+from .base import RenderParams
+from .transform cimport point_c, face_c
 from sage.ext.fast_eval cimport FastDoubleFunc
 from sage.ext.interpreters.wrapper_rdf cimport Wrapper_rdf
-from sage.ext.fast_eval import fast_float
+
+include "point_c.pxi"
+
 
 cdef inline bint smash_edge(point_c* vs, face_c* f, int a, int b):
     if point_c_eq(vs[f.vertices[a]], vs[f.vertices[b]]):
@@ -178,13 +179,14 @@ cdef class ParametricSurface(IndexFaceSet):
             f = tuple(f)
         self.f = f
         self.render_grid = domain
+        self._extra_kwds = kwds
         color_data = None
         if 'color' in kwds:
             try:
                 if len(kwds['color']) == 2 and callable(kwds['color'][0]):
                     color_data = kwds['color']
                     kwds.pop('color')
-            except TypeError, AttributeError:
+            except (TypeError, AttributeError):
                 pass
         if color_data is None:
             # case of a global color
@@ -285,7 +287,7 @@ cdef class ParametricSurface(IndexFaceSet):
             sage: P = plot3d(x^2-y^2, (x, -2, 2), (y, -2, 2))
             sage: s = P.json_repr(P.default_render_params())
             sage: s[0][:100]
-            '{vertices:[{x:-2,y:-2,z:0},{x:-2,y:-1.89744,z:0.399737},{x:-2,y:-1.79487,z:0.778435},{x:-2,y:-1.6923'
+            '{"vertices":[{"x":-2,"y":-2,"z":0},{"x":-2,"y":-1.89744,"z":0.399737},{"x":-2,"y":-1.79487,"z":0.778'
         """
         self.triangulate(render_params)
         return IndexFaceSet.json_repr(self, render_params)
@@ -518,7 +520,6 @@ cdef class ParametricSurface(IndexFaceSet):
 
         self.render_grid = urange, vrange
 
-
     def get_grid(self, ds):
         """
         TEST::
@@ -571,8 +572,8 @@ cdef class ParametricSurface(IndexFaceSet):
                     v = vlist[j]
                     self.eval_c(&self.vs[i*n+j], u, v)
 
-            sage_free(ulist)
-            sage_free(vlist)
+            sig_free(ulist)
+            sig_free(vlist)
 
         elif isinstance(self.f, tuple):
 
@@ -628,8 +629,8 @@ cdef class ParametricSurface(IndexFaceSet):
                                 (<Wrapper_rdf>fz).call_c(uv, &self.vs[i*n+j].z)
 
 
-                    sage_free(ulist)
-                    sage_free(vlist)
+                    sig_free(ulist)
+                    sig_free(vlist)
 
                 if not (fast_x and fast_y and fast_z):
                     ix = 0
@@ -673,22 +674,37 @@ cdef class ParametricSurface(IndexFaceSet):
         """
         raise NotImplementedError
 
+    def plot(self):
+        """
+        Draw a 3D plot of this graphics object, which just returns this
+        object since this is already a 3D graphics object.
+        Needed to support PLOT in doctrings, see :trac:`17498`
+        
+        EXAMPLES::
+
+            sage: S = parametric_plot3d( (sin, cos, lambda u: u/10), (0, 20))
+            sage: S.plot() is S
+            True
+
+        """
+        return self
+
 
 class MoebiusStrip(ParametricSurface):
     """
-    Base class for the :class:`MoebiusStrip` graphics type. This sets the the
+    Base class for the :class:`MoebiusStrip` graphics type. This sets the
     basic parameters of the object.
 
     INPUT:
 
-    - ``r`` - A number which can be coerced to a float, serving roughly
-      as the radius of the object.
+    - ``r`` -- a number which can be coerced to a float, serving roughly
+      as the radius of the object
 
-    - ``width`` - A number which can be coerced to a float, which gives the
-      width of the object.
+    - ``width`` -- a number which can be coerced to a float, which gives the
+      width of the object
 
-    - ``twists`` - (default: 1) An integer, giving the number of twists in the
-      object (where one twist is the 'traditional' Möbius strip).
+    - ``twists`` -- (default: 1) an integer, giving the number of twists in the
+      object (where one twist is the 'traditional' Möbius strip)
 
     EXAMPLES::
 
@@ -732,7 +748,7 @@ class MoebiusStrip(ParametricSurface):
            which helps determine the increment for the `v` range for the
            MoebiusStrip object.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.plot.plot3d.parametric_surface import MoebiusStrip
             sage: N = MoebiusStrip(7,3,2) # two twists
@@ -751,7 +767,7 @@ class MoebiusStrip(ParametricSurface):
         Return a tuple for `x,y,z` coordinates for the given ``u`` and ``v``
         for this MoebiusStrip instance.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.plot.plot3d.parametric_surface import MoebiusStrip
             sage: N = MoebiusStrip(7,3,2) # two twists
@@ -764,7 +780,7 @@ class MoebiusStrip(ParametricSurface):
 
 
 cdef double* to_double_array(py_list) except NULL:
-    cdef double* c_list = <double *>sage_malloc(sizeof(double) * len(py_list))
+    cdef double* c_list = <double *>sig_malloc(sizeof(double) * len(py_list))
     if c_list == NULL:
         raise MemoryError
     cdef Py_ssize_t i = 0

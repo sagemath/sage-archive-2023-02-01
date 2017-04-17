@@ -1,6 +1,6 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 r"""
-A collection of constructors of common words
+Common words
 
 AUTHORS:
 
@@ -18,18 +18,18 @@ word, which provides a useful reference.
 
 REFERENCES:
 
-.. [AC03] B. Adamczewski, J. Cassaigne, On the transcendence of real
+.. [AC03] \B. Adamczewski, J. Cassaigne, On the transcendence of real
    numbers with a regular expansion, J. Number Theory 103 (2003)
    27--37.
 
-.. [BmBGL07] A. Blondin-Masse, S. Brlek, A. Glen, and S. Labbe. On the
+.. [BmBGL07] \A. Blondin-Masse, S. Brlek, A. Glen, and S. Labbe. On the
    critical exponent of generalized Thue-Morse words. *Discrete Math.
    Theor. Comput.  Sci.* 9 (1):293--304, 2007.
 
-.. [BmBGL09] A. Blondin-Masse, S. Brlek, A. Garon, and S. Labbe. Christoffel
+.. [BmBGL09] \A. Blondin-Masse, S. Brlek, A. Garon, and S. Labbe. Christoffel
    and Fibonacci Tiles, DGCI 2009, Montreal, to appear in LNCS.
 
-.. [Loth02] M. Lothaire, Algebraic Combinatorics On Words, vol. 90 of
+.. [Loth02] \M. Lothaire, Algebraic Combinatorics On Words, vol. 90 of
    Encyclopedia of Mathematics and its Applications, Cambridge
    University Press, U.K., 2002.
 
@@ -53,6 +53,10 @@ EXAMPLES::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
+from six.moves import range
+
 from itertools import cycle, count
 from random import randint
 from sage.misc.cachefunc import cached_method
@@ -95,7 +99,7 @@ def _build_tab(sym, tab, W):
     w = W([sym]).delta_inv(W, tab[0])
     w = w[1:]
     res.append((w[-1] % c) + 1)
-    for i in xrange(1, len(tab)):
+    for i in range(1, len(tab)):
         w = w.delta_inv(W, tab[i])
         res.append((w[-1] % c) + 1)
     return res
@@ -721,7 +725,7 @@ class WordGenerator(object):
         satisfying `s_{\alpha,0} = ac_\alpha` and `s'_{\alpha,0} = bc_\alpha`,
         where `s_{\alpha,0}` and `s'_{\alpha,0}` are respectively the lower
         and upper mechanical words with slope `\alpha` and intercept `0`.
-        Equivalently, for irrationnal `\alpha`,
+        Equivalently, for irrational `\alpha`,
         `c_\alpha = s_{\alpha,\alpha} = s'_{\alpha,\alpha}`.
 
         Let `\alpha = [0, d_1 + 1, d_2, d_3, \ldots]` be the continued
@@ -775,9 +779,9 @@ class WordGenerator(object):
         From an iterator of the continued fraction expansion of a real::
 
             sage: def cf():
-            ...     yield 0
-            ...     yield 2
-            ...     while True: yield 1
+            ....:   yield 0
+            ....:   yield 2
+            ....:   while True: yield 1
             sage: F = words.CharacteristicSturmianWord(cf()); F
             word: 0100101001001010010100100101001001010010...
             sage: Fib = words.FibonacciWord(); Fib
@@ -1007,10 +1011,10 @@ class WordGenerator(object):
         TESTS::
 
             sage: for i in range(1,10):
-            ...       for j in range(1,10):
-            ...           if i != j:
-            ...               w = words.KolakoskiWord(alphabet=(i,j))
-            ...               assert w[:50] == w.delta()[:50]
+            ....:     for j in range(1,10):
+            ....:         if i != j:
+            ....:             w = words.KolakoskiWord(alphabet=(i,j))
+            ....:             assert w[:50] == w.delta()[:50]
 
         ::
 
@@ -1257,10 +1261,10 @@ class WordGenerator(object):
 
         REFERENCES:
 
-        .. [JP02] J. Justin, G. Pirillo, Episturmian words and episturmian
+        .. [JP02] \J. Justin, G. Pirillo, Episturmian words and episturmian
            morphisms, Theoret. Comput. Sci. 276 (2002) 281--313.
 
-        .. [GJ07] A. Glen, J. Justin, Episturmian words: a survey, Preprint,
+        .. [GJ07] \A. Glen, J. Justin, Episturmian words: a survey, Preprint,
            2007, arXiv:0801.1655.
         """
         if not isinstance(directive_word, Word_class):
@@ -1335,7 +1339,7 @@ class WordGenerator(object):
 
         REFERENCES:
 
-        .. [BMP07] S. Brlek, G. Melançon, G. Paquin, Properties of the extremal
+        .. [BMP07] \S. Brlek, G. Melançon, G. Paquin, Properties of the extremal
            infinite smooth words, Discrete Math. Theor. Comput. Sci. 9 (2007)
            33--49.
         """
@@ -1345,7 +1349,7 @@ class WordGenerator(object):
         suff2 = W([2, 2]).phi_inv()
         w = [1]
         tab = _build_tab(1, tab, W)
-        for k in xrange(1, n):
+        for k in range(1, n):
             if suff1._phi_inv_tab(tab) < suff2._phi_inv_tab(tab):
                 w.append(1)
                 tab = _build_tab(1, tab, W)
@@ -1390,10 +1394,10 @@ class WordGenerator(object):
             TypeError: alphabet does not contain 3 distinct elements
         """
         if alphabet is None:
-            alphabet = range(m)
+            alphabet = list(range(m))
         if len(set(alphabet)) != m:
             raise TypeError("alphabet does not contain %s distinct elements" % m)
-        return FiniteWords(alphabet)([alphabet[randint(0,m-1)] for i in xrange(n)])
+        return FiniteWords(alphabet)([alphabet[randint(0,m-1)] for i in range(n)])
 
     LowerChristoffelWord = LowerChristoffelWord
 
@@ -1565,7 +1569,7 @@ class WordGenerator(object):
             \sigma_k(a_k).
 
         Given a set of substitutions `S`, we say that the representation is
-        `S`-adic standard if the subtitutions are chosen in `S`.
+        `S`-adic standard if the substitutions are chosen in `S`.
 
         INPUT:
 
@@ -1620,7 +1624,7 @@ class WordGenerator(object):
             sage: Word(words._s_adic_iterator(w, repeat('a')))
             word: abbaababbaabbaabbaababbaababbaabbaababba...
 
-        The morphism `\sigma: a \mapsto ba, b \mapsto b` can't satify the
+        The morphism `\sigma: a \mapsto ba, b \mapsto b` cannot satisfy the
         hypothesis of the algorithm (nested prefixes)::
 
             sage: sigma = WordMorphism('a->ba,b->b')
@@ -1633,7 +1637,8 @@ class WordGenerator(object):
 
         - Sebastien Labbe (2009-12-18): initial version
         """
-        from itertools import tee,izip
+        from itertools import tee
+        from builtins import zip
         sequence_it,sequence = tee(sequence)
         m = next(sequence_it)
         codomain = m.codomain()
@@ -1642,7 +1647,7 @@ class WordGenerator(object):
         precedent_letter = m(next(letters_it))[0]
 
         yield precedent_letter
-        for (i,(m,a)) in enumerate(izip(sequence, letters)):
+        for (i,(m,a)) in enumerate(zip(sequence, letters)):
             if not precedent_letter == m(a)[0]:
                 raise ValueError("The hypothesis of the algorithm used is not satisfied: the image of the %s-th letter (=%s) under the %s-th morphism (=%s) should start with the %s-th letter (=%s)."%(i+1,a,i+1,m,i,precedent_letter))
             w = p(m(a)[1:])
@@ -1669,7 +1674,7 @@ class WordGenerator(object):
             \sigma_k(a_k).
 
         Given a set of substitutions `S`, we say that the representation is
-        `S`-adic standard if the subtitutions are chosen in `S`.
+        `S`-adic standard if the substitutions are chosen in `S`.
 
         INPUT:
 
@@ -1771,7 +1776,7 @@ class WordGenerator(object):
 
             sage: from sage.misc.prandom import randint
             sage: def it():
-            ...     while True: yield randint(0,1)
+            ....:   while True: yield randint(0,1)
             sage: words.s_adic(it(), repeat('a'), [tm,fib])
             word: abbaabababbaababbaabbaababbaabababbaabba...
             sage: words.s_adic(it(), repeat('a'), [tm,fib])
@@ -1818,7 +1823,8 @@ class WordGenerator(object):
         infinite set `S` of morphisms `x_h`::
 
             sage: x = lambda h:WordMorphism({1:[2],2:[3]+[1]*(h+1),3:[3]+[1]*h})
-            sage: for h in [0,1,2,3]: print h, x(h)
+            sage: for h in [0,1,2,3]:
+            ....:     print("{} {}".format(h, x(h)))
             0 1->2, 2->31, 3->3
             1 1->2, 2->311, 3->31
             2 1->2, 2->3111, 3->311
@@ -1828,7 +1834,7 @@ class WordGenerator(object):
             sage: s = words.s_adic(w, repeat(3), x); s
             word: 3232232232322322322323223223232232232232...
             sage: prefixe = s[:10000]
-            sage: map(prefixe.number_of_factors, range(15))
+            sage: list(map(prefixe.number_of_factors, range(15)))
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
             sage: [_[i+1] - _[i] for i in range(len(_)-1)]
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
@@ -1971,5 +1977,69 @@ class WordGenerator(object):
             a, b = (a,), (b,)
         w = a + b*k + a + b*kk + a + a + b*kk + a + b*k + a
         return FiniteWords(alphabet)(w)
+
+    def BaumSweetWord(self):
+        r"""
+        Returns the Baum-Sweet Word.
+
+        The Baum-Sweet Sequence is an infinite word over the alphabet `\{0,1\}`
+        defined by the following string substitution rules:
+
+        `00 \rightarrow 0000`
+
+        `01 \rightarrow 1001`
+
+        `10 \rightarrow 0100`
+
+        `11 \rightarrow 1101`
+
+        The substitution rule above can be considered as a morphism on the
+        submonoid of `\{0,1\}` generated by `\{00,01,10,11\}` (which is a free
+        monoid on these generators).
+
+        It is also defined as the concatenation of the terms from the Baum-Sweet
+        Sequence:
+
+        .. MATH::
+
+            b_n = \begin{cases}
+            0,      & \text{if } n = 0 \\
+            1,      & \text{if } m \text{ is even} \\
+            b_{\frac{m-1}{2}}, & \text{if } m \text{ is odd}
+            \end{cases}
+
+        where `n=m4^k` and `m` is not divisible by 4 if `m \neq 0`.
+
+        The individual terms of the Baum-Sweet Sequence are also given by:
+
+        .. MATH::
+
+            b_n = \begin{cases}
+            1,      & \text{if the binary representation of} n \text{ contains no block of consecutive 0's of odd length}\\
+            0,      & \text{otherwise}\\
+            \end{cases}\\
+
+        for `n > 0` with `b_0 = 1`.
+
+        For more information see:
+        :wikipedia:`Baum-Sweet_sequence`.
+
+        EXAMPLES:
+
+        Baum-Sweet Word::
+
+            sage: w = words.BaumSweetWord(); w
+            word: 1101100101001001100100000100100101001001...
+
+        Block Definition::
+
+            sage: w = words.BaumSweetWord()
+            sage: f = lambda n: '1' if all(len(x)%2==0 for x in bin(n)[2:].split('1')) else '0'
+            sage: all(f(i) == w[i] for i in range(1,100))
+            True
+        """
+        outer = WordMorphism('a->00,b->01,c->10,d->11')
+        inner = WordMorphism('a->aa,b->cb,c->ba,d->db')
+        return outer(inner.fixed_point('d'))
 
 words = WordGenerator()

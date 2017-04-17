@@ -108,7 +108,7 @@ class InfinityCrystalAsPolyhedralRealization(TensorProductOfCrystals):
 
     REFERENCES:
 
-    .. [K93] M. Kashiwara. *The crystal base and Littelmann's refined Demazure
+    .. [K93] \M. Kashiwara. *The crystal base and Littelmann's refined Demazure
        character formula*. Duke Math. J. **71**. 1993.
 
     INPUT:

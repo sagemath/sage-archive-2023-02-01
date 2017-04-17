@@ -37,11 +37,11 @@ def RandomGNP(n, p, directed = False, loops = False):
 
     REFERENCES:
 
-    .. [1] P. Erdos and A. Renyi. On Random Graphs, Publ.  Math. 6, 290 (1959).
+    .. [1] \P. Erdos and A. Renyi. On Random Graphs, Publ.  Math. 6, 290 (1959).
 
-    .. [2] E. N. Gilbert. Random Graphs, Ann. Math.  Stat., 30, 1141 (1959).
+    .. [2] \E. N. Gilbert. Random Graphs, Ann. Math.  Stat., 30, 1141 (1959).
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.graph_generators_pyx import RandomGNP
         sage: set_random_seed(0)

@@ -93,9 +93,9 @@ class Groups(CategoryWithAxiom):
 
         def group_generators(self):
             """
-            Returns group generators for self.
+            Return group generators for ``self``.
 
-            This default implementation calls :meth:`.gens`, for
+            This default implementation calls :meth:`gens`, for
             backward compatibility.
 
             EXAMPLES::
@@ -418,7 +418,7 @@ class Groups(CategoryWithAxiom):
             Arrange an ordering of elements into cosets of a normal
             subgroup close to size `\sqrt{n}`.  Then the quotient
             group structure is often apparent in the table.  See
-            comments on Trac #7555.
+            comments on :trac:`7555`.
 
             AUTHOR:
 

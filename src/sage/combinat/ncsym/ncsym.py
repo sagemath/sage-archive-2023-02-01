@@ -11,6 +11,7 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 #from sage.misc.lazy_attribute import lazy_attribute
@@ -159,7 +160,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
     (that is, `S_n`-invariant elements of `R\langle x_1, x_2, \ldots, x_n \rangle`).
 
     This ring is implemented as a Hopf algebra whose basis elements are
-    indexed by set parititions.
+    indexed by set partitions.
 
     Let `A = \{A_1, A_2, \ldots, A_r\}` be a set partition of the integers
     `\{ 1, 2, \ldots, k \}`.  A monomial basis element indexed by `A`
@@ -179,25 +180,25 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
     REFERENCES:
 
-    .. [BZ05] N. Bergeron, M. Zabrocki. *The Hopf algebra of symmetric
+    .. [BZ05] \N. Bergeron, M. Zabrocki. *The Hopf algebra of symmetric
        functions and quasisymmetric functions in non-commutative variables
        are free and cofree*. (2005). :arxiv:`math/0509265v3`.
 
-    .. [BHRZ06] N. Bergeron, C. Hohlweg, M. Rosas, M. Zabrocki.
+    .. [BHRZ06] \N. Bergeron, C. Hohlweg, M. Rosas, M. Zabrocki.
        *Grothendieck bialgebras, partition lattices, and symmetric
        functions in noncommutative variables*. Electronic Journal of
        Combinatorics. **13** (2006).
 
-    .. [RS06] M. Rosas, B. Sagan. *Symmetric functions in noncommuting
+    .. [RS06] \M. Rosas, B. Sagan. *Symmetric functions in noncommuting
        variables*. Trans. Amer. Math. Soc. **358** (2006). no. 1, 215-232.
        :arxiv:`math/0208168`.
 
-    .. [BRRZ08] N. Bergeron, C. Reutenauer, M. Rosas, M. Zabrocki.
+    .. [BRRZ08] \N. Bergeron, C. Reutenauer, M. Rosas, M. Zabrocki.
        *Invariants and coinvariants of the symmetric group in noncommuting
        variables*. Canad. J. Math. **60** (2008). 266-296.
        :arxiv:`math/0502082`
 
-    .. [BT13] N. Bergeron, N. Thiem. *A supercharacter table decomposition
+    .. [BT13] \N. Bergeron, N. Thiem. *A supercharacter table decomposition
        via power-sum symmetric functions*. Int. J. Algebra Comput. **23**,
        763 (2013). :doi:`10.1142/S0218196713400171`. :arxiv:`1112.4901`.
 
@@ -579,7 +580,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
                 sage: S = SetPartition([[1,2,3], [4,5]])
                 sage: AB = SetPartition([[1], [2,3], [4], [5]])
                 sage: L = sorted(filter(lambda x: S.inf(x) == AB, SetPartitions(5)), key=str)
-                sage: map(list, L) == map(list, sorted(m.product_on_basis(A, B).support(), key=str))
+                sage: list(map(list, L)) == list(map(list, sorted(m.product_on_basis(A, B).support(), key=str)))
                 True
             """
             if not A:
@@ -633,7 +634,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             if len(A) == 1:
                 return self.tensor_square().sum_of_monomials([(P([]), A), (A, P([]))])
 
-            ell_set = range(1, len(A) + 1) # +1 for indexing
+            ell_set = list(range(1, len(A) + 1))  # +1 for indexing
             L = [[[], ell_set]] + list(SetPartitions(ell_set, 2))
 
             def to_basis(S):
@@ -1403,7 +1404,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             if len(A) == 1:
                 return self.tensor_square().sum_of_monomials([(P([]), A), (A, P([]))])
 
-            ell_set = range(1, len(A) + 1) # +1 for indexing
+            ell_set = list(range(1, len(A) + 1))  # +1 for indexing
             L = [[[], ell_set]] + list(SetPartitions(ell_set, 2))
 
             def to_basis(S):

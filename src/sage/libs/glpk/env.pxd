@@ -8,5 +8,6 @@ cdef extern from "glpk.h":
     int glp_open_tee(const char *fname)
     int glp_close_tee()
     void glp_error_hook(void (*func)(void *info), void *info)
+    int glp_at_error()
     void glp_mem_limit(int limit)
     void glp_mem_usage(int *count, int *cpeak, size_t *total, size_t *tpeak)

@@ -3,15 +3,18 @@ Gray codes
 
 REFERENCES:
 
-.. [Knuth-TAOCP2A] D. Knuth "The art of computer programming", fascicules 2A,
+.. [Knuth-TAOCP2A] \D. Knuth "The art of computer programming", fascicules 2A,
    "generating all n-tuples"
 
-.. [Knuth-TAOCP3A] D. Knuth "The art of computer programming", fascicule 3A
+.. [Knuth-TAOCP3A] \D. Knuth "The art of computer programming", fascicule 3A
    "generating all combinations"
 
 Functions
 ---------
 """
+from __future__ import print_function
+from six.moves import range
+
 
 def product(m):
     r"""
@@ -37,7 +40,7 @@ def product(m):
         sage: l = [0,0,0]
         sage: for p,i in product([3,3,3]):
         ....:     l[p] += i
-        ....:     print l
+        ....:     print(l)
         [1, 0, 0]
         [2, 0, 0]
         [2, 1, 0]
@@ -67,7 +70,7 @@ def product(m):
         sage: l = [0,0]
         sage: for i,j in product([2,1]):
         ....:     l[i] += j
-        ....:     print l
+        ....:     print(l)
         [1, 0]
 
     TESTS::
@@ -91,7 +94,7 @@ def product(m):
         k += 1
 
     m = new_m
-    f = range(n+1)  # focus pointer
+    f = list(range(n + 1))  # focus pointer
     o = [1] * n     # switch +1 or -1
     a = [0] * n     # current element of the product
 
@@ -135,7 +138,7 @@ def combinations(n,t):
         sage: b = [1, 1, 1, 0, 0]
         sage: for i,j in combinations(5,3):
         ....:     b[i] = 0; b[j] = 1
-        ....:     print b
+        ....:     print(b)
         [1, 0, 1, 1, 0]
         [0, 1, 1, 1, 0]
         [1, 1, 0, 1, 0]
@@ -150,7 +153,7 @@ def combinations(n,t):
         sage: for i,j in combinations(4,2):
         ....:     s.remove(i)
         ....:     s.add(j)
-        ....:     print s
+        ....:     print(s)
         set([1, 2])
         set([0, 2])
         set([2, 3])
@@ -161,10 +164,10 @@ def combinations(n,t):
 
         sage: c = combinations(Infinity,4)
         sage: s = set([0,1,2,3])
-        sage: for _ in xrange(10):
+        sage: for _ in range(10):
         ....:     i,j = next(c)
         ....:     s.remove(i); s.add(j)
-        ....:     print s
+        ....:     print(s)
         set([0, 1, 3, 4])
         set([1, 2, 3, 4])
         set([0, 2, 3, 4])
@@ -175,11 +178,11 @@ def combinations(n,t):
         set([2, 3, 4, 5])
         set([1, 3, 4, 5])
         set([0, 3, 4, 5])
-        sage: for _ in xrange(1000):
+        sage: for _ in range(1000):
         ....:     i,j = next(c)
         ....:     s.remove(i); s.add(j)
-        sage: print s
-        set([0, 4, 13, 14])
+        sage: s
+        {0, 4, 13, 14}
 
     TESTS::
 
@@ -228,7 +231,7 @@ def _revolving_door_odd(n,t):
         True
     """
     # note: the numerotation of the steps below follows Kunth TAOCP
-    c = range(t) + [n]    # the combination (ordered list of numbers of length t+1)
+    c = list(range(t)) + [n]    # the combination (ordered list of numbers of length t+1)
 
     while True:
         # R3 : easy case
@@ -274,7 +277,7 @@ def _revolving_door_even(n,t):
     """
     # note: the numerotation of the setps below follows Kunth TAOCP
 
-    c = range(t) + [n]    # the combination (ordered list of numbers of length t+1)
+    c = list(range(t)) + [n]    # the combination (ordered list of numbers of length t+1)
 
     while True:
         # R3 : easy case

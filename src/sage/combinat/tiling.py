@@ -1,15 +1,7 @@
 r"""
 Tiling Solver
 
-Tiling a n-dimensional box into non-intersecting n-dimensional polyominoes.
-
-This uses dancing links code which is in Sage.  Dancing links were
-originally introduced by Donald Knuth in 2000 [Knuth1]_. In
-particular, Knuth used dancing links to solve tilings of a region by
-2d pentaminoes.  Here we extend the method to any dimension.
-
-In particular, the :mod:`sage.games.quantumino` module is based on
-the Tiling Solver and allows to solve the 3d Quantumino puzzle.
+Tiling a n-dimensional polyomino with n-dimensional polyominoes.
 
 This module defines two classes:
 
@@ -18,17 +10,26 @@ This module defines two classes:
   rotated, reflected and/or translated copies of a polyomino that are
   contained in a certain box.
 
-- :class:`sage.combinat.tiling.TilingSolver` class, to solve the general
-  problem of tiling a rectangular `n`-dimensional box with a set of
-  `n`-dimensional polyominoes. One can specify if rotations and reflections
-  are allowed or not and if pieces can be reused or not. This class convert
-  the tiling data into rows of a matrix that are passed to the DLX solver.
-  It also allows to compute the number of solutions.
+- :class:`sage.combinat.tiling.TilingSolver` class, to solve the problem of
+  tiling a `n`-dimensional polyomino with a set of `n`-dimensional
+  polyominoes. One can specify if rotations and reflections are allowed or
+  not and if pieces can be reused or not. This class convert the tiling
+  data into rows of a matrix that are passed to the DLX solver. It also
+  allows to compute the number of solutions.
+
+This uses dancing links code which is in Sage. Dancing links were
+originally introduced by Donald Knuth in 2000 [Knuth1]_. Knuth used dancing
+links to solve tilings of a region by 2d pentaminoes. Here we extend the
+method to any dimension.
+
+In particular, the :mod:`sage.games.quantumino` module is based on
+the Tiling Solver and allows to solve the 3d Quantumino puzzle.
 
 AUTHOR:
 
     - Sebastien Labbe, June 2011, initial version
     - Sebastien Labbe, July 2015, count solutions up to rotations
+    - Sebastien Labbe, April 2017, tiling a polyomino, not only a rectangular box
 
 EXAMPLES:
 
@@ -54,6 +55,62 @@ solutions::
     StopIteration
     sage: T.number_of_solutions()
     2
+
+Scott's pentomino problem
+-------------------------
+
+As mentionned in the introduction of [Knuth1]_, Scott's pentomino problem
+consists in tiling a chessboard leaving the center four squares vacant with
+the 12 distinct pentominoes.
+
+The 12 pentominoes::
+
+    sage: from sage.combinat.tiling import Polyomino
+    sage: I = Polyomino([(0,0),(1,0),(2,0),(3,0),(4,0)], color='brown')
+    sage: N = Polyomino([(1,0),(1,1),(1,2),(0,2),(0,3)], color='yellow')
+    sage: L = Polyomino([(0,0),(1,0),(0,1),(0,2),(0,3)], color='magenta')
+    sage: U = Polyomino([(0,0),(1,0),(0,1),(0,2),(1,2)], color='violet')
+    sage: X = Polyomino([(1,0),(0,1),(1,1),(1,2),(2,1)], color='pink')
+    sage: W = Polyomino([(2,0),(2,1),(1,1),(1,2),(0,2)], color='green')
+    sage: P = Polyomino([(1,0),(2,0),(0,1),(1,1),(2,1)], color='orange')
+    sage: F = Polyomino([(1,0),(1,1),(0,1),(2,1),(2,2)], color='gray')
+    sage: Z = Polyomino([(0,0),(1,0),(1,1),(1,2),(2,2)], color='yellow')
+    sage: T = Polyomino([(0,0),(0,1),(1,1),(2,1),(0,2)], color='red')
+    sage: Y = Polyomino([(0,0),(1,0),(2,0),(3,0),(2,1)], color='green')
+    sage: V = Polyomino([(0,0),(0,1),(0,2),(1,0),(2,0)], color='blue')
+
+A 8x8 chessboard leaving the center four squares vacant::
+
+    sage: import itertools
+    sage: s = set(itertools.product(range(8), repeat=2))
+    sage: s.difference_update([(3,3), (3,4), (4,3), (4,4)])
+    sage: chessboard = Polyomino(s)
+    sage: len(chessboard)
+    60
+
+This problem is represented by a matrix made of 1568 rows and 72 columns.
+It has 65 different solutions up to isometries::
+
+    sage: from sage.combinat.tiling import TilingSolver
+    sage: T = TilingSolver([I,N,L,U,X,W,P,F,Z,T,Y,V], box=chessboard, reflection=True)
+    sage: T
+    Tiling solver of 12 pieces into the box
+    Polyomino: [...], Color: gray
+    Rotation allowed: True
+    Reflection allowed: True
+    Reusing pieces allowed: False
+    sage: len(T.rows())                # long time
+    1568
+    sage: T.number_of_solutions()      # long time
+    520
+    sage: 520 / 8
+    65
+
+Showing one solution::
+
+    sage: solution = next(T.solve())                                  # not tested
+    sage: G = sum([piece.show2d() for piece in solution], Graphics()) # not tested
+    sage: G.show(aspect_ratio=1, axes=False)                          # not tested
 
 1d Easy Example
 ---------------
@@ -94,16 +151,16 @@ The following is a puzzle owned by Florent Hivert::
     sage: L.append(Polyomino([(0,0),(0,1),(0,2),(1,0),(1,1),(1,2)],"pink"))
 
 By default, rotations are allowed and reflections are not. In this case,
-there are no solution::
+there are no solution for tiling a 8x8 rectangular box::
 
-    sage: T = TilingSolver(L, (8,8))
+    sage: T = TilingSolver(L, box=(8,8))
     sage: T.number_of_solutions()                       # long time (2.5 s)
     0
 
 If reflections are allowed, there are solutions. Solve the puzzle and show
 one solution::
 
-    sage: T = TilingSolver(L, (8,8), reflection=True)
+    sage: T = TilingSolver(L, box=(8,8), reflection=True)
     sage: solution = next(T.solve())                                  # long time (7s)
     sage: G = sum([piece.show2d() for piece in solution], Graphics()) # long time (<1s)
     sage: G.show(aspect_ratio=1, axes=False)                          # long time (2s)
@@ -139,7 +196,7 @@ The same thing done in 3d *without* allowing reflections this time::
 
 Solve the puzzle and show one solution::
 
-    sage: T = TilingSolver(L, (8,8,1))
+    sage: T = TilingSolver(L, box=(8,8,1))
     sage: solution = next(T.solve())                                   # long time (8s)
     sage: G = sum([p.show3d(size=0.85) for p in solution], Graphics()) # long time (<1s)
     sage: G.show(aspect_ratio=1, viewer='tachyon')                     # long time (2s)
@@ -1901,7 +1958,7 @@ class TilingSolver(SageObject):
 
     def dlx_solver(self):
         r"""
-        Return the sage DLX solver of that 3d tiling problem.
+        Return the sage DLX solver of that tiling problem.
 
         OUTPUT:
 
@@ -2070,8 +2127,8 @@ class TilingSolver(SageObject):
 
     def solve(self, partial=None):
         r"""
-        Returns an iterator of list of 3d polyominoes that are an exact
-        cover of the box.
+        Returns an iterator of list of polyominoes that are an exact cover
+        of the box.
 
         INPUT:
 
@@ -2085,7 +2142,7 @@ class TilingSolver(SageObject):
 
         OUTPUT:
 
-            iterator of list of 3d polyominoes
+            iterator of list of polyominoes
 
         EXAMPLES::
 

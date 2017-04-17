@@ -14982,9 +14982,6 @@ def _matrix_power_symbolic(A, n):
         # dimension of Jordan block Jk
         mk = Jk.ncols()
 
-        # f applied to the Jordan block Jk
-        FJ_k = matrix(SR, mk, mk)
-        
         # compute the first row of f(Jk)
         vk = []
         for i in range(mk):
@@ -14994,13 +14991,9 @@ def _matrix_power_symbolic(A, n):
                 
             # corresponds to \frac{D^i(f)}{i!}, with f = x^n and D the differential operator wrt x
             vk += [(binomial(n, i) * Jk_ii**(n-i)).simplify_full()]
-        
-        # insert vk into each row (above the main diagonal)
-        for i in range(mk):
-            Jk_row_i = [SR.zero()]*i + vk[0:mk-i]
-            FJ_k.set_row(i, Jk_row_i)
 
-        FJ.set_block(k, k, FJ_k)
+        # insert vk into each row (above the main diagonal)
+        FJ.set_block(k, k, matrix(SR, [[SR.zero()]*i + vk[0:mk-i] for i in range(mk)]))
 
     # we change the entries of P and P^-1 into symbolic expressions
     if not got_SR:

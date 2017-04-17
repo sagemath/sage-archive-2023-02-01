@@ -7019,12 +7019,11 @@ class NumberField_absolute(NumberField_generic):
                To:   Number Field in a1 with defining polynomial x^3 - 7*x - 7
                Defn: a |--> -15/7*a1^2 + 9)
         """
-
         if name is None:
             name = self.variable_names()
         name = normalize_names(1, name)[0]
 
-        f = self.absolute_polynomial()._pari_()
+        f = self.absolute_polynomial().__pari__()
 
         g, alpha = f.polredbest(flag=1)
         beta = alpha.modreverse()
@@ -7037,21 +7036,20 @@ class NumberField_absolute(NumberField_generic):
             embedding = self.coerce_embedding()(b)
         # trac 7695 add a _ to prevent zeta70 etc.
         if name[-1].isdigit():
-            new_name= name+ '_1'
+            new_name = name + '_1'
         else:
             new_name = name + '1'
 
         K = NumberField(h, names=new_name, embedding=embedding)
         from_K = K.hom([b])
 
-        if both_maps == True:
+        if both_maps:
             a = K(alpha)
             to_K = self.hom([a]) 
 
             return K, from_K, to_K
 
         return K, from_K
-
 
     def optimized_subfields(self, degree=0, name=None, both_maps=True):
         """

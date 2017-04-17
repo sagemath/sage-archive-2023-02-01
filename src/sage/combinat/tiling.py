@@ -419,21 +419,40 @@ def ncube_isometry_group_cosets(n, orientation_preserving=True):
 ##############################
 class Polyomino_generic(SageObject):
     r"""
+    A generic class for polyomino in `\ZZ^d`.
 
-    Methods to be implemented in the herited classes:
+    INPUT:
 
-     - ``__repr__`` 
-     - ``__len__`` 
-     - ``frozenset``
+    - ``dimension`` -- integer
+    - ``color`` -- string (default: ``'gray'``), color for display
 
-    By default the following methods depend on the previous::
+    The following methods are to be implemented in the herited classes:
 
-     - ``sorted_list`` depends on ``frozenset``
-     - ``__len__`` depends on ``frozenset``
-     - ``__iter__`` depends on ``sorted_list``
-     - ``bounding_box`` depends on ``__iter__``
+    - ``__repr__`` 
+    - ``frozenset``
+
+    By default the following methods depend on the previous, they may be
+    overwritten in the herited classes if something more efficient can be
+    done:
+
+    - ``__len__`` depends on ``frozenset``
+    - ``sorted_list`` depends on ``frozenset``
+    - ``__iter__`` depends on ``sorted_list``
+    - ``bounding_box`` depends on ``__iter__``
     """
     def __init__(self, dimension, color='gray'):
+        r"""
+        Constructor.
+
+        See :mod:`Polyomino_generic` for full documentation.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.tiling import Polyomino_generic
+            sage: p = Polyomino_generic(2, color='blue')
+            sage: p
+            <class 'sage.combinat.tiling.Polyomino_generic'>
+        """
         from sage.modules.free_module import FreeModule
         from sage.rings.integer_ring import ZZ
         self._dimension = ZZ(dimension)
@@ -456,15 +475,33 @@ class Polyomino_generic(SageObject):
         """
         return self._color
 
-    def __len__(self):
-        raise NotImplementedError
-
-    @cached_method
     def frozenset(self):
+        r"""
+        Return the elements of `\ZZ^d` in the polyomino as a frozenset.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.tiling import Polyomino_generic
+            sage: p = Polyomino_generic(2, color='blue')
+            sage: p.frozenset()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
         raise NotImplementedError
 
     @cached_method
     def sorted_list(self):
+        r"""
+        Return the color of the polyomino.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.tiling import Polyomino
+            sage: p = Polyomino([(0,0,0), (0,1,0), (1,1,0), (1,1,1)], color='blue')
+            sage: p.sorted_list()
+            [(0, 0, 0), (0, 1, 0), (1, 1, 0), (1, 1, 1)]
+        """
         return sorted(self.frozenset())
 
     def __len__(self):
@@ -1143,7 +1180,7 @@ class Polyomino(Polyomino_generic):
 
     The polyomino is the union of the unit square (or cube, or n-cube)
     centered at those coordinates. Such an object should be connected, but
-    the code do not make this assumption.
+    the code does not make this assumption.
 
     INPUT:
 
@@ -1158,10 +1195,9 @@ class Polyomino(Polyomino_generic):
     """
     def __init__(self, coords, color='gray'):
         r"""
-        INPUT:
+        Constructor.
 
-        - ``coords`` - iterable of tuple
-        - ``color`` - string (optional, default: ``'gray'``), the color
+        See :mod:`Polyomino` for full documentation.
 
         EXAMPLES::
 
@@ -1206,13 +1242,52 @@ class Polyomino(Polyomino_generic):
 
     def frozenset(self):
         r"""
+        Return the elements of `\ZZ^d` in the polyomino as a frozenset.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.tiling import Polyomino
+            sage: p = Polyomino([(0,0,0), (0,1,0), (1,1,0), (1,1,1)], color='red')
+            sage: p.frozenset()
+            frozenset({(0, 0, 0), (0, 1, 0), (1, 1, 0), (1, 1, 1)})
         """
         return self._blocs
 
 class RectanglePolyomino(Polyomino_generic):
     r"""
+    Return the polyomino defined by a cartesian product of integer intervals.
+
+    INPUT:
+
+    - ``min_coords`` - iterable of integers, lower left corner
+    - ``max_coords`` - iterable of integers, upper right corner
+    - ``color`` - string (optional, default: ``'gray'``), the color
+
+    EXAMPLES::
+
+        sage: from sage.combinat.tiling import RectanglePolyomino
+        sage: b = RectanglePolyomino([0,0], [2,3])
+        sage: b
+        Rectangle Polyomino: [0,2[ x [0,3[, Color: gray
+
+    ::
+
+        sage: from sage.combinat.tiling import RectanglePolyomino
+        sage: box = RectanglePolyomino([-2,0,-3], [2,2,4])
+        sage: box
+        Rectangle Polyomino: [-2,2[ x [0,2[ x [-3,4[, Color: gray
     """
     def __init__(self, min_coords, max_coords, color='gray'):
+        r"""
+        Constructor.
+
+        See :mod:`RectanglePolyomino` for full documentation.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.tiling import RectanglePolyomino
+            sage: b = RectanglePolyomino([0,0], [2,3])
+        """
         self._min_coords = min_coords
         self._max_coords = max_coords
         dimension = len(min_coords)
@@ -1237,6 +1312,9 @@ class RectanglePolyomino(Polyomino_generic):
 
     def __len__(self):
         r"""
+        Return the size of the polyomino, i.e. the number of n-dimensional
+        unit cubes.
+
         EXAMPLES::
 
             sage: from sage.combinat.tiling import RectanglePolyomino
@@ -1269,6 +1347,8 @@ class RectanglePolyomino(Polyomino_generic):
 
     def frozenset(self):
         r"""
+        Return the elements of `\ZZ^d` in the polyomino as a frozenset.
+
         EXAMPLES::
 
             sage: from sage.combinat.tiling import RectanglePolyomino

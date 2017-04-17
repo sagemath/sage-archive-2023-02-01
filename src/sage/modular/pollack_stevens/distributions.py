@@ -41,6 +41,8 @@ EXAMPLES::
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
+from six.moves import range
+
 from sage.modules.module import Module
 from sage.structure.parent import Parent
 from sage.rings.padics.factory import ZpCA, QpCR
@@ -305,7 +307,7 @@ class OverconvergentDistributions_abstract(Module):
 
         self._populate_coercion_lists_(action_list=[self._act])
 
-    def _element_constructor_(self, val):
+    def _element_constructor_(self, val, **kwargs):
         """
         Construct a distribution from data in ``val``
 
@@ -315,7 +317,10 @@ class OverconvergentDistributions_abstract(Module):
             sage: v = V([1,2,3,4,5,6,7]); v
             (1, 2, 3, 4, 5, 6, 7)
         """
-        return self.Element(val, self)
+        ordp = kwargs.get('ord',0)
+        check = kwargs.get('check',True)
+        normalize= kwargs.get('normalize',True)
+        return self.Element(val, self, ordp, check, normalize)
 
     def _coerce_map_from_(self, other):
         """
@@ -663,7 +668,7 @@ class Symk_class(OverconvergentDistributions_abstract):
             sage: D.an_element()                  # indirect doctest
             (0, 1, 2, 3)
         """
-        return self(range(self.weight() + 1))
+        return self(list(range(self.weight() + 1)))
 
     def _repr_(self):
         """

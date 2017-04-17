@@ -74,9 +74,9 @@ List of (semi)lattice methods
     :widths: 30, 70
     :delim: |
 
-    :meth:`~FiniteLatticePoset.atoms` | Return the list of elements covering the bottom element.
-    :meth:`~FiniteLatticePoset.coatoms` | Return the list of elements covered by the top element.
-    :meth:`~FiniteLatticePoset.double_irreducibles` | Return the list of double irreducible elements.
+    :meth:`~FiniteMeetSemilattice.atoms()` | Return elements covering the bottom element.
+    :meth:`~FiniteJoinSemilattice.coatoms()` | Return elements covered by the top element.
+    :meth:`~FiniteLatticePoset.double_irreducibles` | Return double irreducible elements.
     :meth:`~FiniteLatticePoset.join_primes` | Return the join prime elements.
     :meth:`~FiniteLatticePoset.meet_primes` | Return the meet prime elements.
     :meth:`~FiniteLatticePoset.complements` | Return the list of complements of an element, or the dictionary of complements for all elements.
@@ -135,6 +135,8 @@ List of (semi)lattice methods
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
+from six import iteritems
 
 from sage.categories.finite_lattice_posets import FiniteLatticePosets
 from sage.combinat.posets.posets import Poset, FinitePoset
@@ -145,7 +147,7 @@ from sage.combinat.posets.hasse_diagram import LatticeError
 
 from sage.misc.decorators import rename_keyword
 
-import six
+
 
 ####################################################################################
 
@@ -311,6 +313,33 @@ class FiniteMeetSemilattice(FinitePoset):
         for i in (self._element_to_vertex(_) for _ in x):
             m = self._hasse_diagram._meet[i, m]
         return self._vertex_to_element(m)
+
+    def atoms(self):
+        """
+        Return the list atoms of this (semi)lattice.
+
+        An *atom* of a lattice is an element covering the bottom element.
+
+        .. SEEALSO::
+
+            :meth:`~FiniteJoinSemilattice.coatoms()`.
+
+        EXAMPLES::
+
+            sage: L = Posets.DivisorLattice(60)
+            sage: sorted(L.atoms())
+            [2, 3, 5]
+
+        TESTS::
+
+            sage: LatticePoset().atoms()
+            []
+            sage: LatticePoset({0: []}).atoms()
+            []
+        """
+        if self.cardinality() == 0:
+            return []
+        return self.upper_covers(self.bottom())
 
     def pseudocomplement(self, element):
         """
@@ -537,8 +566,34 @@ class FiniteJoinSemilattice(FinitePoset):
             j = self._hasse_diagram._join[i, j]
         return self._vertex_to_element(j)
 
+    def coatoms(self):
+        """
+        Return the list of co-atoms of this (semi)lattice.
 
-####################################################################################
+        A *co-atom* of a lattice is an element covered by the top element.
+
+        .. SEEALSO::
+
+            :meth:`~FiniteMeetSemilattice.atoms()`.
+
+        EXAMPLES::
+
+            sage: L = Posets.DivisorLattice(60)
+            sage: sorted(L.coatoms())
+            [12, 20, 30]
+
+        TESTS::
+
+            sage: LatticePoset().coatoms()
+            []
+            sage: LatticePoset({0: []}).coatoms()
+            []
+        """
+        if self.cardinality() == 0:
+            return []
+        return self.lower_covers(self.top())
+
+###############################################################################
 
 def LatticePoset(data=None, *args, **options):
     r"""
@@ -649,60 +704,6 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if self._with_linear_extension:
             s += " with distinguished linear extension"
         return s
-
-    def atoms(self):
-        """
-        Return the atoms of this lattice.
-
-        An *atom* of a lattice is an element covering the bottom element.
-
-        .. SEEALSO::
-
-            :meth:`coatoms`
-
-        EXAMPLES::
-
-            sage: L = Posets.DivisorLattice(60)
-            sage: sorted(L.atoms())
-            [2, 3, 5]
-
-        TESTS::
-
-            sage: LatticePoset().atoms()
-            []
-            sage: LatticePoset({0: []}).atoms()
-            []
-        """
-        if self.cardinality() == 0:
-            return []
-        return self.upper_covers(self.bottom())
-
-    def coatoms(self):
-        """
-        Return the co-atoms of this lattice.
-
-        A *co-atom* of a lattice is an element covered by the top element.
-
-        .. SEEALSO::
-
-            :meth:`atoms`
-
-        EXAMPLES::
-
-            sage: L = Posets.DivisorLattice(60)
-            sage: sorted(L.coatoms())
-            [12, 20, 30]
-
-        TESTS::
-
-            sage: LatticePoset().coatoms()
-            []
-            sage: LatticePoset({0: []}).coatoms()
-            []
-        """
-        if self.cardinality() == 0:
-            return []
-        return self.lower_covers(self.top())
 
     def double_irreducibles(self):
         """
@@ -1477,7 +1478,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         for e1 in range(n-1):
             C = Counter(flatten([H.neighbors_out(e2) for e2 in H.neighbors_out(e1)]))
-            for e3, c in six.iteritems(C):
+            for e3, c in iteritems(C):
                 if c == 1 and len(H.closed_interval(e1, e3)) == 3:
                     if not certificate:
                         return False
@@ -4013,7 +4014,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         minimal_vertices = [part[0] for part in parts_H]
         H = self._hasse_diagram.transitive_closure().subgraph(minimal_vertices).transitive_reduction()
         if labels == 'integer':
-            H.relabel(range(len(minimal_vertices)))
+            H.relabel(list(range(len(minimal_vertices))))
             return LatticePoset(H)
         part_dict = {m[0]:[self._vertex_to_element(x) for x in m] for m
                      in parts_H}

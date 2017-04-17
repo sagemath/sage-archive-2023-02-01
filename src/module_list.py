@@ -195,6 +195,9 @@ ext_modules = [
                language='c++',
                libraries = ["gmp", "m", "ntl"]),
 
+    Extension('sage.algebras.lie_algebras.lie_algebra_element',
+              sources = ["sage/algebras/lie_algebras/lie_algebra_element.pyx"]),
+
     ################################
     ##
     ## sage.arith
@@ -559,7 +562,7 @@ ext_modules = [
                       sources = ["sage/libs/homfly.pyx"],
                       libraries = ["homfly", "gc"],
                       package="libhomfly"),
-    
+
     OptionalExtension('sage.libs.sirocco',
                       sources = ["sage/libs/sirocco.pyx"],
                       libraries = ["sirocco", "mpfr", "gmp"],

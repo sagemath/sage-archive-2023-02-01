@@ -353,7 +353,7 @@ cdef class dancing_linksWrapper:
         ::
 
             sage: S = Subsets(range(5))
-            sage: rows = map(list, S)
+            sage: rows = [list(x) for x in S]
             sage: d = dlx_solver(rows)
             sage: d.number_of_solutions()
             52

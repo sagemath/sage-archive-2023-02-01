@@ -1129,6 +1129,10 @@ REFERENCES:
             Operads*. Springer-Verlag Berlin Heidelberg
             (2012). :doi:`10.1007/978-3-642-30362-3`.
 
+.. [LTV1999] Bernard Leclerc, Jean-Yves Thibon, and Eric Vasserot.
+             *Zelevinsky's involution at roots of unity*.
+             J. Reine Angew. Math. 513:33-51 (1999).
+
 .. [LW2012] David Loeffler and Jared Weinstein, *On the computation of
             local components of a newform*, Mathematics of Computation
             **81** (2012) 1179-1200. :doi:`10.1090/S0025-5718-2011-02530-5`

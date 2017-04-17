@@ -3,19 +3,14 @@ Crystal of Bernstien-Zelevinsky Multisegments
 """
 
 #*****************************************************************************
-#       Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
+#       Copyright (C) 2013 Travis Scrimshaw <tcscrims at gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#****************************************************************************
+#*****************************************************************************
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -87,9 +82,7 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
 
     REFERENCES:
 
-    .. [LTV1999] Bernard Leclerc, Jean-Yves Thibon, and Eric Vasserot.
-       *Zelevinsky's involution at roots of unity*. J. Reine Angew. Math.
-       513:33-51 (1999).
+    - [LTV1999]_
     """
     def __init__(self, n):
         """
@@ -156,12 +149,9 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
             """
             ZM = IntegerModRing(parent.cartan_type().rank())
             value = [(k, ZM(i)) for k,i in value]
-            def sort_cmp(x,y):
-                c = cmp(y[0],x[0])
-                if not c:
-                    c = cmp(ZZ(x[1]),ZZ(y[1]))
-                return c
-            ElementWrapper.__init__(self, parent, tuple(sorted(value, cmp=sort_cmp)))
+            def sort_key(x):
+                return (-x[0], ZZ(x[1]))
+            ElementWrapper.__init__(self, parent, tuple(sorted(value, key=sort_key)))
 
         def _repr_(self):
             r"""

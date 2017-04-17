@@ -3529,7 +3529,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: bt == bt.prune().to_full()
             True
 
-        Pruning the emptry tree is again the empty tree::
+        Pruning the empty tree is again the empty tree::
 
             sage: bt = BinaryTree(None)
             sage: bt.prune()

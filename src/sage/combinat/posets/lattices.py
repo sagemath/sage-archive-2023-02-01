@@ -1045,7 +1045,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L.is_distributive()
             False
             sage: L.is_distributive(certificate=True)
-            (False, (2, 3, 5))
+            (False, (5, 3, 2))
 
         TESTS::
 

@@ -79,7 +79,7 @@ The 12 pentominoes::
     sage: Y = Polyomino([(0,0),(1,0),(2,0),(3,0),(2,1)], color='green')
     sage: V = Polyomino([(0,0),(0,1),(0,2),(1,0),(2,0)], color='blue')
 
-A 8x8 chessboard leaving the center four squares vacant::
+A `8 \times 8` chessboard leaving the center four squares vacant::
 
     sage: import itertools
     sage: s = set(itertools.product(range(8), repeat=2))
@@ -150,7 +150,7 @@ The following is a puzzle owned by Florent Hivert::
     sage: L.append(Polyomino([(0,0),(0,1),(0,2),(1,0),(1,1),(1,2)],"pink"))
 
 By default, rotations are allowed and reflections are not. In this case,
-there are no solution for tiling a 8x8 rectangular box::
+there are no solution for tiling a `8 \times 8` rectangular box::
 
     sage: T = TilingSolver(L, box=(8,8))
     sage: T.number_of_solutions()                       # long time (2.5 s)
@@ -513,18 +513,17 @@ class Polyomino(SageObject):
         from sage.modules.free_module import FreeModule
         from sage.rings.integer_ring import ZZ
 
+        if not isinstance(color, str):
+            raise TypeError("color = ({!r}) must be a string".format(color))
+        self._color = color
+
         if not isinstance(coords, (tuple,list)):
             coords = list(coords)
         if not coords:
             raise ValueError("Polyomino must be non empty")
 
-        dimension = len(coords[0])
-        self._dimension = ZZ(dimension)
+        self._dimension = ZZ(len(coords[0]))
         self._free_module = FreeModule(ZZ, self._dimension)
-
-        if not isinstance(color, str):
-            raise TypeError("color = ({!r}) must be a string".format(color))
-        self._color = color
 
         self._blocs = coords
         self._blocs = map(self._free_module, self._blocs)
@@ -1679,9 +1678,9 @@ class TilingSolver(SageObject):
             True
 
         Now, a real use case. A solution of the game Quantumino is a tiling
-        of a 5x8x2 box. Since a 5x8x2 box has four orientation preserving
-        isometries, each solution up to rotation is counted four times by
-        this dancing links solver::
+        of a `5 \times 8 \times 2` box. Since a `5 \times 8 \times 2` box
+        has four orientation preserving isometries, each solution up to
+        rotation is counted four times by this dancing links solver::
 
             sage: from sage.games.quantumino import QuantuminoSolver
             sage: from sage.combinat.matrices.dancing_links import dlx_solver

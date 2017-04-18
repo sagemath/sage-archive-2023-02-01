@@ -1328,16 +1328,16 @@ def CossidentePenttilaGraph(q):
 
 def Nowhere0WordsTwoWeightCodeGraph(q, hyperoval=None, field=None, check_hyperoval=True):
     r"""
-    Return the subgraph of nowhere 0 words from two-weight code of projective plane hyperoval
+    Return the subgraph of nowhere 0 words from two-weight code of projective plane hyperoval.
 
     Let `q=2^k` and `\Pi=PG(2,q)`.  Fix a
     `hyperoval <http://en.wikipedia.org/wiki/Oval_(projective_plane)#Even_q>`__
     `O \subset \Pi`. Let `V=F_q^3` and `C` the two-weight 3-dimensional linear code
     over `F_q` with words `c(v)` obtained from `v\in V` by computing
 
-    ..math::
+    .. MATH::
 
-        c(v)=(<v,o_1>,...,<v,o_{q+2}>), o_j \in O.
+        c(v)=(\langle v,o_1 \rangle,...,\langle v,o_{q+2} \rangle), o_j \in O.
 
     `C` contains `q(q-1)^2/2` words without 0 entries. The subgraph of the strongly
     regular graph of `C` induced on the latter words is also strongly regular,

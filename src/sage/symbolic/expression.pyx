@@ -6736,6 +6736,7 @@ cdef class Expression(CommutativeRingElement):
         Suppose ``f``=``self`` is a hypergeometric term such that:
 
         .. math::
+
             s_n = \sum_{k=0}^{n-1} f_k
 
         and `f_k` doesn't depend on `n`. Return a hypergeometric

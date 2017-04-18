@@ -179,6 +179,7 @@ class Dokchitser(SageObject):
     __globals = set()  # set of global variables defined in a run of the
                        # computel.gp script that are replaced by indexed copies
                        # in the computel.gp.template
+    __globals_re = None
     __instance = 0  # Monotonically increasing unique instance ID
     __n_instances = 0  # Number of currently allocated instances
     __template_filename = os.path.join(SAGE_EXTCODE, 'pari', 'dokchitser',
@@ -286,6 +287,9 @@ class Dokchitser(SageObject):
             for line in f:
                 for m in global_re.finditer(line):
                     cls.__globals.add(m.group(1))
+
+        cls.__globals_re = re.compile(
+            '([^a-zA-Z0-9_]|^)(%s)([^a-zA-Z0-9_]|$)' % '|'.join(cls.__globals))
         return
 
     @classmethod
@@ -385,7 +389,7 @@ class Dokchitser(SageObject):
 
         -  ``w`` -- list of complex numbers or string (pari function of k)
 
-        -  ``pari_precode`` -- some code to egxecute in pari
+        -  ``pari_precode`` -- some code to execute in pari
            before calling initLdata
 
         -  ``max_imaginary_part`` -- (default: 0): redefine if
@@ -431,6 +435,19 @@ class Dokchitser(SageObject):
         """
         if isinstance(v, tuple) and w is None:
             v, cutoff, w, pari_precode, max_imaginary_part, max_asymp_coeffs = v
+
+        if pari_precode:
+            # Must have __globals_re instantiated
+            if self.__gp is None:
+                self._instantiate_gp()
+
+            def repl(m):
+                return '%s%s_%d%s' % (m.group(1), m.group(2), self.__instance,
+                                      m.group(3))
+
+            # If any of the pre-code contains references to some of the
+            # templated global variables we must replace those as well
+            pari_precode = self.__globals_re.sub(repl, pari_precode)
 
         self.__init = (v, cutoff, w, pari_precode, max_imaginary_part, max_asymp_coeffs)
         if pari_precode != '':

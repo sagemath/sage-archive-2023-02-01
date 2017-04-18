@@ -107,9 +107,9 @@ It has 65 different solutions up to isometries::
 
 Showing one solution::
 
-    sage: solution = next(T.solve())                                  # not tested
-    sage: G = sum([piece.show2d() for piece in solution], Graphics()) # not tested
-    sage: G.show(aspect_ratio=1, axes=False)                          # not tested
+    sage: solution = next(T.solve())                                  # long time
+    sage: G = sum([piece.show2d() for piece in solution], Graphics()) # long time
+    sage: G.show(aspect_ratio=1, axes=False)                          # long time
 
 1d Easy Example
 ---------------
@@ -532,7 +532,7 @@ class Polyomino(SageObject):
             b.set_immutable()
         self._blocs = frozenset(self._blocs)
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         String representation.
 
@@ -1356,7 +1356,7 @@ class TilingSolver(SageObject):
                                       "rotation is not allowed")
         self._reusable = reusable
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         String representation
 

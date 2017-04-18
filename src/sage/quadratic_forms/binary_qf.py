@@ -44,6 +44,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from functools import total_ordering
 
 from sage.libs.pari.all import pari
 from sage.rings.all import ZZ, is_fundamental_discriminant
@@ -52,6 +53,7 @@ from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 
 
+@total_ordering
 class BinaryQF(SageObject):
     """
     A binary quadratic form over `\ZZ`.
@@ -312,6 +314,8 @@ class BinaryQF(SageObject):
             sage: P < Q
             False
             sage: Q < P
+            True
+            sage: Q <= P
             True
         """
         if not isinstance(right, BinaryQF):

@@ -1148,6 +1148,11 @@ static ex asin_eval(const ex & x)
 		if (x.is_equal(_ex_1))
 			return _ex_1_2*Pi;
 
+                const numeric& num = ex_to<numeric>(x);
+                if (num.is_real()
+                    and (num < *_num_1_p or num > *_num1_p))
+                        return NaN;
+
 		// asin(float) -> float
 		if (x.info(info_flags::inexact))
 			return asin(ex_to<numeric>(x));
@@ -1228,6 +1233,11 @@ static ex acos_eval(const ex & x)
 		// acos(-1) -> Pi
 		if (x.is_equal(_ex_1))
 			return Pi;
+
+                const numeric& num = ex_to<numeric>(x);
+                if (num.is_real()
+                    and (num < *_num_1_p or num > *_num1_p))
+                        return NaN;
 
 		// acos(float) -> float
 		if (x.info(info_flags::inexact))

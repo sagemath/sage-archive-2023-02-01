@@ -174,14 +174,16 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+
+from __future__ import absolute_import, print_function
 
 from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
-from sage.env import SAGE_LOCAL, SAGE_EXTCODE, DOT_SAGE
+from .gap_workspace import gap_workspace_file, prepare_workspace_dir
+from sage.env import SAGE_LOCAL, SAGE_EXTCODE
 from sage.misc.misc import is_in_string
 from sage.misc.superseded import deprecation
 from sage.misc.cachefunc import cached_method
+from sage.docs.instancedoc import instancedoc
 from sage.interfaces.tab_completion import ExtraTabCompletion
 import re
 import os
@@ -190,9 +192,7 @@ import time
 import platform
 import string
 
-GAP_DIR = os.path.join(DOT_SAGE, 'gap')
-
-WORKSPACE = os.path.join(GAP_DIR, 'workspace-%s'%abs(hash(SAGE_LOCAL)))
+WORKSPACE = gap_workspace_file()
 
 GAP_BINARY = os.path.join(SAGE_LOCAL, 'bin', 'gap')
 
@@ -240,7 +240,7 @@ def set_gap_memory_pool_size(size_in_bytes):
     EXAMPLES::
 
         sage: from sage.interfaces.gap import \
-        ...       get_gap_memory_pool_size, set_gap_memory_pool_size
+        ....:     get_gap_memory_pool_size, set_gap_memory_pool_size
         sage: n = get_gap_memory_pool_size()
         sage: set_gap_memory_pool_size(n)
         sage: n == get_gap_memory_pool_size()
@@ -294,7 +294,7 @@ def _get_gap_memory_pool_size_MB():
     EXAMPLES:
 
         sage: from sage.interfaces.gap import \
-        ...       _get_gap_memory_pool_size_MB
+        ....:     _get_gap_memory_pool_size_MB
         sage: _get_gap_memory_pool_size_MB()   # random output
         '1467m'
     """
@@ -963,6 +963,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
         return self('%s.%s' % (record.name(), name))
 
 
+@instancedoc
 class GapElement_generic(ExtraTabCompletion, ExpectElement):
     r"""
     Generic interface to the GAP3/GAP4 interpreters.
@@ -975,17 +976,6 @@ class GapElement_generic(ExtraTabCompletion, ExpectElement):
       code
 
     """
-    def __repr__(self):
-        """
-        EXAMPLES::
-
-            sage: gap(2)
-            2
-        """
-        s = ExpectElement.__repr__(self)
-        if s.find('must have a value') != -1:
-            raise RuntimeError("An error occurred creating an object in %s from:\n'%s'\n%s"%(self.parent().name(), self._create, s))
-        return s
 
     def bool(self):
         """
@@ -1301,6 +1291,8 @@ class Gap(Gap_generic):
             5
             sage: sage.interfaces.gap.WORKSPACE = ORIGINAL_WORKSPACE
         """
+        prepare_workspace_dir()
+
         # According to the GAP Reference Manual,
         # [http://www.gap-system.org/Manuals/doc/htm/ref/CHAP003.htm#SSEC011.1]
         # SaveWorkspace can only be used at the main gap> prompt. It cannot
@@ -1494,7 +1486,7 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
     default when Sage first starts GAP.
 
     The first time you start GAP from Sage, it saves the startup state
-    of GAP in a file ``$HOME/.sage/gap/workspace-HASH``, where ``HASH``
+    of GAP in a file ``$HOME/.sage/gap/workspace-gap-HASH``, where ``HASH``
     is a hash of the directory where Sage is installed.
 
     This is useful, since then subsequent startup of GAP is at least 10
@@ -1507,21 +1499,6 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
     if they are available.
 
     TESTS:
-
-    Check that ``gap_reset_workspace`` still works when ``GAP_DIR``
-    doesn't exist, see :trac:`14171`::
-
-        sage: ORIGINAL_GAP_DIR = sage.interfaces.gap.GAP_DIR
-        sage: ORIGINAL_WORKSPACE = sage.interfaces.gap.WORKSPACE
-        sage: sage.interfaces.gap.GAP_DIR = os.path.join(tmp_dir(), "test_gap_dir")
-        sage: sage.interfaces.gap.WORKSPACE = os.path.join(sage.interfaces.gap.GAP_DIR, "test_workspace")
-        sage: os.path.isfile(sage.interfaces.gap.WORKSPACE)  # long time
-        False
-        sage: gap_reset_workspace()                          # long time
-        sage: os.path.isfile(sage.interfaces.gap.WORKSPACE)  # long time
-        True
-        sage: sage.interfaces.gap.GAP_DIR = ORIGINAL_GAP_DIR
-        sage: sage.interfaces.gap.WORKSPACE = ORIGINAL_WORKSPACE
 
     Check that the race condition from :trac:`14242` has been fixed.
     We temporarily need to change the worksheet filename. ::
@@ -1540,36 +1517,6 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
         sage: os.unlink(sage.interfaces.gap.WORKSPACE)  # long time
         sage: sage.interfaces.gap.WORKSPACE = ORIGINAL_WORKSPACE
     """
-    # Make sure GAP_DIR exists
-    try:
-        os.makedirs(GAP_DIR)
-        msg = "It is OK to delete all these cache files.  They will be recreated as needed.\n"
-        open(os.path.join(GAP_DIR, 'README.txt'), 'w').write(msg)
-    except OSError:
-        if not os.path.isdir(GAP_DIR):
-            raise
-
-    # Delete all gap workspaces that haven't been used in the last
-    # week, to avoid needless cruft.  I had an install on sage.math
-    # with 90 of these, since I run a lot of different versions of
-    # Sage, and it totalled 1.3GB of wasted space!  See trac #4936.
-    # We only do this after creating a new workspace, since this cruft
-    # issue is only a problem if workspaces get created every so
-    # often.  We don't want to have to do this on every startup.
-    now = time.time()
-    for F in os.listdir(GAP_DIR):
-        if F.startswith('workspace-'):
-            W = os.path.join(GAP_DIR, F)
-            try:
-                age = now - os.path.getatime(W)
-                if age >= 604800:    # 1 week in seconds
-                    os.unlink(W)
-            except OSError:
-                # It's not a problem if W doesn't exist, everything
-                # else is an error.
-                if os.path.exists(W):
-                    raise
-
     # Create new workspace with filename WORKSPACE
     g = Gap(use_workspace_cache=False, max_workspace_size=None)
     g.eval('SetUserPreference("HistoryMaxLines", 30)')
@@ -1588,6 +1535,7 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
     g.quit()
 
 
+@instancedoc
 class GapElement(GapElement_generic):
     def __getitem__(self, n):
         """
@@ -1659,13 +1607,13 @@ class GapElement(GapElement_generic):
         return v
 
 
-
+@instancedoc
 class GapFunctionElement(FunctionElement):
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         EXAMPLES::
 
-            sage: print(gap(4).SymmetricGroup._sage_doc_())
+            sage: print(gap(4).SymmetricGroup.__doc__)
             <BLANKLINE>
             50 Group Libraries
             <BLANKLINE>
@@ -1678,12 +1626,13 @@ class GapFunctionElement(FunctionElement):
         return help
 
 
+@instancedoc
 class GapFunction(ExpectFunction):
-    def _sage_doc_(self):
+    def _instancedoc(self):
         """
         EXAMPLES::
 
-            sage: print(gap.SymmetricGroup._sage_doc_())
+            sage: print(gap.SymmetricGroup.__doc__)
             <BLANKLINE>
             50 Group Libraries
             <BLANKLINE>
@@ -1850,8 +1799,7 @@ def reduce_load():
         sage: reduce_load()
         doctest:...: DeprecationWarning: This function is only used to unpickle invalid objects
         See http://trac.sagemath.org/18848 for details.
-        <repr(<sage.interfaces.gap.GapElement at ...>) failed:
-        ValueError: The session in which this object was defined is no longer running.>
+        (invalid <class 'sage.interfaces.gap.GapElement'> object -- The session in which this object was defined is no longer running.)
 
     By :trac:`18848`, pickling actually often works::
 

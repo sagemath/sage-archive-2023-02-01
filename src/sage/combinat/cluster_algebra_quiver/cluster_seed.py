@@ -6,7 +6,7 @@ A *cluster seed* is a pair `(B,\mathbf{x})` with `B` being a *skew-symmetrizable
 and with `\mathbf{x}` being an `n`-tuple of *independent elements* in the field of rational functions in `n` variables.
 
 For the compendium on the cluster algebra and quiver package see
-:arxiv:`1102.4844`.
+[MS2011]_.
 
 AUTHORS:
 
@@ -17,13 +17,9 @@ AUTHORS:
 
 REFERENCES:
 
-.. [BDP2013] Thomas Brüstle, Grégoire Dupont, Matthieu Pérotin
-   *On Maximal Green Sequences*
-   :arxiv:`1205.2050`
+- [FZ2007]_
 
-.. [FZ2007] Sergey Fomin, Andrei Zelevinsky
-   "Cluster Algebras IV: coefficients"
-   :arxiv:`0602259`
+- [BDP2013]_
 
 .. SEEALSO:: For mutation types of cluster seeds, see :meth:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type.QuiverMutationType`. Cluster seeds are closely related to :meth:`sage.combinat.cluster_algebra_quiver.quiver.ClusterQuiver`.
 """
@@ -1522,9 +1518,7 @@ class ClusterSeed(SageObject):
 
         REFERENCES:
 
-        .. [NaZe2011] Tomoki Nakanishi and Andrei Zelevinsky
-           *On Tropical Dualities In Cluster Algebras*
-           :arxiv:`1101.3736v3`
+        [NZ2012]_
         """
         from sage.matrix.all import identity_matrix
 
@@ -2768,7 +2762,7 @@ class ClusterSeed(SageObject):
 
         This is the initial seed of the associated cluster algebra
         with universal coefficients, as defined in section 12 of
-        :arxiv:`math/0602259`.
+        [FZ2007]_.
 
         This method works only if ``self`` is a bipartite, finite-type seed.
 
@@ -3892,7 +3886,7 @@ class ClusterSeed(SageObject):
         computed by the recurrence, combinatorial formula, or wants to
         set `x_1` and `x_2` to be one.
 
-        See [LeeLiZe]_ for more details.
+        See [LLZ2014]_ for more details.
 
         EXAMPLES::
 
@@ -3908,11 +3902,6 @@ class ClusterSeed(SageObject):
             (x0^4 + 2*x0^2 + x1^2 + 1)/(x0*x1^2)
             sage: S.greedy(1, 2, 'by_combinatorics')
             (x0^4 + 2*x0^2 + x1^2 + 1)/(x0*x1^2)
-
-        REFERENCES:
-
-        .. [LeeLiZe] Lee-Li-Zelevinsky, Greedy elements in rank 2
-           cluster algebras, :arxiv:`1208.2391`
         """
         if self.b_matrix().dimensions() == (2, 2):
             b = abs(self.b_matrix()[0, 1])
@@ -4033,12 +4022,12 @@ class ClusterSeed(SageObject):
         rings of the initial cluster and its neighboring clusters.  As
         such, it always contains both the cluster algebra and the
         upper cluster algebra.  This function uses the algorithm from
-        [MaMu]_.
+        [MM2015]_.
 
         When the initial seed is totally coprime (for example, when
         the unfrozen part of the exchange matrix has full rank), the
         upper bound is equal to the upper cluster algebra by
-        [BeFoZe]_.
+        [BFZ2005]_.
 
         .. WARNING::
 
@@ -4047,7 +4036,7 @@ class ClusterSeed(SageObject):
             larger than four vertices, the algorithm may take an
             infeasible amount of time.  Additionally, it will run
             forever without terminating whenever the upper bound is
-            infinitely-generated (such as the example in [Sp]_).
+            infinitely-generated (such as the example in [Spe2013]_).
 
         INPUT:
 
@@ -4069,11 +4058,6 @@ class ClusterSeed(SageObject):
             sage: S.find_upper_bound()
             Quotient of Multivariate Polynomial Ring in x0, x1, x2, x0p, x1p, x2p, z0 over Rational Field by the ideal (x0*x0p - x2^2 - x1^2, x1*x1p - x2^2 - x0^2, x2*x2p - x1^2 - x0^2, x0p*x1p*x2p - x0*x1*x2p - x0*x2*x1p - x1*x2*x0p - 2*x0*x1*x2, x0^3*z0 - x1p*x2p + x1*x2, x0*x1*z0 - x2p - x2, x1^3*z0 - x0p*x2p + x0*x2, x0*x2*z0 - x1p - x1, x1*x2*z0 - x0p - x0, x2^3*z0 - x0p*x1p + x0*x1)
 
-        REFERENCES:
-
-        .. [BeFoZe] Berenstein-Fomin-Zelevinsky, Cluster algebras III: Upper bounds and double Bruhat cells, Duke Math. J., 126(1):1-52, 2005.
-        .. [MaMu] Matherne-Muller, Computing upper cluster algebras, Int. Math. Res. Not. IMRN, 2015, 3121-3149.
-        .. [Sp] Speyer, An infinitely generated upper cluster algebra, :arxiv:`1305.6867`.
         """
         rank = self.n()
 
@@ -4245,7 +4229,7 @@ def is_LeeLiZel_allowable(T,n,m,b,c):
     Check if the subset T contributes to the computation of the greedy
     element x[m,n] in the rank two (b,c)-cluster algebra.
 
-    This uses the conditions of Lee-Li-Zelevinsky's paper [LeeLiZe]_.
+    This uses the conditions of Lee-Li-Zelevinsky's paper [LLZ2014]_.
 
     EXAMPLES::
 

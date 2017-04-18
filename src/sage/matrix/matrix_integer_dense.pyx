@@ -55,6 +55,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from __future__ import absolute_import
 
 from libc.stdint cimport int64_t
 include "sage/ext/cdefs.pxi"
@@ -72,7 +73,7 @@ from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
 
 #########################################################
 # PARI C library
-from sage.libs.cypari2.gen cimport gen
+from sage.libs.cypari2.gen cimport Gen
 from sage.libs.pari.convert_gmp cimport INT_to_mpz
 from sage.libs.pari.convert_flint cimport (_new_GEN_from_fmpz_mat_t,
            _new_GEN_from_fmpz_mat_t_rotate90, integer_matrix)
@@ -99,17 +100,17 @@ from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.structure.element import is_Vector
 from sage.structure.sequence import Sequence
 
-from matrix_modn_dense_float cimport Matrix_modn_dense_template
-from matrix_modn_dense_float cimport Matrix_modn_dense_float
-from matrix_modn_dense_double cimport Matrix_modn_dense_double
+from .matrix_modn_dense_float cimport Matrix_modn_dense_template
+from .matrix_modn_dense_float cimport Matrix_modn_dense_float
+from .matrix_modn_dense_double cimport Matrix_modn_dense_double
 
-from matrix_mod2_dense import Matrix_mod2_dense
-from matrix_mod2_dense cimport Matrix_mod2_dense
+from .matrix_mod2_dense import Matrix_mod2_dense
+from .matrix_mod2_dense cimport Matrix_mod2_dense
 
 
-from matrix2 import decomp_seq
+from .matrix2 import decomp_seq
 
-from matrix cimport Matrix
+from .matrix cimport Matrix
 
 cimport sage.structure.element
 
@@ -275,7 +276,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         """
         Frees all the memory allocated for this matrix.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = Matrix(ZZ,2,[1,2,3,4])
             sage: del a
@@ -842,7 +843,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
     def _multiply_classical(self, Matrix_integer_dense right):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: n = 3
             sage: a = MatrixSpace(ZZ,n,n)(range(n^2))
@@ -1338,7 +1339,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
         OUTPUT: A nonnegative integer.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = Mat(ZZ,3)(range(9))
             sage: a.height()
@@ -1451,8 +1452,8 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         return res
 
     cdef _mod_int_c(self, mod_int p):
-        from matrix_modn_dense_float import MAX_MODULUS as MAX_MODULUS_FLOAT
-        from matrix_modn_dense_double import MAX_MODULUS as MAX_MODULUS_DOUBLE
+        from .matrix_modn_dense_float import MAX_MODULUS as MAX_MODULUS_FLOAT
+        from .matrix_modn_dense_double import MAX_MODULUS as MAX_MODULUS_DOUBLE
 
         cdef Py_ssize_t i, j
         cdef mpz_t* self_row
@@ -1486,8 +1487,8 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             raise ValueError("p to big.")
 
     def _reduce(self, moduli):
-        from matrix_modn_dense_float import MAX_MODULUS as MAX_MODULUS_FLOAT
-        from matrix_modn_dense_double import MAX_MODULUS as MAX_MODULUS_DOUBLE
+        from .matrix_modn_dense_float import MAX_MODULUS as MAX_MODULUS_FLOAT
+        from .matrix_modn_dense_double import MAX_MODULUS as MAX_MODULUS_DOUBLE
 
         if isinstance(moduli, (int, long, Integer)):
             return self._mod_int(moduli)
@@ -1907,7 +1908,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
                 if transformation:
                     U = U[:r]
         elif algorithm == "padic":
-            import matrix_integer_dense_hnf
+            from . import matrix_integer_dense_hnf
             self._init_mpz()
             if transformation:
                 H_m, U = matrix_integer_dense_hnf.hnf_with_transformation(self, proof=proof)
@@ -1958,7 +1959,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
         H_m.set_immutable()
         if pivots is None:
-            from matrix_integer_dense_hnf import pivots_of_hnf_matrix
+            from .matrix_integer_dense_hnf import pivots_of_hnf_matrix
             pivots = pivots_of_hnf_matrix(H_m)
         pivots = tuple(pivots)
         rank = len(pivots)
@@ -2058,8 +2059,8 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             sage: S = A.saturation(max_dets=2)
         """
         proof = get_proof_flag(proof, "linear_algebra")
-        import matrix_integer_dense_saturation
-        return matrix_integer_dense_saturation.saturation(self, p=p, proof=proof, max_dets=max_dets)
+        from .matrix_integer_dense_saturation import saturation
+        return saturation(self, p=p, proof=proof, max_dets=max_dets)
 
     def index_in_saturation(self, proof=None):
         """
@@ -2096,8 +2097,8 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             [1 1 1]
         """
         proof = get_proof_flag(proof, "linear_algebra")
-        import matrix_integer_dense_saturation
-        return matrix_integer_dense_saturation.index_in_saturation(self, proof=proof)
+        from .matrix_integer_dense_saturation import index_in_saturation
+        return index_in_saturation(self, proof=proof)
 
     def pivots(self):
         """
@@ -2220,7 +2221,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             if algorithm == 'linbox':
                 raise ValueError("linbox too broken -- currently Linbox SNF is disabled.")
             if algorithm == 'pari':
-                d = self._pari_().matsnf(0).sage()
+                d = self.__pari__().matsnf(0).sage()
                 i = d.count(0)
                 d.sort()
                 if i > 0:
@@ -2306,7 +2307,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
            :meth:`elementary_divisors`
         """
-        v = self._pari_().matsnf(1).sage()
+        v = self.__pari__().matsnf(1).sage()
         if self._ncols == 0: v[0] = self.matrix_space(ncols = self._nrows)(1)
         if self._nrows == 0: v[1] = self.matrix_space(nrows = self._ncols)(1)
         # need to reverse order of rows of U, columns of V, and both of D.
@@ -2387,7 +2388,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         if not self.is_square():
             raise ArithmeticError("frobenius matrix of non-square matrix not defined.")
 
-        v = self._pari_().matfrobenius(flag)
+        v = self.__pari__().matfrobenius(flag)
         if flag==0:
             return self.matrix_space()(v.sage())
         elif flag==1:
@@ -2542,7 +2543,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             K = self._rational_kernel_flint().transpose().saturation(proof=proof)
             format = 'computed-flint-int'
         elif algorithm == 'pari':
-            K = self._pari_().matkerint().mattranspose().sage()
+            K = self.__pari__().matkerint().mattranspose().sage()
             format = 'computed-pari-int'
         elif algorithm == 'padic':
             proof = kwds.pop('proof', None)
@@ -2569,13 +2570,13 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             [  6 -12   6]
             [ -3   6  -3]
         """
-        return self.parent()(self._pari_().matadjoint().sage())
+        return self.parent()(self.__pari__().matadjoint().sage())
 
     def _ntl_(self):
         r"""
         ntl.mat_ZZ representation of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = MatrixSpace(ZZ,200).random_element(x=-2, y=2)    # -2 to 2
             sage: A = a._ntl_()
@@ -2634,7 +2635,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
         n = self.nrows()
         # maybe should be /unimodular/ matrices ?
-        P = self._pari_()
+        P = self.__pari__()
         try:
             U = P.lllgramint()
         except (RuntimeError, ArithmeticError) as msg:
@@ -3260,8 +3261,8 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             ...
             ZeroDivisionError: The modulus cannot be zero
         """
-        import misc
-        return misc.matrix_integer_dense_rational_reconstruction(self, N)
+        from .misc import matrix_integer_dense_rational_reconstruction
+        return matrix_integer_dense_rational_reconstruction(self, N)
 
     def randomize(self, density=1, x=None, y=None, distribution=None, \
                   nonzero=False):
@@ -4435,7 +4436,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         """
         if self._nrows == 0:
             pivots = []
-            nonpivots = range(self._ncols)
+            nonpivots = list(xrange(self._ncols))
             X = self.__copy__()
             d = Integer(1)
             return pivots, nonpivots, X, d
@@ -4446,7 +4447,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             d = Integer(1)
             return pivots, nonpivots, X, d
 
-        from matrix_modn_dense_double import MAX_MODULUS
+        from .matrix_modn_dense_double import MAX_MODULUS
         A = self
         # Step 1: Compute the rank
 
@@ -4634,7 +4635,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         from sage.all import get_memory_usage
         cdef Py_ssize_t i, j, piv, n = self._nrows, m = self._ncols
 
-        import constructor
+        from .constructor import matrix
 
         # 0. Base case
         if self.nrows() == 0:
@@ -4645,13 +4646,13 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
                     row *= -1
             else:
                 pivots = []
-            return constructor.matrix([row]), pivots
+            return matrix([row]), pivots
 
 
         if row == 0:
             return self, pivots
         # 1. Create a new matrix that has row as the last row.
-        row_mat = constructor.matrix(row)
+        row_mat = matrix(row)
         A = self.stack(row_mat)
         # 2. Working from the left, clear each column to put
         #    the resulting matrix back in echelon form.
@@ -4701,7 +4702,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
                 # function with the top part of A (all but last row) and the
                 # row r.
 
-                zz = range(A.nrows()-1)
+                zz = list(xrange(A.nrows() - 1))
                 del zz[i]
                 top_mat = A.matrix_from_rows(zz)
                 new_pivots = list(pivots)
@@ -5245,8 +5246,8 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             [ 3.0  5.0]
         """
         if ring == RDF:
-            import change_ring
-            return change_ring.integer_to_real_double_dense(self)
+            from .change_ring import integer_to_real_double_dense
+            return integer_to_real_double_dense(self)
         else:
             raise NotImplementedError
 
@@ -5261,7 +5262,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
            None)
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(ZZ,3,3)
             sage: As = singular(A); As
@@ -5382,19 +5383,19 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
                         [nr - t for t in reversed(row_divs)])
         return A
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Return PARI C-library version of this matrix.
 
         EXAMPLES::
 
             sage: a = matrix(ZZ,2,2,[1,2,3,4])
-            sage: a._pari_()
+            sage: a.__pari__()
             [1, 2; 3, 4]
             sage: pari(a)
             [1, 2; 3, 4]
             sage: type(pari(a))
-            <type 'sage.libs.cypari2.gen.gen'>
+            <type 'sage.libs.cypari2.gen.Gen'>
         """
         return integer_matrix(self._matrix, self._nrows, self._ncols, 0)
 
@@ -5537,7 +5538,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             [1 2 3]
             [0 3 6]
         """
-        cdef gen H = integer_matrix(self._matrix, self._nrows, self._ncols, 1)
+        cdef Gen H = integer_matrix(self._matrix, self._nrows, self._ncols, 1)
         H = H.mathnf(flag)
         sig_on()
         B = self.extract_hnf_from_pari_matrix(H.g, flag, include_zero_rows)

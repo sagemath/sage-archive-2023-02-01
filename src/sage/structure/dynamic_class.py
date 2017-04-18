@@ -164,22 +164,20 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
         sage: from sage.misc.cachefunc import cached_function
         sage: from sage.structure.dynamic_class import dynamic_class
         sage: class Foo(object):
-        ...       "The Foo class"
-        ...       def __init__(self, x):
-        ...           self._x = x
-        ...       @cached_method
-        ...       def f(self):
-        ...           return self._x^2
-        ...       def g(self):
-        ...           return self._x^2
-        ...       @lazy_attribute
-        ...       def x(self):
-        ...           return self._x
-        ...
+        ....:     "The Foo class"
+        ....:     def __init__(self, x):
+        ....:         self._x = x
+        ....:     @cached_method
+        ....:     def f(self):
+        ....:         return self._x^2
+        ....:     def g(self):
+        ....:         return self._x^2
+        ....:     @lazy_attribute
+        ....:     def x(self):
+        ....:         return self._x
         sage: class Bar:
-        ...       def bar(self):
-        ...           return self._x^2
-        ...
+        ....:     def bar(self):
+        ....:         return self._x^2
 
     We now create a class FooBar which is a copy of Foo, except that it
     also inherits from Bar::

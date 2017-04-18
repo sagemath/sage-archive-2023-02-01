@@ -76,50 +76,50 @@ Given such "automatic" fans, you may wonder what are their rays and cones::
 The last output is not very illuminating. Let's try to improve it::
 
     sage: for cone in fan1: print(cone.rays())
-    M(1, 0,  0),
-    M(0, 1,  0),
-    M(0, 0, -1)
-    in 3-d lattice M
-    M( 0, 1,  0),
-    M(-1, 0,  0),
-    M( 0, 0, -1)
-    in 3-d lattice M
-    M(1,  0,  0),
-    M(0, -1,  0),
-    M(0,  0, -1)
-    in 3-d lattice M
-    M(-1,  0,  0),
-    M( 0, -1,  0),
-    M( 0,  0, -1)
-    in 3-d lattice M
-    M(1, 0, 0),
-    M(0, 1, 0),
-    M(0, 0, 1)
-    in 3-d lattice M
     M( 0, 1, 0),
     M( 0, 0, 1),
     M(-1, 0, 0)
-    in 3-d lattice M
-    M(1,  0, 0),
-    M(0,  0, 1),
-    M(0, -1, 0)
     in 3-d lattice M
     M( 0,  0, 1),
     M(-1,  0, 0),
     M( 0, -1, 0)
     in 3-d lattice M
+    M(-1,  0,  0),
+    M( 0, -1,  0),
+    M( 0,  0, -1)
+    in 3-d lattice M
+    M( 0, 1,  0),
+    M(-1, 0,  0),
+    M( 0, 0, -1)
+    in 3-d lattice M
+    M(1, 0,  0),
+    M(0, 1,  0),
+    M(0, 0, -1)
+    in 3-d lattice M
+    M(1, 0, 0),
+    M(0, 1, 0),
+    M(0, 0, 1)
+    in 3-d lattice M
+    M(1,  0, 0),
+    M(0,  0, 1),
+    M(0, -1, 0)
+    in 3-d lattice M
+    M(1,  0,  0),
+    M(0, -1,  0),
+    M(0,  0, -1)
+    in 3-d lattice M
 
 You can also do ::
 
     sage: for cone in fan1: print(cone.ambient_ray_indices())
-    (0, 1, 5)
-    (1, 3, 5)
-    (0, 4, 5)
-    (3, 4, 5)
-    (0, 1, 2)
     (1, 2, 3)
-    (0, 2, 4)
     (2, 3, 4)
+    (3, 4, 5)
+    (1, 3, 5)
+    (0, 1, 5)
+    (0, 1, 2)
+    (0, 2, 4)
+    (0, 4, 5)
 
 to see indices of rays of the fan corresponding to each cone.
 
@@ -244,9 +244,6 @@ from sage.geometry.cone import (Cone,
                                 is_Cone,
                                 normalize_rays)
 from sage.geometry.hasse_diagram import Hasse_diagram_from_incidences
-from sage.geometry.lattice_polytope import (LatticePolytope,
-                                            all_faces,
-                                            all_facet_equations)
 from sage.geometry.point_collection import PointCollection
 from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice
 from sage.geometry.toric_plotter import ToricPlotter
@@ -621,17 +618,17 @@ def FaceFan(polytope, lattice=None):
         M( 0, -1)
         in 2-d lattice M
         sage: for cone in P1xP1: print(cone.rays())
-        M(1,  0),
-        M(0, -1)
-        in 2-d lattice M
         M(-1,  0),
         M( 0, -1)
+        in 2-d lattice M
+        M( 0, 1),
+        M(-1, 0)
         in 2-d lattice M
         M(1, 0),
         M(0, 1)
         in 2-d lattice M
-        M( 0, 1),
-        M(-1, 0)
+        M(1,  0),
+        M(0, -1)
         in 2-d lattice M
 
     TESTS::
@@ -671,7 +668,7 @@ def FaceFan(polytope, lattice=None):
     if is_LatticePolytope(polytope):
         if any(d <= 0 for d in polytope.distances([0]*polytope.dim())):
             raise interior_point_error
-        cones = (f.ambient_vertex_indices() for f in polytope.facets_lp())
+        cones = (f.ambient_vertex_indices() for f in polytope.facets())
         rays = polytope.vertices()
         is_complete = polytope.dim() == polytope.lattice_dim()
     else:
@@ -723,12 +720,12 @@ def NormalFan(polytope, lattice=None):
         sage: P1xP1.rays()
         N( 1,  0),
         N( 0,  1),
-        N( 0, -1),
-        N(-1,  0)
+        N(-1,  0),
+        N( 0, -1)
         in 2-d lattice N
         sage: for cone in P1xP1: print(cone.rays())
-        N( 0, -1),
-        N(-1,  0)
+        N(-1,  0),
+        N( 0, -1)
         in 2-d lattice N
         N(1,  0),
         N(0, -1)
@@ -760,7 +757,7 @@ def NormalFan(polytope, lattice=None):
         if polytope.dim() != polytope.lattice_dim():
             raise dimension_error
         rays = polytope.facet_normals()
-        cones = (v.ambient_facet_indices() for v in polytope.faces_lp(dim=0))
+        cones = (v.ambient_facet_indices() for v in polytope.faces(dim=0))
     else:
         if polytope.dim() != polytope.ambient_dim():
             raise dimension_error
@@ -1239,8 +1236,6 @@ class RationalPolyhedralFan(IntegralRayCollection,
             0
             sage: f2 is f3
             False
-            sage: cmp(f1, 1) * cmp(1, f1)
-            -1
         """
         if is_Fan(right):
             return cmp(
@@ -2802,11 +2797,11 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: fan.is_smooth(codim=1)
             True
             sage: fan.generating_cone(0).rays()
-            N(-1,  1),
-            N(-1, -1)
+            N(-1, -1),
+            N(-1,  1)
             in 2-d lattice N
             sage: fan.generating_cone(0).rays().matrix().det()
-            2
+            -2
         """
         if codim is None or codim < 0:
             codim = 0

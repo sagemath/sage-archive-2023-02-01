@@ -193,7 +193,7 @@ def RandomBipartite(n1, n2, p):
         - ``p``   : Probability for an edge to exist
 
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: g=graphs.RandomBipartite(5,2,0.5)
         sage: g.vertices()
@@ -266,7 +266,7 @@ def RandomBoundedToleranceGraph(n):
 
     - ``n`` -- number of vertices of the random graph.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Every (bounded) tolerance graph is perfect. Hence, the
     chromatic number is equal to the clique number ::
@@ -363,7 +363,7 @@ def RandomNewmanWattsStrogatz(n, k, p, seed=None):
     -  ``seed`` - for the random number generator
 
 
-    EXAMPLE: We show the edge list of a random graph on 7 nodes with 2
+    EXAMPLES: We show the edge list of a random graph on 7 nodes with 2
     "nearest neighbors" and probability `p = 0.2`::
 
         sage: graphs.RandomNewmanWattsStrogatz(7, 2, 0.2).edges(labels=False)
@@ -417,7 +417,7 @@ def RandomHolmeKim(n, m, p, seed=None):
     nodes may not be all linked to a new node on the first iteration
     like the BA model.
 
-    EXAMPLE: We show the edge list of a random graph on 8 nodes with 2
+    EXAMPLES: We show the edge list of a random graph on 8 nodes with 2
     random edges per node and a probability `p = 0.5` of
     forming triangles.
 
@@ -469,7 +469,7 @@ def RandomIntervalGraph(n):
     - ``n`` (integer) -- the number of vertices in the random
       graph.
 
-    EXAMPLE:
+    EXAMPLES:
 
     As for any interval graph, the chromatic number is equal to
     the clique number ::
@@ -514,7 +514,7 @@ def RandomLobster(n, p, q, seed=None):
     -  ``seed`` - for the random number generator
 
 
-    EXAMPLE: We show the edge list of a random graph with 3 backbone
+    EXAMPLES: We show the edge list of a random graph with 3 backbone
     nodes and probabilities `p = 0.7` and `q = 0.3`::
 
         sage: graphs.RandomLobster(3, 0.7, 0.3).edges(labels=False)
@@ -549,12 +549,12 @@ def RandomTree(n):
 
     -  ``n`` - number of vertices in the tree
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: G = graphs.RandomTree(10)
         sage: G.is_tree()
         True
-        sage: G.show() # long
+        sage: G.show() # long time
 
     TESTS:
 
@@ -619,7 +619,7 @@ def RandomTreePowerlaw(n, gamma=3, tries=100, seed=None):
     -  ``seed`` - for the random number generator
 
 
-    EXAMPLE: We show the edge list of a random graph with 10 nodes and
+    EXAMPLES: We show the edge list of a random graph with 10 nodes and
     a power law exponent of 2.
 
     ::
@@ -657,7 +657,7 @@ def RandomRegular(d, n, seed=None):
     -  ``seed`` - for the random number generator
 
 
-    EXAMPLE: We show the edge list of a random graph with 8 nodes each
+    EXAMPLES: We show the edge list of a random graph with 8 nodes each
     of degree 3.
 
     ::
@@ -710,7 +710,7 @@ def RandomShell(constructor, seed=None):
     -  ``seed`` - for the random number generator
 
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: G = graphs.RandomShell([(10,20,0.8),(20,40,0.8)])
         sage: G.edges(labels=False)
@@ -742,7 +742,7 @@ def RandomToleranceGraph(n):
 
     - ``n`` -- number of vertices of the random graph.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Every tolerance graph is perfect. Hence, the chromatic number is equal to
     the clique number ::

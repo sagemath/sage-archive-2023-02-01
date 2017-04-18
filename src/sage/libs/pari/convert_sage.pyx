@@ -19,7 +19,7 @@ from sage.libs.cypari2.types cimport (GEN, typ, t_INT, t_FRAC, t_REAL, t_COMPLEX
 from sage.libs.cypari2.pari_instance cimport prec_words_to_bits
 from sage.libs.cypari2.paridecl cimport gel, inf_get_sign
 
-cpdef gen_to_sage(gen z, locals=None):
+cpdef gen_to_sage(Gen z, locals=None):
     """
     Convert a PARI gen to a Sage/Python object.
 
@@ -216,7 +216,7 @@ cpdef gen_to_sage(gen z, locals=None):
     cdef GEN g = z.g
     cdef long t = typ(g)
     cdef long tx, ty
-    cdef gen real, imag
+    cdef Gen real, imag
     cdef Py_ssize_t i, j, nr, nc
 
     if t == t_INT:

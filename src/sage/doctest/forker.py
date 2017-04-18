@@ -106,6 +106,11 @@ def init_sage():
     import sage.all_cmdline
     sage.interfaces.quit.invalidate_all()
 
+    # Disable cysignals debug messages in doctests: this is needed to
+    # make doctests pass when cysignals was built with debugging enabled
+    from cysignals.signals import set_debug_level
+    set_debug_level(0)
+
     # Use the rich output backend for doctest
     from sage.repl.rich_output import get_display_manager
     dm = get_display_manager()
@@ -1326,7 +1331,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: D = DictAsObject({'cputime':[],'walltime':[],'err':None})
             sage: DTR.update_results(D)
             0
-            sage: sorted(list(D.iteritems()))
+            sage: sorted(list(D.items()))
             [('cputime', [...]), ('err', None), ('failures', 0), ('walltime', [...])]
         """
         for key in ["cputime","walltime"]:

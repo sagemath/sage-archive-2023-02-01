@@ -486,7 +486,7 @@ dados:
 
 ::
 
-    sage: d.items()
+    sage: list(d.items())
     [(1, 5), ('sage', 17), (Integer Ring, Finite Field of size 7)]
 
 É comum iterar sobre os pares em um dicionário:
@@ -494,7 +494,7 @@ dados:
 :: 
 
     sage: d = {2:4, 3:9, 4:16}
-    sage: [a*b for a, b in d.iteritems()]
+    sage: [a*b for a, b in d.items()]
     [8, 27, 64]
 
 Um dicionário não possui ordem, como o exemplo acima mostra.
@@ -671,16 +671,6 @@ converter ambos os números para o mesmo tipo, se possível:
     False
     sage: 2/3 < 3/2;   3/2 < 3/1
     True
-    True
-
-Quase todos pares de objetos podem ser comparados; não se supõe que os
-objetos estejam equipados com uma ordem total.
-
-::
-
-    sage: 2 < CC(3.1,1)
-    True
-    sage: 5 < VectorSpace(QQ,3)   # output can be somewhat random
     True
 
 Use bool para desigualdades simbólicas:

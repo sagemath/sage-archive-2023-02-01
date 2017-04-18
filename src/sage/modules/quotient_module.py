@@ -201,8 +201,6 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
             -1
             sage: cmp(Q1, Q2)
             0
-            sage: cmp(Q1, 5) != 0
-            True
         """
         if not isinstance(other, FreeModule_ambient_field_quotient):
             return cmp(type(self), type(other))

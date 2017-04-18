@@ -38,6 +38,10 @@ AUTHOR:
 from cpython.object cimport PyTypeObject
 from sage.misc.classcall_metaclass cimport ClasscallMetaclass
 
+cdef extern from "inherit_comparison_impl.c":
+    void inherit_comparison(PyTypeObject* dst, PyTypeObject* src)
+
+
 cdef class InheritComparisonMetaclass(type):
     """
     If the type does not define ``__richcmp__`` nor ``__cmp__``,
@@ -78,9 +82,7 @@ cdef class InheritComparisonMetaclass(type):
         cdef PyTypeObject* t = <PyTypeObject*>self
         cdef PyTypeObject* b = t.tp_base
         if b:
-            if not t.tp_richcompare and not t.tp_compare:
-                t.tp_richcompare = b.tp_richcompare
-                t.tp_compare = b.tp_compare
+            inherit_comparison(t, b)
         super(InheritComparisonMetaclass, self).__init__(*args)
 
 class InheritComparisonClasscallMetaclass(InheritComparisonMetaclass, ClasscallMetaclass):

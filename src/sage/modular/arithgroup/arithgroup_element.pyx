@@ -103,7 +103,7 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         r"""
         For unpickling objects pickled with the old ArithmeticSubgroupElement class.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: si = unpickle_newobj(sage.modular.arithgroup.arithgroup_element.ArithmeticSubgroupElement, ())
             sage: x = matrix(ZZ,2,[1,1,0,1])
@@ -400,7 +400,7 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         r"""
         Fetch entries by direct indexing.
 
-        EXAMPLE::
+        EXAMPLES::
             sage: SL2Z([3,2,1,1])[0,0]
             3
         """
@@ -410,7 +410,7 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         r"""
         Return a hash value.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: hash(SL2Z.0)
             -4
@@ -421,7 +421,7 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         r"""
         Used for pickling.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: (SL2Z.1).__reduce__()
             (Modular Group SL(2,Z), (

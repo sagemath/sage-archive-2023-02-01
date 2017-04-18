@@ -254,7 +254,7 @@ class HeckeModuleElement(ModuleElement):
         Return True if this element is p-new. If p is None, return True if the
         element is new.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CuspForms(22, 2).0.is_new(2)
             False
@@ -270,7 +270,7 @@ class HeckeModuleElement(ModuleElement):
         Return True if this element is p-old. If p is None, return True if the
         element is old.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CuspForms(22, 2).0.is_old(11)
             False

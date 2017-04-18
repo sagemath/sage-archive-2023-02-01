@@ -4,11 +4,10 @@ Date:   Fri Nov 4 12:37:38 2016 +0100
 
     Use DEBUGMEM for stack size warnings
 
-diff --git a/src/gp/gp.c b/src/gp/gp.c
-index 678f1ba..af4ecdb 100644
---- a/src/gp/gp.c
-+++ b/src/gp/gp.c
-@@ -559,6 +559,7 @@ main(int argc, char **argv)
+diff -ru src/src/gp/gp.c b/src/gp/gp.c
+--- src/src/gp/gp.c	2017-01-30 17:36:54.045921458 +0100
++++ b/src/gp/gp.c	2017-01-30 17:37:07.225921164 +0100
+@@ -559,6 +559,7 @@
  #endif
    stdin_isatty = pari_stdin_isatty();
    pari_init_defaults();
@@ -16,11 +15,10 @@ index 678f1ba..af4ecdb 100644
    pari_library_path = DL_DFLT_NAME;
    pari_stack_init(&s_A,sizeof(*A),(void**)&A);
    pari_init_opts(1000000 * sizeof(long), 0, INIT_SIGm | INIT_noPRIMEm | INIT_noIMTm);
-diff --git a/src/language/init.c b/src/language/init.c
-index 6719f0a..8a697ee 100644
---- a/src/language/init.c
-+++ b/src/language/init.c
-@@ -774,7 +774,8 @@ parivstack_resize(ulong newsize)
+diff -ru src/src/language/init.c b/src/language/init.c
+--- src/src/language/init.c	2017-01-30 17:36:54.046921458 +0100
++++ b/src/language/init.c	2017-01-30 17:37:07.227921164 +0100
+@@ -793,7 +793,8 @@
    evalstate_reset();
    paristack_setsize(pari_mainstack->rsize, newsize);
    s = pari_mainstack->vsize ? pari_mainstack->vsize : pari_mainstack->rsize;
@@ -30,7 +28,7 @@ index 6719f0a..8a697ee 100644
    pari_init_errcatch();
    cb_pari_err_recover(-1);
  }
-@@ -788,7 +789,8 @@ paristack_newrsize(ulong newsize)
+@@ -807,7 +808,8 @@
      pari_mainstack_resize(pari_mainstack, newsize, vsize);
    evalstate_reset();
    s = pari_mainstack->rsize;
@@ -40,8 +38,8 @@ index 6719f0a..8a697ee 100644
    pari_init_errcatch();
    cb_pari_err_recover(-1);
  }
-@@ -802,7 +804,8 @@ paristack_resize(ulong newsize)
-   newsize = maxuu(minuu(newsize, vsize), pari_mainstack->size);
+@@ -821,7 +823,8 @@
+   if (newsize <= pari_mainstack->size) return;
    if (pari_mainstack_setsize(pari_mainstack, newsize))
    {
 -    pari_warn(warner, "increasing stack size to %lu", pari_mainstack->size);

@@ -838,7 +838,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         which are integers ). The key ``-1`` corresponds to the
         constant term.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
             sage: LF = p.linear_functions_parent()
@@ -862,7 +862,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         A base ring element. The coefficient of ``x`` in the linear
         function. Pass ``-1`` for the constant term.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: mip.<b> = MixedIntegerLinearProgram()
             sage: lf = -8 * b[3] + b[0] - 5;  lf
@@ -911,7 +911,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         r"""
         Defining the + operator
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
             sage: LF = p.linear_functions_parent()
@@ -928,7 +928,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         r"""
         Defining the - operator (opposite).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
             sage: LF = p.linear_functions_parent()
@@ -942,7 +942,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         r"""
         Defining the - operator (substraction).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
             sage: LF = p.linear_functions_parent()
@@ -961,7 +961,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         r"""
         Multiplication by scalars
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
             sage: LF = p.linear_functions_parent()
@@ -1087,7 +1087,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         r"""
         Returns a string version of the linear function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: LF = p.linear_functions_parent()
@@ -1401,7 +1401,7 @@ cdef class LinearConstraint(LinearFunctionOrConstraint):
       are the entries of a chained less-or-equal (``<=``) inequality
       or a chained equality.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: p = MixedIntegerLinearProgram()
         sage: b = p.new_variable()
@@ -1417,7 +1417,7 @@ cdef class LinearConstraint(LinearFunctionOrConstraint):
 
         See :class:`LinearConstraint`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
             sage: b = p.new_variable()
@@ -1620,7 +1620,7 @@ cdef class LinearConstraint(LinearFunctionOrConstraint):
 
         String.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
             sage: b = p.new_variable()

@@ -366,7 +366,7 @@ class ComplexBallField(UniqueRepresentation, Field):
         r"""
         Return 1 as the only generator is the imaginary unit.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CBF.ngens()
             1
@@ -377,7 +377,7 @@ class ComplexBallField(UniqueRepresentation, Field):
         r"""
         For i = 0, return the imaginary unit in this complex ball field.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CBF.0
             1.000000000000000*I
@@ -396,7 +396,7 @@ class ComplexBallField(UniqueRepresentation, Field):
         Return the tuple of generators of this complex ball field, i.e.
         ``(i,)``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CBF.gens()
             (1.000000000000000*I,)
@@ -1141,7 +1141,7 @@ cdef class ComplexBall(RingElement):
             sage: CBF(1/3, 1).mid().parent()
             Complex Field with 53 bits of precision
             sage: CBF('inf', 'nan').mid()
-            +infinity - NaN*I
+            +infinity + NaN*I
             sage: CBF('nan', 'inf').mid()
             NaN + +infinity*I
             sage: CBF('nan').mid()

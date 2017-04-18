@@ -534,7 +534,8 @@ class ReferenceBuilder(AllBuilder):
                          'default.css', 'doctools.js', 'favicon.ico',
                          'file.png', 'jquery.js', 'minus.png',
                          'pdf.png', 'plus.png', 'pygments.css',
-                         'sage.css', 'sageicon.png', 'sagelogo.png',
+                         'sage.css', 'sageicon.png',
+                         'logo_sagemath.svg', 'logo_sagemath_black.svg',
                          'searchtools.js', 'sidebar.js', 'underscore.js']
                 sage_makedirs(os.path.join(output_dir, '_static'))
                 for f in static_files:
@@ -1454,9 +1455,9 @@ def setup_parser():
     standard.add_option("--no-plot", dest="no_plot",
                         action="store_true",
                         help="do not include graphics auto-generated using the '.. plot' markup")
-    standard.add_option("--no-tests", dest="skip_tests", default=False,
-                        action="store_true",
-                        help="do not include TESTS blocks in the reference manual")
+    standard.add_option("--include-tests-blocks", dest="skip_tests", default=True,
+                        action="store_false",
+                        help="include TESTS blocks in the reference manual")
     standard.add_option("--no-pdf-links", dest="no_pdf_links",
                         action="store_true",
                         help="do not include PDF links in DOCUMENT 'website'; FORMATs: html, json, pickle, web")
@@ -1578,32 +1579,6 @@ class IntersphinxCache:
             return i
 
 
-def patch_domain_init():
-    """
-    Applies a monkey-patch to the __init__ method of the Domain class in
-    Sphinx, in order to work around a bug.
-
-    See https://trac.sagemath.org/ticket/21044 as well as
-    https://github.com/sphinx-doc/sphinx/pull/2816 for details about that
-    bug.
-    """
-
-    from sphinx.domains import Domain
-    import copy
-
-    orig_init = Domain.__init__
-
-    def __init__(self, *args, **kwargs):
-        orig_init(self, *args, **kwargs)
-
-        # Replace the original initial_data class attribute with a new
-        # deep-copy of itself, since the bug will cause the original
-        # initial_data to be modified in-place
-        self.__class__.initial_data = copy.deepcopy(self.initial_data)
-
-    Domain.__init__ = __init__
-
-
 def main():
     # Parse the command-line.
     parser = setup_parser()
@@ -1652,8 +1627,6 @@ def main():
         os.environ['SAGE_SKIP_TESTS_BLOCKS'] = 'True'
 
     ABORT_ON_ERROR = not options.keep_going
-
-    patch_domain_init()
 
     # Delete empty directories. This is needed in particular for empty
     # directories due to "git checkout" which never deletes empty

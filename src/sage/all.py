@@ -15,26 +15,21 @@ intended effect of your patch.
     sage: from sage import *
     sage: frames = [x for x in gc.get_objects() if inspect.isframe(x)]
 
-We exclude the known files and check to see that there are no others::
+We exclude the dependencies and check to see that there are no others 
+except for the known bad apples::
 
-    sage: import os
-    sage: allowed = [os.path.join("lib","python","threading.py")]
-    sage: allowed.append(os.path.join("lib","python","multiprocessing"))
-    sage: allowed.append(os.path.join("sage","doctest"))
-    sage: allowed.append(os.path.join("bin","sage-runtests"))
-    sage: allowed.append(os.path.join("site-packages","IPython"))
-    sage: allowed.append(os.path.join("bin","sage-ipython"))
-    sage: allowed.append("<ipython console>")
-    sage: allowed.append("<doctest sage.all[3]>")
-    sage: allowed.append(os.path.join("sage","combinat","species","generating_series.py"))
-    sage: for i in frames:
-    ....:     filename, lineno, funcname, linelist, indx = inspect.getframeinfo(i)
-    ....:     for nm in allowed:
-    ....:         if nm in filename:
-    ....:             break
-    ....:     else:
-    ....:         print(filename)
-    ....:
+    sage: allowed = [
+    ....:     'IPython', 'prompt_toolkit',     # sage dependencies
+    ....:     'threading', 'multiprocessing',  # doctest dependencies
+    ....:     '__main__', 'sage.doctest',      # doctesting
+    ....: ]
+    sage: def is_not_allowed(frame):
+    ....:     module = inspect.getmodule(frame)
+    ....:     if module is None: return False
+    ....:     return not any(module.__name__.startswith(name) for name in allowed)
+    sage: [inspect.getmodule(f).__name__ for f in frames if is_not_allowed(f)]
+    ['sage.combinat.species.generating_series']
+
 
 Check that the Sage Notebook is not imported at startup (see
 :trac:`15335`)::
@@ -144,8 +139,6 @@ from sage.dynamics.all   import *
 from sage.homology.all   import *
 
 from sage.quadratic_forms.all import *
-
-from sage.gsl.all        import *
 
 from sage.games.all      import *
 

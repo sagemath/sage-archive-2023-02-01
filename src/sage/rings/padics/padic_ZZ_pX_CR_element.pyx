@@ -331,7 +331,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                 self._set_from_mpq_both(xlift.value, aprec, rprec)
                 return
         if isinstance(x, GpElement):
-            x = x._pari_()
+            x = x.__pari__()
         if isinstance(x, pari_gen):
             if x.type() == "t_PADIC":
                 if x.variable() != self.prime_pow.prime:
@@ -501,7 +501,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         functions or methods decorated with ``@cached_function`` or
         ``@cached_method`` respectively.
 
-        EXAMPLE:
+        EXAMPLES:
 
         In the following example, ``a`` and ``b`` compare equal. They cannot
         have a meaningful hash value since then their hash value would have to

@@ -123,6 +123,7 @@ AUTHORS:
 
 # just used for handy .load, .save, etc.
 from __future__ import print_function, absolute_import
+from six.moves import range
 
 import inspect
 from sage.structure.sage_object import SageObject
@@ -168,18 +169,29 @@ class SloaneSequence(SageObject):
         """
         raise NotImplementedError
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         EXAMPLES::
 
-            sage: cmp(sloane.A000007,sloane.A000045) == 0
+            sage: sloane.A000007 == sloane.A000045
             False
-            sage: cmp(sloane.A000007,sloane.A000007) == 0
+            sage: sloane.A000007 == sloane.A000007
             True
         """
         if not isinstance(other, SloaneSequence):
-            return cmp(type(self), type(other))
-        return cmp(repr(self), repr(other))
+            return False
+        return repr(self) == repr(other)
+
+    def __ne__(self, other):
+        """
+        EXAMPLES::
+
+            sage: sloane.A000007 != sloane.A000045
+            True
+            sage: sloane.A000007 != sloane.A000007
+            False
+        """
+        return not self.__eq__(other)
 
     def _sage_src_(self):
         """
@@ -295,7 +307,7 @@ class SloaneSequence(SageObject):
         # The dirty work of generating indices is left to a range list
         # This could be slow but in practice seems fine
         # NOTE: n is a SLICE, not an index
-        return [ self(i) for i in range(0, LENGTH)[n] if i >= self.offset ]
+        return [self(i) for i in list(range(LENGTH))[n] if i >= self.offset]
 
 ########################################################################
 # II. Actual implementations of Sloane sequences.

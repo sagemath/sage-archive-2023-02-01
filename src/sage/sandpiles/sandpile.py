@@ -280,14 +280,14 @@ Working with sandpile divisors::
     {0: 4, 1: 0, 2: 0, 3: 1}
     sage: D.rank()
     2
-    sage: D.effective_div()
+    sage: sorted(D.effective_div(), key=str)
     [{0: 0, 1: 0, 2: 0, 3: 5},
-     {0: 0, 1: 4, 2: 0, 3: 1},
      {0: 0, 1: 0, 2: 4, 3: 1},
+     {0: 0, 1: 4, 2: 0, 3: 1},
      {0: 1, 1: 1, 2: 1, 3: 2},
      {0: 4, 1: 0, 2: 0, 3: 1}]
-    sage: D.effective_div(False)
-    [[0, 0, 0, 5], [0, 4, 0, 1], [0, 0, 4, 1], [1, 1, 1, 2], [4, 0, 0, 1]]
+    sage: sorted(D.effective_div(False))
+    [[0, 0, 0, 5], [0, 0, 4, 1], [0, 4, 0, 1], [1, 1, 1, 2], [4, 0, 0, 1]]
     sage: D.rank()
     2
     sage: D.rank(True)
@@ -318,6 +318,7 @@ Working with sandpile divisors::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import zip, range
 
 from collections import Counter
 from copy import deepcopy
@@ -333,7 +334,7 @@ from sage.functions.log import exp
 from sage.functions.other import binomial
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.graphs.all import DiGraph, Graph, graphs, digraphs
-from sage.gsl.probability_distribution import GeneralDiscreteDistribution
+from sage.probability.probability_distribution import GeneralDiscreteDistribution
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.interfaces.singular import singular
 from sage.matrix.constructor import matrix, identity_matrix
@@ -615,7 +616,7 @@ class Sandpile(DiGraph):
         del self._nonsink_vertices[self._sink_ind]
         # compute Laplacians:
         self._laplacian = self.laplacian_matrix(indegree=False)
-        temp = range(self.num_verts())
+        temp = list(range(self.num_verts()))
         del temp[self._sink_ind]
         self._reduced_laplacian = self._laplacian[temp,temp]
 
@@ -838,7 +839,7 @@ class Sandpile(DiGraph):
             sage: H.sink()
             (0, 0)
             sage: type(H.sink())
-            <type 'tuple'>
+            <... 'tuple'>
         """
         return self._sink
 
@@ -1557,7 +1558,7 @@ class Sandpile(DiGraph):
         r"""
         The minimal recurrent elements.  If the underlying graph is
         undirected, these are the recurrent elements of least degree.
-        If ``verbose`` is ``False``, the configurations are converted 
+        If ``verbose`` is ``False``, the configurations are converted
         to lists of integers.
 
         INPUT:
@@ -1964,7 +1965,7 @@ class Sandpile(DiGraph):
 
         The vertices 1 and 2 have been swapped::
 
-            sage: T.dict() 
+            sage: T.dict()
             {0: {1: 1}, 1: {0: 1, 2: 1}, 2: {0: 1}}
         """
 
@@ -3129,7 +3130,9 @@ class SandpileConfig(dict):
             sage: c + d
             {1: 4, 2: 4}
         """
-        return SandpileConfig(self.sandpile(),[i+j for i,j in zip(self.values(),other.values())])
+        return SandpileConfig(self.sandpile(),
+                              [i + j for i, j in zip(self.values(),
+                                                     other.values())])
 
     def __sub__(self, other):
         r"""
@@ -4500,7 +4503,9 @@ class SandpileDivisor(dict):
             sage: D + E
             {0: 4, 1: 4, 2: 4}
         """
-        return SandpileDivisor(self.sandpile(),[i+j for i,j in zip(self.values(),other.values())])
+        return SandpileDivisor(self.sandpile(),
+                               [i + j for i, j in zip(self.values(),
+                                                      other.values())])
 
     def __mul__(self, other):
         r"""
@@ -5340,13 +5345,13 @@ class SandpileDivisor(dict):
 
             sage: s = sandpiles.Complete(4)
             sage: D = SandpileDivisor(s,[4,2,0,0])
-            sage: D.polytope_integer_pts()
-            ((-2, -1, -1),
+            sage: sorted(D.polytope_integer_pts())
+            [(-2, -1, -1),
              (-1, -2, -1),
              (-1, -1, -2),
              (-1, -1, -1),
              (0, -1, -1),
-             (0, 0, 0))
+             (0, 0, 0)]
             sage: D = SandpileDivisor(s,[-1,0,0,0])
             sage: D.polytope_integer_pts()
             ()
@@ -5393,36 +5398,36 @@ class SandpileDivisor(dict):
 
             sage: s = sandpiles.Complete(4)
             sage: D = SandpileDivisor(s,[4,2,0,0])
-            sage: D.effective_div()
-            [{0: 0, 1: 6, 2: 0, 3: 0},
+            sage: sorted(D.effective_div(), key=str)
+            [{0: 0, 1: 2, 2: 0, 3: 4},
              {0: 0, 1: 2, 2: 4, 3: 0},
-             {0: 0, 1: 2, 2: 0, 3: 4},
+             {0: 0, 1: 6, 2: 0, 3: 0},
              {0: 1, 1: 3, 2: 1, 3: 1},
              {0: 2, 1: 0, 2: 2, 3: 2},
              {0: 4, 1: 2, 2: 0, 3: 0}]
-            sage: D.effective_div(False)
-            [[0, 6, 0, 0],
+            sage: sorted(D.effective_div(False))
+            [[0, 2, 0, 4],
              [0, 2, 4, 0],
-             [0, 2, 0, 4],
+             [0, 6, 0, 0],
              [1, 3, 1, 1],
              [2, 0, 2, 2],
              [4, 2, 0, 0]]
-            sage: D.effective_div(with_firing_vectors=True)
-            [({0: 0, 1: 6, 2: 0, 3: 0}, (0, -2, -1, -1)),
+            sage: sorted(D.effective_div(with_firing_vectors=True), key=str)
+            [({0: 0, 1: 2, 2: 0, 3: 4}, (0, -1, -1, -2)),
              ({0: 0, 1: 2, 2: 4, 3: 0}, (0, -1, -2, -1)),
-             ({0: 0, 1: 2, 2: 0, 3: 4}, (0, -1, -1, -2)),
+             ({0: 0, 1: 6, 2: 0, 3: 0}, (0, -2, -1, -1)),
              ({0: 1, 1: 3, 2: 1, 3: 1}, (0, -1, -1, -1)),
              ({0: 2, 1: 0, 2: 2, 3: 2}, (0, 0, -1, -1)),
              ({0: 4, 1: 2, 2: 0, 3: 0}, (0, 0, 0, 0))]
-            sage: a = _[0]
+            sage: a = _[2]
             sage: a[0].values()
             [0, 6, 0, 0]
             sage: vector(D.values()) - s.laplacian()*a[1]
             (0, 6, 0, 0)
-            sage: D.effective_div(False, True)
-            [([0, 6, 0, 0], (0, -2, -1, -1)),
+            sage: sorted(D.effective_div(False, True))
+            [([0, 2, 0, 4], (0, -1, -1, -2)),
              ([0, 2, 4, 0], (0, -1, -2, -1)),
-             ([0, 2, 0, 4], (0, -1, -1, -2)),
+             ([0, 6, 0, 0], (0, -2, -1, -1)),
              ([1, 3, 1, 1], (0, -1, -1, -1)),
              ([2, 0, 2, 2], (0, 0, -1, -1)),
              ([4, 2, 0, 0], (0, 0, 0, 0))]
@@ -5435,11 +5440,11 @@ class SandpileDivisor(dict):
         if with_firing_vectors:
             fv = [vector(list(i)[:S._sink_ind] + [0] + list(i)[S._sink_ind:]) for i in self._polytope_integer_pts]
         if verbose and with_firing_vectors:
-            return zip(eff,fv)
+            return list(zip(eff, fv))
         elif verbose:   # verbose without firing vectors
             return eff
         elif with_firing_vectors: # not verbose but with firing vectors
-            return zip([i.values() for i in eff],fv)
+            return list(zip([i.values() for i in eff], fv))
         else: # not verbose, no firing vectors
             return [i.values() for i in eff]
 
@@ -5829,7 +5834,7 @@ class SandpileDivisor(dict):
         """
         if with_rank_seq:
             rks = [self.weierstrass_rank_seq(v) for v in self._weierstrass_pts]
-            return zip(self._weierstrass_pts, rks)
+            return list(zip(self._weierstrass_pts, rks))
         return self._weierstrass_pts
 
     def weierstrass_div(self, verbose=True):
@@ -6722,7 +6727,7 @@ def admissible_partitions(S, k):
           {{0, 1}, {2}, {3}}],
          [{{0}, {1}, {2}, {3}}]]
         sage: for p in P:
-        ...    sum([partition_sandpile(S, i).betti(verbose=False)[-1] for i in p])
+        ....:  sum([partition_sandpile(S, i).betti(verbose=False)[-1] for i in p])
         doctest:...: DeprecationWarning:
         Importing partition_sandpile from here is deprecated. If you need to use it, please import it directly from sage.sandpiles.sandpile
         See http://trac.sagemath.org/18618 for details.
@@ -6769,7 +6774,7 @@ def partition_sandpile(S, p):
         sage: S = sandpiles.Cycle(4)
         sage: P = [admissible_partitions(S, i) for i in [2,3,4]]
         sage: for p in P:
-        ...    sum([partition_sandpile(S, i).betti(verbose=False)[-1] for i in p])
+        ....:  sum([partition_sandpile(S, i).betti(verbose=False)[-1] for i in p])
         6
         8
         3

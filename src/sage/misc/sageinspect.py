@@ -114,6 +114,7 @@ defined Cython code, and with rather tricky argument lines::
 """
 from __future__ import print_function, absolute_import
 from six.moves import range
+from six import iteritems
 
 import ast
 import inspect
@@ -413,7 +414,7 @@ class SageArgSpecVisitor(ast.NodeVisitor):
             sage: [vis(n) for n in ['True', 'False', 'None', 'foo', 'bar']]
             [True, False, None, 'foo', 'bar']
             sage: [type(vis(n)) for n in ['True', 'False', 'None', 'foo', 'bar']]
-            [<type 'bool'>, <type 'bool'>, <type 'NoneType'>, <... 'str'>, <... 'str'>]
+            [<... 'bool'>, <... 'bool'>, <type 'NoneType'>, <... 'str'>, <... 'str'>]
         """
         what = node.id
         if what == 'None':
@@ -755,7 +756,7 @@ def _grep_first_pair_of_parentheses(s):
     count. If no matching pair of parentheses can be found, a
     ``SyntaxError`` is raised.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.misc.sageinspect import _grep_first_pair_of_parentheses
         sage: code = 'def foo(a="\'):", b=4):\n    return'
@@ -1608,15 +1609,15 @@ def _sage_getdoc_unformatted(obj):
         ''
 
     Construct an object raising an exception when accessing the
-    ``_sage_doc_`` attribute. This should not give an error in
+    ``__doc__`` attribute. This should not give an error in
     ``_sage_getdoc_unformatted``, see :trac:`19671`::
 
         sage: class NoSageDoc(object):
         ....:     @property
-        ....:     def _sage_doc_(self):
+        ....:     def __doc__(self):
         ....:         raise Exception("no doc here")
         sage: obj = NoSageDoc()
-        sage: obj._sage_doc_
+        sage: obj.__doc__
         Traceback (most recent call last):
         ...
         Exception: no doc here
@@ -1631,14 +1632,9 @@ def _sage_getdoc_unformatted(obj):
     if obj is None:
         return ''
     try:
-        getdoc = obj._sage_doc_
-    except Exception:
         r = obj.__doc__
-    else:
-        try:
-            r = getdoc()
-        except TypeError:  # This can occur if obj is a class
-            r = obj.__doc__
+    except Exception:
+        return ''
 
     # Check if the __doc__ attribute was actually a string, and
     # not a 'getset_descriptor' or similar.
@@ -2114,7 +2110,7 @@ def sage_getsourcelines(obj):
     # First, we deal with nested classes. Their name contains a dot, and we
     # have a special function for that purpose.
     if (not hasattr(obj, '__class__')) or hasattr(obj,'__metaclass__'):
-        # That hapens for ParentMethods
+        # That happens for ParentMethods
         # of categories
         if '.' in obj.__name__ or '.' in getattr(obj,'__qualname__',''):
             return _sage_getsourcelines_name_with_dot(obj)
@@ -2227,7 +2223,7 @@ def sage_getvariablename(self, omit_underscore_names=True):
     """
     result = []
     for frame in inspect.stack():
-        for name, obj in frame[0].f_globals.iteritems():
+        for name, obj in iteritems(frame[0].f_globals):
             if obj is self:
                 result.append(name)
     if len(result) == 1:
@@ -2273,7 +2269,7 @@ def __internal_tests():
         sage: sage_getdef(sage.rings.integer.Integer.factor, obj_name='factor')
         "factor(algorithm='pari', proof=None, limit=None, int_=False, verbose=0)"
 
-    This used to be problematic, but was fixed in #10094::
+    This used to be problematic, but was fixed in :trac:`10094`::
 
         sage: sage_getsource(sage.rings.integer.Integer.__init__)
         '    def __init__(self, x=None, base=0):\n...'

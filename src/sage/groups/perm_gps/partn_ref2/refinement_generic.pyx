@@ -180,11 +180,14 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
-include 'sage/groups/perm_gps/partn_ref/data_structures_pyx.pxi'
+from __future__ import absolute_import, print_function
 
 from copy import copy
+
+from sage.groups.perm_gps.partn_ref.data_structures cimport *
+include "sage/data_structures/bitset.pxi"
+
 
 cdef tuple PS_refinement(PartitionStack * part, long *refine_vals, long *best,
                          int begin, int end,

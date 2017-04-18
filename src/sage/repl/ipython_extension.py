@@ -400,14 +400,28 @@ class SageCustomizations(object):
         import atexit
         atexit.register(quit)
 
+    @staticmethod
+    def all_globals():
+        """
+        Return a Python module containing all globals which should be
+        made available to the user.
+
+        EXAMPLES::
+
+            sage: from sage.repl.ipython_extension import SageCustomizations
+            sage: SageCustomizations.all_globals()
+            <module 'sage.all_cmdline' ...>
+        """
+        from sage import all_cmdline
+        return all_cmdline
+
     def init_environment(self):
         """
         Set up Sage command-line environment
         """
         # import outside of cell so we don't get a traceback
-        from sage import all_cmdline
         from sage.repl.user_globals import initialize_globals
-        initialize_globals(all_cmdline, self.shell.user_ns)
+        initialize_globals(self.all_globals(), self.shell.user_ns)
         self.run_init()
 
     def run_init(self):
@@ -441,6 +455,24 @@ class SageCustomizations(object):
         for s in (self.shell.input_splitter, self.shell.input_transformer_manager):
             s.physical_line_transforms.insert(1, SagePromptTransformer())
             s.python_line_transforms.append(SagePreparseTransformer())
+
+
+class SageJupyterCustomizations(SageCustomizations):
+    @staticmethod
+    def all_globals():
+        """
+        Return a Python module containing all globals which should be
+        made available to the user when running the Jupyter notebook.
+
+        EXAMPLES::
+
+            sage: from sage.repl.ipython_extension import SageJupyterCustomizations
+            sage: SageJupyterCustomizations.all_globals()
+            <module 'sage.repl.ipython_kernel.all_jupyter' ...>
+        """
+        from .ipython_kernel import all_jupyter
+        return all_jupyter
+
 
 # from http://stackoverflow.com/questions/4103773/efficient-way-of-having-a-function-only-execute-once-in-a-loop
 from functools import wraps

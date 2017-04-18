@@ -156,6 +156,7 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
 
+from sage.structure.sage_object import rich_to_bool
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import FieldElement, parent
 from sage.structure.coerce import py_scalar_to_element
@@ -345,8 +346,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             False
         """
         if parent(self) is not parent(other):
-            from sage.structure.element import get_coercion_model
-            cm = get_coercion_model()
+            from sage.structure.element import coercion_model as cm
             try:
                 self, other = cm.canonical_coercion(self, other)
             except TypeError:
@@ -671,7 +671,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
 
     _mpfr_ = _eval_real_
 
-    def _cmp_(self, other):
+    def _richcmp_(self, other, op):
         r"""
         Comparison (using the complex embedding).
 
@@ -697,7 +697,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             False
         """
         if self._obj == other._obj:
-            return 0
+            return rich_to_bool(op, 0)
 
         s = self.real_part()
         o = other.real_part()
@@ -715,7 +715,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             R = RealIntervalField(prec)
             sa = s._eval_real_(R)
             oa = o._eval_real_(R)
-        return sa._cmp_(oa)
+        return sa._richcmp_(oa, op)
 
     def denominator(self):
         r"""
@@ -780,7 +780,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         TESTS::
 
             sage: type(E(3).is_rational())
-            <type 'bool'>
+            <... 'bool'>
         """
         return self._obj.IsRat().sage()
 

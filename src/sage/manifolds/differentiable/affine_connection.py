@@ -818,7 +818,7 @@ class AffineConnection(SageObject):
           coefficients w.r.t. which are to be kept; if ``None``, the default
           frame of the connection's domain is assumed.
 
-        EXAMPLE:
+        EXAMPLES:
 
         We first create two sets of connection coefficients::
 
@@ -1169,7 +1169,7 @@ class AffineConnection(SageObject):
 
         - instance of :class:`AffineConnection` representing the restriction.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Restriction of a connection on a 2-dimensional manifold::
 

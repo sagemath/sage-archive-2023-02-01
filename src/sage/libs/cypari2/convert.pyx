@@ -152,7 +152,7 @@ cpdef gen_to_integer(Gen x):
     Check some corner cases::
 
         sage: for s in [1, -1]:
-        ....:     for a in [1, 2^31, 2^32, 2^63, 2^64]:
+        ....:     for a in [1, 2**31, 2**32, 2**63, 2**64]:
         ....:         for b in [-1, 0, 1]:
         ....:             Nstr = str(s * (a + b))
         ....:             N1 = gen_to_integer(pari(Nstr))  # Convert via PARI

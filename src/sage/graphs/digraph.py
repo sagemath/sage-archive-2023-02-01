@@ -467,8 +467,8 @@ class DiGraph(GenericGraph):
             sage: DiGraph(a,sparse=True).adjacency_matrix() == a
             True
 
-        The positions are copied when the DiGraph is built from
-        another DiGraph or from a Graph ::
+        The positions are copied when the DiGraph is built from another DiGraph
+        or from a Graph ::
 
             sage: g = DiGraph(graphs.PetersenGraph())
             sage: h = DiGraph(g)
@@ -476,6 +476,15 @@ class DiGraph(GenericGraph):
             True
             sage: g.get_pos() == graphs.PetersenGraph().get_pos()
             True
+
+        The position dictionary is not the input one (:trac:`22424`)::
+
+            sage: my_pos = {0:(0,0), 1:(1,1)}
+            sage: D = DiGraph([[0,1], [(0,1)]], pos=my_pos)
+            sage: my_pos == D._pos
+            True
+            sage: my_pos is D._pos
+            False
 
         Invalid sequence of edges given as an input (they do not all
         have the same length)::
@@ -695,7 +704,7 @@ class DiGraph(GenericGraph):
             self.allow_loops(loops,check=False)
             if weighted is None: weighted = data.weighted()
             if data.get_pos() is not None:
-                pos = data.get_pos().copy()
+                pos = data.get_pos()
             self.add_vertices(data.vertex_iterator())
             self.add_edges(data.edge_iterator())
             self.name(data.name())
@@ -798,7 +807,7 @@ class DiGraph(GenericGraph):
         # weighted, multiedges, loops, verts and num_verts should now be set
         self._weighted = weighted
 
-        self._pos = pos
+        self._pos = copy(pos)
 
         if format != 'DiGraph' or name is not None:
             self.name(name)
@@ -3030,7 +3039,7 @@ class DiGraph(GenericGraph):
 
         - ``v`` -- a vertex
 
-        EXAMPLE:
+        EXAMPLES:
 
         In the symmetric digraph of a graph, the strongly connected components are the connected
         components::
@@ -3054,7 +3063,7 @@ class DiGraph(GenericGraph):
         r"""
         Returns the strongly connected components as a list of subgraphs.
 
-        EXAMPLE:
+        EXAMPLES:
 
         In the symmetric digraph of a graph, the strongly connected components are the connected
         components::
@@ -3080,7 +3089,7 @@ class DiGraph(GenericGraph):
         is an edge from a component `C_1` to a component `C_2` if there is
         an edge from one to the other in `G`.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Such a digraph is always acyclic ::
 
@@ -3162,7 +3171,7 @@ class DiGraph(GenericGraph):
         r"""
         Returns whether the current ``DiGraph`` is strongly connected.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The circuit is obviously strongly connected ::
 

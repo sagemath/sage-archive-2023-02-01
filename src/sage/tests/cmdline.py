@@ -35,6 +35,7 @@ test.spyx
 -q
 --R
 --root
+--rst2ipynb
 --rst2txt
 --rst2sws
 --sh
@@ -640,13 +641,120 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret > 0
         True
 
+    Test ``sage --rst2ipynb file.rst`` on a ReST file::
+
+        sage: s = "::\n\n    sage: 2^10\n    1024\n    sage: 2 + 2\n    4"
+        sage: input = tmp_filename(ext='.rst')
+        sage: with open(input, 'w') as F:
+        ....:     F.write(s)
+        sage: L = ["sage", "--rst2ipynb", input]
+        sage: (out, err, ret) = test_executable(L) # optional - rst2ipynb
+        sage: print(out)                           # optional - rst2ipynb
+        {
+         "nbformat_minor": ...,
+         "nbformat": ...,
+         "cells": [
+          {
+           "source": [
+            "$$\n",
+            "\\def\\CC{\\bf C}\n",
+            "\\def\\QQ{\\bf Q}\n",
+            "\\def\\RR{\\bf R}\n",
+            "\\def\\ZZ{\\bf Z}\n",
+            "\\def\\NN{\\bf N}\n",
+            "$$"
+           ],
+           "cell_type": "markdown",
+           "metadata": {}
+          },
+          {
+           "execution_count": null,
+           "cell_type": "code",
+           "source": [
+            "2^10"
+           ],
+           "outputs": [
+            {
+             "execution_count": 1,
+             "output_type": "execute_result",
+             "data": {
+              "text/plain": [
+               "1024"
+              ]
+             },
+             "metadata": {}
+            }
+           ],
+           "metadata": {}
+          },
+          {
+           "execution_count": null,
+           "cell_type": "code",
+           "source": [
+            "2 + 2"
+           ],
+           "outputs": [
+            {
+             "execution_count": 1,
+             "output_type": "execute_result",
+             "data": {
+              "text/plain": [
+               "4"
+              ]
+             },
+             "metadata": {}
+            }
+           ],
+           "metadata": {}
+          }
+         ],
+         "metadata": {
+          "kernelspec": {
+           "display_name": "sagemath",
+           "name": "sagemath"
+          }
+         }
+        }
+        sage: err                   # optional - rst2ipynb
+        ''
+        sage: ret                   # optional - rst2ipynb
+        0
+
+    Test ``sage --rst2ipynb file.rst file.ipynb`` on a ReST file::
+
+        sage: s = "::\n\n    sage: 2^10\n    1024\n    sage: 2 + 2\n    4"
+        sage: input = tmp_filename(ext='.rst')
+        sage: output = tmp_filename(ext='.ipynb')
+        sage: with open(input, 'w') as F:
+        ....:     F.write(s)
+        sage: L = ["sage", "--rst2ipynb", input, output]
+        sage: test_executable(L)              # optional - rst2ipynb
+        ('', '', 0)
+        sage: print(open(output, 'r').read()) # optional - rst2ipynb
+        {
+         "nbformat_minor": ...,
+         "nbformat": ...,
+         "cells": [
+          {
+           "source": [
+            "$$\n",
+            "\\def\\CC{\\bf C}\n",
+            "\\def\\QQ{\\bf Q}\n",
+        ...
+         "metadata": {
+          "kernelspec": {
+           "display_name": "sagemath",
+           "name": "sagemath"
+          }
+         }
+        }
+
     Test ``sage --rst2txt file.rst`` on a ReST file::
 
         sage: s = "::\n\n    sage: 2^10\n    1024\n    sage: 2 + 2\n    4"
         sage: input = tmp_filename(ext='.rst')
-        sage: F = open(input, 'w')
-        sage: F.write(s)
-        sage: F.close()
+        sage: with open(input, 'w') as F:
+        ....:     F.write(s)
         sage: (out, err, ret) = test_executable(["sage", "--rst2txt", input])
         sage: print(out)
         {{{id=0|
@@ -670,9 +778,8 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: s = "::\n\n    sage: 2^10\n    1024\n    sage: 2 + 2\n    4"
         sage: input = tmp_filename(ext='.rst')
         sage: output = tmp_filename(ext='.txt')
-        sage: F = open(input, 'w')
-        sage: F.write(s)
-        sage: F.close()
+        sage: with open(input, 'w') as F:
+        ....:     F.write(s)
         sage: test_executable(["sage", "--rst2txt", input, output])
         ('', '', 0)
         sage: print(open(output, 'r').read())
@@ -693,9 +800,8 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: s = "Thetitle\n--------\n\n::\n\n    sage: 2^10\n    1024\n    sage: 2 + 2\n    4"
         sage: input = tmp_filename(ext='.rst')
         sage: output = tmp_filename(ext='.sws')
-        sage: F = open(input, 'w')
-        sage: F.write(s)
-        sage: F.close()
+        sage: with open(input, 'w') as F:
+        ....:     F.write(s)
         sage: test_executable(["sage", "--rst2sws", input, output])
         ('', '', 0)
         sage: import tarfile

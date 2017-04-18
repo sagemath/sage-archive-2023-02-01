@@ -1570,7 +1570,7 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
         """
         Return the `p`-adic L-series of this modular symbol.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve('37a')
             sage: phi = E.pollack_stevens_modular_symbol()

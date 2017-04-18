@@ -582,7 +582,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         r"""
         Return the dual module.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M')
             sage: XM = M.vector_field_module()
@@ -609,7 +609,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
           :class:`~sage.manifolds.differentiable.automorphismfield_group.AutomorphismFieldGroup`
           representing `\mathrm{GL}(\mathcal{X}(U,\Phi))`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M')
             sage: XM = M.vector_field_module()
@@ -1548,7 +1548,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
           :class:`~sage.manifolds.differentiable.automorphismfield_group.AutomorphismFieldParalGroup`
           representing `\mathrm{GL}(\mathcal{X}(U,\Phi))`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable

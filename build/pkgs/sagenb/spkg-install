@@ -6,6 +6,11 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
+if [ "$SAGE_PYTHON3" = yes ]; then
+    echo "Skipping SageNB since it is not Python3 compatible"
+    exit 0
+fi
+
 cd src
 
 # Install a flat package (not an egg), which is the same as how pip

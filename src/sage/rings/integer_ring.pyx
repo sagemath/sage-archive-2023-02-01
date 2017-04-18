@@ -51,6 +51,7 @@ include "cysignals/signals.pxi"
 
 from cpython.int cimport *
 from cpython.list cimport *
+from cpython.object cimport Py_NE
 
 import sage.rings.infinity
 import sage.rings.rational
@@ -64,7 +65,9 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.structure.coerce cimport is_numpy_type
 from sage.structure.parent_gens import ParentWithGens
 from sage.structure.parent cimport Parent
+from sage.structure.sage_object cimport rich_to_bool
 from sage.structure.sequence import Sequence
+
 from sage.misc.misc_c import prod
 from sage.misc.randstate cimport randstate, current_randstate, SAGE_RAND_MAX
 from sage.libs.ntl.convert cimport ZZ_to_mpz
@@ -369,25 +372,16 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: ZZ != QQ
             True
         """
-        return (<Parent>left)._richcmp(right, op)
+        if left is right:
+            return rich_to_bool(op, 0)
 
-    cpdef int _cmp_(left, right) except -2:
-        """
-        Compare ``left`` and ``right``.
-
-        TESTS::
-
-            sage: from sage.rings.integer_ring import IntegerRing_class
-            sage: IntegerRing_class._cmp_(ZZ,ZZ)
-            0
-            sage: IntegerRing_class._cmp_(ZZ,QQ)
-            -1
-        """
         if isinstance(right, IntegerRing_class):
-            return 0
+            return rich_to_bool(op, 0)
+
         if isinstance(right, sage.rings.rational_field.RationalField):
-            return -1
-        return -1  # arbitrary
+            return rich_to_bool(op, -1)
+
+        return op == Py_NE
 
     def _repr_(self):
         """
@@ -633,25 +627,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         else:
             None
 
-
-    def is_subring(self, other):
-        r"""
-        Return ``True`` if `\ZZ` is a subring of other in a natural way.
-
-        Every ring of characteristic `0` contains `\ZZ` as a subring.
-
-        EXAMPLES::
-
-            sage: ZZ.is_subring(QQ)
-            True
-        """
-        if not ring.is_Ring(other):
-            raise TypeError("other must be a ring")
-        if other.characteristic() == 0:
-            return True
-        else:
-            return False
-
     def random_element(self, x=None, y=None, distribution=None):
         r"""
         Return a random integer.
@@ -864,7 +839,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         See :meth:`sage.structure.parent._repr_option` for details.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ZZ._repr_option('element_is_atomic')
             True
@@ -1208,7 +1183,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         - an ``n``-th root of unity in `\ZZ`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ZZ.zeta()
             -1
@@ -1280,6 +1255,18 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             ZZ
         """
         return "ZZ"
+
+    def _polymake_init_(self):
+        r"""
+        Return the polymake representation of the integer ring.
+
+        EXAMPLES::
+
+            sage: polymake(ZZ)    # optional - polymake # indirect doctest
+            Integer
+
+        """
+        return '"Integer"'
 
     def _sage_input_(self, sib, coerced):
         r"""

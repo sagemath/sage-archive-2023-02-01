@@ -108,7 +108,7 @@ cdef class PowerSeries_poly(PowerSeries):
         """
         Return the underlying polynomial of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<t> = GF(7)[[]]
             sage: f = 3 - t^3 + O(t^5)
@@ -791,7 +791,7 @@ cdef class PowerSeries_poly(PowerSeries):
         Otherwise, we call _derivative(var) on each coefficient of
         the series.
 
-        SEE ALSO::
+        SEEALSO::
 
             self.derivative()
 
@@ -1020,7 +1020,7 @@ cdef class PowerSeries_poly(PowerSeries):
 
         # first, try reversion with pari; this is faster than Lagrange inversion
         try:
-            f2 = f._pari_()
+            f2 = f.__pari__()
             g = f2.serreverse()
             return PowerSeries_poly(f.parent(), g.Vec(-out_prec), out_prec)
         except (TypeError,ValueError,AttributeError,PariError):

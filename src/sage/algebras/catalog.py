@@ -11,6 +11,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 
 - :class:`algebras.Brauer <sage.combinat.diagram_algebras.BrauerAlgebra>`
 - :class:`algebras.Clifford <sage.algebras.clifford_algebra.CliffordAlgebra>`
+- :class:`algebras.ClusterAlgebra <sage.algebras.cluster_algebra.ClusterAlgebra>`
 - :class:`algebras.Descent <sage.combinat.descent_algebra.DescentAlgebra>`
 - :class:`algebras.DifferentialWeyl
   <sage.algebras.weyl_algebra.DifferentialWeylAlgebra>`
@@ -30,6 +31,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :class:`algebras.Moebius <sage.combinat.posets.moebius_algebra.MoebiusAlgebra>`
 - :class:`algebras.Jordan
   <sage.algebras.jordan_algebra.JordanAlgebra>`
+- :class:`algebras.Lie <sage.algebras.lie_algebras.lie_algebra.LieAlgebra>`
 - :class:`algebras.NilCoxeter
   <sage.algebras.nil_coxeter_algebra.NilCoxeterAlgebra>`
 - :class:`algebras.OrlikSolomon
@@ -59,6 +61,7 @@ from sage.algebras.group_algebra import GroupAlgebra as Group
 from sage.algebras.clifford_algebra import CliffordAlgebra as Clifford
 from sage.algebras.clifford_algebra import ExteriorAlgebra as Exterior
 from sage.algebras.weyl_algebra import DifferentialWeylAlgebra as DifferentialWeyl
+from sage.algebras.lie_algebras.lie_algebra import LieAlgebra as Lie
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.algebras.nil_coxeter_algebra', 'NilCoxeterAlgebra', 'NilCoxeter')

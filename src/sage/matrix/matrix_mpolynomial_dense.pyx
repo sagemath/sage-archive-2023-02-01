@@ -238,7 +238,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
         The performed column swaps can be accessed via
         :meth:`swapped_columns`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y> = QQ[]
             sage: C = random_matrix(R, 2, 2, terms=2)

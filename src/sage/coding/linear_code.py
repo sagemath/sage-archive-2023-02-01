@@ -202,9 +202,9 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 # python3
-from __future__ import division, print_function
-from __future__ import absolute_import
+from __future__ import division, print_function, absolute_import
 from six.moves import range
+from six import iteritems
 
 from sage.modules.module import Module
 from sage.categories.modules import Modules
@@ -1499,7 +1499,7 @@ class AbstractLinearCode(Module):
         `C` are linearly independent (cf. definition 3 from [BS2011]_ or 9.8.1 from
         [BH12]).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: C = codes.GolayCode(GF(2), False)
             sage: C.is_projective()
@@ -2780,7 +2780,7 @@ class AbstractLinearCode(Module):
                         weights[wt].append(c)
                 weights.pop(0)
                 AutGps = []
-                for wt, words in weights.iteritems():
+                for wt, words in iteritems(weights):
                     M = MatrixStruct(matrix(words))
                     autgp = M.automorphism_group()
                     L = [[j+1 for j in gen] for gen in autgp[0]]
@@ -3626,6 +3626,7 @@ def LinearCodeFromVectorSpace(V, d=None):
       code, if known. This is an optional parameter.
 
     .. note::
+
         The veracity of the minimum distance ``d``, if provided, is not
         checked.
 
@@ -4483,11 +4484,11 @@ class LinearCodeSyndromeDecoder(Decoder):
     the covering radius of the code, this decoder is complete, i.e. it decodes
     every vector in the ambient space.
 
-    .. NOTE:
+    .. NOTE::
 
-    Constructing the lookup table takes time exponential in the length of the
-    code and the size of the code's base field. Afterwards, the individual
-    decodings are fast.
+        Constructing the lookup table takes time exponential in the length of the
+        code and the size of the code's base field. Afterwards, the individual
+        decodings are fast.
 
     INPUT:
 

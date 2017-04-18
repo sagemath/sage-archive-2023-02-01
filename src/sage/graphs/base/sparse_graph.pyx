@@ -249,7 +249,7 @@ cdef class SparseGraph(CGraph):
 
         O(  (nverts + extra_vertices)*expected_degree + num_arcs  ).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: S = SparseGraph(nverts = 10, expected_degree = 3, extra_vertices = 10)
@@ -446,7 +446,7 @@ cdef class SparseGraph(CGraph):
 
          - ``u, v`` -- non-negative integers, must be in self
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: G = SparseGraph(5)
@@ -495,7 +495,7 @@ cdef class SparseGraph(CGraph):
         INPUT:
          - ``u, v`` - integers
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: G = SparseGraph(5)
@@ -626,7 +626,7 @@ cdef class SparseGraph(CGraph):
         INPUT:
          - ``u, v`` - integers
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: G = SparseGraph(5)
@@ -979,7 +979,7 @@ cdef class SparseGraph(CGraph):
          - ``u, v`` - non-negative integers, must be in self
          - ``l`` - a positive integer label, or zero for no label
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: G = SparseGraph(5)
@@ -1042,7 +1042,7 @@ cdef class SparseGraph(CGraph):
          - positive integer - indicates that there is a label on ``(u, v)``.
          - 0 - either the arc ``(u, v)`` is unlabeled, or there is no arc at all.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: G = SparseGraph(5)
@@ -1122,7 +1122,7 @@ cdef class SparseGraph(CGraph):
         Gives the labels of all arcs ``(u, v)``. An unlabeled arc is interpreted as
         having label 0.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: G = SparseGraph(5)
@@ -1218,7 +1218,7 @@ cdef class SparseGraph(CGraph):
          - ``u, v`` - non-negative integers, must be in self
          - ``l`` - a positive integer label, or zero for no label
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: G = SparseGraph(5)
@@ -1285,7 +1285,7 @@ cdef class SparseGraph(CGraph):
          - ``u, v`` -- non-negative integers, must be in self
          - ``l`` -- a positive integer label, or zero for no label
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: G = SparseGraph(5)
@@ -1402,7 +1402,7 @@ cdef class SparseGraphBackend(CGraphBackend):
         """
         Initialize a sparse graph with n vertices.
 
-        EXAMPLE:
+        EXAMPLES:
 
             sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: D.add_edge(0,1,None,False)
@@ -1446,7 +1446,7 @@ cdef class SparseGraphBackend(CGraphBackend):
          - ``l`` - the edge label
          - ``directed`` - if False, also add ``(v,u)``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: D.add_edge(0,1,None,False)
@@ -1502,7 +1502,7 @@ cdef class SparseGraphBackend(CGraphBackend):
            ``(u,v)`` or ``(u,v,l)``
          - ``directed`` - if False, add ``(v,u)`` as well as ``(u,v)``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: D.add_edges([(0,1), (2,3), (4,5), (5,6)], False)
@@ -1532,7 +1532,7 @@ cdef class SparseGraphBackend(CGraphBackend):
          - ``l`` - the edge label
          - ``directed`` - if False, also delete ``(v,u,l)``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: D.add_edges([(0,1), (2,3), (4,5), (5,6)], False)
@@ -1612,7 +1612,7 @@ cdef class SparseGraphBackend(CGraphBackend):
 
          - ``u,v`` - the vertices of the edge
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: D.add_edges([(0,1,1), (2,3,2), (4,5,3), (5,6,2)], False)
@@ -1648,7 +1648,7 @@ cdef class SparseGraphBackend(CGraphBackend):
          - ``u,v`` - the vertices of the edge
          - ``l`` - the edge label, or ``None``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: D.add_edges([(0,1), (2,3), (4,5), (5,6)], False)
@@ -1677,7 +1677,7 @@ cdef class SparseGraphBackend(CGraphBackend):
         - ``vertices`` - a list of vertex labels
         - ``labels`` - boolean, whether to return labels as well
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: G.add_edge(1,2,3,False)
@@ -1765,7 +1765,7 @@ cdef class SparseGraphBackend(CGraphBackend):
         - ``vertices`` - a list of vertex labels
         - ``labels`` - boolean, whether to return labels as well
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: G.add_edge(1,2,3,True)
@@ -1818,7 +1818,7 @@ cdef class SparseGraphBackend(CGraphBackend):
          - ``vertices`` - a list of vertex labels
          - ``labels`` - boolean, whether to return labels as well
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: G.add_edge(1,2,3,True)
@@ -1900,7 +1900,7 @@ cdef class SparseGraphBackend(CGraphBackend):
          - ``l`` - the edge label
          - ``directed`` - if False, also set ``(v,u)`` with label ``l``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: G.add_edge(1,2,None,True)

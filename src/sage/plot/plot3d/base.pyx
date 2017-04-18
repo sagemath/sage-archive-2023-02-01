@@ -57,9 +57,7 @@ include "point_c.pxi"
 
 from sage.interfaces.tachyon import tachyon_rt
 
-# import the double infinity constant
-cdef extern from "math.h":
-     enum: INFINITY
+from libc.math cimport INFINITY
 
 
 default_texture = Texture()
@@ -329,7 +327,7 @@ cdef class Graphics3d(SageObject):
             sage: out
             OutputSceneCanvas3d container
             sage: out.canvas3d.get()
-            "[{vertices:[{x:0,y:0,z:-1},..., color:'#6666ff', opacity:1}]"
+            '[{"vertices":[{"x":0,"y":0,"z":-1},..., "color":"#6666ff", "opacity":1}]'
         """
         opts = self._process_viewing_options(kwds)
         aspect_ratio = opts['aspect_ratio'] # this necessarily has a value now
@@ -358,24 +356,32 @@ cdef class Graphics3d(SageObject):
 
         EXAMPLES::
 
-            sage: sphere()._rich_repr_threejs()
+            sage: sphere(online=True)._rich_repr_threejs()
             OutputSceneThreejs container
         """
-        options = {}
-        options['aspect_ratio'] = [float(i) for i in kwds.get('aspect_ratio', [1,1,1])]
-        options['axes'] = kwds.get('axes', False)
-        options['axes_labels'] = kwds.get('axes_labels', ['x','y','z'])
-        options['decimals'] = int(kwds.get('decimals', 2))
-        options['frame'] = kwds.get('frame', True)
+        options = self._process_viewing_options(kwds)
+        # Threejs specific options
+        options.setdefault('axes_labels', ['x','y','z'])
+        options.setdefault('decimals', 2)
+        options.setdefault('online', False)
+        # Normalization of options values for proper JSONing
+        options['aspect_ratio'] = [float(i) for i in options['aspect_ratio']]
+        options['decimals'] = int(options['decimals'])
 
         if not options['frame']:
             options['axes_labels'] = False
 
-        lights = "[{x:0, y:0, z:10}, {x:0, y:0, z:-10}]"
+        from sage.repl.rich_output import get_display_manager
+        scripts = get_display_manager().threejs_scripts(options['online'])
 
         b = self.bounding_box()
-        bounds = "[{{x:{}, y:{}, z:{}}}, {{x:{}, y:{}, z:{}}}]".format(
+        bounds = '[{{"x":{}, "y":{}, "z":{}}}, {{"x":{}, "y":{}, "z":{}}}]'.format(
                  b[0][0], b[0][1], b[0][2], b[1][0], b[1][1], b[1][2])
+
+        from sage.plot.colors import Color
+        lights = '[{{"x":-5, "y":3, "z":0, "color":"{}", "parent":"camera"}}]'.format(
+                 Color(.5,.5,.5).html_color())
+        ambient = '{{"color":"{}"}}'.format(Color(.5,.5,.5).html_color())
 
         import json
         points, lines, texts = [], [], []
@@ -385,19 +391,19 @@ cdef class Graphics3d(SageObject):
             if hasattr(p, 'loc'):
                 color = p._extra_kwds.get('color', 'blue')
                 opacity = p._extra_kwds.get('opacity', 1)
-                points.append("{{point:{}, size:{}, color:'{}', opacity:{}}}".format(
+                points.append('{{"point":{}, "size":{}, "color":"{}", "opacity":{}}}'.format(
                               json.dumps(p.loc), p.size, color, opacity))
             if hasattr(p, 'points'):
                 color = p._extra_kwds.get('color', 'blue')
                 opacity = p._extra_kwds.get('opacity', 1)
                 thickness = p._extra_kwds.get('thickness', 1)
-                lines.append("{{points:{}, color:'{}', opacity:{}, linewidth:{}}}".format(
+                lines.append('{{"points":{}, "color":"{}", "opacity":{}, "linewidth":{}}}'.format(
                              json.dumps(p.points), color, opacity, thickness))
             if hasattr(p, '_trans'):
                 if hasattr(p.all[0], 'string'):
                     m = p.get_transformation().get_matrix()
-                    texts.append("{{text:'{}', x:{}, y:{}, z:{}}}".format(
-                                  p.all[0].string, m[0,3], m[1,3], m[2,3]))
+                    texts.append('{{"text":"{}", "x":{}, "y":{}, "z":{}}}'.format(
+                                 p.all[0].string, m[0,3], m[1,3], m[2,3]))
 
         points = '[' + ','.join(points) + ']'
         lines = '[' + ','.join(lines) + ']'
@@ -408,14 +414,17 @@ cdef class Graphics3d(SageObject):
         surfaces = '[' + ','.join(surfaces) + ']'
 
         from sage.env import SAGE_EXTCODE
-        filename = os.path.join(SAGE_EXTCODE, 'threejs', 'threejs_template.html')
-        f = open(filename, 'r')
-        html = f.read()
-        f.close()
+        with open(os.path.join(
+                SAGE_EXTCODE, 'threejs', 'threejs_template.html')) as f:
+            html = f.read()
 
-        html = html.replace('SAGE_OPTIONS', json.dumps(options))
-        html = html.replace('SAGE_LIGHTS', lights)
+        html = html.replace('SAGE_SCRIPTS', scripts)
+        js_options = dict((key, options[key]) for key in
+            ['aspect_ratio', 'axes', 'axes_labels', 'decimals', 'frame'])
+        html = html.replace('SAGE_OPTIONS', json.dumps(js_options))
         html = html.replace('SAGE_BOUNDS', bounds)
+        html = html.replace('SAGE_LIGHTS', lights)
+        html = html.replace('SAGE_AMBIENT', ambient)
         html = html.replace('SAGE_TEXTS', str(texts))
         html = html.replace('SAGE_POINTS', str(points))
         html = html.replace('SAGE_LINES', str(lines))
@@ -2066,7 +2075,7 @@ class Graphics3dGroup(Graphics3d):
 
             sage: G = sphere() + sphere((1, 2, 3))
             sage: G.json_repr(G.default_render_params())
-            [[["{vertices:..."]], [["{vertices:..."]]]
+            [[['{"vertices":...']], [['{"vertices":...']]]
         """
         return [g.json_repr(render_params) for g in self.all]
 
@@ -2284,7 +2293,7 @@ class TransformGroup(Graphics3dGroup):
 
             sage: G = cube().rotateX(0.2)
             sage: G.json_repr(G.default_render_params())
-            [["{vertices:[{x:0.5,y:0.589368,z:0.390699},..."]]
+            [['{"vertices":[{"x":0.5,"y":0.589368,"z":0.390699},...']]
         """
 
         render_params.push_transform(self.get_transformation())

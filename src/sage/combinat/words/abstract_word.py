@@ -338,7 +338,7 @@ class Word_class(SageObject):
 
             boolean
 
-        .. NOTE:
+        .. NOTE::
 
             This function will not terminate if self and other are equal
             infinite words!
@@ -424,7 +424,7 @@ class Word_class(SageObject):
 
             boolean
 
-        .. NOTE:
+        .. NOTE::
 
             This function will not terminate if self and other are equal
             infinite words!

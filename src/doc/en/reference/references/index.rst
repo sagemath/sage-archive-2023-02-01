@@ -76,6 +76,10 @@ REFERENCES:
 .. [Ap1997] \T. Apostol, Modular functions and Dirichlet series in
             number theory, Springer, 1997 (2nd ed), section 3.7--3.9.
 
+.. [APR2001] George E. Andrews, Peter Paule, Axel Riese,
+             *MacMahon's partition analysis: the Omega package*,
+             European J. Combin. 22 (2001), no. 7, 887--904.
+
 .. [Ar2006] D. Armstrong. *Generalized noncrossing partitions and
             combinatorics of Coxeter groups*. Mem. Amer. Math. Soc., 2006.
 
@@ -347,6 +351,11 @@ REFERENCES:
              Secret. Cryptology ePrint Archive, Report 2013/164. 2013.
              2013/164. http://eprint.iacr.org/2013/164
 
+.. [CGMRV16] A. Conte, R. Grossi, A. Marino, R. Rizzi, L. Versari,
+             "Directing Road Networks by Listing Strong Orientations.",
+             Combinatorial Algorithms, Proceedings of 27th International Workshop,
+             IWOCA 2016, August 17-19, 2016, pages 83--95.
+
 .. [Ch2012] Cho-Ho Chu. *Jordan Structures in Geometry and
             Analysis*. Cambridge University Press, New
             York. 2012. IBSN 978-1-107-01617-0.
@@ -488,6 +497,10 @@ REFERENCES:
 .. [Deh2011] \P. Dehornoy, Le probleme d'isotopie des tresses, in
              Leçons mathématiques de Bordeaux, vol. 4, pages 259-300,
              Cassini (2011).
+
+.. [deG2000] Willem A. de Graaf. *Lie Algebras: Theory and Algorithms*.
+             North-Holland Mathematical Library. (2000).
+             Elsevier Science B.V.
 
 .. [Deo1987a] \V. Deodhar, A splitting criterion for the Bruhat
               orderings on Coxeter groups. Comm. Algebra,
@@ -821,6 +834,10 @@ REFERENCES:
              Introduction to Mathematical
              Cryptography*. Springer, 2008.
 
+.. [HOLM2016] Tristan Holmes and \J. \B. Nation,
+              *Inflation of finite lattices along all-or-nothing sets*.
+              http://www.math.hawaii.edu/~jb/inflation.pdf
+
 .. [HR2016]  Clemens Heuberger and Roswitha Rissner, "Computing
              `J`-Ideals of a Matrix Over a Principal Ideal Domain",
              :arxiv:`1611.10308`, 2016.
@@ -909,6 +926,11 @@ REFERENCES:
 
 .. [Ke2008] \B. Keller, *Cluster algebras, quiver representations
             and triangulated categories*, :arXiv:`0807.1960`.
+
+.. [KK1995] Victor Klee and Peter Kleinschmidt,
+            *Convex polytopes and related complexes.*, in \R. L. Graham,
+            \M. Grötschel, \L Lovász, *Handbook of combinatorics*,
+            Vol. 1, Chapter 18, 1995
 
 .. [KL2008] Chris Kurth and Ling Long, "Computations with finite index
             subgroups of `{\rm PSL}_2(\ZZ)` using Farey symbols",
@@ -1119,9 +1141,16 @@ REFERENCES:
 
 **M**
 
+.. [Mat2002] Jiří Matousek, "Lectures on Discrete Geometry", Springer,
+             2002
+
 .. [Ma2009] Sarah Mason, An Explicit Construction of Type A Demazure
             Atoms, Journal of Algebraic Combinatorics, Vol. 29,
             (2009), No. 3, p.295-313. :arXiv:`0707.4267`
+
+.. [Mac1915] Percy A. MacMahon, *Combinatory Analysis*,
+             Cambridge University Press (1915--1916).
+             (Reprinted: Chelsea, New York, 1960).
 
 .. [MAR2009] \H. Molina-Abril and P. Réal, *Homology computation using
              spanning trees* in Progress in Pattern Recognition, Image
@@ -1640,8 +1669,11 @@ REFERENCES:
              constrained optimization. ACM Transactions on
              Mathematical Software, Vol 23, Num. 4, pp.550--560, 1997.
 
-.. [Zie1998] G. Ziegler. *Shelling polyhedral 3-balls and
+.. [Zie1998] G. M. Ziegler. *Shelling polyhedral 3-balls and
              4-polytopes*. Discrete Comput. Geom. 19 (1998), 159-174.
+
+.. [Zie2007] G. M. Ziegler. *Lectures on polytopes*, Volume
+             152 of Graduate Texts in Mathematics, 7th printing of 1st edition, Springer, 2007.
 
 .. [Zor2008] \A. Zorich "Explicit Jenkins-Strebel representatives of
              all strata of Abelian and quadratic differentials",

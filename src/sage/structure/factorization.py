@@ -181,6 +181,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from six.moves import range
+from six import iteritems
 
 from sage.structure.sage_object import SageObject
 from sage.structure.element import Element
@@ -899,7 +900,7 @@ class Factorization(SageObject):
         return s
 
     @cached_method
-    def _pari_(self):
+    def __pari__(self):
         """
         Return the PARI factorization matrix corresponding to ``self``.
 
@@ -1088,7 +1089,7 @@ class Factorization(SageObject):
             s = {}
             for a in set(d1).union(set(d2)):
                 s[a] = d1.get(a,0) + d2.get(a,0)
-            return Factorization(list(s.iteritems()), unit=self.unit()*other.unit())
+            return Factorization(list(iteritems(s)), unit=self.unit()*other.unit())
         else:
             return Factorization(list(self) + list(other), unit=self.unit()*other.unit())
 
@@ -1239,7 +1240,7 @@ class Factorization(SageObject):
             s = {}
             for a in set(d1).intersection(set(d2)):
                 s[a] = min(d1[a],d2[a])
-            return Factorization(list(s.iteritems()))
+            return Factorization(list(iteritems(s)))
         else:
             raise NotImplementedError("gcd is not implemented for non-commutative factorizations")
 
@@ -1281,7 +1282,7 @@ class Factorization(SageObject):
             s = {}
             for a in set(d1).union(set(d2)):
                 s[a] = max(d1.get(a,0),d2.get(a,0))
-            return Factorization(list(s.iteritems()))
+            return Factorization(list(iteritems(s)))
         else:
             raise NotImplementedError("lcm is not implemented for non-commutative factorizations")
 

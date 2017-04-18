@@ -694,7 +694,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             sage: SteenrodAlgebra(generic=True, profile=[[3,2,1], []])._has_nontrivial_profile()
             True
 
-        Check that a bug in #11832 has been fixed::
+        Check that a bug in :trac:`11832` has been fixed::
 
             sage: P3 = SteenrodAlgebra(p=3, profile=(lambda n: Infinity, lambda n: 1))
             sage: P3._has_nontrivial_profile()
@@ -1973,7 +1973,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             #
             # Comm: similarly (Q, C) with Q as above and C a tuple
             # with each entry in t is of the form ((s,t), n),
-            # corresponding to c_{s,t}^n.  here c_{s,t} is the the
+            # corresponding to c_{s,t}^n.  here c_{s,t} is the
             # iterated commutator defined by c_{s,1} = P(p^s) and
             # c_{s,t} = [P(p^{s+t-1}), c_{s,t-1}].
             q_deg = q_degree(t[0], prime=p)

@@ -1029,7 +1029,7 @@ def largest_available_k(n,t=2):
 
     - ``t`` -- (integer; default: 2) -- strength of the array
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: designs.orthogonal_arrays.largest_available_k(0)
         +Infinity
@@ -1622,7 +1622,7 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
         - :func:`~sage.combinat.designs.database.OA_11_640`
         - :func:`~sage.combinat.designs.database.OA_15_896`
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.orthogonal_arrays import OA_n_times_2_pow_c_from_matrix
         sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
@@ -2120,7 +2120,7 @@ class OAMainFunctions():
 
         - ``k,n,t`` (integers) -- parameters of the orthogonal array.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: designs.orthogonal_arrays.explain_construction(9,565)
             "Wilson's construction n=23.24+13 with master design OA(9+1,23)"
@@ -2189,7 +2189,7 @@ class OAMainFunctions():
 
             :meth:`is_available`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: designs.orthogonal_arrays.exists(3,6) # indirect doctest
             True
@@ -2213,7 +2213,7 @@ class OAMainFunctions():
 
             :meth:`exists`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: designs.orthogonal_arrays.is_available(3,6) # indirect doctest
             True

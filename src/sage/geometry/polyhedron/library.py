@@ -1375,7 +1375,7 @@ class Polytopes():
             sage: p600 = polytopes.six_hundred_cell()
             sage: p600
             A 4-dimensional polyhedron in RDF^4 defined as the convex hull of 120 vertices
-            sage: p600.f_vector()
+            sage: p600.f_vector()  # long time ~2sec
             (1, 120, 720, 1200, 600, 1)
 
         Computation with exact coordinates is currently too long to be useful::

@@ -1077,7 +1077,7 @@ class ScalarField(CommutativeAlgebraElement):
 
         Use :meth:`coord_function` instead.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: c_xy.<x,y> = M.chart()

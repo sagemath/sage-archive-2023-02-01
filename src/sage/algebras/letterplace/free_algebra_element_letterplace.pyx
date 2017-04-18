@@ -135,7 +135,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         """
         Iterates over the pairs "tuple of exponents, coefficient".
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<w,x,y,z> = FreeAlgebra(GF(3), implementation='letterplace')
             sage: p = x*y-z^2
@@ -314,7 +314,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         Generators may have a positive integral degree weight. All
         elements must be weighted homogeneous.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: ((x+y+z)^3).degree()
@@ -330,7 +330,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         """
         Return the commutative polynomial that is used internally to represent this free algebra element.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: ((x+y-z)^2).letterplace_polynomial()
@@ -350,7 +350,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         """
         The leading monomial of this free algebra element.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: ((2*x+3*y-4*z)^2*(5*y+6*z)).lm()
@@ -367,7 +367,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         The leading term (monomial times coefficient) of this free algebra
         element.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: ((2*x+3*y-4*z)^2*(5*y+6*z)).lt()
@@ -384,7 +384,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         The leading coefficient of this free algebra element, as element
         of the base ring.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: ((2*x+3*y-4*z)^2*(5*y+6*z)).lc()
@@ -421,7 +421,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         A free algebra element `p` divides another one `q` if there are
         free algebra elements `s` and `t` such that `spt = q`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace', degrees=[2,1,3])
             sage: ((2*x*y+z)^2*z).lm()
@@ -657,7 +657,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         the argument is a twosided Groebner basis up to the degree
         of this element.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: I = F*[x*y+y*z,x^2+x*y-y*x-y^2]*F
@@ -670,7 +670,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
             sage: G.ring() is F.current_ring()
             True
 
-        Since the element `p` is of degree 5, it is no surrprise
+        Since the element `p` is of degree 5, it is no surprise
         that its reductions with respect to the original generators
         of `I` (of degree 2), or with respect to `G` (Groebner basis
         with degree bound 4), or with respect to the Groebner basis
@@ -729,7 +729,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         The normal form is computed by reduction with respect
         to a Groebnerbasis of `I` with degree bound `deg(x)`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: I = F*[x*y+y*z,x^2+x*y-y*x-y^2]*F

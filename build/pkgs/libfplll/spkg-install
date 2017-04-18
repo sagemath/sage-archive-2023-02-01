@@ -10,6 +10,9 @@ cd src || exit
 
 INCLUDES="-I$SAGE_LOCAL/include/"
 
+if [ "$UNAME" = "CYGWIN" ]; then
+    CXXFLAGS="$CXXFLAGS -std=gnu++11"
+fi
 CXXFLAGS="$CXXFLAGS -fPIC $INCLUDES -L$SAGE_LOCAL/lib"
 CPPFLAGS="$INCLUDES"
 
@@ -54,7 +57,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Now building fplll..."
-$MAKE V=1
+$MAKE
 if [ $? -ne 0 ]; then
     echo "Error building fplll"
     exit 1

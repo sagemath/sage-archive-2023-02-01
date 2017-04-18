@@ -895,7 +895,7 @@ def CremonaRichmondConfiguration():
     For more information, see the
     :wikipedia:`Cremona-Richmond_configuration`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: H = designs.CremonaRichmondConfiguration(); H
         Incidence structure with 15 points and 15 blocks
@@ -923,7 +923,7 @@ def WittDesign(n):
     `W_{12}`, the unique (up to isomorphism) `5-(12,6,1)` design.  The other
     values of `n` return a block design derived from these.
 
-    .. NOTE:
+    .. NOTE::
 
         Requires GAP's Design package (included in the gap_packages Sage spkg).
 

@@ -3078,12 +3078,12 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         It is possible to act on points of ``HyperbolicPlane()``.
 
-        .. NOTE:
+        .. NOTE::
 
-        There is a 1-1 correspondence between hyperbolic
-        fixed points and the corresponding primitive element
-        in the stabilizer. The action in the two cases above
-        is compatible with this correspondence.
+            There is a 1-1 correspondence between hyperbolic
+            fixed points and the corresponding primitive element
+            in the stabilizer. The action in the two cases above
+            is compatible with this correspondence.
 
         INPUT:
 

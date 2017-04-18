@@ -853,7 +853,13 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         if basis._domain == self._domain:
             # Adding components on the tensor field domain:
-            return FreeModuleTensor.add_comp(self, basis=basis)
+            # We perform a backup of the restrictions, since
+            # they are deleted by FreeModuleTensor.add_comp (which
+            # invokes del_derived()), and restore them afterwards
+            restrictions_save = self._restrictions.copy()
+            comp = FreeModuleTensor.add_comp(self, basis=basis)
+            self._restrictions = restrictions_save
+            return comp
 
         # Adding components on a subdomain:
         #
@@ -1342,30 +1348,30 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
                 raise ValueError("the argument 'dest_map' is not compatible " +
                                  "with the ambient domain of " +
                                  "the {}".format(self))
-            #!# First one tries to derive the restriction from a tighter domain:
-            #for dom, rst in self._restrictions.items():
-            #    if subdomain.is_subset(dom):
-            #        self._restrictions[subdomain] = rst.restrict(subdomain)
-            #        break
+            # First one tries to derive the restriction from a tighter domain:
+            for dom, rst in self._restrictions.items():
+                if subdomain.is_subset(dom):
+                    self._restrictions[subdomain] = rst.restrict(subdomain)
+                    break
             # If this fails, the restriction is created from scratch:
-            #else:
-            smodule = subdomain.vector_field_module(dest_map=dest_map)
-            resu = smodule.tensor(self._tensor_type, name=self._name,
-                                  latex_name=self._latex_name, sym=self._sym,
-                                  antisym=self._antisym,
-                                  specific_type=type(self))
-            for frame in self._components:
-                for sframe in subdomain._covering_frames:
-                    if sframe in frame._subframes:
-                        comp_store = self._components[frame]._comp
-                        scomp = resu._new_comp(sframe)
-                        scomp_store = scomp._comp
-                        # the components of the restriction are evaluated
-                        # index by index:
-                        for ind, value in comp_store.items():
-                            scomp_store[ind] = value.restrict(subdomain)
-                        resu._components[sframe] = scomp
-            self._restrictions[subdomain] = resu
+            else:
+                smodule = subdomain.vector_field_module(dest_map=dest_map)
+                resu = smodule.tensor(self._tensor_type, name=self._name,
+                                      latex_name=self._latex_name, sym=self._sym,
+                                      antisym=self._antisym,
+                                      specific_type=type(self))
+                for frame in self._components:
+                    for sframe in subdomain._covering_frames:
+                        if sframe in frame._subframes:
+                            comp_store = self._components[frame]._comp
+                            scomp = resu._new_comp(sframe)
+                            scomp_store = scomp._comp
+                            # the components of the restriction are evaluated
+                            # index by index:
+                            for ind, value in comp_store.items():
+                                scomp_store[ind] = value.restrict(subdomain)
+                            resu._components[sframe] = scomp
+                self._restrictions[subdomain] = resu
         return self._restrictions[subdomain]
 
     def __call__(self, *args):

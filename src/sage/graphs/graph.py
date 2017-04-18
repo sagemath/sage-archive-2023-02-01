@@ -928,13 +928,21 @@ class Graph(GenericGraph):
             sage: Graph(a,sparse=True).adjacency_matrix() == a
             True
 
-        The positions are copied when the graph is built from
-        another graph ::
+        The positions are copied when the graph is built from another graph ::
 
             sage: g = graphs.PetersenGraph()
             sage: h = Graph(g)
             sage: g.get_pos() == h.get_pos()
             True
+
+        The position dictionary is not the input one (:trac:`22424`)::
+
+            sage: my_pos = {0:(0,0), 1:(1,1)}
+            sage: G = Graph([[0,1], [(0,1)]], pos=my_pos)
+            sage: my_pos == G._pos
+            True
+            sage: my_pos is G._pos
+            False
 
         Or from a DiGraph ::
 
@@ -1166,7 +1174,7 @@ class Graph(GenericGraph):
             self.allow_loops(loops, check=False)
             self.allow_multiple_edges(multiedges, check=False)
             if data.get_pos() is not None:
-                pos = data.get_pos().copy()
+                pos = data.get_pos()
             self.name(data.name())
             self.add_vertices(data.vertex_iterator())
             self.add_edges(data.edge_iterator())
@@ -1265,7 +1273,7 @@ class Graph(GenericGraph):
         if weighted   is None: weighted   = False
         self._weighted = getattr(self,'_weighted',weighted)
 
-        self._pos = pos
+        self._pos = copy(pos)
 
         if format != 'Graph' or name is not None:
             self.name(name)
@@ -1746,7 +1754,7 @@ class Graph(GenericGraph):
             sage: g.is_forest(certificate=True)
             (True, None)
             sage: (2*g + graphs.PetersenGraph() + g).is_forest(certificate=True)
-            (False, [63, 62, 61, 60, 64])
+            (False, [62, 63, 68, 66, 61])
         """
         number_of_connected_components = len(self.connected_components())
         isit = (self.num_verts() ==
@@ -2176,7 +2184,7 @@ class Graph(GenericGraph):
           ``certificate = True``, the subgraph found is returned
           instead of ``False``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Is the Petersen Graph even-hole-free ::
 
@@ -2286,7 +2294,7 @@ class Graph(GenericGraph):
           ``certificate = True``, the subgraph found is returned
           instead of ``False``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Is the Petersen Graph odd-hole-free ::
 
@@ -2445,7 +2453,7 @@ class Graph(GenericGraph):
             triangle. This method is generally faster than standard matrix
             multiplication.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The Petersen Graph is triangle-free::
 
@@ -2908,7 +2916,7 @@ class Graph(GenericGraph):
         a subgraph of ``self`` isomorphic to an odd hole or an odd
         antihole if any, and ``None`` otherwise.
 
-        EXAMPLE:
+        EXAMPLES:
 
         A Bipartite Graph is always perfect ::
 
@@ -3373,7 +3381,7 @@ class Graph(GenericGraph):
             - This method assumes the graph is connected.
             - This algorithm works in O(m).
 
-        EXAMPLE:
+        EXAMPLES:
 
         For a 2-regular graph, a strong orientation gives to each vertex
         an out-degree equal to 1::
@@ -3488,7 +3496,7 @@ class Graph(GenericGraph):
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Given a complete bipartite graph `K_{n,m}`, the maximum out-degree
         of an optimal orientation is `\left\lceil \frac {nm} {n+m}\right\rceil`::
@@ -3638,9 +3646,9 @@ class Graph(GenericGraph):
         While this is not::
 
             sage: try:
-            ....:    g.bounded_outdegree_orientation(ceil(mad/2-1))
-            ....:    print("Error")
-            ... except ValueError:
+            ....:     g.bounded_outdegree_orientation(ceil(mad/2-1))
+            ....:     print("Error")
+            ....: except ValueError:
             ....:     pass
 
         TESTS:
@@ -4461,7 +4469,7 @@ class Graph(GenericGraph):
         returns the homomorphism otherwise as a dictionary associating a vertex
         of `H` to a vertex of `G`.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Is Petersen's graph 3-colorable::
 
@@ -4580,7 +4588,7 @@ class Graph(GenericGraph):
             just have to update the weights on the edges between each call to
             ``solve`` (and so avoiding the generation of all the constraints).
 
-        EXAMPLE:
+        EXAMPLES:
 
         The fractional chromatic index of a `C_5` is `5/2`::
 
@@ -5165,6 +5173,16 @@ class Graph(GenericGraph):
 
             sage: Graph([[1,2]], immutable=True).to_directed()
             Digraph on 2 vertices
+
+        :trac:`22424`::
+
+            sage: G1=graphs.RandomGNP(5,0.5)
+            sage: gp1 = G1.graphplot(save_pos=True)
+            sage: G2=G1.to_directed()
+            sage: G2.delete_vertex(0)
+            sage: G2.add_vertex(5)
+            sage: gp2 = G2.graphplot()
+            sage: gp1 = G1.graphplot()
         """
         if sparse is not None:
             if data_structure is not None:
@@ -5183,7 +5201,7 @@ class Graph(GenericGraph):
                 data_structure = "static_sparse"
         from sage.graphs.all import DiGraph
         D = DiGraph(name           = self.name(),
-                    pos            = self._pos,
+                    pos            = self.get_pos(),
                     multiedges     = self.allows_multiple_edges(),
                     loops          = self.allows_loops(),
                     implementation = implementation,
@@ -6931,7 +6949,7 @@ class Graph(GenericGraph):
             ``modular_decomposition`` optional package. See
             :mod:`sage.misc.package`.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The Petersen Graph and the Bull Graph are both prime::
 
@@ -6979,7 +6997,7 @@ class Graph(GenericGraph):
           method. Refer to its documentation for allowed values and default
           behaviour.
 
-        EXAMPLE:
+        EXAMPLES:
 
         This function is actually tested in ``gomory_hu_tree()``, this
         example is only present to have a doctest coverage of 100%.
@@ -7075,7 +7093,7 @@ class Graph(GenericGraph):
 
         A graph with labeled edges
 
-        EXAMPLE:
+        EXAMPLES:
 
         Taking the Petersen graph::
 
@@ -7164,7 +7182,7 @@ class Graph(GenericGraph):
         graph of maximal degree `2` ( a disjoint union of paths
         and cycles ).
 
-        EXAMPLE:
+        EXAMPLES:
 
         The Complete Graph on `7` vertices is a `6`-regular graph, so it can
         be edge-partitionned into `2`-regular graphs::
@@ -7513,8 +7531,7 @@ class Graph(GenericGraph):
 
             sage: G = Graph([[1,-1,'a'], [2,-2, 'b'], [1,-2,'x'], [2,-1,'y']])
             sage: list(G.perfect_matchings(labels=True))
-            [[(-2, 1, 'x'), (-1, 2, 'y')],
-             [(-1, 1, 'a'), (-2, 2, 'b')]]
+            [[(-2, 1, 'x'), (-1, 2, 'y')], [(-2, 2, 'b'), (-1, 1, 'a')]]
 
             sage: G = graphs.CompleteGraph(8)
             sage: mpc = G.matching_polynomial().coefficients(sparse=False)[0]
@@ -7523,9 +7540,9 @@ class Graph(GenericGraph):
 
             sage: G = graphs.PetersenGraph().copy(immutable=True)
             sage: list(G.perfect_matchings())
-            [[(0, 1), (2, 3), (4, 9), (6, 8), (5, 7)],
+            [[(0, 1), (2, 3), (4, 9), (5, 7), (6, 8)],
              [(0, 1), (2, 7), (3, 4), (5, 8), (6, 9)],
-             [(0, 4), (1, 2), (3, 8), (6, 9), (5, 7)],
+             [(0, 4), (1, 2), (3, 8), (5, 7), (6, 9)],
              [(0, 4), (1, 6), (2, 3), (5, 8), (7, 9)],
              [(0, 5), (1, 2), (3, 4), (6, 8), (7, 9)],
              [(0, 5), (1, 6), (2, 7), (3, 8), (4, 9)]]
@@ -7601,6 +7618,9 @@ Graph.lovasz_theta              = lovasz_theta
 from sage.graphs.partial_cube import is_partial_cube
 Graph.is_partial_cube           = is_partial_cube
 
+from sage.graphs.orientations import strong_orientations_iterator
+Graph.strong_orientations_iterator    =    strong_orientations_iterator
+
 _additional_categories = {
     Graph.is_long_hole_free         : "Graph properties",
     Graph.is_long_antihole_free     : "Graph properties",
@@ -7619,6 +7639,7 @@ _additional_categories = {
     Graph.is_partial_cube           : "Graph properties",
     Graph.tutte_polynomial          : "Algorithmically hard stuff",
     Graph.lovasz_theta              : "Leftovers",
+    Graph.strong_orientations_iterator : "Orientations"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

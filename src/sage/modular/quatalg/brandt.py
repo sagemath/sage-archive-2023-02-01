@@ -526,7 +526,7 @@ class BrandtModule_class(AmbientHeckeModule):
 
         Always trivial.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: BrandtModule(11,5).character()
             Dirichlet character modulo 55 of conductor 1 mapping 12 |--> 1, 46 |--> 1
@@ -1007,7 +1007,7 @@ class BrandtModule_class(AmbientHeckeModule):
 
             sage: B = BrandtModule(5,11); B
             Brandt module of dimension 4 of level 5*11 of weight 2 over Rational Field
-            sage: sorted(list(B._theta_dict(5).iteritems()))
+            sage: sorted(list(B._theta_dict(5).items()))
             [((1, 0, 0, 4, 0), [3]),
              ((1, 0, 0, 4, 2), [2]),
              ((1, 0, 2, 0, 6), [1]),
@@ -1015,7 +1015,7 @@ class BrandtModule_class(AmbientHeckeModule):
 
         In this example, the theta series does not determine the ideal class::
 
-             sage: sorted(list(BrandtModule(37)._theta_dict(6).iteritems()))
+             sage: sorted(list(BrandtModule(37)._theta_dict(6).items()))
              [((1, 0, 2, 2, 6, 4), [1, 2]), ((1, 2, 2, 4, 2, 4), [0])]
         """
         C = self.right_ideals()

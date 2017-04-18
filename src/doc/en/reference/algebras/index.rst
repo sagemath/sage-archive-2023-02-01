@@ -42,6 +42,7 @@ Named associative algebras
    sage/algebras/affine_nil_temperley_lieb
    sage/combinat/diagram_algebras
    sage/algebras/clifford_algebra
+   sage/algebras/cluster_algebra
    sage/combinat/descent_algebra
    sage/algebras/hall_algebra
    sage/algebras/iwahori_hecke_algebra
@@ -77,9 +78,11 @@ Non-associative algebras
 .. toctree::
    :maxdepth: 2
 
+   lie_algebras
    sage/algebras/jordan_algebra
    sage/combinat/free_prelie_algebra
    sage/algebras/shuffle_algebra
    sage/algebras/free_zinbiel_algebra
    
 .. include:: ../footer.txt
+

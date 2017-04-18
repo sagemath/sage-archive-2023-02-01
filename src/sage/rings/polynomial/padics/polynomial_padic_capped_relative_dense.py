@@ -161,7 +161,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
         The value a must be an element of the base ring of P. That
         assumption is not verified.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<t> = Zp(5)[]
             sage: t._new_constant_poly(O(5),R)
@@ -727,7 +727,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
                     zero = self._base_ring()(0)
                     self._list.extend([zero] * (n - len(self._list)) + [value])
 
-    def _pari_(self, variable=None):
+    def __pari__(self, variable=None):
         """
         Return ``self`` as a Pari object.
         """
@@ -1040,6 +1040,15 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
             sage: g.quo_rem(f)
             ((1 + O(3^10))*T^3 + (1 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10))*T^2 + (1 + 3 + O(3^10))*T + (1 + 3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10)),
             (2 + 3 + 3^3 + O(3^10)))
+
+        TESTS:
+
+        Verify that :trac:`15188` has been resolved::
+
+            sage: R.<x> = Qp(3)[]
+            sage: x.quo_rem(x)
+            ((1 + O(3^20)), 0)
+
         """
         return self._quo_rem_list(right, secure=secure)
 

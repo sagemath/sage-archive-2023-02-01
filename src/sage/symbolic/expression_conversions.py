@@ -660,7 +660,7 @@ class SympyConverter(Converter):
     """
     Converts any expression to SymPy.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: import sympy
         sage: var('x,y')
@@ -869,6 +869,25 @@ class AlgebraicConverter(Converter):
             Traceback (most recent call last):
             ...
             TypeError: unable to convert zeta(7) to Algebraic Field
+
+        Test :trac:`22571`::
+
+            sage: a.composition(exp(0, hold=True), exp)
+            1
+            sage: a.composition(exp(1, hold=True), exp)
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to represent as an algebraic number
+            sage: a.composition(exp(pi*I*RR(1), hold=True), exp)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Real Field with 53 bits of precision to Rational Field
+            sage: a.composition(exp(pi*CC.gen(), hold=True), exp)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Real Field with 53 bits of precision to Rational Field
+            sage: bool(sin(pi*RR("0.7000000000000002")) > 0)
+            True
         """
         func = operator
         operand, = ex.operands()
@@ -877,16 +896,12 @@ class AlgebraicConverter(Converter):
         # Note that comparing functions themselves goes via maxima, and is SLOW
         func_name = repr(func)
         if func_name == 'exp':
-            rat_arg = (operand.imag()/(2*ex.parent().pi()))._rational_()
-            if rat_arg == 0:
-                # here we will either try and simplify, or return
-                raise ValueError("Unable to represent as an algebraic number.")
-            real = operand.real()
-            if real:
-                mag = exp(operand.real())._algebraic_(QQbar)
-            else:
-                mag = 1
-            res = mag * QQbar.zeta(rat_arg.denom())**rat_arg.numer()
+            if operand.real():
+                raise ValueError("unable to represent as an algebraic number")
+            # Coerce (not convert, see #22571) arg to a rational
+            arg = operand.imag()/(2*ex.parent().pi())
+            rat_arg = QQ.coerce(arg.pyobject())
+            res = QQbar.zeta(rat_arg.denom())**rat_arg.numer()
         elif func_name in ['sin', 'cos', 'tan']:
             exp_ia = exp(SR(-1).sqrt()*operand)._algebraic_(QQbar)
             if func_name == 'sin':

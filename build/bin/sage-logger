@@ -60,14 +60,17 @@ else
     SED=cat
 fi
 
+# Store the current value of V, but do all logging of child processes
+# with V=1 to ensure that no information is lost.
+currentV=$V
+export V=1
+
 mkdir -p "$logdir"
 
-if [[ "$V" = 0 && $use_prefix = true ]]; then
+if [[ "$currentV" = 0 && $use_prefix = true ]]; then
     # Silent build.
     # Similar to https://www.gnu.org/software/automake/manual/html_node/Automake-Silent-Rules.html#Automake-Silent-Rules
     echo "[$logname] installing. Log file: $logfile"
-    # Use verbose mode for output to logfiles.
-    export V=1
     ( exec>> $logfile 2>&1 ; eval "$cmd" )
     status=$?
     if [[ $status != 0 ]]; then

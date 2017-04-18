@@ -113,7 +113,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         Return PARI's representation of this relative ideal in Hermite
         normal form.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a, b> = NumberField([x^2 + 23, x^2 - 7])
             sage: I = K.ideal(2, (a + 2*b + 3)/2)
@@ -256,7 +256,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         return a single generator if one exists (i.e. if the ideal is
         principal), and otherwise two generators.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a, b> = NumberField([x^2 + 1, x^2 - 2])
             sage: I = K.ideal((a + 1)*b/2 + 1)
@@ -338,7 +338,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         r"""
         Return True if this is the zero ideal.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a, b> = NumberField([x^2 + 3, x^3 + 4])
             sage: K.ideal(17).is_zero()
@@ -416,7 +416,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         unimplemented, so that a user cannot mistake the absolute norm
         for the relative norm, or vice versa.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a, b> = NumberField([x^2 + 1, x^2 - 2])
             sage: K.ideal(2).norm()
@@ -712,7 +712,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         Either :meth:`~relative_ramification_index` or
         :meth:`~absolute_ramification_index` should be used instead.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a, b> = NumberField([x^2 + 1, x^2 - 2])
             sage: K.ideal(2).ramification_index()

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Base class for modular abelian varieties
 
@@ -363,8 +364,8 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             -1
             sage: cmp(J0(33)[0], J0(33)[1])
             -1
-            sage: cmp(J0(37), 5) #random
-            1
+            sage: J0(37) != ZZ
+            True
         """
         if not isinstance(other, ModularAbelianVariety_abstract):
             return cmp(type(self), type(other))
@@ -3780,7 +3781,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
     def _complement_shares_no_factors_with_same_label(self):
         """
         Return True if no simple factor of self has the same newform_label
-        as any factor in a Poincare complement of self in the ambient
+        as any factor in a Poincaré complement of self in the ambient
         product Jacobian.
 
         EXAMPLES: `J_0(37)` is made up of two non-isogenous

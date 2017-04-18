@@ -1,5 +1,5 @@
 """
-Tensor Products of Crystals Elements
+Tensor Products of Crystal Elements
 
 AUTHORS:
 
@@ -304,7 +304,7 @@ cdef class TensorProductOfCrystalsElement(ImmutableListWithParent):
 
         INPUT:
 
-        - ``i`` -- An element of the index set
+        - ``i`` -- an element of the index set
 
         EXAMPLES::
 
@@ -324,7 +324,7 @@ cdef class TensorProductOfCrystalsElement(ImmutableListWithParent):
 
         INPUT:
 
-        - ``i`` -- An element of the index set
+        - ``i`` -- an element of the index set
 
         EXAMPLES::
 
@@ -372,9 +372,9 @@ cdef class TensorProductOfCrystalsElement(ImmutableListWithParent):
 
         INPUT:
 
-        - ``i`` -- An element of the index set
+        - ``i`` -- an element of the index set
 
-        - ``k`` -- The (1-based) index of the tensor factor of ``self``
+        - ``k`` -- the (1-based) index of the tensor factor of ``self``
 
         EXAMPLES::
 
@@ -419,7 +419,7 @@ cdef class TensorProductOfCrystalsElement(ImmutableListWithParent):
 
         INPUT:
 
-        - ``i`` -- An element of the index set
+        - ``i`` -- an element of the index set
 
         EXAMPLES::
 
@@ -452,7 +452,7 @@ cdef class TensorProductOfCrystalsElement(ImmutableListWithParent):
 
         INPUT:
 
-        - ``i`` -- An element of the index set
+        - ``i`` -- an element of the index set
 
         EXAMPLES::
 
@@ -1203,7 +1203,7 @@ cdef class InfinityCrystalOfTableauxElement(CrystalOfTableauxElement):
 
         INPUT:
 
-        - ``i`` -- An element of the index set
+        - ``i`` -- an element of the index set
 
         EXAMPLES::
 
@@ -1241,7 +1241,7 @@ cdef class InfinityCrystalOfTableauxElement(CrystalOfTableauxElement):
 
         INPUT:
 
-        - ``i`` -- An element of the index set
+        - ``i`` -- an element of the index set
 
         EXAMPLES::
 
@@ -1287,7 +1287,7 @@ cdef class InfinityCrystalOfTableauxElementTypeD(InfinityCrystalOfTableauxElemen
 
         INPUT:
 
-        - ``i`` -- An element of the index set
+        - ``i`` -- an element of the index set
 
         EXAMPLES::
 
@@ -1326,7 +1326,7 @@ cdef class InfinityCrystalOfTableauxElementTypeD(InfinityCrystalOfTableauxElemen
 
         INPUT:
 
-        - ``i`` -- An element of the index set
+        - ``i`` -- an element of the index set
 
         EXAMPLES::
 

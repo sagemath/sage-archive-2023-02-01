@@ -439,6 +439,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
 
         # Keep track of the number of failures and tries.
         failures = tries = 0
+        quiet = False
 
         # Save the option flags (since option directives can be used
         # to modify them).
@@ -450,11 +451,16 @@ class SageDocTestRunner(doctest.DocTestRunner):
 
         # Process each example.
         for examplenum, example in enumerate(test.examples):
+            if failures:
+                # If exitfirst is set, abort immediately after a
+                # failure.
+                if self.options.exitfirst:
+                    break
 
-            # If REPORT_ONLY_FIRST_FAILURE is set, then suppress
-            # reporting after the first failure.
-            quiet = (self.optionflags & doctest.REPORT_ONLY_FIRST_FAILURE and
-                     failures > 0)
+                # If REPORT_ONLY_FIRST_FAILURE is set, then suppress
+                # reporting after the first failure (but continue
+                # running the tests).
+                quiet |= (self.optionflags & doctest.REPORT_ONLY_FIRST_FAILURE)
 
             # Merge in the example's options.
             self.optionflags = original_optionflags
@@ -551,15 +557,11 @@ class SageDocTestRunner(doctest.DocTestRunner):
                 if not quiet:
                     self.report_failure(out, test, example, got, test.globs)
                 failures += 1
-                if self.options.fail_once:
-                    break
             elif outcome is BOOM:
                 if not quiet:
                     self.report_unexpected_exception(out, test, example,
                                                      exc_info)
                 failures += 1
-                if self.options.fail_once:
-                    break
             else:
                 assert False, ("unknown outcome", outcome)
 
@@ -1428,7 +1430,7 @@ class DocTestDispatcher(SageObject):
                 output = outtmpfile.read()
 
             self.controller.reporter.report(source, False, 0, result, output)
-            if self.controller.options.fail_once and result[1].failures:
+            if self.controller.options.exitfirst and result[1].failures:
                 break
 
     def parallel_dispatch(self):
@@ -1461,17 +1463,17 @@ class DocTestDispatcher(SageObject):
             sage -t .../rings/big_oh.py
                 [... tests, ... s]
 
-        If the ``fail_once=True`` option is given, the results for a failing
+        If the ``exitfirst=True`` option is given, the results for a failing
         module will be immediately printed and any other ongoing tests
         canceled::
 
             sage: test1 = os.path.join(SAGE_TMP, 'test1.py')
             sage: test2 = os.path.join(SAGE_TMP, 'test2.py')
             sage: with open(test1, 'w') as f:
-            ....:     f.write('"""\nsage: import time; time.sleep(60)\n"""')
+            ....:     f.write("'''\nsage: import time; time.sleep(60)\n'''")
             sage: with open(test2, 'w') as f:
-            ....:     f.write('"""\nsage: True\nFalse\n"""')
-            sage: DC = DocTestController(DocTestDefaults(fail_once=True,
+            ....:     f.write("'''\nsage: True\nFalse\n'''")
+            sage: DC = DocTestController(DocTestDefaults(exitfirst=True,
             ....:                                        nthreads=2),
             ....:                        [test1, test2])
             sage: DC.expand_files_into_sources()
@@ -1520,6 +1522,9 @@ class DocTestDispatcher(SageObject):
         # List of DocTestWorkers which have finished running but
         # whose results have not been reported yet.
         finished = []
+
+        # If exitfirst is set and we got a failure.
+        abort_now = False
 
         # One particular worker that we are "following": we report the
         # messages while it's running. For other workers, we report the
@@ -1602,16 +1607,11 @@ class DocTestDispatcher(SageObject):
                     new_finished = []
                     fail_immediately = False
                     for w in finished:
-                        if opt.fail_once and w.result[1].failures:
-                            fail_immediately = True
-
-                        if (follow is not None and follow is not w and
-                                not fail_immediately):
+                        if opt.exitfirst and w.result[1].failures:
+                            abort_now = True
+                        elif follow is not None and follow is not w:
                             # We are following a different worker, so
-                            # we cannot report now (unless we have fail_once
-                            # enabled, in which case we report the failure
-                            # immediately even if we were not following this
-                            # worker)
+                            # we cannot report now.
                             new_finished.append(w)
                             continue
 
@@ -1625,16 +1625,14 @@ class DocTestDispatcher(SageObject):
                             w.output,
                             pid=w.pid)
 
-                        if fail_immediately:
-                            break
-
                         restart = True
                         follow = None
 
-                    if fail_immediately:
+                    finished = new_finished
+
+                    if abort_now:
                         break
 
-                    finished = new_finished
                     # Start new workers if possible
                     while source_iter is not None and len(workers) < opt.nthreads:
                         try:
@@ -2192,7 +2190,7 @@ class DocTestTask(object):
 
                 for test in doctests:
                     result = runner.run(test)
-                    if options.fail_once and result.failed:
+                    if options.exitfirst and result.failed:
                         break
 
                 runner.filename = file

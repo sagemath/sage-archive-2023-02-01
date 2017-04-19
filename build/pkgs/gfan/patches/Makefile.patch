@@ -1,23 +1,26 @@
 diff --git a/Makefile b/Makefile
-index 0892969..f816b22 100644
+index 0892969..c626eb9 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -33,13 +33,8 @@ GMP_LINKOPTIONS = $(gmppath)/lib/libgmp.a
- GMP_INCLUDEOPTIONS = -I $(gmppath)/include
+@@ -26,7 +26,7 @@ sage_link.so: sage_link.pyx setup.py
  endif
  
--ifeq ($(cddpath),)
--CDD_LINKOPTIONS = -L/usr/local -lcddgmp
-+CDD_LINKOPTIONS = -L$SAGE_LOCAL/lib -lcddgmp -lgmp -lm
- CDD_INCLUDEOPTIONS =
--else
--CDD_LINKOPTIONS = $(cddpath)/lib/libcddgmp.a
--CDD_INCLUDEOPTIONS = -I $(cddpath)/include
--endif
+ ifeq ($(gmppath),)
+-GMP_LINKOPTIONS = -lgmp
++GMP_LINKOPTIONS = -lgmp -lm
+ GMP_INCLUDEOPTIONS =
+ else
+ GMP_LINKOPTIONS = $(gmppath)/lib/libgmp.a
+@@ -34,7 +34,7 @@ GMP_INCLUDEOPTIONS = -I $(gmppath)/include
+ endif
  
- ifeq ($(soplex),)
- SOPLEX_PATH =
-@@ -75,18 +70,10 @@ ADDITIONALINCLUDEOPTIONS = $(CDD_INCLUDEOPTIONS) $(GMP_INCLUDEOPTIONS) $(SOPLEX_
+ ifeq ($(cddpath),)
+-CDD_LINKOPTIONS = -L/usr/local -lcddgmp
++CDD_LINKOPTIONS = -lcddgmp
+ CDD_INCLUDEOPTIONS =
+ else
+ CDD_LINKOPTIONS = $(cddpath)/lib/libcddgmp.a
+@@ -75,18 +75,11 @@ ADDITIONALINCLUDEOPTIONS = $(CDD_INCLUDEOPTIONS) $(GMP_INCLUDEOPTIONS) $(SOPLEX_
  MKDIR=mkdir -p
  
  
@@ -27,7 +30,7 @@ index 0892969..f816b22 100644
 -CLINKER     = $(CC)
 -CXX         = g++
 -CCLINKER    = $(CXX)
--#OPTFLAGS    = -O2 -DGMPRATIONAL -DNDEBUG
+ #OPTFLAGS    = -O2 -DGMPRATIONAL -DNDEBUG
  OPTFLAGS    = -O2 -DGMPRATIONAL -Wuninitialized
  
 -CFLAGS	  = $(OPTFLAGS) $(GPROFFLAG) $(ADDITIONALINCLUDEOPTIONS) #-pedantic
@@ -38,7 +41,7 @@ index 0892969..f816b22 100644
  
  CATSOBJECTS =	$(GCATSPATH)lp_cdd.o \
  		$(SOPLEX_OBJECTS) \
-@@ -317,7 +304,7 @@ $(PREFIX):
+@@ -317,7 +310,7 @@ $(PREFIX):
  default: $(OBJECTS) $(ADDITIONALOBJECTS) $(EXECS)
  
  $(MAIN): $(OBJECTS)
@@ -47,7 +50,7 @@ index 0892969..f816b22 100644
  
  release:
  	rm -f -r $(RELEASEDIR)/*
-@@ -431,11 +418,11 @@ library:
+@@ -431,11 +424,11 @@ library:
  	cp gfanlib_* gfanlib/
  	tar zcf -  gfanlib > gfanlib.tar.gz
  .c.o:
@@ -57,7 +60,7 @@ index 0892969..f816b22 100644
  	$(CXX) -c $<
  .cpp.o:
 -	$(CXX) $(CFLAGS) -c $<
-+	$(CXX) $(CXXFLAGS_LOCAL) $(CPPFLAGS) -c $<
++	$(CXX) $(CFLAGS_LOCAL) $(CPPFLAGS) -c $<
  .C.o:
  	$(CXX) -c $<
  # wget http://ftp.sunet.se/pub/gnu/gmp/gmp-4.2.2.tar.gz

@@ -3,24 +3,6 @@ due to bugs in its binutils version).  This patch adds a ./configure flag to
 make that easier.
 
 https://trac.sagemath.org/ticket/22800
-diff --git a/configure.ac b/configure.ac
-index 401bbba..b367cb5 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -124,6 +124,13 @@ AC_ARG_WITH(max-enumeration-dimension,
- 
- AC_DEFINE_UNQUOTED([FPLLL_MAX_ENUM_DIMENSION], $max_enumeration_dimension, [maximum supported enumeration dimension])
- 
-+AC_ARG_ENABLE(recursive-enum,
-+        AS_HELP_STRING([--disable-recursive-enum],
-+         [Disable recursive enumeration]))
-+
-+AS_IF([test "x$enable_recursive_enum" != "xno"], [
-+        AC_DEFINE([FPLLL_WITH_RECURSIVE_ENUM], [1], [recursive enumeration enabled])])
-+
- # Store version numbers in header
- 
- AC_DEFINE_UNQUOTED([FPLLL_MAJOR_VERSION],[$FPLLL_MAJOR_VERSION],[major version])
 diff --git a/configure b/configure
 index ce0e7fd..f1eccd5 100755
 --- a/configure

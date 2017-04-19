@@ -5,6 +5,7 @@ cd src
 ./bootstrap --prefix=$SAGE_LOCAL \
     --system-bzip2 \
     --system-zlib \
+    --system-liblzma \
     --system-curl \
     -- \
     -DCMAKE_PREFIX_PATH=$SAGE_LOCAL \

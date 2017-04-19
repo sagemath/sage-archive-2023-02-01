@@ -28,3 +28,5 @@ CMake is distributed under the OSI-approved BSD 3-clause License.
 * curl
 * zlib
 * bzip2
+* xz
+

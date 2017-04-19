@@ -184,6 +184,7 @@ class Dokchitser(SageObject):
     __n_instances = 0  # Number of currently allocated instances
     __template_filename = os.path.join(SAGE_EXTCODE, 'pari', 'dokchitser',
                                        'computel.gp.template')
+    __init = False
 
     def __new__(cls, *args, **kwargs):
         inst = super(Dokchitser, cls).__new__(cls, *args, **kwargs)
@@ -214,9 +215,6 @@ class Dokchitser(SageObject):
         self.__initialized = False
         if init is not None:
             self.init_coeffs(init)
-            self.__init = init
-        else:
-            self.__init = False
 
     def __reduce__(self):
         D = copy.copy(self.__dict__)
@@ -449,7 +447,6 @@ class Dokchitser(SageObject):
             # templated global variables we must replace those as well
             pari_precode = self.__globals_re.sub(repl, pari_precode)
 
-        self.__init = (v, cutoff, w, pari_precode, max_imaginary_part, max_asymp_coeffs)
         if pari_precode != '':
             self._gp_eval(pari_precode)
         RR = self.__CC._real_field()
@@ -457,20 +454,23 @@ class Dokchitser(SageObject):
         if isinstance(v, str):
             if w is None:
                 self._gp_call_inst('initLdata', '"%s"' % v, cutoff)
-                return
-            self._gp_call_inst('initLdata', '"%s"' % v, cutoff, '"%s"' % w)
-            return
-        if not isinstance(v, (list, tuple)):
+            else:
+                self._gp_call_inst('initLdata', '"%s"' % v, cutoff, '"%s"' % w)
+        elif not isinstance(v, (list, tuple)):
             raise TypeError("v (=%s) must be a list, tuple, or string" % v)
-        CC = self.__CC
-        v = ','.join([CC(a)._pari_init_() for a in v])
-        self._gp_eval('Avec = [%s]' % v)
-        if w is None:
-            self._gp_call_inst('initLdata', '"Avec[k]"', cutoff)
-            return
-        w = ','.join([CC(a)._pari_init_() for a in w])
-        self._gp_eval('Bvec = [%s]' % w)
-        self._gp_call_inst('initLdata', '"Avec[k]"', cutoff, '"Bvec[k]"')
+        else:
+            CC = self.__CC
+            v = ','.join([CC(a)._pari_init_() for a in v])
+            self._gp_eval('Avec = [%s]' % v)
+            if w is None:
+                self._gp_call_inst('initLdata', '"Avec[k]"', cutoff)
+            else:
+                w = ','.join([CC(a)._pari_init_() for a in w])
+                self._gp_eval('Bvec = [%s]' % w)
+                self._gp_call_inst('initLdata', '"Avec[k]"', cutoff,
+                                   '"Bvec[k]"')
+        self.__init = (v, cutoff, w, pari_precode, max_imaginary_part,
+                       max_asymp_coeffs)
 
     def __to_CC(self, s):
         s = s.replace('.E', '.0E').replace(' ', '')

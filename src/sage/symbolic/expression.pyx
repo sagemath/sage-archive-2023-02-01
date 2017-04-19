@@ -9694,6 +9694,15 @@ cdef class Expression(CommutativeRingElement):
             (n + 1)*n*gamma(n)^2
             sage: (gamma(n+2)*gamma(m-1)/gamma(n)/gamma(m+1)).gamma_normalize()
             (n + 1)*n/((m - 1)*m)
+
+        Check that :trac:`22826` is fixed::
+
+            sage: _ = var('n')
+            sage: (n-1).gcd(n+1)
+            1
+            sage: ex = (n-1)^2*gamma(2*n+5)/gamma(n+3) + gamma(2*n+3)/gamma(n+1)
+            sage: ex.gamma_normalize()
+            (4*n^3 - 2*n^2 - 7*n + 7)*gamma(2*n + 3)/((n + 1)*gamma(n + 1))
         """
         cdef GEx x
         sig_on()

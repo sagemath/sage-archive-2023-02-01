@@ -1558,7 +1558,18 @@ const numeric numeric::inverse() const {
  *  a numeric may develop a small imaginary part due to rounding errors.
  */
 const numeric numeric::step() const {
-        PY_RETURN(py_funcs.py_step);
+        switch (t) {
+                case MPZ:
+                case MPQ:
+                        if (is_positive())
+                                return 1;
+                        else
+                                return 0;
+                case PYOBJECT:
+                        return py_funcs.py_step(v._pyobject);
+                default:
+                        stub("invalid type: step() type not handled");
+        }
 }
 
 /** Return the complex half-plane (left or right) in which the number lies.

@@ -257,7 +257,8 @@ static ex abs_eval(const ex & arg)
                         return exp(arg.op(0).real_part());
                 if (is_ex_the_function(arg, conjugate_function))
                         return abs(arg.op(0));
-                if (is_ex_the_function(arg, unit_step))
+                if (is_ex_the_function(arg, unit_step)
+                    or is_ex_the_function(arg, heaviside))
                         return arg;
                 return abs(arg).hold();
         }
@@ -368,16 +369,26 @@ REGISTER_FUNCTION(abs, eval_func(abs_eval).
 
 static ex unit_step_evalf(const ex & arg, PyObject* parent)
 {
-	if (is_exactly_a<numeric>(arg))
-		return unit_step(ex_to<numeric>(arg));
+	if (not is_exactly_a<numeric>(arg))
+	        return unit_step(arg).hold();
+
+        if (arg.is_zero())
+                return _ex1;
+
+        if (arg.info(info_flags::real))
+		return step(ex_to<numeric>(arg));
 	
 	return unit_step(arg).hold();
 }
 
 static ex unit_step_eval(const ex & arg)
 {
+        if (arg.info(info_flags::positive))
+                return _ex1;
+        if (arg.info(info_flags::negative))
+                return _ex0;
 	if (is_exactly_a<numeric>(arg))
-		return unit_step(ex_to<numeric>(arg));
+		return unit_step_evalf(arg, nullptr);
 	
 	else if (is_exactly_a<mul>(arg) &&
 	         is_exactly_a<numeric>(arg.op(arg.nops()-1))) {
@@ -440,6 +451,91 @@ REGISTER_FUNCTION(unit_step, eval_func(unit_step_eval).
                         conjugate_func(unit_step_conjugate).
                         real_part_func(unit_step_real_part).
                         imag_part_func(unit_step_imag_part));
+
+//////////
+// Heaviside function
+//////////
+
+static ex heaviside_evalf(const ex & arg, PyObject* parent)
+{
+	if (is_exactly_a<numeric>(arg)
+            and arg.info(info_flags::real)
+            and not arg.is_zero())
+		return step(ex_to<numeric>(arg));
+	
+	return heaviside(arg).hold();
+}
+
+static ex heaviside_eval(const ex & arg)
+{
+        if (arg.info(info_flags::positive))
+                return _ex1;
+        if (arg.info(info_flags::negative))
+                return _ex0;
+	if (is_exactly_a<numeric>(arg))
+		return heaviside_evalf(arg, nullptr);
+	
+	else if (is_exactly_a<mul>(arg) &&
+	         is_exactly_a<numeric>(arg.op(arg.nops()-1))) {
+		numeric oc = ex_to<numeric>(arg.op(arg.nops()-1));
+		if (oc.is_real()) {
+			if (oc > 0)
+				// step(42*x) -> step(x)
+				return heaviside(arg/oc).hold();
+			else
+				// step(-42*x) -> step(-x)
+				return heaviside(-arg/oc).hold();
+		}
+		if (oc.real().is_zero()) {
+			if (oc.imag() > 0)
+				// step(42*I*x) -> step(I*x)
+				return heaviside(I*arg/oc).hold();
+			else
+				// step(-42*I*x) -> step(-I*x)
+				return heaviside(-I*arg/oc).hold();
+		}
+	}
+	
+	return heaviside(arg).hold();
+}
+
+static ex heaviside_series(const ex & arg,
+                           const relational & rel,
+                           int order,
+                           unsigned options)
+{
+	const ex arg_pt = arg.subs(rel, subs_options::no_pattern);
+	if (is_exactly_a<numeric>(arg_pt)
+	    && ex_to<numeric>(arg_pt).real().is_zero()
+	    && ((options & series_options::suppress_branchcut) == 0u))
+		throw (std::domain_error("heaviside_series(): on imaginary axis"));
+	
+	epvector seq;
+	seq.push_back(expair(heaviside(arg_pt), _ex0));
+	return pseries(rel,seq);
+}
+
+static ex heaviside_conjugate(const ex& arg)
+{
+	return heaviside(arg).hold();
+}
+
+static ex heaviside_real_part(const ex& arg)
+{
+	return heaviside(arg).hold();
+}
+
+static ex heaviside_imag_part(const ex& arg)
+{
+	return 0;
+}
+
+REGISTER_FUNCTION(heaviside, eval_func(heaviside_eval).
+                        evalf_func(heaviside_evalf).
+                        series_func(heaviside_series).
+                        conjugate_func(heaviside_conjugate).
+                        real_part_func(heaviside_real_part).
+                        imag_part_func(heaviside_imag_part));
 
 //////////
 // Complex sign

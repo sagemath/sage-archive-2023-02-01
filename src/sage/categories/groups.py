@@ -93,9 +93,9 @@ class Groups(CategoryWithAxiom):
 
         def group_generators(self):
             """
-            Returns group generators for self.
+            Return group generators for ``self``.
 
-            This default implementation calls :meth:`.gens`, for
+            This default implementation calls :meth:`gens`, for
             backward compatibility.
 
             EXAMPLES::

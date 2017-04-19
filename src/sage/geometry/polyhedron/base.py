@@ -459,12 +459,91 @@ class Polyhedron_base(Element):
             sage: Q._is_subpolyhedron(P)
             True
         """
-        return all( other_H.contains(self_V)
-                    for other_H in other.Hrepresentation() \
+        return all(other_H.contains(self_V)
+                    for other_H in other.Hrepresentation()
                     for self_V in self.Vrepresentation())
 
+    @cached_method
+    def vertex_facet_graph(self, labels=True):
+        r"""
+        Return the vertex-facet graph.
+
+        This function constructs a directed bipartite graph.
+        The nodes of the graph correspond to the vertices of the polyhedron
+        and the facets of the polyhedron. There is an directed edge
+        from a vertex to a face if and only if the vertex is incident to the face.
+
+        INPUT:
+
+        - ``labels`` -- boolean (default: ``True``); decide how the nodes
+          of the graph are labelled. Either with the original vertices/facets
+          of the Polyhedron or with integers.
+
+        OUTPUT:
+
+        - a bipartite DiGraph. If ``labels`` is ``True``, then the nodes
+          of the graph will actually be the vertices and facets of ``self``,
+          otherwise they will be integers.
+
+        .. SEEALSO::
+
+            :meth:`combinatorial_automorphism_group`,
+            :meth:`is_combinatorially_isomorphic`.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: G = P.vertex_facet_graph(); G
+            Digraph on 14 vertices
+            sage: G.vertices(key = lambda v: str(v))
+            [A vertex at (-1, -1, -1),
+             A vertex at (-1, -1, 1),
+             A vertex at (-1, 1, -1),
+             A vertex at (-1, 1, 1),
+             A vertex at (1, -1, -1),
+             A vertex at (1, -1, 1),
+             A vertex at (1, 1, -1),
+             A vertex at (1, 1, 1),
+             An inequality (-1, 0, 0) x + 1 >= 0,
+             An inequality (0, -1, 0) x + 1 >= 0,
+             An inequality (0, 0, -1) x + 1 >= 0,
+             An inequality (0, 0, 1) x + 1 >= 0,
+             An inequality (0, 1, 0) x + 1 >= 0,
+             An inequality (1, 0, 0) x + 1 >= 0]
+            sage: G.automorphism_group().is_isomorphic(P.face_lattice().hasse_diagram().automorphism_group())
+            True
+            sage: O = polytopes.octahedron(); O
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 6 vertices
+            sage: O.vertex_facet_graph()
+            Digraph on 14 vertices
+            sage: H = O.vertex_facet_graph()
+            sage: G.is_isomorphic(H)
+            False
+            sage: G.reverse_edges(G.edges())
+            sage: G.is_isomorphic(H)
+            True
+
+        """
+
+        # We construct the edges and remove the columns that have all 1s;
+        # those correspond to faces, that contain all vertices (which happens
+        # if the polyhedron is not full-dimensional)
+        G = DiGraph()
+        if labels:
+            edges = [[v, f] for f in self.Hrep_generator()
+                     if any(not(f.is_incident(v)) for v in self.Vrep_generator())
+                     for v in self.vertices() if f.is_incident(v)]
+        else:
+            #  here we obtain this incidence information from the incidence matrix
+            M = self.incidence_matrix()
+            edges = [[i, M.ncols()+j] for i, column in enumerate(M.columns())
+                     if any(entry != 1 for entry in column)
+                     for j in range(M.nrows()) if M[j, i] == 1]
+        G.add_edges(edges)
+        return G
+
     def plot(self,
-             point=None, line=None, polygon=None, #  None means unspecified by the user
+             point=None, line=None, polygon=None,  # None means unspecified by the user
              wireframe='blue', fill='green',
              projection_direction=None,
              **kwds):
@@ -1554,9 +1633,9 @@ class Polyhedron_base(Element):
         if base_ring is None:
             base_ring = self.base_ring()
         m = matrix(base_ring, self.ambient_dim(), self.n_vertices())
-        for i,v in enumerate(self.vertices()):
+        for i, v in enumerate(self.vertices()):
             for j in range(self.ambient_dim()):
-                m[j,i] = v[j]
+                m[j, i] = v[j]
         return m
 
     def ray_generator(self):
@@ -2390,6 +2469,114 @@ class Polyhedron_base(Element):
         A_ker = A.right_kernel()
         return A_ker.basis_matrix().transpose().rows()
 
+    @cached_method
+    def normal_fan(self):
+        r"""
+        Return the normal fan of a compact full-dimensional rational polyhedron.
+
+        OUTPUT:
+
+        A complete fan of the ambient space as a
+        :class:`~sage.geometry.fan.RationalPolyhedralFan`.
+
+        .. SEEALSO::
+
+            :meth:`~sage.geometry.polyhedron.base.face_fan`.
+
+        EXAMPLES::
+
+            sage: S = Polyhedron(vertices = [[0, 0], [1, 0], [0, 1]])
+            sage: S.normal_fan()
+            Rational polyhedral fan in 2-d lattice N
+
+            sage: C = polytopes.hypercube(4)
+            sage: NF = C.normal_fan(); NF
+            Rational polyhedral fan in 4-d lattice N
+
+        Currently, it is only possible to get the normal fan of a bounded rational polytope::
+
+            sage: P = Polyhedron(rays = [[1, 0], [0, 1]])
+            sage: P.normal_fan()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: the normal fan is only supported for polytopes (compact polyhedra).
+
+            sage: Q = Polyhedron(vertices = [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+            sage: Q.normal_fan()
+            Traceback (most recent call last):
+            ...
+            ValueError: the normal fan is only defined for full-dimensional polytopes
+
+            sage: R = Polyhedron(vertices = [[0, 0], [AA(sqrt(2)), 0], [0, AA(sqrt(2))]])
+            sage: R.normal_fan()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: normal fan handles only polytopes over the rationals
+
+        REFERENCES:
+
+        For more information, see Chapter 7 of [Zie2007]_.
+        """
+        from sage.geometry.fan import NormalFan
+
+        if not QQ.has_coerce_map_from(self.base_ring()):
+            raise NotImplementedError('normal fan handles only polytopes over the rationals')
+
+        return NormalFan(self)
+
+    @cached_method
+    def face_fan(self):
+        r"""
+        Return the face fan of a compact rational polyhedron.
+
+        OUTPUT:
+
+        A fan of the ambient space as a
+        :class:`~sage.geometry.fan.RationalPolyhedralFan`.
+
+        .. SEEALSO::
+
+            :meth:`~sage.geometry.polyhedron.base.normal_fan`.
+
+        EXAMPLES::
+
+            sage: T = polytopes.cuboctahedron()
+            sage: T.face_fan()
+            Rational polyhedral fan in 3-d lattice M
+
+        The polytope should contain the origin in the interior::
+
+            sage: P = Polyhedron(vertices = [[1/2, 1], [1, 1/2]])
+            sage: P.face_fan()
+            Traceback (most recent call last):
+            ...
+            ValueError: face fans are defined only for polytopes containing the origin as an interior point!
+
+            sage: Q = Polyhedron(vertices = [[-1, 1/2], [1, -1/2]])
+            sage: Q.contains([0,0])
+            True
+            sage: FF = Q.face_fan(); FF
+            Rational polyhedral fan in 2-d lattice M
+
+        The polytope has to have rational coordinates::
+
+            sage: S = polytopes.dodecahedron()
+            sage: S.face_fan()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: face fan handles only polytopes over the rationals
+
+        REFERENCES:
+
+        For more information, see Chapter 7 of [Zie2007]_.
+        """
+        from sage.geometry.fan import FaceFan
+
+        if not QQ.has_coerce_map_from(self.base_ring()):
+            raise NotImplementedError('face fan handles only polytopes over the rationals')
+
+        return FaceFan(self)
+
     def triangulate(self, engine='auto', connected=True, fine=False, regular=None, star=None):
         r"""
         Returns a triangulation of the polytope.
@@ -2969,12 +3156,12 @@ class Polyhedron_base(Element):
             sage: cube.intersection(oct*2)
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 12 vertices
 
-       As a shorthand, one may use::
+        As a shorthand, one may use::
 
             sage: cube & oct*2
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 12 vertices
 
-       The intersection of two `\ZZ`-polyhedra is not necessarily a `\ZZ`-polyhedron::
+        The intersection of two `\ZZ`-polyhedra is not necessarily a `\ZZ`-polyhedron::
 
             sage: P = Polyhedron([(0,0),(1,1)], base_ring=ZZ)
             sage: P.intersection(P)
@@ -4017,6 +4204,70 @@ class Polyhedron_base(Element):
 
         raise ValueError("lrs did not return a volume")
 
+    def _volume_latte(self, verbose=False, algorithm='triangulate', **kwargs):
+        """
+        Computes the volume of a polytope using LattE integrale.
+
+        INPUT:
+
+        - ``arg`` -- a cdd or LattE description string.
+
+        - ``algorithm`` -- (default: 'triangulate') the integration method. Use 'triangulate' for
+          polytope triangulation or 'cone-decompose' for tangent cone decomposition method.
+
+        - ``raw_output`` -- if ``True`` then return directly the output string from LattE.
+
+        - ``verbose`` -- if ``True`` then return directly verbose output from LattE.
+
+        - For all other options, consult the LattE manual.
+
+        OUTPUT:
+
+        A rational value, or a string if ``raw_output`` if set to ``True``.
+
+        .. NOTE::
+
+            This function depends on LattE (i.e., the ``latte_int`` optional
+            package). See the LattE documentation for furthe details.
+
+        EXAMPLES::
+
+            sage: polytopes.hypercube(3)._volume_latte() #optional - latte_int
+            8
+            sage: (polytopes.hypercube(3)*2)._volume_latte() #optional - latte_int
+            64
+            sage: polytopes.twenty_four_cell()._volume_latte() #optional - latte_int
+            2
+            sage: polytopes.cuboctahedron()._volume_latte() #optional - latte_int
+            20/3
+
+        TESTS::
+
+        Testing triangulate algorithm::
+
+            sage: polytopes.cuboctahedron()._volume_latte(algorithm='triangulate') #optional - latte_int
+            20/3
+
+        Testing cone decomposition algorithm::
+
+            sage: polytopes.cuboctahedron()._volume_latte(algorithm='cone-decompose') #optional - latte_int
+            20/3
+
+        Testing raw output::
+
+            sage: polytopes.cuboctahedron()._volume_latte(raw_output=True) #optional - latte_int
+            '20/3'
+        """
+        if is_package_installed('latte_int'):
+            from sage.interfaces.latte import integrate
+            if self.base_ring() == RDF:
+                raise ValueError("LattE integrale cannot be applied over inexact rings.")
+            else:
+                return integrate(self.cdd_Hrepresentation(), algorithm=algorithm, cdd=True, verbose=verbose, **kwargs)
+
+        else:
+            raise NotImplementedError('You must install the optional latte_int package for this function to work.')
+
     @cached_method
     def volume(self, engine='auto', **kwds):
         """
@@ -4030,6 +4281,7 @@ class Polyhedron_base(Element):
           * ``'internal'``: see :meth:`triangulate`.
           * ``'TOPCOM'``: see :meth:`triangulate`.
           * ``'lrs'``: use David Avis's lrs program (optional).
+          * ``'latte'``: use LattE integrale program (optional).
 
         - ``**kwds`` -- keyword arguments that are passed to the
           triangulation engine.
@@ -4077,15 +4329,109 @@ class Polyhedron_base(Element):
             0
             sage: I.volume(engine='lrs') #optional - lrslib
             1.0
+            sage: I.volume(engine='latte') # optional - latte_int
+            1
         """
         if engine == 'lrs':
             return self._volume_lrs(**kwds)
+        elif engine == 'latte':
+            return self._volume_latte(**kwds)
         dim = self.dim()
         if dim < self.ambient_dim():
             return self.base_ring().zero()
         triangulation = self.triangulate(engine=engine, **kwds)
         pc = triangulation.point_configuration()
         return sum([ pc.volume(simplex) for simplex in triangulation ]) / ZZ(dim).factorial()
+
+    def integrate(self, polynomial, **kwds):
+        r"""
+        Return the integral of a polynomial over a polytope.
+
+        INPUT:
+
+        - ``P`` -- Polyhedron.
+
+        - ``polynomial`` -- A multivariate polynomial or a valid LattE description string for
+          polynomials.
+
+        - ``**kwds`` -- additional keyword arguments that are passed to the engine.
+
+        OUTPUT:
+
+        The integral of the polynomial over the polytope.
+
+        .. NOTE::
+
+            The polytope triangulation algorithm is used. This function depends
+            on LattE (i.e., the ``latte_int`` optional package).
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: x, y, z = polygens(QQ, 'x, y, z')
+            sage: P.integrate(x^2*y^2*z^2)    # optional - latte_int
+            8/27
+
+        If the polyhedron has floating point coordinates, an inexact result can
+        be obtained if we transform to rational coordinates::
+
+            sage: P = 1.4142*polytopes.cube()
+            sage: P_QQ = Polyhedron(vertices = [[QQ(vi) for vi in v] for v in P.vertex_generator()])
+            sage: RDF(P_QQ.integrate(x^2*y^2*z^2))    # optional - latte_int
+            6.703841212195228
+
+        Integral over a non full-dimensional polytope::
+
+            sage: x, y = polygens(QQ, 'x, y')
+            sage: P = Polyhedron(vertices=[[0,0],[1,1]])
+            sage: P.integrate(x*y)    # optional - latte_int
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: The polytope must be full-dimensional.
+            
+        TESTS::
+
+        Testing a three-dimensional integral::
+
+            sage: P = polytopes.octahedron()
+            sage: x, y, z = polygens(QQ, 'x, y, z')
+            sage: P.integrate(2*x^2*y^4*z^6+z^2)    # optional - latte_int
+            630632/4729725
+
+        Testing a polytope with non-rational vertices::
+
+            sage: P = polytopes.icosahedron()
+            sage: P.integrate(x^2*y^2*z^2)    # optional - latte_int
+            Traceback (most recent call last):
+            ...
+            TypeError: The base ring must be ZZ, QQ, or RDF
+
+        Testing a univariate polynomial::
+
+            sage: P = Polyhedron(vertices=[[0],[1]])
+            sage: x = polygen(QQ, 'x')
+            sage: P.integrate(x)    # optional - latte_int
+            1/2
+
+        Testing a polytope with floating point coordinates::
+
+            sage: P = Polyhedron(vertices = [[0, 0], [1, 0], [1.1, 1.1], [0, 1]])
+            sage: P.integrate('[[1,[2,2]]]')    # optional - latte_int
+            Traceback (most recent call last):
+            ...
+            TypeError: LattE integrale cannot be applied over inexact rings.
+        """
+        if is_package_installed('latte_int'):
+            from sage.interfaces.latte import integrate
+            if self.base_ring() == RDF:
+                raise TypeError("LattE integrale cannot be applied over inexact rings.")
+            elif not self.is_full_dimensional():
+                raise NotImplementedError("The polytope must be full-dimensional.")
+            else:
+                return integrate(self.cdd_Hrepresentation(), polynomial, cdd=True)
+
+        else:
+            raise NotImplementedError('You must install the optional latte_int package for this function to work.')
 
     def contains(self, point):
         """
@@ -4543,7 +4889,7 @@ class Polyhedron_base(Element):
         return [p for p in lp.points() if self.contains(p)]
 
     @cached_method
-    def bounding_box(self, integral=False):
+    def bounding_box(self, integral=False, integral_hull=False):
         r"""
         Return the coordinates of a rectangular box containing the non-empty polytope.
 
@@ -4551,6 +4897,10 @@ class Polyhedron_base(Element):
 
         - ``integral`` -- Boolean (default: ``False``). Whether to
           only allow integral coordinates in the bounding box.
+
+        - ``integral_hull`` -- Boolean (default: ``False``). If ``True``, return a
+          box containing the integral points of the polytope, or ``None, None`` if it
+          is known that the polytope has no integral points.
 
         OUTPUT:
 
@@ -4565,6 +4915,10 @@ class Polyhedron_base(Element):
             ((1/3, 1/3), (2/3, 2/3))
             sage: Polyhedron([ (1/3,2/3), (2/3, 1/3) ]).bounding_box(integral=True)
             ((0, 0), (1, 1))
+            sage: Polyhedron([ (1/3,2/3), (2/3, 1/3) ]).bounding_box(integral_hull=True)
+            (None, None)
+            sage: Polyhedron([ (1/3,2/3), (3/3, 4/3) ]).bounding_box(integral_hull=True)
+            ((1, 1), (1, 1))
             sage: polytopes.buckyball(exact=False).bounding_box()
             ((-0.8090169944, -0.8090169944, -0.8090169944), (0.8090169944, 0.8090169944, 0.8090169944))
         """
@@ -4578,7 +4932,14 @@ class Polyhedron_base(Element):
             coords = [ v[i] for v in self.vertex_generator() ]
             max_coord = max(coords)
             min_coord = min(coords)
-            if integral:
+            if integral_hull:
+                a = ceil(min_coord)
+                b = floor(max_coord)
+                if a > b:
+                    return None, None
+                box_max.append(b)
+                box_min.append(a)
+            elif integral:
                 box_max.append(ceil(max_coord))
                 box_min.append(floor(min_coord))
             else:
@@ -4586,77 +4947,47 @@ class Polyhedron_base(Element):
                 box_min.append(min_coord)
         return (tuple(box_min), tuple(box_max))
 
-    def integral_points_count(self, verbose=False, use_Hrepresentation=False, **kwds):
+    def integral_points_count(self, **kwds):
         r"""
         Return the number of integral points in the polyhedron.
 
-        This method uses the optional package ``latte_int``.
-
-        INPUT:
-
-        - ``verbose`` (boolean; ``False`` by default) -- whether to display
-          verbose output.
-
-        - ``use_Hrepresentation`` - (boolean; ``False`` by default) -- whether
-          to send the H or V representation to LattE
-
-        .. SEEALSO::
-
-            :mod:`~sage.interfaces.latte` the interface to LattE interfaces
+        This generic version of this method simply calls ``integral_points``.
 
         EXAMPLES::
 
             sage: P = polytopes.cube()
-            sage: P.integral_points_count() # optional - latte_int
-            27
-            sage: P.integral_points_count(verbose=True) # optional - latte_int
-            This is LattE integrale...
-            ...
-            Total time:...
+            sage: P.integral_points_count()
             27
 
         We shrink the polyhedron a little bit::
 
             sage: Q = P*(8/9)
-            sage: Q.integral_points_count() # optional - latte_int
+            sage: Q.integral_points_count()
             1
 
-        This no longer works if the coordinates are not rationals::
+        Same for a polyhedron whose coordinates are not rationals.  Note that
+        the answer is an integer even though there are no guarantees for
+        exactness::
 
             sage: Q = P*RDF(8/9)
-            sage: Q.integral_points_count() # optional - latte_int
-            Traceback (most recent call last):
-            ...
-            RuntimeError: LattE integrale program failed (exit code 1):
-            ...
-            Invocation: count '--redundancy-check=none' --cdd /dev/stdin
-            ...
-            Parse error in CDD-style input file /dev/stdin
-            sage: Q.integral_points_count(verbose=True) # optional - latte_int
-            Traceback (most recent call last):
-            ...
-            RuntimeError: LattE integrale program failed (exit code 1), see error message above
-
-        TESTS:
-
-        We check that :trac:`21491` is fixed::
-
-            sage: P = Polyhedron(ieqs=[], eqns=[[-10,0,1],[-10,1,0]])
-            sage: P.integral_points_count() # optional - latte_int
+            sage: Q.integral_points_count()
             1
-            sage: P = Polyhedron(ieqs=[], eqns=[[-11,0,2],[-10,1,0]])
-            sage: P.integral_points_count() # optional - latte_int
-            0
-        """
-        if self.is_empty():
-            return 0
 
-        from sage.interfaces.latte import count
-        return count(
-                self.cdd_Hrepresentation() if use_Hrepresentation else self.cdd_Vrepresentation(),
-                cdd=True,
-                verbose=verbose,
-                **kwds)
+        Unbounded polyhedra (with or without lattice points) are not supported::
+
+            sage: P = Polyhedron(vertices=[[1/2, 1/3]], rays=[[1, 1]])
+            sage: P.integral_points_count()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: ...
+            sage: P = Polyhedron(vertices=[[1, 1]], rays=[[1, 1]])
+            sage: P.integral_points_count()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: ...
+
+        """
+        return len(self.integral_points())
 
     def integral_points(self, threshold=100000):
         r"""
@@ -4707,6 +5038,12 @@ class Polyhedron_base(Element):
             A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 5 vertices
             sage: len(simplex.integral_points())
             49
+
+        A case where rounding in the right direction goes a long way::
+
+            sage: P = 1/10*polytopes.hypercube(14)
+            sage: P.integral_points()
+            ((0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),)
 
         Finally, the 3-d reflexive polytope number 4078::
 
@@ -4759,7 +5096,9 @@ class Polyhedron_base(Element):
                 return ()
 
         # for small bounding boxes, it is faster to naively iterate over the points of the box
-        box_min, box_max = self.bounding_box(integral=True)
+        box_min, box_max = self.bounding_box(integral_hull=True)
+        if box_min is None:
+            return ()
         box_points = prod(max_coord-min_coord+1 for min_coord, max_coord in zip(box_min, box_max))
         if  not self.is_lattice_polytope() or \
                 (self.is_simplex() and box_points < 1000) or \
@@ -4783,30 +5122,52 @@ class Polyhedron_base(Element):
         return tuple(points)
 
     @cached_method
-    def combinatorial_automorphism_group(self):
+    def combinatorial_automorphism_group(self, vertex_graph_only=False):
         """
-        Computes the combinatorial automorphism group of the vertex
-        graph of the polyhedron.
+        Computes the combinatorial automorphism group.
+
+        If ``vertex_graph_only`` is ``True``,  the automorphism group
+        of the vertex-edge graph of the polyhedron is returned. Otherwise
+        the automorphism group of the vertex-facet graph, which is
+        isomorphic to the automorphism group of the face lattice is returned.
+
+        INPUT:
+
+        - ``vertex_graph_only`` -- boolean (default: ``False``); whether
+          to return the automorphism group of the vertex edges graph or
+          of the lattice.
 
         OUTPUT:
 
         A
-        :class:`PermutationGroup<sage.groups.perm_gps.permgroup.PermutationGroup_generic>`
+        :class:`PermutationGroup<sage.groups.perm_gps.permgroup.PermutationGroup_generic_with_category'>`
         that is isomorphic to the combinatorial automorphism group is
         returned.
 
-        Note that in Sage, permutation groups always act on positive
-        integers while ``self.Vrepresentation()`` is indexed by
-        nonnegative integers. The indexing of the permutation group is
-        chosen to be shifted by ``+1``. That is, ``i`` in the
-        permutation group corresponds to the V-representation object
-        ``self.Vrepresentation(i-1)``.
+        - if ``vertex_graph_only`` is ``True``:
+          The automorphism group of the vertex-edge graph of the polyhedron
+
+        - if ``vertex_graph_only`` is ``False`` (default):
+          The automorphism group of the vertex-facet graph of the polyhedron,
+          see :meth:`vertex_facet_graph`. This group is isomorphic to the
+          automorphism group of the face lattice of the polyhedron.
+
+        NOTE:
+
+            Depending on ``vertex_graph_only``, this method returns groups
+            that are not neccessarily isomorphic, see the examples below.
+
+        .. SEEALSO::
+
+            :meth:`is_combinatorially_isomorphic`,
+            :meth:`graph`,
+            :meth:`vertex_facet_graph`.
 
         EXAMPLES::
 
             sage: quadrangle = Polyhedron(vertices=[(0,0),(1,0),(0,1),(2,3)])
-            sage: quadrangle.combinatorial_automorphism_group()
-            Permutation Group with generators [(2,3), (1,2)(3,4)]
+            sage: quadrangle.combinatorial_automorphism_group().is_isomorphic(groups.permutation.Dihedral(4))
+            True
             sage: quadrangle.restricted_automorphism_group()
             Permutation Group with generators [()]
 
@@ -4814,18 +5175,43 @@ class Polyhedron_base(Element):
         with rays, and lines with lines::
 
             sage: P = Polyhedron(vertices=[(1,0,0), (1,1,0)], rays=[(1,0,0)], lines=[(0,0,1)])
-            sage: P.combinatorial_automorphism_group()
-            Permutation Group with generators [(3,4)]
-        """
-        G = Graph()
-        for u,v in self.vertex_graph().edges(labels=False):
-            i = u.index()
-            j = v.index()
-            G.add_edge(i+1, j+1, (u.type(), v.type()) )
+            sage: P.combinatorial_automorphism_group(vertex_graph_only=True)
+            Permutation Group with generators [(A vertex at (1,0,0),A vertex at (1,1,0))]
 
+        This shows an example of two polytopes whose vertex-edge graphs are isomorphic,
+        but their face_lattices are not isomorphic::
+
+            sage: Q=Polyhedron([[-123984206864/2768850730773, -101701330976/922950243591, -64154618668/2768850730773, -2748446474675/2768850730773],
+            ....: [-11083969050/98314591817, -4717557075/98314591817, -32618537490/98314591817, -91960210208/98314591817],
+            ....: [-9690950/554883199, -73651220/554883199, 1823050/554883199, -549885101/554883199], [-5174928/72012097, 5436288/72012097, -37977984/72012097, 60721345/72012097],
+            ....: [-19184/902877, 26136/300959, -21472/902877, 899005/902877], [53511524/1167061933, 88410344/1167061933, 621795064/1167061933, 982203941/1167061933],
+            ....: [4674489456/83665171433, -4026061312/83665171433, 28596876672/83665171433, -78383796375/83665171433], [857794884940/98972360190089, -10910202223200/98972360190089, 2974263671400/98972360190089, -98320463346111/98972360190089]])
+            sage: C = polytopes.cyclic_polytope(4,8)
+            sage: C.is_combinatorially_isomorphic(Q)
+            False
+            sage: C.combinatorial_automorphism_group(vertex_graph_only=True).is_isomorphic(Q.combinatorial_automorphism_group(vertex_graph_only=True))
+            True
+            sage: C.combinatorial_automorphism_group(vertex_graph_only=False).is_isomorphic(Q.combinatorial_automorphism_group(vertex_graph_only=False))
+            False
+
+        The automorphism group of the face lattice is isomorphic to the combinatorial automorphism group::
+
+            sage: CG = C.face_lattice().hasse_diagram().automorphism_group()
+            sage: C.combinatorial_automorphism_group().is_isomorphic(CG)
+            True
+            sage: QG = Q.face_lattice().hasse_diagram().automorphism_group()
+            sage: Q.combinatorial_automorphism_group().is_isomorphic(QG)
+            True
+
+        """
+        if vertex_graph_only:
+            G = self.graph()
+        else:
+            G = self.vertex_facet_graph()
         group = G.automorphism_group(edge_labels=True)
         self._combinatorial_automorphism_group = group
-        return group
+
+        return self._combinatorial_automorphism_group
 
     @cached_method
     def restricted_automorphism_group(self, output="abstract"):
@@ -5200,12 +5586,17 @@ class Polyhedron_base(Element):
 
         OUTPUT:
 
-          - ``True`` if the two polyhedra are combinatorially isomorphic
-          - ``False`` otherwise
+        - ``True`` if the two polyhedra are combinatorially isomorphic
+        - ``False`` otherwise
+
+        .. SEEALSO::
+
+            :meth:`combinatorial_automorphism_group`,
+            :meth:`vertex_facet_graph`.
 
         REFERENCES:
 
-            For the equivalence of the two algorithms see [KK1995]_, p. 877-878
+        For the equivalence of the two algorithms see [KK1995]_, p. 877-878
 
         EXAMPLES:
 
@@ -5303,26 +5694,8 @@ class Polyhedron_base(Element):
             return False
 
         if algorithm == 'bipartite_graph':
-
-            def get_incidences(P):
-                # This function constructs a directed bipartite graph.
-                # The nodes of the graph are the vertices of the polyhedron
-                # and the facets of the polyhedron. There is an directed edge
-                # from a vertex to a face if the vertex is contained in the face.
-                # We obtain this incidence information from the incidence matrix
-                G = DiGraph()
-                M = P.incidence_matrix()
-                # We construct the edges and remove the columns that have all 1s;
-                # those correspond to faces, that contain all vertices (which happens
-                # if the polyhedron is not full-dimensional)
-                edges = [[i, M.ncols()+j] for i, column in enumerate(M.columns())
-                         if any(entry != 1 for entry in column)
-                         for j in range(M.nrows()) if M[j, i] == 1]
-                G.add_edges(edges)
-                return G
-
-            G_self = get_incidences(self)
-            G_other = get_incidences(other)
+            G_self = self.vertex_facet_graph(False)
+            G_other = other.vertex_facet_graph(False)
 
             return G_self.is_isomorphic(G_other)
         else:
@@ -5376,3 +5749,95 @@ class Polyhedron_base(Element):
         rays = [pivot(_) for _ in self.rays()]
         lines = [pivot(_) for _ in self.lines()]
         return Polyhedron(vertices=vertices, rays=rays, lines=lines, base_ring=self.base_ring())
+
+    def _polymake_init_(self):
+        """
+        Return a polymake "Polytope" object corresponding to ``self``.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: PP = polymake(P)         # optional - polymake
+            sage: PP.N_VERTICES            # optional - polymake
+            8
+
+        Lower-dimensional polyhedron::
+
+            sage: P = Polyhedron(vertices=[[1, 0], [0, 1]])
+            sage: PP = polymake(P)         # optional - polymake
+            sage: PP.COMBINATORIAL_DIM     # optional - polymake
+            1
+            sage: PP.AFFINE_HULL           # optional - polymake
+            -1 1 1
+
+        Empty polyhedron::
+
+            sage: P = Polyhedron(ambient_dim=2, vertices=[])
+            sage: PP = polymake(P)         # optional - polymake
+            sage: PP.COMBINATORIAL_DIM     # optional - polymake
+            -1
+
+        Pointed unbounded polyhedron::
+
+            sage: P = Polyhedron(vertices=[[1, 0], [0, 1]], rays=[[1, 0]])
+            sage: PP = polymake(P)         # optional - polymake
+            sage: PP.VERTICES              # optional - polymake
+            1 0 1
+            1 1 0
+            0 1 0
+            sage: PP.FACETS                # optional - polymake
+            1 0 -1
+            -1 1 1
+            0 0 1
+
+        Non-pointed polyhedron::
+
+            sage: P = Polyhedron(vertices=[[1, 0], [0, 1]], lines=[[1, 0]])
+            sage: PP = polymake(P)         # optional - polymake
+            sage: PP.VERTICES              # optional - polymake
+            1 0 1
+            1 0 0
+            sage: PP.FACETS                # optional - polymake
+            1 0 -1
+            0 0 1
+            sage: PP.LINEALITY_SPACE       # optional - polymake
+            0 1 0
+
+        Algebraic polyhedron::
+
+            sage: P = polytopes.dodecahedron(); P
+            A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^3 defined as the convex hull of 20 vertices
+            sage: print("There may be a recompilation warning"); PP = polymake(P); PP # optional - polymake
+            There may be a recompilation warning...
+            Polytope<QuadraticExtension<Rational>>[...]
+            sage: sorted(PP.VERTICES[:], key=repr)[0]  # optional - polymake
+            1 -1+1r5 -4+2r5 0
+
+        Floating-point polyhedron::
+
+            sage: P = polytopes.dodecahedron(exact=False); P
+            A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 20 vertices
+            sage: print("There may be a recompilation warning"); PP = polymake(P); PP # optional - polymake
+            There may be a recompilation warning...
+            Polytope<Float>[...]
+            sage: sorted(PP.VERTICES[:], key=repr)[0] # optional - polymake
+            1 -0.472135955 0 -1.236067978
+
+        """
+        from sage.interfaces.polymake import polymake
+        polymake_field = polymake(self.base_ring().fraction_field())
+        polymake_class = "Polytope<{}>".format(polymake_field)
+        if self.is_empty():
+            # Polymake 3.1 cannot enter an empty polyhedron using
+            # FACETS and AFFINE_HULL.  Use corresponding input properties instead.
+            # https://forum.polymake.org/viewtopic.php?f=8&t=545
+            return polymake.new_object(polymake_class,
+                                       INEQUALITIES=self.inequalities_list(),
+                                       EQUATIONS=self.equations_list())
+        else:
+            return polymake.new_object(polymake_class,
+                                       FACETS=self.inequalities_list(),
+                                       AFFINE_HULL=self.equations_list(),
+                                       VERTICES=   [ [1] + v for v in self.vertices_list() ] \
+                                                 + [ [0] + r for r in self.rays_list() ],
+                                       LINEALITY_SPACE=[ [0] + l for l in self.lines_list() ])

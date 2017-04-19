@@ -666,7 +666,8 @@ class SkewTableau(ClonableList):
             [[None, 1], [1]]
         """
         t = self[:]
-        return SkewTableau( [z for z in map(lambda x: [y for y in x if y is None or y <= n], t) if z != []] )
+        return SkewTableau([z for z in [[y for y in x if y is None or y <= n]
+                                        for x in t] if z])
 
     def restriction_outer_shape(self, n):
         """

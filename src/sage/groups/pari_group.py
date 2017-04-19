@@ -86,7 +86,7 @@ class PariGroup(Group):
         """
         return not (self == other)
 
-    def _pari_(self):
+    def __pari__(self):
         return self.__x
 
     def degree(self):

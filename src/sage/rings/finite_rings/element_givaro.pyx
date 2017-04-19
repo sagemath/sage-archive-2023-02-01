@@ -433,7 +433,7 @@ cdef class Cache_givaro(SageObject):
 
         elif isinstance(e, FiniteFieldElement_pari_ffelt) or isinstance(e, FiniteField_ext_pariElement):
             # Reduce to pari
-            e = e._pari_()
+            e = e.__pari__()
 
         elif sage.interfaces.gap.is_GapElement(e):
             from sage.interfaces.gap import gfq_gap_to_sage

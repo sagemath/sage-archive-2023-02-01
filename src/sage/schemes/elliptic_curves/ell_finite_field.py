@@ -1082,7 +1082,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         k = self.base_ring()
         p = k.characteristic()
         if k.degree()==1:
-            return ZZ(p + 1 - int(self._pari_().ellap(p)))
+            return ZZ(p + 1 - int(self.__pari__().ellap(p)))
         else:
             raise ValueError("cardinality_pari() only works over prime fields.")
 

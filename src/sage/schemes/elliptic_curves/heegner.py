@@ -3171,7 +3171,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             8.4...e-31 + 6.0...e-31*I
             sage: E = EllipticCurve('37a'); P = E.heegner_point(-40); P
             Heegner point of discriminant -40 on elliptic curve of conductor 37
-            sage: P.numerical_approx()  # abs tol 1e-15
+            sage: P.numerical_approx()  # abs tol 1e-14
             (-3.15940603400359e-16 + 1.41421356237309*I : 1.00000000000000 - 1.41421356237309*I : 1.00000000000000)
 
         A rank 2 curve, where all Heegner points of conductor 1 are 0::
@@ -6250,7 +6250,7 @@ def kolyvagin_point(self, D, c=ZZ(1), check=True):
         sage: E = EllipticCurve('37a1')
         sage: P = E.kolyvagin_point(-67); P
         Kolyvagin point of discriminant -67 on elliptic curve of conductor 37
-        sage: P.numerical_approx()
+        sage: P.numerical_approx()  # abs tol 1e-14
         (6.00000000000000 : -15.0000000000000 : 1.00000000000000)
         sage: P.index()
         6

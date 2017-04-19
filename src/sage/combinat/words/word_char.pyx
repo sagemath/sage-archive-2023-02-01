@@ -283,6 +283,23 @@ cdef class WordDatatype_char(WordDatatype):
             (False, False, True, False)
             sage: (w>=w, z>=z, w>=z, z>=w)
             (True, True, True, False)
+
+        Testing that :trac:`22717` is fixed::
+
+            sage: w = Word([1,2], alphabet=[1,2,3])
+            sage: z = Word([1,2,3], alphabet=[1,2,3])
+            sage: (w<w, z<z, w<z, z<w)
+            (False, False, True, False)
+            sage: (w<=w, z<=z, w<=z, z<=w)
+            (True, True, True, False)
+            sage: (w==w, z==z, w==z, z==w)
+            (True, True, False, False)
+            sage: (w!=w, z!=z, w!=z, z!=w)
+            (False, False, True, True)
+            sage: (w>w, z>z, w>z, z>w)
+            (False, False, False, True)
+            sage: (w>=w, z>=z, w>=z, z>=w)
+            (True, True, False, True)
         """
         # 0: <
         # 1: <=
@@ -314,8 +331,8 @@ cdef class WordDatatype_char(WordDatatype):
         sig_off()
 
         if test == 0:
-            return 0
-        if test < 0:
+            return self._length - other._length
+        elif test < 0:
             return -1
         else:
             return 1

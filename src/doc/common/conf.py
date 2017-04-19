@@ -308,6 +308,7 @@ latex_elements['preamble'] = r"""
 \usepackage{amssymb}
 \usepackage{textcomp}
 \usepackage{mathrsfs}
+\usepackage{iftex}
 
 % Only declare unicode characters when compiling with pdftex; E.g. japanese
 % tutorial does not use pdftex

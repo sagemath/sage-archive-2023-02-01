@@ -2234,7 +2234,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         TEST:
 
-        Bugfix from #7673 ::
+        Bugfix from :trac:`7673` ::
 
             sage: G = Graph([(0,1,9),(0,2,8),(1,2,7)])
             sage: G.shortest_path_length(0,1,by_weight=True)

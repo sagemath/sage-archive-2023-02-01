@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Free algebra elements
 
@@ -273,7 +274,7 @@ class FreeAlgebraElement(AlgebraElement, CombinatorialFreeModuleElement):
 
     def to_pbw_basis(self):
         """
-        Return ``self`` in the Poincare-Birkhoff-Witt (PBW) basis.
+        Return ``self`` in the Poincaré-Birkhoff-Witt (PBW) basis.
 
         EXAMPLES::
 

@@ -1140,14 +1140,6 @@ class GenericGrowthElement(MultiplicativeGroupElement):
 
         A boolean.
 
-        .. NOTE::
-
-            This function uses the coercion model to find a common
-            parent for the two operands.
-
-            The comparison of two elements with the same parent is done in
-            :meth:`_eq_`.
-
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
@@ -1200,6 +1192,7 @@ class GenericGrowthElement(MultiplicativeGroupElement):
         """
         if not isinstance(other, GenericGrowthElement):
             return op == op_NE
+
         return richcmp(self._raw_element_, other._raw_element_, op)
 
     log = _log_
@@ -2786,8 +2779,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             M = MonomialGrowthGroup(new_exponent.parent(), new_var)
             return M(raw_element=new_exponent)
 
-
-    def _le_(self, other):
+    def _richcmp_(self, other, op):
         r"""
         Return whether this :class:`MonomialGrowthElement` is at most
         (less than or equal to) ``other``.
@@ -2813,8 +2805,10 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: P_ZZ.gen() <= P_QQ.gen()^2  # indirect doctest
             True
         """
-        return self.exponent <= other.exponent
+        if not isinstance(other, MonomialGrowthElement):
+            return op == op_NE
 
+        return richcmp(self.exponent, other.exponent, op)
 
     def _substitute_(self, rules):
         r"""
@@ -3607,8 +3601,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
         return ((str(self.parent()._var_), coefficient),)
 
-
-    def _le_(self, other):
+    def _richcmp_(self, other, op):
         r"""
         Return whether this :class:`ExponentialGrowthElement` is at most
         (less than or equal to) ``other``.
@@ -3639,9 +3632,15 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: P_ZZ((-2)^x) <= P_ZZ(2^x) or P_ZZ(2^x) <= P_ZZ((-2)^x)
             False
         """
-        return bool(abs(self.base) < abs(other.base)) or \
-               bool(self.base == other.base)
+        if not isinstance(other, ExponentialGrowthElement):
+            return op == op_NE
 
+        lx = self.base
+        ly = other.base
+        if lx == ly:
+            return rich_to_bool(op, 0)
+
+        return richcmp(abs(lx), abs(ly), op)
 
     def _substitute_(self, rules):
         r"""

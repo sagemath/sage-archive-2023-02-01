@@ -1413,9 +1413,9 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
             sage: K.highest_weight_dict()
             {[[(2, -1), (1,)]]: ((-2, 0, 1, 0, 0, 0, 0), 1),
              [[(3, -1, -6), (1,)]]: ((-1, 0, 0, 1, 0, 0, -1), 1),
-             []: ((0, 0, 0, 0, 0, 0, 0), 0),
              [[(6, -2), (-6, 2)]]: ((0, 0, 0, 0, 0, 0, 0), 1),
-             [[(5, -2, -6), (-6, 2)]]: ((0, 0, 0, 0, 0, 1, -2), 1)}
+             [[(5, -2, -6), (-6, 2)]]: ((0, 0, 0, 0, 0, 1, -2), 1),
+             []: ((0, 0, 0, 0, 0, 0, 0), 0)}
         """
         hw = [x for x in self.hw_auxiliary() if x.epsilon(1) == 0]
         dic = dict( ( x, tuple( [self.affine_weight(x), len(x)] ) ) for x in hw )
@@ -1474,9 +1474,9 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
             sage: dic
             {[[(2, -1), (1,)]]: [[(-1,), (-1, 3)]],
              [[(3, -1, -6), (1,)]]: [[(5, -3), (-1, 3)]],
-             []: [[(1, -3), (-1, 3)]],
              [[(6, -2), (-6, 2)]]: [],
-             [[(5, -2, -6), (-6, 2)]]: [[(2, -1), (1,)]]}
+             [[(5, -2, -6), (-6, 2)]]: [[(2, -1), (1,)]],
+             []: [[(1, -3), (-1, 3)]]}
         """
         dic = self.highest_weight_dict()
         dic_inv = self.highest_weight_dict_inv()

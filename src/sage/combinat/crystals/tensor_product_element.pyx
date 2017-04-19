@@ -82,6 +82,7 @@ cdef class ImmutableListWithParent(ClonableArray):
         self._parent = state[0]
         self._list = state[1]['_list']
         self._is_immutable = True
+        self._hash = 0
 
     def reversed(self):
         """

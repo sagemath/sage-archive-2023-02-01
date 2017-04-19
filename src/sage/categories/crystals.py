@@ -1139,7 +1139,7 @@ class Crystals(Category_singleton):
                   The crystal of letters for type ['A', 2],
                   The crystal of letters for type ['A', 2]]
                 sage: T.module_generators
-                [[2, 1, 1], [1, 2, 1]]
+                ([2, 1, 1], [1, 2, 1])
             """
             from sage.combinat.crystals.tensor_product import TensorProductOfCrystals
             return TensorProductOfCrystals(self, *crystals, **options)

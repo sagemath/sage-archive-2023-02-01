@@ -160,8 +160,8 @@ class CrystalOfWords(UniqueRepresentation, Parent):
             return sum(q**(c[0].energy_function())*B.sum(B(P0(b.weight())) for b in c) for c in C)
         return B.sum(q**(b.energy_function())*B(P0(b.weight())) for b in self)
 
-    Element = TensorProductOfCrystalsElement
-
+    class Element(TensorProductOfCrystalsElement):
+        pass
 
 class TensorProductOfCrystals(CrystalOfWords):
     r"""
@@ -321,7 +321,7 @@ class TensorProductOfCrystals(CrystalOfWords):
         24
         sage: TestSuite(T).run()
         sage: T.module_generators
-        [[[[1], [2]], [[1]]], [[[2], [3]], [[1]]]]
+        ([[[1], [2]], [[1]]], [[[2], [3]], [[1]]])
         sage: [x.weight() for x in T.module_generators]
         [(2, 1, 0, 0), (1, 1, 1, 0)]
 
@@ -679,13 +679,15 @@ class FullTensorProductOfRegularCrystals(FullTensorProductOfCrystals):
     """
     Full tensor product of regular crystals.
     """
-    Element = TensorProductOfRegularCrystalsElement
+    class Element(TensorProductOfRegularCrystalsElement):
+        pass
 
 class TensorProductOfRegularCrystalsWithGenerators(TensorProductOfCrystalsWithGenerators):
     """
     Tensor product of regular crystals with a generating set.
     """
-    Element = TensorProductOfRegularCrystalsElement
+    class Element(TensorProductOfRegularCrystalsElement):
+        pass
 
 #########################################################
 ## Crystal of tableaux
@@ -789,7 +791,7 @@ class CrystalOfTableaux(CrystalOfWords):
         sage: T.cardinality()
         48
         sage: T.module_generators
-        [[+++, [[1]]]]
+        ([+++, [[1]]],)
         sage: TestSuite(T).run()
 
         sage: T = crystals.Tableaux(['D',3],shape=[3/2,1/2,-1/2]); T
@@ -797,7 +799,7 @@ class CrystalOfTableaux(CrystalOfWords):
         sage: T.cardinality()
         20
         sage: T.module_generators
-        [[++-, [[1]]]]
+        ([++-, [[1]]],)
         sage: TestSuite(T).run()
 
     TESTS:
@@ -996,7 +998,8 @@ class CrystalOfTableaux(CrystalOfWords):
         """
         return self.element_class(self, *args, **options)
 
-CrystalOfTableaux.Element = CrystalOfTableauxElement
+    class Element(CrystalOfTableauxElement):
+        pass
 
 #####################################################################
 ## Local energy function

@@ -219,11 +219,13 @@ from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.factory import UniqueFactory
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.sage_object import richcmp, op_NE
+from sage.structure.sage_object import (richcmp, op_NE, op_EQ,
+                                        op_LT, op_LE, op_GT, op_GE)
 
 
 class ZeroCoefficientError(ValueError):
     pass
+
 
 def absorption(left, right):
     r"""
@@ -2850,11 +2852,17 @@ class TermWithCoefficient(GenericTerm):
         return (self.parent()._create_element_in_extension_(
             self.parent().growth_group.one(), log(self.coefficient, base=base)),)
 
-
-    def _le_(self, other):
+    def _richcmp_(self, other, op):
         r"""
-        Return whether this asymptotic term with coefficient grows
-        at most (less than or equal) like ``other``.
+        Compare this asymptotic term with coefficient and other.
+
+        For 't1 \leq t2`, we check whether `t1` has a growth that is
+        strictly weaker than the growth of `t2`. If so, we return
+        ``True``. If the terms have equal growth, then we return ``True``
+        if and only if the coefficients coincide as well.
+
+        The expected behaviour is that self is smaller than other
+        if self grows at most (less than or equal) like ``other``.
 
         INPUT:
 
@@ -2892,35 +2900,7 @@ class TermWithCoefficient(GenericTerm):
 
             sage: ET(x, -2) <= ET(x, 1)
             False
-        """
-        if self.growth == other.growth:
-            return self.coefficient == other.coefficient
-        else:
-            return super(TermWithCoefficient, self)._le_(other)
 
-
-    def _eq_(self, other):
-        r"""
-        Return whether this :class:`TermWithCoefficient` is the same as
-        ``other``.
-
-        INPUT:
-
-        - ``other`` -- an :class:`TermWithCoefficient`.
-
-        OUTPUT:
-
-        A boolean.
-
-        .. NOTE::
-
-            This method gets called by the coercion model, so it can
-            be assumed that this term and ``other`` come from the
-            same parent.
-
-        EXAMPLES::
-
-            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import TermWithCoefficientMonoid
             sage: T = TermWithCoefficientMonoid(GrowthGroup('x^ZZ'), ZZ)
             sage: t = T.an_element(); t
@@ -2932,8 +2912,25 @@ class TermWithCoefficient(GenericTerm):
             sage: t == T(x^2, 1)
             False
         """
-        return super(TermWithCoefficient, self)._eq_(other) and \
-            self.coefficient == other.coefficient
+        if op in (op_EQ, op_NE):
+            return richcmp((self.growth, self.coefficient),
+                           (other.growth, other.coefficient), op)
+
+        if op in (op_LT, op_LE):
+            if self.growth < other.growth:
+                return True
+            elif self.growth == other.growth:
+                return self.coefficient == other.coefficient
+            else:
+                return False
+
+        if op in (op_GT, op_GE):
+            if self.growth > other.growth:
+                return True
+            elif self.growth == other.growth:
+                return self.coefficient == other.coefficient
+            else:
+                return False
 
 
 class TermWithCoefficientMonoid(GenericTermMonoid):

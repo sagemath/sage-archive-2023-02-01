@@ -29,7 +29,7 @@ from sage.graphs.graph_plot import _circle_embedding, _line_embedding
 
 def HarborthGraph():
     r"""
-    Return the Harborth Graph
+    Return the Harborth Graph.
 
     The Harborth graph has 104 edges and 52 vertices, and is the smallest known
     example of a 4-regular matchstick graph. For more information, see the
@@ -424,7 +424,7 @@ def WellsGraph():
 
 def Cell600(embedding=1):
     r"""
-    Returns the 600-Cell graph
+    Returns the 600-Cell graph.
 
     This is the adjacency graph of the 600-cell. It has 120 vertices and 720
     edges. For more information, see the :wikipedia:`600-cell`.
@@ -504,7 +504,7 @@ def Cell600(embedding=1):
 
 def Cell120():
     r"""
-    Returns the 120-Cell graph
+    Returns the 120-Cell graph.
 
     This is the adjacency graph of the 120-cell. It has 600 vertices and 1200
     edges. For more information, see the :wikipedia:`120-cell`.
@@ -614,7 +614,7 @@ def Cell120():
 
 def SuzukiGraph():
     r"""
-    Return the Suzuki Graph
+    Return the Suzuki Graph.
 
     The Suzuki graph has 1782 vertices, and is strongly regular with parameters
     `(1782,416,100,96)`. Known as S.15 in [Hu75]_.
@@ -1662,7 +1662,7 @@ def DoubleStarSnark():
 
 def MeredithGraph():
     r"""
-    Returns the Meredith Graph
+    Returns the Meredith Graph.
 
     The Meredith Graph is a 4-regular 4-connected non-hamiltonian graph. For
     more information on the Meredith Graph, see the :wikipedia:`Meredith_graph`.
@@ -3011,6 +3011,8 @@ def HerschelGraph():
 
 def HigmanSimsGraph(relabel=True):
     r"""
+    Returns the Higman-Sims graph.
+
     The Higman-Sims graph is a remarkable strongly regular
     graph of degree 22 on 100 vertices.  For example, it can
     be split into two sets of 50 vertices each, so that each
@@ -3314,7 +3316,7 @@ def HoffmanGraph():
 
 def HoltGraph():
     r"""
-    Returns the Holt graph (also called the Doyle graph)
+    Returns the Holt graph (also called the Doyle graph).
 
     See the :wikipedia:`Wikipedia page on the Holt graph
     <Holt_graph>`.
@@ -3468,7 +3470,7 @@ def Klein7RegularGraph():
 
 def LocalMcLaughlinGraph():
     r"""
-    Return the local McLaughlin graph
+    Return the local McLaughlin graph.
 
     The local McLaughlin graph is a strongly regular graph with parameters
     `(162,56,10,24)`. It can be obtained from
@@ -4004,6 +4006,8 @@ def PoussinGraph():
 
 def PetersenGraph():
     """
+    Returns the Petersen Graph.
+
     The Petersen Graph is a named graph that consists of 10 vertices
     and 15 edges, usually drawn as a five-point star embedded in a
     pentagon.
@@ -4801,7 +4805,7 @@ def _EllipticLinesProjectivePlaneScheme(k):
 
 def MathonStronglyRegularGraph(t):
     r"""
-    return one of Mathon's graphs on 784 vertices
+    Return one of Mathon's graphs on 784 vertices.
 
     INPUT:
 
@@ -4830,7 +4834,7 @@ def MathonStronglyRegularGraph(t):
 
 def JankoKharaghaniGraph(v):
     r"""
-    Returns a (936, 375, 150, 150)-srg or a (1800, 1029, 588, 588)-srg
+    Returns a (936, 375, 150, 150)-srg or a (1800, 1029, 588, 588)-srg.
 
     This functions returns a strongly regular graph for the two sets of
     parameters shown to be realizable in [JK02]_. The paper also uses a
@@ -4937,7 +4941,7 @@ def JankoKharaghaniGraph(v):
 
 def JankoKharaghaniTonchevGraph():
     r"""
-    Returns a (324,153,72,72)-strongly regular graph from [JKT01]_
+    Returns a (324,153,72,72)-strongly regular graph from [JKT01]_.
 
     Build the graph using the description given in [JKT01]_, taking
     sets B1 and B163 in the text as adjacencies of vertices 1 and 163,
@@ -5183,7 +5187,7 @@ def IoninKharaghani765Graph():
 
 def U42Graph216():
     r"""
-    Returns a (216,40,4,8)-strongly regular graph from [CRS16]_
+    Returns a (216,40,4,8)-strongly regular graph from [CRS16]_.
 
     Build the graph, interpreting the `U_4(2)`-action considered in [CRS16]_
     as the one on the hyperbolic lines of the corresponding unitary polar space,
@@ -5235,7 +5239,7 @@ def U42Graph216():
 
 def U42Graph540():
     r"""
-    Returns a (540,187,58,68)-strongly regular graph from [CRS16]_
+    Returns a (540,187,58,68)-strongly regular graph from [CRS16]_.
 
     Build the graph, interpreting the `U_4(2)`-action considered in [CRS16]_
     as the action of `U_4(2)=Sp_4(3)<U_4(3)` on the nonsingular, w.r.t.

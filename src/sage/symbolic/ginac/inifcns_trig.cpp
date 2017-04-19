@@ -1148,14 +1148,15 @@ static ex asin_eval(const ex & x)
 		if (x.is_equal(_ex_1))
 			return _ex_1_2*Pi;
 
-                const numeric& num = ex_to<numeric>(x);
-                if (num.is_real()
-                    and (num < *_num_1_p or num > *_num1_p))
-                        return NaN;
-
-		// asin(float) -> float
-		if (x.info(info_flags::inexact))
-			return asin(ex_to<numeric>(x));
+		if (x.info(info_flags::inexact)) {
+                        const numeric& num = ex_to<numeric>(x);
+                        if (num.is_real()
+                            and (num < *_num_1_p or num > *_num1_p))
+                                return NaN;
+                        else
+        		        // asin(float) -> float
+	        		return asin(ex_to<numeric>(x));
+                }
 
 		// asin() is odd
 		if (x.info(info_flags::negative))
@@ -1234,14 +1235,15 @@ static ex acos_eval(const ex & x)
 		if (x.is_equal(_ex_1))
 			return Pi;
 
-                const numeric& num = ex_to<numeric>(x);
-                if (num.is_real()
-                    and (num < *_num_1_p or num > *_num1_p))
-                        return NaN;
-
-		// acos(float) -> float
-		if (x.info(info_flags::inexact))
-			return acos(ex_to<numeric>(x));
+		if (x.info(info_flags::inexact)) {
+                        const numeric& num = ex_to<numeric>(x);
+                        if (num.is_real()
+                            and (num < *_num_1_p or num > *_num1_p))
+                                return NaN;
+                        else
+        		        // acos(float) -> float
+	        		return acos(ex_to<numeric>(x));
+                }
 
 		// acos(-x) -> Pi-acos(x)
 		if (x.info(info_flags::negative))

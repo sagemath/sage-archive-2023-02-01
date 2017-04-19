@@ -72,6 +72,11 @@ from sage.matrix.all import matrix
 from sage.misc.latex import latex
 from sage.structure.sequence import Sequence
 from sage.misc.cachefunc import cached_method
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.power_series_ring import PowerSeriesRing
+from sage.arith.all import gcd
+from sage.rings.fraction_field import FractionField
+
 
 from sage.groups.matrix_gps.matrix_group import (
     is_MatrixGroup, MatrixGroup_generic, MatrixGroup_gap )
@@ -794,3 +799,117 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
                 singular.eval(SName+'[1,%d]'%(j)) for j in range(2,1+singular('ncols('+SName+')'))
                 ]
             return [PR(gen) for gen in OUT]
+
+    def molien_series(self, xi=None, return_series=True, prec=20, variable='t'):
+        r"""
+        Compute the Molien series of this finite group with respect to the
+        character ``xi``. It can be returned either as a rational function
+        in one variable or a power series in one variable.
+
+        Note that the base field must be characteristic `0`, in particular,
+        the rationals or a cyclotomic field.
+
+        INPUT:
+
+            - ``xi`` --- a linear group character of this group. (Default: trivial character)
+
+            - ``return_series``  -- Boolean. True returns the Molien series
+                as a power series. False as a rational function. (Default: True)
+
+            - ``prec`` -- Integer. power series default precision. (Default: 20)
+
+            - ``variable`` -- string.  Variable name for the Molien series. (Default: `t`)
+
+        OUTPUT: single variable rational function or power series with integer cofficients
+
+        EXAMPLES::
+
+            sage: MatrixGroup(matrix(QQ,2,2,[1,1,0,1])).molien_series()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: only implemented for finite groups
+            sage: MatrixGroup(matrix(GF(3),2,2,[1,1,0,1])).molien_series()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: only impleneted in characterstic 0
+
+        Tetrahedral Group::
+
+            sage: K.<i>=CyclotomicField(4)
+            sage: Tetra =  MatrixGroup([(-1+i)/2,(-1+i)/2, (1+i)/2,(-1-i)/2], [0,i, -i,0])
+            sage: Tetra.molien_series(prec=30)
+            1 + t^8 + 2*t^12 + t^16 + 2*t^20 + 3*t^24 + 2*t^28 + O(t^30)
+            sage: mol = Tetra.molien_series(return_series=False); mol
+            (t^8 - t^4 + 1)/(t^16 - t^12 - t^4 + 1)
+            sage: mol.parent()
+            Fraction Field of Univariate Polynomial Ring in t over Integer Ring
+            sage: xi = Tetra.character(Tetra.character_table()[1])
+            sage: Tetra.molien_series(xi, prec=30, variable='u')
+            u^6 + u^14 + 2*u^18 + u^22 + 2*u^26 + 3*u^30 + 2*u^34 + O(u^36)
+            sage: xi = Tetra.character(Tetra.character_table()[2])
+            sage: Tetra.molien_series(xi)
+            t^10 + t^14 + t^18 + 2*t^22 + 2*t^26 + O(t^30)
+
+        ::
+
+            sage: S3 = MatrixGroup(SymmetricGroup(3))
+            sage: mol = S3.molien_series(prec=10); mol
+            1 + t + 2*t^2 + 3*t^3 + 4*t^4 + 5*t^5 + 7*t^6 + 8*t^7 + 10*t^8 + 12*t^9 + O(t^10)
+            sage: mol.parent()
+            Power Series Ring in t over Integer Ring
+
+        Octahedral Group::
+
+            sage: K.<v> = CyclotomicField(8)
+            sage: a = v-v^3 #sqrt(2)
+            sage: i = v^2
+            sage: Octa = MatrixGroup([(-1+i)/2,(-1+i)/2, (1+i)/2,(-1-i)/2], [(1+i)/a,0, 0,(1-i)/a])
+            sage: Octa.molien_series(prec=30)
+            1 + t^8 + t^12 + t^16 + t^18 + t^20 + 2*t^24 + t^26 + t^28 + O(t^30)
+
+        Icosahedral Group::
+
+            sage: K.<v>=CyclotomicField(10)
+            sage: z5 = v^2
+            sage: i = z5^5
+            sage: a = 2*z5^3 + 2*z5^2 + 1 #sqrt(5)
+            sage: Ico = MatrixGroup([[z5^3,0, 0,z5^2], [0,1, -1,0], [(z5^4-z5)/a, (z5^2-z5^3)/a, (z5^2-z5^3)/a, -(z5^4-z5)/a]])
+            sage: Ico.molien_series(prec=40)
+            1 + t^12 + t^20 + t^24 + t^30 + t^32 + t^36 + O(t^40)
+
+        ::
+
+            sage: G = MatrixGroup(CyclicPermutationGroup(3))
+            sage: xi = G.character(G.character_table()[1])
+            sage: G.molien_series(xi, prec=10)
+            t + 2*t^2 + 3*t^3 + 5*t^4 + 7*t^5 + 9*t^6 + 12*t^7 + 15*t^8 + 18*t^9 + 22*t^10 + O(t^11)
+        """
+        if not self.is_finite():
+            raise NotImplementedError("only implemented for finite groups")
+        if xi is None:
+            xi = self.trivial_character()
+        M = self.matrix_space()
+        R = FractionField(self.base_ring())
+        if R.characteristic() != 0:
+            raise NotImplementedError("only impleneted in characterstic 0")
+        P = PolynomialRing(R, variable)
+        t = P.gen()
+        #it is possible the character is over a larger cyclotomic field
+        K = xi.values()[0].parent()
+        if K.degree() != 1:
+            if R.degree() != 1:
+                L = K.composite_fields(R)[0]
+            else:
+                L = K
+        else:
+            L = R
+        mol = 0
+        for g in self:
+            mol += L(xi(g))/((M.identity_matrix()- t*g.matrix()).det()).change_ring(L)
+        #We know the coefficients will be integers
+        mol = (mol.numerator().change_ring(ZZ)) / (mol.denominator().change_ring(ZZ))
+        mol = 1/self.order() * mol
+        if return_series:
+            PS = PowerSeriesRing(ZZ, variable, default_prec=prec)
+            return PS(mol)
+        return mol

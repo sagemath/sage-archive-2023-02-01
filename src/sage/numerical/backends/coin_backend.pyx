@@ -687,7 +687,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p.nrows()                                       # optional - cbc
             0
             sage: p.add_linear_constraints(5, 0, None)                      # optional - cbc
-            sage: p.add_col(range(5), range(5))                    # optional - cbc
+            sage: p.add_col(list(range(5)), list(range(5)))                    # optional - cbc
             sage: p.nrows()                                       # optional - cbc
             5
         """
@@ -721,7 +721,7 @@ cdef class CoinBackend(GenericBackend):
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "Coin")    # optional - cbc
             sage: p.add_linear_constraints(5, 0, None)       # optional - cbc
-            sage: p.add_col(range(5), [1,2,3,4,5])  # optional - cbc
+            sage: p.add_col(list(range(5)), [1,2,3,4,5])  # optional - cbc
             sage: p.solve()                         # optional - cbc
             0
 

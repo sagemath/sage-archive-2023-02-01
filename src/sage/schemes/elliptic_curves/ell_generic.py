@@ -2518,7 +2518,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: plot(E, xmin=25,xmax=26)
             Graphics object consisting of 2 graphics primitives
 
-        With #12766 we added the components keyword::
+        With :trac:`12766` we added the components keyword::
 
             sage: E.real_components()
             2

@@ -356,49 +356,23 @@ cdef class Graphics3d(SageObject):
 
         EXAMPLES::
 
-            sage: sphere()._rich_repr_threejs()
+            sage: sphere(online=True)._rich_repr_threejs()
             OutputSceneThreejs container
         """
-        options = {}
-        options['aspect_ratio'] = [float(i) for i in kwds.get('aspect_ratio', [1,1,1])]
-        options['axes'] = kwds.get('axes', False)
-        options['axes_labels'] = kwds.get('axes_labels', ['x','y','z'])
-        options['decimals'] = int(kwds.get('decimals', 2))
-        options['frame'] = kwds.get('frame', True)
-        options['online'] = kwds.get('online', False)
+        options = self._process_viewing_options(kwds)
+        # Threejs specific options
+        options.setdefault('axes_labels', ['x','y','z'])
+        options.setdefault('decimals', 2)
+        options.setdefault('online', False)
+        # Normalization of options values for proper JSONing
+        options['aspect_ratio'] = [float(i) for i in options['aspect_ratio']]
+        options['decimals'] = int(options['decimals'])
 
         if not options['frame']:
             options['axes_labels'] = False
 
         from sage.repl.rich_output import get_display_manager
-        backend = get_display_manager()._backend
-        from sage.repl.rich_output.backend_sagenb import BackendSageNB
-        if isinstance(backend, BackendSageNB):
-            options['online'] = True
-
-        if options['online']:
-            scripts = ( """
-<script src="https://cdn.rawgit.com/mrdoob/three.js/r80/build/three.min.js"></script>
-<script src="https://cdn.rawgit.com/mrdoob/three.js/r80/examples/js/controls/OrbitControls.js"></script>
-            """ )
-        else:
-            from sage.repl.rich_output.backend_ipython import BackendIPythonNotebook
-            if isinstance(backend, BackendIPythonNotebook):
-                scripts = ( """
-<script src="/nbextensions/threejs/three.min.js"></script>
-<script src="/nbextensions/threejs/OrbitControls.js"></script>
-<script>
-  if ( !window.THREE ) document.write('\
-<script src="https://cdn.rawgit.com/mrdoob/three.js/r80/build/three.min.js"><\/script>\
-<script src="https://cdn.rawgit.com/mrdoob/three.js/r80/examples/js/controls/OrbitControls.js"><\/script>');
-</script>
-                """ )
-            else:
-                from sage.env import SAGE_SHARE
-                scripts = ( """
-<script src="{0}/threejs/three.min.js"></script>
-<script src="{0}/threejs/OrbitControls.js"></script>
-                """.format( SAGE_SHARE ) )
+        scripts = get_display_manager().threejs_scripts(options['online'])
 
         b = self.bounding_box()
         bounds = '[{{"x":{}, "y":{}, "z":{}}}, {{"x":{}, "y":{}, "z":{}}}]'.format(
@@ -440,13 +414,14 @@ cdef class Graphics3d(SageObject):
         surfaces = '[' + ','.join(surfaces) + ']'
 
         from sage.env import SAGE_EXTCODE
-        filename = os.path.join(SAGE_EXTCODE, 'threejs', 'threejs_template.html')
-        f = open(filename, 'r')
-        html = f.read()
-        f.close()
+        with open(os.path.join(
+                SAGE_EXTCODE, 'threejs', 'threejs_template.html')) as f:
+            html = f.read()
 
         html = html.replace('SAGE_SCRIPTS', scripts)
-        html = html.replace('SAGE_OPTIONS', json.dumps(options))
+        js_options = dict((key, options[key]) for key in
+            ['aspect_ratio', 'axes', 'axes_labels', 'decimals', 'frame'])
+        html = html.replace('SAGE_OPTIONS', json.dumps(js_options))
         html = html.replace('SAGE_BOUNDS', bounds)
         html = html.replace('SAGE_LIGHTS', lights)
         html = html.replace('SAGE_AMBIENT', ambient)

@@ -413,15 +413,15 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
             sage: import gc
             sage: for i in range(10):
-            ...      A = random_matrix(GF(7),1000,1000)
-            ...      B = random_matrix(Integers(10),1000,1000)
-            ...      C = random_matrix(GF(16007),1000,1000)
-            ...      D = random_matrix(Integers(1000),1000,1000)
-            ...      del A
-            ...      del B
-            ...      del C
-            ...      del D
-            ...      _ = gc.collect()
+            ....:      A = random_matrix(GF(7),1000,1000)
+            ....:      B = random_matrix(Integers(10),1000,1000)
+            ....:      C = random_matrix(GF(16007),1000,1000)
+            ....:      D = random_matrix(Integers(1000),1000,1000)
+            ....:      del A
+            ....:      del B
+            ....:      del C
+            ....:      del D
+            ....:      _ = gc.collect()
 
         """
         if self._entries == NULL:
@@ -1374,8 +1374,8 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         TESTS::
 
             sage: for i in range(10):
-            ...       A = random_matrix(GF(17), 50, 50, density=0.1)
-            ...       _ = A.characteristic_polynomial(algorithm='all')
+            ....:     A = random_matrix(GF(17), 50, 50, density=0.1)
+            ....:     _ = A.characteristic_polynomial(algorithm='all')
 
             sage: A = random_matrix(GF(19), 0, 0)
             sage: A.minimal_polynomial()
@@ -1871,9 +1871,9 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             (0, 1)
 
             sage: for p in (3,17,97,127,1048573):
-            ...      for i in range(10):
-            ...          A = random_matrix(GF(3), 100, 100)
-            ...          A.echelonize(algorithm='all')
+            ....:    for i in range(10):
+            ....:        A = random_matrix(GF(3), 100, 100)
+            ....:        A.echelonize(algorithm='all')
         """
         x = self.fetch('in_echelon_form')
         if not x is None:

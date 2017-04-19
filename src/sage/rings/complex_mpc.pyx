@@ -74,6 +74,7 @@ from .complex_number cimport ComplexNumber
 from .complex_field import ComplexField_class
 
 from sage.misc.randstate cimport randstate, current_randstate
+from sage.misc.superseded import deprecated_function_alias
 from .real_mpfr cimport RealField_class, RealNumber
 from .real_mpfr import mpfr_prec_min, mpfr_prec_max
 from sage.structure.sage_object cimport rich_to_bool, richcmp
@@ -1309,11 +1310,8 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
 
     def algebraic_dependency(self, n, **kwds):
         """
-        Returns a polynomial of degree at most `n` which is
-        approximately satisfied by this complex number. Note that the
-        returned polynomial need not be irreducible, and indeed usually
-        won't be if `z` is a good approximation to an algebraic
-        number of degree less than `n`.
+        Return an irreducible polynomial of degree at most `n` which is
+        approximately satisfied by this complex number.
 
         ALGORITHM: Uses the PARI C-library algdep command.
 
@@ -1326,16 +1324,23 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
             sage: z = (1/2)*(1 + sqrt(3.0) * MPC.0); z
             0.500000000000000 + 0.866025403784439*I
             sage: p = z.algebraic_dependency(5)
-            sage: p.factor()
-            (x + 1) * x^2 * (x^2 - x + 1)
-            sage: z^2 - z + 1
+            sage: p
+            x^2 - x + 1
+            sage: p(z)
             1.11022302462516e-16
+
+        TESTS::
+
+            sage: z.algebraic_dependancy(2)
+            doctest:...: DeprecationWarning: algebraic_dependancy is deprecated. Please use algebraic_dependency instead.
+            See http://trac.sagemath.org/22714 for details.
+            x^2 - x + 1
         """
-        import sage.arith.all
-        return sage.arith.all.algdep(self, n, **kwds)
+        from sage.arith.all import algdep
+        return algdep(self, n, **kwds)
 
     # Former misspelling
-    algebraic_dependancy = algebraic_dependency
+    algebraic_dependancy = deprecated_function_alias(22714, algebraic_dependency)
 
     ################################
     # Basic Arithmetic

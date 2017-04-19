@@ -2861,9 +2861,8 @@ class HasseDiagram(DiGraph):
         for mi in range(n):
             if self.out_degree(mi) == 1:
                 cong = SetPartition(self.congruence([[mi, next(self.neighbor_out_iterator(mi))]]))
-                for ji in congs_ji[cong]:
-                    if self.is_lequal(ji, mi):
-                        return False
+                if any(self.is_lequal(ji, mi) for ji in congs_ji[cong]):
+                    return False
 
         return True
 

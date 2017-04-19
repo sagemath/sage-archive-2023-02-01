@@ -40,9 +40,12 @@ DECLARE_FUNCTION_1P(imag_part_function)
 	
 /** Absolute value. */
 DECLARE_FUNCTION_1P(abs)
-	
+
 /** Step function. */
-DECLARE_FUNCTION_1P(step)
+DECLARE_FUNCTION_1P(unit_step)
+	
+/** Heaviside function. */
+DECLARE_FUNCTION_1P(heaviside)
 	
 /** Complex sign. */
 DECLARE_FUNCTION_1P(csgn)

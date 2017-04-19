@@ -257,7 +257,7 @@ static ex abs_eval(const ex & arg)
                         return exp(arg.op(0).real_part());
                 if (is_ex_the_function(arg, conjugate_function))
                         return abs(arg.op(0));
-                if (is_ex_the_function(arg, step))
+                if (is_ex_the_function(arg, unit_step))
                         return arg;
                 return abs(arg).hold();
         }
@@ -366,18 +366,18 @@ REGISTER_FUNCTION(abs, eval_func(abs_eval).
 // Step function
 //////////
 
-static ex step_evalf(const ex & arg, PyObject* parent)
+static ex unit_step_evalf(const ex & arg, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(arg))
-		return step(ex_to<numeric>(arg));
+		return unit_step(ex_to<numeric>(arg));
 	
-	return step(arg).hold();
+	return unit_step(arg).hold();
 }
 
-static ex step_eval(const ex & arg)
+static ex unit_step_eval(const ex & arg)
 {
 	if (is_exactly_a<numeric>(arg))
-		return step(ex_to<numeric>(arg));
+		return unit_step(ex_to<numeric>(arg));
 	
 	else if (is_exactly_a<mul>(arg) &&
 	         is_exactly_a<numeric>(arg.op(arg.nops()-1))) {
@@ -385,61 +385,61 @@ static ex step_eval(const ex & arg)
 		if (oc.is_real()) {
 			if (oc > 0)
 				// step(42*x) -> step(x)
-				return step(arg/oc).hold();
+				return unit_step(arg/oc).hold();
 			else
 				// step(-42*x) -> step(-x)
-				return step(-arg/oc).hold();
+				return unit_step(-arg/oc).hold();
 		}
 		if (oc.real().is_zero()) {
 			if (oc.imag() > 0)
 				// step(42*I*x) -> step(I*x)
-				return step(I*arg/oc).hold();
+				return unit_step(I*arg/oc).hold();
 			else
 				// step(-42*I*x) -> step(-I*x)
-				return step(-I*arg/oc).hold();
+				return unit_step(-I*arg/oc).hold();
 		}
 	}
 	
-	return step(arg).hold();
+	return unit_step(arg).hold();
 }
 
-static ex step_series(const ex & arg,
-                      const relational & rel,
-                      int order,
-                      unsigned options)
+static ex unit_step_series(const ex & arg,
+                           const relational & rel,
+                           int order,
+                           unsigned options)
 {
 	const ex arg_pt = arg.subs(rel, subs_options::no_pattern);
 	if (is_exactly_a<numeric>(arg_pt)
 	    && ex_to<numeric>(arg_pt).real().is_zero()
 	    && ((options & series_options::suppress_branchcut) == 0u))
-		throw (std::domain_error("step_series(): on imaginary axis"));
+		throw (std::domain_error("unit_step_series(): on imaginary axis"));
 	
 	epvector seq;
-	seq.push_back(expair(step(arg_pt), _ex0));
+	seq.push_back(expair(unit_step(arg_pt), _ex0));
 	return pseries(rel,seq);
 }
 
-static ex step_conjugate(const ex& arg)
+static ex unit_step_conjugate(const ex& arg)
 {
-	return step(arg).hold();
+	return unit_step(arg).hold();
 }
 
-static ex step_real_part(const ex& arg)
+static ex unit_step_real_part(const ex& arg)
 {
-	return step(arg).hold();
+	return unit_step(arg).hold();
 }
 
-static ex step_imag_part(const ex& arg)
+static ex unit_step_imag_part(const ex& arg)
 {
 	return 0;
 }
 
-REGISTER_FUNCTION(step, eval_func(step_eval).
-                        evalf_func(step_evalf).
-                        series_func(step_series).
-                        conjugate_func(step_conjugate).
-                        real_part_func(step_real_part).
-                        imag_part_func(step_imag_part));
+REGISTER_FUNCTION(unit_step, eval_func(unit_step_eval).
+                        evalf_func(unit_step_evalf).
+                        series_func(unit_step_series).
+                        conjugate_func(unit_step_conjugate).
+                        real_part_func(unit_step_real_part).
+                        imag_part_func(unit_step_imag_part));
 
 //////////
 // Complex sign

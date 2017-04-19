@@ -158,6 +158,9 @@ static ex zeta1_eval(const ex& m)
 		}
 		// zeta(float)
 		if (y.info(info_flags::inexact)) {
+			if (y.is_equal(*_num1_p)) {
+				return UnsignedInfinity;
+			}
 			return zeta(y); // y is numeric
 		}
 	}

@@ -507,9 +507,11 @@ You can change it later in Preferences."];
 
 -(void)offerNotebookUpgrade {
     NSFileManager *filemgr = [NSFileManager defaultManager];
-    NSLog(@"Checking if sagenb exists %d.", [defaults boolForKey:@"askToUpgradeNB"]);
-    if ( ! [filemgr fileExistsAtPath:@"~/.sage/sage_notebook.sagenb/users.pickle"]
-        && [defaults boolForKey:@"askToUpgradeNB"]) {
+    [defaults setBool:[filemgr fileExistsAtPath:[@"~/.sage/sage_notebook.sagenb/users.pickle"
+                                                 stringByExpandingTildeInPath]]
+               forKey:@"hasNBToUpgrade"];
+    NSLog(@"Checking if sagenb exists %d.", [defaults boolForKey:@"hasNBToUpgrade"]);
+    if ( [defaults boolForKey:@"hasNBToUpgrade"] && [defaults boolForKey:@"askToUpgradeNB"]) {
 
         NSAlert *alert = [NSAlert alertWithMessageText:@"Sage Notebook Upgrade"
                                          defaultButton:@"Upgrade"

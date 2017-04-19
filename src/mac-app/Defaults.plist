@@ -158,6 +158,8 @@ end tell</string>
 	<true/>
 	<key>askToUpgradeNB</key>
 	<true/>
+	<key>hasNBToUpgrade</key>
+	<true/>
 	<key>preferSageNB</key>
 	<true/>
 	<key>defaultJupyterPath</key>

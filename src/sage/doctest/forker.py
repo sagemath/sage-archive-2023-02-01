@@ -1432,7 +1432,7 @@ class DocTestDispatcher(SageObject):
                 break
 
     def parallel_dispatch(self):
-        """
+        r"""
         Run the doctests from the controller's specified sources in parallel.
 
         This creates :class:`DocTestWorker` subprocesses, while the master
@@ -1460,6 +1460,41 @@ class DocTestDispatcher(SageObject):
                 [... tests, ... s]
             sage -t .../rings/big_oh.py
                 [... tests, ... s]
+
+        If the ``fail_once=True`` option is given, the results for a failing
+        module will be immediately printed and any other ongoing tests
+        canceled::
+
+            sage: test1 = os.path.join(SAGE_TMP, 'test1.py')
+            sage: test2 = os.path.join(SAGE_TMP, 'test2.py')
+            sage: with open(test1, 'w') as f:
+            ....:     f.write('"""\nsage: import time; time.sleep(60)\n"""')
+            sage: with open(test2, 'w') as f:
+            ....:     f.write('"""\nsage: True\nFalse\n"""')
+            sage: DC = DocTestController(DocTestDefaults(fail_once=True,
+            ....:                                        nthreads=2),
+            ....:                        [test1, test2])
+            sage: DC.expand_files_into_sources()
+            sage: DD = DocTestDispatcher(DC)
+            sage: DR = DocTestReporter(DC)
+            sage: DC.reporter = DR
+            sage: DC.dispatcher = DD
+            sage: DC.timer = Timer().start()
+            sage: DD.parallel_dispatch()
+            sage -t .../test2.py
+            **********************************************************************
+            File ".../test2.py", line 2, in test2
+            Failed example:
+                True
+            Expected:
+                False
+            Got:
+                True
+            **********************************************************************
+            1 item had failures:
+               1 of   1 in test2
+                [1 test, 1 failure, ... s]
+            Killing test .../test1.py
         """
         opt = self.controller.options
         source_iter = iter(self.controller.sources)
@@ -1565,25 +1600,41 @@ class DocTestDispatcher(SageObject):
 
                     # Similarly, process finished workers.
                     new_finished = []
+                    fail_immediately = False
                     for w in finished:
-                        if follow is not None and follow is not w:
-                            # We are following a different worker, so
-                            # we cannot report now
-                            new_finished.append(w)
-                        else:
-                            # Report the completion of this worker
-                            log(w.messages, end="")
-                            self.controller.reporter.report(
-                                w.source,
-                                w.killed,
-                                w.exitcode,
-                                w.result,
-                                w.output,
-                                pid=w.pid)
-                            restart = True
-                            follow = None
-                    finished = new_finished
+                        if opt.fail_once and w.result[1].failures:
+                            fail_immediately = True
 
+                        if (follow is not None and follow is not w and
+                                not fail_immediately):
+                            # We are following a different worker, so
+                            # we cannot report now (unless we have fail_once
+                            # enabled, in which case we report the failure
+                            # immediately even if we were not following this
+                            # worker)
+                            new_finished.append(w)
+                            continue
+
+                        # Report the completion of this worker
+                        log(w.messages, end="")
+                        self.controller.reporter.report(
+                            w.source,
+                            w.killed,
+                            w.exitcode,
+                            w.result,
+                            w.output,
+                            pid=w.pid)
+
+                        if fail_immediately:
+                            break
+
+                        restart = True
+                        follow = None
+
+                    if fail_immediately:
+                        break
+
+                    finished = new_finished
                     # Start new workers if possible
                     while source_iter is not None and len(workers) < opt.nthreads:
                         try:
@@ -2140,7 +2191,10 @@ class DocTestTask(object):
                 timer = Timer().start()
 
                 for test in doctests:
-                    runner.run(test)
+                    result = runner.run(test)
+                    if options.fail_once and result.failed:
+                        break
+
                 runner.filename = file
                 failed, tried = runner.summarize(options.verbose)
                 timer.stop().annotate(runner)

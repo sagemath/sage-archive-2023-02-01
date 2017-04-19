@@ -2191,8 +2191,11 @@ CanonicalForm numeric::to_canonical() const
                 return make_cf(mpz_ptr(const_cast<__mpz_struct*>(bigint)));
         }
         if (t == MPQ) {
-                mpz_t num, den;
+                mpz_t num;
                 mpz_init_set(num, mpz_ptr(mpq_numref(v._bigrat)));
+                if (is_integer())
+                        return make_cf(mpz_ptr(const_cast<__mpz_struct*>(num)));
+                mpz_t den;
                 mpz_init_set(den, mpz_ptr(mpq_denref(v._bigrat)));
                 return make_cf(num, den, false);
         }

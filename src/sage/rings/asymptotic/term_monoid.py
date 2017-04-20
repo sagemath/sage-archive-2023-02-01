@@ -219,6 +219,7 @@ from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.factory import UniqueFactory
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from .misc import richcmp_by_eq_and_lt
 
 
 class ZeroCoefficientError(ValueError):
@@ -834,14 +835,15 @@ class GenericTerm(MultiplicativeGroupElement):
         return tuple(self.parent()._create_element_in_extension_(g, c)
                      for g, c in self.growth.log_factor(base=base))
 
-    def __le__(self, other):
+    _richcmp_ = richcmp_by_eq_and_lt
+
+    def _lt_(self, other):
         r"""
-        Return whether the growth of this term is less than
-        or equal to the growth of ``other``.
+        Return whether this generic term grows less than ``other``.
 
         INPUT:
 
-        - ``other`` -- an asymptotic term.
+        - ``other`` -- an asymptotic term
 
         OUTPUT:
 
@@ -849,8 +851,12 @@ class GenericTerm(MultiplicativeGroupElement):
 
         .. NOTE::
 
-            This method **only** compares the growth of the input
-            terms!
+            This method is called by the coercion framework, thus,
+            it can be assumed that this element, as well as ``other``
+            are from the same parent.
+
+            Also, this method **only** compares the growth of the
+            input terms!
 
         EXAMPLES:
 
@@ -871,16 +877,16 @@ class GenericTerm(MultiplicativeGroupElement):
             (5*x^2, 2/7*x^3)
 
         In order for the comparison to work, the terms have to come from
-        or coerce into the same parent. In particular, comparing
-        :class:`GenericTerm` to, for example, an :class:`OTerm`
-        always yields ``False``::
+        or coerce into the same parent.
+
+        ::
 
             sage: g1 <= g2
             True
             sage: o1, g1
             (O(x^(-1)), Generic Term with growth x)
             sage: o1 <= g1
-            False
+            True
 
         If the elements of the common parent do not possess
         coefficients, then only the growth is compared::
@@ -903,24 +909,46 @@ class GenericTerm(MultiplicativeGroupElement):
             False
             sage: ET_ZZ(x, 5) <= ET_ZZ(x, 5)
             True
+
+        ::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+            sage: ET = TermMonoid('exact', G, QQ)
+            sage: t1 = ET(x, 5); t2 = ET(x^2, 3); t3 = ET(x^2, 42)
+            sage: t1 <= t2  # indirect doctest
+            True
+            sage: t2 <= t1  # indirect doctest
+            False
+            sage: t2 <= t3  # indirect doctest
+            False
+            sage: t3 <= t2  # indirect doctest
+            False
+            sage: t2 <= t2  # indirect doctest
+            True
+
+        TESTS::
+
+            sage: ET(x, -2) <= ET(x, 1)
+            False
+
+        ::
+
+            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+            sage: T = GenericTermMonoid(G, QQ)
+            sage: t1 = T(x^-2); t2 = T(x^5); t1, t2
+            (Generic Term with growth x^(-2), Generic Term with growth x^5)
+            sage: t1 <= t2  # indirect doctest
+            True
+            sage: t2 <= t1  # indirect doctest
+            False
         """
-        from sage.structure.element import have_same_parent
+        return self.growth < other.growth
 
-        if have_same_parent(self, other):
-            return self._le_(other)
-
-        from sage.structure.element import get_coercion_model
-        import operator
-
-        try:
-            return get_coercion_model().bin_op(self, other, operator.le)
-        except TypeError:
-            return False
-
-    def _le_(self, other):
+    def _eq_(self, other):
         r"""
-        Return whether this generic term grows at most (i.e. less than
-        or equal) like ``other``.
+        Return whether this generic term is equal to ``other``.
 
         INPUT:
 
@@ -932,44 +960,9 @@ class GenericTerm(MultiplicativeGroupElement):
 
         .. NOTE::
 
-            This method is called by the coercion framework, thus,
-            it can be assumed that this element, as well as ``other``
-            are from the same parent.
-
-            Also, this method **only** compares the growth of the
-            input terms!
-
-        EXAMPLES::
-
-            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
-            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
-            sage: T = GenericTermMonoid(G, QQ)
-            sage: t1 = T(x^-2); t2 = T(x^5); t1, t2
-            (Generic Term with growth x^(-2), Generic Term with growth x^5)
-            sage: t1._le_(t2)
-            True
-            sage: t2._le_(t1)
-            False
-        """
-        return self.growth <= other.growth
-
-    def __eq__(self, other):
-        r"""
-        Return whether this asymptotic term is equal to ``other``.
-
-        INPUT:
-
-        - ``other`` -- an object.
-
-        OUTPUT:
-
-        A boolean.
-
-        .. NOTE::
-
-            This function uses the coercion model to find a common
-            parent for the two operands.
+            This method gets called by the coercion framework, so it
+            can be assumed that this asymptotic term is from the
+            same parent as ``other``.
 
         EXAMPLES::
 
@@ -988,42 +981,9 @@ class GenericTerm(MultiplicativeGroupElement):
             True
             sage: o == OT(x^2)  # indirect doctest
             False
-        """
-        from sage.structure.element import have_same_parent
-        if have_same_parent(self, other):
-            return self._eq_(other)
 
-        from sage.structure.element import get_coercion_model
-        import operator
-        try:
-            return get_coercion_model().bin_op(self, other, operator.eq)
-        except TypeError:
-            return False
+        TESTS::
 
-    def _eq_(self, other):
-        r"""
-        Return whether this asymptotic term is the same as ``other``.
-
-        INPUT:
-
-        - ``other`` -- an asymptotic term.
-
-        OUTPUT:
-
-        A boolean.
-
-        .. NOTE::
-
-            This method gets called by the coercion framework, so it
-            can be assumed that this asymptotic term is from the
-            same parent as ``other``.
-
-            Only implemented in concrete realizations.
-
-        EXAMPLES::
-
-            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
             sage: T = GenericTermMonoid(GrowthGroup('x^ZZ'), QQ)
             sage: t = T.an_element()
             sage: t == t
@@ -1031,7 +991,6 @@ class GenericTerm(MultiplicativeGroupElement):
 
         ::
 
-            sage: from sage.rings.asymptotic.term_monoid import OTermMonoid
             sage: OT = OTermMonoid(GrowthGroup('x^ZZ'), QQ)
             sage: t = OT.an_element(); t
             O(x)
@@ -2896,53 +2855,6 @@ class TermWithCoefficient(GenericTerm):
         return (self.parent()._create_element_in_extension_(
             self.parent().growth_group.one(), log(self.coefficient, base=base)),)
 
-    def _le_(self, other):
-        r"""
-        Return whether this asymptotic term with coefficient grows
-        at most (less than or equal) like ``other``.
-
-        INPUT:
-
-        - ``other`` -- an asymptotic term with coefficient.
-
-        OUTPUT:
-
-        A boolean.
-
-        .. NOTE::
-
-            This method is called by the coercion framework, thus,
-            it can be assumed that this element and ``other`` are
-            from the same parent.
-
-        EXAMPLES::
-
-            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
-            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
-            sage: ET = TermMonoid('exact', G, QQ)
-            sage: t1 = ET(x, 5); t2 = ET(x^2, 3); t3 = ET(x^2, 42)
-            sage: t1 <= t2
-            True
-            sage: t2 <= t1
-            False
-            sage: t2 <= t3
-            False
-            sage: t3 <= t2
-            False
-            sage: t2 <= t2
-            True
-
-        TESTS::
-
-            sage: ET(x, -2) <= ET(x, 1)
-            False
-        """
-        if self.growth == other.growth:
-            return self.coefficient == other.coefficient
-        else:
-            return super(TermWithCoefficient, self)._le_(other)
-
     def _eq_(self, other):
         r"""
         Return whether this :class:`TermWithCoefficient` is the same as
@@ -2950,7 +2862,7 @@ class TermWithCoefficient(GenericTerm):
 
         INPUT:
 
-        - ``other`` -- an :class:`TermWithCoefficient`.
+        - ``other`` -- an :class:`TermWithCoefficient`
 
         OUTPUT:
 

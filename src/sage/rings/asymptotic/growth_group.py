@@ -257,6 +257,7 @@ from sage.structure.parent import Parent
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import (CachedRepresentation,
                                                   UniqueRepresentation)
+from .misc import richcmp_by_eq_and_lt
 
 
 class Variable(CachedRepresentation, SageObject):
@@ -1114,13 +1115,15 @@ class GenericGrowthElement(MultiplicativeGroupElement):
         raise NotImplementedError('Inversion of %s not implemented '
                                   '(in this abstract method).' % (self,))
 
-    def __eq__(self, other):
+    _richcmp_ = richcmp_by_eq_and_lt
+
+    def _eq_(self, other):
         r"""
-        Return whether this growth element is equal to ``other``.
+        Return whether this :class:`GenericGrowthElement` is equal to ``other``.
 
         INPUT:
 
-        - ``other`` -- an element.
+        - ``other`` -- a :class:`GenericGrowthElement`
 
         OUTPUT:
 
@@ -1128,11 +1131,8 @@ class GenericGrowthElement(MultiplicativeGroupElement):
 
         .. NOTE::
 
-            This function uses the coercion model to find a common
-            parent for the two operands.
-
-            The comparison of two elements with the same parent is done in
-            :meth:`_eq_`.
+            This function compares two instances of
+            :class:`GenericGrowthElement`.
 
         EXAMPLES::
 
@@ -1161,63 +1161,20 @@ class GenericGrowthElement(MultiplicativeGroupElement):
             False
             sage: ~P_ZZ(1) == P_ZZ(1)
             True
-        """
-        from sage.structure.element import have_same_parent
-        if have_same_parent(self, other):
-            return self._eq_(other)
 
-        from sage.structure.element import get_coercion_model
-        import operator
-        try:
-            return get_coercion_model().bin_op(self, other, operator.eq)
-        except TypeError:
-            return False
+        TESTS::
 
-    def _eq_(self, other):
-        r"""
-        Return whether this :class:`GenericGrowthElement` is equal to ``other``.
-
-        INPUT:
-
-        - ``other`` -- a :class:`GenericGrowthElement`.
-
-        OUTPUT:
-
-        A boolean.
-
-        .. NOTE::
-
-            This function compares two instances of
-            :class:`GenericGrowthElement`.
-
-        EXAMPLES::
-
-            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: P = GrowthGroup('x^ZZ')
             sage: e1 = P(raw_element=1)
-            sage: e1._eq_(P.gen())
+            sage: e1 == P.gen()
             True
             sage: e2 = e1^4
             sage: e2 == e1^2*e1*e1
             True
             sage: e2 == e1
             False
-        """
-        return self._raw_element_ == other._raw_element_
 
-    def __ne__(self, other):
-        r"""
-        Return whether this growth element is not equal to ``other``.
-
-        INPUT:
-
-        - ``other`` -- an element.
-
-        OUTPUT:
-
-        A boolean.
-
-        TESTS::
+        ::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('x^ZZ')
@@ -1228,16 +1185,16 @@ class GenericGrowthElement(MultiplicativeGroupElement):
             sage: G(1) != G(1)
             False
         """
-        return not self == other
+        return self._raw_element_ == other._raw_element_
 
-    def __le__(self, other):
+    def _lt_(self, other):
         r"""
-        Return whether this growth element is at most (less than or equal
-        to) ``other``.
+        Return whether this :class:`GenericGrowthElement` is at most (less
+        than or equal to) ``other``.
 
         INPUT:
 
-        - ``other`` -- an element.
+        - ``other`` -- a :class:`GenericGrowthElement`
 
         OUTPUT:
 
@@ -1245,11 +1202,8 @@ class GenericGrowthElement(MultiplicativeGroupElement):
 
         .. NOTE::
 
-            This function uses the coercion model to find a common
-            parent for the two operands.
-
-            The comparison of two elements with the same parent is done in
-            :meth:`_le_`.
+            This function compares two instances of
+            :class:`GenericGrowthElement`.
 
         EXAMPLES::
 
@@ -1260,35 +1214,6 @@ class GenericGrowthElement(MultiplicativeGroupElement):
             True
             sage: ~P_ZZ.gen() <= P_ZZ.gen()
             True
-        """
-        from sage.structure.element import have_same_parent
-        if have_same_parent(self, other):
-            return self._le_(other)
-
-        from sage.structure.element import get_coercion_model
-        import operator
-        try:
-            return get_coercion_model().bin_op(self, other, operator.le)
-        except TypeError:
-            return False
-
-    def _le_(self, other):
-        r"""
-        Return whether this :class:`GenericGrowthElement` is at most (less
-        than or equal to) ``other``.
-
-        INPUT:
-
-        - ``other`` -- a :class:`GenericGrowthElement`.
-
-        OUTPUT:
-
-        A boolean.
-
-        .. NOTE::
-
-            This function compares two instances of
-            :class:`GenericGrowthElement`.
 
         TESTS::
 
@@ -2850,14 +2775,14 @@ class MonomialGrowthElement(GenericGrowthElement):
             M = MonomialGrowthGroup(new_exponent.parent(), new_var)
             return M(raw_element=new_exponent)
 
-    def _le_(self, other):
+    def _lt_(self, other):
         r"""
-        Return whether this :class:`MonomialGrowthElement` is at most
-        (less than or equal to) ``other``.
+        Return whether this :class:`MonomialGrowthElement` is
+        less than ``other``.
 
         INPUT:
 
-        - ``other`` -- a :class:`MonomialGrowthElement`.
+        - ``other`` -- a :class:`MonomialGrowthElement`
 
         OUTPUT:
 
@@ -2876,7 +2801,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: P_ZZ.gen() <= P_QQ.gen()^2  # indirect doctest
             True
         """
-        return self.exponent <= other.exponent
+        return self.exponent < other.exponent
 
     def _substitute_(self, rules):
         r"""
@@ -3654,14 +3579,14 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
         return ((str(self.parent()._var_), coefficient),)
 
-    def _le_(self, other):
+    def _lt_(self, other):
         r"""
-        Return whether this :class:`ExponentialGrowthElement` is at most
-        (less than or equal to) ``other``.
+        Return whether this :class:`ExponentialGrowthElement` is
+        less than ``other``.
 
         INPUT:
 
-        - ``other`` -- a :class:`ExponentialGrowthElement`.
+        - ``other`` -- a :class:`ExponentialGrowthElement`
 
         OUTPUT:
 
@@ -3685,8 +3610,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: P_ZZ((-2)^x) <= P_ZZ(2^x) or P_ZZ(2^x) <= P_ZZ((-2)^x)
             False
         """
-        return bool(abs(self.base) < abs(other.base)) or \
-               bool(self.base == other.base)
+        return bool(abs(self.base) < abs(other.base))
 
     def _substitute_(self, rules):
         r"""

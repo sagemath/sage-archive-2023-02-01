@@ -1605,7 +1605,6 @@ class DocTestDispatcher(SageObject):
 
                     # Similarly, process finished workers.
                     new_finished = []
-                    fail_immediately = False
                     for w in finished:
                         if opt.exitfirst and w.result[1].failures:
                             abort_now = True

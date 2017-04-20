@@ -666,6 +666,8 @@ class FractionWithFactoredDenominator(RingElement):
 
     def _total_order_key_(self):
         r"""
+        Return a key that can be used for sorting.
+
         FFPD ``A`` is less than FFPD ``B`` iff
         (the denominator factorization of ``A`` is shorter than that of ``B``)
         of (the denominator factorization lengths are equal and
@@ -674,13 +676,9 @@ class FractionWithFactoredDenominator(RingElement):
         denominators are equal and the numerator of ``A`` is less than that
         of ``B`` in their ring).
 
-        INPUT:
-
-        - ``other`` -- object to compare with ``self``.
-
         OUTPUT:
 
-        ``True`` or ``False``.
+        A tuple.
 
         EXAMPLES::
 

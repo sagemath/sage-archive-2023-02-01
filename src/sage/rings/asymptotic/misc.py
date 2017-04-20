@@ -769,3 +769,26 @@ def transform_category(category,
                              (category, A))
 
     return result
+
+
+def richcmp_by_eq_and_lt(left, right, op):
+    from sage.structure.sage_object import (rich_to_bool,
+                                            op_NE, op_EQ,
+                                            op_LT, op_LE, op_GT, op_GE)
+
+    if left is right:
+        return rich_to_bool(op, 0)
+
+    if op == op_LT or op == op_GT:
+        pass
+    elif left._eq_(right):
+        return rich_to_bool(op, 0)
+    elif op == op_NE:
+        return True
+    elif op == op_EQ:
+        return False
+
+    if op == op_LT or op == op_LE:
+        return left._lt_(right)
+    else:
+        return right._lt_(left)

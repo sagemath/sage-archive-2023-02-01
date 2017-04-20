@@ -341,6 +341,7 @@ class FractionWithFactoredDenominator(RingElement):
     - Alexander Raichev (2012-07-26)
     - Daniel Krenn (2014-12-01)
     """
+
     def __init__(self, parent, numerator, denominator_factored, reduce=True):
         r"""
         Initialize ``self``.
@@ -380,7 +381,6 @@ class FractionWithFactoredDenominator(RingElement):
             self._numerator = numer
             self._denominator_factored = new_df
 
-
     def numerator(self):
         r"""
         Return the numerator of ``self``.
@@ -402,7 +402,6 @@ class FractionWithFactoredDenominator(RingElement):
             -e^y
         """
         return self._numerator
-
 
     def denominator(self):
         r"""
@@ -451,7 +450,6 @@ class FractionWithFactoredDenominator(RingElement):
         """
         return self._denominator_factored
 
-
     @property
     def denominator_ring(self):
         r"""
@@ -479,7 +477,6 @@ class FractionWithFactoredDenominator(RingElement):
             Multivariate Polynomial Ring in x, y over Rational Field
         """
         return self.parent()._denominator_ring
-
 
     @property
     def numerator_ring(self):
@@ -509,7 +506,6 @@ class FractionWithFactoredDenominator(RingElement):
         """
         return self.parent()._numerator_ring
 
-
     def dimension(self):
         r"""
         Return the number of indeterminates of ``self.denominator_ring``.
@@ -537,7 +533,6 @@ class FractionWithFactoredDenominator(RingElement):
             return R.ngens()
         raise NotImplementedError('only polynomial rings are supported as base')
 
-
     def quotient(self):
         r"""
         Convert ``self`` into a quotient.
@@ -562,7 +557,6 @@ class FractionWithFactoredDenominator(RingElement):
             2*x*y - y^2 + 3*x + 2*y - 1)
         """
         return self.numerator() / self.denominator()
-
 
     def _repr_(self):
         r"""
@@ -714,7 +708,6 @@ class FractionWithFactoredDenominator(RingElement):
                 self.denominator(),
                 self.numerator())
 
-
     def univariate_decomposition(self):
         r"""
         Return the usual univariate partial fraction decomposition
@@ -862,7 +855,6 @@ class FractionWithFactoredDenominator(RingElement):
             decomp.append(self.parent()(mn * numer, [(a, m)]))
         return FractionWithFactoredDenominatorSum(decomp)
 
-
     def nullstellensatz_certificate(self):
         r"""
         Return a Nullstellensatz certificate of ``self`` if it exists.
@@ -909,7 +901,6 @@ class FractionWithFactoredDenominator(RingElement):
         if R.one() in J:
             return R.one().lift(J)
         return None
-
 
     def nullstellensatz_decomposition(self):
         r"""
@@ -994,7 +985,6 @@ class FractionWithFactoredDenominator(RingElement):
 
         # Simplify and return result.
         return decomp._combine_like_terms_().whole_and_parts()
-
 
     def algebraic_dependence_certificate(self):
         r"""
@@ -1092,7 +1082,6 @@ class FractionWithFactoredDenominator(RingElement):
         # I choose the negdeglex order because i find it useful in my work.
         RRR = PolynomialRing(F, [str(t) for t in Ts], order='negdeglex')
         return RRR.ideal(J)
-
 
     def algebraic_dependence_decomposition(self, whole_and_parts=True):
         r"""
@@ -1210,7 +1199,6 @@ class FractionWithFactoredDenominator(RingElement):
         # Simplify and return result.
         return decomp._combine_like_terms_().whole_and_parts()
 
-
     def leinartas_decomposition(self):
         r"""
         Return a Leinartas decomposition of ``self``.
@@ -1327,7 +1315,6 @@ class FractionWithFactoredDenominator(RingElement):
 
         # Simplify and return result.
         return decomp._combine_like_terms_().whole_and_parts()
-
 
     def cohomology_decomposition(self):
         r"""
@@ -1461,7 +1448,6 @@ class FractionWithFactoredDenominator(RingElement):
         # Simplify and return result.
         return decomp._combine_like_terms_().whole_and_parts()
 
-
     def asymptotic_decomposition(self, alpha, asy_var=None):
         r"""
         Return the asymptotic decomposition of ``self``.
@@ -1549,7 +1535,6 @@ class FractionWithFactoredDenominator(RingElement):
             decomp3.append(ff)
 
         return decomp3
-
 
     def asymptotics(self, p, alpha, N, asy_var=None, numerical=0,
                     verbose=False):
@@ -1699,7 +1684,6 @@ class FractionWithFactoredDenominator(RingElement):
         # Multiple point.
         return self.asymptotics_multiple(p, alpha, N, asy_var, coordinate,
                                          numerical, verbose=verbose)
-
 
     def asymptotics_smooth(self, p, alpha, N, asy_var, coordinate=None,
                            numerical=0, verbose=False):
@@ -2076,7 +2060,6 @@ class FractionWithFactoredDenominator(RingElement):
                               for i in range(d)])
         return (exp_scale ** asy_var * subexp_part, exp_scale, subexp_part)
 
-
     def asymptotics_multiple(self, p, alpha, N, asy_var, coordinate=None,
                              numerical=0, verbose=False):
         r"""
@@ -2387,7 +2370,6 @@ class FractionWithFactoredDenominator(RingElement):
                               for i in range(d)])
         return (exp_scale ** asy_var * subexp_part, exp_scale, subexp_part)
 
-
     def _crit_cone_combo(self, p, alpha, coordinate=None):
         r"""
         Return an auxiliary point associated to the multiple
@@ -2457,7 +2439,6 @@ class FractionWithFactoredDenominator(RingElement):
         s = solve(eqns, V, solution_dict=True)[0]  # Assume a unique solution.
         return [s[v] for v in V]
 
-
     def grads(self, p):
         r"""
         Return a list of the gradients of the polynomials
@@ -2503,7 +2484,6 @@ class FractionWithFactoredDenominator(RingElement):
         n = len(H)
         return [tuple([diff(H[i], X[j]).subs(p) for j in range(d)])
                 for i in range(n)]
-
 
     def log_grads(self, p):
         r"""
@@ -2554,7 +2534,6 @@ class FractionWithFactoredDenominator(RingElement):
         n = len(H)
         return [tuple([(X[j] * diff(H[i], X[j])).subs(p) for j in range(d)])
                 for i in range(n)]
-
 
     def critical_cone(self, p, coordinate=None):
         r"""
@@ -2616,7 +2595,6 @@ class FractionWithFactoredDenominator(RingElement):
         except TypeError:
             cone = None
         return (Gamma, cone)
-
 
     def is_convenient_multiple_point(self, p):
         r"""
@@ -2703,7 +2681,6 @@ class FractionWithFactoredDenominator(RingElement):
         convenientX = [X[i] for i in convenient_coordinates]
         return (True, 'convenient in variables {}'.format(convenientX))
 
-
     def singular_ideal(self):
         r"""
         Return the singular ideal of ``self``.
@@ -2738,7 +2715,6 @@ class FractionWithFactoredDenominator(RingElement):
         Hred = prod([h for (h, e) in self.denominator_factored()])
         J = R.ideal([Hred] + Hred.gradient())
         return R.ideal(J.groebner_basis())
-
 
     def smooth_critical_ideal(self, alpha):
         r"""
@@ -2815,7 +2791,6 @@ class FractionWithFactoredDenominator(RingElement):
                      alpha[i] * X[d - 1] * diff(Hred, X[d - 1])
                      for i in range(d - 1)])
         return S.ideal(J.groebner_basis())
-
 
     def maclaurin_coefficients(self, multi_indices, numerical=0):
         r"""
@@ -2917,7 +2892,6 @@ class FractionWithFactoredDenominator(RingElement):
             coeffs[tuple(nu)] = val
         return coeffs
 
-
     def relative_error(self, approx, alpha, interval, exp_scale=Integer(1),
                        digits=10):
         r"""
@@ -3005,7 +2979,6 @@ class FractionWithFactoredDenominator(RingElement):
             stats.append(tuple(stats_row))
         return stats
 
-
     def _add_(left, right):
         r"""
         Returns the sum of ``left`` with ``right``.
@@ -3032,7 +3005,6 @@ class FractionWithFactoredDenominator(RingElement):
             (2, [(y, 1), (x, 1)])
         """
         return FractionWithFactoredDenominatorSum([left, right]).sum()
-
 
     def _mul_(left, right):
         r"""
@@ -3095,6 +3067,7 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
 
     - Daniel Krenn (2014-12-01)
     """
+
     @staticmethod
     def __classcall_private__(cls, denominator_ring, numerator_ring=None, category=None):
         """
@@ -3135,7 +3108,6 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
         self._denominator_ring = denominator_ring
         Ring.__init__(self, denominator_ring, category=category)
 
-
     def _repr_(self):
         r"""
         Returns a representation.
@@ -3154,7 +3126,6 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
         """
         return ("Ring of fractions with factored denominator "
                 "over {!r}".format(self.base()))
-
 
     def base_ring(self):
         r"""
@@ -3177,7 +3148,6 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
             Multivariate Polynomial Ring in X, Y over Integer Ring
         """
         return self.base().base_ring()
-
 
     from sage.misc.decorators import rename_keyword
     @rename_keyword(deprecation=10519, reduce_='reduce')
@@ -3341,7 +3311,6 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
                                   denominator_factored=denominator_factored,
                                   reduce=reduce)
 
-
     def _coerce_map_from_(self, P):
         r"""
         Checks if there is a coercion from the given parent.
@@ -3398,7 +3367,6 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
         if self.base().has_coerce_map_from(P):
             return True
 
-
     def _an_element_(self):
         r"""
         Returns an element.
@@ -3433,6 +3401,7 @@ class FractionWithFactoredDenominatorSum(list):
 
     - Daniel Krenn (2014-12-01)
     """
+
     def __repr__(self):
         r"""
         Return a string representation of ``self``.
@@ -3452,7 +3421,6 @@ class FractionWithFactoredDenominatorSum(list):
             (x + y, [(y, 1), (x, 1)]) + (x^2 + y, [(y, 1), (x, 2)])
         """
         return ' + '.join(repr(r) for r in self)
-
 
     def __eq__(self, other):
         r"""
@@ -3480,7 +3448,6 @@ class FractionWithFactoredDenominatorSum(list):
         return (sorted(self, key=methodcaller('_total_order_key_')) ==
                 sorted(other, key=methodcaller('_total_order_key_')))
 
-
     def __ne__(self, other):
         r"""
         Return ``True`` if ``self`` is not equal to ``other``.
@@ -3504,7 +3471,6 @@ class FractionWithFactoredDenominatorSum(list):
             True
         """
         return not self.__eq__(other)
-
 
     @property
     def denominator_ring(self):
@@ -3532,7 +3498,6 @@ class FractionWithFactoredDenominatorSum(list):
         for r in self:
             return r.denominator_ring
         return None
-
 
     def whole_and_parts(self):
         r"""
@@ -3591,7 +3556,6 @@ class FractionWithFactoredDenominatorSum(list):
         return FractionWithFactoredDenominatorSum(
             [r.parent()(whole, ())] + parts)  # r.parent() is not the nicest here
 
-
     def _combine_like_terms_(self):
         r"""
         Combine terms in ``self`` with the same denominator.
@@ -3647,7 +3611,6 @@ class FractionWithFactoredDenominatorSum(list):
                 temp = f
         new_FFPDs.append(temp)
         return FractionWithFactoredDenominatorSum(new_FFPDs)
-
 
     def sum(self):
         r"""
@@ -3798,6 +3761,7 @@ def diff_prod(f_derivs, u, g, X, interval, end, uderivs, atc):
         sol = solve(eqns, *variables, solution_dict=True)
         uderivs.update(subs_all(D, sol[ZZ.zero()]))
     return uderivs
+
 
 def permutation_sign(s, u):
     r"""

@@ -14045,10 +14045,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.OddGraph(4)
             sage: d = G.diameter()
             sage: n = G.num_verts()
-            sage: H = G.distance_graph(range(d+1))
+            sage: H = G.distance_graph(list(range(d+1)))
             sage: H.is_isomorphic(graphs.CompleteGraph(n))
             False
-            sage: H = G.distance_graph(range(1,d+1))
+            sage: H = G.distance_graph(list(range(1,d+1)))
             sage: H.is_isomorphic(graphs.CompleteGraph(n))
             True
 
@@ -18547,7 +18547,7 @@ class GenericGraph(GenericGraph_pyx):
             ....:  y = float(sin(pi/2 + ((2*pi)/5)*i))
             ....:  pos_dict[i] = [x,y]
             ...
-            sage: for i in range(10)[5:]:
+            sage: for i in range(5, 10):
             ....:  x = float(0.5*cos(pi/2 + ((2*pi)/5)*i))
             ....:  y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
             ....:  pos_dict[i] = [x,y]

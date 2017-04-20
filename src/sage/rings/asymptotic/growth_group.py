@@ -234,6 +234,8 @@ ACKNOWLEDGEMENT:
 Classes and Methods
 ===================
 """
+from __future__ import absolute_import
+
 #*****************************************************************************
 # Copyright (C) 2014--2015 Benjamin Hackl <benjamin.hackl@aau.at>
 #               2014--2015 Daniel Krenn <dev@danielkrenn.at>
@@ -244,7 +246,6 @@ Classes and Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.rings.asymptotic.growth_group_cartesian', 'CartesianProductGrowthGroups')
@@ -255,9 +256,8 @@ from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.factory import UniqueFactory
 from sage.structure.parent import Parent
 from sage.structure.sage_object import SageObject
-from sage.structure.unique_representation import (CachedRepresentation,
-                                                  UniqueRepresentation)
-from sage.structure.sage_object import richcmp, op_NE
+from sage.structure.unique_representation import CachedRepresentation
+from sage.structure.unique_representation import UniqueRepresentation
 
 
 class Variable(CachedRepresentation, SageObject):
@@ -1128,9 +1128,10 @@ class GenericGrowthElement(MultiplicativeGroupElement):
         raise NotImplementedError('Inversion of %s not implemented '
                                   '(in this abstract method).' % (self,))
 
-    def _richcmp_(self, other, op):
+
+    def __eq__(self, other):
         r"""
-        Compare this growth element to ``other``.
+        Return whether this growth element is equal to ``other``.
 
         INPUT:
 
@@ -1175,19 +1176,65 @@ class GenericGrowthElement(MultiplicativeGroupElement):
             False
             sage: ~P_ZZ(1) == P_ZZ(1)
             True
+        """
+        from sage.structure.element import have_same_parent
+        if have_same_parent(self, other):
+            return self._eq_(other)
+
+        from sage.structure.element import get_coercion_model
+        import operator
+        try:
+            return get_coercion_model().bin_op(self, other, operator.eq)
+        except TypeError:
+            return False
+
+
+    def _eq_(self, other):
+        r"""
+        Return whether this :class:`GenericGrowthElement` is equal to ``other``.
+
+        INPUT:
+
+        - ``other`` -- a :class:`GenericGrowthElement`.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This function compares two instances of
+            :class:`GenericGrowthElement`.
 
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: P = GrowthGroup('x^ZZ')
             sage: e1 = P(raw_element=1)
-            sage: e1 == P.gen()
+            sage: e1._eq_(P.gen())
             True
             sage: e2 = e1^4
             sage: e2 == e1^2*e1*e1
             True
             sage: e2 == e1
             False
+        """
+        return self._raw_element_ == other._raw_element_
+
+
+    def __ne__(self, other):
+        r"""
+        Return whether this growth element is not equal to ``other``.
+
+        INPUT:
+
+        - ``other`` -- an element.
+
+        OUTPUT:
+
+        A boolean.
+
+        TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('x^ZZ')
@@ -1198,12 +1245,86 @@ class GenericGrowthElement(MultiplicativeGroupElement):
             sage: G(1) != G(1)
             False
         """
-        if not isinstance(other, GenericGrowthElement):
-            return op == op_NE
-        return richcmp(self._raw_element_, other._raw_element_, op)
+        return not self == other
+
+
+    def __le__(self, other):
+        r"""
+        Return whether this growth element is at most (less than or equal
+        to) ``other``.
+
+        INPUT:
+
+        - ``other`` -- an element.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This function uses the coercion model to find a common
+            parent for the two operands.
+
+            The comparison of two elements with the same parent is done in
+            :meth:`_le_`.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: P_ZZ = GrowthGroup('x^ZZ')
+            sage: P_QQ = GrowthGroup('x^QQ')
+            sage: P_ZZ.gen() <= P_QQ.gen()^2
+            True
+            sage: ~P_ZZ.gen() <= P_ZZ.gen()
+            True
+        """
+        from sage.structure.element import have_same_parent
+        if have_same_parent(self, other):
+            return self._le_(other)
+
+        from sage.structure.element import get_coercion_model
+        import operator
+        try:
+            return get_coercion_model().bin_op(self, other, operator.le)
+        except TypeError:
+            return False
+
+
+    def _le_(self, other):
+        r"""
+        Return whether this :class:`GenericGrowthElement` is at most (less
+        than or equal to) ``other``.
+
+        INPUT:
+
+        - ``other`` -- a :class:`GenericGrowthElement`.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This function compares two instances of
+            :class:`GenericGrowthElement`.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
+            sage: G = GenericGrowthGroup(ZZ)
+            sage: e1 = G(raw_element=1); e2 = G(raw_element=2)
+            sage: e1 <= e2  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Only implemented in concrete realizations.
+        """
+        raise NotImplementedError('Only implemented in concrete realizations.')
+
 
     log = _log_
     log_factor = _log_factor_
+
 
     def _log_factor_(self, base=None):
         r"""
@@ -2372,6 +2493,7 @@ class AbstractGrowthGroupFunctor(ConstructionFunctor):
         """
         if self == other:
             return self
+
 
     def __eq__(self, other):
         r"""

@@ -228,6 +228,7 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.categories.rings import Rings
+from .misc import richcmp_by_eq_and_lt
 
 
 @total_ordering
@@ -426,35 +427,6 @@ class FractionWithFactoredDenominator(RingElement):
         """
         return prod(q ** e for q, e in self.denominator_factored())
 
-
-    def __cmp__(self, other):
-        r"""
-        Compares two elements.
-
-        INPUT:
-
-        - ``other`` -- element to compare with ``self``
-
-        OUTPUT:
-
-        A comparison value.
-
-        TESTS::
-
-            sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
-            sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
-            sage: f = FFPD(x*y, [(x-1, 1), (y-2, 2)])
-            sage: g = FFPD(x, [(x-1, 1), (y-2, 2)])
-            sage: f.__cmp__(f)
-            0
-            sage: f.__cmp__(g)
-            1
-        """
-        return cmp(self.numerator() * other.denominator(),
-                   other.numerator() * self.denominator())
-
-
     def denominator_factored(self):
         r"""
         Return the factorization in ``self.denominator_ring`` of the denominator of
@@ -611,49 +583,19 @@ class FractionWithFactoredDenominator(RingElement):
         """
         return repr((self.numerator(), self.denominator_factored()))
 
-
-    def __eq__(self, other):
-        r"""
-        Tests for equality of the given elements (with taking care of
-        different parents by using the coercion model).
-
-        INPUT:
-
-        - ``other`` -- object to compare with ``self``
-
-        OUTPUT:
-
-        ``True`` or ``False``.
-
-        TESTS::
-
-            sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
-            sage: R.<x,y> = PolynomialRing(QQ)
-            sage: FFPD = FractionWithFactoredDenominatorRing(R)
-            sage: f = FFPD(x, [])
-            sage: f == x
-            True
-        """
-        from sage.structure.element import have_same_parent
-        if have_same_parent(self, other):
-            return self._eq_(other)
-
-        from sage.structure.element import get_coercion_model
-        import operator
-        try:
-            return get_coercion_model().bin_op(self, other, operator.eq)
-        except TypeError:
-            return False
-
+    _richcmp_ = richcmp_by_eq_and_lt
 
     def _eq_(self, other):
         r"""
+        Return whether the FFPD instance ``other`` is equal to
+        this FFPD instance.
+
         Two FFPD instances are equal iff they represent the same
         fraction.
 
         INPUT:
 
-        - ``other`` -- object to compare with ``self``
+        - ``other`` -- an instance of :class:`FractionWithFactoredDenominator`
 
         OUTPUT:
 
@@ -685,25 +627,9 @@ class FractionWithFactoredDenominator(RingElement):
             sage: b = FFPD(G, H.factor())
             sage: bool(a == b)
             True
-        """
-        return self.quotient() == other.quotient()
 
+        ::
 
-    def __ne__(self, other):
-        r"""
-        Tests for nonequality of the given elements.
-
-        INPUT:
-
-        - ``other`` -- object to compare with ``self``
-
-        OUTPUT:
-
-        ``True`` or ``False``.
-
-        EXAMPLES::
-
-            sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: df = [x, 1], [y, 1], [x*y+1, 1]
@@ -714,11 +640,30 @@ class FractionWithFactoredDenominator(RingElement):
             sage: g = FFPD(y, df)
             sage: g != f
             True
+
+        TESTS::
+
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: f = FFPD(x, [])
+            sage: f == x
+            True
+
+        ::
+
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: f = FFPD(x*y, [(x-1, 1), (y-2, 2)])
+            sage: g = FFPD(x, [(x-1, 1), (y-2, 2)])
+            sage: f == f
+            True
+            sage: f == g
+            False
         """
-        return not (self == other)
+        return (self.numerator() * other.denominator() ==
+                other.numerator() * self.denominator())
 
-
-    def __lt__(self, other):
+    def _total_order_key_(self):
         r"""
         FFPD ``A`` is less than FFPD ``B`` iff
         (the denominator factorization of ``A`` is shorter than that of ``B``)
@@ -749,25 +694,18 @@ class FractionWithFactoredDenominator(RingElement):
             sage: g = FFPD(y, df)
             sage: h = FFPD(exp(x), df)
             sage: i = FFPD(sin(x + 2), df)
-            sage: f < ff
+            sage: f._total_order_key_() < ff._total_order_key_()
             True
-            sage: f < g
+            sage: f._total_order_key_() < g._total_order_key_()
             True
-            sage: g < h
+            sage: g._total_order_key_() < h._total_order_key_()
             True
-            sage: h < i
+            sage: bool(h._total_order_key_() < i._total_order_key_())
             False
         """
-        sn = self.numerator()
-        on = other.numerator()
-        sdf = self.denominator_factored()
-        odf = other.denominator_factored()
-        sd = self.denominator()
-        od = other.denominator()
-
-        return bool(len(sdf) < len(odf) or
-                    (len(sdf) == len(odf) and sd < od) or
-                    (len(sdf) == len(odf) and sd == od and sn < on))
+        return (len(self.denominator_factored()),
+                self.denominator(),
+                self.numerator())
 
 
     def univariate_decomposition(self):
@@ -3531,7 +3469,9 @@ class FractionWithFactoredDenominatorSum(list):
             sage: s == t
             True
         """
-        return sorted(self) == sorted(other)
+        from operator import methodcaller
+        return (sorted(self, key=methodcaller('_total_order_key_')) ==
+                sorted(other, key=methodcaller('_total_order_key_')))
 
 
     def __ne__(self, other):
@@ -3684,8 +3624,9 @@ class FractionWithFactoredDenominatorSum(list):
         if not self:
             return self
 
+        from operator import methodcaller
         # Combine like terms.
-        FFPDs = sorted(self)
+        FFPDs = sorted(self, key=methodcaller('_total_order_key_'))
         new_FFPDs = []
         temp = FFPDs[0]
         for f in FFPDs[1:]:

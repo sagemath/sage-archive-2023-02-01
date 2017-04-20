@@ -198,9 +198,19 @@ ACKNOWLEDGEMENT:
 - Benjamin Hackl is supported by the Google Summer of Code 2015.
 
 
+ACKNOWLEDGEMENT:
+
+- Benjamin Hackl, Clemens Heuberger and Daniel Krenn are supported by the
+  Austrian Science Fund (FWF): P 24644-N26.
+
+- Benjamin Hackl is supported by the Google Summer of Code 2015.
+
+
 Classes and Methods
 ===================
 """
+from __future__ import absolute_import
+
 # *****************************************************************************
 # Copyright (C) 2014--2015 Benjamin Hackl <benjamin.hackl@aau.at>
 #               2014--2015 Daniel Krenn <dev@danielkrenn.at>
@@ -211,7 +221,6 @@ Classes and Methods
 # (at your option) any later version.
 # http://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import absolute_import
 
 from sage.misc.superseded import experimental
 from sage.rings.big_oh import O
@@ -219,7 +228,6 @@ from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.factory import UniqueFactory
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.sage_object import richcmp, op_NE
 
 
 class ZeroCoefficientError(ValueError):
@@ -843,9 +851,11 @@ class GenericTerm(MultiplicativeGroupElement):
         return tuple(self.parent()._create_element_in_extension_(g, c)
                      for g, c in self.growth.log_factor(base=base))
 
-    def _richcmp_(self, other, op):
+
+    def __le__(self, other):
         r"""
-        Compare the growth of this term to the growth of ``other``.
+        Return whether the growth of this term is less than
+        or equal to the growth of ``other``.
 
         INPUT:
 
@@ -865,8 +875,7 @@ class GenericTerm(MultiplicativeGroupElement):
         First, we define some asymptotic terms (and their parents)::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import *
-
+            sage: from sage.rings.asymptotic.term_monoid import (GenericTermMonoid, TermMonoid)
             sage: G = GrowthGroup('x^ZZ'); x = G.gen()
             sage: GT = GenericTermMonoid(G, QQ)
             sage: OT = TermMonoid('O', G, QQ)
@@ -879,7 +888,7 @@ class GenericTerm(MultiplicativeGroupElement):
             sage: t1 = ET_ZZ(x^2, 5); t2 = ET_QQ(x^3, 2/7); t1, t2
             (5*x^2, 2/7*x^3)
 
-        In order for the comparison to work, the terms have to come from
+        In order for the comparison to work, the terms have come from
         or coerce into the same parent. In particular, comparing
         :class:`GenericTerm` to, for example, an :class:`OTerm`
         always yields ``False``::
@@ -912,9 +921,81 @@ class GenericTerm(MultiplicativeGroupElement):
             False
             sage: ET_ZZ(x, 5) <= ET_ZZ(x, 5)
             True
+        """
+        from sage.structure.element import have_same_parent
 
-        Check that equality works as expected::
+        if have_same_parent(self, other):
+            return self._le_(other)
 
+        from sage.structure.element import get_coercion_model
+        import operator
+
+        try:
+            return get_coercion_model().bin_op(self, other, operator.le)
+        except TypeError:
+            return False
+
+
+    def _le_(self, other):
+        r"""
+        Return whether this generic term grows at most (i.e. less than
+        or equal) like ``other``.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic term.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This method is called by the coercion framework, thus,
+            it can be assumed that this element, as well as ``other``
+            are from the same parent.
+
+            Also, this method **only** compares the growth of the
+            input terms!
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
+            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+            sage: T = GenericTermMonoid(G, QQ)
+            sage: t1 = T(x^-2); t2 = T(x^5); t1, t2
+            (Generic Term with growth x^(-2), Generic Term with growth x^5)
+            sage: t1._le_(t2)
+            True
+            sage: t2._le_(t1)
+            False
+        """
+        return self.growth <= other.growth
+
+
+    def __eq__(self, other):
+        r"""
+        Return whether this asymptotic term is equal to ``other``.
+
+        INPUT:
+
+        - ``other`` -- an object.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This function uses the coercion model to find a common
+            parent for the two operands.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import (GenericTermMonoid,
+            ....:      ExactTermMonoid, OTermMonoid)
             sage: GT = GenericTermMonoid(GrowthGroup('x^ZZ'), QQ)
             sage: ET = ExactTermMonoid(GrowthGroup('x^ZZ'), ZZ)
             sage: OT = OTermMonoid(GrowthGroup('x^ZZ'), QQ)
@@ -927,23 +1008,51 @@ class GenericTerm(MultiplicativeGroupElement):
             True
             sage: o == OT(x^2)  # indirect doctest
             False
+        """
+        from sage.structure.element import have_same_parent
+        if have_same_parent(self, other):
+            return self._eq_(other)
 
-        More checks::
+        from sage.structure.element import get_coercion_model
+        import operator
+        try:
+            return get_coercion_model().bin_op(self, other, operator.eq)
+        except TypeError:
+            return False
 
-            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
-            sage: T = GenericTermMonoid(G, QQ)
-            sage: t1 = T(x^-2); t2 = T(x^5); t1, t2
-            (Generic Term with growth x^(-2), Generic Term with growth x^5)
-            sage: t1 <= t2
-            True
-            sage: t2 <= t1
-            False
 
+    def _eq_(self, other):
+        r"""
+        Return whether this asymptotic term is the same as ``other``.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic term.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This method gets called by the coercion framework, so it
+            can be assumed that this asymptotic term is from the
+            same parent as ``other``.
+
+            Only implemented in concrete realizations.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
             sage: T = GenericTermMonoid(GrowthGroup('x^ZZ'), QQ)
             sage: t = T.an_element()
             sage: t == t
             True
 
+        ::
+
+            sage: from sage.rings.asymptotic.term_monoid import OTermMonoid
             sage: OT = OTermMonoid(GrowthGroup('x^ZZ'), QQ)
             sage: t = OT.an_element(); t
             O(x)
@@ -952,9 +1061,8 @@ class GenericTerm(MultiplicativeGroupElement):
             sage: t == OT(x^2)  # indirect doctest
             False
         """
-        if not isinstance(other, GenericTerm):
-            return op == op_NE
-        return richcmp(self.growth, other.growth, op)
+        return self.growth == other.growth
+
 
     def is_constant(self):
         r"""
@@ -1155,6 +1263,7 @@ class GenericTerm(MultiplicativeGroupElement):
         substitute_raise_exception(self, TypeError(
             'Cannot substitute in the abstract '
             'base class %s.' % (self.parent(),)))
+
 
     def variable_names(self):
         r"""

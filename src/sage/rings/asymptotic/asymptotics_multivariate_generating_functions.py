@@ -219,9 +219,6 @@ from functools import total_ordering
 from itertools import combinations_with_replacement
 from sage.structure.element import RingElement
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.sage_object import (richcmp, richcmp_not_equal,
-                                        op_NE, op_EQ,
-                                        op_LT, op_LE, op_GT, op_GE)
 from sage.rings.ring import Ring
 from sage.calculus.var import var
 from sage.calculus.functional import diff
@@ -444,6 +441,15 @@ class FractionWithFactoredDenominator(RingElement):
 
         TESTS::
 
+            sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
+            sage: f = FFPD(x*y, [(x-1, 1), (y-2, 2)])
+            sage: g = FFPD(x, [(x-1, 1), (y-2, 2)])
+            sage: f.__cmp__(f)
+            0
+            sage: f.__cmp__(g)
+            1
         """
         return cmp(self.numerator() * other.denominator(),
                    other.numerator() * self.denominator())
@@ -606,18 +612,10 @@ class FractionWithFactoredDenominator(RingElement):
         return repr((self.numerator(), self.denominator_factored()))
 
 
-    def _richcmp_(self, other, op):
+    def __eq__(self, other):
         r"""
-        Comparison of the given elements (with taking care of
+        Tests for equality of the given elements (with taking care of
         different parents by using the coercion model).
-
-        FFPD ``A`` is less than FFPD ``B`` iff
-        (the denominator factorization of ``A`` is shorter than that of ``B``)
-        or (the denominator factorization lengths are equal and
-        the denominator of ``A`` is less than that of ``B`` in their ring) or
-        (the denominator factorization lengths are equal and the
-        denominators are equal and the numerator of ``A`` is less than that
-        of ``B`` in their ring).
 
         INPUT:
 
@@ -635,7 +633,37 @@ class FractionWithFactoredDenominator(RingElement):
             sage: f = FFPD(x, [])
             sage: f == x
             True
+        """
+        from sage.structure.element import have_same_parent
+        if have_same_parent(self, other):
+            return self._eq_(other)
 
+        from sage.structure.element import get_coercion_model
+        import operator
+        try:
+            return get_coercion_model().bin_op(self, other, operator.eq)
+        except TypeError:
+            return False
+
+
+    def _eq_(self, other):
+        r"""
+        Two FFPD instances are equal iff they represent the same
+        fraction.
+
+        INPUT:
+
+        - ``other`` -- object to compare with ``self``
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        It can be assumed that ``self`` and ``other`` have the same parent.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: df = [x, 1], [y, 1], [x*y+1, 1]
@@ -657,7 +685,27 @@ class FractionWithFactoredDenominator(RingElement):
             sage: b = FFPD(G, H.factor())
             sage: bool(a == b)
             True
+        """
+        return self.quotient() == other.quotient()
 
+
+    def __ne__(self, other):
+        r"""
+        Tests for nonequality of the given elements.
+
+        INPUT:
+
+        - ``other`` -- object to compare with ``self``
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: df = [x, 1], [y, 1], [x*y+1, 1]
             sage: f = FFPD(x, df)
             sage: ff = FFPD(x, df, reduce=False)
@@ -666,14 +714,33 @@ class FractionWithFactoredDenominator(RingElement):
             sage: g = FFPD(y, df)
             sage: g != f
             True
+        """
+        return not (self == other)
 
-            sage: f = FFPD(x*y, [(x-1, 1), (y-2, 2)])
-            sage: g = FFPD(x, [(x-1, 1), (y-2, 2)])
-            sage: f == f
-            True
-            sage: f == g
-            False
 
+    def __lt__(self, other):
+        r"""
+        FFPD ``A`` is less than FFPD ``B`` iff
+        (the denominator factorization of ``A`` is shorter than that of ``B``)
+        of (the denominator factorization lengths are equal and
+        the denominator of ``A`` is less than that of ``B`` in their ring) or
+        (the denominator factorization lengths are equal and the
+        denominators are equal and the numerator of ``A`` is less than that
+        of ``B`` in their ring).
+
+        INPUT:
+
+        - ``other`` -- object to compare with ``self``.
+
+        OUTPUT:
+
+        ``True`` or ``False``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.asymptotics_multivariate_generating_functions import FractionWithFactoredDenominatorRing
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: FFPD = FractionWithFactoredDenominatorRing(R, SR)
             sage: df = [x, 1], [y, 1], [x*y+1, 1]
             sage: f = FFPD(x, df); f
             (1, [(y, 1), (x*y + 1, 1)])
@@ -690,14 +757,7 @@ class FractionWithFactoredDenominator(RingElement):
             True
             sage: h < i
             False
-
         """
-        if not isinstance(other, FractionWithFactoredDenominator):
-            return op == op_NE
-
-        if op in (op_EQ, op_NE):
-            return bool(richcmp(self.quotient(), other.quotient(), op))
-
         sn = self.numerator()
         on = other.numerator()
         sdf = self.denominator_factored()
@@ -705,15 +765,10 @@ class FractionWithFactoredDenominator(RingElement):
         sd = self.denominator()
         od = other.denominator()
 
-        lx = len(sdf)
-        ly = len(odf)
-        if lx != ly:
-            return bool(richcmp_not_equal(lx, ly, op))
+        return bool(len(sdf) < len(odf) or
+                    (len(sdf) == len(odf) and sd < od) or
+                    (len(sdf) == len(odf) and sd == od and sn < on))
 
-        if sd != od:
-            return bool(richcmp_not_equal(sd, od, op))
-
-        return bool(richcmp(sn, on, op))
 
     def univariate_decomposition(self):
         r"""

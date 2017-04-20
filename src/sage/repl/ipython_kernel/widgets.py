@@ -54,12 +54,32 @@ class HTMLText(HTML):
     """
     @property
     def description(self):
+        """
+        Always return empty string.
+
+        EXAMPLES::
+
+            sage: from sage.repl.ipython_kernel.widgets import HTMLText
+            sage: w = HTMLText("Hello")
+            sage: w.description
+            u''
+        """
         return ''
 
     @description.setter
     def description(self, value):
-        pass
+        """
+        Do not set anything.
 
+        EXAMPLES::
+
+            sage: from sage.repl.ipython_kernel.widgets import HTMLText
+            sage: w = HTMLText("Hello")
+            sage: w.description = "text"
+            sage: w.description
+            u''
+        """
+        pass
 
 class TransformWidget(object):
     """

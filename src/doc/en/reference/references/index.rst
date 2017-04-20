@@ -807,6 +807,9 @@ REFERENCES:
              function fields and related topics," J. Symbolic
              Comput. 33 (2002), no. 4, 425--445.
 
+.. [Hig2008] \N. J. Higham, "Functions of matrices: theory and computation", 
+             Society for Industrial and Applied Mathematics (2008). 
+
 .. [HJ2004] Tom Hoeholdt and Joern Justesen, A Course In
             Error-Correcting Codes, EMS, 2004
 

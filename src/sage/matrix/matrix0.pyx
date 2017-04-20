@@ -5225,11 +5225,24 @@ cdef class Matrix(sage.structure.element.Matrix):
             [1]
             sage: 0^0
             1
+        
+        Non-integer (symbolic) exponents are also supported::
+        
+            sage: k = var('k')
+            sage: A = matrix([[2, -1], [1,  0]])
+            sage: A^(2*k+1)
+            [ 2*k + 2 -2*k - 1]
+            [ 2*k + 1     -2*k]
         """
+        from sage.symbolic.expression import Expression
+
         if not self.is_square():
             raise ArithmeticError("self must be a square matrix")
         if ignored is not None:
             raise RuntimeError("__pow__ third argument not used")
+        if isinstance(n, Expression):
+            from sage.matrix.matrix2 import _matrix_power_symbolic
+            return _matrix_power_symbolic(self, n)
         return sage.structure.element.generic_power_c(self, n, None)
 
     ###################################################
@@ -5301,9 +5314,6 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     cdef int _strassen_default_echelon_cutoff(self) except -2:
         return -1
-
-
-
 
 #######################
 # Unpickling

@@ -257,7 +257,7 @@ from sage.structure.parent import Parent
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import (CachedRepresentation,
                                                   UniqueRepresentation)
-from sage.structure.sage_object import richcmp, rich_to_bool, op_NE
+from sage.structure.sage_object import richcmp, op_NE
 
 
 class Variable(CachedRepresentation, SageObject):

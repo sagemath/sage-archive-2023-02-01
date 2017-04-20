@@ -659,6 +659,13 @@ class FractionWithFactoredDenominator(RingElement):
             True
             sage: f == g
             False
+
+            sage: f < g
+            Traceback (most recent call last):
+            ...
+            AttributeError:
+            'FractionWithFactoredDenominatorRing_with_category.element_class'
+            object has no attribute '_lt_'
         """
         return (self.numerator() * other.denominator() ==
                 other.numerator() * self.denominator())

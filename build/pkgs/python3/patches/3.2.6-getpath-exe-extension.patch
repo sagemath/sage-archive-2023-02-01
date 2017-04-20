@@ -1,3 +1,5 @@
+Fixes a known issue with sys.executable ambiguity on Cygwin.  This is a
+simpler version of the patch found at http://bugs.python.org/issue28441
 --- a/Modules/getpath.c
 +++ b/Modules/getpath.c
 @@ -491,6 +491,28 @@ calculate_path(void)

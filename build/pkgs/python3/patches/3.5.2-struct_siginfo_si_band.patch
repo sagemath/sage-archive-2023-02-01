@@ -1,3 +1,6 @@
+This fixes building the signal module on Cygwin, where the si_band member
+of the siginfo_t struct is not present as expected by Python.  This has been
+fixed upstream for Python 3.7; see https://bugs.python.org/issue21085
 diff --git a/Modules/signalmodule.c b/Modules/signalmodule.c
 index 753d987..c69c0ce 100644
 --- a/Modules/signalmodule.c

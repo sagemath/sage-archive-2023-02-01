@@ -1,3 +1,7 @@
+This patch has never been submitted upstream for some reason, but it simply
+increases the default number of file descriptors the Python process can have on
+Cygwin, which mitigates some issues; see
+https://cygwin.com/ml/cygwin/2011-03/msg00651.html
 --- a/Modules/selectmodule.c	2012-02-02 22:35:21.835125000 -0500
 +++ b/Modules/selectmodule.c	2012-02-02 22:41:41.210125000 -0500
 @@ -6,6 +6,21 @@

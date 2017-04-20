@@ -1,3 +1,5 @@
+This patch is needed to correctly build and link with the DLL import library
+for libpython on Cygwin; see https://bugs.python.org/issue13756
 diff --git a/Lib/distutils/command/build_ext.py b/Lib/distutils/command/build_ext.py
 index acbe648..6bedbb2 100644
 --- a/Lib/distutils/command/build_ext.py

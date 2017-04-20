@@ -1,3 +1,5 @@
+The --enable-new-dtags linker flag should not be used when building non-ELF
+binaries. This is related to http://bugs.python.org/issue17362
 diff --git a/Lib/distutils/unixccompiler.py b/Lib/distutils/unixccompiler.py
 index 69045f8..7ed0a5f 100644
 --- a/Lib/distutils/unixccompiler.py

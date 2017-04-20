@@ -817,28 +817,22 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
 
         .. MATH::
 
-            \frac{1}{|G|}\sum_{g \in G} \frac{1}{\text{det}(I-tg)}
+            \frac{1}{|G|}\sum_{g \in G} \frac{\xi(g)}{\text{det}(I-tg)},
 
         where `I` is the indentity matrix and `t` an indeterminant.
 
         For characteristic `p` not dividing the order of `G`, let `k` be the base field
-        and `N` the order of `G`. Define `\lambda` as a primitive `N` th root of unity over `k`
-        and `\omega` as a primitive `N` th root of unity over `\QQ`. For each `g \in G`
+        and `N` the order of `G`. Define `\lambda` as a primitive `N`-th root of unity over `k`
+        and `\omega` as a primitive `N`-th root of unity over `\QQ`. For each `g \in G`
         define `k_i(g)` to be the positive integer such that
         `e_i = \lambda^{k_i(g)}` for each eigenvalue `e_i` of `g`. Then the Molien series
-        is copmputed as
+        is computed as
 
         .. MATH::
 
-            \frac{1}{|G|}\sum_{g \in G} \frac{1}{\prod_{i=1}^n(1 - t\omega^{k_i(g)})}
+            \frac{1}{|G|}\sum_{g \in G} \frac{\xi(g)}{\prod_{i=1}^n(1 - t\omega^{k_i(g)})},
 
-        where `t` is an indeterminant.
-
-        REFERENCES:
-
-        .. [Decker-deJong] W. Decker and T. de Jong. Groebner Bases and Invariant Theory in
-           Groebner Bases and Applications. London Mathematical Society Lecture Note Series
-           No. 251. (1998) 61--89.
+        where `t` is an indeterminant. [Dec1998]_
 
         INPUT:
 
@@ -922,6 +916,14 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: G = MatrixGroup([matrix(K,4,4,[K(y) for u in m.list() for y in u])for m in S.gens()])
             sage: G.molien_series(return_series=False)
             1/(t^10 - t^9 - t^8 + 2*t^5 - t^2 - t + 1)
+
+        ::
+
+            sage: i = GF(7)(3)
+            sage: G = MatrixGroup([[i^3,0,0,-i^3],[i^2,0,0,-i^2]])
+            sage: xi = G.character(G.character_table()[4])
+            sage: G.molien_series(xi)
+            3*t^5 + 6*t^11 + 9*t^17 + 12*t^23 + O(t^25)
         """
         if not self.is_finite():
             raise NotImplementedError("only implemented for finite groups")
@@ -951,6 +953,8 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             #find primitive Nth roots of unity over base ring and QQ
             F = cyclotomic_polynomial(N).change_ring(R)
             w = F.roots(ring=R.algebraic_closure(), multiplicities=False)[0]
+            #don't need to extend further in this case since the order of
+            #the roots of unity in the character divide the order of the group
             L = CyclotomicField(N, 'v')
             v = L.gen()
             #construct Molien series
@@ -959,7 +963,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             mol = P(0)
             for g in self:
                 #construct Phi
-                phi = L(1)
+                phi = L(xi(g))
                 for e in g.matrix().eigenvalues():
                     #find power such that w**n  = e
                     n = 1

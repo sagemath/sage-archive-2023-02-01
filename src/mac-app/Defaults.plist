@@ -161,7 +161,7 @@ end tell</string>
 	<key>hasNBToUpgrade</key>
 	<true/>
 	<key>preferSageNB</key>
-	<true/>
+	<false/>
 	<key>defaultJupyterPath</key>
 	<string>~/Documents/Sage/</string>
 </dict>

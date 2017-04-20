@@ -17,6 +17,8 @@ cd src
 # C++11 workaround https://trac.sagemath.org/ticket/20926
 export CXXFLAGS="$CXXFLAGS -std=c++98"
 
+export PYTHON=sage-python23
+
 ./configure \
     --prefix="$SAGE_LOCAL" \
     --libdir="$SAGE_LOCAL/lib" \

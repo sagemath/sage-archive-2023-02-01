@@ -180,6 +180,8 @@ class FunctionHeaviside(GinacFunction):
 
         `H(x) = 0` for `x < 0` and `H(x) = 1` for `x > 0`
 
+    .. SEEALSO:: :func:`unit_step()<sage.functions.generalized.FunctionUnitStep>`
+
     EXAMPLES::
 
         sage: heaviside(-1)
@@ -280,6 +282,8 @@ class FunctionUnitStep(GinacFunction):
     The unit step function, `\mathrm{u}(x)` is defined in Sage as:
 
         `\mathrm{u}(x) = 0` for `x < 0` and `\mathrm{u}(x) = 1` for `x \geq 0`
+
+    .. SEEALSO:: :func:`heaviside()<sage.functions.generalized.FunctionHeaviside>`
 
     EXAMPLES::
 

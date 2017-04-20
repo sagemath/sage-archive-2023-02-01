@@ -5104,6 +5104,40 @@ cdef class Expression(CommutativeRingElement):
         res = print_sorted(res)[::-1]
         return tuple(res)
 
+    def free_variables(self):
+        """
+        Return sorted tuple of unbound variables that occur in this
+        expression.
+
+        EXAMPLES::
+
+            sage: (x,y,z) = var('x,y,z')
+            sage: (x+y).free_variables()
+            (x, y)
+            sage: (2*x).free_variables()
+            (x,)
+            sage: (x^y).free_variables()
+            (x, y)
+            sage: sin(x+y^z).free_variables()
+            (x, y, z)
+            sage: _ = function('f')
+            sage: e = limit( f(x,y), x=0 ); e
+            limit(f(x, y), x, 0)
+            sage: e.free_variables()
+            (y,)
+        """
+        from sage.symbolic.ring import SR
+        from sage.symbolic.comparison import print_sorted
+        cdef GSymbolSet sym_set
+        sym_set = self._gobj.free_symbols()
+        res = []
+        cdef GSymbolSetIter itr = sym_set.begin()
+        while itr != sym_set.end():
+            res.append(new_Expression_from_GEx(SR, GEx(itr.obj())))
+            itr.inc()
+        res = print_sorted(res)[::-1]
+        return tuple(res)
+
     def arguments(self):
         """
         EXAMPLES::

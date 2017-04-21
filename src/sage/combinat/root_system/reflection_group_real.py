@@ -601,6 +601,10 @@ class RealReflectionGroup(ComplexReflectionGroup):
         basis under the action of ``self`` on the underlying vector
         space `V`.
 
+        .. SEEALSO::
+
+            :meth:`~sage.combinat.root_system.reflection_group_real.permutahedron`
+
         INPUT:
 
         - ``point`` -- optional, a point given by its coordinates in

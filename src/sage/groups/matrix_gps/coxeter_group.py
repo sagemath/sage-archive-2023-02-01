@@ -28,6 +28,7 @@ from sage.combinat.root_system.coxeter_matrix import CoxeterMatrix
 from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_generic
 from sage.groups.matrix_gps.group_element import MatrixGroupElement_generic
 from sage.graphs.graph import Graph
+from sage.graphs.graph import DiGraph
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix_space import MatrixSpace
 
@@ -695,6 +696,47 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
             (3/2, 1, 1/2)
         """
         return self.fundamental_weights()[i]
+
+    def permutahedron(self, point=None):
+        r"""
+        Return the permutahedron of ``self``,
+
+        This is the convex hull of the point ``point`` in the weight
+        basis under the action of ``self`` on the underlying vector
+        space `V`.
+
+        .. SEEALSO::
+
+            :meth:`~sage.combinat.root_system.reflection_group_real.permutahedron`
+
+        INPUT:
+
+        - ``point`` -- optional, a point given by its coordinates in
+          the weight basis (default is `(1, 1, 1, \ldots)`)
+
+        .. NOTE::
+            The result is expressed in the root basis coordinates.
+
+        .. NOTE::
+            If function is too slow, switching the :meth:`base_field`
+            of the group to RDF will speed things up.
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['H',3], base_ring=RDF)
+            sage: W.permutahedron()
+            A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 120 vertices
+
+        """
+        n = self.coxeter_matrix().rank()
+        weights = self.fundamental_weights()
+        if point is None:
+            point = [1] * n
+        v = sum(point[i-1] * weights[i] for i in weights)
+        v = v.normalized()
+        from sage.geometry.polyhedron.constructor import Polyhedron
+        vertices =  [v*w for w in self]
+        return Polyhedron(vertices=vertices, base_ring=self.base_ring())
 
     class Element(MatrixGroupElement_generic):
         """

@@ -4958,7 +4958,7 @@ def JankoKharaghaniTonchevGraph():
     .. [JKT01] \Z.Janko, H.Kharaghani, V.D.Tonchev
        The existence of a Bush-type Hadamard matrix of order 324
        and two new infinite classes of symmetric designs.
-       Des. Codes Cryptogr. 24(2001), 225-232
+       Des. Codes Cryptogr. 24(2001), 225--232
 
     """
     from itertools import product
@@ -5114,7 +5114,7 @@ def IoninKharaghani765Graph():
     .. [IK03] Yury Ionin, Hadi Kharaghani
        New families of strongly regular graphs.
        Journal of Combinatorial Designs,
-       Vol 11 (2003), no. 3, 208–217,
+       Vol 11 (2003), no. 3, 208--217,
        :doi:`10.1002/jcd.10038`
     """
     from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
@@ -5203,7 +5203,7 @@ def U42Graph216():
     REFERENCES:
 
     .. [CRS16] \Dean Crnković, Sanja Rukavina, Andrea Švob,
-       Strongly regular graphs from orthogonal groups `O^+(6,2)` and `O^−(6,2)`.
+       Strongly regular graphs from orthogonal groups `O^+(6,2)` and `O^-(6,2)`.
        https://arxiv.org/abs/1609.07133
     """
     from sage.libs.gap.libgap import libgap

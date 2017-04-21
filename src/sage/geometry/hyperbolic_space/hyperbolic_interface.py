@@ -120,7 +120,7 @@ class HyperbolicPlane(Parent, UniqueRepresentation):
 
             sage: H = HyperbolicPlane()
             sage: H.a_realization()
-            Hyperbolic plane in the Upper Half Plane Model model
+            Hyperbolic plane in the Upper Half Plane Model
         """
         return self.UHP()
 

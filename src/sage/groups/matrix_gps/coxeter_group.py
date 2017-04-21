@@ -727,13 +727,23 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
             sage: W.permutahedron()
             A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 120 vertices
 
+            sage: W = CoxeterGroup(['I',7])
+            sage: W.permutahedron()
+            A 2-dimensional polyhedron in (Universal Cyclotomic Field)^2 defined as the convex hull of 14 vertices
+
+        .. PLOT::
+            :width: 500 px
+
+            W = CoxeterGroup(['I',7])
+            p = W.permutahedron()
+            sphinx_plot(p)
+
         """
         n = self.coxeter_matrix().rank()
         weights = self.fundamental_weights()
         if point is None:
             point = [1] * n
         v = sum(point[i-1] * weights[i] for i in weights)
-        v = v.normalized()
         from sage.geometry.polyhedron.constructor import Polyhedron
         vertices =  [v*w for w in self]
         return Polyhedron(vertices=vertices, base_ring=self.base_ring())

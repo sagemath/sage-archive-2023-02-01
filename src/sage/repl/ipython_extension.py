@@ -44,7 +44,7 @@ preparsed when calling ``%runfile`` ::
     sage: bool(re.search('/[0-9]+/', TMP))
     True
     sage: tmp = os.path.join(TMP, 'run_cell.py')
-    sage: f = open(tmp, 'w'); f.write('a = 2\n'); f.close()
+    sage: f = open(tmp, 'w'); _ = f.write('a = 2\n'); f.close()
     sage: shell.run_cell('%runfile '+tmp)
     sage: shell.run_cell('a')
     2
@@ -107,7 +107,7 @@ class SageMagics(Magics):
             sage: from sage.misc.all import tmp_dir
             sage: shell = get_test_shell()
             sage: tmp = os.path.join(tmp_dir(), 'run_cell.py')
-            sage: f = open(tmp, 'w'); f.write('a = 2\n'); f.close()
+            sage: f = open(tmp, 'w'); _ = f.write('a = 2\n'); f.close()
             sage: shell.run_cell('%runfile '+tmp)
             sage: shell.run_cell('a')
             2
@@ -131,12 +131,12 @@ class SageMagics(Magics):
             sage: from sage.repl.interpreter import get_test_shell
             sage: shell = get_test_shell()
             sage: tmp = os.path.normpath(os.path.join(SAGE_TMP, 'run_cell.py'))
-            sage: f = open(tmp, 'w'); f.write('a = 2\n'); f.close()
+            sage: f = open(tmp, 'w'); _ = f.write('a = 2\n'); f.close()
             sage: shell.run_cell('%attach ' + tmp)
             sage: shell.run_cell('a')
             2
             sage: sleep(1)  # filesystem timestamp granularity
-            sage: f = open(tmp, 'w'); f.write('a = 3\n'); f.close()
+            sage: f = open(tmp, 'w'); _ = f.write('a = 3\n'); f.close()
 
         Note that the doctests are never really at the command prompt, so
         we call the input hook manually::

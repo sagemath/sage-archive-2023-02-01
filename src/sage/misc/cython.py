@@ -345,7 +345,7 @@ def cython(filename, verbose=False, compile_message=False,
         sage: d = sage.misc.temporary_file.tmp_dir()
         sage: os.chdir(d)
         sage: with open("test.pyx", 'w') as f:
-        ....:     f.write("#clang C++\n"
+        ....:     _ = f.write("#clang C++\n"
         ....:       "from libcpp.vector cimport vector\n"
         ....:       "cdef vector[int] * v = new vector[int](4)\n")
         sage: output = sage.misc.cython.cython("test.pyx", create_local_c_file=True)
@@ -660,7 +660,7 @@ def cython_create_local_so(filename):
         sage: dir = tmp_dir(); os.chdir(dir)
         sage: f = open('hello.spyx', 'w')
         sage: s = "def hello():\n    print('hello')\n"
-        sage: f.write(s)
+        sage: _ = f.write(s)
         sage: f.close()
         sage: cython_create_local_so('hello.spyx')
         Compiling hello.spyx...

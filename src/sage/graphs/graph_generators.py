@@ -1045,9 +1045,9 @@ class GraphGenerators():
 
             sage: from six import StringIO
             sage: code_input = StringIO('>>planar_code<<')
-            sage: code_input.write('>>planar_code<<')
+            sage: _ = code_input.write('>>planar_code<<')
             sage: for c in [4,2,3,4,0,1,4,3,0,1,2,4,0,1,3,2,0]:
-            ....:     code_input.write('{:c}'.format(c))
+            ....:     _ = code_input.write('{:c}'.format(c))
             sage: code_input.seek(0)
             sage: gen = graphs._read_planar_code(code_input)
             sage: l = list(gen)

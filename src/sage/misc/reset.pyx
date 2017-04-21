@@ -38,7 +38,7 @@ def reset(vars=None, attached=False):
 
         sage: fn = tmp_filename(ext='foo.py')
         sage: sage.misc.reset.EXCLUDE.add('fn')
-        sage: open(fn, 'w').write('a = 111')
+        sage: _ = open(fn, 'w').write('a = 111')
         sage: attach(fn)
         sage: [fn] == attached_files()
         True

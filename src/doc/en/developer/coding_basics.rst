@@ -210,12 +210,13 @@ The top of each Sage code file should follow this format::
     #*****************************************************************************
 
 As an example, see ``SAGE_ROOT/src/sage/rings/integer.pyx``, which contains the
-implementation for `\ZZ`. Names of the people who made major contributions to
-the file appear in the ``AUTHORS`` section. You can add your name to the list
-if you are one of them, but refrain from being verbose. The ``AUTHORS``
-section shows very rough overview of the history, especially if a lot of
-people have been working on that source file. The authoritative log for who
-wrote what is always the git repository (see the output of ``git blame``).
+implementation for `\ZZ`. The names of the people who made major contributions
+to the file appear in the ``AUTHORS`` section. You can add your name to the
+list if you belong to the people, but refrain from being verbose in the
+description. The ``AUTHORS`` section shows very rough overview of the history,
+especially if a lot of people have been working on that source file. The
+authoritative log for who wrote what is always the git repository (see the
+output of ``git blame``).
 
 All code included with Sage must be licensed under the GPLv2+ or a
 compatible, that is, less restrictive license (e.g. the BSD license).

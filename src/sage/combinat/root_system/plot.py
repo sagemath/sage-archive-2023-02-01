@@ -786,19 +786,6 @@ Here is an analogue picture in 3D::
     sage: p
     Graphics3d Object
 
-.. PLOT::
-    :width: 500 px
-
-    C = crystals.Tableaux(["A",3], shape=[3,2,1])
-    L = C.weight_lattice_realization()
-    plot_options = L.plot_parse_options()
-    g = C.digraph()
-    positions = {x:plot_options.projection(x.weight()) for x in C}
-    sphinx_plot(L.plot(reflection_hyperplanes=False, fundamental_weights=False)
-                + g.plot3d(pos3d = positions, vertex_labels=True,
-                           color_by_label=plot_options.color, edge_labels=True))
-
-
 .. TOPIC:: Exercise
 
     Explore the previous picture and notice how the edges

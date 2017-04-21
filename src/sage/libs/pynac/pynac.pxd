@@ -319,7 +319,7 @@ cdef extern from "sage/libs/pynac/wrap.h":
 
 
     GEx g_abs "GiNaC::abs" (GEx x)                      except + # absolute value
-    GEx g_step "GiNaC::unit_step" (GEx x)                    except + # step function
+    GEx g_step "GiNaC::unit_step" (GEx x)               except + # step function
     GEx g_csgn "GiNaC::csgn" (GEx x)                    except + # complex sign
     GEx g_conjugate "GiNaC::conjugate_function" (GEx x) except + # complex conjugation
     GEx g_real_part "GiNaC::real_part_function" (GEx x) except + # real part

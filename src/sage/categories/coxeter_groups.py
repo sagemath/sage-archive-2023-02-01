@@ -24,6 +24,8 @@ from sage.structure.element import have_same_parent
 from sage.misc.flatten import flatten
 from copy import copy
 
+from sage.graphs.graph import DiGraph
+
 class CoxeterGroups(Category_singleton):
     r"""
     The category of Coxeter groups.
@@ -542,6 +544,71 @@ class CoxeterGroups(Category_singleton):
                                 nextlayer.append(t)
                 ret.append(nextlayer)
             return flatten(ret)
+
+        def bruhat_graph(self, x=None, y=None):
+            r"""
+            Return the Bruhat graph as a directed graph, with an edge `u \to v`
+            if and only if `u < v` in the Bruhat order, and `u = r \cdot v`.
+
+            The Bruhat graph `\Gamma(x,y)`, defined if `x \leq y` in the
+            Bruhat order, has as its vertices the Bruhat interval
+            `\{ t | x \leq t \leq y \}`, and as its edges are the pairs
+            `(u, v)` such that `u = r \cdot v` where `r` is a reflection,
+            that is, a conjugate of a simple reflection.
+
+            REFERENCES:
+
+            Carrell, The Bruhat graph of a Coxeter group, a conjecture of Deodhar,
+            and rational smoothness of Schubert varieties. Algebraic groups and
+            their generalizations: classical methods (University Park, PA, 1991),
+            53--61, Proc. Sympos. Pure Math., 56, Part 1, Amer. Math. Soc.,
+            Providence, RI, 1994.
+
+            EXAMPLES::
+
+                sage: W = CoxeterGroup(['H',3])
+                sage: G = W.bruhat_graph(); G
+                Digraph on 120 vertices
+
+                sage: W = WeylGroup("A3", prefix="s")
+                sage: s1, s2, s3 = W.simple_reflections()
+                sage: G = W.bruhat_graph(s1*s3, s1*s2*s3*s2*s1); G
+                Digraph on 10 vertices
+
+            Check that the graph has the correct number of edges
+            (see :trac:`17744`)::
+
+                sage: len(G.edges())
+                16
+
+                sage: W = CoxeterGroup(['A',2,1])
+                sage: s1, s2, s3 = W.simple_reflections()
+                sage: W.bruhat_graph(s1, s1*s3*s2*s3)
+                Digraph on 6 vertices
+
+                sage: W.bruhat_graph(s1, s3*s2*s3)
+                Digraph on 0 vertices
+            """
+            if x is None:
+                x = self.one()
+            if y is None:
+                fn = getattr(self, 'long_element', None)
+                if callable(fn):
+                    y = self.long_element()
+                else:
+                    raise TypeError("bruhat_graph() requires 2 arguments if the group is infinite")
+
+            g = self.bruhat_interval(x,y)
+            d = {}
+
+            if self.is_finite():
+                ref = self.reflections()
+                for u in g:
+                    d[u] = [v for v in g if u.length() < v.length() and u*v.inverse() in ref]
+            else:
+                for u in g:
+                    d[u] = [v for v in g if u.length() < v.length() and (u*v.inverse()).is_reflection()]
+            return DiGraph(d)
 
         def canonical_representation(self):
             r"""
@@ -1140,6 +1207,19 @@ class CoxeterGroups(Category_singleton):
                 Should use reduced_word_iterator (or reverse_iterator)
             """
             return len(self.reduced_word())
+
+        def reflection_length(self):
+            """
+            Return the reflection length of ``self``.
+
+            The reflection length is the length of the shortest expression
+            of the element as a product of reflections.
+
+            .. SEEALSO::
+
+                :meth:`absolute_length`
+            """
+            return self.absolute_length()
 
         def absolute_length(self):
             """

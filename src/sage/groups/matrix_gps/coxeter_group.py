@@ -397,6 +397,18 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
 
     coxeter_graph = deprecated_function_alias(17798, coxeter_diagram)
 
+    def coxeter_type(self):
+        """
+        Return the Coxeter type of ``self``.
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['H',3])
+            sage: W.coxeter_type()
+            Coxeter type of ['H', 3]
+        """
+        return self._matrix.coxeter_type()
+
     def bilinear_form(self):
         r"""
         Return the bilinear form associated to ``self``.

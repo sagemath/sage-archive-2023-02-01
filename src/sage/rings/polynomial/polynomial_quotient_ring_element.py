@@ -195,7 +195,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         """
         return self._polynomial._latex_(self.parent().variable_name())
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Pari representation of this quotient element.
 
@@ -207,7 +207,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             sage: pari(xb)^10
             Mod(0, x^10)
         """
-        return self._polynomial._pari_().Mod(self.parent().modulus()._pari_())
+        return self._polynomial.__pari__().Mod(self.parent().modulus())
 
     ##################################################
     # Arithmetic

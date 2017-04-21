@@ -331,7 +331,7 @@ mutating at the initial seed::
      over Integer Ring
     sage: A.b_matrix() == A1.b_matrix()
     False
-    sage: map(lambda (X, Y): X.has_coerce_map_from(Y), [(A, A1), (A1, A)])
+    sage: [X.has_coerce_map_from(Y) for X, Y in [(A, A1), (A1, A)]]
     [False, False]
 """
 
@@ -1395,7 +1395,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: g = A1.coerce_map_from(A3)
             sage: A3.find_g_vector((1, -2, 2))
             [1, 2, 1, 0]
-            sage: map(lambda x: x-1, map(G.gen(0), map(lambda x: x+1, [1, 2, 1, 0])))
+            sage: [G.gen(0)(x + 1) - 1 for x in [1, 2, 1, 0]]
             [2, 3, 2, 1]
             sage: S = A1.initial_seed(); S.mutate([2, 3, 2, 1])
             sage: S.cluster_variable(1) == g(A3.cluster_variable((1, -2, 2)))

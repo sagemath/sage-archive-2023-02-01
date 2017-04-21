@@ -599,7 +599,7 @@ def PseudoQuaternionicProjectivePlane():
 
 def PoincareHomologyThreeSphere():
     """
-    A triangulation of the Poincare homology 3-sphere.
+    A triangulation of the Poincaré homology 3-sphere.
 
     This is a manifold whose integral homology is identical to the
     ordinary 3-sphere, but it is not simply connected. In particular,
@@ -1544,8 +1544,3 @@ def DunceHat():
         [1,5,6], [4,5,6], [4,6,8], [6,7,8], [2,3,8]],
        name="Minimal triangulation of the dunce hat"
     )
-
-
-# For taking care of old pickles
-from sage.structure.sage_object import register_unpickle_override
-register_unpickle_override('sage.homology.examples', 'SimplicialSurface', SimplicialComplex)

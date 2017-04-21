@@ -407,7 +407,7 @@ cdef class IntegerWrapper(Integer):
             sage: n.parent()
             Set of all prime numbers: 2, 3, 5, 7, ...
 
-        Pickling seems to work now (as of #10314)
+        Pickling seems to work now (as of :trac:`10314`)::
 
             sage: nn = loads(dumps(n))
             sage: nn
@@ -4396,7 +4396,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: (-64).perfect_power()
             (-4, 3)
         """
-        parians = self._pari_().ispower()
+        parians = self.__pari__().ispower()
         return Integer(parians[1]), Integer(parians[0])
 
     def global_height(self, prec=None):
@@ -4753,9 +4753,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 proof = get_flag(proof, "arithmetic")
 
             if proof:
-                n, pari_p = self._pari_().isprimepower()
+                n, pari_p = self.__pari__().isprimepower()
             else:
-                n, pari_p = self._pari_().ispseudoprimepower()
+                n, pari_p = self.__pari__().ispseudoprimepower()
 
             if n:
                 return (Integer(pari_p), smallInteger(n)) if get_data else True
@@ -4832,9 +4832,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             from sage.structure.proof.proof import get_flag
             proof = get_flag(proof, "arithmetic")
         if proof:
-            return self._pari_().isprime()
+            return self.__pari__().isprime()
         else:
-            return self._pari_().ispseudoprime()
+            return self.__pari__().ispseudoprime()
 
     cdef bint _pseudoprime_is_prime(self, proof) except -1:
         """
@@ -4856,7 +4856,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             from sage.structure.proof.proof import get_flag
             proof = get_flag(proof, "arithmetic")
         if proof:
-            return self._pari_().isprime()
+            return self.__pari__().isprime()
         else:
             return True
 
@@ -4881,7 +4881,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
         """
         cdef Integer n = self if self >= 0 else -self
-        return n._pari_().isprime()
+        return n.__pari__().isprime()
 
     def is_pseudoprime(self):
         r"""
@@ -4901,7 +4901,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: z.is_pseudoprime()
             False
         """
-        return self._pari_().ispseudoprime()
+        return self.__pari__().ispseudoprime()
 
     def is_pseudoprime_power(self, get_data=False):
         r"""
@@ -5304,7 +5304,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 144168.next_probable_prime()
             144169
         """
-        return Integer( self._pari_().nextprime(True) )
+        return Integer( self.__pari__().nextprime(True) )
 
     def next_prime(self, proof=None):
         r"""
@@ -5340,9 +5340,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             1009
         """
         # Use PARI to compute the next *pseudo*-prime
-        p = Integer(self._pari_().nextprime(True))
+        p = Integer(self.__pari__().nextprime(True))
         while not p._pseudoprime_is_prime(proof):
-            p = Integer(p._pari_().nextprime(True))
+            p = Integer(p.__pari__().nextprime(True))
         return p
 
     def previous_prime(self, proof=None):
@@ -5387,10 +5387,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if mpz_cmp_ui(self.value, 2) <= 0:
             raise ValueError("no prime less than 2")
         cdef Integer p = self-1
-        p = Integer(p._pari_().precprime())
+        p = Integer(p.__pari__().precprime())
         while not p._pseudoprime_is_prime(proof):
             mpz_sub_ui(p.value, p.value, 1)
-            p = Integer(p._pari_().precprime())
+            p = Integer(p.__pari__().precprime())
         return p
 
     def next_prime_power(self, proof=None):
@@ -5582,16 +5582,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 0.is_squarefree()
             False
         """
-        return self._pari_().issquarefree()
+        return self.__pari__().issquarefree()
 
-    cpdef _pari_(self):
+    cpdef __pari__(self):
         """
         Returns the PARI version of this integer.
 
         EXAMPLES::
 
             sage: n = 9390823
-            sage: m = n._pari_(); m
+            sage: m = n.__pari__(); m
             9390823
             sage: type(m)
             <type 'sage.libs.cypari2.gen.Gen'>
@@ -5599,7 +5599,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         TESTS::
 
             sage: n = 10^10000000
-            sage: m = n._pari_() ## crash from trac 875
+            sage: m = n.__pari__() ## crash from trac 875
             sage: m % 1234567
             1041334
 
@@ -6553,7 +6553,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 raise OverflowError("m must fit in an unsigned long")
             return x
         elif algorithm == 'pari':
-            return the_integer_ring(self._pari_().binomial(mm))
+            return the_integer_ring(self.__pari__().binomial(mm))
         else:
             raise ValueError("algorithm must be one of: 'pari', 'mpir'")
 
@@ -6703,58 +6703,8 @@ cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1:
         from sage.misc.superseded import deprecation
         deprecation(17413, "use 0o as octal prefix instead of 0\nIf you do not want this number to be interpreted as octal, remove the leading zeros.")
 
-
-cpdef LCM_list(v):
-    """
-    Return the LCM of a list v of integers. Elements of v are converted
-    to Sage integers if they aren't already.
-
-    This function is used, e.g., by rings/arith.py
-
-    INPUT:
-
-    -  ``v`` - list or tuple
-
-    OUTPUT: integer
-
-    EXAMPLES::
-
-        sage: from sage.rings.integer import LCM_list
-        sage: w = LCM_list([3,9,30]); w
-        90
-        sage: type(w)
-        <type 'sage.rings.integer.Integer'>
-
-    The inputs are converted to Sage integers.
-
-    ::
-
-        sage: w = LCM_list([int(3), int(9), '30']); w
-        90
-        sage: type(w)
-        <type 'sage.rings.integer.Integer'>
-    """
-    cdef int i, n = len(v)
-    cdef Integer z = <Integer>PY_NEW(Integer)
-
-    for i from 0 <= i < n:
-        if not isinstance(v[i], Integer):
-            if not isinstance(v, list):
-                v = list(v)
-            v[i] = Integer(v[i])
-
-    if n == 0:
-        return one
-    elif n == 1:
-        return v[0].abs()
-
-    sig_on()
-    mpz_lcm(z.value, (<Integer>v[0]).value, (<Integer>v[1]).value)
-    for i from 2 <= i < n:
-        mpz_lcm(z.value, z.value, (<Integer>v[i]).value)
-    sig_off()
-
-    return z
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.arith.functions', 'LCM_list', deprecation=22630)
 
 def GCD_list(v):
     r"""

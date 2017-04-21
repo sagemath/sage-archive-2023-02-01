@@ -900,7 +900,7 @@ class Factorization(SageObject):
         return s
 
     @cached_method
-    def _pari_(self):
+    def __pari__(self):
         """
         Return the PARI factorization matrix corresponding to ``self``.
 

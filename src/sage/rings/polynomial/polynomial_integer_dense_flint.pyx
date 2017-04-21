@@ -1399,7 +1399,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
     # Alias for discriminant
     disc = discriminant
 
-    def _pari_(self, variable=None):
+    def __pari__(self, variable=None):
         """
         EXAMPLES::
 
@@ -1407,7 +1407,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: f = t^3 + 3*t - 17
             sage: pari(f)
             t^3 + 3*t - 17
-            sage: f._pari_(variable='y')
+            sage: f.__pari__(variable='y')
             y^3 + 3*y - 17
         """
         if variable is None:
@@ -1610,7 +1610,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             raise ValueError("p must be prime")
         if all([c%p==0 for c in self.coefficients()]):
             raise ArithmeticError("factorization of 0 is not defined")
-        f = self._pari_()
+        f = self.__pari__()
         G = f.factormod(p)
         k = FiniteField(p)
         R = k[self.parent().variable_name()]

@@ -16,7 +16,17 @@
 # Note that you need write access to the system-wide rebase database
 # (which usually means admin rights).
 
+SAGE_LOCAL=${1%/}
+
+if [ -z "$SAGE_LOCAL" ]; then
+    # Assume we are in $SAGE_LOCAL by default (the old behavior of this script)
+    SAGE_LOCAL=.
+fi
+
+FINDFLAGS="-type f ( -name *.dll -o -name *.so -o -name *.fas ) -print"
+FINDFLAGS="$FINDFLAGS -o -path "$SAGE_LOCAL"/var/tmp -prune"
+
 echo "Getting list of dlls. This may take a while..."
-/bin/find . -name "*.dll" -o -name "*.so" -o -name "*.fas" > /tmp/sage-dlls.lst
+/bin/find "$SAGE_LOCAL" $FINDFLAGS > /tmp/sage-dlls.lst
 echo "Now rebasing..."
 /bin/rebaseall -s dll -s exe -s so -s fas -T /tmp/sage-dlls.lst

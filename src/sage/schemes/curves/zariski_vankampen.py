@@ -193,7 +193,7 @@ def segments(points):
         sage: R.<x,y> = QQ[]
         sage: f = y^3 + x^3 - 1
         sage: disc = discrim(f) # optional - sirocco
-        sage: segments(disc) # optional - sirocco
+        sage: segments(disc) # optional - sirocco # abs tol 1e-15
         [(-2.84740787203333 - 2.84740787203333*I,
         -2.14285714285714 + 1.11022302462516e-16*I),
         (-2.84740787203333 + 2.84740787203333*I,
@@ -258,7 +258,7 @@ def followstrand(f, x0, x1, y0a, prec=53):
         sage: f = x^2 + y^3
         sage: x0 = CC(1, 0)
         sage: x1 = CC(1, 0.5)
-        sage: followstrand(f, x0, x1, -1.0) # optional - sirocco
+        sage: followstrand(f, x0, x1, -1.0) # optional - sirocco # abs tol 1e-15
         [(0.0, -1.0, 0.0),
          (0.7500000000000001, -1.015090921153253, -0.24752813818386948),
          (1.0, -1.026166099551513, -0.32768940253604323)]

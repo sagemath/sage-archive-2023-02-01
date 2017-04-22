@@ -715,9 +715,11 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
           the weight basis (default is `(1, 1, 1, \ldots)`)
 
         .. NOTE::
+
             The result is expressed in the root basis coordinates.
 
         .. NOTE::
+
             If function is too slow, switching the :meth:`base_field`
             of the group to RDF will speed things up.
 

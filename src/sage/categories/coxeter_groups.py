@@ -592,11 +592,10 @@ class CoxeterGroups(Category_singleton):
             if x is None:
                 x = self.one()
             if y is None:
-                fn = getattr(self, 'long_element', None)
-                if callable(fn):
+                if self.is_finite():
                     y = self.long_element()
                 else:
-                    raise TypeError("bruhat_graph() requires 2 arguments if the group is infinite")
+                    raise TypeError("infinite groups must specify a maximal element")
 
             g = self.bruhat_interval(x,y)
             d = {}
@@ -1218,6 +1217,19 @@ class CoxeterGroups(Category_singleton):
             .. SEEALSO::
 
                 :meth:`absolute_length`
+
+            EXAMPLES::
+            
+                sage: W = WeylGroup(['A',3])
+                sage: s = W.simple_reflections()
+                sage: (s[1]*s[2]*s[3]).reflection_length()
+                3
+
+                sage: W = SymmetricGroup(4)
+                sage: s = W.simple_reflections()
+                sage: (s[3]*s[2]*s[3]).reflection_length()
+                1
+
             """
             return self.absolute_length()
 

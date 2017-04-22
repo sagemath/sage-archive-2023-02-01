@@ -426,8 +426,8 @@ class SetPartition(ClonableArray):
 
         - ``color`` -- (default: ``'black'``) the arc colors
 
-        - ``fill`` -- (default: ``False``) if True then fills black, else
-          you can pass in a color to alter the fill color -
+        - ``fill`` -- (default: ``False``) if ``True`` then fills ``color``,
+          else you can pass in a color to alter the fill color -
           *only works with cyclic plot*
 
         - ``show_labels`` -- (default: ``True``) if ``True`` shows labels -
@@ -516,21 +516,21 @@ class SetPartition(ClonableArray):
             sage: p.set_latex_options(plot='cyclic', color='blue', angle=45, fill=True, tikz_scale=2)
             sage: latex(p)
             \begin{tikzpicture}[scale=2]
-            \node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black,label=90:a] (0) at (90:1cm) {};
-            \node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black,label=18:1] (1) at (18:1cm) {};
-            \node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black,label=-54:c] (2) at (-54:1cm) {};
-            \node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black,label=-126:b] (3) at (-126:1cm) {};
-            \node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black,label=-198:20] (4) at (-198:1cm) {};
-            \draw[-] (0:1cm) arc (0:72:1cm);
-            \draw[-] (72:1cm) arc (72:144:1cm);
-            \draw[-] (144:1cm) arc (144:216:1cm);
-            \draw[-] (216:1cm) arc (216:288:1cm);
-            \draw[-] (288:1cm) arc (288:360:1cm);
-            \draw[-,thick,color=blue,fill={rgb:blue,1;white,10}] (1.center) -- (3.center) -- cycle;
-            \draw[-,thick,color=blue,fill={rgb:blue,1;white,10}] (4.center) -- cycle;
-            \draw[-,thick,color=blue,fill={rgb:blue,1;white,10}] (0.center) -- (2.center) -- cycle;
+            \draw (0,0) circle [radius=1cm];
+            \node[label=90:1] (0) at (90:1cm) {};
+            \node[label=18:20] (1) at (18:1cm) {};
+            \node[label=-54:a] (2) at (-54:1cm) {};
+            \node[label=-126:b] (3) at (-126:1cm) {};
+            \node[label=-198:c] (4) at (-198:1cm) {};
+            \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] (0.center) -- (3.center) -- cycle;
+            \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] (1.center) -- cycle;
+            \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] (2.center) -- (4.center) -- cycle;
+            \fill[color=black] (0) circle (1.5pt);
+            \fill[color=black] (1) circle (1.5pt);
+            \fill[color=black] (2) circle (1.5pt);
+            \fill[color=black] (3) circle (1.5pt);
+            \fill[color=black] (4) circle (1.5pt);
             \end{tikzpicture}
-
         """
         latex_options = self.latex_options()
         if latex_options["plot"] is None:
@@ -538,50 +538,49 @@ class SetPartition(ClonableArray):
 
         from sage.misc.latex import latex
         latex.add_package_to_preamble_if_available("tikz")
-        res = "\\begin{tikzpicture}[scale="+str(latex_options['tikz_scale'])+"]\n"
+        res = "\\begin{{tikzpicture}}[scale={}]\n".format(latex_options['tikz_scale'])
 
         cardinality = self.base_set_cardinality()
-        base_set = self.base_set().list()
-        color= latex_options['color']
+        from sage.rings.integer_ring import ZZ
+        if all(x in ZZ for x in self.base_set()):
+            sort_key = ZZ
+        else:
+            sort_key = str
+        base_set = sorted(self.base_set(), key=sort_key)
+        color = latex_options['color']
 
         # If we want cyclic plots
         if latex_options['plot'] == 'cyclic':
             degrees = 360 // cardinality
             radius = latex_options['radius']
 
+            res += "\\draw (0,0) circle [radius={}];\n".format(radius)
+
             # Add nodes
             for k,i in enumerate(base_set):
                 location = (cardinality - k) * degrees - 270
-                res += "\\node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black"
                 if latex_options['show_labels']:
-                    res += ",label=" + str(location) + ":" + str(i)
-                res += "] (" + str(k) + ") at (" + str(location) + ":" + radius + ") {};\n"
-
-            # Add the circle
-            for k,i in enumerate(base_set):
-                xangle = k * degrees
-                yangle = (k+1) * degrees
-                res += "\\draw[-] (" + str(xangle) + ":" + radius + ")"
-                res += " arc "
-                res += "(" + str(xangle) + ":" + str(yangle) + ":" + radius + ");\n"
+                    res += "\\node[label={}:{}]".format(location, i)
+                else:
+                    res += "\\node"
+                res += " ({}) at ({}:{}) {{}};\n".format(k, location, radius)
 
             # Setup partitions
             for partition in self:
                 res += "\\draw[-,thick,color="+color
-                if latex_options['fill'] != False:
-                    if isinstance(latex_options['fill'],str):
-                        res += ",fill="+latex_options['fill']
+                if latex_options['fill'] is not False:
+                    if isinstance(latex_options['fill'], str):
+                        res += ",fill=" + latex_options['fill']
                     else:
-                        res += ",fill={rgb:" + color + ",1;white,10}"
+                        res += ",fill={},fill opacity=0.1".format(color)
                 res += "] "
-                firstDone = False
-                for j in partition:
-                    if firstDone:
-                        res += " -- (" + str(base_set.index(j)) + ".center)"
-                    else:
-                        firstDone = True
-                        res += "(" + str(base_set.index(j)) + ".center)"
+                res += " -- ".join("({}.center)".format(base_set.index(j))
+                                   for j in sorted(partition, key=sort_key))
                 res += " -- cycle;\n"
+
+            # Draw the circles on top
+            for k in range(len(base_set)):
+                res += "\\fill[color=black] ({}) circle (1.5pt);\n".format(k)
 
         # If we want line plots
         elif latex_options['plot'] == 'linear':
@@ -589,23 +588,19 @@ class SetPartition(ClonableArray):
             # setup line
             for k,i in enumerate(base_set):
                 if latex_options['show_labels']:
-                    res += "\\node[below=.05cm] at (" + str(k) + ",0) {$" + str(i) + "$};\n"
+                    res += "\\node[below=.05cm] at ({},0) {{${}$}};\n".format(k, i)
                 res += "\\node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black] "
-                res += "(" + str(k) + ") at (" + str(k) + ",0) {};\n"
-            #res += "\t\\draw (0) -- (" + str(cardinality - 1) + ");\n"
+                res += "({k}) at ({k},0) {{}};\n".format(k=k)
 
             # setup arcs
             for partition in self:
-                if partition.cardinality() > 1:
-                    for k,i in enumerate(partition.list()):
-                        if k != 0:
-                            #res += "\\draw (" + str(base_set.index(partition[0])) + ")"
-                            #res += " to [out=90,in=90] "
-                            #res += "(" + str(base_set.index(partition[-1])) + ");"
-                        #else:
-                            res += "\\draw[color=" + color + "] (" + str(base_set.index(partition[k])) + ")"
-                            res += " to [out=" + str(90+angle) + ",in=" + str(90-angle) + "] "
-                            res += "(" + str(base_set.index(partition[k-1])) + ");\n"
+                p = sorted(partition, key=str)
+                if len(p) <= 1:
+                    continue
+                for k in range(1, len(p)):
+                    res += "\\draw[color={}] ({})".format(color, base_set.index(p[k]))
+                    res += " to [out={},in={}] ".format(90+angle, 90-angle)
+                    res += "({});\n".format(base_set.index(p[k-1]))
         else:
             raise ValueError("plot must be None, 'cyclic', or 'linear'")
 

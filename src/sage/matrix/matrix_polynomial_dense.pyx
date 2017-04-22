@@ -1,14 +1,16 @@
 """
 Dense matrices over univariate polynomials over fields
 
-This implementation inherits from Matrix_generic_dense, i.e., it is not
-optimized for speed but only some methods were added.
+The implementation inherits from Matrix_generic_dense but some algorithms
+are optimized for polynomial matrices.
 
 AUTHORS:
 
-- Kwankyu Lee (2016-12-15): Initial version with code moved from other files.
-"""
+- Kwankyu Lee (2016-12-15): initial version with code moved from other files.
 
+- Johan Rosenkilde (2017-02-07): added weak_popov_form()
+
+"""
 #*****************************************************************************
 #       Copyright (C) 2016 Kwankyu Lee <ekwankyu@gmail.com>
 #
@@ -19,6 +21,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.matrix.matrix_generic_dense cimport Matrix_generic_dense
+from sage.matrix.matrix2 cimport Matrix
 
 cdef class Matrix_polynomial_dense(Matrix_generic_dense):
     """
@@ -116,7 +119,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
     def weak_popov_form(self, transformation=False, shifts=None):
         r"""
-        Return a weak Popov form of this matrix.
+        Return a weak Popov form of the matrix.
 
         A matrix is in weak Popov form if the leading positions of the nonzero
         rows are all different. The leading position of a row is the right-most
@@ -182,101 +185,137 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: U * A == H
             True
 
-        AUTHOR:
-
-        - Johan Rosenkilde (2017-02-07)
-
         .. SEEALSO::
 
             :meth:`is_weak_popov <sage.matrix.matrix_polynomial_dense.is_weak_popov>`
         """
         M = self.__copy__()
-        x = M.base_ring().gen()
+
+        if transformation:
+            U = M._weak_popov_form(transformation=True, shifts=shifts)
+            return M, U
+        else:
+            M._weak_popov_form(transformation=False, shifts=shifts)
+            return M
+
+    cpdef _weak_popov_form(self, transformation=False, shifts=None):
+        """
+        Transform the matrix in place into weak Popov form.
+
+        EXAMPLES::
+
+            sage: F.<a> = GF(2^4,'a')
+            sage: PF.<x> = F[]
+            sage: A = matrix(PF,[[1,  a*x^17 + 1 ],\
+                                 [0,  a*x^11 + a^2*x^7 + 1 ]])
+            sage: M = A.__copy__()
+            sage: U = M._weak_popov_form(transformation=True)
+            sage: U * A == M
+            True
+            sage: M.is_weak_popov()
+            True
+            sage: U.is_invertible()
+            True
+
+            sage: PF.<x> = QQ[]
+            sage: A = matrix(PF,3,[x,   x^2, x^3,\
+                                   x^2, x^1, 0,\
+                                   x^3, x^3, x^3])
+            sage: A.weak_popov_form()
+            [        x       x^2       x^3]
+            [      x^2         x         0]
+            [  x^3 - x x^3 - x^2         0]
+            sage: M = A.__copy__()
+            sage: U = M._weak_popov_form(transformation=True, shifts=[16,8,0])
+            sage: M
+            [               x              x^2              x^3]
+            [               0         -x^2 + x       -x^4 + x^3]
+            [               0                0 -x^5 + x^4 + x^3]
+            sage: U * A == M
+            True
+        """
+        cdef Py_ssize_t i, j
+        cdef Py_ssize_t c, d, best, bestp
+
+        cdef Py_ssize_t m = self.nrows()
+        cdef Py_ssize_t n = self.ncols()
+
+        cdef Matrix M = self
+        cdef Matrix U
+
+        R = self.base_ring()
+        one = R.one()
 
         if transformation:
             from sage.matrix.constructor import identity_matrix
-            U = identity_matrix(M.base_ring(), M.nrows())
+            U = identity_matrix(R, m)
 
-        def simple_transformation(i, j, pos):
-            """
-            Perform a simple transformation with row j on row i, reducing
-            position pos.
-
-            If M[i,pos] has lower degree than M[j,pos], nothing is changed.
-            """
-            pow = M[i,pos].degree() - M[j,pos].degree()
-            if pow < 0:
-                return
-            coeff = -M[i, pos].leading_coefficient() / M[j, pos].leading_coefficient()
-
-            multiple = x**pow * coeff
-            M.add_multiple_of_row(i, j, multiple)
-            if transformation:
-                U.add_multiple_of_row(i, j, multiple)
-
-        if shifts and len(shifts) != M.ncols():
-            raise ValueError("The number of shifts must equal the number of columns")
-
+        shift = False
         if shifts:
-            def LP(v):
-                best = None
-                bestp = None
-                for p in range(0,len(v)):
-                    if not v[p].is_zero():
-                        vpdeg = v[p].degree() + shifts[p]
-                        if vpdeg >= best:
-                            best = vpdeg
-                            bestp = p
-                if best == None:
-                    return -1
-                else:
-                    return bestp
-        else:
-            def LP(v):
-                bestp = 0
-                best = v[0].degree()
-                for p in range(1,len(v)):
-                    vpdeg = v[p].degree()
-                    if vpdeg >= best:
-                        best = vpdeg
-                        bestp = p
-                if best < 0:
-                    return -1
-                else:
-                    return bestp
+            shift = True
+            if len(shifts) != M.ncols():
+                raise ValueError("The number of shifts must equal the number of columns")
 
-        # initialise conflicts list and LP map
-        LP_to_row = dict( (i,[]) for i in range(M.ncols()))
+        # initialise to_row and conflicts list
+        to_row = [[] for i in range(n)]
         conflicts = []
-        for i in range(M.nrows()):
-            lp = LP(M.row(i))
-            if lp >= 0:
-                ls = LP_to_row[lp]
-                ls.append(i)
-                if len(ls) > 1:
-                    conflicts.append(lp)
+        for i in range(m):
+            bestp = -1
+            best = -1
+            for c in range(n):
+                d = M.get_unsafe(i,c).degree()
+
+                if shift and d >= 0 :
+                    d += shifts[c]
+
+                if d >= best:
+                    bestp = c
+                    best = d
+
+            if best >= 0:
+                to_row[bestp].append((i,best))
+                if len(to_row[bestp]) > 1:
+                    conflicts.append(bestp)
 
         # while there is a conflict, do a simple transformation
         while conflicts:
-            lp = conflicts.pop()
-            ls = LP_to_row[lp]
-            i, j = ls.pop(), ls.pop()
-            if M[i,lp].degree() < M[j, lp].degree():
-                j,i = i,j
+            c = conflicts.pop()
+            row = to_row[c]
+            i,ideg = row.pop()
+            j,jdeg = row.pop()
 
-            simple_transformation(i, j, lp)
-            ls.append(j)
-            lp_new = LP(M.row(i))
-            if lp_new > -1:
-                ls_new = LP_to_row[lp_new]
-                ls_new.append(i)
-                if len(ls_new) > 1:
-                    conflicts.append(lp_new)
+            if jdeg > ideg:
+                i,j = j,i
+                ideg,jdeg = jdeg,ideg
+
+            coeff = - M.get_unsafe(i,c).lc() / M.get_unsafe(j,c).lc()
+            s = coeff * one.shift(ideg - jdeg)
+
+            M.add_multiple_of_row_c(i, j, s, 0)
+            if transformation:
+                U.add_multiple_of_row_c(i, j, s, 0)
+
+            row.append((j,jdeg))
+
+            bestp = -1
+            best = -1
+            for c in range(n):
+                d = M.get_unsafe(i,c).degree()
+
+                if shift and d >= 0:
+                    d += shifts[c]
+
+                if d >= best:
+                    bestp = c
+                    best = d
+
+            if best >= 0:
+                to_row[bestp].append((i,best))
+                if len(to_row[bestp]) > 1:
+                    conflicts.append(bestp)
 
         if transformation:
-            return M, U
-        else:
-            return M
+            return U
 
     def row_reduced_form(self, transformation=None, shifts=None):
         r"""
@@ -376,3 +415,318 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         """
         return self.weak_popov_form(transformation, shifts)
+
+    def hermite_form(self, include_zero_rows=True, transformation=False):
+        """
+        Return the Hermite form of the matrix.
+
+        INPUT:
+
+        - ``include_zero_rows`` -- bool (default: True); if False, the zero
+          rows in the output matrix are deleted.
+
+        - ``transformation`` -- bool (default: False); if True, return the
+          transformation matrix U
+
+        OUTPUT:
+
+        - the Hermite normal form H of the matrix A
+
+        - (optional) transformation matrix U such that U * A == H, possibly
+          with zero rows deleted, where A is the matrix
+
+        EXAMPLES::
+
+            sage: M.<x> = GF(7)[]
+            sage: A = matrix(M, 2, 3, [x, 1, 2*x, x, 1+x, 2])
+            sage: A.hermite_form()
+            [      x       1     2*x]
+            [      0       x 5*x + 2]
+            sage: A.hermite_form(transformation=True)
+            (
+            [      x       1     2*x]  [1 0]
+            [      0       x 5*x + 2], [6 1]
+            )
+            sage: A = matrix(M, 2, 3, [x, 1, 2*x, 2*x, 2, 4*x])
+            sage: A.hermite_form(transformation=True, include_zero_rows=False)
+            ([  x   1 2*x], [0 4])
+            sage: H, U = A.hermite_form(transformation=True, include_zero_rows=True); H, U
+            (
+            [  x   1 2*x]  [0 4]
+            [  0   0   0], [5 1]
+            )
+            sage: U * A == H
+            True
+            sage: H, U = A.hermite_form(transformation=True, include_zero_rows=False)
+            sage: U * A
+            [  x   1 2*x]
+            sage: U * A == H
+            True
+        """
+        A = self.__copy__()
+
+        if transformation:
+            U = A._hermite_form_euclidean(transformation=True)
+            if not include_zero_rows:
+                i = A.nrows() - 1
+                while i >= 0 and A.row(i) == 0:
+                    i -= 1
+                A = A[:i+1]
+                U = U[:i+1]
+            return A, U
+        else:
+            A._hermite_form_euclidean(transformation=False)
+            if not include_zero_rows:
+                i = A.nrows() - 1
+                while i >= 0 and A.row(i) == 0:
+                    i -= 1
+                A = A[:i+1]
+            return A
+
+    cpdef _hermite_form_euclidean(self, transformation=False):
+        """
+        Transform the matrix in place to hermite normal form and optionally
+        return the transformation matrix.
+
+        The algorithm is a straightforward Euclidean algorithm.
+
+        EXAMPLE::
+
+            sage: P.<x> = PolynomialRing(GF(5))
+            sage: A = matrix(P,3,[P.random_element(3) for i in range(9)])
+            sage: H = A.__copy__()
+            sage: U = H._hermite_form_euclidean(transformation=True)
+            sage: U * A == H
+            True
+        """
+        cdef Matrix A = self
+        cdef Matrix U
+
+        cdef Py_ssize_t m = A.nrows()
+        cdef Py_ssize_t n = A.ncols()
+
+        cdef Py_ssize_t i = 0
+        cdef Py_ssize_t j = 0
+
+        if transformation:
+            from sage.matrix.constructor import identity_matrix
+            U = identity_matrix(A.base_ring(), m)
+
+        pivot_cols = []
+        while j < n:
+            k = i
+            while k < m and A.get_unsafe(k,j).is_zero(): # first nonzero entry
+                k += 1
+            if k < m:
+                l = k + 1
+                while l < m:
+                    while l < m and A.get_unsafe(l,j).is_zero(): # nonzero entry below
+                        l += 1
+                    if l >= m: break
+
+                    a = A.get_unsafe(k,j)
+                    b = A.get_unsafe(l,j)
+                    d,p,q = a.xgcd(b) # p * a + q * b = d = gcd(a,b)
+                    e = a // d
+                    f = b // d
+
+                    for c in range(j,n):
+                        temp = A.get_unsafe(k,c)
+                        A.set_unsafe(k, c, p * A.get_unsafe(k,c) + q * A.get_unsafe(l,c))
+                        A.set_unsafe(l, c, (-f) * temp + e * A.get_unsafe(l,c))
+                    if transformation:
+                        temp = U[k]
+                        U[k] = p * U[k] + q * U[l]
+                        U[l] = (-f) * temp + e * U[l]
+                if i != k:
+                    A.swap_rows(i,k)
+                    if transformation:
+                        U.swap_rows(i,k)
+                pivot_cols.append(j)
+                i += 1
+            j += 1
+
+        # reduce entries above pivots
+        for i in range(len(pivot_cols)):
+            j = pivot_cols[i]
+            pivot = A.get_unsafe(i,j)
+
+            # make pivot monic
+            lc_inverse = ~ pivot.lc()
+            for c in range(j,n):
+                A.set_unsafe(i, c, A.get_unsafe(i,c) * lc_inverse)
+            if transformation:
+                U[i] *= lc_inverse
+
+            pivot = - A.get_unsafe(i,j)
+            for k in range(i):
+                q = A.get_unsafe(k,j) // pivot
+                if not q.is_zero():
+                    for c in range(j,n):
+                        A.set_unsafe(k, c, A.get_unsafe(k,c) + q * A.get_unsafe(i,c))
+                    if transformation:
+                        U.add_multiple_of_row_c(k, i, q, 0)
+
+        if transformation:
+            return U
+
+    def hermite_form_reversed(self, include_zero_rows=True, transformation=False):
+        """
+        Return the reversed Hermite form of the matrix.
+
+        The returned Hermite form is reversed with respect to columns and rows from
+        the ordinary Hermite form.
+
+        INPUT:
+
+        - ``include_zero_rows`` -- bool (default: True); if False, the zero
+          rows in the output matrix are deleted.
+
+        - ``transformation`` -- bool (default: False); if True, return a matrix
+          U such that U * A == H
+
+        OUTPUT:
+
+        - the matrix H in reversed Hermite form
+
+        - (optional) transformation matrix U such that U * A == H, possibly
+          with zero rows deleted.
+
+        EXAMPLES::
+
+            sage: M.<x> = GF(5)[]
+            sage: A = matrix(M, [[x^((i-j) % 5) for i in range(5)] for j in range(5)])
+            sage: A
+            [  1   x x^2 x^3 x^4]
+            [x^4   1   x x^2 x^3]
+            [x^3 x^4   1   x x^2]
+            [x^2 x^3 x^4   1   x]
+            [  x x^2 x^3 x^4   1]
+            sage: A.hermite_form()
+            [      1       x     x^2     x^3     x^4]
+            [      0 x^5 + 4       0       0       0]
+            [      0       0 x^5 + 4       0       0]
+            [      0       0       0 x^5 + 4       0]
+            [      0       0       0       0 x^5 + 4]
+            sage: A.hermite_form_reversed()
+            [x^5 + 4       0       0       0       0]
+            [      0 x^5 + 4       0       0       0]
+            [      0       0 x^5 + 4       0       0]
+            [      0       0       0 x^5 + 4       0]
+            [      x     x^2     x^3     x^4       1]
+        """
+        A = self.__copy__()
+
+        if transformation:
+            U = A._reversed_hermite_form_euclidean(transformation=True)
+            if not include_zero_rows:
+                i = 0
+                while i < A.nrows() and A.row(i) == 0:
+                    i += 1
+                A = A[i:]
+                U = U[i:]
+            return A, U
+        else:
+            A._reversed_hermite_form_euclidean(transformation=False)
+            if not include_zero_rows:
+                i = 0
+                while i < A.nrows() and A.row(i) == 0:
+                    i += 1
+                A = A[i:]
+            return A
+
+    cpdef _reversed_hermite_form_euclidean(self, transformation=False):
+        """
+        Transform the matrix in place to reversed hermite normal form.
+
+        If ``transformation`` is True, then return the transformation matrix.
+
+        The algorithm is a straightforward one based on the Euclidean algorithm.
+
+        EXAMPLES::
+
+            sage: P.<x> = QQ[]
+            sage: A = matrix(P, 2, 3, [x, 1, 2*x, x, 1+x, 2])
+            sage: A.hermite_form_reversed()
+            [    x^2 - x x^2 + x - 1           0]
+            [      1/2*x 1/2*x + 1/2           1]
+
+            sage: P.<x> = GF(5)[]
+            sage: A = matrix(P,3,[P.random_element(2) for i in range(12)])
+            sage: H,U = A.hermite_form_reversed(transformation=True)
+            sage: U * A == H
+            True
+        """
+        cdef Matrix A = self
+        cdef Matrix U
+
+        cdef Py_ssize_t m = A.nrows()
+        cdef Py_ssize_t n = A.ncols()
+
+        cdef Py_ssize_t i = m - 1
+        cdef Py_ssize_t j = n - 1
+        cdef Py_ssize_t k, l, c, ri
+
+        if transformation:
+            from sage.matrix.constructor import identity_matrix
+            U = identity_matrix(A.base_ring(), m)
+
+        pivot_cols = []
+        while j >= 0:
+            k = i
+            while k >= 0 and A.get_unsafe(k,j).is_zero(): # first nonzero entry
+                k -= 1
+            if k >= 0:
+                l = k - 1
+                while l >= 0:
+                    while l >= 0 and A.get_unsafe(l,j).is_zero(): # nonzero entry below
+                        l -= 1
+                    if l < 0: break
+
+                    a = A.get_unsafe(k,j)
+                    b = A.get_unsafe(l,j)
+                    d,p,q = a.xgcd(b) # p * a + q * b = d = gcd(a,b)
+                    e = a // d
+                    f = b // d
+
+                    for c in range(j+1):
+                        temp = A.get_unsafe(k,c)
+                        A.set_unsafe(k, c, p * A.get_unsafe(k,c) + q * A.get_unsafe(l,c))
+                        A.set_unsafe(l, c, (-f) * temp + e * A.get_unsafe(l,c))
+                    if transformation:
+                        temp = U[k]
+                        U[k] = p * U[k] + q * U[l]
+                        U[l] = (-f) * temp + e * U[l]
+                if i != k:
+                    A.swap_rows_c(i,k)
+                    if transformation:
+                        U.swap_rows_c(i,k)
+                pivot_cols.append(j)
+                i -= 1
+            j -= 1
+
+        # reduce entries below pivots
+        for i in range(len(pivot_cols)):
+            ri = m - 1 - i
+            j = pivot_cols[i]
+            pivot = A.get_unsafe(ri,j)
+
+            # make pivot monic
+            lc_inverse = ~ pivot.lc()
+            for c in range(j+1):
+                A.set_unsafe(ri, c, A.get_unsafe(ri,c) * lc_inverse)
+            if transformation:
+                U[ri] *= lc_inverse
+
+            pivot = - A.get_unsafe(ri,j)
+            for k in range(ri+1,m):
+                q = A.get_unsafe(k,j) // pivot
+                if not q.is_zero():
+                    for c in range(j+1):
+                        A.set_unsafe(k, c, A.get_unsafe(k,c) + q * A.get_unsafe(ri,c))
+                    if transformation:
+                        U.add_multiple_of_row_c(k, ri, q, 0)
+
+        if transformation:
+            return U
+

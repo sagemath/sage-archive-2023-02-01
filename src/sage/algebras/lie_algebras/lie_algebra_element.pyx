@@ -62,6 +62,13 @@ class LieAlgebraElement(CombinatorialFreeModule.Element):
         tuple of elements of ``im_gens``.
 
         EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, 'x,y,z')
+            sage: Lyn = L.Lyndon()
+            sage: H = L.Hall()
+            sage: elt = Lyn.an_element()
+            sage: elt._im_gens_(H, H.gens())
+            x + y + z
         """
         s = codomain.zero()
         if not self: # If we are 0

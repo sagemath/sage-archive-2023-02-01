@@ -132,7 +132,7 @@ class LieAlgebraHomomorphism_im_gens(Morphism):
             sage: Lyn = L.Lyndon()
             sage: H = L.Hall()
             sage: phi = Lyn.coerce_map_from(H)
-            sage: print phi._repr_defn()
+            sage: print(phi._repr_defn())
             x |--> x
             y |--> y
             z |--> z

@@ -563,6 +563,12 @@ ext_modules = [
                       libraries = ["homfly", "gc"],
                       package="libhomfly"),
 
+    OptionalExtension('sage.libs.sirocco',
+                      sources = ["sage/libs/sirocco.pyx"],
+                      libraries = ["sirocco", "mpfr", "gmp"],
+                      package="sirocco",
+                      language = 'c++'),
+
     Extension('*', ['sage/libs/linbox/*.pyx']),
 
     Extension('sage.libs.lcalc.lcalc_Lfunction',

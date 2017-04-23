@@ -21,6 +21,7 @@ from sage.modules.free_module_element import vector
 from sage.structure.element import is_Vector
 from sage.rings.all import ZZ, QQ
 from sage.misc.misc_c import running_total
+from sage.misc.decorators import decorator_defaults
 from .matrix import is_Matrix
 from copy import copy
 from .constructor import matrix
@@ -72,6 +73,28 @@ def matrix_method(func=None, name=None):
     else:
         return lambda func: matrix_method(func, name=name)
 
+@decorator_defaults
+def matrix_form(f, defaults=None):
+    if defaults is None:
+        defaults = {}
+    defaults.update(sparse=False)
+    from functools import wraps
+    @wraps(f)
+    def r(*args, **kwds):
+        args = list(args)
+        ring = None
+        opts = {}
+        if is_Ring(args[0]):
+            ring = args.pop(0)
+        for k in defaults:
+            opts[k] = kwds.pop(k, defaults[k])
+        rows,cols,entries = f(*args, **kwds)
+        if ring is not None:
+            return matrix(ring, rows, cols, entries, **opts)
+        else:
+            return matrix(rows, cols, entries, **opts)
+    r._entries = f
+    return r
 
 @matrix_method
 def column_matrix(*args, **kwds):
@@ -3418,3 +3441,126 @@ def ith_to_zero_rotation_matrix(v, i, ring=None):
         entries[(k, k)] = 1
     entries.update({(j, j): aa, (j, i): bb, (i, j): -bb, (i, i): aa})
     return matrix(entries, nrows=dim, ring=ring)
+
+@matrix_form
+def hilbert(dim):
+    r"""
+    Return a Hilbert matrix of the given dimension.
+
+    The `n` dimensional Hilbert matrix is a square matrix with entries being
+    unit fractions,
+
+    .. MATH::
+
+        H_{ij} = \frac{1}{i+j-1},\qquad i, j = 1,\ldots, n.
+
+    For more information see the :wikipedia:`Hilbert_matrix`.
+
+    INPUT:
+
+    - ``dim`` -- integer, the dimension of the Hilbert matrix
+
+    EXAMPLES::
+
+        sage: sage.matrix.special.hilbert(QQ, 5)
+        [  1 1/2 1/3 1/4 1/5]
+        [1/2 1/3 1/4 1/5 1/6]
+        [1/3 1/4 1/5 1/6 1/7]
+        [1/4 1/5 1/6 1/7 1/8]
+        [1/5 1/6 1/7 1/8 1/9]
+    """
+    return dim, dim, lambda i, j: 1/(i+j+1)
+
+@matrix_form
+def vandermonde(v):
+    r"""
+    Return a Vandermonde matrix of the given vector.
+
+    The `n` dimensional Vandermonde matrix is a square matrix with columns
+    being the powers of a given vector `v`,
+
+    .. MATH::
+
+        V_{ij} = v_i^{j-1},\qquad i, j = 1,\ldots, n.
+
+    For more information see the :wikipedia:`Vandermonde_matrix`.
+
+    INPUT:
+
+    - ``v`` -- vector, the second column of the Vandermonde matrix
+
+    EXAMPLES::
+
+    A Vandermonde matrix of order three over the symbolic ring::
+
+        sage: sage.matrix.special.vandermonde(SR.var(['x0', 'x1', 'x2']))
+        [   1   x0 x0^2]
+        [   1   x1 x1^2]
+        [   1   x2 x2^2]
+    """
+    return len(v), len(v), lambda i, j: v[i]**j
+
+@matrix_form
+def toeplitz(c, r):
+    r"""
+    Return a Toeplitz matrix of given first column and first row.
+
+    In a Toeplitz matrix, each descending diagonal from left to right is 
+    constant, such that:
+
+    .. MATH:: T_{i,j} = T_{i+1, j+1}.
+
+    For more information see the :wikipedia:`Toeplitz_matrix`.
+
+    INPUT:
+
+    - ``c`` -- vector, first column of the Toeplitz matrix
+
+    - ``r`` -- vector, first row of the Toeplitz matrix
+
+    .. NOTE::
+
+        If the first element of the input column does not match the first element
+        of the input row, column wins the diagonal conflict.
+
+    EXAMPLES::
+
+        sage: sage.matrix.special.toeplitz([1..4], [4..6])
+        [1 5 6]
+        [2 1 5]
+        [3 2 1]
+        [4 3 2]
+    """
+    return len(c), len(r), lambda i,j: c[i-j] if i>=j else r[j-i]
+
+@matrix_form
+def hankel(c, r):
+    r"""
+    Return a Hankel matrix of given first column and last row.
+
+    The Hankel matrix is symmetric and constant across the anti-digonals,
+    with elements
+
+    .. MATH::
+
+        H_{ij} = v_{i+j-1},\qquad i = 1,\ldots, m,~j = 1,\ldots, n,
+
+    where the vector `v_i = c_i` for `i = 1,\ldots, m` and `v_i = r_i` for
+    `i = 2, \ldots, n` completely determines the Hankel matrix.
+    For more information see the :wikipedia:`Hankel_matrix`.
+
+    INPUT:
+
+    - ``c`` -- vector, first column of the Hankel matrix
+
+    - ``r`` -- vector, last row of the Hankel matrix
+
+    EXAMPLES::
+
+        sage: sage.matrix.special.hankel([1..3], [3..6])
+        [1 2 3 4]
+        [2 3 4 5]
+        [3 4 5 6]
+    """
+    entries = c + r[1:]
+    return len(c), len(r), lambda i,j: entries[i+j]

@@ -1660,6 +1660,49 @@ def is_switch_OA_srg(int v, int k, int l, int mu):
 
     return (switch_OA_srg,c,n)
 
+def is_nowhere0_twoweight(int v, int k, int l, int mu):
+    r"""
+    Test whether some graph of nowhere 0 words is `(v,k,\lambda,\mu)`-strongly regular.
+
+    Test whether a :meth:`~sage.graphs.graph_generators.GraphGenerators.Nowhere0WordsTwoWeightCodeGraph`
+    is `(v,k,\lambda,\mu)`-strongly regular.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if the
+    parameters match, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: graphs.strongly_regular_graph(196, 60, 14, 20)
+        Nowhere0WordsTwoWeightCodeGraph(8): Graph on 196 vertices
+
+    TESTS::
+
+        sage: from sage.graphs.strongly_regular_db import is_nowhere0_twoweight
+        sage: t = is_nowhere0_twoweight(1800, 728, 268, 312); t
+        (<function Nowhere0WordsTwoWeightCodeGraph at ...>, 16)
+        sage: t = is_nowhere0_twoweight(5,5,5,5); t
+
+    """
+    from sage.graphs.generators.classical_geometries import Nowhere0WordsTwoWeightCodeGraph
+    cdef int q
+    r,s = eigenvalues(v,k,l,mu)
+    if r is None:
+        return
+    if r<s:
+        r,s = s,r
+    q = r*2
+    if  q > 4 and is_prime_power(q) and 0==r%2 and \
+        v    ==  r*(q-1)**2                    and \
+        4*k  == q*(q-2)*(q-3)                  and \
+        8*mu == q*(q-3)*(q-4):
+        return (Nowhere0WordsTwoWeightCodeGraph, q)
+
 cdef eigenvalues(int v,int k,int l,int mu):
     r"""
     Return the eigenvalues of a (v,k,l,mu)-strongly regular graph.
@@ -2893,6 +2936,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
                       is_cossidente_penttila,
                       is_mathon_PC_srg,
                       is_muzychuk_S6,
+                      is_nowhere0_twoweight,
                       is_switch_skewhad]
 
     # Going through all test functions, for the set of parameters and its
@@ -3180,7 +3224,7 @@ def _check_database():
 
         sage: from sage.graphs.strongly_regular_db import _check_database
         sage: _check_database() # long time
-        Sage cannot build a (196  60   14   20  ) that exists. Comment ...
+        Sage cannot build a (216  40   4    8   ) that exists. Comment ...
         ...
         In Andries Brouwer's database:
         - 462 impossible entries

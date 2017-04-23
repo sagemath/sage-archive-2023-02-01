@@ -18,7 +18,7 @@ EXAMPLES::
     Special Linear Group of degree 2 over Finite Field of size 3
     sage: G.is_finite()
     True
-    sage: G.conjugacy_class_representatives()
+    sage: G.conjugacy_classes_representatives()
     (
     [1 0]  [0 2]  [0 1]  [2 0]  [0 2]  [0 1]  [0 2]
     [0 1], [1 1], [2 1], [0 2], [1 2], [2 2], [1 0]

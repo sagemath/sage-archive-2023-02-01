@@ -7,12 +7,16 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#  Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
+#       Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.misc import six
 from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from copy import copy
@@ -31,8 +35,6 @@ from sage.combinat.subset import SubsetsSorted
 from sage.quadratic_forms.quadratic_form import QuadraticForm
 from sage.algebras.weyl_algebra import repr_from_monomials
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-
-import six
 
 
 class CliffordAlgebraElement(CombinatorialFreeModule.Element):
@@ -2158,7 +2160,10 @@ class ExteriorAlgebra(CliffordAlgebra):
 #####################################################################
 ## Differentials
 
-class ExteriorAlgebraDifferential(ModuleMorphismByLinearity, UniqueRepresentation):
+class ExteriorAlgebraDifferential(six.with_metaclass(
+        InheritComparisonClasscallMetaclass,
+        ModuleMorphismByLinearity, UniqueRepresentation
+    )):
     r"""
     Internal class to store the data of a boundary or coboundary of
     an exterior algebra `\Lambda(L)` defined by the structure
@@ -2173,8 +2178,6 @@ class ExteriorAlgebraDifferential(ModuleMorphismByLinearity, UniqueRepresentatio
         This is not a general class for differentials on the exterior
         algebra.
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall__(cls, E, s_coeff):
         """

@@ -39,7 +39,6 @@ AUTHORS:
 from __future__ import absolute_import
 
 include "cysignals/signals.pxi"
-include "sage/ext/cdefs.pxi"
 include "sage/libs/ntl/decl.pxi"
 
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector

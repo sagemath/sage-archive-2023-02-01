@@ -50,12 +50,13 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
+
+from libc.string cimport strcpy, strlen
 
 from sage.modules.vector_rational_dense cimport Vector_rational_dense
 
-include "sage/ext/cdefs.pxi"
 include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 

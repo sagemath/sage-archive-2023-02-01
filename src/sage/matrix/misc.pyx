@@ -12,9 +12,10 @@ relevant classes and this file deleted.
 from __future__ import absolute_import
 
 include "cysignals/signals.pxi"
-include "sage/ext/cdefs.pxi"
 
 from sage.ext.mod_int cimport *
+from sage.libs.gmp.mpz cimport *
+from sage.libs.gmp.mpq cimport *
 from sage.libs.mpfr cimport *
 from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
 

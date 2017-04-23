@@ -1410,12 +1410,12 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
         EXAMPLES::
 
             sage: K = crystals.KirillovReshetikhin(['E',6,1],2,1)
-            sage: K.highest_weight_dict()
-            {[[(2, -1), (1,)]]: ((-2, 0, 1, 0, 0, 0, 0), 1),
-             [[(3, -1, -6), (1,)]]: ((-1, 0, 0, 1, 0, 0, -1), 1),
-             [[(6, -2), (-6, 2)]]: ((0, 0, 0, 0, 0, 0, 0), 1),
-             [[(5, -2, -6), (-6, 2)]]: ((0, 0, 0, 0, 0, 1, -2), 1),
-             []: ((0, 0, 0, 0, 0, 0, 0), 0)}
+            sage: sorted(K.highest_weight_dict().items())
+            [([[(2, -1), (1,)]], ((-2, 0, 1, 0, 0, 0, 0), 1)),
+             ([[(3, -1, -6), (1,)]], ((-1, 0, 0, 1, 0, 0, -1), 1)),
+             ([[(6, -2), (-6, 2)]], ((0, 0, 0, 0, 0, 0, 0), 1)),
+             ([[(5, -2, -6), (-6, 2)]], ((0, 0, 0, 0, 0, 1, -2), 1)),
+             ([], ((0, 0, 0, 0, 0, 0, 0), 0))]
         """
         hw = [x for x in self.hw_auxiliary() if x.epsilon(1) == 0]
         dic = dict( ( x, tuple( [self.affine_weight(x), len(x)] ) ) for x in hw )
@@ -1471,12 +1471,12 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
 
             sage: K = crystals.KirillovReshetikhin(['E',6,1],2,1)
             sage: dic = K.promotion_on_highest_weight_vectors()
-            sage: dic
-            {[[(2, -1), (1,)]]: [[(-1,), (-1, 3)]],
-             [[(3, -1, -6), (1,)]]: [[(5, -3), (-1, 3)]],
-             [[(6, -2), (-6, 2)]]: [],
-             [[(5, -2, -6), (-6, 2)]]: [[(2, -1), (1,)]],
-             []: [[(1, -3), (-1, 3)]]}
+            sage: sorted(dic.items())
+            [([[(2, -1), (1,)]], [[(-1,), (-1, 3)]]),
+             ([[(3, -1, -6), (1,)]], [[(5, -3), (-1, 3)]]),
+             ([[(6, -2), (-6, 2)]], []),
+             ([[(5, -2, -6), (-6, 2)]], [[(2, -1), (1,)]]),
+             ([], [[(1, -3), (-1, 3)]])]
         """
         dic = self.highest_weight_dict()
         dic_inv = self.highest_weight_dict_inv()

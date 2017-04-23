@@ -54,11 +54,12 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+
+from __future__ import absolute_import, print_function
 
 from libc.stdint cimport int64_t
-include "sage/ext/cdefs.pxi"
+from libc.string cimport strcpy, strlen
+from sage.libs.gmp.mpz cimport *
 
 from sage.modules.vector_integer_dense cimport Vector_integer_dense
 
@@ -1020,7 +1021,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             sage: M^M
             Traceback (most recent call last):
             ...
-            NotImplementedError: non-integral exponents not supported
+            NotImplementedError: the given exponent is not supported
         """
         cdef Matrix_integer_dense self = <Matrix_integer_dense?>sself
 
@@ -1040,7 +1041,12 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
                 try:
                     n = Integer(n)
                 except TypeError:
-                    raise NotImplementedError("non-integral exponents not supported")
+                    from sage.symbolic.expression import Expression
+                    if isinstance(n, Expression):
+                        from sage.matrix.matrix2 import _matrix_power_symbolic
+                        return _matrix_power_symbolic(self, n)
+                    else:
+                        raise NotImplementedError("the given exponent is not supported")
             if mpz_sgn((<Integer>n).value) < 0:
                 return (~self) ** (-n)
 

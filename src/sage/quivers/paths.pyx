@@ -380,7 +380,7 @@ cdef class QuiverPath(MonoidElement):
         -1 is not explicitly given, then a path of length zero is returned,
         which is compatible with Python lists::
 
-            sage: range(6)[4:1]
+            sage: list(range(6))[4:1]
             []
 
         The following was fixed in :trac:`22278`. A path slice of length
@@ -396,7 +396,7 @@ cdef class QuiverPath(MonoidElement):
         If the slice boundaries are out of bound, then no error is raised,
         which is compatible with Python lists::
 
-            sage: range(6)[20:40]
+            sage: list(range(6))[20:40]
             []
 
         In that case, the startpoint of the slice of length zero is the

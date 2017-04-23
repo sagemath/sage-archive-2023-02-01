@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
 
 cd src
-ctest -E CTestTestStopTime
+unset MACOSX_DEPLOYMENT_TARGET
+ctest --extra-verbose --output-on-failure -E "(CTestTestStopTime|TestUpload|ctest_submit)"
+

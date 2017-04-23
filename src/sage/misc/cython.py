@@ -46,7 +46,46 @@ standard_libs = [
     'ntl']
 
 
-offset = 0
+# Functions which used to be automatically declared.
+# We list these here in order to give useful warnings.
+old_pxi_names = {
+    "cysignals.signals": [
+        "sig_on", "sig_str", "sig_check", "sig_off",
+        "sig_retry", "sig_error", "sig_block", "sig_unblock",
+        "sig_on_no_except", "sig_str_no_except", "sig_check_no_except",
+        "cython_check_exception",
+    ],
+    "sage.ext.stdsage": [
+        "PY_NEW", "HAS_DICTIONARY",
+    ],
+    "cysignals.memory": [
+        "sig_malloc", "sig_realloc", "sig_calloc", "sig_free",
+        "check_allocarray", "check_reallocarray",
+        "check_malloc", "check_realloc", "check_calloc",
+    ],
+    "libc.string": [
+        "strlen", "strcpy", "memset", "memcpy", "memcmp",
+    ],
+    "libc.math": [
+        "sqrt", "frexp", "ldexp",
+    ],
+    "libc.stdio": [
+        "stdin", "stdout", "stderr",
+        "FOPEN_MAX", "FILENAME_MAX",
+        "fopen", "freopen", "fdopen", "fclose",
+        "remove", "rename", "tmpfile",
+        "setvbuf", "BUFSIZ", "setbuf",
+        "fread", "fwrite", "fflush",
+        "EOF", "clearerr", "feof", "ferror",
+        "SEEK_SET", "SEEK_CUR", "SEEK_END",
+        "fseek", "rewind", "ftell", "fgetpos", "fsetpos",
+        "scanf", "sscanf", "fscanf",
+        "printf", "sprintf", "snprintf", "fprintf",
+        "perror", "gets", "fgets", "getchar", "fgetc", "getc", "ungetc",
+        "puts", "fputs", "putchar", "fputc", "putc", "getline",
+    ]
+    }
+
 
 def parse_keywords(kwd, s):
     r"""
@@ -134,7 +173,6 @@ def pyx_preparse(s):
     r"""
     Preparse a pyx file:
 
-    * include ``cdefs.pxi``, ``signals.pxi`` from ``cysignals``, ``stdsage.pxi``
     * parse ``clang`` pragma (c or c++)
     * parse ``clib`` pragma (additional libraries to link in)
     * parse ``cinclude`` (additional include directories)
@@ -164,7 +202,7 @@ def pyx_preparse(s):
 
         sage: from sage.misc.cython import pyx_preparse
         sage: pyx_preparse("")
-        ('\ninclude "cysignals/signals.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"\n\ninclude "cdefs.pxi"\n',
+        ('',
         ['mpfr',
         'gmp',
         'gmpxx',
@@ -235,8 +273,6 @@ def pyx_preparse(s):
 
     v, s = parse_keywords('cinclude', s)
     inc = [environ_parse(x.replace('"','').replace("'","")) for x in v] + sage_include_directories()
-    s = """\ninclude "cdefs.pxi"\n""" + s
-    s = """\ninclude "cysignals/signals.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"\n""" + s
     args, s = parse_keywords('cargs', s)
     args = ['-w','-O2'] + args
     libdirs = cblas_library_dirs
@@ -289,7 +325,7 @@ def cython(filename, verbose=False, compile_message=False,
       Cython file, don't recompile, just reuse the .so file.
 
     - ``create_local_c_file`` (bool, default False) - if True, save a
-      copy of the .c file in the current directory.
+      copy of the ``.c`` or ``.cpp`` file in the current directory.
 
     - ``annotate`` (bool, default True) - if True, create an html file which
       annotates the conversion from .pyx to .c. By default this is only created
@@ -343,12 +379,25 @@ def cython(filename, verbose=False, compile_message=False,
 
         sage: import sage.misc.cython
         sage: d = sage.misc.temporary_file.tmp_dir()
-        sage: pyxfile = os.path.join(d, "src.pyx")
-        sage: with open(pyxfile, 'w') as f:
+        sage: os.chdir(d)
+        sage: with open("test.pyx", 'w') as f:
         ....:     f.write("#clang C++\n"
         ....:       "from libcpp.vector cimport vector\n"
         ....:       "cdef vector[int] * v = new vector[int](4)\n")
-        sage: output = sage.misc.cython.cython(pyxfile, create_local_c_file=True)
+        sage: output = sage.misc.cython.cython("test.pyx", create_local_c_file=True)
+
+    Sage used to automatically include various ``.pxi`` files. Since
+    :trac:`22805`, we no longer do this. But we make sure to give a
+    useful message in case the ``.pxi`` files were needed::
+
+        sage: cython("sig_malloc(0)")
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Error converting ... to C:
+        ...
+        NOTE: Sage no longer automatically includes the deprecated files
+        "cdefs.pxi", "signals.pxi" and "stdsage.pxi" in Cython files.
+        You can fix your code by adding "from cysignals.memory cimport sig_malloc".
     """
     if not filename.endswith('pyx'):
         print("Warning: file (={}) should have extension .pyx".format(filename), file=sys.stderr)
@@ -486,7 +535,14 @@ setup(ext_modules = ext_modules,
         print(cmd)
     if os.system(cmd):
         log = open('%s/log'%build_dir).read()
-        err = subtract_from_line_numbers(open('%s/err'%build_dir).read(), offset)
+        err = open('%s/err'%build_dir).read()
+        for pxd, names in old_pxi_names.items():
+            for name in names:
+                if ("undeclared name not builtin: " + name) in err:
+                    err += '\nNOTE: Sage no longer automatically includes the deprecated files\n' \
+                       '"cdefs.pxi", "signals.pxi" and "stdsage.pxi" in Cython files.\n' \
+                       'You can fix your code by adding "from %s cimport %s".' % \
+                       (pxd, name)
         raise RuntimeError("Error converting {} to C:\n{}\n{}".format(filename, log, err))
 
     cmd = 'cd %s && python setup.py build 1>log 2>err'%build_dir
@@ -525,10 +581,15 @@ def subtract_from_line_numbers(s, n):
 
         sage: from sage.misc.cython import subtract_from_line_numbers
         sage: subtract_from_line_numbers('hello:1234:hello', 3)
+        doctest:...: DeprecationWarning: subtract_from_line_numbers is deprecated
+        See http://trac.sagemath.org/22805 for details.
         'hello:1231:hello\n'
         sage: subtract_from_line_numbers('text:123\nhello:1234:', 3)
         'text:123\nhello:1231:\n'
     """
+    from sage.misc.superseded import deprecation
+    deprecation(22805, 'subtract_from_line_numbers is deprecated')
+
     ans = []
     for X in s.split('\n'):
         i = X.find(':')

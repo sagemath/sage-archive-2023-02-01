@@ -247,10 +247,11 @@ import sys
 import operator
 
 include "cysignals/signals.pxi"
-include "sage/ext/cdefs.pxi"
 from cpython.mem cimport *
 from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_LE, Py_GT, Py_GE
+from libc.string cimport strlen
 
+from sage.libs.gmp.mpz cimport *
 cimport sage.rings.ring
 cimport sage.structure.element
 from sage.structure.element cimport RingElement, Element, ModuleElement

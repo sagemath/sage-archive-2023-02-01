@@ -30,15 +30,19 @@ AUTHOR:
 
 """
 
-#*******************************************************************************
-#         Copyright (C) 2007 Robert L. Miller <rlmillster@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2007 Robert L. Miller <rlmillster@gmail.com>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
-#*******************************************************************************
-from __future__ import print_function
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
-include 'sage/ext/cdefs.pxi'
+from __future__ import absolute_import, print_function
+
+from libc.string cimport memcpy
 from cpython.mem cimport *
 from cpython.object cimport PyObject_RichCompare
 include "cysignals/memory.pxi"

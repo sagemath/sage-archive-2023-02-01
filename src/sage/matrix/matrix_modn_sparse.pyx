@@ -74,9 +74,9 @@ TESTS::
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
+
 from __future__ import absolute_import
 
-include "sage/ext/cdefs.pxi"
 include "cysignals/signals.pxi"
 include "cysignals/memory.pxi"
 
@@ -84,6 +84,7 @@ from sage.modules.vector_modn_sparse cimport *
 
 from cpython.sequence cimport *
 
+from sage.libs.gmp.mpz cimport mpz_init_set_si
 cimport sage.matrix.matrix as matrix
 cimport sage.matrix.matrix_sparse as matrix_sparse
 cimport sage.matrix.matrix_dense as matrix_dense

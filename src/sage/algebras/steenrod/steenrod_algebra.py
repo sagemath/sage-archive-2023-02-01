@@ -451,8 +451,8 @@ examples.
 #  Copyright (C) 2008-2010 John H. Palmieri <palmieri@math.washington.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six.moves import range
 
 from sage.combinat.free_module import CombinatorialFreeModule, \
     CombinatorialFreeModuleElement
@@ -4152,8 +4152,9 @@ def AA(n=None, p=2):
     if n is None:
         return SteenrodAlgebra(p=p)
     if p == 2:
-        return SteenrodAlgebra(p=p, profile=range(n+1, 0, -1))
-    return SteenrodAlgebra(p=p, profile=(range(n, 0, -1), [2]*(n+1)))
+        return SteenrodAlgebra(p=p, profile=list(range(n+1, 0, -1)))
+    return SteenrodAlgebra(p=p, profile=(list(range(n, 0, -1)), [2]*(n+1)))
+
 
 def Sq(*nums):
     r"""

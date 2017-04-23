@@ -1,7 +1,9 @@
-diff -druN R-3.3.1/configure R-3.3.1.patched/configure
---- R-3.3.1/configure	2016-06-13 22:16:32.000000000 +0000
-+++ R-3.3.1.patched/configure	2016-10-27 13:53:26.347387983 +0000
-@@ -36227,47 +36227,6 @@
+Don't check for HTTPS support in libcurl; see https://trac.sagemath.org/ticket/20523
+diff --git a/configure b/configure
+index 8dfd4b6..0666c9b 100755
+--- a/configure
++++ b/configure
+@@ -36239,47 +36239,6 @@ if test "x${r_cv_have_curl728}" = xno; then
    have_libcurl=no
  fi
  
@@ -49,7 +51,7 @@ diff -druN R-3.3.1/configure R-3.3.1.patched/configure
  if test "x${have_libcurl}" = xyes; then
  
  $as_echo "#define HAVE_LIBCURL 1" >>confdefs.h
-@@ -36277,7 +36236,7 @@
+@@ -36289,7 +36248,7 @@ $as_echo "#define HAVE_LIBCURL 1" >>confdefs.h
  
  
  else
@@ -58,10 +60,11 @@ diff -druN R-3.3.1/configure R-3.3.1.patched/configure
  fi
  
  
-diff -druN R-3.3.1/m4/R.m4 R-3.3.1.patched/m4/R.m4
---- R-3.3.1/m4/R.m4	2016-03-16 23:02:06.000000000 +0000
-+++ R-3.3.1.patched/m4/R.m4	2016-10-27 13:52:20.247269003 +0000
-@@ -4196,33 +4196,14 @@
+diff --git a/m4/R.m4 b/m4/R.m4
+index 606adfa..43114dd 100644
+--- a/m4/R.m4
++++ b/m4/R.m4
+@@ -4203,33 +4203,14 @@ if test "x${r_cv_have_curl728}" = xno; then
    have_libcurl=no
  fi
  

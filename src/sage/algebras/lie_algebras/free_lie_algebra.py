@@ -775,15 +775,12 @@ class FreeLieAlgebra(Parent, UniqueRepresentation):
             n = len(self._indices)
             ret = []
             for c in IntegerVectors(k, n):
-                cf = filter(lambda x: x != 0, c)
+                nonzero_indices = [i for i,val in enumerate(c) if val != 0]
 
-                if not cf:
+                if not nonzero_indices:
                     continue
 
-                nonzero_indices = []
-                for i in range(len(c)):
-                    if c[i] != 0:
-                        nonzero_indices.append(i)
+                cf = [c[i] for i in nonzero_indices]
 
                 # Strip leading 0's
                 a = 0
@@ -791,7 +788,7 @@ class FreeLieAlgebra(Parent, UniqueRepresentation):
                     a += 1
 
                 for z in _sfc(cf[a:], equality=True):
-                    b = self._standard_bracket(tuple(names[nonzero_indices[i+a]] for i in z))
+                    b = self._standard_bracket(tuple([names[nonzero_indices[i+a]] for i in z]))
                     ret.append(self.element_class(self, {b: one}))
             return tuple(ret)
 

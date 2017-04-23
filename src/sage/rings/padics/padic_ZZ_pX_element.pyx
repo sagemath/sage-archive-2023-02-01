@@ -22,10 +22,10 @@ AUTHORS:
 from __future__ import print_function
 
 from sage.ext.stdsage cimport PY_NEW
-include "sage/ext/cdefs.pxi"
 from cpython.list cimport *
 include "sage/libs/ntl/decl.pxi"
 
+from sage.libs.gmp.mpz cimport *
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZ_p cimport ntl_ZZ_p
 from sage.libs.ntl.ntl_ZZ_pX cimport ntl_ZZ_pX

@@ -6654,6 +6654,154 @@ cdef class Expression(CommutativeRingElement):
             sig_off()
         return new_Expression_from_GEx(self._parent, x)
 
+    def gosper_sum(self, *args):
+        """
+        Return the summation of this hypergeometric expression using
+        Gosper's algorithm.
+
+        INPUT:
+
+        - a symbolic expression that may contain rational functions,
+          powers, factorials, gamma function terms, binomial
+          coefficients, and Pochhammer symbols that are rational-linear
+          in their arguments
+
+        - the main variable and, optionally, summation limits
+
+        EXAMPLES::
+
+            sage: a,b,k,m,n = var('a b k m n')
+            sage: SR(1).gosper_sum(n)
+            n
+            sage: SR(1).gosper_sum(n,5,8)
+            4
+            sage: n.gosper_sum(n)
+            1/2*(n - 1)*n
+            sage: n.gosper_sum(n,0,5)
+            15
+            sage: n.gosper_sum(n,0,m)
+            1/2*(m + 1)*m
+            sage: n.gosper_sum(n,a,b)
+            -1/2*(a + b)*(a - b - 1)
+
+        ::
+
+            sage: (factorial(m + n)/factorial(n)).gosper_sum(n)
+            n*factorial(m + n)/((m + 1)*factorial(n))
+            sage: (binomial(m + n, n)).gosper_sum(n)
+            n*binomial(m + n, n)/(m + 1)
+            sage: (binomial(m + n, n)).gosper_sum(n, 0, a)
+            (a + m + 1)*binomial(a + m, a)/(m + 1)
+            sage: (binomial(m + n, n)).gosper_sum(n, 0, 5)
+            1/120*(m + 6)*(m + 5)*(m + 4)*(m + 3)*(m + 2)
+            sage: (rising_factorial(a,n)/rising_factorial(b,n)).gosper_sum(n)
+            (b + n - 1)*gamma(a + n)*gamma(b)/((a - b + 1)*gamma(a)*gamma(b + n))
+            sage: factorial(n).gosper_term(n)
+            Traceback (most recent call last):
+            ...
+            ValueError: expression not Gosper-summable
+        """
+        cdef Expression s, a, b
+        cdef GEx x
+        cdef int i = 1
+        if len(args) > 1:
+            n, l1, l2 = args
+            s = self.coerce_in(n)
+            a = self.coerce_in(l1)
+            b = self.coerce_in(l2)
+            sig_on()
+            try:
+                x = g_gosper_sum_definite(self._gobj, s._gobj,
+                        a._gobj, b._gobj, &i)
+            finally:
+                sig_off()
+            if i == 0:
+                raise ValueError("expression not Gosper-summable")
+            return new_Expression_from_GEx(self._parent, x)
+        else:
+            s = self.coerce_in(args[0])
+            sig_on()
+            try:
+                x = g_gosper_sum_indefinite(self._gobj, s._gobj, &i)
+            finally:
+                sig_off()
+            if i == 0:
+                raise ValueError("expression not Gosper-summable")
+            return new_Expression_from_GEx(self._parent, x)
+
+    def gosper_term(self, n):
+        """
+        Return Gosper's hypergeometric term for ``self``.
+
+        Suppose ``f``=``self`` is a hypergeometric term such that:
+
+        .. math::
+
+            s_n = \sum_{k=0}^{n-1} f_k
+
+        and `f_k` doesn't depend on `n`. Return a hypergeometric
+        term `g_n` such that `g_{n+1} - g_n = f_n`.
+
+        EXAMPLES::
+
+            sage: _ = var('n')
+            sage: SR(1).gosper_term(n)
+            n
+            sage: n.gosper_term(n)
+            1/2*(n^2 - n)/n
+            sage: (n*factorial(n)).gosper_term(n)
+            1/n
+            sage: factorial(n).gosper_term(n)
+            Traceback (most recent call last):
+            ...
+            ValueError: expression not Gosper-summable
+        """
+        cdef Expression s
+        cdef int i = 1
+        s = self.coerce_in(n)
+        sig_on()
+        try:
+            x = g_gosper_term(self._gobj, s._gobj)
+        except ValueError:
+            raise ValueError("expression not Gosper-summable")
+        finally:
+            sig_off()
+        return new_Expression_from_GEx(self._parent, x)
+
+    def WZ_certificate(self, n, k):
+        r"""
+        Return the Wilf-Zeilberger certificate for this hypergeometric
+        summand in ``n``, ``k``.
+
+        To prove the identity `\sum_k F(n,k)=\textrm{const}` it suffices
+        to show that `F(n+1,k)-F(n,k)=G(n,k+1)-G(n,k),` with `G=RF` and
+        `R` the WZ certificate.
+
+        EXAMPLES:
+
+        To show that `\sum_k \binom{n}{k} = 2^n` do::
+
+            sage: _ = var('k n')
+            sage: F(n,k) = binomial(n,k) / 2^n
+            sage: c = F(n,k).WZ_certificate(n,k); c
+            1/2*k/(k - n - 1)
+            sage: G(n,k) = c * F(n,k); G
+            (n, k) |--> 1/2*k*binomial(n, k)/(2^n*(k - n - 1))
+            sage: (F(n+1,k) - F(n,k) - G(n,k+1) + G(n,k)).simplify_full()
+            0
+        """
+        cdef Expression s, f
+        cdef int i = 1
+        s = self.coerce_in(k)
+        f = self.subs(n == n+1) - self
+        sig_on()
+        try:
+            x = g_gosper_term(f._gobj, s._gobj)
+        finally:
+            sig_off()
+        g = new_Expression_from_GEx(self._parent, x)
+        return (f*g / self).to_gamma().gamma_normalize().simplify_full().factor()
+
     def lcm(self, b):
         """
         Return the lcm of self and b.

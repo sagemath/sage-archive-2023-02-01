@@ -13,17 +13,22 @@ REFERENCE:
 """
 
 #*****************************************************************************
-#           Copyright (C) 2008 Robert Miller and Gordon Royle
+#       Copyright (C) 2008 Robert Miller
+#       Copyright (C) 2008 Gordon Royle
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+from sage.libs.gmp.mpz cimport *
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
 from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.misc.all import prod
 include "cysignals/signals.pxi"
-include 'sage/ext/cdefs.pxi'
 
 
 def chromatic_polynomial(G, return_tree_basis=False):

@@ -255,7 +255,7 @@ static ex coeff_to_ex(const CanonicalForm& f, const exvector& revmap)
         if (f.isImm())
                 return numeric(f.intval());
         if (f.inZ())
-                throw std::runtime_error("can't happen in coeff_to_ex");
+                return can2num(f);
         if (f.inQ()) {
                 CanonicalForm num = f.num();
                 CanonicalForm den = f.den();
@@ -277,7 +277,7 @@ static ex canonical_to_ex(const CanonicalForm& f, const exvector& revmap)
                 if (f.isImm())
                         return numeric(f.intval());
                 if (f.inZ())
-                        throw std::runtime_error("can't happen in canonical_to_ex #1");
+                        return can2num(f);
                 if (f.inQ()) {
                         CanonicalForm num = f.num();
                         CanonicalForm den = f.den();

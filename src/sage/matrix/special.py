@@ -65,7 +65,6 @@ from sage.modules.free_module_element import vector
 from sage.structure.element import is_Vector
 from sage.rings.all import ZZ, QQ
 from sage.misc.misc_c import running_total
-from sage.misc.decorators import decorator_defaults
 from .matrix import is_Matrix
 from copy import copy
 from .constructor import matrix

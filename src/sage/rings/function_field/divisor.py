@@ -74,11 +74,13 @@ def zero_divisor(field):
     """
     return FunctionFieldDivisor(field, {})
 
-def prime_divisor(field, place, mult=1):
+def prime_divisor(field, place, m=1):
     """
-    Construct a prime divisor from the ``place``.
+    Construct a prime divisor from the place.
 
-    The multiplicity at ``place`` is `1` by default.
+    INPUT:
+
+    - ``m`` -- (default: 1) multiplicity at the place
 
     EXAMPLES::
 
@@ -90,11 +92,11 @@ def prime_divisor(field, place, mult=1):
         sage: 3 * d == prime_divisor(F, p, 3)
         True
     """
-    return FunctionFieldDivisor(field, {place: Integer(mult)})
+    return FunctionFieldDivisor(field, {place: Integer(m)})
 
 def is_Divisor(x):
     """
-    Return ``True`` if ``x`` is a function field divisor.
+    Return True if ``x`` is a function field divisor.
 
     EXAMPLES::
 
@@ -336,7 +338,11 @@ class FunctionFieldDivisor(ModuleElement):
 
     def multiplicity(self, place):
         """
-        Return the multiplicity of the divisor at the ``place``.
+        Return the multiplicity of the divisor at the place.
+
+        INPUT:
+
+        - ``place`` -- a place of the function field
 
         EXAMPLES::
 
@@ -498,18 +504,21 @@ class FunctionFieldDivisor(ModuleElement):
 
         OUTPUT:
 
-        - a vector space, an isomorphism from the vector space
-          to the differential space, and its inverse.
+        - a vector space isomorphic to `\Omega(D)`
+
+        - an isomorphism from the vector space to the differential space
+
+        - the inverse of the isomorphism
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(GF(5)); R.<t> = PolynomialRing(K)
-            sage: F.<y> = K.extension(t^2-x^3-1)
+            sage: K.<x> = FunctionField(GF(5)); R.<t> = K[]
+            sage: F.<y> = K.extension(t^2 - x^3 - 1)
             sage: O = F.maximal_order()
-            sage: I = O.ideal(x-2)
+            sage: I = O.ideal(x - 2)
             sage: P1 = I.divisor().support()[0]
             sage: Pinf = F.places_infinite()[0]
-            sage: D = -3*Pinf+P1
+            sage: D = -3*Pinf + P1
             sage: V, from_V, to_V = D.differential_space()
             sage: all(to_V(from_V(e)) == e for e in V)
             True

@@ -68,9 +68,9 @@ lazy_import('sage.matrix.constructor', 'matrix')
 
 class FunctionFieldDerivation(Map):
     r"""
-    A base class for derivations on function fields.
+    Base class for derivations on function fields.
 
-    A derivation on `R` is map `R\to R` with
+    A derivation on `R` is a map `R \to R` with
     `D(\alpha+\beta)=D(\alpha)+D(\beta)` and `D(\alpha\beta)=\beta
     D(\alpha)+\alpha D(\beta)` for all `\alpha,\beta\in R`.
 
@@ -84,7 +84,7 @@ class FunctionFieldDerivation(Map):
     """
     def __init__(self, K):
         r"""
-        Initialize a derivation from ``K`` to ``K``.
+        Initialize a derivation from K to K.
 
         EXAMPLES::
 
@@ -116,11 +116,7 @@ class FunctionFieldDerivation(Map):
 
     def is_injective(self):
         r"""
-        Return whether this derivation is injective.
-
-        OUTPUT:
-
-        Returns ``False`` since derivations are never injective.
+        Return False since a derivation is never injective.
 
         EXAMPLES::
 
@@ -134,7 +130,7 @@ class FunctionFieldDerivation(Map):
 
 class FunctionFieldDerivation_rational(FunctionFieldDerivation):
     """
-    A derivation on a rational function field.
+    Derivations on rational function fields.
 
     EXAMPLES::
 
@@ -145,15 +141,14 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
     """
     def __init__(self, K, u):
         """
-        Initialize a derivation of ``K`` which sends the generator of ``K`` to
-        ``u``.
+        Initialize a derivation of K which sends the generator of K to u.
 
         INPUT:
 
         - ``K`` -- a rational function field
 
-        - ``u`` -- an element of ``K``, the image of the generator of ``K`` under
-          the derivation
+        - ``u`` -- an element of K, the image of the generator of K under the
+          derivation
 
         EXAMPLES::
 
@@ -168,7 +163,7 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
 
     def _call_(self, x):
         """
-        Compute the derivation of ``x``.
+        Compute the derivation of x.
 
         INPUT:
 
@@ -196,7 +191,7 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
 
 class FunctionFieldDerivation_separable(FunctionFieldDerivation):
     """
-    The unique extension of the derivation ``d`` to ``L``.
+    Derivations of separable extensions.
 
     EXAMPLES::
 
@@ -212,9 +207,9 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
         INPUT:
 
         - ``L`` -- a function field which is a separable extension of the domain of
-          ``d``
+          d
 
-        - ``d`` -- a derivation on the base function field of ``L``
+        - ``d`` -- a derivation on the base function field of L
 
         EXAMPLES::
 
@@ -238,7 +233,7 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
 
     def _call_(self, x):
         r"""
-        Evaluate the derivation on ``x``.
+        Evaluate the derivation on x.
 
         INPUT:
 
@@ -306,12 +301,16 @@ class FunctionFieldHasseDerivation(Map):
 
         INPUT:
 
-        - ``field`` -- a function field to which the derivation map is attached
+        - ``field`` -- a function field which is the domain and codomain of the
+          derivation
 
         """
         Map.__init__(self, field, field)
 
         self._field = field
+
+    def _repr_type(self):
+        return 'Hasse derivation'
 
 class FunctionFieldHasseDerivation_rational(FunctionFieldHasseDerivation):
     """
@@ -331,7 +330,7 @@ class FunctionFieldHasseDerivation_rational(FunctionFieldHasseDerivation):
             sage: F.<x> = FunctionField(GF(2))
             sage: h = F.hasse_derivation()
             sage: h
-            Generic map:
+            Hasse derivation map:
               From: Rational function field in x over Finite Field of size 2
               To:   Rational function field in x over Finite Field of size 2
             sage: h(x^2,2)
@@ -350,7 +349,7 @@ class FunctionFieldHasseDerivation_rational(FunctionFieldHasseDerivation):
 
     def _call_with_args(self, f, args=(), kwds={}):
         """
-        Call the derivation with ``args`` and ``kwds``.
+        Call the derivation with args and kwds.
 
         EXAMPLES::
 
@@ -363,8 +362,7 @@ class FunctionFieldHasseDerivation_rational(FunctionFieldHasseDerivation):
 
     def _derive(self, f, i, separating_element=None):
         """
-        Return ``i``th derivative of ``f` with respect to the separating
-        element.
+        Return i-th derivative of f with respect to the separating element.
 
         This implements Hess' Algorithm 26 in [Hes2002b]_.
 
@@ -424,9 +422,9 @@ class FunctionFieldHasseDerivation_rational(FunctionFieldHasseDerivation):
 
     def _prime_power_representation(self, f, separating_element=None):
         """
-        Return `p`th power representation of the element ``f``.
+        Return p-th power representation of the element f.
 
-        Here `p` is the characteristic of the function field.
+        Here p is the characteristic of the function field.
 
         This implements Hess' Algorithm 25.
 
@@ -470,7 +468,7 @@ class FunctionFieldHasseDerivation_rational(FunctionFieldHasseDerivation):
 
     def _pth_root(self, c):
         """
-        Return the `p`th root of the rational function ``c``.
+        Return the p-th root of the rational function c.
 
         EXAMPLES::
 
@@ -511,7 +509,7 @@ class FunctionFieldHasseDerivation_global(FunctionFieldHasseDerivation):
             sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
             sage: h = L.hasse_derivation()
             sage: h
-            Generic map:
+            Hasse derivation map:
               From: Function field in y defined by y^3 + x^3*y + x
               To:   Function field in y defined by y^3 + x^3*y + x
             sage: h(y^2,2)

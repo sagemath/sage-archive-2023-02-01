@@ -1,16 +1,56 @@
 r"""
 Valuation rings
 
-This module provides valuation rings at places of function fields.
+A valuation ring of a function field in Sage is associated with a place of the
+function field.
 
 EXAMPLES::
 
     sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
     sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
     sage: p = L.places_finite()[0]
+    sage: p
+    Place (x, x*y)
     sage: R = p.valuation_ring()
     sage: R
     Valuation ring at Place (x, x*y)
+    sage: R.place() == p
+    True
+
+The valuation ring consists of all elements of the function field that have
+nonnegative valuation at the place. Thus any nonzero element of a function
+field or its inverse belongs to a valuation ring. If a nonzero element and its
+inverse both belongs to the valuation ring, then it should have valuation zero
+at the place. This is shown in the following example::
+
+    sage: f = y/(1+y)
+    sage: f in R
+    True
+    sage: 1/f in R
+    True
+    sage: f.valuation(p)
+    0
+
+The residue field at the place is defined as the quotient ring of the valuaion
+ring modulo its unique maximal ideal. In a global function field, the
+:meth:`residue_field()` method returns a finite field isomorphic to the residue
+field::
+
+    sage: r,phi,psi = R.residue_field()
+    sage: r
+    Finite Field of size 2
+    sage: phi
+    Ring morphism:
+      From: Finite Field of size 2
+      To:   Valuation ring at Place (x, x*y)
+    sage: psi
+    Ring morphism:
+      From: Valuation ring at Place (x, x*y)
+      To:   Finite Field of size 2
+    sage: psi(f)
+    1
+    sage: psi(1/f)
+    1
 
 AUTHORS:
 
@@ -42,6 +82,14 @@ lazy_import('sage.matrix.constructor', 'matrix')
 
 class FunctionFieldValuationRing(Parent):
     """
+    Base class for valuation rings of function fields.
+
+    INPUT:
+
+    - ``field`` -- a function field
+
+    - ``place`` -- a place of the function field
+
     """
     def __init__(self, field, place):
         Parent.__init__(self, category=Rings())
@@ -76,25 +124,37 @@ class FunctionFieldValuationRing(Parent):
             raise TypeError
 
     def _repr_(self):
-        return 'Valuation ring at {}'.format(self._place)
-
-    def place(self):
         """
-        Return the place corresponding to the valuation ring.
+        Return a string representation of the valuation ring.
 
         EXAMPLES::
 
             sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
             sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
             sage: p = L.places_finite()[0]
-            sage: v = p.valuation_ring()
-            sage: p == v.place()
+            sage: p.valuation_ring()
+            Valuation ring at Place (x, x*y)
+        """
+        return 'Valuation ring at {}'.format(self._place)
+
+    def place(self):
+        """
+        Return the place associated with the valuation ring.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p = L.places_finite()[0]
+            sage: R = p.valuation_ring()
+            sage: p == R.place()
             True
         """
         return self._place
 
 class FunctionFieldValuationRing_global(FunctionFieldValuationRing):
     """
+    Valuation rings of global function fields.
     """
     def residue_field(self):
         """
@@ -133,11 +193,28 @@ class FunctionFieldValuationRing_global(FunctionFieldValuationRing):
         return k, mor_from_k, mor_to_k
 
 class Morphism(RingHomomorphism):
-    def __init__(self, parent, from_def):
+    """
+    Ring homomorphisms defined by Python functions
+
+    PARAMETERS:
+
+    - ``parent`` -- a hom set from a ring A to a ring B
+
+    - ``func`` -- a Python function that outputs an element of B for an element
+      of A
+
+    """
+    def __init__(self, parent, func):
+        """
+        Initialize.
+        """
         RingHomomorphism.__init__(self, parent)
 
-        self._map = from_def
+        self._map = func
 
     def _call_(self, x):
+        """
+        Return the image of x by the homomorphsim.
+        """
         return self._map(x)
 

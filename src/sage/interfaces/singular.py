@@ -538,7 +538,7 @@ class Singular(ExtraTabCompletion, Expect):
 
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
-            sage: f.write('int x = 2;\n')
+            sage: _ = f.write('int x = 2;\n')
             sage: f.close()
             sage: singular.read(filename)
             sage: singular.get('x')

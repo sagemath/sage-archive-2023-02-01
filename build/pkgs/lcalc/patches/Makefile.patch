@@ -128,8 +128,8 @@ index 84e4e88..5a98e36 100644
 -#	make find_L
 -#	make test
 +#	$(MAKE) print_vars
-+	$(MAKE) libLfunction.so
-+	$(MAKE) lcalc
++	$(MAKE) libLfunction$(LIBEXT)
++	$(MAKE) lcalc$(EXEEXT)
 +	$(MAKE) examples
 +#	$(MAKE) find_L
 +#	$(MAKE) test

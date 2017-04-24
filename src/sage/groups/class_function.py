@@ -758,31 +758,31 @@ class ClassFunction_gap(SageObject):
         return ClassFunction(G, rest)
 
 
-    def adams_operator(self, k):
+    def adams_operation(self, k):
         r"""
-        Return the ``k``-th Adams operator on ``self``.
+        Return the ``k``-th Adams operation on ``self``.
 
-        Let `G` be a finite group. The `k`-th Adams operator `\Psi^k`
+        Let `G` be a finite group. The `k`-th Adams operation `\Psi^k`
         is given by
 
         .. MATH::
 
             \Psi^k(\chi)(g) = \chi(g^k).
 
-        The Adams operators turn the representation ring of `G`
+        The Adams operations turn the representation ring of `G`
         into a `\lambda`-ring.
 
         EXAMPLES::
 
             sage: G = groups.permutation.Alternating(5)
             sage: chars = G.irreducible_characters()
-            sage: [chi.adams_operator(2).values() for chi in chars]
+            sage: [chi.adams_operation(2).values() for chi in chars]
             [[1, 1, 1, 1, 1],
              [3, 3, 0, -zeta5^3 - zeta5^2, zeta5^3 + zeta5^2 + 1],
              [3, 3, 0, zeta5^3 + zeta5^2 + 1, -zeta5^3 - zeta5^2],
              [4, 4, 1, -1, -1],
              [5, 5, -1, 0, 0]]
-            sage: chars[4].adams_operator(2).decompose()
+            sage: chars[4].adams_operation(2).decompose()
             ((1, Character of Alternating group of order 5!/2 as a permutation group),
              (-1, Character of Alternating group of order 5!/2 as a permutation group),
              (-1, Character of Alternating group of order 5!/2 as a permutation group),
@@ -1498,25 +1498,25 @@ class ClassFunction_libgap(SageObject):
         return ClassFunction(G, ind)
 
 
-    def adams_operator(self, k):
+    def adams_operation(self, k):
         r"""
-        Return the ``k``-th Adams operator on ``self``.
+        Return the ``k``-th Adams operation on ``self``.
 
-        Let `G` be a finite group. The `k`-th Adams operator `\Psi^k`
+        Let `G` be a finite group. The `k`-th Adams operation `\Psi^k`
         is given by
 
         .. MATH::
 
             \Psi^k(\chi)(g) = \chi(g^k).
 
-        The Adams operators turn the representation ring of `G`
+        The Adams operations turn the representation ring of `G`
         into a `\lambda`-ring.
 
         EXAMPLES::
 
             sage: G = GL(2,3)
             sage: chars = G.irreducible_characters()
-            sage: [chi.adams_operator(2).values() for chi in chars]
+            sage: [chi.adams_operation(2).values() for chi in chars]
             [[1, 1, 1, 1, 1, 1, 1, 1],
              [1, 1, 1, 1, 1, 1, 1, 1],
              [2, -1, 2, -1, 2, 2, 2, 2],
@@ -1525,7 +1525,7 @@ class ClassFunction_libgap(SageObject):
              [3, 0, 3, 0, 3, -1, -1, 3],
              [3, 0, 3, 0, 3, -1, -1, 3],
              [4, 1, 4, 1, -4, 0, 0, 4]]
-            sage: chars[5].adams_operator(3).decompose()
+            sage: chars[5].adams_operation(3).decompose()
             ((1, Character of General Linear Group of degree 2 over Finite Field of size 3),
              (1, Character of General Linear Group of degree 2 over Finite Field of size 3),
              (-1, Character of General Linear Group of degree 2 over Finite Field of size 3),

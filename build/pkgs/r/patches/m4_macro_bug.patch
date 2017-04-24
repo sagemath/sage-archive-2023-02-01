@@ -1,10 +1,31 @@
 Fix bug in R_PCRE autoconf macro which leads to 'configure' losing '-lz'
 and/or '-lbz2' from LIBS (under certain circumstances, and only relevant
 if "system" versions of these libraries are used).  (cf. #18229)
-
---- R-3.3.1_original/m4/R.m4	2016-03-17 00:02:06.000000000 +0100
-+++ R-3.3.1_patched/m4/R.m4	2016-08-20 10:17:08.663006152 +0200
-@@ -3193,7 +3193,6 @@
+diff --git a/configure b/configure
+index 0666c9b..5d80a54 100755
+--- a/configure
++++ b/configure
+@@ -35969,7 +35969,6 @@ fi
+ fi
+ { $as_echo "$as_me:${as_lineno-$LINENO}: result: $r_cv_have_pcre810" >&5
+ $as_echo "$r_cv_have_pcre810" >&6; }
+-fi
+ if test "x${r_cv_have_pcre810}" != xyes; then
+   have_pcre=no
+   LIBS="${r_save_LIBS}"
+@@ -36014,6 +36013,7 @@ fi
+ { $as_echo "$as_me:${as_lineno-$LINENO}: result: $r_cv_have_pcre832" >&5
+ $as_echo "$r_cv_have_pcre832" >&6; }
+ fi
++fi
+ 
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether PCRE support suffices" >&5
+ $as_echo_n "checking whether PCRE support suffices... " >&6; }
+diff --git a/m4/R.m4 b/m4/R.m4
+index 43114dd..7d2cdba 100644
+--- a/m4/R.m4
++++ b/m4/R.m4
+@@ -3194,7 +3194,6 @@ int main() {
  #endif
  }
  ]])], [r_cv_have_pcre810=yes], [r_cv_have_pcre810=no], [r_cv_have_pcre810=no])])
@@ -12,7 +33,7 @@ if "system" versions of these libraries are used).  (cf. #18229)
  if test "x${r_cv_have_pcre810}" != xyes; then
    have_pcre=no
    LIBS="${r_save_LIBS}"
-@@ -3216,6 +3215,7 @@
+@@ -3217,6 +3216,7 @@ int main() {
  }
  ]])], [r_cv_have_pcre832=yes], [r_cv_have_pcre832=no], [r_cv_have_pcre832=no])])
  fi

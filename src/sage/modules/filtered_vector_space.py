@@ -108,6 +108,7 @@ Or the algebraic field::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from six import iteritems
+from six.moves import range
 
 from sage.rings.all import QQ, ZZ, RDF, RR, Integer
 from sage.rings.infinity import InfinityRing, infinity, minus_infinity
@@ -851,7 +852,7 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
             sage: F._repr_degrees(-2, 4)
             ['QQ^2', 'QQ^2', 'QQ^2', 'QQ^1', 'QQ^1', '0', '0', '0']
         """
-        degrees = range(min_deg, max_deg+1)
+        degrees = list(range(min_deg, max_deg + 1))
         dims = []
         for i in degrees + [infinity]:
             d = self.get_degree(i).dimension()

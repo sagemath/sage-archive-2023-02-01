@@ -7,10 +7,9 @@ AUTHORS:
 """
 
 include "cysignals/memory.pxi"
-include "sage/ext/cdefs.pxi"
+from sage.libs.gmp.mpz cimport *
 
 from sage.rings.integer cimport Integer
-
 from sage.rings.integer_ring import ZZ
 
 def expnums(int n, int aa):

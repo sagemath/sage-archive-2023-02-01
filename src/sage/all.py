@@ -118,6 +118,7 @@ from sage.functions.all  import *
 from sage.calculus.all   import *
 
 import sage.tests.all as tests
+from sage.tests.cython import getattr_debug
 
 from sage.crypto.all     import *
 import sage.crypto.mq as mq

@@ -1,5 +1,5 @@
 diff --git a/src/Makefile b/src/Makefile
-index 84e4e88..5a98e36 100644
+index 84e4e88..e807574 100644
 --- a/src/Makefile
 +++ b/src/Makefile
 @@ -13,7 +13,7 @@
@@ -130,7 +130,7 @@ index 84e4e88..5a98e36 100644
 +#	$(MAKE) print_vars
 +	$(MAKE) libLfunction$(LIBEXT)
 +	$(MAKE) lcalc$(EXEEXT)
-+	$(MAKE) examples
++	$(MAKE) examples$(EXEEXT)
 +#	$(MAKE) find_L
 +#	$(MAKE) test
  
@@ -142,9 +142,10 @@ index 84e4e88..5a98e36 100644
 +lcalc$(EXEEXT): $(OBJECTS)
 +	$(CXX) $(CXXFLAGS) $(INCLUDEFILES) $(LDFLAGS) $(OBJECTS) -o lcalc$(EXEEXT) $(PARI_LIBS) $(GMP_FLAGS)
  
- examples:
+-examples:
 -	$(CC) $(CCFLAGS) $(INCLUDEFILES) example_programs/example.cc libLfunction.so -o example_programs/example $(GMP_FLAGS)
-+	$(CXX) $(CXXFLAGS) $(INCLUDEFILES) example_programs/example.cc $(LDFLAGS) libLfunction$(LIBEXT) -o example_programs/example $(PARI_LIBS) $(GMP_FLAGS)
++examples$(EXEEXT):
++	$(CXX) $(CXXFLAGS) $(INCLUDEFILES) example_programs/example.cc $(LDFLAGS) libLfunction$(LIBEXT) -o example_programs/example$(EXEEXT) $(PARI_LIBS) $(GMP_FLAGS)
  
  
 -proc:
@@ -210,7 +211,7 @@ index 84e4e88..5a98e36 100644
  
  clean:
 -	rm -f *.o lcalc libLfunction.so example_programs/example
-+	rm -f *.o lcalc$(EXEEXT) libLfunction$(LIBEXT) example_programs/example
++	rm -f *.o lcalc$(EXEEXT) libLfunction$(LIBEXT) example_programs/example$(EXEEXT)
  
  install:
 -	cp -f lcalc $(INSTALL_DIR)/bin/.

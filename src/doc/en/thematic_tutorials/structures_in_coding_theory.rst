@@ -704,15 +704,19 @@ derive from the one that follows.
             return w
 
 ``codes_catalog.py`` (continued)::
+
     :class:`sage.coding.repetition_code.BinaryRepetitionCode <sage.coding.repetition_code.BinaryRepetitionCode>`
     #the line above creates a link to the class in the html documentation of coding theory library
     from sage.coding.repetition_code import BinaryRepetitionCode
 
 ``encoders_catalog.py`` (continued)::
+
     from sage.coding.repetition_code import (BinaryRepetitionCodeGeneratorMatrixEncoder, BinaryRepetitionCodeStraightforwardEncoder)
 
 ``decoders_catalog.py`` (continued)::
+
     from sage.coding.repetition_code import BinaryRepetitionCodeMajorityVoteDecoder
 
 ``channels_catalog.py`` (continued)::
+
     from sage.coding.channel_constructions import (ErrorErasureChannel, StaticErrorRateChannel, BinaryStaticErrorRateChannel)

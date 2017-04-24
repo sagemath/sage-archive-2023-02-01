@@ -166,9 +166,9 @@ Deprecation checks::
     doctest:...: DeprecationWarning: the PARI/GP function elllseries is obsolete (2016-08-08)
     0.402838047956645
     sage: e.elllseries(1, precision=128)
-    3.19632265064095 E-40
+    -6.17606670058278 E-39
     sage: e.elllseries(1, precision=256)
-    8.68747983667209 E-79
+    -2.05598131842639 E-77
     sage: e.elllseries(-2)
     0
     sage: e.elllseries(2.1, A=1.1)

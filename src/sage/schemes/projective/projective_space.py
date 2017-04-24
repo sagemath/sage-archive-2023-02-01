@@ -79,6 +79,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import range
 
 from sage.arith.misc import binomial
 
@@ -1277,7 +1278,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         vars = list(R.gens())
         #create the brackets associated to variables
         L1 = []
-        for t in UnorderedTuples(range(n+1), dim+1):
+        for t in UnorderedTuples(list(range(n + 1)), dim+1):
             if all([t[i]<t[i+1] for i in range(dim)]):
                 L1.append(t)
         #create the dual brackets

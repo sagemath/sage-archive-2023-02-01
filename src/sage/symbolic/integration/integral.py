@@ -351,7 +351,13 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
     To prevent automatic evaluation use the ``hold`` argument.
 
-     EXAMPLES::
+    .. SEEALSO::
+
+        To integrate a polynomial over a polytope, use the optional
+        ``latte_int`` package
+        :meth:`sage.geometry.polyhedron.base.Polyhedron_base.integrate`.
+
+    EXAMPLES::
 
         sage: x = var('x')
         sage: h = sin(x)/(cos(x))^2

@@ -39,7 +39,6 @@ from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.rational cimport Rational
 from sage.rings.rational_field import QQ
 from sage.rings.polynomial.polynomial_element cimport Polynomial
-from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.polynomial_integer_dense_flint cimport Polynomial_integer_dense_flint
 
 from sage.structure.parent cimport Parent

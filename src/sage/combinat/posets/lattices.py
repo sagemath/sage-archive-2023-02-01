@@ -59,6 +59,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_supersolvable` | Return ``True`` if the lattice is supersolvable.
     :meth:`~FiniteLatticePoset.is_planar` | Return ``True`` if the lattice has an upward planar drawing.
     :meth:`~FiniteLatticePoset.is_dismantlable` | Return ``True`` if the lattice is dismantlable.
+    :meth:`~FiniteLatticePoset.is_stone` | Return ``True`` if the lattice is a Stone lattice.
     :meth:`~FiniteLatticePoset.is_vertically_decomposable` | Return ``True`` if the lattice is vertically decomposable.
     :meth:`~FiniteLatticePoset.is_simple` | Return ``True`` if the lattice has no nontrivial congruences.
     :meth:`~FiniteLatticePoset.is_isoform` | Return ``True`` if all congruences of the lattice consists of isoform blocks.
@@ -1012,6 +1013,97 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         M3 = DiGraph({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
         diamond = next(self._hasse_diagram.subgraph_search_iterator(M3))
         return (False, diamond[4])
+
+    def is_stone(self, certificate=False):
+        r"""
+        Return ``True`` if the lattice is a Stone lattice, and ``False``
+        otherwise.
+
+        The lattice is expected to be distributive (and hence
+        pseudocomplemented).
+
+        A pseudocomplemented lattice is a Stone lattice if
+
+        .. MATH::
+
+            e^* \vee e^{**} = \top
+
+        for every element `e` of the lattice, where `^*` is the
+        pseudocomplement and `\top` is the top element of the lattice.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, e)`` such that `e^* \vee e^{**} \neq \top`.
+          If ``certificate=False`` return ``True`` or ``False``.
+
+        EXAMPLES:
+
+        Divisor lattices are canonical example::
+
+            sage: D72 = Posets.DivisorLattice(72)
+            sage: D72.is_stone()
+            True
+
+        A non-example::
+
+            sage: L = LatticePoset({1: [2, 3], 2: [4], 3: [4], 4: [5]})
+            sage: L.is_stone()
+            False
+
+        TESTS::
+
+            sage: LatticePoset().is_stone()  # Empty lattice
+            True
+
+            sage: L = LatticePoset(DiGraph('GW?_W@?W@?O?'))
+            sage: L.is_stone()  # Pass the fast check, but not a Stone lattice
+            False
+        """
+        # TODO: For now we can factor only undirected graphs. When that
+        # is extended to directed, use that; see comment below.
+
+        if not self.is_distributive():
+            raise ValueError("the lattice is not distributive")
+
+        from sage.arith.misc import factor
+        ok = (True, None) if certificate else True
+
+        # Needed for the empty lattice that has no bottom element.
+        if self.cardinality() < 5:
+            return ok
+
+        # Quick check:
+        # A Stone lattice is direct product of distributive lattices with
+        # one atom. Return False if for example the lattice has two atoms
+        # and odd number of elements.
+        atoms_n = self._hasse_diagram.out_degree(0)
+        if atoms_n == 1:
+            return ok
+        if not certificate:
+            if sum([x[1] for x in factor(self.cardinality())]) < atoms_n:
+                return False
+            if self._hasse_diagram.in_degree(self.cardinality()-1) < atoms_n:
+                return False
+
+        # Quick check failed
+        one = self.top()
+        tested = set()
+        for e in self:
+            e_ = self.pseudocomplement(e)
+            if e_ not in tested:
+                if self.join(e_, self.pseudocomplement(e_)) != one:
+                    if certificate:
+                        return (False, e)
+                    return False
+                tested.add(e_)
+
+        return ok
 
     def is_distributive(self):
         r"""

@@ -17,6 +17,8 @@ A Sage extension which adds sage-specific features:
 
   - ``%%cython``
 
+  - ``%%fortran``
+
 * preparsing of input
 
 * loading Sage library
@@ -354,6 +356,60 @@ class SageMagics(Magics):
         """
         from sage.misc.cython_c import cython_compile
         return cython_compile(cell)
+
+    @cell_magic
+    def fortran(self, line, cell):
+        """
+        Fortran cell magic.
+
+        This is syntactic sugar on the
+        :func:`~sage.misc.inline_fortran.fortran` function.
+
+        INPUT:
+
+        - ``line`` -- ignored.
+
+        - ``cell`` -- string. The Cython source code to process.
+
+        OUTPUT:
+
+        None. The Fortran code is compiled and loaded.
+
+        EXAMPLES::
+
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.run_cell('''
+            ....: %%fortran
+            ....: C FILE: FIB1.F
+            ....:       SUBROUTINE FIB(A,N)
+            ....: C
+            ....: C     CALCULATE FIRST N FIBONACCI NUMBERS
+            ....: C
+            ....:       INTEGER N
+            ....:       REAL*8 A(N)
+            ....:       DO I=1,N
+            ....:          IF (I.EQ.1) THEN
+            ....:             A(I) = 0.0D0
+            ....:          ELSEIF (I.EQ.2) THEN
+            ....:             A(I) = 1.0D0
+            ....:          ELSE
+            ....:             A(I) = A(I-1) + A(I-2)
+            ....:          ENDIF
+            ....:       ENDDO
+            ....:       END
+            ....: C END FILE FIB1.F
+            ....: ''')
+            sage: fib
+            <fortran object>
+            sage: from numpy import array
+            sage: a = array(range(10), dtype=float)
+            sage: fib(a, 10)
+            sage: a
+            array([  0.,   1.,   1.,   2.,   3.,   5.,   8.,  13.,  21.,  34.])
+        """
+        from sage.misc.inline_fortran import fortran
+        return fortran(cell)
 
 
 class SageCustomizations(object):

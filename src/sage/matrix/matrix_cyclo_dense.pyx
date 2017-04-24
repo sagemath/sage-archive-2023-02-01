@@ -1869,6 +1869,21 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: subdiv = super(type(Mp),Mp).tensor_product(Np).subdivisions()
             sage: Mp.tensor_product(Np).subdivisions() == subdiv
             True
+
+        Check that `m \times 0` and `0 \times m` matrices work
+        (:trac:`22769`)::
+
+            sage: m1 = matrix(C, 1, 0, [])
+            sage: m2 = matrix(C, 2, 2, [1, 2, 3, 4])
+            sage: m1.tensor_product(m2).dimensions()
+            (2, 0)
+            sage: m2.tensor_product(m1).dimensions()
+            (2, 0)
+            sage: m3 = matrix(C, 0, 3, [])
+            sage: m3.tensor_product(m2).dimensions()
+            (0, 6)
+            sage: m2.tensor_product(m3).dimensions()
+            (0, 6)
         """
         if not isinstance(A, Matrix):
             raise TypeError('tensor product requires a second matrix, not {0}'.format(A))

@@ -8062,9 +8062,30 @@ cdef class Matrix(matrix1.Matrix):
             Traceback (most recent call last):
             ...
             TypeError: tensor product requires a second matrix, not junk
+
+        TESTS:
+
+        Check that `m \times 0` and `0 \times m` matrices work
+        (:trac:`22769`)::
+
+            sage: m1 = matrix(QQ, 1, 0, [])
+            sage: m2 = matrix(QQ, 2, 2, [1, 2, 3, 4])
+            sage: m1.tensor_product(m2).dimensions()
+            (2, 0)
+            sage: m2.tensor_product(m1).dimensions()
+            (2, 0)
+            sage: m3 = matrix(QQ, 0, 3, [])
+            sage: m3.tensor_product(m2).dimensions()
+            (0, 6)
+            sage: m2.tensor_product(m3).dimensions()
+            (0, 6)
         """
         if not isinstance(A, Matrix):
             raise TypeError('tensor product requires a second matrix, not {0}'.format(A))
+        # Special case when one of the matrices is 0 \times m or m \times 0
+        if self.nrows() == 0 or self.ncols() == 0 or A.nrows() == 0 or A.ncols() == 0:
+            return sage.matrix.constructor.matrix(QQ, self.nrows()*A.nrows(),
+                                                  self.ncols()*A.ncols(), [])
         return sage.matrix.constructor.block_matrix(self.nrows(),self.ncols(),[x*A for x in self.list()], subdivide=subdivide)
 
     def randomize(self, density=1, nonzero=False, *args, **kwds):

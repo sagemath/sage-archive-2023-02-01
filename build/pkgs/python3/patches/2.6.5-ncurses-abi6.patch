@@ -1,6 +1,10 @@
-diff -ur src.orig/Include/py_curses.h src/Include/py_curses.h
---- src.orig/Include/py_curses.h	2012-08-01 10:51:27.075830866 +0200
-+++ src/Include/py_curses.h	2012-08-01 11:01:05.311809409 +0200
+Fixes compilation of the curses module on Cygwin; see
+https://bugs.python.org/issue14438
+
+This patch was never accepted upstream, though there is a new fix for it
+in progress at https://bugs.python.org/issue28190 but also not yet accepted.
+--- a/Include/py_curses.h	2009-09-06 16:23:05.000000000 -0500
++++ b/Include/py_curses.h	2010-04-14 15:21:23.008971400 -0500
 @@ -17,6 +17,13 @@
  #define NCURSES_OPAQUE 0
  #endif /* __APPLE__ */
@@ -15,4 +19,3 @@ diff -ur src.orig/Include/py_curses.h src/Include/py_curses.h
  #ifdef __FreeBSD__
  /*
  ** On FreeBSD, [n]curses.h and stdlib.h/wchar.h use different guards
-Seulement dans src/Include: py_curses.h.orig

@@ -3,9 +3,9 @@ from __future__ import print_function
 
 import sys
 
-include "sage/ext/cdefs.pxi"
 include "cysignals/signals.pxi"
 
+from sage.libs.gmp.mpz cimport *
 from sage.rings.all import GF
 from sage.libs.flint.nmod_poly cimport *
 from sage.libs.flint.ulong_extras cimport n_jacobi

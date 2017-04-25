@@ -883,10 +883,6 @@ class GenericTerm(MultiplicativeGroupElement):
 
             sage: g1 <= g2
             True
-            sage: o1, g1
-            (O(x^(-1)), Generic Term with growth x)
-            sage: o1 <= g1
-            True
 
         If the elements of the common parent do not possess
         coefficients, then only the growth is compared::

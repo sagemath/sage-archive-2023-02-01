@@ -66,6 +66,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_uniform` | Return ``True`` if all congruences of the lattice consists of equal-sized blocks.
     :meth:`~FiniteLatticePoset.is_regular` | Return ``True`` if all congruences of lattice are determined by any of the congruence blocks.
     :meth:`~FiniteLatticePoset.is_subdirectly_reducible` | Return ``True`` if the lattice is a sublattice of the product of smaller lattices.
+    :meth:`~FiniteLatticePoset.is_constructible_by_doublings` | Return ``True`` if the lattice is constructible by doublings from the one-element lattice.
     :meth:`~FiniteLatticePoset.breadth` | Return the breadth of the lattice.
 
 **Specific elements**
@@ -3599,24 +3600,47 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             subset of the lattice with a unique minimal element
           * ``'upper'`` - allow doublings of upper pseudo-interval; that is, a
             subset of the lattice with a unique maximal element
-          * ``'convex'`` - allow doubling of any convex set (not implemented)
+          * ``'convex'`` - allow doubling of any convex set
+          * ``'any'`` - allow doubling of any set
 
         .. SEEALSO::
 
             :meth:`day_doubling`
 
-        EXAMPLES::
+        EXAMPLES:
+
+        The pentagon can be constructed by doubling intervals; the 5-element
+        diamond can not be constructed by any doublings::
 
             sage: Posets.PentagonPoset().is_constructible_by_doublings('interval')
             True
+
+            sage: Posets.DiamondPoset(5).is_constructible_by_doublings('any')
+            False
+
+        After doubling both upper and lower pseudo-interval a lattice is
+        constructible by convex subset doubling::
+
             sage: L = Posets.BooleanLattice(2)
             sage: L = L.day_doubling([0, 1, 2])  # A lower pseudo-interval
             sage: L.is_constructible_by_doublings('interval')
             False
             sage: L.is_constructible_by_doublings('lower')
             True
-            sage: Posets.DiamondPoset(5).is_constructible_by_doublings('convex')  # Not implemented
+            sage: L = L.day_doubling([(3,0), (1,1), (2,1)])  # An upper pseudo-interval
+            sage: L.is_constructible_by_doublings('upper')
             False
+            sage: L.is_constructible_by_doublings('convex')
+            True
+
+        An example of a lattice that can be constructed by doublings
+        of a non-convex subsets::
+
+            sage: L = LatticePoset(DiGraph('OQC?a?@CO?G_C@?GA?O??_??@?BO?A_?G??C??_?@???'))
+            sage: L.is_constructible_by_doublings('convex')
+            False
+            sage: L.is_constructible_by_doublings('any')
+            True
 
         TESTS::
 
@@ -3627,13 +3651,13 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         According to [HOLM2016]_ a lattice `L` is lower bounded if and only if
         `|\mathrm{Ji}(L)| = |\mathrm{Ji}(\mathrm{Con}\ L)|`, and so dually
-        `|\mathrm{Mi}(L)| = |\mathrm{Mi}(\mathrm{Con}\ L)|` in
-        upper bounded lattices.
+        `|\mathrm{Mi}(L)| = |\mathrm{Mi}(\mathrm{Con}\ L)|` in upper bounded
+        lattices. The same reference gives a test for being constructible by
+        convex or by any subset.
         """
-        if type not in ['interval', 'lower', 'upper', 'convex']:
-            raise ValueError("type must be one on 'interval', 'lower', 'upper' or 'convex'")
-        if type == 'convex':
-            raise NotImplementedError("type 'convex' is not yet implemented")
+        if type not in ['interval', 'lower', 'upper', 'convex', 'any']:
+            raise ValueError("type must be one of 'interval', 'lower', 'upper', 'convex' or 'any'")
+
         if self.cardinality() < 5:
             return True
 
@@ -3647,6 +3671,30 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if type == 'upper':
             return (len(self.meet_irreducibles()) ==
                     self._hasse_diagram.principal_congruences_poset()[0].cardinality())
+        if type == 'convex':
+            return self._hasse_diagram.is_congruence_normal()
+        # type == 'any'
+        def splitting_depth_2(a, b):
+            """
+            Return ``True`` if every block of `b` is made from
+            combining at most two blocks of `a`.
+            """
+            return all(len([x for x in a if x.issubset(y)]) <= 2 for y in b)
+
+        conL = self.congruences_lattice()
+        todo = [conL[0]]
+        reachable = []
+
+        while todo:
+            e = todo.pop()
+            for e_up in conL.upper_covers(e):
+                if e_up not in reachable:
+                    if splitting_depth_2(e, e_up):
+                        if len(e_up) == 1:  # = the top of the cong. lattice
+                            return True
+                        reachable.append(e_up)
+                        todo.append(e_up)
+        return False
 
     def is_isoform(self, certificate=False):
         """

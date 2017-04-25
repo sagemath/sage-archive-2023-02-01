@@ -44,6 +44,12 @@ The following constructions are available:
     :meth:`~sage.matrix.special.vandermonde`
     :meth:`~sage.matrix.special.vector_on_axis_rotation_matrix`
     :meth:`~sage.matrix.special.zero_matrix`
+
+The Combinatorics module provides further matrix features, such as Hadamard
+matrices and Latin squares. See:
+
+    - :ref:`sage.combinat.matrices.hadamard_matrix`
+    - :ref:`sage.combinat.matrices.latin`
 """
 
 #*****************************************************************************

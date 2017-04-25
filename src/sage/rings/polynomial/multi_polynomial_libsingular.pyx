@@ -1344,7 +1344,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: R = IntegerModRing(1024)['x,y']
             sage: singular(R)
             polynomial ring, over a ring (with zero-divisors), global ordering
-            //   coefficients: Z/2^10
+            //   coefficients: ZZ/(2^10)
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y

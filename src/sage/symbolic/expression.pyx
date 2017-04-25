@@ -7165,8 +7165,12 @@ cdef class Expression(CommutativeRingElement):
 
     def step(self, hold=False):
         """
-        Return the value of the Heaviside step function, which is 0 for
+        Return the value of the unit step function, which is 0 for
         negative x, 1 for 0, and 1 for positive x.
+
+        .. SEEALSO::
+
+            :class:`sage.functions.generalized.FunctionUnitStep`
 
         EXAMPLES::
 

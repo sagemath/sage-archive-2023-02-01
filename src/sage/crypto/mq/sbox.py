@@ -318,7 +318,7 @@ class SBox(SageObject):
             sage: S([0,0,0])
             [1, 1]
         """
-        if isinstance(X, (int, long, Integer)):
+        if isinstance(X, integer_types + (Integer,)):
             return self._S[ZZ(X)]
 
         try:
@@ -1025,7 +1025,7 @@ class SBox(SageObject):
         n = self.n
         ret = BooleanFunction(m)
 
-        if isinstance(b, (int, long, Integer)):
+        if isinstance(b, integer_types + (Integer,)):
             b = vector(GF(2), self.to_bits(b, n))
         elif len(b) == n:
             b = vector(GF(2), b)

@@ -15,6 +15,7 @@ Miscellaneous arithmetic functions
 
 from __future__ import absolute_import, print_function
 from six.moves import range
+from six import integer_types
 
 import math
 
@@ -1321,7 +1322,7 @@ def divisors(n):
     if not n:
         raise ValueError("n must be nonzero")
 
-    if isinstance(n, (int, long)):
+    if isinstance(n, integer_types):
         n = ZZ(n) # we have specialized code for this case, make sure it gets used
 
     try:
@@ -2270,7 +2271,7 @@ def factor(n, proof=None, int_=False, algorithm='pari', verbose=0, **kwds):
         [4, 3, 5, 7]
 
     """
-    if isinstance(n, (int, long)):
+    if isinstance(n, integer_types):
         n = ZZ(n)
 
     if isinstance(n, Integer):
@@ -2759,7 +2760,7 @@ def crt(a,b,m=None,n=None):
     """
     if isinstance(a, list):
         return CRT_list(a, b)
-    if isinstance(a, (int, long)):
+    if isinstance(a, integer_types):
         a = Integer(a) # otherwise we get an error at (b-a).quo_rem(g)
     g, alpha, beta = XGCD(m, n)
     q, r = (b - a).quo_rem(g)
@@ -3696,7 +3697,7 @@ class Moebius:
             sage: Moebius().__call__(7)
             -1
         """
-        if isinstance(n, (int, long)):
+        if isinstance(n, integer_types):
             n = ZZ(n)
         elif not isinstance(n, Integer):
             # Use a generic algorithm.
@@ -4221,7 +4222,7 @@ def falling_factorial(x, a):
     """
     from sage.symbolic.expression import Expression
     x = py_scalar_to_element(x)
-    if (isinstance(a, (Integer, int, long)) or
+    if (isinstance(a, (Integer,) + integer_types) or
         (isinstance(a, Expression) and
          a.is_integer())) and a >= 0:
         return prod(((x - i) for i in range(a)), z=x.parent().one())
@@ -4316,7 +4317,7 @@ def rising_factorial(x, a):
     """
     from sage.symbolic.expression import Expression
     x = py_scalar_to_element(x)
-    if (isinstance(a, (Integer, int, long)) or
+    if (isinstance(a, (Integer,) + integer_types) or
         (isinstance(a, Expression) and
          a.is_integer())) and a >= 0:
         return prod(((x + i) for i in range(a)), z=x.parent().one())

@@ -118,7 +118,11 @@
 
     // Get any default options they might have for this session
     [defaults synchronize];
-    NSString *jupyterPath = [defaults objectForKey:@"defaultJupyterPath"];
+    NSString *jupyterPath = [[defaults objectForKey:@"defaultJupyterPath"]
+                             stringByExpandingTildeInPath];
+    NSFileManager *fileMgr = [NSFileManager defaultManager];
+    [fileMgr createDirectoryAtPath:jupyterPath withIntermediateDirectories:YES attributes:nil error:nil];
+
     NSString *defArgs = [[defaults dictionaryForKey:@"DefaultArguments"]
                          objectForKey:@"jupyter"];
 
@@ -465,7 +469,7 @@ You can change it later in Preferences."];
                 [defaults setBool:YES forKey:@"useAltSageBinary"];
                 [defaults setObject:sageBinary forKey:@"SageBinary"];
                 [sageBinary retain];
-                return;
+                break;
             }
             [openDlg setMessage:@"That does not appear to be a valid sage executable.\nPlease choose another, or cancel to assume sage is in PATH."];
         }
@@ -476,6 +480,30 @@ You can change it later in Preferences."];
         NSLog(@"WARNING: Could not find a good sage executable, falling back to sage and hoping it's in PATH.");
         sageBinary = @"sage";
     }
+
+    // Where to save Jupyter Notebooks
+    NSString *jupyterPath = [[defaults objectForKey:@"defaultJupyterPath"]
+                             stringByExpandingTildeInPath];
+    NSLog(@"defaultJupyterPath: %@",jupyterPath);
+    if ( ![fileMgr fileExistsAtPath:jupyterPath isDirectory:&isDir] || !isDir ) {
+
+        // Create a File Open Dialog class
+        NSOpenPanel *openDlg = [NSOpenPanel openPanel];
+        [openDlg setTitle:@"Please choose a Jupyter Directory"];
+        [openDlg setMessage:@"Where do you want to save Jupyter Notebooks?\n\
+(You can create a new directory with Command-shift N)\n\
+You can change it later in Preferences."];
+        [openDlg setCanChooseFiles:NO];
+        [openDlg setCanChooseDirectories:YES];
+
+        // Display the dialog.  If the OK button was pressed,
+        // process the files.
+        if ( [openDlg runModalForDirectory:nil file:nil] == NSOKButton ) {
+            jupyterPath = [[openDlg filenames] objectAtIndex:0];
+        }
+    }
+    [defaults setObject:jupyterPath forKey:@"defaultJupyterPath"];
+
 }
 
 -(void)ensureReadWrite {

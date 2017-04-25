@@ -734,13 +734,16 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
             A 2-dimensional polyhedron in (Universal Cyclotomic Field)^2 defined as the convex hull of 14 vertices
 
         .. PLOT::
-            :width: 500 px
+            :width: 300 px
 
             W = CoxeterGroup(['I',7])
             p = W.permutahedron()
             sphinx_plot(p)
 
         """
+        if not self.is_finite():
+            raise TypeError('Coxeter groups must be finite to construct the permutahedron')
+
         n = self.coxeter_matrix().rank()
         weights = self.fundamental_weights()
         if point is None:

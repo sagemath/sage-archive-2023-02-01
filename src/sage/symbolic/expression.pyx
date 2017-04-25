@@ -7166,7 +7166,7 @@ cdef class Expression(CommutativeRingElement):
     def step(self, hold=False):
         """
         Return the value of the Heaviside step function, which is 0 for
-        negative x, 1/2 for 0, and 1 for positive x.
+        negative x, 1 for 0, and 1 for positive x.
 
         EXAMPLES::
 
@@ -7174,7 +7174,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(1.5).step()
             1
             sage: SR(0).step()
-            1/2
+            1
             sage: SR(-1/2).step()
             0
             sage: SR(float(-1)).step()
@@ -7186,7 +7186,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(2).step()
             1
             sage: SR(2).step(hold=True)
-            step(2)
+            unit_step(2)
 
         """
         return new_Expression_from_GEx(self._parent,

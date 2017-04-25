@@ -2607,3 +2607,27 @@ class Function_sum(BuiltinFunction):
                                conversions=dict(maxima='sum'))
 
 symbolic_sum = Function_sum()
+
+
+class Function_limit(BuiltinFunction):
+    """
+    Placeholder symbolic limit function that is only accessible internally.
+
+    EXAMPLES::
+
+        sage: from sage.functions.other import symbolic_limit as slimit
+        sage: slimit(1/x, x, +oo)
+        limit(1/x, x, +Infinity)
+    """
+    def __init__(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.functions.other import symbolic_limit as slimit
+            sage: maxima(slimit(1/x, x, +oo))
+            0
+        """
+        BuiltinFunction.__init__(self, "limit", nargs=3,
+                               conversions=dict(maxima='limit'))
+
+symbolic_limit = Function_limit()

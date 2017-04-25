@@ -41,6 +41,7 @@ REFERENCES:
 #*****************************************************************************
 # python3
 from __future__ import division, absolute_import
+from six import add_metaclass
 
 from sage.structure.list_clone import ClonableArray
 from sage.combinat.abstract_tree import (AbstractClonableTree,
@@ -60,6 +61,7 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class BinaryTree(AbstractClonableTree, ClonableArray):
     """
     Binary trees.
@@ -119,8 +121,6 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         sage: t1 == t1c
         False
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
         """
@@ -4450,7 +4450,7 @@ class LabelledBinaryTrees(LabelledOrderedTrees):
         """
         Return a labelled binary tree.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: LabelledBinaryTrees().an_element()   # indirect doctest
             toto[42[3[., .], 3[., .]], 5[None[., .], None[., .]]]

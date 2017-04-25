@@ -24,10 +24,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
-
-from builtins import zip
-
-from six.moves import range
+from six import add_metaclass
+from six.moves import range, zip
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.parent import Parent
@@ -49,6 +47,8 @@ from sage.combinat.skew_partition import SkewPartition, SkewPartitions
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.words.words import Words
 
+
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class SkewTableau(ClonableList):
     """
     A skew tableau.
@@ -79,8 +79,6 @@ class SkewTableau(ClonableList):
         [[None, None, 2, 3], [1, 3, 3], [3, 3], [3]]
 
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, st=None, expr=None, chain=None):
         """
@@ -668,7 +666,8 @@ class SkewTableau(ClonableList):
             [[None, 1], [1]]
         """
         t = self[:]
-        return SkewTableau( [z for z in map(lambda x: [y for y in x if y is None or y <= n], t) if z != []] )
+        return SkewTableau([z for z in [[y for y in x if y is None or y <= n]
+                                        for x in t] if z])
 
     def restriction_outer_shape(self, n):
         """

@@ -204,11 +204,6 @@ def _extract_embedded_position(docstring):
 
         sage: cython('''cpdef test_funct(x,y): return''')
         sage: print(open(_extract_embedded_position(inspect.getdoc(test_funct))[1]).read())
-        <BLANKLINE>
-        include "cysignals/signals.pxi"  # ctrl-c interrupt block support
-        include "stdsage.pxi"
-        <BLANKLINE>
-        include "cdefs.pxi"
         cpdef test_funct(x,y): return
 
     AUTHORS:
@@ -756,7 +751,7 @@ def _grep_first_pair_of_parentheses(s):
     count. If no matching pair of parentheses can be found, a
     ``SyntaxError`` is raised.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.misc.sageinspect import _grep_first_pair_of_parentheses
         sage: code = 'def foo(a="\'):", b=4):\n    return'
@@ -1609,15 +1604,15 @@ def _sage_getdoc_unformatted(obj):
         ''
 
     Construct an object raising an exception when accessing the
-    ``_sage_doc_`` attribute. This should not give an error in
+    ``__doc__`` attribute. This should not give an error in
     ``_sage_getdoc_unformatted``, see :trac:`19671`::
 
         sage: class NoSageDoc(object):
         ....:     @property
-        ....:     def _sage_doc_(self):
+        ....:     def __doc__(self):
         ....:         raise Exception("no doc here")
         sage: obj = NoSageDoc()
-        sage: obj._sage_doc_
+        sage: obj.__doc__
         Traceback (most recent call last):
         ...
         Exception: no doc here
@@ -1632,14 +1627,9 @@ def _sage_getdoc_unformatted(obj):
     if obj is None:
         return ''
     try:
-        getdoc = obj._sage_doc_
-    except Exception:
         r = obj.__doc__
-    else:
-        try:
-            r = getdoc()
-        except TypeError:  # This can occur if obj is a class
-            r = obj.__doc__
+    except Exception:
+        return ''
 
     # Check if the __doc__ attribute was actually a string, and
     # not a 'getset_descriptor' or similar.
@@ -2002,7 +1992,7 @@ def sage_getsourcelines(obj):
 
         sage: cython('''cpdef test_funct(x,y): return''')
         sage: sage_getsourcelines(test_funct)
-        (['cpdef test_funct(x,y): return\n'], 6)
+        (['cpdef test_funct(x,y): return\n'], 1)
 
     The following tests that an instance of ``functools.partial`` is correctly
     dealt with (see :trac:`9976`)::
@@ -2114,8 +2104,8 @@ def sage_getsourcelines(obj):
 
     # First, we deal with nested classes. Their name contains a dot, and we
     # have a special function for that purpose.
-    if (not hasattr(obj, '__class__')) or hasattr(obj,'__metaclass__'):
-        # That hapens for ParentMethods
+    if (not hasattr(obj, '__class__')) or (isinstance(obj, type) and type(obj) is not type):
+        # That happens for ParentMethods
         # of categories
         if '.' in obj.__name__ or '.' in getattr(obj,'__qualname__',''):
             return _sage_getsourcelines_name_with_dot(obj)
@@ -2274,7 +2264,7 @@ def __internal_tests():
         sage: sage_getdef(sage.rings.integer.Integer.factor, obj_name='factor')
         "factor(algorithm='pari', proof=None, limit=None, int_=False, verbose=0)"
 
-    This used to be problematic, but was fixed in #10094::
+    This used to be problematic, but was fixed in :trac:`10094`::
 
         sage: sage_getsource(sage.rings.integer.Integer.__init__)
         '    def __init__(self, x=None, base=0):\n...'

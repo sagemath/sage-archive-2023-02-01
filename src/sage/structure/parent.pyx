@@ -91,16 +91,6 @@ This came up in some subtle bug once::
 
     sage: gp(2) + gap(3)
     5
-
-::
-
-    sage: sage.structure.parent.normalize_names(5, 'x')
-    doctest:...: DeprecationWarning:
-    Importing normalize_names from here is deprecated. If you need to use it, please import it directly from sage.structure.category_object
-    See http://trac.sagemath.org/19675 for details.
-    ('x0', 'x1', 'x2', 'x3', 'x4')
-    sage: sage.structure.parent.normalize_names(2, ['x','y'])
-    ('x', 'y')
 """
 from __future__ import print_function
 
@@ -115,11 +105,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.sets_cat import Sets, EmptySetError
 from copy import copy
 from sage.misc.lazy_format import LazyFormat
-from cpython.object cimport Py_NE
-
-
-from sage.misc.lazy_import import LazyImport
-normalize_names = LazyImport("sage.structure.category_object", "normalize_names", deprecation=19675)
+from cpython.object cimport Py_NE, Py_EQ
 
 
 cdef _record_exception():
@@ -967,7 +953,7 @@ cdef class Parent(category_object.CategoryObject):
         be inherited. This is, e.g., used when creating twosided
         ideals of matrix algebras. See :trac:`7797`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: MS = MatrixSpace(QQ,2,2)
 
@@ -1198,7 +1184,7 @@ cdef class Parent(category_object.CategoryObject):
 
     def __nonzero__(self):
         """
-        By default, all Parents are treated as True when used in an if
+        By default, all Parents are treated as ``True`` when used in an if
         statement. Override this method if other behavior is desired
         (for example, for empty sets).
 
@@ -1208,36 +1194,6 @@ cdef class Parent(category_object.CategoryObject):
             Yes
         """
         return True
-    
-    cpdef bint _richcmp(left, right, int op) except -2:
-        """
-        Compare left and right.
-
-        This is called by a few parents through their methods `__richcmp__`.
-
-        EXAMPLES::
-
-            sage: ZZ < QQ
-            True
-        """
-        if left is right:
-            return rich_to_bool(op, 0)
-
-        if not isinstance(right, Parent) or not isinstance(left, Parent):
-            # One is not a parent -- not equal and not ordered
-            return op == Py_NE
-
-        try:
-            return left._richcmp_(right, op)
-        except AttributeError:
-            pass
-
-        try:
-            return rich_to_bool(op, left._cmp_(right))
-        except AttributeError:
-            pass
-
-        return op == Py_NE
 
     cpdef int _cmp_(left, right) except -2:
         """
@@ -2862,25 +2818,39 @@ cdef class Set_PythonType_class(Set_generic):
         """
         return -hash(self._type)
 
-    cpdef int _cmp_(self, other) except -2:
+    def __richcmp__(self, other, int op):
         """
         Two Python type sets are considered the same if they contain the same
         type.
 
         EXAMPLES::
 
-            sage: S = sage.structure.parent.Set_PythonType(int)
-            sage: S == S
+            sage: from sage.structure.parent import Set_PythonType
+            sage: S = Set_PythonType(int)
+            sage: T = Set_PythonType(int)
+            sage: U = type(S)(int)  # bypass caching
+            sage: S is T
             True
-            sage: S == sage.structure.parent.Set_PythonType(float)
+            sage: S == T
+            True
+            sage: S is U
+            False
+            sage: S == U
+            True
+            sage: S == Set_PythonType(float)
+            False
+            sage: S == int
             False
         """
+        if not (op == Py_EQ or op == Py_NE):
+            return NotImplemented
         if self is other:
-            return 0
-        if isinstance(other, Set_PythonType_class):
-            return cmp(self._type, other._type)
-        else:
-            return cmp(self._type, other)
+            return rich_to_bool(op, 0)
+        if not isinstance(other, Set_PythonType_class):
+            return rich_to_bool(op, 1)
+        s = (<Set_PythonType_class>self)._type
+        o = (<Set_PythonType_class>other)._type
+        return rich_to_bool(op, s is not o)
 
     def __contains__(self, x):
         """

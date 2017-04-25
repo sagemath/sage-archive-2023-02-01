@@ -15,7 +15,6 @@
 from __future__ import print_function
 
 include "cysignals/signals.pxi"
-include "sage/ext/cdefs.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 

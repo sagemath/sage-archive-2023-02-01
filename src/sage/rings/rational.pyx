@@ -2000,7 +2000,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         sig_on()
         mpq_get_str(s, base, self.value)
         sig_off()
-        k = <object> PyString_FromString(s)
+        k = str(s)
         PyMem_Free(s)
         return k
 
@@ -2847,7 +2847,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         Return the numerator of this rational number.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: x = -5/11
             sage: x.numer()
@@ -2862,7 +2862,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         Return the numerator of this rational number.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: x = 5/11
             sage: x.numerator()
@@ -2971,7 +2971,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (0/1).factor()
             Traceback (most recent call last):
             ...
-            ArithmeticError: Prime factorization of 0 not defined.
+            ArithmeticError: factorization of 0 is not defined
         """
         return self.numerator().factor() * \
            sage.structure.factorization.Factorization([(p,-e) for p, e in self.denominator().factor()])
@@ -3621,14 +3621,14 @@ cdef class Rational(sage.structure.element.FieldElement):
     # Support for interfaces
     ##################################################
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Returns the PARI version of this rational number.
 
         EXAMPLES::
 
             sage: n = 9390823/17
-            sage: m = n._pari_(); m
+            sage: m = n.__pari__(); m
             9390823/17
             sage: type(m)
             <type 'sage.libs.cypari2.gen.Gen'>

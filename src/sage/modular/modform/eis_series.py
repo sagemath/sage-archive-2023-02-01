@@ -294,7 +294,7 @@ def __find_eisen_chars_gammaH(N, H, k):
     Find all triples `(\psi_1, \psi_2, t)` that give rise to an Eisenstein series of weight `k` on
     `\Gamma_H(N)`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: pars =  sage.modular.modform.eis_series.__find_eisen_chars_gammaH(15, [2], 5)
         sage: [(x[0].values_on_gens(), x[1].values_on_gens(), x[2]) for x in pars]

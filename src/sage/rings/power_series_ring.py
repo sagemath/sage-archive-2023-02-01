@@ -560,7 +560,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
                                                        _CommutativeRings))
         Nonexact.__init__(self, default_prec)
         if self.Element is PowerSeries_pari:
-            self.__generator = self.element_class(self, R.gen()._pari_())
+            self.__generator = self.element_class(self, R.gen().__pari__())
         else:
             self.__generator = self.element_class(self, R.gen(), is_gen=True)
 
@@ -810,7 +810,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
         the univariate polynomial ring with respect to the indeterminate
         (to a given precision).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = PowerSeriesRing(ZZ, 'x')
             sage: c, S = R.construction(); S
@@ -897,7 +897,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
         This gets called implicitly when one constructs a ring homomorphism
         from a power series ring.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = RationalField(); R.<t>=PowerSeriesRing(S)
             sage: f = R.hom([0])

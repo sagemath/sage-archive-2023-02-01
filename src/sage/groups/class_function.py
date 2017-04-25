@@ -267,7 +267,7 @@ class ClassFunction_gap(SageObject):
             zeta3
             sage: G = GL(2,3)
             sage: chi = G.irreducible_characters()[3]
-            sage: g = G.conjugacy_class_representatives()[6]
+            sage: g = G.conjugacy_classes_representatives()[6]
             sage: chi(g)
             zeta8^3 + zeta8
 
@@ -950,7 +950,7 @@ class ClassFunction_libgap(SageObject):
 
             sage: G = GL(2,3)
             sage: chi = G.irreducible_characters()[3]
-            sage: g = G.conjugacy_class_representatives()[6]
+            sage: g = G.conjugacy_classes_representatives()[6]
             sage: chi(g)
             zeta8^3 + zeta8
 

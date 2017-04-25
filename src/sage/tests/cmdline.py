@@ -279,7 +279,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: dir = tmp_dir(); name = 'sage_test_file.spyx'
         sage: fullname = os.path.join(dir, name)
         sage: F = open(fullname, 'w')
-        sage: F.write("from sage.rings.integer cimport Integer\ncdef long i, s = 0\nsig_on()\nfor i in range(1000): s += i\nsig_off()\nprint(Integer(s))")
+        sage: F.write("from cysignals.signals cimport *\nfrom sage.rings.integer cimport Integer\ncdef long i, s = 0\nsig_on()\nfor i in range(1000): s += i\nsig_off()\nprint(Integer(s))")
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", fullname])
         sage: print(out)
@@ -651,8 +651,8 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: (out, err, ret) = test_executable(L) # optional - rst2ipynb
         sage: print(out)                           # optional - rst2ipynb
         {
-         "nbformat_minor": 0,
-         "nbformat": 4,
+         "nbformat_minor": ...,
+         "nbformat": ...,
          "cells": [
           {
            "source": [
@@ -732,8 +732,8 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         ('', '', 0)
         sage: print(open(output, 'r').read()) # optional - rst2ipynb
         {
-         "nbformat_minor": 0,
-         "nbformat": 4,
+         "nbformat_minor": ...,
+         "nbformat": ...,
          "cells": [
           {
            "source": [

@@ -7,7 +7,8 @@ example, there are functions for quickly constructing an n x 4 matrix
 from a list of n rational quaternions.
 
 AUTHORS:
-    - William Stein
+
+- William Stein
 """
 
 #*****************************************************************************
@@ -203,9 +204,9 @@ def rational_quaternions_from_integral_matrix_and_denom(A, Matrix_integer_dense 
     mpz_init(tmp)
 
     if reverse:
-        rng = range(H.nrows()-1,-1,-1)
+        rng = xrange(H.nrows()-1, -1, -1)
     else:
-        rng = range(H.nrows())
+        rng = xrange(H.nrows())
 
     for i in rng:
         x = <QuaternionAlgebraElement_rational_field> QuaternionAlgebraElement_rational_field.__new__(QuaternionAlgebraElement_rational_field)

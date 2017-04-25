@@ -2060,14 +2060,14 @@ cdef class GapElement_Function(GapElement):
         return make_any_gap_element(self.parent(), result)
 
 
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         r"""
         Return the help string
 
         EXAMPLES::
 
             sage: f = libgap.CyclicGroup
-            sage: 'constructs  the  cyclic  group' in f._sage_doc_()
+            sage: 'constructs  the  cyclic  group' in f.__doc__
             True
 
         You would get the full help by typing ``f?`` in the command line.
@@ -2535,7 +2535,7 @@ cdef class GapElement_Record(GapElement):
         first time the string is encountered, a new integer is
         returned(!)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: rec = libgap.eval('rec(first:=123, second:=456)')
             sage: rec.record_name_to_index('first')   # random output
@@ -2673,3 +2673,9 @@ cdef class GapElement_RecordIterator(object):
         val = make_any_gap_element(self.rec.parent(), result)
         self.i += 1
         return (key, val)
+
+
+# Add support for _instancedoc_
+from sage.docs.instancedoc import instancedoc
+instancedoc(GapElement_Function)
+instancedoc(GapElement_MethodProxy)

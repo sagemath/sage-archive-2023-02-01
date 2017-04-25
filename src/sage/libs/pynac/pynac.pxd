@@ -1,6 +1,7 @@
 # distutils: language = c++
 # distutils: libraries = pynac gmp
-# distutils: extra_compile_args = -std=c++11
+# distutils: extra_compile_args = -std=c++11 SINGULAR_CFLAGS
+# pynac/basic.h includes factory/factory.h so this ^ is needed to find it
 """
 Declarations for pynac, a Python frontend for ginac
 
@@ -149,7 +150,12 @@ cdef extern from "sage/libs/pynac/wrap.h":
     py_object_from_numeric(GEx e)     except +
 
     # Algorithms
-    GEx g_gcd "gcd"(GEx a, GEx b)   except +
+    GEx g_gcd "gcd"(GEx a, GEx b) except +
+    GEx g_gosper_term "gosper_term"(GEx the_ex, GEx n) except +
+    GEx g_gosper_sum_definite "gosper_sum_definite"(GEx the_ex,
+            GEx n, GEx a, GEx b, int* p) except +
+    GEx g_gosper_sum_indefinite "gosper_sum_indefinite"(GEx the_ex,
+            GEx n, int* p) except +
     GEx to_gamma(GEx expr)          except +
     GEx gamma_normalize(GEx expr)   except +
     GEx g_resultant "resultant"(GEx a, GEx b, GEx v) except +

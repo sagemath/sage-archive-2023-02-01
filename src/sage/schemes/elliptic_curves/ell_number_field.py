@@ -17,7 +17,7 @@ Currently Sage can obtain local information about `E/K_v` for finite places
 the torsion subgroup of the Mordell-Weil group `E(K)`, and it can work with
 isogenies defined over `K`.
 
-EXAMPLE::
+EXAMPLES::
 
     sage: K.<i> = NumberField(x^2+1)
     sage: E = EllipticCurve([0,4+i])
@@ -890,7 +890,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             r = ((-a2 + s*a1 +s*s)/3).round()
             t = ((-a3 - r*a1)/2).round('up')
         else:
-            pariK = K._pari_()
+            pariK = K.__pari__()
             s = K(pariK.nfeltdiveuc(-a1, 2))
             r = K(pariK.nfeltdiveuc(-a2 + s*a1 + s*s, 3))
             t = K(pariK.nfeltdiveuc(-a3 - r*a1, 2))
@@ -2192,7 +2192,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: K.<t> = NumberField(x^4 + x^3 + 11*x^2 + 41*x + 101)
             sage: EK = E.base_extend(K)
             sage: EK.torsion_points()  # long time (1s on sage.math, 2014)
-            [(16 : 60 : 1),
+            [(0 : 1 : 0),
+             (16 : 60 : 1),
              (5 : 5 : 1),
              (5 : -6 : 1),
              (16 : -61 : 1),
@@ -2215,8 +2216,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
              (10/121*t^3 + 49/121*t^2 + 168/121*t + 73/121 : -32/121*t^3 - 60/121*t^2 + 261/121*t + 686/121 : 1),
              (5/121*t^3 - 14/121*t^2 - 158/121*t - 453/121 : 49/121*t^3 + 129/121*t^2 + 315/121*t + 86/121 : 1),
              (-9/121*t^3 - 21/121*t^2 - 127/121*t - 377/121 : 7/121*t^3 - 24/121*t^2 - 197/121*t - 137/121 : 1),
-             (-3/55*t^3 - 7/55*t^2 - 2/55*t - 133/55 : -6/55*t^3 - 3/55*t^2 - 25/11*t - 211/55 : 1),
-             (0 : 1 : 0)]
+             (-3/55*t^3 - 7/55*t^2 - 2/55*t - 133/55 : -6/55*t^3 - 3/55*t^2 - 25/11*t - 211/55 : 1)]
 
         ::
 
@@ -2573,7 +2573,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         """
         Return the canonical height function attached to self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^2 - 5)
             sage: E = EllipticCurve(K, '11a3')
@@ -3335,7 +3335,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         r = len(points)
         if height_matrix is None:
             height_matrix = self.height_pairing_matrix(points, precision)
-        U = height_matrix._pari_().lllgram().sage()
+        U = height_matrix.__pari__().lllgram().sage()
         new_points = [sum([U[j, i]*points[j] for j in range(r)])
                       for i in range(r)]
         return new_points, U

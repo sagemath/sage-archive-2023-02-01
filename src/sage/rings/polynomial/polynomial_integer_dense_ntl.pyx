@@ -776,7 +776,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         """
         Returns isolating intervals for the real roots of this polynomial.
 
-        EXAMPLE:
+        EXAMPLES:
         We compute the roots of the characteristic polynomial of some Salem numbers::
 
             sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
@@ -842,7 +842,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         return x
 
 
-    def _pari_(self, variable=None):
+    def __pari__(self, variable=None):
         """
         EXAMPLES::
 
@@ -1012,7 +1012,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: f.factor_mod(3)
             Traceback (most recent call last):
             ...
-            ValueError: factorization of 0 not defined
+            ArithmeticError: factorization of 0 is not defined
 
             sage: f = 2*x*(x-2)*(x-9)
             sage: f.factor_mod(7)
@@ -1023,8 +1023,8 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         if not p.is_prime():
             raise ValueError("p must be prime")
         if all([c%p==0 for c in self.coefficients()]):
-            raise ValueError("factorization of 0 not defined")
-        f = self._pari_()
+            raise ArithmeticError("factorization of 0 is not defined")
+        f = self.__pari__()
         G = f.factormod(p)
         k = FiniteField(p)
         R = k[self.parent().variable_name()]

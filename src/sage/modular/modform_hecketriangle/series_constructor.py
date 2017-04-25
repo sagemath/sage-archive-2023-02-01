@@ -192,7 +192,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             The Fourier expansion of ``J_inv`` for ``d!=1``
             is given by ``J_inv_ZZ(q/d)``.
 
-        .. TODO:
+        .. TODO::
 
           The functions that are used in this implementation are
           products of hypergeometric series with other, elementary,

@@ -22,7 +22,7 @@ This unit acts exactly like a symbolic variable::
 Units have additional information in their docstring::
 
     sage: # You would type: units.force.dyne?
-    sage: print(units.force.dyne._sage_doc_())
+    sage: print(units.force.dyne.__doc__)
     CGS unit for force defined to be gram*centimeter/second^2.
     Equal to 10^-5 newtons.
 
@@ -97,6 +97,7 @@ import six
 from .ring import SR
 from .expression import Expression
 from sage.interfaces.tab_completion import ExtraTabCompletion
+from sage.docs.instancedoc import instancedoc
 
 ###############################################################################
 # Unit conversions dictionary.
@@ -984,6 +985,8 @@ def unit_derivations_expr(v):
         unit_derivations[v] = Z
     return Z
 
+
+@instancedoc
 class UnitExpression(Expression):
     """
     A symbolic unit.
@@ -1001,13 +1004,13 @@ class UnitExpression(Expression):
         sage: type(loads(dumps(acre)))
         <class 'sage.symbolic.units.UnitExpression'>
     """
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         Return docstring for this unit.
 
         EXAMPLES::
 
-            sage: print(units.area.acre._sage_doc_())
+            sage: print(units.area.acre.__doc__)
             Defined to be 10 square chains or 4840 square yards.
             Approximately equal to 4046.856 square meters.
         """

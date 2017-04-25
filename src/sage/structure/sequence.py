@@ -779,7 +779,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
 
         To make this object immutable use :meth:`set_immutable`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: v = Sequence([1,2,3,4/5])
             sage: v[0] = 5

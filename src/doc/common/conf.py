@@ -308,6 +308,7 @@ latex_elements['preamble'] = r"""
 \usepackage{amssymb}
 \usepackage{textcomp}
 \usepackage{mathrsfs}
+\usepackage{iftex}
 
 % Only declare unicode characters when compiling with pdftex; E.g. japanese
 % tutorial does not use pdftex
@@ -519,7 +520,7 @@ def check_nested_class_picklability(app, what, name, obj, skip, options):
                 v.__module__ not in skip_picklability_check_modules):
                 # OK, probably this is an *unpicklable* nested class.
                 app.warn('Pickling of nested class %r is probably broken. '
-                         'Please set __metaclass__ of the parent class to '
+                         'Please set the metaclass of the parent class to '
                          'sage.misc.nested_class.NestedClassMetaclass.' % (
                         v.__module__ + '.' + name + '.' + nm))
 

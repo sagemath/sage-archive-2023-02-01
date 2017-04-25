@@ -87,6 +87,7 @@ class DocTestDefaults(SageObject):
         self.global_iterations = 1  # sage-runtests default is 0
         self.file_iterations = 1    # sage-runtests default is 0
         self.initial = False
+        self.exitfirst = False
         self.force_lib = False
         self.abspath = True         # sage-runtests default is False
         self.verbose = False
@@ -633,13 +634,17 @@ class DocTestController(SageObject):
         """
         opj = os.path.join
         from sage.env import SAGE_SRC, SAGE_DOC_SRC, SAGE_ROOT
-        def all_files():
-            self.files.append(opj(SAGE_SRC, 'sage'))
-            self.files.append(opj(SAGE_SRC, 'sage_setup'))
-            self.files.append(SAGE_DOC_SRC)
-            self.options.sagenb = True
         DOT_GIT= opj(SAGE_ROOT, '.git')
         have_git = os.path.exists(DOT_GIT)
+        def all_files():
+            self.files.append(opj(SAGE_SRC, 'sage'))
+            # Don't run these tests when not in the git repository; they are
+            # of interest for building sage, but not for runtime behavior and
+            # don't make sense to run outside a build environment
+            if have_git:
+                self.files.append(opj(SAGE_SRC, 'sage_setup'))
+            self.files.append(SAGE_DOC_SRC)
+            self.options.sagenb = True
         if self.options.all or (self.options.new and not have_git):
             self.log("Doctesting entire Sage library.")
             all_files()

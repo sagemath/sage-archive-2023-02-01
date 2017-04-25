@@ -762,7 +762,7 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_fun
 
             # check if we already found 8 or 12 automorphisms
             # and the gcd of orders over Fp and 24 is 24
-            # or if the gcd is equal to the the number of automorphisms we have
+            # or if the gcd is equal to the number of automorphisms we have
             if (len(elements) == gcd(orderaut + [24])) or \
                 (gcd(orderaut + [24]) == 24 and \
                 (len(elements) == 12 or len(elements) == 8)):
@@ -927,7 +927,7 @@ def field_descent(sigma, y):
 
     - the unique element of the subfield if it exists, otherwise ``None``.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R = GF(11^2,'b')
         sage: RR = GF(11)

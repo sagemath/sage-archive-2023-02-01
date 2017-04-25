@@ -11,7 +11,7 @@ AUTHORS:
 
 - Martin Albrecht (2014-06-28): initial version
 
-EXAMPLE:
+EXAMPLES:
 
 We construct a sampler for the distribution `D_{3,c}` with width `σ=3` and center `c=0`::
 
@@ -363,7 +363,7 @@ cdef class DiscreteGaussianDistributionIntegerSampler(SageObject):
         r"""
         Flush the internal cache of random bits.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
 

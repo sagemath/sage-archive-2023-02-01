@@ -5,7 +5,7 @@ Sage interacts are applications of the `@interact decorator <../../sagenb/notebo
 They are conveniently accessible in the Sage Notebook via ``interacts.[TAB].[TAB]()``.
 The first ``[TAB]`` lists categories and the second ``[TAB]`` reveals the interact examples.
 
-EXAMPLE:
+EXAMPLES:
 
 Invoked in the notebook, the following command will produce the fully formatted
 interactive mathlet.  In the command line, it will simply return the underlying
@@ -32,36 +32,52 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
 from sage.all import *
-from sagenb.notebook.interact import *
-
 x = SR.var('x')
+
+# It is important that this file is lazily imported for this to work
+from sage.repl.user_globals import get_global
+
+# Get a bunch of functions from the user globals. In SageNB, this will
+# refer to SageNB functions; in Jupyter, this will refer to Jupyter
+# functions. In the command-line and for doctests, we import the
+# SageNB functions as fall-back.
+for name in ("interact", "checkbox", "input_box", "input_grid",
+        "range_slider", "selector", "slider", "text_control"):
+    try:
+        obj = get_global(name)
+    except NameError:
+        import sagenb.notebook.interact
+        obj = sagenb.notebook.interact.__dict__[name]
+    globals()[name] = obj
+
 
 def library_interact(f):
     """
     This is a decorator for using interacts in the Sage library.
 
+    This is just the ``interact`` function wrapped in an additional
+    function call: ``library_interact(f)()`` is equivalent to
+    executing ``interact(f)``.
+
     EXAMPLES::
 
         sage: import sage.interacts.library as library
         sage: @library.library_interact
-        ....: def f(n=5): print(n)
-        ....:
-        sage: f()  # an interact appears, if using the notebook, else code
+        ....: def f(n=5):
+        ....:     print(n)
+        sage: f()  # an interact appears if using the notebook, else code
         <html>...</html>
     """
     @sage_wraps(f)
     def library_wrapper():
-       # Maybe program around bug (?) in the notebook:
-       html("</pre>")
-       # This prints out the relevant html code to make
-       # the interact appear:
-       interact(f)
+        # This will display the interact, no need to return anything
+        interact(f)
     return library_wrapper
 
+
 @library_interact
-def demo(n=tuple(range(10)), m=tuple(range(10))):
+def demo(n=slider(range(10)), m=slider(range(10))):
     """
     This is a demo interact that sums two numbers.
 
@@ -1238,7 +1254,7 @@ def function_tool(f=sin(x), g=cos(x), xrange=range_slider(-3,3,default=(0,1),lab
       - ``action`` -- select given operation on or combination of functions
       - ``do_plot`` -- if true, a plot is drawn
 
-    EXAMPLE:
+    EXAMPLES:
 
     Invoked in the notebook, the following command will produce
     the fully formatted interactive mathlet.  In the command line,
@@ -1355,7 +1371,7 @@ def julia(expo = slider(-10,10,0.1,2),
         - ``plot_points`` -- number of points to plot
         - ``dpi`` -- dots-per-inch parameter for the plot
 
-    EXAMPLE:
+    EXAMPLES:
 
     Invoked in the notebook, the following command will produce
     the fully formatted interactive mathlet.  In the command line,
@@ -1396,7 +1412,7 @@ def mandelbrot(expo = slider(-10,10,0.1,2),
         - ``plot_points`` -- number of points to plot
         - ``dpi`` -- dots-per-inch parameter for the plot
 
-    EXAMPLE:
+    EXAMPLES:
 
     Invoked in the notebook, the following command will produce
     the fully formatted interactive mathlet.  In the command line,
@@ -1434,7 +1450,7 @@ def cellular_automaton(
         - ``rule_number`` -- rule number (0 to 255)
         - ``size`` -- size of the shown picture
 
-    EXAMPLE:
+    EXAMPLES:
 
     Invoked in the notebook, the following command will produce
     the fully formatted interactive mathlet.  In the command line,
@@ -1489,7 +1505,7 @@ def polar_prime_spiral(
         - ``n`` -- number `n`
         - ``dpi`` -- dots per inch resolution for plotting
 
-    EXAMPLE:
+    EXAMPLES:
 
     Invoked in the notebook, the following command will produce
     the fully formatted interactive mathlet.  In the command line,

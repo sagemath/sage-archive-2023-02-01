@@ -125,7 +125,7 @@ We first have to find out, what the maps and the statistic actually do::
     sage: print(list_f[0].code() + "\r\n" + list_f[1].code())               # optional -- internet,random
     def complement(elt):
         n = len(elt)
-        return elt.__class__(elt.parent(), map(lambda x: n - x + 1, elt) )
+        return elt.__class__(elt.parent(), [n - x + 1 for x in elt])
     <BLANKLINE>
     def increasing_tree_shape(elt, compare=min):
         return elt.increasing_tree(compare).shape()
@@ -168,7 +168,7 @@ Classes and methods
 #*****************************************************************************
 from __future__ import print_function
 from six.moves import range
-from six import iteritems
+from six import iteritems, add_metaclass
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element import Element
@@ -1811,6 +1811,8 @@ def _finite_irreducible_cartan_types_by_rank(n):
         cartan_types += [ CartanType(['G',n]) ]
     return cartan_types
 
+
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class FindStatCollection(Element):
     r"""
     A FindStat collection.
@@ -1856,8 +1858,6 @@ class FindStatCollection(Element):
     :class:`FindStatCollections`
 
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, entry):
         """
@@ -2514,6 +2514,8 @@ class FindStatCollections(Parent, UniqueRepresentation):
 
     Element = FindStatCollection
 
+
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class FindStatMap(Element):
     r"""
     A FindStat map.
@@ -2539,13 +2541,11 @@ class FindStatMap(Element):
         sage: FindStatMap("descent composition")                                # optional -- internet
         Mp00071: descent composition
 
-    SEEALSO:
+    .. SEEALSO::
 
-    :class:`FindStatMaps`
+        :class:`FindStatMaps`
 
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, entry):
         """

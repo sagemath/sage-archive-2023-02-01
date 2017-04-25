@@ -607,7 +607,7 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
             sage: F.<a> = GF(5^2)
             sage: point_set = toric_varieties.P2_123(base_ring=F).point_set()
             sage: ffe = point_set._finite_field_enumerator()
-            sage: powers = range(24)
+            sage: powers = list(range(24))
             sage: ffe.exp(powers)
             (1, a, a + 3, 4*a + 3, 2*a + 2, 4*a + 1, 2, 2*a, 2*a + 1, 3*a + 1, 
              4*a + 4, 3*a + 2, 4, 4*a, 4*a + 2, a + 2, 3*a + 3, a + 4, 3, 3*a, 

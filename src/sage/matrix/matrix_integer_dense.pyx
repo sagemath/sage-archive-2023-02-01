@@ -54,11 +54,12 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+
+from __future__ import absolute_import, print_function
 
 from libc.stdint cimport int64_t
-include "sage/ext/cdefs.pxi"
+from libc.string cimport strcpy, strlen
+from sage.libs.gmp.mpz cimport *
 
 from sage.modules.vector_integer_dense cimport Vector_integer_dense
 
@@ -276,7 +277,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         """
         Frees all the memory allocated for this matrix.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = Matrix(ZZ,2,[1,2,3,4])
             sage: del a
@@ -843,7 +844,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
     def _multiply_classical(self, Matrix_integer_dense right):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: n = 3
             sage: a = MatrixSpace(ZZ,n,n)(range(n^2))
@@ -1020,7 +1021,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             sage: M^M
             Traceback (most recent call last):
             ...
-            NotImplementedError: non-integral exponents not supported
+            NotImplementedError: the given exponent is not supported
         """
         cdef Matrix_integer_dense self = <Matrix_integer_dense?>sself
 
@@ -1040,7 +1041,12 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
                 try:
                     n = Integer(n)
                 except TypeError:
-                    raise NotImplementedError("non-integral exponents not supported")
+                    from sage.symbolic.expression import Expression
+                    if isinstance(n, Expression):
+                        from sage.matrix.matrix2 import _matrix_power_symbolic
+                        return _matrix_power_symbolic(self, n)
+                    else:
+                        raise NotImplementedError("the given exponent is not supported")
             if mpz_sgn((<Integer>n).value) < 0:
                 return (~self) ** (-n)
 
@@ -1339,7 +1345,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
         OUTPUT: A nonnegative integer.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = Mat(ZZ,3)(range(9))
             sage: a.height()
@@ -2221,7 +2227,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             if algorithm == 'linbox':
                 raise ValueError("linbox too broken -- currently Linbox SNF is disabled.")
             if algorithm == 'pari':
-                d = self._pari_().matsnf(0).sage()
+                d = self.__pari__().matsnf(0).sage()
                 i = d.count(0)
                 d.sort()
                 if i > 0:
@@ -2307,7 +2313,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
            :meth:`elementary_divisors`
         """
-        v = self._pari_().matsnf(1).sage()
+        v = self.__pari__().matsnf(1).sage()
         if self._ncols == 0: v[0] = self.matrix_space(ncols = self._nrows)(1)
         if self._nrows == 0: v[1] = self.matrix_space(nrows = self._ncols)(1)
         # need to reverse order of rows of U, columns of V, and both of D.
@@ -2388,7 +2394,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         if not self.is_square():
             raise ArithmeticError("frobenius matrix of non-square matrix not defined.")
 
-        v = self._pari_().matfrobenius(flag)
+        v = self.__pari__().matfrobenius(flag)
         if flag==0:
             return self.matrix_space()(v.sage())
         elif flag==1:
@@ -2543,7 +2549,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             K = self._rational_kernel_flint().transpose().saturation(proof=proof)
             format = 'computed-flint-int'
         elif algorithm == 'pari':
-            K = self._pari_().matkerint().mattranspose().sage()
+            K = self.__pari__().matkerint().mattranspose().sage()
             format = 'computed-pari-int'
         elif algorithm == 'padic':
             proof = kwds.pop('proof', None)
@@ -2570,13 +2576,13 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
             [  6 -12   6]
             [ -3   6  -3]
         """
-        return self.parent()(self._pari_().matadjoint().sage())
+        return self.parent()(self.__pari__().matadjoint().sage())
 
     def _ntl_(self):
         r"""
         ntl.mat_ZZ representation of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = MatrixSpace(ZZ,200).random_element(x=-2, y=2)    # -2 to 2
             sage: A = a._ntl_()
@@ -2635,7 +2641,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
 
         n = self.nrows()
         # maybe should be /unimodular/ matrices ?
-        P = self._pari_()
+        P = self.__pari__()
         try:
             U = P.lllgramint()
         except (RuntimeError, ArithmeticError) as msg:
@@ -4436,7 +4442,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
         """
         if self._nrows == 0:
             pivots = []
-            nonpivots = range(self._ncols)
+            nonpivots = list(xrange(self._ncols))
             X = self.__copy__()
             d = Integer(1)
             return pivots, nonpivots, X, d
@@ -4702,7 +4708,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
                 # function with the top part of A (all but last row) and the
                 # row r.
 
-                zz = range(A.nrows()-1)
+                zz = list(xrange(A.nrows() - 1))
                 del zz[i]
                 top_mat = A.matrix_from_rows(zz)
                 new_pivots = list(pivots)
@@ -5262,7 +5268,7 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
            None)
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(ZZ,3,3)
             sage: As = singular(A); As
@@ -5383,14 +5389,14 @@ cdef class Matrix_integer_dense(Matrix_dense):   # dense or sparse
                         [nr - t for t in reversed(row_divs)])
         return A
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Return PARI C-library version of this matrix.
 
         EXAMPLES::
 
             sage: a = matrix(ZZ,2,2,[1,2,3,4])
-            sage: a._pari_()
+            sage: a.__pari__()
             [1, 2; 3, 4]
             sage: pari(a)
             [1, 2; 3, 4]

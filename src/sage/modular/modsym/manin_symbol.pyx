@@ -275,7 +275,7 @@ cdef class ManinSymbol(Element):
         Not implemented for raw ManinSymbol objects, only for members
         of ManinSymbolLists.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.modsym.manin_symbol import ManinSymbol
             sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0

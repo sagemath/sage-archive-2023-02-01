@@ -27,20 +27,22 @@ EXAMPLES::
     sage: ecmfactor(2^128+1,1000,sigma=227140902)
     (True, 5704689200685129054721, 227140902)
 """
+
 #*****************************************************************************
 #       Copyright (C) 2008 Robert Miller
 #       Copyright (C) 2012 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
-include 'sage/ext/cdefs.pxi'
+from __future__ import absolute_import, print_function
+
 include "cysignals/signals.pxi"
-
+from sage.libs.gmp.mpz cimport *
 from sage.rings.integer cimport Integer
 
 cdef extern from "ecm.h":

@@ -60,14 +60,12 @@ from sage.env import DOT_SAGE
 COMMANDS_CACHE = '%s/maxima_commandlist_cache.sobj'%DOT_SAGE
 
 from sage.misc.multireplace import multiple_replace
-
 import sage.server.support
-
-##import sage.rings.all
 
 from .interface import (Interface, InterfaceElement, InterfaceFunctionElement,
   InterfaceFunction, AsciiArtString)
 from sage.interfaces.tab_completion import ExtraTabCompletion
+from sage.docs.instancedoc import instancedoc
 
 # The Maxima "apropos" command, e.g., apropos(det) gives a list
 # of all identifiers that begin in a certain way.  This could
@@ -534,7 +532,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
         EXAMPLES::
 
             sage: maxima._function_class()
-            <class 'sage.interfaces.maxima.MaximaFunction'>
+            <class 'sage.interfaces.interface.InterfaceFunction'>
         """
         return MaximaAbstractFunction
 
@@ -564,7 +562,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
         EXAMPLES::
 
             sage: maxima._function_element_class()
-            <class 'sage.interfaces.maxima.MaximaFunctionElement'>
+            <class 'sage.interfaces.interface.InterfaceFunctionElement'>
         """
         return MaximaAbstractFunctionElement
 
@@ -1072,6 +1070,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
             self('plot2d('+cmd+','+options+')')
 
 
+@instancedoc
 class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
     r"""
     Element of Maxima through an abstract interface.
@@ -1089,6 +1088,7 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
         sage: type(xl)
         <class 'sage.interfaces.maxima_lib.MaximaLibElement'>
     """
+    _cached_repr = True
 
     def __str__(self):
         """
@@ -1409,30 +1409,6 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
         """
         P = self._check_valid()
         return P.get(self._name)
-
-    def __repr__(self):
-        """
-        Return print representation of this Maxima object.
-
-        INPUT: none
-
-        OUTPUT: string
-
-        The result is cached.
-
-        EXAMPLES::
-
-            sage: maxima('sqrt(2) + 1/3').__repr__()
-            'sqrt(2)+1/3'
-        """
-        P = self._check_valid()
-        try:
-            return self.__repr
-        except AttributeError:
-            pass
-        r = P.get(self._name)
-        self.__repr = r
-        return r
 
     def diff(self, var='x', n=1):
         """
@@ -1930,12 +1906,8 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
             raise TypeError(msg)
 
 
-class MaximaAbstractFunctionElement(InterfaceFunctionElement):
-    pass
-
-
-class MaximaAbstractFunction(InterfaceFunction):
-    pass
+MaximaAbstractFunctionElement = InterfaceFunctionElement
+MaximaAbstractFunction = InterfaceFunction
 
 
 class MaximaAbstractElementFunction(MaximaAbstractElement):
@@ -2031,7 +2003,7 @@ class MaximaAbstractElementFunction(MaximaAbstractElement):
             args = '(%s)'%args
         return P('%s%s'%(self.name(), args))
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Return print representation of this Maxima function.
 
@@ -2042,7 +2014,7 @@ class MaximaAbstractElementFunction(MaximaAbstractElement):
         EXAMPLES::
 
             sage: f = maxima.function('x,y','sin(x+y)')
-            sage: repr(f)
+            sage: repr(f)    # indirect doctest
             'sin(x+y)'
         """
         return self.definition()

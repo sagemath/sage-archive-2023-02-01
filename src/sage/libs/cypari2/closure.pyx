@@ -13,7 +13,7 @@ EXAMPLES::
     sage: f()
     42
 
-    sage: cube = pari(lambda i: i^3)
+    sage: cube = pari(lambda i: i**3)
     sage: cube.apply(range(10))
     [0, 1, 8, 27, 64, 125, 216, 343, 512, 729]
 """
@@ -172,5 +172,5 @@ cpdef Gen objtoclosure(f):
     cdef GEN f_int = utoi(<ulong><PyObject*>f)
     # Create a t_CLOSURE which calls call_python() with py_func equal to f
     cdef Gen c = new_gen(snm_closure(ep_call_python, mkvec(f_int)))
-    c.refers_to = {0:f}  # c needs to keep a reference to f
+    c.cache(0, f)  # c needs to keep a reference to f
     return c

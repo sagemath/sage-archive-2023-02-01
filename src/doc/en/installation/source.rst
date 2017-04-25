@@ -506,7 +506,7 @@ Running Sage from a directory with spaces in its name will also fail.
    directory.
 
 #. Optional, but highly recommended:
-   Read the :file:`README.txt` file there.
+   Read the :file:`README.md` file there.
 
 #. On OSX 10.4, OS 10.5, Solaris 10 and OpenSolaris, if you wish to build a
    64-bit version of Sage, assuming your computer and operating system are
@@ -519,6 +519,25 @@ Running Sage from a directory with spaces in its name will also fail.
    set :envvar:`SAGE64` to ``yes``.
    This will then create stable 32-bit versions of Sage.
    See http://wiki.sagemath.org/solaris for the latest information.
+
+#. Optional:  Set various other environment variables that influence the
+   build process; see :ref:`section_envvar`.
+
+#. Optional:  Run the configure script to set some options that
+   influence the build process.
+
+   - Choose the installation hierarchy (:envvar:`SAGE_LOCAL`).
+     The default is the ``local`` subdirectory of :envvar:`SAGE_ROOT`::
+
+       ./configure --prefix=SAGE_LOCAL
+
+     Note that in Sage's build process, ``make`` builds **and**
+     installs (``make install`` is a no-op).  Therefore the
+     installation hierarchy must be writable by the user.
+
+   - Other options are available; see::
+
+       ./configure --help
 
 #. Start the build process::
 
@@ -676,7 +695,7 @@ Running Sage from a directory with spaces in its name will also fail.
      ``sage`` containing the lines
      (note that you have to change ``<SAGE_ROOT>`` below!)::
 
-         #!/bin/bash
+         #!/usr/bin/env bash
 
          konsole -T "sage" -e <SAGE_ROOT>/sage
 
@@ -1290,7 +1309,7 @@ Sage uses the following environment variables when it runs:
 - :envvar:`SAGE_PATH` - a colon-separated list of directories which Sage
   searches when trying to locate Python libraries.
 
-- :envvar:`SAGE_BROWSER` - on most platforms, Sage will detect the command to
+- :envvar:`BROWSER` - on most platforms, Sage will detect the command to
   run a web browser, but if this doesn't seem to work on your machine, set this
   variable to the appropriate command.
 

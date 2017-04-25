@@ -125,7 +125,7 @@ class Parallelism(Singleton, SageObject):
         Put the singleton object ``Parallelism()`` in the same state as
         immediately after its creation.
 
-        EXAMPLE:
+        EXAMPLES:
 
         State of ``Parallelism()`` just after its creation::
 

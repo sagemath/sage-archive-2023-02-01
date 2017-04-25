@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 The Chow group of a toric variety
 
@@ -322,7 +323,7 @@ class ChowCycle(FGP_Element):
             5
 
         In the case of a smooth complete toric variety, the Chow
-        (homology) groups are Poincare dual to the integral cohomology
+        (homology) groups are Poincaré dual to the integral cohomology
         groups. Here is such a smooth example::
 
             sage: D = P2.divisor(1)
@@ -454,7 +455,7 @@ class ChowCycle(FGP_Element):
 
     def cohomology_class(self):
         r"""
-        Return the (Poincare-dual) cohomology class.
+        Return the (Poincaré-dual) cohomology class.
 
         Consider a simplicial cone of the fan, that is, a
         `d`-dimensional cone spanned by `d` rays. Take the product of
@@ -462,13 +463,13 @@ class ChowCycle(FGP_Element):
         represents a cohomology classes of the toric variety `X`, see
         :meth:`~sage.schemes.toric.variety.ToricVariety_field.cohomology_ring`.
         Its cohomological degree is `2d`, which is the same degree as
-        the Poincare-dual of the (real) `\dim(X)-2d`-dimensional torus
+        the Poincaré-dual of the (real) `\dim(X)-2d`-dimensional torus
         orbit associated to the simplicial cone. By linearity, we can
         associate a cohomology class to each Chow cycle of a
         simplicial toric variety.
 
         If the toric variety is compact and smooth, the associated
-        cohomology class actually is the Poincare dual (over the
+        cohomology class actually is the Poincaré dual (over the
         integers) of the Chow cycle. In particular, integrals of dual
         cohomology classes perform intersection computations.
 
@@ -896,7 +897,7 @@ class ChowGroup_class(FGP_Module_class):
         .. NOTE::
 
             * For a smooth toric variety, this is the same as the
-              Poincare-dual cohomology group
+              Poincaré-dual cohomology group
               `H^{d-2k}(X,\ZZ)`.
 
             * For a simplicial toric variety ("orbifold"),

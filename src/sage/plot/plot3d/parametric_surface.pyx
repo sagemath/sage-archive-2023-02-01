@@ -689,21 +689,22 @@ cdef class ParametricSurface(IndexFaceSet):
         """
         return self
 
+
 class MoebiusStrip(ParametricSurface):
     """
-    Base class for the :class:`MoebiusStrip` graphics type. This sets the the
+    Base class for the :class:`MoebiusStrip` graphics type. This sets the
     basic parameters of the object.
 
     INPUT:
 
-    - ``r`` - A number which can be coerced to a float, serving roughly
-      as the radius of the object.
+    - ``r`` -- a number which can be coerced to a float, serving roughly
+      as the radius of the object
 
-    - ``width`` - A number which can be coerced to a float, which gives the
-      width of the object.
+    - ``width`` -- a number which can be coerced to a float, which gives the
+      width of the object
 
-    - ``twists`` - (default: 1) An integer, giving the number of twists in the
-      object (where one twist is the 'traditional' Möbius strip).
+    - ``twists`` -- (default: 1) an integer, giving the number of twists in the
+      object (where one twist is the 'traditional' Möbius strip)
 
     EXAMPLES::
 
@@ -747,7 +748,7 @@ class MoebiusStrip(ParametricSurface):
            which helps determine the increment for the `v` range for the
            MoebiusStrip object.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.plot.plot3d.parametric_surface import MoebiusStrip
             sage: N = MoebiusStrip(7,3,2) # two twists
@@ -766,7 +767,7 @@ class MoebiusStrip(ParametricSurface):
         Return a tuple for `x,y,z` coordinates for the given ``u`` and ``v``
         for this MoebiusStrip instance.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.plot.plot3d.parametric_surface import MoebiusStrip
             sage: N = MoebiusStrip(7,3,2) # two twists

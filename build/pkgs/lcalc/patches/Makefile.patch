@@ -59,7 +59,8 @@
  
  ifeq ($(OS_NAME),Darwin)
 -    LDFLAGS2 =
-     DYN_OPTION=dynamiclib
+-    DYN_OPTION=dynamiclib
++    DYN_OPTION=dynamiclib -Wl,-headerpad_max_install_names
  else
 -    LDFLAGS1 = -Xlinker -export-dynamic #not sure why pari calls these when linking but on the web I found
 -    #'Libtool provides the `-export-dynamic' link flag (see section Link mode), which does this declaration.
@@ -78,7 +79,7 @@
 -else
 -    LDFLAGS = $(LDFLAGS2)
 -endif
-+LDFLAGS := -L$(LOCATION_PARI_LIBRARY) -lpari -lgmp $(LDFLAGS)
++LDFLAGS := $(LDFLAGS) -L$(LOCATION_PARI_LIBRARY) -lpari -lgmp
  
  
  
@@ -133,25 +134,25 @@
 -lcalc: $(OBJECTS)
 -	$(CC) $(CCFLAGS) $(INCLUDEFILES) $(OBJECTS) $(LDFLAGS) -o lcalc $(GMP_FLAGS)
 +lcalc$(EXEEXT): $(OBJECTS)
-+	$(CXX) $(CXXFLAGS) $(INCLUDEFILES) $(OBJECTS) $(LDFLAGS) -o lcalc$(EXEEXT) $(GMP_FLAGS)
++	$(CXX) $(CXXFLAGS) $(INCLUDEFILES) $(LDFLAGS) $(OBJECTS) -o lcalc$(EXEEXT) $(GMP_FLAGS)
  
  examples:
 -	$(CC) $(CCFLAGS) $(INCLUDEFILES) example_programs/example.cc libLfunction.so -o example_programs/example $(GMP_FLAGS)
-+	$(CXX) $(CXXFLAGS) $(INCLUDEFILES) example_programs/example.cc libLfunction$(LIBEXT) -o example_programs/example$(EXEEXT) $(GMP_FLAGS)
++	$(CXX) $(CXXFLAGS) $(INCLUDEFILES) example_programs/example.cc $(LDFLAGS) libLfunction$(LIBEXT) -o example_programs/example$(EXEEXT) $(GMP_FLAGS)
 +
  
 +proc$(EXEEXT):
-+	$(CXX) $(CXXFLAGS) $(INCLUDEFILES) example_programs/proc.cc libLfunction$(LIBEXT) -o example_programs/proc$(EXEEXT) $(GMP_FLAGS)
++	$(CXX) $(CXXFLAGS) $(INCLUDEFILES) example_programs/proc.cc $(LDFLAGS) libLfunction$(LIBEXT) -o example_programs/proc$(EXEEXT) $(GMP_FLAGS)
  
 -proc:
 -	$(CC) $(CCFLAGS) $(INCLUDEFILES) example_programs/proc.cc libLfunction.so -o example_programs/proc $(GMP_FLAGS)
 +test$(EXEEXT):
-+	$(CXX) $(CXXFLAGS) $(INCLUDEFILES) example_programs/test.cc libLfunction$(LIBEXT) -o example_programs/test$(EXEEXT) $(GMP_FLAGS)
++	$(CXX) $(CXXFLAGS) $(INCLUDEFILES) example_programs/test.cc $(LDFLAGS) libLfunction$(LIBEXT) -o example_programs/test$(EXEEXT) $(GMP_FLAGS)
  
 -test:
 -	$(CC) $(CCFLAGS) $(INCLUDEFILES) example_programs/test.cc libLfunction.so -o example_programs/test $(GMP_FLAGS)
 +find_L$(EXEEXT):
-+	$(CXX) $(CXXFLAGS) $(INCLUDEFILES) find_L_functions/find_L_functions.cc libLfunction$(LIBEXT) -o find_L_functions/find_L$(EXEEXT) $(GMP_FLAGS)
++	$(CXX) $(CXXFLAGS) $(INCLUDEFILES) find_L_functions/find_L_functions.cc $(LDFLAGS) libLfunction$(LIBEXT) -o find_L_functions/find_L$(EXEEXT) $(GMP_FLAGS)
  
 -find_L:
 -	$(CC) $(CCFLAGS) $(INCLUDEFILES) find_L_functions/find_L_functions.cc libLfunction.so -o find_L_functions/find_L $(GMP_FLAGS)
@@ -200,7 +201,7 @@
 -libLfunction.so: $(OBJ_L)
 -	g++ -$(DYN_OPTION)  -o libLfunction.so $(OBJ_L)
 +libLfunction$(LIBEXT): $(OBJ_L)
-+	$(CXX) -$(DYN_OPTION) $(CXXFLAG64) -o libLfunction$(LIBEXT) $(OBJ_L) $(LDFLAGS)
++	$(CXX) -$(DYN_OPTION) $(CXXFLAG64) -o libLfunction$(LIBEXT) $(LDFLAGS) $(OBJ_L)
  
  clean:
 -	rm -f *.o lcalc libLfunction.so example_programs/example

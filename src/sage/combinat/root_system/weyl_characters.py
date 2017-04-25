@@ -70,7 +70,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
         [R(0,0,0), R(1,0,0), R(1,1,0)]
 
     Here ``R(1)``, ``R(fw1)``, and ``R(fw2)`` are irreducible representations
-    with highest weight vectors `0`, `\Lambda_1`, and `\Lambda_2` respecitively
+    with highest weight vectors `0`, `\Lambda_1`, and `\Lambda_2` respectively
     (the first two fundamental weights).
 
     For type `A` (also `G_2`, `F_4`, `E_6` and `E_7`) we will take as the

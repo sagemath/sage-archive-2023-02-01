@@ -39,7 +39,6 @@ from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.rational cimport Rational
 from sage.rings.rational_field import QQ
 from sage.rings.polynomial.polynomial_element cimport Polynomial
-from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.polynomial_integer_dense_flint cimport Polynomial_integer_dense_flint
 
 from sage.structure.parent cimport Parent
@@ -125,7 +124,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         x must be a rational or convertible to an int.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x> = QQ[]
             sage: x._new_constant_poly(2/1,R)
@@ -1392,7 +1391,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         a positive integer denominator (coprime to the content of the
         polynomial), returns the integer polynomial.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<t> = QQ[]
             sage: f = (3 * t^3 + 1) / -3
@@ -1413,7 +1412,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         """
         Returns the denominator of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<t> = QQ[]
             sage: f = (3 * t^3 + 1) / -3

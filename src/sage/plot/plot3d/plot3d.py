@@ -1,19 +1,34 @@
 r"""
 Plotting Functions
 
+
 EXAMPLES::
 
+    sage: x, y = var('x y')
+    sage: W = plot3d(sin(pi*((x)^2+(y)^2))/2,(x,-1,1),(y,-1,1), frame=False, color='purple', opacity=0.8)
+    sage: S = sphere((0,0,0),size=0.3, color='red', aspect_ratio=[1,1,1])
+    sage: show(W + S, figsize=8)
+
+.. PLOT::
+
+    x, y = var('x y')
+    W = plot3d(sin(pi*((x)**2+(y)**2))/2,(x,-1,1),(y,-1,1), frame=False, color='purple', opacity=0.8)
+    S = sphere((0,0,0),size=0.3, color='red', aspect_ratio=[1,1,1])
+    sphinx_plot(W + S)
+
+::
+
     sage: def f(x,y):
-    ....:     return math.sin(y*y+x*x)/math.sqrt(x*x+y*y+.0001)
+    ....:     return math.sin(y^2+x^2)/math.sqrt(x^2+y^2.0001)
     sage: P = plot3d(f,(-3,3),(-3,3), adaptive=True, color=rainbow(60, 'rgbtuple'), max_bend=.1, max_depth=15)
     sage: P.show()
 
 .. PLOT::
-    
+
     def f(x,y): return math.sin(y*y+x*x)/math.sqrt(x*x+y*y+.0001)
     P = plot3d(f,(-3,3),(-3,3), adaptive=True, color=rainbow(60, 'rgbtuple'), max_bend=.1, max_depth=15)
     sphinx_plot(P)
-    
+
 ::
 
     sage: def f(x,y):
@@ -260,10 +275,10 @@ class _Coordinates(object):
             sage: v_phi=array([ 0.,  1.57079637,  3.14159274, 4.71238911,  6.28318548])
             sage: v_theta=array([ 0.,  0.78539819,  1.57079637,  2.35619456,  3.14159274])
             sage: m_r=array([[ 0.16763356,  0.25683223,  0.16649297,  0.10594339, 0.55282422],
-            ....: [ 0.16763356,  0.19993708,  0.31403568,  0.47359696, 0.55282422],
-            ....: [ 0.16763356,  0.25683223,  0.16649297,  0.10594339, 0.55282422],
-            ....: [ 0.16763356,  0.19993708,  0.31403568,  0.47359696, 0.55282422],
-            ....: [ 0.16763356,  0.25683223,  0.16649297,  0.10594339, 0.55282422]])
+            ... [ 0.16763356,  0.19993708,  0.31403568,  0.47359696, 0.55282422],
+            ... [ 0.16763356,  0.25683223,  0.16649297,  0.10594339, 0.55282422],
+            ... [ 0.16763356,  0.19993708,  0.31403568,  0.47359696, 0.55282422],
+            ... [ 0.16763356,  0.25683223,  0.16649297,  0.10594339, 0.55282422]])
             sage: import scipy.interpolate
             sage: f=scipy.interpolate.RectBivariateSpline(v_phi,v_theta,m_r)
             sage: spherical_plot3d(f,(0,2*pi),(0,pi))
@@ -742,6 +757,8 @@ class TrivialTriangleFactory:
 from . import parametric_plot3d
 def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
     """
+    Plots a function in 3d.
+
     INPUT:
 
 
@@ -965,7 +982,7 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
         sage: D = plot3d(2,(u,-pi,pi),(v,0,pi),transformation=cylindric_axial,plot_points=[100,100])
         sage: E = plot3d(2,(u,-pi,pi),(v,-pi,pi),transformation=parabolic_cylindrical,plot_points=[100,100])
         sage: @interact
-        ....: def _(which_plot=[A,B,C,D,E]):
+        ... def _(which_plot=[A,B,C,D,E]):
         ....:     show(which_plot)
         <html>...
 
@@ -978,7 +995,7 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
         sage: I = plot3d(g,(u,-pi,pi),(v,0,pi),transformation=cylindric_axial,plot_points=[100,100])
         sage: J = plot3d(g,(u,-pi,pi),(v,0,pi),transformation=parabolic_cylindrical,plot_points=[100,100])
         sage: @interact
-        ....: def _(which_plot=[F, G, H, I, J]):
+        ... def _(which_plot=[F, G, H, I, J]):
         ....:     show(which_plot)
         <html>...
 

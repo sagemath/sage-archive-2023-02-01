@@ -744,7 +744,7 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
         if not self.is_finite():
             raise TypeError('Coxeter groups must be finite to construct the permutahedron')
 
-        n = self.coxeter_matrix().rank()
+        n = self.one().canonical_matrix().rank()
         weights = self.fundamental_weights()
         if point is None:
             point = [1] * n

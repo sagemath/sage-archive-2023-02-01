@@ -43,8 +43,8 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six importinteger_types
 
 import math
 
@@ -1361,8 +1361,8 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: E.scale_curve(u)
             Elliptic Curve defined by y^2 + u*x*y + 3*u^3*y = x^3 + 2*u^2*x^2 + 4*u^4*x + 5*u^6 over Fraction Field of Univariate Polynomial Ring in u over Rational Field
         """
-        if isinstance(u, (int,long)):
-            u=self.base_ring()(u)       # because otherwise 1/u would round!
+        if isinstance(u, integer_types):
+            u = self.base_ring()(u)     # because otherwise 1/u would round!
         return self.change_weierstrass_model(1/u,0,0,0)
 
     def discriminant(self):

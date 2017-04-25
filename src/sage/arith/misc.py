@@ -2451,7 +2451,7 @@ def is_square(n, root=False):
         sage: is_square(4, True)
         (True, 2)
     """
-    if isinstance(n, (int,long)):
+    if isinstance(n, integer_types):
         n = ZZ(n)
     try:
         if root:
@@ -2508,7 +2508,7 @@ def is_squarefree(n):
         ...
         ArithmeticError: non-principal ideal in factorization
     """
-    if isinstance(n, (int,long)):
+    if isinstance(n, integer_types):
         n = Integer(n)
 
     try:

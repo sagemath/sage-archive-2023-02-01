@@ -409,7 +409,7 @@ latex_table = {type(None): None_function,
                type(NotImplemented): builtin_constant_function,
                type(Ellipsis): builtin_constant_function}
 
-for t in integer_type:
+for t in integer_types:
     latex_table[t] = str
 
 

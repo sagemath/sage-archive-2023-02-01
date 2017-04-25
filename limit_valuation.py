@@ -363,9 +363,10 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
 
     This uses the MacLane algorithm to compute the next element in the limit.
 
-    It starts from a first valuation ``approximation`` whose uniformizer must
-    be a uniformizer of the limit and whose residue field must contain the
-    residue field of the limit.
+    It starts from a first valuation ``approximation`` which has a unique
+    augmentation that sends `G` to infinity and whose uniformizer must be a
+    uniformizer of the limit and whose residue field must contain the residue
+    field of the limit.
 
     EXAMPLES::
 

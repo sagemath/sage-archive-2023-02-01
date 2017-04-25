@@ -33,7 +33,7 @@ angle::
     Graphics object consisting of 13 graphics primitives
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     L = RootSystem(["A",2]).ambient_space()
     sphinx_plot(L.plot())
@@ -60,7 +60,7 @@ full picture in 3D::
     Graphics3d Object
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     L = RootSystem(["A",2]).ambient_space()
     sphinx_plot(L.plot(projection=False))
@@ -76,7 +76,7 @@ essential information. The same projection is used by default in type
     Graphics object consisting of 21 graphics primitives
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     L = RootSystem(["G",2]).ambient_space()
     sphinx_plot(L.plot(reflection_hyperplanes="all"))
@@ -116,7 +116,7 @@ its corresponding reflection hyperplane::
     gets crowded.
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     L = RootSystem(["A",2]).weight_space()
     sphinx_plot(L.plot(roots = "all", reflection_hyperplanes="all"))
@@ -132,7 +132,7 @@ coordinates in the root lattice::
     Graphics object consisting of 17 graphics primitives
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     Q = RootSystem(["G",2]).root_space()
     L = RootSystem(["G",2]).ambient_space()
@@ -153,7 +153,7 @@ eight dimensional ambient space onto 3D described on
     Graphics3d Object
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     M = matrix([[0., -0.556793440452, 0.19694925177, -0.19694925177, 0.0805477263944, -0.385290876171, 0., 0.385290876171],
                 [0.180913155536, 0., 0.160212955043, 0.160212955043, 0., 0.0990170516545, 0.766360424875, 0.0990170516545],
@@ -188,7 +188,7 @@ sure everything fits in the picture::
     Graphics object consisting of 37 graphics primitives
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     sphinx_plot(RootSystem(["G",2]).ambient_space().plot(alcoves=True, alcove_labels=True, bounding_box=5))
 
@@ -198,7 +198,7 @@ The same picture in 3D, for type `B_3`::
     Graphics3d Object
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     sphinx_plot(RootSystem(["B",3]).ambient_space().plot(alcoves=True, alcove_labels=True))
 
@@ -217,7 +217,7 @@ We now draw the usual alcove picture for affine type `A_2^{(1)}`::
     Graphics object consisting of 160 graphics primitives
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     sphinx_plot(RootSystem(["A",2,1]).ambient_space().plot())
 
@@ -235,7 +235,7 @@ full picture in 3D::
     Graphics3d Object
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     sphinx_plot(RootSystem(["A",2,1]).ambient_space().plot(bounding_box=[[-3,3],[-3,3],[-1,1]], affine=False))
 
@@ -249,7 +249,7 @@ reflection hyperplanes with the level `1` hyperplane::
     Graphics3d Object
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     sphinx_plot(RootSystem(["A",2,1]).ambient_space().plot(affine=False, level=1))
 
@@ -262,7 +262,7 @@ level 1::
     Graphics3d Object
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     sphinx_plot(RootSystem(["G",2,1]).ambient_space().plot(affine=False, level=1))
 
@@ -292,7 +292,7 @@ share a wall if `u` and `v` are neighbors in the right Cayley graph:
     Graphics object consisting of 216 graphics primitives
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     sphinx_plot(RootSystem(["C",2,1]).ambient_space().plot(coroots="simple", alcove_labels=True))
 
@@ -310,7 +310,7 @@ small height in the root poset::
     Graphics object consisting of 24 graphics primitives
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     L = RootSystem(["A",1,1]).root_lattice()
     seed = L.simple_roots()
@@ -362,7 +362,7 @@ tiled by the alcoves, each of which is a 3D simplex::
     Graphics3d Object
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     sphinx_plot(RootSystem(["A",3,1]).ambient_space().plot(reflection_hyperplanes=False, bounding_box=85/100))
 
@@ -377,7 +377,7 @@ the Weyl group::
     Graphics3d Object
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     X = RootSystem(["A",3,1]).ambient_space()
     XW = X.weyl_group()
@@ -391,7 +391,7 @@ center in the root lattice::
     Graphics3d Object
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     L = RootSystem(["A",3,1]).ambient_space()
     W = L.weyl_group()
@@ -413,7 +413,7 @@ which will be explained later on in this tutorial::
     sage: p.show(frame=False)
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     L = RootSystem(["B",3,1]).ambient_space()
     W = L.weyl_group()
@@ -449,7 +449,7 @@ reflections, on top of the weight lattice in affine type `A_{2,1}`::
     Graphics object consisting of 535 graphics primitives
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     L = RootSystem(["A",2,1]).ambient_space()
     w1 = [0,2,1,2,0,2,1,0,2,1,2,1,2,0,2,0,1,2,0]
@@ -464,7 +464,7 @@ below) that can be called independently and combined at will::
     Graphics object consisting of 12 graphics primitives
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     L = RootSystem(["A",2,1]).ambient_space()
     w1 = [0,2,1,2,0,2,1,0,2,1,2,1,2,0,2,0,1,2,0]
@@ -482,7 +482,7 @@ below) that can be called independently and combined at will::
         Graphics object consisting of 12 graphics primitives
 
     .. PLOT::
-        :width: 500 px
+        :width: 300 px
 
         L = RootSystem(["A",2,1]).ambient_space()
         p = L.plot_roots() + L.plot_reflection_hyperplanes()
@@ -504,7 +504,7 @@ and pass it down to each piece. We use this to plot our two walks::
     Graphics object consisting of ... graphics primitives
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     L = RootSystem(["A",2,1]).ambient_space()
     w1 = [0,2,1,2,0,2,1,0,2,1,2,1,2,0,2,0,1,2,0]
@@ -524,7 +524,7 @@ And another with some foldings::
     sage: p.show(figsize=20)
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     L = RootSystem(["A",2,1]).ambient_space()
     w1 = [0,2,1,2,0,2,1,0,2,1,2,1,2,0,2,0,1,2,0]
@@ -557,7 +557,7 @@ the translation by this weight::
     Graphics object consisting of ... graphics primitives
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     L = RootSystem(["A",2,1]).ambient_space()
     P = RootSystem(["A",2,1]).weight_space(extended=True)
@@ -585,7 +585,7 @@ We conclude with a rank `3 + 1` alcove walk::
     Graphics3d Object
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     L = RootSystem(["B",3,1]).ambient_space()
     w3 = [0,2,1,3,2,0,2,1,0,2,3,1,2,1,3,2,0,2,0,1,2,0]
@@ -611,7 +611,7 @@ We conclude with a rank `3 + 1` alcove walk::
         sage: L.plot_alcoves(alcoves=alcoves, color=color, bounding_box=10,wireframe=True).show(frame=False) # long time
 
     .. PLOT::
-        :width: 500 px
+        :width: 300 px
 
         L = RootSystem(["A",3,1]).ambient_space()
         alcoves = cartesian_product([[0,1],[0,1],[0,1]])
@@ -638,7 +638,7 @@ Now you can create your own customized color Coxeter graph paper::
     Graphics object consisting of ... graphics primitives
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     L = RootSystem(["C",2,1]).ambient_space()
     sphinx_plot(L.plot(bounding_box=[[-8,9],[-5,7]], coroots="simple"))
@@ -682,7 +682,7 @@ fundamental alcove::
     Graphics object consisting of 30 graphics primitives
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     L = RootSystem(["A",2]).ambient_space()
     rho = L.rho()
@@ -711,7 +711,7 @@ The same picture for `A_3` gives a nice 3D permutohedron::
     Graphics3d Object
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     L = RootSystem(["A",3]).ambient_space()
     rho = L.rho()
@@ -752,7 +752,7 @@ according to its weight::
     sage: p.show(figsize=15)
 
 .. PLOT::
-    :width: 500 px
+    :width: 300 px
 
     C = crystals.Tableaux(["A",2], shape=[4,2])
     L = C.weight_lattice_realization()

@@ -1,5 +1,5 @@
 """
-Special matrices
+Constructors for special matrices
 
 This module gathers several constructors for special, commonly used or
 interesting matrices. These can be reached through ``matrix.<tab>``.
@@ -121,6 +121,7 @@ def matrix_method(func=None, name=None):
         return func
     else:
         return lambda func: matrix_method(func, name=name)
+
 
 @matrix_method
 def column_matrix(*args, **kwds):
@@ -3279,6 +3280,7 @@ def random_diagonalizable_matrix(parent,eigenvalues=None,dimensions=None):
             # range of multiplier determined experimentally so that entries stay manageable for small matrices
             eigenvector_matrix.add_multiple_of_row(upper_row,row,randint(-4,4))
     return eigenvector_matrix*diagonal_matrix*(eigenvector_matrix.inverse())
+
 
 @matrix_method
 def vector_on_axis_rotation_matrix(v, i, ring=None):

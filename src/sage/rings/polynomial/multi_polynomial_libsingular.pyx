@@ -181,8 +181,8 @@ from sage.libs.singular.decl cimport (
     p_NSet, p_GetCoeff, p_Delete, p_GetExp, pNext, rRingVar, omAlloc0, omStrDup,
     omFree, pDivide, p_SetCoeff0, n_Init, p_DivisibleBy, pLcm, p_LmDivisibleBy,
     pDivide, p_IsConstant, p_ExpVectorEqual, p_String, p_LmInit, n_Copy,
-    p_IsUnit, pInvers, p_Head, idInit, fast_map_common_subexp, id_Delete,
-    p_IsHomogeneous, pHomogen, p_Totaldegree,pLDeg1_Totaldegree, singclap_pdivide, singclap_factorize,
+    p_IsUnit, p_Series, p_Head, idInit, fast_map_common_subexp, id_Delete,
+    p_IsHomogeneous, p_Homogen, p_Totaldegree,pLDeg1_Totaldegree, singclap_pdivide, singclap_factorize,
     idLift, IDELEMS, On, Off, SW_USE_CHINREM_GCD, SW_USE_EZGCD,
     p_LmIsConstant, pTakeOutComp1, singclap_gcd, pp_Mult_qq, p_GetMaxExp,
     pLength, kNF, p_Neg, p_Minus_mm_Mult_qq, p_Plus_mm_Mult_qq,
@@ -3099,13 +3099,14 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             2
         """
         cdef ring *_ring = self._parent_ring
+        cdef poly *_one_element_poly = (<MPolynomialRing_libsingular> self._parent)._one_element_poly
         if(_ring != currRing): rChangeCurrRing(_ring)
 
         if not p_IsUnit(self._poly, _ring):
             raise ArithmeticError("Element is not a unit.")
 
         sig_on()
-        cdef MPolynomial_libsingular r = new_MP(self._parent, pInvers(0, self._poly, NULL))
+        cdef MPolynomial_libsingular r = new_MP(self._parent, p_Series(0, p_Copy(_one_element_poly, _ring), self._poly, NULL, _ring))
         sig_off()
         return r
 
@@ -3160,14 +3161,17 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         SEE: ``self.homogenize``
         """
+        cdef ring *_ring = self._parent_ring
         cdef MPolynomialRing_libsingular parent = self._parent
         cdef MPolynomial_libsingular f
 
         if self.is_homogeneous():
             return self
 
+        if(_ring != currRing): rChangeCurrRing(_ring)
+
         if var < parent._ring.N:
-            return new_MP(parent, pHomogen(p_Copy(self._poly, self._parent_ring), var+1))
+            return new_MP(parent, p_Homogen(self._poly, var+1, _ring))
         else:
             raise TypeError("var must be < self.parent().ngens()")
 

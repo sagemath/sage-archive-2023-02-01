@@ -591,8 +591,10 @@ You can change it later in Preferences."];
 -(IBAction)openNotebook:(id)sender{
     if ( jupyterURL != nil ) {
         [self browseRemoteURL:jupyterURL];
-    } else {
+    } else if ( port != 0 || (defaults && [defaults boolForKey:@"preferSageNB"]) ) {
         [self browseLocalSageURL:@""];
+    } else {
+        [self startJupyter:sender];
     }
 }
 
@@ -600,8 +602,10 @@ You can change it later in Preferences."];
     if ( jupyterURL != nil ) {
         // AFAICT you can't create a new worksheet via curl
         [self browseRemoteURL:jupyterURL];
-    } else {
+    } else if ( port != 0 || (defaults && [defaults boolForKey:@"preferSageNB"]) ) {
         [self browseLocalSageURL:@"new_worksheet"];
+    } else {
+        [self startJupyter:sender];
     }
 }
 

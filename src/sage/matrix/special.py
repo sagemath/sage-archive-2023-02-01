@@ -3568,14 +3568,14 @@ def hankel(c, r):
     r"""
     Return a Hankel matrix of given first column and last row.
 
-    The Hankel matrix is symmetric and constant across the anti-digonals,
+    The Hankel matrix is symmetric and constant across the anti-diagonals,
     with elements
 
     .. MATH::
 
         H_{ij} = v_{i+j-1},\qquad i = 1,\ldots, m,~j = 1,\ldots, n,
 
-    where the vector `v_i = c_i` for `i = 1,\ldots, m` and `v_i = r_i` for
+    where the vector `v_i = c_i` for `i = 1,\ldots, m` and `v_{m+i-1} = r_i` for
     `i = 2, \ldots, n` completely determines the Hankel matrix.
     For more information see the :wikipedia:`Hankel_matrix`.
 
@@ -3597,5 +3597,7 @@ def hankel(c, r):
         [2 3 4 5]
         [3 4 5 6]
     """
-    entries = c + r[1:]
-    return matrix(lambda i,j: entries[i+j], nrows=len(c), ncols=len(r))
+    m = len(c); n = len(r)
+    # concatenation: c + r[1:] for lists
+    entries = lambda i: c[i] if i < m else r[i-m+1]
+    return matrix(lambda i,j: entries(i+j), nrows=m, ncols=n)

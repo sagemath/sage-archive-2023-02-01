@@ -817,7 +817,7 @@ class Singular(ExtraTabCompletion, Expect):
                 return True
             except TypeError:
                 pass
-        elif S is int or S is long:
+        elif S in integer_types:
             return True
         return None
 

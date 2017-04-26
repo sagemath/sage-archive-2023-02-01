@@ -177,6 +177,7 @@ from sage.libs.singular.decl cimport n_unknown,  n_Zp,  n_Q,   n_R,   n_GF,  n_l
 # singular functions
 from sage.libs.singular.decl cimport (
     errorreported,
+    n_IsUnit, n_Invers,
     p_ISet, rChangeCurrRing, p_Copy, p_Init, p_SetCoeff, p_Setm, p_SetExp, p_Add_q,
     p_NSet, p_GetCoeff, p_Delete, p_GetExp, pNext, rRingVar, omAlloc0, omStrDup,
     omFree, pDivide, p_SetCoeff0, n_Init, p_DivisibleBy, pLcm, p_LmDivisibleBy,
@@ -3099,14 +3100,13 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             2
         """
         cdef ring *_ring = self._parent_ring
-        cdef poly *_one_element_poly = (<MPolynomialRing_libsingular> self._parent)._one_element_poly
         if(_ring != currRing): rChangeCurrRing(_ring)
 
-        if not p_IsUnit(self._poly, _ring):
+        if not (p_IsUnit(self._poly,_ring)):
             raise ArithmeticError("Element is not a unit.")
 
         sig_on()
-        cdef MPolynomial_libsingular r = new_MP(self._parent, p_Series(0, p_Copy(_one_element_poly, _ring), self._poly, NULL, _ring))
+        cdef MPolynomial_libsingular r = new_MP(self._parent, p_NSet(n_Invers(p_GetCoeff(self._poly, _ring),_ring.cf),_ring))
         sig_off()
         return r
 

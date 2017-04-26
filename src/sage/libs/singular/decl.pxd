@@ -534,6 +534,9 @@ cdef extern from "singular/Singular/libsingular.h":
 
     int rRing_has_Comp(ring *r)
 
+    int rHasGlobalOrdering(ring *r)
+    int rHasLocalOrMixedOrdering(ring *r)
+
     # return new empty monomial
 
     poly *p_Init(ring *r)
@@ -765,6 +768,10 @@ cdef extern from "singular/Singular/libsingular.h":
 
     # Copy this number
     number *n_Copy(number *n, ring* r)
+
+    # Invert this number
+    int n_IsUnit(number *n, const n_Procs_s *cf)
+    number *n_Invers(number *n, const n_Procs_s *cf)
 
     # rational number from int
 

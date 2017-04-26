@@ -524,8 +524,7 @@ ext_modules = [
               package = 'coxeter3'),
 
     Extension('sage.libs.ecl',
-              sources = ["sage/libs/ecl.pyx"],
-              libraries = ["ecl","gmp"]),
+              sources = ["sage/libs/ecl.pyx"]),
 
     OptionalExtension("sage.libs.fes",
              ["sage/libs/fes.pyx"],

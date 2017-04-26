@@ -421,7 +421,7 @@ class EllipticCurveFactory(UniqueFactory):
 
         if R is None:
             R = Sequence(x).universe()
-            if R in (rings.ZZ, integer_types):
+            if R in (rings.ZZ,) + integer_types:
                 R = rings.QQ
 
         return (R, tuple(R(a) for a in x)), kwds

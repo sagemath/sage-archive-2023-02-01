@@ -78,7 +78,7 @@ class FreeAbelianMonoidElement(MonoidElement):
         """
         MonoidElement.__init__(self, F)
         n = F.ngens()
-        if isinstance(x, integer_types, + (Integer,)) and x == 1:
+        if isinstance(x, integer_types + (Integer,)) and x == 1:
             self._element_vector = tuple([0]*n)
         elif isinstance(x, (list, tuple)):
             if len(x) != n:

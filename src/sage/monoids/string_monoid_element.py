@@ -83,7 +83,7 @@ class StringMonoidElement(FreeMonoidElement):
         if isinstance(x, list):
             if check:
                 for b in x:
-                    if not isinstance(b, integer_types + (Intger,)):
+                    if not isinstance(b, integer_types + (Integer,)):
                         raise TypeError(
                             "x (= %s) must be a list of integers." % x)
             self._element_list = list(x) # make copy

@@ -169,6 +169,10 @@
     [jupyterTask launch];
 
     if (haveStatusItem)  [statusItem setImage:statusImageBlue];
+
+    // Open loading page since it can take a while to start
+    [self browseRemoteURL:[[NSBundle mainBundle] pathForResource:@"loading-page" ofType:@"html"]];
+
 }
 
 

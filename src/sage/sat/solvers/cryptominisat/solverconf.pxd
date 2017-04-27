@@ -10,7 +10,7 @@
 
 from sage.sat.solvers.cryptominisat.decl cimport SolverConf as SolverConfC
 
-cdef extern from "sage/sat/solvers/cryptominisat/solverconf_helper.h":
+cdef extern from "solverconf_helper.h":
     ctypedef enum sc_type:
         t_int
         t_float

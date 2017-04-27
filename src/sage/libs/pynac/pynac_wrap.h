@@ -7,6 +7,9 @@
                    http://www.gnu.org/licenses/
 *******************************************************************************/
 
+#ifndef _SAGE_PYNAC_WRAP_H
+#define _SAGE_PYNAC_WRAP_H
+
 #include "ccobject.h"
 #include <pynac/ginac.h>
 #include <pynac/extern_templates.h>
@@ -115,3 +118,5 @@ namespace GiNaC {
 extern const ex _ex1_2;
 
 }
+
+#endif /* ifndef __SAGE_PYNAC_WRAP_H */

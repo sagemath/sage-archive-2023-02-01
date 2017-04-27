@@ -1,6 +1,6 @@
 # distutils: language = c++
 
-cdef extern from "sage/libs/polybori/pb_wrap.h":
+cdef extern from "pb_wrap.h":
     ctypedef struct std_string "std::string":
         char *(* c_str)()
 

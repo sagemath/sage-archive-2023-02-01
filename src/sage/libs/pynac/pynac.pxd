@@ -34,7 +34,7 @@ from libcpp.pair cimport pair
 from libcpp.string cimport string as stdstring
 from sage.libs.gmp.types cimport mpz_t, mpq_t, mpz_ptr, mpq_ptr
 
-cdef extern from "sage/libs/pynac/wrap.h":
+cdef extern from "pynac_wrap.h":
     void ginac_pyinit_Integer(object)
     void ginac_pyinit_Float(object)
     void ginac_pyinit_I(object)

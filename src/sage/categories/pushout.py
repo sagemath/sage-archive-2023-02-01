@@ -4066,7 +4066,7 @@ def type_to_parent(P):
         TypeError: Not a scalar type.
     """
     import sage.rings.all
-    if P in [int, long]:
+    if P in six.integer_types:
         return sage.rings.all.ZZ
     elif P is float:
         return sage.rings.all.RDF

@@ -33,7 +33,7 @@ TESTS::
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
-from six import iteritems
+from six import iteritems, integer_types
 
 # System imports
 import sys
@@ -1010,7 +1010,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             ...
             AttributeError: 'MatrixSpace_with_category' object has no attribute 'list'
         """
-        if isinstance(x, (int, long, integer.Integer)):
+        if isinstance(x, integer_types + (integer.Integer,)):
             return self.list()[x]
         return Rings.ParentMethods.__getitem__.__func__(self, x)
 

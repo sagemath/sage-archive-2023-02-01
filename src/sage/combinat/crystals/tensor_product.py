@@ -1636,13 +1636,37 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             [[[2]], [[1]]]
             sage: y.e_string_to_ground_state()
             ()
+
+        TESTS:
+
+        Check that :trac:`22882` is fixed::
+
+            sage: K = crystals.KirillovReshetikhin(CartanType(['A',6,2]).dual(), 1,1)
+            sage: T = tensor([K,K,K])
+            sage: hw = [x for x in T if x.is_highest_weight([1,2,3])]
+            sage: gs = T(K(0), K(0), K(0))
+            sage: all(elt.e_string(elt.e_string_to_ground_state()) == gs
+            ....:     for elt in hw)
+            True
+            sage: all(elt.energy_function() == elt.energy_function('definition')
+            ....:     for elt in hw)
+            True
         """
         from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinTableaux
         if self.parent().crystals[0].__module__ != 'sage.combinat.crystals.kirillov_reshetikhin' and \
                 not isinstance(self.parent().crystals[0], KirillovReshetikhinTableaux):
             raise ValueError("All crystals in the tensor product need to be Kirillov-Reshetikhin crystals")
-        I = self.cartan_type().classical().index_set()
         ell = max(ceil(K.s()/K.cartan_type().c()[K.r()]) for K in self.parent().crystals)
+        if self.cartan_type().dual().type() == 'BC':
+            I = self.cartan_type().index_set()
+            for i in I[:-1]:
+                if self.epsilon(i) > 0:
+                    return (i,) + (self.e(i)).e_string_to_ground_state()
+            if self.epsilon(I[-1]) > ell:
+                return (I[-1],) + (self.e(I[-1])).e_string_to_ground_state()
+            return ()
+
+        I = self.cartan_type().classical().index_set()
         for i in I:
             if self.epsilon(i) > 0:
                 return (i,) + (self.e(i)).e_string_to_ground_state()

@@ -1,8 +1,9 @@
 r"""
 Valuation rings
 
-A valuation ring of a function field in Sage is associated with a place of the
-function field.
+A valuation ring of a function field is associated with a place of the
+function field. The valuation ring consists of all elements of the function
+field that have nonnegative valuation at the place.
 
 EXAMPLES::
 
@@ -17,17 +18,14 @@ EXAMPLES::
     sage: R.place() == p
     True
 
-The valuation ring consists of all elements of the function field that have
-nonnegative valuation at the place. Thus any nonzero element of a function
-field or its inverse belongs to a valuation ring. If a nonzero element and its
-inverse both belongs to the valuation ring, then it should have valuation zero
-at the place. This is shown in the following example::
+Thus any nonzero element or its inverse of the function field lies in the
+valuation ring, as shown in the following example::
 
     sage: f = y/(1+y)
     sage: f in R
     True
-    sage: 1/f in R
-    True
+    sage: f not in R
+    False
     sage: f.valuation(p)
     0
 
@@ -36,8 +34,8 @@ ring modulo its unique maximal ideal. In a global function field, the
 :meth:`residue_field()` method returns a finite field isomorphic to the residue
 field::
 
-    sage: r,phi,psi = R.residue_field()
-    sage: r
+    sage: k,phi,psi = R.residue_field()
+    sage: k
     Finite Field of size 2
     sage: phi
     Ring morphism:
@@ -47,14 +45,12 @@ field::
     Ring morphism:
       From: Valuation ring at Place (x, x*y)
       To:   Finite Field of size 2
-    sage: psi(f)
-    1
-    sage: psi(1/f)
-    1
+    sage: psi(f) in k
+    True
 
 AUTHORS:
 
-- Kwankyu Lee (2016): initial version
+- Kwankyu Lee (2017-04-30): initial version
 
 """
 #*****************************************************************************
@@ -83,15 +79,18 @@ lazy_import('sage.matrix.constructor', 'matrix')
 class FunctionFieldValuationRing(Parent):
     """
     Base class for valuation rings of function fields.
-
-    INPUT:
-
-    - ``field`` -- a function field
-
-    - ``place`` -- a place of the function field
-
     """
     def __init__(self, field, place):
+        """
+        Initialize.
+
+        INPUT:
+
+        - ``field`` -- a function field
+
+        - ``place`` -- a place of the function field
+
+        """
         Parent.__init__(self, category=Rings())
 
         self._field = field
@@ -99,7 +98,7 @@ class FunctionFieldValuationRing(Parent):
 
     def _element_constructor_(self, x):
         """
-        Construct an element of the function field belonging to this
+        Construct an element of the function field belonging to the
         valuation ring.
 
         EXAMPLES::
@@ -125,7 +124,7 @@ class FunctionFieldValuationRing(Parent):
 
     def _repr_(self):
         """
-        Return a string representation of the valuation ring.
+        Return the string representation of the valuation ring.
 
         EXAMPLES::
 
@@ -156,10 +155,22 @@ class FunctionFieldValuationRing_global(FunctionFieldValuationRing):
     """
     Valuation rings of global function fields.
     """
-    def residue_field(self):
+    def residue_field(self, name=None):
         """
-        Return the residue field of the valuation ring along with
+        Return the residue field of the valuation ring together with
         the maps from and to it.
+
+        INPUT:
+
+        - ``name`` -- a string; name of the generator of the residue field
+
+        OUTPUT:
+
+        - a finite field isomorphic to the residue field
+
+        - a ring homomorphism from the valuation ring to the finite field
+
+        - a ring homomorphism from the finite field to the valuation ring
 
         EXAMPLES::
 
@@ -178,43 +189,17 @@ class FunctionFieldValuationRing_global(FunctionFieldValuationRing):
             Ring morphism:
               From: Valuation ring at Place (x, x*y)
               To:   Finite Field of size 2
-            sage: to_k(y)
-            Traceback (most recent call last):
-            ...
-            TypeError: ...
             sage: to_k(1/y)
             0
             sage: to_k(y/(1+y))
             1
         """
-        k, from_k, to_k = self._place._residue_field()
-        mor_from_k = Morphism(Hom(k,self), from_k)
-        mor_to_k = Morphism(Hom(self,k), to_k)
+        from .maps import Morphism_func as morphism
+
+        k, from_k, to_k = self._place._residue_field(name=name)
+        mor_from_k = morphism(Hom(k,self), from_k)
+        mor_to_k = morphism(Hom(self,k), to_k)
         return k, mor_from_k, mor_to_k
 
-class Morphism(RingHomomorphism):
-    """
-    Ring homomorphisms defined by Python functions
 
-    PARAMETERS:
-
-    - ``parent`` -- a hom set from a ring A to a ring B
-
-    - ``func`` -- a Python function that outputs an element of B for an element
-      of A
-
-    """
-    def __init__(self, parent, func):
-        """
-        Initialize.
-        """
-        RingHomomorphism.__init__(self, parent)
-
-        self._map = func
-
-    def _call_(self, x):
-        """
-        Return the image of x by the homomorphsim.
-        """
-        return self._map(x)
 

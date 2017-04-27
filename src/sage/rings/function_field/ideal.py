@@ -1,11 +1,12 @@
 r"""
 Ideals
 
-Basic arithmetic with fractional ideals of an order is provided for a function field.
+Ideals of an order of a function field include all fractional ideals of the order.
+Sage provides basic arithmetic with fractional ideals.
 
-For global function fields, advanced arithmetic with fractional ideals of
-maximal orders or maximal infinite orders is possible. For example, an ideal of
-the maximal order can be factored into a product of prime ideals.
+The fractional ideals of the maximal order of a global function field forms a multiplicative
+monoid. Sage allows advanced arithmetic with the fractional ideals. For example, an ideal
+of the maximal order can be factored into a product of prime ideals.
 
 EXAMPLES:
 
@@ -73,7 +74,7 @@ AUTHORS:
 
 - Maarten Derickx (2011-09-14): fixed ideal_with_gens_over_base()
 
-- Kwankyu Lee (2016): added ideals for global function fields
+- Kwankyu Lee (2017-04-30): added ideals for global function fields
 
 """
 from __future__ import absolute_import
@@ -113,7 +114,7 @@ lazy_import('sage.rings.function_field.divisor', 'FunctionFieldDivisor')
 
 def is_Ideal(x):
     """
-    Return ``True`` if object is an ideal in a function field.
+    Return True if ``x`` is an ideal in a function field.
     """
     return isinstance(x, FunctionFieldIdeal)
 
@@ -141,7 +142,7 @@ class FunctionFieldIdeal(AlgebraElement):
         Return reduced generators. This just returns the generators for now.
 
         This method is provided so that ideals in funtion fields have the method
-        ``gens_reduced()``, just like ideals of number fields. Sage linear algebra
+        :meth:`gens_reduced()`, just like ideals of number fields. Sage linear algebra
         machinery sometimes requires this.
 
         EXAMPLES::
@@ -222,6 +223,10 @@ class FunctionFieldIdeal_rational(FunctionFieldIdeal):
         """
         Test if ``element`` is in the ideal.
 
+        INPUT:
+
+        - ``element`` -- an element of the function field
+
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ)
@@ -234,7 +239,14 @@ class FunctionFieldIdeal_rational(FunctionFieldIdeal):
 
     def _richcmp_(self, other, op):
         """
-        Test equality.
+        Compare the element with the other element with respect
+        to the comparison operator.
+
+        INPUT:
+
+        - ``other`` -- an element
+
+        - ``op`` -- a comparison operator
 
         EXAMPLES::
 
@@ -253,7 +265,11 @@ class FunctionFieldIdeal_rational(FunctionFieldIdeal):
 
     def _add_(self, other):
         """
-        Add ideals.
+        Add the ideal with the other ideal.
+
+        INPUT:
+
+        - ``other`` -- an ideal
 
         EXAMPLES::
 
@@ -268,7 +284,11 @@ class FunctionFieldIdeal_rational(FunctionFieldIdeal):
 
     def _mul_(self, other):
         """
-        Multiply ideals.
+        Multiply the ideal with the other ideal.
+
+        INPUT:
+
+        - ``other`` -- an ideal
 
         EXAMPLES::
 
@@ -284,6 +304,10 @@ class FunctionFieldIdeal_rational(FunctionFieldIdeal):
     def _rmul_(self, other):
         """
         Multiply ``other`` with the ideal on the right.
+
+        INPUT:
+
+        - ``other`` -- an ideal
 
         EXAMPLES::
 
@@ -328,7 +352,7 @@ class FunctionFieldIdeal_rational(FunctionFieldIdeal):
 
     def is_prime(self):
         """
-        Return ``True`` if this is a prime ideal.
+        Return True if this is a prime ideal.
 
         EXAMPLES::
 
@@ -410,7 +434,11 @@ class FunctionFieldIdeal_rational(FunctionFieldIdeal):
 
     def valuation(self, ideal):
         """
-        Return valuation value of ``ideal`` at the prime ideal.
+        Return valuation value of the ideal at the prime ideal.
+
+        INPUT:
+
+        - ``ideal`` -- a fractional ideal
 
         EXAMPLES::
 
@@ -429,7 +457,11 @@ class FunctionFieldIdeal_rational(FunctionFieldIdeal):
 
     def _valuation(self, ideal):
         """
-        Return valuation of the integral ``ideal`` at the prime ideal.
+        Return valuation of the integral ideal at the prime ideal.
+
+        INPUT:
+
+        - ``ideal`` -- an ideal
 
         EXAMPLES::
 
@@ -581,9 +613,12 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
     """
     def __init__(self, ring, module):
         """
+        Initialize.
+
         INPUT:
 
         - ``ring`` -- an order in a function field
+
         - ``module`` -- a module
 
         EXAMPLES::
@@ -605,7 +640,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
 
     def __contains__(self, x):
         """
-        Return True if x is in the ideal.
+        Return True if ``x`` is in the ideal.
 
         EXAMPLES::
 
@@ -624,11 +659,14 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
         return self._structure[2](x) in self._module
 
     def __hash__(self):
+        """
+        Return the hash of the ideal.
+        """
         return hash((self._ring,self._module))
 
     def __eq__(self, other):
         """
-        Test equality of self with other.
+        Test equality of the ideal with the other ideal.
         """
         if not isinstance(other, FunctionFieldIdeal_module):
             other = self.ring().ideal(other)
@@ -643,7 +681,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
 
     def __cmp__(self, other):
         """
-        Compare self and ``other``.
+        Compare the ideal and the other ideal.
 
         EXAMPLES::
 
@@ -670,14 +708,14 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
     def module(self):
         """
         Return module over the maximal order of the base field that
-        underlies self.
+        underlies the ideal.
 
         The formation of the module is compatible with the vector
         space corresponding to the function field.
 
         OUTPUT:
 
-        - a module over the maximal order of the base field of self
+        - a module over the maximal order of the base field of the ideal
 
         EXAMPLES::
 
@@ -702,7 +740,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
 
     def __repr__(self):
         """
-        Return a string representation of ``self``.
+        Return a string representation of the ideal.
 
         EXAMPLES::
 
@@ -714,7 +752,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
 
     def __nonzero__(self):
         r"""
-        Return ``True`` if the ideal is not `(0)`.
+        Return True if the ideal is not a zero ideal.
 
         TESTS::
 
@@ -780,8 +818,12 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
 
     def apply_morphism(self, phi):
         r"""
-        Apply the morphism ``phi`` to every element of the ideal.
-        Returns an ideal in the domain of ``phi``.
+        Apply the morphism ``phi`` to every element of the ideal and
+        return an ideal in the domain of ``phi``.
+
+        INPUT:
+
+        - ``phi`` -- a morphism
 
         EXAMPLES::
 
@@ -839,9 +881,9 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
 
     def gens(self):
         """
-        Return a set of generators / a basis of ``self``.
+        Return a set of generators of the ideal.
 
-        This is the set of generators provided during creation of the ideal.
+        This is the set of generators provided during the creation of the ideal.
 
         EXAMPLE::
 
@@ -894,7 +936,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
 
     def __add__(self, other):
         """
-        This method just makes sure that ``self`` and other are ideals in the
+        This method just makes sure that the ideal and ``other`` are ideals in the
         same ring and then calls :meth:`_add_`. If you want to change the
         behaviour of ideal addition in a subclass of
         :class:`Ideal_generic` please overwrite :meth:`_add_` and not
@@ -906,9 +948,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
 
     def _add_(self, other):
         """
-        Add ``self`` on the left to ``other``.
-
-        This makes sure that ``other`` and ``self`` are in the same rings.
+        Add the ideal on the left to the other ideal.
 
         EXAMPLES::
 
@@ -921,9 +961,9 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
 
     def __radd__(self, other):
         """
-        Add ``self`` on the right to ``other``.
+        Add the ideal on the right to the other ideal.
 
-        This makes sure that ``other`` and ``self`` are in the same rings.
+        This makes sure that ``other`` is in the same ring of the ideal.
 
         EXAMPLES::
 
@@ -938,8 +978,8 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
 
     def __mul__(self, other):
         """
-        This method just makes sure that ``self`` and other are ideals in the
-        same ring and then calls :meth:`_mul_`. If you want to change the
+        This method just makes sure that ``other`` is an ideal in the same ring
+        with the ideal and then calls :meth:`_mul_`. If you want to change the
         behaviour of ideal multiplication in a subclass of
         :class:`Ideal_generic` please overwrite :meth:`_mul_` and not
         :meth:`__mul__`.
@@ -964,9 +1004,6 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
         """
         This is a very general implementation of Ideal multiplication.
 
-        This method assumes that ``self`` and ``other`` are Ideals of the
-        same ring.
-
         The number of generators of ```self * other` will be
         ``self.ngens() * other.ngens()``. So if used repeatedly this method
         will create an ideal with a uselessly large amount of generators.
@@ -985,7 +1022,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
 
     def __rmul__(self, other):
         """
-        Multiply ``self`` on the right with ``other``.
+        Multiply the ideal on the right with ``other``.
 
         EXAMPLE::
 
@@ -1113,7 +1150,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
 
     def __contains__(self, x):
         """
-        Return ``True`` if ``x`` is in the ideal.
+        Return True if ``x`` is in the ideal.
 
         EXAMPLES::
 
@@ -1154,7 +1191,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
 
     def __invert__(self):
         """
-        Return the inverse fractional ideal of self.
+        Return the inverse fractional ideal of the ideal.
 
         EXAMPLES::
             sage: K.<x> = FunctionField(GF(7)); _.<Y> = K[]
@@ -1189,7 +1226,13 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
 
     def _richcmp_(self, other, op):
         """
-        Compare the ideal with ``other`` ideal with respect to ``op``.
+        Compare the ideal with the other ideal with respect to ``op``.
+
+        INPUT:
+
+        - ``other`` -- an ideal
+
+        - ``op`` -- a comparison operator
 
         EXAMPLES::
 
@@ -1341,7 +1384,11 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
 
     def intersect(self, other):
         """
-        Intersect the ideal with ``other`` ideal as fractional ideals.
+        Intersect the ideal with the other ideal as fractional ideals.
+
+        INPUT:
+
+        - ``other`` -- an ideal
 
         EXAMPLES::
 
@@ -1648,7 +1695,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
 
     def is_integral(self):
         """
-        Return ``True`` if this is an integral ideal.
+        Return True if this is an integral ideal.
 
         EXAMPLES::
 
@@ -1883,7 +1930,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
 
     def is_prime(self):
         """
-        Return ``True`` if the ideal is a prime ideal.
+        Return True if the ideal is a prime ideal.
 
         If checked to be a prime ideal, then the ideal can be used
         as a prime ideal.
@@ -1923,7 +1970,11 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
 
     def valuation(self, ideal):
         """
-        Return the valuation of ``ideal`` at the prime ideal.
+        Return the valuation of the ideal at the prime ideal.
+
+        INPUT:
+
+        - ``ideal`` -- a fractional ideal
 
         EXAMPLES::
 
@@ -2112,7 +2163,11 @@ class FunctionFieldIdealInfinite_rational(FunctionFieldIdealInfinite):
 
     def _add_(self, other):
         """
-        Add the ideal with ``other`` ideal.
+        Add the ideal with the other ideal.
+
+        INPUT:
+
+        - ``other`` -- an ideal
 
         EXAMPLES::
 
@@ -2128,7 +2183,11 @@ class FunctionFieldIdealInfinite_rational(FunctionFieldIdealInfinite):
 
     def _mul_(self, other):
         """
-        Multiply the ideal with ``other`` ideal.
+        Multiply the ideal with the other ideal.
+
+        INPUT:
+
+        - ``other`` -- an ideal
 
         EXAMPLES::
 
@@ -2144,7 +2203,11 @@ class FunctionFieldIdealInfinite_rational(FunctionFieldIdealInfinite):
 
     def _rmul_(self, other):
         """
-        Multiply the ideal with ``other`` ideal.
+        Multiply the ideal with the other ideal.
+
+        INPUT:
+
+        - ``other`` -- an ideal
 
         EXAMPLES::
 
@@ -2165,7 +2228,7 @@ class FunctionFieldIdealInfinite_rational(FunctionFieldIdealInfinite):
 
     def is_prime(self):
         """
-        Return ``True`` if the ideal is a prime ideal.
+        Return True if the ideal is a prime ideal.
 
         EXAMPLES::
 
@@ -2316,7 +2379,11 @@ class FunctionFieldIdealInfinite_rational(FunctionFieldIdealInfinite):
 
     def valuation(self, ideal):
         """
-        Return valuation value of ``ideal`` at the prime ideal.
+        Return valuation value of the ideal at the prime ideal.
+
+        INPUT:
+
+        - ``ideal`` -- a fractional ideal
 
         EXAMPLES::
 
@@ -2344,6 +2411,8 @@ class FunctionFieldIdealInfinite_module(FunctionFieldIdealInfinite):
     """
     def __init__(self, ring, module):
         """
+        Initialize.
+
         INPUT:
 
         - ``ring`` -- an order in a function field
@@ -2370,7 +2439,7 @@ class FunctionFieldIdealInfinite_module(FunctionFieldIdealInfinite):
 
     def __contains__(self, x):
         """
-        Return True if x is in the ideal.
+        Return True if ``x`` is in the ideal.
 
         EXAMPLES::
 
@@ -2452,7 +2521,7 @@ class FunctionFieldIdealInfinite_module(FunctionFieldIdealInfinite):
 
     def _repr_(self):
         """
-        Return a string representation of ``self``.
+        Return a string representation of the ideal.
 
         EXAMPLES::
 
@@ -2469,10 +2538,6 @@ class FunctionFieldIdealInfinite_module(FunctionFieldIdealInfinite):
 
         The formation of the module is compatible with the vector
         space corresponding to the function field.
-
-        OUTPUT:
-
-        - a module over the maximal order of the base field of self
 
         EXAMPLES::
 
@@ -2581,7 +2646,11 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
 
     def _add_(self, other):
         """
-        Add the ideal with ``other`` ideal.
+        Add the ideal with the other ideal.
+
+        INPUT:
+
+        - ``ideal`` -- an ideal
 
         EXAMPLES::
 
@@ -2607,7 +2676,11 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
 
     def _mul_(self, other):
         """
-        Multiply the ideal with ``other`` ideal.
+        Multiply the ideal with the other ideal.
+
+        INPUT:
+
+        - ``ideal`` -- an ideal
 
         EXAMPLES::
 
@@ -2633,7 +2706,7 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
 
     def __pow__(self, n):
         """
-        Raise the ideal to ``n``th power.
+        Raise the ideal to ``n``-th power.
 
         EXAMPLES::
 
@@ -2803,7 +2876,7 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
 
     def is_prime(self):
         """
-        Return ``True`` if the ideal is a prime ideal.
+        Return True if the ideal is a prime ideal.
 
         EXAMPLES::
 
@@ -3036,7 +3109,11 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
 
     def valuation(self, ideal):
         """
-        Return the valuation of ``ideal`` with respect to the prime ideal.
+        Return the valuation of the ideal with respect to the prime ideal.
+
+        INPUT:
+
+        - ``ideal`` -- a fractional ideal
 
         EXAMPLES::
 
@@ -3066,6 +3143,10 @@ class IdealMonoid(Parent):
     def __init__(self, R):
         """
         Initialize the ideal monoid.
+
+        INPUT:
+
+        - ``R`` -- an order
 
         EXAMPLES::
 

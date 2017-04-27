@@ -1,13 +1,13 @@
 Algebraic Function Fields
 =========================
 
-Sage provides basic computations with elements, ideals, and orders of general
-function fields over arbitrary constant fields. Advanced computations, like
-computing the genus of the field or a basis of the Riemann-Roch space of a
-divisor, are available for global function fields.
+Sage allows basic computations with elements and ideals in orders of
+algebraic function fields over arbitrary constant fields. Advanced
+computations, like computing the genus or a basis of the Riemann-Roch space of
+a divisor, are available for global function fields.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    sage/rings/function_field/function_field
    sage/rings/function_field/element

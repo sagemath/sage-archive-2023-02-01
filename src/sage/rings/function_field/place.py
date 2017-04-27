@@ -1,9 +1,11 @@
-r"""
+"""
 Places
 
-This module provides places on function fields.
+Sage can find and compute with places on global function fields.
 
-EXAMPLES::
+EXAMPLES:
+
+All rational places of the function field can be computed::
 
     sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
     sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
@@ -12,6 +14,9 @@ EXAMPLES::
      Place (1/x, 1/x^3*y^2 + 1/x^2*y + 1),
      Place (x, y)]
 
+The residue field associated with a place is given as an extension of the
+constant field::
+
     sage: F.<x> = FunctionField(GF(2))
     sage: O = F.maximal_order()
     sage: p = O.ideal(x^2 + x + 1).place()
@@ -19,9 +24,20 @@ EXAMPLES::
     sage: k
     Finite Field in z2 of size 2^2
 
+The isomorphisms are between the valuation ring and the residue field::
+
+    sage: fr_k
+    Ring morphism:
+      From: Finite Field in z2 of size 2^2
+      To:   Valuation ring at Place (x^2 + x + 1)
+    sage: to_k
+    Ring morphism:
+      From: Valuation ring at Place (x^2 + x + 1)
+      To:   Finite Field in z2 of size 2^2
+
 AUTHORS:
 
-- Kwankyu Lee (2016): initial version
+- Kwankyu Lee (2017-04-30): initial version
 
 """
 #*****************************************************************************
@@ -48,6 +64,12 @@ from sage.modules.free_module_element import vector
 lazy_import('sage.matrix.constructor', 'matrix')
 lazy_import('sage.rings.function_field.divisor', 'prime_divisor')
 
+def is_Place(x):
+    """
+    Return True if x is a place of a function field.
+    """
+    return isinstance(x, FunctionFieldPlace)
+
 class FunctionFieldPlace(Element):
     """
     Places of function fields.
@@ -55,6 +77,13 @@ class FunctionFieldPlace(Element):
     def __init__(self, field, prime):
         """
         Initialize the place.
+
+        INPUT:
+
+        - ``field`` -- a function field
+
+        - ``prime`` -- a prime ideal associated with the place
+
         """
         Element.__init__(self, field.place_set())
 
@@ -252,7 +281,7 @@ class FunctionFieldPlace_rational(FunctionFieldPlace):
 
     def is_infinite_place(self):
         """
-        Return ``True`` if the place is at infinite.
+        Return True if the place is at infinite.
 
         EXAMPLES::
 
@@ -279,7 +308,7 @@ class FunctionFieldPlace_rational(FunctionFieldPlace):
         """
         return self.prime_ideal().gen()
 
-    def residue_field(self):
+    def residue_field(self, name=None):
         """
         Return the residue field of the place.
 
@@ -300,12 +329,16 @@ class FunctionFieldPlace_rational(FunctionFieldPlace):
               From: Valuation ring at Place (x^2 + x + 1)
               To:   Finite Field in z2 of size 2^2
         """
-        return self.valuation_ring().residue_field()
+        return self.valuation_ring().residue_field(name=name)
 
-    def _residue_field(self):
+    def _residue_field(self, name=None):
         """
-        Return the residue field of the ``place`` along with the maps from
+        Return the residue field of the place along with the maps from
         and to it.
+
+        INPUT:
+
+        - ``name`` -- a string; name of the generator of the residue field
 
         EXAMPLES::
 
@@ -345,10 +378,7 @@ class FunctionFieldPlace_rational(FunctionFieldPlace):
                     raise TypeError("not in the valuation ring")
         else:
             O = F.maximal_order()
-            K, _from_K, _to_K = O.residue_field(prime)
-
-            def from_K(e):
-                return _from_K(e)
+            K, from_K, _to_K = O._residue_field(prime, name=name)
 
             def to_K(f):
                 if f in O: # f.denominator() is 1
@@ -448,7 +478,7 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
 
     def is_infinite_place(self):
         """
-        Return ``True`` if the place is above the unique infinite place
+        Return True if the place is above the unique infinite place
         of the underlying rational function field.
 
         EXAMPLES::
@@ -684,9 +714,13 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
 
         return gaps
 
-    def residue_field(self):
+    def residue_field(self, name=None):
         """
         Return the residue field of the place.
+
+        INPUT:
+
+        - ``name`` -- a string; name of the generator of the residue field
 
         EXAMPLES::
 
@@ -714,13 +748,19 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
             sage: to_k(y/(1+y))
             1
         """
-        return self.valuation_ring().residue_field()
+        return self.valuation_ring().residue_field(name=name)
 
     @cached_method
-    def _residue_field(self):
+    def _residue_field(self, name=None):
         """
         Return the residue field of the place along with the functions
         mapping from and to it.
+
+        INPUT:
+
+        - ``name`` -- a string; name of the generator of the residue field
+
+        If name is not given, it defaults to ``'a'``.
 
         EXAMPLES::
 
@@ -751,7 +791,7 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
             _prime = prime._ideal
             _place = _prime.place()
 
-            K, _from_K, _to_K = _place._residue_field()
+            K, _from_K, _to_K = _place._residue_field(name=name)
 
             from_K = lambda e: from_F(_from_K(e))
             to_K = lambda f: _to_K(to_F(f))
@@ -858,8 +898,11 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
         min_poly = R((-mat.solve_left(to_V(g))).list() + [1])
 
         if deg > 1:
+            if name is None:
+                name = 'a' # default
+
             # Step 4: construct the finite field
-            K = k.extension(min_poly, R.variable_name())
+            K = k.extension(min_poly, name=name)
 
             # Step 5: compute the matrix of change of basis
             C = mat.inverse()

@@ -1,7 +1,7 @@
 r"""
 Morphisms
 
-This module provides various maps or morphisms defined on function fields.
+Sage provides maps and morphisms useful for computations with function fields.
 
 EXAMPLES::
 
@@ -25,9 +25,7 @@ EXAMPLES::
     ValueError: invalid morphism
 
 For global function fields, which have positive characteristics, Hasse
-derivations are available.
-
-EXAMPLES::
+derivations are available::
 
     sage: K.<x> = FunctionField(GF(2)); _.<Y>=K[]
     sage: L.<y> = K.extension(Y^3+x+x^3*Y)
@@ -42,7 +40,7 @@ AUTHORS:
 - Julian Rueth (2011-09-14, 2014-06-23): refactored class hierarchy; added
   derivation classes
 
-- Kwankyu Lee (2016): added Hasse derivations
+- Kwankyu Lee (2017-04-30): added Hasse derivations and completions
 
 """
 from __future__ import absolute_import
@@ -84,7 +82,11 @@ class FunctionFieldDerivation(Map):
     """
     def __init__(self, K):
         r"""
-        Initialize a derivation from K to K.
+        Initialize a derivation from `K` to `K`.
+
+        INPUT:
+
+        - ``K`` -- a function field
 
         EXAMPLES::
 
@@ -135,9 +137,10 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
     EXAMPLES::
 
         sage: K.<x> = FunctionField(QQ)
-        sage: d = K.derivation()
-        sage: isinstance(d, sage.rings.function_field.maps.FunctionFieldDerivation_rational)
-        True
+        sage: K.derivation()
+        Derivation map:
+          From: Rational function field in x over Rational Field
+          To:   Rational function field in x over Rational Field
     """
     def __init__(self, K, u):
         """
@@ -147,15 +150,9 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
 
         - ``K`` -- a rational function field
 
-        - ``u`` -- an element of K, the image of the generator of K under the
+        - ``u`` -- an element of K; the image of the generator of K under the
           derivation
 
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(QQ)
-            sage: d = K.derivation() # indirect doctest
-            sage: type(d)
-            <class 'sage.rings.function_field.maps.FunctionFieldDerivation_rational'>
         """
         FunctionFieldDerivation.__init__(self, K)
 
@@ -163,7 +160,7 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
 
     def _call_(self, x):
         """
-        Compute the derivation of x.
+        Compute the derivation of ``x``.
 
         INPUT:
 
@@ -198,27 +195,22 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
         sage: K.<x> = FunctionField(QQ)
         sage: R.<y> = K[]
         sage: L.<y> = K.extension(y^2 - x)
-        sage: d = L.derivation()
+        sage: L.derivation()
+        Derivation map:
+          From: Function field in y defined by y^2 - x
+          To:   Function field in y defined by y^2 - x
+          Defn: y |--> (-1/2/-x)*y
     """
     def __init__(self, L, d):
         """
-        Initialization.
+        Initialize.
 
         INPUT:
 
-        - ``L`` -- a function field which is a separable extension of the domain of
-          d
+        - ``L`` -- a function field; a separable extension of the domain of ``d``
 
-        - ``d`` -- a derivation on the base function field of L
+        - ``d`` -- a derivation on the base function field of ``L``
 
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(3))
-            sage: R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 - x)
-            sage: d = L.derivation() # indirect doctest
-            sage: type(d)
-            <class 'sage.rings.function_field.maps.FunctionFieldDerivation_separable'>
         """
         FunctionFieldDerivation.__init__(self, L)
 
@@ -233,7 +225,7 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
 
     def _call_(self, x):
         r"""
-        Evaluate the derivation on x.
+        Evaluate the derivation on ``x``.
 
         INPUT:
 
@@ -310,31 +302,35 @@ class FunctionFieldHasseDerivation(Map):
         self._field = field
 
     def _repr_type(self):
+        """
+        Return a string containing the type of the map.
+        """
         return 'Hasse derivation'
 
 class FunctionFieldHasseDerivation_rational(FunctionFieldHasseDerivation):
     """
     Hasse derivations of rational function fields.
+
+    EXAMPLES::
+
+        sage: F.<x> = FunctionField(GF(2))
+        sage: h = F.hasse_derivation()
+        sage: h
+        Hasse derivation map:
+          From: Rational function field in x over Finite Field of size 2
+          To:   Rational function field in x over Finite Field of size 2
+        sage: h(x^2,2)
+        1
     """
     def __init__(self, field):
         """
-        Return the Hasse derivation on the rational function field.
+        Initialize the Hasse derivation on the rational function field.
 
         INPUT:
 
         - ``field`` -- a function field which is the domain and codomain of the
           derivation
 
-        EXAMPLES::
-
-            sage: F.<x> = FunctionField(GF(2))
-            sage: h = F.hasse_derivation()
-            sage: h
-            Hasse derivation map:
-              From: Rational function field in x over Finite Field of size 2
-              To:   Rational function field in x over Finite Field of size 2
-            sage: h(x^2,2)
-            1
         """
         FunctionFieldHasseDerivation.__init__(self, field)
 
@@ -422,9 +418,9 @@ class FunctionFieldHasseDerivation_rational(FunctionFieldHasseDerivation):
 
     def _prime_power_representation(self, f, separating_element=None):
         """
-        Return p-th power representation of the element f.
+        Return `p`-th power representation of the element `f`.
 
-        Here p is the characteristic of the function field.
+        Here `p` is the characteristic of the function field.
 
         This implements Hess' Algorithm 25.
 
@@ -468,7 +464,11 @@ class FunctionFieldHasseDerivation_rational(FunctionFieldHasseDerivation):
 
     def _pth_root(self, c):
         """
-        Return the p-th root of the rational function c.
+        Return the `p`-th root of the rational function `c`.
+
+        INPUT:
+
+        - ``c`` -- a rational function
 
         EXAMPLES::
 
@@ -493,27 +493,28 @@ class FunctionFieldHasseDerivation_rational(FunctionFieldHasseDerivation):
 class FunctionFieldHasseDerivation_global(FunctionFieldHasseDerivation):
     """
     Hasse derivations of function fields.
+
+    EXAMPLES::
+
+        sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+        sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+        sage: h = L.hasse_derivation()
+        sage: h
+        Hasse derivation map:
+          From: Function field in y defined by y^3 + x^3*y + x
+          To:   Function field in y defined by y^3 + x^3*y + x
+        sage: h(y^2,2)
+        ((x^7 + 1)/x^2)*y^2 + x^3*y
     """
     def __init__(self, field):
         """
-        Return Hasse derivation.
+        Initialize the Hasse derivation.
 
         INPUT:
 
         - ``field`` -- a function field which is the domain and codomain of the
           derivation
 
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
-            sage: h = L.hasse_derivation()
-            sage: h
-            Hasse derivation map:
-              From: Function field in y defined by y^3 + x^3*y + x
-              To:   Function field in y defined by y^3 + x^3*y + x
-            sage: h(y^2,2)
-            ((x^7 + 1)/x^2)*y^2 + x^3*y
         """
         FunctionFieldHasseDerivation.__init__(self, field)
 
@@ -647,7 +648,7 @@ class FunctionFieldHasseDerivation_global(FunctionFieldHasseDerivation):
 
     def _prime_power_representation(self, f, separating_element=None):
         """
-        Return `p`th power representation of the element ``f``.
+        Return `p`th power representation of the element `f`.
 
         Here `p` is the characteristic of the function field.
 
@@ -718,9 +719,8 @@ class FunctionFieldHasseDerivation_global(FunctionFieldHasseDerivation):
         return self._field(coeffs)
 
 class FunctionFieldIsomorphism(Morphism):
-    r"""
-    A base class for isomorphisms between function fields and
-    vector spaces.
+    """
+    Base class for isomorphisms between function fields and vector spaces.
 
     EXAMPLES::
 
@@ -732,8 +732,7 @@ class FunctionFieldIsomorphism(Morphism):
     """
     def _repr_type(self):
         """
-        Return the type of this map (an isomorphism), for the purposes of
-        printing this map.
+        Return the type of the map for the purpose of printing.
 
         EXAMPLES::
 
@@ -747,7 +746,7 @@ class FunctionFieldIsomorphism(Morphism):
 
     def is_injective(self):
         """
-        Return True, since this isomorphism is injective.
+        Return True, since the isomorphism is injective.
 
         EXAMPLES::
 
@@ -761,7 +760,7 @@ class FunctionFieldIsomorphism(Morphism):
 
     def is_surjective(self):
         """
-        Return True, since this isomorphism is surjective.
+        Return True, since the isomorphism is surjective.
 
         EXAMPLES::
 
@@ -774,8 +773,8 @@ class FunctionFieldIsomorphism(Morphism):
         return True
 
 class MapVectorSpaceToFunctionField(FunctionFieldIsomorphism):
-    r"""
-    An isomorphism from a vector space to a function field.
+    """
+    Isomorphism from a vector space to a function field.
 
     EXAMPLES::
 
@@ -804,6 +803,10 @@ class MapVectorSpaceToFunctionField(FunctionFieldIsomorphism):
     def _call_(self, v):
         """
         Map ``v`` to the function field.
+
+        INPUT:
+
+        - ``v`` -- an element of the vector space
 
         EXAMPLES::
 
@@ -847,7 +850,7 @@ class MapVectorSpaceToFunctionField(FunctionFieldIsomorphism):
 
     def domain(self):
         """
-        Return the vector space which is the domain of this isomorphism.
+        Return the vector space which is the domain of the isomorphism.
 
         EXAMPLES::
 
@@ -861,7 +864,7 @@ class MapVectorSpaceToFunctionField(FunctionFieldIsomorphism):
 
     def codomain(self):
         """
-        Return the function field which is the codomain of this isomorphism.
+        Return the function field which is the codomain of the isomorphism.
 
         EXAMPLES::
 
@@ -875,7 +878,7 @@ class MapVectorSpaceToFunctionField(FunctionFieldIsomorphism):
 
 class MapFunctionFieldToVectorSpace(FunctionFieldIsomorphism):
     """
-    An isomorphism from a function field to a vector space.
+    Isomorphism from a function field to a vector space.
 
     EXAMPLES::
 
@@ -888,12 +891,14 @@ class MapFunctionFieldToVectorSpace(FunctionFieldIsomorphism):
     """
     def __init__(self, K, V):
         """
-        EXAMPLES::
+        Initialize.
 
-            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
-            sage: V, f, t = L.vector_space(); type(t)
-            <class 'sage.rings.function_field.maps.MapFunctionFieldToVectorSpace'>
+        INPUT:
+
+        - ``K`` -- a function field
+
+        - ``V`` -- a vector space isomorphic to the function field
+
         """
         self._V = V
         self._K = K
@@ -984,17 +989,19 @@ class MapFunctionFieldToVectorSpace(FunctionFieldIsomorphism):
 class FunctionFieldMorphism(RingHomomorphism):
     r"""
     Base class for morphisms between function fields.
+
+    EXAMPLES::
+
+        sage: K.<x> = FunctionField(QQ)
+        sage: f = K.hom(1/x); f
+        Function Field endomorphism of Rational function field in x over Rational Field
+          Defn: x |--> 1/x
+        sage: isinstance(f, sage.rings.function_field.maps.FunctionFieldMorphism)
+        True
     """
     def __init__(self, parent, im_gen, base_morphism):
         """
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(QQ)
-            sage: f = K.hom(1/x); f
-            Function Field endomorphism of Rational function field in x over Rational Field
-              Defn: x |--> 1/x
-            sage: isinstance(f, sage.rings.function_field.maps.FunctionFieldMorphism)
-            True
+        Initialize.
         """
         RingHomomorphism.__init__(self, parent)
 
@@ -1003,8 +1010,7 @@ class FunctionFieldMorphism(RingHomomorphism):
 
     def _repr_type(self):
         r"""
-        Return the type of this map (a morphism of function fields), for the
-        purposes of printing this map.
+        Return the type of the morphism for the purpose of printing.
 
         EXAMPLES::
 
@@ -1019,6 +1025,8 @@ class FunctionFieldMorphism(RingHomomorphism):
 
     def _repr_defn(self):
         """
+        Return the string containing the definition of the morphism.
+
         EXAMPLES::
 
             sage: K.<x> = FunctionField(GF(7)); R.<y> = K[]
@@ -1038,27 +1046,19 @@ class FunctionFieldMorphism_polymod(FunctionFieldMorphism):
 
     EXAMPLES::
 
-        sage: K.<x> = FunctionField(QQ); R.<y> = K[]
-        sage: L.<y> = K.extension(y^2 - x)
-        sage: f = L.hom(-y); f
-        Function Field endomorphism of Function field in y defined by y^2 - x
-          Defn: y |--> -y
+        sage: K.<x> = FunctionField(GF(7)); R.<y> = K[]
+        sage: L.<y> = K.extension(y^3 + 6*x^3 + x)
+        sage: f = L.hom(y*2); f
+        Function Field endomorphism of Function field in y defined by y^3 + 6*x^3 + x
+          Defn: y |--> 2*y
+        sage: factor(L.polynomial())
+        y^3 + 6*x^3 + x
+        sage: f(y).charpoly('y')
+        y^3 + 6*x^3 + x
     """
     def __init__(self, parent, im_gen, base_morphism):
         """
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(7)); R.<y> = K[]
-            sage: L.<y> = K.extension(y^3 + 6*x^3 + x)
-            sage: f = L.hom(y*2); f
-            Function Field endomorphism of Function field in y defined by y^3 + 6*x^3 + x
-              Defn: y |--> 2*y
-            sage: type(f)
-            <class 'sage.rings.function_field.maps.FunctionFieldMorphism_polymod'>
-            sage: factor(L.polynomial())
-            y^3 + 6*x^3 + x
-            sage: f(y).charpoly('y')
-            y^3 + 6*x^3 + x
+        Initialize.
         """
         FunctionFieldMorphism.__init__(self, parent, im_gen, base_morphism)
         # Verify that the morphism is valid:
@@ -1093,21 +1093,14 @@ class FunctionFieldMorphism_rational(FunctionFieldMorphism):
 
     EXAMPLES::
 
-        sage: K.<x> = FunctionField(QQ)
+        sage: K.<x> = FunctionField(GF(7))
         sage: f = K.hom(1/x); f
-        Function Field endomorphism of Rational function field in x over Rational Field
+        Function Field endomorphism of Rational function field in x over Finite Field of size 7
           Defn: x |--> 1/x
     """
     def __init__(self, parent, im_gen):
         """
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(7))
-            sage: f = K.hom(1/x); f
-            Function Field endomorphism of Rational function field in x over Finite Field of size 7
-              Defn: x |--> 1/x
-            sage: type(f)
-            <class 'sage.rings.function_field.maps.FunctionFieldMorphism_rational'>
+        Initialize.
         """
         FunctionFieldMorphism.__init__(self, parent, im_gen, None)
 
@@ -1139,17 +1132,17 @@ class FunctionFieldConversionToConstantBaseField(Map):
           From: Rational function field in x over Rational Field
           To:   Rational Field
 
+    TESTS::
+
+        sage: K.<x> = FunctionField(QQ)
+        sage: f = QQ.convert_map_from(K)
+        sage: from sage.rings.function_field.maps import FunctionFieldConversionToConstantBaseField
+        sage: isinstance(f, FunctionFieldConversionToConstantBaseField)
+        True
     """
     def __init__(self, parent):
-        r"""
-        TESTS::
-
-            sage: K.<x> = FunctionField(QQ)
-            sage: f = QQ.convert_map_from(K)
-            sage: from sage.rings.function_field.maps import FunctionFieldConversionToConstantBaseField
-            sage: isinstance(f, FunctionFieldConversionToConstantBaseField)
-            True
-
+        """
+        Initialize.
         """
         Map.__init__(self, parent)
 
@@ -1178,3 +1171,198 @@ class FunctionFieldConversionToConstantBaseField(Map):
 
         """
         return x.parent()._to_constant_base_field(x)
+
+class FunctionFieldCompletion(Map):
+    """
+    Base class of completions on function fields.
+    """
+    def _repr_type(self):
+        """
+        Return a string containing the type of the map.
+        """
+        return 'Completion'
+
+class FunctionFieldCompletion_global(FunctionFieldCompletion):
+    """
+    Completions on global functionf fields.
+
+    EXAMPLES::
+
+        sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+        sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+        sage: p = L.places_finite()[0]
+        sage: m = L.completion(p)
+        sage: m
+        Completion map:
+          From: Function field in y defined by y^2 + y + (x^2 + 1)/x
+          To:   Laurent Series Ring in s over Finite Field of size 2
+        sage: m(x)
+        s^2 + s^3 + s^4 + s^5 + s^7 + s^8 + s^9 + s^10 + s^12 + s^13
+        + s^15 + s^16 + s^17 + s^19 + O(s^22)
+        sage: m(y)
+        s^-1 + 1 + s^3 + s^5 + s^7 + s^9 + s^13 + s^15 + s^17 + O(s^19)
+        sage: m(x*y) == m(x) * m(y)
+        True
+        sage: m(x+y) == m(x) + m(y)
+        True
+
+    The variable name of the series can be supplied. If the place is not
+    rational such that the residue field is a proper extension of the constant
+    field, you can also specify the generator name of the extension::
+
+        sage: p2 = L.places_finite(2)[0]
+        sage: p2
+        Place (x^2 + x + 1, x*y + 1)
+        sage: m2 = L.completion(p2,'t',gen_name='b')
+        sage: m2(x)
+        (b + 1) + t + t^2 + t^4 + t^8 + t^16 + O(t^20)
+        sage: m2(y)
+        b + b*t + b*t^3 + b*t^4 + (b + 1)*t^5 + (b + 1)*t^7 + b*t^9 + b*t^11
+        + b*t^12 + b*t^13 + b*t^15 + b*t^16 + (b + 1)*t^17 + (b + 1)*t^19 + O(t^20)
+    """
+    def __init__(self, field, place, name=None, prec=None, gen_name=None):
+        """
+        Initialize.
+
+        INPUT:
+
+        - ``field`` -- a function field
+
+        - ``place`` -- a place of the function field
+
+        - ``name`` -- a string for the name of the series variable
+
+        - ``prec`` -- a positive integer; default precision
+
+        - ``gen_name`` -- a string; name of the generator of the residue
+          field; used only when place is non-rational
+
+        """
+        from sage.rings.laurent_series_ring import LaurentSeriesRing
+
+        if name is None:
+            name = 's' # default
+
+        if gen_name is None:
+            gen_name = 'a' # default
+
+        k,from_k,to_k = place.residue_field(name=gen_name)
+
+        # if prec is None, the Laurent series ring provides default
+        # precision
+        codomain = LaurentSeriesRing(k, name=name, default_prec=prec)
+
+        FunctionFieldCompletion.__init__(self, field, codomain)
+
+        self._place = place
+        self._precision = codomain.default_prec()
+        self._gen_name = gen_name
+
+    def _call_(self, f):
+        """
+        Call the completion for f
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p = L.places_finite()[0]
+            sage: m = L.completion(p)
+            sage: m(y)
+            s^-1 + 1 + s^3 + s^5 + s^7 + s^9 + s^13 + s^15 + s^17 + O(s^19)
+        """
+        return self._expand(f, prec=None)
+
+    def _call_with_args(self, f, args=(), kwds={}):
+        """
+        Call the completion with ``args`` and ``kwds``.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p = L.places_finite()[0]
+            sage: m = L.completion(p)
+            sage: m(x+y, 10)
+            s^-1 + 1 + s^2 + s^4 + s^8 + O(s^9)
+        """
+        return self._expand(f, *args, **kwds)
+
+    def _expand(self, f, prec=None):
+        """
+        Return the powerseries representation of f of precision prec.
+
+        INPUT:
+
+        - ``f`` -- an element of the function field
+
+        - ``prec`` -- a positive integer; relative precision of the series
+
+        OUTPUT:
+
+        - a series of precision prec
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p = L.places_finite()[0]
+            sage: m = L.completion(p)
+            sage: m(x,10)
+            s^2 + s^3 + s^4 + s^5 + s^7 + s^8 + s^9 + s^10 + O(s^12)
+        """
+        if prec is None:
+            prec = self._precision
+
+        place = self._place
+        F = place.function_field()
+        hasse = F.hasse_derivation()
+
+        k,from_k,to_k = place.residue_field(name=self._gen_name)
+        sep = place.local_uniformizer()
+
+        val = f.valuation(place)
+        e = f * sep **(-val)
+
+        coeffs = [to_k(hasse._derive(e, i, sep)) for i in range(prec)]
+        return self.codomain()(coeffs, val).add_bigoh(prec + val)
+
+    def default_precision(self):
+        """
+        Return the default precision.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p = L.places_finite()[0]
+            sage: m = L.completion(p)
+            sage: m.default_precision()
+            20
+        """
+        return self._precision
+
+class Morphism_func(RingHomomorphism):
+    """
+    Ring homomorphism defined by a function
+    """
+    def __init__(self, parent, func):
+        """
+        Initialize.
+
+        INPUT:
+
+        - ``parent`` -- a hom set from a ring `A` to a ring `B`
+
+        - ``func`` -- a function that outputs an element of `B` for an element of `A`
+
+        """
+        RingHomomorphism.__init__(self, parent)
+
+        self._map = func
+
+    def _call_(self, x):
+        """
+        Return the image of ``x`` by the homomorphsim.
+        """
+        return self._map(x)

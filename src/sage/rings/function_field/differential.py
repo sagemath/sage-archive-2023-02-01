@@ -1,22 +1,48 @@
 """
 Differentials
 
-This module provides differentials on function fields.
+Sage provides basic arithmetic and advanced computations with differentials on
+global function fields.
 
-EXAMPLES::
+EXAMPLES:
+
+The module of differentials on a function field forms an one-dimensional vector space over
+the function field::
 
     sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
     sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
-    sage: x.differential()
-    d(x)
-    sage: w = y.differential(); w
-    (x*y^2 + 1/x*y) d(x)
-    sage: w.parent()
+    sage: f = x + y
+    sage: g = 1 / y
+    sage: df = f.differential()
+    sage: dg = g.differential()
+    sage: dfdg = f.derivative() / g.derivative()
+    sage: df == dfdg * dg
+    True
+    sage: df
+    (x*y^2 + 1/x*y + 1) d(x)
+    sage: df.parent()
     Space of differentials of Function field in y defined by y^3 + x^3*y + x
+
+We can compute a canonical divisor::
+
+    sage: k = df.divisor()
+    sage: k.degree()
+    4
+    sage: k.degree() == 2 * L.genus() - 2
+    True
+
+Exact differentials vanish and logarithmic differentials are stable under
+Cartier operation::
+
+    sage: df.cartier()
+    (0) d(x)
+    sage: w = 1/f * df
+    sage: w.cartier() == w
+    True
 
 AUTHORS:
 
-- Kwankyu Lee (2016): initial version
+- Kwankyu Lee (2017-04-30): initial version
 
 """
 #*****************************************************************************
@@ -40,23 +66,20 @@ from .function_field import is_RationalFunctionField
 
 def differential(field, f, t=None):
     """
-    Return the differential `fdt`.
-
-    This is a helper function to construct differentials regardless of
-    the type of function fields the differential belongs to.
+    Return the differential `fdt` on the function field.
 
     INPUT:
 
-    - ``field`` -- function field to which the differential belongs
+    - ``field`` -- a function field
 
     - ``f``, ``t`` -- elements of the function field
 
-    If ``t`` is ``None`` (default), then the differential is `fdx` where
+    If ``t`` is not given, then return the differential `fdx` where
     `x` is the generator of the base rational function field.
 
     EXAMPLES::
 
-        sage: K.<x> = FunctionField(GF(4)); _.<Y>=K[]
+        sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
         sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
         sage: x.differential()
         d(x)
@@ -67,36 +90,47 @@ def differential(field, f, t=None):
     if t is not None:
         t = field(t)
 
-    return FunctionFieldDifferential(field, f, t)
+    return FunctionFieldDifferential_global(field, f, t)
 
 class FunctionFieldDifferential(ModuleElement):
     """
-    Base class for differentials in function fields.
+    Base class for differentials on function fields.
+    """
+    pass
+
+class FunctionFieldDifferential_global(FunctionFieldDifferential):
+    """
+    Differentials on global function fields.
+
+    EXAMPLES::
+
+        sage: F.<x>=FunctionField(GF(7))
+        sage: f = x / (x^2 + x + 1)
+        sage: f.differential()
+        ((6*x^2 + 1)/(x^4 + 2*x^3 + 3*x^2 + 2*x + 1)) d(x)
+
+        sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+        sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+        sage: y.differential()
+        (x*y^2 + 1/x*y) d(x)
     """
     def __init__(self, field, f, t=None):
         """
-        Initialize differential `fdt`.
+        Initialize the differential.
 
         INPUT:
 
-        - ``field`` -- function field to which this differential belongs
+        - ``field`` -- a function field
 
-        - ``f``, ``t`` -- elements of the function field
+        - ``f`` -- an element of the function field
 
-        If ``t`` is ``None`` (default), then the differential is `fdx` where
-        x is the generator of the base rational function field.
+        - ``t`` -- (default: None) an element of the function field
 
-        EXAMPLES::
+        OUTPUT:
 
-            sage: K.<x> = FunctionField(GF(4)); _.<Y>=K[]
-            sage: L.<y> = K.extension(Y^3+x+x^3*Y)
-            sage: y.differential()
-            (x*y^2 + 1/x*y) d(x)
+        - differential `fdt`; if not specified, `t` is the generator of the base rational
+          function field.
 
-            sage: F.<x>=FunctionField(GF(7))
-            sage: f = x/(x^2+x+1)
-            sage: f.differential()
-            ((6*x^2 + 1)/(x^4 + 2*x^3 + 3*x^2 + 2*x + 1)) d(x)
         """
         ModuleElement.__init__(self, field.space_of_differentials())
 
@@ -109,7 +143,7 @@ class FunctionFieldDifferential(ModuleElement):
 
     def _repr_(self):
         """
-        Return the string representation of this differential.
+        Return the string representation of the differential.
 
         EXAMPLES::
 
@@ -130,7 +164,14 @@ class FunctionFieldDifferential(ModuleElement):
 
     def _richcmp_(self, other, op):
         """
-        Compare this differential and ``other`` with respect to ``op``.
+        Compare the differential and the other differential with respect to the
+        comparison operator.
+
+        INPUT:
+
+        - ``other`` -- a differential
+
+        - ``op`` -- a comparison operator
 
         EXAMPLES::
 
@@ -160,7 +201,11 @@ class FunctionFieldDifferential(ModuleElement):
 
     def _add_(self, other):
         """
-        Return the sum of this differential and `other`.
+        Return the sum of the differential and the other differential.
+
+        INPUT:
+
+        - ``other`` -- a differential
 
         EXAMPLES::
 
@@ -181,7 +226,7 @@ class FunctionFieldDifferential(ModuleElement):
 
     def _neg_(self):
         """
-        Return the negation of this differential.
+        Return the negation of the differential.
 
         EXAMPLES::
 
@@ -202,7 +247,12 @@ class FunctionFieldDifferential(ModuleElement):
 
     def _rmul_(self, f):
         """
-        Return this differential multiplied by function ``f``.
+        Return the differential multiplied by the element of the function
+        field.
+
+        INPUT:
+
+        - ``f`` -- an element of the function field
 
         EXAMPLES::
 
@@ -251,7 +301,13 @@ class FunctionFieldDifferential(ModuleElement):
         """
         Return the residue of the differential at the place.
 
-        The residue is an element of the residue field of the place.
+        INPUT:
+
+        - ``place`` -- a place of the function field
+
+        OUTPUT:
+
+        - an element of the residue field of the place
 
         EXAMPLES:
 
@@ -289,7 +345,7 @@ class FunctionFieldDifferential(ModuleElement):
 
         # Step 2: compute c that is the coefficient of s^-1 in
         # the power series expansion of f
-        r = g._valuation(place)
+        r = g.valuation(place)
         if r >= 0:
             return R(0)
         else:
@@ -333,18 +389,19 @@ class DifferentialsSpace(Parent):
     """
     def __init__(self, field):
         """
-        Initialize the space of differentials of the function ``field``.
+        Initialize the space of differentials of the function field.
 
         INPUT:
 
-        - ``field`` -- function field to which this space belongs
+        - ``field`` -- a function field
+
         """
         Parent.__init__(self, base=field, category=Modules(field))
         self._field = field
 
     def _repr_(self):
         """
-        Return the string representation of this space of differentials.
+        Return the string representation of the space of differentials.
 
         EXAMPLES::
 
@@ -358,7 +415,11 @@ class DifferentialsSpace(Parent):
 
     def _element_constructor_(self, f):
         """
-        Construct differential ``df`` in this space from ``f``.
+        Construct differential `df` in the space from `f`.
+
+        INPUT:
+
+        - ``f`` -- an element of the function field
 
         EXAMPLES::
 
@@ -374,7 +435,7 @@ class DifferentialsSpace(Parent):
 
     def function_field(self):
         """
-        Return the function field to which this space of differentials
+        Return the function field to which the space of differentials
         is attached.
 
         EXAMPLES::

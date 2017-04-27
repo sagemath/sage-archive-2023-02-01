@@ -1,29 +1,40 @@
 """
 Divisors
 
-This module provides divisors on function fields.
+Sage provides extensive computations with divisors on global function fields.
 
-EXAMPLES::
+EXAMPLES:
+
+The divisor of an element of the function field is the formal sum of poles and zeros
+of the element with multiplicities::
 
     sage: K.<x> = FunctionField(GF(2)); R.<t> = K[]
-    sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
+    sage: L.<y> = K.extension(t^3 + x^3*t + x)
     sage: f = x/(y+1)
     sage: f.divisor()
-    Place (1/x, 1/x^4*y^2 + 1/x^2*y + 1)
-     + Place (1/x, 1/x^2*y + 1)
-     + 3*Place (x, (1/(x^3 + x^2 + x))*y^2)
-     - 6*Place (x + 1, y + 1)
+    -1*Place (1/x, 1/x^3*y^2 + 1/x)
+     + Place (1/x, 1/x^3*y^2 + 1/x^2*y + 1)
+     + 3*Place (x, y)
+     - Place (x^3 + x + 1, y + 1)
 
-    sage: p = F.places_finite()[0]
-    sage: p
-    Place (x, (1/(x^3 + x^2 + x))*y^2)
-    sage: D = 3*p
-    sage: D.basis_function_space()
-    [1, 1/x, (1/(x^4 + x^3 + x^2))*y^2]
+The Riemann-Roch space of a divisor can be computed. We can get a basis of
+the space as a vector space over the constant field::
+
+    sage: p = L.places_finite()[0]
+    sage: q = L.places_infinite()[0]
+    sage: (3*p + 2*q).basis_function_space()
+    [1/x*y^2 + x^2, 1, 1/x]
+
+We verify the Riemann-Roch theorem::
+
+    sage: D = 3*p - q
+    sage: index_of_speciality = len(D.basis_differential_space())
+    sage: D.dimension() == D.degree() - L.genus() + 1 + index_of_speciality
+    True
 
 AUTHORS:
 
-- Kwankyu Lee (2016): initial version
+- Kwankyu Lee (2017-04-30): initial version
 
 """
 #*****************************************************************************
@@ -63,6 +74,10 @@ def zero_divisor(field):
     """
     Construct a zero divisor.
 
+    INPUT:
+
+    - ``field`` -- a function field
+
     EXAMPLES::
 
         sage: K.<x> = FunctionField(GF(2)); R.<t> = K[]
@@ -80,7 +95,11 @@ def prime_divisor(field, place, m=1):
 
     INPUT:
 
-    - ``m`` -- (default: 1) multiplicity at the place
+    - ``field`` -- a function field
+
+    - ``place`` -- a place of the function field
+
+    - ``m`` -- (default: 1) a positive integer; multiplicity at the place
 
     EXAMPLES::
 
@@ -114,6 +133,17 @@ def is_Divisor(x):
 class FunctionFieldDivisor(ModuleElement):
     """
     Divisors of function fields.
+
+    EXAMPLES::
+
+        sage: K.<x> = FunctionField(GF(2)); R.<t> = K[]
+        sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
+        sage: f = x/(y+1)
+        sage: f.divisor()
+        Place (1/x, 1/x^4*y^2 + 1/x^2*y + 1)
+         + Place (1/x, 1/x^2*y + 1)
+         + 3*Place (x, (1/(x^3 + x^2 + x))*y^2)
+         - 6*Place (x + 1, y + 1)
     """
     def __init__(self, field, data):
         """
@@ -121,20 +151,10 @@ class FunctionFieldDivisor(ModuleElement):
 
         INPUT:
 
-        - ``field`` -- functon field
+        - ``field`` -- a functon field
 
-        - ``data`` -- dict of place and multiplicity pairs
+        - ``data`` -- a dict of place and multiplicity pairs
 
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2)); R.<t> = K[]
-            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
-            sage: f = x/(y+1)
-            sage: f.divisor()
-            Place (1/x, 1/x^4*y^2 + 1/x^2*y + 1)
-             + Place (1/x, 1/x^2*y + 1)
-             + 3*Place (x, (1/(x^3 + x^2 + x))*y^2)
-             - 6*Place (x + 1, y + 1)
         """
         ModuleElement.__init__(self, field.divisor_group())
         self._field = field
@@ -142,11 +162,11 @@ class FunctionFieldDivisor(ModuleElement):
 
     def _repr_(self, split=True):
         """
-        Return string representation of the divisor.
+        Return a string representation of the divisor.
 
         INPUT:
 
-        - ``split`` -- (default: True) split at the end of each place
+        - ``split`` -- a boolean; if True, split at the end of each place
 
         EXAMPLES::
 
@@ -155,7 +175,8 @@ class FunctionFieldDivisor(ModuleElement):
             sage: f = x/(y+1)
             sage: d = f.divisor()
             sage: d._repr_(split=False)
-            'Place (1/x, 1/x^4*y^2 + 1/x^2*y + 1) + Place (1/x, 1/x^2*y + 1) + 3*Place (x, (1/(x^3 + x^2 + x))*y^2) - 6*Place (x + 1, y + 1)'
+            'Place (1/x, 1/x^4*y^2 + 1/x^2*y + 1) + Place (1/x, 1/x^2*y + 1)
+            + 3*Place (x, (1/(x^3 + x^2 + x))*y^2) - 6*Place (x + 1, y + 1)'
         """
         mul = '*'
         plus = ' + '
@@ -193,7 +214,13 @@ class FunctionFieldDivisor(ModuleElement):
 
     def _richcmp_(self, other, op):
         """
-        Compare the divisor and ``other`` divisor.
+        Compare the divisor and the other divisor with respect to the operator.
+
+        INPUT:
+
+        - ``other`` -- a divisor
+
+        - ``op`` -- a comparison operator
 
         EXAMPLES::
 
@@ -237,7 +264,11 @@ class FunctionFieldDivisor(ModuleElement):
 
     def _add_(self, other):
         """
-        Add the divisor to the ``other``.
+        Add the divisor to the other divisor.
+
+        INPUT:
+
+        - ``other`` -- a divisor
 
         EXAMPLES::
 
@@ -260,11 +291,11 @@ class FunctionFieldDivisor(ModuleElement):
 
     def _rmul_(self, i):
         """
-        Multiply integer ``i` to the divisor.
+        Multiply integer `i` to the divisor.
 
         INPUT:
 
-        - `i` -- an integer
+        - ``i`` -- an integer
 
         EXAMPLES::
 
@@ -342,7 +373,7 @@ class FunctionFieldDivisor(ModuleElement):
 
         INPUT:
 
-        - ``place`` -- a place of the function field
+        - ``place`` -- a place
 
         EXAMPLES::
 
@@ -452,8 +483,8 @@ class FunctionFieldDivisor(ModuleElement):
         Return an (echelon) basis and coordinates function for the Riemann-Roch
         space of the divisor.
 
-        The return values are cached so that `basis_function_space` and
-        `function_space` methods give consistent outputs.
+        The return values are cached so that :meth:`basis_function_space` and
+        :meth:`function_space` methods give consistent outputs.
 
         EXAMPLES::
 
@@ -474,8 +505,9 @@ class FunctionFieldDivisor(ModuleElement):
             sage: coordinates((x + 4)/(x + 3))
             [1, 4]
         """
-        basis, coordinates = self._echelon_basis(self._basis())
-        return basis, coordinates
+        basis, coordinate_func = self._echelon_basis(self._basis())
+
+        return basis, coordinate_func
 
     def basis_differential_space(self):
         """
@@ -546,8 +578,8 @@ class FunctionFieldDivisor(ModuleElement):
         Return an (echelon) basis and coordinates function for the differential
         space of the divisor.
 
-        The return values are cached so that `basis_differential_space` and
-        `differential_space` methods give consistent outputs.
+        The return values are cached so that :meth:`basis_differential_space` and
+        :meth:`differential_space` methods give consistent outputs.
 
         EXAMPLES::
 

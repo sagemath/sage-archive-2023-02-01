@@ -22,9 +22,11 @@ AUTHORS:
 ######################################################################
 from __future__ import print_function
 from __future__ import absolute_import
+from six.moves import range
 
 import six
 from sage.structure.sage_object import SageObject
+
 
 def sudoku(m):
     r"""
@@ -421,7 +423,7 @@ class Sudoku(SageObject):
         n = self.n
         nsquare = n*n
         m = self.to_matrix()
-        m.subdivide(range(0,nsquare+1,n), range(0,nsquare+1,n))
+        m.subdivide(list(range(0,nsquare+1,n)), list(range(0,nsquare+1,n)))
         naked_zero = compile('([\|, ]+)0')
         blanked = naked_zero.sub(lambda x: x.group(1)+' ', m.str())
         brackets = compile('[\[,\]]')

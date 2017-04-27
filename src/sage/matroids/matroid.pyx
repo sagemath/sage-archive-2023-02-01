@@ -5121,7 +5121,7 @@ cdef class Matroid(SageObject):
         if separation:
             deprecation(18539, "Use `certificate` in place of `separation`")
         certificate = certificate or separation
-        if algorithm == None:
+        if algorithm is None:
             if certificate:
                 return self._is_3connected_CE(True)
             else:
@@ -5180,7 +5180,7 @@ cdef class Matroid(SageObject):
             sage: M.is_4connected() == M.is_4connected(algorithm="intersection")
             True
         """
-        if algorithm == None or algorithm == "intersection":
+        if algorithm is None or algorithm == "intersection":
             return self.is_kconnected(4, certificate)
         if algorithm == "shifting":
             return self._is_4connected_shifting(certificate)
@@ -5636,7 +5636,7 @@ cdef class Matroid(SageObject):
                     Y_1.add(y)
                     remainY.remove(y)
                     colshift = True
-            if (colshift==False and rowshift==False):
+            if not colshift and not rowshift:
                 break
         X_2 = X-X_1
         Y_2 = Y-Y_1
@@ -7577,15 +7577,15 @@ cdef class Matroid(SageObject):
 
         """
         from . import matroids_plot_helpers
-        if pos_method == 1  and pos_dict != None:
+        if pos_method == 1  and pos_dict is not None:
         # check sanity of pos_dict and add it to cached info if sane
-            if matroids_plot_helpers.posdict_is_sane(self, pos_dict) == True: 
+            if matroids_plot_helpers.posdict_is_sane(self, pos_dict):
                 self._cached_info={'plot_positions':pos_dict, 'lineorders':lineorders}
         # placeholder for additional placement methods. Only need to compute positions and update self._cached_info
         elif pos_method == 2:
             raise NotImplementedError
 
-        if self._cached_info == None:
+        if self._cached_info is None:
             self._cached_info={'plot_positions':None,'lineorders': None}
         if 'plot_positions' not in self._cached_info.keys():
             self._cached_info['plot_positions'] = None
@@ -7594,9 +7594,9 @@ cdef class Matroid(SageObject):
 
         if self.rank() > 3:
             raise NotImplementedError
-        elif B == None:
+        elif B is None:
             B = list(self.basis())
-        elif B != None and self.is_basis(B)==False:
+        elif B is not None and not self.is_basis(B):
             return
         lineorders2=matroids_plot_helpers.lineorders_union(self._cached_info['lineorders'],lineorders)
         return matroids_plot_helpers.geomrep(self,B,lineorders2,pd=pos_dict, sp=save_pos)
@@ -7633,9 +7633,9 @@ cdef class Matroid(SageObject):
         """
         if self.rank() > 3:
             raise NotImplementedError
-        elif B == None:
+        elif B is None:
             B = list(self.basis())
-        elif B != None and self.is_basis(B)==False:
+        elif B is not None and not self.is_basis(B):
             return
         B1=B
         lineorders1=lineorders
@@ -7643,7 +7643,7 @@ cdef class Matroid(SageObject):
         pd=pos_dict
         sp=save_pos
         G=self.plot(B1,lineorders1,pm,pd,sp)
-        if lims == None:
+        if lims is None:
             G.show()
         else:
             G.show(xmin=lims[0], xmax=lims[1], ymin=lims[2], ymax=lims[3])

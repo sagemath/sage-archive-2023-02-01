@@ -4160,9 +4160,9 @@ class SandpileConfig(dict):
             sage: c.show(directed=False)
             sage: c.show(sink=False,colors=False,heights=True)
         """
-        if directed==True:
+        if directed:
             T = DiGraph(self.sandpile())
-        elif directed==False:
+        elif directed is False:
             T = Graph(self.sandpile())
         elif self.sandpile().is_directed():
             T = DiGraph(self.sandpile())
@@ -6167,9 +6167,9 @@ class SandpileDivisor(dict):
             sage: D = SandpileDivisor(S,[1,-2,0,2])
             sage: D.show(graph_border=True,vertex_size=700,directed=False)
         """
-        if directed==True:
+        if directed:
             T = DiGraph(self.sandpile())
-        elif directed==False:
+        elif directed is False:
             T = Graph(self.sandpile())
         elif self.sandpile().is_directed():
             T = DiGraph(self.sandpile())

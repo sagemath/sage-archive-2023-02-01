@@ -227,7 +227,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                         if vpdeg >= best:
                             best = vpdeg
                             bestp = p
-                if best == None:
+                if best is None:
                     return -1
                 else:
                     return bestp

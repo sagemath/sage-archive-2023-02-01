@@ -12356,7 +12356,7 @@ cdef class Matrix(matrix1.Matrix):
         """
         from sage.modules.free_module_element import vector
         L, d = self._indefinite_factorization(algorithm, check=check)
-        if L is False:
+        if not L:
             msg = "{0}x{0} leading principal submatrix is singular, so cannot create indefinite factorization"
             raise ValueError(msg.format(d))
         return L, vector(L.base_ring(), d)
@@ -12543,7 +12543,7 @@ cdef class Matrix(matrix1.Matrix):
             raise ValueError("Could not see {} as a subring of the "
                     "real or complex numbers".format(R))
 
-        if L is False:
+        if not L:
             return False
 
         # Now have diagonal entries (hopefully real) and so can
@@ -12672,7 +12672,7 @@ cdef class Matrix(matrix1.Matrix):
         cdef Py_ssize_t size,i,j
         cdef object M
 
-        if indices is False:
+        if not indices:
             L = self._list()
             size = PyList_GET_SIZE(L)
             M = PyList_New(0)
@@ -14720,7 +14720,7 @@ def _smith_onestep(m):
             isdone = False
 
     # if not we recurse -- algorithm must terminate if R is Noetherian.
-    if isdone == False:
+    if not isdone:
         s,t,u = _smith_onestep(a.transpose())
         left_mat = u.transpose() * left_mat
         a = t.transpose()

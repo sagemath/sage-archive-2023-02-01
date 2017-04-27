@@ -1414,7 +1414,7 @@ def circulant(v, sparse=None):
         True
     """
     from exceptions import AttributeError
-    if sparse==None:
+    if sparse is None:
         try:
             sparse = v.is_sparse()
         except AttributeError:

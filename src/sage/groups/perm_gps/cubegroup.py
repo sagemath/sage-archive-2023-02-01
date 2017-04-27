@@ -930,7 +930,7 @@ class CubeGroup(PermutationGroup_generic):
         centers = [create_poly('%s_center' % "ulfrbd"[i], colors[i]) for i in range(6)]
         clrs = sum(cubies) + sum(centers)
         clrs.axes(show=False)
-        if title == True:
+        if title:
             t = text('sagemath.org', (7.8,-3.5),rgbcolor=lgrey)
             P = clrs+t
             P.axes(show=False)
@@ -974,7 +974,7 @@ class CubeGroup(PermutationGroup_generic):
         centers = centerF+centerR+centerU
         P = cubeR+cubeF+cubeU+centers
         P.axes(show=False)
-        if title == True:
+        if title:
             t1 = text('Up, Front, and Right faces. '   , (-0.2,-2.5))
             t2  = text('      sagemath.org', (0.8,-3.1),rgbcolor=lgrey)
             t3 = text("     ",(3.5,0),rgbcolor=white)

@@ -917,7 +917,7 @@ class ProjectiveSpace_ring(AmbientSpace):
         except KeyError:
             pass
         #if no ith patch exists, we may still be here with AA==None
-        if AA == None:
+        if AA is None:
             from sage.schemes.affine.affine_space import AffineSpace
             AA = AffineSpace(n, self.base_ring(), names = 'x')
         elif AA.dimension_relative() != n:
@@ -1181,7 +1181,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         while not i < 0:
             P = [ zero for _ in range(i) ] + [ R(1) ] + [ zero for _ in range(n-i) ]
             yield self(P)
-            if (ftype == False): # if rational field
+            if not ftype: # if rational field
                 iters = [ R.range_by_height(bound) for _ in range(i) ]
             else: # if number field
                 iters = [ R.elements_of_bounded_height(bound, precision=prec) for _ in range(i) ]
@@ -1193,7 +1193,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
                     yield self(P)
                     j = 0
                 except StopIteration:
-                    if (ftype == False): # if rational field
+                    if not ftype: # if rational field
                         iters[j] = R.range_by_height(bound) # reset
                     else: # if number field
                         iters[j] = R.elements_of_bounded_height(bound, precision=prec) # reset

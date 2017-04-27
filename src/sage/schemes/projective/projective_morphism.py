@@ -1780,7 +1780,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             [5, 37, 2239, 304432717]
         """
         from sage.schemes.projective.projective_space import is_ProjectiveSpace
-        if is_ProjectiveSpace(self.domain()) is False or is_ProjectiveSpace(self.codomain()) is False:
+        if not is_ProjectiveSpace(self.domain()) or not is_ProjectiveSpace(self.codomain()):
             raise NotImplementedError
         K = FractionField(self.codomain().base_ring())
         #The primes of bad reduction are the support of the resultant for number fields
@@ -2543,7 +2543,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         badprimes = kwds.pop("bad_primes", None)
         num_cpus = kwds.pop("ncpus", ncpus())
 
-        if (isinstance(primebound, (list, tuple)) == False):
+        if not isinstance(primebound, (list, tuple)):
             try:
                 primebound = [1, ZZ(primebound)]
             except TypeError:
@@ -3162,7 +3162,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         pcf = True
         i = 0
         while pcf and i < len(crit_points):
-            if crit_points[i].is_preperiodic(F, err) == False:
+            if not crit_points[i].is_preperiodic(F, err):
                 pcf = False
             i += 1
         return(pcf)
@@ -4314,7 +4314,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                 badprimes = kwds.pop("bad_primes", None)
                 num_cpus = kwds.pop("ncpus", ncpus())
 
-                if (isinstance(primebound, (list, tuple)) == False):
+                if not isinstance(primebound, (list, tuple)):
                     try:
                         primebound = [1, ZZ(primebound)]
                     except TypeError:
@@ -4341,7 +4341,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                 all_points = f.possible_periods(True) #return the list of points and their periods.
                 pos_points = []
                 for i in range(len(all_points)):
-                    if all_points[i][1] in periods and  (all_points[i] in pos_points) == False:  #check period, remove duplicates
+                    if all_points[i][1] in periods and not (all_points[i] in pos_points):  #check period, remove duplicates
                         pos_points.append(all_points[i])
                 periodic_points = self.lift_to_rational_periodic(pos_points,B)
                 for p,n in periodic_points:

@@ -187,9 +187,9 @@ def std(v, bias=False):
     x = 0
     if isinstance(v, numpy.ndarray):
         # accounts for numpy arrays
-        if bias == True:
+        if bias:
             return v.std()
-        elif bias == False:
+        else:
             return v.std(ddof=1)
 
     if len(v) == 0:

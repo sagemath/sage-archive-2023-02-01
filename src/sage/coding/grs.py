@@ -202,7 +202,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
             except (TypeError, ValueError) as e:
                 raise ValueError("Failed converting all evaluation points to the same field (%s)" % e.message)
 
-        if F.is_finite() == False or F.is_field() == False:
+        if not F.is_finite() or not F.is_field():
             raise ValueError("Evaluation points must be in a finite field (and %s is not one)" % F)
         super(GeneralizedReedSolomonCode, self).__init__(F,
                 len(self._evaluation_points), "EvaluationVector", "Gao")

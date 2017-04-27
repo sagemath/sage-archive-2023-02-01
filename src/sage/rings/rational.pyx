@@ -1472,7 +1472,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
             if (mpz_cmp_ui(mpq_denref(self.value), 1) == 0):
                 return mpz_perfect_power_p(mpq_numref(self.value))
-            if expected_value == False:
+            if not expected_value:
                 # A necessary condition is that both the numerator and denominator
                 # be perfect powers, which can be faster to disprove than the full
                 # product (especially if both have a large prime factor).
@@ -1501,7 +1501,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                 mpz_clear(prod)
                 return s == 1
 
-            if expected_value == False:
+            if not expected_value:
                 if mpz_cmpabs(mpq_numref(self.value), mpq_denref(self.value)) < 0:
                     mpz_init(prod)
                     mpz_mul_si(prod, mpq_numref(self.value), -1)

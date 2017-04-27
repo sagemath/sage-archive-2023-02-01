@@ -96,7 +96,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         - Jennifer Balakrishnan (2010-02)
         """
         prec = self.base_ring().precision_cap()
-        if self.is_same_disc(P,Q) == False:
+        if not self.is_same_disc(P,Q):
             raise ValueError("%s and %s are not in the same residue disc"%(P,Q))
         disc = self.residue_disc(P)
         t = PowerSeriesRing(self.base_ring(), 't', prec).gen(0)
@@ -234,7 +234,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
         - Jennifer Balakrishnan
         """
-        if self.is_in_weierstrass_disc(Q) == False:
+        if not self.is_in_weierstrass_disc(Q):
             raise ValueError("%s is not in a Weierstrass disc"%Q)
         points = self.weierstrass_points()
         for P in points:

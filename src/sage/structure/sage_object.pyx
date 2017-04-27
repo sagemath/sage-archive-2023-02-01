@@ -1048,7 +1048,7 @@ def load(*filename, compress=True, verbose=True):
         pass
 
     ## Delete the tempfile, if it exists
-    if tmpfile_flag == True:
+    if tmpfile_flag:
         os.unlink(filename)
 
     return X

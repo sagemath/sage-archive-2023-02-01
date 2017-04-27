@@ -613,7 +613,7 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
     if v in SR(a).variables() or v in SR(b).variables():
         raise ValueError("summation limits must not depend on the summation variable")
 
-    if hold == True:
+    if hold:
         from sage.functions.other import symbolic_sum as ssum
         return ssum(expression, v, a, b)
 

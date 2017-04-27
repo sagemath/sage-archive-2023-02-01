@@ -1224,7 +1224,7 @@ class SchemeMorphism_polynomial_affine_space_finite_field(SchemeMorphism_polynom
         V = []
         E = []
         from sage.schemes.affine.affine_space import is_AffineSpace
-        if is_AffineSpace(self.domain()) == True:
+        if is_AffineSpace(self.domain()):
             for P in self.domain():
                 V.append(str(P))
                 Q = self(P)

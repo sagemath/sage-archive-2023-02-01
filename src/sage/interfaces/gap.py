@@ -592,7 +592,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
             E.sendline(line)
         except OSError:
             raise RuntimeError("Error evaluating %s in %s"%(line, self))
-        if wait_for_prompt == False:
+        if not wait_for_prompt:
             return ('','')
         if len(line)==0:
             return ('','')

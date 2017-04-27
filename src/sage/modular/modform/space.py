@@ -1504,7 +1504,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             Modular Forms subspace of dimension 2 of Modular Forms space of dimension 11 for Congruence Subgroup Gamma0(6) of weight 10 over Rational Field
         """
         try:
-            if self.__is_cuspidal == True:
+            if self.__is_cuspidal:
                 return self
             if self.__cuspidal_submodule is not None:
                 return self.__cuspidal_submodule
@@ -1699,7 +1699,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             Modular Forms subspace of dimension 0 of Modular Forms space of dimension 11 for Congruence Subgroup Gamma0(6) of weight 10 over Rational Field
         """
         try:
-            if self.__is_eisenstein == True:
+            if self.__is_eisenstein:
                 return self
         except AttributeError:
             pass

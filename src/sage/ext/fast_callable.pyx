@@ -395,7 +395,7 @@ def fast_callable(x, domain=None, vars=None,
     Check that fast_callable also works for symbolic functions with evaluation
     functions::
 
-        sage: def evalf_func(self, x, y, parent): return parent(x*y) if parent != None else x*y
+        sage: def evalf_func(self, x, y, parent): return parent(x*y) if parent is not None else x*y
         sage: x,y = var('x,y')
         sage: f = function('f', evalf_func=evalf_func)
         sage: fc = fast_callable(f(x, y), vars=[x, y])
@@ -404,7 +404,7 @@ def fast_callable(x, domain=None, vars=None,
 
     And also when there are complex values involved::
 
-        sage: def evalf_func(self, x, y, parent): return parent(I*x*y) if parent != None else I*x*y
+        sage: def evalf_func(self, x, y, parent): return parent(I*x*y) if parent is not None else I*x*y
         sage: g = function('g', evalf_func=evalf_func)
         sage: fc = fast_callable(g(x, y), vars=[x, y])
         sage: fc(3, 4)

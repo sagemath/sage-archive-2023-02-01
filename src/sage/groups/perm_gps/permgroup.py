@@ -2231,7 +2231,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         - Kevin Halasz (2012-8-12)
 
         """
-        if check == True:
+        if check:
             from sage.categories.finite_permutation_groups import FinitePermutationGroups
             if N not in FinitePermutationGroups():
                 raise TypeError("{0} is not a permutation group".format(N))

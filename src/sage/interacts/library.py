@@ -1545,7 +1545,7 @@ def polar_prime_spiral(
 
     list =[]
     list2=[]
-    if show_factors == False:
+    if not show_factors:
         for i in srange(start, end, include_endpoint = True):
             if Integer(i).is_pseudoprime(): list.append(f(i-start+1)) #Primes list
             else: list2.append(f(i-start+1)) #Composites list

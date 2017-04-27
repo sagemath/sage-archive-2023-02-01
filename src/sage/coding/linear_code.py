@@ -1464,7 +1464,7 @@ class AbstractLinearCode(Module):
             {'NearestNeighbor': <class 'sage.coding.linear_code.LinearCodeNearestNeighborDecoder'>,
              'Syndrome': <class 'sage.coding.linear_code.LinearCodeSyndromeDecoder'>}
         """
-        if classes == True:
+        if classes:
             return copy(self._registered_decoders)
         return self._registered_decoders.keys()
 
@@ -1854,7 +1854,7 @@ class AbstractLinearCode(Module):
             {'GeneratorMatrix': <class 'sage.coding.linear_code.LinearCodeGeneratorMatrixEncoder'>,
              'Systematic': <class 'sage.coding.linear_code.LinearCodeSystematicEncoder'>}
         """
-        if classes == True:
+        if classes:
             return copy(self._registered_encoders)
         return self._registered_encoders.keys()
 
@@ -2279,7 +2279,7 @@ class AbstractLinearCode(Module):
         B1 = NonlinearBinaryCodeStruct(CW1)
         B2 = NonlinearBinaryCodeStruct(CW2)
         ans = B1.is_isomorphic(B2)
-        if ans!=False:
+        if ans:
             if algorithm=="verbose":
                 Sn = SymmetricGroup(n)
                 return True, Sn([i+1 for i in ans])**(-1)
@@ -4614,7 +4614,7 @@ class LinearCodeSyndromeDecoder(Decoder):
             {'always-succeed', 'complete', 'hard-decision', 'minimum-distance', 'unique'}
         """
         n_minus_k = code.length() - code.dimension()
-        if maximum_error_weight == None:
+        if maximum_error_weight is None:
             self._maximum_error_weight = n_minus_k
         elif not isinstance(maximum_error_weight, (Integer, int)):
             raise ValueError("maximum_error_weight has to be a Sage integer or a Python int")

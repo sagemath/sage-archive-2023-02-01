@@ -1819,7 +1819,7 @@ class DiGraph(GenericGraph):
 
         if ((not tempG.allows_multiple_edges()) and (tempG.has_edge(v,u))):
             # If user wants to force digraph to allow parallel edges
-            if multiedges == True:
+            if multiedges:
                 tempG.allow_multiple_edges(True)
                 tempG.delete_edge(u,v,label)
                 tempG.add_edge(v,u,label)
@@ -1827,11 +1827,11 @@ class DiGraph(GenericGraph):
             # If user does not want to force digraph to allow parallel
             # edges, we delete edge u to v and overwrite v,u with the
             # label of u,v
-            elif multiedges == False:
+            elif multiedges is False:
                 tempG.delete_edge(u,v,label)
                 tempG.set_edge_label(v,u,label)
 
-            # User is supposed to specify multiedges True or None
+            # User is supposed to specify multiedges True or False
             else:
                 raise ValueError("Reversing the given edge is about to "
                                  "create two parallel edges but input digraph "

@@ -927,7 +927,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         # A lattice that is not join-distributive is either not upper
         # semimodular or contains a diamond as a covering sublattice.
         result = self.is_upper_semimodular(certificate=True)
-        if result[0] == False:
+        if not result[0]:
             return (False, self.meet(result[1]))
 
         M3 = DiGraph({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
@@ -1007,7 +1007,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         # A lattice that is not meet-distributive is either not lower
         # semimodular or contains a diamond as a covering sublattice.
         result = self.is_lower_semimodular(certificate=True)
-        if result[0] == False:
+        if not result[0]:
             return (False, self.join(result[1]))
 
         M3 = DiGraph({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})

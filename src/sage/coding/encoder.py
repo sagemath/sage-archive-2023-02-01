@@ -241,7 +241,7 @@ class Encoder(SageObject):
             ...
             ValueError: length must be a non-zero positive integer
        """
-        if nocheck == False and c not in self.code():
+        if not nocheck and c not in self.code():
             raise EncodingError("Given word is not in the code")
         return self.unencode_nocheck(c)
 

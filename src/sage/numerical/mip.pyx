@@ -2719,7 +2719,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         # Raise exception if exist lower bound
         for constraint in self.constraints():
-            if constraint[0] != None:
+            if constraint[0] is not None:
                 raise ValueError('Problem constraints cannot have lower bounds')
 
         # Construct 'c'

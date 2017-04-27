@@ -786,7 +786,7 @@ If this all works, you can then make calls like:
             if self._quit_string() in line:
                 # we expect to get an EOF if we're quitting.
                 return ''
-            elif restart_if_needed==True: # the subprocess might have crashed
+            elif restart_if_needed: # the subprocess might have crashed
                 try:
                     self._synchronize()
                     return self._post_process_from_file(self._eval_line_using_file(line, restart_if_needed=False))
@@ -800,7 +800,7 @@ If this all works, you can then make calls like:
                 if self._expect is None or not self._expect.isalive():
                     return ''
                 raise
-            if restart_if_needed==True and (self._expect is None or not self._expect.isalive()):
+            if restart_if_needed and (self._expect is None or not self._expect.isalive()):
                 try:
                     self._synchronize()
                     return self._post_process_from_file(self._eval_line_using_file(line, restart_if_needed=False))
@@ -912,7 +912,7 @@ If this all works, you can then make calls like:
                 if len(line) >= 4096:
                     raise RuntimeError("Sending more than 4096 characters with %s on a line may cause a hang and you're sending %s characters"%(self, len(line)))
                 E.sendline(line)
-                if wait_for_prompt == False:
+                if not wait_for_prompt:
                     return ''
 
             except OSError as msg:
@@ -956,7 +956,7 @@ If this all works, you can then make calls like:
                     if self._quit_string() in line:
                         # we expect to get an EOF if we're quitting.
                         return ''
-                    elif restart_if_needed==True: # the subprocess might have crashed
+                    elif restart_if_needed: # the subprocess might have crashed
                         try:
                             self._synchronize()
                             return self._eval_line(line,allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False)

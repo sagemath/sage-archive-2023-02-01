@@ -72,7 +72,7 @@ def _triangulate(g, comb_emb):
     # first make sure that the graph has at least 3 vertices, and that it is connected
     if g.order() < 3:
         raise ValueError("A Graph with less than 3 vertices doesn't have any triangulation.")
-    if g.is_connected() == False:
+    if not g.is_connected():
         raise NotImplementedError("_triangulate() only knows how to handle connected graphs.")
 
     if g.order() == 3 and len(g.edges()) == 2:             # if g is o--o--o

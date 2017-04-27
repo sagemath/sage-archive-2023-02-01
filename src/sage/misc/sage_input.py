@@ -485,12 +485,12 @@ class SageInputBuilder:
                 (isinstance(x, long) and isinstance(int(x), long)):
             # For longs that don't fit in an int, we just use the int
             # code; it will get extended to long automatically.
-            if self._preparse == True:
+            if self._preparse:
                 if x < 0:
                     return -SIE_literal_stringrep(self, str(-x) + 'r')
                 else:
                     return SIE_literal_stringrep(self, str(x) + 'r')
-            elif self._preparse == False:
+            elif self._preparse == False: # Can be False or None, with different meanings.
                 return self.int(x)
             else:
                 tyname = 'int' if isinstance(x, int) else 'long'

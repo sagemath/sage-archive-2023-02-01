@@ -1690,7 +1690,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             v = linbox_minpoly(self.p, self._nrows, self._entries)
             g = R(v)
 
-            if proof == True:
+            if proof:
                 while g(self):  # insanely toy slow (!)
                     g = g.lcm(R(linbox_minpoly(self.p, self._nrows, self._entries)))
 

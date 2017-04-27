@@ -162,7 +162,8 @@ class Function_erf(BuiltinFunction):
         BuiltinFunction.__init__(self, "erf", latex_name=r"\text{erf}",
                                  conversions=dict(maxima='erf',
                                                   sympy='erf',
-                                                  fricas='erf'))
+                                                  fricas='erf',
+                                                  giac='erf'))
 
     def _eval_(self, x):
         """
@@ -330,7 +331,8 @@ class Function_abs(GinacFunction):
             (pi + e)*abs(x)
         """
         GinacFunction.__init__(self, "abs", latex_name=r"\mathrm{abs}",
-                               conversions=dict(sympy='Abs'))
+                               conversions=dict(sympy='Abs',
+                                                giac='abs'))
 
 abs = abs_symbolic = Function_abs()
 
@@ -419,7 +421,8 @@ class Function_ceil(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, "ceil",
                                    conversions=dict(maxima='ceiling',
-                                                    sympy='ceiling'))
+                                                    sympy='ceiling',
+                                                    giac='ceil'))
 
     def _print_latex_(self, x):
         r"""
@@ -575,7 +578,7 @@ class Function_floor(BuiltinFunction):
             floor
         """
         BuiltinFunction.__init__(self, "floor",
-                                 conversions=dict(sympy='floor'))
+                                 conversions=dict(sympy='floor', giac='floor'))
 
     def _print_latex_(self, x):
         r"""
@@ -1727,7 +1730,8 @@ class Function_factorial(GinacFunction):
                 conversions=dict(maxima='factorial',
                                  mathematica='Factorial',
                                  sympy='factorial',
-                                 fricas='factorial'))
+                                 fricas='factorial',
+                                 giac='factorial'))
 
     def _eval_(self, x):
         """
@@ -1859,7 +1863,8 @@ class Function_binomial(GinacFunction):
                 conversions=dict(maxima='binomial',
                                  mathematica='Binomial',
                                  sympy='binomial',
-                                 fricas='binomial'))
+                                 fricas='binomial',
+                                 giac='comb'))
 
     def _binomial_sym(self, n, k):
         """
@@ -2281,7 +2286,8 @@ class Function_arg(BuiltinFunction):
         BuiltinFunction.__init__(self, "arg",
                 conversions=dict(maxima='carg',
                                  mathematica='Arg',
-                                 sympy='arg'))
+                                 sympy='arg',
+                                 giac='arg'))
 
     def _eval_(self, x):
         """
@@ -2432,7 +2438,8 @@ class Function_real_part(GinacFunction):
         """
         GinacFunction.__init__(self, "real_part",
                                conversions=dict(maxima='realpart',
-                                                sympy='re'),
+                                                sympy='re',
+                                                giac='re'),
                                alt_name="real")
 
     def __call__(self, x, **kwargs):
@@ -2491,7 +2498,8 @@ class Function_imag_part(GinacFunction):
         """
         GinacFunction.__init__(self, "imag_part",
                                conversions=dict(maxima='imagpart',
-                                                sympy='im'),
+                                                sympy='im',
+                                                giac='im'),
                                alt_name="imag")
 
     def __call__(self, x, **kwargs):
@@ -2583,7 +2591,8 @@ class Function_conjugate(GinacFunction):
             conjugate
         """
         GinacFunction.__init__(self, "conjugate",
-                               conversions=dict(sympy='conjugate'))
+                               conversions=dict(sympy='conjugate',
+                                                giac='conj'))
 
 conjugate = Function_conjugate()
 

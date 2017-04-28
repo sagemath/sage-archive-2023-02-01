@@ -1282,7 +1282,7 @@ def CossidentePenttilaGraph(q):
 
     .. [CP05] \A.Cossidente and T.Penttila
        Hemisystems on the Hermitian surface
-       Journal of London Math. Soc. 72(2005), 731-741
+       Journal of London Math. Soc. 72(2005), 731--741
     """
     p, k = is_prime_power(q,get_data=True)
     if k==0 or p==2:
@@ -1407,7 +1407,7 @@ def Nowhere0WordsTwoWeightCodeGraph(q, hyperoval=None, field=None, check_hyperov
 
     .. [HHL09] \T. Huang, L. Huang, M.I. Lin
        On a class of strongly regular designs and quasi-semisymmetric designs.
-       In: Recent Developments in Algebra and Related Areas, ALM vol. 8, pp. 129–153.
+       In: Recent Developments in Algebra and Related Areas, ALM vol. 8, pp. 129--153.
        International Press, Somerville (2009)
 
     .. [AB16] \A.E. Brouwer

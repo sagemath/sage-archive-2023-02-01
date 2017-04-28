@@ -982,7 +982,7 @@ def load(*filename, compress=True, verbose=True):
     We test loading a file or multiple files or even mixing loading files and objects::
 
         sage: t = tmp_filename(ext='.py')
-        sage: open(t,'w').write("print('hello world')")
+        sage: _ = open(t,'w').write("print('hello world')")
         sage: load(t)
         hello world
         sage: load(t,t)
@@ -999,7 +999,7 @@ def load(*filename, compress=True, verbose=True):
 
         sage: t = tmp_filename(ext=".sage")
         sage: with open(t, 'w') as f:
-        ....:     f.write("a += Mod(2/3, 11)")  # This evaluates to Mod(8, 11)
+        ....:     _ = f.write("a += Mod(2/3, 11)")  # This evaluates to Mod(8, 11)
         sage: a = -1
         sage: load(t)
         sage: a
@@ -1009,7 +1009,7 @@ def load(*filename, compress=True, verbose=True):
 
         sage: code = '      subroutine hello\n         print *, "Hello World!"\n      end subroutine hello\n'
         sage: t = tmp_filename(ext=".F")
-        sage: open(t, 'w').write(code)
+        sage: _ = open(t, 'w').write(code)
         sage: load(t)
         sage: hello
         <fortran object>

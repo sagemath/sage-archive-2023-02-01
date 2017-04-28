@@ -181,10 +181,10 @@ Reading a gp file::
 
     sage: import tempfile
     sage: gpfile = tempfile.NamedTemporaryFile(mode="w")
-    sage: gpfile.file.write("mysquare(n) = {\n")
-    sage: gpfile.file.write("    n^2;\n")
-    sage: gpfile.file.write("}\n")
-    sage: gpfile.file.write("polcyclo(5)\n")
+    sage: __ = gpfile.file.write("mysquare(n) = {\n")
+    sage: __ = gpfile.file.write("    n^2;\n")
+    sage: __ = gpfile.file.write("}\n")
+    sage: __ = gpfile.file.write("polcyclo(5)\n")
     sage: gpfile.file.flush()
     sage: pari.read(gpfile.name)
     x^4 + x^3 + x^2 + x + 1

@@ -152,6 +152,16 @@ Check if :trac:`6160` is fixed::
     b - 1728*c
 """
 
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from __future__ import absolute_import, print_function
+
 # The Singular API is as follows:
 #
 #   pXXX does assume the currRing to be set
@@ -163,7 +173,6 @@ Check if :trac:`6160` is fixed::
 # Notable exceptions:
 #   * pNext and pIter don't need currRing
 #   * p_Normalize apparently needs currRing
-from __future__ import print_function
 
 include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
@@ -219,10 +228,10 @@ from sage.rings.complex_field import is_ComplexField
 from sage.rings.real_mpfr import is_RealField
 from sage.rings.integer_ring import is_IntegerRing, ZZ
 from sage.rings.integer cimport Integer
+from sage.rings.integer import GCD_list
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.number_field.number_field_base cimport NumberField
 
-from sage.rings.arith import gcd
 from sage.structure.element import coerce_binop
 
 from sage.structure.parent cimport Parent
@@ -248,8 +257,8 @@ from sage.interfaces.macaulay2 import macaulay2 as macaulay2_default, is_Macaula
 from sage.misc.all import prod as mul
 from sage.misc.sage_eval import sage_eval
 
-import sage.libs.cypari2.gen
-import polynomial_element
+cimport cypari2.gen
+from . import polynomial_element
 
 permstore=[]
 cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
@@ -844,7 +853,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                 _p = p_NSet(_n, _ring)
             return new_MP(self, _p)
 
-        if isinstance(element, (SingularElement, sage.libs.cypari2.gen.Gen)):
+        if isinstance(element, (SingularElement, cypari2.gen.Gen)):
             element = str(element)
 
         if isinstance(element, MPolynomial_libsingular) and element.parent() is not self and element.parent() != self:
@@ -1371,6 +1380,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             //        block   2 : ordering C
 
         """
+        from sage.functions.other import ceil
+
         if self.ngens()==1:
             _vars = str(self.gen())
             if "*" in _vars: # 1.000...000*x
@@ -1386,14 +1397,14 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             # singular converts to bits from base_10 in mpr_complex.cc by:
             #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
             precision = base_ring.precision()
-            digits = sage.rings.arith.ceil((2*precision - 2)/7.0)
+            digits = ceil((2*precision - 2)/7.0)
             self.__singular = singular.ring("(real,%d,0)"%digits, _vars, order=order)
 
         elif is_ComplexField(base_ring):
             # singular converts to bits from base_10 in mpr_complex.cc by:
             #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
             precision = base_ring.precision()
-            digits = sage.rings.arith.ceil((2*precision - 2)/7.0)
+            digits = ceil((2*precision - 2)/7.0)
             self.__singular = singular.ring("(complex,%d,0,I)"%digits, _vars,  order=order)
 
         elif base_ring.is_prime_field():
@@ -1534,7 +1545,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: P == loads(dumps(P))
             True
         """
-        return sage.rings.polynomial.multi_polynomial_libsingular.unpickle_MPolynomialRing_libsingular, \
+        return unpickle_MPolynomialRing_libsingular, \
             (self.base_ring(), self.variable_names(), self.term_order())
 
     def __temporarily_change_names(self, names, latex_names):
@@ -4602,7 +4613,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             if _ring.cf.type == n_Z:
                 P = self._parent.change_ring(RationalField())
                 res = P(self).gcd(P(right))
-                coef = sage.rings.integer.GCD_list(self.coefficients() + right.coefficients())
+                coef = GCD_list(self.coefficients() + right.coefficients())
                 return self._parent(coef*res)
 
             #TODO:
@@ -4961,7 +4972,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: parent(h(R.0,0))
             Univariate Polynomial Ring in x over Rational Field
         """
-        return sage.rings.polynomial.multi_polynomial_libsingular.unpickle_MPolynomial_libsingular, ( self._parent, self.dict() )
+        return unpickle_MPolynomial_libsingular, (self._parent, self.dict())
 
     def _im_gens_(self, codomain, im_gens):
         """

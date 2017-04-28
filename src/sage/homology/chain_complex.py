@@ -453,7 +453,7 @@ class Chain_class(ModuleElement):
 
     def _unicode_art_(self):
         """
-        Return an unicode art representation.
+        Return a unicode art representation.
 
         Note that arrows go to the left so that composition of
         differentials is the usual matrix multiplication.
@@ -1776,7 +1776,7 @@ class ChainComplex_class(Parent):
 
     def _unicode_art_(self):
         """
-        Return an unicode art representation.
+        Return a unicode art representation.
 
         Note that arrows go to the left so that composition of
         differentials is the usual matrix multiplication.

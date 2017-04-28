@@ -3577,7 +3577,7 @@ def hankel(c, r=None):
 
     where the vector `v_i = c_i` for `i = 1,\ldots, m` and `v_{m+i-1} = r_i` for
     `i = 2, \ldots, n` completely determines the Hankel matrix. If the last
-    row, `r`, is not given, then it the Hankel matrix is square by default
+    row, `r`, is not given, the Hankel matrix is square by default
     and `r=c`. For more information see the :wikipedia:`Hankel_matrix`.
 
     INPUT:

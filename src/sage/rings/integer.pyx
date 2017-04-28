@@ -136,17 +136,18 @@ cimport cython
 from libc.math cimport ldexp
 from libc.string cimport memcpy
 
+from cysignals.memory cimport check_allocarray, check_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
+
 import operator
 import sys
 
+from sage.ext.stdsage cimport PY_NEW
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
 from sage.misc.superseded import deprecated_function_alias
 from sage.misc.long cimport pyobject_to_long
 
-include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
-include "cysignals/memory.pxi"
 from cpython.list cimport *
 from cpython.number cimport *
 from cpython.int cimport *
@@ -7050,7 +7051,7 @@ cdef hook_fast_tp_functions():
     """
     global global_dummy_Integer, sizeof_Integer, integer_pool
 
-    integer_pool = <PyObject**>sig_malloc(integer_pool_size * sizeof(PyObject*))
+    integer_pool = <PyObject**>check_allocarray(integer_pool_size, sizeof(PyObject*))
 
     cdef PyObject* o
     o = <PyObject *>global_dummy_Integer

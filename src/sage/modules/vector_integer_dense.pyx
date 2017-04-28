@@ -54,7 +54,8 @@ TESTS::
 #*****************************************************************************
 from __future__ import absolute_import
 
-include 'sage/ext/stdsage.pxi'
+from cysignals.memory cimport check_allocarray, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 
@@ -68,7 +69,7 @@ from sage.libs.gmp.mpz cimport *
 
 
 cdef inline _Integer_from_mpz(mpz_t e):
-    cdef Integer z = PY_NEW(Integer)
+    cdef Integer z = Integer.__new__(Integer)
     mpz_set(z.value, e)
     return z
 
@@ -182,7 +183,7 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
             sage: v[::-1]
             (3, 2, 1)
         """
-        cdef Integer z = PY_NEW(Integer)
+        cdef Integer z = Integer.__new__(Integer)
         mpz_set(z.value, self._entries[i])
         return z
 
@@ -254,8 +255,7 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
             4
         """
         cdef Vector_integer_dense r = right
-        cdef Integer z
-        z = PY_NEW(Integer)
+        cdef Integer z = Integer.__new__(Integer)
         cdef mpz_t t
         mpz_init(t)
         mpz_set_si(z.value, 0)

@@ -1658,7 +1658,7 @@ class FinitePoset(UniqueRepresentation, Parent):
     def plot(self, label_elements=True, element_labels=None,
              layout='acyclic', cover_labels=None,
              **kwds):
-        """
+        r"""
         Return a Graphic object for the Hasse diagram of the poset.
 
         If the poset is ranked, the plot uses the rank function for
@@ -1666,19 +1666,39 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``label_elements`` (default: ``True``) - whether to display
-          element labels
+        - Options to change element look:
 
-        - ``element_labels`` (default: ``None``) - a dictionary of
-          element labels
+          * ``element_colors`` - a dictionary where keys are colors and values
+            are lists of elements
+          * ``element_color`` - a color for elements not set in
+            ``element_colors``
+          * ``element_shape`` - the shape of elements, like ``'s'`` for
+            square; see http://matplotlib.org/api/markers_api.html for the list
+          * ``element_size`` (default: 200) - the size of elements
+          * ``label_elements`` (default: ``True``) - whether to display
+            element labels
+          * ``element_labels`` (default: ``None``) - a dictionary where keys
+            are elements and values are labels to show
 
-        - ``cover_labels`` - a dictionary, list or function representing labels
-          of the covers of ``self``. When set to ``None`` (default) no label is
-          displayed on the edges of the Hasse Diagram.
+        - Options to change cover relation look:
 
-        - ``layout`` -- the type of layout used to display the Diagram. Set to
-          ``'acyclic'`` by default (see :meth:`GenericGraph.plot
-          <sage.graphs.generic_graph.GenericGraph.plot>` for more information).
+          * ``cover_colors`` - a dictionary where keys are colors and values
+            are lists of cover relations given as pairs of elements
+          * ``cover_color`` - a color for elements not set in
+            ``cover_colors``
+          * ``cover_style`` - style for cover relations: ``'solid'``,
+            ``'dashed'``, ``'dotted'`` or ``'dashdot'``
+          * ``cover_labels`` - a dictionary, list or function representing
+            labels of the covers of the poset. When set to ``None`` (default)
+            no label is displayed on the edges of the Hasse Diagram.
+
+        - Options to change overall look:
+
+          * ``figsize`` (default: 8) - size of the whole plot
+          * ``title`` - a title for the plot
+          * ``fontsize`` - fontsize for the title
+          * ``border`` (default: ``False``) - whether to draw a border over the
+            plot
 
         .. NOTE::
 
@@ -1686,38 +1706,45 @@ class FinitePoset(UniqueRepresentation, Parent):
             <sage.graphs.generic_graph.GenericGraph.plot>` are also available
             through this function.
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: D = Poset({ 1:[2,3], 2:[4], 3:[4,5] })
-            sage: D.plot(label_elements=False)
-            Graphics object consisting of 6 graphics primitives
-            sage: D.plot()
-            Graphics object consisting of 11 graphics primitives
-            sage: type(D.plot())
-            <class 'sage.plot.graphics.Graphics'>
-            sage: elm_labs = {1:'a', 2:'b', 3:'c', 4:'d', 5:'e'}
-            sage: D.plot(element_labels=elm_labs)
-            Graphics object consisting of 11 graphics primitives
+        This function can be used without any parameters::
 
-        Plot of a ranked poset::
+            sage: D12 = Posets.DivisorLattice(12)
+            sage: D12.plot()
+            Graphics object consisting of 14 graphics primitives
 
-            sage: P = Poset(DiGraph('E@ACA@?'))
-            sage: P.is_ranked()
-            True
-            sage: P.plot()
-            Graphics object consisting of 12 graphics primitives
+        Just the abstract form of the poset; examples of relabeling::
 
-        The keyword ``cover_labels`` can be used to decorate edges::
-
-            sage: P = posets.ChainPoset(3)
-            sage: P.plot(cover_labels=lambda a, b: a + b)
+            sage: D12.plot(label_elements=False)
             Graphics object consisting of 8 graphics primitives
-            sage: P = Poset({0: [1,2]})
-            sage: P.plot(cover_labels={(0,1): 'here', (0,2): 'there'})
-            Graphics object consisting of 8 graphics primitives
-            sage: P = Poset({2: [1], 0: [1]})
-            sage: P.plot(cover_labels=[(2,1,'da'), (0,1,'niet')])
-            Graphics object consisting of 8 graphics primitives
+            sage: d = {1: 0, 2: 'a', 3: 'b', 4: 'c', 6: 'd', 12: 1}
+            sage: D12.plot(element_labels=d)
+            Graphics object consisting of 14 graphics primitives
+            sage: d = {i:str(factor(i)) for i in D12}
+            sage: D12.plot(element_labels=d)
+            Graphics object consisting of 14 graphics primitives
+
+        Some settings for coverings::
+
+            sage: d = {(a, b): b/a for a, b in D12.cover_relations()}
+            sage: D12.plot(cover_labels=d, cover_color='gray', cover_style='dotted')
+            Graphics object consisting of 21 graphics primitives
+
+        To emphasize some elements and show some options::
+
+            sage: L = LatticePoset({0: [1, 2, 3, 4], 1: [12], 2: [6, 7],
+            ....:                   3: [5, 9], 4: [5, 6, 10, 11], 5: [13],
+            ....:                   6: [12], 7: [12, 8, 9], 8: [13], 9: [13],
+            ....:                   10: [12], 11: [12], 12: [13]})
+            sage: F = L.frattini_sublattice()
+            sage: F_internal = [c for c in F.cover_relations() if c in L.cover_relations()]
+            sage: L.plot(figsize=12, border=True, element_shape='s',
+            ....:        element_size=400, element_color='white',
+            ....:        element_colors={'blue': F, 'green': L.double_irreducibles()},
+            ....:        cover_color='lightgray', cover_colors={'black': F_internal},
+            ....:        title='The Frattini\nsublattice in blue', fontsize=10)
+            Graphics object consisting of 39 graphics primitives
 
         TESTS:
 
@@ -1746,15 +1773,29 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.plot(element_labels=elem_labels, heights=heights)
             Graphics object consisting of 8 graphics primitives
 
-        Plot of the empy poset::
+        Plot of the empty poset::
 
             sage: P = Poset({})
             sage: P.plot()
             Graphics object consisting of 0 graphics primitives
-
         """
         from collections import defaultdict
         graph = self.hasse_diagram()
+
+        rename = {'element_color':  'vertex_color',
+                  'element_colors': 'vertex_colors',
+                  'element_size':   'vertex_size',
+                  'element_shape':  'vertex_shape',
+                  'cover_color':    'edge_color',
+                  'cover_colors':   'edge_colors',
+                  'cover_style':    'edge_style',
+                  'border':         'graph_border',
+                 }
+        for param in rename:
+            tmp = kwds.pop(param, None)
+            if tmp is not None:
+                kwds[rename[param]] = tmp
+
         heights = kwds.pop('heights', None)
         if heights is None:
             rank_function = self.rank_function()

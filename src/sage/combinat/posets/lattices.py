@@ -3770,7 +3770,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO:: :meth:`congruence`
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: L = LatticePoset({1: [2, 3, 4], 2: [6, 7], 3: [5], 4: [5], 5: [9, 8], 6: [9], 7: [10], 8: [10], 9: [10]})
             sage: L.is_uniform()

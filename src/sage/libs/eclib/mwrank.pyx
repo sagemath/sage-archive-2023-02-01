@@ -128,7 +128,7 @@ def initprimes(filename, verb=False):
     EXAMPLES::
 
         sage: file = os.path.join(SAGE_TMP, 'PRIMES')
-        sage: open(file,'w').write(' '.join([str(p) for p in prime_range(10^7,10^7+20)]))
+        sage: _ = open(file,'w').write(' '.join([str(p) for p in prime_range(10^7,10^7+20)]))
         sage: mwrank_initprimes(file, verb=True)
         Computed 78519 primes, largest is 1000253
         reading primes from file ...

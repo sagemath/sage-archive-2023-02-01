@@ -3564,9 +3564,9 @@ def toeplitz(c, r):
     return matrix(entries, nrows=len(c), ncols=len(r))
 
 @matrix_method
-def hankel(c, r):
+def hankel(c, r=None):
     r"""
-    Return a Hankel matrix of given first column and last row.
+    Return a Hankel matrix of given first column.
 
     The Hankel matrix is symmetric and constant across the anti-diagonals,
     with elements
@@ -3576,14 +3576,15 @@ def hankel(c, r):
         H_{ij} = v_{i+j-1},\qquad i = 1,\ldots, m,~j = 1,\ldots, n,
 
     where the vector `v_i = c_i` for `i = 1,\ldots, m` and `v_{m+i-1} = r_i` for
-    `i = 2, \ldots, n` completely determines the Hankel matrix.
-    For more information see the :wikipedia:`Hankel_matrix`.
+    `i = 2, \ldots, n` completely determines the Hankel matrix. If the last
+    row, `r`, is not given, then it the Hankel matrix is square by default
+    and `r=c`. For more information see the :wikipedia:`Hankel_matrix`.
 
     INPUT:
 
     - ``c`` -- vector, first column of the Hankel matrix
 
-    - ``r`` -- vector, last row of the Hankel matrix
+    - ``r`` -- vector (optional, default: None), last row of the Hankel matrix
 
     .. NOTE::
 
@@ -3592,12 +3593,25 @@ def hankel(c, r):
 
     EXAMPLES::
 
+    A Hankel with symbolic entries::
+
+        sage: matrix.hankel(SR.var('a, b, c, d, e'))
+        [a b c d e]
+        [b c d e b]
+        [c d e b c]
+        [d e b c d]
+        [e b c d e]
+
+    A partial Hankel matrix is constructed passing the last row::
+
         sage: matrix.hankel([1..3], [3..6])
         [1 2 3 4]
         [2 3 4 5]
         [3 4 5 6]
     """
-    m = len(c); n = len(r)
-    # concatenation: c + r[1:] for lists
+    m = len(c)
+    if r is None:
+        r = c
+    n = len(r)
     entries = lambda i: c[i] if i < m else r[i-m+1]
     return matrix(lambda i,j: entries(i+j), nrows=m, ncols=n)

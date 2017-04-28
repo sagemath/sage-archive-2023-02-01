@@ -417,9 +417,9 @@ class Chain_class(ModuleElement):
             sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0]), 1:zero_matrix(1,2)})
             sage: c = C({0:vector([1, 2, 3]), 1:vector([4, 5])})
             sage: ascii_art(c)
-                                        [1]
-               d_2       d_1  [4]  d_0  [2]  d_-1
-            0 <---- [0] <---- [5] <---- [3] <----- 0
+               d_2       d_1       d_0  [1]  d_-1
+            0 <---- [0] <---- [4] <---- [2] <----- 0
+                              [5]       [3]
         """
         from sage.typeset.ascii_art import AsciiArt
 
@@ -431,11 +431,11 @@ class Chain_class(ModuleElement):
 
         def vector_art(d):
             v = self.vector(d)
-            if not v.degree():
+            if v.degree() == 0:
                 return AsciiArt(['0'])
-            w = matrix(v).transpose()
-            return w._ascii_art_()
-            
+            v = str(v.column()).splitlines()
+            return AsciiArt(v, baseline=len(v)//2)
+
         result = []
         chain_complex = self.parent()
         for ordered in chain_complex.ordered_degrees():
@@ -562,9 +562,9 @@ class Chain_class(ModuleElement):
             sage: c + c
             Chain with 2 nonzero terms over Integer Ring
             sage: ascii_art(c + c)
-                              [0]
-               d_1  [6]  d_0  [2]  d_-1
-            0 <---- [8] <---- [4] <----- 0
+               d_1       d_0  [0]  d_-1
+            0 <---- [6] <---- [2] <----- 0
+                    [8]       [4]
         """
         vectors = dict()
         for d in set(self._vec.keys() + other._vec.keys()):

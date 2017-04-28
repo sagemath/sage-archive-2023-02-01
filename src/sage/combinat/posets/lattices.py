@@ -1105,7 +1105,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         return ok
 
-    def is_distributive(self):
+    def is_distributive(self, certificate=False):
         r"""
         Return ``True`` if the lattice is distributive, and ``False``
         otherwise.
@@ -1117,19 +1117,56 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         in lattices it follows that then also join distributes over
         meet.
 
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, (x, y, z))``, where `x`, `y` and `z` are elements
+          of the lattice such that
+          `x \wedge (y \vee z) \neq (x \wedge y) \vee (x \wedge z)`.
+          If ``certificate=False`` return ``True`` or ``False``.
+
         EXAMPLES::
 
-            sage: L = LatticePoset({0:[1,2],1:[3],2:[3]})
+            sage: L = LatticePoset({1: [2, 3], 2: [4], 3: [4], 4: [5]})
             sage: L.is_distributive()
             True
-            sage: L = LatticePoset({0:[1,2,3],1:[4],2:[4],3:[4]})
+            sage: L = LatticePoset({1: [2, 3, 4], 2: [5], 3: [6], 4: [6], 5: [6]})
             sage: L.is_distributive()
             False
+            sage: L.is_distributive(certificate=True)
+            (False, (5, 3, 2))
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).is_distributive() for i in range(3)]
+            [True, True, True]
         """
-        if self.cardinality() == 0: return True
-        return (self.is_graded() and
+        from sage.graphs.digraph import DiGraph
+
+        ok = (True, None) if certificate else True
+
+        if self.cardinality() == 0:
+            return ok
+
+        if (self.is_graded() and
          self.rank() == len(self.join_irreducibles()) ==
-         len(self.meet_irreducibles()))
+         len(self.meet_irreducibles())):
+            return ok
+
+        if not certificate:
+            return False
+
+        result, cert = self.is_modular(certificate=True)
+        if not result:
+            return (False, (cert[2], cert[1], cert[0]))
+        M3 = DiGraph({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
+        diamond = next(self._hasse_diagram.subgraph_search_iterator(M3))
+        return (False, (self._vertex_to_element(diamond[1]),
+                        self._vertex_to_element(diamond[2]),
+                        self._vertex_to_element(diamond[3])))
 
     def is_semidistributive(self):
         """

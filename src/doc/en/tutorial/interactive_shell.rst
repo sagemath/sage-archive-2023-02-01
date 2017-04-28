@@ -7,7 +7,7 @@ In most of this tutorial, we assume you start the Sage interpreter
 using the ``sage`` command. This starts a customized version of the
 IPython shell, and imports many functions and classes, so they are
 ready to use from the command prompt. Further customization is
-possible by editing the ``$SAGE_ROOT/ipythonrc`` file. Upon starting
+possible by editing the ``$DOT_SAGE/init.sage`` file. Upon starting
 Sage, you get output similar to the following:
 
 .. skip
@@ -39,7 +39,7 @@ used by subprocesses like GAP or Singular.
 (Avoid killing a Sage process with ``kill -9`` from a terminal,
 since Sage might not kill child processes, e.g.,
 Maple processes, or cleanup temporary files from
-``$HOME/.sage/tmp``.)
+``$HOME/.sage/temp``.)
 
 Your Sage Session
 =================
@@ -337,37 +337,37 @@ this may indicate a performance issue worth looking into.
 
 ::
 
-    sage: time 1938^99484;
+    sage: %time 1938^99484;
     CPU times: user 0.01 s, sys: 0.00 s, total: 0.01 s
     Wall time: 0.01
     sage: gp(0)
     0
-    sage: time g = gp('1938^99484')
+    sage: %time g = gp('1938^99484')
     CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
     Wall time: 0.04
     sage: maxima(0)
     0
-    sage: time g = maxima('1938^99484')
+    sage: %time g = maxima('1938^99484')
     CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
     Wall time: 0.30
     sage: kash(0)
     0
-    sage: time g = kash('1938^99484')
+    sage: %time g = kash('1938^99484')
     CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
     Wall time: 0.04
     sage: mathematica(0)
             0
-    sage: time g = mathematica('1938^99484')
+    sage: %time g = mathematica('1938^99484')
     CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
     Wall time: 0.03
     sage: maple(0)
     0
-    sage: time g = maple('1938^99484')
+    sage: %time g = maple('1938^99484')
     CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
     Wall time: 0.11
     sage: gap(0)
     0
-    sage: time g = gap.eval('1938^99484;;')
+    sage: %time g = gap.eval('1938^99484;;')
     CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
     Wall time: 1.02
 
@@ -385,31 +385,29 @@ IPython documentation <http://ipython.scipy.org/moin/Documentation>`_.
 Meanwhile, here are some fun tricks -- these are called "Magic
 commands" in IPython:
 
-- You can use ``%bg`` to run a command in the background, and then use
-  ``jobs`` to access the results, as follows.  (The comments ``not
-  tested`` are here because the ``%bg`` syntax doesn't work well with
-  Sage's automatic testing facility.  If you type this in yourself, it
-  should work as written.  This is of course most useful with commands
-  which take a while to complete.)
+- You can use ``IPython.lib.backgroundjobs.BackgroundJobManager`` to manage jobs
+  running in the background as follows.
 
   ::
 
+    sage: from IPython.lib.backgroundjobs import BackgroundJobManager
+    sage: bg = BackgroundJobManager()
     sage: def quick(m): return 2*m
-    sage: %bg quick(20)  # not tested
+    sage: bg.new(quick, 20)
     Starting job # 0 in a separate thread.
-    sage: jobs.status()  # not tested
+    sage: bg.status()
     Completed jobs:
-    0 : quick(20)
-    sage: jobs[0].result  # the actual answer, not tested
+    0 : <function quick at 0x7fd8936b21e0>
+    sage: bg.result(0)
     40
 
-  Note that jobs run in the background don't use the Sage preparser --
+  Note that jobs running in the background don't use the Sage preparser --
   see :ref:`section-mathannoy` for more information.  One
   (perhaps awkward) way to get around this would be to run ::
 
-    sage: %bg eval(preparse('quick(20)')) # not tested
+    sage: bg.new(eval, preparse('quick(20)'), globals())
 
-  It is safer and easier, though, to just use ``%bg`` on commands
+  It is safer and easier, though, to just use ``bg.new`` on commands
   which don't require the preparser.
 
 - You can use ``%edit`` (or ``%ed`` or ``ed``) to open an editor, if
@@ -469,9 +467,8 @@ for a complete list of exceptions). For example,
 
     sage: EllipticCurve([0,infinity])
     ------------------------------------------------------------
-    Traceback (most recent call last):
     ...
-    TypeError: Unable to coerce Infinity (<class 'sage...Infinity'>) to Rational
+    SignError: cannot multiply infinity by zero
 
 The interactive debugger is sometimes useful for understanding what
 went wrong. You can toggle it on or off using ``%pdb`` (the
@@ -488,7 +485,7 @@ execution stack. For example,
     Automatic pdb calling has been turned ON
     sage: EllipticCurve([1,infinity])
     ---------------------------------------------------------------------------
-    <type 'exceptions.TypeError'>             Traceback (most recent call last)
+    SignError                                 Traceback (most recent call last)
     ...
 
     ipdb>
@@ -502,12 +499,12 @@ prompt:
 
     Documented commands (type help <topic>):
     ========================================
-    EOF    break  commands   debug    h       l     pdef   quit    tbreak
-    a      bt     condition  disable  help    list  pdoc   r       u
-    alias  c      cont       down     ignore  n     pinfo  return  unalias
-    args   cl     continue   enable   j       next  pp     s       up
-    b      clear  d          exit     jump    p     q      step    w
-    whatis where
+    EOF    bt         cont      enable  jump  pdef    psource  run      unt
+    a      c          continue  exit    l     pdoc    q        s        until
+    alias  cl         d         h       list  pfile   quit     step     up
+    args   clear      debug     help    n     pinfo   r        tbreak   w
+    b      commands   disable   ignore  next  pinfo2  restart  u        whatis
+    break  condition  down      j       p     pp      return   unalias  where
 
     Miscellaneous help topics:
     ==========================
@@ -515,7 +512,8 @@ prompt:
 
     Undocumented commands:
     ======================
-    retval  rv
+    ll  longlist  retval  rv
+
 
 Type Ctrl-D or ``quit`` to return to Sage.
 
@@ -575,7 +573,8 @@ you get only functions that begin as indicated.
 ::
 
     sage: V.i[tab key]
-    V.is_ambient  V.is_dense    V.is_full     V.is_sparse
+        V.index_in             V.intersection         V.is_conversion_cached
+        ...
 
 If you wonder what a particular function does, e.g., the
 coordinates function, type ``V.coordinates?`` for help or
@@ -596,28 +595,35 @@ followed by ? for the documentation for that function.
 
     sage: V = QQ^3
     sage: V.coordinates?
+    Signature:      V.coordinates(v, check=True)
+    Docstring:     
+       Write v in terms of the basis for self.
+       
+       INPUT:
+    
+       * "v" -- vector
+    
+       * "check" -- bool (default: True); if True, also verify that
+    
+            v is really in self.
+    
+       OUTPUT: list
+    
+       Returns a list c such that if B is the basis for self, then
+    
+          sum c_i B_i = v.
+    
+       If v is not in self, raise an "ArithmeticError" exception.
+    
+       EXAMPLES:
+    
+          sage: M = FreeModule(ZZ, 2); M0,M1=M.gens()
+          sage: W = M.submodule([M0 + M1, M0 - 2*M1])
+          sage: W.coordinates(2*M0-M1)
+          [2, -1]
+    Init docstring: x.__init__(...) initializes x; see help(type(x)) for signature
+    File:           /usr/lib/python2.7/site-packages/sage/modules/free_module.py
     Type:           instancemethod
-    Base Class:     <type 'instancemethod'>
-    String Form:    <bound method FreeModule_ambient_field.coordinates of Vector
-    space of dimension 3 over Rational Field>
-    Namespace:      Interactive
-    File:           /home/was/s/local/lib/python2.4/site-packages/sage/modules/f
-    ree_module.py
-    Definition:     V.coordinates(self, v)
-    Docstring:
-        Write v in terms of the basis for self.
-
-        Returns a list c such that if B is the basis for self, then
-
-                sum c_i B_i = v.
-
-        If v is not in self, raises an ArithmeticError exception.
-
-        EXAMPLES:
-            sage: M = FreeModule(IntegerRing(), 2); M0,M1=M.gens()
-            sage: W = M.submodule([M0 + M1, M0 - 2*M1])
-            sage: W.coordinates(2*M0-M1)
-            [2, -1]
 
 As shown above, the output tells you the type of the object, the
 file in which it is defined, and a useful description of the
@@ -635,15 +641,14 @@ displays the source code that defines ``f``. For example,
 
     sage: V = QQ^3
     sage: V.coordinates??
-    Type:           instancemethod
-    ...
+    Signature: V.coordinates(v, check=True)
     Source:
-    def coordinates(self, v):
-            """
-            Write $v$ in terms of the basis for self.
+        def coordinates(self, v, check=True):
+            r"""
+            Write `v` in terms of the basis for self.
             ...
             """
-            return self.coordinate_vector(v).list()
+            return self.coordinate_vector(v, check=check).list()
 
 This tells us that all the ``coordinates`` function does is call the
 ``coordinate_vector`` function and change the result into a list.
@@ -657,8 +662,10 @@ What does the ``coordinate_vector`` function do?
     sage: V.coordinate_vector??
     ...
     def coordinate_vector(self, v):
-            ...
-            return self.ambient_vector_space()(v)
+        ...
+            out = self.ambient_vector_space()._element_constructor_(v)
+        ...
+        return out
 
 The ``coordinate_vector`` function coerces its input into the
 ambient space, which has the effect of computing the vector of
@@ -674,7 +681,7 @@ it's different. We create a subspace and see:
     sage: V = QQ^3; W = V.span_of_basis([V.0, V.1])
     sage: W.coordinate_vector??
     ...
-    def coordinate_vector(self, v):
+    def coordinate_vector(self, v, check=True):
             """
              ...
             """
@@ -698,13 +705,8 @@ manpage-like help file about a given class.
     sage: help(VectorSpace)
     Help on class VectorSpace ...
 
-    class VectorSpace(__builtin__.object)
-     |  Create a Vector Space.
-     |
-     |  To create an ambient space over a field with given dimension
-     |  using the calling syntax ...
-     :
-     :
+    class VectorSpace(K, dimension, sparse=False, inner_product_matrix=None)
+        ...
 
 When you type ``q`` to exit the help system, your session appears
 just as it was. The help listing does not clutter up your session,
@@ -780,21 +782,20 @@ object. For example,
 
     sage: E = EllipticCurve('11a')
     sage: v = E.anlist(100000)              # takes a while
-    sage: save(E, 'E')
+    sage: save(v, 'v')
     sage: quit
 
-The saved version of ``E`` takes 153 kilobytes, since it stores the
+The saved version of ``v`` takes 399 kilobytes, since it stores the
 first 100000 :math:`a_n` with it.
 
 .. skip
 
 ::
 
-    ~/tmp$ ls -l E.sobj
-    -rw-r--r--  1 was was 153500 2006-01-28 19:23 E.sobj
+    ~/tmp$ ls -l v.sobj
+    -rw-r--r--  1 ray ray 399942 Apr 27 20:41 v.sobj
     ~/tmp$ sage [...]
-    sage: E = load('E')
-    sage: v = E.anlist(100000)              # instant!
+    sage: v = load('v')                     # instant!
 
 (In Python, saving and loading is accomplished using
 the ``cPickle`` module.   In particular, a Sage object ``x``
@@ -905,13 +906,9 @@ into a file. Then we view the file, which is about 3K in size.
 ::
 
     sage: save_session('misc')
-    Saving a
-    Saving M
-    Saving t
-    Saving E
     sage: quit
     was@form:~/tmp$ ls -l misc.sobj
-    -rw-r--r--  1 was was 2979 2006-01-28 19:47 misc.sobj
+    -rw-r--r-- 1 ray ray 401741 Apr 27 20:47 misc.sobj
 
 Finally we restart Sage, define an extra variable, and load our saved
 session.
@@ -922,10 +919,6 @@ session.
 
     sage: b = 19
     sage: load_session('misc')
-    Loading a
-    Loading M
-    Loading E
-    Loading t
 
 Each saved variable is again available. Moreover, the variable
 ``b`` was not overwritten.
@@ -962,7 +955,7 @@ The Sage notebook is run by typing
 
 on the command line of Sage. This starts the Sage notebook and
 opens your default web browser to view it. The server's state files
-are stored in ``$HOME/.sage/sage\_notebook``.
+are stored in ``$HOME/.sage/sage_notebook.sagenb``.
 
 Other options include:
 
@@ -972,28 +965,20 @@ Other options include:
 
     sage: notebook("directory")
 
-which starts a new notebook server using files in the given
-directory, instead of the default directory
-``$HOME/.sage/sage_notebook``. This can be useful if you want to
-have a collection of worksheets associated with a specific project,
-or run several separate notebook servers at the same time.
+which starts a new notebook server using files in the directory
+``directory.sagenb``, instead of the default directory
+``$HOME/.sage/sage_notebook``. This can be useful if you want to have a
+collection of worksheets associated with a specific project, or run several
+separate notebook servers at the same time.
 
-When you start the notebook, it first creates the following files
-in ``$HOME/.sage/sage_notebook``:
-
-::
-
-    nb.sobj       (the notebook SAGE object file)
-    objects/      (a directory containing SAGE objects)
-    worksheets/   (a directory containing SAGE worksheets).
-
-After creating the above files, the notebook starts a web server.
+When you start the notebook, it first creates some files in
+``$HOME/.sage/sage_notebook.sagenb``. Then the notebook starts a web server.
 
 A "notebook" is a collection of user accounts, each of which can
 have any number of worksheets. When you create a new worksheet, the
-data that defines it is stored in the ``worksheets/username/number``
+data that defines it is stored in the ``home/$username/$number``
 directories. In each such directory there is a plain text file
-``worksheet.txt`` - if anything ever happens to your worksheets, or Sage,
+``worksheet.html`` - if anything ever happens to your worksheets, or Sage,
 or whatever, that human-readable file contains everything needed to
 reconstruct your worksheet.
 

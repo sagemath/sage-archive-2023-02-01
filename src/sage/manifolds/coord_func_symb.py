@@ -771,6 +771,9 @@ class CoordFunctionSymb(CoordFunction):
 
         """
         res = self._simplify(self._express + other._express)
+        if res.is_trivial_zero():  # NB: "if res == 0" would be too
+                                   # expensive (cf. #22859)
+            return self.parent().zero()
         return type(self)(self.parent(), res)
 
     def _sub_(self, other):
@@ -812,6 +815,9 @@ class CoordFunctionSymb(CoordFunction):
             True
         """
         res = self._simplify(self._express - other._express)
+        if res.is_trivial_zero():  # NB: "if res == 0" would be too
+                                   # expensive (cf. #22859)
+            return self.parent().zero()
         return type(self)(self.parent(), res)
 
     def _mul_(self, other):
@@ -846,6 +852,9 @@ class CoordFunctionSymb(CoordFunction):
 
         """
         res = self._simplify(self._express * other._express)
+        if res.is_trivial_zero():  # NB: "if res == 0" would be too
+                                   # expensive (cf. #22859)
+            return self.parent().zero()
         return type(self)(self.parent(), res)
 
     def _rmul_(self, other):
@@ -938,6 +947,9 @@ class CoordFunctionSymb(CoordFunction):
         if other._express.is_zero():
             raise ZeroDivisionError("division of a coordinate function by zero")
         res = self._simplify(self._express / SR(other))
+        if res.is_trivial_zero():  # NB: "if res == 0" would be too
+                                   # expensive (cf. #22859)
+            return self.parent().zero()
         return type(self)(self.parent(), res)
 
     def exp(self):

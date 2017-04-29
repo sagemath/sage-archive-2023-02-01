@@ -282,6 +282,7 @@ class FiniteDimensionalAlgebra(UniqueRepresentation, Algebra):
         """
         return self.element_class(self, [j == i for j in range(self.ngens())])
 
+    @cached_method
     def basis(self):
         """
         Return a list of the basis elements of ``self``.
@@ -290,9 +291,10 @@ class FiniteDimensionalAlgebra(UniqueRepresentation, Algebra):
 
             sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: A.basis()
-            [e0, e1]
+            Family (e0, e1)
         """
-        return list(self.gens())
+        from sage.sets.family import Family
+        return Family(self.gens())
 
     def __iter__(self):
         """

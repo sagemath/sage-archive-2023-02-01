@@ -7566,6 +7566,7 @@ class Graph(GenericGraph):
                 for mat in Gp.perfect_matchings(labels):
                     yield [e] + mat
 
+    @doc_index("Leftovers")
     def has_perfect_matching(self):
         r"""
         Return whether this graph has a perfect matching.

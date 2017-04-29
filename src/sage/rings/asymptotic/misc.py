@@ -774,11 +774,11 @@ def transform_category(category,
 def richcmp_by_eq_and_lt(left, right, op):
     r"""
     Compare ``left`` with ``right``, where the order is specified
-    by methods `_eq_` and `_lt_`.
+    by methods ``_eq_`` and ``_lt_``.
 
     INPUT:
 
-    - ``left`` and ``right`` -- objects having methods `_eq_` and `_lt_`
+    - ``left`` and ``right`` -- objects having methods ``_eq_`` and ``_lt_``
 
     - ``op`` -- a rich comparison operation (e.g. ``Py_EQ``)
 

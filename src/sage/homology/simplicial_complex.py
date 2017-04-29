@@ -2517,6 +2517,12 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: t0.add_face(('e', 'f', 'c'))
             sage: t0.homology()
             {0: Z, 1: 0, 2: 0}
+
+        Check that we've fixed the bug reported at :trac:`22880`::
+
+            sage: X = SimplicialComplex([[0], [1]])
+            sage: temp = X.faces(SimplicialComplex(()))
+            sage: X.add_face([0,1])
         """
         if not self._is_mutable:
             raise ValueError("This simplicial complex is not mutable")
@@ -2552,7 +2558,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                         if L is None:
                             new_faces = all_new_faces[dim]
                         else:
-                            new_faces = all_new_faces[dim].difference(L.faces()[dim])
+                            new_faces = all_new_faces[dim].difference(L.n_cells(dim))
                         L_complex[dim] = L_complex[dim].union(new_faces)
                     else:
                         L_complex[dim] = all_new_faces[dim]

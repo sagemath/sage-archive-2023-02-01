@@ -12,10 +12,8 @@ from sage.misc.temporary_file import tmp_dir
 
 class InlineFortran:
     def __init__(self, globals=None):
-        if globals is None:
-            self.globs = {}
-        else:
-            self.globs = globals  # Deprecated
+        # globals=None means: use user globals from REPL
+        self.globs = globals
         self.library_paths=[]
         self.libraries=[]
         self.verbose = False
@@ -81,6 +79,9 @@ class InlineFortran:
         """
         if globals is None:
             globals = self.globs
+            if globals is None:
+                from sage.repl.user_globals import get_globals
+                globals = get_globals()
 
         from numpy import f2py
 

@@ -120,23 +120,6 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
                 raise TypeError("x (of degree %s) must be of degree the same as the degree of the parent (of degree %s)."%(x.degree(), parent.degree()))
         hecke.HeckeModuleElement.__init__(self, parent, x)
 
-    def __cmp__(self, other):
-        r""" Standard comparison function.
-
-        EXAMPLES::
-
-            sage: M = ModularSymbols(11, 2)
-            sage: M.0 == M.1 # indirect doctest
-            False
-            sage: M.0 == (M.1 + M.0 - M.1)
-            True
-            sage: M.0 == ModularSymbols(13, 2).0
-            False
-            sage: M.0 == 4
-            False
-        """
-        return self.element().__cmp__(other.element())
-
     def _repr_(self):
         r"""
         String representation of self. The output will depend on the global

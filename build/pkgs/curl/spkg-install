@@ -29,13 +29,13 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-$MAKE V=1
+$MAKE
 if [ $? -ne 0 ]; then
     echo >&2 "Error building curl."
     exit 1
 fi
 
-$MAKE install V=1
+$MAKE install
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing curl."
     exit 1

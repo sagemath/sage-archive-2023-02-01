@@ -43,8 +43,6 @@ from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.structure.element cimport ModuleElement, RingElement
 from sage.structure.element import coerce_binop
 
-from sage.rings.polynomial.polynomial_element cimport is_Polynomial
-
 from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
 
 from sage.rings.integer_ring import ZZ
@@ -175,7 +173,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: type(f)
             <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
             sage: type(pari(f))
-            <type 'sage.libs.cypari2.gen.Gen'>
+            <type 'cypari2.gen.Gen'>
             sage: type(R(pari(f)))
             <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
             sage: R(pari(f))

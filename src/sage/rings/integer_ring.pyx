@@ -42,10 +42,9 @@ other types will also coerce to the integers, when it makes sense.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
-from __future__ import print_function
 
-include "sage/ext/cdefs.pxi"
+from __future__ import absolute_import, print_function
+
 include "sage/ext/stdsage.pxi"
 include "cysignals/signals.pxi"
 
@@ -53,6 +52,7 @@ from cpython.int cimport *
 from cpython.list cimport *
 from cpython.object cimport Py_NE
 
+from sage.libs.gmp.mpz cimport *
 import sage.rings.infinity
 import sage.rings.rational
 import sage.rings.rational_field

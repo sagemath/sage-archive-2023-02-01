@@ -27,6 +27,7 @@ from sage.rings.integer_ring import ZZ
 from sage.schemes.generic.morphism import SchemeMorphism
 from sage.schemes.generic.morphism import SchemeMorphism_point
 from sage.structure.sequence import Sequence
+from sage.structure.sage_object import richcmp
 
 
 class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
@@ -139,18 +140,17 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
         """
         return('(%s)'%(" , ".join((" : ".join([repr(f) for f in Q])) for Q in self._points)))
 
-    def __eq__(self, other):
+    def _richcmp_(self, right, op):
         r"""
-        Tests the projective equality of two points.
+        Compare two points in products of projective spaces.
 
         INPUT:
 
-        - ``right`` - a point on a product of projective spaces.
+        - ``other`` -- another point
 
         OUTPUT:
 
-        - Boolean - ``True`` if the two points define the same point.
-          ``False`` otherwise.
+        boolean
 
         EXAMPLES::
 
@@ -159,24 +159,6 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
             sage: Q = T([2, 4, 6, 4, 5, 6])
             sage: P == Q
             True
-        """
-        for i in range(self.codomain().ambient_space().num_components()):
-           if self[i] != other[i]:
-               return False
-        return True
-
-    def __ne__(self, other):
-        r"""
-        Tests the projective inequality of two points.
-
-        INPUT:
-
-        - ``right`` -- a point on a product of projective spaces.
-
-        OUTPUT:
-
-        - Boolean - ``False`` if the two points define the same point.
-          ``True`` otherwise.
 
         EXAMPLES::
 
@@ -185,53 +167,36 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
             sage: Q = T([2, 4, 6, 4, 1, 0])
             sage: P != Q
             True
-        """
-        for i in range(self.codomain().ambient_space().num_components()):
-           if self[i] != other[i]:
-               return True
-        return False
-
-    def __cmp__(self, right):
-        r"""
-        Compare two points in products of projective spaces.
-
-        INPUT:
-
-        - ``other`` -- anything. To compare against this point.
-
-        OUTPUT:
-
-        ``+1``, ``0``, or ``-1``.
 
         EXAMPLES::
 
             sage: T = ProductProjectiveSpaces([1, 1, 1], GF(5), 'x')
             sage: P = T([3, 2, 3, 4, 1, 0])
             sage: Q = T([1, 2, 3, 4, 3, 1])
-            sage: P.__cmp__(Q)
-            1
+            sage: P > Q
+            True
 
         ::
 
             sage: T = ProductProjectiveSpaces([1, 1, 1], GF(5), 'x')
             sage: P = T([1, 2, 3, 4, 1, 0])
             sage: Q = T([1, 2, 3, 4, 3, 0])
-            sage: P.__cmp__(Q)
-            0
+            sage: P == Q
+            True
 
         ::
 
             sage: T = ProductProjectiveSpaces([1, 1, 1], GF(5), 'x')
             sage: P = T([1, 2, 3, 4, 1, 0])
             sage: Q = T([1, 2, 3, 4, 3, 1])
-            sage: P.__cmp__(Q)
-            -1
+            sage: P < Q
+            True
         """
         #needed for Digraph
         if not isinstance(right, (ProductProjectiveSpaces_point_ring)):
-            return -1
+            return NotImplemented
         else:
-            return(cmp(self._points, right._points))
+            return richcmp(self._points, right._points, op)
 
     def __copy__(self):
         r"""

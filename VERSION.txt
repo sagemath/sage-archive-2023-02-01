@@ -1,1 +1,1 @@
-SageMath version 8.0.beta2, Release Date: 2017-04-12
+SageMath version 8.0.beta4, Release Date: 2017-04-27

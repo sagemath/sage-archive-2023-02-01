@@ -236,7 +236,7 @@ class MagmaticAlgebras(Category_over_base_ring):
 
                         D(ab) = D(a) b + a D(b)
 
-                    for all `a, b \in A`. The set of all derivatives
+                    for all `a, b \in A`. The set of all derivations
                     form a Lie algebra.
 
                     EXAMPLES:
@@ -255,33 +255,34 @@ class MagmaticAlgebras(Category_over_base_ring):
                         sage: q*p
                         -z
                         sage: A.derivations_basis()
-                        [
+                        (
                         [1 0 0]  [0 1 0]  [0 0 0]  [0 0 0]  [0 0 0]  [0 0 0]
                         [0 0 0]  [0 0 0]  [1 0 0]  [0 1 0]  [0 0 0]  [0 0 0]
                         [0 0 1], [0 0 0], [0 0 0], [0 0 1], [1 0 0], [0 1 0]
-                        ]
+                        )
 
                     We construct another example using the exterior algebra
                     and verify we obtain a derivation::
 
                         sage: A = algebras.Exterior(QQ, 1)
                         sage: A.derivations_basis()
-                        [
+                        (
                         [0 0]
                         [0 1]
-                        ]
+                        )
                         sage: D = A.module_morphism(matrix=A.derivations_basis()[0], codomain=A)
                         sage: one, e = A.basis()
                         sage: all(D(a*b) == D(a) * b + a * D(b)
                         ....:     for a in A.basis() for b in A.basis())
                         True
                     """
+                    R = self.base_ring()
                     B = self.basis()
                     keys = list(B.keys())
                     scoeffs = {(j,y,i): c for y in keys for i in keys
                                for j,c in (B[y]*B[i]).monomial_coefficients(copy=False).items()
                               }
-                    zero = self.base_ring().zero()
+                    zero = R.zero()
                     data = {}
                     N = len(keys)
                     for ii,i in enumerate(keys):
@@ -296,7 +297,7 @@ class MagmaticAlgebras(Category_over_base_ring):
                                     data[row,ij+N*ik] = (data.get((row,ij+N*ik), zero)
                                                          - scoeffs.get((l, i, k), zero))
                     from sage.matrix.constructor import matrix
-                    mat = matrix(self.base_ring(), data, sparse=True)
-                    return [matrix(self.base_ring(), N, N, list(b))
-                            for b in mat.right_kernel().basis()]
+                    mat = matrix(R, data, sparse=True)
+                    return tuple([matrix(R, N, N, list(b))
+                                  for b in mat.right_kernel().basis()])
 

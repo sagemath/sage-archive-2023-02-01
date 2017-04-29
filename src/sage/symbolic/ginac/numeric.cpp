@@ -174,9 +174,26 @@ inline int Pynac_PyObj_Cmp(PyObject *optr1, PyObject *optr2, const char *errmsg)
 }
 
 inline bool Pynac_PyObj_RichCmp(PyObject *optr1, PyObject *optr2, int opid, const char *errmsg) {
+        PyObject *obj1(nullptr), *obj2(nullptr);
+        if (PyComplex_CheckExact(optr1)) {
+                if (PyComplex_ImagAsDouble(optr1) != 0.0)
+                        return false;
+                obj1 = PyFloat_FromDouble(PyComplex_RealAsDouble(optr1));
+                optr1 = obj1;
+        }
+        if (PyComplex_CheckExact(optr2)) {
+                if (PyComplex_ImagAsDouble(optr2) != 0.0)
+                        return false;
+                obj2 = PyFloat_FromDouble(PyComplex_RealAsDouble(optr2));
+                optr2 = obj2;
+        }
         int result;
         if (PyObject_Cmp(optr1, optr2, &result) == -1)
                 py_error(errmsg);
+        if (obj1 != nullptr)
+                Py_DECREF(obj1);
+        if (obj2 != nullptr)
+                Py_DECREF(obj2);
         switch (result) {
                 case -1: return opid == Py_LT || opid == Py_LE || opid == Py_NE;
                 case 0: return opid == Py_LE || opid == Py_EQ || opid == Py_GE;
@@ -205,9 +222,26 @@ inline int Pynac_PyObj_Cmp(PyObject *optr1, PyObject *optr2, const char *errmsg)
 }
 
 inline bool Pynac_PyObj_RichCmp(PyObject *optr1, PyObject *optr2, int opid, const char *errmsg) {
+        PyObject *obj1(nullptr), *obj2(nullptr);
+        if (PyComplex_CheckExact(optr1)) {
+                if (PyComplex_ImagAsDouble(optr1) != 0.0)
+                        return false;
+                obj1 = PyFloat_FromDouble(PyComplex_RealAsDouble(optr1));
+                optr1 = obj1;
+        }
+        if (PyComplex_CheckExact(optr2)) {
+                if (PyComplex_ImagAsDouble(optr2) != 0.0)
+                        return false;
+                obj2 = PyFloat_FromDouble(PyComplex_RealAsDouble(optr2));
+                optr2 = obj2;
+        }
         int result = PyObject_RichCompareBool(optr1, optr2, opid);
         if (result == -1)
                 py_error(errmsg);
+        if (obj1 != nullptr)
+                Py_DECREF(obj1);
+        if (obj2 != nullptr)
+                Py_DECREF(obj2);
         return result;
 }
 #endif

@@ -203,7 +203,7 @@ class DevelopingValuation(DiscretePseudoValuation):
 
     def newton_polygon(self, f, valuations=None):
         r"""
-        Return the newton polygon the `\phi`-adic development of ``f``.
+        Return the newton polygon of the `\phi`-adic development of ``f``.
 
         INPUT::
 

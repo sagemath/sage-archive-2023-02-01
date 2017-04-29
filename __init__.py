@@ -254,9 +254,16 @@ class RingHomomorphism_coercion_patched(sage.rings.morphism.RingHomomorphism_coe
             sage: Hom(ZZ,QQ['x']).natural_map().is_injective()
             True
 
+            sage: R.<x> = ZZ[]
+            sage: R.<xbar> = R.quo(x^2+x+1)
+            sage: R.coerce_map_from(ZZ).is_injective()
+            True
+
         """
         from sage.categories.fields import Fields
+        # this should be implemented as far down as possible
         if self.domain() in Fields(): return True
+        if self.domain() == sage.all.ZZ and self.codomain().characteristic() == 0: return True
         coercion = self.codomain().coerce_map_from(self.domain())
         if coercion is not None:
             try:
@@ -268,7 +275,9 @@ class RingHomomorphism_coercion_patched(sage.rings.morphism.RingHomomorphism_coe
                         return True
             except AttributeError: # DefaultConvertMap_unique does not implement is_injective/surjective at all
                 pass
+
         raise NotImplementedError
+
     def is_surjective(self):
         r"""
         TESTS::
@@ -290,7 +299,9 @@ class RingHomomorphism_coercion_patched(sage.rings.morphism.RingHomomorphism_coe
                     if all([f.is_surjective() for f in list(coercion)]):
                         return True
                 pass
+
         raise NotImplementedError
+
 sage.rings.homset.RingHomset_generic.natural_map = patch_is_injective(sage.rings.homset.RingHomset_generic.natural_map, {sage.rings.morphism.RingHomomorphism_coercion: (lambda coercion: RingHomomorphism_coercion_patched(coercion.parent()))})
 
 # a morphism of polynomial rings which is induced by a ring morphism on the base is injective if the morphis on the base is

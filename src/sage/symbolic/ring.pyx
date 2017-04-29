@@ -720,7 +720,7 @@ cdef class SymbolicRing(CommutativeRing):
 
         return e
 
-    def var(self, name, latex_name=None, domain=None):
+    def var(self, name, index=None, latex_name=None, domain=None):
         """
         Return the symbolic variable defined by x as an element of the
         symbolic ring.
@@ -733,6 +733,11 @@ cdef class SymbolicRing(CommutativeRing):
             <type 'sage.symbolic.expression.Expression'>
             sage: t = SR.var('theta2'); t
             theta2
+
+            Automatic indexing is available as well::
+
+                sage: SR.var('x', 4)
+                (x0, x1, x2, x3)
 
         TESTS::
 
@@ -756,6 +761,13 @@ cdef class SymbolicRing(CommutativeRing):
 
             sage: var1 = var('var1', latex_name=r'\sigma^2_1'); latex(var1)
             {\sigma^2_1}
+
+        The index should be an integer greater or equal than 1::
+
+            sage: SR.var('K', -273)
+            Traceback (most recent call last):
+            ...
+            ValueError: The index should be a positive integer
         """
         if is_Expression(name):
             return name
@@ -781,7 +793,13 @@ cdef class SymbolicRing(CommutativeRing):
             formatted_latex_name = None
             if latex_name is not None:
                 formatted_latex_name = '{{{0}}}'.format(latex_name)
-            return self.symbol(name, latex_name=formatted_latex_name, domain=domain)
+            if index is not None:
+                if index > 0 and index.is_integer():
+                    return tuple([self.symbol(name+str(i), domain=domain) for i in range(index)])
+                else:
+                    raise ValueError("The index should be a positive integer")
+            else:
+                return self.symbol(name, latex_name=formatted_latex_name, domain=domain)
         if len(names_list) > 1:
             if latex_name:
                 raise ValueError("cannot specify latex_name for multiple symbol names")

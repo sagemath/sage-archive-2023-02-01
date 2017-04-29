@@ -7566,6 +7566,30 @@ class Graph(GenericGraph):
                 for mat in Gp.perfect_matchings(labels):
                     yield [e] + mat
 
+    @doc_index("Leftovers")
+    def has_perfect_matching(self):
+        r"""
+        Return whether this graph has a perfect matching.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: graphs.PetersenGraph().has_perfect_matching()
+            True
+            sage: graphs.WheelGraph(6).has_perfect_matching()
+            True
+            sage: graphs.WheelGraph(5).has_perfect_matching()
+            False
+        """
+        try:
+            next(self.perfect_matchings())
+        except StopIteration:
+            return False
+        return True
+
 
 # Aliases to functions defined in Cython modules
 import types

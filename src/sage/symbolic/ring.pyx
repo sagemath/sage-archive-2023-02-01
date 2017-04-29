@@ -768,6 +768,13 @@ cdef class SymbolicRing(CommutativeRing):
             Traceback (most recent call last):
             ...
             ValueError: The index should be a positive integer
+
+        The specification of an index for more than one variable is not supported::
+
+            sage: SR.var('x y', 4)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot specify index for multiple symbol names
         """
         if is_Expression(name):
             return name
@@ -803,6 +810,8 @@ cdef class SymbolicRing(CommutativeRing):
         if len(names_list) > 1:
             if latex_name:
                 raise ValueError("cannot specify latex_name for multiple symbol names")
+            if index:
+                raise ValueError("cannot specify index for multiple symbol names")
             return tuple([self.symbol(s, domain=domain) for s in names_list])
 
     def _repr_element_(self, Expression x):

@@ -1667,12 +1667,25 @@ class Graph(GenericGraph):
             False
             sage: graphs.EmptyGraph().is_tree(certificate=True)
             (False, None)
+
+        :trac:`22912` is fixed::
+
+            sage: G = Graph([(0,0), (0,1)], loops=True)
+            sage: G.is_tree(certificate=True)
+            (False, [0])
+            sage: G.is_tree(certificate=True, output='edge')
+            (False, [(0, 0, None)])
         """
         if not output in ['vertex', 'edge']:
             raise ValueError('output must be either vertex or edge')
 
         if self.order() == 0 or not self.is_connected():
             return (False, None) if certificate else False
+
+        if self.has_loops():
+            if certificate:
+                return False, self.loop_edges()[:1] if output=='edge' else self.loop_vertices()[:1]
+            return False 
 
         if certificate:
             if self.num_verts() == self.num_edges() + 1:

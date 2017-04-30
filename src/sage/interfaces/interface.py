@@ -185,7 +185,7 @@ class Interface(ParentWithBase):
 
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
-            sage: f.write('x = 2\n')
+            sage: _ = f.write('x = 2\n')
             sage: f.close()
             sage: octave.read(filename)  # optional - octave
             sage: octave.get('x')        # optional - octave

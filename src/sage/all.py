@@ -118,6 +118,7 @@ from sage.functions.all  import *
 from sage.calculus.all   import *
 
 import sage.tests.all as tests
+from sage.tests.cython import getattr_debug
 
 from sage.crypto.all     import *
 import sage.crypto.mq as mq
@@ -177,8 +178,9 @@ lazy_import('sagenb.notebook.notebook_object', 'notebook')
 lazy_import('sagenb.notebook.notebook_object', 'inotebook')
 lazy_import('sagenb.notebook.sage_email', 'email')
 lazy_import('sage.interacts', 'all', 'interacts')
-lazy_import('sage.interacts.decorator', 'interact')
 from sage.interacts.debugger import debug
+# interact decorator from SageNB (will be overridden by Jupyter)
+lazy_import('sagenb.notebook.interact', 'interact')
 
 from copy import copy, deepcopy
 

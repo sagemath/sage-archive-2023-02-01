@@ -11,8 +11,7 @@ Root lattice realizations
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 from sage.misc.abstract_method import abstract_method, AbstractMethod
 from sage.misc.misc import attrcall
@@ -29,6 +28,7 @@ from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 from sage.combinat.root_system.plot import PlotOptions, barycentric_projection_matrix
+from itertools import combinations_with_replacement
 
 
 class RootLatticeRealizations(Category_over_base_ring):
@@ -1126,13 +1126,12 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: P.coxeter_transformation()**20 == 1
                 True
             """
-            from sage.combinat.multichoose_nk import MultichooseNK
             Phi_plus = self.positive_roots()
             L = self.nonnesting_partition_lattice(facade=True)
             chains = [chain for chain in L.chains().list() if len(chain) <= m]
             multichains = []
             for chain in chains:
-                for multilist in MultichooseNK(len(chain), m):
+                for multilist in combinations_with_replacement(range(len(chain)), m):
                     if len(set(multilist)) == len(chain):
                         multichains.append(tuple([chain[i] for i in multilist]))
             def is_saturated_chain(chain):

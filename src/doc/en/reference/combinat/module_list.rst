@@ -70,6 +70,7 @@ Comprehensive Module list
     sage/combinat/crystals/letters
     sage/combinat/crystals/littelmann_path
     sage/combinat/crystals/monomial_crystals
+    sage/combinat/crystals/multisegments
     sage/combinat/crystals/mv_polytopes
     sage/combinat/crystals/pbw_crystal
     sage/combinat/crystals/pbw_datum

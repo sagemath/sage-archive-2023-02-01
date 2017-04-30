@@ -81,10 +81,10 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
     for G_in in [G1, G2]:
         if which_G == 1:
             GS = GS1
-            first=True
+            first = True
         else:
             GS = GS2
-            first=False
+            first = False
         if isinstance(G_in, GenericGraph):
             if G_in.has_loops():
                 loops = 1
@@ -92,7 +92,7 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
                 n = G_in.num_verts()
             elif n != G_in.num_verts():
                 return False
-            if G_in.vertices() != range(n):
+            if G_in.vertices() != list(xrange(n)):
                 G_in = copy(G_in)
                 to = G_in.relabel(return_map=True)
                 frm = {}
@@ -383,7 +383,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificat
     if isinstance(G_in, GenericGraph):
         loops = G_in.has_loops()
         n = G_in.num_verts()
-        if G_in.vertices() != range(n):
+        if G_in.vertices() != list(xrange(n)):
             G_in = copy(G_in)
             to = G_in.relabel(return_map=True)
             frm = {}
@@ -840,7 +840,7 @@ def random_tests(num=10, n_max=60, perms_per_graph=5):
                 print(H.graph6_string())
                 print(perm)
                 return
-            isom = isomorphic(G, H, [range(n)], range(n), 0, 1)
+            isom = isomorphic(G, H, [list(xrange(n))], list(xrange(n)), 0, 1)
             if not isom or G.relabel(isom, inplace=False) != H:
                 print("isom FAILURE: graph6-")
                 print(H.graph6_string())
@@ -865,7 +865,7 @@ def random_tests(num=10, n_max=60, perms_per_graph=5):
                 print(E.dig6_string())
                 print(perm)
                 return
-            isom = isomorphic(D, E, [range(n)], range(n), 1, 1)
+            isom = isomorphic(D, E, [list(xrange(n))], list(xrange(n)), 1, 1)
             if not isom or D.relabel(isom, inplace=False) != E:
                 print("isom FAILURE: dig6-")
                 print(E.dig6_string())
@@ -917,7 +917,7 @@ def orbit_partition(gamma, list_perm=False):
                 seen[i] = 1
             else:
                 for j in range(n):
-                    if seen[j]==0:
+                    if seen[j] == 0:
                         i = j
                         break
                 partition.append([i])

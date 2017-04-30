@@ -249,7 +249,13 @@ def RandomBlockGraph(m, k, kmax=None, incidence_structure=False):
     Return a Random Block Graph
 
     A block graph is a connected graph in which every biconnected component
-    (block) is a clique. See :wikipedia:`Block_graph` for more details.
+    (block) is a clique.
+
+    .. SEEALSO::
+
+        - :wikipedia:`Block_graph` for more details on these graphs
+        - :meth:`~sage.graphs.graph.Graph.is_block_graph` -- test if a graph is a block graph
+        - :meth:`~sage.combinat.designs.incidence.IncidenceStructure` 
 
     INPUT:
 
@@ -270,10 +276,6 @@ def RandomBlockGraph(m, k, kmax=None, incidence_structure=False):
 
     A Graph when ``incidence_structure==False`` (default), and otherwise an
     incidence structure.
-
-    .. SEEALSO::
-
-        - :meth:`~sage.combinat.designs.incidence.IncidenceStructure` 
 
     EXAMPLES:
 

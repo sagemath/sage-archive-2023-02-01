@@ -149,6 +149,21 @@ Predefined classes
    * - Class
      - Related methods
 
+   * - Apex
+
+     - :meth:`~Graph.is_apex()`,
+       :meth:`~Graph.apex_vertices()`
+
+   * - AT_free
+
+     - :meth:`~Graph.is_asteroidal_triple_free`
+
+   * - Biconnected
+
+     - :meth:`~Graph.is_biconnected`,
+       :meth:`~GenericGraph.blocks_and_cut_vertices`,
+       :meth:`~GenericGraph.blocks_and_cuts_tree`
+
    * - BinaryTrees
 
      - :meth:`~sage.graphs.graph_generators.GraphGenerators.BalancedTree`,

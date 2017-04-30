@@ -1822,7 +1822,7 @@ class Graph(GenericGraph):
     @doc_index("Graph properties")
     def is_block_graph(self):
         r"""
-        Tests if the graph is a block graph
+        Test if the graph is a block graph.
 
         A block graph is a connected graph in which every biconnected component
         (block) is a clique.
@@ -1833,6 +1833,7 @@ class Graph(GenericGraph):
             - :meth:`~sage.graphs.graph_generators.GraphGenerators.RandomBlockGraph`
               -- generator of random block graphs
             - :meth:`~sage.graphs.generic_graph.GenericGraph.blocks_and_cut_vertices`
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.blocks_and_cuts_tree`
 
 
         EXAMPLES::

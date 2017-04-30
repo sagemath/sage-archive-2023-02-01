@@ -1840,6 +1840,9 @@ class Graph(GenericGraph):
             sage: G = graphs.RandomBlockGraph(6, 2, kmax=4)
             sage: G.is_block_graph()
             True
+            sage: from sage.graphs.isgci import graph_classes
+            sage: G in graph_classes.Block
+            True
             sage: graphs.CompleteGraph(4).is_block_graph()
             True
             sage: graphs.RandomTree(6).is_block_graph()

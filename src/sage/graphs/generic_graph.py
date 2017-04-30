@@ -2474,9 +2474,13 @@ class GenericGraph(GenericGraph_pyx):
             loops += self.edge_boundary([v], [v], labels)
         return loops
 
-    def loop_edges(self):
+    def loop_edges(self, labels=True):
         """
         Returns a list of all loops in the graph.
+
+        INPUT:
+
+        - ``labels`` -- whether returned edges have labels ((u,v,l)) or not ((u,v)).
 
         EXAMPLES::
 
@@ -2484,6 +2488,17 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
             sage: G.loop_edges()
             [(0, 0, None), (1, 1, None), (2, 2, None), (3, 3, None)]
+            sage: G.loop_edges(labels=False)
+            [(0, 0), (1, 1), (2, 2), (3, 3)]
+            sage: G.allows_loops()
+            True
+            sage: G.has_loops()
+            True
+            sage: G.allow_loops(False)
+            sage: G.has_loops()
+            False
+            sage: G.loop_edges()
+            []
 
         ::
 
@@ -2498,11 +2513,19 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.add_edges([(i,i) for i in range(4)])
             sage: G.loop_edges()
             [(0, 0, None), (1, 1, None), (2, 2, None), (3, 3, None)]
+            sage: G.add_edges([(0, 0), (1, 1)])
+            sage: G.loop_edges(labels=False)
+            [(0, 0), (0, 0), (1, 1), (1, 1), (2, 2), (3, 3)]
         """
         if self.allows_multiple_edges():
-            return [(v,v,l) for v in self.loop_vertices() for l in self.edge_label(v,v)]
-        else:
+            if labels:
+                return [(v,v,l) for v in self.loop_vertices() for l in self.edge_label(v,v)]
+            else:
+                return [(v,v) for v in self.loop_vertices() for l in self.edge_label(v,v)]
+        elif labels:
             return [(v,v,self.edge_label(v,v)) for v in self.loop_vertices()]
+        else:
+            return [(v,v) for v in self.loop_vertices()]
 
     def number_of_loops(self):
         """

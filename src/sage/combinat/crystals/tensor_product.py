@@ -303,7 +303,8 @@ class TensorProductOfCrystals(CrystalOfWords):
     It has `8` elements::
 
         sage: T.list()
-        [[2, 1, 1], [2, 1, 2], [2, 1, 3], [3, 1, 3], [3, 2, 3], [3, 1, 1], [3, 1, 2], [3, 2, 2]]
+        [[2, 1, 1], [2, 1, 2], [2, 1, 3], [3, 1, 3],
+         [3, 2, 3], [3, 1, 1], [3, 1, 2], [3, 2, 2]]
 
     One can also check the Cartan type of the crystal::
 
@@ -899,13 +900,13 @@ class CrystalOfTableaux(CrystalOfWords):
             elif all(shape[-1]<0 for shape in spin_shapes):
                 S = CrystalOfSpinsMinus(cartan_type)
             else:
-                raise ValueError("In type D spins should all be positive or negative")
+                raise ValueError("in type D spins should all be positive or negative")
         else:
             if any( i < 0 for shape in spin_shapes for i in shape):
                 raise ValueError("shapes should all be partitions")
             S = CrystalOfSpins(cartan_type)
-        B = CrystalOfTableaux(cartan_type, shapes = shapes)
-        T = TensorProductOfCrystals(S,B, generators=[[S.module_generators[0],x] for x in B.module_generators])
+        B = CrystalOfTableaux(cartan_type, shapes=shapes)
+        T = TensorProductOfCrystals(S, B, generators=[[S.module_generators[0],x] for x in B.module_generators])
         T.rename("The crystal of tableaux of type %s and shape(s) %s"%(cartan_type, list(list(shape) for shape in spin_shapes)))
         T.shapes = spin_shapes
         return T
@@ -973,12 +974,12 @@ class CrystalOfTableaux(CrystalOfWords):
         type = self.cartan_type()
         if type[0] == 'D' and len(shape) == type[1] and shape[type[1]-1] < 0:
             invert = True
-            shape = shape[:-1]+(-shape[type[1]-1],)
+            shape = shape[:-1] + (-shape[type[1]-1],)
         else:
             invert = False
         p = Partition(shape).conjugate()
         # The column canonical tableau, read by columns
-        module_generator = flatten([[p[j]-i for i in range(p[j])] for j in range(len(p))])
+        module_generator = flatten([[val-i for i in range(val)] for val in p])
         if invert:
             module_generator = [(-x if x == type[1] else x) for x in module_generator]
         return self(list=[self.letters(x) for x in module_generator])

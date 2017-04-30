@@ -786,7 +786,8 @@ cdef class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement)
             sage: t.energy_function('grading')
             Traceback (most recent call last):
             ...
-            NotImplementedError: all crystals in the tensor product need to be perfect of the same level
+            NotImplementedError: all crystals in the tensor product need
+             to be perfect of the same level
 
         TESTS::
 
@@ -798,10 +799,10 @@ cdef class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement)
             ....:     for b in hw)
             True
         """
-        C = self._parent.crystals[0]
-        ell = ceil(C.s() / C.cartan_type().c()[C.r()])
-        is_perfect = all(ell == K.s() / K.cartan_type().c()[K.r()]
-                         for K in self._parent.crystals)
+        C = self.parent().crystals[0]
+        ell = ceil(C.s()/C.cartan_type().c()[C.r()])
+        is_perfect = all(ell == K.s()/K.cartan_type().c()[K.r()]
+                         for K in self.parent().crystals)
         if algorithm is None:
             if is_perfect:
                 algorithm = 'grading'
@@ -810,23 +811,24 @@ cdef class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement)
 
         if algorithm == 'grading':
             if not is_perfect:
-                raise NotImplementedError("all crystals in the tensor product need to be perfect of the same level")
-            t = self._parent(*[K.module_generator() for K in self._parent.crystals])
+                raise NotImplementedError("all crystals in the tensor product need"
+                                          " to be perfect of the same level")
+            t = self.parent()(*[K.module_generator() for K in self.parent().crystals])
             d = t.affine_grading()
             return d - self.affine_grading()
 
         if algorithm == 'definition':
             # Setup
             energy = ZZ.zero()
-            R_mats = [[K.R_matrix(Kp) for Kp in self._parent.crystals[i+1:]]
-                      for i,K in enumerate(self._parent.crystals)]
-            H_funcs = [[K.local_energy_function(Kp) for Kp in self._parent.crystals[i+1:]]
-                       for i,K in enumerate(self._parent.crystals)]
+            R_mats = [[K.R_matrix(Kp) for Kp in self.parent().crystals[i+1:]]
+                      for i,K in enumerate(self.parent().crystals)]
+            H_funcs = [[K.local_energy_function(Kp) for Kp in self.parent().crystals[i+1:]]
+                       for i,K in enumerate(self.parent().crystals)]
 
             for i,b in enumerate(self):
                 for j,R in enumerate(R_mats[i]):
                     H = H_funcs[i][j]
-                    bp = self._list[i+j+1]
+                    bp = self[i+j+1]
                     T = R.domain()
                     t = T(b, bp)
                     energy += H(t)
@@ -838,7 +840,7 @@ cdef class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement)
 
     def affine_grading(self):
         r"""
-        Returns the affine grading of ``self``.
+        Return the affine grading of `self`.
 
         The affine grading is only defined when ``self`` is an element of a
         tensor product of affine Kirillov-Reshetikhin crystals. It is
@@ -888,7 +890,7 @@ cdef class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement)
     @cached_method
     def e_string_to_ground_state(self):
         r"""
-        Returns a string of integers in the index set `(i_1,\ldots,i_k)` such
+        Return a string of integers in the index set `(i_1,\ldots,i_k)` such
         that `e_{i_k} \cdots e_{i_1}` of ``self`` is the ground state.
 
         This method is only defined when ``self`` is an element of a tensor
@@ -924,20 +926,43 @@ cdef class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement)
             [[[2]], [[1]]]
             sage: y.e_string_to_ground_state()
             ()
+
+        TESTS:
+
+        Check that :trac:`22882` is fixed::
+
+            sage: K = crystals.KirillovReshetikhin(CartanType(['A',6,2]).dual(), 1,1)
+            sage: T = tensor([K,K,K])
+            sage: hw = [x for x in T if x.is_highest_weight([1,2,3])]
+            sage: gs = T(K(0), K(0), K(0))
+            sage: all(elt.e_string(elt.e_string_to_ground_state()) == gs
+            ....:     for elt in hw)
+            True
+            sage: all(elt.energy_function() == elt.energy_function('definition')
+            ....:     for elt in hw)
+            True
         """
         from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinTableaux
-        if self._parent.crystals[0].__module__ != 'sage.combinat.crystals.kirillov_reshetikhin' and \
-                not isinstance(self._parent.crystals[0], KirillovReshetikhinTableaux):
+        if self.parent().crystals[0].__module__ != 'sage.combinat.crystals.kirillov_reshetikhin' and \
+                not isinstance(self.parent().crystals[0], KirillovReshetikhinTableaux):
             raise ValueError("all crystals in the tensor product need to be Kirillov-Reshetikhin crystals")
+        ell = max(ceil(K.s()/K.cartan_type().c()[K.r()]) for K in self.parent().crystals)
+        if self.cartan_type().dual().type() == 'BC':
+            I = self.cartan_type().index_set()
+            for i in I[:-1]:
+                if self.epsilon(i) > 0:
+                    return (i,) + (self.e(i)).e_string_to_ground_state()
+            if self.epsilon(I[-1]) > ell:
+                return (I[-1],) + (self.e(I[-1])).e_string_to_ground_state()
+            return ()
+
         I = self.cartan_type().classical().index_set()
-        ell = max(ceil(K.s() / K.cartan_type().c()[K.r()]) for K in self._parent.crystals)
         for i in I:
             if self.epsilon(i) > 0:
-                return (i,) + (self.e(i)).e_string_to_ground_state()
+                return (i,) + self.e(i).e_string_to_ground_state()
         if self.epsilon(0) > ell:
-            return (0,) + (self.e(0)).e_string_to_ground_state()
+            return (0,) + self.e(0).e_string_to_ground_state()
         return ()
-
 
 cdef class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
     """
@@ -946,8 +971,8 @@ cdef class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
     def __init__(self, parent, *args, **options):
         """
         There are several ways to input tableaux, by rows, by columns,
-        as the list of column elements, or as a sequence of numbers
-        in column reading.
+        by columns, as the list of column elements, or as a sequence
+        of numbers in column reading.
 
         EXAMPLES::
 
@@ -1115,7 +1140,7 @@ cdef class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
     @cached_method
     def to_tableau(self):
         """
-        Returns the Tableau object corresponding to self.
+        Return the :class:`Tableau` object corresponding to ``self``.
 
         EXAMPLES::
 
@@ -1151,10 +1176,9 @@ cdef class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
 
     def promotion(self):
         """
+        Return the result of applying promotion on ``self``.
+
         Promotion for type A crystals of tableaux of rectangular shape.
-
-        Returns the result of applying promotion on this tableau.
-
         This method only makes sense in type A with rectangular shapes.
 
         EXAMPLES::
@@ -1175,10 +1199,9 @@ cdef class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
 
     def promotion_inverse(self):
         """
+        Return the result of applying inverse promotion on ``self``.
+
         Inverse promotion for type A crystals of tableaux of rectangular shape.
-
-        Returns the result of applying inverse promotion on this tableau.
-
         This method only makes sense in type A with rectangular shapes.
 
         EXAMPLES::

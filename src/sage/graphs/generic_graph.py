@@ -2429,7 +2429,12 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES::
 
-            sage: G = Graph(4, loops=True)
+            sage: G = Graph(loops=True); G
+            Looped graph on 0 vertices
+            sage: G.has_loops()
+            False
+            sage: G.allows_loops()
+            True
             sage: G.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
             sage: G.loop_edges()
             [(0, 0, None), (1, 1, None), (2, 2, None), (3, 3, None)]
@@ -2443,6 +2448,30 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.has_loops()
             False
             sage: G.loop_edges()
+            []
+            sage: G.edges()
+            [(2, 3, None)]
+
+            sage: D = DiGraph(loops=True); D
+            Looped digraph on 0 vertices
+            sage: D.has_loops()
+            False
+            sage: D.allows_loops()
+            True
+            sage: D.add_edge((0,0))
+            sage: D.has_loops()
+            True
+            sage: D.loops()
+            [(0, 0, None)]
+            sage: D.allow_loops(False); D
+            Digraph on 1 vertex
+            sage: D.has_loops()
+            False
+            sage: D.edges()
+            []
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.loops()
             []
 
         ::

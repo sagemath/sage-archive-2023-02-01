@@ -255,6 +255,7 @@ def RandomBlockGraph(m, k, kmax=None, incidence_structure=False):
 
         - :wikipedia:`Block_graph` for more details on these graphs
         - :meth:`~sage.graphs.graph.Graph.is_block_graph` -- test if a graph is a block graph
+        - :meth:`~sage.graphs.generic_graph.GenericGraph.blocks_and_cut_vertices`
         - :meth:`~sage.combinat.designs.incidence.IncidenceStructure` 
 
     INPUT:

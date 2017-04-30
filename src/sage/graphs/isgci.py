@@ -161,7 +161,9 @@ Predefined classes
 
    * - Block
 
-     - :meth:`~sage.graphs.generic_graph.GenericGraph.blocks_and_cut_vertices`
+     - :meth:`~sage.graphs.graph.Graph.is_block_graph`,
+       :meth:`~sage.graphs.generic_graph.GenericGraph.blocks_and_cut_vertices`,
+       :meth:`~sage.graphs.graph_generators.GraphGenerators.RandomBlockGraph`
 
    * - Chordal
 
@@ -1043,7 +1045,7 @@ graph_classes.AT_free = GraphClass("AT-free", "gc_61", recognition_function = la
 graph_classes.Biconnected = GraphClass("Biconnected", "gc_771", recognition_function = lambda x:x.is_biconnected())
 graph_classes.BinaryTrees = GraphClass("BinaryTrees", "gc_847")
 graph_classes.Bipartite = GraphClass("Bipartite", "gc_69", recognition_function = lambda x:x.is_bipartite())
-graph_classes.Block = GraphClass("Block", "gc_93")
+graph_classes.Block = GraphClass("Block", "gc_93", recognition_function = lambda x:x.is_block_graph())
 graph_classes.Chordal = GraphClass("Chordal", "gc_32", recognition_function = lambda x:x.is_chordal())
 graph_classes.ClawFree = GraphClass("Claw-free", "gc_62")
 graph_classes.Comparability = GraphClass("Comparability", "gc_72", recognition_function = lambda x: __import__('sage').graphs.comparability.is_comparability)

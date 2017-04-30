@@ -1832,6 +1832,8 @@ class Graph(GenericGraph):
             - :wikipedia:`Block_graph` for more details on these graphs
             - :meth:`~sage.graphs.graph_generators.GraphGenerators.RandomBlockGraph`
               -- generator of random block graphs
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.blocks_and_cut_vertices`
+
 
         EXAMPLES::
 

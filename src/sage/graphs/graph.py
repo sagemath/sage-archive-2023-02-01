@@ -1686,9 +1686,10 @@ class Graph(GenericGraph):
             if self.num_verts() == self.num_edges() + 1:
                 return (True, None)
 
-            if self.has_loops():
+            if self.allows_loops():
                 L = self.loop_edges() if output=='edge' else self.loop_vertices()
-                return False, L[:1]
+                if L:
+                    return False, L[:1]
 
             if self.has_multiple_edges():
                 if output == 'vertex':

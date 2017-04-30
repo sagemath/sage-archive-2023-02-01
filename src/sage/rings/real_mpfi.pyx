@@ -3817,6 +3817,22 @@ cdef class RealIntervalFieldElement(RingElement):
         else:
             return 0
 
+    cpdef int _cmp_(self, other) except -2:
+        """
+        Deprecated method (:trac:`22907`)
+
+        EXAMPLES::
+
+            sage: a = RIF(1)
+            sage: a.__cmp__(a)
+            doctest:...: DeprecationWarning: for RIF elements, do not use cmp
+            See http://trac.sagemath.org/22907 for details.
+            0
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(22907, 'for RIF elements, do not use cmp')
+        return self.lexico_cmp(other)
+
     def __contains__(self, other):
         """
         Test whether one interval (or real number) is totally contained in

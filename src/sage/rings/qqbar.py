@@ -510,7 +510,8 @@ import six
 import sage.rings.ring
 from sage.misc.fast_methods import Singleton
 from sage.misc.cachefunc import cached_method
-from sage.structure.sage_object import (SageObject, richcmp, rich_to_bool,
+from sage.structure.sage_object import (SageObject, richcmp,
+                                        rich_to_bool, richcmp_not_equal,
                                         op_EQ, op_NE, op_LE, op_LT,
                                         op_GE, op_GT)
 from sage.rings.real_mpfr import RR
@@ -2093,7 +2094,7 @@ def cmp_elements_with_same_minpoly(a, b, p):
     ar = a._value.real()
     br = b._value.real()
     if not ar.overlaps(br):
-        return -1 if richcmp(ar, br, op_LT) else 1
+        return -1 if richcmp_not_equal(ar, br, op_LT) else 1
 
     ai = a._value.imag()
     bi = b._value.imag()
@@ -2124,7 +2125,7 @@ def cmp_elements_with_same_minpoly(a, b, p):
             bi = b._value.imag()
         if ai.overlaps(bi):
             return 0
-        return -1 if richcmp(ai, bi, op_LT) else 1
+        return -1 if richcmp_not_equal(ai, bi, op_LT) else 1
 
     return None
 
@@ -3105,9 +3106,9 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
     def __bool__(self):
         """
-        Check whether self is equal is nonzero.
+        Check whether ``self`` is nonzero.
 
-        This is fast if interval arithmetic proves and in many other cases.
+        This is fast if interval arithmetic proves it and in many other cases.
         Though, it might be slow in very particular cases where the number is
         actually zero or very close to zero.
 
@@ -3152,23 +3153,23 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
         # case 1: cheap tests
         sd = self._descr
-        if type(sd) is ANExtensionElement or type(sd) is ANRootOfUnity:
+        if isinstance(sd, ANExtensionElement) or isinstance(sd, ANRootOfUnity):
             # The ANExtensionElement and ANRootOfUnity returns an ANRational
             # instead, if the number is zero.
             return True
-        elif type(sd) is ANRational:
+        elif isinstance(sd, ANRational):
             return sd._value.__nonzero__()
-        elif type(sd) is ANUnaryExpr and sd._op != 'real' and sd._op != 'imag':
+        elif isinstance(sd, ANUnaryExpr) and sd._op != 'real' and sd._op != 'imag':
             ans = sd._arg.__nonzero__()
             if not ans:
                 self._set_descr(ANRational(QQ.zero()))
             return ans
-        elif type(sd) is ANBinaryExpr and sd._op == '*':
+        elif isinstance(sd, ANBinaryExpr) and sd._op == '*':
             ans = sd._left.__nonzero__() and sd._right.__nonzero__()
             if not ans:
                 self._set_descr(ANRational(QQ.zero()))
             return ans
-        elif type(sd) is ANBinaryExpr and sd._op == '/':
+        elif isinstance(sd, ANBinaryExpr) and sd._op == '/':
             ans = sd._left.__nonzero__()
             if not ans:
                 self._set_descr(ANRational(QQ.zero()))
@@ -3181,7 +3182,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
                 return True
 
         # case 3: try with minpoly in case of x+y or x-y
-        if type(sd) is ANBinaryExpr:
+        if isinstance(sd, ANBinaryExpr):
             op = sd._op
             left = sd._left
             right = sd._right if op == '-' else -sd._right
@@ -3199,7 +3200,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
         # Sigh...
         self.exactify()
-        return self.__nonzero__()
+        return self.__bool__()
 
     __nonzero__ = __bool__
     
@@ -3857,8 +3858,8 @@ class AlgebraicNumber(AlgebraicNumber_base):
             [-0.0221204634374361? - 1.090991904211621?*I,
              -0.0221204634374361? + 1.090991904211621?*I,
              -0.8088604911480535?*I,
-             0.?e-215 - 0.7598602580415435?*I,
-             0.?e-229 + 0.7598602580415435?*I,
+             0.?e-79 - 0.7598602580415435?*I,
+             0.?e-79 + 0.7598602580415435?*I,
              0.8088604911480535?*I,
              0.0221204634374361? - 1.090991904211621?*I,
              0.0221204634374361? + 1.090991904211621?*I]
@@ -3930,9 +3931,9 @@ class AlgebraicNumber(AlgebraicNumber_base):
             if not (self._value.real().overlaps(other._value.real()) and
                     self._value.imag().overlaps(other._value.imag())):
                 return op == op_NE
-            if type(sd) is ANRational and not sd._value:
+            if isinstance(sd, ANRational) and not sd._value:
                 return bool(other) == (op == op_NE)
-            elif type(od) is ANRational and not od._value:
+            elif isinstance(od, ANRational) and not od._value:
                 return bool(self) == (op == op_NE)
             elif (isinstance(sd, ANExtensionElement) and
                   isinstance(od, ANExtensionElement) and
@@ -3943,12 +3944,12 @@ class AlgebraicNumber(AlgebraicNumber_base):
         ri1 = self._value.real()
         ri2 = other._value.real()
         if not ri1.overlaps(ri2):
-            return richcmp(ri1, ri2, op)
+            return richcmp_not_equal(ri1, ri2, op)
 
         # case 1: rationals
         sd = self._descr
         od = other._descr
-        if type(sd) is ANRational and type(od) is ANRational:
+        if isinstance(sd, ANRational) and isinstance(od, ANRational):
             return richcmp(sd._value, od._value, op)
 
         # case 2: possibly equal or conjugate values
@@ -3961,16 +3962,19 @@ class AlgebraicNumber(AlgebraicNumber_base):
                 return rich_to_bool(op, c)
 
         # case 3: try hard to compare real parts and imaginary parts
-        rcmp = richcmp(self.real(), other.real(), op)
-        if rcmp != 0:
-            return rcmp
+        srp = self.real()
+        orp = other.real()
+        if srp != orp:
+            return richcmp_not_equal(srp, orp, op)
         return richcmp(self.imag(), other.imag(), op)
 
     def __bool__(self):
         """
-        Check whether self is equal is nonzero. This is fast if
-        interval arithmetic proves that self is nonzero, but may be
-        slow if the number actually is very close to zero.
+        Check whether ``self`` is nonzero.
+
+        This is fast if interval arithmetic proves that ``self`` is
+        nonzero, but may be slow if the number actually is very close
+        to zero.
 
         EXAMPLES::
 

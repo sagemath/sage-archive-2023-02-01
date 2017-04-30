@@ -16710,7 +16710,8 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``vertices`` -- a list of vertices for the clique to be added.
+        - ``vertices`` -- an iterable container of vertices for the clique to be
+          added, e.g. a list, set, graph, etc.
 
         - ``loops`` -- (boolean) whether to add loops or not, i.e., edges from a
           vertex to itself. Possible only if the (di)graph allows loops.
@@ -16735,14 +16736,39 @@ class GenericGraph(GenericGraph_pyx):
             False
             sage: D.is_isomorphic(digraphs.Complete(4, loops=False))
             True
+
+        TESTS:
+
+        Using different kinds of iterable container of vertices, :trac:`22906`::
+
+            sage: G = Graph(4)
+            sage: G.add_clique(G)
+            sage: G.is_clique()
+            True
+            sage: G = Graph()
+            sage: G.add_clique(set(range(4)))
+            sage: G.is_clique()
+            True
+            sage: G = Graph()
+            sage: G.add_clique({i:(i, i+1) for i in range(4)})
+            sage: G.is_clique()
+            True
+            sage: G.vertices()
+            [0, 1, 2, 3]
+            sage: D = DiGraph(4, loops=True)
+            sage: D.add_clique(range(4), loops=True)
+            sage: D.is_clique(directed_clique=True)
+            True
         """
+        import itertools
         if vertices:
-            n = len(vertices)
-            self.add_edges((vertices[i],vertices[j]) for i in range(n-1) for j in range(i+1,n))
+            vertices = list(vertices)
             if self.is_directed():
-                self.add_edges((vertices[j],vertices[i]) for i in range(n-1) for j in range(i+1,n))
+                self.add_edges(itertools.permutations(vertices, 2))
+            else:
+                self.add_edges(itertools.combinations(vertices, 2))
             if loops and self.allows_loops():
-                self.add_edges((vertices[i],vertices[i]) for i in range(n))
+                self.add_edges((u, u) for u in vertices)
 
     def add_cycle(self, vertices):
         """

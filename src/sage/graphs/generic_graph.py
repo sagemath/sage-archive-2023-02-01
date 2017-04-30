@@ -22,13 +22,13 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.distance_matrix` | Return the distance matrix of the (strongly) connected (di)graph
     :meth:`~GenericGraph.weighted_adjacency_matrix` | Return the weighted adjacency matrix of the graph
     :meth:`~GenericGraph.kirchhoff_matrix` | Return the Kirchhoff matrix (a.k.a. the Laplacian) of the graph.
-    :meth:`~GenericGraph.has_loops` | Return whether there are loops in the (di)graph.
-    :meth:`~GenericGraph.allows_loops` | Return whether loops are permitted in the (di)graph.
-    :meth:`~GenericGraph.allow_loops` | Change whether loops are permitted in the (di)graph.
-    :meth:`~GenericGraph.loops` | Return any loops in the (di)graph.
-    :meth:`~GenericGraph.loop_edges` | Returns a list of all loops in the graph.
-    :meth:`~GenericGraph.number_of_loops` | Return the number of edges that are loops.
-    :meth:`~GenericGraph.loop_vertices` | Return a list of vertices with loops.
+    :meth:`~GenericGraph.has_loops` | Return whether there are loops in the (di)graph
+    :meth:`~GenericGraph.allows_loops` | Return whether loops are permitted in the (di)graph
+    :meth:`~GenericGraph.allow_loops` | Change whether loops are permitted in the (di)graph
+    :meth:`~GenericGraph.loops` | Return a list of all loops in the (di)graph
+    :meth:`~GenericGraph.loop_edges` | Return a list of all loops in the (di)graph
+    :meth:`~GenericGraph.number_of_loops` | Return the number of edges that are loops
+    :meth:`~GenericGraph.loop_vertices` | Return a list of vertices with loops
     :meth:`~GenericGraph.remove_loops` | Remove loops on vertices in vertices. If vertices is None, removes all loops.
     :meth:`~GenericGraph.has_multiple_edges` | Return whether there are multiple edges in the (di)graph.
     :meth:`~GenericGraph.allows_multiple_edges` | Return whether multiple edges are permitted in the (di)graph.
@@ -2278,7 +2278,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def has_loops(self):
         """
-        Returns whether there are loops in the (di)graph.
+        Return whether there are loops in the (di)graph
 
         EXAMPLES::
 
@@ -2326,7 +2326,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def allows_loops(self):
         """
-        Returns whether loops are permitted in the (di)graph.
+        Return whether loops are permitted in the (di)graph
 
         EXAMPLES::
 
@@ -2370,7 +2370,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def allow_loops(self, new, check=True):
         """
-        Changes whether loops are permitted in the (di)graph.
+        Change whether loops are permitted in the (di)graph
 
         INPUT:
 
@@ -2418,69 +2418,14 @@ class GenericGraph(GenericGraph_pyx):
             self.remove_loops()
         self._backend.loops(new)
 
-    def loops(self, labels=True):
-        """
-        Returns any loops in the (di)graph.
-
-        INPUT:
-
-        - ``labels`` -- whether returned edges have labels ((u,v,l)) or not ((u,v)).
-
-        EXAMPLES::
-
-            sage: G = Graph(loops=True); G
-            Looped graph on 0 vertices
-            sage: G.has_loops()
-            False
-            sage: G.allows_loops()
-            True
-            sage: G.add_edge((0,0))
-            sage: G.has_loops()
-            True
-            sage: G.loops()
-            [(0, 0, None)]
-            sage: G.allow_loops(False); G
-            Graph on 1 vertex
-            sage: G.has_loops()
-            False
-            sage: G.edges()
-            []
-
-            sage: D = DiGraph(loops=True); D
-            Looped digraph on 0 vertices
-            sage: D.has_loops()
-            False
-            sage: D.allows_loops()
-            True
-            sage: D.add_edge((0,0))
-            sage: D.has_loops()
-            True
-            sage: D.loops()
-            [(0, 0, None)]
-            sage: D.allow_loops(False); D
-            Digraph on 1 vertex
-            sage: D.has_loops()
-            False
-            sage: D.edges()
-            []
-
-            sage: G = graphs.PetersenGraph()
-            sage: G.loops()
-            []
-
-        """
-        loops = []
-        for v in self:
-            loops += self.edge_boundary([v], [v], labels)
-        return loops
-
     def loop_edges(self, labels=True):
         """
-        Returns a list of all loops in the graph.
+        Return a list of all loops in the (di)graph
 
         INPUT:
 
-        - ``labels`` -- whether returned edges have labels ((u,v,l)) or not ((u,v)).
+        - ``labels`` -- whether returned edges have labels (``(u,v,l)``) or not
+          (``(u,v)``).
 
         EXAMPLES::
 
@@ -2527,9 +2472,12 @@ class GenericGraph(GenericGraph_pyx):
         else:
             return [(v,v) for v in self.loop_vertices()]
 
+    # As discussed in trac 22911, we make method loops an alias for loop_edges
+    loops = loop_edges
+
     def number_of_loops(self):
         """
-        Returns the number of edges that are loops.
+        Return the number of edges that are loops
 
         EXAMPLES::
 
@@ -2553,7 +2501,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def loop_vertices(self):
         """
-        Returns a list of vertices with loops.
+        Return a list of vertices with loops
 
         EXAMPLES::
 

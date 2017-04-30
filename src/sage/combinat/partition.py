@@ -280,6 +280,7 @@ We use the lexicographic ordering::
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
+import six
 from six.moves import range
 
 from sage.interfaces.all import gap
@@ -801,7 +802,7 @@ class Partition(CombinatorialElement):
         This method exists only for compatibility with
         :class:`PartitionTuples`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Partition([4,3,2]).level()
             1
@@ -1248,7 +1249,7 @@ class Partition(CombinatorialElement):
         """
         Return the :class:`standard tableaux<StandardTableaux>` of this shape.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Partition([3,2,2,1]).standard_tableaux()
             Standard tableaux of shape [3, 2, 2, 1]
@@ -2196,7 +2197,7 @@ class Partition(CombinatorialElement):
         entered in order from top to bottom and then left to right down the
         columns of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Partition([3,2]).initial_column_tableau()
             [[1, 3, 5], [2, 4]]
@@ -2400,7 +2401,7 @@ class Partition(CombinatorialElement):
             sage: Partition([2,2]).young_subgroup_generators()
             [1, 3]
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             :meth:`young_subgroup`
         """
@@ -3199,7 +3200,7 @@ class Partition(CombinatorialElement):
             1
         """
         size = prod(i ** mi * factorial(mi)
-                    for i, mi in self.to_exp_dict().iteritems())
+                    for i, mi in six.iteritems(self.to_exp_dict()))
         if t or q:
             size *= prod((ZZ.one() - q ** j) / (ZZ.one() - t ** j)
                          for j in self)
@@ -3287,7 +3288,7 @@ class Partition(CombinatorialElement):
 
         The defect of a partition is given by 
 
-        .. MATH: 
+        .. MATH::
 
             \text{defect}(\beta) = (\Lambda, \beta) - \tfrac12(\beta, \beta)
 
@@ -4057,7 +4058,7 @@ class Partition(CombinatorialElement):
             sage: p = Partition([2,1]).to_list(); p
             [2, 1]
             sage: type(p)
-            <type 'list'>
+            <... 'list'>
 
         TESTS::
 
@@ -4127,8 +4128,8 @@ class Partition(CombinatorialElement):
 
         #list all of the positions for cells
         #filling each self from the left to the right
-        l = IntegerVectors(k, len(shelf), outer=shelf).list()
-        for iv in l:
+        for iv in IntegerVectors(k, len(shelf), outer=shelf):
+            iv = list(iv) # Make a mutable list
             tmp = conj + [0]*k
             j = 0
             for t in range(len(iv)):
@@ -5613,21 +5614,21 @@ class Partitions_all(Partitions):
         We check that :trac:`11412` is actually fixed::
 
             sage: test = lambda x, k: x == Partition(core=x.core(k),
-            ...                                      quotient=x.quotient(k))
+            ....:                                    quotient=x.quotient(k))
             sage: all(test(mu,k) for k in range(1,5)
-            ...       for n in range(10) for mu in Partitions(n))
+            ....:     for n in range(10) for mu in Partitions(n))
             True
             sage: test2 = lambda core, mus: (
-            ...       Partition(core=core, quotient=mus).core(mus.level()) == core
-            ...       and
-            ...       Partition(core=core, quotient=mus).quotient(mus.level()) == mus)
+            ....:     Partition(core=core, quotient=mus).core(mus.level()) == core
+            ....:     and
+            ....:     Partition(core=core, quotient=mus).quotient(mus.level()) == mus)
             sage: all(test2(core,mus)  # long time (5s on sage.math, 2011)
-            ...       for k in range(1,10)
-            ...       for n_core in range(10-k)
-            ...       for core in Partitions(n_core)
-            ...       if core.core(k) == core
-            ...       for n_mus in range(10-k)
-            ...       for mus in PartitionTuples(k,n_mus))
+            ....:     for k in range(1,10)
+            ....:     for n_core in range(10-k)
+            ....:     for core in Partitions(n_core)
+            ....:     if core.core(k) == core
+            ....:     for n_mus in range(10-k)
+            ....:     for mus in PartitionTuples(k,n_mus))
             True
         """
         from .partition_tuple import PartitionTuple, PartitionTuples
@@ -5995,7 +5996,7 @@ class Partitions_n(Partitions):
         TESTS::
 
             sage: all(Part.random_element_plancherel() in Part
-            ...       for Part in map(Partitions, range(10)))
+            ....:     for Part in map(Partitions, range(10)))
             True
 
         Check that :trac:`18752` is fixed::
@@ -6569,7 +6570,7 @@ class Partitions_parts_in(Partitions):
             sage: next(it)
             [4]
             sage: type(_)
-            <type 'list'>
+            <... 'list'>
         """
         if n == 0:
             yield []

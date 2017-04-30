@@ -546,14 +546,15 @@ class StandardBracketedLyndonWords_nk(UniqueRepresentation, Parent):
         from builtins import map
         return map(standard_bracketing, self._lyndon)
 
+
 def standard_bracketing(lw):
     """
-    Returns the standard bracketing of a Lyndon word lw.
+    Return the standard bracketing of a Lyndon word ``lw``.
 
     EXAMPLES::
 
         sage: import sage.combinat.lyndon_word as lyndon_word
-        sage: map( lyndon_word.standard_bracketing, LyndonWords(3,3) )
+        sage: [lyndon_word.standard_bracketing(u) for u in LyndonWords(3,3)]
         [[1, [1, 2]],
          [1, [1, 3]],
          [[1, 2], 2],
@@ -566,6 +567,6 @@ def standard_bracketing(lw):
     if len(lw) == 1:
         return lw[0]
 
-    for i in range(1,len(lw)):
+    for i in range(1, len(lw)):
         if lw[i:] in LyndonWords():
-            return [ standard_bracketing( lw[:i] ), standard_bracketing(lw[i:]) ]
+            return [standard_bracketing(lw[:i]), standard_bracketing(lw[i:])]

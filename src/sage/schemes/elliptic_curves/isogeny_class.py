@@ -26,8 +26,9 @@ AUTHORS:
 ##############################################################################
 from __future__ import print_function
 from __future__ import absolute_import
-
 import six
+from six.moves import range
+
 from sage.structure.sage_object import SageObject
 from . import constructor
 import sage.databases.cremona
@@ -382,7 +383,7 @@ class IsogenyClass_EC(SageObject):
         Returns a graph whose vertices correspond to curves in this
         class, and whose edges correspond to prime degree isogenies.
 
-        .. note:
+        .. note::
 
             There are only finitely many possible isogeny graphs for
             curves over `\QQ` [M78].  This function tries to lay out
@@ -390,7 +391,7 @@ class IsogenyClass_EC(SageObject):
             This could also be done over other number fields, such as
             quadratic fields.
 
-        .. note:
+        .. note::
 
             The vertices are labeled 1 to n rather than 0 to n-1 to
             match LMFDB and Cremona labels for curves over `\QQ`.
@@ -420,7 +421,7 @@ class IsogenyClass_EC(SageObject):
                     for j in range(n):
                         if M[i,j]:
                             G.set_edge_label(i,j,str(self._qfmat[i][j]))
-            G.relabel(range(1,n+1))
+            G.relabel(list(range(1, n + 1)))
             return G
 
 
@@ -495,7 +496,7 @@ class IsogenyClass_EC(SageObject):
                     right.append([j for j in range(8) if N[centers[1],j] == 2 and N[left[i],j] == 3][0])
                 G.set_pos(pos={centers[0]:[-0.75,0],centers[1]:[0.75,0],left[0]:[-0.75,1],right[0]:[0.75,1],left[1]:[-1.25,-0.75],right[1]:[0.25,-0.75],left[2]:[-0.25,-0.25],right[2]:[1.25,-0.25]})
         G.set_vertices(D)
-        G.relabel(range(1,n+1))
+        G.relabel(list(range(1, n + 1)))
         return G
 
     @cached_method
@@ -1072,7 +1073,7 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC_NumberField):
                     ijl_triples.append((i,j,l,phi))
                 if l_list is None:
                     l_list = [l for l in set([ZZ(f.degree()) for f in isogs])]
-                i = i+1
+                i += 1
             self.curves = tuple(curves)
             ncurves = len(curves)
             self._mat = MatrixSpace(ZZ,ncurves)(0)
@@ -1081,10 +1082,12 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC_NumberField):
                 self._mat[i,j] = l
                 self._maps[i][j]=phi
         else:
-            raise ValueError("unknown algorithm '%s'"%algorithm)
+            raise ValueError("unknown algorithm '%s'" % algorithm)
+
 
 def possible_isogeny_degrees(E, verbose=False):
-    r""" Return a list of primes `\ell` sufficient to generate the
+    r"""
+    Return a list of primes `\ell` sufficient to generate the
     isogeny class of `E`.
 
     INPUT:

@@ -13,7 +13,7 @@ Generic numerical approximation function
 #*****************************************************************************
 
 from sage.structure.parent cimport Parent
-from sage.structure.element cimport parent_c as parent
+from sage.structure.element cimport parent
 cdef Parent CDF
 from sage.rings.all import RealField, ComplexField, CDF
 

@@ -1077,8 +1077,8 @@ class Sets(Category_singleton):
 
                 sage: from sage.categories.examples.sets_cat import PrimeNumbers
                 sage: class CCls(PrimeNumbers):
-                ...       def an_element(self):
-                ...           return 18
+                ....:     def an_element(self):
+                ....:         return 18
                 sage: CC = CCls()
                 sage: CC._test_an_element()
                 Traceback (most recent call last):
@@ -1138,8 +1138,8 @@ class Sets(Category_singleton):
                 sage: from sage.categories.examples.sets_cat import PrimeNumbers
                 sage: class Bla(SageObject): pass
                 sage: class CCls(PrimeNumbers):
-                ...       def an_element(self):
-                ...           return Bla()
+                ....:     def an_element(self):
+                ....:         return Bla()
                 sage: CC = CCls()
                 sage: CC._test_elements()
                   Failure in _test_pickling:
@@ -1184,7 +1184,7 @@ class Sets(Category_singleton):
                 sage: eq = P.element_class.__eq__
 
                 sage: P.element_class.__eq__ = (lambda x, y:
-                ...        False if eq(x, P(47)) and eq(y, P(47)) else eq(x, y))
+                ....:      False if eq(x, P(47)) and eq(y, P(47)) else eq(x, y))
                 sage: P._test_elements_eq_reflexive()
                 Traceback (most recent call last):
                 ...
@@ -1220,9 +1220,9 @@ class Sets(Category_singleton):
                 sage: eq = P.element_class.__eq__
 
                 sage: def non_sym_eq(x, y):
-                ...      if not y in P:                      return False
-                ...      elif eq(x, P(47)) and eq(y, P(53)): return True
-                ...      else:                               return eq(x, y)
+                ....:    if not y in P:                      return False
+                ....:    elif eq(x, P(47)) and eq(y, P(53)): return True
+                ....:    else:                               return eq(x, y)
                 sage: P.element_class.__eq__ = non_sym_eq
                 sage: P._test_elements_eq_symmetric()
                 Traceback (most recent call last):
@@ -1375,8 +1375,8 @@ class Sets(Category_singleton):
 
                 sage: from sage.categories.examples.sets_cat import *
                 sage: class CCls(PrimeNumbers):
-                ...       def some_elements(self):
-                ...           return [self(17), 32]
+                ....:     def some_elements(self):
+                ....:         return [self(17), 32]
                 sage: CC = CCls()
                 sage: CC._test_some_elements()
                 Traceback (most recent call last):
@@ -1423,7 +1423,7 @@ class Sets(Category_singleton):
                 Traceback (most recent call last):
                 ...
                 AssertionError: the output of the method cardinality must either
-                be a Sage integer or infinity. Not <type 'int'>.
+                be a Sage integer or infinity. Not <... 'int'>.
             """
             try:
                 cardinality = self.cardinality()
@@ -1733,6 +1733,35 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 This is an optional method. A default implementation
                 raising ``NotImplementedError`` could be provided instead.
             """
+
+        def is_injective(self):
+            r"""
+            Return whether this map is injective.
+
+            EXAMPLES::
+
+                sage: f = ZZ.hom(GF(3)); f
+                Ring Coercion morphism:
+                    From: Integer Ring
+                    To:   Finite Field of size 3
+                sage: f.is_injective()
+                False
+
+            Note that many maps do not implement this method::
+
+                sage: R.<x> = ZZ[]
+                sage: f = R.hom([x])
+                sage: f.is_injective()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError
+
+            """
+            if self.domain().cardinality() <= 1:
+                return True
+            if self.domain().cardinality() > self.codomain().cardinality():
+                return False
+            raise NotImplementedError
 
     Enumerated = LazyImport('sage.categories.enumerated_sets', 'EnumeratedSets', at_startup=True)
     Facade = LazyImport('sage.categories.facade_sets', 'FacadeSets')
@@ -2520,7 +2549,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 TESTS::
 
                     sage: class MyParent(Parent):
-                    ...      pass
+                    ....:    pass
                     sage: P = MyParent(category = Sets().WithRealizations())
                     sage: P._realizations
                     []
@@ -2667,8 +2696,18 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     The subset algebra of {1, 2, 3} over Rational Field
                     sage: A.an_element()        # indirect doctest
                     F[{}] + 2*F[{1}] + 3*F[{2}] + F[{1, 2}]
+
+                TESTS:
+
+                Check that we are consistent no matter which basis is
+                created first::
+
+                    sage: M = posets.BooleanLattice(4).moebius_algebra(QQ)
+                    sage: I = M.I()
+                    sage: M._an_element_()
+                    2*E[0] + 2*E[1] + 3*E[2]
                 """
-                return self.realizations()[0].an_element()
+                return self.a_realization().an_element()
 
             # TODO: maybe this could be taken care of by Sets.Facade()?
             def __contains__(self, x):
@@ -2768,7 +2807,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
                     sage: from sage.categories.realizations import Realizations
                     sage: class Blah(Parent):
-                    ...       pass
+                    ....:     pass
                     sage: P = Blah(category = Sets.WithRealizations.ParentMethods.Realizations(A))
                     sage: P     # indirect doctest
                     The subset algebra of {1, 2, 3} over Rational Field in the realization Blah

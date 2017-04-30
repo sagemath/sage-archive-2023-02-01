@@ -28,7 +28,7 @@ from sage.arith.srange import xsrange
 from sage.modular.dirichlet import DirichletGroup
 from sage.misc.superseded import deprecated_function_alias
 from sage.arith.all import lcm, divisors, moebius, sigma, factor
-from sage.structure.element import get_coercion_model, ModuleElement
+from sage.structure.element import coercion_model, ModuleElement
 
 
 def is_ModularFormElement(x):
@@ -410,16 +410,18 @@ class ModularForm_abstract(ModuleElement):
                 vals.append(df[i] / self[i])
             return G(vals)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
-        Return True if self is nonzero, and False if not.
+        Return ``True`` if ``self`` is nonzero, and ``False`` if not.
 
         EXAMPLES::
 
-            sage: ModularForms(25,6).6.__nonzero__()
+            sage: bool(ModularForms(25,6).6)
             True
         """
         return not self.element().is_zero()
+
+    __nonzero__ = __bool__
 
     def prec(self):
         """
@@ -995,7 +997,7 @@ class ModularForm_abstract(ModuleElement):
           (default: 0)
         - ``prec`` (integer, default 53): precision in bits
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CuspForms(1, 16).0.petersson_norm()
             verbose -1 (...: dokchitser.py, __call__) Warning: Loss of 2 decimal digits due to cancellation
@@ -1324,16 +1326,18 @@ class Newform(ModularForm_abstract):
         """
         return self._defining_modular_symbols().ambient().cuspidal_subspace().new_subspace().decomposition().index(self._defining_modular_symbols())
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
-        Return True, as newforms are never zero.
+        Return ``True``, as newforms are never zero.
 
         EXAMPLES::
 
-            sage: Newforms(14,2)[0].__nonzero__()
+            sage: bool(Newforms(14,2)[0])
             True
         """
         return True
+
+    __nonzero__ = __bool__
 
     def character(self):
         r"""
@@ -1356,7 +1360,7 @@ class Newform(ModularForm_abstract):
         of this form is not either trivial or quadratic. If d is not given or
         is None, then d defaults to the level of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: [x.atkin_lehner_eigenvalue() for x in ModularForms(53).newforms('a')]
             [1, -1]
@@ -1456,7 +1460,6 @@ class Newform(ModularForm_abstract):
 
         """
         from sage.modular.all import CuspForms
-        coercion_model = get_coercion_model()
         R = coercion_model.common_parent(self.base_ring(), chi.base_ring())
         N = self.level()
         epsilon = self.character()
@@ -1661,7 +1664,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         modular form (which is either 1 or -1), or None if this form is not an
         eigenvector for this operator.
 
-        EXAMPLE::
+        EXAMPLES::
 
              sage: CuspForms(1, 30).0.atkin_lehner_eigenvalue()
              1
@@ -1768,7 +1771,6 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
         """
         from sage.modular.all import CuspForms, ModularForms
         from sage.rings.all import PowerSeriesRing
-        coercion_model = get_coercion_model()
         R = coercion_model.common_parent(self.base_ring(), chi.base_ring())
         N = self.level()
         Q = chi.modulus()
@@ -1884,7 +1886,7 @@ class ModularFormElement_elliptic_curve(ModularFormElement):
         is attached to an elliptic curve, we can read this off from the root
         number of the curve if d is the level.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: EllipticCurve('57a1').newform().atkin_lehner_eigenvalue()
             1

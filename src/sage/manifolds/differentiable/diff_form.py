@@ -497,6 +497,106 @@ class DiffForm(TensorField):
         """
         return self._tensor_rank
 
+    def hodge_dual(self, metric):
+        r"""
+        Compute the Hodge dual of the differential form with respect to some
+        metric.
+
+        If the differential form is a `p`-form `A`, its *Hodge dual* with
+        respect to a pseudo-Riemannian metric `g` is the
+        `(n-p)`-form `*A` defined by
+
+        .. MATH::
+
+            *A_{i_1\ldots i_{n-p}} = \frac{1}{p!} A_{k_1\ldots k_p}
+                \epsilon^{k_1\ldots k_p}_{\qquad\ i_1\ldots i_{n-p}}
+
+        where `n` is the manifold's dimension, `\epsilon` is the volume
+        `n`-form associated with `g` (see
+        :meth:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric.volume_form`)
+        and the indices `k_1,\ldots, k_p` are raised with `g`.
+
+        INPUT:
+
+        - ``metric``: a pseudo-Riemannian metric defined on the same manifold
+          as the current differential form; must be an instance of
+          :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+
+        OUTPUT:
+
+        - the `(n-p)`-form `*A`
+
+        EXAMPLES:
+
+        Hodge dual of a 1-form on the 2-sphere equipped with the standard
+        metric: we first construct `\mathbb{S}^2` and its metric `g`::
+
+            sage: M = Manifold(2, 'S^2', start_index=1)
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart() # stereographic coord. (North and South)
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                restrictions2= u^2+v^2!=0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: W = U.intersection(V) # The complement of the two poles
+            sage: eU = c_xy.frame() ; eV = c_uv.frame()
+            sage: g = M.metric('g')
+            sage: g[eU,1,1], g[eU,2,2] = 4/(1+x^2+y^2)^2, 4/(1+x^2+y^2)^2
+            sage: g[eV,1,1], g[eV,2,2] = 4/(1+u^2+v^2)^2, 4/(1+u^2+v^2)^2
+
+        Then we construct the 1-form and take its Hodge dual w.r.t. `g`::
+
+            sage: a = M.one_form(name='a')
+            sage: a[eU,:] = -y, x
+            sage: a.add_comp_by_continuation(eV, W, c_uv)
+            sage: a.display(eU)
+            a = -y dx + x dy
+            sage: a.display(eV)
+            a = -v/(u^4 + 2*u^2*v^2 + v^4) du + u/(u^4 + 2*u^2*v^2 + v^4) dv
+            sage: sa = a.hodge_dual(g); sa
+            1-form *a on the 2-dimensional differentiable manifold S^2
+            sage: sa.display(eU)
+            *a = -x dx - y dy
+            sage: sa.display(eV)
+            *a = -u/(u^4 + 2*u^2*v^2 + v^4) du - v/(u^4 + 2*u^2*v^2 + v^4) dv
+
+        Instead of calling the method :meth:`hodge_dual` on the differential
+        form, one can invoke the method
+        :meth:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric.hodge_star`
+        of the metric::
+
+            sage: a.hodge_dual(g) == g.hodge_star(a)
+            True
+
+        For a 1-form and a Riemannian metric in dimension 2, the Hodge dual
+        applied twice is minus the identity::
+
+            sage: ssa = sa.hodge_dual(g); ssa
+            1-form **a on the 2-dimensional differentiable manifold S^2
+            sage: ssa == -a
+            True
+
+        The Hodge dual of the metric volume 2-form is the constant scalar
+        field 1 (considered as a 0-form)::
+
+            sage: eps = g.volume_form(); eps
+            2-form eps_g on the 2-dimensional differentiable manifold S^2
+            sage: eps.display(eU)
+            eps_g = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx/\dy
+            sage: eps.display(eV)
+            eps_g = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du/\dv
+            sage: seps = eps.hodge_dual(g); seps
+            Scalar field *eps_g on the 2-dimensional differentiable manifold S^2
+            sage: seps.display()
+            *eps_g: S^2 --> R
+            on U: (x, y) |--> 1
+            on V: (u, v) |--> 1
+
+        """
+        return metric.hodge_star(self)
+
+
 #******************************************************************************
 
 class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
@@ -1101,3 +1201,69 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         other_r = other.restrict(dom_resu)
         return FreeModuleAltForm.wedge(self_r, other_r)
 
+    def hodge_dual(self, metric):
+        r"""
+        Compute the Hodge dual of the differential form with respect to some
+        metric.
+
+        If the differential form is a `p`-form `A`, its *Hodge dual* with
+        respect to a pseudo-Riemannian metric `g` is the
+        `(n-p)`-form `*A` defined by
+
+        .. MATH::
+
+            *A_{i_1\ldots i_{n-p}} = \frac{1}{p!} A_{k_1\ldots k_p}
+                \epsilon^{k_1\ldots k_p}_{\qquad\ i_1\ldots i_{n-p}}
+
+        where `n` is the manifold's dimension, `\epsilon` is the volume
+        `n`-form associated with `g` (see
+        :meth:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric.volume_form`)
+        and the indices `k_1,\ldots, k_p` are raised with `g`.
+
+        INPUT:
+
+        - ``metric``: a pseudo-Riemannian metric defined on the same manifold
+          as the current differential form; must be an instance of
+          :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+
+        OUTPUT:
+
+        - the `(n-p)`-form `*A`
+
+        EXAMPLES:
+
+        Hodge dual of a 1-form in the Euclidean space `R^3`::
+
+            sage: M = Manifold(3, 'M', start_index=1)
+            sage: X.<x,y,z> = M.chart()
+            sage: g = M.metric('g')  # the Euclidean metric
+            sage: g[1,1], g[2,2], g[3,3] = 1, 1, 1
+            sage: a = M.one_form('A')
+            sage: var('Ax Ay Az')
+            (Ax, Ay, Az)
+            sage: a[:] = (Ax, Ay, Az)
+            sage: sa = a.hodge_dual(g) ; sa
+            2-form *A on the 3-dimensional differentiable manifold M
+            sage: sa.display()
+            *A = Az dx/\dy - Ay dx/\dz + Ax dy/\dz
+            sage: ssa = sa.hodge_dual(g) ; ssa
+            1-form **A on the 3-dimensional differentiable manifold M
+            sage: ssa.display()
+            **A = Ax dx + Ay dy + Az dz
+            sage: ssa == a  # must hold for a Riemannian metric in dimension 3
+            True
+
+        Instead of calling the method :meth:`hodge_dual` on the differential
+        form, one can invoke the method
+        :meth:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric.hodge_star`
+        of the metric::
+
+            sage: a.hodge_dual(g) == g.hodge_star(a)
+            True
+
+        See the documentation of
+        :meth:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric.hodge_star`
+        for more examples.
+
+        """
+        return metric.hodge_star(self)

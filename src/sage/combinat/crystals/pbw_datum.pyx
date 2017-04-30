@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 PBW Data
 
@@ -7,10 +8,12 @@ in finite type.
 AUTHORS:
 
 - Dinakar Muthiah (2015-05): initial version
+- Travis Scrimshaw (2016-06): simplfied code and converted to Cython
 """
 
 #*****************************************************************************
-#       Copyright (C) 2015 Dinakar Muthiah <your email>
+#       Copyright (C) 2015 Dinakar Muthiah <muthiah at ualberta.ca>
+#                          Travis Scrimshaw <tscrimsh at umn.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,6 +28,8 @@ from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.coxeter_group import CoxeterGroup
 from sage.combinat.root_system.root_system import RootSystem
 from sage.combinat.root_system.braid_move_calculator import BraidMoveCalculator
+
+cimport cython
 
 class PBWDatum(object):
     """
@@ -61,7 +66,7 @@ class PBWDatum(object):
                      cartan_type=self.parent.cartan_type)
         return_str += "long word {long_word} and Lusztig datum {lusztig_datum}".format(
                       long_word=self.long_word,
-                      lusztig_datum=self.lusztig_datum) 
+                      lusztig_datum=self.lusztig_datum)
         return return_str
 
     def __eq__(self, other_PBWDatum):
@@ -84,7 +89,7 @@ class PBWDatum(object):
     def is_equivalent_to(self, other_pbw_datum):
         r"""
         Return whether ``self`` is equivalent to ``other_pbw_datum``.
-        modulo the tropical Plucker relations.
+        modulo the tropical Plücker relations.
 
         EXAMPLES::
 
@@ -101,7 +106,7 @@ class PBWDatum(object):
         other_lusztig_datum = other_pbw_datum.lusztig_datum
         equiv_pbw_datum = self.convert_to_new_long_word(other_long_word)
         return equiv_pbw_datum.lusztig_datum == other_lusztig_datum
-        
+
     def convert_to_long_word_with_first_letter(self, i):
         r"""
         Return a new PBWDatum equivalent to ``self``
@@ -220,7 +225,7 @@ class PBWData(object): # UniqueRepresentation?
         assert pbw_datum.parent is self
         chain = self._braid_move_calc.chain_of_reduced_words(pbw_datum.long_word,
                                                              new_long_word)
-        enhanced_braid_chain = enhance_braid_move_chain(chain, self.cartan_type)
+        cdef list enhanced_braid_chain = enhance_braid_move_chain(chain, self.cartan_type)
         new_lusztig_datum = compute_new_lusztig_datum(enhanced_braid_chain,
                                                       pbw_datum.lusztig_datum)
         return PBWDatum(self, new_long_word, new_lusztig_datum)
@@ -228,7 +233,7 @@ class PBWData(object): # UniqueRepresentation?
     @cached_method
     def _root_list_from(self, reduced_word):
         """
-        Return the list of positive roots in the order determined by 
+        Return the list of positive roots in the order determined by
         ``reduced_word``.
 
         .. WARNING::
@@ -274,9 +279,11 @@ class PBWData(object): # UniqueRepresentation?
         return tuple([i] + (si * w0).reduced_word())
 
 #enhanced_braid_chain is an ugly data structure.
-cpdef tuple compute_new_lusztig_datum(enhanced_braid_chain, initial_lusztig_datum):
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cpdef tuple compute_new_lusztig_datum(list enhanced_braid_chain, initial_lusztig_datum):
     """
-    Return the lusztig datum obtained by applying Tropical Plucker
+    Return the lusztig datum obtained by applying tropical Plücker
     relations along ``enhanced_braid_chain`` starting with
     ``initial_lusztig_datum``.
 
@@ -290,7 +297,7 @@ cpdef tuple compute_new_lusztig_datum(enhanced_braid_chain, initial_lusztig_datu
         sage: B = BraidMoveCalculator(W)
         sage: chain = B.chain_of_reduced_words((1,2,1),(2,1,2))
         sage: enhanced_braid_chain = enhance_braid_move_chain(chain, ct)
-        sage: compute_new_lusztig_datum(enhanced_braid_chain,(1,0,1))    
+        sage: compute_new_lusztig_datum(enhanced_braid_chain,(1,0,1))
         (0, 1, 0)
 
     TESTS::
@@ -309,7 +316,9 @@ cpdef tuple compute_new_lusztig_datum(enhanced_braid_chain, initial_lusztig_datu
     cdef tuple interval_of_change
     # Does not currently check that len(initial_lusztig_datum) is appropriate
     cdef list new_lusztig_datum = list(initial_lusztig_datum) #shallow copy
-    for interval_of_change, type_data in enhanced_braid_chain[1:]:
+    cdef int i
+    for i in range(1, len(enhanced_braid_chain)):
+        interval_of_change, type_data = enhanced_braid_chain[i]
         a,b = interval_of_change
         old_interval_datum = new_lusztig_datum[a:b]
         new_interval_datum = tropical_plucker_relation(type_data, old_interval_datum)
@@ -317,9 +326,11 @@ cpdef tuple compute_new_lusztig_datum(enhanced_braid_chain, initial_lusztig_datu
     return tuple(new_lusztig_datum)
 
 # The tropical plucker relations
+@cython.boundscheck(False)
+@cython.wraparound(False)
 cpdef tuple tropical_plucker_relation(tuple a, lusztig_datum):
     r"""
-    Apply the tropical Plucker relation of type ``a`` to ``lusztig_datum``.
+    Apply the tropical Plücker relation of type ``a`` to ``lusztig_datum``.
 
     The relations are obtained by tropicalizing the relations in
     Proposition 7.1 of [BZ01]_.
@@ -387,7 +398,9 @@ cpdef tuple tropical_plucker_relation(tuple a, lusztig_datum):
 
 # Maybe we need to be more specific, and pass not the Cartan type, but the root lattice?
 # TODO: Move to PBW_data?
-cpdef enhance_braid_move_chain(braid_move_chain, cartan_type):
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cpdef list enhance_braid_move_chain(braid_move_chain, cartan_type):
     r"""
     Return a list of tuples that records the data of the long words in
     ``braid_move_chain`` plus the data of the intervals where the braid moves
@@ -429,53 +442,43 @@ cpdef enhance_braid_move_chain(braid_move_chain, cartan_type):
         ....:                (3, 1, 2, 1, 3, 2),
         ....:                (3, 2, 1, 2, 3, 2),
         ....:                (3, 2, 1, 3, 2, 3)]
-        sage: enhanced_chain = enhance_braid_move_chain(braid_chain, CartanType(["A",5])) 
+        sage: enhanced_chain = enhance_braid_move_chain(braid_chain, CartanType(["A",5]))
         sage: enhanced_chain[0]
         (None, None)
         sage: enhanced_chain[7]
         ((3, 6), (-1, -1))
     """
     cdef int i, j
+    cdef int k, pos, first, last
     cdef tuple interval_of_change, cartan_sub_matrix
     cdef list output_list = []
     output_list.append( (None, None) )
-    previous_word = braid_move_chain[0]
+    cdef tuple previous_word = <tuple> (braid_move_chain[0])
+    cdef tuple current_word
     cartan_matrix = cartan_type.cartan_matrix()
-    # TODO - Optimize this by avoiding calls to diff_interval?
+    cdef int ell = len(previous_word)
+    # TODO - Optimize this by avoiding calls to here?
     # This likely could be done when performing chain_of_reduced_words
     # Things in here get called the most (about 50x more than enhance_braid_move_chain)
-    for current_word in braid_move_chain[1:]:
-        interval_of_change = diff_interval(previous_word, current_word)
-        i = previous_word[interval_of_change[0]] - 1  # -1 for indexing
-        j = current_word[interval_of_change[0]] - 1  # -1 for indexing
+    for pos in range(1, len(braid_move_chain)):
+        # This gets the smallest continguous half-open interval [a, b)
+        # that contains the indices where current_word and previous_word differ.
+        current_word = <tuple> (braid_move_chain[pos])
+        for k in range(ell):
+            i = previous_word[k]
+            j = current_word[k]
+            if i != j:
+                i -= 1  # -1 for indexing
+                j -= 1  # -1 for indexing
+                first = k
+                break
+        for k in range(ell-1, k-1, -1):
+            if previous_word[k] != current_word[k]:
+                last = k + 1
+                break
+
         cartan_sub_matrix = (cartan_matrix[i,j], cartan_matrix[j,i])
-        output_list.append( (interval_of_change, cartan_sub_matrix) )
+        output_list.append( ((first, last), cartan_sub_matrix) )
         previous_word = current_word
     return output_list
-
-cdef tuple diff_interval(tuple t1, tuple t2):
-    """
-    Return the smallest contiguous half-open interval [a,b) 
-    that contains the indices where ``list1`` and ``list2`` differ. 
-    Return ``None`` if the lists don't differ.
-
-    INPUT:
-
-    - ``t1``, ``t2`` -- two tuples of the same length
-
-    .. NOTE::
-
-        The input is not checked for speed.
-    """
-    cdef int first = -1  # Set when >= 0
-    cdef int last
-    cdef int i, elt
-    for i,elt in enumerate(t1):
-        if elt != t2[i]:
-            if first == -1:
-                first = i
-            last = i
-    if first == -1:
-        return None
-    return (first, last + 1)
 

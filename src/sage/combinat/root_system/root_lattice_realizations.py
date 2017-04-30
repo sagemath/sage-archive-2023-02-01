@@ -2899,9 +2899,9 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                 sage: L = RootSystem(["A",2,1]).weight_space()
                 sage: p = L.plot_alcove_walk([0,1,2,0,2,0,1,2,0,1],
-                ...                          foldings = [False, False, True, False, False, False, True, False, True, False],
-                ...                          color="green",
-                ...                          start=L.rho())
+                ....:                        foldings = [False, False, True, False, False, False, True, False, True, False],
+                ....:                        color="green",
+                ....:                        start=L.rho())
                 sage: print(p.description())
                 Line defined by 2 points: [(-1.0, 8.0), (-1.5, 9.0)]
                 Line defined by 2 points: [(1.0, 4.0), (1.5, 4.5)]
@@ -3299,8 +3299,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: alpha[1].scalar(alphacheck[2])
                 -1
                 sage: matrix([ [ alpha[i].scalar(alphacheck[j])
-                ...              for i in L.index_set() ]
-                ...            for j in L.index_set() ])
+                ....:            for i in L.index_set() ]
+                ....:          for j in L.index_set() ])
                 [ 2 -1  0  0]
                 [-1  2 -1  0]
                 [ 0 -1  2 -1]

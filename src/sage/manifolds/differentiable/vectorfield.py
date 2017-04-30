@@ -870,7 +870,7 @@ class VectorField(TensorField):
                     count += 1
                 return local_resu
 
-            # parallel execution and recontruction of the plot
+            # parallel execution and reconstruction of the plot
             for ii, val in add_point_plot(listParalInput):
                 resu += val
 

@@ -171,7 +171,7 @@ cdef class pAdicFixedModElement(FMElement):
         mpz_set(ans.value, self.value)
         return ans
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Conversion to PARI.
 
@@ -204,7 +204,7 @@ cdef class pAdicFixedModElement(FMElement):
         This checks that :trac:`15653` is fixed::
 
             sage: x = polygen(ZpFM(3,10))
-            sage: (x^3 + x + 1)._pari_().poldisc()
+            sage: (x^3 + x + 1).__pari__().poldisc()
             2 + 3 + 2*3^2 + 3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10)
         """
         cdef long val
@@ -258,8 +258,18 @@ cdef class pAdicFixedModElement(FMElement):
             sage: a = R(8)
             sage: a.residue(1)
             1
-            sage: a.residue(2)
+
+        This is different from applying ``% p^n`` which returns an element in
+        the same ring::
+
+            sage: b = a.residue(2); b
             8
+            sage: b.parent()
+            Ring of integers modulo 49
+            sage: c = a % 7^2; c
+            1 + 7 + O(7^4)
+            sage: c.parent()
+            7-adic Ring of fixed modulus 7^4
 
         TESTS::
 
@@ -275,6 +285,10 @@ cdef class pAdicFixedModElement(FMElement):
             Traceback (most recent call last):
             ...
             PrecisionError: Not enough precision known in order to compute residue.
+
+        .. SEEALSO::
+
+            :meth:`_mod_`
 
         """
         cdef Integer selfvalue, modulus

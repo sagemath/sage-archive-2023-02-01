@@ -42,7 +42,7 @@ from sage.graphs.base.static_sparse_graph cimport (init_short_digraph,
                                                    has_edge,
                                                    free_short_digraph,
                                                    edge_label)
-from c_graph cimport CGraphBackend
+from .c_graph cimport CGraphBackend
 from sage.data_structures.bitset cimport FrozenBitset
 from libc.stdint cimport uint32_t
 include 'sage/data_structures/bitset.pxi'
@@ -191,7 +191,7 @@ cdef class StaticSparseCGraph(CGraph):
             sage: g.verts()
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         """
-        return range(self.g.n)
+        return list(xrange(self.g.n))
 
     cdef int has_arc_unsafe(self, int u, int v) except -1:
         return ((0 <= u) and
@@ -347,7 +347,7 @@ cdef class StaticSparseBackend(CGraphBackend):
         A graph :mod:`backend <sage.graphs.base.graph_backends>` for static
         sparse graphs.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: D.add_edge(0,1,None,False)
@@ -881,7 +881,7 @@ cdef class StaticSparseBackend(CGraphBackend):
         - ``directed`` -- boolean; whether to take into account the
           orientation of this graph in counting the degree of ``v``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = Graph(graphs.PetersenGraph(), data_structure="static_sparse")
             sage: g.degree(0)
@@ -923,7 +923,7 @@ cdef class StaticSparseBackend(CGraphBackend):
 
         - ``v`` -- a vertex
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = DiGraph(graphs.PetersenGraph(), data_structure="static_sparse")
             sage: g.in_degree(0)
@@ -949,7 +949,7 @@ cdef class StaticSparseBackend(CGraphBackend):
 
         - ``v`` -- a vertex
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = DiGraph(graphs.PetersenGraph(), data_structure="static_sparse")
             sage: g.out_degree(0)
@@ -972,7 +972,7 @@ cdef class StaticSparseBackend(CGraphBackend):
 
         - ``v`` -- a vertex
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = Graph(graphs.PetersenGraph(), data_structure="static_sparse")
             sage: g.neighbors(0)
@@ -997,7 +997,7 @@ cdef class StaticSparseBackend(CGraphBackend):
 
         - ``v`` -- a vertex
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = DiGraph(graphs.PetersenGraph(), data_structure="static_sparse")
             sage: g.neighbors_out(0)
@@ -1022,7 +1022,7 @@ cdef class StaticSparseBackend(CGraphBackend):
 
         - ``v`` -- a vertex
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = DiGraph(graphs.PetersenGraph(), data_structure="static_sparse")
             sage: g.neighbors_in(0)
@@ -1047,7 +1047,7 @@ cdef class StaticSparseBackend(CGraphBackend):
         r"""
         Addition of vertices is not available on an immutable graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = DiGraph(graphs.PetersenGraph(), data_structure="static_sparse")
             sage: g.add_vertex(1)
@@ -1065,7 +1065,7 @@ cdef class StaticSparseBackend(CGraphBackend):
         r"""
         Removal of vertices is not available on an immutable graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = DiGraph(graphs.PetersenGraph(), data_structure="static_sparse")
             sage: g.delete_vertex(1)
@@ -1091,7 +1091,7 @@ def _run_it_on_static_instead(f):
     such a method will never work on an immutable graph. But it can help find
     new bugs, from time to time.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.base.static_sparse_backend import _run_it_on_static_instead
         sage: @_run_it_on_static_instead

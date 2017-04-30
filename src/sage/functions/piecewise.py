@@ -572,7 +572,8 @@ class PiecewiseFunction(BuiltinFunction):
                 sage: bool(h == f)
                 True
             """
-            result = [(domain, func) for domain,func in parameters if func<>0]
+            result = [(domain, func) for domain,func in parameters
+                      if func != 0]
             return piecewise(result, var=variable)
 
         def pieces(cls, self, parameters, variable):
@@ -1153,7 +1154,7 @@ class PiecewiseFunction(BuiltinFunction):
 
             as a string.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: f(x) = x^2
                 sage: f = piecewise([[(-1,1),f]])

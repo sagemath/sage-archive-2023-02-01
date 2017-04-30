@@ -211,6 +211,7 @@ REFERENCES:
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
+from six import add_metaclass
 
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.words.word import Word
@@ -698,10 +699,10 @@ class TableauTuple(CombinatorialElement):
         # attempt to return a tableau of the same type
         try:
             return self.parent()(conj)
-        except StandardError:
+        except Exception:
             try:
                 return self.parent().element_class(self.parent(), conj)
-            except StandardError:
+            except Exception:
                 return Tableau(conj)
 
     def pp(self):
@@ -1380,6 +1381,7 @@ class TableauTuple(CombinatorialElement):
 #--------------------------------------------------
 # Standard tableau tuple - element class
 #--------------------------------------------------
+@add_metaclass(ClasscallMetaclass)
 class StandardTableauTuple(TableauTuple):
     r"""
     A class to model a standard tableau of shape a partition tuple. This is
@@ -1487,8 +1489,6 @@ class StandardTableauTuple(TableauTuple):
         sage: TestSuite(  StandardTableauTuple([[[1,3,4],[6]],[], [[2],[5]]]) ).run()
         sage: TestSuite(  StandardTableauTuple([[[1,3,4],[6]],[[7]], [[2],[5]]]) ).run()
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(self, t):
         r"""
@@ -1895,7 +1895,7 @@ class TableauTuples(UniqueRepresentation, Parent):
         sage: t.category()
         Category of elements of Tableau tuples of level 3
 
-    .. SEE ALSO::
+    .. SEEALSO::
 
        - :class:`Tableau`
        - :class:`StandardTableau`

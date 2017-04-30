@@ -1,5 +1,5 @@
 """
-Logarithmic functions
+Logarithmic Functions
 
 AUTHORS:
 
@@ -105,7 +105,7 @@ class Function_exp(GinacFunction):
             sage: conjugate(exp(x))
             e^conjugate(x)
 
-        Test simplifications when taking powers of exp, #7264::
+        Test simplifications when taking powers of exp (:trac:`7264`)::
 
             sage: var('a,b,c,II')
             (a, b, c, II)
@@ -125,7 +125,7 @@ class Function_exp(GinacFunction):
             sage: exp(x)*exp(a)^2
             e^(2*a + x)
 
-        Another instance of the same problem, #7394::
+        Another instance of the same problem (:trac:`7394`)::
 
             sage: 2*sqrt(e)
             2*sqrt(e)
@@ -219,6 +219,15 @@ class Function_log(GinacFunction):
             3.141592653589793j
             sage: log(x).subs(x=float(-1))
             3.141592653589793j
+
+        :trac:`22142`::
+
+            sage: log(QQbar(sqrt(2)))
+            log(1.414213562373095?)
+            sage: log(QQbar(sqrt(2))*1.)
+            0.346573590279973
+            sage: polylog(QQbar(sqrt(2)),3)
+            polylog(1.414213562373095?, 3)
         """
         GinacFunction.__init__(self, 'log', latex_name=r'\log',
                                conversions=dict(maxima='log', fricas='log'))
@@ -381,7 +390,7 @@ class Function_polylog(GinacFunction):
             sage: polylog(1, x)
             -log(-x + 1)
             sage: polylog(2,x^2+1)
-            polylog(2, x^2 + 1)
+            dilog(x^2 + 1)
 
             sage: f = polylog(4, 1); f
             1/90*pi^4
@@ -423,9 +432,9 @@ class Function_polylog(GinacFunction):
             sage: polylog(2.0, 1)
             1.64493406684823
             sage: polylog(2, 1.0)
-            NaN - NaN*I
+            NaN + NaN*I
             sage: polylog(2.0, 1.0)
-            NaN - NaN*I
+            NaN + NaN*I
         """
         GinacFunction.__init__(self, "polylog", nargs=2)
 
@@ -671,7 +680,7 @@ class Function_lambert_w(BuiltinFunction):
         either the same as the parent of the input, or a Sage type::
 
             sage: parent(lambert_w(int(0)))
-            <type 'int'>
+            <... 'int'>
             sage: parent(lambert_w(Integer(0)))
             Integer Ring
             sage: parent(lambert_w(e))
@@ -940,9 +949,9 @@ class Function_harmonic_number_generalized(BuiltinFunction):
 
     .. MATH::
 
-        H_{n}=H_{n,1}=\sum_{k=1}^n\frac1k
+        H_{n}=H_{n,1}=\sum_{k=1}^n\frac{1}{k}
         
-        H_{n,m}=\sum_{k=1}^n\frac1{k^m}
+        H_{n,m}=\sum_{k=1}^n\frac{1}{k^m}
 
     They are also well-defined for complex argument, through:
 
@@ -961,7 +970,7 @@ class Function_harmonic_number_generalized(BuiltinFunction):
 
     REFERENCES:
 
-    - :wikipedia:`/Harmonic_number`
+    - :wikipedia:`Harmonic_number`
 
     EXAMPLES:
 

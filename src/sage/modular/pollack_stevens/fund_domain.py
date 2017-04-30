@@ -22,8 +22,9 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six import iteritems
+
 from sage.matrix.matrix_space import MatrixSpace
 from sage.modular.modsym.all import P1List
 from sage.rings.integer import Integer
@@ -815,7 +816,7 @@ class ManinRelations(PollackStevensModularDomain):
             ## interior path on either of the last two cusps
 
             for s in range(r + 2, len(cusps)):
-            ## s is in the index of the cusp on the the right of the path
+            ## s is in the index of the cusp on the right of the path
                 cusp1 = cusps[r]
                 cusp2 = cusps[s]
                 if self.is_unimodular_path(cusp1, cusp2):
@@ -1539,7 +1540,7 @@ class ManinRelations(PollackStevensModularDomain):
             4
         """
         ans = []
-        for h, vh in self.prep_hecke_on_gen(l, gen, modulus=modulus).iteritems():
+        for h, vh in iteritems(self.prep_hecke_on_gen(l, gen, modulus=modulus)):
             ans.extend([(h, v) for v in vh])
         return ans
 

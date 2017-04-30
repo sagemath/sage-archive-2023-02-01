@@ -31,6 +31,9 @@ from sage.categories.morphism import Morphism
 from sage.categories.homset import Hom
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
 
+import six
+
+
 class FiniteRankFreeModuleMorphism(Morphism):
     r"""
     Homomorphism between free modules of finite rank over a commutative ring.
@@ -495,7 +498,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
     # Required module methods
     #
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Return ``True`` if ``self`` is nonzero and ``False`` otherwise.
 
@@ -507,22 +510,23 @@ class FiniteRankFreeModuleMorphism(Morphism):
             sage: N = FiniteRankFreeModule(ZZ, 2, name='N')
             sage: e = M.basis('e') ; f = N.basis('f')
             sage: phi = M.hom(N, [[2,-1,3], [1,0,-4]])
-            sage: phi.__nonzero__()
+            sage: bool(phi)
             True
             sage: phi.is_zero() # indirect doctest
             False
             sage: phi = M.hom(N, 0)
-            sage: phi.__nonzero__()
+            sage: bool(phi)
             False
             sage: phi.is_zero() # indirect doctest
             True
-            sage: Hom(M,N).zero().__nonzero__()
+            sage: bool(Hom(M,N).zero())
             False
-
         """
         # Some matrix representation is picked at random:
         matrix_rep = self._matrices.values()[0]
         return not matrix_rep.is_zero()
+
+    __nonzero__ = __bool__
 
     def _add_(self, other):
         r"""
@@ -713,7 +717,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
             True
         """
         resu = self.__class__(self.parent(), 0)  # 0 = provisory value
-        for bases, mat in self._matrices.iteritems():
+        for bases, mat in six.iteritems(self._matrices):
             resu._matrices[bases] = scalar * mat
         return resu
 
@@ -730,7 +734,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         - an exact copy of ``self``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: N = FiniteRankFreeModule(ZZ, 2, name='N')
@@ -751,7 +755,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
         """
         resu = self.__class__(self.parent(), 0, is_identity=self._is_identity)
                                            # 0 = provisory value
-        for bases, mat in self._matrices.iteritems():
+        for bases, mat in six.iteritems(self._matrices):
             resu._matrices[bases] = +mat
         if self._name is not None:
             resu._name = '+' + self._name
@@ -767,7 +771,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         - the homomorphism `-f`, where `f` is ``self``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: N = FiniteRankFreeModule(ZZ, 2, name='N')
@@ -788,7 +792,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         """
         resu = self.__class__(self.parent(), 0)  # 0 = provisory value
-        for bases, mat in self._matrices.iteritems():
+        for bases, mat in six.iteritems(self._matrices):
             resu._matrices[bases] = -mat
         if self._name is not None:
             resu._name = '-' + self._name
@@ -812,7 +816,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         - the image of ``element`` by ``self``
 
-        EXAMPLE:
+        EXAMPLES:
 
         Images of a homomorphism between two `\ZZ`-modules::
 
@@ -958,7 +962,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
         - ``True`` if ``self`` is a surjective homomorphism and ``False``
           otherwise
 
-        EXAMPLE:
+        EXAMPLES:
 
         This method has not been implemented yet::
 

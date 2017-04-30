@@ -8,18 +8,11 @@ fi
 
 cd src || exit
 
-echo "Applying patches to upstream sources..."
-for patch in ../patches/*.patch; do
-    [ -r "$patch" ] || continue # Skip non-existing or non-readable patches
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error: '$patch' failed to apply."
-        exit 1
-    fi
-done
-
 INCLUDES="-I$SAGE_LOCAL/include/"
 
+if [ "$UNAME" = "CYGWIN" ]; then
+    CXXFLAGS="$CXXFLAGS -std=gnu++11"
+fi
 CXXFLAGS="$CXXFLAGS -fPIC $INCLUDES -L$SAGE_LOCAL/lib"
 CPPFLAGS="$INCLUDES"
 
@@ -64,7 +57,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Now building fplll..."
-$MAKE V=1
+$MAKE
 if [ $? -ne 0 ]; then
     echo "Error building fplll"
     exit 1

@@ -372,7 +372,7 @@ cdef class GapElement(RingElement):
 
             sage: pre_refcount = libgap.count_GAP_objects()
             sage: def f():
-            ...       local_variable = libgap.eval('"This is a new string"')
+            ....:     local_variable = libgap.eval('"This is a new string"')
             sage: f()
             sage: f()
             sage: f()
@@ -1038,12 +1038,12 @@ cdef class GapElement(RingElement):
             sage: libgap(False).sage()
             False
             sage: type(_)
-            <type 'bool'>
+            <... 'bool'>
 
             sage: libgap('this is a string').sage()
             'this is a string'
             sage: type(_)
-            <type 'str'>
+            <... 'str'>
         """
         if self.value is NULL:
             return None
@@ -1190,7 +1190,7 @@ cdef class GapElement_Integer(GapElement):
             sage: int(libgap(3))
             3
             sage: type(_)
-            <type 'int'>
+            <... 'int'>
 
             sage: int(libgap(2)**128)
             340282366920938463463374607431768211456L
@@ -1741,7 +1741,7 @@ cdef class GapElement_Boolean(GapElement):
             sage: b.sage()
             True
             sage: type(_)
-            <type 'bool'>
+            <... 'bool'>
 
             sage: libgap.eval('fail')
             fail
@@ -1835,7 +1835,7 @@ cdef class GapElement_String(GapElement):
             sage: s.sage()
             'string'
             sage: type(_)
-            <type 'str'>
+            <... 'str'>
         """
         libgap_enter()
         s = libGAP_CSTR_STRING(self.value)
@@ -2060,14 +2060,14 @@ cdef class GapElement_Function(GapElement):
         return make_any_gap_element(self.parent(), result)
 
 
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         r"""
         Return the help string
 
         EXAMPLES::
 
             sage: f = libgap.CyclicGroup
-            sage: 'constructs  the  cyclic  group' in f._sage_doc_()
+            sage: 'constructs  the  cyclic  group' in f.__doc__
             True
 
         You would get the full help by typing ``f?`` in the command line.
@@ -2215,7 +2215,7 @@ cdef class GapElement_List(GapElement):
         sage: list(lst)
         [(), (1,3), (1,2,3), (2,3), (1,3,2), (1,2)]
         sage: type(_)
-        <type 'list'>
+        <... 'list'>
 
     Range checking is performed::
 
@@ -2474,7 +2474,7 @@ cdef class GapElement_Record(GapElement):
         sage: dict(rec)
         {'a': 123, 'b': 456}
         sage: type(_)
-        <type 'dict'>
+        <... 'dict'>
 
     Range checking is performed::
 
@@ -2535,7 +2535,7 @@ cdef class GapElement_Record(GapElement):
         first time the string is encountered, a new integer is
         returned(!)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: rec = libgap.eval('rec(first:=123, second:=456)')
             sage: rec.record_name_to_index('first')   # random output
@@ -2673,3 +2673,9 @@ cdef class GapElement_RecordIterator(object):
         val = make_any_gap_element(self.rec.parent(), result)
         self.i += 1
         return (key, val)
+
+
+# Add support for _instancedoc_
+from sage.docs.instancedoc import instancedoc
+instancedoc(GapElement_Function)
+instancedoc(GapElement_MethodProxy)

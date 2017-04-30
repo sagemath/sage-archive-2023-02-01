@@ -20,6 +20,7 @@ TESTS::
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
+from __future__ import absolute_import
 
 from sage.data_structures.binary_search cimport *
 from sage.modules.vector_integer_sparse cimport *
@@ -31,7 +32,7 @@ from cpython.sequence cimport *
 
 from sage.rings.rational cimport Rational
 from sage.rings.integer  cimport Integer
-from matrix cimport Matrix
+from .matrix cimport Matrix
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
@@ -43,8 +44,8 @@ cimport sage.structure.element
 
 import sage.matrix.matrix_space
 
-from matrix_integer_sparse cimport Matrix_integer_sparse
-from matrix_rational_dense cimport Matrix_rational_dense
+from .matrix_integer_sparse cimport Matrix_integer_sparse
+from .matrix_rational_dense cimport Matrix_rational_dense
 
 from sage.misc.misc import verbose
 
@@ -332,7 +333,7 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
 
         It is safe to change the resulting list (unless you give the option copy=False).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Matrix(QQ, [[0,0,0,1,0,0,0,0],[0,1,0,0,0,0,1,0]], sparse=True); M
             [0 0 0 1 0 0 0 0]
@@ -606,8 +607,8 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
         - height_guess -- integer or None
         - proof -- boolean (default: True)
         """
-        import misc
-        cdef Matrix E = misc.matrix_rational_echelon_form_multimodular(self,
+        from .misc import matrix_rational_echelon_form_multimodular
+        cdef Matrix E = matrix_rational_echelon_form_multimodular(self,
                                  height_guess=height_guess, proof=proof)
         E._parent = self._parent
         return E

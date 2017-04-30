@@ -81,6 +81,13 @@ is returned by generators::
     sage: A = P.get_autom_gens()
     sage: all( [(a*mat).echelon_form() == mat.echelon_form() for a in A])
     True
+
+REFERENCES:
+
+.. [Feu2009] Thomas Feulner, The Automorphism Groups of Linear Codes and
+  Canonical Representatives of Their Semilinear Isometry Classes, Advances in
+  Mathematics of Communications 3 (4), pp. 363-383, 2009.
+
 """
 
 #*******************************************************************************
@@ -92,13 +99,15 @@ is returned by generators::
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
 
-include '../../groups/perm_gps/partn_ref/data_structures_pyx.pxi'
 
 from copy import copy
+from sage.rings.integer cimport Integer
 from sage.matrix.matrix cimport Matrix
 from sage.groups.perm_gps.permgroup import PermutationGroup
 cimport sage.groups.perm_gps.partn_ref2.refinement_generic
 from sage.modules.finite_submodule_iter cimport FiniteFieldsubspace_projPoint_iterator as FFSS_projPoint
+from sage.groups.perm_gps.partn_ref.data_structures cimport *
+include "sage/data_structures/bitset.pxi"
 
 
 cdef class InnerGroup:
@@ -332,7 +341,7 @@ cdef class InnerGroup:
     cdef void gaussian_elimination(self, object m, int pos, int pivot, list nz_pos):
         r"""
         Minimize the column at position ``pos`` of the matrix ``m`` by the
-        action of ``self``.  We know that the there is some nonzero entry of this
+        action of ``self``. We know that there is some nonzero entry of this
         column at ``pivot >= self.rank``. All nonzero entries are stored in
         the list ``nz_pos``.
 

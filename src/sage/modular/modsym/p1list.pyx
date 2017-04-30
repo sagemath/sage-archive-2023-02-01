@@ -1080,7 +1080,7 @@ cdef class P1List:
             sage: type(L)
             <type 'sage.modular.modsym.p1list.P1List'>
             sage: type(L.list())
-            <type 'list'>
+            <... 'list'>
         """
         return self.__list
 

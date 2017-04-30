@@ -94,7 +94,7 @@ class CoordFunction(AlgebraElement):
 
         - a :class:`~sage.manifolds.chart.Chart`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
@@ -1413,39 +1413,13 @@ class MultiCoordFunction(SageObject):
             True
 
         """
-        def simple_determinant(aa):
-            r"""
-            Compute the determinant of a square matrix represented as an array.
-
-            This function is based on Laplace's cofactor expansion.
-            """
-            n = len(aa)
-            if n == 1:
-                return aa[0][0]
-            res = 0
-            sign = True
-            for i in range(n):
-                b = []
-                for k in range(i):
-                    r = []
-                    for l in range(1,n):
-                       r.append(aa[k][l])
-                    b.append(r)
-                for k in range(i+1,n):
-                    r = []
-                    for l in range(1,n):
-                       r.append(aa[k][l])
-                    b.append(r)
-                if sign:
-                    res += aa[i][0] * simple_determinant(b)
-                else:
-                    res -= aa[i][0] * simple_determinant(b)
-                sign = not sign
-            return res
-
+        from sage.matrix.constructor import matrix
         if self._nf != self._nc:
             raise ValueError("the Jacobian matrix is not a square matrix")
-        J = self.jacobian()
-        J = [[J[i,j] for i in range(self._nc)] for j in range(self._nc)]
-        return simple_determinant(J)
+        mat = self.jacobian()
+        mat_expr = matrix([[mat[i,j].expr() for i in range(self._nc)]
+                           for j in range(self._nc)])
+        det = mat_expr.det() # the unsimplified determinant
+        func = self._functions[0]
+        return type(func)(func.parent(), func._simplify(det))
 

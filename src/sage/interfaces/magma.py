@@ -228,6 +228,7 @@ from sage.env import SAGE_EXTCODE, DOT_SAGE
 import sage.misc.misc
 import sage.misc.sage_eval
 from sage.interfaces.tab_completion import ExtraTabCompletion
+from sage.docs.instancedoc import instancedoc
 
 INTRINSIC_CACHE = '%s/magma_intrinsic_cache.sobj' % DOT_SAGE
 EXTCODE_DIR = None
@@ -535,11 +536,11 @@ class Magma(ExtraTabCompletion, Expect):
 
             sage: nl=chr(10) # newline character
             sage: magma.eval(  # optional - magma
-            ... "_<x>:=PolynomialRing(Rationals());"+nl+
-            ... "repeat"+nl+
-            ... "  g:=3*b*x^4+18*c*x^3-6*b^2*x^2-6*b*c*x-b^3-9*c^2 where b:=Random([-10..10]) where c:=Random([-10..10]);"+nl+
-            ... "until g ne 0 and Roots(g) ne [];"+nl+
-            ... "print \"success\";")
+            ....: "_<x>:=PolynomialRing(Rationals());"+nl+
+            ....: "repeat"+nl+
+            ....: "  g:=3*b*x^4+18*c*x^3-6*b^2*x^2-6*b*c*x-b^3-9*c^2 where b:=Random([-10..10]) where c:=Random([-10..10]);"+nl+
+            ....: "until g ne 0 and Roots(g) ne [];"+nl+
+            ....: "print \"success\";")
             'success'
 
         Verify that :trac:`11401` is fixed::
@@ -932,7 +933,7 @@ class Magma(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: type(magma.cputime())         # optional - magma
-            <type 'float'>
+            <... 'float'>
             sage: magma.cputime()                # random, optional - magma
             1.9399999999999999
             sage: t = magma.cputime()            # optional - magma
@@ -1648,6 +1649,7 @@ class Magma(ExtraTabCompletion, Expect):
         return int(self.eval('GetVerbose("%s")' % type))
 
 
+@instancedoc
 class MagmaFunctionElement(FunctionElement):
     def __call__(self, *args, **kwds):
         """
@@ -1692,7 +1694,7 @@ class MagmaFunctionElement(FunctionElement):
                                params=kwds,
                                nvals=nvals)
 
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         Return the docstring for this function of an element.
 
@@ -1702,10 +1704,10 @@ class MagmaFunctionElement(FunctionElement):
 
             sage: n = magma(-15)             # optional - magma
             sage: f = n.Factorisation        # optional - magma
-            sage: print(f._sage_doc_())      # optional - magma
+            sage: print(f.__doc__)           # optional - magma
             (<RngIntElt> n) -> RngIntEltFact, RngIntElt, SeqEnum
             ...
-            sage: print(n.Factorisation._sage_doc_())    # optional - magma
+            sage: print(n.Factorisation.__doc__)    # optional - magma
             (<RngIntElt> n) -> RngIntEltFact, RngIntElt, SeqEnum
             ...
         """
@@ -1723,11 +1725,11 @@ class MagmaFunctionElement(FunctionElement):
         s = sage.misc.misc.word_wrap(s)
         return s
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Return string representation of this partially evaluated function.
 
-        This is basically the docstring (as returned by _sage_doc_)
+        This is basically the docstring (as returned by ``_instancedoc_``)
         unless self._name is the name of an attribute of the object, in
         which case this returns the value of that attribute.
 
@@ -1749,7 +1751,7 @@ class MagmaFunctionElement(FunctionElement):
             sage: type(V.M)                                      # optional - magma
             <class 'sage.interfaces.magma.MagmaFunctionElement'>
             sage: type(V.M.__repr__())                           # optional - magma
-            <type 'str'>
+            <... 'str'>
 
         Displaying a non-attribute function works as above.
 
@@ -1763,9 +1765,10 @@ class MagmaFunctionElement(FunctionElement):
         try:
             return M.eval('%s`%s' % (self._obj.name(), self._name))
         except RuntimeError:
-            return "Partially evaluated Magma function or intrinsic '%s'\n\nSignature:\n\n%s" % (self._name, self._sage_doc_())
+            return "Partially evaluated Magma function or intrinsic '%s'\n\nSignature:\n\n%s" % (self._name, self._instancedoc_())
 
 
+@instancedoc
 class MagmaFunction(ExpectFunction):
     def __call__(self, *args, **kwds):
         """
@@ -1802,7 +1805,7 @@ class MagmaFunction(ExpectFunction):
                                params=kwds,
                                nvals=nvals)
 
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         Return docstring about this function.
 
@@ -1813,7 +1816,7 @@ class MagmaFunction(ExpectFunction):
             sage: f = magma.Factorisation
             sage: type(f)
             <class 'sage.interfaces.magma.MagmaFunction'>
-            sage: print(f._sage_doc_())                   # optional - magma
+            sage: print(f.__doc__)                   # optional - magma
             Intrinsic 'Factorisation'
             ...
         """
@@ -1846,6 +1849,7 @@ def is_MagmaElement(x):
     return isinstance(x, MagmaElement)
 
 
+@instancedoc
 class MagmaElement(ExtraTabCompletion, ExpectElement):
     def _ref(self):
         """
@@ -1958,7 +1962,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             sage: z = m.sage(); z                      # optional - magma
             [1, 2, 2, 2, 3, 4, 4]
             sage: type(z)                              # optional - magma
-            <type 'list'>
+            <... 'list'>
 
         Tuples get converted to tuples::
 
@@ -1966,7 +1970,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             sage: z = m.sage(); z               # optional - magma
             (1, 2, (3,))
             sage: type(z)                       # optional - magma
-            <type 'tuple'>
+            <... 'tuple'>
 
         Sequences get converted to lists::
 
@@ -1974,7 +1978,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             sage: z = m.sage(); z               # optional - magma
             [(1,), (2,)]
             sage: type(z)                       # optional - magma
-            <type 'list'>
+            <... 'list'>
 
         Matrices::
 
@@ -2569,7 +2573,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
         Quotient of division of self by other. This is denoted // ("div" in
         magma).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y,z> = QQ[]
             sage: magma(5)//magma(2)     # optional - magma
@@ -2581,60 +2585,45 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
         """
         return self.parent()('%s div %s' % (self.name(), x.name()))
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
-        Return True if self is nonzero according to Magma. If Magma can't
-        decide, i.e., raising an error then also return True.
+        Return ``True`` if ``self`` is nonzero according to Magma.
 
-        EXAMPLES: We define a Magma vector space.
+        If Magma cannot decide, i.e., is raising an error
+        then also return ``True``.
 
-        ::
+        EXAMPLES: We define a Magma vector space::
 
-            sage: V = magma('VectorSpace(GF(3),2)'); V            # optional - magma
+            sage: V = magma('VectorSpace(GF(3),2)'); V    # optional - magma
             Full Vector space of degree 2 over GF(3)
 
-        The first generator is nonzero.
+        The first generator is nonzero::
 
-        ::
-
-            sage: V.gen(1).__nonzero__()                          # optional - magma
+            sage: bool(V.gen(1))                          # optional - magma
             True
 
-        The zero element is zero.
+        The zero element is zero::
 
-        ::
-
-            sage: V(0).__nonzero__()                              # optional - magma
+            sage: bool(V(0))                              # optional - magma
             False
 
         The space itself is nonzero (the default - in Magma no comparison
-        to 0 is possible).
+        to 0 is possible)::
 
-        ::
-
-            sage: V.__nonzero__()                                 # optional - magma
+            sage: bool(V)                                 # optional - magma
             True
 
-        We can also call bool which is the opposite of __nonzero__.
-
-        ::
-
-            sage: bool(V(0))                                      # optional - magma
-            False
-            sage: bool(V.gen(1))                                  # optional - magma
-            True
-            sage: bool(V)                                         # optional - magma
-            True
+        Note that ``bool`` calls ``__bool__`` in Python 3.
 
         Test use in bool conversions of bools::
 
-            sage: bool(magma(False))                             # optional - magma
+            sage: bool(magma(False))                      # optional - magma
             False
-            sage: bool(magma(True))                              # optional - magma
+            sage: bool(magma(True))                       # optional - magma
             True
-            sage: bool(magma(1))                                 # optional - magma
+            sage: bool(magma(1))                          # optional - magma
             True
-            sage: bool(magma(0))                                 # optional - magma
+            sage: bool(magma(0))                          # optional - magma
             False
         """
         try:
@@ -2646,6 +2635,8 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             except TypeError:
                 pass
         return True
+
+    __nonzero__ = __bool__
 
     def sub(self, gens):
         """
@@ -2827,7 +2818,7 @@ class MagmaGBLogPrettyPrinter:
           'sage' only the current degree and the number of pairs in
           the queue is printed (default: "magma").
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y,z> = GF(32003)[]
             sage: I = sage.rings.ideal.Cyclic(P)
@@ -2898,7 +2889,7 @@ class MagmaGBLogPrettyPrinter:
 
     def write(self, s):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y,z> = GF(32003)[]
             sage: I = sage.rings.ideal.Katsura(P)
@@ -2963,7 +2954,7 @@ class MagmaGBLogPrettyPrinter:
 
     def flush(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.interfaces.magma import MagmaGBLogPrettyPrinter
             sage: logs = MagmaGBLogPrettyPrinter()
@@ -2984,7 +2975,7 @@ class MagmaGBDefaultContext:
 
         - ``magma`` - (default: ``magma_default``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.interfaces.magma import MagmaGBDefaultContext
             sage: magma.SetVerbose('Groebner',1) # optional - magma
@@ -2999,7 +2990,7 @@ class MagmaGBDefaultContext:
 
     def __enter__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.interfaces.magma import MagmaGBDefaultContext
             sage: magma.SetVerbose('Groebner',1) # optional - magma
@@ -3011,7 +3002,7 @@ class MagmaGBDefaultContext:
 
     def __exit__(self, typ, value, tb):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.interfaces.magma import MagmaGBDefaultContext
             sage: magma.SetVerbose('Groebner',1) # optional - magma
@@ -3027,7 +3018,7 @@ def magma_gb_standard_options(func):
     """
     Decorator to force default options for Magma.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<a,b,c,d,e> = PolynomialRing(GF(127))
         sage: J = sage.rings.ideal.Cyclic(P).homogenize()

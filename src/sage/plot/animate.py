@@ -1506,7 +1506,7 @@ class APngAssembler(object):
         even if they look like hex digits. This is used for chunk types.
         Other characters which are not hex digits are passed verbatim.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.plot.animate import APngAssembler
             sage: h2b = APngAssembler._hex2bin
@@ -1546,7 +1546,7 @@ class APngAssembler(object):
         - ``asFile``: Whether to return a binary string of the named data
                       or the path of a file containing that data.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.plot.animate import APngAssembler
             sage: APngAssembler._testData("input1", False)

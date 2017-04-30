@@ -373,7 +373,7 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
 
         def _set_par_to_par(self, A):
             r"""
-            Return the the shape of ``A`` if ``A`` is the canonical standard
+            Return the shape of ``A`` if ``A`` is the canonical standard
             set partition `A_1 | A_2 | \cdots | A_k` where `|` is the pipe
             operation (see
             :meth:~sage.combinat.set_partition.SetPartition.pipe()` )

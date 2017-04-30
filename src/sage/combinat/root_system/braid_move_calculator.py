@@ -7,7 +7,7 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2014 Dinakar Muthiah <your email>
+#       Copyright (C) 2014 Dinakar Muthiah <muthiah at ualberta.ca>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ class BraidMoveCalculator(object):
         """
         self.coxeter_matrix = coxeter_group.coxeter_matrix()
 
-    def _apply_put_in_front_recur_step(self, k, input_word, coxeter_matrix_entry):        
+    def _apply_put_in_front_recur_step(self, k, input_word, coxeter_matrix_entry):
         """
         Recurrence step for :meth:`put_in_front`.
 
@@ -58,13 +58,13 @@ class BraidMoveCalculator(object):
             if length % 2 == 1:
                 running_braid_word.append(i)
             return tuple(running_braid_word)
-            
+
         current_last_word = input_word
         current_first_letter = k
-        output_word_list = [current_last_word] 
+        output_word_list = [current_last_word]
         for counter in range(1, coxeter_matrix_entry):
             current_word_list = self.put_in_front(current_first_letter, current_last_word[1:])
-            output_word_list += [partial_braid_word(counter) + word 
+            output_word_list += [partial_braid_word(counter) + word
                                  for word in current_word_list[1:]]
             if current_first_letter == k:
                 current_first_letter = i
@@ -132,7 +132,7 @@ class BraidMoveCalculator(object):
         k = end_word[0]
         first_word_list = self.put_in_front(k, start_word)
         first_last_word = first_word_list[-1]
-        return (first_word_list[:-1] + 
+        return (first_word_list[:-1] +
                 tuple([ (k,) + word for word in
                          self.chain_of_reduced_words(first_last_word[1:],
                                                      end_word[1:]) ]))

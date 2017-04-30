@@ -1322,6 +1322,13 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             1408
             sage: H.cardinality(3)
             50116
+            
+        The following example shows that :trac:`20391` has been resolved::
+            sage: F=GF(23)
+            sage: x=polygen(F)
+            sage: C=HyperellipticCurve(x^8+1)
+            sage: C.cardinality()
+            24
         """
         K = self.base_ring()
         q = K.cardinality()
@@ -1332,7 +1339,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
 
         # We may:
         # - check for actual field of definition of the curve (up to isomorphism)
-        if e == 1 and h == 0:
+        if e == 1 and h == 0  and f.degree() % 2 == 1:
             N1 = self._frobenius_coefficient_bound_traces(n)
             N2 = self._frobenius_coefficient_bound_charpoly()
             if n < g and q > (2*g+1)*(2*N1-1):

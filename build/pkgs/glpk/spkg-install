@@ -8,18 +8,6 @@ fi
 
 cd src/
 
-# Apply fixes to upstream source
-echo "Applying patches..."
-for patch in ../patches/*.patch; do
-    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-    echo "Using $patch"
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
-
 # Use newer version of config.guess and config.sub (see Trac #19713)
 cp "$SAGE_ROOT"/config/config.* .
 

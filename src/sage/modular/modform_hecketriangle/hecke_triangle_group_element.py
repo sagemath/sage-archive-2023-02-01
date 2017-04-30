@@ -651,7 +651,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         I.e. an element which is equal to ``self`` up
         to a sign after taking the appropriate power
         and which itself cannot be written as a non-trivial
-        power (at least for non-elliptic ellements).
+        power (at least for non-elliptic elements).
 
         To construct the representative see
         :meth:`primitive_representative`. To construct
@@ -3078,12 +3078,12 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         It is possible to act on points of ``HyperbolicPlane()``.
 
-        .. NOTE:
+        .. NOTE::
 
-        There is a 1-1 correspondence between hyperbolic
-        fixed points and the corresponding primitive element
-        in the stabilizer. The action in the two cases above
-        is compatible with this correspondence.
+            There is a 1-1 correspondence between hyperbolic
+            fixed points and the corresponding primitive element
+            in the stabilizer. The action in the two cases above
+            is compatible with this correspondence.
 
         INPUT:
 

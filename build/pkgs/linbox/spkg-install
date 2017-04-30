@@ -8,19 +8,6 @@ fi
 
 cd src/
 
-###############################################################################
-# Apply patches (if any):
-###############################################################################
-
-ls ../patches/*.patch &>/dev/null && \
-for patch in ../patches/*.patch; do
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'."
-        exit 1
-    fi
-done
-
 # Use newer version of config.guess and config.sub (see Trac #19761)
 cp "$SAGE_ROOT"/config/config.* build-aux
 

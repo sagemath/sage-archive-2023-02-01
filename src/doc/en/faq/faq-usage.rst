@@ -143,17 +143,14 @@ and repeat this command every time that we change the file simple.py. However, i
 
 every change applied to the file simple.py will be automatically updated in Sage.
 
-Can I use Sage with Python 3.x?
-"""""""""""""""""""""""""""""""
+Can I use SageMath with Python 3.x?
+"""""""""""""""""""""""""""""""""""
 
-Currently, no. Sage depends on the
-`SciPy <http://www.scipy.org>`_
-stack of Python numerical and scientific packages. As of 2010, SciPy
-still uses Python 2.x. So until SciPy is ported to run with Python
-3.x and
-`Cython <http://www.cython.org>`_
-supports Python 3.x, Sage will continue to use Python 2.x.
+Currently, no (February 2017). Work in progress aims to allow this in
+the not-so-far future. Until this task is completed, SageMath will continue
+to use Python 2.x.
 
+See :trac:`15530` for tracking the current progress.
 
 I'm seeing an error about "Permission denied" on a file called "sage-flags.txt".
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -181,9 +178,7 @@ it probably means that you compiled/installed Sage as one user, but
 have not run it to let it generate the ``sage-flags.txt`` file. Just
 run Sage one time as whatever user installed it and this problem
 should go away. This would also be easy to fix by having Sage run once
-as part of the install process; see
-`trac ticket #6375 <http://trac.sagemath.org/sage_trac/ticket/6375>`_
-for this fix.
+as part of the install process; see :trac:`6375` for this fix.
 
 
 I downloaded a Sage binary and it crashes on startup with "Illegal instruction". What can I do?
@@ -392,7 +387,29 @@ e.g. ::
     sage: list(map(ord, "Big Mac"))
     [66, 105, 103, 32, 77, 97, 99]
 
+How can I wrote multiplication implicitly as in Mathematica?
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
+Sage has a function that enables this::
+
+    sage: implicit_multiplication(True)
+    sage: x 2 x  # Not tested
+    2*x^2
+    sage: implicit_multiplication(False)
+
+This is preparsed by Sage into Python code. It may not work in a
+complicated situation. To see what the preparser does::
+
+    sage: implicit_multiplication(True)
+    sage: preparse("2 x")
+    'Integer(2)*x'
+    sage: implicit_multiplication(False)
+    sage: preparse("2 x")
+    'Integer(2) x'
+
+See https://wiki.sagemath.org/sage_mathematica for more information
+about Mathematica vs. SageMath.
+    
 Can I make Sage automatically execute commands on startup?
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -708,9 +725,15 @@ You will need to do this from the command line.  Just run a command like this.
 
 * Linux (assuming you have Sage in ``/usr/bin``)::
 
-    env SAGE_BROWSER=opera /usr/bin/sage -notebook
+    env BROWSER=opera /usr/bin/sage --notebook
 
-* Mac (assuming you are in the directory of your downloaded Sage)::
+* Mac (assuming you are in the directory of your downloaded Sage).
+  With the Jupyter notebook::
 
-    SAGE_BROWSER='open -a Firefox' ./sage -notebook
-    SAGE_BROWSER='open -a Google\ Chrome' ./sage -notebook
+    BROWSER='open -a Firefox %s' ./sage --notebook jupyter
+    BROWSER='open -a Google\ Chrome %s' ./sage --notebook jupyter
+
+  With the old SageNB notebook::
+
+    BROWSER='open -a Firefox' ./sage --notebook
+    BROWSER='open -a Google\ Chrome' ./sage --notebook

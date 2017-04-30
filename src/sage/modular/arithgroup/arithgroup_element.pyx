@@ -16,6 +16,7 @@ Elements of Arithmetic Subgroups
 from __future__ import absolute_import
 
 from sage.structure.element cimport MultiplicativeGroupElement, MonoidElement, Element
+from sage.structure.sage_object cimport richcmp
 from sage.rings.all import ZZ
 from sage.modular.cusps import Cusp
 
@@ -102,7 +103,7 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         r"""
         For unpickling objects pickled with the old ArithmeticSubgroupElement class.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: si = unpickle_newobj(sage.modular.arithgroup.arithgroup_element.ArithmeticSubgroupElement, ())
             sage: x = matrix(ZZ,2,[1,1,0,1])
@@ -160,25 +161,27 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         """
         return '%s' % self.__x._latex_()
         
-    cpdef int _cmp_(self, right_r) except -2:
+    cpdef _richcmp_(self, right_r, int op):
         """
         Compare self to right, where right is guaranteed to have the same
         parent as self.
 
         EXAMPLES::
 
-            sage: SL2Z.0 > None
-            True
-
             sage: x = Gamma0(18)([19,1,18,1])
-            sage: cmp(x, 3) is not 0
+            sage: x == 3
+            False
+            sage: x == x
             True
-            sage: cmp(x, x)
-            0
 
             sage: x = Gamma0(5)([1,1,0,1])
+            sage: y = Gamma0(5)([1,4,0,1])
             sage: x == 0
             False
+            sage: x == y
+            False
+            sage: x != y
+            True
 
         This once caused a segfault (see :trac:`5443`)::
 
@@ -189,7 +192,7 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
             True
         """
         cdef ArithmeticSubgroupElement right = <ArithmeticSubgroupElement>right_r
-        return cmp(self.__x, right.__x)
+        return richcmp(self.__x, right.__x, op)
 
     def __nonzero__(self):
         """
@@ -397,7 +400,7 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         r"""
         Fetch entries by direct indexing.
 
-        EXAMPLE::
+        EXAMPLES::
             sage: SL2Z([3,2,1,1])[0,0]
             3
         """
@@ -407,7 +410,7 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         r"""
         Return a hash value.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: hash(SL2Z.0)
             -4
@@ -418,7 +421,7 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         r"""
         Used for pickling.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: (SL2Z.1).__reduce__()
             (Modular Group SL(2,Z), (

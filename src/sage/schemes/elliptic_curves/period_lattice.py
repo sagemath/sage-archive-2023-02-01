@@ -65,7 +65,7 @@ upper half plane::
     sage: L.normalised_basis()
     (-1.37588604166076 - 2.58560946624443*I, -2.10339907847356 + 0.428378776460622*I)
 
-We test that bug #8415 (caused by a PARI bug fixed in v2.3.5) is OK::
+We test that bug :trac:`8415` (caused by a PARI bug fixed in v2.3.5) is OK::
 
     sage: E = EllipticCurve('37a')
     sage: K.<a> = QuadraticField(-7)
@@ -592,12 +592,12 @@ class PeriodLattice_ell(PeriodLattice):
 
         if algorithm=='pari':
             if self.E.base_field() is QQ:
-                periods = self.E.pari_curve().omega(prec).python()
+                periods = self.E.pari_curve().omega(prec).sage()
                 return (R(periods[0]), C(periods[1]))
 
             from sage.libs.pari.all import pari
             E_pari = pari([R(self.embedding(ai).real()) for ai in self.E.a_invariants()]).ellinit()
-            periods = E_pari.omega(prec).python()
+            periods = E_pari.omega(prec).sage()
             return (R(periods[0]), C(periods[1]))
 
         if algorithm!='sage':
@@ -1235,7 +1235,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         (complex number) The elliptic logarithm of the point `(xP,yP)`
         with respect to this period lattice.  If `E` is the elliptic
-        curve and `\sigma:K\to\CC` the embedding, the the returned
+        curve and `\sigma:K\to\CC` the embedding, the returned
         value `z` is such that `z\pmod{L}` maps to `(xP,yP)=\sigma(P)`
         under the standard Weierstrass isomorphism from `\CC/L` to
         `\sigma(E)`.  If ``reduce`` is ``True``, the output is reduced
@@ -1429,7 +1429,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         (complex number) The elliptic logarithm of the point `P` with
         respect to this period lattice.  If `E` is the elliptic curve
-        and `\sigma:K\to\CC` the embedding, the the returned value `z`
+        and `\sigma:K\to\CC` the embedding, the returned value `z`
         is such that `z\pmod{L}` maps to `\sigma(P)` under the
         standard Weierstrass isomorphism from `\CC/L` to `\sigma(E)`.
         If ``reduce`` is ``True``, the output is reduced so that it is
@@ -1559,7 +1559,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         TESTS:
 
-        (see :trac:`10026` and :trac:`11767`)::
+        See :trac:`10026` and :trac:`11767`::
 
             sage: K.<w> = QuadraticField(2)
             sage: E = EllipticCurve([ 0, -1, 1, -3*w -4, 3*w + 4 ])
@@ -1567,7 +1567,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: P,Q = T[2]
             sage: embs = K.embeddings(CC)
             sage: Lambda = E.period_lattice(embs[0])
-            sage: Lambda.elliptic_logarithm(P,100)
+            sage: Lambda.elliptic_logarithm(P+3*Q, 100)
             4.7100131126199672766973600998
             sage: R.<x> = QQ[]
             sage: K.<a> = NumberField(x^2 + x + 5)

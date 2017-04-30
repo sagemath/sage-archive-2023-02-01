@@ -186,7 +186,7 @@ class NonDecreasingParkingFunctions_all(InfiniteAbstractCombinatorialClass):
         TESTS::
 
             sage: (NonDecreasingParkingFunctions()._infinite_cclass_slice(4)
-            ...    == NonDecreasingParkingFunctions(4))
+            ....:  == NonDecreasingParkingFunctions(4))
             True
             sage: it = iter(NonDecreasingParkingFunctions()) # indirect doctest
             sage: [next(it) for i in range(8)]

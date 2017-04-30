@@ -1899,10 +1899,10 @@ class FormsSpace_abstract(FormsRing_abstract):
         uniquely determine a corresponding (quasi) form in ``self`` with the given
         lower bound ``min_exp`` for the order at infinity (for each quasi part).
 
-        .. NOTE:
+        .. NOTE::
 
-        For ``n=infinity`` only the holomorphic case (``min_exp >= 0``)
-        is supported (in particular a non-negative order at ``-1`` is assumed).
+            For ``n=infinity`` only the holomorphic case (``min_exp >= 0``)
+            is supported (in particular a non-negative order at ``-1`` is assumed).
 
         INPUT:
 
@@ -2056,7 +2056,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         (min_exp, order_1) = self._canonical_min_exp(min_exp1, order_1)
 
         if (min_exp != min_exp1):
-            raise ValueError("Due to the behavior at infinity the given laurent series cannot possibly be an element of {}".format(self))
+            raise ValueError("Due to the behavior at infinity the given Laurent series cannot possibly be an element of {}".format(self))
 
         # if a q_basis is available we can construct the form much faster
         if (self.q_basis.is_in_cache(min_exp=min_exp, order_1=order_1)):
@@ -2310,7 +2310,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         series_prec = laurent_series.prec()
 
         # If the coefficients already coerce to our coefficient ring
-        # and are in polynomial form we simply return the laurent series
+        # and are in polynomial form we simply return the Laurent series
         if (is_PolynomialRing(base_ring.base())):
             if (self.coeff_ring().has_coerce_map_from(base_ring)):
                 return laurent_series
@@ -2420,9 +2420,9 @@ class FormsSpace_abstract(FormsRing_abstract):
         r"""
         Return the dimension of ``self``.
 
-        .. NOTE:
+        .. NOTE::
 
-        This method should be overloaded by subclasses.
+            This method should be overloaded by subclasses.
 
         EXAMPLES::
 

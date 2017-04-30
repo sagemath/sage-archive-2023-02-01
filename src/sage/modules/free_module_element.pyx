@@ -63,7 +63,7 @@ Since there is no canonical coercion map to the finite field from
     sage: V.0 + M.0
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '+': 'Vector space of dimension 5 over Rational Field' and 'Vector space of dimension 5 over Finite Field of size 7'
+    TypeError: unsupported operand parent(s) for +: 'Vector space of dimension 5 over Rational Field' and 'Vector space of dimension 5 over Finite Field of size 7'
 
 However, there is a map from `\ZZ` to the finite
 field, so the following is defined, and the result is in the finite
@@ -104,7 +104,6 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six import itervalues
 
 cimport cython
 from cpython.slice cimport PySlice_GetIndicesEx
@@ -112,6 +111,7 @@ from cpython.slice cimport PySlice_GetIndicesEx
 from sage.structure.sequence import Sequence
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 from sage.structure.element import canonical_coercion
+from sage.structure.sage_object cimport richcmp_not_equal, richcmp, rich_to_bool
 
 from sage.rings.ring import is_Ring
 from sage.rings.infinity import Infinity, AnInfinity
@@ -413,7 +413,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
     a possible input.  ::
 
         sage: type(i^2 for i in range(3))
-        <type 'generator'>
+        <... 'generator'>
         sage: v = vector(i^2 for i in range(3)); v
         (0, 1, 4)
 
@@ -835,26 +835,26 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         """
         EXAMPLES::
 
-            sage: v = vector(ZZ, 4, range(4))              # optional - giac
-            sage: giac(v)+v                                # optional -  giac
+            sage: v = vector(ZZ, 4, range(4))
+            sage: giac(v)+v
             [0,2,4,6]
 
         ::
 
-            sage: v = vector(QQ, 3, [2/3, 0, 5/4])         # optional -  giac
-            sage: giac(v)                                  # optional -  giac
+            sage: v = vector(QQ, 3, [2/3, 0, 5/4])
+            sage: giac(v)
             [2/3,0,5/4]
 
         ::
 
-            sage: P.<x> = ZZ[]                                       # optional -  giac
-            sage: v = vector(P, 3, [x^2 + 2, 2*x + 1, -2*x^2 + 4*x]) # optional -  giac
-            sage: giac(v)                                            # optional -  giac
+            sage: P.<x> = ZZ[]
+            sage: v = vector(P, 3, [x^2 + 2, 2*x + 1, -2*x^2 + 4*x])
+            sage: giac(v)
             [x^2+2,2*x+1,-2*x^2+4*x]
         """
         return self.list()
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Convert ``self`` to a PARI vector.
 
@@ -865,9 +865,9 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         EXAMPLES::
 
             sage: v = vector(range(4))
-            sage: v._pari_()
+            sage: v.__pari__()
             [0, 1, 2, 3]
-            sage: v._pari_().type()
+            sage: v.__pari__().type()
             't_VEC'
 
         A list of vectors::
@@ -1010,7 +1010,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: vector([1, 1/2, QQ['x'].0]).numpy(dtype=float)
             Traceback (most recent call last):
             ...
-            ValueError: Could not convert vector over Univariate Polynomial Ring in x over Rational Field to numpy array of type <type 'float'>: setting an array element with a sequence.
+            ValueError: Could not convert vector over Univariate Polynomial Ring in x over Rational Field to numpy array of type <... 'float'>: setting an array element with a sequence.
         """
         from numpy import array
         try:
@@ -1696,10 +1696,10 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         if p < 1:
             raise ValueError("%s is not greater than or equal to 1" % p)
 
-        s = sum([a**p for a in abs_self])
+        s = sum(a ** p for a in abs_self)
         return s**(__one__/p)
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         EXAMPLES::
 
@@ -1711,9 +1711,9 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: v == v
             True
             sage: w = vector(SR, [-1,x,pi,0])
-            sage: w < v
+            sage: bool(w < v)
             True
-            sage: w > v
+            sage: bool(w > v)
             False
 
         TESTS::
@@ -1727,11 +1727,12 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             False
         """
         cdef Py_ssize_t i
-        cdef int c
         for i in range(left._degree):
-            c = cmp(left[i], right[i])
-            if c: return c
-        return 0
+            lx = left[i]
+            rx = right[i]
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
+        return rich_to_bool(op, 0)
 
     def __getitem__(self, i):
         """
@@ -3329,7 +3330,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: z = w.outer_product(v)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Full MatrixSpace of 2 by 1 dense matrices over Finite Field of size 5' and 'Full MatrixSpace of 1 by 4 dense matrices over Finite Field of size 7'
+            TypeError: unsupported operand parent(s) for *: 'Full MatrixSpace of 2 by 1 dense matrices over Finite Field of size 5' and 'Full MatrixSpace of 1 by 4 dense matrices over Finite Field of size 7'
 
         And some inputs don't make any sense at all. ::
 
@@ -4708,7 +4709,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                     v[i] = prod
         return left._new_c(v)
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         Compare two sparse free module elements.
 
@@ -4729,19 +4730,15 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: V = FreeModule( GF(3), 2, sparse=True)
             sage: a = V([0,1])
             sage: b = V([1,0])
-            sage: cmp(a, b)
-            -1
+            sage: a < b
+            True
         """
-
-        a = left._entries.items()
+        a = (<FreeModuleElement_generic_sparse>left)._entries.items()
         a.sort()
-        b = (< FreeModuleElement_generic_sparse > right)._entries.items()
+        b = (<FreeModuleElement_generic_sparse>right)._entries.items()
         b.sort()
 
-        a = [(-x,y) for x, y in a]
-        b = [(-x,y) for x, y in b]
-
-        return cmp(a, b)
+        return richcmp([(-x, y) for x, y in a], [(-x, y) for x, y in b], op)
 
     def iteritems(self):
         """
@@ -4915,7 +4912,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             d = d.denominator()
         except AttributeError:
             return d
-        for y in itervalues(self._entries):
+        for y in self._entries.itervalues():
             d = d.lcm(y.denominator())
         return d
 

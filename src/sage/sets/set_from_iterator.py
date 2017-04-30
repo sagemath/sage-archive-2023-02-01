@@ -27,7 +27,7 @@ The module also provides decorator for functions and methods::
 
     sage: from sage.sets.set_from_iterator import set_from_function
     sage: @set_from_function
-    ... def f(n): return xsrange(n)
+    ....: def f(n): return xsrange(n)
     sage: f(3)
     {0, 1, 2}
     sage: f(5)
@@ -72,6 +72,7 @@ from sage.categories.sets_cat import EmptySetError
 import os
 from sage.misc.function_mangling import ArgumentFixer
 from sage.misc.lazy_list import lazy_list
+from sage.docs.instancedoc import instancedoc
 
 
 class EnumeratedSetFromIterator(Parent):
@@ -446,13 +447,14 @@ class EnumeratedSetFromIterator(Parent):
 #
 
 #TODO: move it in sage.misc ?
-class Decorator:
+@instancedoc
+class Decorator(object):
     r"""
     Abstract class that manage documentation and sources of the wrapped object.
 
     The method needs to be stored in the attribute ``self.f``
     """
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         Provide documentation for the wrapped function.
 
@@ -559,6 +561,8 @@ class Decorator:
         """
         raise NotImplementedError
 
+
+@instancedoc
 class EnumeratedSetFromIterator_function_decorator(Decorator):
     r"""
     Decorator for :class:`EnumeratedSetFromIterator`.
@@ -573,10 +577,11 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
     EXAMPLES::
 
         sage: from sage.sets.set_from_iterator import set_from_function
+        sage: from six.moves import range
         sage: @set_from_function
-        ... def f(n):
-        ....:  for i in xrange(n):
-        ....:      yield i**2 + i + 1
+        ....: def f(n):
+        ....:     for i in range(n):
+        ....:         yield i**2 + i + 1
         sage: f(3)
         {1, 3, 7}
         sage: f(100)
@@ -587,11 +592,11 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
     :class:`EnumeratedSetFromIterator`::
 
         sage: @set_from_function(category=InfiniteEnumeratedSets())
-        ... def Fibonacci():
-        ....:  a = 1; b = 2
-        ....:  while True:
-        ....:     yield a
-        ....:     a,b = b,a+b
+        ....: def Fibonacci():
+        ....:     a = 1; b = 2
+        ....:     while True:
+        ....:         yield a
+        ....:         a, b = b, a + b
         sage: F = Fibonacci()
         sage: F
         {1, 2, 3, 5, 8, ...}
@@ -603,7 +608,7 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
         sage: @set_from_function(
         ....:      name = "From %(m)d to %(n)d",
         ....:      category = FiniteEnumeratedSets())
-        ... def f(m,n): return xsrange(m,n+1)
+        ....: def f(m, n): return xsrange(m,n+1)
         sage: E = f(3,10); E
         From 3 to 10
         sage: E.list()
@@ -619,11 +624,11 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
     ``cached_method``::
 
         sage: @cached_function
-        ... @set_from_function(
+        ....: @set_from_function(
         ....:  name = "Graphs on %(n)d vertices",
         ....:  category = FiniteEnumeratedSets(),
         ....:  cache = True)
-        ... def Graphs(n): return graphs(n)
+        ....: def Graphs(n): return graphs(n)
         sage: Graphs(10)
         Graphs on 10 vertices
         sage: Graphs(10).unrank(0)
@@ -637,8 +642,8 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
         ....:  name = "Graphs on %(n)d vertices",
         ....:  category = FiniteEnumeratedSets(),
         ....:  cache = True)
-        ... @cached_function
-        ... def Graphs(n): return graphs(n)
+        ....: @cached_function
+        ....: def Graphs(n): return graphs(n)
         sage: Graphs(10)
         Graphs on 10 vertices
         sage: Graphs(10).unrank(0)
@@ -716,6 +721,8 @@ class EnumeratedSetFromIterator_function_decorator(Decorator):
 
 set_from_function = EnumeratedSetFromIterator_function_decorator
 
+
+@instancedoc
 class EnumeratedSetFromIterator_method_caller(Decorator):
     r"""
     Caller for decorated method in class.
@@ -754,7 +761,7 @@ class EnumeratedSetFromIterator_method_caller(Decorator):
             sage: loads(dumps(d.f()))
             Traceback (most recent call last):
             ...
-            PicklingError: Can't pickle <type 'function'>: attribute lookup __builtin__.function failed
+            PicklingError: Can't pickle <... 'function'>: attribute lookup __builtin__.function failed
         """
         self.inst = inst
         self.f = f
@@ -862,7 +869,7 @@ class EnumeratedSetFromIterator_method_decorator(object):
         ....:  def f(self): return xsrange(self.n())
         sage: a = A()
         sage: print(a.f.__class__)
-        sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller
+        <class 'sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller'>
         sage: a.f()
         {0, 1, 2, 3, 4, ...}
         sage: A.f(a)
@@ -977,9 +984,9 @@ class EnumeratedSetFromIterator_method_decorator(object):
             ....:  def f(self): return xsrange(self.n())
             sage: a = A()
             sage: print(A.f.__class__)
-            sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller
+            <class 'sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller'>
             sage: print(a.f.__class__)
-            sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller
+            <class 'sage.sets.set_from_iterator.EnumeratedSetFromIterator_method_caller'>
         """
         # You would hardly ever see an instance of this class alive.
         return EnumeratedSetFromIterator_method_caller(inst, self.f, **self.options)

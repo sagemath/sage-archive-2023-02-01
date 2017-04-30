@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Hyperbolic Points
 
@@ -83,7 +84,7 @@ class HyperbolicPoint(Element):
       appropriate model
     - ``is_boundary`` -- whether the point is a boundary point
     - ``check`` -- (default: ``True``) if ``True``, then check to make sure
-      the coordinates give a valid point the the model
+      the coordinates give a valid point in the model
 
     EXAMPLES:
 
@@ -165,11 +166,15 @@ class HyperbolicPoint(Element):
         sage: HyperbolicPlane().KM().get_point((1,0))
         Boundary point in KM (1, 0)
 
-    In the HM model, the coordinates of a poi nt are on the
+    In the HM model, the coordinates of a point are on the
     hyperboloidgiven by `x^2 + y^2 - z^2 = -1`::
 
         sage: HyperbolicPlane().HM().get_point((0,0,1))
         Point in HM (0, 0, 1)
+        sage: HyperbolicPlane().HM().get_point((0,0,2))
+        Traceback (most recent call last):
+        ...
+        ValueError: (0, 0, 2) is not a valid point in the HM model
         sage: HyperbolicPlane().HM().get_point((1,0,0), is_boundary=True)
         Traceback (most recent call last):
         ...

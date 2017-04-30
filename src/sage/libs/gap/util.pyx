@@ -2,16 +2,20 @@
 Utility functions for libGAP
 """
 
-###############################################################################
-#       Copyright (C) 2012, Volker Braun <vbraun.name@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2012 Volker Braun <vbraun.name@gmail.com>
 #
-#   Distributed under the terms of the GNU General Public License (GPL)
-#   as published by the Free Software Foundation; either version 2 of
-#   the License, or (at your option) any later version.
-#                   http://www.gnu.org/licenses/
-###############################################################################
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from __future__ import print_function, absolute_import
 
+from sage.interfaces.gap_workspace import prepare_workspace_dir
+from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from sage.env import SAGE_LOCAL, GAP_ROOT_DIR
 from libc.stdint cimport uintptr_t
 from .element cimport *
@@ -59,17 +63,17 @@ cdef class ObjWrapper(object):
         cdef result
         cdef libGAP_Obj self_value = self.value
         cdef libGAP_Obj other_value = other.value
-        if op==0:      # <   0
+        if op == Py_LT:
             return self_value < other_value
-        elif op==1:    # <=  1
+        elif op == Py_LE:
             return self_value <= other_value
-        elif op==2:    # ==  2
+        elif op == Py_EQ:
             return self_value == other_value
-        elif op==4:    # >   4
+        elif op == Py_GT:
             return self_value > other_value
-        elif op==5:    # >=  5
+        elif op == Py_GE:
             return self_value >= other_value
-        elif op==3:    # !=  3
+        elif op == Py_NE:
             return self_value != other_value
         else:
             assert False  # unreachable
@@ -235,7 +239,11 @@ cdef initialize():
 
     # Save a new workspace if necessary
     if not workspace_is_up_to_date:
-        gap_eval('SaveWorkspace("{0}")'.format(workspace))
+        prepare_workspace_dir()
+        from sage.misc.temporary_file import atomic_write
+        with atomic_write(workspace) as f:
+            f.close()
+            gap_eval('SaveWorkspace("{0}")'.format(f.name))
 
 
 ############################################################################

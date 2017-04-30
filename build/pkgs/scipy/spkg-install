@@ -26,6 +26,12 @@ fi
 # Make sure that the fortran objects are compiled with -fPIC
 export FFLAGS="$FFLAGS -fPIC"
 export FCFLAGS="$FCFLAGS -fPIC"
+if [ "$UNAME" = "CYGWIN" -a "$SAGE_DEBUG" = "yes" ]; then
+    # Needed for just one or two modules when compiling in debug mode
+    # Otherwise the debug symbols create too many sections in the binary
+    export CPPFLAGS="$CPPFLAGS -Wa,-mbig-obj"
+fi
+
 
 # This avoids problems on some systems -- until we officially
 # support umfpack (which we will likely do, since cvxopt I think includes it):
@@ -35,16 +41,6 @@ UMFPACK="None"; export UMFPACK
 # which is bad.)
 
 cd src/
-
-# Apply patches (if any):
-for patch in ../patches/*.patch; do
-    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
 
 # Install:
 $PIP_INSTALL .

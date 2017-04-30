@@ -2,9 +2,7 @@ from __future__ import absolute_import
 from .lazy_attribute import lazy_attribute, lazy_class_attribute
 from .lazy_import import lazy_import
 
-from .misc import (alarm, cancel_alarm,
-                  ellipsis_range, ellipsis_iter, xsrange, sxrange,
-                  BackslashOperator, getitem,
+from .misc import (BackslashOperator, getitem,
                   cputime, verbose, set_verbose, set_verbose_files,
                   get_verbose_files, unset_verbose_files, get_verbose,
                   union, uniq, powerset, subsets,
@@ -15,8 +13,6 @@ from .misc import (alarm, cancel_alarm,
                   SAGE_DB, SAGE_TMP,
                   newton_method_sizes, compose,
                   self_compose, nest)
-
-lazy_import('sage.arith.srange', 'srange', deprecation=20334)
 
 from .banner import version, banner
 
@@ -52,10 +48,9 @@ from .fpickle import pickle_function, unpickle_function
 
 from .dist import install_scripts
 
-from .package import (install_package,
-        installed_packages, is_package_installed,
+from .package import (installed_packages, is_package_installed,
         standard_packages, optional_packages, experimental_packages,
-        upgrade, package_versions)
+        package_versions)
 
 from .pager import pager
 

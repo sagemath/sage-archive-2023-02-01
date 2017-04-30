@@ -24,7 +24,8 @@ include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
 from sage.libs.cypari2.paridecl cimport *
 
-from sage.structure.sage_object cimport SageObject
+from sage.structure.sage_object cimport (SageObject, richcmp,
+                                         richcmp_not_equal, rich_to_bool)
 from sage.structure.element cimport Element, ModuleElement, RingElement
 
 from sage.structure.parent cimport Parent
@@ -34,7 +35,7 @@ from sage.rings.ring cimport Ring
 from sage.rings.finite_rings.finite_field_base cimport FiniteField
 
 from sage.libs.pari.all import pari
-from sage.libs.cypari2.gen cimport gen
+from sage.libs.cypari2.gen cimport Gen
 
 from sage.interfaces.gap import is_GapElement
 
@@ -351,13 +352,13 @@ cdef class Cache_ntl_gf2e(SageObject):
                 return self._zero_element
             raise ZeroDivisionError
 
-        elif isinstance(e, gen):
+        elif isinstance(e, Gen):
             pass # handle this in next if clause
 
         elif isinstance(e, FiniteFieldElement_pari_ffelt) or \
              isinstance(e, FiniteField_ext_pariElement):
             # Reduce to pari
-            e = e._pari_()
+            e = e.__pari__()
 
         elif is_GapElement(e):
             from sage.interfaces.gap import gfq_gap_to_sage
@@ -366,9 +367,9 @@ cdef class Cache_ntl_gf2e(SageObject):
             raise TypeError("unable to coerce %r" % type(e))
 
         cdef GEN t
-        if isinstance(e, gen):
+        if isinstance(e, Gen):
             sig_on()
-            t = (<gen>e).g
+            t = (<Gen>e).g
             if typ(t) == t_FFELT:
                 t = FF_to_FpXQ(t)
             else:
@@ -804,7 +805,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             from sage.groups.generic import power
             return power(self,exp)
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         Comparison of finite field elements.
 
@@ -847,14 +848,15 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         (<Cache_ntl_gf2e>left._parent._cache).F.restore()
         cdef int c = (<FiniteField_ntl_gf2eElement>left).x == (<FiniteField_ntl_gf2eElement>right).x
         if c == 1:
-            return 0
+            return rich_to_bool(op, 0)
         else:
-            r = cmp(GF2X_deg(GF2E_rep((<FiniteField_ntl_gf2eElement>left).x)), GF2X_deg(GF2E_rep((<FiniteField_ntl_gf2eElement>right).x)))
-            if r:
-                return r
+            lx = GF2X_deg(GF2E_rep((<FiniteField_ntl_gf2eElement>left).x))
+            rx = GF2X_deg(GF2E_rep((<FiniteField_ntl_gf2eElement>right).x))
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
             li = left.integer_representation()
             ri = right.integer_representation()
-            return cmp(li,ri)
+            return richcmp(li, ri, op)
 
     def _integer_(FiniteField_ntl_gf2eElement self, Integer):
         """

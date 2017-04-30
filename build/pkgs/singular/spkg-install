@@ -10,21 +10,7 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
-cd src
-
-# Apply all patches
-for patch in ../patches/*.patch; do
-    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
-
-SRC=`pwd`/latest
-SHARED=`pwd`/shared
-
+SRC=`pwd`/src
 cd "$SRC"
 
 if [ "x$SAGE_DEBUG" = "xyes" ]; then
@@ -87,6 +73,7 @@ remove_old_version()
     rm -f "$SAGE_LOCAL"/lib/libresources*
     rm -r "$SAGE_LOCAL"/lib/libgfan*
     rm -rf "$SAGE_LOCAL/share/singular"
+    rm -f "$SAGE_LOCAL"/share/info/singular*
 }
 
 config()
@@ -109,6 +96,7 @@ config()
                 --enable-Singular \
                 --enable-factory \
                 --disable-doc \
+                --disable-polymake \
                 $SINGULAR_CONFIGURE
 
     if [ $? -ne 0 ]; then
@@ -134,13 +122,6 @@ build_singular()
 
 }
 
-install_docs()
-{
-    cd "$SHARED"
-    $CP -p singular.hlp singular.idx "$SAGE_LOCAL/share/singular/"
-}
-
-
 fix_includes()
 {
     # Fix all Singular includes to work from local/include
@@ -160,8 +141,7 @@ fix_includes()
 
 # Actually run all the functions defined above
 for i in remove_old_version config \
-  build_singular fix_includes \
-  install_docs ; do
+  build_singular fix_includes ; do
     echo "############### Singular stage $i ###############"
     cd "$SRC" && $i
 done

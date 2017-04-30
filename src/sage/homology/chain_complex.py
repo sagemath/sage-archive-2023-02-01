@@ -46,6 +46,7 @@ complex.
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from six import iteritems
 
 from copy import copy
 
@@ -397,7 +398,7 @@ class Chain_class(ModuleElement):
             return 'Trivial chain'
 
         if n == 1:
-            deg, vec = next(self._vec.iteritems())
+            deg, vec = next(iteritems(self._vec))
             return 'Chain({0}:{1})'.format(deg, vec)
 
         return 'Chain with {0} nonzero terms over {1}'.format(
@@ -466,7 +467,7 @@ class Chain_class(ModuleElement):
             True
         """
         chain_complex = self.parent()
-        for d, v in self._vec.iteritems():
+        for d, v in iteritems(self._vec):
             dv = chain_complex.differential(d) * v
             if not dv.is_zero():
                 return False
@@ -496,7 +497,7 @@ class Chain_class(ModuleElement):
             True
         """
         chain_complex = self.parent()
-        for d, v in self._vec.iteritems():
+        for d, v in iteritems(self._vec):
             d = chain_complex.differential(d - chain_complex.degree_of_differential()).transpose()
             if v not in d.image():
                 return False
@@ -540,7 +541,7 @@ class Chain_class(ModuleElement):
             True
         """
         vectors = dict()
-        for d, v in self._vec.iteritems():
+        for d, v in iteritems(self._vec):
             v = scalar * v
             if not v.is_zero():
                 v.set_immutable()
@@ -629,10 +630,10 @@ class ChainComplex_class(Parent):
             raise ValueError('grading_group must be either ZZ or multiplicative')
         # all differentials (excluding the 0x0 ones) must be specified to the constructor
         if any(dim+degree_of_differential not in differentials and d.nrows() != 0
-               for dim, d in differentials.iteritems()):
+               for dim, d in iteritems(differentials)):
             raise ValueError('invalid differentials')
         if any(dim-degree_of_differential not in differentials and d.ncols() != 0
-               for dim, d in differentials.iteritems()):
+               for dim, d in iteritems(differentials)):
             raise ValueError('invalid differentials')
         self._grading_group = grading_group
         self._degree_of_differential = degree_of_differential
@@ -664,7 +665,7 @@ class ChainComplex_class(Parent):
         if isinstance(vectors, Chain_class):
             vectors = vectors._vec
         data = dict()
-        for degree, vec in vectors.iteritems():
+        for degree, vec in iteritems(vectors):
             if not is_Vector(vec):
                 vec = vector(self.base_ring(), vec)
                 vec.set_immutable()
@@ -779,7 +780,8 @@ class ChainComplex_class(Parent):
             sage: D.nonzero_degrees()
             (0, 1, 2, 3, 6, 7)
         """
-        return tuple(sorted(n for n,d in self._diff.iteritems() if d.ncols() > 0))
+        return tuple(sorted(n for n, d in iteritems(self._diff)
+                            if d.ncols()))
 
     @cached_method
     def ordered_degrees(self, start=None, exclude_first=False):
@@ -1017,13 +1019,13 @@ class ChainComplex_class(Parent):
             return False
         R = self.base_ring()
         equal = True
-        for d,mat in self.differential().iteritems():
+        for d, mat in iteritems(self.differential()):
             if d not in other.differential():
                 equal = equal and mat.ncols() == 0 and mat.nrows() == 0
             else:
                 equal = (equal and
                          other.differential()[d].change_ring(R) == mat.change_ring(R))
-        for d,mat in other.differential().iteritems():
+        for d, mat in iteritems(other.differential()):
             if d not in self.differential():
                 equal = equal and mat.ncols() == 0 and mat.nrows() == 0
         return equal
@@ -1401,7 +1403,8 @@ class ChainComplex_class(Parent):
             raise NotImplementedError('only implemented if the base ring is ZZ or a field')
         H = self.homology(deg, base_ring=base_ring)
         if isinstance(H, dict):
-            return dict([deg, homology_group.dimension()] for deg, homology_group in H.iteritems())
+            return {deg: homology_group.dimension()
+                    for deg, homology_group in iteritems(H)}
         else:
             return H.dimension()
 
@@ -1524,6 +1527,69 @@ class ChainComplex_class(Parent):
         for d in self.differential():
             data[-d] = self.differential()[d]
         return ChainComplex(data, degree=-deg)
+
+    def shift(self, n=1):
+        """
+        Shift this chain complex `n` times.
+
+        INPUT:
+
+        - ``n`` -- an integer (optional, default 1)
+
+        The *shift* operation is also sometimes called *translation* or
+        *suspension*.
+
+        To shift a chain complex by `n`, shift its entries up by `n`
+        (if it is a chain complex) or down by `n` (if it is a cochain
+        complex); that is, shifting by 1 always shifts in the opposite
+        direction of the differential. In symbols, if `C` is a chain
+        complex and `C[n]` is its `n`-th shift, then `C[n]_j =
+        C_{j-n}`. The differential in the shift `C[n]` is obtained by
+        multiplying each differential in `C` by `(-1)^n`.
+
+        Caveat: different sources use different conventions for
+        shifting: what we call `C[n]` might be called `C[-n]` in some
+        places. See for example.
+        https://ncatlab.org/nlab/show/suspension+of+a+chain+complex
+        (which uses `C[n]` as we do but acknowledges `C[-n]`) or 1.2.8
+        in [Wei1994]_ (which uses `C[-n]`).
+
+        EXAMPLES::
+
+            sage: S1 = simplicial_complexes.Sphere(1).chain_complex()
+            sage: S1.shift(1).differential(2) == -S1.differential(1)
+            True
+            sage: S1.shift(2).differential(3) == S1.differential(1)
+            True
+            sage: S1.shift(3).homology(4)
+            Z
+
+        For cochain complexes, shifting goes in the other
+        direction. Topologically, this makes sense if we grade the
+        cochain complex for a space negatively::
+
+            sage: T = simplicial_complexes.Torus()
+            sage: co_T = T.chain_complex()._flip_()
+            sage: co_T.homology()
+            {-2: Z, -1: Z x Z, 0: Z}
+            sage: co_T.degree_of_differential()
+            1
+            sage: co_T.shift(2).homology()
+            {-4: Z, -3: Z x Z, -2: Z}
+
+        You can achieve the same result by tensoring (on the left, to
+        get the signs right) with a rank one free module in degree
+        ``-n * deg``, if ``deg`` is the degree of the differential::
+
+            sage: C = ChainComplex({-2: matrix(ZZ, 0, 1)})
+            sage: C.tensor(co_T).homology()
+            {-4: Z, -3: Z x Z, -2: Z}
+        """
+        deg = self.degree_of_differential()
+        shift = n * deg
+        sgn = (-1)**n
+        return ChainComplex({k-shift: sgn * self._diff[k] for k in self._diff},
+                            degree_of_differential=deg)
 
     def _chomp_repr_(self):
         r"""
@@ -1936,6 +2002,17 @@ class ChainComplex_class(Parent):
                                                 [y]
                              [ x -y]            [x]
              0 <-- C_(8, 3) <-------- C_(6, 2) <---- C_(4, 1) <-- 0
+
+        Check that :trac:`21760` is fixed::
+
+            sage: C = ChainComplex({0: matrix(ZZ, 0, 2)}, degree=-1)
+            sage: ascii_art(C)
+             0 <-- C_0 <-- 0
+            sage: T = C.tensor(C)
+            sage: ascii_art(T)
+             0 <-- C_0 <-- 0
+            sage: T.free_module_rank(0)
+            4
         """
         if not factors:
             return self
@@ -1961,9 +2038,9 @@ class ChainComplex_class(Parent):
             # Setup
             d = ret.differential()
             dD = D.differential()
-            deg = sorted((k, ret.free_module_rank(k)) for k in d.keys()
+            deg = sorted((k, ret.free_module_rank(k)) for k in d
                          if ret.free_module_rank(k) > 0)
-            degD = sorted((k, D.free_module_rank(k)) for k in dD.keys()
+            degD = sorted((k, D.free_module_rank(k)) for k in dD
                           if D.free_module_rank(k) > 0)
             diff = {}
 
@@ -1978,26 +2055,22 @@ class ChainComplex_class(Parent):
                         diff[a+b] = {}
                     mor = diff[a+b]
                     cur = {}
-                    if rp != 0:
-                        cur[(a+deg_diff,b)] = []
-                    if sp != 0:
-                        cur[(a,b+deg_diff)] = []
+                    cur[(a+deg_diff,b)] = []
+                    cur[(a,b+deg_diff)] = []
 
                     for i in range(r):
                         for j in range(s):
                             # \partial x_i \otimes y_j
-                            if rp != 0:
-                                vec = [zero]*(rp*s)
-                                for k,val in enumerate(d[a].column(i)):
-                                    vec[s*k+j] += val
-                                cur[(a+deg_diff,b)].append(vec)
+                            vec = [zero]*(rp*s)
+                            for k,val in enumerate(d[a].column(i)):
+                                vec[s*k+j] += val
+                            cur[(a+deg_diff,b)].append(vec)
 
                             # (-1)^a x_i \otimes \partial y_j
-                            if sp != 0:
-                                vec = [zero]*(r*sp)
-                                for k,val in enumerate(dD[b].column(j)):
-                                    vec[sp*i+k] += scalar(a) * val
-                                cur[(a,b+deg_diff)].append(vec)
+                            vec = [zero]*(r*sp)
+                            for k,val in enumerate(dD[b].column(j)):
+                                vec[sp*i+k] += scalar(a) * val
+                            cur[(a,b+deg_diff)].append(vec)
 
                     mor[a,b] = cur
 

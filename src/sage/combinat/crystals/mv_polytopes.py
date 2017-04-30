@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 r"""
 Crystal Of Mirković-Vilonen (MV) Polytopes
+
+AUTHORS:
+
+- Dinakar Muthiah, Travis Scrimshaw (2015-05-11): initial version
 """
 
 #*****************************************************************************
-#       Copyright (C) 2015 Dinakar Muthiah <your email>
+#       Copyright (C) 2015 Dinakar Muthiah <muthiah at ualberta.ca>
+#                     2015 Travis Scrimshaw <tscrimsh at umn.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -239,12 +244,121 @@ class MVPolytope(PBWCrystalElement):
         return P.plot_mv_polytope(self, **options)
 
 class MVPolytopes(PBWCrystal):
-    """
+    r"""
     The crystal of Mirković-Vilonen (MV) polytopes.
+
+    Let `W` denote the corresponding Weyl group and `P_{\RR} = \RR \otimes P`.
+    Let `\Gamma = \{ w \Lambda_i \mid w \in W, i \in I \}`. Consider
+    `M = (M_{\gamma} \in \ZZ)_{\gamma \in \Gamma}` that satisfy the
+    *tropical Plücker relations* (see Proposition 7.1 of [BZ01]_).
+    The *MV polytope* is defined as
+
+    .. MATH::
+
+        P(M) = \{ \alpha \in P_{\RR} \mid
+        \langle \alpha, \gamma \rangle \geq M_{\gamma}
+        \text{ for all } \gamma \in \Gamma \}.
+
+    The vertices `\(\mu_w\)_{w \in W}` are given by
+
+    .. MATH::
+
+        \langle \mu_w, \gamma \rangle = M_{\gamma}
+
+    and are known as the GGMS datum of the MV polytope.
+
+    Each path from `\mu_e` to `\mu_{w_0}` corresponds to a reduced
+    expression `\mathbf{i} = (i_1, \ldots, i_m)` for `w_0` and the
+    corresponding edge lengths `(n_k)_{k=1}^m` from the Lusztig datum
+    with respect to `\mathbf{i}`. Explicitly, we have
+
+    .. MATH::
+
+        \begin{aligned}
+        n_k & = -M_{w_{k-1} \Lambda_{i_k}} - M_{w_k \Lambda_{i_k}}
+        - \sum_{j \neq i} a_{ji} M_{w_k \Lambda_j},
+        \\ \mu_{w_k} - \mu_{w_{k-1}} & = n_k w_{k-1} \alpha_{i_k},
+        \end{aligned}
+
+    where `w_k = s_{i_1} \cdots s_{i_k}` and `(a_{ji)` is the Cartan matrix.
+
+    MV polytopes have a crystal structure that corresponds to the
+    crystal structure, which is isomorphic to `\mathcal{B}(\infty)`
+    with `\mu_{w_0} = 0`, on
+    :class:`PBW data <sage.combinat.crystals.pbw_crystal.PBWCrystal>`.
+    Specifically, we have `f_j P(M)` as being the unique MV polytope
+    given by shifting `\mu_e` by `-\alpha_j` and fixing the vertices
+    `\mu_w` when `s_j w < w` (in Bruhat order) and the weight is given by
+    `\mu_e`. Furthermore, the `*`-involution is given by negating `P(M)`.
 
     INPUT:
 
     - ``cartan_type`` -- a Cartan type
+
+    EXAMPLES::
+
+        sage: MV = crystals.infinity.MVPolytopes(['B', 3])
+        sage: hw = MV.highest_weight_vector()
+        sage: x = hw.f_string([1,2,2,3,3,1,3,3,2,3,2,1,3,1,2,3,1,2,1,3,2]); x
+        MV polytope with Lusztig datum (1, 1, 1, 3, 1, 0, 0, 1, 1)
+
+    Elements are expressed in terms of Lusztig datum for a fixed
+    reduced expression of `w_0`::
+
+        sage: MV.default_long_word()
+        [1, 3, 2, 3, 1, 2, 3, 1, 2]
+        sage: MV.set_default_long_word([2,1,3,2,1,3,2,3,1])
+        sage: x
+        MV polytope with Lusztig datum (3, 1, 1, 0, 1, 0, 1, 3, 4)
+        sage: MV.set_default_long_word([1, 3, 2, 3, 1, 2, 3, 1, 2])
+
+    We can construct elements by giving it Lusztig data (with respect
+    to the default long word reduced expression)::
+
+        sage: MV([1,1,1,3,1,0,0,1,1])
+        MV polytope with Lusztig datum (1, 1, 1, 3, 1, 0, 0, 1, 1)
+
+    We can also construct elements by passing in a reduced expression
+    for a long word::
+
+        sage: x = MV([1,1,1,3,1,0,0,1,1], [3,2,1,3,2,3,2,1,2]); x
+        MV polytope with Lusztig datum (1, 1, 1, 0, 1, 0, 5, 1, 1)
+        sage: x.to_highest_weight()[1]
+        [1, 2, 2, 2, 2, 2, 1, 3, 3, 3, 3, 2, 3, 2, 3, 3, 2, 3, 3, 2, 1, 3]
+
+    The highest weight crystal `B(\lambda) \subseteq B(\infty)` is
+    characterized by the MV polytopes that sit inside of `W \lambda`
+    (translating `\mu_{w_0} \mapsto \lambda`)::
+
+        sage: MV = crystals.infinity.MVPolytopes(['A',2])
+        sage: La = MV.weight_lattice_realization().fundamental_weights()
+        sage: R = crystals.elementary.R(La[1]+La[2])
+        sage: T = tensor([R, MV])
+        sage: x = T(R.module_generators[0], MV.highest_weight_vector())
+        sage: lw = x.to_lowest_weight()[0]; lw
+        [(2, 1, 0), MV polytope with Lusztig datum (1, 1, 1)]
+        sage: lw[1].polytope().vertices()
+        (A vertex at (0, 0, 0),
+         A vertex at (0, 1, -1),
+         A vertex at (1, -1, 0),
+         A vertex at (1, 1, -2),
+         A vertex at (2, -1, -1),
+         A vertex at (2, 0, -2))
+
+    .. PLOT::
+        :width: 300 px
+
+        MV = crystals.infinity.MVPolytopes(['A',2])
+        x = MV.module_generators[0].f_string([1,2,2,1])
+        L = RootSystem(['A',2,1]).ambient_space()
+        p = L.plot(bounding_box=[[-2,2],[-4,2]]) + x.plot()
+        p.axes(False)
+        sphinx_plot(x.plot())
+
+    REFERENCES:
+
+    - [Kam2007]_
+    - [Kam2010]_
     """
     def __init__(self, cartan_type):
         """

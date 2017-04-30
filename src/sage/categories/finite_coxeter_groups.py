@@ -267,7 +267,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             return LatticePoset([self, shard_comparison])
 
         def bhz_poset(self):
-            """
+            r"""
             Return the Bergeron-Hohlweg-Zabrocki partial order on the Coxeter
             group.
 
@@ -669,6 +669,19 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 Finite lattice containing 8 elements
             """
             return self.m_cambrian_lattice(c=c, m=1, on_roots=on_roots)
+
+        def is_real(self):
+            """
+            Return ``True`` since ``self`` is a real reflection group.
+
+            EXMAPLES::
+
+                sage: CoxeterGroup(['F',4]).is_real()
+                True
+                sage: CoxeterGroup(['H',4]).is_real()
+                True
+            """
+            return True
 
     class ElementMethods:
 

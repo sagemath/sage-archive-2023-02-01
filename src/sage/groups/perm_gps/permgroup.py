@@ -122,8 +122,6 @@ REFERENCES:
    generators.
 
 """
-from __future__ import absolute_import
-
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #                          David Joyner <wdjoyner@gmail.com>
@@ -131,6 +129,8 @@ from __future__ import absolute_import
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+from six.moves import range
 
 from functools import wraps
 
@@ -426,7 +426,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             #to make the domain contain all integers up to the max.
             #This is needed for backward compatibility
             if all(isinstance(p, (Integer, int, long)) for p in domain):
-                domain = range(min([1] + domain), max([1] + domain)+1)
+                domain = list(range(min([1] + domain), max([1] + domain)+1))
 
         if domain not in FiniteEnumeratedSets():
             domain = FiniteEnumeratedSet(domain)
@@ -500,7 +500,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             False
         """
         domain = self.domain()
-        natural_domain = FiniteEnumeratedSet(range(1, len(domain)+1))
+        natural_domain = FiniteEnumeratedSet(list(range(1, len(domain)+1)))
         return domain == natural_domain
 
     def _gap_init_(self):
@@ -602,7 +602,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         it may be overridden in derived subclasses (most importantly
         ``sage.rings.number_field.galois_group.GaloisGroup_v2``).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: AlternatingGroup(17)._element_class()
             <type 'sage.groups.perm_gps.permgroup_element.PermutationGroupElement'>
@@ -1053,7 +1053,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             '[1, 2, 3, 4, 5]'
         """
         if domain is None:
-            return repr(range(1, self.degree()+1))
+            return repr(list(range(1, self.degree()+1)))
         else:
             try:
                 return repr([self._domain_to_gap[point] for point in domain])
@@ -1094,7 +1094,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         - ``x,y`` -- two elements of the domain.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = groups.permutation.Cyclic(14)
             sage: g = G.representative_action(1,10)
@@ -3106,7 +3106,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
             - :meth:`~PermutationGroup_generic.is_primitive`
 
-        EXAMPLE:
+        EXAMPLES:
 
         Picking an interesting group::
 
@@ -3316,7 +3316,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         r"""
         Return a minimal generating set
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = graphs.CompleteGraph(4)
             sage: g.relabel(['a','b','c','d'])
@@ -4085,7 +4085,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
     def poincare_series(self, p=2, n=10):
         r"""
-        Returns the Poincare series of `G \mod p` (`p \geq 2` must be a prime),
+        Return the Poincaré series of `G \mod p` (`p \geq 2` must be a prime),
         for `n` large.
 
         In other words, if you input a finite group `G`, a prime `p`, and a

@@ -131,12 +131,12 @@ class WeightSpace(CombinatorialFreeModule):
     TESTS::
 
         sage: for ct in CartanType.samples(crystallographic=True)+[CartanType(["A",2],["C",5,1])]:
-        ...       TestSuite(ct.root_system().weight_lattice()).run()
-        ...       TestSuite(ct.root_system().weight_space()).run()
+        ....:     TestSuite(ct.root_system().weight_lattice()).run()
+        ....:     TestSuite(ct.root_system().weight_space()).run()
         sage: for ct in CartanType.samples(affine=True):
-        ...       if ct.is_implemented():
-        ...           P = ct.root_system().weight_space(extended=True)
-        ...           TestSuite(P).run()
+        ....:     if ct.is_implemented():
+        ....:         P = ct.root_system().weight_space(extended=True)
+        ....:         TestSuite(P).run()
     """
 
     @staticmethod
@@ -476,8 +476,8 @@ class WeightSpaceElement(CombinatorialFreeModuleElement):
         The fundamental weights and the simple coroots are dual bases::
 
             sage: matrix([ [ Lambda[i].scalar(alphacheck[j])
-            ...              for i in L.index_set() ]
-            ...            for j in L.index_set() ])
+            ....:            for i in L.index_set() ]
+            ....:          for j in L.index_set() ])
             [1 0 0 0 0]
             [0 1 0 0 0]
             [0 0 1 0 0]

@@ -64,6 +64,7 @@ __append_to_doc(
      "CompleteGraph",
      "CompleteMultipartiteGraph",
      "DiamondGraph",
+     "DipoleGraph",
      "EmptyGraph",
      "Grid2dGraph",
      "GridGraph",
@@ -73,6 +74,7 @@ __append_to_doc(
      "LollipopGraph",
      "PathGraph",
      "StarGraph",
+     "TadpoleGraph",
      "ToroidalGrid2dGraph",
      "Toroidal6RegularGrid2dGraph"]
     )
@@ -218,6 +220,7 @@ __append_to_doc(
      "line_graph_forbidden_subgraphs",
      "MathonPseudocyclicMergingGraph",
      "MathonPseudocyclicStronglyRegularGraph",
+     "MuzychukS6Graph",
      "MycielskiGraph",
      "MycielskiStep",
      "NKStarGraph",
@@ -294,6 +297,7 @@ __doc__ += """
 
 __append_to_doc(
     ["RandomBarabasiAlbert",
+     "RandomBicubicPlanar",
      "RandomBipartite",
      "RandomBoundedToleranceGraph",
      "RandomGNM",
@@ -1013,7 +1017,7 @@ class GraphGenerators():
         The first character is the number of vertices, followed by
         n11,...,n1k,null character,n21,...,n2k',null character, ...
 
-        where the n1* are all neighbors of n1 and all n2* are the 
+        where the n1* are all neighbors of n1 and all n2* are the
         neighbors of n2, ...
         Besides, these neighbors are enumerated in clockwise order.
 
@@ -1866,7 +1870,6 @@ class GraphGenerators():
     HouseGraph               = staticmethod(sage.graphs.generators.basic.HouseGraph)
     HouseXGraph              = staticmethod(sage.graphs.generators.basic.HouseXGraph)
     LadderGraph              = staticmethod(sage.graphs.generators.basic.LadderGraph)
-    LollipopGraph            = staticmethod(sage.graphs.generators.basic.LollipopGraph)
     PathGraph                = staticmethod(sage.graphs.generators.basic.PathGraph)
     StarGraph                = staticmethod(sage.graphs.generators.basic.StarGraph)
     Toroidal6RegularGrid2dGraph = staticmethod(sage.graphs.generators.basic.Toroidal6RegularGrid2dGraph)
@@ -1983,6 +1986,7 @@ class GraphGenerators():
     chang_graphs           = staticmethod(sage.graphs.generators.families.chang_graphs)
     CirculantGraph         = staticmethod(sage.graphs.generators.families.CirculantGraph)
     CubeGraph              = staticmethod(sage.graphs.generators.families.CubeGraph)
+    DipoleGraph            = staticmethod(sage.graphs.generators.families.DipoleGraph)
     DorogovtsevGoltsevMendesGraph = staticmethod(sage.graphs.generators.families.DorogovtsevGoltsevMendesGraph)
     FibonacciTree          = staticmethod(sage.graphs.generators.families.FibonacciTree)
     FoldedCubeGraph        = staticmethod(sage.graphs.generators.families.FoldedCubeGraph)
@@ -1997,8 +2001,10 @@ class GraphGenerators():
     KneserGraph            = staticmethod(sage.graphs.generators.families.KneserGraph)
     LCFGraph               = staticmethod(sage.graphs.generators.families.LCFGraph)
     line_graph_forbidden_subgraphs = staticmethod(sage.graphs.generators.families.line_graph_forbidden_subgraphs)
+    LollipopGraph          = staticmethod(sage.graphs.generators.families.LollipopGraph)
     MathonPseudocyclicMergingGraph = staticmethod(sage.graphs.generators.families.MathonPseudocyclicMergingGraph)
     MathonPseudocyclicStronglyRegularGraph = staticmethod(sage.graphs.generators.families.MathonPseudocyclicStronglyRegularGraph)
+    MuzychukS6Graph        = staticmethod(sage.graphs.generators.families.MuzychukS6Graph)
     MycielskiGraph         = staticmethod(sage.graphs.generators.families.MycielskiGraph)
     MycielskiStep          = staticmethod(sage.graphs.generators.families.MycielskiStep)
     NKStarGraph            = staticmethod(sage.graphs.generators.families.NKStarGraph)
@@ -2012,6 +2018,7 @@ class GraphGenerators():
     SquaredSkewHadamardMatrixGraph = staticmethod(sage.graphs.generators.families.SquaredSkewHadamardMatrixGraph)
     SwitchedSquaredSkewHadamardMatrixGraph = staticmethod(sage.graphs.generators.families.SwitchedSquaredSkewHadamardMatrixGraph)
     strongly_regular_graph = staticmethod(sage.graphs.strongly_regular_db.strongly_regular_graph)
+    TadpoleGraph           = staticmethod(sage.graphs.generators.families.TadpoleGraph)
     trees                  = staticmethod(sage.graphs.generators.families.trees)
     TuranGraph             = staticmethod(sage.graphs.generators.families.TuranGraph)
     WheelGraph             = staticmethod(sage.graphs.generators.families.WheelGraph)
@@ -2064,6 +2071,7 @@ class GraphGenerators():
     import sage.graphs.generators.random
     RandomBarabasiAlbert     = staticmethod(sage.graphs.generators.random.RandomBarabasiAlbert)
     RandomBipartite          = staticmethod(sage.graphs.generators.random.RandomBipartite)
+    RandomBicubicPlanar      = staticmethod(sage.graphs.generators.random.RandomBicubicPlanar)
     RandomBoundedToleranceGraph = staticmethod(sage.graphs.generators.random.RandomBoundedToleranceGraph)
     RandomGNM                = staticmethod(sage.graphs.generators.random.RandomGNM)
     RandomGNP                = staticmethod(sage.graphs.generators.random.RandomGNP)
@@ -2258,7 +2266,7 @@ def check_aut(aut_gens, cut_vert, n):
     an element of the auto- morphism group that sends cut_vert to n,
     and check_aut generates these for the canaug_traverse function.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Note that the last two entries indicate that none of the
     automorphism group has yet been searched - we are starting at the
@@ -2462,7 +2470,7 @@ def check_aut_edge(aut_gens, cut_edge, i, j, n, dig=False):
     j}, and check_aut generates these for the canaug_traverse
     function.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Note that the last two entries indicate that none of the
     automorphism group has yet been searched - we are starting at the

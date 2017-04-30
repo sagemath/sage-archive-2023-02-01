@@ -290,7 +290,7 @@ class Genus2reduction(SageObject):
         sage: factor(genus2reduction(x^3 + x + 1, x^5 + 2*x^4 + 2*x^3 + x^2 - x - 1).conductor)
         5^6
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: genus2reduction(0, x^6 + 3*x^3 + 63)
         Reduction data about this proper smooth genus 2 curve:

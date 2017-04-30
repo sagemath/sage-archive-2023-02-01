@@ -463,21 +463,6 @@ class FunctionFieldMorphism(RingHomomorphism):
         self._im_gen = im_gen
         self._base_morphism = base_morphism
 
-    def is_injective(self):
-        """
-        Returns True since homomorphisms of fields are injective.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(QQ)
-            sage: f = K.hom(1/x); f
-            Function Field endomorphism of Rational function field in x over Rational Field
-              Defn: x |--> 1/x
-            sage: f.is_injective()
-            True
-        """
-        return True
-
     def _repr_type(self):
         r"""
         Return the type of this map (a morphism of function fields), for the
@@ -603,3 +588,55 @@ class FunctionFieldMorphism_rational(FunctionFieldMorphism):
         """
         a = x.element()
         return a.subs({a.parent().gen():self._im_gen})
+
+class FunctionFieldConversionToConstantBaseField(Map):
+    r"""
+    Conversion map from the function field to its constant base field.
+
+    EXAMPLES::
+
+        sage: K.<x> = FunctionField(QQ)
+        sage: QQ.convert_map_from(K)
+        Conversion map:
+          From: Rational function field in x over Rational Field
+          To:   Rational Field
+
+    """
+    def __init__(self, parent):
+        r"""
+        TESTS::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: f = QQ.convert_map_from(K)
+            sage: from sage.rings.function_field.maps import FunctionFieldConversionToConstantBaseField
+            sage: isinstance(f, FunctionFieldConversionToConstantBaseField)
+            True
+
+        """
+        Map.__init__(self, parent)
+
+    def _repr_type(self):
+        r"""
+        Return the type of this map (a conversion), for the purposes of printing out self.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: QQ.convert_map_from(K) # indirect doctest
+            Conversion map:
+              From: Rational function field in x over Rational Field
+              To:   Rational Field
+
+        """
+        return "Conversion"
+
+    def _call_(self, x):
+        """
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: QQ(K(1)) # indirect doctest
+            1
+
+        """
+        return x.parent()._to_constant_base_field(x)

@@ -67,7 +67,7 @@ cdef class FiniteFieldIterator:
         r"""
         Return the next element in the iterator.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: k = iter(FiniteField(9, 'a', impl='pari_ffelt'))
             sage: next(k) # indirect doctest
@@ -1312,7 +1312,7 @@ cdef class FiniteField(Field):
         coercion and pickling cannot work as one might expect.  See
         below for an example.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = GF(5).algebraic_closure()
             sage: F

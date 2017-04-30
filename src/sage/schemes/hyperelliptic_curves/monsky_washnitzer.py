@@ -388,7 +388,7 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
             column.extend([base_ring(0)] * (degree - len(column)))
         return coeffs
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         EXAMPLES::
 
@@ -403,6 +403,8 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
             True
         """
         return not not self._triple[0] or not not self._triple[1] or not not self._triple[2]
+
+    __nonzero__ = __bool__
 
     def __cmp__(self, other):
         """
@@ -742,7 +744,7 @@ def reduce_negative(Q, p, coeffs, offset, exact_form=None):
     in coeffs[offset]. Note that coeffs[i] will be meaningless for i
     offset after this function is finished.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R.<x> = Integers(5^3)['x']
         sage: Q = x^3 - x + R(1/4)
@@ -843,7 +845,7 @@ def reduce_positive(Q, p, coeffs, offset, exact_form=None):
     in coeffs[offset]. Note that coeffs[i] will be meaningless for i
     offset after this function is finished.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R.<x> = Integers(5^3)['x']
         sage: Q = x^3 - x + R(1/4)
@@ -935,7 +937,7 @@ def reduce_zero(Q, coeffs, offset, exact_form=None):
     in coeffs[offset]. This method completely ignores coeffs[i] for i
     != offset.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R.<x> = Integers(5^3)['x']
         sage: Q = x^3 - x + R(1/4)
@@ -994,7 +996,7 @@ def reduce_all(Q, p, coeffs, offset, compute_exact_form=False):
        The algorithm operates in-place, so the data in coeffs is
        destroyed.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R.<x> = Integers(5^3)['x']
         sage: Q = x^3 - x + R(1/4)
@@ -1434,7 +1436,7 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
     Try using the trace to speed up the calculation::
 
         sage: A = monsky_washnitzer.matrix_of_frobenius(x^3 - x + R(1/4),
-        ...                                             p, M, -2)
+        ....:                                           p, M, -2)
         sage: A
         [2715  187]
         [1445  408]
@@ -1493,7 +1495,7 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
         sage: M = monsky_washnitzer.adjusted_prec(p, prec)
         sage: R.<x> = PolynomialRing(Integers(p**M))
         sage: A = monsky_washnitzer.matrix_of_frobenius(            # long time
-        ...                             x^3 - x + R(1/4), p, M)     # long time
+        ....:                           x^3 - x + R(1/4), p, M)     # long time
         sage: B = A.change_ring(Integers(p**prec)); B               # long time
         [74311982 57996908]
         [95877067 25828133]
@@ -1511,7 +1513,7 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
         sage: M = monsky_washnitzer.adjusted_prec(p, prec)
         sage: R.<x> = PolynomialRing(Integers(p**M))
         sage: A = monsky_washnitzer.matrix_of_frobenius(            # long time
-        ...                             x^3 - x + R(1/4), p, M)     # long time
+        ....:                           x^3 - x + R(1/4), p, M)     # long time
         sage: B = A.change_ring(Integers(p**prec))                  # long time
         sage: B.det()                                               # long time
         5
@@ -1530,13 +1532,13 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
         sage: A = A.change_ring(Integers(p**max_prec))              # long time
         sage: result = []                                           # long time
         sage: for prec in range(1, max_prec):                       # long time
-        ...       M = monsky_washnitzer.adjusted_prec(p, prec)      # long time
-        ...       R.<x> = PolynomialRing(Integers(p^M),'x')         # long time
-        ...       B = monsky_washnitzer.matrix_of_frobenius(        # long time
-        ...                         x^3 - x + R(1/4), p, M)         # long time
-        ...       B = B.change_ring(Integers(p**prec))              # long time
-        ...       result.append(B == A.change_ring(                 # long time
-        ...                                Integers(p**prec)))      # long time
+        ....:     M = monsky_washnitzer.adjusted_prec(p, prec)      # long time
+        ....:     R.<x> = PolynomialRing(Integers(p^M),'x')         # long time
+        ....:     B = monsky_washnitzer.matrix_of_frobenius(        # long time
+        ....:                       x^3 - x + R(1/4), p, M)         # long time
+        ....:     B = B.change_ring(Integers(p**prec))              # long time
+        ....:     result.append(B == A.change_ring(                 # long time
+        ....:                              Integers(p**prec)))      # long time
         sage: result == [True] * (max_prec - 1)                     # long time
         True
 
@@ -2270,7 +2272,7 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
         else:
             raise ZeroDivisionError("Element not invertible")
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return True iff ``self`` is not zero.
 
@@ -2279,10 +2281,12 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
             sage: R.<x> = QQ['x']
             sage: E = HyperellipticCurve(x^5-3*x+1)
             sage: x,y = E.monsky_washnitzer_gens()
-            sage: x.__nonzero__()
+            sage: bool(x)
             True
         """
         return not not self._f
+
+    __nonzero__ = __bool__
 
     def __eq__(self, other):
         """
@@ -2340,7 +2344,7 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
             sage: y*x
             y*x
         """
-        # over laurent series, addition and subtraction can be
+        # over Laurent series, addition and subtraction can be
         # expensive, and the degree of this poly is small enough that
         # Karatsuba actually hurts significantly in some cases
         if self._f[0].valuation() + other._f[0].valuation() > -200:
@@ -3062,7 +3066,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
         """
         return self._coeff
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         EXAMPLES::
 
@@ -3078,6 +3082,8 @@ class MonskyWashnitzerDifferential(ModuleElement):
             False
         """
         return not not self._coeff
+
+    __nonzero__ = __bool__
 
     def _repr_(self):
         """

@@ -1570,7 +1570,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         5-torsion points of `E`::
 
             sage: for x in x_coords:
-            ...       assert X.lift_x(x).order() == 5
+            ....:     assert X.lift_x(x).order() == 5
 
         The roots of the polynomial are the `x`-coordinates of the points `P`
         such that `mP=0` but `2P\not=0`::
@@ -2518,7 +2518,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: plot(E, xmin=25,xmax=26)
             Graphics object consisting of 2 graphics primitives
 
-        With #12766 we added the components keyword::
+        With :trac:`12766` we added the components keyword::
 
             sage: E.real_components()
             2
@@ -2889,7 +2889,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: E = EllipticCurve([RR(0), RR(0), RR(1), RR(-1), RR(0)])
             sage: e = E.pari_curve()
             sage: type(e)
-            <type 'sage.libs.cypari2.gen.gen'>
+            <type 'sage.libs.cypari2.gen.Gen'>
             sage: e.type()
             't_VEC'
             sage: e.disc()
@@ -2929,7 +2929,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
     # This method is defined so that pari(E) returns exactly the same
     # as E.pari_curve().  This works even for classes that inherit from
     # EllipticCurve_generic, such as EllipticCurve_rational_field.
-    def _pari_(self):
+    def __pari__(self):
         """
         Return the PARI curve corresponding to this elliptic curve
         with the default precision of 64 bits.
@@ -2942,7 +2942,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
 
         Over a finite field::
 
-            sage: EllipticCurve(GF(2), [0,0,1,1,1])._pari_()
+            sage: EllipticCurve(GF(2), [0,0,1,1,1]).__pari__()
             [0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, Vecsmall([4]), [1, [[Vecsmall([0, 1]), Vecsmall([0, 1]), Vecsmall([0, 1])], Vecsmall([0, 1]), [Vecsmall([0, 1]), Vecsmall([0]), Vecsmall([0]), Vecsmall([0])]]], [0, 0, 0, 0]]
         """
         return self.pari_curve()

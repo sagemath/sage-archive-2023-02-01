@@ -147,6 +147,7 @@ from cpython.ref cimport *
 import sage
 from sage.structure.element cimport Element
 from sage.structure.parent cimport Parent
+from sage.structure.sage_object cimport richcmp
 
 ############################################################################
 ###                         Basic clone elements                         ###
@@ -642,7 +643,7 @@ cdef class ClonableArray(ClonableElement):
             sage: IncreasingArrays()([1,2,3])[:]
             [1, 2, 3]
             sage: type(IncreasingArrays()([1,2,3])[:])
-            <type 'list'>
+            <... 'list'>
         """
         if isinstance(key, slice):
             self._list[key.start:key.stop:key.step]
@@ -819,7 +820,7 @@ cdef class ClonableArray(ClonableElement):
         return self._hash
 
     # See protocol in comment in sage/structure/element.pyx
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         TESTS::
 
@@ -840,7 +841,7 @@ cdef class ClonableArray(ClonableElement):
             (False, True, True)
         """
         cdef ClonableArray rgt = <ClonableArray>right
-        return cmp(left._list, rgt._list)
+        return richcmp(left._list, rgt._list, op)
 
     cpdef ClonableArray __copy__(self):
         """
@@ -1353,13 +1354,13 @@ cdef class ClonableIntArray(ClonableElement):
         """
         Iterate over the items of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: I = IncreasingIntArrays()(range(5))
-            sage: I == range(5)
+            sage: I == list(range(5))
             False
-            sage: list(I) == range(5)  # indirect doctest
+            sage: list(I) == list(range(5))  # indirect doctest
             True
         """
         return iter(self.list())
@@ -1368,16 +1369,16 @@ cdef class ClonableIntArray(ClonableElement):
         """
         Convert self into a Python list.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: I = IncreasingIntArrays()(range(5))
-            sage: I == range(5)
+            sage: I == list(range(5))
             False
-            sage: I.list() == range(5)
+            sage: I.list() == list(range(5))
             True
             sage: I = IncreasingIntArrays()(range(1000))
-            sage: I.list() == range(1000)
+            sage: I.list() == list(range(1000))
             True
         """
         cdef int i
@@ -1414,7 +1415,7 @@ cdef class ClonableIntArray(ClonableElement):
             sage: el[1:3]
             [2, 3]
             sage: type(el[:])
-            <type 'list'>
+            <... 'list'>
             sage: list(el)
             [1, 2, 3]
             sage: it = iter(el); next(it), next(it)

@@ -222,8 +222,6 @@ class FormalSum(ModuleElement):
             0
             sage: abs(cmp(a,0))          # 0 is coerced into a.parent()(0)
             1
-            sage: abs(cmp(a,'string'))   # will NOT evaluate via this method
-            1
         """
         # if necessary, left and right have already been coerced to the same parent()
         return cmp(left._data, right._data)
@@ -264,7 +262,7 @@ class FormalSum(ModuleElement):
         """
         return self.__class__([(s*c, x) for (c, x) in self], check=False, parent=self.parent())
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         EXAMPLES::
 
@@ -275,12 +273,14 @@ class FormalSum(ModuleElement):
             sage: bool(FormalSums(QQ)(1))
             True
         """
-        if len(self._data) == 0:
+        if not len(self._data):
             return False
         for c, _ in self._data:
             if not c.is_zero():
                 return True
         return False
+
+    __nonzero__ = __bool__
 
     def reduce(self):
         """
@@ -395,7 +395,7 @@ class FormalSums(UniqueRepresentation, Module):
         r"""
         Return whether there is a coercion from ``X``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: FormalSums(QQ).has_coerce_map_from( FormalSums(ZZ) )   # indirect test
             True

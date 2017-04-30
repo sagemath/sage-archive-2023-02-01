@@ -15,6 +15,9 @@ from .weight_lattice_realizations import WeightLatticeRealizations
 from sage.rings.all import ZZ, QQ
 from sage.categories.homset import End
 
+import six
+
+
 class AmbientSpace(CombinatorialFreeModule):
     r"""
     Abstract class for ambient spaces
@@ -56,7 +59,7 @@ class AmbientSpace(CombinatorialFreeModule):
 
         sage: types = CartanType.samples(crystallographic = True)+[CartanType(["A",2],["C",5])]
         sage: for e in [ct.root_system().ambient_space() for ct in types]:
-        ...            TestSuite(e).run()
+        ....:          TestSuite(e).run()
     """
     def __init__(self, root_system, base_ring):
         """
@@ -386,7 +389,7 @@ class AmbientSpaceElement(CombinatorialFreeModuleElement):
         lambdacheck_mc = lambdacheck._monomial_coefficients
 
         result = self.parent().base_ring().zero()
-        for t,c in lambdacheck_mc.iteritems():
+        for t,c in six.iteritems(lambdacheck_mc):
             if t not in self_mc:
                 continue
             result += c*self_mc[t]

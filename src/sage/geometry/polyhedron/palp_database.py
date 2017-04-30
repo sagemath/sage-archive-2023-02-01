@@ -70,7 +70,7 @@ class PALPreader(SageObject):
         sage: next(iter(PALPreader(2, output='list')))
         [[1, 0], [0, 1], [-1, -1]]
         sage: type(_)
-        <type 'list'>
+        <... 'list'>
 
         sage: next(iter(PALPreader(2, output='Polyhedron')))
         A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices

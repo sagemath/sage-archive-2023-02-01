@@ -1085,10 +1085,10 @@ class Composition(CombinatorialElement):
 
             sage: n = 8
             sage: all(Composition(from_subset=(S, n)).to_subset() == S \
-            ...       for S in Subsets(n-1))
+            ....:     for S in Subsets(n-1))
             True
             sage: all(Composition(from_subset=(I.to_subset(), n)) == I \
-            ...       for I in Compositions(n))
+            ....:     for I in Compositions(n))
             True
         """
         from sage.sets.set import Set
@@ -1996,7 +1996,7 @@ def composition_iterator_fast(n):
         sage: L = list(composition_iterator_fast(4)); L
         [[1, 1, 1, 1], [1, 1, 2], [1, 2, 1], [1, 3], [2, 1, 1], [2, 2], [3, 1], [4]]
         sage: type(L[0])
-        <type 'list'>
+        <... 'list'>
     """
     # Special cases
     if n < 0:

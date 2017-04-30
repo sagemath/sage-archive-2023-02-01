@@ -104,6 +104,7 @@ from sage.interfaces.expect import (Expect, ExpectElement, ExpectFunction,
 
 from sage.misc.multireplace import multiple_replace
 from sage.interfaces.tab_completion import ExtraTabCompletion
+from sage.docs.instancedoc import instancedoc
 
 import re
 
@@ -603,6 +604,7 @@ class Macaulay2(ExtraTabCompletion, Expect):
         return self.new("new %s from %s"%(type.name(), value.name()))
 
 
+@instancedoc
 class Macaulay2Element(ExtraTabCompletion, ExpectElement):
     def _latex_(self):
         """
@@ -681,7 +683,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             sage: len(l)                  # optional - macaulay2
             3
             sage: type(_)                 # optional - macaulay2
-            <type 'int'>
+            <... 'int'>
         """
         self._check_valid()
         return int(self.parent()("#%s"%self.name()))
@@ -735,7 +737,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
         """
         Quotient of division of self by other.  This is denoted //.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y> = GF(7)[]
 
@@ -770,7 +772,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
         """
         Remainder of division of self by other.  This is denoted %.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y> = GF(7)[]
 
@@ -803,18 +805,20 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             x = self.parent(x)
         return self.parent().new('%s %% %s'%(self.name(), x.name()))
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         EXAMPLES::
 
             sage: a = macaulay2(0)  # optional - macaulay2
             sage: a == 0            # optional - macaulay2
             True
-            sage: a.__nonzero__()   # optional - macaulay2
+            sage: bool(a)           # optional - macaulay2
             False
         """
         P = self.parent()
         return P.eval('%s == 0'%self.name()) == 'false'
+
+    __nonzero__ = __bool__
 
     def sage_polystring(self):
         """
@@ -1163,12 +1167,13 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             raise NotImplementedError("cannot convert %s to a Sage object"%repr_str)
 
 
+@instancedoc
 class Macaulay2Function(ExpectFunction):
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         EXAMPLES::
 
-            sage: print(macaulay2.load._sage_doc_())  # optional - macaulay2
+            sage: print(macaulay2.load.__doc__)  # optional - macaulay2
             load -- read Macaulay2 commands
             *******************************
             ...

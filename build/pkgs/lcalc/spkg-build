@@ -52,19 +52,7 @@ success() {
 
 export DEFINES=""
 
-cd src
-
-# Apply Sage-specific patches: (See SPKG.txt for details on the patches.)
-echo "Patching the upstream source code for Sage..."
-for patch in ../patches/*.patch; do
-    patch -p1 < "$patch"
-    success "patch $patch failed to apply"
-done
-
-# There's currently no 'configure' script for Lcalc; we (also) configure
-# it by patching the Makefile. This may change in a later release of Lcalc.
-
-cd src   # Now we are in src/src.
+cd src/src   # Now we are in src/src.
 
 # Build everything:
 echo "Now building lcalc, example programs and the shared library..."

@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 r"""
 Finite word
 
@@ -534,7 +534,7 @@ class FiniteWord_class(Word_class):
             sage: w.length()
             4
             sage: def f(n):
-            ...     return range(2,12,2)[n]
+            ....:   return list(range(2,12,2))[n]
             sage: w = Word(f, length=5)
             sage: w.length()
             5
@@ -1303,7 +1303,7 @@ class FiniteWord_class(Word_class):
         TESTS::
 
             sage: type( Word('cacao').factor_iterator() )
-            <type 'generator'>
+            <... 'generator'>
         """
         return self.suffix_tree().factor_iterator(n)
 
@@ -2436,9 +2436,8 @@ class FiniteWord_class(Word_class):
             sage: v = Word('abbabaab')
             sage: pal = v[:0]
             sage: for i in range(1, v.length()+1):
-            ...     pal = v[:i].lps(l=pal.length())
-            ...     pal
-            ...
+            ....:   pal = v[:i].lps(l=pal.length())
+            ....:   pal
             word: a
             word: b
             word: bb
@@ -2451,9 +2450,8 @@ class FiniteWord_class(Word_class):
             sage: v = Word('abbabaab')
             sage: pal = v[:0]
             sage: for i in range(1, v.length()+1):
-            ...     pal = v[:i].lps(f=f, l=pal.length())
-            ...     pal
-            ...
+            ....:   pal = v[:i].lps(f=f, l=pal.length())
+            ....:   pal
             word:
             word: ab
             word:
@@ -5173,7 +5171,7 @@ class FiniteWord_class(Word_class):
         is found in the same manner from the remaining letters.  In the
         following example, `w1, w2, w3` are the charge subwords of `w`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: w = Word([5,2,3,4,4,1,1,1,2,2,3])
             sage: w1 = Word([5, 2, 4, 1, 3])

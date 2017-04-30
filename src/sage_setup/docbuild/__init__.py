@@ -240,6 +240,37 @@ class DocBuilder(object):
     # import the customized builder for object.inv files
     inventory = builder_helper('inventory')
 
+
+if NUM_THREADS > 1:
+    def build_many(target, args):
+        from multiprocessing import Pool
+        pool = Pool(NUM_THREADS, maxtasksperchild=1)
+        # map_async handles KeyboardInterrupt correctly. Plain map and
+        # apply_async does not, so don't use it.
+        x = pool.map_async(target, args, 1)
+        try:
+            ret = x.get(99999)
+            pool.close()
+            pool.join()
+        except Exception:
+            pool.terminate()
+            if ABORT_ON_ERROR:
+                raise
+        return ret
+else:
+    def build_many(target, args):
+        results = []
+
+        for arg in args:
+            try:
+                results.append(target(arg))
+            except Exception:
+                if ABORT_ON_ERROR:
+                    raise
+
+        return results
+
+
 ##########################################
 #      Parallel Building Ref Manual      #
 ##########################################
@@ -289,20 +320,8 @@ class AllBuilder(object):
             getattr(get_builder(document), name)(*args, **kwds)
 
         # build the other documents in parallel
-        from multiprocessing import Pool
-        pool = Pool(NUM_THREADS, maxtasksperchild=1)
         L = [(doc, name, kwds) + args for doc in others]
-        # map_async handles KeyboardInterrupt correctly. Plain map and
-        # apply_async does not, so don't use it.
-        x = pool.map_async(build_other_doc, L, 1)
-        try:
-            x.get(99999)
-            pool.close()
-            pool.join()
-        except Exception:
-            pool.terminate()
-            if ABORT_ON_ERROR:
-                raise
+        build_many(build_other_doc, L)
         logger.warning("Elapsed time: %.1f seconds."%(time.time()-start))
         logger.warning("Done building the documentation!")
 
@@ -487,19 +506,8 @@ class ReferenceBuilder(AllBuilder):
             if not os.path.exists(refdir):
                 continue
             output_dir = self._output_dir(format, lang)
-            from multiprocessing import Pool
-            pool = Pool(NUM_THREADS, maxtasksperchild=1)
             L = [(doc, lang, format, kwds) + args for doc in self.get_all_documents(refdir)]
-            # (See comment in AllBuilder._wrapper about using map instead of apply.)
-            x = pool.map_async(build_ref_doc, L, 1)
-            try:
-                x.get(99999)
-                pool.close()
-                pool.join()
-            except Exception:
-                pool.terminate()
-                if ABORT_ON_ERROR:
-                    raise
+            build_many(build_ref_doc, L)
             # The html refman must be build at the end to ensure correct
             # merging of indexes and inventories.
             # Sphinx is run here in the current process (not in a
@@ -526,7 +534,8 @@ class ReferenceBuilder(AllBuilder):
                          'default.css', 'doctools.js', 'favicon.ico',
                          'file.png', 'jquery.js', 'minus.png',
                          'pdf.png', 'plus.png', 'pygments.css',
-                         'sage.css', 'sageicon.png', 'sagelogo.png',
+                         'sage.css', 'sageicon.png',
+                         'logo_sagemath.svg', 'logo_sagemath_black.svg',
                          'searchtools.js', 'sidebar.js', 'underscore.js']
                 sage_makedirs(os.path.join(output_dir, '_static'))
                 for f in static_files:
@@ -1446,9 +1455,9 @@ def setup_parser():
     standard.add_option("--no-plot", dest="no_plot",
                         action="store_true",
                         help="do not include graphics auto-generated using the '.. plot' markup")
-    standard.add_option("--no-tests", dest="skip_tests", default=False,
-                        action="store_true",
-                        help="do not include TESTS blocks in the reference manual")
+    standard.add_option("--include-tests-blocks", dest="skip_tests", default=True,
+                        action="store_false",
+                        help="include TESTS blocks in the reference manual")
     standard.add_option("--no-pdf-links", dest="no_pdf_links",
                         action="store_true",
                         help="do not include PDF links in DOCUMENT 'website'; FORMATs: html, json, pickle, web")
@@ -1570,32 +1579,6 @@ class IntersphinxCache:
             return i
 
 
-def patch_domain_init():
-    """
-    Applies a monkey-patch to the __init__ method of the Domain class in
-    Sphinx, in order to work around a bug.
-
-    See https://trac.sagemath.org/ticket/21044 as well as
-    https://github.com/sphinx-doc/sphinx/pull/2816 for details about that
-    bug.
-    """
-
-    from sphinx.domains import Domain
-    import copy
-
-    orig_init = Domain.__init__
-
-    def __init__(self, *args, **kwargs):
-        orig_init(self, *args, **kwargs)
-
-        # Replace the original initial_data class attribute with a new
-        # deep-copy of itself, since the bug will cause the original
-        # initial_data to be modified in-place
-        self.__class__.initial_data = copy.deepcopy(self.initial_data)
-
-    Domain.__init__ = __init__
-
-
 def main():
     # Parse the command-line.
     parser = setup_parser()
@@ -1644,8 +1627,6 @@ def main():
         os.environ['SAGE_SKIP_TESTS_BLOCKS'] = 'True'
 
     ABORT_ON_ERROR = not options.keep_going
-
-    patch_domain_init()
 
     # Delete empty directories. This is needed in particular for empty
     # directories due to "git checkout" which never deletes empty

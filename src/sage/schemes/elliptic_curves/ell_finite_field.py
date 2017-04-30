@@ -1082,7 +1082,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         k = self.base_ring()
         p = k.characteristic()
         if k.degree()==1:
-            return ZZ(p + 1 - int(self._pari_().ellap(p)))
+            return ZZ(p + 1 - int(self.__pari__().ellap(p)))
         else:
             raise ValueError("cardinality_pari() only works over prime fields.")
 
@@ -1280,7 +1280,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         Return the n'th point in self's __points list. This enables users
         to iterate over the curve's point set.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E=EllipticCurve(GF(97),[2,3])
             sage: S=E.points()
@@ -1379,10 +1379,10 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
             sage: E = EllipticCurve('389a')
             sage: for p in [5927, 2297, 1571, 1709, 3851, 127, 3253, 5783, 3499, 4817]:
-            ...       G = E.change_ring(GF(p)).abelian_group()
+            ....:     G = E.change_ring(GF(p)).abelian_group()
             sage: for p in prime_range(10000):  # long time (19s on sage.math, 2011)
-            ...       if p != 389:
-            ...           G = E.change_ring(GF(p)).abelian_group()
+            ....:     if p != 389:
+            ....:         G = E.change_ring(GF(p)).abelian_group()
 
         This tests that the bug reported in :trac:`3926` has been fixed::
 

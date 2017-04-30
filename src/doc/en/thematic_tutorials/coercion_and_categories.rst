@@ -466,9 +466,9 @@ And indeed, ``MS2`` has *more* methods than ``MS1``::
 
     sage: import inspect
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
-    59
+    60
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    89
+    90
 
 This is because the class of ``MS2`` also inherits from the parent
 class for algebras::
@@ -537,8 +537,11 @@ fields instead of the category of fields::
     sage: [p for p in dir(QuotientFields().parent_class) if p not in dir(Fields().parent_class)]
     []
     sage: [p for p in dir(QuotientFields().element_class) if p not in dir(Fields().element_class)]
-    ['_derivative', 'denominator', 'derivative', 'factor',
-     'numerator', 'partial_fraction_decomposition']
+    ['_derivative',
+     'denominator',
+     'derivative',
+     'numerator',
+     'partial_fraction_decomposition']
 
 .. end of output
 

@@ -62,6 +62,7 @@ EXAMPLES::
     sage: simplicial_complexes.MatchingComplex(6).homology()
     {0: 0, 1: Z^16, 2: 0}
 """
+from six import iteritems
 
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.structure.unique_representation import UniqueRepresentation
@@ -598,7 +599,7 @@ def PseudoQuaternionicProjectivePlane():
 
 def PoincareHomologyThreeSphere():
     """
-    A triangulation of the Poincare homology 3-sphere.
+    A triangulation of the Poincaré homology 3-sphere.
 
     This is a manifold whose integral homology is identical to the
     ordinary 3-sphere, but it is not simply connected. In particular,
@@ -1406,7 +1407,7 @@ def RandomTwoSphere(n):
     graph = RandomTriangulation(n)
 
     graph = graph.relabel(inplace=False)
-    triangles = [(u, v, w) for u, L in graph._embedding.iteritems()
+    triangles = [(u, v, w) for u, L in iteritems(graph._embedding)
                  for v, w in zip(L, L[1:] + [L[0]]) if u < v and u < w]
 
     return SimplicialComplex(triangles, maximality_check=False)
@@ -1543,8 +1544,3 @@ def DunceHat():
         [1,5,6], [4,5,6], [4,6,8], [6,7,8], [2,3,8]],
        name="Minimal triangulation of the dunce hat"
     )
-
-
-# For taking care of old pickles
-from sage.structure.sage_object import register_unpickle_override
-register_unpickle_override('sage.homology.examples', 'SimplicialSurface', SimplicialComplex)

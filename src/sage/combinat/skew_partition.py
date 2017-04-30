@@ -1015,7 +1015,7 @@ class SkewPartition(CombinatorialElement):
             sage: s.to_list()
             [[4, 3, 1], [2]]
             sage: type(s.to_list())
-            <type 'list'>
+            <... 'list'>
         """
         return [list(_) for _ in list(self)]
 

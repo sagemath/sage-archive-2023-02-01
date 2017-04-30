@@ -272,7 +272,7 @@ class Function_cot(GinacFunction):
             sage: cot(float(0.1))
             9.966644423259238
             sage: type(_)
-            <type 'float'>
+            <... 'float'>
 
             sage: cot(float(0))
             Infinity
@@ -281,7 +281,7 @@ class Function_cot(GinacFunction):
             sage: cot(float(0.1))
             9.966644423259238
             sage: type(_)
-            <type 'float'>
+            <... 'float'>
 
         Test complex input::
 
@@ -837,7 +837,7 @@ class Function_arctan2(GinacFunction):
         This is consistent with Python and Maxima::
 
             sage: maxima.atan2(1,-1)
-            3*%pi/4
+            (3*%pi)/4
             sage: math.atan2(1,-1)
             2.356194490192345
 
@@ -907,12 +907,12 @@ class Function_arctan2(GinacFunction):
 
             sage: atan2(0,0)
             NaN
+            sage: atan2(0,0).n()
+            NaN
             sage: atan2(0,0,hold=True)
             arctan2(0, 0)
             sage: atan2(0,0,hold=True).n()
-            Traceback (most recent call last):
-            ...
-            ValueError: arctan2(0,0) undefined
+            NaN
 
         Check if :trac:`10062` is fixed, this was caused by
         ``(I*I).is_positive()`` returning ``True``::

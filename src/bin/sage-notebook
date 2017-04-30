@@ -162,7 +162,7 @@ EXAMPLES:
 
 
 notebook_launcher = {
-    'default': NotebookSageNB,   # change this to change the default
+    'default': SageNBExport,   # change this to change the default
     'sagenb': NotebookSageNB,
     'ipython': NotebookJupyter,
     'jupyter': NotebookJupyter,

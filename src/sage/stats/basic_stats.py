@@ -116,8 +116,8 @@ def mode(v):
         sage: mode(['sage', 4, I, 3/5, 'sage', pi])
         ['sage']
         sage: class MyClass:
-        ...     def mode(self):
-        ...         return [1]
+        ....:   def mode(self):
+        ....:       return [1]
         sage: stats.mode(MyClass())
         [1]
     """
@@ -243,19 +243,19 @@ def variance(v, bias=False):
         sage: variance(x, bias=True)
         833.25
         sage: class MyClass:
-        ...     def variance(self, bias = False):
-        ...        return 1
+        ....:   def variance(self, bias = False):
+        ....:      return 1
         sage: stats.variance(MyClass())
         1
         sage: class SillyPythonList:
-        ...     def __init__(self):
-        ...         self.__list = [2L,4L]
-        ...     def __len__(self):
-        ...         return len(self.__list)
-        ...     def __iter__(self):
-        ...         return self.__list.__iter__()
-        ...     def mean(self):
-        ...         return 3L
+        ....:   def __init__(self):
+        ....:       self.__list = [2L,4L]
+        ....:   def __len__(self):
+        ....:       return len(self.__list)
+        ....:   def __iter__(self):
+        ....:       return self.__list.__iter__()
+        ....:   def mean(self):
+        ....:       return 3L
         sage: R = SillyPythonList()
         sage: variance(R)
         2
@@ -265,20 +265,21 @@ def variance(v, bias=False):
 
     TESTS:
 
-    The performance issue from #10019 is solved::
+    The performance issue from :trac:`10019` is solved::
 
         sage: variance([1] * 2^18)
         0
     """
-    if hasattr(v, 'variance'): return v.variance(bias=bias)
+    if hasattr(v, 'variance'):
+        return v.variance(bias=bias)
     import numpy
 
     x = 0
     if isinstance(v, numpy.ndarray):
         # accounts for numpy arrays
-        if bias == True:
+        if bias is True:
             return v.var()
-        elif bias == False:
+        elif bias is False:
             return v.var(ddof=1)
     if len(v) == 0:
         # variance of empty set defined as NaN
@@ -327,8 +328,8 @@ def median(v):
         sage: median([])
         NaN
         sage: class MyClass:
-        ...      def median(self):
-        ...         return 1
+        ....:    def median(self):
+        ....:       return 1
         sage: stats.median(MyClass())
         1
     """

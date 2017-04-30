@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 Shard intersection order
 
 This file builds a combinatorial version of the shard intersection
@@ -219,7 +219,7 @@ def shard_poset(n):
 
     .. SEEALSO::
 
-        :func:`shard_preorder_graph`
+        :func:`~sage.combinat.shard_order.shard_preorder_graph`
 
     EXAMPLES::
 

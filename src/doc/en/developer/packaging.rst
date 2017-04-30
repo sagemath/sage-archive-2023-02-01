@@ -239,7 +239,7 @@ The ``SPKG.txt`` file should follow this pattern::
      script, describe what was changed.
 
 
-with ``PACKAGE_NAME`` replaced by the the package name. Legacy
+with ``PACKAGE_NAME`` replaced by the package name. Legacy
 ``SPKG.txt`` files have an additional changelog section, but this
 information is now kept in the git repository.
 
@@ -304,11 +304,13 @@ optional packages.
 Patching Sources
 ----------------
 
-Actual changes to the source code must be via patches, which should be
-placed in the ``patches`` directory. GNU patch is distributed with
-Sage, so you can rely on it being available. Patches must include
-documentation in their header (before the first diff hunk), so a
-typical patch file should look like this::
+Actual changes to the source code must be via patches, which should be placed
+in the ``patches/`` directory, and must have the ``.patch`` extension. GNU
+patch is distributed with Sage, so you can rely on it being available. Patches
+must include documentation in their header (before the first diff hunk), and
+must have only one "prefix" level in the paths (that is, only one path level
+above the root of the upstream sources being patched).  So a typical patch file
+should look like this::
 
     Add autodoc_builtin_argspec config option
 
@@ -329,20 +331,31 @@ typical patch file should look like this::
          app.add_config_value('autodoc_docstring_signature', True, True)
          app.add_event('autodoc-process-docstring')
 
-Patches to files in ``src/`` need to be applied in ``spkg-install``,
-that is, if there are any patches then your ``spkg-install`` script
-should contain a section like this::
+Patches directly under the ``patches/`` directly are applied automatically
+before running the ``spkg-install`` script (so long as they have the ``.patch``
+extension).  If you need to apply patches conditionally (such as only on
+a specifically platform), you can place those patches in a subdirectory of
+``patches/`` and apply them manually using the ``sage-apply-patches`` script.
+For example, considering the layout::
 
-    for patch in ../patches/*.patch; do
-        [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-        patch -p1 <"$patch"
-        if [ $? -ne 0 ]; then
-            echo >&2 "Error applying '$patch'"
-            exit 1
-        fi
-    done
+    SAGE_ROOT/build/pkgs/foo
+    |-- patches
+    |   |-- solaris
+    |   |   |-- solaris.patch 
+    |   |-- bar.patch
+    |   `-- baz.patch
 
-which applies the patches to the sources.
+The patches ``bar.patch`` and ``baz.patch`` are applied to the unpacked
+upstream sources in ``src/`` before running ``spkg-install``.  To conditionally
+apply the patch for Solaris the ``spkg-install`` should contain a section like
+this::
+
+    if [ $UNAME == "SunOS" ]; then
+        sage-apply-patches -d solaris
+    fi
+
+where the ``-d`` flag applies all patches in the ``solaris/`` subdirectory of
+the main ``patches/`` directory.
 
 
 .. _section-spkg-patch-or-repackage:

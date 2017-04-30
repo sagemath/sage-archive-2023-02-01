@@ -143,8 +143,8 @@ Functions and classes
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
-
 from six.moves import range
+from six import iteritems, add_metaclass
 
 from sage.interfaces.all import maxima
 from sage.rings.all import ZZ, QQ, Integer, infinity
@@ -486,7 +486,7 @@ def euler_number(n, algorithm='flint'):
         sage: [euler_number(i) for i in range(10)]
         [1, 0, -1, 0, 5, 0, -61, 0, 1385, 0]
         sage: maxima.eval("taylor (2/(exp(x)+exp(-x)), x, 0, 10)")
-        '1-x^2/2+5*x^4/24-61*x^6/720+277*x^8/8064-50521*x^10/3628800'
+        '1-x^2/2+(5*x^4)/24-(61*x^6)/720+(277*x^8)/8064-(50521*x^10)/3628800'
         sage: [euler_number(i)/factorial(i) for i in range(11)]
         [1, 0, -1/2, 0, 5/24, 0, -61/720, 0, 277/8064, 0, -50521/3628800]
         sage: euler_number(-1)
@@ -1088,7 +1088,7 @@ class CombinatorialObject(SageObject):
             sage: c + [4]
             [1, 2, 3, 4]
             sage: type(_)
-            <type 'list'>
+            <... 'list'>
         """
         return self._list + other
 
@@ -1112,7 +1112,7 @@ class CombinatorialObject(SageObject):
             self._hash = hash(str(self._list))
         return self._hash
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return ``True`` if ``self`` is non-zero.
 
@@ -1158,6 +1158,8 @@ class CombinatorialObject(SageObject):
         """
         return bool(self._list)
 
+    __nonzero__ = __bool__
+
     def __len__(self):
         """
         EXAMPLES::
@@ -1180,7 +1182,7 @@ class CombinatorialObject(SageObject):
             sage: c[1:]
             [2, 3]
             sage: type(_)
-            <type 'list'>
+            <... 'list'>
         """
         return self._list[key]
 
@@ -1220,6 +1222,7 @@ class CombinatorialObject(SageObject):
         return self._list.index(key)
 
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class CombinatorialElement(CombinatorialObject, Element):
     """
     ``CombinatorialElement`` is both a :class:`CombinatorialObject`
@@ -1261,8 +1264,6 @@ class CombinatorialElement(CombinatorialObject, Element):
         sage: Foo(17)
         17
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     def __init__(self, parent, *args, **kwds):
         """
         Initialize this ``CombinatorialElement`` with a parent and a
@@ -1309,6 +1310,7 @@ class CombinatorialElement(CombinatorialObject, Element):
         super(CombinatorialObject, self).__init__(parent)
 
 
+@add_metaclass(ClasscallMetaclass)
 class CombinatorialClass(Parent):
     """
     This class is deprecated, and will disappear as soon as all derived
@@ -1324,8 +1326,6 @@ class CombinatorialClass(Parent):
         sage: InfiniteEnumeratedSets().example()
         An example of an infinite enumerated set: the non negative integers
     """
-    __metaclass__ = ClasscallMetaclass
-
     def __init__(self, category = None):
         """
         TESTS::
@@ -1491,7 +1491,7 @@ class CombinatorialClass(Parent):
             sage: p5 = Partitions(5)
             sage: a = [2,2,1]
             sage: type(a)
-            <type 'list'>
+            <... 'list'>
             sage: a = p5(a)
             sage: type(a)
             <class 'sage.combinat.partition.Partitions_n_with_category.element_class'>
@@ -2700,7 +2700,7 @@ def bell_polynomial(n, k):
     for p in Partitions(n, length=k):
         factorial_product = 1
         power_factorial_product = 1
-        for part, count in p.to_exp_dict().iteritems():
+        for part, count in iteritems(p.to_exp_dict()):
             factorial_product *= factorial(count)
             power_factorial_product *= factorial(part)**count
         coefficient = factorial(n) // (factorial_product * power_factorial_product)

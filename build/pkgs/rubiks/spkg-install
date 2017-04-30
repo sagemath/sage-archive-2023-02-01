@@ -136,16 +136,6 @@ rm -f $SAGE_LOCAL/bin/cube
 
 cd src
 
-for patch in ../patches/*.patch; do
-    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-    echo "Applying $patch"
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
-
 echo "Building Rubiks cube solvers"
 $MAKE install PREFIX="$SAGE_LOCAL"
 

@@ -1,12 +1,20 @@
 import os
-from sage.env import SAGE_SRC
+
 
 def autogen_all():
     """
     Regenerate the automatically generated files of the Sage library.
+
+    Return a list of sub-packages that should be appended to the list
+    of packages built/installed by setup.py.
     """
-    import pari
+    from sage_setup.autogen import pari
     pari.rebuild()
 
-    import interpreters
-    interpreters.rebuild(os.path.join(SAGE_SRC, "sage", "ext", "interpreters"))
+    from sage_setup.autogen import interpreters
+    interpreters.rebuild(os.path.join("sage", "ext", "interpreters"))
+
+    # In the case of Pari it just adds new files to an existing package
+    # (rather than autogenerating the entire sub-package) so it is
+    # omitted here.
+    return ['sage.ext.interpreters']

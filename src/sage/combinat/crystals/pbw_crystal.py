@@ -1,13 +1,19 @@
+# -*- coding: utf-8 -*-
 r"""
 `\mathcal{B}(\infty)` Crystal Of PBW Monomials.
 
 AUTHORS:
 
 - Dinakar Muthiah (2015-05-11): initial version
+
+.. SEEALSO::
+
+    For infromation on PBW datum, see
+    :ref:`sage.combinat.crystals.pbw_datum`.
 """
 
 #*****************************************************************************
-#       Copyright (C) 2015 Dinakar Muthiah <your email>
+#       Copyright (C) 2015 Dinakar Muthiah <muthiah at ualberta.ca>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -55,7 +61,7 @@ class PBWCrystalElement(Element):
             sage: B = crystals.infinity.PBW(['B', 4])
             sage: u = B.highest_weight_vector()
             sage: u.f_string([1,2,3,4,2,3,2,3,4,1,2])
-            PBW monomial with Lusztig datum 
+            PBW monomial with Lusztig datum
             (0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 1, 2)
         """
         pbw_datum = self._pbw_datum.convert_to_new_long_word(self.parent()._default_word)
@@ -223,8 +229,8 @@ class PBWCrystalElement(Element):
             sage: c == b.f_string([1,2,4,1,2,3,3])
             True
         """
-        equiv_PBWDatum = self._pbw_datum.convert_to_long_word_with_first_letter(i) 
-        new_long_word = equiv_PBWDatum.long_word 
+        equiv_PBWDatum = self._pbw_datum.convert_to_long_word_with_first_letter(i)
+        new_long_word = equiv_PBWDatum.long_word
         new_lusztig_datum = list(equiv_PBWDatum.lusztig_datum)
         new_lusztig_datum[0] += 1
         return type(self)(self.parent(), tuple(new_lusztig_datum), new_long_word)
@@ -242,7 +248,7 @@ class PBWCrystalElement(Element):
             sage: s.epsilon(2)
             0
         """
-        equiv_pbw_datum = self._pbw_datum.convert_to_long_word_with_first_letter(i) 
+        equiv_pbw_datum = self._pbw_datum.convert_to_long_word_with_first_letter(i)
         return equiv_pbw_datum.lusztig_datum[0]
 
     def phi(self, i):
@@ -340,16 +346,40 @@ class PBWCrystal(Parent, UniqueRepresentation):
     Crystal of `\mathcal{B}(\infty)` given by PBW monomials.
 
     A model of the crystal `\mathcal{B}(\infty)` whose elements are
-    PBW datum up to equivalence by the tropical Plucker relations.
+    PBW datum up to equivalence by the tropical Plücker relations.
+    The crystal structure on Lusztig data `x = (x_1, \ldots, x_m)`
+    for the reduced word `s_{i_1} \cdots s_{i_m} = w_0` is given as
+    follows. Suppose `i_1 = j`, then `f_j x = (x_1 + 1, x_2, \ldots, x_m)`.
+    If `i_1 \neq j`, then we use the tropical Plücker relations to
+    change the reduced expression such that `i_1' = j` and then we
+    change back to the original word.
 
     EXAMPLES::
 
         sage: PBW = crystals.infinity.PBW(['B', 3])
         sage: hw = PBW.highest_weight_vector()
-        sage: hw.f_string([1,2,2,3,3,1,3,3,2,3,2,1,3,1,2,3,1,2,1,3,2])
+        sage: x = hw.f_string([1,2,2,3,3,1,3,3,2,3,2,1,3,1,2,3,1,2,1,3,2]); x
         PBW monomial with Lusztig datum (1, 1, 1, 3, 1, 0, 0, 1, 1)
+
+    Elements are expressed in terms of Lusztig datum for a fixed
+    reduced expression of `w_0`::
+
+        sage: PBW.default_long_word()
+        [1, 3, 2, 3, 1, 2, 3, 1, 2]
+        sage: PBW.set_default_long_word([2,1,3,2,1,3,2,3,1])
+        sage: x
+        PBW monomial with Lusztig datum (3, 1, 1, 0, 1, 0, 1, 3, 4)
+        sage: PBW.set_default_long_word([1, 3, 2, 3, 1, 2, 3, 1, 2])
+
+    We can construct elements by giving it Lusztig data (with respect
+    to the default long word)::
+
         sage: PBW([1,1,1,3,1,0,0,1,1])
         PBW monomial with Lusztig datum (1, 1, 1, 3, 1, 0, 0, 1, 1)
+
+    We can also construct elements by passing in a reduced expression
+    for a long word::
+
         sage: x = PBW([1,1,1,3,1,0,0,1,1], [3,2,1,3,2,3,2,1,2]); x
         PBW monomial with Lusztig datum (1, 1, 1, 0, 1, 0, 5, 1, 1)
         sage: x.to_highest_weight()[1]
@@ -391,7 +421,7 @@ class PBWCrystal(Parent, UniqueRepresentation):
         i = self._cartan_type.index_set()[0]
         self._default_word = self._pbw_datum_parent._long_word_begin_with(i)
         zero_lusztig_datum = [0]*len(self._default_word)
-        self.module_generators = (self.element_class(self, 
+        self.module_generators = (self.element_class(self,
                                                      zero_lusztig_datum,
                                                      self._default_word),)
 

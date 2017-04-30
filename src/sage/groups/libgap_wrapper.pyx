@@ -65,6 +65,7 @@ from sage.rings.integer_ring import IntegerRing
 from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object import SageObject
 from sage.structure.element cimport Element
+from sage.structure.sage_object cimport richcmp
 
 
 class ParentLibGAP(SageObject):
@@ -561,7 +562,7 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
         P = left.parent()
         return P.element_class(P, left.gap() * right.gap())
 
-    cpdef int _cmp_(left, right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         This method implements comparison.
 
@@ -571,19 +572,15 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
             sage: G_gap = G.gap()
             sage: G_gap == G_gap    # indirect doctest
             True
-            sage: cmp(G.gap(), G.gap())   # indirect doctest
-            0
             sage: x = G([1, 2, -1, -2])
             sage: y = G([2, 2, 2, 1, -2, -2, -2])
             sage: x == x*y*y^(-1)     # indirect doctest
             True
-            sage: cmp(x,y)
-            -1
             sage: x < y
             True
         """
-        return cmp((<ElementLibGAP>left)._libgap,
-                   (<ElementLibGAP>right)._libgap)
+        return richcmp((<ElementLibGAP>left)._libgap,
+                       (<ElementLibGAP>right)._libgap, op)
 
     cpdef _div_(left, right):
         """

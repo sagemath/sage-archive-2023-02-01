@@ -826,7 +826,7 @@ cdef class CRElement(pAdicTemplateElement):
         an equal element with precision set to the minimum of ``self's``
         precision and ``absprec``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = Zp(7,4,'capped-rel','series'); a = R(8); a.add_bigoh(1)
             1 + O(7)
@@ -1714,7 +1714,7 @@ cdef class pAdicCoercion_ZZ_CR(RingHomomorphism_coercion):
 cdef class pAdicConvert_CR_ZZ(RingMap):
     """
     The map from a capped relative ring back to the ring of integers that
-    returns the the smallest non-negative integer approximation to its input
+    returns the smallest non-negative integer approximation to its input
     which is accurate up to the precision.
 
     Raises a ``ValueError``, if the input is not in the closure of the image of

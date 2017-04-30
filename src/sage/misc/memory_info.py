@@ -9,6 +9,9 @@ space.
 EXAMPLES::
 
     sage: from sage.misc.memory_info import MemoryInfo, MemoryInfo_proc
+    doctest:...
+    DeprecationWarning: the module sage.misc.memory_info is deprecated, use the psutil package instead.
+    See http://trac.sagemath.org/21805 for details.
     sage: mem = MemoryInfo()
     sage: mem.total_ram()          # random output
     16708194304
@@ -29,6 +32,9 @@ EXAMPLES::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+from sage.misc.superseded import deprecation
+deprecation(21805, "the module sage.misc.memory_info is deprecated, use the psutil package instead.")
 
 
 import subprocess
@@ -172,7 +178,7 @@ class MemoryInfo_proc(MemoryInfo_base):
             sage: mem = MemoryInfo()
             sage: if isinstance(mem, MemoryInfo_proc):
             ....:     info = mem._parse_proc_meminfo()
-            ... else:
+            ....: else:
             ....:     info = None
             sage: info   # random output
             {'available_ram': 1749782528,
@@ -345,7 +351,7 @@ class MemoryInfo_OSX(MemoryInfo_base):
             sage: mem = MemoryInfo()
             sage: if isinstance(mem, MemoryInfo_OSX):
             ....:     info = mem._parse_top()
-            ... else:
+            ....: else:
             ....:     info = None
             sage: info   # random output
             {'available_ram': 1749782528,

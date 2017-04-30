@@ -30,7 +30,7 @@ DEF S_INF = 3
 DEF S_NINF = 4
 DEF S_NAN = 5
 
-from ext_impl cimport *
+from .ext_impl cimport *
 
 import mpmath.rational as rationallib
 import mpmath.libmp as libmp
@@ -1055,11 +1055,11 @@ cdef class Context:
         ::
 
             sage: class MyInt(int):
-            ...       pass
+            ....:     pass
             sage: class MyLong(long):
-            ...       pass
+            ....:     pass
             sage: class MyFloat(float):
-            ...       pass
+            ....:     pass
             sage: mag(MyInt(10)), mag(MyLong(10))
             (4, 4)
 
@@ -2035,7 +2035,7 @@ cdef class mpf(mpf_base):
             sage: int(mpf(2.5))
             2
             sage: type(_)
-            <type 'int'>
+            <... 'int'>
         """
         MPF_to_fixed(tmp_mpz, &self.value, 0, True)
         return mpzi(tmp_mpz)
@@ -2053,7 +2053,7 @@ cdef class mpf(mpf_base):
             sage: import mpmath
             sage: v = mpmath.mpf(2)
             sage: class MyLong(long):
-            ...       pass
+            ....:     pass
             sage: MyLong(v)
             2L
         """
@@ -2068,7 +2068,7 @@ cdef class mpf(mpf_base):
             sage: float(mpf(2.5))
             2.5
             sage: type(_)
-            <type 'float'>
+            <... 'float'>
         """
         return MPF_to_double(&self.value, False)
 

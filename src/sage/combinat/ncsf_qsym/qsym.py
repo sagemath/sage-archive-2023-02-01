@@ -36,6 +36,10 @@ REFERENCES:
    *Noncommutative symmetric functions II: Transformations of alphabets*.
    http://www-igm.univ-mlv.fr/~jyt/ARTICLES/NCSF2.ps
 
+.. [HLNT09] F. Hivert, J.-G. Luque, J.-C. Novelli, J.-Y. Thibon,
+   *The (1-E)-transform in combinatorial Hopf algebras*.
+   :arxiv:`math/0912.0184v2`
+   
 .. [LMvW13] Kurt Luoto, Stefan Mykytiuk and Stephanie van Willigenburg,
    *An introduction to quasisymmetric Schur functions -- Hopf algebras,
    quasisymmetric functions, and Young composition tableaux*,
@@ -85,6 +89,9 @@ from sage.combinat.words.word import Word
 from sage.misc.cachefunc import cached_method
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
+
+import six
+
 
 class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
     r"""
@@ -674,7 +681,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         assert self.base_ring() == f.base_ring()
         exponent_coefficient = f.dict()
         z = {}
-        for (e, c) in exponent_coefficient.iteritems():
+        for (e, c) in six.iteritems(exponent_coefficient):
             I = Compositions()([ei for ei in e if ei > 0])
             if I not in z:
                 z[I] = c

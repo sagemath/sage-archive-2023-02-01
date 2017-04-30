@@ -65,6 +65,7 @@ from sage.rings.integer_ring import ZZ
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 from sage.misc.randstate cimport randstate, current_randstate
+from sage.structure.sage_object cimport rich_to_bool
 
 
 def is_RealDoubleField(x):
@@ -159,7 +160,7 @@ cdef class RealDoubleField_class(Field):
         """
         Returns ``False``, because doubles are not exact.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: RDF.is_exact()
             False
@@ -220,7 +221,7 @@ cdef class RealDoubleField_class(Field):
             return True
         return super(RealDoubleField_class, self)._repr_option(key)
 
-    def __cmp__(self, x):
+    def __richcmp__(self, x, op):
         """
         Compare ``self`` to ``x``.
 
@@ -232,8 +233,10 @@ cdef class RealDoubleField_class(Field):
             True
         """
         if isinstance(x, RealDoubleField_class):
-            return 0
-        return cmp(type(self), type(x))
+            return rich_to_bool(op, 0)
+        if op == Py_NE:
+            return True
+        return NotImplemented
 
     def construction(self):
         r"""
@@ -374,6 +377,17 @@ cdef class RealDoubleField_class(Field):
             Real Field with 53 bits of precision
         """
         return "RealField(%s : Bits := true)" % self.prec()
+
+    def _polymake_init_(self):
+        r"""
+        Return the polymake representation of the real double field.
+
+        EXAMPLES::
+
+            sage: polymake(RDF)    #optional - polymake # indirect doctest
+            Float
+        """
+        return '"Float"'
 
     def precision(self):
         """
@@ -1491,7 +1505,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: float(RDF(1.5))
             1.5
             sage: type(float(RDF(1.5)))
-            <type 'float'>
+            <... 'float'>
         """
         return self._value
 
@@ -1506,7 +1520,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: n._rpy_()
             2.0
             sage: type(n._rpy_())
-            <type 'float'>
+            <... 'float'>
         """
         return self.__float__()
 
@@ -1570,13 +1584,13 @@ cdef class RealDoubleElement(FieldElement):
         """
         return CDF(self._value)
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Return a PARI representation of ``self``.
 
         EXAMPLES::
 
-            sage: RDF(1.5)._pari_()
+            sage: RDF(1.5).__pari__()
             1.50000000000000
         """
         return new_gen_from_double(self._value)
@@ -1671,15 +1685,15 @@ cdef class RealDoubleElement(FieldElement):
         # correctly with NaNs.
         cdef double x = (<RealDoubleElement>left)._value
         cdef double y = (<RealDoubleElement>right)._value
-        if op == 0:
+        if op == Py_LT:
             return x < y
-        elif op == 1:
+        elif op == Py_LE:
             return x <= y
-        elif op == 2:
+        elif op == Py_EQ:
             return x == y
-        elif op == 3:
+        elif op == Py_NE:
             return x != y
-        elif op == 4:
+        elif op == Py_GT:
             return x > y
         else:
             return x >= y
@@ -2525,7 +2539,7 @@ cdef class RealDoubleElement(FieldElement):
 
         Uses the PARI C-library ``algdep`` command.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: r = sqrt(RDF(2)); r
             1.4142135623730951
@@ -2626,7 +2640,7 @@ def is_RealDoubleElement(x):
     """
     Check if ``x`` is an element of the real double field.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.real_double import is_RealDoubleElement
         sage: is_RealDoubleElement(RDF(3))

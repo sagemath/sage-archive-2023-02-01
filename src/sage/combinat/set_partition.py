@@ -9,6 +9,9 @@ AUTHORS:
 
 - Travis Scrimshaw (2013-02-28): Removed ``CombinatorialClass`` and added
   entry point through :class:`SetPartition`.
+
+This module defines a class for immutable partitioning of a set. For
+mutable version see :func:`DisjointSet`.
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -25,6 +28,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from six.moves import range
+from six import add_metaclass
 
 from sage.sets.set import Set, is_Set
 
@@ -49,6 +53,7 @@ from sage.combinat.permutation import Permutation
 from functools import reduce
 
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class SetPartition(ClonableArray):
     """
     A partition of a set.
@@ -110,8 +115,6 @@ class SetPartition(ClonableArray):
         sage: s.parent()
         Set partitions
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, parts, check=True):
         """
@@ -844,6 +847,10 @@ class SetPartition(ClonableArray):
         """
         Return a list of refinements of ``self``.
 
+        .. SEEALSO::
+
+            :meth:`coarsenings`
+
         EXAMPLES::
 
             sage: SetPartition([[1,3],[2,4]]).refinements()
@@ -862,6 +869,10 @@ class SetPartition(ClonableArray):
     def coarsenings(self):
         """
         Return a list of coarsenings of ``self``.
+
+        .. SEEALSO::
+
+            :meth:`refinements`
 
         EXAMPLES::
 
@@ -1619,7 +1630,7 @@ def _listbloc(n, nbrepets, listint=None):
         True
     """
     if isinstance(listint, (int, Integer)) or listint is None:
-        listint = Set(list(range(1,n+1)))
+        listint = Set(range(1,n+1))
 
     if nbrepets == 1:
         yield Set([listint])

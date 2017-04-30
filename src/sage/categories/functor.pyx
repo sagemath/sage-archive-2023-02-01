@@ -359,13 +359,12 @@ cdef class Functor(SageObject):
         which was fixed in :trac:`8807`::
 
             sage: class IllFunctor(Functor):
-            ...     def __init__(self, m,n):
-            ...         self._m = m
-            ...         self._n = n
-            ...         Functor.__init__(self,Rings(),Rings())
-            ...     def _apply_functor(self, R):
-            ...         return MatrixSpace(R,self._m,self._n)
-            ...
+            ....:   def __init__(self, m,n):
+            ....:       self._m = m
+            ....:       self._n = n
+            ....:       Functor.__init__(self,Rings(),Rings())
+            ....:   def _apply_functor(self, R):
+            ....:       return MatrixSpace(R,self._m,self._n)
             sage: F = IllFunctor(2,2)
             sage: F(QQ)
             Full MatrixSpace of 2 by 2 dense matrices over Rational Field
@@ -388,7 +387,7 @@ cdef class Functor(SageObject):
         """
         The domain of self
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = ForgetfulFunctor(FiniteFields(),Fields())
             sage: F.domain()
@@ -401,7 +400,7 @@ cdef class Functor(SageObject):
         """
         The codomain of self
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = ForgetfulFunctor(FiniteFields(),Fields())
             sage: F.codomain()

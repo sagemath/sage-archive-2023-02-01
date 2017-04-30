@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Free algebras
 
@@ -528,6 +529,23 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         return "Free Algebra on {} generators {} over {}".format(
             self.__ngens, self.gens(), self.base_ring())
 
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: F = FreeAlgebra(QQ,3,'x')
+            sage: latex(F)
+            \Bold{Q}\langle x_{0}, x_{1}, x_{2}\rangle
+            sage: F = FreeAlgebra(ZZ['q'], 3, 'a,b,c')
+            sage: latex(F)
+            \Bold{Z}[q]\langle a, b, c\rangle
+        """
+        from sage.misc.latex import latex
+        return "{}\\langle {}\\rangle".format(latex(self.base_ring()),
+                                              ', '.join(self.latex_variable_names()))
+
     def _element_constructor_(self, x):
         """
         Convert ``x`` into ``self``.
@@ -596,7 +614,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
                         if T[i]:
                             out.append((i%ngens,T[i]))
                     return M(out)
-                return self.element_class(self, dict([(exp_to_monomial(T),c) for T,c in x.letterplace_polynomial().dict().iteritems()]))
+                return self.element_class(self, dict([(exp_to_monomial(T),c) for T,c in six.iteritems(x.letterplace_polynomial().dict())]))
         # ok, not a free algebra element (or should not be viewed as one).
         if isinstance(x, six.string_types):
             from sage.all import sage_eval
@@ -726,7 +744,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             x = self.gen(i)
             ret[str(x)] = x
         from sage.sets.family import Family
-        return Family(ret)
+        return Family(self.variable_names(), lambda i: ret[i])
 
     @cached_method
     def gens(self):
@@ -854,7 +872,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         for i in range(n):
             for j in range(i + 1, n):
                 cmat[i,j] = 1
-        for (to_commute,commuted) in relations.iteritems():
+        for (to_commute,commuted) in six.iteritems(relations):
             #This is dirty, coercion is broken
             assert isinstance(to_commute, FreeAlgebraElement), to_commute.__class__
             assert isinstance(commuted, FreeAlgebraElement), commuted
@@ -882,7 +900,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
 
     def poincare_birkhoff_witt_basis(self):
         """
-        Return the Poincare-Birkhoff-Witt (PBW) basis of ``self``.
+        Return the Poincaré-Birkhoff-Witt (PBW) basis of ``self``.
 
         EXAMPLES::
 
@@ -896,7 +914,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
 
     def pbw_element(self, elt):
         """
-        Return the element ``elt`` in the Poincare-Birkhoff-Witt basis.
+        Return the element ``elt`` in the Poincaré-Birkhoff-Witt basis.
 
         EXAMPLES::
 
@@ -906,8 +924,8 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             sage: F.pbw_element(F.one())
             PBW[1]
             sage: F.pbw_element(x*y*x + x^3*y)
-            PBW[x*y]*PBW[x] + PBW[y]*PBW[x]^2 + PBW[x^3*y] + PBW[x^2*y]*PBW[x]
-             + PBW[x*y]*PBW[x]^2 + PBW[y]*PBW[x]^3
+            PBW[x*y]*PBW[x] + PBW[y]*PBW[x]^2 + PBW[x^3*y]
+             + 3*PBW[x^2*y]*PBW[x] + 3*PBW[x*y]*PBW[x]^2 + PBW[y]*PBW[x]^3
         """
         PBW = self.pbw_basis()
         if elt == self.zero():
@@ -930,8 +948,14 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
     def lie_polynomial(self, w):
         """
         Return the Lie polynomial associated to the Lyndon word ``w``. If
-        ``w`` is not Lyndon, then return the product of Lie polynomials of the
-        Lyndon factorization of ``w``.
+        ``w`` is not Lyndon, then return the product of Lie polynomials of
+        the Lyndon factorization of ``w``.
+
+        Given a Lyndon word `w`, the Lie polynomial `L_w` is defined
+        recursively by `L_w = [L_u, L_v]`, where `w = uv` is the
+        :meth:`standard factorization
+        <sage.combinat.words.finite_word.FiniteWord_class.standard_factorization>`
+        of `w`, and `L_w = w` when `w` is a single letter.
 
         INPUT:
 
@@ -946,7 +970,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             sage: F.lie_polynomial(y*x)
             y*x
             sage: F.lie_polynomial(x^2*y*x)
-            x^2*y*x - x*y*x^2
+            x^2*y*x - 2*x*y*x^2 + y*x^3
             sage: F.lie_polynomial(y*z*x*z*x*z)
             y*z*x*z*x*z - y*z*x*z^2*x - y*z^2*x^2*z + y*z^2*x*z*x
              - z*y*x*z*x*z + z*y*x*z^2*x + z*y*z*x^2*z - z*y*z*x*z*x
@@ -955,6 +979,8 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
 
         We test some corner cases and alternative inputs::
 
+            sage: F = FreeAlgebra(QQ, 3, 'x,y,z')
+            sage: M.<x,y,z> = FreeMonoid(3)
             sage: F.lie_polynomial(Word('xy'))
             x*y - y*x
             sage: F.lie_polynomial('xy')
@@ -965,6 +991,11 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             1
             sage: F.lie_polynomial('')
             1
+
+        We check that :trac:`22251` is fixed::
+
+            sage: F.lie_polynomial(x*y*z)
+            x*y*z - x*z*y - y*z*x + z*y*x
         """
         if not w:
             return self.one()
@@ -982,15 +1013,15 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
                 ret = ret * self(M(factor))
                 continue
             x,y = factor.standard_factorization()
-            x = M(x)
-            y = M(y)
-            ret = ret * (self(x * y) - self(y * x))
+            x = self.lie_polynomial(M(x))
+            y = self.lie_polynomial(M(y))
+            ret = ret * (x*y - y*x)
         return ret
 
 
 class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
     """
-    The Poincare-Birkhoff-Witt basis of the free algebra.
+    The Poincaré-Birkhoff-Witt basis of the free algebra.
 
     EXAMPLES::
 
@@ -1002,8 +1033,9 @@ class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
         sage: py * px
         PBW[y]*PBW[x]
         sage: px * py^3 * px - 2*px * py
-        -2*PBW[x*y] - 2*PBW[y]*PBW[x] + PBW[x*y^3]*PBW[x] + PBW[y]*PBW[x*y^2]*PBW[x]
-         + PBW[y]^2*PBW[x*y]*PBW[x] + PBW[y]^3*PBW[x]^2
+        -2*PBW[x*y] - 2*PBW[y]*PBW[x] + PBW[x*y^3]*PBW[x]
+         + 3*PBW[y]*PBW[x*y^2]*PBW[x] + 3*PBW[y]^2*PBW[x*y]*PBW[x]
+         + PBW[y]^3*PBW[x]^2
 
     We can convert between the two bases::
 
@@ -1025,6 +1057,16 @@ class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
 
         sage: F(px * py^3 * px - 2*px * py) == x*y^3*x - 2*x*y
         True
+
+    We verify Examples 1 and 2 in [MR1989]_::
+
+        sage: F.<x,y,z> = FreeAlgebra(QQ)
+        sage: PBW = F.pbw_basis()
+        sage: PBW(x*y*z)
+        PBW[x*y*z] + PBW[x*z*y] + PBW[y]*PBW[x*z] + PBW[y*z]*PBW[x]
+         + PBW[z]*PBW[x*y] + PBW[z]*PBW[y]*PBW[x]
+        sage: PBW(x*y*y*x)
+        PBW[x*y^2]*PBW[x] + 2*PBW[y]*PBW[x*y]*PBW[x] + PBW[y]^2*PBW[x]^2
 
     TESTS:
 
@@ -1247,7 +1289,7 @@ class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
             sage: PBW.product(y, x)
             PBW[y]*PBW[x]
             sage: PBW.product(y^2*x, x*y*x)
-            PBW[y]^2*PBW[x^2*y]*PBW[x] + PBW[y]^2*PBW[x*y]*PBW[x]^2 + PBW[y]^3*PBW[x]^3
+            PBW[y]^2*PBW[x^2*y]*PBW[x] + 2*PBW[y]^2*PBW[x*y]*PBW[x]^2 + PBW[y]^3*PBW[x]^3
 
         TESTS:
 
@@ -1268,7 +1310,7 @@ class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
 
     def expansion(self, t):
         """
-        Return the expansion of the element ``t`` of the Poincare-Birkhoff-Witt
+        Return the expansion of the element ``t`` of the Poincaré-Birkhoff-Witt
         basis in the monomials of the free algebra.
 
         EXAMPLES::
@@ -1307,7 +1349,7 @@ class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
                 sage: x,y = F.monoid().gens()
                 sage: f = PBW(x^2*y) + PBW(x) + PBW(y^4*x)
                 sage: f.expand()
-                x + x^2*y - x*y*x + y^4*x
+                x + x^2*y - 2*x*y*x + y*x^2 + y^4*x
             """
             return self.parent().expansion(self)
 

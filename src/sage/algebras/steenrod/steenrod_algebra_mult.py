@@ -59,7 +59,7 @@ $\text{Sq}(s)=\text{Sq}(s_1, s_2, ...)$; it returns as output a
 dictionary whose keys are tuples $t=(t_1, t_2, ...)$ of non-negative
 integers, and for each tuple the associated value is the coefficient
 of $\text{Sq}(t)$ in the product formula.  (Since we are working mod 2,
-this coefficient is 1 -- if it is zero, the the element is omitted from
+this coefficient is 1 -- if it is zero, the element is omitted from
 the dictionary altogether).
 
 .. rubric:: Milnor multiplication, odd primes
@@ -198,6 +198,7 @@ representing a sum of admissible monomials.
 #  Copyright (C) 2008-2010 John H. Palmieri <palmieri@math.washington.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #*****************************************************************************
+from six.moves import range
 
 from sage.misc.cachefunc import cached_function
 
@@ -251,7 +252,7 @@ def milnor_multiplication(r,s):
     cols = len(s) + 1
     diags = len(r) + len(s)
     # initialize matrix
-    M = range(rows)
+    M = list(range(rows))
     for i in range(rows):
         M[i] = [0]*cols
     for j in range(1,cols):
@@ -423,7 +424,7 @@ def milnor_multiplication_odd(m1,m2,p):
         sage: (a+b)*c == a*c + b*c
         True
 
-    Test that the bug reported in #7212 has been fixed::
+    Test that the bug reported in :trac:`7212` has been fixed::
 
         sage: A.P(36,6)*A.P(27,9,81)
         2 P(13,21,83) + P(14,24,82) + P(17,20,83) + P(25,18,83) + P(26,21,82) + P(36,15,80,1) + P(49,12,83) + 2 P(50,15,82) + 2 P(53,11,83) + 2 P(63,15,81)
@@ -491,7 +492,7 @@ def milnor_multiplication_odd(m1,m2,p):
     # Now for the Milnor matrices.  For each entry '(e,r): coeff' in answer,
     # multiply r with s.  Record coefficient for matrix and multiply by coeff.
     # Store in 'result'.
-    if len(s) == 0:
+    if not s:
         result = answer
     else:
         result = {}
@@ -502,7 +503,7 @@ def milnor_multiplication_odd(m1,m2,p):
             cols = len(s) + 1
             diags = len(r) + len(s)
             # initialize matrix
-            M = range(rows)
+            M = list(range(rows))
             for i in range(rows):
                 M[i] = [0]*cols
             for j in range(1,cols):

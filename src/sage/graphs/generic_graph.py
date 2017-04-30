@@ -2425,7 +2425,7 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``labels`` -- whether returned edges have labels (``(u,v,l)``) or not
-          (``(u,v)``).
+          (``(u,v)``)
 
         EXAMPLES::
 

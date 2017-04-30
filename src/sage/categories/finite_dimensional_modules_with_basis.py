@@ -303,6 +303,26 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             from sage.modules.free_module import FreeModule
             return FreeModule(base_ring, self.dimension())
 
+        def from_vector(self, vector, order=None):
+            """
+            Build an element of ``self`` from a vector.
+
+            EXAMPLES::
+
+                sage: p_mult = matrix([[0,0,0],[0,0,-1],[0,0,0]])
+                sage: q_mult = matrix([[0,0,1],[0,0,0],[0,0,0]])
+                sage: A = algebras.FiniteDimensional(QQ, [p_mult, q_mult, matrix(QQ,3,3)],
+                ....:                                'p,q,z')
+                sage: A.from_vector(vector([1,0,2]))
+                p + 2*z
+            """
+            if order is None:
+                try:
+                    order = sorted(self.basis().keys())
+                except AttributeError: # Not a family, assume it is list-like
+                    order = range(self.dimension())
+            return self._from_dict({order[i]: c for i,c in vector.iteritems()})
+
     class ElementMethods:
         def dense_coefficient_list(self, order=None):
             """

@@ -558,7 +558,7 @@ class Groups(CategoryWithAxiom):
             sage: g = G.an_element(); g
             (1,2,3,4,5)
             sage: (QG.term(g) + 1)**3
-            B[()] + 3*B[(1,2,3,4,5)] + 3*B[(1,3,5,2,4)] + B[(1,4,2,5,3)]
+            () + 3*(1,2,3,4,5) + 3*(1,3,5,2,4) + (1,4,2,5,3)
 
         .. TODO::
 
@@ -626,10 +626,15 @@ class Groups(CategoryWithAxiom):
                 EXAMPLES::
 
                     sage: A = Groups().example().algebra(QQ); A
-                    Group algebra of General Linear Group of degree 4 over Rational Field over Rational Field
-                    sage: A._name= "foo"
+                    Group algebra of General Linear Group of degree 4 over Rational Field
+                     over Rational Field
+                    sage: A._name = "foo"
                     sage: A
                     foo over Rational Field
+                    sage: A = GroupAlgebra(KleinFourGroup(), ZZ)
+                    sage: A
+                    Group algebra of The Klein 4 group of order 4, as a permutation group
+                     over Integer Ring
                 """
                 if hasattr(self, "_name"):
                     return self._name + " over {}".format(self.base_ring())
@@ -657,7 +662,7 @@ class Groups(CategoryWithAxiom):
                 EXAMPLES::
 
                     sage: GroupAlgebras(QQ).example(AlternatingGroup(10)).algebra_generators()
-                    Finite family {(8,9,10): B[(8,9,10)], (1,2,3,4,5,6,7,8,9): B[(1,2,3,4,5,6,7,8,9)]}
+                    Finite family {(8,9,10): (8,9,10), (1,2,3,4,5,6,7,8,9): (1,2,3,4,5,6,7,8,9)}
                 """
                 from sage.sets.family import Family
                 return Family(self.group().gens(), self.term)
@@ -706,16 +711,16 @@ class Groups(CategoryWithAxiom):
 
                 EXAMPLES::
 
-                    sage: A=CyclicPermutationGroup(6).algebra(ZZ);A
+                    sage: A = CyclicPermutationGroup(6).algebra(ZZ); A
                     Group algebra of Cyclic group of order 6 as a permutation group over Integer Ring
-                    sage: g=CyclicPermutationGroup(6).an_element();g
+                    sage: g = CyclicPermutationGroup(6).an_element(); g
                     (1,2,3,4,5,6)
                     sage: A.coproduct_on_basis(g)
-                    B[(1,2,3,4,5,6)] # B[(1,2,3,4,5,6)]
-                    sage: a=A.an_element();a
-                    B[()] + 3*B[(1,2,3,4,5,6)] + 3*B[(1,3,5)(2,4,6)]
+                    (1,2,3,4,5,6) # (1,2,3,4,5,6)
+                    sage: a = A.an_element(); a
+                    () + 3*(1,2,3,4,5,6) + 3*(1,3,5)(2,4,6)
                     sage: a.coproduct()
-                    B[()] # B[()] + 3*B[(1,2,3,4,5,6)] # B[(1,2,3,4,5,6)] + 3*B[(1,3,5)(2,4,6)] # B[(1,3,5)(2,4,6)]
+                    () # () + 3*(1,2,3,4,5,6) # (1,2,3,4,5,6) + 3*(1,3,5)(2,4,6) # (1,3,5)(2,4,6)
                 """
                 from sage.categories.tensor import tensor
                 g = self.term(g)
@@ -731,16 +736,16 @@ class Groups(CategoryWithAxiom):
 
                 EXAMPLES::
 
-                    sage: A=CyclicPermutationGroup(6).algebra(ZZ);A
+                    sage: A = CyclicPermutationGroup(6).algebra(ZZ); A
                     Group algebra of Cyclic group of order 6 as a permutation group over Integer Ring
-                    sage: g=CyclicPermutationGroup(6).an_element();g
+                    sage: g = CyclicPermutationGroup(6).an_element();g
                     (1,2,3,4,5,6)
                     sage: A.antipode_on_basis(g)
-                    B[(1,6,5,4,3,2)]
-                    sage: a=A.an_element();a
-                    B[()] + 3*B[(1,2,3,4,5,6)] + 3*B[(1,3,5)(2,4,6)]
+                    (1,6,5,4,3,2)
+                    sage: a = A.an_element(); a
+                    () + 3*(1,2,3,4,5,6) + 3*(1,3,5)(2,4,6)
                     sage: a.antipode()
-                    B[()] + 3*B[(1,5,3)(2,6,4)] + 3*B[(1,6,5,4,3,2)]
+                    () + 3*(1,5,3)(2,6,4) + 3*(1,6,5,4,3,2)
                 """
                 return self.term(~g)
 
@@ -773,10 +778,10 @@ class Groups(CategoryWithAxiom):
 
                 EXAMPLES::
 
-                    sage: A=CyclicPermutationGroup(6).algebra(ZZ);A
+                    sage: A = CyclicPermutationGroup(6).algebra(ZZ); A
                     Group algebra of Cyclic group of order 6 as a permutation group over Integer Ring
-                    sage: a=A.an_element();a
-                    B[()] + 3*B[(1,2,3,4,5,6)] + 3*B[(1,3,5)(2,4,6)]
+                    sage: a = A.an_element(); a
+                    () + 3*(1,2,3,4,5,6) + 3*(1,3,5)(2,4,6)
                     sage: a.counit()
                     7
                 """

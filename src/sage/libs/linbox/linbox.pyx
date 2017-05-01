@@ -5,6 +5,9 @@
 
 r"""
 Linbox interface
+
+The interface :class:`Linbox_integer_dense` to dense matrices is deprecated. One
+would better use :mod:`~sage.libs.linbox.linbox_flint_interface`
 """
 
 ## NOTE: The sig_on()/sig_off() stuff can't go in here -- it has to be in the
@@ -83,17 +86,30 @@ cdef extern from "linbox/linbox-sage.h":
                                         size_t nrows, size_t ncols)
 
 cdef class Linbox_integer_dense:
+    r"""
+    .. WARNING::
+
+        deprecated class
+    """
     cdef set(self, mpz_t** matrix, size_t nrows, size_t ncols):
+        from sage.misc.superseded import deprecation
+        deprecation(111111, "sage.libs.linbox.linbox.Linbox_integer_dense is deprecated, use sage.libs.linbox.linbox_flint_interface instead")
+
         self.nrows = nrows
         self.ncols = ncols
         self.matrix = matrix
 
     def minpoly(self):
         """
+        Deprecated
+
         OUTPUT:
 
         coefficients of minpoly as a Python list
         """
+        from sage.misc.superseded import deprecation
+        deprecation(111111, "sage.libs.linbox.linbox.Linbox_integer_dense is deprecated, use sage.libs.linbox.linbox_flint_interface instead")
+
         cdef mpz_t* poly
         cdef size_t degree
         verbose("using linbox poly comp")
@@ -113,10 +129,15 @@ cdef class Linbox_integer_dense:
 
     def charpoly(self):
         """
+        Deprecated
+
         OUTPUT:
 
         coefficients of charpoly or minpoly as a Python list
         """
+        from sage.misc.superseded import deprecation
+        deprecation(111111, "sage.libs.linbox.linbox.Linbox_integer_dense is deprecated, use sage.libs.linbox.linbox_flint_interface instead")
+
         cdef mpz_t* poly
         cdef size_t degree
         verbose("using linbox poly comp")
@@ -138,6 +159,9 @@ cdef class Linbox_integer_dense:
                                 mpz_t **ans,
                                 mpz_t **B,
                                 size_t B_nr, size_t B_nc):
+        from sage.misc.superseded import deprecation
+        deprecation(111111, "sage.libs.linbox.linbox.Linbox_integer_dense is deprecated, use sage.libs.linbox.linbox_flint_interface instead")
+
         cdef int e
         e = linbox_integer_dense_matrix_matrix_multiply(ans, self.matrix,  B, self.nrows, self.ncols, B_nc)
         if e:
@@ -145,20 +169,31 @@ cdef class Linbox_integer_dense:
 
 
     cdef unsigned long rank(self) except -1:
+        from sage.misc.superseded import deprecation
+        deprecation(111111, "sage.libs.linbox.linbox.Linbox_integer_dense is deprecated, use sage.libs.linbox.linbox_flint_interface instead")
+
         return linbox_integer_dense_rank(self.matrix, self.nrows, self.ncols)
 
     def det(self):
         """
+        Deprecated
+
         OUTPUT:
 
         determinant as a sage Integer
         """
+        from sage.misc.superseded import deprecation
+        deprecation(111111, "sage.libs.linbox.linbox.Linbox_integer_dense is deprecated, use sage.libs.linbox.linbox_flint_interface instead")
+
         cdef Integer z
         z = Integer()
         linbox_integer_dense_det(z.value, self.matrix, self.nrows, self.ncols)
         return z
 
     def smithform(self):
+        from sage.misc.superseded import deprecation
+        deprecation(111111, "sage.libs.linbox.linbox.Linbox_integer_dense is deprecated, use sage.libs.linbox.linbox_flint_interface instead")
+
         raise NotImplementedError
         #cdef mpz_t* v
         #linbox_integer_dense_smithform(&v, self.matrix, self.nrows, self.ncols)

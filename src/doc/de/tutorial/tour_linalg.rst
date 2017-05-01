@@ -145,7 +145,7 @@ ist.) Der Matrizenraum hat eine Basis, die Sage als Liste speichert:
     sage: B = M.basis()
     sage: len(B)
     9
-    sage: B[1]
+    sage: B[0,1]
     [0 1 0]
     [0 0 0]
     [0 0 0]

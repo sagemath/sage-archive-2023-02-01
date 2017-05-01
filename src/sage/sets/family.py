@@ -392,18 +392,19 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
                 return TrivialFamily(indices)
 
             raise NotImplementedError
-        if (isinstance(indices, (list, tuple, FiniteEnumeratedSet) )
+        if (isinstance(indices, (list, tuple, FiniteEnumeratedSet))
                and not lazy):
-            return FiniteFamily(dict([(i, function(i)) for i in indices]),
-                                keys = indices)
+            return FiniteFamily({i: function(i) for i in indices},
+                                keys=indices)
 
         return LazyFamily(indices, function, name)
     if lazy:
         raise ValueError("lazy keyword is incompatible with hidden keys !")
     if hidden_function is None:
         hidden_function = function
-    return FiniteFamilyWithHiddenKeys(dict([(i, function(i)) for i in indices]),
-                                      hidden_keys, hidden_function)
+    return FiniteFamilyWithHiddenKeys({i: function(i) for i in indices},
+                                      hidden_keys, hidden_function,
+                                      keys=indices)
 
 class AbstractFamily(Parent):
     """
@@ -753,14 +754,14 @@ class FiniteFamilyWithHiddenKeys(FiniteFamily):
     Caveat: Only instances of this class whose functions are compatible
     with :mod:`sage.misc.fpickle` can be pickled.
     """
-    def __init__(self, dictionary, hidden_keys, hidden_function):
+    def __init__(self, dictionary, hidden_keys, hidden_function, keys=None):
         """
         EXAMPLES::
 
             sage: f = Family([3,4,7], lambda i: 2*i, hidden_keys=[2])
             sage: TestSuite(f).run()
         """
-        FiniteFamily.__init__(self, dictionary)
+        FiniteFamily.__init__(self, dictionary, keys=keys)
         self._hidden_keys = hidden_keys
         self.hidden_function = hidden_function
         self.hidden_dictionary = {}

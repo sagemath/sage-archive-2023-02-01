@@ -107,7 +107,7 @@ unlike in the ambient space, a root is not necessarily orthogonal to
 its corresponding reflection hyperplane::
 
     sage: L = RootSystem(["A",2]).weight_space()
-    sage: L.plot(roots = "all", reflection_hyperplanes="all").show(figsize=15)
+    sage: L.plot(roots="all", reflection_hyperplanes="all").show(figsize=15)
 
 .. NOTE::
 
@@ -119,7 +119,7 @@ its corresponding reflection hyperplane::
     :width: 300 px
 
     L = RootSystem(["A",2]).weight_space()
-    sphinx_plot(L.plot(roots = "all", reflection_hyperplanes="all"))
+    sphinx_plot(L.plot(roots="all", reflection_hyperplanes="all"))
 
 One can further customize which roots to display, as in
 the following example showing the positive roots in the
@@ -237,7 +237,8 @@ full picture in 3D::
 .. PLOT::
     :width: 300 px
 
-    sphinx_plot(RootSystem(["A",2,1]).ambient_space().plot(bounding_box=[[-3,3],[-3,3],[-1,1]], affine=False))
+    L = RootSystem(["A",2,1]).ambient_space()
+    sphinx_plot(L.plot(bounding_box=[[-3,3],[-3,3],[-1,1]], affine=False))
 
 In fact, in type `A`, this really is a picture in 4D, but as usual the
 barycentric projection kills the boring extra dimension for us.
@@ -294,7 +295,8 @@ share a wall if `u` and `v` are neighbors in the right Cayley graph:
 .. PLOT::
     :width: 300 px
 
-    sphinx_plot(RootSystem(["C",2,1]).ambient_space().plot(coroots="simple", alcove_labels=True))
+    L = RootSystem(["C",2,1]).ambient_space()
+    sphinx_plot(L.plot(coroots="simple", alcove_labels=True))
 
 Even 2D pictures of the rank `1 + 1` cases can give some food for
 thought. Here, we draw the root lattice, with the positive roots of
@@ -364,7 +366,8 @@ tiled by the alcoves, each of which is a 3D simplex::
 .. PLOT::
     :width: 300 px
 
-    sphinx_plot(RootSystem(["A",3,1]).ambient_space().plot(reflection_hyperplanes=False, bounding_box=85/100))
+    L = RootSystem(["A",3,1]).ambient_space()
+    sphinx_plot(L.plot(reflection_hyperplanes=False, bounding_box=85/100))
 
 It is recommended to use a small bounding box here, for otherwise the
 number of simplices grows quicker than what Sage can handle
@@ -498,9 +501,9 @@ and pass it down to each piece. We use this to plot our two walks::
     sage: plot_options = L.plot_parse_options(bounding_box=[[-2,5],[-2,6]])
     sage: w2 = [2,1,2,0,2,0,2,1,2,0,1,2,1,2,1,0,1,2,0,2,0,1,2,0,2]
     sage: p = L.plot_alcoves(plot_options=plot_options) # long time
-    sage: p += L.plot_alcove_walk(w1, color="green", plot_options=plot_options)
-    sage: p += L.plot_alcove_walk(w2, color="orange", plot_options=plot_options)
-    sage: p
+    sage: p += L.plot_alcove_walk(w1, color="green", plot_options=plot_options) # long time
+    sage: p += L.plot_alcove_walk(w2, color="orange", plot_options=plot_options) # long time
+    sage: p # long time
     Graphics object consisting of ... graphics primitives
 
 .. PLOT::
@@ -514,11 +517,10 @@ and pass it down to each piece. We use this to plot our two walks::
                 + L.plot_alcove_walk(w1, color="green", plot_options=plot_options)
                 + L.plot_alcove_walk(w2, color="orange", plot_options=plot_options))
 
-
 And another with some foldings::
 
     sage: p += L.plot_alcove_walk([0,1,2,0,2,0,1,2,0,1],
-    ....:                         foldings= [False, False, True, False, False, False, True, False, True, False],
+    ....:                         foldings=[False, False, True, False, False, False, True, False, True, False],
     ....:                         color="purple")
     sage: p.axes(False)
     sage: p.show(figsize=20)
@@ -534,7 +536,7 @@ And another with some foldings::
     p += L.plot_alcove_walk(w1, color="green", plot_options=plot_options)
     p += L.plot_alcove_walk(w2, color="orange", plot_options=plot_options)
     p += L.plot_alcove_walk([0,1,2,0,2,0,1,2,0,1],
-                             foldings= [False, False, True, False, False, False, True, False, True, False],
+                             foldings=[False, False, True, False, False, False, True, False, True, False],
                              color="purple")
     p.axes(False)
     sphinx_plot(p)
@@ -549,11 +551,11 @@ the translation by this weight::
     sage: walk = L.reduced_word_of_translation(L(t))
     sage: plot_options = L.plot_parse_options(bounding_box=[[-2,5],[-2,5]])
     sage: p = L.plot(plot_options=plot_options)        # long time
-    sage: p += L.plot_alcove_walk(walk, color="green", plot_options=plot_options)
-    sage: p += plot_options.family_of_vectors({t: L(t)})
-    sage: plot_options.finalize(p)
+    sage: p += L.plot_alcove_walk(walk, color="green", plot_options=plot_options) # long time
+    sage: p += plot_options.family_of_vectors({t: L(t)}) # long time
+    sage: plot_options.finalize(p) # long time
     Graphics object consisting of ... graphics primitives
-    sage: p
+    sage: p # long time
     Graphics object consisting of ... graphics primitives
 
 .. PLOT::
@@ -634,7 +636,7 @@ Now you can create your own customized color Coxeter graph paper::
 
     sage: L = RootSystem(["C",2,1]).ambient_space()
     sage: p = L.plot(bounding_box=[[-8,9],[-5,7]], coroots="simple") # long time (10 s)
-    sage: p
+    sage: p # long time
     Graphics object consisting of ... graphics primitives
 
 .. PLOT::
@@ -654,8 +656,8 @@ postscript or svg before printing it::
     Drawing pictures with a large number of alcoves is currently
     somewhat ridiculously slow. This is due to the use of generic code
     that works uniformly in all dimension rather than taylor-made code
-    for 2D. Things should improve with the upcoming fast interface to
-    the PPL library (see e.g. :trac:`12553`).
+    for 2D. Things should improve with the fast interface to the PPL
+    library (see e.g. :trac:`12553`).
 
 Drawing custom objects on top of a root system plot
 ---------------------------------------------------
@@ -706,7 +708,7 @@ The same picture for `A_3` gives a nice 3D permutohedron::
     sage: g = W.cayley_graph(side="right")
     sage: positions = {w: plot_options.projection(w.action(rho)) for w in W}
     sage: p = L.plot_roots()
-    sage: p += g.plot3d(pos3d = positions, color_by_label=plot_options.color)
+    sage: p += g.plot3d(pos3d=positions, color_by_label=plot_options.color)
     sage: p
     Graphics3d Object
 
@@ -719,7 +721,7 @@ The same picture for `A_3` gives a nice 3D permutohedron::
     W = L.weyl_group()
     g = W.cayley_graph(side="right")
     positions = {w: plot_options.projection(w.action(rho)) for w in W}
-    sphinx_plot(L.plot_roots() + g.plot3d(pos3d = positions, color_by_label=plot_options.color))
+    sphinx_plot(L.plot_roots() + g.plot3d(pos3d=positions, color_by_label=plot_options.color))
 
 .. TOPIC:: Exercises
 
@@ -746,7 +748,7 @@ according to its weight::
     sage: g = C.digraph()
     sage: positions = {x: plot_options.projection(x.weight()) for x in C}
     sage: p = L.plot()
-    sage: p += g.plot(pos = positions,
+    sage: p += g.plot(pos=positions,
     ....:             color_by_label=plot_options.color, vertex_size=0)
     sage: p.axes(False)
     sage: p.show(figsize=15)
@@ -760,7 +762,7 @@ according to its weight::
     g = C.digraph()
     positions = {x: plot_options.projection(x.weight()) for x in C}
     p = L.plot()
-    p += g.plot(pos = positions, color_by_label=plot_options.color, vertex_size=0)
+    p += g.plot(pos=positions, color_by_label=plot_options.color, vertex_size=0)
     p.axes(False)
     sphinx_plot(p)
 
@@ -781,7 +783,7 @@ Here is an analogue picture in 3D::
     sage: g = C.digraph()
     sage: positions = {x:plot_options.projection(x.weight()) for x in C}
     sage: p = L.plot(reflection_hyperplanes=False, fundamental_weights=False)
-    sage: p += g.plot3d(pos3d = positions, vertex_labels=True,
+    sage: p += g.plot3d(pos3d=positions, vertex_labels=True,
     ....:               color_by_label=plot_options.color, edge_labels=True)
     sage: p
     Graphics3d Object

@@ -114,7 +114,7 @@ defined Cython code, and with rather tricky argument lines::
 """
 from __future__ import print_function, absolute_import
 from six.moves import range
-from six import iteritems
+from six import iteritems, class_types
 
 import ast
 import inspect
@@ -1707,7 +1707,7 @@ def sage_getdoc_original(obj):
     """
     # typ is the type corresponding to obj, which is obj itself if
     # that was a type or old-style class
-    if isinstance(obj, (type, types.ClassType) ):
+    if isinstance(obj, class_types):
         typ = obj
     else:
         typ = type(obj)

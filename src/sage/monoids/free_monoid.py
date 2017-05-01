@@ -201,14 +201,23 @@ class FreeMonoid_class(Monoid_class):
         #self._assign_names(names)
         Monoid_class.__init__(self,names)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
+        """
+        Test for equality.
+        """
         if not isinstance(other, FreeMonoid_class):
-            return -1
-        c = cmp(self.__ngens, other.__ngens)
-        if c: return c
-        if self.variable_names() == other.variable_names():
-            return 0
-        return 1
+            return False
+        if self.__ngens != other.__ngens:
+            return False
+        if self.variable_names() != other.variable_names():
+            return False
+        return True
+
+    def __ne__(self, other):
+        """
+        Test for unequality.
+        """
+        return not (self == other)
 
     def _repr_(self):
         return "Free monoid on %s generators %s"%(self.__ngens,self.gens())

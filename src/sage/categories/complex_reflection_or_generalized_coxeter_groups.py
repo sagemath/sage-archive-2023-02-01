@@ -69,7 +69,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
     - :meth:`ComplexReflectionOrGeneralizedCoxeterGroups.ElementMethods.apply_simple_reflection_right`
     - :meth:`ComplexReflectionOrGeneralizedCoxeterGroups.ElementMethods._mul_`
 
-    It's recommended to implement either `_mul` or both
+    It's recommended to implement either `_mul_` or both
     `apply_simple_reflection_left` and `apply_simple_reflection_right`.
 
     .. SEEALSO::

@@ -205,12 +205,17 @@ class FreeMonoid_class(Monoid_class):
         """
         Test for equality.
         """
+        if self is other:
+            return True
         if not isinstance(other, FreeMonoid_class):
             return False
         if self.__ngens != other.__ngens:
             return False
-        if self.variable_names() != other.variable_names():
-            return False
+        try:
+            if self.variable_names() != other.variable_names():
+                return False
+        except ValueError:
+            pass
         return True
 
     def __ne__(self, other):

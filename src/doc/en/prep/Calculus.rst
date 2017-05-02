@@ -2,6 +2,8 @@
 
 .. linkall
 
+.. _calculus:
+
 Tutorial for Calculus
 =====================
 

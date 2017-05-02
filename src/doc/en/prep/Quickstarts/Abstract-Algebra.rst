@@ -2,6 +2,8 @@
 
 .. linkall
 
+.. _quickstart-abstract-algebra:
+
 Sage Quickstart for Abstract Algebra
 ====================================
 

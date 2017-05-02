@@ -2,6 +2,8 @@
 
 .. linkall
 
+.. _quickstart-linear-algebra:
+
 Sage Quickstart for Linear Algebra
 ==================================
 

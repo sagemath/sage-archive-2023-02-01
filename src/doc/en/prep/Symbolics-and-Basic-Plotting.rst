@@ -2,6 +2,8 @@
 
 .. linkall
 
+.. _symbolics-and-basic-plotting:
+
 Tutorial for Symbolics and Plotting
 ===================================
 

@@ -2,6 +2,8 @@
 
 .. linkall
 
+.. _quickstart-graphs-and-discrete:
+
 Sage Quickstart for Graph Theory and Discrete Mathematics
 =========================================================
 

@@ -2,6 +2,8 @@
 
 .. linkall
 
+.. _programming:
+
 Sage Introductory Programming Tutorial
 ======================================
 

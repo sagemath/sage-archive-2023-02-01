@@ -2,6 +2,8 @@
 
 .. linkall
 
+.. _quickstart-statistics-and-distributions:
+
 Sage Quickstart for Statistics
 ==============================
 

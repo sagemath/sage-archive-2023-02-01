@@ -2,6 +2,8 @@
 
 .. linkall
 
+.. _Advanced_2DPlotting:
+
 Tutorial for Advanced 2d Plotting
 =================================
 

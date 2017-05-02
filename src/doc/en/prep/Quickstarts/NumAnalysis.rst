@@ -2,6 +2,8 @@
 
 .. linkall
 
+.. _quickstart-numerical-analysis:
+
 Sage Quickstart for Numerical Analysis
 ======================================
 

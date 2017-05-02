@@ -231,7 +231,7 @@ class Macaulay2(ExtraTabCompletion, Expect):
 
             sage: filename = tmp_filename()
             sage: f = open(filename, "w")
-            sage: f.write("sage_test = 7;")
+            sage: _ = f.write("sage_test = 7;")
             sage: f.close()
             sage: command = macaulay2._read_in_file_command(filename)
             sage: macaulay2.eval(command)  # optional - macaulay2

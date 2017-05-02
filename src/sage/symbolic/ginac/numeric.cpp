@@ -343,8 +343,6 @@ int precision(const GiNaC::numeric& num, PyObject* a_parent) {
                 prec = PyLong_AsLong(mprec);
                 Py_DECREF(mprec);
         }
-        if (a_parent == nullptr)
-                Py_DECREF(the_parent);
         return prec;
 }
 
@@ -1084,30 +1082,6 @@ bool numeric::has(const ex &other, unsigned /*options*/) const {
                                         return true;
         }
         return false;
-}
-
-/** Evaluation of numbers doesn't do anything at all. */
-ex numeric::eval(int /*level*/) const {
-        // Warning: if this is ever gonna do something, the ex constructors from all kinds
-        // of numbers should be checking for status_flags::evaluated.
-        return this->hold();
-}
-
-/** Cast numeric into a floating-point object.  For example exact numeric(1) is
- *  returned as a 1.0000000000000000000000 and so on according to how Digits is
- *  currently set.  In case the object already was a floating point number the
- *  precision is trimmed to match the currently set default.
- *
- *  @param level  ignored, only needed for overriding basic::evalf.
- *  @return  an ex-handle to a numeric. */
-ex numeric::evalf(int /*level*/, PyObject* parent) const {
-        PyObject *a = to_pyobject();
-        PyObject *ans = py_funcs.py_float(a, parent);
-        Py_DECREF(a);
-        if (ans == nullptr)
-                throw (std::runtime_error("numeric::evalf(): error calling py_float()"));
-
-        return ans;
 }
 
 ex numeric::conjugate() const {
@@ -2314,6 +2288,79 @@ double numeric::to_double() const {
                         std::cerr << "type = " << t << std::endl;
                         stub("invalid type: operator double() type not handled");
         }
+}
+
+/** Evaluation of numbers doesn't do anything at all. */
+ex numeric::eval(int /*level*/) const {
+        // Warning: if this is ever gonna do something, the ex constructors from all kinds
+        // of numbers should be checking for status_flags::evaluated.
+        return this->hold();
+}
+
+/** Cast numeric into a floating-point object.  For example exact numeric(1) is
+ *  returned as a 1.0000000000000000000000 and so on according to how Digits is
+ *  currently set.  In case the object already was a floating point number the
+ *  precision is trimmed to match the currently set default.
+ *
+ *  @param level  ignored, only needed for overriding basic::evalf.
+ *  @return  an ex-handle to a numeric. */
+ex numeric::evalf(int /*level*/, PyObject* parent) const {
+        PyObject *a = to_pyobject();
+        PyObject *ans = py_funcs.py_float(a, parent);
+        Py_DECREF(a);
+        if (ans == nullptr)
+                throw (std::runtime_error("numeric::evalf(): error calling py_float()"));
+
+        return ans;
+}
+
+ex numeric::try_py_method(const numeric& num, const std::string& s)
+{
+        PyObject *obj = num.to_pyobject();
+        PyObject* ret = PyObject_CallMethod(obj, 
+                        const_cast<char*>(s.c_str()), NULL);
+        Py_DECREF(obj);
+        if (ret == nullptr) {
+                PyErr_Clear();
+                throw std::logic_error("");
+        }
+        
+        return ex(numeric(ret));
+}
+
+ex numeric::to_dict_parent(const numeric& num, PyObject* obj)
+{
+        PyObject *ret = nullptr;
+        PyObject *the_parent = nullptr;
+        PyObject *the_arg = num.to_pyobject();
+        if (obj != nullptr and PyDict_Check(obj)) {
+                PyObject* pkey = PyString_FromString(const_cast<char*>("parent"));
+                the_parent = PyDict_GetItem(obj, pkey);
+                Py_DECREF(pkey);
+                if (the_parent != nullptr
+                    and PyCallable_Check(the_parent)) {
+                        ret = PyObject_CallFunctionObjArgs(the_parent, the_arg, nullptr);
+                        Py_DECREF(the_arg);
+                        if (ret == nullptr) {
+                                PyErr_Clear();
+                                throw std::logic_error("");
+                        }
+                        return numeric(ret);
+                }
+        }
+        ret = PyObject_CallFunctionObjArgs(RR, the_arg, NULL);
+        if (ret == nullptr) {
+                PyErr_Clear();
+                ret = PyObject_CallFunctionObjArgs(CC, the_arg, NULL);
+                Py_DECREF(the_arg);
+                if (ret == nullptr) {
+                        PyErr_Clear();
+                        throw std::logic_error("");
+                }
+        }
+        else
+                Py_DECREF(the_arg);
+        return numeric(ret);
 }
 
 /** Real part of a number. */

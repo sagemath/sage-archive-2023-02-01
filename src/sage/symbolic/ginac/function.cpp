@@ -943,7 +943,23 @@ ex function::evalf(int level, PyObject* kwds) const
 			eseq.push_back(elem.evalf(level, kwds));
 	}
 
-	if (opt.evalf_f==nullptr) {
+	if (opt.evalf_f == nullptr) {
+                if (opt.nparams == 1 and is_exactly_a<numeric>(eseq[1-1])) {
+                        const numeric& n = ex_to<numeric>(eseq[1-1]);
+                        try {
+                                return numeric::try_py_method(n, get_name());
+                        }
+                        catch (std::logic_error) {
+                                try {
+                                        ex e = numeric::try_py_method(ex_to<numeric>(n.evalf()),
+                                                           get_name());
+                                        if (not is_exactly_a<numeric>(e))
+                                                throw std::runtime_error("can't happen in function::evalf");
+                                        return numeric::to_dict_parent(ex_to<numeric>(e), kwds);
+                                }
+                                catch (std::logic_error) {}
+                        }
+                }
 		return function(serial,eseq).hold();
 	}
 	current_serial = serial;

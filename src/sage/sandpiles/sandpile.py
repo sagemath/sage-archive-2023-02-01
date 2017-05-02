@@ -28,7 +28,7 @@ NEW METHODS
 
 DEPRECATED
 
-SandpileDivisor.linear_system, SandpileDivisor.r_of_D, sandlib method, complete_sandpile, grid_sandpile, triangle_sandpile, aztec_sandpile, random_digraph, random_tree, glue_graphs, admissible_partitions, firing_vector, min_cycles.
+SandpileDivisor.linear_system, SandpileDivisor.r_of_D.
 
 MINOR CHANGES
 
@@ -6203,10 +6203,8 @@ def sandlib(selector=None):
 
     EXAMPLES::
 
+            sage: from sage.sandpiles.sandpile import sandlib
             sage: sandlib()
-            doctest:...: DeprecationWarning: sandlib() will soon be removed.  Use sandpile() instead.
-            See http://trac.sagemath.org/18618 for details.
-            <BLANKLINE>
               Sandpiles in the sandlib:
                  kite : generic undirected graphs with 5 vertices
                  generic : generic digraph with 6 vertices
@@ -6302,10 +6300,8 @@ def triangle_sandpile(n):
 
     EXAMPLES::
 
+        sage: from sage.sandpiles.sandpile import triangle_sandpile
         sage: T = triangle_sandpile(5)
-        doctest:...: DeprecationWarning:
-        Importing triangle_sandpile from here is deprecated. If you need to use it, please import it directly from sage.sandpiles.sandpile
-        See http://trac.sagemath.org/18618 for details.
         sage: T.group_order()
         135418115000
     """
@@ -6349,10 +6345,8 @@ def aztec_sandpile(n):
 
     EXAMPLES::
 
+        sage: from sage.sandpiles.sandpile import aztec_sandpile
         sage: aztec_sandpile(2)
-        doctest:...: DeprecationWarning:
-        Importing aztec_sandpile from here is deprecated. If you need to use it, please import it directly from sage.sandpiles.sandpile
-        See http://trac.sagemath.org/18618 for details.
         {'sink': {(-3/2, -1/2): 2,
           (-3/2, 1/2): 2,
           (-1/2, -3/2): 2,
@@ -6438,10 +6432,8 @@ def random_digraph(num_verts, p=0.5, directed=True, weight_max=1):
 
     EXAMPLES::
 
+        sage: from sage.sandpiles.sandpile import random_digraph
         sage: g = random_digraph(6,0.2,True,3)
-        doctest:...: DeprecationWarning: random_digraph will be removed soon.  Use any of the Random* methods
-        from graphs() and from digraphs() instead.
-        See http://trac.sagemath.org/18618 for details.
         sage: S = Sandpile(g,0)
         sage: S.show(edge_labels = True)
 
@@ -6453,7 +6445,6 @@ def random_digraph(num_verts, p=0.5, directed=True, weight_max=1):
         sage: random_digraph(5)
         Digraph on 5 vertices
     """
-    deprecation(18618,'random_digraph will be removed soon.  Use any of the Random* methods from graphs() and from digraphs() instead.')
     a = digraphs.RandomDirectedGN(num_verts)
     b = graphs.RandomGNP(num_verts,p)
     a.add_edges(b.edges())
@@ -6547,16 +6538,12 @@ def glue_graphs(g, h, glue_g, glue_h):
 
     EXAMPLES::
 
+        sage: from sage.sandpiles.sandpile import glue_graphs
         sage: x = {0: {}, 1: {0: 1}, 2: {0: 1, 1: 1}, 3: {0: 1, 1: 1, 2: 1}}
         sage: y = {0: {}, 1: {0: 2}, 2: {1: 2}, 3: {0: 1, 2: 1}}
         sage: glue_x = {1: 1, 3: 2}
         sage: glue_y = {0: 1, 1: 2, 3: 1}
-        sage: z = glue_graphs(x,y,glue_x,glue_y)
-        doctest:...: DeprecationWarning:
-        Importing glue_graphs from here is deprecated. If you need to use it,
-        please import it directly from sage.sandpiles.sandpile
-        See http://trac.sagemath.org/18618 for details.
-        sage: z
+        sage: z = glue_graphs(x,y,glue_x,glue_y); z
         {0: {},
          'x0': {0: 1, 'x1': 1, 'x3': 2, 'y1': 2, 'y3': 1},
          'x1': {'x0': 1},
@@ -6709,11 +6696,10 @@ def admissible_partitions(S, k):
 
     EXAMPLES::
 
+        sage: from sage.sandpiles.sandpile import admissible_partitions
+        sage: from sage.sandpiles.sandpile import partition_sandpile
         sage: S = sandpiles.Cycle(4)
         sage: P = [admissible_partitions(S, i) for i in [2,3,4]]
-        doctest:...: DeprecationWarning:
-        Importing admissible_partitions from here is deprecated. If you need to use it, please import it directly from sage.sandpiles.sandpile
-        See http://trac.sagemath.org/18618 for details.
         sage: P
         [[{{0}, {1, 2, 3}},
           {{0, 2, 3}, {1}},
@@ -6728,9 +6714,6 @@ def admissible_partitions(S, k):
          [{{0}, {1}, {2}, {3}}]]
         sage: for p in P:
         ....:  sum([partition_sandpile(S, i).betti(verbose=False)[-1] for i in p])
-        doctest:...: DeprecationWarning:
-        Importing partition_sandpile from here is deprecated. If you need to use it, please import it directly from sage.sandpiles.sandpile
-        See http://trac.sagemath.org/18618 for details.
         6
         8
         3
@@ -6771,6 +6754,7 @@ def partition_sandpile(S, p):
 
     EXAMPLES::
 
+        sage: from sage.sandpiles.sandpile import admissible_partitions, partition_sandpile
         sage: S = sandpiles.Cycle(4)
         sage: P = [admissible_partitions(S, i) for i in [2,3,4]]
         sage: for p in P:
@@ -6816,14 +6800,11 @@ def firing_vector(S, D, E):
 
     EXAMPLES::
 
+      sage: from sage.sandpiles.sandpile import firing_vector
       sage: S = sandpiles.Complete(4)
       sage: D = SandpileDivisor(S, {0: 0, 1: 0, 2: 8, 3: 0})
       sage: E = SandpileDivisor(S, {0: 2, 1: 2, 2: 2, 3: 2})
       sage: v = firing_vector(S, D, E)
-      doctest:...: DeprecationWarning: firing_vector() will soon be removed.  Use SandpileDivisor.is_linearly_equivalent() instead.
-      See http://trac.sagemath.org/18618 for details.
-      doctest:...: DeprecationWarning: May 25, 2015: Replaced by SandpileDivisor.is_linearly_equivalent.
-      See http://trac.sagemath.org/18618 for details.
       sage: v
       (0, 0, 2, 0)
 
@@ -6834,7 +6815,6 @@ def firing_vector(S, D, E):
       sage: firing_vector(S, D, S.zero_div())
       Error. Are the divisors linearly equivalent?
   """
-    deprecation(18618,'May 25, 2015: Replaced by SandpileDivisor.is_linearly_equivalent.')
     try:
         v = vector(D.values())
         w = vector(E.values())
@@ -6859,11 +6839,9 @@ def min_cycles(G, v):
 
     EXAMPLES::
 
+        sage: from sage.sandpiles.sandpile import min_cycles, sandlib
         sage: T = sandlib('gor')
         sage: [min_cycles(T, i) for i in T.vertices()]
-        doctest:...: DeprecationWarning:
-        Importing min_cycles from here is deprecated. If you need to use it, please import it directly from sage.sandpiles.sandpile
-        See http://trac.sagemath.org/18618 for details.
         [[], [[1, 3]], [[2, 3, 1], [2, 3]], [[3, 1], [3, 2]]]
     """
     pr = G.neighbors_in(v)

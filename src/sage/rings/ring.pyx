@@ -994,8 +994,17 @@ cdef class Ring(ParentWithGens):
             Traceback (most recent call last):
             ...
             NotImplementedError
+
+        Forward the proof flag to `is_field`, see :trac:`22910`::
+
+            sage: R1.<x> = GF(5)[]
+            sage: F1 = R1.quotient_ring(x^2+x+1)
+            sage: R2.<x> = F1[]
+            sage: F2 = R2.quotient_ring(x^2+x+1)
+            sage: F2.is_integral_domain(False)
+            False
         """
-        if self.is_field():
+        if self.is_field(proof):
             return True
 
         if self.is_zero():

@@ -488,6 +488,6 @@ We close this tutorial with a cool plot that we define *implicitly* as a
     Graphics3d Object
 
 The next tutorial will use all that you have learned about Sage basics,
-symbolics, and plotting in a specific mathematical venue \- the calculus
-sequence!
+symbolics, and plotting in a specific mathematical venue \- the
+:ref:`calculus sequence <prep-calculus>`!
 

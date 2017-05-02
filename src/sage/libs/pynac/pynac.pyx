@@ -1791,19 +1791,36 @@ cdef py_atan2(x, y):
         2.284887025407...
         sage: atan2(2.1000000000000000000000000000000000000, -1.20000000000000000000000000000000)
         2.089942441041419571002776071...
+
+    Check that :trac:`22877` is fixed::
+
+        sage: atan2(CC(I), CC(I+1))
+        0.553574358897045 + 0.402359478108525*I
+        sage: atan2(CBF(I), CBF(I+1))
+        [0.55357435889705 +/- 5.75e-15] + [0.40235947810852 +/- 6.01e-15]*I
     """
     from sage.symbolic.constants import pi, NaN
     P = coercion_model.common_parent(x, y)
+    is_real = False
     if P is ZZ:
         P = RR
+    if P in (float, RR, RBF):
+        is_real = True
     if y != 0:
-        if x > 0:
-            res = py_atan(abs(y/x))
-        elif x < 0:
-            res = P(pi) - py_atan(abs(y/x))
+        try:
+            is_real = is_real or (x.is_real() and y.is_real())
+        except AttributeError:
+            is_real = False
+        if is_real:
+            if x > 0:
+                res = py_atan(abs(y/x))
+            elif x < 0:
+                res = P(pi) - py_atan(abs(y/x))
+            else:
+                res = P(pi)/2
+            return res if y > 0 else -res
         else:
-            res = P(pi)/2
-        return res if y > 0 else -res
+            return -I*py_log((x + I*y)/py_sqrt(x**2 + y**2))
     else:
         if x > 0:
             return P(0)

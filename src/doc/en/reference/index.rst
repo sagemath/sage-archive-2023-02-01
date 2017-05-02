@@ -1,15 +1,13 @@
 .. _reference-manual:
 
-****************
-Reference Manual
-****************
+************************************
+Welcome to the Sage Reference Manual
+************************************
 
-Welcome to Sage's Reference Manual! It contains documentation for
-(almost) all of `Sage's <http://www.sagemath.org/>`_ features, each
-illustrated with examples that are systematically tested with each
-release. A thematic index is available below.
-
-Enjoy Sage!
+This manual contains documentation for (almost) all of `Sage's
+<http://www.sagemath.org/>`_ features, each illustrated with examples
+that are systematically tested with each release. A thematic index is
+available below.
 
 User Interface
 ==============

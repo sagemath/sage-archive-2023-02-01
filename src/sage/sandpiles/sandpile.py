@@ -6409,57 +6409,6 @@ def aztec_sandpile(n):
                 aztec_sandpile['sink'][vert] = out_degree
     return aztec_sandpile
 
-def random_digraph(num_verts, p=0.5, directed=True, weight_max=1):
-    """
-    A random weighted digraph with a directed spanning tree rooted at `0`.  If
-    ``directed = False``, the only difference is that if `(i,j,w)` is an edge with
-    tail `i`, head `j`, and weight `w`, then `(j,i,w)` appears also.  The result
-    is returned as a Sage digraph.
-
-    INPUT:
-
-     - ``num_verts`` -- number of vertices
-
-     - ``p`` -- (default: 0.5) probability edges occur
-
-     - ``directed`` -- (default: ``True``) if directed
-
-     - ``weight_max`` -- (default: 1) integer maximum for random weights
-
-    OUTPUT:
-
-    random graph
-
-    EXAMPLES::
-
-        sage: from sage.sandpiles.sandpile import random_digraph
-        sage: g = random_digraph(6,0.2,True,3)
-        sage: S = Sandpile(g,0)
-        sage: S.show(edge_labels = True)
-
-    TESTS:
-
-    Check that we can construct a random digraph with the
-    default arguments (:trac:`12181`)::
-
-        sage: random_digraph(5)
-        Digraph on 5 vertices
-    """
-    a = digraphs.RandomDirectedGN(num_verts)
-    b = graphs.RandomGNP(num_verts,p)
-    a.add_edges(b.edges())
-    if directed:
-        c = graphs.RandomGNP(num_verts,p)
-        # reverse the edges of c and add them in
-        a.add_edges([(j,i,None) for i,j,k in c.edges()])
-    else:
-        a.add_edges([(j,i,None) for i,j,k in a.edges()])
-        a.add_edges([(j,i,None) for i,j,k in b.edges()])
-    # now handle the weights
-    for i,j,k in a.edge_iterator():
-        a.set_edge_label(i,j,ZZ.random_element(weight_max)+1)
-    return a
-
 def random_DAG(num_verts, p=0.5, weight_max=1):
     r"""
     A random directed acyclic graph with ``num_verts`` vertices.
@@ -6782,46 +6731,6 @@ def partition_sandpile(S, p):
     for i in g.vertices():
         if S.sink() in i:
             return Sandpile(g,i)
-
-def firing_vector(S, D, E):
-    r"""
-    If `D` and `E` are linearly equivalent divisors, find the firing vector
-    taking `D` to `E`.
-
-    INPUT:
-
-    - ``S`` -- Sandpile
-
-    - ``D``, ``E`` -- tuples (representing linearly equivalent divisors)
-
-    OUTPUT:
-
-    tuple (representing a firing vector from ``D`` to ``E``)
-
-    EXAMPLES::
-
-      sage: from sage.sandpiles.sandpile import firing_vector
-      sage: S = sandpiles.Complete(4)
-      sage: D = SandpileDivisor(S, {0: 0, 1: 0, 2: 8, 3: 0})
-      sage: E = SandpileDivisor(S, {0: 2, 1: 2, 2: 2, 3: 2})
-      sage: v = firing_vector(S, D, E)
-      sage: v
-      (0, 0, 2, 0)
-
-    The divisors must be linearly equivalent::
-
-      sage: vector(D.values()) - S.laplacian()*vector(v) == vector(E.values())
-      True
-      sage: firing_vector(S, D, S.zero_div())
-      Error. Are the divisors linearly equivalent?
-  """
-    try:
-        v = vector(D.values())
-        w = vector(E.values())
-        return tuple(S.laplacian().solve_left(v-w))
-    except ValueError:
-        print("Error. Are the divisors linearly equivalent?")
-        return
 
 def min_cycles(G, v):
     r"""

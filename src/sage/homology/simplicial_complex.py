@@ -227,11 +227,11 @@ def lattice_paths(t1, t2, length=None):
          [('a', 0), ('a', 3), ('b', 3), ('c', 3), ('c', 5)],
          [('a', 0), ('b', 0), ('b', 3), ('c', 3), ('c', 5)],
          [('a', 0), ('b', 0), ('c', 0), ('c', 3), ('c', 5)]]
-        sage: lattice_paths(list(range(3)), list(range(3)), length=2)
+        sage: lattice_paths(range(3), range(3), length=2)
         []
-        sage: lattice_paths(list(range(3)), list(range(3)), length=3)
+        sage: lattice_paths(range(3), range(3), length=3)
         [[(0, 0), (1, 1), (2, 2)]]
-        sage: lattice_paths(list(range(3)), list(range(3)), length=4)
+        sage: lattice_paths(range(3), range(3), length=4)
         [[(0, 0), (1, 1), (1, 2), (2, 2)],
          [(0, 0), (0, 1), (1, 2), (2, 2)],
          [(0, 0), (1, 1), (2, 1), (2, 2)],
@@ -239,6 +239,9 @@ def lattice_paths(t1, t2, length=None):
          [(0, 0), (0, 1), (1, 1), (2, 2)],
          [(0, 0), (1, 0), (1, 1), (2, 2)]]
     """
+    # Convert t1, t2 to tuples, in case they are (for example) Python 3 ranges.
+    t1 = tuple(t1)
+    t2 = tuple(t2)
     if length is None:
         # 0 x n (or k x 0) rectangle:
         if len(t1) == 0 or len(t2) == 0:
@@ -2094,11 +2097,12 @@ class SimplicialComplex(Parent, GenericCellComplex):
                                                sort_facets=False, is_mutable=False)
         # now construct the range of dimensions in which to compute
         if dimensions is None:
-            dimensions = list(range(self.dimension() + 1))
+            dimensions = range(self.dimension() + 1)
             first = 0
         else:
             augmented = False
             first = dimensions[0]
+        dimensions = list(dimensions)
         differentials = {}
         # in the chain complex, compute the first dimension by hand,
         # and don't cache it: it may be differ from situation to
@@ -2295,13 +2299,13 @@ class SimplicialComplex(Parent, GenericCellComplex):
         from sage.homology.homology_group import HomologyGroup
 
         if dim is not None:
-            if isinstance(dim, (list, tuple)):
+            if isinstance(dim, (list, tuple, range)):
                 low = min(dim) - 1
                 high = max(dim) + 2
             else:
                 low = dim - 1
                 high = dim + 2
-            dims = list(range(low, high))
+            dims = range(low, high)
         else:
             dims = None
 
@@ -2343,9 +2347,9 @@ class SimplicialComplex(Parent, GenericCellComplex):
                             algorithm=algorithm)
 
         if dim is None:
-            dim = list(range(self.dimension() + 1))
+            dim = range(self.dimension() + 1)
         zero = HomologyGroup(0, base_ring)
-        if isinstance(dim, (list, tuple)):
+        if isinstance(dim, (list, tuple, range)):
             # Fix non-reduced answer.
             if subcomplex is None and not reduced and 0 in dim:
                 try:

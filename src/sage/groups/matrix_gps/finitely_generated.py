@@ -72,6 +72,8 @@ from sage.matrix.all import matrix
 from sage.misc.latex import latex
 from sage.structure.sequence import Sequence
 from sage.misc.cachefunc import cached_method
+from sage.rings.fraction_field import FractionField
+from sage.modules.free_module_element import vector
 
 from sage.groups.matrix_gps.matrix_group import (
     is_MatrixGroup, MatrixGroup_generic, MatrixGroup_gap )
@@ -716,8 +718,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
 
         - Singular reference manual
 
-        - B. Sturmfels, "Algorithms in invariant theory", Springer-Verlag,
-          1993.
+        - [Stu1993]_
 
         - S. King, "Minimal Generating Sets of non-modular invariant
           rings of finite groups", :arxiv:`math/0703035`.
@@ -794,3 +795,115 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
                 singular.eval(SName+'[1,%d]'%(j)) for j in range(2,1+singular('ncols('+SName+')'))
                 ]
             return [PR(gen) for gen in OUT]
+
+    def reynolds_operator(self, poly, xi = None):
+        r"""
+        Compute the Reynolds Operator of this finite group `G`. This is th eprojection from the polynomial ring to the ring of relative invariants. [Stu1993]_.
+
+            ALGORITHM:
+
+            Let `K[x]` be a polynomial ring. Let `K[x]^G= \{f\in K[x]  |  \pi f=f \forall \pi\in G\}` be the ring of invarants of `G`.
+            Then the Reynold's operator is a map `R`, from `K[x]` into itself for the nonmodular case,
+            defined by `f \rightarrow \frac{1}{|G|} \sum_{ \pi \in G} \pi f`.
+
+
+        INPUT:
+
+        -`poly`-- a polynomial from K[x]
+
+        - ``xi`` -- (default: trivial character) a linear group character of this group
+
+        OUTPUT:
+
+        - the invariant polynomial under K[x]^G
+
+        AUTHORS:
+            Rebecca Lauren Miller and Ben Hutz
+
+        EXAMPLES::
+
+            sage: S3 = MatrixGroup(SymmetricGroup(3))
+            sage: R.<x,y,z> = QQ[]
+            sage: f = x*y*z^3
+            sage: S3.reynolds_operator(f)
+            1/3*x^3*y*z + 1/3*x*y^3*z + 1/3*x*y*z^3
+
+        ::
+            # should be v's
+            sage: G = MatrixGroup(CyclicPermutationGroup(4))
+            sage: X = G.character_table()
+            sage: xi = G.character(X[2])
+            sage: W.<v> = CyclotomicField(4)
+            sage: J.<x,y,z,w> = W[]
+            sage: f = x
+            sage: G.reynolds_operator(f,xi)
+            1/4*x + (-1/4*v)*y - 1/4*z + (1/4*v)*w
+
+        ::
+
+            sage: G = MatrixGroup(CyclicPermutationGroup(3))
+            sage: xi = G.character(G.character_table()[1])
+            sage: R.<x,y,z> = QQ[]
+            sage: f = x*y
+            sage: G.reynolds_operator(f,xi)
+            1/3*x*y + (-1/3*zeta3 - 1/3)*x*z + (1/3*zeta3)*y*z
+
+        ::
+
+            sage: i = GF(7)(3)
+            sage: G = MatrixGroup([[i^3,0,0,-i^3],[i^2,0,0,-i^2]])
+            sage: xi = G.character(G.character_table()[4])
+            sage: R.<w,x>=GF(7)[]
+            sage: f=w^5*x + x^6
+            sage: G.reynolds_operator(f,xi)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Not implemented for this base field's charateristic
+            sage: G.reynolds_operator(f)
+            x^6
+
+        ::
+
+            sage: K.<i> = CyclotomicField(4)
+            sage: Tetra =  MatrixGroup([(-1+i)/2,(-1+i)/2, (1+i)/2,(-1-i)/2], [0,i, -i,0])
+            sage: xi = Tetra.character(Tetra.character_table()[1])
+            sage: R.<x,y>=K[]
+            sage: print Tetra.reynolds_operator(x*y^5,xi)
+            -1/2*x^5*y + 1/2*x*y^5
+            sage: xi = Tetra.character(Tetra.character_table()[2])
+            sage: Tetra.reynolds_operator(x*y^9,xi)
+            -1/4*x^9*y + (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 7/2)*x^7*y^3
+            + (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 7/2)*x^3*y^7 + 1/4*x*y^9
+
+        """
+        f=poly
+        G=self
+        F=0
+        R = FractionField(f.base_ring())
+        if xi is None:
+            if R.characteristic()==0 or (not R.characteristic().divides(G.order())):
+                F=0
+                for g in G:
+                    F += f(*g.matrix()*vector(f.parent().gens()))
+                F = F/G.order()
+                return F
+        K = xi.values()[0].parent()
+        if R.characteristic()==0:
+            if K!=R: # extend base ring of G to include all xi values
+                if K.degree() != 1:
+                    if R.degree() != 1:
+                        L = R.composite_fields(K)[0]
+                    else:
+                        L = K
+                else:
+                    L = R
+            else:
+                L = R
+        else:
+            raise NotImplementedError("Not implemented for this base field's charateristic")
+        f=f.change_ring(L)
+        F=L(0)
+        for g in G:
+            F += L(xi(g))*f(*g.matrix().change_ring(L)*vector(f.parent().gens()))
+        F = F/G.order()
+        return  F

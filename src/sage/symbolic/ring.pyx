@@ -27,6 +27,7 @@ from sage.structure.coerce cimport is_numpy_type
 
 from sage.rings.all import RR, CC, ZZ
 
+import operator
 
 cdef class SymbolicRing(CommutativeRing):
     """
@@ -794,23 +795,33 @@ cdef class SymbolicRing(CommutativeRing):
             if not isidentifier(s):
                 raise ValueError('The name "'+s+'" is not a valid Python identifier.')
 
+        formatted_latex_name = None
+        if latex_name is not None and n is None:
+            try:
+                n = operator.index(latex_name)
+                latex_name = None
+            except:
+                formatted_latex_name = '{{{0}}}'.format(latex_name)
+
         if len(names_list) == 0:
             raise ValueError('You need to specify the name of the new variable.')
         if len(names_list) == 1:
-            formatted_latex_name = None
-            if latex_name is not None:
-                formatted_latex_name = '{{{0}}}'.format(latex_name)
             if n is not None:
-                if n > 0 and n.is_integer():
-                    return tuple([self.symbol(name+str(i), domain=domain) for i in range(n)])
+                if n > 0:
+                    name = [name + str(i) for i in range(n)]
+                    if latex_name is None:
+                        return tuple([self.symbol(name[i], domain=domain) for i in range(n)])
+                    else:
+                        formatted_latex_name = ['{{{0}}}'.format(latex_name) + '_{{{0}}}'.format(str(i)) for i in range(n)]
+                        return tuple([self.symbol(name[i], latex_name=formatted_latex_name[i], domain=domain) for i in range(n)])
                 else:
                     raise ValueError("the number of variables should be a positive integer")
             else:
                 return self.symbol(name, latex_name=formatted_latex_name, domain=domain)
         if len(names_list) > 1:
-            if latex_name:
+            if latex_name is not None:
                 raise ValueError("cannot specify latex_name for multiple symbol names")
-            if n:
+            if n is not None:
                 raise ValueError("cannot specify n for multiple symbol names")
             return tuple([self.symbol(s, domain=domain) for s in names_list])
 

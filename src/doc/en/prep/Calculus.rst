@@ -2,7 +2,7 @@
 
 .. linkall
 
-.. _calculus:
+.. _prep-calculus:
 
 Tutorial for Calculus
 =====================

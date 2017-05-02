@@ -2,7 +2,7 @@
 
 .. linkall
 
-.. _Advanced_2DPlotting:
+.. _prep-advanced-2dplotting:
 
 Tutorial for Advanced 2d Plotting
 =================================

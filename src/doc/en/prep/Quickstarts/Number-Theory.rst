@@ -2,7 +2,7 @@
 
 .. linkall
 
-.. _quickstart-number-theory:
+.. _prep-quickstart-number-theory:
 
 Sage Quickstart for Number Theory
 =================================

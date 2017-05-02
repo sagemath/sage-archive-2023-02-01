@@ -2,7 +2,7 @@
 
 .. linkall
 
-.. _quickstart-differential-equations:
+.. _prep-quickstart-differential-equations:
 
 Sage Quickstart for Differential Equations
 ==========================================

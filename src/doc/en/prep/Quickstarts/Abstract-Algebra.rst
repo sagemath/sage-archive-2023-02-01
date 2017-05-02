@@ -2,7 +2,7 @@
 
 .. linkall
 
-.. _quickstart-abstract-algebra:
+.. _prep-quickstart-abstract-algebra:
 
 Sage Quickstart for Abstract Algebra
 ====================================

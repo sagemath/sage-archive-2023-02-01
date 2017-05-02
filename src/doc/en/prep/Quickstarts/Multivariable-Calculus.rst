@@ -2,7 +2,7 @@
 
 .. linkall
 
-.. _quickstart-multivariate-calculus:
+.. _prep-quickstart-multivariate-calculus:
 
 Sage Quickstart for Multivariable Calculus
 ==========================================

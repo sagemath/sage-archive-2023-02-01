@@ -2,7 +2,7 @@
 
 .. linkall
 
-.. _symbolics-and-basic-plotting:
+.. _prep-symbolics-and-basic-plotting:
 
 Tutorial for Symbolics and Plotting
 ===================================

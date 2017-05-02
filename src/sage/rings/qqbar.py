@@ -3104,7 +3104,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         else:
             return hash((self + QQbar_hash_offset).interval_exact(CIF))
 
-    def __bool__(self):
+    def __nonzero__(self):
         """
         Check whether ``self`` is nonzero.
 
@@ -3142,8 +3142,48 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             True
             sage: bool(e.abs() < 2**-500)
             True
+
+        An identity between roots of unity::
+
+            sage: z3 = QQbar.zeta(3)
+            sage: z4 = QQbar.zeta(4)
+            sage: z5 = QQbar.zeta(5)
+            sage: p1 = (z3 + z4 + z5)**2
+            sage: p2 = (z3 - z4 - z5)**2
+            sage: p3 = (z3 - z4 + z5)**2
+            sage: p4 = (z3 + z4 - z5)**2
+            sage: bool(p1 - p2 + p3 - p4 - 8 * QQbar.zeta(15)**8)
+            False
+
+        The following are non-trivially zeros (though no exactification occur)::
+
+            sage: x = polygen(ZZ)
+            sage: a = (AA(2).sqrt() + AA(3).sqrt() + AA(5).sqrt())^2
+            sage: b = 10 + 2*max((x^4 - 62*x^2 - 240*x - 239).roots(AA, False))
+            sage: bool(a - b)
+            False
+
+            sage: d = sum(AA(k)**(1/k) for k in [2..100])
+            sage: bool(d * (a - b))
+            False
+            sage: bool((a - b) * d)
+            False
+            sage: bool(d * (a - b) * d)
+            False
+            sage: bool((a - b) / d)
+            False
+
+            sage: d = sum(QQbar(-k)**(1/k) for k in [2..100])
+            sage: bool(d * (a - b))
+            False
+            sage: bool((a - b) * d)
+            False
+            sage: bool(d * (a - b) * d)
+            False
+            sage: bool((a - b) / d)
+            False
         """
-        # case 0: trivial test
+        # case 0: trivial tests
         if not self._value.contains_zero():
             return True
         elif self._value.is_zero():
@@ -3153,24 +3193,24 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
         # case 1: cheap tests
         sd = self._descr
-        if isinstance(sd, ANExtensionElement) or isinstance(sd, ANRootOfUnity):
-            # The ANExtensionElement and ANRootOfUnity returns an ANRational
+        if isinstance(sd, ANExtensionElement):
+            # The ANExtensionElement returns an ANRational
             # instead, if the number is zero.
             return True
         elif isinstance(sd, ANRational):
-            return sd._value.__nonzero__()
+            return bool(sd._value)
         elif isinstance(sd, ANUnaryExpr) and sd._op != 'real' and sd._op != 'imag':
-            ans = sd._arg.__nonzero__()
+            ans = bool(sd._arg)
             if not ans:
                 self._set_descr(ANRational(QQ.zero()))
             return ans
-        elif isinstance(sd, ANBinaryExpr) and sd._op == '*':
-            ans = sd._left.__nonzero__() and sd._right.__nonzero__()
+        elif isinstance(sd, ANBinaryExpr) and sd._op is operator.mul:
+            ans = bool(sd._left) and bool(sd._right)
             if not ans:
                 self._set_descr(ANRational(QQ.zero()))
             return ans
-        elif isinstance(sd, ANBinaryExpr) and sd._op == '/':
-            ans = sd._left.__nonzero__()
+        elif isinstance(sd, ANBinaryExpr) and sd._op is operator.div:
+            ans = bool(sd._left)
             if not ans:
                 self._set_descr(ANRational(QQ.zero()))
             return ans
@@ -3185,7 +3225,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         if isinstance(sd, ANBinaryExpr):
             op = sd._op
             left = sd._left
-            right = sd._right if op == '-' else -sd._right
+            right = sd._right if op is operator.sub else -sd._right
 
             lp = left.minpoly()
             rp = right.minpoly()
@@ -3200,10 +3240,8 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
         # Sigh...
         self.exactify()
-        return self.__bool__()
+        return bool(self)
 
-    __nonzero__ = __bool__
-    
     def is_square(self):
         """
         Return whether or not this number is square.
@@ -3967,39 +4005,6 @@ class AlgebraicNumber(AlgebraicNumber_base):
         if srp != orp:
             return richcmp_not_equal(srp, orp, op)
         return richcmp(self.imag(), other.imag(), op)
-
-    def __bool__(self):
-        """
-        Check whether ``self`` is nonzero.
-
-        This is fast if interval arithmetic proves that ``self`` is
-        nonzero, but may be slow if the number actually is very close
-        to zero.
-
-        EXAMPLES::
-
-            sage: bool(QQbar.zeta(2) + 1)
-            False
-            sage: bool(QQbar.zeta(7) / (2^500))
-            True
-        """
-        val = self._value
-        d = self._descr
-        if not val.contains_zero() or isinstance(d, ANExtensionElement):
-            return True
-        elif isinstance(d, ANRational):
-            return bool(d._value)
-
-        while self._value.prec() < 128:
-            self._more_precision()
-            if not self._value.contains_zero():
-                return True
-
-        # Sigh...
-        self.exactify()
-        return self.__bool__()
-
-    __nonzero__ = __bool__
 
     def __pow__(self, e):
         r""" ``self**p`` returns the `p`'th power of self (where `p` can
@@ -4972,9 +4977,9 @@ class AlgebraicReal(AlgebraicNumber_base):
         elif type(sd) is ANBinaryExpr:
             ls = sd._left.sign()
             rs = sd._right.sign()
-            if sd._op == '*' or sd._op == '/':
+            if sd._op is operator.mul or sd._op is operator.div:
                 return sd._left.sign() * sd._right.sign()
-            elif sd._op == '+':
+            elif sd._op is operator.add:
                 if ls == rs:
                     return ls
             else:

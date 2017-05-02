@@ -22,11 +22,10 @@ from sage.misc.decorators import sage_wraps
 # Replacements (as needed) for Python stdlib functions to provide
 # better platform compatibility
 #################################################################
-from ctypes.util import find_library as _find_library
+from ctypes.util import find_library as _orig_find_library
 if sys.platform == 'cygwin':
     # find_library that works in cygwin adapted from
     # http://cygwin-ports.svn.sourceforge.net/viewvc/cygwin-ports/ports/trunk/lang/python/2.5.2-ctypes-util-find_library.patch?revision=8245&view=markup
-    @sage_wraps(_find_library)
     def _find_library(name):
         for libdir in [os.path.join(SAGE_LOCAL, 'lib'),
                        '/usr/local/lib', '/usr/lib']:
@@ -46,9 +45,27 @@ if sys.platform == 'cygwin':
 
                 if p.returncode == 0:
                     return stdout.strip()
+elif sys.platform == 'darwin':
+    # On OSX non-standard library paths are not automatically found by the
+    # find_library implementation without setting DYLD_LIBRARY_PATH; see
+    # https://trac.sagemath.org/ticket/21399#comment:25
+    def _find_library(name):
+        sage_local_lib = os.path.join(SAGE_LOCAL, 'lib')
+        orig_dyld_library_path = os.environ.get('DYLD_LIBRARY_PATH')
+        if orig_dyld_library_path:
+            os.environ['DYLD_LIBRARY_PATH'] = '%s:%s' % (
+                    sage_local_lib, orig_dyld_library_path)
+        else:
+            os.environ['DYLD_LIBRARY_PATH'] = sage_local_lib
+
+        try:
+            return _orig_find_library(name)
+        finally:
+            if orig_dyld_library_path is not None:
+                os.environ['DYLD_LIBRARY_PATH'] = orig_dyld_library_path
 
 
-@sage_wraps(_find_library)
+@sage_wraps(_orig_find_library)
 def find_library(name):
     """
     Returns the shared library filename for a given library.

@@ -981,27 +981,37 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             return PS(mol)
         return mol
 
-    def reynolds_operator(self, poly, xi = None):
+    def reynolds_operator(self, poly, xi=None):
         r"""
-        Compute the Reynolds Operator of this finite group `G`. This is th eprojection from the polynomial ring to the ring of relative invariants. [Stu1993]_.
+        Compute the Reynolds Operator of this finite group `G`. This is the
+        projection from the polynomial ring to the ring of relative invariants.
+        [Stu1993]_.
 
         ALGORITHM:
 
-        Let `K[x]` be a polynomial ring. Let `K[x]^G= \{f\in K[x]  |  \pi f=f \forall \pi\in G\}` be the ring of invarants of `G`.
-            Then the Reynold's operator is a map `R`, from `K[x]` into itself for the nonmodular case,
-            defined by `f \rightarrow \frac{1}{|G|} \sum_{ \pi \in G} \pi f`.
+        Let `K[x]` be a polynomial ring and `\xi` a linear character for `G`. Let
+
+        .. MATH:
+
+            K[x]^G_{\xi} = \{f \in K[x] | \pi f = \xi(\pi) f \forall \pi\in G\}
+
+        be the ring of invarants of `G` relative to `\xi`. Then the Reynold's operator
+        is a map `R` from `K[x]` into `K[x]^G_{\xi}` defined by
+
+        .. MATH:
+
+            f \mapsto \frac{1}{|G|} \sum_{ \pi \in G} \xi(\pi) f.
 
         INPUT:
 
-        -`poly`-- a polynomial from K[x]
+        - ``poly`` -- a polynomial from K[x]
 
         - ``xi`` -- (default: trivial character) a linear group character of this group
 
-        OUTPUT:
-
-        - the invariant polynomial under K[x]^G
+        OUTPUT: an invariant polynomial relative to `\xi`
 
         AUTHORS:
+
             Rebecca Lauren Miller and Ben Hutz
 
         EXAMPLES::
@@ -1015,12 +1025,10 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         ::
 
             sage: G = MatrixGroup(CyclicPermutationGroup(4))
-            sage: X = G.character_table()
-            sage: xi = G.character(X[2])
-            sage: W.<v> = CyclotomicField(4)
-            sage: J.<x,y,z,w> = W[]
-            sage: f = x
-            sage: G.reynolds_operator(f,xi)
+            sage: xi = G.character(G.character_table()[2])
+            sage: K.<v> = CyclotomicField(4)
+            sage: R.<x,y,z,w> = K[]
+            sage: G.reynolds_operator(x, xi)
             1/4*x + (-1/4*v)*y - 1/4*z + (1/4*v)*w
 
         ::
@@ -1028,8 +1036,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: G = MatrixGroup(CyclicPermutationGroup(3))
             sage: xi = G.character(G.character_table()[1])
             sage: R.<x,y,z> = QQ[]
-            sage: f = x*y
-            sage: G.reynolds_operator(f,xi)
+            sage: G.reynolds_operator(x*y ,xi)
             1/3*x*y + (-1/3*zeta3 - 1/3)*x*z + (1/3*zeta3)*y*z
 
         ::
@@ -1037,9 +1044,9 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: i = GF(7)(3)
             sage: G = MatrixGroup([[i^3,0,0,-i^3],[i^2,0,0,-i^2]])
             sage: xi = G.character(G.character_table()[4])
-            sage: R.<w,x>=GF(7)[]
-            sage: f=w^5*x + x^6
-            sage: G.reynolds_operator(f,xi)
+            sage: R.<w,x> = GF(7)[]
+            sage: f = w^5*x + x^6
+            sage: G.reynolds_operator(f, xi)
             Traceback (most recent call last):
             ...
             NotImplementedError: Not implemented for this base field's charateristic
@@ -1051,28 +1058,28 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: K.<i> = CyclotomicField(4)
             sage: Tetra =  MatrixGroup([(-1+i)/2,(-1+i)/2, (1+i)/2,(-1-i)/2], [0,i, -i,0])
             sage: xi = Tetra.character(Tetra.character_table()[1])
-            sage: R.<x,y>=K[]
-            sage: print Tetra.reynolds_operator(x*y^5,xi)
+            sage: R.<x,y> = K[]
+            sage: Tetra.reynolds_operator(x*y^5, xi)
             -1/2*x^5*y + 1/2*x*y^5
             sage: xi = Tetra.character(Tetra.character_table()[2])
-            sage: Tetra.reynolds_operator(x*y^9,xi)
+            sage: Tetra.reynolds_operator(x*y^9, xi)
             -1/4*x^9*y + (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 7/2)*x^7*y^3
             + (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 7/2)*x^3*y^7 + 1/4*x*y^9
         """
-        f=poly
-        G=self
-        F=0
-        R = FractionField(f.base_ring())
-        if xi is None:
-            if R.characteristic()==0 or (not R.characteristic().divides(G.order())):
-                F=0
-                for g in G:
-                    F += f(*g.matrix()*vector(f.parent().gens()))
-                F = F/G.order()
+        R = FractionField(poly.base_ring())
+        if xi is None: #then this is the trivial character
+            if R.characteristic()==0 or (not R.characteristic().divides(self.order())):
+                #non-modular case
+                F = 0
+                for g in self:
+                    F += poly(*g.matrix()*vector(poly.parent().gens()))
+                F /= self.order()
                 return F
+        #non-trivial character case
         K = xi.values()[0].parent()
-        if R.characteristic()==0:
-            if K!=R: # extend base ring of G to include all xi values
+        if R.characteristic() == 0:
+            #extend base_ring to include character values
+            if K != R:
                 if K.degree() != 1:
                     if R.degree() != 1:
                         L = R.composite_fields(K)[0]
@@ -1084,9 +1091,9 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
                 L = R
         else:
             raise NotImplementedError("Not implemented for this base field's charateristic")
-        f=f.change_ring(L)
-        F=L(0)
-        for g in G:
-            F += L(xi(g))*f(*g.matrix().change_ring(L)*vector(f.parent().gens()))
-        F = F/G.order()
-        return  F
+        poly = poly.change_ring(L)
+        F = L(0)
+        for g in self:
+            F += L(xi(g))*poly(*g.matrix().change_ring(L)*vector(poly.parent().gens()))
+        F /= self.order()
+        return F

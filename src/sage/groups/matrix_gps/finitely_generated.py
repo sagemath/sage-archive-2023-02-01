@@ -72,8 +72,13 @@ from sage.matrix.all import matrix
 from sage.misc.latex import latex
 from sage.structure.sequence import Sequence
 from sage.misc.cachefunc import cached_method
-from sage.rings.fraction_field import FractionField
 from sage.modules.free_module_element import vector
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.power_series_ring import PowerSeriesRing
+from sage.arith.all import gcd
+from sage.rings.fraction_field import FractionField
+from sage.misc.functional import cyclotomic_polynomial
+from sage.rings.number_field.number_field import CyclotomicField
 
 from sage.groups.matrix_gps.matrix_group import (
     is_MatrixGroup, MatrixGroup_generic, MatrixGroup_gap )
@@ -796,16 +801,195 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
                 ]
             return [PR(gen) for gen in OUT]
 
+    def molien_series(self, xi=None, return_series=True, prec=20, variable='t'):
+        r"""
+        Compute the Molien series of this finite group with respect to the
+        character ``xi``. It can be returned either as a rational function
+        in one variable or a power series in one variable. The base field
+        must be a finite field, the rationals, or a cyclotomic field.
+
+        Note that the base field characteristic cannot divide the group
+        order (i.e., the non-modular case).
+
+        ALGORITHM:
+
+        For a finite group `G` in characteristic zero we construct the Molien series as
+
+        .. MATH::
+
+            \frac{1}{|G|}\sum_{g \in G} \frac{\xi(g)}{\text{det}(I-tg)},
+
+        where `I` is the indentity matrix and `t` an indeterminant.
+
+        For characteristic `p` not dividing the order of `G`, let `k` be the base field
+        and `N` the order of `G`. Define `\lambda` as a primitive `N`-th root of unity over `k`
+        and `\omega` as a primitive `N`-th root of unity over `\QQ`. For each `g \in G`
+        define `k_i(g)` to be the positive integer such that
+        `e_i = \lambda^{k_i(g)}` for each eigenvalue `e_i` of `g`. Then the Molien series
+        is computed as
+
+        .. MATH::
+
+            \frac{1}{|G|}\sum_{g \in G} \frac{\xi(g)}{\prod_{i=1}^n(1 - t\omega^{k_i(g)})},
+
+        where `t` is an indeterminant. [Dec1998]_
+
+        INPUT:
+
+        - ``xi`` -- (default: trivial character) a linear group character of this group
+
+        - ``return_series`` -- boolean (default: ``True``) if ``True``, then returns
+          the Molien series as a power series, ``False`` as a rational function
+
+        - ``prec`` -- integer (default: 20); power series default precision
+
+        - ``variable`` -- string (default: ``'t'``); Variable name for the Molien series
+
+        OUTPUT: single variable rational function or power series with integer cofficients
+
+        EXAMPLES::
+
+            sage: MatrixGroup(matrix(QQ,2,2,[1,1,0,1])).molien_series()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: only implemented for finite groups
+            sage: MatrixGroup(matrix(GF(3),2,2,[1,1,0,1])).molien_series()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: characteristic cannot divide group order
+
+        Tetrahedral Group::
+
+            sage: K.<i> = CyclotomicField(4)
+            sage: Tetra =  MatrixGroup([(-1+i)/2,(-1+i)/2, (1+i)/2,(-1-i)/2], [0,i, -i,0])
+            sage: Tetra.molien_series(prec=30)
+            1 + t^8 + 2*t^12 + t^16 + 2*t^20 + 3*t^24 + 2*t^28 + O(t^30)
+            sage: mol = Tetra.molien_series(return_series=False); mol
+            (t^8 - t^4 + 1)/(t^16 - t^12 - t^4 + 1)
+            sage: mol.parent()
+            Fraction Field of Univariate Polynomial Ring in t over Integer Ring
+            sage: xi = Tetra.character(Tetra.character_table()[1])
+            sage: Tetra.molien_series(xi, prec=30, variable='u')
+            u^6 + u^14 + 2*u^18 + u^22 + 2*u^26 + 3*u^30 + 2*u^34 + O(u^36)
+            sage: xi = Tetra.character(Tetra.character_table()[2])
+            sage: Tetra.molien_series(xi)
+            t^10 + t^14 + t^18 + 2*t^22 + 2*t^26 + O(t^30)
+
+        ::
+
+            sage: S3 = MatrixGroup(SymmetricGroup(3))
+            sage: mol = S3.molien_series(prec=10); mol
+            1 + t + 2*t^2 + 3*t^3 + 4*t^4 + 5*t^5 + 7*t^6 + 8*t^7 + 10*t^8 + 12*t^9 + O(t^10)
+            sage: mol.parent()
+            Power Series Ring in t over Integer Ring
+
+        Octahedral Group::
+
+            sage: K.<v> = CyclotomicField(8)
+            sage: a = v-v^3 #sqrt(2)
+            sage: i = v^2
+            sage: Octa = MatrixGroup([(-1+i)/2,(-1+i)/2, (1+i)/2,(-1-i)/2], [(1+i)/a,0, 0,(1-i)/a])
+            sage: Octa.molien_series(prec=30)
+            1 + t^8 + t^12 + t^16 + t^18 + t^20 + 2*t^24 + t^26 + t^28 + O(t^30)
+
+        Icosahedral Group::
+
+            sage: K.<v> = CyclotomicField(10)
+            sage: z5 = v^2
+            sage: i = z5^5
+            sage: a = 2*z5^3 + 2*z5^2 + 1 #sqrt(5)
+            sage: Ico = MatrixGroup([[z5^3,0, 0,z5^2], [0,1, -1,0], [(z5^4-z5)/a, (z5^2-z5^3)/a, (z5^2-z5^3)/a, -(z5^4-z5)/a]])
+            sage: Ico.molien_series(prec=40)
+            1 + t^12 + t^20 + t^24 + t^30 + t^32 + t^36 + O(t^40)
+
+        ::
+
+            sage: G = MatrixGroup(CyclicPermutationGroup(3))
+            sage: xi = G.character(G.character_table()[1])
+            sage: G.molien_series(xi, prec=10)
+            t + 2*t^2 + 3*t^3 + 5*t^4 + 7*t^5 + 9*t^6 + 12*t^7 + 15*t^8 + 18*t^9 + 22*t^10 + O(t^11)
+
+        ::
+
+            sage: K = GF(5)
+            sage: S = MatrixGroup(SymmetricGroup(4))
+            sage: G = MatrixGroup([matrix(K,4,4,[K(y) for u in m.list() for y in u])for m in S.gens()])
+            sage: G.molien_series(return_series=False)
+            1/(t^10 - t^9 - t^8 + 2*t^5 - t^2 - t + 1)
+
+        ::
+
+            sage: i = GF(7)(3)
+            sage: G = MatrixGroup([[i^3,0,0,-i^3],[i^2,0,0,-i^2]])
+            sage: xi = G.character(G.character_table()[4])
+            sage: G.molien_series(xi)
+            3*t^5 + 6*t^11 + 9*t^17 + 12*t^23 + O(t^25)
+        """
+        if not self.is_finite():
+            raise NotImplementedError("only implemented for finite groups")
+        if xi is None:
+            xi = self.trivial_character()
+        M = self.matrix_space()
+        R = FractionField(self.base_ring())
+        N = self.order()
+        if R.characteristic() == 0:
+            P = PolynomialRing(R, variable)
+            t = P.gen()
+            #it is possible the character is over a larger cyclotomic field
+            K = xi.values()[0].parent()
+            if K.degree() != 1:
+                if R.degree() != 1:
+                    L = K.composite_fields(R)[0]
+                else:
+                    L = K
+            else:
+                L = R
+            mol = P(0)
+            for g in self:
+                mol += L(xi(g)) / (M.identity_matrix()-t*g.matrix()).det().change_ring(L)
+        elif R.characteristic().divides(N):
+            raise NotImplementedError("characteristic cannot divide group order")
+        else: #char p>0
+            #find primitive Nth roots of unity over base ring and QQ
+            F = cyclotomic_polynomial(N).change_ring(R)
+            w = F.roots(ring=R.algebraic_closure(), multiplicities=False)[0]
+            #don't need to extend further in this case since the order of
+            #the roots of unity in the character divide the order of the group
+            L = CyclotomicField(N, 'v')
+            v = L.gen()
+            #construct Molien series
+            P = PolynomialRing(L, variable)
+            t = P.gen()
+            mol = P(0)
+            for g in self:
+                #construct Phi
+                phi = L(xi(g))
+                for e in g.matrix().eigenvalues():
+                    #find power such that w**n  = e
+                    n = 1
+                    while w**n != e and n < N+1:
+                        n += 1
+                    #raise v to that power
+                    phi *= (1-t*v**n)
+                mol += P(1)/phi
+        #We know the coefficients will be integers
+        mol = mol.numerator().change_ring(ZZ) / mol.denominator().change_ring(ZZ)
+        #divide by group order
+        mol /= N
+        if return_series:
+            PS = PowerSeriesRing(ZZ, variable, default_prec=prec)
+            return PS(mol)
+        return mol
+
     def reynolds_operator(self, poly, xi = None):
         r"""
         Compute the Reynolds Operator of this finite group `G`. This is th eprojection from the polynomial ring to the ring of relative invariants. [Stu1993]_.
 
-            ALGORITHM:
+        ALGORITHM:
 
-            Let `K[x]` be a polynomial ring. Let `K[x]^G= \{f\in K[x]  |  \pi f=f \forall \pi\in G\}` be the ring of invarants of `G`.
+        Let `K[x]` be a polynomial ring. Let `K[x]^G= \{f\in K[x]  |  \pi f=f \forall \pi\in G\}` be the ring of invarants of `G`.
             Then the Reynold's operator is a map `R`, from `K[x]` into itself for the nonmodular case,
             defined by `f \rightarrow \frac{1}{|G|} \sum_{ \pi \in G} \pi f`.
-
 
         INPUT:
 
@@ -829,7 +1013,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             1/3*x^3*y*z + 1/3*x*y^3*z + 1/3*x*y*z^3
 
         ::
-            # should be v's
+
             sage: G = MatrixGroup(CyclicPermutationGroup(4))
             sage: X = G.character_table()
             sage: xi = G.character(X[2])
@@ -874,7 +1058,6 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: Tetra.reynolds_operator(x*y^9,xi)
             -1/4*x^9*y + (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 7/2)*x^7*y^3
             + (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 7/2)*x^3*y^7 + 1/4*x*y^9
-
         """
         f=poly
         G=self

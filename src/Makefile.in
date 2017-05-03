@@ -46,5 +46,4 @@ clean:
 	rm -rf c_lib .cython_version # from old sage versions
 	rm -rf build
 	find . -name '*.pyc' | xargs rm -f
-	rm -f sage/libs/pari/auto_*
 	rm -rf sage/ext/interpreters

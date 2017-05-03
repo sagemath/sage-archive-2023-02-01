@@ -59,6 +59,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_supersolvable` | Return ``True`` if the lattice is supersolvable.
     :meth:`~FiniteLatticePoset.is_planar` | Return ``True`` if the lattice has an upward planar drawing.
     :meth:`~FiniteLatticePoset.is_dismantlable` | Return ``True`` if the lattice is dismantlable.
+    :meth:`~FiniteLatticePoset.is_stone` | Return ``True`` if the lattice is a Stone lattice.
     :meth:`~FiniteLatticePoset.is_vertically_decomposable` | Return ``True`` if the lattice is vertically decomposable.
     :meth:`~FiniteLatticePoset.is_simple` | Return ``True`` if the lattice has no nontrivial congruences.
     :meth:`~FiniteLatticePoset.is_isoform` | Return ``True`` if all congruences of the lattice consists of isoform blocks.
@@ -74,9 +75,9 @@ List of (semi)lattice methods
     :widths: 30, 70
     :delim: |
 
-    :meth:`~FiniteLatticePoset.atoms` | Return the list of elements covering the bottom element.
-    :meth:`~FiniteLatticePoset.coatoms` | Return the list of elements covered by the top element.
-    :meth:`~FiniteLatticePoset.double_irreducibles` | Return the list of double irreducible elements.
+    :meth:`~FiniteMeetSemilattice.atoms()` | Return elements covering the bottom element.
+    :meth:`~FiniteJoinSemilattice.coatoms()` | Return elements covered by the top element.
+    :meth:`~FiniteLatticePoset.double_irreducibles` | Return double irreducible elements.
     :meth:`~FiniteLatticePoset.join_primes` | Return the join prime elements.
     :meth:`~FiniteLatticePoset.meet_primes` | Return the meet prime elements.
     :meth:`~FiniteLatticePoset.complements` | Return the list of complements of an element, or the dictionary of complements for all elements.
@@ -135,6 +136,8 @@ List of (semi)lattice methods
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
+from six import iteritems
 
 from sage.categories.finite_lattice_posets import FiniteLatticePosets
 from sage.combinat.posets.posets import Poset, FinitePoset
@@ -145,7 +148,7 @@ from sage.combinat.posets.hasse_diagram import LatticeError
 
 from sage.misc.decorators import rename_keyword
 
-import six
+
 
 ####################################################################################
 
@@ -311,6 +314,33 @@ class FiniteMeetSemilattice(FinitePoset):
         for i in (self._element_to_vertex(_) for _ in x):
             m = self._hasse_diagram._meet[i, m]
         return self._vertex_to_element(m)
+
+    def atoms(self):
+        """
+        Return the list atoms of this (semi)lattice.
+
+        An *atom* of a lattice is an element covering the bottom element.
+
+        .. SEEALSO::
+
+            :meth:`~FiniteJoinSemilattice.coatoms()`.
+
+        EXAMPLES::
+
+            sage: L = Posets.DivisorLattice(60)
+            sage: sorted(L.atoms())
+            [2, 3, 5]
+
+        TESTS::
+
+            sage: LatticePoset().atoms()
+            []
+            sage: LatticePoset({0: []}).atoms()
+            []
+        """
+        if self.cardinality() == 0:
+            return []
+        return self.upper_covers(self.bottom())
 
     def pseudocomplement(self, element):
         """
@@ -537,8 +567,34 @@ class FiniteJoinSemilattice(FinitePoset):
             j = self._hasse_diagram._join[i, j]
         return self._vertex_to_element(j)
 
+    def coatoms(self):
+        """
+        Return the list of co-atoms of this (semi)lattice.
 
-####################################################################################
+        A *co-atom* of a lattice is an element covered by the top element.
+
+        .. SEEALSO::
+
+            :meth:`~FiniteMeetSemilattice.atoms()`.
+
+        EXAMPLES::
+
+            sage: L = Posets.DivisorLattice(60)
+            sage: sorted(L.coatoms())
+            [12, 20, 30]
+
+        TESTS::
+
+            sage: LatticePoset().coatoms()
+            []
+            sage: LatticePoset({0: []}).coatoms()
+            []
+        """
+        if self.cardinality() == 0:
+            return []
+        return self.lower_covers(self.top())
+
+###############################################################################
 
 def LatticePoset(data=None, *args, **options):
     r"""
@@ -649,60 +705,6 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if self._with_linear_extension:
             s += " with distinguished linear extension"
         return s
-
-    def atoms(self):
-        """
-        Return the atoms of this lattice.
-
-        An *atom* of a lattice is an element covering the bottom element.
-
-        .. SEEALSO::
-
-            :meth:`coatoms`
-
-        EXAMPLES::
-
-            sage: L = Posets.DivisorLattice(60)
-            sage: sorted(L.atoms())
-            [2, 3, 5]
-
-        TESTS::
-
-            sage: LatticePoset().atoms()
-            []
-            sage: LatticePoset({0: []}).atoms()
-            []
-        """
-        if self.cardinality() == 0:
-            return []
-        return self.upper_covers(self.bottom())
-
-    def coatoms(self):
-        """
-        Return the co-atoms of this lattice.
-
-        A *co-atom* of a lattice is an element covered by the top element.
-
-        .. SEEALSO::
-
-            :meth:`atoms`
-
-        EXAMPLES::
-
-            sage: L = Posets.DivisorLattice(60)
-            sage: sorted(L.coatoms())
-            [12, 20, 30]
-
-        TESTS::
-
-            sage: LatticePoset().coatoms()
-            []
-            sage: LatticePoset({0: []}).coatoms()
-            []
-        """
-        if self.cardinality() == 0:
-            return []
-        return self.lower_covers(self.top())
 
     def double_irreducibles(self):
         """
@@ -1012,7 +1014,98 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         diamond = next(self._hasse_diagram.subgraph_search_iterator(M3))
         return (False, diamond[4])
 
-    def is_distributive(self):
+    def is_stone(self, certificate=False):
+        r"""
+        Return ``True`` if the lattice is a Stone lattice, and ``False``
+        otherwise.
+
+        The lattice is expected to be distributive (and hence
+        pseudocomplemented).
+
+        A pseudocomplemented lattice is a Stone lattice if
+
+        .. MATH::
+
+            e^* \vee e^{**} = \top
+
+        for every element `e` of the lattice, where `^*` is the
+        pseudocomplement and `\top` is the top element of the lattice.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, e)`` such that `e^* \vee e^{**} \neq \top`.
+          If ``certificate=False`` return ``True`` or ``False``.
+
+        EXAMPLES:
+
+        Divisor lattices are canonical example::
+
+            sage: D72 = Posets.DivisorLattice(72)
+            sage: D72.is_stone()
+            True
+
+        A non-example::
+
+            sage: L = LatticePoset({1: [2, 3], 2: [4], 3: [4], 4: [5]})
+            sage: L.is_stone()
+            False
+
+        TESTS::
+
+            sage: LatticePoset().is_stone()  # Empty lattice
+            True
+
+            sage: L = LatticePoset(DiGraph('GW?_W@?W@?O?'))
+            sage: L.is_stone()  # Pass the fast check, but not a Stone lattice
+            False
+        """
+        # TODO: For now we can factor only undirected graphs. When that
+        # is extended to directed, use that; see comment below.
+
+        if not self.is_distributive():
+            raise ValueError("the lattice is not distributive")
+
+        from sage.arith.misc import factor
+        ok = (True, None) if certificate else True
+
+        # Needed for the empty lattice that has no bottom element.
+        if self.cardinality() < 5:
+            return ok
+
+        # Quick check:
+        # A Stone lattice is direct product of distributive lattices with
+        # one atom. Return False if for example the lattice has two atoms
+        # and odd number of elements.
+        atoms_n = self._hasse_diagram.out_degree(0)
+        if atoms_n == 1:
+            return ok
+        if not certificate:
+            if sum([x[1] for x in factor(self.cardinality())]) < atoms_n:
+                return False
+            if self._hasse_diagram.in_degree(self.cardinality()-1) < atoms_n:
+                return False
+
+        # Quick check failed
+        one = self.top()
+        tested = set()
+        for e in self:
+            e_ = self.pseudocomplement(e)
+            if e_ not in tested:
+                if self.join(e_, self.pseudocomplement(e_)) != one:
+                    if certificate:
+                        return (False, e)
+                    return False
+                tested.add(e_)
+
+        return ok
+
+    def is_distributive(self, certificate=False):
         r"""
         Return ``True`` if the lattice is distributive, and ``False``
         otherwise.
@@ -1024,19 +1117,56 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         in lattices it follows that then also join distributes over
         meet.
 
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, (x, y, z))``, where `x`, `y` and `z` are elements
+          of the lattice such that
+          `x \wedge (y \vee z) \neq (x \wedge y) \vee (x \wedge z)`.
+          If ``certificate=False`` return ``True`` or ``False``.
+
         EXAMPLES::
 
-            sage: L = LatticePoset({0:[1,2],1:[3],2:[3]})
+            sage: L = LatticePoset({1: [2, 3], 2: [4], 3: [4], 4: [5]})
             sage: L.is_distributive()
             True
-            sage: L = LatticePoset({0:[1,2,3],1:[4],2:[4],3:[4]})
+            sage: L = LatticePoset({1: [2, 3, 4], 2: [5], 3: [6], 4: [6], 5: [6]})
             sage: L.is_distributive()
             False
+            sage: L.is_distributive(certificate=True)
+            (False, (5, 3, 2))
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).is_distributive() for i in range(3)]
+            [True, True, True]
         """
-        if self.cardinality() == 0: return True
-        return (self.is_graded() and
+        from sage.graphs.digraph import DiGraph
+
+        ok = (True, None) if certificate else True
+
+        if self.cardinality() == 0:
+            return ok
+
+        if (self.is_graded() and
          self.rank() == len(self.join_irreducibles()) ==
-         len(self.meet_irreducibles()))
+         len(self.meet_irreducibles())):
+            return ok
+
+        if not certificate:
+            return False
+
+        result, cert = self.is_modular(certificate=True)
+        if not result:
+            return (False, (cert[2], cert[1], cert[0]))
+        M3 = DiGraph({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
+        diamond = next(self._hasse_diagram.subgraph_search_iterator(M3))
+        return (False, (self._vertex_to_element(diamond[1]),
+                        self._vertex_to_element(diamond[2]),
+                        self._vertex_to_element(diamond[3])))
 
     def is_semidistributive(self):
         """
@@ -1477,7 +1607,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         for e1 in range(n-1):
             C = Counter(flatten([H.neighbors_out(e2) for e2 in H.neighbors_out(e1)]))
-            for e3, c in six.iteritems(C):
+            for e3, c in iteritems(C):
                 if c == 1 and len(H.closed_interval(e1, e3)) == 3:
                     if not certificate:
                         return False
@@ -4013,7 +4143,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         minimal_vertices = [part[0] for part in parts_H]
         H = self._hasse_diagram.transitive_closure().subgraph(minimal_vertices).transitive_reduction()
         if labels == 'integer':
-            H.relabel(range(len(minimal_vertices)))
+            H.relabel(list(range(len(minimal_vertices))))
             return LatticePoset(H)
         part_dict = {m[0]:[self._vertex_to_element(x) for x in m] for m
                      in parts_H}

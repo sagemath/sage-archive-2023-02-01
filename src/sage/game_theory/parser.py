@@ -143,9 +143,9 @@ class Parser():
             sage: g2_name = tmp_filename()
             sage: g1_file = open(g1_name, 'w')
             sage: g2_file = open(g2_name, 'w')
-            sage: g1_file.write(game1_str)
+            sage: _ = g1_file.write(game1_str)
             sage: g1_file.close()
-            sage: g2_file.write(game2_str)
+            sage: _ = g2_file.write(game2_str)
             sage: g2_file.close()
             sage: process = Popen(['lrsnash', g1_name, g2_name], stdout=PIPE, stderr=PIPE)  # optional - lrslib
             sage: lrs_output = [row for row in process.stdout]  # optional - lrslib
@@ -188,9 +188,9 @@ class Parser():
             sage: g2_name = tmp_filename()
             sage: g1_file = open(g1_name, 'w')
             sage: g2_file = open(g2_name, 'w')
-            sage: g1_file.write(game1_str)
+            sage: _ = g1_file.write(game1_str)
             sage: g1_file.close()
-            sage: g2_file.write(game2_str)
+            sage: _ = g2_file.write(game2_str)
             sage: g2_file.close()
             sage: process = Popen(['lrsnash', g1_name, g2_name], stdout=PIPE, stderr=PIPE)  # optional - lrslib
             sage: lrs_output = [row for row in process.stdout]  # optional - lrslib

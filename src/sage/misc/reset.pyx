@@ -7,7 +7,8 @@ import sys
 
 # Exclude these from the reset command.
 # DATA, base64 -- needed by the notebook
-EXCLUDE = set(['sage_mode', '__DIR__', 'DIR', 'DATA', 'base64'])
+# Add exit and quit to EXCLUDE to resolve trac #22529 and trac #16704
+EXCLUDE = set(['sage_mode', '__DIR__', 'DIR', 'DATA', 'base64', 'exit', 'quit'])
 
 def reset(vars=None, attached=False):
     """
@@ -38,7 +39,7 @@ def reset(vars=None, attached=False):
 
         sage: fn = tmp_filename(ext='foo.py')
         sage: sage.misc.reset.EXCLUDE.add('fn')
-        sage: open(fn, 'w').write('a = 111')
+        sage: _ = open(fn, 'w').write('a = 111')
         sage: attach(fn)
         sage: [fn] == attached_files()
         True

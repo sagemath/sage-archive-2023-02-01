@@ -360,7 +360,7 @@ class Maple(ExtraTabCompletion, Expect):
 
             sage: filename = tmp_filename()  # optional - maple
             sage: f = open(filename, 'w')  # optional - maple
-            sage: f.write('xx := 22;\n')  # optional - maple
+            sage: _ = f.write('xx := 22;\n')  # optional - maple
             sage: f.close()               # optional - maple
             sage: maple.read(filename)    # optional - maple
             sage: maple.get('xx').strip() # optional - maple

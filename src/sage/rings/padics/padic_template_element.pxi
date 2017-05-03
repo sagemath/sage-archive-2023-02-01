@@ -27,8 +27,8 @@ from cpython.int cimport *
 
 from sage.libs.gmp.all cimport *
 import sage.rings.finite_rings.integer_mod
-from sage.libs.cypari2.types cimport *
-from sage.libs.cypari2.gen cimport Gen as pari_gen
+from cypari2.types cimport *
+from cypari2.gen cimport Gen as pari_gen
 from sage.libs.pari.convert_gmp cimport INT_to_mpz
 from sage.rings.padics.common_conversion cimport get_ordp, get_preccap
 from sage.rings.integer cimport Integer

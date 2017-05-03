@@ -6200,9 +6200,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ....:   for p2 in [5*y^2 - 7, -3*y - 1]:
             ....:     for monic in [True,False]:
             ....:       for op in [operator.add, operator.sub, operator.mul, operator.div]:
-            ....:         pr = p1.composed_op(p2, operator.add, "resultant", monic=monic)
-            ....:         pb = p1.composed_op(p2, operator.add, "BFSS", monic=monic)
-            ....:         assert pr == pb and parent(pr) is parent(pb)
+            ....:         pr = p1.composed_op(p2, op, "resultant", monic=monic)
+            ....:         pb = p1.composed_op(p2, op, "BFSS", monic=monic)
+            ....:         assert ((pr == pb) or ((not monic) and pr == -pb) and (parent(pr) is parent(pb)))
 
         REFERENCES:
 
@@ -6316,6 +6316,213 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         else:
             raise ValueError('algorithm must be "resultant" or "BFSS"')
+
+    def compose_power(self, k, algorithm=None, monic=False):
+        r"""
+        Return the `k`-th iterate of the composed product of this
+        polynomial with itself.
+
+        INPUT:
+
+        - `k` -- a non-negative integer
+
+        - ``algorithm`` -- ``None`` (default), ``"resultant"`` or ``"BFSS"``.
+          See :meth:`.composed_op`
+
+        - ``monic`` - ``False`` (default) or ``True``.
+          See :meth:`.composed_op`
+
+        OUTPUT:
+
+        The polynomial of degree `d^k` where `d` is the degree, whose
+        roots are all `k`-fold products of roots of this polynomial.
+        That is, `f*f*\dots*f` where this is `f` and
+        `f*f=` f.composed_op(f,operator.mul).
+
+        EXAMPLES::
+
+            sage: R.<a,b,c> = ZZ[]
+            sage: x = polygen(R)
+            sage: f = (x-a)*(x-b)*(x-c)
+            sage: f.compose_power(2).factor()
+            (x - c^2) * (x - b^2) * (x - a^2) * (x - b*c)^2 * (x - a*c)^2 * (x - a*b)^2
+
+            sage: x = polygen(QQ)
+            sage: f = x^2-2*x+2
+            sage: f2 = f.compose_power(2); f2
+            x^4 - 4*x^3 + 8*x^2 - 16*x + 16
+            sage: f2 == f.composed_op(f,operator.mul)
+            True
+            sage: f3 = f.compose_power(3); f3
+            x^8 - 8*x^7 + 32*x^6 - 64*x^5 + 128*x^4 - 512*x^3 + 2048*x^2 - 4096*x + 4096
+            sage: f3 == f2.composed_op(f,operator.mul)
+            True
+            sage: f4 = f.compose_power(4)
+            sage: f4 == f3.composed_op(f,operator.mul)
+            True
+        """
+        try:
+           k = ZZ(k)
+        except ValueError("Cannot iterate {} times".format(k)):
+           return self
+        if k < 0:
+           raise ValueError("Cannot iterate a negative number {} of times".format(k))
+        if k == 0:
+           return self.variables()[0] - 1
+        if k == 1:
+           return self
+        if k == 2:
+           return self.composed_op(self, operator.mul,
+                                   algorithm=algorithm, monic=monic)
+        k2, k1 = k.quo_rem(2)
+        # recurse to get the k/2 -iterate where k=2*k2+k1:
+        R = self.compose_power(k2, algorithm=algorithm, monic=monic)
+        # square:
+        R = R.composed_op(R, operator.mul, algorithm=algorithm, monic=monic)
+        # one more factor if k odd:
+        if k1:
+            R = R.composed_op(self, operator.mul)
+        return R
+
+    def adams_operator(self, n, monic=False):
+        r"""
+        Return the polynomial whose roots are the `n`-th power
+        of the roots of this.
+
+        INPUT:
+
+        - `n` -- an integer
+
+        - ``monic`` -- boolean (default ``False``)
+          if set to ``True``, force the output to be monic
+
+        EXAMPLES::
+
+            sage: f = cyclotomic_polynomial(30)
+            sage: f.adams_operator(7)==f
+            True
+            sage: f.adams_operator(6) == cyclotomic_polynomial(5)**2
+            True
+            sage: f.adams_operator(10) == cyclotomic_polynomial(3)**4
+            True
+            sage: f.adams_operator(15) == cyclotomic_polynomial(2)**8
+            True
+            sage: f.adams_operator(30) == cyclotomic_polynomial(1)**8
+            True
+
+            sage: x = polygen(QQ)
+            sage: f = x^2-2*x+2
+            sage: f.adams_operator(10)
+            x^2 + 1024
+
+        When f is monic the output will have leading coefficient
+        `\pm1` depending on the degree, but we can force it to be
+        monic::
+
+            sage: R.<a,b,c> = ZZ[]
+            sage: x = polygen(R)
+            sage: f = (x-a)*(x-b)*(x-c)
+            sage: f.adams_operator(3).factor()
+            (-1) * (x - c^3) * (x - b^3) * (x - a^3)
+            sage: f.adams_operator(3,monic=True).factor()
+            (x - c^3) * (x - b^3) * (x - a^3)
+
+        """
+        u, v = PolynomialRing(self.parent().base_ring(), ['u', 'v']).gens()
+        R = (u - v**n).resultant(self(v), v)
+        R = R([self.variables()[0], 0])
+        if monic:
+           R = R.monic()
+        return R
+
+    def symmetric_power(self, k, monic=False):
+        r"""
+        Return the polynomial whose roots are products of `k`-th distinct
+        roots of this.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: f = x^4-x+2
+            sage: [f.symmetric_power(k) for k in range(5)]
+            [x - 1, x^4 - x + 2, x^6 - 2*x^4 - x^3 - 4*x^2 + 8, x^4 - x^3 + 8, x - 2]
+
+            sage: f = x^5-2*x+2
+            sage: [f.symmetric_power(k) for k in range(6)]
+            [x - 1,
+             x^5 - 2*x + 2,
+             x^10 + 2*x^8 - 4*x^6 - 8*x^5 - 8*x^4 - 8*x^3 + 16,
+             x^10 + 4*x^7 - 8*x^6 + 16*x^5 - 16*x^4 + 32*x^2 + 64,
+             x^5 + 2*x^4 - 16,
+             x + 2]
+
+            sage: R.<a,b,c,d> = ZZ[]
+            sage: x = polygen(R)
+            sage: f = (x-a)*(x-b)*(x-c)*(x-d)
+            sage: [f.symmetric_power(k).factor() for k in range(5)]
+            [x - 1,
+             (-x + d) * (-x + c) * (-x + b) * (-x + a),
+             (x - c*d) * (x - b*d) * (x - a*d) * (x - b*c) * (x - a*c) * (x - a*b),
+             (x - b*c*d) * (x - a*c*d) * (x - a*b*d) * (x - a*b*c),
+             x - a*b*c*d]
+        """
+        try:
+           k = ZZ(k)
+        except (ValueError, TypeError):
+           raise ValueError("Cannot compute k'th symmetric power for k={}".format(k))
+        n = self.degree()
+        if k < 0 or k > n:
+           raise ValueError("Cannot compute k'th symmetric power for k={}".format(k))
+        x = self.variables()[0]
+        if k == 0:
+           return x - 1
+        if k == 1:
+           if monic:
+              return self.monic()
+           return self
+        c = (-1)**n * self(0)
+        if k == n:
+            return x - c
+        if k > n - k:  # use (n-k)'th symmetric power
+            g = self.symmetric_power(n - k, monic=monic)
+            from sage.arith.all import binomial
+            g = ((-x)**binomial(n,k) * g(c/x) / c**binomial(n-1,k)).numerator()
+            if monic:
+               g = g.monic()
+            return g
+
+        def star(g, h):
+            return g.composed_op(h, operator.mul, monic=True)
+
+        def rpow(g, n):
+            return g.adams_operator(n, monic=True)
+        if k == 2:
+            g = (star(self, self) // rpow(self, 2)).nth_root(2)
+            if monic:
+               g = g.monic()
+            return g
+        if k == 3:
+            g = star(self.symmetric_power(2, monic=monic), self) * rpow(self, 3)
+            h = star(rpow(self, 2), self)
+            g = (g // h).nth_root(3)
+            if monic:
+               g = g.monic()
+            return g
+
+        fkn = fkd = self.parent().one()
+        for j in range(1, k + 1):
+            g = star(rpow(self, j), self.symmetric_power(k - j))
+            if j % 2:
+                fkn *= g
+            else:
+                fkd *= g
+
+        fk = fkn // fkd
+        assert fk * fkd == fkn
+        g = fk.nth_root(k)
+        if monic:
+           g = g.monic()
+        return g
 
     def discriminant(self):
         r"""
@@ -10007,7 +10214,7 @@ cdef class Polynomial_generic_dense_inexact(Polynomial_generic_dense):
         indistinguishable from 0), an error is raised
 
         If ``secure`` is False, the returned value is the largest
-        $n$ so that the coefficient of $x^n$ does not compare equal
+        `n` so that the coefficient of `x^n` does not compare equal
         to `0`.
 
         EXAMPLES::

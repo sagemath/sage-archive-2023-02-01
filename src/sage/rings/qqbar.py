@@ -2072,7 +2072,7 @@ def cmp_elements_with_same_minpoly(a, b, p):
     - ``a`` and ``b`` -- elements of the algebraic or the real algebraic field
       with same minimal polynomial
 
-    - ``p`` -- the minmial polynomial
+    - ``p`` -- the minimal polynomial
 
     OUTPUT:
 

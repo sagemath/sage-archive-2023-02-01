@@ -259,7 +259,7 @@ class MVPolytopes(PBWCrystal):
         \langle \alpha, \gamma \rangle \geq M_{\gamma}
         \text{ for all } \gamma \in \Gamma \}.
 
-    The vertices `\(\mu_w\)_{w \in W}` are given by
+    The vertices `\{\mu_w\}_{w \in W}` are given by
 
     .. MATH::
 
@@ -280,7 +280,7 @@ class MVPolytopes(PBWCrystal):
         \\ \mu_{w_k} - \mu_{w_{k-1}} & = n_k w_{k-1} \alpha_{i_k},
         \end{aligned}
 
-    where `w_k = s_{i_1} \cdots s_{i_k}` and `(a_{ji)` is the Cartan matrix.
+    where `w_k = s_{i_1} \cdots s_{i_k}` and `(a_{ji})` is the Cartan matrix.
 
     MV polytopes have a crystal structure that corresponds to the
     crystal structure, which is isomorphic to `\mathcal{B}(\infty)`

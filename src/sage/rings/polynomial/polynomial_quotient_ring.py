@@ -824,9 +824,9 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: S.is_field()
             True
 
-        If proof is True, requires the `is_irreducible` method of the modulus to
-        be implemented::
-            
+        If proof is ``True``, requires the ``is_irreducible`` method of the
+        modulus to be implemented::
+
             sage: R1.<x> = GF(5)[]
             sage: F1 = R1.quotient_ring(x^2+x+1)
             sage: R2.<x> = F1[]

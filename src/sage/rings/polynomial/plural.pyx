@@ -649,7 +649,7 @@ cdef class NCPolynomialRing_plural(Ring):
 
         TESTS:
 
-        Make the method accept additional parameters, such as the flag `proof`.
+        Make the method accept additional parameters, such as the flag ``proof``.
         See :trac:`22910`::
 
             sage: P.is_field(proof=False)

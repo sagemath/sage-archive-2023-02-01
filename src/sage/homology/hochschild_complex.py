@@ -14,13 +14,15 @@ Hochschild Complexes
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.category_object import CategoryObject
+from sage.structure.parent import Parent
+from sage.structure.element import ModuleElement
+from sage.structure.sage_object import richcmp
 from sage.categories.category_types import ChainComplexes
 from sage.categories.tensor import tensor
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.homology.chain_complex import ChainComplex
+from sage.homology.chain_complex import ChainComplex, Chain_class
 
-class HochschildComplex(UniqueRepresentation, CategoryObject):
+class HochschildComplex(UniqueRepresentation, Parent):
     r"""
     The Hochschild complex.
 
@@ -96,12 +98,12 @@ class HochschildComplex(UniqueRepresentation, CategoryObject):
 
         Some methods required by the category are not implemented::
 
-            sage: TestSuite(H).run()  # known bug (#21386)
+            sage: TestSuite(H).run()
         """
         self._A = A
         self._M = M
-        CategoryObject.__init__(self, base=A.base_ring(),
-                                category=ChainComplexes(A.base_ring()))
+        Parent.__init__(self, base=A.base_ring(),
+                        category=ChainComplexes(A.base_ring()))
 
     def _repr_(self):
         """
@@ -451,4 +453,254 @@ class HochschildComplex(UniqueRepresentation, CategoryObject):
         im_retract = ker.submodule([ker.retract(b) for b in cb.image_basis()],
                                    unitriangular=True)
         return ker.quotient_module(im_retract)
+
+    def _element_constructor_(self, vectors):
+        """
+        Construct an element of ``self`` from ``vectors``.
+
+        TESTS::
+
+            sage: E.<x,y> = ExteriorAlgebra(QQ)
+            sage: H = E.hochschild_complex(E)
+            sage: H(0)
+            Trivial chain
+            sage: H(x+2*y)
+            Chain(0: x + 2*y)
+            sage: H({0: H.free_module(0).an_element()})
+            Chain(0: 2 + 2*x + 3*y)
+            sage: H({2: H.free_module(2).an_element()})
+            Chain(2: 2*1 # 1 # 1 + 2*1 # 1 # x + 3*1 # 1 # y)
+            sage: H({0:x-y, 2: H.free_module(2).an_element()})
+            Chain with 2 nonzero terms over Rational Field
+        """
+        if not vectors:  # special case: the zero chain
+            return self.element_class(self, {})
+        # special case: an element of the defining module
+        if isinstance(vectors, self._M.element_class) and vectors.parent() is self._M:
+            mc = vectors.monomial_coefficients(copy=False)
+            vec = self.free_module(0)._from_dict({(k,): mc[k] for k in mc})
+            return self.element_class(self, {0: vec})
+        if isinstance(vectors, (Chain_class, self.element_class)):
+            vectors = vectors._vec
+        data = dict()
+        # Special handling for the 0 free module
+        # FIXME: Allow coercions between the 0 free module and the defining module
+        if 0 in vectors:
+            vec = vectors.pop(0)
+            if vec.parent() is self._M:
+                mc = vec.monomial_coefficients(copy=False)
+                data[0] = self.free_module(0)._from_dict({(k,): mc[k] for k in mc})
+            else:
+                data[0] = self.free_module(0)(vec)
+        for degree in vectors:
+            vec = self.free_module(degree)(vectors[degree])
+            if not vec:
+                continue
+            data[degree] = vec
+        return self.element_class(self, data)
+
+    def _an_element_(self):
+        """
+        Return an element of ``self``.
+
+        EXAMPLES::
+
+            sage: F.<x,y> = FreeAlgebra(ZZ)
+            sage: H = F.hochschild_complex(F)
+            sage: v = H.an_element()
+            sage: [v.vector(i) for i in range(6)]
+            [2*F[1] + 2*F[x] + 3*F[y],
+             2*F[1] # F[1] + 2*F[1] # F[x] + 3*F[1] # F[y],
+             2*F[1] # F[1] # F[1] + 2*F[1] # F[1] # F[x] + 3*F[1] # F[1] # F[y],
+             2*F[1] # F[1] # F[1] # F[1] + 2*F[1] # F[1] # F[1] # F[x]
+                + 3*F[1] # F[1] # F[1] # F[y],
+             0,
+             0]
+        """
+        return self.element_class(self, {d: self.free_module(d).an_element()
+                                         for d in range(4)})
+
+    class Element(ModuleElement):
+        def __init__(self, parent, vectors):
+            """
+            Initialize ``self``.
+
+            EXAMPLES::
+
+                sage: F.<x,y> = FreeAlgebra(ZZ)
+                sage: H = F.hochschild_complex(F)
+                sage: a = H({0: x-y, 2: H.free_module(2).basis().an_element()})
+                sage: TestSuite(a).run()
+            """
+            self._vec = vectors
+            ModuleElement.__init__(self, parent)
+
+        def vector(self, degree):
+            """
+            Return the free module element in ``degree``.
+
+            EXAMPLES::
+
+                sage: F.<x,y> = FreeAlgebra(ZZ)
+                sage: H = F.hochschild_complex(F)
+                sage: a = H({0: x-y, 2: H.free_module(2).basis().an_element()})
+                sage: [a.vector(i) for i in range(3)]
+                [F[x] - F[y], 0, F[1] # F[1] # F[1]]
+            """
+            try:
+                return self._vec[degree]
+            except KeyError:
+                return self.parent().free_module(degree).zero()
+
+        def _repr_(self):
+            """
+            Print representation.
+
+            EXAMPLES::
+
+                sage: E.<x,y> = ExteriorAlgebra(QQ)
+                sage: H = E.hochschild_complex(E)
+                sage: H(0)
+                Trivial chain
+                sage: H(x+2*y)
+                Chain(0: x + 2*y)
+                sage: H({2: H.free_module(2).an_element()})
+                Chain(2: 2*1 # 1 # 1 + 2*1 # 1 # x + 3*1 # 1 # y)
+                sage: H({0:x-y, 2: H.free_module(2).an_element()})
+                Chain with 2 nonzero terms over Rational Field
+            """
+            n = len(self._vec)
+            if n == 0:
+                return 'Trivial chain'
+
+            if n == 1:
+                deg, vec = self._vec.items()[0]
+                return 'Chain({0}: {1})'.format(deg, vec)
+
+            return 'Chain with {0} nonzero terms over {1}'.format(n,
+                self.parent().base_ring())
+
+        def _ascii_art_(self):
+            """
+            Return an ascii art representation.
+
+            Note that arrows go to the left so that composition of
+            differentials is the usual matrix multiplication.
+
+            EXAMPLES::
+
+                sage: F.<x,y> = FreeAlgebra(ZZ)
+                sage: H = F.hochschild_complex(F)
+                sage: a = H({0: x - y,
+                ....:        1: H.free_module(1).basis().an_element(),
+                ....:        2: H.free_module(2).basis().an_element()})
+                sage: ascii_art(a)
+                   d_0           d_1         d_2             d_3
+                0 <---- F  - F  <---- 1 # 1 <---- 1 # 1 # 1 <---- 0
+                         x    y
+            """
+            from sage.typeset.ascii_art import AsciiArt, ascii_art
+
+            if not self._vec:   # 0 chain
+                return AsciiArt(['0'])
+
+            def arrow_art(d):
+                d_str = ['  d_{0}  '.format(d)]
+                arrow = ' <' + '-'*(len(d_str[0])-3) + ' '
+                d_str.append(arrow)
+                return AsciiArt(d_str, baseline=0)
+
+            result = AsciiArt(['0'])
+            max_deg = max(self._vec)
+            for deg in range(min(self._vec), max_deg+1):
+                A = ascii_art(self.vector(deg))
+                A._baseline = A.height() // 2
+                result += arrow_art(deg) + A
+            return result + arrow_art(max_deg+1) + AsciiArt(['0'])
+
+        def _add_(self, other):
+            """
+            Module addition
+            
+            EXAMPLES::
+
+                sage: F.<x,y> = FreeAlgebra(ZZ)
+                sage: H = F.hochschild_complex(F)
+                sage: a = H({0: x - y,
+                ....:        1: H.free_module(1).basis().an_element(),
+                ....:        2: H.free_module(2).basis().an_element()})
+                sage: [a.vector(i) for i in range(3)]
+                [F[x] - F[y], F[1] # F[1], F[1] # F[1] # F[1]]
+                sage: [H.an_element().vector(i) for i in range(3)]
+                [2*F[1] + 2*F[x] + 3*F[y],
+                 2*F[1] # F[1] + 2*F[1] # F[x] + 3*F[1] # F[y],
+                 2*F[1] # F[1] # F[1] + 2*F[1] # F[1] # F[x] + 3*F[1] # F[1] # F[y]]
+
+                sage: v = a + H.an_element()
+                sage: [v.vector(i) for i in range(3)]
+                [2*F[1] + 3*F[x] + 2*F[y],
+                 3*F[1] # F[1] + 2*F[1] # F[x] + 3*F[1] # F[y],
+                 3*F[1] # F[1] # F[1] + 2*F[1] # F[1] # F[x] + 3*F[1] # F[1] # F[y]]
+            """
+            vectors = dict(self._vec) # Make a (shallow) copy
+            for d in other._vec:
+                if d in vectors:
+                    vectors[d] += other._vec[d]
+                    if not vectors[d]:
+                        del vectors[d]
+                else:
+                    vectors[d] = other._vec
+            parent = self.parent()
+            return parent.element_class(parent, vectors)
+
+        def _lmul_(self, scalar):
+            """
+            Scalar multiplication
+
+            EXAMPLES::
+
+                sage: F.<x,y> = FreeAlgebra(ZZ)
+                sage: H = F.hochschild_complex(F)
+                sage: a = H({0: x - y,
+                ....:        1: H.free_module(1).basis().an_element(),
+                ....:        2: H.free_module(2).basis().an_element()})
+                sage: v = 3*a
+                sage: [v.vector(i) for i in range(3)]
+                [3*F[x] - 3*F[y], 3*F[1] # F[1], 3*F[1] # F[1] # F[1]]
+            """
+            if scalar == 0:
+                return self.zero()
+            vectors = dict()
+            for d in self._vec:
+                vec = scalar * self._vec[d]
+                if vec:
+                    vectors[d] = vec
+            return self.__class__(self.parent(), vectors)
+
+        def _richcmp_(self, other, op):
+            """
+            Rich comparison of ``self`` to ``other``.
+
+            EXAMPLES::
+
+                sage: F.<x,y> = FreeAlgebra(ZZ)
+                sage: H = F.hochschild_complex(F)
+                sage: a = H({0: x - y,
+                ....:        1: H.free_module(1).basis().an_element(),
+                ....:        2: H.free_module(2).basis().an_element()})
+                sage: a == 3*a
+                False
+                sage: a + a == 2*a
+                True
+                sage: a == H.zero()
+                False
+
+                sage: a != 3*a
+                True
+                sage: a + a != 2*a
+                False
+                sage: a != H.zero()
+                True
+            """
+            return richcmp(self._vec, other._vec, op)
 

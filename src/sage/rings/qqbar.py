@@ -3104,7 +3104,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         else:
             return hash((self + QQbar_hash_offset).interval_exact(CIF))
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Check whether ``self`` is nonzero.
 
@@ -3155,7 +3155,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: bool(p1 - p2 + p3 - p4 - 8 * QQbar.zeta(15)**8)
             False
 
-        The following are non-trivially zeros (though no exactification occur)::
+        Test some non-trivial zeros::
 
             sage: x = polygen(ZZ)
             sage: a = (AA(2).sqrt() + AA(3).sqrt() + AA(5).sqrt())^2
@@ -3187,7 +3187,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         if not self._value.contains_zero():
             return True
         elif self._value.is_zero():
-            if not type(self._descr) is ANRational:
+            if not isinstance(self._descr, ANRational):
                 self._set_descr(ANRational(QQ.zero()))
             return False
 
@@ -3241,6 +3241,8 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         # Sigh...
         self.exactify()
         return bool(self)
+
+    __nonzero__ = __bool__
 
     def is_square(self):
         """

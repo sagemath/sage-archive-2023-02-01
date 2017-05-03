@@ -71,6 +71,7 @@ from sage.structure.coerce cimport is_numpy_type
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.richcmp cimport rich_to_bool
 from sage.arith.constants cimport *
+from gmpy2 import mpfr
 
 
 def is_RealDoubleField(x):
@@ -705,6 +706,16 @@ cdef class RealDoubleElement(FieldElement):
 
             sage: RDF(10^100)
             1e+100
+
+        TESTS::
+
+            sage: from gmpy2 import mpz, mpq, mpfr
+            sage: RDF(mpz(42))
+            42.0
+            sage: RDF(mpq(3/4))
+            0.75
+            sage: RDF(mpq('4.1'))
+            4.1
         """
         self._value = float(x)
 
@@ -920,6 +931,20 @@ cdef class RealDoubleElement(FieldElement):
             TypeError: Cannot convert non-integral float to integer
         """
         return Integer(self._value)
+
+    def __mpfr__(self):
+        """
+        Convert Sage ``RealDoubleElement`` to gmpy2 ``mpfr``.
+
+        EXAMPLES::
+
+            sage: RDF(42.2).__mpfr__()
+            mpfr('42.200000000000003')
+            sage: from gmpy2 import mpfr
+            sage: mpfr(RDF(5.1))
+            mpfr('5.0999999999999996')
+        """
+        return mpfr(self._value)
 
     def _interface_init_(self, I=None):
         """

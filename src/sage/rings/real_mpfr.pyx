@@ -31,6 +31,10 @@ AUTHORS:
 
 - Eviatar Bach (2013-06): Fixing numerical evaluation of log_gamma
 
+- Vincent Klein (2017-06): RealNumber constructor support gmpy2.mpfr
+  , gmpy2.mpq or gmpy2.mpz parameter.
+  Add __mpfr__ to class RealNumber.
+
 This is a binding for the MPFR arbitrary-precision floating point
 library.
 
@@ -120,6 +124,7 @@ import sys
 import re
 
 from cpython.object cimport Py_NE
+from cpython cimport PyObject
 from cysignals.signals cimport sig_on, sig_off
 
 from sage.ext.stdsage cimport PY_NEW
@@ -159,6 +164,9 @@ import sage.rings.infinity
 
 from sage.structure.parent_gens cimport ParentWithGens
 from sage.arith.numerical_approx cimport digits_to_bits
+from gmpy2 cimport MPQ, MPQ_Object, import_gmpy2, MPZ_Check, MPQ_Check, \
+    MPZ, MPZ_Object, MPFR, MPFR_Object, MPFR_Check, GMPy_MPFR_From_mpfr
+import_gmpy2()
 
 #*****************************************************************************
 #
@@ -1343,6 +1351,19 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: R('1.2456')
             1.2
 
+        EXAMPLES: gmpy2 numbers
+
+        ::
+
+            sage: from gmpy2 import *
+            sage: rf = RealField()
+            sage: rf(mpz(5))
+            5.00000000000000
+            sage: rf(mpq(1/2))
+            0.500000000000000
+            sage: rf(mpfr('42.1'))
+            42.1000000000000
+
         EXAMPLES: Rounding Modes
 
         ::
@@ -1445,6 +1466,12 @@ cdef class RealNumber(sage.structure.element.RingElement):
             mpfr_set_d(self.value, x, parent.rnd)
         elif isinstance(x, RealDoubleElement):
             mpfr_set_d(self.value, (<RealDoubleElement>x)._value, parent.rnd)
+        elif MPFR_Check(<PyObject *> x):
+            mpfr_set(self.value, MPFR(<MPFR_Object *> x),parent.rnd)
+        elif MPQ_Check(<PyObject *> x):
+            mpfr_set_q(self.value, MPQ(<MPQ_Object *> x), parent.rnd)
+        elif MPZ_Check(<PyObject *> x):
+            mpfr_set_z(self.value, MPZ(<MPZ_Object *> x), parent.rnd)
         else:
             s = str(x).replace(' ','')
             s_lower = s.lower()
@@ -3702,7 +3729,26 @@ cdef class RealNumber(sage.structure.element.RingElement):
             return -result
         return result
 
+    def __mpfr__(self):
+        """
+        Convert Sage ``RealNumber`` to gmpy2 ``mpfr``.
 
+        EXAMPLES::
+
+            sage: rf = RealField()
+            sage: r = rf(4.12)
+            sage: r.__mpfr__()
+            mpfr('4.1200000000000001')
+            sage: from gmpy2 import mpfr
+            sage: r= rf(4.5)
+            sage: mpfr(r)
+            mpfr('4.5')
+            sage: R = RealField(256)
+            sage: r = mpfr(R.pi())
+            sage: r.precision
+            256
+        """
+        return GMPy_MPFR_From_mpfr(self.value)
     ###########################################
     # Comparisons: ==, !=, <, <=, >, >=
     ###########################################

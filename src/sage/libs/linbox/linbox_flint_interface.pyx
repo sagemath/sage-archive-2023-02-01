@@ -51,7 +51,8 @@ cdef extern from "linbox/linbox-config.h":
 
 cdef extern from "gmp++/gmp++.h":
     cdef cppclass GivaroInteger "Givaro::Integer":
-        mpz_srcptr get_mpz()
+        mpz_ptr get_mpz()
+        mpz_srcptr get_mpz_const()
 
 cdef extern from "linbox/matrix/dense-matrix.h":
     ## template <class _Field>
@@ -74,10 +75,6 @@ cdef extern from "givaro/zring.h":
     cdef cppclass GivaroIntegerRing "Givaro::ZRing<Givaro::Integer>":
         ctypedef GivaroInteger Element
 
-cdef extern from "givaro/givspyinteger.h":
-    cdef cppclass GivaroSpyInteger "Givaro::SpyInteger":
-        mpz_ptr get_mpz(GivaroInteger& i)
-        mpz_srcptr get_mpz_const(const GivaroInteger& i)
 
 cdef extern from "givaro/givpoly1.h":
     ## template < typename T, typename A=std::allocator<T> >
@@ -128,19 +125,16 @@ cdef extern from "linbox/solutions/det.h":
 ###############################################################################
 
 
-cdef GivaroSpyInteger spy
-
 # set the entries of A from m (no allocation preformed)
 # NOTE: this function is not part of the interface (ie the .pxd file) to keep the
 # module C-compatible
 cdef void fmpz_mat_get_linbox(LinBoxIntegerDenseMatrix * A, fmpz_mat_t m):
-    "Set the entries of A to m"
     cdef size_t i,j
     cdef GivaroInteger t
 
     for i in range(fmpz_mat_nrows(m)):
         for j in range(fmpz_mat_ncols(m)):
-            fmpz_get_mpz(<mpz_t> spy.get_mpz(t), fmpz_mat_entry(m, i, j))
+            fmpz_get_mpz(t.get_mpz(), fmpz_mat_entry(m, i, j))
             A.setEntry(i, j, t)
 
 
@@ -148,11 +142,10 @@ cdef void fmpz_mat_get_linbox(LinBoxIntegerDenseMatrix * A, fmpz_mat_t m):
 # NOTE: this function is not part of the interface (ie the .pxd file) to keep the
 # module C-compatible
 cdef void fmpz_mat_set_linbox(fmpz_mat_t m, LinBoxIntegerDenseMatrix *A):
-    "Set the entries of m to A"
     cdef size_t i,j
     for i in range(A.rowdim()):
         for j in range(A.coldim()):
-            fmpz_set_mpz(fmpz_mat_entry(m, i, j), <mpz_t> spy.get_mpz(A.getEntry(i, j)))
+            fmpz_set_mpz(fmpz_mat_entry(m, i, j), A.getEntry(i, j).get_mpz_const())
 
 
 # set C <- A * B
@@ -199,7 +192,7 @@ cdef inline void linbox_fmpz_mat_poly(fmpz_poly_t p, fmpz_mat_t A, int minpoly):
 
     cdef size_t i
     for i in range(m_A.size()):
-        fmpz_poly_set_coeff_mpz(p, i, spy.get_mpz(m_A[i]))
+        fmpz_poly_set_coeff_mpz(p, i, m_A[i].get_mpz_const())
 
 
 # set cp to the characteristic polynomial of A
@@ -236,5 +229,5 @@ cdef void linbox_fmpz_mat_det(fmpz_t det, fmpz_mat_t A):
     LinBoxIntegerDense_det(d, LBA[0])
     del LBA
 
-    fmpz_set_mpz(det, spy.get_mpz(d))
+    fmpz_set_mpz(det, d.get_mpz_const())
 

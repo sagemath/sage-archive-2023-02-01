@@ -5,9 +5,6 @@
 
 r"""
 Linbox interface
-
-The interface :class:`Linbox_integer_dense` to dense matrices is deprecated. One
-would better use :mod:`~sage.libs.linbox.linbox_flint_interface`
 """
 
 ## NOTE: The sig_on()/sig_off() stuff can't go in here -- it has to be in the

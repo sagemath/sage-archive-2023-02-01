@@ -800,7 +800,7 @@ cdef class SymbolicRing(CommutativeRing):
             try:
                 n = operator.index(latex_name)
                 latex_name = None
-            except:
+            except TypeError:
                 formatted_latex_name = '{{{0}}}'.format(latex_name)
 
         if len(names_list) == 0:

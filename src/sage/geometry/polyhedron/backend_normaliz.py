@@ -551,6 +551,20 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: P = Polyhedron([[]], backend='normaliz')                 # optional - pynormaliz
             sage: P.integral_points()                                      # optional - pynormaliz
             ((),)
+
+        A polytope with no integral points (:trac:`22938`)::
+
+            sage: ieqs = [[1, 2, -1, 0], [0, -1, 2, -1], [0, 0, -1, 2],
+            ....:         [0, -1, 0, 0], [0, 0, -1, 0],  [0, 0, 0, -1],
+            ....:         [-1, -1, -1, -1], [1, 1, 0, 0], [1, 0, 1, 0],
+            ....:         [1, 0, 0, 1]]
+            sage: P = Polyhedron(ieqs=ieqs, backend='normaliz')            # optional - pynormaliz
+            sage: P.bounding_box()                                         # optional - pynormaliz
+            ((-3/4, -1/2, -1/4), (-1/2, -1/4, 0))
+            sage: P.bounding_box(integral_hull=True)                       # optional - pynormaliz
+            (None, None)
+            sage: P.integral_points()                                      # optional - pynormaliz
+            ()
         """
         import PyNormaliz
         if not self.is_compact():
@@ -567,6 +581,8 @@ class Polyhedron_normaliz(Polyhedron_base):
         # for small bounding boxes, it is faster to naively iterate over the points of the box
         if threshold > 1:
             box_min, box_max = self.bounding_box(integral_hull=True)
+            if box_min is None:
+                return ()
             box_points = prod(max_coord-min_coord+1 for min_coord, max_coord in zip(box_min, box_max))
             if  box_points<threshold:
                 from sage.geometry.integral_points import rectangular_box_points

@@ -22,6 +22,8 @@ from sage.categories.tensor import tensor
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.homology.chain_complex import ChainComplex, Chain_class
 
+from sage.misc.superseded import deprecated_function_alias
+
 class HochschildComplex(UniqueRepresentation, Parent):
     r"""
     The Hochschild complex.
@@ -96,8 +98,6 @@ class HochschildComplex(UniqueRepresentation, Parent):
             sage: H in ChainComplexes(QQ)
             True
 
-        Some methods required by the category are not implemented::
-
             sage: TestSuite(H).run()
         """
         self._A = A
@@ -164,21 +164,21 @@ class HochschildComplex(UniqueRepresentation, Parent):
         """
         return self._M
 
-    def free_module(self, d):
+    def module(self, d):
         """
-        Return the free module in degree ``d``.
+        Return the module in degree ``d``.
 
         EXAMPLES::
 
             sage: SGA = SymmetricGroupAlgebra(QQ, 3)
             sage: T = SGA.trivial_representation()
             sage: H = SGA.hochschild_complex(T)
-            sage: H.free_module(0)
+            sage: H.module(0)
             Trivial representation of Standard permutations of 3 over Rational Field
-            sage: H.free_module(1)
+            sage: H.module(1)
             Trivial representation of Standard permutations of 3 over Rational Field
              # Symmetric group algebra of order 3 over Rational Field
-            sage: H.free_module(2)
+            sage: H.module(2)
             Trivial representation of Standard permutations of 3 over Rational Field
              # Symmetric group algebra of order 3 over Rational Field
              # Symmetric group algebra of order 3 over Rational Field
@@ -186,6 +186,8 @@ class HochschildComplex(UniqueRepresentation, Parent):
         if d < 0:
             raise ValueError("only defined for non-negative degree")
         return tensor([self._M] + [self._A]*d)
+
+    free_module = deprecated_function_alias(21386, module)
 
     @cached_method
     def trivial_module(self):
@@ -240,8 +242,8 @@ class HochschildComplex(UniqueRepresentation, Parent):
             ....:     phi = H.boundary(n)
             ....:     psi = H.boundary(n+1)
             ....:     comp = phi * psi
-            ....:     zero = H.free_module(n-1).zero()
-            ....:     return all(comp(b) == zero for b in H.free_module(n+1).basis())
+            ....:     zero = H.module(n-1).zero()
+            ....:     return all(comp(b) == zero for b in H.module(n+1).basis())
 
             sage: SGA = SymmetricGroupAlgebra(QQ, 3)
             sage: H = SGA.hochschild_complex(SGA)
@@ -266,9 +268,9 @@ class HochschildComplex(UniqueRepresentation, Parent):
         if d == 0:
             t = self.trivial_module()
             zero = t.zero()
-            return self.free_module(0).module_morphism(lambda x: zero, codomain=t)
-        Fd = self.free_module(d-1)
-        Fd1 = self.free_module(d)
+            return self.module(0).module_morphism(lambda x: zero, codomain=t)
+        Fd = self.module(d-1)
+        Fd1 = self.module(d)
         mone = -one
         def on_basis(k):
             p = self._M.monomial(k[0]) * self._A.monomial(k[1])
@@ -320,8 +322,8 @@ class HochschildComplex(UniqueRepresentation, Parent):
             ....:     phi = H.coboundary(n)
             ....:     psi = H.coboundary(n+1)
             ....:     comp = psi * phi
-            ....:     zero = H.free_module(n+1).zero()
-            ....:     return all(comp(b) == zero for b in H.free_module(n-1).basis())
+            ....:     zero = H.module(n+1).zero()
+            ....:     return all(comp(b) == zero for b in H.module(n-1).basis())
 
             sage: SGA = SymmetricGroupAlgebra(QQ, 3)
             sage: H = SGA.hochschild_complex(SGA)
@@ -466,11 +468,11 @@ class HochschildComplex(UniqueRepresentation, Parent):
             Trivial chain
             sage: H(x+2*y)
             Chain(0: x + 2*y)
-            sage: H({0: H.free_module(0).an_element()})
+            sage: H({0: H.module(0).an_element()})
             Chain(0: 2 + 2*x + 3*y)
-            sage: H({2: H.free_module(2).an_element()})
+            sage: H({2: H.module(2).an_element()})
             Chain(2: 2*1 # 1 # 1 + 2*1 # 1 # x + 3*1 # 1 # y)
-            sage: H({0:x-y, 2: H.free_module(2).an_element()})
+            sage: H({0:x-y, 2: H.module(2).an_element()})
             Chain with 2 nonzero terms over Rational Field
         """
         if not vectors:  # special case: the zero chain
@@ -478,7 +480,7 @@ class HochschildComplex(UniqueRepresentation, Parent):
         # special case: an element of the defining module
         if isinstance(vectors, self._M.element_class) and vectors.parent() is self._M:
             mc = vectors.monomial_coefficients(copy=False)
-            vec = self.free_module(0)._from_dict({(k,): mc[k] for k in mc})
+            vec = self.module(0)._from_dict({(k,): mc[k] for k in mc})
             return self.element_class(self, {0: vec})
         if isinstance(vectors, (Chain_class, self.element_class)):
             vectors = vectors._vec
@@ -489,11 +491,11 @@ class HochschildComplex(UniqueRepresentation, Parent):
             vec = vectors.pop(0)
             if vec.parent() is self._M:
                 mc = vec.monomial_coefficients(copy=False)
-                data[0] = self.free_module(0)._from_dict({(k,): mc[k] for k in mc})
+                data[0] = self.module(0)._from_dict({(k,): mc[k] for k in mc})
             else:
-                data[0] = self.free_module(0)(vec)
+                data[0] = self.module(0)(vec)
         for degree in vectors:
-            vec = self.free_module(degree)(vectors[degree])
+            vec = self.module(degree)(vectors[degree])
             if not vec:
                 continue
             data[degree] = vec
@@ -517,10 +519,36 @@ class HochschildComplex(UniqueRepresentation, Parent):
              0,
              0]
         """
-        return self.element_class(self, {d: self.free_module(d).an_element()
+        return self.element_class(self, {d: self.module(d).an_element()
                                          for d in range(4)})
 
     class Element(ModuleElement):
+        """
+        A chain of the Hochschild complex.
+
+        EXAMPLES::
+
+            sage: SGA = SymmetricGroupAlgebra(QQ, 3)
+            sage: T = SGA.trivial_representation()
+            sage: H = SGA.hochschild_complex(T)
+            sage: H(T.an_element())
+            Chain(0: 2*B['v'])
+            sage: H({0: T.an_element()})
+            Chain(0: 2*B['v'])
+            sage: H({1: H.module(1).an_element()})
+            Chain(1: 2*B['v'] # [1, 2, 3] + 2*B['v'] # [1, 3, 2] + 3*B['v'] # [2, 1, 3])
+            sage: H({0: H.module(0).an_element(), 3: H.module(3).an_element()})
+            Chain with 2 nonzero terms over Rational Field
+
+            sage: F.<x,y> = FreeAlgebra(ZZ)
+            sage: H = F.hochschild_complex(F)
+            sage: H(x + 2*y^2)
+            Chain(0: F[x] + 2*F[y^2])
+            sage: H({0: x*y - x})
+            Chain(0: -F[x] + F[x*y])
+            sage: H({0: x-y, 2: H.module(2).basis().an_element()})
+            Chain with 2 nonzero terms over Integer Ring
+        """
         def __init__(self, parent, vectors):
             """
             Initialize ``self``.
@@ -529,7 +557,7 @@ class HochschildComplex(UniqueRepresentation, Parent):
 
                 sage: F.<x,y> = FreeAlgebra(ZZ)
                 sage: H = F.hochschild_complex(F)
-                sage: a = H({0: x-y, 2: H.free_module(2).basis().an_element()})
+                sage: a = H({0: x-y, 2: H.module(2).basis().an_element()})
                 sage: TestSuite(a).run()
             """
             self._vec = vectors
@@ -543,14 +571,14 @@ class HochschildComplex(UniqueRepresentation, Parent):
 
                 sage: F.<x,y> = FreeAlgebra(ZZ)
                 sage: H = F.hochschild_complex(F)
-                sage: a = H({0: x-y, 2: H.free_module(2).basis().an_element()})
+                sage: a = H({0: x-y, 2: H.module(2).basis().an_element()})
                 sage: [a.vector(i) for i in range(3)]
                 [F[x] - F[y], 0, F[1] # F[1] # F[1]]
             """
             try:
                 return self._vec[degree]
             except KeyError:
-                return self.parent().free_module(degree).zero()
+                return self.parent().module(degree).zero()
 
         def _repr_(self):
             """
@@ -564,9 +592,9 @@ class HochschildComplex(UniqueRepresentation, Parent):
                 Trivial chain
                 sage: H(x+2*y)
                 Chain(0: x + 2*y)
-                sage: H({2: H.free_module(2).an_element()})
+                sage: H({2: H.module(2).an_element()})
                 Chain(2: 2*1 # 1 # 1 + 2*1 # 1 # x + 3*1 # 1 # y)
-                sage: H({0:x-y, 2: H.free_module(2).an_element()})
+                sage: H({0:x-y, 2: H.module(2).an_element()})
                 Chain with 2 nonzero terms over Rational Field
             """
             n = len(self._vec)
@@ -592,8 +620,8 @@ class HochschildComplex(UniqueRepresentation, Parent):
                 sage: F.<x,y> = FreeAlgebra(ZZ)
                 sage: H = F.hochschild_complex(F)
                 sage: a = H({0: x - y,
-                ....:        1: H.free_module(1).basis().an_element(),
-                ....:        2: H.free_module(2).basis().an_element()})
+                ....:        1: H.module(1).basis().an_element(),
+                ....:        2: H.module(2).basis().an_element()})
                 sage: ascii_art(a)
                    d_0           d_1         d_2             d_3
                 0 <---- F  - F  <---- 1 # 1 <---- 1 # 1 # 1 <---- 0
@@ -627,8 +655,8 @@ class HochschildComplex(UniqueRepresentation, Parent):
                 sage: F.<x,y> = FreeAlgebra(ZZ)
                 sage: H = F.hochschild_complex(F)
                 sage: a = H({0: x - y,
-                ....:        1: H.free_module(1).basis().an_element(),
-                ....:        2: H.free_module(2).basis().an_element()})
+                ....:        1: H.module(1).basis().an_element(),
+                ....:        2: H.module(2).basis().an_element()})
                 sage: [a.vector(i) for i in range(3)]
                 [F[x] - F[y], F[1] # F[1], F[1] # F[1] # F[1]]
                 sage: [H.an_element().vector(i) for i in range(3)]
@@ -662,8 +690,8 @@ class HochschildComplex(UniqueRepresentation, Parent):
                 sage: F.<x,y> = FreeAlgebra(ZZ)
                 sage: H = F.hochschild_complex(F)
                 sage: a = H({0: x - y,
-                ....:        1: H.free_module(1).basis().an_element(),
-                ....:        2: H.free_module(2).basis().an_element()})
+                ....:        1: H.module(1).basis().an_element(),
+                ....:        2: H.module(2).basis().an_element()})
                 sage: v = 3*a
                 sage: [v.vector(i) for i in range(3)]
                 [3*F[x] - 3*F[y], 3*F[1] # F[1], 3*F[1] # F[1] # F[1]]
@@ -686,8 +714,8 @@ class HochschildComplex(UniqueRepresentation, Parent):
                 sage: F.<x,y> = FreeAlgebra(ZZ)
                 sage: H = F.hochschild_complex(F)
                 sage: a = H({0: x - y,
-                ....:        1: H.free_module(1).basis().an_element(),
-                ....:        2: H.free_module(2).basis().an_element()})
+                ....:        1: H.module(1).basis().an_element(),
+                ....:        2: H.module(2).basis().an_element()})
                 sage: a == 3*a
                 False
                 sage: a + a == 2*a

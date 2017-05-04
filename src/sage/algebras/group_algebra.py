@@ -717,7 +717,7 @@ class GroupAlgebra(CombinatorialFreeModule):
             if x == 0:
                 return self.zero()
             else:
-                raise TypeError("do not know how to make x (= %s) an element of %s"%(x, self))
+                return k(x) * self.one()
 
         G = self.group()
         S = x.parent()

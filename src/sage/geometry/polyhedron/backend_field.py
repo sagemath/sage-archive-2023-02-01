@@ -53,7 +53,7 @@ class Polyhedron_field(Polyhedron_base):
 
     TESTS::
 
-        sage: K.<sqrt3> = NumberField(x^2-3)
+        sage: K.<sqrt3> = QuadraticField(3)
         sage: p = Polyhedron([(0,0), (1,0), (1/2, sqrt3/2)])
         sage: TestSuite(p).run()
 

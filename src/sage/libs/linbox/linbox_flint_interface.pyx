@@ -42,7 +42,7 @@ from sage.libs.gmp.mpz cimport mpz_set
 from sage.libs.flint.types cimport fmpz, fmpz_t
 from sage.libs.flint.fmpz cimport fmpz_get_mpz, fmpz_set_mpz
 from sage.libs.flint.fmpz_mat cimport fmpz_mat_entry, fmpz_mat_nrows, fmpz_mat_ncols
-from sage.libs.flint.fmpz_poly cimport fmpz_poly_set_coeff_mpz, fmpz_poly_fit_length, _fmpz_poly_set_length
+from sage.libs.flint.fmpz_poly cimport fmpz_poly_set_coeff_mpz, fmpz_poly_fit_length, _fmpz_poly_set_length, fmpz_poly_one
 
 cdef extern from "givaro/givconfig.h":
     pass
@@ -192,6 +192,12 @@ cdef void linbox_fmpz_mat_charpoly(fmpz_poly_t cp, fmpz_mat_t A):
     cdef LinBoxIntegerDenseMatrix * LBA
     cdef LinBoxIntegerPolynomialRing.Element m_A
 
+    # FIXME: looks like a bug in LinBox
+    # see https://trac.sagemath.org/ticket/22924#comment:17
+    if fmpz_mat_nrows(A) == 0:
+        fmpz_poly_one(cp)
+        return
+
     LBA = new LinBoxIntegerDenseMatrix(ZZ, fmpz_mat_nrows(A), fmpz_mat_ncols(A))
     fmpz_mat_get_linbox(LBA[0], A)
     LinBoxIntegerDense_charpoly(m_A, LBA[0])
@@ -205,6 +211,12 @@ cdef void linbox_fmpz_mat_minpoly(fmpz_poly_t mp, fmpz_mat_t A):
     cdef GivaroIntegerRing ZZ
     cdef LinBoxIntegerDenseMatrix * LBA
     cdef LinBoxIntegerPolynomialRing.Element m_A
+
+    # FIXME: looks like a bug in LinBox
+    # see https://trac.sagemath.org/ticket/22924#comment:17
+    if fmpz_mat_nrows(A) == 0:
+        fmpz_poly_one(mp)
+        return
 
     LBA = new LinBoxIntegerDenseMatrix(ZZ, fmpz_mat_nrows(A), fmpz_mat_ncols(A))
     fmpz_mat_get_linbox(LBA[0], A)

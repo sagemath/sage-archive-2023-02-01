@@ -1160,14 +1160,15 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         return self, ZZ(1)
 
-    def charpoly(self, var='x', algorithm='generic'):
+    def charpoly(self, var='x', algorithm=None):
         """
         INPUT:
 
 
         -  ``var`` - a variable name
 
-        -  ``algorithm`` - 'generic' (default), 'flint' or 'linbox'
+        -  ``algorithm`` - (optional) either 'generic', 'flint' or 'linbox'.
+           Default is set to 'linbox'.
 
         EXAMPLES::
 
@@ -1184,6 +1185,13 @@ cdef class Matrix_integer_dense(Matrix_dense):
             x^20 - 3990*x^19 - 266000*x^18
             sage: A.minpoly()
             x^3 - 3990*x^2 - 266000*x
+
+        On non square matrices, this method raises an ArithmeticError::
+
+            sage: matrix(ZZ, 2, 1).charpoly()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: only valid for square matrix
 
         TESTS:
 
@@ -1203,53 +1211,81 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: A._cache['charpoly_linbox']
             x^2 - 3*x - 2
 
-        Check consistency between the various algorithms::
+        Test corner cases::
+
+            sage: matrix([5]).charpoly('z', 'flint')
+            z - 5
+            sage: matrix([5]).charpoly('z', 'linbox')
+            z - 5
+            sage: matrix([5]).charpoly('z', 'generic')
+            z - 5
+
+
+            sage: matrix([]).charpoly('y', 'flint')
+            1
+            sage: matrix([]).charpoly('y', 'linbox')
+            1
+            sage: matrix([]).charpoly('y', 'generic')
+            1
+
+            sage: matrix([0]).charpoly('x', 'flint')
+            x
+            sage: matrix([0]).charpoly('x', 'linbox')
+            x
+            sage: matrix([0]).charpoly('x', 'generic')
+            x
+
+        Consistency on random inputs::
 
             sage: for _ in range(100):
             ....:     dim = randint(1, 20)
             ....:     m  = random_matrix(ZZ, dim)
-            ....:     ans_flint = m.charpoly(algorithm='flint')
-            ....:     ans_linbox = m.charpoly(algorithm='linbox')
-            ....:     if ans_flint != ans_linbox:
-            ....:         raise RuntimeError("ans_flint = {} and ans_linbox = {} for\n{}".format(
-            ....:                            ans_flint, ans_linbox, m.str()))
+            ....:     m._clear_cache(); ans_flint = m.charpoly(algorithm='flint')
+            ....:     m._clear_cache(); ans_linbox = m.charpoly(algorithm='linbox')
+            ....:     m._clear_cache(); ans_generic = m.charpoly(algorithm='generic')
+            ....:     if ans_flint != ans_linbox or ans_flint != ans_generic:
+            ....:         raise RuntimeError("ans_flint = {}, ans_linbox = {} and ans_generic = {} for\n{}".format(
+            ....:                            ans_flint, ans_linbox, ans_generic, m.str()))
         """
-        cdef long i,n
-        cdef Integer z
+        if self._nrows != self._ncols:
+            raise ArithmeticError("only valid for square matrix")
+
         cdef Polynomial_integer_dense_flint g
-        if algorithm == 'generic':
+
+        if algorithm is None:
             algorithm = 'linbox'
+
         cache_key = 'charpoly_%s' % algorithm
         g = self.fetch(cache_key)
         if g is not None:
             return g.change_variable_name(var)
 
         if algorithm == 'flint':
-            g = (<Polynomial_integer_dense_flint>(PolynomialRing(ZZ,names = var).gen()))._new()
+            g = (<Polynomial_integer_dense_flint> PolynomialRing(ZZ, names=var).gen())._new()
             sig_on()
-            fmpz_mat_charpoly(g.__poly,self._matrix)
+            fmpz_mat_charpoly(g.__poly, self._matrix)
             sig_off()
         elif algorithm == 'linbox':
-            g = self._poly_linbox('charpoly', var)
+            g = (<Polynomial_integer_dense_flint> PolynomialRing(ZZ, names=var).gen())._new()
+            sig_on()
+            linbox_fmpz_mat_charpoly(g.__poly, self._matrix)
+            sig_off()
+        elif algorithm == 'generic':
+            g = Matrix_dense.charpoly(self, var)
         else:
             raise ValueError("no algorithm '%s'"%algorithm)
+
         self.cache(cache_key, g)
         return g
 
-    def minpoly(self, var='x', algorithm = 'linbox'):
+    def minpoly(self, var='x', algorithm=None):
         """
         INPUT:
 
 
         -  ``var`` - a variable name
 
-        -  ``algorithm`` - 'linbox' (default) or 'generic'
-
-
-        .. NOTE::
-
-           Linbox charpoly disabled on 64-bit machines, since it hangs
-           in many cases.
+        -  ``algorithm`` - (optional) either 'linbox' (default) or 'generic'
 
         EXAMPLES::
 
@@ -1263,14 +1299,61 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: A.minpoly(algorithm='generic')
             x^4 - 2695*x^3 - 257964*x^2 + 1693440*x
 
-        """
-        key = 'minpoly_%s_%s'%(algorithm, var)
-        x = self.fetch(key)
-        if x: return x
+        On non square matrices, this method raises an ArithmeticError::
 
+            sage: matrix(ZZ, 2, 1).minpoly()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: only valid for square matrix
+
+        TESTS:
+
+        Corner cases::
+
+            sage: matrix([5]).minpoly('z', 'linbox')
+            z - 5
+            sage: matrix([5]).minpoly('z', 'generic')
+            z - 5
+
+            sage: matrix([]).minpoly('y', 'linbox')
+            1
+            sage: matrix([]).minpoly('y', 'generic')
+            1
+
+            sage: matrix(ZZ, 2).minpoly('x', 'linbox')
+            x
+            sage: matrix(ZZ, 2).minpoly('x', 'generic')
+            x
+
+        Consistency on random inputs::
+
+            sage: for _ in range(100):
+            ....:     dim = randint(1, 20)
+            ....:     m  = random_matrix(ZZ, dim)
+            ....:     m._clear_cache(); ans_generic = m.minpoly(algorithm='generic')
+            ....:     m._clear_cache(); ans_linbox = m.minpoly(algorithm='linbox')
+            ....:     if ans_generic != ans_linbox:
+            ....:         raise RuntimeError("ans_generic = {} and ans_linbox = {} for\n{}".format(
+            ....:                            ans_generic, ans_linbox, m.str()))
+        """
+        if self._nrows != self._ncols:
+            raise ArithmeticError("only valid for square matrix")
+
+        cdef Polynomial_integer_dense_flint g
+
+        if algorithm is None:
+            algorithm = 'linbox'
+
+        key = 'minpoly_%s'%(algorithm)
+        g = self.fetch(key)
+        if g is not None:
+            return g.change_variable_name(var)
 
         if algorithm == 'linbox':
-            g = self._poly_linbox('minpoly', var)
+            g = (<Polynomial_integer_dense_flint> PolynomialRing(ZZ, names=var).gen())._new()
+            sig_on()
+            linbox_fmpz_mat_minpoly(g.__poly, self._matrix)
+            sig_off()
         elif algorithm == 'generic':
             g = Matrix_dense.minpoly(self, var)
         else:
@@ -1278,44 +1361,6 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
         self.cache(key, g)
         return g
-
-    def _poly_linbox(self, typ, var='x'):
-        r"""
-        Return the minimal or characteristic polynomial of this matrix
-
-        EXAMPLES::
-
-            sage: matrix(1, [5])._poly_linbox('minpoly', 'z')
-            z - 5
-            sage: matrix(1, [5])._poly_linbox('charpoly', 't')
-            t - 5
-        """
-        if self._nrows != self._ncols:
-            raise ArithmeticError("self must be a square matrix")
-
-        cdef Polynomial_integer_dense_flint x = <Polynomial_integer_dense_flint> ZZ[var].gen()
-
-        if self.is_zero():
-            if typ == 'minpoly':
-                return x
-            elif typ == 'charpoly':
-                return x ** self._nrows
-            else:
-                raise ValueError("typ must either be 'minpoly' or 'charpoly'")
-
-        ans = x._new()
-        if typ == 'minpoly':
-            sig_on()
-            linbox_fmpz_mat_minpoly(ans.__poly, self._matrix)
-            sig_off()
-        elif typ == 'charpoly':
-            sig_on()
-            linbox_fmpz_mat_charpoly(ans.__poly, self._matrix)
-            sig_off()
-        else:
-            raise ValueError("typ must either be 'minpoly' or 'charpoly'")
-
-        return ans
 
     def height(self):
         """

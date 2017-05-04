@@ -228,7 +228,10 @@ public:
         {
                 return t == PYOBJECT;
         }
-        static ex try_py_method(const numeric& e, const std::string& s);
+        static ex try_py_method(const numeric& x, const std::string& s);
+        static ex try_py_method(const numeric& x1,
+                        const std::string& s,
+                        const numeric& x2);
         static ex to_dict_parent(const numeric& e, PyObject* dict);
 #ifdef PYNAC_HAVE_LIBGIAC
         giac::gen* to_giacgen(giac::context*) const;

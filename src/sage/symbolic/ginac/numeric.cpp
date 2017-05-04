@@ -2317,7 +2317,7 @@ ex numeric::evalf(int /*level*/, PyObject* parent) const {
 ex numeric::try_py_method(const numeric& num, const std::string& s)
 {
         PyObject *obj = num.to_pyobject();
-        PyObject* ret = PyObject_CallMethod(obj, 
+        PyObject* ret = PyObject_CallMethod(obj,
                         const_cast<char*>(s.c_str()), NULL);
         Py_DECREF(obj);
         if (ret == nullptr) {
@@ -2325,6 +2325,24 @@ ex numeric::try_py_method(const numeric& num, const std::string& s)
                 throw std::logic_error("");
         }
         
+        return ex(numeric(ret));
+}
+
+ex numeric::try_py_method(const numeric& num1,
+                const std::string& s,
+                const numeric& num2)
+{
+        PyObject *obj1 = num1.to_pyobject();
+        PyObject *obj2 = num2.to_pyobject();
+        PyObject *mstr = PyString_FromString(const_cast<char*>(s.c_str()));
+        PyObject* ret = PyObject_CallMethodObjArgs(obj1, mstr, obj2, NULL);
+        Py_DECREF(obj1);
+        Py_DECREF(obj2);
+        Py_DECREF(mstr);
+        if (ret == nullptr) {
+                PyErr_Clear();
+                throw std::logic_error("");
+        }
         return ex(numeric(ret));
 }
 
@@ -2621,7 +2639,7 @@ const numeric numeric::Li2(const numeric &n, PyObject* parent) const {
         Py_DECREF(ball);
 
         numeric rnum(ret);
-        if (is_real() and n.is_integer() and (*this)<(*_num1_p))
+        if (is_real() and n.is_integer() and rnum.real()<(*_num1_p))
                 return rnum.real();
         else
                 return rnum;

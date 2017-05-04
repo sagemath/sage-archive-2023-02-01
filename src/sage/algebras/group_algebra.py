@@ -119,9 +119,12 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.pushout import ConstructionFunctor
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.categories.all import Rings, Hom
+from sage.categories.fields import Fields
 from sage.categories.groups import Groups
 from sage.categories.additive_groups import AdditiveGroups
+from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.categories.morphism import SetMorphism
+from sage.categories.sets_cat import Sets
 
 
 import six
@@ -299,7 +302,7 @@ class GroupAlgebra(CombinatorialFreeModule):
         sage: A( A(x) )
         (1,2,3,4,5)
     """
-    def __init__(self, group, base_ring=IntegerRing()):
+    def __init__(self, group, base_ring=IntegerRing(), category=None):
         r"""
         See :class:`GroupAlgebra` for full documentation.
 
@@ -333,11 +336,32 @@ class GroupAlgebra(CombinatorialFreeModule):
                 or cat.is_subcategory(AdditiveGroups())):
             raise TypeError('"%s" is not a group' % group)
 
+        if category is None:
+            category = cat.Algebras(base_ring)
+
+        # If base_ring is of characteristic 0, this is handled
+        #    in the FiniteGroups.Algebras category
+        # Maschke's theorem: under some conditions, the algebra is semisimple.
+        if (category.is_subcategory(Sets().Finite())
+            and base_ring in Fields
+            and base_ring.characteristic() >= 0
+            and hasattr(group, "cardinality")
+            and group.cardinality() % base_ring.characteristic() != 0):
+            category = category.Semisimple()
+
+        # Somewhat dirty hack to wrap non-atomic objects
+        if group in ModulesWithBasis:
+            prefix = 'B'
+            bracket = True
+        else:
+            prefix = ''
+            bracket = False
+
         self._group = group
         CombinatorialFreeModule.__init__(self, base_ring, group,
-                                         prefix='',
-                                         bracket=False,
-                                         category=cat.Algebras(base_ring))
+                                         prefix=prefix,
+                                         bracket=bracket,
+                                         category=category)
 
         if not base_ring.has_coerce_map_from(group) :
             ## some matrix groups assume that coercion is only valid to
@@ -683,12 +707,26 @@ class GroupAlgebra(CombinatorialFreeModule):
             sqrt5*[1 0]
             [0 1]
         """
-        from sage.rings.ring import is_Ring
-        from sage.groups.group import is_Group
-        from sage.structure.formal_sum import FormalSum
         k = self.base_ring()
+
+        #Coerce ints to Integers
+        if isinstance(x, int):
+            x = Integer(x)
+
+        if x in k:
+            if x == 0:
+                return self.zero()
+            else:
+                raise TypeError("do not know how to make x (= %s) an element of %s"%(x, self))
+
         G = self.group()
         S = x.parent()
+        if S is G:
+            return self.monomial(x)
+
+        from sage.rings.ring import is_Ring
+        from sage.structure.formal_sum import FormalSum
+
         if isinstance(S, GroupAlgebra):
             if self.has_coerce_map_from(S):
                 # coerce monomials, coerce coefficients, reassemble
@@ -701,18 +739,21 @@ class GroupAlgebra(CombinatorialFreeModule):
                     else:
                         new_d[g1] = k(d[g])
                 return self._from_dict(new_d)
+
         elif is_Ring(S):
             # coerce to multiple of identity element
-            return k(x) * self(1)
-        elif is_Group(S):
-            # Check whether group coerces to base_ring first.
-            if k.has_coerce_map_from(S):
-                return k(x) * self(1)
-            if G.has_coerce_map_from(S):
-                return self.monomial(self.group()(x))
+            return k(x) * self.one()
+
         elif isinstance(x, FormalSum) and k.has_coerce_map_from(S.base_ring()):
             y = [(G(g), k(coeff)) for coeff,g in x]
             return self.sum_of_terms(y)
+
+        # Check whether group coerces to base_ring first.
+        if k.has_coerce_map_from(S):
+            return k(x) * self.one()
+        if G.has_coerce_map_from(S):
+            return self.monomial(G(x))
+
         raise TypeError("Don't know how to create an element of %s from %s" % \
                              (self, x))
 

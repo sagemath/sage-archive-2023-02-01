@@ -967,7 +967,8 @@ class Sets(Category_singleton):
                 sage: B.element_class
                 <class 'sage.combinat.free_module.GroupAlgebra_with_category.element_class'>
                 sage: B._element_constructor
-                <bound method GroupAlgebra_with_category._element_constructor_ of Group algebra of group "Symmetric group of order 3! as a permutation group" over base ring Integer Ring>
+                <bound method GroupAlgebra_with_category._element_constructor_ of
+                 Group algebra of Symmetric group of order 3! as a permutation group over Integer Ring>
             """
             if hasattr(self, "element_class"):
                 return self._element_constructor_from_element_class
@@ -1642,8 +1643,8 @@ class Sets(Category_singleton):
                 sage: WA = W.algebra(QQ)
                 sage: WA.coerce_map_from(PA)
                 Conversion map:
-                  From: Group algebra of Weight lattice of the Root system of type ['A', 2, 1] over Rational Field
-                  To:   Group algebra of Weight space over the Rational Field of the Root system of type ['A', 2, 1] over Rational Field
+                  From: Group algebra of the Weight lattice of the Root system of type ['A', 2, 1] over Rational Field
+                  To:   Group algebra of the Weight space over the Rational Field of the Root system of type ['A', 2, 1] over Rational Field
             """
             if category is None:
                 category = self.category()
@@ -1657,12 +1658,13 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
             from sage.categories.groups import Groups
             from sage.categories.additive_groups import AdditiveGroups
             from sage.categories.fields import Fields
+            algebra_category = category.Algebras(base_ring)
             if (category.is_subcategory(Groups())
                 or category.is_subcategory(AdditiveGroups())):
                 from sage.algebras.group_algebra import GroupAlgebra
-                return GroupAlgebra(self, base_ring)
+                return GroupAlgebra(self, base_ring, category=algebra_category)
+
             from sage.combinat.free_module import CombinatorialFreeModule
-            algebra_category = category.Algebras(base_ring)
             return CombinatorialFreeModule(base_ring, self,
                                            category=algebra_category)
 

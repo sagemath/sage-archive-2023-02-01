@@ -206,11 +206,7 @@ class FiniteGroups(CategoryWithAxiom):
             """
             from sage.categories.fields import Fields
             K = self.base_ring()
-            # Maschke's theorem: under some conditions, the algebra is semisimple.
-            if (K in Fields
-                and (K.characteristic() == 0
-                     or (hasattr(self, "cardinality")
-                         and self.cardinality() % K.characteristic() != 0))):
+            if (K in Fields) and K.characteristic() == 0:
                 from sage.categories.algebras import Algebras
                 return [Algebras(self.base_ring()).Semisimple()]
             else:

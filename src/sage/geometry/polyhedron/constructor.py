@@ -402,6 +402,18 @@ def Polyhedron(vertices=None, rays=None, lines=None,
          A vertex at (0, 31/2, 31/2, 0, 0, 0), A vertex at (0, 31/2, 0, 0, 31/2, 0),
          A vertex at (0, 0, 0, 31/2, 31/2, 0))
 
+    When the input contains elements of a Number Field, they require an
+    embedding::
+
+        sage: K = NumberField(x^2-2,'s')
+        sage: s = K.0
+        sage: L = NumberField(x^3-2,'t')
+        sage: t = L.0
+        sage: P = Polyhedron(vertices = [[0,s],[t,0]])
+        Traceback (most recent call last):
+        ...
+        ValueError: No common ring could be found: an embedding is required to convert the values to algebraic numbers.
+
     .. NOTE::
 
       * Once constructed, a ``Polyhedron`` object is immutable.
@@ -410,6 +422,16 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         be used, it might not give the right answer for degenerate
         input data - the results can depend upon the tolerance
         setting of cdd.
+
+
+    .. TESTS:
+
+    Checking that giving float input gets converted to `\RDF`, see :trac:`22605`::
+
+        sage: f = float(1.1)
+        sage: Polyhedron(vertices=[[f]])
+        A 0-dimensional polyhedron in RDF^1 defined as the convex hull of 1 vertex
+
     """
     # Clean up the arguments
     vertices = _make_listlist(vertices)
@@ -475,6 +497,7 @@ def Polyhedron(vertices=None, rays=None, lines=None,
                 convert = True
             except (TypeError, ValueError):
                 from sage.structure.sequence import Sequence
+                from sage.rings.ring import is_Ring
                 values = Sequence(values)
                 common_ring = values.universe()
                 if QQ.has_coerce_map_from(common_ring):
@@ -483,6 +506,13 @@ def Polyhedron(vertices=None, rays=None, lines=None,
                 elif common_ring is RR:   # DWIM: replace with RDF
                     base_ring = RDF
                     convert = True
+                elif common_ring is float:
+                    base_ring = RDF
+                    convert = True
+                elif not is_Ring(common_ring):
+                    raise ValueError("No common ring could be found: an " + \
+                            "embedding is required to convert the values to" + \
+                            " algebraic numbers.")
                 else:
                     base_ring = common_ring
                     convert = True

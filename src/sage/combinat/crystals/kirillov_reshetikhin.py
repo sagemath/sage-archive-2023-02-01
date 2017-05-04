@@ -3047,7 +3047,7 @@ class KR_type_Dn_twistedElement(KirillovReshetikhinGenericCrystalElement):
     def e0(self):
         r"""
         Return `e_0` on ``self`` by going to the `\pm`-diagram corresponding
-        to the `\{2,\lots,n\}`-highest weight vector in the component of
+        to the `\{2,\ldots,n\}`-highest weight vector in the component of
         ``self``, then applying [Definition 6.2, 4], and pulling back from
         `\pm`-diagrams.
 

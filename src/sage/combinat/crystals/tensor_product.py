@@ -96,7 +96,7 @@ class TestParent(UniqueRepresentation, Parent):
 
 class ImmutableListWithParent(CombinatorialElement):
     r"""
-    A class for lists having a parent
+    A class for lists having a parent.
 
     Specification: any subclass ``C`` should implement ``__init__`` which
     accepts the following form ``C(parent, list = list)``
@@ -243,7 +243,7 @@ class ImmutableListWithParent(CombinatorialElement):
 
     def sibling(self, l):
         """
-        Returns an :class:`ImmutableListWithParent` object whose list is
+        Return an :class:`ImmutableListWithParent` object whose list is
         ``l`` and whose parent is the same as the parent of ``self``.
 
         Note that the implementation of this function makes an assumption
@@ -262,7 +262,7 @@ class ImmutableListWithParent(CombinatorialElement):
 
     def reversed(self):
         """
-        Returns the sibling of ``self`` which is obtained by reversing the
+        Return the sibling of ``self`` which is obtained by reversing the
         elements of`` self``.
 
         EXAMPLES::
@@ -276,7 +276,7 @@ class ImmutableListWithParent(CombinatorialElement):
 
     def set_index(self, k, value):
         """
-        Returns the sibling of ``self`` obtained by setting the
+        Return the sibling of ``self`` obtained by setting the
         `k^{th}` entry of self to value.
 
         EXAMPLES::
@@ -518,7 +518,8 @@ class TensorProductOfCrystals(CrystalOfWords):
     It has `8` elements::
 
         sage: T.list()
-        [[2, 1, 1], [2, 1, 2], [2, 1, 3], [3, 1, 3], [3, 2, 3], [3, 1, 1], [3, 1, 2], [3, 2, 2]]
+        [[2, 1, 1], [2, 1, 2], [2, 1, 3], [3, 1, 3],
+         [3, 2, 3], [3, 1, 1], [3, 1, 2], [3, 2, 2]]
 
     One can also check the Cartan type of the crystal::
 
@@ -1055,7 +1056,7 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
 
         INPUT:
 
-        - ``i`` -- An element of the index set
+        - ``i`` -- an element of the index set
 
         EXAMPLES::
 
@@ -1075,7 +1076,7 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
 
         INPUT:
 
-        - ``i`` -- An element of the index set
+        - ``i`` -- an element of the index set
 
         EXAMPLES::
 
@@ -1117,15 +1118,15 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
         .. MATH::
 
             a_i(k) = \varepsilon_i(b_k) - \sum_{j=1}^{k-1} \langle h_i,
-            \mathrm{wt}(b_j) \rangle
+            \mathrm{wt}(b_j) \rangle,
 
         where `\mathrm{wt}` is the :meth:`weight` of `b_j`.
 
         INPUT:
 
-        - ``i`` -- An element of the index set
+        - ``i`` -- an element of the index set
 
-        - ``k`` -- The (1-based) index of the tensor factor of ``self``
+        - ``k`` -- the (1-based) index of the tensor factor of ``self``
 
         EXAMPLES::
 
@@ -1264,7 +1265,7 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
         if i not in self.index_set():
             raise ValueError("i must be in the index set")
         position = self.positions_of_unmatched_plus(i)
-        if position == []:
+        if not position:
             return None
         k = position[0]
         return self.set_index(k, self[k].e(i))
@@ -1283,7 +1284,8 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             sage: T.list()[0].weight()
             (0, 0, 0, 0)
         """
-        return sum((self[j].weight() for j in range(len(self))), self.parent().weight_lattice_realization().zero())
+        return sum((b.weight() for b in self),
+                   self.parent().weight_lattice_realization().zero())
 
     def f(self, i):
         """
@@ -1303,7 +1305,7 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
         if i not in self.index_set():
             raise ValueError("i must be in the index set")
         position = self.positions_of_unmatched_minus(i)
-        if position == []:
+        if not position:
             return None
         k = position[len(position)-1]
         return self.set_index(k, self[k].f(i))
@@ -1323,12 +1325,11 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             sage: T(C(2),C(1)).phi(1)
             0
         """
-        self = self.reversed()
         height = 0
-        for j in range(len(self)):
-            plus = self[j].epsilon(i)
-            minus = self[j].phi(i)
-            if height-plus < 0:
+        for b in reversed(self):
+            plus = b.epsilon(i)
+            minus = b.phi(i)
+            if height - plus < 0:
                 height = minus
             else:
                 height = height - plus + minus
@@ -1350,9 +1351,9 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             0
         """
         height = 0
-        for j in range(len(self)):
-            minus = self[j].phi(i)
-            plus = self[j].epsilon(i)
+        for b in self:
+            minus = b.phi(i)
+            plus = b.epsilon(i)
             if height-minus < 0:
                 height = plus
             else:
@@ -1375,19 +1376,19 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
         if reverse:
             self = self.reversed()
         if not dual:
-            for j in range(len(self)):
-                minus = self[j].phi(i)
-                plus = self[j].epsilon(i)
-                if height-minus < 0:
+            for j,bj in enumerate(self):
+                minus = bj.phi(i)
+                plus = bj.epsilon(i)
+                if height - minus < 0:
                     unmatched_plus.append(j)
                     height = plus
                 else:
                     height = height - minus + plus
         else:
-            for j in range(len(self)):
-                plus = self[j].epsilon(i)
-                minus = self[j].phi(i)
-                if height-plus < 0:
+            for j, bj in enumerate(self):
+                plus = bj.epsilon(i)
+                minus = bj.phi(i)
+                if height - plus < 0:
                     unmatched_plus.append(j)
                     height = minus
                 else:
@@ -1406,8 +1407,8 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
             [1]
         """
         l = self.positions_of_unmatched_minus(i, dual=True, reverse=True)
-        l.reverse()
-        return [len(self)-1-l[j] for j in range(len(l))]
+        m = len(self) - 1
+        return [m - val for val in reversed(l)]
 
     def energy_function(self, algorithm=None):
         r"""
@@ -1655,7 +1656,7 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
         from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinTableaux
         if self.parent().crystals[0].__module__ != 'sage.combinat.crystals.kirillov_reshetikhin' and \
                 not isinstance(self.parent().crystals[0], KirillovReshetikhinTableaux):
-            raise ValueError("All crystals in the tensor product need to be Kirillov-Reshetikhin crystals")
+            raise ValueError("all crystals in the tensor product need to be Kirillov-Reshetikhin crystals")
         ell = max(ceil(K.s()/K.cartan_type().c()[K.r()]) for K in self.parent().crystals)
         if self.cartan_type().dual().type() == 'BC':
             I = self.cartan_type().index_set()
@@ -1669,9 +1670,9 @@ class TensorProductOfRegularCrystalsElement(TensorProductOfCrystalsElement):
         I = self.cartan_type().classical().index_set()
         for i in I:
             if self.epsilon(i) > 0:
-                return (i,) + (self.e(i)).e_string_to_ground_state()
+                return (i,) + self.e(i).e_string_to_ground_state()
         if self.epsilon(0) > ell:
-            return (0,) + (self.e(0)).e_string_to_ground_state()
+            return (0,) + self.e(0).e_string_to_ground_state()
         return ()
 
 CrystalOfWords.Element = TensorProductOfCrystalsElement
@@ -1898,13 +1899,13 @@ class CrystalOfTableaux(CrystalOfWords):
             elif all(shape[-1]<0 for shape in spin_shapes):
                 S = CrystalOfSpinsMinus(cartan_type)
             else:
-                raise ValueError("In type D spins should all be positive or negative")
+                raise ValueError("in type D spins should all be positive or negative")
         else:
             if any( i < 0 for shape in spin_shapes for i in shape):
                 raise ValueError("shapes should all be partitions")
             S = CrystalOfSpins(cartan_type)
-        B = CrystalOfTableaux(cartan_type, shapes = shapes)
-        T = TensorProductOfCrystals(S,B, generators=[[S.module_generators[0],x] for x in B.module_generators])
+        B = CrystalOfTableaux(cartan_type, shapes=shapes)
+        T = TensorProductOfCrystals(S, B, generators=[[S.module_generators[0],x] for x in B.module_generators])
         T.rename("The crystal of tableaux of type %s and shape(s) %s"%(cartan_type, list(list(shape) for shape in spin_shapes)))
         T.shapes = spin_shapes
         return T
@@ -1972,12 +1973,12 @@ class CrystalOfTableaux(CrystalOfWords):
         type = self.cartan_type()
         if type[0] == 'D' and len(shape) == type[1] and shape[type[1]-1] < 0:
             invert = True
-            shape = shape[:-1]+(-shape[type[1]-1],)
+            shape = shape[:-1] + (-shape[type[1]-1],)
         else:
             invert = False
         p = Partition(shape).conjugate()
         # The column canonical tableau, read by columns
-        module_generator = flatten([[p[j]-i for i in range(p[j])] for j in range(len(p))])
+        module_generator = flatten([[val-i for i in range(val)] for val in p])
         if invert:
             module_generator = [(-x if x == type[1] else x) for x in module_generator]
         return self(list=[self.letters(x) for x in module_generator])
@@ -2006,8 +2007,8 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
     def __init__(self, parent, *args, **options):
         """
         There are several ways to input tableaux, by rows,
-        by columns, as the list of column elements, or as a sequence of numbers
-        in column reading.
+        by columns, as the list of column elements, or as a sequence
+        of numbers in column reading.
 
         EXAMPLES::
 
@@ -2175,7 +2176,7 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
     @cached_method
     def to_tableau(self):
         """
-        Returns the Tableau object corresponding to self.
+        Return the :class:`Tableau` object corresponding to ``self``.
 
         EXAMPLES::
 
@@ -2210,10 +2211,9 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
 
     def promotion(self):
         """
-        Promotion for type A crystals of tableaux of rectangular shape
+        Return the result of applying promotion on ``self``.
 
-        Returns the result of applying promotion on this tableau.
-
+        Promotion for type A crystals of tableaux of rectangular shape.
         This method only makes sense in type A with rectangular shapes.
 
         EXAMPLES::
@@ -2234,10 +2234,9 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
 
     def promotion_inverse(self):
         """
-        Inverse promotion for type A crystals of tableaux of rectangular shape
+        Return the result of applying inverse promotion on ``self``.
 
-        Returns the result of applying inverse promotion on this tableau.
-
+        Inverse promotion for type A crystals of tableaux of rectangular shape.
         This method only makes sense in type A with rectangular shapes.
 
         EXAMPLES::

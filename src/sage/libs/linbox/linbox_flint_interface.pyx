@@ -128,7 +128,7 @@ cdef extern from "linbox/solutions/det.h":
 # set the entries of A from m (no allocation preformed)
 # NOTE: this function is not part of the interface (ie the .pxd file) to keep the
 # module C-compatible
-cdef void fmpz_mat_get_linbox(LinBoxIntegerDenseMatrix * A, fmpz_mat_t m):
+cdef void fmpz_mat_get_linbox(LinBoxIntegerDenseMatrix& A, fmpz_mat_t m):
     cdef size_t i,j
     cdef GivaroInteger t
 
@@ -141,11 +141,25 @@ cdef void fmpz_mat_get_linbox(LinBoxIntegerDenseMatrix * A, fmpz_mat_t m):
 # set the entries of m from A (no allocation performed)
 # NOTE: this function is not part of the interface (ie the .pxd file) to keep the
 # module C-compatible
-cdef void fmpz_mat_set_linbox(fmpz_mat_t m, LinBoxIntegerDenseMatrix *A):
+cdef void fmpz_mat_set_linbox(fmpz_mat_t m, LinBoxIntegerDenseMatrix& A):
     cdef size_t i,j
     for i in range(A.rowdim()):
         for j in range(A.coldim()):
             fmpz_set_mpz(fmpz_mat_entry(m, i, j), A.getEntry(i, j).get_mpz_const())
+
+
+# set the entries of the polynomial p from q (no allocation performed)
+# NOTE: this function is not part of the interface (ie the .pxd file) to keep the
+# module C-compatible
+cdef void fmpz_poly_set_linbox(fmpz_poly_t p, LinBoxIntegerPolynomialRing.Element& q):
+    cdef size_t i
+
+    fmpz_poly_fit_length(p, q.size())
+
+    for i in range(q.size()):
+        fmpz_poly_set_coeff_mpz(p, i, q[i].get_mpz_const())
+
+    _fmpz_poly_set_length(p, q.size())
 
 
 # set C <- A * B
@@ -154,67 +168,64 @@ cdef void linbox_fmpz_mat_mul(fmpz_mat_t C, fmpz_mat_t A, fmpz_mat_t B):
     cdef LinBoxIntegerDenseMatrix *LBA
     cdef LinBoxIntegerDenseMatrix *LBB
     cdef LinBoxIntegerDenseMatrix *LBC
+    cdef LinBoxIntegerDenseMatrixDomain * MD
 
     LBA = new LinBoxIntegerDenseMatrix(ZZ, fmpz_mat_nrows(A), fmpz_mat_ncols(A))
-    fmpz_mat_get_linbox(LBA, A)
+    fmpz_mat_get_linbox(LBA[0], A)
 
     LBB = new LinBoxIntegerDenseMatrix(ZZ, fmpz_mat_nrows(B), fmpz_mat_ncols(B))
-    fmpz_mat_get_linbox(LBB, B)
+    fmpz_mat_get_linbox(LBB[0], B)
 
     LBC = new LinBoxIntegerDenseMatrix(ZZ, fmpz_mat_nrows(A), fmpz_mat_ncols(B))
 
-    cdef LinBoxIntegerDenseMatrixDomain * MD
     MD = new LinBoxIntegerDenseMatrixDomain(ZZ)
     MD.mul(LBC[0], LBA[0], LBB[0])
+
     del MD
 
-    fmpz_mat_set_linbox(C, LBC)
-
-
-# set p to the minpoly or the charpoly of A
-cdef inline void linbox_fmpz_mat_poly(fmpz_poly_t p, fmpz_mat_t A, int minpoly):
-    cdef GivaroIntegerRing ZZ
-    cdef LinBoxIntegerDenseMatrix * LBA
-
-    LBA = new LinBoxIntegerDenseMatrix(ZZ, fmpz_mat_nrows(A), fmpz_mat_ncols(A))
-    fmpz_mat_get_linbox(LBA, A)
-
-    cdef LinBoxIntegerPolynomialRing.Element m_A
-    if minpoly:
-        LinBoxIntegerDense_minpoly(m_A, LBA[0])
-    else:
-        LinBoxIntegerDense_charpoly(m_A, LBA[0])
-
-    del LBA
-
-    fmpz_poly_fit_length(p, m_A.size())
-    _fmpz_poly_set_length(p, m_A.size())
-
-    cdef size_t i
-    for i in range(m_A.size()):
-        fmpz_poly_set_coeff_mpz(p, i, m_A[i].get_mpz_const())
+    fmpz_mat_set_linbox(C, LBC[0])
 
 
 # set cp to the characteristic polynomial of A
 cdef void linbox_fmpz_mat_charpoly(fmpz_poly_t cp, fmpz_mat_t A):
-    linbox_fmpz_mat_poly(cp, A, False)
+    cdef GivaroIntegerRing ZZ
+    cdef LinBoxIntegerDenseMatrix * LBA
+    cdef LinBoxIntegerPolynomialRing.Element m_A
+
+    LBA = new LinBoxIntegerDenseMatrix(ZZ, fmpz_mat_nrows(A), fmpz_mat_ncols(A))
+    fmpz_mat_get_linbox(LBA[0], A)
+    LinBoxIntegerDense_charpoly(m_A, LBA[0])
+    fmpz_poly_set_linbox(cp, m_A)
+
+    del LBA
 
 
 # set mp to the minimal polynomial of A
 cdef void linbox_fmpz_mat_minpoly(fmpz_poly_t mp, fmpz_mat_t A):
-    linbox_fmpz_mat_poly(mp, A, True)
+    cdef GivaroIntegerRing ZZ
+    cdef LinBoxIntegerDenseMatrix * LBA
+    cdef LinBoxIntegerPolynomialRing.Element m_A
+
+    LBA = new LinBoxIntegerDenseMatrix(ZZ, fmpz_mat_nrows(A), fmpz_mat_ncols(A))
+    fmpz_mat_get_linbox(LBA[0], A)
+    LinBoxIntegerDense_minpoly(m_A, LBA[0])
+    fmpz_poly_set_linbox(mp, m_A)
+
+    del LBA
 
 
 # return the rank of A
 cdef unsigned long linbox_fmpz_mat_rank(fmpz_mat_t A):
     cdef GivaroIntegerRing ZZ
     cdef LinBoxIntegerDenseMatrix * LBA
+    cdef unsigned long r = 0
 
     LBA = new LinBoxIntegerDenseMatrix(ZZ, fmpz_mat_nrows(A), fmpz_mat_ncols(A))
-    fmpz_mat_get_linbox(LBA, A)
-    cdef unsigned long r = 0
+    fmpz_mat_get_linbox(LBA[0], A)
     LinBoxIntegerDense_rank(r, LBA[0])
+
     del LBA
+
     return r
 
 
@@ -222,12 +233,11 @@ cdef unsigned long linbox_fmpz_mat_rank(fmpz_mat_t A):
 cdef void linbox_fmpz_mat_det(fmpz_t det, fmpz_mat_t A):
     cdef GivaroIntegerRing ZZ
     cdef LinBoxIntegerDenseMatrix * LBA
+    cdef GivaroInteger d
 
     LBA = new LinBoxIntegerDenseMatrix(ZZ, fmpz_mat_nrows(A), fmpz_mat_ncols(A))
-    fmpz_mat_get_linbox(LBA, A)
-    cdef GivaroInteger d
+    fmpz_mat_get_linbox(LBA[0], A)
     LinBoxIntegerDense_det(d, LBA[0])
-    del LBA
-
     fmpz_set_mpz(det, d.get_mpz_const())
 
+    del LBA

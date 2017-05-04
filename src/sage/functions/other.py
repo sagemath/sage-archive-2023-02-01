@@ -2613,11 +2613,25 @@ class Function_limit(BuiltinFunction):
     """
     Placeholder symbolic limit function that is only accessible internally.
 
+    This function is called to create formal wrappers of limits that
+    Maxima can't compute::
+
+        sage: a = lim(exp(x^2)*(1-erf(x)), x=infinity); a
+        -limit((erf(x) - 1)*e^(x^2), x, +Infinity)
+
     EXAMPLES::
 
         sage: from sage.functions.other import symbolic_limit as slimit
         sage: slimit(1/x, x, +oo)
         limit(1/x, x, +Infinity)
+        sage: var('minus,plus')
+        (minus, plus)
+        sage: slimit(1/x, x, +oo)
+        limit(1/x, x, +Infinity)
+        sage: slimit(1/x, x, 0, plus)
+        limit(1/x, x, 0, plus)
+        sage: slimit(1/x, x, 0, minus)
+        limit(1/x, x, 0, minus)
     """
     def __init__(self):
         """
@@ -2627,7 +2641,71 @@ class Function_limit(BuiltinFunction):
             sage: maxima(slimit(1/x, x, +oo))
             0
         """
-        BuiltinFunction.__init__(self, "limit", nargs=3,
+        BuiltinFunction.__init__(self, "limit", nargs=0,
                                conversions=dict(maxima='limit'))
 
+    def _latex_(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.functions.other import symbolic_limit as slimit
+            sage: latex(slimit)
+            \lim
+        """
+        return r'\lim'
+
+    def _print_latex_(self, ex, var, to, direction=''):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.functions.other import symbolic_limit as slimit
+            sage: var('x,a')
+            (x, a)
+            sage: f = function('f')
+            sage: latex(slimit(f(x), x, a))
+            \lim_{x \to a}\, f\left(x\right)
+            sage: latex(limit(f(x), x=oo))
+            \lim_{x \to +\infty}\, f\left(x\right)
+
+        TESTS:
+
+        When one-sided limits are converted back from maxima, the direction
+        argument becomes a symbolic variable. We check if typesetting these works::
+
+            sage: from sage.functions.other import symbolic_limit as slimit
+            sage: var('minus,plus')
+            (minus, plus)
+            sage: latex(slimit(f(x), x, a, minus))
+            \lim_{x \to a^-}\, f\left(x\right)
+            sage: latex(slimit(f(x), x, a, plus))
+            \lim_{x \to a^+}\, f\left(x\right)
+            sage: latex(limit(f(x),x=a,dir='+'))
+            \lim_{x \to a^+}\, f\left(x\right)
+            sage: latex(limit(f(x),x=a,dir='right'))
+            \lim_{x \to a^+}\, f\left(x\right)
+            sage: latex(limit(f(x),x=a,dir='-'))
+            \lim_{x \to a^-}\, f\left(x\right)
+            sage: latex(limit(f(x),x=a,dir='left'))
+            \lim_{x \to a^-}\, f\left(x\right)
+
+        Check if :trac:`13181` is fixed::
+
+            sage: t = var('t')
+            sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x,dir='-'))
+            \lim_{t \to x^-}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
+            sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x,dir='+'))
+            \lim_{t \to x^+}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
+            sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x))
+            \lim_{t \to x}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
+        """
+        if repr(direction) == 'minus':
+            dir_str = '^-'
+        elif repr(direction) == 'plus':
+            dir_str = '^+'
+        else:
+            dir_str = ''
+        return r"\lim_{{{} \to {}{}}}\, {}".format(latex(var),
+                latex(to), dir_str, latex(ex))
+
 symbolic_limit = Function_limit()
+

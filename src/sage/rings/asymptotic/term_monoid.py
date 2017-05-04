@@ -31,21 +31,6 @@ instance, `O(x^2)` is able to absorb `O(x)` (with result
 `x^5`). Essentially, absorption can be interpreted as the
 addition of "compatible" terms (partial addition).
 
-.. WARNING::
-
-    As this code is experimental, a warning is thrown when a term
-    monoid is created for the first time in a session (see
-    :class:`sage.misc.superseded.experimental`).
-
-    TESTS::
-
-        sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-        sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
-        sage: G = GrowthGroup('x^ZZ * log(x)^ZZ')
-        doctest:...: FutureWarning: This class/method/function is marked as
-        experimental. It, its functionality or its interface might change
-        without a formal deprecation.
-        See http://trac.sagemath.org/17601 for details.
 
 .. _term_absorption:
 
@@ -222,7 +207,6 @@ from __future__ import absolute_import
 # http://www.gnu.org/licenses/
 # *****************************************************************************
 
-from sage.misc.superseded import experimental
 from sage.rings.big_oh import O
 from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.factory import UniqueFactory
@@ -1446,8 +1430,6 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
         return super(GenericTermMonoid, cls).__classcall__(
             cls, growth_group, coefficient_ring, category)
 
-
-    @experimental(trac_number=17601)
     def __init__(self, growth_group, coefficient_ring, category):
         r"""
         See :class:`GenericTermMonoid` for more information.

@@ -13,23 +13,6 @@ Growth groups are used for the calculations done in the
 examples of growth groups and elements are given as well.
 
 
-.. WARNING::
-
-    As this code is experimental, warnings are thrown when a growth
-    group is created for the first time in a session (see
-    :class:`sage.misc.superseded.experimental`).
-
-    TESTS::
-
-        sage: from sage.rings.asymptotic.growth_group import \
-        ....:     GenericGrowthGroup, GrowthGroup
-        sage: GenericGrowthGroup(ZZ)
-        doctest:...: FutureWarning: This class/method/function is marked as
-        experimental. It, its functionality or its interface might change
-        without a formal deprecation.
-        See http://trac.sagemath.org/17601 for details.
-        Growth Group Generic(ZZ)
-
 .. _growth_group_description:
 
 Description of Growth Groups
@@ -251,7 +234,6 @@ from sage.misc.lazy_import import lazy_import
 lazy_import('sage.rings.asymptotic.growth_group_cartesian', 'CartesianProductGrowthGroups')
 
 from sage.categories.pushout import ConstructionFunctor
-from sage.misc.superseded import experimental
 from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.factory import UniqueFactory
 from sage.structure.parent import Parent
@@ -1672,8 +1654,6 @@ class GenericGrowthGroup(UniqueRepresentation, Parent):
         return super(GenericGrowthGroup, cls).__classcall__(
             cls, base, var, category)
 
-
-    @experimental(trac_number=17601)
     def __init__(self, base, var, category):
         r"""
         See :class:`GenericGrowthElement` for more information.

@@ -15,7 +15,7 @@ Hochschild Complexes
 from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
-from sage.structure.element import ModuleElement
+from sage.structure.element import ModuleElement, parent
 from sage.structure.sage_object import richcmp
 from sage.categories.category_types import ChainComplexes
 from sage.categories.tensor import tensor
@@ -466,6 +466,8 @@ class HochschildComplex(UniqueRepresentation, Parent):
             sage: H = E.hochschild_complex(E)
             sage: H(0)
             Trivial chain
+            sage: H(2)
+            Chain(0: 2)
             sage: H(x+2*y)
             Chain(0: x + 2*y)
             sage: H({0: H.module(0).an_element()})
@@ -474,22 +476,30 @@ class HochschildComplex(UniqueRepresentation, Parent):
             Chain(2: 2*1 # 1 # 1 + 2*1 # 1 # x + 3*1 # 1 # y)
             sage: H({0:x-y, 2: H.module(2).an_element()})
             Chain with 2 nonzero terms over Rational Field
+            sage: H([2])
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot construct an element from [2]
         """
         if not vectors:  # special case: the zero chain
             return self.element_class(self, {})
         # special case: an element of the defining module
-        if isinstance(vectors, self._M.element_class) and vectors.parent() is self._M:
+        if self._M.has_coerce_map_from(parent(vectors)):
+            vectors = self._M(vectors)
+        if parent(vectors) is self._M:
             mc = vectors.monomial_coefficients(copy=False)
             vec = self.module(0)._from_dict({(k,): mc[k] for k in mc})
             return self.element_class(self, {0: vec})
         if isinstance(vectors, (Chain_class, self.element_class)):
             vectors = vectors._vec
         data = dict()
+        if not isinstance(vectors, dict):
+            raise ValueError("cannot construct an element from {}".format(vectors))
         # Special handling for the 0 free module
         # FIXME: Allow coercions between the 0 free module and the defining module
         if 0 in vectors:
             vec = vectors.pop(0)
-            if vec.parent() is self._M:
+            if parent(vec) is self._M:
                 mc = vec.monomial_coefficients(copy=False)
                 data[0] = self.module(0)._from_dict({(k,): mc[k] for k in mc})
             else:
@@ -526,6 +536,14 @@ class HochschildComplex(UniqueRepresentation, Parent):
         """
         A chain of the Hochschild complex.
 
+        INPUT:
+
+        Can be one of the following:
+
+        - A dictionary whose keys are the degree and whose `d`-th
+          value is an element in the degree `d` module.
+        - An element in the coefficient module `M`.
+
         EXAMPLES::
 
             sage: SGA = SymmetricGroupAlgebra(QQ, 3)
@@ -546,6 +564,8 @@ class HochschildComplex(UniqueRepresentation, Parent):
             Chain(0: F[x] + 2*F[y^2])
             sage: H({0: x*y - x})
             Chain(0: -F[x] + F[x*y])
+            sage: H(2)
+            Chain(0: 2*F[1])
             sage: H({0: x-y, 2: H.module(2).basis().an_element()})
             Chain with 2 nonzero terms over Integer Ring
         """

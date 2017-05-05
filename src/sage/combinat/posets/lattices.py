@@ -3751,6 +3751,16 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: LatticePoset().is_constructible_by_doublings('interval')
             True
 
+        The congruence lattice of this lattice has maximal chains satisfying the needed
+        property, but also maximal chains not satisfying that; this shows that the code
+        can't be optimized to test just some maximal chain::
+
+            sage: L = LatticePoset(DiGraph('QSO?I?_?_GBG??_??a???@?K??A??B???C??s??G??I??@??A??@???'))
+            sage: L.is_constructible_by_doublings('convex')
+            False
+            sage: L.is_constructible_by_doublings('any')
+            True
+
         ALGORITHM:
 
         According to [HOLM2016]_ a lattice `L` is lower bounded if and only if

@@ -12,8 +12,6 @@ These are special classes of free monoid elements with distinct printing.
 The internal representation of elements does not use the exponential
 compression of FreeMonoid elements (a feature), and could be packed into words.
 """
-from __future__ import absolute_import
-
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
 #
@@ -21,6 +19,8 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+from six import integer_types
 
 # import operator
 from sage.rings.integer import Integer
@@ -83,7 +83,7 @@ class StringMonoidElement(FreeMonoidElement):
         if isinstance(x, list):
             if check:
                 for b in x:
-                    if not isinstance(b, (int, long, Integer)):
+                    if not isinstance(b, integer_types + (Integer,)):
                         raise TypeError(
                             "x (= %s) must be a list of integers." % x)
             self._element_list = list(x) # make copy
@@ -186,7 +186,7 @@ class StringMonoidElement(FreeMonoidElement):
             ...
             IndexError: Argument n (= -1) must be non-negative.
         """
-        if not isinstance(n, (int, long, Integer)):
+        if not isinstance(n, integer_types + (Integer,)):
             raise TypeError("Argument n (= %s) must be an integer." % n)
         if n < 0:
             raise IndexError("Argument n (= %s) must be non-negative." % n)

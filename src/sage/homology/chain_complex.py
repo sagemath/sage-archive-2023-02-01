@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Chain complexes
 
@@ -416,7 +417,7 @@ class Chain_class(ModuleElement):
             sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0]), 1:zero_matrix(1,2)})
             sage: c = C({0:vector([1, 2, 3]), 1:vector([4, 5])})
             sage: ascii_art(c)
-               d_2       d_1       d_0  [1]  d_-1  
+               d_2       d_1       d_0  [1]  d_-1
             0 <---- [0] <---- [4] <---- [2] <----- 0
                               [5]       [3]
         """
@@ -434,7 +435,7 @@ class Chain_class(ModuleElement):
                 return AsciiArt(['0'])
             v = str(v.column()).splitlines()
             return AsciiArt(v, baseline=len(v)//2)
-            
+
         result = []
         chain_complex = self.parent()
         for ordered in chain_complex.ordered_degrees():
@@ -448,6 +449,53 @@ class Chain_class(ModuleElement):
         concatenated = result[0]
         for r in result[1:]:
             concatenated += AsciiArt([' ... ']) + r
+        return concatenated
+
+    def _unicode_art_(self):
+        """
+        Return a unicode art representation.
+
+        Note that arrows go to the left so that composition of
+        differentials is the usual matrix multiplication.
+
+        EXAMPLES::
+
+            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0]), 1:zero_matrix(1,2)})
+            sage: c = C({0:vector([1, 2, 3]), 1:vector([4, 5])})
+            sage: unicode_art(c)
+                                        ⎛1⎞
+               d_2       d_1  ⎛4⎞  d_0  ⎜2⎟  d_-1
+            0 ⟵──── (0) ⟵──── ⎝5⎠ ⟵──── ⎝3⎠ ⟵───── 0
+        """
+        from sage.typeset.unicode_art import UnicodeArt
+
+        def arrow_art(d):
+            d_str = [u'  d_{0}  '.format(d)]
+            arrow = u' ⟵' + u'─' * (len(d_str[0]) - 3) + u' '
+            d_str.append(arrow)
+            return UnicodeArt(d_str, baseline=0)
+
+        def vector_art(d):
+            v = self.vector(d)
+            if not v.degree():
+                return UnicodeArt([u'0'])
+            w = matrix(v).transpose()
+            return w._unicode_art_()
+
+        result = []
+        chain_complex = self.parent()
+        for ordered in chain_complex.ordered_degrees():
+            ordered = list(reversed(ordered))
+            if not ordered:
+                return UnicodeArt([u'0'])
+            result_ordered = vector_art(ordered[0] +
+                                        chain_complex.degree_of_differential())
+            for n in ordered:
+                result_ordered += arrow_art(n) + vector_art(n)
+            result = [result_ordered] + result
+        concatenated = result[0]
+        for r in result[1:]:
+            concatenated += UnicodeArt([u' ... ']) + r
         return concatenated
 
     def is_cycle(self):
@@ -514,7 +562,7 @@ class Chain_class(ModuleElement):
             sage: c + c
             Chain with 2 nonzero terms over Integer Ring
             sage: ascii_art(c + c)
-               d_1       d_0  [0]  d_-1  
+               d_1       d_0  [0]  d_-1
             0 <---- [6] <---- [2] <----- 0
                     [8]       [4]
         """
@@ -1724,6 +1772,59 @@ class ChainComplex_class(Parent):
         concatenated = result[0]
         for r in result[1:]:
             concatenated += AsciiArt([' ... ']) + r
+        return concatenated
+
+    def _unicode_art_(self):
+        """
+        Return a unicode art representation.
+
+        Note that arrows go to the left so that composition of
+        differentials is the usual matrix multiplication.
+
+        EXAMPLES::
+
+            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0]), 1:zero_matrix(1,2)})
+            sage: unicode_art(C)
+                                ⎛3 0 0⎞
+                      (0 0)     ⎝0 0 0⎠
+            0 ⟵── C_2 ⟵──── C_1 ⟵────── C_0 ⟵── 0
+
+            sage: one = matrix(ZZ, [[1]])
+            sage: D = ChainComplex({0: one, 2: one, 6:one})
+            sage: unicode_art(D)
+                      (1)                           (1)     (0)     (1)
+            0 ⟵── C_7 ⟵── C_6 ⟵── 0  ...  0 ⟵── C_3 ⟵── C_2 ⟵── C_1 ⟵── C_0 ⟵── 0
+        """
+        from sage.typeset.unicode_art import UnicodeArt
+
+        def arrow_art(n):
+            d_n = self.differential(n)
+            if not d_n.nrows() or not d_n.ncols():
+                return UnicodeArt([u'⟵──'])
+            d_str = list(d_n._unicode_art_())
+            arrow = u'⟵' + u'─' * (len(d_str[0]) - 1)
+            d_str.append(arrow)
+            return UnicodeArt(d_str)
+
+        def module_art(n):
+            C_n = self.free_module(n)
+            if not C_n.rank():
+                return UnicodeArt([u' 0 '])
+            else:
+                return UnicodeArt([u' C_{0} '.format(n)])
+
+        result = []
+        for ordered in self.ordered_degrees():
+            ordered = list(reversed(ordered))
+            if not ordered:
+                return UnicodeArt([u'0'])
+            result_ordered = module_art(ordered[0] + self.degree_of_differential())
+            for n in ordered:
+                result_ordered += arrow_art(n) + module_art(n)
+            result = [result_ordered] + result
+        concatenated = result[0]
+        for r in result[1:]:
+            concatenated += UnicodeArt([u' ... ']) + r
         return concatenated
 
     def _latex_(self):

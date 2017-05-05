@@ -753,7 +753,7 @@ if [ "$UNAME" = "CYGWIN" ]; then
     # Rebase after installing each package--in case any packages load this
     # package at build time we need to ensure during the build that no binaries
     # have conflicting address spaces
-    sage-rebase.sh "$SAGE_LOCAL"
+    sage-rebase.sh "$SAGE_LOCAL" 2>/dev/null
 fi
 
 echo "Successfully installed $PKG_NAME"

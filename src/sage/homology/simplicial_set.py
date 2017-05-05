@@ -3649,7 +3649,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
                                     degree_of_differential=-1)
             dimensions = list(range(self.dimension() + 1))
         else:
-            if not isinstance(dimensions, (list, tuple)):
+            if not isinstance(dimensions, (list, tuple, range)):
                 dimensions = list(range(dimensions - 1, dimensions + 2))
             else:
                 dimensions = [n for n in dimensions if n >= 0]

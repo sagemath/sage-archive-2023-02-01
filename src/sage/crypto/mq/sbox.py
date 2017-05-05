@@ -3,6 +3,7 @@ S-Boxes and Their Algebraic Representations
 """
 from __future__ import print_function, division
 from six.moves import range
+from six import integer_types
 
 from sage.combinat.integer_vector import IntegerVectors
 from sage.crypto.boolean_function import BooleanFunction
@@ -318,7 +319,7 @@ class SBox(SageObject):
             sage: S([0,0,0])
             [1, 1]
         """
-        if isinstance(X, (int, long, Integer)):
+        if isinstance(X, integer_types + (Integer,)):
             return self._S[ZZ(X)]
 
         try:
@@ -1025,7 +1026,7 @@ class SBox(SageObject):
         n = self.n
         ret = BooleanFunction(m)
 
-        if isinstance(b, (int, long, Integer)):
+        if isinstance(b, integer_types + (Integer,)):
             b = vector(GF(2), self.to_bits(b, n))
         elif len(b) == n:
             b = vector(GF(2), b)

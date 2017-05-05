@@ -534,6 +534,9 @@ cdef extern from "singular/Singular/libsingular.h":
 
     int rRing_has_Comp(ring *r)
 
+    int rHasGlobalOrdering(ring *r)
+    int rHasLocalOrMixedOrdering(ring *r)
+
     # return new empty monomial
 
     poly *p_Init(ring *r)
@@ -598,7 +601,7 @@ cdef extern from "singular/Singular/libsingular.h":
 
     # homogenizes p by multiplying certain powers of the varnum-th variable
 
-    poly *pHomogen (poly *p, int varnum)
+    poly *p_Homogen (poly *p, int varnum, ring *r)
 
     # return whether a polynomial is homogenous
 
@@ -710,7 +713,7 @@ cdef extern from "singular/Singular/libsingular.h":
 
     # inverse of poly, if possible
 
-    poly *pInvers(int n, poly *, intvec *)
+    poly *p_Series(int n, poly *, poly *, intvec *, ring *r)
 
     # gcd of f and g
 
@@ -765,6 +768,10 @@ cdef extern from "singular/Singular/libsingular.h":
 
     # Copy this number
     number *n_Copy(number *n, ring* r)
+
+    # Invert this number
+    int n_IsUnit(number *n, const n_Procs_s *cf)
+    number *n_Invers(number *n, const n_Procs_s *cf)
 
     # rational number from int
 

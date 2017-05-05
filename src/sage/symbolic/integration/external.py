@@ -130,3 +130,23 @@ def fricas_integrator(expression, v, a=None, b=None, noPole=True):
                          " in the integration interval")
 
     return result.sage()
+
+def giac_integrator(expression, v, a=None, b=None):
+    """
+    Integration using Giac
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.integration.external import giac_integrator
+        sage: giac_integrator(sin(x), x)
+        -cos(x)
+        sage: giac_integrator(1/(x^2+6), x, -oo, oo)
+        1/6*sqrt(6)*pi
+    """
+    ex = expression._giac_()
+    v = v._giac_()
+    if a is None:
+        result = ex.integrate(v)
+    else:
+        result = ex.integrate(v, a._giac_(), b._giac_())
+    return result._sage_()

@@ -2608,3 +2608,33 @@ class Function_sum(BuiltinFunction):
                                conversions=dict(maxima='sum'))
 
 symbolic_sum = Function_sum()
+
+
+class Function_prod(BuiltinFunction):
+    """
+    Placeholder symbolic product function that is only accessible internally.
+
+    EXAMPLES::
+
+        sage: from sage.functions.other import symbolic_product as sprod
+        sage: sprod(x, x, 1, 10)
+        product(x, x, 1, 10)
+    """
+    def __init__(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.functions.other import symbolic_product as sprod
+            sage: _ = var('n')
+            sage: r = maxima(sprod(sin(x), x, 1, n)).sage(); r
+            product(sin(x), x, 1, n)
+            sage: isinstance(r.operator(), sage.functions.other.Function_prod)
+            True
+            sage: maxima(sprod(x, x, 1, 5))
+            120
+        """
+        BuiltinFunction.__init__(self, "product", nargs=4,
+                               conversions=dict(maxima='product',
+                                   sympy='Product'))
+
+symbolic_product = Function_prod()

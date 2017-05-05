@@ -39,22 +39,23 @@ Test NumPy conversions::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from __future__ import print_function
 
 from cpython.object cimport *
 from cpython.float cimport *
 include "sage/ext/python_debug.pxi"
-include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
 include "cysignals/signals.pxi"
 from sage.libs.gsl.all cimport *
 cimport libc.math
+from libc.string cimport memcpy
 
 gsl_set_error_handler_off()
 
 import math, operator
 
-from sage.libs.cypari2.convert cimport new_gen_from_double
+from cypari2.convert cimport new_gen_from_double
 
 import sage.rings.integer
 import sage.rings.rational
@@ -835,7 +836,7 @@ cdef class RealDoubleElement(FieldElement):
         """
         # First, check special values
         if self._value == 0:
-            return RealDoubleElement(ldexp(1.0, -1074))
+            return RealDoubleElement(libc.math.ldexp(1.0, -1074))
         if gsl_isnan(self._value):
             return self
         if gsl_isinf(self._value):
@@ -843,12 +844,12 @@ cdef class RealDoubleElement(FieldElement):
 
         # Normal case
         cdef int e
-        frexp(self._value, &e)
+        libc.math.frexp(self._value, &e)
         e -= 53
         # Correction for denormals
         if e < -1074:
             e = -1074
-        return RealDoubleElement(ldexp(1.0, e))
+        return RealDoubleElement(libc.math.ldexp(1.0, e))
 
     def real(self):
         """
@@ -1761,7 +1762,7 @@ cdef class RealDoubleElement(FieldElement):
             [1.4142135623730951*I, -1.4142135623730951*I]
         """
         if self._value >= 0:
-            x = self._new_c(sqrt(self._value))
+            x = self._new_c(libc.math.sqrt(self._value))
             if all:
                 if x.is_zero():
                     return [x]
@@ -2469,7 +2470,7 @@ cdef class RealDoubleElement(FieldElement):
             return self._parent.nan()
         while True:
             a1 = (a+b)/2
-            b1 = sqrt(a*b)
+            b1 = libc.math.sqrt(a*b)
             if abs((b1/a1)-1) < eps: return self._new_c(a1)
             a, b = a1, b1
 

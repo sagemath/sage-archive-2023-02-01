@@ -391,7 +391,8 @@ class FiniteSubgroup(Module):
         else:
             amb = A
             if not isinstance(other, FiniteSubgroup):
-                raise TypeError("only addition of two finite subgroups is defined")
+                raise TypeError("only intersection with a finite subgroup or "
+                        "modular abelian variety is defined")
             B = other.abelian_variety()
             if A.ambient_variety() != B.ambient_variety():
                 raise TypeError("finite subgroups must be in the same ambient product Jacobian")

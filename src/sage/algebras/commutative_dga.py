@@ -73,7 +73,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
-import six
+from sage.misc import six
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
@@ -97,7 +97,11 @@ from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.quotient_ring import QuotientRing_nc
 from sage.rings.quotient_ring_element import QuotientRingElement
 
-class Differential(UniqueRepresentation, Morphism):
+
+class Differential(six.with_metaclass(
+        InheritComparisonClasscallMetaclass,
+        UniqueRepresentation, Morphism
+    )):
     r"""
     Differential of a commutative graded algebra.
 
@@ -119,8 +123,6 @@ class Differential(UniqueRepresentation, Morphism):
         sage: B.differential()(x)
         x*y
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall__(cls, A, im_gens):
         r"""

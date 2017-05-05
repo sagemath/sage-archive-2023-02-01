@@ -763,10 +763,8 @@ class DifferentiableCurve(DiffMap):
         """
         from sage.rings.infinity import Infinity
         from sage.misc.functional import numerical_approx
-        from sage.plot.graphics import Graphics
-        from sage.plot.line import line
         from sage.manifolds.chart import RealChart
-        from sage.manifolds.utilities import set_axes_labels
+
         #
         # Get the @options from kwds
         #
@@ -857,9 +855,33 @@ class DifferentiableCurve(DiffMap):
                                [numerical_approx( x[j].substitute(parameters) )
                                 for j in ind_pc] )
                 t += dt
+
+        return self._graphics(plot_curve, ambient_coords, thickness=thickness,
+                              aspect_ratio=aspect_ratio, color= color,
+                              style=style, label_axes=label_axes)                
+
+
+
+    def _graphics(self, plot_curve, ambient_coords, thickness=1, aspect_ratio='automatic', 
+                  color='red', style='-', label_axes=True):
+        r"""
+        Plots a 2D or 3D curve in a Cartesian graph with axes labeled by the
+        ambient coordinates.
+
+        TESTS::        
+            sage: #TO DO
+
+        """
+
+        from sage.plot.graphics import Graphics
+        from sage.plot.line import line
+        from sage.manifolds.utilities import set_axes_labels
+
+
         #
         # The plot
         #
+        n_pc = len(ambient_coords)
         resu = Graphics()
         resu += line(plot_curve, color=color, linestyle=style,
                      thickness=thickness)

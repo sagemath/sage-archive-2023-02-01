@@ -548,6 +548,35 @@ class DiffChart(Chart):
                     dom._top_frames.remove(resu._frame)
         return self._dom_restrict[subset]
 
+    def symbolic_velocities(self, left='D', right=None):
+        r"""
+        
+        Returns a list of symbolic variables ready to be used by the user as
+        the derivatives of the coordinate functions with respect to a curve
+        parameter (that is the velocities along the curve).
+        It may actually serve to denote anything else than velocities, with a
+        name including the coordinate functions.
+        
+        """
+        
+        from sage.calculus.var import var
+        
+        string_velocities = []
+        velocities = []
+        
+        for coord_func in self[:]:
+            string_velocities += [left + "{}".format(coord_func)] # will raise
+            #error in case left is not a string
+        
+        if right is not None:
+            string_velocities = [string_vel + right for string_vel in string_velocities] # will
+            # raise error in case right is not a string
+
+        for string_vel in string_velocities:
+            velocities += [var(string_vel)]
+            
+        return velocities     
+
 #*****************************************************************************
 
 class RealDiffChart(DiffChart, RealChart):

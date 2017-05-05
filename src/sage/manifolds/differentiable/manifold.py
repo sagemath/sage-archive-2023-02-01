@@ -2570,6 +2570,181 @@ class DifferentiableManifold(TopologicalManifold):
                 coord_expression = {chart: (coord_expression,)}
         return curve_set(coord_expression, name=name, latex_name=latex_name)
 
+    def integrated_curve(self, equations_rhs, velocities, curve_param,
+                         initial_tangent_vector, chart=None, parameters=None,
+                         name=None, latex_name=None, is_isomorphism=False,
+                         is_identity=False):
+
+        r"""
+        Constructs a numerical curve defined by a system of second order differential
+        equations in the coordinate functions.
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`
+            for details.
+
+        INPUT:  TO COMPLETE ! ! ! ! !
+
+        - ``
+        - ``curve_param`` -- a tuple of the type ``(t, t_min, t_max)``, where
+
+          * ``t`` is the curve parameter used in ``coord_expression``;
+          * ``t_min`` is its minimal (finite) value;
+          * ``t_max`` its maximal (finite) value;
+
+        - ``name`` -- (default: ``None``) string; symbol given to the curve
+        - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote
+          the curve; if none is provided, ``name`` will be used
+
+        OUTPUT:
+
+        - :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`
+
+        EXAMPLES:
+
+            #TO DO
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`
+            for more examples, including plots.
+
+        """
+        from sage.manifolds.differentiable.real_line import RealLine
+        from sage.manifolds.differentiable.integrated_curve import IntegratedCurve
+        if len(curve_param) != 3:
+            raise ValueError("the argument 'curve_param' must be of the form " +
+                             "(t, t_min, t_max)")
+        t = curve_param[0]
+        t_min = curve_param[1]
+        t_max = curve_param[2]
+        real_field = RealLine(names=(repr(t),))
+        interval = real_field.open_interval(t_min, t_max)
+        curve_set = Hom(interval, self)
+        return IntegratedCurve(curve_set, equations_rhs, velocities, t,
+                               initial_tangent_vector, chart=chart, parameters=parameters,
+                               name=name, latex_name=latex_name,
+                               is_isomorphism=is_isomorphism,
+                               is_identity=is_identity) #use someone's element_constructor ?
+
+
+
+    def integrated_autoparallel_curve(self, affine_connection, curve_param, initial_tangent_vector, chart=None,
+                         name=None, latex_name=None, is_isomorphism=False,
+                         is_identity=False):
+
+        r"""
+
+        Constructs an numerical autoparallel curve.
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.curve.IntegratedCurve`
+            for details.
+
+        INPUT:  TO COMPLETE ! ! ! !
+
+        - ``
+        - ``curve_param`` -- a tuple of the type ``(t, t_min, t_max)``, where
+
+          * ``t`` is the curve parameter used in ``coord_expression``;
+          * ``t_min`` is its minimal (finite) value;
+          * ``t_max`` its maximal (finite) value;
+
+        - ``name`` -- (default: ``None``) string; symbol given to the curve
+        - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote
+          the curve; if none is provided, ``name`` will be used
+
+        OUTPUT:
+
+        - :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`
+
+        EXAMPLES:
+
+            #TO DO
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`
+            for more examples, including plots.
+
+        """
+
+        from sage.manifolds.differentiable.real_line import RealLine
+        from sage.manifolds.differentiable.integrated_curve import IntegratedAutoparallelCurve
+        if len(curve_param) != 3:
+            raise ValueError("the argument 'curve_param' must be of the form " +
+                             "(t, t_min, t_max)")
+        t = curve_param[0]
+        t_min = curve_param[1]
+        t_max = curve_param[2]
+        real_field = RealLine(names=(repr(t),))
+        interval = real_field.open_interval(t_min, t_max)
+        curve_set = Hom(interval, self)
+        return IntegratedAutoparallelCurve(curve_set, affine_connection, t, initial_tangent_vector, chart=chart,
+                               name=name, latex_name=latex_name,
+                               is_isomorphism=is_isomorphism,
+                               is_identity=is_identity) #use someone's element_constructor ?
+
+
+
+    def integrated_geodesic(self, metric, curve_param, initial_tangent_vector, chart=None,
+                         name=None, latex_name=None, is_isomorphism=False,
+                         is_identity=False):
+
+        r"""
+
+        Constructs a numerical geodesic.
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.curve.IntegratedAutoparallelCurve`
+            for details.
+
+        INPUT:  TO COMPLETE ! ! ! !
+
+        - ``
+        - ``curve_param`` -- a tuple of the type ``(t, t_min, t_max)``, where
+
+          * ``t`` is the curve parameter used in ``coord_expression``;
+          * ``t_min`` is its minimal (finite) value;
+          * ``t_max`` its maximal (finite) value;
+
+        - ``name`` -- (default: ``None``) string; symbol given to the curve
+        - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote
+          the curve; if none is provided, ``name`` will be used
+
+        OUTPUT:
+
+        - :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`
+
+        EXAMPLES:
+
+            #TO DO
+
+        .. SEEALSO::
+
+            :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`
+            for more examples, including plots.
+
+        """
+        from sage.manifolds.differentiable.real_line import RealLine
+        from sage.manifolds.differentiable.integrated_curve import IntegratedGeodesic
+        if len(curve_param) != 3:
+            raise ValueError("the argument 'curve_param' must be of the form " +
+                             "(t, t_min, t_max)")
+        t = curve_param[0]
+        t_min = curve_param[1]
+        t_max = curve_param[2]
+        real_field = RealLine(names=(repr(t),))
+        interval = real_field.open_interval(t_min, t_max)
+        curve_set = Hom(interval, self)
+        return IntegratedGeodesic(curve_set, metric, t, initial_tangent_vector, chart=chart,
+                               name=name, latex_name=latex_name,
+                               is_isomorphism=is_isomorphism,
+                               is_identity=is_identity) #use someone's element_constructor ?
+
     def affine_connection(self, name, latex_name=None):
         r"""
         Define an affine connection on the manifold.

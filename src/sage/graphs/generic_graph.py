@@ -19494,6 +19494,13 @@ class GenericGraph(GenericGraph_pyx):
               node_4 -- node_5;
             }
 
+        Check that :trac:`22950` is fixed::
+
+            sage: D = DiGraph({1: [2]})
+            sage: D.graphviz_string(edge_colors={'blue': [[1,2]]})
+            'digraph {\n  node_0  [label="1"];\n  node_1  [label="2"];\n\n
+              node_0 -> node_1 [color = "blue"];\n}'
+
         REFERENCES:
 
         .. [dotspec] http://www.graphviz.org/doc/info/lang.html
@@ -19528,7 +19535,7 @@ class GenericGraph(GenericGraph_pyx):
             color_by_edge = {}
             for color in options['edge_colors'].keys():
                 for edge in options['edge_colors'][color]:
-                    assert isinstance(edge, tuple) and len(edge) >= 2 and len(edge) <= 3,\
+                    assert isinstance(edge, (list, tuple)) and len(edge) >= 2 and len(edge) <= 3,\
                         "%s is not a valid format for edge"%(edge)
                     u = edge[0]
                     v = edge[1]

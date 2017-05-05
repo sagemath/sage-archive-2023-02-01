@@ -39,7 +39,10 @@ sage:
 		   SAGE_BUILD_DIR=/doesnotexist							\
 		   SAGE_PKGS=$(abs_top_srcdir)/build/pkgs					\
 		   SAGE_CYTHONIZED=$(abs_builddir)/build/cythonized				\
-	 && sage-python23 -u setup.py --no-user-cfg build install)
+	 && sage-python23 -u setup.py --no-user-cfg build install \
+	 && if [ "$$UNAME" = "CYGWIN" ]; then \
+	        sage-rebase.sh "$$SAGE_LOCAL" 2>/dev/null; \
+		fi)
 
 clean:
 	@echo "Deleting Sage library build artifacts..."

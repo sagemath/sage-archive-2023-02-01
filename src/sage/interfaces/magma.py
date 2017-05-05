@@ -1044,7 +1044,7 @@ class Magma(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: filename = os.path.join(SAGE_TMP, 'a.m')
-            sage: open(filename, 'w').write('function f(n) return n^2; end function;\nprint "hi";')
+            sage: _ = open(filename, 'w').write('function f(n) return n^2; end function;\nprint "hi";')
             sage: print(magma.load(filename))      # optional - magma
             Loading ".../a.m"
             hi

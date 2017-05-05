@@ -29,6 +29,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import zip
+from six import integer_types
 
 import os
 from math import isnan
@@ -1025,7 +1026,7 @@ class Graphics(WithEqualityById, SageObject):
             sage: print(sum(v))
             Graphics object consisting of 2 graphics primitives
         """
-        if isinstance(other, (int, long)) and other == 0:
+        if isinstance(other, integer_types) and other == 0:
             return self
         raise TypeError
 

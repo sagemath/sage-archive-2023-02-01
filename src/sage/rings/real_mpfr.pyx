@@ -136,9 +136,9 @@ import sage.misc.weak_dict
 
 import operator
 
-from sage.libs.cypari2.paridecl cimport *
-from sage.libs.cypari2.gen cimport Gen
-from sage.libs.cypari2.stack cimport new_gen
+from cypari2.paridecl cimport *
+from cypari2.gen cimport Gen
+from cypari2.stack cimport new_gen
 
 from sage.libs.mpmath.utils cimport mpfr_to_mpfval
 
@@ -5053,7 +5053,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         ::
 
             sage: type(z)
-            <type 'sage.libs.cypari2.gen.Gen'>
+            <type 'cypari2.gen.Gen'>
             sage: R(z)
             1.64493406684823
         """
@@ -5531,6 +5531,17 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
         sage: RealNumber('-.000000000000000000000000000000001').prec()
         53
 
+        sage: RealNumber('-.123456789123456789').prec()
+        60
+        sage: RealNumber('.123456789123456789').prec()
+        60
+        sage: RealNumber('0.123456789123456789').prec()
+        60
+        sage: RealNumber('00.123456789123456789').prec()
+        60
+        sage: RealNumber('123456789.123456789').prec()
+        60
+
     Make sure we've rounded up ``log(10,2)`` enough to guarantee
     sufficient precision (:trac:`10164`)::
 
@@ -5558,14 +5569,8 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
             mantissa = s
 
         #Find the first nonzero entry in rest
-        sigfigs = 0
-        for i in range(len(mantissa)):
-            if mantissa[i] != '.' and mantissa[i] != '0' and mantissa[i] != '-':
-                sigfigs = len(mantissa) - i
-                break
-
-        if '.' in mantissa and mantissa[:2] != '0.':
-            sigfigs -= 1
+        sigfig_mantissa = mantissa.lstrip('-0.')
+        sigfigs = len(sigfig_mantissa) - ('.' in sigfig_mantissa)
 
         if base == 10:
             # hard-code the common case

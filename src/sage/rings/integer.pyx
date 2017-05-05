@@ -1,51 +1,8 @@
 r"""
 Elements of the ring `\ZZ` of integers
 
-AUTHORS:
-
-- William Stein (2005): initial version
-
-- Gonzalo Tornaria (2006-03-02): vastly improved python/GMP
-  conversion; hashing
-
-- Didier Deshommes (2006-03-06): numerous examples
-  and docstrings
-
-- William Stein (2006-03-31): changes to reflect GMP bug fixes
-
-- William Stein (2006-04-14): added GMP factorial method (since it's
-  now very fast).
-
-- David Harvey (2006-09-15): added nth_root, exact_log
-
-- David Harvey (2006-09-16): attempt to optimise Integer constructor
-
-- Rishikesh (2007-02-25): changed quo_rem so that the rem is positive
-
-- David Harvey, Martin Albrecht, Robert Bradshaw (2007-03-01):
-  optimized Integer constructor and pool
-
-- Pablo De Napoli (2007-04-01): multiplicative_order should return
-  +infinity for non zero numbers
-
-- Robert Bradshaw (2007-04-12): is_perfect_power, Jacobi symbol (with
-  Kronecker extension).  Convert some methods to use GMP directly
-  rather than PARI, Integer(), PY_NEW(Integer)
-
-- David Roe (2007-03-21): sped up valuation and is_square, added
-  val_unit, is_power, is_power_of and divide_knowing_divisible_by
-
-- Robert Bradshaw (2008-03-26): gamma function, multifactorials
-
-- Robert Bradshaw (2008-10-02): bounded squarefree part
-
-- David Loeffler (2011-01-15): fixed bug #10625 (inverse_mod should accept an ideal as argument)
-
-- Vincent Delecroix (2010-12-28): added unicode in Integer.__init__
-
-- David Roe (2012-03): deprecate :meth:`~sage.rings.integer.Integer.is_power`
-  in favour of :meth:`~sage.rings.integer.Integer.is_perfect_power` (see
-  :trac:`12116`)
+Sage has highly optimized and extensive functionality about arithmetic with integers
+and the ring of integers.
 
 EXAMPLES:
 
@@ -111,6 +68,52 @@ real field R::
     sage: RR(n)
     9.3908230000000000000000000000000000000000000000000000000000e6
 
+AUTHORS:
+
+- William Stein (2005): initial version
+
+- Gonzalo Tornaria (2006-03-02): vastly improved python/GMP
+  conversion; hashing
+
+- Didier Deshommes (2006-03-06): numerous examples
+  and docstrings
+
+- William Stein (2006-03-31): changes to reflect GMP bug fixes
+
+- William Stein (2006-04-14): added GMP factorial method (since it's
+  now very fast).
+
+- David Harvey (2006-09-15): added nth_root, exact_log
+
+- David Harvey (2006-09-16): attempt to optimise Integer constructor
+
+- Rishikesh (2007-02-25): changed quo_rem so that the rem is positive
+
+- David Harvey, Martin Albrecht, Robert Bradshaw (2007-03-01):
+  optimized Integer constructor and pool
+
+- Pablo De Napoli (2007-04-01): multiplicative_order should return
+  +infinity for non zero numbers
+
+- Robert Bradshaw (2007-04-12): is_perfect_power, Jacobi symbol (with
+  Kronecker extension).  Convert some methods to use GMP directly
+  rather than PARI, Integer(), PY_NEW(Integer)
+
+- David Roe (2007-03-21): sped up valuation and is_square, added
+  val_unit, is_power, is_power_of and divide_knowing_divisible_by
+
+- Robert Bradshaw (2008-03-26): gamma function, multifactorials
+
+- Robert Bradshaw (2008-10-02): bounded squarefree part
+
+- David Loeffler (2011-01-15): fixed bug #10625 (inverse_mod should accept an ideal as argument)
+
+- Vincent Delecroix (2010-12-28): added unicode in Integer.__init__
+
+- David Roe (2012-03): deprecate :meth:`~sage.rings.integer.Integer.is_power`
+  in favour of :meth:`~sage.rings.integer.Integer.is_perfect_power` (see
+  :trac:`12116`)
+
 """
 #*****************************************************************************
 #       Copyright (C) 2004,2006 William Stein <wstein@gmail.com>
@@ -157,7 +160,7 @@ from sage.structure.element cimport (Element, EuclideanDomainElement,
         parent, coercion_model)
 from sage.structure.parent cimport Parent
 include "sage/ext/python_debug.pxi"
-from sage.libs.cypari2.paridecl cimport *
+from cypari2.paridecl cimport *
 from sage.rings.rational cimport Rational
 from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.libs.gmp.pylong cimport *
@@ -167,9 +170,9 @@ from sage.libs.gmp.mpq cimport mpq_neg
 from libc.limits cimport LONG_MAX
 from libc.math cimport sqrt as sqrt_double, log as log_c, ceil as ceil_c, isnan
 
-from sage.libs.cypari2.gen cimport objtogen, Gen as pari_gen
+from cypari2.gen cimport objtogen, Gen as pari_gen
 from sage.libs.pari.convert_gmp cimport INT_to_mpz, new_gen_from_mpz_t
-from sage.libs.cypari2.stack cimport new_gen
+from cypari2.stack cimport new_gen
 from sage.libs.flint.ulong_extras cimport *
 
 import sage.rings.infinity
@@ -5596,7 +5599,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: m = n.__pari__(); m
             9390823
             sage: type(m)
-            <type 'sage.libs.cypari2.gen.Gen'>
+            <type 'cypari2.gen.Gen'>
 
         TESTS::
 

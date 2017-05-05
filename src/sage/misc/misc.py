@@ -39,6 +39,7 @@ Check the fix from :trac:`8323`::
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
+from six import integer_types
 
 from warnings import warn
 import os
@@ -629,7 +630,7 @@ def coeff_repr(c, is_latex=False):
             return c._coeff_repr()
         except AttributeError:
             pass
-    if isinstance(c, (int, long, float)):
+    if isinstance(c, integer_types + (float,)):
         return str(c)
     if is_latex and hasattr(c, '_latex_'):
         s = c._latex_()

@@ -155,7 +155,7 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six import iteritems
+from six import iteritems, integer_types
 
 from sage.structure.sage_object import richcmp
 
@@ -1079,7 +1079,7 @@ class MPowerSeries(PowerSeries):
             sage: g.polynomial() == f.polynomial() % 2
             True
         """
-        if isinstance(other,(int,Integer,long)):
+        if isinstance(other, integer_types + (Integer,)):
             return self.change_ring(Zmod(other))
         raise NotImplementedError("Mod on multivariate power series ring elements not defined except modulo an integer.")
 

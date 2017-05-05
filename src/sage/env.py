@@ -153,12 +153,12 @@ else:
     # library name changed from libsingular to libSingular btw 3.x and 4.x
     SINGULAR_SO = SAGE_LOCAL+"/lib/libSingular."+extension
 
+_add_variable_or_fallback('SINGULAR_SO', SINGULAR_SO)
+
 if not SINGULAR_SO or not os.path.exists(SINGULAR_SO):
     raise RuntimeError(
         "libSingular not found--a working Singular install in $SAGE_LOCAL "
         "is required for Sage to work")
-else:
-    _add_variable_or_fallback('SINGULAR_SO', SINGULAR_SO)
 
 # post process
 if ' ' in DOT_SAGE:

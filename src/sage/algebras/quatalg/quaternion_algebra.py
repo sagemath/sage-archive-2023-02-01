@@ -33,6 +33,7 @@ Pickling test::
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import zip
+from six import integer_types
 
 from sage.arith.all import (hilbert_conductor_inverse, hilbert_conductor,
         factor, gcd, lcm, kronecker_symbol, valuation)
@@ -216,7 +217,7 @@ class QuaternionAlgebraFactory(UniqueFactory):
             for a in [arg0,arg1]:
                 if is_RingElement(a):
                     L.append(a)
-                elif isinstance(a, int) or isinstance(a, long):
+                elif isinstance(a, integer_types):
                     L.append(Integer(a))
                 elif isinstance(a, float):
                     L.append(RR(a))

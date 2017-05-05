@@ -1,12 +1,15 @@
 r"""
-Affine Derived Subalgebra Crystals
+Loop Crystals
 """
 #*****************************************************************************
-#  Copyright (C) 2015   Travis Scrimshaw <tscrim at ucdavis.edu>
+#  Copyright (C) 2015   Travis Scrimshaw <tcscrims at gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#******************************************************************************
+#*****************************************************************************
 
 from __future__ import print_function, division, absolute_import
 
@@ -24,17 +27,21 @@ from sage.functions.other import ceil
 from sage.rings.all import ZZ
 
 
-class AffineDerivedSubalgebraCrystals(Category_singleton):
+class LoopCrystals(Category_singleton):
     r"""
     The category of `U_q'(\mathfrak{g})`-crystals, where `\mathfrak{g}`
     is of affine type.
 
+    The category is called loop crystals as we can also consider them
+    as crystals corresponding to the loop algebra `\mathfrak{g}_0[t]`,
+    where `\mathfrak{g}_0` is the corresponding classical type.
+
     EXAMPLES::
 
-        sage: from sage.categories.affine_derived_crystals import AffineDerivedSubalgebraCrystals
-        sage: C = AffineDerivedSubalgebraCrystals()
+        sage: from sage.categories.loop_crystals import LoopCrystals
+        sage: C = LoopCrystals()
         sage: C
-        Category of affine derived subalgebra crystals
+        Category of loop crystals
         sage: C.super_categories()
         [Category of crystals]
         sage: C.example()
@@ -51,8 +58,8 @@ class AffineDerivedSubalgebraCrystals(Category_singleton):
         r"""
         EXAMPLES::
 
-            sage: from sage.categories.affine_derived_crystals import AffineDerivedSubalgebraCrystals
-            sage: AffineDerivedSubalgebraCrystals().super_categories()
+            sage: from sage.categories.loop_crystals import LoopCrystals
+            sage: LoopCrystals().super_categories()
             [Category of crystals]
         """
         return [Crystals()]
@@ -64,8 +71,8 @@ class AffineDerivedSubalgebraCrystals(Category_singleton):
 
         EXAMPLES::
 
-            sage: from sage.categories.affine_derived_crystals import AffineDerivedSubalgebraCrystals
-            sage: B = AffineDerivedSubalgebraCrystals().example(); B
+            sage: from sage.categories.loop_crystals import LoopCrystals
+            sage: B = LoopCrystals().example(); B
             Kirillov-Reshetikhin crystal of type ['A', 3, 1] with (r,s)=(1,1)
         """
         from sage.combinat.crystals.kirillov_reshetikhin import KirillovReshetikhinCrystal
@@ -122,7 +129,7 @@ class AffineDerivedSubalgebraCrystals(Category_singleton):
             return G
 
 # TODO: Should we make "regular" an axiom?
-class RegularAffineDerivedSubalgebraCrystals(Category_singleton):
+class RegularLoopCrystals(Category_singleton):
     r"""
     The category of regular `U_q'(\mathfrak{g})`-crystals, where
     `\mathfrak{g}` is of affine type.
@@ -132,12 +139,12 @@ class RegularAffineDerivedSubalgebraCrystals(Category_singleton):
         """
         EXAMPLES::
 
-            sage: from sage.categories.affine_derived_crystals import RegularAffineDerivedSubalgebraCrystals
-            sage: RegularAffineDerivedSubalgebraCrystals().super_categories()
+            sage: from sage.categories.loop_crystals import RegularLoopCrystals
+            sage: RegularLoopCrystals().super_categories()
             [Category of regular crystals,
-             Category of affine derived subalgebra crystals]
+             Category of loop crystals]
         """
-        return [RegularCrystals(), AffineDerivedSubalgebraCrystals()]
+        return [RegularCrystals(), LoopCrystals()]
 
     class ElementMethods:
         def classical_weight(self):
@@ -168,11 +175,11 @@ class KirillovReshetikhinCrystals(Category_singleton):
         r"""
         EXAMPLES::
 
-            sage: from sage.categories.affine_derived_crystals import KirillovReshetikhinCrystals
+            sage: from sage.categories.loop_crystals import KirillovReshetikhinCrystals
             sage: KirillovReshetikhinCrystals().super_categories()
-            [Category of finite regular affine derived subalgebra crystals]
+            [Category of finite regular loop crystals]
         """
-        return [RegularAffineDerivedSubalgebraCrystals().Finite()]
+        return [RegularLoopCrystals().Finite()]
 
     class ParentMethods:
         @abstract_method
@@ -373,7 +380,7 @@ class KirillovReshetikhinCrystals(Category_singleton):
             Return the local energy function of ``self`` and ``B``.
 
             See
-            :class:`~sage.categories.affine_derived_crystals.LocalEnergyFunction`
+            :class:`~sage.categories.loop_crystals.LocalEnergyFunction`
             for a definition.
 
             EXAMPLES::
@@ -524,7 +531,7 @@ class KirillovReshetikhinCrystals(Category_singleton):
 
             .. SEEALSO::
 
-                :meth:`~sage.categories.affine_derived_crystals.KirillovReshetikhinCrystals.ParentMethods.is_perfect`
+                :meth:`~sage.categories.loop_crystals.KirillovReshetikhinCrystals.ParentMethods.is_perfect`
 
             EXAMPLES::
 
@@ -605,7 +612,7 @@ class KirillovReshetikhinCrystals(Category_singleton):
                 D(b) = H(b \otimes b^{\sharp}) - H(u_B \otimes b^{\sharp}),
 
             where `H` is the :meth:`local energy function
-            <sage.categories.affine_derived_crystals.KirillovReshetikhinCrystals.ParentMethods.local_energy_function>`.
+            <sage.categories.loop_crystals.KirillovReshetikhinCrystals.ParentMethods.local_energy_function>`.
 
             EXAMPLES::
 
@@ -637,11 +644,11 @@ class KirillovReshetikhinCrystals(Category_singleton):
             """
             EXAMPLES::
 
-                sage: from sage.categories.affine_derived_crystals import KirillovReshetikhinCrystals
+                sage: from sage.categories.loop_crystals import KirillovReshetikhinCrystals
                 sage: KirillovReshetikhinCrystals().TensorProducts().extra_super_categories()
-                [Category of finite regular affine derived subalgebra crystals]
+                [Category of finite regular loop crystals]
             """
-            return [RegularAffineDerivedSubalgebraCrystals().Finite()]
+            return [RegularLoopCrystals().Finite()]
 
         class ParentMethods:
             @cached_method

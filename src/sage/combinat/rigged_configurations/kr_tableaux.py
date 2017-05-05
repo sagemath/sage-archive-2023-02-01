@@ -51,7 +51,7 @@ from sage.misc.flatten import flatten
 from sage.structure.parent import Parent
 from sage.structure.element_wrapper import ElementWrapper
 
-from sage.categories.affine_derived_crystals import KirillovReshetikhinCrystals
+from sage.categories.loop_crystals import KirillovReshetikhinCrystals
 
 from sage.combinat.crystals.letters import CrystalOfLetters, EmptyLetter
 from sage.combinat.root_system.cartan_type import CartanType

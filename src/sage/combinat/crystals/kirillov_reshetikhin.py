@@ -32,7 +32,7 @@ from sage.functions.other import floor, ceil
 from sage.combinat.combinat import CombinatorialObject
 from sage.structure.parent import Parent
 from sage.categories.crystals import CrystalMorphism
-from sage.categories.affine_derived_crystals import KirillovReshetikhinCrystals
+from sage.categories.loop_crystals import KirillovReshetikhinCrystals
 from sage.categories.homset import Hom
 from sage.categories.map import Map
 from sage.rings.integer import Integer

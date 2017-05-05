@@ -31,7 +31,7 @@ from sage.structure.parent import Parent
 from sage.combinat.misc import IterableFunctionCall
 import sage.combinat.tableau as tableau
 from sage.rings.all import QQ
-from sage.categories.affine_derived_crystals import KirillovReshetikhinCrystals
+from sage.categories.loop_crystals import KirillovReshetikhinCrystals
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.rigged_configurations.kleber_tree import KleberTree, VirtualKleberTree
 from sage.combinat.rigged_configurations.rigged_configuration_element import (

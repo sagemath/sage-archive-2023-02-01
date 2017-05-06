@@ -50,7 +50,8 @@ map from `\ZZ[D_2]` to `\QQ[S_4]`::
     sage: a * b  # a is automatically converted to an element of B
     7*() + 3*(3,4) + 5*(1,2) + 6*(1,2)(3,4) + 12*(1,2,3) + 4*(1,2,3,4) + 12*(1,3,4)
     sage: parent(a * b)
-    Group algebra of group "Symmetric group of order 4! as a permutation group" over base ring Rational Field
+    Group algebra of Symmetric group of order 4! as a permutation group
+     over Rational Field
 
     sage: G = GL(3, GF(7))
     sage: ZG = GroupAlgebra(G)
@@ -64,9 +65,9 @@ There is no obvious map in the other direction, though::
     sage: A(b)
     Traceback (most recent call last):
     ...
-    TypeError: Don't know how to create an element of Group algebra of group
-    "Dihedral group of order 4 as a permutation group" over base ring Integer
-    Ring from () + 2*(1,2) + 4*(1,2,3,4)
+    TypeError: Don't know how to create an element of
+     Group algebra of Dihedral group of order 4 as a permutation group over Integer Ring
+     from () + 2*(1,2) + 4*(1,2,3,4)
 
 Group algebras have the structure of Hopf algebras::
 
@@ -77,7 +78,7 @@ Group algebras have the structure of Hopf algebras::
     sage: a.coproduct()
     () # () + 4*(1,2,3,4) # (1,2,3,4) + 2*(1,4)(2,3) # (1,4)(2,3)
 
-.. note::
+.. NOTE::
 
     As alluded to above, it is problematic to make group algebras fit
     nicely with Sage's coercion model. The problem is that (for
@@ -117,8 +118,13 @@ from sage.rings.all import IntegerRing
 from sage.misc.cachefunc import cached_method
 from sage.categories.pushout import ConstructionFunctor
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.categories.all import Rings, GroupAlgebras, Hom
+from sage.categories.all import Rings, Hom
+from sage.categories.fields import Fields
+from sage.categories.groups import Groups
+from sage.categories.additive_groups import AdditiveGroups
+from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.categories.morphism import SetMorphism
+from sage.categories.sets_cat import Sets
 
 
 import six
@@ -132,7 +138,7 @@ class GroupAlgebraFunctor(ConstructionFunctor):
     INPUT :
 
     - ``group`` -- the group associated to each group algebra under
-      consideration.
+      consideration
 
     EXAMPLES::
 
@@ -141,7 +147,7 @@ class GroupAlgebraFunctor(ConstructionFunctor):
         sage: loads(dumps(F)) == F
         True
         sage: GroupAlgebra(SU(2, GF(4, 'a')), IntegerModRing(12)).category()
-        Category of finite dimensional group algebras over Ring of integers modulo 12
+        Category of finite group algebras over Ring of integers modulo 12
     """
     def __init__(self, group) :
         r"""
@@ -151,7 +157,7 @@ class GroupAlgebraFunctor(ConstructionFunctor):
 
             sage: from sage.algebras.group_algebra import GroupAlgebraFunctor
             sage: GroupAlgebra(SU(2, GF(4, 'a')), IntegerModRing(12)).category()
-            Category of finite dimensional group algebras over Ring of integers modulo 12
+            Category of finite group algebras over Ring of integers modulo 12
         """
         self.__group = group
 
@@ -186,17 +192,19 @@ class GroupAlgebraFunctor(ConstructionFunctor):
             sage: from sage.algebras.group_algebra import GroupAlgebraFunctor
             sage: F = GroupAlgebraFunctor(CyclicPermutationGroup(17))
             sage: F(QQ)
-            Group algebra of group "Cyclic group of order 17 as a permutation group" over base ring Rational Field
+            Group algebra of Cyclic group of order 17 as a permutation group
+             over Rational Field
         """
         return GroupAlgebra(self.__group, base_ring)
 
     def _apply_functor_to_morphism(self, f) :
         r"""
-        Lift a homomorphism of rings to the corresponding homomorphism of the group algebras of ``self.group()``.
+        Lift a homomorphism of rings to the corresponding homomorphism
+        of the group algebras of ``self.group()``.
 
         INPUT:
 
-        - ``f`` - a morphism of rings.
+        - ``f`` -- a morphism of rings
 
         OUTPUT:
 
@@ -212,7 +220,8 @@ class GroupAlgebraFunctor(ConstructionFunctor):
             (1,2,3)
         """
         codomain = self(f.codomain())
-        return SetMorphism(Hom(self(f.domain()), codomain, Rings()), lambda x: sum(codomain(g) * f(c) for (g, c) in six.iteritems(dict(x))))
+        return SetMorphism(Hom(self(f.domain()), codomain, Rings()),
+                           lambda x: sum(codomain(g) * f(c) for (g, c) in six.iteritems(dict(x))))
 
 class GroupAlgebra(CombinatorialFreeModule):
     r"""
@@ -220,26 +229,24 @@ class GroupAlgebra(CombinatorialFreeModule):
 
     INPUT:
 
-    - ``group``, a group
-    - ``base_ring`` (optional, default `\ZZ`), a commutative ring
-
-    OUTPUT:
-
-    -- a ``GroupAlgebra`` instance.
+    - ``group`` -- a group
+    - ``base_ring`` -- (default: `\ZZ`) a commutative ring
 
     EXAMPLES::
 
         sage: GroupAlgebra(GL(3, GF(7)))
-        Group algebra of group "General Linear Group of degree 3 over Finite Field of size 7" over base ring Integer Ring
+        Group algebra of General Linear Group of degree 3 over Finite Field of size 7
+         over Integer Ring
         sage: GroupAlgebra(GL(3, GF(7)), QQ)
-        Group algebra of group "General Linear Group of degree 3 over Finite Field of size 7" over base ring Rational Field
+        Group algebra of General Linear Group of degree 3 over Finite Field of size 7
+         over Rational Field
         sage: GroupAlgebra(1)
         Traceback (most recent call last):
         ...
         TypeError: "1" is not a group
 
         sage: GroupAlgebra(SU(2, GF(4, 'a')), IntegerModRing(12)).category()
-        Category of finite dimensional group algebras over Ring of integers modulo 12
+        Category of finite group algebras over Ring of integers modulo 12
         sage: GroupAlgebra(KleinFourGroup()) is GroupAlgebra(KleinFourGroup())
         True
 
@@ -295,27 +302,66 @@ class GroupAlgebra(CombinatorialFreeModule):
         sage: A( A(x) )
         (1,2,3,4,5)
     """
-    def __init__(self, group, base_ring=IntegerRing()):
+    def __init__(self, group, base_ring=IntegerRing(), category=None):
         r"""
         See :class:`GroupAlgebra` for full documentation.
 
         EXAMPLES::
 
             sage: GroupAlgebra(GL(3, GF(7)))
-            Group algebra of group "General Linear Group of degree 3 over Finite Field of size 7" over base ring Integer Ring
+            Group algebra of General Linear Group of degree 3 over Finite Field of size 7
+             over Integer Ring
+
+        TESTS::
+
+            sage: GroupAlgebra(AbelianGroup(1)) == GroupAlgebra(AbelianGroup(1))
+            True
+            sage: GroupAlgebra(AbelianGroup(1), QQ) == GroupAlgebra(AbelianGroup(1), ZZ)
+            False
+            sage: GroupAlgebra(AbelianGroup(2)) == GroupAlgebra(AbelianGroup(1))
+            False
+            sage: A = GroupAlgebra(KleinFourGroup(), ZZ)
+            sage: B = GroupAlgebra(KleinFourGroup(), QQ)
+            sage: A == B
+            False
+            sage: A == A
+            True
         """
         from sage.groups.group import is_Group
         if not base_ring.is_commutative():
-            raise NotImplementedError("Base ring must be commutative")
+            raise NotImplementedError("base ring must be commutative")
 
-        if not is_Group(group):
+        cat = group.category()
+        if not (cat.is_subcategory(Groups())
+                or cat.is_subcategory(AdditiveGroups())):
             raise TypeError('"%s" is not a group' % group)
+
+        if category is None:
+            category = cat.Algebras(base_ring)
+
+        # If base_ring is of characteristic 0, this is handled
+        #    in the FiniteGroups.Algebras category
+        # Maschke's theorem: under some conditions, the algebra is semisimple.
+        if (category.is_subcategory(Sets().Finite())
+            and base_ring in Fields
+            and base_ring.characteristic() >= 0
+            and hasattr(group, "cardinality")
+            and group.cardinality() % base_ring.characteristic() != 0):
+            category = category.Semisimple()
+
+        # Somewhat dirty hack to wrap non-atomic objects
+        if group in ModulesWithBasis:
+            prefix = 'B'
+            bracket = True
+        else:
+            prefix = ''
+            bracket = False
 
         self._group = group
         CombinatorialFreeModule.__init__(self, base_ring, group,
-                                         prefix='',
-                                         bracket=False,
-                                         category=GroupAlgebras(base_ring))
+                                         prefix=prefix,
+                                         bracket=bracket,
+                                         category=category)
 
         if not base_ring.has_coerce_map_from(group) :
             ## some matrix groups assume that coercion is only valid to
@@ -337,7 +383,8 @@ class GroupAlgebra(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: A = GroupAlgebra(DihedralGroup(3), QQ); A
-            Group algebra of group "Dihedral group of order 6 as a permutation group" over base ring Rational Field
+            Group algebra of Dihedral group of order 6 as a permutation group
+             over Rational Field
             sage: A.algebra_generators()
             Finite family {(1,3): (1,3), (1,2,3): (1,2,3)}
         """
@@ -400,10 +447,12 @@ class GroupAlgebra(CombinatorialFreeModule):
         """
         return self.group().is_abelian()
 
-    def is_field(self, proof = True):
+    def is_field(self, proof=True):
         r"""
-        Return True if self is a field. This is always false unless
-        ``self.group()`` is trivial and ``self.base_ring()`` is a field.
+        Return ``True`` if ``self`` is a field.
+
+        This is always false unless ``self.group()`` is trivial
+        and ``self.base_ring()`` is a field.
 
         EXAMPLES::
 
@@ -420,8 +469,8 @@ class GroupAlgebra(CombinatorialFreeModule):
 
     def is_finite(self):
         r"""
-        Return True if self is finite, which is true if and only if
-        ``self.group()`` and ``self.base_ring()`` are both finite.
+        Return ``True`` if ``self`` is finite, which is true if and only
+        if ``self.group()`` and ``self.base_ring()`` are both finite.
 
         EXAMPLES::
 
@@ -436,9 +485,9 @@ class GroupAlgebra(CombinatorialFreeModule):
 
     def is_exact(self):
         r"""
-        Return True if elements of self have exact representations, which is
-        true of self if and only if it is true of ``self.group()`` and
-        ``self.base_ring()``.
+        Return ``True`` if elements of ``self`` have exact representations,
+        which is true of ``self`` if and only if it is true of
+        ``self.group()`` and ``self.base_ring()``.
 
         EXAMPLES::
 
@@ -453,7 +502,7 @@ class GroupAlgebra(CombinatorialFreeModule):
 
     def is_integral_domain(self, proof = True):
         r"""
-        Return True if self is an integral domain.
+        Return ``True`` if ``self`` is an integral domain.
 
         This is false unless ``self.base_ring()`` is an integral domain, and
         even then it is false unless ``self.group()`` has no nontrivial
@@ -509,45 +558,17 @@ class GroupAlgebra(CombinatorialFreeModule):
     # I don't know if that means "is canonically isomorphic to a prime field"
     # or "is identical to a prime field".
 
-    def __eq__(self, other) :
-        r"""
-        Compare two algebras ``self`` and ``other``.
-
-        They are considered equal if and only
-        if their base rings and their groups coincide.
-
-        EXAMPLES::
-
-            sage: GroupAlgebra(AbelianGroup(1)) == GroupAlgebra(AbelianGroup(1))
-            True
-            sage: GroupAlgebra(AbelianGroup(1), QQ) == GroupAlgebra(AbelianGroup(1), ZZ)
-            False
-            sage: GroupAlgebra(AbelianGroup(2)) == GroupAlgebra(AbelianGroup(1))
-            False
-            sage: A = GroupAlgebra(KleinFourGroup(), ZZ)
-            sage: B = GroupAlgebra(KleinFourGroup(), QQ)
-            sage: A == B
-            False
-            sage: A == A
-            True
-        """
-        if type(self) != type(other):
-            return False
-        if self._group != other._group:
-            return False
-        if self.base_ring() != other.base_ring():
-            return False
-        return True
-
     def random_element(self, n=2):
         r"""
-        Return a 'random' element of self.
+        Return a 'random' element of ``self``.
 
         INPUT:
 
-        - n -- integer (optional, default 2), number of summands
+        - ``n`` -- integer (default: 2); number of summands
 
-        Algorithm: return a sum of n terms, each of which is formed by
+        ALGORITHM:
+
+        Return a sum of ``n`` terms, each of which is formed by
         multiplying a random element of the base ring by a random
         element of the group.
 
@@ -575,21 +596,9 @@ class GroupAlgebra(CombinatorialFreeModule):
         """
         return GroupAlgebraFunctor(self._group), self.base_ring()
 
-    def _repr_(self):
-        r"""
-        String representation of self. See GroupAlgebra.__init__ for a doctest.
-
-        EXAMPLES::
-
-            sage: A = GroupAlgebra(KleinFourGroup(), ZZ)
-            sage: A # indirect doctest
-            Group algebra of group "The Klein 4 group of order 4, as a permutation group" over base ring Integer Ring
-        """
-        return "Group algebra of group \"%s\" over base ring %s" % \
-               (self.group(), self.base_ring())
-
     def _latex_(self):
-        r"""Latex string of self.
+        r"""
+        Latex string of ``self``.
 
         EXAMPLES::
 
@@ -610,7 +619,7 @@ class GroupAlgebra(CombinatorialFreeModule):
 
         INPUT:
 
-        -  ``S`` - a Sage object.
+        -  ``S`` - a Sage object
 
         The objects that coerce into a group algebra `k[G]` are:
 
@@ -661,10 +670,14 @@ class GroupAlgebra(CombinatorialFreeModule):
 
         INPUT:
 
-        - ``x`` - an element of some group algebra or of a
+        - ``x`` -- an element of some group algebra or of a
           ring or of a group
 
-        OUTPUT: ``x`` as a member of ``self``.
+        OUTPUT:
+
+        ``x`` as a member of ``self``.
+
+        EXAMPLES::
 
             sage: G = KleinFourGroup()
             sage: f = G.gen(0)
@@ -694,12 +707,26 @@ class GroupAlgebra(CombinatorialFreeModule):
             sqrt5*[1 0]
             [0 1]
         """
-        from sage.rings.ring import is_Ring
-        from sage.groups.group import is_Group
-        from sage.structure.formal_sum import FormalSum
         k = self.base_ring()
+
+        #Coerce ints to Integers
+        if isinstance(x, int):
+            x = Integer(x)
+
+        if x in k:
+            if x == 0:
+                return self.zero()
+            else:
+                return k(x) * self.one()
+
         G = self.group()
         S = x.parent()
+        if S is G:
+            return self.monomial(x)
+
+        from sage.rings.ring import is_Ring
+        from sage.structure.formal_sum import FormalSum
+
         if isinstance(S, GroupAlgebra):
             if self.has_coerce_map_from(S):
                 # coerce monomials, coerce coefficients, reassemble
@@ -712,17 +739,21 @@ class GroupAlgebra(CombinatorialFreeModule):
                     else:
                         new_d[g1] = k(d[g])
                 return self._from_dict(new_d)
+
         elif is_Ring(S):
             # coerce to multiple of identity element
-            return k(x) * self(1)
-        elif is_Group(S):
-            # Check whether group coerces to base_ring first.
-            if k.has_coerce_map_from(S):
-                return k(x) * self(1)
-            if G.has_coerce_map_from(S):
-                return self.monomial(self.group()(x))
+            return k(x) * self.one()
+
         elif isinstance(x, FormalSum) and k.has_coerce_map_from(S.base_ring()):
             y = [(G(g), k(coeff)) for coeff,g in x]
             return self.sum_of_terms(y)
+
+        # Check whether group coerces to base_ring first.
+        if k.has_coerce_map_from(S):
+            return k(x) * self.one()
+        if G.has_coerce_map_from(S):
+            return self.monomial(G(x))
+
         raise TypeError("Don't know how to create an element of %s from %s" % \
                              (self, x))
+

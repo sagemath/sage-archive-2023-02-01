@@ -259,11 +259,21 @@ class RingHomomorphism_coercion_patched(sage.rings.morphism.RingHomomorphism_coe
             sage: R.coerce_map_from(ZZ).is_injective()
             True
 
+            sage: R.<x> = QQbar[]
+            sage: R.coerce_map_from(QQbar).is_injective()
+            True
+
         """
-        from sage.categories.fields import Fields
+        from sage.categories.all import Fields, IntegralDomains
+        from sage.rings.number_field.order import AbsoluteOrder
+        from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
         # this should be implemented as far down as possible
         if self.domain() in Fields(): return True
         if self.domain() == sage.all.ZZ and self.codomain().characteristic() == 0: return True
+        if isinstance(self.domain(), AbsoluteOrder) and self(self.domain().gen()) != 0 and self.codomain() in IntegralDomains(): return True
+        # this should be implemented somewhere else
+        if is_PolynomialRing(self.codomain()) and self.codomain().base_ring() is self.domain():
+            return True
         coercion = self.codomain().coerce_map_from(self.domain())
         if coercion is not None:
             try:

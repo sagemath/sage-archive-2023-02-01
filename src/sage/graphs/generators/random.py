@@ -244,6 +244,155 @@ def RandomBipartite(n1, n2, p):
 
     return g
 
+def RandomBlockGraph(m, k, kmax=None, incidence_structure=False):
+    r"""
+    Return a Random Block Graph.
+
+    A block graph is a connected graph in which every biconnected component
+    (block) is a clique.
+
+    .. SEEALSO::
+
+        - :wikipedia:`Block_graph` for more details on these graphs
+        - :meth:`~sage.graphs.graph.Graph.is_block_graph` -- test if a graph is a block graph
+        - :meth:`~sage.graphs.generic_graph.GenericGraph.blocks_and_cut_vertices`
+        - :meth:`~sage.graphs.generic_graph.GenericGraph.blocks_and_cuts_tree`
+        - :meth:`~sage.combinat.designs.incidence.IncidenceStructure` 
+
+    INPUT:
+
+    - ``m`` -- number of blocks.
+
+    - ``k`` -- minimum number of vertices of a block (at least two).
+
+    - ``kmax`` -- (default: None) By default, each block has `k` vertices. When
+      the parameter `kmax` is specified (with `kmax \geq k`), the number of
+      vertices of each block is randomly chosen between `k` and `kmax`.
+
+    - ``incidence_structure`` -- (default: False) when set to ``True``, the
+      incidence structure of the graphs is returned instead of the graph itself,
+      that is the list of the lists of vertices in each block. This is useful
+      for the creation of some hypergraphs.
+
+    OUTPUT:
+
+    A Graph when ``incidence_structure==False`` (default), and otherwise an
+    incidence structure.
+
+    EXAMPLES:
+
+    A block graph with only 1 block is a clique::
+
+        sage: B = graphs.RandomBlockGraph(1, 4)
+        sage: B.is_clique()
+        True
+
+    A block graph with blocks of order 2 is a tree::
+
+        sage: B = graphs.RandomBlockGraph(10, 2)
+        sage: B.is_tree()
+        True
+
+    Every biconnected components of a block graph are cliques::
+
+        sage: B = graphs.RandomBlockGraph(5, 3, kmax=6)
+        sage: blocks,cuts = B.blocks_and_cut_vertices()
+        sage: all(B.is_clique(block) for block in blocks)
+        True
+
+    A block graph with blocks of order `k` has `m*(k-1)+1` vertices::
+
+        sage: m, k = 6, 4
+        sage: B = graphs.RandomBlockGraph(m, k)
+        sage: B.order() == m*(k-1)+1
+        True
+
+    Asking for the incidence structure::
+
+        sage: m, k = 6, 4
+        sage: IS = graphs.RandomBlockGraph(m, k, incidence_structure=True)
+        sage: from sage.combinat.designs.incidence_structures import IncidenceStructure
+        sage: IncidenceStructure(IS)
+        Incidence structure with 19 points and 6 blocks
+        sage: m*(k-1)+1
+        19
+
+    TESTS:
+
+    A block graph has at least one block, so `m\geq 1`::
+
+        sage: B = graphs.RandomBlockGraph(0, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: the number `m` of blocks must be >= 1
+
+    A block has at least 2 vertices, so `k\geq 2`::
+
+        sage: B = graphs.RandomBlockGraph(1, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: the minimum number `k` of vertices in a block must be >= 2
+
+    The maximum size of a block is at least its minimum size, so `k\leq kmax`::
+
+        sage: B = graphs.RandomBlockGraph(1, 3, kmax=2)
+        Traceback (most recent call last):
+        ...
+        ValueError: the maximum number `kmax` of vertices in a block must be >= `k`
+    """
+    import itertools
+    from sage.misc.prandom import choice
+    from sage.sets.disjoint_set import DisjointSet
+
+    if m < 1:
+        raise ValueError("the number `m` of blocks must be >= 1")
+    if k < 2:
+        raise ValueError("the minimum number `k` of vertices in a block must be >= 2")
+    if kmax is None:
+        kmax = k
+    elif kmax < k:
+        raise ValueError("the maximum number `kmax` of vertices in a block must be >= `k`")
+
+    if m == 1:
+        # A block graph with a single block is a clique
+        IS = [ list(range(randint(k, kmax))) ]
+        
+    elif kmax == 2:
+        # A block graph with blocks of order 2 is a tree
+        IS = [ list(e) for e in RandomTree(m+1).edges(labels=False) ]
+
+    else:
+        # We start with a random tree of order m
+        T = RandomTree(m)
+
+        # We create a block of order in range [k,kmax] per vertex of the tree
+        B = {u:[(u,i) for i in range(randint(k, kmax))] for u in T}
+
+        # For each edge of the tree, we choose 1 vertex in each of the
+        # corresponding blocks and we merge them. We use a disjoint set data
+        # structure to keep a unique identifier per merged vertices
+        DS = DisjointSet([i for u in B for i in B[u]])
+        for u,v in T.edges(labels=0):
+            DS.union(choice(B[u]), choice(B[v]))
+
+        # We relabel vertices in the range [0, m*(k-1)] and build the incidence
+        # structure
+        new_label = {root:i for i,root in enumerate(DS.root_to_elements_dict())}
+        IS = [ [new_label[DS.find(v)] for v in B[u]] for u in B ]
+
+    if incidence_structure:
+        return IS
+    
+    # We finally build the block graph
+    if k == kmax:
+        BG = Graph(name = "Random Block Graph with {} blocks of order {}".format(m, k))
+    else:
+        BG = Graph(name = "Random Block Graph with {} blocks of order {} to {}".format(m, k, kmax))
+    for block in IS:
+        BG.add_clique( block )
+    return BG
+
+
 def RandomBoundedToleranceGraph(n):
     r"""
     Returns a random bounded tolerance graph.

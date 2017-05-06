@@ -320,6 +320,7 @@ see :trac:`11645`::
 from __future__ import print_function
 from __future__ import absolute_import
 from six.moves import range
+from six import integer_types
 
 import os
 import re
@@ -816,7 +817,7 @@ class Singular(ExtraTabCompletion, Expect):
                 return True
             except TypeError:
                 pass
-        elif S is int or S is long:
+        elif S in integer_types:
             return True
         return None
 
@@ -1050,7 +1051,7 @@ class Singular(ExtraTabCompletion, Expect):
                            for x in vars[1:-1].split(',')])
             self.eval(s)
 
-        if check and isinstance(char, (int, long, sage.rings.integer.Integer)):
+        if check and isinstance(char, integer_types + (sage.rings.integer.Integer,)):
             if char != 0:
                 n = sage.rings.integer.Integer(char)
                 if not n.is_prime():

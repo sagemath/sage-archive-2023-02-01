@@ -503,8 +503,8 @@ def deprecated_function_alias(trac_number, func):
      - Luca De Feo (2011-07-11), printing the full module path when different from old path
     """
     _check_trac_number(trac_number)
-    module_name = inspect.getmodulename(
-        inspect.currentframe(1).f_code.co_filename)
+    frame1 = inspect.getouterframes(inspect.currentframe())[1][0]
+    module_name = inspect.getmodulename(frame1.f_code.co_filename)
     if module_name is None:
         module_name = '__main__'
     return DeprecatedFunctionAlias(trac_number, func, module_name)

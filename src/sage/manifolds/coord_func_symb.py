@@ -482,9 +482,12 @@ class CoordFunctionSymb(CoordFunction):
         else:
             return self._simplify(resu)
 
-    def is_zero(self):
+
+    def __bool__(self):
         r"""
-        Return ``True`` if the function is zero and ``False`` otherwise.
+        Return ``True`` if ``self`` is nonzero and ``False`` otherwise.
+
+        This method is called by :meth:`~sage.structure.element.Element.is_zero()`.
 
         EXAMPLES:
 
@@ -493,11 +496,15 @@ class CoordFunctionSymb(CoordFunction):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x^2+3*y+1)
+            sage: bool(f)
+            True
             sage: f.is_zero()
             False
             sage: f == 0
             False
             sage: g = X.function(0)
+            sage: bool(g)
+            False
             sage: g.is_zero()
             True
             sage: g == 0
@@ -508,7 +515,9 @@ class CoordFunctionSymb(CoordFunction):
             True
 
         """
-        return self._express.is_zero()
+        return not self._express.is_zero()
+
+    __nonzero__ = __bool__   # For Python2 compatibility
 
     def copy(self):
         r"""
@@ -762,10 +771,10 @@ class CoordFunctionSymb(CoordFunction):
 
         """
         res = self._simplify(self._express + other._express)
-        if res == 0:
+        if res.is_trivial_zero():  # NB: "if res == 0" would be too
+                                   # expensive (cf. #22859)
             return self.parent().zero()
-        else:
-            return type(self)(self.parent(), res)
+        return type(self)(self.parent(), res)
 
     def _sub_(self, other):
         r"""
@@ -806,10 +815,10 @@ class CoordFunctionSymb(CoordFunction):
             True
         """
         res = self._simplify(self._express - other._express)
-        if res == 0:
+        if res.is_trivial_zero():  # NB: "if res == 0" would be too
+                                   # expensive (cf. #22859)
             return self.parent().zero()
-        else:
-            return type(self)(self.parent(), res)
+        return type(self)(self.parent(), res)
 
     def _mul_(self, other):
         r"""
@@ -843,10 +852,10 @@ class CoordFunctionSymb(CoordFunction):
 
         """
         res = self._simplify(self._express * other._express)
-        if res == 0:
+        if res.is_trivial_zero():  # NB: "if res == 0" would be too
+                                   # expensive (cf. #22859)
             return self.parent().zero()
-        else:
-            return type(self)(self.parent(), res)
+        return type(self)(self.parent(), res)
 
     def _rmul_(self, other):
         """
@@ -938,10 +947,10 @@ class CoordFunctionSymb(CoordFunction):
         if other._express.is_zero():
             raise ZeroDivisionError("division of a coordinate function by zero")
         res = self._simplify(self._express / SR(other))
-        if res == 0:
+        if res.is_trivial_zero():  # NB: "if res == 0" would be too
+                                   # expensive (cf. #22859)
             return self.parent().zero()
-        else:
-            return type(self)(self.parent(), res)
+        return type(self)(self.parent(), res)
 
     def exp(self):
         r"""
@@ -1757,4 +1766,3 @@ class CoordFunctionSymbRing(Parent, UniqueRepresentation):
     is_field = is_integral_domain
 
     Element = CoordFunctionSymb
-

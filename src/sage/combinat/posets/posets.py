@@ -6998,9 +6998,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.completion_by_cuts().is_isomorphic(P)
             True
 
-            sage: P = Posets.AntichainPoset(3)
-            sage: Q = P.completion_by_cuts()
-            sage: Q.is_isomorphic(posets.DiamondPoset(5))
+            sage: Y = Poset({1: [2], 2: [3, 4]})
+            sage: trafficsign = LatticePoset({1: [2], 2: [3, 4], 3: [5], 4: [5]})
+            sage: L = Y.completion_by_cuts()
+            sage: L.is_isomorphic(trafficsign)
             True
 
             sage: P = Posets.SymmetricGroupBruhatOrderPoset(3)
@@ -7020,7 +7021,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         from sage.misc.misc import attrcall
         if self.cardinality() == 0:
             return LatticePoset({})
-        return LatticePoset((self.cuts(), attrcall("issubset")))
+        return LatticePoset((self.cuts(), attrcall("issuperset")))
 
     def incidence_algebra(self, R, prefix='I'):
         r"""

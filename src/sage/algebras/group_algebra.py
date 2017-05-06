@@ -326,6 +326,11 @@ class GroupAlgebra(CombinatorialFreeModule):
             False
             sage: A == A
             True
+
+            sage: GroupAlgebra(SymmetricGroup(2)).is_commutative()
+            True
+            sage: GroupAlgebra(SymmetricGroup(3)).is_commutative()
+            False
         """
         from sage.groups.group import is_Group
         if not base_ring.is_commutative():
@@ -433,56 +438,6 @@ class GroupAlgebra(CombinatorialFreeModule):
         """
         return self._group
 
-    def is_commutative(self):
-        r"""
-        Return True if self is a commutative ring. True if and only if
-        ``self.group()`` is abelian.
-
-        EXAMPLES::
-
-            sage: GroupAlgebra(SymmetricGroup(2)).is_commutative()
-            True
-            sage: GroupAlgebra(SymmetricGroup(3)).is_commutative()
-            False
-        """
-        return self.group().is_abelian()
-
-    def is_field(self, proof=True):
-        r"""
-        Return ``True`` if ``self`` is a field.
-
-        This is always false unless ``self.group()`` is trivial
-        and ``self.base_ring()`` is a field.
-
-        EXAMPLES::
-
-            sage: GroupAlgebra(SymmetricGroup(2)).is_field()
-            False
-            sage: GroupAlgebra(SymmetricGroup(1)).is_field()
-            False
-            sage: GroupAlgebra(SymmetricGroup(1), QQ).is_field()
-            True
-        """
-        if not self.base_ring().is_field(proof):
-            return False
-        return (self.group().order() == 1)
-
-    def is_finite(self):
-        r"""
-        Return ``True`` if ``self`` is finite, which is true if and only
-        if ``self.group()`` and ``self.base_ring()`` are both finite.
-
-        EXAMPLES::
-
-            sage: GroupAlgebra(SymmetricGroup(2), IntegerModRing(10)).is_finite()
-            True
-            sage: GroupAlgebra(SymmetricGroup(2)).is_finite()
-            False
-            sage: GroupAlgebra(AbelianGroup(1), IntegerModRing(10)).is_finite()
-            False
-        """
-        return (self.base_ring().is_finite() and self.group().is_finite())
-
     def is_exact(self):
         r"""
         Return ``True`` if elements of ``self`` have exact representations,
@@ -499,59 +454,6 @@ class GroupAlgebra(CombinatorialFreeModule):
             False
         """
         return self.group().is_exact() and self.base_ring().is_exact()
-
-    def is_integral_domain(self, proof = True):
-        r"""
-        Return ``True`` if ``self`` is an integral domain.
-
-        This is false unless ``self.base_ring()`` is an integral domain, and
-        even then it is false unless ``self.group()`` has no nontrivial
-        elements of finite order. I don't know if this condition suffices, but
-        it obviously does if the group is abelian and finitely generated.
-
-        EXAMPLES::
-
-            sage: GroupAlgebra(SymmetricGroup(2)).is_integral_domain()
-            False
-            sage: GroupAlgebra(SymmetricGroup(1)).is_integral_domain()
-            True
-            sage: GroupAlgebra(SymmetricGroup(1), IntegerModRing(4)).is_integral_domain()
-            False
-            sage: GroupAlgebra(AbelianGroup(1)).is_integral_domain()
-            True
-            sage: GroupAlgebra(AbelianGroup(2, [0,2])).is_integral_domain()
-            False
-            sage: GroupAlgebra(GL(2, ZZ)).is_integral_domain() # not implemented
-            False
-        """
-        from sage.sets.set import Set
-        ans = False
-        try:
-            if self.base_ring().is_integral_domain():
-                if self.group().is_finite():
-                    if self.group().order() > 1:
-                        ans = False
-                    else:
-                        ans = True
-                else:
-                    if self.group().is_abelian():
-                        invs = self.group().invariants()
-                        if Set(invs) != Set([0]):
-                            ans = False
-                        else:
-                            ans = True
-                    else:
-                        raise NotImplementedError
-            else:
-                ans = False
-        except AttributeError:
-            if proof:
-                raise NotImplementedError("cannot determine whether self is an integral domain")
-        except NotImplementedError:
-            if proof:
-                raise NotImplementedError("cannot determine whether self is an integral domain")
-
-        return ans
 
     # I haven't written is_noetherian(), because I don't know when group
     # algebras are noetherian, and I haven't written is_prime_field(), because
@@ -586,7 +488,7 @@ class GroupAlgebra(CombinatorialFreeModule):
                            self.base_ring().random_element())
         return a
 
-    def construction(self) :
+    def construction(self):
         r"""
         EXAMPLES::
 

@@ -257,7 +257,7 @@ def RandomBlockGraph(m, k, kmax=None, incidence_structure=False):
         - :meth:`~sage.graphs.graph.Graph.is_block_graph` -- test if a graph is a block graph
         - :meth:`~sage.graphs.generic_graph.GenericGraph.blocks_and_cut_vertices`
         - :meth:`~sage.graphs.generic_graph.GenericGraph.blocks_and_cuts_tree`
-        - :meth:`~sage.combinat.designs.incidence.IncidenceStructure` 
+        - :meth:`~sage.combinat.designs.incidence_structures.IncidenceStructure` 
 
     INPUT:
 
@@ -305,6 +305,14 @@ def RandomBlockGraph(m, k, kmax=None, incidence_structure=False):
         sage: m, k = 6, 4
         sage: B = graphs.RandomBlockGraph(m, k)
         sage: B.order() == m*(k-1)+1
+        True
+
+    Test recognition methods::
+
+        sage: B = graphs.RandomBlockGraph(6, 2, kmax=6)
+        sage: B.is_block_graph()
+        True
+        sage: B in graph_classes.Block
         True
 
     Asking for the incidence structure::

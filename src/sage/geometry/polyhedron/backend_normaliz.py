@@ -494,11 +494,11 @@ class Polyhedron_normaliz(Polyhedron_base):
         be a very bad idea (note this is a rational (non-lattice)
         polytope, so the other backends use the bounding box method)::
 
-            sage: P = Polyhedron(vertices=((0, 0), (1789345,37121))) + 1/1000*polytopes.hypercube(2)
+            sage: P = Polyhedron(vertices=((0, 0), (178933,37121))) + 1/1000*polytopes.hypercube(2)
             sage: P = Polyhedron(vertices=P.vertices_list(),               # optional - pynormaliz
             ....:                backend='normaliz')
             sage: len(P.integral_points())                                 # optional - pynormaliz
-            3654
+            434
 
         Finally, the 3-d reflexive polytope number 4078::
 

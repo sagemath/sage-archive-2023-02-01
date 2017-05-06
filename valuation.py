@@ -148,7 +148,7 @@ class DiscretePseudoValuation(Morphism):
             False
 
         """
-        raise NotImplementedError("No total order for these valuations.")
+        raise NotImplementedError("No total order for these valuations")
 
     def _richcmp_(self, other, op):
         r"""
@@ -202,7 +202,7 @@ class DiscretePseudoValuation(Morphism):
             return self >= other and not (self <= other)
         if op == 5: # >=
             return self._ge_(other)
-        raise NotImplementedError("Operator not implemented for this valuation.")
+        raise NotImplementedError("Operator not implemented for this valuation")
 
     def _eq_(self, other):
         r"""
@@ -293,7 +293,7 @@ class DiscretePseudoValuation(Morphism):
         from scaled_valuation import ScaledValuation_generic
         if isinstance(other, ScaledValuation_generic):
             return other <= self
-        raise NotImplementedError("Operator not implemented for this valuation.")
+        raise NotImplementedError("Operator not implemented for this valuation")
 
     # Remove the default implementation of Map.__reduce__ that does not play
     # nice with factories (a factory, does not override Map.__reduce__ because
@@ -636,11 +636,11 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         A similar example::
 
-          sage: R.<x> = QQ[]
-          sage: v = pAdicValuation(QQ, 3)
-          sage: G = (x^3 + 3)^3 - 81
-          sage: v.mac_lane_approximants(G) # optional: integrated
-          [[ Gauss valuation induced by 3-adic valuation, v(x) = 1/3, v(x^3 + 3*x + 3) = 13/9 ]]
+            sage: R.<x> = QQ[]
+            sage: v = pAdicValuation(QQ, 3)
+            sage: G = (x^3 + 3)^3 - 81
+            sage: v.mac_lane_approximants(G) # optional: integrated
+            [[ Gauss valuation induced by 3-adic valuation, v(x) = 1/3, v(x^3 + 3*x + 3) = 13/9 ]]
 
         Another problematic case::
 

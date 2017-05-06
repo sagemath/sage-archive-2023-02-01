@@ -1800,11 +1800,15 @@ cdef py_atan2(x, y):
         [0.55357435889705 +/- 5.75e-15] + [0.40235947810852 +/- 6.01e-15]*I
     """
     from sage.symbolic.constants import pi, NaN
+    from sage.rings.real_arb import RealBallField
+    from sage.rings.real_mpfr import RealField_class
     P = coercion_model.common_parent(x, y)
     is_real = False
     if P is ZZ:
         P = RR
-    if P in (float, RR, RBF):
+    if (P is float
+            or parent(P) is RealField_class
+            or isinstance(P, RealBallField)):
         is_real = True
     if y != 0:
         try:

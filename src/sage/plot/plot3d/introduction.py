@@ -89,10 +89,12 @@ Sage also supports platonic solids with the following functions:
 
 -  :func:`~sage.plot.plot3d.platonic.icosahedron`
 
-Different viewers are supported other jmol, like a web-based interactive viewer
-using the Three.js JavaScript library and accesible through the ``show(viewer='threejs')``
-method of any 3d graphic. A raytraced representation is accesible by typing
-``show(viewer='tachyon')``:
+Different viewers are supported: jmol, a web-based interactive viewer
+using the Three.js JavaScript library and a raytraced representation.
+The viewer is invoked by adding the keyword argument
+``viewer='jmol'`` (respectively ``'tachyon'`` or ``'threejs'``)
+to the command ``show()`` on any three-dimensional graphic
+
 
 -  :class:`~sage.plot.plot3d.tachyon.Tachyon` - create a scene the can be rendered using the Tachyon ray tracer
 

@@ -660,6 +660,15 @@ class DiscreteValuation(DiscretePseudoValuation):
              [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*x^2 + 3/2*theta^4 + theta^3 + 5*theta + 1) = 5/3 ],
              [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*x^2 + theta^4 + theta^3 + 1) = 5/3 ]]
 
+        An easy case that produced the wrong error at some point::
+
+            sage: R.<x> = QQ[]
+            sage: v = pAdicValuation(QQ, 2)
+            sage: v.mac_lane_approximants(x^2 - 1/2)
+            Traceback (most recent call last):
+            ...
+            ValueError: G must be integral.
+
         """
         R = G.parent()
         if R.base_ring() is not self.domain():
@@ -670,6 +679,9 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         from sage.rings.all import infinity
         from gauss_valuation import GaussValuation
+
+        if not all([self(c) >= 0 for c in G.coefficients()]):
+            raise ValueError("G must be integral")
 
         if require_maximal_degree:
             # we can only assert maximality of degrees when E and F are final

@@ -972,7 +972,7 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
 
     def cardinality(self):
         r"""
-        Return the cardinality of ``self``, which is always `\infty`.i
+        Return the cardinality of ``self``, which is always `\infty`.
 
         EXAMPLES::
 

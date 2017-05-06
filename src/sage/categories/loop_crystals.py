@@ -314,7 +314,7 @@ class KirillovReshetikhinCrystals(Category_singleton):
             isomorphism `R : L \otimes K \to K \otimes L` which maps
             `u_{L} \otimes u_K` to `u_K \otimes u_{L}`, where `u_K`
             is the unique element in `K = B^{r,s}` of weight
-            `s\Lambda_r - s c \Lambda_0` (see :meth:`module_generator`).
+            `s\Lambda_r - s c \Lambda_0` (see :meth:`maximal_vector`).
 
             INPUT:
 

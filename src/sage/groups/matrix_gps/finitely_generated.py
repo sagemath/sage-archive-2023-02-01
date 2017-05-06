@@ -985,7 +985,9 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         r"""
         Compute the Reynolds Operator of this finite group `G`. This is the
         projection from the polynomial ring to the ring of relative invariants.
-        [Stu1993]_.
+        [Stu1993]_. If possible, the invariant is returned defined over the
+        base field of the given polynomial ``poly``, otherwise, it is returned
+        over the compositum of the fields involved in the computation.
 
         ALGORITHM:
 
@@ -1096,7 +1098,8 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
                     if R.degree() != 1:
                         L = R.composite_fields(K)[0]
                         if C.degree() != 1:
-                            L = L.composite_fields(C)[0]# composite field of the fields of poly, self, and chi
+                            # composite field of the fields of poly, self, and chi
+                            L = L.composite_fields(C)[0]
                     else:
                         L = K
                 else:
@@ -1104,12 +1107,12 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             else:
                 L = R
         else:
-            raise NotImplementedError("Not implemented for this base field's charateristic")
-        # composite field of the fields of poly, self, and chi
+            raise NotImplementedError("Not implemented for this base field's charateristic"
         poly = poly.change_ring(L)
+        poly_gens = vector(poly.parent().gens())
         F = L(0)
         for g in self:
-            F += L(chi(g))*poly(*g.matrix().change_ring(L)*vector(poly.parent().gens()))
+            F += L(chi(g))*poly(*g.matrix().change_ring(L)*poly_gens)
         F /= self.order()
         try: # attempt to move F to base_ring of polyomial
             F = F.change_ring(R)

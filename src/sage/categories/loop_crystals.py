@@ -402,7 +402,7 @@ class KirillovReshetikhinCrystals(Category_singleton):
 
             Let `B` be a KR crystal. The element `b^{\sharp}` is the unique
             element such that `\varphi(b^{\sharp}) = \ell \Lambda_0` with
-            `\ell = \min \{ \langle c, \varphi(b) \mid b \in B \}`.
+            `\ell = \min \{ \langle c, \varphi(b) \rangle \mid b \in B \}`.
 
             EXAMPLES::
 
@@ -982,7 +982,7 @@ class KirillovReshetikhinCrystals(Category_singleton):
 
                 This method calculates a path from ``self`` to a ground
                 state path using Demazure arrows as defined in Lemma 7.3
-                in [SchillingTingley2011]_.
+                in [ST2011]_.
 
                 OUTPUT: a tuple of integers `(i_1, \ldots, i_k)`
 

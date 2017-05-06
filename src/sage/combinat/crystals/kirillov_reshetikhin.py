@@ -1134,7 +1134,8 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
         Return the affine level zero weight corresponding to the element
         ``b`` of the classical crystal underlying ``self``.
 
-        For the coefficients to calculate the level, see Kac pg. 48.
+        For the coefficients to calculate the level, see Table Aff 1
+        in [Ka1990]_.
 
         EXAMPLES::
 

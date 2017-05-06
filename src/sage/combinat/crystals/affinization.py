@@ -106,25 +106,6 @@ class AffinizationOfCrystal(UniqueRepresentation, Parent):
         """
         return "Affinization of {}".format(self._B)
 
-    # TODO: This should become unnecessary once we have a proper category for KR crystals
-    def digraph(self, subset=None, index_set=None):
-        """
-        Return the DiGraph associated with ``self``. See
-        :meth:`~sage.categories.crystals.ParentMethods.digraph()` for more
-        information.
-
-        EXAMPLES::
-
-            sage: A = crystals.KirillovReshetikhin(['A',2,1], 2, 2).affinization()
-            sage: S = A.subcrystal(max_depth=3)
-            sage: G = A.digraph(subset=S)
-        """
-        G = super(AffinizationOfCrystal, self).digraph(subset, index_set)
-        from sage.graphs.dot2tex_utils import have_dot2tex
-        if have_dot2tex():
-            G.set_latex_options(edge_options=lambda u_v_label: ({}))
-        return G
-
     class Element(Element):
         """
         An element in an affinization crystal.

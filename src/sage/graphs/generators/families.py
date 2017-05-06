@@ -2564,7 +2564,7 @@ def WindmillGraph(k, n):
     if k < 2 or n < 2:
         raise ValueError('parameters k and n must be >= 2')
 
-    if k == 2 or False:
+    if k == 2:
         from sage.graphs.generators.basic import StarGraph
         G = StarGraph(n)
     else:

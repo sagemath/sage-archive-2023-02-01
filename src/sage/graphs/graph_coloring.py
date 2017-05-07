@@ -913,11 +913,17 @@ def b_coloring(g, k, value_only = True, solver = None, verbose = 0):
 
     return obj, coloring
 
-def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver = None,verbose = 0):
+def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=None, verbose=0):
     r"""
-    Properly colors the edges of a graph. See the URL
-    http://en.wikipedia.org/wiki/Edge_coloring for further details on
-    edge coloring.
+    Compute chromatic index and edge colorings.
+
+    .. SEEALSO::
+
+        - :wikipedia:`Edge_coloring` for further details on edge coloring
+        - :meth:`~Graph.chromatic_index`
+        - :meth:`~Graph.fractional_chromatic_index`
+        - :meth:`~Graph.chromatic_number`
+        - :meth:`sage.graphs.graph_coloring.vertex_coloring`
 
     INPUT:
 
@@ -999,6 +1005,9 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver = 
     from sage.plot.colors import rainbow
     from sage.numerical.mip import MIPSolverException
 
+    if value_only and g.order()*g.size() == 0:
+        return 0
+
     if g.is_clique():
         if value_only:
             return g.order()-1 if g.order() % 2 == 0 else g.order()
@@ -1019,7 +1028,6 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver = 
 
     p = MixedIntegerLinearProgram(maximization=True, solver = solver)
     color = p.new_variable(binary = True)
-    obj = {}
     k = max(g.degree())
     # reorders the edge if necessary...
     R = lambda x: x if (x[0] <= x[1]) else (x[1], x[0])
@@ -1028,13 +1036,12 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver = 
         value_only = False
         k += 1
     #  A vertex can not have two incident edges with the same color.
-    [p.add_constraint(
-            p.sum([color[R(e),i] for e in g.edges_incident(v, labels=False)]), max=1)
-                for v in g.vertex_iterator()
-                    for i in range(k)]
+    for v in g.vertex_iterator():
+        for i in range(k):
+            p.add_constraint(p.sum(color[R(e),i] for e in g.edges_incident(v, labels=False)) <= 1)
     # an edge must have a color
-    [p.add_constraint(p.sum([color[R(e),i] for i in range(k)]), max=1, min=1)
-         for e in g.edge_iterator(labels=False)]
+    for e in g.edge_iterator(labels=False):
+        p.add_constraint(p.sum(color[R(e),i] for i in range(k)) == 1)
     # anything is good as an objective value as long as it is satisfiable
     e = next(g.edge_iterator(labels=False))
     p.set_objective(color[R(e),0])
@@ -1058,10 +1065,11 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver = 
     # Builds the color classes
     color = p.get_values(color)
     classes = [[] for i in range(k)]
-    [classes[i].append(e)
-         for e in g.edge_iterator(labels=False)
-             for i in range(k)
-                 if color[R(e),i] == 1]
+    for e in g.edge_iterator(labels=False):
+        for i in range(k):
+            if color[R(e),i] == 1:
+                classes[i].append(e)
+                break
     # if needed, builds a dictionary from the color classes adding colors
     if hex_colors:
         return dict(zip(rainbow(len(classes)), classes))

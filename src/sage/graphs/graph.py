@@ -7590,7 +7590,7 @@ class Graph(GenericGraph):
 
           - ``"Edmonds"`` selects Edmonds' algorithm as implemented in NetworkX
 
-          - ``"LP"`` uses a Linear Program formulation of the matching problem
+          - ``"LP"`` uses a Linear Program formulation of the perfect matching problem
 
         - ``solver`` -- (default: ``None``) specify a Linear Program (LP)
           solver to be used; if set to ``None``, the default one is used
@@ -7617,12 +7617,30 @@ class Graph(GenericGraph):
             True
             sage: graphs.WheelGraph(5).has_perfect_matching()
             False
+            sage: graphs.PetersenGraph().has_perfect_matching(algorithm="LP")
+            True
+            sage: graphs.WheelGraph(6).has_perfect_matching(algorithm="LP")
+            True
+            sage: graphs.WheelGraph(5).has_perfect_matching(algorithm="LP")
+            False
         """
-        return len(self) == 2*self.matching(value_only=True,
-                                            use_edge_labels=False,
-                                            algorithm=algorithm,
-                                            solver=solver,
-                                            verbose=verbose)
+        if algorithm == "Edmonds":
+            return len(self) == 2*self.matching(value_only=True,
+                                                use_edge_labels=False,
+                                                algorithm="Edmonds")
+        elif algorithm == "LP":
+            from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
+            p = MixedIntegerLinearProgram(solver=solver)
+            b = p.new_variable(binary = True)
+            for v in self:
+                p.add_constraint(sum([b[e] for e in self.edges_incident(v, labels=False)]) == 1)
+            try:
+                p.solve(log=verbose)
+                return True
+            except MIPSolverException:
+                return False
+        else:
+            raise ValueError('algorithm must be set to either "Edmonds" or "LP"')
 
 
 # Aliases to functions defined in Cython modules

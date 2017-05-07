@@ -7588,16 +7588,25 @@ class Graph(GenericGraph):
 
         - ``algorithm`` -- string (default: ``"Edmonds"``)
 
-          - ``"Edmonds"`` selects Edmonds' algorithm as implemented in NetworkX
+          - ``"Edmonds"`` uses Edmonds' algorithm as implemented in NetworkX to
+            find a matching of maximal cardinality, then check whether this
+            cardinality is half the number of vertices of the graph.
 
-          - ``"LP"`` uses a Linear Program formulation of the perfect matching problem
+          - ``"LP_matching"`` uses uses a Linear Program to find a matching of
+            maximal cardinality, then check whether this cardinality is half the
+            number of vertices of the graph.
 
+          - ``"LP"`` uses a Linear Program formulation of the perfect matching
+            problem: put a binary variable ``b[e]`` on each edge ``e``, and for
+            each vertex ``v``, require that the sum of the values of the edges
+            incident to ``v`` is 1.
+            
         - ``solver`` -- (default: ``None``) specify a Linear Program (LP)
           solver to be used; if set to ``None``, the default one is used
 
-        - ``verbose`` -- integer (default: ``0``); sets the level of
-          verbosity: set to 0 by default, which means quiet
-          (only useful when ``algorithm == "LP"``)
+        - ``verbose`` -- integer (default: ``0``); sets the level of verbosity:
+          set to 0 by default, which means quiet (only useful when 
+          ``algorithm == "LP_matching"`` or ``algorithm == "LP"``)
 
         For more information on LP solvers and which default solver is
         used, see the method
@@ -7617,30 +7626,57 @@ class Graph(GenericGraph):
             True
             sage: graphs.WheelGraph(5).has_perfect_matching()
             False
-            sage: graphs.PetersenGraph().has_perfect_matching(algorithm="LP")
+            sage: graphs.PetersenGraph().has_perfect_matching(algorithm="LP_matching")
             True
-            sage: graphs.WheelGraph(6).has_perfect_matching(algorithm="LP")
+            sage: graphs.WheelGraph(6).has_perfect_matching(algorithm="LP_matching")
             True
-            sage: graphs.WheelGraph(5).has_perfect_matching(algorithm="LP")
+            sage: graphs.WheelGraph(5).has_perfect_matching(algorithm="LP_matching")
+            False
+            sage: graphs.PetersenGraph().has_perfect_matching(algorithm="LP_matching")
+            True
+            sage: graphs.WheelGraph(6).has_perfect_matching(algorithm="LP_matching")
+            True
+            sage: graphs.WheelGraph(5).has_perfect_matching(algorithm="LP_matching")
+            False
+
+        TESTS::
+    
+            sage: G = graphs.EmptyGraph()
+            sage: all(G.has_perfect_matching(algorithm=algo) for algo in ['Edmonds', 'LP_matching', 'LP'])
+
+        Be careful with isolated vertices::
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.add_vertex(11)
+            sage: any(G.has_perfect_matching(algorithm=algo) for algo in ['Edmonds', 'LP_matching', 'LP'])
             False
         """
         if algorithm == "Edmonds":
             return len(self) == 2*self.matching(value_only=True,
                                                 use_edge_labels=False,
                                                 algorithm="Edmonds")
+        elif algorithm == "LP_matching":
+            return len(self) == 2*self.matching(value_only=True,
+                                                use_edge_labels=False,
+                                                algorithm="LP",
+                                                solver=solver,
+                                                verbose=verbose)
         elif algorithm == "LP":
             from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
             p = MixedIntegerLinearProgram(solver=solver)
             b = p.new_variable(binary = True)
             for v in self:
-                p.add_constraint(sum([b[e] for e in self.edges_incident(v, labels=False)]) == 1)
+                edges = self.edges_incident(v, labels=False)
+                if not edges:
+                    return False
+                p.add_constraint(sum([b[e] for e in edges]) == 1)
             try:
                 p.solve(log=verbose)
                 return True
             except MIPSolverException:
                 return False
         else:
-            raise ValueError('algorithm must be set to either "Edmonds" or "LP"')
+            raise ValueError('algorithm must be set to "Edmonds", "LP_matching" or "LP"')
 
 
 # Aliases to functions defined in Cython modules

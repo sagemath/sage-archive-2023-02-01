@@ -7580,9 +7580,30 @@ class Graph(GenericGraph):
                     yield [e] + mat
 
     @doc_index("Leftovers")
-    def has_perfect_matching(self):
+    def has_perfect_matching(self, algorithm="Edmonds", solver=None, verbose=0):
         r"""
         Return whether this graph has a perfect matching.
+
+        INPUT:
+
+        - ``algorithm`` -- string (default: ``"Edmonds"``)
+
+          - ``"Edmonds"`` selects Edmonds' algorithm as implemented in NetworkX
+
+          - ``"LP"`` uses a Linear Program formulation of the matching problem
+
+        - ``solver`` -- (default: ``None``) specify a Linear Program (LP)
+          solver to be used; if set to ``None``, the default one is used
+
+        - ``verbose`` -- integer (default: ``0``); sets the level of
+          verbosity: set to 0 by default, which means quiet
+          (only useful when ``algorithm == "LP"``)
+
+        For more information on LP solvers and which default solver is
+        used, see the method
+        :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+        of the class :class:`MixedIntegerLinearProgram
+        <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         OUTPUT:
 
@@ -7597,11 +7618,11 @@ class Graph(GenericGraph):
             sage: graphs.WheelGraph(5).has_perfect_matching()
             False
         """
-        try:
-            next(self.perfect_matchings())
-        except StopIteration:
-            return False
-        return True
+        return len(self) == 2*self.matching(value_only=True,
+                                            use_edge_labels=False,
+                                            algorithm=algorithm,
+                                            solver=solver,
+                                            verbose=verbose)
 
 
 # Aliases to functions defined in Cython modules

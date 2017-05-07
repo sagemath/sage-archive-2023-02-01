@@ -20,7 +20,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
-from six import iteritems
+from six import iteritems, integer_types
 
 EMBEDDED_MODE = False
 
@@ -403,13 +403,14 @@ latex_table = {type(None): None_function,
                bool: bool_function,
                dict: dict_function,
                float: float_function,
-               int: str,
                list: list_function,
-               long: str,
                str: str_function,
                tuple: tuple_function,
                type(NotImplemented): builtin_constant_function,
                type(Ellipsis): builtin_constant_function}
+
+for t in integer_types:
+    latex_table[t] = str
 
 
 class LatexExpr(str):
@@ -2338,11 +2339,11 @@ def coeff_repr(c):
         return c._latex_coeff_repr()
     except AttributeError:
         pass
-    if isinstance(c, (int, long, float)):
+    if isinstance(c, integer_types + (float,)):
         return str(c)
     s = latex(c)
     if s.find("+") != -1 or s.find("-") != -1:
-        return "(%s)"%s
+        return "(%s)" % s
     return s
 
 def repr_lincomb(symbols, coeffs):

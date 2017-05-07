@@ -129,6 +129,7 @@ Note that the letterplace implementation can only be used if the corresponding
 #*****************************************************************************
 from __future__ import absolute_import
 from six.moves import range
+from six import integer_types
 import six
 
 from sage.categories.rings import Rings
@@ -295,7 +296,7 @@ class FreeAlgebraFactory(UniqueFactory):
                     implementation=implementation if implementation != 'letterplace' else None)
         # normalise the generator names
         from sage.all import Integer
-        if isinstance(arg1, (int, long, Integer)):
+        if isinstance(arg1, (Integer,) + integer_types):
             arg1, arg2 = arg2, arg1
         if not names is None:
             arg1 = names

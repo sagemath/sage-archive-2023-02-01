@@ -40,8 +40,8 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
 
     .. MATH::
 
-        \widehat{\mathfrak{g}}^{\prime} = \left( \mathfrak{g} \otimes
-        R[t, t^{-1}] \right) \oplus R c,
+        \widehat{\mathfrak{g}}' = \bigl( \mathfrak{g} \otimes
+        R[t, t^{-1}] \bigr) \oplus R c,
 
     where `c` is the canonical central element and `R[t, t^{-1}]` is the
     Laurent polynomial ring over `R`. We define the Lie bracket as
@@ -53,8 +53,8 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
 
     where `( a | b )` is the Killing form on `\mathfrak{g}`.
 
-    There is a canonical derivative on `\widehat{\mathfrak{g}}^{\prime}`
-    which is known as the *Lie derivative* and is denoted by `\delta`.
+    There is a canonical derivative on `\widehat{\mathfrak{g}}'`
+    known as the *Lie derivative* and is denoted by `\delta`.
     The Lie derivative is defined as
 
     .. MATH::
@@ -64,9 +64,9 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
     or equivalently by `\delta = t \frac{d}{dt}`.
 
     We can form the affine Kac-Moody algebra `\widehat{\mathfrak{g}}`
-    by adding the additional generator `d` such that `[d, x] = \delta(x)`
-    where `\delta` is the Lie derivative. We note that the derived subalgebra
-    of the Kac-Moody algebra is the affine Lie algebra.
+    by adding the additional generator `d` such that `[d, x] = \delta(x)`,
+    where `\delta` is the Lie derivative. We note that the derived
+    subalgebra of the Kac-Moody algebra is the affine Lie algebra.
 
     .. NOTE::
 
@@ -191,7 +191,7 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
         FinitelyGeneratedLieAlgebra.__init__(self, R, names, names, category=cat)
 
     def _repr_(self):
-        """
+        r"""
         Return a string representation of ``self``.
 
         EXAMPLES::
@@ -213,7 +213,7 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
 
     @cached_method
     def basis(self):
-        """
+        r"""
         Return the basis of ``self``.
 
         EXAMPLES::
@@ -243,7 +243,7 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
         return Family(keys, self.monomial)
 
     def _element_constructor_(self, x):
-        """
+        r"""
         Construct an element of ``self`` from ``x``.
 
         EXAMPLES::
@@ -356,7 +356,7 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
         return self._cartan_type
 
     def classical(self):
-        """
+        r"""
         Return the classical Lie algebra of ``self``.
 
         EXAMPLES::
@@ -374,7 +374,7 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
 
     @cached_method
     def zero(self):
-        """
+        r"""
         Return the element `0`.
 
         EXAMPLES::
@@ -405,7 +405,7 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
         r"""
         Return the Lie derivative element `\delta` or ``self``.
 
-        If ``self`` is the affine Lie algebra, then this returns 0.
+        If ``self`` is the affine Lie algebra, then this returns `0`.
 
         EXAMPLES::
 
@@ -423,7 +423,7 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
 
     @cached_method
     def lie_algebra_generators(self):
-        """
+        r"""
         Return the Lie algebra generators of ``self``.
 
         EXAMPLES::
@@ -459,7 +459,7 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
         return Family(self.variable_names(), d.__getitem__)
 
     def monomial(self, m):
-        """
+        r"""
         Construct the monomial indexed by ``m``.
 
         EXAMPLES::

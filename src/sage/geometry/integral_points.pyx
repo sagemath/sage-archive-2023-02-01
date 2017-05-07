@@ -886,6 +886,16 @@ cdef class Inequality_int:
         Traceback (most recent call last):
         ...
         OverflowError: ...
+
+    TESTS:
+
+    Check that :trac:`21993` is fixed::
+
+        sage: Inequality_int([18560500, -89466500], 108027, [178933, 37121])
+        Traceback (most recent call last):
+        ...
+        OverflowError: ...
+
     """
     cdef int A[INEQ_INT_MAX_DIM]
     cdef int b

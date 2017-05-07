@@ -938,8 +938,8 @@ cdef class Inequality_int:
         if self.dim > 0:
             self.coeff_next = self.A[1]
         # finally, make sure that there cannot be any overflow during the enumeration
-        self._to_int(ZZ(b) + sum( ZZ(A[i]) * ZZ(max_abs_coordinates[i])
-                                  for i in range(self.dim) ))
+        self._to_int(abs(ZZ(b)) + sum( abs(ZZ(A[i])) * ZZ(max_abs_coordinates[i])
+                                       for i in range(self.dim) ))
 
     def __repr__(self):
         """

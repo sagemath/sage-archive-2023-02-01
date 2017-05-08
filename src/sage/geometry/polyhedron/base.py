@@ -5729,15 +5729,17 @@ class Polyhedron_base(Element):
 
         INPUT:
 
-         - ``as_affine_map`` (boolean, default = False) -- If ``False``, return
+        - ``as_affine_map`` (boolean, default = False) -- If ``False``, return
           a polyhedron. If ``True``, return the affine transformation,
           that sends the embedded polytope to a fulldimensional one.
           It is given as a pair ``(A,b)``, where A is a linear transformation
           and ``b`` is a vector, and the affine transformation sends ``v`` to
           ``A(v)+b``.
+
         - ``orthogonal`` (boolean, default = False) -- if ``True``,
           provide a orthogonal transformation
-        - ``orhtonormal``(boolean, default = False) -- if ``True``,
+
+        - ``orhtonormal`` (boolean, default = False) -- if ``True``,
           provide a orthonormal transformation
 
         OUTPUT:
@@ -5755,7 +5757,7 @@ class Polyhedron_base(Element):
 
         .. TODO:
 
-         - make the parameters ``orthogonal`` and ``orthonormal work with unbounded polyhedra.
+         - make the parameters ``orthogonal`` and ``orthonormal`` work with unbounded polyhedra.
          - allow to return ``as_affine_map=True`` for default setting
 
         EXAMPLES::
@@ -5769,7 +5771,7 @@ class Polyhedron_base(Element):
             sage: half3d.affine_hull().Vrepresentation()
             (A ray in the direction (1), A vertex at (3))
 
-        The resulting affine hulls depends on the parameter ``orthogonal`` and ``orthonormal::
+        The resulting affine hulls depend on the parameter ``orthogonal`` and ``orthonormal``::
 
             sage: L = Polyhedron([[1,0],[0,1]]); L
             A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
@@ -5912,6 +5914,17 @@ class Polyhedron_base(Element):
             ...
             NotImplementedError: "as_affine_map=True" only works with "orthogonal=True" and "orthonormal=True"
 
+        If the polyhedron is full-dimensional, it is returned::
+
+            sage: polytopes.cube().affine_hull()
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices
+            sage: polytopes.cube().affine_hull(as_affine_map=True)
+            (Vector space morphism represented by the matrix:
+             [1 0 0]
+             [0 1 0]
+             [0 0 1]
+             Domain: Vector space of dimension 3 over Rational Field
+             Codomain: Vector space of dimension 3 over Rational Field, (0, 0, 0))
 
         TESTS::
 
@@ -5921,7 +5934,7 @@ class Polyhedron_base(Element):
         # handle trivial full-dimensional case
         if self.ambient_dim() == self.dim():
             if as_affine_map:
-                return linear_transformation(Matrix(self.base_ring(), self.dim(), self.dim(), self.base_ring().one())), self.ambient_space().zero()
+                return linear_transformation(matrix(self.base_ring(), self.dim(), self.dim(), self.base_ring().one())), self.ambient_space().zero()
             return self
 
         if orthogonal or orthonormal:

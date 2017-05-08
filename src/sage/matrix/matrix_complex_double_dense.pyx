@@ -3,7 +3,7 @@ Dense matrices over the Complex Double Field using NumPy
 
 EXAMPLES::
 
-    sage: b =Mat(CDF,2,3).basis()
+    sage: b = Mat(CDF,2,3).basis()
     sage: b[0,0]
     [1.0 0.0 0.0]
     [0.0 0.0 0.0]

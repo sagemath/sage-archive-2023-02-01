@@ -128,10 +128,8 @@ class FiniteLatticePosets(CategoryWithAxiom):
             has exactly one upper cover.
 
             This is the smallest poset with completion by cuts being
-            isomorphic to the lattice. (Due to implementation detail
-            in Sage, actually isomorphic to the dual of the lattice.)
-            As a special case this returns one-element poset from one-element
-            lattice.
+            isomorphic to the lattice. As a special case this returns
+            one-element poset from one-element lattice.
 
             .. SEEALSO::
 
@@ -145,7 +143,7 @@ class FiniteLatticePosets(CategoryWithAxiom):
                 sage: L_ = L.irreducibles_poset()
                 sage: sorted(L_)
                 [2, 3, 4, 7, 8, 9, 10, 11]
-                sage: L_.completion_by_cuts().is_isomorphic(L.dual())
+                sage: L_.completion_by_cuts().is_isomorphic(L)
                 True
 
             TESTS::

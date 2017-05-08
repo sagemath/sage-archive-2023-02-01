@@ -18,3 +18,45 @@
 # SAGE_LOCAL is the installation prefix and can be customized by using
 # ./configure --prefix
 export SAGE_LOCAL="@prefix@"
+
+#######################
+# Sets the compilers
+#######################
+# On OS X 10.7 (Lion) or later when building GCC, use clang as
+# default C compiler as some older versions of XCode 4 ship broken
+# versions of GCC which fail to bootstrap GCC-4.6.3.
+# See http://trac.sagemath.org/sage_trac/ticket/12820
+if [ "$SAGE_BUILD_TOOLCHAIN" = yes ] && [ "$UNAME" = "Darwin" ] && [ "$MACOSX_VERSION" -ge 11 ]; then
+    CC=`which clang 2>/dev/null`
+    CXX=`which clang++ 2>/dev/null`
+else
+# Override CC, CXX, FC if the GCC spkg was installed.
+# Use value from configure otherwise
+    if [ -x "$SAGE_LOCAL/bin/gcc" ]; then
+        CC=gcc
+    else
+        CC="@CC@"
+    fi
+    if [ -x "$SAGE_LOCAL/bin/g++" ]; then
+        CXX=g++
+    else
+        CXX="@CXX@"
+    fi
+    if [ -x "$SAGE_LOCAL/bin/gfortran" ]; then
+        FC=gfortran
+    else
+        FC="@FC@"
+    fi
+    if [ "$UNAME" = "Darwin" ]; then
+        OBJC="@OBJC@"
+        OBJCXX="@OBJCXX@"
+        export OBJC OBJCXX
+fi
+export CC CPP CXX FC
+
+# Set other Fortran-related compiler variables
+export F77="$FC"
+export F90="$FC"   # Needed for SciPy
+export F95="$FC"
+
+

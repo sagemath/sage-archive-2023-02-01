@@ -490,65 +490,6 @@ fi
 # code is being built as part of Sage.
 export __sage__=""
 
-# Set the C and C++ compilers
-if [ -z "$CC" ]; then
-    # On OS X 10.7 (Lion) or later when building GCC, use clang as
-    # default C compiler as some older versions of XCode 4 ship broken
-    # versions of GCC which fail to bootstrap GCC-4.6.3.
-    # See http://trac.sagemath.org/sage_trac/ticket/12820
-    if [ "$SAGE_BUILD_TOOLCHAIN" = yes ] && [ "$UNAME" = "Darwin" ] && [ "$MACOSX_VERSION" -ge 11 ]; then
-        CC=`which clang 2>/dev/null`
-        CXX=`which clang++ 2>/dev/null`
-    fi
-fi
-if [ -z "$CC" ]; then
-    CC=gcc
-fi
-if [ -z "$CXX" ]; then
-    CXX=g++
-fi
-if [ -z "$FC" ]; then
-    if command -v gfortran >/dev/null 2>/dev/null; then
-        FC=gfortran
-    elif command -v g95 >/dev/null 2>/dev/null; then
-        FC=g95
-    elif command -v g77 >/dev/null 2>/dev/null; then
-        FC=g77
-    fi
-fi
-
-# An Objective-C compiler is needed for R on Darwin.
-# On Darwin, /usr/bin/cc supports Objective-C.  The gcc shipped with
-# Sage doesn't.
-if [ "$UNAME" = "Darwin" ]; then
-    if [ -z "$OBJC" -a -x "/usr/bin/cc" ]; then
-        export OBJC=/usr/bin/cc
-    fi
-    if [ -z "$OBJCXX" -a -x "/usr/bin/c++" ]; then
-        export OBJCXX=/usr/bin/c++
-    fi
-fi
-
-# Override CC, CPP, CXX, FC if the GCC spkg was installed.
-if [ -x "$SAGE_LOCAL/bin/gcc" ]; then
-    CC=gcc
-fi
-if [ -x "$SAGE_LOCAL/bin/cpp" ]; then
-    CPP=cpp
-fi
-if [ -x "$SAGE_LOCAL/bin/g++" ]; then
-    CXX=g++
-fi
-if [ -x "$SAGE_LOCAL/bin/gfortran" ]; then
-    FC=gfortran
-fi
-export CC CPP CXX FC
-
-# Set other Fortran-related compiler variables
-export F77="$FC"
-export F90="$FC"   # Needed for SciPy
-export F95="$FC"
-
 # Setup env varariables if ccache is installed
 if [ -d "$SAGE_LOCAL/libexec/ccache" ]; then
     PATH="$SAGE_LOCAL/libexec/ccache:$PATH"

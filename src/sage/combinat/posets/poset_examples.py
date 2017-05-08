@@ -1575,7 +1575,7 @@ def _random_distributive_lattice(n):
 
 def _random_stone_lattice(n):
     """
-    Return a random Stone lattice of `n` elements.
+    Return a random Stone lattice on `n` elements.
 
     INPUT:
 
@@ -1583,7 +1583,7 @@ def _random_stone_lattice(n):
 
     OUTPUT:
 
-    A random lattice (as DiGraph) of `n` elements.
+    A random lattice (as a digraph) of `n` elements.
 
     EXAMPLES::
 

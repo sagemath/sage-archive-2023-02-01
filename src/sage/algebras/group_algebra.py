@@ -302,7 +302,7 @@ class GroupAlgebra(CombinatorialFreeModule):
         sage: A( A(x) )
         (1,2,3,4,5)
     """
-    def __init__(self, group, base_ring=IntegerRing(), category=None):
+    def __init__(self, group, base_ring=IntegerRing(), category=None, **kwds):
         r"""
         See :class:`GroupAlgebra` for full documentation.
 
@@ -331,42 +331,53 @@ class GroupAlgebra(CombinatorialFreeModule):
             True
             sage: GroupAlgebra(SymmetricGroup(3)).is_commutative()
             False
+
+            sage: G = groups.permutation.Dihedral(8)
+            sage: A = G.algebra(GF(5))
+            sage: A in Algebras.Semisimple
+            True
+            sage: A = G.algebra(Zmod(4))
+            sage: A in Algebras.Semisimple
+            False
+            sage: G = groups.misc.AdditiveCyclic(4)
+            sage: Cat = CommutativeAdditiveGroups().Finite()
+            sage: A = G.algebra(QQ, category=Cat)
+            sage: A in Algebras.Semisimple
+            True
         """
         from sage.groups.group import is_Group
         if not base_ring.is_commutative():
             raise NotImplementedError("base ring must be commutative")
 
-        cat = group.category()
-        if not (cat.is_subcategory(Groups())
-                or cat.is_subcategory(AdditiveGroups())):
+        group_cat = group.category()
+        if not (group_cat.is_subcategory(Groups())
+                or group_cat.is_subcategory(AdditiveGroups())):
             raise TypeError('"%s" is not a group' % group)
 
         if category is None:
-            category = cat.Algebras(base_ring)
+            category = group_cat.Algebras(base_ring)
 
         # If base_ring is of characteristic 0, this is handled
         #    in the FiniteGroups.Algebras category
         # Maschke's theorem: under some conditions, the algebra is semisimple.
-        if (category.is_subcategory(Sets().Finite())
+        if (group_cat.is_subcategory(Sets().Finite())
             and base_ring in Fields
-            and base_ring.characteristic() >= 0
+            and base_ring.characteristic() > 0
             and hasattr(group, "cardinality")
             and group.cardinality() % base_ring.characteristic() != 0):
             category = category.Semisimple()
 
         # Somewhat dirty hack to wrap non-atomic objects
-        if group in ModulesWithBasis:
-            prefix = 'B'
-            bracket = True
-        else:
-            prefix = ''
-            bracket = False
+        if group not in ModulesWithBasis:
+            if 'prefix' not in kwds:
+                kwds['prefix'] = ''
+            if 'bracket' not in kwds:
+                kwds['bracket'] = False
 
         self._group = group
         CombinatorialFreeModule.__init__(self, base_ring, group,
-                                         prefix=prefix,
-                                         bracket=bracket,
-                                         category=category)
+                                         category=category,
+                                         **kwds)
 
         if not base_ring.has_coerce_map_from(group) :
             ## some matrix groups assume that coercion is only valid to

@@ -197,7 +197,7 @@ class FiniteGroups(CategoryWithAxiom):
 
                 sage: FiniteGroups().Algebras(QQ).is_subcategory(Algebras(QQ).Semisimple())
                 True
-                sage: FiniteGroups().Algebras(FiniteField(7)).is_subcategory(Algebras(QQ).Semisimple())
+                sage: FiniteGroups().Algebras(FiniteField(7)).is_subcategory(Algebras(FiniteField(7)).Semisimple())
                 False
                 sage: FiniteGroups().Algebras(ZZ).is_subcategory(Algebras(ZZ).Semisimple())
                 False

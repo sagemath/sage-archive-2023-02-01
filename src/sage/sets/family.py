@@ -355,18 +355,22 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
         sage: f == g
         True
 
-    The family should keep the order of the keys::
+    A family should keep the order of the keys::
 
-        sage: f = Family(["c", "a", "b"], lambda x: x+x)
+        sage: f = Family(["c", "a", "b"], lambda i: 2*i)
+        sage: list(f)
+        ['cc', 'aa', 'bb']
+
+    Even with hidden keys (see :trac:`22955`)::
+
+        sage: f = Family(["c", "a", "b"], lambda i: 2*i,
+        ....:           hidden_keys=[5], hidden_function=lambda i: i%2)
         sage: list(f)
         ['cc', 'aa', 'bb']
 
     Only the hidden function is applied to the hidden keys::
 
-        sage: f = lambda x : 2*x
-        sage: h_f = lambda x:x%2
-        sage: F = Family([1,2,3,4],function = f, hidden_keys=[5],hidden_function=h_f)
-        sage: F[5]
+        sage: f[5]
         1
     """
     assert(isinstance(hidden_keys, list))

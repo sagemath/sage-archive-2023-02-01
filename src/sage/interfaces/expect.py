@@ -63,6 +63,7 @@ from sage.structure.element import RingElement
 from sage.misc.misc import SAGE_TMP_INTERFACE
 from sage.env import SAGE_EXTCODE, LOCAL_IDENTIFIER
 from sage.misc.object_multiplexer import Multiplex
+from sage.docs.instancedoc import instancedoc
 
 from six import reraise as raise_
 
@@ -1216,7 +1217,7 @@ If this all works, you can then make calls like:
             sage: R.<x> = QQ[]; f = x^3 + x + 1;  g = x^3 - x - 1; r = f.resultant(g); gap(ZZ); singular(R)
             Integers
             polynomial ring, over a field, global ordering
-            //   characteristic : 0
+            //   coefficients: QQ
             //   number of vars : 1
             //        block   1 : ordering lp
             //                  : names    x
@@ -1344,13 +1345,14 @@ If this all works, you can then make calls like:
         return FunctionElement
 
 
+@instancedoc
 class ExpectFunction(InterfaceFunction):
     """
     Expect function.
     """
     pass
 
-
+@instancedoc
 class FunctionElement(InterfaceFunctionElement):
     """
     Expect function element.
@@ -1361,6 +1363,8 @@ class FunctionElement(InterfaceFunctionElement):
 def is_ExpectElement(x):
     return isinstance(x, ExpectElement)
 
+
+@instancedoc
 class ExpectElement(InterfaceElement):
     """
     Expect element.

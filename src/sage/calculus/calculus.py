@@ -1259,26 +1259,48 @@ lim = limit
 ###################################################################
 # Laplace transform
 ###################################################################
-def laplace(ex, t, s):
+def laplace(ex, t, s, algorithm='maxima'):
     r"""
-    Attempts to compute and return the Laplace transform of
-    ``self`` with respect to the variable `t` and
-    transform parameter `s`. If this function cannot find a
-    solution, a formal function is returned.
-
-    The function that is returned may be be viewed as a function of
-    `s`.
+    Return the Laplace transform with respect to the variable `t` and 
+    transform parameter `s`, if possible.
+    
+    If this function cannot find a solution, a formal function is returned. 
+    The function that is returned may be viewed as a function of `s`.
 
     DEFINITION:
 
-    The Laplace transform of a function `f(t)`,
-    defined for all real numbers `t \geq 0`, is the function
-    `F(s)` defined by
+    The Laplace transform of a function `f(t)`, defined for all real numbers 
+    `t \geq 0`, is the function `F(s)` defined by
 
     .. MATH::
 
                       F(s) = \int_{0}^{\infty} e^{-st} f(t) dt.
 
+    INPUT:
+
+    - ``ex`` - a symbolic expression
+
+    - ``t`` - independent variable
+
+    - ``s`` - transform parameter
+
+    - ``algorithm`` - (default: ``'maxima'``)  one of
+
+      - ``'maxima'`` - use Maxima (the default)
+
+      - ``'sympy'`` - use SymPy
+
+      - ``'giac'`` - use Giac
+    
+    NOTES:
+    
+    - The ``'sympy'`` algorithm returns the tuple (`F`, `a`, ``cond``) where `F` is the Laplace 
+      transform of `f(t)`, `Re(s)>a` is the half-plane of convergence, and cond 
+      are auxiliary convergence conditions.
+
+    .. SEEALSO::
+        :func:`inverse_laplace`
+            
     EXAMPLES:
 
     We compute a few Laplace transforms::
@@ -1299,8 +1321,6 @@ def laplace(ex, t, s):
         diff(f(x), x)
         sage: g.laplace(x, s)
         s*laplace(f(x), x, s) - f(0)
-
-    EXAMPLES:
 
     A BATTLE BETWEEN the X-women and the Y-men (by David
     Joyner): Solve
@@ -1354,27 +1374,103 @@ def laplace(ex, t, s):
         sage: inverse_laplace(L, s, t)
         t*e^(a + 2*t)*sin(t)
 
-    Unable to compute solution::
+    Unable to compute solution with Maxima::
 
-        sage: laplace(1/s, s, t)
-        laplace(1/s, s, t)
+        sage: laplace(heaviside(t-1), t, s)
+        laplace(heaviside(t - 1), t, s)
+    
+    Heaviside step function can be handled with different interfaces. 
+    Try with giac::
+        
+        sage: laplace(heaviside(t-1), t, s, algorithm='giac')
+        e^(-s)/s
+        
+    Try with SymPy::
+    
+        sage: laplace(heaviside(t-1), t, s, algorithm='sympy')
+        (e^(-s)/s, 0, True)         
+
+    TESTS::
+
+    Testing Giac::
+
+        sage: var('t, s')
+        (t, s)
+        sage: laplace(5*cos(3*t-2)*heaviside(t-2), t, s, algorithm='giac')
+        5*(s*cos(4)*e^(-2*s) - 3*e^(-2*s)*sin(4))/(s^2 + 9)
+        
+    Testing unevaluated expression from Giac::
+
+        sage: var('n')
+        n
+        sage: laplace(t^n, t, s, algorithm='giac')
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Unable to parse Giac output: integrate(t^n*exp(-s*t),t,0,+infinity)
+        
+    Testing SymPy::
+
+        sage: laplace(t^n, t, s, algorithm='sympy')
+        (s^(-n)*gamma(n + 1)/s, 0, -re(n) < 1)
+        
+    Testing Maxima::
+
+        sage: laplace(t^n, t, s, algorithm='maxima')
+        s^(-n - 1)*gamma(n + 1)    
+            
+    Testing expression that is not parsed from SymPy to Sage::
+
+        sage: laplace(cos(t^2), t, s, algorithm='sympy')
+        Traceback (most recent call last):
+        ...
+        AttributeError: Unable to convert SymPy result (=sqrt(pi)*(sqrt(2)*sin(s**2/4)*fresnelc(sqrt(2)*s/(2*sqrt(pi))) - 
+        sqrt(2)*cos(s**2/4)*fresnels(sqrt(2)*s/(2*sqrt(pi))) + cos(s**2/4 + pi/4))/2) into Sage
     """
     if not isinstance(ex, (Expression, Function)):
         ex = SR(ex)
-    return ex.parent()(ex._maxima_().laplace(var(t), var(s)))
 
-def inverse_laplace(ex, t, s):
+    if algorithm == 'maxima':
+        return ex.parent()(ex._maxima_().laplace(var(t), var(s)))
+
+    elif algorithm == 'sympy':
+        ex_sy, t, s = [expr._sympy_() for expr in (ex, t, s)]
+        from sympy import laplace_transform
+        result = laplace_transform(ex_sy, t, s)
+        if isinstance(result, tuple):
+            try:
+                (result, a, cond) = result
+                return result._sage_(), a, cond
+            except AttributeError:
+                raise AttributeError("Unable to convert SymPy result (={}) into"
+                        " Sage".format(result))
+        elif 'LaplaceTransform' in format(result):
+            return dummy_laplace(ex, t, s)
+        else:
+            return result
+
+    elif algorithm == 'giac':
+        from sage.interfaces.giac import giac
+        try:
+            result = giac.laplace(ex, t, s)
+        except TypeError:
+            raise ValueError("Giac cannot make sense of: %s" % ex_gi)
+        return result.sage() 
+
+    else:
+        raise ValueError("Unknown algorithm: %s" % algorithm)
+
+def inverse_laplace(ex, s, t, algorithm='maxima'):
     r"""
-    Attempts to compute the inverse Laplace transform of
-    ``self`` with respect to the variable `t` and
-    transform parameter `s`. If this function cannot find a
-    solution, a formal function is returned.
+    Return the inverse Laplace transform with respect to the variable `t` and 
+    transform parameter `s`, if possible.
+    
+    If this function cannot find a solution, a formal function is returned. 
+    The function that is returned may be viewed as a function of `t`.
 
-    The function that is returned may be be viewed as a function of
-    `s`.
-
-    DEFINITION: The inverse Laplace transform of a function
-    `F(s)`, is the function `f(t)` defined by
+    DEFINITION: 
+    
+    The inverse Laplace transform of a function `F(s)` is the function 
+    `f(t)`, defined by
 
     .. MATH::
 
@@ -1383,6 +1479,25 @@ def inverse_laplace(ex, t, s):
     where `\gamma` is chosen so that the contour path of
     integration is in the region of convergence of `F(s)`.
 
+    INPUT:
+
+    - ``ex`` - a symbolic expression
+
+    - ``s`` - transform parameter
+
+    - ``t`` - independent variable
+
+    - ``algorithm`` - (default: ``'maxima'``)  one of
+
+      - ``'maxima'`` - use Maxima (the default)
+
+      - ``'sympy'`` - use SymPy
+
+      - ``'giac'`` - use Giac
+
+    .. SEEALSO::
+        :func:`laplace`
+              
     EXAMPLES::
 
         sage: var('w, m')
@@ -1401,15 +1516,111 @@ def inverse_laplace(ex, t, s):
         sage: inverse_laplace(1/(s^3+1), s, t)
         1/3*(sqrt(3)*sin(1/2*sqrt(3)*t) - cos(1/2*sqrt(3)*t))*e^(1/2*t) + 1/3*e^(-t)
 
-    No explicit inverse Laplace transform, so one is returned formally
-    as a function ``ilt``::
+    No explicit inverse Laplace transform, so one is returned formally a 
+    function ``ilt``::
 
         sage: inverse_laplace(cos(s), s, t)
         ilt(cos(s), s, t)
+    
+    Transform an expression involving a time-shift, via SymPy::
+
+        sage: inverse_laplace(1/s^2*exp(-s), s, t, algorithm='sympy')
+        -(log(e^(-t)) + 1)*heaviside(t - 1)
+
+    The same instance with Giac::
+    
+        sage: inverse_laplace(1/s^2*exp(-s), s, t, algorithm='giac')
+        (t - 1)*heaviside(t - 1)
+        
+    Transform a rational expression::
+                    
+        sage: inverse_laplace((2*s^2*exp(-2*s) - exp(-s))/(s^3+1), s, t, algorithm='giac')
+        -1/3*(sqrt(3)*e^(1/2*t - 1/2)*sin(1/2*sqrt(3)*(t - 1)) - cos(1/2*sqrt(3)*(t - 1))*e^(1/2*t - 1/2) + 
+        e^(-t + 1))*heaviside(t - 1) + 2/3*(2*cos(1/2*sqrt(3)*(t - 2))*e^(1/2*t - 1) + e^(-t + 2))*heaviside(t - 2)
+        
+    Dirac delta function can also be handled::
+    
+        sage: inverse_laplace(1, s, t, algorithm='giac')
+        dirac_delta(t)
+                
+    TESTS::
+
+    Testing unevaluated expression from Maxima::
+    
+        sage: var('t, s')
+        (t, s)
+        sage: inverse_laplace(exp(-s)/s, s, t)
+        ilt(e^(-s)/s, s, t)
+        
+    Testing Giac::
+
+        sage: inverse_laplace(exp(-s)/s, s, t, algorithm='giac')
+        heaviside(t - 1)
+    
+    Testing SymPy::
+    
+        sage: inverse_laplace(exp(-s)/s, s, t, algorithm='sympy')
+        heaviside(t - 1)    
+        
+    Testing unevaluated expression from Giac::
+    
+        sage: n = var('n')
+        sage: inverse_laplace(1/s^n, s, t, algorithm='giac')
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Unable to parse Giac output: ilaplace([s^(-n),s,t])
+        
+    Try with Maxima::
+    
+        sage: inverse_laplace(1/s^n, s, t, algorithm='maxima')
+        ilt(1/(s^n), s, t)
+    
+    Try with SymPy::
+    
+        sage: inverse_laplace(1/s^n, s, t, algorithm='sympy')
+        t^(n - 1)*heaviside(t)/gamma(n)
+    
+    Testing unevaluated expression from SymPy::
+    
+        sage: inverse_laplace(cos(s), s, t, algorithm='sympy')
+        ilt(cos(s), t, s)
+    
+    Testing unevaluated expression from Giac::
+    
+        sage: inverse_laplace(cos(s), s, t, algorithm='giac')
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Unable to parse Giac output: ilaplace([cos(s),s,t])
     """
     if not isinstance(ex, Expression):
         ex = SR(ex)
-    return ex.parent()(ex._maxima_().ilt(var(t), var(s)))
+
+    if algorithm == 'maxima':
+        return ex.parent()(ex._maxima_().ilt(var(s), var(t)))
+
+    elif algorithm == 'sympy':
+        ex_sy, s, t = [expr._sympy_() for expr in (ex, s, t)]
+        from sympy import inverse_laplace_transform
+        result = inverse_laplace_transform(ex_sy, s, t)
+        try:
+            return result._sage_()
+        except AttributeError:
+            if 'InverseLaplaceTransform' in format(result):
+                return dummy_inverse_laplace(ex, t, s)
+            else:
+                raise AttributeError("Unable to convert SymPy result (={}) into"
+                                    " Sage".format(result))
+
+    elif algorithm == 'giac':
+        from sage.interfaces.giac import giac
+        try:
+            result = giac.invlaplace(ex, s, t)
+        except TypeError:
+            raise ValueError("Giac cannot make sense of: %s" % ex)    
+        return result.sage() 
+
+    else:
+        raise ValueError("Unknown algorithm: %s" % algorithm)
 
 ###################################################################
 # symbolic evaluation "at" a point
@@ -1776,15 +1987,15 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         2
         sage: var('my_new_var').full_simplify()
         my_new_var
-        
+
     ODE solution constants are treated differently (:trac:`16007`)::
-    
+
         sage: from sage.calculus.calculus import symbolic_expression_from_maxima_string as sefms
         sage: sefms('%k1*x + %k2*y + %c')
         _K1*x + _K2*y + _C
 
     Check that some hypothetical variables don't end up as special constants (:trac:`6882`)::
-    
+
         sage: from sage.calculus.calculus import symbolic_expression_from_maxima_string as sefms
         sage: sefms('%i')^2
         -1
@@ -1848,7 +2059,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     #we apply the square-bracket replacing patterns repeatedly
     #to ensure that nested brackets get handled (from inside to out)
     while True:
-        olds = s 
+        olds = s
         s = polylog_ex.sub('polylog(\\1,', s)
         s = maxima_polygamma.sub('psi(\g<1>,', s) # this replaces psi[n](foo) with psi(n,foo), ensuring that derivatives of the digamma function are parsed properly below
         if s == olds: break
@@ -2108,4 +2319,3 @@ SRM_parser = Parser(make_int      = lambda x: SR(Integer(x)),
                     make_float    = lambda x: SR(RealDoubleElement(x)),
                     make_var      = _find_Mvar,
                     make_function = _find_func)
-

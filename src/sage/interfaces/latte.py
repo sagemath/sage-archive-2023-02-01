@@ -1,5 +1,5 @@
 r"""
-Generic interface to LattE integrale programs
+Interface to LattE integrale programs
 """
 #*****************************************************************************
 #       Copyright (C) 2017 Vincent Delecroix <vincent.delecroix@gmail.com>
@@ -10,6 +10,8 @@ Generic interface to LattE integrale programs
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+import six
 
 def count(arg, ehrhart_polynomial=False, multivariate_generating_function=False, raw_output=False, verbose=False, **kwds):
     r"""
@@ -187,3 +189,238 @@ def count(arg, ehrhart_polynomial=False, multivariate_generating_function=False,
         else:
             from sage.rings.integer import Integer
             return Integer(ans)
+
+def integrate(arg, polynomial=None, algorithm='triangulate', raw_output=False, verbose=False, **kwds):
+    r"""
+    Call to the function integrate from LattE integrale.
+
+    INPUT:
+
+    - ``arg`` -- a cdd or LattE description string.
+
+    - ``polynomial`` -- multivariate polynomial or valid LattE polynomial description string.
+      If given, the valuation parameter of LattE is set to integrate, and is set to volume otherwise.
+
+    - ``algorithm`` -- (default: 'triangulate') the integration method. Use 'triangulate' for
+      polytope triangulation or 'cone-decompose' for tangent cone decomposition method.
+
+    - ``raw_output`` -- if ``True`` then return directly the output string from LattE.
+
+    - ``verbose`` -- if ``True`` then return directly verbose output from LattE.
+
+    - For all other options of the integrate program, consult the LattE manual.
+
+    OUTPUT:
+
+    Either a string (if ``raw_output`` if set to ``True``) or a rational.
+
+    EXAMPLES::
+
+        sage: from sage.interfaces.latte import integrate
+        sage: P = 2 * polytopes.cube()
+        sage: x, y, z = polygen(QQ, 'x, y, z')
+
+    Integrating over a polynomial over a polytope in either the H or V representation::
+
+        sage: integrate(P.cdd_Hrepresentation(), x^2*y^2*z^2, cdd=True)   # optional - latte_int
+        4096/27
+        sage: integrate(P.cdd_Vrepresentation(), x^2*y^2*z^2, cdd=True)   # optional - latte_int
+        4096/27
+
+    Computing the volume of a polytope in either the H or V representation::
+
+        sage: integrate(P.cdd_Hrepresentation(), cdd=True)   # optional - latte_int
+        64
+        sage: integrate(P.cdd_Vrepresentation(), cdd=True)   # optional - latte_int
+        64
+
+    Polynomials given as a string in LattE description are also accepted::
+
+        sage: integrate(P.cdd_Hrepresentation(), '[[1,[2,2,2]]]', cdd=True)   # optional - latte_int
+        4096/27
+
+    TESTS::
+
+    Testing raw output::
+
+        sage: from sage.interfaces.latte import integrate
+        sage: P = polytopes.cuboctahedron()
+        sage: cddin = P.cdd_Vrepresentation()
+        sage: x, y, z = polygen(QQ, 'x, y, z')
+        sage: f = 3*x^2*y^4*z^6 + 7*y^3*z^5
+        sage: integrate(cddin, f, cdd=True, raw_output=True)  # optional - latte_int
+        '629/47775'
+
+    Testing the ``verbose`` option to integrate over a polytope::
+
+        sage: ans = integrate(cddin, f, cdd=True, verbose=True, raw_output=True)  # optional - latte_int
+        This is LattE integrale ...
+        ...
+        Invocation: integrate --valuation=integrate --triangulate --redundancy-check=none --cdd --monomials=... /dev/stdin
+        ...
+
+    Testing triangulate algorithm::
+
+        sage: from sage.interfaces.latte import integrate
+        sage: P = polytopes.cuboctahedron()
+        sage: cddin = P.cdd_Vrepresentation()
+        sage: integrate(cddin, algorithm='triangulate', cdd=True)  # optional - latte_int
+        20/3
+
+    Testing convex decomposition algorithm::
+
+        sage: from sage.interfaces.latte import integrate
+        sage: P = polytopes.cuboctahedron()
+        sage: cddin = P.cdd_Vrepresentation()
+        sage: integrate(cddin, algorithm='cone-decompose', cdd=True)  # optional - latte_int
+        20/3
+
+    Testing raw output::
+
+        sage: from sage.interfaces.latte import integrate
+        sage: P = polytopes.cuboctahedron()
+        sage: cddin = P.cdd_Vrepresentation()
+        sage: integrate(cddin, cdd=True, raw_output=True)  # optional - latte_int
+        '20/3'
+
+    Testing polynomial given as a string in LattE description::
+
+        sage: from sage.interfaces.latte import integrate
+        sage: P = polytopes.cuboctahedron()
+        sage: integrate(P.cdd_Hrepresentation(), '[[3,[2,4,6]],[7,[0, 3, 5]]]', cdd=True)   # optional - latte_int
+        629/47775
+
+    Testing the ``verbose`` option to compute the volume of a polytope::
+
+        sage: from sage.interfaces.latte import integrate
+        sage: P = polytopes.cuboctahedron()
+        sage: cddin = P.cdd_Vrepresentation()
+        sage: ans = integrate(cddin, cdd=True, raw_output=True, verbose=True)  # optional - latte_int
+        This is LattE integrale ...
+        ...
+        Invocation: integrate --valuation=volume --triangulate --redundancy-check=none --cdd /dev/stdin
+        ...
+    """
+    from subprocess import Popen, PIPE
+    from sage.misc.misc import SAGE_TMP
+    from sage.rings.integer import Integer
+
+    args = ['integrate']
+
+    got_polynomial = True if polynomial is not None else False
+
+    if got_polynomial:
+        args.append('--valuation=integrate')
+    else:
+        args.append('--valuation=volume')
+
+    if algorithm=='triangulate':
+        args.append('--triangulate')
+    elif algorithm=='cone-decompose':
+        args.append('--cone-decompose')
+
+    if 'redundancy_check' not in kwds:
+        args.append('--redundancy-check=none')
+
+    for key,value in kwds.items():
+        if value is None or value is False:
+            continue
+
+        key = key.replace('_','-')
+        if value is True:
+            args.append('--{}'.format(key))
+        else:
+            args.append('--{}={}'.format(key, value))
+
+    if got_polynomial:
+        if not isinstance(polynomial, six.string_types):
+            # transform polynomial to LattE description
+            monomials_list = to_latte_polynomial(polynomial)
+        else:
+            monomials_list = str(polynomial)
+
+        from sage.misc.temporary_file import tmp_filename
+        filename_polynomial = tmp_filename()
+
+        with open(filename_polynomial, 'w') as f:
+            f.write(monomials_list)
+            args += ['--monomials=' + filename_polynomial]
+
+    args += ['/dev/stdin']
+
+    try:
+        # The cwd argument is needed because latte
+        # always produces diagnostic output files.
+        latte_proc = Popen(args,
+                           stdin=PIPE, stdout=PIPE,
+                           stderr=(None if verbose else PIPE),
+                           cwd=str(SAGE_TMP))
+    except OSError:
+        from sage.misc.package import PackageNotFoundError
+        raise PackageNotFoundError('latte_int')
+
+    ans, err = latte_proc.communicate(arg)
+    ret_code = latte_proc.poll()
+    if ret_code:
+        if err is None:
+            err = ", see error message above"
+        else:
+            err = ":\n" + err
+        raise RuntimeError("LattE integrale program failed (exit code {})".format(ret_code) + err.strip())
+
+    ans = ans.splitlines()
+    ans = ans[-5].split()
+    assert(ans[0]=='Answer:')
+    ans = ans[1]
+
+    if raw_output:
+        return ans
+    else:
+        from sage.rings.rational import Rational
+        return Rational(ans)
+
+def to_latte_polynomial(polynomial):
+    r"""
+    Helper function to transform a polynomial to its LattE description.
+
+    INPUT:
+
+    - ``polynomial`` -- a multivariate polynomial.
+
+    OUTPUT:
+
+    A string that describes the monomials list and exponent vectors.
+
+    TESTS::
+
+    Testing a polynomial in three variables::
+
+        sage: from sage.interfaces.latte import to_latte_polynomial
+        sage: x, y, z = polygens(QQ, 'x, y, z')
+        sage: f = 3*x^2*y^4*z^6 + 7*y^3*z^5
+        sage: to_latte_polynomial(f)
+        '[[3, [2, 4, 6]], [7, [0, 3, 5]]]'
+
+    Testing a univariate polynomial::
+
+        sage: x = polygen(QQ, 'x')
+        sage: to_latte_polynomial((x-1)^2)
+        '[[1, [0]], [-2, [1]], [1, [2]]]'
+    """
+    from sage.rings.polynomial.polydict import ETuple
+
+    coefficients_list = polynomial.coefficients()
+
+    # transform list of exponents into a list of lists.
+    # this branch handles the multivariate/univariate case
+    if isinstance(polynomial.exponents()[0], ETuple):
+        exponents_list = [list(exponent_vector_i) for exponent_vector_i in polynomial.exponents()]
+    else:
+        exponents_list = [[exponent_vector_i] for exponent_vector_i in polynomial.exponents()]
+
+    # assuming that the order in coefficients() and exponents() methods match
+    monomials_list = zip(coefficients_list, exponents_list)
+    monomials_list = [list(monomial_i) for monomial_i in monomials_list]
+    monomials_list = str(monomials_list)
+
+    return monomials_list

@@ -64,7 +64,7 @@ commandes sont de types différents :
     sage: type(gp('znprimroot(10007)'))
     <class 'sage.interfaces.gp.GpElement'>
     sage: type(pari('znprimroot(10007)'))
-    <type 'sage.libs.cypari2.gen.Gen'>
+    <type 'cypari2.gen.Gen'>
 
 Alors, laquelle des intrefaces utiliser ? Tout dépend de ce que vous
 cherchez à faire. L'interface GP permet de faire absolument tout ce que
@@ -102,7 +102,7 @@ Commençons par créer une liste PARI à partir d'une liste Python.
     sage: v
     [1, 2, 3, 4, 5]
     sage: type(v)
-    <type 'sage.libs.cypari2.gen.Gen'>
+    <type 'cypari2.gen.Gen'>
 
 En Sage, les objets PARI sont de type ``Gen``. Le type PARI de
 l'objet sous-jacent est donné par la méthode ``type``.
@@ -199,7 +199,7 @@ fournie par Sage (n'entrez pas les ``....:``) :
     sage: R1 = singular.ring(0, '(x,y)', 'dp')
     sage: R1
     polynomial ring, over a field, global ordering
-    //   characteristic : 0
+    //   coefficients: QQ
     //   number of vars : 2
     //        block   1 : ordering dp
     //                  : names    x y

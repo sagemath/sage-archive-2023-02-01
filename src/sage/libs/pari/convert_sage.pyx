@@ -14,10 +14,10 @@ Convert PARI objects to Sage types
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.libs.cypari2.types cimport (GEN, typ, t_INT, t_FRAC, t_REAL, t_COMPLEX,
+from cypari2.types cimport (GEN, typ, t_INT, t_FRAC, t_REAL, t_COMPLEX,
    t_INTMOD, t_PADIC, t_INFINITY, t_VEC, t_COL, t_VECSMALL, t_MAT, lg, precp)
-from sage.libs.cypari2.pari_instance cimport prec_words_to_bits
-from sage.libs.cypari2.paridecl cimport gel, inf_get_sign
+from cypari2.pari_instance cimport prec_words_to_bits
+from cypari2.paridecl cimport gel, inf_get_sign
 
 cpdef gen_to_sage(Gen z, locals=None):
     """

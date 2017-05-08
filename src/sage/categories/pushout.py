@@ -711,8 +711,8 @@ class MultivariateConstructionFunctor(ConstructionFunctor):
             self._raise_common_base_exception_(
                 other_functor, self_bases, other_bases,
                 'Functors need the same number of arguments')
-        from sage.structure.element import get_coercion_model
-        Z_bases = tuple(get_coercion_model().common_parent(S, O)
+        from sage.structure.element import coercion_model
+        Z_bases = tuple(coercion_model.common_parent(S, O)
                         for S, O in zip(self_bases, other_bases))
         return self(Z_bases)
 
@@ -3202,7 +3202,7 @@ class BlackBoxConstructionFunctor(ConstructionFunctor):
         Gap
         sage: FS(QQ['t'])
         polynomial ring, over a field, global ordering
-        //   characteristic : 0
+        //   coefficients: QQ
         //   number of vars : 1
         //        block   1 : ordering lp
         //                  : names    t
@@ -4066,7 +4066,7 @@ def type_to_parent(P):
         TypeError: Not a scalar type.
     """
     import sage.rings.all
-    if P in [int, long]:
+    if P in six.integer_types:
         return sage.rings.all.ZZ
     elif P is float:
         return sage.rings.all.RDF

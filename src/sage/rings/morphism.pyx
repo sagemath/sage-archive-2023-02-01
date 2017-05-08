@@ -801,24 +801,6 @@ cdef class RingHomomorphism(RingMap):
                     pass
         return sage.categories.map.Map._composition_(self, right, homset)
 
-    def is_injective(self):
-        """
-        Return whether or not this morphism is injective, or raise
-        a ``NotImplementedError``.
-
-        EXAMPLES:
-
-        Note that currently this is not implemented in most
-        interesting cases::
-
-            sage: f = ZZ.hom(QQ)
-            sage: f.is_injective()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
-
     def is_zero(self):
         r"""
         Return ``True`` if this is the zero map and ``False`` otherwise.

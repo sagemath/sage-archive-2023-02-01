@@ -5,6 +5,10 @@ Disjoint-set data structure
 The main entry point is :func:`DisjointSet` which chooses the appropriate
 type to return. For more on the data structure, see :func:`DisjointSet`.
 
+This module defines a class for mutable partitioning of a set, which
+can not be used as a key of a dictionary, vertex of a graph etc. For
+immutable partitioning see :class:`SetPartition`.
+
 AUTHORS:
 
 - Sébastien Labbé (2008) - Initial version.

@@ -113,6 +113,7 @@ TESTS::
 
 """
 from __future__ import absolute_import
+from six import integer_types
 
 from . import power_series_poly
 from . import power_series_mpoly
@@ -340,7 +341,8 @@ def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
     if arg2 is None and num_gens is not None:
         arg2 = names
         names = num_gens
-    if isinstance(arg2, str) and isinstance(names, (int,long,integer.Integer)):
+    if (isinstance(arg2, str) and
+            isinstance(names, integer_types + (integer.Integer,))):
         return _multi_variate(base_ring, num_gens=names, names=arg2,
                      order=order, default_prec=default_prec, sparse=sparse)
 
@@ -359,13 +361,13 @@ def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
     ## so no warning for now.
     ##
     # from sage.misc.superseded import deprecation
-    # if isinstance(name, (int,long,integer.Integer)) or isinstance(arg2,(int,long,integer.Integer)):
+    # if isinstance(name, (int,integer.Integer)) or isinstance(arg2,(int,integer.Integer)):
     #     deprecation(trac_number, "This behavior of PowerSeriesRing is being deprecated in favor of constructing multivariate power series rings. (See Trac ticket #1956.)")
 
 
     # the following is the original, univariate-only code
 
-    if isinstance(name, (int,long,integer.Integer)):
+    if isinstance(name, integer_types + (integer.Integer,)):
         default_prec = name
     if not names is None:
         name = names
@@ -560,7 +562,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
                                                        _CommutativeRings))
         Nonexact.__init__(self, default_prec)
         if self.Element is PowerSeries_pari:
-            self.__generator = self.element_class(self, R.gen()._pari_())
+            self.__generator = self.element_class(self, R.gen().__pari__())
         else:
             self.__generator = self.element_class(self, R.gen(), is_gen=True)
 

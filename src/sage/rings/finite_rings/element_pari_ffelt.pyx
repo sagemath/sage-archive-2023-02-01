@@ -20,11 +20,11 @@ AUTHORS:
 
 include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
-from sage.libs.cypari2.paridecl cimport *
-from sage.libs.cypari2.paripriv cimport *
+from cypari2.paridecl cimport *
+from cypari2.paripriv cimport *
 from sage.libs.pari.convert_gmp cimport _new_GEN_from_mpz_t
-from sage.libs.cypari2.stack cimport new_gen, clear_stack, deepcopy_to_python_heap
-from sage.libs.cypari2.gen cimport Gen as pari_gen, objtogen
+from cypari2.stack cimport new_gen, clear_stack, deepcopy_to_python_heap
+from cypari2.gen cimport Gen as pari_gen, objtogen
 
 from .element_base cimport FinitePolyExtElement
 from integer_mod import IntegerMod_abstract
@@ -43,8 +43,7 @@ cdef GEN _INT_to_FFELT(GEN g, GEN x) except NULL:
     Convert the t_INT `x` to an element of the field of definition of
     the t_FFELT `g`.
 
-    This function must be called within ``sig_on()``
-    ... ``sig_off()``.
+    This function must be called within ``sig_on()`` ... ``sig_off()``.
 
     TESTS:
 
@@ -155,17 +154,11 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         self._parent = parent
         self.construct_from(x)
 
-    # The Cython constructor __cinit__ is not necessary: according to
-    # the Cython documentation, C attributes are initialised to 0.
-    # def __cinit__(FiniteFieldElement_pari_ffelt self):
-    #     self.block = NULL
-
     def __dealloc__(FiniteFieldElement_pari_ffelt self):
         """
         Cython deconstructor.
         """
-        if self.block:
-            sig_free(self.block)
+        sig_free(self.chunk)
 
     cdef FiniteFieldElement_pari_ffelt _new(FiniteFieldElement_pari_ffelt self):
         """
@@ -183,7 +176,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
 
         This should be called exactly once on every instance.
         """
-        self.val = deepcopy_to_python_heap(g, <pari_sp*>&self.block)
+        self.val = deepcopy_to_python_heap(g, &self.chunk)
         clear_stack()
 
     cdef void construct_from(FiniteFieldElement_pari_ffelt self, object x) except *:
@@ -649,7 +642,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             return self._parent.one()
         if exp < 0 and FF_equal0(self.val):
             raise ZeroDivisionError
-        exp = Integer(exp)._pari_()
+        exp = Integer(exp).__pari__()
         cdef FiniteFieldElement_pari_ffelt x = self._new()
         sig_on()
         x.construct(FF_pow(self.val, (<pari_gen>exp).g))
@@ -1001,7 +994,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         """
         return float(self.lift())
 
-    def _pari_(self, var=None):
+    def __pari__(self, var=None):
         """
         Return a PARI object representing ``self``.
 
@@ -1013,7 +1006,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
 
             sage: k.<a> = FiniteField(3^3, impl='pari_ffelt')
             sage: b = a**2 + 2*a + 1
-            sage: b._pari_()
+            sage: b.__pari__()
             a^2 + 2*a + 1
         """
         sig_on()

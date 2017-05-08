@@ -22,7 +22,7 @@ AUTHORS:
 include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
-from sage.libs.cypari2.paridecl cimport *
+from cypari2.paridecl cimport *
 
 from sage.structure.sage_object cimport (SageObject, richcmp,
                                          richcmp_not_equal, rich_to_bool)
@@ -35,7 +35,7 @@ from sage.rings.ring cimport Ring
 from sage.rings.finite_rings.finite_field_base cimport FiniteField
 
 from sage.libs.pari.all import pari
-from sage.libs.cypari2.gen cimport Gen
+from cypari2.gen cimport Gen
 
 from sage.interfaces.gap import is_GapElement
 
@@ -358,7 +358,7 @@ cdef class Cache_ntl_gf2e(SageObject):
         elif isinstance(e, FiniteFieldElement_pari_ffelt) or \
              isinstance(e, FiniteField_ext_pariElement):
             # Reduce to pari
-            e = e._pari_()
+            e = e.__pari__()
 
         elif is_GapElement(e):
             from sage.interfaces.gap import gfq_gap_to_sage

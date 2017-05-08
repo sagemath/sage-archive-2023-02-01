@@ -43,9 +43,8 @@ by developers producing new classes, not casual users.
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
-
-
 from __future__ import absolute_import
+from six.moves import range
 
 from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import ZZ
@@ -522,7 +521,7 @@ class GenericCellComplex(SageObject):
         from sage.homology.homology_group import HomologyGroup
 
         if dim is not None:
-            if isinstance(dim, (list, tuple)):
+            if isinstance(dim, (list, tuple, range)):
                 low = min(dim) - 1
                 high = max(dim) + 2
             else:
@@ -552,11 +551,11 @@ class GenericCellComplex(SageObject):
             if H:
                 answer = {}
                 if not dims:
-                    dims =range(self.dimension() + 1)
+                    dims = range(self.dimension() + 1)
                 for d in dims:
                     answer[d] = H.get(d, HomologyGroup(0, base_ring))
                 if dim is not None:
-                    if not isinstance(dim, (list, tuple)):
+                    if not isinstance(dim, (list, tuple, range)):
                         answer = answer.get(dim, HomologyGroup(0, base_ring))
                 return answer
 
@@ -575,9 +574,9 @@ class GenericCellComplex(SageObject):
         answer = C.homology(base_ring=base_ring, generators=generators,
                             verbose=verbose, algorithm=algorithm)
         if dim is None:
-            dim = range(self.dimension()+1)
+            dim = range(self.dimension() + 1)
         zero = HomologyGroup(0, base_ring)
-        if isinstance(dim, (list, tuple)):
+        if isinstance(dim, (list, tuple, range)):
             return dict([d, answer.get(d, zero)] for d in dim)
         return answer.get(dim, zero)
 

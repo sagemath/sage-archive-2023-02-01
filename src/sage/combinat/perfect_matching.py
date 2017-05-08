@@ -194,7 +194,7 @@ class PerfectMatching(ElementWrapper):
             if not(p.cycle_type() == [2 for i in range(n//2)]):
                 raise ValueError("The permutation p (= %s) is not a "
                                  "fixed point free involution" % p)
-            objects = Set(list(range(1, n + 1)))
+            objects = Set(range(1, n + 1))
             data = p.to_cycles()
         # Third case: p is already a perfect matching, we return p directly
         elif isinstance(p, PerfectMatching):

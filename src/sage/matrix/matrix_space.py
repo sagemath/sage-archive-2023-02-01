@@ -177,22 +177,22 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             4
             sage: MS.dims()
             (2, 2)
-            sage: B = list(MS.basis())
-            sage: B
+            sage: B = MS.basis()
+            sage: list(B)
             [
             [1 0]  [0 1]  [0 0]  [0 0]
             [0 0], [0 0], [1 0], [0 1]
             ]
-            sage: B[0]
+            sage: B[0,0]
             [1 0]
             [0 0]
-            sage: B[1]
+            sage: B[0,1]
             [0 1]
             [0 0]
-            sage: B[2]
+            sage: B[1,0]
             [0 0]
             [1 0]
-            sage: B[3]
+            sage: B[1,1]
             [0 0]
             [0 1]
             sage: A = MS.matrix([1,2,3,4])
@@ -1115,7 +1115,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         .. WARNING::
 
            This will of course compute every generator of this matrix
-           space. So for large matrices, this could take a long time,
+           space. So for large dimensions, this could take a long time,
            waste a massive amount of memory (for dense matrices), and
            is likely not very useful. Don't use this on large matrix
            spaces.
@@ -1150,7 +1150,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         from sage.sets.family import Family
         def old_index(i):
             from sage.misc.superseded import deprecation
-            deprecation(22955, "integer indices are deprecated. Use (r,c) instead.")
+            deprecation(22955, "integer indices are deprecated. Use B[r,c] instead of B[i].")
             return v[keys[i]]
         return Family(keys, v.__getitem__,
                       hidden_keys=list(range(self.dimension())),

@@ -667,7 +667,7 @@ class DiscreteValuation(DiscretePseudoValuation):
             sage: v.mac_lane_approximants(x^2 - 1/2)
             Traceback (most recent call last):
             ...
-            ValueError: G must be integral.
+            ValueError: G must be integral
 
         """
         R = G.parent()

@@ -256,7 +256,7 @@ class RingHomomorphism_coercion_patched(sage.rings.morphism.RingHomomorphism_coe
 
             sage: R.<x> = ZZ[]
             sage: R.<xbar> = R.quo(x^2+x+1)
-            sage: R.coerce_map_from(ZZ).is_injective()
+            sage: Hom(ZZ,R).natural_map().is_injective()
             True
 
             sage: R.<x> = QQbar[]

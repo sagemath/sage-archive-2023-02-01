@@ -112,6 +112,7 @@ class Algebras(CategoryWithAxiom_over_base_ring):
     Filtered    = LazyImport('sage.categories.filtered_algebras',    'FilteredAlgebras')
     Graded      = LazyImport('sage.categories.graded_algebras',      'GradedAlgebras')
     Super       = LazyImport('sage.categories.super_algebras',       'SuperAlgebras')
+    # at_startup currently needed for MatrixSpace, see #22955 (e.g., comment:20)
     WithBasis   = LazyImport('sage.categories.algebras_with_basis',  'AlgebrasWithBasis',
                              at_startup=True)
     #if/when Semisimple becomes an axiom

@@ -27,6 +27,7 @@ from sage.misc.package import is_package_installed
 from sage.rings.all import QQ, ZZ, AA
 from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
+from sage.modules.vector_space_morphism import linear_transformation
 from sage.matrix.constructor import matrix
 from sage.functions.other import sqrt, floor, ceil, binomial
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
@@ -5713,31 +5714,49 @@ class Polyhedron_base(Element):
         else:
             return self.face_lattice().is_isomorphic(other.face_lattice())
 
-    def affine_hull(self, force_isometry=False):
+    def affine_hull(self, as_affine_map=False, orthogonal=False, orthonormal=False):
         """
         Return the affine hull.
 
         Each polyhedron is contained in some smallest affine subspace
         (possibly the entire ambient space). The affine hull is the
         same polyhedron but thought of as a full-dimensional
-        polyhedron in this subspace. Depending on how the smallest affine
-        subspace is coordinatized, the resulting polyhedron might or
-        might not be isometric to the original polyhedron. This can be
-        controlled with the ``force_isometry`` parameter. In any case
-        they will be affinely equivalent.
+        polyhedron in this subspace. We provide a projection of the ambient
+        space of the polyhedron to Euclidian space of dimension of the
+        polyhedron. Then the image of the polyhedron under this
+        projection (or, depending on the parameter ``as_affine_map``,
+        the projection itself) is returned.
 
         INPUT:
 
-         - ``force_isometry`` (default = ``False``) -- if ``True``, the
-         resulting affine hull will be isometric to the polyhedron provided
+         - ``as_affine_map`` (boolean, default = False) -- If ``False``, return
+          a polyhedron. If ``True``, return the affine transformation,
+          that sends the embedded polytope to a fulldimensional one.
+          It is given as a pair ``(A,b)``, where A is a linear transformation
+          and ``b`` is a vector, and the affine transformation sends ``v`` to
+          ``A(v)+b``.
+        - ``orthogonal`` (boolean, default = False) -- if ``True``,
+          provide a orthogonal transformation
+        - ``orhtonormal``(boolean, default = False) -- if ``True``,
+          provide a orthonormal transformation
 
         OUTPUT:
 
-        A full-dimensional polyhedron.
+        A full-dimensional polyhedron or a linear transformation,
+        depending on the parameter ``as_affine_map``.
 
-        .. TODO::
 
-        Make the parmeter ``force_isometry`` work with unbounded polyhedra.
+        NOTE:
+
+        If the parameter ``orthonormal`` is ``True``, the resulting polytope
+        might have a different base ring then the input. See the examples
+        for cases of this behaviour
+
+
+        .. TODO:
+
+         - make the parameters ``orthogonal`` and ``orthonormal work with unbounded polyhedra.
+         - allow to return ``as_affine_map=True`` for default setting
 
         EXAMPLES::
 
@@ -5750,7 +5769,7 @@ class Polyhedron_base(Element):
             sage: half3d.affine_hull().Vrepresentation()
             (A ray in the direction (1), A vertex at (3))
 
-        The resulting affine hulls depends on the ``force_isometry`` parameter::
+        The resulting affine hulls depends on the parameter ``orthogonal`` and ``orthonormal::
 
             sage: L = Polyhedron([[1,0],[0,1]]); L
             A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
@@ -5758,7 +5777,11 @@ class Polyhedron_base(Element):
             A 1-dimensional polyhedron in ZZ^1 defined as the convex hull of 2 vertices
             sage: A.vertices()
             (A vertex at (0), A vertex at (1))
-            sage: A = L.affine_hull(force_isometry=True); A
+            sage: A = L.affine_hull(orthogonal=True); A
+            A 1-dimensional polyhedron in QQ^1 defined as the convex hull of 2 vertices
+            sage: A.vertices()
+            (A vertex at (0), A vertex at (2))
+            sage: A = L.affine_hull(orthonormal=True); A
             A 1-dimensional polyhedron in AA^1 defined as the convex hull of 2 vertices
             sage: A.vertices()
             (A vertex at (0), A vertex at (1.414213562373095?))
@@ -5774,7 +5797,14 @@ class Polyhedron_base(Element):
              A vertex at (0, 0, 1),
              A vertex at (0, 1, 0),
              A vertex at (1, 0, 0))
-            sage: A = S.affine_hull(force_isometry=True); A
+            sage: A = S.affine_hull(orthogonal=True); A
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
+            sage: A.vertices()
+            (A vertex at (0, 0, 0),
+             A vertex at (2, 0, 0),
+             A vertex at (1, 3/2, 0),
+             A vertex at (1, 1/2, 4/3))
+            sage: A = S.affine_hull(orthonormal=True); A
             A 3-dimensional polyhedron in AA^3 defined as the convex hull of 4 vertices
             sage: A.vertices()
             (A vertex at (0, 0, 0),
@@ -5782,24 +5812,80 @@ class Polyhedron_base(Element):
              A vertex at (0.7071067811865475?, 1.224744871391589?, 0),
              A vertex at (0.7071067811865475?, 0.4082482904638630?, 1.154700538379252?))
 
-        Another example of the dependeny on ``force_isometry``::
+        More examples with the ``orthonormal`` parameter::
 
             sage: P = polytopes.permutahedron(3); P
             A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 6 vertices
-            sage: set([F.as_polyhedron().affine_hull(force_isometry=True).volume() for F in P.affine_hull().faces(1)]) == {1, sqrt(AA(2))}
+            sage: set([F.as_polyhedron().affine_hull(orthonormal=True).volume() for F in P.affine_hull().faces(1)]) == {1, sqrt(AA(2))}
             True
-            sage: set([F.as_polyhedron().affine_hull(force_isometry=True).volume() for F in P.affine_hull(force_isometry=True).faces(1)]) == {sqrt(AA(2))}
+            sage: set([F.as_polyhedron().affine_hull(orthonormal=True).volume() for F in P.affine_hull(orthonormal=True).faces(1)]) == {sqrt(AA(2))}
             True
+            sage: D = polytopes.dodecahedron()
+            sage: F = D.faces(2)[0].as_polyhedron()
+            sage: F.affine_hull(orthogonal=True)
+            A 2-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^2 defined as the convex hull of 5 vertices
+            sage: F.affine_hull(orthonormal=True)
+            A 2-dimensional polyhedron in AA^2 defined as the convex hull of 5 vertices
 
         The affine hull is combinatorially equivalent to the input::
 
             sage: P.is_combinatorially_isomorphic(P.affine_hull())
             True
-            sage: P.is_combinatorially_isomorphic(P.affine_hull(force_isometry=True))
+            sage: P.is_combinatorially_isomorphic(P.affine_hull(orthogonal=True))
+            True
+            sage: P.is_combinatorially_isomorphic(P.affine_hull(orthonormal=True))
+            True
+
+        The ``orthonormal=True`` parameter preserves volumes;
+        it provides an isometric copy of the polyhedron::
+
+            sage: Pentagon = polytopes.dodecahedron().faces(2)[0].as_polyhedron()
+            sage: P = Pentagon.affine_hull(orthonormal=True)
+            sage: _, c= P.is_inscribed(certificate=True)
+            sage: c
+            (0.4721359549995794?, 0.6498393924658126?)
+            sage: circumradius = (c-vector(P.vertices()[0])).norm()
+            sage: p = polytopes.regular_polygon(5)
+            sage: p.volume()
+            2.377641290737884?
+            sage: P.volume()
+            1.53406271079097?
+            sage: p.volume()*circumradius^2
+            1.534062710790965?
+            sage: P.volume() == p.volume()*circumradius^2
+            True
+
+        One can also use ``orthogonal`` parameter to calculate volumes;
+        in this case we don't need to switch base rings. One has to divide
+        by the square root of the determinant of the linear part of the
+        affine transformation times its transpose::
+
+            sage: Pentagon = polytopes.dodecahedron().faces(2)[0].as_polyhedron()
+            sage: Pnormal = Pentagon.affine_hull(orthonormal=True)
+            sage: Pgonal = Pentagon.affine_hull(orthogonal=True)
+            sage: A,b = Pentagon.affine_hull(orthogonal = True, as_affine_map=True)
+            sage: Adet = (A.matrix().transpose()*A.matrix()).det()
+            sage: Pnormal.volume()
+            1.53406271079097?
+            sage: Pgonal.volume()/sqrt(Adet)
+            -80*(55*sqrt(5) - 123)/sqrt(-6368*sqrt(5) + 14240)
+            sage: Pgonal.volume()/sqrt(Adet).n(digits=20)
+            1.5340627107909646651
+            sage: AA(Pgonal.volume()^2) == (Pnormal.volume()^2)*AA(Adet)
+            True
+
+        An other example with ``as_affine_map=True``::
+
+            sage: P = polytopes.permutahedron(4)
+            sage: A,b = P.affine_hull(orthonormal=True, as_affine_map=True)
+            sage: Q = P.affine_hull(orthonormal=True)
+            sage: Q.center()
+            (0.7071067811865475?, 1.224744871391589?, 1.732050807568878?)
+            sage: A(P.center()) + b == Q.center()
             True
 
 
-        For unbounded, non full-dimensional polyhedra, the ``force_isometry``
+        For unbounded, non full-dimensional polyhedra, the ``orthogonal=True`` and ``orthonormal=True``
         is not implemented::
 
             sage: P = Polyhedron(ieqs=[[0, 1, 0], [0, 0, 1], [0, 0, -1]]); P
@@ -5808,38 +5894,59 @@ class Polyhedron_base(Element):
             False
             sage: P.is_full_dimensional()
             False
-            sage: P.affine_hull(force_isometry=True)
+            sage: P.affine_hull(orthogonal=True)
             Traceback (most recent call last):
             ...
-            NotImplementedError: "force_isometry=True" works only for compact polyhedra
+            NotImplementedError: "orthogonal=True" and "orthonormal=True" work only for compact polyhedra
+            sage: P.affine_hull(orthonormal=True)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: "orthogonal=True" and "orthonormal=True" work only for compact polyhedra
+
+        Setting ``as_affine_map`` to ``True`` only works in combination
+        with ``orthogonal`` or ``orthonormal`` set to ``True``::
+
+            sage: S = polytopes.simplex()
+            sage: S.affine_hull(as_affine_map=True)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: "as_affine_map=True" only works with "orthogonal=True" and "orthonormal=True"
+
 
         TESTS::
 
             sage: Polyhedron([(2,3,4)]).affine_hull()
             A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
         """
-        #if the self is full-dimensional, return it immediately
+        # handle trivial full-dimensional case
         if self.ambient_dim() == self.dim():
+            if as_affine_map:
+                return linear_transformation(Matrix(self.base_ring(), self.dim(), self.dim(), self.base_ring().one())), self.ambient_space().zero()
             return self
-        if force_isometry:
-            #see TODO
+
+        if orthogonal or orthonormal:
+            # see TODO
             if not self.is_compact():
-                raise NotImplementedError('"force_isometry=True" works only for compact polyhedra')
-            #translate 0th vertex to the origin
+                raise NotImplementedError('"orthogonal=True" and "orthonormal=True" work only for compact polyhedra')
+            # translate 0th vertex to the origin
             Q = self.translation(-vector(self.vertices()[0]))
             v = Q.vertices()[0]
-            #check that translation didn't change the order of the vertices
+            # check that translation didn't change the order of the vertices
             assert v.vector() == Q.ambient_space().zero()
-            #choose as an affine basis the neighbors of the origin vertex in Q
+            # choose as an affine basis the neighbors of the origin vertex in Q
             M = matrix([list(w) for w in itertools.islice(v.neighbors(), self.dim())])
-            #switch base_ring to AA for integer and rational polytopes,
-            #since gram_schmidt needs to be able to take square roots
-            if self.base_ring() in [ZZ,QQ]:
-                M = matrix(AA,M)
-            #Pick orthonormal basis and transform all vertices accordingly
-            A = M.gram_schmidt(orthonormal = True)[0]
-            return Polyhedron([A*vector(v) for v in Q.vertices()])
-
+            # switch base_ring to AA if neccessary,
+            # since gram_schmidt needs to be able to take square roots.
+            # Pick orthonormal basis and transform all vertices accordingly
+            # if the orthonormal transform makes it neccessary, change base ring
+            try:
+                A = M.gram_schmidt(orthonormal=orthonormal)[0]
+            except TypeError:
+                M = matrix(AA, M)
+                A = M.gram_schmidt(orthonormal=orthonormal)[0]
+            if as_affine_map:
+                return linear_transformation(A, side='right'), -A*vector(A.base_ring(), self.vertices()[0])
+            return Polyhedron([A*vector(A.base_ring(), v) for v in Q.vertices()])
 
         # translate one vertex to the origin
         v0 = self.vertices()[0].vector()
@@ -5853,12 +5960,15 @@ class Polyhedron_base(Element):
 
         # Pick subset of coordinates to coordinatize the affine span
         pivots = matrix(gens).pivots()
+
         def pivot(indexed):
             return [indexed[i] for i in pivots]
 
         vertices = [pivot(_) for _ in self.vertices()]
         rays = [pivot(_) for _ in self.rays()]
         lines = [pivot(_) for _ in self.lines()]
+        if as_affine_map:
+            raise NotImplementedError('"as_affine_map=True" only works with "orthogonal=True" and "orthonormal=True"')
         return Polyhedron(vertices=vertices, rays=rays, lines=lines, base_ring=self.base_ring())
 
     def _polymake_init_(self):

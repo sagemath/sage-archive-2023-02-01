@@ -507,8 +507,7 @@ class Modules(Category_module):
     Filtered = LazyImport('sage.categories.filtered_modules', 'FilteredModules')
     Graded = LazyImport('sage.categories.graded_modules', 'GradedModules')
     Super = LazyImport('sage.categories.super_modules', 'SuperModules')
-    WithBasis = LazyImport('sage.categories.modules_with_basis', 'ModulesWithBasis',
-                           at_startup=True)
+    WithBasis = LazyImport('sage.categories.modules_with_basis', 'ModulesWithBasis')
 
     class ParentMethods:
         @cached_method

@@ -239,5 +239,3 @@ def rational_quaternions_from_integral_matrix_and_denom(A, Matrix_integer_dense 
     return v
 
 
-from sage.rings.rational_field import QQ
-MS_16_4 = MatrixSpace(QQ,16,4)

@@ -2617,24 +2617,41 @@ class Function_prod(BuiltinFunction):
     EXAMPLES::
 
         sage: from sage.functions.other import symbolic_product as sprod
-        sage: sprod(x, x, 1, 10)
+        sage: r = sprod(x, x, 1, 10); r
         product(x, x, 1, 10)
+        sage: r.unhold()
+        3628800
     """
     def __init__(self):
         """
         EXAMPLES::
 
             sage: from sage.functions.other import symbolic_product as sprod
-            sage: _ = var('n')
-            sage: r = maxima(sprod(sin(x), x, 1, n)).sage(); r
-            product(sin(x), x, 1, n)
+            sage: _ = var('m n', domain='integer')
+            sage: r = maxima(sprod(sin(m), m, 1, n)).sage(); r
+            product(sin(m), m, 1, n)
             sage: isinstance(r.operator(), sage.functions.other.Function_prod)
             True
-            sage: maxima(sprod(x, x, 1, 5))
-            120
+            sage: r = sympy(sprod(sin(m), m, 1, n)).sage(); r # known bug
+            product(sin(m), m, 1, n)
+            sage: isinstance(r.operator(),
+            ....:     sage.functions.other.Function_prod) # known bug
+            True
+            sage: giac(sprod(m, m, 1, n))
+            n!
         """
         BuiltinFunction.__init__(self, "product", nargs=4,
                                conversions=dict(maxima='product',
-                                   sympy='Product'))
+                                   sympy='Product', giac='product'))
+
+    def _print_latex_(self, x, var, a, b):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.functions.other import symbolic_product as sprod
+            sage: latex(sprod(x^2, x, 1, 10))
+            \prod_{x=1}^{10} x^2
+        """
+        return r"\prod_{{{}={}}}^{{{}}} {}".format(var, a, b, x)
 
 symbolic_product = Function_prod()

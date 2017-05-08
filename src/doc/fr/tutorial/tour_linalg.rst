@@ -133,8 +133,8 @@ Créons l'espace :math:`\text{Mat}_{3\times 3}(\QQ)`:
 (Pour indiquer l'espace des matrices 3 par 4, il faudrait utiliser
 ``MatrixSpace(QQ,3,4)``. Si le nombre de colonnes est omis, il est égal
 par défaut au nombre de lignes. Ainsi ``MatrixSpace(QQ,3)`` est un
-synonyme de ``MatrixSpace(QQ,3,3)``.) L'espace des matrices possède une
-base que Sage enregistre sous forme de liste :
+synonyme de ``MatrixSpace(QQ,3,3)``). L'espace des matrices est muni
+de sa base canonique:
 
 .. link
 

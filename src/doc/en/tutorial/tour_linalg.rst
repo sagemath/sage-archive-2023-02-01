@@ -131,8 +131,8 @@ We create the space :math:`\text{Mat}_{3\times 3}(\QQ)` of `3 \times
 (To specify the space of 3 by 4 matrices, you would use
 ``MatrixSpace(QQ,3,4)``. If the number of columns is omitted, it
 defaults to the number of rows, so ``MatrixSpace(QQ,3)`` is a synonym
-for ``MatrixSpace(QQ,3,3)``.) The space of matrices has a basis which
-Sage stores as a list:
+for ``MatrixSpace(QQ,3,3)``.) The space of matrices is equipped with
+its canonical basis:
 
 .. link
 

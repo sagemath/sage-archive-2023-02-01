@@ -128,7 +128,7 @@ Creamos el espacio :math:`\text{Mat}_{3\times 3}(\QQ)` matrices
 ``MatrixSpace(QQ,3,4)``. Si se omite el número de columnas, se adopta
 por defecto el número de filas, de modo que ``MatrixSpace(QQ,3)``
 es un sinónimo de ``MatrixSpace(QQ,3,3)``.) El espacio de matrices
-tiene una base que Sage almacena como una lista:
+está equipado con su base canónica:
 
 .. link
 

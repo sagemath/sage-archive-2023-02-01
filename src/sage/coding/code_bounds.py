@@ -171,6 +171,7 @@ from __future__ import absolute_import
 
 from sage.interfaces.all import gap
 from sage.rings.all import QQ, RR, ZZ, RDF
+from sage.arith.misc import is_prime_power
 from sage.arith.all import factorial
 from sage.functions.all import log, sqrt
 from sage.misc.decorators import rename_keyword
@@ -221,6 +222,8 @@ def codesize_upper_bound(n,d,q,algorithm=None):
 
         sage: codes.bounds.codesize_upper_bound(19,10,2)
         20
+        sage: codes.bounds.codesize_upper_bound(19,10,2,algorithm="gap") # optional - gap_packages (Guava package)
+        20
     """
     if algorithm=="gap":
         gap.load_package('guava')
@@ -255,11 +258,12 @@ def dimension_upper_bound(n,d,q,algorithm=None):
 
     """
     q = ZZ(q)
-    if algorithm=="LP":
-        return delsarte_bound_additive_hamming_space(n,d,q)
+    if is_prime_power(q) and n>0 and d>0 and n in ZZ and d in ZZ: # sanity check
+        if algorithm=="LP":
+            return delsarte_bound_additive_hamming_space(n,d,q)
 
-    else:       # algorithm==None or algorithm=="gap":
-        return int(log(codesize_upper_bound(n,d,q,algorithm=algorithm),q))
+        else:       # algorithm==None or algorithm=="gap":
+            return int(log(codesize_upper_bound(n,d,q,algorithm=algorithm),q))
 
 
 def volume_hamming(n,q,r):
@@ -282,7 +286,7 @@ def gilbert_lower_bound(n,q,d):
     Returns Gilbert-Varshamov lower bound.
 
     Returns Gilbert-Varshamov lower bound for number of elements in a largest code of
-    minimum distance d in `\GF{q}^n`.
+    minimum distance d in `\GF{q}^n`. See :wikipedia:`Gilbert-Varshamov_bound`
 
     EXAMPLES::
 
@@ -297,8 +301,10 @@ def plotkin_upper_bound(n,q,d, algorithm=None):
     r"""
     Returns Plotkin upper bound.
 
-    Returns Plotkin upper bound for number of elements in the largest
+    Returns Plotkin upper bound for number of elements in a largest
     code of minimum distance d in `\GF{q}^n`.
+    More precisely this is a generalization of Plotkin's result for q=2
+    to bigger q due to Berlekamp.
     The algorithm="gap" option wraps Guava's UpperBoundPlotkin.
 
     EXAMPLES::
@@ -332,35 +338,59 @@ def griesmer_upper_bound(n,q,d,algorithm=None):
     Returns the Griesmer upper bound.
 
     Returns the Griesmer upper bound for number of elements in a
-    largest linear code of minimum distance d in `\GF{q}^n`.
-    If the method is "GAP", it wraps GAP's UpperBoundGriesmer.
+    largest linear code of minimum distance d in `\GF{q}^n`, cf. [HP2003]_.
+    If the method is "GAP", it wraps GAP's UpperBoundGriesmer.  Namely,
 
-    EXAMPLES::
+    .. MATH::
+
+        `n\geq \sum_{i=0}^{k-1} \lceil d/q^i \rceil.`
+
+    To compute the bound, we keep summing up the terms on the RHS
+    until we start violating the inequality.
+
+
+    EXAMPLES:
+
+    The bound is reached for the ternary Golay codes::
+
+        sage: codes.bounds.griesmer_upper_bound(12,3,6)
+        729
+        sage: codes.bounds.griesmer_upper_bound(11,3,5)
+        729
+
+    ::
 
         sage: codes.bounds.griesmer_upper_bound(10,2,3)
         128
         sage: codes.bounds.griesmer_upper_bound(10,2,3,algorithm="gap")  # optional - gap_packages (Guava package)
         128
+
+    TESTS::
+
+        sage: codes.bounds.griesmer_upper_bound(10,6,5)
+        0
+        sage: codes.bounds.griesmer_upper_bound(11,3,6)
+        243
+        sage: codes.bounds.griesmer_upper_bound(11,3,6)
+        243
     """
-    if algorithm=="gap":
-        gap.load_package("guava")
-        ans=gap.eval("UpperBoundGriesmer(%s,%s,%s)"%(n,d,q))
-        return QQ(ans)
+    if is_prime_power(q) and n>0 and d>0 and n in ZZ and d in ZZ: # sanity check
+        if algorithm=="gap":
+            gap.load_package("guava")
+            ans=gap.eval("UpperBoundGriesmer(%s,%s,%s)"%(n,d,q))
+            return QQ(ans)
+        else:
+            from sage.functions.other import ceil
+            den = 1
+            s = 0
+            k = 0
+            while s <= n:
+                s += ceil(d/den)
+                den *= q
+                k = k + 1
+            return q**(k-1)
     else:
-        den = 1
-        s = 0
-        k = 1
-        add = 0
-        while s <= n:
-            if not(add == 1):
-                if d%den==0:
-                    add = int(d/den)
-                else:
-                    add = int(d/den)+1
-            s = s + add
-            den = den * q
-            k = k + 1
-        return q**(k-1)
+        return 0
 
 
 @rename_keyword(deprecation=6094, method="algorithm")
@@ -369,7 +399,7 @@ def elias_upper_bound(n,q,d,algorithm=None):
     Returns the Elias upper bound.
 
     Returns the Elias upper bound for number of elements in the largest
-    code of minimum distance d in `\GF{q}^n`. Wraps
+    code of minimum distance d in `\GF{q}^n`, cf. [HP2003]_. Wraps
     GAP's UpperBoundElias.
 
     EXAMPLES::
@@ -424,7 +454,7 @@ def hamming_upper_bound(n,q,d):
     where M is the maximum number of codewords and `V(n,e)` is
     equal to the contents of a ball of radius e. This bound is useful
     for small values of d. Codes for which equality holds are called
-    perfect.
+    perfect. See e.g. [HP2003]_.
 
     EXAMPLES::
 
@@ -437,7 +467,7 @@ def singleton_upper_bound(n,q,d):
     r"""
     Returns the Singleton upper bound.
 
-    Returns the Singleton upper bound for number of elements in the
+    Returns the Singleton upper bound for number of elements in a
     largest code of minimum distance d in `\GF{q}^n`.
     Wraps GAP's UpperBoundSingleton.
 

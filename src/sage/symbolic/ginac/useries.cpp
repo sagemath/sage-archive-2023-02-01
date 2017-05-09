@@ -406,7 +406,9 @@ ex useries(ex the_ex, const relational & r, int order, unsigned options)
         // Precision may have been lost when adding terms
         if (may_extend and deg < prec - fp.offset) {
                 fmpq_poly_set_ui(fp.ft, 0);
-                the_ex.useries(fp, 2*prec - fp.offset - deg);
+                size_t old_offset = fp.offset;
+                fp.offset = 0;
+                the_ex.useries(fp, 2*prec - old_offset - deg);
         }
 
         // Fill expair vector

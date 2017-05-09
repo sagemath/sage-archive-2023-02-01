@@ -42,13 +42,20 @@ namespace GiNaC {
 static bool first_symbol = true;
 static symbol symb;
 
-static void check_poly_ccoeff_zero(flint_series_t& fp)
+// Normalize series if offset positive.
+static void normalize(flint_series_t& fp)
 {
         if (fp.offset > 0) {
                 fmpq_poly_shift_left(fp.ft, fp.ft, fp.offset);
                 fp.offset = 0;
-                return;
         }
+}
+
+// Check that constant coeff of series is zero.
+static void check_poly_ccoeff_zero(const flint_series_t& fp)
+{
+        if (fp.offset > 0)
+                return;
         else if (fp.offset < 0)
                 throw flint_error();
         fmpq_t c;
@@ -59,6 +66,7 @@ static void check_poly_ccoeff_zero(flint_series_t& fp)
         fmpq_clear(c);
 }
 
+// Check that constant coeff of series is one.
 static void check_poly_ccoeff_one(const flint_series_t& fp)
 {
         if (fp.offset != 0)
@@ -71,7 +79,8 @@ static void check_poly_ccoeff_one(const flint_series_t& fp)
         fmpq_clear(c);
 }
 
-long fmpq_poly_ldegree(fmpq_poly_t fp)
+// Return low degree of polynomial
+long fmpq_poly_ldegree(const fmpq_poly_t& fp)
 {
         if (fmpq_poly_is_zero(fp))
                 return 0;
@@ -81,6 +90,7 @@ long fmpq_poly_ldegree(fmpq_poly_t fp)
                 fmpq_init(c);
                 fmpq_poly_get_coeff_fmpq(c, fp, n);
                 if (not fmpq_is_zero(c)) {
+                        fmpq_clear(c);
                         return n;
                 }
                 fmpq_clear(c);
@@ -352,9 +362,11 @@ static int low_series_degree(ex the_ex) {
                 ex expo = pow.op(1);
                 if (is_exactly_a<numeric>(expo)) {
                         numeric n = ex_to<numeric>(expo);
-                        if (n.is_integer())
+                        if (n.is_integer() and n>*_num1_p)
                                 return (low_series_degree(pow.op(0))
                                       * n.to_int());
+                        else
+                                return low_series_degree(pow.op(0));
                 }
                 return 0;
         }
@@ -581,6 +593,7 @@ void function::useries(flint_series_t& fp, int order) const
                 throw std::runtime_error("can't happen in function::useries");
         flint_series_t fp1;
         seq[0].useries(fp1, order);
+        normalize(fp1);
         (*search->second)(fp, fp1, order);
 }
 

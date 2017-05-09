@@ -534,7 +534,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         If the stack has not yet been flagged as cleared, we clear it now (rather
         than wasting time to do so for successful operations).
 
-        TEST::
+        TESTS::
 
             sage: cm = sage.structure.element.get_coercion_model()
             sage: cm.record_exceptions()

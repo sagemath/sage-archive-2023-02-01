@@ -958,7 +958,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     def __lshift__(Polynomial_dense_modn_ntl_zz self, long n):
         """
-        TEST::
+        TESTS::
 
             sage: R.<x> = PolynomialRing(Integers(77), implementation='NTL')
             sage: f = x^5 + 2*x + 1
@@ -971,7 +971,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     def __rshift__(Polynomial_dense_modn_ntl_zz self, long n):
         """
-        TEST::
+        TESTS::
 
             sage: R.<x> = PolynomialRing(Integers(77), implementation='NTL')
             sage: f = x^5 + 2*x + 1
@@ -1491,7 +1491,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     def __lshift__(Polynomial_dense_modn_ntl_ZZ self, long n):
         """
-        TEST::
+        TESTS::
 
             sage: R.<x> = PolynomialRing(Integers(14^30), implementation='NTL')
             sage: f = x^5 + 2*x + 1
@@ -1504,7 +1504,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     def __rshift__(Polynomial_dense_modn_ntl_ZZ self, long n):
         """
-        TEST::
+        TESTS::
 
             sage: R.<x> = PolynomialRing(Integers(15^30), implementation='NTL')
             sage: f = x^5 + 2*x + 1

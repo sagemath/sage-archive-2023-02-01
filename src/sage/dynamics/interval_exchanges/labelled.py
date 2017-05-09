@@ -1440,7 +1440,7 @@ class LabelledPermutationLI(LabelledPermutation, PermutationLI):
         r"""
         The twin list of the permutation
 
-        TEST::
+        TESTS::
 
             sage: p = iet.GeneralizedPermutation('a a','b b')
             sage: p._twin

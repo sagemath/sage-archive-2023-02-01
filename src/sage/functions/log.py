@@ -85,7 +85,7 @@ class Function_exp(GinacFunction):
             sage: exp(2).n(100)
             7.3890560989306502272304274606
 
-        TEST::
+        TESTS::
 
             sage: latex(exp(x))
             e^{x}

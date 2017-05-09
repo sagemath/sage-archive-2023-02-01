@@ -1686,7 +1686,7 @@ cdef class SparseGraphBackend(CGraphBackend):
             sage: list(G.iterator_edges(range(9), True))
             [(1, 2, 3)]
 
-        TEST::
+        TESTS::
 
             sage: g = graphs.PetersenGraph()
             sage: g.edges_incident([0,1,2])

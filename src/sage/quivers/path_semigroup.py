@@ -633,7 +633,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: list(P.iter_paths_by_length_and_startpoint(5,2))
             [d*c*a*d*c, d*c*b*d*c]
 
-        TEST::
+        TESTS::
 
              sage: Q = DiGraph({1:{1:['a','b', 'c', 'd']}})
              sage: P = Q.path_semigroup()

@@ -13782,7 +13782,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.diameter()
             2
 
-        TEST::
+        TESTS::
 
             sage: g = Graph()
             sage: g.radius()
@@ -13875,7 +13875,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.diameter()
             2
 
-        TEST::
+        TESTS::
 
             sage: g = Graph()
             sage: g.diameter()

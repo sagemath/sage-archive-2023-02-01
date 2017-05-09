@@ -32,7 +32,7 @@ function).
     sage: QQ((3*x)/(4*x))
     3/4
 
-TEST::
+TESTS::
 
     sage: Q = RationalField()
     sage: Q == loads(dumps(Q))

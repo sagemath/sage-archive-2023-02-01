@@ -360,7 +360,7 @@ class Polymake(ExtraTabCompletion, Expect):
 
     def _quit_string(self):
         """
-        TEST::
+        TESTS::
 
             sage: polymake._quit_string()
             'exit;'
@@ -369,7 +369,7 @@ class Polymake(ExtraTabCompletion, Expect):
 
     def _assign_symbol(self):
         """
-        TEST::
+        TESTS::
 
             sage: polymake._assign_symbol()
             '='
@@ -378,7 +378,7 @@ class Polymake(ExtraTabCompletion, Expect):
 
     def _equality_symbol(self):
         """
-        TEST::
+        TESTS::
 
             sage: polymake._equality_symbol()
             '=='
@@ -387,7 +387,7 @@ class Polymake(ExtraTabCompletion, Expect):
 
     def _read_in_file_command(self, filename):
         """
-        TEST::
+        TESTS::
 
             sage: polymake._read_in_file_command('foobar')
             'eval read_file "foobar";\n'
@@ -461,7 +461,7 @@ class Polymake(ExtraTabCompletion, Expect):
 
     def _synchronize(self):
         """
-        TEST::
+        TESTS::
 
             sage: Q = polymake.cube(4)                          # optional - polymake
             sage: polymake('"ok"')                              # optional - polymake
@@ -542,7 +542,7 @@ class Polymake(ExtraTabCompletion, Expect):
         r"""
         Returns the next unused variable name.
 
-        TEST::
+        TESTS::
 
             sage: print(polymake._next_var_name())
             SAGE...

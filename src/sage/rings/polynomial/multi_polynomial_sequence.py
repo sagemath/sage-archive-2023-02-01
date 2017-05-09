@@ -131,7 +131,7 @@ easily::
     sage: A[4055]*v
     (k001*k003)
 
-TEST::
+TESTS::
 
     sage: P.<x,y> = PolynomialRing(QQ)
     sage: I = [[x^2 + y^2], [x^2 - y^2]]

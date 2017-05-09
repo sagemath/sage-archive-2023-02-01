@@ -1510,7 +1510,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: s[1]( r.simple_root(1) )
                 -alpha[1]
 
-            TEST::
+            TESTS::
 
                 sage: s
                 simple reflections

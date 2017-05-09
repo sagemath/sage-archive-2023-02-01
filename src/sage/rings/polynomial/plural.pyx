@@ -160,7 +160,7 @@ class G_AlgFactory(UniqueFactory):
           variable names, a term order, and a category
         - ``extra_args`` - a dictionary, whose only relevant key is 'check'.
 
-        TEST::
+        TESTS::
 
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
             sage: H=A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
@@ -188,7 +188,7 @@ class G_AlgFactory(UniqueFactory):
         - ``category`` - (optional) category
         - ``check`` - optional bool
 
-        TEST::
+        TESTS::
 
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
             sage: H = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
@@ -1313,7 +1313,7 @@ def unpickle_NCPolynomial_plural(NCPolynomialRing_plural R, d):
     """
     Auxiliary function to unpickle a non-commutative polynomial.
 
-    TEST::
+    TESTS::
 
         sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
         sage: H.<x,y,z> = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
@@ -1376,7 +1376,7 @@ cdef class NCPolynomial_plural(RingElement):
 
     def __reduce__(self):
         """
-        TEST::
+        TESTS::
 
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
             sage: H.<x,y,z> = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
@@ -1545,7 +1545,7 @@ cdef class NCPolynomial_plural(RingElement):
             sage: (3/2*x - 1/2*y - 1) * (3/2*x + 1/2*y + 1) # indirect doctest
             9/4*x^2 + 3/2*x*y - 3/4*z - 1/4*y^2 - y - 1
 
-        TEST::
+        TESTS::
 
             sage: A.<x,z,y> = FreeAlgebra(QQ, 3)
             sage: P = A.g_algebra(relations={y*x:-x*y + z},  order='lex')

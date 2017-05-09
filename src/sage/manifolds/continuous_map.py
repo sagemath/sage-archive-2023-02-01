@@ -864,7 +864,7 @@ class ContinuousMap(Morphism):
         r"""
         Delete the derived quantities of ``self``.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()

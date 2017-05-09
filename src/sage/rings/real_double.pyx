@@ -513,7 +513,7 @@ cdef class RealDoubleField_class(Field):
         """
         Return the hash value of ``self``.
 
-        TEST::
+        TESTS::
 
             sage: hash(RDF) % 2^32 == hash(str(RDF)) % 2^32
             True

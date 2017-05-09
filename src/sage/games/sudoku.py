@@ -445,7 +445,7 @@ class Sudoku(SageObject):
             & &3& \\\hline
             \end{array}
 
-        TEST::
+        TESTS::
 
             sage: s = Sudoku('.4..32....14..3.')
             sage: s.to_latex()
@@ -845,7 +845,7 @@ class Sudoku(SageObject):
             This method looks up the constraint IDs for each of
             these four constraints, and returns a list of these four IDs.
 
-            TEST::
+            TESTS::
 
                 sage: h = Sudoku('8..6..9.5.............2.31...7318.6.24.....73...........279.1..5...8..36..3......')
                 sage: len(list(h.solve(algorithm='dlx')))  # indirect doctest

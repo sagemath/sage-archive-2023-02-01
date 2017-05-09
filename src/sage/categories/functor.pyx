@@ -280,7 +280,7 @@ cdef class Functor(SageObject):
         By default, the argument will not be changed, but a ``TypeError``
         will be raised if the argument does not belong to the domain.
 
-        TEST::
+        TESTS::
 
             sage: from sage.categories.functor import Functor
             sage: F = Functor(Fields(),Fields())
@@ -494,7 +494,7 @@ class ForgetfulFunctor_generic(Functor):
         but happens to be a forgetful functor, both arguments will
         still be considered as being *different*.
 
-        TEST::
+        TESTS::
 
             sage: F1 = ForgetfulFunctor(FiniteFields(),Fields())
 

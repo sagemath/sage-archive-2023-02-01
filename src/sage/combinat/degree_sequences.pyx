@@ -375,7 +375,7 @@ class DegreeSequences:
         """
         Representing the element
 
-        TEST::
+        TESTS::
 
             sage: DegreeSequences(6)
             Degree sequences on 6 elements

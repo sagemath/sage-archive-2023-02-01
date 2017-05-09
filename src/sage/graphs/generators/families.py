@@ -2581,7 +2581,7 @@ def RingedTree(k, vertex_labels = True):
          '1000', '1001', '101', '1010', '1011', '11', '110', '1100', '1101',
          '111', '1110', '1111']
 
-    TEST::
+    TESTS::
 
         sage: G = graphs.RingedTree(-1)
         Traceback (most recent call last):
@@ -2882,7 +2882,7 @@ def TuranGraph(n,r):
         sage: g.size() == floor((r-1)*(n**2)/(2*r))
         True
 
-    TEST::
+    TESTS::
 
         sage: g = graphs.TuranGraph(3,6)
         Traceback (most recent call last):

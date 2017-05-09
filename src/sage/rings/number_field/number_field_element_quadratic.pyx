@@ -60,7 +60,7 @@ def __make_NumberFieldElement_quadratic0(parent, a, b, denom):
     """
     Used in unpickling elements of number fields.
 
-    TEST::
+    TESTS::
 
         sage: K.<a> = NumberField(x^2-x+13)
         sage: loads(dumps(a)) == a # indirect doctest
@@ -72,7 +72,7 @@ def __make_NumberFieldElement_quadratic1(parent, cls, a, b, denom):
     """
     Used in unpickling elements of number fields.
 
-    TEST::
+    TESTS::
 
         sage: K.<a> = NumberField(x^2-x+13)
         sage: loads(dumps(a)) == a # indirect doctest

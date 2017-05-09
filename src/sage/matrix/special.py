@@ -45,7 +45,7 @@ The following constructions are available:
     :meth:`~sage.matrix.special.vector_on_axis_rotation_matrix`
     :meth:`~sage.matrix.special.zero_matrix`
 
-The Combinatorics module provides further matrix features, such as Hadamard
+The Combinatorics module provides further matrix constructors, such as Hadamard
 matrices and Latin squares. See:
 
     - :ref:`sage.combinat.matrices.hadamard_matrix`
@@ -3592,7 +3592,7 @@ def hankel(c, r=None, ring=None):
         If the first last of the input column does not match the first element
         of the input row, column wins the conflict.
 
-    EXAMPLES::
+    EXAMPLES:
 
     A Hankel with symbolic entries::
 

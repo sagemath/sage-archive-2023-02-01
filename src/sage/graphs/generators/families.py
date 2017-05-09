@@ -2505,9 +2505,9 @@ def WindmillGraph(k, n):
     r"""
     Return the Windmill graph `Wd(k, n)`.
 
-    The windmill graph `Wd(k,n)` is an undirected graph constructed for `k \geq
+    The windmill graph `Wd(k, n)` is an undirected graph constructed for `k \geq
     2` and `n \geq 2` by joining `n` copies of the complete graph `K_k` at a
-    shared vertex. It has `(k-1)n+1` vertices and `nk(k−1)/2` edges, girth 3 (if
+    shared vertex. It has `(k-1)n+1` vertices and `nk(k-1)/2` edges, girth 3 (if
     `k > 2`), radius 1 and diameter 2. It has vertex connectivity 1 because its
     central vertex is an articulation point; however, like the complete graphs
     from which it is formed, it is `(k-1)`-edge-connected. It is trivially

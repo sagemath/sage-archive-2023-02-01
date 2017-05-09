@@ -1683,17 +1683,18 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
             if (category.is_subcategory(Groups())
                 or category.is_subcategory(AdditiveGroups())):
                 # Somewhat dirty hack to wrap non-atomic objects
+                from sage.categories.modules_with_basis import ModulesWithBasis
                 if self not in ModulesWithBasis:
                     if 'prefix' not in kwds:
                         kwds['prefix'] = ''
                     if 'bracket' not in kwds:
                         kwds['bracket'] = False
                 from sage.algebras.group_algebra import GroupAlgebra
-                return GroupAlgebra(self, base_ring, category=algebra_category, **kwds)
+                return GroupAlgebra(base_ring, self, category=algebra_category, **kwds)
 
             from sage.combinat.free_module import CombinatorialFreeModule
             return CombinatorialFreeModule(base_ring, self,
-                                           category=algebra_category)
+                                           category=algebra_category, **kwds)
 
 
     class ElementMethods:

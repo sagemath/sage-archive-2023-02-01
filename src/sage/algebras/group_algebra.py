@@ -1,104 +1,7 @@
-r"""
+"""
 Group algebras
 
-This module implements group algebras for arbitrary groups over
-arbitrary commutative rings.
-
-EXAMPLES::
-
-    sage: D4 = DihedralGroup(4)
-    sage: kD4 = GroupAlgebra(D4, GF(7))
-    sage: a = kD4.an_element(); a
-    () + 4*(1,2,3,4) + 2*(1,4)(2,3)
-    sage: a * a
-    5*() + (2,4) + (1,2,3,4) + (1,3) + 2*(1,3)(2,4) + 4*(1,4)(2,3)
-
-Given the group and the base ring, the corresponding group algebra is unique::
-
-    sage: A = GroupAlgebra(GL(3, QQ), ZZ)
-    sage: B = GroupAlgebra(GL(3, QQ), ZZ)
-    sage: A is B
-    True
-    sage: C = GroupAlgebra(GL(3, QQ), QQ)
-    sage: A == C
-    False
-
-As long as there is no natural map from the group to the base ring,
-you can easily convert elements of the group to the group algebra::
-
-    sage: A = GroupAlgebra(DihedralGroup(2), ZZ)
-    sage: g = DihedralGroup(2).gen(0); g
-    (3,4)
-    sage: A(g)
-    (3,4)
-    sage: A(2) * g
-    2*(3,4)
-
-Since there is a natural inclusion from the dihedral group `D_2` of
-order 4 into the symmetric group `S_4` of order 4!, and since there is
-a natural map from the integers to the rationals, there is a natural
-map from `\ZZ[D_2]` to `\QQ[S_4]`::
-
-    sage: A = GroupAlgebra(DihedralGroup(2), ZZ)
-    sage: B = GroupAlgebra(SymmetricGroup(4), QQ)
-    sage: a = A.an_element(); a
-    () + 3*(3,4) + 3*(1,2)
-    sage: b = B.an_element(); b
-    () + 2*(1,2) + 4*(1,2,3,4)
-    sage: B(a)
-    () + 3*(3,4) + 3*(1,2)
-    sage: a * b  # a is automatically converted to an element of B
-    7*() + 3*(3,4) + 5*(1,2) + 6*(1,2)(3,4) + 12*(1,2,3) + 4*(1,2,3,4) + 12*(1,3,4)
-    sage: parent(a * b)
-    Group algebra of Symmetric group of order 4! as a permutation group
-     over Rational Field
-
-    sage: G = GL(3, GF(7))
-    sage: ZG = GroupAlgebra(G)
-    sage: c, d = G.random_element(), G.random_element()
-    sage: zc, zd = ZG(c), ZG(d)
-    sage: zc * d == zc * zd  # d is automatically converted to an element of ZG
-    True
-
-There is no obvious map in the other direction, though::
-
-    sage: A(b)
-    Traceback (most recent call last):
-    ...
-    TypeError: Don't know how to create an element of
-     Group algebra of Dihedral group of order 4 as a permutation group over Integer Ring
-     from () + 2*(1,2) + 4*(1,2,3,4)
-
-Group algebras have the structure of Hopf algebras::
-
-    sage: a = kD4.an_element(); a
-    () + 4*(1,2,3,4) + 2*(1,4)(2,3)
-    sage: a.antipode()
-    () + 4*(1,4,3,2) + 2*(1,4)(2,3)
-    sage: a.coproduct()
-    () # () + 4*(1,2,3,4) # (1,2,3,4) + 2*(1,4)(2,3) # (1,4)(2,3)
-
-.. NOTE::
-
-    As alluded to above, it is problematic to make group algebras fit
-    nicely with Sage's coercion model. The problem is that (for
-    example) if G is the additive group `(\ZZ,+)`, and `R = \ZZ[G]` is
-    its group ring, then the integer 2 can be coerced into R in two
-    ways -- via G, or via the base ring -- and *the answers are
-    different*. In practice we get around this by preventing elements
-    of a group `H` from coercing automatically into a group ring
-    `k[G]` if `H` coerces into both `k` and `G`.  This is unfortunate,
-    but it seems like the most sensible solution in this ambiguous
-    situation.
-
-AUTHOR:
-
-- David Loeffler (2008-08-24): initial version
-- Martin Raum (2009-08): update to use new coercion model -- see
-  :trac:`6670`.
-- John Palmieri (2011-07): more updates to coercion, categories, etc.,
-  group algebras constructed using CombinatorialFreeModule -- see
-  :trac:`6670`.
+This functionality has been moved to :mod:`sage.categories.group_algebras`.
 """
 
 #*****************************************************************************
@@ -129,13 +32,13 @@ from sage.categories.sets_cat import Sets
 
 import six
 
-
+# TODO: Move to the categories/group_algebras.py file
 class GroupAlgebraFunctor(ConstructionFunctor):
     r"""
     For a fixed group, a functor sending a commutative ring to the
     corresponding group algebra.
 
-    INPUT :
+    INPUT:
 
     - ``group`` -- the group associated to each group algebra under
       consideration
@@ -195,7 +98,7 @@ class GroupAlgebraFunctor(ConstructionFunctor):
             Group algebra of Cyclic group of order 17 as a permutation group
              over Rational Field
         """
-        return GroupAlgebra(self.__group, base_ring)
+        return self.__group.algebra(base_ring)
 
     def _apply_functor_to_morphism(self, f):
         r"""
@@ -223,14 +126,24 @@ class GroupAlgebraFunctor(ConstructionFunctor):
         return SetMorphism(Hom(self(f.domain()), codomain, Rings()),
                            lambda x: sum(codomain(g) * f(c) for (g, c) in six.iteritems(dict(x))))
 
-class GroupAlgebra(CombinatorialFreeModule):
-    r"""
-    Create the given group algebra.
+def group_algebra(G, R=None):
+    """
+    Construct a group algebra.
 
     INPUT:
 
     - ``group`` -- a group
     - ``base_ring`` -- (default: `\ZZ`) a commutative ring
+    """
+    if R is None:
+        R = IntegerRing()
+    if R not in Rings():
+        G,R = R,G
+    return G.algebra(R)
+
+class GroupAlgebra(CombinatorialFreeModule):
+    r"""
+    Create the given group algebra.
 
     EXAMPLES::
 
@@ -262,7 +175,7 @@ class GroupAlgebra(CombinatorialFreeModule):
     corresponding elements of the group::
 
         sage: A = GroupAlgebra(DihedralGroup(3), QQ)
-        sage: (a, b) = A._group.gens()
+        sage: (a, b) = A.group().gens()
         sage: a*b
         (1,2)
         sage: A.product_on_basis(a, b)
@@ -272,21 +185,21 @@ class GroupAlgebra(CombinatorialFreeModule):
     `\Delta(g) = g \otimes g`::
 
         sage: A = GroupAlgebra(DihedralGroup(3), QQ)
-        sage: (a, b) = A._group.gens()
+        sage: (a, b) = A.group().gens()
         sage: A.coproduct_on_basis(a)
         (1,2,3) # (1,2,3)
 
     The counit on the basis elements is 1::
 
         sage: A = GroupAlgebra(DihedralGroup(6), QQ)
-        sage: (a, b) = A._group.gens()
+        sage: (a, b) = A.group().gens()
         sage: A.counit_on_basis(a)
         1
 
     The antipode on basis elements is given by `\chi(g) = g^{-1}`::
 
         sage: A = GroupAlgebra(DihedralGroup(3), QQ)
-        sage: (a, b) = A._group.gens(); a
+        sage: (a, b) = A.group().gens(); a
         (1,2,3)
         sage: A.antipode_on_basis(a)
         (1,3,2)
@@ -301,66 +214,35 @@ class GroupAlgebra(CombinatorialFreeModule):
         sage: A = GroupAlgebra(G)
         sage: A( A(x) )
         (1,2,3,4,5)
+
+    These tests are to be moved!!!
+
+    EXAMPLES::
+
+        sage: GroupAlgebra(GL(3, GF(7)))
+        Group algebra of General Linear Group of degree 3 over Finite Field of size 7
+         over Integer Ring
+
+    TESTS::
+
+        sage: GroupAlgebra(AbelianGroup(1)) == GroupAlgebra(AbelianGroup(1))
+        True
+        sage: GroupAlgebra(AbelianGroup(1), QQ) == GroupAlgebra(AbelianGroup(1), ZZ)
+        False
+        sage: GroupAlgebra(AbelianGroup(2)) == GroupAlgebra(AbelianGroup(1))
+        False
+        sage: A = GroupAlgebra(KleinFourGroup(), ZZ)
+        sage: B = GroupAlgebra(KleinFourGroup(), QQ)
+        sage: A == B
+        False
+        sage: A == A
+        True
+
+        sage: GroupAlgebra(SymmetricGroup(2)).is_commutative()
+        True
+        sage: GroupAlgebra(SymmetricGroup(3)).is_commutative()
+        False
     """
-    def __init__(self, group, base_ring=IntegerRing(), category=None, **kwds):
-        r"""
-        See :class:`GroupAlgebra` for full documentation.
-
-        EXAMPLES::
-
-            sage: GroupAlgebra(GL(3, GF(7)))
-            Group algebra of General Linear Group of degree 3 over Finite Field of size 7
-             over Integer Ring
-
-        TESTS::
-
-            sage: GroupAlgebra(AbelianGroup(1)) == GroupAlgebra(AbelianGroup(1))
-            True
-            sage: GroupAlgebra(AbelianGroup(1), QQ) == GroupAlgebra(AbelianGroup(1), ZZ)
-            False
-            sage: GroupAlgebra(AbelianGroup(2)) == GroupAlgebra(AbelianGroup(1))
-            False
-            sage: A = GroupAlgebra(KleinFourGroup(), ZZ)
-            sage: B = GroupAlgebra(KleinFourGroup(), QQ)
-            sage: A == B
-            False
-            sage: A == A
-            True
-
-            sage: GroupAlgebra(SymmetricGroup(2)).is_commutative()
-            True
-            sage: GroupAlgebra(SymmetricGroup(3)).is_commutative()
-            False
-        """
-        from sage.groups.group import is_Group
-        if not base_ring.is_commutative():
-            raise NotImplementedError("base ring must be commutative")
-
-        group_cat = group.category()
-        if not (group_cat.is_subcategory(Groups())
-                or group_cat.is_subcategory(AdditiveGroups())):
-            raise TypeError('"%s" is not a group' % group)
-
-        if category is None:
-            category = group_cat.Algebras(base_ring)
-
-        self._group = group
-        CombinatorialFreeModule.__init__(self, base_ring, group,
-                                         category=category,
-                                         **kwds)
-
-    # other methods:
-
-    def construction(self):
-        r"""
-        EXAMPLES::
-
-            sage: A = GroupAlgebra(KleinFourGroup(), QQ)
-            sage: A.construction()
-            (GroupAlgebraFunctor, Rational Field)
-        """
-        return GroupAlgebraFunctor(self.group()), self.base_ring()
-
     # coercion methods:
 
     def _coerce_map_from_(self, S):
@@ -391,17 +273,17 @@ class GroupAlgebra(CombinatorialFreeModule):
 
             sage: A = GroupAlgebra(SymmetricGroup(4), QQ)
             sage: B = GroupAlgebra(SymmetricGroup(3), ZZ)
-            sage: A._coerce_map_from_(B)
+            sage: A.has_coerce_map_from(B)
             True
-            sage: B._coerce_map_from_(A)
+            sage: B.has_coerce_map_from(A)
             False
-            sage: A._coerce_map_from_(ZZ)
+            sage: A.has_coerce_map_from(ZZ)
             True
-            sage: A._coerce_map_from_(CC)
+            sage: A.has_coerce_map_from(CC)
             False
-            sage: A._coerce_map_from_(SymmetricGroup(5))
+            sage: A.has_coerce_map_from(SymmetricGroup(5))
             False
-            sage: A._coerce_map_from_(SymmetricGroup(2))
+            sage: A.has_coerce_map_from(SymmetricGroup(2))
             True
         """
         from sage.rings.ring import is_Ring
@@ -413,7 +295,7 @@ class GroupAlgebra(CombinatorialFreeModule):
                     and G.has_coerce_map_from(S.group()))
         if is_Ring(S):
             return k.has_coerce_map_from(S)
-        if isinstance(S,Group):
+        if isinstance(S, Group):
             return k.has_coerce_map_from(S) or G.has_coerce_map_from(S)
 
     def _element_constructor_(self, x):

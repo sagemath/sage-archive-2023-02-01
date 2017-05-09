@@ -33,7 +33,7 @@ from .lie_algebras.all import *
 
 from .finite_dimensional_algebras.all import FiniteDimensionalAlgebra
 
-from .group_algebra import GroupAlgebra
+from .group_algebra import group_algebra as GroupAlgebra
 
 from .iwahori_hecke_algebra import IwahoriHeckeAlgebra
 from .affine_nil_temperley_lieb import AffineNilTemperleyLiebTypeA

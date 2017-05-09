@@ -84,6 +84,7 @@ def mean(v):
         return s/ZZ(len(v))
     return s/len(v)
 
+
 def mode(v):
     """
     Return the mode of `v`.
@@ -114,14 +115,17 @@ def mode(v):
         3
         sage: mode([])
         []
+
         sage: mode([1,2,3,4,5])
         [1, 2, 3, 4, 5]
         sage: mode([3,1,2,1,2,3])
         [1, 2, 3]
         sage: mode([0, 2, 7, 7, 13, 20, 2, 13])
         [2, 7, 13]
-        sage: mode(['sage', 4, I, 3/5, 'sage', pi])
+
+        sage: mode(['sage', 'four', 'I', 'three', 'sage', 'pi'])
         ['sage']
+
         sage: class MyClass:
         ....:   def mode(self):
         ....:       return [1]
@@ -142,7 +146,10 @@ def mode(v):
             freq[i] = 1
 
     n = max(freq.values())
-    return sorted(u for u, f in freq.items() if f == n)
+    try:
+        return sorted(u for u, f in freq.items() if f == n)
+    except TypeError:
+        return [u for u, f in freq.items() if f == n]
 
 
 def std(v, bias=False):

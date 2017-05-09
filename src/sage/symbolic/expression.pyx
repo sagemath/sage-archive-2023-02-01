@@ -10442,8 +10442,9 @@ cdef class Expression(CommutativeRingElement):
             return(apply(op, l))
         if self.parent() is not sage.all.SR: return self
         op = self.operator()
+        if op is None : return self
         if op in {opsum, opdi, opii}:
-            sa = self.operands()[0]
+            sa = self.operands()[0].expand()
             op1 = sa.operator()
             if op1 is opadd:
                 la = self.operands()[1:]
@@ -10453,10 +10454,13 @@ cdef class Expression(CommutativeRingElement):
                                                        t.distribute(),
                                                        la),
                                    aa))
-                else: return sum(map(lambda t:treat_term(op, t, la), aa))
-            else: return self
-        else: return self
-        
+                return sum(map(lambda t:treat_term(op, t, la), aa))
+            return self
+        if recursive:
+            return apply(op, map(lambda t:t.distribute(), self.operands()))
+        return self
+
+
     def factor(self, dontfactor=[]):
         """
         Factor the expression, containing any number of variables or functions, into

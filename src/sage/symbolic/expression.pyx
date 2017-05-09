@@ -10384,7 +10384,79 @@ cdef class Expression(CommutativeRingElement):
 
     log_expand = expand_log
 
+    def distribute(self, recursive=True):
+        """
+        Distribute some indiced operators over similar operators in
+        order to allow further groupings or simplifications. 
 
+        Implemented cases (so far) :
+
+        - Symbolic sum of a sum ==> sum of symbolic sums
+
+        - Integral (definite or not) of a sum ==> sum of integrals.
+
+        INPUT:
+
+        - ``self`` - expression whose operator may be distributed.
+
+        - ``recursive`` - the distribution proceeds along the subtrees
+          of the expression (default : True).
+
+        TESTS:
+
+            sage: var("j,k,p,q", domain="integer")
+            (j, k, p, q)
+            sage: X,Y,Z,f,g=function("X,Y,Z,f,g")
+            sage: var("x,a,b")
+            (x, a, b)
+            sage: sum(X(j)+Y(j),j,1,p)
+            sum(X(j) + Y(j), j, 1, p)
+            sage: sum(X(j)+Y(j),j,1,p).distribute()
+            sum(X(j), j, 1, p) + sum(Y(j), j, 1, p)
+            sage: integrate(f(x)+g(x),x)
+            integrate(f(x) + g(x), x)
+            sage: integrate(f(x)+g(x),x).distribute()
+            integrate(f(x), x) + integrate(g(x), x)
+            sage: integrate(f(x)+g(x),x,a,b)
+            integrate(f(x) + g(x), x, a, b)
+            sage: integrate(f(x)+g(x),x,a,b).distribute()
+            integrate(f(x), x, a, b) + integrate(g(x), x, a, b)
+            sage: sum(X(j)+sum(Y(k)+Z(k),k,1,q),j,1,p)
+            sum(X(j) + sum(Y(k) + Z(k), k, 1, q), j, 1, p)
+            sage: sum(X(j)+sum(Y(k)+Z(k),k,1,q),j,1,p).distribute()
+            sum(sum(Y(k), k, 1, q) + sum(Z(k), k, 1, q), j, 1, p) + sum(X(j), j, 1, p)
+            sage: sum(X(j)+sum(Y(k)+Z(k),k,1,q),j,1,p).distribute(recursive=False)
+            sum(X(j), j, 1, p) + sum(sum(Y(k) + Z(k), k, 1, q), j, 1, p)
+
+        AUTHORS:
+
+        - Emmanuel Charpentier, Ralf Stephan (05-2017)
+        """
+        from sage.functions.other import symbolic_sum as opsum
+        from sage.symbolic.integration.integral \
+            import indefinite_integral as opii, definite_integral as opdi
+        from sage.symbolic.operators import add_vararg as opadd
+        def treat_term(op, term, args):
+            l=sage.all.copy(args)
+            l.insert(0, term)
+            return(apply(op, l))
+        if self.parent() is not sage.all.SR: return self
+        op = self.operator()
+        if op in {opsum, opdi, opii}:
+            sa = self.operands()[0]
+            op1 = sa.operator()
+            if op1 is opadd:
+                la = self.operands()[1:]
+                aa = sa.operands()
+                if recursive:
+                    return sum(map(lambda t:treat_term(op,
+                                                       t.distribute(),
+                                                       la),
+                                   aa))
+                else: return sum(map(lambda t:treat_term(op, t, la), aa))
+            else: return self
+        else: return self
+        
     def factor(self, dontfactor=[]):
         """
         Factor the expression, containing any number of variables or functions, into

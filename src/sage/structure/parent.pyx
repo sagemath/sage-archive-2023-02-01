@@ -2502,25 +2502,6 @@ cdef class Parent(category_object.CategoryObject):
         """
         return None
 
-    def construction(self):
-        """
-        Returns a pair (functor, parent) such that functor(parent) return self.
-        If this ring does not have a functorial construction, return None.
-
-        EXAMPLES::
-
-            sage: QQ.construction()
-            (FractionField, Integer Ring)
-            sage: f, R = QQ['x'].construction()
-            sage: f
-            Poly[x]
-            sage: R
-            Rational Field
-            sage: f(R)
-            Univariate Polynomial Ring in x over Rational Field
-        """
-        return None
-
     # TODO: remove once all parents in Sage will inherit properly from
     # Sets().ParentMethods.an_element
     cpdef an_element(self):

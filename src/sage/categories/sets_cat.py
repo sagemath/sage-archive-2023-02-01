@@ -1439,6 +1439,26 @@ class Sets(Category_singleton):
 
         # Functorial constructions
 
+        def construction(self):
+            """
+            Return a pair ``(functor, parent)`` such that
+            ``functor(parent)`` returns ``self``. If ``self`` does
+            not have a functorial construction, return ``None``.
+
+            EXAMPLES::
+
+                sage: QQ.construction()
+                (FractionField, Integer Ring)
+                sage: f, R = QQ['x'].construction()
+                sage: f
+                Poly[x]
+                sage: R
+                Rational Field
+                sage: f(R)
+                Univariate Polynomial Ring in x over Rational Field
+            """
+            return None
+
         CartesianProduct = CartesianProduct
         def cartesian_product(*parents, **kwargs):
             """

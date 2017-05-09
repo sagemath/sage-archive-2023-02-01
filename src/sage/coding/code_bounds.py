@@ -232,7 +232,7 @@ def codesize_upper_bound(n,d,q,algorithm=None):
         hub = hamming_upper_bound(n,q,d)
         pub = plotkin_upper_bound(n,q,d)
         sub = singleton_upper_bound(n,q,d)
-        return min([eub,gub,hub,pub,sub])
+        return min([eub,hub,pub,sub])
 
 @rename_keyword(deprecation=6094, method="algorithm")
 def dimension_upper_bound(n,d,q,algorithm=None):
@@ -279,9 +279,9 @@ def volume_hamming(n,q,r):
 
 def gilbert_lower_bound(n,q,d):
     r"""
-    Returns Gilbert–Varshamov lower bound.
+    Returns Gilbert-Varshamov lower bound.
 
-    Returns Gilbert–Varshamov lower bound for number of elements in a largest code of
+    Returns Gilbert-Varshamov lower bound for number of elements in a largest code of
     minimum distance d in `\GF{q}^n`.
 
     EXAMPLES::
@@ -466,8 +466,8 @@ def gv_info_rate(n,delta,q):
     """
     Gilbert-Varshamov lower bound for information rate.
 
-    Gilbert-Varshamov lower bound for information rate of a q-ary code of length n
-    minimum distance delta\*n
+    Gilbert-Varshamov lower bound for information rate of a `q`-ary code of length `n`
+    minimum distance `n\delta`.
 
     EXAMPLES::
 

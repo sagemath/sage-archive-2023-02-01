@@ -192,8 +192,8 @@ cdef void linbox_fmpz_mat_charpoly(fmpz_poly_t cp, fmpz_mat_t A):
     cdef LinBoxIntegerDenseMatrix * LBA
     cdef LinBoxIntegerPolynomialRing.Element m_A
 
-    # FIXME: looks like a bug in LinBox
-    # see https://trac.sagemath.org/ticket/22924#comment:17
+    # FIXME: bug in LinBox
+    # see https://github.com/linbox-team/linbox/issues/51
     if fmpz_mat_nrows(A) == 0:
         fmpz_poly_one(cp)
         return
@@ -212,8 +212,8 @@ cdef void linbox_fmpz_mat_minpoly(fmpz_poly_t mp, fmpz_mat_t A):
     cdef LinBoxIntegerDenseMatrix * LBA
     cdef LinBoxIntegerPolynomialRing.Element m_A
 
-    # FIXME: looks like a bug in LinBox
-    # see https://trac.sagemath.org/ticket/22924#comment:17
+    # FIXME: bug in LinBox
+    # see https://github.com/linbox-team/linbox/issues/51
     if fmpz_mat_nrows(A) == 0:
         fmpz_poly_one(mp)
         return

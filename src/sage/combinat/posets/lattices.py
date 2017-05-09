@@ -875,7 +875,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Dual property: :meth:`is_meet_distributive`
-            - Weaker properties: :meth:`is_meet_semidistributive`, :meth:`is_upper_semimodular`
+            - Weaker properties: :meth:`is_meet_semidistributive`,
+              :meth:`is_upper_semimodular`
             - Stronger properties: :meth:`is_distributive`
 
         EXAMPLES::
@@ -964,7 +965,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Dual property: :meth:`is_join_distributive`
-            - Weaker properties: :meth:`is_join_semidistributive`, :meth:`is_lower_semimodular`
+            - Weaker properties: :meth:`is_join_semidistributive`,
+              :meth:`is_lower_semimodular`
             - Stronger properties: :meth:`is_distributive`
 
         EXAMPLES::
@@ -1139,9 +1141,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
-            - Weaker properties: :meth:`is_modular`, :meth:`is_semidistributive`,
-              :meth:`is_join_distributive`, :meth:`is_meet_distributive`,
-              :meth:`is_subdirectly_reducible`,
+            - Weaker properties: :meth:`is_modular`,
+              :meth:`is_semidistributive`, :meth:`is_join_distributive`,
+              :meth:`is_meet_distributive`, :meth:`is_subdirectly_reducible`,
               :meth:`is_constructible_by_doublings` (by interval doubling)
             - Stronger properties: :meth:`is_stone`
 
@@ -1192,7 +1194,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
-            - Weaker properties: :meth:`is_join_semidistributive`, :meth:`is_meet_semidistributive`
+            - Weaker properties: :meth:`is_join_semidistributive`,
+              :meth:`is_meet_semidistributive`
             - Stronger properties: :meth:`is_distributive`
 
         EXAMPLES:
@@ -1258,7 +1261,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             - Dual property: :meth:`is_join_semidistributive`
             - Weaker properties: :meth:`is_pseudocomplemented`
-            - Stronger properties: :meth:`is_semidistributive`, :meth:`is_join_distributive`, :meth:`is_constructible_by_doublings` (by upper pseudo-intervals)
+            - Stronger properties: :meth:`is_semidistributive`,
+              :meth:`is_join_distributive`,
+              :meth:`is_constructible_by_doublings` (by upper pseudo-intervals)
 
         EXAMPLES::
 
@@ -1346,7 +1351,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Dual property: :meth:`is_meet_semidistributive`
-            - Stronger properties: :meth:`is_semidistributive`, :meth:`is_meet_distributive`, :meth:`is_constructible_by_doublings` (by lower pseudo-intervals)
+            - Stronger properties: :meth:`is_semidistributive`,
+              :meth:`is_meet_distributive`,
+              :meth:`is_constructible_by_doublings` (by lower pseudo-intervals)
 
         EXAMPLES::
 
@@ -1432,7 +1439,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Stronger properties: :meth:`is_sectionally_complemented`,
-              :meth:`is_cosectionally_complemented`, :meth:`is_orthocomplemented`
+              :meth:`is_cosectionally_complemented`,
+              :meth:`is_orthocomplemented`
             - Other: :meth:`complements`
 
         EXAMPLES::
@@ -2424,7 +2432,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
-            - Weaker properties: :meth:`is_upper_semimodular`, :meth:`is_lower_semimodular`
+            - Weaker properties: :meth:`is_upper_semimodular`,
+              :meth:`is_lower_semimodular`
             - Stronger properties: :meth:`is_distributive`
             - Other: :meth:`is_modular_element`
 
@@ -2547,7 +2556,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             - Dual property: :meth:`is_lower_semimodular`
             - Weaker properties: :meth:`~sage.combinat.posets.posets.FinitePoset.is_graded`
-            - Stronger properties: :meth:`is_modular`, :meth:`is_join_distributive`, :meth:`is_geometric`
+            - Stronger properties: :meth:`is_modular`,
+              :meth:`is_join_distributive`, :meth:`is_geometric`
 
         See :wikipedia:`Semimodular_lattice`
 
@@ -2606,7 +2616,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             - Dual property: :meth:`is_upper_semimodular`
             - Weaker properties: :meth:`~sage.combinat.posets.posets.FinitePoset.is_graded`
-            - Stronger properties: :meth:`is_modular`, :meth:`is_meet_distributive`
+            - Stronger properties: :meth:`is_modular`,
+              :meth:`is_meet_distributive`
 
         See :wikipedia:`Semimodular_lattice`
 
@@ -3566,7 +3577,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
-            - Stronger properties: :meth:`is_distributive`, :meth:`is_vertically_decomposable`
+            - Stronger properties: :meth:`is_distributive`,
+              :meth:`is_vertically_decomposable`
 
         EXAMPLES::
 
@@ -3837,7 +3849,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Weaker properties: :meth:`is_uniform`
-            - Stronger properties: :meth:`is_simple`, :meth:`is_relatively_complemented`
+            - Stronger properties: :meth:`is_simple`,
+              :meth:`is_relatively_complemented`
             - Other: :meth:`congruence`
 
         EXAMPLES::

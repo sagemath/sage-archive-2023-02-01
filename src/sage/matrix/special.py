@@ -3470,7 +3470,7 @@ def ith_to_zero_rotation_matrix(v, i, ring=None):
     return matrix(entries, nrows=dim, ring=ring)
 
 @matrix_method
-def hilbert(dim, base_ring=QQ):
+def hilbert(dim, ring=QQ):
     r"""
     Return a Hilbert matrix of the given dimension.
 
@@ -3497,10 +3497,10 @@ def hilbert(dim, base_ring=QQ):
         [1/5 1/6 1/7 1/8 1/9]
     """
     entries = lambda i, j: 1/(i+j+1)
-    return matrix(entries, nrows=dim, ncols=dim, ring=base_ring)
+    return matrix(entries, nrows=dim, ncols=dim, ring=ring)
 
 @matrix_method
-def vandermonde(v):
+def vandermonde(v, ring=None):
     r"""
     Return a Vandermonde matrix of the given vector.
 
@@ -3527,10 +3527,10 @@ def vandermonde(v):
         [   1   x2 x2^2]
     """
     entries = lambda i, j: v[i]**j
-    return matrix(entries, nrows=len(v), ncols=len(v))
+    return matrix(entries, nrows=len(v), ncols=len(v), ring=ring)
 
 @matrix_method
-def toeplitz(c, r):
+def toeplitz(c, r, ring=None):
     r"""
     Return a Toeplitz matrix of given first column and first row.
 
@@ -3561,10 +3561,10 @@ def toeplitz(c, r):
         [4 3 2]
     """
     entries = lambda i,j: c[i-j] if i>=j else r[j-i]
-    return matrix(entries, nrows=len(c), ncols=len(r))
+    return matrix(entries, nrows=len(c), ncols=len(r), ring=ring)
 
 @matrix_method
-def hankel(c, r=None):
+def hankel(c, r=None, ring=None):
     r"""
     Return a Hankel matrix of given first column.
 
@@ -3614,4 +3614,4 @@ def hankel(c, r=None):
         r = c
     n = len(r)
     entries = lambda i: c[i] if i < m else r[i-m+1]
-    return matrix(lambda i,j: entries(i+j), nrows=m, ncols=n)
+    return matrix(lambda i,j: entries(i+j), nrows=m, ncols=n, ring=ring)

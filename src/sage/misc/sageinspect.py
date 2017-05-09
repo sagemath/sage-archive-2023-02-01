@@ -114,7 +114,7 @@ defined Cython code, and with rather tricky argument lines::
 """
 from __future__ import print_function, absolute_import
 from six.moves import range
-from six import iteritems
+from six import iteritems, string_types
 
 import ast
 import inspect
@@ -204,11 +204,6 @@ def _extract_embedded_position(docstring):
 
         sage: cython('''cpdef test_funct(x,y): return''')
         sage: print(open(_extract_embedded_position(inspect.getdoc(test_funct))[1]).read())
-        <BLANKLINE>
-        include "cysignals/signals.pxi"  # ctrl-c interrupt block support
-        include "stdsage.pxi"
-        <BLANKLINE>
-        include "cdefs.pxi"
         cpdef test_funct(x,y): return
 
     AUTHORS:
@@ -1638,7 +1633,7 @@ def _sage_getdoc_unformatted(obj):
 
     # Check if the __doc__ attribute was actually a string, and
     # not a 'getset_descriptor' or similar.
-    if not isinstance(r, types.StringTypes):
+    if not isinstance(r, string_types):
         return ''
     elif isinstance(r, unicode):
         return r.encode('utf-8', 'ignore')
@@ -1997,7 +1992,7 @@ def sage_getsourcelines(obj):
 
         sage: cython('''cpdef test_funct(x,y): return''')
         sage: sage_getsourcelines(test_funct)
-        (['cpdef test_funct(x,y): return\n'], 6)
+        (['cpdef test_funct(x,y): return\n'], 1)
 
     The following tests that an instance of ``functools.partial`` is correctly
     dealt with (see :trac:`9976`)::
@@ -2109,7 +2104,7 @@ def sage_getsourcelines(obj):
 
     # First, we deal with nested classes. Their name contains a dot, and we
     # have a special function for that purpose.
-    if (not hasattr(obj, '__class__')) or hasattr(obj,'__metaclass__'):
+    if (not hasattr(obj, '__class__')) or (isinstance(obj, type) and type(obj) is not type):
         # That happens for ParentMethods
         # of categories
         if '.' in obj.__name__ or '.' in getattr(obj,'__qualname__',''):

@@ -52,7 +52,6 @@ from sage.rings.rational cimport Rational
 from sage.misc.misc import verbose, cputime
 from sage.rings.infinity import Infinity
 
-include "sage/ext/cdefs.pxi"
 include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 

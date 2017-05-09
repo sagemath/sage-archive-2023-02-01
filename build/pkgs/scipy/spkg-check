@@ -2,7 +2,7 @@
 
 import os, sys
 
-os.system("echo 'import scipy; scipy.test()' | python > test.out 2>test.err")
+os.system("echo 'import scipy; scipy.test()' | sage-python23 > test.out 2>test.err")
 
 r = open('test.err').read()
 

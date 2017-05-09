@@ -206,7 +206,6 @@ AUTHORS:
 
 from sage.rings.ring import CommutativeRing
 from sage.rings.polynomial.all import PolynomialRing
-from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing

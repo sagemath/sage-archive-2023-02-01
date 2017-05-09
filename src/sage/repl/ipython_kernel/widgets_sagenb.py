@@ -14,7 +14,7 @@ EXAMPLES::
 
     sage: from sage.repl.ipython_kernel.widgets_sagenb import text_control
     sage: text_control("Hello World!")
-    HTML(value=u'Hello World!')
+    HTMLText(value=u'Hello World!')
 """
 
 #*****************************************************************************
@@ -29,7 +29,7 @@ EXAMPLES::
 
 from ipywidgets.widgets import (IntSlider, IntRangeSlider, FloatSlider,
         FloatRangeSlider, SelectionSlider,
-        Checkbox, ToggleButtons, Dropdown, HTML)
+        Checkbox, ToggleButtons, Dropdown)
 from .widgets import (TransformText, TransformTextarea,
         TransformIntSlider, TransformIntRangeSlider,
         TransformFloatSlider, TransformFloatRangeSlider,
@@ -46,9 +46,7 @@ from sage.symbolic.ring import SR
 from sage.rings.all import RR
 
 
-# The SageNB text_control widget does exactly the same as the
-# ipywidgets.HTML widget
-text_control = HTML
+from .widgets import HTMLText as text_control
 
 
 def input_box(default=None, label=None, type=None, width=80, height=1):

@@ -23,7 +23,7 @@ pairs of integers.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six import iteritems
+from six import iteritems, integer_types
 
 from sage.rings.integer import Integer
 from sage.structure.element import MonoidElement
@@ -56,7 +56,7 @@ class FreeMonoidElement(MonoidElement):
         This should typically be called by a FreeMonoid.
         """
         MonoidElement.__init__(self, F)
-        if isinstance(x, (int, long, Integer)):
+        if isinstance(x, integer_types + (Integer,)):
             if x == 1:
                 self._element_list = []
             else:
@@ -67,8 +67,8 @@ class FreeMonoidElement(MonoidElement):
                 for v in x:
                     if not isinstance(v, tuple) and len(v) == 2:
                         raise TypeError("x (= %s) must be a list of 2-tuples or 1."%x)
-                    if not (isinstance(v[0], (int,long,Integer)) and \
-                            isinstance(v[1], (int,long,Integer))):
+                    if not (isinstance(v[0], integer_types + (Integer,)) and
+                            isinstance(v[1], integer_types + (Integer,))):
                         raise TypeError("x (= %s) must be a list of 2-tuples of integers or 1."%x)
                     if len(x2) > 0 and v[0] == x2[len(x2)-1][0]:
                         x2[len(x2)-1] = (v[0], v[1]+x2[len(x2)-1][1])

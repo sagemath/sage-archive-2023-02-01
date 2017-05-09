@@ -18,10 +18,8 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.crystals import Crystals
 from sage.categories.regular_crystals import RegularCrystals
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.tensor import TensorProductsCategory
 from sage.categories.map import Map
-from sage.categories.homset import Hom
 from sage.graphs.dot2tex_utils import have_dot2tex
 from sage.functions.other import ceil
 from sage.rings.all import ZZ
@@ -485,6 +483,10 @@ class KirillovReshetikhinCrystals(Category_singleton):
                 sage: K.is_perfect()
                 True
 
+                sage: K = crystals.KirillovReshetikhin(['E',6,1], 1,3)
+                sage: K.is_perfect()
+                True
+
             .. TODO::
 
                 Implement a version for tensor products of KR crystals.
@@ -509,19 +511,19 @@ class KirillovReshetikhinCrystals(Category_singleton):
             for b in self:
                 p = b.Phi().level()
                 assert p == b.Epsilon().level()
-                if p < level:
+                if p < ell:
                     return False
-                if p == level:
+                if p == ell:
                     MPhi += [b]
             weights = []
             I = self.index_set()
             rank = len(I)
             La = self.weight_lattice_realization().basis()
             from sage.combinat.integer_vector import IntegerVectors
-            for n in range(1,level+1):
+            for n in range(1, ell+1):
                 for c in IntegerVectors(n, rank):
                     w = sum(c[i]*La[i] for i in I)
-                    if w.level() == level:
+                    if w.level() == ell:
                         weights.append(w)
             return sorted(b.Phi() for b in MPhi) == sorted(weights)
 

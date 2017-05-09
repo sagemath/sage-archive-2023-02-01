@@ -180,7 +180,9 @@ from .delsarte_bounds import delsarte_bound_hamming_space, \
 @rename_keyword(deprecation=6094, method="algorithm")
 def codesize_upper_bound(n,d,q,algorithm=None):
     r"""
-    This computes the minimum value of the upper bound using the
+    Returns an upper bound on the code size.
+
+    This function computes the minimum value of the upper bound using the
     methods of Singleton, Hamming, Plotkin, and Elias.
 
     If algorithm="gap" then this returns the best known upper
@@ -213,6 +215,12 @@ def codesize_upper_bound(n,d,q,algorithm=None):
         sage: codes.bounds.codesize_upper_bound(11,3,4,algorithm="LP")
         109226
 
+    TESTS:
+
+    Make sure :trac:`22961` is fixed::
+
+        sage: codes.bounds.codesize_upper_bound(19,10,2)
+        20
     """
     if algorithm=="gap":
         gap.load_package('guava')
@@ -221,7 +229,6 @@ def codesize_upper_bound(n,d,q,algorithm=None):
         return int(delsarte_bound_hamming_space(n,d,q))
     else:
         eub = elias_upper_bound(n,q,d)
-        gub = griesmer_upper_bound(n,q,d)
         hub = hamming_upper_bound(n,q,d)
         pub = plotkin_upper_bound(n,q,d)
         sub = singleton_upper_bound(n,q,d)
@@ -230,6 +237,8 @@ def codesize_upper_bound(n,d,q,algorithm=None):
 @rename_keyword(deprecation=6094, method="algorithm")
 def dimension_upper_bound(n,d,q,algorithm=None):
     r"""
+    Returns an upper bound for the dimension of a linear code.
+
     Returns an upper bound `B(n,d) = B_q(n,d)` for the
     dimension of a linear code of length n, minimum distance d over a
     field of size q.
@@ -255,6 +264,8 @@ def dimension_upper_bound(n,d,q,algorithm=None):
 
 def volume_hamming(n,q,r):
     r"""
+    Returns number of elements in a Hamming ball.
+
     Returns number of elements in a Hamming ball of radius r in `\GF{q}^n`.
     Agrees with Guava's SphereContent(n,r,GF(q)).
 
@@ -268,7 +279,9 @@ def volume_hamming(n,q,r):
 
 def gilbert_lower_bound(n,q,d):
     r"""
-    Returns lower bound for number of elements in the largest code of
+    Returns Gilbert–Varshamov lower bound.
+
+    Returns Gilbert–Varshamov lower bound for number of elements in a largest code of
     minimum distance d in `\GF{q}^n`.
 
     EXAMPLES::
@@ -282,9 +295,10 @@ def gilbert_lower_bound(n,q,d):
 @rename_keyword(deprecation=6094, method="algorithm")
 def plotkin_upper_bound(n,q,d, algorithm=None):
     r"""
+    Returns Plotkin upper bound.
+
     Returns Plotkin upper bound for number of elements in the largest
     code of minimum distance d in `\GF{q}^n`.
-
     The algorithm="gap" option wraps Guava's UpperBoundPlotkin.
 
     EXAMPLES::
@@ -315,9 +329,11 @@ def plotkin_upper_bound(n,q,d, algorithm=None):
 @rename_keyword(deprecation=6094, method="algorithm")
 def griesmer_upper_bound(n,q,d,algorithm=None):
     r"""
-    Returns the Griesmer upper bound for number of elements in the
-    largest code of minimum distance d in `\GF{q}^n`.
-    Wraps GAP's UpperBoundGriesmer.
+    Returns the Griesmer upper bound.
+
+    Returns the Griesmer upper bound for number of elements in a
+    largest linear code of minimum distance d in `\GF{q}^n`.
+    If the method is "GAP", it wraps GAP's UpperBoundGriesmer.
 
     EXAMPLES::
 
@@ -333,7 +349,7 @@ def griesmer_upper_bound(n,q,d,algorithm=None):
     else:
         den = 1
         s = 0
-        k = 0
+        k = 1
         add = 0
         while s <= n:
             if not(add == 1):
@@ -350,6 +366,8 @@ def griesmer_upper_bound(n,q,d,algorithm=None):
 @rename_keyword(deprecation=6094, method="algorithm")
 def elias_upper_bound(n,q,d,algorithm=None):
     r"""
+    Returns the Elias upper bound.
+
     Returns the Elias upper bound for number of elements in the largest
     code of minimum distance d in `\GF{q}^n`. Wraps
     GAP's UpperBoundElias.
@@ -382,6 +400,8 @@ def elias_upper_bound(n,q,d,algorithm=None):
 
 def hamming_upper_bound(n,q,d):
     r"""
+    Returns the Hamming upper bound.
+
     Returns the Hamming upper bound for number of elements in the
     largest code of minimum distance d in `\GF{q}^n`.
     Wraps GAP's UpperBoundHamming.
@@ -415,6 +435,8 @@ def hamming_upper_bound(n,q,d):
 
 def singleton_upper_bound(n,q,d):
     r"""
+    Returns the Singleton upper bound.
+
     Returns the Singleton upper bound for number of elements in the
     largest code of minimum distance d in `\GF{q}^n`.
     Wraps GAP's UpperBoundSingleton.
@@ -442,7 +464,9 @@ def singleton_upper_bound(n,q,d):
 
 def gv_info_rate(n,delta,q):
     """
-    GV lower bound for information rate of a q-ary code of length n
+    Gilbert-Varshamov lower bound for information rate.
+
+    Gilbert-Varshamov lower bound for information rate of a q-ary code of length n
     minimum distance delta\*n
 
     EXAMPLES::
@@ -550,7 +574,7 @@ def entropy_inverse(x, q=2):
 
 def gv_bound_asymp(delta,q):
     """
-    Computes the asymptotic GV bound for the information rate, R.
+    Computes the asymptotic Gilbert-Varshamov bound for the information rate, R.
 
     EXAMPLES::
 
@@ -593,6 +617,8 @@ def singleton_bound_asymp(delta,q):
 
 def plotkin_bound_asymp(delta,q):
     """
+    Computes the asymptotic Plotkin bound for the information rate.
+
     Computes the asymptotic Plotkin bound for the information rate,
     provided `0 < \delta < 1-1/q`.
 
@@ -606,6 +632,8 @@ def plotkin_bound_asymp(delta,q):
 
 def elias_bound_asymp(delta,q):
     """
+    Computes the asymptotic Elias bound for the information rate.
+
     Computes the asymptotic Elias bound for the information rate,
     provided `0 < \delta < 1-1/q`.
 
@@ -619,6 +647,8 @@ def elias_bound_asymp(delta,q):
 
 def mrrw1_bound_asymp(delta,q):
     """
+    Computes the first asymptotic McEliese-Rumsey-Rodemich-Welsh bound.
+
     Computes the first asymptotic McEliese-Rumsey-Rodemich-Welsh bound
     for the information rate, provided `0 < \delta < 1-1/q`.
 

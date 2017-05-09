@@ -480,7 +480,7 @@ class Groups(CategoryWithAxiom):
             """
             return self.parent().conjugacy_class(self)
 
-    Finite = LazyImport('sage.categories.finite_groups', 'FiniteGroups')
+    Finite = LazyImport('sage.categories.finite_groups', 'FiniteGroups', at_startup=True)
     Lie = LazyImport('sage.categories.lie_groups', 'LieGroups', 'Lie')
     #Algebras = LazyImport('sage.categories.group_algebras', 'GroupAlgebras')
 
@@ -618,6 +618,16 @@ class Groups(CategoryWithAxiom):
             return G.algebra(self.base_ring())
 
         class ParentMethods:
+            def __init_extra__(self):
+                """
+                Enable coercion from the defining group.
+                """
+                if not base_ring.has_coerce_map_from(group):
+                    ## some matrix groups assume that coercion is only valid to
+                    ## other matrix groups. This is a workaround
+                    ## call _element_constructor_ to coerce group elements
+                    #try :
+                    self._populate_coercion_lists_(coerce_list=[group])
 
             def _repr_(self):
                 r"""
@@ -642,6 +652,19 @@ class Groups(CategoryWithAxiom):
                     return 'Group algebra of {} over {}'.format(self.basis().keys(),
                                                                 self.base_ring())
 
+            def _latex_(self):
+                r"""
+                Latex string of ``self``.
+
+                EXAMPLES::
+
+                    sage: A = GroupAlgebra(KleinFourGroup(), ZZ)
+                    sage: latex(A) # indirect doctest
+                    \Bold{Z}[\langle (3,4), (1,2) \rangle]
+                """
+                from sage.misc.all import latex
+                return "%s[%s]" % (latex(self.base_ring()), latex(self.group()))
+
             def group(self):
                 r"""
                 Return the underlying group of the group algebra.
@@ -655,6 +678,7 @@ class Groups(CategoryWithAxiom):
                 """
                 return self.basis().keys()
 
+            @cached_method
             def algebra_generators(self):
                 r"""
                 Return generators of this group algebra (as an algebra).
@@ -663,10 +687,44 @@ class Groups(CategoryWithAxiom):
 
                     sage: GroupAlgebras(QQ).example(AlternatingGroup(10)).algebra_generators()
                     Finite family {(8,9,10): (8,9,10), (1,2,3,4,5,6,7,8,9): (1,2,3,4,5,6,7,8,9)}
+
+                    sage: A = GroupAlgebra(DihedralGroup(3), QQ); A
+                    Group algebra of Dihedral group of order 6 as a permutation group
+                     over Rational Field
+                    sage: A.algebra_generators()
+                    Finite family {(1,3): (1,3), (1,2,3): (1,2,3)}
                 """
                 from sage.sets.family import Family
-                return Family(self.group().gens(), self.term)
+                return Family(self.group().gens(), self.monomial)
 
+            def ngens(self):
+                r"""
+                Return the number of generators of ``self``.
+
+                EXAMPLES::
+
+                    sage: GroupAlgebra(SL2Z).ngens()
+                    2
+                    sage: GroupAlgebra(DihedralGroup(4), RR).ngens()
+                    2
+                """
+                return self.algebra_generators().cardinality()
+
+            def gen(self, i=0):
+                r"""
+                Return the ``i``-th generator of ``self``.
+
+                EXAMPLES::
+
+                    sage: A = GroupAlgebra(GL(3, GF(7)))
+                    sage: A.gen(0)
+                    [3 0 0]
+                    [0 1 0]
+                    [0 0 1]
+                """
+                return self.monomial(self._group.gen(i))
+
+            @cached_method
             def center_basis(self):
                 r"""
                 Return a basis of the center of the group algebra.
@@ -679,7 +737,7 @@ class Groups(CategoryWithAxiom):
 
                 OUTPUT:
 
-                - ``list`` of elements of ``self``
+                - ``tuple`` of elements of ``self``
 
                 .. WARNING::
 
@@ -690,15 +748,15 @@ class Groups(CategoryWithAxiom):
                 EXAMPLES::
 
                     sage: SymmetricGroup(3).algebra(QQ).center_basis()
-                    [(), (2,3) + (1,2) + (1,3), (1,2,3) + (1,3,2)]
+                    ((), (2,3) + (1,2) + (1,3), (1,2,3) + (1,3,2))
 
                 .. SEEALSO::
 
                     - :meth:`Groups.Algebras.ElementMethods.central_form`
                     - :meth:`Monoids.Algebras.ElementMethods.is_central`
                 """
-                return [self.sum_of_monomials(conj) for conj  in
-                        self.basis().keys().conjugacy_classes()]
+                return tuple([self.sum_of_monomials(conj) for conj  in
+                              self.basis().keys().conjugacy_classes()])
 
             # Coalgebra structure
 
@@ -823,7 +881,7 @@ class Groups(CategoryWithAxiom):
                 """
                 return (self.base_ring().is_finite() and self.group().is_finite())
 
-            def is_integral_domain(self, proof = True):
+            def is_integral_domain(self, proof=True):
                 r"""
                 Return ``True`` if ``self`` is an integral domain.
 
@@ -845,7 +903,7 @@ class Groups(CategoryWithAxiom):
                     True
                     sage: GroupAlgebra(AbelianGroup(2, [0,2])).is_integral_domain()
                     False
-                    sage: GroupAlgebra(GL(2, ZZ)).is_integral_domain() # not implemented
+                    sage: GroupAlgebra(GL(2, ZZ)).is_integral_domain()
                     False
                 """
                 from sage.sets.set import Set
@@ -868,14 +926,44 @@ class Groups(CategoryWithAxiom):
                                 raise NotImplementedError
                     else:
                         ans = False
-                except AttributeError:
-                    if proof:
-                        raise NotImplementedError("cannot determine whether self is an integral domain")
-                except NotImplementedError:
+                except (AttributeError, NotImplementedError):
                     if proof:
                         raise NotImplementedError("cannot determine whether self is an integral domain")
 
                 return ans
+
+            # I haven't written is_noetherian(), because I don't know when group
+            # algebras are noetherian, and I haven't written is_prime_field(), because
+            # I don't know if that means "is canonically isomorphic to a prime field"
+            # or "is identical to a prime field".
+
+            def random_element(self, n=2):
+                r"""
+                Return a 'random' element of ``self``.
+
+                INPUT:
+
+                - ``n`` -- integer (default: 2); number of summands
+
+                ALGORITHM:
+
+                Return a sum of ``n`` terms, each of which is formed by
+                multiplying a random element of the base ring by a random
+                element of the group.
+
+                EXAMPLES::
+
+                    sage: GroupAlgebra(DihedralGroup(6), QQ).random_element()
+                    -1/95*() - 1/2*(1,4)(2,5)(3,6)
+                    sage: GroupAlgebra(SU(2, 13), QQ).random_element(1)
+                    1/2*[       0 4*a + 11]
+                    [2*a + 12        4]
+                """
+                a = self(0)
+                for i in range(n):
+                    a += self.term(self.group().random_element(),
+                                   self.base_ring().random_element())
+                return a
 
         class ElementMethods:
 

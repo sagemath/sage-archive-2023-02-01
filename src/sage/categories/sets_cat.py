@@ -1511,7 +1511,7 @@ class Sets(Category_singleton):
                     category = category & extra_category
             return parents[0].CartesianProduct(parents, category=category, **kwargs)
 
-        def algebra(self, base_ring, category=None):
+        def algebra(self, base_ring, category=None, **kwds):
             """
             Return the algebra of ``self`` over ``base_ring``.
 
@@ -1658,11 +1658,18 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
             from sage.categories.groups import Groups
             from sage.categories.additive_groups import AdditiveGroups
             from sage.categories.fields import Fields
+            from sage.combinat.free_module import CombinatorialFreeModule
             algebra_category = category.Algebras(base_ring)
             if (category.is_subcategory(Groups())
                 or category.is_subcategory(AdditiveGroups())):
+                # Somewhat dirty hack to wrap non-atomic objects
+                if self not in ModulesWithBasis:
+                    if 'prefix' not in kwds:
+                        kwds['prefix'] = ''
+                    if 'bracket' not in kwds:
+                        kwds['bracket'] = False
                 from sage.algebras.group_algebra import GroupAlgebra
-                return GroupAlgebra(self, base_ring, category=algebra_category)
+                return GroupAlgebra(self, base_ring, category=algebra_category, **kwds)
 
             from sage.combinat.free_module import CombinatorialFreeModule
             return CombinatorialFreeModule(base_ring, self,

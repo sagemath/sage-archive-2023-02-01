@@ -63,31 +63,3 @@ class CommutativeAdditiveGroups(CategoryWithAxiom, AbelianCategory):
     class Algebras(AlgebrasCategory):
         pass
 
-    class Finite(CategoryWithAxiom):
-        class Algebras(AlgebrasCategory):
-            def extra_super_categories(self):
-                r"""
-                Implement Maschke's theorem.
-
-                In characteristic 0 all finite group algebras are semisimple.
-
-                EXAMPLES::
-
-                    sage: Cat = CommutativeAdditiveGroups().Finite()
-                    sage: Cat.Algebras(QQ).is_subcategory(Algebras(QQ).Semisimple())
-                    True
-                    sage: Cat.Algebras(GF(7)).is_subcategory(Algebras(GF(7)).Semisimple())
-                    False
-                    sage: Cat.Algebras(ZZ).is_subcategory(Algebras(ZZ).Semisimple())
-                    False
-                    sage: Cat.Algebras(Fields()).is_subcategory(Algebras(Fields()).Semisimple())
-                    False
-                """
-                from sage.categories.fields import Fields
-                K = self.base_ring()
-                if (K in Fields) and K.characteristic() == 0:
-                    from sage.categories.algebras import Algebras
-                    return [Algebras(self.base_ring()).Semisimple()]
-                else:
-                    return []
-

@@ -1477,6 +1477,30 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         """
         return tuple(self.basis().values())
 
+    def is_exact(self):
+        r"""
+        Return ``True`` if elements of ``self`` have exact representations,
+        which is true of ``self`` if and only if it is true of
+        ``self.basis().keys()`` and ``self.base_ring()``.
+
+        EXAMPLES::
+
+            sage: GroupAlgebra(GL(3, GF(7))).is_exact()
+            True
+            sage: GroupAlgebra(GL(3, GF(7)), RR).is_exact()
+            False
+            sage: GroupAlgebra(GL(3, pAdicRing(7))).is_exact() # not implemented correctly (not my fault)!
+            False
+        """
+        # The index set may not have a check for exactness
+        # Assume the index set is exact if we cannot check
+        try:
+            if not self.basis().keys().is_exact():
+                return False
+        except AttributeError:
+            pass
+        return self.base_ring().is_exact()
+
     def set_order(self, order):
         """
         Set the order of the elements of the basis.

@@ -149,7 +149,7 @@ class GroupAlgebraFunctor(ConstructionFunctor):
         sage: GroupAlgebra(SU(2, GF(4, 'a')), IntegerModRing(12)).category()
         Category of finite group algebras over Ring of integers modulo 12
     """
-    def __init__(self, group) :
+    def __init__(self, group):
         r"""
         See :class:`GroupAlgebraFunctor` for full documentation.
 
@@ -163,7 +163,7 @@ class GroupAlgebraFunctor(ConstructionFunctor):
 
         ConstructionFunctor.__init__(self, Rings(), Rings())
 
-    def group(self) :
+    def group(self):
         r"""
         Return the group which is associated to this functor.
 
@@ -175,7 +175,7 @@ class GroupAlgebraFunctor(ConstructionFunctor):
          """
         return self.__group
 
-    def _apply_functor(self, base_ring) :
+    def _apply_functor(self, base_ring):
         r"""
         Create the group algebra with given base ring over ``self.group()``.
 
@@ -197,7 +197,7 @@ class GroupAlgebraFunctor(ConstructionFunctor):
         """
         return GroupAlgebra(self.__group, base_ring)
 
-    def _apply_functor_to_morphism(self, f) :
+    def _apply_functor_to_morphism(self, f):
         r"""
         Lift a homomorphism of rings to the corresponding homomorphism
         of the group algebras of ``self.group()``.
@@ -331,19 +331,6 @@ class GroupAlgebra(CombinatorialFreeModule):
             True
             sage: GroupAlgebra(SymmetricGroup(3)).is_commutative()
             False
-
-            sage: G = groups.permutation.Dihedral(8)
-            sage: A = G.algebra(GF(5))
-            sage: A in Algebras.Semisimple
-            True
-            sage: A = G.algebra(Zmod(4))
-            sage: A in Algebras.Semisimple
-            False
-            sage: G = groups.misc.AdditiveCyclic(4)
-            sage: Cat = CommutativeAdditiveGroups().Finite()
-            sage: A = G.algebra(QQ, category=Cat)
-            sage: A in Algebras.Semisimple
-            True
         """
         from sage.groups.group import is_Group
         if not base_ring.is_commutative():
@@ -357,147 +344,12 @@ class GroupAlgebra(CombinatorialFreeModule):
         if category is None:
             category = group_cat.Algebras(base_ring)
 
-        # If base_ring is of characteristic 0, this is handled
-        #    in the FiniteGroups.Algebras category
-        # Maschke's theorem: under some conditions, the algebra is semisimple.
-        if (group_cat.is_subcategory(Sets().Finite())
-            and base_ring in Fields
-            and base_ring.characteristic() > 0
-            and hasattr(group, "cardinality")
-            and group.cardinality() % base_ring.characteristic() != 0):
-            category = category.Semisimple()
-
-        # Somewhat dirty hack to wrap non-atomic objects
-        if group not in ModulesWithBasis:
-            if 'prefix' not in kwds:
-                kwds['prefix'] = ''
-            if 'bracket' not in kwds:
-                kwds['bracket'] = False
-
         self._group = group
         CombinatorialFreeModule.__init__(self, base_ring, group,
                                          category=category,
                                          **kwds)
 
-        if not base_ring.has_coerce_map_from(group) :
-            ## some matrix groups assume that coercion is only valid to
-            ## other matrix groups. This is a workaround
-            ## call _element_constructor_ to coerce group elements
-            #try :
-            self._populate_coercion_lists_(coerce_list=[group])
-
-    # Methods taken from sage.categories.examples.hopf_algebras_with_basis:
-
-    @cached_method
-    def algebra_generators(self):
-        r"""
-        The generators of this algebra, as per
-        :meth:`Algebras.ParentMethods.algebra_generators`.
-
-        They correspond to the generators of the group.
-
-        EXAMPLES::
-
-            sage: A = GroupAlgebra(DihedralGroup(3), QQ); A
-            Group algebra of Dihedral group of order 6 as a permutation group
-             over Rational Field
-            sage: A.algebra_generators()
-            Finite family {(1,3): (1,3), (1,2,3): (1,2,3)}
-        """
-        from sage.sets.family import Family
-        return Family(self._group.gens(), self.monomial)
-
-    gens = algebra_generators
-
     # other methods:
-
-    def ngens(self) :
-        r"""
-        Return the number of generators.
-
-        EXAMPLES::
-
-            sage: GroupAlgebra(SL2Z).ngens()
-            2
-            sage: GroupAlgebra(DihedralGroup(4), RR).ngens()
-            2
-        """
-        return self.algebra_generators().cardinality()
-
-    def gen(self, i = 0) :
-        r"""
-        EXAMPLES::
-
-            sage: A = GroupAlgebra(GL(3, GF(7)))
-            sage: A.gen(0)
-            [3 0 0]
-            [0 1 0]
-            [0 0 1]
-        """
-        return self.monomial(self._group.gen(i))
-
-    def group(self):
-        r"""
-        Return the group of this group algebra.
-
-        EXAMPLES::
-
-            sage: GroupAlgebra(GL(3, GF(11))).group()
-            General Linear Group of degree 3 over Finite Field of size 11
-            sage: GroupAlgebra(SymmetricGroup(10)).group()
-            Symmetric group of order 10! as a permutation group
-        """
-        return self._group
-
-    def is_exact(self):
-        r"""
-        Return ``True`` if elements of ``self`` have exact representations,
-        which is true of ``self`` if and only if it is true of
-        ``self.group()`` and ``self.base_ring()``.
-
-        EXAMPLES::
-
-            sage: GroupAlgebra(GL(3, GF(7))).is_exact()
-            True
-            sage: GroupAlgebra(GL(3, GF(7)), RR).is_exact()
-            False
-            sage: GroupAlgebra(GL(3, pAdicRing(7))).is_exact() # not implemented correctly (not my fault)!
-            False
-        """
-        return self.group().is_exact() and self.base_ring().is_exact()
-
-    # I haven't written is_noetherian(), because I don't know when group
-    # algebras are noetherian, and I haven't written is_prime_field(), because
-    # I don't know if that means "is canonically isomorphic to a prime field"
-    # or "is identical to a prime field".
-
-    def random_element(self, n=2):
-        r"""
-        Return a 'random' element of ``self``.
-
-        INPUT:
-
-        - ``n`` -- integer (default: 2); number of summands
-
-        ALGORITHM:
-
-        Return a sum of ``n`` terms, each of which is formed by
-        multiplying a random element of the base ring by a random
-        element of the group.
-
-        EXAMPLES::
-
-            sage: GroupAlgebra(DihedralGroup(6), QQ).random_element()
-            -1/95*() - 1/2*(1,4)(2,5)(3,6)
-            sage: GroupAlgebra(SU(2, 13), QQ).random_element(1)
-            1/2*[       0 4*a + 11]
-            [2*a + 12        4]
-        """
-        a = self(0)
-        for i in range(n):
-            a += self.term(self.group().random_element(),
-                           self.base_ring().random_element())
-        return a
 
     def construction(self):
         r"""
@@ -507,20 +359,7 @@ class GroupAlgebra(CombinatorialFreeModule):
             sage: A.construction()
             (GroupAlgebraFunctor, Rational Field)
         """
-        return GroupAlgebraFunctor(self._group), self.base_ring()
-
-    def _latex_(self):
-        r"""
-        Latex string of ``self``.
-
-        EXAMPLES::
-
-            sage: A = GroupAlgebra(KleinFourGroup(), ZZ)
-            sage: latex(A) # indirect doctest
-            \Bold{Z}[\langle (3,4), (1,2) \rangle]
-        """
-        from sage.misc.all import latex
-        return "%s[%s]" % (latex(self.base_ring()), latex(self.group()))
+        return GroupAlgebraFunctor(self.group()), self.base_ring()
 
     # coercion methods:
 

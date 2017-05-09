@@ -72,7 +72,7 @@ Constructions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six import add_metaclass
+from six import add_metaclass, string_types
 
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 import sage.categories.posets
@@ -703,7 +703,7 @@ class Posets(object):
             D.relabel([i-1 for i in Permutations(n).random_element()])
             return LatticePoset(D, cover_relations=True)
 
-        if isinstance(properties, basestring):
+        if isinstance(properties, string_types):
             properties = set([properties])
         else:
             properties = set(properties)

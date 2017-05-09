@@ -3737,11 +3737,11 @@ cdef class Expression(CommutativeRingElement):
             sage: None^pi
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from <type 'NoneType'> to Symbolic Ring
+            TypeError: no canonical coercion from <... 'NoneType'> to Symbolic Ring
             sage: sin(x)^None
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from <type 'NoneType'> to Symbolic Ring
+            TypeError: no canonical coercion from <... 'NoneType'> to Symbolic Ring
 
         Check that :trac:`18088` is fixed::
 

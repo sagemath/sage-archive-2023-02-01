@@ -608,6 +608,13 @@ class Interface(ParentWithBase):
     def __ne__(self, other):
         """
         Test for unequality.
+
+        EXAMPLES::
+
+            sage: Maxima() != maxima
+            True
+            sage: maxima != maxima
+            False
         """
         return not (self == other)
 

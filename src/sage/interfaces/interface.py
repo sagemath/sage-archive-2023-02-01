@@ -587,13 +587,14 @@ class Interface(ParentWithBase):
                 raise
             return self._function_class()(self, attrname)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
-        Compare two pseudo-tty interfaces. Two interfaces compare
-        equal if and only if they are identical objects (this is a
-        critical constraint so that caching of representations of
-        objects in interfaces works correctly). Otherwise they are
-        never equal.
+        Compare two pseudo-tty interfaces.
+
+        Two interfaces compare equal if and only if they are identical
+        objects (this is a critical constraint so that caching of
+        representations of objects in interfaces works
+        correctly). Otherwise they are never equal.
 
         EXAMPLES::
 
@@ -602,12 +603,13 @@ class Interface(ParentWithBase):
             sage: maxima == maxima
             True
         """
-        if self is other:
-            return 0
-        c = cmp(type(self), type(other))
-        if c:
-            return c
-        return -1  # sucky, but I can't think of anything better; it is important that different interfaces to the same system still compare differently; unfortunately there is nothing to distinguish them.
+        return self is other
+
+    def __ne__(self, other):
+        """
+        Test for unequality.
+        """
+        return not (self == other)
 
     def console(self):
         raise NotImplementedError

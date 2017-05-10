@@ -89,14 +89,14 @@ def mode(v):
     """
     Return the mode of `v`.
 
-    The mode is the sorted list of the most frequently occuring
-    elements in `v`.  If `n` is the most times that any element occurs
-    in `v`, then the mode is the sorted list of elements of `v` that
-    occur `n` times.
+    The mode is the list of the most frequently occuring
+    elements in `v`. If `n` is the most times that any element occurs
+    in `v`, then the mode is the list of elements of `v` that
+    occur `n` times. The list is sorted if possible.
 
     .. NOTE::
 
-        The elements of `v` must be hashable and comparable.
+        The elements of `v` must be hashable.
 
     INPUT:
 
@@ -104,7 +104,7 @@ def mode(v):
 
     OUTPUT:
 
-    - a list
+    - a list (sorted if possible)
 
     EXAMPLES::
 

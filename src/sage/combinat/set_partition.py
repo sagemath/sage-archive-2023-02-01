@@ -566,7 +566,7 @@ class SetPartition(ClonableArray):
                 res += " ({}) at ({}:{}) {{}};\n".format(k, location, radius)
 
             # Setup partitions
-            for partition in sorted(self, key=sort_key):
+            for partition in sorted(self, key=str):
                 res += "\\draw[-,thick,color="+color
                 if latex_options['fill'] is not False:
                     if isinstance(latex_options['fill'], str):
@@ -593,7 +593,7 @@ class SetPartition(ClonableArray):
                 res += "({k}) at ({k},0) {{}};\n".format(k=k)
 
             # setup arcs
-            for partition in self:
+            for partition in sorted(self, key=str):
                 p = sorted(partition, key=str)
                 if len(p) <= 1:
                     continue

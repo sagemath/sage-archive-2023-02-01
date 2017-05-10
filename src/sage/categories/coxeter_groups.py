@@ -545,7 +545,7 @@ class CoxeterGroups(Category_singleton):
                 ret.append(nextlayer)
             return flatten(ret)
 
-        def bruhat_graph(self, x=None, y=None):
+        def bruhat_graph(self, x=None, y=None, edge_labels=False):
             r"""
             Return the Bruhat graph as a directed graph, with an edge `u \to v`
             if and only if `u < v` in the Bruhat order, and `u = r \cdot v`.
@@ -599,15 +599,25 @@ class CoxeterGroups(Category_singleton):
                     raise TypeError("infinite groups must specify a maximal element")
 
             g = self.bruhat_interval(x,y)
-            d = {}
+            d = []
 
             if self.is_finite():
                 ref = self.reflections()
                 for u in g:
-                    d[u] = [v for v in g if u.length() < v.length() and u*v.inverse() in ref]
+                    for v in g:
+                        if u.length() < v.length() and u*v.inverse() in ref:
+                            if edge_labels:
+                                d.append((u,v, u*v.inverse()))
+                            else:
+                                d.append((u,v))
             else:
                 for u in g:
-                    d[u] = [v for v in g if u.length() < v.length() and (u*v.inverse()).is_reflection()]
+                    for v in g:
+                        if u.length() < v.length() and (u*v.inverse()).is_reflection():
+                            if edge_labels:
+                                d.append((u,v,u*v.inverse()))
+                            else:
+                                d.append((u,v))
             return DiGraph(d)
 
         def canonical_representation(self):

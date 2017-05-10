@@ -362,11 +362,9 @@ static int low_series_degree(ex the_ex) {
                 ex expo = pow.op(1);
                 if (is_exactly_a<numeric>(expo)) {
                         numeric n = ex_to<numeric>(expo);
-                        if (n.is_integer() and n>*_num1_p)
+                        if (n.is_integer())
                                 return (low_series_degree(pow.op(0))
                                       * n.to_int());
-                        else
-                                return low_series_degree(pow.op(0));
                 }
                 return 0;
         }
@@ -418,7 +416,7 @@ ex useries(ex the_ex, const relational & r, int order, unsigned options)
         // Precision may have been lost when adding terms
         if (may_extend and deg < prec - fp.offset) {
                 fmpq_poly_set_ui(fp.ft, 0);
-                size_t old_offset = fp.offset;
+                int old_offset = fp.offset;
                 fp.offset = 0;
                 the_ex.useries(fp, 2*prec - old_offset - deg);
         }

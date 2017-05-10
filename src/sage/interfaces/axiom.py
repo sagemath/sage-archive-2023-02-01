@@ -262,7 +262,7 @@ class PanAxiom(ExtraTabCompletion, Expect):
 
             sage: filename = tmp_filename(ext='.input')
             sage: f = open(filename, 'w')
-            sage: f.write('xx := 22;\n')
+            sage: _ = f.write('xx := 22;\n')
             sage: f.close()
             sage: axiom.read(filename)    # optional - axiom
             sage: axiom.get('xx')         # optional - axiom

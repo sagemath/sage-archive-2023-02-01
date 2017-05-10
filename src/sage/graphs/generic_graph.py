@@ -313,7 +313,7 @@ Methods
 """
 from __future__ import print_function, absolute_import, division
 from six.moves import range, zip
-from six import itervalues, iteritems
+from six import itervalues, iteritems, integer_types
 
 from copy import copy
 from sage.misc.decorators import options
@@ -627,7 +627,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: H = G*1; H
             Cycle graph: Graph on 3 vertices
         """
-        if isinstance(n, (int, long, Integer)):
+        if isinstance(n, integer_types + (Integer,)):
             if n < 1:
                 raise TypeError('multiplication of a graph and a nonpositive integer is not defined')
             if n == 1:
@@ -16243,17 +16243,30 @@ class GenericGraph(GenericGraph_pyx):
            results in the theory of the Wiener number. *Indian Journal of
            Chemistry*, 32A:651--661, 1993.
 
-        TEST::
+        TEST:
+
+        Giving an empty graph::
 
             sage: g = Graph()
             sage: g.average_distance()
             Traceback (most recent call last):
             ...
             ValueError: average distance is not defined for empty or one-element graph
+
+        :trac:`22885`::
+
+            sage: G = graphs.PetersenGraph()
+            sage: G2 = Graph([(u,v,2) for u,v,_ in G.edges()])
+            sage: G2.average_distance()
+            5/3
+            sage: G2.average_distance(by_weight=True)
+            10/3
         """
         if self.order() < 2:
             raise ValueError("average distance is not defined for empty or one-element graph")
-        return 2 * self.wiener_index() / (self.order()*(self.order()-1))
+        WI =  self.wiener_index(by_weight=by_weight, algorithm=algorithm,
+                                    weight_function=weight_function)
+        return 2 * WI / (self.order()*(self.order()-1))
 
     def szeged_index(self):
         r"""
@@ -19659,7 +19672,7 @@ class GenericGraph(GenericGraph_pyx):
               node_2 -- node_3 [label="foo"];
             }
         """
-        return open(filename, 'wt').write(self.graphviz_string(**options))
+        open(filename, 'wt').write(self.graphviz_string(**options))
 
     ### Spectrum
 

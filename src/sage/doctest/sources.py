@@ -509,7 +509,7 @@ class FileDocTestSource(DocTestSource):
             sage: from sage.doctest.sources import FileDocTestSource
             sage: filename = tmp_filename(ext=".py")
             sage: s = "'''\n    sage: 2 + 2\n    4\n'''"
-            sage: open(filename, 'w').write(s)
+            sage: _ = open(filename, 'w').write(s)
             sage: FDS = FileDocTestSource(filename, DocTestDefaults())
             sage: for n, line in FDS:
             ....:     print("{} {}".format(n, line))

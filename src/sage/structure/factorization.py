@@ -181,7 +181,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from six.moves import range
-from six import iteritems
+from six import iteritems, integer_types
 
 from sage.structure.sage_object import SageObject
 from sage.structure.element import Element
@@ -829,7 +829,7 @@ class Factorization(SageObject):
             mul += '\n'
         x = self.__x[0][0]
         try:
-            atomic = (isinstance(x, (int, long)) or
+            atomic = (isinstance(x, integer_types) or
                       self.universe()._repr_option('element_is_atomic'))
         except AttributeError:
             atomic = False
@@ -876,7 +876,7 @@ class Factorization(SageObject):
         if len(self) == 0:
             return self.__unit._latex_()
         try:
-            atomic = (isinstance(self.__x[0][0], (int, long)) or
+            atomic = (isinstance(self.__x[0][0], integer_types) or
                       self.universe()._repr_option('element_is_atomic'))
         except AttributeError:
             atomic = False

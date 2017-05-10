@@ -491,6 +491,11 @@ REFERENCES:
              *Introduction to Lattices and Order*,
              Cambridge University Press, 1997.
 
+.. [Dec1998] W. Decker and T. de Jong. Groebner Bases and Invariant
+             Theory in Groebner Bases and Applications. London
+             Mathematical Society Lecture Note Series No. 251. (1998)
+             61--89.
+
 .. [DDLL2013] Léo Ducas, Alain Durmus, Tancrède Lepoint and Vadim
               Lyubashevsky. *Lattice Signatures and Bimodal
               Gaussians*; in Advances in Cryptology – CRYPTO 2013;

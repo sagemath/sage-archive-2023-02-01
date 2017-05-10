@@ -193,7 +193,7 @@ def _get_pari_instance():
         # The underlying issue is fixed in Cygwin v2.5.2
         sizemax = min(sizemax, 0xf0000000)
 
-    from sage.libs.cypari2 import Pari
+    from cypari2 import Pari
     P = Pari(1000000, sizemax)
 
     # pari_init_opts() overrides MPIR's memory allocation functions,

@@ -432,9 +432,25 @@ class Function_polylog(GinacFunction):
             sage: polylog(2.0, 1)
             1.64493406684823
             sage: polylog(2, 1.0)
-            NaN + NaN*I
+            NaN
             sage: polylog(2.0, 1.0)
-            NaN + NaN*I
+            NaN
+
+            sage: BF = RealBallField(100)
+            sage: polylog(2, BF(1/3))
+            [0.3662132299770634876167462976 +/- 8.13e-29]
+            sage: polylog(2, BF(4/3))
+            nan
+            sage: parent(_)
+            Real ball field with 100 bits precision
+            sage: polylog(2, CBF(1/3))
+            [0.36621322997706 +/- 4.62e-15]
+            sage: parent(_)
+            Complex ball field with 53 bits precision
+            sage: polylog(2, CBF(1))
+            nan + nan*I
+            sage: parent(_)
+            Complex ball field with 53 bits precision
         """
         GinacFunction.__init__(self, "polylog", nargs=2)
 
@@ -485,10 +501,16 @@ class Function_dilog(GinacFunction):
             dilog(x^2 + 1)
             sage: dilog(-1)
             -1/12*pi^2
+            sage: dilog(-1.0)
+            -0.822467033424113
             sage: dilog(-1.1)
             -0.890838090262283
-            sage: float(dilog(1))
-            1.6449340668482262
+            sage: dilog(1/2)
+            1/12*pi^2 - 1/2*log(2)^2
+            sage: dilog(.5)
+            0.582240526465012
+            sage: dilog(1/2).n()
+            0.582240526465012
             sage: var('z')
             z
             sage: dilog(z).diff(z, 2)
@@ -499,7 +521,19 @@ class Function_dilog(GinacFunction):
             sage: latex(dilog(z))
             {\rm Li}_2\left(z\right)
 
-        TESTS:
+        Dilog has a branch point at `1`. Sage's floating point libraries
+        may handle this differently from the symbolic package::
+
+            sage: dilog(1)
+            1/6*pi^2
+            sage: dilog(1.)
+            NaN
+            sage: dilog(1).n()
+            1.64493406684823
+            sage: float(dilog(1))
+            1.6449340668482262
+
+    TESTS:
 
         ``conjugate(dilog(x))==dilog(conjugate(x))`` unless on the branch cuts
         which run along the positive real axis beginning at 1.::
@@ -518,6 +552,21 @@ class Function_dilog(GinacFunction):
             dilog(-1/2*I)
             sage: conjugate(dilog(2))
             conjugate(dilog(2))
+
+        Check that return type matches argument type where possible
+        (:trac:`18386`)::
+
+            sage: dilog(0.5)
+            0.582240526465012
+            sage: dilog(-1.0)
+            -0.822467033424113
+            sage: y = dilog(RealField(13)(0.5))
+            sage: parent(y)
+            Real Field with 13 bits of precision
+            sage: dilog(RealField(13)(1.1))
+            1.96 - 0.300*I
+            sage: parent(_)
+            Complex Field with 13 bits of precision
         """
         GinacFunction.__init__(self, 'dilog',
                 conversions=dict(maxima='li[2]'))

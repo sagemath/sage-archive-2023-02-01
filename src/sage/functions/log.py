@@ -676,8 +676,9 @@ class Function_lambert_w(BuiltinFunction):
 
         TESTS:
 
-        When automatic simplication occurs, the parent of the output value should be
-        either the same as the parent of the input, or a Sage type::
+        When automatic simplification occurs, the parent of the output
+        value should be either the same as the parent of the input, or
+        a Sage type::
 
             sage: parent(lambert_w(int(0)))
             <... 'int'>

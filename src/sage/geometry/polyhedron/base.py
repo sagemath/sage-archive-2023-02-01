@@ -5155,7 +5155,7 @@ class Polyhedron_base(Element):
         NOTE:
 
             Depending on ``vertex_graph_only``, this method returns groups
-            that are not neccessarily isomorphic, see the examples below.
+            that are not necessarily isomorphic, see the examples below.
 
         .. SEEALSO::
 

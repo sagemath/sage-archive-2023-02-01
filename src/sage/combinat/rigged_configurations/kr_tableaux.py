@@ -1776,10 +1776,11 @@ class KRTableauxTypeFromRCElement(KirillovReshetikhinTableauxElement):
             return rc.phi(0)
         return TensorProductOfRegularCrystalsElement.phi(self, i)
 
+
 class KRTableauxTypeFromRC(KirillovReshetikhinTableaux):
     r"""
     Kirillov-Reshetikhin tableaux `B^{r,s}` constructed from rigged
-    configurations under the bijecton `\Phi`.
+    configurations under the bijection `\Phi`.
 
     .. WARNING::
 

@@ -697,62 +697,6 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
         """
         return self.fundamental_weights()[i]
 
-    def permutahedron(self, point=None):
-        r"""
-        Return the permutahedron of ``self``,
-
-        This is the convex hull of the point ``point`` in the weight
-        basis under the action of ``self`` on the underlying vector
-        space `V`.
-
-        .. SEEALSO::
-
-            :meth:`~sage.combinat.root_system.reflection_group_real.permutahedron`
-
-        INPUT:
-
-        - ``point`` -- optional, a point given by its coordinates in
-          the weight basis (default is `(1, 1, 1, \ldots)`)
-
-        .. NOTE::
-
-            The result is expressed in the root basis coordinates.
-
-        .. NOTE::
-
-            If function is too slow, switching the :meth:`base_field`
-            of the group to RDF will speed things up.
-
-        EXAMPLES::
-
-            sage: W = CoxeterGroup(['H',3], base_ring=RDF)
-            sage: W.permutahedron()
-            A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 120 vertices
-
-            sage: W = CoxeterGroup(['I',7])
-            sage: W.permutahedron()
-            A 2-dimensional polyhedron in (Universal Cyclotomic Field)^2 defined as the convex hull of 14 vertices
-
-        .. PLOT::
-            :width: 300 px
-
-            W = CoxeterGroup(['I',7])
-            p = W.permutahedron()
-            sphinx_plot(p)
-
-        """
-        if not self.is_finite():
-            raise TypeError('Coxeter groups must be finite to construct the permutahedron')
-
-        n = self.one().canonical_matrix().rank()
-        weights = self.fundamental_weights()
-        if point is None:
-            point = [1] * n
-        v = sum(point[i-1] * weights[i] for i in weights)
-        from sage.geometry.polyhedron.constructor import Polyhedron
-        vertices =  [v*w for w in self]
-        return Polyhedron(vertices=vertices, base_ring=self.base_ring())
-
     class Element(MatrixGroupElement_generic):
         """
         A Coxeter group element.

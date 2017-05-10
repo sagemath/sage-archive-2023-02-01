@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 include "cysignals/signals.pxi"
 include "cysignals/memory.pxi"
 
@@ -622,11 +624,11 @@ def PowComputer_flint_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_field
 
     """
     if prec_type == 'capped-rel':
-        from qadic_flint_CR import PowComputer_
+        from .qadic_flint_CR import PowComputer_
     elif prec_type == 'capped-abs':
-        from qadic_flint_CA import PowComputer_
+        from .qadic_flint_CA import PowComputer_
     elif prec_type == 'fixed-mod':
-        from qadic_flint_FM import PowComputer_
+        from .qadic_flint_FM import PowComputer_
     else:
         raise ValueError("unknown prec_type `%s`" % prec_type)
     return PowComputer_(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly)

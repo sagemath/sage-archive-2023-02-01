@@ -432,9 +432,9 @@ class Function_polylog(GinacFunction):
             sage: polylog(2.0, 1)
             1.64493406684823
             sage: polylog(2, 1.0)
-            NaN + NaN*I
+            NaN
             sage: polylog(2.0, 1.0)
-            NaN + NaN*I
+            NaN
         """
         GinacFunction.__init__(self, "polylog", nargs=2)
 

@@ -522,9 +522,9 @@ class SetPartition(ClonableArray):
             \node[label=-54:a] (2) at (-54:1cm) {};
             \node[label=-126:b] (3) at (-126:1cm) {};
             \node[label=-198:c] (4) at (-198:1cm) {};
+            \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] (2.center) -- (4.center) -- cycle;
             \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] (0.center) -- (3.center) -- cycle;
             \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] (1.center) -- cycle;
-            \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] (2.center) -- (4.center) -- cycle;
             \fill[color=black] (0) circle (1.5pt);
             \fill[color=black] (1) circle (1.5pt);
             \fill[color=black] (2) circle (1.5pt);
@@ -566,7 +566,7 @@ class SetPartition(ClonableArray):
                 res += " ({}) at ({}:{}) {{}};\n".format(k, location, radius)
 
             # Setup partitions
-            for partition in self:
+            for partition in sorted(self, key=sort_key):
                 res += "\\draw[-,thick,color="+color
                 if latex_options['fill'] is not False:
                     if isinstance(latex_options['fill'], str):

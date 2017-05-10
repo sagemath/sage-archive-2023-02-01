@@ -512,8 +512,27 @@ class SetPartition(ClonableArray):
             sage: x = SetPartition([[1,2], [3,5,4]])
             sage: latex(x)
             \{\{1, 2\}, \{3, 4, 5\}\}
-            sage: p=SetPartition([['a','c'],['b',1],[20]])
-            sage: p.set_latex_options(plot='cyclic', color='blue', angle=45, fill=True, tikz_scale=2)
+
+            sage: x.set_latex_options(plot='linear', angle=25, color='red')
+            sage: latex(x)
+            \begin{tikzpicture}[scale=1]
+            \node[below=.05cm] at (0,0) {$1$};
+            \node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black] (0) at (0,0) {};
+            \node[below=.05cm] at (1,0) {$2$};
+            \node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black] (1) at (1,0) {};
+            \node[below=.05cm] at (2,0) {$3$};
+            \node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black] (2) at (2,0) {};
+            \node[below=.05cm] at (3,0) {$4$};
+            \node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black] (3) at (3,0) {};
+            \node[below=.05cm] at (4,0) {$5$};
+            \node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black] (4) at (4,0) {};
+            \draw[color=red] (1) to [out=115,in=65] (0);
+            \draw[color=red] (3) to [out=115,in=65] (2);
+            \draw[color=red] (4) to [out=115,in=65] (3);
+            \end{tikzpicture}
+
+            sage: p = SetPartition([['a','c'],['b',1],[20]])
+            sage: p.set_latex_options(plot='cyclic', color='blue', fill=True, tikz_scale=2)
             sage: latex(p)
             \begin{tikzpicture}[scale=2]
             \draw (0,0) circle [radius=1cm];
@@ -594,7 +613,7 @@ class SetPartition(ClonableArray):
 
             # setup arcs
             for partition in sorted(self, key=str):
-                p = sorted(partition, key=str)
+                p = sorted(partition, key=sort_key)
                 if len(p) <= 1:
                     continue
                 for k in range(1, len(p)):

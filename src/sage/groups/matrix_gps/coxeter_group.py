@@ -28,6 +28,7 @@ from sage.combinat.root_system.coxeter_matrix import CoxeterMatrix
 from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_generic
 from sage.groups.matrix_gps.group_element import MatrixGroupElement_generic
 from sage.graphs.graph import Graph
+from sage.graphs.graph import DiGraph
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix_space import MatrixSpace
 

@@ -207,10 +207,10 @@ class BipartiteGraph(Graph):
 
          sage: file_name = os.path.join(SAGE_TMP, 'deleteme.alist.txt')
          sage: fi = open(file_name, 'w')
-         sage: fi.write("7 4 \n 3 4 \n 3 3 1 3 1 1 1 \n 3 3 3 4 \n\
-                         1 2 4 \n 1 3 4 \n 1 0 0 \n 2 3 4 \n\
-                         2 0 0 \n 3 0 0 \n 4 0 0 \n\
-                         1 2 3 0 \n 1 4 5 0 \n 2 4 6 0 \n 1 2 4 7 \n")
+         sage: _ = fi.write("7 4 \n 3 4 \n 3 3 1 3 1 1 1 \n 3 3 3 4 \n\
+                             1 2 4 \n 1 3 4 \n 1 0 0 \n 2 3 4 \n\
+                             2 0 0 \n 3 0 0 \n 4 0 0 \n\
+                             1 2 3 0 \n 1 4 5 0 \n 2 4 6 0 \n 1 2 4 7 \n")
          sage: fi.close();
          sage: B = BipartiteGraph(file_name)
          sage: B == H
@@ -998,10 +998,10 @@ class BipartiteGraph(Graph):
 
             sage: file_name = os.path.join(SAGE_TMP, 'deleteme.alist.txt')
             sage: fi = open(file_name, 'w')
-            sage: fi.write("7 4 \n 3 4 \n 3 3 1 3 1 1 1 \n 3 3 3 4 \n\
-                            1 2 4 \n 1 3 4 \n 1 0 0 \n 2 3 4 \n\
-                            2 0 0 \n 3 0 0 \n 4 0 0 \n\
-                            1 2 3 0 \n 1 4 5 0 \n 2 4 6 0 \n 1 2 4 7 \n")
+            sage: _ = fi.write("7 4 \n 3 4 \n 3 3 1 3 1 1 1 \n 3 3 3 4 \n\
+                                1 2 4 \n 1 3 4 \n 1 0 0 \n 2 3 4 \n\
+                                2 0 0 \n 3 0 0 \n 4 0 0 \n\
+                                1 2 3 0 \n 1 4 5 0 \n 2 4 6 0 \n 1 2 4 7 \n")
             sage: fi.close();
             sage: B = BipartiteGraph()
             sage: B.load_afile(file_name)

@@ -50,6 +50,7 @@ REFERENCES:
 #  The full text of the GPL is available at http://www.gnu.org/licenses/
 # *************************************************************************
 from six.moves import range
+from six import integer_types
 
 from sage.structure.element import parent
 from sage.structure.parent import Parent
@@ -1516,7 +1517,8 @@ def perms_sym_init(g, sym=None):
 
     if sym is None:
         domain = set().union(*[perm_sym_domain(gg) for gg in g])
-        if all(isinstance(s, (Integer, int, long)) and s > 0 for s in domain):
+        if all(isinstance(s, (Integer,) + integer_types) and s > 0
+               for s in domain):
             domain = max(domain)
         else:
             domain = sorted(domain)

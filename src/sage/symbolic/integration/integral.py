@@ -30,6 +30,7 @@ available_integrators['maxima'] = external.maxima_integrator
 available_integrators['sympy'] = external.sympy_integrator
 available_integrators['mathematica_free'] = external.mma_free_integrator
 available_integrators['fricas'] = external.fricas_integrator
+available_integrators['giac'] = external.giac_integrator
 
 ######################################################
 #
@@ -349,6 +350,8 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
        - 'fricas' - use FriCAS (the optional fricas spkg has to be installed)
 
+       - 'giac' - use Giac
+
     To prevent automatic evaluation use the ``hold`` argument.
 
     .. SEEALSO::
@@ -549,6 +552,11 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         -1/2*pi + arctan(8) + arctan(5) + arctan(2) + arctan(1/2)
         sage: integrate(f(x), x, 1, 2, algorithm="sympy")
         -1/2*pi + arctan(8) + arctan(5) + arctan(2) + arctan(1/2)
+
+    Using Giac to integrate the absolute value of a trigonometric expression::
+
+        sage: integrate(abs(cos(x)), x, 0, 2*pi, algorithm='giac')
+        4
 
     ALIASES: integral() and integrate() are the same.
 

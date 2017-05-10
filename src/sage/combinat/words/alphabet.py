@@ -33,6 +33,8 @@ EXAMPLES::
 #*****************************************************************************
 from __future__ import print_function
 from six.moves import range
+from six import integer_types
+
 from sage.categories.sets_cat import Sets
 
 from sage.sets.totally_ordered_finite_set import TotallyOrderedFiniteSet
@@ -214,12 +216,12 @@ def build_alphabet(data=None, names=None, name=None):
         raise ValueError("name cannot be specified with any other argument")
 
     # Swap arguments if we need to to try and make sure we have "good" user input
-    if isinstance(names, (int,long,Integer)) or names == Infinity \
+    if isinstance(names, integer_types + (Integer,)) or names == Infinity \
             or (data is None and names is not None):
         data,names = names,data
 
     # data is an integer
-    if isinstance(data, (int,long,Integer)):
+    if isinstance(data, integer_types + (Integer,)):
         if names is None:
             from sage.sets.integer_range import IntegerRange
             return IntegerRange(Integer(data))

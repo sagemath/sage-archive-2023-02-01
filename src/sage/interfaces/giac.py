@@ -372,7 +372,7 @@ class Giac(Expect):
 
             sage: filename = tmp_filename()
             sage: f = open(filename,'w')
-            sage: f.write('xx := 22;\n')
+            sage: _ = f.write('xx := 22;\n')
             sage: f.close()
             sage: giac.read(filename)
             sage: giac.get('xx').strip()

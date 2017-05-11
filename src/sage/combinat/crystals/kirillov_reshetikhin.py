@@ -25,15 +25,13 @@ from __future__ import division, print_function
 from six.moves import range
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.functional import is_even, is_odd
-from sage.functions.other import floor, ceil
+from sage.functions.other import floor
 from sage.combinat.combinat import CombinatorialObject
 from sage.structure.parent import Parent
 from sage.categories.crystals import CrystalMorphism
-from sage.categories.regular_crystals import RegularCrystals
-from sage.categories.finite_crystals import FiniteCrystals
+from sage.categories.loop_crystals import KirillovReshetikhinCrystals
 from sage.categories.homset import Hom
 from sage.categories.map import Map
 from sage.rings.integer import Integer
@@ -47,7 +45,7 @@ from sage.combinat.crystals.littelmann_path import CrystalOfProjectedLevelZeroLS
 from sage.combinat.crystals.direct_sum import DirectSumOfCrystals
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.root_system import RootSystem
-from sage.combinat.crystals.tensor_product import CrystalOfTableaux, TensorProductOfCrystals
+from sage.combinat.crystals.tensor_product import CrystalOfTableaux
 from sage.combinat.tableau import Tableau
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.integer_vector import IntegerVectors
@@ -461,8 +459,8 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
             sage: K.s()
             1
         """
-        # We need this here for the classical_decomposition() call
-        Parent.__init__(self, category = (RegularCrystals(), FiniteCrystals()))
+        # We need this here for the classic al_decomposition() call
+        Parent.__init__(self, category=KirillovReshetikhinCrystals())
         if dual is None:
             self._cartan_type = cartan_type
         else:
@@ -470,7 +468,8 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
         self._r = r
         self._s = s
         self._dual = dual
-        AffineCrystalFromClassical.__init__(self, cartan_type, self.classical_decomposition())
+        AffineCrystalFromClassical.__init__(self, cartan_type, self.classical_decomposition(),
+                                            KirillovReshetikhinCrystals())
 
     def _repr_(self):
         """
@@ -510,22 +509,10 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
             return hw_elt.f_string(f_str)
         return AffineCrystalFromClassical._element_constructor_(self, *args, **options)
 
-    @abstract_method
-    def classical_decomposition(self):
-        """
-        Return the classical decomposition of ``self``.
-
-        EXAMPLES::
-
-            sage: K = crystals.KirillovReshetikhin(['A',3,1], 2,2)
-            sage: K.classical_decomposition()
-            The crystal of tableaux of type ['A', 3] and shape(s) [[2, 2]]
-        """
-
     def module_generator(self):
         r"""
-        Return the unique module generator of classical weight `s \Lambda_r`
-        of a Kirillov-Reshetikhin crystal `B^{r,s}`
+        Return the unique module generator of classical weight
+        `s \Lambda_r` of a Kirillov-Reshetikhin crystal `B^{r,s}`
 
         EXAMPLES::
 
@@ -571,143 +558,20 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
         """
         return self._s
 
-    def is_perfect(self):
-        r"""
-        Return whether ``self`` is a perfect crystal or not.
-
-        If ``self`` is the Kirillov-Reshetikhin crystal `B^{r,s}`,
-        then it was proven in [FOS2010]_ that it is perfect if and only if
-        `s/c_r` is an integer (where `c_r` is a constant related to the
-        type of the crystal).
-
-        REFERENCES:
-
-        .. [FOS2010] \G. Fourier, M. Okado, A. Schilling.
-           *Perfectness of Kirillov-Reshetikhin crystals for nonexceptional types*.
-           Contemp. Math. 506 (2010) 127-143 ( arXiv:0811.1604 [math.RT] )
-
-        EXAMPLES::
-
-            sage: K = crystals.KirillovReshetikhin(['A',2,1], 1, 1)
-            sage: K.is_perfect()
-            True
-
-            sage: K = crystals.KirillovReshetikhin(['C',2,1], 1, 1)
-            sage: K.is_perfect()
-            False
-
-            sage: K = crystals.KirillovReshetikhin(['C',2,1], 1, 2)
-            sage: K.is_perfect()
-            True
-        """
-        x = self.s()/self.cartan_type().c()[self.r()]
-        return x - ceil(x) == 0
-
-    def level(self):
-        r"""
-        Return the level of ``self`` assuming that it is a perfect crystal.
-
-        If ``self`` is the Kirillov-Reshetikhin crystal `B^{r,s}`, then it
-        was proven in [FOS2010]_ that its level is `s/c_r` which is an
-        integer if ``self`` is perfect (here `c_r` is a constant related
-        to the type of the crystal).
-
-        EXAMPLES::
-
-            sage: K = crystals.KirillovReshetikhin(['A',2,1], 1, 1)
-            sage: K.level()
-            1
-            sage: K = crystals.KirillovReshetikhin(['C',2,1], 1, 2)
-            sage: K.level()
-            1
-            sage: K = crystals.KirillovReshetikhin(['D',4,1], 1, 3)
-            sage: K.level()
-            3
-
-            sage: K = crystals.KirillovReshetikhin(['C',2,1], 1, 1)
-            sage: K.level()
-            Traceback (most recent call last):
-            ...
-            ValueError: this crystal is not perfect
-        """
-        if not self.is_perfect():
-            raise ValueError("this crystal is not perfect")
-        return self.s() / self.cartan_type().c()[self.r()]
-
     @cached_method
-    def R_matrix(self, K):
-        r"""
-        Return the combinatorial `R`-matrix between ``self`` and ``K``.
-
-        INPUT:
-
-        - ``self`` -- a crystal `L`
-        - ``K`` -- a Kirillov-Reshetikhin crystal of the same type as `L`
-
-        The *combinatorial `R`-matrix*
-        .. MATH::
-
-            R: L \otimes K \to K \otimes L
-
-        is the unique affine crystal isomorphism which maps
-        `u_L \otimes u_K` to `u_K \otimes u_L`, where `u_K` is the unique
-        element in `K = B^{r,s}` of weight `s\Lambda_r - s c \Lambda_0`
-        (see :meth:`module_generator`).
+    def classically_highest_weight_vectors(self):
+        """
+        Return the classically highest weight vectors of ``self``.
 
         EXAMPLES::
 
-            sage: K = crystals.KirillovReshetikhin(['A',2,1],1,1)
-            sage: L = crystals.KirillovReshetikhin(['A',2,1],1,2)
-            sage: f = K.R_matrix(L)
-            sage: [[b,f(b)] for b in crystals.TensorProduct(K,L)]
-            [[[[[1]], [[1, 1]]], [[[1, 1]], [[1]]]],
-             [[[[1]], [[1, 2]]], [[[1, 1]], [[2]]]],
-             [[[[1]], [[2, 2]]], [[[1, 2]], [[2]]]],
-             [[[[1]], [[1, 3]]], [[[1, 1]], [[3]]]],
-             [[[[1]], [[2, 3]]], [[[1, 2]], [[3]]]],
-             [[[[1]], [[3, 3]]], [[[1, 3]], [[3]]]],
-             [[[[2]], [[1, 1]]], [[[1, 2]], [[1]]]],
-             [[[[2]], [[1, 2]]], [[[2, 2]], [[1]]]],
-             [[[[2]], [[2, 2]]], [[[2, 2]], [[2]]]],
-             [[[[2]], [[1, 3]]], [[[2, 3]], [[1]]]],
-             [[[[2]], [[2, 3]]], [[[2, 2]], [[3]]]],
-             [[[[2]], [[3, 3]]], [[[2, 3]], [[3]]]],
-             [[[[3]], [[1, 1]]], [[[1, 3]], [[1]]]],
-             [[[[3]], [[1, 2]]], [[[1, 3]], [[2]]]],
-             [[[[3]], [[2, 2]]], [[[2, 3]], [[2]]]],
-             [[[[3]], [[1, 3]]], [[[3, 3]], [[1]]]],
-             [[[[3]], [[2, 3]]], [[[3, 3]], [[2]]]],
-             [[[[3]], [[3, 3]]], [[[3, 3]], [[3]]]]]
-
-            sage: K = crystals.KirillovReshetikhin(['D',4,1],1,1)
-            sage: L = crystals.KirillovReshetikhin(['D',4,1],2,1)
-            sage: f = K.R_matrix(L)
-            sage: T = crystals.TensorProduct(K,L)
-            sage: b = T( K(rows=[[1]]), L(rows=[]) )
-            sage: f(b)
-            [[[2], [-2]], [[1]]]
-
-        Alternatively, one can compute the combinatorial `R`-matrix using
-        the isomorphism method of digraphs::
-
-            sage: K1 = crystals.KirillovReshetikhin(['A',2,1],1,1)
-            sage: K2 = crystals.KirillovReshetikhin(['A',2,1],2,1)
-            sage: T1 = crystals.TensorProduct(K1,K2)
-            sage: T2 = crystals.TensorProduct(K2,K1)
-            sage: T1.digraph().is_isomorphic(T2.digraph(), edge_labels=True, certificate=True) #todo: not implemented (see #10904 and #10549)
-            (True, {[[[1]], [[2], [3]]]: [[[1], [3]], [[2]]], [[[3]], [[2], [3]]]: [[[2], [3]], [[3]]],
-            [[[3]], [[1], [3]]]: [[[1], [3]], [[3]]], [[[1]], [[1], [3]]]: [[[1], [3]], [[1]]], [[[1]],
-            [[1], [2]]]: [[[1], [2]], [[1]]], [[[2]], [[1], [2]]]: [[[1], [2]], [[2]]], [[[3]],
-            [[1], [2]]]: [[[2], [3]], [[1]]], [[[2]], [[1], [3]]]: [[[1], [2]], [[3]]], [[[2]], [[2], [3]]]: [[[2], [3]], [[2]]]})
+            sage: K = crystals.KirillovReshetikhin(['D', 4, 1], 2, 2)
+            sage: K.classically_highest_weight_vectors()
+            ([], [[1], [2]], [[1, 1], [2, 2]])
         """
-        T1 = TensorProductOfCrystals(self, K)
-        T2 = TensorProductOfCrystals(K, self)
-        gen1 = T1( self.module_generator(), K.module_generator() )
-        gen2 = T2( K.module_generator(), self.module_generator() )
-        g = {gen1: gen2}
-        return T1.crystal_morphism(g, check=False)
+        return tuple([self.retract(mg)
+                      for mg in self.classical_decomposition().module_generators])
 
-    @cached_method
     def kirillov_reshetikhin_tableaux(self):
         """
         Return the corresponding set of
@@ -721,97 +585,6 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
         """
         from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinTableaux
         return KirillovReshetikhinTableaux(self.cartan_type(), self._r, self._s)
-
-    def affinization(self):
-        """
-        Return the corresponding affinization crystal of ``self``.
-
-        EXAMPLES::
-
-            sage: K = crystals.KirillovReshetikhin(['A',2,1], 1, 1)
-            sage: K.affinization()
-            Affinization of Kirillov-Reshetikhin crystal of type ['A', 2, 1] with (r,s)=(1,1)
-        """
-        from sage.combinat.crystals.affinization import AffinizationOfCrystal
-        return AffinizationOfCrystal(self)
-
-    def q_dimension(self, q=None, prec=None, use_product=False):
-        """
-        Return the `q`-dimension of ``self``.
-
-        The `q`-dimension of a KR crystal is defined as the `q`-dimension of
-        the underlying classical crystal.
-
-        EXAMPLES::
-
-            sage: KRC = crystals.KirillovReshetikhin(['A',2,1], 2,2)
-            sage: KRC.q_dimension()
-            q^4 + q^3 + 2*q^2 + q + 1
-            sage: KRC = crystals.KirillovReshetikhin(['D',4,1], 2,1)
-            sage: KRC.q_dimension()
-            q^10 + q^9 + 3*q^8 + 3*q^7 + 4*q^6 + 4*q^5 + 4*q^4 + 3*q^3 + 3*q^2 + q + 2
-        """
-        return self.classical_decomposition().q_dimension(q, prec, use_product)
-
-    @cached_method
-    def local_energy_function(self, B):
-        r"""
-        Return the local energy function of ``self`` and ``B``.
-
-        See
-        :class:`~sage.combinat.crystals.tensor_product.LocalEnergyFunction`
-        for a definition.
-
-        EXAMPLES::
-
-            sage: K = crystals.KirillovReshetikhin(['A',6,2], 2,1)
-            sage: Kp = crystals.KirillovReshetikhin(['A',6,2], 1,1)
-            sage: H = K.local_energy_function(Kp); H
-            Local energy function of
-             Kirillov-Reshetikhin crystal of type ['BC', 3, 2] with (r,s)=(2,1)
-            tensor
-             Kirillov-Reshetikhin crystal of type ['BC', 3, 2] with (r,s)=(1,1)
-        """
-        from sage.combinat.crystals.tensor_product import LocalEnergyFunction
-        return LocalEnergyFunction(self, B)
-
-    @cached_method
-    def b_sharp(self):
-        r"""
-        Return the element `b^{\sharp}` of ``self``.
-
-        Let `B` be a KR crystal. The element `b^{\sharp}` is the unique
-        element such that `\varphi(b^{\sharp}) = \ell \Lambda_0` with
-        `\ell = \min \{ \langle c, \varphi(b) \mid b \in B \}`.
-
-        EXAMPLES::
-
-            sage: K = crystals.KirillovReshetikhin(['A',6,2], 2,1)
-            sage: K.b_sharp()
-            []
-            sage: K.b_sharp().Phi()
-            Lambda[0]
-
-            sage: K = crystals.KirillovReshetikhin(['C',3,1], 1,3)
-            sage: K.b_sharp()
-            [[-1]]
-            sage: K.b_sharp().Phi()
-            2*Lambda[0]
-
-            sage: K = crystals.KirillovReshetikhin(['D',6,2], 2,2)
-            sage: K.b_sharp() # long time
-            []
-            sage: K.b_sharp().Phi() # long time
-            2*Lambda[0]
-        """
-        ell = float('inf')
-        bsharp = None
-        for b in self:
-            phi = b.Phi()
-            if phi.support() == [0] and phi[0] < ell:
-                bsharp = b
-                ell = phi[0]
-        return bsharp
 
 class KirillovReshetikhinGenericCrystalElement(AffineCrystalFromClassicalElement):
     """
@@ -904,47 +677,6 @@ class KirillovReshetikhinGenericCrystalElement(AffineCrystalFromClassicalElement
         li = self.lift().lusztig_involution()
         return self.parent().retract(li)
 
-    @cached_method
-    def energy_function(self):
-        r"""
-        Return the energy function of ``self``.
-
-        Let `B` be a KR crystal. Let `b^{\sharp}` denote the unique
-        element such that `\varphi(b^{\sharp}) = \ell \Lambda_0` with
-        `\ell = \min \{ \langle c, \varphi(b) \mid b \in B \}`. Let
-        `u_B` denote the maximal element of `B`. The *energy* of
-        `b \in B` is given by
-
-        .. MATH::
-
-            D(b) = H(b \otimes b^{\sharp}) - H(u_B \otimes b^{\sharp}),
-
-        where `H` is the :meth:`local energy function
-        <sage.categories.affine_derived_crystals.KirillovReshetikhinCrystals.ParentMethods.local_energy_function>`.
-
-        EXAMPLES::
-
-            sage: K = crystals.KirillovReshetikhin(['D',4,1], 2,1)
-            sage: for x in K:
-            ....:    if x.is_highest_weight([1,2,3,4]):
-            ....:        x, x.energy_function()
-            ([], 1)
-            ([[1], [2]], 0)
-
-            sage: K = crystals.KirillovReshetikhin(['D',4,3], 1,2)
-            sage: for x in K:
-            ....:    if x.is_highest_weight([1,2]):
-            ....:        x, x.energy_function()
-            ([], 2)
-            ([[1]], 1)
-            ([[1, 1]], 0)
-        """
-        B = self.parent()
-        bsharp = B.b_sharp()
-        T = B.tensor(B)
-        H = B.local_energy_function(B)
-        return H(T(self, bsharp)) - H(T(B.module_generator(), bsharp))
-
 KirillovReshetikhinGenericCrystal.Element = KirillovReshetikhinGenericCrystalElement
 
 class KirillovReshetikhinCrystalFromPromotion(KirillovReshetikhinGenericCrystal,
@@ -977,7 +709,8 @@ class KirillovReshetikhinCrystalFromPromotion(KirillovReshetikhinGenericCrystal,
                                                         self.classical_decomposition(),
                                                         self.promotion(),
                                                         self.promotion_inverse(),
-                                                        self.dynkin_diagram_automorphism(0))
+                                                        self.dynkin_diagram_automorphism(0),
+                                                        KirillovReshetikhinCrystals())
 
 class KirillovReshetikhinCrystalFromPromotionElement(AffineCrystalFromClassicalAndPromotionElement,
                                                      KirillovReshetikhinGenericCrystalElement):
@@ -1400,7 +1133,8 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
         Return the affine level zero weight corresponding to the element
         ``b`` of the classical crystal underlying ``self``.
 
-        For the coefficients to calculate the level, see Kac pg. 48.
+        For the coefficients to calculate the level, see Table Aff 1
+        in [Ka1990]_.
 
         EXAMPLES::
 
@@ -2146,7 +1880,8 @@ class KR_type_box(KirillovReshetikhinGenericCrystal, AffineCrystalFromClassical)
             sage: TestSuite(K).run()
         """
         KirillovReshetikhinGenericCrystal.__init__(self, cartan_type, r ,s)
-        AffineCrystalFromClassical.__init__(self, cartan_type, self.classical_decomposition())
+        AffineCrystalFromClassical.__init__(self, cartan_type, self.classical_decomposition(),
+                                            KirillovReshetikhinCrystals())
 
     def classical_decomposition(self):
         r"""
@@ -2419,15 +2154,15 @@ class KR_type_Bn(KirillovReshetikhinGenericCrystal):
             # Check to make sure it can be converted
             if elt.cartan_type() != self.cartan_type() \
               or elt.parent().r() != self._r or elt.parent().s() != self._s:
-                raise ValueError("The Kirillov-Reshetikhin tableau must have the same Cartan type and shape")
+                raise ValueError("the Kirillov-Reshetikhin tableau must have the same Cartan type and shape")
 
             to_hw = elt.to_classical_highest_weight()
-            wt = to_hw[0].classical_weight() / 2
+            wt = to_hw[0].classical_weight()
             f_str = reversed(to_hw[1])
             for x in self.module_generators:
                 if x.classical_weight() == wt:
                     return x.f_string(f_str)
-            raise ValueError("No matching highest weight element found")
+            raise ValueError("no matching highest weight element found")
         return KirillovReshetikhinGenericCrystal._element_constructor_(self, *args, **options)
 
     def classical_decomposition(self):
@@ -2890,7 +2625,7 @@ class KR_type_Dn_twisted(KirillovReshetikhinGenericCrystal):
                                  " the same Cartan type and shape")
 
             to_hw = elt.to_classical_highest_weight()
-            wt = to_hw[0].classical_weight() / 2
+            wt = to_hw[0].classical_weight()
             f_str = reversed(to_hw[1])
             for x in self.module_generators:
                 if x.classical_weight() == wt:
@@ -3273,7 +3008,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
 
             to_hw = elt.to_classical_highest_weight()
             f_str = reversed(to_hw[1])
-            return self.module_generator().f_string(f_str)
+            return self.maximal_vector().f_string(f_str)
         return KirillovReshetikhinCrystalFromPromotion._element_constructor_(self, *args, **options)
 
     def classical_decomposition(self):

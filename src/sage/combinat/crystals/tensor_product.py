@@ -41,7 +41,6 @@ from sage.categories.cartesian_product import cartesian_product
 from sage.categories.classical_crystals import ClassicalCrystals
 from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.sets_cat import Sets
-from sage.categories.map import Map
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.partition import Partition
 from .letters import CrystalOfLetters
@@ -50,7 +49,6 @@ from sage.combinat.crystals.tensor_product_element import (TensorProductOfCrysta
         TensorProductOfRegularCrystalsElement, CrystalOfTableauxElement)
 from sage.misc.flatten import flatten
 from sage.structure.element import get_coercion_model
-from sage.rings.all import ZZ
 
 ##############################################################################
 # Until trunc gets implemented in sage.function.other
@@ -101,64 +99,6 @@ class CrystalOfWords(UniqueRepresentation, Parent):
             [2, 1, 1]
         """
         return self.element_class(self, list(crystalElements))
-
-    def one_dimensional_configuration_sum(self, q=None, group_components=True):
-        r"""
-        Computes the one-dimensional configuration sum.
-
-        INPUT:
-
-        - ``q`` -- (default: ``None``) a variable or ``None``; if ``None``,
-          a variable `q` is set in the code
-        - ``group_components`` -- (default: ``True``) boolean; if ``True``,
-          then the terms are grouped by classical component
-
-        The one-dimensional configuration sum is the sum of the weights of all
-        elements in the crystal weighted by the energy function.
-
-        EXAMPLES::
-
-            sage: K = crystals.KirillovReshetikhin(['A',2,1],1,1)
-            sage: T = crystals.TensorProduct(K,K)
-            sage: T.one_dimensional_configuration_sum()
-            B[-2*Lambda[1] + 2*Lambda[2]] + (q+1)*B[-Lambda[1]] + (q+1)*B[Lambda[1] - Lambda[2]]
-            + B[2*Lambda[1]] + B[-2*Lambda[2]] + (q+1)*B[Lambda[2]]
-            sage: R.<t> = ZZ[]
-            sage: T.one_dimensional_configuration_sum(t, False)
-            B[-2*Lambda[1] + 2*Lambda[2]] + (t+1)*B[-Lambda[1]] + (t+1)*B[Lambda[1] - Lambda[2]]
-            + B[2*Lambda[1]] + B[-2*Lambda[2]] + (t+1)*B[Lambda[2]]
-
-            sage: R = RootSystem(['A',2,1])
-            sage: La = R.weight_space().basis()
-            sage: LS = crystals.ProjectedLevelZeroLSPaths(2*La[1])
-            sage: LS.one_dimensional_configuration_sum() == T.one_dimensional_configuration_sum() # long time
-            True
-
-        TESTS::
-
-            sage: K1 = crystals.KirillovReshetikhin(['A',2,1],1,1)
-            sage: K2 = crystals.KirillovReshetikhin(['A',2,1],2,1)
-            sage: T = crystals.TensorProduct(K1,K2)
-            sage: T.one_dimensional_configuration_sum() == T.one_dimensional_configuration_sum(group_components=False)
-            True
-
-            sage: RC = RiggedConfigurations(['A',3,1],[[1,1],[1,2]])
-            sage: B = crystals.KirillovReshetikhin(['A',3,1],1,1)
-            sage: B1 = crystals.KirillovReshetikhin(['A',3,1],1,2)
-            sage: T = crystals.TensorProduct(B,B1)
-            sage: RC.fermionic_formula() == T.one_dimensional_configuration_sum()
-            True
-        """
-        if q is None:
-            from sage.rings.all import QQ
-            q = QQ['q'].gens()[0]
-        P0 = self.weight_lattice_realization().classical()
-        B = P0.algebra(q.parent())
-        if group_components:
-            G = self.digraph(index_set = self.cartan_type().classical().index_set())
-            C = G.connected_components()
-            return sum(q**(c[0].energy_function())*B.sum(B(P0(b.weight())) for b in c) for c in C)
-        return B.sum(q**(b.energy_function())*B(P0(b.weight())) for b in self)
 
     class Element(TensorProductOfCrystalsElement):
         pass
@@ -1002,158 +942,8 @@ class CrystalOfTableaux(CrystalOfWords):
     class Element(CrystalOfTableauxElement):
         pass
 
-#####################################################################
-## Local energy function
-
-class LocalEnergyFunction(Map):
-    r"""
-    The local energy function.
-
-    Let `B` and `B'` be Kirillov-Reshetikhin crystals with maximal
-    vectors `u_B` and `u_{B'}` respectively. The *local energy function*
-    `H : B \otimes B' \to \ZZ` is the function which satisfies
-
-    .. MATH::
-
-        H(e_0(b \otimes b')) = H(b \otimes b') + \begin{cases}
-        1 & \text{if } i = 0 \text{ and LL}, \\
-        -1 & \text{if } i = 0 \text{ and RR}, \\
-        0 & \text{otherwise,}
-        \end{cases}
-
-    where LL (resp. RR) denote `e_0` acts on the left (resp. right)
-    on both `b \otimes b'` and `R(b \otimes b')`, and
-    normalized by `H(u_B \otimes u_{B'}) = 0`.
-
-    INPUT:
-
-    - ``B`` -- a Kirillov-Reshetikhin crystal
-    - ``Bp`` -- a Kirillov-Reshetikhin crystal
-    - ``normalization`` -- (default: 0) the normalization value
-
-    EXAMPLES::
-
-        sage: K = crystals.KirillovReshetikhin(['C',2,1], 1,2)
-        sage: K2 = crystals.KirillovReshetikhin(['C',2,1], 2,1)
-        sage: H = K.local_energy_function(K2)
-        sage: T = tensor([K, K2])
-        sage: hw = [x for x in T if x.is_highest_weight([1,2])]
-        sage: for b in hw:
-        ....:     b, H(b)
-        ([[], [[1], [2]]], 1)
-        ([[[1, 1]], [[1], [2]]], 0)
-        ([[[2, -2]], [[1], [2]]], 1)
-        ([[[1, -2]], [[1], [2]]], 1)
-
-    REFERENCES:
-
-    .. [KKMMNN92] S-J. Kang, M. Kashiwara, K. C. Misra, T. Miwa,
-       T. Nakashima, and A. Nakayashiki.
-       *Affine crystals and vertex models*.
-       Int. J. Mod. Phys. A, **7** (suppl. 1A), (1992) pp. 449-484.
-    """
-    def __init__(self, B, Bp, normalization=0):
-        """
-        Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: K = crystals.KirillovReshetikhin(['A',7,2], 1,2)
-            sage: K2 = crystals.KirillovReshetikhin(['A',7,2], 2,1)
-            sage: H = K.local_energy_function(K2)
-            sage: TestSuite(H).run(skip=['_test_category', '_test_pickling'])
-        """
-        self._B = B
-        self._Bp = Bp
-        self._R_matrix = self._B.R_matrix(self._Bp)
-        T = B.tensor(Bp)
-        self._known_values = {T(*[K.module_generator() for K in T.crystals]):
-                              ZZ(normalization)}
-        self._I0 = T.cartan_type().classical().index_set()
-        from sage.categories.homset import Hom
-        Map.__init__(self, Hom(T, ZZ))
-
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: K = crystals.KirillovReshetikhin(['A', 6, 2], 2, 1)
-            sage: Kp = crystals.KirillovReshetikhin(['A', 6, 2], 1, 1)
-            sage: H = K.local_energy_function(Kp); H
-            Local energy function of
-             Kirillov-Reshetikhin crystal of type ['BC', 3, 2] with (r,s)=(2,1)
-            tensor
-             Kirillov-Reshetikhin crystal of type ['BC', 3, 2] with (r,s)=(1,1)
-        """
-        return "Local energy function of {} tensor {}".format(self._B, self._Bp)
-
-    def _call_(self, x):
-        """
-        Return the local energy of ``x``.
-
-        EXAMPLES::
-
-            sage: K = crystals.KirillovReshetikhin(['B',4,1], 1,2)
-            sage: K2 = crystals.KirillovReshetikhin(['B',4,1], 2,1)
-            sage: H = K.local_energy_function(K2)
-            sage: T = tensor([K, K2])
-            sage: hw = [x for x in T if x.is_highest_weight([1,2])]
-            sage: H(hw[0])
-            1
-        """
-        # Setup variables
-        visited = {x: 0}
-        check0 = [x]
-
-        # Helper function
-        def to_classical_hw(cur):
-            for i in self._I0:
-                b = cur.e(i)
-                if b is not None and b not in visited:
-                    visited[b] = visited[cur] # No change
-                    return b
-            return None # is classically HW or all have been visited
-
-        cur = x
-        # Get the affine node (it might not be 0 if the type
-        #   has been relabeled)
-        i0 = x.parent().cartan_type().special_node()
-        while cur not in self._known_values:
-            # We first go towards the classically highest weight since
-            #   the maximal vector is classically highest weight
-            b = to_classical_hw(cur)
-
-            # If classically HW, then try 0 arrows
-            while b is None:
-                b = check0.pop()
-                c = b.e(i0)
-                # If there is no 0 arrow or we have already seen c, move along
-                if c is None or c in visited:
-                    b = None
-                    continue
-
-                bp = self._R_matrix(b)
-                cp = bp.e(i0)
-                if b[1] == c[1] and bp[1] == cp[1]: # LL case
-                    visited[c] = visited[b] + 1
-                elif b[0] == c[0] and bp[0] == cp[0]: # RR case
-                    visited[c] = visited[b] - 1
-                else:
-                    visited[c] = visited[b] # Otherwise no change
-                b = c
-
-            cur = b
-            check0.append(b)
-
-        baseline = self._known_values[cur] - visited[cur]
-        for y in visited:
-            self._known_values[y] = baseline + visited[y]
-
-        return self._known_values[x]
-
 # deprecations from trac:18555
 from sage.misc.superseded import deprecated_function_alias
 TensorProductOfCrystals.global_options=deprecated_function_alias(18555, TensorProductOfCrystals.options)
 TensorProductOfCrystalsOptions=deprecated_function_alias(18555, TensorProductOfCrystals.options)
+

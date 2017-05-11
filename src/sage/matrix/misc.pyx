@@ -17,6 +17,11 @@ from sage.ext.mod_int cimport *
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
 from sage.libs.mpfr cimport *
+
+from sage.libs.flint.fmpz cimport fmpz_set_mpz, fmpz_one
+from sage.libs.flint.fmpq cimport fmpq_set_mpq, fmpq_canonicalise
+from sage.libs.flint.fmpq_mat cimport fmpq_mat_entry_num, fmpq_mat_entry_den, fmpq_mat_entry
+
 from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
 
 from sage.data_structures.binary_search cimport *
@@ -79,6 +84,7 @@ def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer
                                       A.parent().change_ring(QQ), 0,0,0)
 
     cdef mpz_t a, bnd, other_bnd, one, denom, tmp
+    cdef mpq_t qtmp
     cdef Integer _bnd
     cdef Py_ssize_t i, j
     cdef int do_it
@@ -91,6 +97,7 @@ def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer
         mpz_init(tmp)
         mpz_init_set_si(one, 1)
         mpz_init(other_bnd)
+        mpq_init(qtmp)
 
         _bnd = (N//2).isqrt()
         mpz_init_set(bnd, _bnd.value)
@@ -98,7 +105,7 @@ def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer
 
         for i from 0 <= i < A._nrows:
             for j from 0 <= j < A._ncols:
-                A.get_unsafe_mpz(i,j,a)
+                A.get_unsafe_mpz(i, j, a)
                 if mpz_cmp(denom, one) != 0:
                     mpz_mul(a, a, denom)
                 mpz_fdiv_r(a, a, N.value)
@@ -109,17 +116,18 @@ def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer
                     mpz_sub(a, a, N.value)
                     do_it = 1
                 if do_it:
-                    mpz_set(mpq_numref(R._matrix[i][j]), a)
+                    fmpz_set_mpz(fmpq_mat_entry_num(R._matrix, i, j), a)
                     if mpz_cmp(denom, one) != 0:
-                        mpz_set(mpq_denref(R._matrix[i][j]), denom)
-                        mpq_canonicalize(R._matrix[i][j])
+                        fmpz_set_mpz(fmpq_mat_entry_den(R._matrix, i, j), denom)
+                        fmpq_canonicalise(fmpq_mat_entry(R._matrix, i, j))
                     else:
-                        mpz_set_si(mpq_denref(R._matrix[i][j]), 1)
+                        fmpz_one(fmpq_mat_entry_den(R._matrix, i, j))
                 else:
                     # Otherwise have to do it the hard way
-                    A.get_unsafe_mpz(i,j,tmp)
-                    mpq_rational_reconstruction(R._matrix[i][j], tmp, N.value)
-                    mpz_lcm(denom, denom, mpq_denref(R._matrix[i][j]))
+                    A.get_unsafe_mpz(i, j, tmp)
+                    mpq_rational_reconstruction(qtmp, tmp, N.value)
+                    mpz_lcm(denom, denom, mpq_denref(qtmp))
+                    fmpq_set_mpq(fmpq_mat_entry(R._matrix, i, j), qtmp)
 
         mpz_clear(denom)
         mpz_clear(a)
@@ -127,6 +135,7 @@ def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer
         mpz_clear(one)
         mpz_clear(other_bnd)
         mpz_clear(bnd)
+        mpq_clear(qtmp)
     finally:
         sig_off()
     return R

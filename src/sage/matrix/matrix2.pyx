@@ -6746,11 +6746,15 @@ cdef class Matrix(matrix1.Matrix):
             [ 1  0 -1]
             [ 0  1  2]
             [ 0  0  0]
+            sage: a = matrix(QQ,2,[1..6])
+            sage: P = a._echelon_in_place_classical(); a
+            [ 1  0 -1]
+            [ 0  1  2]
         """
         tm = verbose('generic in-place Gauss elimination on %s x %s matrix'%(self._nrows, self._ncols))
         cdef Py_ssize_t start_row, c, r, nr, nc, i
         if self.fetch('in_echelon_form'):
-            return
+            return self.fetch('pivots')
 
         self.check_mutability()
         cdef Matrix A
@@ -6762,25 +6766,26 @@ cdef class Matrix(matrix1.Matrix):
         start_row = 0
         pivots = []
 
-        for c from 0 <= c < nc:
+        for c in range(nc):
             sig_check()
-            for r from start_row <= r < nr:
+            for r in range(start_row, nr):
                 if A.get_unsafe(r, c):
                     pivots.append(c)
                     a_inverse = ~A.get_unsafe(r,c)
                     A.rescale_row(r, a_inverse, c)
                     A.swap_rows(r, start_row)
-                    for i from 0 <= i < nr:
+                    for i in range(nr):
                         if i != start_row:
                             if A.get_unsafe(i,c):
                                 minus_b = -A.get_unsafe(i, c)
                                 A.add_multiple_of_row(i, start_row, minus_b, c)
                     start_row = start_row + 1
                     break
-        self.cache('pivots', tuple(pivots))
+        pivots = tuple(pivots)
+        self.cache('pivots', pivots)
         self.cache('in_echelon_form', True)
         self.cache('echelon_form', self)
-        verbose('done with gauss echelon form', tm)
+        return pivots
 
     def extended_echelon_form(self, subdivide=False, **kwds):
         r"""

@@ -42,6 +42,9 @@ from .matrix cimport Matrix
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
 
+from sage.libs.flint.fmpq cimport fmpq_set_mpq
+from sage.libs.flint.fmpq_mat cimport fmpq_mat_entry
+
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 
@@ -249,9 +252,9 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
         # Build a table that gives the nonzero positions in each column of right
         nonzero_positions_in_columns = [set([]) for _ in range(right._ncols)]
         cdef Py_ssize_t i, j, k
-        for i from 0 <= i < right._nrows:
+        for i in range(right._nrows):
             v = &(right._matrix[i])
-            for j from 0 <= j < right._matrix[i].num_nonzero:
+            for j in range(right._matrix[i].num_nonzero):
                 nonzero_positions_in_columns[v.positions[j]].add(i)
 
         ans = self.new_matrix(self._nrows, right._ncols, sparse=False)
@@ -261,17 +264,17 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
         mpq_init(x)
         mpq_init(y)
         mpq_init(s)
-        for i from 0 <= i < self._nrows:
+        for i in range(self._nrows):
             v = &self._matrix[i]
-            for j from 0 <= j < right._ncols:
+            for j in range(right._ncols):
                 mpq_set_si(s, 0, 1)
                 c = nonzero_positions_in_columns[j]
-                for k from 0 <= k < v.num_nonzero:
+                for k in range(v.num_nonzero):
                     if v.positions[k] in c:
                         mpq_vector_get_entry(y, &right._matrix[v.positions[k]], j)
                         mpq_mul(x, v.entries[k], y)
                         mpq_add(s, s, x)
-                mpq_set(ans._matrix[i][j], s)
+                fmpq_set_mpq(fmpq_mat_entry(ans._matrix, i, j), s)
 
         mpq_clear(x)
         mpq_clear(y)
@@ -665,7 +668,7 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
         for i from 0 <= i < self._nrows:
             v = &(self._matrix[i])
             for j from 0 <= j < v.num_nonzero:
-                mpq_set(B._matrix[i][v.positions[j]], v.entries[j])
+                fmpq_set_mpq(fmpq_mat_entry(B._matrix, i, v.positions[j]), v.entries[j])
         B.subdivide(self.subdivisions())
         return B
 

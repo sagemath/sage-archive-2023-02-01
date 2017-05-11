@@ -94,8 +94,8 @@ class FunctionFieldFactory(UniqueFactory):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ)
-            sage: L.<x> = FunctionField(QQ)
+            sage: K.<x> = FunctionField(QQ)  # indirect doctest
+            sage: L.<x> = FunctionField(QQ)  # indirect doctest
             sage: K is L
             True
         """

@@ -331,17 +331,17 @@ cdef class FunctionFieldElement(FieldElement):
 cdef class FunctionFieldElement_polymod(FunctionFieldElement):
     """
     Elements of a finite extension of a function field.
-
-    EXAMPLES::
-
-        sage: K.<x> = FunctionField(QQ); R.<y> = K[]
-        sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
-        sage: x*y + 1/x^3
-        x*y + 1/x^3
     """
     def __init__(self, parent, x, reduce=True):
         """
         Initialize.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
+            sage: x*y + 1/x^3
+            x*y + 1/x^3
         """
         FieldElement.__init__(self, parent)
         if reduce:
@@ -549,17 +549,17 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 cdef class FunctionFieldElement_rational(FunctionFieldElement):
     """
     Elements of a rational function field.
-
-    EXAMPLES::
-
-        sage: K.<t> = FunctionField(QQ); K
-        Rational function field in t over Rational Field
-        sage: FunctionField(QQ,'t').gen()^3
-        t^3
     """
     def __init__(self, parent, x, reduce=True):
         """
         Initialize.
+
+        EXAMPLES::
+
+            sage: K.<t> = FunctionField(QQ); K
+            Rational function field in t over Rational Field
+            sage: FunctionField(QQ,'t').gen()^3
+            t^3
         """
         FieldElement.__init__(self, parent)
         self._x = x
@@ -800,11 +800,11 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
             sage: K.<t> = FunctionField(QQ)
             sage: f = (t-1)^2 * (t+1) / (t^2 - 1/3)^3
-            sage: f.valuation(t-1)
+            sage: f.valuation(t-1)  # indirect doctest
             2
-            sage: f.valuation(t)
+            sage: f.valuation(t)  # indirect doctest
             0
-            sage: f.valuation(t^2 - 1/3)
+            sage: f.valuation(t^2 - 1/3)  # indirect doctest
             -3
         """
         R = self._parent._ring

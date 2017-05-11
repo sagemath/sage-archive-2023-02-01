@@ -66,7 +66,16 @@ lazy_import('sage.rings.function_field.divisor', 'prime_divisor')
 
 def is_Place(x):
     """
-    Return True if x is a place of a function field.
+    Return True if ``x`` is a place of a function field.
+
+    EXAMPLES::
+
+        sage: K.<x>=FunctionField(GF(2)); _.<Y> = K[]
+        sage: L.<y>=K.extension(Y^3 + x + x^3*Y)
+        sage: p = L.places_finite()[0]
+        sage: from sage.rings.function_field.place import is_Place
+        sage: is_Place(p)
+        True
     """
     return isinstance(x, FunctionFieldPlace)
 
@@ -84,6 +93,14 @@ class FunctionFieldPlace(Element):
 
         - ``prime`` -- a prime ideal associated with the place
 
+        EXAMPLES::
+
+            sage: K.<x>=FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y>=K.extension(Y^3 + x + x^3*Y)
+            sage: p = L.places_finite()[0]
+            sage: from sage.rings.function_field.place import is_Place
+            sage: is_Place(p)
+            True
         """
         Element.__init__(self, field.place_set())
 
@@ -549,12 +566,12 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
             sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
             sage: O = L.maximal_order()
             sage: p = O.ideal(x,y).place()
-            sage: p.gaps() # a Weierstrass place
+            sage: p.gaps()  # indirect doctest
             [1, 2, 4]
 
             sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
             sage: L.<y> = K.extension(Y^3 + x^3 * Y + x)
-            sage: [p.gaps() for p in L.places()]
+            sage: [p.gaps() for p in L.places()]  # indirect doctest
             [[1, 2, 4], [1, 2, 4], [1, 2, 4]]
         """
         F = self._field

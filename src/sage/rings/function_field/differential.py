@@ -101,36 +101,31 @@ class FunctionFieldDifferential(ModuleElement):
 class FunctionFieldDifferential_global(FunctionFieldDifferential):
     """
     Differentials on global function fields.
-
-    EXAMPLES::
-
-        sage: F.<x>=FunctionField(GF(7))
-        sage: f = x / (x^2 + x + 1)
-        sage: f.differential()
-        ((6*x^2 + 1)/(x^4 + 2*x^3 + 3*x^2 + 2*x + 1)) d(x)
-
-        sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
-        sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
-        sage: y.differential()
-        (x*y^2 + 1/x*y) d(x)
     """
     def __init__(self, field, f, t=None):
         """
-        Initialize the differential.
+        Initialize the differential `fdt`.
 
         INPUT:
 
-        - ``field`` -- a function field
+        - ``field`` -- function field
 
-        - ``f`` -- an element of the function field
+        - ``f`` -- element of the function field
 
-        - ``t`` -- (default: None) an element of the function field
+        - ``t`` -- element of the function field; if `t` is not specified, `t`
+          is the generator of the base rational function field
 
-        OUTPUT:
+        EXAMPLES::
 
-        - differential `fdt`; if not specified, `t` is the generator of the base rational
-          function field.
+            sage: F.<x>=FunctionField(GF(7))
+            sage: f = x / (x^2 + x + 1)
+            sage: f.differential()
+            ((6*x^2 + 1)/(x^4 + 2*x^3 + 3*x^2 + 2*x + 1)) d(x)
 
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+            sage: y.differential()
+            (x*y^2 + 1/x*y) d(x)
         """
         ModuleElement.__init__(self, field.space_of_differentials())
 
@@ -379,13 +374,6 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
 class DifferentialsSpace(Parent):
     """
     Space of differentials of a function field.
-
-    EXAMPLES::
-
-        sage: K.<x>=FunctionField(GF(4)); _.<Y>=K[]
-        sage: L.<y>=K.extension(Y^3+x+x^3*Y)
-        sage: L.space_of_differentials()
-        Space of differentials of Function field in y defined by y^3 + x^3*y + x
     """
     def __init__(self, field):
         """
@@ -395,6 +383,12 @@ class DifferentialsSpace(Parent):
 
         - ``field`` -- a function field
 
+        EXAMPLES::
+
+            sage: K.<x>=FunctionField(GF(4)); _.<Y>=K[]
+            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
+            sage: L.space_of_differentials()
+            Space of differentials of Function field in y defined by y^3 + x^3*y + x
         """
         Parent.__init__(self, base=field, category=Modules(field))
         self._field = field

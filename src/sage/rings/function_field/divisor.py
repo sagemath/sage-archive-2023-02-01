@@ -133,17 +133,6 @@ def is_Divisor(x):
 class FunctionFieldDivisor(ModuleElement):
     """
     Divisors of function fields.
-
-    EXAMPLES::
-
-        sage: K.<x> = FunctionField(GF(2)); R.<t> = K[]
-        sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
-        sage: f = x/(y+1)
-        sage: f.divisor()
-        Place (1/x, 1/x^4*y^2 + 1/x^2*y + 1)
-         + Place (1/x, 1/x^2*y + 1)
-         + 3*Place (x, (1/(x^3 + x^2 + x))*y^2)
-         - 6*Place (x + 1, y + 1)
     """
     def __init__(self, field, data):
         """
@@ -155,6 +144,16 @@ class FunctionFieldDivisor(ModuleElement):
 
         - ``data`` -- a dict of place and multiplicity pairs
 
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); R.<t> = K[]
+            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
+            sage: f = x/(y+1)
+            sage: f.divisor()
+            Place (1/x, 1/x^4*y^2 + 1/x^2*y + 1)
+             + Place (1/x, 1/x^2*y + 1)
+             + 3*Place (x, (1/(x^3 + x^2 + x))*y^2)
+             - 6*Place (x + 1, y + 1)
         """
         ModuleElement.__init__(self, field.divisor_group())
         self._field = field
@@ -505,9 +504,9 @@ class FunctionFieldDivisor(ModuleElement):
             sage: coordinates((x + 4)/(x + 3))
             [1, 4]
         """
-        basis, coordinate_func = self._echelon_basis(self._basis())
+        basis, coordinates_func = self._echelon_basis(self._basis())
 
-        return basis, coordinate_func
+        return basis, coordinates_func
 
     def basis_differential_space(self):
         """
@@ -831,6 +830,13 @@ class DivisorGroup(Parent):
         INPUT:
 
         - ``field`` -- a function field
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(5)); _.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^2-x^3-1)
+            sage: F.divisor_group()
+            Divisor group of Function field in y defined by y^2 + 4*x^3 + 4
         """
         Parent.__init__(self, base=IntegerRing(), category=CommutativeAdditiveGroups())
 

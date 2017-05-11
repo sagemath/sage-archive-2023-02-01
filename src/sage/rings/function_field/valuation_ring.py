@@ -90,6 +90,13 @@ class FunctionFieldValuationRing(Parent):
 
         - ``place`` -- a place of the function field
 
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: p = L.places_finite()[0]
+            sage: p.valuation_ring()
+            Valuation ring at Place (x, x*y)
         """
         Parent.__init__(self, category=Rings())
 

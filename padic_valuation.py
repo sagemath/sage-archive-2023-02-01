@@ -1110,9 +1110,6 @@ class pAdicValuation_int(pAdicValuation_base):
             # of a rational zero than when computing the valuation of another
             # small rational. Special casing this is a factor 100 faster.
             return infinity
-        #if x.global_height() > 128:
-        #    import pdb
-        #    pdb.set_trace()
         return x.valuation(self._p)
 
     def uniformizer(self):

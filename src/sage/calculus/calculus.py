@@ -836,7 +836,7 @@ def symbolic_prod(expression, v, a, b, algorithm='maxima', hold=False):
 
     EXAMPLES::
 
-        sage: k, n = var('k,n')
+        sage: i, k, n = var('i,k,n')
         sage: from sage.calculus.calculus import symbolic_prod
         sage: symbolic_prod(k, k, 1, n)
         factorial(n)

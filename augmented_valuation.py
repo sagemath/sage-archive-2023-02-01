@@ -824,6 +824,27 @@ class AugmentedValuation_base(InductiveValuation):
         """
         return False
 
+    def change_domain(self, ring):
+        r"""
+        Return this valuation over ``ring``.
+
+        EXAMPLES:
+
+        We can change the domain of an augmented valuation even if there is no coercion between rings::
+
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
+            sage: R.<x> = GaussianIntegers()[]
+            sage: v = GaussValuation(R, pAdicValuation(GaussianIntegers(), 2))
+            sage: v = v.augmentation(x, 1)
+            sage: v.change_domain(QQ['x'])
+            [ Gauss valuation induced by 2-adic valuation, v(x) = 1 ]
+
+        """
+        from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+        if is_PolynomialRing(ring) and ring.ngens() == 1 and ring.variable_name() == self.domain().variable_name():
+            return self._base_valuation.change_domain(ring).augmentation(self.phi().change_ring(ring.base_ring()), self._mu, check=False)
+        return super(AugmentedValuation_base, self).change_domain(ring)
+
 
 class FinalAugmentedValuation(AugmentedValuation_base, FinalInductiveValuation):
     r"""

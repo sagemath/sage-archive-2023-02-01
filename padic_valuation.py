@@ -719,6 +719,24 @@ class pAdicValuation_base(DiscreteValuation):
         """
         return pAdicValuation(ring, self.p())
 
+    def _extensions_to_quotient(self, ring, approximants=None):
+        r"""
+        Return the extensions of this valuation to an integral quotient over
+        the domain of this valuation.
+
+        EXAMPLES::
+
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: pAdicValuation(QQ, 2)._extensions_to_quotient(R.quo(x^2 + x + 1))
+            [2-adic valuation]
+
+        """
+        from valuation_space import DiscretePseudoValuationSpace
+        parent = DiscretePseudoValuationSpace(ring)
+        approximants = approximants or self.mac_lane_approximants(ring.modulus().change_ring(self.domain()), assume_squarefree=True)
+        return [pAdicValuation(ring, approximant, approximants) for approximant in approximants]
+
     def extensions(self, ring):
         r"""
         Return the extensions of this valuation to ``ring``.
@@ -765,10 +783,7 @@ class pAdicValuation_base(DiscreteValuation):
                 if ring.base_ring() is self.domain():
                     from sage.categories.all import IntegralDomains
                     if ring in IntegralDomains():
-                        from valuation_space import DiscretePseudoValuationSpace
-                        parent = DiscretePseudoValuationSpace(ring)
-                        approximants = self.mac_lane_approximants(ring.modulus().change_ring(self.domain()), assume_squarefree=True)
-                        return [pAdicValuation(ring, approximant, approximants) for approximant in approximants]
+                        return self._extensions_to_quotient(ring)
                 else:
                     return sum([w.extensions(ring) for w in self.extensions(ring.base_ring())], [])
             from sage.rings.number_field.number_field import is_NumberField

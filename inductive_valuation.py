@@ -1516,6 +1516,27 @@ class InfiniteInductiveValuation(FinalInductiveValuation, InfiniteDiscretePseudo
         FinalInductiveValuation.__init__(self, parent, base_valuation)
         InfiniteDiscretePseudoValuation.__init__(self, parent)
 
+    def change_domain(self, ring):
+        r"""
+        Return this valuation over ``ring``.
+
+        EXAMPLES:
+
+        We can turn an infinite valuation into a valuation on the quotient::
+
+            sage: sys.path.append(os.getcwd()); from mac_lane import * # optional: standalone
+            sage: R.<x> = QQ[]
+            sage: v = GaussValuation(R, pAdicValuation(QQ, 2))
+            sage: w = v.augmentation(x^2 + x + 1, infinity)
+            sage: w.change_domain(R.quo(x^2 + x + 1))
+            2-adic valuation
+
+        """
+        from sage.rings.polynomial.polynomial_quotient_ring import is_PolynomialQuotientRing
+        if is_PolynomialQuotientRing(ring) and ring.base() is self.domain() and ring.modulus() == self.phi():
+            return self.restriction(self.domain().base())._extensions_to_quotient(ring, approximants=[self])[0]
+        return super(InfiniteInductiveValuation, self).change_domain(ring)
+
 
 def _lift_to_maximal_precision(c):
     r"""

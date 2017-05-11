@@ -125,7 +125,7 @@ class FunctionFieldOrder(Parent):
 
         INPUT:
 
-        - ``field`` -- a function field
+        - ``field`` -- function field
 
         EXAMPLES::
 
@@ -199,7 +199,7 @@ class FunctionFieldOrder(Parent):
 
         INPUT:
 
-        - ``other`` -- a order of the function field or the field itself
+        - ``other`` -- order of the function field or the field itself
 
         EXAMPLES::
 
@@ -235,7 +235,7 @@ class FunctionFieldOrder_basis(FunctionFieldOrder):
 
         INPUT:
 
-        - ``basis`` -- a list of elements of the function field
+        - ``basis`` -- list of elements of the function field
 
         - ``check`` -- (default: True) if True, check whether the module
           that ``basis`` generates forms an order
@@ -334,9 +334,9 @@ class FunctionFieldOrder_basis(FunctionFieldOrder):
 
         INPUT:
 
-        - ``gens`` -- a list of elements of the function field
+        - ``gens`` -- list of elements of the function field
 
-        - ``ideal_class`` -- the class of the ideal generated
+        - ``ideal_class`` -- class of the ideal generated
 
         EXAMPLES:
 
@@ -393,7 +393,7 @@ class FunctionFieldOrder_basis(FunctionFieldOrder):
 
         INPUT:
 
-        - ``gens`` -- a list of generators or an ideal in a ring which
+        - ``gens`` -- list of generators or an ideal in a ring which
           coerces to this order
 
         EXAMPLES::
@@ -490,7 +490,7 @@ class FunctionFieldOrder_basis(FunctionFieldOrder):
 
         INPUT:
 
-        - ``e`` -- an element of the order or the function field
+        - ``e`` -- element of the order or the function field
 
         EXAMPLES::
 
@@ -701,7 +701,7 @@ class FunctionFieldOrderInfinite_basis(FunctionFieldOrderInfinite):
 
         INPUT:
 
-        - ``gens`` -- a list of generators or an ideal in a ring which coerces
+        - ``gens`` -- list of generators or an ideal in a ring which coerces
           to this order.
 
         EXAMPLES::
@@ -827,7 +827,7 @@ class FunctionFieldMaximalOrder_rational(FunctionFieldMaximalOrder):
 
         INPUT:
 
-        - ``field`` -- a function field
+        - ``field`` -- function field
 
         EXAMPLES::
 
@@ -872,9 +872,9 @@ class FunctionFieldMaximalOrder_rational(FunctionFieldMaximalOrder):
 
         INPUT:
 
-        - ``ideal`` -- a prime ideal of the order
+        - ``ideal`` -- prime ideal of the order
 
-        - ``name`` -- a string; name of the generator of the residue field
+        - ``name`` -- string; name of the generator of the residue field
 
         OUTPUT:
 
@@ -925,9 +925,9 @@ class FunctionFieldMaximalOrder_rational(FunctionFieldMaximalOrder):
 
         INPUT:
 
-        - ``q`` -- an irreducible polynomial
+        - ``q`` -- irreducible polynomial
 
-        - ``name`` -- a string; name of the generator of the extension field
+        - ``name`` -- string; name of the generator of the extension field
 
         OUTPUT:
 
@@ -1116,7 +1116,7 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
 
         INPUT:
 
-        - ``field`` -- a function field to which this maximal order belongs
+        - ``field`` -- function field to which this maximal order belongs
 
         - ``basis`` -- basis of this maximal order as a module over the base
           maximal order
@@ -1203,7 +1203,7 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
 
         INPUT:
 
-        - ``f`` -- an element convertible to the function field
+        - ``f`` -- element convertible to the function field
 
         EXAMPLES::
 
@@ -1379,7 +1379,7 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
 
         INPUT:
 
-        - ``gens`` -- a list of generators
+        - ``gens`` -- list of generators
 
         EXAMPLES::
 
@@ -1561,7 +1561,7 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
 
         INPUT:
 
-        - ``prime`` -- a prime ideal of the maximal order of the base
+        - ``prime`` -- prime ideal of the maximal order of the base
           rational function field
 
         The algorithm is outlined in Section 6.1.3 of [Coh1993]_.
@@ -2125,7 +2125,7 @@ class FunctionFieldMaximalOrderInfinite_global(FunctionFieldMaximalOrderInfinite
 
         INPUT:
 
-        - ``gens`` -- a tuple of elements of the function field
+        - ``gens`` -- tuple of elements of the function field
 
         EXAMPLES::
 
@@ -2155,7 +2155,7 @@ class FunctionFieldMaximalOrderInfinite_global(FunctionFieldMaximalOrderInfinite
 
         INPUT:
 
-        - ``gens`` -- a tuple of elements of the function field
+        - ``gens`` -- tuple of elements of the function field
 
         EXAMPLES::
 
@@ -2318,7 +2318,7 @@ class FunctionFieldMaximalOrderInfinite_global(FunctionFieldMaximalOrderInfinite
 
         INPUT:
 
-        - ``e`` -- an element of the function field
+        - ``e`` -- element of the function field
 
         The returned coordinates are in the base maximal infinite order if and only
         if the element is in the order.

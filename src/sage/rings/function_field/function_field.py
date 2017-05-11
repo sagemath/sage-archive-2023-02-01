@@ -248,9 +248,9 @@ class FunctionField(Field):
 
         INPUT:
 
-        - ``base_field`` -- a function fied; the base of this function field
+        - ``base_field`` -- function fied; the base of this function field
 
-        - ``names`` -- a string that gives the name of the generator
+        - ``names`` -- string that gives the name of the generator
 
         TESTS::
 
@@ -355,9 +355,9 @@ class FunctionField(Field):
 
         INPUT:
 
-        - ``f`` -- a univariate polynomial over `K`
+        - ``f`` -- univariate polynomial over `K`
 
-        - ``names`` -- a string or tuple of length 1 that names the variable `y`
+        - ``names`` -- string or tuple of length 1 that names the variable `y`
 
         OUTPUT:
 
@@ -390,9 +390,9 @@ class FunctionField(Field):
 
         INPUT:
 
-        - ``basis`` -- a list of elements of self
+        - ``basis`` -- list of elements of self
 
-        - ``check`` -- bool (default: True); if True, check that the basis is
+        - ``check`` -- boolean (default: True); if True, check that the basis is
           really linearly independent and that the module it spans is closed
           under multiplication, and contains the identity element.
 
@@ -438,9 +438,9 @@ class FunctionField(Field):
 
         INPUT:
 
-        - ``x`` -- an element or a list of elements of the function field
+        - ``x`` -- element or list of elements of the function field
 
-        - ``check`` -- a boolean; if True, check that ``x`` really generates an order
+        - ``check`` -- boolean; if True, check that ``x`` really generates an order
 
         EXAMPLES::
 
@@ -481,11 +481,11 @@ class FunctionField(Field):
 
         INPUT:
 
-        - ``basis`` -- a list of elements of the function field
+        - ``basis`` -- list of elements of the function field
 
-        - ``check`` -- a boolean; if True, check that the basis is really
-          linearly independent and that the module it spans is closed under
-          multiplication, and contains the identity element.
+        - ``check`` -- boolean (default: True); if True, check that the basis
+          is really linearly independent and that the module it spans is closed
+          under multiplication, and contains the identity element.
 
         EXAMPLES::
 
@@ -536,9 +536,9 @@ class FunctionField(Field):
 
         INPUT:
 
-        - ``x`` -- an element or a list of elements of the function field
+        - ``x`` -- element or a list of elements of the function field
 
-        - ``check`` -- a boolean; if True, check that ``x`` really generates an order
+        - ``check`` -- boolean; if True, check that ``x`` really generates an order
 
         EXAMPLES::
 
@@ -575,7 +575,7 @@ class FunctionField(Field):
 
         INPUT:
 
-        - ``R`` -- a ring
+        - ``R`` -- ring
 
         EXAMPLES::
 
@@ -627,7 +627,7 @@ class FunctionField(Field):
 
         INPUT:
 
-        - ``R`` -- a ring
+        - ``R`` -- ring
 
         EXAMPLES::
 
@@ -650,7 +650,7 @@ class FunctionField(Field):
 
         INPUT:
 
-        - ``base`` -- a function field, either this field or a field from which
+        - ``base`` -- function field, either this field or a field from which
           this field has been created as an extension
 
         OUTPUT:
@@ -760,11 +760,11 @@ class FunctionField_polymod(FunctionField):
 
         INPUT:
 
-        - ``polynomial`` -- a univariate polynomial over a function field
+        - ``polynomial`` -- univariate polynomial over a function field
 
-        - ``names`` -- a tuple of length 1 or a string; variable names
+        - ``names`` -- tuple of length 1 or string; variable names
 
-        - ``category`` -- a category (defaults to category of function fields)
+        - ``category`` -- category (default: category of function fields)
 
         EXAMPLES:
 
@@ -864,7 +864,7 @@ class FunctionField_polymod(FunctionField):
 
         INPUT:
 
-        - ``x`` -- an element
+        - ``x`` -- element
 
         TESTS::
 
@@ -917,7 +917,7 @@ class FunctionField_polymod(FunctionField):
 
         INPUT:
 
-        - ``f`` -- an element of the function field which lies in the base
+        - ``f`` -- element of the function field which lies in the base
           field.
 
         EXAMPLES::
@@ -959,7 +959,7 @@ class FunctionField_polymod(FunctionField):
 
         INPUT:
 
-        - ``f`` -- an element of the rational function field which is a
+        - ``f`` -- element of the rational function field which is a
           constant
 
         EXAMPLES::
@@ -992,7 +992,7 @@ class FunctionField_polymod(FunctionField):
 
         INPUT:
 
-        - ``names`` -- a string; name of the generator of the new function field
+        - ``names`` -- string; name of the generator of the new function field
 
         EXAMPLES::
 
@@ -1035,7 +1035,7 @@ class FunctionField_polymod(FunctionField):
 
         INPUT:
 
-        - ``f`` -- a polynomial
+        - ``f`` -- polynomial
 
         EXAMPLES::
 
@@ -1112,7 +1112,7 @@ class FunctionField_polymod(FunctionField):
 
         INPUT:
 
-        - ``base`` -- a function field, from which this function field has been
+        - ``base`` -- function field, from which this function field has been
           constructed as a finite extension.
 
         EXAMPLES::
@@ -1382,10 +1382,10 @@ class FunctionField_polymod(FunctionField):
 
         INPUT:
 
-        - ``im_gens`` -- a list of images of the generators of the function field
+        - ``im_gens`` -- list of images of the generators of the function field
           and of successive base rings.
 
-        - ``base_morphism`` -- a homomorphism of the base ring, after the
+        - ``base_morphism`` -- homomorphism of the base ring, after the
           ``im_gens`` are used.  Thus if ``im_gens`` has length 2, then
           ``base_morphism`` should be a morphism from the base ring of the base
           ring of the function field.
@@ -1600,7 +1600,7 @@ class FunctionField_global(FunctionField_polymod):
 
         INPUT:
 
-        - ``polynomial`` -- a monic irreducible and separable polynomial
+        - ``polynomial`` -- monic irreducible and separable polynomial
 
         - ``names`` -- name of the generator of the function field
 
@@ -1769,7 +1769,7 @@ class FunctionField_global(FunctionField_polymod):
 
         INPUT:
 
-        - ``place`` -- a place of the function field
+        - ``place`` -- place of the function field
 
         EXAMPLES::
 
@@ -1791,9 +1791,9 @@ class FunctionField_global(FunctionField_polymod):
 
         INPUT:
 
-        - ``place`` -- a place of the function field
+        - ``place`` -- place of the function field
 
-        - ``name`` -- a string; name of the generator of the residue field
+        - ``name`` -- string; name of the generator of the residue field
 
         The domain of the map to the residue field is the discrete valuation
         ring associated with the place.
@@ -1854,7 +1854,7 @@ class FunctionField_global(FunctionField_polymod):
 
         INPUT:
 
-        - ``degree`` -- a positive integer
+        - ``degree`` -- positive integer
 
         The infinite places come first.
 
@@ -1875,7 +1875,7 @@ class FunctionField_global(FunctionField_polymod):
 
         INPUT:
 
-        - ``degree`` -- a positive integer
+        - ``degree`` -- positive integer
 
         EXAMPLES::
 
@@ -1894,7 +1894,7 @@ class FunctionField_global(FunctionField_polymod):
 
         INPUT:
 
-        - ``degree`` -- a positive integer
+        - ``degree`` -- positive integer
 
         EXAMPLES::
 
@@ -1924,7 +1924,7 @@ class FunctionField_global(FunctionField_polymod):
 
         INPUT:
 
-        - ``degree`` -- a positive integer
+        - ``degree`` -- positive integer
 
         EXAMPLES::
 
@@ -1943,7 +1943,7 @@ class FunctionField_global(FunctionField_polymod):
 
         INPUT:
 
-        - ``degree`` -- a positive integer
+        - ``degree`` -- positive integer
 
         EXAMPLES::
 
@@ -2166,13 +2166,13 @@ class FunctionField_global(FunctionField_polymod):
 
         INPUT:
 
-        - ``place`` -- a place
+        - ``place`` -- place
 
-        - ``name`` -- a string; name of the series variable
+        - ``name`` -- string; name of the series variable
 
-        - ``prec`` -- a positive integer; default precision
+        - ``prec`` -- positive integer; default precision
 
-        - ``gen_name`` -- a string; name of the generator of the residue field;
+        - ``gen_name`` -- string; name of the generator of the residue field;
           used only when the place is non-rational
 
         EXAMPLES::
@@ -2400,9 +2400,9 @@ class RationalFunctionField(FunctionField):
 
         INPUT:
 
-        - ``constant_field`` -- an arbitrary field
+        - ``constant_field`` -- arbitrary field
 
-        - ``names`` -- a string or tuple of length 1
+        - ``names`` -- string or tuple of length 1
 
         EXAMPLES::
 
@@ -2534,7 +2534,7 @@ class RationalFunctionField(FunctionField):
 
         INPUT:
 
-        - ``f`` -- an element of the rational function field which is a
+        - ``f`` -- element of the rational function field which is a
           constant of the underlying rational function field.
 
         EXAMPLES::
@@ -2571,7 +2571,7 @@ class RationalFunctionField(FunctionField):
 
         INPUT:
 
-        - ``f`` -- a univariate polynomial over the function field
+        - ``f`` -- univariate polynomial over the function field
 
         OUTPUT:
 
@@ -2599,7 +2599,7 @@ class RationalFunctionField(FunctionField):
 
         INPUT:
 
-        - ``f`` -- a univariate polynomial over the function field
+        - ``f`` -- univariate polynomial over the function field
 
         EXAMPLES::
 
@@ -2656,9 +2656,9 @@ class RationalFunctionField(FunctionField):
 
         INPUT:
 
-        - ``f`` -- a univariate polynomial over self
+        - ``f`` -- univariate polynomial over self
 
-        - ``names`` -- a string or length-1 tuple
+        - ``names`` -- string or length-1 tuple
 
         OUTPUT:
 
@@ -2691,7 +2691,7 @@ class RationalFunctionField(FunctionField):
 
         INPUT:
 
-        - ``var`` -- a string; name of the variable
+        - ``var`` -- string; name of the variable
 
         EXAMPLES::
 
@@ -3172,9 +3172,9 @@ class RationalFunctionField_global(RationalFunctionField):
 
         INPUT:
 
-        - ``place`` -- a place of the function field
+        - ``place`` -- place of the function field
 
-        - ``name`` -- a string; name of the generator of the residue field
+        - ``name`` -- string; name of the generator of the residue field
 
         EXAMPLES::
 
@@ -3225,13 +3225,13 @@ class RationalFunctionField_global(RationalFunctionField):
 
         INPUT:
 
-        - ``place`` -- a place
+        - ``place`` -- place
 
-        - ``name`` -- a string; name of the series variable
+        - ``name`` -- string; name of the series variable
 
-        - ``prec`` -- a positive integer; default precision
+        - ``prec`` -- positive integer; default precision
 
-        - ``gen_name`` -- a string; name of the generator of the residue field;
+        - ``gen_name`` -- string; name of the generator of the residue field;
           used only when the place is non-rational
 
         EXAMPLES::

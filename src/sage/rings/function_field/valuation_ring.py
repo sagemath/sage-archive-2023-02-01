@@ -85,9 +85,9 @@ class FunctionFieldValuationRing(Parent):
 
         INPUT:
 
-        - ``field`` -- a function field
+        - ``field`` -- function field
 
-        - ``place`` -- a place of the function field
+        - ``place`` -- place of the function field
 
         EXAMPLES::
 
@@ -168,7 +168,7 @@ class FunctionFieldValuationRing_global(FunctionFieldValuationRing):
 
         INPUT:
 
-        - ``name`` -- a string; name of the generator of the residue field
+        - ``name`` -- string; name of the generator of the residue field
 
         OUTPUT:
 

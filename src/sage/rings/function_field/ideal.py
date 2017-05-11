@@ -253,7 +253,7 @@ class FunctionFieldIdeal_rational(FunctionFieldIdeal):
 
         INPUT:
 
-        - ``element`` -- an element of the function field
+        - ``element`` -- element of the function field
 
         EXAMPLES::
 
@@ -272,9 +272,9 @@ class FunctionFieldIdeal_rational(FunctionFieldIdeal):
 
         INPUT:
 
-        - ``other`` -- an element
+        - ``other`` -- element
 
-        - ``op`` -- a comparison operator
+        - ``op`` -- comparison operator
 
         EXAMPLES::
 
@@ -297,7 +297,7 @@ class FunctionFieldIdeal_rational(FunctionFieldIdeal):
 
         INPUT:
 
-        - ``other`` -- an ideal
+        - ``other`` -- ideal
 
         EXAMPLES::
 
@@ -316,7 +316,7 @@ class FunctionFieldIdeal_rational(FunctionFieldIdeal):
 
         INPUT:
 
-        - ``other`` -- an ideal
+        - ``other`` -- ideal
 
         EXAMPLES::
 
@@ -335,7 +335,7 @@ class FunctionFieldIdeal_rational(FunctionFieldIdeal):
 
         INPUT:
 
-        - ``other`` -- an ideal
+        - ``other`` -- ideal
 
         EXAMPLES::
 
@@ -466,7 +466,7 @@ class FunctionFieldIdeal_rational(FunctionFieldIdeal):
 
         INPUT:
 
-        - ``ideal`` -- a fractional ideal
+        - ``ideal`` -- fractional ideal
 
         EXAMPLES::
 
@@ -489,7 +489,7 @@ class FunctionFieldIdeal_rational(FunctionFieldIdeal):
 
         INPUT:
 
-        - ``ideal`` -- an ideal
+        - ``ideal`` -- ideal
 
         EXAMPLES::
 
@@ -645,9 +645,9 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
 
         INPUT:
 
-        - ``ring`` -- an order in a function field
+        - ``ring`` -- order in a function field
 
-        - ``module`` -- a module
+        - ``module`` -- module
 
         EXAMPLES::
 
@@ -872,7 +872,7 @@ class FunctionFieldIdeal_module(FunctionFieldIdeal):
 
         INPUT:
 
-        - ``phi`` -- a morphism
+        - ``phi`` -- morphism
 
         EXAMPLES::
 
@@ -1107,7 +1107,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
 
         INPUT:
 
-        - ``ring`` -- an order in a function field
+        - ``ring`` -- order in a function field
 
         - ``hnf`` -- matrix in hermite normal form
 
@@ -1286,9 +1286,9 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
 
         INPUT:
 
-        - ``other`` -- an ideal
+        - ``other`` -- ideal
 
-        - ``op`` -- a comparison operator
+        - ``op`` -- comparison operator
 
         EXAMPLES::
 
@@ -1444,7 +1444,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
 
         INPUT:
 
-        - ``other`` -- an ideal
+        - ``other`` -- ideal
 
         EXAMPLES::
 
@@ -2030,7 +2030,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
 
         INPUT:
 
-        - ``ideal`` -- a fractional ideal
+        - ``ideal`` -- fractional ideal
 
         EXAMPLES::
 
@@ -2230,7 +2230,7 @@ class FunctionFieldIdealInfinite_rational(FunctionFieldIdealInfinite):
 
         INPUT:
 
-        - ``other`` -- an ideal
+        - ``other`` -- ideal
 
         EXAMPLES::
 
@@ -2250,7 +2250,7 @@ class FunctionFieldIdealInfinite_rational(FunctionFieldIdealInfinite):
 
         INPUT:
 
-        - ``other`` -- an ideal
+        - ``other`` -- ideal
 
         EXAMPLES::
 
@@ -2270,7 +2270,7 @@ class FunctionFieldIdealInfinite_rational(FunctionFieldIdealInfinite):
 
         INPUT:
 
-        - ``other`` -- an ideal
+        - ``other`` -- ideal
 
         EXAMPLES::
 
@@ -2455,7 +2455,7 @@ class FunctionFieldIdealInfinite_rational(FunctionFieldIdealInfinite):
 
         INPUT:
 
-        - ``ideal`` -- a fractional ideal
+        - ``ideal`` -- fractional ideal
 
         EXAMPLES::
 
@@ -2487,9 +2487,9 @@ class FunctionFieldIdealInfinite_module(FunctionFieldIdealInfinite):
 
         INPUT:
 
-        - ``ring`` -- an order in a function field
+        - ``ring`` -- order in a function field
 
-        - ``module`` -- a module
+        - ``module`` -- module
 
         EXAMPLES::
 
@@ -2748,7 +2748,7 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
 
         INPUT:
 
-        - ``ideal`` -- an ideal
+        - ``ideal`` -- ideal
 
         EXAMPLES::
 
@@ -2778,7 +2778,7 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
 
         INPUT:
 
-        - ``ideal`` -- an ideal
+        - ``other`` -- ideal
 
         EXAMPLES::
 
@@ -3223,7 +3223,7 @@ class FunctionFieldIdealInfinite_global(FunctionFieldIdealInfinite):
 
         INPUT:
 
-        - ``ideal`` -- a fractional ideal
+        - ``ideal`` -- fractional ideal
 
         EXAMPLES::
 
@@ -3256,7 +3256,7 @@ class IdealMonoid(Parent):
 
         INPUT:
 
-        - ``R`` -- an order
+        - ``R`` -- order
 
         EXAMPLES::
 

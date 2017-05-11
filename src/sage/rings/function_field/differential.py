@@ -70,7 +70,7 @@ def differential(field, f, t=None):
 
     INPUT:
 
-    - ``field`` -- a function field
+    - ``field`` -- function field
 
     - ``f``, ``t`` -- elements of the function field
 
@@ -164,9 +164,9 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
 
         INPUT:
 
-        - ``other`` -- a differential
+        - ``other`` -- differential
 
-        - ``op`` -- a comparison operator
+        - ``op`` -- comparison operator
 
         EXAMPLES::
 
@@ -200,7 +200,7 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
 
         INPUT:
 
-        - ``other`` -- a differential
+        - ``other`` -- differential
 
         EXAMPLES::
 
@@ -247,7 +247,7 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
 
         INPUT:
 
-        - ``f`` -- an element of the function field
+        - ``f`` -- element of the function field
 
         EXAMPLES::
 
@@ -298,7 +298,7 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
 
         INPUT:
 
-        - ``place`` -- a place of the function field
+        - ``place`` -- place of the function field
 
         OUTPUT:
 
@@ -381,7 +381,7 @@ class DifferentialsSpace(Parent):
 
         INPUT:
 
-        - ``field`` -- a function field
+        - ``field`` -- function field
 
         EXAMPLES::
 
@@ -413,7 +413,7 @@ class DifferentialsSpace(Parent):
 
         INPUT:
 
-        - ``f`` -- an element of the function field
+        - ``f`` -- element of the function field
 
         EXAMPLES::
 

@@ -430,7 +430,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
         INPUT:
 
-        - ``right`` -- an element
+        - ``right`` -- element
 
         EXAMPLES::
 
@@ -453,7 +453,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
         INPUT:
 
-        - ``right`` -- an element
+        - ``right`` -- element
 
         EXAMPLES::
 
@@ -474,7 +474,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
         INPUT:
 
-        - ``right`` -- an element
+        - ``right`` -- element
 
         EXAMPLES::
 
@@ -493,7 +493,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
         INPUT:
 
-        - ``right`` -- an element
+        - ``right`` -- element
 
         EXAMPLES::
 
@@ -661,9 +661,9 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
         INPUT:
 
-        - ``other`` -- an element
+        - ``other`` -- element
 
-        - ``op`` -- a comparison operator
+        - ``op`` -- comparison operator
 
         EXAMPLES::
 
@@ -692,7 +692,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
         INPUT:
 
-        - ``right`` -- an element
+        - ``right`` -- element
 
         EXAMPLES::
 
@@ -710,7 +710,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
         INPUT:
 
-        - ``right`` -- an element
+        - ``right`` -- element
 
         EXAMPLES::
 
@@ -728,7 +728,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
         INPUT:
 
-        - ``right`` -- an element
+        - ``right`` -- element
 
         EXAMPLES::
 
@@ -746,7 +746,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
         INPUT:
 
-        - ``right`` -- an element
+        - ``right`` -- element
 
         EXAMPLES::
 
@@ -794,7 +794,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
         INPUT:
 
-        - ``v`` -- an irreducible polynomial
+        - ``v`` -- irreducible polynomial
 
         EXAMPLES::
 
@@ -816,7 +816,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
         INPUT:
 
-        - ``place`` -- a place of the rational function field or an irreducible
+        - ``place`` -- place of the rational function field or an irreducible
           polynomial associated with a place
 
         EXAMPLES::
@@ -1032,9 +1032,9 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
         INPUT:
 
-        - ``i`` -- a nonnegative integer
+        - ``i`` -- nonnegative integer
 
-        - ``separating_element`` -- a separating element of the function field;
+        - ``separating_element`` -- separating element of the function field;
             the default is the generator of the rational function field
 
         EXAMPLES::
@@ -1178,7 +1178,7 @@ cdef class FunctionFieldElement_global(FunctionFieldElement_polymod):
 
         - ``i`` -- nonnegative integer
 
-        - ``separating_element`` -- a separating element of the function field;
+        - ``separating_element`` -- separating element of the function field;
           the default is the generator of the base rational function field
 
         EXAMPLES::

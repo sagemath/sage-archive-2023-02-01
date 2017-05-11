@@ -89,9 +89,9 @@ class FunctionFieldPlace(Element):
 
         INPUT:
 
-        - ``field`` -- a function field
+        - ``field`` -- function field
 
-        - ``prime`` -- a prime ideal associated with the place
+        - ``prime`` -- prime ideal associated with the place
 
         EXAMPLES::
 
@@ -355,7 +355,7 @@ class FunctionFieldPlace_rational(FunctionFieldPlace):
 
         INPUT:
 
-        - ``name`` -- a string; name of the generator of the residue field
+        - ``name`` -- string; name of the generator of the residue field
 
         EXAMPLES::
 
@@ -737,7 +737,7 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
 
         INPUT:
 
-        - ``name`` -- a string; name of the generator of the residue field
+        - ``name`` -- string; name of the generator of the residue field
 
         EXAMPLES::
 
@@ -775,7 +775,7 @@ class FunctionFieldPlace_global(FunctionFieldPlace):
 
         INPUT:
 
-        - ``name`` -- a string; name of the generator of the residue field
+        - ``name`` -- string; name of the generator of the residue field
 
         If name is not given, it defaults to ``'a'``.
 
@@ -994,7 +994,7 @@ class PlaceSet(Parent):
 
         INPUT:
 
-        - ``field`` -- a function field
+        - ``field`` -- function field
 
         EXAMPLES::
 

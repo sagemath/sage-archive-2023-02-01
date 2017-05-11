@@ -76,7 +76,7 @@ def zero_divisor(field):
 
     INPUT:
 
-    - ``field`` -- a function field
+    - ``field`` -- function field
 
     EXAMPLES::
 
@@ -95,9 +95,9 @@ def prime_divisor(field, place, m=1):
 
     INPUT:
 
-    - ``field`` -- a function field
+    - ``field`` -- function field
 
-    - ``place`` -- a place of the function field
+    - ``place`` -- place of the function field
 
     - ``m`` -- (default: 1) a positive integer; multiplicity at the place
 
@@ -140,9 +140,9 @@ class FunctionFieldDivisor(ModuleElement):
 
         INPUT:
 
-        - ``field`` -- a functon field
+        - ``field`` -- functon field
 
-        - ``data`` -- a dict of place and multiplicity pairs
+        - ``data`` -- dict of place and multiplicity pairs
 
         EXAMPLES::
 
@@ -165,7 +165,7 @@ class FunctionFieldDivisor(ModuleElement):
 
         INPUT:
 
-        - ``split`` -- a boolean; if True, split at the end of each place
+        - ``split`` -- boolean; if True, split at the end of each place
 
         EXAMPLES::
 
@@ -217,9 +217,9 @@ class FunctionFieldDivisor(ModuleElement):
 
         INPUT:
 
-        - ``other`` -- a divisor
+        - ``other`` -- divisor
 
-        - ``op`` -- a comparison operator
+        - ``op`` -- comparison operator
 
         EXAMPLES::
 
@@ -267,7 +267,7 @@ class FunctionFieldDivisor(ModuleElement):
 
         INPUT:
 
-        - ``other`` -- a divisor
+        - ``other`` -- divisor
 
         EXAMPLES::
 
@@ -294,7 +294,7 @@ class FunctionFieldDivisor(ModuleElement):
 
         INPUT:
 
-        - ``i`` -- an integer
+        - ``i`` -- integer
 
         EXAMPLES::
 
@@ -372,7 +372,7 @@ class FunctionFieldDivisor(ModuleElement):
 
         INPUT:
 
-        - ``place`` -- a place
+        - ``place`` -- place of a function field
 
         EXAMPLES::
 
@@ -842,7 +842,7 @@ class DivisorGroup(Parent):
 
         INPUT:
 
-        - ``field`` -- a function field
+        - ``field`` -- function field
 
         EXAMPLES::
 

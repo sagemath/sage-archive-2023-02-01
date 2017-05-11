@@ -86,7 +86,7 @@ class FunctionFieldDerivation(Map):
 
         INPUT:
 
-        - ``K`` -- a function field
+        - ``K`` -- function field
 
         EXAMPLES::
 
@@ -136,13 +136,13 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
     """
     def __init__(self, K, u):
         """
-        Initialize a derivation of K which sends the generator of K to u.
+        Initialize a derivation of ``K`` which sends the generator of ``K`` to ``u``.
 
         INPUT:
 
-        - ``K`` -- a rational function field
+        - ``K`` -- rational function field
 
-        - ``u`` -- an element of K; the image of the generator of K under the
+        - ``u`` -- element of ``K``; the image of the generator of K under the
           derivation
 
         EXAMPLES::
@@ -163,7 +163,7 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
 
         INPUT:
 
-        - ``x`` -- an element of the rational function field
+        - ``x`` -- element of the rational function field
 
         EXAMPLES::
 
@@ -195,9 +195,9 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
 
         INPUT:
 
-        - ``L`` -- a function field; a separable extension of the domain of ``d``
+        - ``L`` -- function field; a separable extension of the domain of ``d``
 
-        - ``d`` -- a derivation on the base function field of ``L``
+        - ``d`` -- derivation on the base function field of ``L``
 
         EXAMPLES::
 
@@ -227,7 +227,7 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
 
         INPUT:
 
-        - ``x`` -- an element of the function field
+        - ``x`` -- element of the function field
 
         EXAMPLES::
 
@@ -291,7 +291,7 @@ class FunctionFieldHasseDerivation(Map):
 
         INPUT:
 
-        - ``field`` -- a function field which is the domain and codomain of the
+        - ``field`` -- function field which is the domain and codomain of the
           derivation
 
         EXAMPLES::
@@ -331,7 +331,7 @@ class FunctionFieldHasseDerivation_rational(FunctionFieldHasseDerivation):
 
         INPUT:
 
-        - ``field`` -- a function field which is the domain and codomain of the
+        - ``field`` -- function field which is the domain and codomain of the
           derivation
 
         EXAMPLES::
@@ -481,7 +481,7 @@ class FunctionFieldHasseDerivation_rational(FunctionFieldHasseDerivation):
 
         INPUT:
 
-        - ``c`` -- a rational function
+        - ``c`` -- rational function
 
         EXAMPLES::
 
@@ -513,7 +513,7 @@ class FunctionFieldHasseDerivation_global(FunctionFieldHasseDerivation):
 
         INPUT:
 
-        - ``field`` -- a function field which is the domain and codomain of the
+        - ``field`` -- function field which is the domain and codomain of the
           derivation
 
         EXAMPLES::
@@ -818,7 +818,7 @@ class MapVectorSpaceToFunctionField(FunctionFieldIsomorphism):
 
         INPUT:
 
-        - ``v`` -- an element of the vector space
+        - ``v`` -- element of the vector space
 
         EXAMPLES::
 
@@ -898,9 +898,9 @@ class MapFunctionFieldToVectorSpace(FunctionFieldIsomorphism):
 
         INPUT:
 
-        - ``K`` -- a function field
+        - ``K`` -- function field
 
-        - ``V`` -- a vector space isomorphic to the function field
+        - ``V`` -- vector space isomorphic to the function field
 
         EXAMPLES::
 
@@ -1248,15 +1248,15 @@ class FunctionFieldCompletion_global(FunctionFieldCompletion):
 
         INPUT:
 
-        - ``field`` -- a function field
+        - ``field`` -- function field
 
-        - ``place`` -- a place of the function field
+        - ``place`` -- place of the function field
 
-        - ``name`` -- a string for the name of the series variable
+        - ``name`` -- string for the name of the series variable
 
-        - ``prec`` -- a positive integer; default precision
+        - ``prec`` -- positive integer; default precision
 
-        - ``gen_name`` -- a string; name of the generator of the residue
+        - ``gen_name`` -- string; name of the generator of the residue
           field; used only when place is non-rational
 
         EXAMPLES::
@@ -1326,9 +1326,9 @@ class FunctionFieldCompletion_global(FunctionFieldCompletion):
 
         INPUT:
 
-        - ``f`` -- an element of the function field
+        - ``f`` -- element of the function field
 
-        - ``prec`` -- a positive integer; relative precision of the series
+        - ``prec`` -- positive integer; relative precision of the series
 
         OUTPUT:
 

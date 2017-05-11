@@ -47,7 +47,7 @@ class FunctionFieldFactory(UniqueFactory):
 
     INPUT:
 
-    - ``F`` -- a field
+    - ``F`` -- field
 
     - ``names`` -- name of variable as a string or a tuple containing a string
 
@@ -118,11 +118,11 @@ class FunctionFieldExtensionFactory(UniqueFactory):
 
     INPUT:
 
-    - ``polynomial`` -- a univariate polynomial over a function field
+    - ``polynomial`` -- univariate polynomial over a function field
 
     - ``names`` -- variable names (as a tuple of length 1 or string)
 
-    - ``category`` -- a category (defaults to category of function fields)
+    - ``category`` -- category (defaults to category of function fields)
 
     EXAMPLES::
 

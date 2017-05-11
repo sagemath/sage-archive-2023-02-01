@@ -8,8 +8,6 @@ AUTHORS:
 
 - William Stein (2007-08-24): first version
 """
-from __future__ import absolute_import
-
 #*****************************************************************************
 #       Copyright (C) 2007 William Stein
 #
@@ -19,7 +17,9 @@ from __future__ import absolute_import
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 from six.moves import range
+from six import integer_types
 
 from sage.rings.all import Integer, QQ, ZZ, PowerSeriesRing
 from sage.misc.all import prod, verbose
@@ -215,7 +215,7 @@ class ModularFormsRing(SageObject):
             ...
             ValueError: Base ring (=Univariate Polynomial Ring in x over Integer Ring) should be QQ, ZZ or a finite prime field
         """
-        if isinstance(group, (int, long, Integer)):
+        if isinstance(group, integer_types + (Integer,)):
             group = Gamma0(group)
         elif not is_CongruenceSubgroup(group):
             raise ValueError("Group (=%s) should be a congruence subgroup" % group)

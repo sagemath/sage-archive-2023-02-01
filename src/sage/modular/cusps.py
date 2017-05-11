@@ -28,6 +28,7 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six import integer_types
 
 from sage.rings.all import Rational, Integer, ZZ, QQ
 from sage.rings.infinity import is_Infinite, Infinity
@@ -306,7 +307,7 @@ class Cusp(Element):
             elif isinstance(a, Cusp):
                 self.__a = a.__a
                 self.__b = a.__b
-            elif isinstance(a, (int, long)):
+            elif isinstance(a, integer_types):
                 self.__a = ZZ(a)
                 self.__b = ZZ.one()
             elif isinstance(a, (tuple, list)):
@@ -357,7 +358,7 @@ class Cusp(Element):
                 self.__a = ZZ.one()
                 self.__b = ZZ.zero()
                 return
-        elif isinstance(a, (int, long)):
+        elif isinstance(a, integer_types):
             r = ZZ(a) / b
         elif isinstance(a, (tuple, list)):
             if len(a) != 2:

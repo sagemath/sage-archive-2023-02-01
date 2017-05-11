@@ -183,19 +183,9 @@ ACKNOWLEDGEMENT:
 - Benjamin Hackl is supported by the Google Summer of Code 2015.
 
 
-ACKNOWLEDGEMENT:
-
-- Benjamin Hackl, Clemens Heuberger and Daniel Krenn are supported by the
-  Austrian Science Fund (FWF): P 24644-N26.
-
-- Benjamin Hackl is supported by the Google Summer of Code 2015.
-
-
 Classes and Methods
 ===================
 """
-from __future__ import absolute_import
-
 # *****************************************************************************
 # Copyright (C) 2014--2015 Benjamin Hackl <benjamin.hackl@aau.at>
 #               2014--2015 Daniel Krenn <dev@danielkrenn.at>
@@ -206,16 +196,19 @@ from __future__ import absolute_import
 # (at your option) any later version.
 # http://www.gnu.org/licenses/
 # *****************************************************************************
+from __future__ import absolute_import
 
 from sage.rings.big_oh import O
 from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.factory import UniqueFactory
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from .misc import richcmp_by_eq_and_lt
 
 
 class ZeroCoefficientError(ValueError):
     pass
+
 
 def absorption(left, right):
     r"""
@@ -371,7 +364,6 @@ class GenericTerm(MultiplicativeGroupElement):
 
         super(GenericTerm, self).__init__(parent=parent)
 
-
     def _mul_(self, other):
         r"""
         Multiplication of this term by another.
@@ -436,7 +428,6 @@ class GenericTerm(MultiplicativeGroupElement):
         raise NotImplementedError('Inversion of %s not implemented '
                                   '(in this abstract method).' % (self,))
 
-
     def __pow__(self, exponent):
         r"""
         Calculate the power of this element to the given ``exponent``.
@@ -465,7 +456,6 @@ class GenericTerm(MultiplicativeGroupElement):
         """
         raise NotImplementedError('Taking powers of %s not implemented '
                                   '(in this abstract method).' % (self,))
-
 
     def _calculate_pow_test_zero_(self, exponent):
         r"""
@@ -520,7 +510,6 @@ class GenericTerm(MultiplicativeGroupElement):
                                   (self, exponent)), e)
         return self._calculate_pow_(exponent)
 
-
     def _calculate_pow_(self, exponent, new_coefficient=None):
         r"""
         Helper function for :meth:`__pow__` which calculates the power of this
@@ -568,7 +557,6 @@ class GenericTerm(MultiplicativeGroupElement):
 
         return self.parent()._create_element_in_extension_(g, new_coefficient)
 
-
     def can_absorb(self, other):
         r"""
         Check whether this asymptotic term is able to absorb
@@ -603,7 +591,6 @@ class GenericTerm(MultiplicativeGroupElement):
             False
         """
         return False
-
 
     def absorb(self, other, check=True):
         r"""
@@ -702,7 +689,6 @@ class GenericTerm(MultiplicativeGroupElement):
                                            lambda left, right:
                                            left._absorb_(right))
 
-
     def _absorb_(self, other):
         r"""
         Let this element absorb ``other``.
@@ -753,7 +739,6 @@ class GenericTerm(MultiplicativeGroupElement):
         """
         raise NotImplementedError('Not implemented in abstract base classes')
 
-
     def log_term(self, base=None):
         r"""
         Determine the logarithm of this term.
@@ -803,7 +788,6 @@ class GenericTerm(MultiplicativeGroupElement):
         raise NotImplementedError('This method is not implemented in this '
                                   'abstract base class.')
 
-
     def _log_growth_(self, base=None):
         r"""
         Helper function to calculate the logarithm of the growth of this element.
@@ -835,15 +819,15 @@ class GenericTerm(MultiplicativeGroupElement):
         return tuple(self.parent()._create_element_in_extension_(g, c)
                      for g, c in self.growth.log_factor(base=base))
 
+    _richcmp_ = richcmp_by_eq_and_lt
 
-    def __le__(self, other):
+    def _lt_(self, other):
         r"""
-        Return whether the growth of this term is less than
-        or equal to the growth of ``other``.
+        Return whether this generic term grows less than ``other``.
 
         INPUT:
 
-        - ``other`` -- an asymptotic term.
+        - ``other`` -- an asymptotic term
 
         OUTPUT:
 
@@ -851,8 +835,12 @@ class GenericTerm(MultiplicativeGroupElement):
 
         .. NOTE::
 
-            This method **only** compares the growth of the input
-            terms!
+            This method is called by the coercion framework, thus,
+            it can be assumed that this element, as well as ``other``
+            are from the same parent.
+
+            Also, this method **only** compares the growth of the
+            input terms!
 
         EXAMPLES:
 
@@ -872,17 +860,13 @@ class GenericTerm(MultiplicativeGroupElement):
             sage: t1 = ET_ZZ(x^2, 5); t2 = ET_QQ(x^3, 2/7); t1, t2
             (5*x^2, 2/7*x^3)
 
-        In order for the comparison to work, the terms have come from
-        or coerce into the same parent. In particular, comparing
-        :class:`GenericTerm` to, for example, an :class:`OTerm`
-        always yields ``False``::
+        In order for the comparison to work, the terms have to come from
+        or coerce into the same parent.
+
+        ::
 
             sage: g1 <= g2
             True
-            sage: o1, g1
-            (O(x^(-1)), Generic Term with growth x)
-            sage: o1 <= g1
-            False
 
         If the elements of the common parent do not possess
         coefficients, then only the growth is compared::
@@ -905,25 +889,46 @@ class GenericTerm(MultiplicativeGroupElement):
             False
             sage: ET_ZZ(x, 5) <= ET_ZZ(x, 5)
             True
+
+        ::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+            sage: ET = TermMonoid('exact', G, QQ)
+            sage: t1 = ET(x, 5); t2 = ET(x^2, 3); t3 = ET(x^2, 42)
+            sage: t1 <= t2  # indirect doctest
+            True
+            sage: t2 <= t1  # indirect doctest
+            False
+            sage: t2 <= t3  # indirect doctest
+            False
+            sage: t3 <= t2  # indirect doctest
+            False
+            sage: t2 <= t2  # indirect doctest
+            True
+
+        TESTS::
+
+            sage: ET(x, -2) <= ET(x, 1)
+            False
+
+        ::
+
+            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+            sage: T = GenericTermMonoid(G, QQ)
+            sage: t1 = T(x^-2); t2 = T(x^5); t1, t2
+            (Generic Term with growth x^(-2), Generic Term with growth x^5)
+            sage: t1 <= t2  # indirect doctest
+            True
+            sage: t2 <= t1  # indirect doctest
+            False
         """
-        from sage.structure.element import have_same_parent
+        return self.growth < other.growth
 
-        if have_same_parent(self, other):
-            return self._le_(other)
-
-        from sage.structure.element import get_coercion_model
-        import operator
-
-        try:
-            return get_coercion_model().bin_op(self, other, operator.le)
-        except TypeError:
-            return False
-
-
-    def _le_(self, other):
+    def _eq_(self, other):
         r"""
-        Return whether this generic term grows at most (i.e. less than
-        or equal) like ``other``.
+        Return whether this generic term is equal to ``other``.
 
         INPUT:
 
@@ -935,45 +940,9 @@ class GenericTerm(MultiplicativeGroupElement):
 
         .. NOTE::
 
-            This method is called by the coercion framework, thus,
-            it can be assumed that this element, as well as ``other``
-            are from the same parent.
-
-            Also, this method **only** compares the growth of the
-            input terms!
-
-        EXAMPLES::
-
-            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
-            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
-            sage: T = GenericTermMonoid(G, QQ)
-            sage: t1 = T(x^-2); t2 = T(x^5); t1, t2
-            (Generic Term with growth x^(-2), Generic Term with growth x^5)
-            sage: t1._le_(t2)
-            True
-            sage: t2._le_(t1)
-            False
-        """
-        return self.growth <= other.growth
-
-
-    def __eq__(self, other):
-        r"""
-        Return whether this asymptotic term is equal to ``other``.
-
-        INPUT:
-
-        - ``other`` -- an object.
-
-        OUTPUT:
-
-        A boolean.
-
-        .. NOTE::
-
-            This function uses the coercion model to find a common
-            parent for the two operands.
+            This method gets called by the coercion framework, so it
+            can be assumed that this asymptotic term is from the
+            same parent as ``other``.
 
         EXAMPLES::
 
@@ -992,43 +961,9 @@ class GenericTerm(MultiplicativeGroupElement):
             True
             sage: o == OT(x^2)  # indirect doctest
             False
-        """
-        from sage.structure.element import have_same_parent
-        if have_same_parent(self, other):
-            return self._eq_(other)
 
-        from sage.structure.element import get_coercion_model
-        import operator
-        try:
-            return get_coercion_model().bin_op(self, other, operator.eq)
-        except TypeError:
-            return False
+        TESTS::
 
-
-    def _eq_(self, other):
-        r"""
-        Return whether this asymptotic term is the same as ``other``.
-
-        INPUT:
-
-        - ``other`` -- an asymptotic term.
-
-        OUTPUT:
-
-        A boolean.
-
-        .. NOTE::
-
-            This method gets called by the coercion framework, so it
-            can be assumed that this asymptotic term is from the
-            same parent as ``other``.
-
-            Only implemented in concrete realizations.
-
-        EXAMPLES::
-
-            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
             sage: T = GenericTermMonoid(GrowthGroup('x^ZZ'), QQ)
             sage: t = T.an_element()
             sage: t == t
@@ -1036,7 +971,6 @@ class GenericTerm(MultiplicativeGroupElement):
 
         ::
 
-            sage: from sage.rings.asymptotic.term_monoid import OTermMonoid
             sage: OT = OTermMonoid(GrowthGroup('x^ZZ'), QQ)
             sage: t = OT.an_element(); t
             O(x)
@@ -1046,7 +980,6 @@ class GenericTerm(MultiplicativeGroupElement):
             False
         """
         return self.growth == other.growth
-
 
     def is_constant(self):
         r"""
@@ -1103,7 +1036,6 @@ class GenericTerm(MultiplicativeGroupElement):
         """
         return False
 
-
     def is_little_o_of_one(self):
         r"""
         Return whether this generic term is of order `o(1)`.
@@ -1139,7 +1071,6 @@ class GenericTerm(MultiplicativeGroupElement):
         raise NotImplementedError('Cannot check whether %s is o(1) in the '
                                   'abstract base class %s.' % (self, self.parent()))
 
-
     def rpow(self, base):
         r"""
         Return the power of ``base`` to this generic term.
@@ -1167,7 +1098,6 @@ class GenericTerm(MultiplicativeGroupElement):
         raise NotImplementedError('Cannot take %s to the exponent %s in the '
                                   'abstract base class %s.' % (base, self, self.parent()))
 
-
     def _repr_(self):
         r"""
         A representation string for this generic term.
@@ -1193,7 +1123,6 @@ class GenericTerm(MultiplicativeGroupElement):
         """
         return 'Generic Term with growth ' + repr(self.growth)
 
-
     def _latex_(self):
         r"""
         A LaTeX-representation string for this generic term.
@@ -1214,7 +1143,6 @@ class GenericTerm(MultiplicativeGroupElement):
             NotImplementedError
         """
         raise NotImplementedError
-
 
     def _substitute_(self, rules):
         r"""
@@ -1248,7 +1176,6 @@ class GenericTerm(MultiplicativeGroupElement):
             'Cannot substitute in the abstract '
             'base class %s.' % (self.parent(),)))
 
-
     def variable_names(self):
         r"""
         Return the names of the variables of this term.
@@ -1274,7 +1201,6 @@ class GenericTerm(MultiplicativeGroupElement):
         """
         return self.growth.variable_names()
 
-
     def _factorial_(self):
         r"""
         Return the factorial of this generic term.
@@ -1296,7 +1222,6 @@ class GenericTerm(MultiplicativeGroupElement):
         """
         raise NotImplementedError(
             'Cannot build the factorial of {}.'.format(self))
-
 
     def _singularity_analysis_(self, var, zeta, precision):
         r"""
@@ -1375,7 +1300,6 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
 
     # enable the category framework for elements
     Element = GenericTerm
-
 
     @staticmethod
     def __classcall__(cls, growth_group, coefficient_ring, category=None):
@@ -1470,7 +1394,6 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
         self._coefficient_ring_ = coefficient_ring
         super(GenericTermMonoid, self).__init__(category=category)
 
-
     @property
     def growth_group(self):
         r"""
@@ -1484,7 +1407,6 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
             Growth Group x^ZZ
         """
         return self._growth_group_
-
 
     @property
     def coefficient_ring(self):
@@ -1500,7 +1422,6 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
             Integer Ring
         """
         return self._coefficient_ring_
-
 
     def change_parameter(self, growth_group=None, coefficient_ring=None):
         r"""
@@ -1547,7 +1468,6 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
             return self
         return TermMonoid(self, growth_group, coefficient_ring)
 
-
     def _repr_(self):
         r"""
         A representation string for this generic term monoid.
@@ -1571,7 +1491,6 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
         """
         return 'Generic Term Monoid %s with (implicit) coefficients in %s' % \
             (self.growth_group._repr_short_(), self.coefficient_ring)
-
 
     def _coerce_map_from_(self, S):
         r"""
@@ -1628,7 +1547,6 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
             if self.growth_group.has_coerce_map_from(S.growth_group) and \
                     self.coefficient_ring.has_coerce_map_from(S.coefficient_ring):
                 return True
-
 
     def _element_constructor_(self, data, coefficient=None):
         r"""
@@ -1756,7 +1674,6 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
 
         return self._create_element_(growth, coefficient)
 
-
     def _create_element_(self, growth, coefficient):
         r"""
         Helper method which creates an element by using the ``element_class``.
@@ -1784,7 +1701,6 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
             raise ValueError('Coefficient %s is not 1, but %s does not '
                              'support coefficients.' % (coefficient, self))
         return self.element_class(self, growth)
-
 
     def _create_element_in_extension_(self, growth, coefficient):
         r"""
@@ -1821,7 +1737,6 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
                                             else self.coefficient_ring,
                                             category=self.category())
         return parent(growth, coefficient)
-
 
     def _split_growth_and_coefficient_(self, data):
         r"""
@@ -1904,7 +1819,6 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
         coefficient = prod(coefficients) if coefficients else coefficient_ring.one()
         return (growth, coefficient)
 
-
     def _get_factors_(self, data):
         r"""
         Split given ``data`` into separate factors.
@@ -1943,7 +1857,6 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
 
         return (data,)
 
-
     def _an_element_(self):
         r"""
         Return an element of this term monoid.
@@ -1968,7 +1881,6 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
         """
         return self(self.growth_group.an_element())
 
-
     def some_elements(self):
         r"""
         Return some elements of this term monoid.
@@ -1992,7 +1904,6 @@ class GenericTermMonoid(UniqueRepresentation, Parent):
             (O(1), O(x), O(x^(-1)), O(x^2), O(x^(-2)), O(x^3), ...)
         """
         return iter(self(g) for g in self.growth_group.some_elements())
-
 
     def le(self, left, right):
         r"""
@@ -2103,7 +2014,6 @@ class OTerm(GenericTerm):
             s = 'O({g})'
         return s.format(g=f(self.growth))
 
-
     def _latex_(self):
         r"""
         A LaTeX-representation string for this `O`-term.
@@ -2127,7 +2037,6 @@ class OTerm(GenericTerm):
         """
         return self._repr_(latex=True)
 
-
     def __invert__(self):
         r"""
         Invert this term.
@@ -2148,7 +2057,6 @@ class OTerm(GenericTerm):
             ZeroDivisionError: Cannot invert O(x).
         """
         raise ZeroDivisionError('Cannot invert %s.' % (self,))
-
 
     def __pow__(self, exponent):
         r"""
@@ -2180,7 +2088,6 @@ class OTerm(GenericTerm):
             > *previous* ZeroDivisionError: rational division by zero
         """
         return self._calculate_pow_test_zero_(exponent)
-
 
     def can_absorb(self, other):
         r"""
@@ -2214,7 +2121,6 @@ class OTerm(GenericTerm):
             True
         """
         return other <= self
-
 
     def _absorb_(self, other):
         r"""
@@ -2259,7 +2165,6 @@ class OTerm(GenericTerm):
         """
         return self
 
-
     def log_term(self, base=None):
         r"""
         Determine the logarithm of this O-term.
@@ -2300,7 +2205,6 @@ class OTerm(GenericTerm):
             :meth:`ExactTerm.log_term`.
         """
         return self._log_growth_(base=base)
-
 
     def is_little_o_of_one(self):
         r"""
@@ -2349,7 +2253,6 @@ class OTerm(GenericTerm):
             True
         """
         return self.growth.is_lt_one()
-
 
     def rpow(self, base):
         r"""
@@ -2405,7 +2308,6 @@ class OTerm(GenericTerm):
             return ExactTermMonoid(P.growth_group, P.coefficient_ring).one()
         raise ValueError('Cannot take %s to the exponent %s in %s' %
                          (base, self, self.parent()))
-
 
     def _substitute_(self, rules):
         r"""
@@ -2482,7 +2384,6 @@ class OTerm(GenericTerm):
             from .misc import substitute_raise_exception
             substitute_raise_exception(self, e)
 
-
     def _factorial_(self):
         r"""
         Return the factorial of this O-term if it is constant
@@ -2510,7 +2411,6 @@ class OTerm(GenericTerm):
                 '!= 1.'.format(self))
 
         return self
-
 
     def _singularity_analysis_(self, var, zeta, precision):
         r"""
@@ -2582,7 +2482,6 @@ class OTermMonoid(GenericTermMonoid):
     # enable the category framework for elements
     Element = OTerm
 
-
     def _create_element_(self, growth, coefficient):
         r"""
         Helper method which creates an element by using the ``element_class``.
@@ -2624,7 +2523,6 @@ class OTermMonoid(GenericTermMonoid):
                                'is not valid in %s.' %
                                (growth, coefficient, self)), e)
         return self.element_class(self, growth)
-
 
     def _coerce_map_from_(self, S):
         r"""
@@ -2678,7 +2576,6 @@ class OTermMonoid(GenericTermMonoid):
                 return True
         else:
             return super(OTermMonoid, self)._coerce_map_from_(S)
-
 
     def _repr_(self):
         r"""
@@ -2784,7 +2681,6 @@ class TermWithCoefficient(GenericTerm):
         self.coefficient = coefficient
         super(TermWithCoefficient, self).__init__(parent=parent, growth=growth)
 
-
     def _repr_(self):
         r"""
         A representation string for this term with coefficient.
@@ -2808,7 +2704,6 @@ class TermWithCoefficient(GenericTerm):
         """
         return 'Term with coefficient %s and growth %s' % \
                (self.coefficient, self.growth)
-
 
     def _mul_(self, other):
         r"""
@@ -2854,7 +2749,6 @@ class TermWithCoefficient(GenericTerm):
         """
         return self.parent()(self.growth * other.growth,
                              self.coefficient * other.coefficient)
-
 
     def _calculate_pow_(self, exponent):
         r"""
@@ -2906,7 +2800,6 @@ class TermWithCoefficient(GenericTerm):
                                 (self, exponent, self.parent(), self.coefficient)), e)
         return super(TermWithCoefficient, self)._calculate_pow_(exponent, new_coefficient=c)
 
-
     def _log_coefficient_(self, base=None):
         r"""
         Helper function to calculate the logarithm of the coefficient of this element.
@@ -2941,55 +2834,6 @@ class TermWithCoefficient(GenericTerm):
         return (self.parent()._create_element_in_extension_(
             self.parent().growth_group.one(), log(self.coefficient, base=base)),)
 
-
-    def _le_(self, other):
-        r"""
-        Return whether this asymptotic term with coefficient grows
-        at most (less than or equal) like ``other``.
-
-        INPUT:
-
-        - ``other`` -- an asymptotic term with coefficient.
-
-        OUTPUT:
-
-        A boolean.
-
-        .. NOTE::
-
-            This method is called by the coercion framework, thus,
-            it can be assumed that this element and ``other`` are
-            from the same parent.
-
-        EXAMPLES::
-
-            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
-            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
-            sage: ET = TermMonoid('exact', G, QQ)
-            sage: t1 = ET(x, 5); t2 = ET(x^2, 3); t3 = ET(x^2, 42)
-            sage: t1 <= t2
-            True
-            sage: t2 <= t1
-            False
-            sage: t2 <= t3
-            False
-            sage: t3 <= t2
-            False
-            sage: t2 <= t2
-            True
-
-        TESTS::
-
-            sage: ET(x, -2) <= ET(x, 1)
-            False
-        """
-        if self.growth == other.growth:
-            return self.coefficient == other.coefficient
-        else:
-            return super(TermWithCoefficient, self)._le_(other)
-
-
     def _eq_(self, other):
         r"""
         Return whether this :class:`TermWithCoefficient` is the same as
@@ -2997,7 +2841,7 @@ class TermWithCoefficient(GenericTerm):
 
         INPUT:
 
-        - ``other`` -- an :class:`TermWithCoefficient`.
+        - ``other`` -- an :class:`TermWithCoefficient`
 
         OUTPUT:
 
@@ -3067,7 +2911,6 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
     # enable the category framework for elements
     Element = TermWithCoefficient
 
-
     def _create_element_(self, growth, coefficient):
         r"""
         Helper method which creates an element by using the ``element_class``.
@@ -3092,7 +2935,6 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             4/3*x
         """
         return self.element_class(self, growth, coefficient)
-
 
     def _an_element_(self):
         r"""
@@ -3120,7 +2962,6 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
         """
         return self(self.growth_group.an_element(),
                     self.coefficient_ring.an_element())
-
 
     def some_elements(self):
         r"""
@@ -3288,7 +3129,6 @@ class ExactTerm(TermWithCoefficient):
 
         return s
 
-
     def _latex_(self):
         r"""
         A LaTeX-representation string for this exact term.
@@ -3333,7 +3173,6 @@ class ExactTerm(TermWithCoefficient):
         """
         return self._repr_(latex=True)
 
-
     def __invert__(self):
         r"""
         Invert this term.
@@ -3361,7 +3200,6 @@ class ExactTerm(TermWithCoefficient):
         g = ~self.growth
         return self.parent()._create_element_in_extension_(g, c)
 
-
     def __pow__(self, exponent):
         r"""
         Calculate the power of this :class:`ExactTerm` to the given ``exponent``.
@@ -3388,7 +3226,6 @@ class ExactTerm(TermWithCoefficient):
             sqrt(2)*z^(1/2)
         """
         return self._calculate_pow_(exponent)
-
 
     def can_absorb(self, other):
         r"""
@@ -3425,7 +3262,6 @@ class ExactTerm(TermWithCoefficient):
             False
         """
         return other.is_exact() and self.growth == other.growth
-
 
     def _absorb_(self, other):
         r"""
@@ -3477,7 +3313,6 @@ class ExactTerm(TermWithCoefficient):
         else:
             return self.parent()(self.growth, coeff_new)
 
-
     def log_term(self, base=None):
         r"""
         Determine the logarithm of this exact term.
@@ -3522,7 +3357,6 @@ class ExactTerm(TermWithCoefficient):
         """
         return self._log_coefficient_(base=base) + self._log_growth_(base=base)
 
-
     def is_constant(self):
         r"""
         Return whether this term is an (exact) constant.
@@ -3555,7 +3389,6 @@ class ExactTerm(TermWithCoefficient):
             True
         """
         return self.growth.is_one()
-
 
     def is_little_o_of_one(self):
         r"""
@@ -3605,7 +3438,6 @@ class ExactTerm(TermWithCoefficient):
         """
         return self.growth.is_lt_one()
 
-
     def is_exact(self):
         r"""
         Return whether this term is an exact term.
@@ -3631,7 +3463,6 @@ class ExactTerm(TermWithCoefficient):
             False
         """
         return True
-
 
     def rpow(self, base):
         r"""
@@ -3707,7 +3538,6 @@ class ExactTerm(TermWithCoefficient):
             self.growth.rpow(base), P.coefficient_ring.one())
         return elem ** self.coefficient
 
-
     def _substitute_(self, rules):
         r"""
         Substitute the given ``rules`` in this exact term.
@@ -3763,7 +3593,6 @@ class ExactTerm(TermWithCoefficient):
             from .misc import substitute_raise_exception
             substitute_raise_exception(self, e)
 
-
     def _factorial_(self):
         r"""
         Return the factorial of this exact term if it is constant
@@ -3795,7 +3624,6 @@ class ExactTerm(TermWithCoefficient):
         from sage.functions.other import factorial
         return self.parent()._create_element_in_extension_(
             self.growth, factorial(self.coefficient))
-
 
     def _singularity_analysis_(self, var, zeta, precision):
         r"""
@@ -3879,7 +3707,6 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
 
     # enable the category framework for elements
     Element = ExactTerm
-
 
     def _repr_(self):
         r"""
@@ -4022,6 +3849,7 @@ class TermMonoidFactory(UniqueFactory):
         running ._test_prod() . . . pass
         running ._test_some_elements() . . . pass
     """
+
     def create_key_and_extra_args(self, term_monoid,
                                   growth_group=None, coefficient_ring=None,
                                   asymptotic_ring=None,
@@ -4094,7 +3922,6 @@ class TermMonoidFactory(UniqueFactory):
                              "create a term monoid of type '%s'" % (term_monoid,))
 
         return (term_class, growth_group, coefficient_ring), kwds
-
 
     def create_object(self, version, key, **kwds):
         r"""

@@ -10437,7 +10437,7 @@ cdef class Expression(CommutativeRingElement):
 
         AUTHORS:
 
-        - Emmanuel Charpentier, Ralf Stephan (05-2017)
+        - Emmanuel Charpentier, Ralf Stephan, Travis Scrimshaw (05-2017)
         """
         from sage.functions.other import symbolic_sum as opsum, \
             symbolic_product as opprod
@@ -10445,6 +10445,7 @@ cdef class Expression(CommutativeRingElement):
             import indefinite_integral as opii, definite_integral as opdi
         from sage.symbolic.operators import add_vararg as opadd, \
             mul_vararg as opmul
+        from sage.all import prod
         def treat_term(op, term, args):
             l=sage.all.copy(args)
             l.insert(0, term)
@@ -10459,11 +10460,8 @@ cdef class Expression(CommutativeRingElement):
                 la = self.operands()[1:]
                 aa = sa.operands()
                 if recursive:
-                    return sum(map(lambda t:treat_term(op,
-                                                       t.distribute(),
-                                                       la),
-                                   aa))
-                return sum(map(lambda t:treat_term(op, t, la), aa))
+                    return sum(treat_term(op, t.distribute(), la) for t in aa)
+                return sum(treat_term(op, t, la) for t in aa)
             return self
         if op is opprod:
             sa = self.operands()[0].expand()
@@ -10472,11 +10470,8 @@ cdef class Expression(CommutativeRingElement):
                 la = self.operands()[1:]
                 aa = sa.operands()
                 if recursive:
-                    return sage.all.prod(map(lambda t:treat_term(op,
-                                                                 t.distribute(),
-                                                                 la),
-                                   aa))
-                return sage.all.prod(map(lambda t:treat_term(op, t, la), aa))
+                    return prod(treat_term(op, t.distribute(), la) for t in aa)
+                return prod(treat_term(op, t, la) for t in aa)
             return self
         if recursive:
             return apply(op, map(lambda t:t.distribute(), self.operands()))

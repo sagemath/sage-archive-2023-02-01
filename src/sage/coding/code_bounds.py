@@ -177,12 +177,36 @@ from sage.functions.all import log, sqrt
 from .delsarte_bounds import delsarte_bound_hamming_space, \
                 delsarte_bound_additive_hamming_space
 
+def _check_n_q_d(n, q, d):
+    r"""
+    Check that the length `n`, alphabet size `q` and minimum distance `d` type
+    check and make sense for a code over a field.
+
+    More precisely, checks that the parameters are positive integers, that `q`
+    is a prime power, and that `n >= d`. Raises a ``ValueError`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.coding.code_bounds import _check_n_q_d
+        sage: _check_n_q_d(20, 16, 5)
+        True
+        sage: _check_n_q_d(20, 16, 21)
+        Traceback (most recent call last):
+        ...
+        ValueError: The length, alphabet size and minimum distance does not make sense for a code over a field
+    """
+    if not( is_prime_power(q) and d > 0 and n >= d and n in ZZ and d in ZZ ):
+        raise ValueError("The length, alphabet size and minimum distance does not make sense for a code over a field")
+    return True
+
+
 def codesize_upper_bound(n,d,q,algorithm=None):
     r"""
-    Returns an upper bound on the code size.
+    Returns an upper bound on the number of codewords in a (possibly non-linear)
+    code.
 
-    This function computes the minimum value of the upper bound using the
-    methods of Singleton, Hamming, Plotkin, and Elias.
+    This function computes the minimum value of the upper bounds of Singleton,
+    Hamming, Plotkin, and Elias.
 
     If algorithm="gap" then this returns the best known upper
     bound `A(n,d)=A_q(n,d)` for the size of a code of length n,
@@ -222,7 +246,14 @@ def codesize_upper_bound(n,d,q,algorithm=None):
         20
         sage: codes.bounds.codesize_upper_bound(19,10,2,algorithm="gap") # optional - gap_packages (Guava package)
         20
+
+    Meaningless parameters are rejected::
+        sage: codes.bounds.codesize_upper_bound(10, 20, 16)
+        Traceback (most recent call last):
+        ...
+        ValueError: The length, alphabet size and minimum distance does not make sense for a code over a field
     """
+    _check_n_q_d(n, q, d)
     if algorithm=="gap":
         gap.load_package('guava')
         return int(gap.eval("UpperBound(%s,%s,%s)"%( n, d, q )))
@@ -253,14 +284,22 @@ def dimension_upper_bound(n,d,q,algorithm=None):
         sage: codes.bounds.dimension_upper_bound(30,15,4,algorithm="LP")
         12
 
-    """
-    q = ZZ(q)
-    if is_prime_power(q) and n>0 and d>0 and n in ZZ and d in ZZ: # sanity check
-        if algorithm=="LP":
-            return delsarte_bound_additive_hamming_space(n,d,q)
+    TESTS:
 
-        else:       # algorithm==None or algorithm=="gap":
-            return int(log(codesize_upper_bound(n,d,q,algorithm=algorithm),q))
+    Meaningless code parameters are rejected::
+
+        sage: codes.bounds.dimension_upper_bound(-3,3,2)
+        Traceback (most recent call last):
+        ...
+        ValueError: The length, alphabet size and minimum distance does not make sense for a code over a field
+
+    """
+    _check_n_q_d(n, q, d)
+    q = ZZ(q)
+    if algorithm=="LP":
+        return delsarte_bound_additive_hamming_space(n,d,q)
+    else:       # algorithm==None or algorithm=="gap":
+        return int(log(codesize_upper_bound(n,d,q,algorithm=algorithm),q))
 
 
 def volume_hamming(n,q,r):
@@ -289,7 +328,17 @@ def gilbert_lower_bound(n,q,d):
 
         sage: codes.bounds.gilbert_lower_bound(10,2,3)
         128/7
+
+    TESTS:
+
+    Meaningless parameters are rejected::
+
+        sage: codes.bounds.gilbert_lower_bound(10, 6, 3)
+        Traceback (most recent call last):
+        ...
+        ValueError: The length, alphabet size and minimum distance does not make sense for a code over a field
     """
+    _check_n_q_d(n, q, d)
     ans=q**n/volume_hamming(n,q,d-1)
     return ans
 
@@ -309,7 +358,17 @@ def plotkin_upper_bound(n,q,d, algorithm=None):
         192
         sage: codes.bounds.plotkin_upper_bound(10,2,3,algorithm="gap")  # optional - gap_packages (Guava package)
         192
+
+    TESTS:
+
+    Meaningless parameters are rejected::
+
+        sage: codes.bounds.plotkin_upper_bound(10, 16, 20)
+        Traceback (most recent call last):
+        ...
+        ValueError: The length, alphabet size and minimum distance does not make sense for a code over a field
     """
+    _check_n_q_d(n, q, d)
     if algorithm=="gap":
         gap.load_package("guava")
         ans=gap.eval("UpperBoundPlotkin(%s,%s,%s)"%(n,d,q))
@@ -362,13 +421,19 @@ def griesmer_upper_bound(n,q,d,algorithm=None):
 
     TESTS::
 
-        sage: codes.bounds.griesmer_upper_bound(10,6,5)
-        0
         sage: codes.bounds.griesmer_upper_bound(11,3,6)
         243
         sage: codes.bounds.griesmer_upper_bound(11,3,6)
         243
+
+    Meaningless parameters are rejected::
+
+        sage: codes.bounds.griesmer_upper_bound(10, 16, 20)
+        Traceback (most recent call last):
+        ...
+        ValueError: The length, alphabet size and minimum distance does not make sense for a code over a field
     """
+    _check_n_q_d(n, q, d)
     if is_prime_power(q) and n>0 and d>0 and n in ZZ and d in ZZ: # sanity check
         if algorithm=="gap":
             gap.load_package("guava")
@@ -403,7 +468,16 @@ def elias_upper_bound(n,q,d,algorithm=None):
         sage: codes.bounds.elias_upper_bound(10,2,3,algorithm="gap")  # optional - gap_packages (Guava package)
         232
 
+    TESTS:
+
+    Meaningless parameters are rejected::
+
+        sage: codes.bounds.elias_upper_bound(10, 16, 20)
+        Traceback (most recent call last):
+        ...
+        ValueError: The length, alphabet size and minimum distance does not make sense for a code over a field
     """
+    _check_n_q_d(n, q, d)
     r = 1-1/q
     if algorithm=="gap":
         gap.load_package("guava")
@@ -454,7 +528,17 @@ def hamming_upper_bound(n,q,d):
 
         sage: codes.bounds.hamming_upper_bound(10,2,3)
         93
+
+    TESTS:
+
+    Meaningless parameters are rejected::
+
+        sage: codes.bounds.hamming_upper_bound(10, 16, 20)
+        Traceback (most recent call last):
+        ...
+        ValueError: The length, alphabet size and minimum distance does not make sense for a code over a field
     """
+    _check_n_q_d(n, q, d)
     return int((q**n)/(volume_hamming(n, q, int((d-1)/2))))
 
 def singleton_upper_bound(n,q,d):
@@ -483,7 +567,17 @@ def singleton_upper_bound(n,q,d):
 
         sage: codes.bounds.singleton_upper_bound(10,2,3)
         256
+
+    TESTS:
+
+    Meaningless parameters are rejected::
+
+        sage: codes.bounds.singleton_upper_bound(10, 16, 20)
+        Traceback (most recent call last):
+        ...
+        ValueError: The length, alphabet size and minimum distance does not make sense for a code over a field
     """
+    _check_n_q_d(n, q, d)
     return q**(n - d + 1)
 
 def gv_info_rate(n,delta,q):

@@ -10395,6 +10395,8 @@ cdef class Expression(CommutativeRingElement):
 
         - Integral (definite or not) of a sum ==> sum of integrals.
 
+        _ Symbolic product of a product ==> product of symbolic products.
+
         INPUT:
 
         - ``self`` - expression whose operator may be distributed.
@@ -10427,15 +10429,22 @@ cdef class Expression(CommutativeRingElement):
             sum(sum(Y(k), k, 1, q) + sum(Z(k), k, 1, q), j, 1, p) + sum(X(j), j, 1, p)
             sage: sum(X(j)+sum(Y(k)+Z(k),k,1,q),j,1,p).distribute(recursive=False)
             sum(X(j), j, 1, p) + sum(sum(Y(k) + Z(k), k, 1, q), j, 1, p)
+            sage: maxima("product(X(j)*Y(j),j,1,p)").sage()
+            product(X(j)*Y(j), j, 1, p)
+            sage: maxima("product(X(j)*Y(j),j,1,p)").sage().distribute()
+            product(X(j), j, 1, p)*product(Y(j), j, 1, p)
+
 
         AUTHORS:
 
         - Emmanuel Charpentier, Ralf Stephan (05-2017)
         """
-        from sage.functions.other import symbolic_sum as opsum
+        from sage.functions.other import symbolic_sum as opsum, \
+            symbolic_product as opprod
         from sage.symbolic.integration.integral \
             import indefinite_integral as opii, definite_integral as opdi
-        from sage.symbolic.operators import add_vararg as opadd
+        from sage.symbolic.operators import add_vararg as opadd, \
+            mul_vararg as opmul
         def treat_term(op, term, args):
             l=sage.all.copy(args)
             l.insert(0, term)
@@ -10455,6 +10464,19 @@ cdef class Expression(CommutativeRingElement):
                                                        la),
                                    aa))
                 return sum(map(lambda t:treat_term(op, t, la), aa))
+            return self
+        if op is opprod:
+            sa = self.operands()[0].expand()
+            op1 = sa.operator()
+            if op1 is opmul:
+                la = self.operands()[1:]
+                aa = sa.operands()
+                if recursive:
+                    return sage.all.prod(map(lambda t:treat_term(op,
+                                                                 t.distribute(),
+                                                                 la),
+                                   aa))
+                return sage.all.prod(map(lambda t:treat_term(op, t, la), aa))
             return self
         if recursive:
             return apply(op, map(lambda t:t.distribute(), self.operands()))

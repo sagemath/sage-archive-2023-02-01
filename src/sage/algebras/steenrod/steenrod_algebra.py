@@ -451,8 +451,8 @@ examples.
 #  Copyright (C) 2008-2010 John H. Palmieri <palmieri@math.washington.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six.moves import range
 
 from sage.combinat.free_module import CombinatorialFreeModule, \
     CombinatorialFreeModuleElement
@@ -694,7 +694,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             sage: SteenrodAlgebra(generic=True, profile=[[3,2,1], []])._has_nontrivial_profile()
             True
 
-        Check that a bug in #11832 has been fixed::
+        Check that a bug in :trac:`11832` has been fixed::
 
             sage: P3 = SteenrodAlgebra(p=3, profile=(lambda n: Infinity, lambda n: 1))
             sage: P3._has_nontrivial_profile()
@@ -4152,8 +4152,9 @@ def AA(n=None, p=2):
     if n is None:
         return SteenrodAlgebra(p=p)
     if p == 2:
-        return SteenrodAlgebra(p=p, profile=range(n+1, 0, -1))
-    return SteenrodAlgebra(p=p, profile=(range(n, 0, -1), [2]*(n+1)))
+        return SteenrodAlgebra(p=p, profile=list(range(n+1, 0, -1)))
+    return SteenrodAlgebra(p=p, profile=(list(range(n, 0, -1)), [2]*(n+1)))
+
 
 def Sq(*nums):
     r"""

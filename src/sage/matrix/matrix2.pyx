@@ -47,8 +47,8 @@ include "cysignals/signals.pxi"
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.coerce cimport py_scalar_parent
 from sage.structure.sequence import Sequence
-from sage.structure.element import (is_Vector, get_coercion_model)
-from sage.structure.element cimport have_same_parent
+from sage.structure.element import is_Vector
+from sage.structure.element cimport have_same_parent, coercion_model
 from sage.misc.misc import verbose, get_verbose
 from sage.rings.ring import is_Ring
 from sage.rings.number_field.number_field_base import is_NumberField
@@ -1605,7 +1605,7 @@ cdef class Matrix(matrix1.Matrix):
             # word, use PARI.
             ch = R.characteristic()
             if ch.is_prime() and ch < (2*sys.maxsize):
-                d = R(self._pari_().matdet())
+                d = R(self.__pari__().matdet())
             else:
                 # Lift to ZZ and compute there.
                 d = R(self.apply_map(lambda x : x.lift_centered()).det())
@@ -2560,7 +2560,7 @@ cdef class Matrix(matrix1.Matrix):
         if not is_NumberField(K):
             raise ValueError("_charpoly_over_number_field called with base ring (%s) not a number field" % K)
 
-        paripoly = self._pari_().charpoly()
+        paripoly = self.__pari__().charpoly()
         return K[var](paripoly)
 
     def fcp(self, var='x'):
@@ -3071,7 +3071,7 @@ cdef class Matrix(matrix1.Matrix):
             [0 0 1]
         """
         tm = verbose("computing right kernel matrix over a number field for %sx%s matrix" % (self.nrows(), self.ncols()),level=1)
-        basis = self._pari_().matker()
+        basis = self.__pari__().matker()
         # Coerce PARI representations into the number field
         R = self.base_ring()
         basis = [[R(x) for x in row] for row in basis]
@@ -9249,7 +9249,7 @@ cdef class Matrix(matrix1.Matrix):
         columns but rank 3, so the orthogonal set has just 3 vectors
         as well.  Orthogonality comes from the Hermitian inner product
         so we need to check with the conjugate-transpose.  This
-        example verifies that the bug on #10791 is fixed.  ::
+        example verifies that the bug on :trac:`10791` is fixed.  ::
 
             sage: F.<a> = QuadraticField(-5)
             sage: A = matrix(F, [[    1,   a - 3,   a - 2, a + 1],
@@ -10663,8 +10663,7 @@ cdef class Matrix(matrix1.Matrix):
             mesg += "maybe the ring is not an integral domain"
             raise ValueError(mesg)
         if not have_same_parent(A, B):
-            cm = get_coercion_model()
-            A, B = cm.canonical_coercion(A, B)
+            A, B = coercion_model.canonical_coercion(A, B)
         # base rings are equal now, via above check
 
         similar = (A.rational_form() == B.rational_form())
@@ -14898,3 +14897,108 @@ def _jordan_form_vector_in_difference(V, W):
         if v not in W_space:
             return v
     return None
+
+def _matrix_power_symbolic(A, n):
+    r"""
+    Symbolic matrix power.
+    
+    This function implements `f(A) = A^n` and relies in the Jordan normal form
+    of `A`, available for exact rings as ``jordan_form()``.
+    See Sec. 1.2 of [Hig2008]_ for further details.
+    
+    INPUT:
+
+    - ``A`` -- a square matrix over an exact field
+
+    - ``n`` -- the symbolic exponent
+
+    OUTPUT:
+
+    Matrix `A^n` (symbolic).
+    
+    EXAMPLES::
+    
+        sage: A = matrix(QQ, [[2, -1], [1,  0]])
+        sage: n = var('n')
+        sage: A^n
+        [ n + 1     -n]
+        [     n -n + 1]
+
+    TESTS:: 
+    
+    Testing exponentiation in the symbolic ring::
+
+        sage: n = var('n')
+        sage: A = matrix([[pi, e],[0, -2*I]])
+        sage: A^n
+        [                                                              pi^n -(-2*I)^n/(pi*e^(-1) + 2*I*e^(-1)) + pi^n/(pi*e^(-1) + 2*I*e^(-1))]
+        [                                                                 0                                                           (-2*I)^n]
+        
+    If the base ring is inexact, the Jordan normal form is not available::
+    
+        sage: A = matrix(RDF, [[2, -1], [1,  0]]) 
+        sage: A^n
+        Traceback (most recent call last):
+        ...
+        ValueError: Jordan normal form not implemented over inexact rings.
+        
+    Testing exponentiation in the integer ring::
+    
+        sage: A = matrix(ZZ, [[1,-1],[-1,1]])
+        sage: A^(2*n+1)
+        [ 1/2*2^(2*n + 1) -1/2*2^(2*n + 1)]
+        [-1/2*2^(2*n + 1)  1/2*2^(2*n + 1)]
+    """
+    from sage.rings.qqbar import AlgebraicNumber
+    from sage.matrix.constructor import matrix
+    from sage.functions.other import binomial
+    from sage.symbolic.ring import SR
+    from sage.rings.qqbar import QQbar
+    
+    got_SR = True if A.base_ring() == SR else False
+    
+    # transform to QQbar if possible
+    try:
+        A = A.change_ring(QQbar)
+    except TypeError:
+        pass
+
+    # returns jordan matrix J and invertible matrix P such that A = P*J*~P
+    [J, P] = A.jordan_form(transformation=True)        
+
+    # the number of Jordan blocks
+    num_jordan_blocks = 1+len(J.subdivisions()[0])
+    
+    # FJ stores the application of f = x^n to the Jordan blocks
+    FJ = matrix(SR, J.ncols())
+    FJ.subdivide(J.subdivisions())
+    
+    for k in range(num_jordan_blocks):
+
+        # get Jordan block Jk
+        Jk = J.subdivision(k, k)
+
+        # dimension of Jordan block Jk
+        mk = Jk.ncols()
+
+        # compute the first row of f(Jk)
+        vk = []
+        for i in range(mk):
+            Jk_ii = Jk[i, i]
+            if hasattr(Jk_ii, 'radical_expression'):
+                Jk_ii = Jk_ii.radical_expression()
+                
+            # corresponds to \frac{D^i(f)}{i!}, with f = x^n and D the differential operator wrt x
+            vk += [(binomial(n, i) * Jk_ii**(n-i)).simplify_full()]
+
+        # insert vk into each row (above the main diagonal)
+        FJ.set_block(k, k, matrix(SR, [[SR.zero()]*i + vk[0:mk-i] for i in range(mk)]))
+
+    # we change the entries of P and P^-1 into symbolic expressions
+    if not got_SR:
+        Pinv = (~P).apply_map(AlgebraicNumber.radical_expression)
+        P = P.apply_map(AlgebraicNumber.radical_expression)
+    else:
+        Pinv = ~P
+        
+    return P * FJ * Pinv

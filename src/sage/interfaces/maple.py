@@ -246,6 +246,7 @@ import pexpect
 from sage.env import DOT_SAGE
 from sage.misc.pager import pager
 from sage.interfaces.tab_completion import ExtraTabCompletion
+from sage.docs.instancedoc import instancedoc
 
 COMMANDS_CACHE = '%s/maple_commandlist_cache.sobj'%DOT_SAGE
 
@@ -359,7 +360,7 @@ class Maple(ExtraTabCompletion, Expect):
 
             sage: filename = tmp_filename()  # optional - maple
             sage: f = open(filename, 'w')  # optional - maple
-            sage: f.write('xx := 22;\n')  # optional - maple
+            sage: _ = f.write('xx := 22;\n')  # optional - maple
             sage: f.close()               # optional - maple
             sage: maple.read(filename)    # optional - maple
             sage: maple.get('xx').strip() # optional - maple
@@ -838,15 +839,17 @@ connection to a server running Maple; for hints, type
         """
         self.set(var, "'{}'".format(var))
 
+
+@instancedoc
 class MapleFunction(ExpectFunction):
-    def _sage_doc_(self):
+    def _instancedoc(self):
         """
         Returns the Maple help for this function. This gets called when
         doing "?" on self.
 
         EXAMPLES::
 
-            sage: txt = maple.gcd._sage_doc_()  # optional - maple
+            sage: txt = maple.gcd.__doc__  # optional - maple
             sage: txt.find('gcd - greatest common divisor') > 0 # optional - maple
             True
         """
@@ -873,8 +876,9 @@ class MapleFunction(ExpectFunction):
         return M._source(self._name)
 
 
+@instancedoc
 class MapleFunctionElement(FunctionElement):
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         Returns the Maple help for this function.
 
@@ -883,7 +887,7 @@ class MapleFunctionElement(FunctionElement):
         EXAMPLES::
 
             sage: two = maple(2)  # optional - maple
-            sage: txt = two.gcd._sage_doc_() # optional - maple
+            sage: txt = two.gcd.__doc__  # optional - maple
             sage: txt.find('gcd - greatest common divisor') > 0 # optional - maple
             True
         """
@@ -907,6 +911,7 @@ class MapleFunctionElement(FunctionElement):
         return self._obj.parent()._source(self._name)
 
     
+@instancedoc
 class MapleElement(ExtraTabCompletion, ExpectElement):
     
     def __float__(self):
@@ -1071,27 +1076,6 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             True
         """
         return self.parent()._tab_completion()
-
-    def __repr__(self):
-        """
-        Return a string representation of self.
-
-        These examples are optional, and require Maple to be installed. You
-        don't need to install any Sage packages for this.
-
-        EXAMPLES::
-
-            sage: x = var('x')                  # optional - maple
-            sage: maple(x)                      # optional - maple
-            x
-            sage: maple(5)                      # optional - maple
-            5
-            sage: M = matrix(QQ,2,range(4))     # optional - maple
-            sage: maple(M)                      # optional - maple
-            Matrix(2, 2, [[0,1],[2,3]])
-        """
-        self._check_valid()
-        return self.parent().get(self._name)
 
     def _latex_(self):
         r"""

@@ -36,11 +36,13 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six import integer_types
 
 from sage.misc.latex import latex
 from sage.misc.prandom import choice
 from sage.misc.misc import is_iterator
 
+from sage.structure.category_object import CategoryObject
 from sage.structure.element import Element
 from sage.structure.parent import Parent, Set_generic
 
@@ -49,7 +51,41 @@ from sage.categories.enumerated_sets import EnumeratedSets
 
 import sage.rings.infinity
 
-def Set(X=frozenset()):
+
+def has_finite_length(obj):
+    """
+    Return ``True`` if ``obj`` is known to have finite length.
+
+    This is mainly meant for pure Python types, so we do not call any
+    Sage-specific methods.
+
+    EXAMPLES::
+
+        sage: from sage.sets.set import has_finite_length
+        sage: has_finite_length(tuple(range(10)))
+        True
+        sage: has_finite_length(list(range(10)))
+        True
+        sage: has_finite_length(set(range(10)))
+        True
+        sage: has_finite_length(iter(range(10)))
+        False
+        sage: has_finite_length(GF(17^127))
+        True
+        sage: has_finite_length(ZZ)
+        False
+    """
+    try:
+        len(obj)
+    except OverflowError:
+        return True
+    except Exception:
+        return False
+    else:
+        return True
+
+
+def Set(X=[]):
     r"""
     Create the underlying set of ``X``.
 
@@ -100,11 +136,15 @@ def Set(X=frozenset()):
         sage: 5 in X
         False
 
-    Set also accepts iterators, but be careful to only give *finite* sets.
+    Set also accepts iterators, but be careful to only give *finite*
+    sets::
 
-    ::
-
-        sage: list(Set(iter([1, 2, 3, 4, 5])))
+        sage: from six.moves import range
+        sage: sorted(Set(range(1,6)))
+        [1, 2, 3, 4, 5]
+        sage: sorted(Set(list(range(1,6))))
+        [1, 2, 3, 4, 5]
+        sage: sorted(Set(iter(range(1,6))))
         [1, 2, 3, 4, 5]
 
     We can also create sets from different types::
@@ -112,12 +152,20 @@ def Set(X=frozenset()):
         sage: sorted(Set([Sequence([3,1], immutable=True), 5, QQ, Partition([3,1,1])]), key=str)
         [5, Rational Field, [3, 1, 1], [3, 1]]
 
-    However each of the objects must be hashable::
+    Sets with unhashable objects work, but with less functionality::
 
-        sage: Set([QQ, [3, 1], 5])
+        sage: A = Set([QQ, (3, 1), 5])  # hashable
+        sage: sorted(A.list(), key=repr)
+        [(3, 1), 5, Rational Field]
+        sage: type(A)
+        <class 'sage.sets.set.Set_object_enumerated_with_category'>
+        sage: B = Set([QQ, [3, 1], 5])  # unhashable
+        sage: sorted(B.list(), key=repr)
         Traceback (most recent call last):
         ...
-        TypeError: unhashable type: 'list'
+        AttributeError: 'Set_object_with_category' object has no attribute 'list'
+        sage: type(B)
+        <class 'sage.sets.set.Set_object_with_category'>
 
     TESTS::
 
@@ -137,24 +185,24 @@ def Set(X=frozenset()):
         sage: Set()
         {}
     """
-    if is_Set(X):
-        return X
+    if isinstance(X, CategoryObject):
+        if is_Set(X):
+            return X
+        elif X in Sets().Finite():
+            return Set_object_enumerated(X)
+        else:
+            return Set_object(X)
 
     if isinstance(X, Element):
         raise TypeError("Element has no defined underlying set")
-    elif isinstance(X, (list, tuple, set, frozenset)):
-        return Set_object_enumerated(frozenset(X))
+
     try:
-        if X.is_finite():
-            return Set_object_enumerated(X)
-    except AttributeError:
-        pass
-    if is_iterator(X):
-        # Note we are risking an infinite loop here,
-        # but this is the way Python behaves too: try
-        # sage: set(an iterator which does not terminate)
-        return Set_object_enumerated(list(X))
-    return Set_object(X)
+        X = frozenset(X)
+    except TypeError:
+        return Set_object(X)
+    else:
+        return Set_object_enumerated(X)
+
 
 def is_Set(x):
     """
@@ -204,7 +252,7 @@ class Set_object(Set_generic):
         sage: 1 == Set([0]), Set([0]) == 1
         (False, False)
     """
-    def __init__(self, X):
+    def __init__(self, X, category=None):
         """
         Create a Set_object
 
@@ -215,6 +263,8 @@ class Set_object(Set_generic):
 
             sage: type(Set(QQ))
             <class 'sage.sets.set.Set_object_with_category'>
+            sage: Set(QQ).category()
+            Category of sets
 
         TESTS::
 
@@ -225,21 +275,13 @@ class Set_object(Set_generic):
             '<class 'sage.sets.set.Set_object_enumerated_with_category'>'
             and 'Integer Ring'
         """
-        from six.moves import range
         from sage.rings.integer import is_Integer
-        if isinstance(X, (int, long)) or is_Integer(X):
+        if isinstance(X, integer_types) or is_Integer(X):
             # The coercion model will try to call Set_object(0)
             raise ValueError('underlying object cannot be an integer')
 
-        category = Sets()
-        if X in Sets().Finite() or isinstance(X, (tuple, list,
-                                                  set, frozenset)):
-            category = Sets().Finite()
-
-        elif isinstance(X, range):
-            category = Sets().Finite()
-            X = tuple(X)
-
+        if category is None:
+            category = Sets()
         Parent.__init__(self, category=category)
         self.__object = X
 
@@ -291,7 +333,7 @@ class Set_object(Set_generic):
             sage: X
             { integers }
         """
-        return "Set of elements of %s"%self.__object
+        return "Set of elements of " + repr(self.__object)
 
     def __iter__(self):
         """
@@ -576,11 +618,8 @@ class Set_object(Set_generic):
             sage: Set(GF(5^2,'a')).cardinality()
             25
         """
-        try:
-            if not self.is_finite():
-                return sage.rings.infinity.infinity
-        except (AttributeError, NotImplementedError):
-            pass
+        if not self.is_finite():
+            return sage.rings.infinity.infinity
 
         if self is not self.__object:
             try:
@@ -646,10 +685,13 @@ class Set_object(Set_generic):
             sage: Set([1,'a',ZZ]).is_finite()
             True
         """
-        if isinstance(self.__object, (set, frozenset, tuple, list)):
-            return True
+        obj = self.__object
+        try:
+            is_finite = obj.is_finite
+        except AttributeError:
+            return has_finite_length(obj)
         else:
-            return self.__object.is_finite()
+            return is_finite()
 
     def object(self):
         """
@@ -683,6 +725,7 @@ class Set_object(Set_generic):
         from sage.combinat.subset import Subsets
         return Subsets(self,size)
 
+
 class Set_object_enumerated(Set_object):
     """
     A finite enumerated set.
@@ -695,11 +738,13 @@ class Set_object_enumerated(Set_object):
 
             sage: S = Set(GF(19)); S
             {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18}
+            sage: S.category()
+            Category of finite sets
             sage: print(latex(S))
             \left\{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18\right\}
             sage: TestSuite(S).run()
         """
-        Set_object.__init__(self, X)
+        Set_object.__init__(self, X, category=Sets().Finite())
 
     def random_element(self):
         r"""
@@ -1475,7 +1520,7 @@ class Set_object_difference(Set_object_binary):
             return -1
         if not isinstance(right, Set_object_difference):
             return -1
-        if self._X == right._X and self._Y == right._Y: 
+        if self._X == right._X and self._Y == right._Y:
             return 0
         return -1
 

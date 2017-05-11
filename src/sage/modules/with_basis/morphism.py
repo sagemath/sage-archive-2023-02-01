@@ -109,7 +109,6 @@ from six import iteritems
 from sage.categories.fields import Fields
 from sage.categories.modules import Modules
 from sage.misc.misc import attrcall
-from sage.misc.cachefunc import cached_method, cached_function
 # The identity function would deserve a more canonical location
 from sage.misc.c3_controlled import identity
 from sage.misc.superseded import deprecated_function_alias, deprecation
@@ -120,6 +119,7 @@ from sage.categories.morphism import SetMorphism, Morphism
 from sage.categories.sets_cat import Sets
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.structure.element import parent
+from sage.structure.sage_object import op_EQ, op_NE
 from sage.matrix.matrix import is_Matrix
 
 class ModuleMorphism(Morphism):
@@ -318,9 +318,11 @@ class ModuleMorphismByLinearity(ModuleMorphism):
                                 category=category,
                                 affine=(zero != codomain.zero()))
 
-    def __eq__(self, other):
-        """
-        EXAMPLES::
+    def _richcmp_(self, other, op):
+        r"""
+        Return whether this morphism and ``other`` satisfy ``op``.
+
+        TESTS::
 
             sage: X = CombinatorialFreeModule(ZZ, [-2, -1, 1, 2])
             sage: Y = CombinatorialFreeModule(ZZ, [1, 2])
@@ -331,9 +333,17 @@ class ModuleMorphismByLinearity(ModuleMorphism):
             sage: h3 = X.module_morphism(on_basis=Y.monomial * abs, category=Modules(ZZ))
             sage: f == g, f == h1, f == h2, f == h3, f == 1, 1 == f
             (True, False, False, False, False, False)
-        """
-        return self.__class__ is other.__class__ and parent(self) == parent(other) and self.__dict__ == other.__dict__
 
+        """
+        if op == op_EQ:
+            return (self.__class__ is other.__class__
+                    and self._zero == other._zero
+                    and self._on_basis == other._on_basis
+                    and self._position == other._position
+                    and self._is_module_with_basis_over_same_base_ring == other._is_module_with_basis_over_same_base_ring)
+        if op == op_NE:
+            return not (self == other)
+        return NotImplemented
 
     def on_basis(self):
         """
@@ -691,6 +701,44 @@ class TriangularModuleMorphism(ModuleMorphism):
            (self._inverse_on_support==identity or domain in Modules.FiniteDimensional):
             invertible = True
         self._invertible=invertible
+
+    def _richcmp_(self, other, op):
+        r"""
+        Return whether this morphism and ``other`` satisfy ``op``.
+
+        TESTS::
+
+            sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); X.rename("X"); x = X.basis()
+            sage: def ut(i): return (x[1] + x[2] if i == 1 else x[2] + (x[3] if i == 3 else 0))
+            sage: perm = [0, 2, 1, 3]
+            sage: our_cmp = lambda a, b: (perm[a] > perm[b]) - (perm[a] < perm[b])
+            sage: phi = X.module_morphism(ut, triangular="upper", codomain=X, cmp=our_cmp)
+            doctest:warning
+            ...
+            DeprecationWarning: the 'cmp' keyword is deprecated, use 'key' instead
+            See http://trac.sagemath.org/21043 for details.
+            sage: def ut2(i): return (x[1] + 7*x[2] if i == 1 else x[2] + (x[3] if i == 3 else 0))
+            sage: phi2 = X.module_morphism(ut2, triangular="upper", codomain=X, cmp=our_cmp)
+            sage: def lt(i): return (x[1] + x[2] + x[3] if i == 2 else x[i])
+            sage: psi = X.module_morphism(lt, triangular="lower", codomain=X, cmp=our_cmp)
+            sage: phi == phi
+            True
+            sage: phi == phi2
+            False
+            sage: phi == psi
+            False
+
+        """
+        if op == op_EQ:
+            return (self.__class__ is other.__class__
+                    and self._triangular == other._triangular
+                    and self._unitriangular == other._unitriangular
+                    and self._inverse_on_support == other._inverse_on_support
+                    and self._invertible == other._invertible
+                    and self._dominant_item == other._dominant_item)
+        if op == op_NE:
+            return not (self == other)
+        return NotImplemented
 
     def _test_triangular(self, **options):
         """
@@ -1153,6 +1201,27 @@ class TriangularModuleMorphismByLinearity(ModuleMorphismByLinearity, TriangularM
                                            domain=domain, codomain=codomain, category=category)
         TriangularModuleMorphism.__init__(self, **keywords)
 
+    def _richcmp_(self, other, op):
+        r"""
+        Return whether this morphism and ``other`` satisfy ``op``.
+
+        TESTS::
+
+            sage: X = CombinatorialFreeModule(QQ, ZZ)
+            sage: from sage.modules.with_basis.morphism import TriangularModuleMorphismByLinearity
+            sage: def on_basis(i): return X.sum_of_monomials(range(i-2,i+1))
+            sage: phi = TriangularModuleMorphismByLinearity(
+            ....:           X, on_basis=on_basis, codomain=X)
+            sage: phi == phi
+            True
+        """
+        if op == op_EQ:
+            return (ModuleMorphismByLinearity._richcmp_(self, other, op)
+                    and TriangularModuleMorphism._richcmp_(self, other, op))
+        if op == op_NE:
+            return not (self == other)
+        return NotImplemented
+
 class TriangularModuleMorphismFromFunction(ModuleMorphismFromFunction, TriangularModuleMorphism):
     r"""
     A concrete class for triangular module morphisms implemented by a function.
@@ -1309,6 +1378,38 @@ class ModuleMorphismFromMatrix(ModuleMorphismByLinearity):
                                            domain=domain, codomain=codomain,
                                            category=category)
 
+    def _richcmp_(self, other, op):
+        r"""
+        Return whether this morphism and ``other`` satisfy ``op``.
+
+        TESTS::
+
+            sage: from sage.modules.with_basis.morphism import ModuleMorphismFromMatrix
+            sage: X = CombinatorialFreeModule(ZZ, [1,2]); X.rename("X"); x = X.basis()
+            sage: Y = CombinatorialFreeModule(ZZ, [3,4]); Y.rename("Y"); y = Y.basis()
+            sage: m = matrix([[1,2],[3,5]])
+            sage: phi = ModuleMorphismFromMatrix(matrix=m, domain=X, codomain=Y, side="right")
+            sage: phi2 = ModuleMorphismFromMatrix(matrix=m, domain=X, codomain=Y, side="right")
+            sage: phi == phi2
+            True
+            sage: phi is phi2
+            False
+            sage: m2 = matrix([[1,2],[4,5]])
+            sage: phi2 = ModuleMorphismFromMatrix(matrix=m2, domain=X, codomain=Y, side="right")
+            sage: phi == phi2
+            False
+        """
+        if op == op_EQ:
+            # We skip the on_basis check since the matrix defines the morphism
+            return (self.__class__ is other.__class__
+                    and self._zero == other._zero
+                    and self._position == other._position
+                    and self._is_module_with_basis_over_same_base_ring == other._is_module_with_basis_over_same_base_ring
+                    and self._matrix == other._matrix)
+        if op == op_NE:
+            return not (self == other)
+        return NotImplemented
+
 class DiagonalModuleMorphism(ModuleMorphismByLinearity):
     r"""
     A class for diagonal module morphisms.
@@ -1373,6 +1474,28 @@ class DiagonalModuleMorphism(ModuleMorphismByLinearity):
         ModuleMorphismByLinearity.__init__(
             self, domain=domain, codomain=codomain, category=category)
         self._diagonal=diagonal
+
+    def _richcmp_(self, other, op):
+        r"""
+        Return whether this morphism and ``other`` satisfy ``op``.
+
+        TESTS::
+
+            sage: X = CombinatorialFreeModule(QQ, [1, 2, 3]); X.rename("X")
+            sage: phi = X.module_morphism(diagonal=factorial, codomain=X)
+            sage: psi = X.module_morphism(diagonal=factorial, codomain=X)
+            sage: phi == psi
+            True
+            sage: phi is psi
+            False
+
+        """
+        if op == op_EQ:
+            return (self.__class__ is other.__class__
+                    and self._diagonal == other._diagonal)
+        if op == op_NE:
+            return not (self == other)
+        return NotImplemented
 
     def _on_basis(self, i):
         """
@@ -1459,21 +1582,6 @@ class PointwiseInverseFunction(SageObject):
         sage: f(0), f(1), f(2), f(3)
         (1, 1, 1/2, 1/6)
     """
-
-    def __eq__(self, other):
-        """
-        TESTS::
-
-            sage: from sage.modules.with_basis.morphism import PointwiseInverseFunction
-            sage: f = PointwiseInverseFunction(factorial)
-            sage: g = PointwiseInverseFunction(factorial)
-            sage: f is g
-            False
-            sage: f == g
-            True
-        """
-        return self.__class__ is other.__class__ and self.__dict__ == other.__dict__
-
     def __init__(self, f):
         """
         TESTS::
@@ -1485,6 +1593,37 @@ class PointwiseInverseFunction(SageObject):
             sage: TestSuite(f).run()
         """
         self._pointwise_inverse = f
+
+    def __eq__(self, other):
+        r"""
+        Return whether this function is equal to ``other``.
+
+        TESTS::
+
+            sage: from sage.modules.with_basis.morphism import PointwiseInverseFunction
+            sage: f = PointwiseInverseFunction(factorial)
+            sage: g = PointwiseInverseFunction(factorial)
+            sage: f is g
+            False
+            sage: f == g
+            True
+        """
+        return (self.__class__ is other.__class__
+                and self._pointwise_inverse == other._pointwise_inverse)
+
+    def __ne__(self, other):
+        r"""
+        Return whether this function is not equal to ``other``.
+
+        TESTS::
+
+            sage: from sage.modules.with_basis.morphism import PointwiseInverseFunction
+            sage: f = PointwiseInverseFunction(factorial)
+            sage: g = PointwiseInverseFunction(factorial)
+            sage: f != g
+            False
+        """
+        return not (self == other)
 
     def __call__(self, *args):
         """
@@ -1507,3 +1646,4 @@ class PointwiseInverseFunction(SageObject):
             True
         """
         return self._pointwise_inverse
+

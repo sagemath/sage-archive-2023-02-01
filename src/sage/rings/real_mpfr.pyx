@@ -136,9 +136,9 @@ import sage.misc.weak_dict
 
 import operator
 
-from sage.libs.cypari2.paridecl cimport *
-from sage.libs.cypari2.gen cimport Gen
-from sage.libs.cypari2.stack cimport new_gen
+from cypari2.paridecl cimport *
+from cypari2.gen cimport Gen
+from cypari2.stack cimport new_gen
 
 from sage.libs.mpmath.utils cimport mpfr_to_mpfval
 
@@ -1475,7 +1475,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             True
             sage: for i in range(100, 200):
             ....:     assert(sqrt(pari(i)) == pari(sqrt(pari(i)).sage()))
-            sage: (-3.1415)._pari_().sage()
+            sage: (-3.1415).__pari__().sage()
             -3.14150000000000000
         """
         cdef int sgn
@@ -3045,44 +3045,44 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     _fricas_ = _axiom_
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Return ``self`` as a Pari floating-point number.
 
         EXAMPLES::
 
-            sage: RR(2.0)._pari_()
+            sage: RR(2.0).__pari__()
             2.00000000000000
 
         The current Pari precision affects the printing of this number, but
         Pari does maintain the same 250-bit number on both 32-bit and
         64-bit platforms::
 
-            sage: RealField(250).pi()._pari_()
+            sage: RealField(250).pi().__pari__()
             3.14159265358979
-            sage: RR(0.0)._pari_()
+            sage: RR(0.0).__pari__()
             0.E-19
-            sage: RR(-1.234567)._pari_()
+            sage: RR(-1.234567).__pari__()
             -1.23456700000000
-            sage: RR(2.0).sqrt()._pari_()
+            sage: RR(2.0).sqrt().__pari__()
             1.41421356237310
-            sage: RR(2.0).sqrt()._pari_().sage()
+            sage: RR(2.0).sqrt().__pari__().sage()
             1.41421356237309515
-            sage: RR(2.0).sqrt()._pari_().sage().prec()
+            sage: RR(2.0).sqrt().__pari__().sage().prec()
             64
-            sage: RealField(70)(pi)._pari_().sage().prec()
+            sage: RealField(70)(pi).__pari__().sage().prec()
             96                                         # 32-bit
             128                                        # 64-bit
             sage: for i in range(100, 200):
-            ....:     assert(RR(i).sqrt() == RR(i).sqrt()._pari_().sage())
+            ....:     assert(RR(i).sqrt() == RR(i).sqrt().__pari__().sage())
 
         TESTS:
 
         Check that we create real zeros without mantissa::
 
-            sage: RDF(0)._pari_().sizeword()
+            sage: RDF(0).__pari__().sizeword()
             2
-            sage: RealField(100)(0.0)._pari_().sizeword()
+            sage: RealField(100)(0.0).__pari__().sizeword()
             2
 
         Check that the largest and smallest exponents representable by
@@ -5053,7 +5053,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         ::
 
             sage: type(z)
-            <type 'sage.libs.cypari2.gen.Gen'>
+            <type 'cypari2.gen.Gen'>
             sage: R(z)
             1.64493406684823
         """
@@ -5531,6 +5531,17 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
         sage: RealNumber('-.000000000000000000000000000000001').prec()
         53
 
+        sage: RealNumber('-.123456789123456789').prec()
+        60
+        sage: RealNumber('.123456789123456789').prec()
+        60
+        sage: RealNumber('0.123456789123456789').prec()
+        60
+        sage: RealNumber('00.123456789123456789').prec()
+        60
+        sage: RealNumber('123456789.123456789').prec()
+        60
+
     Make sure we've rounded up ``log(10,2)`` enough to guarantee
     sufficient precision (:trac:`10164`)::
 
@@ -5558,14 +5569,8 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
             mantissa = s
 
         #Find the first nonzero entry in rest
-        sigfigs = 0
-        for i in range(len(mantissa)):
-            if mantissa[i] != '.' and mantissa[i] != '0' and mantissa[i] != '-':
-                sigfigs = len(mantissa) - i
-                break
-
-        if '.' in mantissa and mantissa[:2] != '0.':
-            sigfigs -= 1
+        sigfig_mantissa = mantissa.lstrip('-0.')
+        sigfigs = len(sigfig_mantissa) - ('.' in sigfig_mantissa)
 
         if base == 10:
             # hard-code the common case

@@ -17,6 +17,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
+from six import integer_types
 
 import sage.rings.polynomial.polynomial_element as polynomial_element
 import sage.rings.polynomial.multi_polynomial_element as multi_polynomial_element
@@ -475,7 +476,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             except (ValueError, IndexError, TypeError):
                 raise TypeError("no coercion defined")
 
-        if isinstance(x, (int, long, integer.Integer, rational.Rational,
+        if isinstance(x, integer_types + (integer.Integer, rational.Rational,
                           pari.pari_gen, list)):
 
             return element_ext_pari.FiniteField_ext_pariElement(self, x)

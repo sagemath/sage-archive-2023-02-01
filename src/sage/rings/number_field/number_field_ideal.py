@@ -282,7 +282,7 @@ class NumberFieldIdeal(Ideal_generic):
 
         K=self.ring()
         K_pari=K.pari_nf()
-        return K.ideal(K_pari.idealmul(self._pari_(), other._pari_()))
+        return K.ideal(K_pari.idealmul(self, other))
 
     def coordinates(self, x):
         r"""
@@ -519,7 +519,7 @@ class NumberFieldIdeal(Ideal_generic):
         else:
             return (two_gens[0],)
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Returns PARI Hermite Normal Form representations of this
         ideal.
@@ -529,7 +529,7 @@ class NumberFieldIdeal(Ideal_generic):
             sage: K.<w> = NumberField(x^2 + 23)
             sage: I = K.class_group().0.ideal(); I
             Fractional ideal (2, 1/2*w - 1/2)
-            sage: I._pari_()
+            sage: I.__pari__()
             [2, 0; 0, 1]
         """
         return self.pari_hnf()
@@ -545,7 +545,7 @@ class NumberFieldIdeal(Ideal_generic):
             sage: I._pari_init_()
             '[2, 0; 0, 1]'
         """
-        return str(self._pari_())
+        return str(self.__pari__())
 
     def pari_hnf(self):
         """
@@ -2468,7 +2468,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         if not self.is_integral():
             raise ValueError("The ideal must be integral")
         k = self.number_field()
-        return k(k.pari_nf().nfeltreduce(f._pari_(), self.pari_hnf()))
+        return k(k.pari_nf().nfeltreduce(f, self.pari_hnf()))
 
     def _pari_bid_(self, flag=1):
         """
@@ -2658,7 +2658,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         #Now it is important to call _pari_bid_() with flag=2 to make sure
         #we fix a basis, since the log would be different for a different
         #choice of basis.
-        L = [ZZ(_) for _ in k.pari_nf().ideallog(x._pari_(), self._pari_bid_(2))]
+        L = [ZZ(_) for _ in k.pari_nf().ideallog(x, self._pari_bid_(2))]
 
         if gens is None:
             return L
@@ -3250,7 +3250,7 @@ class LiftMap:
             sage: f(R(a/17))
             1
 
-        A relative example, which used to fail but is fixed by #8721::
+        A relative example, which used to fail but is fixed by :trac:`8721`::
 
             sage: L.<a, b> = NumberField([x^2 + 1, x^2 - 5])
             sage: p = L.ideal(2*a + 3)

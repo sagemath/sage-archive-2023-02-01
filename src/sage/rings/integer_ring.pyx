@@ -42,10 +42,9 @@ other types will also coerce to the integers, when it makes sense.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
-from __future__ import print_function
 
-include "sage/ext/cdefs.pxi"
+from __future__ import absolute_import, print_function
+
 include "sage/ext/stdsage.pxi"
 include "cysignals/signals.pxi"
 
@@ -53,6 +52,7 @@ from cpython.int cimport *
 from cpython.list cimport *
 from cpython.object cimport Py_NE
 
+from sage.libs.gmp.mpz cimport *
 import sage.rings.infinity
 import sage.rings.rational
 import sage.rings.rational_field
@@ -626,25 +626,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
                 return None
         else:
             None
-
-
-    def is_subring(self, other):
-        r"""
-        Return ``True`` if `\ZZ` is a subring of other in a natural way.
-
-        Every ring of characteristic `0` contains `\ZZ` as a subring.
-
-        EXAMPLES::
-
-            sage: ZZ.is_subring(QQ)
-            True
-        """
-        if not ring.is_Ring(other):
-            raise TypeError("other must be a ring")
-        if other.characteristic() == 0:
-            return True
-        else:
-            return False
 
     def random_element(self, x=None, y=None, distribution=None):
         r"""
@@ -1274,6 +1255,18 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             ZZ
         """
         return "ZZ"
+
+    def _polymake_init_(self):
+        r"""
+        Return the polymake representation of the integer ring.
+
+        EXAMPLES::
+
+            sage: polymake(ZZ)    # optional - polymake # indirect doctest
+            Integer
+
+        """
+        return '"Integer"'
 
     def _sage_input_(self, sib, coerced):
         r"""

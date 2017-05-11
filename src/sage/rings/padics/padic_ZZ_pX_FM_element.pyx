@@ -119,7 +119,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
 include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
@@ -131,6 +130,8 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 from sage.rings.padics.padic_ext_element cimport pAdicExtElement
+from sage.libs.gmp.mpz cimport *
+from sage.libs.gmp.mpq cimport *
 from sage.libs.ntl.ntl_ZZ_pX cimport ntl_ZZ_pX
 from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
@@ -209,7 +210,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             if parent.prime() != x.parent().prime():
                 raise TypeError("Cannot coerce between p-adic parents with different primes.")
         if isinstance(x, GpElement):
-            x = x._pari_()
+            x = x.__pari__()
         if isinstance(x, pari_gen):
             if x.type() == "t_PADIC":
                 if x.variable() != self.prime_pow.prime:

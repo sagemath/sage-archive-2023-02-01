@@ -26,8 +26,8 @@ include "cysignals/signals.pxi"
 from sage.libs.flint.fmpz cimport fmpz_get_mpz, COEFF_IS_MPZ, COEFF_TO_PTR
 from sage.libs.flint.fmpz_mat cimport *
 
-from sage.libs.cypari2.paridecl cimport *
-from sage.libs.cypari2.stack cimport new_gen
+from cypari2.paridecl cimport *
+from cypari2.stack cimport new_gen
 from .convert_gmp cimport _new_GEN_from_mpz_t
 
 
@@ -86,7 +86,7 @@ cdef Gen integer_matrix(fmpz_mat_t B, Py_ssize_t nr, Py_ssize_t nc, bint permute
     """
     EXAMPLES::
 
-        sage: matrix(ZZ,2,[1..6])._pari_()   # indirect doctest
+        sage: matrix(ZZ,2,[1..6]).__pari__()   # indirect doctest
         [1, 2, 3; 4, 5, 6]
     """
     sig_on()

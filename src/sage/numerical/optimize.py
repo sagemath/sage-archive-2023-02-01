@@ -17,7 +17,7 @@ from sage.modules.free_module_element import vector
 from sage.rings.real_double import RDF
 
 
-def find_root(f, a, b, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False):
+def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=False):
     """
     Numerically find a root of ``f`` on the closed interval `[a,b]`
     (or `[b,a]`) if possible, where ``f`` is a function in the one variable.
@@ -33,7 +33,10 @@ def find_root(f, a, b, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False
     - ``xtol``, ``rtol`` -- the routine converges when a root is known
       to lie within ``xtol`` of the value return. Should be `\geq 0`.
       The routine modifies this to take into account the relative precision
-      of doubles.
+      of doubles. By default, rtol is ``4*numpy.finfo(float).eps``, the
+      minimum allowed value for ``scipy.optimize.brentq``, which is what
+      this method uses underneath. This value is equal to ``2.0**-50`` for
+      IEEE-754 double precision floats as used by Python.
 
     - ``maxiter`` -- integer; if convergence is not achieved in
       ``maxiter`` iterations, an error is raised. Must be `\geq 0`.

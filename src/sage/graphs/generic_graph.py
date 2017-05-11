@@ -83,6 +83,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.degree_iterator` | Return an iterator over the degrees of the (di)graph.
     :meth:`~GenericGraph.degree_sequence` | Return the degree sequence of this (di)graph.
     :meth:`~GenericGraph.random_subgraph` | Return a random subgraph that contains each vertex with prob. p.
+    :meth:`~GenericGraph.add_clique` | Add a clique to the graph with the given vertices.
     :meth:`~GenericGraph.add_cycle` | Add a cycle to the graph with the given vertices.
     :meth:`~GenericGraph.add_path` | Add a cycle to the graph with the given vertices.
     :meth:`~GenericGraph.complement` | Return the complement of the (di)graph.
@@ -311,8 +312,8 @@ Methods
 -------
 """
 from __future__ import print_function, absolute_import, division
-from six.moves import range
-from six import itervalues, iteritems
+from six.moves import range, zip
+from six import itervalues, iteritems, integer_types
 
 from copy import copy
 from sage.misc.decorators import options
@@ -626,7 +627,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: H = G*1; H
             Cycle graph: Graph on 3 vertices
         """
-        if isinstance(n, (int, long, Integer)):
+        if isinstance(n, integer_types + (Integer,)):
             if n < 1:
                 raise TypeError('multiplication of a graph and a nonpositive integer is not defined')
             if n == 1:
@@ -714,7 +715,7 @@ class GenericGraph(GenericGraph_pyx):
             bit = lambda x,y : n_ch_2(max([x,y])) + min([x,y])
         bit_vector = set()
 
-        v_to_int = {v:i for i,v in enumerate(self.vertices())}
+        v_to_int = {v: i for i, v in enumerate(self.vertices())}
         for u,v,_ in self.edge_iterator():
             bit_vector.add(bit(v_to_int[u], v_to_int[v]))
         bit_vector = sorted(bit_vector)
@@ -1485,7 +1486,7 @@ class GenericGraph(GenericGraph_pyx):
             raise ImportError("The package igraph is not available. To " +
                               "install it, run 'sage -i python_igraph'")
 
-        v_to_int = {v:i for i,v in enumerate(self.vertices())}
+        v_to_int = {v: i for i, v in enumerate(self.vertices())}
         edges = [(v_to_int[v], v_to_int[w]) for v,w in self.edge_iterator(labels=False)]
 
         return igraph.Graph(n = self.num_verts(),
@@ -1884,7 +1885,7 @@ class GenericGraph(GenericGraph_pyx):
         from sage.matrix.constructor import matrix
         from sage.rings.integer_ring import ZZ
         m = matrix(ZZ, self.num_verts(), self.num_edges(), sparse=sparse)
-        verts = {v:i for i,v in enumerate(self.vertices())}
+        verts = {v: i for i, v in enumerate(self.vertices())}
 
         if oriented:
             for e, (i, j) in enumerate(self.edge_iterator(labels=False)):
@@ -3301,13 +3302,12 @@ class GenericGraph(GenericGraph_pyx):
 
 
         # list of vertices of odd degree
-        from builtins import zip
         odd = [x for (x, deg) in zip(g.vertex_iterator(), g.degree_iterator())
                if deg % 2 == 1]
 
         # Picks the first vertex, which is preferably an odd one
-        if len(odd)>0:
-            v=odd.pop()
+        if odd:
+            v = odd.pop()
         else:
             v = next(g.edge_iterator(labels=None))[0]
             odd.append(v)
@@ -4328,9 +4328,9 @@ class GenericGraph(GenericGraph_pyx):
 
             # We add edges between consecutive vertices of the boundary (only
             # len(boundary)-1 are actually sufficient)
-            for u,v in zip(boundary[:-1],boundary[1:]):
-                if not graph.has_edge(u,v):
-                    extra_edges.append((u,v))
+            for u, v in zip(boundary[:-1], boundary[1:]):
+                if not graph.has_edge(u, v):
+                    extra_edges.append((u, v))
 
             graph.add_edges(extra_edges)
 
@@ -6713,7 +6713,7 @@ class GenericGraph(GenericGraph_pyx):
         if algorithm == "backtrack":
             from sage.graphs.generic_graph_pyx import find_hamiltonian as fh
             x = fh(self, find_path=True)[1]
-            return self.subgraph(vertices=x, edges=zip(x[:-1], x[1:]))
+            return self.subgraph(vertices=x, edges=list(zip(x[:-1], x[1:])))
 
         ##################
         # LP Formulation #
@@ -8259,7 +8259,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # Reqrites a path as a list of edges :
         # ex : [0,1,2,3,4,5] becomes [(0,1), (1,2), (2,3), (3,4), (4,5)]
-        path_to_edges = lambda P : zip(P[:-1],P[1:])
+        path_to_edges = lambda P : zip(P[:-1], P[1:])
 
         # Rewrites a path as a list of edges labeled with their
         # available capacity
@@ -14045,10 +14045,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.OddGraph(4)
             sage: d = G.diameter()
             sage: n = G.num_verts()
-            sage: H = G.distance_graph(range(d+1))
+            sage: H = G.distance_graph(list(range(d+1)))
             sage: H.is_isomorphic(graphs.CompleteGraph(n))
             False
-            sage: H = G.distance_graph(range(1,d+1))
+            sage: H = G.distance_graph(list(range(1,d+1)))
             sage: H.is_isomorphic(graphs.CompleteGraph(n))
             True
 
@@ -16243,17 +16243,30 @@ class GenericGraph(GenericGraph_pyx):
            results in the theory of the Wiener number. *Indian Journal of
            Chemistry*, 32A:651--661, 1993.
 
-        TEST::
+        TEST:
+
+        Giving an empty graph::
 
             sage: g = Graph()
             sage: g.average_distance()
             Traceback (most recent call last):
             ...
             ValueError: average distance is not defined for empty or one-element graph
+
+        :trac:`22885`::
+
+            sage: G = graphs.PetersenGraph()
+            sage: G2 = Graph([(u,v,2) for u,v,_ in G.edges()])
+            sage: G2.average_distance()
+            5/3
+            sage: G2.average_distance(by_weight=True)
+            10/3
         """
         if self.order() < 2:
             raise ValueError("average distance is not defined for empty or one-element graph")
-        return 2 * self.wiener_index() / (self.order()*(self.order()-1))
+        WI =  self.wiener_index(by_weight=by_weight, algorithm=algorithm,
+                                    weight_function=weight_function)
+        return 2 * WI / (self.order()*(self.order()-1))
 
     def szeged_index(self):
         r"""
@@ -16657,7 +16670,7 @@ class GenericGraph(GenericGraph_pyx):
             ([0], Digraph on 1 vertex)
 
         """
-        id_inv = dict([(i,v) for (v,i) in zip(self.vertices(),range(self.order()))])
+        id_inv = {i: v for i, v in enumerate(self.vertices())}
         code = [[] for i in range(self.order())]
         m = self.am()
 
@@ -16701,6 +16714,48 @@ class GenericGraph(GenericGraph_pyx):
             return value
 
     ### Constructors
+
+    def add_clique(self, vertices, loops=False):
+        """
+        Add a clique to the graph with the given vertices.
+
+        If the vertices are already present, only the edges are added.
+
+        INPUT:
+
+        - ``vertices`` -- a list of vertices for the clique to be added.
+
+        - ``loops`` -- (boolean) whether to add loops or not, i.e., edges from a
+          vertex to itself. Possible only if the (di)graph allows loops.
+
+        EXAMPLES::
+
+            sage: G = Graph()
+            sage: G.add_clique(list(range(4)))
+            sage: G.is_isomorphic(graphs.CompleteGraph(4))
+            True
+            sage: D = DiGraph()
+            sage: D.add_clique(list(range(4)))
+            sage: D.is_isomorphic(digraphs.Complete(4))
+            True
+            sage: D = DiGraph(loops=True)
+            sage: D.add_clique(list(range(4)), loops=True)
+            sage: D.is_isomorphic(digraphs.Complete(4, loops=True))
+            True
+            sage: D = DiGraph(loops=False)
+            sage: D.add_clique(list(range(4)), loops=True)
+            sage: D.is_isomorphic(digraphs.Complete(4, loops=True))
+            False
+            sage: D.is_isomorphic(digraphs.Complete(4, loops=False))
+            True
+        """
+        if vertices:
+            n = len(vertices)
+            self.add_edges((vertices[i],vertices[j]) for i in range(n-1) for j in range(i+1,n))
+            if self.is_directed():
+                self.add_edges((vertices[j],vertices[i]) for i in range(n-1) for j in range(i+1,n))
+            if loops and self.allows_loops():
+                self.add_edges((vertices[i],vertices[i]) for i in range(n))
 
     def add_cycle(self, vertices):
         """
@@ -18505,7 +18560,7 @@ class GenericGraph(GenericGraph_pyx):
             ....:  y = float(sin(pi/2 + ((2*pi)/5)*i))
             ....:  pos_dict[i] = [x,y]
             ...
-            sage: for i in range(10)[5:]:
+            sage: for i in range(5, 10):
             ....:  x = float(0.5*cos(pi/2 + ((2*pi)/5)*i))
             ....:  y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
             ....:  pos_dict[i] = [x,y]
@@ -19617,7 +19672,7 @@ class GenericGraph(GenericGraph_pyx):
               node_2 -- node_3 [label="foo"];
             }
         """
-        return open(filename, 'wt').write(self.graphviz_string(**options))
+        open(filename, 'wt').write(self.graphviz_string(**options))
 
     ### Spectrum
 
@@ -20168,7 +20223,7 @@ class GenericGraph(GenericGraph_pyx):
 
             # vertices() returns a sorted list:
             # this guarantees consistent relabeling
-            perm = dict({v:i for i,v in enumerate(self.vertices())})
+            perm = {v: i for i, v in enumerate(self.vertices())}
             complete_partial_function = False
             check_input = False
 
@@ -21105,8 +21160,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.is_isomorphic(h, certificate=True)
             (True, None)
 
-        Deprecation from #21111::
-
+        Deprecation from :trac:`21111`::
+ 
             sage: G = DiGraph({'a':['b']})
             sage: H = DiGraph({0:[1]})
             sage: G.is_isomorphic(H, certify=True)

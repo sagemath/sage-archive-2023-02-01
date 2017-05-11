@@ -502,10 +502,10 @@ Verify that :trac:`10981` is fixed::
 
 from __future__ import absolute_import, print_function
 from six.moves import range
+from six import integer_types, iteritems
 
 import itertools
 import operator
-import six
 
 import sage.rings.ring
 from sage.misc.fast_methods import Singleton
@@ -1661,7 +1661,7 @@ def clear_denominators(poly):
             min_e = (e + (deg-i) - 1) // (deg-i)
             factors[f] = max(oe, min_e)
     change = 1
-    for f, e in six.iteritems(factors):
+    for f, e in iteritems(factors):
         change = change * f**e
     poly = poly * (change ** deg)
     poly = poly(poly.parent().gen() / change)
@@ -1711,7 +1711,7 @@ def do_polred(poly):
         sage: do_polred(x^4 - 4294967296*x^2 + 54265257667816538374400)
         (1/4*x, 4*x, x^4 - 268435456*x^2 + 211973662764908353025)
     """
-    new_poly, elt_back = poly._pari_().polredbest(flag=1)
+    new_poly, elt_back = poly.__pari__().polredbest(flag=1)
 
     parent = poly.parent()
     elt_fwd = elt_back.modreverse()
@@ -2749,7 +2749,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             22/7
         """
         sage.structure.element.FieldElement.__init__(self, parent)
-        if isinstance(x, (int, long, sage.rings.integer.Integer,
+        if isinstance(x, integer_types + (sage.rings.integer.Integer,
                           sage.rings.rational.Rational)):
             self._descr = ANRational(x)
         elif isinstance(x, ANDescr):
@@ -5006,7 +5006,7 @@ class ANRational(ANDescr):
         if isinstance(x, (sage.rings.integer.Integer,
                           sage.rings.rational.Rational)):
             self._value = x
-        elif isinstance(x, (int, long)):
+        elif isinstance(x, integer_types):
             self._value = ZZ(x)
         else:
             raise TypeError("Illegal initializer for algebraic number rational")

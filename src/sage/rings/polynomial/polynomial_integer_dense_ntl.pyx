@@ -118,7 +118,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: type(f)
             <type 'sage.rings.polynomial.polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl'>
             sage: type(pari(f))
-            <type 'sage.libs.cypari2.gen.Gen'>
+            <type 'cypari2.gen.Gen'>
             sage: type(R(pari(f)))
             <type 'sage.rings.polynomial.polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl'>
             sage: R(pari(f))
@@ -842,7 +842,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         return x
 
 
-    def _pari_(self, variable=None):
+    def __pari__(self, variable=None):
         """
         EXAMPLES::
 
@@ -1024,7 +1024,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             raise ValueError("p must be prime")
         if all([c%p==0 for c in self.coefficients()]):
             raise ArithmeticError("factorization of 0 is not defined")
-        f = self._pari_()
+        f = self.__pari__()
         G = f.factormod(p)
         k = FiniteField(p)
         R = k[self.parent().variable_name()]

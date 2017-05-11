@@ -190,7 +190,7 @@ when the system has no solutions over the rationals.
     The Groebner basis modulo any product of the prime factors is also non-trivial::
 
         sage: I.change_ring(P.change_ring( IntegerModRing(2*7) )).groebner_basis()
-        [x + 3*y + 11*z, y^2 + 3*y, y*z + 11*y + 4, 2*y + 6, z^2 + 3, 2*z + 10]
+        [x + 9*y + 13*z, y^2 + 3*y, y*z + 7*y + 6, 2*y + 6, z^2 + 3, 2*z + 10]
 
     Modulo any other prime the Groebner basis is trivial so there are
     no other solutions. For example::
@@ -3646,11 +3646,13 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: P.<a,b,c> = PolynomialRing(Zmod(1000),3)
             sage: I = P * (a + 2*b + 2*c - 1, a^2 - a + 2*b^2 + 2*c^2, 2*a*b + 2*b*c - b)
             sage: I.groebner_basis()
-            [b*c^2 + 992*b*c + 712*c^2 + 332*b + 96*c,
-             2*c^3 + 214*b*c + 862*c^2 + 762*b + 268*c,
+            [b*c^2 + 732*b*c + 808*b,
+             2*c^3 + 884*b*c + 666*c^2 + 320*b,
              b^2 + 438*b*c + 281*b,
              5*b*c + 156*c^2 + 112*b + 948*c,
-             50*c^2 + 600*b + 650*c, a + 2*b + 2*c + 999, 125*b]
+             50*c^2 + 600*b + 650*c,
+             a + 2*b + 2*c + 999,
+             125*b]
 
         ::
 

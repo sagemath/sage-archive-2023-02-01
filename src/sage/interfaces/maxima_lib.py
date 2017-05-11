@@ -92,8 +92,10 @@ from sage.symbolic.ring import SR
 from sage.libs.ecl import EclObject, ecl_eval
 
 from .maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
-  MaximaAbstractElement, MaximaAbstractFunctionElement,
-  MaximaAbstractElementFunction)
+    MaximaAbstractElement, MaximaAbstractFunctionElement,
+    MaximaAbstractElementFunction)
+from sage.docs.instancedoc import instancedoc
+
 
 ## We begin here by initializing Maxima in library mode
 ## i.e. loading it into ECL
@@ -615,7 +617,7 @@ class MaximaLib(MaximaAbstract):
 
             sage: from sage.interfaces.maxima_lib import maxima_lib
             sage: maxima_lib._function_class()
-            <class 'sage.interfaces.maxima_lib.MaximaLibFunction'>
+            <class 'sage.interfaces.interface.InterfaceFunction'>
         """
         return MaximaLibFunction
 
@@ -647,7 +649,7 @@ class MaximaLib(MaximaAbstract):
 
             sage: from sage.interfaces.maxima_lib import maxima_lib
             sage: maxima_lib._function_element_class()
-            <class 'sage.interfaces.maxima_lib.MaximaLibFunctionElement'>
+            <class 'sage.interfaces.interface.InterfaceFunctionElement'>
         """
         return MaximaLibFunctionElement
 
@@ -1032,6 +1034,8 @@ def is_MaximaLibElement(x):
     """
     return isinstance(x, MaximaLibElement)
 
+
+@instancedoc
 class MaximaLibElement(MaximaAbstractElement):
     r"""
     Element of Maxima through library interface.
@@ -1134,14 +1138,10 @@ class MaximaLibElement(MaximaAbstractElement):
             return s
 
 
-class MaximaLibFunctionElement(MaximaAbstractFunctionElement):
-    pass
+MaximaLibFunctionElement = MaximaAbstractFunctionElement
+MaximaLibFunction = MaximaAbstractFunction
 
-
-class MaximaLibFunction(MaximaAbstractFunction):
-    pass
-
-
+@instancedoc
 class MaximaLibElementFunction(MaximaLibElement, MaximaAbstractElementFunction):
     pass
 

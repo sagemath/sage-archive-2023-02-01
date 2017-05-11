@@ -231,7 +231,7 @@ class DevelopingValuation(DiscretePseudoValuation):
         from sage.geometry.newton_polygon import NewtonPolygon
         if valuations is None:
             valuations = self.valuations(f)
-        return NewtonPolygon(enumerate(valuations))
+        return NewtonPolygon(list(enumerate(valuations)))
 
     def _call_(self, f):
         r"""

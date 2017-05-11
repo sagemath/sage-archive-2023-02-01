@@ -7,7 +7,7 @@ Interface between flint matrices and linbox
 
 This module only contains C++ code (and the interface is fully C
 compatible). It basically contains what used to be in the LinBox
-source code under interfaces/sage/linbox-Sage.C written by M. Albrecht
+source code under interfaces/sage/linbox-sage.C written by M. Albrecht
 and C. Pernet. The functions available are:
 
 - ``void  linbox_fmpz_mat_mul(fmpz_mat_t C, fmpz_mat_t A, fmpz_mat_t B)``: set
@@ -125,7 +125,7 @@ cdef extern from "linbox/solutions/det.h":
 ###############################################################################
 
 
-# set the entries of A from m (no allocation preformed)
+# set the entries of A from m (no allocation performed)
 # NOTE: this function is not part of the interface (ie the .pxd file) to keep the
 # module C-compatible
 cdef void fmpz_mat_get_linbox(LinBoxIntegerDenseMatrix& A, fmpz_mat_t m):

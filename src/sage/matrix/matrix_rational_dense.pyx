@@ -101,6 +101,7 @@ from sage.misc.all import verbose, get_verbose, prod
 #########################################################
 # PARI C library
 from cypari2.gen cimport Gen
+from sage.libs.pari.all import PariError
 from sage.libs.pari.convert_gmp cimport INTFRAC_to_mpq
 from sage.libs.pari.convert_flint cimport rational_matrix, _new_GEN_from_fmpq_mat_t
 from cypari2.stack cimport clear_stack
@@ -534,8 +535,12 @@ cdef class Matrix_rational_dense(Matrix_dense):
             sage: a.inverse()
             [-3/82  5/82]
             [17/82 -1/82]
+            sage: ~matrix(QQ, 2, 3)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: self must be a square matrix
         """
-        return self.__invert__main()
+        return self.inverse()
 
     def _invert_flint(self):
         r"""
@@ -544,80 +549,113 @@ cdef class Matrix_rational_dense(Matrix_dense):
             sage: matrix(QQ, 2, [1,2,3,4])._invert_flint()
             [  -2    1]
             [ 3/2 -1/2]
+            sage: matrix(QQ, 1)._invert_flint()
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: input matrix must be nonsingular
         """
+        cdef int ret
         cdef Matrix_rational_dense ans
         ans = Matrix_rational_dense.__new__(Matrix_rational_dense, self._parent, None, None, None)
         sig_on()
-        fmpq_mat_inv(ans._matrix, self._matrix)
+        ret = fmpq_mat_inv(ans._matrix, self._matrix)
         sig_off()
+        if ret == 0:
+            raise ZeroDivisionError("input matrix must be nonsingular")
         return ans
 
-    def __invert__main(self, check_invertible=True, algorithm=None):
+    def inverse(self, algorithm=None, check_invertible=True):
         """
         Return the inverse of this matrix
 
         INPUT:
 
 
-        -  ``check_invertible`` - default: True (whether to
-           check that matrix is invertible)
-
         - ``algorithm`` -- (optional) one of ``'flint'``,  ``'pari'``, ``'iml'``
+
+        -  ``check_invertible`` - only used when ``algorithm=iml``. Whether to
+           check that matrix is invertible
 
         EXAMPLES::
 
             sage: a = matrix(QQ,3,[1,2,5,3,2,1,1,1,1,])
-            sage: a.__invert__main(check_invertible=False)
+            sage: a.inverse()
             [1/2 3/2  -4]
             [ -1  -2   7]
             [1/2 1/2  -2]
 
-        A 1x1 matrix (a special case)::
-
-            sage: a = matrix(QQ, 1, [390284089234])
-            sage: a.__invert__main()
-            [1/390284089234]
-
-        A 2x2 matrix (a special hand-coded case)::
-
-            sage: a = matrix(QQ, 2, [1, 5, 17, 3]); a
-            [ 1  5]
-            [17  3]
-            sage: a.inverse()
+            sage: a = matrix(QQ, 2, [1, 5, 17, 3])
+            sage: a.inverse(algorithm="flint")
             [-3/82  5/82]
             [17/82 -1/82]
-            sage: a.__invert__main()  * a
+            sage: a.inverse(algorithm="flint")  * a
             [1 0]
             [0 1]
+
+            sage: a = matrix(QQ, 2, [-1, 5, 12, -3])
+            sage: a.inverse(algorithm="iml")
+            [1/19 5/57]
+            [4/19 1/57]
+            sage: a.inverse(algorithm="iml") * a
+            [1 0]
+            [0 1]
+
+            sage: a = matrix(QQ, 4, primes_first_n(16))
+            sage: a.inverse(algorithm="pari")
+            [   3/11  -12/55    -1/5    2/11]
+            [  -5/11   -2/55    3/10   -3/22]
+            [ -13/22 307/440   -1/10   -9/88]
+            [  15/22  -37/88       0    7/88]
+
+        On singular matrices this method raises a ``ZeroDivisionError``::
+
+            sage: a = matrix(QQ, 2)
+            sage: a.inverse(algorithm="flint")
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: input matrix must be nonsingular
+            sage: a.inverse(algorithm="iml")
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: input matrix must be nonsingular
+            sage: a.inverse(algorithm="pari")
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: input matrix must be nonsingular
+
+        TESTS::
+
+            sage: a = matrix(QQ, 2)
+            sage: a.inverse(algorithm="IAmNotAnAlgorithm")
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown algorithm 'IAmNotAnAlgorithm'
+
+            sage: for _ in range(30):
+            ....:     dim = randint(1, 20)
+            ....:     a = random_matrix(QQ, dim, num_bound=10, den_bound=10)
+            ....:     while a.rank() != dim: a = random_matrix(QQ, dim)
+            ....:     inv_flint = a.inverse(algorithm='flint')
+            ....:     inv_pari = a.inverse(algorithm='pari')
+            ....:     inv_iml = a.inverse(algorithm='iml')
+            ....:     assert inv_flint == inv_pari == inv_iml
         """
         if self._nrows != self._ncols:
             raise ArithmeticError("self must be a square matrix")
 
         if self._nrows == 0:
             return self
-
-        if algorithm is None:
-            if self._nrows <= 25 and self.height().ndigits() <= 100:
-                algorithm = "pari"
-            else:
-                algorithm = "iml"
-
-        if algorithm == "flint":
+        elif algorithm is None or algorithm == "flint":
             return self._invert_flint()
-
-        if algorithm == "pari":
-            from sage.libs.pari.all import PariError
+        elif algorithm == "pari":
             try:
                 return self._invert_pari()
             except PariError:
-                # Assume the error is because the matrix is not invertible.
                 raise ZeroDivisionError("input matrix must be nonsingular")
-
-        if algorithm == "iml":
+        elif algorithm == "iml":
             AZ, denom = self._clear_denom()
             B, d = AZ._invert_iml(check_invertible=check_invertible)
             return (denom/d)*B
-
 
         else:
             raise ValueError("unknown algorithm '%s'"%algorithm)
@@ -628,19 +666,16 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         INPUT:
 
+        - ``algorithm`` -- (optional) one of ``'pari'``, ``'integer'``
+
         -  ``proof`` - bool or None; if None use
            proof.linear_algebra(); only relevant for the padic algorithm.
-
-        - ``algorithm`` -- (optional) one of ``'pari'``, ``'integer'``
 
         .. NOTE::
 
            It would be *VERY VERY* hard for det to fail even with
            proof=False.
 
-
-        ALGORITHM: Clear denominators and call the integer determinant
-        function.
 
         EXAMPLES::
 
@@ -649,21 +684,57 @@ cdef class Matrix_rational_dense(Matrix_dense):
             -34/15
             sage: m.charpoly()
             x^3 - 17/5*x^2 - 122/15*x + 34/15
+
+            sage: m = matrix(QQ, 3, [(1/i)**j for i in range(2,5) for j in range(3)])
+            sage: m.determinant(algorithm="flint")
+            -1/288
+
+            sage: m = matrix(QQ, 4, [(-1)**n/n for n in range(1,17)])
+            sage: m.determinant(algorithm="pari")
+            2/70945875
+
+            sage: m = matrix(QQ, 5, [1/(i+j+1) for i in range(5) for j in range(5)])
+            sage: m.determinant(algorithm="integer")
+            1/266716800000
+
+        On non-square matrices, the method raises a ``ValueError``::
+
+            sage: matrix(QQ, 2, 3).determinant(algorithm='flint')
+            Traceback (most recent call last):
+            ...
+            ValueError: non square matrix
+            sage: matrix(QQ, 2, 3).determinant(algorithm='pari')
+            Traceback (most recent call last):
+            ...
+            ValueError: non square matrix
+            sage: matrix(QQ, 2, 3).determinant(algorithm='integer')
+            Traceback (most recent call last):
+            ...
+            ValueError: non square matrix
+
+        TESTS:
+
+        Check that the three algorithms agree::
+
+            sage: for _ in range(20):
+            ....:     dim = randint(0, 30)
+            ....:     m = random_matrix(QQ, dim, num_bound=10, den_bound=10)
+            ....:     det_flint = m.determinant("flint"); m._clear_cache()
+            ....:     det_pari = m.determinant("pari"); m._clear_cache()
+            ....:     det_int = m.determinant("integer")
+            ....:     assert det_flint == det_pari == det_int
         """
+        if self._nrows != self._ncols:
+            raise ValueError("non square matrix")
+
         det = self.fetch('det')
         if det is not None:
             return det
 
-        if algorithm is None:
-            if self._nrows <= 7:
-                algorithm = "pari"
-            else:
-                algorithm = "integer"
-
-        if algorithm == "pari":
-            det = self._det_pari()
-        elif algorithm == "flint":
+        if algorithm is None or algorithm == "flint":
             det = self._det_flint()
+        elif algorithm == "pari":
+            det = self._det_pari()
         elif algorithm == "integer":
             A, denom = self._clear_denom()
             det = Rational(A.determinant(proof=proof))
@@ -2386,8 +2457,6 @@ cdef class Matrix_rational_dense(Matrix_dense):
             sage: matrix(QQ,3,[0]+[2..9])._det_pari()
             3
         """
-        if self._nrows != self._ncols:
-            raise ValueError("self must be a square matrix")
         sig_on()
         cdef GEN d = det0(_new_GEN_from_fmpq_mat_t(self._matrix), flag)
         # now convert d to a Sage rational

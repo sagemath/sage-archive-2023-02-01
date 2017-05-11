@@ -8,7 +8,7 @@ AUTHORS:
 - David Harvey: split off polynomial_integer_dense_ntl.pyx (2007-09)
 - Robert Bradshaw: split off polynomial_modn_dense_ntl.pyx (2007-09)
 
-TESTS:
+TESTS::
 
 We test coercion in a particularly complicated situation::
 
@@ -259,7 +259,7 @@ class Polynomial_generic_sparse(Polynomial):
             sage: (1 + 3*x^10 - 2*x^100).integral()
             -2/101*x^101 + 3/11*x^11 + x
 
-        TESTS:
+        TESTS::
 
         Check that :trac:`18600` is fixed::
 
@@ -711,7 +711,7 @@ class Polynomial_generic_sparse(Polynomial):
             sage: p.shift(2)
              x^100002 + 2*x^3 + 4*x^2
 
-        TESTS:
+        TESTS::
 
         Check that :trac:`18600` is fixed::
 
@@ -865,7 +865,7 @@ class Polynomial_generic_sparse(Polynomial):
             ...
             ValueError: Unknown algorithm 'foobar'
 
-        TESTS:
+        TESTS::
 
         Check that :trac:`19676` is fixed::
 
@@ -1117,7 +1117,7 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
             ...
             PrecisionError: The coefficient of t^4 has not enough precision
 
-        TESTS:
+        TESTS::
 
         Check that :trac:`22936` is fixed::
 
@@ -1222,7 +1222,7 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
             ...
             KeyboardInterrupt:
 
-        TESTS:
+        TESTS::
 
             sage: S.<x> = PowerSeriesRing(GF(5))
             sage: R.<y> = S[]

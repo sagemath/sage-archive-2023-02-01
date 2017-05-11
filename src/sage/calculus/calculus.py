@@ -809,6 +809,103 @@ def nintegral(ex, x, a, b,
 
 nintegrate = nintegral
 
+def symbolic_product(expression, v, a, b, algorithm='maxima', hold=False):
+    r"""
+    Return the symbolic product `\prod_{v = a}^b expression` with respect
+    to the variable `v` with endpoints `a` and `b`.
+
+    INPUT:
+
+    - ``expression`` - a symbolic expression
+
+    - ``v`` - a variable or variable name
+
+    - ``a`` - lower endpoint of the product
+
+    - ``b`` - upper endpoint of the prduct
+
+    - ``algorithm`` - (default: ``'maxima'``)  one of
+
+      - ``'maxima'`` - use Maxima (the default)
+
+      - ``'giac'`` - (optional) use Giac
+
+      - ``'sympy'`` - use SymPy
+
+    - ``hold`` - (default: ``False``) if ``True`` don't evaluate
+
+    EXAMPLES::
+
+        sage: i, k, n = var('i,k,n')
+        sage: from sage.calculus.calculus import symbolic_product
+        sage: symbolic_product(k, k, 1, n)
+        factorial(n)
+        sage: symbolic_product(x + i*(i+1)/2, i, 1, 4)
+        x^4 + 20*x^3 + 127*x^2 + 288*x + 180
+        sage: symbolic_product(i^2, i, 1, 7)
+        25401600
+        sage: f = function('f')
+        sage: symbolic_product(f(i), i, 1, 7)
+        f(7)*f(6)*f(5)*f(4)*f(3)*f(2)*f(1)
+        sage: symbolic_product(f(i), i, 1, n)
+        product(f(i), i, 1, n)
+        sage: assume(k>0)
+        sage: symbolic_product(integrate (x^k, x, 0, 1), k, 1, n)
+        1/factorial(n + 1)
+        sage: symbolic_product(f(i), i, 1, n).log().log_expand()
+        sum(log(f(i)), i, 1, n)
+    """
+    if not is_SymbolicVariable(v):
+        if isinstance(v, str):
+            v = var(v)
+        else:
+            raise TypeError("need a multiplication variable")
+
+    if v in SR(a).variables() or v in SR(b).variables():
+        raise ValueError("product limits must not depend on the multiplication variable")
+
+    if hold == True:
+        from sage.functions.other import symbolic_prod as sprod
+        return sprod(expression, v, a, b)
+
+    if algorithm == 'maxima':
+        return maxima.sr_prod(expression,v,a,b)
+
+    elif algorithm == 'mathematica':
+        try:
+            prod = "Product[%s, {%s, %s, %s}]" % tuple([repr(expr._mathematica_()) for expr in (expression, v, a, b)])
+        except TypeError:
+            raise ValueError("Mathematica cannot make sense of input")
+        from sage.interfaces.mathematica import mathematica
+        try:
+            result = mathematica(prod)
+        except TypeError:
+            raise ValueError("Mathematica cannot make sense of: %s" % sum)
+        return result.sage()
+
+    elif algorithm == 'giac':
+        prod = "product(%s, %s, %s, %s)" % tuple([repr(expr._giac_()) for expr in (expression, v, a, b)])
+        from sage.interfaces.giac import giac
+        try:
+            result = giac(prod)
+        except TypeError:
+            raise ValueError("Giac cannot make sense of: %s" % sum)
+        return result.sage()
+
+    elif algorithm == 'sympy':
+        expression,v,a,b = [expr._sympy_() for expr in (expression, v, a, b)]
+        from sympy import product as sproduct
+        result = sproduct(expression, (v, a, b))
+        try:
+            return result._sage_()
+        except AttributeError:
+            raise AttributeError("Unable to convert SymPy result (={}) into"
+                    " Sage".format(result))
+
+    else:
+        raise ValueError("unknown algorithm: %s" % algorithm)
+
+
 def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
     r"""
     Return the minimal polynomial of self, if possible.
@@ -2024,7 +2121,10 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     formal_functions = maxima_tick.findall(s)
     if len(formal_functions) > 0:
         for X in formal_functions:
-            syms[X[1:]] = function_factory(X[1:])
+            try:
+                syms[X[1:]] = _syms[X[1:]]
+            except KeyError:
+                syms[X[1:]] = function_factory(X[1:])
         # You might think there is a potential very subtle bug if 'foo
         # is in a string literal -- but string literals should *never*
         # ever be part of a symbolic expression.

@@ -4165,11 +4165,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
                 # This is the map sending two partitions lam and mu to the
                 # arithmetic product p[lam] \boxdot p[mu].
                 # Code shamelessly stolen from Andrew Gainer-Dewar, trac #14542.
-                term_iterable = chain.from_iterable( repeat(lcm(pair), times=gcd(pair))
-                                                     for pair in product(lam, mu) )
-                term_list = sorted(term_iterable, reverse=True)
-                res = Partition(term_list)
-                return p(res)
+                term_iterable = chain.from_iterable(repeat(lcm(pair), gcd(pair))
+                                                    for pair in product(lam, mu))
+                return p(Partition(sorted(term_iterable, reverse=True)))
             return parent(p._apply_multi_module_morphism(p(self),p(x),f))
         comp_parent = parent
         comp_self = self

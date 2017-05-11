@@ -468,13 +468,19 @@ class FunctionFieldDivisor(ModuleElement):
         n = len(basis)
         V = k ** n
 
-        def fr_V(v):
+        def from_V(v):
             return sum(v[i] * basis[i] for i in range(n))
 
         def to_V(f):
             return vector(coordinates(f))
 
-        return V, fr_V, to_V
+        from sage.rings.function_field.maps import (
+            FunctionFieldLinearMap, FunctionFieldPartiallyDefinedLinearMap)
+
+        mor_from_V = FunctionFieldLinearMap(Hom(V,F), from_V)
+        mor_to_V = FunctionFieldPartiallyDefinedLinearMap(Hom(F,V), to_V)
+
+        return V, mor_from_V, mor_to_V
 
     @cached_method
     def _function_space(self):
@@ -555,6 +561,7 @@ class FunctionFieldDivisor(ModuleElement):
             True
         """
         F = self._field
+        W = F.space_of_differentials()
         k = F.constant_base_field()
 
         fbasis, coordinates = self._differential_space()
@@ -562,14 +569,20 @@ class FunctionFieldDivisor(ModuleElement):
         n = len(fbasis)
         V = k ** n
 
-        def fr_V(v):
+        def from_V(v):
             f = sum(v[i] * fbasis[i] for i in range(n))
             return differential(F, f)
 
         def to_V(w):
             return vector(coordinates(w._f))
 
-        return V, fr_V, to_V
+        from sage.rings.function_field.maps import (
+            FunctionFieldLinearMap, FunctionFieldPartiallyDefinedLinearMap)
+
+        mor_from_V = FunctionFieldLinearMap(Hom(V,W), from_V)
+        mor_to_V = FunctionFieldPartiallyDefinedLinearMap(Hom(W,V), to_V)
+
+        return V, mor_from_V, mor_to_V
 
     @cached_method
     def _differential_space(self):

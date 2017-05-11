@@ -55,7 +55,7 @@ from __future__ import absolute_import
 #*****************************************************************************
 from sage.misc.lazy_import import lazy_import
 
-from sage.categories.morphism import Morphism
+from sage.categories.morphism import Morphism, SetMorphism
 from sage.categories.map import Map
 from sage.rings.morphism import RingHomomorphism
 from sage.modules.free_module_element import vector
@@ -1374,35 +1374,13 @@ class FunctionFieldCompletion_global(FunctionFieldCompletion):
         """
         return self._precision
 
-class Morphism_func(RingHomomorphism):
+class FunctionFieldRingMorphism(SetMorphism):
     """
-    Ring homomorphism defined by a function
+    Ring homomorphism.
     """
-    def __init__(self, parent, func):
+    def _repr_(self):
         """
-        Initialize.
-
-        INPUT:
-
-        - ``parent`` -- a hom set from a ring `A` to a ring `B`
-
-        - ``func`` -- a function that outputs an element of `B` for an element of `A`
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
-            sage: L.<y> = K.extension(Y^2 + Y + x + 1/x)
-            sage: p = L.places_finite()[0]
-            sage: p.valuation_ring()
-            Valuation ring at Place (x, x*y)
-        """
-        RingHomomorphism.__init__(self, parent)
-
-        self._map = func
-
-    def _call_(self, x):
-        """
-        Return the image of ``x`` by the homomorphsim.
+        Return the string representaton of the map.
 
         EXAMPLES::
 
@@ -1411,7 +1389,66 @@ class Morphism_func(RingHomomorphism):
             sage: p = L.places_finite()[0]
             sage: R = p.valuation_ring()
             sage: k, fr_k, to_k = R.residue_field()
-            sage: fr_k(k.one())  # indirect doctest
-            1
+            sage: k
+            Finite Field of size 2
+            sage: fr_k
+            Ring morphism:
+              From: Finite Field of size 2
+              To:   Valuation ring at Place (x, x*y)
         """
-        return self._map(x)
+        s = "Ring morphism:"
+        s += "\n  From: {}".format(self.domain())
+        s += "\n  To:   {}".format(self.codomain())
+        return s
+
+class FunctionFieldPartiallyDefinedLinearMap(SetMorphism):
+    """
+    Linear map partially defined.
+    """
+    def _repr_(self):
+        """
+        Return the string representaton of the map.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(5)); R.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^2-x^3-1)
+            sage: O = F.maximal_order()
+            sage: I = O.ideal(x-2)
+            sage: D = I.divisor()
+            sage: V, from_V, to_V = D.function_space()
+            sage: to_V
+            Linear map partially defined:
+              From: Function field in y defined by y^2 + 4*x^3 + 4
+              To:   Vector space of dimension 2 over Finite Field of size 5
+        """
+        s = "Linear map partially defined:"
+        s += "\n  From: {}".format(self.domain())
+        s += "\n  To:   {}".format(self.codomain())
+        return s
+
+class FunctionFieldLinearMap(SetMorphism):
+    """
+    Linear map.
+    """
+    def _repr_(self):
+        """
+        Return the string representaton of the map.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(5)); R.<t> = PolynomialRing(K)
+            sage: F.<y> = K.extension(t^2-x^3-1)
+            sage: O = F.maximal_order()
+            sage: I = O.ideal(x-2)
+            sage: D = I.divisor()
+            sage: V, from_V, to_V = D.function_space()
+            sage: from_V
+            Linear map:
+              From: Vector space of dimension 2 over Finite Field of size 5
+              To:   Function field in y defined by y^2 + 4*x^3 + 4
+        """
+        s = "Linear map:"
+        s += "\n  From: {}".format(self.domain())
+        s += "\n  To:   {}".format(self.codomain())
+        return s

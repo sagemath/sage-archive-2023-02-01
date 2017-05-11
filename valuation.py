@@ -872,7 +872,7 @@ class DiscreteValuation(DiscretePseudoValuation):
         if valuation.restriction(valuation.domain().base_ring()) is not self:
             raise ValueError
 
-        # Check thet valuation is an approximant for a valuation
+        # Check that valuation is an approximant for a valuation
         # on domain that extends its restriction to the base field.
         from sage.rings.all import infinity
         if valuation(G) is not infinity:

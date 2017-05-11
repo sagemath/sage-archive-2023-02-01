@@ -2009,13 +2009,13 @@ class HoldRemover(ExpressionTreeWalker):
             0
         """
         from sage.functions.other import Function_sum, Function_prod
-        from sage.calculus.calculus import symbolic_sum, symbolic_prod
+        from sage.calculus.calculus import symbolic_sum, symbolic_product
         if not operator:
             return self
         if isinstance(operator, Function_sum):
             return symbolic_sum(*map(self, ex.operands()))
         if isinstance(operator, Function_prod):
-            return symbolic_prod(*map(self, ex.operands()))
+            return symbolic_product(*map(self, ex.operands()))
         if operator in self._exclude:
             return operator(*map(self, ex.operands()), hold=True)
         else:

@@ -809,7 +809,7 @@ def nintegral(ex, x, a, b,
 
 nintegrate = nintegral
 
-def symbolic_prod(expression, v, a, b, algorithm='maxima', hold=False):
+def symbolic_product(expression, v, a, b, algorithm='maxima', hold=False):
     r"""
     Return the symbolic product `\prod_{v = a}^b expression` with respect
     to the variable `v` with endpoints `a` and `b`.
@@ -837,21 +837,23 @@ def symbolic_prod(expression, v, a, b, algorithm='maxima', hold=False):
     EXAMPLES::
 
         sage: i, k, n = var('i,k,n')
-        sage: from sage.calculus.calculus import symbolic_prod
-        sage: symbolic_prod(k, k, 1, n)
+        sage: from sage.calculus.calculus import symbolic_product
+        sage: symbolic_product(k, k, 1, n)
         factorial(n)
-        sage: symbolic_prod(x + i*(i+1)/2, i, 1, 4)
+        sage: symbolic_product(x + i*(i+1)/2, i, 1, 4)
         x^4 + 20*x^3 + 127*x^2 + 288*x + 180
-        sage: symbolic_prod(i^2, i, 1, 7)
+        sage: symbolic_product(i^2, i, 1, 7)
         25401600
         sage: f = function('f')
-        sage: symbolic_prod(f(i), i, 1, 7)
+        sage: symbolic_product(f(i), i, 1, 7)
         f(7)*f(6)*f(5)*f(4)*f(3)*f(2)*f(1)
-        sage: symbolic_prod(f(i), i, 1, n)
+        sage: symbolic_product(f(i), i, 1, n)
         product(f(i), i, 1, n)
         sage: assume(k>0)
-        sage: symbolic_prod(integrate (x^k, x, 0, 1), k, 1, n)
+        sage: symbolic_product(integrate (x^k, x, 0, 1), k, 1, n)
         1/factorial(n + 1)
+        sage: symbolic_product(f(i), i, 1, n).log().log_expand()
+        sum(log(f(i)), i, 1, n)
     """
     if not is_SymbolicVariable(v):
         if isinstance(v, str):
@@ -869,11 +871,23 @@ def symbolic_prod(expression, v, a, b, algorithm='maxima', hold=False):
     if algorithm == 'maxima':
         return maxima.sr_prod(expression,v,a,b)
 
+    elif algorithm == 'mathematica':
+        try:
+            prod = "Product[%s, {%s, %s, %s}]" % tuple([repr(expr._mathematica_()) for expr in (expression, v, a, b)])
+        except TypeError:
+            raise ValueError("Mathematica cannot make sense of input")
+        from sage.interfaces.mathematica import mathematica
+        try:
+            result = mathematica(prod)
+        except TypeError:
+            raise ValueError("Mathematica cannot make sense of: %s" % sum)
+        return result.sage()
+
     elif algorithm == 'giac':
-        sum = "product(%s, %s, %s, %s)" % tuple([repr(expr._giac_()) for expr in (expression, v, a, b)])
+        prod = "product(%s, %s, %s, %s)" % tuple([repr(expr._giac_()) for expr in (expression, v, a, b)])
         from sage.interfaces.giac import giac
         try:
-            result = giac(sum)
+            result = giac(prod)
         except TypeError:
             raise ValueError("Giac cannot make sense of: %s" % sum)
         return result.sage()

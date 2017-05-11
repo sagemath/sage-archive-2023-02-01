@@ -2593,8 +2593,10 @@ class Function_sum(BuiltinFunction):
     EXAMPLES::
 
         sage: from sage.functions.other import symbolic_sum as ssum
-        sage: ssum(x, x, 1, 10)
+        sage: r = ssum(x, x, 1, 10); r
         sum(x, x, 1, 10)
+        sage: r.unhold()
+        55
     """
     def __init__(self):
         """
@@ -2606,6 +2608,16 @@ class Function_sum(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, "sum", nargs=4,
                                conversions=dict(maxima='sum'))
+
+    def _print_latex_(self, x, var, a, b):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.functions.other import symbolic_sum as ssum
+            sage: latex(ssum(x^2, x, 1, 10))
+            \sum_{x=1}^{10} x^2
+        """
+        return r"\sum_{{{}={}}}^{{{}}} {}".format(var, a, b, x)
 
 symbolic_sum = Function_sum()
 

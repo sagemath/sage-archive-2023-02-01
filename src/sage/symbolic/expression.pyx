@@ -10395,14 +10395,12 @@ cdef class Expression(CommutativeRingElement):
 
         - Integral (definite or not) of a sum ==> sum of integrals.
 
-        _ Symbolic product of a product ==> product of symbolic products.
+        - Symbolic product of a product ==> product of symbolic products.
 
         INPUT:
 
-        - ``self`` - expression whose operator may be distributed.
-
-        - ``recursive`` - the distribution proceeds along the subtrees
-          of the expression (default : True).
+        - ``recursive`` -- (default : True) the distribution proceeds
+          along the subtrees of the expression.
 
         TESTS:
 
@@ -12516,4 +12514,3 @@ cdef operators compatible_relation(operators lop, operators rop) except <operato
        return greater
     else:
         raise TypeError("incompatible relations")
-

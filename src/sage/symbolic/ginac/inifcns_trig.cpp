@@ -52,14 +52,6 @@ static bool has_pi(const ex & the_ex) {
 // sine (trigonometric function)
 //////////
 
-static ex sin_evalf(const ex & x, PyObject* parent)
-{
-	if (is_exactly_a<numeric>(x))
-		return sin(ex_to<numeric>(x));
-	
-	return sin(x).hold();
-}
-
 static ex sin_eval(const ex & x)
 {
 	// sin(oo) -> error
@@ -261,7 +253,6 @@ static ex sin_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(sin, eval_func(sin_eval).
-                       evalf_func(sin_evalf).
                        derivative_func(sin_deriv).
                        real_part_func(sin_real_part).
                        imag_part_func(sin_imag_part).
@@ -271,14 +262,6 @@ REGISTER_FUNCTION(sin, eval_func(sin_eval).
 //////////
 // cosine (trigonometric function)
 //////////
-
-static ex cos_evalf(const ex & x, PyObject* parent)
-{
-	if (is_exactly_a<numeric>(x))
-		return cos(ex_to<numeric>(x));
-	
-	return cos(x).hold();
-}
 
 static ex cos_eval(const ex & x)
 {
@@ -476,7 +459,6 @@ static ex cos_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(cos, eval_func(cos_eval).
-                       evalf_func(cos_evalf).
                        derivative_func(cos_deriv).
                        real_part_func(cos_real_part).
                        imag_part_func(cos_imag_part).
@@ -486,14 +468,6 @@ REGISTER_FUNCTION(cos, eval_func(cos_eval).
 //////////
 // tangent (trigonometric function)
 //////////
-
-static ex tan_evalf(const ex & x, PyObject* parent)
-{
-	if (is_exactly_a<numeric>(x))
-		return tan(ex_to<numeric>(x));
-	
-	return tan(x).hold();
-}
 
 static ex tan_eval(const ex & x)
 {
@@ -716,7 +690,6 @@ static ex tan_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(tan, eval_func(tan_eval).
-                       evalf_func(tan_evalf).
                        derivative_func(tan_deriv).
                        series_func(tan_series).
                        real_part_func(tan_real_part).
@@ -727,17 +700,6 @@ REGISTER_FUNCTION(tan, eval_func(tan_eval).
 //////////
 // cotangent (trigonometric function)
 //////////
-
-static ex cot_evalf(const ex & x, PyObject* parent)
-{
-	if (is_exactly_a<numeric>(x)) {
-                if (ex_to<numeric>(x).is_zero())
-                        return UnsignedInfinity;
-		return tan(ex_to<numeric>(x)).inverse();
-        }
-
-	return cot(x).hold();
-}
 
 static ex cot_eval(const ex & x)
 {
@@ -860,7 +822,6 @@ static ex cot_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(cot, eval_func(cot_eval).
-                       evalf_func(cot_evalf).
                        derivative_func(cot_deriv).
                        series_func(cot_series).
                        real_part_func(cot_real_part).
@@ -871,14 +832,6 @@ REGISTER_FUNCTION(cot, eval_func(cot_eval).
 //////////
 // secant (trigonometric function)
 //////////
-
-static ex sec_evalf(const ex & x, PyObject* parent)
-{
-	if (is_exactly_a<numeric>(x))
-		return cos(ex_to<numeric>(x)).inverse();
-
-	return sec(x).hold();
-}
 
 static ex sec_eval(const ex & x)
 {
@@ -981,7 +934,6 @@ static ex sec_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(sec, eval_func(sec_eval).
-                       evalf_func(sec_evalf).
                        derivative_func(sec_deriv).
                        series_func(sec_series).
                        real_part_func(sec_real_part).
@@ -992,17 +944,6 @@ REGISTER_FUNCTION(sec, eval_func(sec_eval).
 //////////
 // cosecant (trigonometric function)
 //////////
-
-static ex csc_evalf(const ex & x, PyObject* parent)
-{
-	if (is_exactly_a<numeric>(x)) {
-                if (ex_to<numeric>(x).is_zero())
-                        return UnsignedInfinity;
-		return sin(ex_to<numeric>(x)).inverse();
-        }
-
-	return csc(x).hold();
-}
 
 static ex csc_eval(const ex & x)
 {
@@ -1104,7 +1045,6 @@ static ex csc_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(csc, eval_func(csc_eval).
-                       evalf_func(csc_evalf).
                        derivative_func(csc_deriv).
                        series_func(csc_series).
                        real_part_func(csc_real_part).
@@ -1115,14 +1055,6 @@ REGISTER_FUNCTION(csc, eval_func(csc_eval).
 //////////
 // inverse sine (arc sine)
 //////////
-
-static ex asin_evalf(const ex & x, PyObject* parent)
-{
-	if (is_exactly_a<numeric>(x))
-		return asin(ex_to<numeric>(x));
-	
-	return asin(x).hold();
-}
 
 static ex asin_eval(const ex & x)
 {
@@ -1194,7 +1126,6 @@ static ex asin_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(asin, eval_func(asin_eval).
-                        evalf_func(asin_evalf).
                         derivative_func(asin_deriv).
                         conjugate_func(asin_conjugate).
 			set_name("arcsin", "\\arcsin"));
@@ -1202,14 +1133,6 @@ REGISTER_FUNCTION(asin, eval_func(asin_eval).
 //////////
 // inverse cosine (arc cosine)
 //////////
-
-static ex acos_evalf(const ex & x, PyObject* parent)
-{
-	if (is_exactly_a<numeric>(x))
-		return acos(ex_to<numeric>(x));
-	
-	return acos(x).hold();
-}
 
 static ex acos_eval(const ex & x)
 {
@@ -1281,7 +1204,6 @@ static ex acos_conjugate(const ex & x)
 
  
 REGISTER_FUNCTION(acos, eval_func(acos_eval).
-                        evalf_func(acos_evalf).
                         derivative_func(acos_deriv).
                         conjugate_func(acos_conjugate).
 			set_name("arccos", "\\arccos"));
@@ -1289,14 +1211,6 @@ REGISTER_FUNCTION(acos, eval_func(acos_eval).
 //////////
 // inverse tangent (arc tangent)
 //////////
-
-static ex atan_evalf(const ex & x, PyObject* parent)
-{
-	if (is_exactly_a<numeric>(x))
-		return atan(ex_to<numeric>(x));
-	
-	return atan(x).hold();
-}
 
 static ex atan_eval(const ex & x)
 {
@@ -1410,7 +1324,6 @@ static ex atan_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(atan, eval_func(atan_eval).
-                        evalf_func(atan_evalf).
                         derivative_func(atan_deriv).
                         series_func(atan_series).
                         conjugate_func(atan_conjugate).

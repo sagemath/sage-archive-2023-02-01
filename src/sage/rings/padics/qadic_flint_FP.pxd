@@ -1,4 +1,4 @@
-from sage.libs.cypari2.gen cimport Gen as pari_gen
+from cypari2.gen cimport Gen as pari_gen
 from sage.libs.flint.fmpz_poly cimport fmpz_poly_t
 from sage.rings.padics.pow_computer_flint cimport PowComputer_flint_unram
 cdef class PowComputer_(PowComputer_flint_unram):

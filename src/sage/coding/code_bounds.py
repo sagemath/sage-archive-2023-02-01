@@ -18,8 +18,10 @@ AUTHORS:
 
 - Dima Pasechnik (2012-10): added LP bounds.
 
-Let `F` be a finite field (we denote the finite field with `q` elements by
-`\GF{q}`).  A subset `C` of `V=F^n` is called a code of length `n`. A subspace
+Let `F` be a finite set of size `q`.
+A subset `C` of `V=F^n` is called a code of length `n`.
+Often one considers the case where `F` is a finite field,
+denoted by `\GF{q}`.  Then `V` is an `F`-vector space.  A subspace
 of `V` (with the standard basis) is called a linear code of length `n`. If its
 dimension is denoted `k` then we typically store a basis of `C` as a `k\times
 n` matrix (the rows are the basis vectors). If `F=\GF{2}` then `C` is called a
@@ -33,7 +35,7 @@ elements of a code `C` are called codewords. The information rate of `C` is
 
 
 where `\vert C\vert` denotes the number of elements of `C`. If `{\bf
-v}=(v_1,v_2,...,v_n)`, `{\bf w}=(w_1,w_2,...,w_n)` are vectors in `V=F^n` then
+v}=(v_1,v_2,...,v_n)`, `{\bf w}=(w_1,w_2,...,w_n)` are elements of `V=F^n` then
 we define
 
 
@@ -43,8 +45,11 @@ we define
 
 
 to be the Hamming distance between `{\bf v}` and `{\bf w}`. The function
-`d:V\times V\rightarrow \Bold{N}` is called the Hamming metric. The weight of a
-vector (in the Hamming metric) is `d({\bf v},{\bf 0})`. The minimum distance of
+`d:V\times V\rightarrow \Bold{N}` is called the Hamming metric. The weight of
+an element (in the Hamming metric) is `d({\bf v},{\bf 0})`,
+where `0` is a distinguished element of `F`;
+in particular it is `0` of the field if `F` is a field.
+The minimum distance of
 a linear code is the smallest non-zero weight of a codeword in `C`.  The
 relatively minimum distance is denoted
 
@@ -59,8 +64,8 @@ necessarily linear) code `C` with length `n`, size `M=|C|`, and minimum
 distance `d` is called an `(n,M,d)_q`-code (using parentheses instead of square
 brackets). Of course, `k=\log_q(M)` for linear codes.
 
-What is the "best" code of a given length? Let `F` be a finite field with `q`
-elements. Let `A_q(n,d)` denote the largest `M` such that there exists a
+What is the "best" code of a given length?
+Let `A_q(n,d)` denote the largest `M` such that there exists a
 `(n,M,d)` code in `F^n`. Let `B_q(n,d)` (also denoted `A^{lin}_q(n,d)`) denote
 the largest `k` such that there exists a `[n,k,d]` code in `F^n`. (Of course,
 `A_q(n,d)\geq B_q(n,d)`.) Determining `A_q(n,d)` and `B_q(n,d)` is one of the

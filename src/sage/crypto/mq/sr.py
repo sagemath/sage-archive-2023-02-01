@@ -861,7 +861,7 @@ class SR_generic(MPolynomialSystemGenerator):
             sage: S(sr.k.gen())
             a^3 + 1
         """
-        from sage.crypto.mq.sbox import SBox
+        from sage.crypto.sbox import SBox
 
         k = self.base_ring()
         if not inversion_only:

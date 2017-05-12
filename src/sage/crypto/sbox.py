@@ -36,7 +36,7 @@ class SBox(SageObject):
 
     We consider the S-box of the block cipher PRESENT [PRESENT07]_::
 
-        sage: S = mq.SBox(12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2); S
+        sage: S = SBox(12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2); S
         (12, 5, 6, 11, 9, 0, 10, 13, 3, 14, 15, 8, 4, 7, 1, 2)
         sage: S(1)
         5
@@ -49,7 +49,7 @@ class SBox(SageObject):
         sage: S([0,0,0,1])
         [0, 1, 0, 1]
 
-        sage: S = mq.SBox(12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2, big_endian=False)
+        sage: S = SBox(12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2, big_endian=False)
         sage: S(1)
         5
         sage: S([0,0,0,1])
@@ -60,7 +60,7 @@ class SBox(SageObject):
     S-Box (cf. :mod:`sage.crypto.mq.sr`)::
 
         sage: sr = mq.SR(1,1,1,4, allow_zero_inversions=True)
-        sage: S = mq.SBox([sr.sub_byte(e) for e in list(sr.k)])
+        sage: S = SBox([sr.sub_byte(e) for e in list(sr.k)])
         sage: S
         (6, 5, 2, 9, 4, 7, 3, 12, 14, 15, 10, 0, 8, 1, 13, 11)
 
@@ -97,7 +97,7 @@ class SBox(SageObject):
         We construct a 3-bit S-box where e.g. the bits (0,0,1) are
         mapped to (1,1,1).::
 
-            sage: S = mq.SBox(7,6,0,4,2,5,1,3); S
+            sage: S = SBox(7,6,0,4,2,5,1,3); S
             (7, 6, 0, 4, 2, 5, 1, 3)
 
             sage: S(0)
@@ -105,15 +105,15 @@ class SBox(SageObject):
 
         TESTS::
 
-            sage: S = mq.SBox()
+            sage: S = SBox()
             Traceback (most recent call last):
             ...
             TypeError: No lookup table provided.
-            sage: S = mq.SBox(1, 2, 3)
+            sage: S = SBox(1, 2, 3)
             Traceback (most recent call last):
             ...
             TypeError: Lookup table length is not a power of 2.
-            sage: S = mq.SBox(5, 6, 0, 3, 4, 2, 1, 2)
+            sage: S = SBox(5, 6, 0, 3, 4, 2, 1, 2)
             sage: S.n
             3
         """
@@ -148,7 +148,7 @@ class SBox(SageObject):
         """
         EXAMPLES::
 
-            sage: mq.SBox(7,6,0,4,2,5,1,3) #indirect doctest
+            sage: SBox(7,6,0,4,2,5,1,3) #indirect doctest
             (7, 6, 0, 4, 2, 5, 1, 3)
         """
         return "(" + ", ".join(map(str,list(self))) + ")"
@@ -159,7 +159,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: len(mq.SBox(7,6,0,4,2,5,1,3))
+            sage: len(SBox(7,6,0,4,2,5,1,3))
             3
         """
         return self.m
@@ -171,7 +171,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox(7,6,0,4,2,5,1,3)
+            sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: loads(dumps(S)) == S
             True
         """
@@ -184,7 +184,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox(7,6,0,4,2,5,1,3)
+            sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: S != S
             False
         """
@@ -203,7 +203,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox(7,6,0,4,2,5,1,3)
+            sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: S.to_bits(6)
             [1, 1, 0]
 
@@ -234,7 +234,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox(7,6,0,4,2,5,1,3)
+            sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: S.from_bits( [1,1,0])
             6
 
@@ -259,7 +259,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox(7,6,0,4,2,5,1,3)
+            sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: S._rpad([1,1])
             [1, 1, 0]
         """
@@ -283,7 +283,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox([7,6,0,4,2,5,1,3])
+            sage: S = SBox([7,6,0,4,2,5,1,3])
             sage: S(7)
             3
 
@@ -313,7 +313,7 @@ class SBox(SageObject):
             ...
             TypeError: Cannot apply SBox to 1/2.
 
-            sage: S = mq.SBox(3, 0, 1, 3, 1, 0, 2, 2)
+            sage: S = SBox(3, 0, 1, 3, 1, 0, 2, 2)
             sage: S(0)
             3
             sage: S([0,0,0])
@@ -367,7 +367,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox([7,6,0,4,2,5,1,3])
+            sage: S = SBox([7,6,0,4,2,5,1,3])
             sage: S[7]
             3
         """
@@ -379,11 +379,11 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
+             sage: S = SBox(7,6,0,4,2,5,1,3)
              sage: S.is_permutation()
              True
 
-             sage: S = mq.SBox(3,2,0,0,2,1,1,3)
+             sage: S = SBox(3,2,0,0,2,1,1,3)
              sage: S.is_permutation()
              False
         """
@@ -395,7 +395,7 @@ class SBox(SageObject):
         """
         EXAMPLES::
 
-            sage: S = mq.SBox(7,6,0,4,2,5,1,3)
+            sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: [e for e in S]
             [7, 6, 0, 4, 2, 5, 1, 3]
         """
@@ -418,7 +418,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-           sage: S = mq.SBox(7,6,0,4,2,5,1,3)
+           sage: S = SBox(7,6,0,4,2,5,1,3)
            sage: S.difference_distribution_matrix()
            [8 0 0 0 0 0 0 0]
            [0 2 2 0 2 0 0 2]
@@ -454,7 +454,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox(7,6,0,4,2,5,1,3)
+            sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: S.maximal_difference_probability_absolute()
             2
 
@@ -474,7 +474,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox(7,6,0,4,2,5,1,3)
+            sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: S.maximal_difference_probability()
             0.25
         """
@@ -495,7 +495,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox(7,6,0,4,2,5,1,3)
+            sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: S.linear_approximation_matrix()
             [ 4  0  0  0  0  0  0  0]
             [ 0  0  0  0  2  2  2 -2]
@@ -546,7 +546,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox(7,6,0,4,2,5,1,3)
+            sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: S.maximal_linear_bias_absolute()
             2
         """
@@ -561,7 +561,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox(7,6,0,4,2,5,1,3)
+            sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: S.maximal_linear_bias_relative()
             0.25
         """
@@ -574,7 +574,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox(7,6,0,4,2,5,1,3)
+            sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: S.ring()
             Multivariate Polynomial Ring in x0, x1, x2, y0, y1, y2 over Finite Field of size 2
         """
@@ -603,7 +603,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox([7,6,0,4,2,5,1,3])
+            sage: S = SBox([7,6,0,4,2,5,1,3])
             sage: F = S.polynomials()
             sage: s = S.solutions()
             sage: any(f.subs(_s) for f in F for _s in s)
@@ -649,7 +649,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox(7,6,0,4,2,5,1,3)
+            sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: P = S.ring()
 
         By default, this method returns an indirect representation::
@@ -694,7 +694,7 @@ class SBox(SageObject):
 
             TESTS::
 
-                sage: S = mq.SBox(7,6,0,4,2,5,1,3)
+                sage: S = SBox(7,6,0,4,2,5,1,3)
                 sage: F = S.polynomials(degree=3) # indirect doctest
             """
             total = 1
@@ -777,7 +777,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox(7,6,0,4,2,5,1,3)
+            sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: f = S.interpolation_polynomial()
             sage: f
             x^6 + a*x^5 + (a + 1)*x^4 + (a^2 + a + 1)*x^3
@@ -845,7 +845,7 @@ class SBox(SageObject):
 
         We give a very small example to explain the output format::
 
-            sage: S = mq.SBox(1,2,0,3); S
+            sage: S = SBox(1,2,0,3); S
             (1, 2, 0, 3)
             sage: cnf = S.cnf(); cnf
             [(1, 2, -3),  (1, 2, 4),
@@ -923,7 +923,7 @@ class SBox(SageObject):
 
         This function respects endianness of the S-Box::
 
-            sage: S = mq.SBox(1,2,0,3, big_endian=False); S
+            sage: S = SBox(1,2,0,3, big_endian=False); S
             (1, 2, 0, 3)
             sage: cnf = S.cnf(); cnf
             [(1, 2, -4), (1, 2, 3),
@@ -935,7 +935,7 @@ class SBox(SageObject):
 
             sage: o = list(range(8)) + list(range(8))
             sage: shuffle(o)
-            sage: S = mq.SBox(o)
+            sage: S = SBox(o)
             sage: S.is_permutation()
             False
 
@@ -945,7 +945,7 @@ class SBox(SageObject):
 
         TESTS:
 
-            sage: S = mq.SBox(1,2,0,3, big_endian=False)
+            sage: S = SBox(1,2,0,3, big_endian=False)
             sage: S.cnf([1000,1001,1002], [2000,2001,2002])
             Traceback (most recent call last):
             ...
@@ -1013,7 +1013,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox([7,6,0,4,2,5,1,3])
+            sage: S = SBox([7,6,0,4,2,5,1,3])
             sage: f3 = S.component_function(3)
             sage: f3.algebraic_normal_form()
             x0*x1 + x0*x2 + x0 + x2
@@ -1078,7 +1078,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox([0,1,3,6,7,4,5,2])
+            sage: S = SBox([0,1,3,6,7,4,5,2])
             sage: S.is_apn()
             True
             sage: S.differential_uniformity()
@@ -1102,7 +1102,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
+            sage: S = SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
             sage: S.differential_branch_number()
             3
         """
@@ -1137,7 +1137,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
+            sage: S = SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
             sage: S.linear_branch_number()
             2
         """
@@ -1172,7 +1172,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox(7,6,0,4,2,5,1,3)
+            sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: S.autocorrelation_matrix()
             [ 8  8  8  8  8  8  8  8]
             [ 8  0  0  0  0  0  0 -8]
@@ -1210,7 +1210,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox([0,1,3,6,7,4,5,2])
+            sage: S = SBox([0,1,3,6,7,4,5,2])
             sage: S.linear_structures()
             [(1, 1, 1), (2, 2, 1), (3, 3, 1), (4, 4, 1), (5, 5, 1), (6, 6, 1), (7, 7, 1)]
         """
@@ -1232,7 +1232,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
+            sage: S = SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
             sage: S.max_degree()
             3
         """
@@ -1251,7 +1251,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
+            sage: S = SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
             sage: S.min_degree()
             2
         """
@@ -1272,7 +1272,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
+            sage: S = SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
             sage: S.is_balanced()
             True
         """
@@ -1293,7 +1293,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox([0,1,3,6,7,4,5,2])
+            sage: S = SBox([0,1,3,6,7,4,5,2])
             sage: S.is_almost_bent()
             True
         """
@@ -1313,7 +1313,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox([0,1,3,6,7,4,5,2])
+            sage: S = SBox([0,1,3,6,7,4,5,2])
             sage: S.fixed_points()
             [0, 1]
         """
@@ -1329,7 +1329,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox([0, 1, 3, 6, 7, 4, 5, 2])
+            sage: S = SBox([0, 1, 3, 6, 7, 4, 5, 2])
             sage: Sinv = S.inverse()
             sage: [Sinv(S(i)) for i in range(8)]
             [0, 1, 2, 3, 4, 5, 6, 7]
@@ -1347,13 +1347,13 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox([0,1,3,6,7,4,5,2])
+            sage: S = SBox([0,1,3,6,7,4,5,2])
             sage: S.is_monomial_function()
             False
             sage: S.interpolation_polynomial()
             (a + 1)*x^6 + (a^2 + a + 1)*x^5 + (a^2 + 1)*x^3
 
-            sage: S = mq.SBox(0,1,5,6,7,2,3,4)
+            sage: S = SBox(0,1,5,6,7,2,3,4)
             sage: S.is_monomial_function()
             True
             sage: S.interpolation_polynomial()
@@ -1369,7 +1369,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox(0, 3, 1, 2, 4, 6, 7, 5)
+            sage: S = SBox(0, 3, 1, 2, 4, 6, 7, 5)
             sage: S.is_plateaued()
             True
         """
@@ -1393,7 +1393,7 @@ class SBox(SageObject):
             sage: base = R.base_ring()
             sage: a = base.gen()
             sage: G = a * x^2 + 1
-            sage: S = mq.SBox([G(x * y**(14)) for x in sorted(base) for y in sorted(base)])
+            sage: S = SBox([G(x * y**(14)) for x in sorted(base) for y in sorted(base)])
             sage: S.is_bent()
             True
             sage: S.nonlinearity()
@@ -1431,7 +1431,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox([x**254 for x in sorted(GF(2**8))])
+            sage: S = SBox([x**254 for x in sorted(GF(2**8))])
             sage: S.is_involution()
             True
         """
@@ -1447,15 +1447,15 @@ def feistel_construction(*args):
 
     INPUT:
 
-    - ``args`` - a finite iterable mq.SBox objects
+    - ``args`` - a finite iterable SBox objects
 
     EXAMPLES:
 
     Suppose we construct an `8 \times 8` S-Box with 3-round Feistel construction
     from the S-Box of PRESENT::
 
-        sage: from sage.crypto.mq.sbox import feistel_construction
-        sage: s = mq.SBox(12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2)
+        sage: from sage.crypto.sbox import feistel_construction
+        sage: s = SBox(12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2)
         sage: S = feistel_construction(s, s, s)
 
     The properties of the constructed S-Box can be easily examined::
@@ -1479,7 +1479,7 @@ def feistel_construction(*args):
 
     for sb in sboxes:
         if not isinstance(sb, SBox):
-            raise TypeError("All input must be an instance of mq.SBox object")
+            raise TypeError("All input must be an instance of SBox object")
 
     b = sboxes[0].m
     m = 2*b
@@ -1503,17 +1503,17 @@ def misty_construction(*args):
 
     INPUT:
 
-    - ``args`` - a finite iterable mq.SBox objects
+    - ``args`` - a finite iterable SBox objects
 
     EXAMPLES:
 
     We construct an `8 \times 8` S-Box using 3-round MISTY structure with the following
     `4 \times 4` S-Boxes `S1, S2, S3` (see Example 2 in [CDL2015]_)::
 
-        sage: S1 = mq.SBox([0x4,0x0,0x1,0xF,0x2,0xB,0x6,0x7,0x3,0x9,0xA,0x5,0xC,0xD,0xE,0x8])
-        sage: S2 = mq.SBox([0x0,0x0,0x0,0x1,0x0,0xA,0x8,0x3,0x0,0x8,0x2,0xB,0x4,0x6,0xE,0xD])
-        sage: S3 = mq.SBox([0x0,0x7,0xB,0xD,0x4,0x1,0xB,0xF,0x1,0x2,0xC,0xE,0xD,0xC,0x5,0x5])
-        sage: from sage.crypto.mq.sbox import misty_construction
+        sage: S1 = SBox([0x4,0x0,0x1,0xF,0x2,0xB,0x6,0x7,0x3,0x9,0xA,0x5,0xC,0xD,0xE,0x8])
+        sage: S2 = SBox([0x0,0x0,0x0,0x1,0x0,0xA,0x8,0x3,0x0,0x8,0x2,0xB,0x4,0x6,0xE,0xD])
+        sage: S3 = SBox([0x0,0x7,0xB,0xD,0x4,0x1,0xB,0xF,0x1,0x2,0xC,0xE,0xD,0xC,0x5,0x5])
+        sage: from sage.crypto.sbox import misty_construction
         sage: S = misty_construction(S1, S2, S3)
         sage: S.differential_uniformity()
         8
@@ -1532,7 +1532,7 @@ def misty_construction(*args):
 
     for sb in sboxes:
         if not isinstance(sb, SBox):
-            raise TypeError("All input must be an instance of mq.SBox object")
+            raise TypeError("All input must be an instance of SBox object")
 
     b = sboxes[0].m
     m = 2*b

@@ -1029,19 +1029,29 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         ::
 
             sage: G = MatrixGroup(CyclicPermutationGroup(4))
-            sage: chi = G.character(G.character_table()[2])
+            sage: chi = G.character(G.character_table()[3])
             sage: K.<v> = CyclotomicField(4)
             sage: R.<x,y,z,w> = K[]
             sage: G.reynolds_operator(x, chi)
-            1/4*x + (-1/4*v)*y - 1/4*z + (1/4*v)*w
+            1/4*x + (1/4*v)*y - 1/4*z + (-1/4*v)*w
+            sage: chi = G.character(G.character_table()[2])
+            sage: R.<x,y,z,w> = QQ[]
+            sage: G.reynolds_operator(x*y, chi)
+            1/4*x*y + (-1/4*zeta4)*y*z + (1/4*zeta4)*x*w - 1/4*z*w
 
         ::
 
-            sage: G = MatrixGroup(CyclicPermutationGroup(3))
+            sage: K.<i> = CyclotomicField(4)
+            sage: G =  MatrixGroup(CyclicPermutationGroup(3))
             sage: chi = G.character(G.character_table()[1])
-            sage: R.<x,y,z> = QQ[]
-            sage: G.reynolds_operator(x*y ,chi)
-            1/3*x*y + (-1/3*zeta3 - 1/3)*x*z + (1/3*zeta3)*y*z
+            sage: R.<x,y,z> = K[]
+            sage: G.reynolds_operator(x*y^5, chi)
+            1/3*x*y^5 + (2/3*izeta3^3 + izeta3^2 + 8/3*izeta3 + 1)*x^5*z +
+            (-2/3*izeta3^3 - izeta3^2 - 8/3*izeta3 - 4/3)*y*z^5
+            sage: R.<x,y,z> = QQbar[]
+            sage: G.reynolds_operator(x*y^5, chi)
+            1/3*x*y^5 + (-0.1666666666666667? - 0.2886751345948129?*I)*x^5*z +
+            (-0.1666666666666667? + 0.2886751345948129?*I)*y*z^5
 
         ::
 
@@ -1061,73 +1071,37 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
 
             sage: K.<i> = CyclotomicField(4)
             sage: Tetra =  MatrixGroup([(-1+i)/2,(-1+i)/2, (1+i)/2,(-1-i)/2], [0,i, -i,0])
-            sage: chi = Tetra.character(Tetra.character_table()[1])
-            sage: R.<x,y> = K[]
-            sage: Tetra.reynolds_operator(x*y^5, chi)
-            -1/2*x^5*y + 1/2*x*y^5
-            sage: chi = Tetra.character(Tetra.character_table()[2])
-            sage: Tetra.reynolds_operator(x*y^9, chi)
-            -1/4*x^9*y + (2*izeta3^3 + 3*izeta3^2 + 8*izeta3 + 7/2)*x^7*y^3
-            + (-2*izeta3^3 - 3*izeta3^2 - 8*izeta3 - 7/2)*x^3*y^7 + 1/4*x*y^9
-
-        ::
-
-            sage: K.<i> = CyclotomicField(4)
-            sage: Tetra =  MatrixGroup([(-1+i)/2,(-1+i)/2, (1+i)/2,(-1-i)/2], [0,i, -i,0])
             sage: chi = Tetra.character(Tetra.character_table()[4])
-            sage: L.<v>=QuadraticField(-3)
-            sage: R.<x,y>=L[] # field for polynomial
-            sage: Tetra.reynolds_operator(x^4,chi)
+            sage: L.<v> = QuadraticField(-3)
+            sage: R.<x,y> = L[]
+            sage: Tetra.reynolds_operator(x^4, chi)
             1/4*x^4 + (1/2*v)*x^2*y^2 + 1/4*y^4
-
-        ::
-
-            sage: K.<i> = CyclotomicField(4)
-            sage: Tetra =  MatrixGroup([(-1+i)/2,(-1+i)/2, (1+i)/2,(-1-i)/2], [0,i, -i,0])
-            sage: chi = Tetra.character(Tetra.character_table()[4])
-            sage: L.<v> = QuadraticField(5)
-            sage: R.<x,y> = QQ[]
-            sage: Tetra.reynolds_operator(x^4,chi)
-            1/4*x^4 + (2*zeta3i^3 - 3*zeta3i^2 + 8*zeta3i - 7/2)*x^2*y^2 + 1/4*y^4
-
-        ::
-
-            sage: K.<i> = CyclotomicField(4)
-            sage: Tetra =  MatrixGroup([(-1+i)/2,(-1+i)/2, (1+i)/2,(-1-i)/2], [0,i, -i,0])
-            sage: chi = Tetra.character(Tetra.character_table()[4])
-            sage: L.<v> = QuadraticField(5)
             sage: R.<x>=L[]
             sage: LL.<w> = L.extension(x^2+v)
             sage: R.<x,y> = LL[]
-            sage: Tetra.reynolds_operator(x^4,chi)
+            sage: Tetra.reynolds_operator(x^4, chi)
             Traceback (most recent call last):
             ...
             NotImplementedError: only implemented for absolute fields
 
         ::
 
-            sage: K.<i> = CyclotomicField(4)
-            sage: Tetra =  MatrixGroup([(-1+i)/2,(-1+i)/2, (1+i)/2,(-1-i)/2], [0,i, -i,0])
-            sage: chi = Tetra.character(Tetra.character_table()[4])
-            sage: L.<v> = QuadraticField(5)
-            sage: R.<x,y> = QQbar[]
-            sage: Tetra.reynolds_operator(x^4,chi)
-            1/4*x^4 + 0.866025403784439?*I*x^2*y^2 + 1/4*y^4
-
-        ::
-
             sage: G =  MatrixGroup(DihedralGroup(4))
             sage: chi = G.character(G.character_table()[1])
-            sage: R.<x,y>=QQ[]
+            sage: R.<x,y> = QQ[]
             sage: f = x^4
-            sage: G.reynolds_operator(f,chi)
+            sage: G.reynolds_operator(f, chi)
             Traceback (most recent call last):
             ...
-            TypeError: number of variables in polynomial must match size of matrix
-
+            TypeError: number of variables in polynomial must match size of matrices
+            sage: R.<x,y,z,w> = QQ[]
+            sage: f = x^3*y
+            sage: G.reynolds_operator(f, chi)
+            1/8*x^3*y - 1/8*x*y^3 + 1/8*y^3*z - 1/8*y*z^3 - 1/8*x^3*w + 1/8*z^3*w +
+            1/8*x*w^3 - 1/8*z*w^3
         """
         if poly.parent().ngens() != self.degree():
-            raise TypeError("number of variables in polynomial must match size of matrix")
+            raise TypeError("number of variables in polynomial must match size of matrices")
         R = FractionField(poly.base_ring())
         if chi is None: #then this is the trivial character
             if R.characteristic() == 0 or (not R.characteristic().divides(self.order())):
@@ -1141,36 +1115,30 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         K = chi.values()[0].parent()
         C = FractionField(self.base_ring())
         if R.characteristic() == 0:
-            #extend base_ring to include character values
+            #extend base_ring to compositum
             if C == QQbar or K == QQbar or R == QQbar:
                 L = QQbar
             elif  not C.is_absolute() or not K.is_absolute() or not R.is_absolute():
                 raise NotImplementedError("only implemented for absolute fields")
-            elif K != R:
-                if K.absolute_degree() != 1:
-                    if R.absolute_degree() != 1:
-                        L = R.composite_fields(K)[0]
-                        if C.absolute_degree() != 1:
-                            # composite field of the fields of poly, self, and chi
-                            L = L.composite_fields(C)[0]
-                    elif C.absolute_degree() != 1:
-                        L = K.composite_fields(C)[0]
-                    else:
-                        L = K
-                elif C.absolute_degree() != 1:
-                    if R.absolute_degree() != 1:
-                        L = C.composite_fields(R)[0]
-                    else:
-                        L = C
-                else:
-                    L = R
-            elif C.absolute_degree()!= 1:
-                if R.absolute_degree() != 1:
-                    L = C.composite_fields(R)[0]
-                else:
-                    L = C
             else:
-                L = R
+                fields = []
+                for M in [R,K,C]:
+                    if M.absolute_degree() != 1:
+                        fields.append(M)
+                l = len(fields)
+                if l == 0:
+                    # all are QQ
+                    L = R
+                elif l == 1:
+                    #only one is an extension
+                    L = fields[0]
+                elif l == 2:
+                    #only two are extensions
+                    L = fields[0].composite_fields(fields[1])[0]
+                else:
+                    #all three are extensions
+                    L1 = fields[0].composite_fields(fields[1])[0]
+                    L = L1.composite_fields(fields[2])[0]
         else:
             raise NotImplementedError("not implemented for this base field's charateristic")
         poly = poly.change_ring(L)

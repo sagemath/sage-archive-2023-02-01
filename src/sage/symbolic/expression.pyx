@@ -10435,7 +10435,7 @@ cdef class Expression(CommutativeRingElement):
 
         AUTHORS:
 
-        - Emmanuel Charpentier, Ralf Stephan, Travis Scrimshaw (05-2017)
+        - Emmanuel Charpentier, Ralf Stephan (05-2017)
         """
         from sage.functions.other import symbolic_sum as opsum, \
             symbolic_product as opprod

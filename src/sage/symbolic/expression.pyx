@@ -10386,7 +10386,7 @@ cdef class Expression(CommutativeRingElement):
 
     def distribute(self, recursive=True):
         """
-        Distribute some indiced operators over similar operators in
+        Distribute some indexed operators over similar operators in
         order to allow further groupings or simplifications. 
 
         Implemented cases (so far) :

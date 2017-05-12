@@ -2617,7 +2617,7 @@ class Function_sum(BuiltinFunction):
             sage: latex(ssum(x^2, x, 1, 10))
             \sum_{x=1}^{10} x^2
         """
-        return r"\sum_{{{}={}}}^{{{}}} {}".format(var, a, b, x)
+        return r"{{\sum_{{{}={}}}^{{{}}} {}}}".format(var, a, b, x)
 
 symbolic_sum = Function_sum()
 
@@ -2664,6 +2664,6 @@ class Function_prod(BuiltinFunction):
             sage: latex(sprod(x^2, x, 1, 10))
             \prod_{x=1}^{10} x^2
         """
-        return r"\prod_{{{}={}}}^{{{}}} {}".format(var, a, b, x)
+        return r"{{\prod_{{{}={}}}^{{{}}} {}}}".format(var, a, b, x)
 
 symbolic_product = Function_prod()

@@ -1354,7 +1354,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
     ################################################
     # Echelon form
     ################################################
-    def echelonize(self, algorithm='default',
+    def echelonize(self, algorithm=None,
                    height_guess=None, proof=None, **kwds):
         """
         Transform the matrix ``self`` into reduced row echelon form
@@ -1362,9 +1362,9 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         INPUT:
 
-        -  ``algorithm``:
+        -  ``algorithm`` -- optional. One of
 
-          - ``'default'`` (default): use heuristic choice
+          - ``'flint'`` (default): use heuristic choice
 
           - ``'padic'``: an algorithm based on the IML p-adic solver.
 
@@ -1440,15 +1440,9 @@ cdef class Matrix_rational_dense(Matrix_dense):
         self.check_mutability()
         self.clear_cache()
 
-        cdef Matrix_rational_dense E
-        if algorithm == 'default':
-            if self._nrows <= 6 or self._ncols <= 6:
-                algorithm = "classical"
-            else:
-                algorithm = 'padic'
-
-        pivots = None
-        if algorithm == 'classical':
+        if algorithm is None or algorithm == 'flint':
+            pivots = self._echelonize_flint()
+        elif algorithm == 'classical':
             pivots = self._echelon_in_place_classical()
         elif algorithm == 'padic':
             pivots = self._echelonize_padic()
@@ -1456,6 +1450,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             pivots = self._echelonize_multimodular(height_guess, proof, **kwds)
         else:
             raise ValueError("no algorithm '%s'"%algorithm)
+
         self.cache('in_echelon_form', True)
 
         if pivots is None:
@@ -1463,14 +1458,14 @@ cdef class Matrix_rational_dense(Matrix_dense):
         self.cache('pivots', tuple(pivots))
 
 
-    def echelon_form(self, algorithm='default',
+    def echelon_form(self, algorithm=None,
                      height_guess=None, proof=None, **kwds):
         r"""
         INPUT:
 
-        -  ``algorithm``
+        -  ``algorithm`` -- optional. One of
 
-           - 'default' (default): use heuristic choice
+           - 'flint': using the FLINT library
 
            - 'padic': an algorithm based on the IML p-adic solver.
 
@@ -1520,116 +1515,178 @@ cdef class Matrix_rational_dense(Matrix_dense):
             sage: F
             [50  0 -1]
             [ 0  1  2]
+
+        TESTS:
+
+        Check consistency::
+
+            sage: for _ in range(100):
+            ....:     nrows = randint(0, 30)
+            ....:     ncols = randint(0, 30)
+            ....:     m = random_matrix(QQ, nrows, ncols, num_bound=10, den_bound=10)
+            ....:     ech_flint = m.echelon_form('flint'); m._clear_cache()
+            ....:     ech_padic = m.echelon_form('padic'); m._clear_cache()
+            ....:     ech_multi = m.echelon_form('multimodular'); m._clear_cache()
+            ....:     ech_class = m.echelon_form('classical')
+            ....:     assert ech_flint == ech_padic == ech_multi == ech_class
         """
-        label = 'echelon_form'
-        x = self.fetch(label)
-        if not x is None:
+        x = self.fetch('echelon_form')
+        if x is not None:
             return x
-        if self.fetch('in_echelon_form'): return self
+        if self.fetch('in_echelon_form'):
+            return self
 
-        if algorithm == 'default':
-            if self._nrows <= 6 or self._ncols <= 6:
-                algorithm = "classical"
-            else:
-                algorithm = 'padic'
-
-        if algorithm == 'classical':
+        if algorithm is None or algorithm == 'flint':
+            E = self.__copy__()
+            E.echelonize('flint')
+        elif algorithm == 'classical':
             E = self._echelon_classical()
         elif algorithm == 'padic':
-            E = self._echelon_form_padic()
+            E = self.__copy__()
+            E.echelonize('padic')
         elif algorithm == 'multimodular':
             E = self._echelon_form_multimodular(height_guess, proof=proof)
         else:
             raise ValueError("no algorithm '%s'"%algorithm)
+
         E.set_immutable()
-        self.cache(label, E)
+        self.cache('echelon_form', E)
         self.cache('pivots', E.pivots())
         return E
 
 
-    # p-adic echelonization algorithms
-    def _echelon_form_padic(self, include_zero_rows=True):
+    def _echelonize_flint(self):
+        r"""
+        EXAMPLES::
+
+            sage: m = matrix(QQ, 4, range(16))
+            sage: m._echelonize_flint()
+            (0, 1)
+            sage: m
+            [ 1  0 -1 -2]
+            [ 0  1  2  3]
+            [ 0  0  0  0]
+            [ 0  0  0  0]
+            sage: m = matrix(QQ, 4, 6, [-1,0,0,-2,-1,-2,-1,0,0,-2,-1,0,3,3,-2,0,0,3,-2,-3,1,1,-2,3])
+            sage: m._echelonize_flint()
+            (0, 1, 2, 5)
+            sage: m
+            [   1    0    0    2    1    0]
+            [   0    1    0 -4/3    1    0]
+            [   0    0    1    1    3    0]
+            [   0    0    0    0    0    1]
         """
-        Compute and return the echelon form of self using a p-adic
-        nullspace algorithm.
-        """
-        cdef Matrix_integer_dense X
-        cdef Matrix_rational_dense E
-        cdef Integer d
-        cdef fmpq * entry
+        sig_on()
+        fmpq_mat_rref(self._matrix, self._matrix)
+        sig_off()
 
-        t = verbose('Computing echelon form of %s x %s matrix over QQ using p-adic nullspace algorithm.'%(
-            self.nrows(), self.ncols()))
-        A, _ = self._clear_denom()
-        t = verbose('  Got integral matrix', t)
-        pivots, nonpivots, X, d = A._rational_echelon_via_solve()
-        t = verbose('  Computed ZZ-echelon using p-adic algorithm.', t)
-
-        nr = self.nrows() if include_zero_rows else X.nrows()
-        parent = self.matrix_space(nr, self.ncols())
-        E = Matrix_rational_dense.__new__(Matrix_rational_dense, parent, None, None, None)
-
-        # Fill in the identity part of the matrix
-        cdef Py_ssize_t i, j
-        for i in range(len(pivots)):
-            fmpz_one(fmpq_mat_entry_num(E._matrix, i, pivots[i]))
-
-        # Fill in the non-pivot part of the matrix
-        for i in range(X.nrows()):
-            for j in range(X.ncols()):
-                entry = fmpq_mat_entry(E._matrix, i, nonpivots[j])
-                fmpz_set(fmpq_numref(entry), fmpz_mat_entry(X._matrix, i, j))
-                fmpz_set_mpz(fmpq_denref(entry), d.value)
-                fmpq_canonicalise(entry)
-
-        t = verbose('Reconstructed solution over QQ, thus completing the echelonize', t)
-        E.cache('in_echelon_form', True)
-        E.cache('pivots', pivots)
-        return E
+        # compute pivots
+        cdef long i, j, k
+        cdef list p = []
+        k = 0
+        for i in range(self._nrows):
+            for j in range(k, self._ncols):
+                if not fmpq_is_zero(fmpq_mat_entry(self._matrix, i, j)):
+                    p.append(j)
+                    k = j+1  # so start at next position next time
+                    break
+            else:
+                break
+        return tuple(p)
 
     def _echelonize_padic(self):
         """
         Echelonize self using a p-adic nullspace algorithm.
+
+        EXAMPLES::
+
+            sage: m = matrix(QQ, 4, range(16))
+            sage: m._echelonize_padic()
+            (0, 1)
+            sage: m
+            [ 1  0 -1 -2]
+            [ 0  1  2  3]
+            [ 0  0  0  0]
+            [ 0  0  0  0]
+
+            sage: m = matrix(QQ, 4, 6, [-1,0,0,-2,-1,-2,-1,0,0,-2,-1,0,3,3,-2,0,0,3,-2,-3,1,1,-2,3])
+            sage: m._echelonize_padic()
+            (0, 1, 2, 5)
+            sage: m
+            [   1    0    0    2    1    0]
+            [   0    1    0 -4/3    1    0]
+            [   0    0    1    1    3    0]
+            [   0    0    0    0    0    1]
         """
         cdef Matrix_integer_dense X
         cdef Integer d
         cdef fmpq * entry
 
-        t = verbose('Computing echelonization of %s x %s matrix over QQ using p-adic nullspace algorithm.'%
-                    (self.nrows(), self.ncols()))
         A, _ = self._clear_denom()
         self._clear_cache()
-        t = verbose('  Got integral matrix', t)
         pivots, nonpivots, X, d = A._rational_echelon_via_solve()
-        t = verbose('  Computed ZZ-echelon using p-adic algorithm.', t)
 
-        # Fill in the identity part of self.
-        cdef Py_ssize_t i, j, k
-        for i in range(len(pivots)):
+        if X.nrows() != len(pivots):
+            # takes care of a bug in _rational_echelon_via_solve for corner cases
+            assert X.ncols() == len(pivots) == 0
+            fmpq_mat_zero(self._matrix)
+            return pivots
+
+        cdef Py_ssize_t i,j
+        for i in range(X.nrows()):
+            # 1 at pivot
             fmpq_one(fmpq_mat_entry(self._matrix, i, pivots[i]))
 
-        # Fill in the non-pivot part of self.
-        for i in range(X.nrows()):
+
+            # nonzero part
             for j in range(X.ncols()):
                 entry = fmpq_mat_entry(self._matrix, i, nonpivots[j])
-                fmpz_set(fmpq_numref(entry), fmpz_mat_entry(X._matrix,i,j))
+                fmpz_set(fmpq_numref(entry), fmpz_mat_entry(X._matrix, i, j))
                 fmpz_set_mpz(fmpq_denref(entry), d.value)
                 fmpq_canonicalise(entry)
+
+            # zeros on the left of the pivot
+            for j in range(pivots[i]):
+                fmpq_zero(fmpq_mat_entry(self._matrix, i, j))
+
+            # zeros on top of the other pivots
+            for j in range(i):
+                fmpq_zero(fmpq_mat_entry(self._matrix, j, pivots[i]))
+
 
         # Fill in the 0-rows at the bottom.
         for i in range(len(pivots), self._nrows):
             for j in range(self._ncols):
                 fmpq_zero(fmpq_mat_entry(self._matrix, i, j))
 
-        t = verbose('Filled in echelonization of self, thus completing the echelonize', t)
         return pivots
 
-
-    # Multimodular echelonization algorithms
     def _echelonize_multimodular(self, height_guess=None, proof=None, **kwds):
+        """
+        Echelonize self using mutlimodular recomposition
+
+        EXAMPLES::
+
+            sage: m = matrix(QQ, 4, range(16))
+            sage: m._echelonize_multimodular()
+            (0, 1)
+            sage: m
+            [ 1  0 -1 -2]
+            [ 0  1  2  3]
+            [ 0  0  0  0]
+            [ 0  0  0  0]
+            sage: m = matrix(QQ, 4, 6, [-1,0,0,-2,-1,-2,-1,0,0,-2,-1,0,3,3,-2,0,0,3,-2,-3,1,1,-2,3])
+            sage: m._echelonize_multimodular()
+            (0, 1, 2, 5)
+            sage: m
+            [   1    0    0    2    1    0]
+            [   0    1    0 -4/3    1    0]
+            [   0    0    1    1    3    0]
+            [   0    0    0    0    0    1]
+        """
         cdef Matrix_rational_dense E
         E = self._echelon_form_multimodular(height_guess, proof=proof, **kwds)
-        self._clear_cache()  # why!?
+        self._clear_cache()
         fmpq_mat_set(self._matrix, E._matrix)
         return E.pivots()
 
@@ -1687,7 +1744,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
                       fmpq_mat_entry(self._matrix, r, c2))
 
     def decomposition(self, is_diagonalizable=False, dual=False,
-                      algorithm='default', height_guess=None, proof=None):
+                      algorithm=None, height_guess=None, proof=None):
         """
         Returns the decomposition of the free module on which this matrix A
         acts from the right (i.e., the action is x goes to x A), along with

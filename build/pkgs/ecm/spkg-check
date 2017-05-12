@@ -14,7 +14,10 @@ cd src
 echo
 echo "Now running GMP-ECM's test suite..."
 
-$MAKE check longcheck
+$MAKE check
+# There are potential race conditions in the long check,
+# running it serially.
+$MAKE -j1 longcheck
 
 if [ $? -ne 0 ]; then
     echo >&2 "Error: GMP-ECM's test suite failed."

@@ -50,7 +50,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 from __future__ import print_function, division, absolute_import
-import six
+from six import integer_types, iteritems
 from six.moves import range
 
 from . import constructor
@@ -511,7 +511,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
               common value.
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve([1, -1, 1, -29372, -1932937])
             sage: E.conductor(algorithm="pari")
@@ -601,7 +601,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve([0, 0, 1, -1, 0])
             sage: e = E.pari_curve()
             sage: type(e)
-            <type 'sage.libs.cypari2.gen.Gen'>
+            <type 'cypari2.gen.Gen'>
             sage: e.type()
             't_VEC'
             sage: e.ellan(10)
@@ -1718,7 +1718,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.analytic_rank_upper_bound(max_Delta=0.6,root_number="compute")
             0
 
-        The are a small number of curves which have pathalogically low-lying
+        There are a small number of curves which have pathologically low-lying
         zeroes. For these curves, this method will produce a bound that is
         strictly larger than the analytic rank, unless very large values of
         Delta are used. The following curve ("256944c1" in the Cremona tables)
@@ -2844,7 +2844,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         The rank of the 2-Selmer group of the curve.
 
-        EXAMPLE: The following is the curve 960D1, which has rank 0, but
+        EXAMPLES: The following is the curve 960D1, which has rank 0, but
         Sha of order 4.
 
         ::
@@ -2895,7 +2895,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         curve.  If the curve has no 2-torsion it is the same as the
         2-selmer rank.
 
-        EXAMPLE: The following is the curve 960D1, which has rank 0, but
+        EXAMPLES: The following is the curve 960D1, which has rank 0, but
         Sha of order 4.
 
         ::
@@ -5189,7 +5189,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         G.set_vertices(dict([(v,isocls[v]) for v in G.vertices()]))
         v = G.shortest_path_lengths(0, by_weight=True)
         # Now exponentiate and round to get degrees of isogenies
-        v = dict([(i, j.exp().round() if j else 0) for i,j in six.iteritems(v)])
+        v = dict([(i, j.exp().round() if j else 0) for i,j in iteritems(v)])
         return isocls.curves, v
 
     def _multiple_of_degree_of_isogeny_to_optimal_curve(self):
@@ -5222,7 +5222,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         # enumeration is complete (which need not be the case a priori!), the LCM
         # of these numbers is a multiple of the degree of the isogeny
         # to the optimal curve.
-        v = [deg for num, deg in six.iteritems(v) if deg]  # get just the degrees
+        v = [deg for num, deg in iteritems(v) if deg]  # get just the degrees
         return arith.LCM(v)
 
     ##########################################################
@@ -6830,7 +6830,7 @@ def cremona_curves(conductors):
         ('39a3', 0),
         ('39a4', 0)]
     """
-    if isinstance(conductors, (int,long, rings.RingElement)):
+    if isinstance(conductors, integer_types + (rings.RingElement,)):
         conductors = [conductors]
     return sage.databases.cremona.CremonaDatabase().iter(conductors)
 
@@ -6856,7 +6856,7 @@ def cremona_optimal_curves(conductors):
         ['990a1', '990b1', '990c1', '990d1', '990e1', '990f1', '990g1', '990h3', '990i1', '990j1', '990k1', '990l1']
 
     """
-    if isinstance(conductors, (int,long,rings.RingElement)):
+    if isinstance(conductors, integer_types + (rings.RingElement,)):
         conductors = [conductors]
     return sage.databases.cremona.CremonaDatabase().iter_optimal(conductors)
 
@@ -7015,7 +7015,7 @@ def elliptic_curve_congruence_graph(curves):
     label) and an edge from `E` to `F` labelled `p` if and only if `E` is
     congruent to `F` mod `p`
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.ell_rational_field import elliptic_curve_congruence_graph
         sage: curves = list(cremona_optimal_curves([11..30]))

@@ -11,10 +11,11 @@ AUTHORS:
 """
 from __future__ import absolute_import
 from six.moves import cStringIO as StringIO
-from six.moves import range
+from six.moves import range, zip
 
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
+
 
 class table(SageObject):
     r"""
@@ -255,7 +256,7 @@ class table(SageObject):
             raise ValueError("Don't set both 'rows' and 'columns' when defining a table.")
         # If columns is set, use its transpose for rows.
         if columns:
-            rows = zip(*columns)
+            rows = list(zip(*columns))
         # Set the rest of the options.
         self._options = {}
         if header_row is True:
@@ -398,7 +399,7 @@ class table(SageObject):
             | z || 3 | 6 |
             +---++---+---+
         """
-        return table(zip(*self._rows),
+        return table(list(zip(*self._rows)),
                      header_row=self._options['header_column'],
                      header_column=self._options['header_row'],
                      frame=self._options['frame'],
@@ -725,7 +726,7 @@ class table(SageObject):
         else:
             frame = ''
         s = StringIO()
-        if len(rows) > 0:
+        if rows:
             s.writelines([
                 # If the table has < 100 rows, don't truncate the output in the notebook
                 '<div class="notruncate">\n' if len(rows) <= 100 else '<div class="truncate">' ,

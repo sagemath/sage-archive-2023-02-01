@@ -371,7 +371,7 @@ class FreeModuleAltForm(FreeModuleTensor):
         r"""
         Return the degree of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: a = M.alternating_form(2, name='a')
@@ -484,6 +484,15 @@ class FreeModuleAltForm(FreeModuleTensor):
             sage: b.display(format_spec=10)  # 10 bits of precision
             b = 0.33 e^1/\e^2 + 2.5 e^1/\e^3 + 4.0 e^2/\e^3
 
+        Check that the bug reported in :trac:`22520` is fixed::
+
+            sage: M = FiniteRankFreeModule(SR, 2, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.alternating_form(2)
+            sage: a[0,1] = SR.var('t', domain='real')
+            sage: a.display()
+            t e^0/\e^1
+
         """
         from sage.misc.latex import latex
         from sage.tensor.modules.format_utilities import is_atomic, \
@@ -497,7 +506,9 @@ class FreeModuleAltForm(FreeModuleTensor):
         for ind in comp.non_redundant_index_generator():
             ind_arg = ind + (format_spec,)
             coef = comp[ind_arg]
-            if coef != 0:
+            if not (coef == 0):   # NB: coef != 0 would return False for
+                                  # cases in which Sage cannot conclude
+                                  # see :trac:`22520`
                 bases_txt = []
                 bases_latex = []
                 for k in range(self._tensor_rank):

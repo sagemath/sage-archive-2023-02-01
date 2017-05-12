@@ -250,7 +250,7 @@ class ManinMap(object):
         r"""
         Extend the codomain of self to new_codomain. There must be a valid conversion operation from the old to the new codomain. This is most often used for extension of scalars from `\QQ` to `\QQ_p`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import ManinMap, M2Z
             sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations

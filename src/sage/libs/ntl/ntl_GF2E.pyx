@@ -379,7 +379,7 @@ cdef class ntl_GF2E(object):
         """
         Returns a ntl.GF2X copy of this element.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
             sage: a = ntl.GF2E('0x1c', ctx)
             sage: a.rep()
@@ -432,7 +432,7 @@ cdef class ntl_GF2E(object):
         OUTPUT:
             FiniteFieldElement over k
 
-        EXAMPLE:
+        EXAMPLES:
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: e = ntl.GF2E([0,1], ctx)
             sage: a = e._sage_(); a

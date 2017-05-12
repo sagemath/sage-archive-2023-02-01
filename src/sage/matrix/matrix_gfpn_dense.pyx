@@ -48,7 +48,6 @@ from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.finite_rings.integer_mod import IntegerMod_int
 from sage.matrix.constructor import random_matrix
-from sage.rings.arith import is_prime_power, factor
 from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.randstate import current_randstate
 from sage.misc.cachefunc import cached_method, cached_function
@@ -80,7 +79,7 @@ cdef class FieldConverter_class:
     for elements of prime and non-prime fields; see
     :class:`PrimeFieldConverter_class`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.matrix.matrix_gfpn_dense import FieldConverter_class  # optional: meataxe
         sage: F.<y> = GF(125)
@@ -105,7 +104,7 @@ cdef class FieldConverter_class:
 
         A finite *non-prime* field. This assumption is not tested.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.matrix.matrix_gfpn_dense import FieldConverter_class # optional: meataxe
             sage: F.<y> = GF(125)
@@ -125,7 +124,7 @@ cdef class FieldConverter_class:
         """
         Fetch a python int into the field.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.matrix.matrix_gfpn_dense import FieldConverter_class  # optional: meataxe
             sage: F.<y> = GF(125)
@@ -141,7 +140,7 @@ cdef class FieldConverter_class:
         """
         Represent a field element by a python int.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.matrix.matrix_gfpn_dense import FieldConverter_class  # optional: meataxe
             sage: F.<y> = GF(125)
@@ -163,7 +162,7 @@ cdef class PrimeFieldConverter_class(FieldConverter_class):
     have a common interface for elements of prime and non-prime fields;
     see :class:`FieldConverter_class`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.matrix.matrix_gfpn_dense import PrimeFieldConverter_class # optional: meataxe
         sage: F = GF(5)
@@ -184,7 +183,7 @@ cdef class PrimeFieldConverter_class(FieldConverter_class):
 
         A finite *prime* field. This assumption is not tested.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.matrix.matrix_gfpn_dense import PrimeFieldConverter_class  # optional: meataxe
             sage: F = GF(5)
@@ -204,7 +203,7 @@ cdef class PrimeFieldConverter_class(FieldConverter_class):
         """
         Fetch a python int into the field.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.matrix.matrix_gfpn_dense import PrimeFieldConverter_class  # optional: meataxe
             sage: F = GF(5)
@@ -220,7 +219,7 @@ cdef class PrimeFieldConverter_class(FieldConverter_class):
         """
         Represent a field element by a python int.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.matrix.matrix_gfpn_dense import PrimeFieldConverter_class  # optional: meataxe
             sage: F = GF(5)
@@ -239,7 +238,7 @@ cdef FieldConverter_class FieldConverter(field):
     Return a :class:`FieldConverter_class` or :class:`PrimeFieldConverter_class` instance,
     depending whether the field is prime or not.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: MS = MatrixSpace(GF(5^3,'y'),2)
         sage: A = MS.random_element()
@@ -675,7 +674,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         - ``nonzero`` (optional bool, default ``False``) --
           If true, all inserted marks are non-zero.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: MS = MatrixSpace(GF(27,'z'),6,6)
             sage: M = MS.random_element()       # indirect doctest

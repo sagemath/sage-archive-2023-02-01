@@ -59,7 +59,7 @@ def is_Map(x):
     """
     Auxiliary function: Is the argument a map?
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R.<x,y> = QQ[]
         sage: f = R.hom([x+y, x-y], R)
@@ -489,7 +489,7 @@ cdef class Map(Element):
 
             By default, the string ``"Generic"`` is returned. Subclasses may overload this method.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.categories.map import Map
             sage: f = Map(Hom(QQ, ZZ, Rings()))
@@ -513,7 +513,7 @@ cdef class Map(Element):
 
             By default, the empty string is returned. Subclasses may overload this method.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.categories.map import Map
             sage: f = Map(Hom(QQ, ZZ, Rings()))
@@ -1184,21 +1184,6 @@ cdef class Map(Element):
         else:
             return self.post_compose(connecting.__copy__())
 
-    def is_injective(self):
-        """
-        Tells whether the map is injective (not implemented in the base class).
-
-        TEST::
-
-            sage: from sage.categories.map import Map
-            sage: f = Map(Hom(QQ, ZZ, Rings()))
-            sage: f.is_injective()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: <type 'sage.categories.map.Map'>
-        """
-        raise NotImplementedError(type(self))
-
     def is_surjective(self):
         """
         Tells whether the map is surjective (not implemented in the base class).
@@ -1323,7 +1308,7 @@ cdef class Section(Map):
 
         Call methods are not implemented for the base class ``Section``.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.categories.map import Section
         sage: R.<x,y> = ZZ[]
@@ -1442,7 +1427,7 @@ cdef class FormalCompositeMap(Map):
         When calling a composite with additional arguments, these arguments are
         *only* passed to the second underlying map.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R.<x> = QQ[]
         sage: S.<a> = QQ[]
@@ -1813,7 +1798,7 @@ cdef class FormalCompositeMap(Map):
         f_1 \circ f_0`, then ``self.first()`` returns `f_0`.  We have
         ``self == self.then() * self.first()``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x> = QQ[]
             sage: S.<a> = QQ[]
@@ -1837,7 +1822,7 @@ cdef class FormalCompositeMap(Map):
         f_{n-1} \circ \cdots \circ f_1`.  We have ``self ==
         self.then() * self.first()``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x> = QQ[]
             sage: S.<a> = QQ[]
@@ -1858,7 +1843,7 @@ cdef class FormalCompositeMap(Map):
 
         It raises ``NotImplementedError`` if it can't be determined.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: V1 = QQ^2
             sage: V2 = QQ^3
@@ -1904,7 +1889,7 @@ cdef class FormalCompositeMap(Map):
 
         It raises ``NotImplementedError`` if it can't be determined.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.categories.map import FormalCompositeMap
             sage: V3 = QQ^3

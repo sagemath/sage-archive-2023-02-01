@@ -105,7 +105,7 @@ class Function_exp(GinacFunction):
             sage: conjugate(exp(x))
             e^conjugate(x)
 
-        Test simplifications when taking powers of exp, #7264::
+        Test simplifications when taking powers of exp (:trac:`7264`)::
 
             sage: var('a,b,c,II')
             (a, b, c, II)
@@ -125,7 +125,7 @@ class Function_exp(GinacFunction):
             sage: exp(x)*exp(a)^2
             e^(2*a + x)
 
-        Another instance of the same problem, #7394::
+        Another instance of the same problem (:trac:`7394`)::
 
             sage: 2*sqrt(e)
             2*sqrt(e)

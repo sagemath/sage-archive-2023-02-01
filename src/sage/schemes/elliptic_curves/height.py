@@ -592,7 +592,7 @@ def min_on_disk(f, tol, max_iter=10000):
     contained in the disk `|z|\le1`, at which `f` takes its minumum
     value.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.height import min_on_disk
         sage: f = lambda x: (x^2+100).abs()
@@ -1792,7 +1792,7 @@ class EllipticCurveCanonicalHeight:
             the attempt failed: trying again with larger `N` may yield
             ``True``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3-2)
             sage: E = EllipticCurve([0,0,0,0,a])

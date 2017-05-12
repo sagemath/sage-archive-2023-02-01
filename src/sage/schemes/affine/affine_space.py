@@ -10,6 +10,7 @@ Affine `n` space over a ring
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six import integer_types
 
 from sage.functions.orthogonal_polys import chebyshev_T, chebyshev_U
 from sage.rings.all import (PolynomialRing, ZZ, Integer)
@@ -92,7 +93,7 @@ def AffineSpace(n, R=None, names='x'):
         A = AffineSpace(R.ngens(), R.base_ring(), R.variable_names())
         A._coordinate_ring = R
         return A
-    if isinstance(R, (int, long, Integer)):
+    if isinstance(R, integer_types + (Integer,)):
         n, R = R, n
     if R is None:
         R = ZZ  # default is the integers

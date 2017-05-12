@@ -165,7 +165,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from six.moves import zip
 
 from sage.combinat.combination import Combinations
 from sage.geometry.cone import is_Cone
@@ -570,11 +570,11 @@ def ToricDivisor(toric_variety, arg=None, ring=None, check=True, reduce=True):
         assert len(arg)==n_rays, \
             'Argument list {0} is not of the required length {1}!' \
             .format(arg, n_rays)
-        arg = zip(arg, toric_variety.gens())
+        arg = list(zip(arg, toric_variety.gens()))
         reduce = False
 
     ##### Now we must have a list of multiplicity-coordinate pairs
-    assert all(len(item)==2 for item in arg)
+    assert all(len(item) == 2 for item in arg)
     if ring is None:
         # if the coefficient ring was not given, try to use the most common ones.
         try:

@@ -57,7 +57,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six.moves import range
+from six.moves import range, zip
 
 import sage.categories.all                  as cat
 from sage.misc.all import prod
@@ -90,7 +90,7 @@ def trivial_character(N, base_ring=rings.RationalField()):
     Return the trivial character of the given modulus, with values in the given
     base ring.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: t = trivial_character(7)
         sage: [t(x) for x in [0..20]]
@@ -252,14 +252,14 @@ class DirichletCharacter(MultiplicativeGroupElement):
                 raise ValueError("wrong number of values (= {}) on generators (want {})".format(x, len(orders)))
             if free_module_element.is_FreeModuleElement(x):
                 x = parent._module(x)
-                if any(map(lambda u, v: v*u != 0, x, orders)):
+                if any(u * v for u, v in zip(x, orders)):
                     raise ValueError("values (= {} modulo {}) must have additive orders dividing {}, respectively"
                                      .format(x, parent.zeta_order(), orders))
                 self.element.set_cache(x)
             else:
                 R = parent.base_ring()
                 x = tuple(map(R, x))
-                if R.is_exact() and any(map(lambda u, v: u**v != 1, x, orders)):
+                if R.is_exact() and any(u**v != 1 for u, v in zip(x, orders)):
                     raise ValueError("values (= {}) must have multiplicative orders dividing {}, respectively"
                                      .format(x, orders))
                 self.values_on_gens.set_cache(x)
@@ -349,7 +349,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
           base ring of ``self``, or a ring homomorphism with the base
           ring of ``self`` as its domain
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: e = DirichletGroup(7, QQ).0
             sage: f = e.change_ring(QuadraticField(3, 'a'))
@@ -471,7 +471,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         Return a (shallow) copy of this Dirichlet character.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G.<a> = DirichletGroup(11)
             sage: b = copy(a)
@@ -1513,7 +1513,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         Synonym for modulus.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: e = DirichletGroup(100, QQ).0
             sage: e.level()

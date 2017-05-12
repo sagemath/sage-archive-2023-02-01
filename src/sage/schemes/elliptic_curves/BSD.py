@@ -18,7 +18,7 @@ class BSD_data:
     """
     Helper class used to keep track of information in proving BSD.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.BSD import BSD_data
         sage: D = BSD_data()
@@ -50,7 +50,7 @@ class BSD_data:
         """
         Updates some properties from ``curve``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.schemes.elliptic_curves.BSD import BSD_data
             sage: D = BSD_data()
@@ -206,7 +206,7 @@ def heegner_index_work(E):
 
         - the discriminant used
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.BSD import heegner_index_work
         sage: heegner_index_work(EllipticCurve('14a'))

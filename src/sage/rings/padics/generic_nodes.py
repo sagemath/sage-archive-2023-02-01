@@ -378,7 +378,7 @@ class pAdicRingBaseGeneric(pAdicBaseGeneric, pAdicRingGeneric):
         Also preserves other information that makes this field unique
         (e.g. precision, rounding, print mode).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K = Zp(17, 8, print_mode='val-unit', print_sep='&')
             sage: c, L = K.construction(); L
@@ -517,7 +517,7 @@ class pAdicFieldBaseGeneric(pAdicBaseGeneric, pAdicFieldGeneric):
         Also preserves other information that makes this field unique
         (e.g. precision, rounding, print mode).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K = Qp(17, 8, print_mode='val-unit', print_sep='&')
             sage: c, L = K.construction(); L

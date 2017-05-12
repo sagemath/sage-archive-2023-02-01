@@ -113,7 +113,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         This function assumes that self._numpy_dtypeint and
         self._nrows and self._ncols have already been initialized.
 
-        EXAMPLE:
+        EXAMPLES:
         In this example, we throw away the current matrix and make a
         new uninitialized matrix representing the data for the class.::
 
@@ -625,7 +625,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             9923.88955...
             sage: A.condition(p='frob')
             9923.88955...
-            sage: A.condition(p=Infinity)  # tol 2e-14
+            sage: A.condition(p=Infinity)  # tol 3e-14
             22738.50000000045
             sage: A.condition(p=-Infinity)  # tol 2e-14
             17.50000000000028
@@ -1784,7 +1784,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             [ 7.6  2.3  1.0]
             [ 1.0  2.0 -1.0]
             sage: b = vector(RDF,[1,2,3])
-            sage: x = A.solve_left(b); x.zero_at(1e-17) # fix noisy zeroes
+            sage: x = A.solve_left(b); x.zero_at(2e-17) # fix noisy zeroes
             (0.666666666..., 0.0, 0.333333333...)
             sage: x.parent()
             Vector space of dimension 3 over Real Double Field

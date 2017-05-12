@@ -17,10 +17,12 @@ include "cysignals/memory.pxi"
 include "sage/data_structures/bitset.pxi"
 
 cimport cython
+from cpython.object cimport Py_EQ, Py_NE
 from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.rational cimport Rational
 from libc.string cimport memcpy, memcmp
 from sage.combinat.words.word_datatypes cimport WordDatatype
+from sage.structure.sage_object cimport rich_to_bool
 
 from cpython.number cimport PyIndex_Check, PyNumber_Check
 from cpython.sequence cimport PySequence_Check
@@ -281,6 +283,23 @@ cdef class WordDatatype_char(WordDatatype):
             (False, False, True, False)
             sage: (w>=w, z>=z, w>=z, z>=w)
             (True, True, True, False)
+
+        Testing that :trac:`22717` is fixed::
+
+            sage: w = Word([1,2], alphabet=[1,2,3])
+            sage: z = Word([1,2,3], alphabet=[1,2,3])
+            sage: (w<w, z<z, w<z, z<w)
+            (False, False, True, False)
+            sage: (w<=w, z<=z, w<=z, z<=w)
+            (True, True, True, False)
+            sage: (w==w, z==z, w==z, z==w)
+            (True, True, False, False)
+            sage: (w!=w, z!=z, w!=z, z!=w)
+            (False, False, True, True)
+            sage: (w>w, z>z, w>z, z>w)
+            (False, False, False, True)
+            sage: (w>=w, z>=z, w>=z, z>=w)
+            (True, True, False, True)
         """
         # 0: <
         # 1: <=
@@ -292,16 +311,11 @@ cdef class WordDatatype_char(WordDatatype):
             return NotImplemented
 
         # word of different lengths are not equal!
-        if (op == 2 or op == 3) and (<WordDatatype_char> self)._length != (<WordDatatype_char> other)._length:
-            return op == 3
+        if (op == Py_EQ or op == Py_NE) and (<WordDatatype_char> self)._length != (<WordDatatype_char> other)._length:
+            return op == Py_NE
 
         cdef int test = (<WordDatatype_char> self)._lexico_cmp(other)
-        if test < 0:
-            return op < 2 or op == 3
-        elif test > 0:
-            return op > 2
-        else:
-            return op == 1 or op == 2 or op == 5
+        return rich_to_bool(op, test)
 
     cdef int _lexico_cmp(self, WordDatatype_char other) except -2:
         r"""
@@ -317,8 +331,8 @@ cdef class WordDatatype_char(WordDatatype):
         sig_off()
 
         if test == 0:
-            return 0
-        if test < 0:
+            return self._length - other._length
+        elif test < 0:
             return -1
         else:
             return 1

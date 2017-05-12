@@ -35,12 +35,12 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
     Test comparisons::
 
         sage: A = random_matrix(Integers(25)['x'],2)
-        sage: cmp(A,A)
-        0
-        sage: cmp(A,A+1)
-        -1
-        sage: cmp(A+1,A)
-        1
+        sage: A == A
+        True
+        sage: A < A + 1
+        True
+        sage: A+1 < A
+        False
     """
     ########################################################################
     # LEVEL 1 functionality

@@ -52,7 +52,6 @@ from sage.rings.rational cimport Rational
 from sage.misc.misc import verbose, cputime
 from sage.rings.infinity import Infinity
 
-include "sage/ext/cdefs.pxi"
 include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 
@@ -721,7 +720,7 @@ cdef class Dist(ModuleElement):
         r"""
         Check that the precision of ``self`` is sensible.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.modular.pollack_stevens.distributions.Symk(2, base=Qp(5))
             sage: v = D([1, 2, 3])
@@ -789,7 +788,7 @@ cdef class Dist_vector(Dist):
         sage: D = OverconvergentDistributions(3,5,6) # indirect doctest
         sage: v = D([1,1,1])
     """
-    def __init__(self, moments, parent, ordp=0, check=True):
+    def __init__(self, moments, parent, ordp=0, check=True, normalize=True):
         """
         Initialization.
 
@@ -824,13 +823,14 @@ cdef class Dist_vector(Dist):
 
         self._moments = moments
         self.ordp = ordp
-        self.normalize() # DEBUG
+        if normalize:
+            self.normalize()
 
     def __reduce__(self):
         r"""
         Used for pickling.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.modular.pollack_stevens.distributions.Symk(2)
             sage: x = D([2,3,4])
@@ -871,7 +871,6 @@ cdef class Dist_vector(Dist):
             sage: repr(v)
             '(1 + O(7^5), 2 + O(7^4), 3 + O(7^3), 4 + O(7^2), 5 + O(7))'
         """
-        # self.normalize() # Should normalize only when absolutely needed.
         valstr = ""
         if self.ordp == 1:
             valstr = "%s * " % (self.parent().prime())
@@ -1612,7 +1611,7 @@ cdef class Dist_vector(Dist):
 #         r"""
 #         Used in pickling.
 
-#         EXAMPLE::
+#         EXAMPLES::
 
 #             sage: D = OverconvergentDistributions(0, 5, 10)
 #             sage: D([1,2,3,4]).__reduce__()
@@ -1886,7 +1885,6 @@ cdef class WeightKAction_vector(WeightKAction):
         v_moments = v._moments
         ans._moments = v_moments * self.acting_matrix(g, len(v_moments))
         ans.ordp = v.ordp
-        ans.normalize()
         return ans
 
 # cdef inline long mymod(long a, unsigned long pM):

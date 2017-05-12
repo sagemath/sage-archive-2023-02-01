@@ -192,18 +192,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
     cdef bint _set_prec_both(self, long absprec, long relprec) except -1:
         return 0
 
-    #def _pari_(self):
-    #    """
-    #    Returns a pari version of this element.
-
-    #    EXAMPLES::
-
-    #        sage: R = Zp(5)
-    #        sage: pari(R(1777))
-    #        2 + 5^2 + 4*5^3 + 2*5^4 + O(5^20)
-    #    """
-    #    return pari(self._pari_init_())
-
     def __floordiv__(self, right):
         """
         Divides self by right and throws away the nonintegral part if
@@ -398,7 +386,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         r"""
         Returns the multiplicative inverse of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = Zp(7,4,'capped-rel','series'); a = R(3); a
             3 + O(7^4)
@@ -834,7 +822,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
                              'on elements of Zp')
         parent = self.parent()
         if algorithm == 'pari':
-            return parent(self._pari_().gamma())
+            return parent(self.__pari__().gamma())
         elif algorithm == 'sage':
             from sage.misc.all import prod
             p = parent.prime()
@@ -2415,7 +2403,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         from sage.libs.pari.all import PariError
         try:
             # use pari
-            ans = self.parent()(self._pari_().sqrt())
+            ans = self.parent()(self.__pari__().sqrt())
             if all:
                 return [ans, -ans]
             else:
@@ -2430,8 +2418,38 @@ cdef class pAdicGenericElement(LocalGenericElement):
             else:
                 raise ValueError("element is not a square")
 
-    #def _unit_part(self):
-    #    raise NotImplementedError
+    def __abs__(self):
+        """
+        Return the `p`-adic absolute value of ``self``.
+
+        This is normalized so that the absolute value of `p` is `1/p`.
+
+        EXAMPLES::
+
+            sage: abs(Qp(5)(15))
+            1/5
+            sage: abs(Qp(7)(0))
+            0
+
+        An unramified extension::
+
+            sage: R = Zp(5,5)
+            sage: P.<x> = PolynomialRing(R)
+            sage: Z25.<u> = R.ext(x^2 - 3)
+            sage: abs(u)
+            1
+            sage: abs(u^24-1)
+            1/5
+
+        A ramified extension::
+
+            sage: W.<w> = R.ext(x^5 + 75*x^3 - 15*x^2 + 125*x - 5)
+            sage: abs(w)
+            0.724779663677696
+            sage: abs(W(0))
+            0.000000000000000
+        """
+        return self.abs()
 
     cpdef abs(self, prec=None):
         """

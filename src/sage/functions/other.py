@@ -3,19 +3,19 @@ Other functions
 """
 from __future__ import print_function
 from six.moves import range
+from six import integer_types
 
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import Expression
 from sage.libs.pynac.pynac import (register_symbol, symbol_table,
         py_factorial_py, I)
 from sage.symbolic.all import SR
-from sage.rings.all import Integer, Rational, RealField, RR, ZZ, ComplexField
+from sage.rings.all import Integer, Rational, RealField, ZZ, ComplexField
 from sage.rings.complex_number import is_ComplexNumber
 from sage.misc.latex import latex
 import math
 
-import sage.structure.element
-coercion_model = sage.structure.element.get_coercion_model()
+from sage.structure.element import coercion_model
 
 # avoid name conflicts with `parent` as a function parameter
 from sage.structure.all import parent as s_parent
@@ -25,6 +25,7 @@ from sage.functions.log import exp
 from sage.functions.trig import arctan2
 from sage.functions.exp_integral import Ei
 from sage.libs.mpmath import utils as mpmath_utils
+from sage.arith.all import binomial as arith_binomial
 
 one_half = ~SR(2)
 
@@ -452,7 +453,7 @@ class Function_ceil(BuiltinFunction):
         try:
             return x.ceil()
         except AttributeError:
-            if isinstance(x, (int, long)):
+            if isinstance(x, integer_types):
                 return Integer(x)
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.ceil(x)))
@@ -496,7 +497,7 @@ class Function_ceil(BuiltinFunction):
         try:
             return x.ceil()
         except AttributeError:
-            if isinstance(x, (int, long)):
+            if isinstance(x, integer_types):
                 return Integer(x)
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.ceil(x)))
@@ -608,7 +609,7 @@ class Function_floor(BuiltinFunction):
         try:
             return x.floor()
         except AttributeError:
-            if isinstance(x, (int, long)):
+            if isinstance(x, integer_types):
                 return Integer(x)
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.floor(x)))
@@ -650,7 +651,7 @@ class Function_floor(BuiltinFunction):
         try:
             return x.floor()
         except AttributeError:
-            if isinstance(x, (int, long)):
+            if isinstance(x, integer_types):
                 return Integer(x)
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.floor(x)))
@@ -752,11 +753,11 @@ class Function_frac(BuiltinFunction):
         try:
             return x - x.floor()
         except AttributeError:
-            if isinstance(x, (int, long)):
+            if isinstance(x, integer_types):
                 return Integer(0)
             elif isinstance(x, (float, complex)):
                 return x - Integer(int(math.floor(x)))
-            elif isinstance(x, sage.symbolic.expression.Expression):
+            elif isinstance(x, Expression):
                 ret = floor(x)
                 if not hasattr(ret, "operator") or not ret.operator() == floor:
                     return x - ret
@@ -1953,7 +1954,7 @@ class Function_binomial(GinacFunction):
             sage: binomial._evalf_(3/2,SR(1/1))
             3/2
         """
-        return sage.arith.all.binomial(n, k)
+        return arith_binomial(n, k)
 
 binomial = Function_binomial()
 
@@ -2181,7 +2182,7 @@ def sqrt(x, *args, **kwds):
             ...
             TypeError: _do_sqrt() got an unexpected keyword argument 'hold'
 
-        This illustrates that the bug reported in #6171 has been fixed::
+        This illustrates that the bug reported in :trac:`6171` has been fixed::
 
             sage: a = 1.1
             sage: a.sqrt(prec=100)  # this is supposed to fail

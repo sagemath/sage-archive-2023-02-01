@@ -216,6 +216,7 @@ We check that :trac:`17990` is fixed::
 #*****************************************************************************
 # python3
 from __future__ import division
+from six import integer_types
 
 from sys import maxsize
 from sage.rings.ring import Ring
@@ -233,7 +234,7 @@ class _uniq(object):
         """
         This ensures uniqueness of these objects.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sage.rings.infinity.UnsignedInfinityRing_class() is sage.rings.infinity.UnsignedInfinityRing_class()
             True
@@ -297,7 +298,7 @@ class AnInfinity(object):
         else:
             return r"%minusInfinity"
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Convert ``self`` to a Pari object.
 
@@ -763,7 +764,7 @@ class UnsignedInfinityRing_class(Singleton, Ring):
             sage: UnsignedInfinityRing.has_coerce_map_from(SymmetricGroup(13))
             False
         """
-        return isinstance(R, Ring) or R in (int, long, float, complex)
+        return isinstance(R, Ring) or R in  integer_types + (float, complex)
 
 UnsignedInfinityRing = UnsignedInfinityRing_class()
 
@@ -926,7 +927,7 @@ class UnsignedInfinity(_uniq, AnInfinity, InfinityElement):
         """
         Converts ``unsigned_infinity`` to sympy ``zoo``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sympy
             sage: sympy.sympify(unsigned_infinity)
@@ -1612,7 +1613,7 @@ class PlusInfinity(_uniq, AnInfinity, InfinityElement):
         Then you don't have to worry which ``oo`` you use, like in these
         examples:
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sympy
             sage: bool(oo == sympy.oo) # indirect doctest

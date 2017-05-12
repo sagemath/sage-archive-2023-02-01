@@ -2,6 +2,11 @@
 """
 The Normaliz backend for polyhedral computations
 
+.. NOTE::
+
+    This backend requires `PyNormaliz <https://pypi.python.org/pypi/PyNormaliz/1.5>`_.
+    To install PyNormaliz, type :code:`sage -i pynormaliz` in the terminal.
+
 AUTHORS:
 
 - Matthias Köppe (2016-12): initial version
@@ -23,7 +28,7 @@ from sage.structure.element import Element
 from sage.misc.all import prod
 
 from sage.rings.all import ZZ, QQ
-from sage.rings.integer import LCM_list
+from sage.arith.functions import LCM_list
 from sage.misc.functional import denominator
 from sage.matrix.constructor import matrix, vector
 
@@ -441,7 +446,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         INPUT:
 
         - ``threshold`` -- integer (default: 10000); use the naïve
-        algorithm as long as the bounding box is smaller than this
+          algorithm as long as the bounding box is smaller than this
 
         OUTPUT:
 
@@ -561,7 +566,7 @@ class Polyhedron_normaliz(Polyhedron_base):
                 return ()
         # for small bounding boxes, it is faster to naively iterate over the points of the box
         if threshold > 1:
-            box_min, box_max = self.bounding_box(integral=True)
+            box_min, box_max = self.bounding_box(integral_hull=True)
             box_points = prod(max_coord-min_coord+1 for min_coord, max_coord in zip(box_min, box_max))
             if  box_points<threshold:
                 from sage.geometry.integral_points import rectangular_box_points

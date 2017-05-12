@@ -50,12 +50,13 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
+
+from libc.string cimport strcpy, strlen
 
 from sage.modules.vector_rational_dense cimport Vector_rational_dense
 
-include "sage/ext/cdefs.pxi"
 include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 
@@ -85,11 +86,11 @@ from sage.misc.all import verbose, get_verbose, prod
 
 #########################################################
 # PARI C library
-from sage.libs.cypari2.gen cimport Gen
+from cypari2.gen cimport Gen
 from sage.libs.pari.convert_gmp cimport (INTFRAC_to_mpq,
            _new_GEN_from_mpq_t_matrix, rational_matrix)
-from sage.libs.cypari2.stack cimport clear_stack
-from sage.libs.cypari2.paridecl cimport *
+from cypari2.stack cimport clear_stack
+from cypari2.paridecl cimport *
 #########################################################
 
 cdef class Matrix_rational_dense(Matrix_dense):
@@ -1172,7 +1173,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             [ 2/27 -4/27  2/27]
             [-1/27  2/27 -1/27]
         """
-        return self.parent()(self._pari_().matadjoint().sage())
+        return self.parent()(self.__pari__().matadjoint().sage())
 
     def _magma_init_(self, magma):
         """
@@ -2594,13 +2595,13 @@ cdef class Matrix_rational_dense(Matrix_dense):
         clear_stack()
         return A
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Return pari version of this matrix.
 
         EXAMPLES::
 
-            sage: matrix(QQ,2,[1/5,-2/3,3/4,4/9])._pari_()
+            sage: matrix(QQ,2,[1/5,-2/3,3/4,4/9]).__pari__()
             [1/5, -2/3; 3/4, 4/9]
         """
         return rational_matrix(self._matrix, self._nrows, self._ncols)
@@ -2684,7 +2685,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         For details on input parameters, see
         :meth:`sage.matrix.matrix_integer_dense.Matrix_integer_dense.LLL`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = Matrix(QQ, 3, 3, [1/n for n in range(1, 10)])
             sage: A.LLL()

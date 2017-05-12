@@ -815,7 +815,7 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
 
         TESTS:
 
-        The bug reported at #12211 has been fixed::
+        The bug reported at :trac:`12211` has been fixed::
 
             sage: P.<x, y, z, w> = ProjectiveSpace(3, QQ)
             sage: S = P.subscheme([x])
@@ -3515,8 +3515,8 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         r"""
         Return the degree of this projective subscheme.
 
-        If `P(t) = a_{m}t^m + \ldots + a_{0}` is the the Hilbert polynomial of this subscheme, then
-        the degree is `a_{m}m!`.
+        If `P(t) = a_{m}t^m + \ldots + a_{0}` is the Hilbert
+        polynomial of this subscheme, then the degree is `a_{m} m!`.
 
         OUTPUT: Integer.
 
@@ -3527,14 +3527,10 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             sage: X.degree()
             7
 
-        ::
-
             sage: P.<x,y,z,w> = ProjectiveSpace(GF(13), 3)
             sage: X = P.subscheme([y^3 - w^3, x + 7*z])
             sage: X.degree()
             3
-
-        ::
 
             sage: P.<x,y,z,w,u> = ProjectiveSpace(QQ, 4)
             sage: C = P.curve([x^7 - y*z^3*w^2*u, w*x^2 - y*u^2, z^3 + y^3])
@@ -3542,7 +3538,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             63
         """
         P = self.defining_ideal().hilbert_polynomial()
-        return P.leading_coefficient()*P.degree().factorial()
+        return P.leading_coefficient() * P.degree().factorial()
 
     def intersection_multiplicity(self, X, P):
         r"""

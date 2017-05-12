@@ -10,23 +10,26 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#           Copyright (C) 2007 Robert L. Miller <rlmillster@gmail.com>
-#                         2007 Robert W. Bradshaw <robertwb@math.washington.edu>
+#       Copyright (C) 2007 Robert L. Miller <rlmillster@gmail.com>
+#                     2007 Robert W. Bradshaw <robertwb@math.washington.edu>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
 
 include "cysignals/signals.pxi"
-include 'sage/ext/cdefs.pxi'
 include "cysignals/memory.pxi"
 include "sage/data_structures/binary_matrix.pxi"
+from libc.math cimport sqrt
+from libc.string cimport memset
 
-# import from Python standard library
+from sage.libs.gmp.mpz cimport *
 from sage.misc.prandom import random
-
-# import from third-party library
 from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.graphs.base.static_sparse_graph cimport short_digraph
 from sage.graphs.base.static_sparse_graph cimport init_short_digraph
@@ -54,7 +57,7 @@ def spring_layout_fast_split(G, **options):
     EXAMPLES::
 
         sage: G = graphs.DodecahedralGraph()
-        sage: for i in range(10): G.add_cycle(range(100*i, 100*i+3))
+        sage: for i in range(10): G.add_cycle(list(range(100*i, 100*i+3)))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast_split
         sage: spring_layout_fast_split(G)
         {0: [0.452..., 0.247...], ..., 502: [25.7..., 0.505...]}
@@ -97,7 +100,7 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     EXAMPLES::
 
         sage: G = graphs.DodecahedralGraph()
-        sage: for i in range(10): G.add_cycle(range(100*i, 100*i+3))
+        sage: for i in range(10): G.add_cycle(list(range(100*i, 100*i+3)))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
         sage: spring_layout_fast(G)
         {0: [-0.0733..., 0.157...], ..., 502: [-0.551..., 0.682...]}
@@ -113,7 +116,7 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     the several adjacent components. ::
 
         sage: G = graphs.DodecahedralGraph()
-        sage: for i in range(10): G.add_cycle(range(100*i, 100*i+3))
+        sage: for i in range(10): G.add_cycle(list(range(100*i, 100*i+3)))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
         sage: spring_layout_fast(G, by_component = True)
         {0: [2.12..., -0.321...], ..., 502: [26.0..., -0.812...]}
@@ -324,7 +327,7 @@ def int_to_binary_string(n):
 
     - ``n`` (integer)
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: sage.graphs.generic_graph_pyx.int_to_binary_string(389)
         '110000101'
@@ -352,7 +355,7 @@ def binary_string_to_graph6(x):
 
     - ``x`` -- a binary string.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.generic_graph_pyx import binary_string_to_graph6
         sage: binary_string_to_graph6('110111010110110010111000001100000001000000001')
@@ -383,7 +386,7 @@ def small_integer_to_graph6(n):
 
     - ``n`` (integer)
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.generic_graph_pyx import small_integer_to_graph6
         sage: small_integer_to_graph6(13)
@@ -410,7 +413,7 @@ def length_and_string_from_graph6(s):
     - ``s`` -- a graph6 string describing an binary vector (and encoding its
       length).
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.generic_graph_pyx import length_and_string_from_graph6
         sage: length_and_string_from_graph6('~??~?????_@?CG??B??@OG?C?G???GO??W@a???CO???OACC?OA?P@G??O??????G??C????c?G?CC?_?@???C_??_?C????PO?C_??AA?OOAHCA___?CC?A?CAOGO??????A??G?GR?C?_o`???g???A_C?OG??O?G_IA????_QO@EG???O??C?_?C@?G???@?_??AC?AO?a???O?????A?_Dw?H???__O@AAOAACd?_C??G?G@??GO?_???O@?_O??W??@P???AG??B?????G??GG???A??@?aC_G@A??O??_?A?????O@Z?_@M????GQ@_G@?C?')
@@ -444,7 +447,7 @@ def binary_string_from_graph6(s, n):
 
     - ``n`` -- the length of the binary string encoded by ``s``.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.generic_graph_pyx import binary_string_from_graph6
         sage: binary_string_from_graph6('?????_@?CG??B??@OG?C?G???GO??W@a???CO???OACC?OA?P@G??O??????G??C????c?G?CC?_?@???C_??_?C????PO?C_??AA?OOAHCA___?CC?A?CAOGO??????A??G?GR?C?_o`???g???A_C?OG??O?G_IA????_QO@EG???O??C?_?C@?G???@?_??AC?AO?a???O?????A?_Dw?H???__O@AAOAACd?_C??G?G@??GO?_???O@?_O??W??@P???AG??B?????G??GG???A??@?aC_G@A??O??_?A?????O@Z?_@M????GQ@_G@?C?', 63)
@@ -474,7 +477,7 @@ def binary_string_from_dig6(s, n):
 
     - ``n`` -- the length of the binary string encoded by ``s``.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.generic_graph_pyx import binary_string_from_dig6
         sage: binary_string_from_dig6('?????_@?CG??B??@OG?C?G???GO??W@a???CO???OACC?OA?P@G??O??????G??C????c?G?CC?_?@???C_??_?C????PO?C_??AA?OOAHCA___?CC?A?CAOGO??????A??G?GR?C?_o`???g???A_C?OG??O?G_IA????_QO@EG???O??C?_?C@?G???@?_??AC?AO?a???O?????A?_Dw?H???__O@AAOAACd?_C??G?G@??GO?_???O@?_O??W??@P???AG??B?????G??GG???A??@?aC_G@A??O??_?A?????O@Z?_@M????GQ@_G@?C?', 63)
@@ -529,7 +532,7 @@ cdef class SubgraphSearch:
         input : `G` and `H` are both graphs or both digraphs and that `H`
         has order at least 2.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = graphs.PetersenGraph()
             sage: g.subgraph_search(graphs.CycleGraph(5))
@@ -565,7 +568,7 @@ cdef class SubgraphSearch:
         Returns an iterator over all the labeleld subgraphs of `G`
         isomorphic to `H`.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Iterating through all the `P_3` of `P_5`::
 
@@ -596,7 +599,7 @@ cdef class SubgraphSearch:
            Hence it probably is not a good idea to count their number
            before enumerating them :-)
 
-        EXAMPLE:
+        EXAMPLES:
 
         Counting the number of labelled `P_3` in `P_5`::
 
@@ -630,7 +633,7 @@ cdef class SubgraphSearch:
         :meth:`__iter__` or to :meth:`cardinality`, it is cleaner to
         create a dedicated method.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Finding two times the first occurrence through the
         re-initialization of the instance ::
@@ -671,7 +674,7 @@ cdef class SubgraphSearch:
 
         This method initializes all the C values.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = graphs.PetersenGraph()
             sage: g.subgraph_search(graphs.CycleGraph(5))
@@ -758,7 +761,7 @@ cdef class SubgraphSearch:
         Returns the next isomorphic subgraph if any, and raises a
         ``StopIteration`` otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.generic_graph_pyx import SubgraphSearch
             sage: g = graphs.PathGraph(5)
@@ -1389,7 +1392,7 @@ def transitive_reduction_acyclic(G):
 
     - ``G`` -- an acyclic digraph.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.generic_graph_pyx import transitive_reduction_acyclic
         sage: G = posets.BooleanLattice(4).hasse_diagram()

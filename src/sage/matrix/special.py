@@ -11,9 +11,9 @@ Constructors for special matrices
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import, division
 from six.moves import range
+from six import integer_types
 
 import sage.rings.all as rings
 from sage.rings.ring import is_Ring
@@ -736,7 +736,7 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
     # Size of matrix specified?
     # Formats 2, 4
     nrows = None
-    if isinstance(arg0, (int, long, rings.Integer)):
+    if isinstance(arg0, integer_types + (rings.Integer,)):
         nrows = arg0
         arg0 = arg1
     # Object holding entries
@@ -811,7 +811,7 @@ def identity_matrix(ring, n=0, sparse=False):
         sage: M.is_mutable()
         True
     """
-    if isinstance(ring, (int, long, rings.Integer)):
+    if isinstance(ring, integer_types  + (rings.Integer,)):
         n = ring
         ring = rings.ZZ
     return matrix_space.MatrixSpace(ring, n, n, sparse)(1)
@@ -837,7 +837,7 @@ def lehmer(ring, n=0):
     """
     from sage.sets.integer_range import IntegerRange
 
-    if isinstance(ring, (int, long, rings.Integer)):
+    if isinstance(ring, integer_types + (rings.Integer,)):
         n = ring
         ring = rings.QQ
     return matrix_space.MatrixSpace(ring, n, n).matrix([[min(i, j)/max(i, j) for i in IntegerRange(1, n+1)] for j in IntegerRange(1, n+1)])
@@ -880,7 +880,7 @@ def zero_matrix(ring, nrows=None, ncols=None, sparse=False):
         [0 0 0 0 0]
 
     """
-    if isinstance(ring, (int, long, rings.Integer)):
+    if isinstance(ring, integer_types + (rings.Integer,)):
         nrows, ncols = (ring, nrows)
         ring = rings.ZZ
     return matrix_space.MatrixSpace(ring, nrows, ncols, sparse)(0)
@@ -965,7 +965,7 @@ def ones_matrix(ring, nrows=None, ncols=None, sparse=False):
         ...
         ValueError: constructing an all ones matrix requires at least one dimension
     """
-    if isinstance(ring, (int, long, rings.Integer)):
+    if isinstance(ring, integer_types + (rings.Integer,)):
         nrows, ncols = (ring, nrows)
         ring = rings.ZZ
     if nrows is None:
@@ -2058,7 +2058,7 @@ def jordan_block(eigenvalue, size, sparse=False):
     -  ``sparse`` - (default: False) - if True, return a sparse matrix
 
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: jordan_block(5, 3)
         [5 1 0]
@@ -2531,13 +2531,13 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
     A matrix without size control may have very large entry sizes. ::
 
         sage: D=random_matrix(ZZ, 7, 8, algorithm='echelonizable', rank=6); D
-        [    1     2     8   -35  -178  -673  -284   778]
-        [    4     9    37  -163  -827 -3128 -1324  3624]
-        [    5     6    21   -88  -454 -1712  -708  1951]
-        [   -4    -5   -22    97   491  1854   779 -2140]
-        [    4     4    13   -55  -283 -1066  -436  1206]
-        [    4    11    43  -194  -982 -3714 -1576  4310]
-        [   -1    -2   -13    59   294  1113   481 -1312]
+        [    1     2     8   -35  -178  -239  -284   778]
+        [    4     9    37  -163  -827 -1111 -1324  3624]
+        [    5     6    21   -88  -454  -607  -708  1951]
+        [   -4    -5   -22    97   491   656   779 -2140]
+        [    4     4    13   -55  -283  -377  -436  1206]
+        [    4    11    43  -194  -982 -1319 -1576  4310]
+        [   -1    -2   -13    59   294   394   481 -1312]
 
     Matrices can be generated over any exact ring. ::
 
@@ -2603,30 +2603,32 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
 
     ring = parent.base_ring()
     rows = parent.nrows()
-    if rank<0:
+    if rank < 0:
         raise ValueError("matrices must have rank zero or greater.")
-    if rank>min(rows,parent.ncols()):
+    if rank > min(rows,parent.ncols()):
         raise ValueError("matrices cannot have rank greater than min(ncols,nrows).")
     matrix = random_rref_matrix(parent, rank)
 
     # Entries of matrices over the ZZ or QQ can get large, entry size is regulated by finding the largest
     # entry of the resultant matrix after addition of scalar multiple of a row.
-    if ring==QQ or ring==ZZ:
+    if ring == QQ or ring == ZZ:
         # If upper_bound is not set, don't control entry size.
         if upper_bound is None:
         # If size control is not desired, the routine will run slightly faster, particularly with large matrices.
-            for pivots in range(rank-1,-1,-1):
-                row_index=0
-                while row_index<rows:
-                    if pivots==row_index:
-                        row_index+=1
-                    if pivots!=row_index and row_index!=rows:
-                        matrix.add_multiple_of_row(row_index,matrix.pivot_rows()[pivots],randint(-5,5))
-                        row_index+=1
-            if rows>1:
-                matrix.add_multiple_of_row(0,randint(1,rows-1),randint(-3,3))
+            for pivots in range(rank-1, -1, -1):
+                row_index = 0
+                while row_index < rows:
+                    if pivots == row_index:
+                        row_index += 1
+                    if pivots != row_index and row_index != rows:
+                        matrix.add_multiple_of_row(row_index,
+                                                   matrix.pivot_rows()[pivots],
+                                                   randint(-5, 5))
+                        row_index += 1
+            if rows > 1:
+                matrix.add_multiple_of_row(0, randint(1,rows-1), randint(-3,3))
         else:
-            if rank==1:  # would be better just to have a special generator...
+            if rank == 1:  # would be better just to have a special generator...
                tries = 0
                while max(map(abs,matrix.list())) >= upper_bound:
                   matrix = random_rref_matrix(parent, rank)
@@ -2697,7 +2699,7 @@ def random_subspaces_matrix(parent, rank=None):
 
     OUTPUT:
 
-    A matrix whose natrual basis vectors for its four subspaces, when
+    A matrix whose natural basis vectors for its four subspaces, when
     computed, have reasonably sized, integral valued, entries.
 
     .. note::
@@ -3396,7 +3398,7 @@ def ith_to_zero_rotation_matrix(v, i, ring=None):
 
     AUTHORS:
 
-        Sebastien Labbe (April 2010)
+    Sebastien Labbe (April 2010)
     """
     if not ring is None:
         # coerce the vector so that computations
@@ -3415,5 +3417,5 @@ def ith_to_zero_rotation_matrix(v, i, ring=None):
     entries = {}
     for k in range(dim):
         entries[(k, k)] = 1
-    entries.update({(j,j):aa, (j,i):bb, (i,j):-bb, (i,i):aa})
+    entries.update({(j, j): aa, (j, i): bb, (i, j): -bb, (i, i): aa})
     return matrix(entries, nrows=dim, ring=ring)

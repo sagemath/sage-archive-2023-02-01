@@ -7643,6 +7643,7 @@ class Graph(GenericGraph):
     
             sage: G = graphs.EmptyGraph()
             sage: all(G.has_perfect_matching(algorithm=algo) for algo in ['Edmonds', 'LP_matching', 'LP'])
+            True
 
         Be careful with isolated vertices::
 
@@ -7651,6 +7652,8 @@ class Graph(GenericGraph):
             sage: any(G.has_perfect_matching(algorithm=algo) for algo in ['Edmonds', 'LP_matching', 'LP'])
             False
         """
+        if self.order() % 2:
+            return False
         if algorithm == "Edmonds":
             return len(self) == 2*self.matching(value_only=True,
                                                 use_edge_labels=False,
@@ -7669,7 +7672,7 @@ class Graph(GenericGraph):
                 edges = self.edges_incident(v, labels=False)
                 if not edges:
                     return False
-                p.add_constraint(sum([b[e] for e in edges]) == 1)
+                p.add_constraint(sum(b[e] for e in edges) == 1)
             try:
                 p.solve(log=verbose)
                 return True

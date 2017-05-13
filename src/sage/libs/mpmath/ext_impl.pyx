@@ -38,7 +38,7 @@ from libc.math cimport frexp
 
 from cysignals.signals cimport sig_check
 
-from sage.ext.stdsage import PY_NEW
+from sage.ext.stdsage cimport PY_NEW
 from sage.libs.gmp.all cimport *
 from sage.libs.mpfr cimport *
 from sage.rings.integer cimport Integer

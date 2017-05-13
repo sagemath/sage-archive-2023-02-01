@@ -22,7 +22,7 @@ EXAMPLES::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from cpython cimport *
 
@@ -30,13 +30,13 @@ import sage.modules.free_module
 import sage.misc.latex
 import sage.rings.integer
 
-from   sage.misc.misc import verbose, get_verbose
-from   sage.structure.sequence import Sequence
+from sage.misc.misc import verbose, get_verbose
+from sage.structure.sequence import Sequence
 
 cimport sage.structure.element
-from   sage.structure.element    cimport ModuleElement, Element, RingElement, Vector
-from   sage.structure.mutability cimport Mutability
-from   sage.misc.misc_c cimport normalize_index
+from sage.structure.element cimport ModuleElement, Element, RingElement, Vector
+from sage.structure.mutability cimport Mutability
+from sage.misc.misc_c cimport normalize_index
 
 from sage.rings.ring cimport CommutativeRing
 from sage.rings.ring import is_Ring

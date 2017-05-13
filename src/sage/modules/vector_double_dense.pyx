@@ -40,6 +40,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 cimport numpy
 import numpy
@@ -467,8 +468,8 @@ cdef class Vector_double_dense(FreeModuleElement):
             else:
                 self._vector_numpy = scipy.fftpack.ifft(self._vector_numpy, overwrite_x = True)
         else:
-            V = CDF**self._degree
-            from vector_complex_double_dense import Vector_complex_double_dense
+            V = CDF ** self._degree
+            from .vector_complex_double_dense import Vector_complex_double_dense
             if direction == 'forward':
                 return Vector_complex_double_dense(V, scipy.fft(self._vector_numpy))
             else:

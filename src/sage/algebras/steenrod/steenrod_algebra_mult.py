@@ -7,7 +7,7 @@ AUTHORS:
   multiplication.
 - John H. Palmieri (2010-06-30: version 1.0) multiplication of
   Serre-Cartan basis elements using the Adem relations.
-  - Simon King (2011-10-25): Fix the use of cached functions.
+- Simon King (2011-10-25): Fix the use of cached functions.
 
 .. rubric:: Milnor multiplication, `p=2`
 
@@ -187,9 +187,8 @@ The *admissible* monomials at an odd prime are products of the form
 where `s_k \geq \epsilon_{k+1} + p s_{k+1}` for all `k`.  As at the
 prime 2, these form a basis for the Steenrod algebra.
 
-The main function for this is :func:`make_mono_admissible_` (and in
-practice, one should use the cached version,
-``make_mono_admissible``), which converts a product of Steenrod
+The main function for this is :func:`make_mono_admissible`,
+which converts a product of Steenrod
 squares or pth power operations and Bocksteins into a dictionary
 representing a sum of admissible monomials.
 """
@@ -707,12 +706,6 @@ def adem(a, b, c=0, p=2, generic=None):
     a dictionary representing the mod `p` Adem relations
     applied to `P^a P^b` or (if `c` present) to `P^a \beta^b P^c`.
 
-    .. note::
-
-        Users should use :func:`adem` instead of this function (which
-        has a trailing underscore in its name): :func:`adem`
-        is the cached version of this one, and so will be faster.
-
     The mod `p` Adem relations for the mod `p` Steenrod algebra are as
     follows: if `p=2`, then if `a < 2b`,
 
@@ -875,13 +868,6 @@ def make_mono_admissible(mono, p=2, generic=None):
     and then apply this function recursively to each of the resulting
     tuples `(i_1, ..., i_{j-1}, NEW, i_{j+2}, ...)`, keeping track of
     the coefficients.
-
-    .. note::
-
-        Users should use :func:`make_mono_admissible` instead of this
-        function (which has a trailing underscore in its name):
-        :func:`make_mono_admissible` is the cached version of this
-        one, and so will be faster.
 
     EXAMPLES::
 

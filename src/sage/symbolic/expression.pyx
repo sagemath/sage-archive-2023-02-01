@@ -9481,8 +9481,6 @@ cdef class Expression(CommutativeRingElement):
         else:
             return self
 
-
-
     def simplify_real(self):
         r"""
         Simplify the given expression over the real numbers. This allows
@@ -9791,7 +9789,7 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS:
 
-        Check that the problem with applying `full_simplify()` to gamma
+        Check that the problem with applying ``full_simplify()`` to gamma
         functions (:trac:`9240`) has been fixed::
 
             sage: gamma(1/3)

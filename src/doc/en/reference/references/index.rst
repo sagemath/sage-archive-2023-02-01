@@ -322,6 +322,11 @@ REFERENCES:
             complexes and posets. I*. Trans. of
             Amer. Math. Soc. **348** No. 4. (1996)
 
+.. [BZ01] \A. Berenstein, A. Zelevinsky
+          *Tensor product multiplicities, canonical bases
+          and totally positive varieties*
+          Invent. Math. **143** No. 1. (2002), 77-128.
+
 .. _ref-C:
 
 **C**
@@ -668,6 +673,10 @@ REFERENCES:
             curves". LMS Journal of Computation and Mathematics
             (2014), volume 17, issue 01, pp. 1-23.
 
+.. [FOS2010] \G. Fourier, M. Okado, A. Schilling. *Perfectness of
+             Kirillov-Reshetikhin crystals for nonexceptional types*.
+             Contemp. Math. 506 (2010) 127-143 ( :arxiv:`0811.1604` )
+
 .. [FP1996] Komei Fukuda, Alain Prodon: Double Description Method
             Revisited, Combinatorics and Computer Science, volume 1120
             of Lecture Notes in Computer Science, page
@@ -940,6 +949,13 @@ REFERENCES:
 .. [Kal1980] \T. Kaliath, "Linear Systems", Prentice-Hall, 1980,
              383--386.
 
+.. [Kam2007] Joel Kamnitzer,
+             *The crystal structure on the set of Mirković-Vilonen polytopes*,
+             Adv. Math. **215** (2007), 66-93.
+
+.. [Kam2010] Joel Kamnitzer, *Mirković-Vilonen cycles and polytopes*,
+             Ann. Math. (2) **171** (2010), 731-777.
+
 .. [Kan1958] \D. M. Kan, *A combinatorial definition of homotopy
              groups*, Ann. Math. (2) 67 (1958), 282-312.
 
@@ -958,6 +974,10 @@ REFERENCES:
             *Convex polytopes and related complexes.*, in \R. L. Graham,
             \M. Grötschel, \L Lovász, *Handbook of combinatorics*,
             Vol. 1, Chapter 18, 1995
+
+.. [KKMMNN1992] S-J. Kang, M. Kashiwara, K. C. Misra, T. Miwa, T. Nakashima,
+                and A. Nakayashiki. *Affine crystals and vertex models*.
+                Int. J. Mod. Phys. A, **7** (suppl. 1A), (1992) pp. 449-484.
 
 .. [KL2008] Chris Kurth and Ling Long, "Computations with finite index
             subgroups of `{\rm PSL}_2(\ZZ)` using Farey symbols",
@@ -1499,6 +1519,11 @@ REFERENCES:
 .. [SS1992] \M. A. Shtan'ko and M. I. Shtogrin, "Embedding cubic
             manifolds and complexes into a cubic lattice", *Uspekhi
             Mat. Nauk* 47 (1992), 219-220.
+
+.. [ST2011] \A. Schilling, P. Tingley. *Demazure crystals,
+            Kirillov-Reshetikhin crystals, and the energy function*.
+            Electronic Journal of Combinatorics. **19(2)**. 2012.
+            :arXiv:`1104.2359`
 
 .. [Sta2007] Stanley, Richard: *Hyperplane Arrangements*, Geometric
              Combinatorics (E. Miller, V. Reiner, and B. Sturmfels,

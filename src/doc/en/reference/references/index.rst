@@ -1520,6 +1520,20 @@ REFERENCES:
             manifolds and complexes into a cubic lattice", *Uspekhi
             Mat. Nauk* 47 (1992), 219-220.
 
+
+.. [SS2015] Anne Schilling and Travis Scrimshaw.
+            *Crystal structure on rigged configurations and the filling map*.
+            Electon. J. Combin., **22**(1) (2015) #P1.73. :arxiv:`1409.2920`.
+
+.. [SS2015II] Ben Salisbury and Travis Scrimshaw.
+              *A rigged configuration model for* `B(\infty)`.
+              J. Combin. Theory Ser. A, ***133** (2015) pp. 29-75.
+              :arxiv:`1404.6539`.
+
+.. [SS2017] Ben Salisbury and Travis Scrimshaw.
+            *Rigged configurations for all symmetrizable types*.
+            Electon. J. Combin., **24**(1) (2017) #P1.30. :arxiv:`1509.07833`.
+
 .. [ST2011] \A. Schilling, P. Tingley. *Demazure crystals,
             Kirillov-Reshetikhin crystals, and the energy function*.
             Electronic Journal of Combinatorics. **19(2)**. 2012.

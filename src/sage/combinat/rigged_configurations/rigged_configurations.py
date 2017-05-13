@@ -381,6 +381,7 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
         self.dims = B
         cl = cartan_type.classical()
         self._rc_index = cl.index_set()
+        self._rc_index_inverse = {i: ii for ii,i in enumerate(self._rc_index)}
         # We store the Cartan matrix for the vacancy number calculations for speed
         self._cartan_matrix = cl.cartan_matrix()
         Parent.__init__(self, category=KirillovReshetikhinCrystals().TensorProducts())

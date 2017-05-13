@@ -708,6 +708,18 @@ cdef class DenseGraphBackend(CGraphBackend):
             sage: list(D.iterator_edges(range(9), True))
             [(0, 1, None)]
 
+        TESTS:
+
+        Check :trac:`22991`::
+
+            sage: G = Graph(3, sparse=False)
+            sage: G.add_edge(0,0)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot add edge from 0 to 0 in graph without loops
+            sage: G = Graph(3, sparse=True, loops=True)
+            sage: G.add_edge(0,0); G.edges()
+            [(0, 0, None)]
         """
         if u is None: u = self.add_vertex(None)
         if v is None: v = self.add_vertex(None)
@@ -715,7 +727,11 @@ cdef class DenseGraphBackend(CGraphBackend):
         cdef int u_int = self.check_labelled_vertex(u, 0)
         cdef int v_int = self.check_labelled_vertex(v, 0)
 
-        if directed or u_int == v_int:
+        if u_int == v_int:
+            if not self._loops:
+                raise ValueError(f"cannot add edge from {u!r} to {v!r} in graph without loops")
+            self._cg.add_arc(u_int, u_int)
+        elif directed:
             self._cg.add_arc(u_int, v_int)
         else:
             self._cg.add_arc(u_int, v_int)

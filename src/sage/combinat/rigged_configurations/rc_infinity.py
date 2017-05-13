@@ -30,7 +30,7 @@ from sage.categories.homset import Hom
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.rigged_configurations.rigged_configuration_element import (
      RiggedConfigurationElement, RCNonSimplyLacedElement)
-from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurationOptions
+from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
 from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition
 
 # Note on implementation, this class is used for simply-laced types only
@@ -53,14 +53,14 @@ class InfinityCrystalOfRiggedConfigurations(UniqueRepresentation, Parent):
     For simplicity, we display all of the rigged configurations
     horizontally::
 
-        sage: RiggedConfigurations.global_options(display='horizontal')
+        sage: RiggedConfigurations.options(display='horizontal')
 
     We begin with a simply-laced finite type::
 
         sage: RC = crystals.infinity.RiggedConfigurations(['A', 3]); RC
         The infinity crystal of rigged configurations of type ['A', 3]
 
-        sage: RC.global_options(display='horizontal')
+        sage: RC.options(display='horizontal')
 
         sage: mg = RC.highest_weight_vector(); mg
         (/)  (/)  (/)
@@ -108,7 +108,7 @@ class InfinityCrystalOfRiggedConfigurations(UniqueRepresentation, Parent):
 
     We reset the global options::
 
-        sage: RiggedConfigurations.global_options.reset()
+        sage: RiggedConfigurations.options._reset()
     """
     @staticmethod
     def __classcall_private__(cls, cartan_type):
@@ -147,7 +147,7 @@ class InfinityCrystalOfRiggedConfigurations(UniqueRepresentation, Parent):
         self._cartan_matrix = self._cartan_type.cartan_matrix()
         self.module_generators = (self.element_class(self, rigging_list=[[]]*cartan_type.rank()),)
 
-    global_options = RiggedConfigurationOptions
+    options = RiggedConfigurations.options
 
     def _repr_(self):
         """
@@ -473,3 +473,6 @@ class InfinityCrystalOfNonSimplyLacedRC(InfinityCrystalOfRiggedConfigurations):
             alpha = list(P.simple_roots())
             return -sum(sum(x) * alpha[i] for i,x in enumerate(self))
 
+# deprecations from trac:18555
+from sage.misc.superseded import deprecated_function_alias
+InfinityCrystalOfRiggedConfigurations.global_options = deprecated_function_alias(18555, InfinityCrystalOfRiggedConfigurations.options)

@@ -14,6 +14,7 @@ REFERENCES:
        Constant time generation of free trees. SIAM J. Comput. 15 (1986), no. 2,
        540--548.
 """
+from __future__ import print_function
 
 cdef extern from "limits.h":
     cdef int INT_MAX
@@ -34,20 +35,20 @@ cdef class TreeIterator:
 
         sage: from sage.graphs.trees import TreeIterator
         sage: def check_trees(n):
-        ...       trees = []
-        ...       for t in TreeIterator(n):
-        ...           if t.is_tree() == False:
-        ...               return False
-        ...           if t.num_verts() != n:
-        ...               return False
-        ...           if t.num_edges() != n - 1:
-        ...               return False
-        ...           for tree in trees:
-        ...               if tree.is_isomorphic(t) == True:
-        ...                   return False
-        ...           trees.append(t)
-        ...       return True
-        sage: print check_trees(10)
+        ....:     trees = []
+        ....:     for t in TreeIterator(n):
+        ....:         if t.is_tree() == False:
+        ....:             return False
+        ....:         if t.num_verts() != n:
+        ....:             return False
+        ....:         if t.num_edges() != n - 1:
+        ....:             return False
+        ....:         for tree in trees:
+        ....:             if tree.is_isomorphic(t) == True:
+        ....:                 return False
+        ....:         trees.append(t)
+        ....:     return True
+        sage: check_trees(10)
         True
 
     ::
@@ -55,8 +56,8 @@ cdef class TreeIterator:
         sage: from sage.graphs.trees import TreeIterator
         sage: count = 0
         sage: for t in TreeIterator(15):
-        ...       count += 1
-        sage: print count
+        ....:     count += 1
+        sage: count
         7741
     """
 
@@ -68,7 +69,7 @@ cdef class TreeIterator:
 
             sage: from sage.graphs.trees import TreeIterator
             sage: t = TreeIterator(100) # indirect doctest
-            sage: print t
+            sage: print(t)
             Iterator over all trees with 100 vertices
         """
         self.vertices = vertices
@@ -97,7 +98,7 @@ cdef class TreeIterator:
 
             sage: from sage.graphs.trees import TreeIterator
             sage: t = TreeIterator(100)
-            sage: print t # indirect doctest
+            sage: print(t)  # indirect doctest
             Iterator over all trees with 100 vertices
         """
         return "Iterator over all trees with %s vertices"%(self.vertices)

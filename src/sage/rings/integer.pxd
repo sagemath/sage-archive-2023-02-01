@@ -7,11 +7,11 @@ from sage.categories.morphism cimport Morphism
 cdef class Integer(EuclideanDomainElement):
     cdef mpz_t value
 
-    cdef void _to_ZZ(self, ZZ_c *z)
+    cdef int _to_ZZ(self, ZZ_c *z) except -1
     cdef void set_from_mpz(self, mpz_t value)
     cdef hash_c(self)
 
-    cpdef _pari_(self)
+    cpdef __pari__(self)
 
     cpdef _shift_helper(Integer self, y, int sign)
     cdef _and(Integer self, Integer other)

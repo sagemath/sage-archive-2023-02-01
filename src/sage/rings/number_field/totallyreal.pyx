@@ -105,18 +105,17 @@ Authors
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include 'sage/ext/stdsage.pxi'
 
-import math, sys
+import math
+import sys
 
 from sage.libs.gmp.mpz cimport *
-from sage.libs.pari.types cimport *
-from sage.libs.pari.pari_instance cimport PariInstance
-from sage.libs.pari.gen cimport gen as pari_gen
-
-import sage.libs.pari.pari_instance
-cdef PariInstance pari = sage.libs.pari.pari_instance.pari
+from sage.libs.pari.all import pari
+from cypari2.gen cimport Gen as pari_gen
+from cypari2.convert cimport new_t_POL_from_int_star
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
@@ -134,7 +133,7 @@ cpdef double odlyzko_bound_totallyreal(int n):
     This function returns the unconditional Odlyzko bound for the root
     discriminant of a totally real number field of degree n.
 
-    .. note::
+    .. NOTE::
 
         The bounds for n > 50 are not necessarily optimal.
 
@@ -188,7 +187,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
     where ``length(a) = d+1``, so in particular always ``a[d] = 1``.
 
-    .. note::
+    .. NOTE::
 
         This is guaranteed to give all primitive such fields, and
         seems in practice to give many imprimitive ones.
@@ -251,8 +250,8 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
         sage: enumerate_totallyreal_fields_prim(2, 10)
         [[5, x^2 - x - 1], [8, x^2 - 2]]
-        sage: enumerate_totallyreal_fields_prim(2, 10)[0][1].parent()
-        Interface to the PARI C library
+        sage: type(enumerate_totallyreal_fields_prim(2, 10)[0][1])
+        <type 'cypari2.gen.Gen'>
         sage: enumerate_totallyreal_fields_prim(2, 10, return_pari_objects=False)[0][0].parent()
         Integer Ring
         sage: enumerate_totallyreal_fields_prim(2, 10, return_pari_objects=False)[0][1].parent()
@@ -276,9 +275,9 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         try:
             n = Integer(n)
         except TypeError:
-            raise TypeError, "cannot coerce n (= %s) to an integer"%n
+            raise TypeError("cannot coerce n (= %s) to an integer" % n)
     if (n < 1):
-        raise ValueError, "n must be at least 1."
+        raise ValueError("n must be at least 1.")
 
     # Initialize
     n_int = int(n)
@@ -370,13 +369,12 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         T.incr(f_out,0,0,phc_flag)
 
     while f_out[n]:
-        nf = pari.new_t_POL_from_int_star(f_out, n_int+1, 0)
+        nf = new_t_POL_from_int_star(f_out, n_int+1, 0)
         if verb_int:
-            print "==>", nf, "["
+            print("==>", nf, "[")
             for j from 0 <= j < n-1:
-                print "%s "%f_out[j]
-            print "%s]"%f_out[n-1]
-
+                print("%s " % f_out[j])
+            print("%s]" % f_out[n - 1])
         d_poly = nf.poldisc()
         counts[0] += 1
         if d_poly > 0 and nf.polsturm() == n:
@@ -389,7 +387,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
                     if d <= keepB:
                         if verb_int:
-                            print "has discriminant", d,
+                            print("has discriminant", d, end='')
 
                         # Find a minimal lattice element
                         counts[3] += 1
@@ -401,14 +399,14 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
                             # Check if K is contained in the list.
                             found = dng in S
                             if found and verb_int:
-                                print "but is not new"
+                                print("but is not new")
 
                             ngt2 = <pari_gen>(ng[n_int-1]**2-2*ng[n_int-2])
                             if not found:
                                 temp_bint = ngt2 >= t2val
                                 if ((not use_t2) or temp_bint):
                                     if verb_int:
-                                        print "and is new!"
+                                        print("and is new!")
                                     S.add(dng)
                                     lenS += 1
                         else:
@@ -417,19 +415,19 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
                     else:
                         if verb_int:
-                            print "has discriminant", abs(d), "> B"
+                            print("has discriminant", abs(d), "> B")
                 else:
                     if verb_int:
-                        print "is not irreducible"
+                        print("is not irreducible")
             else:
                 if verb_int:
-                    print "has discriminant", abs(d), "with no large enough square divisor"
+                    print("has discriminant", abs(d), "with no large enough square divisor")
         else:
             if verb_int:
                 if d == 0:
-                    print "is not squarefree"
+                    print("is not squarefree")
                 else:
-                    print "is not totally real"
+                    print("is not totally real")
 
         if verb_int == 2:
             T.incr(f_out,verb_int,0,phc_flag)
@@ -447,10 +445,10 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         sig_free(f_out)
         return
 
-    # Convert S to a sorted list of pairs [d, f], taking care to use
-    # cmp() and not the comparison operators on PARI polynomials.
-    S = [list(s) for s in S]
-    S.sort(cmp=lambda x, y: cmp(x[0], y[0]) or cmp(x[1], y[1]))
+    # Convert S to a sorted list of pairs [d, f]
+    # we sort only according to d
+    # because we cannot compare t_POL objects (PARI polynomials)
+    S = sorted([list(s) for s in S], key=lambda x: x[0])
 
     # In the application of Smyth's theorem above (and easy
     # irreducibility test), we exclude finitely many possibilities
@@ -471,13 +469,13 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
     # Output.
     if verb_int:
-        print "="*80
-        print "Polynomials tested:", counts[0]
-        print "Polynomials with sssd poldisc:", counts[1]
-        print "Irreducible polynomials:", counts[2]
-        print "Polynomials with nfdisc <= B:", counts[3]
+        print("=" * 80)
+        print("Polynomials tested:", counts[0])
+        print("Polynomials with sssd poldisc:", counts[1])
+        print("Irreducible polynomials:", counts[2])
+        print("Polynomials with nfdisc <= B:", counts[3])
         for i from 0 <= i < lenS:
-            print S[i]
+            print(S[i])
         if type(verbose) == str:
             fsock.close()
         sys.stdout = saveout
@@ -570,6 +568,6 @@ def timestr(m):
         outstr += str(t)[:len(str(t))-2] + 'm '
         n -= t*60
     n += p
-    outstr += '%.1f'%n + 's'
+    outstr += '%.1f' % n + 's'
 
     return outstr

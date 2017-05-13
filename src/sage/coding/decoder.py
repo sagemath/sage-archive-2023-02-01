@@ -1,5 +1,5 @@
 r"""
-Decoder
+Base class for Decoders
 
 Representation of an error-correction algorithm for a code.
 
@@ -48,6 +48,83 @@ class Decoder(SageObject):
       methods. You should implement ``_repr_`` and ``_latex_`` methods in the subclass.
     """
 
+    @classmethod
+    def decoder_type(cls):
+        r"""
+        Returns the set of types of ``self``.
+
+        This method can be called on both an uninstantiated decoder class,
+        or on an instance of a decoder class.
+
+        The types of a decoder are a set of labels commonly associated with
+        decoders which describe the nature and behaviour of the decoding
+        algorithm. It should be considered as an informal descriptor but
+        can be coarsely relied upon for e.g. program logic.
+
+        The following are the most common types and a brief definition:
+
+        ======================  ================================================
+        Decoder type            Definition
+        ======================  ================================================
+        always-succeed          The decoder always returns a closest codeword if
+                                the number of errors is up to the decoding
+                                radius.
+        bounded-distance        The ``minimum_distance()`` method of the decoder
+                                gives a bound on how many errors the decoder can
+                                correct.
+        complete                The decoder decodes every word in the ambient
+                                space of the code.
+        dynamic                 Some of the decoder's types will only be
+                                determined at construction time
+                                (depends on the parameters).
+        half-minimum-distance   The decoder corrects up to half the minimum
+                                distance, or a specific lower bound thereof.
+        hard-decision           The decoder has no information on which
+                                positions are more likely to be in error or not.
+        list-decoder            The decoder outputs a list of likely codewords,
+                                instead of just a single codeword.
+        might-fail              The decoder can fail at decoding even within its
+                                usual promises, e.g. bounded distance.
+        soft-decision           As part of the input, the decoder gets
+                                reliability information on which positions are
+                                more likely to be in error
+        ======================  ================================================
+
+
+        EXAMPLES:
+
+        We call it on a class::
+
+            sage: codes.decoders.LinearCodeSyndromeDecoder.decoder_type()
+            {'dynamic', 'hard-decision', 'unique'}
+
+        We can also call it on a instance of a Decoder class::
+
+            sage: G = Matrix(GF(2), [[1, 0, 0, 1], [0, 1, 1, 1]])
+            sage: C = LinearCode(G)
+            sage: D = C.decoder()
+            sage: D.decoder_type()
+            {'complete', 'hard-decision', 'might-error', 'unique'}
+        """
+        return cls._decoder_type
+
+    def _instance_decoder_type(self):
+        r"""
+        This doc-string will be overridden at instantiation by that of
+        `Decoder.decoder_type`.
+
+        EXAMPLES:
+
+        Test to satisfy the doc-testing framework::
+
+            sage: G = Matrix(GF(2), [[1, 0, 0, 1], [0, 1, 1, 1]])
+            sage: C = LinearCode(G)
+            sage: D = C.decoder()
+            sage: D.decoder_type() #indirect doctest
+            {'complete', 'hard-decision', 'might-error', 'unique'}
+        """
+        return self._decoder_type
+
     def __init__(self, code, input_space, connected_encoder_name):
         r"""
         Initializes mandatory parameters for :class:`Decoder` objects.
@@ -88,10 +165,11 @@ class Decoder(SageObject):
             sage: D.input_space()
             Vector space of dimension 4 over Finite Field of size 2
             sage: D.connected_encoder()
-            Generator matrix-based encoder for Linear code of length 4, dimension 2 over Finite Field of size 2
+            Generator matrix-based encoder for [4, 2] linear code over GF(2)
             sage: D.code()
-            Linear code of length 4, dimension 2 over Finite Field of size 2
+            [4, 2] linear code over GF(2)
         """
+        self.decoder_type = self._instance_decoder_type
         self._code = code
         self._input_space = input_space
         self._connected_encoder_name = connected_encoder_name
@@ -135,20 +213,7 @@ class Decoder(SageObject):
         """
         return not self == other
 
-    def decoder_type(self):
-        r"""
-        Returns the set of types of ``self``. These types describe the nature of ``self``
-        and its decoding algorithm.
 
-        EXAMPLES::
-
-            sage: G = Matrix(GF(2), [[1, 0, 0, 1], [0, 1, 1, 1]])
-            sage: C = LinearCode(G)
-            sage: D = C.decoder()
-            sage: D.decoder_type()
-            {'complete', 'hard-decision', 'might-error', 'unique'}
-        """
-        return self._decoder_type
 
     def decode_to_code(self, r):
         r"""
@@ -195,7 +260,7 @@ class Decoder(SageObject):
             sage: C = LinearCode(G)
             sage: D = C.decoder()
             sage: D.connected_encoder()
-            Generator matrix-based encoder for Linear code of length 7, dimension 4 over Finite Field of size 2
+            Generator matrix-based encoder for [7, 4] linear code over GF(2)
         """
         return self.code().encoder(encoder_name=self._connected_encoder_name)
 
@@ -237,7 +302,7 @@ class Decoder(SageObject):
             sage: C = LinearCode(G)
             sage: D = C.decoder()
             sage: D.code()
-            Linear code of length 7, dimension 4 over Finite Field of size 2
+            [7, 4] linear code over GF(2)
         """
         return self._code
 
@@ -288,6 +353,8 @@ class Decoder(SageObject):
             1
         """
         raise NotImplementedError
+
+Decoder._instance_decoder_type.__func__.__doc__ = Decoder.decoder_type.im_func.__doc__
 
 class DecodingError(Exception):
     r"""

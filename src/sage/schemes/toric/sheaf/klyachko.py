@@ -53,7 +53,7 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 from sage.structure.all import SageObject
 from sage.rings.all import QQ, ZZ
@@ -356,12 +356,12 @@ class KlyachkoBundle_class(SageObject):
 
         - ``i`` -- integer. The filtration degree.
 
-        OUPUT:
+        OUTPUT:
 
         Let the cone be spanned by the rays `\sigma=\langle r_1,\dots,
         r_k\rangle`. This method returns the intersection
 
-        .. math::
+        .. MATH::
 
             \bigcap_{r\in \{r_1,\dots,r_k\}}
             E^{r}(i)
@@ -451,7 +451,7 @@ class KlyachkoBundle_class(SageObject):
         - ``m`` -- tuple of integers or `M`-lattice point. A point in
           the dual lattice of the fan. Must be immutable.
 
-        OUPUT:
+        OUTPUT:
 
         The subspace `E^\sigma(m)`
 
@@ -494,7 +494,7 @@ class KlyachkoBundle_class(SageObject):
         - ``m`` -- tuple of integers or `M`-lattice point. A point in
           the dual lattice of the fan. Must be immutable.
 
-        OUPUT:
+        OUTPUT:
 
         The subspace `E_\sigma(m)`
 
@@ -547,7 +547,7 @@ class KlyachkoBundle_class(SageObject):
 
         The restriction map
 
-        .. math::
+        .. MATH::
 
             E_\sigma(m) \to E_\tau(m)
 
@@ -644,10 +644,10 @@ class KlyachkoBundle_class(SageObject):
             codim = fan.dim() - dim
             d_C = C.differential(codim)
             d_V = []
-            for j in range(0, d_C.ncols()):
+            for j in range(d_C.ncols()):
                 tau = fan(dim)[j]
                 d_V_row = []
-                for i in range(0, d_C.nrows()):
+                for i in range(d_C.nrows()):
                     sigma = fan(dim-1)[i]
                     if sigma.is_face_of(tau):
                         pr = self.E_quotient_projection(sigma, tau, m)
@@ -658,10 +658,8 @@ class KlyachkoBundle_class(SageObject):
                         d = zero_matrix(F, E_tau.dimension(), E_sigma.dimension())
                     d_V_row.append(d)
                 d_V.append(d_V_row)
-            # print dim, ':\n', d_V, '\n'
             d_V = block_matrix(d_V, ring=F)
             CV.append(d_V)
-            # print dim, ': ', d_V.nrows(), 'x', d_V.ncols(), '\n', d_V
         from sage.homology.chain_complex import ChainComplex
         return ChainComplex(CV, base_ring=self.base_ring())
 
@@ -702,17 +700,17 @@ class KlyachkoBundle_class(SageObject):
             Vector space of dimension 2 over Rational Field
             sage: V.cohomology(weight=(0,0), dim=True)
             (2, 0, 0)
-            sage: for i,j in cartesian_product((range(-2,3), range(-2,3))):
+            sage: for i,j in cartesian_product((list(range(-2,3)), list(range(-2,3)))):
             ....:       HH = V.cohomology(weight=(i,j), dim=True)
             ....:       if HH.is_zero(): continue
-            ....:       print 'H^*i(P^2, TP^2)_M('+str(i)+','+str(j)+') =', HH
-            H^*i(P^2, TP^2)_M(-1,0) = (1, 0, 0)
-            H^*i(P^2, TP^2)_M(-1,1) = (1, 0, 0)
-            H^*i(P^2, TP^2)_M(0,-1) = (1, 0, 0)
-            H^*i(P^2, TP^2)_M(0,0)  = (2, 0, 0)
-            H^*i(P^2, TP^2)_M(0,1)  = (1, 0, 0)
-            H^*i(P^2, TP^2)_M(1,-1) = (1, 0, 0)
-            H^*i(P^2, TP^2)_M(1,0)  = (1, 0, 0)
+            ....:       print('H^*i(P^2, TP^2)_M({}, {}) = {}'.format(i,j,HH))
+            H^*i(P^2, TP^2)_M(-1, 0) = (1, 0, 0)
+            H^*i(P^2, TP^2)_M(-1, 1) = (1, 0, 0)
+            H^*i(P^2, TP^2)_M(0, -1) = (1, 0, 0)
+            H^*i(P^2, TP^2)_M(0, 0) = (2, 0, 0)
+            H^*i(P^2, TP^2)_M(0, 1) = (1, 0, 0)
+            H^*i(P^2, TP^2)_M(1, -1) = (1, 0, 0)
+            H^*i(P^2, TP^2)_M(1, 0) = (1, 0, 0)
         """
         from sage.modules.all import FreeModule
         if weight is None:
@@ -726,13 +724,13 @@ class KlyachkoBundle_class(SageObject):
         space_dim = self._variety.dimension()
         C_homology = C.homology()
         HH = dict()
-        for d in range(0, space_dim+1):
+        for d in range(space_dim+1):
             try:
                 HH[d] = C_homology[d]
             except KeyError:
                 HH[d] = FreeModule(self.base_ring(), 0)
         if dim:
-            HH = vector(ZZ, [HH[i].rank() for i in range(0, space_dim+1) ])
+            HH = vector(ZZ, [HH[i].rank() for i in range(space_dim+1) ])
         return HH
 
     def __cmp__(self, other):

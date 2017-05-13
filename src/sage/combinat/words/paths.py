@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 r"""
 Word paths
 
@@ -58,9 +58,6 @@ use ``help(p)``::
     ...
     Methods inherited from FiniteWordPath_all:
     ...
-    This only works on Python classes that derive from SageObject.
-    ...
-    See http://trac.sagemath.org/2536 for details.
 
 Since p is a finite word, many functions from the word library are available::
 
@@ -172,7 +169,7 @@ REFERENCES:
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Arnaud bergeron <abergeron@gmail.coms>,
-#       Copyrigth (C) 2009 Sebastien Labbe <slabqc@gmail.com>,
+#       Copyright (C) 2009 Sebastien Labbe <slabqc@gmail.com>,
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -180,8 +177,10 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-from itertools import izip
+from builtins import zip
+
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -191,12 +190,12 @@ from sage.combinat.words.alphabet import build_alphabet
 from sage.plot.all import arrow, line, polygon, point, Graphics
 from sage.modules.free_module_element import vector
 from sage.rings.all import ZZ, RR, QuadraticField
-from word_datatypes import (WordDatatype_str,
+from .word_datatypes import (WordDatatype_str,
                             WordDatatype_list,
                             WordDatatype_tuple)
                             #WordDatatype_cpp_basic_string)
 
-from word_infinite_datatypes import (
+from .word_infinite_datatypes import (
                             WordDatatype_iter_with_caching,
                             WordDatatype_iter,
                             WordDatatype_callable_with_caching,
@@ -489,7 +488,7 @@ of alphabet (=%s) or half the size of alphabet."%(len(steps),alphabet.cardinalit
 
             sage: d = WordPaths('ab',steps=[(1,2),(3,4)])._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             7
             sage: d['tuple']
@@ -652,7 +651,7 @@ class WordPaths_square_grid(WordPaths_all):
 
             sage: d = WordPaths('abcd')._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             7
             sage: d['tuple']
@@ -733,7 +732,7 @@ class WordPaths_triangle_grid(WordPaths_all):
             sage: len(d)
             7
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: d['tuple']
             <class 'sage.combinat.words.paths.FiniteWordPath_triangle_grid_tuple'>
         """
@@ -799,7 +798,7 @@ class WordPaths_hexagonal_grid(WordPaths_triangle_grid):
 
             sage: d = WordPaths('abcdef', steps='hexagon')._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             7
             sage: d['tuple']
@@ -867,7 +866,7 @@ class WordPaths_cube_grid(WordPaths_all):
 
             sage: d = WordPaths('abcdef', steps='cube')._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             7
             sage: d['tuple']
@@ -934,7 +933,7 @@ class WordPaths_dyck(WordPaths_all):
 
             sage: d = WordPaths('ab', steps='dyck')._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             7
             sage: d['tuple']
@@ -1001,7 +1000,7 @@ class WordPaths_north_east(WordPaths_all):
 
             sage: d = WordPaths('ab', steps='NE')._element_classes
             sage: type(d)
-            <type 'dict'>
+            <... 'dict'>
             sage: len(d)
             7
             sage: d['tuple']
@@ -1404,7 +1403,7 @@ class FiniteWordPath_all(SageObject):
             start = next(it)
         elif kind != 'left':
             raise ValueError('unknown value for kind (=%s)'%kind)
-        tout = [point([c], color=color[a], size=size) for a, c in izip(self, it) if a in letters]
+        tout = [point([c], color=color[a], size=size) for a, c in zip(self, it) if a in letters]
         return sum(tout)
 
     def projected_path(self, v=None, ring=None):

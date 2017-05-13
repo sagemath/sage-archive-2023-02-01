@@ -29,12 +29,6 @@ examples of growth groups and elements are given as well.
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
         Growth Group Generic(ZZ)
-        sage: GrowthGroup('x^ZZ * log(x)^ZZ')
-        doctest:...: FutureWarning: This class/method/function is marked as
-        experimental. It, its functionality or its interface might change
-        without a formal deprecation.
-        See http://trac.sagemath.org/17601 for details.
-        Growth Group x^ZZ * log(x)^ZZ
 
 .. _growth_group_description:
 
@@ -240,7 +234,6 @@ ACKNOWLEDGEMENT:
 Classes and Methods
 ===================
 """
-
 #*****************************************************************************
 # Copyright (C) 2014--2015 Benjamin Hackl <benjamin.hackl@aau.at>
 #               2014--2015 Daniel Krenn <dev@danielkrenn.at>
@@ -251,14 +244,23 @@ Classes and Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-import sage
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.rings.asymptotic.growth_group_cartesian', 'CartesianProductGrowthGroups')
 
+from sage.categories.pushout import ConstructionFunctor
+from sage.misc.superseded import experimental
+from sage.structure.element import MultiplicativeGroupElement
+from sage.structure.factory import UniqueFactory
+from sage.structure.parent import Parent
+from sage.structure.sage_object import SageObject
+from sage.structure.unique_representation import (CachedRepresentation,
+                                                  UniqueRepresentation)
+from .misc import richcmp_by_eq_and_lt
 
-class Variable(sage.structure.unique_representation.CachedRepresentation,
-               sage.structure.sage_object.SageObject):
+
+class Variable(CachedRepresentation, SageObject):
     r"""
     A class managing the variable of a growth group.
 
@@ -353,7 +355,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             ValueError: ':-' is not a valid name for a variable.
         """
         from sage.symbolic.ring import isidentifier
-        from misc import split_str_by_op
+        from .misc import split_str_by_op
 
         if not isinstance(var, (list, tuple)):
             var = (var,)
@@ -395,7 +397,6 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
 
         self.latex_name = latex_name
 
-
     def __hash__(self):
         r"""
         Return the hash of this variable.
@@ -407,7 +408,6 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             -123456789
         """
         return hash((self.var_repr,) + self.var_bases)
-
 
     def __eq__(self, other):
         r"""
@@ -431,7 +431,6 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         """
         return self.var_repr == other.var_repr and self.var_bases == other.var_bases
 
-
     def __ne__(self, other):
         r"""
         Return whether this variable does not equal ``other``.
@@ -454,7 +453,6 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         """
         return not self == other
 
-
     def _repr_(self):
         r"""
         Return a representation string of this variable.
@@ -470,7 +468,6 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             blub
         """
         return self.var_repr
-
 
     def _latex_(self):
         r"""
@@ -492,7 +489,6 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         """
         return self.latex_name
 
-
     def variable_names(self):
         r"""
         Return the names of the variables.
@@ -511,7 +507,6 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         """
         return self.var_bases
 
-
     def is_monomial(self):
         r"""
         Return whether this is a monomial variable.
@@ -529,7 +524,6 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             False
         """
         return len(self.var_bases) == 1 and self.var_bases[0] == self.var_repr
-
 
     @staticmethod
     def extract_variable_names(s):
@@ -612,7 +606,6 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             return ()
         return tuple(str(s) for s in SR(s).variables())
 
-
     def _substitute_(self, rules):
         r"""
         Substitute the given ``rules`` in this variable.
@@ -640,8 +633,8 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             ...
             TypeError: Cannot substitute in 1/x in
             <class 'sage.rings.asymptotic.growth_group.Variable'>.
-            > *previous* TypeError: unsupported operand parent(s) for '/':
-            'Integer Ring' and '<type 'str'>'
+            > *previous* TypeError: unsupported operand type(s) for /:
+            'sage.rings.integer.Integer' and 'str'
             sage: Variable('1/x')._substitute_({'x': 0})
             Traceback (most recent call last):
             ...
@@ -653,7 +646,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         try:
             return sage_eval(self.var_repr, locals=rules)
         except (ArithmeticError, TypeError, ValueError) as e:
-            from misc import substitute_raise_exception
+            from .misc import substitute_raise_exception
             substitute_raise_exception(self, e)
 
 
@@ -780,7 +773,7 @@ def _log_(self, base=None):
         which is not contained in
         Growth Group QQ^x * x^ZZ * log(x)^ZZ * y^ZZ * log(y)^ZZ.
     """
-    from misc import log_string
+    from .misc import log_string
 
     log_factor = self.log_factor(base=base)
     if not log_factor:
@@ -865,7 +858,7 @@ def _log_factor_(self, base=None):
         if hasattr(g, 'parent') and \
            isinstance(g.parent(), GenericGrowthGroup):
             continue
-        from misc import log_string
+        from .misc import log_string
         raise ArithmeticError('Cannot build %s since %s '
                               'is not in %s.' % (log_string(self, base),
                                                  g, self.parent()))
@@ -907,7 +900,7 @@ def _rpow_(self, base):
         Traceback (most recent call last):
         ...
         ArithmeticError: Cannot construct 2^(x^2) in Growth Group QQ^x * x^ZZ
-        > *previous* TypeError: unsupported operand parent(s) for '*':
+        > *previous* TypeError: unsupported operand parent(s) for *:
         'Growth Group QQ^x * x^ZZ' and 'Growth Group ZZ^(x^2)'
 
     ::
@@ -936,7 +929,7 @@ def _rpow_(self, base):
     except ValueError:
         if base == 'e':
             from sage.rings.integer_ring import ZZ
-            from misc import repr_op
+            from .misc import repr_op
             M = MonomialGrowthGroup(ZZ, repr_op('e', '^', var),
                                     ignore_variables=('e',))
             element = M(raw_element=ZZ(1))
@@ -947,13 +940,13 @@ def _rpow_(self, base):
     try:
         return self.parent().one() * element
     except (TypeError, ValueError) as e:
-        from misc import combine_exceptions, repr_op
+        from .misc import combine_exceptions, repr_op
         raise combine_exceptions(
             ArithmeticError('Cannot construct %s in %s' %
                             (repr_op(base, '^', var), self.parent())), e)
 
 
-class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
+class GenericGrowthElement(MultiplicativeGroupElement):
     r"""
     A basic implementation of a generic growth element.
 
@@ -1016,7 +1009,6 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
         self._raw_element_ = parent.base()(raw_element)
 
-
     def _repr_(self):
         r"""
         A representation string for this generic element.
@@ -1044,7 +1036,6 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             vars = ', ' + vars
         return 'GenericGrowthElement(%s%s)' % (self._raw_element_, vars)
 
-
     def __hash__(self):
         r"""
         Return the hash of this element.
@@ -1065,7 +1056,6 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             5656565656565656
         """
         return hash((self.parent(), self._raw_element_))
-
 
     def _mul_(self, other):
         r"""
@@ -1096,7 +1086,6 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         """
         raise NotImplementedError('Only implemented in concrete realizations.')
 
-
     def __invert__(self):
         r"""
         Return the inverse of this growth element.
@@ -1126,14 +1115,15 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         raise NotImplementedError('Inversion of %s not implemented '
                                   '(in this abstract method).' % (self,))
 
+    _richcmp_ = richcmp_by_eq_and_lt
 
-    def __eq__(self, other):
+    def _eq_(self, other):
         r"""
-        Return whether this growth element is equal to ``other``.
+        Return whether this :class:`GenericGrowthElement` is equal to ``other``.
 
         INPUT:
 
-        - ``other`` -- an element.
+        - ``other`` -- a :class:`GenericGrowthElement`
 
         OUTPUT:
 
@@ -1141,11 +1131,8 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
         .. NOTE::
 
-            This function uses the coercion model to find a common
-            parent for the two operands.
-
-            The comparison of two elements with the same parent is done in
-            :meth:`_eq_`.
+            This function compares two instances of
+            :class:`GenericGrowthElement`.
 
         EXAMPLES::
 
@@ -1174,65 +1161,20 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             False
             sage: ~P_ZZ(1) == P_ZZ(1)
             True
-        """
-        from sage.structure.element import have_same_parent
-        if have_same_parent(self, other):
-            return self._eq_(other)
 
-        from sage.structure.element import get_coercion_model
-        import operator
-        try:
-            return get_coercion_model().bin_op(self, other, operator.eq)
-        except TypeError:
-            return False
+        TESTS::
 
-
-    def _eq_(self, other):
-        r"""
-        Return whether this :class:`GenericGrowthElement` is equal to ``other``.
-
-        INPUT:
-
-        - ``other`` -- a :class:`GenericGrowthElement`.
-
-        OUTPUT:
-
-        A boolean.
-
-        .. NOTE::
-
-            This function compares two instances of
-            :class:`GenericGrowthElement`.
-
-        EXAMPLES::
-
-            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: P = GrowthGroup('x^ZZ')
             sage: e1 = P(raw_element=1)
-            sage: e1._eq_(P.gen())
+            sage: e1 == P.gen()
             True
             sage: e2 = e1^4
             sage: e2 == e1^2*e1*e1
             True
             sage: e2 == e1
             False
-        """
-        return self._raw_element_ == other._raw_element_
 
-
-    def __ne__(self, other):
-        r"""
-        Return whether this growth element is not equal to ``other``.
-
-        INPUT:
-
-        - ``other`` -- an element.
-
-        OUTPUT:
-
-        A boolean.
-
-        TESTS::
+        ::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('x^ZZ')
@@ -1243,17 +1185,16 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             sage: G(1) != G(1)
             False
         """
-        return not self == other
+        return self._raw_element_ == other._raw_element_
 
-
-    def __le__(self, other):
+    def _lt_(self, other):
         r"""
-        Return whether this growth element is at most (less than or equal
-        to) ``other``.
+        Return whether this :class:`GenericGrowthElement` is at most (less
+        than or equal to) ``other``.
 
         INPUT:
 
-        - ``other`` -- an element.
+        - ``other`` -- a :class:`GenericGrowthElement`
 
         OUTPUT:
 
@@ -1261,11 +1202,8 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
         .. NOTE::
 
-            This function uses the coercion model to find a common
-            parent for the two operands.
-
-            The comparison of two elements with the same parent is done in
-            :meth:`_le_`.
+            This function compares two instances of
+            :class:`GenericGrowthElement`.
 
         EXAMPLES::
 
@@ -1276,36 +1214,6 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             True
             sage: ~P_ZZ.gen() <= P_ZZ.gen()
             True
-        """
-        from sage.structure.element import have_same_parent
-        if have_same_parent(self, other):
-            return self._le_(other)
-
-        from sage.structure.element import get_coercion_model
-        import operator
-        try:
-            return get_coercion_model().bin_op(self, other, operator.le)
-        except TypeError:
-            return False
-
-
-    def _le_(self, other):
-        r"""
-        Return whether this :class:`GenericGrowthElement` is at most (less
-        than or equal to) ``other``.
-
-        INPUT:
-
-        - ``other`` -- a :class:`GenericGrowthElement`.
-
-        OUTPUT:
-
-        A boolean.
-
-        .. NOTE::
-
-            This function compares two instances of
-            :class:`GenericGrowthElement`.
 
         TESTS::
 
@@ -1319,10 +1227,8 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         """
         raise NotImplementedError('Only implemented in concrete realizations.')
 
-
     log = _log_
     log_factor = _log_factor_
-
 
     def _log_factor_(self, base=None):
         r"""
@@ -1353,9 +1259,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         raise NotImplementedError('Cannot determine logarithmized factorization '
                                   'of %s in abstract base class.' % (self,))
 
-
     rpow = _rpow_
-
 
     def _rpow_element_(self, base):
         r"""
@@ -1383,7 +1287,6 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         raise ValueError('Cannot compute %s to the generic element %s.' %
                          (base, self))
 
-
     def factors(self):
         r"""
         Return the atomic factors of this growth element. An atomic factor
@@ -1406,9 +1309,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         """
         return (self,)
 
-
     is_lt_one = _is_lt_one_
-
 
     def _substitute_(self, rules):
         r"""
@@ -1434,11 +1335,10 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             > *previous* TypeError: Cannot substitute in the abstract base class
             Growth Group Generic(ZZ).
         """
-        from misc import substitute_raise_exception
+        from .misc import substitute_raise_exception
         substitute_raise_exception(self, TypeError(
             'Cannot substitute in the abstract '
             'base class %s.' % (self.parent(),)))
-
 
     def variable_names(self):
         r"""
@@ -1480,7 +1380,6 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         else:
             return self.parent().variable_names()
 
-
     def _singularity_analysis_(self, var, zeta, precision):
         r"""
         Perform singularity analysis on this growth element.
@@ -1514,9 +1413,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
                                   'not implemented '.format(self))
 
 
-class GenericGrowthGroup(
-        sage.structure.unique_representation.UniqueRepresentation,
-        sage.structure.parent.Parent):
+class GenericGrowthGroup(UniqueRepresentation, Parent):
     r"""
     A basic implementation for growth groups.
 
@@ -1567,7 +1464,6 @@ class GenericGrowthGroup(
         (Posets(), Posets(), False)]
 
     _determine_category_axiom_mapping_ = []
-
 
     @staticmethod
     def __classcall__(cls, base, var=None, category=None, ignore_variables=None):
@@ -1639,8 +1535,8 @@ class GenericGrowthGroup(
             ...
             TypeError: Asymptotic Ring <z^ZZ> over Rational Field is not a valid base.
         """
-        from asymptotic_ring import AsymptoticRing
-        if not isinstance(base, sage.structure.parent.Parent) or \
+        from .asymptotic_ring import AsymptoticRing
+        if not isinstance(base, Parent) or \
            isinstance(base, AsymptoticRing):
             raise TypeError('%s is not a valid base.' % (base,))
 
@@ -1662,7 +1558,7 @@ class GenericGrowthGroup(
             else:
                 initial_category = None
 
-            from misc import transform_category
+            from .misc import transform_category
             category = transform_category(
                 base.category(),
                 cls._determine_category_subcategory_mapping_,
@@ -1672,8 +1568,7 @@ class GenericGrowthGroup(
         return super(GenericGrowthGroup, cls).__classcall__(
             cls, base, var, category)
 
-
-    @sage.misc.superseded.experimental(trac_number=17601)
+    @experimental(trac_number=17601)
     def __init__(self, base, var, category):
         r"""
         See :class:`GenericGrowthElement` for more information.
@@ -1747,7 +1642,6 @@ class GenericGrowthGroup(
         super(GenericGrowthGroup, self).__init__(category=category,
                                                  base=base)
 
-
     def _repr_short_(self):
         r"""
         A short representation string of this abstract growth group.
@@ -1770,12 +1664,11 @@ class GenericGrowthGroup(
             sage: GenericGrowthGroup(QQ, ('a', 'b'))
             Growth Group Generic(QQ, a, b)
         """
-        from misc import parent_to_repr_short
+        from .misc import parent_to_repr_short
         vars = ', '.join(self._var_.variable_names())
         if vars:
             vars = ', ' + vars
         return 'Generic(%s%s)' % (parent_to_repr_short(self.base()), vars)
-
 
     def _repr_(self, condense=False):
         r"""
@@ -1806,7 +1699,6 @@ class GenericGrowthGroup(
         """
         pre = 'Growth Group ' if not condense else ''
         return '%s%s' % (pre, self._repr_short_())
-
 
     def __hash__(self):
         r"""
@@ -1841,7 +1733,6 @@ class GenericGrowthGroup(
         """
         return hash((self.__class__, self.base(), self._var_))
 
-
     def _an_element_(self):
         r"""
         Return an element of ``self``.
@@ -1868,7 +1759,6 @@ class GenericGrowthGroup(
             (1/2)^(x*log(x))
         """
         return self.element_class(self, self.base().an_element())
-
 
     def some_elements(self):
         r"""
@@ -1899,7 +1789,6 @@ class GenericGrowthGroup(
         return iter(self.element_class(self, e)
                     for e in self.base().some_elements())
 
-
     def _create_element_in_extension_(self, raw_element):
         r"""
         Create an element in an extension of this growth group which
@@ -1925,11 +1814,10 @@ class GenericGrowthGroup(
         if raw_element.parent() is self.base():
             parent = self
         else:
-            from misc import underlying_class
+            from .misc import underlying_class
             parent = underlying_class(self)(raw_element.parent(), self._var_,
                                             category=self.category())
         return parent(raw_element=raw_element)
-
 
     def le(self, left, right):
         r"""
@@ -1964,7 +1852,6 @@ class GenericGrowthGroup(
             True
         """
         return self(left) <= self(right)
-
 
     def _element_constructor_(self, data, raw_element=None):
         r"""
@@ -2044,7 +1931,7 @@ class GenericGrowthGroup(
             sage: GrowthGroup('QQ^x')(GrowthGroup('ZZ^x')('2^x'))
             2^x
         """
-        from misc import underlying_class, combine_exceptions
+        from .misc import underlying_class, combine_exceptions
 
         if raw_element is None:
             if isinstance(data, int) and data == 0:
@@ -2081,7 +1968,6 @@ class GenericGrowthGroup(
 
         return self.element_class(self, raw_element)
 
-
     def _convert_(self, data):
         r"""
         Convert ``data`` to something the constructor of the
@@ -2109,7 +1995,6 @@ class GenericGrowthGroup(
             True
         """
         pass
-
 
     def _coerce_map_from_(self, S):
         r"""
@@ -2176,11 +2061,10 @@ class GenericGrowthGroup(
             sage: GrowthGroup('x^QQ').has_coerce_map_from(GrowthGroup('QQ^x'))  # indirect doctest
             False
         """
-        from misc import underlying_class
+        from .misc import underlying_class
         if isinstance(S, underlying_class(self)) and self._var_ == S._var_:
             if self.base().has_coerce_map_from(S.base()):
                 return True
-
 
     def _pushout_(self, other):
         r"""
@@ -2242,7 +2126,6 @@ class GenericGrowthGroup(
             from sage.categories.cartesian_product import cartesian_product
             return cartesian_product([self, other])
 
-
     def gens_monomial(self):
         r"""
         Return a tuple containing monomial generators of this growth
@@ -2280,7 +2163,6 @@ class GenericGrowthGroup(
         """
         return tuple()
 
-
     def gens(self):
         r"""
         Return a tuple of all generators of this growth group.
@@ -2303,7 +2185,6 @@ class GenericGrowthGroup(
             (log(x),)
         """
         return (self(raw_element=self.base().one()),)
-
 
     def gen(self, n=0):
         r"""
@@ -2334,7 +2215,6 @@ class GenericGrowthGroup(
         """
         return self.gens()[n]
 
-
     def ngens(self):
         r"""
         Return the number of generators (as a group) of this growth group.
@@ -2363,7 +2243,6 @@ class GenericGrowthGroup(
             0
         """
         return len(self.gens())
-
 
     def variable_names(self):
         r"""
@@ -2396,11 +2275,9 @@ class GenericGrowthGroup(
         """
         return self._var_.variable_names()
 
-
     CartesianProduct = CartesianProductGrowthGroups
 
 
-from sage.categories.pushout import ConstructionFunctor
 class AbstractGrowthGroupFunctor(ConstructionFunctor):
     r"""
     A base class for the functors constructing growth groups.
@@ -2441,14 +2318,16 @@ class AbstractGrowthGroupFunctor(ConstructionFunctor):
             sage: AbstractGrowthGroupFunctor('x', Groups())
             AbstractGrowthGroup[x]
         """
+        from sage.categories.monoids import Monoids
+        from sage.categories.posets import Posets
+
         if var is None:
             var = Variable('')
         elif not isinstance(var, Variable):
             var = Variable(var)
         self.var = var
         super(ConstructionFunctor, self).__init__(
-            domain, sage.categories.monoids.Monoids() & sage.categories.posets.Posets())
-
+            domain, Monoids() & Posets())
 
     def _repr_(self):
         r"""
@@ -2465,7 +2344,6 @@ class AbstractGrowthGroupFunctor(ConstructionFunctor):
             ExponentialGrowthGroup[t]
         """
         return '%s[%s]' % (self._functor_name, self.var)
-
 
     def merge(self, other):
         r"""
@@ -2492,7 +2370,6 @@ class AbstractGrowthGroupFunctor(ConstructionFunctor):
         if self == other:
             return self
 
-
     def __eq__(self, other):
         r"""
         Return whether this functor is equal to ``other``.
@@ -2516,7 +2393,6 @@ class AbstractGrowthGroupFunctor(ConstructionFunctor):
             False
         """
         return type(self) == type(other) and self.var == other.var
-
 
     def __ne__(self, other):
         r"""
@@ -2590,7 +2466,6 @@ class MonomialGrowthElement(GenericGrowthElement):
         """
         return self._raw_element_
 
-
     def _repr_(self, latex=False):
         r"""
         A representation string for this monomial growth element.
@@ -2629,7 +2504,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             f = repr
 
         from sage.rings.integer_ring import ZZ
-        from misc import repr_op
+        from .misc import repr_op
 
         var = f(self.parent()._var_)
         if self.exponent.is_zero():
@@ -2643,7 +2518,6 @@ class MonomialGrowthElement(GenericGrowthElement):
             return repr_op(var, '^') + str(self.exponent)
         else:
             return repr_op(var, '^') + '(' + str(self.exponent) + ')'
-
 
     def _latex_(self):
         r"""
@@ -2672,7 +2546,6 @@ class MonomialGrowthElement(GenericGrowthElement):
             x^{-42}
         """
         return self._repr_(latex=True)
-
 
     def _mul_(self, other):
         r"""
@@ -2706,7 +2579,6 @@ class MonomialGrowthElement(GenericGrowthElement):
         """
         return self.parent()(raw_element=self.exponent + other.exponent)
 
-
     def __invert__(self):
         r"""
         Return the multiplicative inverse of this monomial growth element.
@@ -2736,7 +2608,6 @@ class MonomialGrowthElement(GenericGrowthElement):
             Growth Group x^ZZ
         """
         return self.parent()._create_element_in_extension_(-self.exponent)
-
 
     def __pow__(self, exponent):
         r"""
@@ -2774,7 +2645,6 @@ class MonomialGrowthElement(GenericGrowthElement):
             x^42
         """
         return self.parent()._create_element_in_extension_(self.exponent * exponent)
-
 
     def _log_factor_(self, base=None):
         r"""
@@ -2818,7 +2688,7 @@ class MonomialGrowthElement(GenericGrowthElement):
 
         var = str(self.parent()._var_)
 
-        from misc import split_str_by_op
+        from .misc import split_str_by_op
         split = split_str_by_op(var, '^')
         if len(split) == 2:
             b, e = split
@@ -2836,7 +2706,6 @@ class MonomialGrowthElement(GenericGrowthElement):
             from sage.functions.log import log
             coefficient = coefficient / log(base)
         return ((v, coefficient),)
-
 
     def _rpow_element_(self, base):
         r"""
@@ -2906,15 +2775,14 @@ class MonomialGrowthElement(GenericGrowthElement):
             M = MonomialGrowthGroup(new_exponent.parent(), new_var)
             return M(raw_element=new_exponent)
 
-
-    def _le_(self, other):
+    def _lt_(self, other):
         r"""
-        Return whether this :class:`MonomialGrowthElement` is at most
-        (less than or equal to) ``other``.
+        Return whether this :class:`MonomialGrowthElement` is
+        less than ``other``.
 
         INPUT:
 
-        - ``other`` -- a :class:`MonomialGrowthElement`.
+        - ``other`` -- a :class:`MonomialGrowthElement`
 
         OUTPUT:
 
@@ -2933,8 +2801,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: P_ZZ.gen() <= P_QQ.gen()^2  # indirect doctest
             True
         """
-        return self.exponent <= other.exponent
-
+        return self.exponent < other.exponent
 
     def _substitute_(self, rules):
         r"""
@@ -2975,9 +2842,8 @@ class MonomialGrowthElement(GenericGrowthElement):
         try:
             return self.parent()._var_._substitute_(rules) ** self.exponent
         except (ArithmeticError, TypeError, ValueError) as e:
-            from misc import substitute_raise_exception
+            from .misc import substitute_raise_exception
             substitute_raise_exception(self, e)
-
 
     def _singularity_analysis_(self, var, zeta, precision):
         r"""
@@ -2998,7 +2864,7 @@ class MonomialGrowthElement(GenericGrowthElement):
         in `T=\frac{1}{1-\frac{z}{\zeta}}\to \infty` where this element
         is a growth element in `T`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('x^QQ')
@@ -3099,7 +2965,6 @@ class MonomialGrowthGroup(GenericGrowthGroup):
     # enable the category framework for elements
     Element = MonomialGrowthElement
 
-
     # set everything up to determine category
     from sage.categories.sets_cat import Sets
     from sage.categories.posets import Posets
@@ -3116,7 +2981,6 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         ('AdditiveUnital', 'Unital', False),
         ('AdditiveInverse', 'Inverse', False),
         ('AdditiveCommutative', 'Commutative', False)]
-
 
     def _repr_short_(self):
         r"""
@@ -3146,9 +3010,8 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: MonomialGrowthGroup(PolynomialRing(QQ, 'x'), 'a')._repr_short_()
             'a^QQ[x]'
         """
-        from misc import parent_to_repr_short, repr_op
+        from .misc import parent_to_repr_short, repr_op
         return repr_op(self._var_, '^', parent_to_repr_short(self.base()))
-
 
     def _convert_(self, data):
         r"""
@@ -3285,7 +3148,6 @@ class MonomialGrowthGroup(GenericGrowthGroup):
                 if data.is_monomial() and data.precision_absolute() not in ZZ:
                     return data.degree()
 
-
     def gens_monomial(self):
         r"""
         Return a tuple containing monomial generators of this growth
@@ -3318,7 +3180,6 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         if not self._var_.is_monomial():
             return tuple()
         return (self(raw_element=self.base().one()),)
-
 
     def gens_logarithmic(self):
         r"""
@@ -3354,7 +3215,6 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             return (self(raw_element=self.base().one()),)
         else:
             return tuple()
-
 
     def construction(self):
         r"""
@@ -3411,7 +3271,6 @@ class MonomialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
 
     _functor_name = 'MonomialGrowthGroup'
 
-
     def __init__(self, var):
         r"""
         See :class:`MonomialGrowthGroupFunctor` for details.
@@ -3422,9 +3281,10 @@ class MonomialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
             sage: MonomialGrowthGroupFunctor('x')
             MonomialGrowthGroup[x]
         """
-        super(MonomialGrowthGroupFunctor, self).__init__(var,
-            sage.categories.commutative_additive_monoids.CommutativeAdditiveMonoids())
+        from sage.categories.commutative_additive_monoids import CommutativeAdditiveMonoids
 
+        super(MonomialGrowthGroupFunctor, self).__init__(var,
+            CommutativeAdditiveMonoids())
 
     def _apply_functor(self, base):
         r"""
@@ -3495,7 +3355,6 @@ class ExponentialGrowthElement(GenericGrowthElement):
         """
         return self._raw_element_
 
-
     def _repr_(self, latex=False):
         r"""
         A representation string for this exponential growth element.
@@ -3541,7 +3400,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
         else:
             f = repr
 
-        from misc import repr_op
+        from .misc import repr_op
 
         var = f(self.parent()._var_)
         if self.base.is_one():
@@ -3551,7 +3410,6 @@ class ExponentialGrowthElement(GenericGrowthElement):
                 '{' + latex_repr(var)._latex_() + '}'
         else:
             return repr_op(str(self.base), '^', var)
-
 
     def _latex_(self):
         r"""
@@ -3589,7 +3447,6 @@ class ExponentialGrowthElement(GenericGrowthElement):
         """
         return self._repr_(latex=True)
 
-
     def _mul_(self, other):
         r"""
         Multiply this exponential growth element with another.
@@ -3622,7 +3479,6 @@ class ExponentialGrowthElement(GenericGrowthElement):
         """
         return self.parent()(raw_element=self.base * other.base)
 
-
     def __invert__(self):
         r"""
         Return the multiplicative inverse of this exponential growth element.
@@ -3654,7 +3510,6 @@ class ExponentialGrowthElement(GenericGrowthElement):
         """
         return self.parent()._create_element_in_extension_(1 / self.base)
 
-
     def __pow__(self, exponent):
         r"""
         Calculate the power of this growth element to the given ``exponent``.
@@ -3683,7 +3538,6 @@ class ExponentialGrowthElement(GenericGrowthElement):
             117649^x
         """
         return self.parent()._create_element_in_extension_(self.base ** exponent)
-
 
     def _log_factor_(self, base=None):
         r"""
@@ -3725,15 +3579,14 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
         return ((str(self.parent()._var_), coefficient),)
 
-
-    def _le_(self, other):
+    def _lt_(self, other):
         r"""
-        Return whether this :class:`ExponentialGrowthElement` is at most
-        (less than or equal to) ``other``.
+        Return whether this :class:`ExponentialGrowthElement` is
+        less than ``other``.
 
         INPUT:
 
-        - ``other`` -- a :class:`ExponentialGrowthElement`.
+        - ``other`` -- a :class:`ExponentialGrowthElement`
 
         OUTPUT:
 
@@ -3757,9 +3610,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: P_ZZ((-2)^x) <= P_ZZ(2^x) or P_ZZ(2^x) <= P_ZZ((-2)^x)
             False
         """
-        return bool(abs(self.base) < abs(other.base)) or \
-               bool(self.base == other.base)
-
+        return bool(abs(self.base) < abs(other.base))
 
     def _substitute_(self, rules):
         r"""
@@ -3795,7 +3646,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
         try:
             return self.base ** self.parent()._var_._substitute_(rules)
         except (ArithmeticError, TypeError, ValueError) as e:
-            from misc import substitute_raise_exception
+            from .misc import substitute_raise_exception
             substitute_raise_exception(self, e)
 
 
@@ -3840,7 +3691,6 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
     # enable the category framework for elements
     Element = ExponentialGrowthElement
 
-
     # set everything up to determine category
     from sage.categories.sets_cat import Sets
     from sage.categories.posets import Posets
@@ -3859,7 +3709,6 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         ('Unital', 'Unital', False),
         ('Inverse', 'Inverse', False),
         ('Commutative', 'Commutative', False)]
-
 
     def _repr_short_(self):
         r"""
@@ -3887,9 +3736,8 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: ExponentialGrowthGroup(PolynomialRing(QQ, 'x'), 'a')._repr_short_()
             'QQ[x]^a'
         """
-        from misc import parent_to_repr_short, repr_op
+        from .misc import parent_to_repr_short, repr_op
         return repr_op(parent_to_repr_short(self.base()), '^', self._var_)
-
 
     def _convert_(self, data):
         r"""
@@ -3969,9 +3817,11 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             else:
                 return  # end of parsing
 
-        from sage.symbolic.ring import SymbolicRing
         import operator
+        from sage.functions.log import Function_exp
         from sage.symbolic.operators import mul_vararg
+        from sage.symbolic.ring import SymbolicRing
+
         if isinstance(P, SymbolicRing):
             op = data.operator()
             if op == operator.pow:
@@ -3980,7 +3830,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
                     return base
                 elif exponent.operator() == mul_vararg:
                     return base ** (exponent / P(var))
-            elif isinstance(op, sage.functions.log.Function_exp):
+            elif isinstance(op, Function_exp):
                 from sage.functions.log import exp
                 base = exp(1)
                 exponent = data.operands()[0]
@@ -3991,7 +3841,6 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
         elif data == 1:  # can be expensive, so let's put it at the end
             return self.base().one()
-
 
     def some_elements(self):
         r"""
@@ -4017,7 +3866,6 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         return iter(self.element_class(self, e)
                     for e in self.base().some_elements() if e != 0)
 
-
     def gens(self):
         r"""
         Return a tuple of all generators of this exponential growth
@@ -4039,7 +3887,6 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             ()
         """
         return tuple()
-
 
     def construction(self):
         r"""
@@ -4096,7 +3943,6 @@ class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
 
     _functor_name = 'ExponentialGrowthGroup'
 
-
     def __init__(self, var):
         r"""
         See :class:`ExponentialGrowthGroupFunctor` for details.
@@ -4107,9 +3953,10 @@ class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
             sage: ExponentialGrowthGroupFunctor('x')
             ExponentialGrowthGroup[x]
         """
-        super(ExponentialGrowthGroupFunctor, self).__init__(var,
-            sage.categories.monoids.Monoids())
+        from sage.categories.monoids import Monoids
 
+        super(ExponentialGrowthGroupFunctor, self).__init__(var,
+            Monoids())
 
     def _apply_functor(self, base):
         r"""
@@ -4133,7 +3980,7 @@ class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
         return ExponentialGrowthGroup(base, self.var)
 
 
-class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
+class GrowthGroupFactory(UniqueFactory):
     r"""
     A factory creating asymptotic growth groups.
 
@@ -4201,6 +4048,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
           running ._test_eq() . . . pass
+          running ._test_new() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
           pass
@@ -4210,6 +4058,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
         running ._test_elements_neq() . . . pass
         running ._test_eq() . . . pass
         running ._test_inverse() . . . pass
+        running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_one() . . . pass
         running ._test_pickling() . . . pass
@@ -4227,6 +4076,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
           running ._test_eq() . . . pass
+          running ._test_new() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
           pass
@@ -4236,6 +4086,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
         running ._test_elements_neq() . . . pass
         running ._test_eq() . . . pass
         running ._test_inverse() . . . pass
+        running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_one() . . . pass
         running ._test_pickling() . . . pass
@@ -4253,6 +4104,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
           running ._test_eq() . . . pass
+          running ._test_new() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
           pass
@@ -4262,12 +4114,14 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
         running ._test_elements_neq() . . . pass
         running ._test_eq() . . . pass
         running ._test_inverse() . . . pass
+        running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_one() . . . pass
         running ._test_pickling() . . . pass
         running ._test_prod() . . . pass
         running ._test_some_elements() . . . pass
     """
+
     def create_key_and_extra_args(self, specification, **kwds):
         r"""
         Given the arguments and keyword, create a key that uniquely
@@ -4281,7 +4135,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             ...
             ValueError: 'asdf' is not a valid substring of 'asdf' describing a growth group.
         """
-        from misc import split_str_by_op
+        from .misc import split_str_by_op
         factors = split_str_by_op(specification, '*')
         factors = tuple(f.replace('**', '^') for f in factors)
 
@@ -4293,7 +4147,6 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
         kwds.setdefault('ignore_variables', ('e',))
 
         return factors, kwds
-
 
     def create_object(self, version, factors, **kwds):
         r"""
@@ -4336,7 +4189,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             > *and* ValueError: Cannot create a parent out of 'y^z'.
             >> *previous* NameError: name 'y' is not defined
         """
-        from misc import repr_short_to_parent, split_str_by_op
+        from .misc import repr_short_to_parent, split_str_by_op
         groups = []
         for factor in factors:
             split = split_str_by_op(factor, '^')
@@ -4356,7 +4209,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
                 E = None
 
             if B is None and E is None:
-                from misc import combine_exceptions
+                from .misc import combine_exceptions
                 raise combine_exceptions(
                     ValueError("'%s' is not a valid substring of %s describing "
                                "a growth group." % (factor, ' * '.join(factors))),

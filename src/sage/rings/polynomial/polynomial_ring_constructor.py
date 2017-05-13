@@ -21,7 +21,8 @@ rings but rather quotients of them (see module
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
+from six import integer_types
 
 from sage.structure.category_object import normalize_names
 from sage.structure.element import is_Element
@@ -133,14 +134,13 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         However, you can very easily change the names within a ``with`` block::
 
             sage: with localvars(R, ['z','w']):
-            ...     print f
-            ...
+            ....:     print(f)
             z^2 - 2*w^2
 
         After the ``with`` block the names revert to what they were before.
         ::
 
-            sage: print f
+            sage: print(f)
             x^2 - 2*y^2
 
     SQUARE BRACKETS NOTATION: You can alternatively create a single or
@@ -422,16 +422,16 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
             raise TypeError("invalid input to PolynomialRing function; please see the docstring for that function")
         arg2 = len(arg1)
     else:
-        if isinstance(arg1, (int, long, Integer)):
+        if isinstance(arg1, integer_types + (Integer,)):
             arg1, arg2 = arg2, arg1
         if not names is None:
             arg1 = names
         elif not name is None:
             arg1 = name
 
-    if is_Element(arg1) and not isinstance(arg1, (int, long, Integer)):
+    if is_Element(arg1) and not isinstance(arg1, integer_types + (Integer,)):
         arg1 = repr(arg1)
-    if is_Element(arg2) and not isinstance(arg2, (int, long, Integer)):
+    if is_Element(arg2) and not isinstance(arg2, integer_types + (Integer,)):
         arg2 = repr(arg2)
 
     if not m.ring.is_Ring(base_ring):
@@ -445,7 +445,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         arg1 = [str(x) for x in arg1]
     if isinstance(arg2, (list, tuple)):
         arg2 = [str(x) for x in arg2]
-    if isinstance(arg2, (int, long, Integer)):
+    if isinstance(arg2, integer_types + (Integer,)):
         # 3. PolynomialRing(base_ring, names, n, order='degrevlex'):
         if not isinstance(arg1, (list, tuple, str)):
             raise TypeError("You *must* specify the names of the variables.")

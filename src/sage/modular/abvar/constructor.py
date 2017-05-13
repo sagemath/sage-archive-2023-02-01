@@ -5,12 +5,13 @@ AUTHORS:
 
 - William Stein (2007-03)
 """
-
 ###########################################################################
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>               #
 #  Distributed under the terms of the GNU General Public License (GPL)    #
 #                  http://www.gnu.org/licenses/                           #
 ###########################################################################
+from __future__ import absolute_import
+from six import integer_types
 
 import weakref
 
@@ -18,9 +19,9 @@ from sage.rings.integer import Integer
 
 from sage.modular.arithgroup.all import is_CongruenceSubgroup, Gamma0
 from sage.modular.modsym.space import is_ModularSymbolsSpace
-from abvar_newform import ModularAbelianVariety_newform
+from .abvar_newform import ModularAbelianVariety_newform
 import sage.modular.modform.element
-import abvar
+from . import abvar
 
 _cache = {}
 
@@ -35,7 +36,7 @@ def _get(key):
     -  ``key`` - hashable
 
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: sage.modular.abvar.constructor._saved('a', J0(37))
         Abelian variety J0(37) of dimension 2
@@ -171,7 +172,7 @@ def AbelianVariety(X):
         ...
         TypeError: X must be an integer, string, newform, modsym space, congruence subgroup or tuple of congruence subgroups
     """
-    if isinstance(X, (int, long, Integer)):
+    if isinstance(X, integer_types + (Integer,)):
         X = Gamma0(X)
     if is_CongruenceSubgroup(X):
         X = X.modular_symbols().cuspidal_submodule()

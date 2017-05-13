@@ -30,8 +30,10 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+
 from sage.rings.integer import Integer
-from combinat import (CombinatorialClass, CombinatorialObject,
+from .combinat import (CombinatorialClass, CombinatorialObject,
                       InfiniteAbstractCombinatorialClass, catalan_number)
 from copy import copy
 
@@ -184,7 +186,7 @@ class NonDecreasingParkingFunctions_all(InfiniteAbstractCombinatorialClass):
         TESTS::
 
             sage: (NonDecreasingParkingFunctions()._infinite_cclass_slice(4)
-            ...    == NonDecreasingParkingFunctions(4))
+            ....:  == NonDecreasingParkingFunctions(4))
             True
             sage: it = iter(NonDecreasingParkingFunctions()) # indirect doctest
             sage: [next(it) for i in range(8)]
@@ -263,7 +265,7 @@ class NonDecreasingParkingFunctions_n(CombinatorialClass):
             True
             sage: [1,1,4] in PF3
             False
-            sage: all([p in PF3 for p in PF3])
+            sage: all(p in PF3 for p in PF3)
             True
         """
         if isinstance(x, NonDecreasingParkingFunction):

@@ -39,6 +39,7 @@ EXAMPLES::
     sage: a.T(7)
     Hecke operator T_7 on Submodule of rank 2 of Integral Homology of Abelian variety J0(43) of dimension 3
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
@@ -54,7 +55,7 @@ EXAMPLES::
 from sage.modular.hecke.all import HeckeModule_free_module
 from sage.rings.all import Integer, ZZ, QQ, CommutativeRing
 
-import abvar
+from .abvar import sqrt_poly
 
 # TODO: we will probably also need homology that is *not* a Hecke module.
 
@@ -122,7 +123,7 @@ class Homology_abvar(Homology):
         r"""
         Compare self to other.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: J0(37).integral_homology() == J0(41).integral_homology()
             False
@@ -485,7 +486,7 @@ class RationalHomology(Homology_abvar):
             (x + 2) * (x^2 - 2)
         """
         f = self.hecke_operator(n).matrix().characteristic_polynomial(var)
-        return abvar.sqrt_poly(f)
+        return sqrt_poly(f)
 
         #n = Integer(n)
         #M = self.abelian_variety().modular_symbols(sign=1)
@@ -614,7 +615,7 @@ class Homology_submodule(Homology):
         r"""
         Compare self to other.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: J0(37).homology().decomposition() # indirect doctest
             [

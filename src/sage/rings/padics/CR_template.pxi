@@ -273,7 +273,7 @@ cdef class CRElement(pAdicTemplateElement):
         """
         return unpickle_cre_v2, (self.__class__, self.parent(), cpickle(self.unit, self.prime_pow), self.ordp, self.relprec)
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         """
         Return the additive inverse of this element.
 
@@ -297,7 +297,7 @@ cdef class CRElement(pAdicTemplateElement):
             creduce(ans.unit, ans.unit, ans.relprec, ans.prime_pow)
         return ans
 
-    cpdef ModuleElement _add_(self, ModuleElement _right):
+    cpdef _add_(self, _right):
         """
         Return the sum of this element and ``_right``.
 
@@ -339,7 +339,7 @@ cdef class CRElement(pAdicTemplateElement):
                 creduce(ans.unit, ans.unit, ans.relprec, ans.prime_pow)
         return ans
 
-    cpdef ModuleElement _sub_(self, ModuleElement _right):
+    cpdef _sub_(self, _right):
         """
         Return the difference of this element and ``_right``.
 
@@ -413,7 +413,7 @@ cdef class CRElement(pAdicTemplateElement):
         cinvert(ans.unit, self.unit, ans.relprec, ans.prime_pow)
         return ans
 
-    cpdef RingElement _mul_(self, RingElement _right):
+    cpdef _mul_(self, _right):
         r"""
         Return the product of this element and ``_right``.
 
@@ -444,7 +444,7 @@ cdef class CRElement(pAdicTemplateElement):
         check_ordp(ans.ordp)
         return ans
 
-    cpdef RingElement _div_(self, RingElement _right):
+    cpdef _div_(self, _right):
         """
         Return the quotient of this element and ``right``.
 
@@ -758,7 +758,7 @@ cdef class CRElement(pAdicTemplateElement):
                 ans._normalize()
         return ans
 
-    cpdef RingElement _floordiv_(self, RingElement _right):
+    cpdef _floordiv_(self, _right):
         """
         Floor division.
 
@@ -826,7 +826,7 @@ cdef class CRElement(pAdicTemplateElement):
         an equal element with precision set to the minimum of ``self's``
         precision and ``absprec``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = Zp(7,4,'capped-rel','series'); a = R(8); a.add_bigoh(1)
             1 + O(7)
@@ -1714,7 +1714,7 @@ cdef class pAdicCoercion_ZZ_CR(RingHomomorphism_coercion):
 cdef class pAdicConvert_CR_ZZ(RingMap):
     """
     The map from a capped relative ring back to the ring of integers that
-    returns the the smallest non-negative integer approximation to its input
+    returns the smallest non-negative integer approximation to its input
     which is accurate up to the precision.
 
     Raises a ``ValueError``, if the input is not in the closure of the image of

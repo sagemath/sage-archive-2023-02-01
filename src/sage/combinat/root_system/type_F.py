@@ -9,7 +9,12 @@ Root system data for type F
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import ambient_space
+from __future__ import print_function
+from __future__ import absolute_import
+
+from six.moves import range
+
+from . import ambient_space
 from sage.misc.cachefunc import cached_method
 from sage.rings.all import ZZ
 from sage.combinat.family import Family
@@ -67,7 +72,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
         EXAMPLES::
 
             sage: e = RootSystem(['F',4]).ambient_space()
-            sage: [ e.root(i,j,p2=1) for i in xrange(e.n) for j in xrange(i+1,e.n) ]
+            sage: [ e.root(i,j,p2=1) for i in range(e.n) for j in range(i+1,e.n) ]
             [(1, -1, 0, 0), (1, 0, -1, 0), (1, 0, 0, -1), (0, 1, -1, 0), (0, 1, 0, -1), (0, 0, 1, -1)]
         """
         if i == j or j is None:
@@ -175,9 +180,9 @@ class AmbientSpace(ambient_space.AmbientSpace):
         """
         v = ZZ(1)/ZZ(2)
         if not hasattr(self, 'PosRoots'):
-            self.PosRoots = ([ self.monomial(i) for i in xrange(self.n) ] +
-                            [ self.root(i,j,p2=0) for i in xrange(self.n) for j in xrange(i+1,self.n) ] +
-                            [ self.root(i,j,p2=1) for i in xrange(self.n) for j in xrange(i+1,self.n) ] +
+            self.PosRoots = ([ self.monomial(i) for i in range(self.n) ] +
+                            [ self.root(i,j,p2=0) for i in range(self.n) for j in range(i+1,self.n) ] +
+                            [ self.root(i,j,p2=1) for i in range(self.n) for j in range(i+1,self.n) ] +
                             [ v*self.root(0,1,2,3,0,p2,p3,p4) for p2 in [0,1] for p3 in [0,1] for p4 in [0,1] ])
         return self.PosRoots
 
@@ -197,7 +202,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
                         3: v*(3*self.monomial(0)+self.monomial(1)+self.monomial(2)+self.monomial(3)),
                         4: self.monomial(0)})
 
-from cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_crystallographic
+from .cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_crystallographic
 class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_crystallographic):
     def __init__(self):
         """
@@ -280,7 +285,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             [(1, 2, 1), (2, 1, 1), (2, 3, 2), (3, 2, 1), (3, 4, 1), (4, 3, 1)]
 
         """
-        from dynkin_diagram import DynkinDiagram_class
+        from .dynkin_diagram import DynkinDiagram_class
         g = DynkinDiagram_class(self)
         for i in range(1, 4):
             g.add_edge(i, i+1)
@@ -293,7 +298,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
 
         EXAMPLES::
 
-            sage: print CartanType(['F',4])._latex_dynkin_diagram()
+            sage: print(CartanType(['F',4])._latex_dynkin_diagram())
             \draw (0 cm,0) -- (2 cm,0);
             \draw (2 cm, 0.1 cm) -- +(2 cm,0);
             \draw (2 cm, -0.1 cm) -- +(2 cm,0);
@@ -325,10 +330,10 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
 
         EXAMPLES::
 
-            sage: print CartanType(['F',4]).ascii_art(label = lambda x: x+2)
+            sage: print(CartanType(['F',4]).ascii_art(label = lambda x: x+2))
             O---O=>=O---O
             3   4   5   6
-            sage: print CartanType(['F',4]).ascii_art(label = lambda x: x-2)
+            sage: print(CartanType(['F',4]).ascii_art(label = lambda x: x-2))
             O---O=>=O---O
             -1  0   1   2
         """

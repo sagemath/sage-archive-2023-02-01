@@ -8,7 +8,7 @@ of `S_n` when the group is realized as the permutation matrices.
 
 REFERENCES:
 
-.. [OZ2015] R. Orellana, M. Zabrocki, *Symmetric group characters
+.. [OZ2015] \R. Orellana, M. Zabrocki, *Symmetric group characters
    as symmetric functions*, :arxiv:`1510.00438`.
 """
 
@@ -35,6 +35,9 @@ from sage.combinat.partition import Partition
 from sage.arith.all import divisors, moebius
 from sage.functions.other import binomial
 from sage.rings.integer import Integer
+
+import six
+
 
 class generic_character(SFA_generic):
     def _my_key(self, la):
@@ -428,7 +431,7 @@ class irreducible_character_basis(generic_character):
 
         """
         return self._p.prod( self._b_power_k_r(Integer(k),Integer(r))
-                             for (k,r) in gamma.to_exp_dict().iteritems() )
+                             for (k,r) in six.iteritems(gamma.to_exp_dict()) )
 
     def _self_to_power_on_basis(self, lam):
         r"""

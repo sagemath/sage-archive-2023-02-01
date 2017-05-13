@@ -9,6 +9,9 @@ AUTHORS:
 
 - Travis Scrimshaw (2013-02-28): Removed ``CombinatorialClass`` and added
   entry point through :class:`SetPartition`.
+
+This module defines a class for immutable partitioning of a set. For
+mutable version see :func:`DisjointSet`.
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -24,6 +27,8 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
+from six import add_metaclass
 
 from sage.sets.set import Set, is_Set
 
@@ -48,6 +53,7 @@ from sage.combinat.permutation import Permutation
 from functools import reduce
 
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class SetPartition(ClonableArray):
     """
     A partition of a set.
@@ -109,8 +115,6 @@ class SetPartition(ClonableArray):
         sage: s.parent()
         Set partitions
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, parts, check=True):
         """
@@ -812,7 +816,7 @@ class SetPartition(ClonableArray):
 
         REFERENCES:
 
-        .. [LM2011] A. Lauve, M. Mastnak. *The primitives and antipode in
+        .. [LM2011] \A. Lauve, M. Mastnak. *The primitives and antipode in
            the Hopf algebra of symmetric functions in noncommuting variables*.
            Advances in Applied Mathematics. **47** (2011). 536-544.
            :arxiv:`1006.0367v3` :doi:`10.1016/j.aam.2011.01.002`.
@@ -843,6 +847,10 @@ class SetPartition(ClonableArray):
         """
         Return a list of refinements of ``self``.
 
+        .. SEEALSO::
+
+            :meth:`coarsenings`
+
         EXAMPLES::
 
             sage: SetPartition([[1,3],[2,4]]).refinements()
@@ -861,6 +869,10 @@ class SetPartition(ClonableArray):
     def coarsenings(self):
         """
         Return a list of coarsenings of ``self``.
+
+        .. SEEALSO::
+
+            :meth:`refinements`
 
         EXAMPLES::
 
@@ -1042,7 +1054,7 @@ class SetPartitions(UniqueRepresentation, Parent):
 
             sage: S = SetPartitions(4, [2,2])
             sage: SA = SetPartitions()
-            sage: all([sp in SA for sp in S])
+            sage: all(sp in SA for sp in S)
             True
             sage: Set([Set([1,2]),Set([3,7])]) in SA
             True
@@ -1117,7 +1129,7 @@ class SetPartitions(UniqueRepresentation, Parent):
             True
         """
         nonzero = []
-        expo = [0]+part.to_exp()
+        expo = [0] + part.to_exp()
 
         for i in range(len(expo)):
             if expo[i] != 0:
@@ -1129,8 +1141,8 @@ class SetPartitions(UniqueRepresentation, Parent):
 
         for b in blocs:
             lb = [IterableFunctionCall(_listbloc, nonzero[i][0], nonzero[i][1], b[i]) for i in range(len(nonzero))]
-            for x in itertools.imap(lambda x: _union(x), itertools.product( *lb )):
-                yield x
+            for x in itertools.product(*lb):
+                yield _union(x)
 
     def is_less_than(self, s, t):
         r"""
@@ -1323,7 +1335,7 @@ class SetPartitions_set(SetPartitions):
         TESTS::
 
             sage: S = SetPartitions(4, [2,2])
-            sage: all([sp in S for sp in S])
+            sage: all(sp in S for sp in S)
             True
             sage: SetPartition([[1,3],[2,4]]) in SetPartitions(3)
             False
@@ -1419,7 +1431,7 @@ class SetPartitions_setparts(SetPartitions_set):
             True
         """
         if isinstance(s, (int, Integer)):
-            s = xrange(1, s+1)
+            s = list(range(1, s + 1))
         return super(SetPartitions_setparts, cls).__classcall__(cls, frozenset(s), Partition(parts))
 
     def __init__(self, s, parts):

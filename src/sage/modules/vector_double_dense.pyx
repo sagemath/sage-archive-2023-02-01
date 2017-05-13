@@ -109,7 +109,7 @@ cdef class Vector_double_dense(FreeModuleElement):
         This function assumes that self._numpy_dtypeint and
         self._nrows and self._ncols have already been initialized.
 
-        EXAMPLE:
+        EXAMPLES:
 
         In this example, we throw away the current array and make a
         new uninitialized array representing the data for the class. ::
@@ -139,7 +139,7 @@ cdef class Vector_double_dense(FreeModuleElement):
         """
         Return a copy of the vector
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: a = vector(RDF, range(9))
             sage: a == copy(a)
@@ -220,7 +220,7 @@ cdef class Vector_double_dense(FreeModuleElement):
         """
         Return the length of the vector.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: v = vector(RDF, 5); v
             (0.0, 0.0, 0.0, 0.0, 0.0)
@@ -271,7 +271,7 @@ cdef class Vector_double_dense(FreeModuleElement):
                                                 numpy.PyArray_GETPTR1(self._vector_numpy, i)))
 
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Add two vectors together.
 
@@ -291,7 +291,7 @@ cdef class Vector_double_dense(FreeModuleElement):
 
         return self._new(_left._vector_numpy + _right._vector_numpy)
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Return self - right
 
@@ -311,7 +311,7 @@ cdef class Vector_double_dense(FreeModuleElement):
 
         return self._new(_left._vector_numpy - _right._vector_numpy)
 
-    cpdef Element _dot_product_(self, Vector right):
+    cpdef _dot_product_(self, Vector right):
         """
         Dot product of self and right.
 
@@ -335,7 +335,7 @@ cdef class Vector_double_dense(FreeModuleElement):
 
         return self._sage_dtype(numpy.dot(_left._vector_numpy, _right._vector_numpy))
 
-    cpdef Vector _pairwise_product_(self, Vector right):
+    cpdef _pairwise_product_(self, Vector right):
         """
         Return the component-wise product of self and right.
 
@@ -358,11 +358,11 @@ cdef class Vector_double_dense(FreeModuleElement):
 
         return self._new(_left._vector_numpy * _right._vector_numpy)
 
-    cpdef ModuleElement _rmul_(self, RingElement left):
+    cpdef _rmul_(self, RingElement left):
         """
         Multiply a scalar and vector
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: v = vector(CDF, range(3))
             sage: 3*v
@@ -375,11 +375,11 @@ cdef class Vector_double_dense(FreeModuleElement):
         return self._new(self._python_dtype(left)*self._vector_numpy)
 
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         """
         Multiply a scalar and vector
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: v = vector(CDF, range(3))
             sage: v*3
@@ -580,7 +580,7 @@ cdef class Vector_double_dense(FreeModuleElement):
         - ``p`` is any other real number: for a vector `\vec{x}`
           this method computes
 
-          .. math::
+          .. MATH::
 
                 \left(\sum_i x_i^p\right)^{1/p}
 
@@ -678,7 +678,7 @@ cdef class Vector_double_dense(FreeModuleElement):
         """
         Calculate the arithmetic mean of the vector.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: v = vector(RDF, range(9))
             sage: w = vector(CDF, [k+(9-k)*I for k in range(9)])
@@ -750,14 +750,14 @@ cdef class Vector_double_dense(FreeModuleElement):
         subtracted from the result to give 0.0 for a normal
         distribution. (Paragraph from the scipy.stats docstring.)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: v = vector(RDF, range(9))
             sage: w = vector(CDF, [k+(9-k)*I for k in range(9)])
-            sage: v.stats_kurtosis()
-            -1.2300000000000002
-            sage: w.stats_kurtosis()
-            -1.2300000000000002
+            sage: v.stats_kurtosis()  # rel tol 5e-15
+            -1.2300000000000000
+            sage: w.stats_kurtosis()  # rel tol 5e-15
+            -1.2300000000000000
         """
         import scipy.stats
         return self._sage_dtype(scipy.stats.kurtosis(self._vector_numpy))

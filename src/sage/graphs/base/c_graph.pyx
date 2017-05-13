@@ -38,6 +38,7 @@ method :meth:`realloc <sage.graphs.base.c_graph.CGraph.realloc>`.
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #**************************************************************************
+from __future__ import print_function, absolute_import
 
 include "sage/data_structures/bitset.pxi"
 
@@ -276,7 +277,7 @@ cdef class CGraph:
             sage: G.verts()
             [0, 1, 2]
             sage: for i in range(10):
-            ...       _ = G.add_vertex(-1);
+            ....:     _ = G.add_vertex(-1);
             ...
             sage: G.verts()
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
@@ -288,7 +289,7 @@ cdef class CGraph:
             sage: G.verts()
             [0, 1, 2]
             sage: for i in range(12):
-            ...       _ = G.add_vertex(-1);
+            ....:     _ = G.add_vertex(-1);
             ...
             sage: G.verts()
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
@@ -340,7 +341,7 @@ cdef class CGraph:
             - :meth:`add_vertex`
               -- add a vertex to a graph.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Adding vertices for sparse graphs::
 
@@ -455,9 +456,9 @@ cdef class CGraph:
             sage: G.add_arc(2, 0)
             sage: G.del_vertex(2)
             sage: for i in range(2):
-            ...       for j in range(2):
-            ...           if G.has_arc(i, j):
-            ...               print i, j
+            ....:     for j in range(2):
+            ....:         if G.has_arc(i, j):
+            ....:             print("{} {}".format(i,j))
             0 1
             sage: G = SparseGraph(3)
             sage: G.add_arc(0, 1)
@@ -465,10 +466,10 @@ cdef class CGraph:
             sage: G.add_arc(1, 2)
             sage: G.add_arc(2, 0)
             sage: G.del_vertex(1)
-            sage: for i in xrange(3):
-            ...       for j in xrange(3):
-            ...           if G.has_arc(i, j):
-            ...               print i, j
+            sage: for i in range(3):
+            ....:     for j in range(3):
+            ....:         if G.has_arc(i, j):
+            ....:             print("{} {}".format(i,j))
             0 2
             2 0
 
@@ -484,10 +485,9 @@ cdef class CGraph:
             sage: G.del_vertex(3); G.verts()
             [0, 1, 2]
             sage: for i in range(3):
-            ...       for j in range(3):
-            ...           if G.has_arc(i, j):
-            ...               print i, j
-            ...
+            ....:     for j in range(3):
+            ....:         if G.has_arc(i, j):
+            ....:             print("{} {}".format(i,j))
             0 1
             0 2
             1 2
@@ -593,7 +593,7 @@ cdef class CGraph:
 
         - A list of all vertices in this graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: S = SparseGraph(nverts=4, extra_vertices=4)
@@ -767,7 +767,7 @@ cdef class CGraph:
             - :meth:`add_arc <sage.graphs.base.dense_graph.DenseGraph.add_arc>`
               -- ``add_arc`` method for dense graphs.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.c_graph import CGraph
             sage: G = CGraph()
@@ -802,7 +802,7 @@ cdef class CGraph:
             - :meth:`has_arc <sage.graphs.base.dense_graph.DenseGraph.has_arc>`
               -- ``has_arc`` method for dense graphs.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.c_graph import CGraph
             sage: G = CGraph()
@@ -837,7 +837,7 @@ cdef class CGraph:
             - :meth:`del_all_arcs <sage.graphs.base.dense_graph.DenseGraph.del_all_arcs>`
               -- ``del_all_arcs`` method for dense graphs.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.c_graph import CGraph
             sage: G = CGraph()
@@ -950,7 +950,7 @@ cdef class CGraph:
             - :meth:`all_arcs <sage.graphs.base.sparse_graph.SparseGraph.all_arcs>`
               -- ``all_arcs`` method for sparse graphs.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.c_graph import CGraph
             sage: G = CGraph()
@@ -983,7 +983,7 @@ cdef class CGraph:
             - :meth:`in_neighbors <sage.graphs.base.dense_graph.DenseGraph.in_neighbors>`
               -- ``in_neighbors`` method for dense graphs.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.c_graph import CGraph
             sage: G = CGraph()
@@ -1016,7 +1016,7 @@ cdef class CGraph:
             - :meth:`out_neighbors <sage.graphs.base.dense_graph.DenseGraph.out_neighbors>`
               -- ``out_neighbors`` implementation for dense graphs.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.c_graph import CGraph
             sage: G = CGraph()
@@ -1039,7 +1039,7 @@ cdef class CGraph:
 
         - The number of in-neighbors of ``v``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: SparseGraph(7)._in_degree(3)
@@ -1071,7 +1071,7 @@ cdef class CGraph:
 
         - The number of out-neighbors of ``v``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: SparseGraph(7)._out_degree(3)
@@ -1097,7 +1097,7 @@ cdef class CGraph:
 
         - The order of this graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: SparseGraph(7)._num_verts()
@@ -1121,7 +1121,7 @@ cdef class CGraph:
 
         - The size of this graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: SparseGraph(7)._num_arcs()
@@ -1292,7 +1292,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         - ``True`` if ``v`` is a vertex of this graph; ``False`` otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraphBackend
             sage: B = SparseGraphBackend(7)
@@ -1333,7 +1333,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         - The degree of vertex ``v``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.graphs.base.sparse_graph import SparseGraphBackend
             sage: B = SparseGraphBackend(7)
@@ -1345,10 +1345,10 @@ cdef class CGraphBackend(GenericGraphBackend):
         Ensure that ticket :trac:`8395` is fixed. ::
 
             sage: def my_add_edges(G, m, n):
-            ...       for i in range(m):
-            ...           u = randint(0, n)
-            ...           v = randint(0, n)
-            ...           G.add_edge(u, v)
+            ....:     for i in range(m):
+            ....:         u = randint(0, n)
+            ....:         v = randint(0, n)
+            ....:         G.add_edge(u, v)
             sage: G = Graph({1:[1]}); G
             Looped graph on 1 vertex
             sage: G.edges(labels=False)
@@ -1468,7 +1468,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         - ``v`` -- a vertex of the graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
 
             sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
@@ -1495,7 +1495,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         - ``v`` -- a vertex of the graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
 
             sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
@@ -1531,7 +1531,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             - :meth:`has_vertex`
               -- returns whether or not this graph has a specific vertex.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
             sage: D.add_vertex(10)
@@ -1583,7 +1583,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             - :meth:`add_vertex`
               -- add a vertex to this graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(1)
             sage: D.add_vertices([1,2,3])
@@ -1637,7 +1637,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             - :meth:`del_vertices`
               -- delete a bunch of vertices from this graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
             sage: D.del_vertex(0)
@@ -1682,7 +1682,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             - :meth:`del_vertex`
               -- delete a vertex of this graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sage.graphs.base.dense_graph
             sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
@@ -1727,7 +1727,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             - :meth:`iterator_verts`
               -- returns an iterator over a given set of vertices.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P = Graph(graphs.PetersenGraph(), implementation="c_graph")
             sage: list(P._backend.iterator_nbrs(0))
@@ -1759,7 +1759,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             - :meth:`iterator_out_nbrs`
               -- returns an iterator over the out-neighbors of a vertex.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P = DiGraph(graphs.PetersenGraph().to_directed(), implementation="c_graph")
             sage: list(P._backend.iterator_in_nbrs(0))
@@ -1797,7 +1797,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             - :meth:`iterator_in_nbrs`
               -- returns an iterator over the in-neighbors of a vertex.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P = DiGraph(graphs.PetersenGraph().to_directed(), implementation="c_graph")
             sage: list(P._backend.iterator_out_nbrs(0))
@@ -1823,16 +1823,19 @@ cdef class CGraphBackend(GenericGraphBackend):
         - If ``verts=None``, return an iterator over all vertices of this
           graph.
 
-        - If ``verts`` is an iterable container of vertices, find the
-          intersection of ``verts`` with the vertex set of this graph and
-          return an iterator over the resulting intersection.
+        - If ``verts`` is a single vertex of the graph, treat it as the
+          container ``[verts]``.
+
+        - If ``verts`` is a iterable container of vertices, find the
+          intersection of ``verts`` with the vertex set of this graph
+          and return an iterator over the resulting intersection.
 
         .. SEEALSO::
 
             - :meth:`iterator_nbrs`
               -- returns an iterator over the neighbors of a vertex.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P = Graph(graphs.PetersenGraph(), implementation="c_graph")
             sage: list(P._backend.iterator_verts(P))
@@ -1844,28 +1847,29 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: list(P._backend.iterator_verts([1, 2, 10]))
             [1, 2]
         """
-        cdef int i
+        cdef long i
         if verts is None:
-            S = set(self.vertex_ints.iterkeys())
-            for i in range((<CGraph>self._cg).active_vertices.size):
-                if (i not in self.vertex_labels and
-                    bitset_in((<CGraph>self._cg).active_vertices, i)):
-                    S.add(i)
-            return iter(S)
-        cdef bint is_hashable = False
+            for x in self.vertex_ints:
+                yield x
+            for i in range(self._cg.active_vertices.size):
+                if (bitset_in(self._cg.active_vertices, i)
+                    and i not in self.vertex_labels
+                    and i not in self.vertex_ints):
+                        yield i
+            return
+
         try:
             hash(verts)
-            is_hashable = True
         except Exception:
             pass
-        if is_hashable and self.has_vertex(verts):
-            return iter([verts])
         else:
-            L = []
-            for v in verts:
-                if self.has_vertex(v):
-                    L.append(v)
-            return iter(L)
+            if self.has_vertex(verts):
+                yield verts
+                return
+
+        for v in verts:
+            if self.has_vertex(v):
+                yield v
 
     def loops(self, new=None):
         """
@@ -1884,7 +1888,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         - If ``new`` is a boolean, set the self-loop permission of this graph
           according to the boolean value of ``new``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = Graph(implementation='c_graph')
             sage: G._backend.loops()
@@ -1919,7 +1923,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             - :meth:`num_verts`
               -- return the order of this graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
             sage: G._backend.num_edges(False)
@@ -2020,7 +2024,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             - :meth:`num_edges`
               -- return the number of (directed) edges in this graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
             sage: G._backend.num_verts()
@@ -2086,7 +2090,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         - A list of vertices in the shortest path from ``x`` to ``y``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
             sage: G.shortest_path(0, 1)
@@ -2217,11 +2221,11 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         - A list of vertices in the shortest path from ``x`` to ``y``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = Graph(graphs.PetersenGraph(), implementation="c_graph")
             sage: for (u,v) in G.edges(labels=None):
-            ...      G.set_edge_label(u,v,1)
+            ....:    G.set_edge_label(u,v,1)
             sage: G.shortest_path(0, 1, by_weight=True)
             [0, 1]
             sage: G = DiGraph([(1,2,{'weight':1}), (1,3,{'weight':5}), (2,3,{'weight':1})])
@@ -2230,7 +2234,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         TEST:
 
-        Bugfix from #7673 ::
+        Bugfix from :trac:`7673` ::
 
             sage: G = Graph([(0,1,9),(0,2,8),(1,2,7)])
             sage: G.shortest_path_length(0,1,by_weight=True)
@@ -2393,6 +2397,13 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: paths = g._backend.shortest_path_all_vertices(0)
             sage: all([ (v not in paths and g.distance(0,v) == +Infinity) or len(paths[v])-1 == g.distance(0,v) for v in g])
             True
+
+        TESTS::
+
+            sage: graphs.KrackhardtKiteGraph().eccentricity("a")
+            Traceback (most recent call last):
+            ...
+            LookupError: vertex 'a' is not a vertex of the graph
         """
         cdef list current_layer
         cdef list next_layer
@@ -2407,6 +2418,8 @@ cdef class CGraphBackend(GenericGraphBackend):
         d = 0
 
         v_int = self.get_vertex(v)
+        if v_int == -1:
+            raise LookupError(f"vertex {v!r} is not a vertex of the graph")
 
         bitset_init(seen, (<CGraph>self._cg).active_vertices.size)
         bitset_set_first_n(seen, 0)
@@ -2508,15 +2521,15 @@ cdef class CGraphBackend(GenericGraphBackend):
         Visiting German cities using depth-first search::
 
             sage: G = Graph({"Mannheim": ["Frankfurt","Karlsruhe"],
-            ...   "Frankfurt": ["Mannheim","Wurzburg","Kassel"],
-            ...   "Kassel": ["Frankfurt","Munchen"],
-            ...   "Munchen": ["Kassel","Nurnberg","Augsburg"],
-            ...   "Augsburg": ["Munchen","Karlsruhe"],
-            ...   "Karlsruhe": ["Mannheim","Augsburg"],
-            ...   "Wurzburg": ["Frankfurt","Erfurt","Nurnberg"],
-            ...   "Nurnberg": ["Wurzburg","Stuttgart","Munchen"],
-            ...   "Stuttgart": ["Nurnberg"],
-            ...   "Erfurt": ["Wurzburg"]}, implementation="c_graph")
+            ....: "Frankfurt": ["Mannheim","Wurzburg","Kassel"],
+            ....: "Kassel": ["Frankfurt","Munchen"],
+            ....: "Munchen": ["Kassel","Nurnberg","Augsburg"],
+            ....: "Augsburg": ["Munchen","Karlsruhe"],
+            ....: "Karlsruhe": ["Mannheim","Augsburg"],
+            ....: "Wurzburg": ["Frankfurt","Erfurt","Nurnberg"],
+            ....: "Nurnberg": ["Wurzburg","Stuttgart","Munchen"],
+            ....: "Stuttgart": ["Nurnberg"],
+            ....: "Erfurt": ["Wurzburg"]}, implementation="c_graph")
             sage: list(G.depth_first_search("Frankfurt"))
             ['Frankfurt', 'Wurzburg', 'Nurnberg', 'Munchen', 'Kassel', 'Augsburg', 'Karlsruhe', 'Mannheim', 'Stuttgart', 'Erfurt']
         """
@@ -2591,15 +2604,15 @@ cdef class CGraphBackend(GenericGraphBackend):
         Visiting German cities using breadth-first search::
 
             sage: G = Graph({"Mannheim": ["Frankfurt","Karlsruhe"],
-            ...   "Frankfurt": ["Mannheim","Wurzburg","Kassel"],
-            ...   "Kassel": ["Frankfurt","Munchen"],
-            ...   "Munchen": ["Kassel","Nurnberg","Augsburg"],
-            ...   "Augsburg": ["Munchen","Karlsruhe"],
-            ...   "Karlsruhe": ["Mannheim","Augsburg"],
-            ...   "Wurzburg": ["Frankfurt","Erfurt","Nurnberg"],
-            ...   "Nurnberg": ["Wurzburg","Stuttgart","Munchen"],
-            ...   "Stuttgart": ["Nurnberg"],
-            ...   "Erfurt": ["Wurzburg"]}, implementation="c_graph")
+            ....: "Frankfurt": ["Mannheim","Wurzburg","Kassel"],
+            ....: "Kassel": ["Frankfurt","Munchen"],
+            ....: "Munchen": ["Kassel","Nurnberg","Augsburg"],
+            ....: "Augsburg": ["Munchen","Karlsruhe"],
+            ....: "Karlsruhe": ["Mannheim","Augsburg"],
+            ....: "Wurzburg": ["Frankfurt","Erfurt","Nurnberg"],
+            ....: "Nurnberg": ["Wurzburg","Stuttgart","Munchen"],
+            ....: "Stuttgart": ["Nurnberg"],
+            ....: "Erfurt": ["Wurzburg"]}, implementation="c_graph")
             sage: list(G.breadth_first_search("Frankfurt"))
             ['Frankfurt', 'Mannheim', 'Kassel', 'Wurzburg', 'Karlsruhe', 'Munchen', 'Erfurt', 'Nurnberg', 'Augsburg', 'Stuttgart']
         """
@@ -2793,13 +2806,13 @@ cdef class CGraphBackend(GenericGraphBackend):
         Checking acyclic graphs are indeed acyclic ::
 
             sage: def random_acyclic(n, p):
-            ...    g = graphs.RandomGNP(n, p)
-            ...    h = DiGraph()
-            ...    h.add_edges([ ((u,v) if u<v else (v,u)) for u,v,_ in g.edges() ])
-            ...    return h
+            ....:  g = graphs.RandomGNP(n, p)
+            ....:  h = DiGraph()
+            ....:  h.add_edges([ ((u,v) if u<v else (v,u)) for u,v,_ in g.edges() ])
+            ....:  return h
             ...
             sage: all( random_acyclic(100, .2).is_directed_acyclic()    # long time
-            ...        for i in range(50))                              # long time
+            ....:      for i in range(50))                              # long time
             True
         """
         if not self._directed:
@@ -2937,7 +2950,7 @@ cdef class Search_iterator:
       the graph to be traversed. For undirected graphs, we consider both
       the in- and out-neighbors.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: g = graphs.PetersenGraph()
         sage: list(g.breadth_first_search(0))
@@ -2984,7 +2997,7 @@ cdef class Search_iterator:
           relevant to digraphs. If ``graph`` is a digraph, ignore all
           orientations and consider the graph as undirected.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = graphs.PetersenGraph()
             sage: list(g.breadth_first_search(0))
@@ -3041,7 +3054,7 @@ cdef class Search_iterator:
         r"""
         Return an iterator object over a traversal of a graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = graphs.PetersenGraph()
             sage: g.breadth_first_search(0)
@@ -3053,7 +3066,7 @@ cdef class Search_iterator:
         r"""
         Return the next vertex in a traversal of a graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = graphs.PetersenGraph()
             sage: g.breadth_first_search(0)

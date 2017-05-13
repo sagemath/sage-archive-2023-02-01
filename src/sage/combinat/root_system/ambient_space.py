@@ -1,6 +1,7 @@
 r"""
 Ambient lattices and ambient spaces
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008-2009 Daniel Bump
 #       Copyright (C) 2008-2013 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -10,13 +11,14 @@ Ambient lattices and ambient spaces
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
-from weight_lattice_realizations import WeightLatticeRealizations
+from .weight_lattice_realizations import WeightLatticeRealizations
 from sage.rings.all import ZZ, QQ
-from sage.misc.cachefunc import ClearCacheOnPickle
-from sage.modules.free_module_element import vector
 from sage.categories.homset import End
 
-class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
+import six
+
+
+class AmbientSpace(CombinatorialFreeModule):
     r"""
     Abstract class for ambient spaces
 
@@ -57,7 +59,7 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
 
         sage: types = CartanType.samples(crystallographic = True)+[CartanType(["A",2],["C",5])]
         sage: for e in [ct.root_system().ambient_space() for ct in types]:
-        ...            TestSuite(e).run()
+        ....:          TestSuite(e).run()
     """
     def __init__(self, root_system, base_ring):
         """
@@ -95,7 +97,7 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
         Tests that the norm of the roots is, up to an overal constant factor,
         given by the symmetrizer of the Cartan matrix.
 
-        .. seealso:: :class:`TestSuite`
+        .. SEEALSO:: :class:`TestSuite`
 
         EXAMPLES::
 
@@ -387,7 +389,7 @@ class AmbientSpaceElement(CombinatorialFreeModuleElement):
         lambdacheck_mc = lambdacheck._monomial_coefficients
 
         result = self.parent().base_ring().zero()
-        for t,c in lambdacheck_mc.iteritems():
+        for t,c in six.iteritems(lambdacheck_mc):
             if t not in self_mc:
                 continue
             result += c*self_mc[t]

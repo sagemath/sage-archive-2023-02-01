@@ -17,6 +17,7 @@ from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.rngs import Rngs
 from sage.structure.element import Element
 from functools import reduce
+from sage.misc.cachefunc import cached_method
 
 class Rings(CategoryWithAxiom):
     """
@@ -57,6 +58,104 @@ class Rings(CategoryWithAxiom):
     """
 
     _base_category_class_and_axiom = (Rngs, "Unital")
+
+    class MorphismMethods:
+        @cached_method
+        def is_injective(self):
+            """
+            Return whether or not this morphism is injective.
+
+            EXAMPLES:
+
+            This often raises a ``NotImplementedError`` as many homomorphisms do
+            not implement this method::
+
+                sage: R.<x> = QQ[]
+                sage: f = R.hom([x + 1]); f
+                Ring endomorphism of Univariate Polynomial Ring in x over Rational Field
+                  Defn: x |--> x + 1
+                sage: f.is_injective()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError
+
+            If the domain is a field, the homomorphism is injective::
+
+                sage: K.<x> = FunctionField(QQ)
+                sage: L.<y> = FunctionField(QQ)
+                sage: f = K.hom([y]); f
+                Function Field morphism:
+                  From: Rational function field in x over Rational Field
+                  To:   Rational function field in y over Rational Field
+                  Defn: x |--> y
+                sage: f.is_injective()
+                True
+
+            Unless the codomain is the zero ring::
+
+                sage: codomain = Integers(1)
+                sage: f = K.hom([codomain(1)]); f
+                Function Field morphism:
+                  From: Rational function field in x over Rational Field
+                  To:   Ring of integers modulo 1
+                  Defn: x |--> 0
+                sage: f.is_injective()
+                False
+
+            Homomorphism from rings of characteristic zero to rings of positive
+            characteristic can not be injective::
+
+                sage: R.<x> = ZZ[]
+                sage: f = R.hom([GF(3)(1)]); f
+                Ring morphism:
+                  From: Univariate Polynomial Ring in x over Integer Ring
+                  To:   Finite Field of size 3
+                  Defn: x |--> 1
+                sage: f.is_injective()
+                False
+
+            A morphism whose domain is an order in a number field is injective if
+            the codomain has characteristic zero::
+
+                sage: K.<x> = FunctionField(QQ)
+                sage: f = ZZ.hom(K); f
+                Ring Coercion morphism:
+                  From: Integer Ring
+                  To:   Rational function field in x over Rational Field
+                sage: f.is_injective()
+                True
+
+            """
+            if self.domain().is_zero():
+                return True
+            if self.codomain().is_zero():
+                # the only map to the zero ring that is injective is the map from itself
+                return False
+
+            from sage.categories.fields import Fields
+            if self.domain() in Fields():
+                # A ring homomorphism from a field to a ring is injective
+                # (unless the codomain is the zero ring.) Note that ring
+                # homomorphism must send the 1 element to the 1 element
+                return True
+
+            if self.domain().characteristic() == 0:
+                if self.codomain().characteristic() != 0:
+                    return False
+                else:
+                    from sage.categories.integral_domains import IntegralDomains
+                    if self.domain() in IntegralDomains():
+                        # if all elements of the domain are algebraic over ZZ,
+                        # then the homomorphism must be injective (in
+                        # particular if the domain is ZZ)
+                        from sage.categories.number_fields import NumberFields
+                        if self.domain().fraction_field() in NumberFields():
+                            return True
+
+            if self.domain().cardinality() > self.codomain().cardinality():
+                return False
+
+            raise NotImplementedError
 
     class SubcategoryMethods:
 
@@ -249,7 +348,7 @@ class Rings(CategoryWithAxiom):
               the product is ``self*x``; if ``True``, the
               product is ``x*self``.
 
-            EXAMPLE:
+            EXAMPLES:
 
             As we mentioned above, this method is called
             when a ring is involved that does not inherit
@@ -324,7 +423,7 @@ class Rings(CategoryWithAxiom):
             from that class, such as matrix algebras.  See
             :trac:`7797`.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: MS = MatrixSpace(QQ,2,2)
                 sage: isinstance(MS,Ring)
@@ -412,7 +511,7 @@ class Rings(CategoryWithAxiom):
               whether the resulting ideal is twosided, a left
               ideal or a right ideal.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: MS = MatrixSpace(QQ,2,2)
                 sage: isinstance(MS,Ring)
@@ -614,7 +713,7 @@ class Rings(CategoryWithAxiom):
 
             This is a synonym for :meth:`quotient`.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: MS = MatrixSpace(QQ,2)
                 sage: I = MS*MS.gens()*MS
@@ -656,7 +755,7 @@ class Rings(CategoryWithAxiom):
 
             This is a synonyme for :meth:`quotient`.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: MS = MatrixSpace(QQ,2)
                 sage: I = MS*MS.gens()*MS
@@ -694,7 +793,7 @@ class Rings(CategoryWithAxiom):
             the construction of a quotient ring using division syntax
             is not supported.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: MS = MatrixSpace(QQ,2)
                 sage: I = MS*MS.gens()*MS
@@ -736,6 +835,13 @@ class Rings(CategoryWithAxiom):
                 Multivariate Polynomial Ring in a, b, c over Finite Field of size 17
                 sage: GF(17)['a']['b']
                 Univariate Polynomial Ring in b over Univariate Polynomial Ring in a over Finite Field of size 17
+
+            We can create skew polynomial rings::
+
+                sage: k.<t> = GF(5^3)
+                sage: Frob = k.frobenius_endomorphism()
+                sage: k['x',Frob]
+                Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
 
             We can also create power series rings by using double brackets::
 
@@ -848,6 +954,12 @@ class Rings(CategoryWithAxiom):
                     elts = normalize_arg(arg)
                 from sage.rings.power_series_ring import PowerSeriesRing
                 return PowerSeriesRing(self, elts)
+
+            if isinstance(arg, tuple):
+                from sage.categories.morphism import Morphism
+                if len(arg) == 2 and isinstance(arg[1], Morphism):
+                   from sage.rings.polynomial.skew_polynomial_ring_constructor import SkewPolynomialRing
+                   return SkewPolynomialRing(self, arg[1], names=arg[0])
 
             # 2. Otherwise, if all specified elements are algebraic, try to
             #    return an algebraic extension

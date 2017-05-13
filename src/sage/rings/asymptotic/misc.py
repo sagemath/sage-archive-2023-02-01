@@ -27,7 +27,8 @@ Functions, Classes and Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage
+from __future__ import print_function, absolute_import
+from six.moves import range
 
 
 def repr_short_to_parent(s):
@@ -117,19 +118,24 @@ def parent_to_repr_short(P):
         sage: parent_to_repr_short(Zmod(3)['g'])
         'Univariate Polynomial Ring in g over Ring of integers modulo 3'
     """
+    from sage.rings.integer_ring import ZZ
+    from sage.rings.rational_field import QQ
+    from sage.symbolic.ring import SR
+    from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+    from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+    from sage.rings.power_series_ring import is_PowerSeriesRing
     def abbreviate(P):
-        if P is sage.rings.integer_ring.ZZ:
+        if P is ZZ:
             return 'ZZ'
-        elif P is sage.rings.rational_field.QQ:
+        elif P is QQ:
             return 'QQ'
-        elif P is sage.symbolic.ring.SR:
+        elif P is SR:
             return 'SR'
         raise ValueError('Cannot abbreviate %s.' % (P,))
 
-    poly = sage.rings.polynomial.polynomial_ring.is_PolynomialRing(P) or \
-           sage.rings.polynomial.multi_polynomial_ring_generic.is_MPolynomialRing(P)
+    poly = is_PolynomialRing(P) or is_MPolynomialRing(P)
     from sage.rings import multi_power_series_ring
-    power = sage.rings.power_series_ring.is_PowerSeriesRing(P) or \
+    power = is_PowerSeriesRing(P) or \
             multi_power_series_ring.is_MPowerSeriesRing(P)
 
     if poly or power:
@@ -296,7 +302,7 @@ def repr_op(left, op, right=None, latex=False):
 
     ::
 
-        sage: print repr_op(r'\frac{1}{2}', '^', 'c', latex=True)
+        sage: print(repr_op(r'\frac{1}{2}', '^', 'c', latex=True))
         \left(\frac{1}{2}\right)^c
     """
     left = str(left)
@@ -518,7 +524,7 @@ def merge_overlapping(A, B, key=None):
     def find_overlapping_index(A, B):
         if len(B) > len(A) - 2:
             raise StopIteration
-        matches = iter(i for i in xrange(1, len(A) - len(B))
+        matches = iter(i for i in range(1, len(A) - len(B))
                        if A[i:i+len(B)] == B)
         return next(matches)
 
@@ -530,7 +536,7 @@ def merge_overlapping(A, B, key=None):
 
         Adapted from http://stackoverflow.com/a/30056066/1052778.
         """
-        matches = iter(i for i in xrange(min(len(A), len(B)), 0, -1)
+        matches = iter(i for i in range(min(len(A), len(B)), 0, -1)
                        if A[-i:] == B[:i])
         return next(matches, 0)
 
@@ -620,7 +626,7 @@ class NotImplementedOZero(NotImplementedError):
             NotImplementedOZero: The error term in the result is O(0)
             which means 0 for sufficiently large m.
         """
-        from asymptotic_ring import AsymptoticRing
+        from .asymptotic_ring import AsymptoticRing
         if isinstance(data, AsymptoticRing) or var is not None:
             if var is None:
                 var = ', '.join(str(g) for g in data.gens())
@@ -763,3 +769,75 @@ def transform_category(category,
                              (category, A))
 
     return result
+
+
+def richcmp_by_eq_and_lt(left, right, op):
+    r"""
+    Compare ``left`` with ``right``, where the order is specified
+    by methods ``_eq_`` and ``_lt_``.
+
+    INPUT:
+
+    - ``left`` and ``right`` -- objects having methods ``_eq_`` and ``_lt_``
+
+    - ``op`` -- a rich comparison operation (e.g. ``Py_EQ``)
+
+    OUTPUT:
+
+    A boolean.
+
+    .. NOTE::
+
+        This function is intended to be used as a method ``_richcmp_``
+        in a class derived from :class:`sage.structure.element.Element`.
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.misc import richcmp_by_eq_and_lt
+        sage: from sage.structure.element import Element
+
+        sage: class C(Element):
+        ....:     def __init__(self, a, b):
+        ....:         super(C, self).__init__(ZZ)
+        ....:         self.a = a
+        ....:         self.b = b
+        ....:     _richcmp_ = richcmp_by_eq_and_lt
+        ....:     def _eq_(self, other):
+        ....:         return self.a == other.a and self.b == other.b
+        ....:     def _lt_(self, other):
+        ....:         return self.a < other.a and self.b < other.b
+
+        sage: x = C(1,2); y = C(2,1); z = C(3,3)
+
+        sage: x == x, x <= x, x == C(1,2), x <= C(1,2)  # indirect doctest
+        (True, True, True, True)
+        sage: y == z, y != z
+        (False, True)
+
+        sage: x < y, y < x, x > y, y > x, x <= y, y <= x, x >= y, y >= x
+        (False, False, False, False, False, False, False, False)
+        sage: y < z, z < y, y > z, z > y, y <= z, z <= y, y >= z, z >= y
+        (True, False, False, True, True, False, False, True)
+        sage: z < x, x < z, z > x, x > z, z <= x, x <= z, z >= x, x >= z
+        (False, True, True, False, False, True, True, False)
+    """
+    from sage.structure.sage_object import (rich_to_bool,
+                                            op_NE, op_EQ,
+                                            op_LT, op_LE, op_GT, op_GE)
+
+    if left is right:
+        return rich_to_bool(op, 0)
+
+    if op == op_LT or op == op_GT:
+        pass
+    elif left._eq_(right):
+        return rich_to_bool(op, 0)
+    elif op == op_NE:
+        return True
+    elif op == op_EQ:
+        return False
+
+    if op == op_LT or op == op_LE:
+        return left._lt_(right)
+    else:
+        return right._lt_(left)

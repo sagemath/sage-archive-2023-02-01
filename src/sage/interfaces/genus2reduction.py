@@ -33,6 +33,7 @@ code however they want.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 from sage.rings.all import ZZ, QQ, PolynomialRing
@@ -129,7 +130,7 @@ class ReductionData(SageObject):
 
        Be careful regarding the formula:
 
-       .. math::
+       .. MATH::
 
           \text{valuation of the naive minimal discriminant} = f + n - 1 + 11c(X).
 
@@ -197,15 +198,15 @@ def divisors_to_string(divs):
     EXAMPLES::
 
         sage: from sage.interfaces.genus2reduction import divisors_to_string
-        sage: print divisors_to_string([])
+        sage: print(divisors_to_string([]))
         (1)
-        sage: print divisors_to_string([5])
+        sage: print(divisors_to_string([5]))
         (5)
-        sage: print divisors_to_string([5]*6)
+        sage: print(divisors_to_string([5]*6))
         (5)^6
-        sage: print divisors_to_string([2,3,4])
+        sage: print(divisors_to_string([2,3,4]))
         (2)x(3)x(4)
-        sage: print divisors_to_string([6,2,2])
+        sage: print(divisors_to_string([6,2,2]))
         (6)x(2)^2
     """
     s = ""
@@ -289,7 +290,7 @@ class Genus2reduction(SageObject):
         sage: factor(genus2reduction(x^3 + x + 1, x^5 + 2*x^4 + 2*x^3 + x^2 - x - 1).conductor)
         5^6
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: genus2reduction(0, x^6 + 3*x^3 + 63)
         Reduction data about this proper smooth genus 2 curve:
@@ -317,7 +318,7 @@ class Genus2reduction(SageObject):
     Consider the modular curve `X_1(13)` defined by an
     equation
 
-    .. math::
+    .. MATH::
 
                    y^2 + (x^3-x^2-1)y = x^2 - x.
 
@@ -387,7 +388,7 @@ class Genus2reduction(SageObject):
         EXAMPLES::
 
             sage: x = QQ['x'].0
-            sage: print genus2reduction.raw(x^3 - 2*x^2 - 2*x + 1, -5*x^5)[0]
+            sage: print(genus2reduction.raw(x^3 - 2*x^2 - 2*x + 1, -5*x^5)[0])
             doctest:...: DeprecationWarning: the raw() method is provided for backwards compatibility only, use the result of the genus2reduction() call instead of parsing strings
             See http://trac.sagemath.org/15808 for details.
             a minimal equation over Z[1/2] is :

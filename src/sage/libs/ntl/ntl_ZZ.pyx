@@ -12,10 +12,10 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
@@ -95,7 +95,7 @@ cdef class ntl_ZZ(object):
             if not ((v[0].isdigit() or v[0] == '-') and \
                     (v[1:-1].isdigit() or (len(v) <= 2)) and \
                     (v[-1].isdigit() or (v[-1].lower() in ['l','r']))):
-               raise ValueError, "invalid integer: %s"%v
+               raise ValueError("invalid integer: %s" % v)
             sig_on()
             ZZ_from_str(&self.x, v)
             sig_off()
@@ -250,7 +250,7 @@ cdef class ntl_ZZ(object):
             sage: ntl.ZZ(22).__int__()
             22
             sage: type(ntl.ZZ(22).__int__())
-            <type 'int'>
+            <... 'int'>
 
             sage: ntl.ZZ(10^30).__int__()
             1000000000000000000000000000000L
@@ -276,10 +276,10 @@ cdef class ntl_ZZ(object):
 
         sage: x = ntl.ZZ(42)
         sage: i = x.get_as_int_doctest()
-        sage: print i
+        sage: i
          42
-        sage: print type(i)
-         <type 'int'>
+        sage: type(i)
+         <... 'int'>
         """
         return self.get_as_int()
 

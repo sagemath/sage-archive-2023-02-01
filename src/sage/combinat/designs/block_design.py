@@ -53,17 +53,22 @@ Functions and methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.modules.free_module import VectorSpace
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.arith.all import binomial, integer_floor, is_prime_power
-from incidence_structures import IncidenceStructure
+from .incidence_structures import IncidenceStructure
 from sage.misc.decorators import rename_keyword
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
 from sage.matrix.matrix_space import MatrixSpace
+
+
+import six
 
 
 BlockDesign = IncidenceStructure
@@ -165,21 +170,37 @@ def are_hyperplanes_in_projective_geometry_parameters(v, k, lmbda, return_parame
     return (True, (q,d)) if return_parameters else True
 
 def ProjectiveGeometryDesign(n, d, F, algorithm=None, point_coordinates=True, check=True):
-    """
+    r"""
     Return a projective geometry design.
 
-    A projective geometry design of parameters `n,d,F` has for points the lines
-    of `F^{n+1}`, and for blocks the `d+1`-dimensional subspaces of `F^{n+1}`,
-    each of which contains `\\frac {|F|^{d+1}-1} {|F|-1}` lines.
+    The projective geometry design `PG_d(n,q)` has for points the lines of
+    `\GF{q}^{n+1}`, and for blocks the `d+1`-dimensional subspaces of
+    `\GF{q}^{n+1}`, each of which contains `\frac {|\GF{q}|^{d+1}-1} {|\GF{q}|-1}` lines.
+    It is a `2`-design with parameters
+
+    .. MATH::
+
+        v = \binom{n+1}{1}_q,\ k = \binom{d+1}{1}_q,\ \lambda =
+        \binom{n-1}{d-1}_q
+
+    where the `q`-binomial coefficient `\binom{m}{r}_q` is defined by
+
+    .. MATH::
+
+        \binom{m}{r}_q = \frac{(q^m - 1)(q^{m-1} - 1) \cdots (q^{m-r+1}-1)}
+              {(q^r-1)(q^{r-1}-1)\cdots (q-1)}
+
+    .. SEEALSO::
+
+        :func:`AffineGeometryDesign`
 
     INPUT:
 
     - ``n`` is the projective dimension
 
-    - ``d`` is the dimension of the subspaces of `P = PPn(F)` which
-      make up the blocks.
+    - ``d`` is the dimension of the subspaces which make up the blocks.
 
-    - ``F`` is a finite field.
+    - ``F`` -- a finite field or a prime power.
 
     - ``algorithm`` -- set to ``None`` by default, which results in using Sage's
       own implementation. In order to use GAP's implementation instead (i.e. its
@@ -188,27 +209,35 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, point_coordinates=True, ch
       installed with the ``gap_packages`` spkg.
 
     - ``point_coordinates`` -- ``True`` by default. Ignored and assumed to be ``False`` if
-      ``algorithm="gap"``. If ``True``, the ground set is indexed by coordinates in `F^{n+1}`.
-      Otherwise the ground set is indexed by integers,
+      ``algorithm="gap"``. If ``True``, the ground set is indexed by coordinates
+      in `\GF{q}^{n+1}`.  Otherwise the ground set is indexed by integers.
+
+    - ``check`` -- (optional, default to ``True``) whether to check the output.
 
     EXAMPLES:
 
     The set of `d`-dimensional subspaces in a `n`-dimensional projective space
     forms `2`-designs (or balanced incomplete block designs)::
 
-        sage: PG = designs.ProjectiveGeometryDesign(4,2,GF(2))
+        sage: PG = designs.ProjectiveGeometryDesign(4, 2, GF(2))
         sage: PG
         Incidence structure with 31 points and 155 blocks
         sage: PG.is_t_design(return_parameters=True)
         (True, (2, 31, 7, 7))
 
-        sage: PG = designs.ProjectiveGeometryDesign(3,1,GF(4,'z'))
+        sage: PG = designs.ProjectiveGeometryDesign(3, 1, GF(4))
         sage: PG.is_t_design(return_parameters=True)
         (True, (2, 85, 5, 1))
 
+    Check with ``F`` being a prime power::
+
+        sage: PG = designs.ProjectiveGeometryDesign(3, 2, 4)
+        sage: PG
+        Incidence structure with 85 points and 85 blocks
+
     Use coordinates::
 
-        sage: PG = designs.ProjectiveGeometryDesign(2,1,GF(3))
+        sage: PG = designs.ProjectiveGeometryDesign(2, 1, GF(3))
         sage: PG.blocks()[0]
         [(1, 0, 0), (1, 0, 1), (1, 0, 2), (0, 0, 1)]
 
@@ -224,11 +253,17 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, point_coordinates=True, ch
         sage: BD.is_t_design(return_parameters=True)                              # optional - gap_packages (design package)
         (True, (2, 7, 3, 1))
     """
+    try:
+        q = int(F)
+    except TypeError:
+        q = F.cardinality()
+    else:
+        from sage.rings.finite_rings.finite_field_constructor import GF
+        F = GF(q)
+
     if algorithm is None:
         from sage.matrix.echelon_matrix import reduced_echelon_matrix_iterator
-        from copy import copy
 
-        points = {}
         points = {p:i for i,p in enumerate(reduced_echelon_matrix_iterator(F,1,n+1,copy=True,set_immutable=True))}
         blocks = []
         for m1 in reduced_echelon_matrix_iterator(F,d+1,n+1,copy=False):
@@ -241,9 +276,9 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, point_coordinates=True, ch
             blocks.append(b)
         B = BlockDesign(len(points), blocks, name="ProjectiveGeometryDesign", check=check)
         if point_coordinates:
-            B.relabel({i:p[0] for p,i in points.iteritems()})
-        return B
-    if algorithm == "gap":   # Requires GAP's Design
+            B.relabel({i:p[0] for p,i in six.iteritems(points)})
+
+    elif algorithm == "gap":   # Requires GAP's Design
         from sage.interfaces.gap import gap
         gap.load_package("design")
         gap.eval("D := PGPointFlatBlockDesign( %s, %s, %d )"%(n,F.order(),d))
@@ -252,7 +287,18 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, point_coordinates=True, ch
         gB = []
         for b in gblcks:
             gB.append([x-1 for x in b])
-        return BlockDesign(v, gB, name="ProjectiveGeometryDesign", check=check)
+        B = BlockDesign(v, gB, name="ProjectiveGeometryDesign", check=check)
+
+    if check:
+        from sage.combinat.q_analogues import q_binomial
+        q = F.cardinality()
+        if not B.is_t_design(t=2, v=q_binomial(n+1,1,q),
+                                  k=q_binomial(d+1,1,q),
+                                  l=q_binomial(n-1, d-1, q)):
+            raise RuntimeError("error in ProjectiveGeometryDesign "
+                    "construction. Please e-mail sage-devel@googlegroups.com")
+    return B
+
 
 def DesarguesianProjectivePlaneDesign(n, point_coordinates=True, check=True):
     r"""
@@ -334,10 +380,10 @@ def DesarguesianProjectivePlaneDesign(n, point_coordinates=True, check=True):
     # the line at infinity "z = 0"
     blcks.append(range(n2,n2+n+1))
     if check:
-        from designs_pyx import is_projective_plane
+        from .designs_pyx import is_projective_plane
         if not is_projective_plane(blcks):
             raise RuntimeError('There is a problem in the function DesarguesianProjectivePlane')
-    from bibd import BalancedIncompleteBlockDesign
+    from .bibd import BalancedIncompleteBlockDesign
     B = BalancedIncompleteBlockDesign(n2+n+1, blcks, check=check)
 
     if point_coordinates:
@@ -499,7 +545,7 @@ def HughesPlane(q2, check=True):
     while `D_{0,70}`, `D_{1,59}` and `D_{10,57}` are not concurrent::
 
         sage: blocks = H.blocks()
-        sage: line = lambda p,q: (b for b in blocks if p in b and q in b).next()
+        sage: line = lambda p,q: next(b for b in blocks if p in b and q in b)
 
         sage: b_0_1 = line(0, 1)
         sage: b_1_10 = line(1, 10)
@@ -580,7 +626,7 @@ def HughesPlane(q2, check=True):
             for i in range(q2 + q):
                 l = [A*j for j in l]
                 blcks.append([relabel[normalize_hughes_plane_point(p,q)] for p in l])
-    from bibd import BalancedIncompleteBlockDesign
+    from .bibd import BalancedIncompleteBlockDesign
     return BalancedIncompleteBlockDesign(q2**2+q2+1, blcks, check=check)
 
 def projective_plane_to_OA(pplane, pt=None, check=True):
@@ -627,7 +673,7 @@ def projective_plane_to_OA(pplane, pt=None, check=True):
         sage: _ = projective_plane_to_OA(pp, pt=3)
         sage: _ = projective_plane_to_OA(pp, pt=7)
     """
-    from bibd import _relabel_bibd
+    from .bibd import _relabel_bibd
     pplane = pplane.blocks()
     n = len(pplane[0]) - 1
 
@@ -643,7 +689,7 @@ def projective_plane_to_OA(pplane, pt=None, check=True):
     assert len(OA) == n**2, "pplane is not a projective plane"
 
     if check:
-        from designs_pyx import is_orthogonal_array
+        from .designs_pyx import is_orthogonal_array
         is_orthogonal_array(OA,n+1,n,2)
 
     return OA
@@ -733,66 +779,109 @@ def projective_plane(n, check=True, existence=False):
     else:
         return DesarguesianProjectivePlaneDesign(n, point_coordinates=False, check=check)
 
-def AffineGeometryDesign(n, d, F):
+def AffineGeometryDesign(n, d, F, point_coordinates=True, check=True):
     r"""
-    Return an Affine Geometry Design.
+    Return an affine geometry design.
+
+    The affine geometry design `AG_d(n,q)` is the 2-design whose blocks are the
+    `d`-vector subspaces in `\GF{q}^n`. It has parameters
+
+    .. MATH::
+
+        v = q^n,\ k = q^d,\ \lambda = \binom{n-1}{d-1}_q
+
+    where the `q`-binomial coefficient `\binom{m}{r}_q` is defined by
+
+    .. MATH::
+
+        \binom{m}{r}_q = \frac{(q^m - 1)(q^{m-1} - 1) \cdots (q^{m-r+1}-1)}
+              {(q^r-1)(q^{r-1}-1)\cdots (q-1)}
+
+    .. SEEALSO::
+
+        :func:`ProjectiveGeometryDesign`
 
     INPUT:
 
-    - `n` (integer) -- the Euclidean dimension. The number of points is
-      `v=|F^n|`.
+    - ``n`` (integer) -- the Euclidean dimension. The number of points of the
+      design is `v=|\GF{q}^n|`.
 
-    - `d` (integer) -- the dimension of the (affine) subspaces of `P = GF(q)^n`
+    - ``d`` (integer) -- the dimension of the (affine) subspaces of `\GF{q}^n`
       which make up the blocks.
 
-    - `F` -- a Finite Field (i.e. ``FiniteField(17)``), or a prime power
-      (i.e. an integer)
+    - ``F`` -- a finite field or a prime power.
 
-    `AG_{n,d} (F)`, as it is sometimes denoted, is a `2` - `(v, k, \lambda)`
-    design of points and `d`- flats (cosets of dimension `n`) in the affine
-    geometry `AG_n (F)`, where
+    - ``point_coordinates`` -- (optional, default ``True``) whether we use
+      coordinates in `\GF(q)^n` or plain integers for the points of the design.
 
-    .. math::
-
-             v = q^n,\  k = q^d ,
-             \lambda =\frac{(q^{n-1}-1) \cdots (q^{n+1-d}-1)}{(q^{n-1}-1) \cdots (q-1)}.
-
-    Wraps some functions used in GAP Design's ``PGPointFlatBlockDesign``.  Does
-    *not* require GAP's Design package.
+    - ``check`` -- (optional, default ``True``) whether to check the output.
 
     EXAMPLES::
 
         sage: BD = designs.AffineGeometryDesign(3, 1, GF(2))
         sage: BD.is_t_design(return_parameters=True)
         (True, (2, 8, 2, 1))
-        sage: BD = designs.AffineGeometryDesign(3, 2, GF(2))
+        sage: BD = designs.AffineGeometryDesign(3, 2, GF(4))
         sage: BD.is_t_design(return_parameters=True)
-        (True, (3, 8, 4, 1))
+        (True, (2, 64, 16, 5))
+        sage: BD = designs.AffineGeometryDesign(4, 2, GF(3))
+        sage: BD.is_t_design(return_parameters=True)
+        (True, (2, 81, 9, 13))
 
-    With an integer instead of a Finite Field::
+    With ``F`` an integer instead of a finite field::
 
         sage: BD = designs.AffineGeometryDesign(3, 2, 4)
         sage: BD.is_t_design(return_parameters=True)
         (True, (2, 64, 16, 5))
+
+    Testing the option ``point_coordinates``::
+
+        sage: designs.AffineGeometryDesign(3, 1, GF(2), point_coordinates=True).blocks()[0]
+        [(0, 0, 0), (0, 0, 1)]
+        sage: designs.AffineGeometryDesign(3, 1, GF(2), point_coordinates=False).blocks()[0]
+        [0, 1]
     """
     try:
         q = int(F)
     except TypeError:
-        q = F.order()
+        q = F.cardinality()
+    else:
+        from sage.rings.finite_rings.finite_field_constructor import GF
+        F = GF(q)
 
-    from sage.interfaces.gap import gap, GapElement
-    from sage.sets.set import Set
-    gap.eval("V:=GaloisField(%s)^%s"%(q,n))
-    gap.eval("points:=AsSet(V)")
-    gap.eval("Subs:=AsSet(Subspaces(V,%s));"%d)
-    gap.eval("CP:=Cartesian(points,Subs)")
-    flats = gap.eval("flats:=List(CP,x->Sum(x))") # affine spaces
-    gblcks = eval(gap.eval("Set(List(flats,f->Filtered([1..Length(points)],i->points[i] in f)));"))
-    v = q**n
-    gB = []
-    for b in gblcks:
-       gB.append([x-1 for x in b])
-    return BlockDesign(v, gB, name="AffineGeometryDesign")
+    n = int(n)
+    d = int(d)
+
+    from itertools import islice
+    from sage.combinat.q_analogues import q_binomial
+    from sage.matrix.echelon_matrix import reduced_echelon_matrix_iterator
+
+    points = {p:i for i,p in enumerate(reduced_echelon_matrix_iterator(F,1,n+1,copy=True,set_immutable=True)) if p[0,0]}
+
+    blocks = []
+    l1 = q_binomial(n+1, d+1, q) - q_binomial(n, d+1, q)
+    l2 = q**d
+    for m1 in islice(reduced_echelon_matrix_iterator(F,d+1,n+1,copy=False), l1):
+        b = []
+        for m2 in islice(reduced_echelon_matrix_iterator(F,1,d+1,copy=False), l2):
+            m = m2*m1
+            m.echelonize()
+            m.set_immutable()
+            b.append(points[m])
+        blocks.append(b)
+
+    B = BlockDesign(len(points), blocks, name="AffineGeometryDesign", check=check)
+
+    if point_coordinates:
+        rd = {i:p[0][1:] for p,i in six.iteritems(points)}
+        for v in rd.values(): v.set_immutable()
+        B.relabel(rd)
+
+    if check:
+        if not B.is_t_design(t=2, v=q**n, k=q**d, l=q_binomial(n-1, d-1, q)):
+            raise RuntimeError("error in AffineGeometryDesign "
+                    "construction. Please e-mail sage-devel@googlegroups.com")
+    return B
 
 def CremonaRichmondConfiguration():
     r"""
@@ -806,7 +895,7 @@ def CremonaRichmondConfiguration():
     For more information, see the
     :wikipedia:`Cremona-Richmond_configuration`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: H = designs.CremonaRichmondConfiguration(); H
         Incidence structure with 15 points and 15 blocks
@@ -834,7 +923,7 @@ def WittDesign(n):
     `W_{12}`, the unique (up to isomorphism) `5-(12,6,1)` design.  The other
     values of `n` return a block design derived from these.
 
-    .. NOTE:
+    .. NOTE::
 
         Requires GAP's Design package (included in the gap_packages Sage spkg).
 
@@ -845,7 +934,7 @@ def WittDesign(n):
         (True, (2, 9, 3, 1))
         sage: BD                             # optional - gap_packages (design package)
         Incidence structure with 9 points and 12 blocks
-        sage: print BD                       # optional - gap_packages (design package)
+        sage: print(BD)                      # optional - gap_packages (design package)
         Incidence structure with 9 points and 12 blocks
     """
     from sage.interfaces.gap import gap, GapElement
@@ -868,7 +957,7 @@ def HadamardDesign(n):
 
         sage: designs.HadamardDesign(7)
         Incidence structure with 7 points and 7 blocks
-        sage: print designs.HadamardDesign(7)
+        sage: print(designs.HadamardDesign(7))
         Incidence structure with 7 points and 7 blocks
 
     For example, the Hadamard 2-design with `n = 11` is a design whose parameters are 2-(11, 5, 2).
@@ -949,7 +1038,7 @@ def Hadamard3Design(n):
 
     REFERENCES:
 
-    .. [CvL] P. Cameron, J. H. van Lint, Designs, graphs, codes and
+    .. [CvL] \P. Cameron, J. H. van Lint, Designs, graphs, codes and
       their links, London Math. Soc., 1991.
     """
     if n == 1 or n == 4:

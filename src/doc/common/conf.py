@@ -1,7 +1,7 @@
 import sys, os, sphinx
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, THEBE_DIR
 from datetime import date
-
+from six import iteritems
 
 # If your extensions are in another directory, add it here.
 sys.path.append(os.path.join(SAGE_SRC, "sage_setup", "docbuild", "ext"))
@@ -75,12 +75,11 @@ release = version
 # Else, today_fmt is used as the format for a strftime call.
 #today_fmt = '%B %d, %Y'
 
-# List of documents that shouldn't be included in the build.
-#unused_docs = []
-
-# List of directories, relative to source directory, that shouldn't be searched
-# for source files.
-exclude_trees = ['.build']
+# List of glob-style patterns that should be excluded when looking for
+# source files. [1] They are matched against the source file names
+# relative to the source directory, using slashes as directory
+# separators on all platforms.
+exclude_patterns = ['.build']
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 default_role = 'math'
@@ -151,11 +150,12 @@ pythonversion = sys.version.split(' ')[0]
 # Sage trac ticket shortcuts. For example, :trac:`7549` .
 extlinks = {
     'python': ('https://docs.python.org/release/'+pythonversion+'/%s', ''),
-    'trac': ('http://trac.sagemath.org/%s', 'trac ticket #'),
+    'trac': ('https://trac.sagemath.org/%s', 'trac ticket #'),
     'wikipedia': ('https://en.wikipedia.org/wiki/%s', 'Wikipedia article '),
     'arxiv': ('http://arxiv.org/abs/%s', 'Arxiv '),
     'oeis': ('https://oeis.org/%s', 'OEIS sequence '),
     'doi': ('https://dx.doi.org/%s', 'doi:'),
+    'pari': ('http://pari.math.u-bordeaux.fr/dochtml/help/%s', 'pari:'),
     'mathscinet': ('http://www.ams.org/mathscinet-getitem?mr=%s', 'MathSciNet ')
     }
 
@@ -202,7 +202,8 @@ html_favicon = 'favicon.ico'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = [os.path.join(SAGE_DOC_SRC, 'common', 'static'), 'static']
+html_static_path = [os.path.join(SAGE_DOC_SRC, 'common', 'static'), THEBE_DIR,
+                    'static']
 
 # We use MathJax to build the documentation unless the environment
 # variable SAGE_DOC_MATHJAX is set to "no" or "False".  (Note that if
@@ -227,8 +228,9 @@ if (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
 
     mathjax_static = os.path.join(sagenb_path, mathjax_relative)
     html_static_path.append(mathjax_static)
-    exclude_patterns=['**/'+os.path.join(mathjax_relative, i) for i in ('docs', 'README*', 'test',
-                                                                        'unpacked', 'LICENSE')]
+    exclude_patterns += ['**/'+os.path.join(mathjax_relative, i)
+                         for i in ('docs', 'README*', 'test',
+                                   'unpacked', 'LICENSE')]
 else:
      extensions.append('sphinx.ext.pngmath')
 
@@ -306,106 +308,111 @@ latex_elements['preamble'] = r"""
 \usepackage{amssymb}
 \usepackage{textcomp}
 \usepackage{mathrsfs}
-\DeclareUnicodeCharacter{01CE}{\capitalcaron a}
-\DeclareUnicodeCharacter{0428}{cyrillic Sha}
-\DeclareUnicodeCharacter{250C}{+}
-\DeclareUnicodeCharacter{2510}{+}
-\DeclareUnicodeCharacter{2514}{+}
-\DeclareUnicodeCharacter{2518}{+}
-\DeclareUnicodeCharacter{253C}{+}
+\usepackage{iftex}
 
+% Only declare unicode characters when compiling with pdftex; E.g. japanese
+% tutorial does not use pdftex
+\ifPDFTeX
+    \DeclareUnicodeCharacter{01CE}{\capitalcaron a}
+    \DeclareUnicodeCharacter{0428}{cyrillic Sha}
+    \DeclareUnicodeCharacter{250C}{+}
+    \DeclareUnicodeCharacter{2510}{+}
+    \DeclareUnicodeCharacter{2514}{+}
+    \DeclareUnicodeCharacter{2518}{+}
+    \DeclareUnicodeCharacter{253C}{+}
 
-\DeclareUnicodeCharacter{03B1}{\ensuremath{\alpha}}
-\DeclareUnicodeCharacter{03B2}{\ensuremath{\beta}}
-\DeclareUnicodeCharacter{03B3}{\ensuremath{\gamma}}
-\DeclareUnicodeCharacter{0393}{\ensuremath{\Gamma}}
-\DeclareUnicodeCharacter{03B4}{\ensuremath{\delta}}
-\DeclareUnicodeCharacter{0394}{\ensuremath{\Delta}}
-\DeclareUnicodeCharacter{03B5}{\ensuremath{\varepsilon}}
-\DeclareUnicodeCharacter{03B6}{\ensuremath{\zeta}}
-\DeclareUnicodeCharacter{03B7}{\ensuremath{\eta}}
-\DeclareUnicodeCharacter{03B8}{\ensuremath{\vartheta}}
-\DeclareUnicodeCharacter{0398}{\ensuremath{\Theta}}
-\DeclareUnicodeCharacter{03BA}{\ensuremath{\kappa}}
-\DeclareUnicodeCharacter{03BB}{\ensuremath{\lambda}}
-\DeclareUnicodeCharacter{039B}{\ensuremath{\Lambda}}
-\DeclareUnicodeCharacter{00B5}{\ensuremath{\mu}}      % micron sign
-\DeclareUnicodeCharacter{03BC}{\ensuremath{\mu}}
-\DeclareUnicodeCharacter{03BD}{\ensuremath{\nu}}
-\DeclareUnicodeCharacter{03BE}{\ensuremath{\xi}}
-\DeclareUnicodeCharacter{039E}{\ensuremath{\Xi}}
-\DeclareUnicodeCharacter{03B9}{\ensuremath{\iota}}
-\DeclareUnicodeCharacter{03C0}{\ensuremath{\pi}}
-\DeclareUnicodeCharacter{03A0}{\ensuremath{\Pi}}
-\DeclareUnicodeCharacter{03C1}{\ensuremath{\rho}}
-\DeclareUnicodeCharacter{03C3}{\ensuremath{\sigma}}
-\DeclareUnicodeCharacter{03A3}{\ensuremath{\Sigma}}
-\DeclareUnicodeCharacter{03C4}{\ensuremath{\tau}}
-\DeclareUnicodeCharacter{03C6}{\ensuremath{\varphi}}
-\DeclareUnicodeCharacter{03A6}{\ensuremath{\Phi}}
-\DeclareUnicodeCharacter{03C7}{\ensuremath{\chi}}
-\DeclareUnicodeCharacter{03C8}{\ensuremath{\psi}}
-\DeclareUnicodeCharacter{03A8}{\ensuremath{\Psi}}
-\DeclareUnicodeCharacter{03C9}{\ensuremath{\omega}}
-\DeclareUnicodeCharacter{03A9}{\ensuremath{\Omega}}
-\DeclareUnicodeCharacter{03C5}{\ensuremath{\upsilon}}
-\DeclareUnicodeCharacter{03A5}{\ensuremath{\Upsilon}}
-\DeclareUnicodeCharacter{2113}{\ell}
+    \DeclareUnicodeCharacter{03B1}{\ensuremath{\alpha}}
+    \DeclareUnicodeCharacter{03B2}{\ensuremath{\beta}}
+    \DeclareUnicodeCharacter{03B3}{\ensuremath{\gamma}}
+    \DeclareUnicodeCharacter{0393}{\ensuremath{\Gamma}}
+    \DeclareUnicodeCharacter{03B4}{\ensuremath{\delta}}
+    \DeclareUnicodeCharacter{0394}{\ensuremath{\Delta}}
+    \DeclareUnicodeCharacter{03B5}{\ensuremath{\varepsilon}}
+    \DeclareUnicodeCharacter{03B6}{\ensuremath{\zeta}}
+    \DeclareUnicodeCharacter{03B7}{\ensuremath{\eta}}
+    \DeclareUnicodeCharacter{03B8}{\ensuremath{\vartheta}}
+    \DeclareUnicodeCharacter{0398}{\ensuremath{\Theta}}
+    \DeclareUnicodeCharacter{03BA}{\ensuremath{\kappa}}
+    \DeclareUnicodeCharacter{03BB}{\ensuremath{\lambda}}
+    \DeclareUnicodeCharacter{039B}{\ensuremath{\Lambda}}
+    \DeclareUnicodeCharacter{00B5}{\ensuremath{\mu}}      % micron sign
+    \DeclareUnicodeCharacter{03BC}{\ensuremath{\mu}}
+    \DeclareUnicodeCharacter{03BD}{\ensuremath{\nu}}
+    \DeclareUnicodeCharacter{03BE}{\ensuremath{\xi}}
+    \DeclareUnicodeCharacter{039E}{\ensuremath{\Xi}}
+    \DeclareUnicodeCharacter{03B9}{\ensuremath{\iota}}
+    \DeclareUnicodeCharacter{03C0}{\ensuremath{\pi}}
+    \DeclareUnicodeCharacter{03A0}{\ensuremath{\Pi}}
+    \DeclareUnicodeCharacter{03C1}{\ensuremath{\rho}}
+    \DeclareUnicodeCharacter{03C3}{\ensuremath{\sigma}}
+    \DeclareUnicodeCharacter{03A3}{\ensuremath{\Sigma}}
+    \DeclareUnicodeCharacter{03C4}{\ensuremath{\tau}}
+    \DeclareUnicodeCharacter{03C6}{\ensuremath{\varphi}}
+    \DeclareUnicodeCharacter{03A6}{\ensuremath{\Phi}}
+    \DeclareUnicodeCharacter{03C7}{\ensuremath{\chi}}
+    \DeclareUnicodeCharacter{03C8}{\ensuremath{\psi}}
+    \DeclareUnicodeCharacter{03A8}{\ensuremath{\Psi}}
+    \DeclareUnicodeCharacter{03C9}{\ensuremath{\omega}}
+    \DeclareUnicodeCharacter{03A9}{\ensuremath{\Omega}}
+    \DeclareUnicodeCharacter{03C5}{\ensuremath{\upsilon}}
+    \DeclareUnicodeCharacter{03A5}{\ensuremath{\Upsilon}}
+    \DeclareUnicodeCharacter{2113}{\ell}
 
-\DeclareUnicodeCharacter{221A}{\ensuremath{\sqrt{}}}
-\DeclareUnicodeCharacter{2264}{\leq}
-\DeclareUnicodeCharacter{2265}{\geq}
-\DeclareUnicodeCharacter{221E}{\infty}
-\DeclareUnicodeCharacter{2211}{\sum}
-\DeclareUnicodeCharacter{2208}{\in}
-\DeclareUnicodeCharacter{2209}{\notin}
-\DeclareUnicodeCharacter{2202}{\partial}
-\DeclareUnicodeCharacter{222B}{\ensuremath{\int}}
-\DeclareUnicodeCharacter{2148}{\id}
-\DeclareUnicodeCharacter{2248}{\approx}
-\DeclareUnicodeCharacter{2260}{\neq}
-\DeclareUnicodeCharacter{00B1}{\pm}
-\DeclareUnicodeCharacter{2A02}{\otimes}
-\DeclareUnicodeCharacter{2A01}{\oplus}
-\DeclareUnicodeCharacter{00BD}{\nicefrac{1}{2}}
-\DeclareUnicodeCharacter{00D7}{\times}
-\DeclareUnicodeCharacter{00B7}{\cdot}
-\DeclareUnicodeCharacter{230A}{\lfloor}
-\DeclareUnicodeCharacter{230B}{\rfloor}
-\DeclareUnicodeCharacter{2308}{\lceil}
-\DeclareUnicodeCharacter{2309}{\rceil}
-\DeclareUnicodeCharacter{22C5}{\ensuremath{\cdot}}
+    \DeclareUnicodeCharacter{221A}{\ensuremath{\sqrt{}}}
+    \DeclareUnicodeCharacter{2264}{\leq}
+    \DeclareUnicodeCharacter{2265}{\geq}
+    \DeclareUnicodeCharacter{221E}{\infty}
+    \DeclareUnicodeCharacter{2211}{\sum}
+    \DeclareUnicodeCharacter{2208}{\in}
+    \DeclareUnicodeCharacter{2209}{\notin}
+    \DeclareUnicodeCharacter{2202}{\partial}
+    \DeclareUnicodeCharacter{222B}{\ensuremath{\int}}
+    \DeclareUnicodeCharacter{2148}{\id}
+    \DeclareUnicodeCharacter{2248}{\approx}
+    \DeclareUnicodeCharacter{2260}{\neq}
+    \DeclareUnicodeCharacter{00B1}{\pm}
+    \DeclareUnicodeCharacter{2A02}{\otimes}
+    \DeclareUnicodeCharacter{2A01}{\oplus}
+    \DeclareUnicodeCharacter{00BD}{\nicefrac{1}{2}}
+    \DeclareUnicodeCharacter{00D7}{\times}
+    \DeclareUnicodeCharacter{00B7}{\cdot}
+    \DeclareUnicodeCharacter{230A}{\lfloor}
+    \DeclareUnicodeCharacter{230B}{\rfloor}
+    \DeclareUnicodeCharacter{2308}{\lceil}
+    \DeclareUnicodeCharacter{2309}{\rceil}
+    \DeclareUnicodeCharacter{22C5}{\ensuremath{\cdot}}
 
-\newcommand{\sageMexSymbol}[1]
-{{\fontencoding{OMX}\fontfamily{cmex}\selectfont\raisebox{0.75em}{\symbol{#1}}}}
-\DeclareUnicodeCharacter{239B}{\sageMexSymbol{"30}} % parenlefttp
-\DeclareUnicodeCharacter{239C}{\sageMexSymbol{"42}} % parenleftex
-\DeclareUnicodeCharacter{239D}{\sageMexSymbol{"40}} % parenleftbt
-\DeclareUnicodeCharacter{239E}{\sageMexSymbol{"31}} % parenrighttp
-\DeclareUnicodeCharacter{239F}{\sageMexSymbol{"43}} % parenrightex
-\DeclareUnicodeCharacter{23A0}{\sageMexSymbol{"41}} % parenrightbt
-\DeclareUnicodeCharacter{23A1}{\sageMexSymbol{"32}} % bracketlefttp
-\DeclareUnicodeCharacter{23A2}{\sageMexSymbol{"36}} % bracketleftex
-\DeclareUnicodeCharacter{23A3}{\sageMexSymbol{"34}} % bracketleftbt
-\DeclareUnicodeCharacter{23A4}{\sageMexSymbol{"33}} % bracketrighttp
-\DeclareUnicodeCharacter{23A5}{\sageMexSymbol{"37}} % bracketrightex
-\DeclareUnicodeCharacter{23A6}{\sageMexSymbol{"35}} % bracketrightbt
+    \newcommand{\sageMexSymbol}[1]
+    {{\fontencoding{OMX}\fontfamily{cmex}\selectfont\raisebox{0.75em}{\symbol{#1}}}}
+    \DeclareUnicodeCharacter{239B}{\sageMexSymbol{"30}} % parenlefttp
+    \DeclareUnicodeCharacter{239C}{\sageMexSymbol{"42}} % parenleftex
+    \DeclareUnicodeCharacter{239D}{\sageMexSymbol{"40}} % parenleftbt
+    \DeclareUnicodeCharacter{239E}{\sageMexSymbol{"31}} % parenrighttp
+    \DeclareUnicodeCharacter{239F}{\sageMexSymbol{"43}} % parenrightex
+    \DeclareUnicodeCharacter{23A0}{\sageMexSymbol{"41}} % parenrightbt
+    \DeclareUnicodeCharacter{23A1}{\sageMexSymbol{"32}} % bracketlefttp
+    \DeclareUnicodeCharacter{23A2}{\sageMexSymbol{"36}} % bracketleftex
+    \DeclareUnicodeCharacter{23A3}{\sageMexSymbol{"34}} % bracketleftbt
+    \DeclareUnicodeCharacter{23A4}{\sageMexSymbol{"33}} % bracketrighttp
+    \DeclareUnicodeCharacter{23A5}{\sageMexSymbol{"37}} % bracketrightex
+    \DeclareUnicodeCharacter{23A6}{\sageMexSymbol{"35}} % bracketrightbt
 
-\DeclareUnicodeCharacter{23A7}{\sageMexSymbol{"38}} % curly brace left top
-\DeclareUnicodeCharacter{23A8}{\sageMexSymbol{"3C}} % curly brace left middle
-\DeclareUnicodeCharacter{23A9}{\sageMexSymbol{"3A}} % curly brace left bottom
-\DeclareUnicodeCharacter{23AA}{\sageMexSymbol{"3E}} % curly brace extension
-\DeclareUnicodeCharacter{23AB}{\sageMexSymbol{"39}} % curly brace right top
-\DeclareUnicodeCharacter{23AC}{\sageMexSymbol{"3D}} % curly brace right middle
-\DeclareUnicodeCharacter{23AD}{\sageMexSymbol{"3B}} % curly brace right bottom
-\DeclareUnicodeCharacter{23B0}{\{} % 2-line curly brace left top half  (not in cmex)
-\DeclareUnicodeCharacter{23B1}{\}} % 2-line curly brace right top half (not in cmex)
+    \DeclareUnicodeCharacter{23A7}{\sageMexSymbol{"38}} % curly brace left top
+    \DeclareUnicodeCharacter{23A8}{\sageMexSymbol{"3C}} % curly brace left middle
+    \DeclareUnicodeCharacter{23A9}{\sageMexSymbol{"3A}} % curly brace left bottom
+    \DeclareUnicodeCharacter{23AA}{\sageMexSymbol{"3E}} % curly brace extension
+    \DeclareUnicodeCharacter{23AB}{\sageMexSymbol{"39}} % curly brace right top
+    \DeclareUnicodeCharacter{23AC}{\sageMexSymbol{"3D}} % curly brace right middle
+    \DeclareUnicodeCharacter{23AD}{\sageMexSymbol{"3B}} % curly brace right bottom
+    \DeclareUnicodeCharacter{23B0}{\{} % 2-line curly brace left top half  (not in cmex)
+    \DeclareUnicodeCharacter{23B1}{\}} % 2-line curly brace right top half (not in cmex)
 
-\DeclareUnicodeCharacter{2320}{\ensuremath{\int}} % top half integral
-\DeclareUnicodeCharacter{2321}{\ensuremath{\int}} % bottom half integral
-\DeclareUnicodeCharacter{23AE}{\ensuremath{\|}} % integral extenison
+    \DeclareUnicodeCharacter{2320}{\ensuremath{\int}} % top half integral
+    \DeclareUnicodeCharacter{2321}{\ensuremath{\int}} % bottom half integral
+    \DeclareUnicodeCharacter{23AE}{\ensuremath{\|}} % integral extenison
 
-\DeclareUnicodeCharacter{2571}{/}   % Box drawings light diagonal upper right to lower left
+    \DeclareUnicodeCharacter{2571}{/}   % Box drawings light diagonal upper right to lower left
+\fi
 
 \let\textLaTeX\LaTeX
 \renewcommand*{\LaTeX}{\hbox{\textLaTeX}}
@@ -501,20 +508,19 @@ def check_nested_class_picklability(app, what, name, obj, skip, options):
     """
     Print a warning if pickling is broken for nested classes.
     """
-    import types
     if hasattr(obj, '__dict__') and hasattr(obj, '__module__'):
         # Check picklability of nested classes.  Adapted from
         # sage.misc.nested_class.modify_for_nested_pickle.
         module = sys.modules[obj.__module__]
-        for (nm, v) in obj.__dict__.iteritems():
-            if (isinstance(v, (type, types.ClassType)) and
+        for (nm, v) in iteritems(obj.__dict__):
+            if (isinstance(v, type) and
                 v.__name__ == nm and
                 v.__module__ == module.__name__ and
                 getattr(module, nm, None) is not v and
                 v.__module__ not in skip_picklability_check_modules):
                 # OK, probably this is an *unpicklable* nested class.
                 app.warn('Pickling of nested class %r is probably broken. '
-                         'Please set __metaclass__ of the parent class to '
+                         'Please set the metaclass of the parent class to '
                          'sage.misc.nested_class.NestedClassMetaclass.' % (
                         v.__module__ + '.' + name + '.' + nm))
 
@@ -564,9 +570,11 @@ def skip_member(app, what, name, obj, skip, options):
 def process_dollars(app, what, name, obj, options, docstringlines):
     r"""
     Replace dollar signs with backticks.
-    See sage.misc.sagedoc.process_dollars for more information
+
+    See sage.misc.sagedoc.process_dollars for more information.
     """
-    if len(docstringlines) > 0 and name.find("process_dollars") == -1:
+    if len(docstringlines) and name.find("process_dollars") == -1:
+        from six.moves import range
         from sage.misc.sagedoc import process_dollars as sagedoc_dollars
         s = sagedoc_dollars("\n".join(docstringlines))
         lines = s.split("\n")
@@ -593,7 +601,7 @@ def process_inherited(app, what, name, obj, options, docstringlines):
         if name in obj.__objclass__.__dict__.keys():
             return
 
-    for i in xrange(len(docstringlines)):
+    for i in range(len(docstringlines)):
         docstringlines.pop()
 
 dangling_debug = False
@@ -615,7 +623,7 @@ def call_intersphinx(app, env, node, contnode):
         sage: for line in open(thematic_index).readlines():
         ....:     if "padics" in line:
         ....:         sys.stdout.write(line)
-        <li><a class="reference external" href="../reference/padics/sage/rings/padics/tutorial.html#sage-rings-padics-tutorial" title="(in Sage Reference Manual: p-Adics ...)"><em>Introduction to the -adics</em></a></li>
+        <li><a class="reference external" href="../reference/padics/sage/rings/padics/tutorial.html#sage-rings-padics-tutorial" title="(in Sage Reference Manual: p-Adics ...)"><span>Introduction to the -adics</span></a></li>
     """
     debug_inf(app, "???? Trying intersphinx for %s"%node['reftarget'])
     builder = app.builder
@@ -724,9 +732,9 @@ base_class_as_func = [
 # link to the Python documentation several links where broken because there
 # where class listed as functions. Expand the list 'base_class_as_func'
 # above instead of marking the link as broken.
-nitpick_ignore = (
+nitpick_ignore = [
     ('py:class', 'twisted.web2.resource.Resource'),
-    ('py:class', 'twisted.web2.resource.PostableResource'))
+    ('py:class', 'twisted.web2.resource.PostableResource')]
 
 def nitpick_patch_config(app):
     """
@@ -785,4 +793,3 @@ def setup(app):
         app.connect('builder-inited', set_intersphinx_mappings)
         app.connect('builder-inited', sphinx.ext.intersphinx.load_mappings)
         app.connect('builder-inited', nitpick_patch_config)
-

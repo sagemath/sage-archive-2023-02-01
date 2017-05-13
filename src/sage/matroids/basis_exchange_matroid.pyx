@@ -37,12 +37,16 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+
 include 'sage/data_structures/bitset.pxi'
 
-from matroid cimport Matroid
-from set_system cimport SetSystem
+from .matroid cimport Matroid
+from .set_system cimport SetSystem
+
 from copy import copy
 from itertools import combinations, permutations
+
 
 cdef class BasisExchangeMatroid(Matroid):
     r"""
@@ -144,7 +148,7 @@ cdef class BasisExchangeMatroid(Matroid):
         general, methods of ``BasisExchangeMatroid`` having a name starting
         with two underscores deal with such encoded subsets.
 
-        A second task of this initializer is to store the rank and intialize
+        A second task of this initializer is to store the rank and initialize
         the 'current' basis.
 
         EXAMPLES::
@@ -498,9 +502,9 @@ cdef class BasisExchangeMatroid(Matroid):
 
             sage: M = matroids.named_matroids.Fano()
             sage: type(M.groundset())
-            <type 'frozenset'>
+            <... 'frozenset'>
             sage: type(M.groundset_list())
-            <type 'list'>
+            <... 'list'>
             sage: sorted(M.groundset_list())
             ['a', 'b', 'c', 'd', 'e', 'f', 'g']
 
@@ -1945,7 +1949,7 @@ cdef class BasisExchangeMatroid(Matroid):
 
     cpdef _weak_invariant(self):
         """
-        Return an isomophism invariant of the matroid.
+        Return an isomorphism invariant of the matroid.
 
         Compared to BasisExchangeMatroid._strong_invariant() this invariant
         distinguishes less frequently between nonisomorphic matroids but takes
@@ -1990,7 +1994,7 @@ cdef class BasisExchangeMatroid(Matroid):
 
     cpdef _strong_invariant(self):
         """
-        Return an isomophism invariant of the matroid.
+        Return an isomorphism invariant of the matroid.
 
         Compared to BasisExchangeMatroid._weak_invariant() this invariant
         distinguishes more frequently between nonisomorphic matroids but takes
@@ -2064,7 +2068,7 @@ cdef class BasisExchangeMatroid(Matroid):
             sage: PM = M._heuristic_partition()
             sage: PN = N._heuristic_partition()
             sage: morphism = {}
-            sage: for i in xrange(len(M)): morphism[min(PM[i])]=min(PN[i])
+            sage: for i in range(len(M)): morphism[min(PM[i])] = min(PN[i])
             sage: M._is_isomorphism(N, morphism)
             True
         """
@@ -2242,7 +2246,7 @@ cdef class BasisExchangeMatroid(Matroid):
 
         return self._characteristic_setsystem()._isomorphism(other._characteristic_setsystem(), PS, PO)
 
-    cpdef _is_isomorphic(self, other):
+    cpdef _is_isomorphic(self, other, certificate=False):
         """
         Test if ``self`` is isomorphic to ``other``.
 
@@ -2250,11 +2254,17 @@ cdef class BasisExchangeMatroid(Matroid):
 
         INPUT:
 
-        - ``other`` -- A matroid.
+        - ``other`` -- A matroid,
+        - optional parameter ``certificate`` -- Boolean.
 
         OUTPUT:
 
-        Boolean.
+        Boolean,
+        and, if certificate = True, a dictionary giving the isomorphism or None
+
+        .. NOTE::
+
+            Internal version that does no input checking.
 
         EXAMPLES::
 
@@ -2263,12 +2273,18 @@ cdef class BasisExchangeMatroid(Matroid):
             sage: M2 = matroids.CompleteGraphic(4)
             sage: M1._is_isomorphic(M2)
             True
+            sage: M1._is_isomorphic(M2, certificate=True)
+            (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 5, 5: 4})
             sage: M1 = BasisMatroid(matroids.named_matroids.Fano())
             sage: M2 = matroids.named_matroids.NonFano()
             sage: M1._is_isomorphic(M2)
             False
+            sage: M1._is_isomorphic(M2, certificate=True)
+            (False, None)
 
         """
+        if certificate:
+            return self._is_isomorphic(other), self._isomorphism(other)
         if not isinstance(other, BasisExchangeMatroid):
             return other._is_isomorphic(self)
             # Either generic test, which converts other to BasisMatroid,

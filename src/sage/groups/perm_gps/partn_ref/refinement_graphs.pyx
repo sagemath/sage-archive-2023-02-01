@@ -13,13 +13,26 @@ REFERENCE:
 """
 
 #*****************************************************************************
-#      Copyright (C) 2006 - 2011 Robert L. Miller <rlmillster@gmail.com>
+#       Copyright (C) 2006 - 2011 Robert L. Miller <rlmillster@gmail.com>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'data_structures_pyx.pxi' # includes bitsets
+from __future__ import print_function
+
+from sage.misc.decorators import rename_keyword
+
+from .data_structures cimport *
+include "sage/data_structures/bitset.pxi"
+from sage.rings.integer cimport Integer
+from sage.graphs.base.sparse_graph cimport SparseGraph
+from sage.graphs.base.dense_graph cimport DenseGraph
+from .double_coset cimport double_coset
+
 
 def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=False):
     """
@@ -68,10 +81,10 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
     for G_in in [G1, G2]:
         if which_G == 1:
             GS = GS1
-            first=True
+            first = True
         else:
             GS = GS2
-            first=False
+            first = False
         if isinstance(G_in, GenericGraph):
             if G_in.has_loops():
                 loops = 1
@@ -79,18 +92,18 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
                 n = G_in.num_verts()
             elif n != G_in.num_verts():
                 return False
-            if G_in.vertices() != range(n):
+            if G_in.vertices() != list(xrange(n)):
                 G_in = copy(G_in)
                 to = G_in.relabel(return_map=True)
                 frm = {}
-                for v in to.iterkeys():
+                for v in to:
                     frm[to[v]] = v
                 if first:
                     partition = [[to[v] for v in cell] for cell in partn]
             else:
                 if first:
                     partition = partn
-                to = range(n)
+                to = list(xrange(n))
                 frm = to
             if sparse:
                 G = SparseGraph(n)
@@ -164,7 +177,8 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
     sig_free(output)
     return output_py
 
-def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=False,
+@rename_keyword(deprecation=21111, certify='certificate')
+def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificate=False,
                     verbosity=0, use_indicator_function=True, sparse=True,
                     base=False, order=False):
     """
@@ -183,7 +197,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         acts on.  (The point is that graphs are arbitrarily labelled, often
         0..n-1, and permutation groups always act on 1..n.  This dictionary
         maps vertex labels (such as 0..n-1) to the domain of the permutations.)
-    certify -- if True, return the permutation from G to its canonical label.
+    certificate -- if True, return the permutation from G to its canonical label.
     verbosity -- currently ignored
     use_indicator_function -- option to turn off indicator function
         (True is generally faster)
@@ -199,7 +213,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         list of generators in list-permutation format -- always
         dict -- if dict_rep
         graph -- if lab
-        dict -- if certify
+        dict -- if certificate
         list -- if base
         integer -- if order
 
@@ -265,8 +279,8 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         sage: GD = DenseGraph(20)
         sage: GS = SparseGraph(20)
         sage: for i,j,_ in G.edge_iterator():
-        ...    GD.add_arc(i,j); GD.add_arc(j,i)
-        ...    GS.add_arc(i,j); GS.add_arc(j,i)
+        ....:  GD.add_arc(i,j); GD.add_arc(j,i)
+        ....:  GS.add_arc(i,j); GS.add_arc(j,i)
         sage: Pi=[range(20)]
         sage: a,b = st(G, Pi)
         sage: asp,bsp = st(GS, Pi)
@@ -274,13 +288,13 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         sage: bsg = Graph()
         sage: bdg = Graph()
         sage: for i in range(20):
-        ...    for j in range(20):
-        ...        if bsp.has_arc(i,j):
-        ...            bsg.add_edge(i,j)
-        ...        if bde.has_arc(i,j):
-        ...            bdg.add_edge(i,j)
-        sage: print a, b.graph6_string()
-        [[0, 19, 3, 2, 6, 5, 4, 17, 18, 11, 10, 9, 13, 12, 16, 15, 14, 7, 8, 1], [0, 1, 8, 9, 13, 14, 7, 6, 2, 3, 19, 18, 17, 4, 5, 15, 16, 12, 11, 10], [1, 8, 9, 10, 11, 12, 13, 14, 7, 6, 2, 3, 4, 5, 15, 16, 17, 18, 19, 0]] S?[PG__OQ@?_?_?P?CO?_?AE?EC?Ac?@O
+        ....:    for j in range(20):
+        ....:        if bsp.has_arc(i,j):
+        ....:            bsg.add_edge(i,j)
+        ....:        if bde.has_arc(i,j):
+        ....:            bdg.add_edge(i,j)
+        sage: a, b.graph6_string()
+        ([[0, 19, 3, 2, 6, 5, 4, 17, 18, 11, 10, 9, 13, 12, 16, 15, 14, 7, 8, 1], [0, 1, 8, 9, 13, 14, 7, 6, 2, 3, 19, 18, 17, 4, 5, 15, 16, 12, 11, 10], [1, 8, 9, 10, 11, 12, 13, 14, 7, 6, 2, 3, 4, 5, 15, 16, 17, 18, 19, 0]], 'S?[PG__OQ@?_?_?P?CO?_?AE?EC?Ac?@O')
         sage: a == asp
         True
         sage: a == ade
@@ -349,6 +363,13 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         sage: st(Graph(':Dkw'), [range(5)], lab=False, dig=True)
         [[4, 1, 2, 3, 0], [0, 2, 1, 3, 4]]
 
+    TESTS::
+
+        sage: G = Graph()
+        sage: st(G, [], certify=True)
+        doctest...: DeprecationWarning: use the option 'certificate' instead of 'certify'
+        See http://trac.sagemath.org/21111 for details.
+        ([], Graph on 0 vertices, {})
     """
     cdef CGraph G
     cdef int i, j, n
@@ -362,11 +383,11 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
     if isinstance(G_in, GenericGraph):
         loops = G_in.has_loops()
         n = G_in.num_verts()
-        if G_in.vertices() != range(n):
+        if G_in.vertices() != list(xrange(n)):
             G_in = copy(G_in)
             to = G_in.relabel(return_map=True)
             frm = {}
-            for v in to.iterkeys():
+            for v in to:
                 frm[to[v]] = v
             partition = [[to[v] for v in cell] for cell in partition]
         else:
@@ -415,7 +436,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
                 else:
                     G_C = DenseGraph(n)
             return_tuple.append(G_C)
-        if certify:
+        if certificate:
             return_tuple.append({})
         if base:
             return_tuple.append([])
@@ -433,7 +454,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
         sig_free(GS.scratch)
         raise MemoryError
 
-    lab_new = lab or certify
+    lab_new = lab or certificate
     output = get_aut_gp_and_can_lab(<void *>GS, part, G.num_verts, &all_children_are_equivalent, &refine_by_degree, &compare_graphs, lab, NULL, NULL, NULL)
     sig_free( GS.scratch )
     # prepare output
@@ -443,7 +464,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
     return_tuple = [list_of_gens]
     if dict_rep:
         ddd = {}
-        for v in frm.iterkeys():
+        for v in frm:
             ddd[frm[v]] = v if v != 0 else n
         return_tuple.append(ddd)
     if lab:
@@ -459,7 +480,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certify=Fa
                 for j in G.out_neighbors(i):
                     G_C.add_arc(output.relabeling[i],output.relabeling[j])
         return_tuple.append(G_C)
-    if certify:
+    if certificate:
         dd = {}
         for i from 0 <= i < G.num_verts:
             dd[frm[i]] = output.relabeling[i]
@@ -722,25 +743,25 @@ def all_labeled_graphs(n):
     classifying isomorphism types (naive approach), and more importantly
     in benchmarking the search algorithm.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import all_labeled_graphs
         sage: st = sage.groups.perm_gps.partn_ref.refinement_graphs.search_tree
         sage: Glist = {}
         sage: Giso  = {}
         sage: for n in [1..5]:  # long time (4s on sage.math, 2011)
-        ...    Glist[n] = all_labeled_graphs(n)
-        ...    Giso[n] = []
-        ...    for g in Glist[n]:
-        ...        a, b = st(g, [range(n)])
-        ...        inn = False
-        ...        for gi in Giso[n]:
-        ...            if b == gi:
-        ...                inn = True
-        ...        if not inn:
-        ...            Giso[n].append(b)
+        ....:  Glist[n] = all_labeled_graphs(n)
+        ....:  Giso[n] = []
+        ....:  for g in Glist[n]:
+        ....:      a, b = st(g, [range(n)])
+        ....:      inn = False
+        ....:      for gi in Giso[n]:
+        ....:          if b == gi:
+        ....:              inn = True
+        ....:      if not inn:
+        ....:          Giso[n].append(b)
         sage: for n in Giso:  # long time
-        ...    print n, len(Giso[n])
+        ....:    print("{} {}".format(n, len(Giso[n])))
         1 1
         2 2
         3 4
@@ -815,15 +836,15 @@ def random_tests(num=10, n_max=60, perms_per_graph=5):
             G.relabel(perm)
             G2 = search_tree(G, [G.vertices()])[1]
             if G1 != G2:
-                print "search_tree FAILURE: graph6-"
-                print H.graph6_string()
-                print perm
+                print("search_tree FAILURE: graph6-")
+                print(H.graph6_string())
+                print(perm)
                 return
-            isom = isomorphic(G, H, [range(n)], range(n), 0, 1)
+            isom = isomorphic(G, H, [list(xrange(n))], list(xrange(n)), 0, 1)
             if not isom or G.relabel(isom, inplace=False) != H:
-                print "isom FAILURE: graph6-"
-                print H.graph6_string()
-                print perm
+                print("isom FAILURE: graph6-")
+                print(H.graph6_string())
+                print(perm)
                 return
 
         D = DGG.RandomDirectedGNP(n, p)
@@ -840,20 +861,20 @@ def random_tests(num=10, n_max=60, perms_per_graph=5):
             D.relabel(perm)
             D2 = search_tree(D, [D.vertices()], dig=True)[1]
             if D1 != D2:
-                print "search_tree FAILURE: dig6-"
-                print E.dig6_string()
-                print perm
+                print("search_tree FAILURE: dig6-")
+                print(E.dig6_string())
+                print(perm)
                 return
-            isom = isomorphic(D, E, [range(n)], range(n), 1, 1)
+            isom = isomorphic(D, E, [list(xrange(n))], list(xrange(n)), 1, 1)
             if not isom or D.relabel(isom, inplace=False) != E:
-                print "isom FAILURE: dig6-"
-                print E.dig6_string()
-                print perm
-                print isom
+                print("isom FAILURE: dig6-")
+                print(E.dig6_string())
+                print(perm)
+                print(isom)
                 return
         num_tests += 4*perms_per_graph
         num_graphs += 2
-    print "All passed: %d random tests on %d graphs."%(num_tests, num_graphs)
+    print("All passed: %d random tests on %d graphs." % (num_tests, num_graphs))
 
 def orbit_partition(gamma, list_perm=False):
     r"""
@@ -896,7 +917,7 @@ def orbit_partition(gamma, list_perm=False):
                 seen[i] = 1
             else:
                 for j in range(n):
-                    if seen[j]==0:
+                    if seen[j] == 0:
                         i = j
                         break
                 partition.append([i])
@@ -1233,7 +1254,7 @@ cdef iterator *allocate_dg_edge_gen(int degree, int depth, bint loops):
             deallocate_cgd(cgd)
             return NULL
     dg_edge_gen.data = <void *> cgd
-    dg_edge_gen.next = &canonical_generator_next
+    dg_edge_gen.next = canonical_generator_next
     return dg_edge_gen
 
 cdef void free_dg_edge_gen(iterator *dg_edge_gen):
@@ -1256,7 +1277,7 @@ def generate_dense_graphs_edge_addition(int n, bint loops, G = None, depth = Non
     ::
 
         sage: for n in [0..6]:
-        ...     print generate_dense_graphs_edge_addition(n,1)
+        ....:     print(generate_dense_graphs_edge_addition(n,1))
         1
         2
         6
@@ -1268,7 +1289,7 @@ def generate_dense_graphs_edge_addition(int n, bint loops, G = None, depth = Non
     ::
 
         sage: for n in [0..7]:
-        ...     print generate_dense_graphs_edge_addition(n,0)
+        ....:     print(generate_dense_graphs_edge_addition(n,0))
         1
         1
         2
@@ -1316,15 +1337,15 @@ def generate_dense_graphs_edge_addition(int n, bint loops, G = None, depth = Non
                 DG.add_arc(v,u)
 
     graph_iterator = setup_canonical_generator(n,
-        &all_children_are_equivalent,
-        &refine_by_degree,
-        &compare_graphs,
-        &gen_children_dg_edge,
-        &apply_dg_edge_aug,
-        &free_dg_edge,
-        &deallocate_degd,
-        &free_subset,
-        &canonical_dg_edge_parent,
+        all_children_are_equivalent,
+        refine_by_degree,
+        compare_graphs,
+        gen_children_dg_edge,
+        apply_dg_edge_aug,
+        free_dg_edge,
+        deallocate_degd,
+        free_subset,
+        canonical_dg_edge_parent,
         depth, 0, graph_iterator)
 
     start_canonical_generator(NULL, <void *> GS, n, graph_iterator)
@@ -1504,7 +1525,7 @@ cdef iterator *allocate_dg_vert_gen(int degree, int depth):
             deallocate_cgd(cgd)
             return NULL
     dg_vert_gen.data = <void *> cgd
-    dg_vert_gen.next = &canonical_generator_next
+    dg_vert_gen.next = canonical_generator_next
     return dg_vert_gen
 
 cdef void free_dg_vert_gen(iterator *dg_vert_gen):
@@ -1532,7 +1553,7 @@ def generate_dense_graphs_vert_addition(int n, base_G = None, bint construct = F
     ::
 
         sage: for n in [0..7]:
-        ...     generate_dense_graphs_vert_addition(n)
+        ....:   generate_dense_graphs_vert_addition(n)
         1
         2
         4
@@ -1588,15 +1609,15 @@ def generate_dense_graphs_vert_addition(int n, base_G = None, bint construct = F
             DG.add_arc(v,u)
 
     graph_iterator = setup_canonical_generator(start_deg,
-        &all_children_are_equivalent,
-        &refine_by_degree,
-        &compare_graphs,
-        &gen_children_dg_vert,
-        &apply_dg_vert_aug,
-        &free_dg_vert,
-        &free_cgd_2,
+        all_children_are_equivalent,
+        refine_by_degree,
+        compare_graphs,
+        gen_children_dg_vert,
+        apply_dg_vert_aug,
+        free_dg_vert,
+        free_cgd_2,
         free_subset,
-        &canonical_dg_vert_parent,
+        canonical_dg_vert_parent,
         n+1-start_deg, 0, graph_iterator)
 
     start_canonical_generator(NULL, <void *> GS, DG.num_verts, graph_iterator)

@@ -1,5 +1,5 @@
 r"""
-COIN Backend
+InteractiveLP Backend
 
 AUTHORS:
 
@@ -18,10 +18,12 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.numerical.mip import MIPSolverException
 from sage.numerical.interactive_simplex_method import InteractiveLPProblem, default_variable_name
 from sage.modules.all import vector
+from copy import copy
 
 cdef class InteractiveLPBackend:
     """
@@ -34,17 +36,25 @@ cdef class InteractiveLPBackend:
 
     There is no support for integer variables.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.numerical.backends.generic_backend import get_solver
         sage: p = get_solver(solver = "InteractiveLP")
+
+    TESTS:
+
+    General backend testsuite::
+
+        sage: p = MixedIntegerLinearProgram(solver="InteractiveLP")
+        sage: TestSuite(p.get_backend()).run(skip="_test_pickling")
+
     """
 
     def __cinit__(self, maximization = True, base_ring = None):
         """
         Cython constructor
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
@@ -52,19 +62,22 @@ cdef class InteractiveLPBackend:
         This backend can work with irrational algebraic numbers::
 
             sage: poly = polytopes.dodecahedron(base_ring=AA)
-            sage: lp = poly.to_linear_program(solver='InteractiveLP')
-            sage: b = lp.get_backend()
-            sage: for k in range(3): b.variable_lower_bound(k, 0)
-            sage: b.set_objective([1, 1, 1])
+            sage: lp, x = poly.to_linear_program(solver='InteractiveLP', return_variable=True)
+            sage: lp.set_objective(x[0] + x[1] + x[2])
             sage: lp.solve()
             2.291796067500631?
-            sage: [b.get_variable_value(k) for k in range(3)]
+            sage: lp.get_values(x[0], x[1], x[2])
             [0.763932022500211?, 0.763932022500211?, 0.763932022500211?]
+            sage: lp.set_objective(x[0] - x[1] - x[2])
+            sage: lp.solve()
+            2.291796067500631?
+            sage: lp.get_values(x[0], x[1], x[2])
+            [0.763932022500211?, -0.763932022500211?, -0.763932022500211?]
         """
 
         if base_ring is None:
-            from sage.rings.all import AA
-            base_ring = AA
+            from sage.rings.all import QQ
+            base_ring = QQ
 
         self.lp = InteractiveLPProblem([], [], [], base_ring=base_ring)
         self.set_verbosity(0)
@@ -74,9 +87,30 @@ cdef class InteractiveLPBackend:
         else:
             self.set_sense(-1)
 
-        self.obj_constant_term = 0
-
         self.row_names = []
+
+    cpdef __copy__(self):
+        """
+        Returns a copy of self.
+
+        EXAMPLES::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = MixedIntegerLinearProgram(solver = "InteractiveLP")
+            sage: b = p.new_variable()
+            sage: p.add_constraint(b[1] + b[2] <= 6)
+            sage: p.set_objective(b[1] + b[2])
+            sage: cp = copy(p.get_backend())
+            sage: cp.solve()
+            0
+            sage: cp.get_objective_value()
+            6
+        """
+        cdef InteractiveLPBackend cp = type(self)(base_ring=self.base_ring())
+        cp.lp = self.lp                   # it's considered immutable; so no need to copy.
+        cp.row_names = copy(self.row_names)
+        cp.prob_name = self.prob_name
+        return cp
 
     cpdef base_ring(self):
         """
@@ -91,7 +125,7 @@ cdef class InteractiveLPBackend:
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
             sage: p.base_ring()
-            Algebraic Real Field
+            Rational Field
         """
         return self.lp.base_ring()
 
@@ -112,7 +146,7 @@ cdef class InteractiveLPBackend:
         The function raises an error if this pair of bounds cannot be
         represented by an `InteractiveLPProblem` variable type.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
@@ -151,7 +185,11 @@ cdef class InteractiveLPBackend:
         Add a variable.
 
         This amounts to adding a new column to the matrix. By default,
-        the variable is both positive and real.
+        the variable is both nonnegative and real.
+
+        In this backend, variables are always continuous (real).
+        If integer variables are requested via the parameters
+        ``binary`` and ``integer``, an error will be raised.
 
         INPUT:
 
@@ -175,7 +213,7 @@ cdef class InteractiveLPBackend:
 
         OUTPUT: The index of the newly created variable
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
@@ -196,7 +234,7 @@ cdef class InteractiveLPBackend:
             sage: p.objective_coefficient(1)
             1
         """
-        A, b, c, x, constraint_types, variable_types, problem_type, ring = self._AbcxCVPR()
+        A, b, c, x, constraint_types, variable_types, problem_type, ring, d = self._AbcxCVPRd()
         cdef int vtype = int(binary) + int(continuous) + int(integer)
         if  vtype == 0:
             continuous = True
@@ -219,57 +257,16 @@ cdef class InteractiveLPBackend:
         x = tuple(x) + (name,)
         self.lp = InteractiveLPProblem(A, b, c, x,
                                        constraint_types, variable_types,
-                                       problem_type, ring)
-        return self.ncols() - 1
-
-    cpdef int add_variables(self, int n, lower_bound=0, upper_bound=None, binary=False, continuous=True, integer=False, obj=None, names=None) except -1:
-        """
-        Add ``n`` variables.
-
-        This amounts to adding new columns to the matrix. By default,
-        the variables are both positive and real.
-
-        INPUT:
-
-        - ``n`` - the number of new variables (must be > 0)
-
-        - ``lower_bound`` - the lower bound of the variable (default: 0)
-
-        - ``upper_bound`` - the upper bound of the variable (default: ``None``)
-
-        - ``binary`` - ``True`` if the variable is binary (default: ``False``).
-
-        - ``continuous`` - ``True`` if the variable is binary (default: ``True``).
-
-        - ``integer`` - ``True`` if the variable is binary (default: ``False``).
-
-        - ``obj`` - (optional) coefficient of all variables in the objective function (default: 0)
-
-        - ``names`` - optional list of names (default: ``None``)
-
-        OUTPUT: The index of the variable created last.
-
-        EXAMPLE::
-
-            sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "InteractiveLP")
-            sage: p.ncols()
-            0
-            sage: p.add_variables(5)
-            4
-            sage: p.ncols()
-            5
-            sage: p.add_variables(2, names=['a','b'])
-            6
-        """
-        for i in range(n):
-            self.add_variable(lower_bound, upper_bound, binary, continuous, integer, obj,
-                              None if names is None else names[i])
+                                       problem_type, ring, objective_constant_term=d)
         return self.ncols() - 1
 
     cpdef  set_variable_type(self, int variable, int vtype):
         """
-        Set the type of a variable
+        Set the type of a variable.
+
+        In this backend, variables are always continuous (real).
+        If integer or binary variables are requested via the parameter
+        ``vtype``, an error will be raised.
 
         INPUT:
 
@@ -281,7 +278,7 @@ cdef class InteractiveLPBackend:
             *  0  Binary
             *  -1  Continuous
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
@@ -298,23 +295,24 @@ cdef class InteractiveLPBackend:
         else:
             raise NotImplementedError()
 
-    def _AbcxCVPR(self):
+    def _AbcxCVPRd(self):
         """
         Retrieve all problem data from the LP.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
-            sage: p._AbcxCVPR()
-            ([], (), (), (), (), (), 'max', Algebraic Real Field)
+            sage: p._AbcxCVPRd()
+            ([], (), (), (), (), (), 'max', Rational Field, 0)
         """
         A, b, c, x = self.lp.Abcx()
         constraint_types = self.lp.constraint_types()
         variable_types = self.lp.variable_types()
         problem_type = self.lp.problem_type()
         base_ring = self.lp.base_ring()
-        return A, b, c, x, constraint_types, variable_types, problem_type, base_ring
+        d = self.lp.objective_constant_term()
+        return A, b, c, x, constraint_types, variable_types, problem_type, base_ring, d
 
     cpdef set_sense(self, int sense):
         """
@@ -327,7 +325,7 @@ cdef class InteractiveLPBackend:
             * +1 => Maximization
             * -1 => Minimization
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
@@ -337,14 +335,14 @@ cdef class InteractiveLPBackend:
             sage: p.is_maximization()
             False
         """
-        A, b, c, x, constraint_types, variable_types, problem_type, ring = self._AbcxCVPR()
+        A, b, c, x, constraint_types, variable_types, problem_type, ring, d = self._AbcxCVPRd()
         if sense == +1:
             problem_type = "max"
         else:
             problem_type = "min"
         self.lp = InteractiveLPProblem(A, b, c, x,
                                        constraint_types, variable_types,
-                                       problem_type, ring)
+                                       problem_type, ring, objective_constant_term=d)
 
     cpdef objective_coefficient(self, int variable, coeff=None):
         """
@@ -357,7 +355,7 @@ cdef class InteractiveLPBackend:
 
         - ``coeff`` (double) -- its coefficient
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
@@ -372,12 +370,38 @@ cdef class InteractiveLPBackend:
         if coeff is None:
             return self.lp.objective_coefficients()[variable]
         else:
-            A, b, c, x, constraint_types, variable_types, problem_type, ring = self._AbcxCVPR()
+            A, b, c, x, constraint_types, variable_types, problem_type, ring, d = self._AbcxCVPRd()
             c = list(c)
             c[variable] = coeff
             self.lp = InteractiveLPProblem(A, b, c, x,
                                            constraint_types, variable_types,
-                                           problem_type, ring)
+                                           problem_type, ring, objective_constant_term=d)
+
+    cpdef objective_constant_term(self, d=None):
+        """
+        Set or get the constant term in the objective function
+
+        INPUT:
+
+        - ``d`` (double) -- its coefficient.  If `None` (default), return the current value.
+
+        EXAMPLES::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "InteractiveLP")
+            sage: p.objective_constant_term()
+            0
+            sage: p.objective_constant_term(42)
+            sage: p.objective_constant_term()
+            42
+        """
+        if d is None:
+            return self.lp.objective_constant_term()
+        else:
+            A, b, c, x, constraint_types, variable_types, problem_type, ring, _ = self._AbcxCVPRd()
+            self.lp = InteractiveLPProblem(A, b, c, x,
+                                           constraint_types, variable_types,
+                                           problem_type, ring, objective_constant_term=d)
 
     cpdef set_objective(self, list coeff, d = 0):
         """
@@ -390,14 +414,14 @@ cdef class InteractiveLPBackend:
 
         - ``d`` (real) -- the constant term in the linear function (set to `0` by default)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
             sage: p.add_variables(5)
             4
             sage: p.set_objective([1, 1, 2, 1, 3])
-            sage: map(lambda x :p.objective_coefficient(x), range(5))
+            sage: [p.objective_coefficient(x) for x in range(5)]
             [1, 1, 2, 1, 3]
 
         Constants in the objective function are respected::
@@ -423,12 +447,11 @@ cdef class InteractiveLPBackend:
             -47/5
 
         """
-        A, b, c, x, constraint_types, variable_types, problem_type, ring = self._AbcxCVPR()
+        A, b, _, x, constraint_types, variable_types, problem_type, ring, _ = self._AbcxCVPRd()
         c = coeff
         self.lp = InteractiveLPProblem(A, b, c, x,
                                        constraint_types, variable_types,
-                                       problem_type, ring)
-        self.obj_constant_term = d
+                                       problem_type, ring, objective_constant_term=d)
 
     cpdef set_verbosity(self, int level):
         """
@@ -438,7 +461,7 @@ cdef class InteractiveLPBackend:
 
         - ``level`` (integer) -- From 0 (no verbosity) to 3.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
@@ -454,7 +477,7 @@ cdef class InteractiveLPBackend:
 
         - ``i`` -- index of the constraint to remove.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver="InteractiveLP")
             sage: v = p.new_variable(nonnegative=True)
@@ -470,13 +493,13 @@ cdef class InteractiveLPBackend:
             sage: p.get_values([x,y])
             [0, 3]
         """
-        A, b, c, x, constraint_types, variable_types, problem_type, ring = self._AbcxCVPR()
+        A, b, c, x, constraint_types, variable_types, problem_type, ring, d = self._AbcxCVPRd()
         A = A.delete_rows((i,))
         b = list(b); del b[i]
         constraint_types=list(constraint_types); del constraint_types[i]
         self.lp = InteractiveLPProblem(A, b, c, x,
                                        constraint_types, variable_types,
-                                       problem_type, ring)
+                                       problem_type, ring, objective_constant_term=d)
 
     cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound, name=None):
         """
@@ -496,7 +519,7 @@ cdef class InteractiveLPBackend:
 
         - ``name`` -- string or ``None``. Optional name for this row.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
@@ -511,7 +534,7 @@ cdef class InteractiveLPBackend:
             sage: p.row_name(1)
             'foo'
         """
-        A, b, c, x, constraint_types, variable_types, problem_type, ring = self._AbcxCVPR()
+        A, b, c, x, constraint_types, variable_types, problem_type, ring, d = self._AbcxCVPRd()
         if lower_bound is None:
            if upper_bound is None:
                raise ValueError("At least one of lower_bound and upper_bound must be provided")
@@ -537,7 +560,7 @@ cdef class InteractiveLPBackend:
 
         self.lp = InteractiveLPProblem(A, b, c, x,
                                        constraint_types, variable_types,
-                                       problem_type, ring)
+                                       problem_type, ring, objective_constant_term=d)
 
 
     cpdef add_col(self, list indices, list coeffs):
@@ -561,7 +584,7 @@ cdef class InteractiveLPBackend:
             ``indices`` and ``coeffs`` are expected to be of the same
             length.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
@@ -576,37 +599,6 @@ cdef class InteractiveLPBackend:
         """
         self.add_variable(coefficients = zip(indices, coeffs))
 
-    cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names=None):
-        """
-        Add constraints.
-
-        INPUT:
-
-        - ``number`` (integer) -- the number of constraints to add.
-
-        - ``lower_bound`` - a lower bound, either a real value or ``None``
-
-        - ``upper_bound`` - an upper bound, either a real value or ``None``
-
-        - ``names`` - an optional list of names (default: ``None``)
-
-        EXAMPLE::
-
-            sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "InteractiveLP")
-            sage: p.add_variables(5)
-            4
-            sage: p.add_linear_constraints(5, 0, None)
-            sage: p.row(4)
-            ([], [])
-            sage: p.row_bounds(4)
-            (0, None)
-        """
-        for i in range(number):
-            self.add_linear_constraint(zip(range(self.ncols()),[0]*(self.ncols())),
-                                       lower_bound, upper_bound,
-                                       name=None if names is None else names[i])
-
     cpdef int solve(self) except -1:
         """
         Solve the problem.
@@ -617,7 +609,7 @@ cdef class InteractiveLPBackend:
             the solution can not be computed for any reason (none
             exists, or the LP solver was not able to find it, etc...)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
@@ -633,7 +625,8 @@ cdef class InteractiveLPBackend:
         """
         ## FIXME: standard_form should allow to pass slack names (which we would take from row_names).
         ## FIXME: Perhaps also pass the problem name as objective name
-        lp_std_form = self.lp_std_form = self.lp.standard_form()
+        lp_std_form, transformation = self.lp.standard_form(transformation=True)
+        self.lp_std_form, self.std_form_transformation = lp_std_form, transformation
         output = lp_std_form.run_revised_simplex_method()
         ## FIXME: Display output as a side effect if verbosity is high enough
         d = self.final_dictionary = lp_std_form.final_revised_dictionary()
@@ -653,7 +646,7 @@ cdef class InteractiveLPBackend:
 
            Behavior is undefined unless ``solve`` has been called before.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
@@ -674,7 +667,7 @@ cdef class InteractiveLPBackend:
         v = d.objective_value()
         if self.lp_std_form.is_negative():
             v = - v
-        return self.obj_constant_term + v
+        return v
 
     cpdef get_variable_value(self, int variable):
         """
@@ -684,7 +677,7 @@ cdef class InteractiveLPBackend:
 
            Behavior is undefined unless ``solve`` has been called before.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
@@ -701,15 +694,14 @@ cdef class InteractiveLPBackend:
             sage: p.get_variable_value(1)
             3/2
         """
-        if str(self.lp.decision_variables()[variable]) != str(self.lp_std_form.decision_variables()[variable]):
-            raise NotImplementedError("Undoing the standard-form transformation is not implemented")
-        return self.final_dictionary.basic_solution()[variable]
+        solution = self.std_form_transformation(self.final_dictionary.basic_solution())
+        return solution[variable]
 
     cpdef int ncols(self):
         """
         Return the number of columns/variables.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
@@ -726,7 +718,7 @@ cdef class InteractiveLPBackend:
         """
         Return the number of rows/constraints.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
@@ -742,7 +734,7 @@ cdef class InteractiveLPBackend:
         """
         Test whether the problem is a maximization
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
@@ -763,12 +755,12 @@ cdef class InteractiveLPBackend:
         - ``name`` (``char *``) -- the problem's name. When set to
           ``NULL`` (default), the method returns the problem's name.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
             sage: p.problem_name("There_once_was_a_french_fry")
-            sage: print p.problem_name()
+            sage: print(p.problem_name())
             There_once_was_a_french_fry
         """
         if name == NULL:
@@ -794,7 +786,7 @@ cdef class InteractiveLPBackend:
         associates their coefficient on the model of the
         ``add_linear_constraint`` method.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
@@ -827,7 +819,7 @@ cdef class InteractiveLPBackend:
         to ``None`` if the constraint is not bounded in the
         corresponding direction, and is a real value otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
@@ -862,7 +854,7 @@ cdef class InteractiveLPBackend:
         to ``None`` if the variable is not bounded in the
         corresponding direction, and is a real value otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
@@ -892,7 +884,7 @@ cdef class InteractiveLPBackend:
 
         - ``index`` (integer) -- the variable's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
@@ -914,7 +906,7 @@ cdef class InteractiveLPBackend:
 
         - ``index`` (integer) -- the variable's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
@@ -935,7 +927,7 @@ cdef class InteractiveLPBackend:
 
         - ``index`` (integer) -- the variable's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
@@ -957,7 +949,7 @@ cdef class InteractiveLPBackend:
 
         - ``index`` (integer) -- the row's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
@@ -979,7 +971,7 @@ cdef class InteractiveLPBackend:
         - ``name`` (``char *``) -- its name. When set to ``NULL``
           (default), the method returns the current name.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
@@ -1002,7 +994,7 @@ cdef class InteractiveLPBackend:
           variable has not upper bound. When set to ``None``
           (default), the method returns the current value.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
@@ -1027,12 +1019,12 @@ cdef class InteractiveLPBackend:
         else:
             if value != bounds[1]:
                 bounds = (bounds[0], value)
-                A, b, c, x, constraint_types, variable_types, problem_type, ring = self._AbcxCVPR()
+                A, b, c, x, constraint_types, variable_types, problem_type, ring, d = self._AbcxCVPRd()
                 variable_types = list(variable_types)
                 variable_types[index] = self._variable_type_from_bounds(*bounds)
                 self.lp = InteractiveLPProblem(A, b, c, x,
                                                constraint_types, variable_types,
-                                               problem_type, ring)
+                                               problem_type, ring, objective_constant_term=d)
 
     cpdef variable_lower_bound(self, int index, value = False):
         """
@@ -1046,7 +1038,7 @@ cdef class InteractiveLPBackend:
           variable has no lower bound. When set to ``None``
           (default), the method returns the current value.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "InteractiveLP")
@@ -1071,12 +1063,12 @@ cdef class InteractiveLPBackend:
         else:
             if value != bounds[0]:
                 bounds = (value, bounds[1])
-                A, b, c, x, constraint_types, variable_types, problem_type, ring = self._AbcxCVPR()
+                A, b, c, x, constraint_types, variable_types, problem_type, ring, d = self._AbcxCVPRd()
                 variable_types = list(variable_types)
                 variable_types[index] = self._variable_type_from_bounds(*bounds)
                 self.lp = InteractiveLPProblem(A, b, c, x,
                                                constraint_types, variable_types,
-                                               problem_type, ring)
+                                               problem_type, ring, objective_constant_term=d)
 
     cpdef bint is_variable_basic(self, int index):
         """
@@ -1089,7 +1081,7 @@ cdef class InteractiveLPBackend:
 
         - ``index`` (integer) -- the variable's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(maximization=True,\
                                                 solver="InteractiveLP")
@@ -1119,7 +1111,7 @@ cdef class InteractiveLPBackend:
 
         - ``index`` (integer) -- the variable's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(maximization=True,\
                                                 solver="InteractiveLP")
@@ -1149,7 +1141,7 @@ cdef class InteractiveLPBackend:
 
         - ``index`` (integer) -- the variable's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(maximization=True,\
                                                 solver="InteractiveLP")
@@ -1179,7 +1171,7 @@ cdef class InteractiveLPBackend:
 
         - ``index`` (integer) -- the variable's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(maximization=True,\
                                                 solver="InteractiveLP")
@@ -1204,7 +1196,7 @@ cdef class InteractiveLPBackend:
         """
         Return a dictionary representing the current basis.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(maximization=True,\
                                                 solver="InteractiveLP")
@@ -1239,7 +1231,7 @@ cdef class InteractiveLPBackend:
         """
         Return the :class:`InteractiveLPProblem` object associated with this backend.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(maximization=True,\
                                                 solver="InteractiveLP")

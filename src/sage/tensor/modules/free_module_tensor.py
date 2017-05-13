@@ -176,6 +176,7 @@ tensor ``t`` acts on pairs formed by a linear form and a module element::
     -2
 
 """
+from __future__ import absolute_import
 #******************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
@@ -191,6 +192,9 @@ from sage.structure.element import ModuleElement
 from sage.tensor.modules.comp import (Components, CompWithSym, CompFullySym,
                                       CompFullyAntiSym)
 from sage.tensor.modules.tensor_with_indices import TensorWithIndices
+
+import six
+
 
 class FreeModuleTensor(ModuleElement):
     r"""
@@ -321,7 +325,7 @@ class FreeModuleTensor(ModuleElement):
 
     ####### Required methods for ModuleElement (beside arithmetic) #######
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Return ``True`` if ``self`` is nonzero and ``False`` otherwise.
 
@@ -335,28 +339,29 @@ class FreeModuleTensor(ModuleElement):
             sage: t.add_comp(e)
             3-indices components w.r.t. Basis (e_0,e_1,e_2) on the
              Rank-3 free module M over the Integer Ring
-            sage: t.__nonzero__()  # unitialized components are zero
+            sage: bool(t)  # unitialized components are zero
             False
             sage: t == 0
             True
             sage: t[e,1,0,2] = 4  # setting a non-zero component in basis e
             sage: t.display()
             4 e_1*e_0*e^2
-            sage: t.__nonzero__()
+            sage: bool(t)
             True
             sage: t == 0
             False
             sage: t[e,1,0,2] = 0
             sage: t.display()
             0
-            sage: t.__nonzero__()
+            sage: bool(t)
             False
             sage: t == 0
             True
-
         """
         basis = self.pick_a_basis()
         return not self._components[basis].is_zero()
+
+    __nonzero__ = __bool__
 
     ##### End of required methods for ModuleElement (beside arithmetic) #####
 
@@ -364,7 +369,7 @@ class FreeModuleTensor(ModuleElement):
         r"""
         Return a string representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: t = M.tensor((2,1), name='t')
@@ -414,7 +419,7 @@ class FreeModuleTensor(ModuleElement):
         r"""
         Initialize the derived quantities
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: t = M.tensor((2,1), name='t')
@@ -427,7 +432,7 @@ class FreeModuleTensor(ModuleElement):
         r"""
         Delete the derived quantities
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: t = M.tensor((2,1), name='t')
@@ -630,11 +635,19 @@ class FreeModuleTensor(ModuleElement):
             sage: latex(v.display())
             v = 0.333333333333333 e_1 -2.00000000000000 e_2
 
-        The output format is then controled by the argument ``format_spec`` of
+        The output format is then controlled by the argument ``format_spec`` of
         the method :meth:`display`::
 
             sage: v.display(format_spec=10)  # 10 bits of precision
             v = 0.33 e_1 - 2.0 e_2
+
+        Check that the bug reported in :trac:`22520` is fixed::
+
+            sage: M = FiniteRankFreeModule(SR, 3, name='M')
+            sage: e = M.basis('e')
+            sage: t = SR.var('t', domain='real')
+            sage: (t*e[0]).display()
+            t e_0
 
         """
         from sage.misc.latex import latex
@@ -650,7 +663,9 @@ class FreeModuleTensor(ModuleElement):
         for ind in comp.index_generator():
             ind_arg = ind + (format_spec,)
             coef = comp[ind_arg]
-            if coef != 0:
+            if not (coef == 0):   # NB: coef != 0 would return False for
+                                  # cases in which Sage cannot conclude
+                                  # see :trac:`22520`
                 bases_txt = []
                 bases_latex = []
                 for k in range(n_con):
@@ -710,6 +725,136 @@ class FreeModuleTensor(ModuleElement):
 
     disp = display
 
+    def display_comp(self, basis=None, format_spec=None, symbol=None,
+                     latex_symbol=None, index_labels=None,
+                     index_latex_labels=None, only_nonzero=True,
+                     only_nonredundant=False):
+        r"""
+        Display the tensor components with respect to a given module
+        basis, one per line.
+
+        The output is either text-formatted (console mode) or LaTeX-formatted
+        (notebook mode).
+
+        INPUT:
+
+        - ``basis`` -- (default: ``None``) basis of the free module with
+          respect to which the tensor components are defined; if ``None``,
+          the module's default basis is assumed
+        - ``format_spec`` -- (default: ``None``) format specification passed
+          to ``self._fmodule._output_formatter`` to format the output
+        - ``symbol`` -- (default: ``None``) string (typically a single letter)
+          specifying the symbol for the components; if ``None``, the tensor
+          name is used if it has been set, otherwise ``'X'`` is used
+        - ``latex_symbol`` -- (default: ``None``) string specifying the LaTeX
+          symbol for the components; if ``None``, the tensor LaTeX name
+          is used if it has been set, otherwise ``'X'`` is used
+        - ``index_labels`` -- (default: ``None``) list of strings representing
+          the labels of each of the individual indices; if ``None``, integer
+          labels are used
+        - ``index_latex_labels`` -- (default: ``None``) list of strings
+          representing the LaTeX labels of each of the individual indices; if
+          ``None``, integers labels are used
+        - ``only_nonzero`` -- (default: ``True``) boolean; if ``True``, only
+          nonzero components are displayed
+        - ``only_nonredundant`` -- (default: ``False``) boolean; if ``True``,
+          only nonredundant components are displayed in case of symmetries
+
+        EXAMPLES:
+
+        Display of the components of a type-`(2,1)` tensor on a rank 2
+        vector space over `\QQ`::
+
+            sage: FiniteRankFreeModule._clear_cache_() # for doctests only
+            sage: M = FiniteRankFreeModule(QQ, 2, name='M', start_index=1)
+            sage: e = M.basis('e')
+            sage: t = M.tensor((2,1), name='T', sym=(0,1))
+            sage: t[1,2,1], t[1,2,2], t[2,2,2] = 2/3, -1/4, 3
+            sage: t.display()
+            T = 2/3 e_1*e_2*e^1 - 1/4 e_1*e_2*e^2 + 2/3 e_2*e_1*e^1
+                - 1/4 e_2*e_1*e^2 + 3 e_2*e_2*e^2
+            sage: t.display_comp()
+            T^12_1 = 2/3
+            T^12_2 = -1/4
+            T^21_1 = 2/3
+            T^21_2 = -1/4
+            T^22_2 = 3
+
+        The LaTeX output for the notebook::
+
+            sage: latex(t.display_comp())
+            \begin{array}{lcl} T_{\phantom{\, 1}\phantom{\, 2}\,1}^{\,1\,2\phantom{\, 1}}
+             & = & \frac{2}{3} \\ T_{\phantom{\, 1}\phantom{\, 2}\,2}^{\,1\,2\phantom{\, 2}}
+             & = & -\frac{1}{4} \\ T_{\phantom{\, 2}\phantom{\, 1}\,1}^{\,2\,1\phantom{\, 1}}
+             & = & \frac{2}{3} \\ T_{\phantom{\, 2}\phantom{\, 1}\,2}^{\,2\,1\phantom{\, 2}}
+             & = & -\frac{1}{4} \\ T_{\phantom{\, 2}\phantom{\, 2}\,2}^{\,2\,2\phantom{\, 2}}
+             & = & 3 \end{array}
+
+        By default, only the non-vanishing components are displayed; to see
+        all the components, the argument ``only_nonzero`` must be set to
+        ``False``::
+
+            sage: t.display_comp(only_nonzero=False)
+            T^11_1 = 0
+            T^11_2 = 0
+            T^12_1 = 2/3
+            T^12_2 = -1/4
+            T^21_1 = 2/3
+            T^21_2 = -1/4
+            T^22_1 = 0
+            T^22_2 = 3
+
+        ``t`` being symmetric w.r.t. to its first two indices, one may ask to
+        skip the components that can be deduced by symmetry::
+
+            sage: t.display_comp(only_nonredundant=True)
+            T^12_1 = 2/3
+            T^12_2 = -1/4
+            T^22_2 = 3
+
+        The index symbols can be customized::
+
+            sage: t.display_comp(index_labels=['x', 'y'])
+            T^xy_x = 2/3
+            T^xy_y = -1/4
+            T^yx_x = 2/3
+            T^yx_y = -1/4
+            T^yy_y = 3
+
+        Display of the components w.r.t. a basis different from the
+        default one::
+
+            sage: f = M.basis('f', from_family=(-e[1]+e[2], e[1]+e[2]))
+            sage: t.display_comp(basis=f)
+            T^11_1 = 29/24
+            T^11_2 = 13/24
+            T^12_1 = 3/4
+            T^12_2 = 3/4
+            T^21_1 = 3/4
+            T^21_2 = 3/4
+            T^22_1 = 7/24
+            T^22_2 = 23/24
+
+        """
+        if basis is None:
+            basis = self._fmodule._def_basis
+        if self._name is not None:
+            symbol = self._name
+        else:
+            symbol = 'X'
+        if self._latex_name is not None:
+            latex_symbol = self._latex_name
+        else:
+            latex_symbol = 'X'
+        index_positions = self._tensor_type[0]*'u' + self._tensor_type[1]*'d'
+        return self.comp(basis).display(symbol,
+                                        latex_symbol=latex_symbol,
+                                        index_positions=index_positions,
+                                        index_labels=index_labels,
+                                        index_latex_labels=index_latex_labels,
+                                        format_spec=format_spec,
+                                        only_nonzero=only_nonzero,
+                                        only_nonredundant=only_nonredundant)
 
     def view(self, basis=None, format_spec=None):
         r"""
@@ -717,7 +862,7 @@ class FreeModuleTensor(ModuleElement):
 
         Use method :meth:`display` instead.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 2, 'M')
             sage: e = M.basis('e')
@@ -772,7 +917,7 @@ class FreeModuleTensor(ModuleElement):
         Create a tensor of the same tensor type and with the same symmetries
         as ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: t = M.tensor((2,1), name='t')
@@ -1007,7 +1152,7 @@ class FreeModuleTensor(ModuleElement):
 
             sage: f =  M.basis('f')
             sage: t.set_comp(f)[0,1] = 4
-            sage: t._components.keys() # the components w.r.t. basis e have been deleted
+            sage: list(t._components) # the components w.r.t. basis e have been deleted
             [Basis (f_0,f_1,f_2) on the Rank-3 free module M over the Integer Ring]
             sage: t.display(f)
             t = 4 f_0*f^1
@@ -1020,7 +1165,7 @@ class FreeModuleTensor(ModuleElement):
             sage: M.set_change_of_basis(e, f, a)
             sage: t.display(e)
             t = -4 e_1*e^2
-            sage: t._components.keys()  # random output (dictionary keys)
+            sage: sorted(t._components)  # random output (dictionary keys)
             [Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring,
              Basis (f_0,f_1,f_2) on the Rank-3 free module M over the Integer Ring]
 
@@ -1086,7 +1231,7 @@ class FreeModuleTensor(ModuleElement):
 
         The components w.r.t. basis e have been kept::
 
-            sage: t._components.keys() # # random output (dictionary keys)
+            sage: sorted(t._components) # # random output (dictionary keys)
             [Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring,
              Basis (f_0,f_1,f_2) on the Rank-3 free module M over the Integer Ring]
             sage: t.display(f)
@@ -1114,7 +1259,7 @@ class FreeModuleTensor(ModuleElement):
         - ``basis`` -- (default: ``None``) basis in which the components are
           kept; if none the module's default basis is assumed
 
-        EXAMPLE:
+        EXAMPLES:
 
         Deleting components of a module element::
 
@@ -1123,21 +1268,21 @@ class FreeModuleTensor(ModuleElement):
             sage: u = M([2,1,-5])
             sage: f = M.basis('f')
             sage: u.add_comp(f)[:] = [0,4,2]
-            sage: u._components.keys() # random output (dictionary keys)
+            sage: sorted(u._components) # random output (dictionary keys)
             [Basis (e_1,e_2,e_3) on the Rank-3 free module M over the Integer Ring,
              Basis (f_1,f_2,f_3) on the Rank-3 free module M over the Integer Ring]
             sage: u.del_other_comp(f)
-            sage: u._components.keys()
+            sage: list(u._components)
             [Basis (f_1,f_2,f_3) on the Rank-3 free module M over the Integer Ring]
 
         Let us restore the components w.r.t. e and delete those w.r.t. f::
 
             sage: u.add_comp(e)[:] = [2,1,-5]
-            sage: u._components.keys()  # random output (dictionary keys)
+            sage: sorted(u._components)  # random output (dictionary keys)
             [Basis (e_1,e_2,e_3) on the Rank-3 free module M over the Integer Ring,
              Basis (f_1,f_2,f_3) on the Rank-3 free module M over the Integer Ring]
             sage: u.del_other_comp()  # default argument: basis = e
-            sage: u._components.keys()
+            sage: list(u._components)
             [Basis (e_1,e_2,e_3) on the Rank-3 free module M over the Integer Ring]
 
         """
@@ -1299,7 +1444,7 @@ class FreeModuleTensor(ModuleElement):
 
         """
         resu = self._new_instance()
-        for basis, comp in self._components.iteritems():
+        for basis, comp in six.iteritems(self._components):
              resu._components[basis] = comp.copy()
         return resu
 
@@ -1341,9 +1486,9 @@ class FreeModuleTensor(ModuleElement):
         on different bases and no connection between these bases have
         been set::
 
-            sage: u._components.keys()
+            sage: list(u._components)
             [Basis (e_1,e_2,e_3) on the Rank-3 free module M over the Integer Ring]
-            sage: v._components.keys()
+            sage: list(v._components)
             [Basis (f_1,f_2,f_3) on the Rank-3 free module M over the Integer Ring]
 
         Linking bases ``e`` and ``f`` changes the result::
@@ -1356,7 +1501,7 @@ class FreeModuleTensor(ModuleElement):
 
         Indeed, v is now known in basis e::
 
-            sage: v._components.keys() # random output (dictionary keys)
+            sage: sorted(v._components) # random output (dictionary keys)
             [Basis (f_1,f_2,f_3) on the Rank-3 free module M over the Integer Ring,
              Basis (e_1,e_2,e_3) on the Rank-3 free module M over the Integer Ring]
 
@@ -1788,7 +1933,7 @@ class FreeModuleTensor(ModuleElement):
              [[[0, -6], [6, 0]], [[0, 15], [-15, 0]]]]
 
         """
-        from format_utilities import format_mul_txt, format_mul_latex
+        from .format_utilities import format_mul_txt, format_mul_latex
         if isinstance(other, FreeModuleTensor):
             basis = self.common_basis(other)
             if basis is None:
@@ -2331,9 +2476,9 @@ class FreeModuleTensor(ModuleElement):
             [ 7  6 -4]
             [ 3 -1 -2]
             sage: b.del_other_comp(h)  # deletes components w.r.t. basis e
-            sage: b._components.keys()  # indeed:
+            sage: list(b._components)  # indeed:
             [Basis (h_0,h_1,h_2) on the Rank-3 free module M over the Integer Ring]
-            sage: a._components.keys()  # while a is known only in basis e:
+            sage: list(a._components)  # while a is known only in basis e:
             [Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring]
             sage: s1 = a.contract(1, b, 1) ; s1  # yet the computation is possible
             Type-(1,2) tensor on the Rank-3 free module M over the Integer Ring
@@ -2415,7 +2560,7 @@ class FreeModuleTensor(ModuleElement):
         for pos in range(0,k2):
             if pos not in pos2:
                 nb_con_o += 1
-        if nb_cov_s != 0 and nb_con_o !=0:
+        if nb_cov_s != 0 and nb_con_o != 0:
             # some reodering is necessary:
             p2 = k1 + l1 - ncontr
             p1 = p2 - nb_cov_s
@@ -3080,7 +3225,7 @@ class FiniteRankFreeModuleElement(FreeModuleTensor):
         r"""
         Return a string representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')
@@ -3109,7 +3254,7 @@ class FiniteRankFreeModuleElement(FreeModuleTensor):
 
         - an instance of :class:`~sage.tensor.modules.comp.Components`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')
@@ -3130,7 +3275,7 @@ class FiniteRankFreeModuleElement(FreeModuleTensor):
         r"""
         Create an instance of the same class as ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')

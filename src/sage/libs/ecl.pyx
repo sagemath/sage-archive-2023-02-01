@@ -9,21 +9,23 @@ Library interface to Embeddable Common Lisp (ECL)
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 #This version of the library interface prefers to convert ECL integers and
 #rationals to SAGE types Integer and Rational. These parts could easily be
 #adapted to work with pure Python types.
 
 include "cysignals/signals.pxi"
-include "sage/ext/cdefs.pxi"
 
 from libc.stdlib cimport abort
 from libc.signal cimport SIGINT, SIGBUS, SIGSEGV, SIGCHLD
 from libc.signal cimport raise_ as signal_raise
 from posix.signal cimport sigaction, sigaction_t
 
+from sage.libs.gmp.types cimport mpz_t
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
+from cpython.object cimport Py_EQ, Py_NE
 
 #it would be preferrable to let bint_symbolp wrap an efficient macro
 #but the macro provided in object.h doesn't seem to work
@@ -383,7 +385,7 @@ def shutdown_ecl():
     that no ECL objects exist at a particular time. Hence, destroying ECL is a
     risky proposition.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.libs.ecl import *
         sage: shutdown_ecl()
@@ -403,7 +405,7 @@ def print_objects():
     small integers do not get linked in. This routine prints the values
     currently stored.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.libs.ecl import *
         sage: a=EclObject("hello")
@@ -419,8 +421,8 @@ def print_objects():
     c = list_of_objects
     while True:
         s = si_coerce_to_base_string(cl_write_to_string(1,cl_car(c)))
-        print ecl_base_string_pointer_safe(s)
-        c=cl_cadr(c)
+        print(ecl_base_string_pointer_safe(s))
+        c = cl_cadr(c)
         if c == Cnil:
             break
 
@@ -798,9 +800,10 @@ cdef class EclObject:
         r"""
         Comparison test.
 
-        An EclObject is not equal to any non-EclObject. Two EclObjects are equal
-        if their wrapped lisp objects are EQUAL. Since LISP has no univeral ordering,
-        less than and greater than tests are not implemented for EclObjects.
+        An EclObject is not equal to any non-EclObject. Two EclObjects
+        are equal if their wrapped lisp objects are EQUAL. Since LISP
+        has no universal ordering, less than and greater than tests
+        are not implemented for EclObjects.
 
         EXAMPLES::
 
@@ -816,13 +819,13 @@ cdef class EclObject:
             sage: EclObject("<")(a,b)
             <ECL: T>
         """
-        if   op == 2: # "=="
-            if not(isinstance(left,EclObject)) or not(isinstance(right,EclObject)):
+        if op == Py_EQ:
+            if not(isinstance(left,EclObject) and isinstance(right,EclObject)):
                 return False
             else:
                 return bint_equal((<EclObject>left).obj,(<EclObject>right).obj)
-        elif op == 3: # "!="
-            if not(isinstance(left,EclObject)) or not(isinstance(right,EclObject)):
+        elif op == Py_NE:
+            if not(isinstance(left,EclObject) and isinstance(right,EclObject)):
                 return True
             else:
                 return not(bint_equal((<EclObject>left).obj,(<EclObject>right).obj))

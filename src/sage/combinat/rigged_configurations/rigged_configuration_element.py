@@ -8,7 +8,7 @@ objects.
 AUTHORS:
 
 - Travis Scrimshaw (2010-09-26): Initial version
-- Travis Scrimshaw (2012-10-25): Added virtual rigged confingurations
+- Travis Scrimshaw (2012-10-25): Added virtual rigged configurations
 """
 
 #*****************************************************************************
@@ -25,10 +25,12 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function, division
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.list_clone import ClonableArray
 from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition, \
   RiggedPartitionTypeB
 
@@ -296,22 +298,22 @@ class RiggedConfigurationElement(ClonableArray):
             <BLANKLINE>
             -2[ ][ ][ ]-2
             <BLANKLINE>
-            sage: RC.global_options(display='horizontal')
+            sage: RC.options(display='horizontal')
             sage: elt
             -1[ ][ ]-1   2[ ][ ][ ]2   -2[ ][ ][ ]-2   -2[ ][ ][ ]-2
                          0[ ]0
-            sage: RC.global_options.reset()
+            sage: RC.options._reset()
         """
-        return self.parent().global_options.dispatch(self, '_repr_', 'display')
+        return self.parent().options._dispatch(self, '_repr_', 'display')
 
     def _repr_vertical(self):
         """
-        Return the string representation of ``self`` verically.
+        Return the string representation of ``self`` vertically.
 
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 2]])
-            sage: print RC(partition_list=[[2], [3,1], [3], [3]])._repr_vertical()
+            sage: print(RC(partition_list=[[2], [3,1], [3], [3]])._repr_vertical())
             <BLANKLINE>
             -1[ ][ ]-1
             <BLANKLINE>
@@ -322,7 +324,7 @@ class RiggedConfigurationElement(ClonableArray):
             <BLANKLINE>
             -2[ ][ ][ ]-2
             <BLANKLINE>
-            sage: print RC(partition_list=[[],[],[],[]])._repr_vertical()
+            sage: print(RC(partition_list=[[],[],[],[]])._repr_vertical())
             <BLANKLINE>
             (/)
             <BLANKLINE>
@@ -345,10 +347,10 @@ class RiggedConfigurationElement(ClonableArray):
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 2]])
-            sage: print RC(partition_list=[[2], [3,1], [3], [3]])._repr_horizontal()
+            sage: print(RC(partition_list=[[2], [3,1], [3], [3]])._repr_horizontal())
             -1[ ][ ]-1   2[ ][ ][ ]2   -2[ ][ ][ ]-2   -2[ ][ ][ ]-2
                          0[ ]0
-            sage: print RC(partition_list=[[],[],[],[]])._repr_horizontal()
+            sage: print(RC(partition_list=[[],[],[],[]])._repr_horizontal())
             (/)   (/)   (/)   (/)
         """
         tab_str = [repr(x).splitlines() for x in self]
@@ -441,7 +443,7 @@ class RiggedConfigurationElement(ClonableArray):
                                    3[ ]1     0[ ]0     0[ ]0
                                              0[ ]0     0[ ]0
                                              0[ ]0     0[ ]0
-            sage: Partitions.global_options(convention='French')
+            sage: Partitions.options(convention='French')
             sage: ascii_art(elt)
                                              0[ ]0     0[ ]0
                                              0[ ]0     0[ ]0
@@ -449,10 +451,10 @@ class RiggedConfigurationElement(ClonableArray):
                       1[ ]0        3[ ]2     0[ ]0     0[ ]0        0[ ]0
                       2[ ][ ]0     4[ ][ ]1  2[ ][ ]0  2[ ][ ]1     0[ ]0     0[ ][ ]0
             3[ ][ ]2  1[ ][ ][ ]1  4[ ][ ]4  2[ ][ ]1  0[ ][ ][ ]0  0[ ][ ]0  0[ ][ ]0
-            sage: Partitions.global_options.reset()
+            sage: Partitions.options._reset()
         """
-        from sage.combinat.partition import PartitionOptions
-        if PartitionOptions['convention'] == "French":
+        from sage.combinat.partition import Partitions
+        if Partitions.options.convention == "French":
             baseline = lambda s: 0
         else:
             baseline = lambda s: len(s)
@@ -682,7 +684,7 @@ class RiggedConfigurationElement(ClonableArray):
         k = None
         add_index = -1 # Index where we will add our row too
         rigging_index = None # Index which we will pull the rigging from
-        cur_rigging = 0
+        cur_rigging = ZZ.zero()
         num_rows = len(new_list)
         for i in reversed(range(num_rows)):
             # If we need to increment a row, look for when we change rows for
@@ -699,7 +701,7 @@ class RiggedConfigurationElement(ClonableArray):
         # If we've not found a valid k
         if k is None:
             new_list.append(1)
-            new_rigging.append(-1)
+            new_rigging.append(Integer(-1))
             new_vac_nums.append(None)
             k = 0
             add_index = num_rows
@@ -800,7 +802,7 @@ class RiggedConfigurationElement(ClonableArray):
         """
         a = self.parent()._rc_index.index(a)
         if not self[a]:
-            return Integer(0)
+            return ZZ.zero()
         return Integer(-min(0, min(self[a].rigging)))
 
     def phi(self, a):
@@ -1436,14 +1438,14 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['E', 6, 1], [[2,2]])
-            sage: map(lambda x: x.weight(), RC.module_generators)
+            sage: [x.weight() for x in RC.module_generators]
             [-4*Lambda[0] + 2*Lambda[2], -2*Lambda[0] + Lambda[2], 0]
             sage: KR = crystals.KirillovReshetikhin(['E',6,1], 2,2)
-            sage: map(lambda x: x.weight(), KR.module_generators) # long time
+            sage: [x.weight() for x in KR.module_generators]  # long time
             [0, -2*Lambda[0] + Lambda[2], -4*Lambda[0] + 2*Lambda[2]]
 
             sage: RC = RiggedConfigurations(['D', 6, 1], [[4,2]])
-            sage: map(lambda x: x.weight(), RC.module_generators)
+            sage: [x.weight() for x in RC.module_generators]
             [-4*Lambda[0] + 2*Lambda[4], -4*Lambda[0] + Lambda[2] + Lambda[4],
              -2*Lambda[0] + Lambda[4], -4*Lambda[0] + 2*Lambda[2],
              -2*Lambda[0] + Lambda[2], 0]
@@ -1588,7 +1590,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         as follows::
 
             sage: ret, G = elt.to_tensor_product_of_kirillov_reshetikhin_tableaux(build_graph=True)
-            sage: view(G, tightpage=True) # not tested
+            sage: view(G) # not tested
         """
         from sage.combinat.rigged_configurations.bijection import RCToKRTBijection
         bij = RCToKRTBijection(self)
@@ -1642,7 +1644,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         as follows::
 
             sage: ret, G = elt.to_tensor_product_of_kirillov_reshetikhin_crystals(build_graph=True)
-            sage: view(G, tightpage=True) # not tested
+            sage: view(G) # not tested
         """
         if build_graph:
             kr_tab, G = self.to_tensor_product_of_kirillov_reshetikhin_tableaux(display_steps, build_graph)
@@ -1790,8 +1792,9 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         if P.dims[0][1] != 1:
             rc = self.left_split()
         bij = RCToKRTBijection(rc)
-        bij.cur_dims[0][0] -= 1 # This takes care of the indexing
-        b = bij.next_state(bij.cur_dims[0][0])
+        ht = bij.cur_dims[0][0]
+        bij.cur_dims[0][0] = bij._next_index(ht)
+        b = bij.next_state(ht)
         if bij.cur_dims[0][0] == 0:
             bij.cur_dims.pop(0)
         from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
@@ -2066,7 +2069,7 @@ class KRRCSimplyLacedElement(KRRiggedConfigurationElement):
                         cc += min(dim[1], i)
                 # Subtract the vacancy number
                 cc -= p.vacancy_numbers[pos]
-        return cc / 2 + rigging_sum
+        return cc // 2 + rigging_sum
 
     cc = cocharge
 
@@ -2222,12 +2225,12 @@ class KRRCNonSimplyLacedElement(KRRiggedConfigurationElement, RCNonSimplyLacedEl
         """
         #return self.to_virtual_configuration().cocharge() / self.parent()._folded_ct.gamma[0]
         vct = self.parent()._folded_ct
-        cc = 0
-        rigging_sum = 0
+        cc = ZZ.zero()
+        rigging_sum = ZZ.zero()
         sigma = vct.folding_orbit()
         gamma = vct.scaling_factors()
         for a, p in enumerate(self):
-            t_check = len(sigma[a+1]) * gamma[a+1] / gamma[0]
+            t_check = len(sigma[a + 1]) * gamma[a+1] // gamma[0]
             for pos, i in enumerate(p._list):
                 # Add the rigging
                 rigging_sum += t_check * p.rigging[pos]
@@ -2237,7 +2240,7 @@ class KRRCNonSimplyLacedElement(KRRiggedConfigurationElement, RCNonSimplyLacedEl
                         cc += t_check * min(dim[1], i)
                 # Subtract the vacancy number
                 cc -= t_check * p.vacancy_numbers[pos]
-        return cc / 2 + rigging_sum
+        return cc // 2 + rigging_sum
 
     cc = cocharge
 
@@ -2339,8 +2342,8 @@ class KRRCTypeA2DualElement(KRRCNonSimplyLacedElement):
         """
         #return self.to_virtual_configuration().cocharge() / self.parent()._folded_ct.gamma[0]
         vct = self.parent()._folded_ct
-        cc = 0
-        rigging_sum = 0
+        cc = ZZ.zero()
+        rigging_sum = ZZ.zero()
         #sigma = vct.folding_orbit()
         #gammatilde = list(vct.scaling_factors())
         #gammatilde[-1] = 2
@@ -2355,7 +2358,7 @@ class KRRCTypeA2DualElement(KRRCNonSimplyLacedElement):
                         cc += t_check * min(dim[1], i)
                 # Subtract the vacancy number
                 cc -= t_check * p.vacancy_numbers[pos]
-        return cc / 2 + rigging_sum
+        return cc / ZZ(2) + rigging_sum
 
     cc = cocharge
 

@@ -22,7 +22,7 @@ from cpython.list cimport *
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.pylong cimport mpz_pythonhash
-from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
+from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
@@ -67,7 +67,7 @@ cdef inline int ccmp(mpz_t a, mpz_t b, long prec, bint reduce_a, bint reduce_b, 
     - ``reduce_b`` -- a bint, whether b needs to be reduced.
     - ``prime_pow`` -- the PowComputer for the ring.
 
-    OUPUT:
+    OUTPUT:
 
     - If neither a nor be needs to be reduced, returns
       -1 (`a < b`), 0 (`a = b`) or 1 (`a > b`)

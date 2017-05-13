@@ -31,75 +31,13 @@ from sage.structure.parent import Parent
 from sage.combinat.misc import IterableFunctionCall
 import sage.combinat.tableau as tableau
 from sage.rings.all import QQ
-from sage.categories.finite_crystals import FiniteCrystals
-from sage.categories.regular_crystals import RegularCrystals
+from sage.categories.loop_crystals import KirillovReshetikhinCrystals
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.rigged_configurations.kleber_tree import KleberTree, VirtualKleberTree
 from sage.combinat.rigged_configurations.rigged_configuration_element import (
      RiggedConfigurationElement, KRRCSimplyLacedElement, KRRCNonSimplyLacedElement,
      KRRCTypeA2DualElement)
 from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition
-
-RiggedConfigurationOptions=GlobalOptions(name='rigged configurations',
-    doc=r"""
-    Sets and displays the global options for rigged configurations.
-    If no parameters are set, then the function returns a copy of
-    the options dictionary.
-
-    The ``options`` to partitions can be accessed as the method
-    :obj:`RiggedConfigurations.global_options` of
-    :class:`RiggedConfigurations`.
-    """,
-    end_doc=r"""
-    EXAMPLES::
-
-        sage: RC = RiggedConfigurations(['A',3,1], [[2,2],[1,1],[1,1]])
-        sage: elt = RC(partition_list=[[3,1], [3], [1]])
-        sage: elt
-        <BLANKLINE>
-        -3[ ][ ][ ]-3
-        -1[ ]-1
-        <BLANKLINE>
-        1[ ][ ][ ]1
-        <BLANKLINE>
-        -1[ ]-1
-        <BLANKLINE>
-        sage: RiggedConfigurations.global_options(display="horizontal", convention="french")
-        sage: elt
-        -1[ ]-1         1[ ][ ][ ]1   -1[ ]-1
-        -3[ ][ ][ ]-3
-
-    Changing the ``convention`` for rigged configurations also changes the
-    ``convention`` option for tableaux and vice versa::
-
-        sage: T = Tableau([[1,2,3],[4,5]])
-        sage: T.pp()
-          4  5
-          1  2  3
-        sage: Tableaux.global_options(convention="english")
-        sage: elt
-        -3[ ][ ][ ]-3   1[ ][ ][ ]1   -1[ ]-1
-        -1[ ]-1
-        sage: T.pp()
-          1  2  3
-          4  5
-        sage: RiggedConfigurations.global_options.reset()
-    """,
-    display=dict(default="vertical",
-                 description='Specifies how rigged configurations should be printed',
-                 values=dict(vertical='displayed vertically',
-                             horizontal='displayed horizontally'),
-                 case_sensitive=False),
-    element_ascii_art=dict(default=True,
-                     description='display using the repr option ``element_ascii_art``',
-                     checker=lambda x: isinstance(x, bool)),
-    
-    half_width_boxes_type_B=dict(default=True,
-            description='display the last rigged partition in affine type B as half width boxes',
-            checker=lambda x: isinstance(x, bool)),
-    convention=dict(link_to=(tableau.TableauOptions,'convention')),
-    notation = dict(alt_name='convention')
-)
 
 # Used in the KR crystals catalog so that there is a common interface
 def KirillovReshetikhinCrystal(cartan_type, r, s):
@@ -213,7 +151,7 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
 
     REFERENCES:
 
-    .. [HKOTT2002] G. Hatayama, A. Kuniba, M. Okado, T. Takagi, Z. Tsuboi.
+    .. [HKOTT2002] \G. Hatayama, A. Kuniba, M. Okado, T. Takagi, Z. Tsuboi.
        Paths, Crystals and Fermionic Formulae.
        Prog. Math. Phys. **23** (2002) Pages 205-272.
 
@@ -406,6 +344,8 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
 
         # Standardize B input into a tuple of tuples
         B = tuple(tuple(factor) for factor in B)
+        if not B:
+            raise ValueError("must contain at least one factor")
 
         if cartan_type.type() == 'BC': # Type `A_{2n}^{(2)}`
             return RCTypeA2Even(cartan_type, B)
@@ -443,7 +383,69 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
         self._rc_index = cl.index_set()
         # We store the Cartan matrix for the vacancy number calculations for speed
         self._cartan_matrix = cl.cartan_matrix()
-        Parent.__init__(self, category=(RegularCrystals(), FiniteCrystals()))
+        Parent.__init__(self, category=KirillovReshetikhinCrystals().TensorProducts())
+
+    # add options to class
+    options=GlobalOptions('RiggedConfigurations',
+        module='sage.combinat.rigged_configurations.rigged_configurations',
+        doc=r"""
+        Sets and displays the options for rigged configurations.
+        If no parameters are set, then the function returns a copy of
+        the options dictionary.
+
+        The ``options`` to partitions can be accessed as the method
+        :obj:`RiggedConfigurations.options` of
+        :class:`RiggedConfigurations`.
+        """,
+        end_doc=r"""
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['A',3,1], [[2,2],[1,1],[1,1]])
+            sage: elt = RC(partition_list=[[3,1], [3], [1]])
+            sage: elt
+            <BLANKLINE>
+            -3[ ][ ][ ]-3
+            -1[ ]-1
+            <BLANKLINE>
+            1[ ][ ][ ]1
+            <BLANKLINE>
+            -1[ ]-1
+            <BLANKLINE>
+            sage: RiggedConfigurations.options(display="horizontal", convention="french")
+            sage: elt
+            -1[ ]-1         1[ ][ ][ ]1   -1[ ]-1
+            -3[ ][ ][ ]-3
+
+        Changing the ``convention`` for rigged configurations also changes the
+        ``convention`` option for tableaux and vice versa::
+
+            sage: T = Tableau([[1,2,3],[4,5]])
+            sage: T.pp()
+              4  5
+              1  2  3
+            sage: Tableaux.options.convention="english"
+            sage: elt
+            -3[ ][ ][ ]-3   1[ ][ ][ ]1   -1[ ]-1
+            -1[ ]-1
+            sage: T.pp()
+              1  2  3
+              4  5
+            sage: RiggedConfigurations.options._reset()
+        """,
+        display=dict(default="vertical",
+                     description='Specifies how rigged configurations should be printed',
+                     values=dict(vertical='displayed vertically',
+                                 horizontal='displayed horizontally'),
+                     case_sensitive=False),
+        element_ascii_art=dict(default=True,
+                         description='display using the repr option ``element_ascii_art``',
+                         checker=lambda x: isinstance(x, bool)),
+        half_width_boxes_type_B=dict(default=True,
+                description='display the last rigged partition in affine type B as half width boxes',
+                checker=lambda x: isinstance(x, bool)),
+        convention=dict(link_to=(tableau.Tableaux.options,'convention')),
+        notation = dict(alt_name='convention')
+    )
 
     def _repr_(self):
         """
@@ -469,10 +471,8 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
             True
         """
         if key == 'element_ascii_art':
-            return self.global_options('element_ascii_art')
+            return self.options.element_ascii_art
         return super(RiggedConfigurations, self)._repr_option(key)
-
-    global_options = RiggedConfigurationOptions
 
     def __iter__(self):
         """
@@ -667,6 +667,19 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
                     values[-1].extend(block)
         return values
 
+    def classically_highest_weight_vectors(self):
+        """
+        Return the classically highest weight elements of ``self``.
+
+        TESTS::
+
+            sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 2]])
+            sage: ascii_art(RC.classically_highest_weight_vectors())
+            (                    )
+            ( (/)  (/)  (/)  (/) )
+        """
+        return self.module_generators
+
     def _element_constructor_(self, *lst, **options):
         """
         Construct a ``RiggedConfigurationElement``.
@@ -829,31 +842,6 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
         from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux
         return TensorProductOfKirillovReshetikhinTableaux(self._cartan_type, self.dims)
 
-    def cardinality(self):
-        """
-        Return the cardinality of ``self``.
-
-        EXAMPLES::
-
-            sage: RC = RiggedConfigurations(['A', 3, 1], [[3, 2], [1, 2]])
-            sage: RC.cardinality()
-            100
-            sage: len(RC.list())
-            100
-
-            sage: RC = RiggedConfigurations(['E', 7, 1], [[1,1]])
-            sage: RC.cardinality()
-            134
-            sage: len(RC.list())
-            134
-
-            sage: RC = RiggedConfigurations(['B', 3, 1], [[2,2],[1,2]])
-            sage: RC.cardinality()
-            5130
-        """
-        CWLR = self.cartan_type().classical().root_system().ambient_space()
-        return sum(CWLR.weyl_dimension(mg.classical_weight()) for mg in self.module_generators)
-
     @cached_method
     def tensor_product_of_kirillov_reshetikhin_crystals(self):
         """
@@ -913,7 +901,7 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
         INPUT:
 
         - ``q`` -- the variable `q`
-        - ``only_highest_weight`` -- use only the classicaly highest weight
+        - ``only_highest_weight`` -- use only the classically highest weight
           rigged configurations
         - ``weight`` -- return the fermionic formula `M(\lambda, L; q)` where
           `\lambda` is the classical weight ``weight``
@@ -1906,3 +1894,7 @@ class RCTypeA2Dual(RCTypeA2Even):
 
     Element = KRRCTypeA2DualElement
 
+# deprecations from trac:18555
+from sage.misc.superseded import deprecated_function_alias
+RiggedConfigurations.global_options=deprecated_function_alias(18555, RiggedConfigurations.options)
+RiggedConfigurationOptions = deprecated_function_alias(18555, RiggedConfigurations.options)

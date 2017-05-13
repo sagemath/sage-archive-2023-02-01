@@ -1,4 +1,4 @@
-"Symbolic integration via external software"
+"Symbolic Integration via External Software"
 
 from sage.symbolic.expression import Expression
 from sage.symbolic.ring import SR
@@ -6,6 +6,10 @@ from sage.symbolic.ring import SR
 
 def maxima_integrator(expression, v, a=None, b=None):
     """
+    Integration using Maxima
+
+    EXAMPLES::
+
         sage: from sage.symbolic.integration.external import maxima_integrator
         sage: maxima_integrator(sin(x), x)
         -cos(x)
@@ -26,6 +30,10 @@ def maxima_integrator(expression, v, a=None, b=None):
 
 def sympy_integrator(expression, v, a=None, b=None):
     """
+    Integration using SymPy
+
+    EXAMPLES::
+
         sage: from sage.symbolic.integration.external import sympy_integrator
         sage: sympy_integrator(sin(x), x)
         -cos(x)
@@ -43,6 +51,10 @@ def sympy_integrator(expression, v, a=None, b=None):
 
 def mma_free_integrator(expression, v, a=None, b=None):
     """
+    Integration using Mathematica's online integrator
+
+    EXAMPLES::
+
         sage: from sage.symbolic.integration.external import mma_free_integrator
         sage: mma_free_integrator(sin(x), x) # optional - internet
         -cos(x)
@@ -63,7 +75,7 @@ def mma_free_integrator(expression, v, a=None, b=None):
                 break
         expression = expression.subs({x:shadow_x}).subs({dvar: x})
     params = urlencode({'expr': expression._mathematica_init_(), 'random': 'false'})
-    page = urlopen("http://integrals.wolfram.com/index.jsp", params).read()
+    page = urlopen("http://integrals.wolfram.com/home.jsp", params).read()
     page = page[page.index('"inputForm"'):page.index('"outputForm"')]
     page = re.sub("\s", "", page)
     mexpr = re.match(r".*Integrate.*==</em><br/>(.*)</p>", page).groups()[0]
@@ -76,7 +88,7 @@ def mma_free_integrator(expression, v, a=None, b=None):
         raise ValueError("Unable to parse: %s" % mexpr)
 
 
-def fricas_integrator(expression, v, a=None, b=None):
+def fricas_integrator(expression, v, a=None, b=None, noPole=True):
     """
     Integration using FriCAS
 
@@ -88,9 +100,9 @@ def fricas_integrator(expression, v, a=None, b=None):
         sage: fricas_integrator(cos(x), x)                                      # optional - fricas
         sin(x)
         sage: fricas_integrator(1/(x^2-2), x, 0, 1)                             # optional - fricas
-        1/4*(log(3*sqrt(2) - 4) - log(sqrt(2)))*sqrt(2)
+        1/4*sqrt(2)*(log(3*sqrt(2) - 4) - log(sqrt(2)))
         sage: fricas_integrator(1/(x^2+6), x, -oo, oo)                          # optional - fricas
-        1/6*pi*sqrt(6)
+        1/6*sqrt(6)*pi
     """
     if not isinstance(expression, Expression):
         expression = SR(expression)
@@ -107,14 +119,34 @@ def fricas_integrator(expression, v, a=None, b=None):
         elif b == sage.rings.infinity.MinusInfinity():
             b = "%minusInfinity"
 
-        result = expression._fricas_().integrate("{}={}..{}".format(v, a, b))
+        if noPole:
+            result = expression._fricas_().integrate("{}={}..{}".format(v, a, b), '"noPole"')
+        else:
+            result = expression._fricas_().integrate("{}={}..{}".format(v, a, b))
+
     locals = {str(v): v for v in expression.variables()}
     if str(result) == "potentialPole":
         raise ValueError("The integrand has a potential pole"
                          " in the integration interval")
-    parsed_result = result.unparsed_input_form()
-    import sage.misc.sage_eval
-    try:
-        return sage.misc.sage_eval.sage_eval(parsed_result, locals=locals)
-    except:
-        raise ValueError("Unable to parse: {}".format(parsed_result))
+
+    return result.sage()
+
+def giac_integrator(expression, v, a=None, b=None):
+    """
+    Integration using Giac
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.integration.external import giac_integrator
+        sage: giac_integrator(sin(x), x)
+        -cos(x)
+        sage: giac_integrator(1/(x^2+6), x, -oo, oo)
+        1/6*sqrt(6)*pi
+    """
+    ex = expression._giac_()
+    v = v._giac_()
+    if a is None:
+        result = ex.integrate(v)
+    else:
+        result = ex.integrate(v, a._giac_(), b._giac_())
+    return result._sage_()

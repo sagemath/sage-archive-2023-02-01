@@ -53,10 +53,11 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-import types, copy_reg
+import types
 
-from sage_object cimport SageObject
+from .sage_object cimport SageObject
 
 cdef sage_version
 from sage.version import version as sage_version
@@ -523,7 +524,7 @@ cdef class UniqueFactory(SageObject):
         change without having to re-write :meth:`__reduce__` methods
         that use it.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: V = FreeModule(ZZ, 5)
             sage: factory, data = FreeModule.reduce_data(V)
@@ -718,7 +719,7 @@ def generic_factory_reduce(self, proto):
         True
     """
     if self._factory_data is None:
-        raise NotImplementedError, "__reduce__ not implemented for %s" % type(self)
+        raise NotImplementedError("__reduce__ not implemented for %s" % type(self))
     else:
         return self._factory_data[0].reduce_data(self)
 

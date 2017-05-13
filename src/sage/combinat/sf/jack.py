@@ -8,16 +8,17 @@ implementation in sage.
 
 REFERENCES:
 
-.. [Jack1970] H. Jack,
+.. [Jack1970] \H. Jack,
    *A class of symmetric functions with a parameter*,
    Proc. R. Soc. Edinburgh (A), 69, 1-18.
 
-.. [Ma1995] I. G. Macdonald,
+.. [Ma1995] \I. G. Macdonald,
    *Symmetric functions and Hall polynomials*,
    second ed.,
    The Clarendon Press, Oxford University Press, New York, 1995, With contributions
    by A. Zelevinsky, Oxford Science Publications.
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
@@ -39,7 +40,7 @@ from sage.misc.all import prod
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom, End
 from sage.rings.fraction_field import FractionField
-import sfa
+from . import sfa
 
 QQt = FractionField(QQ['t'])
 
@@ -987,11 +988,12 @@ class JackPolynomials_p(JackPolynomials_generic):
 
         - the scalar product between `P(part1)` and `P(part2)` (or itself if `part2` is None)
 
-        REFRENCES:
+        REFERENCES:
 
-            .. [Mc1995] I. G. Macdonald, Symmetric functions and Hall polynomials, second ed.,
-               The Clarendon Press, Oxford University Press, New York, 1995, With contributions
-               by A. Zelevinsky, Oxford Science Publications.
+        .. [Mc1995] \I. G. Macdonald, Symmetric functions and Hall
+           polynomials, second ed., The Clarendon Press, Oxford
+           University Press, New York, 1995, With contributions by
+           A. Zelevinsky, Oxford Science Publications.
 
         EXAMPLES::
 
@@ -1207,8 +1209,8 @@ class JackPolynomials_qp(JackPolynomials_generic):
         to_cache_1 = self._self_to_h_cache[n]
         from_cache_2 = self._P._m_to_self_cache[n]
         to_cache_2 = self._h_to_self_cache[n]
-        for mu in from_cache_1.keys():
-            for la in from_cache_1[mu].keys():
+        for mu in from_cache_1:
+            for la in from_cache_1[mu]:
                 if not la in to_cache_1:
                     to_cache_1[la] = {}
                     to_cache_2[la] = {}

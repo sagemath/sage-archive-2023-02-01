@@ -48,7 +48,7 @@ form `(d, \lambda)`.
 For `2 \times 2` matrices there are four types::
 
     sage: for tau in SimilarityClassTypes(2):
-    ....:    print tau
+    ....:    print(tau)
     [[1, [1]], [1, [1]]]
     [[1, [2]]]
     [[1, [1, 1]]]
@@ -174,6 +174,9 @@ AUTHOR:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from six.moves import range
+from six import add_metaclass
 
 from operator import mul
 from itertools import chain, product
@@ -181,7 +184,7 @@ from sage.misc.all import prod
 from sage.functions.all import factorial
 from sage.arith.all import moebius, divisors
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.structure.element import Element, parent
+from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -335,6 +338,8 @@ def centralizer_group_cardinality(la, q = None):
         q = ZZ['q'].gen()
     return q**centralizer_algebra_dim(la)*prod([fq(m, q = q) for m in la.to_exp()])
 
+
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class PrimarySimilarityClassType(Element):
     r"""
     A primary similarity class type is a pair consisting of a partition and a positive
@@ -352,8 +357,6 @@ class PrimarySimilarityClassType(Element):
 
     for some irreducible polynomial `p(t)` of degree `d`.
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, deg, par):
         r"""
@@ -547,11 +550,9 @@ class PrimarySimilarityClassType(Element):
             q^8 - q^6 - q^4 + q^2
         """
         if q is None:
-            R = FractionField(ZZ['q'])
-            q = R.gen()
-        return self.statistic(centralizer_group_cardinality, q = q)
-        #p = q.parent()(prod(map(lambda n:fq(n, q = q), self.partition().to_exp()),1))
-        #return q**self.centralizer_algebra_dim()*p.substitute(q = q**self.degree())
+            q = FractionField(ZZ['q']).gen()
+        return self.statistic(centralizer_group_cardinality, q=q)
+
 
 class PrimarySimilarityClassTypes(UniqueRepresentation, Parent):
     r"""
@@ -575,7 +576,7 @@ class PrimarySimilarityClassTypes(UniqueRepresentation, Parent):
 
         sage: PTC = PrimarySimilarityClassTypes(2)
         sage: for PT in PTC:
-        ....:     print PT
+        ....:     print(PT)
         [1, [2]]
         [1, [1, 1]]
         [2, [1]]
@@ -587,7 +588,7 @@ class PrimarySimilarityClassTypes(UniqueRepresentation, Parent):
 
         sage: PTC = PrimarySimilarityClassTypes(2, min = PrimarySimilarityClassType(1, [1, 1]))
         sage: for PT in PTC:
-        ....:     print PT
+        ....:     print(PT)
         [1, [1, 1]]
         [2, [1]]
     """
@@ -801,9 +802,9 @@ class SimilarityClassType(CombinatorialElement):
             sage: tau.as_partition_dictionary()
             {[1]: [1, 1]}
         """
-        D = dict()
+        D = {}
         for PT in self:
-            if PT.partition() in D.keys():
+            if PT.partition() in D:
                 D[PT.partition()] = Partition(sorted(D[PT.partition()] + [PT.degree()]))
             else:
                 D[PT.partition()] = Partition([PT.degree()])
@@ -835,8 +836,8 @@ class SimilarityClassType(CombinatorialElement):
         numerator = prod([prod([primitives(d+1, invertible=invertible, q = q)-i for i in range(list_of_degrees.count(d+1))]) for d in range(maximum_degree)])
         tau_list = list(self)
         D = dict((i, tau_list.count(i)) for i in tau_list)
-        denominator = reduce(mul, [factorial(D[primary_type]) for primary_type in D.keys()])
-        return numerator/denominator
+        denominator = reduce(mul, [factorial(D[primary_type]) for primary_type in D])
+        return numerator / denominator
 
     def is_semisimple(self):
         """
@@ -852,7 +853,7 @@ class SimilarityClassType(CombinatorialElement):
             sage: tau.is_semisimple()
             False
         """
-        return all([PT.partition().get_part(0) == 1 for PT in self])
+        return all(PT.partition().get_part(0) == 1 for PT in self)
 
     def is_regular(self):
         """
@@ -868,7 +869,7 @@ class SimilarityClassType(CombinatorialElement):
             sage: tau.is_regular()
             False
         """
-        return all([len(PT.partition()) == 1 for PT in self])
+        return all(len(PT.partition()) == 1 for PT in self)
 
     def rcf(self):
         """
@@ -986,7 +987,7 @@ class SimilarityClassTypes(UniqueRepresentation, Parent):
 
         sage: M = SimilarityClassTypes(2)
         sage: for tau in M:
-        ....:     print tau
+        ....:     print(tau)
         [[1, [1]], [1, [1]]]
         [[1, [2]]]
         [[1, [1, 1]]]
@@ -1000,7 +1001,7 @@ class SimilarityClassTypes(UniqueRepresentation, Parent):
 
         sage: M = SimilarityClassTypes(2, min = [1, [1, 1]])
         sage: for tau in M:
-        ....:     print tau
+        ....:     print(tau)
         [[1, [1, 1]]]
         [[2, [1]]]
     """
@@ -1082,9 +1083,9 @@ class SimilarityClassTypes(UniqueRepresentation, Parent):
             sage: def test(n):
             ....:     M = SimilarityClassTypes(n)
             ....:     return M.sum(lambda la:1) == q**(n**2) and M.sum(lambda la:1, invertible = True)== order_of_general_linear_group(n)
-            sage: all([test(n) for n in range(5)])
+            sage: all(test(n) for n in range(5))
             True
-            sage: all([test(n) for n in range(5, 15)]) # long time
+            sage: all(test(n) for n in range(5, 15)) # long time
             True
         """
         n = self._n
@@ -1195,7 +1196,7 @@ def dictionary_from_generator(gen):
     EXAMPLES::
 
         sage: from sage.combinat.similarity_class_type import dictionary_from_generator
-        sage: dictionary_from_generator(((floor(x/2), x) for x in xrange(10)))
+        sage: dictionary_from_generator(((floor(x/2), x) for x in range(10)))
         {0: 1, 1: 5, 2: 9, 3: 13, 4: 17}
 
     It also works with lists::
@@ -1212,7 +1213,8 @@ def dictionary_from_generator(gen):
     setofkeys = list(set(item[0] for item in L))
     return dict((key, sum(entry[1] for entry in (pair for pair in L if pair[0] == key))) for key in setofkeys)
 
-def matrix_similarity_classes(n, q = None, invertible = False):
+
+def matrix_similarity_classes(n, q=None, invertible=False):
     r"""
     Return the number of matrix similarity classes over a finite field of order
     ``q``.
@@ -1228,12 +1230,17 @@ def matrix_similarity_classes(n, q = None, invertible = False):
         15
     """
     if q is None:
-        q = FractionField(QQ['q']).gen()
+        q = ZZ['q'].gen()
+    basering = q.parent()
     if n == 0:
-        return 1
+        return basering.one()
     if invertible:
-        return sum([q**max(la)*((1-q**(-1))**map(lambda x: x>0, la.to_exp()).count(True)) for la in Partitions(n)])
-    return sum([q**max(la) for la in Partitions(n)])
+        tilde = 1 - ~q
+        return sum(q**max(la) *
+                   tilde ** len([x for x in la.to_exp() if x > 0])
+                   for la in Partitions(n))
+    return sum(q**max(la) for la in Partitions(n))
+
 
 def matrix_centralizer_cardinalities(n, q = None, invertible = False):
     """

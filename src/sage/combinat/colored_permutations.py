@@ -7,10 +7,8 @@ Colored Permutations
     generalized to `G \wr S_n`
 """
 import itertools
+from six.moves import range
 
-from sage.categories.groups import Groups
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.categories.finite_coxeter_groups import FiniteCoxeterGroups
 from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -244,6 +242,35 @@ class ColoredPermutation(MultiplicativeGroupElement):
         D = diagonal_matrix(Cp, [g ** i for i in self._colors])
         return self._perm.to_matrix() * D
 
+    def has_left_descent(self, i):
+        """
+        Return ``True`` if ``i`` is a left descent of ``self``.
+
+        EXAMPLES::
+
+            sage: C = ColoredPermutations(2, 4)
+            sage: s1,s2,s3,s4 = C.gens()
+            sage: x = s4*s1*s2*s3*s4
+            sage: [x.has_left_descent(i) for i in C.index_set()]
+            [True, False, False, True]
+
+            sage: C = ColoredPermutations(1, 5)
+            sage: s1,s2,s3,s4 = C.gens()
+            sage: x = s4*s1*s2*s3*s4
+            sage: [x.has_left_descent(i) for i in C.index_set()]
+            [True, False, False, True]
+        """
+        if self.parent()._m == 1:
+            return self._perm[i - 1] > self._perm[i]
+
+        if self.parent()._m == 2:
+            if i == self.parent()._n:
+                return self._colors[-1] == 1
+            if self._colors[i - 1] == 1:
+                return self._colors[i] == 0 or self._perm[i - 1] < self._perm[i]
+            return self._colors[i] == 0 and self._perm[i - 1] > self._perm[i]
+
+        raise ValueError("descents are undefined")
 
 # TODO: Parts of this should be put in the category of complex
 # reflection groups
@@ -301,7 +328,7 @@ class ColoredPermutations(Parent, UniqueRepresentation):
     - :wikipedia:`Generalized_symmetric_group`
     - :wikipedia:`Complex_reflection_group`
     """
-    def __init__(self, m, n, category=None):
+    def __init__(self, m, n):
         """
         Initialize ``self``.
 
@@ -316,12 +343,17 @@ class ColoredPermutations(Parent, UniqueRepresentation):
         """
         if m <= 0:
             raise ValueError("m must be a positive integer")
-        self._m = m
-        self._n = n
+        self._m = ZZ(m)
+        self._n = ZZ(n)
         self._C = IntegerModRing(self._m)
         self._P = Permutations(self._n)
-        if category is None:
-            category = (Groups(), FiniteEnumeratedSets())
+
+        if self._m == 1 or self._m == 2:
+            from sage.categories.finite_coxeter_groups import FiniteCoxeterGroups
+            category = FiniteCoxeterGroups().Irreducible()
+        else:
+            from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
+            category = GeneralizedCoxeterGroups().Finite().Irreducible()
         Parent.__init__(self, category=category)
 
     def _repr_(self):
@@ -334,6 +366,65 @@ class ColoredPermutations(Parent, UniqueRepresentation):
             4-colored permutations of size 3
         """
         return "{}-colored permutations of size {}".format(self._m, self._n)
+
+    @cached_method
+    def index_set(self):
+        """
+        Return the index set of ``self``.
+
+        EXAMPLES::
+
+            sage: C = ColoredPermutations(3, 4)
+            sage: C.index_set()
+            (1, 2, 3, 4)
+
+            sage: C = ColoredPermutations(1, 4)
+            sage: C.index_set()
+            (1, 2, 3)
+
+        TESTS::
+
+            sage: S = SignedPermutations(4)
+            sage: S.index_set()
+            (1, 2, 3, 4)
+        """
+        n = self._n
+        if self._m != 1:
+            n += 1
+        return tuple(range(1, n))
+
+    def coxeter_matrix(self):
+        """
+        Return the Coxeter matrix of ``self``.
+
+        EXAMPLES::
+
+            sage: C = ColoredPermutations(3, 4)
+            sage: C.coxeter_matrix()
+            [1 3 2 2]
+            [3 1 3 2]
+            [2 3 1 4]
+            [2 2 4 1]
+
+            sage: C = ColoredPermutations(1, 4)
+            sage: C.coxeter_matrix()
+            [1 3 2]
+            [3 1 3]
+            [2 3 1]
+
+        TESTS::
+
+            sage: S = SignedPermutations(4)
+            sage: S.coxeter_matrix()
+            [1 3 2 2]
+            [3 1 3 2]
+            [2 3 1 4]
+            [2 2 4 1]
+        """
+        from sage.combinat.root_system.cartan_type import CartanType
+        if self._m == 1:
+            return CartanType(['A', self._n-1]).coxeter_matrix()
+        return CartanType(['B', self._n]).coxeter_matrix()
 
     @cached_method
     def one(self):
@@ -349,6 +440,37 @@ class ColoredPermutations(Parent, UniqueRepresentation):
         return self.element_class(self, [self._C.zero()] * self._n,
                                   self._P.identity())
 
+    def simple_reflection(self, i):
+        r"""
+        Return the ``i``-th simple reflection of ``self``.
+
+        EXAMPLES::
+
+            sage: C = ColoredPermutations(4, 3)
+            sage: C.gens()
+            ([[0, 0, 0], [2, 1, 3]], [[0, 0, 0], [1, 3, 2]], [[0, 0, 1], [1, 2, 3]])
+            sage: C.simple_reflection(2)
+            [[0, 0, 0], [1, 3, 2]]
+            sage: C.simple_reflection(3)
+            [[0, 0, 1], [1, 2, 3]]
+
+            sage: S = SignedPermutations(4)
+            sage: S.simple_reflection(1)
+            [2, 1, 3, 4]
+            sage: S.simple_reflection(4)
+            [1, 2, 3, -4]
+        """
+        if i not in self.index_set():
+            raise ValueError("i must be in the index set")
+        colors = [self._C.zero()] * self._n
+        if i < self._n:
+            p = list(range(1, self._n + 1))
+            p[i - 1] = i + 1
+            p[i] = i
+            return self.element_class(self, colors, self._P(p))
+        colors[-1] = self._C.one()
+        return self.element_class(self, colors, self._P.identity())
+
     @cached_method
     def gens(self):
         """
@@ -361,17 +483,12 @@ class ColoredPermutations(Parent, UniqueRepresentation):
             ([[0, 0, 0], [2, 1, 3]],
              [[0, 0, 0], [1, 3, 2]],
              [[0, 0, 1], [1, 2, 3]])
+
+            sage: S = SignedPermutations(4)
+            sage: S.gens()
+            ([2, 1, 3, 4], [1, 3, 2, 4], [1, 2, 4, 3], [1, 2, 3, -4])
         """
-        zero = [self._C.zero()] * self._n
-        g = []
-        for i in range(self._n - 1):
-            p = range(1, self._n + 1)
-            p[i] = i + 2
-            p[i + 1] = i + 1
-            g.append(self.element_class(self, zero, self._P(p)))
-        zero[-1] = self._C.one()
-        g.append(self.element_class(self, zero, self._P.identity()))
-        return tuple(g)
+        return tuple(self.simple_reflection(i) for i in self.index_set())
 
     def matrix_group(self):
         """
@@ -491,6 +608,8 @@ class ColoredPermutations(Parent, UniqueRepresentation):
         """
         return self._m ** self._n * self._P.cardinality()
 
+    order = cardinality
+
     def rank(self):
         """
         Return the rank of ``self``.
@@ -529,10 +648,10 @@ class ColoredPermutations(Parent, UniqueRepresentation):
 
             sage: C = ColoredPermutations(4, 3)
             sage: C.degrees()
-            [4, 8, 12]
+            (4, 8, 12)
             sage: S = ColoredPermutations(1, 3)
             sage: S.degrees()
-            [2, 3]
+            (2, 3)
 
         We now check that the product of the degrees is equal to the
         cardinality of ``self``::
@@ -542,9 +661,9 @@ class ColoredPermutations(Parent, UniqueRepresentation):
             sage: prod(S.degrees()) == S.cardinality()
             True
         """
-        if self._m == 1:  # Special case for the usual symmetric group
-            return range(2, self._n + 1)
-        return [self._m * i for i in range(1, self._n + 1)]
+        # For the usual symmetric group (self._m=1) we need to start at 2
+        start = 2 if self._m == 1 else 1
+        return tuple(self._m * i for i in range(start, self._n + 1))
 
     def codegrees(self):
         r"""
@@ -570,10 +689,10 @@ class ColoredPermutations(Parent, UniqueRepresentation):
 
             sage: C = ColoredPermutations(4, 3)
             sage: C.codegrees()
-            [8, 4, 0]
+            (8, 4, 0)
             sage: S = ColoredPermutations(1, 3)
             sage: S.codegrees()
-            [1, 0]
+            (1, 0)
 
         TESTS:
 
@@ -587,9 +706,9 @@ class ColoredPermutations(Parent, UniqueRepresentation):
             sage: f == g
             True
         """
-        if self._m == 1:  # Special case for the usual symmetric group
-            return list(reversed(range(self._n - 1)))
-        return [self._m * i for i in reversed(range(self._n))]
+        # Special case for the usual symmetric group
+        last = self._n-1 if self._m == 1 else self._n
+        return tuple(self._m * i for i in reversed(range(last)))
 
     def number_of_reflection_hyperplanes(self):
         """
@@ -831,7 +950,8 @@ class SignedPermutations(ColoredPermutations):
     This is a finite Coxeter group of type `B_n`::
 
         sage: S.canonical_representation()
-        Finite Coxeter group over Universal Cyclotomic Field with Coxeter matrix:
+        Finite Coxeter group over Number Field in a with
+        defining polynomial x^2 - 2 with Coxeter matrix:
         [1 3 2 2]
         [3 1 3 2]
         [2 3 1 4]
@@ -852,7 +972,7 @@ class SignedPermutations(ColoredPermutations):
         sage: S(C(S.an_element())) == S.an_element()
         True
         sage: S(C.an_element())
-        [1, 2, 3]
+        [-3, 1, 2]
 
     There is also the natural lift from permutations::
 
@@ -875,7 +995,7 @@ class SignedPermutations(ColoredPermutations):
             sage: S = SignedPermutations(4)
             sage: TestSuite(S).run()
         """
-        ColoredPermutations.__init__(self, 2, n, FiniteCoxeterGroups())
+        ColoredPermutations.__init__(self, 2, n)
 
     def _repr_(self):
         """
@@ -917,26 +1037,13 @@ class SignedPermutations(ColoredPermutations):
         if i not in self.index_set():
             raise ValueError("i must be in the index set")
         if i < self._n:
-            p = range(1, self._n + 1)
+            p = list(range(1, self._n + 1))
             p[i - 1] = i + 1
             p[i] = i
             return self.element_class(self, [ZZ.one()] * self._n, self._P(p))
         temp = [ZZ.one()] * self._n
         temp[-1] = -ZZ.one()
         return self.element_class(self, temp, self._P.identity())
-
-    @cached_method
-    def gens(self):
-        """
-        Return the generators of ``self``.
-
-        EXAMPLES::
-
-            sage: S = SignedPermutations(4)
-            sage: S.gens()
-            ([2, 1, 3, 4], [1, 3, 2, 4], [1, 2, 4, 3], [1, 2, 3, -4])
-        """
-        return tuple(self.simple_reflection(i) for i in self.index_set())
 
     def _element_constructor_(self, x):
         """
@@ -1031,35 +1138,6 @@ class SignedPermutations(ColoredPermutations):
                                                 x._perm)
         return super(SignedPermutations, self)._coerce_map_from_(C)
 
-    @cached_method
-    def index_set(self):
-        """
-        Return the index set of ``self``.
-
-        EXAMPLES::
-
-            sage: S = SignedPermutations(4)
-            sage: S.index_set()
-            (1, 2, 3, 4)
-        """
-        return tuple(range(1, self._n + 1))
-
-    def coxeter_matrix(self):
-        """
-        Return the Coxeter matrix of ``self``.
-
-        EXAMPLES::
-
-            sage: S = SignedPermutations(4)
-            sage: S.coxeter_matrix()
-            [1 3 2 2]
-            [3 1 3 2]
-            [2 3 1 4]
-            [2 2 4 1]
-        """
-        from sage.combinat.root_system.cartan_type import CartanType
-        return CartanType(['B', self._n]).coxeter_matrix()
-
     def long_element(self, index_set=None):
         """
         Return the longest element of ``self``, or of the
@@ -1078,7 +1156,7 @@ class SignedPermutations(ColoredPermutations):
         """
         if index_set is not None:
             return super(SignedPermutations, self).long_element()
-        p = range(self._n, 0, -1)
+        p = list(range(self._n, 0, -1))
         return self.element_class(self, [-ZZ.one()] * self._n, self._P(p))
 
     Element = SignedPermutation
@@ -1092,7 +1170,7 @@ class SignedPermutations(ColoredPermutations):
 #        """
 #        Return a string representation of ``self``.
 #        """
-#        return "Even signed permtuations of {}".format(self._n)
+#        return "Even signed permutations of {}".format(self._n)
 #
 #    def __iter__(self):
 #        """

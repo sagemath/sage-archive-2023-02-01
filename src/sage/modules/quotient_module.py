@@ -1,6 +1,7 @@
 r"""
 Quotients of finite rank free modules over a field.
 """
+from __future__ import absolute_import
 
 ####################################################################################
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
@@ -17,7 +18,7 @@ Quotients of finite rank free modules over a field.
 #                  http://www.gnu.org/licenses/
 ####################################################################################
 
-from free_module import FreeModule_ambient_field
+from .free_module import FreeModule_ambient_field
 
 class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
     """
@@ -200,8 +201,6 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
             -1
             sage: cmp(Q1, Q2)
             0
-            sage: cmp(Q1, 5) != 0
-            True
         """
         if not isinstance(other, FreeModule_ambient_field_quotient):
             return cmp(type(self), type(other))
@@ -385,7 +384,7 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
 
         EXAMPLES::
 
-            sage: M = QQ^10 / [range(10), range(2,12)]
+            sage: M = QQ^10 / [list(range(10)), list(range(2,12))]
             sage: M.W()
             Vector space of degree 10 and dimension 2 over Rational Field
             Basis matrix:
@@ -400,7 +399,7 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
 
         EXAMPLES::
 
-            sage: M = QQ^10 / [range(10), range(2,12)]
+            sage: M = QQ^10 / [list(range(10)), list(range(2,12))]
             sage: M.V()
             Vector space of dimension 10 over Rational Field
         """
@@ -412,7 +411,7 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
 
         EXAMPLES::
 
-            sage: M = QQ^10 / [range(10), range(2,12)]
+            sage: M = QQ^10 / [list(range(10)), list(range(2,12))]
             sage: M.cover()
             Vector space of dimension 10 over Rational Field
         """
@@ -424,7 +423,7 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
 
         EXAMPLES::
 
-            sage: M = QQ^10 / [range(10), range(2,12)]
+            sage: M = QQ^10 / [list(range(10)), list(range(2,12))]
             sage: M.relations()
             Vector space of degree 10 and dimension 2 over Rational Field
             Basis matrix:

@@ -19,7 +19,7 @@ with
 
 is defined by
 
-.. math::
+.. MATH::
 
     (\phi, \pi, \alpha)(\psi, \sigma, \beta) =
     (\phi \cdot \psi^{\pi, \alpha}, \pi\sigma, \alpha \circ \beta)
@@ -38,7 +38,7 @@ AUTHORS:
 
 - Thomas Feulner (2012-11-15): initial version
 - Thomas Feulner (2013-12-27): :trac:`15576` dissolve dependency on 
-    Permutations().global_options()['mul']
+    Permutations.options.mul
 
 EXAMPLES::
 
@@ -52,6 +52,7 @@ TESTS::
 
     sage: TestSuite(G[0]).run()
 """
+from cpython.object cimport PyObject_RichCompare
 
 
 def _is_id(f, R):
@@ -171,7 +172,7 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
         """
         return hash(self.v) + hash(self.perm) + hash(self.get_autom())
 
-    cpdef MonoidElement _mul_(left, MonoidElement _right):
+    cpdef _mul_(left, _right):
         r"""
         Multiplication of elements.
         
@@ -186,7 +187,7 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
         
         is defined by:
         
-        .. math::
+        .. MATH::
 
             (\phi, \pi, \alpha)(\psi, \sigma, \beta) =
             (\phi \cdot \psi^{\pi, \alpha}, \pi\sigma, \alpha \circ \beta)
@@ -245,7 +246,7 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
         return "(%s; %s, %s)"%(self.v, self.perm.cycle_string(),
                                self.get_autom())
 
-    cpdef int _cmp_(left, Element _right) except -2:
+    cpdef _richcmp_(left, _right, int op):
         """
         Compare group elements ``self`` and ``right``.
 
@@ -259,8 +260,9 @@ cdef class SemimonomialTransformation(MultiplicativeGroupElement):
             True
         """
         cdef SemimonomialTransformation right = <SemimonomialTransformation> _right
-        return cmp([left.v, left.perm, left.get_autom()],
-                   [right.v, right.perm, right.get_autom()])
+        return PyObject_RichCompare([left.v, left.perm, left.get_autom()],
+                                    [right.v, right.perm, right.get_autom()],
+                                    op)
 
     def __reduce__(self):
         """

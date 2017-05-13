@@ -15,8 +15,8 @@ Nous décrivons maintenant la manière de charger dans Sage des programmes
 
 ::
 
-    print "Hello World"
-    print 2^3
+    print("Hello World")
+    print(2^3)
 
 Nous pouvons lire et exécuter le contenu du fichier ``example.sage``
 en utilisant la commande ``load``.
@@ -60,8 +60,8 @@ nom ``example.sage.py``. Elle contient le code suivant :
 
 ::
 
-    print "Hello World"
-    print Integer(2)**Integer(3)
+    print("Hello World")
+    print(Integer(2)**Integer(3))
 
 On voit que les littéraux entiers ont été encapsulés et que le ``^`` a
 été remplacé par ``**`` (en effet, en Python, ``^`` représente le ou
@@ -179,11 +179,11 @@ entiers, des polynômes, etc. :
     from sage.all import *
 
     if len(sys.argv) != 2:
-        print "Usage: %s <n>"%sys.argv[0]
-        print "Outputs the prime factorization of n."
+        print("Usage: %s <n>" % sys.argv[0])
+        print("Outputs the prime factorization of n.")
         sys.exit(1)
 
-    print factor(sage_eval(sys.argv[1]))
+    print(factor(sage_eval(sys.argv[1])))
 
 Pour utiliser ce script, votre répertoire ``SAGE_ROOT`` doit apparaître
 dans la variable d'environnement PATH. Supposons que le script ci-dessus
@@ -208,17 +208,17 @@ listes, les n-uplets, les entiers et les flottants :
 ::
 
     sage: s = "sage"; type(s)
-    <type 'str'>
+    <... 'str'>
     sage: s = 'sage'; type(s)      # guillemets simples ou doubles
-    <type 'str'>
+    <... 'str'>
     sage: s = [1,2,3,4]; type(s)
-    <type 'list'>
+    <... 'list'>
     sage: s = (1,2,3,4); type(s)
-    <type 'tuple'>
+    <... 'tuple'>
     sage: s = int(2006); type(s)
-    <type 'int'>
+    <... 'int'>
     sage: s = float(2006); type(s)
-    <type 'float'>
+    <... 'float'>
 
 Sage ajoute de nombreux autres types. Par exemple, les espaces
 vectoriels :
@@ -301,7 +301,7 @@ sont indexés à partir de :math:`0` :
     sage: v = [2, 3, 5, 'x', SymmetricGroup(3)]; v
     [2, 3, 5, 'x', Symmetric group of order 3! as a permutation group]
     sage: type(v)
-    <type 'list'>
+    <... 'list'>
     sage: v[0]
     2
     sage: v[2]
@@ -335,7 +335,7 @@ Cela est utile pour construire des listes par compréhension :
 ::
 
     sage: L = [factor(n) for n in range(1, 15)]
-    sage: print L
+    sage: L
     [1, 2, 3, 2^2, 5, 2 * 3, 7, 2^3, 3^2, 2 * 5, 11, 2^2 * 3, 13, 2 * 7]
     sage: L[12]
     13
@@ -355,7 +355,7 @@ formée des éléments d'indices :math:`m` à :math:`n-1` inclus :
     sage: L = [factor(n) for n in range(1, 20)]
     sage: L[4:9]
     [5, 2 * 3, 7, 2^3, 3^2]
-    sage: print L[:4]
+    sage: L[:4]
     [1, 2, 3, 2^2]
     sage: L[14:4]
     []
@@ -371,7 +371,7 @@ une fois créés.
     sage: v = (1,2,3,4); v
     (1, 2, 3, 4)
     sage: type(v)
-    <type 'tuple'>
+    <... 'tuple'>
     sage: v[1] = 5
     Traceback (most recent call last):
     ...
@@ -415,7 +415,7 @@ utilisées partout où les listes peuvent l'être :
     sage: list(v)
     [1, 2, 3, 4/5]
     sage: type(list(v))
-    <type 'list'>
+    <... 'list'>
 
 Autre exemple : les bases d'espaces vectoriels sont des séquences non
 mutables, car il ne faut pas les modifier.
@@ -451,7 +451,7 @@ Python pour plus de détails) vers des objets arbitraires.
 
     sage: d = {1:5, 'sage':17, ZZ:GF(7)}
     sage: type(d)
-    <type 'dict'>
+    <... 'dict'>
     sage: d.keys()
      [1, 'sage', Integer Ring]
     sage: d['sage']
@@ -472,7 +472,7 @@ contenant les mêmes données :
 
 ::
 
-    sage: d.items()
+    sage: list(d.items())
     [(1, 5), ('sage', 17), (Integer Ring, Finite Field of size 7)]
 
 Le parcours itératifs des paires d'un dictionnaire est un idiome de
@@ -481,7 +481,7 @@ programmation fréquent :
 ::
 
     sage: d = {2:4, 3:9, 4:16}
-    sage: [a*b for a, b in d.iteritems()]
+    sage: [a*b for a, b in d.items()]
     [8, 27, 64]
 
 Comme le montre la dernière sortie ci-dessus, un dictionnaire stocke ses
@@ -527,7 +527,7 @@ supplémentaires utiles à Sage. Pour créer un ensemble Sage, on utilise
     {1, 2/3}
     sage: X.intersection(Y)
     {1}
-    sage: print latex(Y)
+    sage: print(latex(Y))
     \left\{1, \frac{2}{3}\right\}
     sage: Set(ZZ)
     Set of elements of Integer Ring
@@ -669,16 +669,6 @@ deux membres en des nombres du même type lorsque c'est possible :
     False
     sage: 2/3 < 3/2;   3/2 < 3/1
     True
-    True
-
-Deux objets quelconques ou presque peuvent être comparés, sans hypothèse
-sur l'existence d'un ordre total sous-jacent.
-
-::
-
-    sage: 2 < CC(3.1,1)
-    True
-    sage: 5 < VectorSpace(QQ,3)   # random
     True
 
 Pour évaluer des inégalités symboliques, utilisez ``bool`` :

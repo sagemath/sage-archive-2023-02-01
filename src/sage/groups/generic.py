@@ -255,12 +255,12 @@ class multiples:
 
         sage: E=EllipticCurve('389a1')
         sage: P=E(-1,1)
-        sage: for Q in multiples(P,5): print Q, Q.height()/P.height()
-        (0 : 1 : 0) 0.000000000000000
-        (-1 : 1 : 1) 1.00000000000000
-        (10/9 : -35/27 : 1) 4.00000000000000
-        (26/361 : -5720/6859 : 1) 9.00000000000000
-        (47503/16641 : 9862190/2146689 : 1) 16.0000000000000
+        sage: for Q in multiples(P,5): print((Q, Q.height()/P.height()))
+        ((0 : 1 : 0), 0.000000000000000)
+        ((-1 : 1 : 1), 1.00000000000000)
+        ((10/9 : -35/27 : 1), 4.00000000000000)
+        ((26/361 : -5720/6859 : 1), 9.00000000000000)
+        ((47503/16641 : 9862190/2146689 : 1), 16.0000000000000)
 
         sage: R.<x>=ZZ[]
         sage: list(multiples(x,5))
@@ -271,14 +271,14 @@ class multiples:
         [(0, 0), (1, x), (2, 2*x), (3, 3*x), (4, 4*x)]
         sage: list(multiples(x,5,indexed=True,operation='*'))
         [(0, 1), (1, x), (2, x^2), (3, x^3), (4, x^4)]
-        sage: for i,y in multiples(x,5,indexed=True): print "%s  times %s = %s"%(i,x,y)
+        sage: for i,y in multiples(x,5,indexed=True): print("%s  times %s = %s"%(i,x,y))
         0  times x = 0
         1  times x = x
         2  times x = 2*x
         3  times x = 3*x
         4  times x = 4*x
 
-        sage: for i,n in multiples(3,5,indexed=True,operation='*'):  print "3 to the power %s = %s"%(i,n)
+        sage: for i,n in multiples(3,5,indexed=True,operation='*'):  print("3 to the power %s = %s" % (i,n))
         3 to the power 0 = 1
         3 to the power 1 = 3
         3 to the power 2 = 9
@@ -336,7 +336,7 @@ class multiples:
         self.indexed = indexed
 
 
-    def next(self):
+    def __next__(self):
         """
         Returns the next item in this multiples iterator.
         """
@@ -350,6 +350,9 @@ class multiples:
             return (i,val)
         else:
             return val
+
+    next = __next__
+
     def __iter__(self):
         """
         Standard member function making this class an iterator.
@@ -560,7 +563,7 @@ def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
         ....:     try:
         ....:          discrete_log_rho(I(123456),I(1),operation='+')
         ....:     except Exception:
-        ....:          print "FAILURE"
+        ....:          print("FAILURE")
         sage: test()  # random failure
         FAILURE
 
@@ -574,6 +577,7 @@ def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
     - Yann Laigle-Chapuy (2009-09-05)
 
     """
+    from six.moves import range
     from sage.rings.integer import Integer
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
     from operator import mul, add, pow
@@ -612,11 +616,11 @@ def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
 
     I=IntegerModRing(ord)
 
-    for s in xrange(10): # to avoid infinite loops
+    for s in range(10): # to avoid infinite loops
         # random walk function setup
-        m=[I.random_element() for i in xrange(partition_size)]
-        n=[I.random_element() for i in xrange(partition_size)]
-        M=[mult(power(base,Integer(m[i])),power(a,Integer(n[i]))) for i in xrange(partition_size)]
+        m=[I.random_element() for i in range(partition_size)]
+        n=[I.random_element() for i in range(partition_size)]
+        M=[mult(power(base,Integer(m[i])),power(a,Integer(n[i]))) for i in range(partition_size)]
 
         ax = I.random_element()
         x = power(base,Integer(ax))
@@ -629,7 +633,7 @@ def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
         H={} # memory
         i0=0
         nextsigma = 0
-        for i in xrange(reset_bound):
+        for i in range(reset_bound):
                     #random walk, we need an efficient hash
             s=hash_function(x) % partition_size
             (x,ax,bx) = (mult(M[s],x), ax+m[s], bx+n[s])
@@ -720,7 +724,8 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         ...
         ValueError: No discrete log of 2 found to base 1
 
-        See trac\#2356:
+    See :trac:`2356`::
+
         sage: F.<w> = GF(121)
         sage: v = w^120
         sage: v.log(w)
@@ -872,6 +877,7 @@ def discrete_log_lambda(a, base, bounds, operation='*', hash_function=hash):
         -- Yann Laigle-Chapuy (2009-01-25)
 
     """
+    from six.moves import range
     from sage.rings.integer import Integer
     from operator import mul, add, pow
 
@@ -895,7 +901,7 @@ def discrete_log_lambda(a, base, bounds, operation='*', hash_function=hash):
     N = width.isqrt()+1
 
     M = dict()
-    for s in xrange(10): #to avoid infinite loops
+    for s in range(10): #to avoid infinite loops
         #random walk function setup
         k = 0
         while (2**k<N):
@@ -905,7 +911,7 @@ def discrete_log_lambda(a, base, bounds, operation='*', hash_function=hash):
         #first random walk
         H = power(base,ub)
         c = ub
-        for i in xrange(N):
+        for i in range(N):
             if mut: H.set_immutable()
             r,e = M[hash_function(H)%k]
             H = mult(H,e)

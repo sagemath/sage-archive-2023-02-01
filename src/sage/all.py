@@ -15,26 +15,21 @@ intended effect of your patch.
     sage: from sage import *
     sage: frames = [x for x in gc.get_objects() if inspect.isframe(x)]
 
-We exclude the known files and check to see that there are no others::
+We exclude the dependencies and check to see that there are no others 
+except for the known bad apples::
 
-    sage: import os
-    sage: allowed = [os.path.join("lib","python","threading.py")]
-    sage: allowed.append(os.path.join("lib","python","multiprocessing"))
-    sage: allowed.append(os.path.join("sage","doctest"))
-    sage: allowed.append(os.path.join("bin","sage-runtests"))
-    sage: allowed.append(os.path.join("site-packages","IPython"))
-    sage: allowed.append(os.path.join("bin","sage-ipython"))
-    sage: allowed.append("<ipython console>")
-    sage: allowed.append("<doctest sage.all[3]>")
-    sage: allowed.append(os.path.join("sage","combinat","species","generating_series.py"))
-    sage: for i in frames:
-    ....:     filename, lineno, funcname, linelist, indx = inspect.getframeinfo(i)
-    ....:     for nm in allowed:
-    ....:         if nm in filename:
-    ....:             break
-    ....:     else:
-    ....:         print filename
-    ....:
+    sage: allowed = [
+    ....:     'IPython', 'prompt_toolkit',     # sage dependencies
+    ....:     'threading', 'multiprocessing',  # doctest dependencies
+    ....:     '__main__', 'sage.doctest',      # doctesting
+    ....: ]
+    sage: def is_not_allowed(frame):
+    ....:     module = inspect.getmodule(frame)
+    ....:     if module is None: return False
+    ....:     return not any(module.__name__.startswith(name) for name in allowed)
+    sage: [inspect.getmodule(f).__name__ for f in frames if is_not_allowed(f)]
+    ['sage.combinat.species.generating_series']
+
 
 Check that the Sage Notebook is not imported at startup (see
 :trac:`15335`)::
@@ -55,23 +50,30 @@ Check lazy import of ``interacts``::
 #*****************************************************************************
 #       Copyright (C) 2005-2012 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#
 #*****************************************************************************
 
-import os, sys
+# Future statements which apply to this module. We delete the
+# future globals because we do not want these to appear in the sage.all
+# namespace. This deleting does not affect the parsing of this module.
+from __future__ import absolute_import, division, print_function
+del absolute_import, division, print_function
+
+import os
+import sys
 import operator
 import math
 
-from sage.env import SAGE_ROOT, SAGE_DOC_SRC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
+from sage.env import SAGE_ROOT, SAGE_SRC, SAGE_DOC_SRC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
 
-if sys.version_info[:2] < (2, 5):
-    print >>sys.stderr, "Sage requires Python 2.5 or newer"
-    sys.exit(1)
+# Add SAGE_SRC at the end of sys.path to enable Cython tracebacks
+# (which use paths relative to SAGE_SRC)
+sys.path.append(SAGE_SRC)
+
 
 ###################################################################
 
@@ -91,19 +93,13 @@ from sage.misc.sh import sh
 from sage.libs.all       import *
 from sage.data_structures.all import *
 from sage.doctest.all    import *
-try:
-    from sage.dev.all    import *
-except ImportError:
-    pass   # dev scripts are disabled
 
 from sage.structure.all  import *
 from sage.rings.all      import *
 from sage.arith.all      import *
 from sage.matrix.all     import *
 
-# This must come before Calculus -- it initializes the Pynac library.
-import sage.symbolic.pynac
-
+from sage.symbolic.all   import *
 from sage.modules.all    import *
 from sage.monoids.all    import *
 from sage.algebras.all   import *
@@ -118,13 +114,11 @@ from sage.sets.all       import *
 from sage.probability.all import *
 from sage.interfaces.all import *
 
-from sage.symbolic.all   import *
-
 from sage.functions.all  import *
 from sage.calculus.all   import *
 
-from sage.server.all     import *
 import sage.tests.all as tests
+from sage.tests.cython import getattr_debug
 
 from sage.crypto.all     import *
 import sage.crypto.mq as mq
@@ -146,8 +140,6 @@ from sage.dynamics.all   import *
 from sage.homology.all   import *
 
 from sage.quadratic_forms.all import *
-
-from sage.gsl.all        import *
 
 from sage.games.all      import *
 
@@ -186,18 +178,15 @@ lazy_import('sagenb.notebook.notebook_object', 'notebook')
 lazy_import('sagenb.notebook.notebook_object', 'inotebook')
 lazy_import('sagenb.notebook.sage_email', 'email')
 lazy_import('sage.interacts', 'all', 'interacts')
-lazy_import('sage.interacts.decorator', 'interact')
 from sage.interacts.debugger import debug
+# interact decorator from SageNB (will be overridden by Jupyter)
+lazy_import('sagenb.notebook.interact', 'interact')
 
 from copy import copy, deepcopy
 
 # The code executed here uses a large amount of Sage components
 from sage.rings.qqbar import _init_qqbar
 _init_qqbar()
-
-# Add SAGE_SRC at the end of sys.path to enable Cython tracebacks
-# (which use paths relative to SAGE_SRC)
-sys.path.append(sage.env.SAGE_SRC)
 
 
 ###########################################################
@@ -233,11 +222,13 @@ def quit_sage(verbose=True):
     """
     if verbose:
         t1 = cputime(_cpu_time_)
-        t1m = int(t1/60); t1s=t1-t1m*60
+        t1m = int(t1) // 60
+        t1s = t1 - t1m * 60
         t2 = walltime(_wall_time_)
-        t2m = int(t2/60); t2s=t2-t2m*60
-        print "Exiting Sage (CPU time %sm%.2fs, Wall time %sm%.2fs)."%(
-               t1m,t1s,t2m,t2s)
+        t2m = int(t2) // 60
+        t2s = t2 - t2m * 60
+        print("Exiting Sage (CPU time %sm%.2fs, Wall time %sm%.2fs)." %
+              (t1m, t1s, t2m, t2s))
 
     import gc
     gc.collect()
@@ -268,7 +259,9 @@ def quit_sage(verbose=True):
     from sage.libs.all import symmetrica
     symmetrica.end()
 
-from sage.ext.interactive_constructors_c import inject_on, inject_off
+# A deprecation(20442) warning will be given when this module is
+# imported, in particular when these functions are used.
+lazy_import("sage.ext.interactive_constructors_c", ["inject_on", "inject_off"])
 
 sage.structure.sage_object.register_unpickle_override('sage.categories.category', 'Sets', Sets)
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'HeckeModules', HeckeModules)
@@ -278,7 +271,6 @@ sage.structure.sage_object.register_unpickle_override('sage.categories.category_
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'VectorSpaces', VectorSpaces)
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'Schemes_over_base', sage.categories.schemes.Schemes_over_base)
 sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', 'ModularAbelianVarieties', ModularAbelianVarieties)
-#sage.structure.sage_object.register_unpickle_override('sage.categories.category_types', '', )
 
 # Cache the contents of star imports.
 sage.misc.lazy_import.save_cache_file()
@@ -314,7 +306,7 @@ def _write_started_file():
     t = datetime.datetime.now().replace(microsecond=0)
 
     O = open(started_file, 'w')
-    O.write("Sage %s was started at %s\n"%(sage.version.version, t))
+    O.write("Sage {} was started at {}\n".format(sage.version.version, t))
     O.close()
 
 
@@ -323,6 +315,15 @@ def _write_started_file():
 # in set_random_seed() will result in the same sequence you got at
 # Sage startup).
 set_random_seed()
+
+import warnings
+warnings.filters.remove(('ignore', None, DeprecationWarning, None, 0))
+# Ignore all deprecations from IPython etc.
+warnings.filterwarnings('ignore',
+    module='.*(IPython|ipykernel|jupyter_client|jupyter_core|nbformat|notebook|ipywidgets|storemagic)')
+# but not those that have OUR deprecation warnings
+warnings.filterwarnings('default',
+    '[\s\S]*See http://trac.sagemath.org/[0-9]* for details.')
 
 # From now on it is ok to resolve lazy imports
 sage.misc.lazy_import.finish_startup()

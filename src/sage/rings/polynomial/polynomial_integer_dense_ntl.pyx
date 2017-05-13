@@ -31,7 +31,7 @@ do::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 include "sage/ext/stdsage.pxi"
 include "cysignals/signals.pxi"
@@ -118,7 +118,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: type(f)
             <type 'sage.rings.polynomial.polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl'>
             sage: type(pari(f))
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'cypari2.gen.Gen'>
             sage: type(R(pari(f)))
             <type 'sage.rings.polynomial.polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl'>
             sage: R(pari(f))
@@ -127,7 +127,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         Coercion from NTL polynomial::
 
             sage: f = ntl.ZZX([1, 2, 3])
-            sage: print R(f)
+            sage: print(R(f))
             3*x^2 + 2*x + 1
 
         Coercion from dictionary::
@@ -180,11 +180,11 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             for ii, a in x:
                 i = ii[0] if type(ii) is tuple else ii # mpoly dict style has tuple keys
                 if i < 0:
-                    raise ValueError, "Negative monomial degrees not allowed: %s" % i
+                    raise ValueError("Negative monomial degrees not allowed: %s" % i)
                 elif i > degree:
                     degree = i
             if degree >= NTL_OVFBND:
-                raise OverflowError, "Dense NTL integer polynomials have a maximum degree of %s" % (NTL_OVFBND-1)
+                raise OverflowError("Dense NTL integer polynomials have a maximum degree of %s" % (NTL_OVFBND-1))
             ZZX_SetCoeff_long(self.__poly, degree, 1)
             # now fill them in
             for ii, a in x:
@@ -218,7 +218,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             x = [x]   # constant polynomials
 
         if len(x) >= NTL_OVFBND:
-            raise OverflowError, "Dense NTL integer polynomials have a maximum degree of %s" % (NTL_OVFBND-1)
+            raise OverflowError("Dense NTL integer polynomials have a maximum degree of %s" % (NTL_OVFBND-1))
 
         for i from 0 <= i < len(x):
             a = x[i]
@@ -422,7 +422,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             name = self.parent().latex_variable_names()[0]
         return self._repr(name, latex=True)
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         r"""
         Returns self plus right.
 
@@ -440,7 +440,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         return x
 
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         r"""
         Return self minus right.
 
@@ -458,7 +458,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         return x
 
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         r"""
         Returns negative of self.
 
@@ -528,7 +528,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         cdef Polynomial_integer_dense_ntl _right = <Polynomial_integer_dense_ntl> right
 
         if ZZX_IsZero(_right.__poly):
-            raise ArithmeticError, "division by zero polynomial"
+            raise ArithmeticError("division by zero polynomial")
 
         if ZZX_IsZero(self.__poly):
             return self, self
@@ -664,7 +664,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             return S(rr), ss, tt
 
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         r"""
         Returns self multiplied by right.
 
@@ -680,7 +680,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         return x
 
 
-    cpdef ModuleElement _lmul_(self, RingElement right):
+    cpdef _lmul_(self, RingElement right):
         r"""
         Returns self multiplied by right, where right is a scalar (integer).
 
@@ -700,7 +700,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         return x
 
 
-    cpdef ModuleElement _rmul_(self, RingElement right):
+    cpdef _rmul_(self, RingElement right):
         r"""
         Returns self multiplied by right, where right is a scalar (integer).
 
@@ -765,7 +765,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         """
         n = int(n)
         if n < 0:
-            raise IndexError, "n must be >= 0"
+            raise IndexError("n must be >= 0")
         value = Integer(value)
         cdef ZZ_c y
         mpz_to_ZZ(&y, (<Integer>value).value)
@@ -776,7 +776,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         """
         Returns isolating intervals for the real roots of this polynomial.
 
-        EXAMPLE:
+        EXAMPLES:
         We compute the roots of the characteristic polynomial of some Salem numbers::
 
             sage: R.<x> = PolynomialRing(ZZ, implementation='NTL')
@@ -818,7 +818,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         r"""
         Return the discriminant of self, which is by definition
 
-        .. math::
+        .. MATH::
 
             (-1)^{m(m-1)/2} {\mbox{\tt resultant}}(a, a')/lc(a),
 
@@ -842,7 +842,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         return x
 
 
-    def _pari_(self, variable=None):
+    def __pari__(self, variable=None):
         """
         EXAMPLES::
 
@@ -1012,7 +1012,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: f.factor_mod(3)
             Traceback (most recent call last):
             ...
-            ValueError: factorization of 0 not defined
+            ArithmeticError: factorization of 0 is not defined
 
             sage: f = 2*x*(x-2)*(x-9)
             sage: f.factor_mod(7)
@@ -1021,10 +1021,10 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         from sage.rings.finite_rings.finite_field_constructor import FiniteField
         p = Integer(p)
         if not p.is_prime():
-            raise ValueError, "p must be prime"
+            raise ValueError("p must be prime")
         if all([c%p==0 for c in self.coefficients()]):
-            raise ValueError, "factorization of 0 not defined"
-        f = self._pari_()
+            raise ArithmeticError("factorization of 0 is not defined")
+        f = self.__pari__()
         G = f.factormod(p)
         k = FiniteField(p)
         R = k[self.parent().variable_name()]
@@ -1074,10 +1074,10 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         from sage.rings.polynomial.padics.polynomial_padic import _pari_padic_factorization_to_sage
         return _pari_padic_factorization_to_sage(G, R, self.leading_coefficient())
 
-    def list(self):
+    cpdef list list(self, bint copy=True):
         """
         Return a new copy of the list of the underlying
-        elements of self.
+        elements of ``self``.
 
         EXAMPLES::
 
@@ -1089,7 +1089,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: f.list()
             []
         """
-        return [self[i] for i in range(self.degree()+1)]
+        return [self.get_unsafe(i) for i in range(self.degree()+1)]
 
 
     @coerce_binop

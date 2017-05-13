@@ -3,8 +3,6 @@
     multi documentation in Sphinx
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    This is a slightly hacked-up version of the Sphinx-multidoc plugin
-
     The goal of this extension is to manage a multi documentation in Sphinx.
     To be able to compile Sage's huge documentation in parallel, the
     documentation is cut into a bunch of independent documentations called
@@ -20,7 +18,13 @@
     - the javascript index;
     - the citations.
 """
-import cPickle, os, sys, shutil, re, tempfile
+import six
+from six.moves import cPickle
+import os
+import sys
+import shutil
+import re
+import tempfile
 import sphinx
 from sphinx.util.console import bold
 from sage.env import SAGE_DOC
@@ -34,6 +38,7 @@ def merge_environment(app, env):
     """
     Merges the following attributes of the sub-docs environment into the main
     environment:
+    - titles                      # Titles
     - todo_all_todos              # ToDo's
     - indexentries                # global python index
     - all_docs                    # needed by the js index
@@ -50,52 +55,54 @@ def merge_environment(app, env):
             app.info(" %s todos, %s index, %s citations"%(
                     len(docenv.todo_all_todos),
                     len(docenv.indexentries),
-                    len(docenv.citations)
+                    len(docenv.domaindata["std"]["citations"])
                     ), nonl=1)
 
+            # merge titles
+            for t in docenv.titles:
+                env.titles[fixpath(t)] = docenv.titles[t]
             # merge the todo links
             for dct in docenv.todo_all_todos:
-                dct['docname']=fixpath(dct['docname'])
+                dct['docname'] = fixpath(dct['docname'])
             env.todo_all_todos += docenv.todo_all_todos
             # merge the html index links
             newindex = {}
             for ind in docenv.indexentries:
                 if ind.startswith('sage/'):
-                    newind = fixpath(ind)
-                    newindex[newind] = docenv.indexentries[ind]
+                    newindex[fixpath(ind)] = docenv.indexentries[ind]
                 else:
                     newindex[ind] = docenv.indexentries[ind]
             env.indexentries.update(newindex)
             # merge the all_docs links, needed by the js index
             newalldoc = {}
             for ind in docenv.all_docs:
-                newalldoc[fixpath(ind)]=docenv.all_docs[ind]
+                newalldoc[fixpath(ind)] = docenv.all_docs[ind]
             env.all_docs.update(newalldoc)
             # needed by env.check_consistency (sphinx.environement, line 1734)
             for ind in newalldoc:
                 # treat subdocument source as orphaned file and don't complain
-                md = env.metadata.get(ind, set())
-                md.add('orphan')
+                md = env.metadata.get(ind, dict())
+                md['orphan'] = 1
                 env.metadata[ind] = md
             # merge the citations
             newcite = {}
-            for ind, (path, tag) in docenv.citations.iteritems():
+            for ind, (path, tag) in six.iteritems(docenv.domaindata["std"]["citations"]):
                 # TODO: Warn on conflicts
-                newcite[ind]=(fixpath(path), tag)
-            env.citations.update(newcite)
+                newcite[ind] = (fixpath(path), tag)
+            env.domaindata["std"]["citations"].update(newcite)
             # merge the py:module indexes
             newmodules = {}
             for ind,(modpath,v1,v2,v3) in (
-                docenv.domaindata['py']['modules'].iteritems()):
+                six.iteritems(docenv.domaindata['py']['modules'])):
                 newmodules[ind] = (fixpath(modpath),v1,v2,v3)
             env.domaindata['py']['modules'].update(newmodules)
             app.info(", %s modules"%(len(newmodules)))
     app.info('... done (%s todos, %s index, %s citations, %s modules)'%(
             len(env.todo_all_todos),
             len(env.indexentries),
-            len(env.citations),
+            len(env.domaindata["std"]["citations"]),
             len(env.domaindata['py']['modules'])))
-    write_citations(app, env.citations)
+    write_citations(app, env.domaindata["std"]["citations"])
 
 def get_env(app, curdoc):
     """
@@ -128,15 +135,19 @@ def merge_js_index(app):
         if index is not None:
             # merge the mappings
             app.info(" %s js index entries"%(len(index._mapping)))
-            for (ref, locs) in index._mapping.iteritems():
+            for (ref, locs) in six.iteritems(index._mapping):
                 newmapping = set(map(fixpath, locs))
                 if ref in mapping:
                     newmapping = mapping[ref] | newmapping
                 mapping[unicode(ref)] = newmapping
             # merge the titles
             titles = app.builder.indexer._titles
-            for (res, title) in index._titles.iteritems():
+            for (res, title) in six.iteritems(index._titles):
                 titles[fixpath(res)] = title
+            # merge the filenames
+            filenames = app.builder.indexer._filenames
+            for (res, filename) in six.iteritems(index._filenames):
+                filenames[fixpath(res)] = filename
             # TODO: merge indexer._objtypes, indexer._objnames as well
 
             # Setup source symbolic links
@@ -235,8 +246,8 @@ def fetch_citation(app, env):
     with open(filename, 'rb') as f:
         cache = cPickle.load(f)
     app.builder.info("done (%s citations)."%len(cache))
-    cite = env.citations
-    for ind, (path, tag) in cache.iteritems():
+    cite = env.domaindata["std"]["citations"]
+    for ind, (path, tag) in six.iteritems(cache):
         if ind not in cite: # don't override local citation
             cite[ind]=(os.path.join("..", path), tag)
 

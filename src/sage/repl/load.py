@@ -96,17 +96,17 @@ def load(filename, globals, attach=False):
     Note that ``.py`` files are *not* preparsed::
 
         sage: t = tmp_filename(ext='.py')
-        sage: open(t,'w').write("print 'hi', 2/3; z = -2/7")
+        sage: _ = open(t,'w').write("print 'hi', 2/3; z = -2/7")
         sage: z = 1
-        sage: sage.repl.load.load(t, globals())
+        sage: sage.repl.load.load(t, globals())  # optional - python2
         hi 0
-        sage: z
+        sage: z  # optional - python2
         -1
 
     A ``.sage`` file *is* preparsed::
 
         sage: t = tmp_filename(ext='.sage')
-        sage: open(t,'w').write("print 'hi', 2/3; z = -2/7")
+        sage: _ = open(t,'w').write("print 'hi', 2/3; z = -2/7")
         sage: z = 1
         sage: sage.repl.load.load(t, globals())
         hi 2/3
@@ -116,7 +116,7 @@ def load(filename, globals, attach=False):
     Cython files are *not* preparsed::
 
         sage: t = tmp_filename(ext='.pyx')
-        sage: open(t,'w').write("print 'hi', 2/3; z = -2/7")
+        sage: _ = open(t,'w').write("print 'hi', 2/3; z = -2/7")
         sage: z = 1
         sage: sage.repl.load.load(t, globals())
         Compiling ...
@@ -145,7 +145,7 @@ def load(filename, globals, attach=False):
     We attach a file::
 
         sage: t = tmp_filename(ext='.py')
-        sage: open(t,'w').write("print 'hello world'")
+        sage: _ = open(t,'w').write("print 'hello world'")
         sage: sage.repl.load.load(t, globals(), attach=True)
         hello world
         sage: t in attached_files()
@@ -167,7 +167,7 @@ def load(filename, globals, attach=False):
         ['.']
         sage: t_dir = tmp_dir()
         sage: fullpath = os.path.join(t_dir, 'test.py')
-        sage: open(fullpath, 'w').write("print 37 * 3")
+        sage: _ = open(fullpath, 'w').write("print 37 * 3")
         sage: load_attach_path(t_dir)
         sage: attach('test.py')
         111
@@ -185,7 +185,7 @@ def load(filename, globals, attach=False):
 
     Make sure that load handles filenames with spaces in the name or path::
 
-        sage: t = tmp_filename(ext=' b.sage'); open(t,'w').write("print 2")
+        sage: t = tmp_filename(ext=' b.sage'); _ = open(t,'w').write("print 2")
         sage: sage.repl.load.load(t, globals())
         2
 
@@ -195,54 +195,11 @@ def load(filename, globals, attach=False):
         Traceback (most recent call last):
         ...
         IOError: did not find file 'this file should not exist' to load or attach
-
-    Evaluating a filename is deprecated::
-
-        sage: sage.repl.load.load("tmp_filename(ext='.py')", globals())
-        doctest:...: DeprecationWarning: using unevaluated expressions as argument to load() is dangerous and deprecated
-        See http://trac.sagemath.org/17654 for details.
-
-    Test filenames separated by spaces (deprecated)::
-
-        sage: t = tmp_filename(ext='.py')
-        sage: with open(t, 'w') as f:
-        ....:     f.write("print 'hello'\n")
-        sage: sage.repl.load.load(t + " " + t, globals())
-        hello
-        hello
-        doctest:...: DeprecationWarning: using multiple filenames separated by spaces as load() argument is dangerous and deprecated
-        See http://trac.sagemath.org/17654 for details.
     """
     if attach:
         from sage.repl.attach import add_attached_file
 
     filename = os.path.expanduser(filename)
-    if not os.path.exists(filename):
-        try:
-            # Try *evaluating* the filename
-            filename = eval(filename, globals).strip()
-        except Exception:
-            # Handle multiple input files separated by spaces, which was
-            # maybe a bad idea, but which we have to handle for backwards
-            # compatibility.
-            v = filename.split()
-            if len(v) > 1:
-                try:
-                    for f in v:
-                        load(f, globals, attach=attach)
-                except IOError:
-                    # Splitting the filename didn't work, pretend it
-                    # didn't happen :-)
-                    pass
-                else:
-                    # Only show deprecation message if the filename
-                    # splitting worked.
-                    from sage.misc.superseded import deprecation
-                    deprecation(17654, 'using multiple filenames separated by spaces as load() argument is dangerous and deprecated')
-                    return
-        else:
-            from sage.misc.superseded import deprecation
-            deprecation(17654, 'using unevaluated expressions as argument to load() is dangerous and deprecated')
 
     if filename.lower().startswith(('http://', 'https://')):
         if attach:

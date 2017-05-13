@@ -177,14 +177,16 @@ Classes and functions
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from six.moves import range, zip
 
-
-import operator, re
+import operator
+import re
 
 
 from copy import copy
 
-
+from sage.misc.abstract_method import abstract_method
 from sage.geometry.all import Polyhedron
 from sage.matrix.all import (column_matrix,
                              identity_matrix,
@@ -233,13 +235,13 @@ def _assemble_arrayl(lines, stretch=None):
         sage: from sage.numerical.interactive_simplex_method \
         ....:     import _assemble_arrayl
         sage: lines = ["1 + 1", "2"]
-        sage: print _assemble_arrayl(lines)
+        sage: print(_assemble_arrayl(lines))
         %notruncate
         \begin{array}{l}
         1 + 1\\
         2
         \end{array}
-        sage: print _assemble_arrayl(lines, 1.5)
+        sage: print(_assemble_arrayl(lines, 1.5))
         %notruncate
         \renewcommand{\arraystretch}{1.500000}
         \begin{array}{l}
@@ -301,7 +303,7 @@ def _latex_product(coefficients, variables,
         ....:       _latex_product
         sage: var("x, y")
         (x, y)
-        sage: print _latex_product([-1, 3], [x, y])
+        sage: print(_latex_product([-1, 3], [x, y]))
         - \mspace{-6mu}&\mspace{-6mu} x \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} 3 y
     """
     entries = []
@@ -447,15 +449,15 @@ current_style = 'UAlberta'
 def default_variable_name(variable):
     r"""
     Return default variable name for the current :func:`style`.
-    
+
     INPUT:
-    
+
     - ``variable`` - a string describing requested name
-    
+
     OUTPUT:
-    
+
     - a string with the requested name for current style
-    
+
     EXAMPLES::
 
         sage: sage.numerical.interactive_simplex_method.default_variable_name("primal slack")
@@ -474,16 +476,16 @@ def style(new_style=None):
     Set or get the current style of problems and dictionaries.
 
     INPUT:
-    
+
     - ``new_style`` -- a string or ``None`` (default)
-    
+
     OUTPUT:
-    
+
     - a string with current style (same as ``new_style`` if it was given)
-    
+
     If the input is not recognized as a valid style, a ``ValueError`` exception
     is raised.
-    
+
     Currently supported styles are:
 
     - 'UAlberta' (default):  Follows the style used in the Math 373 course
@@ -491,21 +493,21 @@ def style(new_style=None):
       Alberta, Edmonton, Canada; based on Chvatal's book.
 
       - Objective functions of dictionaries are printed at the bottom.
-      
+
       Variable names default to
 
       - `z` for primal objective
-      
+
       - `z` for dual objective
-      
+
       - `w` for auxiliary objective
 
       - `x_1, x_2, \dots, x_n` for primal decision variables
-      
+
       - `x_{n+1}, x_{n+2}, \dots, x_{n+m}` for primal slack variables
 
       - `y_1, y_2, \dots, y_m` for dual decision variables
-      
+
       - `y_{m+1}, y_{m+2}, \dots, y_{m+n}` for dual slack variables
 
     - 'Vanderbei':  Follows the style of Robert Vanderbei's textbook,
@@ -516,17 +518,17 @@ def style(new_style=None):
       Variable names default to
 
       - `zeta` for primal objective
-      
+
       - `xi` for dual objective
-      
+
       - `xi` for auxiliary objective
 
       - `x_1, x_2, \dots, x_n` for primal decision variables
-      
+
       - `w_1, w_2, \dots, w_m` for primal slack variables
 
       - `y_1, y_2, \dots, y_m` for dual decision variables
-      
+
       - `z_1, z_2, \dots, z_n` for dual slack variables
 
     EXAMPLES::
@@ -592,7 +594,7 @@ class InteractiveLPProblem(SageObject):
     - ``is_primal`` -- (default: ``True``) whether this problem is primal or
       dual: each problem is of course dual to its own dual, this flag is mostly
       for internal use and affects default variable names only
-      
+
     - ``objective_constant_term`` -- (default: 0) a constant term of the
       objective
 
@@ -755,7 +757,7 @@ class InteractiveLPProblem(SageObject):
             sage: b = (1000, 1500)
             sage: c = (10, 5)
             sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
-            sage: print P._latex_()
+            sage: print(P._latex_())
             \begin{array}{l}
             \begin{array}{lcrcrcl}
              \max \mspace{-6mu}&\mspace{-6mu}  \mspace{-6mu}&\mspace{-6mu} 10 C \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} 5 B \mspace{-6mu}&\mspace{-6mu}  \mspace{-6mu}&\mspace{-6mu} \\
@@ -807,27 +809,27 @@ class InteractiveLPProblem(SageObject):
             sage: b = (1000, 1500)
             sage: c = (10, 5)
             sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
-            sage: print P._repr_()
+            sage: print(P._repr_())
             LP problem (use typeset mode to see details)
         """
         return "LP problem (use typeset mode to see details)"
-        
+
     def _solution(self, x):
         r"""
         Return ``x`` as a normalized solution of ``self``.
-        
+
         INPUT:
-        
+
         - ``x`` -- anything that can be interpreted as a solution of this
           problem, e.g. a vector or a list of correct length or a single
           element list with such a vector
-          
+
         OUTPUT:
-        
+
         - ``x`` as a vector
-        
+
         EXAMPLES::
-        
+
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
@@ -878,7 +880,7 @@ class InteractiveLPProblem(SageObject):
             ((250, 750), 6250)
         """
         F = self.feasible_set()
-        R = self.base_ring()
+        R = F.base_ring()
         A, b, c, x = self._Abcx
         if F.n_vertices() == 0:
             return (None, None)
@@ -925,6 +927,69 @@ class InteractiveLPProblem(SageObject):
             )
         """
         return self._Abcx
+
+    def add_constraint(self, coefficients, constant_term, constraint_type="<="):
+        r"""
+        Return a new LP problem by adding a constraint to``self``.
+
+        INPUT:
+
+        - ``coefficients`` -- coefficients of the new constraint
+
+        - ``constant_term`` -- a constant term of the new constraint
+
+        - ``constraint_type`` -- (default: ``"<="``) a string indicating
+          the constraint type of the new constraint
+
+        OUTPUT:
+
+        - an :class:`LP problem <InteractiveLPProblem>`
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblem(A, b, c)
+            sage: P1 = P.add_constraint(([2, 4]), 2000, "<=")
+            sage: P1.Abcx()
+            (
+            [1 1]
+            [3 1]
+            [2 4], (1000, 1500, 2000), (10, 5), (x1, x2)
+            )
+            sage: P1.constraint_types()
+            ('<=', '<=', '<=')
+            sage: P.Abcx()
+            (
+            [1 1]
+            [3 1], (1000, 1500), (10, 5), (x1, x2)
+            )
+            sage: P.constraint_types()
+            ('<=', '<=')
+            sage: P2 = P.add_constraint(([2, 4, 6]), 2000, "<=")
+            Traceback (most recent call last):
+            ...
+            TypeError: number of columns must be the same, not 2 and 3
+            sage: P3 = P.add_constraint(([2, 4]), 2000, "<")
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown constraint type
+        """
+        A, b, c, x = self.Abcx()
+        A = A.stack(matrix(coefficients))
+        b = tuple(b) + (constant_term,)
+        if self._is_negative:
+            problem_type = "-" + self.problem_type()
+        else:
+            problem_type = self.problem_type()
+        return InteractiveLPProblem(A, b, c, x,
+                    constraint_type=self._constraint_types + (constraint_type,),
+                    variable_type=self.variable_types(),
+                    problem_type=problem_type,
+                    base_ring=self.base_ring(),
+                    is_primal=self._is_primal,
+                    objective_constant_term=self.objective_constant_term())
 
     def base_ring(self):
         r"""
@@ -1062,7 +1127,7 @@ class InteractiveLPProblem(SageObject):
             True
             sage: DP.dual(["C", "B"]) == P
             True
-            
+
         TESTS::
 
             sage: DP.standard_form().objective_name()
@@ -1166,7 +1231,7 @@ class InteractiveLPProblem(SageObject):
             sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.is_bounded()
             True
-            
+
         Note that infeasible problems are always bounded::
 
             sage: b = (-1000, 1500)
@@ -1181,9 +1246,9 @@ class InteractiveLPProblem(SageObject):
     def is_feasible(self, *x):
         r"""
         Check if ``self`` or given solution is feasible.
-        
+
         INPUT:
-        
+
         - (optional) anything that can be interpreted as a valid solution for
           this problem, i.e. a sequence of values for all decision variables
 
@@ -1236,7 +1301,7 @@ class InteractiveLPProblem(SageObject):
     def is_primal(self):
         r"""
         Check if we consider this problem to be primal or dual.
-        
+
         This distinction affects only some automatically chosen variable names.
 
         OUTPUT:
@@ -1259,9 +1324,9 @@ class InteractiveLPProblem(SageObject):
     def is_optimal(self, *x):
         r"""
         Check if given solution is feasible.
-        
+
         INPUT:
-        
+
         - anything that can be interpreted as a valid solution for
           this problem, i.e. a sequence of values for all decision variables
 
@@ -1286,7 +1351,7 @@ class InteractiveLPProblem(SageObject):
         """
         return (self.optimal_value() == self.objective_value(*x) and
                 self.is_feasible(*x))
-        
+
     def n_constraints(self):
         r"""
         Return the number of constraints of ``self``, i.e. `m`.
@@ -1349,7 +1414,7 @@ class InteractiveLPProblem(SageObject):
             (10, 5)
         """
         return self._Abcx[2]
-        
+
     def objective_constant_term(self):
         r"""
         Return the constant term of the objective.
@@ -1380,9 +1445,9 @@ class InteractiveLPProblem(SageObject):
     def objective_value(self, *x):
         r"""
         Return the value of the objective on the given solution.
-        
+
         INPUT:
-        
+
         - anything that can be interpreted as a valid solution for
           this problem, i.e. a sequence of values for all decision variables
 
@@ -1653,13 +1718,13 @@ class InteractiveLPProblem(SageObject):
     def standard_form(self, transformation=False, **kwds):
         r"""
         Construct the LP problem in standard form equivalent to ``self``.
-        
+
         INPUT:
-        
+
         - ``transformation`` -- (default: ``False``) if ``True``, a map
           converting solutions of the problem in standard form to the original
           one will be returned as well
-        
+
         - you can pass (as keywords only) ``slack_variables``,
           ``auxiliary_variable``,``objective_name`` to the constructor of
           :class:`InteractiveLPProblemStandardForm`
@@ -1691,7 +1756,7 @@ class InteractiveLPProblem(SageObject):
             [0 1]
             Domain: Vector space of dimension 2 over Rational Field
             Codomain: Vector space of dimension 2 over Rational Field
-            
+
         A more complicated transformation map::
 
             sage: P = InteractiveLPProblem(A, b, c, variable_type=["<=", ""],
@@ -1777,7 +1842,7 @@ class InteractiveLPProblem(SageObject):
             c = vector(newc)
             x = newx
             f = newf
-            
+
         objective_name = SR(kwds.get("objective_name", default_variable_name(
             "primal objective" if self.is_primal() else "dual objective")))
         is_negative = self._is_negative
@@ -1794,7 +1859,7 @@ class InteractiveLPProblem(SageObject):
         P = InteractiveLPProblemStandardForm(A, b, c, x, **kwds)
         f = P.c().parent().hom(f, self.c().parent())
         return (P, f) if transformation else P
-        
+
     def variable_types(self):
         r"""
         Return a tuple listing the variable types of all decision variables.
@@ -1872,7 +1937,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
     - ``is_primal`` -- (default: ``True``) whether this problem is primal or
       dual: each problem is of course dual to its own dual, this flag is mostly
       for internal use and affects default variable names only
-      
+
     - ``objective_name`` -- a string or a symbolic expression for the
       objective used in dictionaries, default depends on :func:`style`
 
@@ -1956,10 +2021,82 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
                 "primal objective" if is_primal else "dual objective")
         self._objective_name = SR(objective_name)
 
+    def add_constraint(self, coefficients, constant_term, slack_variable=None):
+        r"""
+        Return a new LP problem by adding a constraint to``self``.
+
+        INPUT:
+
+        - ``coefficients`` -- coefficients of the new constraint
+
+        - ``constant_term`` -- a constant term of the new constraint
+
+        - ``slack_variable`` -- (default: depends on :func:`style`)
+          a string giving the name of the slack variable of the new constraint
+
+        OUTPUT:
+
+        - an :class:`LP problem in standard form <InteractiveLPProblemStandardForm>`
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: P.Abcx()
+            (
+            [1 1]
+            [3 1], (1000, 1500), (10, 5), (x1, x2)
+            )
+            sage: P.slack_variables()
+            (x3, x4)
+            sage: P1 = P.add_constraint(([2, 4]), 2000)
+            sage: P1.Abcx()
+            (
+            [1 1]
+            [3 1]
+            [2 4], (1000, 1500, 2000), (10, 5), (x1, x2)
+            )
+            sage: P1.slack_variables()
+            (x3, x4, x5)
+            sage: P2 = P.add_constraint(([2, 4]), 2000, slack_variable='c')
+            sage: P2.slack_variables()
+            (x3, x4, c)
+            sage: P3 = P.add_constraint(([2, 4, 6]), 2000)
+            Traceback (most recent call last):
+            ...
+            TypeError: number of columns must be the same, not 2 and 3
+        """
+        A, b, c, x = self.Abcx()
+        A = A.stack(matrix(coefficients))
+        b = tuple(b) + (constant_term,)
+        if self._is_negative:
+            problem_type = "-" + self.problem_type()
+        else:
+            problem_type = self.problem_type()
+        if slack_variable is None:
+            slack_variable = default_variable_name(
+                "primal slack" if self._is_primal else "dual slack")
+            if style() == "UAlberta":
+                index = self.n() + self.m() + 1
+            if style() == 'Vanderbei':
+                index = self.m() + 1
+            slack_variable = "{}{:d}".format(slack_variable, index)
+        return InteractiveLPProblemStandardForm(
+                    A, b, c, x,
+                    problem_type=problem_type,
+                    slack_variables=tuple(self.slack_variables()) + (slack_variable,),
+                    auxiliary_variable=self.auxiliary_variable(),
+                    base_ring=self.base_ring(),
+                    is_primal=self._is_primal,
+                    objective_name=self._objective_name,
+                    objective_constant_term=self.objective_constant_term())
+
     def auxiliary_problem(self, objective_name=None):
         r"""
         Construct the auxiliary problem for ``self``.
-        
+
         INPUT:
 
         - ``objective_name`` -- a string or a symbolic expression for the
@@ -2152,7 +2289,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
         k = N.index(x0)
         N = N[:k] + N[k+1:]
         n = len(c)
-        A = A.matrix_from_columns(range(k) + range(k + 1, n))
+        A = A.matrix_from_columns(list(range(k)) + list(range(k + 1, n)))
         b = copy(b)
         c = vector(self.base_ring(), n - 1)
         v = self._constant_term
@@ -2299,9 +2436,9 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
     def objective_name(self):
         r"""
         Return the objective name used in dictionaries for this problem.
-        
+
         OUTPUT:
-        
+
         - a symbolic expression
 
         EXAMPLES::
@@ -2569,7 +2706,7 @@ class LPAbstractDictionary(SageObject):
         super(LPAbstractDictionary, self).__init__()
         self._entering = None
         self._leaving = None
-        
+
     def _html_(self):
         r"""
         Return an HTML representation of ``self``.
@@ -2585,7 +2722,7 @@ class LPAbstractDictionary(SageObject):
             sage: c = (10, 5)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
-            sage: print D._html_()
+            sage: print(D._html_())
             \begin{equation*}
             ...
             \end{equation*}
@@ -2597,20 +2734,20 @@ class LPAbstractDictionary(SageObject):
     def _preupdate_output(self, direction):
         r"""
         Return auxiliary output before the update step.
-        
+
         Called from :meth:`run_simplex_method`.
-        
+
         INPUT:
-        
+
         - ``direction`` -- a string specifying the type of the simplex method
           used, either "primal" or "dual"
 
         OUTPUT:
-        
+
         - :class:`~sage.misc.html.HtmlFragment`.
-        
+
         TESTS::
-        
+
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
@@ -2647,13 +2784,45 @@ class LPAbstractDictionary(SageObject):
             sage: c = (10, 5)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
-            sage: print D._repr_()
+            sage: print(D._repr_())
             LP problem dictionary (use typeset mode to see details)
             sage: D = P.revised_dictionary()
-            sage: print D._repr_()
+            sage: print(D._repr_())
             LP problem dictionary (use typeset mode to see details)
         """
         return "LP problem dictionary (use typeset mode to see details)"
+
+    @abstract_method
+    def add_row(self, nonbasic_coefficients, constant, basic_variable=None):
+        r"""
+        Return a dictionary with an additional row based on a given dictionary.
+
+        INPUT:
+
+        - ``nonbasic_coefficients``-- a list of the coefficients for the
+          new row (with which nonbasic variables are subtracted in the relation
+          for the new basic variable)
+
+        - ``constant``--  the constant term for the new row
+
+        - ``basic_variable``-- (default: depends on :func:`style`)
+          a string giving the name of the basic variable of the new row
+
+        OUTPUT:
+
+        - a new dictionary of the same class
+
+        EXAMPLES::
+
+            sage: A = ([-1, 1, 7], [8, 2, 13], [34, 17, 12])
+            sage: b = (2, 17, 6)
+            sage: c = (55/10, 21/10, 14/30)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.dictionary("x1", "x2", "x4")
+            sage: D1 = D.add_row([7, 11, 19], 42, basic_variable='c')
+            sage: D1.row_coefficients("c")
+            (7, 11, 19)
+        """
 
     def base_ring(self):
         r"""
@@ -2677,6 +2846,26 @@ class LPAbstractDictionary(SageObject):
             Rational Field
         """
         return self.coordinate_ring().base_ring()
+
+    @abstract_method
+    def basic_variables(self):
+        r"""
+        Return the basic variables of ``self``.
+
+        OUTPUT:
+
+        - a vector
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.basic_variables()
+            (x3, x4)
+        """
 
     def basic_solution(self, include_slack_variables=False):
         r"""
@@ -2715,13 +2904,58 @@ class LPAbstractDictionary(SageObject):
             sage: D.basic_solution(True)
             (0, 0, 1000, 1500)
         """
-        vv = zip(self.basic_variables(), self.constant_terms())
+        vv = list(zip(self.basic_variables(), self.constant_terms()))
         N = self.nonbasic_variables()
         vv += [(v, 0) for v in N]
         vv.sort()   # We use neglex order
         v = [value for _, value in vv]
         return vector(self.base_ring(),
                       v if include_slack_variables else v[:len(N)])
+
+    @abstract_method
+    def column_coefficients(self, v):
+        r"""
+        Return the coefficients of a nonbasic variable.
+
+        INPUT:
+
+        - ``v`` -- a nonbasic variable of ``self``, can be given as a string, an
+          actual variable, or an integer interpreted as the index of a variable
+
+        OUTPUT:
+
+        - a vector of coefficients of a nonbasic variable
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.revised_dictionary()
+            sage: D.column_coefficients(1)
+            (1, 3)
+        """
+
+    @abstract_method
+    def constant_terms(self):
+        r"""
+        Return the constant terms of relations of ``self``.
+
+        OUTPUT:
+
+        - a vector.
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.constant_terms()
+            (1000, 1500)
+        """
 
     def coordinate_ring(self):
         r"""
@@ -2858,6 +3092,30 @@ class LPAbstractDictionary(SageObject):
             x1
         """
         return self._entering
+
+    def entering_coefficients(self):
+        r"""
+        Return coefficients of the entering variable.
+
+        OUTPUT:
+
+        - a vector
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.enter(1)
+            sage: D.entering_coefficients()
+            (1, 3)
+        """
+        if self._entering is None:
+            raise ValueError("entering variable must be chosen to compute "
+                             "its coefficients")
+        return self.column_coefficients(self._entering)
 
     def is_dual_feasible(self):
         r"""
@@ -3004,6 +3262,118 @@ class LPAbstractDictionary(SageObject):
             x4
         """
         return self._leaving
+
+    def leaving_coefficients(self):
+        r"""
+        Return coefficients of the leaving variable.
+
+        OUTPUT:
+
+        - a vector
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.dictionary(2, 3)
+            sage: D.leave(3)
+            sage: D.leaving_coefficients()
+            (-2, -1)
+
+        The same works for revised dictionaries as well::
+
+            sage: D = P.revised_dictionary(2, 3)
+            sage: D.leave(3)
+            sage: D.leaving_coefficients()
+            (-2, -1)
+        """
+        if self._leaving is None:
+            raise ValueError("leaving variable must be chosen to compute "
+                             "its coefficients")
+        return self.row_coefficients(self._leaving)
+
+    @abstract_method
+    def nonbasic_variables(self):
+        r"""
+        Return non-basic variables of ``self``.
+
+        OUTPUT:
+
+        - a vector
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.nonbasic_variables()
+            (x1, x2)
+        """
+
+    @abstract_method
+    def objective_coefficients(self):
+        r"""
+        Return coefficients of the objective of ``self``.
+
+        OUTPUT:
+
+        - a vector
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.objective_coefficients()
+            (10, 5)
+        """
+
+    @abstract_method
+    def objective_name(self):
+        r"""
+        Return the objective name of ``self``.
+
+        OUTPUT:
+
+        - a symbolic expression
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.objective_name()
+            z
+        """
+
+    @abstract_method
+    def objective_value(self):
+        r"""
+        Return the value of the objective at the
+        :meth:`~LPAbstractDictionary.basic_solution` of ``self``.
+
+        OUTPUT:
+
+        - a number
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.objective_value()
+            0
+        """
 
     def possible_dual_simplex_method_steps(self):
         r"""
@@ -3193,10 +3563,50 @@ class LPAbstractDictionary(SageObject):
                                               self.entering_coefficients(),
                                               self.basic_variables()) if a > 0]
 
+    @abstract_method
+    def row_coefficients(self, v):
+        r"""
+        Return the coefficients of the basic variable ``v``.
+
+        These are the coefficients with which nonbasic variables are subtracted
+        in the relation for ``v``.
+
+        INPUT:
+
+        - ``v`` -- a basic variable of ``self``, can be given as a string, an
+          actual variable, or an integer interpreted as the index of a variable
+
+        OUTPUT:
+
+        - a vector of coefficients of a basic variable
+
+        EXAMPLES::
+
+            sage: A = ([-1, 1], [8, 2])
+            sage: b = (2, 17)
+            sage: c = (55/10, 21/10)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.final_dictionary()
+            sage: D.row_coefficients("x1")
+            (1/10, -1/5)
+
+        We can also use indices of variables::
+
+            sage: D.row_coefficients(1)
+            (1/10, -1/5)
+
+        Or use variable names without quotes after injecting them::
+
+            sage: P.inject_variables()
+            Defining x0, x1, x2, x3, x4
+            sage: D.row_coefficients(x1)
+            (1/10, -1/5)
+        """
+
     def run_dual_simplex_method(self):
         r"""
         Apply the dual simplex method and return all steps/intermediate states.
-        
+
         If either entering or leaving variables were already set, they will be
         used.
 
@@ -3218,9 +3628,9 @@ class LPAbstractDictionary(SageObject):
             ValueError: leaving variables can be determined for feasible
             dictionaries with a set entering variable or for dual feasible
             dictionaries
-            
+
         Let's start with a dual feasible dictionary then::
-        
+
             sage: D = P.dictionary(2, 3, 5)
             sage: D.is_dual_feasible()
             True
@@ -3236,9 +3646,9 @@ class LPAbstractDictionary(SageObject):
             \end{equation*}
             sage: D.is_optimal()
             True
-            
+
         This method detects infeasible problems::
-        
+
             sage: A = ([1, 0],)
             sage: b = (-1,)
             sage: c = (0, -1)
@@ -3272,7 +3682,7 @@ class LPAbstractDictionary(SageObject):
     def run_simplex_method(self):
         r"""
         Apply the simplex method and return all steps and intermediate states.
-        
+
         If either entering or leaving variables were already set, they will be
         used.
 
@@ -3294,9 +3704,9 @@ class LPAbstractDictionary(SageObject):
             ValueError: entering variables can be determined for feasible
             dictionaries or for dual feasible dictionaries with a set leaving
             variable
-            
+
         Let's start with a feasible dictionary then::
-        
+
             sage: D = P.dictionary(1, 3, 4)
             sage: D.is_feasible()
             True
@@ -3316,9 +3726,9 @@ class LPAbstractDictionary(SageObject):
             \end{equation*}
             sage: D.is_optimal()
             True
-            
+
         This method detects unbounded problems::
-        
+
             sage: A = ([1, 0],)
             sage: b = (1,)
             sage: c = (0, 1)
@@ -3349,6 +3759,26 @@ class LPAbstractDictionary(SageObject):
             output.append(self._html_())
         return HtmlFragment("\n".join(output))
 
+    @abstract_method
+    def update(self):
+        r"""
+        Update ``self`` using previously set entering and leaving variables.
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.objective_value()
+            0
+            sage: D.enter("x1")
+            sage: D.leave("x4")
+            sage: D.update()
+            sage: D.objective_value()
+            5000
+        """
 
 class LPDictionary(LPAbstractDictionary):
     r"""
@@ -3379,7 +3809,7 @@ class LPDictionary(LPAbstractDictionary):
     - ``basic_variables`` -- a list of basic variables `x_B`
 
     - ``nonbasic_variables`` -- a list of non-basic variables `x_N`
-    
+
     - ``objective_name`` -- a "name" for the objective `z`
 
     OUTPUT:
@@ -3496,7 +3926,7 @@ class LPDictionary(LPAbstractDictionary):
             sage: c = (10, 5)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
-            sage: print D._latex_()
+            sage: print(D._latex_())
             \renewcommand{\arraystretch}{1.5} %notruncate
             \begin{array}{|rcrcrcr|}
             \hline
@@ -3634,6 +4064,64 @@ class LPDictionary(LPAbstractDictionary):
         result += latex(self).split("\n", 2)[2] # Remove array header
         return LatexExpr(result)
 
+    def add_row(self, nonbasic_coefficients, constant, basic_variable=None):
+        r"""
+        Return a dictionary with an additional row based on a given dictionary.
+
+        INPUT:
+
+        - ``nonbasic_coefficients``-- a list of the coefficients for the
+          new row (with which nonbasic variables are subtracted in the relation
+          for the new basic variable)
+
+        - ``constant``--  the constant term for the new row
+
+        - ``basic_variable``-- (default: depends on :func:`style`)
+          a string giving the name of the basic variable of the new row
+
+        OUTPUT:
+
+        - a :class:`dictionary <LPDictionary>`
+
+        EXAMPLES::
+
+            sage: A = ([-1, 1, 7], [8, 2, 13], [34, 17, 12])
+            sage: b = (2, 17, 6)
+            sage: c = (55/10, 21/10, 14/30)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.dictionary("x1", "x2", "x4")
+            sage: D1 = D.add_row([7, 11, 19], 42, basic_variable='c')
+            sage: D1.row_coefficients("c")
+            (7, 11, 19)
+            sage: D1.constant_terms()[-1]
+            42
+            sage: D1.basic_variables()[-1]
+            c
+        """
+        A, b, c, v, B, N, z = self._AbcvBNz
+        m = len(B)
+        n = len(N)
+        BR = self.base_ring()
+        A = A.stack(vector(BR, n, nonbasic_coefficients))
+        b = vector(BR, m + 1, tuple(b) + (constant,))
+
+        if basic_variable is None:
+            basic_variable = default_variable_name("primal slack")
+            if style() == "UAlberta":
+                index = n + m + 1
+            elif style() == 'Vanderbei':
+                index = m + 1
+            basic_variable = "{}{:d}".format(basic_variable, index)
+        if not isinstance(basic_variable, str):
+            basic_variable = str(basic_variable)
+
+        R = PolynomialRing(
+            BR, list(B.base_ring().gens()) + [basic_variable], order="neglex")
+        B = list(B) + [basic_variable]
+        B = map(R, B)
+        N = map(R, N)
+        return LPDictionary(A, b, c, v, B, N, z)
+
     def basic_variables(self):
         r"""
         Return the basic variables of ``self``.
@@ -3654,6 +4142,36 @@ class LPDictionary(LPAbstractDictionary):
         """
         return self._AbcvBNz[4]
 
+    def column_coefficients(self, v):
+        r"""
+        Return coefficients of a nonbasic variable.
+
+        INPUT:
+
+        - ``v`` -- a nonbasic variable of ``self``, can be given as a string, an
+          actual variable, or an integer interpreted as the index of a variable
+
+        OUTPUT:
+
+        - a vector
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.column_coefficients(1)
+            (1, 3)
+        """
+        if v is not None:
+            v = variable(self.coordinate_ring(), v)
+            if v not in self.nonbasic_variables():
+                raise ValueError("variable must be nonbasic")
+        k = tuple(self.nonbasic_variables()).index(v)
+        return self._AbcvBNz[0].column(k)
+
     def constant_terms(self):
         r"""
         Return the constant terms of relations of ``self``.
@@ -3673,56 +4191,6 @@ class LPDictionary(LPAbstractDictionary):
             (1000, 1500)
         """
         return self._AbcvBNz[1]
-
-    def entering_coefficients(self):
-        r"""
-        Return coefficients of the entering variable.
-
-        OUTPUT:
-
-        - a vector
-
-        EXAMPLES::
-
-            sage: A = ([1, 1], [3, 1])
-            sage: b = (1000, 1500)
-            sage: c = (10, 5)
-            sage: P = InteractiveLPProblemStandardForm(A, b, c)
-            sage: D = P.initial_dictionary()
-            sage: D.enter(1)
-            sage: D.entering_coefficients()
-            (1, 3)
-        """
-        if self._entering is None:
-            raise ValueError("entering variable must be chosen to compute "
-                             "its coefficients")
-        k = tuple(self.nonbasic_variables()).index(self._entering)
-        return self._AbcvBNz[0].column(k)
-
-    def leaving_coefficients(self):
-        r"""
-        Return coefficients of the leaving variable.
-
-        OUTPUT:
-
-        - a vector
-
-        EXAMPLES::
-
-            sage: A = ([1, 1], [3, 1])
-            sage: b = (1000, 1500)
-            sage: c = (10, 5)
-            sage: P = InteractiveLPProblemStandardForm(A, b, c)
-            sage: D = P.dictionary(2, 3)
-            sage: D.leave(3)
-            sage: D.leaving_coefficients()
-            (-2, -1)
-        """
-        if self._leaving is None:
-            raise ValueError("leaving variable must be chosen to compute "
-                             "its coefficients")
-        i = tuple(self.basic_variables()).index(self._leaving)
-        return self._AbcvBNz[0][i]
 
     def nonbasic_variables(self):
         r"""
@@ -3764,6 +4232,26 @@ class LPDictionary(LPAbstractDictionary):
         """
         return self._AbcvBNz[2]
 
+    def objective_name(self):
+        r"""
+        Return the objective name of ``self``.
+
+        OUTPUT:
+
+        - a symbolic expression
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.objective_name()
+            z
+        """
+        return self._AbcvBNz[6]
+
     def objective_value(self):
         r"""
         Return the value of the objective at the
@@ -3784,6 +4272,51 @@ class LPDictionary(LPAbstractDictionary):
             0
         """
         return self._AbcvBNz[3]
+
+    def row_coefficients(self, v):
+        r"""
+        Return the coefficients of the basic variable ``v``.
+
+        These are the coefficients with which nonbasic variables are subtracted
+        in the relation for ``v``.
+
+        INPUT:
+
+        - ``v`` -- a basic variable of ``self``, can be given as a string, an
+          actual variable, or an integer interpreted as the index of a variable
+
+        OUTPUT:
+
+        - a vector of coefficients of a basic variable
+
+        EXAMPLES::
+
+            sage: A = ([-1, 1], [8, 2])
+            sage: b = (2, 17)
+            sage: c = (55/10, 21/10)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.final_dictionary()
+            sage: D.row_coefficients("x1")
+            (1/10, -1/5)
+
+        We can also use indices of variables::
+
+            sage: D.row_coefficients(1)
+            (1/10, -1/5)
+
+        Or use variable names without quotes after injecting them::
+
+            sage: P.inject_variables()
+            Defining x0, x1, x2, x3, x4
+            sage: D.row_coefficients(x1)
+            (1/10, -1/5)
+        """
+        if v is not None:
+            v = variable(self.coordinate_ring(), v)
+            if v not in self.basic_variables():
+                raise ValueError("variable must be basic")
+        i = tuple(self.basic_variables()).index(v)
+        return self._AbcvBNz[0][i]
 
     def update(self):
         r"""
@@ -4077,7 +4610,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: D = P.revised_dictionary()
             sage: D.enter(1)
             sage: D.leave(3)
-            sage: print D._latex_()
+            sage: print(D._latex_())
             %notruncate
             \renewcommand{\arraystretch}{1.500000}
             \begin{array}{l}
@@ -4185,20 +4718,20 @@ class LPRevisedDictionary(LPAbstractDictionary):
     def _preupdate_output(self, direction):
         r"""
         Return auxiliary output before the update step.
-        
+
         In addition to generic output, show matrices for updating B-inverse.
-        
+
         INPUT:
-        
+
         - ``direction`` -- a string specifying the type of the simplex method
           used, either "primal" or "dual"
-        
+
         OUTPUT:
-        
+
         - :class:`~sage.misc.html.HtmlFragment`.
-        
+
         TESTS::
-        
+
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
@@ -4209,7 +4742,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: D._preupdate_output("primal")
             Entering: $x_{1}$. Leaving: $x_{4}$.
             \begin{equation*}
-            B_\mathrm{new}^{-1} = E^{-1} B_\mathrm{old}^{-1} = 
+            B_\mathrm{new}^{-1} = E^{-1} B_\mathrm{old}^{-1} =
             \left(\begin{array}{rr}
             1 & -\frac{1}{3} \\
             0 & \frac{1}{3}
@@ -4412,6 +4945,95 @@ class LPRevisedDictionary(LPAbstractDictionary):
         E[l, l] = 1 / d
         return E
 
+    def add_row(self, nonbasic_coefficients, constant, basic_variable=None):
+        r"""
+        Return a dictionary with an additional row based on a given dictionary.
+
+        The implementation of this method for revised dictionaries
+        adds a new inequality constraint to the problem, in which the given
+        `basic_variable` becomes the slack variable.  The resulting dictionary
+        (with `basic_variable` added to the basis) will have the given
+        `nonbasic_coefficients` and `constant` as a new row.
+
+        INPUT:
+
+        - ``nonbasic_coefficients``-- a list of the coefficients for the
+          new row (with which nonbasic variables are subtracted in the relation
+          for the new basic variable)
+
+        - ``constant``--  the constant term for the new row
+
+        - ``basic_variable``-- (default: depends on :func:`style`)
+          a string giving the name of the basic variable of the new row
+
+        OUTPUT:
+
+        - a :class:`revised dictionary <LPRevisedDictionary>`
+
+        EXAMPLES::
+
+            sage: A = ([-1, 1111, 3, 17], [8, 222, 7, 6],
+            ....: [3, 7, 17, 5], [9, 5, 7, 3])
+            sage: b = (2, 17, 11, 27)
+            sage: c = (5/133, 1/10, 1/18, 47/3)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.final_revised_dictionary()
+            sage: D1 = D.add_row([7, 11, 13, 9], 42)
+            sage: D1.row_coefficients("x9")
+            (7, 11, 13, 9)
+            sage: D1.constant_terms()[-1]
+            42
+            sage: D1.basic_variables()[-1]
+            x9
+
+            sage: A = ([-9, 7, 48, 31, 23], [5, 2, 9, 13, 98],
+            ....: [14, 15, 97, 49, 1], [9, 5, 7, 3, 17],
+            ....: [119, 7, 121, 5, 111])
+            sage: b = (33, 27, 1, 272, 61)
+            sage: c = (51/133, 1/100, 149/18, 47/37, 13/17)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.revised_dictionary("x1", "x2", "x3", "x4", "x5")
+            sage: D2 = D.add_row([5 ,7, 11, 13, 9], 99, basic_variable='c')
+            sage: D2.row_coefficients("c")
+            (5, 7, 11, 13, 9)
+            sage: D2.constant_terms()[-1]
+            99
+            sage: D2.basic_variables()[-1]
+            c
+
+            sage: D = P.revised_dictionary(0, 1, 2, 3, 4)
+            sage: D.add_row([1, 2, 3, 4, 5, 6], 0)
+            Traceback (most recent call last):
+            ...
+            ValueError: the sum of coefficients of nonbasic slack variables has
+            to be equal to -1 when inserting a row into a dictionary for the
+            auxiliary problem
+            sage: D3 = D.add_row([1, 2, 3, 4, 5, -15], 0)
+            sage: D3.row_coefficients(11)
+            (1, 2, 3, 4, 5, -15)
+        """
+        P = self.problem()
+        n = P.n()
+        # Split nonbasic_coefficients into decision and slack parts
+        nbc_decision = vector(P.base_ring(), n)
+        nbc_slack = vector(P.base_ring(), P.m())
+        for i, coef in zip(self.nonbasic_indices(), nonbasic_coefficients):
+            # Extra -1 is due to the auxiliary variable at index 0
+            if i > n:
+                nbc_slack[i -1 - n] = coef
+            else:
+                nbc_decision[i - 1] = coef
+        if 0 in self.basic_indices() and not sum(nbc_slack) == -1:
+            raise ValueError(
+                "the sum of coefficients of nonbasic slack variables has to "
+                "be equal to -1 when inserting a row into a dictionary for "
+                "the auxiliary problem")
+        P_new = P.add_constraint(nbc_decision - nbc_slack * P.A(),
+                                 constant - nbc_slack * P.b(),
+                                 basic_variable)
+        x_B = list(self.x_B()) + [P_new.slack_variables()[-1]]
+        return P_new.revised_dictionary(*x_B)
+
     def basic_indices(self):
         r"""
         Return the basic indices of ``self``.
@@ -4519,6 +5141,35 @@ class LPRevisedDictionary(LPAbstractDictionary):
             return vector(R, (c_D[k - 1] if k <= n else 0
                               for k in self.nonbasic_indices()))
 
+    def column_coefficients(self, v):
+        r"""
+        Return the coefficients of a nonbasic variable.
+
+        INPUT:
+
+        - ``v`` -- a nonbasic variable of ``self``, can be given as a string, an
+          actual variable, or an integer interpreted as the index of a variable
+
+        OUTPUT:
+
+        - a vector
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.revised_dictionary()
+            sage: D.column_coefficients(1)
+            (1, 3)
+        """
+        if v is not None:
+            v = variable(self.coordinate_ring(), v)
+            if v not in self.nonbasic_variables():
+                raise ValueError("variable must be nonbasic")
+        return self.B_inverse() * self.A(v)
+
     def constant_terms(self):
         r"""
         Return constant terms in the relations of ``self``.
@@ -4567,55 +5218,6 @@ class LPRevisedDictionary(LPAbstractDictionary):
         D._entering = self._entering
         D._leaving = self._leaving
         return D
-
-    def entering_coefficients(self):
-        r"""
-        Return coefficients of the entering variable.
-
-        OUTPUT:
-
-        - a vector
-
-        EXAMPLES::
-
-            sage: A = ([1, 1], [3, 1])
-            sage: b = (1000, 1500)
-            sage: c = (10, 5)
-            sage: P = InteractiveLPProblemStandardForm(A, b, c)
-            sage: D = P.revised_dictionary()
-            sage: D.enter(1)
-            sage: D.entering_coefficients()
-            (1, 3)
-        """
-        if self._entering is None:
-            raise ValueError("entering variable must be chosen to compute "
-                             "its coefficients")
-        return self.B_inverse() * self.A(self._entering)
-
-    def leaving_coefficients(self):
-        r"""
-        Return coefficients of the leaving variable.
-
-        OUTPUT:
-
-        - a vector
-
-        EXAMPLES::
-
-            sage: A = ([1, 1], [3, 1])
-            sage: b = (1000, 1500)
-            sage: c = (10, 5)
-            sage: P = InteractiveLPProblemStandardForm(A, b, c)
-            sage: D = P.revised_dictionary(2, 3)
-            sage: D.leave(3)
-            sage: D.leaving_coefficients()
-            (-2, -1)
-        """
-        if self._leaving is None:
-            raise ValueError("leaving variable must be chosen to compute "
-                             "its coefficients")
-        i = self.basic_variables().list().index(self._leaving)
-        return self.B_inverse()[i] * self.A_N()
 
     def nonbasic_indices(self):
         r"""
@@ -4691,6 +5293,26 @@ class LPRevisedDictionary(LPAbstractDictionary):
         """
         return self.c_N() - self.y() * self.A_N()
 
+    def objective_name(self):
+        r"""
+        Return the objective name of ``self``.
+
+        OUTPUT:
+
+        - a symbolic expression
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.revised_dictionary()
+            sage: D.objective_name()
+            z
+        """
+        return self.problem().objective_name()
+
     def objective_value(self):
         r"""
         Return the value of the objective at the basic solution of ``self``.
@@ -4731,6 +5353,51 @@ class LPRevisedDictionary(LPAbstractDictionary):
             True
         """
         return self._problem
+
+    def row_coefficients(self, v):
+        r"""
+        Return the coefficients of the basic variable ``v``.
+
+        These are the coefficients with which nonbasic variables are subtracted
+        in the relation for ``v``.
+
+        INPUT:
+
+        - ``v`` -- a basic variable of ``self``, can be given as a string, an
+          actual variable, or an integer interpreted as the index of a variable
+
+        OUTPUT:
+
+        - a vector of coefficients of a basic variable
+
+        EXAMPLES::
+
+            sage: A = ([-1, 1], [8, 2])
+            sage: b = (2, 17)
+            sage: c = (55/10, 21/10)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.revised_dictionary()
+            sage: D.row_coefficients("x3")
+            (-1, 1)
+
+        We can also use indices of variables::
+
+            sage: D.row_coefficients(3)
+            (-1, 1)
+
+        Or variable names without quotes after injecting them::
+
+            sage: P.inject_variables()
+            Defining x0, x1, x2, x3, x4
+            sage: D.row_coefficients(x3)
+            (-1, 1)
+        """
+        if v is not None:
+            v = variable(self.coordinate_ring(), v)
+            if v not in self.basic_variables():
+                raise ValueError("variable must be basic")
+        i = tuple(self.basic_variables()).index(v)
+        return self.B_inverse()[i] * self.A_N()
 
     def update(self):
         r"""

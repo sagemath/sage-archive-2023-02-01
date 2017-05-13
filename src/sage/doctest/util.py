@@ -18,7 +18,8 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
+from six import iteritems
 
 from sage.misc.misc import walltime, cputime
 
@@ -79,7 +80,7 @@ def dict_difference(self, other):
         {'foobar': 'hello', 'timeout': 100}
     """
     D = dict()
-    for (k,v) in self.iteritems():
+    for k, v in iteritems(self):
         try:
             if other[k] == v:
                 continue
@@ -463,7 +464,7 @@ class NestedName:
             sage: qname = NestedName('sage.categories.algebras')
             sage: qname[1] = 'Algebras'
             sage: qname[44] = 'at_the_end_of_the_universe'
-            sage: print qname # indirect doctest
+            sage: print(qname) # indirect doctest
             sage.categories.algebras.Algebras.at_the_end_of_the_universe
         """
         return '.'.join(a for a in self.all if a is not None)

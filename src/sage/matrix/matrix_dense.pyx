@@ -7,10 +7,13 @@ TESTS::
     sage: m = matrix(R,2,[0,a,b,b^2])
     sage: TestSuite(m).run()
 """
+from __future__ import absolute_import
+from __future__ import print_function
 
-cimport matrix
+cimport sage.matrix.matrix as matrix
 
-from   sage.structure.element    cimport Element, RingElement
+from sage.structure.element cimport Element, RingElement
+from sage.structure.sage_object cimport richcmp_not_equal, rich_to_bool
 import sage.matrix.matrix_space
 import sage.structure.sequence
 
@@ -64,7 +67,7 @@ cdef class Matrix_dense(matrix.Matrix):
         if not x is None: return x
 
         if not self._is_immutable:
-            raise TypeError, "mutable matrices are unhashable"
+            raise TypeError("mutable matrices are unhashable")
 
         v = self._list()
         cdef Py_ssize_t i
@@ -98,9 +101,9 @@ cdef class Matrix_dense(matrix.Matrix):
                     self.set_unsafe(i, j, data[k])
                     k = k + 1
         else:
-            raise RuntimeError, "unknown matrix version (=%s)"%version
+            raise RuntimeError("unknown matrix version (=%s)" % version)
 
-    cpdef int _cmp_(self, Element right) except -2:
+    cpdef _richcmp_(self, right, int op):
         """
         EXAMPLES::
 
@@ -108,22 +111,23 @@ cdef class Matrix_dense(matrix.Matrix):
             sage: m = matrix([[x,x+1],[1,x]])
             sage: n = matrix([[x+1,x],[1,x]])
             sage: o = matrix([[x,x],[1,x]])
-            sage: m.__cmp__(n)
-            -1
-            sage: m.__cmp__(m)
-            0
-            sage: n.__cmp__(m)
-            1
-            sage: m.__cmp__(o)
-            1
+            sage: m < n
+            True
+            sage: m == m
+            True
+            sage: n > m
+            True
+            sage: m <= o
+            False
         """
         cdef Py_ssize_t i, j
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
-                res = cmp( self[i,j], right[i,j] )
-                if res != 0:
-                    return res
-        return 0
+                lij = self[i, j]
+                rij = right[i, j]
+                if lij != rij:
+                    return richcmp_not_equal(lij, rij, op)
+        return rich_to_bool(op, 0)
 
     def transpose(self):
         """
@@ -137,10 +141,10 @@ cdef class Matrix_dense(matrix.Matrix):
             sage: M = MatrixSpace(QQ,  2)
             sage: A = M([1,2,3,4])
             sage: B = A.transpose()
-            sage: print B
+            sage: print(B)
             [1 3]
             [2 4]
-            sage: print A
+            sage: print(A)
             [1 2]
             [3 4]
 
@@ -239,7 +243,7 @@ cdef class Matrix_dense(matrix.Matrix):
         proper input.  More thorough documentation is provided
         there.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(ZZ, 2, range(6), sparse=False)
             sage: B = matrix(ZZ, 2, [1,0,2,0,3,0], sparse=False)
@@ -268,7 +272,7 @@ cdef class Matrix_dense(matrix.Matrix):
         Differentiate with respect to var by differentiating each element
         with respect to var.
 
-        .. seealso::
+        .. SEEALSO::
 
            :meth:`derivative`
 

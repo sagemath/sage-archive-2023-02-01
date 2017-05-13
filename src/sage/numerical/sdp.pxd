@@ -17,6 +17,8 @@ cdef class SemidefiniteProgram(SageObject):
     cpdef int number_of_variables(self)
     cdef list _constraints
     cpdef sum(self, L)
+    cpdef dual_variable(self, int i, sparse=*)
+    cpdef slack(self, int i, sparse=*)
 
 
 cdef class SDPVariable(Element):

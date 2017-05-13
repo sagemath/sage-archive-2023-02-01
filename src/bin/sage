@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 help_banner() {
-    grep -v 'Type' "$SAGE_LOCAL/bin/sage-banner"
+    sage_banner | grep -v 'Type'
     echo
 }
 
@@ -24,7 +24,7 @@ usage() {
     echo "  -maxima [...]       -- run Sage's Maxima with given arguments"
     echo "  -mwrank [...]       -- run Sage's mwrank with given arguments"
     echo "  --notebook=[...]    -- start the Sage notebook (valid options are"
-    echo "                         'default', 'sagenb', and 'jupyter')"
+    echo "                         'default', 'sagenb', 'jupyter', and 'export')"
     echo "  -n, --notebook      -- shortcut for --notebook=default"
     echo "  -optional           -- list all optional packages that can be installed"
     echo "  -python [...]       -- run the Python interpreter"
@@ -75,9 +75,10 @@ usage_advanced() {
     ####  |.....................--.|...................................................|
     echo "Running the notebook:"
     echo "  --notebook=[...]    -- start the Sage notebook (valid options are"
-    echo "                         'default', 'sagenb', and 'jupyter'). See the output"
-    echo "                         of sage --notebook --help for more details and"
-    echo "                         examples of how to pass optional arguments"
+    echo "                         'default', 'sagenb', 'jupyter' and 'export')."
+    echo "                         See the output of sage --notebook --help"
+    echo "                         for more details and examples of how to pass"
+    echo "                         optional arguments"
     echo "  -bn, -build-and-notebook [...] -- build the Sage library then start"
     echo "                         the Sage notebook"
     echo "  -inotebook [...]    -- start the *insecure* Sage notebook (deprecated)"
@@ -107,6 +108,9 @@ usage_advanced() {
     echo "                         (not installed currently, run sage -i macaulay2)"
     echo "  -maxima [...]       -- run Sage's Maxima with given arguments"
     echo "  -mwrank [...]       -- run Sage's mwrank with given arguments"
+    echo "  -polymake [...]     -- run Sage's Polymake with given arguments"
+    command -v polymake &>/dev/null || \
+    echo "                         (not installed currently, run sage -i polymake)"
     echo "  -python [...]       -- run the Python interpreter"
     echo "  -R [...]            -- run Sage's R with given arguments"
     echo "  -scons [...]        -- run Sage's scons"
@@ -131,6 +135,12 @@ usage_advanced() {
     echo "                                 if they are already installed"
     echo "                           -s -- do not delete the temporary build directories"
     echo "                                 after a successful build"
+    echo "                           -y -- reply yes to prompts about experimental"
+    echo "                                 and old-style packages; warning: there"
+    echo "                                 is no guarantee that these packages will"
+    echo "                                 build correctly; use at your own risk"
+    echo "                           -n -- reply no to prompts about experimental"
+    echo "                                 and old-style packages"
     echo "  -p [opts] [packages]-- install the given Sage packages, without dependency"
     echo "                         checking and with support for old-style spkgs."
     echo "                         Options are -c, -d and -s with the same meaning as"
@@ -200,6 +210,8 @@ usage_advanced() {
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo "File conversion:"
+    echo "  -rst2ipynb [...]    -- Generates Jupyter notebook (.ipynb) from standalone"
+    echo "                         reStructuredText source."
     echo "  -rst2txt [...]      -- Generates Sage worksheet text file from standalone"
     echo "                         reStructuredText source."
     echo "  -rst2sws [...]      -- Generates Sage worksheet (.sws) from standalone"
@@ -264,8 +276,26 @@ fi
 # an unclobbered environment before testing unsafe tickets.
 if [ "$1" = '-patchbot' -o "$1" = "--patchbot" ]; then
     shift
-    cd "$SAGE_ROOT"
-    exec local/bin/patchbot/patchbot.py "$@"
+    # We ask the Python from Sage where the patchbot is installed.
+    # We set PYTHONPATH to that directory such that the system Python
+    # should also find the sage_patchbot package.
+    cmd='import sage_patchbot as p; import os; print(os.path.dirname(p.__path__[0]))'
+    export PYTHONPATH=`"$SAGE_ROOT/sage" --python -c "$cmd"`
+    if [ -z "$PYTHONPATH" ]; then
+        # Something went wrong, assume that the patchbot is not installed
+        echo >&2 "Error: cannot find installation path for sage_patchbot"
+        echo >&2 "See https://wiki.sagemath.org/buildbot for instructions"
+        exit 1
+    fi
+
+    # Try "python2.7", then "python2", then "python"
+    shopt -s execfail  # Do not exit if "exec" fails
+    exec python2.7 -m sage_patchbot.patchbot "$@"
+    exec python2 -m sage_patchbot.patchbot "$@"
+    exec python -m sage_patchbot.patchbot "$@"
+    echo >&2 "Error: cannot find a suitable Python program."
+    echo >&2 "The SageMath patchbot requires a system Python installation."
+    exit 127
 fi
 
 # Check for '--upgrade' before sourcing sage-env: the top-level "make"
@@ -353,7 +383,7 @@ fi
 # Prepare for running Sage, either interactively or non-interactively.
 sage_setup() {
     # Check that we're not in a source tarball which hasn't been built yet (#13561).
-    if [ ! -d "$SAGE_LOCAL/lib/python/site-packages/sage" ]; then
+    if [ ! -x "$SAGE_LOCAL/bin/sage" ]; then
         echo >&2 '************************************************************************'
         echo >&2 'It seems that you are attempting to run Sage from an unpacked source'
         echo >&2 'tarball, but you have not compiled it yet (or maybe the build has not'
@@ -364,12 +394,8 @@ sage_setup() {
         exit 1
     fi
 
-    # Display the startup banner
-    if [ "$SAGE_BANNER" = "bare" ]; then
-        cat "$SAGE_ROOT/VERSION.txt"
-    elif [ "$SAGE_BANNER" != "no" ]; then
-        cat "$SAGE_LOCAL/bin/sage-banner"
-    fi
+    # Display the startup banner (unless SAGE_BANNER is explictly "no")
+    sage_banner
 
     maybe_sage_location
 
@@ -426,15 +452,15 @@ fi
 #####################################################################
 
 if [ "$1" = '-dumpversion' -o "$1" = '--dumpversion' ]; then
-	. "$SAGE_LOCAL"/bin/sage-version.sh
-	echo ${SAGE_VERSION}
-	exit 0
+        . "$SAGE_LOCAL"/bin/sage-version.sh
+        echo ${SAGE_VERSION}
+        exit 0
 fi
 
 if [ "$1" = '-v' -o "$1" = '-version' -o "$1" = '--version' ]; then
-	. "$SAGE_LOCAL"/bin/sage-version.sh
-	echo "SageMath version ${SAGE_VERSION}, Release Date: ${SAGE_RELEASE_DATE}"
-	exit 0
+        . "$SAGE_LOCAL"/bin/sage-version.sh
+        echo "SageMath version ${SAGE_VERSION}, Release Date: ${SAGE_RELEASE_DATE}"
+        exit 0
 fi
 
 if [ "$1" = '-root'  -o "$1" = '--root' ]; then
@@ -466,9 +492,14 @@ if [ "$1" = '-gp' -o "$1" = '--gp' ]; then
     exec gp "$@"
 fi
 
+if [ "$1" = '-polymake' -o "$1" = '--polymake' ]; then
+    shift
+    exec polymake "$@"
+fi
+
 if [ "$1" = '-singular' -o "$1" = '--singular' ]; then
     shift
-    exec singular "$@"
+    exec Singular "$@"
 fi
 
 if [ "$1" = '-sqlite3' -o "$1" = '--sqlite3' ]; then
@@ -696,6 +727,11 @@ fi
 #####################################################################
 # File conversion
 #####################################################################
+
+if [ "$1" = '-rst2ipynb' -o "$1" = '--rst2ipynb' ]; then
+    shift
+    exec sage-rst2ipynb "$@"
+fi
 
 if [ "$1" = '-rst2txt' -o "$1" = '--rst2txt' ]; then
     shift
@@ -935,7 +971,9 @@ if [ "$1" = '-gdb' -o "$1" = "--gdb" ]; then
         gdb -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
             -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
     else
-        cygdb "$SAGE_SRC/build" "$SAGE_SRC/sage" \
+        # Location of cython_debug directory
+        cygdb_dir="$SAGE_SRC/build/cythonized"
+        cygdb "$cygdb_dir" "$SAGE_SRC/sage" \
             -- -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
             -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
     fi
@@ -989,11 +1027,6 @@ fi
 if [ "$1" = '-gthread' -o "$1" = '-qthread' -o "$1" = '-q4thread' -o "$1" = '-wthread' -o "$1" = '-pylab' ]; then
     # Intentionally no "shift" here
     interactive_sage "$@"
-fi
-
-if [ "$1" = '-dev' -o "$1" = "--dev" ]; then
-    shift
-    exec sage-dev "$@"
 fi
 
 if [ $# -ge 1 ]; then

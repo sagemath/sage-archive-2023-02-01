@@ -48,6 +48,8 @@ from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.ext.fast_callable import fast_callable
 import sys
+from sage.symbolic.ring import is_SymbolicExpressionRing
+from sage.symbolic.ring import var
 
 class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
     """
@@ -431,9 +433,9 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: f.homogenize(2)
             Scheme endomorphism of Closed subscheme of Projective Space
             of dimension 2 over Integer Ring defined by:
-              -x1^2 + x0*x2
-              Defn: Defined on coordinates by sending (x0 : x1 : x2) to
-                    (9*x1^2 : 3*x1*x2 : x2^2)
+                x1^2 - x0*x2
+                Defn: Defined on coordinates by sending (x0 : x1 : x2) to
+                      (9*x1^2 : 3*x1*x2 : x2^2)
 
         ::
 
@@ -490,6 +492,39 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             dimension 1 over Rational function field in c over Rational Field
               Defn: Defined on coordinates by sending (x0 : x1) to
                     (x0^2 + c*x1^2 : x1^2)
+
+        ::
+
+            sage: A.<z> = AffineSpace(QQbar, 1)
+            sage: H = End(A)
+            sage: f = H([2*z / (z^2+2*z+3)])
+            sage: f.homogenize(1)
+            Scheme endomorphism of Projective Space of dimension 1 over Algebraic
+            Field
+              Defn: Defined on coordinates by sending (x0 : x1) to
+                    (x0*x1 : 1/2*x0^2 + x0*x1 + 3/2*x1^2)
+
+        ::
+
+            sage: A.<z> = AffineSpace(QQbar, 1)
+            sage: H = End(A)
+            sage: f = H([2*z / (z^2 + 2*z + 3)])
+            sage: f.homogenize(1)
+            Scheme endomorphism of Projective Space of dimension 1 over Algebraic
+            Field
+                Defn: Defined on coordinates by sending (x0 : x1) to
+                    (x0*x1 : 1/2*x0^2 + x0*x1 + 3/2*x1^2)
+
+        ::
+
+            sage: R.<c,d> = QQbar[]
+            sage: A.<x> = AffineSpace(R, 1)
+            sage: H = Hom(A, A)
+            sage: F = H([d*x^2 + c])
+            sage: F.homogenize(1)
+            Scheme endomorphism of Projective Space of dimension 1 over Multivariate Polynomial Ring in c, d over Algebraic Field
+            Defn: Defined on coordinates by sending (x0 : x1) to
+            (d*x0^2 + c*x1^2 : x1^2)
         """
         #it is possible to homogenize the domain and codomain at different coordinates
         if isinstance(n, (tuple, list)):
@@ -528,7 +563,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             #remove possible gcd of coefficients
             gc = gcd([f.content() for f in F])
             F = [S(f/gc) for f in F]
-        except AttributeError: #no gcd
+        except (AttributeError, ValueError, NotImplementedError, TypeError): #no gcd
             pass
         d = max([F[i].degree() for i in range(M+1)])
         F = [F[i].homogenize(str(newvar))*newvar**(d-F[i].degree()) for i in range(M+1)]
@@ -604,12 +639,38 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
             sage: K.<c> = FunctionField(QQ)
             sage: A.<x> = AffineSpace(K, 1)
-            sage: f = Hom(A, A)([x^2 + c])
+            sage: H = Hom(A, A)
+            sage: f = H([x^2 + c])
             sage: f.dynatomic_polynomial(4)
             x^12 + 6*c*x^10 + x^9 + (15*c^2 + 3*c)*x^8 + 4*c*x^7 + (20*c^3 + 12*c^2 + 1)*x^6
             + (6*c^2 + 2*c)*x^5 + (15*c^4 + 18*c^3 + 3*c^2 + 4*c)*x^4 + (4*c^3 + 4*c^2 + 1)*x^3
             + (6*c^5 + 12*c^4 + 6*c^3 + 5*c^2 + c)*x^2 + (c^4 + 2*c^3 + c^2 + 2*c)*x
             + c^6 + 3*c^5 + 3*c^4 + 3*c^3 + 2*c^2 + 1
+
+        ::
+
+            sage: A.<z> = AffineSpace(QQ, 1)
+            sage: H = End(A)
+            sage: f = H([z^2+3/z+1/7])
+            sage: f.dynatomic_polynomial(1).parent()
+            Multivariate Polynomial Ring in z over Rational Field
+
+        ::
+
+            sage: R.<c> = QQ[]
+            sage: A.<z> = AffineSpace(R,1)
+            sage: H = End(A)
+            sage: f = H([z^2 + c])
+            sage: f.dynatomic_polynomial([1,1])
+            z^2 + z + c
+
+        ::
+
+            sage: A.<x> = AffineSpace(CC,1)
+            sage: H = Hom(A,A)
+            sage: F = H([1/2*x^2 + sqrt(3)])
+            sage: F.dynatomic_polynomial([1,1])
+            (0.125000000000000*x^4 + 0.366025403784439*x^2 + 1.50000000000000)/(0.500000000000000*x^2 - x + 1.73205080756888)
         """
         if self.domain() != self.codomain():
             raise TypeError("must have same domain and codomain to iterate")
@@ -618,15 +679,19 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             raise NotImplementedError("not implemented for subschemes")
         if self.domain().dimension_relative()>1:
             raise TypeError("does not make sense in dimension >1")
-        F = self.homogenize(1).dynatomic_polynomial(period)
-        if F.denominator() == 1:
+        G = self.homogenize(1)
+        F = G.dynatomic_polynomial(period)
+        T = G.domain().coordinate_ring()
+        S = self.domain().coordinate_ring()
+        if is_SymbolicExpressionRing(F.parent()):
+            u = var(self.domain().coordinate_ring().variable_name())
+            return F.subs({F.variables()[0]:u,F.variables()[1]:1})
+        elif T(F.denominator()).degree() == 0:
             R = F.parent()
-            S = self.coordinate_ring()
             phi = R.hom([S.gen(0), 1], S)
             return(phi(F))
         else:
             R = F.numerator().parent()
-            S = self.coordinate_ring()
             phi = R.hom([S.gen(0), 1], S)
             return(phi(F.numerator())/phi(F.denominator()))
 
@@ -1105,18 +1170,19 @@ class SchemeMorphism_polynomial_affine_space_finite_field(SchemeMorphism_polynom
 
         P=[]
         for i in range(len(self._fastpolys[0])):
+            r = self._fastpolys[0][i](*x)
             if self._fastpolys[1][i] is R.one():
                 if self._is_prime_finite_field:
                     p = self.base_ring().characteristic()
-                    P.append(self._fastpolys[0][i](*x) % p)
-                else:
-                    P.append(self._fastpolys[0][i](*x))
+                    r = Integer(r) % p
+                P.append(r)
             else:
+                s = self._fastpolys[1][i](*x)
                 if self._is_prime_finite_field:
                     p = self.base_ring().characteristic()
-                    P.append((self._fastpolys[0][i](*x) % p)/(self._fastpolys[1][i](*x) % p))
-                else:
-                    P.append(self._fastpolys[0][i](*x)/self._fastpolys[1][i](*x))
+                    r = Integer(r) % p
+                    s = Integer(s) % p
+                P.append(r/s)
         return P
 
     def cyclegraph(self):
@@ -1176,4 +1242,3 @@ class SchemeMorphism_polynomial_affine_space_finite_field(SchemeMorphism_polynom
         from sage.graphs.digraph import DiGraph
         g = DiGraph(dict(zip(V, E)), loops=True)
         return g
-

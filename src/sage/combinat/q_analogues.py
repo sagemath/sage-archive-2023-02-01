@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-q-Analogues
+`q`-Analogues
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -16,6 +16,8 @@ q-Analogues
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+# python3
+from __future__ import division
 
 from sage.misc.cachefunc import cached_function
 from sage.misc.all import prod
@@ -252,6 +254,11 @@ def q_binomial(n, k, q=None, algorithm='auto'):
         sage: q_binomial(4, 2, Zmod(6)(2), algorithm='naive')
         5
 
+    Check that it works with Python integer for ``q``::
+
+        sage: q_binomial(3r, 2r, 1r)
+        3
+
     REFERENCES:
 
     .. [CH2006] William Y.C. Chen and Qing-Hu Hou, *Factors of the Gaussian
@@ -278,8 +285,14 @@ def q_binomial(n, k, q=None, algorithm='auto'):
         is_polynomial = isinstance(q, Polynomial)
 
     R = parent(q)
-    zero = R(0)
-    one = R(1)
+    try:
+        zero = R.zero()
+    except AttributeError:
+        zero = R('0')
+    try:
+        one = R.one()
+    except AttributeError:
+        one = R('1')
 
     if not(0 <= k and k <= n):
         return zero
@@ -290,7 +303,7 @@ def q_binomial(n, k, q=None, algorithm='auto'):
     if algorithm == 'auto':
         from sage.symbolic.ring import SR
         if is_polynomial:
-            if n <= 70 or k <= n/4:
+            if n <= 70 or k <= n // 4:
                 algorithm = 'naive'
             else:
                 algorithm = 'cyclo_polynomial'
@@ -310,6 +323,7 @@ def q_binomial(n, k, q=None, algorithm='auto'):
     if algorithm == 'naive':
         denom = prod(one - q**i for i in range(1, k+1))
         if not denom: # q is a root of unity, use the cyclotomic algorithm
+            from sage.rings.polynomial.cyclotomic import cyclotomic_value
             return cyclotomic_value(n, k, q, algorithm='cyclotomic')
         else:
             num = prod(one - q**i for i in range(n-k+1, n+1))
@@ -325,11 +339,12 @@ def q_binomial(n, k, q=None, algorithm='auto'):
         from sage.rings.polynomial.cyclotomic import cyclotomic_value
         return prod(cyclotomic_value(d,q)
                     for d in range(2,n+1)
-                    if (n/d).floor() != (k/d).floor() + ((n-k)/d).floor())
+                    if (n//d) != (k//d) + ((n-k)//d))
     elif algorithm == 'cyclo_polynomial':
         return prod(R.cyclotomic_polynomial(d)
                     for d in range(2,n+1)
-                    if (n/d).floor() != (k/d).floor() + ((n-k)/d).floor())
+                    if (n//d) != (k//d) + ((n-k)//d))
+
 
 def gaussian_binomial(n, k, q=None, algorithm='auto'):
     r"""
@@ -402,9 +417,10 @@ def q_multinomial(seq, q=None, binomial_algorithm='auto'):
 
 gaussian_multinomial = q_multinomial
 
+
 def q_catalan_number(n, q=None):
     """
-    Returns the `q`-Catalan number of index `n`.
+    Return the `q`-Catalan number of index `n`.
 
     If `q` is unspecified, then it defaults to using the generator `q` for
     a univariate polynomial ring over the integers.
@@ -428,11 +444,18 @@ def q_catalan_number(n, q=None):
         Traceback (most recent call last):
         ...
         ValueError: Argument (-2) must be a nonnegative integer.
+
+    TESTS::
+
+        sage: q_catalan_number(3).parent()
+        Univariate Polynomial Ring in q over Integer Ring
     """
     if n in ZZ and n >= 0:
-        return prod(q_int(j, q) for j in range(n+2, 2*n+1)) / prod(q_int(j, q) for j in range(2,n+1))
+        return (prod(q_int(j, q) for j in range(n + 2, 2 * n + 1)) //
+                prod(q_int(j, q) for j in range(2, n + 1)))
     else:
-        raise ValueError("Argument (%s) must be a nonnegative integer." %n)
+        raise ValueError("Argument (%s) must be a nonnegative integer." % n)
+
 
 def qt_catalan_number(n):
     """
@@ -552,7 +575,7 @@ def q_subgroups_of_abelian_group(la, mu, q=None, algorithm='birkhoff'):
 
     - ``la`` -- type of the ambient group as a :class:`Partition`
     - ``mu`` -- type of the subgroup as a :class:`Partition`
-    - ``q`` -- (default: ``None``) an indeterminat or a prime number; if
+    - ``q`` -- (default: ``None``) an indeterminate or a prime number; if
       ``None``, this defaults to `q \in \ZZ[q]`
     - ``algorithm`` -- (default: ``'birkhoff'``) the algorithm to use can be
       one of the following:
@@ -658,7 +681,7 @@ def q_subgroups_of_abelian_group(la, mu, q=None, algorithm='birkhoff'):
        Mathematical Society 101, no. 4 (1987): 771-775.
        :doi:`10.1090/S0002-9939-1987-0911049-8`
 
-    .. [Delsarte48] S. Delsarte, *Fonctions de Möbius Sur Les Groupes Abeliens
+    .. [Delsarte48] \S. Delsarte, *Fonctions de Möbius Sur Les Groupes Abeliens
        Finis*, Annals of Mathematics, second series, Vol. 45, No. 3, (Jul 1948),
        pp. 600-609. http://www.jstor.org/stable/1969047
 

@@ -67,7 +67,7 @@ cdef inline int ccmp(celement a, celement b, long prec, bint reduce_a, bint redu
     - ``reduce_b`` -- a bint, whether ``b`` needs to be reduced.
     - ``prime_pow`` -- the PowComputer for the ring.
 
-    OUPUT:
+    OUTPUT:
 
     - If neither ``a`` nor ``b`` needs to be reduced, returns
       -1 (if `a < b`), 0 (if `a == b`) or 1 (if `a > b`)
@@ -587,7 +587,7 @@ cdef int cteichmuller(celement out, celement value, long prec, PowComputer_ prim
     We use Hensel lifting to solve the equation `f(T)=T^q-T`. Instead of
     dividing by the derivative of `f`, we divide by `( q - 1 )` whose first
     digits coincide with `f'`. This does probably not yield quadratic
-    convergence but taking inverses would be much more expansive than what is
+    convergence but taking inverses would be much more expensive than what is
     done here.
 
     """

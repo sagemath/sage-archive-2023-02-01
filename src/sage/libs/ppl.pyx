@@ -102,7 +102,7 @@ Finally, PPL is fast. For example, here is the permutahedron of 5
 basis vectors::
 
     sage: from sage.libs.ppl import Variable, Generator_System, point, C_Polyhedron
-    sage: basis = range(0,5)
+    sage: basis = list(range(5))
     sage: x = [ Variable(i) for i in basis ]
     sage: gs = Generator_System();
     sage: for coeff in Permutations(basis):
@@ -115,7 +115,7 @@ measures it to be 90 microseconds on sage.math). Below we do the same
 computation with cddlib, which needs more than 3 seconds on the same
 hardware::
 
-    sage: basis = range(0,5)
+    sage: basis = list(range(5))
     sage: gs = [ tuple(coeff) for coeff in Permutations(basis) ]
     sage: Polyhedron(vertices=gs, backend='cdd')  # long time (3s on sage.math, 2011)
     A 4-dimensional polyhedron in QQ^5 defined as the convex hull of 120 vertices
@@ -126,7 +126,7 @@ Since Python and C++ syntax are not always compatible, there are
 necessarily some differences. The main ones are:
 
 * The :class:`Linear_Expression` also accepts an iterable as input for
-  the homogeneous cooefficients.
+  the homogeneous coefficients.
 
 * :class:`Polyhedron` and its subclasses as well as
   :class:`Generator_System` and :class:`Constraint_System` can be set
@@ -148,6 +148,7 @@ AUTHORS:
 #  the License, or (at youroption) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.structure.sage_object cimport SageObject
 from sage.libs.gmp.mpz cimport *
@@ -158,6 +159,7 @@ from sage.rings.rational cimport Rational
 include "cysignals/signals.pxi"
 
 from libcpp cimport bool as cppbool
+from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 
 ####################################################
 # Potentially expensive operations:
@@ -2524,7 +2526,7 @@ cdef class Polyhedron(_mutable_or_immutable):
         This method assigns the intersection to ``self`` and does not
         return anything.
 
-        Raises a ``ValueError`` if ``self`` and and ``y`` are
+        Raises a ``ValueError`` if ``self`` and ``y`` are
         topology-incompatible or dimension-incompatible.
 
         EXAMPLES::
@@ -2574,7 +2576,7 @@ cdef class Polyhedron(_mutable_or_immutable):
         This method assigns the poly-hull to ``self`` and does not
         return anything.
 
-        Raises a ``ValueError`` if ``self`` and and ``y`` are
+        Raises a ``ValueError`` if ``self`` and ``y`` are
         topology-incompatible or dimension-incompatible.
 
         EXAMPLES::
@@ -2639,7 +2641,7 @@ cdef class Polyhedron(_mutable_or_immutable):
         This method assigns the poly-difference to ``self`` and does
         not return anything.
 
-        Raises a ``ValueError`` if ``self`` and and ``y`` are
+        Raises a ``ValueError`` if ``self`` and ``y`` are
         topology-incompatible or dimension-incompatible.
 
         EXAMPLES::
@@ -2867,7 +2869,7 @@ cdef class Polyhedron(_mutable_or_immutable):
         r"""
         Assign to ``self`` the concatenation of ``self`` and ``y``.
 
-        This functions returns the Cartiesian product of ``self`` and
+        This function returns the Cartesian product of ``self`` and
         ``y``.
 
         Viewing a polyhedron as a set of tuples (its points), it is
@@ -2988,7 +2990,7 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: sage_cmd += 'p.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
-            sage: print err  # long time
+            sage: print(err)  # long time
             space_dim 2
             -ZE -EM  +CM +GM  +CS +GS  -CP -GP  -SC +SG
             con_sys (up-to-date)
@@ -3130,17 +3132,17 @@ cdef class Polyhedron(_mutable_or_immutable):
         """
         cdef result
         sig_on()
-        if op==0:      # <   0
+        if op == Py_LT:
             result = rhs.strictly_contains(lhs)
-        elif op==1:    # <=  1
+        elif op == Py_LE:
             result = rhs.contains(lhs)
-        elif op==2:    # ==  2
+        elif op == Py_EQ:
             result = (lhs.thisptr[0] == rhs.thisptr[0])
-        elif op==4:    # >   4
+        elif op == Py_GT:
             result = lhs.strictly_contains(rhs)
-        elif op==5:    # >=  5
+        elif op == Py_GE:
             result = lhs.contains(rhs)
-        elif op==3:    # !=  3
+        elif op == Py_NE:
             result = (lhs.thisptr[0] != rhs.thisptr[0])
         else:
             assert False  # unreachable
@@ -3632,7 +3634,7 @@ cdef class Variable(object):
         r"""
         Return the dimension of the vector space enclosing ``self``.
 
-        OUPUT:
+        OUTPUT:
 
         Integer. The returned value is ``self.id()+1``.
 
@@ -3900,7 +3902,7 @@ cdef class Variables_Set(object):
         r"""
         Returns the dimension of the smallest vector space enclosing all the variables whose indexes are in the set.
 
-        OUPUT:
+        OUTPUT:
 
         Integer.
 
@@ -3941,7 +3943,7 @@ cdef class Variables_Set(object):
             sage: sage_cmd += 'S.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
-            sage: print err  # long time
+            sage: print(err)  # long time
             <BLANKLINE>
             variables( 1 )
             123
@@ -4225,7 +4227,7 @@ cdef class Linear_Expression(object):
             sage: sage_cmd += 'e.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
-            sage: print err  # long time
+            sage: print(err)  # long time
             size 3 1 3 2
         """
         self.thisptr.ascii_dump()
@@ -5119,7 +5121,7 @@ cdef class Generator(object):
             sage: sage_cmd += 'p.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
-            sage: print err  # long time
+            sage: print(err)  # long time
             size 3 1 3 2 P (C)
         """
         self.thisptr.ascii_dump()
@@ -5420,7 +5422,7 @@ cdef class Generator_System(_mutable_or_immutable):
             sage: sage_cmd += 'gs.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
-            sage: print err  # long time
+            sage: print(err)  # long time
             topology NECESSARILY_CLOSED
             1 x 2 SPARSE (sorted)
             index_first_pending 1
@@ -5654,17 +5656,17 @@ cdef _wrap_Constraint(PPL_Constraint constraint):
 cdef _make_Constraint_from_richcmp(lhs_, rhs_, op):
     cdef Linear_Expression lhs = Linear_Expression(lhs_)
     cdef Linear_Expression rhs = Linear_Expression(rhs_)
-    if op==0:      # <   0
+    if op == Py_LT:
         return _wrap_Constraint(lhs.thisptr[0] <  rhs.thisptr[0])
-    elif op==1:    # <=  1
+    elif op == Py_LE:
         return _wrap_Constraint(lhs.thisptr[0] <= rhs.thisptr[0])
-    elif op==2:    # ==  2
+    elif op == Py_EQ:
         return _wrap_Constraint(lhs.thisptr[0] == rhs.thisptr[0])
-    elif op==4:    # >   4
+    elif op == Py_GT:
         return _wrap_Constraint(lhs.thisptr[0] >  rhs.thisptr[0])
-    elif op==5:    # >=  5
+    elif op == Py_GE:
         return _wrap_Constraint(lhs.thisptr[0] >= rhs.thisptr[0])
-    elif op==3:    # !=  3
+    elif op == Py_NE:
         raise NotImplementedError
     else:
         assert(False)
@@ -6108,7 +6110,7 @@ cdef class Constraint(object):
             sage: sage_cmd += 'e.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
-            sage: print err  # long time
+            sage: print(err)  # long time
             size 4 1 3 2 -1 > (NNC)
         """
         self.thisptr.ascii_dump()
@@ -6454,7 +6456,7 @@ cdef class Constraint_System(object):
             sage: sage_cmd += 'cs.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
-            sage: print err  # long time
+            sage: print(err)  # long time
             topology NOT_NECESSARILY_CLOSED
             1 x 2 SPARSE (sorted)
             index_first_pending 1
@@ -6805,7 +6807,7 @@ cdef class Poly_Gen_Relation(object):
             sage: sage_cmd += 'Poly_Gen_Relation.nothing().ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
-            sage: print err  # long time
+            sage: print(err)  # long time
             NOTHING
         """
         self.thisptr.ascii_dump()
@@ -6892,8 +6894,8 @@ cdef class Poly_Con_Relation(object):
         sage: from sage.matrix.constructor import matrix
         sage: m = matrix(5,5)
         sage: for i, rel_i in enumerate(rels):
-        ...       for j, rel_j in enumerate(rels):
-        ...           m[i,j] = rel_i.implies(rel_j)
+        ....:     for j, rel_j in enumerate(rels):
+        ....:         m[i,j] = rel_i.implies(rel_j)
         sage: m
         [1 0 0 0 0]
         [1 1 0 0 0]
@@ -7055,7 +7057,7 @@ cdef class Poly_Con_Relation(object):
             sage: sage_cmd += 'Poly_Con_Relation.nothing().ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
-            sage: print err  # long time
+            sage: print(err)  # long time
             NOTHING
         """
         self.thisptr.ascii_dump()

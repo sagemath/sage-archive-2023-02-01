@@ -176,6 +176,7 @@ TESTS::
     sage: TestSuite(R).run()
 
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2008 David Roe <roed.math@gmail.com>
@@ -187,16 +188,17 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.structure.sage_object import op_LE
 
-from generic_nodes import pAdicFieldBaseGeneric, \
+from .generic_nodes import pAdicFieldBaseGeneric, \
                           pAdicCappedRelativeFieldGeneric, \
                           pAdicRingBaseGeneric, \
                           pAdicCappedRelativeRingGeneric, \
                           pAdicFixedModRingGeneric, \
                           pAdicCappedAbsoluteRingGeneric
-from padic_capped_relative_element import pAdicCappedRelativeElement
-from padic_capped_absolute_element import pAdicCappedAbsoluteElement
-from padic_fixed_mod_element import pAdicFixedModElement
+from .padic_capped_relative_element import pAdicCappedRelativeElement
+from .padic_capped_absolute_element import pAdicCappedAbsoluteElement
+from .padic_fixed_mod_element import pAdicFixedModElement
 from sage.rings.integer_ring import ZZ
 
 class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGeneric):
@@ -242,7 +244,7 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGener
 
     def _coerce_map_from_(self, R):
         """
-        Returns ``True`` if there is a coerce map from ``R`` to ``self``.
+        Return ``True`` if there is a coerce map from ``R`` to ``self``.
 
         EXAMPLES::
 
@@ -271,7 +273,8 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGener
         if isinstance(R, pAdicRingCappedRelative) and R.prime() == self.prime():
             if R.precision_cap() < self.precision_cap():
                 return True
-            elif R.precision_cap() == self.precision_cap() and self._printer.cmp_modes(R._printer) <= 0:
+            elif (R.precision_cap() == self.precision_cap() and
+                  self._printer.richcmp_modes(R._printer, op_LE)):
                 return True
 
     def _repr_(self, do_latex=False):
@@ -377,7 +380,8 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGener
         if isinstance(R, pAdicRingCappedAbsolute) and R.prime() == self.prime():
             if R.precision_cap() < self.precision_cap():
                 return True
-            if R.precision_cap() == self.precision_cap() and self._printer.cmp_modes(R._printer) <= 0:
+            elif (R.precision_cap() == self.precision_cap() and
+                  self._printer.richcmp_modes(R._printer, op_LE)):
                 return True
 
 class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
@@ -451,7 +455,8 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
         if isinstance(R, pAdicRingFixedMod) and R.prime() == self.prime():
             if R.precision_cap() > self.precision_cap():
                 return True
-            if R.precision_cap() == self.precision_cap() and self._printer.cmp_modes(R._printer) <= 0:
+            elif (R.precision_cap() == self.precision_cap() and
+                  self._printer.richcmp_modes(R._printer, op_LE)):
                 return True
 
     def _repr_(self, do_latex=False):
@@ -572,7 +577,8 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
         if isinstance(R, pAdicFieldCappedRelative) and R.prime() == self.prime():
             if R.precision_cap() < self.precision_cap():
                 return True
-            elif R.precision_cap() == self.precision_cap() and self._printer.cmp_modes(R._printer) <= 0:
+            elif (R.precision_cap() == self.precision_cap() and
+                  self._printer.richcmp_modes(R._printer, op_LE)):
                 return True
 
     def _repr_(self, do_latex=False):

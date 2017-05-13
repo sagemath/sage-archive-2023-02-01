@@ -23,9 +23,15 @@ there::
     sage: g + h
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand type(s) for +:
-    'sage.groups.matrix_gps.group_element.MatrixGroupElement_gap' and
-    'sage.groups.matrix_gps.group_element.MatrixGroupElement_gap'
+    TypeError: unsupported operand parent(s) for +:
+    'Matrix group over Finite Field of size 3 with 2 generators (
+    [1 0]  [1 1]
+    [0 1], [0 1]
+    )' and
+    'Matrix group over Finite Field of size 3 with 2 generators (
+    [1 0]  [1 1]
+    [0 1], [0 1]
+    )'
 
     sage: g.matrix() + h.matrix()
     [2 0]
@@ -37,7 +43,7 @@ do it with the underlying matrices::
     sage: 2*g
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '*': 'Integer Ring' and 'Matrix group over Finite Field of size 3 with 2 generators (
+    TypeError: unsupported operand parent(s) for *: 'Integer Ring' and 'Matrix group over Finite Field of size 3 with 2 generators (
     [1 0]  [1 1]
     [0 1], [0 1]
     )'
@@ -68,9 +74,11 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.structure.element cimport MultiplicativeGroupElement, Element, MonoidElement, Matrix
 from sage.structure.parent cimport Parent
+from sage.structure.sage_object cimport richcmp
 from sage.libs.gap.element cimport GapElement, GapElement_List
 from sage.groups.libgap_wrapper cimport ElementLibGAP
 
@@ -237,7 +245,7 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
             except TypeError:
                 return None
 
-    cpdef int _cmp_(self, Element other) except -2:
+    cpdef _richcmp_(self, other, int op):
         """
         EXAMPLES::
 
@@ -255,7 +263,7 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
         """
         cdef MatrixGroupElement_generic x = <MatrixGroupElement_generic>self
         cdef MatrixGroupElement_generic y = <MatrixGroupElement_generic>other
-        return cmp(x._matrix, y._matrix)
+        return richcmp(x._matrix, y._matrix, op)
 
     cpdef list list(self):
         """
@@ -301,7 +309,7 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
         """
         return self._matrix
 
-    cpdef MonoidElement _mul_(self, MonoidElement other):
+    cpdef _mul_(self, other):
         """
         Return the product of ``self`` and`` other``, which must
         have identical parents.
@@ -364,12 +372,12 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
 
             sage: W = CoxeterGroup(['B',3])
             sage: W.base_ring()
-            Universal Cyclotomic Field
+            Number Field in a with defining polynomial x^2 - 2
             sage: g = W.an_element()
             sage: ~g
-            [            -1              1              0]
-            [            -1              0  E(8) - E(8)^3]
-            [-E(8) + E(8)^3              0              1]
+            [-1  1  0]
+            [-1  0  a]
+            [-a  0  1]
         """
         cdef Parent parent = self.parent()
         cdef Matrix M = self._matrix
@@ -491,7 +499,7 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
             sage: gens = [MS([[1,0],[0,1]]),MS([[1,1],[0,1]])]
             sage: G = MatrixGroup(gens)
             sage: g = G([[1, 1], [0, 1]])
-            sage: print g._latex_()
+            sage: print(g._latex_())
             \left(\begin{array}{rr}
             1 & 1 \\
             0 & 1
@@ -523,7 +531,7 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
             except TypeError:
                 return None
 
-    cpdef int _cmp_(self, Element other) except -2:
+    cpdef _richcmp_(self, other, int op):
         """
         EXAMPLES::
 
@@ -537,7 +545,7 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
             sage: g == G.one()
             False
         """
-        return cmp(self.matrix(), other.matrix())
+        return richcmp(self.matrix(), other.matrix(), op)
 
     @cached_method
     def matrix(self):
@@ -672,7 +680,7 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
         problem (the GAP functions ``EpimorphismFromFreeGroup`` and
         ``PreImagesRepresentative``).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = GL(2,5); G
             General Linear Group of degree 2 over Finite Field of size 5

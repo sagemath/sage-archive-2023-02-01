@@ -113,8 +113,8 @@ eight dimensional ambient space onto 3D described on
 :wikipedia:`Wikipedia's E8 3D picture <File:E8_3D.png>`::
 
     sage: M = matrix([[0., -0.556793440452, 0.19694925177, -0.19694925177, 0.0805477263944, -0.385290876171, 0., 0.385290876171],
-    ...               [0.180913155536, 0., 0.160212955043, 0.160212955043, 0., 0.0990170516545, 0.766360424875, 0.0990170516545],
-    ...               [0.338261212718, 0, 0, -0.338261212718, 0.672816364803, 0.171502564281, 0, -0.171502564281]])
+    ....:             [0.180913155536, 0., 0.160212955043, 0.160212955043, 0., 0.0990170516545, 0.766360424875, 0.0990170516545],
+    ....:             [0.338261212718, 0, 0, -0.338261212718, 0.672816364803, 0.171502564281, 0, -0.171502564281]])
     sage: L = RootSystem(["E",8]).ambient_space()
     sage: L.dimension()
     8
@@ -199,7 +199,7 @@ level 1::
 .. NOTE::
 
     Such pictures may tend to be a bit flat, and it may be helpful to
-    play with the aspect_ratio and more generaly with the various
+    play with the aspect_ratio and more generally with the various
     options of the :meth:`~sage.plot.plot3d.base.Graphics3d.show`
     method::
 
@@ -259,9 +259,9 @@ Here is a polished solution for the first exercise::
     sage: it = iter(positive_coroots)
     sage: first_positive_coroots = [next(it) for i in range(20)]
     sage: p = L.plot(fundamental_chamber=True, reflection_hyperplanes=first_positive_coroots,
-    ...              affine=False, alcove_labels=1,
-    ...              bounding_box=[[-9,9],[-1,2]],
-    ...              projection=lambda x: matrix([[1,-1],[1,1]])*vector(x))
+    ....:            affine=False, alcove_labels=1,
+    ....:            bounding_box=[[-9,9],[-1,2]],
+    ....:            projection=lambda x: matrix([[1,-1],[1,1]])*vector(x))
     sage: p.show(figsize=20)                           # long time
 
 
@@ -368,8 +368,8 @@ and pass it down to each piece. We use this to plot our two walks::
 And another with some foldings::
 
     sage: p += L.plot_alcove_walk([0,1,2,0,2,0,1,2,0,1],
-    ...                           foldings= [False, False, True, False, False, False, True, False, True, False],
-    ...                           color="purple")
+    ....:                         foldings= [False, False, True, False, False, False, True, False, True, False],
+    ....:                         color="purple")
     sage: p.axes(False)
     sage: p.show(figsize=20)
 
@@ -472,7 +472,7 @@ fundamental alcove::
     sage: positions = {w: plot_options.projection(w.action(rho)) for w in W}
     sage: p = L.plot_alcoves()
     sage: p += g.plot(pos = positions, vertex_size=0,
-    ...               color_by_label=plot_options.color)
+    ....:             color_by_label=plot_options.color)
     sage: p.axes(False)
     sage: p
     Graphics object consisting of 30 graphics primitives
@@ -518,7 +518,7 @@ according to its weight::
     sage: positions = {x: plot_options.projection(x.weight()) for x in C}
     sage: p = L.plot()
     sage: p += g.plot(pos = positions,
-    ...               color_by_label=plot_options.color, vertex_size=0)
+    ....:             color_by_label=plot_options.color, vertex_size=0)
     sage: p.axes(False)
     sage: p.show(figsize=15)
 
@@ -540,7 +540,7 @@ Here is an analogue picture in 3D::
     sage: positions = {x:plot_options.projection(x.weight()) for x in C}
     sage: p = L.plot(reflection_hyperplanes=False, fundamental_weights=False)
     sage: p += g.plot3d(pos3d = positions, vertex_labels=True,
-    ...                 color_by_label=plot_options.color, edge_labels=True)
+    ....:               color_by_label=plot_options.color, edge_labels=True)
     sage: p
     Graphics3d Object
 
@@ -560,6 +560,7 @@ Enjoy and please post your best pictures on the
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import six
 from sage.misc.cachefunc import cached_method, cached_function
@@ -734,7 +735,7 @@ class PlotOptions:
             0
 
             sage: options = RootSystem(["B",3]).root_lattice().plot_parse_options()
-            sage: print options.text("coucou", [0,1,2]).x3d_str()
+            sage: print(options.text("coucou", [0,1,2]).x3d_str())
             <Transform translation='0 1 2'>
             <Shape><Text string='coucou' solid='true'/><Appearance><Material diffuseColor='0.0 0.0 0.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>
             <BLANKLINE>
@@ -809,7 +810,7 @@ class PlotOptions:
             sage: options.thickness(2)
             1
             sage: for alpha in L.simple_roots():
-            ....:     print alpha, options.thickness(alpha)
+            ....:     print("{} {}".format(alpha, options.thickness(alpha)))
             alpha[0] 2
             alpha[1] 1
             alpha[2] 1
@@ -840,7 +841,7 @@ class PlotOptions:
             sage: options.color(2)
             'red'
             sage: for alpha in L.roots():
-            ...       print alpha, options.color(alpha)
+            ....:     print("{} {}".format(alpha, options.color(alpha)))
             alpha[1]             blue
             alpha[2]             red
             alpha[1] + alpha[2]  black
@@ -1197,7 +1198,7 @@ class PlotOptions:
 
         TESTS::
 
-            sage: print H.description()
+            sage: print(H.description())
             Text '$H_{\alpha^\vee_{1}}$' at the point (0.0,3.15)
             Line defined by 2 points: [(0.0, 3.0), (0.0, -3.0)]
 
@@ -1216,7 +1217,7 @@ class PlotOptions:
         ::
 
             sage: all(options.reflection_hyperplane(c, as_polyhedron=True).dim() == 2
-            ...       for c in alphacheck)
+            ....:     for c in alphacheck)
             True
 
 
@@ -1323,9 +1324,9 @@ def barycentric_projection_matrix(n, angle=0):
     TESTS::
 
         sage: for n in range(1, 7):
-        ...       m = barycentric_projection_matrix(n)
-        ...       assert sum(m.columns()).is_zero()
-        ...       assert matrix(QQ, n+1,n+1, lambda i,j: 1 if i==j else -1/n) == m.transpose()*m
+        ....:     m = barycentric_projection_matrix(n)
+        ....:     assert sum(m.columns()).is_zero()
+        ....:     assert matrix(QQ, n+1,n+1, lambda i,j: 1 if i==j else -1/n) == m.transpose()*m
 
     """
     from sage.matrix.constructor import matrix

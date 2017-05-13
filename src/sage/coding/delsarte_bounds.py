@@ -1,15 +1,22 @@
+# -*- coding: utf-8 -*-
 r"""
 Delsarte, a.k.a. Linear Programming (LP), upper bounds
 
-This module provides LP upper bounds for the parameters of codes.
+This module provides LP upper bounds for the parameters of codes,
+introduced in [De1973]_.
+
 The exact LP solver PPL is used by default, ensuring that no
 rounding/overflow problems occur.
 
 AUTHORS:
 
 - Dmitrii V. (Dima) Pasechnik (2012-10): initial implementation. Minor fixes (2015)
-"""
 
+REFERENCES:
+
+.. [De73] \P. Delsarte, An algebraic approach to the association schemes of coding theory,
+    Philips Res. Rep., Suppl., vol. 10, 1973.
+"""
 #*****************************************************************************
 #       Copyright (C) 2012 Dima Pasechnik <dimpase@gmail.com>
 #
@@ -19,17 +26,27 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function, division
+from sage.misc.superseded import deprecation, deprecated_function_alias
 
-def Krawtchouk(n,q,l,x,check=True):
-    """
+
+def krawtchouk(n, q, l, x, check=True):
+    r"""
     Compute ``K^{n,q}_l(x)``, the Krawtchouk (a.k.a. Kravchuk) polynomial.
 
-    See :wikipedia:`Kravchuk_polynomials`; It is defined by the generating function
-    `(1+(q-1)z)^{n-x}(1-z)^x=\sum_{l} K^{n,q}_l(x)z^l` and is equal to
+    See :wikipedia:`Kravchuk_polynomials`.
 
-    .. math::
+    It is defined by the generating function
 
-        K^{n,q}_l(x)=\sum_{j=0}^l (-1)^j(q-1)^{(l-j)}{x \choose j}{n-x \choose l-j},
+    .. MATH::
+
+        (1+(q-1)z)^{n-x}(1-z)^x=\sum_{l} K^{n,q}_l(x)z^l
+
+    and is equal to
+
+    .. MATH::
+
+        K^{n,q}_l(x)=\sum_{j=0}^l (-1)^j (q-1)^{(l-j)} \binom{x}{j} \binom{n-x}{l-j},
 
     INPUT:
 
@@ -37,40 +54,41 @@ def Krawtchouk(n,q,l,x,check=True):
 
     - ``l`` -- a nonnegative integer
 
-    - ``check`` -- check the input for correctness. ``True`` by default. Otherwise, pass it
-      as it is. Use ``check=False`` at your own risk.
+    - ``check`` -- check the input for correctness. ``True`` by
+      default. Otherwise, pass it as it is. Use ``check=False`` at
+      your own risk.
 
     EXAMPLES::
 
-        sage: Krawtchouk(24,2,5,4)
+        sage: codes.bounds.krawtchouk(24,2,5,4)
         2224
-        sage: Krawtchouk(12300,4,5,6)
+        sage: codes.bounds.krawtchouk(12300,4,5,6)
         567785569973042442072
 
     TESTS:
 
     check that the bug reported on :trac:`19561` is fixed::
 
-        sage: Krawtchouk(3,2,3,3)
+        sage: codes.bounds.krawtchouk(3,2,3,3)
         -1
-        sage: Krawtchouk(int(3),int(2),int(3),int(3))
+        sage: codes.bounds.krawtchouk(int(3),int(2),int(3),int(3))
         -1
-        sage: Krawtchouk(int(3),int(2),int(3),int(3),check=False)
-        -5
-        sage: Kravchuk(24,2,5,4)
+        sage: codes.bounds.krawtchouk(int(3),int(2),int(3),int(3),check=False)
+        -1.0
+        sage: codes.bounds.krawtchouk(24,2,5,4)
         2224
 
     other unusual inputs ::
 
-        sage: Krawtchouk(sqrt(5),1-I*sqrt(3),3,55.3).n()
+        sage: codes.bounds.krawtchouk(sqrt(5),1-I*sqrt(3),3,55.3).n()
         211295.892797... + 1186.42763...*I
-        sage: Krawtchouk(-5/2,7*I,3,-1/10)
+        sage: codes.bounds.krawtchouk(-5/2,7*I,3,-1/10)
         480053/250*I - 357231/400
-        sage: Krawtchouk(1,1,-1,1)
+        sage: codes.bounds.krawtchouk(1,1,-1,1)
         Traceback (most recent call last):
         ...
         ValueError: l must be a nonnegative integer
-        sage: Krawtchouk(1,1,3/2,1)
+        sage: codes.bounds.krawtchouk(1,1,3/2,1)
         Traceback (most recent call last):
         ...
         TypeError: no conversion of this rational to integer
@@ -82,7 +100,7 @@ def Krawtchouk(n,q,l,x,check=True):
     if check:
         from sage.rings.integer_ring import ZZ
         l0 = ZZ(l)
-        if l0 != l or l0<0:
+        if l0 != l or l0 < 0:
             raise ValueError('l must be a nonnegative integer')
         l = l0
     kraw = jth_term = (q-1)**l * binomial(n, l) # j=0
@@ -91,7 +109,8 @@ def Krawtchouk(n,q,l,x,check=True):
         kraw += jth_term
     return kraw
 
-Kravchuk = Krawtchouk
+Krawtchouk = deprecated_function_alias(20908, krawtchouk)
+Kravchuk   = deprecated_function_alias(20908, krawtchouk)
 
 def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
     """
@@ -122,12 +141,12 @@ def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
 
     p = MixedIntegerLinearProgram(maximization=True, solver=solver)
     A = p.new_variable(integer=isinteger, nonnegative=True)
-    p.set_objective(sum([A[r] for r in xrange(n+1)]))
+    p.set_objective(sum([A[r] for r in range(n+1)]))
     p.add_constraint(A[0]==1)
-    for i in xrange(1,d):
+    for i in range(1,d):
         p.add_constraint(A[i]==0)
-    for j in xrange(1,n+1):
-        rhs = sum([Krawtchouk(n,q,j,r,check=False)*A[r] for r in xrange(n+1)])
+    for j in range(1,n+1):
+        rhs = sum([krawtchouk(n,q,j,r,check=False)*A[r] for r in range(n+1)])
         p.add_constraint(0*A[0] <= rhs)
         if j >= d_star:
           p.add_constraint(0*A[0] <= rhs)
@@ -135,12 +154,13 @@ def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
           p.add_constraint(0*A[0] == rhs)
 
     if maxc > 0:
-        p.add_constraint(sum([A[r] for r in xrange(n+1)]), max=maxc)
+        p.add_constraint(sum([A[r] for r in range(n+1)]), max=maxc)
     return A, p
 
 def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL", isinteger=False):
     """
-    Find the Delsarte bound [1]_ on codes in Hamming space ``H_q^n`` of minimal distance ``d``
+    Find the Delsarte bound [De1973]_ on codes in Hamming space ``H_q^n``
+    of minimal distance ``d``
 
 
     INPUT:
@@ -151,73 +171,69 @@ def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL", isint
 
     - ``q`` -- the size of the alphabet
 
-    - ``return_data`` -- if ``True``, return a triple ``(W,LP,bound)``, where ``W`` is
-        a weights vector,  and ``LP`` the Delsarte upper bound LP; both of them are Sage LP
-        data.  ``W`` need not be a weight distribution of a code.
+    - ``return_data`` -- if ``True``, return a triple
+      ``(W,LP,bound)``, where ``W`` is a weights vector, and ``LP``
+      the Delsarte upper bound LP; both of them are Sage LP data.
+      ``W`` need not be a weight distribution of a code.
 
-    - ``solver`` -- the LP/ILP solver to be used. Defaults to ``PPL``. It is arbitrary
-        precision, thus there will be no rounding errors. With other solvers
-        (see :class:`MixedIntegerLinearProgram` for the list), you are on your own!
+    - ``solver`` -- the LP/ILP solver to be used. Defaults to
+      ``PPL``. It is arbitrary precision, thus there will be no
+      rounding errors. With other solvers (see
+      :class:`MixedIntegerLinearProgram` for the list), you are on
+      your own!
 
-    - ``isinteger`` -- if ``True``, uses an integer programming solver (ILP), rather
-        that an LP solver. Can be very slow if set to ``True``.
+    - ``isinteger`` -- if ``True``, uses an integer programming solver
+      (ILP), rather that an LP solver. Can be very slow if set to
+      ``True``.
 
     EXAMPLES:
 
     The bound on the size of the `F_2`-codes of length 11 and minimal distance 6::
 
-       sage: delsarte_bound_hamming_space(11, 6, 2)
+       sage: codes.bounds.delsarte_bound_hamming_space(11, 6, 2)
        12
-       sage: a, p, val = delsarte_bound_hamming_space(11, 6, 2, return_data=True)
-       sage: [j for i,j in p.get_values(a).iteritems()]
+       sage: a, p, val = codes.bounds.delsarte_bound_hamming_space(11, 6, 2, return_data=True)
+       sage: [j for i,j in p.get_values(a).items()]
        [1, 0, 0, 0, 0, 0, 11, 0, 0, 0, 0, 0]
 
     The bound on the size of the `F_2`-codes of length 24 and minimal distance
     8, i.e. parameters of the extened binary Golay code::
 
-       sage: a,p,x=delsarte_bound_hamming_space(24,8,2,return_data=True)
+       sage: a,p,x = codes.bounds.delsarte_bound_hamming_space(24,8,2,return_data=True)
        sage: x
        4096
-       sage: [j for i,j in p.get_values(a).iteritems()]
+       sage: [j for i,j in p.get_values(a).items()]
        [1, 0, 0, 0, 0, 0, 0, 0, 759, 0, 0, 0, 2576, 0, 0, 0, 759, 0, 0, 0, 0, 0, 0, 0, 1]
 
     The bound on the size of `F_4`-codes of length 11 and minimal distance 3::
 
-       sage: delsarte_bound_hamming_space(11,3,4)
+       sage: codes.bounds.delsarte_bound_hamming_space(11,3,4)
        327680/3
 
     An improvement of a known upper bound (150) from http://www.win.tue.nl/~aeb/codes/binary-1.html ::
 
-       sage: a,p,x= delsarte_bound_hamming_space(23,10,2,return_data=True,isinteger=True); x # long time
+       sage: a,p,x = codes.bounds.delsarte_bound_hamming_space(23,10,2,return_data=True,isinteger=True); x # long time
        148
-       sage: [j for i,j in p.get_values(a).iteritems()]                                      # long time
+       sage: [j for i,j in p.get_values(a).items()]                                      # long time
        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 95, 0, 2, 0, 36, 0, 14, 0, 0, 0, 0, 0, 0, 0]
 
     Note that a usual LP, without integer variables, won't do the trick ::
 
-       sage: delsarte_bound_hamming_space(23,10,2).n(20)
+       sage: codes.bounds.delsarte_bound_hamming_space(23,10,2).n(20)
        151.86
 
     Such an input is invalid::
 
-       sage: delsarte_bound_hamming_space(11,3,-4)
+       sage: codes.bounds.delsarte_bound_hamming_space(11,3,-4)
        Solver exception: PPL : There is no feasible solution
        False
-
-    REFERENCES:
-
-    .. [1] P. Delsarte, An algebraic approach to the association schemes of coding theory,
-           Philips Res. Rep., Suppl., vol. 10, 1973.
-
-
-
     """
     from sage.numerical.mip import MIPSolverException
     A, p = _delsarte_LP_building(n, d, 0, q, isinteger, solver)
     try:
         bd=p.solve()
     except MIPSolverException as exc:
-        print "Solver exception:", exc
+        print("Solver exception: {}".format(exc))
         if return_data:
             return A,p,False
         return False
@@ -269,38 +285,40 @@ def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
 
    The bound on dimension of linear `F_2`-codes of length 11 and minimal distance 6::
 
-       sage: delsarte_bound_additive_hamming_space(11, 6, 2)
+       sage: codes.bounds.delsarte_bound_additive_hamming_space(11, 6, 2)
        3
-       sage: a,p,val=delsarte_bound_additive_hamming_space(11, 6, 2,\
-                                      return_data=True)
-       sage: [j for i,j in p.get_values(a).iteritems()]
+       sage: a,p,val = codes.bounds.delsarte_bound_additive_hamming_space(\
+                            11, 6, 2, return_data=True)
+       sage: [j for i,j in p.get_values(a).items()]
        [1, 0, 0, 0, 0, 0, 5, 2, 0, 0, 0, 0]
 
    The bound on the dimension of linear `F_4`-codes of length 11 and minimal distance 3::
 
-       sage: delsarte_bound_additive_hamming_space(11,3,4)
+       sage: codes.bounds.delsarte_bound_additive_hamming_space(11,3,4)
        8
 
    The bound on the `F_2`-dimension of additive `F_4`-codes of length 11 and minimal
    distance 3::
 
-       sage: delsarte_bound_additive_hamming_space(11,3,4,q_base=2)
+       sage: codes.bounds.delsarte_bound_additive_hamming_space(11,3,4,q_base=2)
        16
 
-   Such a d_star is not possible::
+   Such a ``d_star`` is not possible::
 
-       sage: delsarte_bound_additive_hamming_space(11,3,4,d_star=9)
+       sage: codes.bounds.delsarte_bound_additive_hamming_space(11,3,4,d_star=9)
        Solver exception: PPL : There is no feasible solution
        False
 
    TESTS::
 
-       sage: a,p,x=delsarte_bound_additive_hamming_space(19,15,7,return_data=True,isinteger=True)
-       sage: [j for i,j in p.get_values(a).iteritems()]
+       sage: a,p,x = codes.bounds.delsarte_bound_additive_hamming_space(\
+                        19,15,7,return_data=True,isinteger=True)
+       sage: [j for i,j in p.get_values(a).items()]
        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 307, 0, 0, 1, 34]
-       sage: delsarte_bound_additive_hamming_space(19,15,7,solver='glpk')
+       sage: codes.bounds.delsarte_bound_additive_hamming_space(19,15,7,solver='glpk')
        3
-       sage: delsarte_bound_additive_hamming_space(19,15,7,isinteger=True,solver='glpk')
+       sage: codes.bounds.delsarte_bound_additive_hamming_space(\
+                19,15,7, isinteger=True, solver='glpk')
        3
    """
    from sage.numerical.mip import MIPSolverException
@@ -312,7 +330,7 @@ def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
       kk += 1
 
    if q_base**kk != q:
-      print "Wrong q_base=", q_base, " for q=", q, kk
+      print("Wrong q_base=", q_base, " for q=", q, kk)
       return False
 
    # this implementation assumes that our LP solver to be unable to do a hot
@@ -329,7 +347,7 @@ def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
       try:
         bd=p.solve()
       except MIPSolverException as exc:
-        print "Solver exception:", exc
+        print("Solver exception:", exc)
         if return_data:
            return A,p,False
         return False

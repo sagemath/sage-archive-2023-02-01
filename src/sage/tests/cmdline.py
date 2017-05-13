@@ -35,6 +35,7 @@ test.spyx
 -q
 --R
 --root
+--rst2ipynb
 --rst2txt
 --rst2sws
 --sh
@@ -49,12 +50,12 @@ test.spyx
 
 AUTHORS:
 
-- Jeroen Demeyer (2010-11-20): initial version (#10300)
+- Jeroen Demeyer (2010-11-20): initial version (:trac:`10300`)
 
 """
-
 from subprocess import *
-import os, select
+import os
+import select
 
 
 def test_executable(args, input="", timeout=100.0, **kwds):
@@ -130,16 +131,16 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "-c", "print 3^33"])
-        sage: print out
+        sage: (out, err, ret) = test_executable(["sage", "-c", "print(3^33)"])
+        sage: print(out)
         5559060566555523
         sage: err
         ''
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--min", "-c", "print 3^33"])
-        sage: print out
+        sage: (out, err, ret) = test_executable(["sage", "--min", "-c", "print(3^33)"])
+        sage: print(out)
         5559060566555523
         sage: err
         ''
@@ -203,7 +204,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
     is intentional, that option should be idempotent)::
 
         sage: out, err, ret = test_executable(["sage", "--info", "sqlite"])
-        sage: print out
+        sage: print(out)
         Found local metadata for sqlite-...
         = SQLite =
         ...
@@ -216,7 +217,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         0
 
         sage: out, err, ret = test_executable(["sage", "-p", "--info", "--info", "sqlite"])
-        sage: print out
+        sage: print(out)
         Found local metadata for sqlite-...
         = SQLite =
         ...
@@ -233,17 +234,17 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: dir = tmp_dir(); name = 'python_test_file.py'
         sage: fullname = os.path.join(dir, name)
         sage: F = open(fullname, 'w')
-        sage: F.write("print 3^33\n")
+        sage: _ = F.write("print(3^33)\n")
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", fullname])
-        sage: print out
+        sage: print(out)
         34
         sage: err
         ''
         sage: ret
         0
         sage: (out, err, ret) = test_executable(["sage", name], cwd=dir)
-        sage: print out
+        sage: print(out)
         34
         sage: err
         ''
@@ -256,17 +257,17 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: dir = tmp_dir(); name = 'sage_test_file.sage'
         sage: fullname = os.path.join(dir, name)
         sage: F = open(fullname, 'w')
-        sage: F.write("k.<a> = GF(5^3); print a^124\n")
+        sage: _ = F.write("k.<a> = GF(5^3); print(a^124)\n")
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", fullname])
-        sage: print out
+        sage: print(out)
         1
         sage: err
         ''
         sage: ret
         0
         sage: (out, err, ret) = test_executable(["sage", name], cwd=dir)
-        sage: print out
+        sage: print(out)
         1
         sage: err
         ''
@@ -278,17 +279,17 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: dir = tmp_dir(); name = 'sage_test_file.spyx'
         sage: fullname = os.path.join(dir, name)
         sage: F = open(fullname, 'w')
-        sage: F.write("from sage.rings.integer cimport Integer\ncdef long i, s = 0\nsig_on()\nfor i in range(1000): s += i\nsig_off()\nprint Integer(s)")
+        sage: _ = F.write("from cysignals.signals cimport *\nfrom sage.rings.integer cimport Integer\ncdef long i, s = 0\nsig_on()\nfor i in range(1000): s += i\nsig_off()\nprint(Integer(s))")
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", fullname])
-        sage: print out
+        sage: print(out)
         499500
         sage: err
         'Compiling ...spyx...'
         sage: ret
         0
         sage: (out, err, ret) = test_executable(["sage", name], cwd=dir)
-        sage: print out
+        sage: print(out)
         499500
         sage: err
         'Compiling ...spyx...'
@@ -298,11 +299,11 @@ def test_executable(args, input="", timeout=100.0, **kwds):
     Testing ``sage --preparse FILE`` and ``sage -t FILE``.  First create
     a file and preparse it::
 
-        sage: s = "'''\nThis is a test file.\n'''\ndef my_add(a,b):\n    '''\n    Add a to b.\n\n        EXAMPLES::\n\n            sage: my_add(2,2)\n            4\n        '''\n    return a + b\n"
+        sage: s = "# -*- coding: utf-8 -*-\n'''This is a test file.\nAnd I am its doctest'''\ndef my_add(a):\n    '''\n    Add 2 to a.\n\n        EXAMPLES::\n\n            sage: my_add(2)\n            4\n        '''\n    return a + 2\n"
         sage: script = os.path.join(tmp_dir(), 'my_script.sage')
         sage: script_py = script + '.py'
         sage: F = open(script, 'w')
-        sage: F.write(s)
+        sage: _ = F.write(s)
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", "--preparse", script])
         sage: ret
@@ -323,11 +324,21 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: out.find("All tests passed!") >= 0
         True
 
+    Test that the coding line and doctest are preserved::
+
+        sage: Fpy = open(script_py, "r")
+        sage: Fpy.readline()
+        '# -*- coding: utf-8 -*-\n'
+        sage: Fpy.readline()
+        "'''This is a test file.\n"
+        sage: Fpy.readline()
+        "And I am its doctest'''\n"
+
     Now for a file which should fail tests::
 
         sage: s = s.replace('4', '5') # (2+2 != 5)
         sage: F = open(script, 'w')
-        sage: F.write(s)
+        sage: _ = F.write(s)
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", "-t", script])
         sage: ret
@@ -341,11 +352,11 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: s = "::\n\n    sage: assert True == False\n    sage: 2 + 2\n    5"
         sage: script = tmp_filename(ext='.rst')
         sage: F = open(script, 'w')
-        sage: F.write(s)
+        sage: _ = F.write(s)
         sage: F.close()
         sage: (out, err, ret) = test_executable([
         ....:     "sage", "-t", "--debug", "-p", "2", "--warn-long", "0", script], "help")
-        sage: print out
+        sage: print(out)
         Debugging requires single-threaded operation, setting number of threads to 1.
         Running doctests with ID...
         Doctesting 1 file.
@@ -375,7 +386,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         **********************************************************************
         Previously executed commands:
             s...: assert True == False
-        debug:
+        In [1]:
         <BLANKLINE>
         Returning to doctests...
         **********************************************************************
@@ -394,12 +405,12 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: os.mkdir(d)
         sage: os.chmod(d, 0o777)
         sage: (out, err, ret) = test_executable(["sage", "-t", "nonexisting.py"], cwd=d)
-        sage: print err
+        sage: print(err)
         Traceback (most recent call last):
         ...
         RuntimeError: refusing to run doctests...
         sage: (out, err, ret) = test_executable(["sage", "-tp", "1", "nonexisting.py"], cwd=d)
-        sage: print err
+        sage: print(err)
         Traceback (most recent call last):
         ...
         RuntimeError: refusing to run doctests...
@@ -408,10 +419,10 @@ def test_executable(args, input="", timeout=100.0, **kwds):
     issues raised in :trac:`10589` are fixed. We have to go to slightly silly
     lengths to doctest the output.::
 
-        sage: test='r\"\"\"Add a doc-test for the fixdoctest command line option and, in particular, check that\n:trac:`10589` is fixed.\n\nEXAMPLES::\n\n    sage: 1+1              # incorrect output\n    3\n    sage: m=matrix(ZZ,3)   # output when none is expected\n    [0 0 0]\n    [0 0 0]\n    [1 0 0]\n    sage: (2/3)*m          # no output when it is expected\n    sage: mu=PartitionTuple([[4,4],[3,3,2,1],[1,1]])   # output when none is expected\n    [4, 4, 3, 3, 2, 1, 1]\n    sage: mu.pp()          # uneven indentation\n    ****\n    ****\n    sage: PartitionTuples.global_options(convention="French")\n    sage: mu.pp()         # fix doctest with uneven indentation\n    sage: PartitionTuples.global_options.reset()\n\"\"\"\n'
+        sage: test='r\"\"\"Add a doc-test for the fixdoctest command line option and, in particular, check that\n:trac:`10589` is fixed.\n\nEXAMPLES::\n\n    sage: 1+1              # incorrect output\n    3\n    sage: m=matrix(ZZ,3)   # output when none is expected\n    [0 0 0]\n    [0 0 0]\n    [1 0 0]\n    sage: (2/3)*m          # no output when it is expected\n    sage: mu=PartitionTuple([[4,4],[3,3,2,1],[1,1]])   # output when none is expected\n    [4, 4, 3, 3, 2, 1, 1]\n    sage: mu.pp()          # uneven indentation\n    ****\n    ****\n    sage: PartitionTuples.options(convention="French")\n    sage: mu.pp()         # fix doctest with uneven indentation\n    sage: PartitionTuples.options._reset()\n\"\"\"\n'
         sage: test_file = os.path.join(tmp_dir(), 'test_file.py')
         sage: F = open(test_file, 'w')
-        sage: F.write(test)
+        sage: _ = F.write(test)
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", "--fixdoctests", test_file])
         sage: with open(test_file, 'r') as f:
@@ -440,13 +451,13 @@ def test_executable(args, input="", timeout=100.0, **kwds):
          '+       ****   ***   *',
          '+              **',
          '+              *',
-         '     sage: PartitionTuples.global_options(convention="French")',
+         '     sage: PartitionTuples.options(convention="French")',
          '     sage: mu.pp()         # fix doctest with uneven indentation',
          '+    *',
          '+    **',
          '+    ****   ***   *',
          '+    ****   ***   *',
-         '     sage: PartitionTuples.global_options.reset()']
+         '     sage: PartitionTuples.options._reset()']
 
     Test external programs being called by Sage::
 
@@ -470,7 +481,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--python"], "print 3^33\n")
+        sage: (out, err, ret) = test_executable(["sage", "--python"], "print(3^33)\n")
         sage: out
         '34\n'
         sage: err
@@ -479,7 +490,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         0
 
         sage: (out, err, ret) = test_executable(["sage", "--cython"])
-        sage: print err
+        sage: print(err)
         Cython (http://cython.org) is a compiler for code written in the
         Cython language.  Cython is based on Pyrex by Greg Ewing.
         ...
@@ -489,7 +500,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         ....:         os.open(os.ctermid(), os.O_RDONLY)
         ....:         return True
         ....:     except OSError:
-        ....:         return False 
+        ....:         return False
         sage: (out, err, ret) = test_executable(["sage", "--ecl"], "(* 12345 54321)\n")
         sage: out.find("Embeddable Common-Lisp") >= 0
         True
@@ -630,15 +641,122 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret > 0
         True
 
+    Test ``sage --rst2ipynb file.rst`` on a ReST file::
+
+        sage: s = "::\n\n    sage: 2^10\n    1024\n    sage: 2 + 2\n    4"
+        sage: input = tmp_filename(ext='.rst')
+        sage: with open(input, 'w') as F:
+        ....:     _ = F.write(s)
+        sage: L = ["sage", "--rst2ipynb", input]
+        sage: (out, err, ret) = test_executable(L) # optional - rst2ipynb
+        sage: print(out)                           # optional - rst2ipynb
+        {
+         "nbformat_minor": ...,
+         "nbformat": ...,
+         "cells": [
+          {
+           "source": [
+            "$$\n",
+            "\\def\\CC{\\bf C}\n",
+            "\\def\\QQ{\\bf Q}\n",
+            "\\def\\RR{\\bf R}\n",
+            "\\def\\ZZ{\\bf Z}\n",
+            "\\def\\NN{\\bf N}\n",
+            "$$"
+           ],
+           "cell_type": "markdown",
+           "metadata": {}
+          },
+          {
+           "execution_count": null,
+           "cell_type": "code",
+           "source": [
+            "2^10"
+           ],
+           "outputs": [
+            {
+             "execution_count": 1,
+             "output_type": "execute_result",
+             "data": {
+              "text/plain": [
+               "1024"
+              ]
+             },
+             "metadata": {}
+            }
+           ],
+           "metadata": {}
+          },
+          {
+           "execution_count": null,
+           "cell_type": "code",
+           "source": [
+            "2 + 2"
+           ],
+           "outputs": [
+            {
+             "execution_count": 1,
+             "output_type": "execute_result",
+             "data": {
+              "text/plain": [
+               "4"
+              ]
+             },
+             "metadata": {}
+            }
+           ],
+           "metadata": {}
+          }
+         ],
+         "metadata": {
+          "kernelspec": {
+           "display_name": "sagemath",
+           "name": "sagemath"
+          }
+         }
+        }
+        sage: err                   # optional - rst2ipynb
+        ''
+        sage: ret                   # optional - rst2ipynb
+        0
+
+    Test ``sage --rst2ipynb file.rst file.ipynb`` on a ReST file::
+
+        sage: s = "::\n\n    sage: 2^10\n    1024\n    sage: 2 + 2\n    4"
+        sage: input = tmp_filename(ext='.rst')
+        sage: output = tmp_filename(ext='.ipynb')
+        sage: with open(input, 'w') as F:
+        ....:     _ = F.write(s)
+        sage: L = ["sage", "--rst2ipynb", input, output]
+        sage: test_executable(L)              # optional - rst2ipynb
+        ('', '', 0)
+        sage: print(open(output, 'r').read()) # optional - rst2ipynb
+        {
+         "nbformat_minor": ...,
+         "nbformat": ...,
+         "cells": [
+          {
+           "source": [
+            "$$\n",
+            "\\def\\CC{\\bf C}\n",
+            "\\def\\QQ{\\bf Q}\n",
+        ...
+         "metadata": {
+          "kernelspec": {
+           "display_name": "sagemath",
+           "name": "sagemath"
+          }
+         }
+        }
+
     Test ``sage --rst2txt file.rst`` on a ReST file::
 
         sage: s = "::\n\n    sage: 2^10\n    1024\n    sage: 2 + 2\n    4"
         sage: input = tmp_filename(ext='.rst')
-        sage: F = open(input, 'w')
-        sage: F.write(s)
-        sage: F.close()
+        sage: with open(input, 'w') as F:
+        ....:     _ = F.write(s)
         sage: (out, err, ret) = test_executable(["sage", "--rst2txt", input])
-        sage: print out
+        sage: print(out)
         {{{id=0|
         2^10
         ///
@@ -660,12 +778,11 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: s = "::\n\n    sage: 2^10\n    1024\n    sage: 2 + 2\n    4"
         sage: input = tmp_filename(ext='.rst')
         sage: output = tmp_filename(ext='.txt')
-        sage: F = open(input, 'w')
-        sage: F.write(s)
-        sage: F.close()
+        sage: with open(input, 'w') as F:
+        ....:     _ = F.write(s)
         sage: test_executable(["sage", "--rst2txt", input, output])
         ('', '', 0)
-        sage: print open(output, 'r').read()
+        sage: print(open(output, 'r').read())
         {{{id=0|
         2^10
         ///
@@ -683,14 +800,13 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: s = "Thetitle\n--------\n\n::\n\n    sage: 2^10\n    1024\n    sage: 2 + 2\n    4"
         sage: input = tmp_filename(ext='.rst')
         sage: output = tmp_filename(ext='.sws')
-        sage: F = open(input, 'w')
-        sage: F.write(s)
-        sage: F.close()
+        sage: with open(input, 'w') as F:
+        ....:     _ = F.write(s)
         sage: test_executable(["sage", "--rst2sws", input, output])
         ('', '', 0)
         sage: import tarfile
         sage: f = tarfile.open(output, 'r')
-        sage: print f.extractfile('sage_worksheet/worksheet.html').read()
+        sage: print(f.extractfile('sage_worksheet/worksheet.html').read())
         <h1 class="title">Thetitle</h1>
         <BLANKLINE>
         {{{id=0|
@@ -704,7 +820,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         ///
         4
         }}}
-        sage: print f.extractfile('sage_worksheet/worksheet.txt').read()
+        sage: print(f.extractfile('sage_worksheet/worksheet.txt').read())
         Thetitle
         system:sage
         <BLANKLINE>
@@ -734,14 +850,18 @@ def test_executable(args, input="", timeout=100.0, **kwds):
     p.stdin.close()
     fdout = p.stdout.fileno()
     fderr = p.stderr.fileno()
-    out = ""; err = ""
+    out = ""
+    err = ""
 
     while True:
         # Try reading from fdout and fderr
         rfd = []
-        if fdout: rfd.append(fdout)
-        if fderr: rfd.append(fderr)
-        if len(rfd) == 0: break
+        if fdout:
+            rfd.append(fdout)
+        if fderr:
+            rfd.append(fderr)
+        if len(rfd) == 0:
+            break
         rlist = select.select(rfd, [], [], timeout)[0]
 
         if len(rlist) == 0:
@@ -750,11 +870,13 @@ def test_executable(args, input="", timeout=100.0, **kwds):
             raise RuntimeError("timeout in test_executable()")
         if fdout in rlist:
             s = os.read(fdout, 1024)
-            if s == "": fdout = None   # EOF
+            if s == "":
+                fdout = None   # EOF
             out += s
         if fderr in rlist:
             s = os.read(fderr, 1024)
-            if s == "": fderr = None   # EOF
+            if s == "":
+                fderr = None   # EOF
             err += s
 
     return (out, err, p.wait())

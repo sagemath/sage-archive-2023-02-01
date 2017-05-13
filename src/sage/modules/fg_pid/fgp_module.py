@@ -207,13 +207,15 @@ AUTHOR:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+from __future__ import absolute_import
 
 from sage.modules.module import Module
 from sage.modules.free_module import is_FreeModule
 from sage.structure.all import parent
 from sage.structure.sequence import Sequence
-from fgp_element  import DEBUG, FGP_Element
-from fgp_morphism import FGP_Morphism, FGP_Homset
+from .fgp_element  import DEBUG, FGP_Element
+from .fgp_morphism import FGP_Morphism, FGP_Homset
 from sage.rings.all import Integer, ZZ
 from sage.arith.all import lcm
 from sage.misc.cachefunc import cached_method
@@ -620,7 +622,7 @@ class FGP_Module_class(Module):
         Compute a linear combination of the optimised generators of this module
         as returned by :meth:`.smith_form_gens`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: X = ZZ**2 / span([[3,0],[0,2]], ZZ)
             sage: X.linear_combination_of_smith_form_gens([1])
@@ -1356,11 +1358,11 @@ class FGP_Module_class(Module):
         - ``im_gens`` - a Sequence object giving the images of ``self.gens()``,
           whose universe is some fixed fg R-module
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: class SillyModule(sage.modules.fg_pid.fgp_module.FGP_Module_class):
-            ...       def gens(self):
-            ...           return tuple(flatten([[x,x] for x in self.smith_form_gens()]))
+            ....:     def gens(self):
+            ....:         return tuple(flatten([[x,x] for x in self.smith_form_gens()]))
             sage: A = SillyModule(ZZ**1, span([[3]], ZZ))
             sage: A.gen(0)
             (1)
@@ -1397,11 +1399,11 @@ class FGP_Module_class(Module):
         - ``im_gens`` -- a Sequence object giving the images of the Smith-form
           generators of self, whose universe is some fixed fg R-module
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: class SillyModule(sage.modules.fg_pid.fgp_module.FGP_Module_class):
-            ...       def gens(self):
-            ...           return tuple(flatten([[x,x] for x in self.smith_form_gens()]))
+            ....:     def gens(self):
+            ....:         return tuple(flatten([[x,x] for x in self.smith_form_gens()]))
             sage: A = SillyModule(ZZ**1, span([[3]], ZZ))
             sage: A.gen(0)
             (1)
@@ -1507,9 +1509,21 @@ class FGP_Module_class(Module):
         self.__cardinality = infinity if 0 in v else prod(v)
         return self.__cardinality
 
+    def list(self):
+        """
+        Return a list of the elements of ``self``.
+
+        EXAMPLES::
+
+            sage: V = ZZ^2; W = V.span([[1,2],[3,4]])
+            sage: list(V/W)
+            [(0), (1)]
+        """
+        return [e for e in self]
+
     def __iter__(self):
         """
-        Return iterator over all elements of self.
+        Return iterator over all elements of ``self``.
 
         EXAMPLES::
 
@@ -1517,12 +1531,12 @@ class FGP_Module_class(Module):
             sage: Q = V/W; Q
             Finitely generated module V/W over Integer Ring with invariants (2, 12)
             sage: z = list(V/W)
-            sage: print z
+            sage: z
             [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7), (0, 8), (0, 9), (0, 10), (0, 11), (1, 0), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9), (1, 10), (1, 11)]
             sage: len(z)
             24
 
-        We test that the trivial module is handled correctly (cf. trac #6561)::
+        We test that the trivial module is handled correctly (:trac:`6561`)::
 
             sage: A = (ZZ**1)/(ZZ**1); list(A) == [A(0)]
             True

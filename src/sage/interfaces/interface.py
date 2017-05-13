@@ -39,6 +39,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 from six import iteritems
+from six import integer_types
 import six
 
 import operator
@@ -290,7 +291,7 @@ class Interface(ParentWithBase):
             return self(x._interface_init_())
 
     def _coerce_impl(self, x, use_special=True):
-        if isinstance(x, (int, long)):
+        if isinstance(x, integer_types):
             import sage.rings.all
             return self(sage.rings.all.Integer(x))
         elif isinstance(x, float):

@@ -78,6 +78,7 @@ TESTS::
 #*****************************************************************************
 
 from __future__ import absolute_import, print_function
+from six import integer_types
 
 from sage.structure.parent_gens import localvars
 
@@ -1007,9 +1008,9 @@ class NumberField_relative(NumberField_generic):
             sage: L(a)
             a
         """
-        if isinstance(x, (int, long, rational.Rational,
-                              integer.Integer, pari_gen,
-                              list)):
+        if isinstance(x, integer_types + (rational.Rational,
+                                          integer.Integer, pari_gen,
+                                          list)):
             return self._element_class(self, x)
         elif isinstance(x, sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement)\
                and (x in self.polynomial_quotient_ring()):
@@ -1053,7 +1054,7 @@ class NumberField_relative(NumberField_generic):
             2/3
             sage: c = a + b # no output
         """
-        if R in [int, long, ZZ, QQ, self.base_field()]:
+        if R in integer_types + (ZZ, QQ, self.base_field()):
             return self._generic_convert_map(R)
         from sage.rings.number_field.order import is_NumberFieldOrder
         if is_NumberFieldOrder(R) and R.number_field() is self:

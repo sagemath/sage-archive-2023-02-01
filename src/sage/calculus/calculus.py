@@ -1390,7 +1390,7 @@ def laplace(ex, t, s, algorithm='maxima'):
         sage: laplace(heaviside(t-1), t, s, algorithm='sympy')
         (e^(-s)/s, 0, True)         
 
-    TESTS::
+    TESTS:
 
     Testing Giac::
 
@@ -1399,15 +1399,14 @@ def laplace(ex, t, s, algorithm='maxima'):
         sage: laplace(5*cos(3*t-2)*heaviside(t-2), t, s, algorithm='giac')
         5*(s*cos(4)*e^(-2*s) - 3*e^(-2*s)*sin(4))/(s^2 + 9)
         
-    Testing unevaluated expression from Giac::
+    Check unevaluated expression from Giac (it is locale-dependent, see
+    :trac:`22833`)::
 
         sage: var('n')
         n
         sage: laplace(t^n, t, s, algorithm='giac')
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: Unable to parse Giac output: integrate(t^n*exp(-s*t),t,0,+infinity)
-        
+        laplace(t^n, t, s)
+
     Testing SymPy::
 
         sage: laplace(t^n, t, s, algorithm='sympy')
@@ -1454,7 +1453,10 @@ def laplace(ex, t, s, algorithm='maxima'):
             result = giac.laplace(ex, t, s)
         except TypeError:
             raise ValueError("Giac cannot make sense of: %s" % ex_gi)
-        return result.sage() 
+        if 'integrate' in format(result) or 'integration' in format(result):
+            return dummy_laplace(ex, t, s)
+        else:
+            return result.sage()
 
     else:
         raise ValueError("Unknown algorithm: %s" % algorithm)

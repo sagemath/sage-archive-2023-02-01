@@ -934,11 +934,13 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
             s = 0
             for c in self.value:
                 supp = c.support()
-                if len(supp) > 0:
-                    for w in weight.orbit():
-                        i = supp[0]
+                if supp:
+                    i = supp[0]
+                    for w in weight._orbit_iter():
                         # Check whether the vectors c and w are positive scalar multiples of each other
-                        if i in w.support() and c[i]*w[i] > 0 and c[i]*w == w[i]*c:
+                        # If i is not in the support of w, then the first
+                        #   product is 0
+                        if c[i] * w[i] > 0 and c[i] * w == w[i] * c:
                             s += c[i] / w[i]
                             l += [s]
                             break

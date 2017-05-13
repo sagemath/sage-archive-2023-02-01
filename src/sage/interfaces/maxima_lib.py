@@ -902,17 +902,24 @@ class MaximaLib(MaximaAbstract):
 
     def sr_prod(self,*args):
         """
-        Helper function to wrap calculus use of Maxima's summation.
+        Helper function to wrap calculus use of Maxima's product.
+
+        TESTS::
+
+            sage: from sage.calculus.calculus import symbolic_product
+            sage: _ = var('n')
+            sage: symbolic_product(x,x,1,n)
+            factorial(n)
+            sage: symbolic_product(2*x,x,1,n)
+            2^n*factorial(n)
+
         """
         try:
             return max_to_sr(maxima_eval([[max_ratsimp],[[max_simplify_prod],([max_prod],[sr_to_max(SR(a)) for a in args])]]));
         except RuntimeError as error:
             s = str(error)
             if "divergent" in s:
-# in pexpect interface, one looks for this;
-# could not find an example where 'Pole encountered' occurred, though
-#            if "divergent" in s or 'Pole encountered' in s:
-                raise ValueError("Sum is divergent.")
+                raise ValueError("Product is divergent.")
             elif "Is" in s: # Maxima asked for a condition
                 self._missing_assumption(s)
             else:

@@ -61,7 +61,7 @@ class CharacterArtFactory(SageObject):
             <class 'sage.typeset.character_art_factory.CharacterArtFactory'>
         """
         self.art_type = art_type
-        assert string_type in string_types
+        assert isinstance(string_type('a'), string_types)
         self.string_type = string_type
         assert magic_method_name in ['_ascii_art_', '_unicode_art_']
         self.magic_method_name = magic_method_name

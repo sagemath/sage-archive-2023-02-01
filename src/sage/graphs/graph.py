@@ -7672,7 +7672,7 @@ class Graph(GenericGraph):
                 edges = self.edges_incident(v, labels=False)
                 if not edges:
                     return False
-                p.add_constraint(sum(b[e] for e in edges) == 1)
+                p.add_constraint(p.sum(b[e] for e in edges) == 1)
             try:
                 p.solve(log=verbose)
                 return True

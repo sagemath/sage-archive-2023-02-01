@@ -117,8 +117,7 @@ def mma_free_integrator(expression, v, a=None, b=None):
                         lsymbols[m.group()] = f
                         break
                 else:
-                    raise NotImplementedError("Don't know a Sage equivalent \
-                        for Mathematica function '%s'." % m.group())
+                    raise NotImplementedError("Don't know a Sage equivalent for Mathematica function '%s'." % m.group())
             # Check if Sage has an equivalent constant
             else:
                 for t in autotrans:

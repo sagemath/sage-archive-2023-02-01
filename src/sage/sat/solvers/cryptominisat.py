@@ -57,7 +57,7 @@ class CryptoMiniSat(SatSolver):
         except ImportError:
             raise PackageNotFoundError("cryptominisat")
         self._solver = Solver(verbose=int(verbosity), confl_limit=int(confl_limit), threads=int(threads))
-        self._vars = set()
+        self._nvars = 0
         self._clauses = []
 
     def var(self, decision=None):
@@ -79,15 +79,14 @@ class CryptoMiniSat(SatSolver):
             sage: solver.var()                                              # optional - cryptominisat
             5
         """
-        if len(self._vars) == 0:
-            return 1
-        else:
-            return max(self._vars) + 1
+        return self._nvars + 1
 
     def nvars(self):
         """
-        Return the number of variables.
-
+        Return the number of variables. Note that for compatibility with DIMACS
+        convention, the number of variables corresponds to the maximal index of
+        the variables used. 
+        
         EXAMPLES::
 
             sage: from sage.sat.solvers.cryptominisat import CryptoMiniSat
@@ -96,11 +95,14 @@ class CryptoMiniSat(SatSolver):
             sage: solver.nvars()                                            # optional - cryptominisat
             0
 
+        If a variable with intermediate index is not used, it is still
+        considered as a variable::
+
             sage: solver.add_clause((1,-2,4))                               # optional - cryptominisat
             sage: solver.nvars()                                            # optional - cryptominisat
-            3
+            4
         """
-        return len(self._vars)
+        return self._nvars
 
     def add_clause(self, lits):
         """
@@ -126,7 +128,7 @@ class CryptoMiniSat(SatSolver):
             raise ValueError("0 should not appear in the clause: {}".format(lits))
         # cryptominisat does not handle Sage integers
         lits = tuple(int(i) for i in lits)
-        self._vars.update(abs(i) for i in lits)
+        self._nvars = max(self._nvars, max(abs(i) for i in lits))
         self._solver.add_clause(lits)
         self._clauses.append((lits, False, None))
 
@@ -151,7 +153,7 @@ class CryptoMiniSat(SatSolver):
             raise ValueError("0 should not appear in the clause: {}".format(lits))
         # cryptominisat does not handle Sage integers
         lits = tuple(int(i) for i in lits)
-        self._vars.update(abs(i) for i in lits)
+        self._nvars = max(self._nvars, max(abs(i) for i in lits))
         self._solver.add_xor_clause(lits, rhs)
         self._clauses.append((lits, True, rhs))
 
@@ -181,7 +183,7 @@ class CryptoMiniSat(SatSolver):
             sage: solver()                                                  # optional - cryptominisat
             False
         """
-        satisfiable,assignments = self._solver.solve()
+        satisfiable, assignments = self._solver.solve()
         if satisfiable:
             return assignments
         else:
@@ -230,27 +232,27 @@ class CryptoMiniSat(SatSolver):
 
             sage: from sage.sat.solvers import CryptoMiniSat
             sage: solver = CryptoMiniSat()                      # optional - cryptominisat
-            sage: solver.add_clause((1, 2, 3))                  # optional - cryptominisat
-            sage: solver.add_clause((1, 2, -3))                 # optional - cryptominisat
+            sage: solver.add_clause((1, 2, 4))                  # optional - cryptominisat
+            sage: solver.add_clause((1, 2, -4))                 # optional - cryptominisat
             sage: fn = tmp_filename()                           # optional - cryptominisat
             sage: solver.clauses(fn)                            # optional - cryptominisat
             sage: print(open(fn).read())                        # optional - cryptominisat
-            p cnf 3 2
-            1 2 3 0
-            1 2 -3 0
+            p cnf 4 2
+            1 2 4 0
+            1 2 -4 0
             <BLANKLINE>
 
         Note that in cryptominisat, the DIMACS standard format is augmented with
         the following extension: having an ``x`` in front of a line makes that
         line an XOR clause i Note that cryptominisat has its own 
 
-            sage: solver.add_xor_clause((1,2,4), rhs=True)      # optional - cryptominisat
+            sage: solver.add_xor_clause((1,2,3), rhs=True)      # optional - cryptominisat
             sage: solver.clauses(fn)                            # optional - cryptominisat
             sage: print(open(fn).read())                        # optional - cryptominisat
             p cnf 4 3
-            1 2 3 0
-            1 2 -3 0
-            x1 2 4 0
+            1 2 4 0
+            1 2 -4 0
+            x1 2 3 0
             <BLANKLINE>
 
         Note that inverting an xor-clause is equivalent to inverting one of the
@@ -260,9 +262,9 @@ class CryptoMiniSat(SatSolver):
             sage: solver.clauses(fn)                            # optional - cryptominisat
             sage: print(open(fn).read())                        # optional - cryptominisat
             p cnf 5 4
-            1 2 3 0
-            1 2 -3 0
-            x1 2 4 0
+            1 2 4 0
+            1 2 -4 0
+            x1 2 3 0
             x1 2 -5 0
             <BLANKLINE> 
         """

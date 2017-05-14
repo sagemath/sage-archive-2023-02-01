@@ -878,7 +878,7 @@ class Function_exp_polar(BuiltinFunction):
             sage: integrate(1/sqrt(1+x^3),x,algorithm='sympy')
             1/3*x*hypergeometric((1/3, 1/2), (4/3,), -x^3)*gamma(1/3)/gamma(4/3)
 
-        SEEALSO:
+        .. SEEALSO::
 
             `Examples in Sympy documentation <http://docs.sympy.org/latest/modules/functions/special.html?highlight=exp_polar>`_,
             `Sympy source code of exp_polar <http://docs.sympy.org/0.7.4/_modules/sympy/functions/elementary/exponential.html>`_

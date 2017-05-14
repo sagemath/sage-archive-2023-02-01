@@ -1235,11 +1235,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         This method just calls :func:`digits` with ``base=2``.
 
-        SEE ALSO:
+        .. SEEALSO::
 
-        :func:`nbits` (number of bits; a faster way to compute
-        ``len(x.bits())``; and :func:`binary`, which returns a string in
-        more-familiar notation.
+            :func:`nbits` (number of bits; a faster way to compute
+            ``len(x.bits())``; and :func:`binary`, which returns a string in
+            more-familiar notation.
 
         EXAMPLES::
 

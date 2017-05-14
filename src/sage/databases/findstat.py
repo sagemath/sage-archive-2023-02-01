@@ -844,7 +844,8 @@ class FindStatStatistic(SageObject):
             raise ValueError("FindStatStatistic._query should be either 'ID' or 'data', but is %s.  This should not happen.  Please send an email to the developers." %self._query)
 
     def __eq__(self, other):
-        """Return ``True`` if ``self`` is equal to ``other`` and ``False``
+        """
+        Return ``True`` if ``self`` is equal to ``other`` and ``False``
         otherwise.
 
         INPUT:
@@ -897,7 +898,8 @@ class FindStatStatistic(SageObject):
             return False
 
     def __ne__(self, other):
-        """Determine whether ``other`` is a different query.
+        """
+        Determine whether ``other`` is a different query.
 
         INPUT:
 
@@ -908,9 +910,9 @@ class FindStatStatistic(SageObject):
 
         A boolean.
 
-        SEEALSO:
+        .. SEEALSO::
 
-        :meth:`__eq__`
+            :meth:`__eq__`
 
         EXAMPLES::
 
@@ -1853,10 +1855,9 @@ class FindStatCollection(Element):
         sage: FindStatCollection(DyckWords(2))                                  # optional -- internet
         Cc0005: Dyck paths
 
-    SEEALSO:
+    .. SEEALSO::
 
-    :class:`FindStatCollections`
-
+        :class:`FindStatCollections`
     """
     @staticmethod
     def __classcall_private__(cls, entry):

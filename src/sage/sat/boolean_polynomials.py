@@ -263,38 +263,6 @@ def learn(F, converter=None, solver=None, max_learnt_length=3, interreduction=Fa
        sage: H = learn_sat(F)                           # optional - cryptominisat
        sage: H[-1]                                      # optional - cryptominisat
        k033 + 1
-
-    We construct a slightly larger equation system and recover some
-    equations after 20 restarts::
-
-       sage: set_random_seed(2303)                        # optional - cryptominisat
-       sage: sr = mq.SR(1,4,4,4,gf2=True,polybori=True)   # optional - cryptominisat
-       sage: F,s = sr.polynomial_system()                 # optional - cryptominisat
-       sage: from sage.sat.boolean_polynomials import learn as learn_sat # optional - cryptominisat
-       sage: H = learn_sat(F, s_maxrestarts=20, interreduction=True)     # optional - cryptominisat
-       sage: H[-1]                                        # optional - cryptominisat, output random
-       k001200*s031*x011201 + k001200*x011201
-
-    .. NOTE::
-
-       This function is meant to be called with some parameter such
-       that the SAT-solver is interrupted. For CryptoMiniSat this is
-       max_restarts, so pass 'c_max_restarts' to limit the number of
-       restarts CryptoMiniSat will attempt. If no such parameter is
-       passed, then this function behaves essentially like
-       :func:`solve` except that this function does not support
-       ``n>1``.
-
-    TESTS:
-
-    We test that :trac:`17351` is fixed, by checking that the following doctest does not raise an
-    error::
-
-        sage: P.<a,b,c> = BooleanPolynomialRing()
-        sage: F = [a*c + a + b*c + c + 1,  a*b + a*c + a + c + 1,  a*b + a*c + a + b*c + 1]
-        sage: from sage.sat.boolean_polynomials import learn as learn_sat # optional - cryptominisat
-        sage: learn_sat(F, s_maxrestarts=0, interreduction=True)      # optional - cryptominisat
-        []
     """
     try:
         len(F)

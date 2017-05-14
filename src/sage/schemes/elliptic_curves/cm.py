@@ -545,7 +545,7 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
 @cached_function
 def is_cm_j_invariant(j):
     """
-    Returns whether or not this is a CM `j`-invariant.
+    Return whether or not this is a CM `j`-invariant.
 
     INPUT:
 
@@ -555,7 +555,7 @@ def is_cm_j_invariant(j):
 
     A pair (bool, (d,f)) which is either (False, None) if `j` is not a
     CM j-invariant or (True, (d,f)) if `j` is the `j`-invariant of the
-    immaginary quadratic order of discriminant `D=df^2` where `d` is
+    imaginary quadratic order of discriminant `D=df^2` where `d` is
     the associated fundamental discriminant and `f` the index.
 
     .. note::
@@ -567,7 +567,6 @@ def is_cm_j_invariant(j):
        version, using the fact that `d` must be supported on the
        primes dividing the discriminant of the minimal polynomial of
        `j`.
-
 
     EXAMPLES::
 

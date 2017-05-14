@@ -93,7 +93,7 @@ def simplify_sqrt_real(expr):
                        # by Pynac symbols of the type D[0] or diff(...)
     # Lists to store the positions of all the top-level sqrt's in sexpr:
     pos_sqrts = []  # position of first character, i.e. 's' of 'sqrt(...)'
-    pos_after = []  # position of character immediatelty after 'sqrt(...)'
+    pos_after = []  # position of character immediately after 'sqrt(...)'
     the_sqrts = []  # the sqrt sub-expressions in sexpr, i.e. 'sqrt(...)'
     pos_max = len(sexpr) - 6
     pos = 0

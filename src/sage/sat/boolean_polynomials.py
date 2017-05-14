@@ -156,7 +156,7 @@ def solve(F, converter=None, solver=None, n=1, target_variables=None, **kwds):
     # instantiate the SAT solver
 
     if solver is None:
-        from sage.sat.solvers.cryptominisat import CryptoMiniSat as solver
+        from sage.sat.solvers import CryptoMiniSat as solver
 
     if not isinstance(solver, SatSolver):
         solver_kwds = {}

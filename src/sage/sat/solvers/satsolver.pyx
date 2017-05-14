@@ -311,25 +311,21 @@ def SAT(solver=None):
     Forcing CryptoMiniSat::
 
         sage: SAT(solver="cryptominisat") # optional - cryptominisat
-        CryptoMiniSat
-        #vars:       0, #lits:       0, #clauses:       0, #learnt:       0, #assigns:       0
-
+        CryptoMiniSat solver: 0 variables, 0 clauses.
     """
     if solver is None:
-        try:
-            from sage.sat.solvers.cryptominisat.cryptominisat import CryptoMiniSat
-            solver = "cryptominisat"
-        except ImportError:
+        import pkgutil
+        if pkgutil.find_loader('pycryptosat') is None:
             solver = "LP"
+        else:
+            solver = "cryptominisat"
 
     if solver == 'cryptominisat':
-        try:
-            from sage.sat.solvers.cryptominisat.cryptominisat import CryptoMiniSat
-        except ImportError:
-            raise PackageNotFoundError("cryptominisat")
+        from sage.sat.solvers.cryptominisat import CryptoMiniSat
         return CryptoMiniSat()
     elif solver == "LP":
         from sat_lp import SatLP
         return SatLP()
     else:
         raise ValueError("Solver '{}' is not available".format(solver))
+

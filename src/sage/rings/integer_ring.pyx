@@ -1247,12 +1247,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             This is a helper method for
             :meth:`sage.rings.polynomial.polynomial_element.Polynomial.roots`.
 
-        REFERENCES:
-
-        ..  [CKS1999] F. Cucker, P. Koiran and S. Smale
-            "A polynomial-time algorithm for diophantine equations in one variable"
-            JSC 27, p21-29, 1999.
-
         TESTS::
 
             sage: R.<x> = PolynomialRing(ZZ, sparse=True)

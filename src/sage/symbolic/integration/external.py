@@ -142,6 +142,11 @@ def giac_integrator(expression, v, a=None, b=None):
         -cos(x)
         sage: giac_integrator(1/(x^2+6), x, -oo, oo)
         1/6*sqrt(6)*pi
+        
+    TESTS::
+
+        sage: giac_integrator(e^(-x^2)*log(x), x)
+        integrate(e^(-x^2)*log(x), x)
     """
     ex = expression._giac_()
     v = v._giac_()

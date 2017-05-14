@@ -71,6 +71,11 @@ REFERENCES:
 
 .. [1] La Jolla Covering Repository,
   http://www.ccrwest.org/cover.html
+
+TESTS::
+
+    sage: 'absolute_import' in dir(designs) or 'deprecated_callable_import' in dir(designs)
+    False
 """
 from __future__ import absolute_import
 from sage.combinat.designs.block_design import (BlockDesign,
@@ -123,4 +128,4 @@ deprecated_callable_import(17034,
                            ("This function will soon be removed. Use the designs.orthogonal_arrays.* functions instead"))
 
 # We don't want this to appear in designs.<tab>
-del deprecated_callable_import
+del deprecated_callable_import, absolute_import

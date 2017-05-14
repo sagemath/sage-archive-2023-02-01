@@ -230,7 +230,8 @@ class Function_log(GinacFunction):
             polylog(1.414213562373095?, 3)
         """
         GinacFunction.__init__(self, 'log', latex_name=r'\log',
-                               conversions=dict(maxima='log', fricas='log'))
+                               conversions=dict(maxima='log', fricas='log',
+                                                mathematica='Log'))
 
     def __call__(self, *args, **kwds):
         """

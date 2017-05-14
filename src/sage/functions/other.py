@@ -332,7 +332,8 @@ class Function_abs(GinacFunction):
             (pi + e)*abs(x)
         """
         GinacFunction.__init__(self, "abs", latex_name=r"\mathrm{abs}",
-                               conversions=dict(sympy='Abs'))
+                               conversions=dict(sympy='Abs',
+                                                mathematica='Abs'))
 
 abs = abs_symbolic = Function_abs()
 

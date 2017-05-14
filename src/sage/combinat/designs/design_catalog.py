@@ -71,11 +71,6 @@ REFERENCES:
 
 .. [1] La Jolla Covering Repository,
   http://www.ccrwest.org/cover.html
-
-TESTS::
-
-    sage: 'absolute_import' in dir(designs) or 'deprecated_callable_import' in dir(designs)
-    False
 """
 from __future__ import absolute_import
 from sage.combinat.designs.block_design import (BlockDesign,

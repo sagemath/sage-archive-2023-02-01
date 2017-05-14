@@ -4411,18 +4411,18 @@ class Graph(GenericGraph):
             b = p.new_variable(binary=True)
             if use_edge_labels:
                 p.set_objective(
-                         for u, v, w in g.edge_iterator()))
                     p.sum(weight(w) * b[min(u, v), max(u, v)]
+                          for u, v, w in g.edge_iterator()))
             else:
                 p.set_objective(
-                         for u, v in g.edge_iterator(labels=False)))
                     p.sum(b[min(u, v), max(u, v)]
+                          for u, v in g.edge_iterator(labels=False)))
             # for any vertex v, there is at most one edge incident to v in
             # the maximum matching
             for v in g.vertex_iterator():
                 p.add_constraint(
                     p.sum(b[min(u, v),max(u, v)]
-                         for u in g.neighbors(v)), max=1)
+                          for u in g.neighbors(v)), max=1)
             if value_only:
                 if use_edge_labels:
                     return p.solve(objective_only=True, log=verbose)

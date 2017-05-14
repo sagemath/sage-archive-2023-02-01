@@ -1299,8 +1299,9 @@ def laplace(ex, t, s, algorithm='maxima'):
       are auxiliary convergence conditions.
 
     .. SEEALSO::
+
         :func:`inverse_laplace`
-            
+
     EXAMPLES:
 
     We compute a few Laplace transforms::
@@ -1498,8 +1499,9 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
       - ``'giac'`` - use Giac
 
     .. SEEALSO::
-        :func:`laplace`
-              
+
+        :func:`laplace
+
     EXAMPLES::
 
         sage: var('w, m')

@@ -485,7 +485,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     def _repr_(self, mode=None, do_latex=False):
         """
-        Returns a string representation of self.
+        Returns a string representation of this element.
 
         INPUT:
 
@@ -1418,6 +1418,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
         cdef long v = self.valuation_c()
         if v == maxordp:
             return infinity
+        if v == -maxordp:
+            return -infinity
         cdef Integer ans = PY_NEW(Integer)
         mpz_set_si(ans.value, v)
         return ans

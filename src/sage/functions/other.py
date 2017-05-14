@@ -163,7 +163,8 @@ class Function_erf(BuiltinFunction):
         BuiltinFunction.__init__(self, "erf", latex_name=r"\text{erf}",
                                  conversions=dict(maxima='erf',
                                                   sympy='erf',
-                                                  fricas='erf'))
+                                                  fricas='erf',
+                                                  mathematica='Erf'))
 
     def _eval_(self, x):
         """

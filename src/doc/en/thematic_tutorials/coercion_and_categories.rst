@@ -308,9 +308,12 @@ considerations:
   etc. **We do not override the default double underscore __add__, __mul__**,
   since otherwise, we could not use Sage's coercion model.
 
-- Comparisons can be implemented using ``_richcmp_`` (recommended) or
+- Comparisons can be implemented using ``_richcmp_`` or
   ``_cmp_``. This automatically makes the relational operators like
-  ``==`` and ``<`` work.
+  ``==`` and ``<`` work. **Beware**: in these methods, calling the
+  Python2-only ``cmp`` function should be avoided for compatibility
+  with Python3. You can use instead the ``richcmp`` function provided
+  by sage.
 
   Note that either ``_cmp_`` or ``_richcmp_`` should be provided,
   since otherwise comparison does not work::

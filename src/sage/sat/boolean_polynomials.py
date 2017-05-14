@@ -306,7 +306,12 @@ def learn(F, converter=None, solver=None, max_learnt_length=3, interreduction=Fa
         learnt = [x + K(s[rho[x]]) for x in P.gens()]
     else:
         learnt = []
-        for c in solver.learnt_clauses():
+        try:
+            lc = solver.learnt_clauses()
+        except (AttributeError, NotImplementedError):
+        # solver does not support recovering learnt clauses
+            lc = []
+        for c in lc:
             if len(c) <= max_learnt_length:
                 try:
                     learnt.append(converter.to_polynomial(c))

@@ -86,7 +86,7 @@ def mma_free_integrator(expression, v, a=None, b=None):
     mexpr = re.match(r".*Integrate.*==</em><br/>(.*)</p>", page).groups()[0]
     try:
         from sage.libs.pynac.pynac import symbol_table
-        from sage.interfaces.mathematica import _un_camel
+        from sage.interfaces.mathematica import _un_camel as un_camel
         from sage.symbolic.constants import constants_name_table as constants
         from sage.calculus.calculus import symbolic_expression_from_string
         from sage.calculus.calculus import _find_func as find_func
@@ -96,7 +96,7 @@ def mma_free_integrator(expression, v, a=None, b=None):
         expr = expr.replace('{', '[').replace('}', ']')
         lsymbols = symbol_table['mathematica'].copy()
         autotrans = [str.lower,      # Try it in lower case
-                     _un_camel,      # Convert `CamelCase` to `camel_case`
+                     un_camel,      # Convert `CamelCase` to `camel_case`
                      lambda x: x     # Try the original name
                     ]
         # Find the MMA funcs/vars/constants - they start with a letter.

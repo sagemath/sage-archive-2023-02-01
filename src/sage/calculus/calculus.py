@@ -1801,21 +1801,6 @@ def at(ex, *args, **kwds):
 
     return ex.subs(**kwds)
 
-
-def dummy_limit(*args):
-    """
-    This function is called to create formal wrappers of limits that
-    Maxima can't compute:
-
-    EXAMPLES::
-
-        sage: a = lim(exp(x^2)*(1-erf(x)), x=infinity); a
-        -limit((erf(x) - 1)*e^(x^2), x, +Infinity)
-        sage: a = sage.calculus.calculus.dummy_limit(sin(x)/x, x, 0);a
-        limit(sin(x)/x, x, 0)
-    """
-    return _limit(args[0], var(repr(args[1])), SR(args[2]))
-
 def dummy_diff(*args):
     """
     This function is called when 'diff' appears in a Maxima string.
@@ -1896,59 +1881,6 @@ def dummy_inverse_laplace(*args):
 #
 #######################################################
 
-def _limit_latex_(self, f, x, a, direction=None):
-    r"""
-    Return latex expression for limit of a symbolic function.
-
-    EXAMPLES::
-
-        sage: from sage.calculus.calculus import _limit_latex_
-        sage: var('x,a')
-        (x, a)
-        sage: f = function('f')
-        sage: _limit_latex_(0, f(x), x, a)
-        '\\lim_{x \\to a}\\, f\\left(x\\right)'
-        sage: latex(limit(f(x), x=oo))
-        \lim_{x \to +\infty}\, f\left(x\right)
-
-    TESTS:
-
-    When one-sided limits are converted back from maxima, the direction
-    argument becomes a symbolic variable. We check if typesetting these works::
-
-        sage: var('minus,plus')
-        (minus, plus)
-        sage: _limit_latex_(0, f(x), x, a, minus)
-        '\\lim_{x \\to a^-}\\, f\\left(x\\right)'
-        sage: _limit_latex_(0, f(x), x, a, plus)
-        '\\lim_{x \\to a^+}\\, f\\left(x\\right)'
-        sage: latex(limit(f(x),x=a,dir='+'))
-        \lim_{x \to a^+}\, f\left(x\right)
-        sage: latex(limit(f(x),x=a,dir='right'))
-        \lim_{x \to a^+}\, f\left(x\right)
-        sage: latex(limit(f(x),x=a,dir='-'))
-        \lim_{x \to a^-}\, f\left(x\right)
-        sage: latex(limit(f(x),x=a,dir='left'))
-        \lim_{x \to a^-}\, f\left(x\right)
-
-    Check if :trac:`13181` is fixed::
-
-        sage: t = var('t')
-        sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x,dir='-'))
-        \lim_{t \to x^-}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
-        sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x,dir='+'))
-        \lim_{t \to x^+}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
-        sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x))
-        \lim_{t \to x}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
-    """
-    if repr(direction) == 'minus':
-        dir_str = '^-'
-    elif repr(direction) == 'plus':
-        dir_str = '^+'
-    else:
-        dir_str = ''
-    return "\\lim_{%s \\to %s%s}\\, %s"%(latex(x), latex(a), dir_str, latex(f))
-
 def _laplace_latex_(self, *args):
     r"""
     Return LaTeX expression for Laplace transform of a symbolic function.
@@ -1986,7 +1918,6 @@ def _inverse_laplace_latex_(self, *args):
     return "\\mathcal{L}^{-1}\\left(%s\\right)"%(', '.join([latex(x) for x in args]))
 
 # Return un-evaluated expression as instances of SFunction class
-_limit = function_factory('limit', print_latex_func=_limit_latex_)
 _laplace = function_factory('laplace', print_latex_func=_laplace_latex_)
 _inverse_laplace = function_factory('ilt',
         print_latex_func=_inverse_laplace_latex_)
@@ -2192,7 +2123,6 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         search = sci_not.search(s)
 
     # have to do this here, otherwise maxima_tick catches it
-    syms['limit'] = dummy_limit
     syms['diff'] = dummy_diff
     syms['integrate'] = dummy_integrate
     syms['laplace'] = dummy_laplace

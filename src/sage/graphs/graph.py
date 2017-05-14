@@ -4376,7 +4376,11 @@ class Graph(GenericGraph):
         """
         self._scream_if_not_simple(allow_loops=True)
         from sage.rings.real_mpfr import RR
-        weight = lambda x: x if x in RR else 1
+        def weight(x):
+            if x in RR:
+                return x
+            else:
+                return 1
 
         if algorithm == "Edmonds":
             import networkx
@@ -4404,15 +4408,15 @@ class Graph(GenericGraph):
             # returns the weight of an edge considering it may not be
             # weighted ...
             p = MixedIntegerLinearProgram(maximization=True, solver=solver)
-            b = p.new_variable(binary = True)
+            b = p.new_variable(binary=True)
             if use_edge_labels:
                 p.set_objective(
-                    p.sum(weight(w) * b[min(u, v),max(u, v)]
                          for u, v, w in g.edge_iterator()))
+                    p.sum(weight(w) * b[min(u, v), max(u, v)]
             else:
                 p.set_objective(
-                    p.sum(b[min(u, v),max(u, v)]
                          for u, v in g.edge_iterator(labels=False)))
+                    p.sum(b[min(u, v), max(u, v)]
             # for any vertex v, there is at most one edge incident to v in
             # the maximum matching
             for v in g.vertex_iterator():

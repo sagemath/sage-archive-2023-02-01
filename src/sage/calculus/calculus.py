@@ -2107,11 +2107,12 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         sage: sefms('%inf')
         +Infinity
     """
+    global _syms
     syms = symbol_table.get('maxima', {}).copy()
 
-    if len(x) == 0:
+    if not len(x):
         raise RuntimeError("invalid symbolic expression -- ''")
-    maxima.set('_tmp_',x)
+    maxima.set('_tmp_', x)
 
     # This is inefficient since it so rarely is needed:
     #r = maxima._eval_line('listofvars(_tmp_);')[1:-1]
@@ -2119,7 +2120,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     s = maxima._eval_line('_tmp_;')
 
     formal_functions = maxima_tick.findall(s)
-    if len(formal_functions) > 0:
+    if len(formal_functions):
         for X in formal_functions:
             try:
                 syms[X[1:]] = _syms[X[1:]]
@@ -2131,7 +2132,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         s = s.replace("'","")
 
     delayed_functions = maxima_qp.findall(s)
-    if len(delayed_functions) > 0:
+    if len(delayed_functions):
         for X in delayed_functions:
             if X == '?%at': # we will replace Maxima's "at" with symbolic evaluation, not an SFunction
                 pass
@@ -2202,7 +2203,6 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         # use a global flag so all expressions obtained via
         # evaluation of maxima code are assumed pre-simplified
         is_simplified = True
-        global _syms
         _syms = symbol_table['functions'].copy()
         try:
             global _augmented_syms

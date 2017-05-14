@@ -1179,7 +1179,7 @@ done from the right side.""")
             1
         """
         if not self.rank():
-            return ZZ.one()
+            return sage.rings.integer.Integer(1)
         return self.base_ring().cardinality() ** self.rank()
 
     __len__ = cardinality # for backward compatibility

@@ -3464,7 +3464,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: len(L.fundamental_weights()[2].orbit())
                 6
             """
-            return list(self._orbit_iter)
+            return list(self._orbit_iter())
 
         ##########################################################################
         #

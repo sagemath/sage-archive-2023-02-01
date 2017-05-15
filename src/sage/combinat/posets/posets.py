@@ -104,6 +104,7 @@ List of Poset methods
     :meth:`~FinitePoset.ordinal_product` | Return the ordinal product of the poset with other poset.
     :meth:`~FinitePoset.star_product` | Return the star product of the poset with other poset.
     :meth:`~FinitePoset.with_bounds` | Return the poset with bottom and top element adjoined.
+    :meth:`~FinitePoset.without_bounds` | Return the poset with bottom and top element removed.
     :meth:`~FinitePoset.dual` | Return the dual of the poset.
     :meth:`~FinitePoset.completion_by_cuts` | Return the Dedekind-MacNeille completion of the poset.
     :meth:`~FinitePoset.intervals_poset` | Return the poset of intervals of the poset.
@@ -4726,6 +4727,10 @@ class FinitePoset(UniqueRepresentation, Parent):
           ``'top'``. Either of them can be ``None``, and then a new
           bottom or top element will not be added.
 
+        .. SEEALSO::
+
+            :meth:`without_bounds` for the reverse operation
+
         EXAMPLES::
 
             sage: V = Poset({0: [1, 2]})
@@ -4858,6 +4863,10 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         If there is either no top or no bottom elements, this
         raises a ``TypeError``.
+
+        .. SEEALSO::
+
+            :meth:`with_bounds` for the reverse operation
 
         EXAMPLES::
 

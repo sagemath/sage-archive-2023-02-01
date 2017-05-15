@@ -188,6 +188,17 @@ export ABI CFLAGS CXXFLAGS LDFLAGS # Partially redundant, but safe(r).
 MPIR_CONFIGURE="--enable-shared $MPIR_CONFIGURE"
 MPIR_CONFIGURE="--enable-gmpcompat $MPIR_CONFIGURE"
 
+# Fake yasm installation on non-x86[_64] system.
+# It is not installed but not needed.
+case "$UNAME-`uname -m`" in
+    Linux-i[3456]86)
+    Linux-x86_64|Linux-amd64)
+            ;;
+    Linux-*) # Anything else
+        MPIR_CONFIGURE="--with-yasm=/bin/true $MPIR_CONFIGURE"
+        ;;
+esac
+
 # If we're bootstrapping GCC from the GCC spkg, don't build the C++
 # interface (cf. #12782), static libraries and disable fat binary.
 # After GCC is built, we will build MPIR again.

@@ -2341,6 +2341,21 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         return self.real().is_infinity() or self.imag().is_infinity()
 
+    def is_NaN(self):
+        r"""
+        Check if ``self`` is not-a-number.
+
+        EXAMPLES::
+
+            sage: CC(1, 2).is_NaN()
+            False
+            sage: CC(NaN).is_NaN()
+            True
+            sage: CC(NaN,2).log().is_NaN()
+            True
+        """
+        return mpfr_nan_p(self.__re) or mpfr_nan_p(self.__im)
+
     def zeta(self):
         """
         Return the Riemann zeta function evaluated at this complex number.

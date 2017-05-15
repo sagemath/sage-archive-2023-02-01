@@ -1839,6 +1839,21 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         """
         return True
 
+    def is_NaN(self):
+        r"""
+        Return ``True`` if this is not-a-number.
+
+        EXAMPLES::
+
+            sage: CIF(2, 1).is_NaN()
+            False
+            sage: CIF(NaN).is_NaN()
+            True
+            sage: (1 / CIF(0, 0)).is_NaN()
+            True
+        """
+        return mpfi_nan_p(self.__re) or mpfi_nan_p(self.__im)
+
     def cos(self):
         r"""
         Compute the cosine of this complex interval.

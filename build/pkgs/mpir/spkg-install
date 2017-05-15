@@ -39,18 +39,6 @@ echo "Machine type (mpir): $MACHINE_TYPE_MPIR"
 # Set up environment variables:
 ###############################################################################
 
-
-# The Yasm build uses PYTHON from the environment to find the Python interpreter,
-# so unset it in case it apparently contains nothing useful (like it did in Sage
-# versions prior to 5.0.beta10; cf. #10492), to not break Yasm's 'configure':
-if [ -n "$PYTHON" ]; then
-    if ! $PYTHON --version &>/dev/null; then
-        echo >&2 "Warning: Unsetting PYTHON (=\"$PYTHON\"), since it doesn't seem"
-        echo >&2 "         to contain the name of / path to a Python interpreter."
-        unset PYTHON
-    fi
-fi
-
 user_cflags=$CFLAGS # Save them. 'sage-env' sets CC, but not CFLAGS.
 required_cflags=""  # Additional mandatory settings required by Sage, accumulated below.
 user_ldflags=$LDFLAGS # Save them.

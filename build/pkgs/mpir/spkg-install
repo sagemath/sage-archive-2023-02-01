@@ -205,6 +205,7 @@ case "$UNAME-`uname -m`" in
     Linux-i[3456]86|Linux-x86_64|Linux-amd64)
         ;;
     Linux-*) # Anything else
+        echo "Disable check for yasm on non-x86[_64] Linux."
         MPIR_CONFIGURE="--with-yasm=/bin/true $MPIR_CONFIGURE"
         ;;
 esac

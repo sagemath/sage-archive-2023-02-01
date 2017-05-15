@@ -163,6 +163,17 @@ if [ "`uname -m`" = ppc64le ]; then
     export MPN_PATH=generic
 fi
 
+# Workaround old GNU as version by disabling assembly use.
+if [ "$UNAME" = Linux ] && [ "$CC" = GCC ]; then
+    as_version = `$AS --version | head -1 | awk 'NF>1{print $NF}'`
+    case "$as_version" in
+        1.*|2.1*|2.[0-2]*)
+        echo "Disable use of assembly because of GNU as < 2.23."
+        export MPN_PATH=generic
+        ;;
+    esac
+fi
+
 # Work around a bug in GCC 4.7.0 which breaks the build on Itanium CPUs.
 # See #12765, #12751, and http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48496
 if [ "`uname -m`" = ia64 ] && [ "`testcc.sh $CC`" = GCC ] ; then
@@ -191,9 +202,8 @@ MPIR_CONFIGURE="--enable-gmpcompat $MPIR_CONFIGURE"
 # Fake yasm installation on non-x86[_64] system.
 # It is not installed but not needed.
 case "$UNAME-`uname -m`" in
-    Linux-i[3456]86)
-    Linux-x86_64|Linux-amd64)
-            ;;
+    Linux-i[3456]86|Linux-x86_64|Linux-amd64)
+        ;;
     Linux-*) # Anything else
         MPIR_CONFIGURE="--with-yasm=/bin/true $MPIR_CONFIGURE"
         ;;

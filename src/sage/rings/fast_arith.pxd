@@ -12,7 +12,7 @@ cdef class arith_llong:
     cdef long long abs_longlong(self, long long x) except -1
     cdef long long sign_longlong(self, long long n) except -2
     cdef long long c_gcd_longlong(self, long long a, long long b) except -1
-    cdef public long long c_xgcd_longlong(self, long long a, long long b,
+    cdef long long c_xgcd_longlong(self, long long a, long long b,
                                           long long *ss,
                                           long long *tt) except -1
     cdef long long c_inverse_mod_longlong(self, long long a, long long m) except -1

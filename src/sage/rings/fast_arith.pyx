@@ -173,17 +173,17 @@ cpdef prime_range(start, stop=None, algorithm="pari_primes", bint py_ints=False)
     return res
 
 cdef class arith_int:
-    cdef public int abs_int(self, int x) except -1:
+    cdef int abs_int(self, int x) except -1:
         if x < 0:
             return -x
         return x
 
-    cdef public int sign_int(self, int n) except -2:
+    cdef int sign_int(self, int n) except -2:
         if n < 0:
             return -1
         return 1
 
-    cdef public int c_gcd_int(self, int a, int b) except -1:
+    cdef int c_gcd_int(self, int a, int b) except -1:
         cdef int c
         if a==0:
             return self.abs_int(b)
@@ -202,7 +202,7 @@ cdef class arith_int:
         return self.c_gcd_int(a,b)
 
 
-    cdef public int c_xgcd_int(self, int a, int b, int* ss, int* tt) except -1:
+    cdef int c_xgcd_int(self, int a, int b, int* ss, int* tt) except -1:
         cdef int psign, qsign, p, q, r, s, c, quot, new_r, new_s
 
         if a == 0:
@@ -239,7 +239,7 @@ cdef class arith_int:
         g = self.c_xgcd_int(a,b, &s, &t)
         return (g,s,t)
 
-    cdef public int c_inverse_mod_int(self, int a, int m) except -1:
+    cdef int c_inverse_mod_int(self, int a, int m) except -1:
         if a == 1 or m<=1: return a%m   # common special case
         cdef int g, s, t
         g = self.c_xgcd_int(a,m, &s, &t)
@@ -309,17 +309,17 @@ cdef class arith_int:
 # The long long versions are next.
 cdef class arith_llong:
 
-    cdef public long long abs_longlong(self, long long x) except -1:
+    cdef long long abs_longlong(self, long long x) except -1:
         if x < 0:
             return -x
         return x
 
-    cdef public long long sign_longlong(self, long long n) except -2:
+    cdef long long sign_longlong(self, long long n) except -2:
         if n < 0:
             return -1
         return 1
 
-    cdef public long long c_gcd_longlong(self, long long a, long long b) except -1:
+    cdef long long c_gcd_longlong(self, long long a, long long b) except -1:
         cdef long long c
         if a==0:
             return self.abs_longlong(b)
@@ -333,12 +333,10 @@ cdef class arith_llong:
             b = c
         return a
 
-
     def gcd_longlong(self, long long a, long long b):
         return self.c_gcd_longlong(a,b)
 
-
-    cdef public long long c_xgcd_longlong(self, long long a, long long b,
+    cdef long long c_xgcd_longlong(self, long long a, long long b,
                                           long long *ss,
                                           long long *tt) except -1:
         cdef long long psign, qsign, p, q, r, s, c, quot, new_r, new_s
@@ -374,7 +372,7 @@ cdef class arith_llong:
 
         return a
 
-    cdef public long long c_inverse_mod_longlong(self, long long a, long long m) except -1:
+    cdef long long c_inverse_mod_longlong(self, long long a, long long m) except -1:
         cdef long long g, s, t
         g = self.c_xgcd_longlong(a,m, &s, &t)
         if g != 1:

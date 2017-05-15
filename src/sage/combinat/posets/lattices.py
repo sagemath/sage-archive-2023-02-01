@@ -3802,12 +3802,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         while todo:
             e = todo.pop()
             for e_up in conL.upper_covers(e):
-                if e_up not in reachable:
-                    if splitting_depth_2(e, e_up):
-                        if len(e_up) == 1:  # = the top of the cong. lattice
-                            return True
-                        reachable.append(e_up)
-                        todo.append(e_up)
+                if e_up not in reachable and splitting_depth_2(e, e_up):
+                    if len(e_up) == 1:  # = the top of the cong. lattice
+                        return True
+                    reachable.append(e_up)
+                    todo.append(e_up)
         return False
 
     def is_isoform(self, certificate=False):

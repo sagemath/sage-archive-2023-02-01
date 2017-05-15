@@ -72,7 +72,7 @@ REFERENCES:
 .. [1] La Jolla Covering Repository,
   http://www.ccrwest.org/cover.html
 """
-from __future__ import absolute_import
+
 from sage.combinat.designs.block_design import (BlockDesign,
                                                 ProjectiveGeometryDesign,
                                                 DesarguesianProjectivePlaneDesign,

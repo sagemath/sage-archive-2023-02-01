@@ -201,11 +201,11 @@ MPIR_CONFIGURE="--enable-gmpcompat $MPIR_CONFIGURE"
 
 # Fake yasm installation on non-x86[_64] system.
 # It is not installed but not needed.
-case "$UNAME-`uname -m`" in
-    Linux-i[3456]86|Linux-x86_64|Linux-amd64)
+case `uname -m` in
+    i[3456]86|x86_64|amd64)
         ;;
-    Linux-*) # Anything else
-        echo "Disable check for yasm on non-x86[_64] Linux."
+    *) # Anything else
+        echo "Disabling check for yasm on non-x86[_64] system."
         MPIR_CONFIGURE="--with-yasm=/bin/true $MPIR_CONFIGURE"
         ;;
 esac

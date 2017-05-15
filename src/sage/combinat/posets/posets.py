@@ -4850,6 +4850,53 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         return constructor(D)
 
+    def without_bounds(self):
+        """
+        Return the poset without its top and bottom elements.
+
+        This is useful as an input for the method :meth:`order_complex`.
+
+        If there is either no top or no bottom elements, this
+        raises a ``TypeError``.
+
+        EXAMPLES::
+
+            sage: P = posets.PentagonPoset()
+            sage: Q = P.without_bounds(); Q
+            Finite poset containing 3 elements
+            sage: Q.cover_relations()
+            [[2, 3]]
+
+            sage: P = posets.DiamondPoset(5)
+            sage: Q = P.without_bounds(); Q
+            Finite poset containing 3 elements
+            sage: Q.cover_relations()
+            []
+
+        TESTS::
+
+            sage: P = Poset({1:[2],3:[2,4]})
+            sage: P.without_bounds()
+            Traceback (most recent call last):
+            ...
+            TypeError: the poset is missing either top or bottom
+
+            sage: P = Poset({1:[]})
+            sage: P.without_bounds()
+            Finite poset containing 0 elements
+
+            sage: P = Poset({})
+            sage: P.without_bounds()
+            Traceback (most recent call last):
+            ...
+            TypeError: the poset is missing either top or bottom
+        """
+        if self.is_bounded():
+            top = self.top()
+            bottom = self.bottom()
+            return self.subposet(u for u in self if not u in (top, bottom))
+        raise TypeError('the poset is missing either top or bottom')
+
     def relabel(self, relabeling=None):
         r"""
         Return a copy of this poset with its elements relabeled.

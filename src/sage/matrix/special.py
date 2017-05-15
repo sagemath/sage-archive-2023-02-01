@@ -3594,7 +3594,7 @@ def hankel(c, r=None, ring=None):
 
     EXAMPLES:
 
-    A Hankel with symbolic entries::
+    A Hankel matrix with symbolic entries::
 
         sage: matrix.hankel(SR.var('a, b, c, d, e'))
         [a b c d e]
@@ -3603,12 +3603,26 @@ def hankel(c, r=None, ring=None):
         [d e b c d]
         [e b c d e]
 
-    A partial Hankel matrix is constructed passing the last row::
+    A third order Hankel matrix in the integers::
+
+        sage: matrix.hankel([1..3])
+        [1 2 3]
+        [2 3 2]
+        [3 2 3]
+
+    The last row can be passed as well::
 
         sage: matrix.hankel([1..3], [3..6])
         [1 2 3 4]
         [2 3 4 5]
         [3 4 5 6]
+
+    If column and row are passed, the common position is set by the column::
+
+        sage: matrix.hankel([1..3], [5..8])
+        [1 2 3 6]
+        [2 3 6 7]
+        [3 6 7 8]
     """
     m = len(c)
     if r is None:

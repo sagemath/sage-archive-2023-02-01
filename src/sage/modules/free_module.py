@@ -688,13 +688,13 @@ class FreeModule_generic(Module):
             Ambient free module of rank 3 over the integral domain Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
 
             sage: FreeModule(GF(7),3).category()
-            Category of finite enumerated finite dimensional vector spaces with basis over
+            Category of enumerated finite dimensional vector spaces with basis over
              (finite enumerated fields and subquotients of monoids and quotients of semigroups)
             sage: V = QQ^4; V.category()
             Category of finite dimensional vector spaces with basis over
              (quotient fields and metric spaces)
             sage: V = GF(5)**20; V.category()
-            Category of finite enumerated finite dimensional vector spaces with basis over (finite enumerated fields and subquotients of monoids and quotients of semigroups)
+            Category of enumerated finite dimensional vector spaces with basis over (finite enumerated fields and subquotients of monoids and quotients of semigroups)
             sage: FreeModule(ZZ,3).category()
             Category of finite dimensional modules with basis over
              (euclidean domains and infinite enumerated sets

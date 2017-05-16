@@ -3245,7 +3245,7 @@ class Tableau(ClonableList):
         Lapointe-Lascoux-Morse promotion operator from the
         semistandard tableau ``self``.
 
-        .. WARNING:
+        .. WARNING::
 
             This is not Schuetzenberger's jeu-de-taquin promotion!
             For the latter, see :meth:`promotion` and

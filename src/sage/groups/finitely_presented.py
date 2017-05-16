@@ -708,7 +708,7 @@ class RewritingSystem(object):
         Note that this method does not return any object, just changes the
         rewriting system internally.
 
-        .. WARNING:
+        .. WARNING::
 
             This algorithm is not granted to finish. Although it may be useful
             in some occasions to run it, interrupt it manually after some time

@@ -1058,7 +1058,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         r"""
         Return `(Q,k)` where `p^kQ` == self and `Q` cannot be divided by `p`.
 
-        ..WARNING:
+        .. WARNING::
 
         It is up to the caller to make sure that this does not loop
         endlessly.  It is used in
@@ -1256,7 +1256,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             ...
             ValueError: Q must be nonzero.
 
-        ..NOTES:
+        .. NOTE::
 
             This function is used in _miller_ algorithm.
 

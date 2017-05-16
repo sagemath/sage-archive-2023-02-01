@@ -166,9 +166,9 @@ Deprecation checks::
     doctest:...: DeprecationWarning: the PARI/GP function elllseries is obsolete (2016-08-08)
     0.402838047956645
     sage: e.elllseries(1, precision=128)
-    3.19632265064095 E-40
+    -6.17606670058278 E-39
     sage: e.elllseries(1, precision=256)
-    8.68747983667209 E-79
+    -2.05598131842639 E-77
     sage: e.elllseries(-2)
     0
     sage: e.elllseries(2.1, A=1.1)
@@ -181,10 +181,10 @@ Reading a gp file::
 
     sage: import tempfile
     sage: gpfile = tempfile.NamedTemporaryFile(mode="w")
-    sage: gpfile.file.write("mysquare(n) = {\n")
-    sage: gpfile.file.write("    n^2;\n")
-    sage: gpfile.file.write("}\n")
-    sage: gpfile.file.write("polcyclo(5)\n")
+    sage: __ = gpfile.file.write("mysquare(n) = {\n")
+    sage: __ = gpfile.file.write("    n^2;\n")
+    sage: __ = gpfile.file.write("}\n")
+    sage: __ = gpfile.file.write("polcyclo(5)\n")
     sage: gpfile.file.flush()
     sage: pari.read(gpfile.name)
     x^4 + x^3 + x^2 + x + 1
@@ -1746,4 +1746,48 @@ General number fields::
     x^3 - 2
     sage: f.__pari__().nfdisc()
     -108
+
+These are some doctests that used to be part of Sage and were removed from the cypari2
+library::
+
+    sage: e = pari([0,0,0,-82,0]).ellinit()
+    sage: eta1 = e.elleta(precision=100)[0]
+    sage: eta1.sage()
+    3.6054636014326520859158205642077267748
+    sage: eta1 = e.elleta(precision=180)[0]
+    sage: eta1.sage()
+    3.60546360143265208591582056420772677481026899659802474544
+
+    sage: from cypari2 import Pari
+    sage: pari = Pari()
+
+    sage: f = pari('(2/3)*x^3 + x - 5/7 + y'); f
+    2/3*x^3 + x + (y - 5/7)
+    sage: var('x,y')
+    (x, y)
+    sage: f.sage({'x':x, 'y':y})
+    2/3*x^3 + x + y - 5/7
+
+    sage: pari.default("debug")
+    0
+    sage: pari.default("debug", 3)
+    sage: pari(2**67+1).factor()
+    IFAC: cracking composite
+            49191317529892137643
+    IFAC: factor 6713103182899
+            is prime
+    IFAC: factor 7327657
+            is prime
+    IFAC: prime 7327657
+            appears with exponent = 1
+    IFAC: prime 6713103182899
+            appears with exponent = 1
+    IFAC: found 2 large prime (power) factors.
+    [3, 1; 7327657, 1; 6713103182899, 1]
+    sage: pari.default("debug", 0)
+    sage: pari(2**67+1).factor()
+    [3, 1; 7327657, 1; 6713103182899, 1]
+
+    sage: pari(18).bernreal(precision=192).sage()
+    54.9711779448621553884711779448621553884711779448621553885
 """

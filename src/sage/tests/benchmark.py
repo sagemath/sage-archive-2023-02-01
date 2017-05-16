@@ -16,6 +16,7 @@ TESTS:
 
 """
 from __future__ import print_function
+from six.moves import range
 
 from sage.all import * # QQ, alarm, ModularSymbols, gp, pari, cputime, EllipticCurve
 import sage.libs.linbox.linbox as linbox
@@ -1024,7 +1025,7 @@ class MatrixSquare(Benchmark):
         """
         R = self.__R
         n = self.__n
-        f = MatrixSpace(R,n)(range(n*n))
+        f = MatrixSpace(R,n)(list(range(n*n)))
         t = cputime()
         g = f**2
         return cputime(t)
@@ -1076,7 +1077,7 @@ class MatrixSquare(Benchmark):
 
         """
         n = self.__n
-        m = gap(str([range(n*k,n*(k+1)) for k in range(n)]))
+        m = gap(str([list(range(n*k,n*(k+1))) for k in range(n)]))
         t = walltime()
         j = m*m
         return False, walltime(t)
@@ -1292,7 +1293,7 @@ class MatrixKernel(Benchmark):
         """
         R = self.__R
         n = self.__n
-        f = MatrixSpace(R,n,2*n)(range(n*(2*n)))
+        f = MatrixSpace(R,n,2*n)(list(range(n*(2*n))))
         t = cputime()
         g = f.kernel()
         return cputime(t)

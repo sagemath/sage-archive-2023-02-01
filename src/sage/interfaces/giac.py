@@ -56,10 +56,15 @@ AUTHORS:
 
 - Gregg Musiker (2006-02-02): initial version.
 
-(adapted to giac by F.Han)
+- Frederic Han: adapted to giac.
+
+- Marcelo Forets (2017-04-06): conversions and cleanup.
 
 This tutorial is based on the Maple Tutorial for number theory from
 http://www.math.mun.ca/~drideout/m3370/numtheory.html.
+
+Syntax
+~~~~~~~
 
 There are several ways to use the Giac Interface in Sage. We will
 discuss two of those ways in this tutorial.
@@ -100,6 +105,8 @@ discuss two of those ways in this tutorial.
        sage: giac('(x^12-1)/(x-1)').normal()
        x^11+x^10+x^9+x^8+x^7+x^6+x^5+x^4+x^3+x^2+x+1
 
+Some typical input
+~~~~~~~~~~~~~~~~~~
 
 The normal command will reduce a rational function to the
 lowest terms. In giac, simplify is slower than normal because it
@@ -119,6 +126,9 @@ allowed square roots). So for example,
 
     sage: giac('(x^28-1)').factor( )
     (x-1)*(x+1)*(x^2+1)*(x^6-x^5+x^4-x^3+x^2-x+1)*(x^6+x^5+x^4+x^3+x^2+x+1)*(x^12-x^10+x^8-x^6+x^4-x^2+1)
+
+Giac console
+~~~~~~~~~~~~~
 
 Another important feature of giac is its online help. We can
 access this through sage as well. After reading the description of
@@ -150,6 +160,9 @@ For example, for help on the giac command factors, we type ::
     sage: (f19-(5778*sqrt(5)+33825)/5).normal()
     0
 
+Function definitions
+~~~~~~~~~~~~~~~~~~~~
+
 Let's say we want to write a giac program now that squares a
 number if it is positive and cubes it if it is negative. In giac,
 that would look like
@@ -173,6 +186,32 @@ In Sage, we write
 
 More complicated programs should be put in a separate file and
 loaded.
+
+Conversions
+~~~~~~~~~~~~
+
+The ``GiacElement.sage()`` method tries to convert a Giac object to a Sage
+object. In many cases, it will just work. In particular, it should be able to
+convert expressions entirely consisting of:
+
+- numbers, i.e. integers, floats, complex numbers;
+- functions and named constants also present in Sage, where Sage knows how to 
+  translate the function or constant's name from Giac's
+- symbolic variables whose names don't pathologically overlap with
+  objects already defined in Sage.
+
+This method will not work when Giac's output includes functions unknown to Sage.
+
+If you want to convert more complicated Giac expressions, you can
+instead call ``GiacElement._sage_()`` and supply a translation dictionary::
+
+    sage: g = giac('NewFn(x)')       
+    sage: g._sage_(locals={'NewFn': sin})   
+    sin(x)
+
+Moreover, new conversions can be permanently added using Pynac's 
+``register_symbol``, and this is the recommended approach for library code. 
+For more details, see the documentation for ``._sage_()``.
 """
 
 #############################################################################
@@ -333,7 +372,7 @@ class Giac(Expect):
 
             sage: filename = tmp_filename()
             sage: f = open(filename,'w')
-            sage: f.write('xx := 22;\n')
+            sage: _ = f.write('xx := 22;\n')
             sage: f.close()
             sage: giac.read(filename)
             sage: giac.get('xx').strip()
@@ -992,12 +1031,23 @@ class GiacElement(ExpectElement):
         return M(entries)
 
 
-    def _sage_(self):
+    def _sage_(self, locals={}):
         r"""
-        Convert a giac expression back to a Sage expression.
+        Convert a giac expression back to a Sage expression, if possible.
 
-        This currently does not implement a parser for the Giac output language,
-        therefore only very simple expressions will convert successfully.
+        NOTES: 
+        
+        This method works successfully when Giac returns a result
+        or list of results that consist only of:
+        - numbers, i.e. integers, floats, complex numbers;
+        - functions and named constants also present in Sage, where:
+            - Sage knows how to translate the function or constant's name
+            from Giac's naming scheme through the symbols_table, or
+            - you provide a translation dictionary ``locals``.
+            
+        New conversions can be added using Pynac's ``register_symbol``.
+        This is the recommended approach for library code.
+
         Warning: List conversion is slow.
 
         EXAMPLES::
@@ -1012,12 +1062,35 @@ class GiacElement(ExpectElement):
         sage: m.trigexpand().sage()
         2*cos(sqrt(-x^2 + 1))*cos(1/x)^2*sin(sqrt(-x^2 + 1)) - 4*cos(sqrt(-x^2 + 1))*cos(1/x)*sin(sqrt(-x^2 + 1)) + 2*cos(sqrt(-x^2 + 1))*sin(sqrt(-x^2 + 1))
 
+        Converting a custom name using the ``locals`` dictionary::
+        
+        sage: ex = giac('myFun(x)')
+        sage: ex._sage_({'myFun': sin})
+        sin(x)
+        
+        Same but by adding a new entry to the ``symbols_table``::
+        
+        sage: ex = giac('myFun(x)')
+        sage: sage.libs.pynac.pynac.register_symbol(sin, {'giac':'myFun'})
+        sage: ex._sage_()
+        sin(x)
         """
-        result = repr(self)
-        if str(self.type()) != 'DOM_LIST' :
+        from sage.libs.pynac.pynac import symbol_table
+        from sage.calculus.calculus import symbolic_expression_from_string
+        
+        result = repr(self) # string representation
+        
+        if str(self.type()) != 'DOM_LIST' :   
+            
+            # Merge the user-specified locals dictionary and the symbol_table
+            # (locals takes priority)
+            lsymbols = symbol_table['giac'].copy()
+            lsymbols.update(locals)    
+            
             try:
-                from sage.symbolic.all import SR
-                return SR(result)
+                return symbolic_expression_from_string(result, lsymbols,
+                    accept_sequence=True)
+                    
             except Exception:
                 raise NotImplementedError("Unable to parse Giac output: %s" % result)
         else:
@@ -1143,6 +1216,3 @@ def __doctest_cleanup():
     """
     import sage.interfaces.quit
     sage.interfaces.quit.expect_quitall()
-
-
-

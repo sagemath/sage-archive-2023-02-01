@@ -26,8 +26,8 @@ include "cysignals/signals.pxi"
 
 from sage.libs.gmp.all cimport *
 
-from sage.libs.cypari2.paridecl cimport *
-from sage.libs.cypari2.stack cimport new_gen
+from cypari2.paridecl cimport *
+from cypari2.stack cimport new_gen
 
 cdef Gen new_gen_from_mpz_t(mpz_t value):
     """

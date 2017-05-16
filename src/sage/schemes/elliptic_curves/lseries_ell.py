@@ -374,7 +374,7 @@ class Lseries_ell(SageObject):
 
             sage: E = EllipticCurve('37a')
             sage: vals = E.lseries().twist_values(1, -12, -4)
-            sage: vals  # abs tol 1e-17
+            sage: vals  # abs tol 1e-15
             [(-11, 1.47824342), (-8, 8.9590946e-18), (-7, 1.85307619), (-4, 2.45138938)]
             sage: F = E.quadratic_twist(-8)
             sage: F.rank()

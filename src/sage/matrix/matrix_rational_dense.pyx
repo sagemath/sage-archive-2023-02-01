@@ -50,12 +50,13 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
+
+from libc.string cimport strcpy, strlen
 
 from sage.modules.vector_rational_dense cimport Vector_rational_dense
 
-include "sage/ext/cdefs.pxi"
 include "cysignals/signals.pxi"
 include "sage/ext/stdsage.pxi"
 
@@ -85,11 +86,11 @@ from sage.misc.all import verbose, get_verbose, prod
 
 #########################################################
 # PARI C library
-from sage.libs.cypari2.gen cimport Gen
+from cypari2.gen cimport Gen
 from sage.libs.pari.convert_gmp cimport (INTFRAC_to_mpq,
            _new_GEN_from_mpq_t_matrix, rational_matrix)
-from sage.libs.cypari2.stack cimport clear_stack
-from sage.libs.cypari2.paridecl cimport *
+from cypari2.stack cimport clear_stack
+from cypari2.paridecl cimport *
 #########################################################
 
 cdef class Matrix_rational_dense(Matrix_dense):

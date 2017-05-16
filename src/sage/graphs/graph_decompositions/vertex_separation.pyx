@@ -270,22 +270,27 @@ Authors
 Methods
 -------
 """
-from __future__ import print_function
+
+#*****************************************************************************
+#       Copyright (C) 2011 Nathann Cohen <nathann.cohen@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from __future__ import absolute_import, print_function
 
 include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
-include 'sage/ext/cdefs.pxi'
+from libc.string cimport memset
 from sage.graphs.graph_decompositions.fast_digraph cimport FastDigraph, compute_out_neighborhood_cardinality, popcount32
 from libc.stdint cimport uint8_t, int8_t
 include "sage/data_structures/binary_matrix.pxi"
 from sage.graphs.base.static_dense_graph cimport dense_graph_init
 
-#*****************************************************************************
-#          Copyright (C) 2011 Nathann Cohen <nathann.cohen@gmail.com>
-#
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
-#*****************************************************************************
 
 ###############
 # Lower Bound #
@@ -442,7 +447,7 @@ def linear_ordering_to_path_decomposition(G, L):
         ...
         ValueError: the first parameter must be a Graph
         sage: g = graphs.CycleGraph(6)
-        sage: linear_ordering_to_path_decomposition(g, range(7))
+        sage: linear_ordering_to_path_decomposition(g, list(range(7)))
         Traceback (most recent call last):
         ...
         ValueError: the input linear vertex ordering L is not valid for G

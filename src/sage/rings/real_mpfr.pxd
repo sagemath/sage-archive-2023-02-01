@@ -2,7 +2,7 @@ from sage.libs.mpfr cimport *
 
 cimport sage.rings.ring
 cimport sage.structure.element
-from sage.libs.cypari2.types cimport GEN
+from cypari2.types cimport GEN
 
 
 cdef class RealNumber(sage.structure.element.RingElement)  # forward decl

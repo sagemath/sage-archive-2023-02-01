@@ -3,6 +3,7 @@ Other functions
 """
 from __future__ import print_function
 from six.moves import range
+from six import integer_types
 
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import Expression
@@ -455,7 +456,7 @@ class Function_ceil(BuiltinFunction):
         try:
             return x.ceil()
         except AttributeError:
-            if isinstance(x, (int, long)):
+            if isinstance(x, integer_types):
                 return Integer(x)
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.ceil(x)))
@@ -499,7 +500,7 @@ class Function_ceil(BuiltinFunction):
         try:
             return x.ceil()
         except AttributeError:
-            if isinstance(x, (int, long)):
+            if isinstance(x, integer_types):
                 return Integer(x)
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.ceil(x)))
@@ -611,7 +612,7 @@ class Function_floor(BuiltinFunction):
         try:
             return x.floor()
         except AttributeError:
-            if isinstance(x, (int, long)):
+            if isinstance(x, integer_types):
                 return Integer(x)
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.floor(x)))
@@ -653,7 +654,7 @@ class Function_floor(BuiltinFunction):
         try:
             return x.floor()
         except AttributeError:
-            if isinstance(x, (int, long)):
+            if isinstance(x, integer_types):
                 return Integer(x)
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.floor(x)))
@@ -755,7 +756,7 @@ class Function_frac(BuiltinFunction):
         try:
             return x - x.floor()
         except AttributeError:
-            if isinstance(x, (int, long)):
+            if isinstance(x, integer_types):
                 return Integer(0)
             elif isinstance(x, (float, complex)):
                 return x - Integer(int(math.floor(x)))
@@ -2189,7 +2190,7 @@ def sqrt(x, *args, **kwds):
             ...
             TypeError: _do_sqrt() got an unexpected keyword argument 'hold'
 
-        This illustrates that the bug reported in #6171 has been fixed::
+        This illustrates that the bug reported in :trac:`6171` has been fixed::
 
             sage: a = 1.1
             sage: a.sqrt(prec=100)  # this is supposed to fail
@@ -2604,8 +2605,10 @@ class Function_sum(BuiltinFunction):
     EXAMPLES::
 
         sage: from sage.functions.other import symbolic_sum as ssum
-        sage: ssum(x, x, 1, 10)
+        sage: r = ssum(x, x, 1, 10); r
         sum(x, x, 1, 10)
+        sage: r.unhold()
+        55
     """
     def __init__(self):
         """
@@ -2618,4 +2621,61 @@ class Function_sum(BuiltinFunction):
         BuiltinFunction.__init__(self, "sum", nargs=4,
                                conversions=dict(maxima='sum'))
 
+    def _print_latex_(self, x, var, a, b):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.functions.other import symbolic_sum as ssum
+            sage: latex(ssum(x^2, x, 1, 10))
+            \sum_{x=1}^{10} x^2
+        """
+        return r"\sum_{{{}={}}}^{{{}}} {}".format(var, a, b, x)
+
 symbolic_sum = Function_sum()
+
+
+class Function_prod(BuiltinFunction):
+    """
+    Placeholder symbolic product function that is only accessible internally.
+
+    EXAMPLES::
+
+        sage: from sage.functions.other import symbolic_product as sprod
+        sage: r = sprod(x, x, 1, 10); r
+        product(x, x, 1, 10)
+        sage: r.unhold()
+        3628800
+    """
+    def __init__(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.functions.other import symbolic_product as sprod
+            sage: _ = var('m n', domain='integer')
+            sage: r = maxima(sprod(sin(m), m, 1, n)).sage(); r
+            product(sin(m), m, 1, n)
+            sage: isinstance(r.operator(), sage.functions.other.Function_prod)
+            True
+            sage: r = sympy(sprod(sin(m), m, 1, n)).sage(); r # known bug
+            product(sin(m), m, 1, n)
+            sage: isinstance(r.operator(),
+            ....:     sage.functions.other.Function_prod) # known bug
+            True
+            sage: giac(sprod(m, m, 1, n))
+            n!
+        """
+        BuiltinFunction.__init__(self, "product", nargs=4,
+                               conversions=dict(maxima='product',
+                                   sympy='Product', giac='product'))
+
+    def _print_latex_(self, x, var, a, b):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.functions.other import symbolic_product as sprod
+            sage: latex(sprod(x^2, x, 1, 10))
+            \prod_{x=1}^{10} x^2
+        """
+        return r"\prod_{{{}={}}}^{{{}}} {}".format(var, a, b, x)
+
+symbolic_product = Function_prod()

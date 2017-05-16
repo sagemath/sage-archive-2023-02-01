@@ -567,7 +567,7 @@ class R(ExtraTabCompletion, Expect):
 
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
-            sage: f.write('a <- 2+2\n')
+            sage: _ = f.write('a <- 2+2\n')
             sage: f.close()
             sage: r.read(filename)
             sage: r.get('a')

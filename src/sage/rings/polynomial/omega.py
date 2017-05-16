@@ -41,19 +41,19 @@ Functions
 =========
 """
 
-# *****************************************************************************
-# Copyright (C) 2016 Daniel Krenn <dev@danielkrenn.at>
+#*****************************************************************************
+#       Copyright (C) 2016 Daniel Krenn <dev@danielkrenn.at>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-# http://www.gnu.org/licenses/
-# *****************************************************************************
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 from __future__ import print_function
 from __future__ import absolute_import
-from six import iteritems, itervalues
+from six import iteritems
 
 import operator
 from sage.misc.cachefunc import cached_function
@@ -349,6 +349,52 @@ def MacMahonOmega(var, expression, denominator=None, op=operator.ge,
                          simplify=Factorization_simplify)
 
 
+def _simplify_(numerator, terms):
+    r"""
+    Cancels common factors of numerator and denominator.
+
+    INPUT:
+
+    - ``numerator`` -- a Laurent polynomial
+
+    - ``terms`` -- a tuple or other iterable of Laurent polynomials
+
+      The denominator is the product of factors `1 - t` for each
+      `t` in ``terms``.
+
+    OUTPUT:
+
+    A pair of a Laurent polynomial and a tuple of Laurent polynomials
+    representing numerator and denominator as described in the
+    INPUT-section.
+
+    EXAMPLES::
+
+        sage: from sage.rings.polynomial.omega import _simplify_
+        sage: L.<x, y> = LaurentPolynomialRing(ZZ)
+        sage: _simplify_(1-x^2, (x, y))
+        (x + 1, (y,))
+
+    TESTS::
+
+        sage: _simplify_(1-x^2, (x, -x))
+        (1, ())
+        sage: _simplify_(1-x^2, (y^2, y))
+        (-x^2 + 1, (y^2, y))
+        sage: _simplify_(1-x^2, (x, L(2)))
+        (x + 1, (2,))
+    """
+    new_terms = []
+    for t in terms:
+        if not t.is_constant():
+            quo, rem = numerator.quo_rem(1 - t)
+            if rem == 0:
+                numerator = quo
+                continue
+        new_terms.append(t)
+    return numerator, tuple(new_terms)
+
+
 def _Omega_(A, decoded_factors):
     r"""
     Helper function for :func:`MacMahonOmega` which accesses the low level functions
@@ -392,6 +438,12 @@ def _Omega_(A, decoded_factors):
         (42, ())
         sage: _Omega_({-1: 42}, [])
         (0, ())
+
+
+    ::
+
+        sage: MacMahonOmega(mu, 1 - x^2, [1 - x*mu, 1 - y/mu])
+        (x + 1) * (-x*y + 1)^-1
     """
     if not decoded_factors:
         return sum(c for a, c in iteritems(A) if a >= 0), tuple()
@@ -416,7 +468,8 @@ def _Omega_(A, decoded_factors):
 
     if numerator == 0:
         factors_denominator = tuple()
-    return numerator, tuple(f.subs(rules) for f in factors_denominator)
+    return _simplify_(numerator,
+                      tuple(f.subs(rules) for f in factors_denominator))
 
 
 @cached_function
@@ -509,9 +562,7 @@ def Omega_ge(a, exponents):
     logger = logging.getLogger(__name__)
     logger.info('Omega_ge: a=%s, exponents=%s', a, exponents)
 
-    from sage.arith.misc import lcm
-    from sage.arith.srange import srange
-    from sage.misc.misc_c import prod
+    from sage.arith.all import lcm, srange
     from sage.rings.integer_ring import ZZ
     from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
     from sage.rings.number_field.number_field import CyclotomicField

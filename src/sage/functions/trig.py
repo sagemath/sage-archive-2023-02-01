@@ -497,6 +497,13 @@ class Function_arcsin(GinacFunction):
             arcsin
             sage: asin(complex(1,1))
             (0.6662394324925152+1.0612750619050357j)
+
+        Check that :trac:`22823` is fixed::
+
+            sage: bool(asin(SR(2.1)) == NaN)
+            True
+            sage: asin(SR(2.1)).is_real()
+            False
         """
         GinacFunction.__init__(self, 'arcsin', latex_name=r"\arcsin",
                 conversions=dict(maxima='asin', sympy='asin', fricas="asin", giac="asin"))
@@ -556,6 +563,13 @@ class Function_arccos(GinacFunction):
             arccos
             sage: acos(complex(1,1))
             (0.9045568943023814-1.0612750619050357j)
+
+        Check that :trac:`22823` is fixed::
+
+            sage: bool(acos(SR(2.1)) == NaN)
+            True
+            sage: acos(SR(2.1)).is_real()
+            False
         """
         GinacFunction.__init__(self, 'arccos', latex_name=r"\arccos",
                 conversions=dict(maxima='acos', sympy='acos', fricas='acos', giac='acos'))

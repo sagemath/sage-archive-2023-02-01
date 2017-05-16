@@ -720,9 +720,7 @@ class PSModularSymbolElement(ModuleElement):
             sage: a = f[3]
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
             sage: phi = ps_modsym_from_simple_modsym_space(f.modular_symbols(1))
-            sage: phi.is_ordinary(K.ideal(3, 1/16*a + 3/2))
-            False
-            sage: phi.is_ordinary(K.ideal(3, 1/16*a + 5/2))
+            sage: phi.is_ordinary(K.ideal(3, 1/16*a + 3/2)) !=  phi.is_ordinary(K.ideal(3, 1/16*a + 5/2))
             True
             sage: phi.is_ordinary(3)
             Traceback (most recent call last):

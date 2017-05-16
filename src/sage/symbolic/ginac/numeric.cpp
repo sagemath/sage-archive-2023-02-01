@@ -2583,9 +2583,9 @@ const numeric numeric::Li2(const numeric &n, PyObject* parent) const {
 
         numeric rnum(ret);
         if (is_real() and n.is_integer() and rnum.real()<(*_num1_p))
-                return rnum.real();
+                return ex_to<numeric>(rnum.real().evalf(0, parent));
         else
-                return rnum;
+                return ex_to<numeric>(rnum.evalf(0, parent));
 }
 
 const numeric numeric::lgamma() const {

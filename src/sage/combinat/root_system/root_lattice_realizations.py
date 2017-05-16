@@ -3448,7 +3448,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             EXAMPLES:
 
             `\rho` is a regular element whose orbit is in bijection
-            with the Weyl group. In particular, it as 6 elements for
+            with the Weyl group. In particular, it has 6 elements for
             the symmetric group `S_3`::
 
                 sage: L = RootSystem(["A", 2]).ambient_lattice()

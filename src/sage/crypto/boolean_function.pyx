@@ -951,8 +951,8 @@ cdef class BooleanFunction(SageObject):
             {0}
         """
         # NOTE: this is a toy implementation
-        from sage.rings.polynomial.pbori import BooleanPolynomialRing
-        R = BooleanPolynomialRing(self._nvariables,'x')
+        from sage.rings.polynomial.polynomial_ring_constructor import BooleanPolynomialRing_constructor
+        R = BooleanPolynomialRing_constructor(self._nvariables,'x')
         G = R.gens()
         r = [R(1)]
 

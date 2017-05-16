@@ -106,8 +106,6 @@ class PolynomialQuotientRingFactory(UniqueFactory):
 
                     R = (\GF{2}[y]/(y^{2}+y+1))[x]/(x^3 - 5).
 
-
-
     ::
 
         sage: A.<y> = PolynomialRing(GF(2)); A
@@ -174,7 +172,33 @@ class PolynomialQuotientRingFactory(UniqueFactory):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: PolynomialQuotientRing.create_key(R, x^2 - 1)
+            sage: PolynomialQuotientRing.create_key(R, x + 1)
+            (Univariate Polynomial Ring in x over Rational Field, x + 1, ('xbar',))
+
+        TESTS:
+
+        We do not normalize the modulus even though we could divide out the
+        leading coefficient here::
+
+            sage: PolynomialQuotientRing.create_key(R, 2*x + 2)
+            (Univariate Polynomial Ring in x over Rational Field, 2*x + 2, ('xbar',))
+
+        Consequently, you get two distinct objects::
+
+            sage: S = PolynomialQuotientRing(R, x + 1); S
+            Univariate Quotient Polynomial Ring in xbar over Rational Field with modulus x + 1
+            sage: T = PolynomialQuotientRing(R, 2*x + 2); T
+            Univariate Quotient Polynomial Ring in xbar over Rational Field with modulus 2*x + 2
+            sage: S is T
+            False
+            sage: S == T
+            False
+
+        In most applications this will not be a concern since the calling code
+        takes care of normalizing the generators::
+
+            sage: R.quo(x + 1) is R.quo(2*x + 2)
+            True
 
         """
         if not isinstance(ring, PolynomialRing_commutative):
@@ -195,14 +219,15 @@ class PolynomialQuotientRingFactory(UniqueFactory):
 
         return ring, polynomial, names
 
-    def create_object(self, key, version):
+    def create_object(self, version, key):
         r"""
         Return the quotient ring specified by ``key``.
 
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: PolynomialQuotientRing.create_object((R, x^2 - 1, ('xbar')), 'version')
+            sage: PolynomialQuotientRing.create_object((8, 0, 0), (R, x^2 - 1, ('xbar')))
+            Univariate Quotient Polynomial Ring in xbar over Rational Field with modulus x^2 - 1
 
         """
         ring, polynomial, names = key

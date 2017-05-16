@@ -563,6 +563,10 @@ REFERENCES:
                  Functions, in NIST Digital Library of Mathematical
                  Functions. http://dlmf.nist.gov/10
 
+.. [DLMF-Error] \N. M. Temme: 7. Error Functions, Dawson’s and Fresnel
+                 Integrals, in NIST Digital Library of Mathematical
+                 Functions. http://dlmf.nist.gov/7
+
 .. [DLMF-Struve] \R. B. Paris: 11. Struve and Related Functions, in
                  NIST Digital Library of Mathematical
                  Functions. http://dlmf.nist.gov/11
@@ -1689,6 +1693,8 @@ REFERENCES:
              Bull. London Math. Soc. 30 (1998), no. 5, 449-517.
 
 .. [WP-Bessel] :wikipedia:`Bessel_function`
+
+.. [WP-Error] :wikipedia:`Error_function`
 
 .. [WP-Struve] :wikipedia:`Struve_function`
 

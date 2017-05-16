@@ -3822,7 +3822,28 @@ cdef class Expression(CommutativeRingElement):
             sage: f.derivative(2)
             x |--> 6*x - sin(x)
 
-        ::
+        Some expressions can't be cleanly differentiated by the
+        chain rule::
+
+            sage: _ = var('x', domain='real')
+            sage: _ = var('w z')
+            sage: (x^z).conjugate().diff(x)
+            conjugate(x^(z - 1))*conjugate(z)
+            sage: (w^z).conjugate().diff(w)
+            w^(z - 1)*z*D[0](conjugate)(w^z)
+            sage: atanh(x).real_part().diff(x)
+            -1/(x^2 - 1)
+            sage: atanh(x).imag_part().diff(x)
+            0
+            sage: atanh(w).real_part().diff(w)
+            -D[0](real_part)(arctanh(w))/(w^2 - 1)
+            sage: atanh(w).imag_part().diff(w)
+            -D[0](imag_part)(arctanh(w))/(w^2 - 1)
+            sage: abs(log(x)).diff(x)
+            1/2*(conjugate(log(x))/x + log(x)/x)/abs(log(x))
+            sage: abs(log(z)).diff(z)
+            1/2*(conjugate(log(z))/z + log(z)/conjugate(z))/abs(log(z))
+            sage: forget()
 
             sage: t = sin(x+y^2)*tan(x*y)
             sage: t.derivative(x)

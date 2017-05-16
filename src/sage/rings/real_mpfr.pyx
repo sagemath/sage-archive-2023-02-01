@@ -629,6 +629,8 @@ cdef class RealField_class(sage.rings.ring.Field):
             Traceback (most recent call last):
             ...
             ValueError: can only convert signed infinity to RR
+            sage: R(CIF(NaN))
+            NaN
         """
         if hasattr(x, '_mpfr_'):
             return x._mpfr_(self)
@@ -1451,7 +1453,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
                 raise ValueError('can only convert signed infinity to RR')
             elif mpfr_set_str(self.value, s, base, parent.rnd) == 0:
                 pass
-            elif s == 'NaN' or s == '@NaN@':
+            elif s == 'NaN' or s == '@NaN@' or s == '[..NaN..]':
                 mpfr_set_nan(self.value)
             elif s_lower == '+infinity':
                 mpfr_set_inf(self.value, 1)

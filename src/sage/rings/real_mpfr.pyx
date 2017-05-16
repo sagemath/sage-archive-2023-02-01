@@ -1453,7 +1453,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
                 raise ValueError('can only convert signed infinity to RR')
             elif mpfr_set_str(self.value, s, base, parent.rnd) == 0:
                 pass
-            elif s == 'NaN' or s == '@NaN@' or s == '[..NaN..]':
+            elif s == 'NaN' or s == '@NaN@' or s == '[..NaN..]' or s == 'NaN+NaN*I':
                 mpfr_set_nan(self.value)
             elif s_lower == '+infinity':
                 mpfr_set_inf(self.value, 1)

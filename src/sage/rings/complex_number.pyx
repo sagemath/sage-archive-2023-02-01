@@ -1101,7 +1101,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: float(abs(ComplexNumber(1,1)))
             1.4142135623730951
         """
-        if mpfr_zero_p(self.__im):
+        if mpfr_zero_p(self.__im) or mpfr_nan_p(self.__re):
             return mpfr_get_d(self.__re, rnd)
         else:
             raise TypeError("unable to convert {!r} to float; use abs() or real_part() as desired".format(self))

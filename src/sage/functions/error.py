@@ -28,15 +28,12 @@ REFERENCES:
 """
 
 #*****************************************************************************
-#  Distributed under the terms of the GNU General Public License (GPL)
+#       Copyright (C) 2016 Ralf Stephan <gtrwst9 at gmail.com>
 #
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -50,13 +47,16 @@ from sage.rings.infinity import unsigned_infinity
 
 class Function_erf(BuiltinFunction):
     r"""
-    The error function, defined for real values as
+    The error function.
 
-    `\operatorname{erf}(x) = \frac{2}{\sqrt{\pi}} \int_0^x e^{-t^2} dt`.
+    The error function is defined for real values as
+
+    .. MATH::
+
+        \operatorname{erf}(x) = \frac{2}{\sqrt{\pi}} \int_0^x e^{-t^2} dt.
 
     This function is also defined for complex values, via analytic
     continuation.
-
 
     EXAMPLES:
 
@@ -86,7 +86,7 @@ class Function_erf(BuiltinFunction):
 
     REFERENCES:
 
-    - http://en.wikipedia.org/wiki/Error_function
+    - :wikipedia:`Error_function`
     - http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#error-functions
 
     TESTS:
@@ -264,7 +264,7 @@ class Function_erf(BuiltinFunction):
 
     def _derivative_(self, x, diff_param=None):
         """
-        Derivative of erf function
+        Derivative of erf function.
 
         EXAMPLES::
 
@@ -287,10 +287,18 @@ class Function_erf(BuiltinFunction):
 erf = Function_erf()
 
 class Function_erfi(BuiltinFunction):
+    """
+    The imaginary error function.
+
+    The imaginary error function is defined by
+
+    .. MATH::
+
+        \operatorname{erfi}(x) = -i \operatorname{erf}(ix).
+    """
     def __init__(self):
         r"""
-        The imaginary error function
-        `\operatorname{erfi}(x)=-i\operatorname{erf}(ix)`.
+        Initialize ``self``.
 
         EXAMPLES::
 
@@ -357,8 +365,13 @@ erfi = Function_erfi()
 
 class Function_erfc(BuiltinFunction):
     r"""
-    The complementary error function
-    `\frac{2}{\sqrt{\pi}}\int_t^\infty e^{-x^2} dx`.
+    The complementary error function.
+
+    The complementary error function is defined by
+
+    .. MATH::
+
+        \frac{2}{\sqrt{\pi}} \int_t^\infty e^{-x^2} dx.
     
     EXAMPLES::
 
@@ -445,10 +458,18 @@ erfc = Function_erfc()
 
 
 class Function_erfinv(BuiltinFunction):
+    """
+    The inverse error function.
+
+    The inverse error function is defined by:
+
+    .. MATH::
+
+        \operatorname{erfinv}(x) = \operatorname{erf}^{-1}(x).
+    """
     def __init__(self):
         r"""
-        The inverse error function
-        `\operatorname{erfinv}(x)=\operatorname{erf}^{-1}(x)`.
+        Initialize ``self``.
 
         EXAMPLES::
 
@@ -460,7 +481,7 @@ class Function_erfinv(BuiltinFunction):
         BuiltinFunction.__init__(self, "erfinv",
                                  latex_name=r"\operatorname{erfinv}",
                                  conversions=dict(sympy='erfinv',
-                                     maxima='inverse_erf'))
+                                                  maxima='inverse_erf'))
 
     def _eval_(self, x):
         """
@@ -498,7 +519,7 @@ class Function_erfinv(BuiltinFunction):
 
     def _derivative_(self, x, diff_param=None):
         """
-        Derivative of inverse erf function
+        Derivative of inverse erf function.
 
         EXAMPLES::
 
@@ -511,3 +532,4 @@ erfinv = Function_erfinv()
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.functions.other', 'Function_erf', Function_erf)
+

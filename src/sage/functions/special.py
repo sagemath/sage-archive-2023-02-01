@@ -1015,7 +1015,7 @@ elliptic_pi = EllipticPi()
 
 def error_fcn(x):
     """
-    Deprecated. Please use erfc().
+    Deprecated in :trac:21819`. Please use ``erfc()``.
 
     EXAMPLES::
 
@@ -1030,3 +1030,4 @@ def error_fcn(x):
     from sage.misc.superseded import deprecation
     deprecation(21819, "error_fcn() is deprecated. Please use erfc()")
     return erfc(x)
+

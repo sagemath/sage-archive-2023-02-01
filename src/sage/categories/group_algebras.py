@@ -36,22 +36,22 @@ class GroupAlgebras(AlgebrasCategory):
 
     EXAMPLES::
 
-        sage: C = GroupAlgebras(IntegerRing()); C
+        sage: C = Groups().Algebras(ZZ); C
         Category of group algebras over Integer Ring
         sage: C.super_categories()
         [Category of hopf algebras with basis over Integer Ring,
          Category of monoid algebras over Integer Ring]
 
-    We can also construct group algebras by::
+    We can also construct this category with::
 
-        sage: C is Groups().Algebras(ZZ)
+        sage: C is GroupAlgebras(ZZ)
         True
 
     Here is how to create the group algebra of a group `G`::
 
         sage: G = DihedralGroup(5)
         sage: QG = G.algebra(QQ); QG
-        Group algebra of Dihedral group of order 10 as a permutation group over Rational Field
+        Algebra of Dihedral group of order 10 as a permutation group over Rational Field
 
     and an example of computation::
 
@@ -104,12 +104,12 @@ class GroupAlgebras(AlgebrasCategory):
         EXAMPLES::
 
             sage: GroupAlgebras(QQ['x']).example()
-            Group algebra of Dihedral group of order 8 as a permutation group over Univariate Polynomial Ring in x over Rational Field
+            Algebra of Dihedral group of order 8 as a permutation group over Univariate Polynomial Ring in x over Rational Field
 
         An other group can be specified as optional argument::
 
             sage: GroupAlgebras(QQ).example(AlternatingGroup(4))
-            Group algebra of Alternating group of order 4!/2 as a permutation group over Rational Field
+            Algebra of Alternating group of order 4!/2 as a permutation group over Rational Field
         """
         from sage.groups.perm_gps.permgroup_named import DihedralGroup
         if G is None:
@@ -145,29 +145,6 @@ class GroupAlgebras(AlgebrasCategory):
                 #try :
                 self._populate_coercion_lists_(coerce_list=[self.group()])
 
-        def _repr_(self):
-            r"""
-            Return the string representation of `self`.
-
-            EXAMPLES::
-
-                sage: A = Groups().example().algebra(QQ); A
-                Group algebra of General Linear Group of degree 4 over Rational Field
-                 over Rational Field
-                sage: A._name = "foo"
-                sage: A
-                foo over Rational Field
-                sage: A = GroupAlgebra(KleinFourGroup(), ZZ)
-                sage: A
-                Group algebra of The Klein 4 group of order 4, as a permutation group
-                 over Integer Ring
-            """
-            if hasattr(self, "_name"):
-                return self._name + " over {}".format(self.base_ring())
-            else:
-                return 'Group algebra of {} over {}'.format(self.basis().keys(),
-                                                            self.base_ring())
-
         def _latex_(self):
             r"""
             Latex string of ``self``.
@@ -193,65 +170,6 @@ class GroupAlgebras(AlgebrasCategory):
                 Symmetric group of order 10! as a permutation group
             """
             return self.basis().keys()
-
-        @cached_method
-        def algebra_generators(self):
-            r"""
-            Return generators of this group algebra (as an algebra).
-
-            EXAMPLES::
-
-                sage: GroupAlgebras(QQ).example(AlternatingGroup(10)).algebra_generators()
-                Finite family {(8,9,10): (8,9,10), (1,2,3,4,5,6,7,8,9): (1,2,3,4,5,6,7,8,9)}
-
-                sage: A = GroupAlgebra(DihedralGroup(3), QQ); A
-                Group algebra of Dihedral group of order 6 as a permutation group
-                 over Rational Field
-                sage: A.algebra_generators()
-                Finite family {(1,3): (1,3), (1,2,3): (1,2,3)}
-            """
-            from sage.sets.family import Family
-            return Family(self.group().gens(), self.monomial)
-
-        def ngens(self):
-            r"""
-            Return the number of generators of ``self``.
-
-            EXAMPLES::
-
-                sage: GroupAlgebra(SL2Z).ngens()
-                2
-                sage: GroupAlgebra(DihedralGroup(4), RR).ngens()
-                2
-            """
-            return self.algebra_generators().cardinality()
-
-        def gen(self, i=0):
-            r"""
-            Return the ``i``-th generator of ``self``.
-
-            EXAMPLES::
-
-                sage: A = GroupAlgebra(GL(3, GF(7)))
-                sage: A.gen(0)
-                [3 0 0]
-                [0 1 0]
-                [0 0 1]
-            """
-            return self.monomial(self.group().gen(i))
-
-        def construction(self):
-            r"""
-            Return the functorial construction of ``self``.
-
-            EXAMPLES::
-
-                sage: A = GroupAlgebra(KleinFourGroup(), QQ)
-                sage: A.construction()
-                (GroupAlgebraFunctor, Rational Field)
-            """
-            from sage.algebras.group_algebra import GroupAlgebraFunctor
-            return GroupAlgebraFunctor(self.group()), self.base_ring()
 
         @cached_method
         def center_basis(self):
@@ -287,7 +205,7 @@ class GroupAlgebras(AlgebrasCategory):
             return tuple([self.sum_of_monomials(conj) for conj  in
                           self.basis().keys().conjugacy_classes()])
 
-        # Coalgebra structure
+        # Hopf algebra structure
 
         def coproduct_on_basis(self, g):
             r"""
@@ -299,7 +217,7 @@ class GroupAlgebras(AlgebrasCategory):
             EXAMPLES::
 
                 sage: A = CyclicPermutationGroup(6).algebra(ZZ); A
-                Group algebra of Cyclic group of order 6 as a permutation group over Integer Ring
+                Algebra of Cyclic group of order 6 as a permutation group over Integer Ring
                 sage: g = CyclicPermutationGroup(6).an_element(); g
                 (1,2,3,4,5,6)
                 sage: A.coproduct_on_basis(g)
@@ -324,7 +242,7 @@ class GroupAlgebras(AlgebrasCategory):
             EXAMPLES::
 
                 sage: A = CyclicPermutationGroup(6).algebra(ZZ); A
-                Group algebra of Cyclic group of order 6 as a permutation group over Integer Ring
+                Algebra of Cyclic group of order 6 as a permutation group over Integer Ring
                 sage: g = CyclicPermutationGroup(6).an_element();g
                 (1,2,3,4,5,6)
                 sage: A.antipode_on_basis(g)
@@ -347,7 +265,7 @@ class GroupAlgebras(AlgebrasCategory):
             EXAMPLES::
 
                 sage: A=CyclicPermutationGroup(6).algebra(ZZ);A
-                Group algebra of Cyclic group of order 6 as a permutation group over Integer Ring
+                Algebra of Cyclic group of order 6 as a permutation group over Integer Ring
                 sage: g=CyclicPermutationGroup(6).an_element();g
                 (1,2,3,4,5,6)
                 sage: A.counit_on_basis(g)
@@ -366,49 +284,13 @@ class GroupAlgebras(AlgebrasCategory):
             EXAMPLES::
 
                 sage: A = CyclicPermutationGroup(6).algebra(ZZ); A
-                Group algebra of Cyclic group of order 6 as a permutation group over Integer Ring
+                Algebra of Cyclic group of order 6 as a permutation group over Integer Ring
                 sage: a = A.an_element(); a
                 () + 3*(1,2,3,4,5,6) + 3*(1,3,5)(2,4,6)
                 sage: a.counit()
                 7
             """
             return self.base_ring().sum(x.coefficients())
-
-        def is_field(self, proof=True):
-            r"""
-            Return ``True`` if ``self`` is a field.
-
-            This is always false unless ``self.group()`` is trivial
-            and ``self.base_ring()`` is a field.
-
-            EXAMPLES::
-
-                sage: GroupAlgebra(SymmetricGroup(2)).is_field()
-                False
-                sage: GroupAlgebra(SymmetricGroup(1)).is_field()
-                False
-                sage: GroupAlgebra(SymmetricGroup(1), QQ).is_field()
-                True
-            """
-            if not self.base_ring().is_field(proof):
-                return False
-            return (self.group().order() == 1)
-
-        def is_finite(self):
-            r"""
-            Return ``True`` if ``self`` is finite, which is true if and only
-            if ``self.group()`` and ``self.base_ring()`` are both finite.
-
-            EXAMPLES::
-
-                sage: GroupAlgebra(SymmetricGroup(2), IntegerModRing(10)).is_finite()
-                True
-                sage: GroupAlgebra(SymmetricGroup(2)).is_finite()
-                False
-                sage: GroupAlgebra(AbelianGroup(1), IntegerModRing(10)).is_finite()
-                False
-            """
-            return (self.base_ring().is_finite() and self.group().is_finite())
 
         def is_integral_domain(self, proof=True):
             r"""
@@ -432,7 +314,7 @@ class GroupAlgebras(AlgebrasCategory):
                 True
                 sage: GroupAlgebra(AbelianGroup(2, [0,2])).is_integral_domain()
                 False
-                sage: GroupAlgebra(GL(2, ZZ)).is_integral_domain()
+                sage: GroupAlgebra(GL(2, ZZ)).is_integral_domain() # not implemented
                 False
             """
             from sage.sets.set import Set
@@ -465,34 +347,6 @@ class GroupAlgebras(AlgebrasCategory):
         # algebras are noetherian, and I haven't written is_prime_field(), because
         # I don't know if that means "is canonically isomorphic to a prime field"
         # or "is identical to a prime field".
-
-        def random_element(self, n=2):
-            r"""
-            Return a 'random' element of ``self``.
-
-            INPUT:
-
-            - ``n`` -- integer (default: 2); number of summands
-
-            ALGORITHM:
-
-            Return a sum of ``n`` terms, each of which is formed by
-            multiplying a random element of the base ring by a random
-            element of the group.
-
-            EXAMPLES::
-
-                sage: GroupAlgebra(DihedralGroup(6), QQ).random_element()
-                -1/95*() - 1/2*(1,4)(2,5)(3,6)
-                sage: GroupAlgebra(SU(2, 13), QQ).random_element(1)
-                1/2*[       0 4*a + 11]
-                [2*a + 12        4]
-            """
-            a = self(0)
-            for i in range(n):
-                a += self.term(self.group().random_element(),
-                               self.base_ring().random_element())
-            return a
 
     class ElementMethods:
 

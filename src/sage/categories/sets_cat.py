@@ -23,6 +23,7 @@ from sage.misc.superseded import deprecated_function_alias
 from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 # Do not use sage.categories.all here to avoid initialization loop
+from sage.categories.morphism import SetMorphism
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.categories.subquotients import SubquotientsCategory
 from sage.categories.quotients    import QuotientsCategory
@@ -1696,7 +1697,6 @@ Constructing its algebra is ambiguous.
 Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
             from sage.categories.groups import Groups
             from sage.categories.additive_groups import AdditiveGroups
-            from sage.categories.fields import Fields
             from sage.combinat.free_module import CombinatorialFreeModule
             algebra_category = category.Algebras(base_ring)
             if (category.is_subcategory(Groups())
@@ -2537,6 +2537,138 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
             """
             from sage.categories.modules_with_basis import ModulesWithBasis
             return [ModulesWithBasis(self.base_ring())]
+
+        class ParentMethods:
+            def construction(self):
+                r"""
+                Return the functorial construction of ``self``.
+
+                EXAMPLES::
+
+                    sage: A = GroupAlgebra(KleinFourGroup(), QQ)
+                    sage: A.construction()
+                    (GroupAlgebraFunctor, Rational Field)
+                """
+                from sage.categories.algebra_functor import GroupAlgebraFunctor
+                return GroupAlgebraFunctor(self.group()), self.base_ring()
+
+            def _repr_(self):
+                r"""
+                Return the string representation of `self`.
+
+                EXAMPLES::
+
+                    sage: A = Groups().example().algebra(QQ); A
+                    Algebra of General Linear Group of degree 4 over Rational Field
+                     over Rational Field
+                    sage: A._name = "foo"
+                    sage: A
+                    foo over Rational Field
+                    sage: A = KleinFourGroup().algebra(ZZ)
+                    sage: A
+                    Algebra of The Klein 4 group of order 4, as a permutation group
+                     over Integer Ring
+                """
+                if hasattr(self, "_name"):
+                    return self._name + " over {}".format(self.base_ring())
+                else:
+                    return 'Algebra of {} over {}'.format(self.basis().keys(),
+                                                          self.base_ring())
+
+            def _coerce_map_from_(self, S):
+                r"""
+                Return a coercion from `S` or ``None``
+
+                INPUT:
+
+                - ``S`` - a parent
+
+                Let us write ``self`` as `R[G]`. This method handles
+                the case where `S` is another group/monoid/...-algebra
+                `R'[H]`, with R coercing into `R'` and `H` coercing
+                into `G`. In that case it returns the naturally
+                induced coercion between `R'[H]` and `R[G]`. Otherwise
+                it returns ``None``.
+
+                EXAMPLES::
+
+                    sage: A = GroupAlgebra(SymmetricGroup(4), QQ)
+                    sage: B = GroupAlgebra(SymmetricGroup(3), ZZ)
+                    sage: A.has_coerce_map_from(B)
+                    True
+                    sage: B.has_coerce_map_from(A)
+                    False
+                    sage: A.has_coerce_map_from(ZZ)
+                    True
+                    sage: A.has_coerce_map_from(CC)
+                    False
+                    sage: A.has_coerce_map_from(SymmetricGroup(5))
+                    False
+                    sage: A.has_coerce_map_from(SymmetricGroup(2))
+                    True
+
+
+                    sage: H = CyclicPermutationGroup(3)
+                    sage: G = DihedralGroup(3)
+
+                    sage: QH = H.algebra(QQ)
+                    sage: ZH = H.algebra(ZZ)
+                    sage: QG = G.algebra(QQ)
+                    sage: ZG = G.algebra(ZZ)
+                    sage: ZG.coerce_map_from(H)
+                    Composite map:
+                      From: Cyclic group of order 3 as a permutation group
+                      To:   Algebra of Dihedral group of order 6 as a permutation group over Integer Ring
+                      Defn:   Call morphism:
+                              From: Cyclic group of order 3 as a permutation group
+                              To:   Dihedral group of order 6 as a permutation group
+                            then
+                              Conversion map:
+                              From: Dihedral group of order 6 as a permutation group
+                              To:   Algebra of Dihedral group of order 6 as a permutation group over Integer Ring
+                    sage: QG.coerce_map_from(ZG)
+                    Generic morphism:
+                      From: Algebra of Dihedral group of order 6 as a permutation group over Integer Ring
+                      To:   Algebra of Dihedral group of order 6 as a permutation group over Rational Field
+                    sage: QG.coerce_map_from(QH)
+                    Generic morphism:
+                      From: Algebra of Cyclic group of order 3 as a permutation group over Rational Field
+                      To:   Algebra of Dihedral group of order 6 as a permutation group over Rational Field
+                    sage: QG.coerce_map_from(ZH)
+                    Generic morphism:
+                      From: Algebra of Cyclic group of order 3 as a permutation group over Integer Ring
+                      To:   Algebra of Dihedral group of order 6 as a permutation group over Rational Field
+
+                As expected, there is no coercion when restricting the
+                field::
+
+                    sage: ZG.coerce_map_from(QG)
+
+                This coercion when restricting the group is unexpected::
+
+                    sage: QH.coerce_map_from(QG)
+                    Generic morphism:
+                      From: Algebra of Dihedral group of order 6 as a permutation group over Rational Field
+                      To:   Algebra of Cyclic group of order 3 as a permutation group over Rational Field
+
+                but is induced by the partial coercion at the level of
+                the groups::
+
+                    sage: H.coerce_map_from(G)
+                    Call morphism:
+                      From: Dihedral group of order 6 as a permutation group
+                      To:   Cyclic group of order 3 as a permutation group
+                """
+                K = self.base_ring()
+                G = self.basis().keys()
+                if S in Sets.Algebras:
+                    S_K = S.base_ring()
+                    S_G = S.basis().keys()
+                    hom_K = K.coerce_map_from(S_K)
+                    hom_G = G.coerce_map_from(S_G)
+                    if hom_K is not None and hom_G is not None:
+                        return SetMorphism(S.Hom(self, category= self.category() | S.category()),
+                                           lambda x: self.sum_of_terms( (hom_G(g), hom_K(c)) for g,c in x ))
 
     class WithRealizations(WithRealizationsCategory):
 

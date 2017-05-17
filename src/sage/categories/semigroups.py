@@ -886,6 +886,57 @@ class Semigroups(CategoryWithAxiom):
                 """
                 return self.basis().keys().semigroup_generators().map(self.monomial)
 
+            # Once there will be some guarantee on the consistency between
+            # gens / monoid/group/*_generators, these methods could possibly
+            # be removed in favor of aliases gens -> xxx_generators in
+            # the Algebras.FinitelyGenerated hierachy
+            def gens(self):
+                r"""
+                Return the generators of ``self``.
+
+                EXAMPLES::
+
+                    sage: a, b = SL2Z.algebra(ZZ).gens(); a, b
+                    ([ 0 -1]
+                     [ 1  0],
+                     [1 1]
+                     [0 1])
+                    sage: 2*a + b
+                    2*[ 0 -1]
+                      [ 1  0]
+                    +
+                    [1 1]
+                    [0 1]
+                """
+                return tuple(self.monomial(g) for g in self.basis().keys().gens())
+
+            def ngens(self):
+                r"""
+                Return the number of generators of ``self``.
+
+                EXAMPLES::
+
+                    sage: SL2Z.algebra(ZZ).ngens()
+                    2
+                    sage: DihedralGroup(4).algebra(RR).ngens()
+                    2
+                """
+                return self.basis().keys().ngens()
+
+            def gen(self, i=0):
+                r"""
+                Return the ``i``-th generator of ``self``.
+
+                EXAMPLES::
+
+                    sage: A = GL(3, GF(7)).algebra(ZZ)
+                    sage: A.gen(0)
+                    [3 0 0]
+                    [0 1 0]
+                    [0 0 1]
+                """
+                return self.monomial(self.basis().keys().gen(i))
+
             def product_on_basis(self, g1, g2):
                 r"""
                 Product, on basis elements, as per

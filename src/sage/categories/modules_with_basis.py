@@ -863,6 +863,24 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 return Infinity
             return self.base_ring().cardinality() ** self.dimension()
 
+        def is_finite(self):
+            r"""
+            Return whether ``self`` is finite.
+
+            This is true if and only if ``self.basis().keys()`` and
+            ``self.base_ring()`` are both finite.
+
+            EXAMPLES::
+
+                sage: GroupAlgebra(SymmetricGroup(2), IntegerModRing(10)).is_finite()
+                True
+                sage: GroupAlgebra(SymmetricGroup(2)).is_finite()
+                False
+                sage: GroupAlgebra(AbelianGroup(1), IntegerModRing(10)).is_finite()
+                False
+            """
+            return (self.base_ring().is_finite() and self.group().is_finite())
+
         def monomial(self, i):
             """
             Return the basis element indexed by ``i``.
@@ -1104,6 +1122,34 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             mc = x.monomial_coefficients(copy=False)
             return self.linear_combination( (on_basis(key), coeff)
                                             for key, coeff in six.iteritems(mc) )
+
+        def random_element(self, n=2):
+            r"""
+            Return a 'random' element of ``self``.
+
+            INPUT:
+
+            - ``n`` -- integer (default: 2); number of summands
+
+            ALGORITHM:
+
+            Return a sum of ``n`` terms, each of which is formed by
+            multiplying a random element of the base ring by a random
+            element of the group.
+
+            EXAMPLES::
+
+                sage: DihedralGroup(6).algebra(QQ).random_element()
+                -1/95*() - 1/2*(1,4)(2,5)(3,6)
+                sage: SU(2, 13).algebra(QQ).random_element(1)
+                1/2*[       3        0]
+                [11*a + 1        9]
+            """
+            a = self(0)
+            for i in range(n):
+                a += self.term(self.group().random_element(),
+                               self.base_ring().random_element())
+            return a
 
     class ElementMethods:
         # TODO: Define the appropriate element methods here (instead of in

@@ -31,7 +31,6 @@ from sage.typeset.unicode_art import UnicodeArt, empty_unicode_art
 from sage.categories.all import Category, Sets, ModulesWithBasis
 from sage.data_structures.blas_dict cimport add, negate, scal, axpy
 
-# TODO: move the content of this class to CombinatorialFreeModule.Element and ModulesWithBasis.Element
 cdef class IndexedFreeModuleElement(Element):
     def __init__(self, M, x):
         """

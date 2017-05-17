@@ -1126,6 +1126,36 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             d = {key: coeff for key, coeff in six.iteritems(d) if coeff}
         return self.element_class( self, d )
 
+class CombinatorialFreeModuleElement(CombinatorialFreeModule.Element):
+    """
+    Deprecated. Use
+    :class:`sage.modules.with_basis.indexed_free_module_element.IndexedFreeModuleElement`
+    or :class:`CombinatorialFreeModule.Element` instead.
+    """
+    def __init__(self, *args, **kwds):
+        """
+        TESTS::
+
+            sage: from sage.combinat.free_module import CombinatorialFreeModuleElement
+            sage: class Test(CombinatorialFreeModule):
+            ....:     class Element(CombinatorialFreeModuleElement):
+            ....:         pass
+            sage: T = Test(QQ, (1,2))
+            sage: T.an_element()
+            doctest:warning
+            ...
+            DeprecationWarning: CombinatorialFreeModuleElement is deprecated.
+             Use IndexedFreeModuleElement or CombinatorialFreeModule.Element instead.
+            See http://trac.sagemath.org/22632 for details.
+            2*B[1] + 2*B[2]
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(22632, "CombinatorialFreeModuleElement is deprecated."
+                           " Use IndexedFreeModuleElement"
+                           " or CombinatorialFreeModule.Element instead.")
+        super(CombinatorialFreeModuleElement, self).__init__(*args, **kwds)
+
+
 class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
         """
         Tensor Product of Free Modules

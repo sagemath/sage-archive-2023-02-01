@@ -234,7 +234,8 @@ class InfinityCrystalOfRiggedConfigurations(UniqueRepresentation, Parent):
         """
         if self.cartan_type().is_finite():
             from sage.combinat.crystals.infinity_crystals import InfinityCrystalOfTableaux
-            if isinstance(P, InfinityCrystalOfTableaux):
+            if (isinstance(P, InfinityCrystalOfTableaux)
+                and self.cartan_type().is_simply_laced()):
                 from sage.combinat.rigged_configurations.bij_infinity import FromTableauIsomorphism
                 return FromTableauIsomorphism(Hom(P, self))
         return super(InfinityCrystalOfRiggedConfigurations, self)._coerce_map_from_(P)
@@ -331,6 +332,27 @@ class InfinityCrystalOfNonSimplyLacedRC(InfinityCrystalOfRiggedConfigurations):
          """
         self._folded_ct = vct
         InfinityCrystalOfRiggedConfigurations.__init__(self, vct._cartan_type)
+
+    def _coerce_map_from_(self, P):
+        """
+        Return ``True`` or the coerce map from ``P`` if a map exists.
+
+        EXAMPLES::
+
+            sage: T = crystals.infinity.Tableaux(['C',3])
+            sage: vct = CartanType(['C',3]).as_folding()
+            sage: RC = crystals.infinity.RiggedConfigurations(vct)
+            sage: RC._coerce_map_from_(T)
+            Crystal Isomorphism morphism:
+              From: The infinity crystal of tableaux of type ['A', 3]
+              To:   The infinity crystal of rigged configurations of type ['A', 3]
+        """
+        if self.cartan_type().is_finite():
+            from sage.combinat.crystals.infinity_crystals import InfinityCrystalOfTableaux
+            if isinstance(P, InfinityCrystalOfTableaux):
+                from sage.combinat.rigged_configurations.bij_infinity import FromTableauIsomorphism
+                return FromTableauIsomorphism(Hom(P, self))
+        return super(InfinityCrystalOfNonSimplyLacedRC, self)._coerce_map_from_(P)
 
     def _calc_vacancy_number(self, partitions, a, i):
         r"""

@@ -1081,7 +1081,7 @@ class Function_gamma_inc(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, "gamma", nargs=2, latex_name=r"\Gamma",
                 conversions={'maxima':'gamma_incomplete', 'mathematica':'Gamma',
-                    'maple':'GAMMA', 'sympy':'uppergamma'})
+                    'maple':'GAMMA', 'sympy':'uppergamma', 'giac':'ugamma'})
 
     def _eval_(self, x, y):
         """
@@ -1230,7 +1230,7 @@ class Function_gamma_inc_lower(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, "gamma_inc_lower", nargs=2, latex_name=r"\gamma",
                 conversions={'maxima':'gamma_greek', 'mathematica':'Gamma',
-                    'maple':'GAMMA', 'sympy':'lowergamma'})
+                    'maple':'GAMMA', 'sympy':'lowergamma', 'giac':'igamma'})
 
     def _eval_(self, x, y):
         """

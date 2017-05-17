@@ -144,7 +144,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
         sage: L0 = L.classical(); L0
         Ambient space of the Root system of type ['C', 2]
         sage: KL0 = L0.algebra(K); KL0
-        Group algebra of the Ambient space of the Root system of type ['C', 2]
+        Algebra of the Ambient space of the Root system of type ['C', 2]
         over Fraction Field of Multivariate Polynomial Ring in q, q1, q2 over Rational Field
 
     .. RUBRIC:: Affine Hecke algebra
@@ -175,7 +175,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
     (see :meth:`.root_lattice_realization.RootLatticeRealization.Algebras.ParentMethods.demazure_lusztig_operators`).::
 
         sage: KL = L.algebra(K); KL
-        Group algebra of the Ambient space of the Root system of type ['C', 2, 1]
+        Algebra of the Ambient space of the Root system of type ['C', 2, 1]
         over Fraction Field of Multivariate Polynomial Ring in q, q1, q2 over Rational Field
         sage: T = KL.demazure_lusztig_operators(q1, q2)
         sage: x = KL.monomial(omega[1]); x
@@ -194,7 +194,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
     defined by the action of their `T`-generators.::
 
         sage: T
-        A representation of the (q1, q2)-Hecke algebra of type ['C', 2, 1] on Group algebra of the Ambient space of the Root system of type ['C', 2, 1] over Fraction Field of Multivariate Polynomial Ring in q, q1, q2 over Rational Field
+        A representation of the (q1, q2)-Hecke algebra of type ['C', 2, 1] on Algebra of the Ambient space of the Root system of type ['C', 2, 1] over Fraction Field of Multivariate Polynomial Ring in q, q1, q2 over Rational Field
         sage: type(T)
         <class 'sage.combinat.root_system.hecke_algebra_representation.HeckeAlgebraRepresentation'>
         sage: T._test_relations()                 # long time (1.3s)
@@ -203,7 +203,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
     from a signed reduced word::
 
         sage: T.Tw([0,1,2],[1,-1,-1], q1^2)
-        Generic endomorphism of Group algebra of the Ambient space of the Root system of type ['C', 2, 1]
+        Generic endomorphism of Algebra of the Ambient space of the Root system of type ['C', 2, 1]
         over Fraction Field of Multivariate Polynomial Ring in q, q1, q2 over Rational Field
 
     (note the reversal of the word). Inverses are computed using the
@@ -754,7 +754,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
         sage: Y0 = Y[alphacheck[0]]
         sage: Y1 = Y[alphacheck[1]]
         sage: Y0
-        Generic endomorphism of Group algebra of the Ambient space of the Root system of type ['C', 1]
+        Generic endomorphism of Algebra of the Ambient space of the Root system of type ['C', 1]
         over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
         sage: Y0.word, Y0.signs, Y0.scalar
         ((0, 1), (-1, -1), 1/q)
@@ -901,7 +901,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
         sage: x.is_one()
         True
         sage: x.parent()
-        Group algebra of the Weight lattice of the Root system of type ['A', 1]
+        Algebra of the Weight lattice of the Root system of type ['A', 1]
         over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field
 
         sage: E[omega[1]]
@@ -1111,7 +1111,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
         sage: ct = CartanType(["BC",2,2]).dual()
         sage: E = NonSymmetricMacdonaldPolynomials(ct, q=q, q1=q1, q2=q2)
         sage: KL = E.domain(); KL
-        Group algebra of the Ambient space of the Root system of type ['B', 2]
+        Algebra of the Ambient space of the Root system of type ['B', 2]
         over Fraction Field of Multivariate Polynomial Ring in q, q1, q2 over Rational Field
         sage: alpha = E.keys().simple_roots(); alpha
         Finite family {1: (1, -1), 2: (0, 1)}
@@ -1393,10 +1393,10 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
         EXAMPLES::
 
             sage: NonSymmetricMacdonaldPolynomials("B2~").KL0()
-            Group algebra of the Ambient space of the Root system of type ['B', 2]
+            Algebra of the Ambient space of the Root system of type ['B', 2]
             over Fraction Field of Multivariate Polynomial Ring in q, q1, q2 over Rational Field
             sage: NonSymmetricMacdonaldPolynomials("B2~*").KL0()
-            Group algebra of the Ambient space of the Root system of type ['C', 2]
+            Algebra of the Ambient space of the Root system of type ['C', 2]
             over Fraction Field of Multivariate Polynomial Ring in q, q1, q2 over Rational Field
 
         """

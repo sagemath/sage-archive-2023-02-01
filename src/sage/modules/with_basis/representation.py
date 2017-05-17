@@ -347,7 +347,7 @@ class Representation(Representation_abstract):
                 Traceback (most recent call last):
                 ...
                 TypeError: unsupported operand parent(s) for *:
-                 'Group algebra of Weyl Group of type ['B', 2] ... over Rational Field'
+                 'Algebra of Weyl Group of type ['B', 2] ... over Rational Field'
                  and 'Left Regular Representation of Weyl Group of type ['B', 2] ... over Integer Ring'
             """
             if isinstance(scalar, Element):

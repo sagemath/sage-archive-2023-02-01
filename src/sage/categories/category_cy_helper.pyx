@@ -136,15 +136,18 @@ cpdef tuple join_as_tuple(tuple categories, tuple axioms, tuple ignore_axioms):
         sage: join_as_tuple(T,(),())
         (Category of algebras over Integer Ring,
          Category of finite monoids,
+         Category of finite additive groups,
          Category of coalgebras over Rational Field,
          Category of finite simplicial complexes)
         sage: join_as_tuple(T,('WithBasis',),())
         (Category of algebras with basis over Integer Ring,
          Category of finite monoids,
          Category of coalgebras with basis over Rational Field,
+         Category of finite additive groups,
          Category of finite simplicial complexes)
         sage: join_as_tuple(T,(),((Monoids(),'Finite'),))
         (Category of algebras over Integer Ring,
+         Category of finite additive groups,
          Category of coalgebras over Rational Field,
          Category of finite simplicial complexes)
     """

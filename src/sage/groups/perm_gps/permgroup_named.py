@@ -607,7 +607,7 @@ class SymmetricGroup(PermutationGroup_symalt):
 
             sage: S = SymmetricGroup([2,3,5])
             sage: S.algebra(QQ)
-            Group algebra of Symmetric group of order 3! as a permutation group over Rational Field
+            Algebra of Symmetric group of order 3! as a permutation group over Rational Field
             sage: a = S.an_element(); a
             (2,3,5)
             sage: S.algebra(QQ)(a)

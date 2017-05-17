@@ -52,13 +52,16 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
         sage: KW = WeylGroup(["A",3]).algebra(QQ)
         sage: H = KW.demazure_lusztig_operators(q1,q2); H
         A representation of the (q1, q2)-Hecke algebra of type ['A', 3, 1]
-        on Group algebra of Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space) over Rational Field
+        on Algebra of Weyl Group of type ['A', 3]
+        (as a matrix group acting on the ambient space)
+        over Rational Field
 
     Among other things, it implements the `T_w` operators, their
     inverses and compositions thereof::
 
         sage: H.Tw((1,2))
-        Generic endomorphism of Group algebra of Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space) over Rational Field
+        Generic endomorphism of Algebra of Weyl Group of type ['A', 3]
+        (as a matrix group acting on the ambient space) over Rational Field
 
     and the Cherednik operators `Y^{\lambda^\vee}`::
 
@@ -106,7 +109,8 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
 
             sage: WeylGroup(["A",3]).algebra(QQ).demazure_lusztig_operators(-1,1)._repr_()
             "A representation of the (-1, 1)-Hecke algebra of type ['A', 3, 1]
-            on Group algebra of Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space) over Rational Field"
+            on Algebra of Weyl Group of type ['A', 3]
+            (as a matrix group acting on the ambient space) over Rational Field"
         """
         return "A representation of the %s-Hecke algebra of type %s on %s"%((self._q1,self._q2), self.cartan_type(), self.domain())
 
@@ -163,7 +167,7 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
 
             sage: H = WeylGroup(["A",3]).algebra(QQ).demazure_lusztig_operators(-1,1)
             sage: H.domain()
-            Group algebra of Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space) over Rational Field
+            Algebra of Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space) over Rational Field
         """
         return self._domain
 
@@ -822,7 +826,7 @@ class CherednikOperatorsEigenvectors(UniqueRepresentation, SageObject):
             sage: E.keys()
             Weyl Group of type ['B', 3] (as a matrix group acting on the ambient space)
             sage: E.domain()
-            Group algebra of Weyl Group of type ['B', 3] (as a matrix group acting on the ambient space) over Fraction Field of Multivariate Polynomial Ring in q1, q2 over Rational Field
+            Algebra of Weyl Group of type ['B', 3] (as a matrix group acting on the ambient space) over Fraction Field of Multivariate Polynomial Ring in q1, q2 over Rational Field
             sage: E._T == E._T_Y
             True
         """
@@ -864,7 +868,7 @@ class CherednikOperatorsEigenvectors(UniqueRepresentation, SageObject):
             sage: KW = W.algebra(K)
             sage: E = KW.demazure_lusztig_eigenvectors(q1, q2)
             sage: E.domain()
-            Group algebra of Weyl Group of type ['B', 3] (as a matrix group acting on the ambient space) over Multivariate Polynomial Ring in q1, q2 over Rational Field
+            Algebra of Weyl Group of type ['B', 3] (as a matrix group acting on the ambient space) over Multivariate Polynomial Ring in q1, q2 over Rational Field
         """
         return self._T.domain()
 

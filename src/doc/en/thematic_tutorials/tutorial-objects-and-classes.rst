@@ -289,8 +289,9 @@ Some particular actions modify the data structure of ``el``::
 
     Lots of Sage objects are not Python objects but compiled Cython
     objects. Python sees them as builtin objects and you don't have access to
-    the data structure. Examples include integers and permutation group
-    elements::
+    the data structure. In particular, we do not see the
+    ``_monomial_coefficients`` in the ``__dict__`` above. Other examples
+    include integers and permutation group elements::
 
         sage: e = Integer(9)
         sage: type(e)

@@ -238,8 +238,7 @@ class FreeAlgebraElement(IndexedFreeModuleElement, AlgebraElement):
             if self_on_left:
                 return Factorization([(self, 1)]) * scalar
             return scalar * Factorization([(self, 1)])
-        ret = super(FreeAlgebraElement, self)._acted_upon_(scalar, self_on_left)
-        return ret
+        return super(FreeAlgebraElement, self)._acted_upon_(scalar, self_on_left)
 
     # For backward compatibility
     #_lmul_ = _acted_upon_

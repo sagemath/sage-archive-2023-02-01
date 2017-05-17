@@ -823,7 +823,7 @@ cdef class IndexedFreeModuleElement(Element):
             B[2] + 2*B[3]
         """
         if not self.base_ring().is_field():
-            return self.map_coefficients(lambda c: _divide_if_possible(c, x))
+            return self.map_coefficients(lambda c: c._divide_if_possible(x))
 
         F = parent(self)
         x = self.base_ring()( x )
@@ -832,30 +832,6 @@ cdef class IndexedFreeModuleElement(Element):
         return type(self)(parent(self), scal(x_inv, D))
 
     __div__ = __truediv__
-
-
-def _divide_if_possible(x, y):
-    """
-    EXAMPLES::
-
-        sage: from sage.modules.with_basis.indexed_free_module_element import _divide_if_possible
-        sage: _divide_if_possible(4, 2)
-        2
-        sage: _.parent()
-        Integer Ring
-
-    ::
-
-        sage: _divide_if_possible(4, 3)
-        Traceback (most recent call last):
-        ...
-        ValueError: 4 is not divisible by 3
-    """
-    q, r = x.quo_rem(y)
-    if r != 0:
-        raise ValueError("%s is not divisible by %s"%(x, y))
-    else:
-        return q
 
 def _unpickle_element(C, d):
     """

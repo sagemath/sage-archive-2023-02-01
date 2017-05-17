@@ -822,14 +822,15 @@ cdef class IndexedFreeModuleElement(Element):
             sage: f/2
             B[2] + 2*B[3]
         """
-        if not self.base_ring().is_field():
-            return self.map_coefficients(lambda c: c._divide_if_possible(x))
-
         F = parent(self)
+        if not self.base_ring().is_field():
+            return type(self)(F, {k: c._divide_if_possible(x)
+                                  for k,c in self._monomial_cofficients.iteritems()})
+
         x = self.base_ring()( x )
         x_inv = x ** -1
         D = self._monomial_coefficients
-        return type(self)(parent(self), scal(x_inv, D))
+        return type(self)(F, scal(x_inv, D))
 
     __div__ = __truediv__
 

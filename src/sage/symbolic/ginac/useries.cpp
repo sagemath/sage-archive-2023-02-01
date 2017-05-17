@@ -39,9 +39,6 @@
 
 namespace GiNaC {
 
-static bool first_symbol = true;
-static symbol symb;
-
 // Normalize series if offset positive.
 static void normalize(flint_series_t& fp)
 {
@@ -270,50 +267,46 @@ static funcmap_t& funcmap()
 // The helper uses recurrence to check that all numerics are from QQ,
 // that there is not more than one symbol, no constants, and all
 // function serial numbers are in the funcmap keys.
-static bool unhandled_elements_in(ex the_ex) {
-
+static bool unhandled_elements_in(ex the_ex, const symbol& symb)
+{
         if (is_exactly_a<constant>(the_ex))
                 return true;
         if (is_exactly_a<numeric>(the_ex))
                 return not (ex_to<numeric>(the_ex).is_mpz()
                                 or ex_to<numeric>(the_ex).is_mpq());
         if (is_exactly_a<symbol>(the_ex)) {
-                if (not first_symbol)
-                        return (not ex_to<symbol>(the_ex).is_equal(symb));
-                first_symbol = false;
-                symb = ex_to<symbol>(the_ex);
-                return false;
+                return (not ex_to<symbol>(the_ex).is_equal(symb));
         }
         if (is_exactly_a<function>(the_ex)) {
                 function f = ex_to<function>(the_ex);
                 if (funcmap().find(f.get_serial()) == funcmap().end())
                         return true;
                 for (unsigned int i=0; i<f.nops(); i++)
-                        if (unhandled_elements_in(f.op(i)))
+                        if (unhandled_elements_in(f.op(i), symb))
                                 return true;
                 return false;
         }
         if (is_exactly_a<power>(the_ex)) {
                 power pow = ex_to<power>(the_ex);
-                return (unhandled_elements_in(pow.op(0))
-                     or unhandled_elements_in(pow.op(1)));
+                return (unhandled_elements_in(pow.op(0), symb)
+                     or unhandled_elements_in(pow.op(1), symb));
         }
         if (is_a<expairseq>(the_ex)) {
                 const expairseq& epseq = ex_to<expairseq>(the_ex);
                 for (unsigned int i=0; i<epseq.nops(); i++) {
-                        if (unhandled_elements_in(epseq.op(i)))
+                        if (unhandled_elements_in(epseq.op(i), symb))
                                 return true;
                 }
-                if (unhandled_elements_in(epseq.op(epseq.nops())))
+                if (unhandled_elements_in(epseq.op(epseq.nops()), symb))
                         return true;
                 return false;
         }
         return true;
 }
 
-bool useries_can_handle(ex the_ex) {
-
-        return (not unhandled_elements_in(the_ex));
+bool useries_can_handle(ex the_ex, const symbol& s)
+{
+        return (not unhandled_elements_in(the_ex, s));
 }
 
 class ldegree_error : public std::runtime_error {
@@ -382,12 +375,11 @@ static int low_series_degree(ex the_ex) {
         return 0;
 }
 
-ex useries(ex the_ex, const relational & r, int order, unsigned options)
+ex useries(ex the_ex, const symbol& x, int order, unsigned options)
 {
         if (order <= 0)
                 // send residues to the old code
                 throw flint_error(); 
-        symbol x = ex_to<symbol>(r.lhs());
         bool may_extend = false;
         int ldeg = 0;
         try {
@@ -400,7 +392,7 @@ ex useries(ex the_ex, const relational & r, int order, unsigned options)
         epvector epv;
         if (ldeg >= order) {
                 epv.push_back(expair(Order(_ex1), order));
-                return pseries(r, epv);
+                return pseries(relational(x,_ex0), epv);
         }
 
         if (ldeg > 0) {
@@ -438,7 +430,7 @@ ex useries(ex the_ex, const relational & r, int order, unsigned options)
                 fmpq_clear(c);
         }
         epv.push_back(expair(Order(_ex1), order));
-        return pseries(r, epv);
+        return pseries(relational(x,_ex0), epv);
 }
 
 void symbol::useries(flint_series_t& fp, int order) const

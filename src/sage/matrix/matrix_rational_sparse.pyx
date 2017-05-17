@@ -171,6 +171,42 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
     def __hash__(self):
         return self._hash()
 
+    def add_to_entry(self, Py_ssize_t i, Py_ssize_t j, elt):
+        r"""
+        Add ``elt`` to the entry at position ``(i, j)``.
+
+        EXAMPLES::
+
+            sage: m = matrix(QQ, 2, 2, sparse=True)
+            sage: m.add_to_entry(0, 0, -1/3)
+            sage: m
+            [-1/3    0]
+            [   0    0]
+            sage: m.add_to_entry(0, 0, 1/3)
+            sage: m
+            [0 0]
+            [0 0]
+            sage: m.nonzero_positions()
+            []
+        """
+        if not isinstance(elt, Rational):
+            elt = Rational(elt)
+        if i < 0:
+            i += self._nrows
+        if i < 0 or i >= self._nrows:
+            raise IndexError("row index out of range")
+        if j < 0:
+            j += self._ncols
+        if j < 0 or j >= self._ncols:
+            raise IndexError("column index out of range")
+
+        cdef mpq_t z
+        mpq_init(z)
+        mpq_vector_get_entry(z, &self._matrix[i], j)
+        mpq_add(z, z, (<Rational>elt).value)
+        mpq_vector_set_entry(&self._matrix[i], j, z)
+        mpq_clear(z)
+
 
     ########################################################################
     # LEVEL 2 functionality

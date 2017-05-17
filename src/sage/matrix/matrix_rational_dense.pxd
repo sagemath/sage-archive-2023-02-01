@@ -15,6 +15,8 @@ cdef class Matrix_rational_dense(Matrix_dense):
     cdef _add_ui_unsafe_assuming_int(self, Py_ssize_t i, Py_ssize_t j, unsigned long int n)
     cdef _sub_ui_unsafe_assuming_int(self, Py_ssize_t i, Py_ssize_t j, unsigned long int n)
 
+    cdef inline Matrix_rational_dense _new_matrix(self, Py_ssize_t nrows, Py_ssize_t ncols)
+
 cdef class MatrixWindow:
     cdef Matrix_rational_dense _matrix
     cdef int _row, _col, _nrows, _ncols

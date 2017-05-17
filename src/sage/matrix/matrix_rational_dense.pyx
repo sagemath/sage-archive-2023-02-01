@@ -143,6 +143,14 @@ cdef class Matrix_rational_dense(Matrix_dense):
         fmpq_mat_init(self._matrix, self._nrows, self._ncols)
         sig_off()
 
+    cdef inline Matrix_rational_dense _new_matrix(self, Py_ssize_t nrows, Py_ssize_t ncols):
+        if nrows == self._nrows and ncols == self._ncols:
+            parent = self._parent
+        else:
+            parent = self.matrix_space(nrows, ncols)
+
+        return Matrix_rational_dense.__new__(Matrix_rational_dense, parent, None, None, None)
+
     def  __dealloc__(self):
         sig_on()
         fmpq_mat_clear(self._matrix)
@@ -202,6 +210,70 @@ cdef class Matrix_rational_dense(Matrix_dense):
                     raise TypeError("nonzero scalar matrix must be square")
                 for i in range(self._nrows):
                     fmpq_set_mpq(fmpq_mat_entry(self._matrix, i, i), z.value)
+
+    def matrix_from_columns(self, columns):
+        """
+        Return the matrix constructed from self using columns with indices
+        in the columns list.
+
+        EXAMPLES::
+
+            sage: A = matrix(QQ, 3, range(9))
+            sage: A
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: A.matrix_from_columns([2,1])
+            [2 1]
+            [5 4]
+            [8 7]
+            sage: A.matrix_from_columns((2,1,0,2))
+            [2 1 0 2]
+            [5 4 3 5]
+            [8 7 6 8]
+        """
+        cdef Matrix_rational_dense A
+        cdef Py_ssize_t ncols, k, r, col
+
+        A = self._new_matrix(self._nrows, len(columns))
+        k = 0
+        for col in columns:
+            if col < 0 or col >= self._ncols:
+                raise IndexError("column out of range")
+            for r in range(self._nrows):
+                fmpq_set(fmpq_mat_entry(A._matrix, r, k), fmpq_mat_entry(self._matrix, r, col))
+            k = k + 1
+        return A
+
+    def add_to_entry(self, Py_ssize_t i, Py_ssize_t j, elt):
+        r"""
+        Add ``elt`` to the entry at position ``(i,j)``
+
+        EXAMPLES::
+
+            sage: m = matrix(QQ, 2, 2)
+            sage: m.add_to_entry(0, 0, -1/3)
+            sage: m
+            [-1/3    0]
+            [   0    0]
+        """
+        if not isinstance(elt, Rational):
+            elt = Rational(elt)
+        if i < 0:
+            i += self._nrows
+        if i < 0 or i >= self._nrows:
+            raise IndexError("row index out of range")
+        if j < 0:
+            j += self._ncols
+        if j < 0 or j >= self._ncols:
+            raise IndexError("column index out of range")
+        cdef fmpq_t tmp
+        fmpq_init(tmp)
+        fmpq_set_mpq(tmp, (<Rational>elt).value)
+        fmpq_add(fmpq_mat_entry(self._matrix, i, j),
+                 fmpq_mat_entry(self._matrix, i, j),
+                 tmp)
+        fmpq_clear(tmp)
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
         fmpq_set_mpq(fmpq_mat_entry(self._matrix, i, j), (<Rational> value).value)

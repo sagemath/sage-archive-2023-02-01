@@ -997,6 +997,25 @@ class Sets(Category_singleton):
             """
             return self.element_class(self, *args, **keywords)
 
+        def _coerce_map_from_(self, S):
+            """
+            Override this method to specify coercions beyond those specified
+            in coerce_list.
+
+            If no such coercion exists, return ``None`` or ``False``. Otherwise, it may
+            return either an actual Map to use for the coercion, a callable
+            (in which case it will be wrapped in a Map), or ``True`` (in which case
+            a generic map will be provided).
+
+            This default implementation always return ``None``.
+
+            EXAMPLES::
+
+                sage: Parent()._coerce_map_from_(QQ)
+
+            """
+            return None
+
         def is_parent_of(self, element):
             """
             Return whether ``self`` is the parent of ``element``.

@@ -1921,15 +1921,46 @@ cdef class Parent(category_object.CategoryObject):
 
     cpdef _coerce_map_from_(self, S):
         """
-        Override this method to specify coercions beyond those specified
-        in coerce_list.
+        Override this method to specify coercions beyond those
+        specified in coerce_list.
 
-        If no such coercion exists, return None or False. Otherwise, it may
-        return either an actual Map to use for the coercion, a callable
-        (in which case it will be wrapped in a Map), or True (in which case
-        a generic map will be provided).
+        If no such coercion exists, return ``None`` or ``False``.
+        Otherwise, it may return either an actual Map to use for the
+        coercion, a callable (in which case it will be wrapped in a
+        Map), or `True` (in which case a generic map will be
+        provided).
+
+        The default implementation, which just returns `None`, is
+        provided by :meth:`Sets.ParentMethods._coerce_map_from_`.
+
+        This implementation :meth:`Parent._coerce_map_from_` is just a
+        placeholder, enabling subclasses to implement
+        ``_coerce_map_from_`` as a Cython method.  It does *not*
+        shadow ``_coerce_map_from_`` methods provided by categories.
+
+        EXAMPLES::
+
+            sage: Parent()._coerce_map_from_(QQ)
+
+            sage: class Cs(Category):
+            ....:     def super_categories(self): return [Sets()]
+            ....:     class ParentMethods:
+            ....:         def _coerce_map_from_(self, S):
+            ....:             return lambda x: x
+            sage: class P(Parent): pass
+            sage: P(category=Cs())._coerce_map_from_(QQ)
+            <function <lambda> at ...>
+
+        This does not yet work for parents implemented as plain Cython
+        classes::
+
+            sage: Parent(category=Cs())._coerce_map_from_(QQ) # todo: not implemented
+            <function <lambda> at ...>
         """
-        return None
+        try:
+            return super(Parent, self)._coerce_map_from_(S)
+        except AttributeError: # Does not yet work for Cython classes
+            return None
 
     cpdef coerce_map_from(self, S):
         """

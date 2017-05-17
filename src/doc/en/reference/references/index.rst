@@ -1527,7 +1527,7 @@ REFERENCES:
 
 .. [SS2015II] Ben Salisbury and Travis Scrimshaw.
               *A rigged configuration model for* `B(\infty)`.
-              J. Combin. Theory Ser. A, ***133** (2015) pp. 29-75.
+              J. Combin. Theory Ser. A, **133** (2015) pp. 29-75.
               :arxiv:`1404.6539`.
 
 .. [SS2017] Ben Salisbury and Travis Scrimshaw.

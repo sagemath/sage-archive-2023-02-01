@@ -839,7 +839,7 @@ def _unpickle_element(C, d):
 
     EXAMPLES::
 
-        sage: from sage.modules.with_basis.indexed_free_module_element import _unpickle_element
+        sage: from sage.modules.with_basis.indexed_element import _unpickle_element
         sage: C = CombinatorialFreeModule(QQ, [1,2,3])
         sage: _unpickle_element(C, {1: -2, 3: -12})
         -2*B[1] - 12*B[3]

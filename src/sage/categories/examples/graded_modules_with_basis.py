@@ -78,7 +78,7 @@ class GradedPartitionModule(CombinatorialFreeModule):
 
     - There is a class for elements, which inherits from
       :class:`IndexedFreeModuleElement
-      <sage.modules.with_basis.indexed_free_module_element.IndexedFreeModuleElement>`.
+      <sage.modules.with_basis.indexed_element.IndexedFreeModuleElement>`.
       An element is determined by a dictionary whose keys are partitions and
       whose corresponding values are the coefficients.  The class implements
       two things: an :meth:`is_homogeneous

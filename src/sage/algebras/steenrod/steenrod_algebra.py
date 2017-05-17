@@ -3079,7 +3079,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         :class:`CombinatorialFreeModule
         <sage.combinat.free_module.CombinatorialFreeModule>`, this is
         based on :class:`IndexedFreeModuleElement
-        <sage.modules.with_basis.indexed_free_module_element.IndexedFreeModuleElement>`.
+        <sage.modules.with_basis.indexed_element.IndexedFreeModuleElement>`.
         It has new methods reflecting its role, like :meth:`degree`
         for computing the degree of an element.
 
@@ -3087,7 +3087,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
 
         Since this class inherits from
         :class:`IndexedFreeModuleElement
-        <sage.modules.with_basis.indexed_free_module_element.IndexedFreeModuleElement>`,
+        <sage.modules.with_basis.indexed_element.IndexedFreeModuleElement>`,
         elements can be used as iterators, and there are other useful
         methods::
 

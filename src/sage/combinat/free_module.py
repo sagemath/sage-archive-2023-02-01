@@ -19,7 +19,7 @@ from sage.structure.indexed_generators import IndexedGenerators
 from sage.modules.module import Module
 from sage.rings.all import Integer
 from sage.structure.element import parent
-from sage.modules.with_basis.indexed_free_module_element import IndexedFreeModuleElement
+from sage.modules.with_basis.indexed_element import IndexedFreeModuleElement
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.combinat.cartesian_product import CartesianProduct_iters
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
@@ -47,7 +47,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
     - ``element_class`` - the class of which elements of this module
       should be instances (optional, default None, in which case the
       elements are instances of
-      :class:`~sage.modules.with_basis.indexed_free_module_element.IndexedFreeModuleElement`)
+      :class:`~sage.modules.with_basis.indexed_element.IndexedFreeModuleElement`)
 
     - ``category`` - the category in which this module lies (optional,
       default None, in which case use the "category of modules with
@@ -1129,7 +1129,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 class CombinatorialFreeModuleElement(CombinatorialFreeModule.Element):
     """
     Deprecated. Use
-    :class:`sage.modules.with_basis.indexed_free_module_element.IndexedFreeModuleElement`
+    :class:`sage.modules.with_basis.indexed_element.IndexedFreeModuleElement`
     or :class:`CombinatorialFreeModule.Element` instead.
     """
     def __init__(self, *args, **kwds):

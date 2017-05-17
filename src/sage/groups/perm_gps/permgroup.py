@@ -930,6 +930,19 @@ class PermutationGroup_generic(group.FiniteGroup):
         else:
              return gens[i]
 
+    def ngens(self):
+        """
+        Return the number of generators of ``self``.
+
+        EXAMPLES::
+
+            sage: A4 = PermutationGroup([[(1,2,3)],[(2,3,4)]]); A4
+            Permutation Group with generators [(2,3,4), (1,2,3)]
+            sage: A4.ngens()
+            2
+        """
+        return len(self.gens())
+
     def identity(self):
         """
         Return the identity element of this group.

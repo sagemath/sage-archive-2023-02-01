@@ -1465,18 +1465,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
     rank = dimension
 
-    def gens(self):
-        """
-        Return a tuple consisting of the basis elements of ``self``.
-
-        EXAMPLES::
-
-            sage: F = CombinatorialFreeModule(ZZ, ['a', 'b', 'c'])
-            sage: F.gens()
-            (B['a'], B['b'], B['c'])
-        """
-        return tuple(self.basis().values())
-
     def is_exact(self):
         r"""
         Return ``True`` if elements of ``self`` have exact representations,

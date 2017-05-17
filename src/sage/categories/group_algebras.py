@@ -2,97 +2,8 @@ r"""
 Group Algebras
 
 This module implements the category of group algebras for arbitrary
-groups over arbitrary commutative rings. This also provides much of
-the functionality for the implementation of a group algebra using
-:class:`CombinatorialFreeModule`.
-
-EXAMPLES::
-
-    sage: D4 = DihedralGroup(4)
-    sage: kD4 = GroupAlgebra(D4, GF(7))
-    sage: a = kD4.an_element(); a
-    () + 4*(1,2,3,4) + 2*(1,4)(2,3)
-    sage: a * a
-    5*() + (2,4) + (1,2,3,4) + (1,3) + 2*(1,3)(2,4) + 4*(1,4)(2,3)
-
-Given the group and the base ring, the corresponding group
-algebra is unique::
-
-    sage: A = GroupAlgebra(GL(3, QQ), ZZ)
-    sage: B = GroupAlgebra(GL(3, QQ), ZZ)
-    sage: A is B
-    True
-    sage: C = GroupAlgebra(GL(3, QQ), QQ)
-    sage: A == C
-    False
-
-As long as there is no natural map from the group to the base ring,
-you can easily convert elements of the group to the group algebra::
-
-    sage: A = GroupAlgebra(DihedralGroup(2), ZZ)
-    sage: g = DihedralGroup(2).gen(0); g
-    (3,4)
-    sage: A(g)
-    (3,4)
-    sage: A(2) * g
-    2*(3,4)
-
-Since there is a natural inclusion from the dihedral group `D_2` of
-order 4 into the symmetric group `S_4` of order 4!, and since there is
-a natural map from the integers to the rationals, there is a natural
-map from `\ZZ[D_2]` to `\QQ[S_4]`::
-
-    sage: A = GroupAlgebra(DihedralGroup(2), ZZ)
-    sage: B = GroupAlgebra(SymmetricGroup(4), QQ)
-    sage: a = A.an_element(); a
-    () + 3*(3,4) + 3*(1,2)
-    sage: b = B.an_element(); b
-    () + 2*(1,2) + 4*(1,2,3,4)
-    sage: B(a)
-    () + 3*(3,4) + 3*(1,2)
-    sage: a * b  # a is automatically converted to an element of B
-    7*() + 3*(3,4) + 5*(1,2) + 6*(1,2)(3,4) + 12*(1,2,3) + 4*(1,2,3,4) + 12*(1,3,4)
-    sage: parent(a * b)
-    Group algebra of Symmetric group of order 4! as a permutation group
-     over Rational Field
-
-    sage: G = GL(3, GF(7))
-    sage: ZG = GroupAlgebra(G)
-    sage: c, d = G.random_element(), G.random_element()
-    sage: zc, zd = ZG(c), ZG(d)
-    sage: zc * d == zc * zd  # d is automatically converted to an element of ZG
-    True
-
-There is no obvious map in the other direction, though::
-
-    sage: A(b)
-    Traceback (most recent call last):
-    ...
-    TypeError: Don't know how to create an element of
-     Group algebra of Dihedral group of order 4 as a permutation group over Integer Ring
-     from () + 2*(1,2) + 4*(1,2,3,4)
-
-Group algebras have the structure of Hopf algebras::
-
-    sage: a = kD4.an_element(); a
-    () + 4*(1,2,3,4) + 2*(1,4)(2,3)
-    sage: a.antipode()
-    () + 4*(1,4,3,2) + 2*(1,4)(2,3)
-    sage: a.coproduct()
-    () # () + 4*(1,2,3,4) # (1,2,3,4) + 2*(1,4)(2,3) # (1,4)(2,3)
-
-.. NOTE::
-
-    As alluded to above, it is problematic to make group algebras fit
-    nicely with Sage's coercion model. The problem is that (for
-    example) if G is the additive group `(\ZZ,+)`, and `R = \ZZ[G]` is
-    its group ring, then the integer 2 can be coerced into R in two
-    ways -- via G, or via the base ring -- and *the answers are
-    different*. In practice we get around this by preventing elements
-    of a group `H` from coercing automatically into a group ring
-    `k[G]` if `H` coerces into both `k` and `G`.  This is unfortunate,
-    but it seems like the most sensible solution in this ambiguous
-    situation.
+groups over arbitrary commutative rings. For details, see
+:mod:`sage.categories.algebra_functor`.
 
 AUTHOR:
 
@@ -102,12 +13,15 @@ AUTHOR:
 - John Palmieri (2011-07): more updates to coercion, categories, etc.,
   group algebras constructed using CombinatorialFreeModule -- see
   :trac:`6670`.
+- Nicolas M. Thiéry (2010-2017), Travis Scrimshaw (2017):
+  generalization to a covariant functorial construction for
+  monoid algebras, and beyond -- see e.g. :trac:`18700`.
 """
 
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
-#                2008-2011 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2008-2017 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/

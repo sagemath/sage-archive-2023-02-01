@@ -291,7 +291,8 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
     class Element(IndexedFreeModuleElement):
         def __setstate__(self, state):
             r"""
-            For unpickling.
+            For unpickling old ``CombinatorialFreeModuleElement`` classes.
+            See :trac:`22632`.
 
             EXAMPLES::
 
@@ -1796,6 +1797,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
 
 CombinatorialFreeModule.CartesianProduct = CombinatorialFreeModule_CartesianProduct
 
+# Handle old CombinatorialFreeModuleElement pickles, see trac #22632
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override("sage.combinat.free_module",
                            "CombinatorialFreeModuleElement",

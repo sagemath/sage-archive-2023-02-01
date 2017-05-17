@@ -24,8 +24,6 @@ from sage.structure.element import have_same_parent
 from sage.misc.flatten import flatten
 from copy import copy
 
-from sage.graphs.graph import DiGraph
-
 class CoxeterGroups(Category_singleton):
     r"""
     The category of Coxeter groups.
@@ -512,14 +510,17 @@ class CoxeterGroups(Category_singleton):
 
         def bruhat_interval(self, x, y):
             """
-            Returns the list of t such that x <= t <= y.
+            Return the list of ``t`` such that ``x <= t <= y``.
 
             EXAMPLES::
 
                 sage: W = WeylGroup("A3", prefix="s")
                 sage: [s1,s2,s3]=W.simple_reflections()
                 sage: W.bruhat_interval(s2,s1*s3*s2*s1*s3)
-                [s1*s2*s3*s2*s1, s2*s3*s2*s1, s3*s1*s2*s1, s1*s2*s3*s1, s1*s2*s3*s2, s3*s2*s1, s2*s3*s1, s2*s3*s2, s1*s2*s1, s3*s1*s2, s1*s2*s3, s2*s1, s3*s2, s2*s3, s1*s2, s2]
+                [s1*s2*s3*s2*s1, s2*s3*s2*s1, s3*s1*s2*s1, s1*s2*s3*s1,
+                 s1*s2*s3*s2, s3*s2*s1, s2*s3*s1, s2*s3*s2, s1*s2*s1,
+                 s3*s1*s2, s1*s2*s3, s2*s1, s3*s2, s2*s3, s1*s2, s2]
+
                 sage: W = WeylGroup(['A',2,1], prefix="s")
                 sage: [s0,s1,s2]=W.simple_reflections()
                 sage: W.bruhat_interval(1,s0*s1*s2)
@@ -544,6 +545,54 @@ class CoxeterGroups(Category_singleton):
                                 nextlayer.append(t)
                 ret.append(nextlayer)
             return flatten(ret)
+
+        def bruhat_interval_poset(self, x, y, facade=False):
+            r"""
+            Return the poset of the Bruhat interval between ``x`` and ``y``
+            in Bruhat order.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup("A3", prefix="s")
+                sage: s1,s2,s3 = W.simple_reflections()
+                sage: W.bruhat_interval_poset(s2, s1*s3*s2*s1*s3)
+                Finite poset containing 16 elements
+
+                sage: W = WeylGroup(['A',2,1], prefix="s")
+                sage: s0,s1,s2 = W.simple_reflections()
+                sage: W.bruhat_interval_poset(1, s0*s1*s2)
+                Finite poset containing 8 elements
+            """
+            if x == 1:
+                x = self.one()
+            if y == 1:
+                y = self.one()
+            if x == y:
+                return Poset([[x], []])
+            if not x.bruhat_le(y):
+                return Poset()
+            curlayer = set([y])
+            d = {}
+            while curlayer:
+                nextlayer = set()
+                for z in curlayer:
+                    for t in z.bruhat_lower_covers():
+                        if not x.bruhat_le(t):
+                            continue
+                        if t in d:
+                            d[t].append(z)
+                        else:
+                            d[t] = [z]
+                        if t not in nextlayer:
+                            nextlayer.add(t)
+                curlayer = nextlayer
+
+            from sage.combinat.posets.posets import Poset
+            from sage.graphs.graph import DiGraph
+            return Poset(DiGraph(d, format='dict_of_lists',
+                                 data_structure='static_sparse'),
+                         cover_relations=True,
+                         facade=facade)
 
         def bruhat_graph(self, x=None, y=None, edge_labels=False):
             r"""
@@ -588,36 +637,44 @@ class CoxeterGroups(Category_singleton):
 
                 sage: len(G.edges())
                 16
-
             """
-            if x is None:
+            if x is None or x == 1:
                 x = self.one()
             if y is None:
                 if self.is_finite():
                     y = self.long_element()
                 else:
                     raise TypeError("infinite groups must specify a maximal element")
+            elif y == 1:
+                y = self.one()
 
-            g = self.bruhat_interval(x,y)
+            # Sort bruhat_interval in weakly decreasing order of length.
+            # We do this so we do not need to check the length in the
+            #   for loops below.
+            g = sorted(self.bruhat_interval(x, y), key=lambda w: -w.length())
             d = []
 
             if self.is_finite():
                 ref = self.reflections()
-                for u in g:
-                    for v in g:
-                        if u.length() < v.length() and u*v.inverse() in ref:
+                for i,u in enumerate(g):
+                    for v in g[:i]:
+                        w = u * v.inverse()
+                        if w in ref:
                             if edge_labels:
-                                d.append((u,v, u*v.inverse()))
+                                d.append((u, v, w))
                             else:
-                                d.append((u,v))
+                                d.append((u, v))
             else:
-                for u in g:
-                    for v in g:
-                        if u.length() < v.length() and (u*v.inverse()).is_reflection():
+                for i,u in enumerate(g):
+                    for v in g[:i]:
+                        w = u * v.inverse()
+                        if w.is_reflection():
                             if edge_labels:
-                                d.append((u,v,u*v.inverse()))
+                                d.append((u, v, w))
                             else:
-                                d.append((u,v))
+                                d.append((u, v))
+
+            from sage.graphs.graph import DiGraph
             return DiGraph(d)
 
         def canonical_representation(self):

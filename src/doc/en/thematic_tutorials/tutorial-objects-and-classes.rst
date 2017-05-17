@@ -285,8 +285,7 @@ Some particular actions modify the data structure of ``el``::
        sage: el.__class__
         <class 'sage.combinat.free_module.CombinatorialFreeModule_with_category.element_class'>
        sage: el.__dict__
-       {'__custom_name': 'foo',
-        '_monomial_coefficients': {[1, 2, 3]: 1, [1, 3, 2]: 3}}
+       {'__custom_name': 'foo'}
 
     Lots of Sage objects are not Python objects but compiled Cython
     objects. Python sees them as builtin objects and you don't have access to

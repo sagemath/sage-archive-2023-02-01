@@ -22,7 +22,7 @@ from __future__ import absolute_import
 
 import six
 from sage.misc.cachefunc import cached_method
-from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
+from sage.combinat.free_module import CombinatorialFreeModule
 from .algebra_elements import PathAlgebraElement
 
 class PathAlgebra(CombinatorialFreeModule):

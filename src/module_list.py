@@ -1034,6 +1034,9 @@ ext_modules = [
     Extension('sage.modules.vector_real_double_dense',
               ['sage/modules/vector_real_double_dense.pyx']),
 
+    Extension('sage.modules.with_basis.indexed_free_module_element',
+              sources = ['sage/modules/with_basis/indexed_free_module_element.pyx']),
+
     ################################
     ##
     ## sage.numerical

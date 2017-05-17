@@ -1,8 +1,0 @@
-from https://github.com/cygwinports/zlib/blob/master/1.2.11-gzopen_w.patch
---- origsrc/zlib-1.2.11/win32/zlib.def	2017-01-01 01:37:10.000000000 -0600
-+++ src/win32/zlib.def	2017-03-03 15:41:32.326386500 -0600
-@@ -91,4 +91,3 @@ EXPORTS
-     inflateCodesUsed
-     inflateResetKeep
-     deflateResetKeep
--    gzopen_w

@@ -101,6 +101,7 @@ This module provides the following SBoxes:
     - UDCIKMP11 (Ullrich et al. "Finding optimal bitsliced implementation of 4x4 S-boxes.")
     - Optimal_S0, ..., Optimal_S15 (Leander, Poschmann "On the classification of 4 Bit S-boxes")
     - Serpent_type_S0, ..., Serpent_type_S19 (Leander, Poschmann "On the classification of 4 Bit S-boxes")
+    - Golden_S0, ..., Golden_S3 (Saarinen "Cryptographic Analysis of All 4 x 4-Bit S-Boxes")
 
 3 bit to 3 bit
     - SEA
@@ -1263,6 +1264,10 @@ Serpent_type_S16 = SBox([0, 3, 5, 8, 9, 12, 14, 7, 10, 13, 15, 4, 6, 11, 1, 2])
 Serpent_type_S17 = SBox([0, 3, 5, 8, 10, 13, 9, 4, 15, 6, 2, 1, 12, 11, 7, 14])
 Serpent_type_S18 = SBox([0, 3, 5, 8, 11, 12, 6, 15, 14, 9, 2, 7, 4, 10, 13, 1])
 Serpent_type_S19 = SBox([0, 3, 5, 10, 7, 12, 11, 6, 13, 4, 2, 9, 14, 1, 8, 15])
+Golden_S0 = SBox([0, 3, 5, 8, 6, 9, 12, 7, 13, 10, 14, 4, 1, 15, 11, 2])
+Golden_S1 = SBox([0, 3, 5, 8, 6, 12, 11, 7, 9, 14, 10, 13, 15, 2, 1, 4])
+Golden_S2 = SBox([0, 3, 5, 8, 6, 10, 15, 4, 14, 13, 9, 2, 1, 7, 12, 11])
+Golden_S3 = SBox([0, 3, 5, 8, 6, 12, 11, 7, 10, 4, 9, 14, 15, 1, 2, 13])
 
 # S-Boxes from the literature on Boolean functions
 
@@ -1519,4 +1524,8 @@ sboxes = {
         "Serpent_type_S17" : Serpent_type_S17,
         "Serpent_type_S18" : Serpent_type_S18,
         "Serpent_type_S19" : Serpent_type_S19,
+        "Golden_S0" : Golden_S0,
+        "Golden_S1" : Golden_S1,
+        "Golden_S2" : Golden_S2,
+        "Golden_S3" : Golden_S3,
     }

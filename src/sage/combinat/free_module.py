@@ -1145,7 +1145,7 @@ class CombinatorialFreeModuleElement(CombinatorialFreeModule.Element):
             ...
             DeprecationWarning: CombinatorialFreeModuleElement is deprecated.
              Use IndexedFreeModuleElement or CombinatorialFreeModule.Element instead.
-            See :trac:`22632` for details.
+            See http://trac.sagemath.org/22632 for details.
             2*B[1] + 2*B[2]
         """
         from sage.misc.superseded import deprecation

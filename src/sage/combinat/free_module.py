@@ -288,43 +288,41 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
     # We make this explicitly a Python class so that the methods,
     #   specifically _mul_, from category framework still works. -- TCS
     # We also need to deal with the old pickles too. -- TCS
-    class Element(IndexedFreeModuleElement):
-        def __setstate__(self, state):
-            r"""
-            For unpickling old ``CombinatorialFreeModuleElement`` classes.
-            See :trac:`22632`.
+    Element = IndexedFreeModuleElement
 
-            EXAMPLES::
+    @lazy_attribute
+    def element_class(self):
+        """
+        The (default) class for the elements of this parent
 
-                sage: loads('x\x9c\x95R\xcbn\x131\x14\xd5\x00\r\x89KK\xcb\xa3'
-                ....: '\xbc\xa1\xbc\xd3\xcd,\xe0\x0f\n\xad\xc4\xa2Y\x0c\xb2XZ'
-                ....: '\x8e\xe7N\xe6\x8a\xb1\xa7\xd7\x0f\x91,F\x82E&\xe2\xafq3'
-                ....: '\x13\xa4"X\xb0\xb1}\xae}\xce=\xf7\xc8\xdf\xaf(\'g\x90:o'
-                ....: '\x83\xf2\xc1B\x9a/\x8c\xd4\xa8\x84\xaa\xa4s\xec2\xa2d'
-                ....: '\xcc\xdf\x7f\xa8\xf5\x14\x8d\xf4\xb5EY\x9dZ\x80\xb3:'
-                ....: '\x0f\x15\x88o\xe8K\xa1\xa4\x87Ym\x17)T\xa0\xc1\xf8\x8eH}'
-                ....: '\x17\xd5S\xd3"\xd2\x84^\xf3\xd8?\xf4N:\x01FW\x95\x10\xd3'
-                ....: '\x80\x95G#\x04\x9b\x81\x97\xde[F\xd7:I\x8dN\xad\x17\xa6dU'
-                ....: '\t\r\xbe\xacsF[\xe5\xd6\x9f\x83\x05\x83\x14@X8\xb7\xe0'
-                ....: '\xa2\xb2\xf4X\x1b\x16\x8c\x85<(`4\xe8=v\x13 \xb8\xb43'
-                ....: '\xe8\xd8Y\xbf\xd3\xf5\xee\x89E3s)\x9a\xf8\x10\xac\xb8@'
-                ....: '\xecS\x07\xb2\x8b3\r\x8f2\x1a-\x1bb|\x98\xa3;\x97^\x95'
-                ....: '\xb4\xfd\xd3\xad\xe8FF;|\xbbKJ\xce\xb1\xd6\xb4\xcbG_":'
-                ....: '\x96\x0e\x1d\xdd\\e\xb4W\xee\xf2\xfdS4\xe8\xe1#\xc6\x00'
-                ....: '\\4)+\xda\x8fW\xb7\xf8\xce\xe5To\xb7\x19\xddi\xe9\xeed2'
-                ....: '\xf1\x19\x1d\x1c\xfd\xa0{\xe5\xe0\xff\x93ft\xbf\x1cm\x88'
-                ....: '\x0e\xbcK\x8bu\x7f\x01&h\xb01\x8f\\\xc42\xeb\\\x9d\xfc.~'
-                ....: '\x8e5z\xc0\x939O\x16-=\\6+z\x94\xd1\xe3\xb6\xa1\'c>\xdc'
-                ....: '\xfc\x04zZ\xee\xf1A\xcc\xbc\xc09=\xe3\xc9qX\xd1aF\xcf'
-                ....: '\x1bz\xc1\x0f\xa23S\xeb\xe8F\xa8\x1a\x8a\x02\x15\xc6\xe9'
-                ....: '\x1c\xbdl\xe8\xd58\xaa\xfe%n\xa6\xe5W\x10\x1b@\xafy\xf2n'
-                ....: '\x99\xd1\x9b\xe8\xa2\xec\xcfo\x83k\xa7\xe9/\xc1\xe1\t\x17')
-                2*B['x'] + 2*B['y']
-            """
-            self._set_parent(state[0])
-            d = state[1]
-            self._monomial_coefficients = d.pop('_monomial_coefficients')
-            self.__dict__ = d
+        Overrides :meth:`Parent.element_class` to force the
+        construction of Python class. This is currently needed to
+        inherit really all the features from categories, and in
+        particular the initialization of `_mul_` in
+        :meth:`Magmas.ParentMethods.__init_extra__`.
+
+        EXAMPLES::
+
+            sage: A = Algebras(QQ).WithBasis().example(); A
+            An example of an algebra with basis: 
+            the free algebra on the generators ('a', 'b', 'c') over Rational Field
+
+            sage: A.element_class.mro()
+            [<class 'sage.modules.with_basis.indexed_element.FreeAlgebra_with_category.element_class'>,
+             <type 'sage.modules.with_basis.indexed_element.IndexedFreeModuleElement'>,
+             ...]
+            sage: a,b,c = A.algebra_generators()
+            sage: a * b
+            B[word: ab]
+
+        TESTS::
+
+            sage: A.__class__.element_class.__module__
+            'sage.combinat.free_module'
+        """
+        return self.__make_element_class__(self.Element,
+                                           "%s.element_class"%self.__class__.__name__,
+                                           inherit = True)
 
     def __init__(self, R, basis_keys, element_class = None, category = None, prefix="B", **kwds):
         r"""

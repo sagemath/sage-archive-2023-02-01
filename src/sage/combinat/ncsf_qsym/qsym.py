@@ -2654,6 +2654,108 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                                  codomain=M, category=category
                                  ).register_as_coercion()
 
+        def antipode_on_basis(self, compo):
+            r"""
+            Return the result of the antipode applied to a quasi-symmetric
+            Essential basis element.
+
+            INPUT:
+
+            - ``compo`` -- composition
+
+            OUTPUT:
+
+            - The result of the antipode applied to the composition ``compo``,
+              expressed in the Essential basis.
+
+            EXAMPLES::
+
+                sage: E = QuasiSymmetricFunctions(QQ).E()
+                sage: E.antipode_on_basis(Composition([2,1]))
+                E[1, 2] - E[3]
+                sage: E.antipode_on_basis(Composition([]))
+                E[]
+
+            TESTS::
+
+                sage: E = QuasiSymmetricFunctions(QQ).E()
+                sage: M = QuasiSymmetricFunctions(QQ).M()
+                sage: all(E(M(E[c]).antipode()) == E[c].antipode()
+                ....:     for n in range(5) for c in Compositions(n))
+                True
+            """
+            return (-1)**len(compo) * self.alternating_sum_of_fatter_compositions(compo.reversed())
+
+        def coproduct_on_basis(self, compo):
+            r"""
+            Return the coproduct of a Essential basis element.
+
+            Combinatorial rule: deconcatenation.
+
+            INPUT:
+
+            - ``compo`` -- composition
+
+            OUTPUT:
+
+            - The coproduct applied to the Essential quasi-symmetric function
+              indexed by ``compo``, expressed in the Essential basis.
+
+            EXAMPLES::
+
+                sage: E = QuasiSymmetricFunctions(QQ).Essential()
+                sage: E[4,2,3].coproduct()
+                E[] # E[4, 2, 3] + E[4] # E[2, 3] + E[4, 2] # E[3] + E[4, 2, 3] # E[]
+                sage: E.coproduct_on_basis(Composition([]))
+                E[] # E[]
+            """
+            return self.tensor_square().sum_of_monomials((self._indices(compo[:i]),
+                                                          self._indices(compo[i:]))
+                                                         for i in range(0,len(compo)+1))
+
+        def product_on_basis(self, I, J):
+            """
+            The product on Essential basis elements.
+
+            The product of the basis elements indexed by two compositions
+            `I` and `J` is the sum of the basis elements indexed by
+            compositions in the stuffle product (also called the
+            overlapping shuffle product) of `I` and `J` with a
+            coefficient of `(-1)^L`, where `L` is the length of the composition.
+
+            INPUT:
+
+            - ``I``, ``J`` -- compositions
+
+            OUTPUT:
+
+            - The product of the Essential quasi-symmetric functions indexed
+              by ``I`` and ``J``, expressed in the Essential basis.
+
+            EXAMPLES::
+
+                sage: E = QuasiSymmetricFunctions(QQ).E()
+                sage: c1 = Composition([2])
+                sage: c2 = Composition([1,3])
+                sage: E.product_on_basis(c1, c2)
+                E[1, 2, 3] + E[1, 3, 2] - E[1, 5] + E[2, 1, 3] - E[3, 3]
+                sage: E.product_on_basis(c1, Composition([]))
+                E[2]
+                sage: E.product_on_basis(c1, Composition([3]))
+                E[2, 3] + E[3, 2] - E[5]
+
+            TESTS::
+
+                sage: E = QuasiSymmetricFunctions(QQ).E()
+                sage: M = QuasiSymmetricFunctions(QQ).M()
+                sage: all(E(M(E[cp])*M(E[c])) == E[cp]*E[c]  # long time
+                ....:     for c in Compositions(3) for cp in Compositions(5))
+                True
+            """
+            n = len(I) + len(J)
+            return self.sum_of_terms((K, (-1)**(n - len(K)))
+                                     for K in I.shuffle_product(J, overlap=True))
+
     E = Essential
 
     class Quasisymmetric_Schur(CombinatorialFreeModule, BindableClass):

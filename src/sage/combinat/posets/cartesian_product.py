@@ -385,7 +385,7 @@ class CartesianProductPoset(CartesianProduct):
                 True
 
             The following example tests that the coercion gets involved in
-            comparisons; it can be simplified once #18182 is in merged.
+            comparisons; it can be simplified once :trac:`18182` is merged.
             ::
 
                 sage: class MyCP(CartesianProductPoset):

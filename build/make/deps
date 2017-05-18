@@ -118,6 +118,7 @@ sagelib: \
 		$(inst_brial) \
 		$(inst_cephes) \
 		$(inst_cliquer) \
+		$(inst_cypari) \
 		$(inst_cysignals) \
 		$(inst_cython) \
 		$(inst_ecl) \

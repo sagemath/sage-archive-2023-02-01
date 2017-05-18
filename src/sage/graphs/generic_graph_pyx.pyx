@@ -10,23 +10,26 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#           Copyright (C) 2007 Robert L. Miller <rlmillster@gmail.com>
-#                         2007 Robert W. Bradshaw <robertwb@math.washington.edu>
+#       Copyright (C) 2007 Robert L. Miller <rlmillster@gmail.com>
+#                     2007 Robert W. Bradshaw <robertwb@math.washington.edu>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
 
 include "cysignals/signals.pxi"
-include 'sage/ext/cdefs.pxi'
 include "cysignals/memory.pxi"
 include "sage/data_structures/binary_matrix.pxi"
+from libc.math cimport sqrt
+from libc.string cimport memset
 
-# import from Python standard library
+from sage.libs.gmp.mpz cimport *
 from sage.misc.prandom import random
-
-# import from third-party library
 from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.graphs.base.static_sparse_graph cimport short_digraph
 from sage.graphs.base.static_sparse_graph cimport init_short_digraph
@@ -54,7 +57,7 @@ def spring_layout_fast_split(G, **options):
     EXAMPLES::
 
         sage: G = graphs.DodecahedralGraph()
-        sage: for i in range(10): G.add_cycle(range(100*i, 100*i+3))
+        sage: for i in range(10): G.add_cycle(list(range(100*i, 100*i+3)))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast_split
         sage: spring_layout_fast_split(G)
         {0: [0.452..., 0.247...], ..., 502: [25.7..., 0.505...]}
@@ -97,7 +100,7 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     EXAMPLES::
 
         sage: G = graphs.DodecahedralGraph()
-        sage: for i in range(10): G.add_cycle(range(100*i, 100*i+3))
+        sage: for i in range(10): G.add_cycle(list(range(100*i, 100*i+3)))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
         sage: spring_layout_fast(G)
         {0: [-0.0733..., 0.157...], ..., 502: [-0.551..., 0.682...]}
@@ -113,7 +116,7 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     the several adjacent components. ::
 
         sage: G = graphs.DodecahedralGraph()
-        sage: for i in range(10): G.add_cycle(range(100*i, 100*i+3))
+        sage: for i in range(10): G.add_cycle(list(range(100*i, 100*i+3)))
         sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
         sage: spring_layout_fast(G, by_component = True)
         {0: [2.12..., -0.321...], ..., 502: [26.0..., -0.812...]}

@@ -35,6 +35,7 @@ from .complex_double cimport ComplexDoubleElement
 from .real_mpfr cimport RealNumber
 
 import sage.misc.misc
+from sage.misc.superseded import deprecated_function_alias
 import sage.rings.integer as integer
 import sage.rings.infinity as infinity
 
@@ -557,11 +558,11 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: pari(a).type()
             't_COMPLEX'
             sage: type(pari(a))
-            <type 'sage.libs.cypari2.gen.Gen'>
+            <type 'cypari2.gen.Gen'>
             sage: a.__pari__()
             2.00000000000000 + 1.00000000000000*I
             sage: type(a.__pari__())
-            <type 'sage.libs.cypari2.gen.Gen'>
+            <type 'cypari2.gen.Gen'>
             sage: a = CC(pi)
             sage: pari(a)
             3.14159265358979
@@ -2360,13 +2361,10 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             return infinity.unsigned_infinity
         return self._parent(self.__pari__().zeta())
 
-    def algdep(self, n, **kwds):
+    def algebraic_dependency(self, n, **kwds):
         """
-        Returns a polynomial of degree at most `n` which is
-        approximately satisfied by this complex number. Note that the
-        returned polynomial need not be irreducible, and indeed usually
-        won't be if `z` is a good approximation to an algebraic
-        number of degree less than `n`.
+        Return an irreducible polynomial of degree at most `n` which is
+        approximately satisfied by this complex number.
 
         ALGORITHM: Uses the PARI C-library algdep command.
 
@@ -2379,41 +2377,28 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: z = (1/2)*(1 + sqrt(3.0) *C.0); z
             0.500000000000000 + 0.866025403784439*I
             sage: p = z.algdep(5); p
-            x^3 + 1
-            sage: p.factor()
-            (x + 1) * (x^2 - x + 1)
-            sage: z^2 - z + 1
+            x^2 - x + 1
+            sage: p(z)
             1.11022302462516e-16
+
+        TESTS::
+
+            sage: z.algdep(2)
+            x^2 - x + 1
+            sage: z.algebraic_dependancy(2)
+            doctest:...: DeprecationWarning: algebraic_dependancy is deprecated. Please use algebraic_dependency instead.
+            See http://trac.sagemath.org/22714 for details.
+            x^2 - x + 1
         """
-        import sage.arith.all
-        return sage.arith.all.algdep(self, n, **kwds)
+        from sage.arith.all import algdep
+        return algdep(self, n, **kwds)
 
-    def algebraic_dependancy( self, n ):
-        """
-        Returns a polynomial of degree at most `n` which is
-        approximately satisfied by this complex number. Note that the
-        returned polynomial need not be irreducible, and indeed usually
-        won't be if `z` is a good approximation to an algebraic
-        number of degree less than `n`.
+    # Alias
+    algdep = algebraic_dependency
 
-        ALGORITHM: Uses the PARI C-library algdep command.
+    # Former misspelling
+    algebraic_dependancy = deprecated_function_alias(22714, algebraic_dependency)
 
-        INPUT: Type algdep? at the top level prompt. All additional
-        parameters are passed onto the top-level algdep command.
-
-        EXAMPLES::
-
-            sage: C = ComplexField()
-            sage: z = (1/2)*(1 + sqrt(3.0) *C.0); z
-            0.500000000000000 + 0.866025403784439*I
-            sage: p = z.algebraic_dependancy(5); p
-            x^3 + 1
-            sage: p.factor()
-            (x + 1) * (x^2 - x + 1)
-            sage: z^2 - z + 1
-            1.11022302462516e-16
-        """
-        return self.algdep( n )
 
 def make_ComplexNumber0( fld, mult_order, re, im ):
     """

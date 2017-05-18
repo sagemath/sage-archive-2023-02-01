@@ -20,9 +20,9 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include "cysignals/signals.pxi"
-include "sage/ext/cdefs.pxi"
 
+include "cysignals/signals.pxi"
+from sage.libs.gmp.mpz cimport *
 from sage.libs.mpfr cimport *
 from sage.rings.integer cimport Integer
 

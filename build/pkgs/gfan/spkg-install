@@ -6,10 +6,6 @@ if [[ -z "$SAGE_LOCAL" ]]; then
     exit 1
 fi
 
-
-# set LDFLAGS with proper flags to link against gmp/mpir and cddlib
-LDFLAGS="-L$SAGE_LOCAL/lib -lcddgmp -lgmp -lm $LDFLAGS"
-
 if [[ -z $CFLAG64 ]]; then
     CFLAG64=-m64
 fi

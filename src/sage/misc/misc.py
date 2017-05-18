@@ -26,28 +26,6 @@ Check the fix from :trac:`8323`::
     False
     sage: 'func' in globals()
     False
-
-Test deprecation::
-
-    sage: sage.misc.misc.srange(5)
-    doctest:...: DeprecationWarning:
-    Importing srange from here is deprecated. If you need to use it, please import it directly from sage.arith.srange
-    See http://trac.sagemath.org/20094 for details.
-    [0, 1, 2, 3, 4]
-    sage: sage.misc.all.srange(5)
-    doctest:...: DeprecationWarning:
-    Importing srange from here is deprecated. If you need to use it, please import it directly from sage.arith.srange
-    See http://trac.sagemath.org/20334 for details.
-    [0, 1, 2, 3, 4]
-    sage: sage.misc.misc.sxrange(5)
-    doctest:...: DeprecationWarning:
-    Importing sxrange from here is deprecated. If you need to use it, please import it directly from sage.arith.srange
-    See http://trac.sagemath.org/20094 for details.
-    <generator object at 0x...>
-    sage: sage.misc.misc.cancel_alarm()
-    doctest:...: DeprecationWarning:
-    Importing cancel_alarm from here is deprecated. If you need to use it, please import it directly from cysignals.alarm
-    See http://trac.sagemath.org/20002 for details.
 """
 
 #*****************************************************************************
@@ -61,11 +39,7 @@ Test deprecation::
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
-
-__doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
-               "generic_cmp", "to_gmp_hex", "todo",
-               "typecheck", "prop", "strunc",
-               "assert_attribute", "LOGFILE"]
+from six import integer_types
 
 from warnings import warn
 import os
@@ -75,11 +49,6 @@ import time
 import resource
 import sage.misc.prandom as random
 from .lazy_string import lazy_string
-
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.arith.srange', ('xsrange', 'srange', 'ellipsis_range', 'ellipsis_iter'), deprecation=20094)
-lazy_import('sage.arith.srange', 'xsrange', 'sxrange', deprecation=20094)
-lazy_import('cysignals.alarm', ('alarm', 'cancel_alarm'), deprecation=20002)
 
 
 from sage.env import DOT_SAGE, HOSTNAME
@@ -661,7 +630,7 @@ def coeff_repr(c, is_latex=False):
             return c._coeff_repr()
         except AttributeError:
             pass
-    if isinstance(c, (int, long, float)):
+    if isinstance(c, integer_types + (float,)):
         return str(c)
     if is_latex and hasattr(c, '_latex_'):
         s = c._latex_()

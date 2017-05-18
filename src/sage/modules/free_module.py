@@ -162,6 +162,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 from __future__ import print_function, absolute_import
+from six import integer_types
 
 from . import free_module_element
 import sage.matrix.matrix_space
@@ -1007,7 +1008,8 @@ done from the right side.""")
             sage: N((0,0,0,1), check=False) in N
             True
         """
-        if isinstance(x, (int, long, sage.rings.integer.Integer)) and x==0:
+        if (isinstance(x, integer_types + (sage.rings.integer.Integer,)) and
+            x == 0):
             return self.zero_vector()
         elif isinstance(x, free_module_element.FreeModuleElement):
             if x.parent() is self:

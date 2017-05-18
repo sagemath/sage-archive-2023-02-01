@@ -39,6 +39,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 from six import iteritems
+from six import integer_types
 import six
 
 import operator
@@ -185,7 +186,7 @@ class Interface(ParentWithBase):
 
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
-            sage: f.write('x = 2\n')
+            sage: _ = f.write('x = 2\n')
             sage: f.close()
             sage: octave.read(filename)  # optional - octave
             sage: octave.get('x')        # optional - octave
@@ -290,7 +291,7 @@ class Interface(ParentWithBase):
             return self(x._interface_init_())
 
     def _coerce_impl(self, x, use_special=True):
-        if isinstance(x, (int, long)):
+        if isinstance(x, integer_types):
             import sage.rings.all
             return self(sage.rings.all.Integer(x))
         elif isinstance(x, float):
@@ -884,7 +885,7 @@ class InterfaceElement(Element):
 
         Here, GAP fails to compare, and so ``False`` is returned.
         In previous Sage versions, this example actually resulted
-        in an error; compare #5962.
+        in an error; compare :trac:`5962`.
         ::
 
             sage: gap('DihedralGroup(8)')==gap('DihedralGroup(8)')

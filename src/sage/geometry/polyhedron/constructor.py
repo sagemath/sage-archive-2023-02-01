@@ -175,8 +175,8 @@ exact way to work with roots in Sage is the :mod:`Algebraic Real Field
 
     sage: triangle = Polyhedron([(0,0), (1,0), (1/2, sqrt(3)/2)], base_ring=AA)
     sage: triangle.Hrepresentation()
-    (An inequality (-1, -0.5773502691896258?) x + 1 >= 0, 
-     An inequality (1, -0.5773502691896258?) x + 0 >= 0, 
+    (An inequality (-1, -0.5773502691896258?) x + 1 >= 0,
+     An inequality (1, -0.5773502691896258?) x + 0 >= 0,
      An inequality (0, 1.154700538379252?) x + 0 >= 0)
 
 Without specifying the ``base_ring``, the ``sqrt(3)`` would be a
@@ -196,7 +196,7 @@ triangle, that would be::
 
     sage: K.<sqrt3> = NumberField(x^2-3)
     sage: Polyhedron([(0,0), (1,0), (1/2, sqrt3/2)])
-    A 2-dimensional polyhedron in (Number Field in sqrt3 with defining 
+    A 2-dimensional polyhedron in (Number Field in sqrt3 with defining
     polynomial x^2 - 3)^2 defined as the convex hull of 3 vertices
 
 Base classes
@@ -319,6 +319,10 @@ def Polyhedron(vertices=None, rays=None, lines=None,
       * ``'normaliz'``: use normaliz
         (:mod:`~sage.geometry.polyhedron.backend_normaliz`) with `\ZZ` or
         `\QQ` coefficients depending on ``base_ring``.
+
+      * ``'polymake'``: use polymake
+        (:mod:`~sage.geometry.polyhedron.backend_polymake`) with `\QQ`, `\RDF` or
+        ``QuadraticField`` coefficients depending on ``base_ring``.
 
       * ``'ppl'``: use ppl
         (:mod:`~sage.geometry.polyhedron.backend_ppl`) with `\ZZ` or

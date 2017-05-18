@@ -218,6 +218,8 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
             sage: S1.is_ideal(S2)
             False
         """
+        if not isinstance(A, AbelianLieAlgebra):
+            return super(AbelianLieAlgebra, self).is_ideal(A)
         if A == self or A == self._ambient:
             return True
         if self._ambient != A._ambient:

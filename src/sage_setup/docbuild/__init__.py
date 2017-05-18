@@ -534,7 +534,8 @@ class ReferenceBuilder(AllBuilder):
                          'default.css', 'doctools.js', 'favicon.ico',
                          'file.png', 'jquery.js', 'minus.png',
                          'pdf.png', 'plus.png', 'pygments.css',
-                         'sage.css', 'sageicon.png', 'sagelogo.png',
+                         'sage.css', 'sageicon.png',
+                         'logo_sagemath.svg', 'logo_sagemath_black.svg',
                          'searchtools.js', 'sidebar.js', 'underscore.js']
                 sage_makedirs(os.path.join(output_dir, '_static'))
                 for f in static_files:
@@ -1207,7 +1208,8 @@ def get_builder(name):
         print("of documents, or 'sage --docbuild --help' for more help.")
         sys.exit(1)
 
-def format_columns(lst, align='<', cols=None, indent=4, pad=3, width=80):
+
+def format_columns(lst, align=u'<', cols=None, indent=4, pad=3, width=80):
     """
     Utility function that formats a list as a simple table and returns
     a Unicode string representation.  The number of columns is
@@ -1222,13 +1224,14 @@ def format_columns(lst, align='<', cols=None, indent=4, pad=3, width=80):
     if cols is None:
         import math
         cols = math.trunc((width - indent) / size)
-    s = " " * indent
+    s = u" " * indent
     for i in range(len(lst)):
         if i != 0 and i % cols == 0:
-            s += "\n" + " " * indent
-        s += "{0:{1}{2}}".format(lst[i], align, size)
-    s += "\n"
-    return unicode(s)
+            s += u"\n" + u" " * indent
+        s += u"{0:{1}{2}}".format(lst[i], align, size)
+    s += u"\n"
+    return s
+
 
 def help_usage(s=u"", compact=False):
     """

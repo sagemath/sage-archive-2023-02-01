@@ -173,7 +173,7 @@ class Python3SyntaxTest(SortedDirectoryWalkerABC):
 
             sage: import os, tempfile
             sage: src = tempfile.NamedTemporaryFile(suffix='.py', delete=False)
-            sage: src.write('print "invalid print statement"')
+            sage: _ = src.write('print "invalid print statement"')
             sage: src.close()
             sage: from sage.tests.py3_syntax import Python3SyntaxTest
             sage: py3_syntax = Python3SyntaxTest()

@@ -1794,10 +1794,3 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
         pass
 
 CombinatorialFreeModule.CartesianProduct = CombinatorialFreeModule_CartesianProduct
-
-# Handle old CombinatorialFreeModuleElement pickles, see trac #22632
-from sage.structure.sage_object import register_unpickle_override
-register_unpickle_override("sage.combinat.free_module",
-                           "CombinatorialFreeModuleElement",
-                           CombinatorialFreeModule.Element)
-

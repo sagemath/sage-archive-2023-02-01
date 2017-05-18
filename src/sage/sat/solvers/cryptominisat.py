@@ -21,6 +21,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+# Support of Python 3
+from __future__ import division, absolute_import, print_function, unicode_literals
 
 from .satsolver import SatSolver
 

@@ -269,7 +269,7 @@ class TestSuite(object):
               ...
             AssertionError: None
 
-        In conjonction with ``%pdb on``, this allows for the debbuger
+        In conjunction with ``%pdb on``, this allows for the debbuger
         to jump directly to the first failure location.
         """
         if isinstance(skip, str):

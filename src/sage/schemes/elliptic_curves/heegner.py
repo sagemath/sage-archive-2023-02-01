@@ -2759,9 +2759,11 @@ class HeegnerPointOnX0N(HeegnerPoint):
     @cached_method
     def tau(self):
         """
-        Return an element tau in the upper half plane that corresponds
-        to this particular Heegner point (actually, tau is in the
-        quadratic imagqinary field K associated to this Heegner point).
+        Return an element ``tau`` in the upper half plane that corresponds
+        to this particular Heegner point.
+
+        Actually, ``tau`` is in the quadratic imaginary field K associated
+        to this Heegner point.
 
         EXAMPLES::
 
@@ -2773,10 +2775,9 @@ class HeegnerPointOnX0N(HeegnerPoint):
             37*x^2 + 11*x*y + 2*y^2
         """
         K = self.quadratic_field()
-        c = self.conductor()
-        d = K.gen()*c
-        A,B,_ = self.__f
-        return (-B + d)/(2*A)
+        d = K.gen() * self.conductor()
+        A, B, _ = self.__f
+        return (-B + d) / (2 * A)
 
     def map_to_curve(self, E):
         """
@@ -2861,6 +2862,7 @@ class HeegnerPointOnX0N(HeegnerPoint):
         """
         from sage.plot.all import point
         return point(CDF(self.tau()), **kwds)
+
 
 class HeegnerPointOnEllipticCurve(HeegnerPoint):
     """
@@ -4678,11 +4680,11 @@ class HeegnerQuatAlg(SageObject):
         """
         INPUT:
 
-            - `D` -- negative fundamental disriminant
+        - `D` -- negative fundamental discriminant
 
-            - `c` -- integer coprime
+        - `c` -- integer coprime
 
-            - `R` -- Eichler order
+        - `R` -- Eichler order
 
         EXAMPLES::
 

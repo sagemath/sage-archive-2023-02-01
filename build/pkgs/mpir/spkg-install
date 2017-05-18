@@ -164,7 +164,7 @@ if [ "`uname -m`" = ppc64le ]; then
 fi
 
 # Workaround old GNU as version by disabling assembly use.
-if [ "$UNAME" = Linux ] && [ "$CC" = GCC ]; then
+if [ "$UNAME" = Linux ]; then
     as_version = `$AS --version | head -1 | awk 'NF>1{print $NF}'`
     case "$as_version" in
         1.*|2.1*|2.[0-2]*)

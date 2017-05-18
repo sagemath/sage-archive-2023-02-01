@@ -2635,9 +2635,19 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             """
             EXAMPLES::
 
-                sage: E = QuasiSymmetricFunctions(QQ).Essential(); E
-                Quasisymmetric functions over the Rational Field in the Essential basis
+                sage: E = QuasiSymmetricFunctions(QQ).Essential()
                 sage: TestSuite(E).run()
+
+            TESTS::
+
+                sage: E = QuasiSymmetricFunctions(QQ).E()
+                sage: M = QuasiSymmetricFunctions(QQ).M()
+                sage: all(E(M(E[c])) == E[c] for n in range(5)
+                ....:     for c in Compositions(n))
+                True
+                sage: all(M(E(M[c])) == M[c] for n in range(5)
+                ....:     for c in Compositions(n))
+                True
             """
             CombinatorialFreeModule.__init__(self, QSym.base_ring(), Compositions(),
                                              prefix='E', bracket=False,
@@ -2683,6 +2693,10 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: all(E(M(E[c]).antipode()) == E[c].antipode()
                 ....:     for n in range(5) for c in Compositions(n))
                 True
+
+                sage: all((-1)**len(I) * E[I] == M[I].star_involution().antipode()
+                ....:     for k in [3,4] for I in Compositions(k))
+                True
             """
             return (-1)**len(compo) * self.alternating_sum_of_fatter_compositions(compo.reversed())
 
@@ -2719,9 +2733,10 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             The product of the basis elements indexed by two compositions
             `I` and `J` is the sum of the basis elements indexed by
-            compositions in the stuffle product (also called the
+            compositions `K` in the stuffle product (also called the
             overlapping shuffle product) of `I` and `J` with a
-            coefficient of `(-1)^L`, where `L` is the length of the composition.
+            coefficient of `(-1)^{\ell(I) + \ell(J) - \ell(K)}`,
+            where `\ell(C)` is the length of the composition `C`.
 
             INPUT:
 

@@ -862,7 +862,7 @@ cdef class IndexedFreeModuleElement(Element):
         F = parent(self)
         if not self.base_ring().is_field():
             return type(self)(F, {k: c._divide_if_possible(x)
-                                  for k,c in self._monomial_cofficients.iteritems()})
+                                  for k,c in self._monomial_coefficients.iteritems()})
 
         x = self.base_ring()( x )
         x_inv = x ** -1

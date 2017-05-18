@@ -2583,7 +2583,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         r"""
         The Hopf algebra of quasi-symmetric functions in the Essential basis.
 
-        The Essential quasisymmetric functions are defined by
+        The Essential quasi-symmetric functions are defined by
 
         .. MATH::
 

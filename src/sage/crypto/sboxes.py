@@ -98,7 +98,9 @@ This module provides the following SBoxes:
     - Twofish_Q0_T0, ..., Twofish_Q0_T3, Twofish_Q1_T0, ..., Twofish_Q1_T3
     - Kuznyechik_nu0, Kuznyechik_nu1, Kuznyechik_sigma, Kuznyechik_phi
 
-    - UDCIKMP11 (Ullrich et al. "Finding optimal bitsliced implementation of 4x4 S-boxes."
+    - UDCIKMP11 (Ullrich et al. "Finding optimal bitsliced implementation of 4x4 S-boxes.")
+    - Optimal_S0, ..., Optimal_S15 (Leander, Poschmann "On the classification of 4 Bit S-boxes")
+    - Serpent_type_S0, ..., Serpent_type_S19 (Leander, Poschmann "On the classification of 4 Bit S-boxes")
 
 3 bit to 3 bit
     - SEA
@@ -1225,6 +1227,42 @@ Kuznyechik_nu0  = SBox([0x2,0x5,0x3,0xb,0x6,0x9,0xe,0xa,0x0,0x4,0xf,0x1,0x8,0xd,
 Kuznyechik_nu1  = SBox([0x7,0x6,0xc,0x9,0x0,0xf,0x8,0x1,0x4,0x5,0xb,0xe,0xd,0x2,0x3,0xa])
 Kuznyechik_sigma = SBox([0xc,0xd,0x0,0x4,0x8,0xb,0xa,0xe,0x3,0x9,0x5,0x2,0xf,0x1,0x6,0x7])
 Kuznyechik_phi   = SBox([0xb,0x2,0xb,0x8,0xc,0x4,0x1,0xc,0x6,0x3,0x5,0x8,0xe,0x3,0x6,0xb])
+Optimal_S0 = SBox([0, 1, 2, 13, 4, 7, 15, 6, 8, 11, 12, 9, 3, 14, 10, 5])
+Optimal_S1 = SBox([0, 1, 2, 13, 4, 7, 15, 6, 8, 11, 14, 3, 5, 9, 10, 12])
+Optimal_S2 = SBox([0, 1, 2, 13, 4, 7, 15, 6, 8, 11, 14, 3, 10, 12, 5, 9])
+Optimal_S3 = SBox([0, 1, 2, 13, 4, 7, 15, 6, 8, 12, 5, 3, 10, 14, 11, 9])
+Optimal_S4 = SBox([0, 1, 2, 13, 4, 7, 15, 6, 8, 12, 9, 11, 10, 14, 5, 3])
+Optimal_S5 = SBox([0, 1, 2, 13, 4, 7, 15, 6, 8, 12, 11, 9, 10, 14, 3, 5])
+Optimal_S6 = SBox([0, 1, 2, 13, 4, 7, 15, 6, 8, 12, 11, 9, 10, 14, 5, 3])
+Optimal_S7 = SBox([0, 1, 2, 13, 4, 7, 15, 6, 8, 12, 14, 11, 10, 9, 3, 5])
+Optimal_S8 = SBox([0, 1, 2, 13, 4, 7, 15, 6, 8, 14, 9, 5, 10, 11, 3, 12])
+Optimal_S9 = SBox([0, 1, 2, 13, 4, 7, 15, 6, 8, 14, 11, 3, 5, 9, 10, 12])
+Optimal_S10 = SBox([0, 1, 2, 13, 4, 7, 15, 6, 8, 14, 11, 5, 10, 9, 3, 12])
+Optimal_S11 = SBox([0, 1, 2, 13, 4, 7, 15, 6, 8, 14, 11, 10, 5, 9, 12, 3])
+Optimal_S12 = SBox([0, 1, 2, 13, 4, 7, 15, 6, 8, 14, 11, 10, 9, 3, 12, 5])
+Optimal_S13 = SBox([0, 1, 2, 13, 4, 7, 15, 6, 8, 14, 12, 9, 5, 11, 10, 3])
+Optimal_S14 = SBox([0, 1, 2, 13, 4, 7, 15, 6, 8, 14, 12, 11, 3, 9, 5, 10])
+Optimal_S15 = SBox([0, 1, 2, 13, 4, 7, 15, 6, 8, 14, 12, 11, 9, 3, 10, 5])
+Serpent_type_S0 = SBox([0, 3, 5, 6, 7, 10, 11, 12, 13, 4, 14, 9, 8, 1, 2, 15])
+Serpent_type_S1 = SBox([0, 3, 5, 8, 6, 9, 10, 7, 11, 12, 14, 2, 1, 15, 13, 4])
+Serpent_type_S2 = SBox([0, 3, 5, 8, 6, 9, 11, 2, 13, 4, 14, 1, 10, 15, 7, 12])
+Serpent_type_S3 = SBox([0, 3, 5, 8, 6, 10, 15, 4, 14, 13, 9, 2, 1, 7, 12, 11])
+Serpent_type_S4 = SBox([0, 3, 5, 8, 6, 12, 11, 7, 9, 14, 10, 13, 15, 2, 1, 4])
+Serpent_type_S5 = SBox([0, 3, 5, 8, 6, 12, 11, 7, 10, 4, 9, 14, 15, 1, 2, 13])
+Serpent_type_S6 = SBox([0, 3, 5, 8, 6, 12, 11, 7, 10, 13, 9, 14, 15, 1, 2, 4])
+Serpent_type_S7 = SBox([0, 3, 5, 8, 6, 12, 11, 7, 13, 10, 14, 4, 1, 15, 2, 9])
+Serpent_type_S8 = SBox([0, 3, 5, 8, 6, 12, 15, 1, 10, 4, 9, 14, 13, 11, 2, 7])
+Serpent_type_S9 = SBox([0, 3, 5, 8, 6, 12, 15, 2, 14, 9, 11, 7, 13, 10, 4, 1])
+Serpent_type_S10 = SBox([0, 3, 5, 8, 6, 13, 15, 1, 9, 12, 2, 11, 10, 7, 4, 14])
+Serpent_type_S11 = SBox([0, 3, 5, 8, 6, 13, 15, 2, 7, 4, 14, 11, 10, 1, 9, 12])
+Serpent_type_S12 = SBox([0, 3, 5, 8, 6, 13, 15, 2, 12, 9, 10, 4, 11, 14, 1, 7])
+Serpent_type_S13 = SBox([0, 3, 5, 8, 6, 15, 10, 1, 7, 9, 14, 4, 11, 12, 13, 2])
+Serpent_type_S14 = SBox([0, 3, 5, 8, 7, 4, 9, 14, 15, 6, 2, 11, 10, 13, 12, 1])
+Serpent_type_S15 = SBox([0, 3, 5, 8, 7, 9, 11, 14, 10, 13, 15, 4, 12, 2, 6, 1])
+Serpent_type_S16 = SBox([0, 3, 5, 8, 9, 12, 14, 7, 10, 13, 15, 4, 6, 11, 1, 2])
+Serpent_type_S17 = SBox([0, 3, 5, 8, 10, 13, 9, 4, 15, 6, 2, 1, 12, 11, 7, 14])
+Serpent_type_S18 = SBox([0, 3, 5, 8, 11, 12, 6, 15, 14, 9, 2, 7, 4, 10, 13, 1])
+Serpent_type_S19 = SBox([0, 3, 5, 10, 7, 12, 11, 6, 13, 4, 2, 9, 14, 1, 8, 15])
 
 # S-Boxes from the literature on Boolean functions
 
@@ -1445,4 +1483,40 @@ sboxes = {
         "UDCIKMP11" : UDCIKMP11,
         "SEA" : SEA,
         "PRINTcipher" : PRINTcipher,
+        "Optimal_S0" : Optimal_S0,
+        "Optimal_S1" : Optimal_S1,
+        "Optimal_S2" : Optimal_S2,
+        "Optimal_S3" : Optimal_S3,
+        "Optimal_S4" : Optimal_S4,
+        "Optimal_S5" : Optimal_S5,
+        "Optimal_S6" : Optimal_S6,
+        "Optimal_S7" : Optimal_S7,
+        "Optimal_S8" : Optimal_S8,
+        "Optimal_S9" : Optimal_S9,
+        "Optimal_S10" : Optimal_S10,
+        "Optimal_S11" : Optimal_S11,
+        "Optimal_S12" : Optimal_S12,
+        "Optimal_S13" : Optimal_S13,
+        "Optimal_S14" : Optimal_S14,
+        "Optimal_S15" : Optimal_S15,
+        "Serpent_type_S0" : Serpent_type_S0,
+        "Serpent_type_S1" : Serpent_type_S1,
+        "Serpent_type_S2" : Serpent_type_S2,
+        "Serpent_type_S3" : Serpent_type_S3,
+        "Serpent_type_S4" : Serpent_type_S4,
+        "Serpent_type_S5" : Serpent_type_S5,
+        "Serpent_type_S6" : Serpent_type_S6,
+        "Serpent_type_S7" : Serpent_type_S7,
+        "Serpent_type_S8" : Serpent_type_S8,
+        "Serpent_type_S9" : Serpent_type_S9,
+        "Serpent_type_S10" : Serpent_type_S10,
+        "Serpent_type_S11" : Serpent_type_S11,
+        "Serpent_type_S12" : Serpent_type_S12,
+        "Serpent_type_S13" : Serpent_type_S13,
+        "Serpent_type_S14" : Serpent_type_S14,
+        "Serpent_type_S15" : Serpent_type_S15,
+        "Serpent_type_S16" : Serpent_type_S16,
+        "Serpent_type_S17" : Serpent_type_S17,
+        "Serpent_type_S18" : Serpent_type_S18,
+        "Serpent_type_S19" : Serpent_type_S19,
     }

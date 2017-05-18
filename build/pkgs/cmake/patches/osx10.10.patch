@@ -29,6 +29,18 @@ diff -dru src/Source/cmXCodeObject.cxx new/Source/cmXCodeObject.cxx
  #include <ostream>
  
  #include "cmSystemTools.h"
+diff -dru src/Source/CPack/cmCPackDragNDropGenerator.cxx new/Source/CPack/cmCPackDragNDropGenerator.cxx
+--- src/Source/CPack/cmCPackDragNDropGenerator.cxx	2017-05-02 14:59:43.000000000 +0200
++++ new/Source/CPack/cmCPackDragNDropGenerator.cxx	2017-05-18 20:40:59.289960508 +0200
+@@ -13,7 +13,7 @@
+ #include <map>
+ #include <stdlib.h>
+ 
+-#include <CoreFoundation/CoreFoundation.h>
++#include <CoreFoundation/CFString.h>
+ 
+ #ifdef HAVE_CoreServices
+ // For the old LocaleStringToLangAndRegionCodes() function, to convert
 diff -dru src/Source/CPack/OSXScriptLauncher.cxx new/Source/CPack/OSXScriptLauncher.cxx
 --- src/Source/CPack/OSXScriptLauncher.cxx	2017-05-02 14:59:43.000000000 +0200
 +++ new/Source/CPack/OSXScriptLauncher.cxx	2017-05-18 16:00:45.179380694 +0200

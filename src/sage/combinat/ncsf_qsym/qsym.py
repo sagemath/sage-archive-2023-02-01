@@ -52,6 +52,11 @@ REFERENCES:
    non-commutative symmetric functions*,
    :arxiv:`1208.5191v3`.
 
+.. [Hoff2015] Michael Hoffman.
+   *Quasi-symmetric functions and mod* `p` *multiple harmonic sums*.
+   Kyushu J. Math. **69** (2015), pp. 345-366.
+   :doi:`10.2206/kyushujm.69.345`, :arxiv:`math/0401319v3`.
+
 AUTHOR:
 
 - Jason Bandlow
@@ -610,7 +615,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.Monomial()
 
-    _shorthands = tuple(['M', 'F', 'dI', 'QS'])
+    _shorthands = tuple(['M', 'F', 'E', 'dI', 'QS'])
 
     def dual(self):
         r"""
@@ -2573,6 +2578,83 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 return parent._from_dict(dct)
 
     F = Fundamental
+
+    class Essential(CombinatorialFreeModule, BindableClass):
+        r"""
+        The Hopf algebra of quasi-symmetric functions in the Essential basis.
+
+        The Essential quasisymmetric functions are defined by
+
+        .. MATH::
+
+            E_I = \sum_{J \geq I} M_J = \sum_{i_1 \leq \cdots \leq i_k}
+            x_{i_1}^{I_1} \cdots x_{i_k}^{I_k},
+
+        where `I = (I_1, \ldots, I_k)`.
+
+        .. NOTE::
+
+            Our convention of `\leq` and `\geq` of compositions is
+            opposite that of [Hoff2015]_.
+
+        EXAMPLES::
+
+            sage: QSym = QuasiSymmetricFunctions(QQ)
+            sage: E = QSym.E()
+            sage: M = QSym.M()
+            sage: E(M[2,2])
+            E[2, 2] - E[4]
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: E(s[3,2])
+            5*E[1, 1, 1, 1, 1] - 2*E[1, 1, 1, 2] - 2*E[1, 1, 2, 1]
+             - 2*E[1, 2, 1, 1] + E[1, 2, 2] - 2*E[2, 1, 1, 1]
+             + E[2, 1, 2] + E[2, 2, 1]
+            sage: (1 + E[1])^3
+            E[] + 3*E[1] + 6*E[1, 1] + 6*E[1, 1, 1] - 3*E[1, 2]
+             - 3*E[2] - 3*E[2, 1] + E[3]
+            sage: E[1,2,1].coproduct()
+            E[] # E[1, 2, 1] + E[1] # E[2, 1] + E[1, 2] # E[1] + E[1, 2, 1] # E[]
+
+        The following is an alias for this basis::
+
+            sage: QSym.Essential()
+            Quasisymmetric functions over the Rational Field in the Essential basis
+
+        TESTS::
+
+            sage: E(M([]))
+            E[]
+            sage: E(M(0))
+            0
+            sage: E(s([]))
+            E[]
+            sage: E(s(0))
+            0
+        """
+        def __init__(self, QSym):
+            """
+            EXAMPLES::
+
+                sage: E = QuasiSymmetricFunctions(QQ).Essential(); E
+                Quasisymmetric functions over the Rational Field in the Essential basis
+                sage: TestSuite(E).run()
+            """
+            CombinatorialFreeModule.__init__(self, QSym.base_ring(), Compositions(),
+                                             prefix='E', bracket=False,
+                                             category=QSym.Bases())
+
+            M = QSym.M()
+            category = self.realization_of()._category
+            # This changes Monomial into Essential
+            M.module_morphism(self.alternating_sum_of_fatter_compositions,
+                              codomain=self, category=category
+                              ).register_as_coercion()
+            # This changes Essential into Monomial
+            self.module_morphism(M.sum_of_fatter_compositions,
+                                 codomain=M, category=category
+                                 ).register_as_coercion()
+
+    E = Essential
 
     class Quasisymmetric_Schur(CombinatorialFreeModule, BindableClass):
         r"""

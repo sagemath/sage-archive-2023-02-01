@@ -344,8 +344,8 @@ class InfinityCrystalOfNonSimplyLacedRC(InfinityCrystalOfRiggedConfigurations):
             sage: RC = crystals.infinity.RiggedConfigurations(vct)
             sage: RC._coerce_map_from_(T)
             Crystal Isomorphism morphism:
-              From: The infinity crystal of tableaux of type ['A', 3]
-              To:   The infinity crystal of rigged configurations of type ['A', 3]
+              From: The infinity crystal of tableaux of type ['C', 3]
+              To:   The infinity crystal of rigged configurations of type ['C', 3]
         """
         if self.cartan_type().is_finite():
             from sage.combinat.crystals.infinity_crystals import InfinityCrystalOfTableaux

@@ -1707,8 +1707,8 @@ class HeckeModule_free_module(HeckeModule_generic):
 
             sage: M = ModularSymbols(62,2,sign=-1)
             sage: S = M.cuspidal_submodule().new_submodule()
-            sage: [A.system_of_eigenvalues(3) for A in S.decomposition()]
-            [[1, 1, 0], [1, -1, alpha + 1]]
+            sage: [[o.minpoly() for o in A.system_of_eigenvalues(3)] for A in S.decomposition()]
+            [[x - 1, x - 1, x], [x - 1, x + 1, x^2 - 2*x - 2]]
 
         Next we define a function that does the above::
 

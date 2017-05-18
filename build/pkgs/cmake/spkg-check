@@ -10,5 +10,10 @@ FAILING_TESTS="CTestTestStopTime|TestUpload|ctest_submit"
 FAILING_TESTS="${FAILING_TESTS}|Qt5Autogen|Qt4Autogen|Qt4Targets|Qt4And5AutomocReverse"
 # (2) GTK2
 FAILING_TESTS="${FAILING_TESTS}|GTK2Components|GTK2Targets"
+# Test failing on freeBSD. Upstream acknoledged the test is faulty
+# on that platform https://gitlab.kitware.com/cmake/cmake/issues/16887
+if [ "$UNAME" = "Darwin" ]; then
+    FAILING_TESTS="${FAILING_TESTS}|RunCMake.GNUInstallDirs"
+fi
 ctest --extra-verbose --output-on-failure -E "(${FAILING_TESTS})"
 

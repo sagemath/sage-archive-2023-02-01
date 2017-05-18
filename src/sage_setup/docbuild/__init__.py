@@ -770,14 +770,16 @@ class ReferenceSubBuilder(DocBuilder):
         Returns the Sphinx environment for this project.
         """
         from sphinx.environment import BuildEnvironment
-        class Foo(object):
-            pass
-        config = Foo()
-        config.values = []
+        class FakeConfig(object):
+            values = tuple()
+        class FakeApp(object):
+            def __init__(self, dir):
+                self.srcdir = dir
+                self.config = FakeConfig()
 
         env_pickle = os.path.join(self._doctrees_dir(), 'environment.pickle')
         try:
-            env = BuildEnvironment.frompickle(self.dir, config, env_pickle)
+            env = BuildEnvironment.frompickle(env_pickle, FakeApp(self.dir))
             logger.debug("Opened Sphinx environment: %s", env_pickle)
             return env
         except IOError as err:

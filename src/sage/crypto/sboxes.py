@@ -4,7 +4,7 @@ S-Boxes used in cryptographic schemes
 This module provides the following SBoxes:
 
 8 bit to 8 bit
-    - AES
+    - AES ([DR])
     - Anubis
     - ARIA_s2
     - BelT
@@ -98,14 +98,30 @@ This module provides the following SBoxes:
     - Twofish_Q0_T0, ..., Twofish_Q0_T3, Twofish_Q1_T0, ..., Twofish_Q1_T3
     - Kuznyechik_nu0, Kuznyechik_nu1, Kuznyechik_sigma, Kuznyechik_phi
 
-    - UDCIKMP11 (Ullrich et al. "Finding optimal bitsliced implementation of 4x4 S-boxes.")
-    - Optimal_S0, ..., Optimal_S15 (Leander, Poschmann "On the classification of 4 Bit S-boxes")
-    - Serpent_type_S0, ..., Serpent_type_S19 (Leander, Poschmann "On the classification of 4 Bit S-boxes")
-    - Golden_S0, ..., Golden_S3 (Saarinen "Cryptographic Analysis of All 4 x 4-Bit S-Boxes")
+    - UDCIKMP11 ([UDC+11])
+    - Optimal_S0, ..., Optimal_S15 ([LP])
+    - Serpent_type_S0, ..., Serpent_type_S19 ([LP])
+    - Golden_S0, ..., Golden_S3 ([S])
 
 3 bit to 3 bit
     - SEA
     - PRINTcipher
+
+REFERENCES:
+
+- [DR] J. Daemen and V. Rijmen,
+  The Design of Rijndeal: AES, ISC, (2002).
+
+- [LP] G. Leander and A. Poschmann,
+  On the Classification of 4 Bit S-boxes, WAIFI, (2007), pp. 159-176.
+
+- [S] M-J. O. Saarinen,
+  Cryptographic Analysis of All 4 x 4-Bit S-Boxes, SAC, (2011), pp. 118-133.
+
+- [UDC+11] M. Ullrich, C. De Canniere, S. Indesteege, Ö. Kücük, N. Mouha, and
+  B. Preenel, Finding Optimal Bitsliced Implementations of 4 x 4-bit S-boxes,
+  SKEW, (2011).
+
 
 AUTHOR:
     - Léo Perrin: initial collection of sboxes

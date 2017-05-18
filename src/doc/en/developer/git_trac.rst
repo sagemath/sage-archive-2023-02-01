@@ -486,7 +486,7 @@ The file now looks like this::
     <<<<<<< HEAD
         if i > 1:
             return fibonacci(i-1) * fibonacci(i-2)
-        return i
+        return [0, 1][i]
     =======
         return fibonacci(i-1) + fibonacci(i-2)
     >>>>>>> 41675dfaedbfb89dcff0a47e520be4aa2b6c5d1b

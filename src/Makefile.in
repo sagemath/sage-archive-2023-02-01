@@ -31,18 +31,18 @@ all: sage
 ## [sagelib-7.4.beta4] running install
 ## [sagelib-7.4.beta4] error: install-base or install-platbase supplied, but installation scheme is incomplete
 sage:
-	(cd $(srcdir)										\
-	 && export SAGE_ROOT=/doesnotexist							\
-		   SAGE_SRC=/doesnotexist							\
-		   SAGE_SRC_ROOT=/doesnotexist							\
-		   SAGE_DOC_SRC=/doesnotexist							\
-		   SAGE_BUILD_DIR=/doesnotexist							\
-		   SAGE_PKGS=$(abs_top_srcdir)/build/pkgs					\
-		   SAGE_CYTHONIZED=$(abs_builddir)/build/cythonized				\
-	 && sage-python23 -u setup.py --no-user-cfg build install \
-	 && if [ "$$UNAME" = "CYGWIN" ]; then \
-	        sage-rebase.sh "$$SAGE_LOCAL" 2>/dev/null; \
-		fi)
+	cd $(srcdir) && export                                    \
+	    SAGE_ROOT=/doesnotexist                               \
+	    SAGE_SRC=/doesnotexist                                \
+	    SAGE_SRC_ROOT=/doesnotexist                           \
+	    SAGE_DOC_SRC=/doesnotexist                            \
+	    SAGE_BUILD_DIR=/doesnotexist                          \
+	    SAGE_PKGS=$(abs_top_srcdir)/build/pkgs                \
+	    SAGE_CYTHONIZED=$(abs_builddir)/build/cythonized      \
+	&& sage-python23 -u setup.py --no-user-cfg build install
+	if [ "$$UNAME" = "CYGWIN" ]; then                         \
+	    sage-rebase.sh "$$SAGE_LOCAL" 2>/dev/null;            \
+	fi
 
 clean:
 	@echo "Deleting Sage library build artifacts..."

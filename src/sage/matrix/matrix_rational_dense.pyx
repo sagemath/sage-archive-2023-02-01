@@ -596,14 +596,22 @@ cdef class Matrix_rational_dense(Matrix_dense):
             raise ZeroDivisionError("input matrix must be nonsingular")
         return ans
 
-    def inverse(self, algorithm="flint", check_invertible=True):
+    def inverse(self, algorithm=None, check_invertible=True):
         """
         Return the inverse of this matrix
 
         INPUT:
 
 
-        - ``algorithm`` -- (optional) one of ``'flint'``,  ``'pari'``, ``'iml'``
+        - ``algorithm`` -- an optional specification of an algorithm. It can be one of
+
+          - ``None``: (default) uses flint
+
+          - ``'flint'``: uses flint library
+
+          - ``'pari'``: uses PARI library
+
+          - ``'iml'``: uses IML library
 
         -  ``check_invertible`` - only used when ``algorithm=iml``. Whether to
            check that matrix is invertible
@@ -677,7 +685,11 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         if self._nrows == 0:
             return self
-        elif algorithm == "flint":
+
+        if algorithm is None:
+            algorithm = "flint"
+
+        if algorithm == "flint":
             return self._invert_flint()
         elif algorithm == "pari":
             try:
@@ -698,8 +710,18 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         INPUT:
 
-        - ``algorithm`` -- (optional) one of ``'flint'``, ``'pari'``,
-          ``'integer'`` or ``'generic'``.
+        - ``algorithm`` -- an optional specification of an algorithm. It can be one of
+
+          - ``None``: (default) uses flint
+
+          - ``'flint'``: uses flint library
+
+          - ``'pari'``: uses PARI library
+
+          - ``'integer'``: removes denominator and call determinant on the corresponding
+             integer matrix
+
+          - ``'generic'``: calls the generic Sage implementation
 
         -  ``proof`` - bool or None; if None use
            proof.linear_algebra(); only relevant for the padic algorithm.
@@ -907,8 +929,17 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         -  ``var`` - (optional) name of the variable as a string
 
-        -  ``algorithm`` - (optional) ``'flint'``, ``'linbox'`` or
-           ``'generic'``.
+        -  ``algorithm`` -- an optional specification of an algorithm. It can be
+           one of:
+
+           - ``None``: (default) will use flint for small dimensions and linbox
+             otherwise
+
+           - ``'flint'``: uses flint library
+
+           - ``'linbox'``: uses linbox library
+
+           - ``'generic'``: uses Sage generic implementation
 
         OUTPUT: a polynomial over the rational numbers.
 
@@ -970,7 +1001,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         self.cache('charpoly', g)
         return g
 
-    def minpoly(self, var='x', algorithm='linbox'):
+    def minpoly(self, var='x', algorithm=None):
         """
         Return the minimal polynomial of this matrix
 
@@ -979,8 +1010,14 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         -  ``var`` - (optional) the variable name as a string (default is 'x')
 
-        -  ``algorithm`` - (optional) 'linbox' or 'generic'
+        -  ``algorithm`` - an optional specification of an algorithm. It can
+           be one of
 
+           - ``None``: (default) will use linbox
+
+           - ``'linbox'``: uses the linbox library
+
+           - ``'generic'``: uses the generic Sage implementation
 
         OUTPUT: a polynomial over the rationals
 
@@ -1024,6 +1061,9 @@ cdef class Matrix_rational_dense(Matrix_dense):
         poly = self.fetch('minpoly')
         if poly is not None:
             return poly.change_variable_name(var)
+
+        if algorithm is None:
+            algorithm = 'linbox'
 
         if algorithm == 'linbox':
             A, denom = self._clear_denom()
@@ -1413,9 +1453,11 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         INPUT:
 
-        -  ``algorithm`` -- optional. One of
+        -  ``algorithm`` -- an optional specification of an algorithm. One of
 
-          - ``'flint'`` (default): use the flint library,
+          - ``None``: (default) uses flint for small dimension and multimodular otherwise
+
+          - ``'flint'``: use the flint library,
 
           - ``'padic'``: an algorithm based on the IML p-adic solver,
 
@@ -1473,14 +1515,20 @@ cdef class Matrix_rational_dense(Matrix_dense):
         if self.fetch('in_echelon_form'): return  # already known to be in echelon form
         self.check_mutability()
 
-        if algorithm is None or algorithm == 'flint':
+        if algorithm is None:
+            if self._nrows <= 25 or self._ncols <= 25:
+                algorithm = 'flint'
+            else:
+                algorithm = 'multimodular'
+
+        if algorithm == 'flint':
             pivots = self._echelonize_flint()
+        elif algorithm == 'multimodular':
+            pivots = self._echelonize_multimodular(height_guess, proof, **kwds)
         elif algorithm == 'classical':
             pivots = self._echelon_in_place_classical()
         elif algorithm == 'padic':
             pivots = self._echelonize_padic()
-        elif algorithm == 'multimodular':
-            pivots = self._echelonize_multimodular(height_guess, proof, **kwds)
         else:
             raise ValueError("no algorithm '%s'"%algorithm)
 
@@ -1502,27 +1550,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         is the matrix obtained by performing Gauss elimination on the rows
         of the matrix.
 
-        INPUT:
-
-        -  ``algorithm`` -- an optional string. One of
-
-           - ``'flint'``: using the FLINT library
-
-           - ``'padic'``: an algorithm based on the IML p-adic solver.
-
-           - ``'multimodular'``: uses a multimodular algorithm the uses linbox
-             modulo many primes (likely to be faster when coefficients are
-             huge).
-
-           - ``'classical'``: just clear each column using Gauss elimination
-
-        -  ``height_guess``, ``**kwds`` - all passed to the
-           multimodular algorithm; ignored by the p-adic algorithm.
-
-        -  ``proof`` - bool or None (default: None, see
-           proof.linear_algebra or sage.structure.proof). Passed to the
-           multimodular algorithm. Note that the Sage global default is
-           proof=True.
+        INPUT: See :meth:`echelonize` for the options.
 
         EXAMPLES::
 
@@ -1576,23 +1604,8 @@ cdef class Matrix_rational_dense(Matrix_dense):
         if self.fetch('in_echelon_form'):
             raise RuntimeError('in_echelon_form set but not echelon_form')
 
-        if algorithm is None or algorithm == 'flint':
-            E = self.__copy__()
-            E.echelonize('flint')
-        elif algorithm == 'classical':
-            E = self._echelon_classical()
-        elif algorithm == 'padic':
-            E = self.__copy__()
-            E.echelonize('padic')
-        elif algorithm == 'multimodular':
-            E = self._echelon_form_multimodular(height_guess, proof=proof)
-            (<Matrix_dense> E).cache('in_echelon_form', True)
-            (<Matrix_dense> E).cache('echelon_form', E)
-            (<Matrix_dense> E).cache('pivots', E.pivots())
-            (<Matrix_dense> E).cache('rank', len(E.pivots()))
-        else:
-            raise ValueError("no algorithm '%s'"%algorithm)
-
+        E = self.__copy__()
+        E.echelonize(algorithm)
         E.set_immutable()
         self.cache('echelon_form', E)
         self.cache('pivots', E.pivots())
@@ -1709,9 +1722,22 @@ cdef class Matrix_rational_dense(Matrix_dense):
         # FIXME: pivots should already be a tuple in all cases
         return tuple(pivots)
 
-    def _echelonize_multimodular(self, height_guess=None, proof=None, **kwds):
+    def _echelonize_multimodular(self, height_guess=None, proof=None):
         """
         Echelonize self using mutlimodular recomposition
+
+        REFERENCE:
+
+        - Chapter 7 of Stein's "Explicitly Computing Modular Forms".
+
+        INPUT:
+
+
+        -  ``height_guess`` - integer or None
+
+        -  ``proof`` - boolean (default: None, see
+           proof.linear_algebra or sage.structure.proof) Note that the Sage
+           global default is proof=True.
 
         EXAMPLES::
 
@@ -1732,33 +1758,12 @@ cdef class Matrix_rational_dense(Matrix_dense):
             [   0    0    1    1    3    0]
             [   0    0    0    0    0    1]
         """
-        cdef Matrix_rational_dense E
-        E = self._echelon_form_multimodular(height_guess, proof=proof, **kwds)
-        self.clear_cache()
-        fmpq_mat_set(self._matrix, E._matrix)
-        return E.pivots()
-
-    def _echelon_form_multimodular(self, height_guess=None, proof=None):
-        """
-        Return reduced row-echelon form using a multi-modular algorithm.
-        This does not change ``self``.
-
-        REFERENCE:
-
-        - Chapter 7 of Stein's "Explicitly Computing Modular Forms".
-
-        INPUT:
-
-
-        -  ``height_guess`` - integer or None
-
-        -  ``proof`` - boolean (default: None, see
-           proof.linear_algebra or sage.structure.proof) Note that the Sage
-           global default is proof=True.
-        """
         from .misc import matrix_rational_echelon_form_multimodular
-        return matrix_rational_echelon_form_multimodular(self,
-                                 height_guess=height_guess, proof=proof)
+        E, pivots = matrix_rational_echelon_form_multimodular(self, height_guess, proof=proof)
+        self.clear_cache()
+        fmpq_mat_swap(self._matrix, (<Matrix_rational_dense>E)._matrix)
+        return pivots
+
 
     cdef swap_rows_c(self, Py_ssize_t r1, Py_ssize_t r2):
         """
@@ -1822,9 +1827,9 @@ cdef class Matrix_rational_dense(Matrix_dense):
         -  ``dual`` - whether to also return decompositions for
            the dual
 
-        -  ``algorithm``
+        -  ``algorithm`` - an optional specification of an algorithm
 
-           - 'default': use default algorithm for computing Echelon
+           - ``None`` - (default) use default algorithm for computing Echelon
              forms
 
            - 'multimodular': much better if the answers
@@ -1876,7 +1881,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         return X
 
     def _decomposition_rational(self, is_diagonalizable = False,
-                                echelon_algorithm='default',
+                                echelon_algorithm=None,
                                 kernel_algorithm='default',
                                 **kwds):
         """
@@ -1892,7 +1897,8 @@ cdef class Matrix_rational_dense(Matrix_dense):
         -  ``self`` - a square matrix over the rational
            numbers
 
-        -  ``echelon_algorithm`` - 'default'
+        -  ``echelon_algorithm`` - an optional algorithm to be passed to the
+           method ``echelon_form``
 
         -  ``'multimodular'`` - use this if the answers have
            small height
@@ -2324,13 +2330,22 @@ cdef class Matrix_rational_dense(Matrix_dense):
         mpq_clear(tmp)
 
 
-    def rank(self, algorithm="flint"):
+    def rank(self, algorithm=None):
         """
         Return the rank of this matrix.
 
         INPUT:
 
-        - ``algorithm`` - (optional) one of ``'flint'``, ``'pari'`` or ``'integer'``.
+        - ``algorithm`` - an optional specification of an algorithm. One of
+
+          - ``None``: (default) will use flint
+
+          - ``'flint'``: uses the flint library
+
+          - ``'pari'``: uses the PARI library
+
+          - ``'integer'``: eliminate denominators and calls the rank function
+            on the corresponding integer matrix
 
         EXAMPLES::
 
@@ -2352,6 +2367,9 @@ cdef class Matrix_rational_dense(Matrix_dense):
         r = self.fetch('rank')
         if r is not None:
             return r
+
+        if algorithm is None:
+            algorithm = "flint"
 
         if algorithm == "flint":
             self.echelon_form(algorithm='flint')

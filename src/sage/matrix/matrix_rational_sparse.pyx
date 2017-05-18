@@ -535,13 +535,13 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
         x = self.fetch('in_echelon_form')
         if not x is None: return  # already known to be in echelon form
         self.check_mutability()
-        self.clear_cache()
 
         pivots = self._echelonize_multimodular(height_guess, proof, **kwds)
 
         self.cache('in_echelon_form', True)
-        self.cache('pivots', tuple(pivots))
-
+        self.cache('echelon_form', self)
+        self.cache('pivots', pivots)
+        self.cache('rank', len(pivots))
 
     def echelon_form(self, algorithm='default',
                      height_guess=None, proof=True, **kwds):
@@ -574,10 +574,10 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
             return x
         if self.fetch('in_echelon_form'): return self
 
-        E = self._echelon_form_multimodular(height_guess, proof=proof)
+        E, pivots = self._echelon_form_multimodular(height_guess, proof=proof)
 
         self.cache(label, E)
-        self.cache('pivots', E.pivots())
+        self.cache('pivots', pivots)
         return E
 
     # Multimodular echelonization algorithms
@@ -586,21 +586,22 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
         cdef Matrix_rational_sparse E
         cdef mpq_vector* v
         cdef mpq_vector* w
-        E = self._echelon_form_multimodular(height_guess, proof=proof, **kwds)
+        E, pivots = self._echelon_form_multimodular(height_guess, proof=proof, **kwds)
+        self.clear_cache()
         # Get rid of self's data
         self._dealloc()
         # Copy E's data to self's data.
         self._matrix = <mpq_vector*> sig_malloc(E._nrows * sizeof(mpq_vector))
         if self._matrix == NULL:
             raise MemoryError("error allocating sparse matrix")
-        for i from 0 <= i < E._nrows:
+        for i in range(E._nrows):
             v = &self._matrix[i]
             w = &E._matrix[i]
             mpq_vector_init(v, E._ncols, w.num_nonzero)
-            for j from 0 <= j < w.num_nonzero:
+            for j in range(w.num_nonzero):
                 mpq_set(v.entries[j], w.entries[j])
                 v.positions[j] = w.positions[j]
-        return E.pivots()
+        return pivots
 
 
     def _echelon_form_multimodular(self, height_guess=None, proof=True):
@@ -614,10 +615,11 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
         - proof -- boolean (default: True)
         """
         from .misc import matrix_rational_echelon_form_multimodular
-        cdef Matrix E = matrix_rational_echelon_form_multimodular(self,
+        cdef Matrix E
+        E, pivots = matrix_rational_echelon_form_multimodular(self,
                                  height_guess=height_guess, proof=proof)
         E._parent = self._parent
-        return E
+        return E, pivots
 
 
     def set_row_to_multiple_of_row(self, i, j, s):

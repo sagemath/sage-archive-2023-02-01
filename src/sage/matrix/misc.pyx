@@ -249,6 +249,9 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
     - proof -- boolean or None (default: None, see proof.linear_algebra or
       sage.structure.proof). Note that the global Sage default is proof=True
 
+    OUTPUT: a pair consisting of a matrix in echelon form and a tuple of pivot
+    positions.
+
     ALGORITHM:
 
     The following is a modular algorithm for computing the echelon
@@ -290,22 +293,31 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
     EXAMPLES:
 
         sage: A = matrix(QQ, 3, 7, [1..21])
-        sage: sage.matrix.misc.matrix_rational_echelon_form_multimodular(A)
+        sage: from sage.matrix.misc import matrix_rational_echelon_form_multimodular
+        sage: E, pivots = matrix_rational_echelon_form_multimodular(A)
+        sage: E
         [ 1  0 -1 -2 -3 -4 -5]
         [ 0  1  2  3  4  5  6]
         [ 0  0  0  0  0  0  0]
+        sage: pivots
+        (0, 1)
 
         sage: A = matrix(QQ, 3, 4, [0,0] + [1..9] + [-1/2^20])
-        sage: sage.matrix.misc.matrix_rational_echelon_form_multimodular(A)
+        sage: E, pivots = matrix_rational_echelon_form_multimodular(A)
+        sage: E
         [                1                 0                 0 -10485761/1048576]
         [                0                 1                 0  27262979/4194304]
         [                0                 0                 1                 2]
+        sage: pivots
+        (0, 1, 2)
+
         sage: A.echelon_form()
         [                1                 0                 0 -10485761/1048576]
         [                0                 1                 0  27262979/4194304]
         [                0                 0                 1                 2]
+        sage: A.pivots()
+        (0, 1, 2)
     """
-
     if proof is None:
         from sage.structure.proof.proof import get_flag
         proof = get_flag(proof, "linear_algebra")
@@ -313,10 +325,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
     verbose("Multimodular echelon algorithm on %s x %s matrix"%(self._nrows, self._ncols), caller_name="multimod echelon")
     cdef Matrix E
     if self._nrows == 0 or self._ncols == 0:
-        self.cache('in_echelon_form', True)
-        self.cache('echelon_form', self)
-        self.cache('pivots', ())
-        return self
+        return self, ()
 
     B, _ = self._clear_denom()
 
@@ -358,15 +367,13 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
             t = verbose("time to put reduced matrix in echelon form:",t, level=2, caller_name="multimod echelon")
 
             # a worthwhile check / shortcut.
-            if self._nrows == self._ncols and len(A.pivots()) == self._nrows:
-                verbose("done: the echelon form mod p is the identity matrix", caller_name="multimod echelon")
-                E = self.parent().identity_matrix()
-                E.cache('pivots', tuple(range(self._nrows)))
-                E.cache('in_echelon_form', True)
-                self.cache('in_echelon_form', True)
-                self.cache('echelon_form', E)
-                self.cache('pivots', tuple(range(self._nrows)))
-                return E
+            if self._nrows >= self._ncols and self._nrows == len(A.pivots()):
+                verbose("done: the echelon form mod p is the identity matrix and possibly some 0 rows", caller_name="multimod echelon")
+                E = self.parent()(0)
+                one = self.base_ring().one()
+                for i in range(self._nrows):
+                    E.set_unsafe(i, i, one)
+                return E, tuple(range(self._nrows))
 
             c = cmp_pivots(best_pivots, list(A.pivots()))
             if c <= 0:
@@ -430,10 +437,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
         M = prod * p*p*p
     #end while
     verbose("total time",tm, level=2, caller_name="multimod echelon")
-    best_pivots = tuple(best_pivots)
-    self.cache('pivots', best_pivots)
-    E.cache('pivots', best_pivots)
-    return E
+    return E, tuple(best_pivots)
 
 
 ###########################

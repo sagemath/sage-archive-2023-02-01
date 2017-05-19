@@ -1322,17 +1322,19 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         else:
             p = p.parent()(p/p.content())
 
+        cdef list roots = []
+
         # The dense algorithm is to compute the roots from the factorization
         if algorithm == "dense":
-            return p._roots_from_factorization(p.factor(), multiplicities)
-
-        sig_on()
+            sig_on()
+            roots = p._roots_from_factorization(p.factor(), multiplicities)
+            sig_off()
+            return roots
 
         v = p.valuation()
         p = p.shift(-v)
 
         # Root 0
-        cdef list roots = []
         if v>0:
             if multiplicities: roots = [(self.zero(), v)]
             else: roots = [self.zero()]
@@ -1340,7 +1342,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             roots = []
 
         if p.is_constant():
-            sig_off()
             return roots
 
         cdef list c = p.coefficients()
@@ -1349,8 +1350,10 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         # totally dense polynomial
         if k == 1 + p.degree():
+            sig_on()
+            roots = p._roots_from_factorization(p.factor(), multiplicities)
             sig_off()
-            return p._roots_from_factorization(p.factor(), multiplicities)
+            return roots
 
         K = p.base_ring()
         x = p.variable_name()
@@ -1373,6 +1376,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         # if no gap, directly return the roots of p
         if g.is_zero():
+            sig_on()
             roots.extend(p._roots_from_factorization(p.factor(), multiplicities))
             sig_off()
             return roots
@@ -1429,11 +1433,14 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         # Add roots of modulus > 1 to `roots`:
         if multiplicities:
+            sig_on()
             roots.extend(r for r in g._roots_from_factorization(g.factor(), True) if r[0].abs() > 1)
+            sig_off()
         else:
+            sig_on()
             roots.extend(r for r in g._roots_from_factorization(g.factor(), False) if r.abs() > 1)
+            sig_off()
 
-        sig_off()
         return roots
 
 

@@ -3424,18 +3424,37 @@ class RootLatticeRealizations(Category_over_base_ring):
             """
             return [s(self) for s in self.parent().simple_reflections()]
 
+        def _orbit_iter(self):
+            """
+            Iterate the orbit of ``self`` under the action of the Weyl group.
+
+            Call this method when the orbit just needs to be iterated over.
+
+            EXAMPLES::
+
+                sage: L = RootSystem(["A", 2]).ambient_lattice()
+                sage: sorted(L.rho()._orbit_iter())    # the output order is not specified
+                [(1, 2, 0), (1, 0, 2), (2, 1, 0),
+                 (2, 0, 1), (0, 1, 2), (0, 2, 1)]
+            """
+            R = RecursivelyEnumeratedSet([self], attrcall('simple_reflections'),
+                    structure=None, enumeration='breadth')
+            return iter(R)
+
         def orbit(self):
             r"""
-            The orbit of self under the action of the Weyl group
+            The orbit of ``self`` under the action of the Weyl group.
 
             EXAMPLES:
 
-            `\rho` is a regular element whose orbit is in bijection with the Weyl group.
-            In particular, it as 6 elements for the symmetric group `S_3`::
+            `\rho` is a regular element whose orbit is in bijection
+            with the Weyl group. In particular, it has 6 elements for
+            the symmetric group `S_3`::
 
                 sage: L = RootSystem(["A", 2]).ambient_lattice()
                 sage: sorted(L.rho().orbit())               # the output order is not specified
-                [(1, 2, 0), (1, 0, 2), (2, 1, 0), (2, 0, 1), (0, 1, 2), (0, 2, 1)]
+                [(1, 2, 0), (1, 0, 2), (2, 1, 0),
+                 (2, 0, 1), (0, 1, 2), (0, 2, 1)]
 
                 sage: L = RootSystem(["A", 3]).weight_lattice()
                 sage: len(L.rho().orbit())
@@ -3445,9 +3464,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: len(L.fundamental_weights()[2].orbit())
                 6
             """
-            R = RecursivelyEnumeratedSet([self], attrcall('simple_reflections'),
-                    structure=None, enumeration='breadth')
-            return list(R)
+            return list(self._orbit_iter())
 
         ##########################################################################
         #

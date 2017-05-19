@@ -3029,7 +3029,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
                 if h.A() == 0:
                     raise ValueError('linear expression must be non-constant to define a hyperplane')
                 if not_char2 and -h in hyperplane_set:
-                    raise ValueError('arrangement cannot simultaneouly have h and -h as hyperplane')
+                    raise ValueError('arrangement cannot simultaneously have h and -h as hyperplane')
         return self.element_class(self, hyperplanes)
 
     @cached_method

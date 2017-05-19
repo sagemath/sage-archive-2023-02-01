@@ -756,7 +756,7 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
 
     -  ``adaptive`` - (default: False) whether to use
        adaptive refinement to draw the plot (slower, but may look better).
-       This option does NOT work in conjuction with a transformation
+       This option does NOT work in conjunction with a transformation
        (see below).
 
     -  ``mesh`` - bool (default: False) whether to display

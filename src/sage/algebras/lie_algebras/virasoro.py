@@ -169,6 +169,8 @@ class WittLieAlgebra_charp(FinitelyGeneratedLieAlgebra, IndexedGenerators):
             sage: TestSuite(L).run()  # not tested -- universal envelope doesn't work
             sage: L._test_jacobi_identity()
         """
+        if R(p) != 0:
+            raise ValueError("{} is not 0 in {}".format(p, R))
         cat = LieAlgebras(R).FiniteDimensional().WithBasis()
         FinitelyGeneratedLieAlgebra.__init__(self, R, index_set=range(p), category=cat)
         IndexedGenerators.__init__(self, range(p), prefix='d', bracket='[')

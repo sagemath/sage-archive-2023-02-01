@@ -1365,7 +1365,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         # Looking for "large" gaps in the exponents
         # These gaps split the polynomial into lower degree components
         # Roots of modulus > 1 are common roots of the components
-        for i in xrange(1, k):
+        for i in range(1, k):
             if e[i] - e[i-1] > c_max_nbits:
                 g = g.gcd(R({e[j] - e[i_min]: c[j] for j in range(i_min,i)}))
                 if g.is_one(): break
@@ -1407,9 +1407,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             m1 = m2 = 0
             b1 = b2 = True
 
-            for i in xrange(k):
+            for i in range(k):
                 s1 = s2 = 0
-                for j in xrange(k-i):
+                for j in range(k-i):
                     if b1: s1 += cc[j]
                     if b2: s2 += -cc[j] if (ee[j] % 2) else cc[j]
                 if b1 and s1:
@@ -1423,8 +1423,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
                     break
 
                 # Sparse derivative, that is (p/x^v)' where v = p.val():
-                ee = [ee[j] - ee[0] - 1 for j in xrange(1,k-i)]
-                cc = [(ee[j] + 1) * cc[j+1] for j in xrange(k-i-1)]
+                ee = [ee[j] - ee[0] - 1 for j in range(1,k-i)]
+                cc = [(ee[j] + 1) * cc[j+1] for j in range(k-i-1)]
 
             if m1 > 0:
                 roots.append((1, m1))

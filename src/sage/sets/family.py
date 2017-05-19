@@ -824,7 +824,8 @@ class FiniteFamilyWithHiddenKeys(FiniteFamily):
         return {'dictionary': self._dictionary,
                 'hidden_keys': self._hidden_keys,
                 'hidden_dictionary': self.hidden_dictionary,
-                'hidden_function': f}
+                'hidden_function': f,
+                'keys': self._keys}
 
     def __setstate__(self, d):
         """
@@ -846,6 +847,11 @@ class FiniteFamilyWithHiddenKeys(FiniteFamily):
             hidden_function = unpickle_function(hidden_function)
         self.__init__(d['dictionary'], d['hidden_keys'], hidden_function)
         self.hidden_dictionary = d['hidden_dictionary']
+        # Old pickles from before trac #22955 may not have a 'keys'
+        if 'keys' in d:
+            self._keys = d['keys']
+        else:
+            self._keys = None
 
 
 class LazyFamily(AbstractFamily):

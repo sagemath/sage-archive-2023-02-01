@@ -1133,7 +1133,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: B = Mat(ZZ,2,2).basis()
             sage: B[0]
             doctest:warning...:
-            DeprecationWarning: integer indices are deprecated. Use (r,c) instead.
+            DeprecationWarning: integer indices are deprecated. Use B[r,c] instead of B[i].
             See http://trac.sagemath.org/22955 for details.
             [1 0]
             [0 0]

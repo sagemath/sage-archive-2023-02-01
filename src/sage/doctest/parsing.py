@@ -441,7 +441,7 @@ class SageDocTestParser(doctest.DocTestParser):
             else:
                 self.optional_only = True
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Comparison.
 
@@ -453,9 +453,23 @@ class SageDocTestParser(doctest.DocTestParser):
             sage: DTP == DTP2
             False
         """
-        c = cmp(type(self), type(other))
-        if c: return c
-        return cmp(self.__dict__, other.__dict__)
+        if not isinstance(other, SageDocTestParser):
+            return False
+        return self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        """
+        Test for unequality.
+
+        EXAMPLES::
+
+            sage: from sage.doctest.parsing import SageDocTestParser
+            sage: DTP = SageDocTestParser(True, ('sage','magma','guava'))
+            sage: DTP2 = SageDocTestParser(False, ('sage','magma','guava'))
+            sage: DTP != DTP2
+            True
+        """
+        return not (self == other)
 
     def parse(self, string, *args):
         r"""

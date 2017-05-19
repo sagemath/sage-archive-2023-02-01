@@ -1220,27 +1220,40 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         return self(1)
 
     def _roots_univariate_polynomial(self, p, ring=None, multiplicities=True, algorithm=None):
-        """
-        Returns the root of the univariate polynomial ``p''.
-
-        For sparse polynomial, the algorithm uses [CKS1999]_.
-
-        AUTHORS:
-
-        - Bruno Grenet (2014-07-04)
+        r"""
+        Return the roots of the univariate polynomial ``p``.
 
         INPUT:
 
-        - ``p`` -- a univariate integer polynomial
+        - ``p`` -- univariate integer polynomial
 
-        - ``ring`` -- a ring, containing ZZ, to compute the roots in
+        - ``ring`` -- ring (default: ``None``); a ring containing `\ZZ` to
+          compute the roots in; ``None`` is equivalent to ``ZZ``
 
-        - ``multiplicities`` -- a boolean
+        - ``multiplicities`` -- boolean (default: ``True``); whether to compute
+          the multiplicities
 
-        - ``algorithm`` -- the algorithm to use, either "dense" or "sparse".
-          The "dense" algorithm calls `_roots_from_factorization`, and the
-          "sparse" algorithm is described in [CKS1999]_. Default is "dense" for
-          polynomials of degree at most 100, and "sparse" otherwise.
+        - ``algorithm`` -- ``"dense"``, ``"sparse"`` or ``None`` (default:
+          ``None``); the algorithm to use
+
+        OUTPUT:
+
+        - If ``multiplicities = True``, the list of pairs `(r, n)` where
+          `r` is a root and `n` the corresponding multiplicity;
+
+        - If ``multiplicities = False``, the list of distincts roots with no
+          information about the multiplicities.
+
+        ALGORITHM:
+
+        If ``algorithm`` is ``"dense"`, the roots are computed using
+        :meth:`_roots_from_factorization`.
+
+        If ``algorithm`` is ``"sparse"``, the roots are computed using the
+        algorithm described in [CKS1999]_.
+
+        If ``algorithm`` is ``None``, use the ``"dense"`` algorithm for
+        polynomials of degree at most `100`, and ``"sparse"`` otherwise.
 
         .. NOTE::
 
@@ -1283,7 +1296,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             ValueError: Unknown algorithm 'foobar'
         """
         if p.degree() < 0:
-            raise ValueError("Roots of 0 are not defined");
+            raise ValueError("roots of 0 are not defined")
 
         # A specific algorithm is available only for integer roots of integer polynomials
         if ring is not self and ring is not None:
@@ -1297,7 +1310,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
                 algorithm = "dense"
 
         if algorithm != "dense" and algorithm != "sparse":
-            raise ValueError("Unknown algorithm '%s'" % algorithm)
+            raise ValueError("unknown algorithm '{}'".format(algorithm))
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 

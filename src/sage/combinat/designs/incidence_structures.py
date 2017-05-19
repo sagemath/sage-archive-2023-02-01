@@ -426,7 +426,7 @@ class IncidenceStructure(object):
         - ``other`` -- an incidence structure.
 
         - ``certificate`` (boolean) -- whether to return an
-          insomorphism from ``self`` to ``other`` instead of a boolean
+          isomorphism from ``self`` to ``other`` instead of a boolean
           answer.
 
         EXAMPLES::

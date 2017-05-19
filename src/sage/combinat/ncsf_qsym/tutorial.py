@@ -3,7 +3,7 @@ r"""
 Introduction to Quasisymmetric Functions
 
 In this document we briefly explain the quasisymmetric function bases and
-related functionality in Sage.   We assume the reader is familar with the
+related functionality in Sage.   We assume the reader is familiar with the
 package :class:`SymmetricFunctions`.
 
 Quasisymmetric functions, denoted `QSym`, form a subring of the power

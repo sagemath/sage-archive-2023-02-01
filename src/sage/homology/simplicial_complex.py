@@ -1392,7 +1392,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
             This list is sorted to provide reliable indexing for the
             rows and columns of the matrices of differentials in the
-            associateed chain complex.
+            associated chain complex.
 
         EXAMPLES::
 

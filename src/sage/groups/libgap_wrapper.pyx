@@ -146,7 +146,7 @@ class ParentLibGAP(SageObject):
         Return whether the group was defined as a subgroup of a bigger
         group.
 
-        You can access the contaning group with :meth:`ambient`.
+        You can access the containing group with :meth:`ambient`.
 
         OUTPUT:
 

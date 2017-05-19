@@ -8795,7 +8795,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         leaving ``C``.
 
         The final components are the only parts of a transducer which
-        influence the main terms of the asympotic behaviour of the sum
+        influence the main terms of the asymptotic behaviour of the sum
         of output labels of a transducer, see [HKP2015]_ and [HKW2015]_.
 
         EXAMPLES::

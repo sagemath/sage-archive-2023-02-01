@@ -6418,7 +6418,7 @@ cdef class Expression(CommutativeRingElement):
 
     def laurent_polynomial(self, base_ring=None, ring=None):
         r"""
-        Return this symbolic expression as an laurent polynomial
+        Return this symbolic expression as a Laurent polynomial
         over the given base ring, if possible.
 
         INPUT:
@@ -6428,7 +6428,7 @@ cdef class Expression(CommutativeRingElement):
         -  ``ring`` - (optional) the parent for the polynomial
 
         You can specify either the base ring (``base_ring``) you want
-        the output laurent polynomial to be over, or you can specify the full
+        the output Laurent polynomial to be over, or you can specify the full
         laurent polynomial ring (``ring``) you want the output laurent
         polynomial to be an element of.
 

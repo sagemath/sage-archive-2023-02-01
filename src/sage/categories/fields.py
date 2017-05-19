@@ -313,7 +313,7 @@ class Fields(CategoryWithAxiom):
             - ``f`` -- a univariate non-zero polynomial over this field
 
             ALGORITHM: For rings of characteristic zero, we use the algorithm
-            descriped in [Yun1976]_. Other fields may provide their own
+            described in [Yun1976]_. Other fields may provide their own
             implementation by overriding this method.
 
             EXAMPLES::

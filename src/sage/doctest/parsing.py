@@ -218,9 +218,9 @@ def get_source(example):
 
 def reduce_hex(fingerprints):
     """
-    Returns a symmetric function of the arguments as hex strings.
+    Return a symmetric function of the arguments as hex strings.
 
-    The arguments should be 32 character strings consiting of hex
+    The arguments should be 32 character strings consisting of hex
     digits: 0-9 and a-f.
 
     EXAMPLES::
@@ -464,7 +464,7 @@ class SageDocTestParser(doctest.DocTestParser):
         INPUT:
 
         - ``string`` -- the string to parse.
-        - ``name`` -- optional string giving the name indentifying string,
+        - ``name`` -- optional string giving the name identifying string,
           to be used in error messages.
 
         OUTPUT:

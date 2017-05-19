@@ -274,27 +274,3 @@ class EuclideanDomains(Category_singleton):
                 (1, 0)
             """
 
-        def _divide_if_possible(self, y):
-            """
-            Divide ``self`` by ``y`` if possible and raise a
-            ``ValueError`` otherwise.
-
-            EXAMPLES::
-
-                sage: 4._divide_if_possible(2)
-                2
-                sage: _.parent()
-                Integer Ring
-
-            ::
-
-                sage: 4._divide_if_possible(3)
-                Traceback (most recent call last):
-                ...
-                ValueError: 4 is not divisible by 3
-            """
-            q, r = self.quo_rem(y)
-            if r != 0:
-                raise ValueError("%s is not divisible by %s"%(self, y))
-            return q
-

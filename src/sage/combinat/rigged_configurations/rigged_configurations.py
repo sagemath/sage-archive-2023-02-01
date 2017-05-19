@@ -486,7 +486,7 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
             sage: len(L)
             24
         """
-        index_set = self._cartan_type.classical().index_set()
+        index_set = self._rc_index
         from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
         return RecursivelyEnumeratedSet(self.module_generators,
                     lambda x: [x.f(i) for i in index_set],
@@ -540,7 +540,7 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
             2
         """
         module_gens = []
-        n = self._cartan_type.classical().rank()
+        n = len(self._rc_index)
 
         for tree_node in self.kleber_tree():
             shapes = []
@@ -1216,13 +1216,13 @@ class RCNonSimplyLaced(RiggedConfigurations):
             # Convert from the virtual rigged configuration
             # As a special case, we do not need to do anything for type `A_{2n}^{(2)}`
             sigma = self._folded_ct.folding_orbit()
-            vindex = self._folded_ct.folding_of().classical().index_set()
+            vindex = self.virtual._rc_index
             shapes = [shapes[vindex.index(sigma[a][0])] for a in self._rc_index]
             if self._cartan_type.type() != 'BC':
                 gamma = self._folded_ct.scaling_factors()
-                for a in range(len(shapes)):
-                    for i in range(len(shapes[a])):
-                        shapes[a][i] = shapes[a][i] // gamma[self._rc_index[a]]
+                for a,shape in enumerate(shapes):
+                    for i in range(len(shape)):
+                        shape[i] = shape[i] // gamma[self._rc_index[a]]
 
             # Start with a base to calculate the vacancy numbers
             # Make a copy just to be safe
@@ -1327,7 +1327,7 @@ class RCNonSimplyLaced(RiggedConfigurations):
         """
         gamma = self._folded_ct.scaling_factors()
         sigma = self._folded_ct.folding_orbit()
-        n = self._folded_ct._folding.classical().rank()
+        n = len(self.virtual._rc_index)
         # +/- 1 for indexing
         partitions = [None] * n
         for a,rp in enumerate(rc):
@@ -1362,7 +1362,7 @@ class RCNonSimplyLaced(RiggedConfigurations):
         """
         gamma = self._folded_ct.scaling_factors()
         sigma = self._folded_ct.folding_orbit()
-        n = self._cartan_type.classical().rank()
+        n = len(self._rc_index)
         partitions = [None] * n
         # +/- 1 for indexing
         for a in range(n):
@@ -1527,7 +1527,7 @@ class RCTypeA2Even(RCNonSimplyLaced):
         """
         gamma = self._folded_ct.scaling_factors()
         sigma = self._folded_ct.folding_orbit()
-        n = self._folded_ct._folding.classical().rank()
+        n = len(self.virtual._rc_index)
         partitions = [None] * n
         for a,rp in enumerate(rc):
             g = gamma[a+1]
@@ -1563,7 +1563,7 @@ class RCTypeA2Even(RCNonSimplyLaced):
         """
         gamma = self._folded_ct.scaling_factors()
         sigma = self._folded_ct.folding_orbit()
-        n = self._cartan_type.classical().rank()
+        n = len(self._cartan_type._rc_index)
         partitions = [None] * n
         # +/- 1 for indexing
         for a in range(n):
@@ -1618,7 +1618,7 @@ class RCTypeA2Dual(RCTypeA2Even):
             sage: RC._calc_vacancy_number(elt.nu(), 0, 1)
             -1
         """
-        if a != self._cartan_type.classical().rank()-1:
+        if a != len(self._rc_index) - 1:
             return RCTypeA2Even._calc_vacancy_number(self, partitions, a, i, **options)
 
         vac_num = 0
@@ -1689,7 +1689,7 @@ class RCTypeA2Dual(RCTypeA2Even):
 
             # We are not simply-laced, so convert from the virtual rigged configuration
             sigma = self._folded_ct.folding_orbit()
-            vindex = self._folded_ct.folding_of().classical().index_set()
+            vindex = self.virtual._rc_index
             shapes = [shapes[vindex.index(sigma[a][0])] for a in self._rc_index]
             # Nothing more to do since gamma[i] == 1 for all i >= 1
 
@@ -1848,7 +1848,7 @@ class RCTypeA2Dual(RCTypeA2Even):
         gammatilde = list(self._folded_ct.scaling_factors())
         gammatilde[-1] = 2
         sigma = self._folded_ct.folding_orbit()
-        n = self._folded_ct._folding.classical().rank()
+        n = len(self.virtual._rc_index)
         partitions = [None] * n
         for a,rp in enumerate(rc):
             g = gammatilde[a+1]
@@ -1883,7 +1883,7 @@ class RCTypeA2Dual(RCTypeA2Even):
         gammatilde = list(self._folded_ct.scaling_factors())
         gammatilde[-1] = QQ(2)
         sigma = self._folded_ct.folding_orbit()
-        n = self._cartan_type.classical().rank()
+        n = len(self._rc_index)
         partitions = [None] * n
         # +/- 1 for indexing
         for a in range(n):

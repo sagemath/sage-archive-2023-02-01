@@ -1249,7 +1249,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
             <BLANKLINE>
             sage: TestSuite(elt).run()
         """
-        n = parent._cartan_type.classical().rank()
+        n = len(parent._rc_index)
         if "KT_constructor" in options:
             # Used only by the Kleber tree
             # Not recommended to be called by the user since it avoids safety
@@ -1457,7 +1457,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         """
         WLR = self.parent().weight_lattice_realization()
         La = WLR.fundamental_weights()
-        cl_index = self.parent()._cartan_type.classical().index_set()
+        cl_index = self.parent()._rc_index
         wt = WLR.sum((self.phi(i) - self.epsilon(i)) * La[i] for i in cl_index)
         return -wt.level() * La[0] + wt
 
@@ -1917,7 +1917,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         if P.dims[-1][1] > 1:
             return self.right_split().right_column_box()
 
-        rc, e_string = self.to_highest_weight(P.cartan_type().classical().index_set())
+        rc, e_string = self.to_highest_weight(P._rc_index)
 
         B = P.dims[:-1] + ([r-1,1], [1,1])
         from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
@@ -2005,7 +2005,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
             from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
             P = RiggedConfigurations(P._cartan_type, reversed(P.dims))
 
-        mg, e_str = self.to_highest_weight(P._cartan_type.classical().index_set())
+        mg, e_str = self.to_highest_weight(P._rc_index)
         nu = []
         rig = []
         for a,p in enumerate(mg):
@@ -2281,7 +2281,7 @@ class KRRCTypeA2DualElement(KRRCNonSimplyLacedElement):
             epsilon = 0
         else:
             epsilon = -min(0, min(self[a].rigging))
-        n = self.parent().cartan_type().classical().rank()
+        n = len(self.parent()._rc_index)
         if a == n-1: # -1 for indexing
             epsilon *= 2
         return Integer(epsilon)
@@ -2315,7 +2315,7 @@ class KRRCTypeA2DualElement(KRRCNonSimplyLacedElement):
             phi = p_inf
         else:
             phi = p_inf - min(0, min(self[a].rigging))
-        n = self.parent().cartan_type().classical().rank()
+        n = len(self.parent()._rc_index)
         if a == n-1: # -1 for indexing
             phi *= 2
         return Integer(phi)

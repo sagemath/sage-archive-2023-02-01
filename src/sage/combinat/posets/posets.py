@@ -6992,6 +6992,10 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         - a finite lattice
 
+        .. SEEALSO::
+
+            :meth:`~sage.categories.finite_lattice_posets.FiniteLatticePosets.ParentMethods.irreducibles_poset`
+
         EXAMPLES::
 
             sage: P = Posets.PentagonPoset()

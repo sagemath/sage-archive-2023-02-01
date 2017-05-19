@@ -22,10 +22,14 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.distance_matrix` | Return the distance matrix of the (strongly) connected (di)graph
     :meth:`~GenericGraph.weighted_adjacency_matrix` | Return the weighted adjacency matrix of the graph
     :meth:`~GenericGraph.kirchhoff_matrix` | Return the Kirchhoff matrix (a.k.a. the Laplacian) of the graph.
-    :meth:`~GenericGraph.has_loops` | Return whether there are loops in the (di)graph.
-    :meth:`~GenericGraph.allows_loops` | Return whether loops are permitted in the (di)graph.
-    :meth:`~GenericGraph.allow_loops` | Change whether loops are permitted in the (di)graph.
-    :meth:`~GenericGraph.loops` | Return any loops in the (di)graph.
+    :meth:`~GenericGraph.has_loops` | Return whether there are loops in the (di)graph
+    :meth:`~GenericGraph.allows_loops` | Return whether loops are permitted in the (di)graph
+    :meth:`~GenericGraph.allow_loops` | Change whether loops are permitted in the (di)graph
+    :meth:`~GenericGraph.loops` | Return a list of all loops in the (di)graph
+    :meth:`~GenericGraph.loop_edges` | Return a list of all loops in the (di)graph
+    :meth:`~GenericGraph.number_of_loops` | Return the number of edges that are loops
+    :meth:`~GenericGraph.loop_vertices` | Return a list of vertices with loops
+    :meth:`~GenericGraph.remove_loops` | Remove loops on vertices in vertices. If vertices is None, removes all loops.
     :meth:`~GenericGraph.has_multiple_edges` | Return whether there are multiple edges in the (di)graph.
     :meth:`~GenericGraph.allows_multiple_edges` | Return whether multiple edges are permitted in the (di)graph.
     :meth:`~GenericGraph.allow_multiple_edges` | Change whether multiple edges are permitted in the (di)graph.
@@ -51,7 +55,6 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.set_vertex` | Associate an arbitrary object with a vertex.
     :meth:`~GenericGraph.get_vertex` | Retrieve the object associated with a given vertex.
     :meth:`~GenericGraph.get_vertices` | Return a dictionary of the objects associated to each vertex.
-    :meth:`~GenericGraph.loop_vertices` | Return a list of vertices with loops.
     :meth:`~GenericGraph.vertex_iterator` | Return an iterator over the vertices.
     :meth:`~GenericGraph.neighbor_iterator` | Return an iterator over neighbors of vertex.
     :meth:`~GenericGraph.vertices` | Return a list of the vertices.
@@ -73,9 +76,6 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.edge_label` | Return the label of an edge.
     :meth:`~GenericGraph.edge_labels` | Return a list of edge labels.
     :meth:`~GenericGraph.remove_multiple_edges` | Remove all multiple edges, retaining one edge for each.
-    :meth:`~GenericGraph.remove_loops` | Remove loops on vertices in vertices. If vertices is None, removes all loops.
-    :meth:`~GenericGraph.loop_edges` | Returns a list of all loops in the graph.
-    :meth:`~GenericGraph.number_of_loops` | Return the number of edges that are loops.
     :meth:`~GenericGraph.clear` | Empty the graph of vertices and edges and removes name, associated objects, and position information.
     :meth:`~GenericGraph.degree` | Return the degree (in + out for digraphs) of a vertex or of vertices.
     :meth:`~GenericGraph.average_degree` | Return the average degree of the graph.
@@ -2278,7 +2278,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def has_loops(self):
         """
-        Returns whether there are loops in the (di)graph.
+        Return whether there are loops in the (di)graph
 
         EXAMPLES::
 
@@ -2326,7 +2326,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def allows_loops(self):
         """
-        Returns whether loops are permitted in the (di)graph.
+        Return whether loops are permitted in the (di)graph
 
         EXAMPLES::
 
@@ -2370,7 +2370,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def allow_loops(self, new, check=True):
         """
-        Changes whether loops are permitted in the (di)graph.
+        Change whether loops are permitted in the (di)graph
 
         INPUT:
 
@@ -2418,13 +2418,14 @@ class GenericGraph(GenericGraph_pyx):
             self.remove_loops()
         self._backend.loops(new)
 
-    def loops(self, labels=True):
+    def loop_edges(self, labels=True):
         """
-        Returns any loops in the (di)graph.
+        Return a list of all loops in the (di)graph
 
         INPUT:
 
-        - ``labels`` -- whether returned edges have labels ((u,v,l)) or not ((u,v)).
+        - ``labels`` -- whether returned edges have labels (``(u,v,l)``) or not
+          (``(u,v)``)
 
         EXAMPLES::
 
@@ -2434,17 +2435,22 @@ class GenericGraph(GenericGraph_pyx):
             False
             sage: G.allows_loops()
             True
-            sage: G.add_edge((0,0))
+            sage: G.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
+            sage: G.loop_edges()
+            [(0, 0, None), (1, 1, None), (2, 2, None), (3, 3, None)]
+            sage: G.loop_edges(labels=False)
+            [(0, 0), (1, 1), (2, 2), (3, 3)]
+            sage: G.allows_loops()
+            True
             sage: G.has_loops()
             True
-            sage: G.loops()
-            [(0, 0, None)]
-            sage: G.allow_loops(False); G
-            Graph on 1 vertex
+            sage: G.allow_loops(False)
             sage: G.has_loops()
             False
-            sage: G.edges()
+            sage: G.loop_edges()
             []
+            sage: G.edges()
+            [(2, 3, None)]
 
             sage: D = DiGraph(loops=True); D
             Looped digraph on 0 vertices
@@ -2468,11 +2474,74 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.loops()
             []
 
+        ::
+
+            sage: D = DiGraph(4, loops=True)
+            sage: D.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
+            sage: D.loop_edges()
+            [(0, 0, None), (1, 1, None), (2, 2, None), (3, 3, None)]
+
+        ::
+
+            sage: G = Graph(4, loops=True, multiedges=True, sparse=True)
+            sage: G.add_edges([(i,i) for i in range(4)])
+            sage: G.loop_edges()
+            [(0, 0, None), (1, 1, None), (2, 2, None), (3, 3, None)]
+            sage: G.add_edges([(0, 0), (1, 1)])
+            sage: G.loop_edges(labels=False)
+            [(0, 0), (0, 0), (1, 1), (1, 1), (2, 2), (3, 3)]
         """
-        loops = []
-        for v in self:
-            loops += self.edge_boundary([v], [v], labels)
-        return loops
+        if self.allows_multiple_edges():
+            if labels:
+                return [(v,v,l) for v in self.loop_vertices() for l in self.edge_label(v,v)]
+            else:
+                return [(v,v) for v in self.loop_vertices() for l in self.edge_label(v,v)]
+        elif labels:
+            return [(v,v,self.edge_label(v,v)) for v in self.loop_vertices()]
+        else:
+            return [(v,v) for v in self.loop_vertices()]
+
+    # As discussed in trac 22911, we make method loops an alias for loop_edges
+    loops = loop_edges
+
+    def number_of_loops(self):
+        """
+        Return the number of edges that are loops
+
+        EXAMPLES::
+
+            sage: G = Graph(4, loops=True)
+            sage: G.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
+            sage: G.edges(labels=False)
+            [(0, 0), (1, 1), (2, 2), (2, 3), (3, 3)]
+            sage: G.number_of_loops()
+            4
+
+        ::
+
+            sage: D = DiGraph(4, loops=True)
+            sage: D.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
+            sage: D.edges(labels=False)
+            [(0, 0), (1, 1), (2, 2), (2, 3), (3, 3)]
+            sage: D.number_of_loops()
+            4
+        """
+        return len(self.loop_edges())
+
+    def loop_vertices(self):
+        """
+        Return a list of vertices with loops
+
+        EXAMPLES::
+
+            sage: G = Graph({0 : [0], 1: [1,2,3], 2: [3]}, loops=True)
+            sage: G.loop_vertices()
+            [0, 1]
+        """
+        if self.allows_loops():
+            return [v for v in self if self.has_edge(v,v)]
+        else:
+            return []
 
     def has_multiple_edges(self, to_undirected=False):
         """
@@ -9891,21 +9960,6 @@ class GenericGraph(GenericGraph_pyx):
 
         return output
 
-    def loop_vertices(self):
-        """
-        Returns a list of vertices with loops.
-
-        EXAMPLES::
-
-            sage: G = Graph({0 : [0], 1: [1,2,3], 2: [3]}, loops=True)
-            sage: G.loop_vertices()
-            [0, 1]
-        """
-        if self.allows_loops():
-            return [v for v in self if self.has_edge(v,v)]
-        else:
-            return []
-
     def vertex_iterator(self, vertices=None):
         """
         Returns an iterator over the given vertices.
@@ -11076,60 +11130,6 @@ class GenericGraph(GenericGraph_pyx):
         for v in vertices:
             if self.has_edge(v,v):
                 self.delete_multiedge(v,v)
-
-    def loop_edges(self):
-        """
-        Returns a list of all loops in the graph.
-
-        EXAMPLES::
-
-            sage: G = Graph(4, loops=True)
-            sage: G.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
-            sage: G.loop_edges()
-            [(0, 0, None), (1, 1, None), (2, 2, None), (3, 3, None)]
-
-        ::
-
-            sage: D = DiGraph(4, loops=True)
-            sage: D.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
-            sage: D.loop_edges()
-            [(0, 0, None), (1, 1, None), (2, 2, None), (3, 3, None)]
-
-        ::
-
-            sage: G = Graph(4, loops=True, multiedges=True, sparse=True)
-            sage: G.add_edges([(i,i) for i in range(4)])
-            sage: G.loop_edges()
-            [(0, 0, None), (1, 1, None), (2, 2, None), (3, 3, None)]
-        """
-        if self.allows_multiple_edges():
-            return [(v,v,l) for v in self.loop_vertices() for l in self.edge_label(v,v)]
-        else:
-            return [(v,v,self.edge_label(v,v)) for v in self.loop_vertices()]
-
-    def number_of_loops(self):
-        """
-        Returns the number of edges that are loops.
-
-        EXAMPLES::
-
-            sage: G = Graph(4, loops=True)
-            sage: G.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
-            sage: G.edges(labels=False)
-            [(0, 0), (1, 1), (2, 2), (2, 3), (3, 3)]
-            sage: G.number_of_loops()
-            4
-
-        ::
-
-            sage: D = DiGraph(4, loops=True)
-            sage: D.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
-            sage: D.edges(labels=False)
-            [(0, 0), (1, 1), (2, 2), (2, 3), (3, 3)]
-            sage: D.number_of_loops()
-            4
-        """
-        return len(self.loop_edges())
 
     ### Modifications
 
@@ -12510,7 +12510,7 @@ class GenericGraph(GenericGraph_pyx):
 
         if not hole is None:
             # There was a bug there once, so it's better to check the
-            # answer is valid, especally when it is so cheap ;-)
+            # answer is valid, especially when it is so cheap ;-)
 
             if hole.order() <= 3 or not hole.is_regular(k=2):
                 raise RuntimeError("the graph is not chordal, and something went wrong in the computation of the certificate. Please report this bug, providing the graph if possible!")
@@ -16723,7 +16723,8 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``vertices`` -- a list of vertices for the clique to be added.
+        - ``vertices`` -- an iterable container of vertices for the clique to be
+          added, e.g. a list, set, graph, etc.
 
         - ``loops`` -- (boolean) whether to add loops or not, i.e., edges from a
           vertex to itself. Possible only if the (di)graph allows loops.
@@ -16748,14 +16749,39 @@ class GenericGraph(GenericGraph_pyx):
             False
             sage: D.is_isomorphic(digraphs.Complete(4, loops=False))
             True
+
+        TESTS:
+
+        Using different kinds of iterable container of vertices, :trac:`22906`::
+
+            sage: G = Graph(4)
+            sage: G.add_clique(G)
+            sage: G.is_clique()
+            True
+            sage: G = Graph()
+            sage: G.add_clique(set(range(4)))
+            sage: G.is_clique()
+            True
+            sage: G = Graph()
+            sage: G.add_clique({i:(i, i+1) for i in range(4)})
+            sage: G.is_clique()
+            True
+            sage: G.vertices()
+            [0, 1, 2, 3]
+            sage: D = DiGraph(4, loops=True)
+            sage: D.add_clique(range(4), loops=True)
+            sage: D.is_clique(directed_clique=True)
+            True
         """
+        import itertools
         if vertices:
-            n = len(vertices)
-            self.add_edges((vertices[i],vertices[j]) for i in range(n-1) for j in range(i+1,n))
+            vertices = list(vertices)
             if self.is_directed():
-                self.add_edges((vertices[j],vertices[i]) for i in range(n-1) for j in range(i+1,n))
+                self.add_edges(itertools.permutations(vertices, 2))
+            else:
+                self.add_edges(itertools.combinations(vertices, 2))
             if loops and self.allows_loops():
-                self.add_edges((vertices[i],vertices[i]) for i in range(n))
+                self.add_edges((u, u) for u in vertices)
 
     def add_cycle(self, vertices):
         """
@@ -19507,6 +19533,13 @@ class GenericGraph(GenericGraph_pyx):
               node_4 -- node_5;
             }
 
+        Check that :trac:`22950` is fixed::
+
+            sage: D = DiGraph({1: [2]})
+            sage: D.graphviz_string(edge_colors={'blue': [[1,2]]})
+            'digraph {\n  node_0  [label="1"];\n  node_1  [label="2"];\n\n
+              node_0 -> node_1 [color = "blue"];\n}'
+
         REFERENCES:
 
         .. [dotspec] http://www.graphviz.org/doc/info/lang.html
@@ -19541,7 +19574,7 @@ class GenericGraph(GenericGraph_pyx):
             color_by_edge = {}
             for color in options['edge_colors'].keys():
                 for edge in options['edge_colors'][color]:
-                    assert isinstance(edge, tuple) and len(edge) >= 2 and len(edge) <= 3,\
+                    assert isinstance(edge, (list, tuple)) and len(edge) >= 2 and len(edge) <= 3,\
                         "%s is not a valid format for edge"%(edge)
                     u = edge[0]
                     v = edge[1]

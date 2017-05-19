@@ -2309,7 +2309,7 @@ class WordMorphism(SageObject):
 
         .. NOTE::
 
-            It is acually implemented only for `k=1`.
+            It is actually implemented only for `k=1`.
 
         INPUT:
 

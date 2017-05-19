@@ -796,7 +796,7 @@ cdef class PartitionRefinement_generic:
          - if the inner group has changed -> sets ``inner_group_changed`` to True
          - if the partition has changed -> sets ``changed_partition`` to True
 
-         The string ``refine_name`` is only neccessary for printing within the
+         The string ``refine_name`` is only necessary for printing within the
          latex output (if activated).
         """
         cdef tuple res = PS_refinement(self._part, self._refine_vals_scratch, best, begin, end,
@@ -826,7 +826,7 @@ cdef class PartitionRefinement_generic:
 
     cdef void _leaf_computations(self):
         r"""
-        All neccessary computations which have to be performed in a leaf.
+        All necessary computations which have to be performed in a leaf.
 
         There are to possibilities depending on the flag
         ``self._is_candidate_initialized``:

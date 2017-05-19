@@ -185,7 +185,7 @@ cdef class pAdicFloatingPointElement(FPElement):
             mpz_set(mpq_denref(ansr.value), self.prime_pow.pow_mpz_t_tmp(-self.ordp))
             return ansr
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Converts this element to an equivalent pari element.
 

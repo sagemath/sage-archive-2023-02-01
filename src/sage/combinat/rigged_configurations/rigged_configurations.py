@@ -1563,7 +1563,7 @@ class RCTypeA2Even(RCNonSimplyLaced):
         """
         gamma = self._folded_ct.scaling_factors()
         sigma = self._folded_ct.folding_orbit()
-        n = len(self._cartan_type._rc_index)
+        n = len(self._rc_index)
         partitions = [None] * n
         # +/- 1 for indexing
         for a in range(n):

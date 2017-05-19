@@ -42,9 +42,9 @@ from sage.interfaces.gap import is_GapElement
 
 from sage.misc.randstate import current_randstate
 
-from element_ext_pari import FiniteField_ext_pariElement
-from element_pari_ffelt import FiniteFieldElement_pari_ffelt
-from finite_field_ntl_gf2e import FiniteField_ntl_gf2e
+from .element_ext_pari import FiniteField_ext_pariElement
+from .element_pari_ffelt import FiniteFieldElement_pari_ffelt
+from .finite_field_ntl_gf2e import FiniteField_ntl_gf2e
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 

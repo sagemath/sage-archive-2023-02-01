@@ -44,7 +44,7 @@ from __future__ import absolute_import
 
 cimport numpy
 import numpy
-import free_module_element
+from .free_module_element import FreeModuleElement
 
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 

@@ -1318,9 +1318,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         # should be corrected. See
         # <https://groups.google.com/forum/#!topic/sage-devel/DP_R3rl0vH0>
         if p.parent().is_sparse():
-            p = p.parent()(p/(p.content().gen()))
+            cont = p.content().gen()
         else:
-            p = p.parent()(p/p.content())
+            cont = p.content()
+        if not cont.is_unit():
+            p = p.map_coefficients(lambda c:c//cont)
 
         cdef list roots = []
 

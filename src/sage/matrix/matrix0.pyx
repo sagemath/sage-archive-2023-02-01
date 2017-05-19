@@ -44,7 +44,7 @@ from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 
 import sage.modules.free_module
 
-import matrix_misc
+from .matrix_misc import row_iterator
 
 
 cdef class Matrix(sage.structure.element.Matrix):
@@ -529,16 +529,15 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def __iter__(self):
         """
-        Return an iterator for the rows of self
+        Return an iterator for the rows of self.
 
         EXAMPLES::
 
-            sage: m=matrix(2,[1,2,3,4])
+            sage: m = matrix(2,[1,2,3,4])
             sage: next(m.__iter__())
             (1, 2)
         """
-
-        return matrix_misc.row_iterator(self)
+        return row_iterator(self)
 
     def __getitem__(self, key):
         """

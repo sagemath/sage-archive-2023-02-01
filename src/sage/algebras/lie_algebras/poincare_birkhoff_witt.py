@@ -54,7 +54,7 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
 
     We construct the PBW basis of `\mathfrak{sl}_2`::
 
-        sage: L = lie_algebras.sl(QQ, 2)
+        sage: L = lie_algebras.three_dimensional_by_rank(QQ, 3, names=['E','F','H'])
         sage: PBW = L.pbw_basis()
 
     We then do some computations; in particular, we check that `[E, F] = H`::
@@ -143,7 +143,7 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
 
         TESTS::
 
-            sage: L = lie_algebras.sl(QQ, 2)
+            sage: L = lie_algebras.three_dimensional_by_rank(QQ, 3, names=['E','F','H'])
             sage: PBW = L.pbw_basis()
             sage: PBW._basis_key('E') < PBW._basis_key('H')
             True
@@ -155,7 +155,8 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             ....:     return -L.basis().keys().index(x)
             sage: PBW = L.pbw_basis(basis_key=neg_key)
             sage: prod(PBW.gens())  # indirect doctest
-            PBW['H']*PBW['F']*PBW['E'] + PBW['H']^2
+            PBW[alphacheck[1]]*PBW[-alpha[1]]*PBW[alpha[1]]
+             + PBW[alphacheck[1]]^2
         """
         K = self._g.basis().keys()
         if K.cardinality() == float('inf'):
@@ -175,7 +176,7 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             sage: PBW = L.pbw_basis(basis_key=neg_key)
             sage: M = PBW.basis().keys()
             sage: prod(M.gens())  # indirect doctest
-            PBW['H']*PBW['F']*PBW['E']
+            PBW[alphacheck[1]]*PBW[-alpha[1]]*PBW[alpha[1]]
         """
         return self._basis_key(x[0])
 
@@ -188,18 +189,23 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
 
             sage: L = lie_algebras.sl(QQ, 2)
             sage: PBW = L.pbw_basis()
-            sage: E,F,H = sorted(PBW.algebra_generators(), key=str)
+            sage: E,F,H = PBW.algebra_generators()
             sage: H*F*F*E  # indirect doctest
-            PBW['E']*PBW['F']^2*PBW['H'] - 2*PBW['E']*PBW['F']^2
-             - 2*PBW['F']*PBW['H']^2 + 6*PBW['F']*PBW['H'] - 4*PBW['F']
+            PBW[alpha[1]]*PBW[-alpha[1]]^2*PBW[alphacheck[1]]
+             - 2*PBW[alpha[1]]*PBW[-alpha[1]]^2
+             - 2*PBW[-alpha[1]]*PBW[alphacheck[1]]^2
+             + 6*PBW[-alpha[1]]*PBW[alphacheck[1]] - 4*PBW[-alpha[1]]
 
             sage: def neg_key(x):
             ....:     return -L.basis().keys().index(x)
             sage: PBW = L.pbw_basis(basis_key=neg_key)
-            sage: E,F,H = sorted(PBW.algebra_generators(), key=str)
+            sage: E,F,H = PBW.algebra_generators()
             sage: E*F*F*H  # indirect doctest
-            PBW['H']*PBW['F']^2*PBW['E'] + 2*PBW['H']^2*PBW['F']
-             + 2*PBW['F']^2*PBW['E'] + 6*PBW['H']*PBW['F'] + 4*PBW['F']
+            PBW[alphacheck[1]]*PBW[-alpha[1]]^2*PBW[alpha[1]]
+             + 2*PBW[alphacheck[1]]^2*PBW[-alpha[1]]
+             + 2*PBW[-alpha[1]]^2*PBW[alpha[1]]
+             + 6*PBW[alphacheck[1]]*PBW[-alpha[1]] + 4*PBW[-alpha[1]]
+
         """
         return (-len(x), [self._basis_key(l) for l in x.to_word_list()])
 
@@ -211,7 +217,8 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
 
             sage: L = lie_algebras.sl(QQ, 2)
             sage: L.pbw_basis()
-            Universal enveloping algebra of sl2 over Rational Field
+            Universal enveloping algebra of
+             Lie algebra of ['A', 1] in the Chevalley basis
              in the Poincare-Birkhoff-Witt basis
         """
         return "Universal enveloping algebra of {} in the Poincare-Birkhoff-Witt basis".format(self._g)
@@ -228,17 +235,18 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             sage: PBW = L.pbw_basis()
             sage: PBW.has_coerce_map_from(L)
             True
-            sage: [PBW(g) for g in L.gens()]
-            [PBW['E'], PBW['F'], PBW['H']]
+            sage: [PBW(g) for g in L.basis()]
+            [PBW[alpha[1]], PBW[-alpha[1]], PBW[alphacheck[1]]]
 
         We can go between PBW bases under different sorting orders::
 
             sage: def neg_key(x):
             ....:     return -L.basis().keys().index(x)
             sage: PBW2 = L.pbw_basis(basis_key=neg_key)
-            sage: E,F,H = sorted(PBW.algebra_generators(), key=str)
+            sage: E,F,H = PBW.algebra_generators()
             sage: PBW2(E*F*H)
-            PBW['H']*PBW['F']*PBW['E'] + PBW['H']^2
+            PBW[alphacheck[1]]*PBW[-alpha[1]]*PBW[alpha[1]]
+             + PBW[alphacheck[1]]^2
         """
         if R == self._g:
             # Make this into the lift map
@@ -279,7 +287,9 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             sage: L = lie_algebras.sl(QQ, 2)
             sage: PBW = L.pbw_basis()
             sage: PBW.algebra_generators()
-            Finite family {'H': PBW['H'], 'E': PBW['E'], 'F': PBW['F']}
+            Finite family {-alpha[1]: PBW[-alpha[1]],
+                           alpha[1]: PBW[alpha[1]],
+                           alphacheck[1]: PBW[alphacheck[1]]}
         """
         G = self._indices.gens()
         return Family(self._indices._indices, lambda x: self.monomial(G[x]),
@@ -294,7 +304,7 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: L = lie_algebras.sl(QQ, 2)
+            sage: L = lie_algebras.three_dimensional_by_rank(QQ, 3, names=['E','F','H'])
             sage: PBW = L.pbw_basis()
             sage: ob = PBW.one_basis(); ob
             1
@@ -309,7 +319,7 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: L = lie_algebras.sl(QQ, 2)
+            sage: L = lie_algebras.three_dimensional_by_rank(QQ, 3, names=['E','F','H'])
             sage: PBW = L.pbw_basis()
             sage: I = PBW.indices()
             sage: PBW.product_on_basis(I.gen('E'), I.gen('F'))
@@ -327,7 +337,7 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             sage: PBW.product_on_basis(I.gen('H')**2, I.gen('F')**2)
             PBW['F']^2*PBW['H']^2 - 8*PBW['F']^2*PBW['H'] + 16*PBW['F']^2
 
-            sage: E,F,H = sorted(PBW.algebra_generators(), key=str)
+            sage: E,F,H = PBW.algebra_generators()
             sage: E*F - F*E
             PBW['H']
             sage: H * F * E

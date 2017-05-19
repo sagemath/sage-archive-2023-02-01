@@ -979,6 +979,9 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
         names += ['h{}'.format(i) for i in range(1, num_sroots+1)]
         category = LieAlgebras(R).FiniteDimensional().WithBasis()
         index_set = p_roots + n_roots + list(alphacheck)
+        names = tuple(names)
+        from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+        index_set = FiniteEnumeratedSet(index_set)
         LieAlgebraWithStructureCoefficients.__init__(self, R, s_coeffs, names, index_set,
                                                      category, prefix='E', bracket='[',
                                                      sorting_key=self._basis_key)

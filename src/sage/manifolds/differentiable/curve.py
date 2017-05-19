@@ -326,7 +326,7 @@ class DifferentiableCurve(DiffMap):
             sage: R.<t> = RealLine()
             sage: c = M.curve([cos(t), sin(2*t)], (t, 0, 2*pi))
             sage: c.__reduce__()
-    (<class 'sage.manifolds.differentiable.manifold_homset.DifferentiableCurveSet_with_category.element_class'>,
+            (<class 'sage.manifolds.differentiable.manifold_homset.DifferentiableCurveSet_with_category.element_class'>,
              (Set of Morphisms from Real interval (0, 2*pi) to 2-dimensional
               differentiable manifold M in Join of Category of subobjects of
               sets and Category of smooth manifolds over Real Field with 53

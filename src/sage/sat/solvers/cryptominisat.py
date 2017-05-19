@@ -53,10 +53,10 @@ class CryptoMiniSat(SatSolver):
         if confl_limit is None:
             from sys import maxint
             confl_limit = maxint
-        from sage.misc.package import PackageNotFoundError
         try:
             from pycryptosat import Solver
         except ImportError:
+            from sage.misc.package import PackageNotFoundError
             raise PackageNotFoundError("cryptominisat")
         self._solver = Solver(verbose=int(verbosity), confl_limit=int(confl_limit), threads=int(threads))
         self._nvars = 0

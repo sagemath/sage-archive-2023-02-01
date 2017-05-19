@@ -308,7 +308,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             the free algebra on the generators ('a', 'b', 'c') over Rational Field
 
             sage: A.element_class.mro()
-            [<class 'sage.modules.with_basis.indexed_element.FreeAlgebra_with_category.element_class'>,
+            [<class 'sage.categories.examples.algebras_with_basis.FreeAlgebra_with_category.element_class'>,
              <type 'sage.modules.with_basis.indexed_element.IndexedFreeModuleElement'>,
              ...]
             sage: a,b,c = A.algebra_generators()

@@ -965,7 +965,7 @@ class Sets(Category_singleton):
 
                 sage: B = GroupAlgebra(SymmetricGroup(3), ZZ)
                 sage: B.element_class
-                <class 'sage.combinat.free_module.GroupAlgebra_with_category.element_class'>
+                <class 'sage.algebras.group_algebra.GroupAlgebra_with_category.element_class'>
                 sage: B._element_constructor
                 <bound method GroupAlgebra_with_category._element_constructor_ of Group algebra of group "Symmetric group of order 3! as a permutation group" over base ring Integer Ring>
             """

@@ -75,7 +75,7 @@ class FreeModuleAltForm(FreeModuleTensor):
         Alternating form a of degree 2 on the
          Rank-3 free module M over the Integer Ring
         sage: type(a)
-        <class 'sage.tensor.modules.free_module_alt_form.ExtPowerFreeModule_with_category.element_class'>
+        <class 'sage.tensor.modules.ext_pow_free_module.ExtPowerFreeModule_with_category.element_class'>
         sage: a.parent()
         2nd exterior power of the dual of the Rank-3 free module M over the Integer Ring
         sage: a[1,2], a[2,3] = 4, -3

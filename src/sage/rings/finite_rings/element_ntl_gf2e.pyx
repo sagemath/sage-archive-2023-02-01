@@ -18,6 +18,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
@@ -1259,7 +1260,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
         AUTHOR: David Joyner and William Stein (2005-11)
         """
-        from  sage.groups.generic import discrete_log
+        from sage.groups.generic import discrete_log
 
         b = self.parent()(base)
         return discrete_log(self, b)

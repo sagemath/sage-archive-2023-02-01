@@ -1881,9 +1881,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 return res
 
         # If types are not equal: compare types
-        cdef int c = cmp(type(x), type(y))
-        if c:
-            return rich_to_bool(op, c)
+        # avoiding call to cmp() for compatibility with python3
+        cdef type tx = type(x)
+        cdef type ty = type(y)
+        if tx < ty:
+            return rich_to_bool(op, -1)
+        elif tx > ty:
+            return rich_to_bool(op, 1)
 
         # Final attempt: compare by id()
         if (<unsigned long><PyObject*>x) >= (<unsigned long><PyObject*>y):

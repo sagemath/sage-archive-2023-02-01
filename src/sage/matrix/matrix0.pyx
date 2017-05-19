@@ -209,12 +209,18 @@ cdef class Matrix(sage.structure.element.Matrix):
                 x.append(self.get_unsafe(i, j))
         return x
 
-    def dict(self):
-        """
-        Dictionary of the elements of self with keys pairs (i,j) and values
-        the nonzero entries of self.
+    def dict(self, copy=True):
+        r"""
+        Dictionary of the elements of ``self`` with keys pairs ``(i,j)``
+        and values the nonzero entries of ``self``.
 
-        It is safe to change the returned dictionary.
+        INPUT:
+
+        - ``copy`` -- (default: ``True``) make a copy of the ``dict``
+          corresponding to ``self``
+
+        If ``copy=True``, then is safe to change the returned dictionary.
+        Otherwise, this can cause undesired behavior by mutating the ``dict``.
 
         EXAMPLES::
 
@@ -233,7 +239,11 @@ cdef class Matrix(sage.structure.element.Matrix):
             [      x       y       0]
             [      0       0 2*x + y]
         """
-        return dict(self._dict())
+        if copy:
+            return dict(self._dict())
+        return self._dict()
+
+    monomial_coefficients = dict
 
     def _dict(self):
         """

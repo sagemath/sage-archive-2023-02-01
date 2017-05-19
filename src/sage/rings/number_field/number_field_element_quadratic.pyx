@@ -29,10 +29,10 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import absolute_import
 
-include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
 include "sage/libs/ntl/decl.pxi"
 from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
+
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
@@ -332,9 +332,9 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: loads(dumps(a/3+5)) == a/3+5
             True
         """
-        cdef Integer a = <Integer>PY_NEW(Integer)
-        cdef Integer b = <Integer>PY_NEW(Integer)
-        cdef Integer denom = <Integer>PY_NEW(Integer)
+        cdef Integer a = Integer.__new__(Integer)
+        cdef Integer b = Integer.__new__(Integer)
+        cdef Integer denom = Integer.__new__(Integer)
         mpz_set(a.value, self.a)
         mpz_set(b.value, self.b)
         mpz_set(denom.value, self.denom)
@@ -1399,7 +1399,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         if mpz_cmp_ui(self.b, 0) != 0 or mpz_cmp_ui(self.denom, 1) != 0:
             raise TypeError("Unable to coerce %s to an integer" % self)
         else:
-            res = PY_NEW(Integer)
+            res = Integer.__new__(Integer)
             mpz_set(res.value, self.a)
             return res
 
@@ -1704,7 +1704,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         cdef NumberFieldElement_quadratic gen = self.number_field().gen()  # should this be cached?
         cdef Integer denom
         if gen.is_sqrt_disc():
-            denom = PY_NEW(Integer)
+            denom = Integer.__new__(Integer)
             mpz_set(denom.value, self.denom)
             return denom
         else:
@@ -1974,7 +1974,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         if mpz_sgn(self.b) == 0:
             mpz_init_set(x,self.a)
             mpz_fdiv_q(x,x,self.denom)
-            result = PY_NEW(Integer)
+            result = Integer.__new__(Integer)
             mpz_set(result.value,x)
             mpz_clear(x)
             return result
@@ -1996,7 +1996,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
         mpz_add(x,x,self.a)    # here x = a + floor(sqrt(b^2 D)) or a + floor(-sqrt(b^2 D))
         mpz_fdiv_q(x,x,self.denom)
-        result = PY_NEW(Integer)
+        result = Integer.__new__(Integer)
         mpz_set(result.value,x)
         mpz_clear(x)
         return result

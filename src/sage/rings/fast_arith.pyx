@@ -41,8 +41,10 @@ Basic arithmetic with C integers
 
 # The int definitions
 
+from libc.math cimport sqrt
+from sage.libs.gmp.mpz cimport mpz_set_ui
+
 from sage.ext.stdsage cimport PY_NEW
-include "sage/ext/cdefs.pxi"
 
 from cypari2.paridecl cimport *
 from cypari2.gen cimport Gen as pari_gen

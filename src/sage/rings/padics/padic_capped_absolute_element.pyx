@@ -101,7 +101,7 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
             sage: ZpCA(3,3)(1/4).lift() # indirect doctest
             7
         """
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         mpz_set(ans.value, self.value)
         return ans
 
@@ -218,7 +218,6 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
             :meth:`_mod_`
 
         """
-        cdef Integer selfvalue, modulus
         if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
         if mpz_cmp_si((<Integer>absprec).value, self.absprec) > 0:
@@ -226,9 +225,9 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
         elif mpz_sgn((<Integer>absprec).value) < 0:
             raise ValueError("cannot reduce modulo a negative power of p.")
         cdef long aprec = mpz_get_ui((<Integer>absprec).value)
-        modulus = PY_NEW(Integer)
+        cdef Integer modulus = Integer.__new__(Integer)
         mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec))
-        selfvalue = PY_NEW(Integer)
+        cdef Integer selfvalue = Integer.__new__(Integer)
         mpz_set(selfvalue.value, self.value)
         return Mod(selfvalue, modulus)
 
@@ -262,13 +261,13 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
         if mpz_divisible_p(self.value, self.prime_pow.prime.value):
             return infinity
         if mpz_cmp_ui(self.value, 1) == 0:
-            ans = PY_NEW(Integer)
+            ans = Integer.__new__(Integer)
             mpz_set_ui(ans.value, 1)
             return ans
         mpz_init(ppow_minus_one)
         mpz_sub_ui(ppow_minus_one, self.prime_pow.pow_mpz_t_tmp(self.absprec), 1)
         if mpz_cmp(self.value, ppow_minus_one) == 0:
-            ans = PY_NEW(Integer)
+            ans = Integer.__new__(Integer)
             mpz_set_ui(ans.value, 2)
             mpz_clear(ppow_minus_one)
             return ans

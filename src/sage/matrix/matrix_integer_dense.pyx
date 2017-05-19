@@ -62,6 +62,11 @@ from __future__ import absolute_import, print_function
 
 from libc.stdint cimport int64_t
 from libc.string cimport strcpy, strlen
+
+from sage.ext.stdsage cimport PY_NEW
+from cysignals.signals cimport sig_check, sig_on, sig_str, sig_off
+from cysignals.memory cimport sig_malloc, sig_free, check_malloc
+
 from sage.libs.gmp.mpz cimport *
 
 from sage.modules.vector_integer_dense cimport Vector_integer_dense
@@ -84,10 +89,6 @@ from sage.libs.pari.convert_flint cimport (_new_GEN_from_fmpz_mat_t,
 from cypari2.stack cimport clear_stack
 from cypari2.paridecl cimport *
 #########################################################
-
-from sage.ext.stdsage cimport PY_NEW
-from cysignals.signals cimport sig_on, sig_off, sig_str, sig_check
-from cysignals.memory cimport sig_malloc, sig_free, check_malloc
 
 from sage.arith.multi_modular cimport MultiModularBasis
 
@@ -471,7 +472,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: a[-1,0]
             6
         """
-        cdef Integer z = PY_NEW(Integer)
+        cdef Integer z = Integer.__new__(Integer)
         self.get_unsafe_mpz(i, j, z.value)
         return z
 
@@ -1380,7 +1381,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: a.height()
             389
         """
-        cdef Integer x = PY_NEW(Integer)
+        cdef Integer x = Integer.__new__(Integer)
         self.mpz_height(x.value)
         return x
 
@@ -3225,8 +3226,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
                     raise IndexError("matrix column index out of range")
                 fmpz_add(s, s, fmpz_mat_entry(self._matrix,row,c))
             fmpz_mul(pr, pr, s)
-        cdef Integer z
-        z = PY_NEW(Integer)
+        cdef Integer z = Integer.__new__(Integer)
         fmpz_get_mpz(z.value, pr)
         fmpz_clear(s)
         fmpz_clear(pr)
@@ -3711,7 +3711,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         sig_on()
         cdef GEN d = det0(pari_GEN(self), flag)
         # now convert d to a Sage integer e
-        cdef Integer e = <Integer>PY_NEW(Integer)
+        cdef Integer e = Integer.__new__(Integer)
         INT_to_mpz(e.value, d)
         clear_stack()
         return e
@@ -4315,7 +4315,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
                 for j from 0 <= j < M._ncols:
                     fmpz_set_mpz(fmpz_mat_entry(M._matrix,i,j), mp_N[k])
                     k += 1
-            D = PY_NEW(Integer)
+            D = Integer.__new__(Integer)
             mpz_set(D.value, mp_D)
             return M, D
         finally:

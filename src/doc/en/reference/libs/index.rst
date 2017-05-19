@@ -41,6 +41,7 @@ to be aware of the modules described in this chapter.
    sage/libs/singular/groebner_strategy
    sage/libs/ppl
    sage/libs/linbox/linbox
+   sage/libs/linbox/linbox_flint_interface
    sage/libs/flint/flint
    sage/libs/flint/fmpz_poly
    sage/libs/flint/arith

@@ -2859,10 +2859,13 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         - ``mon`` - a monomial
 
         OUTPUT:
-            coefficient in base ring
 
-        SEE ALSO:
-            For coefficients in a base ring of fewer variables, look at ``coefficient``.
+        coefficient in base ring
+
+        .. SEEALSO::
+
+            For coefficients in a base ring of fewer variables,
+            look at ``coefficient``.
 
         EXAMPLES::
 

@@ -129,16 +129,7 @@ cpdef test_fake_startup():
         sage: lazy_import('sage.rings.all', 'ZZ', 'my_ZZ')
         sage: my_ZZ(123)
         Traceback (most recent call last):
-          File "/usr/local/src/sage-config/local/lib/python2.7/site-packages/sage/doctest/forker.py", line 498, in _run
-            self.compile_and_execute(example, compiler, test.globs)
-          File "/usr/local/src/sage-config/local/lib/python2.7/site-packages/sage/doctest/forker.py", line 861, in compile_and_execute
-            exec(compiled, globs)
-          File "<doctest sage.misc.lazy_import.test_fake_startup[3]>", line 1, in <module>
-            my_ZZ(Integer(123))
-          File "sage/misc/lazy_import.pyx", line 346, in sage.misc.lazy_import.LazyImport.__call__ (build/cythonized/sage/misc/lazy_import.c:3495)
-            return self._get_object()(*args, **kwds)
-          File "sage/misc/lazy_import.pyx", line 210, in sage.misc.lazy_import.LazyImport._get_object (build/cythonized/sage/misc/lazy_import.c:2139)
-            raise RuntimeError(f"resolving lazy import {self._name} during startup")
+        ...
         RuntimeError: resolving lazy import ZZ during startup
         sage: sage.misc.lazy_import.finish_startup()
     """

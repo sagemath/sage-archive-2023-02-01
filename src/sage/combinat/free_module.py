@@ -321,8 +321,9 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             'sage.combinat.free_module'
         """
         return self.__make_element_class__(self.Element,
-                                           "%s.element_class"%self.__class__.__name__,
-                                           inherit = True)
+                                           name="%s.element_class"%self.__class__.__name__,
+                                           module=self.__class__.__module__,
+                                           inherit=True)
 
     def __init__(self, R, basis_keys, element_class = None, category = None, prefix="B", **kwds):
         r"""

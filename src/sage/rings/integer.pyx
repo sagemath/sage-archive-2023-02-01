@@ -1,51 +1,8 @@
 r"""
 Elements of the ring `\ZZ` of integers
 
-AUTHORS:
-
-- William Stein (2005): initial version
-
-- Gonzalo Tornaria (2006-03-02): vastly improved python/GMP
-  conversion; hashing
-
-- Didier Deshommes (2006-03-06): numerous examples
-  and docstrings
-
-- William Stein (2006-03-31): changes to reflect GMP bug fixes
-
-- William Stein (2006-04-14): added GMP factorial method (since it's
-  now very fast).
-
-- David Harvey (2006-09-15): added nth_root, exact_log
-
-- David Harvey (2006-09-16): attempt to optimise Integer constructor
-
-- Rishikesh (2007-02-25): changed quo_rem so that the rem is positive
-
-- David Harvey, Martin Albrecht, Robert Bradshaw (2007-03-01):
-  optimized Integer constructor and pool
-
-- Pablo De Napoli (2007-04-01): multiplicative_order should return
-  +infinity for non zero numbers
-
-- Robert Bradshaw (2007-04-12): is_perfect_power, Jacobi symbol (with
-  Kronecker extension).  Convert some methods to use GMP directly
-  rather than PARI, Integer(), PY_NEW(Integer)
-
-- David Roe (2007-03-21): sped up valuation and is_square, added
-  val_unit, is_power, is_power_of and divide_knowing_divisible_by
-
-- Robert Bradshaw (2008-03-26): gamma function, multifactorials
-
-- Robert Bradshaw (2008-10-02): bounded squarefree part
-
-- David Loeffler (2011-01-15): fixed bug #10625 (inverse_mod should accept an ideal as argument)
-
-- Vincent Delecroix (2010-12-28): added unicode in Integer.__init__
-
-- David Roe (2012-03): deprecate :meth:`~sage.rings.integer.Integer.is_power`
-  in favour of :meth:`~sage.rings.integer.Integer.is_perfect_power` (see
-  :trac:`12116`)
+Sage has highly optimized and extensive functionality about arithmetic with integers
+and the ring of integers.
 
 EXAMPLES:
 
@@ -110,6 +67,52 @@ real field R::
     sage: RR = RealField(200)
     sage: RR(n)
     9.3908230000000000000000000000000000000000000000000000000000e6
+
+AUTHORS:
+
+- William Stein (2005): initial version
+
+- Gonzalo Tornaria (2006-03-02): vastly improved python/GMP
+  conversion; hashing
+
+- Didier Deshommes (2006-03-06): numerous examples
+  and docstrings
+
+- William Stein (2006-03-31): changes to reflect GMP bug fixes
+
+- William Stein (2006-04-14): added GMP factorial method (since it's
+  now very fast).
+
+- David Harvey (2006-09-15): added nth_root, exact_log
+
+- David Harvey (2006-09-16): attempt to optimise Integer constructor
+
+- Rishikesh (2007-02-25): changed quo_rem so that the rem is positive
+
+- David Harvey, Martin Albrecht, Robert Bradshaw (2007-03-01):
+  optimized Integer constructor and pool
+
+- Pablo De Napoli (2007-04-01): multiplicative_order should return
+  +infinity for non zero numbers
+
+- Robert Bradshaw (2007-04-12): is_perfect_power, Jacobi symbol (with
+  Kronecker extension).  Convert some methods to use GMP directly
+  rather than PARI, Integer(), PY_NEW(Integer)
+
+- David Roe (2007-03-21): sped up valuation and is_square, added
+  val_unit, is_power, is_power_of and divide_knowing_divisible_by
+
+- Robert Bradshaw (2008-03-26): gamma function, multifactorials
+
+- Robert Bradshaw (2008-10-02): bounded squarefree part
+
+- David Loeffler (2011-01-15): fixed bug #10625 (inverse_mod should accept an ideal as argument)
+
+- Vincent Delecroix (2010-12-28): added unicode in Integer.__init__
+
+- David Roe (2012-03): deprecate :meth:`~sage.rings.integer.Integer.is_power`
+  in favour of :meth:`~sage.rings.integer.Integer.is_perfect_power` (see
+  :trac:`12116`)
 
 """
 #*****************************************************************************
@@ -1233,11 +1236,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         This method just calls :func:`digits` with ``base=2``.
 
-        SEE ALSO:
+        .. SEEALSO::
 
-        :func:`nbits` (number of bits; a faster way to compute
-        ``len(x.bits())``; and :func:`binary`, which returns a string in
-        more-familiar notation.
+            :func:`nbits` (number of bits; a faster way to compute
+            ``len(x.bits())``; and :func:`binary`, which returns a string in
+            more-familiar notation.
 
         EXAMPLES::
 

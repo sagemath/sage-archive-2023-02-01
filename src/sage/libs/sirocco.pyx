@@ -26,9 +26,9 @@ cpdef list[list] contpath_mp(int deg, list values, RealNumber y0r, RealNumber y0
     """
     Mimics :func:`contpath`, but with the following differences:
 
-    - The floating point numbers can be arbitrary precission RealNumbers.
+    - The floating point numbers can be arbitrary precision RealNumbers.
 
-    - A extra argument is needed, indicating the bits of precission used
+    - A extra argument is needed, indicating the bits of precision used
       in the computations.
     """
     cdef mpfr_t* cvalues = <mpfr_t*> check_allocarray(len(values), sizeof(mpfr_t))

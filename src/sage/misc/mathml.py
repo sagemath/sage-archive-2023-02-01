@@ -22,7 +22,7 @@ method _mathml_(self) that returns its MathML representation.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six import iteritems
+from six import iteritems, integer_types
 
 
 def list_function(x):
@@ -47,9 +47,9 @@ mathml_table = {list: list_function,
                tuple:tuple_function,
                bool:bool_function,
                str: str_function,
-               int:str,
-               long:str,
                float:str}
+for x in integer_types:
+    mathml_table[x] = str
 
 class MathML(str):
     def __repr__(self):

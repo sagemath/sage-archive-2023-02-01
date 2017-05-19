@@ -5449,7 +5449,3 @@ class LPRevisedDictionary(LPAbstractDictionary):
     # Aliases for the standard notation
     x_B = basic_variables
     x_N = nonbasic_variables
-
-# DEPRECATION (those two lines should be removed when cleaning #17867)
-LPProblem = InteractiveLPProblem
-LPProblemStandardForm = InteractiveLPProblemStandardForm

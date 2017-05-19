@@ -187,15 +187,16 @@ The top of each Sage code file should follow this format::
 
     <Paragraph description>
 
+    EXAMPLES::
+
+    <Lots and lots of examples>
+
     AUTHORS:
 
     - YOUR NAME (2005-01-03): initial version
 
     - person (date in ISO year-month-day format): short desc
 
-    EXAMPLES::
-
-    <Lots and lots of examples>
     """
 
     #*****************************************************************************
@@ -208,12 +209,14 @@ The top of each Sage code file should follow this format::
     #                  http://www.gnu.org/licenses/
     #*****************************************************************************
 
-As an example, see ``SAGE_ROOT/src/sage/rings/integer.pyx`` which
-contains the implementation for `\ZZ`. The ``AUTHORS:`` section is
-redundant, the authoritative log for who wrote what is always the git
-repository (see the output of ``git blame``). Nevertheless, it is
-sometimes useful to have a very rough overview over the history,
-especially if a lot of people have been working on that source file.
+As an example, see ``SAGE_ROOT/src/sage/rings/integer.pyx``, which contains the
+implementation for `\ZZ`. The names of the people who made major contributions
+to the file appear in the ``AUTHORS`` section. You can add your name to the
+list if you belong to the people, but refrain from being verbose in the
+description. The ``AUTHORS`` section shows very rough overview of the history,
+especially if a lot of people have been working on that source file. The
+authoritative log for who wrote what is always the git repository (see the
+output of ``git blame``).
 
 All code included with Sage must be licensed under the GPLv2+ or a
 compatible, that is, less restrictive license (e.g. the BSD license).
@@ -433,8 +436,8 @@ information. You can use the existing functions of Sage as templates.
 
   - lines which look like a reST header: one line containing
     anything, followed by a line consisting only of whitespace,
-    followed by a string of hyphens, equal signs, or other 
-    characters which are valid markers for reST 
+    followed by a string of hyphens, equal signs, or other
+    characters which are valid markers for reST
     headers: ``- = ` : ' " ~ _ ^ * + # < >``.
 
 Sage documentation style

@@ -2521,7 +2521,7 @@ class ClassicalCrystalOfLettersWrapped(ClassicalCrystalOfLetters):
     @lazy_attribute
     def _tuple_to_element_dict(self):
         """
-        A dictonary from tuples to elements of ``self``.
+        A dictionary from tuples to elements of ``self``.
 
         EXAMPLES::
 

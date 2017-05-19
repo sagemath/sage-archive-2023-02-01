@@ -1051,7 +1051,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: abs(x1.real())+abs(x2.real())<1e-14
             True
             sage: x1.imag(),x2.imag(),x3
-            (-1.122462048309373?, 1.122462048309373?, -1)
+            (-1.122462048309373?, 1.122462048309373?, -1.000000000000000?)
 
         ::
 

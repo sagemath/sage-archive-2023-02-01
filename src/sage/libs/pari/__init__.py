@@ -130,7 +130,7 @@ The real precision set by
 
 In these examples, we convert to Sage to ensure that PARI's real
 precision is not used when printing the numbers. As explained before,
-this artificically increases the precision to a multiple of the
+this artificially increases the precision to a multiple of the
 wordsize. ::
 
     sage: s = pari(1).sin(precision=180).sage(); print(s); print(parent(s))

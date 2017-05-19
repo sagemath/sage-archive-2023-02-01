@@ -238,7 +238,7 @@ def followstrand(f, x0, x1, y0a, prec=53):
     - ``x0`` -- a complex value, where the homotopy starts
     - ``x1`` -- a complex value, where the homotopy ends
     - ``y0a`` -- an approximate solution of the polynomial `F(y) = f(x_0, y)`
-    - ``prec`` -- the precission to use
+    - ``prec`` -- the precision to use
 
     OUTPUT:
 

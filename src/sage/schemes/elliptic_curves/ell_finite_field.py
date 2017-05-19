@@ -1717,7 +1717,7 @@ self.cardinality(extension_degree=field.degree()//self.base_field().degree())\
         - ``proof`` (boolean, default True) -- If True, returns a
           proved result.  If False, then a return value of False is
           certain but a return value of True may be based on a
-          probabilistic test.  See the documentaion of the function
+          probabilistic test.  See the documentation of the function
           :meth:`is_j_supersingular` for more details.
 
         EXAMPLES::
@@ -1752,7 +1752,7 @@ self.cardinality(extension_degree=field.degree()//self.base_field().degree())\
         - ``proof`` (boolean, default True) -- If True, returns a
           proved result.  If False, then a return value of True is
           certain but a return value of False may be based on a
-          probabilistic test.  See the documentaion of the function
+          probabilistic test.  See the documentation of the function
           :meth:`is_j_supersingular` for more details.
 
         EXAMPLES::

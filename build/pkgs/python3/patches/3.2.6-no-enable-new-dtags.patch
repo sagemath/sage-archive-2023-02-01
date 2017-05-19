@@ -4,7 +4,7 @@ diff --git a/Lib/distutils/unixccompiler.py b/Lib/distutils/unixccompiler.py
 index 69045f8..7ed0a5f 100644
 --- a/Lib/distutils/unixccompiler.py
 +++ b/Lib/distutils/unixccompiler.py
-@@ -239,9 +239,13 @@ class UnixCCompiler(CCompiler):
+@@ -243,9 +243,13 @@ class UnixCCompiler(CCompiler):
                  # -Wl whenever gcc was used in the past it is probably
                  # safest to keep doing so.
                  if sysconfig.get_config_var("GNULD") == "yes":

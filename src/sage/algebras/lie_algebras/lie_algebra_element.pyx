@@ -21,7 +21,7 @@ from copy import copy
 
 from sage.misc.misc import repr_lincomb
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.structure.element cimport have_same_parent, coercion_model
+from sage.structure.element cimport have_same_parent, coercion_model, parent
 from sage.structure.element_wrapper cimport ElementWrapper
 
 # TODO: Inherit from IndexedFreeModuleElement and make cdef once #22632 is merged
@@ -42,6 +42,11 @@ class LieAlgebraElement(CombinatorialFreeModule.Element):
             sage: y*x
             x*y - z
         """
+        # Check if there is an action of self
+        act = parent(y).get_action(self.parent(), self_on_left=False)
+        if act:
+            return act._call_(self, y)
+
         if self.is_zero() or y.is_zero():
             return self.parent().zero()
         if y in self.base_ring():
@@ -281,6 +286,11 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
             sage: S(elt)  # not tested: needs #16822
             (2,3) - (1,3)
         """
+        # Check if there is an action of self
+        act = parent(x).get_action(self._parent, self_on_left=False)
+        if act:
+            return act._call_(self, x)
+
         if self.value == 0 or x == 0:
             return self._parent.zero()
         if x in self.base_ring():

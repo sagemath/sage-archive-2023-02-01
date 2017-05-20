@@ -325,7 +325,7 @@ class FiniteMeetSemilattice(FinitePoset):
 
         .. SEEALSO::
 
-            :meth:`~FiniteJoinSemilattice.coatoms()`.
+            - Dual function: :meth:`~FiniteJoinSemilattice.coatoms`
 
         EXAMPLES::
 
@@ -387,7 +387,7 @@ class FiniteMeetSemilattice(FinitePoset):
             sage: L.complements(2), L.pseudocomplement(2)
             ([3, 4], None)
 
-        .. SEEALSO:: :meth:`sage.combinat.posets.lattices.FiniteLatticePoset.is_pseudocomplemented()`.
+        .. SEEALSO:: :meth:`~sage.combinat.posets.lattices.FiniteLatticePoset.is_pseudocomplemented`
 
         TESTS::
 
@@ -577,7 +577,7 @@ class FiniteJoinSemilattice(FinitePoset):
 
         .. SEEALSO::
 
-            :meth:`~FiniteMeetSemilattice.atoms()`.
+            - Dual function: :meth:`~FiniteMeetSemilattice.atoms`
 
         EXAMPLES::
 
@@ -755,8 +755,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
-            :meth:`meet_primes`,
-            :meth:`~sage.categories.finite_lattice_posets.FiniteLatticePosets.ParentMethods.join_irreducibles`
+            - Dual function: :meth:`meet_primes`
+            - Other: :meth:`~sage.categories.finite_lattice_posets.FiniteLatticePosets.ParentMethods.join_irreducibles`
 
         EXAMPLES::
 
@@ -792,8 +792,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
-            :meth:`join_primes`,
-            :meth:`~sage.categories.finite_lattice_posets.FiniteLatticePosets.ParentMethods.meet_irreducibles`
+            - Dual function: :meth:`join_primes`
+            - Other: :meth:`~sage.categories.finite_lattice_posets.FiniteLatticePosets.ParentMethods.meet_irreducibles`
 
         EXAMPLES::
 
@@ -1850,12 +1850,14 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
           complements for all elements having at least one
           complement is returned.
 
+        .. SEEALSO:: :meth:`is_complemented`
+
         EXAMPLES::
 
             sage: L=LatticePoset({0:['a','b','c'], 'a':[1], 'b':[1], 'c':[1]})
             sage: C = L.complements()
 
-        Let us check that `'a'` and `'b'` are complements of each other::
+        Let us check that 'a' and 'b' are complements of each other::
 
             sage: 'a' in C['b']
             True
@@ -1864,11 +1866,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         Full list of complements::
 
-            sage: L.complements() # random
+            sage: L.complements() # random order
             {0: [1], 1: [0], 'a': ['b', 'c'], 'b': ['c', 'a'], 'c': ['b', 'a']}
 
             sage: L=LatticePoset({0:[1,2],1:[3],2:[3],3:[4]})
-            sage: L.complements() # random
+            sage: L.complements() # random order
             {0: [4], 4: [0]}
             sage: L.complements(1)
             []
@@ -3580,6 +3582,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             - Stronger properties: :meth:`is_distributive`,
               :meth:`is_vertically_decomposable`
+            - Other: :meth:`subdirect_decomposition`
 
         EXAMPLES::
 
@@ -3602,8 +3605,6 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: [Posets.ChainPoset(i).is_subdirectly_reducible() for i in range(5)]
             [False, False, False, True, True]
         """
-        # Todo: Add seealso-link to subdirect_decomposition() when it is done.
-
         H = self._hasse_diagram
         A = H.atoms_of_congruence_lattice()
 

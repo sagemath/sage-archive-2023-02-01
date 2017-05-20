@@ -1033,7 +1033,7 @@ Here are some of the more commonly used variables affecting the build process:
 
 - :envvar:`SAGE_PROFILE` - controls profiling support. If this is set
   to ``yes``, profiling support is enabled where possible. Note that
-  Python-level profiling is always avaliable; This option enables
+  Python-level profiling is always available; This option enables
   profiling in Cython modules.
 
 - :envvar:`SAGE_SPKG_INSTALL_DOCS` - if set to ``yes``, then install

@@ -568,7 +568,8 @@ class ProjectiveSpace_ring(AmbientSpace):
             [0]
             [0]
 
-        If the multiplcity ``m`` is 0, then the a matrix with zero rows is returned::
+        If the multiplicity `m` is 0, then the a matrix with zero rows
+        is returned::
 
             sage: P = ProjectiveSpace(GF(5), 2, names='x')
             sage: pt = P([1, 1, 1])

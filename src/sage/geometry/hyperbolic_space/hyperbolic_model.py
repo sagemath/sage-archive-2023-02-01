@@ -674,7 +674,7 @@ class HyperbolicModel(Parent, UniqueRepresentation, BindableClass):
                     return self._dist_points(coords(p), coords(q))
 
                 raise NotImplementedError("can only compute distance between"
-                                          " ultra-parallel and interecting geodesics")
+                                          " ultra-parallel and intersecting geodesics")
 
             # If only one is a geodesic, make sure it's b to make things easier
             a,b = b,a

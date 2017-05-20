@@ -15,9 +15,6 @@ AUTHORS:
 
 - Tom Coates (2010-06-11): fixed :trac:`9217`
 
-The Sage calculus module is loosely based on the Sage Enhancement
-Proposal found at: http://www.sagemath.org:9001/CalculusSEP.
-
 EXAMPLES:
 
 The basic units of the calculus package are symbolic expressions which

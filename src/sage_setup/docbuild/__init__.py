@@ -654,7 +654,7 @@ for a webpage listing all of the documents.''' % (output_dir,
 class ReferenceSubBuilder(DocBuilder):
     """
     This class builds sub-components of the reference manual.  It is
-    resposible for making sure the auto generated ReST files for the
+    responsible for making sure the auto generated ReST files for the
     Sage library are up to date.
 
     When building any output, we must first go through and check

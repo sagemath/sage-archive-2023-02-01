@@ -2400,7 +2400,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             # We build the family of fundamental weights in this space,
             # indexed by the fundamental weights in the weight lattice.
             #
-            # To this end, we don't use the embdding of the weight
+            # To this end, we don't use the embedding of the weight
             # lattice into self as for the roots or coroots because
             # the ambient space can define the fundamental weights
             # slightly differently (the usual GL_n vs SL_n catch).

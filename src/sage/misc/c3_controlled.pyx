@@ -892,7 +892,8 @@ cpdef tuple C3_sorted_merge(list lists, key=identity):
             # last list. Later, we will make sure that it is actually
             # in the tail of the last list.
             if not last_list_non_empty:
-                # Reinstate the last list for the suggestion if it had disapeared before
+                # Reinstate the last list for the suggestion
+                # if it had disappeared before
                 heads.append(O)
                 tails.append([])
                 tailsets.append(set())

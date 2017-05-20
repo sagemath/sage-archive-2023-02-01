@@ -35,8 +35,10 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
     r"""
     An (untwisted) affine Lie algebra.
 
-    Given a finite dimensional simple Lie algebra `\mathfrak{g}` over `R`,
-    we construct an affine Lie algebra `\widehat{\mathfrak{g}}^{\prime}` as
+    Let `R` be a ring.  Given a finite-dimensional simple Lie algebra
+    `\mathfrak{g}` over `R`, the affine Lie algebra
+    `\widehat{\mathfrak{g}}^{\prime}` associated to `\mathfrak{g}` is
+    defined as
 
     .. MATH::
 
@@ -44,33 +46,42 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
         R[t, t^{-1}] \bigr) \oplus R c,
 
     where `c` is the canonical central element and `R[t, t^{-1}]` is the
-    Laurent polynomial ring over `R`. We define the Lie bracket as
+    Laurent polynomial ring over `R`. The Lie bracket is defined as
 
     .. MATH::
 
-        [a \otimes t^n + \alpha c, b \otimes t^m + \beta c] =
-        [a, b] \otimes t^{n+m} + \delta_{n+m,0} ( a | b ) n c
+        [x \otimes t^m + \lambda c, y \otimes t^n + \mu c] =
+        [x, y] \otimes t^{m+n} + m \delta_{m,-n} ( x | y ) c,
 
-    where `( a | b )` is the Killing form on `\mathfrak{g}`.
+    where `( x | y )` is the Killing form on `\mathfrak{g}`.
 
-    There is a canonical derivative on `\widehat{\mathfrak{g}}'`
-    known as the *Lie derivative* and is denoted by `\delta`.
-    The Lie derivative is defined as
+    There is a canonical derivation `d` on `\widehat{\mathfrak{g}}'`
+    that is defined by
 
     .. MATH::
 
-        \delta(a \otimes t^m + \alpha c) = a \otimes m t^m,
+        d(x \otimes t^m + \lambda c) = a \otimes m t^m,
 
-    or equivalently by `\delta = t \frac{d}{dt}`.
+    or equivalently by `d = t \frac{d}{dt}`.
 
-    We can form the affine Kac-Moody algebra `\widehat{\mathfrak{g}}`
-    by adding the additional generator `d` such that `[d, x] = \delta(x)`,
-    where `\delta` is the Lie derivative. We note that the derived
-    subalgebra of the Kac-Moody algebra is the affine Lie algebra.
+    The affine Kac-Moody algebra `\widehat{\mathfrak{g}}` is formed by
+    adjoining the derivation `d` such that
 
-    .. NOTE::
+    .. MATH::
 
-        Our terminology is following that of :wikipedia:`Affine_Lie_algebra`.
+        \widehat{\mathfrak{g}} = \bigl( \mathfrak{g} \otimes R[t,t^{-1}]
+        \bigr) \oplus R c \oplus R d.
+
+    Specifically, the bracket on `\widehat{\mathfrak{g}}` is defined as
+
+    .. MATH::
+
+        [t^m \otimes x \oplus \lambda c \oplus \mu d, t^n \otimes y \oplus
+        \lambda_1 c \oplus \mu_1 d] = \bigl( t^{m+n} [x,y] + \mu n t^n \otimes
+        y - \mu_1 m t^m \otimes x\bigr) \oplus m \delta_{m,-n} (x|y) c .
+
+    Note that the derived subalgebra of the Kac-Moody algebra is the
+    affine Lie algebra.
 
     INPUT:
 
@@ -128,7 +139,7 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
 
     REFERENCES:
 
-    - :wikipedia:`Affine_Lie_algebra`
+    - [Ka1990]_
     """
     @staticmethod
     def __classcall_private__(cls, arg0, cartan_type=None, kac_moody=True):

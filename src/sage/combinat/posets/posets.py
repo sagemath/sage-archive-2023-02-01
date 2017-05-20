@@ -1015,7 +1015,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: L = P._list; L
             (a, b, c, d)
             sage: type(L[0])
-            <class 'sage.combinat.posets.elements.FinitePoset_with_category.element_class'>
+            <class 'sage.combinat.posets.posets.FinitePoset_with_category.element_class'>
             sage: L[0].parent() is P
             True
 
@@ -1651,7 +1651,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: D.list()
             [0, 1, 2, 3, 4]
             sage: type(D.list()[0])
-            <class 'sage.combinat.posets.elements.FinitePoset_with_category.element_class'>
+            <class 'sage.combinat.posets.posets.FinitePoset_with_category.element_class'>
         """
         return list(self._list)
 

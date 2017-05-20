@@ -4013,7 +4013,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
             sage: v = vector([-1,0,3,pi])
             sage: type(v)
-            <class 'sage.modules.vector_symbolic_dense.FreeModule_ambient_field_with_category.element_class'>
+            <class 'sage.modules.free_module.FreeModule_ambient_field_with_category.element_class'>
             sage: v.__copy__()
             (-1, 0, 3, pi)
             sage: v.__copy__() is v
@@ -4309,7 +4309,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: g
             (2*x, 2*y)
             sage: type(g)
-            <class 'sage.modules.vector_symbolic_dense.FreeModule_ambient_field_with_category.element_class'>
+            <class 'sage.modules.free_module.FreeModule_ambient_field_with_category.element_class'>
             sage: g(y=2, x=3)
             (6, 4)
             sage: f(x,y) = x^2 + y^2

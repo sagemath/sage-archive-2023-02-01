@@ -26,6 +26,8 @@ from sage.structure.indexed_generators import IndexedGenerators
 from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElement
 from sage.algebras.lie_algebras.lie_algebra import (InfinitelyGeneratedLieAlgebra,
                                                     FinitelyGeneratedLieAlgebra)
+from sage.combinat.free_module import CombinatorialFreeModule
+from sage.structure.element import parent
 
 class LieAlgebraRegularVectorFields(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
     r"""
@@ -472,5 +474,189 @@ class VirasoroAlgebra(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
         d = self.monomial
         return [d(0), d(2), d(-2), d('c'), self.an_element()]
 
+    def chargeless_representation(self, alpha, beta):
+        return ChargelessVirasoroRepresentation(self, alpha, beta)
+
     Element = LieAlgebraElement
+
+#####################################################################
+## Representations
+
+class ChargelessVirasoroRepresentation(CombinatorialFreeModule):
+    r"""
+    A chargeless representation of the Virasoro algebra.
+
+    Let `L` be the Virasoro algebra over the field `F` of characteristic
+    `0`. For `\alpha, \beta \in R`, we denote `V_{a,b}` as the
+    `(a, b)`-*chargeless representation* of `L`, which is the
+    `F`-span of `\{v_k \mid k \in \ZZ\}` with `L` action
+
+    .. MATH::
+
+        \begin{aligned}
+        d_n \cdot v_k & = (a n + b + k) v_{n+k},
+        \\ c \cdot v_k & = 0,
+        \end{aligned}
+
+    .. NOTE::
+
+        There is a typo in, e.g., [Mat1992]_ and [IK2010]_, where the
+        action is given by `d_n \cdot v_k = (a n + b - k) v_{n+k}`.
+        However, this results is in
+
+        .. MATH::
+
+            x \cdot (y \cdot v) - y \cdot (x \cdot v) = [y, x] cdot v
+            = -[x, y] \cdot v.
+
+    This comes from the action of `d_n = -t^{n+1} \frac{d}{dt}`
+    on `F[t, t^{-1}]` (recall that `V` is the central extension
+    of the algebra of derivations of `F[t, t^{-1}]`), where
+
+    .. MATH::
+
+        V_{a,b} = F[t, t^{-1}] t^(a-b) (dt)^{-a}
+
+    and `v_k = t^{a-b+k} (dz)^{-a}`.
+
+    The chargeless representations are either irreducible or
+    contains exactly two simple subquotients, one of which is the
+    trivial representation and the other is `F[t, t^{-1}] / F`.
+    The non-trivial simple subquotients are called the
+    *intermediate series*.
+
+    The module `V_{a,b}` is irreducible if and only if
+    `a \neq 0, -1` or `b \notin \ZZ`. When `a = 0` and `b \in \ZZ`,
+    then there exists a subrepresentation isomorphic to the trivial
+    representation. If `a = -1` and `b \in \ZZ`, then there exists
+    a subrepresentation `V` such that `V_{a,b} / V` is isomorphic to
+    `K \frac{dt}{t}` and `V` is irreducible.
+
+    In characteristic `p`, the non-trivial simple subquotient is
+    isomorphic to `F[t, t^{-1}] / F[t^p, t^{-p}]`. For `p \neq 2,3`,
+    then the action is given as above.
+
+    EXAMPLES:
+
+    We first construct the irreducible `V_{1/2, 3/4}` and do some
+    basic computations::
+
+        sage: L = lie_algebras.VirasoroAlgebra(QQ)
+        sage: M = L.chargeless_representation(1/2, 3/4)
+        sage: d = L.basis()
+        sage: v = M.basis()
+        sage: d[3] * v[2]
+        17/4*v[5]
+        sage: d[3] * v[-1]
+        5/4*v[2]
+        sage: (d[3] - d[-2]) * (v[-1] + 1/2*v[0] - v[4])
+        5/4*v[-3] + 1/8*v[-2] + 5*v[2] + 9/8*v[3] - 25/4*v[7]
+
+    We construct the reducible `V_{0,2}` and the trivial
+    subrepresentation given by the span of `v_{-2}`. We verify
+    this for `\{d_i \mid -10 \leq i < 10\}::
+
+        sage: M = L.chargeless_representation(0, 2)
+        sage: v = M.basis()
+        sage: all(d[i] * v[-2] == M.zero() for i in range(-10, 10))
+        True
+
+    REFERNCES::
+
+    .. [Mat1992] \O. Mathieu. *Classification of Harish-Chandra
+       modules over the Virasoro Lie algebra*.
+       Invent. Math. **107(2)** (1992), pp. 225–234.
+
+    .. [IK2010] Kenji Iohara and Yoshiyuki Koga.
+       *Representation Theory of the Virasora Algebra*. 
+       Springer, (2010).
+    """
+    def __init__(self, V, a, b):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.VirasoroAlgebra(QQ)
+            sage: M = L.chargeless_representation(1/2, 3/4)
+            sage: TestSuite(M).run()
+        """
+        self._a = a
+        self._b = b
+        self._V = V
+        if V.base_ring().characteristic() in [2,3]:
+            raise NotImplementedError("not implemented for characteristic 2,3")
+        CombinatorialFreeModule.__init__(self, V.base_ring(), ZZ,
+                                         prefix='v')
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.VirasoroAlgebra(QQ)
+            sage: L.chargeless_representation(1/2, 3/4)
+            Chargeless representation (1/2, 1/2) of
+             The Virasoro algebra over Rational Field
+        """
+        return "Chargeless representation ({}, {}) of {}".format(
+                    self._a, self._a, self._V)
+
+    def parameters(self):
+        """
+        Return the parameters `(a, b)` of ``self``.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.VirasoroAlgebra(QQ)
+            sage: M = L.chargeless_representation(1/2, 3/4)
+            sage: M.parameters()
+            (1/2, 3/4)
+        """
+        return (self._a, self._b)
+
+    def virasoro_algebra(self):
+        """
+        Return the Virasoro algebra ``self`` is a representation of.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.VirasoroAlgebra(QQ)
+            sage: M = L.chargeless_representation(1/2, 3/4)
+            sage: M.virasoro_algebra() is L
+            True
+        """
+        return self._V
+
+    class Element(CombinatorialFreeModule.Element):
+        def _acted_upon_(self, scalar, self_on_left=False):
+            """
+            Return the action of ``scalar`` on ``self``.
+
+            EXAMPLES::
+
+                sage: L = lie_algebras.VirasoroAlgebra(QQ)
+                sage: d = L.basis()
+                sage: M = L.chargeless_representation(1/2, 3/4)
+                sage: x = d[-5] * M.an_element() + M.basis()[10]; x
+                -33/4*v[-6] - 7/4*v[-5] - 9/4*v[-4] + v[10]
+                sage: d[2] * x
+                561/16*v[-4] + 91/16*v[-3] + 81/16*v[-2] + 47/4*v[12]
+
+                sage: v = M.basis()
+                sage: all(d[i]*(d[j]*v[k]) - d[j]*(d[i]*v[k]) == d[i].bracket(d[j])*v[k]
+                ....:     for i in range(-5, 5) for j in range(-5, 5) for k in range(-5, 5))
+                True
+            """
+            P = self.parent()
+            # We implement only a left action
+            if not self_on_left and scalar in P._V:
+                scalar = P._V(scalar)
+                return P.sum_of_terms((n+k, (P._a * n + P._b + k) * cv * cm)
+                                      for n,cv in scalar.monomial_coefficients(copy=False).items() if n != 'c'
+                                      for k,cm in self.monomial_coefficients(copy=False).items())
+            return CombinatorialFreeModule.Element._acted_upon_(self, scalar, self_on_left)
+
+        _rmul_ = _lmul_ = _acted_upon_
 

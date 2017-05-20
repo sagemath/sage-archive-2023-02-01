@@ -41,6 +41,14 @@ class LieAlgebraElement(CombinatorialFreeModule.Element):
             sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'): {'z':1}})
             sage: y*x
             x*y - z
+
+        Check that actions work::
+
+            sage: L = lie_algebras.VirasoroAlgebra(QQ)
+            sage: d = L.basis()
+            sage: M = L.chargeless_representation(1/2, 3/4)
+            sage: x = d[-5] * M.basis()[10]
+            33/4*v[5]
         """
         # Check if there is an action of self
         act = parent(y).get_action(self.parent(), self_on_left=False)

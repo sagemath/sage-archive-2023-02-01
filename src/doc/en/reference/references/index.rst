@@ -898,6 +898,10 @@ REFERENCES:
 
 **I**
 
+.. [IK2010] Kenji Iohara and Yoshiyuki Koga.
+            *Representation Theory of the Virasoro Algebra*. 
+            Springer, (2010).
+
 .. [IR1990] \K. Ireland and M. Rosen, *A Classical Introduction to
             Modern Number Theory*, Springer-Verlag, GTM volume
             84, 1990.
@@ -1199,6 +1203,10 @@ REFERENCES:
 .. _ref-M:
 
 **M**
+
+.. [Mat1992] \O. Mathieu. *Classification of Harish-Chandra
+             modules over the Virasoro Lie algebra*.
+             Invent. Math. **107(2)** (1992), pp. 225-234.
 
 .. [Mat2002] Jiří Matousek, "Lectures on Discrete Geometry", Springer,
              2002

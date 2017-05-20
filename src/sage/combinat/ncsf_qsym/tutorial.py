@@ -48,6 +48,8 @@ names. ::
     sage: QSym.inject_shorthands()
     Injecting M as shorthand for Quasisymmetric functions over the Rational Field in the Monomial basis
     Injecting F as shorthand for Quasisymmetric functions over the Rational Field in the Fundamental basis
+    Injecting E as shorthand for Quasisymmetric functions over the Rational Field in the Essential basis
+    doctest:...: RuntimeWarning: redefining global value `E`
     Injecting dI as shorthand for Quasisymmetric functions over the Rational Field in the dualImmaculate basis
     Injecting QS as shorthand for Quasisymmetric functions over the Rational Field in the Quasisymmetric Schur basis
 

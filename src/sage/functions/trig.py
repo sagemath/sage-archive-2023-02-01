@@ -44,7 +44,6 @@ class Function_sin(GinacFunction):
             sage: sin(k*pi)
             0
 
-
         TESTS::
 
             sage: conjugate(sin(x))
@@ -160,10 +159,9 @@ class Function_cos(GinacFunction):
             sage: cos(1 + 2*k*pi)
             cos(1)
             sage: cos(k*pi)
-            (-1)^k
+            cos(pi*k)
             sage: cos(pi/3 + 2*k*pi)
             1/2
-
 
         TESTS::
 

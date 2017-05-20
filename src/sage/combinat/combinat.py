@@ -410,11 +410,12 @@ def bell_number(n, algorithm='flint', **options):
 
     raise ValueError("unknown algorithm %r" % algorithm)
 
+
 def catalan_number(n):
     r"""
     Return the `n`-th Catalan number.
 
-    Catalan numbers: The `n`-th Catalan number is given
+    The `n`-th Catalan number is given
     directly in terms of binomial coefficients by
 
     .. MATH::
@@ -422,26 +423,23 @@ def catalan_number(n):
         C_n = \frac{1}{n+1}\binom{2n}{n} = \frac{(2n)!}{(n+1)!\,n!}
         \qquad\mbox{ for }\quad n\ge 0.
 
-
-
     Consider the set `S = \{ 1, ..., n \}`. A noncrossing
     partition of `S` is a partition in which no two blocks
     "cross" each other, i.e., if `a` and `b` belong to one block and
     `x` and `y` to another, they are not arranged in the order `axby`.
     `C_n` is the number of noncrossing partitions of the set
-    `S`. There are many other interpretations (see
-    REFERENCES).
+    `S`. There are many other interpretations (see REFERENCES).
 
-    When `n=-1`, this function raises a ZeroDivisionError; for
+    When `n=-1`, this function returns the limit value `-1/2`. For
     other `n<0` it returns `0`.
 
     INPUT:
 
-    - ``n`` - integer
+    - ``n`` -- integer
 
-    OUTPUT: integer
+    OUTPUT:
 
-
+    integer
 
     EXAMPLES::
 
@@ -449,23 +447,24 @@ def catalan_number(n):
         [1, 1, 2, 5, 14, 42, 132]
         sage: taylor((-1/2)*sqrt(1 - 4*x^2), x, 0, 15)
         132*x^14 + 42*x^12 + 14*x^10 + 5*x^8 + 2*x^6 + x^4 + x^2 - 1/2
-        sage: [catalan_number(i) for i in range(-7,7) if i != -1]
-        [0, 0, 0, 0, 0, 0, 1, 1, 2, 5, 14, 42, 132]
-        sage: catalan_number(-1)
-        Traceback (most recent call last):
-        ...
-        ZeroDivisionError
+        sage: [catalan_number(i) for i in range(-7,7)]
+        [0, 0, 0, 0, 0, 0, -1/2, 1, 1, 2, 5, 14, 42, 132]
         sage: [catalan_number(n).mod(2) for n in range(16)]
         [1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1]
 
     REFERENCES:
 
-    -  http://en.wikipedia.org/wiki/Catalan_number
+    -  :wikipedia:`Catalan_number`
 
     -  http://www-history.mcs.st-andrews.ac.uk/~history/Miscellaneous/CatalanNumbers/catalan.html
     """
     n = ZZ(n)
-    return binomial(2*n,n).divide_knowing_divisible_by(n+1)
+    if n < -1:
+        return ZZ.zero()
+    if n == -1:
+        return QQ((-1, 2))
+    return binomial(2 * n, n).divide_knowing_divisible_by(n + 1)
+
 
 def euler_number(n, algorithm='flint'):
     """
@@ -626,7 +625,9 @@ def lucas_number1(n, P, Q):
 
     Can you use Sage to find a counterexample to the conjecture?
     """
-    n = ZZ(n);  P = QQ(P);  Q = QQ(Q)
+    n = ZZ(n)
+    P = QQ(P)
+    Q = QQ(Q)
     from sage.libs.gap.libgap import libgap
     return libgap.Lucas(P, Q, n)[0].sage()
 
@@ -674,7 +675,9 @@ def lucas_number2(n, P, Q):
         sage: [lucas_number2(n,1,-1) for n in range(10)]
         [2, 1, 3, 4, 7, 11, 18, 29, 47, 76]
     """
-    n = ZZ(n);  P = QQ(P);  Q = QQ(Q)
+    n = ZZ(n)
+    P = QQ(P)
+    Q = QQ(Q)
     from sage.libs.gap.libgap import libgap
     return libgap.Lucas(P, Q, n)[1].sage()
 

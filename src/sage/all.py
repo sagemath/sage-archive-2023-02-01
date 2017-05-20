@@ -15,26 +15,21 @@ intended effect of your patch.
     sage: from sage import *
     sage: frames = [x for x in gc.get_objects() if inspect.isframe(x)]
 
-We exclude the known files and check to see that there are no others::
+We exclude the dependencies and check to see that there are no others 
+except for the known bad apples::
 
-    sage: import os
-    sage: allowed = [os.path.join("lib","python","threading.py")]
-    sage: allowed.append(os.path.join("lib","python","multiprocessing"))
-    sage: allowed.append(os.path.join("sage","doctest"))
-    sage: allowed.append(os.path.join("bin","sage-runtests"))
-    sage: allowed.append(os.path.join("site-packages","IPython"))
-    sage: allowed.append(os.path.join("bin","sage-ipython"))
-    sage: allowed.append("<ipython console>")
-    sage: allowed.append("<doctest sage.all[3]>")
-    sage: allowed.append(os.path.join("sage","combinat","species","generating_series.py"))
-    sage: for i in frames:
-    ....:     filename, lineno, funcname, linelist, indx = inspect.getframeinfo(i)
-    ....:     for nm in allowed:
-    ....:         if nm in filename:
-    ....:             break
-    ....:     else:
-    ....:         print(filename)
-    ....:
+    sage: allowed = [
+    ....:     'IPython', 'prompt_toolkit',     # sage dependencies
+    ....:     'threading', 'multiprocessing',  # doctest dependencies
+    ....:     '__main__', 'sage.doctest',      # doctesting
+    ....: ]
+    sage: def is_not_allowed(frame):
+    ....:     module = inspect.getmodule(frame)
+    ....:     if module is None: return False
+    ....:     return not any(module.__name__.startswith(name) for name in allowed)
+    sage: [inspect.getmodule(f).__name__ for f in frames if is_not_allowed(f)]
+    ['sage.combinat.species.generating_series']
+
 
 Check that the Sage Notebook is not imported at startup (see
 :trac:`15335`)::
@@ -123,6 +118,7 @@ from sage.functions.all  import *
 from sage.calculus.all   import *
 
 import sage.tests.all as tests
+from sage.tests.cython import getattr_debug
 
 from sage.crypto.all     import *
 import sage.crypto.mq as mq
@@ -182,8 +178,9 @@ lazy_import('sagenb.notebook.notebook_object', 'notebook')
 lazy_import('sagenb.notebook.notebook_object', 'inotebook')
 lazy_import('sagenb.notebook.sage_email', 'email')
 lazy_import('sage.interacts', 'all', 'interacts')
-lazy_import('sage.interacts.decorator', 'interact')
 from sage.interacts.debugger import debug
+# interact decorator from SageNB (will be overridden by Jupyter)
+lazy_import('sagenb.notebook.interact', 'interact')
 
 from copy import copy, deepcopy
 

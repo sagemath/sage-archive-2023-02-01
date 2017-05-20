@@ -2759,9 +2759,11 @@ class HeegnerPointOnX0N(HeegnerPoint):
     @cached_method
     def tau(self):
         """
-        Return an element tau in the upper half plane that corresponds
-        to this particular Heegner point (actually, tau is in the
-        quadratic imagqinary field K associated to this Heegner point).
+        Return an element ``tau`` in the upper half plane that corresponds
+        to this particular Heegner point.
+
+        Actually, ``tau`` is in the quadratic imaginary field K associated
+        to this Heegner point.
 
         EXAMPLES::
 
@@ -2773,10 +2775,9 @@ class HeegnerPointOnX0N(HeegnerPoint):
             37*x^2 + 11*x*y + 2*y^2
         """
         K = self.quadratic_field()
-        c = self.conductor()
-        d = K.gen()*c
-        A,B,_ = self.__f
-        return (-B + d)/(2*A)
+        d = K.gen() * self.conductor()
+        A, B, _ = self.__f
+        return (-B + d) / (2 * A)
 
     def map_to_curve(self, E):
         """
@@ -2861,6 +2862,7 @@ class HeegnerPointOnX0N(HeegnerPoint):
         """
         from sage.plot.all import point
         return point(CDF(self.tau()), **kwds)
+
 
 class HeegnerPointOnEllipticCurve(HeegnerPoint):
     """
@@ -3171,7 +3173,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             8.4...e-31 + 6.0...e-31*I
             sage: E = EllipticCurve('37a'); P = E.heegner_point(-40); P
             Heegner point of discriminant -40 on elliptic curve of conductor 37
-            sage: P.numerical_approx()  # abs tol 1e-15
+            sage: P.numerical_approx()  # abs tol 1e-14
             (-3.15940603400359e-16 + 1.41421356237309*I : 1.00000000000000 - 1.41421356237309*I : 1.00000000000000)
 
         A rank 2 curve, where all Heegner points of conductor 1 are 0::
@@ -4678,11 +4680,11 @@ class HeegnerQuatAlg(SageObject):
         """
         INPUT:
 
-            - `D` -- negative fundamental disriminant
+        - `D` -- negative fundamental discriminant
 
-            - `c` -- integer coprime
+        - `c` -- integer coprime
 
-            - `R` -- Eichler order
+        - `R` -- Eichler order
 
         EXAMPLES::
 
@@ -6250,7 +6252,7 @@ def kolyvagin_point(self, D, c=ZZ(1), check=True):
         sage: E = EllipticCurve('37a1')
         sage: P = E.kolyvagin_point(-67); P
         Kolyvagin point of discriminant -67 on elliptic curve of conductor 37
-        sage: P.numerical_approx()
+        sage: P.numerical_approx()  # abs tol 1e-14
         (6.00000000000000 : -15.0000000000000 : 1.00000000000000)
         sage: P.index()
         6

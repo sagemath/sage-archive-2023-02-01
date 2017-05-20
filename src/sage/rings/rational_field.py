@@ -974,7 +974,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         Return an random element of `\QQ`.
 
         Elements are constructed by randomly choosing integers
-        for the numerator and denominator, not neccessarily coprime.
+        for the numerator and denominator, not necessarily coprime.
 
         INPUT:
 
@@ -1215,6 +1215,18 @@ class RationalField(Singleton, number_field_base.NumberField):
         return 'Fraction Integer'
 
     _fricas_init_ = _axiom_init_
+
+    def _polymake_init_(self):
+        r"""
+        Return the polymake representation of `\QQ`.
+
+        EXAMPLES::
+
+            sage: polymake(QQ)    #optional - polymake # indirect doctest
+            Rational
+
+        """
+        return '"Rational"'
 
     def _sage_input_(self, sib, coerced):
         r"""

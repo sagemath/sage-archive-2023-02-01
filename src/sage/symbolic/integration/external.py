@@ -1,11 +1,21 @@
-"Symbolic integration via external software"
+"""Symbolic Integration via External Software
 
+TESTS::
+
+    sage: from sage.symbolic.integration.external import sympy_integrator
+    sage: sympy_integrator(sin(x), x)
+    -cos(x)
+"""
 from sage.symbolic.expression import Expression
 from sage.symbolic.ring import SR
 
 
 def maxima_integrator(expression, v, a=None, b=None):
     """
+    Integration using Maxima
+
+    EXAMPLES::
+
         sage: from sage.symbolic.integration.external import maxima_integrator
         sage: maxima_integrator(sin(x), x)
         -cos(x)
@@ -26,6 +36,10 @@ def maxima_integrator(expression, v, a=None, b=None):
 
 def sympy_integrator(expression, v, a=None, b=None):
     """
+    Integration using SymPy
+
+    EXAMPLES::
+
         sage: from sage.symbolic.integration.external import sympy_integrator
         sage: sympy_integrator(sin(x), x)
         -cos(x)
@@ -43,9 +57,22 @@ def sympy_integrator(expression, v, a=None, b=None):
 
 def mma_free_integrator(expression, v, a=None, b=None):
     """
+    Integration using Mathematica's online integrator
+
+    EXAMPLES::
+
         sage: from sage.symbolic.integration.external import mma_free_integrator
         sage: mma_free_integrator(sin(x), x) # optional - internet
         -cos(x)
+
+    TESTS:
+
+    Check that :trac:`18212` is resolved::
+
+        sage: var('y')   # optional - internet
+        y
+        sage: integral(sin(y)^2, y, algorithm='mathematica_free') # optional - internet
+        -1/2*cos(y)*sin(y) + 1/2*y
     """
     import re
     # import compatible with py2 and py3
@@ -61,9 +88,9 @@ def mma_free_integrator(expression, v, a=None, b=None):
             if chr(i) not in vars:
                 shadow_x = SR.var(chr(i))
                 break
-        expression = expression.subs({x:shadow_x}).subs({dvar: x})
+        expression = expression.subs({x:shadow_x}).subs({v: x})
     params = urlencode({'expr': expression._mathematica_init_(), 'random': 'false'})
-    page = urlopen("http://integrals.wolfram.com/index.jsp", params).read()
+    page = urlopen("http://integrals.wolfram.com/home.jsp", params).read()
     page = page[page.index('"inputForm"'):page.index('"outputForm"')]
     page = re.sub("\s", "", page)
     mexpr = re.match(r".*Integrate.*==</em><br/>(.*)</p>", page).groups()[0]
@@ -118,3 +145,23 @@ def fricas_integrator(expression, v, a=None, b=None, noPole=True):
                          " in the integration interval")
 
     return result.sage()
+
+def giac_integrator(expression, v, a=None, b=None):
+    """
+    Integration using Giac
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.integration.external import giac_integrator
+        sage: giac_integrator(sin(x), x)
+        -cos(x)
+        sage: giac_integrator(1/(x^2+6), x, -oo, oo)
+        1/6*sqrt(6)*pi
+    """
+    ex = expression._giac_()
+    v = v._giac_()
+    if a is None:
+        result = ex.integrate(v)
+    else:
+        result = ex.integrate(v, a._giac_(), b._giac_())
+    return result._sage_()

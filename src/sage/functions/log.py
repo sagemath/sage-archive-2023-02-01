@@ -105,7 +105,7 @@ class Function_exp(GinacFunction):
             sage: conjugate(exp(x))
             e^conjugate(x)
 
-        Test simplifications when taking powers of exp, #7264::
+        Test simplifications when taking powers of exp (:trac:`7264`)::
 
             sage: var('a,b,c,II')
             (a, b, c, II)
@@ -125,7 +125,7 @@ class Function_exp(GinacFunction):
             sage: exp(x)*exp(a)^2
             e^(2*a + x)
 
-        Another instance of the same problem, #7394::
+        Another instance of the same problem (:trac:`7394`)::
 
             sage: 2*sqrt(e)
             2*sqrt(e)
@@ -676,8 +676,9 @@ class Function_lambert_w(BuiltinFunction):
 
         TESTS:
 
-        When automatic simplication occurs, the parent of the output value should be
-        either the same as the parent of the input, or a Sage type::
+        When automatic simplification occurs, the parent of the output
+        value should be either the same as the parent of the input, or
+        a Sage type::
 
             sage: parent(lambert_w(int(0)))
             <... 'int'>
@@ -877,7 +878,7 @@ class Function_exp_polar(BuiltinFunction):
             sage: integrate(1/sqrt(1+x^3),x,algorithm='sympy')
             1/3*x*hypergeometric((1/3, 1/2), (4/3,), -x^3)*gamma(1/3)/gamma(4/3)
 
-        SEEALSO:
+        .. SEEALSO::
 
             `Examples in Sympy documentation <http://docs.sympy.org/latest/modules/functions/special.html?highlight=exp_polar>`_,
             `Sympy source code of exp_polar <http://docs.sympy.org/0.7.4/_modules/sympy/functions/elementary/exponential.html>`_

@@ -78,6 +78,7 @@ TESTS::
 #*****************************************************************************
 
 from __future__ import absolute_import, print_function
+from six import integer_types
 
 from sage.structure.parent_gens import localvars
 
@@ -111,7 +112,6 @@ from sage.libs.pari.all import pari_gen
 
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
-from sage.rings.real_mpfi import RIF
 import sage.rings.complex_interval_field
 CIF = sage.rings.complex_interval_field.ComplexIntervalField()
 
@@ -1008,9 +1008,9 @@ class NumberField_relative(NumberField_generic):
             sage: L(a)
             a
         """
-        if isinstance(x, (int, long, rational.Rational,
-                              integer.Integer, pari_gen,
-                              list)):
+        if isinstance(x, integer_types + (rational.Rational,
+                                          integer.Integer, pari_gen,
+                                          list)):
             return self._element_class(self, x)
         elif isinstance(x, sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement)\
                and (x in self.polynomial_quotient_ring()):
@@ -1054,7 +1054,7 @@ class NumberField_relative(NumberField_generic):
             2/3
             sage: c = a + b # no output
         """
-        if R in [int, long, ZZ, QQ, self.base_field()]:
+        if R in integer_types + (ZZ, QQ, self.base_field()):
             return self._generic_convert_map(R)
         from sage.rings.number_field.order import is_NumberFieldOrder
         if is_NumberFieldOrder(R) and R.number_field() is self:
@@ -1708,7 +1708,7 @@ class NumberField_relative(NumberField_generic):
             sage: K.pari_absolute_base_polynomial()
             y^2 + 3
             sage: type(K.pari_absolute_base_polynomial())
-            <type 'sage.libs.cypari2.gen.Gen'>
+            <type 'cypari2.gen.Gen'>
             sage: z = ZZ['z'].0
             sage: K.<a, b, c> = NumberField([z^2 + 2, z^2 + 3, z^2 + 5]); K
             Number Field in a with defining polynomial z^2 + 2 over its base field
@@ -1719,7 +1719,7 @@ class NumberField_relative(NumberField_generic):
             sage: len(QQ['y'](K.pari_absolute_base_polynomial()).roots(K.base_field()))
             4
             sage: type(K.pari_absolute_base_polynomial())
-            <type 'sage.libs.cypari2.gen.Gen'>
+            <type 'cypari2.gen.Gen'>
         """
         abs_base, from_abs_base, to_abs_base = self.absolute_base_field()
         return abs_base.pari_polynomial('y')
@@ -1768,8 +1768,11 @@ class NumberField_relative(NumberField_generic):
         EXAMPLES::
 
             sage: K.<a, b> = NumberField( [x^2 + x + 1, x^4 + 1] )
-            sage: K.roots_of_unity()[:5]
-            [b*a + b, b^2*a, -b^3, a + 1, b*a]
+            sage: rts = K.roots_of_unity()
+            sage: len(rts)
+            24
+            sage: all(u in rts for u in [b*a, -b^2*a - b^2, b^3, -a, b*a + b])
+            True
         """
         abs = self.absolute_field('a')
         from_abs, _ = abs.structure()
@@ -2170,7 +2173,6 @@ class NumberField_relative(NumberField_generic):
         L = self.absolute_field('a')
         pl = L.places(all_complex, prec)
         return [self.hom(p, p.codomain()) for p in pl]
-
 
     def absolute_different(self):
         r"""

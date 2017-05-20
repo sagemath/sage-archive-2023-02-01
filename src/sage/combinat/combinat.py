@@ -915,31 +915,31 @@ class CombinatorialObject(SageObject):
         """
         return str(self._list)
 
-    def __cmp__(self, other):
+    def _repr_(self):
         """
         EXAMPLES::
 
             sage: c = CombinatorialObject([1,2,3])
-            sage: d = CombinatorialObject([3,2,1])
-            sage: cmp(c, d)
-            -1
-            sage: cmp(d, c)
-            1
-            sage: cmp(c, c)
-            0
+            sage: c.__repr__()
+            '[1, 2, 3]'
+        """
+        return repr(self._list)
 
-        Check that :trac:`14065` is fixed::
+    def __eq__(self, other):
+        """
+        Test equality of self and other.
 
-            sage: from sage.structure.element import Element
-            sage: class Foo(CombinatorialObject, Element): pass
-            sage: L = [Foo([4-i]) for i in range(4)]; L
-            [[4], [3], [2], [1]]
-            sage: sorted(L)
-            [[1], [2], [3], [4]]
-            sage: f = Foo([4])
-            sage: f is None
+        EXAMPLES::
+
+            sage: c = CombinatorialObject([1,2,3])
+            sage: d = CombinatorialObject([2,3,4])
+            sage: c == [1,2,3]
+            True
+            sage: c == [2,3,4]
             False
-            sage: f is not None
+            sage: c == d
+            False
+            sage: c == c
             True
 
         .. WARNING::
@@ -960,34 +960,6 @@ class CombinatorialObject(SageObject):
                 NotImplementedError: comparison not implemented for <class '__main__.Bar'>
         """
         if isinstance(other, CombinatorialObject):
-            return cmp(self._list, other._list)
-        else:
-            return cmp(self._list, other)
-
-    def _repr_(self):
-        """
-        EXAMPLES::
-
-            sage: c = CombinatorialObject([1,2,3])
-            sage: c.__repr__()
-            '[1, 2, 3]'
-        """
-        return repr(self._list)
-
-    def __eq__(self, other):
-        """
-        EXAMPLES::
-
-            sage: c = CombinatorialObject([1,2,3])
-            sage: d = CombinatorialObject([2,3,4])
-            sage: c == [1,2,3]
-            True
-            sage: c == [2,3,4]
-            False
-            sage: c == d
-            False
-        """
-        if isinstance(other, CombinatorialObject):
             return self._list == other._list
         else:
             return self._list == other
@@ -1001,6 +973,22 @@ class CombinatorialObject(SageObject):
             sage: c < d
             True
             sage: c < [2,3,4]
+            True
+            sage: c < c
+            False
+
+        Check that :trac:`14065` is fixed::
+
+            sage: from sage.structure.element import Element
+            sage: class Foo(CombinatorialObject, Element): pass
+            sage: L = [Foo([4-i]) for i in range(4)]; L
+            [[4], [3], [2], [1]]
+            sage: sorted(L)
+            [[1], [2], [3], [4]]
+            sage: f = Foo([4])
+            sage: f is None
+            False
+            sage: f is not None
             True
         """
         if isinstance(other, CombinatorialObject):
@@ -1441,10 +1429,11 @@ class CombinatorialClass(Parent):
         """
         raise NotImplementedError
 
-    def __cmp__(self, x):
+    def __eq__(self, other):
         """
-        Compares two different combinatorial classes. For now, the
-        comparison is done just on their repr's.
+        Compare two different combinatorial classes.
+
+        For now, the comparison is done just on their repr's.
 
         EXAMPLES::
 
@@ -1455,7 +1444,20 @@ class CombinatorialClass(Parent):
             sage: p5 == p6
             False
         """
-        return cmp(repr(self), repr(x))
+        return repr(self) == repr(other)
+
+    def __ne__(self, other):
+        """
+        Test unequality of self and other.
+
+        EXAMPLES::
+
+            sage: p5 = Partitions(5)
+            sage: p6 = Partitions(6)
+            sage: p5 != p6
+            True
+        """
+        return not (self == other)
 
     def __cardinality_from_iterator(self):
         """

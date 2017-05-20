@@ -636,11 +636,11 @@ def desolve_laplace(de, dvar, ics=None, ivar=None):
 
     TESTS:
 
-    Trac #4839 fixed::
+    Check that :trac:`4839` is fixed::
 
-        sage: t=var('t')
-        sage: x=function('x')(t)
-        sage: soln=desolve_laplace(diff(x,t)+x==1, x, ics=[0,2])
+        sage: t = var('t')
+        sage: x = function('x')(t)
+        sage: soln = desolve_laplace(diff(x,t)+x==1, x, ics=[0,2])
         sage: soln
         e^(-t) + 1
 

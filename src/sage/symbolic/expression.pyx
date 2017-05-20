@@ -10468,13 +10468,19 @@ cdef class Expression(CommutativeRingElement):
         from sage.symbolic.operators import add_vararg as opadd, \
             mul_vararg as opmul
         from sage.all import prod
+
         def treat_term(op, term, args):
-            l=sage.all.copy(args)
+            l = sage.all.copy(args)
             l.insert(0, term)
-            return(apply(op, l))
-        if self.parent() is not sage.all.SR: return self
+            return op(*l)
+
+        if self.parent() is not sage.all.SR:
+            return self
+
         op = self.operator()
-        if op is None : return self
+        if op is None:
+            return self
+
         if op in {opsum, opdi, opii}:
             sa = self.operands()[0].expand()
             op1 = sa.operator()
@@ -10495,10 +10501,11 @@ cdef class Expression(CommutativeRingElement):
                     return prod(treat_term(op, t.distribute(), la) for t in aa)
                 return prod(treat_term(op, t, la) for t in aa)
             return self
-        if recursive:
-            return apply(op, map(lambda t:t.distribute(), self.operands()))
-        return self
 
+        if recursive:
+            done = [t.distribute() for t in self.operands()]
+            return op(*done)
+        return self
 
     def factor(self, dontfactor=[]):
         """

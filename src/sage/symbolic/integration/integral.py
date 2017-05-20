@@ -62,7 +62,8 @@ class IndefiniteIntegral(BuiltinFunction):
         # creating a subclasses which define a different set of integrators
         self.integrators = [external.maxima_integrator]
 
-        BuiltinFunction.__init__(self, "integrate", nargs=2, conversions={'sympy': 'Integral'})
+        BuiltinFunction.__init__(self, "integrate", nargs=2, conversions={'sympy': 'Integral',
+                                                                          'giac': 'integrate'})
 
     def _eval_(self, f, x):
         """
@@ -150,7 +151,8 @@ class DefiniteIntegral(BuiltinFunction):
         # creating a subclasses which define a different set of integrators
         self.integrators = [external.maxima_integrator]
 
-        BuiltinFunction.__init__(self, "integrate", nargs=4, conversions={'sympy': 'Integral'})
+        BuiltinFunction.__init__(self, "integrate", nargs=4, conversions={'sympy': 'Integral',
+                                                                          'giac': 'integrate'})
 
     def _eval_(self, f, x, a, b):
         """
@@ -489,8 +491,8 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
     Alternatively, just use algorithm='mathematica_free' to integrate via Mathematica
     over the internet (does NOT require a Mathematica license!)::
 
-        sage: _ = var('x, y, z')
-        sage: f = sin(x^2) + y^z
+        sage: _ = var('x, y, z')  # optional - internet
+        sage: f = sin(x^2) + y^z   # optional - internet
         sage: f.integrate(x, algorithm="mathematica_free")   # optional - internet
         x*y^z + sqrt(1/2)*sqrt(pi)*fresnels(sqrt(2)*x/sqrt(pi))
 

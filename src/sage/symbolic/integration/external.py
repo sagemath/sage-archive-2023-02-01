@@ -1,5 +1,11 @@
-"Symbolic Integration via External Software"
+"""Symbolic Integration via External Software
 
+TESTS::
+
+    sage: from sage.symbolic.integration.external import sympy_integrator
+    sage: sympy_integrator(sin(x), x)
+    -cos(x)
+"""
 from sage.symbolic.expression import Expression
 from sage.symbolic.ring import SR
 
@@ -59,7 +65,14 @@ def mma_free_integrator(expression, v, a=None, b=None):
         sage: mma_free_integrator(sin(x), x) # optional - internet
         -cos(x)
 
-    TESTS::
+    TESTS:
+
+    Check that :trac:`18212` is resolved::
+
+        sage: var('y')   # optional - internet
+        y
+        sage: integral(sin(y)^2, y, algorithm='mathematica_free') # optional - internet
+        -1/2*cos(y)*sin(y) + 1/2*y
 
         sage: mma_free_integrator(exp(-x^2)*log(x), x) # optional - internet
         1/2*sqrt(pi)*erf(x)*log(x) - x*hypergeometric((1/2, 1/2), (3/2, 3/2), -x^2)
@@ -78,7 +91,7 @@ def mma_free_integrator(expression, v, a=None, b=None):
             if chr(i) not in vars:
                 shadow_x = SR.var(chr(i))
                 break
-        expression = expression.subs({x:shadow_x}).subs({dvar: x})
+        expression = expression.subs({x:shadow_x}).subs({v: x})
     params = urlencode({'expr': expression._mathematica_init_(), 'random': 'false'})
     page = urlopen("http://integrals.wolfram.com/home.jsp", params).read()
     page = page[page.index('"inputForm"'):page.index('"outputForm"')]

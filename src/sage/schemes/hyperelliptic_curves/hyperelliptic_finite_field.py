@@ -406,7 +406,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         q = K.cardinality()
         g = self.genus()
         N = self._frobenius_coefficient_bound_charpoly()
-        # compute chapoly over ZZ and then reduce back
+        # compute charpoly over ZZ and then reduce back
         # (because charpoly of p-adic matrices sometimes loses precision)
         M = self.frobenius_matrix(N=N, algorithm=algorithm).change_ring(ZZ)
 

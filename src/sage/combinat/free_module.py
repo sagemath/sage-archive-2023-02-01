@@ -298,7 +298,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         Overrides :meth:`Parent.element_class` to force the
         construction of Python class. This is currently needed to
         inherit really all the features from categories, and in
-        particular the initialization of `_mul_` in
+        particular the initialization of ``_mul_`` in
         :meth:`Magmas.ParentMethods.__init_extra__`.
 
         EXAMPLES::

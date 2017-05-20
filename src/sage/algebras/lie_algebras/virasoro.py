@@ -37,9 +37,14 @@ class LieAlgebraRegularVectorFields(InfinitelyGeneratedLieAlgebra, IndexedGenera
 
     .. MATH::
 
-        [d_i, d_j] = (j - i) d_{i+j}.
+        [d_i, d_j] = (i - j) d_{i+j}.
 
     This is also known as the Witt (Lie) algebra.
+
+    .. NOTE::
+
+        This differs from some conventions (e.g., [Ka1990]_), where
+        we have `d'_i \mapsto -d_i`.
 
     REFERENCES:
 
@@ -284,7 +289,7 @@ class VirasoroAlgebra(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
 
     .. MATH::
 
-        [d_i, d_j] = (j - i) d_{i+j} + \frac{1}{12}(j^3 - j) \delta_{i,-j} c
+        [d_i, d_j] = (i - j) d_{i+j} + \frac{1}{12}(i^3 - i) \delta_{i,-j} c
 
     and
 

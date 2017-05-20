@@ -13410,7 +13410,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.distance(0, 3)
             2
             sage: G.distance(0, 3, by_weight=True)
-            3
+            3.0
         """
         return self.shortest_path_length(u, v, by_weight = by_weight)
 
@@ -15202,7 +15202,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.shortest_path_length(4, 9, algorithm='Dijkstra_Bid_NetworkX')
             5
             sage: D.shortest_path_length(4, 9, algorithm='Dijkstra_Bid')
-            5
+            5.0
             sage: D.shortest_path_length(4, 9, algorithm='Bellman-Ford_Boost')
             5
             sage: D.shortest_path_length(5, 5)
@@ -15215,7 +15215,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.shortest_path_length(0, 3)
             2
             sage: G.shortest_path_length(0, 3, by_weight=True)
-            3
+            3.0
             sage: G.shortest_path_length(0, 3, by_weight=True, algorithm='Dijkstra_NetworkX')
             3
             sage: G.shortest_path_length(0, 3, by_weight=True, algorithm='Dijkstra_Bid_NetworkX')
@@ -15237,18 +15237,53 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.shortest_path_length(0, 2, by_weight=True, algorithm='Bellman-Ford_Boost')
             -1000
             sage: G.shortest_path_length(0, 2, by_weight=True)
-            2
+            2.0
         """
         if weight_sum is not None:
             deprecation(18938, "Now weight_sum is replaced by by_weight.")
 
-        path = self.shortest_path(u, v, by_weight=by_weight,
-                                  weight_function=weight_function,
-                                  algorithm=algorithm,
-                                  check_weight=check_weight,
-                                  bidirectional=bidirectional)
-        return self._path_length(path, by_weight, weight_function)
+        if u == v: # to avoid a NetworkX bug
+            return 0
 
+        if weight_function is not None:
+            by_weight = True
+
+        if algorithm is None:
+            algorithm = 'Dijkstra_Bid' if by_weight else 'BFS_Bid'
+
+        if weight_function is None and by_weight:
+            weight_function = lambda e:e[2]
+
+        if algorithm in ['BFS', 'Dijkstra_NetworkX', 'Bellman-Ford_Boost']:
+            return self.shortest_path_lengths(u, by_weight, algorithm, weight_function, check_weight)[v]
+
+        if bidirectional is not None:
+            deprecation(18938, "Variable 'bidirectional' is deprecated and " +
+                        "replaced by 'algorithm'.")
+
+        if by_weight:
+            if algorithm == 'BFS_Bid':
+                raise ValueError("The 'BFS_Bid' algorithm does not " +
+                                 "work on weighted graphs.")
+            if check_weight:
+                self._check_weight_function(weight_function)
+        else:
+            weight_function = lambda e:1
+
+        if algorithm=="Dijkstra_Bid":
+            return self._backend.bidirectional_dijkstra(u, v, weight_function, distance_flag=True)
+        elif algorithm=="Dijkstra_Bid_NetworkX":
+            import networkx
+            if self.is_directed():
+                G = networkx.DiGraph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
+            else:
+                G = networkx.Graph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
+            G.add_nodes_from(self.vertices())
+            return networkx.bidirectional_dijkstra(G, u, v)[0]
+        elif algorithm=="BFS_Bid":
+            return self._backend.shortest_path(u, v, distance_flag=True)
+        else:
+            raise ValueError("Algorithm '" + algorithm + "' not yet implemented.")
 
     def _check_weight_function(self, weight_function=None):
         r"""
@@ -15664,18 +15699,52 @@ class GenericGraph(GenericGraph_pyx):
         if weight_sums is not None:
             deprecation(18938, "Now weight_sums is replaced by by_weight.")
 
-        if algorithm in ['Dijkstra_Boost', 'Bellman-Ford_Boost'] or (algorithm is None and weight_function is None and by_weight):
-            if weight_function is None and not by_weight:
-                weight_function = lambda e:1
+        if weight_function is not None:
+            by_weight = True
+        elif by_weight:
+            weight_function = lambda e:e[2]
+        else:
+            weight_function = lambda e:1
+
+        if algorithm is None and not by_weight:
+            algorithm = 'BFS'
+
+        if by_weight and check_weight:
+            self._check_weight_function(weight_function)
+
+        if algorithm=='BFS':
+            if by_weight:
+                raise ValueError("The 'BFS' algorithm does not work on " +
+                                 "weighted graphs.")
+            return self._backend.shortest_path_all_vertices(u, cutoff=None, distance_flag=True)
+
+        elif algorithm=='Dijkstra_NetworkX':
+            import networkx
+            # If this is not present, an error might be raised by NetworkX
+            if self.num_verts()==1 and self.vertices()[0]==u:
+                return {u:[u]}
+            if by_weight:
+                if self.is_directed():
+                    G = networkx.DiGraph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
+                else:
+                    G = networkx.Graph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
+            else:
+                # Needed to remove labels.
+                if self.is_directed():
+                    G = networkx.DiGraph(self.edges(labels=False))
+                else:
+                    G = networkx.Graph(self.edges(labels=False))
+            G.add_nodes_from(self.vertices())
+            return networkx.single_source_dijkstra_path_length(G, u)
+
+        elif algorithm in ['Dijkstra_Boost', 'Bellman-Ford_Boost', None]:
             self.weighted(True)
             from sage.graphs.base.boost_graph import shortest_paths
             return shortest_paths(self, u, weight_function, algorithm)[0]
 
-        paths = self.shortest_paths(u, by_weight=by_weight, algorithm=algorithm,
-                                    weight_function=weight_function)
-        return {v:self._path_length(p, by_weight, weight_function)
-                for v,p in iteritems(paths)}
-
+        else:
+            raise ValueError("Algorithm " + algorithm + " not yet " +
+                             "implemented. Please, contribute!")
 
     def shortest_path_all_pairs(self, by_weight=False, algorithm=None,
                                 weight_function=None, check_weight=True,

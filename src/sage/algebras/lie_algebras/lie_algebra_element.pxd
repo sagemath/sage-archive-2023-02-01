@@ -18,7 +18,7 @@ cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
 cdef class UntwistedAffineLieAlgebraElement(Element):
     cdef dict _t_dict
     cdef _c_coeff
-    cdef _delta_coeff
+    cdef _d_coeff
     cdef long _hash
 
     cpdef dict t_dict(self)

@@ -423,7 +423,7 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
             sage: g = LieAlgebra(QQ, cartan_type=['A',3,1])
             sage: g.d()
             d
-            sage: D = L.derived_subalgebra()
+            sage: D = g.derived_subalgebra()
             sage: D.d()
             0
         """

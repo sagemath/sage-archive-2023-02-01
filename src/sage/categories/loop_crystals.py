@@ -285,6 +285,20 @@ class KirillovReshetikhinCrystals(Category_singleton):
 
             assert False, "BUG: invalid Kirillov-Reshetikhin crystal"
 
+        def module_generator(self):
+            r"""
+            Return the unique module generator of classical weight
+            `s \Lambda_r` of the Kirillov-Reshetikhin crystal `B^{r,s}`.
+
+            EXAMPLES::
+
+                sage: La = RootSystem(['G',2,1]).weight_space().fundamental_weights()
+                sage: K = crystals.ProjectedLevelZeroLSPaths(La[1])
+                sage: K.module_generator()
+                (-Lambda[0] + Lambda[1],)
+            """
+            return self.maximal_vector()
+
         # TODO: Should this be in one of the super categories?
         def affinization(self):
             """
@@ -1102,12 +1116,23 @@ class LocalEnergyFunction(Map):
             sage: K2 = crystals.KirillovReshetikhin(['A',7,2], 2,1)
             sage: H = K.local_energy_function(K2)
             sage: TestSuite(H).run(skip=['_test_category', '_test_pickling'])
+
+        TESTS:
+
+        Check that :trac:`23014` is fixed::
+
+            sage: La = RootSystem(['G',2,1]).weight_space().fundamental_weights()
+            sage: K = crystals.ProjectedLevelZeroLSPaths(La[1])
+            sage: H = K.local_energy_function(K)
+            sage: hw = H.domain().classically_highest_weight_vectors()
+            sage: [H(x) for x in hw]
+            [0, 1, 2, 1]
         """
         self._B = B
         self._Bp = Bp
         self._R_matrix = self._B.R_matrix(self._Bp)
         T = B.tensor(Bp)
-        self._known_values = {T(*[K.module_generator() for K in T.crystals]):
+        self._known_values = {T(*[K.maximal_vector() for K in T.crystals]):
                               ZZ(normalization)}
         self._I0 = T.cartan_type().classical().index_set()
         from sage.categories.homset import Hom

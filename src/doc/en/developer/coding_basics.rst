@@ -237,28 +237,49 @@ information. You can use the existing functions of Sage as templates.
 
 -  A **one-sentence description** of the function.
 
-   It must be followed by a blank line and end in a period.  It
-   describes the function or method's effect as a command ("Do this",
-   "Return that"), not as a description like "Returns the pathname ...".
+   It must be followed by a blank line and end in a period. It describes the
+   function or method's effect as a command ("Do this", "Return that"), not as
+   a description like "Returns the pathname ...".
+
+   For a method, it is recommended to refer to the ``self`` argument
+   in a descriptive way, unless this leads to a confusion. For example, if
+   ``self`` is an integer, then ``this integer`` or ``the integer`` is more
+   descriptive, and it is preferable to write
+
+   .. code-block:: none
+
+       Return whether this integer is prime.
 
 -  A **longer description**.
 
    This is optional if the one-sentence description does not need
-   more explanations. (Like "Return the number of vertices.")
+   more explanations.
 
-   Start with assumptions of the object, if there are any. ("The poset is
-   expected to be ranked.", if the function raises an exception when
-   called on non-ranked poset.)
+   Start with assumptions of the object, if there are any. For example,
 
-   Define your terms ("The lexicographic product of G and H is the graph
-   with vertex set ...") and mention possible aliases ("The tensor product
-   is also known as the categorical product and...").
+   .. code-block:: none
+
+       The poset is expected to be ranked.
+
+   if the function raises an exception when called on a non-ranked poset.
+
+   Define your terms
+
+   .. code-block:: none
+
+       The lexicographic product of G and H is the graph with vertex set ...
+
+   and mention possible aliases
+
+   .. code-block:: none
+
+       The tensor product is also known as the categorical product and ...
 
 -  An **INPUT** and an **OUTPUT** block describing the input/output of
-   the function. This is not optional.
+   the function.
 
-   The INPUT block describes all arguments that the function accepts,
-   and the OUTPUT section describes its expected output.
+   The INPUT block describes all arguments that the function accepts. This
+   is not optional.
 
    1. The type names should be descriptive, but do not have to represent
       the exact Sage/Python types. For example, use "integer" for
@@ -266,28 +287,43 @@ information. You can use the existing functions of Sage as templates.
 
    2. Mention the default values of the input arguments when applicable.
 
-   Example::
+   Example:
+
+   .. code-block:: none
 
        INPUT:
 
-       - ``p`` -- (default: 2) a positive prime integer
+       - ``n`` -- integer
+
+       - ``p`` -- prime integer (default: 2); coprime with ``n``
+
+   The OUTPUT block describes the expected output. It is required if the
+   one-sentence description of the function does not suffice. This is usually the case
+   when the output consists of several items.
+
+   An example of single item output:
+
+   .. code-block:: none
 
        OUTPUT:
 
-       A 5-tuple consisting of integers in this order:
+       - the plaintext resulting from decrypting the ciphertext ``C``
 
-       1. the smallest primitive root modulo p
-       2. the smallest prime primitive root modulo p
-       3. the largest primitive root modulo p
-       4. the largest prime primitive root modulo p
-       5. total number of prime primitive roots modulo p
+   An example of several items output:
 
-   You can start the OUTPUT block with a dash if you prefer::
+   .. code-block:: none
 
        OUTPUT:
 
-       - The plaintext resulting from decrypting the ciphertext ``C``
-         using the Blum-Goldwasser decryption algorithm.
+       - the reduced echelon form `H` of the matrix `A`
+
+       - the transformation matrix `U` such that `UA = H`
+
+   For single item output, you may prefer this alternative style:
+
+   .. code-block:: none
+
+       OUTPUT: the plaintext resulting from decrypting the ciphertext ``C``
 
 -  An **EXAMPLES** block for examples. This is not optional.
 
@@ -443,46 +479,52 @@ information. You can use the existing functions of Sage as templates.
 Sage documentation style
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-  All Sage documentation is written in reStructuredText (reST) and is
-  processed by Sphinx: see http://www.sphinx-doc.org/rest.html for an
-  introduction. Sage's style is for all reST and Sphinx directives
-  (like ``.. WARNING::``, ``.. NOTE::``, ``.. MATH::``, etc.) to be
-  written in uppercase. Lines should be shorter than 80 characters.
+All Sage documentation is written in reStructuredText (reST) and is
+processed by Sphinx. See http://www.sphinx-doc.org/rest.html for an
+introduction. Sage imposes these styles:
+
+- All reST and Sphinx directives (like ``.. WARNING::``, ``.. NOTE::``,
+  ``.. MATH::``, etc.) are written in uppercase.
+
+- Code fragments are quoted with ``````. This includes function arguments
+  and the Python literals like ````True````, ````False```` and ````None````.
+
+- Lines should be shorter than 80 characters.
 
 Sage's master **BIBLIOGRAPHY** file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  All bibliographical references should be stored in the master
-  bibliography file,
-  :file:`SAGE_ROOT/src/doc/en/reference/references/index.rst`, in the
-  format ::
+All bibliographical references should be stored in the master
+bibliography file,
+:file:`SAGE_ROOT/src/doc/en/reference/references/index.rst`, in the
+format ::
 
-      .. [Gau1801] \C. F. Gauss, *Disquisitiones Arithmeticae*, 1801.
+  .. [Gau1801] \C. F. Gauss, *Disquisitiones Arithmeticae*, 1801.
 
-      .. [RSA1978] \R. Rivest, A. Shamir, L. Adleman,
-                   "A Method for Obtaining Digital Signatures and
-                   Public-Key Cryptosystems".
-                   Communications of the ACM **21** (February 1978),
-                   120–126. :doi:`10.1145/359340.359342`.
+  .. [RSA1978] \R. Rivest, A. Shamir, L. Adleman,
+               "A Method for Obtaining Digital Signatures and
+               Public-Key Cryptosystems".
+               Communications of the ACM **21** (February 1978),
+               120–126. :doi:`10.1145/359340.359342`.
 
-  The part in brackets is the citation key: given these examples, you
-  could then use ``[Gau1801]_`` in a docstring to provide a link to the
-  first reference. Note the trailing underscore which makes the citation a
-  hyperlink.
+The part in brackets is the citation key: given these examples, you
+could then use ``[Gau1801]_`` in a docstring to provide a link to the
+first reference. Note the trailing underscore which makes the citation a
+hyperlink.
 
-  When possible, the key should have this form: for a single author, use the
-  first three letters of the family name followed by the year; for multiple
-  authors, use the first letter of each of the family names followed by the
-  year. Note that the year should be four digits, not just the last two -- Sage
-  already has references from both 1910 and 2010, for example.
+When possible, the key should have this form: for a single author, use the
+first three letters of the family name followed by the year; for multiple
+authors, use the first letter of each of the family names followed by the
+year. Note that the year should be four digits, not just the last two -- Sage
+already has references from both 1910 and 2010, for example.
 
-  When abbreviating the first name of an author in a bibliography
-  listing, be sure to put a backslash in front of it. This ensures
-  that the letter (``C.`` in the example above) will not be
-  interpreted as a list enumerator.
+When abbreviating the first name of an author in a bibliography
+listing, be sure to put a backslash in front of it. This ensures
+that the letter (``C.`` in the example above) will not be
+interpreted as a list enumerator.
 
-  For more about citations, see the `Sphinx/reST markup for citations
-  <http://www.sphinx-doc.org/rest.html#citations>`_.
+For more about citations, see the `Sphinx/reST markup for citations
+<http://www.sphinx-doc.org/rest.html#citations>`_.
 
 Template
 ^^^^^^^^
@@ -500,39 +542,30 @@ indentation:
 
         INPUT:
 
-        - ``x`` -- integer (default: 1) the description of the
-          argument ``x`` goes here.  If it contains multiple lines, all
-          the lines after the first need to begin at the same indentation
-          as the backtick.
+        - ``x`` -- integer (default: 1); the description of the
+          argument ``x``
 
-        - ``y`` -- integer (default: 2) the ...
+        - ``y`` -- integer (default: 2); the description of the
+          argument ``y``
 
         OUTPUT:
 
-        The point as a tuple.
-
-        .. SEEALSO::
-
-            :func:`line`
+        - the point as a tuple
 
         EXAMPLES:
 
-        This example illustrates ...
-
-        ::
+        This example illustrates ... ::
 
             sage: A = ModuliSpace()
             sage: A.point(2,3)
             xxx
 
-        We now ...
-
-        ::
+        We now ... ::
 
             sage: B = A.point(5,6)
             sage: xxx
 
-        It is an error to ...::
+        It is an error to ... ::
 
             sage: C = A.point('x',7)
             Traceback (most recent call last):
@@ -545,6 +578,10 @@ indentation:
             whether an elliptic curve `E` over `Q` is modular.
 
         ...
+
+        .. SEEALSO::
+
+            :func:`line`
 
         TESTS::
 

@@ -24,6 +24,34 @@ quadratic relations is equivalent to the system of commutation relations
     (t_{kj}^{(p)} t_{i\ell}^{(r+s-1-p)} - t_{kj}^{(r+s-1-p)}t_{i\ell}^{(p)},
 
 where `1 \le i,j,k,\ell \le n` and `r,s \ge 1`.
+
+For later use, let `u` be a formal variable and, for `1\le i,j\le n`, define
+
+.. MATH::
+
+    t_{ij}(u) = \delta_{ij} + \sum_{r=1}^\infty t_{ij}^{(r)} u^{-r}
+    \in Y(\mathfrak{gl}_n)[\![u^{-1}]\!].
+
+These series can be combined into a single matrix:
+
+.. MATH::
+
+    T(u) := \sum_{i,j=1}^n t_{ij}(u) \otimes E_{ij} \in Y(\mathfrak{gl}_n)
+    [\![u^{-1}]\!] \otimes \operatorname{End}(\CC^n),
+
+where `E_{ij}` is the matrix with a `1` in the `(i,j)` position and zeros
+elsewhere.
+
+For `m\ge 2`, define formal variables `u_1,\dots,u_m`.  For any `1 \le k \le m`,
+set
+
+.. MATH::
+
+    T_k(u_k) := \sum_{i,j=1}^n t_{ij}(u_k) \otimes (E_{ij})_k \in
+    Y(\mathfrak{gl}_n)[\![u_1^{-1},\dots,u_m^{-1}]\!] \otimes
+    \operatorname{End}\bigl( (\CC^n)^{\otimes m} \bigr),
+
+where `(E_{ij})_k = 1^{\otimes (k-1)} \otimes E_{ij} \otimes 1^{\otimes(m-k)}`.
 """
 
 #*****************************************************************************
@@ -617,6 +645,13 @@ class Yangian(CombinatorialFreeModule):
     def coproduct_on_basis(self, m):
         """
         Return the coproduct on the basis element indexed by ``m``.
+
+        The coproduct `\Delta\colon Y(\mathfrak{gl}_n) \longrightarrow
+        Y(\mathfrak{gl}_n) \otimes Y(\mathfrak{gl}_n)` is defined by
+
+        .. MATH::
+
+            \Delta(t_{ij}(u)) = \sum_{a=1}^n t_{ia}(u) \otimes t_{aj}(u).
 
         EXAMPLES::
 

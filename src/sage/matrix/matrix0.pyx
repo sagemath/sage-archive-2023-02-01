@@ -2148,7 +2148,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [  5  25]
             [125 625]
         """
-        from constructor import matrix
+        from .constructor import matrix
         return matrix(self.nrows(), self.ncols(), [e(*args, **kwargs) for e in self.list()])
 
     ###################################################
@@ -3556,9 +3556,9 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         if len(v) > self._nrows:
             raise ValueError("length of v must be at most the number of rows of self")
-        if self._nrows == 0:
+        if not self._nrows:
             return self.parent().row_space().zero_vector()
-        from constructor import matrix
+        from .constructor import matrix
         v = matrix(list(v)+[0]*(self._nrows-len(v)))
         return (v * self)[0]
 
@@ -3633,9 +3633,9 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         if len(v) > self._ncols:
             raise ValueError("length of v must be at most the number of columns of self")
-        if self._ncols == 0:
+        if not self._ncols:
             return self.parent().column_space().zero_vector()
-        from constructor import matrix
+        from .constructor import matrix
         v = matrix(self._ncols, 1, list(v)+[0]*(self._ncols-len(v)))
         return (self * v).column(0)
 

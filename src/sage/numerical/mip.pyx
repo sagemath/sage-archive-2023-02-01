@@ -153,6 +153,12 @@ also allowed::
       a[(4, 'string', Rational Field)] = x_2 is a continuous variable (min=-oo, max=+oo)
       b[2] = x_3 is a continuous variable (min=-oo, max=+oo)
 
+Upper/lower bounds on a variable can be specified either as separate constraints
+(see :meth:`add_constraint <sage.numerical.mip.MixedIntegerLinearProgram.add_constraint>`) or
+using the methods :meth:`set_min <sage.numerical.mip.MixedIntegerLinearProgram.set_min>`
+and :meth:`set_min <sage.numerical.mip.MixedIntegerLinearProgram.set_min>`
+respectively.
+
 The default MIP variable
 ------------------------
 
@@ -293,11 +299,6 @@ cdef class MixedIntegerLinearProgram(SageObject):
         used.
 
       - Defaults to ``False``.
-
-    .. WARNING::
-
-        All LP variables are non-negative by default (see :meth:`new_variable`
-        and :meth:`set_min`).
 
     .. SEEALSO::
 
@@ -2181,8 +2182,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         .. WARNING::
 
-            By default, all variables of a LP are assumed to be
-            non-negative. See :meth:`set_min` to change it.
+            By default, no additional assumption is made on the domain of an LP
+            variable. See :meth:`set_min` to change it.
 
         EXAMPLES:
 

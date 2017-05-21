@@ -993,6 +993,11 @@ REFERENCES:
             Sci. Publ., Hackensack, NJ, 2008. Preprint version:
             :arxiv:`0710.1835`
 
+.. [KLS2013] Allen Knutson, Thomas Lam, and David Speyer,
+            *Positroid Varieties: Juggling and Geometry*
+            Compositio Mathematica, Volume 149, Issue 10, 2013
+            :arXiv:`1111.3660`
+
 .. [KMM2004] Tomasz Kaczynski, Konstantin Mischaikow, and Marian
              Mrozek, "Computational Homology", Springer-Verlag (2004).
 

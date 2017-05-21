@@ -707,7 +707,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         .. SEEALSO::
 
             - :meth:`set_min`, :meth:`get_min` -- set/get the lower bound of a
-              variable. Note that by default, all variables are non-negative.
+              variable.
 
             - :meth:`set_max`, :meth:`get_max` -- set/get the upper bound of a
               variable.

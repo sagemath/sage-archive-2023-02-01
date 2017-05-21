@@ -2183,7 +2183,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         .. WARNING::
 
             By default, no additional assumption is made on the domain of an LP
-            variable. See :meth:`set_min` to change it.
+            variable. See :meth:`set_min` and :meth:`set_max` to change it.
 
         EXAMPLES:
 

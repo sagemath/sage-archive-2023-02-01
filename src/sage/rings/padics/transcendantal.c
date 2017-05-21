@@ -9,16 +9,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <time.h>
-#include <sys/time.h>
-
 /* p-adic logarithm */
 void padiclog(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, const mpz_t modulo) {
     /*  Compute the p-adic logarithm of a,
         which is supposed to be a unit
 
         Algorithm: If a = 1 (mod p), write a as a product
-            a = (1 - a_0*p) (1 - a_1*p^2) (1 - a_2*p^4) (1 - a_3*p^8) ...
+            1/a = (1 - a_0*p) (1 - a_1*p^2) (1 - a_2*p^4) (1 - a_3*p^8) ...
         with 0 <= a_i < p^(2^i).
         Then compute each log(1 - a_i*p^(2^i)) using Taylor expansion
         and a binary spliting strategy.
@@ -57,15 +54,15 @@ void padiclog(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, con
     num = (mpz_t*)malloc(N*sizeof(mpz_t));
     denom = (mpz_t*)malloc(N*sizeof(mpz_t));
     for (i = 0; i < N; i++) {
-      mpz_init(num[i]);
-      mpz_init(denom[i]);
+        mpz_init(num[i]);
+        mpz_init(denom[i]);
     }
 
     trunc = 2;
     mpz_init_set_ui(trunc_mod, p);
     mpz_mul_ui(trunc_mod, trunc_mod, p);
     while(1) {
-        /* We compute f = 1 + a_i*p^(2^i)
+        /* We compute f = 1 - a_i*p^(2^i)
            trunc_mod is p^(2^(i+1)) */
         mpz_fdiv_r(f, arg, trunc_mod);
         mpz_ui_sub(f, 2, f);
@@ -78,7 +75,7 @@ void padiclog(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, con
             mpz_set_ui(denom[i], i+1);
         }
         step = 1;
-        mpz_ui_sub(h, 1, f);   // we write f = 1 + h, i.e. h = a_i*p^(2^i)
+        mpz_ui_sub(h, 1, f);   // we write f = 1 - h, i.e. h = a_i*p^(2^i)
         mpz_set(hpow, h);
         while(step < N) {
             for (i = 0; i < N - step; i += step << 1) {

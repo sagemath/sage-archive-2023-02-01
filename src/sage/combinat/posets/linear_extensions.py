@@ -455,58 +455,74 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
         """
         from sage.rings.integer import Integer
 
-        n=len(self._poset)
-        up=self._poset._hasse_diagram.to_dictionary()
-        # Convert to the Hasse diagram so our poset can be realized on the set {0,...,n-1} 
-        # with a nice dictionary of edges
-        for i in range(0,n):
-            up[n-1-i]=sorted(set(up[n-1-i]+[item for x in up[n-1-i] for item in up[x] ]))
-        # Compute the principal order filter for each element.         
-        Jup={1:[]} # Jup will be a dictionary giving up edges in J(P)
-        # We will perform a loop where after k loops, we will have a list of up edges 
-        # for the lattice of order ideals for P restricted to entries 0,...,k.
-        loc=[1] * n 
-        # This list will be indexed by entries in P. After k loops, the entry loc[i] 
-        # will correspond to the element of J(P) that is the principal order ideal of i, 
-        # restricted to the elements 0,...,k .
-        m=1 # m keeps track of how many elements we currently have in J(P). 
-            # We start with just the empty order ideal, and no relations.
+        n = len(self._poset)
+        if not n:
+            return Integer(1)
+
+        up = self._poset._hasse_diagram.to_dictionary()
+        # Convert to the Hasse diagram so our poset can be realized on
+        # the set {0,...,n-1} with a nice dictionary of edges
+
+        for i in range(n):
+            up[n - 1 - i] = sorted(set(up[n - 1 - i] +
+                                       [item for x in up[n - 1 - i]
+                                        for item in up[x]]))
+        # Compute the principal order filter for each element.
+
+        Jup = {1: []}
+        # Jup will be a dictionary giving up edges in J(P)
+
+        # We will perform a loop where after k loops, we will have a
+        # list of up edges for the lattice of order ideals for P
+        # restricted to entries 0,...,k.
+        loc = [1] * n
+
+        # This list will be indexed by entries in P. After k loops,
+        # the entry loc[i] will correspond to the element of J(P) that
+        # is the principal order ideal of i, restricted to the
+        # elements 0,...,k .
+
+        m = 1
+        # m keeps track of how many elements we currently have in J(P).
+        # We start with just the empty order ideal, and no relations.
         for x in range(n):
-            # Use the existing Jup table to compute all covering relations in J(P) 
-            # for things that are above loc(x).
-            K=[[loc[x]]]
-            j=0
-            while len(K[j])>0:
+            # Use the existing Jup table to compute all covering
+            # relations in J(P) for things that are above loc(x).
+            K = [[loc[x]]]
+            j = 0
+            while K[j]:
                 K.append([])
                 for a in K[j]:
                     for b in Jup[a]:
-                        K[j+1]=K[j+1]+[b]                 
-                j=j+1
-            K=sorted(set([item for sublist in K for item in sublist]))
-            for j in range(0,len(K)):
-                i=m+j+1
-                Jup[i]= [m+K.index(a)+1 for a in Jup[K[j]]]
-                # These are copies of the covering relations with elements from K, 
-                # but now with the underlying elements containing x.
-                Jup[K[j]]= Jup[K[j]]+[i] 
-                # There are the new covering relations we get between ideals that 
-                # don't contain x and those that do.
+                        K[j + 1] = K[j + 1] + [b]
+                j += 1
+            K = sorted(set([item for sublist in K for item in sublist]))
+            for j in range(len(K)):
+                i = m + j + 1
+                Jup[i] = [m + K.index(a) + 1 for a in Jup[K[j]]]
+                # These are copies of the covering relations with
+                # elements from K, but now with the underlying
+                # elements containing x.
+                Jup[K[j]] = Jup[K[j]] + [i]
+                # There are the new covering relations we get between
+                # ideals that don't contain x and those that do.
             for y in up[x]:
-                loc[y]=K.index(loc[y])+m+1
+                loc[y] = K.index(loc[y]) + m + 1
                 # Updates loc[y] if y is above x.
-            m=m+len(K)
-        # Now we have a dictionary of covering relations for J(P). The following
-        # shortcut works to count maximal chains, since we made J(P) naturally
-        # labelled, and J(P) has a unique maximal element and minimum element.
-        Jup[m]=1
-        while m>1:
-            m=m-1
-            ct=0
+            m += len(K)
+        # Now we have a dictionary of covering relations for J(P). The
+        # following shortcut works to count maximal chains, since we
+        # made J(P) naturally labelled, and J(P) has a unique maximal
+        # element and minimum element.
+
+        Jup[m] = Integer(1)
+        while m > 1:
+            m -= 1
+            ct = Integer(0)
             for j in Jup[m]:
-                ct=ct+Jup[j]
-            Jup[m]=ct
-        return ct      
-        
+                ct += Jup[j]
+            Jup[m] = ct
+        return ct
     
     def __iter__(self):
         r"""

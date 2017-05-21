@@ -114,7 +114,7 @@ defined Cython code, and with rather tricky argument lines::
 """
 from __future__ import print_function, absolute_import
 from six.moves import range
-from six import iteritems
+from six import iteritems, string_types, class_types
 
 import ast
 import inspect
@@ -409,7 +409,7 @@ class SageArgSpecVisitor(ast.NodeVisitor):
             sage: [vis(n) for n in ['True', 'False', 'None', 'foo', 'bar']]
             [True, False, None, 'foo', 'bar']
             sage: [type(vis(n)) for n in ['True', 'False', 'None', 'foo', 'bar']]
-            [<... 'bool'>, <... 'bool'>, <type 'NoneType'>, <... 'str'>, <... 'str'>]
+            [<... 'bool'>, <... 'bool'>, <... 'NoneType'>, <... 'str'>, <... 'str'>]
         """
         what = node.id
         if what == 'None':
@@ -1633,7 +1633,7 @@ def _sage_getdoc_unformatted(obj):
 
     # Check if the __doc__ attribute was actually a string, and
     # not a 'getset_descriptor' or similar.
-    if not isinstance(r, types.StringTypes):
+    if not isinstance(r, string_types):
         return ''
     elif isinstance(r, unicode):
         return r.encode('utf-8', 'ignore')
@@ -1707,7 +1707,7 @@ def sage_getdoc_original(obj):
     """
     # typ is the type corresponding to obj, which is obj itself if
     # that was a type or old-style class
-    if isinstance(obj, (type, types.ClassType) ):
+    if isinstance(obj, class_types):
         typ = obj
     else:
         typ = type(obj)

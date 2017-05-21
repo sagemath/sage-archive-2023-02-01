@@ -29,7 +29,7 @@ The input must be a positive integer::
     sage: a(1/3)
     Traceback (most recent call last):
     ...
-    TypeError: input must be an int, long, or Integer
+    TypeError: input must be an int or Integer
 
 You can also change how a sequence prints::
 
@@ -124,6 +124,7 @@ AUTHORS:
 # just used for handy .load, .save, etc.
 from __future__ import print_function, absolute_import
 from six.moves import range
+from six import integer_types
 
 import inspect
 from sage.structure.sage_object import SageObject
@@ -215,7 +216,7 @@ class SloaneSequence(SageObject):
             sage: sloane.A000007('a')
             Traceback (most recent call last):
             ...
-            TypeError: input must be an int, long, or Integer
+            TypeError: input must be an int or Integer
             sage: sloane.A000007(-1)
             Traceback (most recent call last):
             ...
@@ -225,8 +226,8 @@ class SloaneSequence(SageObject):
             ...
             ValueError: input n (=0) must be a positive integer
         """
-        if not isinstance(n, (int, long, Integer_class)):
-            raise TypeError("input must be an int, long, or Integer")
+        if not isinstance(n, integer_types + (Integer_class,)):
+            raise TypeError("input must be an int or Integer")
         m = ZZ(n)
         if m < self.offset:
             if self.offset == 1:
@@ -857,7 +858,7 @@ class A003418(SloaneSequence):
             sage: a(20.0)
             Traceback (most recent call last):
             ...
-            TypeError: input must be an int, long, or Integer
+            TypeError: input must be an int or Integer
 
         AUTHOR:
 
@@ -1075,7 +1076,7 @@ class A008277(SloaneSequence):
             sage: a(4.0)
             Traceback (most recent call last):
             ...
-            TypeError: input must be an int, long, or Integer
+            TypeError: input must be an int or Integer
             sage: a.list(15)
             [1, 1, 1, 1, 3, 1, 1, 7, 6, 1, 1, 15, 25, 10, 1]
 
@@ -1242,7 +1243,7 @@ class A000010(SloaneSequence):
             sage: a(1/3)
             Traceback (most recent call last):
             ...
-            TypeError: input must be an int, long, or Integer
+            TypeError: input must be an int or Integer
 
         AUTHORS:
 
@@ -1348,7 +1349,7 @@ class A005843(SloaneSequence):
             sage: a(0.0)
             Traceback (most recent call last):
             ...
-            TypeError: input must be an int, long, or Integer
+            TypeError: input must be an int or Integer
             sage: a(1)
             2
             sage: a(2)
@@ -1408,7 +1409,7 @@ class A000035(SloaneSequence):
             sage: a(0.0)
             Traceback (most recent call last):
             ...
-            TypeError: input must be an int, long, or Integer
+            TypeError: input must be an int or Integer
             sage: a(1)
             1
             sage: a(2)
@@ -1780,7 +1781,7 @@ class A000326(SloaneSequence):
             sage: a(1/3)
             Traceback (most recent call last):
             ...
-            TypeError: input must be an int, long, or Integer
+            TypeError: input must be an int or Integer
 
         AUTHORS:
 
@@ -4130,7 +4131,7 @@ class A000045(SloaneSequence):
             sage: a(1/3)
             Traceback (most recent call last):
             ...
-            TypeError: input must be an int, long, or Integer
+            TypeError: input must be an int or Integer
 
         AUTHORS:
 
@@ -4572,7 +4573,7 @@ class A000583(SloaneSequence):
             sage: a(0.0)
             Traceback (most recent call last):
             ...
-            TypeError: input must be an int, long, or Integer
+            TypeError: input must be an int or Integer
             sage: a(1)
             1
             sage: a(2)
@@ -6373,7 +6374,7 @@ class A000203(SloaneSequence):
             sage: a(1/3)
             Traceback (most recent call last):
             ...
-            TypeError: input must be an int, long, or Integer
+            TypeError: input must be an int or Integer
 
         AUTHORS:
 
@@ -9140,7 +9141,7 @@ class A111774(SloaneSequence):
             sage: a(1/3)
             Traceback (most recent call last):
             ...
-            TypeError: input must be an int, long, or Integer
+            TypeError: input must be an int or Integer
 
         AUTHORS:
 
@@ -9317,7 +9318,7 @@ class A111775(SloaneSequence):
             sage: a(1/3)
             Traceback (most recent call last):
             ...
-            TypeError: input must be an int, long, or Integer
+            TypeError: input must be an int or Integer
 
         AUTHORS:
 

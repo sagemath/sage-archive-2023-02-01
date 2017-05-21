@@ -322,6 +322,11 @@ REFERENCES:
             complexes and posets. I*. Trans. of
             Amer. Math. Soc. **348** No. 4. (1996)
 
+.. [BZ01] \A. Berenstein, A. Zelevinsky
+          *Tensor product multiplicities, canonical bases
+          and totally positive varieties*
+          Invent. Math. **143** No. 1. (2002), 77-128.
+
 .. _ref-C:
 
 **C**
@@ -491,6 +496,11 @@ REFERENCES:
              *Introduction to Lattices and Order*,
              Cambridge University Press, 1997.
 
+.. [Dec1998] W. Decker and T. de Jong. Groebner Bases and Invariant
+             Theory in Groebner Bases and Applications. London
+             Mathematical Society Lecture Note Series No. 251. (1998)
+             61--89.
+
 .. [DDLL2013] Léo Ducas, Alain Durmus, Tancrède Lepoint and Vadim
               Lyubashevsky. *Lattice Signatures and Bimodal
               Gaussians*; in Advances in Cryptology – CRYPTO 2013;
@@ -552,6 +562,10 @@ REFERENCES:
 .. [DLMF-Bessel] \F. W. J. Olver and L. C. Maximon: 10. Bessel
                  Functions, in NIST Digital Library of Mathematical
                  Functions. http://dlmf.nist.gov/10
+
+.. [DLMF-Error] \N. M. Temme: 7. Error Functions, Dawson’s and Fresnel
+                 Integrals, in NIST Digital Library of Mathematical
+                 Functions. http://dlmf.nist.gov/7
 
 .. [DLMF-Struve] \R. B. Paris: 11. Struve and Related Functions, in
                  NIST Digital Library of Mathematical
@@ -663,6 +677,10 @@ REFERENCES:
             curves". LMS Journal of Computation and Mathematics
             (2014), volume 17, issue 01, pp. 1-23.
 
+.. [FOS2010] \G. Fourier, M. Okado, A. Schilling. *Perfectness of
+             Kirillov-Reshetikhin crystals for nonexceptional types*.
+             Contemp. Math. 506 (2010) 127-143 ( :arxiv:`0811.1604` )
+
 .. [FP1996] Komei Fukuda, Alain Prodon: Double Description Method
             Revisited, Combinatorics and Computer Science, volume 1120
             of Lecture Notes in Computer Science, page
@@ -773,6 +791,10 @@ REFERENCES:
 
 .. [GS1999] Venkatesan Guruswami and Madhu Sudan, Improved Decoding of
             Reed-Solomon Codes and Algebraic-Geometric Codes, 1999
+
+.. [GT1996] \P. Gianni and B. Trager. "Square-free algorithms in
+            positive characteristic". Applicable Algebra in Engineering,
+            Communication and Computing, 7(1), 1-14 (1996)
 
 .. [GT2014] \M.S. Gowda and J. Tao. On the bilinearity rank of a
             proper cone and Lyapunov-like
@@ -935,6 +957,13 @@ REFERENCES:
 .. [Kal1980] \T. Kaliath, "Linear Systems", Prentice-Hall, 1980,
              383--386.
 
+.. [Kam2007] Joel Kamnitzer,
+             *The crystal structure on the set of Mirković-Vilonen polytopes*,
+             Adv. Math. **215** (2007), 66-93.
+
+.. [Kam2010] Joel Kamnitzer, *Mirković-Vilonen cycles and polytopes*,
+             Ann. Math. (2) **171** (2010), 731-777.
+
 .. [Kan1958] \D. M. Kan, *A combinatorial definition of homotopy
              groups*, Ann. Math. (2) 67 (1958), 282-312.
 
@@ -953,6 +982,10 @@ REFERENCES:
             *Convex polytopes and related complexes.*, in \R. L. Graham,
             \M. Grötschel, \L Lovász, *Handbook of combinatorics*,
             Vol. 1, Chapter 18, 1995
+
+.. [KKMMNN1992] S-J. Kang, M. Kashiwara, K. C. Misra, T. Miwa, T. Nakashima,
+                and A. Nakayashiki. *Affine crystals and vertex models*.
+                Int. J. Mod. Phys. A, **7** (suppl. 1A), (1992) pp. 449-484.
 
 .. [KL2008] Chris Kurth and Ling Long, "Computations with finite index
             subgroups of `{\rm PSL}_2(\ZZ)` using Farey symbols",
@@ -1495,6 +1528,11 @@ REFERENCES:
             manifolds and complexes into a cubic lattice", *Uspekhi
             Mat. Nauk* 47 (1992), 219-220.
 
+.. [ST2011] \A. Schilling, P. Tingley. *Demazure crystals,
+            Kirillov-Reshetikhin crystals, and the energy function*.
+            Electronic Journal of Combinatorics. **19(2)**. 2012.
+            :arXiv:`1104.2359`
+
 .. [Sta2007] Stanley, Richard: *Hyperplane Arrangements*, Geometric
              Combinatorics (E. Miller, V. Reiner, and B. Sturmfels,
              eds.), IAS/Park City Mathematics Series, vol. 13,
@@ -1659,6 +1697,8 @@ REFERENCES:
              Bull. London Math. Soc. 30 (1998), no. 5, 449-517.
 
 .. [WP-Bessel] :wikipedia:`Bessel_function`
+
+.. [WP-Error] :wikipedia:`Error_function`
 
 .. [WP-Struve] :wikipedia:`Struve_function`
 

@@ -3737,11 +3737,11 @@ cdef class Expression(CommutativeRingElement):
             sage: None^pi
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from <type 'NoneType'> to Symbolic Ring
+            TypeError: no canonical coercion from <... 'NoneType'> to Symbolic Ring
             sage: sin(x)^None
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from <type 'NoneType'> to Symbolic Ring
+            TypeError: no canonical coercion from <... 'NoneType'> to Symbolic Ring
 
         Check that :trac:`18088` is fixed::
 
@@ -3822,7 +3822,28 @@ cdef class Expression(CommutativeRingElement):
             sage: f.derivative(2)
             x |--> 6*x - sin(x)
 
-        ::
+        Some expressions can't be cleanly differentiated by the
+        chain rule::
+
+            sage: _ = var('x', domain='real')
+            sage: _ = var('w z')
+            sage: (x^z).conjugate().diff(x)
+            conjugate(x^(z - 1))*conjugate(z)
+            sage: (w^z).conjugate().diff(w)
+            w^(z - 1)*z*D[0](conjugate)(w^z)
+            sage: atanh(x).real_part().diff(x)
+            -1/(x^2 - 1)
+            sage: atanh(x).imag_part().diff(x)
+            0
+            sage: atanh(w).real_part().diff(w)
+            -D[0](real_part)(arctanh(w))/(w^2 - 1)
+            sage: atanh(w).imag_part().diff(w)
+            -D[0](imag_part)(arctanh(w))/(w^2 - 1)
+            sage: abs(log(x)).diff(x)
+            1/2*(conjugate(log(x))/x + log(x)/x)/abs(log(x))
+            sage: abs(log(z)).diff(z)
+            1/2*(conjugate(log(z))/z + log(z)/conjugate(z))/abs(log(z))
+            sage: forget()
 
             sage: t = sin(x+y^2)*tan(x*y)
             sage: t.derivative(x)
@@ -7165,8 +7186,12 @@ cdef class Expression(CommutativeRingElement):
 
     def step(self, hold=False):
         """
-        Return the value of the Heaviside step function, which is 0 for
-        negative x, 1/2 for 0, and 1 for positive x.
+        Return the value of the unit step function, which is 0 for
+        negative x, 1 for 0, and 1 for positive x.
+
+        .. SEEALSO::
+
+            :class:`sage.functions.generalized.FunctionUnitStep`
 
         EXAMPLES::
 
@@ -7174,7 +7199,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(1.5).step()
             1
             sage: SR(0).step()
-            1/2
+            1
             sage: SR(-1/2).step()
             0
             sage: SR(float(-1)).step()
@@ -7186,7 +7211,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(2).step()
             1
             sage: SR(2).step(hold=True)
-            step(2)
+            unit_step(2)
 
         """
         return new_Expression_from_GEx(self._parent,
@@ -9477,8 +9502,6 @@ cdef class Expression(CommutativeRingElement):
         else:
             return self
 
-
-
     def simplify_real(self):
         r"""
         Simplify the given expression over the real numbers. This allows
@@ -9787,7 +9810,7 @@ cdef class Expression(CommutativeRingElement):
 
         TESTS:
 
-        Check that the problem with applying `full_simplify()` to gamma
+        Check that the problem with applying ``full_simplify()`` to gamma
         functions (:trac:`9240`) has been fixed::
 
             sage: gamma(1/3)
@@ -9842,6 +9865,15 @@ cdef class Expression(CommutativeRingElement):
             (n + 1)*n*gamma(n)^2
             sage: (gamma(n+2)*gamma(m-1)/gamma(n)/gamma(m+1)).gamma_normalize()
             (n + 1)*n/((m - 1)*m)
+
+        Check that :trac:`22826` is fixed::
+
+            sage: _ = var('n')
+            sage: (n-1).gcd(n+1)
+            1
+            sage: ex = (n-1)^2*gamma(2*n+5)/gamma(n+3) + gamma(2*n+3)/gamma(n+1)
+            sage: ex.gamma_normalize()
+            (4*n^3 - 2*n^2 - 7*n + 7)*gamma(2*n + 3)/((n + 1)*gamma(n + 1))
         """
         cdef GEx x
         sig_on()
@@ -10370,6 +10402,97 @@ cdef class Expression(CommutativeRingElement):
         return res
 
     log_expand = expand_log
+
+    def distribute(self, recursive=True):
+        """
+        Distribute some indexed operators over similar operators in
+        order to allow further groupings or simplifications. 
+
+        Implemented cases (so far) :
+
+        - Symbolic sum of a sum ==> sum of symbolic sums
+
+        - Integral (definite or not) of a sum ==> sum of integrals.
+
+        - Symbolic product of a product ==> product of symbolic products.
+
+        INPUT:
+
+        - ``recursive`` -- (default : True) the distribution proceeds
+          along the subtrees of the expression.
+
+        TESTS:
+
+            sage: var("j,k,p,q", domain="integer")
+            (j, k, p, q)
+            sage: X,Y,Z,f,g=function("X,Y,Z,f,g")
+            sage: var("x,a,b")
+            (x, a, b)
+            sage: sum(X(j)+Y(j),j,1,p)
+            sum(X(j) + Y(j), j, 1, p)
+            sage: sum(X(j)+Y(j),j,1,p).distribute()
+            sum(X(j), j, 1, p) + sum(Y(j), j, 1, p)
+            sage: integrate(f(x)+g(x),x)
+            integrate(f(x) + g(x), x)
+            sage: integrate(f(x)+g(x),x).distribute()
+            integrate(f(x), x) + integrate(g(x), x)
+            sage: integrate(f(x)+g(x),x,a,b)
+            integrate(f(x) + g(x), x, a, b)
+            sage: integrate(f(x)+g(x),x,a,b).distribute()
+            integrate(f(x), x, a, b) + integrate(g(x), x, a, b)
+            sage: sum(X(j)+sum(Y(k)+Z(k),k,1,q),j,1,p)
+            sum(X(j) + sum(Y(k) + Z(k), k, 1, q), j, 1, p)
+            sage: sum(X(j)+sum(Y(k)+Z(k),k,1,q),j,1,p).distribute()
+            sum(sum(Y(k), k, 1, q) + sum(Z(k), k, 1, q), j, 1, p) + sum(X(j), j, 1, p)
+            sage: sum(X(j)+sum(Y(k)+Z(k),k,1,q),j,1,p).distribute(recursive=False)
+            sum(X(j), j, 1, p) + sum(sum(Y(k) + Z(k), k, 1, q), j, 1, p)
+            sage: maxima("product(X(j)*Y(j),j,1,p)").sage()
+            product(X(j)*Y(j), j, 1, p)
+            sage: maxima("product(X(j)*Y(j),j,1,p)").sage().distribute()
+            product(X(j), j, 1, p)*product(Y(j), j, 1, p)
+
+
+        AUTHORS:
+
+        - Emmanuel Charpentier, Ralf Stephan (05-2017)
+        """
+        from sage.functions.other import symbolic_sum as opsum, \
+            symbolic_product as opprod
+        from sage.symbolic.integration.integral \
+            import indefinite_integral as opii, definite_integral as opdi
+        from sage.symbolic.operators import add_vararg as opadd, \
+            mul_vararg as opmul
+        from sage.all import prod
+        def treat_term(op, term, args):
+            l=sage.all.copy(args)
+            l.insert(0, term)
+            return(apply(op, l))
+        if self.parent() is not sage.all.SR: return self
+        op = self.operator()
+        if op is None : return self
+        if op in {opsum, opdi, opii}:
+            sa = self.operands()[0].expand()
+            op1 = sa.operator()
+            if op1 is opadd:
+                la = self.operands()[1:]
+                aa = sa.operands()
+                if recursive:
+                    return sum(treat_term(op, t.distribute(), la) for t in aa)
+                return sum(treat_term(op, t, la) for t in aa)
+            return self
+        if op is opprod:
+            sa = self.operands()[0].expand()
+            op1 = sa.operator()
+            if op1 is opmul:
+                la = self.operands()[1:]
+                aa = sa.operands()
+                if recursive:
+                    return prod(treat_term(op, t.distribute(), la) for t in aa)
+                return prod(treat_term(op, t, la) for t in aa)
+            return self
+        if recursive:
+            return apply(op, map(lambda t:t.distribute(), self.operands()))
+        return self
 
 
     def factor(self, dontfactor=[]):
@@ -12410,4 +12533,3 @@ cdef operators compatible_relation(operators lop, operators rop) except <operato
        return greater
     else:
         raise TypeError("incompatible relations")
-

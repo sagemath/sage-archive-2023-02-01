@@ -287,10 +287,6 @@ cdef class SymbolicRing(CommutativeRing):
         Asymptotic expansions::
 
             sage: A.<x, y> = AsymptoticRing(growth_group='x^ZZ * y^QQ * log(y)^ZZ', coefficient_ring=ZZ)
-            doctest:...: FutureWarning: This class/method/function is
-            marked as experimental.
-            ...
-            See http://trac.sagemath.org/17601 for details.
             sage: s = SR(3*x^5 * log(y) + 4*y^(3/7) + O(x*log(y))); s
             3*x^5*log(y) + 4*y^(3/7) + Order(x*log(y))
             sage: s.operator(), s.operands()

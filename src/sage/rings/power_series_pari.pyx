@@ -71,9 +71,9 @@ AUTHORS:
 
 from __future__ import absolute_import, division, print_function
 
-from sage.libs.cypari2.gen cimport Gen as pari_gen
-from sage.libs.cypari2.pari_instance cimport get_var
-from sage.libs.cypari2.paridecl cimport gel, typ, lg, valp, varn, t_POL, t_SER, t_RFRAC, t_VEC
+from cypari2.gen cimport Gen as pari_gen
+from cypari2.pari_instance cimport get_var
+from cypari2.paridecl cimport gel, typ, lg, valp, varn, t_POL, t_SER, t_RFRAC, t_VEC
 from sage.libs.pari.all import pari
 
 from sage.misc.superseded import deprecated_function_alias

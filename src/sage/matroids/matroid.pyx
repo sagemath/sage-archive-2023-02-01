@@ -3334,7 +3334,7 @@ cdef class Matroid(SageObject):
 
         Boolean.
 
-        ..SEEALSO::
+        .. SEEALSO::
 
             :meth:`M.is_isomorphism() <sage.matroids.matroid.Matroid.is_isomorphism>`
 

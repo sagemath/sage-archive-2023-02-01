@@ -56,6 +56,7 @@ Coxeter groups
 - :ref:`sage.combinat.root_system.weyl_group`
 - :ref:`sage.combinat.root_system.extended_affine_weyl_group`
 - :ref:`sage.combinat.root_system.fundamental_group`
+- :ref:`sage.combinat.root_system.braid_move_calculator`
 
 .. SEEALSO::
 

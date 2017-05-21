@@ -324,7 +324,7 @@ cdef extern from "sage/libs/pynac/wrap.h":
 
 
     GEx g_abs "GiNaC::abs" (GEx x)                      except + # absolute value
-    GEx g_step "GiNaC::step" (GEx x)                    except + # step function
+    GEx g_step "GiNaC::unit_step" (GEx x)               except + # step function
     GEx g_csgn "GiNaC::csgn" (GEx x)                    except + # complex sign
     GEx g_conjugate "GiNaC::conjugate_function" (GEx x) except + # complex conjugation
     GEx g_real_part "GiNaC::real_part_function" (GEx x) except + # real part
@@ -421,7 +421,7 @@ cdef extern from "sage/libs/pynac/wrap.h":
     unsigned g_register_new "GiNaC::function::register_new" (GFunctionOpt opt)
 
     unsigned find_function "GiNaC::function::find_function" (char* name,
-            unsigned nargs) except +ValueError
+            unsigned nargs) except +
 
     bint has_symbol "GiNaC::has_symbol" (GEx ex)
     bint has_symbol_or_function "GiNaC::has_symbol_or_function" (GEx ex)

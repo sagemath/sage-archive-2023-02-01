@@ -544,8 +544,8 @@ class pAdicLseries(SageObject):
           Swinnerton-Dyer, Inventiones mathematicae 84, (1986), 1-48.
 
         - [Ka] Kayuza Kato, `p`-adic Hodge theory and values of zeta functions of modular
-          forms, Cohomologies `p`-adiques et applications arithmetiques III,
-          Asterisque vol 295, SMF, Paris, 2004.
+          forms, Cohomologies `p`-adiques et applications arithmétiques III,
+          Astérisque vol 295, SMF, Paris, 2004.
 
         EXAMPLES::
 
@@ -1399,18 +1399,18 @@ class pAdicLseriesSupersingular(pAdicLseries):
     @rename_keyword(deprecation=6094, method="algorithm")
     def frobenius(self, prec=20, algorithm = "mw"):
         r"""
-        This returns a geometric Frobenius `\varphi` on the Diedonne module `D_p(E)`
+        Return a geometric Frobenius `\varphi` on the Dieudonné module `D_p(E)`
         with respect to the basis `\omega`, the invariant differential, and `\eta=x\omega`.
+
         It satisfies  `\varphi^2 - a_p/p\, \varphi + 1/p = 0`.
 
         INPUT:
 
         - ``prec`` - (default: 20) a positive integer
 
-        - ``algorithm`` - either 'mw' (default) for Monsky-Washintzer
+        - ``algorithm`` - either 'mw' (default) for Monsky-Washnitzer
           or 'approx' for the algorithm described by Bernardi and Perrin-Riou
           (much slower and not fully tested)
-
 
         EXAMPLES::
 

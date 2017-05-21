@@ -155,7 +155,7 @@ also allowed::
 
 Upper/lower bounds on a variable can be specified either as separate constraints
 (see :meth:`add_constraint <sage.numerical.mip.MixedIntegerLinearProgram.add_constraint>`) or
-using the methods :meth:`set_min <sage.numerical.mip.MixedIntegerLinearProgram.set_min>`
+using the methods :meth:`set_max <sage.numerical.mip.MixedIntegerLinearProgram.set_max>`
 and :meth:`set_min <sage.numerical.mip.MixedIntegerLinearProgram.set_min>`
 respectively.
 

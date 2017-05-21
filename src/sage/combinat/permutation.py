@@ -182,13 +182,14 @@ Below are listed all methods and classes defined in this file.
     :meth:`from_lehmer_code` | Returns the permutation with Lehmer code ``lehmer``.
     :meth:`from_reduced_word` | Returns the permutation corresponding to the reduced word ``rw``.
     :meth:`bistochastic_as_sum_of_permutations` | Returns a given bistochastic matrix as a nonnegative linear combination of permutations.
-    :meth:`bdd_affine_perm` | Returns a partial permutation representing the bounded affine permutation of a matrix
+    :meth:`bounded_affine_permutation` | Return a partial permutation representing the bounded affine permutation of a matrix.
     :meth:`descents_composition_list` | Returns a list of all the permutations in a given descent class (i. e., having a given descents composition).
     :meth:`descents_composition_first` | Returns the smallest element of a descent class.
     :meth:`descents_composition_last` | Returns the largest element of a descent class.
     :meth:`bruhat_lequal` | Returns ``True`` if ``p1`` is less or equal to ``p2`` in the Bruhat order.
     :meth:`permutohedron_lequal` | Returns ``True`` if ``p1`` is less or equal to ``p2`` in the permutohedron order.
-    :meth:`to_standard` | Returns a standard permutation corresponding to the permutation ``self``
+    :meth:`to_standard` | Returns a standard permutation corresponding to the permutation ``self``.
+
 AUTHORS:
 
 - Mike Hansen
@@ -242,7 +243,7 @@ from sage.categories.finite_permutation_groups import FinitePermutationGroups
 from sage.structure.list_clone import ClonableArray
 from sage.structure.global_options import GlobalOptions
 from sage.interfaces.all import gap
-from sage.rings.all import ZZ, Integer, PolynomialRing, CC
+from sage.rings.all import ZZ, Integer, PolynomialRing
 from sage.arith.all import factorial
 from sage.matrix.all import matrix
 from sage.combinat.tools import transitive_ideal
@@ -260,8 +261,6 @@ from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.rsk import RSK, RSK_inverse
 from sage.combinat.permutation_cython import (left_action_product,
              right_action_product, left_action_same_n, right_action_same_n)
-from sage.modules.free_module_element import zero_vector
-from sage.modules.free_module import span
 
 class Permutation(CombinatorialElement):
     r"""
@@ -6987,55 +6986,55 @@ def bistochastic_as_sum_of_permutations(M, check = True):
         value += minimum * CFM(P([x[1]-n+1 for x in matching]))
 
     return value
-    
-    
-def bdd_affine_perm(A):
+
+def bounded_affine_permutation(A):
     r"""
     Return the bounded affine permutation of a matrix.
 
+    The *bounded affine permutation* of a matrix `A` with entries in `R`
+    is a partial permutation of length `n`, where `n` is the number of
+    columns of `A`. The entry in position `i` is the smallest value `j`
+    such that column `i` is in the span of columns `i+1, \ldots, j`,
+    over `R`, where column indices are taken modulo `n`.
+    If column `i` is the zero vector, then the permutation has a
+    fixed point at `i`.
+
     INPUT:
 
-    -"A"--a matrix with complex entries.
-
-    OUTPUT:
-
-    A partial permutation of length n, where n is the number of columns of A.
-    The entry in position i is the smallest value j such that
-    column i is in the span of columns i+1,...,j, over the complex numbers,
-    where column indices are taken modulo n.  
-    If column i is the zero vector, then the permutation has a fixed point at i. 
+    - ``A`` -- matrix with complex entries
 
     EXAMPLES::
 
-        sage: from sage.combinat.permutation import bdd_affine_perm
-        sage: A = Matrix(CC,[[1,0,0,0],[0,1,0,0]])
-        sage: bdd_affine_perm(A)
+        sage: from sage.combinat.permutation import bounded_affine_permutation
+        sage: A = Matrix(QQ, [[1,0,0,0], [0,1,0,0]])
+        sage: bounded_affine_permutation(A)
         [5, 6, 3, 4]
 
     REFERENCES:
 
-    For more on bounded affine permutations, see
-
     - [KLS2013]_
     """
     n = A.ncols()
-    z = zero_vector(CC, A.nrows())
+    R = A.base_ring()
+    from sage.modules.free_module import FreeModule
+    from sage.modules.free_module import span
+    z = FreeModule(R, A.nrows()).zero()
     v = A.columns()
     perm = []
-    for j in range(0,n):
+    for j in range(n):
         if v[j] == z:
             perm.append(j+1)
             continue
-        V = span([z],CC)
-        for i in range(j+1,j+n+1):
+        V = span([z], R)
+        for i in range(j+1, j+n+1):
             index = i % n
-            V = V + span([v[index]],CC)
-            if V == span([z],CC):
+            V = V + span([v[index]], R)
+            if V == span([z], R):
                 continue
             if v[j] in V:
                 perm.append(i+1)
                 break
-    S = Permutations(range(1, 2 * n+1),n)
+    S = Permutations(2*n, n)
     return S(perm)
 
 

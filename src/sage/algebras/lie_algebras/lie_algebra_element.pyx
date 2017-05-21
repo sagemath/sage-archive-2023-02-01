@@ -771,15 +771,15 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
 
             sage: asl = lie_algebras.Affine(QQ, ['A',4,1])
             sage: x = asl.an_element()
-            sage: hash(x)
-            1782435762440299943
+            sage: hash(x) == hash(x)
+            True
             sage: hash(asl.zero())
             0
         """
         if not self:
             self._hash = 0
         if self._hash == -1:
-            self._hash = hash((tuple(self._t_dict.iteritems()),
+            self._hash = hash((tuple([self._t_dict[i] for i in sorted(self._t_dict)]),
                                self._c_coeff, self._d_coeff))
         return self._hash
 

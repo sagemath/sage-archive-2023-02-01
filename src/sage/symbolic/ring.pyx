@@ -726,6 +726,30 @@ cdef class SymbolicRing(CommutativeRing):
         Return the symbolic variable defined by x as an element of the
         symbolic ring.
 
+        INPUT:
+
+        - ``name`` -- string or list of strings with the name(s) of the symbolic variable(s)
+
+        - ``latex_name`` -- (optional) string used when printing in latex mode,
+         if not specified use ``'name'``
+
+        - ``n`` -- (optional) number of symbolic variables, indexed from `0` to
+         `n-1`
+
+        - ``domain`` -- (optional) specify the domain of the variable(s); it is
+         the complex plane by default, and possible options (non-exhaustive list,
+         see note below) are ``'real'``, ``'complex'``, ``'positive'``,
+         ``'integer'`` and ``'noninteger'``
+
+        OUTPUT:
+
+        Symbolic expression or tuple of symbolic expressions.
+
+        NOTE:
+
+        For a comprehensive list of valid variable domains see ``'maxima('features')'``
+        and the documentation of :ref:`sage.symbolic.assumptions`.
+
         EXAMPLES::
 
             sage: zz = SR.var('zz'); zz
@@ -735,10 +759,10 @@ cdef class SymbolicRing(CommutativeRing):
             sage: t = SR.var('theta2'); t
             theta2
 
-            Automatic indexing is available as well::
+        Automatic indexing is available as well::
 
-                sage: SR.var('x', 4)
-                (x0, x1, x2, x3)
+            sage: SR.var('x', 4)
+            (x0, x1, x2, x3)
 
         TESTS::
 
@@ -770,7 +794,7 @@ cdef class SymbolicRing(CommutativeRing):
             ...
             ValueError: the number of variables should be a positive integer
 
-        The specification of ``n`` for more than one variable is not supported::
+        The argument ``n`` can only handle a single variable::
 
             sage: SR.var('x y', 4)
             Traceback (most recent call last):

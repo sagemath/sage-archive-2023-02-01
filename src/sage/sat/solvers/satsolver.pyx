@@ -14,7 +14,6 @@ AUTHORS:
 
 - Martin Albrecht (2012): first version
 """
-from sage.misc.package import PackageNotFoundError
 
 cdef class SatSolver:
     def __cinit__(self, *args, **kwds):

@@ -27,25 +27,30 @@ from __future__ import division, absolute_import, print_function, unicode_litera
 from .satsolver import SatSolver
 
 class CryptoMiniSat(SatSolver):
+    r"""
+    CryptoMiniSat Solver.
+
+    INPUT:
+
+    - ``verbosity`` -- an integer between 0 and 15 (default: 0). Verbosity.
+
+    - 'confl_limit' -- an integer (default: ``None``). Abort after this many
+      conflicts. If set to ``None``, never aborts.
+
+    - ``threads`` -- an integer (default: None). The number of thread to
+      use. If set to ``None``, the number of threads used corresponds to the
+      number of cpus.
+
+    EXAMPLES::
+
+        sage: from sage.sat.solvers.cryptominisat import CryptoMiniSat
+        sage: solver = CryptoMiniSat()                                  # optional - cryptominisat
+    """
     def __init__(self, verbosity=0, confl_limit=None, threads=None):
-        """
-        Constuct a new CryptoMiniSat Solver.
+        r"""
+        Constuct a new CryptoMiniSat instance.
 
-        INPUT:
-
-        - ``verbosity`` -- an integer between 0 and 15 (default: 0). Verbosity.
-
-        - 'confl_limit' -- an integer (default: ``None``). Abort after this many
-          conflicts. If set to ``None``, never aborts.
-
-        - ``threads`` -- an integer (default: None). The number of thread to
-          use. If set to ``None``, the number of threads used corresponds to the
-          number of cpus.
-
-        EXAMPLES::
-
-            sage: from sage.sat.solvers.cryptominisat import CryptoMiniSat
-            sage: solver = CryptoMiniSat()                                  # optional - cryptominisat
+        See the documentation class for the description of inputs.
         """
         if threads is None:
             from sage.parallel.ncpus import ncpus
@@ -63,7 +68,7 @@ class CryptoMiniSat(SatSolver):
         self._clauses = []
 
     def var(self, decision=None):
-        """
+        r"""
         Return a *new* variable.
 
         INPUT:
@@ -84,7 +89,7 @@ class CryptoMiniSat(SatSolver):
         return self._nvars + 1
 
     def nvars(self):
-        """
+        r"""
         Return the number of variables. Note that for compatibility with DIMACS
         convention, the number of variables corresponds to the maximal index of
         the variables used. 
@@ -107,7 +112,7 @@ class CryptoMiniSat(SatSolver):
         return self._nvars
 
     def add_clause(self, lits):
-        """
+        r"""
         Add a new clause to set of clauses.
 
         INPUT:
@@ -160,7 +165,7 @@ class CryptoMiniSat(SatSolver):
         self._clauses.append((lits, True, rhs))
 
     def __call__(self, assumptions=None):
-        """
+        r"""
         Solve this instance.
 
         OUTPUT:
@@ -192,7 +197,7 @@ class CryptoMiniSat(SatSolver):
             return False
 
     def __repr__(self):
-        """
+        r"""
         TESTS::
 
             sage: from sage.sat.solvers.cryptominisat import CryptoMiniSat
@@ -203,7 +208,7 @@ class CryptoMiniSat(SatSolver):
         return "CryptoMiniSat solver: {} variables, {} clauses.".format(self.nvars(), len(self.clauses()))
 
     def clauses(self, filename=None):
-        """
+        r"""
         Return original clauses.
 
         INPUT:

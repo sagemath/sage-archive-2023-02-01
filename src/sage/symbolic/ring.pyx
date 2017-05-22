@@ -719,39 +719,54 @@ cdef class SymbolicRing(CommutativeRing):
 
     def var(self, name, latex_name=None, n=None, domain=None):
         """
-        Return the symbolic variable defined by x as an element of the
-        symbolic ring.
+        Return a symbolic variable as an element of the symbolic ring.
 
         INPUT:
 
         - ``name`` -- string or list of strings with the name(s) of the symbolic variable(s)
 
-        - ``latex_name`` -- (optional) string used when printing in latex mode,
-         if not specified use ``'name'``
+        - ``latex_name`` -- (optional) string used when printing in latex mode, if not specified use ``'name'``
 
-        - ``n`` -- (optional) number of symbolic variables, indexed from `0` to
-         `n-1`
+        - ``n`` -- (optional) nonnegative integer; number of symbolic variables, indexed from `0` to `n-1`
 
-        - ``domain`` -- (optional) specify the domain of the variable(s); it is
-         the complex plane by default, and possible options (non-exhaustive list,
-         see note below) are ``'real'``, ``'complex'``, ``'positive'``,
-         ``'integer'`` and ``'noninteger'``
+        - ``domain`` -- (optional) specify the domain of the variable(s); it is the complex plane
+          by default, and possible options are (non-exhaustive list, see note below):
+          ``'real'``, ``'complex'``, ``'positive'``, ``'integer'`` and ``'noninteger'``
 
         OUTPUT:
 
         Symbolic expression or tuple of symbolic expressions.
 
-        NOTE:
+        .. SEEALSO::
 
-        For a comprehensive list of valid variable domains see ``'maxima('features')'``
-        and the documentation of :ref:`sage.symbolic.assumptions`.
+            This function does not inject the variable(s) into the global namespace.
+            For that purpose see :meth:`var()<sage.calculus.var.var>`.
 
-        EXAMPLES::
+        .. NOTE::
+
+            For a comprehensive list of acceptable features type ``'maxima('features')'``,
+            and see also the documentation of :ref:`sage.symbolic.assumptions`.
+
+        EXAMPLES:
+
+        Create a variable `zz` (complex by default)::
 
             sage: zz = SR.var('zz'); zz
             zz
+
+        The return type is a symbolic expression::
+
             sage: type(zz)
             <type 'sage.symbolic.expression.Expression'>
+
+        We can specify the domain as well::
+
+            sage: zz = SR.var('zz', domain='real')
+            sage: zz.is_real()
+            True
+
+        The ``name`` argument does not have to match the left-hand side variable::
+
             sage: t = SR.var('theta2'); t
             theta2
 

@@ -130,10 +130,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         INPUT:
 
-        - ``transformation`` -- (default: ``False``) If ``True``, the
+        - ``transformation`` -- boolean (default: ``False``) If ``True``, the
           transformation matrix is returned together with the weak Popov form.
 
-        - ``shifts`` -- (default: ``None``) A tuple or list of integers
+        - ``shifts`` -- boolean (default: ``None``) A tuple or list of integers
           `s_1, \ldots, s_n`, where `n` is the number of columns of the matrix.
           If given, a "shifted weak Popov form" is computed, i.e. such that the
           matrix `A\,\mathrm{diag}(x^{s_1}, \ldots, x^{s_n})` is in weak Popov
@@ -198,7 +198,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             M._weak_popov_form(transformation=False, shifts=shifts)
             return M
 
-    cpdef _weak_popov_form(self, transformation=False, shifts=None):
+    def _weak_popov_form(self, transformation=False, shifts=None):
         """
         Transform the matrix in place into weak Popov form.
 
@@ -250,11 +250,12 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             from sage.matrix.constructor import identity_matrix
             U = identity_matrix(R, m)
 
-        shift = False
         if shifts:
             shift = True
             if len(shifts) != M.ncols():
                 raise ValueError("The number of shifts must equal the number of columns")
+        else:
+            shift = False
 
         # initialise to_row and conflicts list
         to_row = [[] for i in range(n)]
@@ -422,10 +423,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         INPUT:
 
-        - ``include_zero_rows`` -- bool (default: True); if False, the zero
+        - ``include_zero_rows`` -- boolean (default: ``True``); if ``False``, the zero
           rows in the output matrix are deleted.
 
-        - ``transformation`` -- bool (default: False); if True, return the
+        - ``transformation`` -- boolean (default: ``False``); if ``True``, return the
           transformation matrix U
 
         OUTPUT:
@@ -467,23 +468,20 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         if transformation:
             U = A._hermite_form_euclidean(transformation=True)
-            if not include_zero_rows:
-                i = A.nrows() - 1
-                while i >= 0 and A.row(i) == 0:
-                    i -= 1
-                A = A[:i+1]
-                U = U[:i+1]
-            return A, U
         else:
             A._hermite_form_euclidean(transformation=False)
-            if not include_zero_rows:
-                i = A.nrows() - 1
-                while i >= 0 and A.row(i) == 0:
-                    i -= 1
-                A = A[:i+1]
-            return A
 
-    cpdef _hermite_form_euclidean(self, transformation=False):
+        if not include_zero_rows:
+            i = A.nrows() - 1
+            while i >= 0 and A.row(i) == 0:
+                i -= 1
+            A = A[:i+1]
+            if transformation:
+                U = U[:i+1]
+
+        return (A, U) if transformation else A
+
+    def _hermite_form_euclidean(self, transformation=False):
         """
         Transform the matrix in place to hermite normal form and optionally
         return the transformation matrix.
@@ -579,11 +577,11 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         INPUT:
 
-        - ``include_zero_rows`` -- bool (default: True); if False, the zero
-          rows in the output matrix are deleted.
+        - ``include_zero_rows`` -- boolean (default: ``True``); if ``False``,
+          the zero rows in the output matrix are deleted.
 
-        - ``transformation`` -- bool (default: False); if True, return a matrix
-          U such that U * A == H
+        - ``transformation`` -- boolean (default: ``False``); if ``True``,
+          return a matrix U such that U * A == H
 
         OUTPUT:
 
@@ -635,13 +633,12 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 A = A[i:]
             return A
 
-    cpdef _reversed_hermite_form_euclidean(self, transformation=False):
+    def _reversed_hermite_form_euclidean(self, transformation=False):
         """
         Transform the matrix in place to reversed hermite normal form.
 
-        If ``transformation`` is True, then return the transformation matrix.
-
-        The algorithm is a straightforward one based on the Euclidean algorithm.
+        If ``transformation`` is ``True``, then return the transformation
+        matrix.
 
         EXAMPLES::
 
@@ -657,75 +654,13 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: U * A == H
             True
         """
-        cdef Matrix A = self
-        cdef Matrix U
-
-        cdef Py_ssize_t m = A.nrows()
-        cdef Py_ssize_t n = A.ncols()
-
-        cdef Py_ssize_t i = m - 1
-        cdef Py_ssize_t j = n - 1
-        cdef Py_ssize_t k, l, c, ri
-
+        self.reverse_rows_and_columns()
         if transformation:
-            from sage.matrix.constructor import identity_matrix
-            U = identity_matrix(A.base_ring(), m)
-
-        pivot_cols = []
-        while j >= 0:
-            k = i
-            while k >= 0 and A.get_unsafe(k,j).is_zero(): # first nonzero entry
-                k -= 1
-            if k >= 0:
-                l = k - 1
-                while l >= 0:
-                    while l >= 0 and A.get_unsafe(l,j).is_zero(): # nonzero entry below
-                        l -= 1
-                    if l < 0: break
-
-                    a = A.get_unsafe(k,j)
-                    b = A.get_unsafe(l,j)
-                    d,p,q = a.xgcd(b) # p * a + q * b = d = gcd(a,b)
-                    e = a // d
-                    f = b // d
-
-                    for c in range(j+1):
-                        temp = A.get_unsafe(k,c)
-                        A.set_unsafe(k, c, p * A.get_unsafe(k,c) + q * A.get_unsafe(l,c))
-                        A.set_unsafe(l, c, (-f) * temp + e * A.get_unsafe(l,c))
-                    if transformation:
-                        temp = U[k]
-                        U[k] = p * U[k] + q * U[l]
-                        U[l] = (-f) * temp + e * U[l]
-                if i != k:
-                    A.swap_rows_c(i,k)
-                    if transformation:
-                        U.swap_rows_c(i,k)
-                pivot_cols.append(j)
-                i -= 1
-            j -= 1
-
-        # reduce entries below pivots
-        for i in range(len(pivot_cols)):
-            ri = m - 1 - i
-            j = pivot_cols[i]
-            pivot = A.get_unsafe(ri,j)
-
-            # make pivot monic
-            lc_inverse = ~ pivot.lc()
-            for c in range(j+1):
-                A.set_unsafe(ri, c, A.get_unsafe(ri,c) * lc_inverse)
-            if transformation:
-                U[ri] *= lc_inverse
-
-            pivot = - A.get_unsafe(ri,j)
-            for k in range(ri+1,m):
-                q = A.get_unsafe(k,j) // pivot
-                if not q.is_zero():
-                    for c in range(j+1):
-                        A.set_unsafe(k, c, A.get_unsafe(k,c) + q * A.get_unsafe(ri,c))
-                    if transformation:
-                        U.add_multiple_of_row_c(k, ri, q, 0)
+            U = self._hermite_form_euclidean(transformation=True)
+            U.reverse_rows_and_columns()
+        else:
+            self._hermite_form_euclidean(transformation=False)
+        self.reverse_rows_and_columns()
 
         if transformation:
             return U

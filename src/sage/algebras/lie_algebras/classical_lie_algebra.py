@@ -262,9 +262,10 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
         else:
             gens = self._f
         cur = gens[i]
-        for j in w:
+        for j in reversed(w):
             for k in range(-r.scalar(coroots[j])):
                 cur = self.bracket(gens[j], cur)
+            r = r.reflection(coroots[j], True)
         return cur
 
     @cached_method
@@ -307,13 +308,20 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
                 expanded = True
         return Family(basis)
 
-    # TODO: Uncomment once #16825 is done
-    #def affine(self, kac_moody=False):
-    #    """
-    #    Return the (untwisted) affine (Kac-Moody) Lie algebra of ``self``.
-    #    """
-    #    from sage.algebras.lie_algebras.affine_lie_algebra import AffineLieAlgebra
-    #    return AffineLieAlgebra(self, kac_moody)
+    def affine(self, kac_moody=False):
+        """
+        Return the affine (Kac-Moody) Lie algebra of ``self``.
+
+        EXAMPLES::
+
+            sage: so5 = lie_algebras.so(QQ, 5, 'matrix')
+            sage: so5
+            Special orthogonal Lie algebra of rank 5 over Rational Field
+            sage: so5.affine()
+            Affine Special orthogonal Kac-Moody algebra of rank 5 over Rational Field
+        """
+        from sage.algebras.lie_algebras.affine_lie_algebra import AffineLieAlgebra
+        return AffineLieAlgebra(self, kac_moody)
 
 class gl(LieAlgebraFromAssociative):
     r"""
@@ -747,7 +755,8 @@ class f4(ExceptionalMatrixLieAlgebra):
     The matrix Lie algebra `\mathfrak{f}_4`.
 
     The simple Lie algebra `\mathfrak{f}_f` of type `F_4`. The matrix
-    representation is given following [HRT2000]_.
+    representation is given following [HRT2000]_ but indexed in the
+    reversed order (i.e., interchange 1 with 4 and 2 with 3).
     """
     def __init__(self, R):
         """
@@ -783,6 +792,9 @@ class f4(ExceptionalMatrixLieAlgebra):
         f[0][14,12] = 2*one
         f[1][15,13] = 2*one
 
+        # Our Cartan matrix convension is dual to that of [HRT2000]_
+        e.reverse()
+        f.reverse()
         ExceptionalMatrixLieAlgebra.__init__(self, R, CartanType(['F', 4]), e, f)
 
 class g2(ExceptionalMatrixLieAlgebra):
@@ -1144,13 +1156,20 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
         from sage.combinat.root_system.weyl_group import WeylGroup
         return WeylGroup(self._cartan_type)
 
-    # TODO: Uncomment once #16825 is done
-    #def affine(self, kac_moody=False):
-    #    """
-    #    Return the (untwisted) affine Lie algebra of ``self``.
-    #    """
-    #    from sage.algebras.lie_algebras.affine_lie_algebra import AffineLieAlgebra
-    #    return AffineLieAlgebra(self, kac_moody)
+    def affine(self, kac_moody=False):
+        """
+        Return the affine Lie algebra of ``self``.
+
+        EXAMPLES::
+
+            sage: sp6 = lie_algebras.sp(QQ, 6)
+            sage: sp6
+            Lie algebra of ['C', 3] in the Chevalley basis
+            sage: sp6.affine()
+            Affine Kac-Moody algebra of ['C', 3] in the Chevalley basis
+        """
+        from sage.algebras.lie_algebras.affine_lie_algebra import AffineLieAlgebra
+        return AffineLieAlgebra(self, kac_moody)
 
     # Useful in creating the UEA
     @cached_method

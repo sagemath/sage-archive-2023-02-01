@@ -1343,7 +1343,7 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
             l = maxima.sr_tlimit(ex, v, a)
         elif dir in ['plus', '+', 'right', 'above']:
             l = maxima.sr_tlimit(ex, v, a, 'plus')
-        elif dir == ['minus', '-', 'left', 'below']:
+        elif dir in ['minus', '-', 'left', 'below']:
             l = maxima.sr_tlimit(ex, v, a, 'minus')
     elif algorithm == 'sympy':
         if dir is None:

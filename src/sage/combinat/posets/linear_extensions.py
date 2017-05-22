@@ -493,7 +493,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
             while K[j]:
                 K.append([b for a in K[j] for b in Jup[a]])
                 j += 1
-            K = sorted(set([item for sublist in K for item in sublist]))
+            K = sorted(set(item for sublist in K for item in sublist))
             for j in range(len(K)):
                 i = m + j + 1
                 Jup[i] = [m + K.index(a) + 1 for a in Jup[K[j]]]

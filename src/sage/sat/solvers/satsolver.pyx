@@ -276,7 +276,7 @@ cdef class SatSolver:
         """
         return ["gens"]
 
-def SAT(solver=None):
+def SAT(solver=None, *args, **kwds):
     r"""
     Return a :class:`SatSolver` instance.
 
@@ -322,7 +322,7 @@ def SAT(solver=None):
 
     if solver == 'cryptominisat':
         from sage.sat.solvers.cryptominisat import CryptoMiniSat
-        return CryptoMiniSat()
+        return CryptoMiniSat(*args, **kwds)
     elif solver == "LP":
         from sat_lp import SatLP
         return SatLP()

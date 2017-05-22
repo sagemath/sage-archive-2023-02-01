@@ -639,20 +639,20 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         More examples::
 
-            sage: M[range(2),:]
+            sage: M[list(range(2)),:]
             [ 1 -2 -1 -1  9]
             [ 1  8  6  2  2]
-            sage: M[range(2),4]
+            sage: M[list(range(2)),4]
             [9]
             [2]
-            sage: M[range(3),range(5)]
+            sage: M[list(range(3)),list(range(5))]
             [ 1 -2 -1 -1  9]
             [ 1  8  6  2  2]
             [ 1  1 -1  1  4]
 
         ::
 
-            sage: M[3,range(5)]
+            sage: M[3,list(range(5))]
             [-1  2 -2 -1  4]
             sage: M[3,:]
             [-1  2 -2 -1  4]
@@ -701,14 +701,14 @@ cdef class Matrix(sage.structure.element.Matrix):
         ::
 
             sage: A= matrix(3,4,[1, 0, -3, -1, 3, 0, -2, 1, -3, -5, -1, -5])
-            sage: A[range(2,-1,-1),:]
+            sage: A[list(range(2,-1,-1)),:]
             [-3 -5 -1 -5]
             [ 3  0 -2  1]
             [ 1  0 -3 -1]
 
         ::
 
-            sage: A[range(2,-1,-1),range(3,-1,-1)]
+            sage: A[list(range(2,-1,-1)),list(range(3,-1,-1))]
             [-5 -1 -5 -3]
             [ 1 -2  0  3]
             [-1 -3  0  1]
@@ -729,7 +729,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             []
             sage: M[2:3, 3:3]
             []
-            sage: M[range(2,2), :3]
+            sage: M[list(range(2,2)), :3]
             []
             sage: M[(1,2), 3]
             [ 7]
@@ -1157,26 +1157,26 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         More examples::
 
-            sage: M[range(2),:]=[[1..5], [6..10]]; M
+            sage: M[list(range(2)),:]=[[1..5], [6..10]]; M
             [ 1  2  3  4  5]
             [ 6  7  8  9 10]
             [30 -1  2 -2  4]
             [30  2 -2 -1  4]
 
-            sage: M[range(2),4]=0; M
+            sage: M[list(range(2)),4]=0; M
             [ 1  2  3  4  0]
             [ 6  7  8  9  0]
             [30 -1  2 -2  4]
             [30  2 -2 -1  4]
 
-            sage: M[range(3),range(5)]=M[range(1,4), :]; M
+            sage: M[list(range(3)),list(range(5))]=M[list(range(1,4)), :]; M
             [ 6  7  8  9  0]
             [30 -1  2 -2  4]
             [30  2 -2 -1  4]
             [30  2 -2 -1  4]
 
 
-            sage: M[3,range(5)]=vector([-2,3,4,-5,4]); M
+            sage: M[3,list(range(5))]=vector([-2,3,4,-5,4]); M
             [ 6  7  8  9  0]
             [30 -1  2 -2  4]
             [30  2 -2 -1  4]
@@ -1204,12 +1204,12 @@ cdef class Matrix(sage.structure.element.Matrix):
             [ 3  0 -2  1]
             [-3 -5 -1 -5]
 
-            sage: A[range(2,-1,-1),:]=A; A
+            sage: A[list(range(2,-1,-1)),:]=A; A
             [-3 -5 -1 -5]
             [ 3  0 -2  1]
             [ 1  0 -3 -1]
 
-            sage: A[range(2,-1,-1),range(3,-1,-1)]=A; A
+            sage: A[list(range(2,-1,-1)),list(range(3,-1,-1))]=A; A
             [-1 -3  0  1]
             [ 1 -2  0  3]
             [-5 -1 -5 -3]
@@ -1232,7 +1232,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [ 0  1  2  3]
             [ 4  5  6  7]
             [ 8  9 10 11]
-            sage: M[range(2,2), :3]=20; M
+            sage: M[list(range(2,2)), :3]=20; M
             [ 0  1  2  3]
             [ 4  5  6  7]
             [ 8  9 10 11]
@@ -3479,7 +3479,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                 else:
                     L.extend( L_prime )
         if return_diag:
-            return [ d[i] for i in xrange(self._nrows) ]
+            return [d[i] for i in xrange(self._nrows)]
         else:
             return True
 

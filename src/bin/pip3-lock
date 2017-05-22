@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # We should avoid running pip while uninstalling a package because that
 # is prone to race conditions. This script runs pip under a lock.
@@ -18,7 +18,7 @@ locktype = fcntl.LOCK_EX
 if len(sys.argv) >= 1 and sys.argv[1] == "SHARED":
     sys.argv.pop(1)
     locktype = fcntl.LOCK_SH
-sys.argv[0] = "pip"
+sys.argv[0] = "pip3"
 
 
 # Open lockfile and lock it
@@ -29,7 +29,7 @@ except OSError:
     if not os.path.isdir(lockdir):
         raise
 
-lockfile = os.path.join(lockdir, "pip.lock")
+lockfile = os.path.join(lockdir, "pip3.lock")
 lock = open(lockfile, "w+")
 
 # First try a non-blocking lock such that we can give an informative
@@ -52,5 +52,5 @@ except IOError:
 # Note that the import of pkg_resources must happen under the lock!
 from pkg_resources import load_entry_point
 sys.exit(
-    load_entry_point('pip', 'console_scripts', 'pip')()
+    load_entry_point('pip', 'console_scripts', 'pip3')()
 )

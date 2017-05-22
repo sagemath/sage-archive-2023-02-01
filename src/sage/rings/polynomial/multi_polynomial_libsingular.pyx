@@ -186,12 +186,13 @@ from sage.libs.singular.decl cimport n_unknown,  n_Zp,  n_Q,   n_R,   n_GF,  n_l
 # singular functions
 from sage.libs.singular.decl cimport (
     errorreported,
+    n_IsUnit, n_Invers,
     p_ISet, rChangeCurrRing, p_Copy, p_Init, p_SetCoeff, p_Setm, p_SetExp, p_Add_q,
     p_NSet, p_GetCoeff, p_Delete, p_GetExp, pNext, rRingVar, omAlloc0, omStrDup,
     omFree, pDivide, p_SetCoeff0, n_Init, p_DivisibleBy, pLcm, p_LmDivisibleBy,
     pDivide, p_IsConstant, p_ExpVectorEqual, p_String, p_LmInit, n_Copy,
-    p_IsUnit, pInvers, p_Head, idInit, fast_map_common_subexp, id_Delete,
-    p_IsHomogeneous, pHomogen, p_Totaldegree,pLDeg1_Totaldegree, singclap_pdivide, singclap_factorize,
+    p_IsUnit, p_Series, p_Head, idInit, fast_map_common_subexp, id_Delete,
+    p_IsHomogeneous, p_Homogen, p_Totaldegree,pLDeg1_Totaldegree, singclap_pdivide, singclap_factorize,
     idLift, IDELEMS, On, Off, SW_USE_CHINREM_GCD, SW_USE_EZGCD,
     p_LmIsConstant, pTakeOutComp1, singclap_gcd, pp_Mult_qq, p_GetMaxExp,
     pLength, kNF, p_Neg, p_Minus_mm_Mult_qq, p_Plus_mm_Mult_qq,
@@ -1353,7 +1354,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: R = IntegerModRing(1024)['x,y']
             sage: singular(R)
             polynomial ring, over a ring (with zero-divisors), global ordering
-            //   coefficients: Z/2^10
+            //   coefficients: ZZ/(2^10)
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y
@@ -2858,10 +2859,13 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         - ``mon`` - a monomial
 
         OUTPUT:
-            coefficient in base ring
 
-        SEE ALSO:
-            For coefficients in a base ring of fewer variables, look at ``coefficient``.
+        coefficient in base ring
+
+        .. SEEALSO::
+
+            For coefficients in a base ring of fewer variables,
+            look at ``coefficient``.
 
         EXAMPLES::
 
@@ -3112,11 +3116,11 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef ring *_ring = self._parent_ring
         if(_ring != currRing): rChangeCurrRing(_ring)
 
-        if not p_IsUnit(self._poly, _ring):
+        if not (p_IsUnit(self._poly,_ring)):
             raise ArithmeticError("Element is not a unit.")
 
         sig_on()
-        cdef MPolynomial_libsingular r = new_MP(self._parent, pInvers(0, self._poly, NULL))
+        cdef MPolynomial_libsingular r = new_MP(self._parent, p_NSet(n_Invers(p_GetCoeff(self._poly, _ring),_ring.cf),_ring))
         sig_off()
         return r
 
@@ -3171,14 +3175,17 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         SEE: ``self.homogenize``
         """
+        cdef ring *_ring = self._parent_ring
         cdef MPolynomialRing_libsingular parent = self._parent
         cdef MPolynomial_libsingular f
 
         if self.is_homogeneous():
             return self
 
+        if(_ring != currRing): rChangeCurrRing(_ring)
+
         if var < parent._ring.N:
-            return new_MP(parent, pHomogen(p_Copy(self._poly, self._parent_ring), var+1))
+            return new_MP(parent, p_Homogen(self._poly, var+1, _ring))
         else:
             raise TypeError("var must be < self.parent().ngens()")
 

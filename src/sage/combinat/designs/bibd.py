@@ -938,7 +938,7 @@ def v_5_1_BIBD(v, check=True):
     r"""
     Return a `(v,5,1)`-BIBD.
 
-    This method follows the constuction from [ClaytonSmith]_.
+    This method follows the construction from [ClaytonSmith]_.
 
     INPUT:
 

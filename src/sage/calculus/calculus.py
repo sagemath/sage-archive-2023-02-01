@@ -1644,7 +1644,7 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
         sage: inverse_laplace(1, s, t, algorithm='giac')
         dirac_delta(t)
                 
-    TESTS::
+    TESTS:
 
     Testing unevaluated expression from Maxima::
     

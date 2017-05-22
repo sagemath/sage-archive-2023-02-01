@@ -16,8 +16,11 @@ fi
 #############################################################
 # If CFLAGS and CXXFLAGS are unset, giac looks to set -g -O2,
 #   but if they are not empty, the -g -O2 is not added
+CFLAGS="-g -O2 $CFLAGS"
 CXXFLAGS="-g -O2 $CXXFLAGS"
 CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
+
+export CFLAGS CXXFLAGS CPPFLAGS
 
 cd src
 

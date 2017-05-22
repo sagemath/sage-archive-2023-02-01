@@ -1170,8 +1170,17 @@ done from the right side.""")
             144
             sage: (QQ^3).cardinality()
             +Infinity
+
+        TESTS:
+
+        Check that :trac:`22987` is fixed::
+
+            sage: VectorSpace(QQ, 0).cardinality()
+            1
         """
-        return (self.base_ring().cardinality())**self.rank()
+        if not self.rank():
+            return sage.rings.integer.Integer(1)
+        return self.base_ring().cardinality() ** self.rank()
 
     __len__ = cardinality # for backward compatibility
 

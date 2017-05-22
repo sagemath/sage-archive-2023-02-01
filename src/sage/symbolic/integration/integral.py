@@ -491,8 +491,8 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
     Alternatively, just use algorithm='mathematica_free' to integrate via Mathematica
     over the internet (does NOT require a Mathematica license!)::
 
-        sage: _ = var('x, y, z')
-        sage: f = sin(x^2) + y^z
+        sage: _ = var('x, y, z')  # optional - internet
+        sage: f = sin(x^2) + y^z   # optional - internet
         sage: f.integrate(x, algorithm="mathematica_free")   # optional - internet
         x*y^z + sqrt(1/2)*sqrt(pi)*fresnels(sqrt(2)*x/sqrt(pi))
 

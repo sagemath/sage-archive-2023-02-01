@@ -69,8 +69,8 @@ def finite_field_sqrt(ring):
     if not is_FiniteField(ring):
         raise ValueError('not a finite field')
     q, rem = ring.cardinality().sqrtrem()
-    if rem != 0:
-        raise ValueError('cardinatity not a square')
+    if rem:
+        raise ValueError('cardinality not a square')
     return q
 
 

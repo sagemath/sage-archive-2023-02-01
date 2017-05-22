@@ -11,11 +11,11 @@ fi
 
 cd src
 
-cmake -DCMAKE_INSTALL_PREFIX="${SAGE_LOCAL}" -DUSE_GAUSS='ON' . || fail 'Error configuring cryptominisat'
+cmake -DCMAKE_INSTALL_PREFIX="${SAGE_LOCAL}" -DUSE_GAUSS='ON' -DZLIB_ROOT="${SAGE_LOCAL}" . || fail 'Error configuring cryptominisat'
 
-$MAKE || fail 'Error building cryptominisat'
+$MAKE VERBOSE=ON || fail 'Error building cryptominisat'
 
-$MAKE install || fail 'Error installing cryptominisat'
+$MAKE VERBOSE=ON install || fail 'Error installing cryptominisat'
 
 exit 0
 

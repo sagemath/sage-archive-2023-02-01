@@ -1500,7 +1500,7 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
 
     .. SEEALSO::
 
-        :func:`laplace
+        :func:`laplace`
 
     EXAMPLES::
 

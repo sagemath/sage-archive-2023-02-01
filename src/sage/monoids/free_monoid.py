@@ -14,8 +14,6 @@ generators. You can print the generators as arbitrary strings using
 the optional ``names`` argument to the
 ``FreeMonoid`` function.
 """
-from __future__ import absolute_import
-
 #*****************************************************************************
 #       Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>
 #
@@ -25,6 +23,8 @@ from __future__ import absolute_import
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+from six import integer_types
 
 from sage.rings.integer import Integer
 from sage.structure.category_object import normalize_names
@@ -193,7 +193,7 @@ class FreeMonoid_class(Monoid_class):
             sage: M = FreeMonoid(3, names=['a','b','c'])
             sage: TestSuite(M).run()
         """
-        if not isinstance(n, (int, long, Integer)):
+        if not isinstance(n, integer_types + (Integer,)):
             raise TypeError("n (=%s) must be an integer."%n)
         if n < 0:
             raise ValueError("n (=%s) must be nonnegative."%n)
@@ -201,14 +201,28 @@ class FreeMonoid_class(Monoid_class):
         #self._assign_names(names)
         Monoid_class.__init__(self,names)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
+        """
+        Test for equality.
+        """
+        if self is other:
+            return True
         if not isinstance(other, FreeMonoid_class):
-            return -1
-        c = cmp(self.__ngens, other.__ngens)
-        if c: return c
-        if self.variable_names() == other.variable_names():
-            return 0
-        return 1
+            return False
+        if self.__ngens != other.__ngens:
+            return False
+        try:
+            if self.variable_names() != other.variable_names():
+                return False
+        except ValueError:
+            pass
+        return True
+
+    def __ne__(self, other):
+        """
+        Test for unequality.
+        """
+        return not (self == other)
 
     def _repr_(self):
         return "Free monoid on %s generators %s"%(self.__ngens,self.gens())
@@ -253,7 +267,7 @@ class FreeMonoid_class(Monoid_class):
             return x
         if isinstance(x, FreeMonoidElement) and x.parent() == self:
             return self.element_class(self,x._element_list,check)
-        if isinstance(x, (int, long, Integer)) and x == 1:
+        if isinstance(x, integer_types + (Integer,)) and x == 1:
             return self.element_class(self, x, check)
         if isinstance(x, FiniteWord_class):
             d = self.gens_dict()

@@ -112,7 +112,7 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
 
         Check that we convert names to the indexing set::
 
-            sage: L = LieAlgebra(QQ, 'x,y,z', {('x','y'): {'z':1}, ('y','z'): {'x':1}, ('z','x'): {'y':1}}, index_set=range(3))
+            sage: L = LieAlgebra(QQ, 'x,y,z', {('x','y'): {'z':1}, ('y','z'): {'x':1}, ('z','x'): {'y':1}}, index_set=list(range(3)))
             sage: (x,y,z) = L.gens()
             sage: L[x,y]
             L[2]
@@ -244,7 +244,7 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
 
     def structure_coefficients(self, include_zeros=False):
         """
-        Return the dictonary of structure coefficients of ``self``.
+        Return the dictionary of structure coefficients of ``self``.
 
         EXAMPLES::
 

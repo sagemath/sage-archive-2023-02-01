@@ -23,6 +23,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.structure.sage_object import richcmp, op_NE
 from sage.structure.element import ModuleElement
 
 def is_HeckeModuleElement(x):
@@ -139,6 +140,28 @@ class HeckeModuleElement(ModuleElement):
         """
         if R is None: return self.__element
         return self.__element.change_ring(R)
+
+    def _richcmp_(self, other, op):
+        """
+        Rich comparison of ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(11, 2)
+            sage: M.0 == M.1 # indirect doctest
+            False
+            sage: M.0 == (M.1 + M.0 - M.1)
+            True
+            sage: M.0 == ModularSymbols(13, 2).0
+            False
+
+            sage: x = BrandtModule(37)([0,1,-1])
+            sage: x != x
+            False
+        """
+        if not isinstance(other, HeckeModuleElement):
+            return op == op_NE
+        return richcmp(self.element(), other.element(), op)
 
     def ambient_module(self):
         """

@@ -332,7 +332,7 @@ index 90ce368..e1bfc8d 100644
 +str_long(pari_str *S, long e)
  {
    if (e >= 0) str_ulong(S, (ulong)e);
-   else { str_putc(S, '-'); str_ulong(S, (ulong)(-e)); }
+   else { str_putc(S, '-'); str_ulong(S, -(ulong)e); }
  }
  
  static void

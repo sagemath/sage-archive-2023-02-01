@@ -10,23 +10,26 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#           Copyright (C) 2007 Robert L. Miller <rlmillster@gmail.com>
-#                         2007 Robert W. Bradshaw <robertwb@math.washington.edu>
+#       Copyright (C) 2007 Robert L. Miller <rlmillster@gmail.com>
+#                     2007 Robert W. Bradshaw <robertwb@math.washington.edu>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
 
 include "cysignals/signals.pxi"
-include 'sage/ext/cdefs.pxi'
 include "cysignals/memory.pxi"
 include "sage/data_structures/binary_matrix.pxi"
+from libc.math cimport sqrt
+from libc.string cimport memset
 
-# import from Python standard library
+from sage.libs.gmp.mpz cimport *
 from sage.misc.prandom import random
-
-# import from third-party library
 from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.graphs.base.static_sparse_graph cimport short_digraph
 from sage.graphs.base.static_sparse_graph cimport init_short_digraph
@@ -1246,7 +1249,7 @@ cpdef tuple find_hamiltonian(G, long max_iter=100000, long reset_bound=30000,
     member[u] = True
     member[v] = True
 
-    #Initialize all the variables neccesary to start iterating
+    #Initialize all the variables necessary to start iterating
     cdef bint done = False
     cdef long counter = 0
     cdef long bigcount = 0

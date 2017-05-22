@@ -423,6 +423,49 @@ cdef class Matrix_sparse(matrix.Matrix):
                             list(reversed([self._nrows - t for t in row_divs])))
         return A
 
+
+    def _reverse_unsafe(self):
+        r"""
+        TESTS::
+
+            sage: m = matrix(QQ, 3, 3, {(2,2): 1}, sparse=True)
+            sage: m._reverse_unsafe()
+            sage: m
+            [1 0 0]
+            [0 0 0]
+            [0 0 0]
+            sage: m = matrix(QQ, 3, 3, {(2,2): 1, (0,0):2}, sparse=True)
+            sage: m._reverse_unsafe()
+            sage: m
+            [1 0 0]
+            [0 0 0]
+            [0 0 2]
+            sage: m = matrix(QQ, 3, 3, {(1,2): 1}, sparse=True)
+            sage: m._reverse_unsafe()
+            sage: m
+            [0 0 0]
+            [1 0 0]
+            [0 0 0]
+            sage: m = matrix(QQ, 3, 3, {(1,1): 1}, sparse=True)
+            sage: m._reverse_unsafe()
+            sage: m
+            [0 0 0]
+            [0 1 0]
+            [0 0 0]
+        """
+        cdef Py_ssize_t i, j, ii, jj
+        for i,j in self.nonzero_positions(copy=False):
+            ii = self._nrows - i - 1
+            jj = self._ncols - j - 1
+            if (i > ii or (i == ii and j >= jj)) and self.get_unsafe(ii, jj):
+                # already swapped
+                continue
+
+            e1 = self.get_unsafe(i, j)
+            e2 = self.get_unsafe(ii, jj)
+            self.set_unsafe(i, j, e2)
+            self.set_unsafe(ii, jj, e1)
+
     def charpoly(self, var='x', **kwds):
         """
         Return the characteristic polynomial of this matrix.

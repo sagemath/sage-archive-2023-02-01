@@ -1393,8 +1393,9 @@ def laplace(ex, t, s, algorithm='maxima'):
       are auxiliary convergence conditions.
 
     .. SEEALSO::
+
         :func:`inverse_laplace`
-            
+
     EXAMPLES:
 
     We compute a few Laplace transforms::
@@ -1592,8 +1593,9 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
       - ``'giac'`` - use Giac
 
     .. SEEALSO::
+
         :func:`laplace`
-              
+
     EXAMPLES::
 
         sage: var('w, m')
@@ -1639,7 +1641,7 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
         sage: inverse_laplace(1, s, t, algorithm='giac')
         dirac_delta(t)
                 
-    TESTS::
+    TESTS:
 
     Testing unevaluated expression from Maxima::
     
@@ -1662,10 +1664,8 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
     
         sage: n = var('n')
         sage: inverse_laplace(1/s^n, s, t, algorithm='giac')
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: Unable to parse Giac output: ilaplace([s^(-n),s,t])
-        
+        ilt(1/(s^n), t, s)
+
     Try with Maxima::
     
         sage: inverse_laplace(1/s^n, s, t, algorithm='maxima')
@@ -1681,12 +1681,10 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
         sage: inverse_laplace(cos(s), s, t, algorithm='sympy')
         ilt(cos(s), t, s)
     
-    Testing unevaluated expression from Giac::
+    Testing the same with Giac::
     
         sage: inverse_laplace(cos(s), s, t, algorithm='giac')
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: Unable to parse Giac output: ilaplace([cos(s),s,t])
+        ilt(cos(s), t, s)
     """
     if not isinstance(ex, Expression):
         ex = SR(ex)
@@ -1713,7 +1711,10 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
             result = giac.invlaplace(ex, s, t)
         except TypeError:
             raise ValueError("Giac cannot make sense of: %s" % ex)    
-        return result.sage() 
+        if 'ilaplace' in format(result):
+            return dummy_inverse_laplace(ex, t, s)
+        else:
+            return result.sage()
 
     else:
         raise ValueError("Unknown algorithm: %s" % algorithm)

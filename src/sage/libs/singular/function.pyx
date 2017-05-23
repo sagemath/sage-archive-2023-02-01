@@ -74,6 +74,7 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from libc.string cimport memcpy
 
@@ -515,7 +516,7 @@ cdef class Converter(SageObject):
         if ring is not None:
             self._singular_ring = access_singular_ring(ring)
 
-        from  sage.matrix.matrix_mpolynomial_dense import Matrix_mpolynomial_dense
+        from sage.matrix.matrix_mpolynomial_dense import Matrix_mpolynomial_dense
         from sage.matrix.matrix_integer_dense import Matrix_integer_dense
         from sage.matrix.matrix_generic_dense import Matrix_generic_dense
         for a in args:
@@ -1397,7 +1398,7 @@ The Singular documentation for '%s' is given below.
         - ``args`` -- a list of Python objects
         - ``ring`` -- an optional ring to check
         """
-        from  sage.matrix.matrix_mpolynomial_dense import Matrix_mpolynomial_dense
+        from sage.matrix.matrix_mpolynomial_dense import Matrix_mpolynomial_dense
         from sage.matrix.matrix_integer_dense import Matrix_integer_dense
         ring2 = None
         for a in args:

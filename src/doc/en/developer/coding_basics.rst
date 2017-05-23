@@ -241,7 +241,7 @@ information. You can use the existing functions of Sage as templates.
    function or method's effect as a command ("Do this", "Return that"), not as
    a description like "Returns the pathname ...".
 
-   For a method, it is recommended to refer to the ``self`` argument
+   For methods of a class, it is recommended to refer to the ``self`` argument
    in a descriptive way, unless this leads to a confusion. For example, if
    ``self`` is an integer, then ``this integer`` or ``the integer`` is more
    descriptive, and it is preferable to write
@@ -287,8 +287,6 @@ information. You can use the existing functions of Sage as templates.
 
    2. Mention the default values of the input arguments when applicable.
 
-   Example:
-
    .. code-block:: none
 
        INPUT:
@@ -297,33 +295,33 @@ information. You can use the existing functions of Sage as templates.
 
        - ``p`` -- prime integer (default: 2); coprime with ``n``
 
-   The OUTPUT block describes the expected output. It is required if the
-   one-sentence description of the function does not suffice. This is usually the case
-   when the output consists of several items.
-
-   An example of single item output:
+   The OUTPUT block describes the expected output. This is required if the
+   one-sentence description of the function needs more explanation.
 
    .. code-block:: none
 
-       OUTPUT:
+       OUTPUT: the plaintext decrypted from the ciphertext ``C``
 
-       - the plaintext resulting from decrypting the ciphertext ``C``
-
-   An example of several items output:
+   It is often the case that the output consists of several items.
 
    .. code-block:: none
 
-       OUTPUT:
+       OUTPUT: a tuple of
 
        - the reduced echelon form `H` of the matrix `A`
 
        - the transformation matrix `U` such that `UA = H`
 
-   For single item output, you may prefer this alternative style:
+   You are recommended to be verbose enough for complicated outputs.
 
    .. code-block:: none
 
-       OUTPUT: the plaintext resulting from decrypting the ciphertext ``C``
+       OUTPUT:
+
+       The decomposition of the free module on which this matrix `A` acts from the
+       right (i.e., the action is `x` goes to `xA`), along with whether this matrix
+       acts irreducibly on each factor. The factors are guaranteed to be sorted in
+       the same way as the corresponding factors of the characteristic polynomial.
 
 -  An **EXAMPLES** block for examples. This is not optional.
 

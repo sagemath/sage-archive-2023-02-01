@@ -49,7 +49,6 @@
 #include "basic.h"
 #include "constant.h"
 #include "ex.h"
-#include "py_funcs.h"
 
 #include <gmp.h>
 #include <stdexcept>

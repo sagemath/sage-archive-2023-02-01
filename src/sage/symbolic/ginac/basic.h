@@ -23,7 +23,6 @@
 #ifndef __GINAC_BASIC_H__
 #define __GINAC_BASIC_H__
 
-#include <Python.h>
 #include <cstddef> // for size_t
 #include <vector>
 #include <set>
@@ -38,6 +37,12 @@
 #include "ptr.h"
 #include "assertion.h"
 #include "registrar.h"
+
+// PyObject forward declaration 
+#ifndef PyObject_HEAD
+struct _object;
+typedef _object PyObject;
+#endif
 
 #ifdef PYNAC_HAVE_LIBGIAC
 namespace giac

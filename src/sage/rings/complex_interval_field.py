@@ -378,10 +378,11 @@ class ComplexIntervalField_class(ring.Field):
 
     def __eq__(self, other):
         """
-        Compare ``other`` to ``self``.
+        Test whether ``self`` is equal to ``other``.
 
-        If ``other`` is not a :class:`ComplexIntervalField_class`, compare by
-        type, otherwise compare by precision.
+        If ``other`` is not a :class:`ComplexIntervalField_class`,
+        return ``False``.  Otherwise, return ``True`` if ``self`` and
+        ``other`` have the same precision.
 
         EXAMPLES::
 
@@ -398,7 +399,7 @@ class ComplexIntervalField_class(ring.Field):
 
     def __ne__(self, other):
         """
-        Test for unequality.
+        Test whether ``self`` is not equal to ``other``.
 
         EXAMPLES::
 

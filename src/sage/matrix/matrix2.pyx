@@ -464,7 +464,6 @@ cdef class Matrix(matrix1.Matrix):
         D = self.augment(B).echelon_form()
         return D.matrix_from_columns(range(self.ncols(),D.ncols()))
 
-
     def pivot_rows(self):
         """
         Return the pivot row positions for this matrix, which are a topmost
@@ -2883,8 +2882,6 @@ cdef class Matrix(matrix1.Matrix):
                         self.add_multiple_of_column_c(m, j, u, 0)
         verbose("Finished Hessenberg Normal Form of %sx%s matrix"%(n,n),tm)
 
-
-
     def _charpoly_hessenberg(self, var):
         """
         Transforms self in place to its Hessenberg form then computes and
@@ -4449,7 +4446,6 @@ cdef class Matrix(matrix1.Matrix):
             C = B*A
             return C.row_module(base_ring=V.base_ring())
 
-
     def integer_kernel(self, ring=ZZ):
         """
         Return the kernel of this matrix over the given ring (which should be
@@ -4591,7 +4587,6 @@ cdef class Matrix(matrix1.Matrix):
         """
         return self.row_module(base_ring=base_ring)
 
-
     def _column_ambient_module(self):
         x = self.fetch('column_ambient_module')
         if not x is None:
@@ -4646,8 +4641,6 @@ cdef class Matrix(matrix1.Matrix):
             [0.000000000000000  1.00000000000000]
         """
         return self.column_module()
-
-
 
     def decomposition(self, algorithm='spin',
                       is_diagonalizable=False, dual=False):
@@ -5202,7 +5195,6 @@ cdef class Matrix(matrix1.Matrix):
                 return S
             V = W
             S.append(w)
-
 
     def wiedemann(self, i, t=0):
         """
@@ -5996,7 +5988,6 @@ cdef class Matrix(matrix1.Matrix):
         self.cache('eigenvalues', eigenvalues)
         return eigenvalues
 
-
     def eigenvectors_left(self,extend=True):
         r"""
         Compute the left eigenvectors of a matrix.
@@ -6295,12 +6286,9 @@ cdef class Matrix(matrix1.Matrix):
 
     right_eigenmatrix = eigenmatrix_right
 
-
-
-    #####################################################################################
+    ###################################################################################
     # Generic Echelon Form
     ###################################################################################
-
 
     def rref(self, *args, **kwds):
         """
@@ -8244,7 +8232,6 @@ cdef class Matrix(matrix1.Matrix):
                         return False
         return True
 
-
     def is_unitary(self):
         r"""
         Returns ``True`` if the columns of the matrix are an orthonormal basis.
@@ -8657,7 +8644,6 @@ cdef class Matrix(matrix1.Matrix):
                 if not self.get_unsafe(x,y).is_zero():
                     k+=1
         return QQ(k)/QQ(nr*nc)
-
 
     def inverse(self):
         """
@@ -13262,6 +13248,107 @@ cdef class Matrix(matrix1.Matrix):
         dp, up, vp = _smith_diag(d)
         return dp,up*u,v*vp
 
+    def _hermite_form_euclidean(self, transformation=False):
+        """
+        Transform the matrix in place to hermite normal form and optionally
+        return the transformation matrix.
+
+        The algorithm is a straightforward Euclidean algorithm.
+
+        If ``lc()`` method is available for elements of the base ring, then
+        the pivots are also normalized to be *monic*.
+
+        INPUT:
+
+        - ``transformation`` -- boolean (default: ``False``): if ``True``,
+          return the transformation matrix
+
+        EXAMPLE::
+
+            sage: P.<x> = PolynomialRing(GF(5))
+            sage: A = matrix(P,3,[P.random_element(3) for i in range(9)])
+            sage: H = A.__copy__()
+            sage: U = H._hermite_form_euclidean(transformation=True)
+            sage: U * A == H
+            True
+        """
+        cdef Matrix A = self
+        cdef Matrix U
+
+        cdef Py_ssize_t m = A.nrows()
+        cdef Py_ssize_t n = A.ncols()
+
+        cdef Py_ssize_t i = 0
+        cdef Py_ssize_t j = 0
+
+        cdef Py_ssize_t k, l
+
+        if transformation:
+            from sage.matrix.constructor import identity_matrix
+            U = identity_matrix(A.base_ring(), m)
+
+        pivot_cols = []
+        while j < n:
+            k = i
+            while k < m and A.get_unsafe(k,j).is_zero(): # first nonzero entry
+                k += 1
+            if k < m:
+                l = k + 1
+                while l < m:
+                    while l < m and A.get_unsafe(l,j).is_zero(): # nonzero entry below
+                        l += 1
+                    if l >= m: break
+
+                    a = A.get_unsafe(k,j)
+                    b = A.get_unsafe(l,j)
+                    d,p,q = a.xgcd(b) # p * a + q * b = d = gcd(a,b)
+                    e = a // d
+                    f = b // d
+
+                    for c in range(j,n):
+                        temp = A.get_unsafe(k,c)
+                        A.set_unsafe(k, c, p * A.get_unsafe(k,c) + q * A.get_unsafe(l,c))
+                        A.set_unsafe(l, c, (-f) * temp + e * A.get_unsafe(l,c))
+                    if transformation:
+                        temp = U[k]
+                        U[k] = p * U[k] + q * U[l]
+                        U[l] = (-f) * temp + e * U[l]
+                if i != k:
+                    A.swap_rows(i,k)
+                    if transformation:
+                        U.swap_rows(i,k)
+                pivot_cols.append(j)
+                i += 1
+            j += 1
+
+        # reduce entries above pivots
+        for i in range(len(pivot_cols)):
+            j = pivot_cols[i]
+            pivot = A.get_unsafe(i,j)
+
+            # make pivot monic if pivot.lc() is available,
+            # which is the case for polynomial matrices
+            try:
+                lc_inverse = ~ pivot.lc()
+                for c in range(j,n):
+                    A.set_unsafe(i, c, A.get_unsafe(i,c) * lc_inverse)
+                if transformation:
+                    U[i] *= lc_inverse
+            except AttributeError:
+                pass
+
+            pivot = - A.get_unsafe(i,j)
+            for k in range(i):
+                q = A.get_unsafe(k,j) // pivot
+                if not q.is_zero():
+                    for c in range(j,n):
+                        A.set_unsafe(k, c, A.get_unsafe(k,c) + q * A.get_unsafe(i,c))
+                    if transformation:
+                        U.add_multiple_of_row_c(k, i, q, 0)
+
+        if transformation:
+            return U
+
     def hermite_form(self, include_zero_rows=True, transformation=False):
         """
         Return the Hermite form of self, if it is defined.
@@ -14456,7 +14543,6 @@ cdef class Matrix(matrix1.Matrix):
         """
         return self.conjugate().transpose()
 
-
     @property
     def I(self):
         r"""
@@ -14488,7 +14574,6 @@ cdef class Matrix(matrix1.Matrix):
         from sage.misc.superseded import deprecation
         deprecation(20904, "The I property on matrices has been deprecated. Please use the inverse() method instead.")
         return ~self
-
 
 def _smith_diag(d):
     r"""
@@ -14728,7 +14813,6 @@ def _smith_onestep(m):
 
     return left_mat, a, right_mat
 
-
 def decomp_seq(v):
     """
     This function is used internally be the decomposition matrix
@@ -14747,7 +14831,6 @@ def decomp_seq(v):
     """
     list.sort(v, key=lambda x: x[0].dimension())
     return Sequence(v, universe=tuple, check=False, cr=True)
-
 
 def cmp_pivots(x,y):
     """
@@ -14771,7 +14854,6 @@ def cmp_pivots(x,y):
         return 0
     else:
         return -1
-
 
 def _choose(Py_ssize_t n, Py_ssize_t t):
     """
@@ -14835,7 +14917,6 @@ def _choose(Py_ssize_t n, Py_ssize_t t):
         j = j-1
 
     return x
-
 
 def _binomial(Py_ssize_t n, Py_ssize_t k):
     """
@@ -14901,11 +14982,11 @@ def _jordan_form_vector_in_difference(V, W):
 def _matrix_power_symbolic(A, n):
     r"""
     Symbolic matrix power.
-    
+
     This function implements `f(A) = A^n` and relies in the Jordan normal form
     of `A`, available for exact rings as ``jordan_form()``.
     See Sec. 1.2 of [Hig2008]_ for further details.
-    
+
     INPUT:
 
     - ``A`` -- a square matrix over an exact field
@@ -14915,17 +14996,17 @@ def _matrix_power_symbolic(A, n):
     OUTPUT:
 
     Matrix `A^n` (symbolic).
-    
+
     EXAMPLES::
-    
+
         sage: A = matrix(QQ, [[2, -1], [1,  0]])
         sage: n = var('n')
         sage: A^n
         [ n + 1     -n]
         [     n -n + 1]
 
-    TESTS:: 
-    
+    TESTS::
+
     Testing exponentiation in the symbolic ring::
 
         sage: n = var('n')
@@ -14933,17 +15014,17 @@ def _matrix_power_symbolic(A, n):
         sage: A^n
         [                                                              pi^n -(-2*I)^n/(pi*e^(-1) + 2*I*e^(-1)) + pi^n/(pi*e^(-1) + 2*I*e^(-1))]
         [                                                                 0                                                           (-2*I)^n]
-        
+
     If the base ring is inexact, the Jordan normal form is not available::
-    
-        sage: A = matrix(RDF, [[2, -1], [1,  0]]) 
+
+        sage: A = matrix(RDF, [[2, -1], [1,  0]])
         sage: A^n
         Traceback (most recent call last):
         ...
         ValueError: Jordan normal form not implemented over inexact rings.
-        
+
     Testing exponentiation in the integer ring::
-    
+
         sage: A = matrix(ZZ, [[1,-1],[-1,1]])
         sage: A^(2*n+1)
         [ 1/2*2^(2*n + 1) -1/2*2^(2*n + 1)]
@@ -14954,9 +15035,9 @@ def _matrix_power_symbolic(A, n):
     from sage.functions.other import binomial
     from sage.symbolic.ring import SR
     from sage.rings.qqbar import QQbar
-    
+
     got_SR = True if A.base_ring() == SR else False
-    
+
     # transform to QQbar if possible
     try:
         A = A.change_ring(QQbar)
@@ -14964,15 +15045,15 @@ def _matrix_power_symbolic(A, n):
         pass
 
     # returns jordan matrix J and invertible matrix P such that A = P*J*~P
-    [J, P] = A.jordan_form(transformation=True)        
+    [J, P] = A.jordan_form(transformation=True)
 
     # the number of Jordan blocks
     num_jordan_blocks = 1+len(J.subdivisions()[0])
-    
+
     # FJ stores the application of f = x^n to the Jordan blocks
     FJ = matrix(SR, J.ncols())
     FJ.subdivide(J.subdivisions())
-    
+
     for k in range(num_jordan_blocks):
 
         # get Jordan block Jk
@@ -14987,7 +15068,7 @@ def _matrix_power_symbolic(A, n):
             Jk_ii = Jk[i, i]
             if hasattr(Jk_ii, 'radical_expression'):
                 Jk_ii = Jk_ii.radical_expression()
-                
+
             # corresponds to \frac{D^i(f)}{i!}, with f = x^n and D the differential operator wrt x
             vk += [(binomial(n, i) * Jk_ii**(n-i)).simplify_full()]
 
@@ -15000,5 +15081,5 @@ def _matrix_power_symbolic(A, n):
         P = P.apply_map(AlgebraicNumber.radical_expression)
     else:
         Pinv = ~P
-        
+
     return P * FJ * Pinv

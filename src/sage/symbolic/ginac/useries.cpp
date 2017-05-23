@@ -321,14 +321,14 @@ class ldegree_error : public std::runtime_error {
 // can exactly determine the low degree.
 static int low_series_degree(ex the_ex) {
         static std::unordered_set<unsigned int> funcset {{
-                {sin_SERIAL::serial},
-                {tan_SERIAL::serial},
-                {asin_SERIAL::serial},
-                {atan_SERIAL::serial},
-                {sinh_SERIAL::serial},
-                {tanh_SERIAL::serial},
-                {asinh_SERIAL::serial},
-                {atanh_SERIAL::serial},
+                sin_SERIAL::serial,
+                tan_SERIAL::serial,
+                asin_SERIAL::serial,
+                atan_SERIAL::serial,
+                sinh_SERIAL::serial,
+                tanh_SERIAL::serial,
+                asinh_SERIAL::serial,
+                atanh_SERIAL::serial,
 }};
 
         if (is_exactly_a<constant>(the_ex)

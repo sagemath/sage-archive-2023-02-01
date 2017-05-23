@@ -3285,7 +3285,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def reverse_rows_and_columns(self):
         r"""
-        Reverse the row order and column order of this matrix
+        Reverse the row order and column order of this matrix.
 
         This method transforms a matrix `m_{i,j}` with `0 \leq i < nrows` and
         `0 \leq j < ncols` into `m_{nrows - i - 1, ncols - j - 1}`.
@@ -3337,7 +3337,8 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: m.reverse_rows_and_columns()
             Traceback (most recent call last):
             ...
-            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
+            ValueError: matrix is immutable; please change a copy
+            instead (i.e., use copy(M) to change a copy of M).
         """
         self.check_mutability()
         self.clear_cache()

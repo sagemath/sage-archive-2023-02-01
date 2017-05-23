@@ -60,6 +60,8 @@
 #include "tostring.h"
 #include "utils.h"
 
+#include <factory/factory.h>
+
 #ifdef PYNAC_HAVE_LIBGIAC
 #undef _POSIX_C_SOURCE
 #undef _XOPEN_SOURCE

@@ -32,6 +32,7 @@
 #include <stack>
 #include <unordered_set>
 
+class CanonicalForm;
 
 namespace GiNaC {
 #ifdef _MSC_VER

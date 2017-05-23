@@ -39,8 +39,6 @@
 #include "assertion.h"
 #include "registrar.h"
 
-#include <factory/factory.h>
-
 #ifdef PYNAC_HAVE_LIBGIAC
 namespace giac
 {

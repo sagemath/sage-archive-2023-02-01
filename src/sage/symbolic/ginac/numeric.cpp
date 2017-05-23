@@ -61,7 +61,10 @@
 #include "tostring.h"
 #include "utils.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-register"
 #include <factory/factory.h>
+#pragma clang diagnostic pop
 
 #ifdef PYNAC_HAVE_LIBGIAC
 #undef _POSIX_C_SOURCE

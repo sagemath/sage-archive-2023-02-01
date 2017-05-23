@@ -22,7 +22,10 @@
 #include "pynac-config.h"
 #endif
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-register"
 #include <factory/factory.h>
+#pragma clang diagnostic pop
 
 #include "upoly.h"
 #include "normal.h"

@@ -481,13 +481,14 @@ All Sage documentation is written in reStructuredText (reST) and is
 processed by Sphinx. See http://www.sphinx-doc.org/rest.html for an
 introduction. Sage imposes these styles:
 
+- Lines should be shorter than 80 characters. If in doubt, read `PEP8: Maximum
+  Line Length <https://www.python.org/dev/peps/pep-0008/#maximum-line-length>`_.
+
 - All reST and Sphinx directives (like ``.. WARNING::``, ``.. NOTE::``,
   ``.. MATH::``, etc.) are written in uppercase.
 
 - Code fragments are quoted with ``````. This includes function arguments
   and the Python literals like ````True````, ````False```` and ````None````.
-
-- Lines should be shorter than 80 characters.
 
 Sage's master **BIBLIOGRAPHY** file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

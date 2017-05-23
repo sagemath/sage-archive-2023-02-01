@@ -143,8 +143,9 @@ class ComplexIntervalField_class(ring.Field):
 
     We can load and save complex numbers and the complex interval field::
 
-        sage: cmp(loads(z.dumps()), z)
-        0
+        sage: saved_z = loads(z.dumps())
+        sage: saved_z.endpoints() == z.endpoints()
+        True
         sage: loads(CIF.dumps()) == CIF
         True
         sage: k = ComplexIntervalField(100)
@@ -375,7 +376,7 @@ class ComplexIntervalField_class(ring.Field):
             self.__middle_field = complex_field.ComplexField(self._prec)
             return self.__middle_field
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Compare ``other`` to ``self``.
 
@@ -384,16 +385,31 @@ class ComplexIntervalField_class(ring.Field):
 
         EXAMPLES::
 
-            sage: cmp(CIF, ComplexIntervalField(200))
-            -1
-            sage: cmp(CIF, CC) != 0
+            sage: CIF == ComplexIntervalField(200)
+            False
+            sage: CIF == CC
+            False
+            sage: CIF == CIF
             True
-            sage: cmp(CIF, CIF)
-            0
         """
         if not isinstance(other, ComplexIntervalField_class):
-            return cmp(type(self), type(other))
-        return cmp(self._prec, other._prec)
+            return False
+        return self._prec == other._prec
+
+    def __ne__(self, other):
+        """
+        Test for unequality.
+
+        EXAMPLES::
+
+            sage: CIF != ComplexIntervalField(200)
+            True
+            sage: CIF != CC
+            True
+            sage: CIF != CIF
+            False
+        """
+        return not (self == other)
 
     def __call__(self, x, im=None):
         """

@@ -267,7 +267,7 @@ information. You can use the existing functions of Sage as templates.
 
    .. code-block:: none
 
-       The lexicographic product of G and H is the graph with vertex set ...
+       The lexicographic product of `G` and `H` is the graph with vertex set ...
 
    and mention possible aliases
 
@@ -293,7 +293,7 @@ information. You can use the existing functions of Sage as templates.
 
        - ``n`` -- integer
 
-       - ``p`` -- prime integer (default: 2); coprime with ``n``
+       - ``p`` -- prime integer (default: `2`); coprime with ``n``
 
    The OUTPUT block describes the expected output. This is required if the
    one-sentence description of the function needs more explanation.
@@ -540,10 +540,10 @@ indentation:
 
         INPUT:
 
-        - ``x`` -- integer (default: 1); the description of the
+        - ``x`` -- integer (default: `1`); the description of the
           argument ``x``
 
-        - ``y`` -- integer (default: 2); the description of the
+        - ``y`` -- integer (default: `2`); the description of the
           argument ``y``
 
         OUTPUT: the point as a tuple

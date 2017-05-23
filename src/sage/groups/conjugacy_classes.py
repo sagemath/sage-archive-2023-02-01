@@ -119,7 +119,7 @@ class ConjugacyClass(Parent):
 
     def __eq__(self, other):
         r"""
-        Comparison of conjugacy classes is done by comparing the
+        Equality of conjugacy classes is tested by comparing the
         underlying sets.
 
         EXAMPLES::
@@ -141,7 +141,7 @@ class ConjugacyClass(Parent):
 
     def __ne__(self, other):
         """
-        Comparison.
+        Negation of equality.
 
         EXAMPLES::
 
@@ -155,6 +155,8 @@ class ConjugacyClass(Parent):
             sage: D = ConjugacyClass(H, g)
             sage: C != D
             False
+            sage: C != ConjugacyClass(H, H(identity_matrix(F, 2)))
+            True
         """
         return not (self == other)
     

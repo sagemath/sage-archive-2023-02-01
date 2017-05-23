@@ -417,6 +417,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         """
         Return the Hermite form of this matrix.
 
+        The Hermite form is also normalized, i.e., the pivot polynomials
+        are monic.
+
         INPUT:
 
         - ``include_zero_rows`` -- boolean (default: ``True``); if ``False``,
@@ -569,23 +572,25 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         """
         Return the reversed Hermite form of the matrix.
 
-        The returned Hermite form is reversed with respect to columns and rows from
-        the ordinary Hermite form.
+        A reversed Hermite form is the Hermite form with reversed columns and rows.
+
+        The reversed Hermite form is normalized, i.e., the pivot polynomials are
+        monic.
 
         INPUT:
 
         - ``include_zero_rows`` -- boolean (default: ``True``); if ``False``,
-          the zero rows in the output matrix are deleted.
+          the zero rows in the output matrix are deleted
 
         - ``transformation`` -- boolean (default: ``False``); if ``True``,
-          return a matrix U such that U * A == H
+          return the transformation matrix as well
 
         OUTPUT:
 
-        - the matrix H in reversed Hermite form
+        - the reversed Hermite form `H`
 
-        - (optional) transformation matrix U such that U * A == H, possibly
-          with zero rows deleted.
+        - (optional) the transformation matrix `U` such that `UA = H`, possibly
+          with zero rows deleted
 
         EXAMPLES::
 

@@ -546,9 +546,7 @@ indentation:
         - ``y`` -- integer (default: 2); the description of the
           argument ``y``
 
-        OUTPUT:
-
-        - the point as a tuple
+        OUTPUT: the point as a tuple
 
         EXAMPLES:
 

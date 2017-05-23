@@ -459,20 +459,6 @@ ex basic::evalm() const
 	return *this;
 }
 
-/** Function object to be applied by basic::eval_integ(). */
-struct eval_integ_map_function : public map_function {
-	ex operator()(const ex & e) override { return eval_integ(e); }
-} map_eval_integ;
-
-/** Evaluate integrals, if result is known. */
-ex basic::eval_integ() const
-{
-	if (nops() == 0)
-		return *this;
-	else
-		return map(map_eval_integ);
-}
-
 /** Perform automatic symbolic evaluations on indexed expression that
  *  contains this object as the base expression. */
 ex basic::eval_indexed(const basic & i) const

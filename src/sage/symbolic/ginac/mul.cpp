@@ -1553,7 +1553,7 @@ std::unique_ptr<epvector> mul::expandchildren(unsigned options) const
 				s->push_back(split_ex_to_pair(recombine_pair_to_ex(*cit2).expand(options)));
 				++cit2;
 			}
-			return std::move(s);
+			return s;
 		}
 		++cit;
 	}

@@ -491,7 +491,7 @@ static std::set<int> resultant_roots(const ex& ee1, const ex& ee2,
                         it = roots.erase(it);
                 else
                         ++it;
-        return std::move(roots);
+        return roots;
 }
 
 ex gosper_term(ex e, ex n)

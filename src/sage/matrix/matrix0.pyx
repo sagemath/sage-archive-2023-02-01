@@ -3282,6 +3282,67 @@ cdef class Matrix(sage.structure.element.Matrix):
             self.set_unsafe(i,l,-A.get_unsafe(r,k))               #self[i,l] = -A[r,k]
             l += 1
 
+    def reverse_rows_and_columns(self):
+        r"""
+        Reverse the row order and column order of this matrix.
+
+        This method transforms a matrix `m_{i,j}` with `0 \leq i < nrows` and
+        `0 \leq j < ncols` into `m_{nrows - i - 1, ncols - j - 1}`.
+
+        EXAMPLES::
+
+            sage: m = matrix(ZZ, 2, 2, range(4))
+            sage: m.reverse_rows_and_columns()
+            sage: m
+            [3 2]
+            [1 0]
+
+            sage: m = matrix(ZZ, 2, 3, range(6), sparse=True)
+            sage: m.reverse_rows_and_columns()
+            sage: m
+            [5 4 3]
+            [2 1 0]
+            sage: m = matrix(ZZ, 3, 2, range(6), sparse=True)
+            sage: m.reverse_rows_and_columns()
+            sage: m
+            [5 4]
+            [3 2]
+            [1 0]
+            sage: m.reverse_rows_and_columns()
+            sage: m
+            [0 1]
+            [2 3]
+            [4 5]
+
+            sage: m = matrix(QQ, 3, 2, [1/i for i in range(1,7)])
+            sage: m.reverse_rows_and_columns()
+            sage: m
+            [1/6 1/5]
+            [1/4 1/3]
+            [1/2   1]
+
+            sage: R.<x,y> = ZZ['x,y']
+            sage: m = matrix(R, 3, 3, lambda i,j: x**i*y**j, sparse=True)
+            sage: m.reverse_rows_and_columns()
+            sage: m
+            [x^2*y^2   x^2*y     x^2]
+            [  x*y^2     x*y       x]
+            [    y^2       y       1]
+
+        If the matrix is immutable, the method raises an error::
+
+            sage: m = matrix(ZZ, 2, [1, 3, -2, 4])
+            sage: m.set_immutable()
+            sage: m.reverse_rows_and_columns()
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is immutable; please change a copy
+            instead (i.e., use copy(M) to change a copy of M).
+        """
+        self.check_mutability()
+        self.clear_cache()
+        self._reverse_unsafe()
+
     ###################################################
     # Methods needed for quiver and cluster mutations
     # - mutate

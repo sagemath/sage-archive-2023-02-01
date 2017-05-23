@@ -16759,37 +16759,53 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``vertices`` -- an iterable container of vertices for the clique to be
-          added, e.g. a list, set, graph, etc.
+        - ``vertices`` -- an iterable with vertices for the clique to
+          be added, e.g. a list, set, graph, etc.
 
-        - ``loops`` -- (boolean) whether to add loops or not, i.e., edges from a
-          vertex to itself. Possible only if the (di)graph allows loops.
+        - ``loops`` -- (boolean, default: ``False``) whether to add
+          edges from every given vertex to itself. This is allowed only
+          if the (di)graph allows loops.
 
         EXAMPLES::
 
             sage: G = Graph()
-            sage: G.add_clique(list(range(4)))
+            sage: G.add_clique(range(4))
             sage: G.is_isomorphic(graphs.CompleteGraph(4))
             True
             sage: D = DiGraph()
-            sage: D.add_clique(list(range(4)))
+            sage: D.add_clique(range(4))
             sage: D.is_isomorphic(digraphs.Complete(4))
             True
             sage: D = DiGraph(loops=True)
-            sage: D.add_clique(list(range(4)), loops=True)
+            sage: D.add_clique(range(4), loops=True)
             sage: D.is_isomorphic(digraphs.Complete(4, loops=True))
             True
             sage: D = DiGraph(loops=False)
-            sage: D.add_clique(list(range(4)), loops=True)
-            sage: D.is_isomorphic(digraphs.Complete(4, loops=True))
-            False
-            sage: D.is_isomorphic(digraphs.Complete(4, loops=False))
-            True
+            sage: D.add_clique(range(4), loops=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot add edge from 0 to 0 in graph without loops
+
+        If the list of vertices contains repeated elements, a loop will
+        be added at that vertex, even if ``loops=False``::
+
+            sage: G = Graph(loops=True)
+            sage: G.add_clique([1,1])
+            sage: G.edges()
+            [(1, 1, None)]
+
+        This is equivalent to::
+
+            sage: G = Graph(loops=True)
+            sage: G.add_clique([1], loops=True)
+            sage: G.edges()
+            [(1, 1, None)]
 
         TESTS:
 
         Using different kinds of iterable container of vertices, :trac:`22906`::
 
+            sage: from six.moves import range
             sage: G = Graph(4)
             sage: G.add_clique(G)
             sage: G.is_clique()
@@ -16810,14 +16826,16 @@ class GenericGraph(GenericGraph_pyx):
             True
         """
         import itertools
-        if vertices:
-            vertices = list(vertices)
+        if loops:
+            if self.is_directed():
+                self.add_edges(itertools.product(vertices, repeat=2))
+            else:
+                self.add_edges(itertools.combinations_with_replacement(vertices, 2))
+        else:
             if self.is_directed():
                 self.add_edges(itertools.permutations(vertices, 2))
             else:
                 self.add_edges(itertools.combinations(vertices, 2))
-            if loops and self.allows_loops():
-                self.add_edges((u, u) for u in vertices)
 
     def add_cycle(self, vertices):
         """

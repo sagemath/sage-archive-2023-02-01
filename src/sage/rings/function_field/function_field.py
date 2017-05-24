@@ -2250,13 +2250,12 @@ class FunctionField_global_integral(FunctionField_global):
         # a prime field. So we constuct gflat lifting g as in
         # k_prime[yy,xx,zz]/(k_poly) where k = k_prime[zz]/(k_poly)
         R = PolynomialRing(k.prime_subfield(), names='yy,xx,zz')
-        zz = R.gen(2)
         gflat = R.zero()
         for m in g.monomials():
-            c = g.monomial_coefficient(m).polynomial(zz)
-            gflat += c * R(m) # R(m) is a monomial in yy and xx
+            c = g.monomial_coefficient(m).polynomial('zz')
+            gflat += R(c) * R(m) # R(m) is a monomial in yy and xx
 
-        k_poly = k.polynomial(zz)
+        k_poly = R(k.polynomial('zz'))
 
         # invoke Singular
         pols_in_R = normalize(R.ideal([k_poly, gflat]))

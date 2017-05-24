@@ -3783,7 +3783,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
-            :meth:`day_doubling`
+            - Stronger properties: :meth:`is_distributive` (doubling by interval),
+              :meth:`is_join_semidistributive` (doubling by lower pseudo-intervals),
+              :meth:`is_meet_semidistributive` (doubling by upper pseudo-intervals)
+            - Contrapositive properties: :meth:`is_simple` (doubling by any set)
+            - Other: :meth:`day_doubling`
 
         EXAMPLES:
 
@@ -4102,6 +4106,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Weaker properties: :meth:`is_isoform`
+            - Contrapositive properties: :meth:`is_constructible_by_doublings`
+              (by any set)
             - Other: :meth:`congruence`
 
         EXAMPLES::

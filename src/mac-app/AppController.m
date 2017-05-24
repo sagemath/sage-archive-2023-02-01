@@ -67,7 +67,11 @@
 
     // Start the sage server, or check if it's running
     if ( [defaults boolForKey:@"startServerOnLaunch"] ) {
-        [self startServer:self];
+        if ( [defaults boolForKey:@"preferSageNB"]) {
+            [self startServer:self];
+        } else {
+            [self startJupyter:self];
+        }
     } else {
         [self serverIsRunning:NO];
     }

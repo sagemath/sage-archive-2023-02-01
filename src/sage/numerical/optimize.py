@@ -277,6 +277,12 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
 
     - ``verbose`` -- (optional, default: False) print convergence message
 
+    .. NOTE::
+
+        For additional information on the algorithms implemented in this function,
+        consult SciPy's `documentation on optimization and root
+        finding <https://docs.scipy.org/doc/scipy/reference/optimize.html>`_
+
     EXAMPLES:
 
     Minimize a fourth order polynomial in three variables (see the
@@ -294,7 +300,7 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
         (0.9999999..., 0.999999..., 0.999999...)
 
     We get additional convergence information with the `verbose` option::
-    
+
         sage: minimize(f, [.1, .3, .4], algorithm="ncg", verbose=True)
         Optimization terminated successfully.
         ...

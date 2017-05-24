@@ -4128,11 +4128,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     @cython.cdivision(True)
     def multifactorial(self, int k):
         r"""
-        Computes the k-th factorial `n!^{(k)}` of self. For k=1
-        this is the standard factorial, and for k greater than one it is
-        the product of every k-th terms down from self to k. The recursive
-        definition is used to extend this function to the negative
-        integers.
+        Compute the k-th factorial `n!^{(k)}` of self.
+
+        For k=1 this is the standard factorial, and for k greater than
+        one it is the product of every k-th terms down from self to
+        k. The recursive definition is used to extend this function to
+        the negative integers.
 
         EXAMPLES::
 
@@ -4148,6 +4149,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             316234143225
             sage: (-29).multifactorial(7)
             1/2640
+
+        TESTS::
+
+            sage: for a in range(1,20):
+            ....:     for b in range(1,20):
+            ....:         assert ZZ(a).multifactorial(b) == prod(range(a,0,-b))
         """
         if k <= 0:
             raise ValueError("multifactorial only defined for positive values of k")

@@ -847,7 +847,7 @@ cdef class SymbolicRing(CommutativeRing):
                     if latex_name is None:
                         return tuple([self.symbol(name[i], domain=domain) for i in range(n)])
                     else:
-                        formatted_latex_name = ['{{{0}}}'.format(latex_name) + '_{{{0}}}'.format(str(i)) for i in range(n)]
+                        formatted_latex_name = ['{{{}}}_{{{}}}'.format(latex_name, str(i)) for i in range(n)]
                         return tuple([self.symbol(name[i], latex_name=formatted_latex_name[i], domain=domain) for i in range(n)])
                 else:
                     raise ValueError("the number of variables should be a positive integer")

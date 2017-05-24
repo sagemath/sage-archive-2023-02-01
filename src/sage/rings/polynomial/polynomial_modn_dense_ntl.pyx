@@ -26,6 +26,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial, _dict_to_list
 
@@ -41,7 +42,7 @@ import sage.rings.polynomial.polynomial_ring
 
 from sage.rings.infinity import infinity
 
-import polynomial_singular_interface
+from . import polynomial_singular_interface
 from sage.interfaces.all import singular as singular_default
 
 from sage.structure.element import generic_power, canonical_coercion, bin_op, coerce_binop

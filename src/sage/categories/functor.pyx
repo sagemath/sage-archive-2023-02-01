@@ -32,8 +32,10 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-import category
+from . import category
+
 
 def _Functor_unpickle(Cl, D, domain, codomain):
     """

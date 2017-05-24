@@ -93,19 +93,19 @@ With power series the behavior is the same.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
 
 import operator
 
-from infinity import infinity, is_Infinite
+from .infinity import infinity, is_Infinite
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 import sage.rings.polynomial.polynomial_element
-import power_series_ring
 import sage.misc.misc
 import sage.arith.all as arith
 import sage.misc.latex
-import rational_field, integer_ring
-from integer import Integer
+from . import rational_field
+from . import integer_ring
+from .integer import Integer
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.misc.superseded import deprecated_function_alias, deprecation
 from warnings import warn
@@ -1071,7 +1071,7 @@ cdef class PowerSeries(AlgebraElement):
             T^2 + O(T^3)
         """
         if isinstance(other,(int,Integer,long)):
-            return power_series_ring.PowerSeriesRing(IntegerModRing(other), self.variable())(self)
+            return sage.rings.power_series_ring.PowerSeriesRing(IntegerModRing(other), self.variable())(self)
         raise NotImplementedError("Mod on power series ring elements not defined except modulo an integer.")
 
     def shift(self, n):
@@ -2221,8 +2221,9 @@ def _solve_linear_de(R, N, L, a, b, f0):
 def make_powerseries_poly_v0(parent,  f, prec, is_gen):
     # This is only used to unpickle old pickles. The new pickling
     # works differently!
-    import power_series_poly
+    from . import power_series_poly
     return power_series_poly.PowerSeries_poly(parent, f, prec, 0, is_gen)
+
 
 def make_element_from_parent_v0(parent, *args):
     # This is only used to unpickle old pickles. The new pickling

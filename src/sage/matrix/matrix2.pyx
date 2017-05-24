@@ -39,7 +39,7 @@ bug, see :trac:`17527`)::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from cpython cimport *
 include "cysignals/signals.pxi"
@@ -65,8 +65,7 @@ from sage.arith.numerical_approx cimport digits_to_bits
 from copy import copy
 
 import sage.modules.free_module
-import matrix_space
-import berlekamp_massey
+from . import berlekamp_massey
 from sage.modules.free_module_element import is_FreeModuleElement
 from sage.matrix.matrix_misc import permanental_minor_polynomial
 
@@ -3076,7 +3075,7 @@ cdef class Matrix(matrix1.Matrix):
         R = self.base_ring()
         basis = [[R(x) for x in row] for row in basis]
         verbose("done computing right kernel matrix over a number field for %sx%s matrix" % (self.nrows(), self.ncols()),level=1,t=tm)
-        return 'pivot-pari-numberfield', matrix_space.MatrixSpace(R, len(basis), ncols=self._ncols)(basis)
+        return 'pivot-pari-numberfield', sage.matrix.matrix_space.MatrixSpace(R, len(basis), ncols=self._ncols)(basis)
 
     def _right_kernel_matrix_over_field(self, *args, **kwds):
         r"""
@@ -3141,7 +3140,7 @@ cdef class Matrix(matrix1.Matrix):
                     v[pivots[r]] = -E[r,i]
                 basis.append(v)
         tm = verbose("done computing right kernel matrix over an arbitrary field for %sx%s matrix" % (self.nrows(), self.ncols()),level=1,t=tm)
-        return 'pivot-generic', matrix_space.MatrixSpace(R, len(basis), self._ncols)(basis)
+        return 'pivot-generic', sage.matrix.matrix_space.MatrixSpace(R, len(basis), self._ncols)(basis)
 
     def _right_kernel_matrix_over_domain(self):
         r"""
@@ -4497,8 +4496,9 @@ cdef class Matrix(matrix1.Matrix):
             return A.kernel()
         except AttributeError:
             d = self.denominator()
-            A = self*d
-            M = matrix_space.MatrixSpace(ring, self.nrows(), self.ncols())(A)
+            A = self * d
+            M = sage.matrix.matrix_space.MatrixSpace(ring, self.nrows(),
+                                                     self.ncols())(A)
             return M.kernel()
 
     def image(self):
@@ -12680,8 +12680,8 @@ cdef class Matrix(matrix1.Matrix):
             for i from 0 <= i < size:
                 PyList_Append(M,<object>f(<object>PyList_GET_ITEM(L,i)))
 
-            return matrix_space.MatrixSpace(IntegerModRing(2),
-                                            nrows=self._nrows,ncols=self._ncols).matrix(M)
+            return sage.matrix.matrix_space.MatrixSpace(IntegerModRing(2),
+                               nrows=self._nrows,ncols=self._ncols).matrix(M)
 
         else:
             # return matrix along with indices in a dictionary

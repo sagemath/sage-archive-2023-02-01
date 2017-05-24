@@ -20,6 +20,8 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include <Python.h>
+#include "py_funcs.h"
 #include "function.h"
 #include "operators.h"
 #include "fderivative.h"
@@ -35,7 +37,6 @@
 #include "utils.h"
 #include "remember.h"
 #include "symbol.h"
-#include "py_funcs.h"
 
 #include <iostream>
 #include <string>

@@ -454,31 +454,6 @@ ex pseries::imag_part() const
 	return (new pseries(var==point, v))->setflag(status_flags::dynallocated);
 }
 
-ex pseries::eval_integ() const
-{
-	epvector *newseq = nullptr;
-	for (auto i=seq.begin(); i!=seq.end(); ++i) {
-		if (newseq != nullptr) {
-			newseq->push_back(expair(i->rest.eval_integ(), i->coeff));
-			continue;
-		}
-		ex newterm = i->rest.eval_integ();
-		if (!are_ex_trivially_equal(newterm, i->rest)) {
-			newseq = new epvector;
-			newseq->reserve(seq.size());
-			for (auto j=seq.begin(); j!=i; ++j)
-				newseq->push_back(*j);
-			newseq->push_back(expair(newterm, i->coeff));
-		}
-	}
-
-	ex newpoint = point.eval_integ();
-	if ((newseq != nullptr) || !are_ex_trivially_equal(newpoint, point))
-		return (new pseries(var==newpoint, *newseq))
-		       ->setflag(status_flags::dynallocated);
-	return *this;
-}
-
 ex pseries::subs(const exmap & m, unsigned options) const
 {
 	// If expansion variable is being substituted, convert the series to a
@@ -1210,10 +1185,14 @@ ex ex::series(const ex & r, int order, unsigned options) const
         if ((options & series_options::try_univariate_flint) != 0u
                         and rel_.rhs().is_zero()) {
                 options &= ~series_options::try_univariate_flint;
-	        if (useries_can_handle(*this)
-                        and has_symbol(rel_.lhs())) {
+                symbolset syms = rel_.lhs().symbols();
+                if (syms.size() == 1
+                    and useries_can_handle(*this, *(syms.begin()))) {
                         try {
-                                return GiNaC::useries(*this, rel_, order, options);
+                                return GiNaC::useries(*this,
+                                                *(syms.begin()),
+                                                order,
+                                                options);
                         }
                         catch(flint_error) {
                                 ;

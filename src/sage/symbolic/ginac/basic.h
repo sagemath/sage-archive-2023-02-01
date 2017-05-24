@@ -23,7 +23,6 @@
 #ifndef __GINAC_BASIC_H__
 #define __GINAC_BASIC_H__
 
-#include <Python.h>
 #include <cstddef> // for size_t
 #include <vector>
 #include <set>
@@ -39,7 +38,11 @@
 #include "assertion.h"
 #include "registrar.h"
 
-#include <factory/factory.h>
+// PyObject forward declaration 
+#ifndef PyObject_HEAD
+struct _object;
+typedef _object PyObject;
+#endif
 
 #ifdef PYNAC_HAVE_LIBGIAC
 namespace giac
@@ -178,7 +181,6 @@ public: // only const functions please (may break reference counting)
 	virtual ex eval(int level = 0) const;
 	virtual ex evalf(int level = 0, PyObject* parent=nullptr) const;
 	virtual ex evalm() const;
-	virtual ex eval_integ() const;
 protected:
 	virtual ex eval_ncmul(const exvector & v) const;
 public:

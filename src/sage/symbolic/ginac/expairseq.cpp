@@ -1620,7 +1620,7 @@ std::unique_ptr<epvector> expairseq::expandchildren(unsigned options) const
 				                         cit->coeff));
 				++cit;
 			}
-			return std::move(s);
+			return s;
 		}
 
 		++cit;
@@ -1665,7 +1665,7 @@ std::unique_ptr<epvector> expairseq::evalchildren(int level) const
 				                                       cit->coeff));
 				++cit;
 			}
-			return std::move(s);
+			return s;
 		}
 		++cit;
 	}
@@ -1722,7 +1722,7 @@ std::unique_ptr<epvector> expairseq::subschildren(const exmap & m, unsigned opti
 					s->push_back(split_ex_to_pair(recombine_pair_to_ex(*cit).subs(m, options)));
 					++cit;
 				}
-				return std::move(s);
+				return s;
 			}
 
 			++cit;
@@ -1752,7 +1752,7 @@ std::unique_ptr<epvector> expairseq::subschildren(const exmap & m, unsigned opti
 					s->push_back(combine_ex_with_coeff_to_pair(cit->rest.subs(m, options), cit->coeff));
 					++cit;
 				}
-				return std::move(s);
+				return s;
 			}
 
 			++cit;

@@ -49,8 +49,6 @@
 #include "basic.h"
 #include "constant.h"
 #include "ex.h"
-#include "py_funcs.h"
-#include <factory/factory.h>
 
 #include <gmp.h>
 #include <stdexcept>
@@ -61,6 +59,8 @@
 void ginac_pyinit_Integer(PyObject*);
 void ginac_pyinit_Float(PyObject*);
 void ginac_pyinit_I(PyObject*);
+
+class CanonicalForm;
 
 #ifdef PYNAC_HAVE_LIBGIAC
 namespace giac {

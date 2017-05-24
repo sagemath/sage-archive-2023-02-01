@@ -614,7 +614,7 @@ std::unique_ptr<exvector> ncmul::expandchildren(unsigned options) const
 				++cit;
 			}
 
-			return std::move(s);
+			return s;
 		}
 
 		++cit;

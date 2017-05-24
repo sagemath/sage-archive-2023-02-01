@@ -49,6 +49,7 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include <Python.h>
 #include "flint/fmpz.h"
 #include "flint/fmpz_factor.h"
 
@@ -59,6 +60,11 @@
 #include "archive.h"
 #include "tostring.h"
 #include "utils.h"
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-register"
+#include <factory/factory.h>
+#pragma clang diagnostic pop
 
 #ifdef PYNAC_HAVE_LIBGIAC
 #undef _POSIX_C_SOURCE

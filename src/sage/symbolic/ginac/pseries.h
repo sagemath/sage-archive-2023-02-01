@@ -58,7 +58,6 @@ public:
 	ex conjugate() const override;
 	ex real_part() const override;
 	ex imag_part() const override;
-	ex eval_integ() const override;
 protected:
 	ex derivative(const symbol & s) const override;
 

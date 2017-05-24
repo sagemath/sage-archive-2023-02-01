@@ -7,7 +7,6 @@
 #ifndef   	PY_FUNC_H_
 # define   	PY_FUNC_H_
 
-#include <Python.h>
 #include "basic.h"
 #include "constant.h"
 #include "ex.h"

@@ -145,17 +145,17 @@ typedef std::map<ex2, exbool, ex2_less> ex2_exbool_remember;
 
 
 /** Return maximum (absolute value) coefficient of a polynomial.
- *  This function is used internally by heur_gcd().
+ *  This function was used internally by heur_gcd().
  *
  *  @return maximum coefficient
- *  @see heur_gcd */
+ */
 numeric ex::max_coefficient() const
 {
 	return bp->max_coefficient();
 }
 
 /** Implementation ex::max_coefficient().
- *  @see heur_gcd */
+ */
 numeric basic::max_coefficient() const
 {
 	return *_num1_p;
@@ -228,11 +228,11 @@ bool ex::is_quadratic(const symbol& x, ex& a, ex& b, ex& c) const
 
 
 /** Apply symmetric modular homomorphism to an expanded multivariate
- *  polynomial.  This function is usually used internally by heur_gcd().
+ *  polynomial.  This function was usually used internally by heur_gcd().
  *
  *  @param xi  modulus
  *  @return mapped polynomial
- *  @see heur_gcd */
+ */
 ex basic::smod(const numeric &xi) const
 {
 	return *this;

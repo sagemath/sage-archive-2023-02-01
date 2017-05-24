@@ -32,6 +32,7 @@
 #include <stack>
 #include <unordered_set>
 
+class CanonicalForm;
 
 namespace GiNaC {
 #ifdef _MSC_VER
@@ -136,7 +137,6 @@ public:
 	ex evalf(int level = 0, PyObject* parent=nullptr) const 
 	{ return bp->evalf(level, parent); }
 	ex eval_ncmul(const exvector & v) const { return bp->eval_ncmul(v); }
-	ex eval_integ() const { return bp->eval_integ(); }
 
 	// printing
 	void print(const print_context & c, unsigned level = 0) const;
@@ -760,9 +760,6 @@ inline ex eval(const ex & thisex, int level = 0)
 
 inline ex evalf(const ex & thisex, int level = 0, PyObject* parent=nullptr)
 { return thisex.evalf(level, parent); }
-
-inline ex eval_integ(const ex & thisex)
-{ return thisex.eval_integ(); }
 
 inline ex diff(const ex & thisex, const symbol & s, unsigned nth = 1)
 { return thisex.diff(s, nth); }

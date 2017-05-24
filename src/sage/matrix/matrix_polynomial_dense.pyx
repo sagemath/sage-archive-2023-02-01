@@ -614,6 +614,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [      0       0 x^5 + 4       0       0]
             [      0       0       0 x^5 + 4       0]
             [      x     x^2     x^3     x^4       1]
+
+            sage: B = matrix(M, 3, [x,x+1,x^2,x^2,x,x^3,x+x^2,2*x+1,x^3+x^2]); B
         """
         A = self.__copy__()
 
@@ -623,12 +625,12 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             A._reversed_hermite_form_euclidean(transformation=False)
 
         if not include_zero_rows:
-            i = A.nrows() - 1
-            while i >= 0 and A.row(i) == 0:
-                i -= 1
-            A = A[:i+1]
+            i = 0
+            while i < A.nrows() and A.row(i) == 0:
+                i += 1
+            A = A[i:]
             if transformation:
-                U = U[:i+1]
+                U = U[i:]
 
         return (A, U) if transformation else A
 

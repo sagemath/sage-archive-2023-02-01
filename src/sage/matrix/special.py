@@ -3550,7 +3550,8 @@ def toeplitz(c, r, ring=None):
 
     - ``c`` -- vector, first column of the Toeplitz matrix
 
-    - ``r`` -- vector, first row of the Toeplitz matrix
+    - ``r`` -- vector, first row of the Toeplitz matrix, counting from the
+      second column
 
     - ``ring`` -- base ring (optional, default: None) of the resulting matrix
 

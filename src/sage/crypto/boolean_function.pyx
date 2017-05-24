@@ -1056,7 +1056,7 @@ cdef class BooleanFunction(SageObject):
         INPUT:
 
         - ``val`` -- either an integer or a tuple/list of `\GF{2}` elements
-          of length ``self.nvariables()``
+          of length equal to the number of variables
 
         .. SEEALSO::
 

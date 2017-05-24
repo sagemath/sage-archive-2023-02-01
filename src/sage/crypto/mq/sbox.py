@@ -1259,9 +1259,9 @@ class SBox(SageObject):
         INPUT:
 
         - ``a`` -- either an integer or a tuple of `\GF{2}` elements of
-          length ``self.m``
+          length equal to the input size of SBox
         - ``b`` -- either an integer or a tuple of `\GF{2}` elements of
-          length ``self.n``
+          length equal to the output size of SBox
 
         .. SEEALSO::
 

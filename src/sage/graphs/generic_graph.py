@@ -20069,9 +20069,8 @@ class GenericGraph(GenericGraph_pyx):
         identifying `n` and `0`.
 
         If ``perm`` is ``None``, the graph is relabeled to be on the
-        vertices `\{0,1,...,n-1\}`.
-
-        .. note:: at this point, only injective relabeling are supported.
+        vertices `\{0,1,...,n-1\}`. This is *not* any kind of canonical
+        labeling.
 
         If ``inplace`` is ``True``, the graph is modified in place and
         ``None`` is returned. Otherwise a relabeled copy of the graph

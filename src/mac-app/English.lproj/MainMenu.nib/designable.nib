@@ -91,6 +91,11 @@
                                 <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
                                 <connections>
                                     <action selector="newWorksheet:" target="578" id="671"/>
+                                    <binding destination="762" name="hidden" keyPath="values.preferSageNB" id="ckJ-9C-SYe">
+                                        <dictionary key="options">
+                                            <string key="NSValueTransformerName">NSNegateBoolean</string>
+                                        </dictionary>
+                                    </binding>
                                 </connections>
                             </menuItem>
                             <menuItem title="Open Notebook" keyEquivalent="n" id="82">

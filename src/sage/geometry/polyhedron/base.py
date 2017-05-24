@@ -5714,7 +5714,7 @@ class Polyhedron_base(Element):
         else:
             return self.face_lattice().is_isomorphic(other.face_lattice())
 
-    def affine_hull(self, as_affine_map=False, orthogonal=False, orthonormal=False, base_extend=False):
+    def affine_hull(self, as_affine_map=False, orthogonal=False, orthonormal=False, extend=False):
         """
         Return the affine hull.
 
@@ -5741,10 +5741,10 @@ class Polyhedron_base(Element):
 
         - ``orthonormal`` (boolean, default = False) -- if ``True``,
           provide an orthonormal transformation. If the base ring does not
-          provide the neccessary square roots, the base_extend parameter
+          provide the neccessary square roots, the extend parameter
           needs to be set to ``True``.
 
-        - ``base_extend`` (boolean, default = False) -- if ``True``,
+        - ``extend`` (boolean, default = False) -- if ``True``,
           allow base ring to be extended if neccessary. This becomes
           relevant when requiering an orthonormal transformation.
 
@@ -5792,8 +5792,8 @@ class Polyhedron_base(Element):
             sage: A = L.affine_hull(orthonormal=True)
             Traceback (most recent call last):
             ...
-            ValueError: The base ring needs to be extented; try with "base_extend=True"
-            sage: A = L.affine_hull(orthonormal=True, base_extend=True); A
+            ValueError: The base ring needs to be extented; try with "extend=True"
+            sage: A = L.affine_hull(orthonormal=True, extend=True); A
             A 1-dimensional polyhedron in AA^1 defined as the convex hull of 2 vertices
             sage: A.vertices()
             (A vertex at (0), A vertex at (1.414213562373095?))
@@ -5816,7 +5816,7 @@ class Polyhedron_base(Element):
              A vertex at (2, 0, 0),
              A vertex at (1, 3/2, 0),
              A vertex at (1, 1/2, 4/3))
-            sage: A = S.affine_hull(orthonormal=True, base_extend=True); A
+            sage: A = S.affine_hull(orthonormal=True, extend=True); A
             A 3-dimensional polyhedron in AA^3 defined as the convex hull of 4 vertices
             sage: A.vertices()
             (A vertex at (0, 0, 0),
@@ -5828,15 +5828,15 @@ class Polyhedron_base(Element):
 
             sage: P = polytopes.permutahedron(3); P
             A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 6 vertices
-            sage: set([F.as_polyhedron().affine_hull(orthonormal=True, base_extend=True).volume() for F in P.affine_hull().faces(1)]) == {1, sqrt(AA(2))}
+            sage: set([F.as_polyhedron().affine_hull(orthonormal=True, extend=True).volume() for F in P.affine_hull().faces(1)]) == {1, sqrt(AA(2))}
             True
-            sage: set([F.as_polyhedron().affine_hull(orthonormal=True, base_extend=True).volume() for F in P.affine_hull(orthonormal=True, base_extend=True).faces(1)]) == {sqrt(AA(2))}
+            sage: set([F.as_polyhedron().affine_hull(orthonormal=True, extend=True).volume() for F in P.affine_hull(orthonormal=True, extend=True).faces(1)]) == {sqrt(AA(2))}
             True
             sage: D = polytopes.dodecahedron()
             sage: F = D.faces(2)[0].as_polyhedron()
             sage: F.affine_hull(orthogonal=True)
             A 2-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^2 defined as the convex hull of 5 vertices
-            sage: F.affine_hull(orthonormal=True, base_extend=True)
+            sage: F.affine_hull(orthonormal=True, extend=True)
             A 2-dimensional polyhedron in AA^2 defined as the convex hull of 5 vertices
             sage: K.<sqrt2> = QuadraticField(2)
             sage: P = Polyhedron([2*[K.zero()],2*[sqrt2]])
@@ -5857,8 +5857,8 @@ class Polyhedron_base(Element):
             sage: A = P.affine_hull(orthonormal=True)
             Traceback (most recent call last):
             ...
-            ValueError: The base ring needs to be extented; try with "base_extend=True"
-            sage: A = P.affine_hull(orthonormal=True, base_extend=True); A
+            ValueError: The base ring needs to be extented; try with "extend=True"
+            sage: A = P.affine_hull(orthonormal=True, extend=True); A
             A 1-dimensional polyhedron in AA^1 defined as the convex hull of 2 vertices
             sage: A.vertices()
             (A vertex at (0), A vertex at (2.449489742783178?))
@@ -5873,14 +5873,14 @@ class Polyhedron_base(Element):
             True
             sage: P.is_combinatorially_isomorphic(P.affine_hull(orthogonal=True))
             True
-            sage: P.is_combinatorially_isomorphic(P.affine_hull(orthonormal=True, base_extend=True))
+            sage: P.is_combinatorially_isomorphic(P.affine_hull(orthonormal=True, extend=True))
             True
 
         The ``orthonormal=True`` parameter preserves volumes;
         it provides an isometric copy of the polyhedron::
 
             sage: Pentagon = polytopes.dodecahedron().faces(2)[0].as_polyhedron()
-            sage: P = Pentagon.affine_hull(orthonormal=True, base_extend=True)
+            sage: P = Pentagon.affine_hull(orthonormal=True, extend=True)
             sage: _, c= P.is_inscribed(certificate=True)
             sage: c
             (0.4721359549995794?, 0.6498393924658126?)
@@ -5901,7 +5901,7 @@ class Polyhedron_base(Element):
         affine transformation times its transpose::
 
             sage: Pentagon = polytopes.dodecahedron().faces(2)[0].as_polyhedron()
-            sage: Pnormal = Pentagon.affine_hull(orthonormal=True, base_extend=True)
+            sage: Pnormal = Pentagon.affine_hull(orthonormal=True, extend=True)
             sage: Pgonal = Pentagon.affine_hull(orthogonal=True)
             sage: A,b = Pentagon.affine_hull(orthogonal = True, as_affine_map=True)
             sage: Adet = (A.matrix().transpose()*A.matrix()).det()
@@ -5917,8 +5917,8 @@ class Polyhedron_base(Element):
         An other example with ``as_affine_map=True``::
 
             sage: P = polytopes.permutahedron(4)
-            sage: A,b = P.affine_hull(orthonormal=True, as_affine_map=True, base_extend=True)
-            sage: Q = P.affine_hull(orthonormal=True, base_extend=True)
+            sage: A,b = P.affine_hull(orthonormal=True, as_affine_map=True, extend=True)
+            sage: Q = P.affine_hull(orthonormal=True, extend=True)
             sage: Q.center()
             (0.7071067811865475?, 1.224744871391589?, 1.732050807568878?)
             sage: A(P.center()) + b == Q.center()
@@ -5993,8 +5993,8 @@ class Polyhedron_base(Element):
             try:
                 A = M.gram_schmidt(orthonormal=orthonormal)[0]
             except TypeError:
-                if not base_extend:
-                    raise ValueError('The base ring needs to be extented; try with "base_extend=True"')
+                if not extend:
+                    raise ValueError('The base ring needs to be extented; try with "extend=True"')
                 M = matrix(AA, M)
                 A = M.gram_schmidt(orthonormal=orthonormal)[0]
             if as_affine_map:

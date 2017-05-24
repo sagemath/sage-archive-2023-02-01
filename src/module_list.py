@@ -140,9 +140,7 @@ library_order_list = singular_libs + [
     "zn_poly", "gap",
 ] + gd_libs + png_libs + [
     "m", "readline", "Lfunction" ,
-] + cblas_libs + [
-    "cryptominisat",
-] + zlib_libs
+] + cblas_libs + zlib_libs
 
 # Make a dict with library:order pairs, where the order are negative
 # integers sorted according to library_order_list. When sorting,
@@ -1579,23 +1577,6 @@ ext_modules = [
     ## sage.sat
     ##
     ################################
-
-    OptionalExtension("sage.sat.solvers.cryptominisat.cryptominisat",
-              sources = ["sage/sat/solvers/cryptominisat/cryptominisat.pyx"],
-              include_dirs = [os.path.join(SAGE_INC, "cmsat")] + zlib_include_dirs,
-              language = "c++",
-              libraries = ['cryptominisat'] + zlib_libs,
-              library_dirs = zlib_library_dirs,
-              package = 'cryptominisat'),
-
-    OptionalExtension("sage.sat.solvers.cryptominisat.solverconf",
-              sources = ["sage/sat/solvers/cryptominisat/solverconf.pyx",
-                         "sage/sat/solvers/cryptominisat/solverconf_helper.cpp"],
-              include_dirs = [os.path.join(SAGE_INC, "cmsat")] + zlib_include_dirs,
-              language = "c++",
-              libraries = ['cryptominisat'] + zlib_libs,
-              library_dirs = zlib_library_dirs,
-              package = 'cryptominisat'),
 
     Extension('sage.sat.solvers.satsolver',
               sources = ['sage/sat/solvers/satsolver.pyx']),

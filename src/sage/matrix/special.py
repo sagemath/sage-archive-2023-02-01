@@ -3488,6 +3488,8 @@ def hilbert(dim, ring=QQ):
 
     - ``dim`` -- integer, the dimension of the Hilbert matrix
 
+    - ``ring`` -- base ring (optional, default: \\QQ) of the resulting matrix
+
     EXAMPLES::
 
         sage: matrix.hilbert(5)
@@ -3518,6 +3520,8 @@ def vandermonde(v, ring=None):
 
     - ``v`` -- vector, the second column of the Vandermonde matrix
 
+    - ``ring`` -- base ring (optional, default: None) of the resulting matrix
+
     EXAMPLES:
 
     A Vandermonde matrix of order three over the symbolic ring::
@@ -3547,6 +3551,8 @@ def toeplitz(c, r, ring=None):
     - ``c`` -- vector, first column of the Toeplitz matrix
 
     - ``r`` -- vector, first row of the Toeplitz matrix
+
+    - ``ring`` -- base ring (optional, default: None) of the resulting matrix
 
     .. NOTE::
 

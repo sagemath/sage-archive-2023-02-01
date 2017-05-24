@@ -27,6 +27,7 @@ from sage.structure.coerce cimport is_numpy_type
 
 from sage.rings.all import RR, CC, ZZ
 
+import operator
 
 cdef class SymbolicRing(CommutativeRing):
     """
@@ -716,19 +717,63 @@ cdef class SymbolicRing(CommutativeRing):
 
         return e
 
-    def var(self, name, latex_name=None, domain=None):
+    def var(self, name, latex_name=None, n=None, domain=None):
         """
-        Return the symbolic variable defined by x as an element of the
-        symbolic ring.
+        Return a symbolic variable as an element of the symbolic ring.
 
-        EXAMPLES::
+        INPUT:
+
+        - ``name`` -- string or list of strings with the name(s) of the symbolic variable(s)
+
+        - ``latex_name`` -- (optional) string used when printing in latex mode, if not specified use ``'name'``
+
+        - ``n`` -- (optional) nonnegative integer; number of symbolic variables, indexed from `0` to `n-1`
+
+        - ``domain`` -- (optional) specify the domain of the variable(s); it is the complex plane
+          by default, and possible options are (non-exhaustive list, see note below):
+          ``'real'``, ``'complex'``, ``'positive'``, ``'integer'`` and ``'noninteger'``
+
+        OUTPUT:
+
+        Symbolic expression or tuple of symbolic expressions.
+
+        .. SEEALSO::
+
+            This function does not inject the variable(s) into the global namespace.
+            For that purpose see :meth:`var()<sage.calculus.var.var>`.
+
+        .. NOTE::
+
+            For a comprehensive list of acceptable features type ``'maxima('features')'``,
+            and see also the documentation of :ref:`sage.symbolic.assumptions`.
+
+        EXAMPLES:
+
+        Create a variable `zz` (complex by default)::
 
             sage: zz = SR.var('zz'); zz
             zz
+
+        The return type is a symbolic expression::
+
             sage: type(zz)
             <type 'sage.symbolic.expression.Expression'>
+
+        We can specify the domain as well::
+
+            sage: zz = SR.var('zz', domain='real')
+            sage: zz.is_real()
+            True
+
+        The ``name`` argument does not have to match the left-hand side variable::
+
             sage: t = SR.var('theta2'); t
             theta2
+
+        Automatic indexing is available as well::
+
+            sage: SR.var('x', 4)
+            (x0, x1, x2, x3)
 
         TESTS::
 
@@ -752,6 +797,20 @@ cdef class SymbolicRing(CommutativeRing):
 
             sage: var1 = var('var1', latex_name=r'\sigma^2_1'); latex(var1)
             {\sigma^2_1}
+
+        The number of variables should be an integer greater or equal than 1::
+
+            sage: SR.var('K', -273)
+            Traceback (most recent call last):
+            ...
+            ValueError: the number of variables should be a positive integer
+
+        The argument ``n`` can only handle a single variable::
+
+            sage: SR.var('x y', 4)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot specify n for multiple symbol names
         """
         if is_Expression(name):
             return name
@@ -771,16 +830,34 @@ cdef class SymbolicRing(CommutativeRing):
             if not isidentifier(s):
                 raise ValueError('The name "'+s+'" is not a valid Python identifier.')
 
+        formatted_latex_name = None
+        if latex_name is not None and n is None:
+            try:
+                n = operator.index(latex_name)
+                latex_name = None
+            except TypeError:
+                formatted_latex_name = '{{{0}}}'.format(latex_name)
+
         if len(names_list) == 0:
             raise ValueError('You need to specify the name of the new variable.')
         if len(names_list) == 1:
-            formatted_latex_name = None
-            if latex_name is not None:
-                formatted_latex_name = '{{{0}}}'.format(latex_name)
-            return self.symbol(name, latex_name=formatted_latex_name, domain=domain)
+            if n is not None:
+                if n > 0:
+                    name = [name + str(i) for i in range(n)]
+                    if latex_name is None:
+                        return tuple([self.symbol(name[i], domain=domain) for i in range(n)])
+                    else:
+                        formatted_latex_name = ['{{{}}}_{{{}}}'.format(latex_name, str(i)) for i in range(n)]
+                        return tuple([self.symbol(name[i], latex_name=formatted_latex_name[i], domain=domain) for i in range(n)])
+                else:
+                    raise ValueError("the number of variables should be a positive integer")
+            else:
+                return self.symbol(name, latex_name=formatted_latex_name, domain=domain)
         if len(names_list) > 1:
-            if latex_name:
+            if latex_name is not None:
                 raise ValueError("cannot specify latex_name for multiple symbol names")
+            if n is not None:
+                raise ValueError("cannot specify n for multiple symbol names")
             return tuple([self.symbol(s, domain=domain) for s in names_list])
 
     def _repr_element_(self, Expression x):

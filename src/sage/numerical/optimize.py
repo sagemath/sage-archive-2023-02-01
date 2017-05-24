@@ -264,9 +264,9 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
       ``'default'`` (for Python functions, the simplex method is the default)
       (for symbolic functions bfgs is the default):
 
-       - ``'simplex'``
+       - ``'simplex'`` -- using the downhill simplex algorithm
 
-       - ``'powell'``
+       - ``'powell'`` -- use the modified Powell algorithm
 
        - ``'bfgs'`` -- (Broyden-Fletcher-Goldfarb-Shanno) requires
          ``gradient``
@@ -279,7 +279,8 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
 
     EXAMPLES:
 
-    Minimize a fourth order polynomial in three variables (Rosenbrock function)::
+    Minimize a fourth order polynomial in three variables (see the
+    :wikipedia:`Rosenbrock_function`)::
 
         sage: vars = var('x y z')
         sage: f = 100*(y-x^2)^2+(1-x)^2+100*(z-y^2)^2+(1-y)^2

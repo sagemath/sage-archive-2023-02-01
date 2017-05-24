@@ -3576,21 +3576,18 @@ def hankel(c, r=None, ring=None):
 
         H_{ij} = v_{i+j-1},\qquad i = 1,\ldots, m,~j = 1,\ldots, n,
 
-    where the vector `v_i = c_i` for `i = 1,\ldots, m` and `v_{m+i-1} = r_i` for
-    `i = 2, \ldots, n` completely determines the Hankel matrix. If the last
-    row, `r`, is not given, the Hankel matrix is square by default
-    and `r=c`. For more information see the :wikipedia:`Hankel_matrix`.
+    where the vector `v_i = c_i` for `i = 1,\ldots, m` and `v_{m+i} = r_i` for
+    `i = 1, \ldots, n-1` completely determines the Hankel matrix. If the last
+    row, `r`, is not given, the Hankel matrix is square by default and `r_i = c_{i+1}`
+    for `i = 1,\ldots,n-1`.
+    For more information see the :wikipedia:`Hankel_matrix`.
 
     INPUT:
 
     - ``c`` -- vector, first column of the Hankel matrix
 
-    - ``r`` -- vector (optional, default: None), last row of the Hankel matrix
-
-    .. NOTE::
-
-        If the first last of the input column does not match the first element
-        of the input row, column wins the conflict.
+    - ``r`` -- vector (optional, default: None), last row of the Hankel matrix, from
+      the second to the last column
 
     EXAMPLES:
 
@@ -3603,6 +3600,15 @@ def hankel(c, r=None, ring=None):
         [d e b c d]
         [e b c d e]
 
+    We can also pass the elements of the last row, starting at the second column::
+
+        sage: matrix.hankel(SR.var('a, b, c, d, e'), SR.var('f, g, h, i'))
+        [a b c d e]
+        [b c d e f]
+        [c d e f g]
+        [d e f g h]
+        [e f g h i]
+
     A third order Hankel matrix in the integers::
 
         sage: matrix.hankel([1..3])
@@ -3610,23 +3616,15 @@ def hankel(c, r=None, ring=None):
         [2 3 2]
         [3 2 3]
 
-    The last row can be passed as well::
+    The second argument allows to customize the last row::
 
-        sage: matrix.hankel([1..3], [3..6])
-        [1 2 3 4]
-        [2 3 4 5]
-        [3 4 5 6]
-
-    If column and row are passed, the common position is set by the column::
-
-        sage: matrix.hankel([1..3], [5..8])
-        [1 2 3 6]
-        [2 3 6 7]
-        [3 6 7 8]
+        sage: matrix.hankel([1..3], [7..10])
+        [ 1  2  3  7  8]
+        [ 2  3  7  8  9]
+        [ 3  7  8  9 10]
     """
     m = len(c)
-    if r is None:
-        r = c
+    r = c if r is None else [None] + list(r)
     n = len(r)
     entries = lambda i: c[i] if i < m else r[i-m+1]
     return matrix(lambda i,j: entries(i+j), nrows=m, ncols=n, ring=ring)

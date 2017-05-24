@@ -3554,21 +3554,28 @@ def toeplitz(c, r, ring=None):
 
     - ``ring`` -- base ring (optional, default: None) of the resulting matrix
 
-    .. NOTE::
+    EXAMPLES:
 
-        If the first element of the input column does not match the first element
-        of the input row, column wins the diagonal conflict.
+    A rectangular Toeplitz matrix::
 
-    EXAMPLES::
-
-        sage: matrix.toeplitz([1..4], [4..6])
+        sage: matrix.toeplitz([1..4], [5..6])
         [1 5 6]
         [2 1 5]
         [3 2 1]
         [4 3 2]
+
+    The following `N\times N` Toeplitz matrix arises in the discretization of
+    boundary value problems::
+
+        sage: N = 4
+        sage: matrix.toeplitz([-2, 1] + [0]*(N-2), [1] + [0]*(N-2))
+        [-2  1  0  0]
+        [ 1 -2  1  0]
+        [ 0  1 -2  1]
+        [ 0  0  1 -2]
     """
-    entries = lambda i,j: c[i-j] if i>=j else r[j-i]
-    return matrix(entries, nrows=len(c), ncols=len(r), ring=ring)
+    entries = lambda i,j: c[i-j] if i>=j else r[j-i-1]
+    return matrix(entries, nrows=len(c), ncols=len(r)+1, ring=ring)
 
 @matrix_method
 def hankel(c, r=None, ring=None):

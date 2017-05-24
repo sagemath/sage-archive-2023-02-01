@@ -3774,11 +3774,10 @@ cdef class Matrix(matrix1.Matrix):
         #   thus the kernel is the whole domain, so return an identity matrix
         #   identity_matrix constructor will fail if ring does not have a one
         # For all keywords the results are identical
-        if self._ncols == 0 and R.is_integral_domain():
-            return self.new_matrix(nrows = 0, ncols = self._ncols)
-        if self._nrows == 0 and R.is_integral_domain():
-            import constructor
-            return constructor.identity_matrix(R, self._ncols)
+        if not self._ncols and R.is_integral_domain():
+            return self.new_matrix(nrows=0, ncols=self._ncols)
+        if not self._nrows and R.is_integral_domain():
+            return sage.matrix.constructor.identity_matrix(R, self._ncols)
 
         # Third: generic first, if requested explicitly
         #   then try specialized class methods, and finally
@@ -6966,8 +6965,7 @@ cdef class Matrix(matrix1.Matrix):
         if not subdivide in [True, False]:
             raise TypeError("subdivide must be True or False, not %s" % subdivide)
         R = self.base_ring()
-        import constructor
-        ident = constructor.identity_matrix(R, self.nrows())
+        ident = sage.matrix.constructor.identity_matrix(R, self.nrows())
         E = self.augment(ident)
         extended = E.echelon_form(**kwds)
         if subdivide:
@@ -7538,7 +7536,7 @@ cdef class Matrix(matrix1.Matrix):
         output_window = output.matrix_window()
 
 
-        import strassen
+        from . import strassen
         strassen.strassen_window_multiply(output_window, self_window, right_window, cutoff)
         return output
 
@@ -7576,7 +7574,7 @@ cdef class Matrix(matrix1.Matrix):
             self._echelon_in_place_classical()
             return
 
-        import strassen
+        from . import strassen
         pivots = strassen.strassen_echelon(self.matrix_window(), cutoff)
         self._set_pivots(pivots)
         verbose('done with strassen', tm)
@@ -7615,7 +7613,7 @@ cdef class Matrix(matrix1.Matrix):
             ...
             IndexError: matrix window index out of range
         """
-        import matrix_window
+        from . import matrix_window
         if nrows == -1:
             nrows = self._nrows - row
         if ncols == -1:
@@ -12595,7 +12593,7 @@ cdef class Matrix(matrix1.Matrix):
             return min(m1, m2)
         except (OverflowError, TypeError):
             # Try using MPFR, which handles large numbers much better, but is slower.
-            import misc
+            from . import misc
             R = RealField(53, rnd='RNDU')
             A = self.change_ring(R)
             m1 = misc.hadamard_row_bound_mpfr(A)

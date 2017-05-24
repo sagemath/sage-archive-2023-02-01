@@ -13253,10 +13253,11 @@ cdef class Matrix(matrix1.Matrix):
         Transform the matrix in place to hermite normal form and optionally
         return the transformation matrix.
 
-        The algorithm is a straightforward Euclidean algorithm.
+        The matrix is assumed to be over an Euclidean domain. In particular,
+        ``xgcd()`` method should be available for the elements of the domain.
 
-        If ``lc()`` method is available for elements of the base ring, then
-        the pivots are also normalized to be *monic*.
+        Furthermore if ``lc()`` method is available for the elements of the
+        base ring, then the pivots are also normalized to be *monic*.
 
         INPUT:
 
@@ -13264,6 +13265,23 @@ cdef class Matrix(matrix1.Matrix):
           return the transformation matrix
 
         EXAMPLE::
+
+            sage: B = matrix(ZZ, 3, [-1,-2,-3,4,5,6,7,8,9]); B
+            [-1 -2 -3]
+            [ 4  5  6]
+            [ 7  8  9]
+            sage: C = B.__copy__()
+            sage: U = C._hermite_form_euclidean(transformation=True)
+            sage: C
+            [1 2 3]
+            [0 3 6]
+            [0 0 0]
+            sage: U
+            [-1  0  0]
+            [-4 -1  0]
+            [-1 -2  1]
+            sage: U * B == C
+            True
 
             sage: P.<x> = PolynomialRing(GF(5))
             sage: A = matrix(P,3,[P.random_element(3) for i in range(9)])
@@ -13337,9 +13355,9 @@ cdef class Matrix(matrix1.Matrix):
             except AttributeError:
                 pass
 
-            pivot = - A.get_unsafe(i,j)
+            pivot = A.get_unsafe(i,j)
             for k in range(i):
-                q = A.get_unsafe(k,j) // pivot
+                q = - (A.get_unsafe(k,j) // pivot)
                 if not q.is_zero():
                     for c in range(j,n):
                         A.set_unsafe(k, c, A.get_unsafe(k,c) + q * A.get_unsafe(i,c))

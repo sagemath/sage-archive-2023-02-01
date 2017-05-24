@@ -43,6 +43,10 @@
 #include <string>
 #include <memory>
 
+#if PY_MAJOR_VERSION > 2
+#define PyString_FromString PyBytes_FromString
+#endif
+
 namespace GiNaC {
 
 inline void py_error(const char* errmsg) {

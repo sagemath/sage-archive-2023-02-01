@@ -261,18 +261,19 @@ def RandomBlockGraph(m, k, kmax=None, incidence_structure=False):
 
     INPUT:
 
-    - ``m`` -- number of blocks.
+    - ``m`` -- integer; number of blocks (at least one).
 
-    - ``k`` -- minimum number of vertices of a block (at least two).
+    - ``k`` -- integer; minimum number of vertices of a block (at least two).
 
-    - ``kmax`` -- (default: None) By default, each block has `k` vertices. When
-      the parameter `kmax` is specified (with `kmax \geq k`), the number of
-      vertices of each block is randomly chosen between `k` and `kmax`.
+    - ``kmax`` -- integer (default: ``None``) By default, each block has `k`
+      vertices. When the parameter `kmax` is specified (with `kmax \geq k`), the
+      number of vertices of each block is randomly chosen between `k` and
+      `kmax`.
 
-    - ``incidence_structure`` -- (default: False) when set to ``True``, the
-      incidence structure of the graphs is returned instead of the graph itself,
-      that is the list of the lists of vertices in each block. This is useful
-      for the creation of some hypergraphs.
+    - ``incidence_structure`` -- boolean (default: ``False``) when set to
+      ``True``, the incidence structure of the graphs is returned instead of the
+      graph itself, that is the list of the lists of vertices in each
+      block. This is useful for the creation of some hypergraphs.
 
     OUTPUT:
 

@@ -1835,7 +1835,7 @@ class Graph(GenericGraph):
     @doc_index("Graph properties")
     def is_block_graph(self):
         r"""
-        Test if the graph is a block graph.
+        Return whether this graph is a block graph.
 
         A block graph is a connected graph in which every biconnected component
         (block) is a clique.

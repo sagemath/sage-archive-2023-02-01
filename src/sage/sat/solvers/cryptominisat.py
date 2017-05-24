@@ -51,6 +51,11 @@ class CryptoMiniSat(SatSolver):
         Constuct a new CryptoMiniSat instance.
 
         See the documentation class for the description of inputs.
+
+        EXAMPLES::
+
+            sage: from sage.sat.solvers.cryptominisat import CryptoMiniSat
+            sage: solver = CryptoMiniSat(threads=1)                     # optional - cryptominisat
         """
         if threads is None:
             from sage.parallel.ncpus import ncpus

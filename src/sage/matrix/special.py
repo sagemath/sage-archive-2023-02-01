@@ -3589,6 +3589,8 @@ def hankel(c, r=None, ring=None):
     - ``r`` -- vector (optional, default: None), last row of the Hankel matrix, from
       the second to the last column
 
+    - ``ring`` -- base ring (optional, default: None) of the resulting matrix
+
     EXAMPLES:
 
     A Hankel matrix with symbolic entries::

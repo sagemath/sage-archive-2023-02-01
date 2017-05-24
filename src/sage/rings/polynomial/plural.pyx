@@ -636,7 +636,7 @@ cdef class NCPolynomialRing_plural(Ring):
         """
         return False
 
-    def is_field(self):
+    def is_field(self, *args, **kwargs):
         """
         Return ``False``.
 
@@ -645,6 +645,14 @@ cdef class NCPolynomialRing_plural(Ring):
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
             sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
             sage: P.is_field()
+            False
+
+        TESTS:
+
+        Make the method accept additional parameters, such as the flag ``proof``.
+        See :trac:`22910`::
+
+            sage: P.is_field(proof=False)
             False
         """
         return False

@@ -1846,7 +1846,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         A tuple of points that span a simplex of dimension
         :meth:`dim`. If ``large==True``, the simplex is constructed by
         sucessively picking the farthest point. This will ensure that
-        the simplex is not unneccessarily small, but will in general
+        the simplex is not unnecessarily small, but will in general
         not return a maximal simplex.
 
         EXAMPLES::

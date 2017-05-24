@@ -54,7 +54,8 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_sectionally_complemented` | Return ``True`` if every interval from the bottom is complemented.
     :meth:`~FiniteLatticePoset.is_cosectionally_complemented` | Return ``True`` if every interval to the top is complemented.
     :meth:`~FiniteLatticePoset.is_relatively_complemented` | Return ``True`` if every interval of the lattice is complemented.
-    :meth:`~FiniteLatticePoset.is_pseudocomplemented` | Return ``True`` if every element of the lattice has a pseudocomplement.
+    :meth:`~FiniteLatticePoset.is_pseudocomplemented` | Return ``True`` if every element of the lattice has a (meet-)pseudocomplement.
+    :meth:`~FiniteLatticePoset.is_join_pseudocomplemented` | Return ``True`` if every element of the lattice has a join-pseudocomplement.
     :meth:`~FiniteLatticePoset.is_orthocomplemented` | Return ``True`` if the lattice has an orthocomplementation.
     :meth:`~FiniteLatticePoset.is_supersolvable` | Return ``True`` if the lattice is supersolvable.
     :meth:`~FiniteLatticePoset.is_planar` | Return ``True`` if the lattice has an upward planar drawing.
@@ -66,6 +67,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_uniform` | Return ``True`` if all congruences of the lattice consists of equal-sized blocks.
     :meth:`~FiniteLatticePoset.is_regular` | Return ``True`` if all congruences of lattice are determined by any of the congruence blocks.
     :meth:`~FiniteLatticePoset.is_subdirectly_reducible` | Return ``True`` if the lattice is a sublattice of the product of smaller lattices.
+    :meth:`~FiniteLatticePoset.is_constructible_by_doublings` | Return ``True`` if the lattice is constructible by doublings from the one-element lattice.
     :meth:`~FiniteLatticePoset.breadth` | Return the breadth of the lattice.
 
 **Specific elements**
@@ -874,7 +876,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Dual property: :meth:`is_meet_distributive`
-            - Weaker properties: :meth:`is_meet_semidistributive`, :meth:`is_upper_semimodular`
+            - Weaker properties: :meth:`is_meet_semidistributive`,
+              :meth:`is_upper_semimodular`
             - Stronger properties: :meth:`is_distributive`
 
         EXAMPLES::
@@ -963,7 +966,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Dual property: :meth:`is_join_distributive`
-            - Weaker properties: :meth:`is_join_semidistributive`, :meth:`is_lower_semimodular`
+            - Weaker properties: :meth:`is_join_semidistributive`,
+              :meth:`is_lower_semimodular`
             - Stronger properties: :meth:`is_distributive`
 
         EXAMPLES::
@@ -1138,9 +1142,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
-            - Weaker properties: :meth:`is_modular`, :meth:`is_semidistributive`,
-              :meth:`is_join_distributive`, :meth:`is_meet_distributive`,
-              :meth:`is_subdirectly_reducible`
+            - Weaker properties: :meth:`is_modular`,
+              :meth:`is_semidistributive`, :meth:`is_join_distributive`,
+              :meth:`is_meet_distributive`, :meth:`is_subdirectly_reducible`,
+              :meth:`is_constructible_by_doublings` (by interval doubling)
             - Stronger properties: :meth:`is_stone`
 
         EXAMPLES::
@@ -1190,7 +1195,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
-            - Weaker properties: :meth:`is_join_semidistributive`, :meth:`is_meet_semidistributive`
+            - Weaker properties: :meth:`is_join_semidistributive`,
+              :meth:`is_meet_semidistributive`
             - Stronger properties: :meth:`is_distributive`
 
         EXAMPLES:
@@ -1256,7 +1262,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             - Dual property: :meth:`is_join_semidistributive`
             - Weaker properties: :meth:`is_pseudocomplemented`
-            - Stronger properties: :meth:`is_semidistributive`, :meth:`is_join_distributive`
+            - Stronger properties: :meth:`is_semidistributive`,
+              :meth:`is_join_distributive`,
+              :meth:`is_constructible_by_doublings` (by upper pseudo-intervals)
 
         EXAMPLES::
 
@@ -1344,7 +1352,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Dual property: :meth:`is_meet_semidistributive`
-            - Stronger properties: :meth:`is_semidistributive`, :meth:`is_meet_distributive`
+            - Stronger properties: :meth:`is_semidistributive`,
+              :meth:`is_meet_distributive`,
+              :meth:`is_constructible_by_doublings` (by lower pseudo-intervals)
 
         EXAMPLES::
 
@@ -1430,7 +1440,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Stronger properties: :meth:`is_sectionally_complemented`,
-              :meth:`is_cosectionally_complemented`, :meth:`is_orthocomplemented`
+              :meth:`is_cosectionally_complemented`,
+              :meth:`is_orthocomplemented`
             - Other: :meth:`complements`
 
         EXAMPLES::
@@ -1945,6 +1956,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
+            - Dual property: :meth:`is_join_pseudocomplemented`
             - Stronger properties: :meth:`is_meet_semidistributive`
             - Other: :meth:`~sage.combinat.posets.lattices.FiniteMeetSemilattice.pseudocomplement()`.
 
@@ -1965,6 +1977,65 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             return True
         for e in H.neighbor_out_iterator(0):
             if H.pseudocomplement(e) is None:
+                if certificate:
+                    return (False, self._vertex_to_element(e))
+                return False
+        if certificate:
+            return (True, None)
+        return True
+
+    def is_join_pseudocomplemented(self, certificate=False):
+        """
+        Return ``True`` if the lattice is join-pseudocomplemented, and
+        ``False`` otherwise.
+
+        A lattice is join-pseudocomplemented if every element `e` has a
+        join-pseudocomplement `e'`, i.e. the greatest element such that
+        the join of `e` and `e'` is the top element.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, e)``, where ``e`` is an element without a
+          join-pseudocomplement. If ``certificate=False`` return ``True``
+          or ``False``.
+
+        EXAMPLES::
+
+            sage: L = LatticePoset({1: [2, 5], 2: [3, 6], 3: [4], 4: [7],
+            ....:                   5: [6], 6: [7]})
+            sage: L.is_join_pseudocomplemented()
+            True
+
+            sage: L = LatticePoset({1: [2, 3], 2: [4, 5, 6], 3: [6], 4: [7],
+            ....:                   5: [7], 6: [7]})
+            sage: L.is_join_pseudocomplemented()
+            False
+            sage: L.is_join_pseudocomplemented(certificate=True)
+            (False, 4)
+
+        .. SEEALSO::
+
+            - Dual property: :meth:`is_pseudocomplemented`
+            - Stronger properties: :meth:`is_join_semidistributive`
+
+        TESTS::
+
+            sage: LatticePoset({}).is_pseudocomplemented()
+            True
+        """
+        H = self._hasse_diagram
+        if H.order() == 0:
+            if certificate:
+                return (True, None)
+            return True
+        for e in H.neighbor_in_iterator(H.order()-1):
+            if H.kappa_dual(e) is None:
                 if certificate:
                     return (False, self._vertex_to_element(e))
                 return False
@@ -2211,7 +2282,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
-            - Weaker properties: :meth:`is_modular`, :meth:`is_relatively_complemented`
+            - Weaker properties: :meth:`is_upper_semimodular`, :meth:`is_relatively_complemented`
 
         EXAMPLES:
 
@@ -2362,7 +2433,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
-            - Weaker properties: :meth:`is_upper_semimodular`, :meth:`is_lower_semimodular`
+            - Weaker properties: :meth:`is_upper_semimodular`,
+              :meth:`is_lower_semimodular`
             - Stronger properties: :meth:`is_distributive`
             - Other: :meth:`is_modular_element`
 
@@ -2485,7 +2557,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             - Dual property: :meth:`is_lower_semimodular`
             - Weaker properties: :meth:`~sage.combinat.posets.posets.FinitePoset.is_graded`
-            - Stronger properties: :meth:`is_modular`, :meth:`is_join_distributive`
+            - Stronger properties: :meth:`is_modular`,
+              :meth:`is_join_distributive`, :meth:`is_geometric`
 
         See :wikipedia:`Semimodular_lattice`
 
@@ -2544,7 +2617,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             - Dual property: :meth:`is_upper_semimodular`
             - Weaker properties: :meth:`~sage.combinat.posets.posets.FinitePoset.is_graded`
-            - Stronger properties: :meth:`is_modular`, :meth:`is_meet_distributive`
+            - Stronger properties: :meth:`is_modular`,
+              :meth:`is_meet_distributive`
 
         See :wikipedia:`Semimodular_lattice`
 
@@ -3504,7 +3578,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
-            - Stronger properties: :meth:`is_distributive`, :meth:`is_vertically_decomposable`
+            - Stronger properties: :meth:`is_distributive`,
+              :meth:`is_vertically_decomposable`
 
         EXAMPLES::
 
@@ -3703,41 +3778,74 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             subset of the lattice with a unique minimal element
           * ``'upper'`` - allow doublings of upper pseudo-interval; that is, a
             subset of the lattice with a unique maximal element
-          * ``'convex'`` - allow doubling of any convex set (not implemented)
+          * ``'convex'`` - allow doubling of any convex set
+          * ``'any'`` - allow doubling of any set
 
         .. SEEALSO::
 
             :meth:`day_doubling`
 
-        EXAMPLES::
+        EXAMPLES:
+
+        The pentagon can be constructed by doubling intervals; the 5-element
+        diamond can not be constructed by any doublings::
 
             sage: Posets.PentagonPoset().is_constructible_by_doublings('interval')
             True
+
+            sage: Posets.DiamondPoset(5).is_constructible_by_doublings('any')
+            False
+
+        After doubling both upper and lower pseudo-interval a lattice is
+        constructible by convex subset doubling::
+
             sage: L = Posets.BooleanLattice(2)
             sage: L = L.day_doubling([0, 1, 2])  # A lower pseudo-interval
             sage: L.is_constructible_by_doublings('interval')
             False
             sage: L.is_constructible_by_doublings('lower')
             True
-            sage: Posets.DiamondPoset(5).is_constructible_by_doublings('convex')  # Not implemented
+            sage: L = L.day_doubling([(3,0), (1,1), (2,1)])  # An upper pseudo-interval
+            sage: L.is_constructible_by_doublings('upper')
             False
+            sage: L.is_constructible_by_doublings('convex')
+            True
+
+        An example of a lattice that can be constructed by doublings
+        of a non-convex subsets::
+
+            sage: L = LatticePoset(DiGraph('OQC?a?@CO?G_C@?GA?O??_??@?BO?A_?G??C??_?@???'))
+            sage: L.is_constructible_by_doublings('convex')
+            False
+            sage: L.is_constructible_by_doublings('any')
+            True
 
         TESTS::
 
             sage: LatticePoset().is_constructible_by_doublings('interval')
             True
 
+        The congruence lattice of this lattice has maximal chains satisfying the needed
+        property, but also maximal chains not satisfying that; this shows that the code
+        can't be optimized to test just some maximal chain::
+
+            sage: L = LatticePoset(DiGraph('QSO?I?_?_GBG??_??a???@?K??A??B???C??s??G??I??@??A??@???'))
+            sage: L.is_constructible_by_doublings('convex')
+            False
+            sage: L.is_constructible_by_doublings('any')
+            True
+
         ALGORITHM:
 
         According to [HOLM2016]_ a lattice `L` is lower bounded if and only if
         `|\mathrm{Ji}(L)| = |\mathrm{Ji}(\mathrm{Con}\ L)|`, and so dually
-        `|\mathrm{Mi}(L)| = |\mathrm{Mi}(\mathrm{Con}\ L)|` in
-        upper bounded lattices.
+        `|\mathrm{Mi}(L)| = |\mathrm{Mi}(\mathrm{Con}\ L)|` in upper bounded
+        lattices. The same reference gives a test for being constructible by
+        convex or by any subset.
         """
-        if type not in ['interval', 'lower', 'upper', 'convex']:
-            raise ValueError("type must be one on 'interval', 'lower', 'upper' or 'convex'")
-        if type == 'convex':
-            raise NotImplementedError("type 'convex' is not yet implemented")
+        if type not in ['interval', 'lower', 'upper', 'convex', 'any']:
+            raise ValueError("type must be one of 'interval', 'lower', 'upper', 'convex' or 'any'")
+
         if self.cardinality() < 5:
             return True
 
@@ -3751,12 +3859,35 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if type == 'upper':
             return (len(self.meet_irreducibles()) ==
                     self._hasse_diagram.principal_congruences_poset()[0].cardinality())
+        if type == 'convex':
+            return self._hasse_diagram.is_congruence_normal()
+        # type == 'any'
+        def splitting_depth_2(a, b):
+            """
+            Return ``True`` if every block of `b` is made from
+            combining at most two blocks of `a`.
+            """
+            return all(len([x for x in a if x.issubset(y)]) <= 2 for y in b)
+
+        conL = self.congruences_lattice()
+        todo = [conL[0]]
+        reachable = []
+
+        while todo:
+            e = todo.pop()
+            for e_up in conL.upper_covers(e):
+                if e_up not in reachable and splitting_depth_2(e, e_up):
+                    if len(e_up) == 1:  # = the top of the cong. lattice
+                        return True
+                    reachable.append(e_up)
+                    todo.append(e_up)
+        return False
 
     def is_isoform(self, certificate=False):
         """
         Return ``True`` if the lattice is isoform and ``False`` otherwise.
 
-        A congruence is *isoform* if all blocks are isomorphic
+        A congruence is *isoform* (or *isotype*) if all blocks are isomorphic
         sublattices. A lattice is isoform if it has only isoform
         congruences.
 
@@ -3775,7 +3906,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Weaker properties: :meth:`is_uniform`
-            - Stronger properties: :meth:`is_simple`, :meth:`is_relatively_complemented`
+            - Stronger properties: :meth:`is_simple`,
+              :meth:`is_relatively_complemented`
             - Other: :meth:`congruence`
 
         EXAMPLES::
@@ -3910,9 +4042,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
-            - Weaker properties: :meth:`is_sectionally_complemented`,
+            - Stronger properties: :meth:`is_uniform`,
+              :meth:`is_sectionally_complemented`,
               :meth:`is_cosectionally_complemented`
-            - Stronger properties: :meth:`is_uniform`
             - Other: :meth:`congruence`
 
         EXAMPLES::

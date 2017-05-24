@@ -279,17 +279,17 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
 
         sage: vars=var('x y z')
         sage: f=100*(y-x^2)^2+(1-x)^2+100*(z-y^2)^2+(1-y)^2
-        sage: minimize(f,[.1,.3,.4],disp=0)
+        sage: minimize(f,[.1,.3,.4], verbose=0)
         (1.00..., 1.00..., 1.00...)
 
-        sage: minimize(f,[.1,.3,.4],algorithm="ncg",disp=0)
+        sage: minimize(f,[.1,.3,.4],algorithm="ncg",verbose=0)
         (0.9999999..., 0.999999..., 0.999999...)
 
     Same example with just Python functions::
 
         sage: def rosen(x): # The Rosenbrock function
         ....:    return sum(100.0r*(x[1r:]-x[:-1r]**2.0r)**2.0r + (1r-x[:-1r])**2.0r)
-        sage: minimize(rosen,[.1,.3,.4],disp=0)
+        sage: minimize(rosen,[.1,.3,.4],verbose=0)
         (1.00..., 1.00..., 1.00...)
 
     Same example with a pure Python function and a Python function to
@@ -308,7 +308,7 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
         ....:    der[0] = -400r*x[0r]*(x[1r]-x[0r]**2r) - 2r*(1r-x[0])
         ....:    der[-1] = 200r*(x[-1r]-x[-2r]**2r)
         ....:    return der
-        sage: minimize(rosen,[.1,.3,.4],gradient=rosen_der,algorithm="bfgs",disp=0)
+        sage: minimize(rosen,[.1,.3,.4],gradient=rosen_der,algorithm="bfgs",verbose=0)
         (1.00...,  1.00..., 1.00...)
     """
     from sage.symbolic.expression import Expression

@@ -233,7 +233,7 @@ def find_local_minimum(f, a, b, tol=1.48e-08, maxfun=500):
     xmin, fval, iter, funcalls = scipy.optimize.fminbound(f, a, b, full_output=1, xtol=tol, maxfun=maxfun)
     return fval, xmin
 
-def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
+def minimize(func,x0,gradient=None,hessian=None,algorithm="default",disp=True,**args):
     r"""
     This function is an interface to a variety of algorithms for computing
     the minimum of a function of several variables.
@@ -273,6 +273,7 @@ def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
 
        - ``'ncg'`` -- (newton-conjugate gradient) requires gradient and hessian
 
+    - ``disp`` -- (optional, default: True) print convergence message
 
     EXAMPLES::
 
@@ -327,25 +328,25 @@ def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
 
     if algorithm=="default":
         if gradient is None:
-            min = optimize.fmin(f, [float(_) for _ in x0], **args)
+            min = optimize.fmin(f, [float(_) for _ in x0], disp=disp, **args)
         else:
-            min= optimize.fmin_bfgs(f, [float(_) for _ in x0],fprime=gradient, **args)
+            min= optimize.fmin_bfgs(f, [float(_) for _ in x0],fprime=gradient, disp=disp, **args)
     else:
         if algorithm=="simplex":
-            min= optimize.fmin(f, [float(_) for _ in x0], **args)
+            min= optimize.fmin(f, [float(_) for _ in x0], disp=disp, **args)
         elif algorithm=="bfgs":
-            min= optimize.fmin_bfgs(f, [float(_) for _ in x0], fprime=gradient, **args)
+            min= optimize.fmin_bfgs(f, [float(_) for _ in x0], fprime=gradient, disp=disp, **args)
         elif algorithm=="cg":
-            min= optimize.fmin_cg(f, [float(_) for _ in x0], fprime=gradient, **args)
+            min= optimize.fmin_cg(f, [float(_) for _ in x0], fprime=gradient, disp=disp, **args)
         elif algorithm=="powell":
-            min= optimize.fmin_powell(f, [float(_) for _ in x0], **args)
+            min= optimize.fmin_powell(f, [float(_) for _ in x0], disp=disp, **args)
         elif algorithm=="ncg":
             if isinstance(func, Expression):
                 hess=func.hessian()
                 hess_fast= [ [fast_callable(a, vars=var_names, domain=float) for a in row] for row in hess]
                 hessian=lambda p: [[a(*p) for a in row] for row in hess_fast]
                 hessian_p=lambda p,v: scipy.dot(scipy.array(hessian(p)),v)
-                min= optimize.fmin_ncg(f, [float(_) for _ in x0], fprime=gradient, fhess=hessian, fhess_p=hessian_p, **args)
+                min= optimize.fmin_ncg(f, [float(_) for _ in x0], fprime=gradient, fhess=hessian, fhess_p=hessian_p, disp=disp, **args)
     return vector(RDF,min)
 
 def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args):

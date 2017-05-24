@@ -236,7 +236,7 @@ def find_local_minimum(f, a, b, tol=1.48e-08, maxfun=500):
 
 @rename_keyword(deprecation=23062, disp='verbose')
 def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
-             verbose=True, **args):
+             verbose=False, **args):
     r"""
     This function is an interface to a variety of algorithms for computing
     the minimum of a function of several variables.
@@ -277,21 +277,33 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
 
     - ``verbose`` -- (optional, default: True) print convergence message
 
-    EXAMPLES::
+    EXAMPLES:
 
-        sage: vars=var('x y z')
-        sage: f=100*(y-x^2)^2+(1-x)^2+100*(z-y^2)^2+(1-y)^2
-        sage: minimize(f,[.1,.3,.4], verbose=0)
+    Minimize a fourth order polynomial in three variables (Rosenbrock function)::
+
+        sage: vars = var('x y z')
+        sage: f = 100*(y-x^2)^2+(1-x)^2+100*(z-y^2)^2+(1-y)^2
+        sage: minimize(f, [.1,.3,.4])
         (1.00..., 1.00..., 1.00...)
 
-        sage: minimize(f,[.1,.3,.4],algorithm="ncg",verbose=0)
+    Try the newton-conjugate gradient method; the gradient and hessian are 
+    computed automatically::
+
+        sage: minimize(f, [.1, .3, .4], algorithm="ncg")
+        (0.9999999..., 0.999999..., 0.999999...)
+
+    We get additional convergence information with the `verbose` option::
+    
+        sage: minimize(f, [.1, .3, .4], algorithm="ncg", verbose=True)
+        Optimization terminated successfully.
+        ...
         (0.9999999..., 0.999999..., 0.999999...)
 
     Same example with just Python functions::
 
         sage: def rosen(x): # The Rosenbrock function
         ....:    return sum(100.0r*(x[1r:]-x[:-1r]**2.0r)**2.0r + (1r-x[:-1r])**2.0r)
-        sage: minimize(rosen,[.1,.3,.4],verbose=0)
+        sage: minimize(rosen, [.1,.3,.4])
         (1.00..., 1.00..., 1.00...)
 
     Same example with a pure Python function and a Python function to
@@ -305,12 +317,12 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
         ....:    xm = x[1r:-1r]
         ....:    xm_m1 = x[:-2r]
         ....:    xm_p1 = x[2r:]
-        ....:    der = zeros(x.shape,dtype=float)
+        ....:    der = zeros(x.shape, dtype=float)
         ....:    der[1r:-1r] = 200r*(xm-xm_m1**2r) - 400r*(xm_p1 - xm**2r)*xm - 2r*(1r-xm)
         ....:    der[0] = -400r*x[0r]*(x[1r]-x[0r]**2r) - 2r*(1r-x[0])
         ....:    der[-1] = 200r*(x[-1r]-x[-2r]**2r)
         ....:    return der
-        sage: minimize(rosen,[.1,.3,.4],gradient=rosen_der,algorithm="bfgs",verbose=0)
+        sage: minimize(rosen, [.1,.3,.4], gradient=rosen_der, algorithm="bfgs")
         (1.00...,  1.00..., 1.00...)
     """
     from sage.symbolic.expression import Expression

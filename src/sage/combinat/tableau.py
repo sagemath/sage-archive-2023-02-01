@@ -4415,8 +4415,8 @@ class StandardTableau(SemistandardTableau):
             sage: [x for x in t.down()]
             []
         """
-        if len(self) > 0:
-            yield self.restrict( self.size() - 1 )
+        if self:
+            yield self.restrict(self.size() - 1)
 
     def down_list(self):
         """
@@ -4461,9 +4461,9 @@ class StandardTableau(SemistandardTableau):
             #find out what row i and i+1 are in (we're using the
             #standardness of self here)
             for row in self:
-                if row.count(i+1) > 0:
+                if row.count(i + 1):
                     break
-                if row.count(i) > 0:
+                if row.count(i):
                     descents.append(i)
                     break
         return descents

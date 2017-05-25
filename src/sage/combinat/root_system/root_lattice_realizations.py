@@ -2730,7 +2730,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             G = plot_options.empty()
             if alcoves is not True:
                 alcoves = list(alcoves)
-            if alcoves is True or (len(alcoves)>0 and W.is_parent_of(alcoves[0])):
+            if alcoves is True or (alcoves and W.is_parent_of(alcoves[0])):
                 if alcoves is True:
                     alcoves = W.weak_order_ideal(alcove_in_bounding_box, side="right")
                 # We assume that the fundamental alcove lies within

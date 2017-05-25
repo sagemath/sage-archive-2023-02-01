@@ -1592,11 +1592,11 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         """
         C = self.basis().keys()
         if isinstance(c, C.element_class):
-            if len(rest) != 0:
+            if rest:
                 raise ValueError("invalid number of arguments")
         else:
-            if len(rest) > 0 or isinstance(c, int) or isinstance(c, Integer):
-                c = C([c]+list(rest))
+            if rest or isinstance(c, (int, Integer)):
+                c = C([c] + list(rest))
             else:
                 c = C(list(c))
         return self.monomial(c)

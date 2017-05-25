@@ -8,7 +8,8 @@ def autogen_all():
     Return a list of sub-packages that should be appended to the list
     of packages built/installed by setup.py.
     """
-    from sage_setup.autogen import interpreters
+
+    from . import interpreters
     interpreters.rebuild(os.path.join("sage", "ext", "interpreters"))
 
     return ['sage.ext.interpreters']

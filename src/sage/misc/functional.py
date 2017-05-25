@@ -22,8 +22,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
-from six.moves import range
-from six.moves import builtins
+from six.moves import range, builtins
+from six import integer_types
 
 import sage.misc.latex
 import sage.interfaces.expect
@@ -247,7 +247,7 @@ def denominator(x):
         sage: denominator(r)
         x - 1
     """
-    if isinstance(x, (int, long)):
+    if isinstance(x, integer_types):
         return 1
     return x.denominator()
 
@@ -1089,7 +1089,7 @@ def numerator(x):
         sage: numerator(17/11111)
         17
     """
-    if isinstance(x, (int, long)):
+    if isinstance(x, integer_types):
         return x
     return x.numerator()
 

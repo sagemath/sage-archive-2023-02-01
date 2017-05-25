@@ -1746,4 +1746,48 @@ General number fields::
     x^3 - 2
     sage: f.__pari__().nfdisc()
     -108
+
+These are some doctests that used to be part of Sage and were removed from the cypari2
+library::
+
+    sage: e = pari([0,0,0,-82,0]).ellinit()
+    sage: eta1 = e.elleta(precision=100)[0]
+    sage: eta1.sage()
+    3.6054636014326520859158205642077267748
+    sage: eta1 = e.elleta(precision=180)[0]
+    sage: eta1.sage()
+    3.60546360143265208591582056420772677481026899659802474544
+
+    sage: from cypari2 import Pari
+    sage: pari = Pari()
+
+    sage: f = pari('(2/3)*x^3 + x - 5/7 + y'); f
+    2/3*x^3 + x + (y - 5/7)
+    sage: var('x,y')
+    (x, y)
+    sage: f.sage({'x':x, 'y':y})
+    2/3*x^3 + x + y - 5/7
+
+    sage: pari.default("debug")
+    0
+    sage: pari.default("debug", 3)
+    sage: pari(2**67+1).factor()
+    IFAC: cracking composite
+            49191317529892137643
+    IFAC: factor 6713103182899
+            is prime
+    IFAC: factor 7327657
+            is prime
+    IFAC: prime 7327657
+            appears with exponent = 1
+    IFAC: prime 6713103182899
+            appears with exponent = 1
+    IFAC: found 2 large prime (power) factors.
+    [3, 1; 7327657, 1; 6713103182899, 1]
+    sage: pari.default("debug", 0)
+    sage: pari(2**67+1).factor()
+    [3, 1; 7327657, 1; 6713103182899, 1]
+
+    sage: pari(18).bernreal(precision=192).sage()
+    54.9711779448621553884711779448621553884711779448621553885
 """

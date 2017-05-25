@@ -241,7 +241,8 @@ __append_to_doc(
      "trees",
      "triangulations",
      "TuranGraph",
-     "WheelGraph"])
+     "WheelGraph",
+     "WindmillGraph"])
 
 
 __doc__ += """
@@ -2027,6 +2028,7 @@ class GraphGenerators():
     trees                  = staticmethod(sage.graphs.generators.families.trees)
     TuranGraph             = staticmethod(sage.graphs.generators.families.TuranGraph)
     WheelGraph             = staticmethod(sage.graphs.generators.families.WheelGraph)
+    WindmillGraph          = staticmethod(sage.graphs.generators.families.WindmillGraph)
 
 ###########################################################################
 # Graphs from classical geometries over `F_q`

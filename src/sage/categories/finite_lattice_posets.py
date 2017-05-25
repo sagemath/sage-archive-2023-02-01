@@ -119,6 +119,44 @@ class FiniteLatticePosets(CategoryWithAxiom):
             """
             return self.subposet(self.meet_irreducibles())
 
+        def irreducibles_poset(self):
+            """
+            Return the poset of meet- or join-irreducibles of the lattice.
+
+            A *join-irreducible* element of a lattice is an element with
+            exactly one lower cover. Dually a *meet-irreducible* element
+            has exactly one upper cover.
+
+            This is the smallest poset with completion by cuts being
+            isomorphic to the lattice. As a special case this returns
+            one-element poset from one-element lattice.
+
+            .. SEEALSO::
+
+                :meth:`~sage.combinat.posets.posets.FinitePoset.completion_by_cuts`.
+
+            EXAMPLES::
+
+                sage: L = LatticePoset({1: [2, 3, 4], 2: [5, 6], 3: [5],
+                ....:                   4: [6], 5: [9, 7], 6: [9, 8], 7: [10],
+                ....:                   8: [10], 9: [10], 10: [11]})
+                sage: L_ = L.irreducibles_poset()
+                sage: sorted(L_)
+                [2, 3, 4, 7, 8, 9, 10, 11]
+                sage: L_.completion_by_cuts().is_isomorphic(L)
+                True
+
+            TESTS::
+
+                sage: LatticePoset().irreducibles_poset()
+                Finite poset containing 0 elements
+                sage: Posets.ChainPoset(1).irreducibles_poset()
+                Finite poset containing 1 elements
+            """
+            if self.cardinality() == 1:
+                from sage.combinat.posets.posets import Poset
+                return Poset({self[0]: []})
+            return self.subposet(self.join_irreducibles()+self.meet_irreducibles())
 
         ##########################################################################
         # Lattice morphisms

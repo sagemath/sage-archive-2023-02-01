@@ -50,7 +50,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 from __future__ import print_function, division, absolute_import
-import six
+from six import integer_types, iteritems
 from six.moves import range
 
 from . import constructor
@@ -5189,7 +5189,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         G.set_vertices(dict([(v,isocls[v]) for v in G.vertices()]))
         v = G.shortest_path_lengths(0, by_weight=True)
         # Now exponentiate and round to get degrees of isogenies
-        v = dict([(i, j.exp().round() if j else 0) for i,j in six.iteritems(v)])
+        v = dict([(i, j.exp().round() if j else 0) for i,j in iteritems(v)])
         return isocls.curves, v
 
     def _multiple_of_degree_of_isogeny_to_optimal_curve(self):
@@ -5222,7 +5222,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         # enumeration is complete (which need not be the case a priori!), the LCM
         # of these numbers is a multiple of the degree of the isogeny
         # to the optimal curve.
-        v = [deg for num, deg in six.iteritems(v) if deg]  # get just the degrees
+        v = [deg for num, deg in iteritems(v) if deg]  # get just the degrees
         return arith.LCM(v)
 
     ##########################################################
@@ -6830,7 +6830,7 @@ def cremona_curves(conductors):
         ('39a3', 0),
         ('39a4', 0)]
     """
-    if isinstance(conductors, (int,long, rings.RingElement)):
+    if isinstance(conductors, integer_types + (rings.RingElement,)):
         conductors = [conductors]
     return sage.databases.cremona.CremonaDatabase().iter(conductors)
 
@@ -6856,7 +6856,7 @@ def cremona_optimal_curves(conductors):
         ['990a1', '990b1', '990c1', '990d1', '990e1', '990f1', '990g1', '990h3', '990i1', '990j1', '990k1', '990l1']
 
     """
-    if isinstance(conductors, (int,long,rings.RingElement)):
+    if isinstance(conductors, integer_types + (rings.RingElement,)):
         conductors = [conductors]
     return sage.databases.cremona.CremonaDatabase().iter_optimal(conductors)
 

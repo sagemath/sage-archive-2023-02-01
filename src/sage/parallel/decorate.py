@@ -2,6 +2,7 @@ r"""
 Decorate interface for parallel computation
 """
 from __future__ import print_function, absolute_import
+from six import integer_types
 
 import types
 
@@ -69,7 +70,7 @@ class Parallel:
 
         self.p_iter = None
 
-        if isinstance(p_iter, (int, long, Integer)):
+        if isinstance(p_iter, integer_types + (Integer,)):
             p_iter, ncpus = 'fork', p_iter
 
         if ncpus is None:

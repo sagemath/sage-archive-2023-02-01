@@ -3,6 +3,11 @@ Library of Interesting Groups
 
 Type ``groups.matrix.<tab>`` to access examples
 of groups implemented as permutation groups.
+
+TESTS::
+
+    sage: 'absolute_import' in dir(groups.matrix)
+    False
 """
 from __future__ import absolute_import
 
@@ -19,3 +24,5 @@ from .all import GL, SL, Sp, SU, GU, SO, GO
 from .all import QuaternionMatrixGroupGF3 as QuaternionGF3
 from sage.groups.matrix_gps.binary_dihedral import BinaryDihedralGroup as BinaryDihedral
 
+# We don't want this to appear tab completion
+del absolute_import

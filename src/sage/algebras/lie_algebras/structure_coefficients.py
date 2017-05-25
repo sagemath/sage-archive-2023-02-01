@@ -244,7 +244,7 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
 
     def structure_coefficients(self, include_zeros=False):
         """
-        Return the dictonary of structure coefficients of ``self``.
+        Return the dictionary of structure coefficients of ``self``.
 
         EXAMPLES::
 

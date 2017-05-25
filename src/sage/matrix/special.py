@@ -3581,7 +3581,8 @@ def toeplitz(c, r, ring=None):
 @matrix_method
 def hankel(c, r=None, ring=None):
     r"""
-    Return a Hankel matrix of given first column.
+    Return a Hankel matrix of given first column and whose elements are zero
+    below the first anti-diagonal.
 
     The Hankel matrix is symmetric and constant across the anti-diagonals,
     with elements
@@ -3592,8 +3593,7 @@ def hankel(c, r=None, ring=None):
 
     where the vector `v_i = c_i` for `i = 1,\ldots, m` and `v_{m+i} = r_i` for
     `i = 1, \ldots, n-1` completely determines the Hankel matrix. If the last
-    row, `r`, is not given, the Hankel matrix is square by default and `r_i = c_{i+1}`
-    for `i = 1,\ldots,n-1`.
+    row, `r`, is not given, the Hankel matrix is square by default and `r = 0`.
     For more information see the :wikipedia:`Hankel_matrix`.
 
     INPUT:
@@ -3611,10 +3611,10 @@ def hankel(c, r=None, ring=None):
 
         sage: matrix.hankel(SR.var('a, b, c, d, e'))
         [a b c d e]
-        [b c d e b]
-        [c d e b c]
-        [d e b c d]
-        [e b c d e]
+        [b c d e 0]
+        [c d e 0 0]
+        [d e 0 0 0]
+        [e 0 0 0 0]
 
     We can also pass the elements of the last row, starting at the second column::
 
@@ -3627,10 +3627,10 @@ def hankel(c, r=None, ring=None):
 
     A third order Hankel matrix in the integers::
 
-        sage: matrix.hankel([1..3])
+        sage: matrix.hankel([1, 2, 3])
         [1 2 3]
-        [2 3 2]
-        [3 2 3]
+        [2 3 0]
+        [3 0 0]
 
     The second argument allows to customize the last row::
 
@@ -3640,7 +3640,7 @@ def hankel(c, r=None, ring=None):
         [ 3  7  8  9 10]
     """
     m = len(c)
-    r = c if r is None else [None] + list(r)
+    r = [0]*(m-1) if r is None else list(r)
     n = len(r)
-    entries = lambda i: c[i] if i < m else r[i-m+1]
-    return matrix(lambda i,j: entries(i+j), nrows=m, ncols=n, ring=ring)
+    entries = lambda i: c[i] if i < m else r[i-m]
+    return matrix(lambda i,j: entries(i+j), nrows=m, ncols=n+1, ring=ring)

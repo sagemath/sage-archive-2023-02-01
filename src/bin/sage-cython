@@ -10,6 +10,7 @@ pyx_file = os.path.abspath(args[-1]) if len(args) else None
 include_sage_flags = False
 
 if pyx_file and pyx_file.endswith('.spyx'):
+    sys.stderr.write("WARNING: running sage --cython on .spyx files is deprecated, use the .pyx extension instead\n")
     spyx_file = pyx_file
     pyx_file = pyx_file[:-5] + '.pyx'
     args[-1] = pyx_file

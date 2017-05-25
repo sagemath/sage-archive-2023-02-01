@@ -39,7 +39,7 @@ bug, see :trac:`17527`)::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from cpython cimport *
 include "cysignals/signals.pxi"
@@ -65,8 +65,7 @@ from sage.arith.numerical_approx cimport digits_to_bits
 from copy import copy
 
 import sage.modules.free_module
-import matrix_space
-import berlekamp_massey
+from . import berlekamp_massey
 from sage.modules.free_module_element import is_FreeModuleElement
 from sage.matrix.matrix_misc import permanental_minor_polynomial
 
@@ -3076,7 +3075,7 @@ cdef class Matrix(matrix1.Matrix):
         R = self.base_ring()
         basis = [[R(x) for x in row] for row in basis]
         verbose("done computing right kernel matrix over a number field for %sx%s matrix" % (self.nrows(), self.ncols()),level=1,t=tm)
-        return 'pivot-pari-numberfield', matrix_space.MatrixSpace(R, len(basis), ncols=self._ncols)(basis)
+        return 'pivot-pari-numberfield', sage.matrix.matrix_space.MatrixSpace(R, len(basis), ncols=self._ncols)(basis)
 
     def _right_kernel_matrix_over_field(self, *args, **kwds):
         r"""
@@ -3141,7 +3140,7 @@ cdef class Matrix(matrix1.Matrix):
                     v[pivots[r]] = -E[r,i]
                 basis.append(v)
         tm = verbose("done computing right kernel matrix over an arbitrary field for %sx%s matrix" % (self.nrows(), self.ncols()),level=1,t=tm)
-        return 'pivot-generic', matrix_space.MatrixSpace(R, len(basis), self._ncols)(basis)
+        return 'pivot-generic', sage.matrix.matrix_space.MatrixSpace(R, len(basis), self._ncols)(basis)
 
     def _right_kernel_matrix_over_domain(self):
         r"""
@@ -3775,11 +3774,10 @@ cdef class Matrix(matrix1.Matrix):
         #   thus the kernel is the whole domain, so return an identity matrix
         #   identity_matrix constructor will fail if ring does not have a one
         # For all keywords the results are identical
-        if self._ncols == 0 and R.is_integral_domain():
-            return self.new_matrix(nrows = 0, ncols = self._ncols)
-        if self._nrows == 0 and R.is_integral_domain():
-            import constructor
-            return constructor.identity_matrix(R, self._ncols)
+        if not self._ncols and R.is_integral_domain():
+            return self.new_matrix(nrows=0, ncols=self._ncols)
+        if not self._nrows and R.is_integral_domain():
+            return sage.matrix.constructor.identity_matrix(R, self._ncols)
 
         # Third: generic first, if requested explicitly
         #   then try specialized class methods, and finally
@@ -4497,8 +4495,9 @@ cdef class Matrix(matrix1.Matrix):
             return A.kernel()
         except AttributeError:
             d = self.denominator()
-            A = self*d
-            M = matrix_space.MatrixSpace(ring, self.nrows(), self.ncols())(A)
+            A = self * d
+            M = sage.matrix.matrix_space.MatrixSpace(ring, self.nrows(),
+                                                     self.ncols())(A)
             return M.kernel()
 
     def image(self):
@@ -6966,8 +6965,7 @@ cdef class Matrix(matrix1.Matrix):
         if not subdivide in [True, False]:
             raise TypeError("subdivide must be True or False, not %s" % subdivide)
         R = self.base_ring()
-        import constructor
-        ident = constructor.identity_matrix(R, self.nrows())
+        ident = sage.matrix.constructor.identity_matrix(R, self.nrows())
         E = self.augment(ident)
         extended = E.echelon_form(**kwds)
         if subdivide:
@@ -7538,7 +7536,7 @@ cdef class Matrix(matrix1.Matrix):
         output_window = output.matrix_window()
 
 
-        import strassen
+        from . import strassen
         strassen.strassen_window_multiply(output_window, self_window, right_window, cutoff)
         return output
 
@@ -7576,7 +7574,7 @@ cdef class Matrix(matrix1.Matrix):
             self._echelon_in_place_classical()
             return
 
-        import strassen
+        from . import strassen
         pivots = strassen.strassen_echelon(self.matrix_window(), cutoff)
         self._set_pivots(pivots)
         verbose('done with strassen', tm)
@@ -7615,7 +7613,7 @@ cdef class Matrix(matrix1.Matrix):
             ...
             IndexError: matrix window index out of range
         """
-        import matrix_window
+        from . import matrix_window
         if nrows == -1:
             nrows = self._nrows - row
         if ncols == -1:
@@ -12595,7 +12593,7 @@ cdef class Matrix(matrix1.Matrix):
             return min(m1, m2)
         except (OverflowError, TypeError):
             # Try using MPFR, which handles large numbers much better, but is slower.
-            import misc
+            from . import misc
             R = RealField(53, rnd='RNDU')
             A = self.change_ring(R)
             m1 = misc.hadamard_row_bound_mpfr(A)
@@ -12680,8 +12678,8 @@ cdef class Matrix(matrix1.Matrix):
             for i from 0 <= i < size:
                 PyList_Append(M,<object>f(<object>PyList_GET_ITEM(L,i)))
 
-            return matrix_space.MatrixSpace(IntegerModRing(2),
-                                            nrows=self._nrows,ncols=self._ncols).matrix(M)
+            return sage.matrix.matrix_space.MatrixSpace(IntegerModRing(2),
+                               nrows=self._nrows,ncols=self._ncols).matrix(M)
 
         else:
             # return matrix along with indices in a dictionary

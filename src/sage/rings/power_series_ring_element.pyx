@@ -1070,8 +1070,9 @@ cdef class PowerSeries(AlgebraElement):
             sage: f % 67
             T^2 + O(T^3)
         """
-        if isinstance(other,(int,Integer,long)):
-            return sage.rings.power_series_ring.PowerSeriesRing(IntegerModRing(other), self.variable())(self)
+        from sage.rings.power_series_ring import PowerSeriesRing
+        if isinstance(other, (int, Integer, long)):
+            return PowerSeriesRing(IntegerModRing(other), self.variable())(self)
         raise NotImplementedError("Mod on power series ring elements not defined except modulo an integer.")
 
     def shift(self, n):

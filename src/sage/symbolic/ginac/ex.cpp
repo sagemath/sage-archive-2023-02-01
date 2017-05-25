@@ -403,6 +403,7 @@ static void collect_bound_symbols(const ex& e, symbolset& syms)
 {
         static unsigned int sum_serial = function::find_function("sum", 4);
         static unsigned int integral_serial = function::find_function("integrate", 4);
+        static unsigned int limit_serial = function::find_function("limit", 0);
 	if (is_exactly_a<function>(e)) {
                 const function& f = ex_to<function>(e);
                 if (f.get_serial() == sum_serial
@@ -411,6 +412,11 @@ static void collect_bound_symbols(const ex& e, symbolset& syms)
                         return collect_bound_symbols(f.op(0), syms);
                 }
                 if (f.get_serial() == integral_serial
+                    and is_exactly_a<symbol>(f.op(1))) {
+                        syms.insert(ex_to<symbol>(f.op(1)));
+                        return collect_bound_symbols(f.op(0), syms);
+                }
+                if (f.get_serial() == limit_serial
                     and is_exactly_a<symbol>(f.op(1))) {
                         syms.insert(ex_to<symbol>(f.op(1)));
                         return collect_bound_symbols(f.op(0), syms);

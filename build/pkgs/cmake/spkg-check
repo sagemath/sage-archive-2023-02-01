@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+if [ "$UNAME" = Darwin ]; then
+    CC=clang
+    CXX=clang++
+fi
+
 cd src
 unset MACOSX_DEPLOYMENT_TARGET
 # Supress tests failing for reason out of our controls

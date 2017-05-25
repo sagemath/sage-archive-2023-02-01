@@ -245,7 +245,7 @@ PyObject* Integer(const long int& x) {
         return ans;
 }
 
-int precision(const GiNaC::numeric& num, PyObject* a_parent) {
+int precision(const GiNaC::numeric& num, PyObject*& a_parent) {
         int prec = 0;
         PyObject* the_parent = a_parent;
         if (a_parent == nullptr) {
@@ -275,6 +275,10 @@ int precision(const GiNaC::numeric& num, PyObject* a_parent) {
         else {
                 prec = PyLong_AsLong(mprec);
                 Py_DECREF(mprec);
+        }
+        if (a_parent == nullptr) {
+                a_parent = PyDict_New();
+                PyDict_SetItemString(a_parent, "parent", the_parent);
         }
         return prec;
 }

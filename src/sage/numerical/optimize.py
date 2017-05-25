@@ -268,8 +268,7 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
 
        - ``'powell'`` -- use the modified Powell algorithm
 
-       - ``'bfgs'`` -- (Broyden-Fletcher-Goldfarb-Shanno) requires
-         ``gradient``
+       - ``'bfgs'`` -- (Broyden-Fletcher-Goldfarb-Shanno) requires gradient
 
        - ``'cg'`` -- (conjugate-gradient) requires gradient
 

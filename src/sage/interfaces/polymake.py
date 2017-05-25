@@ -763,13 +763,13 @@ class Polymake(ExtraTabCompletion, Expect):
             4: objects/PointConfiguration/properties/Triangulation and volume/TRIANGULATION
             5: objects/Polytope/properties/Triangulation and volume/TRIANGULATION
 
-        If an unkown help topic is requested, a :class:`PolymakeError` results::
+        If an unknown help topic is requested, a :class:`PolymakeError`
+        results::
 
-            sage: polymake.help('Triangulation')                        # optional - polymake
+            sage: polymake.help('Triangulation')      # optional - polymake
             Traceback (most recent call last):
             ...
             PolymakeError: unknown help topic 'Triangulation'
-
         """
         H = self.eval('help("{}");\n'.format(topic))
         if pager:

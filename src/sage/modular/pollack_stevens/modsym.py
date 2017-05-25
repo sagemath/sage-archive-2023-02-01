@@ -457,7 +457,7 @@ class PSModularSymbolElement(ModuleElement):
 
         OUTPUT:
 
-        - The image of this element under the hecke operator
+        - The image of this element under the Hecke operator
           `T_{\ell}`
 
         ALGORITHMS:

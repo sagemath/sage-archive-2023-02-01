@@ -421,7 +421,7 @@ class GraphClass(SageObject, CachedRepresentation):
         - ``gc_id`` -- the ISGCI class ID
 
         - ``recognition_function`` -- a function of one argument `g`, which
-          return boolan answers to the question : *does ``g`` belong to the
+          return boolean answers to the question : *does ``g`` belong to the
           class represented by ``gc_id`` ?*
 
         EXAMPLES::

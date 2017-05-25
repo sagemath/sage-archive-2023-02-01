@@ -7515,7 +7515,7 @@ class Graph(GenericGraph):
     @doc_index("Leftovers")
     def perfect_matchings(self, labels=False):
         """
-        Return an interator over all perfect matchings of the graph.
+        Return an iterator over all perfect matchings of the graph.
 
         ALGORITHM:
 

@@ -1,7 +1,7 @@
 r"""
 Interval Exchange Transformations and Linear Involution
 
-An interval exchage transformation is a map defined on an interval (see
+An interval exchange transformation is a map defined on an interval (see
 help(iet.IntervalExchangeTransformation) for a more complete help.
 
 EXAMPLES:
@@ -49,6 +49,7 @@ from copy import copy
 from sage.structure.sage_object import SageObject
 
 from .template import side_conversion, interval_conversion
+
 
 class IntervalExchangeTransformation(SageObject):
     r"""

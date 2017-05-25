@@ -6419,7 +6419,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         - ``reslist`` -- a list of residues, i.e. integral number field elements
 
-        - ``Ilist`` -- a list of integral ideals, assumed pairsise coprime
+        - ``Ilist`` -- a list of integral ideals, assumed pairwise coprime
 
         - ``check`` (boolean, default True) -- if True, result is checked
 

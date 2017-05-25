@@ -585,7 +585,7 @@ cdef class PowerSeries(AlgebraElement):
         is the difference between its absolute precision
         and its valuation.
 
-        By convension, the relative precision of `0` (or
+        By convention, the relative precision of `0` (or
         `O(x^r)` for any `r`) is `0`.
 
         EXAMPLES::

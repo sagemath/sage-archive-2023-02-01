@@ -3812,7 +3812,7 @@ cdef class BinaryCodeClassifier:
             sage: from sage.coding.binary_code import *
             sage: BC = BinaryCodeClassifier()
             sage: B = BinaryCode(codes.GolayCode(GF(2)).generator_matrix())
-            sage: B.apply_permutation(range(24,-1,-1))
+            sage: B.apply_permutation(list(range(24,-1,-1)))
             sage: B
             Binary [24,12] linear code, generator matrix
             [011000111010100000000000]

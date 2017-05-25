@@ -69,8 +69,10 @@ TESTS::
     sage: TestSuite(K).run()
     sage: TestSuite(L).run()  # long time (8s on sage.math, 2012)
     sage: TestSuite(M).run()  # long time (52s on sage.math, 2012)
-    sage: TestSuite(N).run()  # long time
-    sage: TestSuite(O).run()  # long time
+    sage: TestSuite(N).run(skip = '_test_derivation')  # long time
+    sage: TestSuite(O).run(skip = '_test_derivation')  # long time
+    sage: TestSuite(R).run()
+    sage: TestSuite(S).run()
 
 Global function fields
 ----------------------
@@ -604,10 +606,7 @@ class FunctionField(Field):
         tester = self._tester(**options)
         S = tester.some_elements()
         K = self.constant_base_field().some_elements()
-        try:
-            d = self.derivation()
-        except NotImplementedError:
-            return # some function fields no not implement derivation() yet
+        d = self.derivation()
         from itertools import product
         # Leibniz's law
         for x,y in tester.some_elements(product(S, S)):

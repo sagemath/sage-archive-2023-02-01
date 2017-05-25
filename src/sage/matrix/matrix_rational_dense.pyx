@@ -55,10 +55,10 @@ from __future__ import absolute_import, print_function
 
 from libc.string cimport strcpy, strlen
 
-from sage.modules.vector_rational_dense cimport Vector_rational_dense
+from cysignals.signals cimport sig_check, sig_on, sig_off
+from cysignals.memory cimport sig_malloc, sig_free
 
-include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
+from sage.modules.vector_rational_dense cimport Vector_rational_dense
 
 from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.libs.gmp.randomize cimport *
@@ -821,8 +821,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             sage: b.denominator()
             293
         """
-        cdef Integer z
-        z = PY_NEW(Integer)
+        cdef Integer z = Integer.__new__(Integer)
         self.mpz_denom(z.value)
         return z
 
@@ -872,7 +871,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         cdef fmpz_t aij
         fmpz_init(aij)
         mpz_init(tmp)
-        D = <Integer>PY_NEW(Integer)
+        D = Integer.__new__(Integer)
         self.mpz_denom(D.value)
         from sage.matrix.matrix_space import MatrixSpace
         MZ = MatrixSpace(ZZ, self._nrows, self._ncols, sparse=self.is_sparse())
@@ -1121,8 +1120,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             sage: b.height()
             5007
         """
-        cdef Integer z
-        z = PY_NEW(Integer)
+        cdef Integer z = Integer.__new__(Integer)
         self.mpz_height(z.value)
         return z
 

@@ -1572,6 +1572,21 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         return self.real().is_infinity() or self.imag().is_infinity()
 
+    def is_NaN(self):
+        r"""
+        Check if ``self`` is not-a-number.
+
+        EXAMPLES::
+
+            sage: CDF(1, 2).is_NaN()
+            False
+            sage: CDF(NaN).is_NaN()
+            True
+            sage: (1/CDF(0, 0)).is_NaN()
+            True
+        """
+        return self.real().is_NaN() or self.imag().is_NaN()
+
     def _pow_(self, ComplexDoubleElement a):
         """
         The function returns the complex number `z` raised to the

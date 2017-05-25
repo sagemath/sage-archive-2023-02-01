@@ -806,7 +806,7 @@ cdef class GinacFunction(BuiltinFunction):
         # get serial
         try:
             self._serial = find_function(fname, self._nargs)
-        except ValueError as err:
+        except RuntimeError as err:
             raise ValueError("cannot find GiNaC function with name %s and %s arguments" % (fname, self._nargs))
 
         global sfunction_serial_dict
@@ -1061,7 +1061,7 @@ cdef class BuiltinFunction(Function):
         # search ginac registry for name and nargs
         try:
             serial = find_function(self._name, self._nargs)
-        except ValueError as err:
+        except RuntimeError as err:
             pass
 
         # if match, get operator from function table

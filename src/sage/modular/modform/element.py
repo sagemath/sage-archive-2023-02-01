@@ -1271,7 +1271,7 @@ class Newform(ModularForm_abstract):
             q - 2*q^2 + (-a1 - 2)*q^3 + 4*q^4 + (2*a1 + 10)*q^5 + O(q^6),
             q + 2*q^2 + (1/2*a2 - 1)*q^3 + 4*q^4 + (-3/2*a2 + 12)*q^5 + O(q^6)]
             sage: type(ls2[0])
-            <class 'sage.modular.modform.element.CuspidalSubmodule_g0_Q_with_category.element_class'>
+            <class 'sage.modular.modform.cuspidal_submodule.CuspidalSubmodule_g0_Q_with_category.element_class'>
             sage: ls2[2][3].minpoly()
             x^2 - 9*x + 2
         """

@@ -337,7 +337,7 @@ class LabelledPermutation(SageObject):
         r"""
         .. TODO::
 
-            resolve properly the mutablility problem with the
+            resolve properly the mutability problem with the
             :meth:`_twin` attribute.
 
         TESTS::

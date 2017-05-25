@@ -45,7 +45,7 @@ you can use :func:`Fan2d` to construct it::
 
 But keep in mind that in higher dimensions the cone data is essential
 and cannot be omitted. Instead of building a fan from scratch, for
-this tutorial we will use an easy way to get two fans assosiated to
+this tutorial we will use an easy way to get two fans associated to
 :class:`lattice polytopes
 <sage.geometry.lattice_polytope.LatticePolytopeClass>`:
 :func:`FaceFan` and :func:`NormalFan`::
@@ -589,7 +589,7 @@ def FaceFan(polytope, lattice=None):
       <sage.geometry.polyhedron.constructor.Polyhedron>` over `\QQ` or
       a :class:`lattice polytope
       <sage.geometry.lattice_polytope.LatticePolytopeClass>`. A (not
-      necessarily full-dimensional) polytope contaning the origin in
+      necessarily full-dimensional) polytope containing the origin in
       its :meth:`relative interior
       <sage.geometry.polyhedron.base.Polyhedron_base.relative_interior_contains>`.
 

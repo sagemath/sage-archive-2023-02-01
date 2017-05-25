@@ -565,27 +565,30 @@ cdef class Parent(category_object.CategoryObject):
         - This should lookup for Element classes in all super classes
         """
         try: #if hasattr(self, 'Element'):
-            return self.__make_element_class__(self.Element, "%s.element_class"%self.__class__.__name__)
+            return self.__make_element_class__(self.Element,
+                                               name="%s.element_class"%self.__class__.__name__,
+                                               module=self.__class__.__module__)
         except AttributeError: #else:
             return NotImplemented
 
 
-    def __make_element_class__(self, cls, name = None, inherit = None):
+    def __make_element_class__(self, cls, name = None, module=None, inherit = None):
         """
         A utility to construct classes for the elements of this
         parent, with appropriate inheritance from the element class of
         the category (only for pure python types so far).
         """
-        if name is None:
-            name = "%s_with_category"%cls.__name__
         # By default, don't fiddle with extension types yet; inheritance from
         # categories will probably be achieved in a different way
         if inherit is None:
             inherit = not is_extension_type(cls)
         if inherit:
-            return dynamic_class(name, (cls, self._abstract_element_class))
-        else:
-            return cls
+            if name is None:
+                name = "%s_with_category"%cls.__name__
+            cls = dynamic_class(name, (cls, self._abstract_element_class))
+            if module is not None:
+                cls.__module__ = module
+        return cls
 
     def _set_element_constructor(self):
         """

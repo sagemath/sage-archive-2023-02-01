@@ -421,7 +421,7 @@ cdef extern from "sage/libs/pynac/wrap.h":
     unsigned g_register_new "GiNaC::function::register_new" (GFunctionOpt opt)
 
     unsigned find_function "GiNaC::function::find_function" (char* name,
-            unsigned nargs) except +ValueError
+            unsigned nargs) except +
 
     bint has_symbol "GiNaC::has_symbol" (GEx ex)
     bint has_symbol_or_function "GiNaC::has_symbol_or_function" (GEx ex)

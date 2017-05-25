@@ -2913,7 +2913,6 @@ class Polyhedron_base(Element):
         new_ring = self.parent()._coerce_base_ring(displacement)
         return Polyhedron(vertices=new_vertices, rays=new_rays, lines=new_lines, base_ring=new_ring)
 
-    @coerce_binop
     def product(self, other):
         """
         Return the Cartesian product.
@@ -2946,7 +2945,20 @@ class Polyhedron_base(Element):
             A 1-dimensional polyhedron in ZZ^1 defined as the convex hull of 2 vertices
             sage: P1 * 2.0
             A 1-dimensional polyhedron in RDF^1 defined as the convex hull of 2 vertices
+
+        TESTS:
+
+        Check that :trac:`15253` is fixed::
+
+            sage: polytopes.hypercube(1) * polytopes.hypercube(2)
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices
         """
+        try:
+            new_ring = self.parent()._coerce_base_ring(other)
+        except TypeError:
+            raise TypeError("no common canonical parent for objects with parents: " + str(self.parent()) \
+                     + " and " + str(other.parent()))
+
         new_vertices = [ list(x)+list(y)
                          for x in self.vertex_generator() for y in other.vertex_generator()]
         new_rays = []
@@ -2961,7 +2973,7 @@ class Polyhedron_base(Element):
                             for l in other.line_generator() ] )
         return Polyhedron(vertices=new_vertices,
                           rays=new_rays, lines=new_lines,
-                          base_ring=self.parent()._coerce_base_ring(other))
+                          base_ring=new_ring)
 
     _mul_ = product
 
@@ -5155,7 +5167,7 @@ class Polyhedron_base(Element):
         NOTE:
 
             Depending on ``vertex_graph_only``, this method returns groups
-            that are not neccessarily isomorphic, see the examples below.
+            that are not necessarily isomorphic, see the examples below.
 
         .. SEEALSO::
 

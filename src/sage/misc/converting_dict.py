@@ -205,7 +205,7 @@ class KeyConvertingDict(dict):
 
     def pop(self, key, *args):
         r"""
-        Remove and retreive a given element from the dictionary
+        Remove and retrieve a given element from the dictionary.
 
         INPUT:
 

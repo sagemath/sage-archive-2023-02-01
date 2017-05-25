@@ -1144,10 +1144,13 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: SU(2, 13).algebra(QQ).random_element(1)
                 1/2*[       3        0]
                 [11*a + 1        9]
+                sage: CombinatorialFreeModule(ZZ, Partitions(4)).random_element() # random
+                2*B[[2, 1, 1]] + B[[2, 2]]
             """
+            indices = self.basis().keys()
             a = self(0)
             for i in range(n):
-                a += self.term(self.group().random_element(),
+                a += self.term(indices.random_element(),
                                self.base_ring().random_element())
             return a
 

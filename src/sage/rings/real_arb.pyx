@@ -2578,6 +2578,23 @@ cdef class RealBall(RingElement):
         """
         return not self.is_finite()
 
+    def is_NaN(self):
+        """
+        Return ``True`` if this ball is not-a-number.
+
+        EXAMPLES::
+
+            sage: RBF(NaN).is_NaN()
+            True
+            sage: RBF(-5).gamma().is_NaN()
+            True
+            sage: RBF(infinity).is_NaN()
+            False
+            sage: RBF(42, rad=1.r).is_NaN()
+            False
+        """
+        return arf_is_nan(arb_midref(self.value))
+
     # Arithmetic
 
     def __neg__(self):
@@ -2957,6 +2974,8 @@ cdef class RealBall(RingElement):
             [1.098612288668110 +/- 6.63e-16]
             sage: RBF(3).log(2)
             [1.584962500721156 +/- 7.53e-16]
+            sage: log(RBF(5), 2)
+            [2.32192809488736 +/- 3.04e-15]
 
             sage: RBF(-1/3).log()
             nan

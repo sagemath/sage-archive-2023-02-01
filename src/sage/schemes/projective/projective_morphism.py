@@ -939,7 +939,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.dynatomic_polynomial(-1)
             Traceback (most recent call last):
             ...
-            TypeError: period must be a postive integer
+            TypeError: period must be a positive integer
 
         ::
 
@@ -984,7 +984,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         m = period[0]
         n = int(period[1])
         if n < 0:
-            raise TypeError("period must be a postive integer")
+            raise TypeError("period must be a positive integer")
         if n == 0:
             return self[0].parent().zero()
         if m == 0 and n == 1:
@@ -3597,7 +3597,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([x^2 - w/4*y^2, y^2])
             sage: f.multiplier_spectra(2, False, embedding=K.embeddings(QQbar)[0])
             [0,
-             5.931851652578137? + 0.?e-49*I,
+             5.931851652578137? + 0.?e-47*I,
              0.0681483474218635? - 1.930649271699173?*I,
              0.0681483474218635? + 1.930649271699173?*I]
 

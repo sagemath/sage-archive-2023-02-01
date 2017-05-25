@@ -1639,7 +1639,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
 
         If the attribute name is known as the name of a property, it is
         interpreted as such. Otherwise, if it is known as a function in
-        the currenty application, the function is returned with this
+        the current application, the function is returned with this
         element inserted as first argument, and potential further arguments,
         when called. Otherwise, it is assumed that it is a member function
         of this element, and treated as such. Note that member functions

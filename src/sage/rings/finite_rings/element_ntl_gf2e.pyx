@@ -18,6 +18,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
@@ -41,9 +42,9 @@ from sage.interfaces.gap import is_GapElement
 
 from sage.misc.randstate import current_randstate
 
-from element_ext_pari import FiniteField_ext_pariElement
-from element_pari_ffelt import FiniteFieldElement_pari_ffelt
-from finite_field_ntl_gf2e import FiniteField_ntl_gf2e
+from .element_ext_pari import FiniteField_ext_pariElement
+from .element_pari_ffelt import FiniteFieldElement_pari_ffelt
+from .finite_field_ntl_gf2e import FiniteField_ntl_gf2e
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
@@ -1259,7 +1260,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
         AUTHOR: David Joyner and William Stein (2005-11)
         """
-        from  sage.groups.generic import discrete_log
+        from sage.groups.generic import discrete_log
 
         b = self.parent()(base)
         return discrete_log(self, b)

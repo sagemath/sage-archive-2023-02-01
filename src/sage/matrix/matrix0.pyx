@@ -22,7 +22,7 @@ EXAMPLES::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from cpython cimport *
 
@@ -30,13 +30,13 @@ import sage.modules.free_module
 import sage.misc.latex
 import sage.rings.integer
 
-from   sage.misc.misc import verbose, get_verbose
-from   sage.structure.sequence import Sequence
+from sage.misc.misc import verbose, get_verbose
+from sage.structure.sequence import Sequence
 
 cimport sage.structure.element
-from   sage.structure.element    cimport ModuleElement, Element, RingElement, Vector
-from   sage.structure.mutability cimport Mutability
-from   sage.misc.misc_c cimport normalize_index
+from sage.structure.element cimport ModuleElement, Element, RingElement, Vector
+from sage.structure.mutability cimport Mutability
+from sage.misc.misc_c cimport normalize_index
 
 from sage.rings.ring cimport CommutativeRing
 from sage.rings.ring import is_Ring
@@ -44,7 +44,7 @@ from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 
 import sage.modules.free_module
 
-import matrix_misc
+from .matrix_misc import row_iterator
 
 
 cdef class Matrix(sage.structure.element.Matrix):
@@ -529,16 +529,15 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def __iter__(self):
         """
-        Return an iterator for the rows of self
+        Return an iterator for the rows of self.
 
         EXAMPLES::
 
-            sage: m=matrix(2,[1,2,3,4])
+            sage: m = matrix(2,[1,2,3,4])
             sage: next(m.__iter__())
             (1, 2)
         """
-
-        return matrix_misc.row_iterator(self)
+        return row_iterator(self)
 
     def __getitem__(self, key):
         """
@@ -639,20 +638,20 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         More examples::
 
-            sage: M[range(2),:]
+            sage: M[list(range(2)),:]
             [ 1 -2 -1 -1  9]
             [ 1  8  6  2  2]
-            sage: M[range(2),4]
+            sage: M[list(range(2)),4]
             [9]
             [2]
-            sage: M[range(3),range(5)]
+            sage: M[list(range(3)),list(range(5))]
             [ 1 -2 -1 -1  9]
             [ 1  8  6  2  2]
             [ 1  1 -1  1  4]
 
         ::
 
-            sage: M[3,range(5)]
+            sage: M[3,list(range(5))]
             [-1  2 -2 -1  4]
             sage: M[3,:]
             [-1  2 -2 -1  4]
@@ -701,14 +700,14 @@ cdef class Matrix(sage.structure.element.Matrix):
         ::
 
             sage: A= matrix(3,4,[1, 0, -3, -1, 3, 0, -2, 1, -3, -5, -1, -5])
-            sage: A[range(2,-1,-1),:]
+            sage: A[list(range(2,-1,-1)),:]
             [-3 -5 -1 -5]
             [ 3  0 -2  1]
             [ 1  0 -3 -1]
 
         ::
 
-            sage: A[range(2,-1,-1),range(3,-1,-1)]
+            sage: A[list(range(2,-1,-1)),list(range(3,-1,-1))]
             [-5 -1 -5 -3]
             [ 1 -2  0  3]
             [-1 -3  0  1]
@@ -729,7 +728,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             []
             sage: M[2:3, 3:3]
             []
-            sage: M[range(2,2), :3]
+            sage: M[list(range(2,2)), :3]
             []
             sage: M[(1,2), 3]
             [ 7]
@@ -1157,26 +1156,26 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         More examples::
 
-            sage: M[range(2),:]=[[1..5], [6..10]]; M
+            sage: M[list(range(2)),:]=[[1..5], [6..10]]; M
             [ 1  2  3  4  5]
             [ 6  7  8  9 10]
             [30 -1  2 -2  4]
             [30  2 -2 -1  4]
 
-            sage: M[range(2),4]=0; M
+            sage: M[list(range(2)),4]=0; M
             [ 1  2  3  4  0]
             [ 6  7  8  9  0]
             [30 -1  2 -2  4]
             [30  2 -2 -1  4]
 
-            sage: M[range(3),range(5)]=M[range(1,4), :]; M
+            sage: M[list(range(3)),list(range(5))]=M[list(range(1,4)), :]; M
             [ 6  7  8  9  0]
             [30 -1  2 -2  4]
             [30  2 -2 -1  4]
             [30  2 -2 -1  4]
 
 
-            sage: M[3,range(5)]=vector([-2,3,4,-5,4]); M
+            sage: M[3,list(range(5))]=vector([-2,3,4,-5,4]); M
             [ 6  7  8  9  0]
             [30 -1  2 -2  4]
             [30  2 -2 -1  4]
@@ -1204,12 +1203,12 @@ cdef class Matrix(sage.structure.element.Matrix):
             [ 3  0 -2  1]
             [-3 -5 -1 -5]
 
-            sage: A[range(2,-1,-1),:]=A; A
+            sage: A[list(range(2,-1,-1)),:]=A; A
             [-3 -5 -1 -5]
             [ 3  0 -2  1]
             [ 1  0 -3 -1]
 
-            sage: A[range(2,-1,-1),range(3,-1,-1)]=A; A
+            sage: A[list(range(2,-1,-1)),list(range(3,-1,-1))]=A; A
             [-1 -3  0  1]
             [ 1 -2  0  3]
             [-5 -1 -5 -3]
@@ -1232,7 +1231,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [ 0  1  2  3]
             [ 4  5  6  7]
             [ 8  9 10 11]
-            sage: M[range(2,2), :3]=20; M
+            sage: M[list(range(2,2)), :3]=20; M
             [ 0  1  2  3]
             [ 4  5  6  7]
             [ 8  9 10 11]
@@ -2149,7 +2148,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [  5  25]
             [125 625]
         """
-        from constructor import matrix
+        from .constructor import matrix
         return matrix(self.nrows(), self.ncols(), [e(*args, **kwargs) for e in self.list()])
 
     ###################################################
@@ -3283,6 +3282,67 @@ cdef class Matrix(sage.structure.element.Matrix):
             self.set_unsafe(i,l,-A.get_unsafe(r,k))               #self[i,l] = -A[r,k]
             l += 1
 
+    def reverse_rows_and_columns(self):
+        r"""
+        Reverse the row order and column order of this matrix.
+
+        This method transforms a matrix `m_{i,j}` with `0 \leq i < nrows` and
+        `0 \leq j < ncols` into `m_{nrows - i - 1, ncols - j - 1}`.
+
+        EXAMPLES::
+
+            sage: m = matrix(ZZ, 2, 2, range(4))
+            sage: m.reverse_rows_and_columns()
+            sage: m
+            [3 2]
+            [1 0]
+
+            sage: m = matrix(ZZ, 2, 3, range(6), sparse=True)
+            sage: m.reverse_rows_and_columns()
+            sage: m
+            [5 4 3]
+            [2 1 0]
+            sage: m = matrix(ZZ, 3, 2, range(6), sparse=True)
+            sage: m.reverse_rows_and_columns()
+            sage: m
+            [5 4]
+            [3 2]
+            [1 0]
+            sage: m.reverse_rows_and_columns()
+            sage: m
+            [0 1]
+            [2 3]
+            [4 5]
+
+            sage: m = matrix(QQ, 3, 2, [1/i for i in range(1,7)])
+            sage: m.reverse_rows_and_columns()
+            sage: m
+            [1/6 1/5]
+            [1/4 1/3]
+            [1/2   1]
+
+            sage: R.<x,y> = ZZ['x,y']
+            sage: m = matrix(R, 3, 3, lambda i,j: x**i*y**j, sparse=True)
+            sage: m.reverse_rows_and_columns()
+            sage: m
+            [x^2*y^2   x^2*y     x^2]
+            [  x*y^2     x*y       x]
+            [    y^2       y       1]
+
+        If the matrix is immutable, the method raises an error::
+
+            sage: m = matrix(ZZ, 2, [1, 3, -2, 4])
+            sage: m.set_immutable()
+            sage: m.reverse_rows_and_columns()
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is immutable; please change a copy
+            instead (i.e., use copy(M) to change a copy of M).
+        """
+        self.check_mutability()
+        self.clear_cache()
+        self._reverse_unsafe()
+
     ###################################################
     # Methods needed for quiver and cluster mutations
     # - mutate
@@ -3479,7 +3539,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                 else:
                     L.extend( L_prime )
         if return_diag:
-            return [ d[i] for i in xrange(self._nrows) ]
+            return [d[i] for i in xrange(self._nrows)]
         else:
             return True
 
@@ -3557,9 +3617,9 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         if len(v) > self._nrows:
             raise ValueError("length of v must be at most the number of rows of self")
-        if self._nrows == 0:
+        if not self._nrows:
             return self.parent().row_space().zero_vector()
-        from constructor import matrix
+        from .constructor import matrix
         v = matrix(list(v)+[0]*(self._nrows-len(v)))
         return (v * self)[0]
 
@@ -3634,9 +3694,9 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         if len(v) > self._ncols:
             raise ValueError("length of v must be at most the number of columns of self")
-        if self._ncols == 0:
+        if not self._ncols:
             return self.parent().column_space().zero_vector()
-        from constructor import matrix
+        from .constructor import matrix
         v = matrix(self._ncols, 1, list(v)+[0]*(self._ncols-len(v)))
         return (self * v).column(0)
 

@@ -985,7 +985,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         should eventually be implemented in the corresponding category rather
         than here.)
 
-        ..SEEALSO::
+        .. SEEALSO::
 
             :meth:`sage.categories.rings.Rings.ParentMethod.__getitem__`,
             :meth:`sage.structure.parent.Parent.__getitem__`

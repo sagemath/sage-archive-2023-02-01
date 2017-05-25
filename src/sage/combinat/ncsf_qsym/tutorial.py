@@ -3,7 +3,7 @@ r"""
 Introduction to Quasisymmetric Functions
 
 In this document we briefly explain the quasisymmetric function bases and
-related functionality in Sage.   We assume the reader is familar with the
+related functionality in Sage.   We assume the reader is familiar with the
 package :class:`SymmetricFunctions`.
 
 Quasisymmetric functions, denoted `QSym`, form a subring of the power
@@ -48,6 +48,8 @@ names. ::
     sage: QSym.inject_shorthands()
     Injecting M as shorthand for Quasisymmetric functions over the Rational Field in the Monomial basis
     Injecting F as shorthand for Quasisymmetric functions over the Rational Field in the Fundamental basis
+    Injecting E as shorthand for Quasisymmetric functions over the Rational Field in the Essential basis
+    doctest:...: RuntimeWarning: redefining global value `E`
     Injecting dI as shorthand for Quasisymmetric functions over the Rational Field in the dualImmaculate basis
     Injecting QS as shorthand for Quasisymmetric functions over the Rational Field in the Quasisymmetric Schur basis
 

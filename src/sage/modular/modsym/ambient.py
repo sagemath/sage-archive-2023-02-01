@@ -412,7 +412,7 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
             sage: M(0)
             0
             sage: type(M(0))
-            <class 'sage.modular.modsym.element.ModularSymbolsAmbient_wt2_g0_with_category.element_class'>
+            <class 'sage.modular.modsym.ambient.ModularSymbolsAmbient_wt2_g0_with_category.element_class'>
 
         From a vector of the correct dimension we construct the
         corresponding linear combination of the basis elements::

@@ -69,8 +69,7 @@ TESTS::
 #*****************************************************************************
 from __future__ import print_function, division
 
-include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 from cpython.int cimport *
 from cpython.list cimport *
@@ -4235,7 +4234,7 @@ cdef class IntegerMod_to_Integer(Map):
         Morphism.__init__(self, sage.categories.homset.Hom(R, integer_ring.ZZ, Sets()))
 
     cpdef Element _call_(self, x):
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         if isinstance(x, IntegerMod_gmp):
             mpz_set(ans.value, (<IntegerMod_gmp>x).value)
         elif isinstance(x, IntegerMod_int):

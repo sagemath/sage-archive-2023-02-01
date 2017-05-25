@@ -168,7 +168,7 @@ from sage.functions.other import sqrt, gamma, real_part
 from sage.functions.log import exp, log
 from sage.functions.trig import sin
 from sage.functions.hyperbolic import cosh, sinh
-from sage.functions.other import erf
+from sage.functions.error import erf
 from sage.symbolic.constants import pi
 from sage.symbolic.all import I
 from sage.symbolic.function import BuiltinFunction

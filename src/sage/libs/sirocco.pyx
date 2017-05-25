@@ -9,15 +9,12 @@ AUTHORS:
 - Miguel Marco (2016-07-19): initial version.
 """
 
-include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
+from cysignals.signals cimport sig_on, sig_off
+from cysignals.memory cimport check_allocarray, sig_free as free
 
 from sage.libs.mpfr cimport *
 from sage.rings.real_mpfr cimport RealNumber
 from sage.rings.real_mpfr import RealField
-
-cdef extern from "stdlib.h":
-    void free(void* ptr)
 
 cdef extern from "sirocco.h":
     mpfr_t* homotopyPath_mp(int degree, mpfr_t *_coef, mpfr_t _y0R, mpfr_t _y0I, int prec)
@@ -29,12 +26,12 @@ cpdef list[list] contpath_mp(int deg, list values, RealNumber y0r, RealNumber y0
     """
     Mimics :func:`contpath`, but with the following differences:
 
-    - The floating point numbers can be arbitrary precission RealNumbers.
+    - The floating point numbers can be arbitrary precision RealNumbers.
 
-    - A extra argument is needed, indicating the bits of precission used
+    - A extra argument is needed, indicating the bits of precision used
       in the computations.
     """
-    cdef mpfr_t* cvalues = <mpfr_t*> sage_malloc(sizeof(mpfr_t)*len(values))
+    cdef mpfr_t* cvalues = <mpfr_t*> check_allocarray(len(values), sizeof(mpfr_t))
     cdef mpfr_t* rop
     cdef int i, j
     cdef mpfr_t y0R
@@ -98,7 +95,7 @@ cpdef list[list] contpath(int deg, list values, double y0r, double y0i):
     the piecewise linear approximation of the path tracked by the root.
     """
     cdef double* rop
-    cdef double* c_values = <double*> sage_malloc(sizeof(double)*len(values))
+    cdef double* c_values = <double*> check_allocarray(len(values), sizeof(double))
     cdef int clen = <int> len(values)
     cdef int i
     for i,v in enumerate(values):

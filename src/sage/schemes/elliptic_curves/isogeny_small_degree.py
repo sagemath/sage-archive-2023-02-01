@@ -307,7 +307,7 @@ def isogenies_prime_degree_genus_0(E, l=None):
         t_list = sorted((f-j*t).roots(multiplicities=False))
         # The generic kernel polynomial applies to a standard curve
         # E_t with the correct j-invariant; we must compute the
-        # appropriate twising factor to scale X by:
+        # appropriate twisting factor to scale X by:
         c4, c6 = E.c_invariants()
         T = c4/(3*c6)
         jt = Fricke_module(l)

@@ -699,7 +699,7 @@ def RealProjectiveSpace(n):
     sends any subset `U` to its complement.  One can show that
     modding out by this action results in a triangulation for
     `\Bold{R}P^n`.  To find the facets in this triangulation, find
-    the facets in `S`.  These are indentified in pairs to form
+    the facets in `S`.  These are identified in pairs to form
     `\Bold{R}P^n`, so choose a representative from each pair: for
     each facet in `S`, replace any vertex in `S` containing 0 with
     its complement.

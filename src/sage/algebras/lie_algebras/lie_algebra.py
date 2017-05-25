@@ -31,7 +31,6 @@ from sage.categories.rings import Rings
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
 
-from sage.algebras.free_algebra import FreeAlgebra
 from sage.algebras.lie_algebras.lie_algebra_element import (LieAlgebraElementWrapper,
                                                             LieAlgebraMatrixWrapper)
 from sage.rings.all import ZZ
@@ -301,6 +300,10 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         if ct is not None:
             from sage.combinat.root_system.cartan_type import CartanType
             ct = CartanType(ct)
+            if ct.is_affine():
+                from sage.algebras.lie_algebras.affine_lie_algebra import AffineLieAlgebra
+                return AffineLieAlgebra(R, cartan_type=ct,
+                                        kac_moody=kwds.get("kac_moody", True))
             if not ct.is_finite():
                 raise NotImplementedError("non-finite types are not implemented yet, see trac #14901 for details")
             rep = kwds.get("representation", "bracket")
@@ -380,6 +383,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             # Construct the free Lie algebra from polynomials in the
             #   free (associative unital) algebra
             # TODO: Change this to accept an index set once FreeAlgebra accepts one
+            from sage.algebras.free_algebra import FreeAlgebra
             F = FreeAlgebra(R, names)
             if index_set is None:
                 index_set = F.variable_names()

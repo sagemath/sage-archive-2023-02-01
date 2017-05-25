@@ -686,7 +686,7 @@ class Function_Bessel_I(BuiltinFunction):
 
         sage: a = bessel_I(pi, bessel_I(1, I))
         sage: N(a, digits=20)
-        0.00026073272117205890528 - 0.0011528954889080572266*I
+        0.00026073272117205890524 - 0.0011528954889080572268*I
 
         sage: f = bessel_I(2, x)
         sage: f.diff(x)
@@ -876,7 +876,7 @@ class Function_Bessel_K(BuiltinFunction):
         sage: a = bessel_K(pi, bessel_K(1, I)); a
         bessel_K(pi, bessel_K(1, I))
         sage: N(a, digits=20)
-        3.8507583115005220157 + 0.068528298579883425792*I
+        3.8507583115005220156 + 0.068528298579883425456*I
 
         sage: f = bessel_K(2, x)
         sage: f.diff(x)

@@ -1328,7 +1328,13 @@ cdef py_float(n, PyObject* kwds):
         <type 'sage.rings.complex_number.ComplexNumber'>
     """
     if kwds is not NULL:
-        return (<object>kwds)['parent'](n)
+        try:
+            return (<object>kwds)['parent'](n)
+        except TypeError:
+            try:
+                return (<object>kwds)['parent'].complex_field()(n)
+            except AttributeError:
+                return CC(n)
     else:
         try:
             return RR(n)

@@ -402,7 +402,7 @@ class Function_erfc(BuiltinFunction):
                                  conversions=dict(maxima='erfc',
                                                   sympy='erfc',
                                                   fricas='erfc',
-                                                  giac='erfc')
+                                                  giac='erfc'))
 
     def _eval_(self, x):
         """

@@ -32,6 +32,7 @@ test.spyx
 --optional
 --preparse
 --python
+--python3
 -q
 --R
 --root
@@ -482,6 +483,14 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         0
 
         sage: (out, err, ret) = test_executable(["sage", "--python"], "print(3^33)\n")
+        sage: out
+        '34\n'
+        sage: err
+        ''
+        sage: ret
+        0
+
+        sage: (out, err, ret) = test_executable(["sage", "--python3"], "print(3^33)\n")
         sage: out
         '34\n'
         sage: err

@@ -979,9 +979,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: g is g.copy(data_structure='static_sparse') is g.copy(immutable=True)
             True
 
-        If a graph pretends to be immutable, but does not use the static sparse
-        backend, then the copy is not identic with the graph, even though it is
-        considered to be hashable::
+        If a graph pretends to be immutable, but does not use the
+        static sparse backend, then the copy is not identical with the
+        graph, even though it is considered to be hashable::
 
             sage: P = Poset(([1,2,3,4], [[1,3],[1,4],[2,3]]), linear_extension=True, facade = False)
             sage: H = P.hasse_diagram()
@@ -12510,7 +12510,7 @@ class GenericGraph(GenericGraph_pyx):
 
         if not hole is None:
             # There was a bug there once, so it's better to check the
-            # answer is valid, especally when it is so cheap ;-)
+            # answer is valid, especially when it is so cheap ;-)
 
             if hole.order() <= 3 or not hole.is_regular(k=2):
                 raise RuntimeError("the graph is not chordal, and something went wrong in the computation of the certificate. Please report this bug, providing the graph if possible!")
@@ -15567,7 +15567,7 @@ class GenericGraph(GenericGraph_pyx):
         Computes the length of a shortest path from u to any other vertex.
 
         Returns a dictionary of shortest path lengths keyed by targets,
-        escluding all vertices that are not reachable from u.
+        excluding all vertices that are not reachable from u.
 
         For more information on the input variables and more examples, we refer
         to :meth:`~GenericGraph.shortest_paths`

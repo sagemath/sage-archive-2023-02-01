@@ -1215,7 +1215,7 @@ def szekeres_difference_set_pair(m, check=True):
     whenever `b+1 \in G`. See also Theorem 2.6 in [SWW72]_ (there the formula for `B` is
     correct, as opposed to (4.2) in [Sz69]_, where the sign before `1` is wrong.
 
-    In modern terminilogy, for `m>1` the sets `A` and `B` form a
+    In modern terminology, for `m>1` the sets `A` and `B` form a
     :func:`difference family<sage.combinat.designs.difference_family>` with parameters `(2m+1,m,1)`.
     I.e. each non-identity `g \in G` can be expressed uniquely as `xy^{-1}` for `x,y \in A` or `x,y \in B`.
     Other, specific to this construction, properties of `A` and `B` are: for `a` in `A` one has

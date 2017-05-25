@@ -89,23 +89,6 @@ To find out more about
 see the top of the module :doc:`growth group <growth_group>`.
 
 
-.. WARNING::
-
-    As this code is experimental, a warning is thrown when an
-    asymptotic ring (or an associated structure) is created for the
-    first time in a session (see
-    :class:`sage.misc.superseded.experimental`).
-
-    TESTS::
-
-        sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-        sage: G = GrowthGroup('x^ZZ')
-        doctest:...: FutureWarning: This class/method/function is marked as
-        experimental. It, its functionality or its interface might change
-        without a formal deprecation.
-        See http://trac.sagemath.org/17601 for details.
-
-
 .. _asymptotic_ring_intro:
 
 Introductory Examples
@@ -469,7 +452,6 @@ from sage.rings.ring import Algebra
 from sage.structure.element import CommutativeAlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.defaults import series_precision
-from sage.misc.superseded import experimental
 from sage.rings.all import RIF
 
 
@@ -3494,8 +3476,6 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                                         category=category,
                                         default_prec=default_prec)
 
-
-    @experimental(trac_number=17601)
     def __init__(self, growth_group, coefficient_ring, category, default_prec):
         r"""
         See :class:`AsymptoticRing` for more information.

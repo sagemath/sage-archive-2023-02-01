@@ -96,7 +96,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         sage: A.__class__
         <class 'sage.categories.examples.algebras_with_basis.FreeAlgebra_with_category'>
         sage: A.element_class
-        <class 'sage.combinat.free_module.FreeAlgebra_with_category.element_class'>
+        <class 'sage.categories.examples.algebras_with_basis.FreeAlgebra_with_category.element_class'>
 
     Please see the source code of `A` (with ``A??``) for how to
     implement other algebras with basis.

@@ -61,7 +61,7 @@ cdef class BasisExchangeMatroid(Matroid):
     adjacent in the graph if their symmetric difference has 2 members.
 
     This base exchange graph is not stored as such, but should be provided
-    implicity by the child class in the form of two methods
+    implicitly by the child class in the form of two methods
     ``__is_exchange_pair(x, y)`` and ``__exchange(x, y)``, as well as an
     initial basis. At any moment, BasisExchangeMatroid keeps a current basis
     `B`. The method ``__is_exchange_pair(x, y)`` should return a boolean

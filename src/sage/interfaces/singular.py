@@ -320,7 +320,7 @@ see :trac:`11645`::
 from __future__ import print_function
 from __future__ import absolute_import
 from six.moves import range
-from six import integer_types
+from six import integer_types, string_types
 
 import os
 import re
@@ -903,7 +903,7 @@ class Singular(ExtraTabCompletion, Expect):
             x0*x1-x0*x2-x1*x2,
             x0^2*x2-x0*x2^2-x1*x2^2
         """
-        if isinstance(gens, str):
+        if isinstance(gens, string_types):
             gens = self(gens)
 
         if isinstance(gens, SingularElement):

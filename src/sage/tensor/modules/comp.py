@@ -1948,7 +1948,7 @@ class Components(SageObject):
 
         """
         if self._nid < 2:
-            raise ValueError("contraction can be perfomed only on " +
+            raise ValueError("contraction can be performed only on " +
                              "components with at least 2 indices")
         if pos1 < 0 or pos1 > self._nid - 1:
             raise IndexError("pos1 out of range")
@@ -3726,7 +3726,7 @@ class CompWithSym(Components):
 
         """
         if self._nid < 2:
-            raise TypeError("contraction can be perfomed only on " +
+            raise TypeError("contraction can be performed only on " +
                             "components with at least 2 indices")
         if pos1 < 0 or pos1 > self._nid - 1:
             raise IndexError("pos1 out of range")

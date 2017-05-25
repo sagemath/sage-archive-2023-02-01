@@ -33,7 +33,7 @@ from sage.rings.polynomial.polydict import ETuple
 from sage.arith.all import is_square
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.family import Family
-from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
+from sage.combinat.free_module import CombinatorialFreeModule
 
 def normalized_laurent_polynomial(R, p):
     r"""
@@ -1657,7 +1657,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             H = self.realization_of()
             return (-H._q_prod)**w.length() * self.monomial(w.inverse()).inverse()
 
-        class Element(CombinatorialFreeModuleElement):
+        class Element(CombinatorialFreeModule.Element):
             r"""
             A class for elements of an Iwahori-Hecke algebra in the `T` basis.
 

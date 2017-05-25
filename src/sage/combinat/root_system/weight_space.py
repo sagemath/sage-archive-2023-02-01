@@ -11,7 +11,7 @@ from __future__ import absolute_import
 
 from sage.misc.cachefunc import cached_method
 from sage.sets.family import Family
-from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
+from sage.combinat.free_module import CombinatorialFreeModule
 from .weight_lattice_realizations import WeightLatticeRealizations
 import functools
 
@@ -449,7 +449,7 @@ class WeightSpace(CombinatorialFreeModule):
             return basis[i]
         return self.module_morphism(on_basis = functools.partial(basis_value, basis), codomain=L)
 
-class WeightSpaceElement(CombinatorialFreeModuleElement):
+class WeightSpaceElement(CombinatorialFreeModule.Element):
 
     def scalar(self, lambdacheck):
         """

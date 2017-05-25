@@ -273,3 +273,4 @@ class EuclideanDomains(Category_singleton):
                 sage: x.quo_rem(x)
                 (1, 0)
             """
+

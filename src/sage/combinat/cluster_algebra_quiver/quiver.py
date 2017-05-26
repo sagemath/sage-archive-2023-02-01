@@ -7,7 +7,7 @@ positive integers) such that the matrix `M = (m_{ab})` with
 `m_{ab} = i, m_{ba} = -j` for an edge `(i,-j)` between vertices
 `a` and `b` is skew-symmetrizable.
 
-.. WARNING:
+.. WARNING::
 
     This is not the standard definition of a quiver. Normally, in
     cluster algebra theory, a quiver is defined as an oriented graph

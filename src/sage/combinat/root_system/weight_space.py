@@ -196,9 +196,9 @@ class WeightSpace(CombinatorialFreeModule):
 
     def is_extended(self):
         """
-        Returns whether this is an extended weight lattice
+        Return whether this is an extended weight lattice.
 
-        .. seealso: :meth:`~sage.combinat.root_system.weight_lattice_realization.ParentMethods.is_extended`
+        .. SEEALSO:: :meth:`~sage.combinat.root_system.weight_lattice_realization.ParentMethods.is_extended`
 
         EXAMPLES::
 
@@ -249,7 +249,7 @@ class WeightSpace(CombinatorialFreeModule):
         also accepts ``"delta"`` as input, and returns the image of
         `\delta` of the extended weight lattice in this realization.
 
-        .. seealso: :meth:`~sage.combinat.root_system.weight_lattice_realization.ParentMethods.fundamental_weight`
+        .. SEEALSO:: :meth:`~sage.combinat.root_system.weight_lattice_realization.ParentMethods.fundamental_weight`
 
         EXAMPLES::
 
@@ -546,7 +546,7 @@ class WeightSpaceElement(CombinatorialFreeModule.Element):
             sage: mu.to_ambient()
             (3, 1)
 
-        ..warning::
+        .. WARNING::
 
             Only implemented in finite Cartan type.
             Does not work for coweight lattices because there is no implemented map

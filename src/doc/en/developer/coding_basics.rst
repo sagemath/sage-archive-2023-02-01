@@ -443,9 +443,18 @@ information. You can use the existing functions of Sage as templates.
 Note about Sphinx directives vs. other blocks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-There are exactly five Sphinx directives used in Sage:
-``.. SEEALSO::``, ``.. NOTE::``, ``.. WARNING::``, ``.. TODO::`` and
-``.. PLOT::``. They must be written exactly, so for example
+The Sphinx directives that can be used in Sage are:
+
+* ``.. MATH::``,
+* ``.. NOTE::``,
+* ``.. PLOT::``,
+* ``.. RUBRIC::``,
+* ``.. SEEALSO::``,
+* ``.. TODO::``,
+* ``.. TOPIC::``,
+* ``.. WARNING::``.
+
+They must be written exactly, so for example
 ``WARNING::`` or ``.. WARNING ::`` will not work.
 
 No other block shall not be used as a directive; for example

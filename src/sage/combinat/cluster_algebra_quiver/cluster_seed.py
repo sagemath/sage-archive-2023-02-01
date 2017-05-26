@@ -4353,9 +4353,9 @@ class ClusterVariable(FractionFieldElement):
     """
     def __init__( self, parent, numerator, denominator, coerce=True, reduce=True, mutation_type=None, variable_type=None, xdim=0 ):
         r"""
-        Initializes a cluster variable in the same way that elements in the field of rational functions are initialized.
+        Initialize a cluster variable in the same way that elements in the field of rational functions are initialized.
 
-        .. see also:: :class:`Fraction Field of Multivariate Polynomial Ring`
+        .. SEEALSO:: :class:`Fraction Field of Multivariate Polynomial Ring`
 
         TESTS::
 

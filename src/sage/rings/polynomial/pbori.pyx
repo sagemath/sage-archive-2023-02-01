@@ -1741,7 +1741,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             True
 
 
-        .. note ::
+        .. NOTE::
 
             This is part of PolyBoRi's native interface.
         """
@@ -1774,7 +1774,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: P.n_variables()
             1000
 
-        .. note ::
+        .. NOTE::
 
             This is part of PolyBoRi's native interface.
         """

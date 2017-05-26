@@ -195,7 +195,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 sage: P.an_element().parent()
                 Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space)
 
-            .. see also:: :func:`Poset` for more on posets and facade posets.
+            .. SEEALSO:: :func:`Poset` for more on posets and facade posets.
 
             TESTS::
 
@@ -468,7 +468,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 sage: P.an_element().parent()
                 Weyl Group of type ['A', 2] (as a matrix group acting on the ambient space)
 
-            .. see also:: :func:`Poset` for more on posets and facade posets.
+            .. SEEALSO:: :func:`Poset` for more on posets and facade posets.
 
             TESTS::
 

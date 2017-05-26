@@ -3275,7 +3275,7 @@ def multinomial_coefficients(m, n):
     ALGORITHM: The algorithm we implement for computing the multinomial
     coefficients is based on the following result:
 
-    ..math::
+    .. MATH::
 
         \binom{n}{k_1, \cdots, k_m} =
         \frac{k_1+1}{n-k_1}\sum_{i=2}^m \binom{n}{k_1+1, \cdots, k_i-1, \cdots}

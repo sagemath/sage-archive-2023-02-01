@@ -1202,12 +1202,14 @@ def hue(h, s=1, v=1):
         sage: hue(.5, .5, .5)
         (0.25, 0.5, 0.5)
 
-    .. note :: The HSV to RGB coordinate transformation itself is
-               given in the source code for the Python library's
-               :mod:`colorsys` module::
+    .. NOTE::
 
-                   sage: from colorsys import hsv_to_rgb    # not tested
-                   sage: hsv_to_rgb??                       # not tested
+        The HSV to RGB coordinate transformation itself is
+        given in the source code for the Python library's
+        :mod:`colorsys` module::
+
+            sage: from colorsys import hsv_to_rgb    # not tested
+            sage: hsv_to_rgb??                       # not tested
     """
     return tuple(map(float, hsv_to_rgb(mod_one(h), mod_one(s), mod_one(v))))
 

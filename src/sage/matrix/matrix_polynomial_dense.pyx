@@ -527,6 +527,16 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [      x     x^2     x^3     x^4       1]
 
             sage: B = matrix(M, 3, [x,x+1,x^2,x^2,x,x^3,x+x^2,2*x+1,x^3+x^2]); B
+            [        x     x + 1       x^2]
+            [      x^2         x       x^3]
+            [  x^2 + x   2*x + 1 x^3 + x^2]
+            sage: B.hermite_form_reversed()
+            [    0     0     0]
+            [    0   x^2     0]
+            [    x x + 1   x^2]
+            sage: B.hermite_form_reversed(include_zero_rows=False)
+            [    0   x^2     0]
+            [    x x + 1   x^2]
         """
         A = self.__copy__()
 

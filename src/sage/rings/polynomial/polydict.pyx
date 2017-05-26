@@ -108,10 +108,10 @@ cdef class PolyDict:
             if remove_zero:
                 for k, c in pdict.iteritems():
                     if not c == zero:
-                        new_pdict[ETuple(map(int, k))] = c
+                        new_pdict[ETuple(list(map(int, k)))] = c
             else:
                 for k, c in pdict.iteritems():
-                    new_pdict[ETuple(map(int, k))] = c
+                    new_pdict[ETuple(list(map(int, k)))] = c
             pdict = new_pdict
         else:
             if remove_zero:
@@ -947,6 +947,15 @@ cdef class ETuple:
             (1, 1, 0)
             sage: ETuple({int(1):int(2)}, int(3))
             (0, 2, 0)
+
+        TESTS:
+
+        Iterators are not accepted::
+
+            sage: ETuple(iter([2,3,4]))
+            Traceback (most recent call last):
+            ...
+            TypeError: Error in ETuple((),<listiterator object at ...>,None
         """
         if data is None:
             return
@@ -982,7 +991,7 @@ cdef class ETuple:
                     self._data[ind+1] = v
                     ind += 2
         else:
-            raise TypeError
+            raise TypeError("Error in ETuple(%s,%s,%s" % (self, data, length))
 
     def __cinit__(ETuple self):
         self._data = <int*>0

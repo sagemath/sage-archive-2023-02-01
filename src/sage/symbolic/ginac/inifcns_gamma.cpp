@@ -369,17 +369,6 @@ REGISTER_FUNCTION(beta, eval_func(beta_eval).
 // Psi-function (aka digamma-function)
 //////////
 
-static ex psi1_evalf(const ex & x, PyObject* parent)
-{
-	if (is_exactly_a<numeric>(x)) {
-		try {
-			return psi(ex_to<numeric>(x));
-		} catch (const dunno &e) { }
-	}
-	
-	return psi(x).hold();
-}
-
 /** Evaluation of digamma-function psi(x).
  *  Somebody ought to provide some good numerical evaluation some day... */
 static ex psi1_eval(const ex & x)
@@ -463,7 +452,6 @@ static ex psi1_series(const ex & arg,
 unsigned psi1_SERIAL::serial =
 	function::register_new(function_options("psi", 1).
 	                       eval_func(psi1_eval).
-	                       evalf_func(psi1_evalf).
 	                       derivative_func(psi1_deriv).
 	                       series_func(psi1_series).
 	                       latex_name("\\psi").

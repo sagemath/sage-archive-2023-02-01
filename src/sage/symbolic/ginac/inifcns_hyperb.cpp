@@ -55,14 +55,6 @@ namespace GiNaC {
 // hyperbolic sine (trigonometric function)
 //////////
 
-static ex sinh_evalf(const ex & x, PyObject* parent)
-{
-	if (is_exactly_a<numeric>(x))
-		return sinh(ex_to<numeric>(x));
-	
-	return sinh(x).hold();
-}
-
 static ex sinh_eval(const ex & x)
 {
 	if (is_exactly_a<numeric>(x)) {
@@ -138,7 +130,6 @@ static ex sinh_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(sinh, eval_func(sinh_eval).
-                        evalf_func(sinh_evalf).
                         derivative_func(sinh_deriv).
                         real_part_func(sinh_real_part).
                         imag_part_func(sinh_imag_part).
@@ -243,14 +234,6 @@ REGISTER_FUNCTION(cosh, eval_func(cosh_eval).
 // hyperbolic tangent (trigonometric function)
 //////////
 
-static ex tanh_evalf(const ex & x, PyObject* parent)
-{
-	if (is_exactly_a<numeric>(x))
-		return tanh(ex_to<numeric>(x));
-	
-	return tanh(x).hold();
-}
-
 static ex tanh_eval(const ex & x)
 {
 	if (is_exactly_a<numeric>(x)) {
@@ -350,7 +333,6 @@ static ex tanh_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(tanh, eval_func(tanh_eval).
-                        evalf_func(tanh_evalf).
                         derivative_func(tanh_deriv).
                         series_func(tanh_series).
                         real_part_func(tanh_real_part).
@@ -361,14 +343,6 @@ REGISTER_FUNCTION(tanh, eval_func(tanh_eval).
 //////////
 // hyperbolic cotangent (trigonometric function)
 //////////
-
-static ex coth_evalf(const ex & x, PyObject* parent)
-{
-	if (is_exactly_a<numeric>(x))
-		return tanh(ex_to<numeric>(x)).inverse();
-
-	return tanh(x).hold();
-}
 
 static ex coth_eval(const ex & x)
 {
@@ -478,7 +452,6 @@ static ex coth_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(coth, eval_func(coth_eval).
-                        evalf_func(coth_evalf).
                         derivative_func(coth_deriv).
                         series_func(coth_series).
                         real_part_func(coth_real_part).
@@ -489,14 +462,6 @@ REGISTER_FUNCTION(coth, eval_func(coth_eval).
 //////////
 // hyperbolic secant (trigonometric function)
 //////////
-
-static ex sech_evalf(const ex & x, PyObject* parent)
-{
-	if (is_exactly_a<numeric>(x))
-		return cosh(ex_to<numeric>(x)).inverse();
-
-	return sech(x).hold();
-}
 
 static ex sech_eval(const ex & x)
 {
@@ -593,7 +558,6 @@ static ex sech_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(sech, eval_func(sech_eval).
-                        evalf_func(sech_evalf).
                         derivative_func(sech_deriv).
                         series_func(sech_series).
                         real_part_func(sech_real_part).
@@ -604,14 +568,6 @@ REGISTER_FUNCTION(sech, eval_func(sech_eval).
 //////////
 // hyperbolic secant (trigonometric function)
 //////////
-
-static ex csch_evalf(const ex & x, PyObject* parent)
-{
-	if (is_exactly_a<numeric>(x))
-		return sinh(ex_to<numeric>(x)).inverse();
-
-	return csch(x).hold();
-}
 
 static ex csch_eval(const ex & x)
 {
@@ -708,7 +664,6 @@ static ex csch_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(csch, eval_func(csch_eval).
-                        evalf_func(csch_evalf).
                         derivative_func(csch_deriv).
                         series_func(csch_series).
                         real_part_func(csch_real_part).
@@ -719,14 +674,6 @@ REGISTER_FUNCTION(csch, eval_func(csch_eval).
 //////////
 // inverse hyperbolic sine (trigonometric function)
 //////////
-
-static ex asinh_evalf(const ex & x, PyObject* parent)
-{
-	if (is_exactly_a<numeric>(x))
-		return asinh(ex_to<numeric>(x));
-	
-	return asinh(x).hold();
-}
 
 static ex asinh_eval(const ex & x)
 {
@@ -780,7 +727,6 @@ static ex asinh_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(asinh, eval_func(asinh_eval).
-                         evalf_func(asinh_evalf).
                          derivative_func(asinh_deriv).
                          conjugate_func(asinh_conjugate).
 			 set_name("arcsinh"));
@@ -788,14 +734,6 @@ REGISTER_FUNCTION(asinh, eval_func(asinh_eval).
 //////////
 // inverse hyperbolic cosine (trigonometric function)
 //////////
-
-static ex acosh_evalf(const ex & x, PyObject* parent)
-{
-	if (is_exactly_a<numeric>(x))
-		return acosh(ex_to<numeric>(x));
-	
-	return acosh(x).hold();
-}
 
 static ex acosh_eval(const ex & x)
 {
@@ -852,7 +790,6 @@ static ex acosh_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(acosh, eval_func(acosh_eval).
-                         evalf_func(acosh_evalf).
                          derivative_func(acosh_deriv).
                          conjugate_func(acosh_conjugate).
 			 set_name("arccosh"));
@@ -860,14 +797,6 @@ REGISTER_FUNCTION(acosh, eval_func(acosh_eval).
 //////////
 // inverse hyperbolic tangent (trigonometric function)
 //////////
-
-static ex atanh_evalf(const ex & x, PyObject* parent)
-{
-	if (is_exactly_a<numeric>(x))
-		return atanh(ex_to<numeric>(x));
-	
-	return atanh(x).hold();
-}
 
 static ex atanh_eval(const ex & x)
 {
@@ -977,7 +906,6 @@ static ex atanh_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(atanh, eval_func(atanh_eval).
-                         evalf_func(atanh_evalf).
                          derivative_func(atanh_deriv).
                          series_func(atanh_series).
                          conjugate_func(atanh_conjugate).
@@ -986,14 +914,6 @@ REGISTER_FUNCTION(atanh, eval_func(atanh_eval).
 //////////
 // inverse hyperbolic cotangent (trigonometric function)
 //////////
-
-static ex acoth_evalf(const ex & x, PyObject* parent)
-{
-        if (is_exactly_a<numeric>(x))
-                return atanh(ex_to<numeric>(x).inverse());
-
-        return acoth(x).hold();
-}
 
 static ex acoth_eval(const ex & x)
 {
@@ -1053,7 +973,6 @@ static ex acoth_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(acoth, eval_func(acoth_eval).
-                         evalf_func(acoth_evalf).
                          derivative_func(acoth_deriv).
                          conjugate_func(acoth_conjugate).
                          set_name("arccoth"));
@@ -1061,14 +980,6 @@ REGISTER_FUNCTION(acoth, eval_func(acoth_eval).
 //////////
 // inverse hyperbolic Cosecant (trigonometric function)
 //////////
-
-static ex acsch_evalf(const ex & x, PyObject* parent)
-{
-        if (is_exactly_a<numeric>(x))
-                return asinh(ex_to<numeric>(x).inverse());
-
-        return acsch(x).hold();
-}
 
 static ex acsch_eval(const ex & x)
 {
@@ -1120,21 +1031,12 @@ static ex acsch_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(acsch, eval_func(acsch_eval).
-                         evalf_func(acsch_evalf).
                          derivative_func(acsch_deriv).
                          conjugate_func(acsch_conjugate).
                          set_name("arccsch"));
 //////////
 // inverse hyperbolic Secant (trigonometric function)
 //////////
-
-static ex asech_evalf(const ex & x, PyObject* parent)
-{
-        if (is_exactly_a<numeric>(x))
-                return acosh(ex_to<numeric>(x).inverse());
-
-        return asech(x).hold();
-}
 
 static ex asech_eval(const ex & x)
 {
@@ -1190,7 +1092,6 @@ static ex asech_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(asech, eval_func(asech_eval).
-                         evalf_func(asech_evalf).
                          derivative_func(asech_deriv).
                          conjugate_func(asech_conjugate).
                          set_name("arcsech"));

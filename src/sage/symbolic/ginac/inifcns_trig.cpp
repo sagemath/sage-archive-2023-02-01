@@ -1450,6 +1450,7 @@ REGISTER_FUNCTION(atan2, eval_func(atan2_eval).
 // inverse cotangent (arc cotangent)
 //////////
 
+// Needed because there is no Python RR equivalent
 static ex acot_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x))
@@ -1518,6 +1519,7 @@ REGISTER_FUNCTION(acot, eval_func(acot_eval).
 // inverse secant (arc secant)
 //////////
 
+// Needed because there is no Python RR equivalent
 static ex asec_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x))
@@ -1582,6 +1584,7 @@ REGISTER_FUNCTION(asec, eval_func(asec_eval).
 // inverse cosecant (arc cosecant)
 //////////
 
+// Needed because there is no Python RR equivalent
 static ex acsc_evalf(const ex & x, PyObject* parent)
 {
 	if (is_exactly_a<numeric>(x))

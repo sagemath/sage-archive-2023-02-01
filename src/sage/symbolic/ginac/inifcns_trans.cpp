@@ -54,14 +54,6 @@ namespace GiNaC {
 // exponential function
 //////////
 
-static ex exp_evalf(const ex & x, PyObject* parent)
-{
-	if (is_exactly_a<numeric>(x))
-		return exp(ex_to<numeric>(x));
-	
-	return exp(x).hold();
-}
-
 static ex exp_eval(const ex & x)
 {
 	// exp(0) -> 1
@@ -226,7 +218,6 @@ static ex exp_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(exp, eval_func(exp_eval).
-                       evalf_func(exp_evalf).
                        derivative_func(exp_deriv).
                        real_part_func(exp_real_part).
                        imag_part_func(exp_imag_part).
@@ -238,14 +229,6 @@ REGISTER_FUNCTION(exp, eval_func(exp_eval).
 //////////
 // natural logarithm
 //////////
-
-static ex log_evalf(const ex & x, PyObject* parent)
-{
-	if (is_exactly_a<numeric>(x))
-		return log(ex_to<numeric>(x));
-	
-	return log(x).hold();
-}
 
 static ex log_eval(const ex & x)
 {
@@ -415,7 +398,6 @@ static ex log_conjugate(const ex & x)
 }
 
 REGISTER_FUNCTION(log, eval_func(log_eval).
-                       evalf_func(log_evalf).
                        derivative_func(log_deriv).
                        series_func(log_series).
                        real_part_func(log_real_part).
@@ -431,7 +413,10 @@ REGISTER_FUNCTION(log, eval_func(log_eval).
 static ex logb_evalf(const ex & x, const ex & base, PyObject* parent)
 {
         if ((base - exp(_ex1).hold()).is_zero())
-                return log_evalf(x, parent);
+                if (is_exactly_a<numeric>(x))
+                        return log(ex_to<numeric>(x), parent);
+                else
+                        return log(x);
 	if (is_exactly_a<numeric>(x) and is_exactly_a<numeric>(base))
 		return log(ex_to<numeric>(x), ex_to<numeric>(base));
 

@@ -4380,9 +4380,11 @@ class Graph(GenericGraph):
            ...
            ValueError: algorithm must be set to either "Edmonds" or "LP"
         """
-        G = self
         if self.allows_multiple_edges():
+            G = copy(self)
             G.allow_multiple_edges(False, keep_label='max')
+        else:
+            G = self
 
         from sage.rings.real_mpfr import RR
         def weight(x):

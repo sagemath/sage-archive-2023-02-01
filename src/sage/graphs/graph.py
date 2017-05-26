@@ -4374,7 +4374,10 @@ class Graph(GenericGraph):
            ...
            ValueError: algorithm must be set to either "Edmonds" or "LP"
         """
-        self._scream_if_not_simple(allow_loops=True)
+        G = self
+        if self.allows_multiple_edges(True):
+            G.allow_multiple_edges(False, keep_label='max')
+
         from sage.rings.real_mpfr import RR
         def weight(x):
             if x in RR:
@@ -4386,25 +4389,25 @@ class Graph(GenericGraph):
             import networkx
             g = networkx.Graph()
             if use_edge_labels:
-                for u, v, l in self.edge_iterator():
+                for u, v, l in G.edge_iterator():
                     g.add_edge(u, v, attr_dict={"weight": weight(l)})
             else:
-                for u, v in self.edge_iterator(labels=False):
+                for u, v in G.edge_iterator(labels=False):
                     g.add_edge(u, v)
             d = networkx.max_weight_matching(g)
             if value_only:
                 if use_edge_labels:
-                    return sum(weight(self.edge_label(u, v))
+                    return sum(weight(G.edge_label(u, v))
                                for u, v in six.iteritems(d)) / Integer(2)
                 else:
                     return Integer(len(d) // 2)
             else:
-                return [(u, v, self.edge_label(u, v))
+                return [(u, v, G.edge_label(u, v))
                         for u, v in six.iteritems(d) if u < v]
 
         elif algorithm == "LP":
             from sage.numerical.mip import MixedIntegerLinearProgram
-            g = self
+            g = G
             # returns the weight of an edge considering it may not be
             # weighted ...
             p = MixedIntegerLinearProgram(maximization=True, solver=solver)

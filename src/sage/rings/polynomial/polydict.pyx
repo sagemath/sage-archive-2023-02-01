@@ -955,7 +955,7 @@ cdef class ETuple:
             sage: ETuple(iter([2,3,4]))
             Traceback (most recent call last):
             ...
-            TypeError: Error in ETuple((),<listiterator object at ...>,None
+            TypeError: Error in ETuple((),<listiterator object at ...>,None)
         """
         if data is None:
             return
@@ -991,7 +991,7 @@ cdef class ETuple:
                     self._data[ind+1] = v
                     ind += 2
         else:
-            raise TypeError("Error in ETuple(%s,%s,%s" % (self, data, length))
+            raise TypeError("Error in ETuple(%s,%s,%s)" % (self, data, length))
 
     def __cinit__(ETuple self):
         self._data = <int*>0

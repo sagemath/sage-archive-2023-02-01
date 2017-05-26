@@ -334,7 +334,7 @@ class CoxeterGroups(Category_singleton):
 
         def grassmannian_elements(self, side="right"):
             """
-            Return the left or right grassmannian elements of ``self``
+            Return the left or right Grassmannian elements of ``self``
             as an enumerated set.
 
             INPUT:

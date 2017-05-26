@@ -5,16 +5,19 @@ Intersection graphs
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """
 
-###########################################################################
+#*****************************************************************************
+#       Copyright (C) 2006 Robert L. Miller <rlmillster@gmail.com>
+#       Copyright (C) 2006 Emily A. Kirkman
+#       Copyright (C) 2009 Michael C. Yurko <myurko@gmail.com>
 #
-#           Copyright (C) 2006 Robert L. Miller <rlmillster@gmail.com>
-#                              and Emily A. Kirkman
-#           Copyright (C) 2009 Michael C. Yurko <myurko@gmail.com>
-#
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
-###########################################################################
-from __future__ import print_function
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from __future__ import absolute_import, print_function
 from six.moves import range
 from six import itervalues
 
@@ -548,7 +551,7 @@ def IntersectionGraph(S):
     g = Graph(name="Intersection Graph")
     g.add_vertices(S)
     for clique in itervalues(ground_set_to_sets):
-        g.add_edges((u, v) for u, v in combinations(clique, 2))
+        g.add_clique(set(clique))
 
     return g
 

@@ -477,7 +477,7 @@ class Constellation_class(Element):
         G = Graph()
         G.add_vertices(list(range(self.degree())))
         for p in self._g:
-            G.add_edges(enumerate(p.domain()))
+            G.add_edges(enumerate(p.domain()), loops=False)
         m = G.connected_components()
         if len(m) == 1:
             return [self]
@@ -1554,7 +1554,7 @@ def perms_are_connected(g, n):
     if g:
         G.add_vertices(g[0].domain())
     for p in g:
-        G.add_edges(p.dict().items())
+        G.add_edges(p.dict().items(), loops=False)
     return G.is_connected()
 
 

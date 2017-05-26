@@ -855,7 +855,7 @@ class BipartiteGraph(Graph):
         G.add_vertices(self.left)
         for v in G:
             for u in self.neighbor_iterator(v):
-                G.add_edges([(v, w) for w in self.neighbor_iterator(u)])
+                G.add_edges(((v, w) for w in self.neighbor_iterator(u)), loops=None)
         return G
 
     def project_right(self):
@@ -874,7 +874,7 @@ class BipartiteGraph(Graph):
         G.add_vertices(self.left)
         for v in G:
             for u in self.neighbor_iterator(v):
-                G.add_edges([(v, w) for w in self.neighbor_iterator(u)])
+                G.add_edges(((v, w) for w in self.neighbor_iterator(u)), loops=None)
         return G
 
     def plot(self, *args, **kwds):

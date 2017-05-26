@@ -486,14 +486,6 @@ class DiGraph(GenericGraph):
             sage: my_pos is D._pos
             False
 
-        Invalid sequence of edges given as an input (they do not all
-        have the same length)::
-
-            sage: g = DiGraph([(1,2),(2,3),(2,3,4)])
-            Traceback (most recent call last):
-            ...
-            ValueError: too many values to unpack
-
         Detection of multiple edges::
 
             sage: DiGraph({1:{2:[0,1]}})
@@ -3154,16 +3146,14 @@ class DiGraph(GenericGraph):
             g.add_vertices(range(len(scc)))
 
             g.add_edges( set((d[u], d[v], label) for (u,v,label) in self.edges() ) )
-            g.relabel(scc_set, inplace = True)
+            g.relabel(scc_set, inplace=True)
 
         else:
             g = DiGraph(multiedges=False, loops=False)
             g.add_vertices(range(len(scc)))
 
-            for u,v in self.edges(labels=False):
-                g.add_edge(d[u], d[v])
-
-            g.relabel(scc_set, inplace = True)
+            g.add_edges(((d[u], d[v]) for u, v in self.edges(labels=False)), loops=False)
+            g.relabel(scc_set, inplace=True)
 
         return g
 

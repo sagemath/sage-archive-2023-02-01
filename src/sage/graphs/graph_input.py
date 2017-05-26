@@ -33,7 +33,7 @@ def from_graph6(G, g6_string):
 
     - ``g6_string`` -- a graph6 string
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.graph_input import from_graph6
         sage: g = Graph()
@@ -74,7 +74,7 @@ def from_sparse6(G, g6_string):
 
     - ``g6_string`` -- a sparse6 string
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.graph_input import from_sparse6
         sage: g = Graph()
@@ -126,7 +126,7 @@ def from_dig6(G, dig6_string):
 
     - ``dig6_string`` -- a dig6 string
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.graph_input import from_dig6
         sage: g = DiGraph()
@@ -166,7 +166,7 @@ def from_seidel_adjacency_matrix(G, M):
 
     - ``M`` -- a Seidel adjacency matrix
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.graph_input import from_seidel_adjacency_matrix
         sage: g = Graph()
@@ -219,7 +219,7 @@ def from_adjacency_matrix(G, M, loops=False, multiedges=False, weighted=False):
     - ``loops``, ``multiedges``, ``weighted`` (booleans) -- whether to consider
       the graph as having loops, multiple edges, or weights. Set to ``False`` by default.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.graph_input import from_adjacency_matrix
         sage: g = Graph()
@@ -300,7 +300,7 @@ def from_incidence_matrix(G, M, loops=False, multiedges=False, weighted=False):
     - ``loops``, ``multiedges``, ``weighted`` (booleans) -- whether to consider
       the graph as having loops, multiple edges, or weights. Set to ``False`` by default.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.graph_input import from_incidence_matrix
         sage: g = Graph()
@@ -362,13 +362,22 @@ def from_oriented_incidence_matrix(G, M, loops=False, multiedges=False, weighted
     - ``loops``, ``multiedges``, ``weighted`` (booleans) -- whether to consider
       the graph as having loops, multiple edges, or weights. Set to ``False`` by default.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.graph_input import from_oriented_incidence_matrix
         sage: g = DiGraph()
         sage: from_oriented_incidence_matrix(g, digraphs.Circuit(10).incidence_matrix())
         sage: g.is_isomorphic(digraphs.Circuit(10))
         True
+
+    TESTS:
+
+    Fix bug reported in :trac:`22985`::
+
+        sage: DiGraph(matrix ([[1,0,0,1],[0,0,1,1],[0,0,1,1]]).transpose())
+        Traceback (most recent call last):
+        ...
+        ValueError: each column represents an edge: -1 goes to 1
     """
     from sage.matrix.matrix import is_Matrix
     assert is_Matrix(M)
@@ -380,8 +389,7 @@ def from_oriented_incidence_matrix(G, M, loops=False, multiedges=False, weighted
             raise ValueError("There must be two nonzero entries (-1 & 1) per column.")
         L = sorted(set(c.list()))
         if L != [-1,0,1]:
-            msg += "Each column represents an edge: -1 goes to 1."
-            raise ValueError(msg)
+            raise ValueError("each column represents an edge: -1 goes to 1")
         if c[NZ[0]] == -1:
             positions.append(tuple(NZ))
         else:
@@ -411,7 +419,7 @@ def from_dict_of_dicts(G, M, loops=False, multiedges=False, weighted=False, conv
     - ``convert_empty_dict_labels_to_None`` (boolean) -- whether to adjust for
       empty dicts instead of None in NetworkX default edge labels.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.graph_input import from_dict_of_dicts
         sage: g = Graph()
@@ -480,7 +488,7 @@ def from_dict_of_lists(G, D, loops=False, multiedges=False, weighted=False):
     - ``loops``, ``multiedges``, ``weighted`` (booleans) -- whether to consider
       the graph as having loops, multiple edges, or weights. Set to ``False`` by default.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.graph_input import from_dict_of_lists
         sage: g = Graph()

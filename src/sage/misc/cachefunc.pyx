@@ -892,7 +892,7 @@ cdef class CachedFunction(object):
     ## We provide some methods explicitly, and
     ## forward other questions to the cached function.
 
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         Provide documentation for the cached function.
 
@@ -924,7 +924,7 @@ cdef class CachedFunction(object):
             sage: @cached_function
             ....: def f():
             ....:     return 3
-            sage: f._sage_doc_()
+            sage: f.__doc__
             'File: ... (starting at line 1)\n'
         """
         from sage.misc.sageinspect import _extract_embedded_position
@@ -996,7 +996,7 @@ cdef class CachedFunction(object):
 
         This was implemented in :trac:`11115`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y> = QQ[]
             sage: I = P*[x,y]
@@ -1691,7 +1691,7 @@ class CachedMethodPickle(object):
         thing that ``self`` does before disappearing is to call the
         :class:`CachedMethodCaller` and return the result.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<a,b,c,d> = QQ[]
             sage: I = P*[a,b]
@@ -1767,7 +1767,7 @@ cdef class CachedMethodCaller(CachedFunction):
         :class:`CachedMethodCallerNoArgs` for methods that do not take
         arguments.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: class A:
         ....:    @cached_method
@@ -2237,7 +2237,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
         after a lengthy computation, then ``@cached_method`` should not
         be used.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<a,b,c,d> = QQ[]
         sage: I = P*[a,b]
@@ -2368,7 +2368,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
         """
         Call the cached method without using the cache.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<a,b,c,d> = QQ[]
             sage: I = P*[a,b]
@@ -2386,7 +2386,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
         """
         Call the cached method.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<a,b,c,d> = QQ[]
             sage: I = P*[a,b]
@@ -2469,7 +2469,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
             Recall that a cached method without arguments can not cache
             the return value ``None``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x,y> = QQ[]
             sage: I = P*[x,y]
@@ -3228,7 +3228,7 @@ cdef class CachedInParentMethod(CachedMethod):
             sage: class Foo:
             ....:     def __init__(self, x):
             ....:         self._x = x
-            ....:     _parent = MyParent()
+            ....:         self._parent = MyParent()
             ....:     def parent(self):
             ....:         return self._parent
             ....:     @cached_in_parent_method  #indirect doctest
@@ -3289,7 +3289,8 @@ cdef class CachedInParentMethod(CachedMethod):
         Pickling can be enabled with ``do_pickle``::
 
             sage: class A(object):
-            ....:     _parent = MyParent()
+            ....:     def __init__(self):
+            ....:         self._parent = MyParent()
             ....:     def parent(self): return self._parent
             ....:     @cached_in_parent_method(do_pickle=True)
             ....:     def f(self, x): return x
@@ -3299,13 +3300,13 @@ cdef class CachedInParentMethod(CachedMethod):
             1
             sage: len(a.f.cache)
             1
-            sage: b= loads(dumps(a))
+            sage: b = loads(dumps(a))
             sage: len(b.f.cache)
             1
 
         """
         self._cache_name = '_cache__' + 'element_' + (name or f.__name__)
-        self._cachedfunc = CachedFunction(f, classmethod=True, name=name, key=key)
+        self._cachedfunc = CachedFunction(f, classmethod=True, name=name, key=key, do_pickle=do_pickle)
 
     cpdef _get_instance_cache(self, inst):
         """
@@ -3785,3 +3786,13 @@ class disk_cached_function:
             Modular Symbols space of dimension 65 for Gamma_0(389) of weight 2 with sign 0 over Rational Field
         """
         return DiskCachedFunction(f, self._dir, memory_cache=self._memory_cache, key=self._key)
+
+
+# Add support for _instancedoc_
+from sage.docs.instancedoc import instancedoc
+instancedoc(CachedFunction)
+instancedoc(WeakCachedFunction)
+instancedoc(CachedMethodCaller)
+instancedoc(CachedMethodCallerNoArgs)
+instancedoc(GloballyCachedMethodCaller)
+instancedoc(DiskCachedFunction)

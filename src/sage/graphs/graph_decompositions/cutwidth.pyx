@@ -156,21 +156,25 @@ Authors
 Methods
 -------
 """
+
 #*****************************************************************************
-#          Copyright (C) 2015 David Coudert <david.coudert@inria.fr>
+#       Copyright (C) 2015 David Coudert <david.coudert@inria.fr>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#      as published by the Free Software Foundation; either version 2 of
-#              the License, or (at your option) any later version.
-#                        http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
 
 include "cysignals/signals.pxi"
-include 'sage/ext/cdefs.pxi'
+from libc.stdint cimport uint8_t
+from libc.string cimport memset
+
 from sage.graphs.graph_decompositions.fast_digraph cimport FastDigraph, popcount32
 from sage.graphs.graph_decompositions.vertex_separation import is_valid_ordering
-from libc.stdint cimport uint8_t
 include "cysignals/memory.pxi"
 from sage.rings.integer_ring import ZZ
 
@@ -598,7 +602,7 @@ def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
     A pair ``(cost, ordering)`` representing the optimal ordering of the
     vertices and its cost.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Cutwidth of a Cycle graph::
 

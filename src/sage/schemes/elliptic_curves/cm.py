@@ -186,7 +186,7 @@ def cm_j_invariants(K, proof=None):
 
     (list) -- A list of CM `j`-invariants in the field `K`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: cm_j_invariants(QQ)
         [-262537412640768000, -147197952000, -884736000, -12288000, -884736, -32768, -3375, 0, 1728, 8000, 54000, 287496, 16581375]
@@ -228,7 +228,7 @@ def cm_j_invariants_and_orders(K, proof=None):
     `j`-invariant in `K` with quadratic fundamental discriminant `D`
     and conductor `f`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: cm_j_invariants_and_orders(QQ)
         [(-3, 3, -12288000), (-3, 2, 54000), (-3, 1, 0), (-4, 2, 287496), (-4, 1, 1728), (-7, 2, 16581375), (-7, 1, -3375), (-8, 1, 8000), (-11, 1, -32768), (-19, 1, -884736), (-43, 1, -884736000), (-67, 1, -147197952000), (-163, 1, -262537412640768000)]
@@ -545,7 +545,7 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
 @cached_function
 def is_cm_j_invariant(j):
     """
-    Returns whether or not this is a CM `j`-invariant.
+    Return whether or not this is a CM `j`-invariant.
 
     INPUT:
 
@@ -555,7 +555,7 @@ def is_cm_j_invariant(j):
 
     A pair (bool, (d,f)) which is either (False, None) if `j` is not a
     CM j-invariant or (True, (d,f)) if `j` is the `j`-invariant of the
-    immaginary quadratic order of discriminant `D=df^2` where `d` is
+    imaginary quadratic order of discriminant `D=df^2` where `d` is
     the associated fundamental discriminant and `f` the index.
 
     .. note::
@@ -567,7 +567,6 @@ def is_cm_j_invariant(j):
        version, using the fact that `d` must be supported on the
        primes dividing the discriminant of the minimal polynomial of
        `j`.
-
 
     EXAMPLES::
 

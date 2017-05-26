@@ -8,26 +8,22 @@ AUTHORS:
 - Sebastien Besnier (2014-05-5): :class:`FormalCompositeMap` contains
   a list of Map instead of only two Map. See :trac:`16291`.
 """
+
 #*****************************************************************************
 #       Copyright (C) 2008 Robert Bradshaw <robertwb@math.washington.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
-from __future__ import print_function
 
-include "sage/ext/stdsage.pxi"
+from __future__ import absolute_import, print_function
+
 from . import homset
 import weakref
+from sage.ext.stdsage cimport HAS_DICTIONARY
 from sage.structure.parent cimport Set_PythonType
 from sage.misc.constant_function import ConstantFunction
 from sage.misc.superseded import deprecated_function_alias
@@ -59,7 +55,7 @@ def is_Map(x):
     """
     Auxiliary function: Is the argument a map?
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R.<x,y> = QQ[]
         sage: f = R.hom([x+y, x-y], R)
@@ -489,7 +485,7 @@ cdef class Map(Element):
 
             By default, the string ``"Generic"`` is returned. Subclasses may overload this method.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.categories.map import Map
             sage: f = Map(Hom(QQ, ZZ, Rings()))
@@ -513,7 +509,7 @@ cdef class Map(Element):
 
             By default, the empty string is returned. Subclasses may overload this method.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.categories.map import Map
             sage: f = Map(Hom(QQ, ZZ, Rings()))
@@ -1184,21 +1180,6 @@ cdef class Map(Element):
         else:
             return self.post_compose(connecting.__copy__())
 
-    def is_injective(self):
-        """
-        Tells whether the map is injective (not implemented in the base class).
-
-        TEST::
-
-            sage: from sage.categories.map import Map
-            sage: f = Map(Hom(QQ, ZZ, Rings()))
-            sage: f.is_injective()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: <type 'sage.categories.map.Map'>
-        """
-        raise NotImplementedError(type(self))
-
     def is_surjective(self):
         """
         Tells whether the map is surjective (not implemented in the base class).
@@ -1323,7 +1304,7 @@ cdef class Section(Map):
 
         Call methods are not implemented for the base class ``Section``.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.categories.map import Section
         sage: R.<x,y> = ZZ[]
@@ -1442,7 +1423,7 @@ cdef class FormalCompositeMap(Map):
         When calling a composite with additional arguments, these arguments are
         *only* passed to the second underlying map.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R.<x> = QQ[]
         sage: S.<a> = QQ[]
@@ -1813,7 +1794,7 @@ cdef class FormalCompositeMap(Map):
         f_1 \circ f_0`, then ``self.first()`` returns `f_0`.  We have
         ``self == self.then() * self.first()``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x> = QQ[]
             sage: S.<a> = QQ[]
@@ -1837,7 +1818,7 @@ cdef class FormalCompositeMap(Map):
         f_{n-1} \circ \cdots \circ f_1`.  We have ``self ==
         self.then() * self.first()``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x> = QQ[]
             sage: S.<a> = QQ[]
@@ -1858,7 +1839,7 @@ cdef class FormalCompositeMap(Map):
 
         It raises ``NotImplementedError`` if it can't be determined.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: V1 = QQ^2
             sage: V2 = QQ^3
@@ -1904,7 +1885,7 @@ cdef class FormalCompositeMap(Map):
 
         It raises ``NotImplementedError`` if it can't be determined.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.categories.map import FormalCompositeMap
             sage: V3 = QQ^3

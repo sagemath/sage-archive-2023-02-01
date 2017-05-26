@@ -115,7 +115,7 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
       after each comma when calling ``str()`` on this sequence.
 
     - ``use_sage_types`` -- (default: False) if True, coerce the
-       built-in Python numerical types int, long, float, complex to the
+       built-in Python numerical types int, float, complex to the
        corresponding Sage types (this makes functions like vector()
        more flexible)
 
@@ -299,7 +299,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
       after each comma when printing this sequence.
 
     - ``use_sage_types`` -- (default: False) if True, coerce the
-       built-in Python numerical types int, long, float, complex to the
+       built-in Python numerical types int, float, complex to the
        corresponding Sage types (this makes functions like vector()
        more flexible)
 
@@ -779,7 +779,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
 
         To make this object immutable use :meth:`set_immutable`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: v = Sequence([1,2,3,4/5])
             sage: v[0] = 5

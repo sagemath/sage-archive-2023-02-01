@@ -1439,7 +1439,7 @@ class FSMState(sage.structure.sage_object.SageObject):
 
         True or False.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.combinat.finite_state_machine import FSMState
             sage: FSMState(0) < FSMState(1)
@@ -2280,7 +2280,7 @@ class FSMTransition(sage.structure.sage_object.SageObject):
 
         True or False.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.combinat.finite_state_machine import FSMTransition
             sage: FSMTransition(0,1,0,0) < FSMTransition(1,0,0,0)
@@ -3406,7 +3406,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
         Nothing.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = Automaton([(0, 0, 0)],
             ....:               initial_states=[0],
@@ -3513,7 +3513,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         the given states and (deep copies) of all transitions of ``self``
         between these states.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: FSM = FiniteStateMachine([(0, 1, 0), (0, 2, 0),
             ....:                           (1, 2, 0), (2, 0, 0)])
@@ -4316,7 +4316,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         right-most position. Therefore, the labels have to be
         reversed.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: T = Transducer([(0, 0, 0, [1, 2, 3])])
             sage: T.format_transition_label_reversed([1, 2, 3])
@@ -8795,7 +8795,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         leaving ``C``.
 
         The final components are the only parts of a transducer which
-        influence the main terms of the asympotic behaviour of the sum
+        influence the main terms of the asymptotic behaviour of the sum
         of output labels of a transducer, see [HKP2015]_ and [HKW2015]_.
 
         EXAMPLES::
@@ -9396,7 +9396,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         A finite state machine with merged transitions. If no mergers occur,
         return ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.combinat.finite_state_machine import duplicate_transition_add_input
             sage: T = Transducer([[1, 2, 1/4, 1], [1, -2, 1/4, 1], [1, -2, 1/2, 1],
@@ -9468,7 +9468,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
         Simplified version of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.combinat.finite_state_machine import duplicate_transition_add_input
             sage: T = Transducer([[1, 2, 1/4, 0], [1, -2, 1/4, 0], [1, -2, 1/2, 0],

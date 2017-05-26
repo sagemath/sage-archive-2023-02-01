@@ -153,10 +153,6 @@ variable :envvar:`SAGE_INSTALL_GCC`, see :ref:`section_compilers` and
 Other notes
 ^^^^^^^^^^^
 
-Although some of Sage is written in `Python <http://www.python.org/>`_, you do
-not need Python pre-installed on your computer, since the Sage installation
-includes virtually everything you need.
-
 After extracting the Sage tarball, the subdirectory :file:`upstream`
 contains the source distributions for everything on which Sage depends.
 If cloned from a git repository, the upstream tarballs will be downloaded,
@@ -359,28 +355,23 @@ but provide additional capabilities:
 - **dvipng**.
 - **ffmpeg**.
 - **ImageMagick**.
-- **latex**: highly recommended.
+- **LaTeX**: highly recommended.
 
 It is highly recommended that you have
-`Latex <http://en.wikipedia.org/wiki/LaTeX>`_
+`LaTeX <http://en.wikipedia.org/wiki/LaTeX>`_
 installed, but it is not required.
-
-The most popular packaging is `TeX Live <www.tug.org/texlive/>`_ ,
-which you can install locally inside Sage with the commands::
-
-    sage -sh -c '$SAGE_ROOT/src/ext/texlive/texlive-install'
-
+The most popular packaging is `TeX Live <http://www.tug.org/texlive/>`_,
+which can be installed following the directions on their web site.
 On Linux systems you can alternatively install your distribution's
 texlive packages::
 
     sudo apt-get install texlive       # debian
     sudo yum install texlive           # redhat
 
-or similar commands. In addition to the base texlive install you will
-probably need a number of optional texlive packages, for example
+or similar commands. In addition to the base TeX Live install, you may
+need some optional TeX Live packages, for example
 country-specific babel packages for the localized Sage
-documentation. The required texlive packages are listed in
-``SAGE_ROOT/src/ext/texlive/package-list.txt``.
+documentation.
 
 If you don't have either ImageMagick or ffmpeg, you won't be able to
 view animations.
@@ -506,7 +497,7 @@ Running Sage from a directory with spaces in its name will also fail.
    directory.
 
 #. Optional, but highly recommended:
-   Read the :file:`README.txt` file there.
+   Read the :file:`README.md` file there.
 
 #. On OSX 10.4, OS 10.5, Solaris 10 and OpenSolaris, if you wish to build a
    64-bit version of Sage, assuming your computer and operating system are
@@ -519,6 +510,25 @@ Running Sage from a directory with spaces in its name will also fail.
    set :envvar:`SAGE64` to ``yes``.
    This will then create stable 32-bit versions of Sage.
    See http://wiki.sagemath.org/solaris for the latest information.
+
+#. Optional:  Set various other environment variables that influence the
+   build process; see :ref:`section_envvar`.
+
+#. Optional:  Run the configure script to set some options that
+   influence the build process.
+
+   - Choose the installation hierarchy (:envvar:`SAGE_LOCAL`).
+     The default is the ``local`` subdirectory of :envvar:`SAGE_ROOT`::
+
+       ./configure --prefix=SAGE_LOCAL
+
+     Note that in Sage's build process, ``make`` builds **and**
+     installs (``make install`` is a no-op).  Therefore the
+     installation hierarchy must be writable by the user.
+
+   - Other options are available; see::
+
+       ./configure --help
 
 #. Start the build process::
 
@@ -676,7 +686,7 @@ Running Sage from a directory with spaces in its name will also fail.
      ``sage`` containing the lines
      (note that you have to change ``<SAGE_ROOT>`` below!)::
 
-         #!/bin/bash
+         #!/usr/bin/env bash
 
          konsole -T "sage" -e <SAGE_ROOT>/sage
 
@@ -1014,7 +1024,7 @@ Here are some of the more commonly used variables affecting the build process:
 
 - :envvar:`SAGE_PROFILE` - controls profiling support. If this is set
   to ``yes``, profiling support is enabled where possible. Note that
-  Python-level profiling is always avaliable; This option enables
+  Python-level profiling is always available; This option enables
   profiling in Cython modules.
 
 - :envvar:`SAGE_SPKG_INSTALL_DOCS` - if set to ``yes``, then install
@@ -1290,7 +1300,7 @@ Sage uses the following environment variables when it runs:
 - :envvar:`SAGE_PATH` - a colon-separated list of directories which Sage
   searches when trying to locate Python libraries.
 
-- :envvar:`SAGE_BROWSER` - on most platforms, Sage will detect the command to
+- :envvar:`BROWSER` - on most platforms, Sage will detect the command to
   run a web browser, but if this doesn't seem to work on your machine, set this
   variable to the appropriate command.
 
@@ -1420,47 +1430,6 @@ the directory where you want to install Sage.
    processes.
    You can also omit ``long`` to skip tests which take a long time.
 
-Some common problems
---------------------
-
-ATLAS
-~~~~~
-
-Usually Sage will build ATLAS with architectural defaults that are not tuned
-to your particular CPU.
-In particular, if your CPU has powersaving enabled then no accurate timings
-can be made to tune the ATLAS build for your hardware.
-If BLAS performance is critical for you, you must recompile ATLAS after
-installing Sage either with architecture settings that match your hardware,
-or run through ATLAS' automatic tuning process where timings of different
-implementations are compared and the best choice used to build a custom ATLAS
-library.
-To do so, you have to
-
-- Leave the computer idle while you are reinstalling ATLAS.
-  Most of ATLAS will intentionally only compile/run on a single core.
-  Accurate timings of cache edges require that the CPU is otherwise idle.
-
-- Make sure that CPU powersaving mode (that is, anything but the
-  ``performance`` CPU scaling governor in Linux) is turned off when building
-  ATLAS.
-  This requires administrator privileges.
-
-- If your architecture is listed in :envvar:`SAGE_ATLAS_ARCH`, you should set
-  it as it can help ATLAS in narrowing down the timing search.
-
-To help you disable CPU power saving, Sage includes an ``atlas-config`` script
-that will turn off CPU powersave and rebuild ATLAS.
-The script will call ``sudo`` to gain the necessary rights, which may prompt
-you for your password. For example::
-
-    atlas-config
-
-will run through the full automated tuning, and::
-
-    SAGE_ATLAS_ARCH=Corei2,AVX,SSE3,SSE2,SSE1 atlas-config
-
-would be appropriate if you have a Core i3/5/7 processor with AVX support.
 
 
 

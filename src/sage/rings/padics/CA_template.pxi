@@ -922,7 +922,7 @@ cdef class CAElement(pAdicTemplateElement):
             sage: R = Zp(7,4,'capped-abs'); a = R(7); a.precision_absolute()
             4
         """
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         mpz_set_si(ans.value, self.absprec)
         return ans
 
@@ -938,7 +938,7 @@ cdef class CAElement(pAdicTemplateElement):
             sage: R = Zp(7,4,'capped-abs'); a = R(7); a.precision_relative()
             3
         """
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         mpz_set_si(ans.value, self.absprec - self.valuation_c())
         return ans
 
@@ -1007,7 +1007,7 @@ cdef class CAElement(pAdicTemplateElement):
             (6, O(5^0))
         """
         cdef CAElement unit = self._new_c()
-        cdef Integer valuation = PY_NEW(Integer)
+        cdef Integer valuation = Integer.__new__(Integer)
         cdef long val = cremove(unit.value, self.value, self.absprec, self.prime_pow)
         mpz_set_si(valuation.value, val)
         unit.absprec = self.absprec - val
@@ -1214,7 +1214,7 @@ cdef class pAdicConvert_CA_ZZ(RingMap):
             sage: f(ZpCA(5)(0))
             0
         """
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         cdef CAElement x = _x
         cconv_mpz_t_out(ans.value, x.value, 0, x.absprec, x.prime_pow)
         return ans

@@ -1,23 +1,6 @@
 r"""
 Common Asymptotic Expansions
 
-.. WARNING::
-
-    As this code is experimental, a warning is thrown when an
-    asymptotic ring (or an associated structure) is created for the
-    first time in a session (see
-    :class:`sage.misc.superseded.experimental`).
-
-    TESTS::
-
-        sage: AsymptoticRing(growth_group='z^ZZ * log(z)^QQ', coefficient_ring=ZZ)
-        doctest:...: FutureWarning: This class/method/function is marked as
-        experimental. It, its functionality or its interface might change
-        without a formal deprecation.
-        See http://trac.sagemath.org/17601 for details.
-        Asymptotic Ring <z^ZZ * log(z)^QQ> over Integer Ring
-
-
 Asymptotic expansions in SageMath can be built through the
 ``asymptotic_expansions`` object. It contains generators for common
 asymptotic expressions. For example,

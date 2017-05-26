@@ -928,13 +928,21 @@ class Graph(GenericGraph):
             sage: Graph(a,sparse=True).adjacency_matrix() == a
             True
 
-        The positions are copied when the graph is built from
-        another graph ::
+        The positions are copied when the graph is built from another graph ::
 
             sage: g = graphs.PetersenGraph()
             sage: h = Graph(g)
             sage: g.get_pos() == h.get_pos()
             True
+
+        The position dictionary is not the input one (:trac:`22424`)::
+
+            sage: my_pos = {0:(0,0), 1:(1,1)}
+            sage: G = Graph([[0,1], [(0,1)]], pos=my_pos)
+            sage: my_pos == G._pos
+            True
+            sage: my_pos is G._pos
+            False
 
         Or from a DiGraph ::
 
@@ -1166,7 +1174,7 @@ class Graph(GenericGraph):
             self.allow_loops(loops, check=False)
             self.allow_multiple_edges(multiedges, check=False)
             if data.get_pos() is not None:
-                pos = data.get_pos().copy()
+                pos = data.get_pos()
             self.name(data.name())
             self.add_vertices(data.vertex_iterator())
             self.add_edges(data.edge_iterator())
@@ -1265,7 +1273,7 @@ class Graph(GenericGraph):
         if weighted   is None: weighted   = False
         self._weighted = getattr(self,'_weighted',weighted)
 
-        self._pos = pos
+        self._pos = copy(pos)
 
         if format != 'Graph' or name is not None:
             self.name(name)
@@ -1659,6 +1667,14 @@ class Graph(GenericGraph):
             False
             sage: graphs.EmptyGraph().is_tree(certificate=True)
             (False, None)
+
+        :trac:`22912` is fixed::
+
+            sage: G = Graph([(0,0), (0,1)], loops=True)
+            sage: G.is_tree(certificate=True)
+            (False, [0])
+            sage: G.is_tree(certificate=True, output='edge')
+            (False, [(0, 0, None)])
         """
         if not output in ['vertex', 'edge']:
             raise ValueError('output must be either vertex or edge')
@@ -1669,6 +1685,11 @@ class Graph(GenericGraph):
         if certificate:
             if self.num_verts() == self.num_edges() + 1:
                 return (True, None)
+
+            if self.allows_loops():
+                L = self.loop_edges() if output=='edge' else self.loop_vertices()
+                if L:
+                    return False, L[:1]
 
             if self.has_multiple_edges():
                 if output == 'vertex':
@@ -2176,7 +2197,7 @@ class Graph(GenericGraph):
           ``certificate = True``, the subgraph found is returned
           instead of ``False``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Is the Petersen Graph even-hole-free ::
 
@@ -2286,7 +2307,7 @@ class Graph(GenericGraph):
           ``certificate = True``, the subgraph found is returned
           instead of ``False``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Is the Petersen Graph odd-hole-free ::
 
@@ -2445,7 +2466,7 @@ class Graph(GenericGraph):
             triangle. This method is generally faster than standard matrix
             multiplication.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The Petersen Graph is triangle-free::
 
@@ -2908,7 +2929,7 @@ class Graph(GenericGraph):
         a subgraph of ``self`` isomorphic to an odd hole or an odd
         antihole if any, and ``None`` otherwise.
 
-        EXAMPLE:
+        EXAMPLES:
 
         A Bipartite Graph is always perfect ::
 
@@ -3373,7 +3394,7 @@ class Graph(GenericGraph):
             - This method assumes the graph is connected.
             - This algorithm works in O(m).
 
-        EXAMPLE:
+        EXAMPLES:
 
         For a 2-regular graph, a strong orientation gives to each vertex
         an out-degree equal to 1::
@@ -3488,7 +3509,7 @@ class Graph(GenericGraph):
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Given a complete bipartite graph `K_{n,m}`, the maximum out-degree
         of an optimal orientation is `\left\lceil \frac {nm} {n+m}\right\rceil`::
@@ -3638,9 +3659,9 @@ class Graph(GenericGraph):
         While this is not::
 
             sage: try:
-            ....:    g.bounded_outdegree_orientation(ceil(mad/2-1))
-            ....:    print("Error")
-            ... except ValueError:
+            ....:     g.bounded_outdegree_orientation(ceil(mad/2-1))
+            ....:     print("Error")
+            ....: except ValueError:
             ....:     pass
 
         TESTS:
@@ -3741,7 +3762,7 @@ class Graph(GenericGraph):
 
         .. WARNING::
 
-            This always considers mutliple edges of graphs as
+            This always considers multiple edges of graphs as
             distinguishable, and hence, may have repeated digraphs.
 
         EXAMPLES::
@@ -4355,7 +4376,11 @@ class Graph(GenericGraph):
         """
         self._scream_if_not_simple(allow_loops=True)
         from sage.rings.real_mpfr import RR
-        weight = lambda x: x if x in RR else 1
+        def weight(x):
+            if x in RR:
+                return x
+            else:
+                return 1
 
         if algorithm == "Edmonds":
             import networkx
@@ -4383,21 +4408,21 @@ class Graph(GenericGraph):
             # returns the weight of an edge considering it may not be
             # weighted ...
             p = MixedIntegerLinearProgram(maximization=True, solver=solver)
-            b = p.new_variable(binary = True)
+            b = p.new_variable(binary=True)
             if use_edge_labels:
                 p.set_objective(
-                    p.sum(weight(w) * b[min(u, v),max(u, v)]
-                         for u, v, w in g.edge_iterator()))
+                    p.sum(weight(w) * b[min(u, v), max(u, v)]
+                          for u, v, w in g.edge_iterator()))
             else:
                 p.set_objective(
-                    p.sum(b[min(u, v),max(u, v)]
-                         for u, v in g.edge_iterator(labels=False)))
+                    p.sum(b[min(u, v), max(u, v)]
+                          for u, v in g.edge_iterator(labels=False)))
             # for any vertex v, there is at most one edge incident to v in
             # the maximum matching
             for v in g.vertex_iterator():
                 p.add_constraint(
                     p.sum(b[min(u, v),max(u, v)]
-                         for u in g.neighbors(v)), max=1)
+                          for u in g.neighbors(v)), max=1)
             if value_only:
                 if use_edge_labels:
                     return p.solve(objective_only=True, log=verbose)
@@ -4461,7 +4486,7 @@ class Graph(GenericGraph):
         returns the homomorphism otherwise as a dictionary associating a vertex
         of `H` to a vertex of `G`.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Is Petersen's graph 3-colorable::
 
@@ -4580,7 +4605,7 @@ class Graph(GenericGraph):
             just have to update the weights on the edges between each call to
             ``solve`` (and so avoiding the generation of all the constraints).
 
-        EXAMPLE:
+        EXAMPLES:
 
         The fractional chromatic index of a `C_5` is `5/2`::
 
@@ -5165,6 +5190,16 @@ class Graph(GenericGraph):
 
             sage: Graph([[1,2]], immutable=True).to_directed()
             Digraph on 2 vertices
+
+        :trac:`22424`::
+
+            sage: G1=graphs.RandomGNP(5,0.5)
+            sage: gp1 = G1.graphplot(save_pos=True)
+            sage: G2=G1.to_directed()
+            sage: G2.delete_vertex(0)
+            sage: G2.add_vertex(5)
+            sage: gp2 = G2.graphplot()
+            sage: gp1 = G1.graphplot()
         """
         if sparse is not None:
             if data_structure is not None:
@@ -5183,7 +5218,7 @@ class Graph(GenericGraph):
                 data_structure = "static_sparse"
         from sage.graphs.all import DiGraph
         D = DiGraph(name           = self.name(),
-                    pos            = self._pos,
+                    pos            = self.get_pos(),
                     multiedges     = self.allows_multiple_edges(),
                     loops          = self.allows_loops(),
                     implementation = implementation,
@@ -6931,7 +6966,7 @@ class Graph(GenericGraph):
             ``modular_decomposition`` optional package. See
             :mod:`sage.misc.package`.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The Petersen Graph and the Bull Graph are both prime::
 
@@ -6979,7 +7014,7 @@ class Graph(GenericGraph):
           method. Refer to its documentation for allowed values and default
           behaviour.
 
-        EXAMPLE:
+        EXAMPLES:
 
         This function is actually tested in ``gomory_hu_tree()``, this
         example is only present to have a doctest coverage of 100%.
@@ -7075,7 +7110,7 @@ class Graph(GenericGraph):
 
         A graph with labeled edges
 
-        EXAMPLE:
+        EXAMPLES:
 
         Taking the Petersen graph::
 
@@ -7164,7 +7199,7 @@ class Graph(GenericGraph):
         graph of maximal degree `2` ( a disjoint union of paths
         and cycles ).
 
-        EXAMPLE:
+        EXAMPLES:
 
         The Complete Graph on `7` vertices is a `6`-regular graph, so it can
         be edge-partitionned into `2`-regular graphs::
@@ -7547,6 +7582,108 @@ class Graph(GenericGraph):
                 Gp.delete_vertices([e[0], e[1]])
                 for mat in Gp.perfect_matchings(labels):
                     yield [e] + mat
+
+    @doc_index("Leftovers")
+    def has_perfect_matching(self, algorithm="Edmonds", solver=None, verbose=0):
+        r"""
+        Return whether this graph has a perfect matching.
+
+        INPUT:
+
+        - ``algorithm`` -- string (default: ``"Edmonds"``)
+
+          - ``"Edmonds"`` uses Edmonds' algorithm as implemented in NetworkX to
+            find a matching of maximal cardinality, then check whether this
+            cardinality is half the number of vertices of the graph.
+
+          - ``"LP_matching"`` uses uses a Linear Program to find a matching of
+            maximal cardinality, then check whether this cardinality is half the
+            number of vertices of the graph.
+
+          - ``"LP"`` uses a Linear Program formulation of the perfect matching
+            problem: put a binary variable ``b[e]`` on each edge ``e``, and for
+            each vertex ``v``, require that the sum of the values of the edges
+            incident to ``v`` is 1.
+            
+        - ``solver`` -- (default: ``None``) specify a Linear Program (LP)
+          solver to be used; if set to ``None``, the default one is used
+
+        - ``verbose`` -- integer (default: ``0``); sets the level of verbosity:
+          set to 0 by default, which means quiet (only useful when 
+          ``algorithm == "LP_matching"`` or ``algorithm == "LP"``)
+
+        For more information on LP solvers and which default solver is
+        used, see the method
+        :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+        of the class :class:`MixedIntegerLinearProgram
+        <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: graphs.PetersenGraph().has_perfect_matching()
+            True
+            sage: graphs.WheelGraph(6).has_perfect_matching()
+            True
+            sage: graphs.WheelGraph(5).has_perfect_matching()
+            False
+            sage: graphs.PetersenGraph().has_perfect_matching(algorithm="LP_matching")
+            True
+            sage: graphs.WheelGraph(6).has_perfect_matching(algorithm="LP_matching")
+            True
+            sage: graphs.WheelGraph(5).has_perfect_matching(algorithm="LP_matching")
+            False
+            sage: graphs.PetersenGraph().has_perfect_matching(algorithm="LP_matching")
+            True
+            sage: graphs.WheelGraph(6).has_perfect_matching(algorithm="LP_matching")
+            True
+            sage: graphs.WheelGraph(5).has_perfect_matching(algorithm="LP_matching")
+            False
+
+        TESTS::
+    
+            sage: G = graphs.EmptyGraph()
+            sage: all(G.has_perfect_matching(algorithm=algo) for algo in ['Edmonds', 'LP_matching', 'LP'])
+            True
+
+        Be careful with isolated vertices::
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.add_vertex(11)
+            sage: any(G.has_perfect_matching(algorithm=algo) for algo in ['Edmonds', 'LP_matching', 'LP'])
+            False
+        """
+        if self.order() % 2:
+            return False
+        if algorithm == "Edmonds":
+            return len(self) == 2*self.matching(value_only=True,
+                                                use_edge_labels=False,
+                                                algorithm="Edmonds")
+        elif algorithm == "LP_matching":
+            return len(self) == 2*self.matching(value_only=True,
+                                                use_edge_labels=False,
+                                                algorithm="LP",
+                                                solver=solver,
+                                                verbose=verbose)
+        elif algorithm == "LP":
+            from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
+            p = MixedIntegerLinearProgram(solver=solver)
+            b = p.new_variable(binary = True)
+            for v in self:
+                edges = self.edges_incident(v, labels=False)
+                if not edges:
+                    return False
+                p.add_constraint(p.sum(b[e] for e in edges) == 1)
+            try:
+                p.solve(log=verbose)
+                return True
+            except MIPSolverException:
+                return False
+        else:
+            raise ValueError('algorithm must be set to "Edmonds", "LP_matching" or "LP"')
 
 
 # Aliases to functions defined in Cython modules

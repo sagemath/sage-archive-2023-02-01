@@ -143,9 +143,8 @@ Functions and classes
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
-
-import six
 from six.moves import range
+from six import iteritems, add_metaclass
 
 from sage.interfaces.all import maxima
 from sage.rings.all import ZZ, QQ, Integer, infinity
@@ -411,11 +410,12 @@ def bell_number(n, algorithm='flint', **options):
 
     raise ValueError("unknown algorithm %r" % algorithm)
 
+
 def catalan_number(n):
     r"""
     Return the `n`-th Catalan number.
 
-    Catalan numbers: The `n`-th Catalan number is given
+    The `n`-th Catalan number is given
     directly in terms of binomial coefficients by
 
     .. MATH::
@@ -423,26 +423,23 @@ def catalan_number(n):
         C_n = \frac{1}{n+1}\binom{2n}{n} = \frac{(2n)!}{(n+1)!\,n!}
         \qquad\mbox{ for }\quad n\ge 0.
 
-
-
     Consider the set `S = \{ 1, ..., n \}`. A noncrossing
     partition of `S` is a partition in which no two blocks
     "cross" each other, i.e., if `a` and `b` belong to one block and
     `x` and `y` to another, they are not arranged in the order `axby`.
     `C_n` is the number of noncrossing partitions of the set
-    `S`. There are many other interpretations (see
-    REFERENCES).
+    `S`. There are many other interpretations (see REFERENCES).
 
-    When `n=-1`, this function raises a ZeroDivisionError; for
+    When `n=-1`, this function returns the limit value `-1/2`. For
     other `n<0` it returns `0`.
 
     INPUT:
 
-    - ``n`` - integer
+    - ``n`` -- integer
 
-    OUTPUT: integer
+    OUTPUT:
 
-
+    integer
 
     EXAMPLES::
 
@@ -450,23 +447,24 @@ def catalan_number(n):
         [1, 1, 2, 5, 14, 42, 132]
         sage: taylor((-1/2)*sqrt(1 - 4*x^2), x, 0, 15)
         132*x^14 + 42*x^12 + 14*x^10 + 5*x^8 + 2*x^6 + x^4 + x^2 - 1/2
-        sage: [catalan_number(i) for i in range(-7,7) if i != -1]
-        [0, 0, 0, 0, 0, 0, 1, 1, 2, 5, 14, 42, 132]
-        sage: catalan_number(-1)
-        Traceback (most recent call last):
-        ...
-        ZeroDivisionError
+        sage: [catalan_number(i) for i in range(-7,7)]
+        [0, 0, 0, 0, 0, 0, -1/2, 1, 1, 2, 5, 14, 42, 132]
         sage: [catalan_number(n).mod(2) for n in range(16)]
         [1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1]
 
     REFERENCES:
 
-    -  http://en.wikipedia.org/wiki/Catalan_number
+    -  :wikipedia:`Catalan_number`
 
     -  http://www-history.mcs.st-andrews.ac.uk/~history/Miscellaneous/CatalanNumbers/catalan.html
     """
     n = ZZ(n)
-    return binomial(2*n,n).divide_knowing_divisible_by(n+1)
+    if n < -1:
+        return ZZ.zero()
+    if n == -1:
+        return QQ((-1, 2))
+    return binomial(2 * n, n).divide_knowing_divisible_by(n + 1)
+
 
 def euler_number(n, algorithm='flint'):
     """
@@ -627,7 +625,9 @@ def lucas_number1(n, P, Q):
 
     Can you use Sage to find a counterexample to the conjecture?
     """
-    n = ZZ(n);  P = QQ(P);  Q = QQ(Q)
+    n = ZZ(n)
+    P = QQ(P)
+    Q = QQ(Q)
     from sage.libs.gap.libgap import libgap
     return libgap.Lucas(P, Q, n)[0].sage()
 
@@ -675,7 +675,9 @@ def lucas_number2(n, P, Q):
         sage: [lucas_number2(n,1,-1) for n in range(10)]
         [2, 1, 3, 4, 7, 11, 18, 29, 47, 76]
     """
-    n = ZZ(n);  P = QQ(P);  Q = QQ(Q)
+    n = ZZ(n)
+    P = QQ(P)
+    Q = QQ(Q)
     from sage.libs.gap.libgap import libgap
     return libgap.Lucas(P, Q, n)[1].sage()
 
@@ -916,31 +918,31 @@ class CombinatorialObject(SageObject):
         """
         return str(self._list)
 
-    def __cmp__(self, other):
+    def _repr_(self):
         """
         EXAMPLES::
 
             sage: c = CombinatorialObject([1,2,3])
-            sage: d = CombinatorialObject([3,2,1])
-            sage: cmp(c, d)
-            -1
-            sage: cmp(d, c)
-            1
-            sage: cmp(c, c)
-            0
+            sage: c.__repr__()
+            '[1, 2, 3]'
+        """
+        return repr(self._list)
 
-        Check that :trac:`14065` is fixed::
+    def __eq__(self, other):
+        """
+        Test equality of self and other.
 
-            sage: from sage.structure.element import Element
-            sage: class Foo(CombinatorialObject, Element): pass
-            sage: L = [Foo([4-i]) for i in range(4)]; L
-            [[4], [3], [2], [1]]
-            sage: sorted(L)
-            [[1], [2], [3], [4]]
-            sage: f = Foo([4])
-            sage: f is None
+        EXAMPLES::
+
+            sage: c = CombinatorialObject([1,2,3])
+            sage: d = CombinatorialObject([2,3,4])
+            sage: c == [1,2,3]
+            True
+            sage: c == [2,3,4]
             False
-            sage: f is not None
+            sage: c == d
+            False
+            sage: c == c
             True
 
         .. WARNING::
@@ -961,34 +963,6 @@ class CombinatorialObject(SageObject):
                 NotImplementedError: comparison not implemented for <class '__main__.Bar'>
         """
         if isinstance(other, CombinatorialObject):
-            return cmp(self._list, other._list)
-        else:
-            return cmp(self._list, other)
-
-    def _repr_(self):
-        """
-        EXAMPLES::
-
-            sage: c = CombinatorialObject([1,2,3])
-            sage: c.__repr__()
-            '[1, 2, 3]'
-        """
-        return repr(self._list)
-
-    def __eq__(self, other):
-        """
-        EXAMPLES::
-
-            sage: c = CombinatorialObject([1,2,3])
-            sage: d = CombinatorialObject([2,3,4])
-            sage: c == [1,2,3]
-            True
-            sage: c == [2,3,4]
-            False
-            sage: c == d
-            False
-        """
-        if isinstance(other, CombinatorialObject):
             return self._list == other._list
         else:
             return self._list == other
@@ -1002,6 +976,22 @@ class CombinatorialObject(SageObject):
             sage: c < d
             True
             sage: c < [2,3,4]
+            True
+            sage: c < c
+            False
+
+        Check that :trac:`14065` is fixed::
+
+            sage: from sage.structure.element import Element
+            sage: class Foo(CombinatorialObject, Element): pass
+            sage: L = [Foo([4-i]) for i in range(4)]; L
+            [[4], [3], [2], [1]]
+            sage: sorted(L)
+            [[1], [2], [3], [4]]
+            sage: f = Foo([4])
+            sage: f is None
+            False
+            sage: f is not None
             True
         """
         if isinstance(other, CombinatorialObject):
@@ -1223,6 +1213,7 @@ class CombinatorialObject(SageObject):
         return self._list.index(key)
 
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class CombinatorialElement(CombinatorialObject, Element):
     """
     ``CombinatorialElement`` is both a :class:`CombinatorialObject`
@@ -1264,8 +1255,6 @@ class CombinatorialElement(CombinatorialObject, Element):
         sage: Foo(17)
         17
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     def __init__(self, parent, *args, **kwds):
         """
         Initialize this ``CombinatorialElement`` with a parent and a
@@ -1312,6 +1301,7 @@ class CombinatorialElement(CombinatorialObject, Element):
         super(CombinatorialObject, self).__init__(parent)
 
 
+@add_metaclass(ClasscallMetaclass)
 class CombinatorialClass(Parent):
     """
     This class is deprecated, and will disappear as soon as all derived
@@ -1327,8 +1317,6 @@ class CombinatorialClass(Parent):
         sage: InfiniteEnumeratedSets().example()
         An example of an infinite enumerated set: the non negative integers
     """
-    __metaclass__ = ClasscallMetaclass
-
     def __init__(self, category = None):
         """
         TESTS::
@@ -1444,10 +1432,11 @@ class CombinatorialClass(Parent):
         """
         raise NotImplementedError
 
-    def __cmp__(self, x):
+    def __eq__(self, other):
         """
-        Compares two different combinatorial classes. For now, the
-        comparison is done just on their repr's.
+        Compare two different combinatorial classes.
+
+        For now, the comparison is done just on their repr's.
 
         EXAMPLES::
 
@@ -1458,7 +1447,20 @@ class CombinatorialClass(Parent):
             sage: p5 == p6
             False
         """
-        return cmp(repr(self), repr(x))
+        return repr(self) == repr(other)
+
+    def __ne__(self, other):
+        """
+        Test unequality of self and other.
+
+        EXAMPLES::
+
+            sage: p5 = Partitions(5)
+            sage: p6 = Partitions(6)
+            sage: p5 != p6
+            True
+        """
+        return not (self == other)
 
     def __cardinality_from_iterator(self):
         """
@@ -2703,7 +2705,7 @@ def bell_polynomial(n, k):
     for p in Partitions(n, length=k):
         factorial_product = 1
         power_factorial_product = 1
-        for part, count in six.iteritems(p.to_exp_dict()):
+        for part, count in iteritems(p.to_exp_dict()):
             factorial_product *= factorial(count)
             power_factorial_product *= factorial(part)**count
         coefficient = factorial(n) // (factorial_product * power_factorial_product)

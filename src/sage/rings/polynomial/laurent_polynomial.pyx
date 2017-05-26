@@ -10,7 +10,6 @@ Elements of Laurent polynomial rings
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six import iterkeys, iteritems
 
 from sage.rings.integer cimport Integer
 from sage.structure.element import is_Element, coerce_binop
@@ -1560,12 +1559,15 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         if isinstance(x, PolyDict):
             x = x.dict()
         if mon is not None:
-            self._mon = ETuple(mon)
+            if isinstance(mon, ETuple):
+                self._mon = mon
+            else:
+                self._mon = ETuple(mon)
         else:
             if isinstance(x, dict):
-                self._mon = ETuple({},int(parent.ngens()))
+                self._mon = ETuple({}, int(parent.ngens()))
                 D = {}
-                for k, x_k in iteritems(x): # ETuple-ize keys, set _mon
+                for k, x_k in x.iteritems():  # ETuple-ize keys, set _mon
                     if not isinstance(k, (tuple, ETuple)) or len(k) != parent.ngens():
                         self._mon = ETuple({}, int(parent.ngens()))
                         break
@@ -1576,7 +1578,11 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                 else:
                     x = D
                 if not self._mon.is_constant(): # factor out _mon
-                    x = {k.esub(self._mon): x_k for k, x_k in iteritems(x)}
+                    x = {k.esub(self._mon): x_k for k, x_k in x.iteritems()}
+            elif (isinstance(x, LaurentPolynomial_mpair) and
+                  parent.variable_names() == x.parent().variable_names()):
+                self._mon = (<LaurentPolynomial_mpair>x)._mon
+                x = (<LaurentPolynomial_mpair>x)._poly
             else: # since x should coerce into parent, _mon should be (0,...,0)
                 self._mon = ETuple({}, int(parent.ngens()))
         self._poly = parent.polynomial_ring()(x)
@@ -1591,11 +1597,10 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: loads(dumps(x1)) == x1 # indirect doctest
             True
             sage: z = x1/x2
-            sage: loads(dumps(z)) == z   # not tested (bug)
+            sage: loads(dumps(z)) == z
             True
         """
-        # one should also record the monomial self._mon
-        return self._parent, (self._poly,)  # THIS IS WRONG !
+        return self._parent, (self._poly, self._mon)
 
     def __hash__(self):
         r"""
@@ -2141,7 +2146,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
 
             sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
             sage: f = 4*x^7*z^-1 + 3*x^3*y + 2*x^4*z^-2 + x^6*y^-7
-            sage: list(sorted(f.dict().iteritems()))
+            sage: list(sorted(f.dict().items()))
             [((3, 1, 0), 3), ((4, 0, -2), 2), ((6, -7, 0), 1), ((7, 0, -1), 4)]
         """
         if self._prod is None:
@@ -2394,16 +2399,16 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
     @coerce_binop
     def quo_rem(self, right):
         """
-        Divide this laurent polynomial by ``right`` and return a quotient and
+        Divide this Laurent polynomial by ``right`` and return a quotient and
         a remainder.
 
         INPUT:
 
-        - ``right`` -- a laurent polynomial
+        - ``right`` -- a Laurent polynomial
 
         OUTPUT:
 
-        A pair of laurent polynomials.
+        A pair of Laurent polynomials.
 
         EXAMPLES::
 
@@ -2765,11 +2770,11 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         except ValueError:
             # call _derivative() recursively on coefficients
             return P({m: c._derivative(var)
-                      for (m, c) in iteritems(self.dict())})
+                      for (m, c) in self.dict().iteritems()})
 
         # compute formal derivative with respect to generator
         d = {}
-        for m, c in iteritems(self.dict()):
+        for m, c in self.dict().iteritems():
             if m[index] != 0:
                 new_m = [u for u in m]
                 new_m[index] += -1

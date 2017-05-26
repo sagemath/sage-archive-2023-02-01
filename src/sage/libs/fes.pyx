@@ -128,7 +128,7 @@ def exhaustive_search(eqs,  max_sols=Infinity, verbose=False):
 
         Using this function requires the optional package FES to be installed.
 
-    EXAMPLE:
+    EXAMPLES:
 
     A very simple example::
 

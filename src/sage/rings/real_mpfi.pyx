@@ -126,19 +126,11 @@ Comparison operations (``==``, ``!=``, ``<``, ``<=``, ``>``, ``>=``)
 return ``True`` if every value in the first interval has the given relation
 to every value in the second interval.
 
-The ``cmp(a, b)`` function works
-differently; it compares two intervals lexicographically. (However, the
-behavior is not specified if given a non-interval and an interval.)
-Note that ``cmp`` will disappear in Python3.
-
 This convention for comparison operators has good and bad points.  The
 good:
 
 - Expected transitivity properties hold (if ``a > b`` and ``b == c``, then
   ``a > c``; etc.)
-
-- if ``a > b``, then ``cmp(a, b) == 1``; if ``a == b``, then ``cmp(a,b) == 0``;
-  if ``a < b``, then ``cmp(a, b) == -1``
 
 - ``a == 0`` is true if the interval contains only the floating-point number
   0; similarly for ``a == 1``
@@ -151,16 +143,20 @@ The bad:
 - Trichotomy fails to hold: there are values ``(a,b)`` such that none of
   ``a < b``, ``a == b``, or ``a > b`` are true
 
-- It is not the case that if ``cmp(a, b) == 0`` then ``a == b``, or that if
-  ``cmp(a, b) == 1`` then ``a > b``, or that if ``cmp(a, b) == -1`` then
-  ``a < b``
-
 - There are values ``a`` and ``b`` such that ``a <= b`` but neither ``a < b``
+  nor ``a == b`` hold.
+
+- There are values ``a`` and ``b`` such that neither ``a != b``
   nor ``a == b`` hold.
 
 .. NOTE::
 
     Intervals ``a`` and ``b`` overlap iff ``not(a != b)``.
+
+.. WARNING::
+
+    The ``cmp(a, b)`` function should not be used to compare real
+    intervals. Note that ``cmp`` will disappear in Python3.
 
 EXAMPLES::
 
@@ -176,14 +172,6 @@ EXAMPLES::
     True
     sage: not(0 < RIF(0, 1))
     True
-    sage: cmp(RIF(0), RIF(0, 1))
-    -1
-    sage: cmp(RIF(0, 1), RIF(0))
-    1
-    sage: cmp(RIF(0, 1), RIF(1))
-    -1
-    sage: cmp(RIF(0, 1), RIF(0, 1))
-    0
 
 Comparison with infinity is defined through coercion to the infinity
 ring where semi-infinite intervals are sent to their central value
@@ -213,6 +201,19 @@ interval coerces to plus infinity::
     sage: RIF(-oo,oo) == oo
     True
 
+If you want to compare two intervals lexicographically, you can use the
+method ``lexico_cmp``. However, the behavior of this method is not
+specified if given a non-interval and an interval::
+
+    sage: RIF(0).lexico_cmp(RIF(0, 1))
+    -1
+    sage: RIF(0, 1).lexico_cmp(RIF(0))
+    1
+    sage: RIF(0, 1).lexico_cmp(RIF(1))
+    -1
+    sage: RIF(0, 1).lexico_cmp(RIF(0, 1))
+    0
+
 TESTS:
 
 Comparisons with numpy types are right (see :trac:`17758` and :trac:`18076`)::
@@ -239,19 +240,19 @@ Comparisons with numpy types are right (see :trac:`17758` and :trac:`18076`)::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
 
 import math # for log
 import sys
 import operator
 
 include "cysignals/signals.pxi"
-include "sage/ext/cdefs.pxi"
 from cpython.mem cimport *
-from cpython.string cimport *
 from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_LE, Py_GT, Py_GE
+from libc.string cimport strlen
 
+from sage.libs.gmp.mpz cimport *
 cimport sage.rings.ring
 cimport sage.structure.element
 from sage.structure.element cimport RingElement, Element, ModuleElement
@@ -672,7 +673,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         Type: RealIntervalField? for more information.
         """
         if not y is None:
-            x = (x,y)
+            x = (x, y)
         return RealIntervalFieldElement(self, x, base)
 
     def algebraic_closure(self):
@@ -865,7 +866,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
         """
         Return a list of generators.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: RIF.gens()
             [1]
@@ -1147,6 +1148,11 @@ cdef class RealIntervalFieldElement(RingElement):
             TypeError: Cannot convert sage.rings.integer_ring.IntegerRing_class to sage.rings.real_mpfi.RealIntervalField_class
             sage: RealIntervalFieldElement.__new__(RealIntervalFieldElement, RIF)
             [.. NaN ..]
+
+        Equality ``x == x`` does not hold unless ``x`` is exact::
+
+            sage: x = RIF(4.5, 4.6)
+            sage: TestSuite(x).run(skip=["_test_eq", "_test_pickling"])
         """
         cdef RealIntervalField_class p = <RealIntervalField_class?>parent
         mpfi_init2(self.value, p.__prec)
@@ -1256,11 +1262,11 @@ cdef class RealIntervalFieldElement(RingElement):
         EXAMPLES::
 
             sage: a = RIF(5,5.5)
-            sage: cmp(loads(dumps(a)), a)
+            sage: loads(dumps(a)).lexico_cmp(a)
             0
             sage: R = RealIntervalField(sci_not=1, prec=200)
             sage: b = R('393.39203845902384098234098230948209384028340')
-            sage: cmp(loads(dumps(b)), b)
+            sage: loads(dumps(b)).lexico_cmp(b)
             0
             sage: b = R(1)/R(0); b # R(0) has no particular sign, thus 1/R(0) covers the whole reals
             [-infinity .. +infinity]
@@ -1274,7 +1280,7 @@ cdef class RealIntervalFieldElement(RingElement):
             True
             sage: b = R('[2 .. 3]'); b.str(error_digits=1)
             '2.5?5e0'
-            sage: cmp(loads(dumps(b)), b)
+            sage: loads(dumps(b)).lexico_cmp(b)
             0
             sage: R = RealIntervalField(4000)
             sage: s = 1/R(3)
@@ -1440,7 +1446,7 @@ cdef class RealIntervalFieldElement(RingElement):
 
         (Since this interval is real, this simply returns itself.)
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             :meth:`imag`
 
@@ -1902,7 +1908,7 @@ cdef class RealIntervalFieldElement(RingElement):
                 sig_on()
                 mpz_get_str(zz_str, base, self_zz)
                 sig_off()
-                v = PyString_FromString(zz_str)
+                v = str(zz_str)
                 PyMem_Free(zz_str)
                 return v
 
@@ -2121,10 +2127,10 @@ cdef class RealIntervalFieldElement(RingElement):
         digits = strlen(tmp_cstr)
         if tmp_cstr[0] == '-':
             digits -= 1
-            mant_string = <object> PyString_FromString(tmp_cstr+1)
+            mant_string = str(tmp_cstr+1)
             sign_string = '-'
         else:
-            mant_string = <object> PyString_FromString(tmp_cstr)
+            mant_string = str(tmp_cstr)
             sign_string = ''
         PyMem_Free(tmp_cstr)
 
@@ -2135,7 +2141,7 @@ cdef class RealIntervalFieldElement(RingElement):
             if tmp_cstr == NULL:
                 raise MemoryError("Unable to allocate memory for the error of an interval")
             mpz_get_str(tmp_cstr, 10, cur_error)
-            error_string = <object> PyString_FromString(tmp_cstr)
+            error_string = str(tmp_cstr)
             PyMem_Free(tmp_cstr)
 
         mpz_clear(lower_mpz)
@@ -2970,7 +2976,7 @@ cdef class RealIntervalFieldElement(RingElement):
         r"""
         Return the nearest integer of this interval as an interval
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             - :meth:`unique_round` -- return the round as an integer if it is
               unique and raises a ``ValueError`` otherwise
@@ -3371,7 +3377,7 @@ cdef class RealIntervalFieldElement(RingElement):
         Return the nearest integer toward zero if it is unique, otherwise raise
         a ``ValueError``.
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             :meth:`trunc` -- return the truncation as an interval (and never
             raise error)
@@ -3548,10 +3554,10 @@ cdef class RealIntervalFieldElement(RingElement):
 
     cpdef _richcmp_(left, right, int op):
         """
-        Implements comparisons between intervals.
+        Implement comparisons between intervals.
 
-        (See the file header
-        comment for more information on interval comparison.)
+        See the file header comment for more information on interval
+        comparison.
 
         EXAMPLES::
 
@@ -3761,32 +3767,35 @@ cdef class RealIntervalFieldElement(RingElement):
         """
         return not (mpfr_zero_p(&self.value.left) and mpfr_zero_p(&self.value.right))
 
-    cpdef int _cmp_(left, right) except -2:
+    def lexico_cmp(left, right):
         """
         Compare two intervals lexicographically.
+
+        This means that the left bounds are compared first and then
+        the right bounds are compared if the left bounds coincide.
 
         Return 0 if they are the same interval, -1 if the second is larger,
         or 1 if the first is larger.
 
         EXAMPLES::
 
-            sage: cmp(RIF(0), RIF(1))
+            sage: RIF(0).lexico_cmp(RIF(1))
             -1
-            sage: cmp(RIF(0, 1), RIF(1))
+            sage: RIF(0, 1).lexico_cmp(RIF(1))
             -1
-            sage: cmp(RIF(0, 1), RIF(1, 2))
+            sage: RIF(0, 1).lexico_cmp(RIF(1, 2))
             -1
-            sage: cmp(RIF(0, 0.99999), RIF(1, 2))
+            sage: RIF(0, 0.99999).lexico_cmp(RIF(1, 2))
             -1
-            sage: cmp(RIF(1, 2), RIF(0, 1))
+            sage: RIF(1, 2).lexico_cmp(RIF(0, 1))
             1
-            sage: cmp(RIF(1, 2), RIF(0))
+            sage: RIF(1, 2).lexico_cmp(RIF(0))
             1
-            sage: cmp(RIF(0, 1), RIF(0, 2))
+            sage: RIF(0, 1).lexico_cmp(RIF(0, 2))
             -1
-            sage: cmp(RIF(0, 1), RIF(0, 1))
+            sage: RIF(0, 1).lexico_cmp(RIF(0, 1))
             0
-            sage: cmp(RIF(0, 1), RIF(0, 1/2))
+            sage: RIF(0, 1).lexico_cmp(RIF(0, 1/2))
             1
         """
         cdef RealIntervalFieldElement lt, rt
@@ -3807,6 +3816,22 @@ cdef class RealIntervalFieldElement(RingElement):
             return 1
         else:
             return 0
+
+    cpdef int _cmp_(self, other) except -2:
+        """
+        Deprecated method (:trac:`22907`)
+
+        EXAMPLES::
+
+            sage: a = RIF(1)
+            sage: a.__cmp__(a)
+            doctest:...: DeprecationWarning: for RIF elements, do not use cmp
+            See http://trac.sagemath.org/22907 for details.
+            0
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(22907, 'for RIF elements, do not use cmp')
+        return self.lexico_cmp(other)
 
     def __contains__(self, other):
         """

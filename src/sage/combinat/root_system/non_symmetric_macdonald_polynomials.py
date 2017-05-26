@@ -1814,7 +1814,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
         # nonsymmetric Macdonald polynomial of the dominant weight mu
         # by searching the Weyl orbit of mu and remembering
         Torbit = {}
-        for c in mu.orbit():
+        for c in mu._orbit_iter():
             i = c.first_descent()
             if i is None:
                 Torbit[c] = self[mu] # the nonsymmetric Macdonald polynomial of mu
@@ -1822,3 +1822,4 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
                 Torbit[c] = v * self._T.Tw([i])(Torbit[c.simple_reflection(i)])
             s = s + Torbit[c]
         return s
+

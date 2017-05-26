@@ -201,7 +201,7 @@ class _Coordinates(object):
          - ``params`` - The parameters of func. Corresponds to the dependent
            variables.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.plot.plot3d.plot3d import _ArbitraryCoordinates
             sage: x, y, z = var('x y z')
@@ -260,10 +260,10 @@ class _Coordinates(object):
             sage: v_phi=array([ 0.,  1.57079637,  3.14159274, 4.71238911,  6.28318548])
             sage: v_theta=array([ 0.,  0.78539819,  1.57079637,  2.35619456,  3.14159274])
             sage: m_r=array([[ 0.16763356,  0.25683223,  0.16649297,  0.10594339, 0.55282422],
-            ... [ 0.16763356,  0.19993708,  0.31403568,  0.47359696, 0.55282422],
-            ... [ 0.16763356,  0.25683223,  0.16649297,  0.10594339, 0.55282422],
-            ... [ 0.16763356,  0.19993708,  0.31403568,  0.47359696, 0.55282422],
-            ... [ 0.16763356,  0.25683223,  0.16649297,  0.10594339, 0.55282422]])
+            ....: [ 0.16763356,  0.19993708,  0.31403568,  0.47359696, 0.55282422],
+            ....: [ 0.16763356,  0.25683223,  0.16649297,  0.10594339, 0.55282422],
+            ....: [ 0.16763356,  0.19993708,  0.31403568,  0.47359696, 0.55282422],
+            ....: [ 0.16763356,  0.25683223,  0.16649297,  0.10594339, 0.55282422]])
             sage: import scipy.interpolate
             sage: f=scipy.interpolate.RectBivariateSpline(v_phi,v_theta,m_r)
             sage: spherical_plot3d(f,(0,2*pi),(0,pi))
@@ -416,7 +416,7 @@ class _ArbitraryCoordinates(_Coordinates):
 
     def transform(self, **kwds):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.plot.plot3d.plot3d import _ArbitraryCoordinates
             sage: x, y, z = var('x y z')
@@ -488,7 +488,7 @@ class Spherical(_Coordinates):
         """
         A spherical coordinates transform.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: T = Spherical('radius', ['azimuth', 'inclination'])
             sage: T.transform(radius=var('r'), azimuth=var('theta'), inclination=var('phi'))
@@ -601,7 +601,7 @@ class SphericalElevation(_Coordinates):
         """
         A spherical elevation coordinates transform.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: T = SphericalElevation('radius', ['azimuth', 'elevation'])
             sage: T.transform(radius=var('r'), azimuth=var('theta'), elevation=var('phi'))
@@ -671,7 +671,7 @@ class Cylindrical(_Coordinates):
         """
         A cylindrical coordinates transform.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: T = Cylindrical('height', ['azimuth', 'radius'])
             sage: T.transform(radius=var('r'), azimuth=var('theta'), height=var('z'))
@@ -756,7 +756,7 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
 
     -  ``adaptive`` - (default: False) whether to use
        adaptive refinement to draw the plot (slower, but may look better).
-       This option does NOT work in conjuction with a transformation
+       This option does NOT work in conjunction with a transformation
        (see below).
 
     -  ``mesh`` - bool (default: False) whether to display
@@ -965,7 +965,7 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
         sage: D = plot3d(2,(u,-pi,pi),(v,0,pi),transformation=cylindric_axial,plot_points=[100,100])
         sage: E = plot3d(2,(u,-pi,pi),(v,-pi,pi),transformation=parabolic_cylindrical,plot_points=[100,100])
         sage: @interact
-        ... def _(which_plot=[A,B,C,D,E]):
+        ....: def _(which_plot=[A,B,C,D,E]):
         ....:     show(which_plot)
         <html>...
 
@@ -978,7 +978,7 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
         sage: I = plot3d(g,(u,-pi,pi),(v,0,pi),transformation=cylindric_axial,plot_points=[100,100])
         sage: J = plot3d(g,(u,-pi,pi),(v,0,pi),transformation=parabolic_cylindrical,plot_points=[100,100])
         sage: @interact
-        ... def _(which_plot=[F, G, H, I, J]):
+        ....: def _(which_plot=[F, G, H, I, J]):
         ....:     show(which_plot)
         <html>...
 

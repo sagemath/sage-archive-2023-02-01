@@ -124,7 +124,7 @@ class FreeModuleLinearGroup(UniqueRepresentation, Parent):
         sage: a.display(e)
         e_0*e^0 - e_1*e^1 + e_2*e^2
         sage: type(a)
-        <class 'sage.tensor.modules.free_module_automorphism.FreeModuleLinearGroup_with_category.element_class'>
+        <class 'sage.tensor.modules.free_module_linear_group.FreeModuleLinearGroup_with_category.element_class'>
 
     As for any group, the identity element is obtained by the method
     :meth:`one`::
@@ -521,7 +521,7 @@ class FreeModuleLinearGroup(UniqueRepresentation, Parent):
         r"""
         Return a string representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 2, name='M')
             sage: GL = M.general_linear_group()
@@ -535,7 +535,7 @@ class FreeModuleLinearGroup(UniqueRepresentation, Parent):
         r"""
         Return a string representation of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 2, name='M')
             sage: GL = M.general_linear_group()
@@ -556,7 +556,7 @@ class FreeModuleLinearGroup(UniqueRepresentation, Parent):
         - instance of :class:`FiniteRankFreeModule` representing the free
           module of which ``self`` is the general linear group
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 2, name='M')
             sage: GL = M.general_linear_group()

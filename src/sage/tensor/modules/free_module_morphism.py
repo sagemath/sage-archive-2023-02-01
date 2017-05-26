@@ -118,7 +118,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
     is a derived class of :class:`FiniteRankFreeModuleMorphism`::
 
         sage: type(phi)
-        <class 'sage.tensor.modules.free_module_morphism.FreeModuleHomset_with_category_with_equality_by_id.element_class'>
+        <class 'sage.tensor.modules.free_module_homset.FreeModuleHomset_with_category_with_equality_by_id.element_class'>
         sage: isinstance(phi, sage.tensor.modules.free_module_morphism.FiniteRankFreeModuleMorphism)
         True
 
@@ -734,7 +734,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         - an exact copy of ``self``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: N = FiniteRankFreeModule(ZZ, 2, name='N')
@@ -771,7 +771,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         - the homomorphism `-f`, where `f` is ``self``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: N = FiniteRankFreeModule(ZZ, 2, name='N')
@@ -816,7 +816,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         - the image of ``element`` by ``self``
 
-        EXAMPLE:
+        EXAMPLES:
 
         Images of a homomorphism between two `\ZZ`-modules::
 
@@ -962,7 +962,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
         - ``True`` if ``self`` is a surjective homomorphism and ``False``
           otherwise
 
-        EXAMPLE:
+        EXAMPLES:
 
         This method has not been implemented yet::
 

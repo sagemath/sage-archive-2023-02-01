@@ -826,7 +826,7 @@ cdef class CRElement(pAdicTemplateElement):
         an equal element with precision set to the minimum of ``self's``
         precision and ``absprec``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = Zp(7,4,'capped-rel','series'); a = R(8); a.add_bigoh(1)
             1 + O(7)
@@ -1403,7 +1403,7 @@ cdef class CRElement(pAdicTemplateElement):
         """
         if exactzero(self.ordp):
             return infinity
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         mpz_set_si(ans.value, self.ordp + self.relprec)
         return ans
 
@@ -1429,8 +1429,8 @@ cdef class CRElement(pAdicTemplateElement):
             0
             sage: R(0,7).precision_relative()
             0
-       """
-        cdef Integer ans = PY_NEW(Integer)
+        """
+        cdef Integer ans = Integer.__new__(Integer)
         mpz_set_si(ans.value, self.relprec)
         return ans
 
@@ -1528,7 +1528,7 @@ cdef class CRElement(pAdicTemplateElement):
             raise ValueError('Ring (%s) residue field of the wrong characteristic.'%self.parent())
         if exactzero((<CRElement>self).ordp):
             raise ValueError("unit part of 0 not defined")
-        cdef Integer val = PY_NEW(Integer)
+        cdef Integer val = Integer.__new__(Integer)
         mpz_set_si(val.value, (<CRElement>self).ordp)
         cdef CRElement unit = (<CRElement>self)._new_c()
         unit.ordp = 0
@@ -1761,7 +1761,7 @@ cdef class pAdicConvert_CR_ZZ(RingMap):
             ...
             ValueError: negative valuation
         """
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         cdef CRElement x = _x
         if x.relprec != 0:
             cconv_mpz_t_out(ans.value, x.unit, x.ordp, x.relprec, x.prime_pow)

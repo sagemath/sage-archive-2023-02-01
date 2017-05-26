@@ -180,11 +180,14 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
-include 'sage/groups/perm_gps/partn_ref/data_structures_pyx.pxi'
+from __future__ import absolute_import, print_function
 
 from copy import copy
+
+from sage.groups.perm_gps.partn_ref.data_structures cimport *
+include "sage/data_structures/bitset.pxi"
+
 
 cdef tuple PS_refinement(PartitionStack * part, long *refine_vals, long *best,
                          int begin, int end,
@@ -793,7 +796,7 @@ cdef class PartitionRefinement_generic:
          - if the inner group has changed -> sets ``inner_group_changed`` to True
          - if the partition has changed -> sets ``changed_partition`` to True
 
-         The string ``refine_name`` is only neccessary for printing within the
+         The string ``refine_name`` is only necessary for printing within the
          latex output (if activated).
         """
         cdef tuple res = PS_refinement(self._part, self._refine_vals_scratch, best, begin, end,
@@ -823,7 +826,7 @@ cdef class PartitionRefinement_generic:
 
     cdef void _leaf_computations(self):
         r"""
-        All neccessary computations which have to be performed in a leaf.
+        All necessary computations which have to be performed in a leaf.
 
         There are to possibilities depending on the flag
         ``self._is_candidate_initialized``:

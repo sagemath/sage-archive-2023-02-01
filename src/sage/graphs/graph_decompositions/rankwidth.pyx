@@ -75,7 +75,7 @@ from the smaller of the two and its complement.
       it to us, what we need is some information on the hardware you run to know
       where it comes from !
 
-EXAMPLE::
+EXAMPLES::
 
         sage: g = graphs.PetersenGraph()
         sage: g.rank_decomposition()
@@ -150,7 +150,7 @@ def rank_decomposition(G, verbose = False):
     numerical value and ``decomposition_tree`` is a ternary tree describing the
     decomposition (cf. the module's documentation).
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.rankwidth import rank_decomposition
         sage: g = graphs.PetersenGraph()
@@ -298,7 +298,7 @@ def mkgraph(int num_vertices):
 
     (This function is for internal use)
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.graph_decompositions.rankwidth import rank_decomposition
         sage: g = graphs.PetersenGraph()

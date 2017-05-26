@@ -15,7 +15,7 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six import iteritems
+from six import iteritems, string_types
 from six.moves import cPickle
 
 import os
@@ -26,6 +26,7 @@ import sage.repl.preparse
 
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.structure.sage_object import dumps, load
+from sage.docs.instancedoc import instancedoc
 
 
 class Sage(ExtraTabCompletion, Expect):
@@ -231,7 +232,7 @@ class Sage(ExtraTabCompletion, Expect):
             else:
                 return self(x.sage())
 
-        if isinstance(x, str):
+        if isinstance(x, string_types):
             return SageElement(self, x)
 
         if self.is_local():
@@ -397,6 +398,7 @@ class Sage(ExtraTabCompletion, Expect):
         return SageElement(self, x)
 
 
+@instancedoc
 class SageElement(ExpectElement):
 
     def _rich_repr_(self, display_manager, **kwds):
@@ -447,7 +449,7 @@ class SageElement(ExpectElement):
         """
         Return local copy of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sr = mq.SR(allow_zero_inversions=True)
             sage: F,s = sr.polynomial_system()
@@ -464,6 +466,7 @@ class SageElement(ExpectElement):
             return load(P._local_tmpfile())
 
 
+@instancedoc
 class SageFunction(FunctionElement):
     def __call__(self, *args, **kwds):
         """
@@ -488,7 +491,7 @@ class SageFunction(FunctionElement):
             callstr = '%s.%s()' % (self._obj._name, self._name)
         return SageElement(P, callstr)
 
-    def __repr__(self):
+    def _repr_(self):
         """
         EXAMPLES::
 

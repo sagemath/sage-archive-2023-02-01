@@ -307,7 +307,7 @@ def isogenies_prime_degree_genus_0(E, l=None):
         t_list = sorted((f-j*t).roots(multiplicities=False))
         # The generic kernel polynomial applies to a standard curve
         # E_t with the correct j-invariant; we must compute the
-        # appropriate twising factor to scale X by:
+        # appropriate twisting factor to scale X by:
         c4, c6 = E.c_invariants()
         T = c4/(3*c6)
         jt = Fricke_module(l)
@@ -2032,7 +2032,7 @@ def isogenies_prime_degree_general(E, l):
     # This function permutes the factors of a given degree, replacing
     # the factor with roots alpha with the one whose roots are
     # m(alpha), where m(x) is the rational function giving the
-    # multiplcation-by-a map on the X-coordinates.  Here, a is a
+    # multiplication-by-a map on the X-coordinates.  Here, a is a
     # generator for (Z/lZ)^* / <-1> (a so-called semi-primitive root).
     def mult(g):
         # Find f such that f(m) = 0 mod g

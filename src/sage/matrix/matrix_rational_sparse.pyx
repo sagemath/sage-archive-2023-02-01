@@ -14,20 +14,25 @@ TESTS::
     []
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
+
 from __future__ import absolute_import
+
+from cysignals.signals cimport sig_on, sig_off
+from cysignals.memory cimport sig_malloc, sig_free
 
 from sage.data_structures.binary_search cimport *
 from sage.modules.vector_integer_sparse cimport *
 from sage.modules.vector_rational_sparse cimport *
 
-include 'sage/ext/stdsage.pxi'
-include "cysignals/signals.pxi"
 from cpython.sequence cimport *
 
 from sage.rings.rational cimport Rational
@@ -333,7 +338,7 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
 
         It is safe to change the resulting list (unless you give the option copy=False).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Matrix(QQ, [[0,0,0,1,0,0,0,0],[0,1,0,0,0,0,1,0]], sparse=True); M
             [0 0 0 1 0 0 0 0]
@@ -375,8 +380,7 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
             sage: b.height()
             5007
         """
-        cdef Integer z
-        z = PY_NEW(Integer)
+        cdef Integer z = Integer.__new__(Integer)
         self.mpz_height(z.value)
         return z
 
@@ -431,8 +435,7 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
             sage: b.denominator()
             293
         """
-        cdef Integer z
-        z = PY_NEW(Integer)
+        cdef Integer z = Integer.__new__(Integer)
         self.mpz_denom(z.value)
         return z
 

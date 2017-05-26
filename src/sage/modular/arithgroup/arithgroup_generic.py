@@ -33,7 +33,7 @@ def is_ArithmeticSubgroup(x):
     r"""
     Return True if x is of type ArithmeticSubgroup.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.modular.arithgroup.all import is_ArithmeticSubgroup
         sage: is_ArithmeticSubgroup(GL(2, GF(7)))
@@ -59,7 +59,7 @@ class ArithmeticSubgroup(Group):
         r"""
         Standard init routine.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = Gamma1(7)
             sage: G.category() # indirect doctest
@@ -180,7 +180,7 @@ class ArithmeticSubgroup(Group):
         determinant 1, is an element of self. This must be overridden by all
         subclasses.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup()
             sage: 1 in G
@@ -210,7 +210,7 @@ class ArithmeticSubgroup(Group):
         Check whether this group is a valid parent for the element x. Required
         by Sage's testing framework.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma(3).is_parent_of(ZZ(1))
             False
@@ -622,7 +622,7 @@ class ArithmeticSubgroup(Group):
         r"""
         Return the smallest even subgroup of `SL(2, \ZZ)` containing self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sage.modular.arithgroup.arithgroup_generic.ArithmeticSubgroup().to_even_subgroup()
             Traceback (most recent call last):
@@ -756,7 +756,7 @@ class ArithmeticSubgroup(Group):
         If trans = False, returns True or False. If trans = True, then return
         either False or an element of self mapping x onto y.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma0(7).are_equivalent(Cusp(1/3), Cusp(0), trans=True)
             [  3  -1]
@@ -882,7 +882,7 @@ class ArithmeticSubgroup(Group):
         generalised level. See the paper by Kiming, Schuett and Verrill for
         more examples.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma0(18).generalised_level()
             18
@@ -910,7 +910,7 @@ class ArithmeticSubgroup(Group):
         This is equal to the degree of the natural map from the modular curve
         of self to the `j`-line.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma0(5).projective_index()
             6
@@ -927,7 +927,7 @@ class ArithmeticSubgroup(Group):
         r"""
         Return True if self is a congruence subgroup.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma0(5).is_congruence()
             True
@@ -969,7 +969,7 @@ class ArithmeticSubgroup(Group):
         :mod:`~sage.modular.arithgroup.farey_symbol` module for more
         information.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma1(4).farey_symbol()
             FareySymbol(Congruence Subgroup Gamma1(4))
@@ -996,7 +996,7 @@ class ArithmeticSubgroup(Group):
         slow for general subgroups, and the list of generators will be far from
         minimal (indeed it may contain repetitions).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma(2).generators()
             [
@@ -1125,7 +1125,7 @@ class ArithmeticSubgroup(Group):
         than the degree of the canonical divisor). Otherwise a
         NotImplementedError is raised.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma1(31).dimension_modular_forms(2)
             55
@@ -1181,7 +1181,7 @@ class ArithmeticSubgroup(Group):
         the degree of the canonical divisor). Otherwise a NotImplementedError is
         raised.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma1(31).dimension_cusp_forms(2)
             26

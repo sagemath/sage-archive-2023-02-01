@@ -3,6 +3,7 @@ S-Boxes and Their Algebraic Representations
 """
 from __future__ import print_function, division
 from six.moves import range
+from six import integer_types
 
 from sage.combinat.integer_vector import IntegerVectors
 from sage.crypto.boolean_function import BooleanFunction
@@ -31,7 +32,7 @@ class SBox(SageObject):
     This module implements an S-box class which allows an algebraic
     treatment and determine various cryptographic properties.
 
-    EXAMPLE:
+    EXAMPLES:
 
     We consider the S-box of the block cipher PRESENT [PRESENT07]_::
 
@@ -91,7 +92,7 @@ class SBox(SageObject):
         - ``big_endian`` - controls whether bits shall be ordered in
           big endian order (default: ``True``)
 
-        EXAMPLE:
+        EXAMPLES:
 
         We construct a 3-bit S-box where e.g. the bits (0,0,1) are
         mapped to (1,1,1).::
@@ -145,7 +146,7 @@ class SBox(SageObject):
 
     def _repr_(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: mq.SBox(7,6,0,4,2,5,1,3) #indirect doctest
             (7, 6, 0, 4, 2, 5, 1, 3)
@@ -156,7 +157,7 @@ class SBox(SageObject):
         """
         Return the length of input bit strings.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: len(mq.SBox(7,6,0,4,2,5,1,3))
             3
@@ -168,7 +169,7 @@ class SBox(SageObject):
         S-boxes are considered to be equal if all construction
         parameters match.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: loads(dumps(S)) == S
@@ -181,7 +182,7 @@ class SBox(SageObject):
         S-boxes are considered to be equal if all construction
         parameters match.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: S != S
@@ -200,7 +201,7 @@ class SBox(SageObject):
 
         - ``n`` - bit length (optional)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: S.to_bits(6)
@@ -231,7 +232,7 @@ class SBox(SageObject):
 
         - ``n`` - bit length (optional)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: S.from_bits( [1,1,0])
@@ -256,7 +257,7 @@ class SBox(SageObject):
         """
         Right pads ``x`` such that ``len(x) == n``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: S._rpad([1,1])
@@ -280,7 +281,7 @@ class SBox(SageObject):
           `\GF{2^n}`. As a last resort this function tries to convert
           ``X`` to an integer.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox([7,6,0,4,2,5,1,3])
             sage: S(7)
@@ -318,7 +319,7 @@ class SBox(SageObject):
             sage: S([0,0,0])
             [1, 1]
         """
-        if isinstance(X, (int, long, Integer)):
+        if isinstance(X, integer_types + (Integer,)):
             return self._S[ZZ(X)]
 
         try:
@@ -364,7 +365,7 @@ class SBox(SageObject):
         """
         See  :meth:`SBox.__call__`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox([7,6,0,4,2,5,1,3])
             sage: S[7]
@@ -376,7 +377,7 @@ class SBox(SageObject):
         r"""
         Return ``True`` if this S-Box is a permutation.
 
-        EXAMPLE::
+        EXAMPLES::
 
              sage: S = mq.SBox(7,6,0,4,2,5,1,3)
              sage: S.is_permutation()
@@ -392,7 +393,7 @@ class SBox(SageObject):
 
     def __iter__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: [e for e in S]
@@ -415,7 +416,7 @@ class SBox(SageObject):
         See [He2002]_ for an introduction to differential
         cryptanalysis.
 
-        EXAMPLE::
+        EXAMPLES::
 
            sage: S = mq.SBox(7,6,0,4,2,5,1,3)
            sage: S.difference_distribution_matrix()
@@ -451,7 +452,7 @@ class SBox(SageObject):
         Equivalently, this is equal to the differential uniformity
         of this S-Box.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: S.maximal_difference_probability_absolute()
@@ -471,7 +472,7 @@ class SBox(SageObject):
         highest probability in the range between 0.0 and 1.0
         indicating 0\% or 100\% respectively.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: S.maximal_difference_probability()
@@ -492,7 +493,7 @@ class SBox(SageObject):
 
         See [He2002]_ for an introduction to linear cryptanalysis.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: S.linear_approximation_matrix()
@@ -543,7 +544,7 @@ class SBox(SageObject):
         approximation with the highest bias is true or false minus
         `2^{n-1}`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: S.maximal_linear_bias_absolute()
@@ -558,7 +559,7 @@ class SBox(SageObject):
         Return maximal bias of all linear approximations of this
         S-box.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: S.maximal_linear_bias_relative()
@@ -571,7 +572,7 @@ class SBox(SageObject):
         Create, return and cache a polynomial ring for S-box
         polynomials.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: S.ring()
@@ -600,7 +601,7 @@ class SBox(SageObject):
 
         - ``Y`` - output variables (default: ``None``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox([7,6,0,4,2,5,1,3])
             sage: F = S.polynomials()
@@ -774,7 +775,7 @@ class SBox(SageObject):
 
         - ``k`` - an instance of `\GF{2^m}` (default: ``None``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: S = mq.SBox(7,6,0,4,2,5,1,3)
             sage: f = S.interpolation_polynomial()
@@ -840,7 +841,7 @@ class SBox(SageObject):
         - ``dimacs_headless`` - a string in DIMACS format, but without
           the header. This is useful for concatenation of outputs.
 
-        EXAMPLE:
+        EXAMPLES:
 
         We give a very small example to explain the output format::
 
@@ -1025,7 +1026,7 @@ class SBox(SageObject):
         n = self.n
         ret = BooleanFunction(m)
 
-        if isinstance(b, (int, long, Integer)):
+        if isinstance(b, integer_types + (Integer,)):
             b = vector(GF(2), self.to_bits(b, n))
         elif len(b) == n:
             b = vector(GF(2), b)

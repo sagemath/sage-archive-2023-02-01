@@ -37,7 +37,7 @@ category of toric varieties and toric morphisms.
 .. note::
 
     Do not create the toric morphisms (or any morphism of schemes)
-    directly from the the ``SchemeMorphism...`` classes. Instead, use the
+    directly from the ``SchemeMorphism...`` classes. Instead, use the
     :meth:`~sage.schemes.generic.scheme.hom` method common to all
     algebraic schemes to create new homomorphisms.
 

@@ -34,6 +34,16 @@ class Function_sin(GinacFunction):
             sage: a = sin(0,hold=True); a.simplify()
             0
 
+        If possible, the argument is also reduced modulo the
+        period length `2\pi`, and well-known identities are
+        directly evaluated::
+
+            sage: k = var('k', domain='integer')
+            sage: sin(1 + 2*k*pi)
+            sin(1)
+            sage: sin(k*pi)
+            0
+
         TESTS::
 
             sage: conjugate(sin(x))
@@ -141,6 +151,18 @@ class Function_cos(GinacFunction):
             sage: a = cos(0,hold=True); a.simplify()
             1
 
+        If possible, the argument is also reduced modulo the
+        period length `2\pi`, and well-known identities are
+        directly evaluated::
+
+            sage: k = var('k', domain='integer')
+            sage: cos(1 + 2*k*pi)
+            cos(1)
+            sage: cos(k*pi)
+            cos(pi*k)
+            sage: cos(pi/3 + 2*k*pi)
+            1/2
+
         TESTS::
 
             sage: conjugate(cos(x))
@@ -192,6 +214,16 @@ class Function_tan(GinacFunction):
 
             sage: a = tan(pi/4,hold=True); a.simplify()
             1
+
+        If possible, the argument is also reduced modulo the
+        period length `\pi`, and well-known identities are
+        directly evaluated::
+
+            sage: k = var('k', domain='integer')
+            sage: tan(1 + 2*k*pi)
+            tan(1)
+            sage: tan(k*pi)
+            0
 
         TESTS::
 
@@ -497,6 +529,13 @@ class Function_arcsin(GinacFunction):
             arcsin
             sage: asin(complex(1,1))
             (0.6662394324925152+1.0612750619050357j)
+
+        Check that :trac:`22823` is fixed::
+
+            sage: bool(asin(SR(2.1)) == NaN)
+            True
+            sage: asin(SR(2.1)).is_real()
+            False
         """
         GinacFunction.__init__(self, 'arcsin', latex_name=r"\arcsin",
                 conversions=dict(maxima='asin', sympy='asin', fricas="asin"))
@@ -556,6 +595,13 @@ class Function_arccos(GinacFunction):
             arccos
             sage: acos(complex(1,1))
             (0.9045568943023814-1.0612750619050357j)
+
+        Check that :trac:`22823` is fixed::
+
+            sage: bool(acos(SR(2.1)) == NaN)
+            True
+            sage: acos(SR(2.1)).is_real()
+            False
         """
         GinacFunction.__init__(self, 'arccos', latex_name=r"\arccos",
                 conversions=dict(maxima='acos', sympy='acos', fricas='acos'))

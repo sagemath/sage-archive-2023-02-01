@@ -14,7 +14,7 @@ Pynac interface
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, division, print_function
 
 from cpython cimport *
 from libc cimport math
@@ -29,7 +29,7 @@ from sage.libs.pari.all import pari
 
 from sage.arith.all import gcd, lcm, is_prime, factorial, bernoulli
 
-from sage.structure.element cimport Element, parent
+from sage.structure.element cimport Element, parent, coercion_model
 from sage.structure.sage_object import loads, dumps
 
 from sage.rings.integer_ring import ZZ
@@ -258,7 +258,7 @@ def get_fn_serial():
     Return the overall size of the Pynac function registry which
     corresponds to the last serial value plus one.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.libs.pynac.pynac import get_fn_serial
         sage: from sage.symbolic.function import get_sfunction_from_serial
@@ -1784,31 +1784,54 @@ cdef py_atan2(x, y):
 
         sage: plot(real(sqrt(x - 1.*I)), (x,0,1))
         Graphics object consisting of 1 graphics primitive
+
+    Check that :trac:`22553` is fixed::
+
+        sage: arctan2(1.5, -1.300000000000001)
+        2.284887025407...
+        sage: atan2(2.1000000000000000000000000000000000000, -1.20000000000000000000000000000000)
+        2.089942441041419571002776071...
+
+    Check that :trac:`22877` is fixed::
+
+        sage: atan2(CC(I), CC(I+1))
+        0.553574358897045 + 0.402359478108525*I
+        sage: atan2(CBF(I), CBF(I+1))
+        [0.55357435889705 +/- 5.75e-15] + [0.40235947810852 +/- 6.01e-15]*I
     """
     from sage.symbolic.constants import pi, NaN
-    P = parent(x)
-    if P is float and parent(y) is not float:
-        P = RR
-    assert P is parent(y)
+    from sage.rings.real_arb import RealBallField
+    from sage.rings.real_mpfr import RealField_class
+    P = coercion_model.common_parent(x, y)
+    is_real = False
     if P is ZZ:
         P = RR
-    pi_n = P(pi)
-    cdef int sgn_y
+    if (P is float
+            or parent(P) is RealField_class
+            or isinstance(P, RealBallField)):
+        is_real = True
     if y != 0:
-        sgn_y = -1 if y < 0 else 1
-        if x > 0:
-            return py_atan(abs(y/x)) * sgn_y
-        elif x == 0:
-            return pi_n/2 * sgn_y
+        try:
+            is_real = is_real or (x.is_real() and y.is_real())
+        except AttributeError:
+            is_real = False
+        if is_real:
+            if x > 0:
+                res = py_atan(abs(y/x))
+            elif x < 0:
+                res = P(pi) - py_atan(abs(y/x))
+            else:
+                res = P(pi)/2
+            return res if y > 0 else -res
         else:
-            return (pi_n - py_atan(abs(y/x))) * sgn_y
+            return -I*py_log((x + I*y)/py_sqrt(x**2 + y**2))
     else:
         if x > 0:
-            return 0
-        elif x == 0:
-            return P(NaN)
+            return P(0)
+        elif x < 0:
+            return P(pi)
         else:
-            return pi_n
+            return P(NaN)
 
 def py_atan2_for_doctests(x, y):
     """

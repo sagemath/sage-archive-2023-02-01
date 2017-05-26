@@ -387,7 +387,7 @@ cdef class Functor(SageObject):
         """
         The domain of self
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = ForgetfulFunctor(FiniteFields(),Fields())
             sage: F.domain()
@@ -400,7 +400,7 @@ cdef class Functor(SageObject):
         """
         The codomain of self
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = ForgetfulFunctor(FiniteFields(),Fields())
             sage: F.codomain()

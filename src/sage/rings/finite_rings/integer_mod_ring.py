@@ -1479,7 +1479,7 @@ In the latter case, please inform the developers.""".format(self.order()))
                     gens.append(x)
                     orders.append(o)
         elif algorithm == 'pari':
-            _, orders, gens = self.order()._pari_().znstar()
+            _, orders, gens = self.order().__pari__().znstar()
             gens = map(self, gens)
             orders = map(integer.Integer, orders)
         else:
@@ -1543,7 +1543,7 @@ In the latter case, please inform the developers.""".format(self.order()))
         """
         Return 1.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = Integers(12345678900)
             sage: R.degree()

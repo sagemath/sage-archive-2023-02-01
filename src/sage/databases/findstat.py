@@ -125,7 +125,7 @@ We first have to find out, what the maps and the statistic actually do::
     sage: print(list_f[0].code() + "\r\n" + list_f[1].code())               # optional -- internet,random
     def complement(elt):
         n = len(elt)
-        return elt.__class__(elt.parent(), map(lambda x: n - x + 1, elt) )
+        return elt.__class__(elt.parent(), [n - x + 1 for x in elt])
     <BLANKLINE>
     def increasing_tree_shape(elt, compare=min):
         return elt.increasing_tree(compare).shape()
@@ -168,7 +168,7 @@ Classes and methods
 #*****************************************************************************
 from __future__ import print_function
 from six.moves import range
-from six import iteritems
+from six import iteritems, add_metaclass, string_types
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element import Element
@@ -844,7 +844,8 @@ class FindStatStatistic(SageObject):
             raise ValueError("FindStatStatistic._query should be either 'ID' or 'data', but is %s.  This should not happen.  Please send an email to the developers." %self._query)
 
     def __eq__(self, other):
-        """Return ``True`` if ``self`` is equal to ``other`` and ``False``
+        """
+        Return ``True`` if ``self`` is equal to ``other`` and ``False``
         otherwise.
 
         INPUT:
@@ -897,7 +898,8 @@ class FindStatStatistic(SageObject):
             return False
 
     def __ne__(self, other):
-        """Determine whether ``other`` is a different query.
+        """
+        Determine whether ``other`` is a different query.
 
         INPUT:
 
@@ -908,9 +910,9 @@ class FindStatStatistic(SageObject):
 
         A boolean.
 
-        SEEALSO:
+        .. SEEALSO::
 
-        :meth:`__eq__`
+            :meth:`__eq__`
 
         EXAMPLES::
 
@@ -1811,6 +1813,8 @@ def _finite_irreducible_cartan_types_by_rank(n):
         cartan_types += [ CartanType(['G',n]) ]
     return cartan_types
 
+
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class FindStatCollection(Element):
     r"""
     A FindStat collection.
@@ -1851,13 +1855,10 @@ class FindStatCollection(Element):
         sage: FindStatCollection(DyckWords(2))                                  # optional -- internet
         Cc0005: Dyck paths
 
-    SEEALSO:
+    .. SEEALSO::
 
-    :class:`FindStatCollections`
-
+        :class:`FindStatCollections`
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, entry):
         """
@@ -2441,7 +2442,7 @@ class FindStatCollections(Parent, UniqueRepresentation):
         if isinstance(entry, FindStatCollection):
             return entry
 
-        if isinstance(entry, (str, unicode)):
+        if isinstance(entry, string_types):
             # find by name in _findstat_collections
             for (id, c) in iteritems(self._findstat_collections):
                 if entry.upper() in (c[0].upper(), c[1].upper(), c[2].upper()):
@@ -2514,6 +2515,8 @@ class FindStatCollections(Parent, UniqueRepresentation):
 
     Element = FindStatCollection
 
+
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class FindStatMap(Element):
     r"""
     A FindStat map.
@@ -2539,13 +2542,11 @@ class FindStatMap(Element):
         sage: FindStatMap("descent composition")                                # optional -- internet
         Mp00071: descent composition
 
-    SEEALSO:
+    .. SEEALSO::
 
-    :class:`FindStatMaps`
+        :class:`FindStatMaps`
 
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, entry):
         """
@@ -2837,7 +2838,7 @@ class FindStatMaps(Parent, UniqueRepresentation):
         elif entry in self._findstat_maps:
             return self.element_class(self, entry)
 
-        elif isinstance(entry, (str, unicode)):
+        elif isinstance(entry, string_types):
             # find by name in _findstat_maps
             for c in self._findstat_maps:
                 if entry.upper() == c[FINDSTAT_MAP_NAME].upper():

@@ -42,17 +42,16 @@ other types will also coerce to the integers, when it makes sense.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
-from __future__ import print_function
 
-include "sage/ext/cdefs.pxi"
-include "sage/ext/stdsage.pxi"
-include "cysignals/signals.pxi"
+from __future__ import absolute_import, print_function
 
 from cpython.int cimport *
 from cpython.list cimport *
 from cpython.object cimport Py_NE
 
+from cysignals.signals cimport sig_check, sig_on, sig_off
+
+from sage.libs.gmp.mpz cimport *
 import sage.rings.infinity
 import sage.rings.rational
 import sage.rings.rational_field
@@ -474,7 +473,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         if end is None:
             end = start
-            start = PY_NEW(Integer) # 0
+            start = Integer.__new__(Integer)
         if step is None:
             step = 1
         if type(step) is not int:
@@ -504,7 +503,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         sig_on()
         while mpz_cmp(a.value, b.value)*step_sign < 0:
             last = a
-            a = PY_NEW(Integer)
+            a = Integer.__new__(Integer)
             if type(step) is int: # count on branch prediction...
                 if istep > 0:
                     mpz_add_ui(a.value, last.value, istep)
@@ -540,8 +539,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             n += 1
 
     cdef Integer _coerce_ZZ(self, ZZ_c *z):
-        cdef integer.Integer i
-        i = PY_NEW(integer.Integer)
+        cdef Integer i = Integer.__new__(Integer)
         sig_on()
         ZZ_to_mpz(i.value, z)
         sig_off()
@@ -626,25 +624,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
                 return None
         else:
             None
-
-
-    def is_subring(self, other):
-        r"""
-        Return ``True`` if `\ZZ` is a subring of other in a natural way.
-
-        Every ring of characteristic `0` contains `\ZZ` as a subring.
-
-        EXAMPLES::
-
-            sage: ZZ.is_subring(QQ)
-            True
-        """
-        if not ring.is_Ring(other):
-            raise TypeError("other must be a ring")
-        if other.characteristic() == 0:
-            return True
-        else:
-            return False
 
     def random_element(self, x=None, y=None, distribution=None):
         r"""
@@ -756,8 +735,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
              5
 
         """
-        cdef integer.Integer z
-        z = <integer.Integer>PY_NEW(integer.Integer)
+        cdef Integer z = Integer.__new__(Integer)
         if x is not None and y is None and x <= 0:
             raise TypeError("x must be > 0")
         if x is not None and y is not None and x >= y:
@@ -858,7 +836,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         See :meth:`sage.structure.parent._repr_option` for details.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ZZ._repr_option('element_is_atomic')
             True
@@ -1202,7 +1180,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         - an ``n``-th root of unity in `\ZZ`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ZZ.zeta()
             -1
@@ -1274,6 +1252,18 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             ZZ
         """
         return "ZZ"
+
+    def _polymake_init_(self):
+        r"""
+        Return the polymake representation of the integer ring.
+
+        EXAMPLES::
+
+            sage: polymake(ZZ)    # optional - polymake # indirect doctest
+            Integer
+
+        """
+        return '"Integer"'
 
     def _sage_input_(self, sib, coerced):
         r"""

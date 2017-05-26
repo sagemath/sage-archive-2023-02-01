@@ -219,7 +219,9 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
             sage: m.from_polynomial_exp(f)
             3*m[4] + 2*m[5, 5, 5, 3, 1, 1]
 
-        ..SEEALSO:: :func:`Partition`, :meth:`Partition.to_exp`
+        .. SEEALSO::
+
+            :func:`Partition`, :meth:`Partition.to_exp`
         """
         assert self.base_ring() == p.parent().base_ring()
         return self.sum_of_terms((Partition(exp=monomial), coeff)

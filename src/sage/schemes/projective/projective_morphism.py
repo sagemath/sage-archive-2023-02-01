@@ -5817,76 +5817,87 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
         return(P.orbit_structure(self))
 
     def cyclegraph(self):
-            r"""
-            Return the digraph of all orbits of this map.
+        r"""
+        Return the digraph of all orbits of this map.
 
-            Over a finite field this is a finite graph. For subscheme domains, only points
-            on the subscheme whose image are also on the subscheme are in the digraph.
+        Over a finite field this is a finite graph. For subscheme domains, only points
+        on the subscheme whose image are also on the subscheme are in the digraph.
 
-            OUTPUT:
+        OUTPUT: a digraph
 
-            - a digraph
+        EXAMPLES::
 
-            EXAMPLES::
+            sage: P.<x,y> = ProjectiveSpace(GF(13),1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2-y^2, y^2])
+            sage: f.cyclegraph()
+            Looped digraph on 14 vertices
 
-                sage: P.<x,y> = ProjectiveSpace(GF(13),1)
-                sage: H = Hom(P,P)
-                sage: f = H([x^2-y^2, y^2])
-                sage: f.cyclegraph()
-                Looped digraph on 14 vertices
+        ::
 
-            ::
+            sage: P.<x,y,z> = ProjectiveSpace(GF(3^2,'t'),2)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2+y^2, y^2, z^2+y*z])
+            sage: f.cyclegraph()
+            Looped digraph on 91 vertices
 
-                sage: P.<x,y,z> = ProjectiveSpace(GF(5^2,'t'),2)
-                sage: H = Hom(P,P)
-                sage: f = H([x^2+y^2, y^2, z^2+y*z])
-                sage: f.cyclegraph()
-                Looped digraph on 651 vertices
+        ::
 
-            ::
+            sage: P.<x,y,z> = ProjectiveSpace(GF(7),2)
+            sage: X = P.subscheme(x^2-y^2)
+            sage: H = Hom(X,X)
+            sage: f = H([x^2, y^2, z^2])
+            sage: f.cyclegraph()
+            Looped digraph on 15 vertices
 
-                sage: P.<x,y,z> = ProjectiveSpace(GF(7),2)
-                sage: X = P.subscheme(x^2-y^2)
-                sage: H = Hom(X,X)
-                sage: f = H([x^2, y^2, z^2])
-                sage: f.cyclegraph()
-                Looped digraph on 15 vertices
+        ::
 
-            ::
-                sage: P.<x,y,z> = ProjectiveSpace(GF(3),2)
-                sage: H = Hom(P,P)
-                sage: f = H([x*z-y^2, x^2-y^2, y^2-z^2])
-                sage: f.cyclegraph()
-                Looped digraph on 13 vertices
-            """
-            if self.domain() != self.codomain():
-                raise NotImplementedError("domain and codomain must be equal")
-            V = []
-            E = []
-            from sage.schemes.projective.projective_space import is_ProjectiveSpace
-            if is_ProjectiveSpace(self.domain()) is True:
-                for P in self.domain():
-                    V.append(P)
+            sage: P.<x,y,z> = ProjectiveSpace(GF(3),2)
+            sage: H = Hom(P,P)
+            sage: f = H([x*z-y^2, x^2-y^2, y^2-z^2])
+            sage: f.cyclegraph()
+            Looped digraph on 13 vertices
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(3),2)
+            sage: X = P.subscheme([x-y])
+            sage: H = End(X)
+            sage: f = H([x^2-y^2, x^2-y^2, y^2-z^2])
+            sage: f.cyclegraph()
+            Looped digraph on 4 vertices
+        """
+        if self.domain() != self.codomain():
+            raise NotImplementedError("domain and codomain must be equal")
+        V = []
+        E = []
+        from sage.schemes.projective.projective_space import is_ProjectiveSpace
+        if is_ProjectiveSpace(self.domain()) is True:
+            for P in self.domain():
+                V.append(P)
+                try:
+                    Q = self(P)
+                    Q.normalize_coordinates()
+                    E.append([Q])
+                except ValueError: #indeterminacy
+                    E.append([])
+        else:
+            X = self.domain()
+            for P in X.ambient_space():
+                try:
+                    XP = X.point(P)
+                    V.append(XP)
                     try:
-                        Q = self(P)
-                        Q.normalize_coordinates()
-                        E.append([Q])
-                    except ValueError:
-                        E.append([])
-            else:
-                X = self.domain()
-                for P in X.ambient_space():
-                    try:
-                        XP = X.point(P)
-                        V.append(XP)
                         Q = self(XP)
                         Q.normalize_coordinates()
                         E.append([Q])
-                    except ValueError:  # not a point on the scheme
-                        pass
-            from sage.graphs.digraph import DiGraph
-            g = DiGraph(dict(zip(V, E)), loops=True)
-            return g
+                    except ValueError: #indeterminacy
+                        E.append([])
+                except TypeError:  # not a point on the scheme
+                    pass
+        from sage.graphs.digraph import DiGraph
+        g = DiGraph(dict(zip(V, E)), loops=True)
+        return g
 
     def possible_periods(self, return_points=False):
         r"""

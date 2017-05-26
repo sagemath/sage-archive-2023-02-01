@@ -18498,6 +18498,10 @@ class GenericGraph(GenericGraph_pyx):
           edge for each label l. Labels equal to None are not printed
           (to set edge labels, see set_edge_label).
 
+        - ``edge_labels_background`` - The color of the edge labels 
+          background. The default is "white". To achieve a transparent
+          background use "None".
+
         - ``vertex_size`` - size of vertices displayed
 
         - ``vertex_shape`` - the shape to draw the vertices, for

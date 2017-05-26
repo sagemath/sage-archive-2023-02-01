@@ -1305,7 +1305,8 @@ class Function_psi2(GinacFunction):
         """
         GinacFunction.__init__(self, "psi", nargs=2, latex_name='\psi',
                                conversions=dict(mathematica='PolyGamma',
-                                                sympy='polygamma'))
+                                                sympy='polygamma',
+                                                giac='Psi'))
 
     def _maxima_init_evaled_(self, *args):
         """

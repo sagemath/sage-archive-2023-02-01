@@ -1384,6 +1384,9 @@ def psi(x, *args, **kwds):
 # two functions with different number of arguments and the same name
 symbol_table['functions']['psi'] = psi
 
+def _swap_psi(a, b): return psi(b, a)
+register_symbol(_swap_psi, {'giac':'Psi'})
+
 class Function_factorial(GinacFunction):
     def __init__(self):
         r"""

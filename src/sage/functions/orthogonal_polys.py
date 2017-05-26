@@ -1942,7 +1942,10 @@ class Func_jacobi_P(OrthogonalFunction):
         prec = the_parent.precision()
         BF = CBF(prec+5)
         ret = BF(x).jacobi_P(BF(n), BF(a), BF(b))
-        return the_parent(ret)
+        try:
+            return the_parent(ret)
+        except (TypeError, ValueError):
+            return the_parent.complex_field()(ret)
 
 jacobi_P = Func_jacobi_P()
 

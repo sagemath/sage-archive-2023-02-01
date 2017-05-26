@@ -1060,16 +1060,16 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         .. WARNING::
 
-        It is up to the caller to make sure that this does not loop
-        endlessly.  It is used in
-        ``EllipticCurve_generic._p_primary_torsion_basis()``, when
-        self will always have (finite) order which is a power of `p`,
-        so that the order of `Q` increases by a factor of `p` at each
-        stage.
+            It is up to the caller to make sure that this does not loop
+            endlessly.  It is used in
+            ``EllipticCurve_generic._p_primary_torsion_basis()``, when
+            self will always have (finite) order which is a power of `p`,
+            so that the order of `Q` increases by a factor of `p` at each
+            stage.
 
-        Since it will clearly be in danger of looping when
-        self.is_zero(), this case is caught, but otherwise caveat
-        user.
+            Since it will clearly be in danger of looping when
+            self.is_zero(), this case is caught, but otherwise caveat
+            user.
 
         EXAMPLES::
 

@@ -1151,7 +1151,7 @@ class ClusterQuiver(SageObject):
         """
         sinks = self.digraph().sinks()
 
-        if len(sinks) > 0:
+        if sinks:
             return sinks[0]
         return None
 
@@ -1187,7 +1187,7 @@ class ClusterQuiver(SageObject):
         """
         sources = self.digraph().sources()
 
-        if len(sources) > 0:
+        if sources:
             return sources[0]
         return None
 

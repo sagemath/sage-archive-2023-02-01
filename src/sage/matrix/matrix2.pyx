@@ -12371,7 +12371,7 @@ cdef class Matrix(matrix1.Matrix):
         Determines if a real or symmetric matrix is positive definite.
 
         A square matrix `A` is positive definite if it is
-        symmetric with real entries or Hermitan with complex entries,
+        symmetric with real entries or Hermitian with complex entries,
         and for every non-zero vector `\vec{x}`
 
         .. MATH::

@@ -558,7 +558,7 @@ class CartanTypeFactory(SageObject):
             sage: CartanType([CT])
             ['A', 2] relabelled by {1: -1, 2: -2}
 
-        Check the errors from trac:`20973`::
+        Check the errors from :trac:`20973`::
 
             sage: CartanType(['A',-1])
             Traceback (most recent call last):

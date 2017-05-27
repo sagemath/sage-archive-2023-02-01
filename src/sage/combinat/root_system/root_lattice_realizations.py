@@ -491,7 +491,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             Return the basic imaginary roots of ``self``.
 
             The basic imaginary roots `\delta` are the set of imaginary roots
-            in `-C^{\vee}` where `C` is the dominant chamger (i.e.,
+            in `-C^{\vee}` where `C` is the dominant chamber (i.e.,
             `\langle \beta, \alpha_i^{\vee} \rangle \leq 0` for all `i \in I`).
             All imaginary roots are `W`-conjugate to a simple imaginary root.
 
@@ -3777,7 +3777,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             INPUT:
 
             - ``index_set`` - a subset (as a list or iterable) of the
-              nodes of the dynkin diagram; (default: ``None`` for all of them)
+              nodes of the Dynkin diagram; (default: ``None`` for all of them)
 
             If ``index_set`` is specified, the successors for the
             corresponding parabolic subsystem are returned.
@@ -3806,7 +3806,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             INPUT:
 
             - ``index_set`` - a subset (as a list or iterable) of the
-              nodes of the dynkin diagram; (default: ``None`` for all of them)
+              nodes of the Dynkin diagram; (default: ``None`` for all of them)
 
             If ``index_set`` is specified, the successors for the
             corresponding parabolic subsystem are returned.

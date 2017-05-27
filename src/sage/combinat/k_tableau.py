@@ -3719,7 +3719,7 @@ class StrongTableau(ClonableList):
         Action of transposition ``tij`` on ``self`` by adding marked ribbons.
 
         Computes the left action of the transposition ``tij`` on the tableau.
-        If ``tij`` acting on the element of the affine grassmannian raises the length by 1,
+        If ``tij`` acting on the element of the affine Grassmannian raises the length by 1,
         then this function will add a cell to the standard tableau.
 
         INPUT:

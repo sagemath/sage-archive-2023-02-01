@@ -1066,7 +1066,7 @@ class PolynomialSequence_generic(Sequence_generic):
     def is_groebner(self, singular=singular):
         r"""
         Returns ``True`` if the generators of this ideal (``self.gens()``)
-        form a Grbner basis.
+        form a Groebner basis.
 
         Let `I` be the set of generators of this ideal. The check is
         performed by trying to lift `Syz(LM(I))` to `Syz(I)` as `I`

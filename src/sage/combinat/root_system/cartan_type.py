@@ -407,7 +407,7 @@ used to differentiate between the `A_{+\infty}` and `A_{\infty}` root systems::
     ..---O---O---O---O---O---O---O---..
         -3  -2  -1   0   1   2   3
 
-.. rubric:: Abstract classes for cartan types
+.. rubric:: Abstract classes for Cartan types
 
 - :class:`CartanType_abstract`
 - :class:`CartanType_crystallographic`
@@ -420,7 +420,7 @@ used to differentiate between the `A_{+\infty}` and `A_{\infty}` root systems::
 - :ref:`sage.combinat.root_system.type_reducible`
 - :ref:`sage.combinat.root_system.type_relabel`
 
-Concrete classes for cartan types
+Concrete classes for Cartan types
 
 - :class:`CartanType_standard`
 - :class:`CartanType_standard_finite`

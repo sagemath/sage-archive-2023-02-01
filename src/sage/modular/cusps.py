@@ -1018,7 +1018,7 @@ class Cusp(Element):
             Modular curves can have multiple non-isomorphic models over `\QQ`.
             The action of Galois depends on such a model. The model over `\QQ`
             of `X(G)` used here is the model where the function field
-            `\QQ(X(G))` is given by the functions whose fourier expansion at
+            `\QQ(X(G))` is given by the functions whose Fourier expansion at
             `\infty` have their coefficients in `\QQ`. For `X(N):=X(\Gamma(N))`
             the corresponding moduli interpretation over `\ZZ[1/N]` is that
             `X(N)` parametrizes pairs `(E,a)` where `E` is a (generalized)

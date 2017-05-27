@@ -994,12 +994,12 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
         ALGORITHM:
 
-            Uses GAP's coset enumeration on the trivial subgroup.
+        Uses GAP's coset enumeration on the trivial subgroup.
 
         .. WARNING::
 
             This is in general not a decidable problem (in fact, it is
-            not even posible to check if the group is finite or
+            not even possible to check if the group is finite or
             not). If the group is infinite, or too big, you should be
             prepared for a long computation that consumes all the
             memory without finishing if you do not set a sensible

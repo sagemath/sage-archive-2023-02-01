@@ -1193,7 +1193,7 @@ cdef class LazyBinop(LazyFieldElement):
         """
         For pickling.
 
-        TEST::
+        TESTS::
 
             sage: from sage.rings.real_lazy import LazyBinop
             sage: a = LazyBinop(CLF, 3, 2, operator.truediv)

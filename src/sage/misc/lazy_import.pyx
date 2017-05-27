@@ -642,7 +642,7 @@ cdef class LazyImport(object):
             sage: foo / 2
             5
         """
-        return binop(operator.truediv, left, right)
+        return binop(operator.div, left, right)
 
     def __floordiv__(left, right):
         """

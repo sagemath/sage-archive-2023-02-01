@@ -3762,7 +3762,7 @@ class Graph(GenericGraph):
 
         .. WARNING::
 
-            This always considers mutliple edges of graphs as
+            This always considers multiple edges of graphs as
             distinguishable, and hence, may have repeated digraphs.
 
         EXAMPLES::

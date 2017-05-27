@@ -124,7 +124,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: el == HeckeTriangleGroupElement(G, M)
             True
             sage: type(el)
-            <class 'sage.modular.modform_hecketriangle.hecke_triangle_group_element.HeckeTriangleGroup_with_category.element_class'>
+            <class 'sage.modular.modform_hecketriangle.hecke_triangle_groups.HeckeTriangleGroup_with_category.element_class'>
             sage: el.category()
             Category of elements of Hecke triangle group for n = 10
             sage: type(HeckeTriangleGroupElement(G, M))

@@ -76,7 +76,7 @@ class PALPreader(SageObject):
         sage: next(iter(PALPreader(2, output='Polyhedron')))
         A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
         sage: type(_)
-        <class 'sage.geometry.polyhedron.backend_ppl.Polyhedra_ZZ_ppl_with_category.element_class'>
+        <class 'sage.geometry.polyhedron.parent.Polyhedra_ZZ_ppl_with_category.element_class'>
 
         sage: next(iter(PALPreader(2, output='PPL')))
         A 2-dimensional lattice polytope in ZZ^2 with 3 vertices

@@ -503,7 +503,7 @@ class BinaryRecurrenceSequence(SageObject):
                             n = b
                     perp = n
 
-                #Now compute the period mod p^e by steping up by multiples of p
+                #Now compute the period mod p^e by stepping up by multiples of p
                 F = A.change_ring(Integers(p**e))
                 v = w.change_ring(Integers(p**e))
                 FF = F**perp

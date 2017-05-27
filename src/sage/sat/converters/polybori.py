@@ -613,6 +613,6 @@ class CNFEncoder(ANF2CNFConverter):
         product = self.ring(1)
         for v in c:
             if phi[abs(v)] is None:
-                raise ValueError("Clause containst an XOR glueing variable.")
+                raise ValueError("clause contains an XOR glueing variable")
             product *= phi[abs(v)] + int(v>0)
         return product

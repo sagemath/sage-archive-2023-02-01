@@ -18,11 +18,14 @@ AUTHORS:
 #*****************************************************************************
 
 from copy import copy
+from cpython.object cimport Py_EQ, Py_NE
 
 from sage.misc.misc import repr_lincomb
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.structure.element cimport have_same_parent, coercion_model
+from sage.structure.element cimport have_same_parent, coercion_model, parent
 from sage.structure.element_wrapper cimport ElementWrapper
+from sage.structure.sage_object cimport richcmp
+from sage.data_structures.blas_dict cimport axpy, negate, scal
 
 # TODO: Inherit from IndexedFreeModuleElement and make cdef once #22632 is merged
 # TODO: Do we want a dense version?
@@ -43,8 +46,8 @@ class LieAlgebraElement(CombinatorialFreeModule.Element):
             x*y - z
         """
         if self.is_zero() or y.is_zero():
-            return self.parent().zero()
-        if y in self.base_ring():
+            return parent(self).zero()
+        if y in parent(self).base_ring():
             return y * self
         # Otherwise we lift to the UEA
         return self.lift() * y
@@ -281,9 +284,11 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
             sage: S(elt)  # not tested: needs #16822
             (2,3) - (1,3)
         """
-        if self.value == 0 or x == 0:
-            return self._parent.zero()
-        if x in self.base_ring():
+        if not isinstance(self, LieAlgebraElementWrapper):
+            x, self = self, x
+        if not self or not x:
+            return parent(self).zero()
+        if x in parent(self).base_ring():
             return self._acted_upon_(x, True)
         # Otherwise we lift to the UEA
         return self.lift() * x
@@ -330,10 +335,10 @@ cdef class LieAlgebraElementWrapper(ElementWrapper):
         # enough information to detect apriori that this method only
         # accepts scalars; so it tries on some elements(), and we need
         # to make sure to report an error.
-        if hasattr( scalar, 'parent' ) and scalar.parent() != self.base_ring():
+        if hasattr( scalar, 'parent' ) and scalar.parent() != self._parent.base_ring():
             # Temporary needed by coercion (see Polynomial/FractionField tests).
-            if self.base_ring().has_coerce_map_from(scalar.parent()):
-                scalar = self.base_ring()( scalar )
+            if self._parent.base_ring().has_coerce_map_from(scalar.parent()):
+                scalar = self._parent.base_ring()( scalar )
             else:
                 return None
         if self_on_left:
@@ -487,7 +492,7 @@ cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
             sage: list(elt)
             [('x', 1), ('y', -3/2)]
         """
-        zero = self.base_ring().zero()
+        zero = self.parent().base_ring().zero()
         I = self.parent()._indices
         cdef int i
         for i,v in enumerate(self.value):
@@ -554,4 +559,477 @@ cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
             -3/2
         """
         return self.value[self._parent._indices.index(i)]
+
+cdef class UntwistedAffineLieAlgebraElement(Element):
+    """
+    An element of an untwisted affine Lie algebra.
+    """
+    def __init__(self, parent, dict t_dict, c_coeff, d_coeff):
+        """
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: L = lie_algebras.Affine(QQ, ['A',2,1])
+            sage: x = L.an_element()
+            sage: TestSuite(x).run()
+        """
+        Element.__init__(self, parent)
+        self._t_dict = t_dict
+        self._c_coeff = c_coeff
+        self._d_coeff = d_coeff
+        self._hash = -1
+
+    def __reduce__(self):
+        """
+        Used in pickling.
+
+        TESTS::
+
+            sage: L = lie_algebras.Affine(QQ, ['B',3,1])
+            sage: x = L.an_element()
+            sage: loads(dumps(x)) == x
+            True
+        """
+        return (_build_untwisted_affine_element,
+                (self.parent(), self._t_dict, self._c_coeff, self._d_coeff))
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.Affine(QQ, ['A',1,1])
+            sage: list(L.lie_algebra_generators())
+            [(E[alpha[1]])#t^0,
+             (E[-alpha[1]])#t^0,
+             (h1)#t^0,
+             (E[-alpha[1]])#t^1,
+             (E[alpha[1]])#t^-1,
+             c,
+             d]
+            sage: L.an_element()
+            (E[alpha[1]] + h1 + E[-alpha[1]])#t^0
+             + (E[-alpha[1]])#t^1 + (E[alpha[1]])#t^-1
+             + c + d
+            sage: L.zero()
+            0
+
+            sage: e1,f1,h1,e0,f0,c,d = list(L.lie_algebra_generators())
+            sage: e1 + 2*f1 - h1 + e0 + 3*c - 2*d
+            (E[alpha[1]] - h1 + 2*E[-alpha[1]])#t^0 + (-E[-alpha[1]])#t^1
+             + 3*c + -2*d
+        """
+        ret = ' + '.join('({})#t^{}'.format(g, t)
+                         for t,g in self._t_dict.iteritems())
+        if self._c_coeff != 0:
+            if ret:
+                ret += ' + '
+            if self._c_coeff != 1:
+                ret += repr(self._c_coeff) + '*c'
+            else:
+                ret += 'c'
+
+        if self._d_coeff != 0:
+            if ret:
+                ret += ' + '
+            if self._d_coeff != 1:
+                ret += repr(self._d_coeff) + '*d'
+            else:
+                ret += 'd'
+
+        if not ret:
+            return '0'
+        return ret
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.Affine(QQ, ['A',1,1])
+            sage: [latex(g) for g in L.lie_algebra_generators()]
+            [(E_{\alpha_{1}}) \otimes t^{0},
+             (E_{-\alpha_{1}}) \otimes t^{0},
+             (E_{\alpha^\vee_{1}}) \otimes t^{0},
+             (E_{-\alpha_{1}}) \otimes t^{1},
+             (E_{\alpha_{1}}) \otimes t^{-1},
+             c,
+             d]
+            sage: latex(L.an_element())
+            (E_{\alpha_{1}} + E_{\alpha^\vee_{1}} + E_{-\alpha_{1}}) \otimes t^{0}
+             + (E_{-\alpha_{1}}) \otimes t^{1} + (E_{\alpha_{1}}) \otimes t^{-1}
+             + c + d
+            sage: latex(L.zero())
+            0
+
+            sage: e1,f1,h1,e0,f0,c,d = list(L.lie_algebra_generators())
+            sage: latex(e1 + 2*f1 - h1 + e0 + 3*c - 2*d)
+            (E_{\alpha_{1}} - E_{\alpha^\vee_{1}} + 2E_{-\alpha_{1}}) \otimes t^{0}
+             + (-E_{-\alpha_{1}}) \otimes t^{1} + 3 c + -2 d
+        """
+        from sage.misc.latex import latex
+        ret = ' + '.join('({}) \otimes t^{{{}}}'.format(latex(g), t)
+                         for t,g in self._t_dict.iteritems())
+        if self._c_coeff != 0:
+            if ret:
+                ret += ' + '
+            if self._c_coeff != 1:
+                ret += latex(self._c_coeff) + ' c'
+            else:
+                ret += 'c'
+
+        if self._d_coeff != 0:
+            if ret:
+                ret += ' + '
+            if self._d_coeff != 1:
+                ret += latex(self._d_coeff) + ' d'
+            else:
+                ret += 'd'
+
+        if not ret:
+            return '0'
+        return ret
+
+    cpdef dict t_dict(self):
+        r"""
+        Return the ``dict``, whose keys are powers of `t` and values are
+        elements of the classical Lie algebra, of ``self``.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.Affine(QQ, ['A',1,1])
+            sage: x = L.an_element()
+            sage: x.t_dict()
+            {-1: E[alpha[1]],
+             0: E[alpha[1]] + h1 + E[-alpha[1]],
+             1: E[-alpha[1]]}
+        """
+        return self._t_dict.copy()
+
+    cpdef c_coefficient(self):
+        r"""
+        Return the coefficient of `c` of ``self``.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.Affine(QQ, ['A',1,1])
+            sage: x = L.an_element() - 3 * L.c()
+            sage: x.c_coefficient()
+            -2
+        """
+        return self._c_coeff
+
+    cpdef d_coefficient(self):
+        r"""
+        Return the coefficient of `d` of ``self``.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.Affine(QQ, ['A',1,1])
+            sage: x = L.an_element() + L.d()
+            sage: x.d_coefficient()
+            2
+        """
+        return self._d_coeff
+
+    cpdef _richcmp_(self, other, int op):
+        """
+        Return the rich comparison of ``self`` with ``other``.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.Affine(QQ, ['C',2,1])
+            sage: x = L.an_element()
+            sage: c = L.basis()['c']
+            sage: d = L.basis()['d']
+            sage: c == d
+            False
+            sage: x != c
+            True
+            sage: 2*c - d == c + c - d
+            True
+            sage: x - c != x - c
+            False
+            sage: x - c != x - d
+            True
+        """
+        if op != Py_EQ and op != Py_NE:
+            return NotImplemented
+        cdef UntwistedAffineLieAlgebraElement rt = <UntwistedAffineLieAlgebraElement> other
+        return richcmp((self._t_dict, self._c_coeff, self._d_coeff),
+                       (rt._t_dict, rt._c_coeff, rt._d_coeff),
+                       op)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: asl = lie_algebras.Affine(QQ, ['A',4,1])
+            sage: x = asl.an_element()
+            sage: hash(x) == hash(x)
+            True
+            sage: hash(asl.zero())
+            0
+        """
+        if not self:
+            self._hash = 0
+        if self._hash == -1:
+            self._hash = hash((tuple([self._t_dict[i] for i in sorted(self._t_dict)]),
+                               self._c_coeff, self._d_coeff))
+        return self._hash
+
+    def __nonzero__(self):
+        """
+        Return ``self`` as a boolean.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.Affine(QQ, ['C',2,1])
+            sage: x = L.an_element()
+            sage: bool(x)
+            True
+            sage: bool(L.zero())
+            False
+        """
+        return bool(self._t_dict) or bool(self._c_coeff) or bool(self._d_coeff)
+
+    __bool__ = __nonzero__
+
+    cdef _add_(self, other):
+        """
+        Add ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.Affine(QQ, ['A',1,1])
+            sage: e1,f1,h1,e0,f0,c,d = list(L.lie_algebra_generators())
+            sage: e0.bracket(e1) + d + e1 + c + 3*d
+            (E[alpha[1]])#t^0 + (-h1)#t^1 + c + 4*d
+        """
+        cdef UntwistedAffineLieAlgebraElement rt = <UntwistedAffineLieAlgebraElement> other
+        return type(self)(self._parent, axpy(1, self._t_dict, rt._t_dict.copy()),
+                          self._c_coeff + rt._c_coeff,
+                          self._d_coeff + rt._d_coeff)
+
+    cdef _sub_(self, other):
+        """
+        Subtract ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.Affine(QQ, ['A',1,1])
+            sage: e1,f1,h1,e0,f0,c,d = list(L.lie_algebra_generators())
+            sage: e0.bracket(e1) + d - e1 + c - 3*d
+            (-E[alpha[1]])#t^0 + (-h1)#t^1 + c + -2*d
+            sage: e0.bracket(f0) - 4*c
+            (h1)#t^0
+            sage: e0.bracket(f0) - 4*c - h1
+            0
+            sage: e0.bracket(f0) - 4*c - h1 == L.zero()
+            True
+        """
+        cdef UntwistedAffineLieAlgebraElement rt = <UntwistedAffineLieAlgebraElement> other
+        return type(self)(self._parent, axpy(-1, self._t_dict, rt._t_dict.copy()),
+                          self._c_coeff - rt._c_coeff,
+                          self._d_coeff - rt._d_coeff)
+
+    cdef _neg_(self):
+        """
+        Negate ``self``.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.Affine(QQ, ['A',1,1])
+            sage: e1,f1,h1,e0,f0,c,d = list(L.lie_algebra_generators())
+            sage: x = e0.bracket(e1) + d + e1 + c + 3*d
+            sage: -x
+            (-E[alpha[1]])#t^0 + (h1)#t^1 + -1*c + -4*d
+        """
+        return type(self)(self._parent, negate(self._t_dict),
+                          -self._c_coeff, -self._d_coeff)
+
+    cpdef _acted_upon_(self, x, bint self_on_left):
+        """
+        Return ``self`` acted upon by ``x``.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.Affine(QQ, ['A',1,1])
+            sage: e1,f1,h1,e0,f0,c,d = list(L.lie_algebra_generators())
+            sage: x = e1 + f0.bracket(f1) + 3*c - 2/5 * d
+            sage: x
+            (-E[alpha[1]])#t^0 + (-h1)#t^-1 + 3*c + -2/5*d
+            sage: -2 * x
+            (2*E[alpha[1]])#t^0 + (2*h1)#t^-1 + -6*c + 4/5*d
+        """
+        return type(self)(self._parent, scal(x, self._t_dict, self_on_left),
+                          x * self._c_coeff,
+                          x * self._d_coeff)
+
+    cpdef monomial_coefficients(self, bint copy=True):
+        """
+        Return the monomial coefficients of ``self``.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.Affine(QQ, ['C',2,1])
+            sage: x = L.an_element()
+            sage: sorted(x.monomial_coefficients(), key=str)
+            [(-2*alpha[1] - alpha[2], 1),
+             (-alpha[1], 0),
+             (-alpha[2], 0),
+             (2*alpha[1] + alpha[2], -1),
+             (alpha[1], 0),
+             (alpha[2], 0),
+             (alphacheck[1], 0),
+             (alphacheck[2], 0),
+             'c',
+             'd']
+        """
+        cdef dict d = {}
+        for t,g in self._t_dict.iteritems():
+            for k,c in g.monomial_coefficients(copy=False).iteritems():
+                d[k,t] = c
+        if self._c_coeff:
+            d['c'] = self._c_coeff
+        if self._d_coeff:
+            d['d'] = self._d_coeff
+        return d
+
+    cpdef bracket(self, right):
+        """
+        Return the Lie bracket ``[self, right]``.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['A',1,1])
+            sage: e1,f1,h1,e0,f0,c,d = list(L.lie_algebra_generators())
+            sage: e0.bracket(f0)
+            (-h1)#t^0 + 4*c
+            sage: e1.bracket(0)
+            0
+            sage: e1.bracket(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: no common canonical parent for objects with parents:
+             'Affine Kac-Moody algebra of ['A', 1] in the Chevalley basis'
+             and 'Integer Ring'
+        """
+        if not have_same_parent(self, right):
+            self, right = coercion_model.canonical_coercion(self, right)
+        return self._bracket_(right)
+
+    cpdef _bracket_(self, y):
+        """
+        Return the Lie bracket ``[self, y]``.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['A',1,1])
+            sage: e1,f1,h1,e0,f0,c,d = list(L.lie_algebra_generators())
+            sage: al = RootSystem(['A',1]).root_lattice().simple_roots()
+            sage: x = L.basis()[al[1], 5]
+            sage: y = L.basis()[-al[1], -3]
+            sage: z = L.basis()[-al[1], -5]
+            sage: x._bracket_(y)
+            (h1)#t^2
+            sage: x._bracket_(z)
+            (h1)#t^0 + 20*c
+            sage: x._bracket_(e1)
+            0
+            sage: x._bracket_(f1)
+            (h1)#t^5
+            sage: x._bracket_(h1)
+            (-2*E[alpha[1]])#t^5
+            sage: x._bracket_(d)
+            (-5*E[alpha[1]])#t^5
+            sage: all(c._bracket_(g) == 0 for g in L.lie_algebra_generators())
+            True
+        """
+        if not self or not y:
+            return self._parent.zero()
+
+        gd = self._parent._g.basis()
+        cdef dict d = {}
+        cdef UntwistedAffineLieAlgebraElement rt = <UntwistedAffineLieAlgebraElement>(y)
+        c = self._parent.base_ring().zero()
+        for tl,gl in self._t_dict.iteritems():
+            # d contribution from the left
+            if rt._d_coeff:
+                if tl in d:
+                    d[tl] -= rt._d_coeff * gl * tl
+                else:
+                    d[tl] = -rt._d_coeff * gl * tl
+                if not d[tl]:
+                    del d[tl]
+            # main bracket of the central extension
+            for tr,gr in rt._t_dict.iteritems():
+                b = gl.bracket(gr)
+                if b:
+                    if tl+tr in d:
+                        d[tl+tr] += b
+                    else:
+                        d[tl+tr] = b
+                    if not d[tl+tr]:
+                        del d[tl+tr]
+                if tl + tr == 0:
+                    c += gl.killing_form(gr) * tl
+
+        # d contribution from the right
+        if self._d_coeff:
+            for tr,gr in rt._t_dict.iteritems():
+                if tr in d:
+                    d[tr] += self._d_coeff * gr * tr
+                else:
+                    d[tr] = self._d_coeff * gr * tr
+                if not d[tr]:
+                    del d[tr]
+
+        return type(self)(self._parent, d, c,
+                          self._parent.base_ring().zero())
+
+    cpdef canonical_derivation(self):
+        r"""
+        Return the canonical derivation `d` applied to ``self``.
+
+        The canonical derivation `d` is defined as
+
+        .. MATH::
+
+            d(a \otimes t^m + \alpha c) = a \otimes m t^m.
+
+        Another formulation is by `d = t \frac{d}{dt}`.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.Affine(QQ, ['E',6,1])
+            sage: al = RootSystem(['E',6]).root_lattice().simple_roots()
+            sage: x = L.basis()[al[2]+al[3]+2*al[4]+al[5],5] + 4*L.c() + L.d()
+            sage: x.canonical_derivation()
+            (5*E[alpha[2] + alpha[3] + 2*alpha[4] + alpha[5]])#t^5
+        """
+        cdef dict d = {tl: tl * gl for tl,gl in self._t_dict.iteritems() if tl != 0}
+        zero = self._parent.base_ring().zero()
+        return type(self)(self.parent(), d, zero, zero)
+
+def _build_untwisted_affine_element(P, t_dict, c, d):
+    """
+    Used to unpickle an element.
+
+    EXAMPLES::
+
+        sage: L = lie_algebras.Affine(QQ, ['A',2,1])
+        sage: from sage.algebras.lie_algebras.lie_algebra_element import _build_untwisted_affine_element
+        sage: _build_untwisted_affine_element(L, {}, 0, 0) == L.zero()
+        True
+        sage: x = L.an_element()
+        sage: loads(dumps(x)) == x  # indirect doctest
+        True
+    """
+    return P.element_class(P, t_dict, c, d)
 

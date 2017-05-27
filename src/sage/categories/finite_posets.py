@@ -85,9 +85,15 @@ class FinitePosets(CategoryWithAxiom):
                 sage: P.is_selfdual()
                 True
 
+            TESTS::
+
                 sage: P = Poset( {} )
                 sage: P.is_selfdual()
                 True
+
+            .. SEEALSO::
+
+                - Stronger properties: :meth:`~sage.combinat.posets.lattices.FiniteLattice.is_orthocomplemented`
             """
             # Two quick checks before full isomorphic test.
             if sorted(self._hasse_diagram.in_degree()) != sorted(self._hasse_diagram.out_degree()):

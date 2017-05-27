@@ -38,9 +38,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six import iteritems
-from six import integer_types
-import six
+from six import iteritems, integer_types, string_types
 
 import operator
 
@@ -280,7 +278,7 @@ class Interface(WithEqualityById, ParentWithBase):
             except (NotImplementedError, TypeError):
                 pass
 
-        if isinstance(x, six.string_types):
+        if isinstance(x, string_types):
             return cls(self, x, name=name)
         try:
             return self._coerce_from_special_method(x)
@@ -1099,7 +1097,7 @@ class InterfaceElement(Element):
         except ValueError as msg:
             return '(invalid {} object -- {})'.format(self.parent() or type(self), msg)
         cr = getattr(self, '_cached_repr', None)
-        if isinstance(cr, six.string_types):
+        if isinstance(cr, string_types):
             s = cr
         else:
             s = self._repr_()
@@ -1355,7 +1353,7 @@ class InterfaceElement(Element):
             's5'
         """
         if new_name is not None:
-            if not isinstance(new_name, str):
+            if not isinstance(new_name, string_types):
                 raise TypeError("new_name must be a string")
             p = self.parent()
             p.set(new_name, self._name)

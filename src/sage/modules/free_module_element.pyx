@@ -104,6 +104,7 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 cimport cython
 from cpython.slice cimport PySlice_GetIndicesEx
@@ -429,7 +430,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
     # !! PLEASE DO NOT MOVE THIS CODE LOWER IN THIS FUNCTION !!
     if arg2 is None and is_Ring(arg0) and (isinstance(arg1, (int, long, Integer))):
         if sparse:
-            from free_module import FreeModule
+            from .free_module import FreeModule
             M = FreeModule(arg0, arg1, sparse=True)
         else:
             M = arg0 ** arg1
@@ -481,14 +482,14 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
     if isinstance(v, ndarray):
         if len(v.shape) != 1:
             raise TypeError("cannot convert %r-dimensional array to a vector" % len(v.shape))
-        from free_module import VectorSpace
+        from .free_module import VectorSpace
         if (R is None or R is RDF) and v.dtype.kind == 'f':
             V = VectorSpace(RDF, v.shape[0])
-            from vector_real_double_dense import Vector_real_double_dense
+            from .vector_real_double_dense import Vector_real_double_dense
             return Vector_real_double_dense(V, v)
         if (R is None or R is CDF) and v.dtype.kind == 'c':
             V = VectorSpace(CDF, v.shape[0])
-            from vector_complex_double_dense import Vector_complex_double_dense
+            from .vector_complex_double_dense import Vector_complex_double_dense
             return Vector_complex_double_dense(V, v)
         # Use slower conversion via list
         v = list(v)
@@ -506,7 +507,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None):
     v, R = prepare(v, R, degree)
 
     if sparse:
-        from free_module import FreeModule
+        from .free_module import FreeModule
         M = FreeModule(R, len(v), sparse=True)
     else:
         M = R ** len(v)
@@ -1755,7 +1756,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             values = []
             for n in range(slicelength):
                 values.append(self.get_unsafe(start + n*step))
-            from free_module import FreeModule
+            from .free_module import FreeModule
             M = FreeModule(self.coordinate_ring(), slicelength, sparse=self.is_sparse())
             return M(values, coerce=False, copy=False)
         else:
@@ -4013,7 +4014,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
             sage: v = vector([-1,0,3,pi])
             sage: type(v)
-            <class 'sage.modules.vector_symbolic_dense.FreeModule_ambient_field_with_category.element_class'>
+            <class 'sage.modules.free_module.FreeModule_ambient_field_with_category.element_class'>
             sage: v.__copy__()
             (-1, 0, 3, pi)
             sage: v.__copy__() is v
@@ -4309,7 +4310,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: g
             (2*x, 2*y)
             sage: type(g)
-            <class 'sage.modules.vector_symbolic_dense.FreeModule_ambient_field_with_category.element_class'>
+            <class 'sage.modules.free_module.FreeModule_ambient_field_with_category.element_class'>
             sage: g(y=2, x=3)
             (6, 4)
             sage: f(x,y) = x^2 + y^2
@@ -4820,7 +4821,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 if min <= n <= max and n % step == mod:
                     k = (n - start) // step
                     newentries[k] = x
-            from free_module import FreeModule
+            from .free_module import FreeModule
             M = FreeModule(self.coordinate_ring(), slicelength, sparse=True)
             return M(newentries, coerce=False, copy=False)
 

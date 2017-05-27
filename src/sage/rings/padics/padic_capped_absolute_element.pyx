@@ -27,6 +27,9 @@ include "CA_template.pxi"
 from sage.libs.pari.convert_gmp cimport new_gen_from_padic
 from sage.rings.finite_rings.integer_mod import Mod
 
+cdef extern from "sage/rings/padics/transcendantal.c":
+    cdef void padiclog(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, const mpz_t modulo)
+
 cdef class PowComputer_(PowComputer_base):
     """
     A PowComputer for a capped-absolute padic ring.
@@ -280,6 +283,170 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
         else:
             mpz_clear(ppow_minus_one)
             return infinity
+
+    def log(self, p_branch=None, aprec=None, change_frac=False):
+        r"""
+        Compute the `p`-adic logarithm of this element.
+
+        The usual power series for the logarithm with values in the additive
+        group of a `p`-adic ring only converges for 1-units (units congruent to
+        1 modulo `p`).  However, there is a unique extension of the logarithm
+        to a homomorphism defined on all the units: If `u = a \cdot v` is a
+        unit with `v \equiv 1 \pmod{p}` and `a` a Teichmuller representative,
+        then we define `log(u) = log(v)`.  This is the correct extension
+        because the units `U` split as a product `U = V \times \langle w
+        \rangle`, where `V` is the subgroup of 1-units and `w` is a fundamental
+        root of unity.  The `\langle w \rangle` factor is torsion, so must go
+        to 0 under any homomorphism to the fraction field, which is a torsion
+        free group.
+
+        INPUT:
+
+        - ``p_branch`` -- an element in the base ring or its fraction
+          field; the implementation will choose the branch of the
+          logarithm which sends `p` to ``branch``.
+
+        - ``aprec`` -- an integer or ``None`` (default: ``None``) if not
+          ``None``, then the result will only be correct to precision
+          ``aprec``.
+
+        - ``change_frac`` -- In general the codomain of the logarithm should be
+          in the `p`-adic field, however, for most neighborhoods of 1, it lies
+          in the ring of integers. This flag decides if the codomain should be
+          the same as the input (default) or if it should change to the
+          fraction field of the input.
+
+        NOTES:
+
+        What some other systems do:
+        - PARI: Seems to define the logarithm for units not congruent
+          to 1 as we do.
+
+        - MAGMA: Only implements logarithm for 1-units (as of version 2.19-2)
+
+        ALGORITHM:
+
+        1. Take the unit part `u` of the input.
+
+        2. Raise `u` to `p-1` to obtain a 1-unit.
+
+        3. Write
+
+        .. MATH::
+
+            u^{p-1} = \prod_{i=1}^\infty (1 - a_i p^{2^i})
+
+        with `0 \leq a_i < p^{2^i}` and compute `\log(1 - a_i p^{2^i})`
+        using the standard Taylor expansion
+
+        .. MATH::
+
+            \log(1 - x) = -x - 1/2 x^2 - 1/3 x^3 - 1/4 x^4 - 1/5 x^5 - \cdots
+
+        together with a binary spliting method.
+
+        4. Divide the result by ``q-1`` and multiply by ``self.valuation()*log(p)``
+
+        The complexity of this algorithm is quasi-linear.
+
+        EXAMPLES::
+
+            sage: Z13 = ZpCA(13, 10)
+            sage: a = Z13(14); a
+            1 + 13 + O(13^10)
+            sage: a.log()
+            13 + 6*13^2 + 2*13^3 + 5*13^4 + 10*13^6 + 13^7 + 11*13^8 + 8*13^9 + O(13^10)
+
+        Note that the relative precision decreases when we take log.
+        Precisely the absolute precision on ``\log(a)`` agrees with the relative 
+        precision on ``a`` thanks to the relation ``d\log(a) = da/a``.
+
+        The logarithm is not only defined for 1-units::
+
+            sage: R = ZpCA(5,10)
+            sage: a = R(2)
+            sage: a.log()
+            2*5 + 3*5^2 + 2*5^3 + 4*5^4 + 2*5^6 + 2*5^7 + 4*5^8 + 2*5^9 + O(5^10)
+
+        If you want to take the logarithm of a non-unit you must specify either
+        ``p_branch`` or ``pi_branch`` (observe the precision as well)::
+
+            sage: b = R(5)
+            sage: b.log()
+            Traceback (most recent call last):
+            ...
+            ValueError: You must specify a branch of the logarithm for non-units
+            sage: b.log(p_branch=4)
+            4 + O(5^9)
+            sage: c = R(10)
+            sage: c.log(p_branch=4)
+            4 + 2*5 + 3*5^2 + 2*5^3 + 4*5^4 + 2*5^6 + 2*5^7 + 4*5^8 + O(5^9)
+
+        The branch parameters are only relevant for elements of non-zero
+        valuation::
+
+            sage: a.log(p_branch=0)
+            2*5 + 3*5^2 + 2*5^3 + 4*5^4 + 2*5^6 + 2*5^7 + 4*5^8 + 2*5^9 + O(5^10)
+            sage: a.log(p_branch=1)
+            2*5 + 3*5^2 + 2*5^3 + 4*5^4 + 2*5^6 + 2*5^7 + 4*5^8 + 2*5^9 + O(5^10)
+
+        We illustrate the effect of the precision argument::
+
+            sage: R = ZpCA(7,10)
+            sage: x = R(41152263); x
+            5 + 3*7^2 + 4*7^3 + 3*7^4 + 5*7^5 + 6*7^6 + 7^9 + O(7^10)
+            sage: x.log(aprec = 5)
+            7 + 3*7^2 + 4*7^3 + 3*7^4 + O(7^5)
+            sage: x.log(aprec = 7)
+            7 + 3*7^2 + 4*7^3 + 3*7^4 + 7^5 + 3*7^6 + O(7^7)
+            sage: x.log()
+            7 + 3*7^2 + 4*7^3 + 3*7^4 + 7^5 + 3*7^6 + 7^7 + 3*7^8 + 4*7^9 + O(7^10)
+
+        The logarithm is not defined for zero::
+
+            sage: R.zero().log()
+            Traceback (most recent call last):
+            ...
+            ValueError: logarithm is not defined at zero
+
+        TESTS::
+
+            sage: Z17 = ZpCA(17, 2^20)
+            sage: a = Z17(18)
+            sage: b = a.log()   # should be rather fast
+        """
+        cdef unsigned long p = self.prime_pow.prime
+        cdef unsigned long val, prec
+        cdef pAdicCappedAbsoluteElement ans, unit
+
+        if self.is_zero():
+            raise ValueError('logarithm is not defined at zero')
+
+        val = self.valuation_c()
+        if aprec is None:
+            prec = self.absprec - val
+        else:
+            prec = min(aprec, self.absprec - val)
+
+        ans = self._new_c()
+        ans.absprec = prec
+        unit = self.unit_part()
+        sig_on()
+        padiclog(ans.value, unit.value, p, prec, self.prime_pow.pow_mpz_t_tmp(prec))
+        sig_off()
+
+        if val != 0:
+            if p_branch is None:
+                raise ValueError("You must specify a branch of the logarithm for non-units")
+            ans += val * p_branch
+
+        if not change_frac:
+            R = self.parent()
+            if ans.valuation() < 0 and not R.is_field():
+                raise ValueError("logarithm is not integral, use change_frac=True to obtain a result in the fraction field")
+            ans = R(ans)
+        return ans
+
 
 def make_pAdicCappedAbsoluteElement(parent, x, absprec):
     """

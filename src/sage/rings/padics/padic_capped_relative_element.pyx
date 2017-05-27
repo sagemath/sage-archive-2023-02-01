@@ -403,34 +403,21 @@ cdef class pAdicCappedRelativeElement(CRElement):
 
         EXAMPLES::
 
-            sage: Z13 = Zp(13, 10)
+            sage: Z13 = ZpCA(13, 10)
             sage: a = Z13(14); a
             1 + 13 + O(13^10)
-
-        Note that the relative precision decreases when we take log -- it is
-        the absolute precision that is preserved::
-
             sage: a.log()
             13 + 6*13^2 + 2*13^3 + 5*13^4 + 10*13^6 + 13^7 + 11*13^8 + 8*13^9 + O(13^10)
+
             sage: Q13 = Qp(13, 10)
             sage: a = Q13(14); a
             1 + 13 + O(13^10)
             sage: a.log()
             13 + 6*13^2 + 2*13^3 + 5*13^4 + 10*13^6 + 13^7 + 11*13^8 + 8*13^9 + O(13^10)
 
-        The next few examples illustrate precision when computing `p`-adic
-        logarithms::
-
-            sage: R = Zp(5,10)
-            sage: e = R(389); e
-            4 + 2*5 + 3*5^3 + O(5^10)
-            sage: e.log()
-            2*5 + 2*5^2 + 4*5^3 + 3*5^4 + 5^5 + 3*5^7 + 2*5^8 + 4*5^9 + O(5^10)
-            sage: K = Qp(5,10)
-            sage: e = K(389); e
-            4 + 2*5 + 3*5^3 + O(5^10)
-            sage: e.log()
-            2*5 + 2*5^2 + 4*5^3 + 3*5^4 + 5^5 + 3*5^7 + 2*5^8 + 4*5^9 + O(5^10)
+        Note that the relative precision decreases when we take log.
+        Precisely the absolute precision on ``\log(a)`` agrees with the relative
+        precision on ``a`` thanks to the relation ``d\log(a) = da/a``.
 
         The logarithm is not only defined for 1-units::
 
@@ -460,6 +447,25 @@ cdef class pAdicCappedRelativeElement(CRElement):
             2*5 + 3*5^2 + 2*5^3 + 4*5^4 + 2*5^6 + 2*5^7 + 4*5^8 + 2*5^9 + O(5^10)
             sage: a.log(p_branch=1)
             2*5 + 3*5^2 + 2*5^3 + 4*5^4 + 2*5^6 + 2*5^7 + 4*5^8 + 2*5^9 + O(5^10)
+
+        We illustrate the effect of the precision argument::
+
+            sage: R = Zp(7,10)
+            sage: x = R(41152263); x
+            5 + 3*7^2 + 4*7^3 + 3*7^4 + 5*7^5 + 6*7^6 + 7^9 + O(7^10)
+            sage: x.log(aprec = 5)
+            7 + 3*7^2 + 4*7^3 + 3*7^4 + O(7^5)
+            sage: x.log(aprec = 7)
+            7 + 3*7^2 + 4*7^3 + 3*7^4 + 7^5 + 3*7^6 + O(7^7)
+            sage: x.log()
+            7 + 3*7^2 + 4*7^3 + 3*7^4 + 7^5 + 3*7^6 + 7^7 + 3*7^8 + 4*7^9 + O(7^10)
+
+        The logarithm is not defined for zero::
+
+            sage: R.zero().log()
+            Traceback (most recent call last):
+            ...
+            ValueError: logarithm is not defined at zero
 
         TESTS::
 
@@ -491,9 +497,11 @@ cdef class pAdicCappedRelativeElement(CRElement):
                 raise ValueError("You must specify a branch of the logarithm for non-units")
             ans += self.valuation() * p_branch
 
-        if change_frac:
-            ans = self.parent().fraction_field()(ans)
-
+        if not change_frac:
+            R = self.parent()
+            if ans.valuation() < 0 and not R.is_field():
+                raise ValueError("logarithm is not integral, use change_frac=True to obtain a result in the fraction field")
+            ans = R(ans)
         return ans
 
 def unpickle_pcre_v1(R, unit, ordp, relprec):

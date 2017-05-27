@@ -1722,31 +1722,18 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: Z13 = Zp(13, 10)
             sage: a = Z13(14); a
             1 + 13 + O(13^10)
-
-        Note that the relative precision decreases when we take log -- it is
-        the absolute precision that is preserved::
-
             sage: a.log()
             13 + 6*13^2 + 2*13^3 + 5*13^4 + 10*13^6 + 13^7 + 11*13^8 + 8*13^9 + O(13^10)
+
             sage: Q13 = Qp(13, 10)
             sage: a = Q13(14); a
             1 + 13 + O(13^10)
             sage: a.log()
             13 + 6*13^2 + 2*13^3 + 5*13^4 + 10*13^6 + 13^7 + 11*13^8 + 8*13^9 + O(13^10)
 
-        The next few examples illustrate precision when computing `p`-adic
-        logarithms::
-
-            sage: R = Zp(5,10)
-            sage: e = R(389); e
-            4 + 2*5 + 3*5^3 + O(5^10)
-            sage: e.log()
-            2*5 + 2*5^2 + 4*5^3 + 3*5^4 + 5^5 + 3*5^7 + 2*5^8 + 4*5^9 + O(5^10)
-            sage: K = Qp(5,10)
-            sage: e = K(389); e
-            4 + 2*5 + 3*5^3 + O(5^10)
-            sage: e.log()
-            2*5 + 2*5^2 + 4*5^3 + 3*5^4 + 5^5 + 3*5^7 + 2*5^8 + 4*5^9 + O(5^10)
+        Note that the relative precision decreases when we take log.
+        Precisely the absolute precision on ``\log(a)`` agrees with the relative
+        precision on ``a`` thanks to the relation ``d\log(a) = da/a``.
 
         The logarithm is not only defined for 1-units::
 

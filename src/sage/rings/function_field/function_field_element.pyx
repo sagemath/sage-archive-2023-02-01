@@ -25,6 +25,7 @@ AUTHORS:
 
 
 from sage.structure.element cimport FieldElement, RingElement, ModuleElement, Element
+from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object cimport richcmp, richcmp_not_equal
 
 
@@ -125,10 +126,17 @@ cdef class FunctionFieldElement(FieldElement):
         """
         return self._x._latex_()
 
-    def matrix(self):
+    @cached_method
+    def matrix(self, base=None):
         r"""
-        Return the matrix of multiplication by self, interpreting self as an element
-        of a vector space over its base field.
+        Return the matrix of multiplication by this element, interpreting this
+        element as an element of a vector space over ``base``.
+
+        INPUT:
+
+        - ``base`` -- a function field or ``None`` (default: ``None``), if
+          ``None``, then the matrix is formed over the base field of this
+          function field.
 
         EXAMPLES:
 
@@ -153,13 +161,24 @@ cdef class FunctionFieldElement(FieldElement):
         An example in a relative extension, where neither function
         field is rational::
 
-            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
-            sage: M.<T> = L[]; Z.<alpha> = L.extension(T^3 - y^2*T + x)
+            sage: M.<T> = L[]
+            sage: Z.<alpha> = L.extension(T^3 - y^2*T + x)
             sage: alpha.matrix()
             [          0           1           0]
             [          0           0           1]
             [         -x x*y - 4*x^3           0]
+            sage: alpha.matrix(K)
+            [           0            0            1            0            0            0]
+            [           0            0            0            1            0            0]
+            [           0            0            0            0            1            0]
+            [           0            0            0            0            0            1]
+            [          -x            0       -4*x^3            x            0            0]
+            [           0           -x       -4*x^4 -4*x^3 + x^2            0            0]
+            sage: alpha.matrix(Z)
+            [alpha]
 
         We show that this matrix does indeed work as expected when making a
         vector space from a function field::
@@ -175,23 +194,17 @@ cdef class FunctionFieldElement(FieldElement):
             sage: y5 == y4y
             True
         """
-        if self._matrix is None:
-            # Multiply each power of field generator on the left by this
-            # element; make matrix whose rows are the coefficients of the
-            # result, and transpose.
-            K = self.parent()
-            v = []
-            x = K.gen()
-            a = K(1)
-            d = K.degree()
-            for n in range(d):
-                v += (a*self).list()
-                a *= x
-            k = K.base_ring()
-            import sage.matrix.matrix_space
-            M = sage.matrix.matrix_space.MatrixSpace(k, d)
-            self._matrix = M(v)
-        return self._matrix
+        # multiply each element of the vector space isomorphic to the parent
+        # with this element; make matrix whose rows are the coefficients of the
+        # result, and transpose
+        V, f, t = self.parent().vector_space(base)
+        rows = [ t(self*f(b)) for b in V.basis() ]
+        from sage.matrix.matrix_space import MatrixSpace
+        MS = MatrixSpace(V.base_field(), V.dimension())
+        ret = MS(rows)
+        ret.transpose()
+        ret.set_immutable()
+        return ret
 
     def trace(self):
         """

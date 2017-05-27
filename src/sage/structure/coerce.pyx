@@ -80,12 +80,10 @@ from cpython.object cimport (PyObject, PyTypeObject,
 from cpython.weakref cimport PyWeakref_GET_OBJECT, PyWeakref_NewRef
 from libc.string cimport strncmp
 
-cdef add, sub, mul, div, truediv, iadd, isub, imul, idiv
+cdef add, sub, mul, truediv, iadd, isub, imul
 import operator
 cdef dict operator_dict = operator.__dict__
 from operator import add, sub, mul, truediv, iadd, isub, imul
-from operator import truediv as div
-from operator import itruediv as idiv
 
 from .sage_object cimport SageObject, rich_to_bool
 from .parent cimport Set_PythonType, Parent_richcmp_element_without_coercion
@@ -781,8 +779,6 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: f(100)
             2
         """
-        if op is truediv:
-            op = div
         self._exceptions_cleared = False
         res = None
         if not isinstance(xp, type) and not isinstance(xp, Parent):
@@ -793,7 +789,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         all = []
         if xp is yp:
             all.append("Identical parents, arithmetic performed immediately." % xp)
-            if op is div and isinstance(xp, Parent):
+            if op is truediv and isinstance(xp, Parent):
                 xp = self.division_parent(xp)
             return all, xp
         if xp == yp:
@@ -822,7 +818,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                     raise RuntimeError("BUG in coercion model: codomains not equal!", x_mor, y_mor)
                 res = y_mor.codomain()
             all.append("Arithmetic performed after coercions.")
-            if op is div and isinstance(res, Parent):
+            if op is truediv and isinstance(res, Parent):
                 res = self.division_parent(res)
             return all, res
 
@@ -832,7 +828,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 mor = mor.__copy__()
                 all.append("Coercion on numeric left operand via")
                 all.append(mor)
-                if op is div and isinstance(yp, Parent):
+                if op is truediv and isinstance(yp, Parent):
                     yp = self.division_parent(yp)
                 return all, yp
             all.append("Left operand is numeric, will attempt coercion in both directions.")
@@ -845,7 +841,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 mor = mor.__copy__()
                 all.append("Coercion on numeric right operand via")
                 all.append(mor)
-                if op is div and isinstance(xp, Parent):
+                if op is truediv and isinstance(xp, Parent):
                     xp = self.division_parent(xp)
                 return all, xp
             all.append("Right operand is numeric, will attempt coercion in both directions.")
@@ -1574,7 +1570,6 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: x = QQx.gen()
             sage: A(x+10, 5)
             1/5*x + 2
-
         """
         try:
             return self._action_maps.get(R, S, op)
@@ -1716,9 +1711,6 @@ cdef class CoercionModel_cache_maps(CoercionModel):
               From: Integer Ring
               To:   Rational Field
         """
-        if op is truediv:
-            op = div
-
         if isinstance(R, Parent):
             action = (<Parent>R).get_action(S, op, True, r, s)
             if action is not None:
@@ -1762,7 +1754,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             except KeyError:
                 self._record_exception()
 
-        if op is div:
+        if op is truediv:
             # Division on right is the same acting on right by inverse, if it is so defined.
             right_mul = None
             try:

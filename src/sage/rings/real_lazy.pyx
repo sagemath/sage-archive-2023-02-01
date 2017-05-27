@@ -23,9 +23,9 @@ specified in the forward direction).
 
 import math
 
-cdef add, sub, mul, div, pow, neg, inv
+cdef add, sub, mul, truediv, pow, neg, inv
 from operator import add, sub, mul, pow, neg, inv
-from operator import truediv as div
+from operator import truediv
 
 cdef canonical_coercion
 from sage.structure.element import canonical_coercion
@@ -611,7 +611,7 @@ cdef class LazyFieldElement(FieldElement):
                 return left._new_wrapper((<LazyWrapper?>left)._value / (<LazyWrapper?>right)._value)
             except TypeError:
                 pass
-        return left._new_binop(left, right, div)
+        return left._new_binop(left, right, truediv)
 
     def __pow__(left, right, dummy):
         """
@@ -1140,7 +1140,7 @@ cdef class LazyBinop(LazyFieldElement):
             return left * right
         elif self._op is sub:
             return left - right
-        elif self._op is div:
+        elif self._op is truediv:
             return left / right
         elif self._op is pow:
             return left ** right
@@ -1167,7 +1167,7 @@ cdef class LazyBinop(LazyFieldElement):
             return left * right
         elif self._op is sub:
             return left - right
-        elif self._op is div:
+        elif self._op is truediv:
             return left / right
         elif self._op is pow:
             return left ** right

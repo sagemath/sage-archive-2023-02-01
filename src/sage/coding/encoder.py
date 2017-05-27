@@ -192,7 +192,7 @@ class Encoder(SageObject):
 
     def unencode(self, c, nocheck=False):
         r"""
-        Returns the message corresponding to the codeword ``c``.
+        Return the message corresponding to the codeword ``c``.
 
         This is the inverse of :meth:`encode`.
 
@@ -240,7 +240,7 @@ class Encoder(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: length must be a non-zero positive integer
-       """
+        """
         if not nocheck and c not in self.code():
             raise EncodingError("Given word is not in the code")
         return self.unencode_nocheck(c)

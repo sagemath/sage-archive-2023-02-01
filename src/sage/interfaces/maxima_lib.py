@@ -1211,7 +1211,7 @@ lisp_length=EclObject("length")
 sage_op_dict = {
     sage.functions.other.abs : "MABS",
     add_vararg : "MPLUS",
-    sage.symbolic.expression.operator.div : "MQUOTIENT",
+    sage.symbolic.expression.operator.truediv : "MQUOTIENT",
     sage.symbolic.expression.operator.eq : "MEQUAL",
     sage.symbolic.expression.operator.ge : "MGEQP",
     sage.symbolic.expression.operator.gt : "MGREATERP",

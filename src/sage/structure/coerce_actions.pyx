@@ -522,7 +522,7 @@ cdef class ModuleAction(Action):
             Power Series Ring in y over Symbolic Constants Subring
             sage: R.<x> = SR.subring(no_variables=True)[]
             sage: cm = sage.structure.element.get_coercion_model()
-            sage: cm.explain(x, 1, operator.div)
+            sage: cm.explain(x, 1, operator.truediv)
             Action discovered.
                 Right inverse action by Symbolic Constants Subring on
                 Univariate Polynomial Ring in x over Symbolic Constants Subring

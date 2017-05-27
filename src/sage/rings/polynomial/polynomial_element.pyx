@@ -3568,7 +3568,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # in all cases!!
         cm = coercion_model
         try:
-            S = cm.bin_op(R.one(), ZZ.one(), operator.div).parent()
+            S = cm.bin_op(R.one(), ZZ.one(), operator.truediv).parent()
             Q = S.base_ring()
         except TypeError:
             Q = (R.base_ring().one()/ZZ.one()).parent()
@@ -3578,7 +3578,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return S([coeff.integral(var) for coeff in self])
         cdef Py_ssize_t n
         zero = Q.zero()
-        p = [zero] + [cm.bin_op(Q(self[n]), n+1, operator.div) if self[n] else zero for n in range(self.degree()+1)]
+        p = [zero] + [cm.bin_op(Q(self[n]), n + 1, operator.truediv)
+                      if self[n] else zero for n in range(self.degree() + 1)]
         return S(p)
 
     def dict(self):
@@ -6151,7 +6152,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             x^8 - 4*x^6 + 4*x^4 - 16*x^2
             sage: p1.composed_op(p2, operator.mul)
             x^8 - 2*x^4 + 1
-            sage: p1.composed_op(p2, operator.div)
+            sage: p1.composed_op(p2, operator.truediv)
             x^8 - 2*x^4 + 1
 
         This function works over any field. However for base rings other than
@@ -6179,7 +6180,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p_mul = p1.composed_op(p2, operator.mul)
             sage: p_mul
             x^6 + x^4 + x^2 + x + 1
-            sage: p_div = p1.composed_op(p2, operator.div)
+            sage: p_div = p1.composed_op(p2, operator.truediv)
             sage: p_div
             x^6 + x^5 + x^4 + x^2 + 1
 
@@ -6199,7 +6200,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: for p1 in [2*y^3 - y + 3, -y^5 - 2, 4*y - 3]:
             ....:   for p2 in [5*y^2 - 7, -3*y - 1]:
             ....:     for monic in [True,False]:
-            ....:       for op in [operator.add, operator.sub, operator.mul, operator.div]:
+            ....:       for op in [operator.add, operator.sub, operator.mul, operator.truediv]:
             ....:         pr = p1.composed_op(p2, op, "resultant", monic=monic)
             ....:         pb = p1.composed_op(p2, op, "BFSS", monic=monic)
             ....:         assert ((pr == pb) or ((not monic) and pr == -pb) and (parent(pr) is parent(pb)))
@@ -6213,7 +6214,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         cdef long j
         cdef long prec
 
-        if op not in (operator.add, operator.sub, operator.mul, operator.div):
+        if op not in (operator.add, operator.sub, operator.mul, operator.truediv):
             raise ValueError("op must be operator.OP where OP=add, sub, mul or div")
 
         if not isinstance(p2, Polynomial):
@@ -6229,7 +6230,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if d1 <= 0 or d2 <= 0:
             raise ValueError('the polynomials must have positive degree')
 
-        if op is operator.div and p2.valuation() > 0:
+        if op is operator.truediv and p2.valuation() > 0:
             raise ZeroDivisionError('p2 must have zero valuation')
         if algorithm is None:
             # choose the algorithm observing that the "resultant" one
@@ -6265,7 +6266,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 raise ValueError("BFSS algorithm is available only for the base ring ZZ or QQ")
             if op is operator.sub:
                 p2 = p2(-K.gen())
-            elif op is operator.div:
+            elif op is operator.truediv:
                 p2 = p2.reverse()
             # the computation below needs must be done in the fraction field
             # even though the result would have the same ring

@@ -45,8 +45,8 @@ class FakeExpression(object):
 
             sage: from sage.symbolic.expression_conversions import FakeExpression
             sage: import operator; x,y = var('x,y')
-            sage: FakeExpression([x, y], operator.div)
-            FakeExpression([x, y], <built-in function div>)
+            sage: FakeExpression([x, y], operator.truediv)
+            FakeExpression([x, y], <built-in function truediv>)
         """
         self._operands = operands
         self._operator = operator
@@ -57,8 +57,8 @@ class FakeExpression(object):
 
             sage: from sage.symbolic.expression_conversions import FakeExpression
             sage: import operator; x,y = var('x,y')
-            sage: FakeExpression([x, y], operator.div)
-            FakeExpression([x, y], <built-in function div>)
+            sage: FakeExpression([x, y], operator.truediv)
+            FakeExpression([x, y], <built-in function truediv>)
         """
         return "FakeExpression(%r, %r)"%(self._operands, self._operator)
 
@@ -68,7 +68,7 @@ class FakeExpression(object):
 
             sage: from sage.symbolic.expression_conversions import FakeExpression
             sage: import operator; x,y = var('x,y')
-            sage: f = FakeExpression([x, y], operator.div)
+            sage: f = FakeExpression([x, y], operator.truediv)
             sage: f.pyobject()
             Traceback (most recent call last):
             ...
@@ -82,7 +82,7 @@ class FakeExpression(object):
 
             sage: from sage.symbolic.expression_conversions import FakeExpression
             sage: import operator; x,y = var('x,y')
-            sage: f = FakeExpression([x, y], operator.div)
+            sage: f = FakeExpression([x, y], operator.truediv)
             sage: f.operands()
             [x, y]
         """
@@ -94,7 +94,7 @@ class FakeExpression(object):
 
             sage: from sage.symbolic.expression_conversions import FakeExpression
             sage: import operator; x,y = var('x,y')
-            sage: f = FakeExpression([x, y], operator.div)
+            sage: f = FakeExpression([x, y], operator.truediv)
             sage: f[0]
             x
         """
@@ -106,9 +106,9 @@ class FakeExpression(object):
 
             sage: from sage.symbolic.expression_conversions import FakeExpression
             sage: import operator; x,y = var('x,y')
-            sage: f = FakeExpression([x, y], operator.div)
+            sage: f = FakeExpression([x, y], operator.truediv)
             sage: f.operator()
-            <built-in function div>
+            <built-in function truediv>
         """
         return self._operator
 
@@ -118,7 +118,7 @@ class FakeExpression(object):
 
             sage: from sage.symbolic.expression_conversions import FakeExpression
             sage: import operator; x,y = var('x,y')
-            sage: f = FakeExpression([x, y], operator.div)
+            sage: f = FakeExpression([x, y], operator.truediv)
             sage: fast_callable(f, vars=['x','y']).op_list()
             [('load_arg', 0), ('load_arg', 1), 'div', 'return']
         """
@@ -130,7 +130,7 @@ class FakeExpression(object):
 
             sage: from sage.symbolic.expression_conversions import FakeExpression
             sage: import operator; x,y = var('x,y')
-            sage: f = FakeExpression([x, y], operator.div)
+            sage: f = FakeExpression([x, y], operator.truediv)
             sage: fast_float(f, 'x', 'y').op_list()
             [('load_arg', 0), ('load_arg', 1), 'div', 'return']
         """
@@ -141,7 +141,7 @@ class Converter(object):
         """
         If use_fake_div is set to True, then the converter will try to
         replace expressions whose operator is operator.mul with the
-        corresponding expression whose operator is operator.div.
+        corresponding expression whose operator is operator.truediv.
 
         EXAMPLES::
 
@@ -232,18 +232,18 @@ class Converter(object):
             sage: from sage.symbolic.expression_conversions import Converter
             sage: c = Converter(use_fake_div=True)
             sage: c.get_fake_div(sin(x)/x)
-            FakeExpression([sin(x), x], <built-in function div>)
+            FakeExpression([sin(x), x], <built-in function truediv>)
             sage: c.get_fake_div(-1*sin(x))
             FakeExpression([sin(x)], <built-in function neg>)
             sage: c.get_fake_div(-x)
             FakeExpression([x], <built-in function neg>)
             sage: c.get_fake_div((2*x^3+2*x-1)/((x-2)*(x+1)))
-            FakeExpression([2*x^3 + 2*x - 1, FakeExpression([x + 1, x - 2], <built-in function mul>)], <built-in function div>)
+            FakeExpression([2*x^3 + 2*x - 1, FakeExpression([x + 1, x - 2], <built-in function mul>)], <built-in function truediv>)
 
         Check if :trac:`8056` is fixed, i.e., if numerator is 1.::
 
             sage: c.get_fake_div(1/pi/x)
-            FakeExpression([1, FakeExpression([pi, x], <built-in function mul>)], <built-in function div>)
+            FakeExpression([1, FakeExpression([pi, x], <built-in function mul>)], <built-in function truediv>)
         """
         d = []
         n = []
@@ -271,13 +271,13 @@ class Converter(object):
             d = FakeExpression(d, _operator.mul)
 
         if len(n) == 0:
-            return FakeExpression([SR.one(), d], _operator.div)
+            return FakeExpression([SR.one(), d], _operator.truediv)
         elif len(n) == 1:
             n = n[0]
         else:
             n = FakeExpression(n, _operator.mul)
 
-        return FakeExpression([n,d], _operator.div)
+        return FakeExpression([n,d], _operator.truediv)
 
     def pyobject(self, ex, obj):
         """
@@ -1588,13 +1588,13 @@ class FastCallableConverter(Converter):
         if operator is _operator.pow:
             exponent = operands[1]
             if exponent == -1:
-                return self.etb.call(_operator.div, 1, operands[0])
+                return self.etb.call(_operator.truediv, 1, operands[0])
             elif exponent == 0.5:
                 from sage.functions.all import sqrt
                 return self.etb.call(sqrt, operands[0])
             elif exponent == -0.5:
                 from sage.functions.all import sqrt
-                return self.etb.call(_operator.div, 1, self.etb.call(sqrt, operands[0]))
+                return self.etb.call(_operator.truediv, 1, self.etb.call(sqrt, operands[0]))
         elif operator is _operator.neg:
             return self.etb.call(operator, operands[0])
         if operator == add_vararg:

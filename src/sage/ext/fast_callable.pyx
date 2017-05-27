@@ -757,7 +757,7 @@ cdef class ExpressionTreeBuilder:
 cdef op_add = operator.add
 cdef op_sub = operator.sub
 cdef op_mul = operator.mul
-cdef op_div = operator.div
+cdef op_div = operator.truediv
 cdef op_floordiv = operator.floordiv
 cdef op_pow = operator.pow
 cdef op_neg = operator.neg
@@ -1649,7 +1649,7 @@ cpdef dict get_builtin_functions():
         operator.add: 'add',
         operator.sub: 'sub',
         operator.mul: 'mul',
-        operator.div: 'div',
+        operator.truediv: 'div',
         operator.floordiv: 'floordiv',
         operator.abs: 'abs',
         operator.neg: 'neg',

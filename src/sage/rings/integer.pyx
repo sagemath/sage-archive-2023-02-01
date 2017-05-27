@@ -1864,7 +1864,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                        mpq_denref((<Rational>right).value))
             return y
 
-        return coercion_model.bin_op(left, right, operator.div)
+        return coercion_model.bin_op(left, right, operator.truediv)
 
     cpdef _div_(self, right):
         r"""

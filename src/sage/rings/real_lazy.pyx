@@ -24,7 +24,8 @@ specified in the forward direction).
 import math
 
 cdef add, sub, mul, div, pow, neg, inv
-from operator import add, sub, mul, div, pow, neg, inv
+from operator import add, sub, mul, pow, neg, inv
+from operator import truediv as div
 
 cdef canonical_coercion
 from sage.structure.element import canonical_coercion
@@ -675,7 +676,7 @@ cdef class LazyFieldElement(FieldElement):
         TESTS::
 
             sage: from sage.rings.real_lazy import LazyBinop
-            sage: RLF(3) < LazyBinop(RLF, 5, 3, operator.div)
+            sage: RLF(3) < LazyBinop(RLF, 5, 3, operator.truediv)
             False
             sage: from sage.rings.real_lazy import LazyWrapper
             sage: LazyWrapper(RLF, 3) < LazyWrapper(RLF, 5/3)
@@ -1192,9 +1193,10 @@ cdef class LazyBinop(LazyFieldElement):
         """
         For pickling.
 
-        TEST:
+        TEST::
+
             sage: from sage.rings.real_lazy import LazyBinop
-            sage: a = LazyBinop(CLF, 3, 2, operator.div)
+            sage: a = LazyBinop(CLF, 3, 2, operator.truediv)
             sage: loads(dumps(a)) == a
             True
         """

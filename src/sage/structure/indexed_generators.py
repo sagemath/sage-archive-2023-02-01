@@ -3,14 +3,16 @@
 Indexed Generators
 """
 #*****************************************************************************
-#       Copyright (C) 2013      Travis Scrimshaw <tscrim at ucdavis.edu>,
+#       Copyright (C) 2013 Travis Scrimshaw <tcscrims at gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.rings.all import Integer
-from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.structure.category_object import normalize_names
 
 class IndexedGenerators(object):
@@ -527,16 +529,20 @@ def split_index_keywords(kwds):
             pass
     return ret
 
-def parse_indices_names(indices, names, prefix, kwds={}):
+def parse_indices_names(names, index_set, prefix, kwds={}):
     """
-    Parse the indices, names, and prefix input, along with setting
+    Parse the names, index set, and prefix input, along with setting
     default values for keyword arguments ``kwds``.
 
     OUTPUT:
 
-    The triple ``(I, N, p)`` where ``I`` is the indexing set, ``N`` is the
-    tuple of variable names, and ``p`` is the prefix. This modifies
-    the dictionary ``kwds``.
+    The triple ``(N, I, p)``:
+
+    - ``N`` is the tuple of variable names,
+    - ``I`` is the index set, and
+    - ``p`` is the prefix.
+
+    This modifies the dictionary ``kwds``.
 
     .. NOTE::
 
@@ -552,38 +558,36 @@ def parse_indices_names(indices, names, prefix, kwds={}):
 
         sage: from sage.structure.indexed_generators import parse_indices_names
         sage: d = {}
-        sage: parse_indices_names(ZZ, 'x,y,z', None, d)
-        (Integer Ring, 'x,y,z', None)
+        sage: parse_indices_names('x,y,z', ZZ, None, d)
+        (('x', 'y', 'z'), Integer Ring, None)
         sage: d
         {}
         sage: d = {}
-        sage: parse_indices_names(None, 'x,y,z', None, d)
-        ({'x', 'y', 'z'}, ('x', 'y', 'z'), '')
+        sage: parse_indices_names('x,y,z', None, None, d)
+        (('x', 'y', 'z'), {'x', 'y', 'z'}, '')
         sage: d
         {'bracket': False, 'string_quotes': False}
         sage: d = {}
-        sage: parse_indices_names(ZZ, None, None, d)
-        (Integer Ring, None, None)
+        sage: parse_indices_names(None, ZZ, None, d)
+        (None, Integer Ring, None)
         sage: d
         {}
 
     ::
 
         sage: d = {'string_quotes':True, 'bracket':'['}
-        sage: parse_indices_names(ZZ, ['x','y','z'], 'x', d)
-        (Integer Ring, ['x', 'y', 'z'], 'x')
+        sage: parse_indices_names(['a','b','c'], ZZ, 'x', d)
+        (('a', 'b', 'c'), Integer Ring, 'x')
         sage: d
         {'bracket': '[', 'string_quotes': True}
-        sage: parse_indices_names(None, 'x,y,z', 'A', d)
-        ({'x', 'y', 'z'}, ('x', 'y', 'z'), 'A')
+        sage: parse_indices_names('x,y,z', None, 'A', d)
+        (('x', 'y', 'z'), {'x', 'y', 'z'}, 'A')
         sage: d
         {'bracket': '[', 'string_quotes': True}
     """
-    if indices is None:
+    if index_set is None:
         if names is None:
             raise ValueError("either the indices or names must be given")
-        names = normalize_names(-1, names)
-        indices = names
 
         if prefix is None:
             prefix = ''
@@ -592,19 +596,22 @@ def parse_indices_names(indices, names, prefix, kwds={}):
         if 'bracket' not in kwds:
             kwds['bracket'] = False
 
-    if isinstance(indices, dict): # dict of {name: index} -- not likely to be used
-        names = normalize_names(-1, tuple(indices.keys()))
-        indices = FiniteEnumeratedSet([indices[n] for n in names])
-    elif isinstance(indices, str):
-        indices = FiniteEnumeratedSet(list(indices))
-    elif isinstance(indices, (list, tuple, set, frozenset)):
-        indices = FiniteEnumeratedSet(indices)
+    names, index_set = standardize_names_index_set(names, index_set, -1)
 
-    return (indices, names, prefix)
+    return (names, index_set, prefix)
 
 def standardize_names_index_set(names=None, index_set=None, ngens=None):
     """
     Standardize the ``names`` and ``index_set`` inputs.
+
+    INPUT:
+
+    - ``names`` -- (optional) the variable names
+    - ``index_set`` -- (optional) the index set
+    - ``ngens`` -- (optional) the number of generators
+
+    If ``ngens`` is a negative number, then this does not check that
+    the number of variable names matches the size of the index set.
 
     OUTPUT:
 
@@ -673,19 +680,28 @@ def standardize_names_index_set(names=None, index_set=None, ngens=None):
             #   be the names
             index_set = tuple(names)
 
-    if isinstance(index_set, (tuple, list)):
-        from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+    from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+    if isinstance(index_set, dict): # dict of {name: index} -- not likely to be used
+        if names is not None:
+            raise ValueError("cannot give index_set as a dict and names")
+        names = normalize_names(-1, tuple(index_set.keys()))
+        index_set = FiniteEnumeratedSet([index_set[n] for n in names])
+    elif isinstance(index_set, str):
+        index_set = FiniteEnumeratedSet(list(index_set))
+    elif isinstance(index_set, (tuple, list)):
         index_set = FiniteEnumeratedSet(index_set)
 
-    if names is not None:
-        if len(names) != index_set.cardinality():
-            raise IndexError("the number of names must equal"
-                             " the size of the indexing set")
-        if ngens is not None and len(names) != ngens:
-            raise IndexError("the number of names must equal the number of generators")
-    elif ngens is not None and index_set.cardinality() != ngens:
-        raise IndexError("the size of the indexing set must equal"
-                         " the number of generators")
+    if ngens is None or ngens >= 0:
+        if names is not None:
+            if len(names) != index_set.cardinality():
+                raise IndexError("the number of names must equal"
+                                 " the size of the indexing set")
+            if ngens is not None and len(names) != ngens:
+                raise IndexError("the number of names must equal the"
+                                 " number of generators")
+        elif ngens is not None and index_set.cardinality() != ngens:
+            raise IndexError("the size of the indexing set must equal"
+                             " the number of generators")
 
     return (names, index_set)
 

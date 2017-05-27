@@ -653,7 +653,7 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
             ...
             ValueError: either the indices or names must be given
         """
-        indices, names, prefix = parse_indices_names(indices, names, prefix, kwds)
+        names, indices, prefix = parse_indices_names(names, indices, prefix, kwds)
         if prefix is None:
             prefix = "F"
 
@@ -666,7 +666,8 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
         if isinstance(latex_bracket, list):
             kwds['latex_bracket'] = tuple(latex_bracket)
 
-        return super(IndexedMonoid, cls).__classcall__(cls, indices, prefix, names=names, **kwds)
+        return super(IndexedMonoid, cls).__classcall__(cls, indices, prefix,
+                                                       names=names, **kwds)
 
     def __init__(self, indices, prefix, category=None, names=None, **kwds):
         """

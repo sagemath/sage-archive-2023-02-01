@@ -296,7 +296,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         if isinstance(latex_bracket, list):
             keywords['latex_bracket'] = tuple(latex_bracket)
 
-        basis_keys, names, prefix = parse_indices_names(basis_keys, names, prefix, keywords)
+        names, basis_keys, prefix = parse_indices_names(names, basis_keys, prefix, keywords)
         if prefix is None:
             prefix = "B"
 
@@ -418,7 +418,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
         # This is needed for the Cartesian product
         # TODO: Remove this duplication from __classcall_private__
-        basis_keys, names, prefix = parse_indices_names(basis_keys, names, prefix, kwds)
+        names, basis_keys, prefix = parse_indices_names(names, basis_keys, prefix, kwds)
         if prefix is None:
             prefix = "B"
 

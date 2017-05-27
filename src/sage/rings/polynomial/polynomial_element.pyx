@@ -2820,9 +2820,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         If `self` is a polynomial of degree n and `right` is a polynomial of
         degree m with n < m, then we interpret `right` as
 
-        ..math::
+        .. MATH::
 
-            g0 + g1*x^n +g2*x^{2n} + ... + gq*x^{nq}
+            g0 + g1 * x^n + g2 * x^{2n} + ... + gq * x^{nq}
 
         where `gi` are polynomials of degree <= n. We then compute each product
         `gi*right` with Karatsuba multiplication and reconstruct `self*right`

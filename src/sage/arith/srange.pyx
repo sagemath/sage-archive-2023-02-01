@@ -214,8 +214,9 @@ def srange(*args, **kwds):
        it from the built-in Python ``range`` command.  The s
        at the beginning of the name stands for "Sage".
 
-    .. seealso: :func:`xsrange` -- iterator which is used to implement
-       :func:`srange`.
+    .. SEEALSO::
+
+        :func:`xsrange` -- iterator which is used to implement :func:`srange`.
 
     EXAMPLES::
 

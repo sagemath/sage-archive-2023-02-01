@@ -325,7 +325,7 @@ Information for developpers
   Note that the digraph is only built if necessary (for instance if
   the user tries to compare two classes).
 
-.. todo::
+.. TODO::
 
     Technical things:
 
@@ -335,7 +335,7 @@ Information for developpers
     * Implement a proper search method for the classes not listed in
       :obj:`graph_classes <GraphClasses>`
 
-      .. seealso: :func:`sage.graphs.isgci.show_all`.
+      .. SEEALSO:: :func:`sage.graphs.isgci.show_all`.
 
     * Some of the graph classes appearing in :obj:`graph_classes
       <GraphClasses>` already have a recognition
@@ -666,7 +666,7 @@ class GraphClasses(UniqueRepresentation):
 
         - ``id`` (string) -- the desired class' ID
 
-        .. seealso:
+        .. SEEALSO::
 
             :meth:`~sage.graphs.isgci.GraphClasses.show_all`
 

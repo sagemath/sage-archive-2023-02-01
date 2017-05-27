@@ -3223,7 +3223,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             For example, if invoked on the root lattice of type `['B',2]`, returns the
             coroot lattice of type `['C',2]`.
 
-            ..warning::
+            .. WARNING::
 
                 Not implemented for ambient spaces.
 

@@ -171,7 +171,9 @@ public:
 	const numeric sub(const numeric &other) const;
 	const numeric mul(const numeric &other) const;
 	const numeric div(const numeric &other) const;
-	const numeric power(const numeric &other) const;
+	const ex power(const numeric &other) const;
+	const numeric power(signed long other) const;
+        const numeric pow_intexp(const numeric &exponent) const;
 	const numeric & add_dyn(const numeric &other) const;
 	const numeric & sub_dyn(const numeric &other) const;
 	const numeric & mul_dyn(const numeric &other) const;
@@ -368,7 +370,7 @@ const numeric lcm(const numeric &a, const numeric &b);
 
 // wrapper functions around member functions
 
-inline const numeric pow(const numeric &x, const numeric &y)
+inline ex pow(const numeric &x, const numeric &y)
 {
 	return x.power(y);
 }

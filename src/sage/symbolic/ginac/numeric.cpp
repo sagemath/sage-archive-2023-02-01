@@ -1294,75 +1294,85 @@ const numeric numeric::div(const numeric &other) const {
         }
 }
 
-/** Numerical exponentiation.  Raises *this to the integer power given as argument and
- *  returns result as numeric. */
-const numeric numeric::power(const numeric &exponent) const {
+const numeric numeric::power(signed long exp_si) const
+{
+        PyObject *o, *r;
+        switch (t) {
+                case MPZ:
+                        if (exp_si >= 0) {
+                                mpz_t bigint;
+                                mpz_init(bigint);
+                                mpz_pow_ui(bigint, v._bigint, exp_si);
+                                return numeric(bigint);
+                        }
+                        else {
+                                mpz_t bigint;
+                                mpz_init_set(bigint, v._bigint);
+                                mpz_pow_ui(bigint, bigint, -exp_si);
+                                mpq_t bigrat;
+                                mpq_init(bigrat);
+                                mpq_set_z(bigrat, bigint);
+                                mpq_inv(bigrat, bigrat);
+                                mpz_clear(bigint);
+                                return numeric(bigrat);
+                        }
+                case MPQ:
+                        mpz_t bigint;
+                        mpq_t bigrat, obigrat;
+                        mpz_init(bigint);
+                        mpq_init(bigrat);
+                        mpq_init(obigrat);
+                        if (exp_si >= 0) {
+                                mpz_pow_ui(bigint, mpq_numref(v._bigrat), exp_si);
+                                mpq_set_z(bigrat, bigint);
+                                mpz_pow_ui(bigint, mpq_denref(v._bigrat), exp_si);
+                                mpq_set_z(obigrat, bigint);
+                                mpq_div(bigrat, bigrat, obigrat);
+                        }
+                        else {
+                                mpz_pow_ui(bigint, mpq_denref(v._bigrat), -exp_si);
+                                mpq_set_z(bigrat, bigint);
+                                mpz_pow_ui(bigint, mpq_numref(v._bigrat), -exp_si);
+                                mpq_set_z(obigrat, bigint);
+                                mpq_div(bigrat, bigrat, obigrat);
+                        }
+                        mpz_clear(bigint);
+                        mpq_clear(obigrat);
+                        return numeric(bigrat);
+                case PYOBJECT:
+                        o = Integer(exp_si);
+                        r = PyNumber_Power(v._pyobject, o, Py_None);
+                        Py_DECREF(o);
+                        return numeric(r);
+                default:
+                        stub("invalid type: pow_intexp numeric");
+        }
+}
+
+const numeric numeric::pow_intexp(const numeric &exponent) const
+{
+        if (not exponent.is_integer())
+                throw std::runtime_error("nueric::pow_intexp: exponent not integer");
+        if (not mpz_fits_sint_p(exponent.v._bigint))
+                throw std::runtime_error("size of exponent exceeds signed long size");
+        return power(mpz_get_si(exponent.v._bigint));
+}
+
+/** Numerical exponentiation.
+ * Raises *this to the power given as argument and returns the result as ex,
+ * because it is possible that the result is converted to symbolic by Sage,
+ * and we don't want symbolic as PyObject inside numeric. */
+const ex numeric::power(const numeric &exponent) const {
         verbose("pow");
+        if (exponent.t == MPZ)
+                return pow_intexp(exponent);
         numeric ex(exponent);
         if (exponent.t == PYOBJECT and PyInt_Check(exponent.v._pyobject)) {
                 ex.t = MPZ;
                 long si = PyInt_AsLong(exponent.v._pyobject);
                 mpz_set_si(ex.v._bigint, si);
         }
-        if (ex.t == MPZ) {
-                if (not mpz_fits_sint_p(ex.v._bigint)) {
-                        throw std::runtime_error("numeric::power(): exponent doesn't fit in signed long");
-                }
-                signed long int exp_si = mpz_get_si(ex.v._bigint);
-                PyObject *o, *r;
-                switch (t) {
-                        case DOUBLE:
-                                return ::pow(v._double, double(exp_si));
-                        case MPZ:
-                                if (exp_si >= 0) {
-                                        mpz_t bigint;
-                                        mpz_init(bigint);
-                                        mpz_pow_ui(bigint, v._bigint, exp_si);
-                                        return bigint;
-                                }
-                                else {
-                                        mpz_t bigint;
-                                        mpz_init_set(bigint, v._bigint);
-                                        mpz_pow_ui(bigint, bigint, -exp_si);
-                                        mpq_t bigrat;
-                                        mpq_init(bigrat);
-                                        mpq_set_z(bigrat, bigint);
-                                        mpq_inv(bigrat, bigrat);
-                                        mpz_clear(bigint);
-                                        return bigrat;
-                                }
-                        case MPQ:
-                                mpz_t bigint;
-                                mpq_t bigrat, obigrat;
-                                mpz_init(bigint);
-                                mpq_init(bigrat);
-                                mpq_init(obigrat);
-                                if (exp_si >= 0) {
-                                        mpz_pow_ui(bigint, mpq_numref(v._bigrat), exp_si);
-                                        mpq_set_z(bigrat, bigint);
-                                        mpz_pow_ui(bigint, mpq_denref(v._bigrat), exp_si);
-                                        mpq_set_z(obigrat, bigint);
-                                        mpq_div(bigrat, bigrat, obigrat);
-                                }
-                                else {
-                                        mpz_pow_ui(bigint, mpq_denref(v._bigrat), -exp_si);
-                                        mpq_set_z(bigrat, bigint);
-                                        mpz_pow_ui(bigint, mpq_numref(v._bigrat), -exp_si);
-                                        mpq_set_z(obigrat, bigint);
-                                        mpq_div(bigrat, bigrat, obigrat);
-                                }
-                                mpz_clear(bigint);
-                                mpq_clear(obigrat);
-                                return bigrat;
-                        case PYOBJECT:
-                                o = Integer(exp_si);
-                                r = PyNumber_Power(v._pyobject, o, Py_None);
-                                Py_DECREF(o);
-                                return r;
-                        default:
-                                stub("invalid type: pow numeric");
-                }
-        }
+
         if (t != exponent.t) {
                 numeric a, b;
                 coerce(a, b, *this, exponent);
@@ -1451,6 +1461,7 @@ const numeric &numeric::div_dyn(const numeric &other) const {
  *  returns result as a numeric object on the heap.  Use internally only for
  *  direct wrapping into an ex object, where the result would end up on the
  *  heap anyways. */
+// NOTE: Use only if sure to return a non-expression (see power()).
 const numeric &numeric::power_dyn(const numeric &other) const {
         // Efficiency shortcut: trap the neutral exponent (first try by pointer, then
         // try harder, since calls to cln::expt() below may return amazing results for
@@ -1458,8 +1469,7 @@ const numeric &numeric::power_dyn(const numeric &other) const {
         if (&other == _num1_p || (other == *_num1_p))
                 return *this;
 
-        return static_cast<const numeric &> ((new numeric(pow(*this, other)))->
-                setflag(status_flags::dynallocated));
+        return static_cast<const numeric &> ((new numeric(ex_to<numeric>(pow(*this, other))))->setflag(status_flags::dynallocated));
 }
 
 const numeric &numeric::operator=(int i) {

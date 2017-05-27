@@ -1298,7 +1298,9 @@ void mul::combine_overall_coeff(const ex & c1, const ex & c2)
 	GINAC_ASSERT(is_exactly_a<numeric>(overall_coeff));
 	GINAC_ASSERT(is_exactly_a<numeric>(c1));
 	GINAC_ASSERT(is_exactly_a<numeric>(c2));
-	overall_coeff = ex_to<numeric>(overall_coeff).mul_dyn(ex_to<numeric>(c1).power(ex_to<numeric>(c2)));
+	ex e = ex_to<numeric>(c1).power(ex_to<numeric>(c2));
+	GINAC_ASSERT(is_exactly_a<numeric>(e));
+	overall_coeff = ex_to<numeric>(overall_coeff).mul_dyn(ex_to<numeric>(e));
 }
 
 bool mul::can_make_flat(const expair & p) const

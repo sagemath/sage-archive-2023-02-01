@@ -177,12 +177,12 @@ static ex tgamma_eval(const ex & x)
 			// tgamma(n+1/2) -> Pi^(1/2)*(1*3*..*(2*n-1))/(2^n)
 			if (two_x.is_positive()) {
 				const numeric n = ex_to<numeric>(x).sub(*_num1_2_p).to_bigint();
-				return (doublefactorial(n.mul(*_num2_p).sub(*_num1_p)).div(pow(*_num2_p,n))) * sqrt(Pi);
+				return (doublefactorial(n.mul(*_num2_p).sub(*_num1_p)).div(_num2_p->pow_intexp(n))) * sqrt(Pi);
 			} else {
 				// trap negative x==(-n+1/2)
 				// tgamma(-n+1/2) -> Pi^(1/2)*(-2)^n/(1*3*..*(2*n-1))
 				const numeric n = abs(ex_to<numeric>(x).sub(*_num1_2_p).to_bigint());
-				return (pow(*_num_2_p, n).div(doublefactorial(n.mul(*_num2_p).sub(*_num1_p))))*sqrt(Pi);
+				return _num_2_p->pow_intexp(n).div(doublefactorial(n.mul(*_num2_p).sub(*_num1_p)))*sqrt(Pi);
 			}
 		}
 		if (!ex_to<numeric>(x).is_exact())
@@ -404,7 +404,7 @@ static ex psi1_eval(const ex & x)
 				// where r == ((-1/2)^(-1) + ... + (-m-1/2)^(-1))
 				numeric recur = 0;
 				for (numeric p = nx; p<0; ++p)
-					recur -= pow(p, *_num_1_p);
+					recur -= p.inverse();
 				return recur+psi(_ex1_2);
 			}
 		}
@@ -500,8 +500,8 @@ static ex psi2_eval(const ex & n, const ex & x)
 				// where r == (-)^n * n! * (1^(-n-1) + ... + (m-1)^(-n-1))
 				numeric recur = 0;
 				for (numeric p = 1; p<nx; ++p)
-					recur += pow(p, -nn+(*_num_1_p));
-				recur *= factorial(nn)*pow((*_num_1_p), nn);
+					recur += p.pow_intexp(-nn+(*_num_1_p));
+				recur *= factorial(nn)*(_num_1_p->pow_intexp(nn));
 				return recur+psi(n,_ex1);
 			} else {
 				// for non-positive integers there is a pole:
@@ -527,8 +527,8 @@ static ex psi2_eval(const ex & n, const ex & x)
 				// where r == (-)^(n+1) * n! * ((-1/2)^(-n-1) + ... + (-m-1/2)^(-n-1))
 				numeric recur = 0;
 				for (numeric p = nx; p<0; ++p)
-					recur += pow(p, -nn+(*_num_1_p));
-				recur *= factorial(nn)*pow(*_num_1_p, nn+(*_num_1_p));
+					recur += p.pow_intexp(-nn+(*_num_1_p));
+				recur *= factorial(nn)*(_num_1_p->pow_intexp(nn+(*_num_1_p)));
 				return recur+psi(n,_ex1_2);
 			}
 		}

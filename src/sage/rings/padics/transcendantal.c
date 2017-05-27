@@ -65,44 +65,50 @@ void padiclog(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, con
         /* We compute f = 1 - a_i*p^(2^i)
            trunc_mod is p^(2^(i+1)) */
         mpz_fdiv_r(f, arg, trunc_mod);
-        mpz_ui_sub(f, 2, f);
-        mpz_mul(arg, arg, f);
 
-        /* We compute the Taylor expansion of log(f)
-           For now, computations are carried out over the rationals */
-        for (i = 0; i < N; i++) {
-            mpz_set_ui(num[i], 1);
-            mpz_set_ui(denom[i], i+1);
-        }
-        step = 1;
-        mpz_ui_sub(h, 1, f);   // we write f = 1 - h, i.e. h = a_i*p^(2^i)
-        mpz_set(hpow, h);
-        while(step < N) {
-            for (i = 0; i < N - step; i += step << 1) {
-                mpz_mul(mpz_tmp, hpow, num[i+step]);
-                mpz_mul(mpz_tmp, mpz_tmp, denom[i]);
-                mpz_mul(num[i], num[i], denom[i+step]);
-                mpz_add(num[i], num[i], mpz_tmp);
-                mpz_mul(denom[i], denom[i], denom[i+step]);
+        if (mpz_cmp_ui(f, 1) != 0) {
+
+            mpz_ui_sub(f, 2, f);
+            mpz_mul(arg, arg, f);
+
+            /* We compute the Taylor expansion of log(f)
+               For now, computations are carried out over the rationals */
+            for (i = 0; i < N; i++) {
+                mpz_set_ui(num[i], 1);
+                mpz_set_ui(denom[i], i+1);
             }
-            step <<= 1;
-            mpz_mul(hpow, hpow, hpow);
+            step = 1;
+            mpz_ui_sub(h, 1, f);   // we write f = 1 - h, i.e. h = a_i*p^(2^i)
+            mpz_set(hpow, h);
+            while(step < N) {
+                for (i = 0; i < N - step; i += step << 1) {
+                    mpz_mul(mpz_tmp, hpow, num[i+step]);
+                    mpz_mul(mpz_tmp, mpz_tmp, denom[i]);
+                    mpz_mul(num[i], num[i], denom[i+step]);
+                    mpz_add(num[i], num[i], mpz_tmp);
+                    mpz_mul(denom[i], denom[i], denom[i+step]);
+                }
+                step <<= 1;
+                mpz_mul(hpow, hpow, hpow);
+            }
+
+            /* We simplify the fraction */
+            Np = N; tmp = 0;
+            while(Np > 0) { Np /= p; tmp += Np; }
+            mpz_ui_pow_ui(d, p, tmp);
+            mpz_divexact(mpz_tmp, num[0], d);
+            mpz_divexact(denom[0], denom[0], d);
+
+            mpz_mul(mpz_tmp, h, mpz_tmp);
+
+            /* We coerce the result from Q to Zp */
+            mpz_gcdext(d, inv, NULL, denom[0], modulo);
+            mpz_mul(mpz_tmp, mpz_tmp, inv);
+
+            /* We add this contribution to log(f) */
+            mpz_add(ans, ans, mpz_tmp);
+
         }
-
-        /* We compute the p-adic valuation of the denominateur (which is N!) */
-        Np = N; tmp = 0;
-        while(Np > 0) { Np /= p; tmp += Np; }
-        mpz_ui_pow_ui(d, p, tmp);
-        mpz_divexact(mpz_tmp, num[0], d);
-        mpz_mul(mpz_tmp, h, mpz_tmp);
-
-        /* We coerce the result from Q to Zp */
-        mpz_divexact(denom[0], denom[0], d);
-        mpz_gcdext(d, inv, NULL, denom[0], modulo);
-        mpz_mul(mpz_tmp, mpz_tmp, inv);
-
-        /* We add this contribution to log(f) */
-        mpz_add(ans, ans, mpz_tmp);
 
         if (trunc > prec) break;
 

@@ -20136,9 +20136,8 @@ class GenericGraph(GenericGraph_pyx):
         identifying `n` and `0`.
 
         If ``perm`` is ``None``, the graph is relabeled to be on the
-        vertices `\{0,1,...,n-1\}`.
-
-        .. note:: at this point, only injective relabeling are supported.
+        vertices `\{0,1,...,n-1\}`. This is *not* any kind of canonical
+        labeling, but neither a random relabeling.
 
         If ``inplace`` is ``True``, the graph is modified in place and
         ``None`` is returned. Otherwise a relabeled copy of the graph
@@ -20197,6 +20196,14 @@ class GenericGraph(GenericGraph_pyx):
             [0 0 1]
             [0 0 1]
             [1 1 0]
+
+        A way to get a random relabeling::
+
+            sage: set_random_seed(0)  # Results are reproducible
+            sage: D = DiGraph({1: [2], 3: [4]})
+            sage: D.relabel(Permutations(D.vertices()).random_element())
+            sage: D.sources()
+            [1, 4]
 
         Relabeling using an injective function::
 

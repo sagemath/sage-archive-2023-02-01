@@ -11,6 +11,7 @@ Indexed Generators
 
 from sage.rings.all import Integer
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+from sage.structure.category_object import normalize_names
 
 class IndexedGenerators(object):
     r"""nodetex
@@ -581,20 +582,18 @@ def parse_indices_names(indices, names, prefix, kwds={}):
     if indices is None:
         if names is None:
             raise ValueError("either the indices or names must be given")
-        if isinstance(names, str):
-            names = names.split(',')
-        names = tuple(names)
+        names = normalize_names(-1, names)
         indices = names
 
         if prefix is None:
-            prefix =''
+            prefix = ''
         if 'string_quotes' not in kwds:
             kwds['string_quotes'] = False
         if 'bracket' not in kwds:
             kwds['bracket'] = False
 
     if isinstance(indices, dict): # dict of {name: index} -- not likely to be used
-        names = indices.keys()
+        names = normalize_names(-1, tuple(indices.keys()))
         indices = FiniteEnumeratedSet([indices[n] for n in names])
     elif isinstance(indices, str):
         indices = FiniteEnumeratedSet(list(indices))
@@ -605,7 +604,7 @@ def parse_indices_names(indices, names, prefix, kwds={}):
 
 def standardize_names_index_set(names=None, index_set=None, ngens=None):
     """
-    Standardize the ``names`` and ``index_set`` for a Lie algebra.
+    Standardize the ``names`` and ``index_set`` inputs.
 
     OUTPUT:
 
@@ -642,28 +641,25 @@ def standardize_names_index_set(names=None, index_set=None, ngens=None):
         sage: standardize_names_index_set(['x'], ['a', 'b'])
         Traceback (most recent call last):
         ...
-        ValueError: the number of names must equal the size of the indexing set
+        IndexError: the number of names must equal the size of the indexing set
         sage: standardize_names_index_set('x,y', ['a'])
         Traceback (most recent call last):
         ...
-        ValueError: the number of names must equal the size of the indexing set
+        IndexError: the number of names must equal the size of the indexing set
         sage: standardize_names_index_set('x,y,z', ngens=2)
         Traceback (most recent call last):
         ...
-        ValueError: the number of names must equal the number of generators
+        IndexError: the number of names must equal the number of generators
         sage: standardize_names_index_set(index_set=['a'], ngens=2)
         Traceback (most recent call last):
         ...
-        ValueError: the size of the indexing set must equal the number of generators
+        IndexError: the size of the indexing set must equal the number of generators
     """
-    if isinstance(names, str):
-        names = tuple(names.split(','))
-    elif names is not None:
-        names = tuple(names)
-
-    if names is not None and len(names) == 1 and ngens > 1:
-        letter = names[0]
-        names = tuple([letter + str(i) for i in range(ngens)])
+    if names is not None:
+        if ngens is None or ngens < 0:
+            names = normalize_names(-1, names)
+        else:
+            names = normalize_names(ngens, names)
 
     if index_set is None:
         if names is None:
@@ -683,12 +679,12 @@ def standardize_names_index_set(names=None, index_set=None, ngens=None):
 
     if names is not None:
         if len(names) != index_set.cardinality():
-            raise ValueError("the number of names must equal"
+            raise IndexError("the number of names must equal"
                              " the size of the indexing set")
         if ngens is not None and len(names) != ngens:
-            raise ValueError("the number of names must equal the number of generators")
+            raise IndexError("the number of names must equal the number of generators")
     elif ngens is not None and index_set.cardinality() != ngens:
-        raise ValueError("the size of the indexing set must equal"
+        raise IndexError("the size of the indexing set must equal"
                          " the number of generators")
 
     return (names, index_set)

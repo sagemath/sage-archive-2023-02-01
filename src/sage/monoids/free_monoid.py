@@ -131,9 +131,7 @@ def FreeMonoid(index_set=None, names=None, commutative=False, **kwds):
 
     if index_set not in ZZ:
         if names is not None:
-            if isinstance(names, str):
-                names = names.split(',')
-            names = normalize_names(len(names), names)
+            names = normalize_names(-1, names)
         from sage.monoids.indexed_free_monoid import IndexedFreeMonoid
         return IndexedFreeMonoid(index_set, names=names, **kwds)
 

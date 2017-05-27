@@ -300,7 +300,9 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         if prefix is None:
             prefix = "B"
 
-        return super(CombinatorialFreeModule, cls).__classcall__(cls, base_ring, basis_keys, category=category, prefix=prefix, names=names, **keywords)
+        return super(CombinatorialFreeModule, cls).__classcall__(cls,
+            base_ring, basis_keys, category=category, prefix=prefix, names=names,
+            **keywords)
 
     # We make this explicitly a Python class so that the methods,
     #   specifically _mul_, from category framework still works. -- TCS

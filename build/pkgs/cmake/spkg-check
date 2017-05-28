@@ -15,6 +15,8 @@ FAILING_TESTS="CTestTestStopTime|TestUpload|ctest_submit"
 FAILING_TESTS="${FAILING_TESTS}|Qt5Autogen|Qt4Autogen|Qt4Targets|Qt4And5AutomocReverse"
 # (2) GTK2
 FAILING_TESTS="${FAILING_TESTS}|GTK2Components|GTK2Targets"
+# BundleUtilities test is failing on some platforms, skipped in Gentoo for that reason
+FAILING_TESTS="${FAILING_TESTS}|BundleUtilities"
 # Test failing on freeBSD. Upstream acknoledged the test is faulty
 # on that platform https://gitlab.kitware.com/cmake/cmake/issues/16887
 if [ "$UNAME" = "FreeBSD" ]; then

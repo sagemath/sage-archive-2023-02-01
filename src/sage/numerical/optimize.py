@@ -432,16 +432,16 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
     from sage.symbolic.expression import Expression
     import scipy
     from scipy import optimize
-    function_type=type(lambda x,y: x+y)
+    function_type = type(lambda x,y: x+y)
 
     if isinstance(func, Expression):
-        var_list=func.variables()
+        var_list = func.variables()
         var_names = [str(_) for _ in var_list]
-        fast_f=func._fast_float_(*var_names)
-        f=lambda p: fast_f(*p)
-        gradient_list=func.gradient()
-        fast_gradient_functions=[gradient_list[i]._fast_float_(*var_names)  for i in range(len(gradient_list))]
-        gradient=lambda p: scipy.array([ a(*p) for a in fast_gradient_functions])
+        fast_f = func._fast_float_(*var_names)
+        f = lambda p: fast_f(*p)
+        gradient_list = func.gradient()
+        fast_gradient_functions = [gi._fast_float_(*var_names) for gi in gradient_list]
+        gradient = lambda p: scipy.array([ a(*p) for a in fast_gradient_functions])
         if isinstance(cons, Expression):
             fast_cons = cons._fast_float_(*var_names)
             cons = lambda p: scipy.array([fast_cons(*p)])
@@ -449,25 +449,25 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
             fast_cons = [ci._fast_float_(*var_names) for ci in cons]
             cons = lambda p: scipy.array([a(*p) for a in fast_cons])
     else:
-        f=func
+        f = func
 
     if isinstance(cons,list):
-        if isinstance(cons[0],tuple) or isinstance(cons[0],list) or cons[0] is None:
+        if isinstance(cons[0], tuple) or isinstance(cons[0], list) or cons[0] is None:
             if gradient is not None:
-                if algorithm=='l-bfgs-b':
-                    min= optimize.fmin_l_bfgs_b(f,x0,gradient,bounds=cons, iprint=-1, **args)[0]
+                if algorithm == 'l-bfgs-b':
+                    min = optimize.fmin_l_bfgs_b(f, x0, gradient, bounds=cons, iprint=-1, **args)[0]
                 else:
-                    min= optimize.fmin_tnc(f,x0,gradient,bounds=cons,messages=0,**args)[0]
+                    min = optimize.fmin_tnc(f, x0, gradient, bounds=cons, messages=0, **args)[0]
             else:
-                if algorithm=='l-bfgs-b':
-                    min= optimize.fmin_l_bfgs_b(f,x0,approx_grad=True,bounds=cons,iprint=-1, **args)[0]
+                if algorithm == 'l-bfgs-b':
+                    min = optimize.fmin_l_bfgs_b(f, x0, approx_grad=True, bounds=cons, iprint=-1, **args)[0]
                 else:
-                    min= optimize.fmin_tnc(f,x0,approx_grad=True,bounds=cons,messages=0,**args)[0]
-        elif isinstance(cons[0],function_type) or isinstance(cons[0], Expression):
-            min = optimize.fmin_cobyla(f,x0,cons,iprint=0,**args)
+                    min = optimize.fmin_tnc(f, x0, approx_grad=True, bounds=cons, messages=0, **args)[0]
+        elif isinstance(cons[0], function_type) or isinstance(cons[0], Expression):
+            min = optimize.fmin_cobyla(f, x0, cons, iprint=0, **args)
     elif isinstance(cons, function_type) or isinstance(cons, Expression):
-        min= optimize.fmin_cobyla(f,x0,cons,iprint=0,**args)
-    return vector(RDF,min)
+        min = optimize.fmin_cobyla(f, x0, cons, iprint=0, **args)
+    return vector(RDF, min)
 
 
 def linear_program(c,G,h,A=None,b=None,solver=None):

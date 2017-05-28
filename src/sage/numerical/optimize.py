@@ -404,12 +404,12 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
         sage: minimize_constrained(f, [(None,None),(4,10)],[5,5])
         (4.8..., 4.8...)
 
-    Check, if L-BFGS-B finds the same minimum::
+    Check if L-BFGS-B finds the same minimum::
 
         sage: minimize_constrained(f, [(None,None),(4,10)],[5,5], algorithm='l-bfgs-b')
         (4.7..., 4.9...)
 
-    Rosenbrock function, [http://en.wikipedia.org/wiki/Rosenbrock_function]::
+    Rosenbrock function (see the :wikipedia:`Rosenbrock_function`)::
 
         sage: from scipy.optimize import rosen, rosen_der
         sage: minimize_constrained(rosen, [(-50,-10),(5,10)],[1,1],gradient=rosen_der,algorithm='l-bfgs-b')
@@ -430,6 +430,12 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
         gradient_list=func.gradient()
         fast_gradient_functions=[gradient_list[i]._fast_float_(*var_names)  for i in range(len(gradient_list))]
         gradient=lambda p: scipy.array([ a(*p) for a in fast_gradient_functions])
+        if isinstance(cons, Expression):
+            fast_cons = cons._fast_float_(*var_names)
+            cons = lambda p: scipy.array([fast_cons(*p)])
+        elif isinstance(cons, list) and isinstance(cons[0], Expression):
+            fast_cons = [ci._fast_float_(*var_names) for ci in cons]
+            cons = lambda p: scipy.array([a(*p) for a in fast_cons])
     else:
         f=func
 
@@ -445,10 +451,9 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
                     min= optimize.fmin_l_bfgs_b(f,x0,approx_grad=True,bounds=cons,iprint=-1, **args)[0]
                 else:
                     min= optimize.fmin_tnc(f,x0,approx_grad=True,bounds=cons,messages=0,**args)[0]
-
-        elif isinstance(cons[0],function_type):
-            min= optimize.fmin_cobyla(f,x0,cons,iprint=0,**args)
-    elif isinstance(cons, function_type):
+        elif isinstance(cons[0],function_type) or isinstance(cons[0], Expression):
+            min = optimize.fmin_cobyla(f,x0,cons,iprint=0,**args)
+    elif isinstance(cons, function_type) or isinstance(cons, Expression):
         min= optimize.fmin_cobyla(f,x0,cons,iprint=0,**args)
     return vector(RDF,min)
 

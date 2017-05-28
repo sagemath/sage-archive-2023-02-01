@@ -416,6 +416,18 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
         (-10.0, 10.0)
         sage: minimize_constrained(rosen, [(-50,-10),(5,10)],[1,1],algorithm='l-bfgs-b')
         (-10.0, 10.0)
+
+    TESTS:
+
+    Check if :trac:`6592` is fixed::
+
+        sage: x, y = var('x y')
+        sage: f = (100 - x) + (1000 - y)
+        sage: c = x + y - 479 # > 0
+        sage: minimize_constrained(f, [c], [100, 300])
+        (805.985..., 1005.985...)
+        sage: minimize_constrained(f, c, [100, 300])
+        (805.985..., 1005.985...)
     """
     from sage.symbolic.expression import Expression
     import scipy

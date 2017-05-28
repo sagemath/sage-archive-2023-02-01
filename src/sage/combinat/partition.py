@@ -62,6 +62,8 @@ AUTHORS:
   all in the category framework except ``PartitionsRestricted`` (which will
   eventually be removed). Cleaned up documentation.
 
+- Andrew Mathas (2016-07-20): Added ``StrictPartitions``
+
 EXAMPLES:
 
 There are `5` partitions of the integer `4`::
@@ -304,6 +306,9 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 from sage.sets.non_negative_integers import NonNegativeIntegers
+from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.sets.family import Family
+
 from sage.rings.all import QQ, ZZ, NN, IntegerModRing
 from sage.arith.all import factorial, gcd
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -7318,6 +7323,269 @@ class RegularPartitions_n(RegularPartitions, Partitions_n):
         if self._ell > self.n:
             return Partitions_n.cardinality(self)
         return ZZ.sum(1 for x in self)
+    
+######################
+# Strict Partitions #
+######################
+class StrictPartitions(Partitions):
+    r"""
+    The class of **strict partitions**.
+
+    A strict partition of an integer `n` is a :class:`Partition` with
+    distinct parts.
+
+    INPUT:
+
+    - ``n`` -- a non-negative integer, the size of the strict partitions
+    """
+    @staticmethod
+    def __classcall_private__(cls, size=None):
+        """
+        Normalize the input to ensure a unique representation.
+
+        TESTS::
+
+            sage: from sage.combinat.partition import StrictPartitions
+            sage: P = StrictPartitions()
+            sage: P12 = StrictPartitions(12)
+            sage: P is P12
+            False
+        """
+        if size is not None:
+            return StrictPartitions_size( ZZ(size) )
+
+        return StrictPartitions_all()
+
+    def __contains__(self, x):
+        """
+        Return ``True`` if ``x`` is contained in ``self`` and ``False``
+        otherwise.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.partition import StrictPartitions
+            sage: [5,2] in StrictPartitions()
+            True
+            sage: [5,2] in StrictPartitions(7)
+            True
+            sage: [5,2] in StrictPartitions(5)
+            False
+            sage: [5,2,2] in StrictPartitions(5)
+            False
+            sage: [5,2,0] in StrictPartitions(7)
+            True
+            sage: Partition([5,2]) in StrictPartitions()
+            True
+            sage: Partition([5,2]) in StrictPartitions(7)
+            True
+            sage: Partition([5,2]) in StrictPartitions(3)
+            False
+        """
+        if not Partitions.__contains__(self, x):
+            return False
+        return len(x) == 0 or (x[-1] in NN and all(x[i]>x[i+1] for i in range(len(x)-1) if x[i]>0))
+
+class StrictPartitions_all(StrictPartitions, DisjointUnionEnumeratedSets):
+    """
+    Class of all strict partitions.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.partition import StrictPartitions
+        sage: StrictPartitions()
+        Strict Partitions
+    """
+    def __init__(self):
+        """
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: from sage.combinat.partition import StrictPartitions
+            sage: TestSuite(StrictPartitions()).run()
+        """
+        # I'd rather use super() here but Partitions() complains
+        DisjointUnionEnumeratedSets.__init__(self,
+                family=Family(NonNegativeIntegers(), StrictPartitions_size),
+                facade=True, keepkey=False
+        )
+        Partitions.__init__(self, is_infinite=True)
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        TESTS::
+
+            sage: from sage.combinat.partition import StrictPartitions
+            sage: StrictPartitions(5)
+            Strict Partitions of the integer 5
+        """
+        return "Strict Partitions"
+
+class StrictPartitions_size(StrictPartitions):
+    """
+    Strict Partitions of the integer ``size``.
+
+    TESTS::
+
+        sage: TestSuite( sage.combinat.partition.StrictPartitions_size(0) ).run()
+        sage: TestSuite( sage.combinat.partition.StrictPartitions_size(10) ).run()
+    """
+
+    def __init__(self, n):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.partition import StrictPartitions
+            sage: StrictPartitions(3)
+            Strict Partitions of the integer 3
+
+        TESTS::
+
+            sage: from sage.combinat.partition import StrictPartitions
+            sage: TestSuite(StrictPartitions(9)).run()
+        """
+        Partitions.__init__(self, is_infinite=False)
+        self.n = n # would be better to call this size, but for consistency...
+        self.size = n
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        TESTS::
+
+            sage: from sage.combinat.partition import StrictPartitions
+            sage: StrictPartitions(5)
+            Strict Partitions of the integer 5
+        """
+        return "Strict Partitions of the integer {}".format(self.n)
+
+    def __contains__(self, x):
+        """
+        Return ``True`` if ``x`` is contained in ``self`` and ``False``
+        otherwise.
+
+        Examples::
+
+            sage: from sage.combinat.partition import StrictPartitions
+            sage: [5,2] in StrictPartitions(7)
+            True
+            sage: [5,2] in StrictPartitions(5)
+            False
+            sage: [5,2,2] in StrictPartitions(5)
+            False
+            sage: [5,2,0,0] in StrictPartitions(7)
+            True
+            sage: Partition([5,2]) in StrictPartitions(7)
+            True
+            sage: Partition([5,2,1]) in StrictPartitions(7)
+            False
+        """
+        return StrictPartitions.__contains__(self, x) and sum(x) == self.size
+
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.partition import StrictPartitions
+            sage: StrictPartitions(10)[:] #indirect doct test
+            [[10],
+             [9, 1],
+             [8, 2],
+             [7, 3],
+             [7, 2, 1],
+             [6, 4],
+             [6, 3, 1],
+             [5, 4, 1],
+             [5, 3, 2],
+             [4, 3, 2, 1]]
+        """
+        for p in self._fast_iterator(self.n, self.n+1):
+            yield self.element_class(self, p)
+
+    def _fast_iterator(self, size, max):
+        """
+        A fast (recursive) iterator which returns a list.
+
+        This method is not intended to be called directy.
+
+        INPUT:
+
+        - ``size`` -- a positive integer, giving the size of the partitions
+
+        - ``max`` -- a positive integer giving the maximu size of the parts of
+          the partitions to be returned
+
+        OUTPUT:
+
+        - an iterator  of the strict partitions of size ``size``
+
+        EXAMPLES::
+
+            sage: from sage.combinat.partition import StrictPartitions
+            sage: StrictPartitions(7)[:]  # indirect doc test
+            [[7], [6, 1], [5, 2], [4, 3], [4, 2, 1]]
+        """
+        if size < max:
+            yield [size]
+
+        for m in reversed(range(1, min(size, max))):
+            for mu in self._fast_iterator(size-m, m):
+                yield [m] + mu
+        return
+
+    def an_element(self):
+        """
+        Returns a partition in ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.partition import StrictPartitions
+            sage: StrictPartitions(4).an_element()  # indirect doctest
+            [3, 1]
+            sage: StrictPartitions(0).an_element()
+            []
+            sage: StrictPartitions(1).an_element()
+            [1]
+        """
+        if self.n == 0:
+            elt = []
+        elif self.n == 1:
+            elt = [1]
+        else:
+            elt = [self.n-1, 1]
+        return self.element_class(self, elt)
+
+    def cardinality(self):
+        """
+        Return the cardinality of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.partition import StrictPartitions
+            sage: StrictPartitions(7).cardinality()
+            5
+        """
+        return ZZ(len( [1 for p in self._fast_iterator(self.n, self.n+1)] ))
+
+    def random_element(self, measure = 'uniform'):
+        r"""
+        Return a random strict partition.
+
+        EXAMPLE:
+
+            sage: from sage.combinat.partition import StrictPartitions
+            sage: StrictPartitions(7).cardinality()  # random
+        """
+        from sage.misc.prandom import randrange
+        partitions = self.list()
+        return partitions[randrange(len(partitions))]
 
 ######################
 # Ordered Partitions #

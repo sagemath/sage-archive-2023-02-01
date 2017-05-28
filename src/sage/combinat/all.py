@@ -60,7 +60,8 @@ from .composition_signed import SignedCompositions
 #Partitions
 from .partition import Partition, Partitions, PartitionsInBox,\
      OrderedPartitions, PartitionsGreatestLE, PartitionsGreatestEQ,\
-     PartitionsGreatestLE, PartitionsGreatestEQ, number_of_partitions
+     PartitionsGreatestLE, PartitionsGreatestEQ, number_of_partitions,\
+     StrictPartitions
 
 from sage.combinat.partition_tuple import PartitionTuple, PartitionTuples
 from .skew_partition import SkewPartition, SkewPartitions
@@ -95,6 +96,7 @@ from sage.combinat.tableau_tuple import TableauTuple, StandardTableauTuple, Tabl
 from .k_tableau import WeakTableau, WeakTableaux, StrongTableau, StrongTableaux
 lazy_import('sage.combinat.lr_tableau', ['LittlewoodRichardsonTableau',
                                          'LittlewoodRichardsonTableaux'])
+lazy_import('sage.combinat.tableau_shifted_primed', ['ShiftedPrimedTableaux', 'ShiftedPrimedTableau'])
 
 #Words
 from .words.all import *

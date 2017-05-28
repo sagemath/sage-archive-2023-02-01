@@ -333,6 +333,7 @@ Comprehensive Module list
     sage/combinat/tableau
     sage/combinat/tableau_residues
     sage/combinat/tableau_tuple
+    sage/combinat/tableau_shifted_primed
     sage/combinat/tamari_lattices
     sage/combinat/tiling
     sage/combinat/tools

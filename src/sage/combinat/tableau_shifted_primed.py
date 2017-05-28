@@ -1,24 +1,24 @@
 #from __future__ import print_function, absolute_import
 from six import add_metaclass
-from six.moves import range, zip, map
+#from six.moves import range, zip, map
 
 import numpy as np
 
-from sage.combinat.partition import Partition
-from sage.combinat.permutation import Permutation
-from sage.combinat.posets.posets import Poset
-from sage.combinat.tableau import Tableaux
+from sage.combinat.partition import Partition, StrictPartitions
+#from sage.combinat.permutation import Permutation
+#from sage.combinat.posets.posets import Poset
+#from sage.combinat.tableau import Tableaux
 
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.functions.other import factorial
-from sage.misc.cachefunc import cached_method
+#from sage.functions.other import factorial
+#from sage.misc.cachefunc import cached_method
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.misc.misc_c import prod
-from sage.misc.prandom import randrange
-from sage.rings.integer import Integer
+#from sage.misc.misc_c import prod
+#from sage.misc.prandom import randrange
+#from sage.rings.integer import Integer
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
-from sage.sets.family import Family
-from sage.sets.non_negative_integers import NonNegativeIntegers
+#from sage.sets.family import Family
+#from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -75,11 +75,11 @@ class ShiftedPrimedTableau(ClonableArray):
         t = preprocessing(T)
 
         shape = [len(row) for row in t]
-        flat = [round(x) for x in flatten(t)]
+        flat = [round(item) for sublist in t for item in sublist]
         if flat == []:
             max_ind = 0
         else:
-            max_ind = max(flat)
+            max_ind = int(max(flat))
         weight = tuple([flat.count(i+1) for i in range(max_ind)])
         
             
@@ -195,15 +195,15 @@ class ShiftedPrimedTableau(ClonableArray):
             raise ValueError('shape must be a strict partition')
         for i,row in enumerate(self):
             if i > 0:
-                if not all(val > self[i-1][j+1] for j,val in enumerate(row) if val in ZZ):
+                if not all(val > self[i-1][j+1] for j,val in enumerate(row) if int(val)==val):
                     raise ValueError('column is not strictly increasing in non-primes')
-                if not all(val >= self[i-1][j+1] for j,val in enumerate(row) if val not in ZZ):
+                if not all(val >= self[i-1][j+1] for j,val in enumerate(row) if int(val)!=val):
                     raise ValueError('column is not weakly increasing in primes')
-            if not all(row[j] <= row[j+1] for j in range(len(row)-1) if row[j] in ZZ):
+            if not all(row[j] <= row[j+1] for j in range(len(row)-1) if int(row[j])==row[j]):
                 raise ValueError('row is not weakly increasing in non-primes')
-            if not all(row[j] < row[j+1] for j in range(len(row)-1) if row[j] not in ZZ):
+            if not all(row[j] < row[j+1] for j in range(len(row)-1) if int(row[j])!=row[j]):
                 raise ValueError('row is not strictly increasing in primes')
-        if not all(row[0] in ZZ for row in self):
+        if not all(int(row[0])==row[0] for row in self):
             raise ValueError('diagonal elements must be non-primes')
 
     def _repr_(self):
@@ -230,16 +230,16 @@ class ShiftedPrimedTableau(ClonableArray):
             10  11' 11  11  
                 11  12
         """
-        if flatten(self) == []:
+        if [item for sublist in self for item in sublist] == []:
             max_ind = 0
         else:
-            max_ind = max(flatten(self))
+            max_ind = max([item for sublist in self for item in sublist])
         max_len = len(str(round(max_ind)))
         string_list = ''
         for i,row in enumerate(self):
             string_list += ' ' * i * (max_len)
             for val in row:
-                if val in ZZ:
+                if int(val)==val:
                     string_list += str(int(val)) + ' ' * (max_len-len(str(int(val))))
                 else:
                     string_list += str(int(val+.5)) + "'" + ' '*(max_len-1- len(str(int(val+.5))))
@@ -311,7 +311,7 @@ class ShiftedPrimedTableau(ClonableArray):
            sage: t.weight()
            (1,4,1)
         """
-        flat = [round(x) for x in flatten(self)]
+        flat = [round(item) for sublist in self for item in sublist]
         if flat == []:
             max_ind = 0
         else:
@@ -590,8 +590,6 @@ class ShiftedPrimedTableaux(UniqueRepresentation, Parent):
         sage: SPT = ShiftedPrimedTableaux((1,2,2),[3,2]); SPT
         Shifted primed tableaux of shape [3, 2] and weight (1,2,2)
     """
-    # use Tableaux options
-    options = Tableaux.options
 
     @staticmethod
     def __classcall_private__(cls, *args, **kwargs):
@@ -711,15 +709,15 @@ class ShiftedPrimedTableaux(UniqueRepresentation, Parent):
 
         for i,row in enumerate(t):
             if i > 0:
-                if not all(val > t[i-1][j+1] for j,val in enumerate(row) if val in ZZ):
+                if not all(val > t[i-1][j+1] for j,val in enumerate(row) if int(val) == val):
                     return False
-                if not all(val >= t[i-1][j+1] for j,val in enumerate(row) if val not in ZZ):
+                if not all(val >= t[i-1][j+1] for j,val in enumerate(row) if int(val) != val):
                     return False
-            if not all(row[j] <= row[j+1] for j in range(len(row)-1) if row[j] in ZZ):
+            if not all(row[j] <= row[j+1] for j in range(len(row)-1) if int(row[j]) == row[j]):
                 return False
-            if not all(row[j] < row[j+1] for j in range(len(row)-1) if row[j] not in ZZ):
+            if not all(row[j] < row[j+1] for j in range(len(row)-1) if int(row[j]) != row[j]):
                 return False
-        if not all(row[0] in ZZ for row in t):
+        if not all(int(row[0]) == row[0] for row in t):
             return False
 
         return True
@@ -853,7 +851,7 @@ class ShiftedPrimedTableaux_weight(ShiftedPrimedTableaux):
 
         t = preprocessing(T)
 
-        flat = [round(x) for x in flatten(t)]
+        flat = [round(item) for sublist in t for item in sublist]
         if flat == []:
             max_ind = 0
         else:
@@ -887,11 +885,11 @@ class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
 
         t = preprocessing(T)
 
-        flat = [round(x) for x in flatten(t)]
+        flat = [round(item) for sublist in t for item in sublist]
         if flat == []:
             max_ind = 0
         else:
-            max_ind = max(flat)
+            max_ind = int(max(flat))
         weight = tuple([flat.count(i+1) for i in range(max_ind)])
         return(ShiftedPrimedTableaux.__contains__(self, t) and weight == self._weight
                and [len(row) for row in t] == self._shape)
@@ -964,272 +962,3 @@ def preprocessing(T):
     # Normalize t to be a list of tuples.
     t = [tuple(_) for _ in t]
     return t
-
-    
-
-######################
-string1 = 'absdf'
-print(string1[:-2])
-
-######################
-# Strict Partitions #
-######################
-class StrictPartitions(Partitions):
-    r"""
-    The class of **strict partitions**.
-
-    A strict partition of an integer `n` is a :class:`Partition` with
-    distinct parts.
-
-    INPUT:
-
-    - ``n`` -- a non-negative integer, the size of the strict partitions
-    """
-    @staticmethod
-    def __classcall_private__(cls, size=None):
-        """
-        Normalize the input to ensure a unique representation.
-
-        TESTS::
-
-            sage: from sage.combinat.partition import StrictPartitions
-            sage: P = StrictPartitions()
-            sage: P12 = StrictPartitions(12)
-            sage: P is P12
-            False
-        """
-        if size is not None:
-            return StrictPartitions_size( ZZ(size) )
-
-        return StrictPartitions_all()
-
-    def __contains__(self, x):
-        """
-        Return ``True`` if ``x`` is contained in ``self`` and ``False``
-        otherwise.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.partition import StrictPartitions
-            sage: [5,2] in StrictPartitions()
-            True
-            sage: [5,2] in StrictPartitions(7)
-            True
-            sage: [5,2] in StrictPartitions(5)
-            False
-            sage: [5,2,2] in StrictPartitions(5)
-            False
-            sage: [5,2,0] in StrictPartitions(7)
-            True
-            sage: Partition([5,2]) in StrictPartitions()
-            True
-            sage: Partition([5,2]) in StrictPartitions(7)
-            True
-            sage: Partition([5,2]) in StrictPartitions(3)
-            False
-        """
-        if not Partitions.__contains__(self, x):
-            return False
-        return len(x) == 0 or (x[-1] in NN and all(x[i]>x[i+1] for i in range(len(x)-1) if x[i]>0))
-
-class StrictPartitions_all(StrictPartitions, DisjointUnionEnumeratedSets):
-    """
-    Class of all strict partitions.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.partition import StrictPartitions
-        sage: StrictPartitions()
-        Strict Partitions
-    """
-    def __init__(self):
-        """
-        Initialize ``self``.
-
-        TESTS::
-
-            sage: from sage.combinat.partition import StrictPartitions
-            sage: TestSuite(StrictPartitions()).run()
-        """
-        # I'd rather use super() here but Partitions() complains
-        DisjointUnionEnumeratedSets.__init__(self,
-                family=Family(NonNegativeIntegers(), StrictPartitions_size),
-                facade=True, keepkey=False
-        )
-        Partitions.__init__(self, is_infinite=True)
-
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
-
-        TESTS::
-
-            sage: from sage.combinat.partition import StrictPartitions
-            sage: StrictPartitions(5)
-            Strict Partitions of the integer 5
-        """
-        return "Strict Partitions"
-
-class StrictPartitions_size(StrictPartitions):
-    """
-    Strict Partitions of the integer ``size``.
-
-    TESTS::
-
-        sage: TestSuite( sage.combinat.partition.StrictPartitions_size(0) ).run()
-        sage: TestSuite( sage.combinat.partition.StrictPartitions_size(10) ).run()
-    """
-
-    def __init__(self, n):
-        """
-        Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.partition import StrictPartitions
-            sage: StrictPartitions(3)
-            Strict Partitions of the integer 3
-
-        TESTS::
-
-            sage: from sage.combinat.partition import StrictPartitions
-            sage: TestSuite(StrictPartitions(9)).run()
-        """
-        Partitions.__init__(self, is_infinite=False)
-        self.n = n # would be better to call this size, but for consistency...
-        self.size = n
-
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
-
-        TESTS::
-
-            sage: from sage.combinat.partition import StrictPartitions
-            sage: StrictPartitions(5)
-            Strict Partitions of the integer 5
-        """
-        return "Strict Partitions of the integer {}".format(self.n)
-
-    def __contains__(self, x):
-        """
-        Return ``True`` if ``x`` is contained in ``self`` and ``False``
-        otherwise.
-
-        Examples::
-
-            sage: from sage.combinat.partition import StrictPartitions
-            sage: [5,2] in StrictPartitions(7)
-            True
-            sage: [5,2] in StrictPartitions(5)
-            False
-            sage: [5,2,2] in StrictPartitions(5)
-            False
-            sage: [5,2,0,0] in StrictPartitions(7)
-            True
-            sage: Partition([5,2]) in StrictPartitions(7)
-            True
-            sage: Partition([5,2,1]) in StrictPartitions(7)
-            False
-        """
-        return StrictPartitions.__contains__(self, x) and sum(x) == self.size
-
-    def __iter__(self):
-        """
-        Iterate over ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.partition import StrictPartitions
-            sage: StrictPartitions(10)[:] #indirect doct test
-            [[10],
-             [9, 1],
-             [8, 2],
-             [7, 3],
-             [7, 2, 1],
-             [6, 4],
-             [6, 3, 1],
-             [5, 4, 1],
-             [5, 3, 2],
-             [4, 3, 2, 1]]
-        """
-        for p in self._fast_iterator(self.n, self.n+1):
-            yield self.element_class(self, p)
-
-    def _fast_iterator(self, size, max):
-        """
-        A fast (recursive) iterator which returns a list.
-
-        This method is not intended to be called directy.
-
-        INPUT:
-
-        - ``size`` -- a positive integer, giving the size of the partitions
-
-        - ``max`` -- a positive integer giving the maximu size of the parts of
-          the partitions to be returned
-
-        OUTPUT:
-
-        - an iterator  of the strict partitions of size ``size``
-
-        EXAMPLES::
-
-            sage: from sage.combinat.partition import StrictPartitions
-            sage: StrictPartitions(7)[:]  # indirect doc test
-            [[7], [6, 1], [5, 2], [4, 3], [4, 2, 1]]
-        """
-        if size < max:
-            yield [size]
-
-        for m in reversed(range(1, min(size, max))):
-            for mu in self._fast_iterator(size-m, m):
-                yield [m] + mu
-        return
-
-    def an_element(self):
-        """
-        Returns a partition in ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.partition import StrictPartitions
-            sage: StrictPartitions(4).an_element()  # indirect doctest
-            [3, 1]
-            sage: StrictPartitions(0).an_element()
-            []
-            sage: StrictPartitions(1).an_element()
-            [1]
-        """
-        if self.n == 0:
-            elt = []
-        elif self.n == 1:
-            elt = [1]
-        else:
-            elt = [self.n-1, 1]
-        return self.element_class(self, elt)
-
-    def cardinality(self):
-        """
-        Return the cardinality of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.partition import StrictPartitions
-            sage: StrictPartitions(7).cardinality()
-            5
-        """
-        return ZZ(len( [1 for p in self._fast_iterator(self.n, self.n+1)] ))
-
-    def random_element(self, measure = 'uniform'):
-        r"""
-        Return a random strict partition.
-
-        EXAMPLE:
-
-            sage: from sage.combinat.partition import StrictPartitions
-            sage: StrictPartitions(7).cardinality()  # random
-        """
-        from sage.misc.prandom import randrange
-        partitions = self.list()
-        return partitions[randrange(len(partitions))]

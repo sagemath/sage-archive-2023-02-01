@@ -1446,7 +1446,6 @@ class Tableau(ClonableList):
         bottommost row (in English notation).
 
         EXAMPLES::
-
             sage: StandardTableau([[1,2],[3,4]]).reading_word_permutation()
             [3, 4, 1, 2]
 

@@ -21,4 +21,5 @@ Catalog
 - :ref:`sage.combinat.rsk`
 - :ref:`sage.combinat.growth`
 - :ref:`sage.combinat.tableau_residues`
+- :ref:`sage.combinat.tableau_shifted_primed`
 """

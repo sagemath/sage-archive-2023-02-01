@@ -142,7 +142,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
 
         This is called when constructing elements from Python.
 
-        TEST::
+        TESTS::
 
             sage: from sage.rings.finite_rings.element_pari_ffelt import FiniteFieldElement_pari_ffelt
             sage: K = FiniteField(101^2, 'a', impl='pari_ffelt')
@@ -358,7 +358,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         """
         For pickling.
 
-        TEST::
+        TESTS::
 
             sage: K.<a> = FiniteField(10007^10, impl='pari_ffelt')
             sage: loads(a.dumps()) == a

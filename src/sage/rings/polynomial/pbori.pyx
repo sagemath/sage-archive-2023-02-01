@@ -2242,7 +2242,7 @@ cdef class BooleanMonomial(MonoidElement):
         """
         Pickling
 
-        TEST::
+        TESTS::
 
             sage: from brial import BooleanMonomialMonoid
             sage: R.<z,x> = BooleanPolynomialRing(2)
@@ -2923,7 +2923,7 @@ cdef class BooleanPolynomial(MPolynomial):
     - ``parent`` - a boolean polynomial ring
 
 
-    TEST::
+    TESTS::
 
         sage: from brial import BooleanPolynomial
         sage: B.<a,b,z> = BooleanPolynomialRing(3)

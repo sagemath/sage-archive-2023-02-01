@@ -551,7 +551,7 @@ class BipartiteGraph(Graph):
             sage: bg.right
             {4, 6, 8, 9, 10, 11}
 
-        TEST::
+        TESTS::
 
             sage: bg = BipartiteGraph()
             sage: bg.add_vertices([0,1,2], left=True)
@@ -756,7 +756,7 @@ class BipartiteGraph(Graph):
         one will be added to the left partition, the second to the right
         partition.
 
-        TEST::
+        TESTS::
 
             sage: bg = BipartiteGraph()
             sage: bg.add_vertices([0,1,2], left=[True,False,True])

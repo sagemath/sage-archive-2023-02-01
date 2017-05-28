@@ -14886,7 +14886,7 @@ def _jordan_form_vector_in_difference(V, W):
     This is meant to be a private helper method for the ``jordan_form`` method
     in the above class.
 
-    TEST::
+    TESTS::
 
         sage: v = vector(ZZ, [1,0,0,0])
         sage: w = vector(ZZ, [0,1,0,0])

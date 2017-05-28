@@ -1111,7 +1111,7 @@ class BrandtModule_class(AmbientHeckeModule):
              Fractional ideal (2 + 2*j, 2*i + 6*k, 8*j, 8*k),
              Fractional ideal (2 + 10*j + 8*k, 2*i + 8*j + 6*k, 16*j, 16*k))
 
-        TEST::
+        TESTS::
 
             sage: B = BrandtModule(1009)
             sage: Is = B.right_ideals()

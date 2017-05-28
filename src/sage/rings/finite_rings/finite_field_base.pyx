@@ -1347,7 +1347,7 @@ cdef class FiniteField(Field):
         .. [CP] Wikipedia entry on Conway polynomials,
            :wikipedia:`Conway_polynomial_(finite_fields)`
 
-        TEST::
+        TESTS::
 
             sage: GF(5).algebraic_closure() is GF(5).algebraic_closure()
             True

@@ -112,7 +112,7 @@ class IntervalExchangeTransformation(SageObject):
 
         - ``lengths`` - the list of lengths
 
-        TEST::
+        TESTS::
 
             sage: p=iet.IntervalExchangeTransformation(('a','a'),[1])
             sage: p == loads(dumps(p))
@@ -714,7 +714,7 @@ class IntervalExchangeTransformation(SageObject):
 
         - ``side`` - must be 0 or -1 (no verification)
 
-        TEST::
+        TESTS::
 
             sage: t = iet.IntervalExchangeTransformation(('a b c','c b a'),[1,1,3])
             sage: t

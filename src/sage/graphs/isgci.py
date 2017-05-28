@@ -405,7 +405,7 @@ class GraphClass(SageObject, CachedRepresentation):
         sage: Chordal <= Trees
         Unknown
 
-    TEST::
+    TESTS::
 
         sage: Trees >= Chordal
         Unknown

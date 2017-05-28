@@ -74,7 +74,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         - ``check`` (optional bool, default ``True``): Do not attempt the
           above coercion (for internal use only).
 
-        TEST::
+        TESTS::
 
             sage: from sage.algebras.letterplace.free_algebra_element_letterplace import FreeAlgebraElement_letterplace
             sage: F.<x,y,z> = FreeAlgebra(GF(3), implementation='letterplace')
@@ -101,7 +101,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         """
         Pickling.
 
-        TEST::
+        TESTS::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: loads(dumps(x*y*x)) == x*y*x   # indirect doctest
@@ -111,7 +111,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         return self.__class__, (self._parent,self._poly)
     def __copy__(self):
         """
-        TEST::
+        TESTS::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: copy(x*y*z+z*y*x) == x*y*z+z*y*x   # indirect doctest
@@ -122,7 +122,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         return self.__class__(self._parent,self._poly,check=False)
     def __hash__(self):
         """
-        TEST::
+        TESTS::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: set([x*y*z, z*y+x*z,x*y*z])  # indirect doctest
@@ -147,7 +147,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
     def _repr_(self):
         """
-        TEST::
+        TESTS::
 
             sage: K.<z> = GF(25)
             sage: F.<a,b,c> = FreeAlgebra(K, implementation='letterplace')
@@ -230,7 +230,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
     def _latex_(self):
         """
-        TEST::
+        TESTS::
 
             sage: K.<z> = GF(25)
             sage: F.<a,b,c> = FreeAlgebra(K, implementation='letterplace', degrees=[1,2,3])
@@ -400,7 +400,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
     def __nonzero__(self):
         """
-        TEST::
+        TESTS::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: bool(x)      # indirect doctest
@@ -471,7 +471,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
     ## Arithmetic
     cpdef _neg_(self):
         """
-        TEST::
+        TESTS::
 
             sage: K.<z> = GF(25)
             sage: F.<a,b,c> = FreeAlgebra(K, implementation='letterplace')
@@ -488,7 +488,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         Addition, under the side condition that either one summand
         is zero, or both summands have the same degree.
 
-        TEST::
+        TESTS::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: x+y    # indirect doctest
@@ -521,7 +521,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         Difference, under the side condition that either one summand
         is zero or both have the same weighted degree.
 
-        TEST::
+        TESTS::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: x*y-y*x     # indirect doctest
@@ -559,7 +559,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         """
         Multiplication from the right with an element of the base ring.
 
-        TEST::
+        TESTS::
 
             sage: K.<z> = GF(25)
             sage: F.<a,b,c> = FreeAlgebra(K, implementation='letterplace')
@@ -573,7 +573,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         """
         Multiplication from the left with an element of the base ring.
 
-        TEST::
+        TESTS::
 
             sage: K.<z> = GF(25)
             sage: F.<a,b,c> = FreeAlgebra(K, implementation='letterplace')
@@ -587,7 +587,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
         """
         Product of two free algebra elements in letterplace implementation.
 
-        TEST::
+        TESTS::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace', degrees=[2,1,3])
             sage: (x*y+z)*z   # indirect doctest
@@ -606,7 +606,7 @@ cdef class FreeAlgebraElement_letterplace(AlgebraElement):
 
     def __pow__(FreeAlgebraElement_letterplace self, int n, k):
         """
-        TEST::
+        TESTS::
 
             sage: K.<z> = GF(25)
             sage: F.<a,b,c> = FreeAlgebra(K, implementation='letterplace')

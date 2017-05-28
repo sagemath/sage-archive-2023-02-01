@@ -926,7 +926,7 @@ class OrderedTrees(UniqueRepresentation, Parent):
             sage: OrderedTrees().leaf()
             []
 
-        TEST::
+        TESTS::
 
             sage: (OrderedTrees().leaf() is
             ....:     sage.combinat.ordered_tree.OrderedTrees_all().leaf())
@@ -974,7 +974,7 @@ class OrderedTrees_all(DisjointUnionEnumeratedSets, OrderedTrees):
 
     def _repr_(self):
         """
-        TEST::
+        TESTS::
 
             sage: OrderedTrees()   # indirect doctest
             Ordered trees

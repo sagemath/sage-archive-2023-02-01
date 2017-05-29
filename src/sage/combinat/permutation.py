@@ -182,7 +182,7 @@ Below are listed all methods and classes defined in this file.
     :meth:`from_lehmer_code` | Returns the permutation with Lehmer code ``lehmer``.
     :meth:`from_reduced_word` | Returns the permutation corresponding to the reduced word ``rw``.
     :meth:`bistochastic_as_sum_of_permutations` | Returns a given bistochastic matrix as a nonnegative linear combination of permutations.
-    :meth:`bounded_affine_permutation` | Return a partial permutation representing the bounded affine permutation of a matrix.
+    :meth:`bounded_affine_permutation` | Returns a partial permutation representing the bounded affine permutation of a matrix.
     :meth:`descents_composition_list` | Returns a list of all the permutations in a given descent class (i. e., having a given descents composition).
     :meth:`descents_composition_first` | Returns the smallest element of a descent class.
     :meth:`descents_composition_last` | Returns the largest element of a descent class.
@@ -6987,6 +6987,7 @@ def bistochastic_as_sum_of_permutations(M, check = True):
 
     return value
 
+
 def bounded_affine_permutation(A):
     r"""
     Return the bounded affine permutation of a matrix.
@@ -7001,14 +7002,18 @@ def bounded_affine_permutation(A):
 
     INPUT:
 
-    - ``A`` -- matrix with complex entries
+    - ``A`` -- matrix with entries in a ring `R`
 
     EXAMPLES::
 
         sage: from sage.combinat.permutation import bounded_affine_permutation
-        sage: A = Matrix(QQ, [[1,0,0,0], [0,1,0,0]])
+        sage: A = Matrix(ZZ, [[1,0,0,0], [0,1,0,0]])
         sage: bounded_affine_permutation(A)
         [5, 6, 3, 4]
+
+        sage: A = Matrix(ZZ, [[0,1,0,1,0], [0,0,1,1,0]])
+        sage: bounded_affine_permutation(A)
+        [1, 4, 7, 8, 5]
 
     REFERENCES:
 
@@ -7022,19 +7027,19 @@ def bounded_affine_permutation(A):
     v = A.columns()
     perm = []
     for j in range(n):
-        if v[j] == z:
-            perm.append(j+1)
+        if not v[j]:
+            perm.append(j + 1)
             continue
         V = span([z], R)
-        for i in range(j+1, j+n+1):
+        for i in range(j + 1, j + n + 1):
             index = i % n
             V = V + span([v[index]], R)
-            if V == span([z], R):
+            if not V.dimension():
                 continue
             if v[j] in V:
-                perm.append(i+1)
+                perm.append(i + 1)
                 break
-    S = Permutations(2*n, n)
+    S = Permutations(2 * n, n)
     return S(perm)
 
 

@@ -3,8 +3,8 @@ Hyperelliptic Curve Point Finding, via ratpoints.
 """
 from __future__ import print_function
 
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
+from cysignals.memory cimport sig_malloc, sig_realloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 
 cdef int process(long x, long z, mpz_t y, void *info0, int *quit):

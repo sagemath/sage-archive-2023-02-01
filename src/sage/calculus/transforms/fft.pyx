@@ -20,7 +20,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cysignals/memory.pxi"
+from cysignals.memory cimport sig_malloc, sig_free
 
 import sage.plot.all
 import sage.libs.pari.all
@@ -106,7 +106,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
         """
         self.n = n
         self.stride = stride
-        self.data = <double*> sig_malloc(sizeof(double)*(2*n))
+        self.data = <double*>sig_malloc(sizeof(double)*(2*n))
         cdef int i
         for i from 0 <= i < 2*n:
             self.data[i] = 0

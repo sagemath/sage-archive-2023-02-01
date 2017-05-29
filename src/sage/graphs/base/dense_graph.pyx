@@ -105,19 +105,23 @@ edges. ``num_longs`` stores the length of the ``edges`` array. Recall that this
 length reflects the number of available vertices, not the number of "actual"
 vertices. For more details about this, refer to the documentation for
 ``CGraph``.
-
 """
 
-#*******************************************************************************
-#        Copyright (C) 2008-9 Robert L. Miller <rlmillster@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2008-9 Robert L. Miller <rlmillster@gmail.com>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
-#*******************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 include 'sage/data_structures/bitset.pxi'
 
 from libc.string cimport memcpy
+
+from cysignals.memory cimport sig_calloc, sig_realloc, sig_free
 
 cdef int radix = sizeof(unsigned long) * 8 # number of bits per 'unsigned long'
 cdef int radix_mod_mask = radix - 1        # (assumes that radis is a power of 2)

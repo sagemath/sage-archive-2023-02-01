@@ -19,11 +19,12 @@ Quiver Paths
 #*****************************************************************************
 from __future__ import print_function
 
+from cysignals.signals cimport sig_check, sig_on, sig_off
+
 from sage.data_structures.bounded_integer_sequences cimport *
 from cpython.slice cimport PySlice_GetIndicesEx
 from sage.structure.sage_object cimport rich_to_bool
 
-include "cysignals/signals.pxi"
 include "sage/data_structures/bitset.pxi"
 
 cdef class QuiverPath(MonoidElement):

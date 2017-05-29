@@ -191,6 +191,8 @@ for both of these uses.
 
 
 from libc.string cimport memset
+from cysignals.memory cimport check_malloc, check_allocarray, sig_free
+
 include 'sage/data_structures/bitset.pxi'
 
 cdef enum:

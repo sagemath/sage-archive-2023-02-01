@@ -591,10 +591,8 @@ def parse_indices_names(names, index_set, prefix, kwds={}):
 
         if prefix is None:
             prefix = ''
-        if 'string_quotes' not in kwds:
-            kwds['string_quotes'] = False
-        if 'bracket' not in kwds:
-            kwds['bracket'] = False
+        kwds.setdefault('string_quotes', False)
+        kwds.setdefault('bracket', False)
 
     names, index_set = standardize_names_index_set(names, index_set, -1)
 

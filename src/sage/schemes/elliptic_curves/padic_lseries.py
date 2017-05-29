@@ -1120,7 +1120,8 @@ class pAdicLseriesSupersingular(pAdicLseries):
         ALIAS: power_series is identical to series.
 
         EXAMPLES:
-        A superingular example, where we must compute to higher precision to see anything::
+
+        A supersingular example, where we must compute to higher precision to see anything::
 
             sage: e = EllipticCurve('37a')
             sage: L = e.padic_lseries(3); L

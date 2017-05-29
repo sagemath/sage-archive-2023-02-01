@@ -15,9 +15,6 @@ AUTHORS:
 
 - Tom Coates (2010-06-11): fixed :trac:`9217`
 
-The Sage calculus module is loosely based on the Sage Enhancement
-Proposal found at: http://www.sagemath.org:9001/CalculusSEP.
-
 EXAMPLES:
 
 The basic units of the calculus package are symbolic expressions which
@@ -1136,8 +1133,8 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
     INPUT:
 
     - ``dir`` - (default: None); dir may have the value
-      'plus' (or '+' or 'right') for a limit from above,
-      'minus' (or '-' or 'left') for a limit from below, or may be omitted
+      'plus' (or '+' or 'right' or 'above') for a limit from above,
+      'minus' (or '-' or 'left' or 'below') for a limit from below, or may be omitted
       (implying a two-sided limit is to be computed).
 
     - ``taylor`` - (default: False); if True, use Taylor
@@ -1255,8 +1252,8 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         sage: lim(x^2, x=2, dir='nugget')
         Traceback (most recent call last):
         ...
-        ValueError: dir must be one of None, 'plus', '+', 'right',
-        'minus', '-', 'left'
+        ValueError: dir must be one of None, 'plus', '+', 'above', 'right',
+        'minus', '-', 'below', 'left'
 
     We check that :trac:`3718` is fixed, so that
     Maxima gives correct limits for the floor function::
@@ -1308,6 +1305,11 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         sage: sequence = -(3*n^2 + 1)*(-1)^n/sqrt(n^5 + 8*n^3 + 8)
         sage: limit(sequence, n=infinity)
         0
+
+    Check if :trac:`23048` is fixed::
+
+        sage: (1/(x-3)).limit(x=3, dir='below')
+        -Infinity
     """
     if not isinstance(ex, Expression):
         ex = SR(ex)
@@ -1324,21 +1326,21 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
 
     if dir not in [None, 'plus', '+', 'right', 'minus', '-', 'left',
             'above', 'below']:
-        raise ValueError("dir must be one of None, 'plus', '+', 'right', 'minus', '-', 'left'")
+        raise ValueError("dir must be one of None, 'plus', '+', 'above', 'right', 'minus', '-', 'below', 'left'")
 
     if algorithm == 'maxima':
         if dir is None:
             l = maxima.sr_limit(ex, v, a)
-        elif dir in ['plus', '+', 'right']:
+        elif dir in ['plus', '+', 'right', 'above']:
             l = maxima.sr_limit(ex, v, a, 'plus')
-        elif dir in ['minus', '-', 'left']:
+        elif dir in ['minus', '-', 'left', 'below']:
             l = maxima.sr_limit(ex, v, a, 'minus')
     elif algorithm == 'maxima_taylor':
         if dir is None:
             l = maxima.sr_tlimit(ex, v, a)
-        elif dir == 'plus' or dir == 'above' or dir == 'from_right':
+        elif dir in ['plus', '+', 'right', 'above']:
             l = maxima.sr_tlimit(ex, v, a, 'plus')
-        elif dir == 'minus' or dir == 'below' or dir == 'from_left':
+        elif dir in ['minus', '-', 'left', 'below']:
             l = maxima.sr_tlimit(ex, v, a, 'minus')
     elif algorithm == 'sympy':
         if dir is None:
@@ -1396,8 +1398,9 @@ def laplace(ex, t, s, algorithm='maxima'):
       are auxiliary convergence conditions.
 
     .. SEEALSO::
+
         :func:`inverse_laplace`
-            
+
     EXAMPLES:
 
     We compute a few Laplace transforms::
@@ -1595,8 +1598,9 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
       - ``'giac'`` - use Giac
 
     .. SEEALSO::
+
         :func:`laplace`
-              
+
     EXAMPLES::
 
         sage: var('w, m')
@@ -1642,7 +1646,7 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
         sage: inverse_laplace(1, s, t, algorithm='giac')
         dirac_delta(t)
                 
-    TESTS::
+    TESTS:
 
     Testing unevaluated expression from Maxima::
     
@@ -1665,10 +1669,8 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
     
         sage: n = var('n')
         sage: inverse_laplace(1/s^n, s, t, algorithm='giac')
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: Unable to parse Giac output: ilaplace([s^(-n),s,t])
-        
+        ilt(1/(s^n), t, s)
+
     Try with Maxima::
     
         sage: inverse_laplace(1/s^n, s, t, algorithm='maxima')
@@ -1684,12 +1686,10 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
         sage: inverse_laplace(cos(s), s, t, algorithm='sympy')
         ilt(cos(s), t, s)
     
-    Testing unevaluated expression from Giac::
+    Testing the same with Giac::
     
         sage: inverse_laplace(cos(s), s, t, algorithm='giac')
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: Unable to parse Giac output: ilaplace([cos(s),s,t])
+        ilt(cos(s), t, s)
     """
     if not isinstance(ex, Expression):
         ex = SR(ex)
@@ -1716,7 +1716,10 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
             result = giac.invlaplace(ex, s, t)
         except TypeError:
             raise ValueError("Giac cannot make sense of: %s" % ex)    
-        return result.sage() 
+        if 'ilaplace' in format(result):
+            return dummy_inverse_laplace(ex, t, s)
+        else:
+            return result.sage()
 
     else:
         raise ValueError("Unknown algorithm: %s" % algorithm)

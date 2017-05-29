@@ -122,7 +122,7 @@ class AdditiveAbelianGroupWrapperElement(addgp.AdditiveAbelianGroupElement):
             sage: T = EllipticCurve('65a').torsion_subgroup().gen(0)
             sage: T; type(T)
             (0 : 0 : 1)
-            <class 'sage.groups.additive_abelian.additive_abelian_wrapper.EllipticCurveTorsionSubgroup_with_category.element_class'>
+            <class 'sage.schemes.elliptic_curves.ell_torsion.EllipticCurveTorsionSubgroup_with_category.element_class'>
             sage: T.element(); type(T.element())
             (0 : 0 : 1)
             <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_number_field'>

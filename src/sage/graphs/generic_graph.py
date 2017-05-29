@@ -979,9 +979,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: g is g.copy(data_structure='static_sparse') is g.copy(immutable=True)
             True
 
-        If a graph pretends to be immutable, but does not use the static sparse
-        backend, then the copy is not identic with the graph, even though it is
-        considered to be hashable::
+        If a graph pretends to be immutable, but does not use the
+        static sparse backend, then the copy is not identical with the
+        graph, even though it is considered to be hashable::
 
             sage: P = Poset(([1,2,3,4], [[1,3],[1,4],[2,3]]), linear_extension=True, facade = False)
             sage: H = P.hasse_diagram()
@@ -15567,7 +15567,7 @@ class GenericGraph(GenericGraph_pyx):
         Computes the length of a shortest path from u to any other vertex.
 
         Returns a dictionary of shortest path lengths keyed by targets,
-        escluding all vertices that are not reachable from u.
+        excluding all vertices that are not reachable from u.
 
         For more information on the input variables and more examples, we refer
         to :meth:`~GenericGraph.shortest_paths`

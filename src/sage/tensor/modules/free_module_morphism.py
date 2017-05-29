@@ -118,7 +118,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
     is a derived class of :class:`FiniteRankFreeModuleMorphism`::
 
         sage: type(phi)
-        <class 'sage.tensor.modules.free_module_morphism.FreeModuleHomset_with_category_with_equality_by_id.element_class'>
+        <class 'sage.tensor.modules.free_module_homset.FreeModuleHomset_with_category_with_equality_by_id.element_class'>
         sage: isinstance(phi, sage.tensor.modules.free_module_morphism.FiniteRankFreeModuleMorphism)
         True
 

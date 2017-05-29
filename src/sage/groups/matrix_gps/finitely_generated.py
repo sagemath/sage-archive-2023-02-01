@@ -819,7 +819,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
 
             \frac{1}{|G|}\sum_{g \in G} \frac{\xi(g)}{\text{det}(I-tg)},
 
-        where `I` is the indentity matrix and `t` an indeterminant.
+        where `I` is the identity matrix and `t` an indeterminate.
 
         For characteristic `p` not dividing the order of `G`, let `k` be the base field
         and `N` the order of `G`. Define `\lambda` as a primitive `N`-th root of unity over `k`

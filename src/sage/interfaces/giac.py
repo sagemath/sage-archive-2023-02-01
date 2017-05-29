@@ -734,35 +734,34 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
         """
         return ":="
 
-    def _help(self, str):
+    def _help(self, string):
         r"""
-        Returns the Giac help on ``str``.
+        Return the Giac help on ``string``.
 
         EXAMPLES::
 
             sage: giac._help('gcd')  # not tested ; output may vary (LANG)
             "...gcd - greatest common divisor of polynomials...
         """
-        return os.popen('cas_help %s'%str).read()
-        # return os.popen('echo "?%s" | giac'%str).read()
+        return os.popen('cas_help %s' % string).read()
+        # return os.popen('echo "?%s" | giac' % string).read()
 
-    def help(self, str):
+    def help(self, string):
         """
-        Display Giac help about str. This is the same as typing "?str" in
-        the Giac console.
+        Display Giac help about string.
+
+        This is the same as typing "?string" in the Giac console.
 
         INPUT:
 
-        -  ``str`` - a string to search for in the giac help
-           system
-
+        -  ``string`` -- a string to search for in the giac help system
 
         EXAMPLES::
 
             sage: giac.help('Psi')         # not tested - depends of giac and $LANG
             Psi(a,n)=nth-derivative of the function DiGamma (=ln@Gamma) at point a (Psi(a,0)=Psi(a))...
         """
-        pager()(self._help(str))
+        pager()(self._help(string))
 
     def clear(self, var):
         """

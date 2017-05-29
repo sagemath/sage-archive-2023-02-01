@@ -13324,13 +13324,16 @@ cdef class Matrix(matrix1.Matrix):
                     f = b // d
 
                     for c in range(j,n):
-                        temp = A.get_unsafe(k,c)
-                        A.set_unsafe(k, c, p * A.get_unsafe(k,c) + q * A.get_unsafe(l,c))
-                        A.set_unsafe(l, c, (-f) * temp + e * A.get_unsafe(l,c))
+                        Akc = A.get_unsafe(k,c)
+                        Alc = A.get_unsafe(l,c)
+                        A.set_unsafe(k, c, p * Akc + q * Alc)
+                        A.set_unsafe(l, c, (-f) * Akc + e * Alc)
                     if transformation:
-                        temp = U[k]
-                        U[k] = p * U[k] + q * U[l]
-                        U[l] = (-f) * temp + e * U[l]
+                        for c in range(m):
+                            Ukc = U.get_unsafe(k,c)
+                            Ulc = U.get_unsafe(l,c)
+                            U.set_unsafe(k, c, p * Ukc + q * Ulc)
+                            U.set_unsafe(l, c, (-f) * Ukc + e * Ulc)
                 if i != k:
                     A.swap_rows(i,k)
                     if transformation:
@@ -13351,7 +13354,8 @@ cdef class Matrix(matrix1.Matrix):
                 for c in range(j,n):
                     A.set_unsafe(i, c, A.get_unsafe(i,c) * lc_inverse)
                 if transformation:
-                    U[i] *= lc_inverse
+                    for c in range(m):
+                        U.set_unsafe(i, c, U.get_unsafe(i,c) * lc_inverse)
             except AttributeError:
                 pass
 
@@ -13362,7 +13366,8 @@ cdef class Matrix(matrix1.Matrix):
                     for c in range(j,n):
                         A.set_unsafe(k, c, A.get_unsafe(k,c) + q * A.get_unsafe(i,c))
                     if transformation:
-                        U.add_multiple_of_row_c(k, i, q, 0)
+                        for c in range(m):
+                            U.set_unsafe(k, c, U.get_unsafe(k,c) + q * U.get_unsafe(i,c))
 
         if transformation:
             return U

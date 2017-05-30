@@ -18500,7 +18500,7 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``edge_labels_background`` - The color of the edge labels 
           background. The default is "white". To achieve a transparent
-          background use "None".
+          background use "transparent".
 
         - ``vertex_size`` - size of vertices displayed
 

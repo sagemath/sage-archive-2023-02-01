@@ -249,7 +249,7 @@ class GraphPlot(SageObject):
             ....:   'dist':.075,
             ....:   'max_dist':1.5,
             ....:   'loop_size':.075,
-            ....:   'edge_labels_background':'None'}
+            ....:   'edge_labels_background':'transparent'}
             sage: g = Graph({0:[1,2], 2:[3], 4:[0,1]})
             sage: GP = GraphPlot(g, options)
 
@@ -604,6 +604,8 @@ class GraphPlot(SageObject):
         for arg in edge_options:
             self._options[arg] = edge_options[arg]
         if 'edge_colors' in edge_options: self._options['color_by_label'] = False
+        if self._options['edge_labels_background']=="transparent":
+            self._options['edge_labels_background']="None"
 
         # Handle base edge options: thickness, linestyle
         eoptions={}

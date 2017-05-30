@@ -28,6 +28,7 @@ from sage.combinat.root_system.coxeter_matrix import CoxeterMatrix
 from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_generic
 from sage.groups.matrix_gps.group_element import MatrixGroupElement_generic
 from sage.graphs.graph import Graph
+from sage.graphs.graph import DiGraph
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix_space import MatrixSpace
 
@@ -41,6 +42,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
 from sage.misc.cachefunc import cached_method
 
+from sage.sets.family import Family
 
 class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_generic):
     r"""
@@ -572,7 +574,6 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
             rt.set_immutable()
             resu += [rt]
             d[rt] = ref
-        from sage.sets.family import Family
         return Family(resu, lambda rt: d[rt])
 
     def positive_roots(self, as_reflections=None):
@@ -678,6 +679,7 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
         rt = roots[0].parent().gen(self._index_set_inverse[i])
         return roots.index(rt)
 
+    @cached_method
     def fundamental_weights(self):
         """
         Return the fundamental weights for ``self``.
@@ -690,11 +692,12 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
 
             sage: W = CoxeterGroup(['A',3], implementation='reflection')
             sage: W.fundamental_weights()
-            {1: (3/2, 1, 1/2), 2: (1, 2, 1), 3: (1/2, 1, 3/2)}
+            Finite family {1: (3/2, 1, 1/2), 2: (1, 2, 1), 3: (1/2, 1, 3/2)}
         """
         simple_weights = self.bilinear_form().inverse()
-        return {i: simple_weights[k]
-                for k, i in enumerate(self.index_set())}
+        I = self.index_set()
+        D = {i: simple_weights[k] for k, i in enumerate(I)}
+        return Family(I, D.__getitem__)
 
     def fundamental_weight(self, i):
         r"""

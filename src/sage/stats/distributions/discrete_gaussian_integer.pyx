@@ -107,9 +107,10 @@ REFERENCES:
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of the FreeBSD Project.
 #*****************************************************************************/
+
 from __future__ import print_function
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.rings.real_mpfr cimport RealNumber, RealField
 from sage.libs.mpfr cimport mpfr_set, MPFR_RNDN

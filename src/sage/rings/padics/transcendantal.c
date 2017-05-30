@@ -127,6 +127,7 @@ void padiclog(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, con
     mpz_fdiv_r(ans, ans, modulo);
 
     /* We clear memory */
+    mpz_clear(arg);
     mpz_clear(f);
     mpz_clear(trunc_mod);
     mpz_clear(h);
@@ -138,5 +139,6 @@ void padiclog(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, con
         mpz_clear(num[i]);
         mpz_clear(denom[i]);
     }
-
+    free(num);
+    free(denom);
 }

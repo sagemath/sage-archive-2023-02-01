@@ -15,12 +15,11 @@ from __future__ import print_function
 #rationals to SAGE types Integer and Rational. These parts could easily be
 #adapted to work with pure Python types.
 
-include "cysignals/signals.pxi"
-
 from libc.stdlib cimport abort
 from libc.signal cimport SIGINT, SIGBUS, SIGSEGV, SIGCHLD
 from libc.signal cimport raise_ as signal_raise
 from posix.signal cimport sigaction, sigaction_t
+cimport cysignals.signals
 
 from sage.libs.gmp.types cimport mpz_t
 from sage.rings.integer cimport Integer

@@ -21,7 +21,7 @@ AUTHORS:
 
 from __future__ import absolute_import, division, print_function
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on
 
 from sage.libs.flint.fmpz cimport fmpz_get_mpz, COEFF_IS_MPZ, COEFF_TO_PTR, fmpz_is_one
 from sage.libs.flint.fmpq cimport fmpq_numref, fmpq_denref

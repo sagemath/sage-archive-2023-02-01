@@ -42,7 +42,7 @@ from sage.libs.mpfi cimport mpfi_set_z, mpfi_set_q, mpfi_sqrt, mpfi_add_z, mpfi_
 
 from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.element cimport Element, ModuleElement, RingElement
-from sage.structure.sage_object cimport rich_to_bool_sgn
+from sage.structure.richcmp cimport rich_to_bool_sgn
 
 from sage.rings.rational cimport Rational
 from sage.rings.integer_ring import ZZ

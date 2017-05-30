@@ -80,7 +80,7 @@ from sage.structure.gens_py                 import multiplicative_iterator
 from sage.structure.parent                  import Parent
 from sage.structure.sequence                import Sequence
 from sage.structure.factory                 import UniqueFactory
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 from sage.arith.all import (binomial, bernoulli, kronecker, factor, gcd,
         lcm, fundamental_discriminant, euler_phi, factorial, valuation)
 

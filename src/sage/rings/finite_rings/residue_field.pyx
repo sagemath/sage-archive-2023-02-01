@@ -172,7 +172,7 @@ from sage.rings.polynomial.polynomial_element import is_Polynomial
 
 from sage.structure.factory import UniqueFactory
 from sage.structure.element cimport parent
-from sage.structure.sage_object cimport richcmp, richcmp_not_equal
+from sage.structure.richcmp cimport richcmp, richcmp_not_equal
 
 
 class ResidueFieldFactory(UniqueFactory):

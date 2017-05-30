@@ -339,7 +339,8 @@ cdef _digits_internal(mpz_t v,l,int offset,int power_index,power_list,digits):
         mpz_clear(mpz_quot)
         mpz_clear(mpz_res)
 
-from sage.structure.sage_object cimport SageObject, rich_to_bool_sgn
+from sage.structure.sage_object cimport SageObject
+from sage.structure.richcmp cimport rich_to_bool_sgn
 from sage.structure.element cimport EuclideanDomainElement, ModuleElement, Element
 from sage.structure.element import  bin_op
 from sage.structure.coerce_exceptions import CoercionException

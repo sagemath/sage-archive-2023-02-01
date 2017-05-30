@@ -78,7 +78,7 @@ from __future__ import print_function
 
 from sage.structure.element cimport MultiplicativeGroupElement, Element, MonoidElement, Matrix
 from sage.structure.parent cimport Parent
-from sage.structure.sage_object cimport richcmp
+from sage.structure.richcmp cimport richcmp
 from sage.libs.gap.element cimport GapElement, GapElement_List
 from sage.groups.libgap_wrapper cimport ElementLibGAP
 

@@ -80,7 +80,8 @@ from libc.string cimport memcpy
 
 include "cysignals/signals.pxi"
 
-from sage.structure.sage_object cimport SageObject, richcmp
+from sage.structure.sage_object cimport SageObject
+from sage.structure.richcmp cimport richcmp
 
 from sage.rings.integer cimport Integer
 

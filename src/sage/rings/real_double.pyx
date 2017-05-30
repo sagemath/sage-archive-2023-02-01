@@ -68,7 +68,7 @@ from sage.rings.integer_ring import ZZ
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 from sage.misc.randstate cimport randstate, current_randstate
-from sage.structure.sage_object cimport rich_to_bool
+from sage.structure.richcmp cimport rich_to_bool
 
 
 def is_RealDoubleField(x):

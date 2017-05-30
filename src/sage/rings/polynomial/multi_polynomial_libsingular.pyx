@@ -247,7 +247,7 @@ from sage.structure.element cimport Element
 from sage.structure.element cimport CommutativeRingElement
 from sage.structure.element cimport coercion_model
 
-from sage.structure.sage_object cimport rich_to_bool, richcmp
+from sage.structure.richcmp cimport rich_to_bool, richcmp
 from sage.structure.factorization import Factorization
 from sage.structure.sequence import Sequence
 

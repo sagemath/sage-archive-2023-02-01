@@ -25,7 +25,7 @@ from __future__ import print_function
 
 from cpython.list cimport *
 from sage.libs.gmp.mpz cimport *
-from sage.structure.sage_object cimport richcmp_not_equal, rich_to_bool
+from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 
 import sys
 

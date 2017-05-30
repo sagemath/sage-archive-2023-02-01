@@ -188,7 +188,7 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.structure.sage_object import op_LE
+from sage.structure.richcmp import op_LE
 
 from .generic_nodes import pAdicFieldBaseGeneric, \
                           pAdicCappedRelativeFieldGeneric, \

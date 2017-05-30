@@ -39,7 +39,7 @@ import operator
 from sage.structure.element cimport (FieldElement, ModuleElement, RingElement,
                                      Element)
 from sage.structure.element import parent
-from sage.structure.sage_object cimport richcmp
+from sage.structure.richcmp cimport richcmp
 
 import integer_ring
 from integer_ring import ZZ

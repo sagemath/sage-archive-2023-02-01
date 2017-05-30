@@ -21,7 +21,7 @@ from __future__ import print_function
 
 from sage.data_structures.bounded_integer_sequences cimport *
 from cpython.slice cimport PySlice_GetIndicesEx
-from sage.structure.sage_object cimport rich_to_bool
+from sage.structure.richcmp cimport rich_to_bool
 
 include "cysignals/signals.pxi"
 include "sage/data_structures/bitset.pxi"

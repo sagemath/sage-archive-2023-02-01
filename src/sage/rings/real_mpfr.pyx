@@ -128,7 +128,7 @@ from sage.libs.gmp.mpz cimport *
 from sage.misc.randstate cimport randstate, current_randstate
 
 from sage.structure.element cimport RingElement, Element, ModuleElement
-from sage.structure.sage_object cimport rich_to_bool_sgn
+from sage.structure.richcmp cimport rich_to_bool_sgn
 cdef bin_op
 from sage.structure.element import bin_op
 

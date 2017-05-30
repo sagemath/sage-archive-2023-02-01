@@ -82,8 +82,9 @@ Another colored example::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
+
+from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 from math import cos, sin
 from sage.rings.all import RDF

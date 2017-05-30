@@ -135,7 +135,7 @@ Test if :trac:`9947` is fixed::
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 from inspect import ismethod
 import operator

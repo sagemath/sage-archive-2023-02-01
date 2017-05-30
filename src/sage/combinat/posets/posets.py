@@ -1692,6 +1692,9 @@ class FinitePoset(UniqueRepresentation, Parent):
           * ``cover_labels`` - a dictionary, list or function representing
             labels of the covers of the poset. When set to ``None`` (default)
             no label is displayed on the edges of the Hasse Diagram.
+          * ``cover_labels_background`` - a background color for cover
+            relations. The default is "white". To achieve a transparent
+            background use "transparent".
 
         - Options to change overall look:
 
@@ -1788,6 +1791,7 @@ class FinitePoset(UniqueRepresentation, Parent):
                   'element_size':   'vertex_size',
                   'element_shape':  'vertex_shape',
                   'cover_color':    'edge_color',
+                  'cover_labels_background':    'edge_labels_background',
                   'cover_colors':   'edge_colors',
                   'cover_style':    'edge_style',
                   'border':         'graph_border',

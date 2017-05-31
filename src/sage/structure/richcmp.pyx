@@ -203,3 +203,127 @@ def richcmp_method(cls):
     PyType_Modified(tp)
 
     return cls
+
+
+def richcmp_by_eq_and_lt(eq_attr, lt_attr):
+    r"""
+    Create a rich comparison method for a partial order, where the
+    order is specified by methods called ``eq_attr`` and ``lt_attr``.
+
+    INPUT when creating the method:
+
+    - ``eq_attr`` -- attribute name for equality comparison
+
+    - ``lt_attr`` -- attribute name for less-than comparison
+
+    INPUT when calling the method:
+
+    - ``self`` -- objects having methods ``eq_attr`` and ``lt_attr``
+
+    - ``other`` -- arbitrary object. If it does have ``eq_attr`` and
+      ``lt_attr`` methods, those are used for the comparison. Otherwise,
+      the comparison is undefined.
+
+    - ``op`` -- a rich comparison operation (e.g. ``op_EQ``)
+
+    .. NOTE::
+
+        For efficiency, identical objects (when ``self is other``)
+        always compare equal.
+
+    .. NOTE::
+
+        The order is partial, so ``x <= y`` is implemented as
+        ``x == y or x < y``. It is not required that this is the
+        negation of ``y < x``.
+
+    .. NOTE::
+
+        This function is intended to be used as a method ``_richcmp_``
+        in a class derived from :class:`sage.structure.element.Element`
+        or a method ``__richcmp__`` in a class using
+        :func:`richcmp_method`.
+
+    EXAMPLES::
+
+        sage: from sage.structure.richcmp import richcmp_by_eq_and_lt
+        sage: from sage.structure.element import Element
+
+        sage: class C(Element):
+        ....:     def __init__(self, a, b):
+        ....:         super(C, self).__init__(ZZ)
+        ....:         self.a = a
+        ....:         self.b = b
+        ....:     _richcmp_ = richcmp_by_eq_and_lt("eq", "lt")
+        ....:     def eq(self, other):
+        ....:         return self.a == other.a and self.b == other.b
+        ....:     def lt(self, other):
+        ....:         return self.a < other.a and self.b < other.b
+
+        sage: x = C(1,2); y = C(2,1); z = C(3,3)
+
+        sage: x == x, x <= x, x == C(1,2), x <= C(1,2)  # indirect doctest
+        (True, True, True, True)
+        sage: y == z, y != z
+        (False, True)
+
+        sage: x < y, y < x, x > y, y > x, x <= y, y <= x, x >= y, y >= x
+        (False, False, False, False, False, False, False, False)
+        sage: y < z, z < y, y > z, z > y, y <= z, z <= y, y >= z, z >= y
+        (True, False, False, True, True, False, False, True)
+        sage: z < x, x < z, z > x, x > z, z <= x, x <= z, z >= x, x >= z
+        (False, True, True, False, False, True, True, False)
+
+    A simple example using ``richcmp_method``::
+
+        sage: from sage.structure.richcmp import richcmp_method, richcmp_by_eq_and_lt
+        sage: @richcmp_method
+        ....: class C(object):
+        ....:     __richcmp__ = richcmp_by_eq_and_lt("__eq__", "__lt__")
+        ....:     def __eq__(self, other):
+        ....:         return True
+        ....:     def __lt__(self, other):
+        ....:         return True
+        sage: a = C(); b = C()
+        sage: a == b
+        True
+        sage: a > b  # Calls b.__lt__(a)
+        True
+        sage: class X(object): pass
+        sage: x = X()
+        sage: a == x  # Does not call a.__eq__(x) because x does not have __eq__
+        False
+    """
+    def richcmp(self, other, int op):
+        if self is other:
+            return rich_to_bool(op, 0)
+
+        cdef bint equal_types = (type(self) is type(other))
+        # Check whether "other" is of the right type
+        if not equal_types:
+            try:
+                other_eq = getattr(other, eq_attr)
+                other_lt = getattr(other, lt_attr)
+            except AttributeError:
+                return NotImplemented
+
+        # Check equality first if needed
+        if op != op_LT and op != op_GT:
+            if equal_types:
+                other_eq = getattr(other, eq_attr)
+            if other_eq(self):
+                return rich_to_bool(op, 0)
+            if op == op_EQ:
+                return False
+            if op == op_NE:
+                return True
+
+        if op == Py_LT or op == Py_LE:
+            self_lt = getattr(self, lt_attr)
+            return self_lt(other)
+        else:
+            if equal_types:
+                other_lt = getattr(other, lt_attr)
+            return other_lt(self)
+
+    return richcmp

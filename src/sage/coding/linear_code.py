@@ -658,13 +658,13 @@ class AbstractLinearCode(Module):
 
             sage: C.add_decoder("MyDecoder", MyDecoder)
             sage: C.decoders_available()
-            ['MyDecoder', 'Syndrome', 'NearestNeighbor']
+            ['MyDecoder', 'InformationSet', 'Syndrome', 'NearestNeighbor']
 
         We can verify that any new code will not know MyDecoder::
 
             sage: C2 = codes.HammingCode(GF(2), 3)
             sage: C2.decoders_available()
-            ['Syndrome', 'NearestNeighbor']
+            ['InformationSet', 'Syndrome', 'NearestNeighbor']
 
         TESTS:
 
@@ -1340,7 +1340,7 @@ class AbstractLinearCode(Module):
         else:
             return self.decode_to_code(right, decoder_name=algorithm)
 
-    def decode_to_code(self, word, decoder_name=None, **kwargs):
+    def decode_to_code(self, word, decoder_name=None, *args, **kwargs):
         r"""
         Corrects the errors in ``word`` and returns a codeword.
 
@@ -1353,7 +1353,7 @@ class AbstractLinearCode(Module):
           to decode ``word``. The default decoder of ``self`` will be used if
           default value is kept.
 
-        - ``kwargs`` -- all additional arguments are forwarded to :meth:`decoder`
+        - ``args``, ``kwargs`` -- all additional arguments are forwarded to :meth:`decoder`
 
         OUTPUT:
 
@@ -1371,14 +1371,14 @@ class AbstractLinearCode(Module):
         It is possible to manually choose the decoder amongst the list of the available ones::
 
             sage: C.decoders_available()
-            ['Syndrome', 'NearestNeighbor']
+            ['InformationSet', 'Syndrome', 'NearestNeighbor']
             sage: C.decode_to_code(w_err, 'NearestNeighbor')
             (1, 1, 0, 0, 1, 1, 0)
         """
         D = self.decoder(decoder_name, **kwargs)
         return D.decode_to_code(word)
 
-    def decode_to_message(self, word, decoder_name=None, **kwargs):
+    def decode_to_message(self, word, decoder_name=None, *args, **kwargs):
         r"""
         Correct the errors in word and decodes it to the message space.
 
@@ -1391,7 +1391,7 @@ class AbstractLinearCode(Module):
           to decode ``word``. The default decoder of ``self`` will be used if
           default value is kept.
 
-        - ``kwargs`` -- all additional arguments are forwarded to :meth:`decoder`
+        - ``args``, ``kwargs`` -- all additional arguments are forwarded to :meth:`decoder`
 
         OUTPUT:
 
@@ -1408,14 +1408,14 @@ class AbstractLinearCode(Module):
         It is possible to manually choose the decoder amongst the list of the available ones::
 
             sage: C.decoders_available()
-            ['Syndrome', 'NearestNeighbor']
+            ['InformationSet', 'Syndrome', 'NearestNeighbor']
             sage: C.decode_to_message(word, 'NearestNeighbor')
             (0, 1, 1, 0)
         """
         return self.unencode(self.decode_to_code(word, decoder_name, **kwargs), **kwargs)
 
     @cached_method
-    def decoder(self, decoder_name=None, **kwargs):
+    def decoder(self, decoder_name=None, *args, **kwargs):
         r"""
         Return a decoder of ``self``.
 
@@ -1425,7 +1425,7 @@ class AbstractLinearCode(Module):
           returned. The default decoder of ``self`` will be used if
           default value is kept.
 
-        - ``kwargs`` -- all additional arguments will be forwarded to the constructor of the decoder
+        - ``args``, ``kwargs`` -- all additional arguments will be forwarded to the constructor of the decoder
           that will be returned by this method
 
         OUTPUT:
@@ -1448,7 +1448,7 @@ class AbstractLinearCode(Module):
         an exception will be raised::
 
             sage: C.decoders_available()
-            ['Syndrome', 'NearestNeighbor']
+            ['InformationSet', 'Syndrome', 'NearestNeighbor']
             sage: C.decoder('Try')
             Traceback (most recent call last):
             ...
@@ -1458,7 +1458,7 @@ class AbstractLinearCode(Module):
             decoder_name = self._default_decoder_name
         if decoder_name in self._registered_decoders:
             decClass = self._registered_decoders[decoder_name]
-            D = decClass(self, **kwargs)
+            D = decClass(self, *args, **kwargs)
             return D
         else:
             raise ValueError("There is no Decoder named '%s'. The known Decoders are: %s" % (decoder_name, self.decoders_available()))
@@ -1477,10 +1477,11 @@ class AbstractLinearCode(Module):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: C.decoders_available()
-            ['Syndrome', 'NearestNeighbor']
+            ['InformationSet', 'Syndrome', 'NearestNeighbor']
 
             sage: C.decoders_available(True)
-            {'NearestNeighbor': <class 'sage.coding.linear_code.LinearCodeNearestNeighborDecoder'>,
+            {'InformationSet': <class 'sage.coding.linear_code.LinearCodeInformationSetDecoder'>,
+             'NearestNeighbor': <class 'sage.coding.linear_code.LinearCodeNearestNeighborDecoder'>,
              'Syndrome': <class 'sage.coding.linear_code.LinearCodeSyndromeDecoder'>}
         """
         if classes == True:
@@ -1699,7 +1700,7 @@ class AbstractLinearCode(Module):
         """
         return not self == other
 
-    def encode(self, word, encoder_name=None, **kwargs):
+    def encode(self, word, encoder_name=None, *args, **kwargs):
         r"""
         Transforms an element of a message space into a codeword.
 
@@ -1711,7 +1712,7 @@ class AbstractLinearCode(Module):
           to encode ``word``. The default encoder of ``self`` will be used if
           default value is kept.
 
-        - ``kwargs`` -- all additional arguments are forwarded to the construction of the
+        - ``args``, ``kwargs`` -- all additional arguments are forwarded to the construction of the
           encoder that is used.
 
         .. NOTE::
@@ -1795,7 +1796,7 @@ class AbstractLinearCode(Module):
             return self.encode(m)
 
     @cached_method
-    def encoder(self, encoder_name=None, **kwargs):
+    def encoder(self, encoder_name=None, *args, **kwargs):
         r"""
         Returns an encoder of ``self``.
 
@@ -1811,7 +1812,7 @@ class AbstractLinearCode(Module):
           returned. The default encoder of ``self`` will be used if
           default value is kept.
 
-        - ``kwargs`` -- all additional arguments are forwarded to the constructor of the encoder
+        - ``args``, ``kwargs`` -- all additional arguments are forwarded to the constructor of the encoder
           this method will return.
 
         OUTPUT:
@@ -4995,9 +4996,318 @@ class LinearCodeNearestNeighborDecoder(Decoder):
         """
         return (self.code().minimum_distance()-1) // 2
 
+
+
+
+
+
+
+
+
+
+class LinearCodeInformationSetDecoder(Decoder):
+    r"""
+    Constructs a decoder for Linear Codes. This decoder use the probabilistic
+    information set decoding algorithm. Details follow.
+
+    This decoder is based on the Lee-Brickell refinement of the information set
+    decoding algorithm, as described in [P10]:
+
+    Let `p` and `w` be integers, such that `0\leq p\leq w`, let
+    `y` be a vector over some vector space `GF(q)^{n}` and let `C` be
+    a `[n, k]`-linear code over `GF(q)`.
+    Let `G` be a generator matrix of `C`, and `G_{I}` a matrix formed by
+    the columns of `G` indexed by `I`.
+    To correct exactly `w` errors in `y`, proceed as follows:
+
+        1. Choose a information set `I` of `C`.
+        2. Compute `yc = y - y_{I}\times G^{-1} \times G`
+        3. Consider every size-`p` subset of `I` `\{a_1, \dots, a_p\}`.
+           For each `m= (m_1, \dots, m_p) \in GF(q)^{p}`, compute
+           the error vector `e = yc - \sum_{i=1}^{p} m_i\times g_{a_i}`,
+        4. If `e` has a Hamming weight of `w`, it's the right error vector,
+           thus return `y-e`.
+           Else, go back to 1.
+
+    REFERENCES:
+
+    - [P10] Christiane Peters, Information-set decoding for linear codes over Fq, 2010
+
+    INPUT:
+
+    - ``code`` -- A code associated to this decoder
+
+    - ``number_errors`` -- the number of errors to look for while running the algorithm.
+      It can be either an integer of a tuple. If a tuple is passed as
+      argument, the decoding algorithm will be run for every value in the interval
+      described by ``number_errors`` until it terminates properly.
+
+    - ``window-size`` -- the size of subsets to use on step 3 of the algorithm
+      as described above. It has to be at most the smallest value passed for
+      ``number_errors``.
+
+    EXAMPLES::
+
+        sage: C = codes.RandomLinearCode(10, 5, GF(3))
+        sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, 2)
+        sage: D
+        Information set decoder for Linear code of length 10, dimension 5 over Finite Field of size 3, with a window-size of 2 and considering 2 errors
+
+    It's also possible to pass ``number_errors`` as an interval of possible error weights::
+        sage: C = codes.RandomLinearCode(10, 5, GF(3))
+        sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, (2, 3))
+        sage: D
+        Information set decoder for Linear code of length 10, dimension 5 over Finite Field of size 3, with a window-size of 2 and considering between 2 and 3 errors
+
+    """
+
+    def __init__(self, code, window_size, number_errors):
+        r"""
+        TESTS:
+
+        ``number_errors`` has to be either a list of Integers/ints, a tuple of Integers/ints,
+        or an Integer/int::
+
+            sage: C = codes.RandomLinearCode(10, 5, GF(3))
+            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, "aa")
+            Traceback (most recent call last):
+            ...
+            ValueError: number_errors must be a tuple, a list, an Integer or a Python int
+
+        If ``number_errors`` is passed as a list/tuple, it has to contain only two values,
+        the first one being at most the second one::
+
+            sage: C = codes.RandomLinearCode(10, 5, GF(3))
+            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, (4, 2))
+            Traceback (most recent call last):
+            ...
+            ValueError: The first element of number_errors has to be smaller than its second element
+
+        If ``window_size`` is bigger than a possible value for ``number_errors``, an error
+        will be raised::
+
+            sage: C = codes.RandomLinearCode(10, 5, GF(3))
+            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, (1, 3))
+            Traceback (most recent call last):
+            ...
+            ValueError: The window size parameter has to be at most the smallest number of errors
+        """
+        if isinstance(number_errors, (Integer, int)):
+            number_errors = (number_errors, number_errors)
+        elif isinstance(number_errors, (tuple, list)):
+            if not all((i in ZZ and i > 0) for i in number_errors):
+                raise ValueError("All elements of number_errors have to be positive integers")
+            if not len(number_errors) == 2:
+                raise ValueError("number_errors has to contain exactly two values")
+            if not number_errors[0] <= number_errors[1]:
+                raise ValueError("The first element of number_errors has to be smaller than its second element")
+            if not all(w <= code.length() for w in number_errors):
+                raise ValueError("The provided number of errors has to be at most the code's length")
+        else:
+            raise ValueError("number_errors must be a tuple, a list, an Integer or a Python int")
+        if not isinstance(window_size, (Integer, int)) or window_size < 0:
+            raise ValueError("The window size parameter has to be either a positive Sage integer or a Python int")
+        if not all(window_size <= w for w in number_errors):
+            raise ValueError("The window size parameter has to be at most the smallest number of errors")
+        self._window_size = window_size
+        self._number_errors = number_errors
+        super(LinearCodeInformationSetDecoder, self).__init__(code, code.ambient_space(), \
+                code._default_encoder_name)
+
+    def __eq__(self, other):
+        r"""
+        Tests equality between LinearCodeInformationSetDecoder objects.
+
+        EXAMPLES::
+
+            sage: C = codes.RandomLinearCode(10, 5, GF(3))
+            sage: D1 = codes.decoders.LinearCodeInformationSetDecoder(C, 2, 2)
+            sage: D2 = codes.decoders.LinearCodeInformationSetDecoder(C, 2, 2)
+            sage: D1 == D2
+            True
+        """
+        return isinstance(other, LinearCodeInformationSetDecoder)\
+                and self.code() == other.code()\
+                and self.window_size() == other.window_size()\
+                and self.number_errors() == other.number_errors()
+
+    def _repr_(self):
+        r"""
+        Returns a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: C = codes.RandomLinearCode(10, 5, GF(3))
+            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, 2)
+            sage: D
+            Information set decoder for Linear code of length 10, dimension 5 over Finite Field of size 3, with a window-size of 2 and considering 2 errors
+        """
+        return "Information set decoder for %s, with a window-size of %s and considering %s errors "\
+                % (self.code(), self.window_size(), format_interval(self.number_errors()))
+
+    def _latex_(self):
+        r"""
+        Returns a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: C = codes.RandomLinearCode(10, 5, GF(3))
+            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, 2)
+            sage: latex(D)
+            \textnormal{Information set decoder for }[10, 5]\textnormal{ Linear code over }\Bold{F}_{3} {\textnormal{, with a window-size of 2 and considering 2 errors }
+        """
+        return "\\textnormal{Information set decoder for }%s {\\textnormal{, with a window-size of %s and considering %s errors }"\
+                % (self.code()._latex_(), self.window_size(), format_interval(self.number_errors()))
+
+    def _lee_brickell_algorithm(self, r, p, w):
+        r"""
+        Runs Lee-Brickell algorithms as described in ``self``'s documentation
+        and returns the error vector.
+
+        INPUT:
+
+        - ``r`` -- a received word, i.e. a vector in the ambient space of
+          :meth:`decoder.Decoder.code`.
+
+        - ``p`` -- the window_size parameter
+
+        - ``w`` -- the number of errors to look for
+
+        EXAMPLES::
+
+            sage: M = matrix(GF(2), [[1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0],\
+                                     [0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1],\
+                                     [0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0],\
+                                     [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1],\
+                                     [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1]])
+            sage: C = codes.LinearCode(M)
+            sage: D = C.decoder('InformationSet', 2, 2)
+            sage: c = C.random_element()
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), 2)
+            sage: y = Chan(c)
+            sage: D._lee_brickell_algorithm(y, 2, 2).hamming_weight() == 2
+            True
+        """
+        from sage.matrix.constructor import column_matrix
+        C = self.code()
+        n, k = C.length(), C.dimension()
+        F = C.base_ring()
+        one = F.one()
+        G = C.generator_matrix()
+        columns = G.columns()
+        l = F.list()
+        #We define an iterator over the possible information sets
+        I = iter(Subsets(range(n), k))
+        while(True):
+            try:
+                information_set = list(I.next())
+                columns = [G.column(i) for i in information_set]
+                Gi = column_matrix(columns)
+                try:
+                    Gi_G = Gi.inverse() * G
+                    rc = copy(r)
+                    #At every iteration, we will need the row corresponding
+                    #to the index where Gi_G's i-th column has a one.
+                    #We store this in a dictionary to save later computation.
+                    gs = dict()
+                    for i in information_set:
+                        gs[i] = Gi_G.row(list(Gi_G.column(i)).index(one))
+
+                    m = iter(VectorSpace(F, p))
+                    for i in Subsets(information_set, p):
+                        ind = 0
+                        v = vector(F, n)
+                        while(True):
+                            try:
+                                j = m.next()
+                                v += j[ind] * gs[i[ind]]
+                                if (rc - v).hamming_weight() == w:
+                                    return (rc - v)
+                                ind = (ind + 1) % p
+                            except StopIteration:
+                                break
+                except ZeroDivisionError:
+                #in that case Gi was not invertible
+                #thus I was not an information set
+                    pass
+            except StopIteration:
+                raise DecodingError("Decoding failed")
+
+
+    def decode_to_code(self, r):
+        r"""
+        Decodes ``r`` to an element in the associated code of ``self``.
+
+        INPUT:
+
+        - ``r`` -- a vector in the ambient space of :meth:`decoder.Decoder.code`.
+
+        OUTPUT:
+
+        - a codeword of the associated code of ``self``
+
+        EXAMPLES::
+
+            sage: M = matrix(GF(2), [[1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0],\
+                                     [0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1],\
+                                     [0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0],\
+                                     [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1],\
+                                     [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1]])
+            sage: C = codes.LinearCode(M)
+            sage: D = C.decoder('InformationSet', 2, 2)
+            sage: c = C.random_element()
+            sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), 2)
+            sage: y = Chan(c)
+            sage: D.decode_to_code(y) in C
+            True
+        """
+        C = self.code()
+        if r in C:
+            return r
+        w = self.number_errors()
+        p = self.window_size()
+        if w[0] == w[1]:
+            return r - self._lee_brickell_algorithm(r, p, w[0])
+        for number_errors in range(w[0], w[1]):
+            try:
+                e = self._lee_brickell_algorithm(r, p, number_errors)
+                c = r - e
+                return c
+            except:
+                pass
+        raise DecodingError("Decoding failed")
+
+    def window_size(self):
+        r"""
+        Returns the window-size parameter for ``self``.
+
+        EXAMPLES::
+
+            sage: C = codes.RandomLinearCode(10, 5, GF(3))
+            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, 2)
+            sage: D.window_size()
+            2
+        """
+        return self._window_size
+
+    def number_errors(self):
+        r"""
+        Returns the number of errors ``self`` will try to correct.
+
+        EXAMPLES::
+
+            sage: C = codes.RandomLinearCode(10, 5, GF(3))
+            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, 2)
+            sage: D.number_errors()
+            (2, 2)
+        """
+        return self._number_errors
+
 ####################### registration ###############################
 
 LinearCode._registered_encoders["GeneratorMatrix"] = LinearCodeGeneratorMatrixEncoder
 
 LinearCodeSyndromeDecoder._decoder_type = {"hard-decision", "unique", "dynamic"}
 LinearCodeNearestNeighborDecoder._decoder_type = {"hard-decision", "unique", "always-succeed", "complete"}
+LinearCode._registered_decoders["InformationSet"] = LinearCodeInformationSetDecoder
+LinearCodeInformationSetDecoder._decoder_type = {"hard-decision", "unique", "might-fail", "might-error", "complete"}

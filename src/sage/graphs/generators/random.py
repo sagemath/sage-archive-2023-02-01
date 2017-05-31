@@ -282,7 +282,7 @@ def RandomBlockGraph(m, k, kmax=None, incidence_structure=False):
 
     EXAMPLES:
 
-    A block graph with only 1 block is a clique::
+    A block graph with a single block is a clique::
 
         sage: B = graphs.RandomBlockGraph(1, 4)
         sage: B.is_clique()
@@ -294,7 +294,7 @@ def RandomBlockGraph(m, k, kmax=None, incidence_structure=False):
         sage: B.is_tree()
         True
 
-    Every biconnected components of a block graph are cliques::
+    Every biconnected component of a block graph is a clique::
 
         sage: B = graphs.RandomBlockGraph(5, 3, kmax=6)
         sage: blocks,cuts = B.blocks_and_cut_vertices()

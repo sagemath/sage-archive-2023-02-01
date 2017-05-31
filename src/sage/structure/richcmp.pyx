@@ -105,6 +105,155 @@ def richcmp(x, y, int op):
     return PyObject_RichCompare(x, y, op)
 
 
+cpdef richcmp_item(x, y, int op):
+    """
+    This function is meant to implement lexicographic rich comparison
+    of list-like objects. The inputs ``x`` and ``y`` are items of such
+    lists which should compared.
+
+    INPUT:
+
+    - ``x``, ``y`` -- arbitrary Python objects
+
+    - ``op`` -- comparison operator (one of ``op_LT`, ``op_LE``,
+      ``op_EQ``, ``op_NE``, ``op_GT``, ``op_GE``)
+
+    OUTPUT:
+
+    - if the comparison could not be decided (i.e. we should compare
+      the next items in the list): return ``NotImplemented``
+
+    - otherwise, the result of the comparison of the lists containing
+      ``x`` and ``y``
+
+    The semantics of the comparison is different from Python lists or
+    tuples in the case that the order is not total. Assume that ``A``
+    and ``B`` are lists whose rich comparison is implemented using
+    ``richcmp_item`` (as in EXAMPLES below). Then
+
+    - ``A == B`` iff ``A[i] == B[i]`` for all indices `i`.
+
+    - ``A != B`` iff ``A[i] != B[i]`` for some index `i`.
+
+    - ``A < B`` iff ``A[i] < B[i]`` for some index `i` and
+      for all `j < i`, ``A[j] <= B[j]``.
+
+    - ``A <= B`` iff ``A < B`` or ``A[i] <= B[i]`` for all `i`.
+
+    - ``A > B`` iff ``A[i] > B[i]`` for some index `i` and
+      for all `j < i`, ``A[j] >= B[j]``.
+
+    - ``A >= B`` iff ``A > B`` or ``A[i] >= B[i]`` for all `i`.
+
+    EXAMPLES::
+
+        sage: from sage.structure.richcmp import *
+        sage: @richcmp_method
+        ....: class Listcmp(list):
+        ....:     def __richcmp__(self, other, op):
+        ....:         for i in range(len(self)):  # Assume equal lengths
+        ....:             res = richcmp_item(self[i], other[i], op)
+        ....:             if res is not NotImplemented:
+        ....:                 return res
+        ....:         return rich_to_bool(op, 0)  # Consider the lists to be equal
+        sage: a = Listcmp([0, 1, 3])
+        sage: b = Listcmp([0, 2, 1])
+        sage: a == a
+        True
+        sage: a != a
+        False
+        sage: a < a
+        False
+        sage: a <= a
+        True
+        sage: a > a
+        False
+        sage: a >= a
+        True
+        sage: a == b, b == a
+        (False, False)
+        sage: a != b, b != a
+        (True, True)
+        sage: a < b, b > a
+        (True, True)
+        sage: a <= b, b >= a
+        (True, True)
+        sage: a > b, b < a
+        (False, False)
+        sage: a >= b, b <= a
+        (False, False)
+
+    The above tests used a list of integers, where the result of
+    comparisons are the same as for Python lists.
+
+    If we want to see the difference, we need more general entries in
+    the list. The comparison rules are made to be consistent with
+    setwise operations. If `A` and `B` are sets, we define ``A {op} B``
+    to be true if ``a {op} B`` is true for every `a` in `A` and
+    `b` in `B`. Interval comparisons are a special case of this. For
+    lists of non-empty(!) sets, we want that ``[A1, A2] {op} [B1, B2]``
+    is true if and only if ``[a1, a2] {op} [b1, b2]`` is true for all
+    elements. We verify this::
+
+        sage: @richcmp_method
+        ....: class Setcmp(tuple):
+        ....:     def __richcmp__(self, other, op):
+        ....:         return all(richcmp(x, y, op) for x in self for y in other)
+        sage: sym = {op_EQ: "==", op_NE: "!=", op_LT: "<", op_GT: ">", op_LE: "<=", op_GE: ">="}
+        sage: for A1 in Set(range(4)).subsets():  # long time
+        ....:     if not A1: continue
+        ....:     for B1 in Set(range(4)).subsets():
+        ....:         if not B1: continue
+        ....:         for A2 in Set(range(4)).subsets():
+        ....:             if not A2: continue
+        ....:             for B2 in Set(range(3)).subsets():
+        ....:                 if not B2: continue
+        ....:                 L1 = Listcmp([Setcmp(A1), Setcmp(A2)])
+        ....:                 L2 = Listcmp([Setcmp(B1), Setcmp(B2)])
+        ....:                 for op in range(6):
+        ....:                     reslist = richcmp(L1, L2, op)
+        ....:                     reselt = all(richcmp([a1, a2], [b1, b2], op) for a1 in A1 for a2 in A2 for b1 in B1 for b2 in B2)
+        ....:                     assert reslist is reselt
+    """
+    if op == Py_NE:
+        res = (x != y)
+        if not res:
+            return NotImplemented
+        else:
+            return res  # (x != y)  --> True
+
+    # If x and y are equal, we cannot decide
+    res = (x == y)
+    if res:
+        return NotImplemented
+    if op == Py_EQ:
+        return res  # not (x == y)  --> False
+
+    res = PyObject_RichCompare(x, y, op)
+    cdef bint bres = res
+    if bres != (op & 1):
+        # If we are asked to compute (x < y) and (x < y) is true, return true.
+        # If we are asked to compute (x <= y) and (x <= y) is false, return false.
+        return res
+
+    # Finally, check the inequality with the other strictness
+    # (< becomes <= and vice versa). This check is redundant in the
+    # typical case that (x <= y) is equivalent to (x < y or x == y).
+    # Since (x == y) returned false, we expect this
+    # PyObject_RichCompare() call to return the same result as the
+    # previous one.
+    cdef bint xres = PyObject_RichCompare(x, y, op ^ 1)
+    if xres == bres:  # As expected
+        return res
+
+    # OK, we are in a special case now. Assuming that the op stands
+    # for < or for <=, we know that
+    # (x == y) is false, that (x < y) is false but (x <= y) is true.
+    # Since we want to give more importance to the < and <= results than
+    # the == result, we treat this case as equality.
+    return NotImplemented
+
+
 cdef slot_tp_richcompare(self, other, int op):
     """
     Function to put in the ``tp_richcompare`` slot.

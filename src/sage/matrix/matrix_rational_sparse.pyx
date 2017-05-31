@@ -122,6 +122,7 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
         cdef Rational z
         cdef PyObject** X
 
+        from collections import Iterator, Sequence
         if entries is None: return
         # fill in entries in the dict case
         if isinstance(entries, dict):
@@ -133,7 +134,9 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
                     if i < 0 or j < 0 or i >= self._nrows or j >= self._ncols:
                         raise IndexError("invalid entries list")
                     mpq_vector_set_entry(&self._matrix[i], j, z.value)
-        elif isinstance(entries, list):
+        elif isinstance(entries, (Iterator, Sequence)):
+            if not isinstance(entries, (list, tuple)):
+                entries = list(entries)
             # Dense input format -- fill in entries
             if len(entries) != self._nrows * self._ncols:
                 raise TypeError("list of entries must be a dictionary of (i,j):x or a dense list of n * m elements")

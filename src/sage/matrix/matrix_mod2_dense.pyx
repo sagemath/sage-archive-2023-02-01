@@ -254,12 +254,15 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         R = self.base_ring()
 
         # scalar ?
-        if not isinstance(entries, list):
+        from collections import Iterator, Sequence
+        if not isinstance(entries, (Iterator, Sequence)):
             if self._nrows and self._ncols and R(entries) == 1:
                 mzd_set_ui(self._entries, 1)
             return
 
-        # all entries are given as a long list
+        # all entries are given as a long iterable
+        if not isinstance(entries, (list, tuple)):
+            entries = list(entries)
         if len(entries) != self._nrows * self._ncols:
             raise IndexError("The vector of entries has the wrong length.")
 

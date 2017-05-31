@@ -537,7 +537,8 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         R = self.base_ring()
 
         # scalar?
-        if not isinstance(entries, list) and not isinstance(entries, tuple):
+        from collections import Iterator, Sequence
+        if not isinstance(entries, (Iterator, Sequence)):
             sig_on()
             for i in range(self._nrows*self._ncols):
                 self._entries[i] = 0
@@ -552,7 +553,9 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
                         self._matrix[i][i] = e
             return
 
-        # all entries are given as a long list
+        # all entries are given as a long iterable
+        if not isinstance(entries, (list, tuple)):
+            entries = list(entries)
         if len(entries) != self._nrows * self._ncols:
             raise IndexError("The vector of entries has the wrong length.")
 
@@ -1473,7 +1476,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             sage: A.minimal_polynomial()
             x
 
-            sage: A = Mat(GF(7),3,3)(range(3)*3)
+            sage: A = Mat(GF(7),3,3)(list(range(3))*3)
             sage: A.charpoly()
             x^3 + 4*x^2
 

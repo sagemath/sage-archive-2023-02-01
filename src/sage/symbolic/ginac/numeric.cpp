@@ -2973,12 +2973,22 @@ const numeric numeric::iquo(const numeric &b) const {
                 mpz_fdiv_q(bigint, v._bigint, b.v._bigint);
                 return bigint;
         }
-        
-        PY_RETURN2(py_funcs.py_iquo, b);
+        throw std::runtime_error("iquo: bad input");
 }
 
 const numeric numeric::iquo(const numeric &b, numeric& r) const {
-        PY_RETURN3(py_funcs.py_iquo2, b, r);
+        if (t == MPZ and b.t == MPZ) {
+                mpz_t bigint, tmp;
+                mpz_init(bigint);
+                mpz_init(tmp);
+                mpz_init(r.v._bigint);
+                mpz_fdiv_q(bigint, v._bigint, b.v._bigint);
+                mpz_mul(tmp, bigint, b.v._bigint);
+                mpz_sub(r.v._bigint, v._bigint, tmp);
+                mpz_clear(tmp);
+                return bigint;
+        }
+        throw std::runtime_error("iquo2: bad input");
 }
 
 const numeric numeric::gcd(const numeric &b) const {

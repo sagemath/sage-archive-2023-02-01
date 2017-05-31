@@ -4509,6 +4509,12 @@ cdef class Expression(CommutativeRingElement):
             sage: sin(x/2).expand_trig(half_angles=True)
             (-1)^floor(1/2*x/pi)*sqrt(-1/2*cos(x) + 1/2)
 
+        If the expression contains terms which are factored, we expand first::
+
+            sage: (x, k1, k2) = var('x, k1, k2')
+            sage: cos((k1-k2)*x).expand().expand_trig()
+            cos(k1*x)*cos(k2*x) + sin(k1*x)*sin(k2*x)
+
         ALIASES:
 
         :meth:`trig_expand` and :meth:`expand_trig` are the same

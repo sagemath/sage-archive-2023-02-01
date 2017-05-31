@@ -1152,7 +1152,7 @@ class mwrank_MordellWeil(SageObject):
 
         - ``odd_primes_only`` (bool, default ``False``) -- only do
           saturation at odd primes.  (If the points have been found
-          via :meth:``two_descent()`` they should already be 2-saturated.)
+          via :meth:`two_descent` they should already be 2-saturated.)
 
         OUTPUT:
 

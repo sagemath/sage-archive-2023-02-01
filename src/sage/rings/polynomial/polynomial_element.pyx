@@ -7030,7 +7030,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         ::
 
-            sage: K.<im> = NumberField(x^2 + 1)
+            sage: K.<im> = QuadraticField(-1)
             sage: y = polygen(K)
             sage: p = y^4 - 2 - im
             sage: p.roots(ring=CC)

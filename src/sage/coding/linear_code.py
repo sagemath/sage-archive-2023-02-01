@@ -1315,32 +1315,6 @@ class AbstractLinearCode(Module):
         except TypeError:
             raise RuntimeError("the covering radius of this code cannot be computed by Guava")
 
-    def decode(self, right, algorithm="syndrome"):
-        r"""
-        Corrects the errors in ``right`` and returns a codeword.
-
-        INPUT:
-
-        - ``right`` -- a vector of the same length as ``self`` over
-          the base field of ``self``
-
-        - ``algorithm`` -- (default: ``'syndrome'``) Name of the decoding algorithm which
-          will be used to decode ``right``. Can be ``'syndrome'`` or ``'nearest_neighbor'``.
-
-        .. NOTE::
-
-            This is a deprecated method which will soon be removed from Sage. Please use
-            :func:`decode_to_code` instead.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(18813, "decode is deprecated and will be removed from sage soon. Please call decode_to_code instead")
-        if algorithm == "syndrome":
-            return self.decode_to_code(right, decoder_name="Syndrome")
-        elif algorithm == "nearest neighbor":
-            return self.decode_to_code(right, decoder_name="NearestNeighbor")
-        else:
-            return self.decode_to_code(right, decoder_name=algorithm)
-
     def decode_to_code(self, word, decoder_name=None, *args, **kwargs):
         r"""
         Corrects the errors in ``word`` and returns a codeword.

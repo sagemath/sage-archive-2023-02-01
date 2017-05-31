@@ -1470,6 +1470,8 @@ const ex numeric::power(const numeric &exponent) const {
         verbose("pow");
         if (exponent.t == MPZ)
                 return pow_intexp(exponent);
+        if (exponent.t == MPQ and exponent.is_integer())
+                return power(exponent.to_long());
         numeric ex(exponent);
         if (exponent.t == PYOBJECT and PyInt_Check(exponent.v._pyobject)) {
                 ex.t = MPZ;

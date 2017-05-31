@@ -20,6 +20,10 @@ CFLAGS="-g -O2 $CFLAGS"
 CXXFLAGS="-g -O2 $CXXFLAGS"
 CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
 
+if [ `uname -m` = "ppc64" ]; then
+    CPPFLAGS="-Dx86_64 $CPPFLAGS"
+fi
+
 export CFLAGS CXXFLAGS CPPFLAGS
 
 cd src

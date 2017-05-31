@@ -306,6 +306,26 @@ def min_wt_vec_gap(Gmat, n, k, F, algorithm=None):
     C = LinearCode(G)
     return C._minimum_weight_codeword(algorithm)
 
+def _explain_constructor(cl):
+    r"""
+    Internal function for use error messages when constructing encoders and decoders.
+
+    EXAMPLES:
+    sage: from sage.coding.linear_code import _explain_constructor, LinearCodeInformationSetDecoder
+    sage: C = codes.GolayCode(GF(2))
+    sage: cl = LinearCodeInformationSetDecoder
+    sage: _explain_constructor(cl)
+    "The constructor requires the arguments ['number_errors'].\nIt takes the optional arguments ['window_size'].\nSee the documentation of sage.coding.linear_code.LinearCodeInformationSetDecoder for more details."
+    """
+    import inspect
+    argspec = inspect.getargspec(cl.__init__)
+    args = argspec.args[2:-len(argspec.defaults)] # skip the self and code arguments
+    kwargs = argspec.args[-len(argspec.defaults):]
+    return("The constructor requires the arguments {}.\n"
+           "It takes the optional arguments {}.\n"
+           "See the documentation of {}.{} for more details."\
+            .format(args, kwargs, cl.__module__, cl.__name__))
+
 
 class AbstractLinearCode(Module):
     """
@@ -1428,13 +1448,28 @@ class AbstractLinearCode(Module):
             Traceback (most recent call last):
             ...
             ValueError: There is no Decoder named 'Try'. The known Decoders are: ['InformationSet', 'Syndrome', 'NearestNeighbor']
+
+        Some decoders take extra arguments. If the user forgets to supply these,
+        the error message attempts to be helpful::
+
+            sage: C.decoder('InformationSet')
+            Traceback (most recent call last):
+            ...
+            ValueError: Constructing the InformationSet decoder failed, possibly due to missing or incorrect parameters.
+            The constructor requires the arguments ['number_errors'].
+            It takes the optional arguments ['window_size'].
+            See the documentation of sage.coding.linear_code.LinearCodeInformationSetDecoder for more details.
+
         """
         if decoder_name is None:
             decoder_name = self._default_decoder_name
         if decoder_name in self._registered_decoders:
             decClass = self._registered_decoders[decoder_name]
-            D = decClass(self, *args, **kwargs)
-            return D
+            try:
+                return decClass(self, *args, **kwargs)
+            except TypeError:
+                raise ValueError("Constructing the {0} decoder failed, possibly due to missing or incorrect parameters.\n{1}"\
+                                     .format(decoder_name, _explain_constructor(decClass)))
         else:
             raise ValueError("There is no Decoder named '%s'. The known Decoders are: %s" % (decoder_name, self.decoders_available()))
 
@@ -1721,10 +1756,10 @@ class AbstractLinearCode(Module):
             sage: C.encode(word, 'GeneratorMatrix')
             (1, 1, 0, 0, 1, 1, 0)
         """
-        E = self.encoder(encoder_name, **kwargs)
+        E = self.encoder(encoder_name, *args, **kwargs)
         return E.encode(word)
 
-    def __call__(self, m, **kwargs):
+    def __call__(self, m):
         r"""
         Returns either ``m`` if it is a codeword or ``self.encode(m)``
         if it is an element of the message space of the encoder used by
@@ -1820,13 +1855,27 @@ class AbstractLinearCode(Module):
             Traceback (most recent call last):
             ...
             ValueError: There is no Encoder named 'NonExistingEncoder'. The known Encoders are: ['GeneratorMatrix', 'Systematic']
+
+        Some encoders take extra arguments. If the user incorrectly supplies
+        these, the error message attempts to be helpful::
+
+            sage: C.encoder('Systematic', strange_parameter=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: Constructing the Systematic encoder failed, possibly due to missing or incorrect parameters.
+            The constructor requires the arguments [].
+            It takes the optional arguments ['systematic_positions'].
+            See the documentation of sage.coding.linear_code.LinearCodeSystematicEncoder for more details.
         """
         if encoder_name is None:
             encoder_name = self._default_encoder_name
         if encoder_name in self._registered_encoders:
             encClass = self._registered_encoders[encoder_name]
-            E = encClass(self, **kwargs)
-            return E
+            try:
+                return encClass(self, *args, **kwargs)
+            except TypeError:
+                raise ValueError("Constructing the {0} encoder failed, possibly due to missing or incorrect parameters.\n{1}"\
+                                     .format(encoder_name, _explain_constructor(encClass)))
         else:
             raise ValueError("There is no Encoder named '%s'. The known Encoders are: %s" % (encoder_name, self.encoders_available()))
 
@@ -5047,7 +5096,7 @@ class LinearCodeInformationSetDecoder(Decoder):
     The decoder class can be directly invoked as well::
 
         sage: C = codes.GolayCode(GF(2))
-        sage: D = C.decoder("InformationSet", (3, 3))
+        sage: D = codes.decoders.LinearCodeInformationSetDecoder(3)
         sage: D
         Information set decoder for [24, 12, 8] Extended Golay code over GF(2) decoding exactly 3 errors
 

@@ -498,6 +498,7 @@ class AbstractLinearCode(Module):
         self._registered_encoders["Systematic"] = LinearCodeSystematicEncoder
         self._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
         self._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder
+        self._registered_decoders["InformationSet"] = LinearCodeInformationSetDecoder
 
         if not isinstance(length, (int, Integer)):
             raise ValueError("length must be a Python int or a Sage Integer")
@@ -1452,7 +1453,7 @@ class AbstractLinearCode(Module):
             sage: C.decoder('Try')
             Traceback (most recent call last):
             ...
-            ValueError: There is no Decoder named 'Try'. The known Decoders are: ['Syndrome', 'NearestNeighbor']
+            ValueError: There is no Decoder named 'Try'. The known Decoders are: ['InformationSet', 'Syndrome', 'NearestNeighbor']
         """
         if decoder_name is None:
             decoder_name = self._default_decoder_name
@@ -5009,8 +5010,8 @@ class LinearCodeInformationSetDecoder(Decoder):
     r"""
     Information-set decoder for any linear code.
 
-    Information-set decoding is a probabilistic decoding strategy that,
-    essentially, tries to guess `k` correct positions in the received word,
+    Information-set decoding is a probabilistic decoding strategy that
+    essentially tries to guess `k` correct positions in the received word,
     where `k` is the dimension of the code. A codeword agreeing with the
     received word on the guessed position can easily be computed, and their
     difference is one possible error vector. A "correct" guess is assumed when
@@ -5059,20 +5060,22 @@ class LinearCodeInformationSetDecoder(Decoder):
 
     EXAMPLES::
 
-        sage: C = codes.RandomLinearCode(10, 5, GF(3))
-        sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2)
+        sage: C = codes.GolayCode(GF(2))
+        sage: D = C.decoder("InformationSet", 2)
         sage: D
-        Information set decoder for [10, 5] Linear code over GF(3) decoding up to 2 errors
+        Information set decoder for [24, 12, 8] Extended Golay code over GF(2) decoding up to 2 errors
 
-        sage: C = codes.RandomLinearCode(10, 5, GF(3))
-        sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, (2, 3))
+        sage: C = codes.GolayCode(GF(2))
+        sage: D = C.decoder("InformationSet", (2,3))
         sage: D
-        Information set decoder for [10, 5] Linear code over GF(3) decoding between 2 and 3 errors
+        Information set decoder for [24, 12, 8] Extended Golay code over GF(2) decoding between 2 and 3 errors
 
-        sage: C = codes.RandomLinearCode(10, 5, GF(3))
-        sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, (3, 3))
+    The decoder class can be directly invoked as well::
+
+        sage: C = codes.GolayCode(GF(2))
+        sage: D = C.decoder("InformationSet", (3, 3))
         sage: D
-        Information set decoder for [10, 5] Linear code over GF(3) decoding exactly 3 errors
+        Information set decoder for [24, 12, 8] Extended Golay code over GF(2) decoding exactly 3 errors
 
     """
 
@@ -5083,26 +5086,26 @@ class LinearCodeInformationSetDecoder(Decoder):
         ``number_errors`` has to be either a list of Integers/ints, a tuple of Integers/ints,
         or an Integer/int::
 
-            sage: C = codes.RandomLinearCode(10, 5, GF(3))
-            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, window_size="aa")
+            sage: C = codes.GolayCode(GF(2))
+            sage: D = C.decoder("InformationSet", 2, window_size="aa")
             Traceback (most recent call last):
             ...
-            ValueError: number_errors must be a tuple, a list, an Integer or a Python int
+            ValueError: The window size parameter has to be a positive integer
 
         If ``number_errors`` is passed as a list/tuple, it has to contain only two values,
         the first one being at most the second one::
 
-            sage: C = codes.RandomLinearCode(10, 5, GF(3))
-            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, (4, 2))
+            sage: C = codes.GolayCode(GF(2))
+            sage: D = C.decoder("InformationSet", (4, 2))
             Traceback (most recent call last):
             ...
-            ValueError: The first element of number_errors has to be smaller than its second element
+            ValueError: number_errors should be a positive integer or a valid interval within the positive integers
 
         If ``window_size`` is bigger than a possible value for ``number_errors``, an error
         will be raised::
 
-            sage: C = codes.RandomLinearCode(10, 5, GF(3))
-            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, (1, 3), window_size=5)
+            sage: C = codes.GolayCode(GF(2))
+            sage: D = C.decoder("InformationSet", (1, 3), window_size=5)
             Traceback (most recent call last):
             ...
             ValueError: The window size parameter has to be at most the maximal number of allowed errors
@@ -5115,14 +5118,14 @@ class LinearCodeInformationSetDecoder(Decoder):
             if not (number_errors[0] in ZZ and number_errors[1] in ZZ):
                 raise ValueError("All elements of number_errors have to be positive integers")
             if 0 > number_errors[0] or number_errors[0] > number_errors[1]:
-                raise ValueError("number_errors should be a positive integer or a valid interval within the positive integers.")
+                raise ValueError("number_errors should be a positive integer or a valid interval within the positive integers")
             if number_errors[1] > code.length():
                 raise ValueError("The provided number of errors should be at most the code's length")
         else:
             raise ValueError("number_errors must be an integer or a pair of integers")
         if window_size == None:
             #TODO: Compute a sensible value
-            window_size = 3
+            window_size = min(3, number_errors[1])
         elif not isinstance(window_size, (Integer, int)) or window_size < 0:
             raise ValueError("The window size parameter has to be a positive integer")
         if window_size > number_errors[1]:
@@ -5139,7 +5142,7 @@ class LinearCodeInformationSetDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(10, 5, GF(3))
+            sage: C = codes.GolayCode(GF(2))
             sage: D1 = codes.decoders.LinearCodeInformationSetDecoder(C, 2)
             sage: D2 = codes.decoders.LinearCodeInformationSetDecoder(C, 2)
             sage: D1 == D2
@@ -5154,40 +5157,53 @@ class LinearCodeInformationSetDecoder(Decoder):
                 and self.window_size() == other.window_size()
 
     def _format_number_errors(self):
-        if self.number_errors in ZZ:
-            return "up to {0}".format(self.number_errors)
-        if self.number_errors[0] == self.number_errors[1]:
-            return "exactly {0}".format(self.number_errors[0])
-        return "between {0} and {1}".format(self.number_errors[0], self.number_errors[1])
+        r"""
+        Format the number of errors when calling ``_repr_`` or ``_latex_``.
 
+        EXAMPLES::
+
+            sage: C = codes.GolayCode(GF(2))
+            sage: D = C.decoder("InformationSet", 3)
+            sage: D._format_number_errors()
+            'up to 3'
+            sage: D = C.decoder("InformationSet", (2,3))
+            sage: D._format_number_errors()
+            'between 2 and 3'
+            sage: D = C.decoder("InformationSet", (3,3))
+            sage: D._format_number_errors()
+            'exactly 3'
+        """
+        if self._number_errors[0] == 0:
+            return "up to {0}".format(self._number_errors[1])
+        if self._number_errors[0] == self._number_errors[1]:
+            return "exactly {0}".format(self._number_errors[0])
+        return "between {0} and {1}".format(self._number_errors[0], self._number_errors[1])
 
     def _repr_(self):
         r"""
-        Returns a string representation of ``self``.
+        Returns a string representation of this decoder.
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(10, 5, GF(3))
-            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2)
+            sage: C = codes.GolayCode(GF(2))
+            sage: D = C.decoder("InformationSet", 2)
             sage: D
-            Information set decoder for [10,5] Linear code over GF(3) decoding up to 2 errors
+            Information set decoder for [24, 12, 8] Extended Golay code over GF(2) decoding up to 2 errors
         """
-        return "Information set decoder for %s decoding %s errors " %
-                    (self.code(), self._format_number_errors())
+        return "Information set decoder for {0} decoding {1} errors ".format(self.code(), self._format_number_errors())
 
     def _latex_(self):
         r"""
-        Returns a latex representation of ``self``.
+        Returns a latex representation of this decoder.
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(10, 5, GF(3))
-            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2)
+            sage: C = codes.GolayCode(GF(2))
+            sage: D = C.decoder("InformationSet", 2)
             sage: latex(D)
-            \textnormal{Information set decoder for }[10, 5]\textnormal{ Linear code over }\Bold{F}_{3} {\textnormal{ decoding up to 2 errors}
+            \textnormal{Information set decoder for }[24, 12, 8] \textnormal{ Extended Golay Code over } \Bold{F}_{2} \textnormal{decoding up to 2 errors}
         """
-        return "\\textnormal{Information set decoder for }%s {\\textnormal{decoding %s errors }"\
-                % (self.code()._latex_(), self.window_size(), self._format_number_errors())
+        return "\\textnormal{{Information set decoder for }}{0} \\textnormal{{decoding {1} errors}}".format(self.code()._latex_(), self._format_number_errors())
 
     def _lee_brickell_algorithm(self, r, w, p):
         r"""
@@ -5216,7 +5232,8 @@ class LinearCodeInformationSetDecoder(Decoder):
             sage: c = C.random_element()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), 2)
             sage: y = Chan(c)
-            sage: D._lee_brickell_algorithm(y, 2, 2).hamming_weight() == 2
+            sage: c_out = D._lee_brickell_algorithm(y, (2, 2), 2)
+            sage: (y - c).hamming_weight() == 2
             True
         """
         from sage.matrix.constructor import column_matrix
@@ -5309,8 +5326,8 @@ class LinearCodeInformationSetDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(10, 5, GF(3))
-            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, window_size=2)
+            sage: C = codes.GolayCode(GF(2))
+            sage: D = C.decoder("InformationSet", 2, window_size=2)
             sage: D.window_size()
             2
         """
@@ -5325,8 +5342,8 @@ class LinearCodeInformationSetDecoder(Decoder):
 
         EXAMPLES::
 
-            sage: C = codes.RandomLinearCode(10, 5, GF(3))
-            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2)
+            sage: C = codes.GolayCode(GF(2))
+            sage: D = C.decoder("InformationSet", 2)
             sage: D.number_errors()
             (0, 2)
         """
@@ -5338,5 +5355,4 @@ LinearCode._registered_encoders["GeneratorMatrix"] = LinearCodeGeneratorMatrixEn
 
 LinearCodeSyndromeDecoder._decoder_type = {"hard-decision", "unique", "dynamic"}
 LinearCodeNearestNeighborDecoder._decoder_type = {"hard-decision", "unique", "always-succeed", "complete"}
-LinearCode._registered_decoders["InformationSet"] = LinearCodeInformationSetDecoder
 LinearCodeInformationSetDecoder._decoder_type = {"hard-decision", "unique", "might-fail", "might-error", "complete"}

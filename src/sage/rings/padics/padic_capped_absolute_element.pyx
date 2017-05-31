@@ -319,6 +319,7 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
         NOTES:
 
         What some other systems do:
+
         - PARI: Seems to define the logarithm for units not congruent
           to 1 as we do.
 

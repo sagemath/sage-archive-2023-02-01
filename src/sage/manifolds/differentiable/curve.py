@@ -63,7 +63,7 @@ class DifferentiableCurve(DiffMap):
       the values being lists or tuples of `n` symbolic expressions of `t`,
       where `n` is the dimension of `M`
     - ``name`` -- (default: ``None``) string; symbol given to the curve
-    - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote the
+    - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote
       the curve; if none is provided, ``name`` will be used
     - ``is_isomorphism`` -- (default: ``False``) determines whether the
       constructed object is a diffeomorphism; if set to ``True``,
@@ -856,20 +856,26 @@ class DifferentiableCurve(DiffMap):
                                 for j in ind_pc] )
                 t += dt
 
-        return self._graphics(plot_curve, ambient_coords, thickness=thickness,
+        return self._graphics(plot_curve, ambient_coords,
+                              thickness=thickness,
                               aspect_ratio=aspect_ratio, color= color,
-                              style=style, label_axes=label_axes)                
+                              style=style, label_axes=label_axes)
 
 
 
-    def _graphics(self, plot_curve, ambient_coords, thickness=1, aspect_ratio='automatic', 
-                  color='red', style='-', label_axes=True):
+    def _graphics(self, plot_curve, ambient_coords, thickness=1,
+                  aspect_ratio='automatic', color='red', style='-',
+                  label_axes=True):
         r"""
-        Plots a 2D or 3D curve in a Cartesian graph with axes labeled by the
-        ambient coordinates.
-
-        TESTS::        
-            sage: #TO DO
+        Plots a 2D or 3D curve in a Cartesian graph with axes labeled by
+        the ambient coordinates; it is invoked by the methods
+        :meth:`plot` of
+        :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`,
+        and its subclasses
+        (:class:`~sage.manifolds.differentiable.integrated_curve.IntegratedCurve`,
+        :class:`~sage.manifolds.differentiable.integrated_curve.IntegratedAutoparallelCurve`,
+        and
+        :class:`~sage.manifolds.differentiable.integrated_curve.IntegratedGeodesic`).
 
         """
 

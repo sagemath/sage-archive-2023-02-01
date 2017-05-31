@@ -550,32 +550,76 @@ class DiffChart(Chart):
 
     def symbolic_velocities(self, left='D', right=None):
         r"""
-        
-        Returns a list of symbolic variables ready to be used by the user as
-        the derivatives of the coordinate functions with respect to a curve
-        parameter (that is the velocities along the curve).
-        It may actually serve to denote anything else than velocities, with a
-        name including the coordinate functions.
-        
-        """
-        
-        from sage.calculus.var import var
-        
-        string_velocities = []
-        velocities = []
-        
-        for coord_func in self[:]:
-            string_velocities += [left + "{}".format(coord_func)] # will raise
-            #error in case left is not a string
-        
-        if right is not None:
-            string_velocities = [string_vel + right for string_vel in string_velocities] # will
-            # raise error in case right is not a string
+        Returns a tuple of symbolic variables ready to be used by the
+        user as the derivatives of the coordinate functions with respect
+        to a curve parameter (i.e. the velocities along the curve).
+        It may actually serve to denote anything else than velocities,
+        with a name including the coordinate functions.
+        The choice of strings provided as 'left' and 'right' arguments
+        is not entirely free since it must comply with Python
+        prescriptions.
 
-        for string_vel in string_velocities:
-            velocities += [var(string_vel)]
-            
-        return velocities     
+        INPUT:
+
+        - ``left`` -- (default: ``D``) string to concatenate to the left
+          of each coordinate functions of the chart
+        - ``right`` -- (default: ``None``) string to concatenate to the
+          right of each coordinate functions of the chart
+
+        OUTPUT:
+
+        - a list of symbolic expressions with the desired names
+
+        EXAMPLE:
+
+        Symbolic derivatives of the Cartesian coordinates of the
+        3-dimensional Euclidean space::
+
+            sage: R3 = Manifold(3, 'R3', start_index=1)
+            sage: cart.<X,Y,Z> = R3.chart()
+            sage: R3 = Manifold(3, 'R3', start_index=1)
+            sage: cart.<X,Y,Z> = R3.chart()
+            sage: Deriv1 = cart.symbolic_velocities(); Deriv1
+            [DX, DY, DZ]
+            sage: Deriv2 = cart.symbolic_velocities(left='d', right="_dt")
+            sage: Deriv2
+            [dX_dt, dY_dt, dZ_dt]
+
+        TESTS::
+
+            sage: R3 = Manifold(3, 'R3', start_index=1)
+            sage: cart.<X,Y,Z> = R3.chart()
+            sage: D = cart.symbolic_velocities(); D
+            [DX, DY, DZ]
+            sage: D = cart.symbolic_velocities(left='d', right="/dt"); D
+            Traceback (most recent call last):
+            ...
+            ValueError: The name "dX/dt" is not a valid Python
+             identifier.
+            sage: D = cart.symbolic_velocities(left='d', right="_dt"); D
+            [dX_dt, dY_dt, dZ_dt]
+            sage: D = cart.symbolic_velocities(left='', right="'"); D
+            Traceback (most recent call last):
+            ...
+            ValueError: The name "X'" is not a valid Python
+             identifier.
+            sage: D = cart.symbolic_velocities(left='', right="_dot"); D
+            [X_dot, Y_dot, Z_dot]
+
+        """
+
+        from sage.symbolic.ring import var
+
+        string_velocities = [left + format(coord_func)
+                             for coord_func in self[:]] # will raise
+        # error in case left is not a string
+
+        if right is not None:
+            string_velocities = [string_vel + right for string_vel
+                                 in string_velocities] # will raise
+            # error in case right is not a string
+
+        return list(var(string_velocities))
 
 #*****************************************************************************
 

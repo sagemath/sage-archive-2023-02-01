@@ -1978,7 +1978,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 return (True, None)
             return True
         for e in H.neighbor_out_iterator(0):
-            if H.pseudocomplement(e) is None:
+            if H.kappa(e) is None:
                 if certificate:
                     return (False, self._vertex_to_element(e))
                 return False

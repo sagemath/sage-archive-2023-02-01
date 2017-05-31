@@ -617,23 +617,16 @@ ex power::eval(int level) const
 				}
 				if (q.is_zero()) {  // the exponent was in the allowed range 0<(n/m)<1
 					if (num_basis.is_rational()) {
-						// call rational_power_parts
-						// for a^b return c,d such that a^b = c*d^b
-						PyObject* basis_py = num_basis.to_pyobject();
-						PyObject* exponent_py = num_exponent.to_pyobject();
-						PyObject* restuple = py_funcs.py_rational_power_parts(basis_py, exponent_py);
-						if(restuple == nullptr) {
-							throw(std::runtime_error("power::eval, error in rational_power_parts"));
-						}
-						PyObject *ppower = PyTuple_GetItem(restuple,0);
-						PyObject *newbasis = PyTuple_GetItem(restuple,1);
-						const bool ppower_equals_one = PyObject_IsTrue(PyTuple_GetItem(restuple, 2)) != 0;
+						bool ppower_equals_one; // = PyObject_IsTrue(PyTuple_GetItem(restuple, 2)) != 0;
+                                                numeric newbasis, ppower;
+                                                rational_power_parts(num_basis,
+                                                                num_exponent, 
+                                                                ppower, 
+                                                                newbasis, 
+                                                                ppower_equals_one);
 						ex result = (new power(newbasis,exponent))->setflag(status_flags::dynallocated | status_flags::evaluated);
 						if (not ppower_equals_one)
 							result = (new mul(result, ppower))->setflag(status_flags::dynallocated | status_flags::evaluated);
-						Py_DECREF(restuple);
-						Py_DECREF(basis_py);
-						Py_DECREF(exponent_py);
 						return result;
 					}
 					return this->hold();

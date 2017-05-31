@@ -120,7 +120,10 @@ public:
 	~numeric();
 
 	friend std::ostream& operator<<(std::ostream& os, const numeric& s);
-	friend void coerce(numeric& new_left, numeric& new_right, const numeric& left, const numeric& right);
+	friend void coerce(numeric& new_left, numeric& new_right,
+                        const numeric& left, const numeric& right);
+        friend void rational_power_parts(const numeric& a, const numeric& b,
+                        numeric& c, numeric& d, bool& c_unit);
 	// functions overriding virtual functions from base classes
 public:
 
@@ -289,7 +292,8 @@ public:
 	const numeric iquo(const numeric &b, numeric &r) const;
 	const numeric gcd(const numeric &b) const;
 	const numeric lcm(const numeric &b) const;
-        void factor(std::vector<std::pair<long, int>>& factors) const;
+        void factor(std::vector<std::pair<numeric, int>>& factors, long range=0) const;
+        void factorsmall(std::vector<std::pair<long, int>>& factors, long range=0) const;
         void divisors(std::set<int>& divs) const;
 	
 	int int_length() const;
@@ -304,6 +308,8 @@ protected:
 	void do_print_tree(const print_tree & c, unsigned level) const override;
 	void do_print_python_repr(const print_python_repr & c, unsigned level) const override;
 
+        static bool integer_rational_power(numeric& res,
+                const numeric& a, const numeric& b);
 //	numeric operator()(const int& x);
 
 	// member variables

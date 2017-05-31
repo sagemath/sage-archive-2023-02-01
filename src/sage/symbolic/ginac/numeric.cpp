@@ -1294,6 +1294,110 @@ const numeric numeric::div(const numeric &other) const {
         }
 }
 
+// Compute `a^b` as an integer, if it is integral, or return ``None``.
+// The nonnegative real root is taken for even denominators.
+bool numeric::integer_rational_power(numeric& res,
+                const numeric& a, const numeric& b)
+{
+        if (a.t != MPZ or b.t != MPQ)
+                throw std::runtime_error("integer_rational_power: bad input");
+        if (mpz_sgn(mpq_numref(b.v._bigrat)) < 0)
+                throw std::runtime_error("integer_rational_power: bad input");
+        int sgn = mpz_sgn(a.v._bigint);
+        mpz_t z;
+        mpz_init(z);
+        mpz_set_ui(z, 0);
+        if (mpz_cmp_ui(a.v._bigint, 1) == 0
+            or mpz_cmp_ui(mpq_numref(b.v._bigrat), 0) == 0)
+                mpz_set_ui(z, 1);
+        else if (sgn == 0) {
+                res = *_num0_p;
+                return true;
+        }
+        else if (sgn < 0 and mpz_cmp_ui(mpq_denref(b.v._bigrat), 1))
+                return false;
+        else {
+                if (not mpz_fits_ulong_p(mpq_numref(b.v._bigrat))
+                    or not mpz_fits_ulong_p(mpq_denref(b.v._bigrat)))
+                // too big to take roots/powers
+                        return false;
+                else if (mpz_cmp_ui(mpq_denref(b.v._bigrat), 2) == 0) {
+                        if (mpz_perfect_square_p(a.v._bigint))
+                                mpz_sqrt(z, a.v._bigint);
+                        else
+                                return false;
+                }
+                else {
+                        bool exact = mpz_root(z, a.v._bigint,
+                                        mpz_get_ui(mpq_denref(b.v._bigrat)));
+                        if (not exact)
+                                return false;
+                }
+                mpz_pow_ui(z, z, mpz_get_ui(mpq_numref(b.v._bigrat)));
+        }
+        res = numeric(z);
+        return true;
+}
+
+// for a^b return c,d such that a^b = c*d^b
+// only for MPZ/MPQ base and MPQ exponent
+void rational_power_parts(const numeric& a_orig, const numeric& b_orig,
+                numeric& c, numeric& d, bool& c_unit)
+{
+        if ((a_orig.t != MPZ and a_orig.t != MPQ) or b_orig.t != MPQ)
+                throw std::runtime_error("rational_power_parts: bad input");
+        bool b_negative = b_orig.is_negative();
+        const numeric& a = b_negative? a_orig.negative() : a_orig;
+        const numeric& b = b_negative? b_orig.negative() : b_orig;
+        if (a.t == MPQ) {
+                numeric c1, c2, d1, d2;
+                rational_power_parts(a.numer(), b, c1, d1, c_unit);
+                rational_power_parts(a.denom(), b, c2, d2, c_unit);
+                c = c1 / c2;
+                if (b_negative)
+                        d = d2 / d1;
+                else
+                        d = d1 / d2;
+                c_unit = c.is_one();
+                return;
+        }
+
+        if (numeric::integer_rational_power(c, a, b)) {
+                c_unit = c.is_one();
+                d = *_num1_p;
+                return;
+        }
+        numeric numer = b.numer();
+        numeric denom = b.denom();
+        if (not mpz_fits_ulong_p(denom.v._bigint)) {
+                c = *_num1_p;
+                c_unit = true;
+                d = a;
+                return;
+        }
+        long denoml = mpz_get_si(denom.v._bigint);
+        if (a.is_minus_one() and denoml > 1) {
+                c = *_num1_p;
+                c_unit = true;
+                d = *_num_1_p;
+                return;
+        }
+        std::vector<std::pair<numeric, int>> factors;
+        a.factor(factors, 10000L);
+        c = *_num1_p;
+        d = *_num1_p;
+        for (auto p : factors) {
+                c = c * p.first.pow_intexp(numer * numeric(p.second / 
+                                denoml));
+                d = d * p.first.pow_intexp(numeric(p.second % denoml));
+        }
+        if (a.is_negative() and numer.is_odd())
+                d = d.negative();
+        if (b_negative)
+                d = d.inverse();
+        c_unit = c.is_one();
+}
+
 const numeric numeric::power(signed long exp_si) const
 {
         PyObject *o, *r;
@@ -2899,10 +3003,11 @@ const numeric numeric::lcm(const numeric &b) const {
         PY_RETURN2(py_funcs.py_lcm, b);
 }
 
-void numeric::factor(std::vector<std::pair<long, int>>& factors) const
+// version of factor for factors fitting into long
+void numeric::factorsmall(std::vector<std::pair<long, int>>& factors, long range) const
 {
         if (t == MPQ)
-                return to_bigint().factor(factors);
+                return to_bigint().factorsmall(factors);
         if (t != MPZ)
                 return;
         if (is_one() or is_minus_one())
@@ -2915,15 +3020,56 @@ void numeric::factor(std::vector<std::pair<long, int>>& factors) const
         fmpz_set_mpz(f, bigint);
         fmpz_factor_t fs;
         fmpz_factor_init(fs);
-        fmpz_factor(fs, f);
+        if (range == 0)
+                fmpz_factor(fs, f);
+        else
+                fmpz_factor_trial_range(fs, f, 0, range);
         for (slong i=0; i<fs->num; ++i) {
                 fmpz_get_mpz(bigint, fs->p + i);
                 factors.push_back(std::make_pair(mpz_get_si(bigint),
                                               int(*(fs->exp+i))));
         }
         mpz_clear(bigint);
+        fmpz_factor_clear(fs);
+        fmpz_clear(f);
+}
+
+// may take long time if no range given
+void numeric::factor(std::vector<std::pair<numeric, int>>& factors, long range) const
+{
+        if (t == MPQ)
+                return to_bigint().factor(factors);
+        if (t != MPZ)
+                return;
+        if (is_one() or is_minus_one())
+                return;
+        fmpz_t f;
+        fmpz_init(f);
+        mpz_t bigint, tmp;
+        mpz_init(bigint);
+        mpz_abs(bigint, v._bigint);
+        fmpz_set_mpz(f, bigint);
+        fmpz_factor_t fs;
+        fmpz_factor_init(fs);
+        if (range == 0)
+                fmpz_factor(fs, f);
+        else
+                fmpz_factor_trial_range(fs, f, 0, range);
+        for (slong i=0; i<fs->num; ++i) {
+                mpz_init(tmp);
+                fmpz_get_mpz(tmp, fs->p + i);
+                if (range != 0)
+                        for (int j=0; j<int(*(fs->exp+i)); ++j)
+                                mpz_divexact(bigint, bigint, tmp);
+                factors.push_back(std::make_pair(numeric(tmp),
+                                              int(*(fs->exp+i))));
+        }
         fmpz_clear(f);
         fmpz_factor_clear(fs);
+        if (range != 0 and mpz_cmp_ui(bigint, 1) != 0)
+                factors.push_back(std::make_pair(numeric(bigint), 1));
+        else
+                mpz_clear(bigint);
 }
 
 static void setDivisors(long n, int i, std::set<int>& divisors,
@@ -2951,7 +3097,7 @@ void numeric::divisors(std::set<int>& divs) const
         if (is_one() or is_minus_one())
                 return;
         std::vector<std::pair<long, int>> factors;
-        factor(factors);
+        factorsmall(factors);
         setDivisors(1, 0, divs, factors);
 }
 

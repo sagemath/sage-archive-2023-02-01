@@ -5007,11 +5007,26 @@ class LinearCodeNearestNeighborDecoder(Decoder):
 
 class LinearCodeInformationSetDecoder(Decoder):
     r"""
-    Constructs a decoder for Linear Codes. This decoder use the probabilistic
-    information set decoding algorithm. Details follow.
+    Information-set decoder for any linear code.
 
-    This decoder is based on the Lee-Brickell refinement of the information set
-    decoding algorithm, as described in [P10]:
+    Information-set decoding is a probabilistic decoding strategy that,
+    essentially, tries to guess `k` correct positions in the received word,
+    where `k` is the dimension of the code. A codeword agreeing with the
+    received word on the guessed position can easily be computed, and their
+    difference is one possible error vector. A "correct" guess is assumed when
+    this error vector has low Hamming weight.
+
+    This strategy requires choosing how many errors is deemed acceptable. One
+    choice could be `d/2`, where `d` is the minimum distance of the code, but
+    sometimes `d` is not known, or sometimes more errors are expected. If one
+    chooses anything above `d/2`, the algorithm does not guarantee to return a
+    nearest codeword.
+
+    ALGORITHM:
+
+    This implements the Lee--Brickell refinement of the above simple strategy,
+    see [LB1988] for the original binary variant, and [Pet10] for the `q`-ary
+    extension.
 
     Let `p` and `w` be integers, such that `0\leq p\leq w`, let
     `y` be a vector over some vector space `GF(q)^{n}` and let `C` be
@@ -5020,48 +5035,48 @@ class LinearCodeInformationSetDecoder(Decoder):
     the columns of `G` indexed by `I`.
     To correct exactly `w` errors in `y`, proceed as follows:
 
-        1. Choose a information set `I` of `C`.
+        1. Choose an information set `I` of `C`.
         2. Compute `yc = y - y_{I}\times G^{-1} \times G`
-        3. Consider every size-`p` subset of `I` `\{a_1, \dots, a_p\}`.
-           For each `m= (m_1, \dots, m_p) \in GF(q)^{p}`, compute
+        3. Consider every size-`p` subset of `I`, `\{a_1, \dots, a_p\}`.
+           For each `m = (m_1, \dots, m_p) \in GF(q)^{p}`, compute
            the error vector `e = yc - \sum_{i=1}^{p} m_i\times g_{a_i}`,
-        4. If `e` has a Hamming weight of `w`, it's the right error vector,
-           thus return `y-e`.
+        4. If `e` has a Hamming weight of `w`, it is accepted and we return
+           `y-e`.
            Else, go back to 1.
-
-    REFERENCES:
-
-    - [P10] Christiane Peters, Information-set decoding for linear codes over Fq, 2010
 
     INPUT:
 
-    - ``code`` -- A code associated to this decoder
+    - ``code`` -- A linear code for which to decode.
 
-    - ``number_errors`` -- the number of errors to look for while running the algorithm.
-      It can be either an integer of a tuple. If a tuple is passed as
-      argument, the decoding algorithm will be run for every value in the interval
-      described by ``number_errors`` until it terminates properly.
+    - ``number_errors`` -- an integer, the maximal number of errors to accept as
+      correct decoding. An interval can also be specified by giving a pair of
+      integers, where both end values are taken to be in the interval.
 
-    - ``window-size`` -- the size of subsets to use on step 3 of the algorithm
-      as described above. It has to be at most the smallest value passed for
-      ``number_errors``.
+    - ``window-size`` -- (optional) the size of subsets to use on step 3 of the
+      algorithm as described above. Usually a small number. It has to be at most
+      the largest allowed number of errors. A sensible default will be computed
+      if not set.
 
     EXAMPLES::
 
         sage: C = codes.RandomLinearCode(10, 5, GF(3))
-        sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, 2)
+        sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2)
         sage: D
-        Information set decoder for Linear code of length 10, dimension 5 over Finite Field of size 3, with a window-size of 2 and considering 2 errors
+        Information set decoder for [10, 5] Linear code over GF(3) decoding up to 2 errors
 
-    It's also possible to pass ``number_errors`` as an interval of possible error weights::
         sage: C = codes.RandomLinearCode(10, 5, GF(3))
-        sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, (2, 3))
+        sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, (2, 3))
         sage: D
-        Information set decoder for Linear code of length 10, dimension 5 over Finite Field of size 3, with a window-size of 2 and considering between 2 and 3 errors
+        Information set decoder for [10, 5] Linear code over GF(3) decoding between 2 and 3 errors
+
+        sage: C = codes.RandomLinearCode(10, 5, GF(3))
+        sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, (3, 3))
+        sage: D
+        Information set decoder for [10, 5] Linear code over GF(3) decoding exactly 3 errors
 
     """
 
-    def __init__(self, code, window_size, number_errors):
+    def __init__(self, code, number_errors, window_size = None):
         r"""
         TESTS:
 
@@ -5069,7 +5084,7 @@ class LinearCodeInformationSetDecoder(Decoder):
         or an Integer/int::
 
             sage: C = codes.RandomLinearCode(10, 5, GF(3))
-            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, "aa")
+            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, window_size="aa")
             Traceback (most recent call last):
             ...
             ValueError: number_errors must be a tuple, a list, an Integer or a Python int
@@ -5078,7 +5093,7 @@ class LinearCodeInformationSetDecoder(Decoder):
         the first one being at most the second one::
 
             sage: C = codes.RandomLinearCode(10, 5, GF(3))
-            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, (4, 2))
+            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, (4, 2))
             Traceback (most recent call last):
             ...
             ValueError: The first element of number_errors has to be smaller than its second element
@@ -5087,28 +5102,32 @@ class LinearCodeInformationSetDecoder(Decoder):
         will be raised::
 
             sage: C = codes.RandomLinearCode(10, 5, GF(3))
-            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, (1, 3))
+            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, (1, 3), window_size=5)
             Traceback (most recent call last):
             ...
-            ValueError: The window size parameter has to be at most the smallest number of errors
+            ValueError: The window size parameter has to be at most the maximal number of allowed errors
         """
         if isinstance(number_errors, (Integer, int)):
-            number_errors = (number_errors, number_errors)
-        elif isinstance(number_errors, (tuple, list)):
-            if not all((i in ZZ and i > 0) for i in number_errors):
-                raise ValueError("All elements of number_errors have to be positive integers")
+            number_errors = (0, number_errors)
+        if isinstance(number_errors, (tuple, list)):
             if not len(number_errors) == 2:
-                raise ValueError("number_errors has to contain exactly two values")
-            if not number_errors[0] <= number_errors[1]:
-                raise ValueError("The first element of number_errors has to be smaller than its second element")
-            if not all(w <= code.length() for w in number_errors):
-                raise ValueError("The provided number of errors has to be at most the code's length")
+                raise ValueError("number_errors should be either an integer or a pair of integers")
+            if not (number_errors[0] in ZZ and number_errors[1] in ZZ):
+                raise ValueError("All elements of number_errors have to be positive integers")
+            if 0 > number_errors[0] or number_errors[0] > number_errors[1]:
+                raise ValueError("number_errors should be a positive integer or a valid interval within the positive integers.")
+            if number_errors[1] > code.length():
+                raise ValueError("The provided number of errors should be at most the code's length")
         else:
-            raise ValueError("number_errors must be a tuple, a list, an Integer or a Python int")
-        if not isinstance(window_size, (Integer, int)) or window_size < 0:
-            raise ValueError("The window size parameter has to be either a positive Sage integer or a Python int")
-        if not all(window_size <= w for w in number_errors):
-            raise ValueError("The window size parameter has to be at most the smallest number of errors")
+            raise ValueError("number_errors must be an integer or a pair of integers")
+        if window_size == None:
+            #TODO: Compute a sensible value
+            window_size = 3
+        elif not isinstance(window_size, (Integer, int)) or window_size < 0:
+            raise ValueError("The window size parameter has to be a positive integer")
+        if window_size > number_errors[1]:
+            raise ValueError("The window size parameter has to be at most the maximal number of allowed errors")
+
         self._window_size = window_size
         self._number_errors = number_errors
         super(LinearCodeInformationSetDecoder, self).__init__(code, code.ambient_space(), \
@@ -5116,20 +5135,31 @@ class LinearCodeInformationSetDecoder(Decoder):
 
     def __eq__(self, other):
         r"""
-        Tests equality between LinearCodeInformationSetDecoder objects.
+        Tests equality between information set decoder objects.
 
         EXAMPLES::
 
             sage: C = codes.RandomLinearCode(10, 5, GF(3))
-            sage: D1 = codes.decoders.LinearCodeInformationSetDecoder(C, 2, 2)
-            sage: D2 = codes.decoders.LinearCodeInformationSetDecoder(C, 2, 2)
+            sage: D1 = codes.decoders.LinearCodeInformationSetDecoder(C, 2)
+            sage: D2 = codes.decoders.LinearCodeInformationSetDecoder(C, 2)
             sage: D1 == D2
             True
+            sage: D3 = codes.decoders.LinearCodeInformationSetDecoder(C, 3)
+            sage: D1 == D3
+            False
         """
         return isinstance(other, LinearCodeInformationSetDecoder)\
                 and self.code() == other.code()\
-                and self.window_size() == other.window_size()\
-                and self.number_errors() == other.number_errors()
+                and self.number_errors() == other.number_errors()\
+                and self.window_size() == other.window_size()
+
+    def _format_number_errors(self):
+        if self.number_errors in ZZ:
+            return "up to {0}".format(self.number_errors)
+        if self.number_errors[0] == self.number_errors[1]:
+            return "exactly {0}".format(self.number_errors[0])
+        return "between {0} and {1}".format(self.number_errors[0], self.number_errors[1])
+
 
     def _repr_(self):
         r"""
@@ -5138,12 +5168,12 @@ class LinearCodeInformationSetDecoder(Decoder):
         EXAMPLES::
 
             sage: C = codes.RandomLinearCode(10, 5, GF(3))
-            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, 2)
+            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2)
             sage: D
-            Information set decoder for Linear code of length 10, dimension 5 over Finite Field of size 3, with a window-size of 2 and considering 2 errors
+            Information set decoder for [10,5] Linear code over GF(3) decoding up to 2 errors
         """
-        return "Information set decoder for %s, with a window-size of %s and considering %s errors "\
-                % (self.code(), self.window_size(), format_interval(self.number_errors()))
+        return "Information set decoder for %s decoding %s errors " %
+                    (self.code(), self._format_number_errors())
 
     def _latex_(self):
         r"""
@@ -5152,26 +5182,27 @@ class LinearCodeInformationSetDecoder(Decoder):
         EXAMPLES::
 
             sage: C = codes.RandomLinearCode(10, 5, GF(3))
-            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, 2)
+            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2)
             sage: latex(D)
-            \textnormal{Information set decoder for }[10, 5]\textnormal{ Linear code over }\Bold{F}_{3} {\textnormal{, with a window-size of 2 and considering 2 errors }
+            \textnormal{Information set decoder for }[10, 5]\textnormal{ Linear code over }\Bold{F}_{3} {\textnormal{ decoding up to 2 errors}
         """
-        return "\\textnormal{Information set decoder for }%s {\\textnormal{, with a window-size of %s and considering %s errors }"\
-                % (self.code()._latex_(), self.window_size(), format_interval(self.number_errors()))
+        return "\\textnormal{Information set decoder for }%s {\\textnormal{decoding %s errors }"\
+                % (self.code()._latex_(), self.window_size(), self._format_number_errors())
 
-    def _lee_brickell_algorithm(self, r, p, w):
+    def _lee_brickell_algorithm(self, r, w, p):
         r"""
-        Runs Lee-Brickell algorithms as described in ``self``'s documentation
-        and returns the error vector.
+        The Lee-Brickell algorithm as described in the class doc.
 
         INPUT:
 
-        - ``r`` -- a received word, i.e. a vector in the ambient space of
+        - `r` -- a received word, i.e. a vector in the ambient space of
           :meth:`decoder.Decoder.code`.
 
-        - ``p`` -- the window_size parameter
+        - `w` -- an integer interval of acceptable Hamming weights for the error.
 
-        - ``w`` -- the number of errors to look for
+        - `p` -- an integer, the window size.
+
+        OUTPUT: A codeword whose distance to `r` satisfies `w`.
 
         EXAMPLES::
 
@@ -5181,7 +5212,7 @@ class LinearCodeInformationSetDecoder(Decoder):
                                      [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1],\
                                      [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1]])
             sage: C = codes.LinearCode(M)
-            sage: D = C.decoder('InformationSet', 2, 2)
+            sage: D = C.decoder('InformationSet', (2,2))
             sage: c = C.random_element()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), 2)
             sage: y = Chan(c)
@@ -5221,8 +5252,9 @@ class LinearCodeInformationSetDecoder(Decoder):
                             try:
                                 j = m.next()
                                 v += j[ind] * gs[i[ind]]
-                                if (rc - v).hamming_weight() == w:
-                                    return (rc - v)
+                                errs = (rc - v).hamming_weight()
+                                if errs >= w[0] and errs <= w[1]:
+                                    return v
                                 ind = (ind + 1) % p
                             except StopIteration:
                                 break
@@ -5236,15 +5268,20 @@ class LinearCodeInformationSetDecoder(Decoder):
 
     def decode_to_code(self, r):
         r"""
-        Decodes ``r`` to an element in the associated code of ``self``.
+        Decodes a received word with respect to the associated code of this decoder.
+
+        If decoding fails, a :exc:`sage.coding.decoder.DecodingError` is thrown.
+
+        WARNING:
+
+        If there is no codeword within the decoding radius of this decoder, this
+        method will never terminate.
 
         INPUT:
 
         - ``r`` -- a vector in the ambient space of :meth:`decoder.Decoder.code`.
 
-        OUTPUT:
-
-        - a codeword of the associated code of ``self``
+        OUTPUT: a codeword of :meth:`decoder.Decoder.code`.
 
         EXAMPLES::
 
@@ -5254,7 +5291,7 @@ class LinearCodeInformationSetDecoder(Decoder):
                                      [0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1],\
                                      [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1]])
             sage: C = codes.LinearCode(M)
-            sage: D = C.decoder('InformationSet', 2, 2)
+            sage: D = C.decoder('InformationSet', 2)
             sage: c = C.random_element()
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), 2)
             sage: y = Chan(c)
@@ -5264,27 +5301,16 @@ class LinearCodeInformationSetDecoder(Decoder):
         C = self.code()
         if r in C:
             return r
-        w = self.number_errors()
-        p = self.window_size()
-        if w[0] == w[1]:
-            return r - self._lee_brickell_algorithm(r, p, w[0])
-        for number_errors in range(w[0], w[1]):
-            try:
-                e = self._lee_brickell_algorithm(r, p, number_errors)
-                c = r - e
-                return c
-            except:
-                pass
-        raise DecodingError("Decoding failed")
+        return self._lee_brickell_algorithm(r, self.number_errors(), self.window_size())
 
     def window_size(self):
         r"""
-        Returns the window-size parameter for ``self``.
+        The window-size parameter for this information-set decoder.
 
         EXAMPLES::
 
             sage: C = codes.RandomLinearCode(10, 5, GF(3))
-            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, 2)
+            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, window_size=2)
             sage: D.window_size()
             2
         """
@@ -5292,14 +5318,17 @@ class LinearCodeInformationSetDecoder(Decoder):
 
     def number_errors(self):
         r"""
-        Returns the number of errors ``self`` will try to correct.
+         A pair of integers specifying the interval of errors this decoder will attempt to correct.
+
+         The interval includes both end values.
+
 
         EXAMPLES::
 
             sage: C = codes.RandomLinearCode(10, 5, GF(3))
-            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2, 2)
+            sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 2)
             sage: D.number_errors()
-            (2, 2)
+            (0, 2)
         """
         return self._number_errors
 

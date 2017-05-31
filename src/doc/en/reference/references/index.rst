@@ -1098,6 +1098,10 @@ REFERENCES:
              modular forms", LMS J. of Comput. Math. 14 (2011),
              214-231.
 
+.. [LB1988] Lee, P.J., Brickell, E.F. An observation on the security of
+            McEliece's public-key cryptosystem. EuroCrypt 1988. LNCS, vol. 330, pp.
+            275–280.
+
 .. [LdB1982] \A. Liberato de Brito, 'FORTRAN program for the integral
              of three spherical harmonics', Comput. Phys. Commun.,
              Volume 25, pp. 81-85 (1982)
@@ -1347,6 +1351,9 @@ REFERENCES:
 .. [Pen2012] \R. Pendavingh, On the evaluation at `(-i, i)` of the
              Tutte polynomial of a binary matroid. Preprint:
              :arxiv:`1203.0910`
+
+.. [Pet2010] Christiane Peters, Information-set decoding for linear codes over
+             `GF(q)`, Proc. of PQCrypto 2010, pp. 81-94.
 
 .. [Pha2002] \R. C.-W. Phan. Mini advanced encryption standard
              (mini-AES): a testbed for cryptanalysis

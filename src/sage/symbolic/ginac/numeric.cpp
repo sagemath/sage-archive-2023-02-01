@@ -52,6 +52,7 @@
 #include <Python.h>
 #include "flint/fmpz.h"
 #include "flint/fmpz_factor.h"
+#include <cmath>
 
 #include "numeric.h"
 #include "operators.h"
@@ -1384,7 +1385,18 @@ void rational_power_parts(const numeric& a_orig, const numeric& b_orig,
                 return;
         }
         std::vector<std::pair<numeric, int>> factors;
-        a.factor(factors, 10000L);
+        long max_prime_idx;
+        static numeric maxnum = numeric(10).power(200);
+        if (a < maxnum) {
+                double ad = mpz_get_d(a.v._bigint);
+                double adrootlog = std::log(ad) / denoml;
+                double adroot = std::exp(adrootlog);
+                double mpid = adroot*1.25506/adrootlog;
+                max_prime_idx = mpid>2000? 2000L : long(mpid) + 1;
+        }
+        else // can't convert a to double
+                max_prime_idx = 2000L;
+        a.factor(factors, max_prime_idx);
         c = *_num1_p;
         d = *_num1_p;
         for (auto p : factors) {

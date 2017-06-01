@@ -278,8 +278,7 @@ information. You can use the existing functions of Sage as templates.
 -  An **INPUT** and an **OUTPUT** block describing the input/output of
    the function.
 
-   The INPUT block describes all arguments that the function accepts. This
-   is not optional.
+   The INPUT block describes all arguments that the function accepts.
 
    1. The type names should be descriptive, but do not have to represent
       the exact Sage/Python types. For example, use "integer" for

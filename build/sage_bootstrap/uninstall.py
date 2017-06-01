@@ -73,6 +73,10 @@ def uninstall(spkg_name, sage_local):
 
     if len(stamp_files) > 1:
         stamp_files.sort(key=pth.getmtime)
+    elif not stamp_files:
+        print("No record that '{0}' was ever installed; skipping "
+              "uninstall".format(spkg_name), file=sys.stderr)
+        return
 
     stamp_file = stamp_files[-1]
 

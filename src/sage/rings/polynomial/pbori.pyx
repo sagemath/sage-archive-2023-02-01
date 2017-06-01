@@ -183,9 +183,9 @@ REFERENCES:
 """
 from __future__ import print_function
 
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
 from cpython.object cimport Py_EQ, Py_NE
+from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 import operator
 

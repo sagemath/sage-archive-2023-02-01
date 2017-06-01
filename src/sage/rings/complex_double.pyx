@@ -61,16 +61,16 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
 
 import operator
 from cpython.object cimport Py_NE
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.misc.randstate cimport randstate, current_randstate
 
 from cypari2.paridecl cimport *
-include "cysignals/signals.pxi"
 
 from sage.libs.gsl.complex cimport *
 

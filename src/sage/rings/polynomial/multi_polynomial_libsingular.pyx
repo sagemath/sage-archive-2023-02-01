@@ -174,10 +174,9 @@ from __future__ import absolute_import, print_function
 #   * pNext and pIter don't need currRing
 #   * p_Normalize apparently needs currRing
 
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
-
 from cpython.object cimport Py_NE
+from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 # singular types
 from sage.libs.singular.decl cimport ring, poly, ideal, intvec, number, currRing

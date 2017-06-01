@@ -1357,7 +1357,7 @@ class UnivariateProduct(GenericProduct):
         r"""
         See :class:`UnivariateProduct` for details.
 
-        TEST::
+        TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: type(GrowthGroup('x^ZZ * log(x)^ZZ'))  # indirect doctest
@@ -1390,7 +1390,7 @@ class MultivariateProduct(GenericProduct):
     def __init__(self, sets, category, **kwargs):
         r"""
 
-        TEST::
+        TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: type(GrowthGroup('x^ZZ * y^ZZ'))  # indirect doctest

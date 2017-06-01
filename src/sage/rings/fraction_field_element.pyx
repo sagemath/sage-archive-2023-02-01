@@ -33,6 +33,7 @@ REFERENCES:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 import operator
 
@@ -41,9 +42,9 @@ from sage.structure.element cimport (FieldElement, ModuleElement, RingElement,
 from sage.structure.element import parent
 from sage.structure.sage_object cimport richcmp
 
-import integer_ring
-from integer_ring import ZZ
-from rational_field import QQ
+from . import integer_ring
+from .integer_ring import ZZ
+from .rational_field import QQ
 
 import sage.misc.latex as latex
 

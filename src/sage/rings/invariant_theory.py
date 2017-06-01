@@ -3080,7 +3080,7 @@ can then be queried for invariant and covariants. For example,
 
         REFERENCES:
 
-        ..  http://en.wikipedia.org/wiki/Invariant_of_a_binary_form
+        - :wikipedia:`Invariant_of_a_binary_form`
 
         EXAMPLES::
 
@@ -3157,7 +3157,7 @@ can then be queried for invariant and covariants. For example,
 
         REFERENCES:
 
-        ..  http://en.wikipedia.org/wiki/Invariant_of_a_binary_form
+        - :wikipedia:`Invariant_of_a_binary_form`
 
         EXAMPLES::
 
@@ -3184,7 +3184,7 @@ can then be queried for invariant and covariants. For example,
 
         REFERENCES:
 
-        ..  http://en.wikipedia.org/wiki/Invariant_of_a_binary_form
+        - :wikipedia:`Invariant_of_a_binary_form`
 
         EXAMPLES::
 

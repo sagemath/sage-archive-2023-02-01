@@ -355,7 +355,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         r"""
         Construct some (unnamed) tensor field.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U'); V = M.open_subset('V')
@@ -452,7 +452,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         r"""
         Return a LaTeX representation of ``self``.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: T13 = M.tensor_field_module((1,3))

@@ -647,7 +647,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
 
         - John Cremona (2008-08-07): adapted from lift_x()
 
-        TEST::
+        TESTS::
 
             sage: E=EllipticCurve('5077a1')
             sage: [x for x in srange(-10,10) if E.is_x_coord (x)]
@@ -757,7 +757,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
 
         - Robert Bradshaw (2007-04-24)
 
-        TEST::
+        TESTS::
 
             sage: E = EllipticCurve('37a').short_weierstrass_model().change_ring(GF(17))
             sage: E.lift_x(3, all=True)

@@ -118,7 +118,7 @@ class CNFEncoder(ANF2CNFConverter):
 
         .. NOTE::
 
-            This constructer generates SAT variables for each Boolean polynomial variable.
+            This constructor generates SAT variables for each Boolean polynomial variable.
         """
         self.random_generator = Random(random_seed)
         self.one_set = ring.one().set()

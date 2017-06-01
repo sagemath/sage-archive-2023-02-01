@@ -3,12 +3,19 @@ Descent on elliptic curves over `\QQ` with a 2-isogeny.
 """
 
 #*****************************************************************************
-#        Copyright (C) 2009 Robert L. Miller <rlmillster@gmail.com>
+#       Copyright (C) 2009 Robert L. Miller <rlmillster@gmail.com>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
+
+from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.rings.all import ZZ
 from sage.rings.polynomial.polynomial_ring import polygen
@@ -16,9 +23,6 @@ cdef object x_ZZ = polygen(ZZ)
 from sage.rings.polynomial.real_roots import real_roots
 from sage.arith.all import prime_divisors
 from sage.all import ntl
-
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
 
 from sage.rings.integer cimport Integer
 from sage.libs.gmp.mpz cimport *

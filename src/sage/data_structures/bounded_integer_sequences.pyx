@@ -108,7 +108,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_check, sig_on, sig_off
 include 'sage/data_structures/bitset.pxi'
 
 from cpython.int cimport PyInt_FromSize_t

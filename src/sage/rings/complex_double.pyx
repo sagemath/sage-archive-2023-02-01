@@ -195,7 +195,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         """
         Return the hash for ``self``.
 
-        TEST::
+        TESTS::
 
             sage: hash(CDF) % 2^32 == hash(str(CDF)) % 2^32
             True

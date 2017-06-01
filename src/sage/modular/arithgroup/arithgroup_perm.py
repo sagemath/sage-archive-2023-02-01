@@ -471,7 +471,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         l = \begin{pmatrix} 1 & 1 \\ 0 & 1\end{pmatrix},\quad
         r = \begin{pmatrix} 1 & 0 \\ 1 & 1 \end{pmatrix}.
 
-    TEST::
+    TESTS::
 
         sage: s2 = PermutationGroupElement('(1,2)(3,4)(5,6)')
         sage: s3 = PermutationGroupElement('(1,3,5)(2,4,6)')
@@ -997,7 +997,7 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
         An element of `{\rm SL}_2(\ZZ)` is in a given modular subgroup if it does not
         permute the identity coset!
 
-        TEST::
+        TESTS::
 
             sage: G = Gamma(4)
             sage: m1 = G([1,4,0,1])

@@ -113,7 +113,7 @@ class TransformWidget(object):
             sage: from sage.repl.ipython_kernel.widgets import TransformWidget
             sage: w = TransformWidget(transform=dict)
             sage: w._TransformWidget__transform
-            <type 'dict'>
+            <... 'dict'>
         """
         self.__transform = kwds.pop("transform", None)
         return super(TransformWidget, self).__init__(*args, **kwds)

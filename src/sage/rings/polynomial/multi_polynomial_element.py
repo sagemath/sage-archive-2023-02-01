@@ -566,7 +566,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             ...
             TypeError: x must be one of the generators of the parent
 
-        TEST::
+        TESTS::
 
             sage: R = PolynomialRing(GF(2)['t'],'x,y',order=TermOrder('wdeglex',(2,3)))
             sage: x,y = R.gens()

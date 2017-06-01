@@ -1171,9 +1171,9 @@ cdef class PowerSeries_poly(PowerSeries):
 
         TESTS:
 
-        Check that :trac:``18094`` is fixed::
+        Check that :trac:`18094` is fixed::
 
-            sage: R.<x>=PolynomialRing(ZZ)
+            sage: R.<x> = PolynomialRing(ZZ)
             sage: SR(R(0).add_bigoh(20))
             Order(x^20)
         """

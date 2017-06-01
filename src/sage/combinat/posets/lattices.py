@@ -1905,19 +1905,19 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                         c[x].append(y)
                         c[y].append(x)
 
-            comps={}
+            comps = {}
             for i in range(n):
-                if len(c[i]) > 0:
+                if c[i]:
                     comps[self._vertex_to_element(i)] = (
-                        [self._vertex_to_element(x) for x in c[i]] )
+                        [self._vertex_to_element(x) for x in c[i]])
             return comps
 
         # Looking for complements of one element.
         if not element in self:
-            raise ValueError("element (=%s) not in poset"%element)
-        return [x for x in self if
-         self.meet(x, element)==self.bottom() and
-         self.join(x, element)==self.top()]
+            raise ValueError("element (=%s) not in poset" % element)
+        return [x for x in self
+                if self.meet(x, element) == self.bottom() and
+                self.join(x, element) == self.top()]
 
     def is_pseudocomplemented(self, certificate=False):
         """
@@ -3784,7 +3784,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
-            :meth:`day_doubling`
+            - Stronger properties: :meth:`is_distributive` (doubling by interval),
+              :meth:`is_join_semidistributive` (doubling by lower pseudo-intervals),
+              :meth:`is_meet_semidistributive` (doubling by upper pseudo-intervals)
+            - Mutually exclusive properties: :meth:`is_simple` (doubling by any set)
+            - Other: :meth:`day_doubling`
 
         EXAMPLES:
 
@@ -4103,6 +4107,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Weaker properties: :meth:`is_isoform`
+            - Mutually exclusive properties: :meth:`is_constructible_by_doublings`
+              (by any set)
             - Other: :meth:`congruence`
 
         EXAMPLES::

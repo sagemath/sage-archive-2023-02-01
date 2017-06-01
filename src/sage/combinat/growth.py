@@ -636,7 +636,7 @@ class GrowthDiagram(SageObject):
 
         Assumes that ``self._lambda`` is already set.
 
-        TEST::
+        TESTS::
 
             sage: GrowthDiagramRSK(shape=[1], labels=[[], [1]])                 # indirect doctest
             Traceback (most recent call last):
@@ -1121,7 +1121,7 @@ class GrowthDiagramBinWord(GrowthDiagram):
         word and the content of the cell acording to Viennot's
         bijection [Vie1983]_.
 
-        TEST::
+        TESTS::
 
             sage: w = [4,1,8,3,6,5,2,7,9]; G = GrowthDiagramBinWord(w);
             sage: GrowthDiagramBinWord(labels=G.out_labels()).to_word() == w    # indirect doctest
@@ -1486,7 +1486,7 @@ class GrowthDiagramYoungFibonacci(GrowthDiagram):
         A pair ``(t, content)`` consisting of the shape of the fourth
         word and the content of the cell.
 
-        TEST::
+        TESTS::
 
             sage: w = [4,1,8,3,6,5,2,7,9]; G = GrowthDiagramYoungFibonacci(w);
             sage: GrowthDiagramYoungFibonacci(labels=G.out_labels()).to_word() == w    # indirect doctest
@@ -1661,7 +1661,7 @@ class GrowthDiagramRSK(GrowthDiagramOnPartitions):
         fourth word acording to the Robinson-Schensted-Knuth
         correspondence and the content of the cell.
 
-        TEST::
+        TESTS::
 
             sage: w = [4,1,8,3,6,5,2,7,9]; G = GrowthDiagramRSK(w)
             sage: GrowthDiagramRSK(labels=G._out_labels).to_word() == w         # indirect doctest
@@ -1779,7 +1779,7 @@ class GrowthDiagramBurge(GrowthDiagramOnPartitions):
         partition acording to the Burge correspondence and the content of
         the cell.
 
-        TEST::
+        TESTS::
 
             sage: w = [4,1,8,3,6,5,2,7,9]; G = GrowthDiagramBurge(w)
             sage: GrowthDiagramBurge(labels=G._out_labels).to_word() == w       # indirect doctest

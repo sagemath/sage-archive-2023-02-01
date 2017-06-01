@@ -551,7 +551,7 @@ class BipartiteGraph(Graph):
             sage: bg.right
             {4, 6, 8, 9, 10, 11}
 
-        TEST::
+        TESTS::
 
             sage: bg = BipartiteGraph()
             sage: bg.add_vertices([0,1,2], left=True)
@@ -756,7 +756,7 @@ class BipartiteGraph(Graph):
         one will be added to the left partition, the second to the right
         partition.
 
-        TEST::
+        TESTS::
 
             sage: bg = BipartiteGraph()
             sage: bg.add_vertices([0,1,2], left=[True,False,True])
@@ -855,7 +855,7 @@ class BipartiteGraph(Graph):
         G.add_vertices(self.left)
         for v in G:
             for u in self.neighbor_iterator(v):
-                G.add_edges([(v, w) for w in self.neighbor_iterator(u)])
+                G.add_edges(((v, w) for w in self.neighbor_iterator(u)), loops=None)
         return G
 
     def project_right(self):
@@ -874,7 +874,7 @@ class BipartiteGraph(Graph):
         G.add_vertices(self.left)
         for v in G:
             for u in self.neighbor_iterator(v):
-                G.add_edges([(v, w) for w in self.neighbor_iterator(u)])
+                G.add_edges(((v, w) for w in self.neighbor_iterator(u)), loops=None)
         return G
 
     def plot(self, *args, **kwds):

@@ -2244,7 +2244,7 @@ def PrimitiveGroups(d=None):
     isomorphisms using GAP. If ``d`` is not specified, it returns the
     set of all primitive groups up to isomorphisms stored in GAP.
 
-    .. attention::
+    .. WARNING::
 
         PrimitiveGroups requires the optional GAP database package.
         Please install it by running ``sage -i database_gap``.

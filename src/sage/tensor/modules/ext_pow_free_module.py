@@ -238,7 +238,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
 
     def __init__(self, fmodule, degree, name=None, latex_name=None):
         r"""
-        TEST::
+        TESTS::
 
             sage: from sage.tensor.modules.ext_pow_free_module import ExtPowerFreeModule
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')

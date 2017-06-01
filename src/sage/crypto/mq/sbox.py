@@ -1208,6 +1208,11 @@ class SBox(SageObject):
         implies that for all output differences `\beta` of the S-Box
         correspond to input difference `\alpha`, we have `b \cdot \beta = c`.
 
+        .. SEEALSO::
+
+            :meth:`is_linear_structure`,
+            :meth:`has_linear_structure`.
+
         EXAMPLES::
 
             sage: S = mq.SBox([0,1,3,6,7,4,5,2])
@@ -1225,6 +1230,55 @@ class SBox(SageObject):
                     c = ((1 - (act[i][j] >> self.m)) >> 1)
                     ret.append((j, i, c))
         return ret
+
+    def has_linear_structure(self):
+        """
+        Return ``True`` if there exists a nonzero component function of this
+        S-Box that has a linear structure.
+
+        .. SEEALSO::
+
+            :meth:`is_linear_structure`,
+            :meth:`linear_structures`.
+
+        EXAMPLES::
+
+            sage: S = mq.SBox(12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2)
+            sage: S.has_linear_structure()
+            True
+        """
+        return any(self.component_function(i).has_linear_structure() for i in range(1, 1<<self.n))
+
+    def is_linear_structure(self, a, b):
+        r"""
+        Return ``True`` if `a` is a linear structure of the component function
+        `b \cdot S(x)` where S is this `m \times n` S-Box.
+
+        INPUT:
+
+        - ``a`` -- either an integer or a tuple of `\GF{2}` elements of
+          length equal to the input size of SBox
+        - ``b`` -- either an integer or a tuple of `\GF{2}` elements of
+          length equal to the output size of SBox
+
+        .. SEEALSO::
+
+            :meth:`linear_structures`,
+            :meth:`has_linear_structure`.
+
+        EXAMPLES::
+
+            sage: S = mq.SBox(12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2)
+            sage: S.component_function(1).autocorrelation()
+            (16, -16, 0, 0, 0, 0, 0, 0, -16, 16, 0, 0, 0, 0, 0, 0)
+            sage: S.is_linear_structure(1, 1)
+            True
+            sage: S.is_linear_structure([1, 0, 0, 1], [0, 0, 0, 1])
+            True
+            sage: S.is_linear_structure([0, 1, 1, 1], 1)
+            False
+        """
+        return self.component_function(b).is_linear_structure(a)
 
     def max_degree(self):
         """

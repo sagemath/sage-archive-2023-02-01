@@ -214,6 +214,7 @@ def make_parser():
                         default=os.environ.get('SAGE_LOCAL'),
                         help='the SAGE_LOCAL path (default: the $SAGE_LOCAL '
                              'environment variable if set)')
+    parser.add_argument('--debug', action='store_true', help=argparse.SUPPRESS)
 
     return parser
 
@@ -234,6 +235,10 @@ def run(argv=None):
     except Exception as exc:
         print("Error during uninstallation of '{0}': {1}".format(
             args.spkg, exc), file=sys.stderr)
+
+        if args.debug:
+            raise
+
         sys.exit(1)
 
 

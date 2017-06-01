@@ -26,7 +26,6 @@ from sage.categories.rings import Rings
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.sets.family import Family
 import sage.data_structures.blas_dict as blas
-from sage.combinat.free_module import _divide_if_possible
 from sage.rings.ring import Algebra
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 from sage.rings.polynomial.multi_polynomial_ring_generic import MPolynomialRing_generic
@@ -498,7 +497,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
 
             return self.__class__(F, D)
 
-        return self.__class__(F, {t: _divide_if_possible(D[t], x) for t in D})
+        return self.__class__(F, {t: D[t]._divide_if_possible(x) for t in D})
 
     __div__ = __truediv__
 

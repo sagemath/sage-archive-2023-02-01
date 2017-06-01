@@ -417,6 +417,7 @@ class sage_build_cython(Command):
             force=self.force,
             aliases=aliases,
             compiler_directives=self.cython_directives,
+            compile_time_env={'PY_VERSION_HEX':sys.hexversion},
             create_extension=sage_create_extension,
             # Debugging
             gdb_debug=self.debug,

@@ -491,7 +491,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             Return the basic imaginary roots of ``self``.
 
             The basic imaginary roots `\delta` are the set of imaginary roots
-            in `-C^{\vee}` where `C` is the dominant chamger (i.e.,
+            in `-C^{\vee}` where `C` is the dominant chamber (i.e.,
             `\langle \beta, \alpha_i^{\vee} \rangle \leq 0` for all `i \in I`).
             All imaginary roots are `W`-conjugate to a simple imaginary root.
 
@@ -1510,7 +1510,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: s[1]( r.simple_root(1) )
                 -alpha[1]
 
-            TEST::
+            TESTS::
 
                 sage: s
                 simple reflections
@@ -2400,7 +2400,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             # We build the family of fundamental weights in this space,
             # indexed by the fundamental weights in the weight lattice.
             #
-            # To this end, we don't use the embdding of the weight
+            # To this end, we don't use the embedding of the weight
             # lattice into self as for the roots or coroots because
             # the ambient space can define the fundamental weights
             # slightly differently (the usual GL_n vs SL_n catch).
@@ -2730,7 +2730,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             G = plot_options.empty()
             if alcoves is not True:
                 alcoves = list(alcoves)
-            if alcoves is True or (len(alcoves)>0 and W.is_parent_of(alcoves[0])):
+            if alcoves is True or (alcoves and W.is_parent_of(alcoves[0])):
                 if alcoves is True:
                     alcoves = W.weak_order_ideal(alcove_in_bounding_box, side="right")
                 # We assume that the fundamental alcove lies within
@@ -3223,7 +3223,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             For example, if invoked on the root lattice of type `['B',2]`, returns the
             coroot lattice of type `['C',2]`.
 
-            ..warning::
+            .. WARNING::
 
                 Not implemented for ambient spaces.
 
@@ -3424,18 +3424,37 @@ class RootLatticeRealizations(Category_over_base_ring):
             """
             return [s(self) for s in self.parent().simple_reflections()]
 
+        def _orbit_iter(self):
+            """
+            Iterate the orbit of ``self`` under the action of the Weyl group.
+
+            Call this method when the orbit just needs to be iterated over.
+
+            EXAMPLES::
+
+                sage: L = RootSystem(["A", 2]).ambient_lattice()
+                sage: sorted(L.rho()._orbit_iter())    # the output order is not specified
+                [(1, 2, 0), (1, 0, 2), (2, 1, 0),
+                 (2, 0, 1), (0, 1, 2), (0, 2, 1)]
+            """
+            R = RecursivelyEnumeratedSet([self], attrcall('simple_reflections'),
+                    structure=None, enumeration='breadth')
+            return iter(R)
+
         def orbit(self):
             r"""
-            The orbit of self under the action of the Weyl group
+            The orbit of ``self`` under the action of the Weyl group.
 
             EXAMPLES:
 
-            `\rho` is a regular element whose orbit is in bijection with the Weyl group.
-            In particular, it as 6 elements for the symmetric group `S_3`::
+            `\rho` is a regular element whose orbit is in bijection
+            with the Weyl group. In particular, it has 6 elements for
+            the symmetric group `S_3`::
 
                 sage: L = RootSystem(["A", 2]).ambient_lattice()
                 sage: sorted(L.rho().orbit())               # the output order is not specified
-                [(1, 2, 0), (1, 0, 2), (2, 1, 0), (2, 0, 1), (0, 1, 2), (0, 2, 1)]
+                [(1, 2, 0), (1, 0, 2), (2, 1, 0),
+                 (2, 0, 1), (0, 1, 2), (0, 2, 1)]
 
                 sage: L = RootSystem(["A", 3]).weight_lattice()
                 sage: len(L.rho().orbit())
@@ -3445,9 +3464,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: len(L.fundamental_weights()[2].orbit())
                 6
             """
-            R = RecursivelyEnumeratedSet([self], attrcall('simple_reflections'),
-                    structure=None, enumeration='breadth')
-            return list(R)
+            return list(self._orbit_iter())
 
         ##########################################################################
         #
@@ -3760,7 +3777,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             INPUT:
 
             - ``index_set`` - a subset (as a list or iterable) of the
-              nodes of the dynkin diagram; (default: ``None`` for all of them)
+              nodes of the Dynkin diagram; (default: ``None`` for all of them)
 
             If ``index_set`` is specified, the successors for the
             corresponding parabolic subsystem are returned.
@@ -3789,7 +3806,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             INPUT:
 
             - ``index_set`` - a subset (as a list or iterable) of the
-              nodes of the dynkin diagram; (default: ``None`` for all of them)
+              nodes of the Dynkin diagram; (default: ``None`` for all of them)
 
             If ``index_set`` is specified, the successors for the
             corresponding parabolic subsystem are returned.

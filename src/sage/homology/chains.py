@@ -21,8 +21,7 @@ complex.
 
 from __future__ import absolute_import
 
-from sage.combinat.free_module import CombinatorialFreeModule, \
-    CombinatorialFreeModuleElement
+from sage.combinat.free_module import CombinatorialFreeModule
 from sage.rings.integer_ring import ZZ
 from sage.structure.element import coercion_model
 
@@ -215,7 +214,7 @@ class Chains(CellComplexReference, CombinatorialFreeModule):
             cochain=False,
         )
 
-    class Element(CombinatorialFreeModuleElement):
+    class Element(CombinatorialFreeModule.Element):
 
         def to_complex(self):
             """
@@ -448,7 +447,7 @@ class Cochains(CellComplexReference, CombinatorialFreeModule):
             cochain=True,
         )
 
-    class Element(CombinatorialFreeModuleElement):
+    class Element(CombinatorialFreeModule.Element):
 
         def to_complex(self):
             """

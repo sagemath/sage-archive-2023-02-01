@@ -30,9 +30,12 @@ from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMuta
 
 def is_mutation_finite(M, nr_of_checks=None):
     r"""
-    Use a non-deterministic method by random mutations in various directions. Can result in a wrong answer.
+    Use a non-deterministic method by random mutations in various
+    directions. Can result in a wrong answer.
 
-    .. ATTENTION: This method modifies the input matrix ``M``!
+    .. WARNING::
+
+        This method modifies the input matrix ``M``!
 
     INPUT:
 
@@ -65,18 +68,19 @@ def is_mutation_finite(M, nr_of_checks=None):
         True
     """
     import random
-    n, m = M.ncols(), M.nrows()
-    if n == 1:
+    n = M.ncols()
+    if n <= 2:
         return True, None
     if nr_of_checks is None:
         nr_of_checks = 1000 * n
     k = 0
     path = []
     for i in range(nr_of_checks):
-        # this test is done to avoid mutating back in the same direction
-        k_test = k
-        while k_test == k:
-            k = random.randint(0, n - 1)
+        # avoid mutating back in the same direction
+        next_k = random.randint(0, n - 2)
+        if next_k >= k:
+            next_k += 1
+        k = next_k
         M.mutate(k)
         path.append(k)
         for i, j in M.nonzero_positions():

@@ -322,7 +322,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
     def __init__(self, ring, polynomial, name=None, category=None):
         """
-        TEST::
+        TESTS::
 
             sage: R.<x> = PolynomialRing(ZZ)
             sage: S = R.quo(x^2-4)
@@ -606,7 +606,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         """
         Represent ``self`` in the Singular interface.
 
-        TEST::
+        TESTS::
 
             sage: P.<x> = QQ[]
             sage: Q = P.quo([(x^2+1)])
@@ -1139,7 +1139,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
             sage: CG = S.S_class_group([])
             sage: type(CG[0][0][1])
-            <class 'sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRing_generic_with_category.element_class'>
+            <class 'sage.rings.polynomial.polynomial_quotient_ring.PolynomialQuotientRing_generic_with_category.element_class'>
             sage: type(CG[0][1])
             <type 'sage.rings.integer.Integer'>
 
@@ -1265,7 +1265,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
             sage: CG = S.class_group()
             sage: type(CG[0][0][1])
-            <class 'sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRing_generic_with_category.element_class'>
+            <class 'sage.rings.polynomial.polynomial_quotient_ring.PolynomialQuotientRing_generic_with_category.element_class'>
             sage: type(CG[0][1])
             <type 'sage.rings.integer.Integer'>
 
@@ -1332,7 +1332,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
             sage: U = L.S_units([])
             sage: type(U[0][0])
-            <class 'sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRing_field_with_category.element_class'>
+            <class 'sage.rings.polynomial.polynomial_quotient_ring.PolynomialQuotientRing_field_with_category.element_class'>
             sage: type(U[0][1])
             <type 'sage.rings.integer.Integer'>
             sage: type(U[1][1])
@@ -1418,7 +1418,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: L.<b> = K['y'].quotient(y^3 + 5)
             sage: U = L.units()
             sage: type(U[0][0])
-            <class 'sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRing_field_with_category.element_class'>
+            <class 'sage.rings.polynomial.polynomial_quotient_ring.PolynomialQuotientRing_field_with_category.element_class'>
             sage: type(U[0][1])
             <type 'sage.rings.integer.Integer'>
             sage: type(U[1][1])

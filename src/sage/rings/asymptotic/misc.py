@@ -609,7 +609,6 @@ class NotImplementedOZero(NotImplementedError):
         TESTS::
 
             sage: A = AsymptoticRing('n^ZZ', ZZ)
-            doctest:...: FutureWarning: ...
             sage: from sage.rings.asymptotic.misc import NotImplementedOZero
             sage: raise NotImplementedOZero(A)
             Traceback (most recent call last):

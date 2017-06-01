@@ -135,7 +135,7 @@ class IndexedPolynomialRing(CombinatorialFreeModule):
 
     def _repr_(self):
         """
-        Return a string represenation of ``self``.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 

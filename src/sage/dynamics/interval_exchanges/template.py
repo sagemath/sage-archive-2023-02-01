@@ -1597,7 +1597,7 @@ class PermutationLI(Permutation):
         r"""
         Initialization of the twin data.
 
-        TEST::
+        TESTS::
 
             sage: p = iet.GeneralizedPermutation('a a','b b',reduced=True)   #indirect doctest
             sage: p._twin
@@ -1627,7 +1627,7 @@ class PermutationLI(Permutation):
         r"""
         Intialization procedure of the alphabet of self from intervals list
 
-        TEST::
+        TESTS::
 
             sage: p = iet.GeneralizedPermutation('a a','b b')   #indirect doctest
             sage: p.alphabet()
@@ -2009,7 +2009,7 @@ class RauzyDiagram(SageObject):
             r"""
             Constructor of the path.
 
-            TEST::
+            TESTS::
 
                 sage: p = iet.Permutation('a b c', 'c b a')
                 sage: r = p.rauzy_diagram()
@@ -2055,7 +2055,7 @@ class RauzyDiagram(SageObject):
             r"""
             Returns a representation of the path.
 
-            TEST::
+            TESTS::
 
                 sage: p = iet.Permutation('a b','b a')
                 sage: r = p.rauzy_diagram()
@@ -2117,7 +2117,7 @@ class RauzyDiagram(SageObject):
             r"""
             Tests equality
 
-            TEST::
+            TESTS::
 
                 sage: p1 = iet.Permutation('a b','b a')
                 sage: r1 = p1.rauzy_diagram()
@@ -2140,7 +2140,7 @@ class RauzyDiagram(SageObject):
             r"""
             Tests inequality
 
-            TEST::
+            TESTS::
 
                 sage: p1 = iet.Permutation('a b','b a')
                 sage: r1 = p1.rauzy_diagram()
@@ -2322,7 +2322,7 @@ class RauzyDiagram(SageObject):
             r"""
             Returns the length of the path.
 
-            TEST::
+            TESTS::
 
 
                 sage: p = iet.Permutation('a b c','c b a')
@@ -2571,7 +2571,7 @@ class RauzyDiagram(SageObject):
 
             - ``composition`` - the composition function for the function. * if None (default None)
 
-            TEST::
+            TESTS::
 
                 sage: p = iet.Permutation('a b','b a')
                 sage: r = p.rauzy_diagram()
@@ -2745,7 +2745,7 @@ class RauzyDiagram(SageObject):
         Tests difference.
 
 
-        TEST::
+        TESTS::
 
             sage: iet.RauzyDiagram('a b','b a') != iet.RauzyDiagram('a b c','c b a')
             True
@@ -3159,7 +3159,7 @@ class RauzyDiagram(SageObject):
         r"""
         Return the corresponding winner
 
-        TEST::
+        TESTS::
 
             sage: r = iet.RauzyDiagram('a b','b a')
             sage: r.edge_to_winner(None,None)
@@ -3181,7 +3181,7 @@ class RauzyDiagram(SageObject):
         r"""
         Return the corresponding loser
 
-        TEST::
+        TESTS::
 
             sage: r = iet.RauzyDiagram('a b','b a')
             sage: r.edge_to_loser(None,None)
@@ -3347,7 +3347,7 @@ class RauzyDiagram(SageObject):
         r"""
         Returns a representation of self
 
-        TEST::
+        TESTS::
 
             sage: iet.RauzyDiagram('a b','b a')   #indirect doctest
             Rauzy diagram with 1 permutation
@@ -3443,7 +3443,7 @@ class RauzyDiagram(SageObject):
         functions __getitem__ and has_rauzy_move and rauzy_move which must
         be defined for child and their corresponding permutation types.
 
-        TEST::
+        TESTS::
 
             sage: r = iet.RauzyDiagram('a b c','c b a')   #indirect doctest
             sage: r = iet.RauzyDiagram('a b c','c b a',left_induction=True) #indirect doctest

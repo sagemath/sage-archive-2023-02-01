@@ -677,7 +677,7 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
 
         EXAMPLES:
 
-        We use the `C_4` Dynkin diagram as a cartan matrix::
+        We use the `C_4` Dynkin diagram as a Cartan matrix::
 
             sage: g = DynkinDiagram(['C',4])
             sage: matrix([[g[i,j] for j in range(1,5)] for i in range(1,5)])

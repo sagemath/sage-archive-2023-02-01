@@ -44,9 +44,11 @@ from __future__ import print_function
 
 from cpython.object cimport *
 from cpython.float cimport *
+
+from cysignals.signals cimport sig_on, sig_off
+
 include "sage/ext/python_debug.pxi"
-include 'sage/ext/stdsage.pxi'
-include "cysignals/signals.pxi"
+from sage.ext.stdsage cimport PY_NEW
 from sage.libs.gsl.all cimport *
 cimport libc.math
 from libc.string cimport memcpy
@@ -513,7 +515,7 @@ cdef class RealDoubleField_class(Field):
         """
         Return the hash value of ``self``.
 
-        TEST::
+        TESTS::
 
             sage: hash(RDF) % 2^32 == hash(str(RDF)) % 2^32
             True

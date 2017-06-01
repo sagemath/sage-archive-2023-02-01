@@ -8,26 +8,22 @@ AUTHORS:
 - Sebastien Besnier (2014-05-5): :class:`FormalCompositeMap` contains
   a list of Map instead of only two Map. See :trac:`16291`.
 """
+
 #*****************************************************************************
 #       Copyright (C) 2008 Robert Bradshaw <robertwb@math.washington.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
-from __future__ import print_function
 
-include "sage/ext/stdsage.pxi"
+from __future__ import absolute_import, print_function
+
 from . import homset
 import weakref
+from sage.ext.stdsage cimport HAS_DICTIONARY
 from sage.structure.parent cimport Set_PythonType
 from sage.misc.constant_function import ConstantFunction
 from sage.misc.superseded import deprecated_function_alias
@@ -39,7 +35,7 @@ def unpickle_map(_class, parent, _dict, _slots):
     """
     Auxiliary function for unpickling a map.
 
-    TEST::
+    TESTS::
 
         sage: R.<x,y> = QQ[]
         sage: f = R.hom([x+y, x-y], R)
@@ -799,7 +795,7 @@ cdef class Map(Element):
         """
         Call method with a single argument, not implemented in the base class.
 
-        TEST::
+        TESTS::
 
             sage: from sage.categories.map import Map
             sage: f = Map(Hom(QQ, ZZ, Rings()))
@@ -814,7 +810,7 @@ cdef class Map(Element):
         """
         Call method with multiple arguments, not implemented in the base class.
 
-        TEST::
+        TESTS::
 
             sage: from sage.categories.map import Map
             sage: f = Map(Hom(QQ, ZZ, Rings()))
@@ -1188,7 +1184,7 @@ cdef class Map(Element):
         """
         Tells whether the map is surjective (not implemented in the base class).
 
-        TEST::
+        TESTS::
 
             sage: from sage.categories.map import Map
             sage: f = Map(Hom(QQ, ZZ, Rings()))
@@ -1255,7 +1251,7 @@ cdef class Map(Element):
 
             By default, it returns ``None``. You may override it in subclasses.
 
-        TEST::
+        TESTS::
 
             sage: R.<x,y> = QQ[]
             sage: f = R.hom([x+y, x-y], R)
@@ -1330,7 +1326,7 @@ cdef class Section(Map):
 
         A map.
 
-        TEST::
+        TESTS::
 
             sage: from sage.categories.map import Section
             sage: R.<x,y> = QQ[]
@@ -1349,7 +1345,7 @@ cdef class Section(Map):
         """
         Helper for pickling and copying.
 
-        TEST::
+        TESTS::
 
             sage: from sage.categories.map import Section
             sage: R.<x,y> = QQ[]
@@ -1367,7 +1363,7 @@ cdef class Section(Map):
         """
         Helper for pickling and copying.
 
-        TEST::
+        TESTS::
 
             sage: from sage.categories.map import Section
             sage: R.<x,y> = QQ[]
@@ -1385,7 +1381,7 @@ cdef class Section(Map):
         """
         Return a string describing the type of this map (which is "Section").
 
-        TEST::
+        TESTS::
 
             sage: from sage.categories.map import Section
             sage: R.<x,y> = QQ[]
@@ -1402,7 +1398,7 @@ cdef class Section(Map):
         """
         Return inverse of ``self``.
 
-        TEST::
+        TESTS::
 
             sage: from sage.categories.map import Section
             sage: R.<x,y> = QQ[]
@@ -1485,7 +1481,7 @@ cdef class FormalCompositeMap(Map):
             some cases return a more efficient map object than a
             formal composite map.
 
-        TEST::
+        TESTS::
 
             sage: R.<x,y> = QQ[]
             sage: S.<a,b> = QQ[]
@@ -1556,7 +1552,7 @@ cdef class FormalCompositeMap(Map):
         """
         Used in pickling and copying.
 
-        TEST::
+        TESTS::
 
             sage: R.<x,y> = QQ[]
             sage: S.<a,b> = QQ[]
@@ -1575,7 +1571,7 @@ cdef class FormalCompositeMap(Map):
         """
         Used in pickling and copying.
 
-        TEST::
+        TESTS::
 
             sage: R.<x,y> = QQ[]
             sage: S.<a,b> = QQ[]
@@ -1592,7 +1588,7 @@ cdef class FormalCompositeMap(Map):
 
     def __richcmp__(self, other, int op):
         """
-        TEST::
+        TESTS::
 
             sage: R.<x,y> = QQ[]
             sage: S.<a,b> = QQ[]
@@ -1687,7 +1683,7 @@ cdef class FormalCompositeMap(Map):
         """
         Call with a single argument
 
-        TEST::
+        TESTS::
 
             sage: R.<x> = QQ[]
             sage: S.<a> = QQ[]
@@ -1705,7 +1701,7 @@ cdef class FormalCompositeMap(Map):
         """
         Additional arguments are only passed to the last applied map.
 
-        TEST::
+        TESTS::
 
             sage: from sage.categories.morphism import SetMorphism
             sage: R.<x> = QQ[]
@@ -1736,7 +1732,7 @@ cdef class FormalCompositeMap(Map):
         """
         Return a string describing the type of ``self``, namely "Composite"
 
-        TEST::
+        TESTS::
 
             sage: R.<x> = QQ[]
             sage: S.<a> = QQ[]
@@ -1765,7 +1761,7 @@ cdef class FormalCompositeMap(Map):
         The return value is obtained from the string representations
         of the two constituents.
 
-        TEST::
+        TESTS::
 
             sage: R.<x> = QQ[]
             sage: S.<a> = QQ[]

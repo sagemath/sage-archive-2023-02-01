@@ -1161,7 +1161,7 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
         [[0.0, 8.904257108962112], [0.5, 1.909327945361535], [1, 1]]
 
     Here we show how to plot simple pictures. For more advanced
-    aplications use list_plot instead. To see the resulting picture
+    applications use list_plot instead. To see the resulting picture
     use ``show(P)`` in Sage notebook. ::
 
         sage: x,y = var('x,y')

@@ -118,7 +118,7 @@ class CNFEncoder(ANF2CNFConverter):
 
         .. NOTE::
 
-            This constructer generates SAT variables for each Boolean polynomial variable.
+            This constructor generates SAT variables for each Boolean polynomial variable.
         """
         self.random_generator = Random(random_seed)
         self.one_set = ring.one().set()
@@ -613,6 +613,6 @@ class CNFEncoder(ANF2CNFConverter):
         product = self.ring(1)
         for v in c:
             if phi[abs(v)] is None:
-                raise ValueError("Clause containst an XOR glueing variable.")
+                raise ValueError("clause contains an XOR glueing variable")
             product *= phi[abs(v)] + int(v>0)
         return product

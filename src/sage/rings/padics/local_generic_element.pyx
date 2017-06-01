@@ -669,7 +669,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
     def euclidean_degree(self):
         r"""
-        Return the degree of this element as an element of a euclidean domain.
+        Return the degree of this element as an element of an Euclidean domain.
 
         EXAMPLES:
 

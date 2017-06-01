@@ -337,7 +337,7 @@ class LabelledPermutation(SageObject):
         r"""
         .. TODO::
 
-            resolve properly the mutablility problem with the
+            resolve properly the mutability problem with the
             :meth:`_twin` attribute.
 
         TESTS::
@@ -1440,7 +1440,7 @@ class LabelledPermutationLI(LabelledPermutation, PermutationLI):
         r"""
         The twin list of the permutation
 
-        TEST::
+        TESTS::
 
             sage: p = iet.GeneralizedPermutation('a a','b b')
             sage: p._twin
@@ -2175,11 +2175,11 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
         def orbit_substitution(self):
             r"""
-            Returns the substitution on the orbit of the left extremity.
+            Return the substitution on the orbit of the left extremity.
 
             OUTPUT:
 
-            WordMorhpism -- the word morphism corresponding to the orbit
+            WordMorphism -- the word morphism corresponding to the orbit
 
             EXAMPLES::
 

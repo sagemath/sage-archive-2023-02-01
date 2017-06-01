@@ -55,6 +55,7 @@
 
 #include "numeric.h"
 #include "operators.h"
+#include "ex.h"
 #include "power.h"
 #include "function.h"
 #include "archive.h"
@@ -1347,7 +1348,7 @@ void rational_power_parts(const numeric& a_orig, const numeric& b_orig,
         if ((a_orig.t != MPZ and a_orig.t != MPQ) or b_orig.t != MPQ)
                 throw std::runtime_error("rational_power_parts: bad input");
         bool b_negative = b_orig.is_negative();
-        const numeric& a = b_negative? a_orig.negative() : a_orig;
+        const numeric& a = b_negative? a_orig.inverse() : a_orig;
         const numeric& b = b_negative? b_orig.negative() : b_orig;
         if (a.t == MPQ) {
                 numeric c1, c2, d1, d2;
@@ -1468,28 +1469,49 @@ const numeric numeric::pow_intexp(const numeric &exponent) const
  * and we don't want symbolic as PyObject inside numeric. */
 const ex numeric::power(const numeric &exponent) const {
         verbose("pow");
-        if (exponent.t == MPZ)
-                return pow_intexp(exponent);
-        if (exponent.t == MPQ and exponent.is_integer())
-                return power(exponent.to_long());
-        numeric ex(exponent);
+        numeric expo(exponent);
         if (exponent.t == PYOBJECT and PyInt_Check(exponent.v._pyobject)) {
-                ex.t = MPZ;
+                expo.t = MPZ;
                 long si = PyInt_AsLong(exponent.v._pyobject);
-                mpz_set_si(ex.v._bigint, si);
+                mpz_set_si(expo.v._bigint, si);
         }
+        if (expo.t == MPZ)
+                return pow_intexp(expo);
+        if (expo.t == MPQ and expo.is_integer())
+                return power(exponent.to_long());
 
-        if (t != exponent.t) {
+        if ((t == MPZ or t == MPQ) and expo.t == MPQ) {
+                numeric c, d;
+                bool c_unit;
+                rational_power_parts(*this, expo, c, d, c_unit);
+                if (d.is_one())
+                        return c;
+                else if (d.is_minus_one()
+                                and expo.denom().is_equal(*_num2_p)) {
+                        static numeric a[] = { *_num1_p, I, *_num_1_p, -I };
+                        return a[expo.numer().to_long() % 4] * c;
+                }
+                else if (not c_unit)
+                        return d.power(expo) * c;
+                if (exponent.is_negative()) {
+                        long int_exp = -(expo.to_long());
+                        numeric nexp = expo + numeric(int_exp);
+                        ex p = (new GiNaC::power(*this, nexp))->setflag(status_flags::dynallocated | status_flags::evaluated);
+                        return p * pow_intexp(int_exp).inverse();
+                }
+                return (new GiNaC::power(*this, expo))->setflag(status_flags::dynallocated | status_flags::evaluated);
+        }
+        if (t != expo.t) {
                 numeric a, b;
                 coerce(a, b, *this, exponent);
                 return pow(a, b);
         }
-        if (t == MPQ) {
+        if (t == MPQ) { // still a case?
                 mpq_t basis;
                 mpq_init(basis);
                 mpq_set(basis, v._bigrat);
                 PyObject *r1 = py_funcs.py_rational_from_mpq(basis);
-                PyObject *r2 = py_funcs.py_rational_from_mpq(ex.v._bigrat);
+                PyObject *r2 = py_funcs.py_rational_from_mpq(expo.v._bigrat);
                 PyObject *r = PyNumber_Power(r1, r2, Py_None);
                 Py_DECREF(r1);
                 Py_DECREF(r2);
@@ -1497,7 +1519,7 @@ const ex numeric::power(const numeric &exponent) const {
                 numeric p(r, true);
                 return p;
         }
-        return PyNumber_Power(v._pyobject, exponent.v._pyobject, Py_None);
+        return PyNumber_Power(v._pyobject, expo.v._pyobject, Py_None);
 }
 
 

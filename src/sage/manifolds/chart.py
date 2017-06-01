@@ -43,6 +43,7 @@ from sage.symbolic.ring import SR
 from sage.rings.infinity import Infinity
 from sage.misc.latex import latex
 from sage.misc.decorators import options
+from sage.manifolds.chart_func import ChartFunctionRing
 
 class Chart(UniqueRepresentation, SageObject):
     r"""
@@ -264,7 +265,6 @@ class Chart(UniqueRepresentation, SageObject):
             coordinates = coordinates[:-1]
         self._manifold = domain.manifold()
         self._domain = domain
-        self._symb_method = symb_method
 
         # Treatment of the coordinates:
         if ' ' in coordinates:
@@ -889,7 +889,7 @@ class Chart(UniqueRepresentation, SageObject):
                 transformations = [transformations]
         return CoordChange(chart1, chart2, *transformations)
 
-    def function_ring(self,symb_method=None):
+    def function_ring(self):
         """
         Return the ring of coordinate functions on ``self``.
 
@@ -900,17 +900,10 @@ class Chart(UniqueRepresentation, SageObject):
             sage: X.function_ring()
             Ring of coordinate functions on Chart (M, (x, y))
         """
-        if symb_method is None :
-            symb_method = self._symb_method
 
-        if symb_method == 'sage' :
-            from sage.manifolds.coord_func_symb import CoordFunctionSymbRing
-            return CoordFunctionSymbRing(self)
-        elif symb_method == 'sympy':
-            from sage.manifolds.coord_func_sympy import CoordFunctionSympyRing
-            return CoordFunctionSympyRing(self)
+        return ChartFunctionRing(self)
 
-    def function(self, expression):
+    def function(self, expression,method=None):
         r"""
         Define a coordinate function to the base field.
 
@@ -969,11 +962,8 @@ class Chart(UniqueRepresentation, SageObject):
             sin(6)
 
         """
-        if isinstance(expression, str):
-            raise NotImplementedError("numerical coordinate function not " +
-                                      "implemented yet")
-        else:
-            return self.function_ring(self._symb_method)(expression)
+
+        return self.function_ring()(expression,method=method)
 
     def zero_function(self):
         r"""

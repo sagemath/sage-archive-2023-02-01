@@ -37,7 +37,7 @@ category of toric varieties and toric morphisms.
 .. note::
 
     Do not create the toric morphisms (or any morphism of schemes)
-    directly from the the ``SchemeMorphism...`` classes. Instead, use the
+    directly from the ``SchemeMorphism...`` classes. Instead, use the
     :meth:`~sage.schemes.generic.scheme.hom` method common to all
     algebraic schemes to create new homomorphisms.
 
@@ -276,7 +276,7 @@ It is possible to study fibers of the last two morphisms or their composition::
     N(-1, -1, 0)
     in Sublattice <N(1, 0, 0), N(0, 1, 0)>
     sage: for c in phi_d.codomain().fan():
-    ...       c.ambient_ray_indices()
+    ....:     c.ambient_ray_indices()
     (1, 2)
     (0, 2)
     (0, 1)
@@ -367,6 +367,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six import iteritems
 
 # For now, the scheme morphism base class cannot derive from Morphism
 # since this would clash with elliptic curves. So we derive only on
@@ -660,7 +661,7 @@ class SchemeMorphism_orbit_closure_toric_variety(SchemeMorphism, Morphism):
         orbit = self.parent().domain()
         codomain_fan = self.parent().codomain().fan()
         reverse_ray_dict = dict()
-        for n1,n2 in self._ray_map.iteritems():
+        for n1, n2 in iteritems(self._ray_map):
             ray_index = codomain_fan.rays().index(n1)
             if n2.is_zero(): 
                 assert ray_index in self._defining_cone.ambient_ray_indices()
@@ -1484,8 +1485,8 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
         EXAMPLES::
 
             sage: polytope = LatticePolytope(
-            ...       [(-3,0,-1,-1),(-1,2,-1,-1),(0,-1,0,0),(0,0,0,1),(0,0,1,0),
-            ...        (0,1,0,0),(0,2,-1,-1),(1,0,0,0),(2,0,-1,-1)])
+            ....:     [(-3,0,-1,-1),(-1,2,-1,-1),(0,-1,0,0),(0,0,0,1),(0,0,1,0),
+            ....:      (0,1,0,0),(0,2,-1,-1),(1,0,0,0),(2,0,-1,-1)])
             sage: coarse_fan = FaceFan(polytope)
             sage: P2 = toric_varieties.P2()
             sage: proj24 = matrix([[0,0],[1,0],[0,0],[0,1]])
@@ -1602,8 +1603,8 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
         EXAMPLES::
 
             sage: polytope = Polyhedron(
-            ...       [(-3,0,-1,-1),(-1,2,-1,-1),(0,-1,0,0),(0,0,0,1),(0,0,1,0),
-            ...        (0,1,0,0),(0,2,-1,-1),(1,0,0,0),(2,0,-1,-1)])
+            ....:     [(-3,0,-1,-1),(-1,2,-1,-1),(0,-1,0,0),(0,0,0,1),(0,0,1,0),
+            ....:      (0,1,0,0),(0,2,-1,-1),(1,0,0,0),(2,0,-1,-1)])
             sage: coarse_fan = FaceFan(polytope, lattice=ToricLattice(4))
 
             sage: P2 = toric_varieties.P2()
@@ -1614,7 +1615,7 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
             sage: fibration.fiber_graph( P2.fan(0)[0] )
             Graph on 1 vertex
             sage: for c1 in P2.fan(1):
-            ...       fibration.fiber_graph(c1)
+            ....:     fibration.fiber_graph(c1)
             Graph on 1 vertex
             Graph on 1 vertex
             Graph on 4 vertices
@@ -1677,8 +1678,8 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
     EXAMPLES::
 
         sage: polytope = Polyhedron(
-        ...       [(-3,0,-1,-1),(-1,2,-1,-1),(0,-1,0,0),(0,0,0,1),(0,0,1,0),
-        ...        (0,1,0,0),(0,2,-1,-1),(1,0,0,0),(2,0,-1,-1)])
+        ....:     [(-3,0,-1,-1),(-1,2,-1,-1),(0,-1,0,0),(0,0,0,1),(0,0,1,0),
+        ....:      (0,1,0,0),(0,2,-1,-1),(1,0,0,0),(2,0,-1,-1)])
         sage: coarse_fan = FaceFan(polytope, lattice=ToricLattice(4))
         sage: P2 = toric_varieties.P2()
         sage: proj24 = matrix([[0,0],[1,0],[0,0],[0,1]])
@@ -1712,8 +1713,8 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
         TESTS::
 
             sage: polytope = Polyhedron(
-            ...       [(-3,0,-1,-1),(-1,2,-1,-1),(0,-1,0,0),(0,0,0,1),(0,0,1,0),
-            ...        (0,1,0,0),(0,2,-1,-1),(1,0,0,0),(2,0,-1,-1)])
+            ....:     [(-3,0,-1,-1),(-1,2,-1,-1),(0,-1,0,0),(0,0,0,1),(0,0,1,0),
+            ....:      (0,1,0,0),(0,2,-1,-1),(1,0,0,0),(2,0,-1,-1)])
             sage: coarse_fan = FaceFan(polytope, lattice=ToricLattice(4))
             sage: P2 = toric_varieties.P2()
             sage: proj24 = matrix([[0,0],[1,0],[0,0],[0,1]])
@@ -1768,8 +1769,8 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
         EXAMPLES::
 
             sage: polytope = Polyhedron(
-            ...       [(-3,0,-1,-1),(-1,2,-1,-1),(0,-1,0,0),(0,0,0,1),(0,0,1,0),
-            ...        (0,1,0,0),(0,2,-1,-1),(1,0,0,0),(2,0,-1,-1)])
+            ....:     [(-3,0,-1,-1),(-1,2,-1,-1),(0,-1,0,0),(0,0,0,1),(0,0,1,0),
+            ....:      (0,1,0,0),(0,2,-1,-1),(1,0,0,0),(2,0,-1,-1)])
             sage: coarse_fan = FaceFan(polytope, lattice=ToricLattice(4))
             sage: P2 = toric_varieties.P2()
             sage: proj24 = matrix([[0,0],[1,0],[0,0],[0,1]])
@@ -1945,8 +1946,8 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
         EXAMPLES::
 
             sage: polytope = Polyhedron(
-            ...       [(-3,0,-1,-1),(-1,2,-1,-1),(0,-1,0,0),(0,0,0,1),(0,0,1,0),
-            ...        (0,1,0,0),(0,2,-1,-1),(1,0,0,0),(2,0,-1,-1)])
+            ....:     [(-3,0,-1,-1),(-1,2,-1,-1),(0,-1,0,0),(0,0,0,1),(0,0,1,0),
+            ....:      (0,1,0,0),(0,2,-1,-1),(1,0,0,0),(2,0,-1,-1)])
             sage: coarse_fan = FaceFan(polytope, lattice=ToricLattice(4))
             sage: P2 = toric_varieties.P2()
             sage: proj24 = matrix([[0,0],[1,0],[0,0],[0,1]])
@@ -1970,9 +1971,9 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
             pass
         multiplicity = None
         image_ray_index = None
-        for ray, index in self._ray_index_map.iteritems():
+        for ray, index in iteritems(self._ray_index_map):
             d = gcd(ray)
-            if d*fiber_ray != ray:
+            if d * fiber_ray != ray:
                 continue
             if multiplicity is not None and d>multiplicity:
                 continue

@@ -18,6 +18,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ##############################################################################
+from six import integer_types
 
 from copy import copy
 from sage.categories.groups import Groups
@@ -27,7 +28,7 @@ from sage.monoids.indexed_free_monoid import (IndexedMonoid,
         IndexedMonoidElement, IndexedFreeMonoidElement,
         IndexedFreeAbelianMonoidElement)
 from sage.misc.cachefunc import cached_method
-from sage.combinat.dict_addition import dict_addition
+import sage.data_structures.blas_dict as blas
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 from sage.sets.family import Family
@@ -424,7 +425,7 @@ class IndexedFreeAbelianGroup(IndexedGroup, AbelianGroup):
                 1
             """
             return self.__class__(self.parent(),
-                                  dict_addition([self._monomial, other._monomial]))
+                                  blas.add(self._monomial, other._monomial))
 
         def __invert__(self):
             """
@@ -479,7 +480,7 @@ class IndexedFreeAbelianGroup(IndexedGroup, AbelianGroup):
                 sage: x^-3
                 F[0]^-3*F[1]^-6*F[3]^-3*F[4]^3
             """
-            if not isinstance(n, (int, long, Integer)):
+            if not isinstance(n, integer_types + (Integer,)):
                 raise TypeError("Argument n (= {}) must be an integer".format(n))
             if n == 1:
                 return self

@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 r"""
 Common words
 
@@ -1834,7 +1834,7 @@ class WordGenerator(object):
             sage: s = words.s_adic(w, repeat(3), x); s
             word: 3232232232322322322323223223232232232232...
             sage: prefixe = s[:10000]
-            sage: map(prefixe.number_of_factors, range(15))
+            sage: list(map(prefixe.number_of_factors, range(15)))
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
             sage: [_[i+1] - _[i] for i in range(len(_)-1)]
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]

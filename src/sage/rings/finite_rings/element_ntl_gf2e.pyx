@@ -18,11 +18,12 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
-from sage.libs.cypari2.paridecl cimport *
+from cypari2.paridecl cimport *
 
 from sage.structure.sage_object cimport (SageObject, richcmp,
                                          richcmp_not_equal, rich_to_bool)
@@ -35,15 +36,15 @@ from sage.rings.ring cimport Ring
 from sage.rings.finite_rings.finite_field_base cimport FiniteField
 
 from sage.libs.pari.all import pari
-from sage.libs.cypari2.gen cimport gen
+from cypari2.gen cimport Gen
 
 from sage.interfaces.gap import is_GapElement
 
 from sage.misc.randstate import current_randstate
 
-from element_ext_pari import FiniteField_ext_pariElement
-from element_pari_ffelt import FiniteFieldElement_pari_ffelt
-from finite_field_ntl_gf2e import FiniteField_ntl_gf2e
+from .element_ext_pari import FiniteField_ext_pariElement
+from .element_pari_ffelt import FiniteFieldElement_pari_ffelt
+from .finite_field_ntl_gf2e import FiniteField_ntl_gf2e
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
@@ -352,13 +353,13 @@ cdef class Cache_ntl_gf2e(SageObject):
                 return self._zero_element
             raise ZeroDivisionError
 
-        elif isinstance(e, gen):
+        elif isinstance(e, Gen):
             pass # handle this in next if clause
 
         elif isinstance(e, FiniteFieldElement_pari_ffelt) or \
              isinstance(e, FiniteField_ext_pariElement):
             # Reduce to pari
-            e = e._pari_()
+            e = e.__pari__()
 
         elif is_GapElement(e):
             from sage.interfaces.gap import gfq_gap_to_sage
@@ -367,9 +368,9 @@ cdef class Cache_ntl_gf2e(SageObject):
             raise TypeError("unable to coerce %r" % type(e))
 
         cdef GEN t
-        if isinstance(e, gen):
+        if isinstance(e, Gen):
             sig_on()
-            t = (<gen>e).g
+            t = (<Gen>e).g
             if typ(t) == t_FFELT:
                 t = FF_to_FpXQ(t)
             else:
@@ -1259,7 +1260,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
         AUTHOR: David Joyner and William Stein (2005-11)
         """
-        from  sage.groups.generic import discrete_log
+        from sage.groups.generic import discrete_log
 
         b = self.parent()(base)
         return discrete_log(self, b)

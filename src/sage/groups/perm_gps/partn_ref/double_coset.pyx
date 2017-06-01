@@ -84,18 +84,20 @@ REFERENCE:
 """
 
 #*****************************************************************************
-#      Copyright (C) 2006 - 2011 Robert L. Miller <rlmillster@gmail.com>
+#       Copyright (C) 2006 - 2011 Robert L. Miller <rlmillster@gmail.com>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'data_structures_pyx.pxi' # includes bitsets
+from cysignals.memory cimport sig_calloc
 
-cdef inline int cmp(int a, int b):
-    if a < b: return -1
-    elif a == b: return 0
-    else: return 1
+from .data_structures cimport *
+include "sage/data_structures/bitset.pxi"
+
 
 # Functions
 
@@ -110,7 +112,7 @@ cdef int compare_perms(int *gamma_1, int *gamma_2, void *S1, void *S2, int degre
     cdef list MS2 = <list> S2
     cdef int i, j
     for i from 0 <= i < degree:
-        j = cmp(MS1[gamma_1[i]], MS2[gamma_2[i]])
+        j = int_cmp(MS1[gamma_1[i]], MS2[gamma_2[i]])
         if j != 0: return j
     return 0
 

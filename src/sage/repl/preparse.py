@@ -87,9 +87,9 @@ Raw and hex work correctly::
     sage: type(0xa1)
     <type 'sage.rings.integer.Integer'>
     sage: type(0xa1r)
-    <type 'int'>
+    <... 'int'>
     sage: type(0Xa1R)
-    <type 'int'>
+    <... 'int'>
 
 In Sage, methods can also be called on integer and real literals (note
 that in pure Python this would be a syntax error)::
@@ -159,7 +159,7 @@ We create a raw integer::
     sage: a
     393939
     sage: type(a)
-    <type 'int'>
+    <... 'int'>
 
 We create a raw float::
 
@@ -167,7 +167,7 @@ We create a raw float::
     sage: z
     1.5949
     sage: type(z)
-    <type 'float'>
+    <... 'float'>
 
 You can also use an upper case letter::
 
@@ -175,7 +175,7 @@ You can also use an upper case letter::
     sage: z
     3.1415
     sage: type(z)
-    <type 'float'>
+    <... 'float'>
 
 This next example illustrates how raw literals can be very useful in
 certain cases.  We make a list of even integers up to 10000::
@@ -199,7 +199,9 @@ Behind the scenes what happens is the following::
     sage: preparse('v = [ 2r * i for i in range(10000r)]')
     'v = [ 2 * i for i in range(10000)]'
 
-.. warning: The result of the above two expressions is different.  The
+.. WARNING::
+
+   The results of the above two expressions are different.  The
    first one computes a list of Sage integers, whereas the second
    creates a list of Python integers.  Python integers are typically
    much more efficient than Sage integers when they are very small;
@@ -831,7 +833,7 @@ def preparse_calculus(code):
 
     TESTS:
 
-    The arguments in the definition must be symbolic variables #10747::
+    The arguments in the definition must be symbolic variables (:trac:`10747`)::
 
         sage: preparse_calculus(";f(_sage_const_)=x;")
         Traceback (most recent call last):

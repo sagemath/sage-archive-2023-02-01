@@ -56,8 +56,8 @@ def sparse_2term_quotient_only_pm1(rels, n):
     tm = misc.verbose("Starting optimized integer sparse 2-term quotient...")
 
     cdef int c0, c1, i, die
-    free = range(n)
-    coef = [1]*n
+    free = list(xrange(n))
+    coef = [1] * n
     related_to_me = [[] for i in range(n)]
 
     for v0, v1 in rels:

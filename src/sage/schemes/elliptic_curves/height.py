@@ -43,6 +43,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 from __future__ import print_function
+from six.moves import zip
 
 import numpy
 import math, bisect
@@ -55,6 +56,7 @@ from sage.arith.all import lcm, factor, factorial
 from sage.ext.fast_callable import fast_callable
 from sage.functions.log import log, exp
 from sage.symbolic.all import SR
+
 
 class UnionOfIntervals:
     r"""
@@ -139,7 +141,7 @@ class UnionOfIntervals:
             sage: UnionOfIntervals([-infinity, pi, 17, infinity]).intervals()
             [(-Infinity, pi), (17, +Infinity)]
         """
-        return zip(self._endpoints[::2], self._endpoints[1::2])
+        return list(zip(self._endpoints[::2], self._endpoints[1::2]))
 
     def is_empty(self):
         r"""
@@ -590,7 +592,7 @@ def min_on_disk(f, tol, max_iter=10000):
     contained in the disk `|z|\le1`, at which `f` takes its minumum
     value.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.height import min_on_disk
         sage: f = lambda x: (x^2+100).abs()
@@ -1790,7 +1792,7 @@ class EllipticCurveCanonicalHeight:
             the attempt failed: trying again with larger `N` may yield
             ``True``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberField(x^3-2)
             sage: E = EllipticCurve([0,0,0,0,a])

@@ -2257,7 +2257,7 @@ EXAMPLES::
     sage: H.sink()
     (0, 0)
     sage: type(H.sink())
-    <type 'tuple'>
+    <... 'tuple'>
 
 ---
 
@@ -3052,7 +3052,7 @@ EXAMPLES::
 .. NOTE::
 
     To define ``c.burst(v)``, if `v` is not the sink, let `c'` be the unique
-    recurrent for which the the stabilization of `c' + v` is `c`.  The
+    recurrent for which the stabilization of `c' + v` is `c`.  The
     burst size is then the amount of sand that goes into the sink during this
     stabilization.  If `v` is the sink, the burst size is defined to be 1.
 
@@ -3987,36 +3987,36 @@ EXAMPLES::
 
     sage: s = sandpiles.Complete(4)
     sage: D = SandpileDivisor(s,[4,2,0,0])
-    sage: D.effective_div()
-    [{0: 0, 1: 6, 2: 0, 3: 0},
+    sage: sorted(D.effective_div(), key=str)
+    [{0: 0, 1: 2, 2: 0, 3: 4},
      {0: 0, 1: 2, 2: 4, 3: 0},
-     {0: 0, 1: 2, 2: 0, 3: 4},
+     {0: 0, 1: 6, 2: 0, 3: 0},
      {0: 1, 1: 3, 2: 1, 3: 1},
      {0: 2, 1: 0, 2: 2, 3: 2},
      {0: 4, 1: 2, 2: 0, 3: 0}]
-    sage: D.effective_div(False)
-    [[0, 6, 0, 0],
+    sage: sorted(D.effective_div(False))
+    [[0, 2, 0, 4],
      [0, 2, 4, 0],
-     [0, 2, 0, 4],
+     [0, 6, 0, 0],
      [1, 3, 1, 1],
      [2, 0, 2, 2],
      [4, 2, 0, 0]]
-    sage: D.effective_div(with_firing_vectors=True)
-    [({0: 0, 1: 6, 2: 0, 3: 0}, (0, -2, -1, -1)),
+    sage: sorted(D.effective_div(with_firing_vectors=True), key=str)
+    [({0: 0, 1: 2, 2: 0, 3: 4}, (0, -1, -1, -2)),
      ({0: 0, 1: 2, 2: 4, 3: 0}, (0, -1, -2, -1)),
-     ({0: 0, 1: 2, 2: 0, 3: 4}, (0, -1, -1, -2)),
+     ({0: 0, 1: 6, 2: 0, 3: 0}, (0, -2, -1, -1)),
      ({0: 1, 1: 3, 2: 1, 3: 1}, (0, -1, -1, -1)),
      ({0: 2, 1: 0, 2: 2, 3: 2}, (0, 0, -1, -1)),
      ({0: 4, 1: 2, 2: 0, 3: 0}, (0, 0, 0, 0))]
-    sage: a = _[0]
+    sage: a = _[2]
     sage: a[0].values()
     [0, 6, 0, 0]
     sage: vector(D.values()) - s.laplacian()*a[1]
     (0, 6, 0, 0)
-    sage: D.effective_div(False, True)
-    [([0, 6, 0, 0], (0, -2, -1, -1)),
+    sage: sorted(D.effective_div(False, True))
+    [([0, 2, 0, 4], (0, -1, -1, -2)),
      ([0, 2, 4, 0], (0, -1, -2, -1)),
-     ([0, 2, 0, 4], (0, -1, -1, -2)),
+     ([0, 6, 0, 0], (0, -2, -1, -1)),
      ([1, 3, 1, 1], (0, -1, -1, -1)),
      ([2, 0, 2, 2], (0, 0, -1, -1)),
      ([4, 2, 0, 0], (0, 0, 0, 0))]
@@ -4377,13 +4377,13 @@ EXAMPLES::
 
     sage: s = sandpiles.Complete(4)
     sage: D = SandpileDivisor(s,[4,2,0,0])
-    sage: D.polytope_integer_pts()
-    ((-2, -1, -1),
+    sage: sorted(D.polytope_integer_pts())
+    [(-2, -1, -1),
      (-1, -2, -1),
      (-1, -1, -2),
      (-1, -1, -1),
      (0, -1, -1),
-     (0, 0, 0))
+     (0, 0, 0)]
     sage: D = SandpileDivisor(s,[-1,0,0,0])
     sage: D.polytope_integer_pts()
     ()

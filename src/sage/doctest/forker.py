@@ -106,6 +106,11 @@ def init_sage():
     import sage.all_cmdline
     sage.interfaces.quit.invalidate_all()
 
+    # Disable cysignals debug messages in doctests: this is needed to
+    # make doctests pass when cysignals was built with debugging enabled
+    from cysignals.signals import set_debug_level
+    set_debug_level(0)
+
     # Use the rich output backend for doctest
     from sage.repl.rich_output import get_display_manager
     dm = get_display_manager()
@@ -434,6 +439,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
 
         # Keep track of the number of failures and tries.
         failures = tries = 0
+        quiet = False
 
         # Save the option flags (since option directives can be used
         # to modify them).
@@ -445,11 +451,16 @@ class SageDocTestRunner(doctest.DocTestRunner):
 
         # Process each example.
         for examplenum, example in enumerate(test.examples):
+            if failures:
+                # If exitfirst is set, abort immediately after a
+                # failure.
+                if self.options.exitfirst:
+                    break
 
-            # If REPORT_ONLY_FIRST_FAILURE is set, then suppress
-            # reporting after the first failure.
-            quiet = (self.optionflags & doctest.REPORT_ONLY_FIRST_FAILURE and
-                     failures > 0)
+                # If REPORT_ONLY_FIRST_FAILURE is set, then suppress
+                # reporting after the first failure (but continue
+                # running the tests).
+                quiet |= (self.optionflags & doctest.REPORT_ONLY_FIRST_FAILURE)
 
             # Merge in the example's options.
             self.optionflags = original_optionflags
@@ -1326,7 +1337,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: D = DictAsObject({'cputime':[],'walltime':[],'err':None})
             sage: DTR.update_results(D)
             0
-            sage: sorted(list(D.iteritems()))
+            sage: sorted(list(D.items()))
             [('cputime', [...]), ('err', None), ('failures', 0), ('walltime', [...])]
         """
         for key in ["cputime","walltime"]:
@@ -1419,9 +1430,11 @@ class DocTestDispatcher(SageObject):
                 output = outtmpfile.read()
 
             self.controller.reporter.report(source, False, 0, result, output)
+            if self.controller.options.exitfirst and result[1].failures:
+                break
 
     def parallel_dispatch(self):
-        """
+        r"""
         Run the doctests from the controller's specified sources in parallel.
 
         This creates :class:`DocTestWorker` subprocesses, while the master
@@ -1449,6 +1462,41 @@ class DocTestDispatcher(SageObject):
                 [... tests, ... s]
             sage -t .../rings/big_oh.py
                 [... tests, ... s]
+
+        If the ``exitfirst=True`` option is given, the results for a failing
+        module will be immediately printed and any other ongoing tests
+        canceled::
+
+            sage: test1 = os.path.join(SAGE_TMP, 'test1.py')
+            sage: test2 = os.path.join(SAGE_TMP, 'test2.py')
+            sage: with open(test1, 'w') as f:
+            ....:     f.write("'''\nsage: import time; time.sleep(60)\n'''")
+            sage: with open(test2, 'w') as f:
+            ....:     f.write("'''\nsage: True\nFalse\n'''")
+            sage: DC = DocTestController(DocTestDefaults(exitfirst=True,
+            ....:                                        nthreads=2),
+            ....:                        [test1, test2])
+            sage: DC.expand_files_into_sources()
+            sage: DD = DocTestDispatcher(DC)
+            sage: DR = DocTestReporter(DC)
+            sage: DC.reporter = DR
+            sage: DC.dispatcher = DD
+            sage: DC.timer = Timer().start()
+            sage: DD.parallel_dispatch()
+            sage -t .../test2.py
+            **********************************************************************
+            File ".../test2.py", line 2, in test2
+            Failed example:
+                True
+            Expected:
+                False
+            Got:
+                True
+            **********************************************************************
+            1 item had failures:
+               1 of   1 in test2
+                [1 test, 1 failure, ... s]
+            Killing test .../test1.py
         """
         opt = self.controller.options
         source_iter = iter(self.controller.sources)
@@ -1474,6 +1522,9 @@ class DocTestDispatcher(SageObject):
         # List of DocTestWorkers which have finished running but
         # whose results have not been reported yet.
         finished = []
+
+        # If exitfirst is set and we got a failure.
+        abort_now = False
 
         # One particular worker that we are "following": we report the
         # messages while it's running. For other workers, we report the
@@ -1555,23 +1606,31 @@ class DocTestDispatcher(SageObject):
                     # Similarly, process finished workers.
                     new_finished = []
                     for w in finished:
-                        if follow is not None and follow is not w:
+                        if opt.exitfirst and w.result[1].failures:
+                            abort_now = True
+                        elif follow is not None and follow is not w:
                             # We are following a different worker, so
-                            # we cannot report now
+                            # we cannot report now.
                             new_finished.append(w)
-                        else:
-                            # Report the completion of this worker
-                            log(w.messages, end="")
-                            self.controller.reporter.report(
-                                w.source,
-                                w.killed,
-                                w.exitcode,
-                                w.result,
-                                w.output,
-                                pid=w.pid)
-                            restart = True
-                            follow = None
+                            continue
+
+                        # Report the completion of this worker
+                        log(w.messages, end="")
+                        self.controller.reporter.report(
+                            w.source,
+                            w.killed,
+                            w.exitcode,
+                            w.result,
+                            w.output,
+                            pid=w.pid)
+
+                        restart = True
+                        follow = None
+
                     finished = new_finished
+
+                    if abort_now:
+                        break
 
                     # Start new workers if possible
                     while source_iter is not None and len(workers) < opt.nthreads:
@@ -2068,7 +2127,7 @@ class DocTestTask(object):
         OUTPUT:
 
         - ``(doctests, result_dict)`` where ``doctests`` is the number of
-          doctests and and ``result_dict`` is a dictionary annotated with
+          doctests and ``result_dict`` is a dictionary annotated with
           timings and error information.
 
         - Also put ``(doctests, result_dict)`` onto the ``result_queue``
@@ -2129,7 +2188,10 @@ class DocTestTask(object):
                 timer = Timer().start()
 
                 for test in doctests:
-                    runner.run(test)
+                    result = runner.run(test)
+                    if options.exitfirst and result.failed:
+                        break
+
                 runner.filename = file
                 failed, tried = runner.summarize(options.verbose)
                 timer.stop().annotate(runner)

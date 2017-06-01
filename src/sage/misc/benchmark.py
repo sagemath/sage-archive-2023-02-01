@@ -21,7 +21,7 @@ def benchmark(n=-1):
         list -- summary of timings for each benchmark.
         int -- if n == -1, also return the total time
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.misc.benchmark import *
         sage: _ = benchmark()

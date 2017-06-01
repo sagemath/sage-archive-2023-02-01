@@ -329,7 +329,7 @@ cdef inline int cdivunit(celement out, celement a, celement b, long prec, PowCom
     """
     Division.
 
-    The inversion is perfomed modulo p^prec.  Note that no reduction
+    The inversion is performed modulo p^prec.  Note that no reduction
     is performed after the product.
 
     INPUT:

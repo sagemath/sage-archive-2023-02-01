@@ -12,15 +12,17 @@ Fast word datatype using an array of unsigned char
 #*****************************************************************************
 from __future__ import print_function
 
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
+from cysignals.memory cimport check_allocarray, sig_free
+from cysignals.signals cimport sig_on, sig_off
 include "sage/data_structures/bitset.pxi"
 
 cimport cython
+from cpython.object cimport Py_EQ, Py_NE
 from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.rational cimport Rational
 from libc.string cimport memcpy, memcmp
 from sage.combinat.words.word_datatypes cimport WordDatatype
+from sage.structure.sage_object cimport rich_to_bool
 
 from cpython.number cimport PyIndex_Check, PyNumber_Check
 from cpython.sequence cimport PySequence_Check
@@ -104,9 +106,7 @@ cdef class WordDatatype_char(WordDatatype):
         """
         cdef size_t i
         self._length = len(data)
-        self._data = <unsigned char *> sig_malloc(self._length * sizeof(unsigned char))
-        if self._data == NULL:
-            raise MemoryError
+        self._data = <unsigned char *>check_allocarray(self._length, sizeof(unsigned char))
 
         for i in range(self._length):
             self._data[i] = data[i]
@@ -162,7 +162,7 @@ cdef class WordDatatype_char(WordDatatype):
             sage: len(w)
             7
             sage: type(len(w))
-            <type 'int'>
+            <... 'int'>
         """
         return self._length
 
@@ -179,7 +179,7 @@ cdef class WordDatatype_char(WordDatatype):
             sage: type(w.length())
             <type 'sage.rings.integer.Integer'>
             sage: type(len(w))
-            <type 'int'>
+            <... 'int'>
         """
         return smallInteger(self._length)
 
@@ -281,6 +281,23 @@ cdef class WordDatatype_char(WordDatatype):
             (False, False, True, False)
             sage: (w>=w, z>=z, w>=z, z>=w)
             (True, True, True, False)
+
+        Testing that :trac:`22717` is fixed::
+
+            sage: w = Word([1,2], alphabet=[1,2,3])
+            sage: z = Word([1,2,3], alphabet=[1,2,3])
+            sage: (w<w, z<z, w<z, z<w)
+            (False, False, True, False)
+            sage: (w<=w, z<=z, w<=z, z<=w)
+            (True, True, True, False)
+            sage: (w==w, z==z, w==z, z==w)
+            (True, True, False, False)
+            sage: (w!=w, z!=z, w!=z, z!=w)
+            (False, False, True, True)
+            sage: (w>w, z>z, w>z, z>w)
+            (False, False, False, True)
+            sage: (w>=w, z>=z, w>=z, z>=w)
+            (True, True, False, True)
         """
         # 0: <
         # 1: <=
@@ -292,16 +309,11 @@ cdef class WordDatatype_char(WordDatatype):
             return NotImplemented
 
         # word of different lengths are not equal!
-        if (op == 2 or op == 3) and (<WordDatatype_char> self)._length != (<WordDatatype_char> other)._length:
-            return op == 3
+        if (op == Py_EQ or op == Py_NE) and (<WordDatatype_char> self)._length != (<WordDatatype_char> other)._length:
+            return op == Py_NE
 
         cdef int test = (<WordDatatype_char> self)._lexico_cmp(other)
-        if test < 0:
-            return op < 2 or op == 3
-        elif test > 0:
-            return op > 2
-        else:
-            return op == 1 or op == 2 or op == 5
+        return rich_to_bool(op, test)
 
     cdef int _lexico_cmp(self, WordDatatype_char other) except -2:
         r"""
@@ -317,8 +329,8 @@ cdef class WordDatatype_char(WordDatatype):
         sig_off()
 
         if test == 0:
-            return 0
-        if test < 0:
+            return self._length - other._length
+        elif test < 0:
             return -1
         else:
             return 1
@@ -369,7 +381,7 @@ cdef class WordDatatype_char(WordDatatype):
                 return self._new_c(NULL, 0, None)
             if step == 1:
                 return self._new_c(self._data+start, stop-start, self)
-            data = <unsigned char *> sig_malloc(slicelength * sizeof(unsigned char))
+            data = <unsigned char *>check_allocarray(slicelength, sizeof(unsigned char))
             j = 0
             for k in range(start,stop,step):
                 data[j] = self._data[k]
@@ -422,9 +434,7 @@ cdef class WordDatatype_char(WordDatatype):
 
     cdef _concatenate(self, WordDatatype_char other):
         cdef unsigned char * data
-        data = <unsigned char *> sig_malloc((self._length + other._length) * sizeof(unsigned char))
-        if data == NULL:
-            raise MemoryError
+        data = <unsigned char *>check_allocarray(self._length + other._length, sizeof(unsigned char))
 
         sig_on()
         memcpy(data, self._data, self._length * sizeof(unsigned char))
@@ -534,9 +544,7 @@ cdef class WordDatatype_char(WordDatatype):
         if w._length > SIZE_T_MAX / (i+1):
             raise OverflowError("the length of the result is too large")
         cdef size_t new_length = w._length * i + rest
-        cdef unsigned char * data = <unsigned char *> sig_malloc(new_length * sizeof(unsigned char))
-        if data == NULL:
-            raise MemoryError
+        cdef unsigned char * data = <unsigned char *>check_allocarray(new_length, sizeof(unsigned char))
 
         cdef Py_ssize_t j = w._length
         memcpy(data, w._data, j * sizeof(unsigned char))

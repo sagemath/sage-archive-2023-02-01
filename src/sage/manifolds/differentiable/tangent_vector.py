@@ -40,7 +40,7 @@ class TangentVector(FiniteRankFreeModuleElement):
       the tangent space to which the vector belongs
     - ``name`` -- (default: ``None``) string; symbol given to the vector
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote
-      the the vector; if ``None``, ``name`` will be used
+      the vector; if ``None``, ``name`` will be used
 
     EXAMPLES:
 
@@ -70,7 +70,7 @@ class TangentVector(FiniteRankFreeModuleElement):
         r"""
         Construct a tangent vector.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()

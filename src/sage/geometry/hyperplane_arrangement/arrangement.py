@@ -211,7 +211,7 @@ arrangement (as the intersection over the empty set)::
     sage: p.is_ranked()
     True
     sage: p.order_polytope()
-    A 5-dimensional polyhedron in QQ^5 defined as the convex hull of 10 vertices
+    A 5-dimensional polyhedron in ZZ^5 defined as the convex hull of 10 vertices
 
 The characteristic polynomial is a basic invariant of a hyperplane
 arrangement. It is defined as
@@ -789,11 +789,11 @@ class HyperplaneArrangementElement(Element):
     @cached_method
     def poincare_polynomial(self):
         r"""
-        Return the Poincare polynomial of the hyperplane arrangement.
+        Return the Poincaré polynomial of the hyperplane arrangement.
 
         OUTPUT:
 
-        The Poincare polynomial in `\QQ[x]`.
+        The Poincaré polynomial in `\QQ[x]`.
 
         EXAMPLES::
 
@@ -3029,7 +3029,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
                 if h.A() == 0:
                     raise ValueError('linear expression must be non-constant to define a hyperplane')
                 if not_char2 and -h in hyperplane_set:
-                    raise ValueError('arrangement cannot simultaneouly have h and -h as hyperplane')
+                    raise ValueError('arrangement cannot simultaneously have h and -h as hyperplane')
         return self.element_class(self, hyperplanes)
 
     @cached_method

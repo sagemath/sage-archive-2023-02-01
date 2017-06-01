@@ -11,6 +11,7 @@ Numerical computation of newforms
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import integer_types
 
 from sage.structure.sage_object  import SageObject
 from sage.structure.sequence     import Sequence
@@ -97,7 +98,7 @@ class NumericalEigenforms(SageObject):
             sage: numerical_eigenforms(61) # indirect doctest
             Numerical Hecke eigenvalues for Congruence Subgroup Gamma0(61) of weight 2
         """
-        if isinstance(group, (int, long, Integer)):
+        if isinstance(group, integer_types + (Integer,)):
             group = Gamma0(Integer(group))
         self._group  = group
         self._weight = Integer(weight)
@@ -525,6 +526,3 @@ def support(v, eps):
 
     """
     return [i for i in range(v.degree()) if abs(v[i]) > eps]
-
-
-

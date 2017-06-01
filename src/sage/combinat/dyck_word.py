@@ -2178,7 +2178,7 @@ class DyckWord_complete(DyckWord):
             i = j
             p += 1
 
-        if len(stack) > 0:
+        if stack:
             raise ValueError("incorrect Dyck word")
 
         return partition
@@ -3672,8 +3672,8 @@ class CompleteDyckWords(DyckWords):
         ::
 
             sage: dws = DyckWords(5).list()
-            sage: ncps = map(lambda x: x.to_noncrossing_partition(), dws)
-            sage: dws2 = map(lambda x: DyckWord(noncrossing_partition=x), ncps)
+            sage: ncps = [x.to_noncrossing_partition() for x in dws]
+            sage: dws2 = [DyckWord(noncrossing_partition=x) for x in ncps]
             sage: dws == dws2
             True
         """

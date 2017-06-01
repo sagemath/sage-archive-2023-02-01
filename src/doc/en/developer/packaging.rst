@@ -205,6 +205,28 @@ the ``spkg-check`` script would simply contain::
     $MAKE check
 
 
+.. _section-python:
+
+Python-based packages
+---------------------
+
+The best way to install a Python-based package is to use pip, in which
+case the ``spkg-install`` script might just consist of ::
+
+    #!/usr/bin/env bash
+
+    cd src && $PIP_INSTALL .
+
+If pip will not work but a command like ``python setup.py install``
+will, then the ``spkg-install`` script should call ``sage-python23``
+rather than ``python``. This will ensure that the correct version of
+Python is used to build and install the package. The same holds for
+``spkg-check`` scripts; for example, the ``pycrypto`` ``spkg-check``
+file contains the line ::
+
+    sage-python23 setup.py test
+
+
 .. _section-spkg-SPKG-txt:
 
 The SPKG.txt File
@@ -239,7 +261,7 @@ The ``SPKG.txt`` file should follow this pattern::
      script, describe what was changed.
 
 
-with ``PACKAGE_NAME`` replaced by the the package name. Legacy
+with ``PACKAGE_NAME`` replaced by the package name. Legacy
 ``SPKG.txt`` files have an additional changelog section, but this
 information is now kept in the git repository.
 
@@ -280,8 +302,8 @@ If there is no ``|``, then all dependencies are normal.
   that B must be built before A can be built. The version of B does not
   matter, only the fact that B is installed matters.
   This should be used if the dependency is purely a build-time
-  dependency (for example, a dependency on Python simply because the
-  ``spkg-install`` file is written in Python).
+  dependency (for example, a dependency on pip simply because the
+  ``spkg-install`` file uses pip).
 
 - If A has a **normal dependency** on B, it means additionally that A
   should be rebuilt every time that B gets updated. This is the most

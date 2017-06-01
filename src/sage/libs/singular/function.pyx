@@ -74,12 +74,12 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from libc.string cimport memcpy
+from cysignals.signals cimport sig_on, sig_off
 
-include "cysignals/signals.pxi"
-
-from sage.structure.sage_object cimport SageObject
+from sage.structure.sage_object cimport SageObject, richcmp
 
 from sage.rings.integer cimport Integer
 
@@ -138,7 +138,7 @@ cdef class RingWrap:
     """
     def __repr__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.libs.singular.function import singular_function
             sage: P.<x,y,z> = PolynomialRing(QQ)
@@ -160,7 +160,7 @@ cdef class RingWrap:
         """
         Get number of generators.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.libs.singular.function import singular_function
             sage: P.<x,y,z> = PolynomialRing(QQ)
@@ -176,7 +176,7 @@ cdef class RingWrap:
         """
         Get names of variables.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.libs.singular.function import singular_function
             sage: P.<x,y,z> = PolynomialRing(QQ)
@@ -192,7 +192,7 @@ cdef class RingWrap:
         """
         Get number of parameters.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.libs.singular.function import singular_function
             sage: P.<x,y,z> = PolynomialRing(QQ)
@@ -208,7 +208,7 @@ cdef class RingWrap:
         """
         Get Singular string defining monomial ordering.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.libs.singular.function import singular_function
             sage: P.<x,y,z> = PolynomialRing(QQ)
@@ -226,7 +226,7 @@ cdef class RingWrap:
         """
         Get parameter names.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.libs.singular.function import singular_function
             sage: P.<x,y,z> = PolynomialRing(QQ)
@@ -242,7 +242,7 @@ cdef class RingWrap:
         """
         Get characteristic.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.libs.singular.function import singular_function
             sage: P.<x,y,z> = PolynomialRing(QQ)
@@ -258,7 +258,7 @@ cdef class RingWrap:
         """
         Determine whether a given ring is commutative.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.libs.singular.function import singular_function
             sage: P.<x,y,z> = PolynomialRing(QQ)
@@ -274,7 +274,7 @@ cdef class RingWrap:
         """
         Use Singular output.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.libs.singular.function import singular_function
             sage: P.<x,y,z> = PolynomialRing(QQ)
@@ -282,7 +282,7 @@ cdef class RingWrap:
             sage: l = ringlist(P)
             sage: ring = singular_function("ring")
             sage: ring(l, ring=P)._output()
-            //   characteristic : 0
+            //   coefficients: QQ
             //   number of vars : 3
             //        block   1 : ordering dp
             //                  : names    x y z
@@ -296,7 +296,7 @@ cdef class Resolution:
     """
     def __init__(self, base_ring):
         """
-        EXAMPLE::
+        EXAMPLES::
 
            sage: from sage.libs.singular.function import singular_function
            sage: mres = singular_function("mres")
@@ -311,7 +311,7 @@ cdef class Resolution:
         self.base_ring = base_ring
     def __repr__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
            sage: from sage.libs.singular.function import singular_function
            sage: mres = singular_function("mres")
@@ -326,7 +326,7 @@ cdef class Resolution:
         return "<Resolution>"
     def __dealloc__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
            sage: from sage.libs.singular.function import singular_function
            sage: mres = singular_function("mres")
@@ -373,7 +373,7 @@ def is_sage_wrapper_for_singular_ring(ring):
     """
     Check whether wrapped ring arises from Singular or Singular/Plural.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.libs.singular.function import is_sage_wrapper_for_singular_ring
         sage: P.<x,y,z> = QQ[]
@@ -406,7 +406,7 @@ def is_singular_poly_wrapper(p):
     """
     Checks if p is some data type corresponding to some singular ``poly``.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.libs.singular.function import is_singular_poly_wrapper
         sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
@@ -422,7 +422,7 @@ def all_singular_poly_wrapper(s):
     Tests for a sequence ``s``, whether it consists of
     singular polynomials.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.libs.singular.function import all_singular_poly_wrapper
         sage: P.<x,y,z> = QQ[]
@@ -465,7 +465,7 @@ def all_vectors(s):
     Checks if a sequence ``s`` consists of free module
     elements over a singular ring.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.libs.singular.function import all_vectors
         sage: P.<x,y,z> = QQ[]
@@ -502,7 +502,7 @@ cdef class Converter(SageObject):
         - ``attributes`` - an optional dictionary of Singular
           attributes (default: ``None``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.libs.singular.function import Converter
             sage: P.<a,b,c> = PolynomialRing(GF(127))
@@ -515,7 +515,7 @@ cdef class Converter(SageObject):
         if ring is not None:
             self._singular_ring = access_singular_ring(ring)
 
-        from  sage.matrix.matrix_mpolynomial_dense import Matrix_mpolynomial_dense
+        from sage.matrix.matrix_mpolynomial_dense import Matrix_mpolynomial_dense
         from sage.matrix.matrix_integer_dense import Matrix_integer_dense
         from sage.matrix.matrix_generic_dense import Matrix_generic_dense
         for a in args:
@@ -601,7 +601,7 @@ cdef class Converter(SageObject):
         """
         Return the ring in which the arguments of this list live.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.libs.singular.function import Converter
             sage: P.<a,b,c> = PolynomialRing(GF(127))
@@ -612,7 +612,7 @@ cdef class Converter(SageObject):
 
     def _repr_(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.libs.singular.function import Converter
             sage: P.<a,b,c> = PolynomialRing(GF(127))
@@ -628,7 +628,7 @@ cdef class Converter(SageObject):
 
     def __len__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.libs.singular.function import Converter
             sage: P.<a,b,c> = PolynomialRing(GF(127))
@@ -1045,7 +1045,7 @@ cdef class LibraryCallHandler(BaseCallHandler):
     """
     def __init__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.libs.singular.function import LibraryCallHandler
             sage: LibraryCallHandler()
@@ -1086,7 +1086,7 @@ cdef class KernelCallHandler(BaseCallHandler):
     """
     def __init__(self, cmd_n, arity):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.libs.singular.function import KernelCallHandler
             sage: KernelCallHandler(0,0)
@@ -1174,7 +1174,7 @@ cdef class SingularFunction(SageObject):
 
         - ``name`` - the name of the function
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.libs.singular.function import SingularFunction
             sage: SingularFunction('foobar')
@@ -1203,7 +1203,7 @@ cdef class SingularFunction(SageObject):
 
     def _repr_(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.libs.singular.function import SingularFunction
             sage: SingularFunction('foobar') # indirect doctest
@@ -1231,7 +1231,7 @@ cdef class SingularFunction(SageObject):
         If this is not possible, then a dummy ring, univariate polynomial ring
         over ``QQ``, is used.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.libs.singular.function import singular_function
             sage: size = singular_function('size')
@@ -1322,13 +1322,13 @@ cdef class SingularFunction(SageObject):
             raise TypeError("Cannot call Singular function '%s' with ring parameter of type '%s'"%(self._name,type(ring)))
         return call_function(self, args, ring, interruptible, attributes)
 
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.libs.singular.function import singular_function
             sage: groebner = singular_function('groebner')
-            sage: 'groebner' in groebner._sage_doc_()
+            sage: 'groebner' in groebner.__doc__
             True
         """
 
@@ -1397,7 +1397,7 @@ The Singular documentation for '%s' is given below.
         - ``args`` -- a list of Python objects
         - ``ring`` -- an optional ring to check
         """
-        from  sage.matrix.matrix_mpolynomial_dense import Matrix_mpolynomial_dense
+        from sage.matrix.matrix_mpolynomial_dense import Matrix_mpolynomial_dense
         from sage.matrix.matrix_integer_dense import Matrix_integer_dense
         ring2 = None
         for a in args:
@@ -1438,7 +1438,7 @@ The Singular documentation for '%s' is given below.
 
     def __reduce__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.libs.singular.function import singular_function
             sage: groebner = singular_function('groebner')
@@ -1447,9 +1447,9 @@ The Singular documentation for '%s' is given below.
         """
         return singular_function, (self._name,)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.libs.singular.function import singular_function
             sage: groebner = singular_function('groebner')
@@ -1459,11 +1459,16 @@ The Singular documentation for '%s' is given below.
             False
             sage: groebner == 1
             False
+            sage: groebner == None
+            False
         """
-        if not isinstance(other, SingularFunction):
-            return cmp(type(self),type(other))
-        else:
-            return cmp(self._name, (<SingularFunction>other)._name)
+        try:
+            lx = <SingularFunction?>self
+            rx = <SingularFunction?>other
+        except TypeError:
+            return NotImplemented
+        return richcmp(lx._name, rx._name, op)
+
 
 cdef inline call_function(SingularFunction self, tuple args, object R, bint signal_handler=True, attributes=None):
     global currRingHdl
@@ -1807,7 +1812,7 @@ def lib(name):
 
     - ``name`` -- a Singular library name
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.libs.singular.function import singular_function
         sage: from sage.libs.singular.function import lib as singular_lib
@@ -1842,7 +1847,7 @@ def list_of_functions(packages=False):
 
     - ``packages`` -- include local functions in packages.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.libs.singular.function import list_of_functions
         sage: 'groebner' in list_of_functions()
@@ -1871,3 +1876,10 @@ cdef inline RingWrap new_RingWrap(ring* r):
     ring_wrap_result._ring.ref += 1
 
     return ring_wrap_result
+
+
+# Add support for _instancedoc_
+from sage.docs.instancedoc import instancedoc
+instancedoc(SingularFunction)
+instancedoc(SingularLibraryFunction)
+instancedoc(SingularKernelFunction)

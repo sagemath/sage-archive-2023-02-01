@@ -299,6 +299,10 @@ def is_SymmetricFunction(x):
 ## Bases categories
 
 from sage.categories.realizations import Category_realization_of_parent
+
+import six
+
+
 class SymmetricFunctionsBases(Category_realization_of_parent):
     r"""
     The category of bases of the ring of symmetric functions.
@@ -1588,11 +1592,11 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         """
         C = self.basis().keys()
         if isinstance(c, C.element_class):
-            if len(rest) != 0:
+            if rest:
                 raise ValueError("invalid number of arguments")
         else:
-            if len(rest) > 0 or isinstance(c, int) or isinstance(c, Integer):
-                c = C([c]+list(rest))
+            if rest or isinstance(c, (int, Integer)):
+                c = C([c] + list(rest))
             else:
                 c = C(list(c))
         return self.monomial(c)
@@ -1624,7 +1628,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         """
         BR = self.base_ring()
         z_elt = {}
-        for m, c in x._monomial_coefficients.iteritems():
+        for m, c in six.iteritems(x._monomial_coefficients):
             coeff = function(m)
             z_elt[m] = BR( c*coeff )
         return self._from_dict(z_elt)
@@ -1709,7 +1713,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         if orthogonal:
             # could check which of x and y has less terms
             # for mx, cx in x:
-            for mx, cx in x._monomial_coefficients.iteritems():
+            for mx, cx in six.iteritems(x._monomial_coefficients):
                 if mx not in y._monomial_coefficients:
                     continue
                 else:
@@ -1719,8 +1723,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
                 res += cx*cy*f(mx, mx)
             return res
         else:
-            for mx, cx in x._monomial_coefficients.iteritems():
-                for my, cy in y._monomial_coefficients.iteritems():
+            for mx, cx in six.iteritems(x._monomial_coefficients):
+                for my, cy in six.iteritems(y._monomial_coefficients):
                     res += cx*cy*f(mx,my)
             return res
 
@@ -1804,13 +1808,13 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         BR = self.base_ring()
         zero = BR.zero()
         z_elt = {}
-        for part, c in element.monomial_coefficients().iteritems():
+        for part, c in six.iteritems(element.monomial_coefficients()):
             if sum(part) not in cache_dict:
                 cache_function(sum(part))
             # Make sure it is a partition (for #13605), this is
             #   needed for the old kschur functions - TCS
             part = _Partitions(part)
-            for part2, c2 in cache_dict[sum(part)][part].iteritems():
+            for part2, c2 in six.iteritems(cache_dict[sum(part)][part]):
                 if hasattr(c2,'subs'): # c3 may be in the base ring
                     c3 = c*BR(c2.subs(**subs_dict))
                 else:
@@ -3066,7 +3070,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         cache = {}
         ip_pnu_g = parent._inner_plethysm_pnu_g
         return parent.sum( c*ip_pnu_g(p(x), cache, nu)
-                           for (nu, c) in p(self).monomial_coefficients().iteritems() )
+                           for (nu, c) in six.iteritems(p(self).monomial_coefficients()) )
 
 
     def omega(self):
@@ -4161,11 +4165,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
                 # This is the map sending two partitions lam and mu to the
                 # arithmetic product p[lam] \boxdot p[mu].
                 # Code shamelessly stolen from Andrew Gainer-Dewar, trac #14542.
-                term_iterable = chain.from_iterable( repeat(lcm(pair), times=gcd(pair))
-                                                     for pair in product(lam, mu) )
-                term_list = sorted(term_iterable, reverse=True)
-                res = Partition(term_list)
-                return p(res)
+                term_iterable = chain.from_iterable(repeat(lcm(pair), gcd(pair))
+                                                    for pair in product(lam, mu))
+                return p(Partition(sorted(term_iterable, reverse=True)))
             return parent(p._apply_multi_module_morphism(p(self),p(x),f))
         comp_parent = parent
         comp_self = self
@@ -4781,7 +4783,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             ....:      for lam in Partitions(6) )
             True
         """
-        # Convert to the complete homogenenous basis, there apply
+        # Convert to the complete homogeneous basis, there apply
         # Verschiebung componentwise, then convert back.
         parent = self.parent()
         h = parent.realization_of().homogeneous()
@@ -5348,23 +5350,24 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
     def character_to_frobenius_image(self, n):
         r"""
-        Interpret ``self`` as a `Gl_n` character and then take the Frobenius
+        Interpret ``self`` as a `GL_n` character and then take the Frobenius
         image of this character of the permutation matrices `S_n` which
-        naturally sit inside of `Gl_n`.
+        naturally sit inside of `GL_n`.
 
         To know the value of this character at a permutation of cycle structure
         `\rho` the symmetric function ``self`` is evaluated at the
-        eigenvalues of of a permutation of cycle structure `\rho`.  The
+        eigenvalues of a permutation of cycle structure `\rho`.  The
         Frobenius image is then defined as
         `\sum_{\rho \vdash n} f[ \Xi_\rho ] p_\rho/z_\rho`.
 
         .. SEEALSO::
+
             :meth:`eval_at_permutation_roots`
 
         INPUT:
 
         - ``n`` -- a non-negative integer to interpret ``self`` as
-          a character of `Gl_n`
+          a character of `GL_n`
 
         OUTPUT:
 

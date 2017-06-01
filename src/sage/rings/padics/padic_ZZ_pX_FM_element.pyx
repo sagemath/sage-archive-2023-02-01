@@ -119,9 +119,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/cdefs.pxi"
-include "sage/ext/stdsage.pxi"
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
+
 include "sage/libs/ntl/decl.pxi"
 
 from sage.structure.element cimport Element
@@ -131,6 +130,8 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 from sage.rings.padics.padic_ext_element cimport pAdicExtElement
+from sage.libs.gmp.mpz cimport *
+from sage.libs.gmp.mpq cimport *
 from sage.libs.ntl.ntl_ZZ_pX cimport ntl_ZZ_pX
 from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
@@ -209,7 +210,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             if parent.prime() != x.parent().prime():
                 raise TypeError("Cannot coerce between p-adic parents with different primes.")
         if isinstance(x, GpElement):
-            x = x._pari_()
+            x = x.__pari__()
         if isinstance(x, pari_gen):
             if x.type() == "t_PADIC":
                 if x.variable() != self.prime_pow.prime:
@@ -242,13 +243,13 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             ctx_prec = ZZ_remove(tmp_z, (<ntl_ZZ>x.modulus()).x, self.prime_pow.pow_ZZ_tmp(1)[0])
             if ZZ_IsOne(tmp_z):
                 x = x.lift()
-                tmp_Int = PY_NEW(Integer)
+                tmp_Int = Integer.__new__(Integer)
                 ZZ_to_mpz(tmp_Int.value, &(<ntl_ZZ>x).x)
                 x = tmp_Int
             else:
                 raise TypeError("cannot coerce the given ntl_ZZ_p (modulus not a power of the same prime)")
         elif isinstance(x, ntl_ZZ):
-            tmp_Int = PY_NEW(Integer)
+            tmp_Int = Integer.__new__(Integer)
             ZZ_to_mpz(tmp_Int.value, &(<ntl_ZZ>x).x)
             x = tmp_Int
         elif isinstance(x, (int, long)):
@@ -967,11 +968,10 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             sage: ZZ(W(5))
             5
         """
-        cdef Integer ans
         cdef ZZ_c tmp_z
         if ZZ_pX_deg(self.value) > 0:
             raise ValueError("This element not well approximated by an integer.")
-        ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         tmp_z = ZZ_p_rep(ZZ_pX_ConstTerm(self.value))
         ZZ_to_mpz(ans.value, &tmp_z)
         return ans
@@ -1414,7 +1414,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             sage: a.unit_part()
             3 + 2*w^2 + w^4 + w^6 + w^7 + 3*w^8 + 3*w^9 + 2*w^11 + 3*w^12 + 3*w^13 + w^15 + 4*w^16 + 2*w^17 + w^18 + w^22 + 3*w^24 + O(w^25)
         """
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         mpz_set_ui(ans.value, self.prime_pow.ram_prec_cap)
         return ans
 
@@ -1440,15 +1440,9 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             sage: a.unit_part()
             3 + 2*w^2 + w^4 + w^6 + w^7 + 3*w^8 + 3*w^9 + 2*w^11 + 3*w^12 + 3*w^13 + w^15 + 4*w^16 + 2*w^17 + w^18 + w^22 + 3*w^24 + O(w^25)
         """
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         mpz_set_ui(ans.value, self.prime_pow.ram_prec_cap - self.valuation_c())
         return ans
-
-#    def residue(self, n):
-#        """
-#        Reduces this element modulo pi^n.
-#        """
-#        raise NotImplementedError
 
     cpdef pAdicZZpXFMElement unit_part(self):
         """

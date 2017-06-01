@@ -33,18 +33,21 @@ REFERENCES:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 import operator
 
-from sage.structure.element cimport FieldElement, ModuleElement, RingElement, \
-        Element
+from sage.structure.element cimport (FieldElement, ModuleElement, RingElement,
+                                     Element)
 from sage.structure.element import parent
+from sage.structure.sage_object cimport richcmp
 
-import integer_ring
-from integer_ring import ZZ
-from rational_field import QQ
+from . import integer_ring
+from .integer_ring import ZZ
+from .rational_field import QQ
 
 import sage.misc.latex as latex
+
 
 def is_FractionFieldElement(x):
     """
@@ -62,6 +65,7 @@ def is_FractionFieldElement(x):
         False
     """
     return isinstance(x, FractionFieldElement)
+
 
 cdef class FractionFieldElement(FieldElement):
     """
@@ -249,7 +253,9 @@ cdef class FractionFieldElement(FieldElement):
 
     def is_square(self,root=False):
         """
-        Returns whether or not ``self`` is a perfect square. If the optional
+        Return whether or not ``self`` is a perfect square.
+
+        If the optional
         argument ``root`` is ``True``, then also returns a square root (or
         ``None``, if the fraction field element is not square).
 
@@ -305,7 +311,6 @@ cdef class FractionFieldElement(FieldElement):
             return True, self._parent( sq_rt/b )
         return False, None
 
-
     def __hash__(self):
         """
         This function hashes in a special way to ensure that generators of
@@ -317,8 +322,8 @@ cdef class FractionFieldElement(FieldElement):
 
         EXAMPLES::
 
-            sage: R.<x>=ZZ[]
-            sage: hash(R.0)==hash(FractionField(R).0)
+            sage: R.<x> = ZZ[]
+            sage: hash(R.0) == hash(FractionField(R).0)
             True
             sage: ((x+1)/(x^2+1)).subs({x:1})
             1
@@ -361,7 +366,9 @@ cdef class FractionFieldElement(FieldElement):
 
     def __call__(self, *x, **kwds):
         """
-        Evaluate the fraction at the given arguments. This assumes that a
+        Evaluate the fraction at the given arguments.
+
+        This assumes that a
         call function is defined for the numerator and denominator.
 
         EXAMPLES::
@@ -413,7 +420,7 @@ cdef class FractionFieldElement(FieldElement):
         """
         if self.is_zero():
             return "0"
-        s = "%s"%self.__numerator
+        s = "%s" % self.__numerator
         if self.__denominator != 1:
             denom_string = str( self.__denominator )
             if self.__denominator._is_atomic() and not ('*' in denom_string or '/' in denom_string):
@@ -486,7 +493,7 @@ cdef class FractionFieldElement(FieldElement):
 
     cpdef _add_(self, right):
         """
-        Computes the sum of ``self`` and ``right``.
+        Compute the sum of ``self`` and ``right``.
 
         INPUT:
 
@@ -801,7 +808,7 @@ cdef class FractionFieldElement(FieldElement):
             sage: abs(FractionFieldElement(QQ, -2, 3, coerce=False))
             2/3
         """
-        return abs(self.__numerator)/abs(self.__denominator)
+        return abs(self.__numerator) / abs(self.__denominator)
 
     def __invert__(self):
         """
@@ -827,7 +834,7 @@ cdef class FractionFieldElement(FieldElement):
         """
         return float(self.__numerator) / float(self.__denominator)
 
-    cpdef int _cmp_(self, other) except -2:
+    cpdef _richcmp_(self, other, int op):
         """
         EXAMPLES::
 
@@ -847,9 +854,10 @@ cdef class FractionFieldElement(FieldElement):
             sage: 1 > y
             False
         """
-        return cmp(self.__numerator * \
-                (<FractionFieldElement>other).__denominator,
-                self.__denominator*(<FractionFieldElement>other).__numerator)
+        return richcmp(self.__numerator *
+                       (<FractionFieldElement>other).__denominator,
+                       self.__denominator *
+                       (<FractionFieldElement>other).__numerator, op)
 
     def valuation(self, v=None):
         """
@@ -986,6 +994,7 @@ cdef class FractionFieldElement(FieldElement):
         else:
             raise NotImplementedError
 
+
 class FractionFieldElement_1poly_field(FractionFieldElement):
     """
     A fraction field element where the parent is the fraction field of a
@@ -1046,6 +1055,7 @@ def make_element(parent, numerator, denominator):
 
     return parent._element_class(parent, numerator, denominator)
 
+
 def make_element_old(parent, cdict):
     """
     Used for unpickling old :class:`FractionFieldElement` pickles.
@@ -1062,4 +1072,3 @@ def make_element_old(parent, cdict):
             cdict['_FractionFieldElement__numerator'],
             cdict['_FractionFieldElement__denominator'],
             coerce=False, reduce=False)
-

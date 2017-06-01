@@ -24,15 +24,17 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+
 include 'sage/data_structures/bitset.pxi'
 import sage.matroids.matroid
 import sage.matroids.basis_exchange_matroid
-from minor_matroid import MinorMatroid
-from dual_matroid import DualMatroid
-from circuit_closures_matroid cimport CircuitClosuresMatroid
-from basis_matroid cimport BasisMatroid
-from linear_matroid cimport LinearMatroid, RegularMatroid, BinaryMatroid, TernaryMatroid, QuaternaryMatroid
-from lean_matrix cimport GenericMatrix, BinaryMatrix, TernaryMatrix, QuaternaryMatrix, IntegerMatrix
+from .minor_matroid import MinorMatroid
+from .dual_matroid import DualMatroid
+from .circuit_closures_matroid cimport CircuitClosuresMatroid
+from .basis_matroid cimport BasisMatroid
+from .linear_matroid cimport LinearMatroid, RegularMatroid, BinaryMatroid, TernaryMatroid, QuaternaryMatroid
+from .lean_matrix cimport GenericMatrix, BinaryMatrix, TernaryMatrix, QuaternaryMatrix, IntegerMatrix
 
 
 #############################################################################

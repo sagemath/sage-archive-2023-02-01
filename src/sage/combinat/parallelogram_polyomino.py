@@ -2138,7 +2138,7 @@ class ParallelogramPolyomino(ClonableList):
         The bounce path is a path with two steps (1, 0) and (0, 1).
 
         If 'direction' is 1 (resp. 0), the bounce path is the path
-        starting at position position (h=1, w=0) (resp. (h=0, w=1)) with
+        starting at position (h=1, w=0) (resp. (h=0, w=1)) with
         initial direction, the vector (0, 1) (resp. (1, 0)), and turning
         each time the path crosses the perimeter of the parallelogram
         polyomino.
@@ -2528,7 +2528,9 @@ class ParallelogramPolyomino(ClonableList):
 
         def draw_bounce(direction, color):
             r"""
-            TODO
+            Return the TIKZ code of the bounce path of ``self``.
+
+            See :meth:`ParallelogramPolyomino.bounce_path` for more information about the bounce.
             """
             if (len(self.bounce_path(direction)) >
                     len(self.bounce_path(1 - direction))):
@@ -2613,7 +2615,7 @@ class ParallelogramPolyomino(ClonableList):
         res += drawing_tool.draw_point([0, 0])
         return res
 
-    def get_node_position_at_row(self, row):
+    def _get_node_position_at_row(self, row):
         r"""
         Returns the position of the leftmost cell in the row indexed by ``row``
         of the array obtained with ``get_array``.
@@ -2641,17 +2643,17 @@ class ParallelogramPolyomino(ClonableList):
             [1 1 1]
             [0 1 1]
             [0 0 1]
-            sage: pp.get_node_position_at_row(0)
+            sage: pp._get_node_position_at_row(0)
             [0, 0]
-            sage: pp.get_node_position_at_row(1)
+            sage: pp._get_node_position_at_row(1)
             [1, 0]
-            sage: pp.get_node_position_at_row(2)
+            sage: pp._get_node_position_at_row(2)
             [2, 0]
-            sage: pp.get_node_position_at_row(3)
+            sage: pp._get_node_position_at_row(3)
             [3, 0]
-            sage: pp.get_node_position_at_row(4)
+            sage: pp._get_node_position_at_row(4)
             [4, 1]
-            sage: pp.get_node_position_at_row(5)
+            sage: pp._get_node_position_at_row(5)
             [5, 2]
         """
         h = row
@@ -2660,7 +2662,7 @@ class ParallelogramPolyomino(ClonableList):
                 return [h, w]
         return None
 
-    def get_node_position_at_column(self, column):
+    def _get_node_position_at_column(self, column):
         r"""
         Returns the position of the topmost cell in the column indexed by
         ``column`` of the array obtained with ``get_array``.
@@ -2684,11 +2686,11 @@ class ParallelogramPolyomino(ClonableList):
             [0 1 1]
             [0 1 1]
             [0 1 1]
-            sage: pp.get_node_position_at_column(0)
+            sage: pp._get_node_position_at_column(0)
             [0, 0]
-            sage: pp.get_node_position_at_column(1)
+            sage: pp._get_node_position_at_column(1)
             [1, 1]
-            sage: pp.get_node_position_at_column(2)
+            sage: pp._get_node_position_at_column(2)
             [1, 2]
         """
         w = column
@@ -2827,7 +2829,7 @@ class ParallelogramPolyomino(ClonableList):
     def box_is_root(self, box):
         r"""
         Return ``True`` if the box contains the root of the tree : it
-        is the left top most cell of the parallelogram polyomino.
+        is the top-left box of the parallelogram polyomino.
 
         INPUT:
 
@@ -2845,9 +2847,18 @@ class ParallelogramPolyomino(ClonableList):
         """
         return box[0] == 0 and box[1] == 0
 
-    def get_path_in_pair_of_tree_from_box(self, box, direction):
+    def _get_path_in_pair_of_tree_from_box(self, box, direction):
         r"""
-        TODO
+        When we draw the bounding path from ``box`̀̀̀` to the top-left cell of 
+        ``self̀``, the path is bounding in some cells that are nodes in the 
+        ordered tree of the Boussicault-Socci bijection. This function returns
+        the path of the bounding path inside the ordered tree.
+
+        INPUT:
+
+        - ``box`` -- the x,y coordinate of the starting point of the bounding 
+                     path.
+        - ``direction`` -- the initial direction of the bounding path (1 or 0).
         """
         path = []
         while not self.box_is_root(box):
@@ -2858,19 +2869,35 @@ class ParallelogramPolyomino(ClonableList):
         path.reverse()
         return path
 
-    def get_path_in_pair_of_tree_from_row(self, line):
+    def _get_path_in_pair_of_tree_from_row(self, line):
         r"""
-        TODO
-        """
-        pos = self.get_node_position_at_row(line)
-        return self.get_path_in_pair_of_tree_from_box(pos, 0)
+        When we draw the bounding path from the right-most cell of line to the 
+        top-left cell of ``self̀``, the path is bounding in some cells that are 
+        nodes in the ordered tree of the Boussicault-Socci bijection. 
+        This function returns the path of the bounding path inside the ordered 
+        tree.
 
-    def get_path_in_pair_of_tree_from_column(self, line):
-        r"""
-        TODO
+        INPUT:
+
+        - ``line`` -- the x coordinate of the line.
         """
-        pos = self.get_node_position_at_column(line)
-        return self.get_path_in_pair_of_tree_from_box(pos, 1)
+        pos = self._get_node_position_at_row(line)
+        return self._get_path_in_pair_of_tree_from_box(pos, 0)
+
+    def _get_path_in_pair_of_tree_from_column(self, column):
+        r"""
+        When we draw the bounding path from the right-most cell of column to the 
+        top-left cell of ``self̀``, the path is bounding in some cells that are 
+        nodes in the ordered tree of the Boussicault-Socci bijection. 
+        This function returns the path of the bounding path inside the ordered 
+        tree.
+
+        INPUT:
+
+        - ``column`` -- the y coordinate of the column.
+        """
+        pos = self._get_node_position_at_column(column)
+        return self._get_path_in_pair_of_tree_from_box(pos, 1)
 
     def get_nodes(self):
         r"""
@@ -2903,9 +2930,9 @@ class ParallelogramPolyomino(ClonableList):
         """
         result = []
         for h in range(1, self.height()):
-            result.append(self.get_node_position_at_row(h))
+            result.append(self._get_node_position_at_row(h))
         for w in range(1, self.width()):
-            result.append(self.get_node_position_at_column(w))
+            result.append(self._get_node_position_at_column(w))
         return result
 
     def get_right_nodes(self):
@@ -2953,13 +2980,13 @@ class ParallelogramPolyomino(ClonableList):
         """
         result = []
         for h in range(1, self.height()):
-            path2 = self.get_path_in_pair_of_tree_from_row(h)
+            path2 = self._get_path_in_pair_of_tree_from_row(h)
             if len(path2) % 2 == 1:
-                result.append(self.get_node_position_at_row(h))
+                result.append(self._get_node_position_at_row(h))
         for w in range(1, self.width()):
-            path2 = self.get_path_in_pair_of_tree_from_column(w)
+            path2 = self._get_path_in_pair_of_tree_from_column(w)
             if len(path2) % 2 == 0:
-                result.append(self.get_node_position_at_column(w))
+                result.append(self._get_node_position_at_column(w))
         return result
 
     def get_left_nodes(self):
@@ -3007,13 +3034,13 @@ class ParallelogramPolyomino(ClonableList):
         """
         result = []
         for h in range(1, self.height()):
-            path2 = self.get_path_in_pair_of_tree_from_row(h)
+            path2 = self._get_path_in_pair_of_tree_from_row(h)
             if len(path2) % 2 == 0:
-                result.append(self.get_node_position_at_row(h))
+                result.append(self._get_node_position_at_row(h))
         for w in range(1, self.width()):
-            path2 = self.get_path_in_pair_of_tree_from_column(w)
+            path2 = self._get_path_in_pair_of_tree_from_column(w)
             if len(path2) % 2 == 1:
-                result.append(self.get_node_position_at_column(w))
+                result.append(self._get_node_position_at_column(w))
         return result
 
     def to_tikz(self):

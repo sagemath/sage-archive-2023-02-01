@@ -403,7 +403,7 @@ class Mathematica(ExtraTabCompletion, Expect):
         Expect.__init__(self,
                         name = 'mathematica',
                         prompt = 'In[[0-9]+]:=',
-                        command = "math-readline",
+                        command = "math",
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,

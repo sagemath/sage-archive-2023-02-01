@@ -3716,7 +3716,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.min_spanning_tree(algorithm="Prim_Boost")
             Traceback (most recent call last):
             ...
-            ValueError: The weight function cannot find the weight of (1, 2, 'a').
+            ValueError: could not convert string to float: a
             sage: g.min_spanning_tree(algorithm="Prim_fringe")
             Traceback (most recent call last):
             ...
@@ -3732,7 +3732,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.min_spanning_tree(algorithm="Kruskal_Boost")
             Traceback (most recent call last):
             ...
-            ValueError: The weight function cannot find the weight of (1, 2, 'a').
+            ValueError: could not convert string to float: a
             sage: g.min_spanning_tree(algorithm="NetworkX")
             Traceback (most recent call last):
             ...
@@ -3743,7 +3743,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.min_spanning_tree(algorithm="Prim_Boost")
             Traceback (most recent call last):
             ...
-            ValueError: The weight function cannot find the weight of (1, 2, [1, 2, 3]).
+            TypeError: float() argument must be a string or a number
             sage: g.min_spanning_tree(algorithm="Prim_fringe")
             Traceback (most recent call last):
             ...
@@ -3759,7 +3759,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.min_spanning_tree(algorithm="Kruskal_Boost")
             Traceback (most recent call last):
             ...
-            ValueError: The weight function cannot find the weight of (1, 2, [1, 2, 3]).
+            TypeError: float() argument must be a string or a number
             sage: g.min_spanning_tree(algorithm="NetworkX")
             Traceback (most recent call last):
             ...
@@ -15454,7 +15454,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.shortest_paths(0, by_weight=True)
             Traceback (most recent call last):
             ...
-            ValueError: The graph contains a negative cycle.
+            ValueError: the graph contains a negative cycle
 
         TESTS:
 
@@ -15479,7 +15479,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.shortest_paths(0, algorithm='Dijkstra_Boost', by_weight=True)
             Traceback (most recent call last):
             ...
-            ValueError: Dijkstra algorithm does not work with negative weights. Please, use Bellman-Ford.
+            RuntimeError: Dijkstra algorithm does not work with negative weights. Use Bellman-Ford instead
             sage: D.shortest_paths(0, algorithm='Dijkstra_NetworkX', by_weight=True)
             Traceback (most recent call last):
             ...
@@ -15697,7 +15697,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.shortest_path_lengths(0, weight_function=weight_function)
             Traceback (most recent call last):
             ...
-            ValueError: The graph contains a negative cycle.
+            ValueError: the graph contains a negative cycle
 
         Checking that distances are equal regardless of the algorithm used::
 
@@ -15988,8 +15988,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.shortest_path_all_pairs(algorithm="Dijkstra_Boost", by_weight=True)
             Traceback (most recent call last):
             ...
-            ValueError: Dijkstra algorithm does not work with negative weights. Please, use Bellman-Ford.
-
+            RuntimeError: Dijkstra algorithm does not work with negative weights. Use Bellman-Ford instead
         """
         if default_weight is not None:
             deprecation(18938, "Variable default_weight is deprecated: hence," +

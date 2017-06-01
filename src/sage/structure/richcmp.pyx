@@ -99,7 +99,7 @@ cdef slot_tp_richcompare(self, other, int op):
 def richcmp_method(cls):
     """
     Class decorator to implement rich comparions using the special
-    mtehod ``__richcmp__`` (analogous to Cython) instead of the 6
+    method ``__richcmp__`` (analogous to Cython) instead of the 6
     methods ``__eq__`` and friends.
 
     This changes the class in-place and returns the given class.

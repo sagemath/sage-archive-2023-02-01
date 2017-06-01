@@ -2086,13 +2086,15 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         - ``y`` -- the end vertex in the shortest path from ``x`` to ``y``.
 
-        - ``distance_flag`` -- flag to indicate whether shortest path or distance 
-          from ``x`` to ``y``  is returned. If true, distance is returned.
+        - ``distance_flag`` -- boolean (default: ``False``). When set to 
+          ``True``, the shortest path distance from ``x`` to ``y`` is 
+          returned instead of the path.
 
         OUTPUT:
 
         - A list of vertices in the shortest path from ``x`` to ``y`` or 
-          integer specifying the distance from ``x`` to ``y``.
+          distance from ``x`` to ``y`` is returned depending upon the value
+          of parameter ``distance_flag``
 
         EXAMPLES::
 
@@ -2230,13 +2232,14 @@ cdef class CGraphBackend(GenericGraphBackend):
           ``(u, v, l)`` and outputs its weight. If ``None``, we use
           the edge label ``l`` as a weight.
 
-        - ``distance_flag`` -- flag to indicate whether shortest path or distance 
-          from ``x`` to ``y``  is returned. If true, distance is returned.
+        - ``distance_flag`` -- boolean (default: ``False``). When set to ``True``, 
+          the shortest path distance from ``x`` to ``y`` is returned instead of the path.
 
         OUTPUT:
 
         - A list of vertices in the shortest path from ``x`` to ``y`` or 
-          integer specifying the distance from ``x`` to ``y``.
+          distance from ``x`` to ``y`` is returned depending upon the value
+          of parameter ``distance_flag``
 
         EXAMPLES::
 
@@ -2246,12 +2249,12 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: G.shortest_path(0, 1, by_weight=True)
             [0, 1]
             sage: G.shortest_path_length(0, 1, by_weight=True)
-            1.0
+            1
             sage: G = DiGraph([(1,2,{'weight':1}), (1,3,{'weight':5}), (2,3,{'weight':1})])
             sage: G.shortest_path(1, 3, weight_function=lambda e:e[2]['weight'])
             [1, 2, 3]
             sage: G.shortest_path_length(1, 3, weight_function=lambda e:e[2]['weight'])
-            2.0
+            2
 
         TEST:
 
@@ -2259,7 +2262,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
             sage: G = Graph([(0,1,9),(0,2,8),(1,2,7)])
             sage: G.shortest_path_length(0,1,by_weight=True)
-            9.0
+            9
         """
         if x == y:
             return 0
@@ -2280,10 +2283,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef int v = 0
         cdef int w = 0
         cdef int pred
-        cdef float distance
-        cdef float edge_label
         cdef int side
-        cdef float f_tmp
 
         # Each vertex knows its predecessors in the search, for each side
         cdef dict pred_x = {}
@@ -2310,7 +2310,6 @@ cdef class CGraphBackend(GenericGraphBackend):
         # which defines the shortest path found
         # (of length shortest_path_length).
         cdef int meeting_vertex = -1
-        cdef float shortest_path_length
 
         if weight_function is None:
             weight_function = lambda e:e[2]
@@ -2397,13 +2396,16 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         - ``cutoff`` -- maximal distance. Longer paths will not be returned.
 
-        - ``distance_flag`` -- flag to indicate whether shortest path or distance 
-          is returned for each vertex u. If true, distance is returned.
+        - ``distance_flag`` -- boolean (default: ``False``). When set to 
+          ``True``, each vertex ``u`` connected to ``v`` is mapped to shortest path 
+          distance from ``v`` to ``u`` instead of the shortest path in the output
+          dictionary.
 
         OUTPUT:
 
-        - A dictionary which associates to each vertex ``u`` the shortest path list
-          or distance from ``v`` to ``u`` if they are connected to each other.
+        - A dictionary which maps each vertex ``u`` connected to ``v`` to the 
+          shortest path list or distance from ``v`` to ``u`` depending upon the value
+          of parameter ``distance_flag``
 
         .. NOTE::
 

@@ -13410,7 +13410,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.distance(0, 3)
             2
             sage: G.distance(0, 3, by_weight=True)
-            3.0
+            3
         """
         return self.shortest_path_length(u, v, by_weight = by_weight)
 
@@ -15202,7 +15202,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.shortest_path_length(4, 9, algorithm='Dijkstra_Bid_NetworkX')
             5
             sage: D.shortest_path_length(4, 9, algorithm='Dijkstra_Bid')
-            5.0
+            5
             sage: D.shortest_path_length(4, 9, algorithm='Bellman-Ford_Boost')
             5
             sage: D.shortest_path_length(5, 5)
@@ -15215,7 +15215,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.shortest_path_length(0, 3)
             2
             sage: G.shortest_path_length(0, 3, by_weight=True)
-            3.0
+            3
             sage: G.shortest_path_length(0, 3, by_weight=True, algorithm='Dijkstra_NetworkX')
             3
             sage: G.shortest_path_length(0, 3, by_weight=True, algorithm='Dijkstra_Bid_NetworkX')
@@ -15237,7 +15237,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.shortest_path_length(0, 2, by_weight=True, algorithm='Bellman-Ford_Boost')
             -1000
             sage: G.shortest_path_length(0, 2, by_weight=True)
-            2.0
+            2
         """
         if weight_sum is not None:
             deprecation(18938, "Now weight_sum is replaced by by_weight.")

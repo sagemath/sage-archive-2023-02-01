@@ -221,7 +221,7 @@ def richcmp_by_eq_and_lt(eq_attr, lt_attr):
     - ``self`` -- objects having methods ``eq_attr`` and ``lt_attr``
 
     - ``other`` -- arbitrary object. If it does have ``eq_attr`` and
-      ``lt_attr`` methods, those are used for the comparison. Otherwise,
+      ``lt_attr`` methods, these are used for the comparison. Otherwise,
       the comparison is undefined.
 
     - ``op`` -- a rich comparison operation (e.g. ``op_EQ``)
@@ -308,14 +308,14 @@ def richcmp_by_eq_and_lt(eq_attr, lt_attr):
                 return NotImplemented
 
         # Check equality first if needed
-        if op != op_LT and op != op_GT:
+        if op != Py_LT and op != Py_GT:
             if equal_types:
                 other_eq = getattr(other, eq_attr)
             if other_eq(self):
                 return rich_to_bool(op, 0)
-            if op == op_EQ:
+            if op == Py_EQ:
                 return False
-            if op == op_NE:
+            if op == Py_NE:
                 return True
 
         if op == Py_LT or op == Py_LE:

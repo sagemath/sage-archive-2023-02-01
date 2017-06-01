@@ -1424,4 +1424,3 @@ class MultiCoordFunction(SageObject):
         det = mat_expr.det() # the unsimplified determinant
         func = self._functions[0]
         return type(func)(func.parent(), func._simplify(det))
-

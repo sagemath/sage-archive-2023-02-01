@@ -1363,13 +1363,15 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
         # IMPORTANT: make it sure that pivot polynomials monic
         # so that we get a unique hnf. Here the hermite form
         # algorithm also makes the pivots monic.
-        mat._reversed_hermite_form_euclidean()
 
-        # remove zero rows
+        # compute the reverse hermite form with zero rows deleted
+        mat.reverse_rows_and_columns()
+        mat._hermite_form_euclidean()
+        mat.reverse_rows_and_columns()
         i = 0
         while i < mat.nrows() and mat.row(i).is_zero():
             i += 1
-        hnf = mat[i:]
+        hnf = mat[i:] # remove zero rows
 
         return FunctionFieldIdeal_global(self, hnf, d)
 
@@ -2197,7 +2199,17 @@ class FunctionFieldMaximalOrderInfinite_global(FunctionFieldMaximalOrderInfinite
             k = MS.identity_matrix()
             while True:
                 k = x * k
-                h2 = block_matrix([[h],[k]]).hermite_form_reversed(include_zero_rows=False)
+
+                # h2 = block_matrix([[h],[k]]).hermite_form_reversed(include_zero_rows=False)
+                h2 = block_matrix([[h],[k]])
+                h2.reverse_rows_and_columns()
+                h2._hermite_form_euclidean()
+                h2.reverse_rows_and_columns()
+                i = 0
+                while i < h2.nrows() and h2.row(i).is_zero():
+                    i += 1
+                h2 = h2[i:] # remove zero rows
+
                 if h2 == h1:
                     break
                 h1 = h2

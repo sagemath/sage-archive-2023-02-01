@@ -2302,9 +2302,12 @@ class FunctionField_global_integral(FunctionField_global):
         # dramatically increases the time it takes to get hermite_form_reversed...
         _mat = matrix([[c.numerator() for c in l*v] for v in reversed(basis_V)])
 
-        mat = _mat.hermite_form_reversed(include_zero_rows=False)
+        # compute the reversed hermite form
+        _mat.reverse_rows_and_columns()
+        _mat._hermite_form_euclidean()
+        _mat.reverse_rows_and_columns()
 
-        basis = [fr_V(v) / l for v in mat]
+        basis = [fr_V(v) / l for v in _mat if not v.is_zero()]
         return FunctionFieldMaximalOrder_global(self, basis)
 
     @cached_method
@@ -3256,3 +3259,5 @@ class RationalFunctionField_global(RationalFunctionField):
         """
         from .maps import FunctionFieldCompletion_global
         return FunctionFieldCompletion_global(self, place, name=name, prec=prec, gen_name=gen_name)
+
+

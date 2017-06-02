@@ -41,14 +41,18 @@ REFERENCES:
 .. [LaZv04] S. Lando and A. Zvonkine, "Graphs on surfaces and their
             applications", Springer-Verlag, 2004.
 """
-# *************************************************************************
-# Copyright (C) 2015-2016 Vincent Delecroix <20100.delecroix@gmail.com>
-#                         Frederic Chapoton <fchapoton2@gmail.com>
+
+#*****************************************************************************
+#       Copyright (C) 2015-2016 Vincent Delecroix <20100.delecroix@gmail.com>
+#                               Frederic Chapoton <fchapoton2@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#  The full text of the GPL is available at http://www.gnu.org/licenses/
-# *************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from six.moves import range
 from six import integer_types
 
@@ -56,8 +60,8 @@ from sage.structure.element import parent
 from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.sage_object import (op_NE, op_EQ, richcmp_not_equal,
-                                        rich_to_bool)
+from sage.structure.richcmp import (op_NE, op_EQ, richcmp_not_equal,
+                                    rich_to_bool)
 
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.rings.integer import Integer

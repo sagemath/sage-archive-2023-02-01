@@ -85,7 +85,8 @@ import operator
 cdef dict operator_dict = operator.__dict__
 from operator import add, sub, mul, div, truediv, iadd, isub, imul, idiv
 
-from .sage_object cimport SageObject, rich_to_bool
+from .richcmp cimport rich_to_bool
+from .sage_object cimport SageObject
 from .parent cimport Set_PythonType, Parent_richcmp_element_without_coercion
 from .element cimport bin_op_exception, parent, Element
 from .coerce_actions import LeftModuleAction, RightModuleAction, IntegerMulAction
@@ -1806,7 +1807,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         EXAMPLES::
 
             sage: from sage.structure.element import get_coercion_model
-            sage: from sage.structure.sage_object import op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE
+            sage: from sage.structure.richcmp import op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE
             sage: richcmp = get_coercion_model().richcmp
             sage: richcmp(None, None, op_EQ)
             True

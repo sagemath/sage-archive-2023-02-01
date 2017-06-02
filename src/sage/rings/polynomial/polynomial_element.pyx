@@ -67,7 +67,7 @@ from sage.misc.latex import latex
 from sage.misc.long cimport pyobject_to_long
 from sage.structure.factorization import Factorization
 from sage.structure.element import coerce_binop
-from sage.structure.sage_object cimport (richcmp, richcmp_not_equal,
+from sage.structure.richcmp cimport (richcmp, richcmp_not_equal,
         rich_to_bool, rich_to_bool_sgn)
 
 from sage.interfaces.singular import singular as singular_default, is_SingularElement

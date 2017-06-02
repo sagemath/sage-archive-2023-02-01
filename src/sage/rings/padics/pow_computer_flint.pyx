@@ -11,7 +11,7 @@ from sage.libs.flint.fmpz_vec cimport *
 from sage.libs.flint.fmpz cimport fmpz_init, fmpz_one, fmpz_mul, fmpz_set, fmpz_get_mpz, fmpz_clear, fmpz_pow_ui, fmpz_set_mpz, fmpz_fdiv_q_2exp
 
 from cpython.object cimport Py_EQ, Py_NE
-from sage.structure.sage_object cimport richcmp_not_equal
+from sage.structure.richcmp cimport richcmp_not_equal
 from sage.rings.integer cimport Integer
 from sage.rings.all import ZZ
 from sage.rings.polynomial.polynomial_integer_dense_flint cimport Polynomial_integer_dense_flint

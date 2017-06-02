@@ -61,7 +61,8 @@ from sage.rings.finite_rings.finite_field_base cimport FiniteField
 from sage.rings.ring cimport Ring
 from .element_ext_pari import FiniteField_ext_pariElement
 from .element_pari_ffelt cimport FiniteFieldElement_pari_ffelt
-from sage.structure.sage_object cimport SageObject, richcmp
+from sage.structure.richcmp cimport richcmp
+from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, ModuleElement, RingElement
 import operator
 import sage.arith.all

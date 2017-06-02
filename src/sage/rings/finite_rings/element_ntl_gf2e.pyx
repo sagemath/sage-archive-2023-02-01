@@ -25,8 +25,9 @@ include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
 from cypari2.paridecl cimport *
 
-from sage.structure.sage_object cimport (SageObject, richcmp,
-                                         richcmp_not_equal, rich_to_bool)
+from sage.structure.richcmp cimport (richcmp,
+                                     richcmp_not_equal, rich_to_bool)
+from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, ModuleElement, RingElement
 
 from sage.structure.parent cimport Parent

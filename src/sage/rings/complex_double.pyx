@@ -84,7 +84,7 @@ cimport sage.rings.integer
 from sage.structure.element cimport RingElement, Element, ModuleElement, FieldElement
 from sage.structure.parent  cimport Parent
 from sage.structure.parent_gens import ParentWithGens
-from sage.structure.sage_object cimport rich_to_bool
+from sage.structure.richcmp cimport rich_to_bool
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 

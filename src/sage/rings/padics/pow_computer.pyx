@@ -35,7 +35,7 @@ AUTHORS:
 import weakref
 from sage.rings.infinity import infinity
 from sage.libs.gmp.mpz cimport *
-from sage.structure.sage_object cimport richcmp_not_equal, richcmp
+from sage.structure.richcmp cimport richcmp_not_equal, richcmp
 from cpython.object cimport Py_EQ, Py_NE
 
 from sage.ext.stdsage cimport PY_NEW

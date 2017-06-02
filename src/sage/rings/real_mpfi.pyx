@@ -256,7 +256,7 @@ from sage.libs.gmp.mpz cimport *
 cimport sage.rings.ring
 cimport sage.structure.element
 from sage.structure.element cimport RingElement, Element, ModuleElement
-from sage.structure.sage_object cimport richcmp
+from sage.structure.richcmp cimport richcmp
 
 cimport sage.rings.real_mpfr as real_mpfr
 from .real_mpfr cimport RealField_class, RealNumber, RealField

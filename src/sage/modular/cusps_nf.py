@@ -86,7 +86,7 @@ from six import integer_types
 
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element, is_InfinityElement
-from sage.structure.sage_object import richcmp, rich_to_bool
+from sage.structure.richcmp import richcmp, rich_to_bool
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias

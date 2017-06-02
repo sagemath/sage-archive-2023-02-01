@@ -35,7 +35,7 @@ from sage.rings.infinity import is_Infinite, Infinity
 
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element, is_InfinityElement
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 
 from sage.modular.modsym.p1list import lift_to_sl2z_llong
 from sage.matrix.matrix import is_Matrix

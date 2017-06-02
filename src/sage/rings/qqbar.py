@@ -510,10 +510,11 @@ import operator
 import sage.rings.ring
 from sage.misc.fast_methods import Singleton
 from sage.misc.cachefunc import cached_method
-from sage.structure.sage_object import (SageObject, richcmp,
-                                        rich_to_bool, richcmp_not_equal,
-                                        op_EQ, op_NE, op_LE, op_LT,
-                                        op_GE, op_GT)
+from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import (richcmp,
+                                    rich_to_bool, richcmp_not_equal,
+                                    op_EQ, op_NE, op_LE, op_LT,
+                                    op_GE, op_GT)
 from sage.rings.real_mpfr import RR
 from sage.rings.real_mpfi import RealIntervalField, RIF, is_RealIntervalFieldElement, RealIntervalField_class
 from sage.rings.complex_field import ComplexField

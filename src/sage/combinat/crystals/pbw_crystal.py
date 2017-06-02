@@ -26,7 +26,7 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.root_system.cartan_type import CartanType

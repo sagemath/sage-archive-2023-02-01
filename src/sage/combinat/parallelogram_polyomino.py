@@ -2390,7 +2390,7 @@ class ParallelogramPolyomino(ClonableList):
         r"""
         Return the tikz code of the diagramme representing ``self``.
 
-        TEST::
+        TESTS::
 
             sage: pp = ParallelogramPolyomino(
             ....:     [[0, 0, 1, 0, 0, 0, 1, 1], [1, 0, 1, 1, 0, 0, 0, 0]]
@@ -2482,7 +2482,7 @@ class ParallelogramPolyomino(ClonableList):
 
         See :meth:`ParallelogramPolyomino.bounce_path` for more information about the bounce.
 
-        TEST::
+        TESTS::
 
             sage: pp = ParallelogramPolyomino(
             ....:     [[0, 0, 0, 1, 1, 0, 1, 1], [1, 0, 1, 1, 0, 1, 0, 0]]
@@ -2849,8 +2849,8 @@ class ParallelogramPolyomino(ClonableList):
 
     def _get_path_in_pair_of_tree_from_box(self, box, direction):
         r"""
-        When we draw the bounding path from ``box`̀̀̀` to the top-left cell of 
-        ``self̀``, the path is bounding in some cells that are nodes in the 
+        When we draw the bounding path from ``box`` to the top-left cell of 
+        ``self``, the path is bounding in some cells that are nodes in the 
         ordered tree of the Boussicault-Socci bijection. This function returns
         the path of the bounding path inside the ordered tree.
 
@@ -2872,7 +2872,7 @@ class ParallelogramPolyomino(ClonableList):
     def _get_path_in_pair_of_tree_from_row(self, line):
         r"""
         When we draw the bounding path from the right-most cell of line to the 
-        top-left cell of ``self̀``, the path is bounding in some cells that are 
+        top-left cell of ``self``, the path is bounding in some cells that are 
         nodes in the ordered tree of the Boussicault-Socci bijection. 
         This function returns the path of the bounding path inside the ordered 
         tree.
@@ -2887,7 +2887,7 @@ class ParallelogramPolyomino(ClonableList):
     def _get_path_in_pair_of_tree_from_column(self, column):
         r"""
         When we draw the bounding path from the right-most cell of column to the 
-        top-left cell of ``self̀``, the path is bounding in some cells that are 
+        top-left cell of ``self``, the path is bounding in some cells that are 
         nodes in the ordered tree of the Boussicault-Socci bijection. 
         This function returns the path of the bounding path inside the ordered 
         tree.

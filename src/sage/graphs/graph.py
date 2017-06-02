@@ -1834,6 +1834,48 @@ class Graph(GenericGraph):
         return True
 
     @doc_index("Graph properties")
+    def is_block_graph(self):
+        r"""
+        Return whether this graph is a block graph.
+
+        A block graph is a connected graph in which every biconnected component
+        (block) is a clique.
+
+        .. SEEALSO::
+
+            - :wikipedia:`Block_graph` for more details on these graphs
+            - :meth:`~sage.graphs.graph_generators.GraphGenerators.RandomBlockGraph`
+              -- generator of random block graphs
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.blocks_and_cut_vertices`
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.blocks_and_cuts_tree`
+
+
+        EXAMPLES::
+
+            sage: G = graphs.RandomBlockGraph(6, 2, kmax=4)
+            sage: G.is_block_graph()
+            True
+            sage: from sage.graphs.isgci import graph_classes
+            sage: G in graph_classes.Block
+            True
+            sage: graphs.CompleteGraph(4).is_block_graph()
+            True
+            sage: graphs.RandomTree(6).is_block_graph()
+            True
+            sage: graphs.PetersenGraph().is_block_graph()
+            False
+            sage: Graph(4).is_block_graph()
+            False
+        """
+        if not self.is_connected():
+            return False
+        if self.is_clique():
+            return True
+
+        B,C = self.blocks_and_cut_vertices()
+        return all(self.is_clique(vertices=block) for block in B)
+
+    @doc_index("Graph properties")
     def is_apex(self):
         """
         Test if the graph is apex.

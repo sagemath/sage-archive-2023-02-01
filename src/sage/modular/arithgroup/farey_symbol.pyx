@@ -24,8 +24,7 @@ from __future__ import absolute_import, division
 
 from cpython.object cimport PyObject_RichCompare
 from itertools import groupby
-
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.libs.gmpxx cimport *
 

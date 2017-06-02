@@ -131,7 +131,7 @@ class Function_zeta(GinacFunction):
             sage: zeta(SR(1.0))
             Infinity
         """
-        GinacFunction.__init__(self, "zeta")
+        GinacFunction.__init__(self, 'zeta', conversions={'giac':'Zeta'})
 
 zeta = Function_zeta()
 

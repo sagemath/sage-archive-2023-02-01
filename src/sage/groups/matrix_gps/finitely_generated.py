@@ -1099,26 +1099,60 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: G.reynolds_operator(f, chi)
             1/8*x^3*y - 1/8*x*y^3 + 1/8*y^3*z - 1/8*y*z^3 - 1/8*x^3*w + 1/8*z^3*w +
             1/8*x*w^3 - 1/8*z*w^3
+
+         ::
+
+            sage: K.<i> = CyclotomicField(4)
+            sage: Tetra =  MatrixGroup([(-1+i)/2,(-1+i)/2, (1+i)/2,(-1-i)/2], [0,i, -i,0])
+            sage: L.<v> = QuadraticField(5)
+            sage: R.<x,y> = L[]
+            sage: Tetra.reynolds_operator(x^4)
+            0
         """
         if poly.parent().ngens() != self.degree():
             raise TypeError("number of variables in polynomial must match size of matrices")
         R = FractionField(poly.base_ring())
+        C = FractionField(self.base_ring())
         if chi is None: #then this is the trivial character
-            if R.characteristic() == 0 or (not R.characteristic().divides(self.order())):
+            if R.characteristic() == 0:
                 #non-modular case
-                F = 0
-                for g in self:
-                    F += poly(*g.matrix()*vector(poly.parent().gens()))
-                F /= self.order()
-                return F
+                if C == QQbar or R == QQbar:
+                    L = QQbar
+                elif not C.is_absolute() or not R.is_absolute():
+                    raise NotImplementedError("only implemented for absolute fields")
+                else:
+                        fields = []
+                        for M in [R,C]:
+                            if M.absolute_degree() != 1:
+                                fields.append(M)
+                            l = len(fields)
+                            if l == 0:
+                                # all are QQ
+                                L = R
+                            elif l == 1:
+                                #only one is an extension
+                                L = fields[0]
+                            else:
+                                #only two are extensions
+                                L = fields[0].composite_fields(fields[1])[0]
+            elif not R.characteristic().divides(self.order()):
+                L = R
+            else:
+                raise NotImplementedError("only implemented for this characteristic")
+            poly = poly.change_ring(L)
+            poly_gens = vector(poly.parent().gens())
+            F = 0
+            for g in self:
+                F += poly(*g.matrix()*vector(poly.parent().gens()))
+            F /= self.order()
+            return F
         #non-trivial character case
         K = chi.values()[0].parent()
-        C = FractionField(self.base_ring())
         if R.characteristic() == 0:
             #extend base_ring to compositum
             if C == QQbar or K == QQbar or R == QQbar:
                 L = QQbar
-            elif  not C.is_absolute() or not K.is_absolute() or not R.is_absolute():
+            elif not C.is_absolute() or not K.is_absolute() or not R.is_absolute():
                 raise NotImplementedError("only implemented for absolute fields")
             else:
                 fields = []

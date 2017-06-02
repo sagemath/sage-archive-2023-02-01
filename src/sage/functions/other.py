@@ -2183,6 +2183,22 @@ class Function_real_part(GinacFunction):
             sage: real(complex(3, 4))
             3.0
 
+        Sage can recognize some expressions as real and accordingly
+        return the identical argument::
+
+            sage: SR.var('x', domain='integer').real_part()
+            x
+            sage: SR.var('x', domain='integer').imag_part()
+            0
+            sage: real_part(sin(x)+x)
+            x + sin(x)
+            sage: real_part(x*exp(x))
+            x*e^x
+            sage: imag_part(sin(x)+x)
+            0
+            sage: real_part(real_part(x))
+            x
+
         TESTS::
 
             sage: loads(dumps(real_part))

@@ -1995,6 +1995,18 @@ cdef class Expression(CommutativeRingElement):
             sage: x.is_real()
             True
             sage: forget()
+
+        The real domain is also set with the integer domain::
+
+            sage: SR.var('x', domain='integer').is_real()
+            True
+
+        TESTS:
+
+        Check that :trac:`23093` is fixed::
+
+            sage: sqrt(-2).is_real()
+            False
         """
         return self._gobj.info(info_real)
 

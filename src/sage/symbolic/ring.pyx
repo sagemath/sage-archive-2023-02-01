@@ -765,6 +765,11 @@ cdef class SymbolicRing(CommutativeRing):
             sage: zz.is_real()
             True
 
+        The real domain is also set with the integer domain::
+
+            sage: SR.var('x', domain='integer').is_real()
+            True
+
         The ``name`` argument does not have to match the left-hand side variable::
 
             sage: t = SR.var('theta2'); t

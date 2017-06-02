@@ -113,6 +113,8 @@ static ex real_part_evalf(const ex & arg, PyObject* parent)
 
 static ex real_part_eval(const ex & arg)
 {
+        if (arg.info(info_flags::real))
+                return arg;
         ex pat = pow(wild(1), wild(2));
         lst l;
         if (arg.find(pat, l))
@@ -177,6 +179,8 @@ static ex imag_part_evalf(const ex & arg, PyObject* parent)
 
 static ex imag_part_eval(const ex & arg)
 {
+        if (arg.info(info_flags::real))
+                return _ex0;
         ex pat = pow(wild(1), wild(2));
         lst l;
         if (arg.find(pat, l))

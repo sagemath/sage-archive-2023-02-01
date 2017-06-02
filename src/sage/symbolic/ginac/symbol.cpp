@@ -195,7 +195,6 @@ void symbol::set_domain(unsigned d)
                         else {
                                 iflags.set(info_flags::integer, false);
                         }
-                        break;
                         if(iflags.get(info_flags::even)) {
                                 iflags.set(info_flags::even, true);
                         }
@@ -213,7 +212,6 @@ void symbol::set_domain(unsigned d)
                         else {
                                 iflags.set(info_flags::integer, false);
                         }
-                        break;
                         if(iflags.get(info_flags::even)) {
                                 iflags.set(info_flags::even, true);
                         }
@@ -222,13 +220,14 @@ void symbol::set_domain(unsigned d)
                         }
                         break;
                 case domain::integer:
+                        iflags.set(info_flags::real, true);
+                        iflags.set(info_flags::integer, true);
                         if(iflags.get(info_flags::positive)) {
                                 iflags.set(info_flags::positive, true);
                         }
                         else {
                                 iflags.set(info_flags::positive, false);
                         }
-                        iflags.set(info_flags::integer, true);
                         if(iflags.get(info_flags::even)) {
                                 iflags.set(info_flags::even, true);
                         }

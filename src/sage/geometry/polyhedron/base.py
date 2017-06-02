@@ -5754,13 +5754,6 @@ class Polyhedron_base(Element):
         depending on the parameter ``as_affine_map``.
 
 
-        NOTE:
-
-        If the parameter ``orthonormal`` is ``True``, the resulting polytope
-        might have a different base ring then the input. See the examples
-        for cases of this behaviour
-
-
         .. TODO:
 
          - make the parameters ``orthogonal`` and ``orthonormal`` work with unbounded polyhedra.
@@ -5846,7 +5839,7 @@ class Polyhedron_base(Element):
             sage: P.vertices()
             (A vertex at (0, 0), A vertex at (sqrt2, sqrt2))
             sage: A = P.affine_hull(orthonormal=True); A
-            A 1-dimensional polyhedron in ZZ^1 defined as the convex hull of 2 vertices
+            A 1-dimensional polyhedron in (Number Field in sqrt2 with defining polynomial x^2 - 2)^1 defined as the convex hull of 2 vertices
             sage: A.vertices()
             (A vertex at (0), A vertex at (2))
             sage: K.<sqrt3> = QuadraticField(3)
@@ -5985,7 +5978,7 @@ class Polyhedron_base(Element):
             # check that translation didn't change the order of the vertices
             assert v.vector() == Q.ambient_space().zero()
             # choose as an affine basis the neighbors of the origin vertex in Q
-            M = matrix([list(w) for w in itertools.islice(v.neighbors(), self.dim())])
+            M = matrix(self.base_ring(), [list(w) for w in itertools.islice(v.neighbors(), self.dim())])
             # switch base_ring to AA if neccessary,
             # since gram_schmidt needs to be able to take square roots.
             # Pick orthonormal basis and transform all vertices accordingly
@@ -5999,7 +5992,7 @@ class Polyhedron_base(Element):
                 A = M.gram_schmidt(orthonormal=orthonormal)[0]
             if as_affine_map:
                 return linear_transformation(A, side='right'), -A*vector(A.base_ring(), self.vertices()[0])
-            return Polyhedron([A*vector(A.base_ring(), v) for v in Q.vertices()])
+            return Polyhedron([A*vector(A.base_ring(), v) for v in Q.vertices()], base_ring=A.base_ring())
 
         # translate one vertex to the origin
         v0 = self.vertices()[0].vector()

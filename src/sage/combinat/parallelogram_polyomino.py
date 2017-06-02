@@ -15,18 +15,17 @@ parallelogram polyominoes.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 from six.moves import range
+from six import add_metaclass
 
 from sage.structure.list_clone import ClonableList
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.set_factories import (
-    SetFactory, ParentWithSetFactory, TopMostParentPolicy
-)
+from sage.structure.set_factories import (SetFactory, ParentWithSetFactory,
+                                          TopMostParentPolicy)
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.sets.set import Set
 from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.sets.disjoint_union_enumerated_sets \
-    import DisjointUnionEnumeratedSets
+from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.rings.integer import Integer
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.sets.family import Family
@@ -796,6 +795,7 @@ class _drawing_tool:
         )
 
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class ParallelogramPolyomino(ClonableList):
     r"""
     Parallelogram Polyominoes.
@@ -813,8 +813,6 @@ class ParallelogramPolyomino(ClonableList):
         sage: pp
         [[0, 1], [1, 0]]
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
         r"""

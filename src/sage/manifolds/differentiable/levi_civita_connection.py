@@ -255,7 +255,7 @@ class LeviCivitaConnection(AffineConnection):
         r"""
         Initialize the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(5, 'M')
             sage: g = M.metric('g')
@@ -269,7 +269,7 @@ class LeviCivitaConnection(AffineConnection):
         r"""
         Delete the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(5, 'M')
             sage: g = M.metric('g')

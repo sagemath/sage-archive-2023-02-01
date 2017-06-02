@@ -1058,18 +1058,18 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         r"""
         Return `(Q,k)` where `p^kQ` == self and `Q` cannot be divided by `p`.
 
-        ..WARNING:
+        .. WARNING::
 
-        It is up to the caller to make sure that this does not loop
-        endlessly.  It is used in
-        ``EllipticCurve_generic._p_primary_torsion_basis()``, when
-        self will always have (finite) order which is a power of `p`,
-        so that the order of `Q` increases by a factor of `p` at each
-        stage.
+            It is up to the caller to make sure that this does not loop
+            endlessly.  It is used in
+            ``EllipticCurve_generic._p_primary_torsion_basis()``, when
+            self will always have (finite) order which is a power of `p`,
+            so that the order of `Q` increases by a factor of `p` at each
+            stage.
 
-        Since it will clearly be in danger of looping when
-        self.is_zero(), this case is caught, but otherwise caveat
-        user.
+            Since it will clearly be in danger of looping when
+            self.is_zero(), this case is caught, but otherwise caveat
+            user.
 
         EXAMPLES::
 
@@ -1256,7 +1256,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             ...
             ValueError: Q must be nonzero.
 
-        ..NOTES:
+        .. NOTE::
 
             This function is used in _miller_ algorithm.
 

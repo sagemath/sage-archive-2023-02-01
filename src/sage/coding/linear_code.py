@@ -176,7 +176,7 @@ AUTHORS:
 - Kwankyu Lee (2010-01): added methods generator_matrix_systematic, information_set, and
   magma interface for linear codes.
 
-- Niles Johnson (2010-08): :trac:`#3893`: ``random_element()`` should pass on ``*args`` and ``**kwds``.
+- Niles Johnson (2010-08): :trac:`3893`: ``random_element()`` should pass on ``*args`` and ``**kwds``.
 
 - Thomas Feulner (2012-11): :trac:`13723`: deprecation of ``hamming_weight()``
 
@@ -528,38 +528,38 @@ class AbstractLinearCode(Module):
 
         EXAMPLES:
 
-        This was taken from :trac:20899 (and thus ensures this method fixes what was
+        This was taken from :trac:`20899` (and thus ensures this method fixes what was
         described in this ticket).
 
         We create a new code class, its dedicated encoder
         and set appropriate parameters::
 
-        sage: from sage.coding.linear_code import AbstractLinearCode
-        sage: from sage.coding.encoder import Encoder
-        sage: class MyCode(AbstractLinearCode):
-        ....:    _registered_encoders = {}
-        ....:    _registered_decoders = {}
-        ....:    def __init__(self):
-        ....:        super(MyCode, self).__init__(GF(5), 10, "Monkey", "Syndrome")
-        ....:        self._dimension = 2
+            sage: from sage.coding.linear_code import AbstractLinearCode
+            sage: from sage.coding.encoder import Encoder
+            sage: class MyCode(AbstractLinearCode):
+            ....:    _registered_encoders = {}
+            ....:    _registered_decoders = {}
+            ....:    def __init__(self):
+            ....:        super(MyCode, self).__init__(GF(5), 10, "Monkey", "Syndrome")
+            ....:        self._dimension = 2
 
-        sage: class MonkeyEncoder(Encoder):
-        ....:    def __init__(self, C):
-        ....:        super(MonkeyEncoder, self).__init__(C)
-        ....:    @cached_method
-        ....:    def generator_matrix(self):
-        ....:        return matrix(GF(5), 2, 10, [ [1]*5 + [0]*5, [0]*5 + [1]*5 ])
-        sage: MyCode._registered_encoders["Monkey"] = MonkeyEncoder
-        sage: MyCode._registered_decoders["Syndrome"] = codes.decoders.LinearCodeSyndromeDecoder
+            sage: class MonkeyEncoder(Encoder):
+            ....:    def __init__(self, C):
+            ....:        super(MonkeyEncoder, self).__init__(C)
+            ....:    @cached_method
+            ....:    def generator_matrix(self):
+            ....:        return matrix(GF(5), 2, 10, [ [1]*5 + [0]*5, [0]*5 + [1]*5 ])
+            sage: MyCode._registered_encoders["Monkey"] = MonkeyEncoder
+            sage: MyCode._registered_decoders["Syndrome"] = codes.decoders.LinearCodeSyndromeDecoder
 
         We check we get a sensible error message while asking for a string
         representation of an instance of our new class:
 
-        sage: C = MyCode()
-        sage: C #random
-        Traceback (most recent call last):
-        ...
-        RuntimeError: Please override _repr_ in the implementation of <class '__main__.MyCode_with_category'>
+            sage: C = MyCode()
+            sage: C #random
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Please override _repr_ in the implementation of <class '__main__.MyCode_with_category'>
         """
         raise RuntimeError("Please override _repr_ in the implementation of {}".format(self.parent()))
 
@@ -573,38 +573,38 @@ class AbstractLinearCode(Module):
 
         EXAMPLES:
 
-        This was taken from :trac:20899 (and thus ensures this method fixes what was
+        This was taken from :trac:`20899` (and thus ensures this method fixes what was
         described in this ticket).
 
         We create a new code class, its dedicated encoder
         and set appropriate parameters::
 
-        sage: from sage.coding.linear_code import AbstractLinearCode
-        sage: from sage.coding.encoder import Encoder
-        sage: class MyCode(AbstractLinearCode):
-        ....:    _registered_encoders = {}
-        ....:    _registered_decoders = {}
-        ....:    def __init__(self):
-        ....:        super(MyCode, self).__init__(GF(5), 10, "Monkey", "Syndrome")
-        ....:        self._dimension = 2
+            sage: from sage.coding.linear_code import AbstractLinearCode
+            sage: from sage.coding.encoder import Encoder
+            sage: class MyCode(AbstractLinearCode):
+            ....:    _registered_encoders = {}
+            ....:    _registered_decoders = {}
+            ....:    def __init__(self):
+            ....:        super(MyCode, self).__init__(GF(5), 10, "Monkey", "Syndrome")
+            ....:        self._dimension = 2
 
-        sage: class MonkeyEncoder(Encoder):
-        ....:    def __init__(self, C):
-        ....:        super(MonkeyEncoder, self).__init__(C)
-        ....:    @cached_method
-        ....:    def generator_matrix(self):
-        ....:        return matrix(GF(5), 2, 10, [ [1]*5 + [0]*5, [0]*5 + [1]*5 ])
-        sage: MyCode._registered_encoders["Monkey"] = MonkeyEncoder
-        sage: MyCode._registered_decoders["Syndrome"] = codes.decoders.LinearCodeSyndromeDecoder
+            sage: class MonkeyEncoder(Encoder):
+            ....:    def __init__(self, C):
+            ....:        super(MonkeyEncoder, self).__init__(C)
+            ....:    @cached_method
+            ....:    def generator_matrix(self):
+            ....:        return matrix(GF(5), 2, 10, [ [1]*5 + [0]*5, [0]*5 + [1]*5 ])
+            sage: MyCode._registered_encoders["Monkey"] = MonkeyEncoder
+            sage: MyCode._registered_decoders["Syndrome"] = codes.decoders.LinearCodeSyndromeDecoder
 
         We check we get a sensible error message while asking for a string
         representation of an instance of our new class:
 
-        sage: C = MyCode()
-        sage: latex(C)
-        Traceback (most recent call last):
-        ...
-        RuntimeError: Please override _latex_ in the implementation of <class '__main__.MyCode_with_category'>
+            sage: C = MyCode()
+            sage: latex(C)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Please override _latex_ in the implementation of <class '__main__.MyCode_with_category'>
         """
         raise RuntimeError("Please override _latex_ in the implementation of {}".format(self.parent()))
 

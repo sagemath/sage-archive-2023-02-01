@@ -469,7 +469,7 @@ cdef class SetMorphism(Morphism):
         """
         Extra arguments are passed to the defining function.
 
-        TEST::
+        TESTS::
 
             sage: from sage.categories.morphism import SetMorphism
             sage: R.<x> = QQ[]

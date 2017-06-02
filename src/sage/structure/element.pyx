@@ -408,7 +408,7 @@ cdef class Element(SageObject):
         ``e.foo`` is not found in the super classes of ``e``, it's
         looked up manually in ``C.element_class`` and bound to ``e``.
 
-        .. NOTES::
+        .. NOTE::
 
             - The attribute or method is actually looked up in
               ``P._abstract_element_class``. In most cases this is

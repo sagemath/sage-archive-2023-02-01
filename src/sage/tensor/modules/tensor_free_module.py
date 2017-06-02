@@ -369,7 +369,7 @@ class TensorFreeModule(FiniteRankFreeModule):
 
     def __init__(self, fmodule, tensor_type, name=None, latex_name=None):
         r"""
-        TEST::
+        TESTS::
 
             sage: from sage.tensor.modules.tensor_free_module import TensorFreeModule
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')

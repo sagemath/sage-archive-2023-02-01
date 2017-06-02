@@ -632,7 +632,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         r"""
         Return integers `[n_1, \ldots, n_d]` such that
 
-        ..math::
+        .. MATH::
 
             \prod_{i=1}^d x_i^{n_i} = \text{self},
 

@@ -1015,8 +1015,9 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
                 entries = syms.apply(i,h)
                 for k, x in entries:
                     f, s = mod2term[k]
-                    if s != 0:
-                        W[j,f] = W[j,f] + s*K(x)
+                    if s:
+                        # W[j,f] = W[j,f] + s*K(x)
+                        W.add_to_entry(j, f, s * K(x))
             j += 1
         tm = misc.verbose("start matrix multiply",tm)
         if hasattr(W, '_matrix_times_matrix_dense'):
@@ -2884,7 +2885,7 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
             Tp = W * R
             tm = misc.verbose("done multiplying",tm)
             Tp = Tp.dense_matrix()
-            misc.verbose("done making hecke operator dense",tm)
+            misc.verbose("done making Hecke operator dense", tm)
         if rows is None:
             self._hecke_matrices[(p,rows)] = Tp
         return Tp

@@ -2921,7 +2921,7 @@ class TamariIntervalPosets_all(DisjointUnionEnumeratedSets, TamariIntervalPosets
 
     def _repr_(self):
         r"""
-        TEST::
+        TESTS::
 
             sage: TamariIntervalPosets()
             Interval-posets

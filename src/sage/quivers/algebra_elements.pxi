@@ -16,8 +16,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
+from cysignals.memory cimport check_malloc, check_allocarray, sig_free
+from cysignals.signals cimport sig_check, sig_on, sig_off
+
 include "sage/data_structures/bitset.pxi"
 
 from cpython.ref cimport *

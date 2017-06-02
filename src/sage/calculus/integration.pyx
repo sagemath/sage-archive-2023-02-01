@@ -25,7 +25,8 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
+
 from sage.libs.gsl.all cimport *
 from sage.ext.fast_eval cimport FastDoubleFunc
 

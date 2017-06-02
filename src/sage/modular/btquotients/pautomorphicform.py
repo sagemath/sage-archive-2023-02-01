@@ -2602,7 +2602,7 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
 
         INPUT:
 
-        - f -- a `p`-adic automorhpic form.
+        - f -- a `p`-adic automorphic form.
         - scale -- (default: True) whether to scale by the appropriate power of `p`
           at each iteration.
 

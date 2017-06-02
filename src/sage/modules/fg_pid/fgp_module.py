@@ -1229,7 +1229,7 @@ class FGP_Module_class(Module):
         Homomorphism defined by giving the images of ``self.gens()`` in some
         fixed fg R-module.
 
-        .. note ::
+        .. NOTE::
 
             We do not assume that the generators given by ``self.gens()`` are
             the same as the Smith form generators, since this may not be true

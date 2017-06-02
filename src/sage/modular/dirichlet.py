@@ -694,9 +694,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
             # The following code is pretty fast, at least compared to
             # the other algorithm below.  That said, I'm sure it could
             # be sped up by a factor of 10 or more in many cases,
-            # especially since we end up computing all the bernoulli
+            # especially since we end up computing all the Bernoulli
             # numbers up to k, which should be done with power series
-            # instead of calls to the bernoulli function.  Likewise
+            # instead of calls to the Bernoulli function.  Likewise
             # computing all binomial coefficients can be done much
             # more efficiently.
             v = self.values()

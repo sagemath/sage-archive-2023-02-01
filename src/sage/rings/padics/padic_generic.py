@@ -38,7 +38,7 @@ from sage.rings.integer import Integer
 from sage.rings.padics.padic_printing import pAdicPrinter
 from sage.rings.padics.precision_error import PrecisionError
 from sage.misc.cachefunc import cached_method
-from sage.structure.sage_object import richcmp_not_equal
+from sage.structure.richcmp import richcmp_not_equal
 
 
 class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):

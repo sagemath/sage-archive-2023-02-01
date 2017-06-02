@@ -477,4 +477,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             if transformation:
                 U = U[:i+1]
 
+        A.set_immutable()
+        if transformation:
+            U.set_immutable()
+
         return (A, U) if transformation else A

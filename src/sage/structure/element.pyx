@@ -997,81 +997,6 @@ cdef class Element(SageObject):
         """
         return not self
 
-    def __cmp__(self, other):
-        """
-        Compare ``left`` and ``right`` using the coercion framework.
-
-        ``self`` and ``other`` are coerced to a common parent and then
-        ``_cmp_`` and ``_richcmp_`` are tried.
-
-        EXAMPLES:
-
-        We create an ``Element`` class where we define ``_richcmp_``
-        and check that comparison works::
-
-            sage: cython('''
-            ....: from sage.structure.sage_object cimport rich_to_bool
-            ....: from sage.structure.element cimport Element
-            ....: cdef class FloatCmp(Element):
-            ....:     cdef float x
-            ....:     def __init__(self, float v):
-            ....:         self.x = v
-            ....:     cpdef _richcmp_(self, other, int op):
-            ....:         cdef float x1 = (<FloatCmp>self).x
-            ....:         cdef float x2 = (<FloatCmp>other).x
-            ....:         return rich_to_bool(op, (x1 > x2) - (x1 < x2) )
-            ....: ''')
-            sage: a = FloatCmp(1)
-            sage: b = FloatCmp(2)
-            sage: cmp(a, b)
-            -1
-            sage: b.__cmp__(a)
-            1
-            sage: a <= b, b <= a
-            (True, False)
-
-        This works despite ``_cmp_`` not being implemented::
-
-            sage: a._cmp_(b)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: comparison not implemented for <type '...FloatCmp'>
-        """
-        if have_same_parent(self, other):
-            left = self
-            right = other
-        else:
-            try:
-                left, right = coercion_model.canonical_coercion(self, other)
-            except TypeError:
-                # Compare by id()
-                if (<unsigned long><PyObject*>self) >= (<unsigned long><PyObject*>other):
-                    # It cannot happen that self is other, since they don't
-                    # have the same parent.
-                    return 1
-                else:
-                    return -1
-
-            if not isinstance(left, Element):
-                assert type(left) is type(right)
-                raise NotImplementedError("old-style comparisons are not "
-                                          "supported anymore (see "
-                                          "https://trac.sagemath.org/ticket/22981)")
-
-        # Now we have two Sage Elements with the same parent
-        try:
-            # First attempt: use _cmp_()
-            return (<Element>left)._cmp_(<Element>right)
-        except NotImplementedError:
-            # Second attempt: use _richcmp_()
-            if (<Element>left)._richcmp_(right, Py_EQ):
-                return 0
-            if (<Element>left)._richcmp_(right, Py_LT):
-                return -1
-            if (<Element>left)._richcmp_(right, Py_GT):
-                return 1
-            raise
-
     def _cache_key(self):
         """
         Provide a hashable key for an element if it is not hashable
@@ -1171,10 +1096,13 @@ cdef class Element(SageObject):
         Default three-way comparison method which only checks for a
         Python class defining ``__cmp__``.
         """
-        left_cmp = left.__cmp__
-        if isinstance(left_cmp, MethodType):
-            return left_cmp(right)
-        msg = LazyFormat("comparison not implemented for %r")%type(left)
+        try:
+            left_cmp = left.__cmp__
+            if isinstance(left_cmp, MethodType):
+                return left_cmp(right)
+        except AttributeError:
+            pass
+        msg = LazyFormat("comparison not implemented for %r") % type(left)
         raise NotImplementedError(msg)
 
     ##################################################

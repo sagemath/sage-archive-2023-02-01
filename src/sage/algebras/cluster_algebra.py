@@ -344,11 +344,13 @@ mutating at the initial seed::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 from __future__ import absolute_import
+from six.moves import range as range
+from future_builtins import map
+
 from copy import copy
 from functools import wraps
-from future_builtins import map
+
 from sage.categories.homset import Hom
 from sage.categories.morphism import SetMorphism
 from sage.categories.rings import Rings
@@ -374,7 +376,7 @@ from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.parent import Parent
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
-from six.moves import range as range
+
 
 ##############################################################################
 # Elements of a cluster algebra

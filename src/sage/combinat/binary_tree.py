@@ -4520,7 +4520,7 @@ class LabelledBinaryTrees(LabelledOrderedTrees):
 #     sage: BTsp_to_bintrees(BT.isotypes(range(5))[0])
 #     [., [., [., [., [., .]]]]]
 #     sage: def spls(size):
-#     ....:     return map(BTsp_to_bintrees, BT.isotypes(range(size)).list())
+#     ....:     return [BTsp_to_bintrees(u) for u in BT.isotypes(range(size)).list()]
 #     sage: spls(3)
 #     [[., [., [., .]]], [., [[., .], .]], [[., .], [., .]], [[., [., .]], .], [[[., .], .], .]]
 #     sage: all(spls(i) == BinaryTrees(i).list() for i in range(5))

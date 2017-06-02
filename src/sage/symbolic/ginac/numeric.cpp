@@ -1513,25 +1513,19 @@ const ex numeric::power(const numeric &exponent) const {
                 }
                 return (new GiNaC::power(*this, expo))->setflag(status_flags::dynallocated | status_flags::evaluated);
         }
-        if (t != expo.t) {
-                numeric a, b;
-                coerce(a, b, *this, exponent);
-                return pow(a, b);
+        if (t == PYOBJECT) {
+                if (exponent.t == PYOBJECT) 
+                        return numeric(PyNumber_Power(v._pyobject, exponent.v._pyobject, Py_None));
+                else
+                        return numeric(PyNumber_Power(v._pyobject, exponent.to_pyobject(), Py_None));
         }
-        if (t == MPQ) { // still a case?
-                mpq_t basis;
-                mpq_init(basis);
-                mpq_set(basis, v._bigrat);
-                PyObject *r1 = py_funcs.py_rational_from_mpq(basis);
-                PyObject *r2 = py_funcs.py_rational_from_mpq(expo.v._bigrat);
-                PyObject *r = PyNumber_Power(r1, r2, Py_None);
-                Py_DECREF(r1);
-                Py_DECREF(r2);
-                mpq_clear(basis);
-                numeric p(r, true);
-                return p;
+        if (exponent.t == PYOBJECT) {
+                if (t == PYOBJECT) 
+                        return numeric(PyNumber_Power(v._pyobject, exponent.v._pyobject, Py_None));
+                else
+                        return numeric(PyNumber_Power(to_pyobject(), exponent.v._pyobject, Py_None));
         }
-        return PyNumber_Power(v._pyobject, expo.v._pyobject, Py_None);
+        throw std::runtime_error("numeric::power: can't happen");
 }
 
 

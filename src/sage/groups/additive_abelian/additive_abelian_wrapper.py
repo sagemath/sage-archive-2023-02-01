@@ -74,7 +74,7 @@ class UnwrappingMorphism(Morphism):
 
     def _call_(self, x):
         r"""
-        TEST::
+        TESTS::
 
             sage: E = EllipticCurve("65a1")
             sage: G = E.torsion_subgroup()

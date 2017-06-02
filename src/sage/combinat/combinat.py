@@ -1341,7 +1341,7 @@ class CombinatorialClass(Parent):
         combinatorial class, use .cardinality instead.
 
 
-        TEST::
+        TESTS::
 
             sage: class C(CombinatorialClass):
             ....:     def __iter__(self):

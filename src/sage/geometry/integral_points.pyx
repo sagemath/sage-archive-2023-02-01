@@ -1,4 +1,3 @@
-#!python
 #cython: wraparound=False, boundscheck=False
 r"""
 Cython helper methods to compute integral points in polyhedra.
@@ -15,7 +14,7 @@ Cython helper methods to compute integral points in polyhedra.
 #*****************************************************************************
 from __future__ import print_function
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_check
 import copy
 import itertools
 

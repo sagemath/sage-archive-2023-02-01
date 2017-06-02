@@ -1553,7 +1553,7 @@ class PartitionTuple(CombinatorialElement):
         Therefore,  the Gram determinant of `S(2,1|2,2)` when the Hecke parameter
         `q` is "generic" is
 
-        ..math::
+        .. MATH::
 
             q^N \Phi_2(q)^{532}\Phi_3(q)^{259}\Phi_4(q)^{196}\Phi_5(q)^{105}\Phi_6(q)^{105}
 

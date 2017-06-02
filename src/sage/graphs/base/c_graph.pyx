@@ -1047,7 +1047,7 @@ cdef class CGraph:
             See http://trac.sagemath.org/20253 for details.
             0
 
-        TEST::
+        TESTS::
 
             sage: g = Graph({1: [2,5], 2: [1,5,3,4], 3: [2,5], 4: [3], 5: [2,3]}, implementation="c_graph")
             sage: g._backend.degree(5, False)

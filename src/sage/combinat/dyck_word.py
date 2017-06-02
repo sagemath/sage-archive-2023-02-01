@@ -2178,7 +2178,7 @@ class DyckWord_complete(DyckWord):
             i = j
             p += 1
 
-        if len(stack) > 0:
+        if stack:
             raise ValueError("incorrect Dyck word")
 
         return partition

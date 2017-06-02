@@ -374,7 +374,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             if V.rank() + self.rank() <= A.rank():
                 break
             p = arith.next_prime(p)
-            if p > bound:  # to avoid computing hecke bound unless necessary
+            if p > bound:  # to avoid computing Hecke bound unless necessary
                 break
 
         if V.rank() + self.rank() == A.rank():

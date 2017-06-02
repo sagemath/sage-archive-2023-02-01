@@ -32,7 +32,8 @@ from six.moves import range
 
 import itertools
 
-from sage.categories.all import AlgebrasWithBasis
+from sage.categories.algebras_with_basis import AlgebrasWithBasis
+from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.categories.rings import Rings
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModule_Tensor
 from sage.combinat.integer_lists import IntegerListsLex
@@ -248,7 +249,7 @@ class SchurAlgebra(CombinatorialFreeModule):
         CombinatorialFreeModule.__init__(self, R,
                                          schur_representative_indices(n, r),
                                          prefix='S', bracket=False,
-                                         category=AlgebrasWithBasis(R))
+                                         category=AlgebrasWithBasis(R).FiniteDimensional())
 
     def _repr_(self):
         """
@@ -434,7 +435,8 @@ class SchurTensorModule(CombinatorialFreeModule_Tensor):
         self._r = r
         self._sga = SymmetricGroupAlgebra(R, r)
         self._schur = SchurAlgebra(R, n, r)
-        CombinatorialFreeModule_Tensor.__init__(self, tuple([C] * r))
+        cat = ModulesWithBasis(R).TensorProducts().FiniteDimensional()
+        CombinatorialFreeModule_Tensor.__init__(self, tuple([C] * r), category=cat)
         g = self._schur.module_morphism(self._monomial_product, codomain=self)
         self._schur_action = self.module_morphism(g, codomain=self, position=1)
 

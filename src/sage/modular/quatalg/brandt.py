@@ -109,7 +109,7 @@ The Hecke structure defined on the Brandt module is given by the
 Brandt matrices which can be computed using the definition of the
 Hecke operators given earlier.
 
-``hecke_matrix_from_defn(self,n)`` returns the matrix of the nth Hecke
+``hecke_matrix_from_defn(self,n)`` returns the matrix of the n-th Hecke
 operator `B_{0}(n)` acting on self, computed directly from the
 definition.
 
@@ -121,7 +121,7 @@ the theta series of the lattice `I_{i}\overline{I_{j}}` and the first
 coefficient in the theta series of the lattice
 `I_{i}\overline{I_{i}}`.
 
-``compute_hecke_matrix_brandt(self,n)`` returns the nth Hecke matrix,
+``compute_hecke_matrix_brandt(self,n)`` returns the n-th Hecke matrix,
 computed using theta series.
 
 EXAMPLES::
@@ -827,10 +827,12 @@ class BrandtModule_class(AmbientHeckeModule):
             raise IndexError("n must be positive.")
         if n not in self._hecke_matrices:
             if algorithm == 'default':
-                try: pr = len(self.__brandt_series_vectors[0][0])
-                except (AttributeError, IndexError): pr = 0
+                try:
+                    pr = len(self.__brandt_series_vectors[0][0])
+                except (AttributeError, IndexError):
+                    pr = 0
                 if n <= pr:
-                    # already trivially know the hecke operator in this case
+                    # already trivially know the Hecke operator in this case
                     algorithm = 'brandt'
                 if algorithm == 'default':  # still don't know
                     algorithm = 'direct'
@@ -1030,12 +1032,12 @@ class BrandtModule_class(AmbientHeckeModule):
 
     def _compute_hecke_matrix_brandt(self, n, sparse=False):
         """
-        Return the n-th hecke matrix, computed using Brandt matrices
+        Return the n-th Hecke matrix, computed using Brandt matrices
         (theta series).
 
         When the n-th Hecke operator is requested, we computed theta
         series to precision `2n+20`, since it only takes slightly
-        longer, and this means that any Hecke operator $T_m$ can
+        longer, and this means that any Hecke operator `T_m` can
         quickly be computed, for `m<2n+20`.
 
         INPUT:
@@ -1109,7 +1111,7 @@ class BrandtModule_class(AmbientHeckeModule):
              Fractional ideal (2 + 2*j, 2*i + 6*k, 8*j, 8*k),
              Fractional ideal (2 + 10*j + 8*k, 2*i + 8*j + 6*k, 16*j, 16*k))
 
-        TEST::
+        TESTS::
 
             sage: B = BrandtModule(1009)
             sage: Is = B.right_ideals()

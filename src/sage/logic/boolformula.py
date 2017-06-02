@@ -1015,7 +1015,7 @@ class BooleanFormula(object):
 #            True   True   False  True
 #            True   True   True   True
 #
-#        .. NOTES::
+#        .. NOTE::
 #
 #            If the instance of boolean formula has not been converted to
 #            cnf form by a call to convert_cnf() or convert_cnf_recur()

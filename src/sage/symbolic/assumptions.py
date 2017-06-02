@@ -178,7 +178,7 @@ class GenericDeclaration(SageObject):
         """
         Make this assumption.
 
-        TEST::
+        TESTS::
 
             sage: from sage.symbolic.assumptions import GenericDeclaration
             sage: decl = GenericDeclaration(x, 'even')
@@ -218,7 +218,7 @@ class GenericDeclaration(SageObject):
         """
         Forget this assumption.
 
-        TEST::
+        TESTS::
 
             sage: from sage.symbolic.assumptions import GenericDeclaration
             sage: decl = GenericDeclaration(x, 'odd')

@@ -77,8 +77,7 @@ TESTS::
 from __future__ import absolute_import
 
 from libc.string cimport memcpy
-
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.structure.sage_object cimport SageObject, richcmp
 

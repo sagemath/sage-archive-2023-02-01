@@ -32,12 +32,11 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
+from libc.string cimport memset, memcpy
+from cysignals.memory cimport check_calloc, check_allocarray, check_reallocarray, sig_free
+from cysignals.signals cimport sig_check, sig_on, sig_off
 
 cdef extern from *:
-    void memset(void *, int, Py_ssize_t)
-    void memcpy(void * dest, void * src, Py_ssize_t n)
     int sprintf_3d "sprintf" (char*, char*, double, double, double)
     int sprintf_3i "sprintf" (char*, char*, int, int, int)
     int sprintf_4i "sprintf" (char*, char*, int, int, int, int)

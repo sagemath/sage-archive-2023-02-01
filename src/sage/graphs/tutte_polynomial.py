@@ -128,6 +128,7 @@ def contracted_edge(G, unlabeled_edge):
         [(0, 1, 'a'), (0, 3, 'c'), (1, 2, 'b')]
     """
     v1, v2 = unlabeled_edge
+    loops = G.allows_loops()
 
     v1_edges = G.edges_incident(v1)
     G.delete_vertex(v1)
@@ -136,7 +137,8 @@ def contracted_edge(G, unlabeled_edge):
     for start, end, label in v1_edges:
         other_vertex = start if start != v1 else end
         edge = (other_vertex, v2, label)
-        G.add_edge(edge)
+        if loops or other_vertex != v2:
+            G.add_edge(edge)
         added_edges.append(edge)
 
     try:

@@ -34,6 +34,10 @@ from .quaternion_algebra_element cimport QuaternionAlgebraElement_rational_field
 from sage.libs.gmp.mpz cimport mpz_t, mpz_lcm, mpz_init, mpz_set, mpz_clear, mpz_init_set, mpz_mul, mpz_fdiv_q, mpz_cmp_si
 from sage.libs.gmp.mpq cimport mpq_set_num, mpq_set_den, mpq_canonicalize
 
+from sage.libs.flint.fmpz cimport fmpz_set_mpz
+from sage.libs.flint.fmpq cimport fmpq_canonicalise
+from sage.libs.flint.fmpq_mat cimport fmpq_mat_entry_num, fmpq_mat_entry_den, fmpq_mat_entry
+
 def integral_matrix_and_denom_from_rational_quaternions(v, reverse=False):
     r"""
     Given a list of rational quaternions, return matrix `A` over `\ZZ`
@@ -142,27 +146,28 @@ def rational_matrix_from_rational_quaternions(v, reverse=False):
     if reverse:
         for i in range(n):
             x = v[i]
-            mpq_set_num(A._matrix[n-i-1][3], x.x)
-            mpq_set_num(A._matrix[n-i-1][2], x.y)
-            mpq_set_num(A._matrix[n-i-1][1], x.z)
-            mpq_set_num(A._matrix[n-i-1][0], x.w)
+            fmpz_set_mpz(fmpq_mat_entry_num(A._matrix, n-i-1, 3), x.x)
+            fmpz_set_mpz(fmpq_mat_entry_num(A._matrix, n-i-1, 2), x.y)
+            fmpz_set_mpz(fmpq_mat_entry_num(A._matrix, n-i-1, 1), x.z)
+            fmpz_set_mpz(fmpq_mat_entry_num(A._matrix, n-i-1, 0), x.w)
 
             if mpz_cmp_si(x.d,1):
                 for j in range(4):
-                    mpq_set_den(A._matrix[n-i-1][j], x.d)
-                    mpq_canonicalize(A._matrix[n-i-1][j])
+                    fmpz_set_mpz(fmpq_mat_entry_den(A._matrix, n-i-1, j), x.d)
+                    fmpq_canonicalise(fmpq_mat_entry(A._matrix, n-i-1, j))
     else:
         for i in range(n):
             x = v[i]
-            mpq_set_num(A._matrix[i][0], x.x)
-            mpq_set_num(A._matrix[i][1], x.y)
-            mpq_set_num(A._matrix[i][2], x.z)
-            mpq_set_num(A._matrix[i][3], x.w)
+            fmpz_set_mpz(fmpq_mat_entry_num(A._matrix, i, 0), x.x)
+            fmpz_set_mpz(fmpq_mat_entry_num(A._matrix, i, 1), x.y)
+            fmpz_set_mpz(fmpq_mat_entry_num(A._matrix, i, 2), x.z)
+            fmpz_set_mpz(fmpq_mat_entry_num(A._matrix, i, 3), x.w)
 
             if mpz_cmp_si(x.d,1):
                 for j in range(4):
-                    mpq_set_den(A._matrix[i][j], x.d)
-                    mpq_canonicalize(A._matrix[i][j])
+                    fmpz_set_mpz(fmpq_mat_entry_den(A._matrix, i, j), x.d)
+                    fmpq_canonicalise(fmpq_mat_entry(A._matrix, i, j))
+
     return A
 
 def rational_quaternions_from_integral_matrix_and_denom(A, Matrix_integer_dense H, Integer d, reverse=False):

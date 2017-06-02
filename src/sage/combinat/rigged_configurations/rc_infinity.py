@@ -166,7 +166,7 @@ class InfinityCrystalOfRiggedConfigurations(UniqueRepresentation, Parent):
         Parent.__init__(self, category=HighestWeightCrystals().Infinite())
         self._rc_index = self._cartan_type.index_set()
         self._rc_index_inverse = {i: ii for ii,i in enumerate(self._rc_index)}
-        # We store the cartan matrix for the vacancy number calculations for speed
+        # We store the Cartan matrix for the vacancy number calculations for speed
         self._cartan_matrix = self._cartan_type.cartan_matrix()
         self.module_generators = (self.element_class(self, rigging_list=[[]]*cartan_type.rank()),)
 

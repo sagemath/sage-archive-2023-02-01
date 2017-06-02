@@ -1209,17 +1209,17 @@ class WordMorphism(SageObject):
 
     def image(self, letter):
         r"""
-        Return the image of a letter
+        Return the image of a letter.
 
         INPUT:
 
-        - ``letter`` - a letter in the domain alphabet
+        - ``letter`` -- a letter in the domain alphabet
 
         OUTPUT:
 
         word
 
-        ..NOTE::
+        .. NOTE::
 
             The letter is assumed to be in the domain alphabet
             (no check done). Hence, this method is faster

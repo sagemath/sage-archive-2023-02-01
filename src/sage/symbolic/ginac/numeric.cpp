@@ -453,11 +453,7 @@ std::ostream& operator<<(std::ostream& os, const numeric& s) {
                                 throw (std::runtime_error(
                                         "operator<<(ostream, numeric): exception printing python object"));
                         } else {
-#if PY_MAJOR_VERSION < 3
-                                os << PyString_AsString(o);
-#else
                                 os << PyObject_Repr(o);
-#endif
                                 Py_DECREF(o);
                         }
                         return os;

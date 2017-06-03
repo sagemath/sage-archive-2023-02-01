@@ -29,11 +29,13 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from cysignals.signals cimport sig_on, sig_str, sig_off
 
+from sage.arith.power cimport generic_power_pos
 from sage.libs.arb.acb cimport *
 from sage.libs.arb.acb_mat cimport *
-from sage.matrix.matrix cimport Matrix
+from sage.libs.gmp.mpz cimport mpz_fits_ulong_p, mpz_get_ui
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix_generic_sparse cimport Matrix_generic_sparse
 from .args cimport SparseEntry, MatrixArgs_init
@@ -43,7 +45,13 @@ from sage.rings.complex_arb cimport (
     ComplexBall,
     ComplexIntervalFieldElement_to_acb,
     acb_to_ComplexIntervalFieldElement)
-from sage.structure.element cimport Element
+from sage.rings.integer cimport Integer
+from sage.rings.polynomial.polynomial_complex_arb cimport Polynomial_complex_arb
+from sage.structure.element cimport Element, RingElement, Matrix
+from sage.structure.parent cimport Parent
+
+from sage.rings.integer_ring import ZZ
+from sage.rings.polynomial import polynomial_ring_constructor
 
 
 cdef void matrix_to_acb_mat(acb_mat_t target, source):
@@ -105,6 +113,8 @@ cdef Matrix_generic_dense acb_mat_to_matrix(
                     for c in range(ncols)]
                    for r in range(nrows)])
 
+cdef inline long prec(Matrix_complex_ball_dense mat):
+    return mat._base_ring._prec
 
 cdef class Matrix_complex_ball_dense(Matrix_dense):
     """
@@ -159,6 +169,17 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
             sage: del a
         """
         acb_mat_clear(self.value)
+
+    cdef Matrix_complex_ball_dense _new(self, Py_ssize_t nrows, Py_ssize_t ncols):
+        r"""
+        Return a new matrix over the same base ring.
+        """
+        cdef Parent P
+        if nrows == self._nrows and ncols == self._ncols:
+            P = self._parent
+        else:
+            P = self.matrix_space(nrows, ncols)
+        return Matrix_complex_ball_dense.__new__(Matrix_complex_ball_dense, P, None, None, None)
 
     def __init__(self, parent, entries=None, copy=None, bint coerce=True):
         r"""
@@ -297,3 +318,349 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
         z._parent = self._base_ring
         acb_set(z.value, acb_mat_entry(self.value, i, j))
         return z
+
+    cpdef _richcmp_(left, right, int op):
+        r"""
+        EXAMPLES::
+
+            sage: a = matrix(CBF, [[1,2],[3,4]])
+            sage: b = matrix(CBF, [[1,2],[3,4]])
+            sage: a == b
+            True
+            sage: a + 1/3 == b + 1/3
+            False
+            sage: a < b
+            Traceback (most recent call last):
+            ...
+            TypeError: No order is defined on complex ball matrices.
+        """
+        cdef Matrix_complex_ball_dense lt = <Matrix_complex_ball_dense> left
+        cdef Matrix_complex_ball_dense rt = <Matrix_complex_ball_dense> right
+        if op == Py_EQ:
+            return lt is rt or acb_mat_eq(lt.value, rt.value)
+        elif op == Py_NE:
+            return acb_mat_ne(lt.value, rt.value)
+        elif op == Py_GT or op == Py_GE or op == Py_LT or op == Py_LE:
+            raise TypeError("No order is defined on complex ball matrices.")
+
+    def identical(self, Matrix_complex_ball_dense other):
+        r"""
+        Test if the corresponding entries of two complex ball matrices
+        represent the same balls.
+
+        EXAMPLES::
+
+            sage: a = matrix(CBF, [[1/3,2],[3,4]])
+            sage: b = matrix(CBF, [[1/3,2],[3,4]])
+            sage: a == b
+            False
+            sage: a.identical(b)
+            True
+        """
+        return acb_mat_equal(self.value, other.value)
+
+    def overlaps(self, Matrix_complex_ball_dense other):
+        r"""
+        Test if two matrices with complex ball entries represent overlapping
+        sets of complex matrices.
+
+        EXAMPLES::
+
+            sage: b = CBF(0, RBF(0, rad=0.1r)); b
+            [+/- 0.101]*I
+            sage: matrix(CBF, [0, b]).overlaps(matrix(CBF, [b, 0]))
+            True
+            sage: matrix(CBF, [1, 0]).overlaps(matrix(CBF, [b, 0]))
+            False
+        """
+        return acb_mat_overlaps(self.value, other.value)
+
+    def contains(self, Matrix_complex_ball_dense other):
+        r"""
+        Test if the set of complex matrices represented by ``self`` is
+        contained in that represented by ``other``.
+
+        EXAMPLES::
+
+            sage: b = CBF(0, RBF(0, rad=.1r)); b
+            [+/- 0.101]*I
+            sage: matrix(CBF, [0, b]).contains(matrix(CBF, [0, 0]))
+            True
+            sage: matrix(CBF, [0, b]).contains(matrix(CBF, [b, 0]))
+            False
+            sage: matrix(CBF, [b, b]).contains(matrix(CBF, [b, 0]))
+            True
+        """
+        return acb_mat_contains(self.value, other.value)
+
+    cpdef _neg_(self):
+        r"""
+        TESTS::
+
+            sage: matrix(CBF, [[1,2]])._neg_()
+            [-1.000000000000000 -2.000000000000000]
+        """
+        cdef Matrix_complex_ball_dense res = self._new(self._nrows, self._ncols)
+        sig_on()
+        acb_mat_neg(res.value, self.value)
+        sig_off()
+        return res
+
+    cpdef _add_(self, other):
+        r"""
+        TESTS::
+
+            sage: matrix(CBF, [[1,2]])._add_(matrix(CBF, [3,4]))
+            [4.000000000000000 6.000000000000000]
+        """
+        cdef Matrix_complex_ball_dense res = self._new(self._nrows, self._ncols)
+        sig_on()
+        acb_mat_add(res.value, self.value, (<Matrix_complex_ball_dense> other).value, prec(self))
+        sig_off()
+        return res
+
+    cpdef _sub_(self, other):
+        r"""
+        TESTS::
+
+            sage: matrix(CBF, [[1,2]])._sub_(matrix(CBF, [3,4]))
+            [-2.000000000000000 -2.000000000000000]
+        """
+        cdef Matrix_complex_ball_dense res = self._new(self._nrows, self._ncols)
+        sig_on()
+        acb_mat_sub(res.value, self.value, (<Matrix_complex_ball_dense> other).value, prec(self))
+        sig_off()
+        return res
+
+    cpdef _lmul_(self, Element a):
+        r"""
+        TESTS::
+
+            sage: matrix(CBF, [[1,2]])._lmul_(CBF(I))
+            [1.000000000000000*I 2.000000000000000*I]
+        """
+        cdef Matrix_complex_ball_dense res = self._new(self._nrows, self._ncols)
+        sig_on()
+        acb_mat_scalar_mul_acb(res.value, self.value, (<ComplexBall> a).value, prec(self))
+        sig_off()
+        return res
+
+    cpdef _rmul_(self, Element a):
+        r"""
+        TESTS::
+
+            sage: matrix(CBF, [[1,2]])._rmul_(CBF(I))
+            [1.000000000000000*I 2.000000000000000*I]
+        """
+        return self._lmul_(a)
+
+    cdef _matrix_times_matrix_(self, Matrix other):
+        r"""
+        TESTS::
+
+            sage: matrix(CBF, [[1,2]])*matrix([[3], [4]]) # indirect doctest
+            [11.00000000000000]
+        """
+        cdef Matrix_complex_ball_dense res = self._new(self._nrows, other._ncols)
+        sig_on()
+        acb_mat_mul(res.value, self.value, (<Matrix_complex_ball_dense> other).value, prec(self))
+        sig_off()
+        return res
+
+    cpdef _pow_int(self, n):
+        r"""
+        Return the ``n``-th power of this matrix.
+
+        EXAMPLES::
+
+            sage: mat = matrix(CBF, [[1/2, 1/3], [1, 1]])
+            sage: mat**2
+            [[0.5833333333333...] [0.500000000000000 +/- 1.95e-16]]
+            [               1.500000000000000 [1.333333333333333 +/- 5.37e-16]]
+            sage: mat**(-2)
+            [ [48.00000000000...] [-18.00000000000...]]
+            [[-54.0000000000...]  [21.000000000000...]]
+
+        TESTS::
+
+            sage: mat**(0r)
+            [1.000000000000000                 0]
+            [                0 1.000000000000000]
+
+            sage: mat**(1/2)
+            Traceback (most recent call last):
+                ...
+            NotImplementedError: non-integral exponents not supported
+
+            sage: (-(matrix(CBF, [2])**(-2**100))[0,0].log(2)).log(2)
+            [100.000000000000 +/- 7.13e-14]
+            sage: (-(matrix(CBF, [2])**(-2**64+1))[0,0].log(2)).log(2)
+            [64.0000000000000 +/- 1.34e-14]
+        """
+        cdef Matrix_complex_ball_dense res = self._new(self._nrows, self._ncols)
+        cdef Matrix_complex_ball_dense tmp
+        cdef unsigned long expo
+        n = Integer(n)
+        if self._nrows != self._ncols:
+            raise ArithmeticError("self must be a square matrix")
+
+        neg = (n < 0)
+        if neg:
+            n = -n
+        if mpz_fits_ulong_p((<Integer>n).value):
+            expo = mpz_get_ui((<Integer>n).value)
+            sig_on()
+            acb_mat_pow_ui(res.value, self.value, expo, prec(self))
+            sig_off()
+        else:
+            tmp = generic_power_pos(self, n)
+            acb_mat_set(res.value, tmp.value)
+        if neg:
+            sig_on()
+            acb_mat_inv(res.value, res.value, prec(self))
+            sig_off()
+
+        return res
+
+    def __invert__(self):
+        r"""
+        TESTS::
+
+            sage: ~matrix(CBF, [[1/2, 1/3], [1, 1]])
+            [ [6.00000000000000 +/- 3.78e-15] [-2.00000000000000 +/- 1.89e-15]]
+            [[-6.00000000000000 +/- 3.78e-15]  [3.00000000000000 +/- 1.89e-15]]
+            sage: ~matrix(CBF, [[1/2, 1/3]])
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: self must be a square matrix
+        """
+        if not self.is_square():
+            raise ArithmeticError("self must be a square matrix")
+        cdef Matrix_complex_ball_dense res = self._new(self._nrows, self._ncols)
+        sig_on()
+        acb_mat_inv(res.value, self.value, prec(self))
+        sig_off()
+        return res
+
+    def _solve_right_nonsingular_square(self, Matrix_complex_ball_dense rhs, check_rank=None):
+        r"""
+        TESTS::
+
+            sage: matrix(CBF, [[1/2, 1/3], [1, 1]]) \ vector([-1, 1])
+            ([-8.00000000000000 +/- ...], [9.00000000000000 +/- ...])
+            sage: matrix(CBF, 2, 2, 0) \ vector([-1, 1])
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix equation has no solutions
+            sage: b = CBF(0, RBF(0, rad=.1r))
+            sage: matrix(CBF, [[1, 1], [0, b]]) \ vector([-1, 1])
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to invert this matrix
+        """
+        cdef Matrix_complex_ball_dense res = self._new(self._nrows, rhs._ncols)
+        sig_on()
+        success = acb_mat_solve(res.value, self.value, rhs.value, min(prec(self), prec(rhs)))
+        sig_off()
+        if success:
+            return res
+        else:
+            raise ValueError("unable to invert this matrix")
+
+    def determinant(self):
+        r"""
+        Compute the determinant of this matrix.
+
+        EXAMPLES::
+
+            sage: matrix(CBF, [[1/2, 1/3], [1, 1]]).determinant()
+            [0.1666666666666667 +/- 7.04e-17]
+            sage: matrix(CBF, [[1/2, 1/3], [1, 1]]).det()
+            [0.1666666666666667 +/- 7.04e-17]
+            sage: matrix(CBF, [[1/2, 1/3]]).determinant()
+            Traceback (most recent call last):
+            ...
+            ValueError: self must be a square matrix
+        """
+        cdef ComplexBall res = ComplexBall.__new__(ComplexBall)
+        res._parent = self._base_ring
+        if self._nrows != self._ncols:
+            raise ValueError("self must be a square matrix")
+        sig_on()
+        acb_mat_det(res.value, self.value, prec(self))
+        sig_off()
+        return res
+
+    def trace(self):
+        r"""
+        Compute the trace of this matrix.
+
+        EXAMPLES::
+
+            sage: matrix(CBF, [[1/3, 1/3], [1, 1]]).trace()
+            [1.333333333333333 +/- 5.37e-16]
+            sage: matrix(CBF, [[1/2, 1/3]]).trace()
+            Traceback (most recent call last):
+            ...
+            ValueError: self must be a square matrix
+        """
+        cdef ComplexBall res = ComplexBall.__new__(ComplexBall)
+        res._parent = self._base_ring
+        if self._nrows != self._ncols:
+            raise ValueError("self must be a square matrix")
+        sig_on()
+        acb_mat_trace(res.value, self.value, prec(self))
+        sig_off()
+        return res
+
+    def charpoly(self, var='x', algorithm=None):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.matrix.benchmark import hilbert_matrix
+            sage: mat = hilbert_matrix(5).change_ring(ComplexBallField(10))
+            sage: mat.charpoly()
+            x^5 + ([-1.8 +/- 0.0258])*x^4 + ([0.3 +/- 0.0567])*x^3 +
+            ([+/- 0.0212])*x^2 + ([+/- 0.0266])*x + [+/- 0.0285]
+
+        TESTS::
+
+            sage: mat.charpoly(algorithm="hessenberg")
+            x^5 + ([-1.8 +/- 0.0445])*x^4 + ([0.3 +/- 0.0833])*x^3
+            + ([+/- 0.0164])*x^2 + ([+/- 6.01e-4])*x + [+/- 6.97e-6]
+            sage: mat.charpoly('y')
+            y^5 + ([-1.8 +/- 0.0258])*y^4 + ([0.3 +/- 0.0567])*y^3 +
+            ([+/- 0.0212])*y^2 + ([+/- 0.0266])*y + [+/- 0.0285]
+        """
+        if self._nrows != self._ncols:
+            raise ValueError("self must be a square matrix")
+        if algorithm is not None:
+            return super(Matrix_dense, self).charpoly(var=var, algorithm=algorithm)
+        Pol = polynomial_ring_constructor._single_variate(self.base_ring(), var)
+        cdef Polynomial_complex_arb res = Polynomial_complex_arb(Pol)
+        sig_on()
+        acb_mat_charpoly(res.__poly, self.value, prec(self))
+        sig_off()
+        return res
+
+    def exp(self):
+        r"""
+        Compute the exponential of this matrix.
+
+        EXAMPLES::
+
+            sage: matrix(CBF, [[i*pi, 1], [0, i*pi]]).exp()
+            [[-1.00000000000000 +/- 8.04e-16] + [+/- 7.05e-16]*I [-1.00000000000000 +/- 8.04e-16] + [+/- 7.05e-16]*I]
+            [                                                  0 [-1.00000000000000 +/- 8.04e-16] + [+/- 7.05e-16]*I]
+            sage: matrix(CBF, [[1/2, 1/3]]).exp()
+            Traceback (most recent call last):
+            ...
+            ValueError: self must be a square matrix
+        """
+        cdef Matrix_complex_ball_dense res = self._new(self._nrows, self._ncols)
+        if self._nrows != self._ncols:
+            raise ValueError("self must be a square matrix")
+        sig_on()
+        acb_mat_exp(res.value, self.value, prec(self))
+        sig_off()
+        return res

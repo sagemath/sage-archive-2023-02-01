@@ -13613,7 +13613,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.eccentricity(algorithm = 'boh')
             Traceback (most recent call last):
             ...
-            ValueError: Algorithm boh not yet implemented. Please, contribute!
+            ValueError: unknown algorithm "boh"
 
         An algorithm that does not work with edge weights::
 
@@ -15263,16 +15263,16 @@ class GenericGraph(GenericGraph_pyx):
 
         if by_weight:
             if algorithm == 'BFS_Bid':
-                raise ValueError("The 'BFS_Bid' algorithm does not " +
-                                 "work on weighted graphs.")
+                raise ValueError("the 'BFS_Bid' algorithm does not " +
+                                 "work on weighted graphs")
             if check_weight:
                 self._check_weight_function(weight_function)
         else:
             weight_function = lambda e:1
 
-        if algorithm=="Dijkstra_Bid":
+        if algorithm == "Dijkstra_Bid":
             return self._backend.bidirectional_dijkstra(u, v, weight_function, distance_flag=True)
-        elif algorithm=="Dijkstra_Bid_NetworkX":
+        elif algorithm == "Dijkstra_Bid_NetworkX":
             import networkx
             if self.is_directed():
                 G = networkx.DiGraph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
@@ -15280,10 +15280,10 @@ class GenericGraph(GenericGraph_pyx):
                 G = networkx.Graph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
             G.add_nodes_from(self.vertices())
             return networkx.bidirectional_dijkstra(G, u, v)[0]
-        elif algorithm=="BFS_Bid":
+        elif algorithm == "BFS_Bid":
             return self._backend.shortest_path(u, v, distance_flag=True)
         else:
-            raise ValueError("Algorithm '" + algorithm + "' not yet implemented.")
+            raise ValueError('unknown algorithm "{}"'.format(algorithm))
 
     def _check_weight_function(self, weight_function=None):
         r"""
@@ -15712,13 +15712,13 @@ class GenericGraph(GenericGraph_pyx):
         if by_weight and check_weight:
             self._check_weight_function(weight_function)
 
-        if algorithm=='BFS':
+        if algorithm == 'BFS':
             if by_weight:
-                raise ValueError("The 'BFS' algorithm does not work on " +
-                                 "weighted graphs.")
+                raise ValueError("the 'BFS' algorithm does not work on " +
+                                 "weighted graphs")
             return self._backend.shortest_path_all_vertices(u, cutoff=None, distance_flag=True)
 
-        elif algorithm=='Dijkstra_NetworkX':
+        elif algorithm == 'Dijkstra_NetworkX':
             import networkx
             # If this is not present, an error might be raised by NetworkX
             if self.num_verts()==1 and self.vertices()[0]==u:
@@ -15743,8 +15743,7 @@ class GenericGraph(GenericGraph_pyx):
             return shortest_paths(self, u, weight_function, algorithm)[0]
 
         else:
-            raise ValueError("Algorithm " + algorithm + " not yet " +
-                             "implemented. Please, contribute!")
+            raise ValueError('unknown algorithm "{}"'.format(algorithm))
 
     def shortest_path_all_pairs(self, by_weight=False, algorithm=None,
                                 weight_function=None, check_weight=True,

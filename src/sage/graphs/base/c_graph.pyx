@@ -2216,7 +2216,8 @@ cdef class CGraphBackend(GenericGraphBackend):
             return Infinity
         return []
 
-    def bidirectional_dijkstra(self, x, y, weight_function=None, distance_flag = False):
+    def bidirectional_dijkstra(self, x, y, weight_function=None, 
+                               distance_flag = False):
         r"""
         Returns the shortest path or distance from ``x`` to ``y`` using a
         bidirectional version of Dijkstra's algorithm.
@@ -2385,7 +2386,8 @@ cdef class CGraphBackend(GenericGraphBackend):
 
             return shortest_path
 
-    def shortest_path_all_vertices(self, v, cutoff=None, distance_flag = False):
+    def shortest_path_all_vertices(self, v, cutoff=None, 
+                                   distance_flag = False):
         r"""
         Returns for each vertex ``u`` a shortest  ``v-u`` path or distance from
         ``v`` to ``u``.
@@ -2445,7 +2447,6 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef bitset_t seen
         cdef int v_int
         cdef int u_int
-        cdef dict distances_int = {}
         cdef dict distances
         cdef int d
 
@@ -2463,8 +2464,8 @@ cdef class CGraphBackend(GenericGraphBackend):
         current_layer = [(u_int, v_int)
                          for u_int in self._cg.out_neighbors(v_int)]
         next_layer = []
-        distances[v] = [v]
-        distances_int[v] = 0
+        
+        distances[v] = 0 if distance_flag else [v]
 
         while current_layer:
             if cutoff is not None and d >= cutoff:
@@ -2477,7 +2478,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                 if bitset_not_in(seen, v_int):
                     bitset_add(seen, v_int)
                     if distance_flag:
-                        distances_int[self.vertex_label(v_int)] = d
+                        distances[self.vertex_label(v_int)] = d
                     else:
                         distances[self.vertex_label(v_int)] = distances[self.vertex_label(u_int)] + [self.vertex_label(v_int)]
                     next_layer.extend([(u_int, v_int) for u_int in self._cg.out_neighbors(v_int)])
@@ -2493,7 +2494,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         #        distances[vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)] = []
 
         bitset_free(seen)
-        return distances_int if distance_flag else distances
+        return distances
 
     def depth_first_search(self, v, reverse=False, ignore_direction=False):
         r"""

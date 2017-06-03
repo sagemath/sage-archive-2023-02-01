@@ -193,10 +193,14 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         if transformation:
             U = M._weak_popov_form(transformation=True, shifts=shifts)
-            return M, U
         else:
             M._weak_popov_form(transformation=False, shifts=shifts)
-            return M
+
+        M.set_immutable()
+        if transformation:
+            U.set_immutable()
+
+        return (M,U) if transformation else M
 
     def _weak_popov_form(self, transformation=False, shifts=None):
         """
@@ -242,6 +246,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         cdef Matrix M = self
         cdef Matrix U
+
+        cdef list to_row, conflicts
 
         R = self.base_ring()
         one = R.one()

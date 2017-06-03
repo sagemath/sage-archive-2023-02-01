@@ -369,6 +369,17 @@ REGISTER_FUNCTION(beta, eval_func(beta_eval).
 // Psi-function (aka digamma-function)
 //////////
 
+static ex psi1_evalf(const ex & x, PyObject* parent)
+{
+	if (is_exactly_a<numeric>(x)) {
+		try {
+			return psi(ex_to<numeric>(x));
+		} catch (const dunno &e) { }
+	}
+	
+	return psi(x).hold();
+}
+
 /** Evaluation of digamma-function psi(x).
  *  Somebody ought to provide some good numerical evaluation some day... */
 static ex psi1_eval(const ex & x)
@@ -452,6 +463,7 @@ static ex psi1_series(const ex & arg,
 unsigned psi1_SERIAL::serial =
 	function::register_new(function_options("psi", 1).
 	                       eval_func(psi1_eval).
+	                       evalf_func(psi1_evalf).
 	                       derivative_func(psi1_deriv).
 	                       series_func(psi1_series).
 	                       latex_name("\\psi").
@@ -491,7 +503,7 @@ static ex psi2_eval(const ex & n, const ex & x)
 			// integer case 
 			if (nx.is_equal(*_num1_p))
 				// use psi(n,1) == (-)^(n+1) * n! * zeta(n+1)
-				return pow(*_num_1_p,nn+(*_num1_p))*factorial(nn)*zeta(ex(nn+(*_num1_p)));
+				return _num_1_p->pow_intexp(nn+(*_num1_p))*factorial(nn)*zeta(ex(nn+(*_num1_p)));
 			if (nx.is_positive()) {
 				// use the recurrence relation
 				//   psi(n,m) == psi(n,m+1) - (-)^n * n! / m^(n+1)
@@ -512,13 +524,13 @@ static ex psi2_eval(const ex & n, const ex & x)
 			// half integer case
 			if (nx.is_equal(*_num1_2_p))
 				// use psi(n,1/2) == (-)^(n+1) * n! * (2^(n+1)-1) * zeta(n+1)
-				return pow(*_num_1_p,nn+(*_num1_p))*factorial(nn)*(pow(*_num2_p,nn+(*_num1_p)) + (*_num_1_p))*zeta(ex(nn+(*_num1_p)));
+				return _num_1_p->pow_intexp(nn+(*_num1_p))*factorial(nn)*(_num2_p->pow_intexp(nn+(*_num1_p)) + (*_num_1_p))*zeta(ex(nn+(*_num1_p)));
 			if (nx.is_positive()) {
 				const numeric m = nx - (*_num1_2_p);
 				// use the multiplication formula
 				//   psi(n,2*m) == (psi(n,m) + psi(n,m+1/2)) / 2^(n+1)
 				// to revert to positive integer case
-				return psi(n,(*_num2_p)*m)*pow((*_num2_p),nn+(*_num1_p))-psi(n,m);
+				return psi(n,(*_num2_p)*m)*_num2_p->pow_intexp(nn+(*_num1_p))-psi(n,m);
 			} else {
 				// use the recurrence relation
 				//   psi(n,-m-1/2) == psi(n,-m-1/2+1) - (-)^n * n! / (-m-1/2)^(n+1)
@@ -528,7 +540,7 @@ static ex psi2_eval(const ex & n, const ex & x)
 				numeric recur = 0;
 				for (numeric p = nx; p<0; ++p)
 					recur += p.pow_intexp(-nn+(*_num_1_p));
-				recur *= factorial(nn)*(_num_1_p->pow_intexp(nn+(*_num_1_p)));
+				recur *= factorial(nn)*_num_1_p->pow_intexp(nn+(*_num_1_p));
 				return recur+psi(n,_ex1_2);
 			}
 		}

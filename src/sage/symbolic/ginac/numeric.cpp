@@ -52,6 +52,7 @@
 #include <Python.h>
 #include "flint/fmpz.h"
 #include "flint/fmpz_factor.h"
+
 #include <cmath>
 
 #include "numeric.h"
@@ -1342,8 +1343,11 @@ bool numeric::integer_rational_power(numeric& res,
 void rational_power_parts(const numeric& a_orig, const numeric& b_orig,
                 numeric& c, numeric& d, bool& c_unit)
 {
-        if ((a_orig.t != MPZ and a_orig.t != MPQ) or b_orig.t != MPQ)
-                throw std::runtime_error("rational_power_parts: bad input");
+        if ((a_orig.t != MPZ and a_orig.t != MPQ) or b_orig.t != MPQ) {
+                d = a_orig;
+                c_unit = true;
+                return;
+        }
         bool b_negative = b_orig.is_negative();
         const numeric& a = b_negative? a_orig.inverse() : a_orig;
         const numeric& b = b_negative? b_orig.negative() : b_orig;

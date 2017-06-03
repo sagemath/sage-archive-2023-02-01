@@ -433,7 +433,7 @@ class PseudoRiemannianMetric(TensorField):
         r"""
         Initialize the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(5, 'M')
             sage: g = M.metric('g')
@@ -458,7 +458,7 @@ class PseudoRiemannianMetric(TensorField):
         r"""
         Delete the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(5, 'M')
             sage: g = M.metric('g')
@@ -483,7 +483,7 @@ class PseudoRiemannianMetric(TensorField):
         r"""
         Delete the inverse metric.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(5, 'M')
             sage: g = M.metric('g')
@@ -2012,7 +2012,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         r"""
         Initialize the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()  # makes M parallelizable
@@ -2033,7 +2033,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         - ``del_restrictions`` -- (default: True) determines whether the
           restrictions of ``self`` to subdomains are deleted.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()  # makes M parallelizable
@@ -2050,7 +2050,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         r"""
         Delete the inverse metric.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()  # makes M parallelizable
@@ -2167,6 +2167,9 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         self._components.clear()
         for frame in symbiform._components:
             self._components[frame] = symbiform._components[frame].copy()
+        for dom, symbiform_rst in symbiform._restrictions.items():
+            rst = self.restrict(dom)
+            rst.set(symbiform_rst)
 
     def inverse(self):
         r"""
@@ -2217,23 +2220,29 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
                 fmodule = self._fmodule
                 si = fmodule._sindex ; nsi = fmodule._rank + si
                 dom = self._domain
-                if isinstance(frame, CoordFrame):
-                    chart = frame._chart
-                else:
-                    chart = dom._def_chart
-                try:
-                    gmat = matrix(
-                              [[self.comp(frame)[i, j, chart]._express
-                              for j in range(si, nsi)] for i in range(si, nsi)])
-                except (KeyError, ValueError):
-                    continue
-                gmat_inv = gmat.inverse()
                 cinv = CompFullySym(fmodule._ring, frame, 2, start_index=si,
                                     output_formatter=fmodule._output_formatter)
+                cinv_scal = {}  # dict. of scalars representing the components
+                                # of the inverse (keys: comp. indices)
                 for i in range(si, nsi):
                     for j in range(i, nsi):   # symmetry taken into account
-                        cinv[i, j] = {chart:
-                                      simplify_chain_real(gmat_inv[i-si,j-si])}
+                        cinv_scal[(i,j)] = dom.scalar_field()
+                for chart in dom.top_charts():
+                    try:
+                        gmat = matrix(
+                                  [[self.comp(frame)[i, j, chart]._express
+                                  for j in range(si, nsi)] for i in range(si, nsi)])
+                        gmat_inv = gmat.inverse()
+                    except (KeyError, ValueError):
+                        continue
+                    for i in range(si, nsi):
+                        for j in range(i, nsi):
+                            cinv_scal[(i,j)].add_expr(simplify_chain_real(
+                                                       gmat_inv[i-si,j-si]),
+                                                      chart=chart)
+                for i in range(si, nsi):
+                    for j in range(i, nsi):
+                        cinv[i,j] = cinv_scal[(i,j)]
                 self._inverse._components[frame] = cinv
         return self._inverse
 

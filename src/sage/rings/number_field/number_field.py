@@ -93,6 +93,7 @@ We do some arithmetic in a tower of relative number fields::
 
 from __future__ import absolute_import, print_function
 from six.moves import range
+from six import integer_types
 
 from sage.structure.parent_gens import localvars
 from sage.misc.cachefunc import cached_method
@@ -675,7 +676,7 @@ def NumberFieldTower(polynomials, names, check=True, embeddings=None, latex_name
       from that string.
     - ``check`` - a boolean (default: ``True``), whether to check that the
       polynomials are irreducible
-    - ``embeddings`` - a list of elemenst or ``None`` (default: ``None``),
+    - ``embeddings`` - a list of elements or ``None`` (default: ``None``),
       embeddings of the relative number fields in an ambient field.
     - ``latex_names`` - a list of strings or ``None`` (default: ``None``), names
       used to print the generators for latex output.
@@ -1486,7 +1487,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: F.embeddings
             [0.2327856159383841? + 0.7925519925154479?*I]
 
-        TEST::
+        TESTS::
 
             sage: K.<a> = NumberField(x^3+x+1)
             sage: R.<t> = ZZ[]
@@ -3406,7 +3407,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: k.<a> = NumberField(y^2 - 3/2*y + 5/3)
             sage: k.pari_polynomial()
             x^2 - x + 40
-            sage: k.polynomial()._pari_()
+            sage: k.polynomial().__pari__()
             x^2 - 3/2*x + 5/3
             sage: k.pari_polynomial('a')
             a^2 - a + 40
@@ -3535,14 +3536,14 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         return self.pari_nf().nf_get_zk()
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Return the PARI number field corresponding to this field.
 
         EXAMPLES::
 
             sage: k = NumberField(x^2 + x + 1, 'a')
-            sage: k._pari_()
+            sage: k.__pari__()
             [y^2 + y + 1, [0, 1], -3, 1, ... [1, y], [1, 0; 0, 1], [1, 0, 0, -1; 0, 1, 1, -1]]
             sage: pari(k)
             [y^2 + y + 1, [0, 1], -3, 1, ...[1, y], [1, 0; 0, 1], [1, 0, 0, -1; 0, 1, 1, -1]]
@@ -4424,8 +4425,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         f = self.absolute_polynomial()
         g = other.absolute_polynomial()
         R = f.parent()
-        f = f._pari_(); f /= f.content()
-        g = g._pari_(); g /= g.content()
+        f = f.__pari__(); f /= f.content()
+        g = g.__pari__(); g /= g.content()
 
         m = self.degree()
         n = other.absolute_degree()
@@ -6418,7 +6419,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         - ``reslist`` -- a list of residues, i.e. integral number field elements
 
-        - ``Ilist`` -- a list of integral ideals, assumed pairsise coprime
+        - ``Ilist`` -- a list of integral ideals, assumed pairwise coprime
 
         - ``check`` (boolean, default True) -- if True, result is checked
 
@@ -6770,7 +6771,7 @@ class NumberField_absolute(NumberField_generic):
             sage: K(b)
             -1/2*a^2 - 4
         """
-        if isinstance(x, (int, long, Rational, Integer, pari_gen, list)):
+        if isinstance(x, integer_types + (Rational, Integer, pari_gen, list)):
             return self._element_class(self, x)
 
         if isinstance(x, sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement)\
@@ -6898,7 +6899,7 @@ class NumberField_absolute(NumberField_generic):
             <type 'sage.rings.number_field.number_field_element_quadratic.Q_to_quadratic_field_element'>
 
         """
-        if R in [int, long, ZZ, QQ, self.base()]:
+        if R in integer_types + (ZZ, QQ, self.base()):
             return self._generic_convert_map(R)
         from sage.rings.number_field.order import is_NumberFieldOrder
         if is_NumberFieldOrder(R) and self.has_coerce_map_from(R.number_field()):
@@ -7291,11 +7292,9 @@ class NumberField_absolute(NumberField_generic):
 
             if both_maps and K.degree() == self.degree():
                 g = K['x'](self.polynomial())
-                v = g.roots()
                 a = from_K(K.gen())
-                for i in range(len(v)):
-                    r = g.roots()[i][0]
-                    to_K = self.hom([r])    # check=False here ??
+                for root in g.roots(multiplicities=False):
+                    to_K = self.hom([root])    # check=False here ??
                     if to_K(a) == K.gen():
                         break
             else:
@@ -9498,7 +9497,7 @@ class NumberField_cyclotomic(NumberField_absolute):
 ##         d = sage.arith.all.gcd(m,n)
 ##         r = n // d
 
-##         # Since we use the power basis for cyclomotic fields, if every
+##         # Since we use the power basis for cyclotomic fields, if every
 ##         # v[i] with i not divisible by r is 0, then we're good.
 
 ##         # If h generates self and has order m, then the element g^r
@@ -10255,6 +10254,22 @@ class NumberField_quadratic(NumberField_absolute):
             return "%s(%s)"%(latex(QQ), v)
         else:
             return NumberField_generic._latex_(self)
+
+    def _polymake_init_(self):
+        r"""
+        Return the polymake representation of this quadratic field.
+
+        This is merely a string, and does not represent a specific quadratic field.
+        In polymake, only the elements know which field they belong to.
+
+        EXAMPLES::
+
+            sage: Z = QuadraticField(7)
+            sage: polymake(Z)    # optional - polymake # indirect doctest
+            QuadraticExtension
+
+        """
+        return '"QuadraticExtension"'
 
     def discriminant(self, v=None):
         """

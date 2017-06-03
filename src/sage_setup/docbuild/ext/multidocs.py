@@ -3,8 +3,6 @@
     multi documentation in Sphinx
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    This is a slightly hacked-up version of the Sphinx-multidoc plugin
-
     The goal of this extension is to manage a multi documentation in Sphinx.
     To be able to compile Sage's huge documentation in parallel, the
     documentation is cut into a bunch of independent documentations called
@@ -57,7 +55,7 @@ def merge_environment(app, env):
             app.info(" %s todos, %s index, %s citations"%(
                     len(docenv.todo_all_todos),
                     len(docenv.indexentries),
-                    len(docenv.citations)
+                    len(docenv.domaindata["std"]["citations"])
                     ), nonl=1)
 
             # merge titles
@@ -88,10 +86,10 @@ def merge_environment(app, env):
                 env.metadata[ind] = md
             # merge the citations
             newcite = {}
-            for ind, (path, tag) in six.iteritems(docenv.citations):
+            for ind, (path, tag) in six.iteritems(docenv.domaindata["std"]["citations"]):
                 # TODO: Warn on conflicts
                 newcite[ind] = (fixpath(path), tag)
-            env.citations.update(newcite)
+            env.domaindata["std"]["citations"].update(newcite)
             # merge the py:module indexes
             newmodules = {}
             for ind,(modpath,v1,v2,v3) in (
@@ -102,9 +100,9 @@ def merge_environment(app, env):
     app.info('... done (%s todos, %s index, %s citations, %s modules)'%(
             len(env.todo_all_todos),
             len(env.indexentries),
-            len(env.citations),
+            len(env.domaindata["std"]["citations"]),
             len(env.domaindata['py']['modules'])))
-    write_citations(app, env.citations)
+    write_citations(app, env.domaindata["std"]["citations"])
 
 def get_env(app, curdoc):
     """
@@ -146,6 +144,10 @@ def merge_js_index(app):
             titles = app.builder.indexer._titles
             for (res, title) in six.iteritems(index._titles):
                 titles[fixpath(res)] = title
+            # merge the filenames
+            filenames = app.builder.indexer._filenames
+            for (res, filename) in six.iteritems(index._filenames):
+                filenames[fixpath(res)] = filename
             # TODO: merge indexer._objtypes, indexer._objnames as well
 
             # Setup source symbolic links
@@ -244,7 +246,7 @@ def fetch_citation(app, env):
     with open(filename, 'rb') as f:
         cache = cPickle.load(f)
     app.builder.info("done (%s citations)."%len(cache))
-    cite = env.citations
+    cite = env.domaindata["std"]["citations"]
     for ind, (path, tag) in six.iteritems(cache):
         if ind not in cite: # don't override local citation
             cite[ind]=(os.path.join("..", path), tag)

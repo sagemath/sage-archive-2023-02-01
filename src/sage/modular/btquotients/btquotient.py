@@ -2875,9 +2875,9 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             ]
         """
         OM = self.get_eichler_order_quadmatrix()
-        v = pari('qfminim(%s,2,0, flag = 2)' % (OM._pari_()))
+        v = pari('qfminim(%s,2,0, flag = 2)' % (OM.__pari__()))
         n_units = Integer(v[0].sage() / 2)
-        v = pari('qfminim(%s,2,%s, flag = 2)' % ((OM._pari_()), n_units))
+        v = pari('qfminim(%s,2,%s, flag = 2)' % ((OM.__pari__()), n_units))
         O_units = []
         for jj in range(n_units):
             vec = Matrix(ZZ, 4, 1, [v[2][ii, jj].sage() for ii in range(4)])
@@ -3256,7 +3256,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         n_units = len(self.get_units_of_order())
         ## Using PARI to get the shortest vector in the lattice (via LLL)
         ## We used to pass qfminim flag = 2
-        mat = pari('qfminim(%s,,%s,flag = 2)' % (A._pari_(), 2 * n_units))[2].sage().transpose()
+        mat = pari('qfminim(%s,,%s,flag = 2)' % (A.__pari__(), 2 * n_units))[2].sage().transpose()
         n_vecs = mat.nrows()
         stabs = []
         for jj in range(n_vecs):
@@ -3322,7 +3322,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         if not self._use_magma or len(self._extra_level) == 0:
             return E * vec, True
         m = ZZ(twom / 2)
-        mat = pari('qfminim(%s,,%s,flag = %s)' % (A._pari_(), 1000, flag))[2].sage().transpose()
+        mat = pari('qfminim(%s,,%s,flag = %s)' % (A.__pari__(), 1000, flag))[2].sage().transpose()
         n_vecs = mat.nrows()
         p = self._p
         pinv = Zmod(self._character.modulus())(p) ** -1
@@ -3390,7 +3390,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
                 return None
         E, A = self._find_lattice(v1, v2, as_edges, twom)
         ## Using PARI to get the shortest vector in the lattice (via LLL)
-        vec = pari('qfminim(%s,,1,flag = 2)' % (A._pari_()))[2].sage()
+        vec = pari('qfminim(%s,,1,flag = 2)' % (A.__pari__()))[2].sage()
 
         vect = vec.transpose()
         nrd = Integer((vect * A * vec)[0, 0] / 2)
@@ -3697,7 +3697,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
 
     def harmonic_cocycle_from_elliptic_curve(self, E, prec=None):
         r"""
-        Return a harmonic cocycle with the same hecke eigenvalues as ``E``.
+        Return a harmonic cocycle with the same Hecke eigenvalues as ``E``.
 
         Given an elliptic curve `E` having a conductor `N` of the form `pN^-N^+`,
         return the harmonic cocycle over ``self`` which is attached to ``E`` via

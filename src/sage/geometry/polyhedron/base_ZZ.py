@@ -17,13 +17,14 @@ from __future__ import absolute_import
 from sage.rings.all import ZZ, QQ
 from sage.misc.all import cached_method
 from sage.modules.free_module_element import vector
+from .base_QQ import Polyhedron_QQ
 from sage.arith.all import gcd
 from .constructor import Polyhedron
 from .base import Polyhedron_base
 
 
 #########################################################################
-class Polyhedron_ZZ(Polyhedron_base):
+class Polyhedron_ZZ(Polyhedron_QQ):
     """
     Base class for Polyhedra over `\ZZ`
 
@@ -33,72 +34,6 @@ class Polyhedron_ZZ(Polyhedron_base):
         A 0-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex
         sage: TestSuite(p).run(skip='_test_pickling')
     """
-    def _is_zero(self, x):
-        """
-        Test whether ``x`` is zero.
-
-        INPUT:
-
-        - ``x`` -- a number in the base ring.
-
-        OUTPUT:
-
-        Boolean.
-
-        EXAMPLES::
-
-            sage: p = Polyhedron([(0,0)], base_ring=ZZ)
-            sage: p._is_zero(0)
-            True
-            sage: p._is_zero(1/100000)
-            False
-        """
-        return x==0
-
-    def _is_nonneg(self, x):
-        """
-        Test whether ``x`` is nonnegative.
-
-        INPUT:
-
-        - ``x`` -- a number in the base ring.
-
-        OUTPUT:
-
-        Boolean.
-
-        EXAMPLES::
-
-            sage: p = Polyhedron([(0,0)], base_ring=ZZ)
-            sage: p._is_nonneg(1)
-            True
-            sage: p._is_nonneg(-1/100000)
-            False
-        """
-        return x>=0
-
-    def _is_positive(self, x):
-        """
-        Test whether ``x`` is positive.
-
-        INPUT:
-
-        - ``x`` -- a number in the base ring.
-
-        OUTPUT:
-
-        Boolean.
-
-        EXAMPLES::
-
-            sage: p = Polyhedron([(0,0)], base_ring=ZZ)
-            sage: p._is_positive(1)
-            True
-            sage: p._is_positive(0)
-            False
-        """
-        return x>0
-
     _base_ring = ZZ
 
     def is_lattice_polytope(self):
@@ -116,8 +51,16 @@ class Polyhedron_ZZ(Polyhedron_base):
             True
             sage: polytopes.regular_polygon(5).is_lattice_polytope()
             False
+
+        TESTS:
+
+        Check :trac:`22622`::
+
+            sage: P1 = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]])
+            sage: P1.is_lattice_polytope()
+            False
         """
-        return True
+        return self.is_compact()
 
     def ehrhart_polynomial(self, verbose=False, dual=None,
             irrational_primal=None, irrational_all_primal=None, maxdet=None,
@@ -312,7 +255,7 @@ class Polyhedron_ZZ(Polyhedron_base):
             sage: p.polar()
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices
             sage: type(_)
-            <class 'sage.geometry.polyhedron.backend_ppl.Polyhedra_ZZ_ppl_with_category.element_class'>
+            <class 'sage.geometry.polyhedron.parent.Polyhedra_ZZ_ppl_with_category.element_class'>
             sage: p.polar().base_ring()
             Integer Ring
         """

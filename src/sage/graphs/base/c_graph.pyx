@@ -1047,7 +1047,7 @@ cdef class CGraph:
             See http://trac.sagemath.org/20253 for details.
             0
 
-        TEST::
+        TESTS::
 
             sage: g = Graph({1: [2,5], 2: [1,5,3,4], 3: [2,5], 4: [3], 5: [2,3]}, implementation="c_graph")
             sage: g._backend.degree(5, False)
@@ -2234,7 +2234,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         TEST:
 
-        Bugfix from #7673 ::
+        Bugfix from :trac:`7673` ::
 
             sage: G = Graph([(0,1,9),(0,2,8),(1,2,7)])
             sage: G.shortest_path_length(0,1,by_weight=True)

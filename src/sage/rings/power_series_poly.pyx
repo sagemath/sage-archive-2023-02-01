@@ -1020,7 +1020,7 @@ cdef class PowerSeries_poly(PowerSeries):
 
         # first, try reversion with pari; this is faster than Lagrange inversion
         try:
-            f2 = f._pari_()
+            f2 = f.__pari__()
             g = f2.serreverse()
             return PowerSeries_poly(f.parent(), g.Vec(-out_prec), out_prec)
         except (TypeError,ValueError,AttributeError,PariError):
@@ -1171,9 +1171,9 @@ cdef class PowerSeries_poly(PowerSeries):
 
         TESTS:
 
-        Check that :trac:``18094`` is fixed::
+        Check that :trac:`18094` is fixed::
 
-            sage: R.<x>=PolynomialRing(ZZ)
+            sage: R.<x> = PolynomialRing(ZZ)
             sage: SR(R(0).add_bigoh(20))
             Order(x^20)
         """

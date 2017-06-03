@@ -166,9 +166,9 @@ Deprecation checks::
     doctest:...: DeprecationWarning: the PARI/GP function elllseries is obsolete (2016-08-08)
     0.402838047956645
     sage: e.elllseries(1, precision=128)
-    3.19632265064095 E-40
+    -6.17606670058278 E-39
     sage: e.elllseries(1, precision=256)
-    8.68747983667209 E-79
+    -2.05598131842639 E-77
     sage: e.elllseries(-2)
     0
     sage: e.elllseries(2.1, A=1.1)
@@ -181,10 +181,10 @@ Reading a gp file::
 
     sage: import tempfile
     sage: gpfile = tempfile.NamedTemporaryFile(mode="w")
-    sage: gpfile.file.write("mysquare(n) = {\n")
-    sage: gpfile.file.write("    n^2;\n")
-    sage: gpfile.file.write("}\n")
-    sage: gpfile.file.write("polcyclo(5)\n")
+    sage: __ = gpfile.file.write("mysquare(n) = {\n")
+    sage: __ = gpfile.file.write("    n^2;\n")
+    sage: __ = gpfile.file.write("}\n")
+    sage: __ = gpfile.file.write("polcyclo(5)\n")
     sage: gpfile.file.flush()
     sage: pari.read(gpfile.name)
     x^4 + x^3 + x^2 + x + 1
@@ -1021,7 +1021,7 @@ Quadratic forms::
     ]
 
     sage: M = diagonal_matrix([1,1,-1])
-    sage: P = M._pari_().qfparam([0,1,-1]); P
+    sage: P = M.__pari__().qfparam([0,1,-1]); P
     [0, -2, 0; 1, 0, -1; -1, 0, -1]
     sage: R.<x,y> = QQ[]
     sage: v = P.sage() * vector([x^2, x*y, y^2]); v
@@ -1034,22 +1034,22 @@ Quadratic forms::
     True
 
     sage: M = diagonal_matrix([1,2,3,4,-5])
-    sage: M._pari_().qfsolve()
+    sage: M.__pari__().qfsolve()
     [0, 1, -1, 0, -1]~
     sage: M = diagonal_matrix([4,-9])
-    sage: M._pari_().qfsolve()
+    sage: M.__pari__().qfsolve()
     [6, 4]~
     sage: M = diagonal_matrix([1,1,1,1,1])
-    sage: M._pari_().qfsolve()
+    sage: M.__pari__().qfsolve()
     -1
     sage: M = diagonal_matrix([1,1,-3])
-    sage: M._pari_().qfsolve()
+    sage: M.__pari__().qfsolve()
     3
     sage: M = diagonal_matrix([1,-42])
-    sage: M._pari_().qfsolve()
+    sage: M.__pari__().qfsolve()
     -2
     sage: M = diagonal_matrix([1,-1,0,0])
-    sage: M._pari_().qfsolve().sage()
+    sage: M.__pari__().qfsolve().sage()
     [0 0]
     [0 0]
     [1 0]
@@ -1164,7 +1164,7 @@ Finite fields::
     82718061255302767487140869206996285356581211090087890624
     sage: g.fforder( (5^80-1, factor(5^80-1)) )
     82718061255302767487140869206996285356581211090087890624
-    sage: k(2)._pari_().fforder(o=4)
+    sage: k(2).__pari__().fforder(o=4)
     4
 
 p-adic functions::
@@ -1545,7 +1545,7 @@ General number fields::
     0
 
     sage: F = QuadraticField(5, 'alpha')
-    sage: nf = F._pari_()
+    sage: nf = F.__pari__()
     sage: P = F.ideal(F.gen())
     sage: Q = F.ideal(2)
     sage: moduli = pari.matrix(2,2,[P.pari_prime(),4,Q.pari_prime(),4])
@@ -1557,7 +1557,7 @@ General number fields::
     True
 
     sage: F = NumberField(x^3-2, 'alpha')
-    sage: nf = F._pari_()
+    sage: nf = F.__pari__()
     sage: x = pari('[1, -1, 2]~')
     sage: y = pari('[1, -1, 3]~')
     sage: nf.idealcoprime(x, y)
@@ -1576,7 +1576,7 @@ General number fields::
     [[65, 8; 0, 1], [65, 47; 0, 1], [65, 18; 0, 1], [65, 57; 0, 1]]
 
     sage: F = NumberField(x^3-2, 'alpha')
-    sage: nf = F._pari_()
+    sage: nf = F.__pari__()
     sage: I = pari('[1, -1, 2]~')
     sage: bid = nf.idealstar(I)
     sage: nf.ideallog(5, bid)
@@ -1590,7 +1590,7 @@ General number fields::
 
     sage: x = polygen(ZZ)
     sage: F = NumberField(x^3 - 2, 'alpha')
-    sage: nf = F._pari_()
+    sage: nf = F.__pari__()
     sage: I = pari('[1, -1, 2]~')
     sage: nf.idealstar(I)
     [[[43, 9, 5; 0, 1, 0; 0, 0, 1], [0]], [42, [42]], Mat([[43, [9, 1, 0]~, 1, 1, [-5, 2, -18; -9, -5, 2; 1, -9, -5]], 1]), [[[[[42], [3], [3], [Vecsmall([])], 1, [43, 9, 5; 0, 1, 0; 0, 0, 1]]]], [[], [], [], Vecsmall([])], Vecsmall([0])], Mat(1)]
@@ -1677,17 +1677,17 @@ General number fields::
 
     sage: F = NumberField(x^3-2,'alpha')
     sage: G = NumberField(x^3-2,'beta')
-    sage: F._pari_().nfisisom(G._pari_())
+    sage: F.__pari__().nfisisom(G.__pari__())
     [y]
     sage: GG = NumberField(x^3-4,'gamma')
-    sage: F._pari_().nfisisom(GG._pari_())
+    sage: F.__pari__().nfisisom(GG.__pari__())
     [1/2*y^2]
-    sage: F._pari_().nfisisom(GG.pari_nf())
+    sage: F.__pari__().nfisisom(GG.pari_nf())
     [1/2*y^2]
-    sage: F.pari_nf().nfisisom(GG._pari_()[0])
+    sage: F.pari_nf().nfisisom(GG.__pari__()[0])
     [y^2]
     sage: H = NumberField(x^2-2,'alpha')
-    sage: F._pari_().nfisisom(H._pari_())
+    sage: F.__pari__().nfisisom(H.__pari__())
     0
     sage: K.<a> = NumberField(x^2 + x + 1)
     sage: L.<b> = NumberField(x^2 + 3)
@@ -1736,14 +1736,58 @@ General number fields::
 
     sage: x = SR.symbol('x')
     sage: F = NumberField(x^3-2,'alpha')
-    sage: F._pari_()[0].nfdisc()
+    sage: F.__pari__()[0].nfdisc()
     -108
     sage: G = NumberField(x^5-11,'beta')
-    sage: G._pari_()[0].nfdisc()
+    sage: G.__pari__()[0].nfdisc()
     45753125
     sage: f = x^3-2
-    sage: f._pari_()
+    sage: f.__pari__()
     x^3 - 2
-    sage: f._pari_().nfdisc()
+    sage: f.__pari__().nfdisc()
     -108
+
+These are some doctests that used to be part of Sage and were removed from the cypari2
+library::
+
+    sage: e = pari([0,0,0,-82,0]).ellinit()
+    sage: eta1 = e.elleta(precision=100)[0]
+    sage: eta1.sage()
+    3.6054636014326520859158205642077267748
+    sage: eta1 = e.elleta(precision=180)[0]
+    sage: eta1.sage()
+    3.60546360143265208591582056420772677481026899659802474544
+
+    sage: from cypari2 import Pari
+    sage: pari = Pari()
+
+    sage: f = pari('(2/3)*x^3 + x - 5/7 + y'); f
+    2/3*x^3 + x + (y - 5/7)
+    sage: var('x,y')
+    (x, y)
+    sage: f.sage({'x':x, 'y':y})
+    2/3*x^3 + x + y - 5/7
+
+    sage: pari.default("debug")
+    0
+    sage: pari.default("debug", 3)
+    sage: pari(2**67+1).factor()
+    IFAC: cracking composite
+            49191317529892137643
+    IFAC: factor 6713103182899
+            is prime
+    IFAC: factor 7327657
+            is prime
+    IFAC: prime 7327657
+            appears with exponent = 1
+    IFAC: prime 6713103182899
+            appears with exponent = 1
+    IFAC: found 2 large prime (power) factors.
+    [3, 1; 7327657, 1; 6713103182899, 1]
+    sage: pari.default("debug", 0)
+    sage: pari(2**67+1).factor()
+    [3, 1; 7327657, 1; 6713103182899, 1]
+
+    sage: pari(18).bernreal(precision=192).sage()
+    54.9711779448621553884711779448621553884711779448621553885
 """

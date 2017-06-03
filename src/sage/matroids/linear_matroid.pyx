@@ -272,7 +272,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         """
         basis = self._setup_internal_representation(matrix, reduced_matrix, ring, keep_initial_representation)
         if groundset is None:
-            groundset = range(self._A.nrows() + self._A.ncols())
+            groundset = list(xrange(self._A.nrows() + self._A.ncols()))
         else:
             if len(groundset) != self._A.nrows() + self._A.ncols():
                 raise ValueError("size of groundset does not match size of matrix")
@@ -320,7 +320,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
                 self._A = GenericMatrix(reduced_matrix.nrows(), reduced_matrix.ncols(), M=reduced_matrix, ring=ring)
             else:
                 self._A = (<LeanMatrix>reduced_matrix).copy()   # Deprecated Sage matrix operation
-            P = range(self._A.nrows())
+            P = list(xrange(self._A.nrows()))
         self._prow = <long* > sig_malloc((self._A.nrows() + self._A.ncols()) * sizeof(long))
         if matrix is not None:
             for r in xrange(len(P)):
@@ -2762,9 +2762,9 @@ cdef class LinearMatroid(BasisExchangeMatroid):
                         B[x,y]=0
             
             # remove row x1 and y1
-            Xp = range(n)
+            Xp = list(xrange(n))
             Xp.remove(x1)
-            Yp = range(m)
+            Yp = list(xrange(m))
             Yp.remove(y1)
 
             B = B.matrix_from_rows_and_columns(Xp,Yp)
@@ -3011,12 +3011,12 @@ cdef class BinaryMatroid(LinearMatroid):
             self._A = A
         else:
             A = BinaryMatrix(reduced_matrix.nrows(), reduced_matrix.ncols(), M=reduced_matrix)
-            P = range(A.nrows())
+            P = list(xrange(A.nrows()))
             self._A = A.prepend_identity()   # Not a Sage matrix operation
 
         # Setup groundset, BasisExchangeMatroid data
         if groundset is None:
-            groundset = range(self._A.ncols())
+            groundset = list(xrange(self._A.ncols()))
         else:
             if len(groundset) != self._A.ncols():
                 raise ValueError("size of groundset does not match size of matrix")
@@ -3739,7 +3739,7 @@ cdef class BinaryMatroid(LinearMatroid):
             sage: M.dual().is_graphic()
             False
 
-        .. ALGORITHM:
+        ALGORITHM:
 
         In a recent paper, Geelen and Gerards [GG2012]_ reduced the problem to
         testing if a system of linear equations has a solution. While not the
@@ -4068,12 +4068,12 @@ cdef class TernaryMatroid(LinearMatroid):
             self._A = A
         else:
             A = TernaryMatrix(reduced_matrix.nrows(), reduced_matrix.ncols(), M=reduced_matrix)
-            P = range(A.nrows())
+            P = list(xrange(A.nrows()))
             self._A = A.prepend_identity()   # Not a Sage matrix operation
 
         # Setup groundset, BasisExchangeMatroid data
         if groundset is None:
-            groundset = range(self._A.ncols())
+            groundset = list(xrange(self._A.ncols()))
         else:
             if len(groundset) != self._A.ncols():
                 raise ValueError("size of groundset does not match size of matrix")
@@ -4953,12 +4953,12 @@ cdef class QuaternaryMatroid(LinearMatroid):
             self._A = A
         else:
             A = QuaternaryMatrix(reduced_matrix.nrows(), reduced_matrix.ncols(), M=reduced_matrix, ring=ring)
-            P = range(A.nrows())
+            P = list(xrange(A.nrows()))
             self._A = A.prepend_identity()   # Not a Sage matrix operation
 
         # Setup groundset, BasisExchangeMatroid data
         if groundset is None:
-            groundset = range(self._A.ncols())
+            groundset = list(xrange(self._A.ncols()))
         else:
             if len(groundset) != self._A.ncols():
                 raise ValueError("size of groundset does not match size of matrix")
@@ -5672,7 +5672,7 @@ cdef class RegularMatroid(LinearMatroid):
                 self._A = IntegerMatrix(reduced_matrix.nrows(), reduced_matrix.ncols(), M=reduced_matrix)
             else:
                 self._A = (<IntegerMatrix>reduced_matrix).copy()   # Deprecated Sage matrix operation
-            P = range(self._A.nrows())
+            P = list(xrange(self._A.nrows()))
         self._prow = <long* > sig_malloc((self._A.nrows() + self._A.ncols()) * sizeof(long))
         if matrix is not None:
             for r in xrange(len(P)):

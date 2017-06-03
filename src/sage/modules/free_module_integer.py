@@ -110,9 +110,7 @@ def IntegerLattice(basis, lll_reduce=True):
 
         sage: K.<a>  = CyclotomicField(17)
         sage: O = K.ring_of_integers()
-        sage: f = O.random_element(); f
-        -a^15 + a^13 + 4*a^12 - 12*a^11 - 256*a^10 + a^9 - a^7 - 4*a^6 + a^5 + 210*a^4 + 2*a^3 - 2*a^2 + 2*a - 2
-
+        sage: f = O(-a^15 + a^13 + 4*a^12 - 12*a^11 - 256*a^10 + a^9 - a^7 - 4*a^6 + a^5 + 210*a^4 + 2*a^3 - 2*a^2 + 2*a - 2)
         sage: from sage.modules.free_module_integer import IntegerLattice
         sage: IntegerLattice(f)
         Free module of degree 16 and rank 16 over Integer Ring
@@ -268,9 +266,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
 
             sage: K.<a> = NumberField(x^8+1)
             sage: O = K.ring_of_integers()
-            sage: f = O.random_element(); f
-            a^7 - a^6 + 4*a^5 - a^4 + a^3 + 1
-
+            sage: f = O(a^7 - a^6 + 4*a^5 - a^4 + a^3 + 1)
             sage: IntegerLattice(f)
             Free module of degree 8 and rank 8 over Integer Ring
             User basis matrix:
@@ -624,7 +620,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
                 B = self.reduced_basis.LLL()
                 qf = B*B.transpose()
 
-            count, length, vectors = qf._pari_().qfminim()
+            count, length, vectors = qf.__pari__().qfminim()
             v = vectors.sage().columns()[0]
             w = v*B
         elif algorithm == "fplll":

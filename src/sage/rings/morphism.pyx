@@ -801,24 +801,6 @@ cdef class RingHomomorphism(RingMap):
                     pass
         return sage.categories.map.Map._composition_(self, right, homset)
 
-    def is_injective(self):
-        """
-        Return whether or not this morphism is injective, or raise
-        a ``NotImplementedError``.
-
-        EXAMPLES:
-
-        Note that currently this is not implemented in most
-        interesting cases::
-
-            sage: f = ZZ.hom(QQ)
-            sage: f.is_injective()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
-
     def is_zero(self):
         r"""
         Return ``True`` if this is the zero map and ``False`` otherwise.
@@ -1195,7 +1177,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             sage: f2(x^3 + x + y^2)
             a - b
 
-        TEST::
+        TESTS::
 
             sage: loads(dumps(f2)) == f2
             True
@@ -1336,7 +1318,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
         """
         Initialize ``self``.
 
-        TEST::
+        TESTS::
 
             sage: from sage.rings.morphism import RingHomomorphism_from_base
             sage: R.<x> = ZZ[]

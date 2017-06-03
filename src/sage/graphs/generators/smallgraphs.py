@@ -29,7 +29,7 @@ from sage.graphs.graph_plot import _circle_embedding, _line_embedding
 
 def HarborthGraph():
     r"""
-    Return the Harborth Graph
+    Return the Harborth Graph.
 
     The Harborth graph has 104 edges and 52 vertices, and is the smallest known
     example of a 4-regular matchstick graph. For more information, see the
@@ -424,7 +424,7 @@ def WellsGraph():
 
 def Cell600(embedding=1):
     r"""
-    Returns the 600-Cell graph
+    Returns the 600-Cell graph.
 
     This is the adjacency graph of the 600-cell. It has 120 vertices and 720
     edges. For more information, see the :wikipedia:`600-cell`.
@@ -504,7 +504,7 @@ def Cell600(embedding=1):
 
 def Cell120():
     r"""
-    Returns the 120-Cell graph
+    Returns the 120-Cell graph.
 
     This is the adjacency graph of the 120-cell. It has 600 vertices and 1200
     edges. For more information, see the :wikipedia:`120-cell`.
@@ -614,7 +614,7 @@ def Cell120():
 
 def SuzukiGraph():
     r"""
-    Return the Suzuki Graph
+    Return the Suzuki Graph.
 
     The Suzuki graph has 1782 vertices, and is strongly regular with parameters
     `(1782,416,100,96)`. Known as S.15 in [Hu75]_.
@@ -1662,7 +1662,7 @@ def DoubleStarSnark():
 
 def MeredithGraph():
     r"""
-    Returns the Meredith Graph
+    Returns the Meredith Graph.
 
     The Meredith Graph is a 4-regular 4-connected non-hamiltonian graph. For
     more information on the Meredith Graph, see the :wikipedia:`Meredith_graph`.
@@ -1839,7 +1839,7 @@ def ChvatalGraph():
         2
         4
 
-    TEST::
+    TESTS::
 
         sage: import networkx
         sage: G = graphs.ChvatalGraph()
@@ -2675,7 +2675,7 @@ def FruchtGraph():
         'KhCKM?_EGK?L'
         sage: (graphs.FruchtGraph()).show() # long time
 
-    TEST::
+    TESTS::
 
         sage: import networkx
         sage: G = graphs.FruchtGraph()
@@ -2924,7 +2924,7 @@ def HeawoodGraph():
         'MhEGHC@AI?_PC@_G_'
         sage: (graphs.HeawoodGraph()).show() # long time
 
-    TEST::
+    TESTS::
 
         sage: import networkx
         sage: G = graphs.HeawoodGraph()
@@ -3011,6 +3011,8 @@ def HerschelGraph():
 
 def HigmanSimsGraph(relabel=True):
     r"""
+    Returns the Higman-Sims graph.
+
     The Higman-Sims graph is a remarkable strongly regular
     graph of degree 22 on 100 vertices.  For example, it can
     be split into two sets of 50 vertices each, so that each
@@ -3314,7 +3316,7 @@ def HoffmanGraph():
 
 def HoltGraph():
     r"""
-    Returns the Holt graph (also called the Doyle graph)
+    Returns the Holt graph (also called the Doyle graph).
 
     See the :wikipedia:`Wikipedia page on the Holt graph
     <Holt_graph>`.
@@ -3391,7 +3393,7 @@ def KrackhardtKiteGraph():
         sage: g = graphs.KrackhardtKiteGraph()
         sage: g.show() # long time
 
-    TEST::
+    TESTS::
 
         sage: import networkx
         sage: G = graphs.KrackhardtKiteGraph()
@@ -3468,7 +3470,7 @@ def Klein7RegularGraph():
 
 def LocalMcLaughlinGraph():
     r"""
-    Return the local McLaughlin graph
+    Return the local McLaughlin graph.
 
     The local McLaughlin graph is a strongly regular graph with parameters
     `(162,56,10,24)`. It can be obtained from
@@ -4004,6 +4006,8 @@ def PoussinGraph():
 
 def PetersenGraph():
     """
+    Returns the Petersen Graph.
+
     The Petersen Graph is a named graph that consists of 10 vertices
     and 15 edges, usually drawn as a five-point star embedded in a
     pentagon.
@@ -4801,7 +4805,7 @@ def _EllipticLinesProjectivePlaneScheme(k):
 
 def MathonStronglyRegularGraph(t):
     r"""
-    return one of Mathon's graphs on 784 vertices
+    Return one of Mathon's graphs on 784 vertices.
 
     INPUT:
 
@@ -4830,7 +4834,7 @@ def MathonStronglyRegularGraph(t):
 
 def JankoKharaghaniGraph(v):
     r"""
-    Returns a (936, 375, 150, 150)-srg or a (1800, 1029, 588, 588)-srg
+    Returns a (936, 375, 150, 150)-srg or a (1800, 1029, 588, 588)-srg.
 
     This functions returns a strongly regular graph for the two sets of
     parameters shown to be realizable in [JK02]_. The paper also uses a
@@ -4937,7 +4941,7 @@ def JankoKharaghaniGraph(v):
 
 def JankoKharaghaniTonchevGraph():
     r"""
-    Returns a (324,153,72,72)-strongly regular graph from [JKT01]_
+    Returns a (324,153,72,72)-strongly regular graph from [JKT01]_.
 
     Build the graph using the description given in [JKT01]_, taking
     sets B1 and B163 in the text as adjacencies of vertices 1 and 163,
@@ -4954,7 +4958,7 @@ def JankoKharaghaniTonchevGraph():
     .. [JKT01] \Z.Janko, H.Kharaghani, V.D.Tonchev
        The existence of a Bush-type Hadamard matrix of order 324
        and two new infinite classes of symmetric designs.
-       Des. Codes Cryptogr. 24(2001), 225-232
+       Des. Codes Cryptogr. 24(2001), 225--232
 
     """
     from itertools import product
@@ -5110,7 +5114,7 @@ def IoninKharaghani765Graph():
     .. [IK03] Yury Ionin, Hadi Kharaghani
        New families of strongly regular graphs.
        Journal of Combinatorial Designs,
-       Vol 11 (2003), no. 3, 208–217,
+       Vol 11 (2003), no. 3, 208--217,
        :doi:`10.1002/jcd.10038`
     """
     from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
@@ -5179,3 +5183,100 @@ def IoninKharaghani765Graph():
     M = matrix.block([[int_to_matrix[x] for x in R] for R in W.rows()])
     g = Graph(M,name="Ionin-Kharaghani")
     return g
+
+
+def U42Graph216():
+    r"""
+    Returns a (216,40,4,8)-strongly regular graph from [CRS16]_.
+
+    Build the graph, interpreting the `U_4(2)`-action considered in [CRS16]_
+    as the one on the hyperbolic lines of the corresponding unitary polar space,
+    and then doing the unique merging of the orbitals leading to a graph with
+    the parameters in question.
+
+    EXAMPLES::
+
+        sage: G=graphs.U42Graph216()                 # optional - gap_packages (grape)
+        sage: G.is_strongly_regular(parameters=True) # optional - gap_packages (grape)
+        (216, 40, 4, 8)
+
+    REFERENCES:
+
+    .. [CRS16] \Dean Crnković, Sanja Rukavina, Andrea Švob,
+       Strongly regular graphs from orthogonal groups `O^+(6,2)` and `O^-(6,2)`.
+       https://arxiv.org/abs/1609.07133
+    """
+    from sage.libs.gap.libgap import libgap
+    from sage.misc.package import is_package_installed, PackageNotFoundError
+
+    if not is_package_installed('gap_packages'):
+        raise PackageNotFoundError('gap_packages')
+
+    adj_list=libgap.function_factory("""function()
+                local gg, hl, o216, a216, x, h, re, G;
+                LoadPackage("grape");
+                gg:=SpecialUnitaryGroup(4,2);
+                hl:=Z(2)*[
+                [0,0,1,0],
+                [1,1,0,0],
+                [0,1,0,1],
+                [0,1,1,0],
+                [1,1,0,1]];
+                o216:=Orbit(gg,Set(hl),OnSets);
+                a216:=Action(gg,o216,OnSets);
+                h:=Stabilizer(a216,1);
+                re:=Filtered(Orbits(h,[1..216]),x->Length(x)=20);
+                G:=EdgeOrbitsGraph(a216, [[1,re[1][1]], [1,re[2][1]]]);
+                return List([1..216],x->Adjacency(G,x));
+                end;""")
+
+    adj = adj_list() # for each vertex, we get the list of vertices it is adjacent to
+    G = Graph(((i,int(j-1))
+               for i,ni in enumerate(adj) for j in ni),
+               format='list_of_edges', multiedges=False)
+    G.name('U42Graph216')
+    return G
+
+def U42Graph540():
+    r"""
+    Returns a (540,187,58,68)-strongly regular graph from [CRS16]_.
+
+    Build the graph, interpreting the `U_4(2)`-action considered in [CRS16]_
+    as the action of `U_4(2)=Sp_4(3)<U_4(3)` on the nonsingular, w.r.t.
+    to the Hermitean form stabilised by `U_4(3)`, points of the
+    3-dimensional projective space over `GF(9)`. There are several possible
+    mergings of orbitals, some leading to non-isomorphic graphs with the same
+    parameters. We found the merging here using [COCO]_.
+
+    EXAMPLES::
+
+        sage: G=graphs.U42Graph540() # optional - gap_packages (grape)
+        sage: G.is_strongly_regular(parameters=True) # optional - gap_packages (grape)
+        (540, 187, 58, 68)
+
+    """
+    from sage.libs.gap.libgap import libgap
+    from sage.misc.package import is_package_installed, PackageNotFoundError
+
+    if not is_package_installed('gap_packages'):
+        raise PackageNotFoundError('gap_packages')
+
+    adj_list=libgap.function_factory("""function()
+                local f, o540, a540, x, oh, h, lo, G;
+                LoadPackage("grape");
+                f:=Sp(4,3);
+                o540:=Orbit(f,Z(3)^0*[1,0,0,Z(9)],OnLines);
+                a540:=Action(f,o540,OnLines);
+                h:=Stabilizer(a540,1);
+                oh:=Orbits(h,[1..540]);
+                lo:=List([8,9,10,11,12,16,19,22,23,24],x->[1,oh[x+1][1]]);
+                G:=EdgeOrbitsGraph(a540,lo);
+                return List([1..540],x->Adjacency(G,x));
+                end;""")
+
+    adj = adj_list() # for each vertex, we get the list of vertices it is adjacent to
+    G = Graph(((i,int(j-1))
+               for i,ni in enumerate(adj) for j in ni),
+               format='list_of_edges', multiedges=False)
+    G.name('U42Graph540')
+    return G

@@ -815,7 +815,7 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
 
         TESTS:
 
-        The bug reported at #12211 has been fixed::
+        The bug reported at :trac:`12211` has been fixed::
 
             sage: P.<x, y, z, w> = ProjectiveSpace(3, QQ)
             sage: S = P.subscheme([x])
@@ -3932,7 +3932,7 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
                     (1 : x0 : x1 : x2 , x3 : 1))
         """
         if not isinstance(I, (list, tuple)):
-            raise TypeError('The argument I=%s must be a list or tuple of positice integers'%I)
+            raise TypeError('The argument I=%s must be a list or tuple of positive integers' % I)
         PP = self.ambient_space()
         N = PP.dimension_relative_components()
         if len(I) != len(N):

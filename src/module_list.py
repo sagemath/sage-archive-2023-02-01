@@ -195,6 +195,9 @@ ext_modules = [
                language='c++',
                libraries = ["gmp", "m", "ntl"]),
 
+    Extension('sage.algebras.lie_algebras.lie_algebra_element',
+              sources = ["sage/algebras/lie_algebras/lie_algebra_element.pyx"]),
+
     ################################
     ##
     ## sage.arith
@@ -256,6 +259,15 @@ ext_modules = [
     ################################
 
     Extension('*', ['sage/data_structures/*.pyx']),
+
+    ################################
+    ##
+    ## sage.docs
+    ##
+    ################################
+
+    Extension('*', ['sage/docs/*.pyx']),
+
 
     ################################
     ##
@@ -475,14 +487,6 @@ ext_modules = [
 
     ################################
     ##
-    ## sage.gsl
-    ##
-    ################################
-
-    Extension('*', ['sage/gsl/*.pyx']),
-
-    ################################
-    ##
     ## sage.interacts
     ##
     ################################
@@ -520,8 +524,7 @@ ext_modules = [
               package = 'coxeter3'),
 
     Extension('sage.libs.ecl',
-              sources = ["sage/libs/ecl.pyx"],
-              libraries = ["ecl"]),
+              sources = ["sage/libs/ecl.pyx"]),
 
     OptionalExtension("sage.libs.fes",
              ["sage/libs/fes.pyx"],
@@ -559,6 +562,12 @@ ext_modules = [
                       libraries = ["homfly", "gc"],
                       package="libhomfly"),
 
+    OptionalExtension('sage.libs.sirocco',
+                      sources = ["sage/libs/sirocco.pyx"],
+                      libraries = ["sirocco", "mpfr", "gmp"],
+                      package="sirocco",
+                      language = 'c++'),
+
     Extension('*', ['sage/libs/linbox/*.pyx']),
 
     Extension('sage.libs.lcalc.lcalc_Lfunction',
@@ -577,7 +586,6 @@ ext_modules = [
     Extension('sage.libs.lrcalc.lrcalc',
               sources = ["sage/libs/lrcalc/lrcalc.pyx"]),
 
-    Extension('*', ['sage/libs/cypari2/*.pyx']),
     Extension('*', ['sage/libs/pari/*.pyx']),
 
     Extension('sage.libs.ppl',
@@ -1026,6 +1034,9 @@ ext_modules = [
     Extension('sage.modules.vector_real_double_dense',
               ['sage/modules/vector_real_double_dense.pyx']),
 
+    Extension('sage.modules.with_basis.indexed_element',
+              sources = ['sage/modules/with_basis/indexed_element.pyx']),
+
     ################################
     ##
     ## sage.numerical
@@ -1174,7 +1185,7 @@ ext_modules = [
                          'sage/rings/bernmm/bern_modp.cpp',
                          'sage/rings/bernmm/bern_modp_util.cpp',
                          'sage/rings/bernmm/bern_rat.cpp'],
-              libraries = ['ntl', 'pthread'],
+              libraries = ['ntl', 'pthread', 'gmp'],
               depends = ['sage/rings/bernmm/bern_modp.h',
                          'sage/rings/bernmm/bern_modp_util.h',
                          'sage/rings/bernmm/bern_rat.h'],

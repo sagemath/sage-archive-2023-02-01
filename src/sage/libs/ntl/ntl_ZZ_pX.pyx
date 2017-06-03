@@ -13,10 +13,10 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 
-include "cysignals/signals.pxi"
-include "sage/ext/stdsage.pxi"
+from cysignals.signals cimport sig_on, sig_off
+
 include 'misc.pxi'
 include 'decl.pxi'
 
@@ -1421,7 +1421,7 @@ cdef class ntl_ZZ_pX_Modulus(object):
         return "NTL ZZ_pXModulus %s (mod %s)"%(self.poly, self.poly.c.p)
 
     def degree(self):
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         mpz_set_ui(ans.value, ZZ_pX_Modulus_deg(self.x))
         return ans
 

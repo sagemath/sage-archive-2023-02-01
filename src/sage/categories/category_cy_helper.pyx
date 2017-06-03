@@ -180,7 +180,7 @@ cpdef tuple join_as_tuple(tuple categories, tuple axioms, tuple ignore_axioms):
         # Removes redundant categories
         new_cats = [new_cat for new_cat in <tuple>(category._with_axiom_as_tuple(axiom))
                     if not is_supercategory_of_done(new_cat, done)]
-        for cat in done.keys():
+        for cat in list(done.keys()):
             for new_cat in new_cats:
                 if new_cat.is_subcategory(cat):
                     del done[cat]

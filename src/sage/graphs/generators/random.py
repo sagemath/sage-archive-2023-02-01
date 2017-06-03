@@ -751,7 +751,7 @@ def RandomToleranceGraph(n):
         sage: g.clique_number() == g.chromatic_number()
         True
 
-    TEST::
+    TESTS::
 
         sage: g = graphs.RandomToleranceGraph(-2)
         Traceback (most recent call last):

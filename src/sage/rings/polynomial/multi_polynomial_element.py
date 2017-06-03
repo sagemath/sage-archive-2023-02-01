@@ -53,8 +53,8 @@ We verify Lagrange's four squares identity::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
-import six
 from six.moves import range
+from six import iteritems, integer_types
 
 from sage.structure.element import CommutativeRingElement, canonical_coercion, coerce_binop
 from sage.misc.all import prod
@@ -146,7 +146,7 @@ class MPolynomial_element(MPolynomial):
         except AttributeError:
             K = self.parent().base_ring()
         y = K(0)
-        for (m,c) in six.iteritems(self.element().dict()):
+        for (m,c) in iteritems(self.element().dict()):
             y += c*prod([ x[i]**m[i] for i in range(n) if m[i] != 0])
         return y
 
@@ -198,7 +198,7 @@ class MPolynomial_element(MPolynomial):
         if n == 0:
             return codomain._coerce_(self)
         y = codomain(0)
-        for (m,c) in six.iteritems(self.element().dict()):
+        for (m,c) in iteritems(self.element().dict()):
             y += codomain(c)*prod([ im_gens[i]**m[i] for i in range(n) if m[i] ])
         return y
 
@@ -314,7 +314,7 @@ class MPolynomial_element(MPolynomial):
         return self.parent().fraction_field()(self, right, coerce=False)
 
     def __rpow__(self, n):
-        if not isinstance(n, (int, long, sage.rings.integer.Integer)):
+        if not isinstance(n, integer_types + (sage.rings.integer.Integer,)):
             raise TypeError("The exponent must be an integer.")
         return self.parent()(self.__element**n)
 
@@ -566,7 +566,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             ...
             TypeError: x must be one of the generators of the parent
 
-        TEST::
+        TESTS::
 
             sage: R = PolynomialRing(GF(2)['t'],'x,y',order=TermOrder('wdeglex',(2,3)))
             sage: x,y = R.gens()
@@ -1556,14 +1556,14 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         except ValueError:
             # var is not a generator; do term-by-term differentiation recursively
             # var may be, for example, a generator of the base ring
-            d = dict([(e, x._derivative(var)) for (e, x) in six.iteritems(self.dict())])
+            d = dict([(e, x._derivative(var)) for (e, x) in iteritems(self.dict())])
             d = polydict.PolyDict(d, self.parent().base_ring()(0), remove_zero=True)
             return MPolynomial_polydict(self.parent(), d)
 
         # differentiate w.r.t. indicated variable
         d = {}
         v = polydict.ETuple({index:1}, len(gens))
-        for (exp, coeff) in six.iteritems(self.dict()):
+        for (exp, coeff) in iteritems(self.dict()):
             if exp[index] > 0:
                 d[exp.esub(v)] = coeff * exp[index]
         d = polydict.PolyDict(d, self.parent().base_ring()(0), remove_zero=True)
@@ -1628,7 +1628,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             # var is not a generator; do term-by-term integration recursively
             # var may be, for example, a generator of the base ring
             d = dict([(e, x.integral(var))
-                      for (e, x) in six.iteritems(self.dict())])
+                      for (e, x) in iteritems(self.dict())])
             d = polydict.PolyDict(d, self.parent().base_ring()(0),
                                   remove_zero=True)
             return MPolynomial_polydict(self.parent(), d)
@@ -1636,7 +1636,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         # integrate w.r.t. indicated variable
         d = {}
         v = polydict.ETuple({index:1}, len(gens))
-        for (exp, coeff) in six.iteritems(self.dict()):
+        for (exp, coeff) in iteritems(self.dict()):
             d[exp.eadd(v)] = coeff / (1+exp[index])
         d = polydict.PolyDict(d, self.parent().base_ring()(0), remove_zero=True)
         return MPolynomial_polydict(self.parent(), d)
@@ -1994,7 +1994,7 @@ def degree_lowest_rational_function(r,x):
     ::
 
         sage: r = f/g; r
-        (-2*b*c^2 - 1)/(2*a*b^3*c^6 + a*c)
+        (-b*c^2 + 2)/(a*b^3*c^6 - 2*a*c)
         sage: degree_lowest_rational_function(r,a)
         (-1, 3)
         sage: degree_lowest_rational_function(r,b)

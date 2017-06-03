@@ -1177,7 +1177,7 @@ class Graph(GenericGraph):
                 pos = data.get_pos()
             self.name(data.name())
             self.add_vertices(data.vertex_iterator())
-            self.add_edges(data.edge_iterator())
+            self.add_edges(data.edge_iterator(), loops=loops)
         elif format == 'NX':
             if convert_empty_dict_labels_to_None is not False:
                 r = lambda x:None if x=={} else x
@@ -1223,7 +1223,8 @@ class Graph(GenericGraph):
             from itertools import combinations
             self.add_vertices(verts)
             self.add_edges(e for e in combinations(verts,2) if f(*e))
-            self.add_edges((v,v) for v in verts if f(v,v))
+            if loops:
+                self.add_edges((v,v) for v in verts if f(v,v))
 
         elif format == "vertices_and_edges":
             self.allow_multiple_edges(bool(multiedges), check=False)
@@ -1667,6 +1668,14 @@ class Graph(GenericGraph):
             False
             sage: graphs.EmptyGraph().is_tree(certificate=True)
             (False, None)
+
+        :trac:`22912` is fixed::
+
+            sage: G = Graph([(0,0), (0,1)], loops=True)
+            sage: G.is_tree(certificate=True)
+            (False, [0])
+            sage: G.is_tree(certificate=True, output='edge')
+            (False, [(0, 0, None)])
         """
         if not output in ['vertex', 'edge']:
             raise ValueError('output must be either vertex or edge')
@@ -1677,6 +1686,11 @@ class Graph(GenericGraph):
         if certificate:
             if self.num_verts() == self.num_edges() + 1:
                 return (True, None)
+
+            if self.allows_loops():
+                L = self.loop_edges() if output=='edge' else self.loop_vertices()
+                if L:
+                    return False, L[:1]
 
             if self.has_multiple_edges():
                 if output == 'vertex':
@@ -2871,7 +2885,7 @@ class Graph(GenericGraph):
         # immediate subcall of C1
         from sage.sets.set import Set
         G = Graph(name="Tree decomposition")
-        G.add_edges([(Set(x),Set(y)) for x,y in TD])
+        G.add_edges(((Set(x),Set(y)) for x,y in TD), loops=False)
 
         # The Tree-Decomposition contains a lot of useless nodes.
         #
@@ -3433,6 +3447,11 @@ class Graph(GenericGraph):
 
         while next_:
             e = next_.pop(-1)
+
+            # Ignore loops
+            if e[0] == e[1]:
+                continue
+
             # We assume e[0] to be a `seen` vertex
             e = e if seen.get(e[0],False) is not False else (e[1],e[0],e[2])
 
@@ -3646,9 +3665,9 @@ class Graph(GenericGraph):
         While this is not::
 
             sage: try:
-            ....:    g.bounded_outdegree_orientation(ceil(mad/2-1))
-            ....:    print("Error")
-            ... except ValueError:
+            ....:     g.bounded_outdegree_orientation(ceil(mad/2-1))
+            ....:     print("Error")
+            ....: except ValueError:
             ....:     pass
 
         TESTS:
@@ -3749,7 +3768,7 @@ class Graph(GenericGraph):
 
         .. WARNING::
 
-            This always considers mutliple edges of graphs as
+            This always considers multiple edges of graphs as
             distinguishable, and hence, may have repeated digraphs.
 
         EXAMPLES::
@@ -4363,7 +4382,11 @@ class Graph(GenericGraph):
         """
         self._scream_if_not_simple(allow_loops=True)
         from sage.rings.real_mpfr import RR
-        weight = lambda x: x if x in RR else 1
+        def weight(x):
+            if x in RR:
+                return x
+            else:
+                return 1
 
         if algorithm == "Edmonds":
             import networkx
@@ -4391,21 +4414,21 @@ class Graph(GenericGraph):
             # returns the weight of an edge considering it may not be
             # weighted ...
             p = MixedIntegerLinearProgram(maximization=True, solver=solver)
-            b = p.new_variable(binary = True)
+            b = p.new_variable(binary=True)
             if use_edge_labels:
                 p.set_objective(
-                    p.sum(weight(w) * b[min(u, v),max(u, v)]
-                         for u, v, w in g.edge_iterator()))
+                    p.sum(weight(w) * b[min(u, v), max(u, v)]
+                          for u, v, w in g.edge_iterator()))
             else:
                 p.set_objective(
-                    p.sum(b[min(u, v),max(u, v)]
-                         for u, v in g.edge_iterator(labels=False)))
+                    p.sum(b[min(u, v), max(u, v)]
+                          for u, v in g.edge_iterator(labels=False)))
             # for any vertex v, there is at most one edge incident to v in
             # the maximum matching
             for v in g.vertex_iterator():
                 p.add_constraint(
                     p.sum(b[min(u, v),max(u, v)]
-                         for u in g.neighbors(v)), max=1)
+                          for u in g.neighbors(v)), max=1)
             if value_only:
                 if use_edge_labels:
                     return p.solve(objective_only=True, log=verbose)
@@ -6718,10 +6741,10 @@ class Graph(GenericGraph):
             [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
             sage: (graphs.FruchtGraph()).cores(with_labels=True)
             {0: 3, 1: 3, 2: 3, 3: 3, 4: 3, 5: 3, 6: 3, 7: 3, 8: 3, 9: 3, 10: 3, 11: 3}
-            sage: a=random_matrix(ZZ,20,x=2,sparse=True, density=.1)
-            sage: b=Graph(20)
-            sage: b.add_edges(a.nonzero_positions())
-            sage: cores=b.cores(with_labels=True); cores
+            sage: a = random_matrix(ZZ,20,x=2,sparse=True, density=.1)
+            sage: b = Graph(20)
+            sage: b.add_edges(a.nonzero_positions(), loops=False)
+            sage: cores = b.cores(with_labels=True); cores
             {0: 3, 1: 3, 2: 3, 3: 3, 4: 2, 5: 2, 6: 3, 7: 1, 8: 3, 9: 3, 10: 3, 11: 3, 12: 3, 13: 3, 14: 2, 15: 3, 16: 3, 17: 3, 18: 3, 19: 3}
             sage: [v for v,c in cores.items() if c>=2] # the vertices in the 2-core
             [0, 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
@@ -7498,7 +7521,7 @@ class Graph(GenericGraph):
     @doc_index("Leftovers")
     def perfect_matchings(self, labels=False):
         """
-        Return an interator over all perfect matchings of the graph.
+        Return an iterator over all perfect matchings of the graph.
 
         ALGORITHM:
 
@@ -7565,6 +7588,108 @@ class Graph(GenericGraph):
                 Gp.delete_vertices([e[0], e[1]])
                 for mat in Gp.perfect_matchings(labels):
                     yield [e] + mat
+
+    @doc_index("Leftovers")
+    def has_perfect_matching(self, algorithm="Edmonds", solver=None, verbose=0):
+        r"""
+        Return whether this graph has a perfect matching.
+
+        INPUT:
+
+        - ``algorithm`` -- string (default: ``"Edmonds"``)
+
+          - ``"Edmonds"`` uses Edmonds' algorithm as implemented in NetworkX to
+            find a matching of maximal cardinality, then check whether this
+            cardinality is half the number of vertices of the graph.
+
+          - ``"LP_matching"`` uses uses a Linear Program to find a matching of
+            maximal cardinality, then check whether this cardinality is half the
+            number of vertices of the graph.
+
+          - ``"LP"`` uses a Linear Program formulation of the perfect matching
+            problem: put a binary variable ``b[e]`` on each edge ``e``, and for
+            each vertex ``v``, require that the sum of the values of the edges
+            incident to ``v`` is 1.
+            
+        - ``solver`` -- (default: ``None``) specify a Linear Program (LP)
+          solver to be used; if set to ``None``, the default one is used
+
+        - ``verbose`` -- integer (default: ``0``); sets the level of verbosity:
+          set to 0 by default, which means quiet (only useful when 
+          ``algorithm == "LP_matching"`` or ``algorithm == "LP"``)
+
+        For more information on LP solvers and which default solver is
+        used, see the method
+        :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+        of the class :class:`MixedIntegerLinearProgram
+        <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: graphs.PetersenGraph().has_perfect_matching()
+            True
+            sage: graphs.WheelGraph(6).has_perfect_matching()
+            True
+            sage: graphs.WheelGraph(5).has_perfect_matching()
+            False
+            sage: graphs.PetersenGraph().has_perfect_matching(algorithm="LP_matching")
+            True
+            sage: graphs.WheelGraph(6).has_perfect_matching(algorithm="LP_matching")
+            True
+            sage: graphs.WheelGraph(5).has_perfect_matching(algorithm="LP_matching")
+            False
+            sage: graphs.PetersenGraph().has_perfect_matching(algorithm="LP_matching")
+            True
+            sage: graphs.WheelGraph(6).has_perfect_matching(algorithm="LP_matching")
+            True
+            sage: graphs.WheelGraph(5).has_perfect_matching(algorithm="LP_matching")
+            False
+
+        TESTS::
+    
+            sage: G = graphs.EmptyGraph()
+            sage: all(G.has_perfect_matching(algorithm=algo) for algo in ['Edmonds', 'LP_matching', 'LP'])
+            True
+
+        Be careful with isolated vertices::
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.add_vertex(11)
+            sage: any(G.has_perfect_matching(algorithm=algo) for algo in ['Edmonds', 'LP_matching', 'LP'])
+            False
+        """
+        if self.order() % 2:
+            return False
+        if algorithm == "Edmonds":
+            return len(self) == 2*self.matching(value_only=True,
+                                                use_edge_labels=False,
+                                                algorithm="Edmonds")
+        elif algorithm == "LP_matching":
+            return len(self) == 2*self.matching(value_only=True,
+                                                use_edge_labels=False,
+                                                algorithm="LP",
+                                                solver=solver,
+                                                verbose=verbose)
+        elif algorithm == "LP":
+            from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
+            p = MixedIntegerLinearProgram(solver=solver)
+            b = p.new_variable(binary = True)
+            for v in self:
+                edges = self.edges_incident(v, labels=False)
+                if not edges:
+                    return False
+                p.add_constraint(p.sum(b[e] for e in edges) == 1)
+            try:
+                p.solve(log=verbose)
+                return True
+            except MIPSolverException:
+                return False
+        else:
+            raise ValueError('algorithm must be set to "Edmonds", "LP_matching" or "LP"')
 
 
 # Aliases to functions defined in Cython modules

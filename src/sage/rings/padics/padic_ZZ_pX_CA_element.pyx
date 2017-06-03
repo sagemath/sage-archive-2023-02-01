@@ -310,7 +310,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
                 raise TypeError("Cannot coerce between p-adic parents with different primes.")
         if isinstance(x, pari_gen) or isinstance(x, GpElement):
             if isinstance(x, GpElement):
-                x = x._pari_()
+                x = x.__pari__()
             if x.type() == "t_PADIC":
                 if x.variable() != self.prime_pow.prime:
                     raise TypeError("Cannot coerce a pari p-adic with the wrong prime.")
@@ -1149,14 +1149,14 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         Lemma 2.1 (Constructing Class Fields over Local Fields,
         Sebastian Pauli): Let `\alpha` be in `\mathcal{O}_K`.  Let
 
-        ..math ::
+        .. MATH::
 
             p = -\pi_K^{e_K} \epsilon
 
         be the factorization of `p` where `\epsilon` is a unit.  Then
         the `p`-th power of `1 + \alpha \pi_K^{\lambda}` satisfies
 
-        ..math ::
+        .. MATH::
 
             (1 + \alpha \pi^{\lambda})^p \equiv \left{ \begin{array}{lll}
             1 + \alpha^p \pi_K^{p \lambda} & \mod \mathfrak{p}_K^{p \lambda + 1} & \mbox{if $1 \le \lambda < \frac{e_K}{p-1}$} \\
@@ -1181,7 +1181,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         Teichmuller part and use the above lemma to find the first
         spot where
 
-        ..math ::
+        .. MATH::
 
             (1 + \alpha \pi^{\lambda})^{p^m}
 

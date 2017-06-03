@@ -27,14 +27,15 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
 
 import operator
 
-include "cysignals/signals.pxi"
 from cpython.int cimport *
-include "sage/ext/stdsage.pxi"
+
+from cysignals.signals cimport sig_on, sig_off
+
 include "sage/libs/ntl/decl.pxi"
 
 from sage.libs.gmp.mpz cimport *
@@ -588,7 +589,7 @@ cdef class NumberFieldElement(FieldElement):
             f = f(alpha).lift()
         return f.change_variable_name(name)
 
-    def _pari_(self, name='y'):
+    def __pari__(self, name='y'):
         r"""
         Return PARI representation of self.
 
@@ -603,18 +604,18 @@ cdef class NumberFieldElement(FieldElement):
         EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 + 2)
-            sage: K(1)._pari_()
+            sage: K(1).__pari__()
             Mod(1, y^3 + 2)
-            sage: (a + 2)._pari_()
+            sage: (a + 2).__pari__()
             Mod(y + 2, y^3 + 2)
             sage: L.<b> = K.extension(x^2 + 2)
-            sage: (b + a)._pari_()
+            sage: (b + a).__pari__()
             Mod(24/101*y^5 - 9/101*y^4 + 160/101*y^3 - 156/101*y^2 + 397/101*y + 364/101, y^6 + 6*y^4 - 4*y^3 + 12*y^2 + 24*y + 12)
 
         ::
 
             sage: k.<j> = QuadraticField(-1)
-            sage: j._pari_('j')
+            sage: j.__pari__('j')
             Mod(j, j^2 + 1)
             sage: pari(j)
             Mod(y, y^2 + 1)
@@ -633,14 +634,14 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: R.<theta> = PolynomialRing(QQ)
             sage: K.<theta> = NumberField(theta^2 + 1)
-            sage: theta._pari_('theta')
+            sage: theta.__pari__('theta')
             Traceback (most recent call last):
             ...
             PariError: theta already exists with incompatible valence
-            sage: theta._pari_()
+            sage: theta.__pari__()
             Mod(y, y^2 + 1)
             sage: k.<I> = QuadraticField(-1)
-            sage: I._pari_('I')
+            sage: I.__pari__('I')
             Traceback (most recent call last):
             ...
             PariError: I already exists with incompatible valence
@@ -649,9 +650,9 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: pari(I)
             Mod(y, y^2 + 1)
-            sage: I._pari_('i')
+            sage: I.__pari__('i')
             Mod(i, i^2 + 1)
-            sage: I._pari_('II')
+            sage: I.__pari__('II')
             Mod(II, II^2 + 1)
 
         Examples with relative number fields, which always yield an
@@ -665,7 +666,7 @@ cdef class NumberFieldElement(FieldElement):
             7
             sage: pari(j)^2
             Mod(7, y^6 - 21*y^4 + 4*y^3 + 147*y^2 + 84*y - 339)
-            sage: (j^2)._pari_('x')
+            sage: (j^2).__pari__('x')
             Mod(7, x^6 - 21*x^4 + 4*x^3 + 147*x^2 + 84*x - 339)
 
         A tower of three number fields::
@@ -674,11 +675,11 @@ cdef class NumberFieldElement(FieldElement):
             sage: K.<a> = NumberField(x^2 + 2)
             sage: L.<b> = NumberField(polygen(K)^2 + a)
             sage: M.<c> = NumberField(polygen(L)^3 + b)
-            sage: L(b)._pari_()
+            sage: L(b).__pari__()
             Mod(y, y^4 + 2)
-            sage: M(b)._pari_('c')
+            sage: M(b).__pari__('c')
             Mod(-c^3, c^12 + 2)
-            sage: c._pari_('c')
+            sage: c.__pari__('c')
             Mod(c, c^12 + 2)
         """
         f = self._pari_polynomial(name)
@@ -723,7 +724,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: pari(b)
             Mod(-8/27*y^3 + 2/3*y^2 - 1/2*y + 1/8, y^5 - y - 1)
         """
-        return repr(self._pari_(name=name))
+        return repr(self.__pari__(name=name))
 
     def __getitem__(self, n):
         """
@@ -886,8 +887,8 @@ cdef class NumberFieldElement(FieldElement):
 
     cdef int _randomize(self, num_bound, den_bound, distribution) except -1:
         cdef int i
-        cdef Integer denom_temp = PY_NEW(Integer)
-        cdef Integer tmp_integer = PY_NEW(Integer)
+        cdef Integer denom_temp = Integer.__new__(Integer)
+        cdef Integer tmp_integer = Integer.__new__(Integer)
         cdef ZZ_c ntl_temp
         cdef list coeff_list
         cdef Rational tmp_rational
@@ -918,7 +919,7 @@ cdef class NumberFieldElement(FieldElement):
         else:
             coeff_list = []
             mpz_set_si(denom_temp.value, 1)
-            tmp_integer = PY_NEW(Integer)
+            tmp_integer = Integer.__new__(Integer)
 
             for i from 0 <= i < ZZX_deg(self.__fld_numerator.x):
                 tmp_rational = <Rational>(QQ.random_element(num_bound=num_bound,
@@ -1696,7 +1697,7 @@ cdef class NumberFieldElement(FieldElement):
             raise ValueError("L (=%s) must be a relative number field with base field K (=%s) in rnfisnorm" % (L, K))
 
         rnf_data = K.pari_rnfnorm_data(L, proof=proof)
-        x, q = self._pari_().rnfisnorm(rnf_data)
+        x, q = self.__pari__().rnfisnorm(rnf_data)
         return L(x, check=False), K(q, check=False)
 
     def _mpfr_(self, R):
@@ -2463,7 +2464,7 @@ cdef class NumberFieldElement(FieldElement):
             sig_off()
         except NTLError:
             # In case NTL fails we fall back to PARI.
-            x = self._parent(~self._pari_())
+            x = self._parent(~self.__pari__())
         return x
 
     def _integer_(self, Z=None):
@@ -2501,8 +2502,7 @@ cdef class NumberFieldElement(FieldElement):
         """
         if ZZX_deg(self.__numerator) >= 1:
             raise TypeError("Unable to coerce %s to a rational"%self)
-        cdef Integer num
-        num = PY_NEW(Integer)
+        cdef Integer num = Integer.__new__(Integer)
         ZZX_getitem_as_mpz(num.value, &self.__numerator, 0)
         return num / (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
 
@@ -2840,7 +2840,7 @@ cdef class NumberFieldElement(FieldElement):
         cdef Integer numCoeff
         cdef int i
         for i from 0 <= i <= ZZX_deg(self.__numerator):
-            numCoeff = PY_NEW(Integer)
+            numCoeff = Integer.__new__(Integer)
             ZZX_getitem_as_mpz(numCoeff.value, &self.__numerator, i)
             coeffs.append( numCoeff / den )
         return coeffs
@@ -3082,7 +3082,7 @@ cdef class NumberFieldElement(FieldElement):
             3*z^3 + 4*z^2 + 2
         """
         if K is None:
-            trace = self._pari_('x').trace()
+            trace = self.__pari__('x').trace()
             return QQ(trace) if self._parent.is_field() else ZZ(trace)
         return self.matrix(K).trace()
 
@@ -3158,7 +3158,7 @@ cdef class NumberFieldElement(FieldElement):
             3*z^3 + 4*z^2 + 2
         """
         if K is None or (K in Fields and K.absolute_degree() == 1):
-            norm = self._pari_('x').norm()
+            norm = self.__pari__('x').norm()
             return QQ(norm) if self._parent in Fields else ZZ(norm)
         return self.matrix(K).determinant()
 
@@ -4253,7 +4253,7 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
                 algorithm = 'sage'
         R = self._parent.base_ring()[var]
         if algorithm == 'pari':
-            return R(self._pari_('x').charpoly())
+            return R(self.__pari__('x').charpoly())
         if algorithm == 'sage':
             return R(self.matrix().charpoly())
 
@@ -4601,7 +4601,7 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
                 algorithm = 'sage'
         R = QQ[var]
         if algorithm == 'pari':
-            return R(self._pari_().charpoly())
+            return R(self.__pari__().charpoly())
         if algorithm == 'sage':
             return R(self.matrix(QQ).charpoly())
 

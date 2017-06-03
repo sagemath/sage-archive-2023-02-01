@@ -20,11 +20,11 @@ AUTHORS:
 
 include "cysignals/memory.pxi"
 include "cysignals/signals.pxi"
-from sage.libs.cypari2.paridecl cimport *
-from sage.libs.cypari2.paripriv cimport *
+from cypari2.paridecl cimport *
+from cypari2.paripriv cimport *
 from sage.libs.pari.convert_gmp cimport _new_GEN_from_mpz_t
-from sage.libs.cypari2.stack cimport new_gen, clear_stack, deepcopy_to_python_heap
-from sage.libs.cypari2.gen cimport Gen as pari_gen, objtogen
+from cypari2.stack cimport new_gen, clear_stack, deepcopy_to_python_heap
+from cypari2.gen cimport Gen as pari_gen, objtogen
 
 from .element_base cimport FinitePolyExtElement
 from integer_mod import IntegerMod_abstract
@@ -43,8 +43,7 @@ cdef GEN _INT_to_FFELT(GEN g, GEN x) except NULL:
     Convert the t_INT `x` to an element of the field of definition of
     the t_FFELT `g`.
 
-    This function must be called within ``sig_on()``
-    ... ``sig_off()``.
+    This function must be called within ``sig_on()`` ... ``sig_off()``.
 
     TESTS:
 
@@ -143,7 +142,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
 
         This is called when constructing elements from Python.
 
-        TEST::
+        TESTS::
 
             sage: from sage.rings.finite_rings.element_pari_ffelt import FiniteFieldElement_pari_ffelt
             sage: K = FiniteField(101^2, 'a', impl='pari_ffelt')
@@ -155,17 +154,11 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         self._parent = parent
         self.construct_from(x)
 
-    # The Cython constructor __cinit__ is not necessary: according to
-    # the Cython documentation, C attributes are initialised to 0.
-    # def __cinit__(FiniteFieldElement_pari_ffelt self):
-    #     self.block = NULL
-
     def __dealloc__(FiniteFieldElement_pari_ffelt self):
         """
         Cython deconstructor.
         """
-        if self.block:
-            sig_free(self.block)
+        sig_free(self.chunk)
 
     cdef FiniteFieldElement_pari_ffelt _new(FiniteFieldElement_pari_ffelt self):
         """
@@ -183,7 +176,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
 
         This should be called exactly once on every instance.
         """
-        self.val = deepcopy_to_python_heap(g, <pari_sp*>&self.block)
+        self.val = deepcopy_to_python_heap(g, &self.chunk)
         clear_stack()
 
     cdef void construct_from(FiniteFieldElement_pari_ffelt self, object x) except *:
@@ -365,7 +358,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         """
         For pickling.
 
-        TEST::
+        TESTS::
 
             sage: K.<a> = FiniteField(10007^10, impl='pari_ffelt')
             sage: loads(a.dumps()) == a
@@ -649,17 +642,21 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             return self._parent.one()
         if exp < 0 and FF_equal0(self.val):
             raise ZeroDivisionError
-        exp = Integer(exp)._pari_()
+        exp = Integer(exp).__pari__()
         cdef FiniteFieldElement_pari_ffelt x = self._new()
         sig_on()
         x.construct(FF_pow(self.val, (<pari_gen>exp).g))
         return x
 
-    def polynomial(FiniteFieldElement_pari_ffelt self):
+    def polynomial(FiniteFieldElement_pari_ffelt self, name=None):
         """
         Return the unique representative of ``self`` as a polynomial
         over the prime field whose degree is less than the degree of
         the finite field over its prime field.
+
+        INPUT:
+
+        - ``name`` -- (optional) variable name
 
         EXAMPLES::
 
@@ -676,13 +673,15 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             sage: a = k.gen()
             sage: a.polynomial()
             alpha
-            sage: (a**2 + 1).polynomial()
-            alpha^2 + 1
+            sage: (a**2 + 1).polynomial('beta')
+            beta^2 + 1
             sage: (a**2 + 1).polynomial().parent()
             Univariate Polynomial Ring in alpha over Finite Field of size 3
+            sage: (a**2 + 1).polynomial('beta').parent()
+            Univariate Polynomial Ring in beta over Finite Field of size 3
         """
         sig_on()
-        return self._parent.polynomial_ring()(new_gen(FF_to_FpXQ_i(self.val)))
+        return self._parent.polynomial_ring(name)(new_gen(FF_to_FpXQ_i(self.val)))
 
     def minpoly(self, var='x'):
         """
@@ -1001,7 +1000,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         """
         return float(self.lift())
 
-    def _pari_(self, var=None):
+    def __pari__(self, var=None):
         """
         Return a PARI object representing ``self``.
 
@@ -1013,7 +1012,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
 
             sage: k.<a> = FiniteField(3^3, impl='pari_ffelt')
             sage: b = a**2 + 2*a + 1
-            sage: b._pari_()
+            sage: b.__pari__()
             a^2 + 2*a + 1
         """
         sig_on()

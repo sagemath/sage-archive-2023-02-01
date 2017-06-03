@@ -22,9 +22,11 @@ AUTHORS:
 ######################################################################
 from __future__ import print_function
 from __future__ import absolute_import
+from six.moves import range
 
 import six
 from sage.structure.sage_object import SageObject
+
 
 def sudoku(m):
     r"""
@@ -421,7 +423,7 @@ class Sudoku(SageObject):
         n = self.n
         nsquare = n*n
         m = self.to_matrix()
-        m.subdivide(range(0,nsquare+1,n), range(0,nsquare+1,n))
+        m.subdivide(list(range(0,nsquare+1,n)), list(range(0,nsquare+1,n)))
         naked_zero = compile('([\|, ]+)0')
         blanked = naked_zero.sub(lambda x: x.group(1)+' ', m.str())
         brackets = compile('[\[,\]]')
@@ -443,7 +445,7 @@ class Sudoku(SageObject):
             & &3& \\\hline
             \end{array}
 
-        TEST::
+        TESTS::
 
             sage: s = Sudoku('.4..32....14..3.')
             sage: s.to_latex()
@@ -843,7 +845,7 @@ class Sudoku(SageObject):
             This method looks up the constraint IDs for each of
             these four constraints, and returns a list of these four IDs.
 
-            TEST::
+            TESTS::
 
                 sage: h = Sudoku('8..6..9.5.............2.31...7318.6.24.....73...........279.1..5...8..36..3......')
                 sage: len(list(h.solve(algorithm='dlx')))  # indirect doctest

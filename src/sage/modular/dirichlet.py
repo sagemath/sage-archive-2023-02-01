@@ -57,7 +57,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-from six.moves import range
+from six.moves import range, zip
 
 import sage.categories.all                  as cat
 from sage.misc.all import prod
@@ -252,14 +252,14 @@ class DirichletCharacter(MultiplicativeGroupElement):
                 raise ValueError("wrong number of values (= {}) on generators (want {})".format(x, len(orders)))
             if free_module_element.is_FreeModuleElement(x):
                 x = parent._module(x)
-                if any(map(lambda u, v: v*u != 0, x, orders)):
+                if any(u * v for u, v in zip(x, orders)):
                     raise ValueError("values (= {} modulo {}) must have additive orders dividing {}, respectively"
                                      .format(x, parent.zeta_order(), orders))
                 self.element.set_cache(x)
             else:
                 R = parent.base_ring()
                 x = tuple(map(R, x))
-                if R.is_exact() and any(map(lambda u, v: u**v != 1, x, orders)):
+                if R.is_exact() and any(u**v != 1 for u, v in zip(x, orders)):
                     raise ValueError("values (= {}) must have multiplicative orders dividing {}, respectively"
                                      .format(x, orders))
                 self.values_on_gens.set_cache(x)
@@ -694,9 +694,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
             # The following code is pretty fast, at least compared to
             # the other algorithm below.  That said, I'm sure it could
             # be sped up by a factor of 10 or more in many cases,
-            # especially since we end up computing all the bernoulli
+            # especially since we end up computing all the Bernoulli
             # numbers up to k, which should be done with power series
-            # instead of calls to the bernoulli function.  Likewise
+            # instead of calls to the Bernoulli function.  Likewise
             # computing all binomial coefficients can be done much
             # more efficiently.
             v = self.values()

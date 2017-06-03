@@ -61,7 +61,7 @@ cdef class BasisExchangeMatroid(Matroid):
     adjacent in the graph if their symmetric difference has 2 members.
 
     This base exchange graph is not stored as such, but should be provided
-    implicity by the child class in the form of two methods
+    implicitly by the child class in the form of two methods
     ``__is_exchange_pair(x, y)`` and ``__exchange(x, y)``, as well as an
     initial basis. At any moment, BasisExchangeMatroid keeps a current basis
     `B`. The method ``__is_exchange_pair(x, y)`` should return a boolean
@@ -884,7 +884,7 @@ cdef class BasisExchangeMatroid(Matroid):
             ...
             ValueError: no cocircuit in coindependent set.
 
-        ..NOTE::
+        .. NOTE::
 
             This is an unguarded method. For the version that verifies if the
             input is indeed a subset of the ground set,
@@ -941,7 +941,7 @@ cdef class BasisExchangeMatroid(Matroid):
             sage: sorted(M._coclosure(set(['a', 'b', 'c'])))
             ['a', 'b', 'c', 'd']
 
-        ..NOTE::
+        .. NOTE::
 
             This is an unguarded method. For the version that verifies if the
             input is indeed a subset of the ground set,
@@ -1005,7 +1005,7 @@ cdef class BasisExchangeMatroid(Matroid):
             sage: M._is_independent(set(['a', 'b', 'c', 'd']))
             False
 
-        ..NOTE::
+        .. NOTE::
 
             This is an unguarded method. For the version that verifies if
             the input is indeed a subset of the ground set,

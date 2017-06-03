@@ -499,7 +499,7 @@ class Components(SageObject):
     def __init__(self, ring, frame, nb_indices, start_index=0,
                  output_formatter=None):
         r"""
-        TEST::
+        TESTS::
 
             sage: from sage.tensor.modules.comp import Components
             sage: Components(ZZ, [1,2,3], 2)
@@ -1948,7 +1948,7 @@ class Components(SageObject):
 
         """
         if self._nid < 2:
-            raise ValueError("contraction can be perfomed only on " +
+            raise ValueError("contraction can be performed only on " +
                              "components with at least 2 indices")
         if pos1 < 0 or pos1 > self._nid - 1:
             raise IndexError("pos1 out of range")
@@ -2944,7 +2944,7 @@ class CompWithSym(Components):
     def __init__(self, ring, frame, nb_indices, start_index=0,
                  output_formatter=None, sym=None, antisym=None):
         r"""
-        TEST::
+        TESTS::
 
             sage: from sage.tensor.modules.comp import CompWithSym
             sage: C = CompWithSym(ZZ, [1,2,3], 4, sym=(0,1), antisym=(2,3))
@@ -3726,7 +3726,7 @@ class CompWithSym(Components):
 
         """
         if self._nid < 2:
-            raise TypeError("contraction can be perfomed only on " +
+            raise TypeError("contraction can be performed only on " +
                             "components with at least 2 indices")
         if pos1 < 0 or pos1 > self._nid - 1:
             raise IndexError("pos1 out of range")
@@ -4638,7 +4638,7 @@ class CompFullySym(CompWithSym):
     def __init__(self, ring, frame, nb_indices, start_index=0,
                  output_formatter=None):
         r"""
-        TEST::
+        TESTS::
 
             sage: from sage.tensor.modules.comp import CompFullySym
             sage: C = CompFullySym(ZZ, (1,2,3), 2)
@@ -5310,7 +5310,7 @@ class KroneckerDelta(CompFullySym):
     """
     def __init__(self, ring, frame, start_index=0, output_formatter=None):
         r"""
-        TEST::
+        TESTS::
 
             sage: from sage.tensor.modules.comp import KroneckerDelta
             sage: d = KroneckerDelta(ZZ, (1,2,3))

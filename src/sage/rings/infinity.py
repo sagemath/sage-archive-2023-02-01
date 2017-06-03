@@ -216,6 +216,7 @@ We check that :trac:`17990` is fixed::
 #*****************************************************************************
 # python3
 from __future__ import division
+from six import integer_types
 
 from sys import maxsize
 from sage.rings.ring import Ring
@@ -297,7 +298,7 @@ class AnInfinity(object):
         else:
             return r"%minusInfinity"
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Convert ``self`` to a Pari object.
 
@@ -763,7 +764,7 @@ class UnsignedInfinityRing_class(Singleton, Ring):
             sage: UnsignedInfinityRing.has_coerce_map_from(SymmetricGroup(13))
             False
         """
-        return isinstance(R, Ring) or R in (int, long, float, complex)
+        return isinstance(R, Ring) or R in  integer_types + (float, complex)
 
 UnsignedInfinityRing = UnsignedInfinityRing_class()
 
@@ -993,7 +994,7 @@ class InfinityRing_class(Singleton, Ring):
         """
         This isn't really a ring, let alone an integral domain.
 
-        TEST::
+        TESTS::
 
             sage: InfinityRing.fraction_field()
             Traceback (most recent call last):
@@ -1082,7 +1083,7 @@ class InfinityRing_class(Singleton, Ring):
         """
         Return a string representation of ``self``.
 
-        TEST::
+        TESTS::
 
             sage: InfinityRing._repr_()
             'The Infinity Ring'

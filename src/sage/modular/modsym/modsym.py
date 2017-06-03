@@ -157,7 +157,8 @@ def ModularSymbols_clear_cache():
 
     TESTS:
 
-        Make sure #10548 is fixed
+    Make sure :trac:`10548` is fixed::
+
         sage: import gc
         sage: m=ModularSymbols(Gamma1(29))
         sage: m=[]

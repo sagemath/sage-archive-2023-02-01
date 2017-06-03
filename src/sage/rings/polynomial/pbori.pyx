@@ -1410,7 +1410,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: B.<x,y> = BooleanPolynomialRing(2)
             sage: B._singular_() # indirect doctest
             polynomial ring, over a field, global ordering
-            //   characteristic : 2
+            //   coefficients: ZZ/2
             //   number of vars : 2
             //        block   1 : ordering lp
             //                  : names    x y
@@ -1741,7 +1741,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             True
 
 
-        .. note ::
+        .. NOTE::
 
             This is part of PolyBoRi's native interface.
         """
@@ -1774,7 +1774,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: P.n_variables()
             1000
 
-        .. note ::
+        .. NOTE::
 
             This is part of PolyBoRi's native interface.
         """
@@ -2242,7 +2242,7 @@ cdef class BooleanMonomial(MonoidElement):
         """
         Pickling
 
-        TEST::
+        TESTS::
 
             sage: from brial import BooleanMonomialMonoid
             sage: R.<z,x> = BooleanPolynomialRing(2)
@@ -2923,7 +2923,7 @@ cdef class BooleanPolynomial(MPolynomial):
     - ``parent`` - a boolean polynomial ring
 
 
-    TEST::
+    TESTS::
 
         sage: from brial import BooleanPolynomial
         sage: B.<a,b,z> = BooleanPolynomialRing(3)

@@ -45,22 +45,27 @@ degree.
     (1,30)(2,29)(3,28)(4,27)(5,26)(6,25)(7,24)(8,23)(9,22)(10,21)(11,20)(12,19)(13,18)(14,17)(15,16)
 """
 
-###########################################################################
-#  Copyright (C) 2006 William Stein <wstein@gmail.com>
-#  Copyright (C) 2006 David Joyner
+#*****************************************************************************
+#       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2006 David Joyner
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###########################################################################
-from __future__ import print_function
-    
+#*****************************************************************************
+
+from __future__ import absolute_import, print_function
+
 import random
 
 import sage.groups.old as group
 
-include "sage/ext/stdsage.pxi"
+from cysignals.memory cimport sig_malloc, sig_realloc, sig_free
 from cpython.list cimport *
 
+from sage.ext.stdsage cimport HAS_DICTIONARY
 from sage.rings.all      import ZZ, Integer
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
@@ -68,7 +73,6 @@ from sage.matrix.matrix import is_Matrix
 from sage.matrix.all     import MatrixSpace
 from sage.interfaces.all import gap
 from sage.interfaces.gap import is_GapElement
-from sage.interfaces.expect import is_ExpectElement
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 import sage.structure.coerce as coerce
 from sage.structure.sage_object cimport richcmp_not_equal, rich_to_bool
@@ -78,7 +82,7 @@ import operator
 from sage.rings.fast_arith cimport arith_llong
 cdef arith_llong arith = arith_llong()
 cdef extern from *:
-    long long LONG_LONG_MAX
+    long long LLONG_MAX
 
 #import permgroup_named
 
@@ -1080,7 +1084,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
                 order = order.lcm(cycle_len)
             else:
                 order_c = (order_c * cycle_len) / arith.c_gcd_longlong(order_c, cycle_len)
-                if order_c > LONG_LONG_MAX / (self.n - i):
+                if order_c > LLONG_MAX / (self.n - i):
                     order = Integer(order_c)
         sig_free(seen)
         return Integer(order_c) if order is None else order

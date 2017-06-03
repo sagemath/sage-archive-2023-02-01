@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Levi-Civita Connections
 
@@ -254,7 +255,7 @@ class LeviCivitaConnection(AffineConnection):
         r"""
         Initialize the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(5, 'M')
             sage: g = M.metric('g')
@@ -268,7 +269,7 @@ class LeviCivitaConnection(AffineConnection):
         r"""
         Delete the derived quantities.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(5, 'M')
             sage: g = M.metric('g')
@@ -621,10 +622,10 @@ class LeviCivitaConnection(AffineConnection):
         EXAMPLES:
 
         Riemann tensor of the Levi-Civita connection associated with the
-        metric of the hyperbolic plane (Poincare disk model)::
+        metric of the hyperbolic plane (Poincaré disk model)::
 
             sage: M = Manifold(2, 'M', start_index=1)
-            sage: X.<x,y> = M.chart('x:(-1,1) y:(-1,1)')  # Cartesian coord. on the Poincare disk
+            sage: X.<x,y> = M.chart('x:(-1,1) y:(-1,1)')  # Cartesian coord. on the Poincaré disk
             sage: X.add_restrictions(x^2+y^2<1)
             sage: g = M.metric('g')
             sage: g[1,1], g[2,2] = 4/(1-x^2-y^2)^2, 4/(1-x^2-y^2)^2

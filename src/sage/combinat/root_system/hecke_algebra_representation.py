@@ -512,7 +512,8 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
 
         INPUT:
 
-        - ``lambdacheck`` -- an element of the coroot lattice for this cartan type
+        - ``lambdacheck`` -- an element of the coroot lattice for this
+          Cartan type
 
         EXAMPLES::
 

@@ -174,8 +174,8 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 from __future__ import absolute_import, print_function
+from six import string_types
 
 from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from .gap_workspace import gap_workspace_file, prepare_workspace_dir
@@ -183,6 +183,7 @@ from sage.env import SAGE_LOCAL, SAGE_EXTCODE
 from sage.misc.misc import is_in_string
 from sage.misc.superseded import deprecation
 from sage.misc.cachefunc import cached_method
+from sage.docs.instancedoc import instancedoc
 from sage.interfaces.tab_completion import ExtraTabCompletion
 import re
 import os
@@ -476,7 +477,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
 
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
-            sage: f.write('xx := 22;\n')
+            sage: _ = f.write('xx := 22;\n')
             sage: f.close()
             sage: gap.read(filename)
             sage: gap.get('xx').strip()
@@ -738,17 +739,17 @@ class Gap_generic(ExtraTabCompletion, Expect):
             (normal, error) = self._execute_line(line, wait_for_prompt=wait_for_prompt,
                                                  expect_eof= (self._quit_string() in line))
 
-            if len(error)> 0:
+            if len(error):
                 if 'Error, Rebuild completion files!' in error:
                     error += "\nRunning gap_reset_workspace()..."
                     self.quit()
                     gap_reset_workspace()
                 error = error.replace('\r','')
                 raise RuntimeError("%s produced error output\n%s\n   executing %s"%(self, error,line))
-            if len(normal) == 0:
+            if not len(normal):
                 return ''
 
-            if isinstance(wait_for_prompt, str) and normal.ends_with(wait_for_prompt):
+            if isinstance(wait_for_prompt, string_types) and normal.ends_with(wait_for_prompt):
                 n = len(wait_for_prompt)
             elif normal.endswith(self._prompt):
                 n = len(self._prompt)
@@ -757,7 +758,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
             else:
                 n = 0
             out = normal[:-n]
-            if len(out) > 0 and out[-1] == "\n":
+            if len(out) and out[-1] == "\n":
                 out = out[:-1]
             return out
 
@@ -962,6 +963,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
         return self('%s.%s' % (record.name(), name))
 
 
+@instancedoc
 class GapElement_generic(ExtraTabCompletion, ExpectElement):
     r"""
     Generic interface to the GAP3/GAP4 interpreters.
@@ -974,17 +976,6 @@ class GapElement_generic(ExtraTabCompletion, ExpectElement):
       code
 
     """
-    def __repr__(self):
-        """
-        EXAMPLES::
-
-            sage: gap(2)
-            2
-        """
-        s = ExpectElement.__repr__(self)
-        if s.find('must have a value') != -1:
-            raise RuntimeError("An error occurred creating an object in %s from:\n'%s'\n%s"%(self.parent().name(), self._create, s))
-        return s
 
     def bool(self):
         """
@@ -1544,6 +1535,7 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
     g.quit()
 
 
+@instancedoc
 class GapElement(GapElement_generic):
     def __getitem__(self, n):
         """
@@ -1615,13 +1607,13 @@ class GapElement(GapElement_generic):
         return v
 
 
-
+@instancedoc
 class GapFunctionElement(FunctionElement):
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         EXAMPLES::
 
-            sage: print(gap(4).SymmetricGroup._sage_doc_())
+            sage: print(gap(4).SymmetricGroup.__doc__)
             <BLANKLINE>
             50 Group Libraries
             <BLANKLINE>
@@ -1634,12 +1626,13 @@ class GapFunctionElement(FunctionElement):
         return help
 
 
+@instancedoc
 class GapFunction(ExpectFunction):
-    def _sage_doc_(self):
+    def _instancedoc(self):
         """
         EXAMPLES::
 
-            sage: print(gap.SymmetricGroup._sage_doc_())
+            sage: print(gap.SymmetricGroup.__doc__)
             <BLANKLINE>
             50 Group Libraries
             <BLANKLINE>
@@ -1806,8 +1799,7 @@ def reduce_load():
         sage: reduce_load()
         doctest:...: DeprecationWarning: This function is only used to unpickle invalid objects
         See http://trac.sagemath.org/18848 for details.
-        <repr(<sage.interfaces.gap.GapElement at ...>) failed:
-        ValueError: The session in which this object was defined is no longer running.>
+        (invalid <class 'sage.interfaces.gap.GapElement'> object -- The session in which this object was defined is no longer running.)
 
     By :trac:`18848`, pickling actually often works::
 

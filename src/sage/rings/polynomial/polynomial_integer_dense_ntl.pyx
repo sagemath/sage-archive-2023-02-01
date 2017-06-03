@@ -31,10 +31,12 @@ do::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
-include "sage/ext/stdsage.pxi"
-include "cysignals/signals.pxi"
+from __future__ import absolute_import, print_function
+
+from cysignals.memory cimport sig_free
+from cysignals.signals cimport sig_on, sig_off
+
 include "sage/libs/ntl/decl.pxi"
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
@@ -118,7 +120,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: type(f)
             <type 'sage.rings.polynomial.polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl'>
             sage: type(pari(f))
-            <type 'sage.libs.cypari2.gen.Gen'>
+            <type 'cypari2.gen.Gen'>
             sage: type(R(pari(f)))
             <type 'sage.rings.polynomial.polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl'>
             sage: R(pari(f))
@@ -252,7 +254,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             0
         """
         cdef ZZ_c y
-        cdef Integer z = PY_NEW(Integer)
+        cdef Integer z = Integer.__new__(Integer)
         ZZX_content(y, self.__poly)
         ZZ_to_mpz(z.value, &y)
         return z
@@ -356,7 +358,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: f[:100]
             5*x^5 + 4*x^4 + 3*x^3 + 2*x^2 + x + 1
         """
-        cdef Integer z = PY_NEW(Integer)
+        cdef Integer z = Integer.__new__(Integer)
         ZZ_to_mpz(z.value, &self.__poly.rep.elts()[n])
         return z
 
@@ -643,7 +645,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         cdef ZZ_c *r
 
         ZZX_xgcd(&self.__poly, &(<Polynomial_integer_dense_ntl>right).__poly, &r, &s, &t, 1)    # proof = 1
-        cdef Integer rr = PY_NEW(Integer)
+        cdef Integer rr = Integer.__new__(Integer)
         ZZ_to_mpz(rr.value, r)
         cdef Polynomial_integer_dense_ntl ss = self._new()
         cdef Polynomial_integer_dense_ntl tt = self._new()
@@ -836,13 +838,13 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             -339
         """
         cdef ZZ_c* temp = ZZX_discriminant(&self.__poly, proof)
-        cdef Integer x = PY_NEW(Integer)
+        cdef Integer x = Integer.__new__(Integer)
         ZZ_to_mpz(x.value, temp)
         del temp
         return x
 
 
-    def _pari_(self, variable=None):
+    def __pari__(self, variable=None):
         """
         EXAMPLES::
 
@@ -1024,7 +1026,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             raise ValueError("p must be prime")
         if all([c%p==0 for c in self.coefficients()]):
             raise ArithmeticError("factorization of 0 is not defined")
-        f = self._pari_()
+        f = self.__pari__()
         G = f.factormod(p)
         k = FiniteField(p)
         R = k[self.parent().variable_name()]
@@ -1120,7 +1122,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
         """
         cdef Polynomial_integer_dense_ntl _other = <Polynomial_integer_dense_ntl>(self.parent()._coerce_(other))
         cdef ZZ_c* temp = ZZX_resultant(&self.__poly, &_other.__poly, proof)
-        cdef Integer x = PY_NEW(Integer)
+        cdef Integer x = Integer.__new__(Integer)
         ZZ_to_mpz(x.value, temp)
         del temp
         return x

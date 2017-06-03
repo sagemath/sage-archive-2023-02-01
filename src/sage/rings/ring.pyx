@@ -837,7 +837,16 @@ cdef class Ring(ParentWithGens):
             sage: ZZ.is_subring(GF(19))
             False
 
-        TESTS:
+        TESTS::
+
+            sage: QQ.is_subring(QQ['x'])
+            True
+            sage: QQ.is_subring(GF(7))
+            False
+            sage: QQ.is_subring(CyclotomicField(7))
+            True
+            sage: QQ.is_subring(ZZ)
+            False
 
         Every ring is a subring of itself, :trac:`17287`::
 
@@ -985,8 +994,17 @@ cdef class Ring(ParentWithGens):
             Traceback (most recent call last):
             ...
             NotImplementedError
+
+        Forward the proof flag to ``is_field``, see :trac:`22910`::
+
+            sage: R1.<x> = GF(5)[]
+            sage: F1 = R1.quotient_ring(x^2+x+1)
+            sage: R2.<x> = F1[]
+            sage: F2 = R2.quotient_ring(x^2+x+1)
+            sage: F2.is_integral_domain(False)
+            False
         """
-        if self.is_field():
+        if self.is_field(proof):
             return True
 
         if self.is_zero():
@@ -2234,7 +2252,7 @@ cdef class Field(PrincipalIdealDomain):
         """
         Return the gcd of ``a`` and ``b`` as a monic polynomial.
 
-        .. WARNING:
+        .. WARNING::
 
             If the base ring is inexact, the results may not be
             entirely stable.
@@ -2290,7 +2308,7 @@ cdef class Field(PrincipalIdealDomain):
         greatest common divisor (monic or zero) of ``a`` and ``b``,
         and ``u``, ``v`` satisfy ``d = u*a + v*b``.
 
-        .. WARNING:
+        .. WARNING::
 
             If the base ring is inexact, the results may not be
             entirely stable.

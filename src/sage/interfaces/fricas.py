@@ -191,6 +191,7 @@ from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.interfaces.expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from sage.misc.misc import SAGE_TMP_INTERFACE
 from sage.env import DOT_SAGE
+from sage.docs.instancedoc import instancedoc
 import re
 import six
 
@@ -698,11 +699,11 @@ class FriCAS(ExtraTabCompletion, Expect):
         """
         return '~='
 
-    def __repr__(self):
+    def _repr_(self):
         """
         EXAMPLES::
 
-            sage: fricas                                                        # optional - fricas
+            sage: fricas        # indirect doctest
             FriCAS
         """
         return "FriCAS"
@@ -813,6 +814,8 @@ class FriCAS(ExtraTabCompletion, Expect):
         """
         fricas_console()
 
+
+@instancedoc
 class FriCASElement(ExpectElement):
     """
     Instances of this class represent objects in FriCAS.
@@ -870,7 +873,7 @@ class FriCASElement(ExpectElement):
 
     def __int__(self):
         """
-        TEST::
+        TESTS::
 
             sage: int(fricas(2))                                                # optional - fricas
             2
@@ -907,7 +910,7 @@ class FriCASElement(ExpectElement):
 
     def __long__(self):
         """
-        TEST::
+        TESTS::
 
             sage: long(fricas('1'))                                             # optional - fricas
             1L
@@ -916,7 +919,7 @@ class FriCASElement(ExpectElement):
 
     def __float__(self):
         """
-        TEST::
+        TESTS::
 
             sage: float(fricas(2))                                              # optional - fricas
             2.0
@@ -1319,6 +1322,8 @@ class FriCASElement(ExpectElement):
 
         raise NotImplementedError("The translation of the FriCAS object %s to sage is not yet implemented." %(unparsed_InputForm))
 
+
+@instancedoc
 class FriCASFunctionElement(FunctionElement):
     def __init__(self, object, name):
         """
@@ -1341,8 +1346,8 @@ class FriCASFunctionElement(FunctionElement):
             name = name[:-2] + "!"
         FunctionElement.__init__(self, object, name)
 
-    pass
 
+@instancedoc
 class FriCASExpectFunction(ExpectFunction):
     def __init__(self, parent, name):
         """
@@ -1363,7 +1368,6 @@ class FriCASExpectFunction(ExpectFunction):
             name = name[:-2] + "!"
         ExpectFunction.__init__(self, parent, name)
 
-    pass
 
 def is_FriCASElement(x):
     """

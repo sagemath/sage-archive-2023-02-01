@@ -65,7 +65,7 @@ upper half plane::
     sage: L.normalised_basis()
     (-1.37588604166076 - 2.58560946624443*I, -2.10339907847356 + 0.428378776460622*I)
 
-We test that bug #8415 (caused by a PARI bug fixed in v2.3.5) is OK::
+We test that bug :trac:`8415` (caused by a PARI bug fixed in v2.3.5) is OK::
 
     sage: E = EllipticCurve('37a')
     sage: K.<a> = QuadraticField(-7)
@@ -1051,7 +1051,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: abs(x1.real())+abs(x2.real())<1e-14
             True
             sage: x1.imag(),x2.imag(),x3
-            (-1.122462048309373?, 1.122462048309373?, -1)
+            (-1.122462048309373?, 1.122462048309373?, -1.000000000000000?)
 
         ::
 

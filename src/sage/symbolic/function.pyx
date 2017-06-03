@@ -806,7 +806,7 @@ cdef class GinacFunction(BuiltinFunction):
         # get serial
         try:
             self._serial = find_function(fname, self._nargs)
-        except ValueError as err:
+        except RuntimeError as err:
             raise ValueError("cannot find GiNaC function with name %s and %s arguments" % (fname, self._nargs))
 
         global sfunction_serial_dict
@@ -1061,7 +1061,7 @@ cdef class BuiltinFunction(Function):
         # search ginac registry for name and nargs
         try:
             serial = find_function(self._name, self._nargs)
-        except ValueError as err:
+        except RuntimeError as err:
             pass
 
         # if match, get operator from function table
@@ -1515,30 +1515,3 @@ def unpickle_wrapper(p):
         return None
     return unpickle_function(p)
 
-def is_inexact(x):
-    """
-    Returns True if the argument is an inexact object.
-
-    TESTS::
-
-        sage: from sage.symbolic.function import is_inexact
-        sage: is_inexact(5)
-        doctest:...: DeprecationWarning: The is_inexact() function is deprecated, use the _is_numerical() method of the Function class instead
-        See http://trac.sagemath.org/17130 for details.
-        False
-        sage: is_inexact(5.)
-        True
-        sage: is_inexact(pi)
-        True
-        sage: is_inexact(5r)
-        False
-        sage: is_inexact(5.4r)
-        True
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(17130, 'The is_inexact() function is deprecated, use the _is_numerical() method of the Function class instead')
-    if isinstance(x, (float, complex)):
-        return True
-    if isinstance(x, Element):
-        return not (<Element>x)._parent.is_exact()
-    return False

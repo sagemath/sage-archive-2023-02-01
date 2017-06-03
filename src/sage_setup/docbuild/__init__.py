@@ -535,7 +535,8 @@ class ReferenceBuilder(AllBuilder):
                          'default.css', 'doctools.js', 'favicon.ico',
                          'file.png', 'jquery.js', 'minus.png',
                          'pdf.png', 'plus.png', 'pygments.css',
-                         'sage.css', 'sageicon.png', 'sagelogo.png',
+                         'sage.css', 'sageicon.png',
+                         'logo_sagemath.svg', 'logo_sagemath_black.svg',
                          'searchtools.js', 'sidebar.js', 'underscore.js']
                 sage_makedirs(os.path.join(output_dir, '_static'))
                 for f in static_files:
@@ -653,8 +654,8 @@ for a webpage listing all of the documents.''' % (output_dir,
 
 class ReferenceSubBuilder(DocBuilder):
     """
-    This class builds sub-components of the reference manual.  It is
-    resposible for making sure the auto generated reST files for the
+    This class builds sub-components of the reference manual. It is
+    responsible for making sure that the auto generated reST files for the
     Sage library are up to date.
 
     When building any output, we must first go through and check
@@ -1243,7 +1244,8 @@ def get_builder(name):
         print("of documents, or 'sage --docbuild --help' for more help.")
         sys.exit(1)
 
-def format_columns(lst, align='<', cols=None, indent=4, pad=3, width=80):
+
+def format_columns(lst, align=u'<', cols=None, indent=4, pad=3, width=80):
     """
     Utility function that formats a list as a simple table and returns
     a Unicode string representation.  The number of columns is
@@ -1258,13 +1260,14 @@ def format_columns(lst, align='<', cols=None, indent=4, pad=3, width=80):
     if cols is None:
         import math
         cols = math.trunc((width - indent) / size)
-    s = " " * indent
+    s = u" " * indent
     for i in range(len(lst)):
         if i != 0 and i % cols == 0:
-            s += "\n" + " " * indent
-        s += "{0:{1}{2}}".format(lst[i], align, size)
-    s += "\n"
-    return unicode(s)
+            s += u"\n" + u" " * indent
+        s += u"{0:{1}{2}}".format(lst[i], align, size)
+    s += u"\n"
+    return s
+
 
 def help_usage(s=u"", compact=False):
     """
@@ -1614,32 +1617,6 @@ class IntersphinxCache:
             return i
 
 
-def patch_domain_init():
-    """
-    Applies a monkey-patch to the __init__ method of the Domain class in
-    Sphinx, in order to work around a bug.
-
-    See https://trac.sagemath.org/ticket/21044 as well as
-    https://github.com/sphinx-doc/sphinx/pull/2816 for details about that
-    bug.
-    """
-
-    from sphinx.domains import Domain
-    import copy
-
-    orig_init = Domain.__init__
-
-    def __init__(self, *args, **kwargs):
-        orig_init(self, *args, **kwargs)
-
-        # Replace the original initial_data class attribute with a new
-        # deep-copy of itself, since the bug will cause the original
-        # initial_data to be modified in-place
-        self.__class__.initial_data = copy.deepcopy(self.initial_data)
-
-    Domain.__init__ = __init__
-
-
 def main():
     # Parse the command-line.
     parser = setup_parser()
@@ -1688,8 +1665,6 @@ def main():
         os.environ['SAGE_SKIP_TESTS_BLOCKS'] = 'True'
 
     ABORT_ON_ERROR = not options.keep_going
-
-    patch_domain_init()
 
     # Delete empty directories. This is needed in particular for empty
     # directories due to "git checkout" which never deletes empty

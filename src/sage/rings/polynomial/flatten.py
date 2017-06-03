@@ -166,7 +166,7 @@ class FlatteningMorphism(Morphism):
 
     def _call_(self, p):
         r"""
-        Evaluate an flatenning morphism.
+        Evaluate an flattening morphism.
 
         EXAMPLES::
 
@@ -214,7 +214,7 @@ class FlatteningMorphism(Morphism):
     @cached_method
     def section(self):
         """
-        Inverse of this flattenning morphism.
+        Inverse of this flattening morphism.
 
         EXAMPLES::
 

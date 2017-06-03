@@ -16,8 +16,9 @@ from six import iteritems
 from sage.modules.free_module_element import vector
 from sage.rings.real_double import RDF
 
+from sage.misc.decorators import rename_keyword
 
-def find_root(f, a, b, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False):
+def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=False):
     """
     Numerically find a root of ``f`` on the closed interval `[a,b]`
     (or `[b,a]`) if possible, where ``f`` is a function in the one variable.
@@ -33,7 +34,10 @@ def find_root(f, a, b, xtol=10e-13, rtol=4.5e-16, maxiter=100, full_output=False
     - ``xtol``, ``rtol`` -- the routine converges when a root is known
       to lie within ``xtol`` of the value return. Should be `\geq 0`.
       The routine modifies this to take into account the relative precision
-      of doubles.
+      of doubles. By default, rtol is ``4*numpy.finfo(float).eps``, the
+      minimum allowed value for ``scipy.optimize.brentq``, which is what
+      this method uses underneath. This value is equal to ``2.0**-50`` for
+      IEEE-754 double precision floats as used by Python.
 
     - ``maxiter`` -- integer; if convergence is not achieved in
       ``maxiter`` iterations, an error is raised. Must be `\geq 0`.
@@ -230,11 +234,12 @@ def find_local_minimum(f, a, b, tol=1.48e-08, maxfun=500):
     xmin, fval, iter, funcalls = scipy.optimize.fminbound(f, a, b, full_output=1, xtol=tol, maxfun=maxfun)
     return fval, xmin
 
-def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
+@rename_keyword(deprecation=23062, disp='verbose')
+def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
+             verbose=False, **args):
     r"""
     This function is an interface to a variety of algorithms for computing
     the minimum of a function of several variables.
-
 
     INPUT:
 
@@ -259,33 +264,52 @@ def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
       ``'default'`` (for Python functions, the simplex method is the default)
       (for symbolic functions bfgs is the default):
 
-       - ``'simplex'``
+       - ``'simplex'`` -- using the downhill simplex algorithm
 
-       - ``'powell'``
+       - ``'powell'`` -- use the modified Powell algorithm
 
-       - ``'bfgs'`` -- (Broyden-Fletcher-Goldfarb-Shanno) requires
-         ``gradient``
+       - ``'bfgs'`` -- (Broyden-Fletcher-Goldfarb-Shanno) requires gradient
 
        - ``'cg'`` -- (conjugate-gradient) requires gradient
 
        - ``'ncg'`` -- (newton-conjugate gradient) requires gradient and hessian
 
+    - ``verbose`` -- (optional, default: False) print convergence message
 
-    EXAMPLES::
+    .. NOTE::
 
-        sage: vars=var('x y z')
-        sage: f=100*(y-x^2)^2+(1-x)^2+100*(z-y^2)^2+(1-y)^2
-        sage: minimize(f,[.1,.3,.4],disp=0)
+        For additional information on the algorithms implemented in this function,
+        consult SciPy's `documentation on optimization and root
+        finding <https://docs.scipy.org/doc/scipy/reference/optimize.html>`_
+
+    EXAMPLES:
+
+    Minimize a fourth order polynomial in three variables (see the
+    :wikipedia:`Rosenbrock_function`)::
+
+        sage: vars = var('x y z')
+        sage: f = 100*(y-x^2)^2+(1-x)^2+100*(z-y^2)^2+(1-y)^2
+        sage: minimize(f, [.1,.3,.4])
         (1.00..., 1.00..., 1.00...)
 
-        sage: minimize(f,[.1,.3,.4],algorithm="ncg",disp=0)
+    Try the newton-conjugate gradient method; the gradient and hessian are 
+    computed automatically::
+
+        sage: minimize(f, [.1, .3, .4], algorithm="ncg")
+        (0.9999999..., 0.999999..., 0.999999...)
+
+    We get additional convergence information with the `verbose` option::
+
+        sage: minimize(f, [.1, .3, .4], algorithm="ncg", verbose=True)
+        Optimization terminated successfully.
+        ...
         (0.9999999..., 0.999999..., 0.999999...)
 
     Same example with just Python functions::
 
         sage: def rosen(x): # The Rosenbrock function
         ....:    return sum(100.0r*(x[1r:]-x[:-1r]**2.0r)**2.0r + (1r-x[:-1r])**2.0r)
-        sage: minimize(rosen,[.1,.3,.4],disp=0)
+        sage: minimize(rosen, [.1,.3,.4])
         (1.00..., 1.00..., 1.00...)
 
     Same example with a pure Python function and a Python function to
@@ -299,12 +323,12 @@ def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
         ....:    xm = x[1r:-1r]
         ....:    xm_m1 = x[:-2r]
         ....:    xm_p1 = x[2r:]
-        ....:    der = zeros(x.shape,dtype=float)
+        ....:    der = zeros(x.shape, dtype=float)
         ....:    der[1r:-1r] = 200r*(xm-xm_m1**2r) - 400r*(xm_p1 - xm**2r)*xm - 2r*(1r-xm)
         ....:    der[0] = -400r*x[0r]*(x[1r]-x[0r]**2r) - 2r*(1r-x[0])
         ....:    der[-1] = 200r*(x[-1r]-x[-2r]**2r)
         ....:    return der
-        sage: minimize(rosen,[.1,.3,.4],gradient=rosen_der,algorithm="bfgs",disp=0)
+        sage: minimize(rosen, [.1,.3,.4], gradient=rosen_der, algorithm="bfgs")
         (1.00...,  1.00..., 1.00...)
     """
     from sage.symbolic.expression import Expression
@@ -324,26 +348,27 @@ def minimize(func,x0,gradient=None,hessian=None,algorithm="default",**args):
 
     if algorithm=="default":
         if gradient is None:
-            min = optimize.fmin(f, [float(_) for _ in x0], **args)
+            min = optimize.fmin(f, [float(_) for _ in x0], disp=verbose, **args)
         else:
-            min= optimize.fmin_bfgs(f, [float(_) for _ in x0],fprime=gradient, **args)
+            min= optimize.fmin_bfgs(f, [float(_) for _ in x0],fprime=gradient, disp=verbose, **args)
     else:
         if algorithm=="simplex":
-            min= optimize.fmin(f, [float(_) for _ in x0], **args)
+            min= optimize.fmin(f, [float(_) for _ in x0], disp=verbose, **args)
         elif algorithm=="bfgs":
-            min= optimize.fmin_bfgs(f, [float(_) for _ in x0], fprime=gradient, **args)
+            min= optimize.fmin_bfgs(f, [float(_) for _ in x0], fprime=gradient, disp=verbose, **args)
         elif algorithm=="cg":
-            min= optimize.fmin_cg(f, [float(_) for _ in x0], fprime=gradient, **args)
+            min= optimize.fmin_cg(f, [float(_) for _ in x0], fprime=gradient, disp=verbose, **args)
         elif algorithm=="powell":
-            min= optimize.fmin_powell(f, [float(_) for _ in x0], **args)
+            min= optimize.fmin_powell(f, [float(_) for _ in x0], disp=verbose, **args)
         elif algorithm=="ncg":
             if isinstance(func, Expression):
                 hess=func.hessian()
                 hess_fast= [ [fast_callable(a, vars=var_names, domain=float) for a in row] for row in hess]
                 hessian=lambda p: [[a(*p) for a in row] for row in hess_fast]
                 hessian_p=lambda p,v: scipy.dot(scipy.array(hessian(p)),v)
-                min= optimize.fmin_ncg(f, [float(_) for _ in x0], fprime=gradient, fhess=hessian, fhess_p=hessian_p, **args)
-    return vector(RDF,min)
+                min = optimize.fmin_ncg(f, [float(_) for _ in x0], fprime=gradient, \
+                      fhess=hessian, fhess_p=hessian_p, disp=verbose, **args)
+    return vector(RDF, min)
 
 def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args):
     r"""

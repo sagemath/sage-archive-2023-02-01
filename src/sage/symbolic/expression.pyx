@@ -114,7 +114,9 @@ Test if comparison bugs from :trac:`6256` are fixed::
 
 Test if :trac:`9947` is fixed::
 
-    sage: real_part(1+2*(sqrt(2)+1)*(sqrt(2)-1))
+    sage: r=real_part(1+2*(sqrt(2)+1)*(sqrt(2)-1)); r
+    2*(sqrt(2) + 1)*(sqrt(2) - 1) + 1
+    sage: r.expand()
     3
     sage: a=(sqrt(4*(sqrt(3) - 5)*(sqrt(3) + 5) + 48) + 4*sqrt(3))/ (sqrt(3) + 5)
     sage: a.real_part()
@@ -1224,7 +1226,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f._convert({'parent':RDF})
             -1.40006081533995
             sage: f._convert({'parent':float})
-            -1.40006081533995
+            -1.4000608153399503
 
         There is nothing to convert for variables::
 
@@ -1238,7 +1240,7 @@ cdef class Expression(CommutativeRingElement):
             sage: t = log(10); t
             log(10)
             sage: t._convert({'parent':ZZ})
-            2.30258509299405
+            log(10)
 
         ::
 
@@ -1251,8 +1253,10 @@ cdef class Expression(CommutativeRingElement):
 
             sage: f = sqrt(2) * cos(3); f
             sqrt(2)*cos(3)
+            sage: (sqrt(2))._convert({'parent':int})
+            sqrt(2)
             sage: f._convert({'parent':int})
-            -0.989992496600445*sqrt(2)
+            0
         """
         cdef GEx res = self._gobj.evalf(0, kwds)
         return new_Expression_from_GEx(self._parent, res)
@@ -1845,7 +1849,7 @@ cdef class Expression(CommutativeRingElement):
 
             sage: f = x+2 > sqrt(3)
             sage: f._maxima_init_assume_()
-            '((_SAGE_VAR_x)+(2))>((3/1)^(1/2))'
+            '((_SAGE_VAR_x)+(2))>((3)^(1/2))'
         """
         from sage.calculus.calculus import maxima
 

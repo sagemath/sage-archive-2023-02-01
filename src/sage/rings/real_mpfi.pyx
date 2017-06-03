@@ -3824,7 +3824,7 @@ cdef class RealIntervalFieldElement(RingElement):
         EXAMPLES::
 
             sage: a = RIF(1)
-            sage: a.__cmp__(a)
+            sage: a._cmp_(a)
             doctest:...: DeprecationWarning: for RIF elements, do not use cmp
             See http://trac.sagemath.org/22907 for details.
             0

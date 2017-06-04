@@ -141,11 +141,12 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
         """
         if names.cardinality() == 1:
             Trees = BinaryTrees()
+            key = BinaryTree.sort_key
         else:
             Trees = LabelledBinaryTrees()
+            key = LabelledBinaryTree.sort_key
         # Here one would need LabelledBinaryTrees(names)
         # so that one can restrict the labels to some fixed set
-        key = lambda x: x.sort_key()
         self._alphabet = names
         cat = Algebras(R).WithBasis().Graded()
         CombinatorialFreeModule.__init__(self, R, Trees,

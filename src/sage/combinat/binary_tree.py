@@ -3342,7 +3342,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         Return the list of terms in the dendriform product.
 
         This is the list of all binary trees that can be obtained by
-        ...
+        identifying the rightmost path in ``self`` and the leftmost
+        path in ``other``. Every term corresponds to a shuffle of the
+        vertices on the rightmost path in ``self`` and the vertices on
+        the leftmost path in ``other``.
 
         EXAMPLES::
 
@@ -4260,8 +4263,7 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
 
     def sort_key(self):
         """
-        Return a tuple of nonnegative integers encoding the labelled
-        tree ``self``.
+        Return a tuple encoding the labelled binary tree ``self``.
 
         The first entry of the tuple is a pair consisting of the
         number of children of the root and the label of the root. Then
@@ -4270,7 +4272,7 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
         a tree as trees themselves) from left to right.
 
         This tuple characterizes the labelled tree uniquely, and can
-        be used to sort the labelled ordered trees provided that the
+        be used to sort the labelled binary trees provided that the
         labels belong to a type which is totally ordered.
 
         EXAMPLES::

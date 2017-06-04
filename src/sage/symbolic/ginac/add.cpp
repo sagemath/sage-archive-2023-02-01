@@ -467,25 +467,18 @@ ex add::eval_infinity(epvector::const_iterator infinity_iter) const
 
 ex add::conjugate() const
 {
-        for (const auto& elem : seq) {
-                ex term = recombine_pair_to_ex(elem);
-                if (not are_ex_trivially_equal(term, term.conjugate())) {
-                        epvector v;
-                        v.reserve(seq.size());
-                        bool first_ccterm_seen = false;
-                        for (const auto& elem1 : seq) {
-                                if (first_ccterm_seen or &elem1 == &elem) {
-                                        v.push_back(split_ex_to_pair(recombine_pair_to_ex(elem1).conjugate()));
-                                        first_ccterm_seen = true;
-                                }
-                                else
-                                        v.push_back(elem1);
-                        }
-                        return (new add(v, overall_coeff.conjugate()))
-                                -> setflag(status_flags::dynallocated);
-                }
-        }
-        return *this;
+	epvector v;
+	v.reserve(seq.size());
+	for (const auto & elem : seq)
+		if ((elem.coeff).info(info_flags::real)
+		    and (elem.rest).info(info_flags::real)) {
+			v.push_back(elem);
+		} else {
+			ex cj=recombine_pair_to_ex(elem).conjugate();
+                        v.push_back(split_ex_to_pair(cj));
+		}
+	return (new add(v, overall_coeff.conjugate()))
+		-> setflag(status_flags::dynallocated);
 }
 
 ex add::real_part() const

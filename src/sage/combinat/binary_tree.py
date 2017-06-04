@@ -2484,7 +2484,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         .. SEEALSO::
 
-            :meth:`left_decomposition`, :meth:`right_decomposition`
+            :meth:`over_decomposition`, :meth:`under_decomposition`
 
         EXAMPLES::
 
@@ -3237,15 +3237,17 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
     _backslash_ = under
 
-    def left_decomposition(self):
-        """
+    def under_decomposition(self):
+        r"""
         Return the unique maximal decomposition as an under product.
 
         This means that the tree is cut along all edges of its leftmost path.
 
+        Beware that the factors are ordered starting from the root.
+
         .. SEEALSO::
 
-            :meth:`comb`
+            :meth:`comb`, :meth:`over_decomposition`
 
         EXAMPLES::
 
@@ -3254,12 +3256,12 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [., [., .]]
             sage: l = g.under(g); l
             [[., .], .]
-            sage: l.left_decomposition()
+            sage: l.under_decomposition()
             [[., .], [., .]]
-            sage: r.left_decomposition() == [r]
+            sage: r.under_decomposition() == [r]
             True
 
-            sage: x = r\g\r\g
+            sage: x = r.under(g).under(r).under(g)
             sage: ascii_art(x)
                   o
                  /
@@ -3270,7 +3272,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             o     
              \    
               o  
-            sage: x.left_decomposition() == [g,r,g,r]
+            sage: x.under_decomposition() == [g,r,g,r]
             True
         """
         if self.is_empty():
@@ -3287,15 +3289,17 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             bt = bt[0]
         return resu
 
-    def right_decomposition(self):
+    def over_decomposition(self):
         """
         Return the unique maximal decomposition as an over product.
 
         This means that the tree is cut along all edges of its rightmost path.
 
+        Beware that the factors are ordered starting from the root.
+
         .. SEEALSO::
 
-            :meth:`comb`
+            :meth:`comb`, :meth:`under_decomposition`
 
         EXAMPLES::
 
@@ -3304,12 +3308,12 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [., [., .]]
             sage: l = g.under(g); l
             [[., .], .]
-            sage: r.right_decomposition()
+            sage: r.over_decomposition()
             [[., .], [., .]]
-            sage: l.right_decomposition() == [l]
+            sage: l.over_decomposition() == [l]
             True
 
-            sage: x = g/l/l/g/g
+            sage: x = g.over(l).over(l).over(g).over(g)
             sage: ascii_art(x)
              o
               \
@@ -3320,7 +3324,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
                 o   o
                      \
                       o
-            sage: x.right_decomposition() == [g,l,l,g,g]
+            sage: x.over_decomposition() == [g,l,l,g,g]
             True
         """
         if self.is_empty():
@@ -3387,8 +3391,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             yield self
         else:
             B = self.parent()._element_constructor_
-            left_list = self.right_decomposition()
-            right_list = other.left_decomposition()
+            left_list = self.over_decomposition()
+            right_list = other.under_decomposition()
             w_left = Word('L' * len(left_list))
             w_right = Word('R' * len(right_list))
             for w in ShuffleProduct_w1w2(w_left, w_right):

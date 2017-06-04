@@ -3911,6 +3911,70 @@ class Graph(GenericGraph):
         return left, right
 
     @doc_index("Algorithmically hard stuff")
+    def chromatic_index(self, solver=None, verbose=0):
+        r"""
+        Return the chromatic index of the graph.
+
+        The chromatic index is the minimal number of colors needed to properly
+        color the edges of the graph.
+
+        This method is a frontend for method
+        :meth:`sage.graphs.graph_coloring.edge_coloring` that uses a mixed
+        integer-linear programming formulation to compute the chromatic index.
+
+        .. SEEALSO::
+
+            - :wikipedia:`Edge_coloring` for further details on edge coloring
+            - :meth:`sage.graphs.graph_coloring.edge_coloring`
+            - :meth:`~Graph.fractional_chromatic_index`
+            - :meth:`~Graph.chromatic_number`
+
+        INPUT:
+
+        - ``solver`` (default: ``None``) Specify the Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
+        EXAMPLES:
+
+        The clique `K_n` has chromatic index `n`::
+
+            sage: n = randint(3, 6)
+            sage: k = graphs.CompleteGraph(n).chromatic_index()
+            sage: k == n
+            True
+
+        The PathGraph `P_n` with `n \geq 2` has chromatic index 2::
+
+            sage: graphs.PathGraph(4).chromatic_index()
+            2
+            sage: graphs.PathGraph(5).chromatic_index()
+            2
+
+        TESTS:
+
+        Graphs without vertices or edges::
+
+            sage: Graph().chromatic_index()
+            0
+            sage: Graph(2).chromatic_index()
+            0
+        """
+        if self.order() == 0 or self.size() == 0:
+            return 0
+        
+        from sage.graphs.graph_coloring import edge_coloring
+        return edge_coloring(self, value_only=True, solver=solver, verbose=verbose)
+
+
+    @doc_index("Algorithmically hard stuff")
     def chromatic_number(self, algorithm="DLX", verbose = 0):
         r"""
         Returns the minimal number of colors needed to color the vertices

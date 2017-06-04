@@ -14,15 +14,20 @@ void padiclog(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, con
     /*  Compute the p-adic logarithm of a,
         which is supposed to be a unit
 
-        Algorithm: If a = 1 (mod p), write a as a product
-            1/a = (1 - a_0*p) (1 - a_1*p^2) (1 - a_2*p^4) (1 - a_3*p^8) ...
-        with 0 <= a_i < p^(2^i).
-        Then compute each log(1 - a_i*p^(2^i)) using Taylor expansion
-        and a binary spliting strategy.
-        For general a, compute log(a^(p-1)) and then divide by p-1      */
+        Algorithm: If a = 1 (mod p):
+         1. we raise a at the power p^(v-1) (for a suitable v) in order
+            to make it closer to 1
+         2. we write the new a as a product
+              1/a = (1 - a_0*p^v) (1 - a_1*p^(2*v) (1 - a_2*p^(4*v) ...
+            with 0 <= a_i < p^(v*2^i).
+         3. we compute each log(1 - a_i*p^(v*2^i)) using Taylor expansion
+            and a binary spliting strategy.
+
+        For general a, compute log(a^(p-1)) and then divide by p-1                    */
 
     char congruent_to_one;
-    unsigned long i, N, saveN, Np, tmp, trunc, step;
+    unsigned long i, v, e, N, saveN, Np, tmp, trunc, step;
+    double den = log(p);
     mpz_t f, arg, trunc_mod, h, hpow, mpz_tmp, d, inv;
     mpz_t *num, *denom;
 
@@ -38,10 +43,22 @@ void padiclog(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, con
         mpz_powm_ui(arg, a, p-1, modulo);
     }
 
+    /* First we make the argument closer to 1 by raising it to the p^(v-1) */
+    if (prec < p) {
+        v = 0; e = 1;
+    } else {
+        v = (unsigned long)(log(prec)/den);  // v here is v-1
+        e = pow(p,v);
+        mpz_mul_ui(mpz_tmp, modulo, e);
+        mpz_powm_ui(arg, arg, e, mpz_tmp);
+        prec += v;
+    }
+
     /* Where do we need to truncate the Taylor expansion */
-    N = prec;
+    N = saveN = (prec+v)/++v;               // note the ++v
+    den *= v;
     while(1) {
-        tmp = prec + (unsigned long)(log(N)/log(p));
+        tmp = saveN + (unsigned long)(log(N)/den);
         if (tmp == N) break;
         N = tmp;
     }
@@ -58,12 +75,12 @@ void padiclog(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, con
         mpz_init(denom[i]);
     }
 
-    trunc = 2;
-    mpz_init_set_ui(trunc_mod, p);
-    mpz_mul_ui(trunc_mod, trunc_mod, p);
+    trunc = v << 1;
+    mpz_init(trunc_mod);
+    mpz_ui_pow_ui(trunc_mod, p, trunc);
     while(1) {
-        /* We compute f = 1 - a_i*p^(2^i)
-           trunc_mod is p^(2^(i+1)) */
+        /* We compute f = 1 - a_i*p^((v+1)*2^i)
+           trunc_mod is p^((v+1)*2^(i+1)) */
         mpz_fdiv_r(f, arg, trunc_mod);
 
         if (mpz_cmp_ui(f, 1) != 0) {
@@ -99,6 +116,7 @@ void padiclog(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, con
             mpz_divexact(mpz_tmp, num[0], d);
             mpz_divexact(denom[0], denom[0], d);
 
+            mpz_divexact_ui(h, h, e);
             mpz_mul(mpz_tmp, h, mpz_tmp);
 
             /* We coerce the result from Q to Zp */

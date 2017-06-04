@@ -380,16 +380,20 @@ cdef class pAdicCappedRelativeElement(CRElement):
 
         1. Take the unit part `u` of the input.
 
-        2. Raise `u` to `p-1` to obtain a 1-unit.
+        2. Raise `u` to the power `p-1` to obtain a 1-unit.
 
-        3. Write
+        3. Raise `u` to the power `p^v` for a suitable `v` in order
+           to make it closer to 1. (`v` is chosen such that `p^v` is
+           close to the precision.)
+
+        4. Write
 
         .. MATH::
 
-            u^{p-1} = \prod_{i=1}^\infty (1 - a_i p^{2^i})
+            u^{p-1} = \prod_{i=1}^\infty (1 - a_i p^{(v+1)*2^i})
 
-        with `0 \leq a_i < p^{2^i}` and compute `\log(1 - a_i p^{2^i})`
-        using the standard Taylor expansion
+        with `0 \leq a_i < p^{(v+1)*2^i}` and compute
+        `\log(1 - a_i p^{(v+1)*2^i})` using the standard Taylor expansion
 
         .. MATH::
 
@@ -397,7 +401,8 @@ cdef class pAdicCappedRelativeElement(CRElement):
 
         together with a binary spliting method.
 
-        4. Divide the result by ``q-1`` and multiply by ``self.valuation()*log(p)``
+        5. Divide the result by `p^v*(p-1)`
+           and multiply by ``self.valuation()*log(p)``
 
         The complexity of this algorithm is quasi-linear.
 

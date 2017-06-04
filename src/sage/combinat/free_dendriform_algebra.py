@@ -60,7 +60,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
     vector space has a basis indexed by finite binary trees endowed
     with a map from their vertices to `E`. In this basis, the
     associative product of two (decorated) binary trees `S * T` is the
-    sum over all possible ways of identifying the rightmost path in
+    sum over all possible ways of identifying (glueing) the rightmost path in
     `S` and the leftmost path in `T`.
 
     The decomposition of the associative product as the sum of two
@@ -75,7 +75,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
     .. NOTE::
 
-        The usual binary operator ``*`` is used for the
+        The usual binary operator `*` is used for the
         associative product.
 
     EXAMPLES::
@@ -84,8 +84,6 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
         sage: x,y,z = F.gens()
         sage: (x * y) * z
         B[x[., y[., z[., .]]]] + B[x[., z[y[., .], .]]] + B[y[x[., .], z[., .]]] + B[z[x[., y[., .]], .]] + B[z[y[x[., .], .], .]]
-        sage: (x * y) * z - x * (y * z) == (x * z) * y - x * (z * y)
-        True
 
     The free dendriform algebra is associative::
 
@@ -134,10 +132,6 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
             sage: F = algebras.FreeDendriform(QQ, 'xy')
             sage: TestSuite(F).run() # long time
-
-            sage: F = algebras.FreeDendriform(QQ, ZZ)
-            sage: elts = F.some_elements()[:-1] # Skip the last element
-            sage: TestSuite(F).run(some_elements=elts) # long time
         """
         if names.cardinality() == 1:
             Trees = BinaryTrees()
@@ -248,7 +242,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
     def degree_on_basis(self, t):
         """
-        Return the degree of a rooted tree in the free Dendriform algebra.
+        Return the degree of a binary tree in the free Dendriform algebra.
 
         This is the number of vertices.
 
@@ -309,7 +303,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
         """
         Return the element `1` of ``self``.
 
-        This is the unit for the associative dendriform product.
+        This is the unit for the associative dendriform product `*`.
 
         EXAMPLES::
 
@@ -325,11 +319,11 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
     def product_on_basis(self, x, y):
         """
-        Return the * associative dendriform product of two trees.
+        Return the `*` associative dendriform product of two trees.
 
-        This is the sum over all possible ways to identify the rightmost path
-        in `x` and the leftmost path in `y`. Every term corresponds to
-        a shuffle of the vertices on the rightmost path
+        This is the sum over all possible ways of identifying the
+        rightmost path in `x` and the leftmost path in `y`. Every term
+        corresponds to a shuffle of the vertices on the rightmost path
         in `x` and the vertices on the leftmost path in `y`.
 
         .. SEEALSO::
@@ -348,7 +342,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
     def succ_product_on_basis(self, x, y):
         r"""
-        Return the > dendriform product of two trees.
+        Return the `>` dendriform product of two trees.
 
         This is the sum over all possible ways to identify the rightmost path
         in `x` and the leftmost path in `y`, with the additional condition
@@ -374,11 +368,12 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
             sage: A.succ_product_on_basis(u, u)
             Traceback (most recent call last):
             ...
-            ValueError: dendriform products are not defined on (|,|)
+            ValueError: dendriform products | < | and | > | are not defined
         """
         if y.is_empty():
             if x.is_empty():
-                raise ValueError("dendriform products are not defined on (|,|)")
+                raise ValueError("dendriform products | < | and | > | are "
+                                 "not defined")
             else:
                 return []
         if x.is_empty():
@@ -392,40 +387,42 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
                         for u in x.dendriform_shuffle(y[0]))
 
     @lazy_attribute
-    def succ_product(self):
+    def succ(self):
         """
-        Return the > dendriform product.
+        Return the `>` dendriform product.
 
-        This is the sum over all possible ways to identify the rightmost path
-        in `x` and the leftmost path in `y`, with the additional condition
-        that the root vertex of the result comes from `y`.
+        This is the sum over all possible ways of identifying the
+        rightmost path in `x` and the leftmost path in `y`, with the
+        additional condition that the root vertex of the result comes
+        from `y`.
 
         The usual symbol for this operation is `\succ`.
 
         .. SEEALSO::
 
-            - :meth:`product`, :meth:`prec_product`
+            :meth:`product`, :meth:`prec`, :meth:`over`, :meth:`under`
 
         EXAMPLES::
 
             sage: A = algebras.FreeDendriform(QQ, '@')
             sage: RT = A.basis().keys()
             sage: x = A.gen(0)
-            sage: A.succ_product(x, x)
+            sage: A.succ(x, x)
             B[[[., .], .]]
         """
-        succ = self.succ_product_on_basis
-        return self._module_morphism(self._module_morphism(succ, position=0,
+        suc = self.succ_product_on_basis
+        return self._module_morphism(self._module_morphism(suc, position=0,
                                                            codomain=self),
                                      position=1)
 
     def prec_product_on_basis(self, x, y):
         r"""
-        Return the < dendriform product of two trees.
+        Return the `<` dendriform product of two trees.
 
-        This is the sum over all possible ways to identify the rightmost path
-        in `x` and the leftmost path in `y`, with the additional condition
-        that the root vertex of the result comes from `x`.
+        This is the sum over all possible ways of identifying the
+        rightmost path in `x` and the leftmost path in `y`, with the
+        additional condition that the root vertex of the result comes
+        from `x`.
 
         The usual symbol for this operation is `\prec`.
 
@@ -447,10 +444,11 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
             sage: A.prec_product_on_basis(u, u)
             Traceback (most recent call last):
             ...
-            ValueError: dendriform products are not defined on (|,|)
+            ValueError: dendriform products | < | and | > | are not defined
         """
         if x.is_empty() and y.is_empty():
-            raise ValueError("dendriform products are not defined on (|,|)")
+            raise ValueError("dendriform products | < | and | > | are "
+                             "not defined")
         if x.is_empty():
             return []
         if y.is_empty():
@@ -464,9 +462,9 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
                         for u in x[1].dendriform_shuffle(y))
 
     @lazy_attribute
-    def prec_product(self):
+    def prec(self):
         """
-        Return the < dendriform product.
+        Return the `<` dendriform product.
 
         This is the sum over all possible ways to identify the rightmost path
         in `x` and the leftmost path in `y`, with the additional condition
@@ -476,19 +474,72 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
         .. SEEALSO::
 
-            - :meth:`prec_product_on_basis`
-            - :meth:`succ_product`, :meth:`product`
+            :meth:`product`, :meth:`succ`, :meth:`over`, :meth:`under`
 
         EXAMPLES::
 
             sage: A = algebras.FreeDendriform(QQ, '@')
             sage: RT = A.basis().keys()
             sage: x = A.gen(0)
-            sage: A.prec_product(x, x)
+            sage: A.prec(x, x)
             B[[., [., .]]]
         """
-        prec = self.prec_product_on_basis
-        return self._module_morphism(self._module_morphism(prec, position=0,
+        pre = self.prec_product_on_basis
+        return self._module_morphism(self._module_morphism(pre, position=0,
+                                                           codomain=self),
+                                     position=1)
+
+    @lazy_attribute
+    def over(self):
+        """
+        Return the over product.
+
+        The over product `x/y` is the binary tree obtained by
+        grafting the root of `y` at the rightmost leaf of `x`.
+
+        The usual symbol for this operation is `/`.
+
+        .. SEEALSO::
+
+            :meth:`product`, :meth:`succ`, :meth:`prec`, :meth:`under`
+
+        EXAMPLES::
+
+            sage: A = algebras.FreeDendriform(QQ, '@')
+            sage: RT = A.basis().keys()
+            sage: x = A.gen(0)
+            sage: A.over(x, x)
+            B[[., [., .]]]
+        """
+        ov = lambda x, y: self._monomial(x.over(y))
+        return self._module_morphism(self._module_morphism(ov, position=0,
+                                                           codomain=self),
+                                     position=1)
+
+    @lazy_attribute
+    def under(self):
+        r"""
+        Return the under product.
+
+        The over product `x \backslash y` is the binary tree obtained by
+        grafting the root of `x` at the leftmost leaf of `y`.
+
+        The usual symbol for this operation is `\backslash`.
+
+        .. SEEALSO::
+
+            :meth:`product`, :meth:`succ`, :meth:`prec`, :meth:`over`
+
+        EXAMPLES::
+
+            sage: A = algebras.FreeDendriform(QQ, '@')
+            sage: RT = A.basis().keys()
+            sage: x = A.gen(0)
+            sage: A.under(x, x)
+            B[[[., .], .]]
+        """
+        und = lambda x, y: self._monomial(x.under(y))
+        return self._module_morphism(self._module_morphism(und, position=0,
                                                            codomain=self),
                                      position=1)
 

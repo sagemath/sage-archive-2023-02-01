@@ -8089,13 +8089,13 @@ cdef class Matrix(matrix1.Matrix):
             sage: m2.tensor_product(m3).dimensions()
             (0, 6)
         """
-        from sage.matrix.constructor import block_matrix
         if not isinstance(A, Matrix):
             raise TypeError('tensor product requires a second matrix, not {0}'.format(A))
+        from sage.matrix.constructor import matrix, block_matrix
         # Special case when one of the matrices is 0 \times m or m \times 0
         if self.nrows() == 0 or self.ncols() == 0 or A.nrows() == 0 or A.ncols() == 0:
-            return sage.matrix.constructor.matrix(QQ, self.nrows()*A.nrows(),
-                                                  self.ncols()*A.ncols(), [])
+            return self.matrix_space(self.nrows()*A.nrows(),
+                                     self.ncols()*A.ncols())([])
         return block_matrix(self.nrows(), self.ncols(),
                             [x * A for x in self.list()], subdivide=subdivide)
 

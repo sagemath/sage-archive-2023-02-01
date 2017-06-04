@@ -1,10 +1,23 @@
 r"""
-Exterior powers of dual free modules
+Exterior powers of free modules
 
 Given a free module `M` of finite rank over a commutative ring `R`
-and a positive integer `p`, the *p-th exterior power* of the dual of `M` is the
-set `\Lambda^p(M^*)` of all alternating forms of degree `p` on `M`, i.e. of
-all multilinear maps
+and a positive integer `p`, the *p-th exterior power* of `M`
+is the set `\Lambda^p(M)` of all `p`-vectors, i.e. of all multilinear maps
+
+.. MATH::
+
+    \underbrace{M^*\times\cdots\times M^*}_{p\ \; \mbox{times}}
+    \longrightarrow R
+
+that vanish whenever any of two of their arguments are equal.
+Note that `\Lambda^1(M) = M`. The exterior power
+`\Lambda^p(M)` is a free module of rank `\binom{n}{p}` over `R`,
+where `n` is the rank of `M`.
+
+Similarly, the *p-th exterior power* of the dual of `M`
+is the set `\Lambda^p(M^*)` of all alternating forms of degree `p` on
+`M`, i.e. of all multilinear maps
 
 .. MATH::
 
@@ -12,17 +25,17 @@ all multilinear maps
     \longrightarrow R
 
 that vanish whenever any of two of their arguments are equal.
-Note that `\Lambda^1(M^*) = M^*` (the dual of `M`).
-
+Note that `\Lambda^1(M^*) = M^*` (the dual of `M`). The exterior power
 `\Lambda^p(M^*)` is a free module of rank `\binom{n}{p}` over `R`,
 where `n` is the rank of `M`.
-Accordingly, exterior powers of free modules are implemented by a class,
-:class:`ExtPowerFreeModule`, which inherits from the class
-:class:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule`.
+
+The class :class:`ExtPowerDualFreeModule` implements `\Lambda^p(M^*)`.
 
 AUTHORS:
 
-- Eric Gourgoulhon (2015): initial version
+- Eric Gourgoulhon: initial version, regarding `\Lambda^p(M^*)` only
+  (2015); add class for `\Lambda^p(M)` (2017)
+
 
 REFERENCES:
 
@@ -47,7 +60,7 @@ from sage.tensor.modules.free_module_alt_form import FreeModuleAltForm
 import six
 
 
-class ExtPowerFreeModule(FiniteRankFreeModule):
+class ExtPowerDualFreeModule(FiniteRankFreeModule):
     r"""
     Class for the exterior powers of the dual of a free module of finite rank
     over a commutative ring.
@@ -67,7 +80,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
 
     `\Lambda^p(M^*)` is a free module of rank `\binom{n}{p}` over
     `R`, where `n` is the rank of `M`.
-    Accordingly, the class :class:`ExtPowerFreeModule` inherits from the class
+    Accordingly, the class :class:`ExtPowerDualFreeModule` inherits from the class
     :class:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule`.
 
     This is a Sage *parent* class, whose *element* class is
@@ -88,12 +101,12 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
 
         sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
         sage: e = M.basis('e')
-        sage: from sage.tensor.modules.ext_pow_free_module import ExtPowerFreeModule
-        sage: A = ExtPowerFreeModule(M, 2) ; A
+        sage: from sage.tensor.modules.ext_pow_free_module import ExtPowerDualFreeModule
+        sage: A = ExtPowerDualFreeModule(M, 2) ; A
         2nd exterior power of the dual of the Rank-3 free module M over the
          Integer Ring
 
-    Instead of importing ExtPowerFreeModule in the global name space, it is
+    Instead of importing ExtPowerDualFreeModule in the global name space, it is
     recommended to use the module's method
     :meth:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule.dual_exterior_power`::
 
@@ -240,9 +253,9 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
         r"""
         TESTS::
 
-            sage: from sage.tensor.modules.ext_pow_free_module import ExtPowerFreeModule
+            sage: from sage.tensor.modules.ext_pow_free_module import ExtPowerDualFreeModule
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-            sage: A = ExtPowerFreeModule(M, 2) ; A
+            sage: A = ExtPowerDualFreeModule(M, 2) ; A
             2nd exterior power of the dual of the Rank-3 free module M over
              the Integer Ring
             sage: TestSuite(A).run()

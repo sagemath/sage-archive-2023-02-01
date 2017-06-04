@@ -51,7 +51,7 @@ class FreeModuleAltForm(FreeModuleTensor):
     Alternating form on a free module of finite rank over a commutative ring.
 
     This is a Sage *element* class, the corresponding *parent* class being
-    :class:`~sage.tensor.modules.ext_pow_free_module.ExtPowerFreeModule`.
+    :class:`~sage.tensor.modules.ext_pow_free_module.ExtPowerDualFreeModule`.
 
     INPUT:
 
@@ -75,7 +75,7 @@ class FreeModuleAltForm(FreeModuleTensor):
         Alternating form a of degree 2 on the
          Rank-3 free module M over the Integer Ring
         sage: type(a)
-        <class 'sage.tensor.modules.ext_pow_free_module.ExtPowerFreeModule_with_category.element_class'>
+        <class 'sage.tensor.modules.ext_pow_free_module.ExtPowerDualFreeModule_with_category.element_class'>
         sage: a.parent()
         2nd exterior power of the dual of the Rank-3 free module M over the Integer Ring
         sage: a[1,2], a[2,3] = 4, -3
@@ -233,7 +233,7 @@ class FreeModuleAltForm(FreeModuleTensor):
 
         In the above test suite, _test_category fails because a is not an
         instance of a.parent().category().element_class. Actually alternating
-        forms must be constructed via ExtPowerFreeModule.element_class and
+        forms must be constructed via ExtPowerDualFreeModule.element_class and
         not by a direct call to FreeModuleAltForm::
 
             sage: a1 = M.dual_exterior_power(2).element_class(M, 2, name='a')

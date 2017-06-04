@@ -980,7 +980,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         OUTPUT:
 
         - for `p\geq 1`, instance of
-          :class:`~sage.tensor.modules.ext_pow_free_module.ExtPowerFreeModule`
+          :class:`~sage.tensor.modules.ext_pow_free_module.ExtPowerDualFreeModule`
           representing the free module `\Lambda^p(M^*)`; for `p=0`, the
           base ring `R` is returned instead
 
@@ -1010,15 +1010,15 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             e^0/\e^1/\e^2
 
         See
-        :class:`~sage.tensor.modules.ext_pow_free_module.ExtPowerFreeModule`
+        :class:`~sage.tensor.modules.ext_pow_free_module.ExtPowerDualFreeModule`
         for more documentation.
 
         """
-        from sage.tensor.modules.ext_pow_free_module import ExtPowerFreeModule
+        from sage.tensor.modules.ext_pow_free_module import ExtPowerDualFreeModule
         if p == 0:
             return self._ring
         if p not in self._dual_exterior_powers:
-            self._dual_exterior_powers[p] = ExtPowerFreeModule(self, p)
+            self._dual_exterior_powers[p] = ExtPowerDualFreeModule(self, p)
         return self._dual_exterior_powers[p]
 
     def general_linear_group(self):

@@ -38,7 +38,7 @@ classes being:
 * for :class:`FiniteRankFreeModuleElement`:
   :class:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule`
 * for :class:`~sage.tensor.modules.free_module_alt_form.FreeModuleAltForm`:
-  :class:`~sage.tensor.modules.ext_pow_free_module.ExtPowerFreeModule`
+  :class:`~sage.tensor.modules.ext_pow_free_module.ExtPowerDualFreeModule`
 * for
   :class:`~sage.tensor.modules.free_module_automorphism.FreeModuleAutomorphism`:
   :class:`~sage.tensor.modules.free_module_linear_group.FreeModuleLinearGroup`

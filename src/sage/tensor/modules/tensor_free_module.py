@@ -562,7 +562,7 @@ class TensorFreeModule(FiniteRankFreeModule):
 
         """
         from .free_module_homset import FreeModuleHomset
-        from .ext_pow_free_module import ExtPowerFreeModule
+        from .ext_pow_free_module import ExtPowerDualFreeModule
         from .free_module_linear_group import FreeModuleLinearGroup
         if isinstance(other, FreeModuleHomset):
             # Coercion of an endomorphism to a type-(1,1) tensor:
@@ -571,7 +571,7 @@ class TensorFreeModule(FiniteRankFreeModule):
                                                 self._fmodule is other.domain()
             else:
                 return False
-        if isinstance(other, ExtPowerFreeModule):
+        if isinstance(other, ExtPowerDualFreeModule):
             # Coercion of an alternating form to a type-(0,p) tensor:
             return self._tensor_type == (0, other.degree()) and \
                                            self._fmodule is other.base_module()

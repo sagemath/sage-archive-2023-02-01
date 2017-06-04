@@ -802,7 +802,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
                 ]
             return [PR(gen) for gen in OUT]
 
-    def molien_series(self, chi = None, return_series = True, prec = 20, variable = 't'):
+    def molien_series(self, chi=None, return_series=True, prec=20, variable='t'):
         r"""
         Compute the Molien series of this finite group with respect to the
         character ``chi``. It can be returned either as a rational function

@@ -828,9 +828,11 @@ def symbolic_product(expression, v, a, b, algorithm='maxima', hold=False):
 
       - ``'maxima'`` - use Maxima (the default)
 
-      - ``'giac'`` - (optional) use Giac
+      - ``'giac'`` - use Giac
 
       - ``'sympy'`` - use SymPy
+
+      - ``'mathematica'`` - (optional) use Mathematica
 
     - ``hold`` - (default: ``False``) if ``True`` don't evaluate
 

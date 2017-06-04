@@ -1024,7 +1024,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
     from sage.plot.colors import rainbow
     from sage.numerical.mip import MIPSolverException
 
-    if g.order()*g.size() == 0:
+    if g.order() == 0 or g.size() == 0:
         if value_only:
             return 0
         return dict() if hex_colors else list()
@@ -1032,8 +1032,13 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
     if vizing:
         value_only = False
 
-    # reorders the edge if necessary...
-    R = lambda u,v: (u, v) if u <= v else (v, u)
+    def R(u, v):
+        """
+        Helper method to maintain an ordering
+        """
+        if u < v:
+            return u, v
+        return v, u
 
     # The chromatic index of g is the maximum value over its connected
     # components, and the edge coloring is the union of the edge
@@ -1073,8 +1078,8 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
         values = [Delta+1] if vizing else [Delta, Delta+1]
 
         for k in values:
-            p = MixedIntegerLinearProgram(maximization=True, solver = solver)
-            color = p.new_variable(binary = True)
+            p = MixedIntegerLinearProgram(maximization=True, solver=solver)
+            color = p.new_variable(binary=True)
             # A vertex can not have two incident edges with the same color.
             for v in h.vertex_iterator():
                 for i in range(k):

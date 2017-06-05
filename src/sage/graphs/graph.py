@@ -4396,12 +4396,6 @@ class Graph(GenericGraph):
             else:
                 return 1
 
-        def reorder(u, v):
-            if u < v:
-                return u, v
-            else:
-                return v, u
-
         W = dict()
         L = dict()
         for u,v,l in self.edge_iterator():
@@ -4445,7 +4439,7 @@ class Graph(GenericGraph):
             # the maximum matching
             for v in g.vertex_iterator():
                 p.add_constraint(
-                    p.sum(b[reorder(u, v)]
+                    p.sum(b[min(u, v), max(u,v)]
                           for u in self.neighbors(v) if u != v), max=1)
             if value_only:
                 if use_edge_labels:

@@ -62,6 +62,7 @@ import sage.rings.ideal
 from sage.categories.basic import EuclideanDomains
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.structure.coerce cimport is_numpy_type
+from sage.structure.element cimport parent
 from sage.structure.parent_gens import ParentWithGens
 from sage.structure.parent cimport Parent
 from sage.structure.sage_object cimport rich_to_bool
@@ -429,9 +430,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         if x in self:
             return self
 
-        from sage.rings.number_field.number_field_element import is_NumberFieldElement
-        if is_NumberFieldElement(x):
-            K, from_K = x.parent().subfield(x)
+        from sage.rings.number_field.number_field_element import NumberFieldElement
+        if isinstance(x, NumberFieldElement):
+            K, from_K = parent(x).subfield(x)
             return K.order(K.gen())
 
         return PrincipalIdealDomain.__getitem__(self, x)
@@ -1314,7 +1315,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         #TODO: the content sometimes return an ideal sometimes a number... this
         # should be corrected. See
         # <https://groups.google.com/forum/#!topic/sage-devel/DP_R3rl0vH0>
-        if p.parent().is_sparse():
+        if parent(p).is_sparse():
             cont = p.content().gen()
         else:
             cont = p.content()
@@ -1577,7 +1578,7 @@ def crt_basis(X, xgcd=None):
 
     Y = []
     # 2. Compute extended GCD's
-    ONE = X[0].parent().one()
+    ONE = parent(X[0]).one()
     for i in range(len(X)):
         p = X[i]
         others = P // p

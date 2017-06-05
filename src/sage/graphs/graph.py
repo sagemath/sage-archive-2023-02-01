@@ -4407,7 +4407,10 @@ class Graph(GenericGraph):
             if u is v:
                 continue
             if not (u, v) in W or ( use_edge_labels and W[u, v][0] < weight(l) ):
-                W[u, v] = (weight(l),l)
+                if use_edge_labels:
+                    W[u, v] = (weight(l),l)
+                else:
+                    W[u, v] = (l,l)
 
         if algorithm == "Edmonds":
             import networkx

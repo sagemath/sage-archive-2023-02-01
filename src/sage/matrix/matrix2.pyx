@@ -8088,14 +8088,19 @@ cdef class Matrix(matrix1.Matrix):
             (0, 6)
             sage: m2.tensor_product(m3).dimensions()
             (0, 6)
+
+            sage: m1 = MatrixSpace(GF(5), 3, 2).an_element()
+            sage: m2 = MatrixSpace(GF(5), 0, 4).an_element()
+            sage: m1.tensor_product(m2).parent()
+            Full MatrixSpace of 0 by 8 dense matrices over Finite Field of size 5
         """
         if not isinstance(A, Matrix):
             raise TypeError('tensor product requires a second matrix, not {0}'.format(A))
-        from sage.matrix.constructor import matrix, block_matrix
+        from sage.matrix.constructor import block_matrix
         # Special case when one of the matrices is 0 \times m or m \times 0
         if self.nrows() == 0 or self.ncols() == 0 or A.nrows() == 0 or A.ncols() == 0:
             return self.matrix_space(self.nrows()*A.nrows(),
-                                     self.ncols()*A.ncols())([])
+                                     self.ncols()*A.ncols())()
         return block_matrix(self.nrows(), self.ncols(),
                             [x * A for x in self.list()], subdivide=subdivide)
 

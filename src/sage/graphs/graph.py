@@ -4396,12 +4396,18 @@ class Graph(GenericGraph):
             else:
                 return 1
 
+        def reorder(u, v):
+            if u < v:
+                return u, v
+            else:
+                return v, u
+
         W = dict()
-        # keep track of the actual edge labels so we can return them properly
         for u,v,l in self.edge_iterator():
+            u, v = reorder(u, v)
             if u is v:
                 continue
-            if not (u, v) in W or ( (u, v) in W and use_edge_labels and W[u, v][0] < weight(l) ):
+            if use_edge_labels and not (u, v) in W or ( (u, v) in W and W[u, v][0] < weight(l) ):
                 W[u, v] = (weight(l),l)
 
         if algorithm == "Edmonds":
@@ -4430,15 +4436,14 @@ class Graph(GenericGraph):
             p = MixedIntegerLinearProgram(maximization=True, solver=solver)
             b = p.new_variable(binary=True)
             if use_edge_labels:
-                p.set_objective( p.sum( W[u, v][0] * b[min(u, v), max(u,v)]
-                                for u, v in W ) )
+                p.set_objective( p.sum( W[u, v][0] * b[u, v] for u, v in W ) )
             else:
-                p.set_objective( p.sum( b[min(u, v), max(u,v)] for u, v in W ) )
+                p.set_objective( p.sum( b[u, v] for u, v in W ) )
             # for any vertex v, there is at most one edge incident to v in
             # the maximum matching
             for v in g.vertex_iterator():
                 p.add_constraint(
-                    p.sum(b[min(u, v), max(u,v)]
+                    p.sum(b[reorder(u, v)]
                           for u in self.neighbors(v) if u != v), max=1)
             if value_only:
                 if use_edge_labels:

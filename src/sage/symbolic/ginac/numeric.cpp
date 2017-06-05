@@ -2080,7 +2080,8 @@ bool numeric::is_cinteger() const {
                 case MPQ:
                         return is_integer();
                 case PYOBJECT:
-                        return py_funcs.py_is_cinteger(v._pyobject) != 0;
+                        return real().is_integer()
+                           and imag().is_integer();
                 default:
                         stub("invalid type -- is_cinteger() type not handled");
         }
@@ -2098,7 +2099,8 @@ bool numeric::is_crational() const {
                 case MPQ:
                         return true;
                 case PYOBJECT:
-                        return py_funcs.py_is_crational(v._pyobject) != 0;
+                        return real().is_rational()
+                           and imag().is_rational();
                 default:
                         stub("invalid type -- is_crational() type not handled");
         }

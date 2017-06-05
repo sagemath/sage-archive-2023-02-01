@@ -247,10 +247,10 @@ import math # for log
 import sys
 import operator
 
-include "cysignals/signals.pxi"
 from cpython.mem cimport *
 from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_LE, Py_GT, Py_GE
 from libc.string cimport strlen
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.libs.gmp.mpz cimport *
 cimport sage.rings.ring

@@ -20,8 +20,9 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import absolute_import
 
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
+from cysignals.memory cimport check_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
+
 include "sage/libs/ntl/decl.pxi"
 from cypari2.paridecl cimport *
 
@@ -427,9 +428,6 @@ cdef class Cache_ntl_gf2e(SageObject):
 
         self.F.restore()
 
-        cdef unsigned char *p
-        cdef int i
-
         if number < 0 or number >= self.order():
             raise TypeError("n must be between 0 and self.order()")
 
@@ -444,8 +442,9 @@ cdef class Cache_ntl_gf2e(SageObject):
         else:
             raise TypeError("number %s is not an integer" % number)
 
-        p = <unsigned char*>sig_malloc(n)
-        for i from 0 <= i < n:
+        cdef unsigned char* p = <unsigned char*>check_malloc(n)
+        cdef long i
+        for i in range(n):
             p[i] = (number%256)
             number = number >> 8
         GF2XFromBytes(_a, p, n)

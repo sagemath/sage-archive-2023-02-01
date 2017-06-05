@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
+from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.libs.gmp.mpz cimport mpz_init, mpz_clear, mpz_pow_ui
 from sage.libs.flint.padic cimport *

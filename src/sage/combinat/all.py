@@ -96,7 +96,7 @@ from sage.combinat.tableau_tuple import TableauTuple, StandardTableauTuple, Tabl
 from .k_tableau import WeakTableau, WeakTableaux, StrongTableau, StrongTableaux
 lazy_import('sage.combinat.lr_tableau', ['LittlewoodRichardsonTableau',
                                          'LittlewoodRichardsonTableaux'])
-lazy_import('sage.combinat.tableau_shifted_primed', ['ShiftedPrimedTableaux', 'ShiftedPrimedTableau'])
+lazy_import('sage.combinat.tableau_shifted_primed', ['ShiftedPrimedTableaux', 'ShiftedPrimedTableau','SPTCrystal'])
 
 #Words
 from .words.all import *

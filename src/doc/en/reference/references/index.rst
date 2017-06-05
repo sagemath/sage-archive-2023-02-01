@@ -390,6 +390,10 @@ REFERENCES:
             the minimum number of vertices", Topology 40 (2001),
             753--772.
 
+.. [CKS1999] Felipe Cucker, Pascal Koiran, and Stephen Smale. *A polynomial-time
+             algorithm for diophantine equations in one variable*, J. Symbolic
+             Computation 27 (1), 21-29, 1999.
+
 .. [CK2015] \J. Campbell and V. Knight. *On testing degeneracy of
             bi-matrix
             games*. http://vknight.org/unpeudemath/code/2015/06/25/on_testing_degeneracy_of_games/ (2015)

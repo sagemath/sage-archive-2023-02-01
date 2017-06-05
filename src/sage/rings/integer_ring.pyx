@@ -1216,6 +1216,232 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return self(1)
 
+    def _roots_univariate_polynomial(self, p, ring=None, multiplicities=True, algorithm=None):
+        r"""
+        Return the roots of the univariate polynomial ``p``.
+
+        INPUT:
+
+        - ``p`` -- univariate integer polynomial
+
+        - ``ring`` -- ring (default: ``None``); a ring containing `\ZZ` to
+          compute the roots in; ``None`` is equivalent to ``ZZ``
+
+        - ``multiplicities`` -- boolean (default: ``True``); whether to compute
+          the multiplicities
+
+        - ``algorithm`` -- ``"dense"``, ``"sparse"`` or ``None`` (default:
+          ``None``); the algorithm to use
+
+        OUTPUT:
+
+        - If ``multiplicities = True``, the list of pairs `(r, n)` where
+          `r` is a root and `n` the corresponding multiplicity;
+
+        - If ``multiplicities = False``, the list of distincts roots with no
+          information about the multiplicities.
+
+        ALGORITHM:
+
+        If ``algorithm`` is ``"dense"`, the roots are computed using
+        :meth:`_roots_from_factorization`.
+
+        If ``algorithm`` is ``"sparse"``, the roots are computed using the
+        algorithm described in [CKS1999]_.
+
+        If ``algorithm`` is ``None``, use the ``"dense"`` algorithm for
+        polynomials of degree at most `100`, and ``"sparse"`` otherwise.
+
+        .. NOTE::
+
+            This is a helper method for
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.roots`.
+
+        TESTS::
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: p = (x + 1)^23 * (x - 1)^23 * (x - 100) * (x + 5445)^5
+            sage: ZZ._roots_univariate_polynomial(p)
+            [(100, 1), (-5445, 5), (1, 23), (-1, 23)]
+            sage: p *= (1 + x^3458645 - 76*x^3435423343 + x^45346567867756556)
+            sage: ZZ._roots_univariate_polynomial(p)
+            [(1, 23), (-1, 23), (100, 1), (-5445, 5)]
+            sage: p *= x^156468451540687043504386074354036574634735074
+            sage: ZZ._roots_univariate_polynomial(p)
+            [(0, 156468451540687043504386074354036574634735074),
+             (1, 23),
+             (-1, 23),
+             (100, 1),
+             (-5445, 5)]
+            sage: ZZ._roots_univariate_polynomial(p, multiplicities=False)
+            [0, 1, -1, 100, -5445]
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=False)
+            sage: p = (x + 1)^23 * (x - 1)^23 * (x - 100) * (x + 5445)^5
+            sage: ZZ._roots_univariate_polynomial(p)
+            [(100, 1), (-5445, 5), (1, 23), (-1, 23)]
+            sage: ZZ._roots_univariate_polynomial(p, multiplicities=False)
+            [100, -5445, 1, -1]
+
+            sage: ZZ._roots_univariate_polynomial(p, algorithm="sparse")
+            [(100, 1), (-5445, 5), (1, 23), (-1, 23)]
+            sage: ZZ._roots_univariate_polynomial(p, algorithm="dense")
+            [(100, 1), (-5445, 5), (1, 23), (-1, 23)]
+            sage: ZZ._roots_univariate_polynomial(p, algorithm="foobar")
+            Traceback (most recent call last):
+            ...
+            ValueError: Unknown algorithm 'foobar'
+        """
+        if p.degree() < 0:
+            raise ValueError("roots of 0 are not defined")
+
+        # A specific algorithm is available only for integer roots of integer polynomials
+        if ring is not self and ring is not None:
+            raise NotImplementedError
+
+        # Automatic choice of algorithm
+        if algorithm is None:
+            if p.degree() > 100:
+                algorithm = "sparse"
+            else:
+                algorithm = "dense"
+
+        if algorithm != "dense" and algorithm != "sparse":
+            raise ValueError("unknown algorithm '{}'".format(algorithm))
+
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+        #TODO: the content sometimes return an ideal sometimes a number... this
+        # should be corrected. See
+        # <https://groups.google.com/forum/#!topic/sage-devel/DP_R3rl0vH0>
+        if p.parent().is_sparse():
+            cont = p.content().gen()
+        else:
+            cont = p.content()
+        if not cont.is_unit():
+            p = p.map_coefficients(lambda c:c//cont)
+
+        cdef list roots = []
+
+        # The dense algorithm is to compute the roots from the factorization
+        if algorithm == "dense":
+            sig_on()
+            roots = p._roots_from_factorization(p.factor(), multiplicities)
+            sig_off()
+            return roots
+
+        v = p.valuation()
+        p = p.shift(-v)
+
+        # Root 0
+        if v>0:
+            if multiplicities: roots = [(self.zero(), v)]
+            else: roots = [self.zero()]
+        else:
+            roots = []
+
+        if p.is_constant():
+            return roots
+
+        cdef list c = p.coefficients()
+        cdef list e = p.exponents()
+        cdef int i_min, i, j, k = len(e)
+
+        # totally dense polynomial
+        if k == 1 + p.degree():
+            sig_on()
+            roots = p._roots_from_factorization(p.factor(), multiplicities)
+            sig_off()
+            return roots
+
+        K = p.base_ring()
+        x = p.variable_name()
+        R = PolynomialRing(K, x, sparse=False)
+        c_max_nbits = c[0].nbits()
+        i_min = 0
+        g = R.zero()
+
+        # Looking for "large" gaps in the exponents
+        # These gaps split the polynomial into lower degree components
+        # Roots of modulus > 1 are common roots of the components
+        for i in range(1, k):
+            if e[i] - e[i-1] > c_max_nbits:
+                g = g.gcd(R({e[j] - e[i_min]: c[j] for j in range(i_min,i)}))
+                if g.is_one(): break
+                i_min = i
+                c_max_nbits = c[i].nbits()
+            else:
+                c_max_nbits = max(c[i].nbits(), c_max_nbits)
+
+        # if no gap, directly return the roots of p
+        if g.is_zero():
+            sig_on()
+            roots.extend(p._roots_from_factorization(p.factor(), multiplicities))
+            sig_off()
+            return roots
+
+        g = g.gcd(R({e[j] - e[i_min]: c[j] for j in range(i_min, k)}))
+
+
+        cdef list cc
+        cdef list ee
+        cdef int m1, m2
+        cdef bint b1, b2
+        # Computation of the roots of modulus 1, without multiplicities
+        # 1 is root iff p(1) == 0 ; -1 iff p(-1) == 0
+        if not multiplicities:
+            if not sum(c):
+                roots.append(1)
+            s = 0
+            for j in range(k):
+                s += -c[j] if (e[j] % 2) else c[j]
+            if not s:
+                roots.append(-1)
+
+        # Computation of the roots of modulus 1, with multiplicities
+        # For the multiplicities, take the derivatives
+        else:
+            cc = c
+            ee = e
+            m1 = m2 = 0
+            b1 = b2 = True
+
+            for i in range(k):
+                s1 = s2 = 0
+                for j in range(k-i):
+                    if b1: s1 += cc[j]
+                    if b2: s2 += -cc[j] if (ee[j] % 2) else cc[j]
+                if b1 and s1:
+                    m1 = i
+                    b1 = False
+                if b2 and s2:
+                    m2 = i
+                    b2 = False
+                # Stop asap
+                if not (b1 or b2):
+                    break
+
+                # Sparse derivative, that is (p/x^v)' where v = p.val():
+                ee = [ee[j] - ee[0] - 1 for j in range(1,k-i)]
+                cc = [(ee[j] + 1) * cc[j+1] for j in range(k-i-1)]
+
+            if m1 > 0:
+                roots.append((1, m1))
+            if m2 > 0:
+                roots.append((-1, m2))
+
+        # Add roots of modulus > 1 to `roots`:
+        if multiplicities:
+            sig_on()
+            roots.extend(r for r in g._roots_from_factorization(g.factor(), True) if r[0].abs() > 1)
+            sig_off()
+        else:
+            sig_on()
+            roots.extend(r for r in g._roots_from_factorization(g.factor(), False) if r.abs() > 1)
+            sig_off()
+
+        return roots
+
 
     #################################
     ## Coercions to interfaces

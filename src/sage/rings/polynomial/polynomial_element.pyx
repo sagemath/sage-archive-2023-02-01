@@ -7307,10 +7307,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # If the base ring has a method _roots_univariate_polynomial,
         # try to use it. An exception is raised if the method does not
         # handle the current parameters
-        try:
+        if hasattr(K, '_roots_univariate_polynomial'):
             return K._roots_univariate_polynomial(self, ring=ring, multiplicities=multiplicities, algorithm=algorithm, **kwds)
-        except (AttributeError, NotImplementedError):
-            pass
 
         if kwds:
             raise TypeError("roots() got unexpected keyword argument(s): {}".format(kwds.keys()))

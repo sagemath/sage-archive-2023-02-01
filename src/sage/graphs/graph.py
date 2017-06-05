@@ -4424,7 +4424,7 @@ class Graph(GenericGraph):
             d = networkx.max_weight_matching(g)
             if value_only:
                 if use_edge_labels:
-                    return sum(L[u, v] for u, v in six.iteritems(d) if u < v)
+                    return sum(W[u, v] for u, v in six.iteritems(d) if u < v)
                 else:
                     return Integer(len(d) // 2)
             else:

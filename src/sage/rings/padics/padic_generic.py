@@ -543,12 +543,14 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         for x,y in some_tuples(elements, 2, tester._max_runs):
             z = x + y
             tester.assertIs(z.parent(), self)
-            tester.assertEqual(z.precision_absolute(), min(x.precision_absolute(), y.precision_absolute()))
+            zprec = min(x.precision_absolute(), y.precision_absolute())
+            if not self.is_floating_point():
+                tester.assertEqual(z.precision_absolute(), zprec)
             tester.assertGreaterEqual(z.valuation(), min(x.valuation(),y.valuation()))
             if x.valuation() != y.valuation():
                 tester.assertEqual(z.valuation(), min(x.valuation(),y.valuation()))
-            tester.assertEqual(z - x, y)
-            tester.assertEqual(z - y, x)
+            tester.assert_(y.is_equal_to(z-x,zprec))
+            tester.assert_(x.is_equal_to(z-y,zprec))
 
     def _test_sub(self, **options):
         """
@@ -579,12 +581,14 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         for x,y in some_tuples(elements, 2, tester._max_runs):
             z = x - y
             tester.assertIs(z.parent(), self)
-            tester.assertEqual(z.precision_absolute(), min(x.precision_absolute(), y.precision_absolute()))
+            zprec = min(x.precision_absolute(), y.precision_absolute())
+            if not self.is_floating_point():
+                tester.assertEqual(z.precision_absolute(), zprec)
             tester.assertGreaterEqual(z.valuation(), min(x.valuation(),y.valuation()))
             if x.valuation() != y.valuation():
                 tester.assertEqual(z.valuation(), min(x.valuation(),y.valuation()))
-            tester.assertEqual(z - x, -y)
-            tester.assertEqual(z + y, x)
+            tester.assert_((-y).is_equal_to(z - x,zprec))
+            tester.assert_(x.is_equal_to(z + y,zprec))
 
     def _test_invert(self, **options):
         """
@@ -613,13 +617,16 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
                 tester.assertFalse(x.is_unit())
                 if not self.is_fixed_mod(): tester.assertTrue(x.is_zero())
             else:
-                e = y * x
-
-                tester.assertFalse(x.is_zero())
-                tester.assertIs(y.parent(), self if self.is_fixed_mod() else self.fraction_field())
-                tester.assertTrue(e.is_one())
-                tester.assertEqual(e.precision_relative(), x.precision_relative())
-                tester.assertEqual(y.valuation(), -x.valuation())
+                try:
+                    e = y * x
+                except ZeroDivisionError:
+                    tester.assertTrue(self.is_floating_point() and (x.is_zero() or y.is_zero()))
+                else:
+                    tester.assertFalse(x.is_zero())
+                    tester.assertIs(y.parent(), self if self.is_fixed_mod() else self.fraction_field())
+                    tester.assertTrue(e.is_one())
+                    tester.assertEqual(e.precision_relative(), x.precision_relative())
+                    tester.assertEqual(y.valuation(), -x.valuation())
 
     def _test_mul(self, **options):
         """
@@ -644,7 +651,10 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         for x,y in some_tuples(elements, 2, tester._max_runs):
             z = x * y
             tester.assertIs(z.parent(), self)
-            tester.assertLessEqual(z.precision_relative(), min(x.precision_relative(), y.precision_relative()))
+            if self.is_capped_relative() or self.is_floating_point():
+                tester.assertEqual(z.precision_relative(), min(x.precision_relative(), y.precision_relative()))
+            else:
+                tester.assertLessEqual(z.precision_relative(), min(x.precision_relative(), y.precision_relative()))
             if not z.is_zero():
                 tester.assertEqual(z.valuation(), x.valuation() + y.valuation())
 
@@ -675,10 +685,16 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
                 if self.is_fixed_mod(): tester.assertFalse(y.is_unit())
                 else: tester.assertTrue(y.is_zero())
             else:
-                tester.assertFalse(y.is_zero())
-                tester.assertIs(z.parent(), self if self.is_fixed_mod() else self.fraction_field())
-                tester.assertEqual(z.precision_relative(), min(x.precision_relative(), y.precision_relative()))
-                tester.assertEqual(z.valuation(), x.valuation() - y.valuation())
+                try:
+                    xx = z*y
+                except ZeroDivisionError:
+                    tester.assertTrue(self.is_floating_point() and (z.is_zero() or y.is_zero()))
+                else:
+                    tester.assertFalse(y.is_zero())
+                    tester.assertIs(z.parent(), self if self.is_fixed_mod() else self.fraction_field())
+                    tester.assertEqual(z.precision_relative(), min(x.precision_relative(), y.precision_relative()))
+                    tester.assertEqual(z.valuation(), x.valuation() - y.valuation())
+                    tester.assertEqual(xx, x)
 
     def _test_neg(self, **options):
         """

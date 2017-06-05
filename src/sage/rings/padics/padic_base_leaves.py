@@ -195,10 +195,13 @@ from .generic_nodes import pAdicFieldBaseGeneric, \
                           pAdicRingBaseGeneric, \
                           pAdicCappedRelativeRingGeneric, \
                           pAdicFixedModRingGeneric, \
-                          pAdicCappedAbsoluteRingGeneric
+                          pAdicCappedAbsoluteRingGeneric, \
+                          pAdicFloatingPointRingGeneric, \
+                          pAdicFloatingPointFieldGeneric
 from .padic_capped_relative_element import pAdicCappedRelativeElement
 from .padic_capped_absolute_element import pAdicCappedAbsoluteElement
 from .padic_fixed_mod_element import pAdicFixedModElement
+from .padic_floating_point_element import pAdicFloatingPointElement
 from sage.rings.integer_ring import ZZ
 
 class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGeneric):
@@ -383,6 +386,94 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGener
             elif (R.precision_cap() == self.precision_cap() and
                   self._printer.richcmp_modes(R._printer, op_LE)):
                 return True
+
+class pAdicRingFloatingPoint(pAdicRingBaseGeneric, pAdicFloatingPointRingGeneric):
+    r"""
+    An implementation of the `p`-adic integers with floating point
+    precision.
+    """
+    def __init__(self, p, prec, print_mode, names):
+        """
+        Initialization.
+
+        INPUT:
+
+        - ``p`` -- prime
+        - ``prec`` -- precision cap
+        - ``print_mode`` -- dictionary with print options.
+        - ``names`` -- how to print the prime.
+
+        EXAMPLES::
+
+            sage: R = ZpFP(next_prime(10^60)) #indirect doctest
+            sage: type(R)
+            <class 'sage.rings.padics.padic_base_leaves.pAdicRingFloatingPoint_with_category'>
+
+        TESTS::
+
+            sage: R = ZpFP(2)
+            sage: TestSuite(R).run()
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^10)], max_runs = 2^12) # long time
+
+            sage: R = ZpFP(3, 1)
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^3)])
+
+            sage: R = ZpFP(3, 2)
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)]) # long time
+
+            sage: R = ZpFP(next_prime(10^60))
+            sage: TestSuite(R).run()
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^4)], max_runs = 2^6) # long time
+
+        """
+        pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicFloatingPointElement)
+
+    def _coerce_map_from_(self, R):
+        """
+        Returns ``True`` if there is a coerce map from ``R`` to ``self``.
+
+        EXAMPLES::
+
+            sage: K = ZpFP(17)
+            sage: K(1) + 1 #indirect doctest
+            2
+            sage: K.has_coerce_map_from(ZZ)
+            True
+            sage: K.has_coerce_map_from(int)
+            True
+            sage: K.has_coerce_map_from(QQ)
+            False
+            sage: K.has_coerce_map_from(RR)
+            False
+            sage: K.has_coerce_map_from(Qp(7))
+            False
+            sage: K.has_coerce_map_from(Zp(17,40))
+            False
+            sage: K.has_coerce_map_from(Zp(17,10))
+            False
+            sage: K.has_coerce_map_from(ZpCA(17,40))
+            False
+        """
+        if isinstance(R, pAdicRingFloatingPoint) and R.prime() == self.prime():
+            if R.precision_cap() > self.precision_cap():
+                return True
+            elif R.precision_cap() == self.precision_cap() and self._printer.richcmp_modes(R._printer, op_LE):
+                return True
+
+    def _repr_(self, do_latex=False):
+        r"""
+        Print representation.
+
+        EXAMPLES::
+
+            sage: K = ZpFP(17); K #indirect doctest
+            17-adic Ring with floating precision 20
+            sage: latex(K)
+            \ZZ_{17}
+        """
+        if do_latex:
+            return "\\ZZ_{%s}" % self.prime()
+        return "%s-adic Ring with floating precision %s"%(self.prime(), self.precision_cap())
 
 class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
     r"""
@@ -620,3 +711,93 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
             return self(self.prime()**k * a, absprec = k + self.precision_cap())
         else:
             raise NotImplementedError("Don't know %s algorithm"%algorithm)
+
+class pAdicFieldFloatingPoint(pAdicFieldBaseGeneric, pAdicFloatingPointFieldGeneric):
+    r"""
+    An implementation of the `p`-adic rationals with floating point
+    precision.
+    """
+    def __init__(self, p, prec, print_mode, names):
+        """
+        Initialization.
+
+        INPUT:
+
+        - ``p`` -- prime
+        - ``prec`` -- precision cap
+        - ``print_mode`` -- dictionary with print options.
+        - ``names`` -- how to print the prime.
+
+        EXAMPLES::
+
+            sage: R = QpFP(next_prime(10^60)) #indirect doctest
+            sage: type(R)
+            <class 'sage.rings.padics.padic_base_leaves.pAdicFieldFloatingPoint_with_category'>
+
+        TESTS::
+
+            sage: R = QpFP(2)
+            sage: TestSuite(R).run()
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^10)], max_runs = 2^12) # long time
+
+            sage: R = QpFP(3, 1)
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^3)])
+
+            sage: R = QpFP(3, 2)
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)]) # long time
+
+            sage: R = QpFP(next_prime(10^60))
+            sage: TestSuite(R).run()
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^4)], max_runs = 2^6) # long time
+
+        """
+        pAdicFieldBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicFloatingPointElement)
+
+    def _coerce_map_from_(self, R):
+        """
+        Returns ``True`` if there is a coerce map from ``R`` to ``self``.
+
+        EXAMPLES::
+
+            sage: K = QpFP(17)
+            sage: K(1) + 1 #indirect doctest
+            2
+            sage: K.has_coerce_map_from(ZZ)
+            True
+            sage: K.has_coerce_map_from(int)
+            True
+            sage: K.has_coerce_map_from(QQ)
+            True
+            sage: K.has_coerce_map_from(RR)
+            False
+            sage: K.has_coerce_map_from(Qp(7))
+            False
+            sage: K.has_coerce_map_from(Zp(17,40))
+            False
+            sage: K.has_coerce_map_from(Qp(17,10))
+            False
+            sage: K.has_coerce_map_from(ZpFP(17))
+            True
+            sage: K.has_coerce_map_from(ZpCA(17,40))
+            False
+        """
+        if isinstance(R, (pAdicRingFloatingPoint, pAdicFieldFloatingPoint)) and R.prime() == self.prime():
+            if R.precision_cap() > self.precision_cap():
+                return True
+            elif R.precision_cap() == self.precision_cap() and self._printer.richcmp_modes(R._printer, op_LE):
+                return True
+
+    def _repr_(self, do_latex=False):
+        r"""
+        Print representation.
+
+        EXAMPLES::
+
+            sage: K = QpFP(17); K #indirect doctest
+            17-adic Field with floating precision 20
+            sage: latex(K)
+            \QQ_{17}
+        """
+        if do_latex:
+            return "\\QQ_{%s}" % self.prime()
+        return "%s-adic Field with floating precision %s"%(self.prime(), self.precision_cap())

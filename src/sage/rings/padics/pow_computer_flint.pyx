@@ -629,6 +629,8 @@ def PowComputer_flint_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_field
         from .qadic_flint_CA import PowComputer_
     elif prec_type == 'fixed-mod':
         from .qadic_flint_FM import PowComputer_
+    elif prec_type == 'floating-point':
+        from .qadic_flint_FP import PowComputer_
     else:
         raise ValueError("unknown prec_type `%s`" % prec_type)
     return PowComputer_(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly)

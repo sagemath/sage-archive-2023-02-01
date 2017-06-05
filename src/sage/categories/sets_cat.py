@@ -965,7 +965,7 @@ class Sets(Category_singleton):
 
                 sage: B = GroupAlgebra(SymmetricGroup(3), ZZ)
                 sage: B.element_class
-                <class 'sage.combinat.free_module.GroupAlgebra_with_category.element_class'>
+                <class 'sage.algebras.group_algebra.GroupAlgebra_with_category.element_class'>
                 sage: B._element_constructor
                 <bound method GroupAlgebra_with_category._element_constructor_ of Group algebra of group "Symmetric group of order 3! as a permutation group" over base ring Integer Ring>
             """
@@ -1423,7 +1423,7 @@ class Sets(Category_singleton):
                 Traceback (most recent call last):
                 ...
                 AssertionError: the output of the method cardinality must either
-                be a Sage integer or infinity. Not <type 'int'>.
+                be a Sage integer or infinity. Not <... 'int'>.
             """
             try:
                 cardinality = self.cardinality()
@@ -1733,6 +1733,35 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 This is an optional method. A default implementation
                 raising ``NotImplementedError`` could be provided instead.
             """
+
+        def is_injective(self):
+            r"""
+            Return whether this map is injective.
+
+            EXAMPLES::
+
+                sage: f = ZZ.hom(GF(3)); f
+                Ring Coercion morphism:
+                    From: Integer Ring
+                    To:   Finite Field of size 3
+                sage: f.is_injective()
+                False
+
+            Note that many maps do not implement this method::
+
+                sage: R.<x> = ZZ[]
+                sage: f = R.hom([x])
+                sage: f.is_injective()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError
+
+            """
+            if self.domain().cardinality() <= 1:
+                return True
+            if self.domain().cardinality() > self.codomain().cardinality():
+                return False
+            raise NotImplementedError
 
     Enumerated = LazyImport('sage.categories.enumerated_sets', 'EnumeratedSets', at_startup=True)
     Facade = LazyImport('sage.categories.facade_sets', 'FacadeSets')
@@ -2552,29 +2581,33 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
                 INPUT:
 
-                - ``verbose`` -- boolean (default ``True``) if ``True``, prints the defined shorthands
+                - ``verbose`` -- boolean (default ``True``); if ``True``,
+                  prints the defined shorthands
 
                 EXAMPLES::
 
                     sage: Q = QuasiSymmetricFunctions(ZZ)
                     sage: Q.inject_shorthands()
                     Injecting M as shorthand for Quasisymmetric functions over
-                    the Integer Ring in the Monomial basis
+                     the Integer Ring in the Monomial basis
                     Injecting F as shorthand for Quasisymmetric functions over
-                    the Integer Ring in the Fundamental basis
+                     the Integer Ring in the Fundamental basis
+                    Injecting E as shorthand for Quasisymmetric functions over
+                     the Integer Ring in the Essential basis
+                    doctest:...: RuntimeWarning: redefining global value `E`
                     Injecting dI as shorthand for Quasisymmetric functions over
-                    the Integer Ring in the dualImmaculate basis
+                     the Integer Ring in the dualImmaculate basis
                     Injecting QS as shorthand for Quasisymmetric functions over
-                    the Integer Ring in the Quasisymmetric Schur basis
+                     the Integer Ring in the Quasisymmetric Schur basis
                     sage: F[1,2,1] + 5*M[1,3] + F[2]^2
                     5*F[1, 1, 1, 1] - 5*F[1, 1, 2] - 3*F[1, 2, 1] + 6*F[1, 3] +
                     2*F[2, 2] + F[3, 1] + F[4]
                     sage: F
                     Quasisymmetric functions over the Integer Ring in the
-                    Fundamental basis
+                     Fundamental basis
                     sage: M
                     Quasisymmetric functions over the Integer Ring in the
-                    Monomial basis
+                     Monomial basis
                 """
                 from sage.misc.misc import inject_variable
                 if not hasattr(self, "_shorthands"):
@@ -2667,8 +2700,18 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     The subset algebra of {1, 2, 3} over Rational Field
                     sage: A.an_element()        # indirect doctest
                     F[{}] + 2*F[{1}] + 3*F[{2}] + F[{1, 2}]
+
+                TESTS:
+
+                Check that we are consistent no matter which basis is
+                created first::
+
+                    sage: M = posets.BooleanLattice(4).moebius_algebra(QQ)
+                    sage: I = M.I()
+                    sage: M._an_element_()
+                    2*E[0] + 2*E[1] + 3*E[2]
                 """
-                return self.realizations()[0].an_element()
+                return self.a_realization().an_element()
 
             # TODO: maybe this could be taken care of by Sets.Facade()?
             def __contains__(self, x):

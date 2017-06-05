@@ -36,8 +36,9 @@ AUTHORS:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
+from __future__ import absolute_import
 
-import matrix_double_dense
+from . import matrix_double_dense
 
 from sage.rings.complex_double import CDF
 

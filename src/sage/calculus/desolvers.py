@@ -281,7 +281,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
     Some more types of ODE's::
 
         sage: desolve(x*diff(y,x)^2-(1+x*y)*diff(y,x)+y==0,y,contrib_ode=True,show_method=True)
-        [[y(x) == _C*e^x, y(x) == _C + log(x)], 'factor']
+        [[y(x) == _C + log(x), y(x) == _C*e^x], 'factor']
 
     ::
 
@@ -524,7 +524,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
     soln=soln.sage()
     if is_SymbolicEquation(soln) and soln.lhs() == dvar:
         # Remark: Here we do not check that the right hand side does not depend on dvar.
-        # This probably will not hapen for soutions obtained via ode2, anyway.
+        # This probably will not happen for solutions obtained via ode2, anyway.
         soln = soln.rhs()
     if show_method:
         return [soln,maxima_method.str()]
@@ -636,11 +636,11 @@ def desolve_laplace(de, dvar, ics=None, ivar=None):
 
     TESTS:
 
-    Trac #4839 fixed::
+    Check that :trac:`4839` is fixed::
 
-        sage: t=var('t')
-        sage: x=function('x')(t)
-        sage: soln=desolve_laplace(diff(x,t)+x==1, x, ics=[0,2])
+        sage: t = var('t')
+        sage: x = function('x')(t)
+        sage: soln = desolve_laplace(diff(x,t)+x==1, x, ics=[0,2])
         sage: soln
         e^(-t) + 1
 
@@ -1161,7 +1161,7 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
         [[0.0, 8.904257108962112], [0.5, 1.909327945361535], [1, 1]]
 
     Here we show how to plot simple pictures. For more advanced
-    aplications use list_plot instead. To see the resulting picture
+    applications use list_plot instead. To see the resulting picture
     use ``show(P)`` in Sage notebook. ::
 
         sage: x,y = var('x,y')

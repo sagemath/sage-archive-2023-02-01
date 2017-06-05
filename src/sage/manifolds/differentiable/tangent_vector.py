@@ -70,7 +70,7 @@ class TangentVector(FiniteRankFreeModuleElement):
         r"""
         Construct a tangent vector.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()

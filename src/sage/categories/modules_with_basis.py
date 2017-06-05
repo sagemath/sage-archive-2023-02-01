@@ -32,6 +32,10 @@ from sage.categories.modules import Modules
 from sage.categories.poor_man_map import PoorManMap
 from sage.rings.infinity import Infinity
 from sage.structure.element import Element, parent
+
+import six
+
+
 lazy_import('sage.modules.with_basis.morphism',
             ['ModuleMorphismByLinearity',
              'ModuleMorphismFromMatrix',
@@ -1077,11 +1081,11 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             if hasattr( codomain, 'linear_combination' ):
                 mc = x.monomial_coefficients(copy=False)
                 return codomain.linear_combination( (on_basis(key), coeff)
-                                                    for key, coeff in mc.iteritems() )
+                                                    for key, coeff in six.iteritems(mc) )
             else:
                 return_sum = codomain.zero()
                 mc = x.monomial_coefficients(copy=False)
-                for key, coeff in mc.iteritems():
+                for key, coeff in six.iteritems(mc):
                     return_sum += coeff * on_basis(key)
                 return return_sum
 
@@ -1099,7 +1103,67 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             """
             mc = x.monomial_coefficients(copy=False)
             return self.linear_combination( (on_basis(key), coeff)
-                                            for key, coeff in mc.iteritems() )
+                                            for key, coeff in six.iteritems(mc) )
+
+        def dimension(self):
+            """
+            Return the dimension of ``self``.
+
+            EXAMPLES::
+
+                sage: A.<x,y> = algebras.DifferentialWeyl(QQ)
+                sage: A.dimension()
+                +Infinity
+            """
+            try:
+                return self.basis().cardinality()
+            except (AttributeError, TypeError):
+                from sage.rings.integer_ring import ZZ
+                return ZZ(len(self.basis()))
+
+        def _from_dict(self, d, coerce=True, remove_zeros=True):
+            """
+            Construct an element of ``self`` from the dictionary ``d``.
+
+            INPUT:
+
+            - ``coerce`` -- boolean; coerce the coefficients to the base ring
+            - ``remove_zeroes`` -- boolean; remove zeros from the dictionary
+
+            EXAMPLES::
+
+                sage: A.<x,y> = algebras.DifferentialWeyl(QQ)
+                sage: K = A.basis().keys()
+                sage: d = {K[0]: 3, K[12]: -4/3}
+                sage: A._from_dict(d)
+                -4/3*dx^2 + 3
+
+                sage: R.<x,y> = QQ[]
+                sage: d = {K[0]: y, K[12]: -4/3}
+                sage: A._from_dict(d, coerce=False)
+                -4/3*dx^2 + y
+                sage: A._from_dict(d, coerce=True)
+                Traceback (most recent call last):
+                ...
+                TypeError: not a constant polynomial
+            """
+            R = self.base_ring()
+            B = self.basis()
+            if coerce:
+                zero = R.zero()
+                temp = {}
+                if remove_zeros:
+                    for k in d:
+                        y = R(d[k])
+                        if y != zero:
+                            temp[k] = y
+                else:
+                    for k in d:
+                        temp[k] = R(d[k])
+                return self.sum(temp[i] * B[i] for i in temp)
+            if remove_zeros:
+                return self.sum(d[i] * B[i] for i in d if d[i] != 0)
+            return self.sum(d[i] * B[i] for i in d)
 
     class ElementMethods:
         # TODO: Define the appropriate element methods here (instead of in
@@ -1281,7 +1345,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 4
             """
             zero = self.parent().base_ring().zero()
-            return len([key for key, coeff in self.monomial_coefficients(copy=False).iteritems()
+            return len([key for key, coeff in six.iteritems(self.monomial_coefficients(copy=False))
                         if coeff != zero])
 
         def length(self):
@@ -1330,7 +1394,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 [[1], [1, 1, 1], [2, 1], [4]]
             """
             zero = self.parent().base_ring().zero()
-            return [key for key, coeff in self.monomial_coefficients(copy=False).iteritems()
+            return [key for key, coeff in six.iteritems(self.monomial_coefficients(copy=False))
                     if coeff != zero]
 
         def monomials(self):
@@ -1374,7 +1438,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             P = self.parent()
             zero = P.base_ring().zero()
             return [P.term(key, value)
-                    for key, value in self.monomial_coefficients(copy=False).iteritems()
+                    for key, value in six.iteritems(self.monomial_coefficients(copy=False))
                     if value != zero]
 
         def coefficients(self, sort=True):
@@ -1412,9 +1476,9 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             zero = self.parent().base_ring().zero()
             mc = self.monomial_coefficients(copy=False)
             if not sort:
-                return [value for key, value in mc.iteritems() if value != zero]
+                return [value for key, value in six.iteritems(mc) if value != zero]
 
-            v = sorted([(key, value) for key, value in mc.iteritems()
+            v = sorted([(key, value) for key, value in six.iteritems(mc)
                         if value != zero])
             return [value for key, value in v]
 
@@ -1957,7 +2021,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 This method simply delegates the work to
                 :meth:`ModulesWithBasis.ParentMethods.module_morphism`. It
                 is used by :meth:`Homset.__call__` to handle the
-                ``on_basis`` argument, and will disapear as soon as
+                ``on_basis`` argument, and will disappear as soon as
                 the logic will be generalized.
 
                 EXAMPLES::
@@ -2189,7 +2253,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                     sage: def f(a,b):
                     ....:     return sum(a.coefficients()) * sum(b.coefficients())
                     sage: type(f(A.zero(), B.zero()))
-                    <type 'int'>
+                    <... 'int'>
 
                 Which would be wrong and break this method::
 

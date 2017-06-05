@@ -216,6 +216,7 @@ We check that :trac:`17990` is fixed::
 #*****************************************************************************
 # python3
 from __future__ import division
+from six import integer_types
 
 from sys import maxsize
 from sage.rings.ring import Ring
@@ -233,7 +234,7 @@ class _uniq(object):
         """
         This ensures uniqueness of these objects.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: sage.rings.infinity.UnsignedInfinityRing_class() is sage.rings.infinity.UnsignedInfinityRing_class()
             True
@@ -297,7 +298,7 @@ class AnInfinity(object):
         else:
             return r"%minusInfinity"
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Convert ``self`` to a Pari object.
 
@@ -544,6 +545,25 @@ class AnInfinity(object):
         else:
             return abs(self)
 
+    def _sage_input_(self, sib, coerced):
+        """
+        Produce an expression which will reproduce this value when evaluated.
+
+        TESTS::
+
+            sage: sage_input(-oo)
+            -oo
+            sage: sage_input(oo)
+            oo
+            sage: sage_input(unsigned_infinity)
+            unsigned_infinity
+        """
+        if self._sign == 0:
+            return sib.name('unsigned_infinity')
+        elif self._sign > 0:
+            return sib.name('oo')
+        else:
+            return -sib.name('oo')
 
 class UnsignedInfinityRing_class(Singleton, Ring):
 
@@ -744,7 +764,7 @@ class UnsignedInfinityRing_class(Singleton, Ring):
             sage: UnsignedInfinityRing.has_coerce_map_from(SymmetricGroup(13))
             False
         """
-        return isinstance(R, Ring) or R in (int, long, float, complex)
+        return isinstance(R, Ring) or R in  integer_types + (float, complex)
 
 UnsignedInfinityRing = UnsignedInfinityRing_class()
 
@@ -907,7 +927,7 @@ class UnsignedInfinity(_uniq, AnInfinity, InfinityElement):
         """
         Converts ``unsigned_infinity`` to sympy ``zoo``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sympy
             sage: sympy.sympify(unsigned_infinity)
@@ -974,7 +994,7 @@ class InfinityRing_class(Singleton, Ring):
         """
         This isn't really a ring, let alone an integral domain.
 
-        TEST::
+        TESTS::
 
             sage: InfinityRing.fraction_field()
             Traceback (most recent call last):
@@ -1063,7 +1083,7 @@ class InfinityRing_class(Singleton, Ring):
         """
         Return a string representation of ``self``.
 
-        TEST::
+        TESTS::
 
             sage: InfinityRing._repr_()
             'The Infinity Ring'
@@ -1593,7 +1613,7 @@ class PlusInfinity(_uniq, AnInfinity, InfinityElement):
         Then you don't have to worry which ``oo`` you use, like in these
         examples:
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: import sympy
             sage: bool(oo == sympy.oo) # indirect doctest

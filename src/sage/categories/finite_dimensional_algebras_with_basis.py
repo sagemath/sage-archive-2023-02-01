@@ -641,7 +641,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             EXAMPLES:
 
             For a semisimple algebra, in particular for group algebras
-            in chararacteristic zero, the Cartan invariants matrix is
+            in characteristic zero, the Cartan invariants matrix is
             the identity::
 
                 sage: A3 = SymmetricGroup(3).algebra(QQ)

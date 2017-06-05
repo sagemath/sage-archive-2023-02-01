@@ -215,9 +215,9 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
             sage: from sage.rings.finite_rings.element_ext_pari import FiniteField_ext_pariElement
             sage: a = FiniteField_ext_pariElement(K,pari(0),value_from_pari=True)
-            sage: a._pari_().type()
+            sage: a.__pari__().type()
             't_INT'
-            sage: K(0)._pari_().type()
+            sage: K(0).__pari__().type()
             't_POLMOD'
         """
         element.FieldElement.__init__(self, parent)
@@ -358,7 +358,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
         """
         return FiniteField_ext_pariElement(self.parent(), self.__value, value_from_pari=True)
 
-    def _pari_(self, var=None):
+    def __pari__(self, var=None):
         """
         Return PARI object corresponding to this finite field element.
 
@@ -366,7 +366,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
             sage: k.<a> = FiniteField(3**3, 'a', impl='pari_mod')
             sage: b = a**2 + 2*a + 1
-            sage: b._pari_()
+            sage: b.__pari__()
             Mod(Mod(1, 3)*a^2 + Mod(2, 3)*a + Mod(1, 3), Mod(1, 3)*a^3 + Mod(2, 3)*a + Mod(1, 3))
 
         Looking at the PARI representation of a finite field element, it's

@@ -100,6 +100,7 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from six import itervalues
+from six.moves import range
 
 from itertools import combinations
 import sage.matrix.matrix_space as matrix_space
@@ -727,7 +728,7 @@ def Matroid(*args, **kwds):
                 kwds['groundset'] = [(i, j) for i, j, k in G.edge_iterator()]
             else:
                 # 3. Use numbers
-                kwds['groundset'] = range(m)
+                kwds['groundset'] = list(range(m))
         M = RegularMatroid(matrix=A, groundset=kwds['groundset'])
         want_regular = False  # Save some time, since result is already regular
 
@@ -768,13 +769,13 @@ def Matroid(*args, **kwds):
                     if len(kwds['groundset']) != A.ncols():
                         raise ValueError("groundset size does not correspond to matrix size.")
             else:
-                kwds['groundset'] = range(A.ncols())
+                kwds['groundset'] = list(range(A.ncols()))
         if 'reduced_matrix' in kwds:
             if 'groundset' in kwds:
                 if len(kwds['groundset']) != A.nrows() + A.ncols():
                     raise ValueError("groundset size does not correspond to matrix size.")
             else:
-                kwds['groundset'] = range(A.nrows() + A.ncols())
+                kwds['groundset'] = list(range(A.nrows() + A.ncols()))
         if 'matrix' in kwds:
             if base_ring == GF(2):
                 M = BinaryMatroid(groundset=kwds['groundset'], matrix=A)

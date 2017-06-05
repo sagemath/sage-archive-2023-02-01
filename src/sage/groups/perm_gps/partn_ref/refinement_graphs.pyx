@@ -13,17 +13,22 @@ REFERENCE:
 """
 
 #*****************************************************************************
-#      Copyright (C) 2006 - 2011 Robert L. Miller <rlmillster@gmail.com>
+#       Copyright (C) 2006 - 2011 Robert L. Miller <rlmillster@gmail.com>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from __future__ import print_function
 
 from sage.misc.decorators import rename_keyword
 
-include 'data_structures_pyx.pxi' # includes bitsets
-
+from .data_structures cimport *
+include "sage/data_structures/bitset.pxi"
+from sage.rings.integer cimport Integer
 from sage.graphs.base.sparse_graph cimport SparseGraph
 from sage.graphs.base.dense_graph cimport DenseGraph
 from .double_coset cimport double_coset
@@ -76,10 +81,10 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
     for G_in in [G1, G2]:
         if which_G == 1:
             GS = GS1
-            first=True
+            first = True
         else:
             GS = GS2
-            first=False
+            first = False
         if isinstance(G_in, GenericGraph):
             if G_in.has_loops():
                 loops = 1
@@ -87,7 +92,7 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
                 n = G_in.num_verts()
             elif n != G_in.num_verts():
                 return False
-            if G_in.vertices() != range(n):
+            if G_in.vertices() != list(xrange(n)):
                 G_in = copy(G_in)
                 to = G_in.relabel(return_map=True)
                 frm = {}
@@ -98,7 +103,7 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
             else:
                 if first:
                     partition = partn
-                to = range(n)
+                to = list(xrange(n))
                 frm = to
             if sparse:
                 G = SparseGraph(n)
@@ -378,7 +383,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificat
     if isinstance(G_in, GenericGraph):
         loops = G_in.has_loops()
         n = G_in.num_verts()
-        if G_in.vertices() != range(n):
+        if G_in.vertices() != list(xrange(n)):
             G_in = copy(G_in)
             to = G_in.relabel(return_map=True)
             frm = {}
@@ -738,7 +743,7 @@ def all_labeled_graphs(n):
     classifying isomorphism types (naive approach), and more importantly
     in benchmarking the search algorithm.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import all_labeled_graphs
         sage: st = sage.groups.perm_gps.partn_ref.refinement_graphs.search_tree
@@ -835,7 +840,7 @@ def random_tests(num=10, n_max=60, perms_per_graph=5):
                 print(H.graph6_string())
                 print(perm)
                 return
-            isom = isomorphic(G, H, [range(n)], range(n), 0, 1)
+            isom = isomorphic(G, H, [list(xrange(n))], list(xrange(n)), 0, 1)
             if not isom or G.relabel(isom, inplace=False) != H:
                 print("isom FAILURE: graph6-")
                 print(H.graph6_string())
@@ -860,7 +865,7 @@ def random_tests(num=10, n_max=60, perms_per_graph=5):
                 print(E.dig6_string())
                 print(perm)
                 return
-            isom = isomorphic(D, E, [range(n)], range(n), 1, 1)
+            isom = isomorphic(D, E, [list(xrange(n))], list(xrange(n)), 1, 1)
             if not isom or D.relabel(isom, inplace=False) != E:
                 print("isom FAILURE: dig6-")
                 print(E.dig6_string())
@@ -912,7 +917,7 @@ def orbit_partition(gamma, list_perm=False):
                 seen[i] = 1
             else:
                 for j in range(n):
-                    if seen[j]==0:
+                    if seen[j] == 0:
                         i = j
                         break
                 partition.append([i])
@@ -1249,7 +1254,7 @@ cdef iterator *allocate_dg_edge_gen(int degree, int depth, bint loops):
             deallocate_cgd(cgd)
             return NULL
     dg_edge_gen.data = <void *> cgd
-    dg_edge_gen.next = &canonical_generator_next
+    dg_edge_gen.next = canonical_generator_next
     return dg_edge_gen
 
 cdef void free_dg_edge_gen(iterator *dg_edge_gen):
@@ -1332,15 +1337,15 @@ def generate_dense_graphs_edge_addition(int n, bint loops, G = None, depth = Non
                 DG.add_arc(v,u)
 
     graph_iterator = setup_canonical_generator(n,
-        &all_children_are_equivalent,
-        &refine_by_degree,
-        &compare_graphs,
-        &gen_children_dg_edge,
-        &apply_dg_edge_aug,
-        &free_dg_edge,
-        &deallocate_degd,
-        &free_subset,
-        &canonical_dg_edge_parent,
+        all_children_are_equivalent,
+        refine_by_degree,
+        compare_graphs,
+        gen_children_dg_edge,
+        apply_dg_edge_aug,
+        free_dg_edge,
+        deallocate_degd,
+        free_subset,
+        canonical_dg_edge_parent,
         depth, 0, graph_iterator)
 
     start_canonical_generator(NULL, <void *> GS, n, graph_iterator)
@@ -1520,7 +1525,7 @@ cdef iterator *allocate_dg_vert_gen(int degree, int depth):
             deallocate_cgd(cgd)
             return NULL
     dg_vert_gen.data = <void *> cgd
-    dg_vert_gen.next = &canonical_generator_next
+    dg_vert_gen.next = canonical_generator_next
     return dg_vert_gen
 
 cdef void free_dg_vert_gen(iterator *dg_vert_gen):
@@ -1560,7 +1565,7 @@ def generate_dense_graphs_vert_addition(int n, base_G = None, bint construct = F
         sage: generate_dense_graphs_vert_addition(8) # long time
         13599
 
-    TEST::
+    TESTS::
 
         sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import generate_dense_graphs_vert_addition
         sage: generate_dense_graphs_vert_addition(10, base_G=Graph('HEhf^rs'))
@@ -1604,15 +1609,15 @@ def generate_dense_graphs_vert_addition(int n, base_G = None, bint construct = F
             DG.add_arc(v,u)
 
     graph_iterator = setup_canonical_generator(start_deg,
-        &all_children_are_equivalent,
-        &refine_by_degree,
-        &compare_graphs,
-        &gen_children_dg_vert,
-        &apply_dg_vert_aug,
-        &free_dg_vert,
-        &free_cgd_2,
+        all_children_are_equivalent,
+        refine_by_degree,
+        compare_graphs,
+        gen_children_dg_vert,
+        apply_dg_vert_aug,
+        free_dg_vert,
+        free_cgd_2,
         free_subset,
-        &canonical_dg_vert_parent,
+        canonical_dg_vert_parent,
         n+1-start_deg, 0, graph_iterator)
 
     start_canonical_generator(NULL, <void *> GS, DG.num_verts, graph_iterator)

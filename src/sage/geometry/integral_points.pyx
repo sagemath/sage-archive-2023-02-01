@@ -1,4 +1,3 @@
-#!python
 #cython: wraparound=False, boundscheck=False
 r"""
 Cython helper methods to compute integral points in polyhedra.
@@ -15,7 +14,7 @@ Cython helper methods to compute integral points in polyhedra.
 #*****************************************************************************
 from __future__ import print_function
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_check
 import copy
 import itertools
 
@@ -555,8 +554,8 @@ cpdef rectangular_box_points(list box_min, list box_max,
     cdef list diameter_index = [x[1] for x in diameter]
 
     # Construct the inverse permutation
-    cdef list orig_perm = range(len(diameter_index))
-    for i,j in enumerate(diameter_index):
+    cdef list orig_perm = list(xrange(len(diameter_index)))
+    for i, j in enumerate(diameter_index):
         orig_perm[j] = i
 
     box_min = perm_action(diameter_index, box_min)
@@ -886,6 +885,16 @@ cdef class Inequality_int:
         Traceback (most recent call last):
         ...
         OverflowError: ...
+
+    TESTS:
+
+    Check that :trac:`21993` is fixed::
+
+        sage: Inequality_int([18560500, -89466500], 108027, [178933, 37121])
+        Traceback (most recent call last):
+        ...
+        OverflowError: ...
+
     """
     cdef int A[INEQ_INT_MAX_DIM]
     cdef int b
@@ -928,8 +937,8 @@ cdef class Inequality_int:
         if self.dim > 0:
             self.coeff_next = self.A[1]
         # finally, make sure that there cannot be any overflow during the enumeration
-        self._to_int(ZZ(b) + sum( ZZ(A[i]) * ZZ(max_abs_coordinates[i])
-                                  for i in range(self.dim) ))
+        self._to_int(abs(ZZ(b)) + sum( abs(ZZ(A[i])) * ZZ(max_abs_coordinates[i])
+                                       for i in range(self.dim) ))
 
     def __repr__(self):
         """

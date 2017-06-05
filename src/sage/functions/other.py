@@ -3,19 +3,19 @@ Other functions
 """
 from __future__ import print_function
 from six.moves import range
+from six import integer_types
 
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import Expression
 from sage.libs.pynac.pynac import (register_symbol, symbol_table,
         py_factorial_py, I)
 from sage.symbolic.all import SR
-from sage.rings.all import Integer, Rational, RealField, RR, ZZ, ComplexField
+from sage.rings.all import Integer, Rational, RealField, ZZ, ComplexField
 from sage.rings.complex_number import is_ComplexNumber
 from sage.misc.latex import latex
 import math
 
-import sage.structure.element
-coercion_model = sage.structure.element.get_coercion_model()
+from sage.structure.element import coercion_model
 
 # avoid name conflicts with `parent` as a function parameter
 from sage.structure.all import parent as s_parent
@@ -25,233 +25,9 @@ from sage.functions.log import exp
 from sage.functions.trig import arctan2
 from sage.functions.exp_integral import Ei
 from sage.libs.mpmath import utils as mpmath_utils
+from sage.arith.all import binomial as arith_binomial
 
 one_half = ~SR(2)
-
-class Function_erf(BuiltinFunction):
-    r"""
-    The error function, defined for real values as
-
-    `\text{erf}(x) = \frac{2}{\sqrt{\pi}} \int_0^x e^{-t^2} dt`.
-
-    This function is also defined for complex values, via analytic
-    continuation.
-
-
-    EXAMPLES:
-
-    We can evaluate numerically::
-
-        sage: erf(2)
-        erf(2)
-        sage: erf(2).n()
-        0.995322265018953
-        sage: erf(2).n(100)
-        0.99532226501895273416206925637
-        sage: erf(ComplexField(100)(2+3j))
-        -20.829461427614568389103088452 + 8.6873182714701631444280787545*I
-
-    Basic symbolic properties are handled by Sage and Maxima::
-
-        sage: x = var("x")
-        sage: diff(erf(x),x)
-        2*e^(-x^2)/sqrt(pi)
-        sage: integrate(erf(x),x)
-        x*erf(x) + e^(-x^2)/sqrt(pi)
-
-    ALGORITHM:
-
-    Sage implements numerical evaluation of the error function via the
-    ``erf()`` function from mpmath. Symbolics are handled by Sage and Maxima.
-
-    REFERENCES:
-
-    - http://en.wikipedia.org/wiki/Error_function
-    - http://mpmath.googlecode.com/svn/trunk/doc/build/functions/expintegrals.html#error-functions
-
-    TESTS:
-
-    Check limits::
-
-        sage: limit(erf(x),x=0)
-        0
-        sage: limit(erf(x),x=infinity)
-        1
-
-     Check that it's odd::
-
-         sage: erf(1.0)
-         0.842700792949715
-         sage: erf(-1.0)
-         -0.842700792949715
-
-    Check against other implementations and against the definition::
-
-        sage: erf(3).n()
-        0.999977909503001
-        sage: maxima.erf(3).n()
-        0.999977909503001
-        sage: (1-pari(3).erfc())
-        0.999977909503001
-        sage: RR(3).erf()
-        0.999977909503001
-        sage: (integrate(exp(-x**2),(x,0,3))*2/sqrt(pi)).n()
-        0.999977909503001
-
-    :trac:`9044`::
-
-        sage: N(erf(sqrt(2)),200)
-        0.95449973610364158559943472566693312505644755259664313203267
-
-    :trac:`11626`::
-
-        sage: n(erf(2),100)
-        0.99532226501895273416206925637
-        sage: erf(2).n(100)
-        0.99532226501895273416206925637
-
-    Test (indirectly) :trac:`11885`::
-
-        sage: erf(float(0.5))
-        0.5204998778130465
-        sage: erf(complex(0.5))
-        (0.5204998778130465+0j)
-
-    Ensure conversion from maxima elements works::
-
-        sage: merf = maxima(erf(x)).sage().operator()
-        sage: merf == erf
-        True
-
-    Make sure we can dump and load it::
-
-        sage: loads(dumps(erf(2)))
-        erf(2)
-
-    Special-case 0 for immediate evaluation::
-
-        sage: erf(0)
-        0
-        sage: solve(erf(x)==0,x)
-        [x == 0]
-
-    Make sure that we can hold::
-
-        sage: erf(0,hold=True)
-        erf(0)
-        sage: simplify(erf(0,hold=True))
-        0
-
-    Check that high-precision ComplexField inputs work::
-
-        sage: CC(erf(ComplexField(1000)(2+3j)))
-        -20.8294614276146 + 8.68731827147016*I
-    """
-
-    def __init__(self):
-        r"""
-        See docstring for :meth:`Function_erf`.
-
-        EXAMPLES::
-
-            sage: maxima(erf(2))
-            erf(2)
-            sage: erf(2)._sympy_()
-            erf(2)
-        """
-        BuiltinFunction.__init__(self, "erf", latex_name=r"\text{erf}",
-                                 conversions=dict(maxima='erf',
-                                                  sympy='erf',
-                                                  fricas='erf'))
-
-    def _eval_(self, x):
-        """
-        EXAMPLES:
-
-        Input is not an expression but is exact::
-
-            sage: erf(0)
-            0
-            sage: erf(1)
-            erf(1)
-
-        Input is not an expression and is not exact::
-
-            sage: erf(0.0)
-            0.000000000000000
-
-        Input is an expression but not a trivial zero::
-
-            sage: erf(x)
-            erf(x)
-
-        Input is an expression which is trivially zero::
-
-            sage: erf(SR(0))
-            0
-        """
-        if isinstance(x, Expression):
-            if x.is_trivial_zero():
-                return x
-        elif not x:
-            return x
-
-    def _evalf_(self, x, parent=None, algorithm=None):
-        """
-        EXAMPLES::
-
-            sage: erf(2).n()
-            0.995322265018953
-            sage: erf(2).n(200)
-            0.99532226501895273416206925636725292861089179704006007673835
-            sage: erf(pi - 1/2*I).n(100)
-            1.0000111669099367825726058952 + 1.6332655417638522934072124547e-6*I
-
-        TESTS:
-
-        Check that PARI/GP through the GP interface gives the same answer::
-
-            sage: gp.set_real_precision(59)  # random
-            38
-            sage: print(gp.eval("1 - erfc(1)")); print(erf(1).n(200));
-            0.84270079294971486934122063508260925929606699796630290845994
-            0.84270079294971486934122063508260925929606699796630290845994
-
-        Check that for an imaginary input, the output is also imaginary, see
-        :trac:`13193`::
-
-            sage: erf(3.0*I)
-            1629.99462260157*I
-            sage: erf(33.0*I)
-            1.51286977510409e471*I
-        """
-        R = parent or s_parent(x)
-        import mpmath
-        return mpmath_utils.call(mpmath.erf, x, parent=R)
-
-    def _derivative_(self, x, diff_param=None):
-        """
-        Derivative of erf function
-
-        EXAMPLES::
-
-            sage: erf(x).diff(x)
-            2*e^(-x^2)/sqrt(pi)
-
-        TESTS:
-
-        Check if :trac:`8568` is fixed::
-
-            sage: var('c,x')
-            (c, x)
-            sage: derivative(erf(c*x),x)
-            2*c*e^(-c^2*x^2)/sqrt(pi)
-            sage: erf(c*x).diff(x)._maxima_init_()
-            '((%pi)^(-1/2))*(_SAGE_VAR_c)*(exp(((_SAGE_VAR_c)^(2))*((_SAGE_VAR_x)^(2))*(-1)))*(2)'
-        """
-        return 2*exp(-x**2)/sqrt(pi)
-
-erf = Function_erf()
 
 class Function_abs(GinacFunction):
     def __init__(self):
@@ -330,7 +106,8 @@ class Function_abs(GinacFunction):
             (pi + e)*abs(x)
         """
         GinacFunction.__init__(self, "abs", latex_name=r"\mathrm{abs}",
-                               conversions=dict(sympy='Abs'))
+                               conversions=dict(sympy='Abs',
+                                                mathematica='Abs'))
 
 abs = abs_symbolic = Function_abs()
 
@@ -452,7 +229,7 @@ class Function_ceil(BuiltinFunction):
         try:
             return x.ceil()
         except AttributeError:
-            if isinstance(x, (int, long)):
+            if isinstance(x, integer_types):
                 return Integer(x)
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.ceil(x)))
@@ -496,7 +273,7 @@ class Function_ceil(BuiltinFunction):
         try:
             return x.ceil()
         except AttributeError:
-            if isinstance(x, (int, long)):
+            if isinstance(x, integer_types):
                 return Integer(x)
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.ceil(x)))
@@ -608,7 +385,7 @@ class Function_floor(BuiltinFunction):
         try:
             return x.floor()
         except AttributeError:
-            if isinstance(x, (int, long)):
+            if isinstance(x, integer_types):
                 return Integer(x)
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.floor(x)))
@@ -650,7 +427,7 @@ class Function_floor(BuiltinFunction):
         try:
             return x.floor()
         except AttributeError:
-            if isinstance(x, (int, long)):
+            if isinstance(x, integer_types):
                 return Integer(x)
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.floor(x)))
@@ -752,11 +529,11 @@ class Function_frac(BuiltinFunction):
         try:
             return x - x.floor()
         except AttributeError:
-            if isinstance(x, (int, long)):
+            if isinstance(x, integer_types):
                 return Integer(0)
             elif isinstance(x, (float, complex)):
                 return x - Integer(int(math.floor(x)))
-            elif isinstance(x, sage.symbolic.expression.Expression):
+            elif isinstance(x, Expression):
                 ret = floor(x)
                 if not hasattr(ret, "operator") or not ret.operator() == floor:
                     return x - ret
@@ -1106,6 +883,7 @@ class Function_gamma_inc(BuiltinFunction):
         if x == 0:
             return -Ei(-y)
         if x == Rational(1)/2: #only for x>0
+            from sage.functions.error import erf
             return sqrt(pi)*(1-erf(sqrt(y)))
         return None
 
@@ -1148,7 +926,7 @@ class Function_gamma_inc(BuiltinFunction):
             sage: r = gamma_inc(float(0), float(1)); r
             0.21938393439552029
             sage: type(r)
-            <type 'float'>
+            <... 'float'>
         """
         R = parent or s_parent(x)
         # C is the complex version of R
@@ -1943,7 +1721,7 @@ class Function_binomial(GinacFunction):
             sage: binomial._evalf_(5.r, 3)
             10.0
             sage: type(binomial._evalf_(5.r, 3))
-            <type 'float'>
+            <... 'float'>
             sage: binomial._evalf_(1/2,1/1)
             1/2
             sage: binomial._evalf_(10^20+1/1,10^20)
@@ -1953,7 +1731,7 @@ class Function_binomial(GinacFunction):
             sage: binomial._evalf_(3/2,SR(1/1))
             3/2
         """
-        return sage.arith.all.binomial(n, k)
+        return arith_binomial(n, k)
 
 binomial = Function_binomial()
 
@@ -2181,7 +1959,7 @@ def sqrt(x, *args, **kwds):
             ...
             TypeError: _do_sqrt() got an unexpected keyword argument 'hold'
 
-        This illustrates that the bug reported in #6171 has been fixed::
+        This illustrates that the bug reported in :trac:`6171` has been fixed::
 
             sage: a = 1.1
             sage: a.sqrt(prec=100)  # this is supposed to fail
@@ -2437,7 +2215,7 @@ class Function_real_part(GinacFunction):
         TESTS::
 
             sage: type(real(complex(3, 4)))
-            <type 'float'>
+            <... 'float'>
         """
         if isinstance(x, complex):
             return x.real
@@ -2496,7 +2274,7 @@ class Function_imag_part(GinacFunction):
         TESTS::
 
             sage: type(imag(complex(3, 4)))
-            <type 'float'>
+            <... 'float'>
         """
         if isinstance(x, complex):
             return x.imag
@@ -2592,8 +2370,10 @@ class Function_sum(BuiltinFunction):
     EXAMPLES::
 
         sage: from sage.functions.other import symbolic_sum as ssum
-        sage: ssum(x, x, 1, 10)
+        sage: r = ssum(x, x, 1, 10); r
         sum(x, x, 1, 10)
+        sage: r.unhold()
+        55
     """
     def __init__(self):
         """
@@ -2606,4 +2386,163 @@ class Function_sum(BuiltinFunction):
         BuiltinFunction.__init__(self, "sum", nargs=4,
                                conversions=dict(maxima='sum'))
 
+    def _print_latex_(self, x, var, a, b):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.functions.other import symbolic_sum as ssum
+            sage: latex(ssum(x^2, x, 1, 10))
+            {\sum_{x=1}^{10} x^2}
+        """
+        return r"{{\sum_{{{}={}}}^{{{}}} {}}}".format(var, a, b, x)
+
 symbolic_sum = Function_sum()
+
+
+class Function_prod(BuiltinFunction):
+    """
+    Placeholder symbolic product function that is only accessible internally.
+
+    EXAMPLES::
+
+        sage: from sage.functions.other import symbolic_product as sprod
+        sage: r = sprod(x, x, 1, 10); r
+        product(x, x, 1, 10)
+        sage: r.unhold()
+        3628800
+    """
+    def __init__(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.functions.other import symbolic_product as sprod
+            sage: _ = var('m n', domain='integer')
+            sage: r = maxima(sprod(sin(m), m, 1, n)).sage(); r
+            product(sin(m), m, 1, n)
+            sage: isinstance(r.operator(), sage.functions.other.Function_prod)
+            True
+            sage: r = sympy(sprod(sin(m), m, 1, n)).sage(); r # known bug
+            product(sin(m), m, 1, n)
+            sage: isinstance(r.operator(),
+            ....:     sage.functions.other.Function_prod) # known bug
+            True
+            sage: giac(sprod(m, m, 1, n))
+            n!
+        """
+        BuiltinFunction.__init__(self, "product", nargs=4,
+                               conversions=dict(maxima='product',
+                                   sympy='Product', giac='product'))
+
+    def _print_latex_(self, x, var, a, b):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.functions.other import symbolic_product as sprod
+            sage: latex(sprod(x^2, x, 1, 10))
+            {\prod_{x=1}^{10} x^2}
+        """
+        return r"{{\prod_{{{}={}}}^{{{}}} {}}}".format(var, a, b, x)
+
+symbolic_product = Function_prod()
+
+
+class Function_limit(BuiltinFunction):
+    """
+    Placeholder symbolic limit function that is only accessible internally.
+
+    This function is called to create formal wrappers of limits that
+    Maxima can't compute::
+
+        sage: a = lim(exp(x^2)*(1-erf(x)), x=infinity); a
+        -limit((erf(x) - 1)*e^(x^2), x, +Infinity)
+
+    EXAMPLES::
+
+        sage: from sage.functions.other import symbolic_limit as slimit
+        sage: slimit(1/x, x, +oo)
+        limit(1/x, x, +Infinity)
+        sage: var('minus,plus')
+        (minus, plus)
+        sage: slimit(1/x, x, +oo)
+        limit(1/x, x, +Infinity)
+        sage: slimit(1/x, x, 0, plus)
+        limit(1/x, x, 0, plus)
+        sage: slimit(1/x, x, 0, minus)
+        limit(1/x, x, 0, minus)
+    """
+    def __init__(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.functions.other import symbolic_limit as slimit
+            sage: maxima(slimit(1/x, x, +oo))
+            0
+        """
+        BuiltinFunction.__init__(self, "limit", nargs=0,
+                               conversions=dict(maxima='limit'))
+
+    def _latex_(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.functions.other import symbolic_limit as slimit
+            sage: latex(slimit)
+            \lim
+        """
+        return r'\lim'
+
+    def _print_latex_(self, ex, var, to, direction=''):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.functions.other import symbolic_limit as slimit
+            sage: var('x,a')
+            (x, a)
+            sage: f = function('f')
+            sage: latex(slimit(f(x), x, a))
+            \lim_{x \to a}\, f\left(x\right)
+            sage: latex(limit(f(x), x=oo))
+            \lim_{x \to +\infty}\, f\left(x\right)
+
+        TESTS:
+
+        When one-sided limits are converted back from maxima, the direction
+        argument becomes a symbolic variable. We check if typesetting these works::
+
+            sage: from sage.functions.other import symbolic_limit as slimit
+            sage: var('minus,plus')
+            (minus, plus)
+            sage: latex(slimit(f(x), x, a, minus))
+            \lim_{x \to a^-}\, f\left(x\right)
+            sage: latex(slimit(f(x), x, a, plus))
+            \lim_{x \to a^+}\, f\left(x\right)
+            sage: latex(limit(f(x),x=a,dir='+'))
+            \lim_{x \to a^+}\, f\left(x\right)
+            sage: latex(limit(f(x),x=a,dir='right'))
+            \lim_{x \to a^+}\, f\left(x\right)
+            sage: latex(limit(f(x),x=a,dir='-'))
+            \lim_{x \to a^-}\, f\left(x\right)
+            sage: latex(limit(f(x),x=a,dir='left'))
+            \lim_{x \to a^-}\, f\left(x\right)
+
+        Check if :trac:`13181` is fixed::
+
+            sage: t = var('t')
+            sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x,dir='-'))
+            \lim_{t \to x^-}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
+            sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x,dir='+'))
+            \lim_{t \to x^+}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
+            sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x))
+            \lim_{t \to x}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
+        """
+        if repr(direction) == 'minus':
+            dir_str = '^-'
+        elif repr(direction) == 'plus':
+            dir_str = '^+'
+        else:
+            dir_str = ''
+        return r"\lim_{{{} \to {}{}}}\, {}".format(latex(var),
+                latex(to), dir_str, latex(ex))
+
+symbolic_limit = Function_limit()
+

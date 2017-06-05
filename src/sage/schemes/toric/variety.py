@@ -177,10 +177,10 @@ quotient singularities::
     True
     sage: TV = ToricVariety(NormalFan(diamond))
     sage: TV.fan().rays()
-    N(-1,  1),
     N( 1,  1),
+    N( 1, -1),
     N(-1, -1),
-    N( 1, -1)
+    N(-1,  1)
     in 2-d lattice N
     sage: TV.is_orbifold()
     True
@@ -191,14 +191,14 @@ In higher dimensions worse things can happen::
 
     sage: TV3 = ToricVariety(NormalFan(lattice_polytope.cross_polytope(3)))
     sage: TV3.fan().rays()
-    N(-1, -1,  1),
-    N( 1, -1,  1),
-    N(-1,  1,  1),
-    N( 1,  1,  1),
-    N(-1, -1, -1),
     N( 1, -1, -1),
+    N( 1,  1, -1),
+    N( 1,  1,  1),
+    N( 1, -1,  1),
+    N(-1, -1,  1),
+    N(-1, -1, -1),
     N(-1,  1, -1),
-    N( 1,  1, -1)
+    N(-1,  1,  1)
     in 3-d lattice N
     sage: TV3.is_orbifold()
     False
@@ -261,9 +261,9 @@ Every cone defines a torus orbit closure, and hence a (co)homology class::
 
     sage: HH.gens()
     ([3*z4], [3*z4], [z4], [z4], [z4])
-    sage: map(HH, P4_11133.fan(1))
+    sage: list(map(HH, P4_11133.fan(1)))
     [[3*z4], [3*z4], [z4], [z4], [z4]]
-    sage: map(HH, P4_11133.fan(4) )
+    sage: list(map(HH, P4_11133.fan(4)))
     [[9*z4^4], [9*z4^4], [9*z4^4], [9*z4^4], [9*z4^4]]
     sage: HH(cone)
     [3*z4^3]
@@ -283,9 +283,9 @@ Although computationally less efficient, we can do the same
 computations with the rational Chow group::
 
     sage: AA = P4_11133.Chow_group(QQ)
-    sage: map(AA, P4_11133.fan(1))  # long time (5s on sage.math, 2012)
+    sage: list(map(AA, P4_11133.fan(1)))  # long time (5s on sage.math, 2012)
     [( 0 | 0 | 0 | 3 | 0 ), ( 0 | 0 | 0 | 3 | 0 ), ( 0 | 0 | 0 | 1 | 0 ), ( 0 | 0 | 0 | 1 | 0 ), ( 0 | 0 | 0 | 1 | 0 )]
-    sage: map(AA, P4_11133.fan(4))  # long time (5s on sage.math, 2012)
+    sage: list(map(AA, P4_11133.fan(4)))  # long time (5s on sage.math, 2012)
     [( 1 | 0 | 0 | 0 | 0 ), ( 1 | 0 | 0 | 0 | 0 ), ( 1 | 0 | 0 | 0 | 0 ), ( 1 | 0 | 0 | 0 | 0 ), ( 1 | 0 | 0 | 0 | 0 )]
     sage: AA(cone).intersection_with_divisor(D)  # long time (4s on sage.math, 2013)
     ( 1 | 0 | 0 | 0 | 0 )
@@ -323,6 +323,7 @@ implementing them on your own as a patch for inclusion!
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
+from six.moves import range
 
 import sys
 
@@ -613,7 +614,7 @@ class ToricVariety_field(AmbientSpace):
             0
             sage: P1xP1 is P1xP1b
             False
-            sage: cmp(P1xP1, 1) * cmp(1, P1xP1)
+            sage: cmp(P1xP1, ZZ) * cmp(ZZ, P1xP1)
             -1
         """
         c = cmp(type(self), type(right))
@@ -642,7 +643,7 @@ class ToricVariety_field(AmbientSpace):
             sage: P1xP1._an_element_()
             [1 : 2 : 3 : 4]
         """
-        return self(range(1, self.ngens() + 1))
+        return self(list(range(1, self.ngens() + 1)))
 
     def _check_satisfies_equations(self, coordinates):
         r"""
@@ -970,15 +971,15 @@ class ToricVariety_field(AmbientSpace):
             Scheme morphism:
               From: 2-d affine toric variety
               To:   2-d toric variety covered by 4 affine patches
-              Defn: Defined on coordinates by sending [x : t] to
-                    [x : 1 : 1 : t]
+              Defn: Defined on coordinates by sending [y : t] to
+                    [1 : 1 : y : t]
             sage: patch1 = P1xP1.affine_patch(1)
             sage: patch1.embedding_morphism()
             Scheme morphism:
               From: 2-d affine toric variety
               To:   2-d toric variety covered by 4 affine patches
-              Defn: Defined on coordinates by sending [y : t] to
-                    [1 : 1 : y : t]
+              Defn: Defined on coordinates by sending [s : y] to
+                    [1 : s : y : 1]
             sage: patch1 is P1xP1.affine_patch(1)
             True
         """
@@ -1118,8 +1119,8 @@ class ToricVariety_field(AmbientSpace):
             Scheme morphism:
               From: 2-d affine toric variety
               To:   2-d toric variety covered by 4 affine patches
-              Defn: Defined on coordinates by sending [x : t] to
-                    [x : 1 : 1 : t]
+              Defn: Defined on coordinates by sending [y : t] to
+                    [1 : 1 : y : t]
         """
         try:
             return self._embedding_morphism
@@ -1757,7 +1758,7 @@ class ToricVariety_field(AmbientSpace):
         if coordinate_names is None:
             coordinate_names = list(self.variable_names())
             if coordinate_indices is None:
-                coordinate_indices = range(fan.nrays(), rfan.nrays())
+                coordinate_indices = list(range(fan.nrays(), rfan.nrays()))
             else:
                 coordinate_indices = coordinate_indices[fan.nrays():]
             coordinate_names.extend(normalize_names(
@@ -2022,7 +2023,7 @@ class ToricVariety_field(AmbientSpace):
 
         A :class:`CohomologyClass`. If it exists, it is the class of
         the (properly normalized) volume form, that is, it is the
-        Poincare dual of a single point. If it does not exist, a
+        Poincaré dual of a single point. If it does not exist, a
         ``ValueError`` is raised.
 
         EXAMPLES::
@@ -2810,7 +2811,7 @@ class ToricVariety_field(AmbientSpace):
             :arxiv:`1110.4275`,
             :doi:`10.1007/s13366-011-0084-0`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P2 = toric_varieties.P2()
             sage: P2.Demazure_roots()
@@ -3037,7 +3038,7 @@ def normalize_names(names=None, ngens=None, prefix=None, indices=None,
             raise IndexError("need %d names but only %d are given!"
                              % (ngens, len(names)))
         if indices is None:
-            indices = range(ngens)
+            indices = list(range(ngens))
         elif len(indices) != ngens:
             raise ValueError("need exactly %d indices, but got %d!"
                              % (ngens, len(indices)))
@@ -3516,6 +3517,6 @@ class CohomologyClass(QuotientRingElement):
         if not self.part_of_degree(0).is_zero():
             raise ValueError('Must not have a constant part.')
         exp_x = self.parent().one()
-        for d in range(1,self.parent()._variety.dimension()+1):
+        for d in range(1, self.parent()._variety.dimension()+1):
             exp_x += self**d / factorial(d)
         return exp_x

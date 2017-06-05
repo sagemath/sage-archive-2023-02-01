@@ -82,7 +82,7 @@ However, you cannot "mix wrong lattices" in your expressions::
     sage: n + m
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '+':
+    TypeError: unsupported operand parent(s) for +:
     '3-d lattice N' and '3-d lattice M'
     sage: n * n
     Traceback (most recent call last):
@@ -918,8 +918,6 @@ class ToricLattice_ambient(ToricLattice_generic, FreeModule_ambient_pid):
             sage: cmp(N3, N4)
             -1
             sage: cmp(N3, M3)
-            1
-            sage: abs( cmp(N3, 3) )
             1
             sage: cmp(N3, ToricLattice(3))
             0

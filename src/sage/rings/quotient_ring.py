@@ -730,7 +730,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
 
         The image of the given element in ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y> = PolynomialRing(QQ, 2)
             sage: S = R.quotient(x^2 + y^2)
@@ -935,7 +935,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
         if not isinstance(self.__R, MPolynomialRing_libsingular) and \
                (not hasattr(self.__R, '_has_singular') or not self.__R._has_singular):
             # pass through
-            return ring.CommutativeRing.ideal(self, gens, **kwds)
+            return super(QuotientRing_nc, self).ideal(gens, **kwds)
         if is_SingularElement(gens):
             gens = list(gens)
             coerce = True
@@ -1174,7 +1174,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             sage: S = R.quotient_ring(x^2+y^2)
             sage: S._singular_()
             polynomial ring, over a field, global ordering
-            //   characteristic : 0
+            //   coefficients: QQ
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y
@@ -1257,7 +1257,7 @@ class QuotientRing_generic(QuotientRing_nc, ring.CommutativeRing):
     r"""
     Creates a quotient ring of a *commutative* ring `R` by the ideal `I`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: R.<x> = PolynomialRing(ZZ)
         sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])

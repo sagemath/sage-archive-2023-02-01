@@ -187,15 +187,16 @@ The top of each Sage code file should follow this format::
 
     <Paragraph description>
 
+    EXAMPLES::
+
+    <Lots and lots of examples>
+
     AUTHORS:
 
     - YOUR NAME (2005-01-03): initial version
 
     - person (date in ISO year-month-day format): short desc
 
-    EXAMPLES::
-
-    <Lots and lots of examples>
     """
 
     #*****************************************************************************
@@ -208,12 +209,14 @@ The top of each Sage code file should follow this format::
     #                  http://www.gnu.org/licenses/
     #*****************************************************************************
 
-As an example, see ``SAGE_ROOT/src/sage/rings/integer.pyx`` which
-contains the implementation for `\ZZ`. The ``AUTHORS:`` section is
-redundant, the authoritative log for who wrote what is always the git
-repository (see the output of ``git blame``). Nevertheless, it is
-sometimes useful to have a very rough overview over the history,
-especially if a lot of people have been working on that source file.
+As an example, see ``SAGE_ROOT/src/sage/rings/integer.pyx``, which contains the
+implementation for `\ZZ`. The names of the people who made major contributions
+to the file appear in the ``AUTHORS`` section. You can add your name to the
+list if you belong to the people, but refrain from being verbose in the
+description. The ``AUTHORS`` section shows very rough overview of the history,
+especially if a lot of people have been working on that source file. The
+authoritative log for who wrote what is always the git repository (see the
+output of ``git blame``).
 
 All code included with Sage must be licensed under the GPLv2+ or a
 compatible, that is, less restrictive license (e.g. the BSD license).
@@ -402,8 +405,8 @@ information. You can use the existing functions of Sage as templates.
 
   Note the trailing underscores which makes the citations into hyperlinks. See
   below for more about the master bibliography file. For more about citations,
-  see the `Sphinx/ReST markup for citations
-  <http://sphinx.pocoo.org/rest.html#citations>`_. For links to trac tickets or
+  see the `Sphinx/reST markup for citations
+  <http://www.sphinx-doc.org/rest.html#citations>`_. For links to trac tickets or
   wikipedia, see :ref:`chapter-sage_manuals_links`.
 
 - A **TESTS** block (highly recommended).
@@ -421,20 +424,49 @@ information. You can use the existing functions of Sage as templates.
 
   For the purposes of removal, A "TESTS" block is a block starting
   with "TEST:" or "TESTS:" (or the same with two colons), on a line on
-  its own, and ending with an unindented line (that is, the same level
-  of indentation as "TESTS") matching one of the following:
+  its own, and ending either with a line indented less than "TESTS",
+  or with a line with the same level of indentation -- not more --
+  matching one of the following:
 
-  - a line which starts with whitespace and then a Sphinx directive
-    of the form ".. foo:", optionally followed by other text.
+  - a Sphinx directive of the form ".. foo:", optionally followed by
+    other text.
 
-  - a line which starts with whitespace and then text of the form
-    "UPPERCASE:", optionally followed by other text.
+  - text of the form "UPPERCASE:", optionally followed by other
+    text.
 
-  - lines which look like a ReST header: one line containing
+  - lines which look like a reST header: one line containing
     anything, followed by a line consisting only of whitespace,
     followed by a string of hyphens, equal signs, or other
-    characters which are valid markers for ReST headers:
-    ``- = ` : ' " ~ _ ^ * + # < >``.
+    characters which are valid markers for reST
+    headers: ``- = ` : ' " ~ _ ^ * + # < >``.
+
+Note about Sphinx directives vs. other blocks
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The main Sphinx directives that are used in Sage are:
+
+``.. MATH::``, ``.. NOTE::``, ``.. PLOT::``, ``.. RUBRIC::``,
+``.. SEEALSO::``, ``.. TODO::``, ``.. TOPIC::`` and ``.. WARNING::``.
+
+They must be written exactly as above, so for example
+``WARNING::`` or ``.. WARNING ::`` will not work.
+
+Some other directives are also available, but less frequently used, namely:
+
+``.. MODULEAUTHOR::``, ``.. automethod::``, ``.. autofunction::``,
+``.. image::``, ``.. figure::``.
+
+Other blocks shall not be used as directives; for example
+``.. ALGORITHM::`` will not be shown at all.
+
+Sage documentation style
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+  All Sage documentation is written in reStructuredText (reST) and is
+  processed by Sphinx: see http://www.sphinx-doc.org/rest.html for an
+  introduction. Sage's style is for all reST and Sphinx directives
+  (like ``.. WARNING::``, ``.. NOTE::``, ``.. MATH::``, etc.) to be
+  written in uppercase. Lines should be shorter than 80 characters.
 
 Sage's master **BIBLIOGRAPHY** file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -468,8 +500,8 @@ Sage's master **BIBLIOGRAPHY** file
   that the letter (``C.`` in the example above) will not be
   interpreted as a list enumerator.
 
-  For more about citations, see the `Sphinx/ReST markup for citations
-  <http://sphinx.pocoo.org/rest.html#citations>`_.
+  For more about citations, see the `Sphinx/reST markup for citations
+  <http://www.sphinx-doc.org/rest.html#citations>`_.
 
 Template
 ^^^^^^^^
@@ -802,8 +834,8 @@ written.
 
 .. _section-further_conventions:
 
-Special Markup to Influence Tests
----------------------------------
+Special Markup to Influence Doctests
+------------------------------------
 
 Overly complicated output in the example code can be shortened
 by an ellipsis marker ``...``::
@@ -997,8 +1029,8 @@ further development on Sage.
 
 .. _chapter-testing:
 
-Running Automated Tests
-=======================
+Running Automated Doctests
+==========================
 
 This section describes Sage's automated testing of test files of the
 following types: ``.py``, ``.pyx``, ``.sage``, ``.rst``. Briefly, use
@@ -1035,13 +1067,13 @@ write for the documentation and have them work.
 For more information, see :ref:`chapter-doctesting`.
 
 
-Testing ReST Documentation
+Testing reST Documentation
 --------------------------
 
 Run ``sage -t <filename.rst>`` to test the examples in verbatim
-environments in ReST documentation.
+environments in reST documentation.
 
-Of course in ReST files, one often inserts explanatory texts between
+Of course in reST files, one often inserts explanatory texts between
 different verbatim environments. To link together verbatim
 environments, use the ``.. link`` comment. For example::
 
@@ -1070,7 +1102,7 @@ have that example skipped when testing the file.  This goes in the
 same place as the ``.. link`` in the previous example.
 
 See the files in ``SAGE_ROOT/src/doc/en/tutorial/`` for many
-examples of how to include automated testing in ReST documentation for
+examples of how to include automated testing in reST documentation for
 Sage.
 
 

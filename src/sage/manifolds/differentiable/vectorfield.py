@@ -1202,7 +1202,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal, VectorFiel
         - ``del_restrictions`` -- (default: ``True``) determines whether
           the restrictions of ``self`` to subdomains are deleted
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable

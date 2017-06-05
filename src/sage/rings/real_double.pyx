@@ -39,22 +39,25 @@ Test NumPy conversions::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from __future__ import print_function
 
 from cpython.object cimport *
 from cpython.float cimport *
+
+from cysignals.signals cimport sig_on, sig_off
+
 include "sage/ext/python_debug.pxi"
-include 'sage/ext/cdefs.pxi'
-include 'sage/ext/stdsage.pxi'
-include "cysignals/signals.pxi"
+from sage.ext.stdsage cimport PY_NEW
 from sage.libs.gsl.all cimport *
 cimport libc.math
+from libc.string cimport memcpy
 
 gsl_set_error_handler_off()
 
 import math, operator
 
-from sage.libs.cypari2.convert cimport new_gen_from_double
+from cypari2.convert cimport new_gen_from_double
 
 import sage.rings.integer
 import sage.rings.rational
@@ -160,7 +163,7 @@ cdef class RealDoubleField_class(Field):
         """
         Returns ``False``, because doubles are not exact.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: RDF.is_exact()
             False
@@ -378,6 +381,17 @@ cdef class RealDoubleField_class(Field):
         """
         return "RealField(%s : Bits := true)" % self.prec()
 
+    def _polymake_init_(self):
+        r"""
+        Return the polymake representation of the real double field.
+
+        EXAMPLES::
+
+            sage: polymake(RDF)    #optional - polymake # indirect doctest
+            Float
+        """
+        return '"Float"'
+
     def precision(self):
         """
         Return the precision of this real double field in bits.
@@ -501,7 +515,7 @@ cdef class RealDoubleField_class(Field):
         """
         Return the hash value of ``self``.
 
-        TEST::
+        TESTS::
 
             sage: hash(RDF) % 2^32 == hash(str(RDF)) % 2^32
             True
@@ -824,7 +838,7 @@ cdef class RealDoubleElement(FieldElement):
         """
         # First, check special values
         if self._value == 0:
-            return RealDoubleElement(ldexp(1.0, -1074))
+            return RealDoubleElement(libc.math.ldexp(1.0, -1074))
         if gsl_isnan(self._value):
             return self
         if gsl_isinf(self._value):
@@ -832,12 +846,12 @@ cdef class RealDoubleElement(FieldElement):
 
         # Normal case
         cdef int e
-        frexp(self._value, &e)
+        libc.math.frexp(self._value, &e)
         e -= 53
         # Correction for denormals
         if e < -1074:
             e = -1074
-        return RealDoubleElement(ldexp(1.0, e))
+        return RealDoubleElement(libc.math.ldexp(1.0, e))
 
     def real(self):
         """
@@ -1494,7 +1508,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: float(RDF(1.5))
             1.5
             sage: type(float(RDF(1.5)))
-            <type 'float'>
+            <... 'float'>
         """
         return self._value
 
@@ -1509,7 +1523,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: n._rpy_()
             2.0
             sage: type(n._rpy_())
-            <type 'float'>
+            <... 'float'>
         """
         return self.__float__()
 
@@ -1573,13 +1587,13 @@ cdef class RealDoubleElement(FieldElement):
         """
         return CDF(self._value)
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Return a PARI representation of ``self``.
 
         EXAMPLES::
 
-            sage: RDF(1.5)._pari_()
+            sage: RDF(1.5).__pari__()
             1.50000000000000
         """
         return new_gen_from_double(self._value)
@@ -1750,7 +1764,7 @@ cdef class RealDoubleElement(FieldElement):
             [1.4142135623730951*I, -1.4142135623730951*I]
         """
         if self._value >= 0:
-            x = self._new_c(sqrt(self._value))
+            x = self._new_c(libc.math.sqrt(self._value))
             if all:
                 if x.is_zero():
                     return [x]
@@ -2458,7 +2472,7 @@ cdef class RealDoubleElement(FieldElement):
             return self._parent.nan()
         while True:
             a1 = (a+b)/2
-            b1 = sqrt(a*b)
+            b1 = libc.math.sqrt(a*b)
             if abs((b1/a1)-1) < eps: return self._new_c(a1)
             a, b = a1, b1
 
@@ -2528,7 +2542,7 @@ cdef class RealDoubleElement(FieldElement):
 
         Uses the PARI C-library ``algdep`` command.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: r = sqrt(RDF(2)); r
             1.4142135623730951
@@ -2629,7 +2643,7 @@ def is_RealDoubleElement(x):
     """
     Check if ``x`` is an element of the real double field.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.rings.real_double import is_RealDoubleElement
         sage: is_RealDoubleElement(RDF(3))

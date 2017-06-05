@@ -192,6 +192,16 @@ static bool tgamma_info(const function& f, unsigned inf)
         return false;
 }
 
+static bool zeta_info(const function& f, unsigned inf)
+{
+        const ex& arg = f.op(0);
+        switch (inf) {
+        case info_flags::real:
+                return arg.info(inf);
+        }
+        return false;
+}
+
 static bool abs_info(const function& f, unsigned inf)
 {
         switch (inf) {
@@ -278,6 +288,7 @@ bool function::info(unsigned inf) const
                 {asinh_SERIAL::serial, &asinh_info},
                 {acsch_SERIAL::serial, &acsch_info},
                 {tgamma_SERIAL::serial, &tgamma_info},
+                {zeta1_SERIAL::serial, &zeta_info},
                 {abs_SERIAL::serial, &abs_info},
                 {real_part_function_SERIAL::serial, &real_info},
                 {imag_part_function_SERIAL::serial, &imag_info},

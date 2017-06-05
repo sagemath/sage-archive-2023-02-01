@@ -1331,10 +1331,7 @@ cdef py_float(n, PyObject* kwds):
         try:
             return (<object>kwds)['parent'](n)
         except TypeError:
-            try:
-                return (<object>kwds)['parent'].complex_field()(n)
-            except AttributeError:
-                return CC(n)
+            return (<object>kwds)['parent'].complex_field()(n)
     else:
         try:
             return RR(n)

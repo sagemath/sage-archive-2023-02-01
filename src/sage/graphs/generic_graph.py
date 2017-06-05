@@ -14960,7 +14960,7 @@ class GenericGraph(GenericGraph_pyx):
             elif algorithm=='matrix':
                 return (self.adjacency_matrix()**3).trace() // 6
             else:
-                raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
+                raise ValueError('unknown algorithm "{}"'.format(algorithm))
 
     def shortest_path(self, u, v, by_weight=False, algorithm=None,
                       weight_function=None, check_weight=True,
@@ -15117,7 +15117,7 @@ class GenericGraph(GenericGraph_pyx):
         elif algorithm=="BFS_Bid":
             return self._backend.shortest_path(u,v)
         else:
-            raise ValueError("Algorithm '" + algorithm + "' not yet implemented.")
+            raise ValueError('unknown algorithm "{}"'.format(algorithm))
 
     def shortest_path_length(self, u, v, by_weight=False, algorithm=None,
                              weight_function=None, check_weight=True,
@@ -15494,7 +15494,7 @@ class GenericGraph(GenericGraph_pyx):
         elif algorithm=='Dijkstra_NetworkX':
             import networkx
             # If this is not present, an error might be raised by NetworkX
-            if self.num_verts()==1 and self.vertices()[0]==u:
+            if self.order() == 1 and self.has_vertex(u):
                 return {u:[u]}
             if by_weight:
                 if self.is_directed():
@@ -15525,8 +15525,7 @@ class GenericGraph(GenericGraph_pyx):
             return paths
 
         else:
-            raise ValueError("Algorithm " + algorithm + " not yet " +
-                             "implemented. Please, contribute!")
+            raise ValueError('unknown algorithm "{}"'.format(algorithm))
 
     def _path_length(self, path, by_weight=False, weight_function=None):
         r"""
@@ -16077,7 +16076,7 @@ class GenericGraph(GenericGraph_pyx):
             return dist, pred
 
         elif algorithm != "Floyd-Warshall-Python":
-            raise ValueError("Algorithm " + algorithm + " is not implemented.")
+            raise ValueError('unknown algorithm "{}"'.format(algorithm))
 
         from sage.rings.infinity import Infinity
 

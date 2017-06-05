@@ -2217,7 +2217,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         return []
 
     def bidirectional_dijkstra(self, x, y, weight_function=None, 
-                               distance_flag = False):
+                               distance_flag=False):
         r"""
         Returns the shortest path or distance from ``x`` to ``y`` using a
         bidirectional version of Dijkstra's algorithm.
@@ -2387,7 +2387,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             return shortest_path
 
     def shortest_path_all_vertices(self, v, cutoff=None, 
-                                   distance_flag = False):
+                                   distance_flag=False):
         r"""
         Returns for each vertex ``u`` a shortest  ``v-u`` path or distance from
         ``v`` to ``u``.

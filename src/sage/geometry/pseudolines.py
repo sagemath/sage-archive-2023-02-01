@@ -484,7 +484,7 @@ class PseudolineArrangement:
         r"""
         Test of equality.
 
-        TEST::
+        TESTS::
 
             sage: from sage.geometry.pseudolines import PseudolineArrangement
             sage: permutations = [[3, 2, 1], [3, 2, 0], [3, 1, 0], [2, 1, 0]]

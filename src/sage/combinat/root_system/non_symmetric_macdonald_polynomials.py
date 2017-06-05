@@ -1261,7 +1261,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
         """
         return "The family of the Macdonald polynomials of type %s with parameters %s, %s, %s"%(self.cartan_type(),self._q, self._q1, self._q2)
 
-    # This is redundant with the cartan type method of
+    # This is redundant with the cartan_type method of
     # CherednikOperatorsEigenvectors, but we need it very early in the
     # initialization, before self._T_Y is set ...
     @cached_method

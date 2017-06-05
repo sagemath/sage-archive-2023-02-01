@@ -534,7 +534,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         If the stack has not yet been flagged as cleared, we clear it now (rather
         than wasting time to do so for successful operations).
 
-        TEST::
+        TESTS::
 
             sage: cm = sage.structure.element.get_coercion_model()
             sage: cm.record_exceptions()
@@ -1000,9 +1000,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         TESTS::
 
-            sage: class Foo:
-            ....:    def __rmul__(self, left):
-            ....:        return 'hello'
+            sage: class Foo(object):
+            ....:     def __rmul__(self, left):
+            ....:         return 'hello'
             sage: H = Foo()
             sage: print(int(3)*H)
             hello
@@ -1011,9 +1011,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: print(H*3)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for *: '<type 'instance'>' and 'Integer Ring'
+            TypeError: unsupported operand parent(s) for *: '<class '__main__.Foo'>' and 'Integer Ring'
 
-            sage: class Nonsense:
+            sage: class Nonsense(object):
             ....:     def __init__(self, s):
             ....:         self.s = s
             ....:     def __repr__(self):
@@ -1033,7 +1033,6 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             blahblahP
             sage: 80+a
             Pblahblah
-
         """
         self._exceptions_cleared = False
         if (op is not sub) and (op is not isub):

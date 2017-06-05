@@ -803,7 +803,7 @@ class AlternatingSignMatrix(Element):
         if algorithm == 'last_diagonal':
             MT = self.to_monotone_triangle()
             nplus = self._matrix.nrows() + 1
-            parkfn = [nplus - row[0] for row in list(MT) if len(row) > 0]
+            parkfn = [nplus - row[0] for row in list(MT) if row]
             return NonDecreasingParkingFunction(parkfn).to_dyck_word().reverse()
         
         elif algorithm == 'link_pattern':

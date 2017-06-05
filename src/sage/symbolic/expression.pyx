@@ -135,7 +135,7 @@ Test if :trac:`9947` is fixed::
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 from inspect import ismethod
 import operator
@@ -12008,6 +12008,17 @@ cdef class Expression(CommutativeRingElement):
             sage: n = var('n')
             sage: sum(log(1-1/n^2),n,2,oo)
             -log(2)
+        
+        Check that :trac:`21801` is fixed::
+
+            sage: n = SR.var('n')
+            sage: sum(1/((n+1)*(2*n-1)), n, 0, oo)
+            2/3*log(2) - 2/3
+            sage: _.n()
+            -0.204568546293370
+            sage: f(n) = (-1)^(n+1)/(3*n+6*(-1)^n)
+            sage: sum(f(2*n)+f(2*n+1), n, 0, oo)
+            1/3*log(2) - 1/3
         """
         from sage.calculus.calculus import symbolic_sum
         return symbolic_sum(self, *args, **kwds)

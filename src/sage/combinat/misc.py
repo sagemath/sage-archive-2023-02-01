@@ -341,12 +341,12 @@ def check_integer_list_constraints(l, **kwargs):
     """
     if 'singleton' in kwargs and kwargs['singleton']:
         singleton = True
-        result = [ l ]
+        result = [l]
         n = sum(l)
         del kwargs['singleton']
     else:
         singleton = False
-        if len(l) > 0:
+        if l:
             n = sum(l[0])
             result = l
         else:

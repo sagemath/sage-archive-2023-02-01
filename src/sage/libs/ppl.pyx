@@ -150,13 +150,13 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
+from cysignals.signals cimport sig_on, sig_off
+
 from sage.structure.sage_object cimport SageObject
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmpxx cimport mpz_class
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
-
-include "cysignals/signals.pxi"
 
 from libcpp cimport bool as cppbool
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE

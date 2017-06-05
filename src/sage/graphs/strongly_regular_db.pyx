@@ -2046,16 +2046,16 @@ def SRG_176_49_12_14():
 
     # Looking for an involution that maps a point of the design to one of the
     # blocks that contains it. It is called a polarity with only absolute
-    # points in
+    # points.
     for aut in ag:
         try:
             0 in aut(0)
         except TypeError:
             continue
         if (aut.order() == 2 and
-            all(i in aut(i) for i in d.ground_set())):
+                all(i in aut(i) for i in d.ground_set())):
             g = Graph()
-            g.add_edges((u,v) for u in d.ground_set() for v in aut(u))
+            g.add_edges(((u,v) for u in d.ground_set() for v in aut(u)), loops=False)
             return g
 
 def SRG_176_105_68_54():

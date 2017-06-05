@@ -1511,7 +1511,7 @@ def automorphisms_fixing_pair(rational_function, pair, quad):
     g = phi.denominator()
     D = max(f.degree(), g.degree())
 
-    #assumes the second coordiante of the point is 1
+    #assumes the second coordinate of the point is 1
     if pair[0] == [1,0]:
         u = K(z - pair[1][0])
         u_inv = K(z + pair[1][0])

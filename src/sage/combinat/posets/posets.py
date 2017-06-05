@@ -224,7 +224,7 @@ List of Poset methods
     :meth:`~FinitePoset.cuts` | Return the cuts of the given poset.
     :meth:`~FinitePoset.dilworth_decomposition` | Return a partition of the points into the minimal number of chains.
     :meth:`~FinitePoset.greene_shape` | Computes the Greene-Kleitman partition aka Greene shape of the poset ``self``.
-    :meth:`~FinitePoset.incidence_algebra` | Return the indicence algebra of ``self``.
+    :meth:`~FinitePoset.incidence_algebra` | Return the incidence algebra of ``self``.
     :meth:`~FinitePoset.is_EL_labelling` | Return whether ``f`` is an EL labelling of the poset.
     :meth:`~FinitePoset.isomorphic_subposets_iterator` | Return an iterator over the subposets isomorphic to another poset.
     :meth:`~FinitePoset.isomorphic_subposets` | Return all subposets isomorphic to another poset.
@@ -673,7 +673,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
                         raise TypeError("not a list of relations")
             D = DiGraph()
             D.add_vertices(elements)
-            D.add_edges(relations)
+            D.add_edges(relations, loops=False)
         elif len(data) > 2:
             # type 3, list/tuple of upper covers
             D = DiGraph(dict([[Integer(i),data[i]] for i in range(len(data))]),

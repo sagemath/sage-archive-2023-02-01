@@ -498,14 +498,14 @@ cdef class CRElement(pAdicTemplateElement):
 
         Let `\alpha` be in `\mathcal{O}_K`.  Let
 
-        ..math ::
+        .. MATH::
 
             p = -\pi_K^{e_K} \epsilon
 
         be the factorization of `p` where `\epsilon` is a unit.  Then
         the `p`-th power of `1 + \alpha \pi_K^{\lambda}` satisfies
 
-        ..math ::
+        .. MATH::
 
             (1 + \alpha \pi^{\lambda})^p \equiv \left{ \begin{array}{lll}
             1 + \alpha^p \pi_K^{p \lambda} &
@@ -577,10 +577,9 @@ cdef class CRElement(pAdicTemplateElement):
             representative congruent to `\alpha` modulo `\pi_K`.  Thus
             the result will always be congruent to `1` modulo `\pi_K`.
 
-        .. REFERENCES::
+        REFERENCES:
 
-        .. [SP] Constructing Class Fields over Local Fields.
-                Sebastian Pauli.
+        .. [SP] *Constructing Class Fields over Local Fields*. Sebastian Pauli.
 
         INPUT:
 

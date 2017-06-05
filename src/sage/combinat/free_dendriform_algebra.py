@@ -52,7 +52,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
     .. MATH::
 
-        (x * y) \succ z = (x \succ y) \succ z.
+        (x * y) \succ z = x \succ (y \succ z).
 
     The free Dendriform algebra on a given set `E` has an explicit
     description using (planar) binary trees, just as the free
@@ -88,6 +88,20 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
     The free dendriform algebra is associative::
 
         sage: x * (y * z) == (x * y) * z
+        True
+
+    The associative product decomposes in two parts::
+
+        sage: x * y == F.prec(x, y) + F.succ(x, y)
+        True
+
+    The axioms hold::
+
+        sage: F.prec(F.succ(x, y), z) == F.succ(x, F.prec(y, z))
+        True
+        sage: F.prec(F.prec(x, y), z) == F.prec(x, y * z)
+        True
+        sage: F.succ(x * y, z) == F.succ(x, F.succ(y, z))
         True
 
     When there is only one generator, unlabelled trees are used instead::

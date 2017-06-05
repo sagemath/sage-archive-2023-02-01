@@ -982,12 +982,12 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             return PS(mol)
         return mol
 
-    def reynolds_operator(self, poly, chi = None):
+    def reynolds_operator(self, poly, chi=None):
         r"""
         Compute the Reynolds operator of this finite group `G`.
 
         This is the projection from a polynomial ring to the ring of
-        relative invariants. [Stu1993]_. If possible, the invariant is
+        relative invariants [Stu1993]_. If possible, the invariant is
         returned defined over the base field of the given polynomial
         ``poly``, otherwise, it is returned over the compositum of the
         fields involved in the computation.
@@ -1010,7 +1010,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
 
         INPUT:
 
-        - ``poly`` -- a polynomial from K[x]
+        - ``poly`` -- a polynomial
 
         - ``chi`` -- (default: trivial character) a linear group character of this group
 
@@ -1018,7 +1018,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
 
         AUTHORS:
 
-            Rebecca Lauren Miller and Ben Hutz
+        Rebecca Lauren Miller and Ben Hutz
 
         EXAMPLES::
 
@@ -1160,7 +1160,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
                 raise NotImplementedError("not implemented when characteristic divides group order")
             poly = poly.change_ring(L)
             poly_gens = vector(poly.parent().gens())
-            F = 0
+            F = L.zero()
             for g in self:
                 F += poly(*g.matrix()*vector(poly.parent().gens()))
             F /= self.order()
@@ -1196,9 +1196,9 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             raise NotImplementedError("nontrivial characters not implemented for charateristic > 0")
         poly = poly.change_ring(L)
         poly_gens = vector(poly.parent().gens())
-        F = L(0)
+        F = L.zero()
         for g in self:
-            F += L(chi(g))*poly(*g.matrix().change_ring(L)*poly_gens)
+            F += L(chi(g)) * poly(*g.matrix().change_ring(L)*poly_gens)
         F /= self.order()
         try: # attempt to move F to base_ring of polyomial
             F = F.change_ring(R)

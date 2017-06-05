@@ -4404,10 +4404,9 @@ class Graph(GenericGraph):
 
         W = dict()
         for u,v,l in self.edge_iterator():
-            u, v = reorder(u, v)
             if u is v:
                 continue
-            if use_edge_labels and not (u, v) in W or ( (u, v) in W and W[u, v][0] < weight(l) ):
+            if not (u, v) in W or ( use_edge_labels and W[u, v][0] < weight(l) ):
                 W[u, v] = (weight(l),l)
 
         if algorithm == "Edmonds":

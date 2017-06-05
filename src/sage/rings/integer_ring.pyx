@@ -1292,8 +1292,15 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             Traceback (most recent call last):
             ...
             ValueError: unknown algorithm 'foobar'
+
+            sage: p = x^20 * p
+            sage: ZZ._roots_univariate_polynomial(p, algorithm="sparse")
+            [(0, 20), (100, 1), (-5445, 5), (1, 23), (-1, 23)]
+            sage: ZZ._roots_univariate_polynomial(p, algorithm="dense")
+            [(100, 1), (-5445, 5), (0, 20), (1, 23), (-1, 23)]
         """
-        if p.degree() < 0:
+        deg = p.degree()
+        if deg < 0:
             raise ValueError("roots of 0 are not defined")
 
         # A specific algorithm is available only for integer roots of integer polynomials
@@ -1302,7 +1309,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         # Automatic choice of algorithm
         if algorithm is None:
-            if p.degree() > 100:
+            if deg > 100:
                 algorithm = "sparse"
             else:
                 algorithm = "dense"
@@ -1310,7 +1317,35 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         if algorithm != "dense" and algorithm != "sparse":
             raise ValueError("unknown algorithm '{}'".format(algorithm))
 
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        # Check if the polynomial is a constant, in which case there are
+        #   no roots. Note that the polynomial is not 0.
+        if deg == 0:
+            return []
+
+        # The dense algorithm is to compute the roots from the factorization.
+        # It is faster to let the factorization take care of the content
+        if algorithm == "dense":
+            return p._roots_from_factorization(p.factor(), multiplicities)
+
+        v = p.valuation()
+        deg -= v
+        cdef list roots
+
+        # Root 0
+        if v > 0:
+            roots = [(self.zero(), v)] if multiplicities else [self.zero()]
+            if deg == 0: # The shifted polynomial will be constant
+                return roots
+        else:
+            roots = []
+
+        p = p.shift(-v)
+        cdef list e = p.exponents()
+        cdef int i_min, i, j, k = len(e)
+
+        # totally dense polynomial
+        if k == 1 + deg:
+            return roots + p._roots_from_factorization(p.factor(), multiplicities)
 
         #TODO: the content sometimes return an ideal sometimes a number... this
         # should be corrected. See
@@ -1322,36 +1357,10 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         if not cont.is_unit():
             p = p.map_coefficients(lambda c: c // cont)
 
-        cdef list roots = []
-
-        # The dense algorithm is to compute the roots from the factorization
-        if algorithm == "dense":
-            return p._roots_from_factorization(p.factor(), multiplicities)
-
-        v = p.valuation()
-        p = p.shift(-v)
-
-        # Root 0
-        if v > 0:
-            roots = [(self.zero(), v)] if multiplicities else [self.zero()]
-        else:
-            roots = []
-
-        if p.is_constant():
-            return roots
-
         cdef list c = p.coefficients()
-        cdef list e = p.exponents()
-        cdef int i_min, i, j, k = len(e)
 
-        # totally dense polynomial
-        if k == 1 + p.degree():
-            roots = p._roots_from_factorization(p.factor(), multiplicities)
-            return roots
-
-        K = p.base_ring()
-        x = p.variable_name()
-        R = PolynomialRing(K, x, sparse=False)
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        R = PolynomialRing(p.base_ring(), p.variable_name(), sparse=False)
         c_max_nbits = c[0].nbits()
         i_min = 0
         g = R.zero()
@@ -1361,8 +1370,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         # Roots of modulus > 1 are common roots of the components
         for i in range(1, k):
             if e[i] - e[i-1] > c_max_nbits:
-                g = g.gcd(R({e[j] - e[i_min]: c[j] for j in range(i_min,i)}))
-                if g.is_one(): break
+                g = g.gcd(R( {e[j] - e[i_min]: c[j] for j in range(i_min, i)} ))
+                if g.is_one():
+                    break
                 i_min = i
                 c_max_nbits = c[i].nbits()
             else:
@@ -1373,7 +1383,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             roots.extend(p._roots_from_factorization(p.factor(), multiplicities))
             return roots
 
-        g = g.gcd(R({e[j] - e[i_min]: c[j] for j in range(i_min, k)}))
+        g = g.gcd(R( {e[j] - e[i_min]: c[j] for j in range(i_min, k)} ))
 
 
         cdef list cc
@@ -1384,12 +1394,12 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         # 1 is root iff p(1) == 0 ; -1 iff p(-1) == 0
         if not multiplicities:
             if not sum(c):
-                roots.append(1)
+                roots.append(self.one())
             s = 0
             for j in range(k):
                 s += -c[j] if (e[j] % 2) else c[j]
             if not s:
-                roots.append(-1)
+                roots.append(-self.one())
 
         # Computation of the roots of modulus 1, with multiplicities
         # For the multiplicities, take the derivatives
@@ -1419,15 +1429,17 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
                 cc = [(ee[j] + 1) * cc[j+1] for j in range(k-i-1)]
 
             if m1 > 0:
-                roots.append((1, m1))
+                roots.append((self.one(), m1))
             if m2 > 0:
-                roots.append((-1, m2))
+                roots.append((-self.one(), m2))
 
         # Add roots of modulus > 1 to `roots`:
         if multiplicities:
-            roots.extend(r for r in g._roots_from_factorization(g.factor(), True) if r[0].abs() > 1)
+            roots.extend(r for r in g._roots_from_factorization(g.factor(), True)
+                         if r[0].abs() > 1)
         else:
-            roots.extend(r for r in g._roots_from_factorization(g.factor(), False) if r.abs() > 1)
+            roots.extend(r for r in g._roots_from_factorization(g.factor(), False)
+                         if r.abs() > 1)
 
         return roots
 

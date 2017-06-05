@@ -1227,18 +1227,18 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         - ``ring`` -- ring (default: ``None``); a ring containing `\ZZ` to
           compute the roots in; ``None`` is equivalent to ``ZZ``
 
-        - ``multiplicities`` -- boolean (default: ``True``); whether to compute
-          the multiplicities
+        - ``multiplicities`` -- boolean (default: ``True``); whether to
+          compute the multiplicities
 
         - ``algorithm`` -- ``"dense"``, ``"sparse"`` or ``None`` (default:
           ``None``); the algorithm to use
 
         OUTPUT:
 
-        - If ``multiplicities = True``, the list of pairs `(r, n)` where
+        - If ``multiplicities=True``, the list of pairs `(r, n)` where
           `r` is a root and `n` the corresponding multiplicity;
 
-        - If ``multiplicities = False``, the list of distincts roots with no
+        - If ``multiplicities=False``, the list of distincts roots with no
           information about the multiplicities.
 
         ALGORITHM:
@@ -1290,7 +1290,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: ZZ._roots_univariate_polynomial(p, algorithm="foobar")
             Traceback (most recent call last):
             ...
-            ValueError: Unknown algorithm 'foobar'
+            ValueError: unknown algorithm 'foobar'
         """
         if p.degree() < 0:
             raise ValueError("roots of 0 are not defined")
@@ -1319,24 +1319,20 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         else:
             cont = p.content()
         if not cont.is_unit():
-            p = p.map_coefficients(lambda c:c//cont)
+            p = p.map_coefficients(lambda c: c // cont)
 
         cdef list roots = []
 
         # The dense algorithm is to compute the roots from the factorization
         if algorithm == "dense":
-            sig_on()
-            roots = p._roots_from_factorization(p.factor(), multiplicities)
-            sig_off()
-            return roots
+            return p._roots_from_factorization(p.factor(), multiplicities)
 
         v = p.valuation()
         p = p.shift(-v)
 
         # Root 0
-        if v>0:
-            if multiplicities: roots = [(self.zero(), v)]
-            else: roots = [self.zero()]
+        if v > 0:
+            roots = [(self.zero(), v)] if multiplicities else [self.zero()]
         else:
             roots = []
 
@@ -1349,9 +1345,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         # totally dense polynomial
         if k == 1 + p.degree():
-            sig_on()
             roots = p._roots_from_factorization(p.factor(), multiplicities)
-            sig_off()
             return roots
 
         K = p.base_ring()
@@ -1375,9 +1369,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         # if no gap, directly return the roots of p
         if g.is_zero():
-            sig_on()
             roots.extend(p._roots_from_factorization(p.factor(), multiplicities))
-            sig_off()
             return roots
 
         g = g.gcd(R({e[j] - e[i_min]: c[j] for j in range(i_min, k)}))
@@ -1432,13 +1424,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         # Add roots of modulus > 1 to `roots`:
         if multiplicities:
-            sig_on()
             roots.extend(r for r in g._roots_from_factorization(g.factor(), True) if r[0].abs() > 1)
-            sig_off()
         else:
-            sig_on()
             roots.extend(r for r in g._roots_from_factorization(g.factor(), False) if r.abs() > 1)
-            sig_off()
 
         return roots
 

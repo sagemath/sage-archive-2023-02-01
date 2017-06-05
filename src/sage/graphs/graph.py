@@ -4403,32 +4403,32 @@ class Graph(GenericGraph):
                 return v, u
 
         W = dict()
+        L = dict()
         for u,v,l in self.edge_iterator():
             if u is v:
                 continue
-            if not (u, v) in W or ( use_edge_labels and W[u, v][0] < weight(l) ):
+            if not (u, v) in L or ( use_edge_labels and W[u, v] < weight(l) ):
+                L[u, v] = l
                 if use_edge_labels:
-                    W[u, v] = (weight(l),l)
-                else:
-                    W[u, v] = (l,l)
+                    W[u, v] = weight(l)
 
         if algorithm == "Edmonds":
             import networkx
             g = networkx.Graph()
             if use_edge_labels:
                 for u, v in W:
-                    g.add_edge(u, v, attr_dict={"weight": W[u, v][0]})
+                    g.add_edge(u, v, attr_dict={"weight": W[u, v]})
             else:
-                for u, v in W:
+                for u, v in L:
                     g.add_edge(u, v)
             d = networkx.max_weight_matching(g)
             if value_only:
                 if use_edge_labels:
-                    return sum(W[u, v][0] for u, v in six.iteritems(d) if u < v)
+                    return sum(L[u, v] for u, v in six.iteritems(d) if u < v)
                 else:
                     return Integer(len(d) // 2)
             else:
-                return [(u, v, W[u, v][1]) for u, v in six.iteritems(d) if u < v]
+                return [(u, v, L[u, v]) for u, v in six.iteritems(d) if u < v]
 
         elif algorithm == "LP":
             g = self
@@ -4438,9 +4438,9 @@ class Graph(GenericGraph):
             p = MixedIntegerLinearProgram(maximization=True, solver=solver)
             b = p.new_variable(binary=True)
             if use_edge_labels:
-                p.set_objective( p.sum( W[u, v][0] * b[u, v] for u, v in W ) )
+                p.set_objective( p.sum( W[u, v] * b[u, v] for u, v in W ) )
             else:
-                p.set_objective( p.sum( b[u, v] for u, v in W ) )
+                p.set_objective( p.sum( b[u, v] for u, v in L ) )
             # for any vertex v, there is at most one edge incident to v in
             # the maximum matching
             for v in g.vertex_iterator():
@@ -4455,7 +4455,7 @@ class Graph(GenericGraph):
             else:
                 p.solve(log=verbose)
                 b = p.get_values(b)
-                return [(u, v, W[u, v][1]) for u, v in W if b[u, v] == 1]
+                return [(u, v, L[u, v]) for u, v in L if b[u, v] == 1]
 
         else:
             raise ValueError('algorithm must be set to either "Edmonds" or "LP"')

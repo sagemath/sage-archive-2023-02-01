@@ -574,7 +574,7 @@ identities (Gosper’s algorithm, Zeilberger’s algorithm, and their
 generalizations; see also :ref:`Exercise: alternating sign matrices
 <exercise-alternating-sign-matrices>`).
 
-.. todo: add link to some tutorial on summation
+.. TODO:: add link to some tutorial on summation
 
 All these techniques and their many generalizations are at the heart of
 very active topics of research: automatic combinatorics and analytic

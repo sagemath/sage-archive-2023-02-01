@@ -396,6 +396,27 @@ class BackendIPythonCommandline(BackendIPython):
         """
         return True
 
+    def threejs_offline_scripts(self):
+        """
+        Three.js scripts for the IPython command line
+
+        OUTPUT:
+
+        String containing script tags
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_ipython import BackendIPythonCommandline
+            sage: backend = BackendIPythonCommandline()
+            sage: backend.threejs_offline_scripts()
+            '...<script ...</script>...'
+        """
+        from sage.env import SAGE_SHARE
+        return """
+<script src="{0}/threejs/three.min.js"></script>
+<script src="{0}/threejs/OrbitControls.js"></script>
+        """.format(SAGE_SHARE)
+
 
 IFRAME_TEMPLATE = \
 """
@@ -554,4 +575,27 @@ class BackendIPythonNotebook(BackendIPython):
         else:
             raise TypeError('rich_output type not supported')
 
-        
+    def threejs_offline_scripts(self):
+        """
+        Three.js scripts for the IPython notebook
+
+        OUTPUT:
+
+        String containing script tags
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_ipython import BackendIPythonNotebook
+            sage: backend = BackendIPythonNotebook()
+            sage: backend.threejs_offline_scripts()
+            '...<script src="/nbextensions/threejs/three.min...<\\/script>...'
+        """
+        from sage.repl.rich_output import get_display_manager
+        CDN_scripts = get_display_manager().threejs_scripts(online=True)
+        return """
+<script src="/nbextensions/threejs/three.min.js"></script>
+<script src="/nbextensions/threejs/OrbitControls.js"></script>
+<script>
+  if ( !window.THREE ) document.write('{}');
+</script>
+        """.format(CDN_scripts.replace('</script>', r'<\/script>'))

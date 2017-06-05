@@ -84,7 +84,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
     """
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x> = GF(32003)[]
             sage: f = 24998*x^2 + 29761*x + 2252
@@ -145,7 +145,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         The modulus of P must coincide with the modulus of this element.
         That assumption is not verified!
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x> = GF(3)[]
             sage: x._new_constant_poly(4,R)
@@ -272,7 +272,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
           polynomial is a keyword it is substituted in; otherwise this
           polynomial is returned unchanged.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x> = PolynomialRing(GF(7))
             sage: f = x^2 + 1
@@ -361,7 +361,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         See :func:`sage.rings.polynomial.polynomial_modn_dense_ntl.small_roots`
         for the documentation of this function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: N = 10001
             sage: K = Zmod(10001)
@@ -419,7 +419,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         OUTPUT: (Polynomial) the product self*right.
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<x> = PolynomialRing(GF(next_prime(2^30)))
             sage: f = P.random_element(1000)

@@ -25,7 +25,7 @@ class EllipticCurveFormalGroup(SageObject):
     """
     def __init__(self, E):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve('11a')
             sage: F = E.formal_group(); F
@@ -53,7 +53,7 @@ class EllipticCurveFormalGroup(SageObject):
 
     def _repr_(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve('43a')
             sage: F = E.formal_group()
@@ -720,7 +720,7 @@ class EllipticCurveFormalGroup(SageObject):
 
     def sigma(self, prec=10):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve('14a')
             sage: F = E.formal_group()

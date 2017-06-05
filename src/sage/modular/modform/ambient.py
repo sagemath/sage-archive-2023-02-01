@@ -237,7 +237,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
         to `f(q) \mapsto f(q^t)`. Here the level of M should be a multiple of
         the level of self, and t should divide the quotient.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ModularForms(22, 2)._degeneracy_raising_matrix(ModularForms(44, 2), 1)
             [  1   0  -1  -2   0   0   0   0   0]

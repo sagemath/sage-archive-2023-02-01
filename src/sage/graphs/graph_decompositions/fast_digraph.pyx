@@ -15,7 +15,6 @@ set if element i belongs to the set.
 from __future__ import print_function
 
 include "cysignals/memory.pxi"
-include 'sage/ext/cdefs.pxi'
 
 from libc.stdint cimport uint8_t
 
@@ -32,11 +31,7 @@ cdef class FastDigraph:
             raise OverflowError("Too many vertices. This structure can only encode digraphs on at most %i vertices"%(8*sizeof(int)))
 
         self.n = D.order()
-        self.graph = NULL
-
-        self.graph = <int *> sig_malloc(self.n*sizeof(int))
-
-        memset(self.graph, 0, self.n * sizeof(int))
+        self.graph = <int *>check_calloc(self.n, sizeof(int))
 
         cdef int i, j
         cdef int tmp
@@ -61,7 +56,7 @@ cdef class FastDigraph:
                     tmp |= 1 << vertices_to_int[v]
                 self.graph[vertices_to_int[u]] = tmp
 
-        self.degree = <int *> sig_malloc(self.n*sizeof(int))
+        self.degree = <int *>check_allocarray(self.n, sizeof(int))
         for i in range(self.n):
             self.degree[i] = popcount32(self.graph[i])
 
@@ -121,7 +116,7 @@ def test_popcount():
    """
    Correction test for popcount32.
 
-   EXAMPLE::
+   EXAMPLES::
 
        sage: from sage.graphs.graph_decompositions.fast_digraph import test_popcount
        sage: test_popcount() # not tested

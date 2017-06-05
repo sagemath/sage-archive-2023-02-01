@@ -80,7 +80,7 @@ class AffineGroupElement(MultiplicativeGroupElement):
         sage: G = AffineGroup(2, GF(3))
         sage: g = G.random_element()
         sage: type(g)
-        <class 'sage.groups.affine_gps.group_element.AffineGroup_with_category.element_class'>
+        <class 'sage.groups.affine_gps.affine_group.AffineGroup_with_category.element_class'>
         sage: G(g.matrix()) == g
         True
         sage: G(2)
@@ -427,8 +427,6 @@ class AffineGroupElement(MultiplicativeGroupElement):
             False
             sage: g == g
             True
-            sage: abs(cmp(g, 'anything'))
-            1
         """
         assert self.parent() is other.parent()
         c = cmp(self._A, other._A)

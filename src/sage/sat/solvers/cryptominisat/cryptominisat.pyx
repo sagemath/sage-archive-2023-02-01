@@ -20,22 +20,27 @@ AUTHORS:
 
 - Martin Albrecht (2012): first version
 """
-##############################################################################
-#  Copyright (C) 2012 Martin Albrecht <martinralbrecht@googlemail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+
+#*****************************************************************************
+#       Copyright (C) 2012 Martin Albrecht <martinralbrecht@googlemail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
+
 from __future__ import print_function
 
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
-
 from libc.stdint cimport uint32_t
-from decl cimport lbool, Var, Lit, Clause, l_Undef, l_False, RetClause
-from decl cimport vec, vector
-from decl cimport GaussConf
-from solverconf cimport SolverConf
+from cysignals.memory cimport sig_free
+from cysignals.signals cimport sig_on, sig_off
+
+from .decl cimport lbool, Var, Lit, Clause, l_Undef, l_False, RetClause
+from .decl cimport vec, vector
+from .decl cimport GaussConf
+from .solverconf cimport SolverConf
 
 from sage.misc.misc import get_verbose
 
@@ -50,7 +55,7 @@ cdef class CryptoMiniSat(SatSolver):
     """
     The CryptoMiniSat solver.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.sat.solvers import CryptoMiniSat # optional - cryptominisat
         sage: cms = CryptoMiniSat()                      # optional - cryptominisat
@@ -75,7 +80,7 @@ cdef class CryptoMiniSat(SatSolver):
         - ``SolverConf`` - a :cls:`sage.sat.solvers.cryptominisat.SolverConf` instance
         - ``**kwds`` - passed to :cls:`sage.sat.solvers.cryptominisat.SolverConf`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers import CryptoMiniSat # optional - cryptominisat
             sage: cms = CryptoMiniSat()                      # optional - cryptominisat
@@ -140,7 +145,7 @@ cdef class CryptoMiniSat(SatSolver):
         - ``decision`` - if ``True`` this variable will be used for
           decisions (default: ``None``, let the solver decide.)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers import CryptoMiniSat # optional - cryptominisat
             sage: cms = CryptoMiniSat()                      # optional - cryptominisat
@@ -163,7 +168,7 @@ cdef class CryptoMiniSat(SatSolver):
         """
         Return the number of variables.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers import CryptoMiniSat # optional - cryptominisat
             sage: cms = CryptoMiniSat()                      # optional - cryptominisat
@@ -190,7 +195,7 @@ cdef class CryptoMiniSat(SatSolver):
             than the number of variables generated so far, then new
             variables are created automatically.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers import CryptoMiniSat # optional - cryptominisat
             sage: cms = CryptoMiniSat()                      # optional - cryptominisat
@@ -228,7 +233,7 @@ cdef class CryptoMiniSat(SatSolver):
             than the number of variables generated so far, then new
             variables are created automatically.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers import CryptoMiniSat # optional - cryptominisat
             sage: cms = CryptoMiniSat()                      # optional - cryptominisat
@@ -269,7 +274,7 @@ cdef class CryptoMiniSat(SatSolver):
         - If the solver was interrupted before deciding satisfiability
           ``None``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         We construct a simple example::
 
@@ -323,7 +328,7 @@ cdef class CryptoMiniSat(SatSolver):
         Return conflict clause if this instance is UNSAT and the last
         call used assumptions.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers import CryptoMiniSat # optional - cryptominisat
             sage: cms = CryptoMiniSat()                      # optional - cryptominisat
@@ -377,7 +382,7 @@ cdef class CryptoMiniSat(SatSolver):
 
         - ``unitary_only`` - return only unitary learnt clauses (default: ``False``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.sat.solvers import CryptoMiniSat          # optional - cryptominisat
             sage: from sage.sat.converters.polybori import CNFEncoder # optional - cryptominisat

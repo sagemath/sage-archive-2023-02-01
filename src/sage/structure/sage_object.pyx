@@ -645,6 +645,24 @@ cdef class SageObject:
     def _sage_(self):
         return self
 
+    def _pari_(self):
+        """
+        Deprecated alias for ``__pari__``.
+
+        TESTS::
+
+            sage: class NewStylePari(SageObject):
+            ....:     def __pari__(self):
+            ....:         return pari(42)
+            sage: NewStylePari()._pari_()
+            doctest:...: DeprecationWarning: the _pari_ method is deprecated, use __pari__ instead
+            See http://trac.sagemath.org/22470 for details.
+            42
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(22470, 'the _pari_ method is deprecated, use __pari__ instead')
+        return self.__pari__()
+
     def _interface_(self, I):
         """
         Return coercion of self to an object of the interface I.
@@ -869,6 +887,17 @@ cdef class SageObject:
         I = sage.interfaces.octave.octave
         return self._interface_init_(I)
 
+    def _polymake_(self, G=None):
+        if G is None:
+            import sage.interfaces.polymake
+            G = sage.interfaces.polymake.polymake
+        return self._interface_(G)
+
+    def _polymake_init_(self):
+        import sage.interfaces.polymake
+        I = sage.interfaces.polymake.polymake
+        return self._interface_init_(I)
+
     def _r_init_(self):
         """
         Return default string expression that evaluates in R to this
@@ -900,7 +929,7 @@ cdef class SageObject:
         return self._interface_init_(I)
 
     # PARI (slightly different, since is via C library, hence instance is unique)
-    def _pari_(self):
+    def __pari__(self):
         if self._interface_is_cached_():
             try:
                 return self.__pari
@@ -941,7 +970,7 @@ def load(*filename, compress=True, verbose=True):
     of those files are loaded, or all of the objects are loaded and a
     list of the corresponding loaded objects is returned.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: u = 'http://sage.math.washington.edu/home/was/db/test.sobj'
         sage: s = load(u)                                                  # optional - internet
@@ -953,7 +982,7 @@ def load(*filename, compress=True, verbose=True):
     We test loading a file or multiple files or even mixing loading files and objects::
 
         sage: t = tmp_filename(ext='.py')
-        sage: open(t,'w').write("print('hello world')")
+        sage: _ = open(t,'w').write("print('hello world')")
         sage: load(t)
         hello world
         sage: load(t,t)
@@ -970,7 +999,7 @@ def load(*filename, compress=True, verbose=True):
 
         sage: t = tmp_filename(ext=".sage")
         sage: with open(t, 'w') as f:
-        ....:     f.write("a += Mod(2/3, 11)")  # This evaluates to Mod(8, 11)
+        ....:     _ = f.write("a += Mod(2/3, 11)")  # This evaluates to Mod(8, 11)
         sage: a = -1
         sage: load(t)
         sage: a
@@ -980,7 +1009,7 @@ def load(*filename, compress=True, verbose=True):
 
         sage: code = '      subroutine hello\n         print *, "Hello World!"\n      end subroutine hello\n'
         sage: t = tmp_filename(ext=".F")
-        sage: open(t, 'w').write(code)
+        sage: _ = open(t, 'w').write(code)
         sage: load(t)
         sage: hello
         <fortran object>

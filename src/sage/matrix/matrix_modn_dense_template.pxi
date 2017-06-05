@@ -89,7 +89,7 @@ We test corner cases for multiplication::
 
 include "cysignals/signals.pxi"
 from libc.stdint cimport uint64_t
-from cpython.string cimport *
+from cpython.bytes cimport *
 
 include "cysignals/memory.pxi"
 from sage.libs.gmp.mpz cimport *
@@ -352,6 +352,77 @@ cdef inline linbox_charpoly(celement modulus, Py_ssize_t nrows, celement* entrie
     del F
     return l
 
+
+cpdef __matrix_from_rows_of_matrices(X):
+    """
+    Return a matrix whose row ``i`` is constructed from the entries of
+    matrix ``X[i]``.
+
+    INPUT:
+
+    - ``X`` - a nonempty list of matrices of the same size mod a
+       single modulus `n`
+
+    EXAMPLES::
+
+        sage: X = [random_matrix(GF(17), 4, 4) for _ in range(10)]; X
+        [
+        [ 2 14  0 15]  [12 14  3 13]  [ 9 15  8  1]  [ 2 12  6 10]
+        [11 10 16  2]  [10  1 14  6]  [ 5  8 10 11]  [12  0  6  9]
+        [ 9  4 10 14]  [ 2 14 13  7]  [ 5 12  4  9]  [ 7  7  3  8]
+        [ 1 14  3 14], [ 6 14 10  3], [15  2  6 11], [ 2  9  1  5],
+        <BLANKLINE>
+        [12 13  7 16]  [ 5  3 16  2]  [14 15 16  4]  [ 1 15 11  0]
+        [ 7 11 11  1]  [11 10 12 14]  [14  1 12 13]  [16 13  8 14]
+        [ 0  2  0  4]  [ 0  7 16  4]  [ 5  5 16 13]  [13 14 16  4]
+        [ 7  9  8 15], [ 6  5  2  3], [10 12  1  7], [15  6  6  6],
+        <BLANKLINE>
+        [ 4 10 11 15]  [13 12  5  1]
+        [11  2  9 14]  [16 13 16  7]
+        [12  5  4  4]  [12  2  0 11]
+        [ 2  0 12  8], [13 11  6 15]
+        ]
+        sage: X[0]._matrix_from_rows_of_matrices(X) # indirect doctest
+        [ 2 14  0 15 11 10 16  2  9  4 10 14  1 14  3 14]
+        [12 14  3 13 10  1 14  6  2 14 13  7  6 14 10  3]
+        [ 9 15  8  1  5  8 10 11  5 12  4  9 15  2  6 11]
+        [ 2 12  6 10 12  0  6  9  7  7  3  8  2  9  1  5]
+        [12 13  7 16  7 11 11  1  0  2  0  4  7  9  8 15]
+        [ 5  3 16  2 11 10 12 14  0  7 16  4  6  5  2  3]
+        [14 15 16  4 14  1 12 13  5  5 16 13 10 12  1  7]
+        [ 1 15 11  0 16 13  8 14 13 14 16  4 15  6  6  6]
+        [ 4 10 11 15 11  2  9 14 12  5  4  4  2  0 12  8]
+        [13 12  5  1 16 13 16  7 12  2  0 11 13 11  6 15]
+
+    OUTPUT: A single matrix mod ``p`` whose ``i``-th row is ``X[i].list()``.
+
+    .. note::
+
+         Do not call this function directly but use the static method
+         ``Matrix_modn_dense_float/double._matrix_from_rows_of_matrices``
+    """
+    # The code below is just a fast version of the following:
+    ##     from constructor import matrix
+    ##     K = X[0].base_ring()
+    ##     v = sum([y.list() for y in X],[])
+    ##     return matrix(K, len(X), X[0].nrows()*X[0].ncols(), v)
+
+    from matrix_space import MatrixSpace
+    cdef Matrix_modn_dense_template A, T
+    cdef Py_ssize_t i, n, m
+    n = len(X)
+
+    T = X[0]
+    m = T._nrows * T._ncols
+    A = T.__class__.__new__(T.__class__, MatrixSpace(X[0].base_ring(), n, m), 0, 0, 0)
+    A.p = T.p
+
+    for i from 0 <= i < n:
+        T = X[i]
+        memcpy(A._entries + i*m, T._entries, sizeof(celement)*m)
+    return A
+
+
 cdef class Matrix_modn_dense_template(Matrix_dense):
     def __cinit__(self, parent, entries, copy, coerce):
         """
@@ -413,15 +484,15 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
             sage: import gc
             sage: for i in range(10):
-            ...      A = random_matrix(GF(7),1000,1000)
-            ...      B = random_matrix(Integers(10),1000,1000)
-            ...      C = random_matrix(GF(16007),1000,1000)
-            ...      D = random_matrix(Integers(1000),1000,1000)
-            ...      del A
-            ...      del B
-            ...      del C
-            ...      del D
-            ...      _ = gc.collect()
+            ....:      A = random_matrix(GF(7),1000,1000)
+            ....:      B = random_matrix(Integers(10),1000,1000)
+            ....:      C = random_matrix(GF(16007),1000,1000)
+            ....:      D = random_matrix(Integers(1000),1000,1000)
+            ....:      del A
+            ....:      del B
+            ....:      del C
+            ....:      del D
+            ....:      _ = gc.collect()
 
         """
         if self._entries == NULL:
@@ -524,7 +595,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
     def __hash__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: B = random_matrix(GF(127),3,3)
             sage: B.set_immutable()
@@ -546,7 +617,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             sage: hash(MS)
             143
 
-        TEST::
+        TESTS::
 
             sage: A = matrix(GF(2),2,0)
             sage: hash(A)
@@ -644,7 +715,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
                     for j in range(self._ncols):
                         row_um[j] = <mod_int>row_self[j]
 
-            s = PyString_FromStringAndSize(<char*>buf, word_size * self._nrows * self._ncols)
+            s = PyBytes_FromStringAndSize(<char*>buf, word_size * self._nrows * self._ncols)
         finally:
             sig_free(buf)
             sig_off()
@@ -720,7 +791,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             word_size, little_endian_data, s = data
             expectedlen = word_size * self._nrows * self._ncols
 
-            PyString_AsStringAndSize(s, &buf, &buflen)
+            PyBytes_AsStringAndSize(s, &buf, &buflen)
             if buflen != expectedlen:
                 raise ValueError("incorrect size in matrix pickle (expected %d, got %d)"%(expectedlen, buflen))
 
@@ -832,7 +903,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
     def __copy__(self):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(127), 100, 100)
             sage: copy(A) == A
@@ -1316,7 +1387,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
         - ``algorithm`` - 'generic', 'linbox' or 'all' (default: linbox)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(19), 10, 10); A
             [ 3  1  8 10  5 16 18  9  6  1]
@@ -1374,8 +1445,8 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         TESTS::
 
             sage: for i in range(10):
-            ...       A = random_matrix(GF(17), 50, 50, density=0.1)
-            ...       _ = A.characteristic_polynomial(algorithm='all')
+            ....:     A = random_matrix(GF(17), 50, 50, density=0.1)
+            ....:     _ = A.characteristic_polynomial(algorithm='all')
 
             sage: A = random_matrix(GF(19), 0, 0)
             sage: A.minimal_polynomial()
@@ -1493,7 +1564,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
              default, unless you first type
              ``proof.linear_algebra(False)``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(17), 10, 10); A
             [ 2 14  0 15 11 10 16  2  9  4]
@@ -1643,7 +1714,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
         - ``var`` - a variable name
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(19), 10, 10); A
             [ 3  1  8 10  5 16 18  9  6  1]
@@ -1871,9 +1942,9 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             (0, 1)
 
             sage: for p in (3,17,97,127,1048573):
-            ...      for i in range(10):
-            ...          A = random_matrix(GF(3), 100, 100)
-            ...          A.echelonize(algorithm='all')
+            ....:    for i in range(10):
+            ....:        A = random_matrix(GF(3), 100, 100)
+            ....:        A.echelonize(algorithm='all')
         """
         x = self.fetch('in_echelon_form')
         if not x is None:
@@ -2032,7 +2103,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         """
         Transforms self in place to its Hessenberg form.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(17), 10, 10, density=0.1); A
             [ 0  0  0  0 12  0  0  0  0  0]
@@ -2129,7 +2200,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
            ints, where the constant term of the characteristic
            polynomial is the 0th coefficient of the vector.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(17), 10, 10, density=0.1); A
             [ 0  0  0  0 12  0  0  0  0  0]
@@ -2449,7 +2520,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         - ``multiple`` - finite field element
         - ``start_col`` - integer
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(GF(19), 4, 4, range(16)); A
             [ 0  1  2  3]
@@ -2537,7 +2608,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         Add ``multiple`` times ``self[row_from]`` to ``self[row_to]``
         statting in column ``start_col``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(37), 10, 10); A
             [24 15  7 27 32 34 16 32 25 23]
@@ -2598,7 +2669,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         Add ``multiple`` times ``self[row_from]`` to ``self[row_to]``
         statting in column ``start_col``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(37), 10, 10); A
             [24 15  7 27 32 34 16 32 25 23]
@@ -2918,7 +2989,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
         - ``ncols`` - integer
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(GF(127), 4, 4, range(16))
             sage: A
@@ -2960,7 +3031,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         """
         Test whether this matrix is zero.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(GF(7), 10, 10, range(100))
             sage: A == 0 # indirect doctest
@@ -2994,72 +3065,5 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         for j in range(self._ncols):
             to[j] = <mod_int>_from[j]
 
-cpdef __matrix_from_rows_of_matrices(X):
-    """
-    Return a matrix whose row ``i`` is constructed from the entries of
-    matrix ``X[i]``.
 
-    INPUT:
-
-    - ``X`` - a nonempty list of matrices of the same size mod a
-       single modulus `n`
-
-    EXAMPLES::
-
-        sage: X = [random_matrix(GF(17), 4, 4) for _ in range(10)]; X
-        [
-        [ 2 14  0 15]  [12 14  3 13]  [ 9 15  8  1]  [ 2 12  6 10]
-        [11 10 16  2]  [10  1 14  6]  [ 5  8 10 11]  [12  0  6  9]
-        [ 9  4 10 14]  [ 2 14 13  7]  [ 5 12  4  9]  [ 7  7  3  8]
-        [ 1 14  3 14], [ 6 14 10  3], [15  2  6 11], [ 2  9  1  5],
-        <BLANKLINE>
-        [12 13  7 16]  [ 5  3 16  2]  [14 15 16  4]  [ 1 15 11  0]
-        [ 7 11 11  1]  [11 10 12 14]  [14  1 12 13]  [16 13  8 14]
-        [ 0  2  0  4]  [ 0  7 16  4]  [ 5  5 16 13]  [13 14 16  4]
-        [ 7  9  8 15], [ 6  5  2  3], [10 12  1  7], [15  6  6  6],
-        <BLANKLINE>
-        [ 4 10 11 15]  [13 12  5  1]
-        [11  2  9 14]  [16 13 16  7]
-        [12  5  4  4]  [12  2  0 11]
-        [ 2  0 12  8], [13 11  6 15]
-        ]
-        sage: X[0]._matrix_from_rows_of_matrices(X) # indirect doctest
-        [ 2 14  0 15 11 10 16  2  9  4 10 14  1 14  3 14]
-        [12 14  3 13 10  1 14  6  2 14 13  7  6 14 10  3]
-        [ 9 15  8  1  5  8 10 11  5 12  4  9 15  2  6 11]
-        [ 2 12  6 10 12  0  6  9  7  7  3  8  2  9  1  5]
-        [12 13  7 16  7 11 11  1  0  2  0  4  7  9  8 15]
-        [ 5  3 16  2 11 10 12 14  0  7 16  4  6  5  2  3]
-        [14 15 16  4 14  1 12 13  5  5 16 13 10 12  1  7]
-        [ 1 15 11  0 16 13  8 14 13 14 16  4 15  6  6  6]
-        [ 4 10 11 15 11  2  9 14 12  5  4  4  2  0 12  8]
-        [13 12  5  1 16 13 16  7 12  2  0 11 13 11  6 15]
-
-    OUTPUT: A single matrix mod ``p`` whose ``i``-th row is ``X[i].list()``.
-
-    .. note::
-
-         Do not call this function directly but use the static method
-         ``Matrix_modn_dense_float/double._matrix_from_rows_of_matrices``
-    """
-    # The code below is just a fast version of the following:
-    ##     from constructor import matrix
-    ##     K = X[0].base_ring()
-    ##     v = sum([y.list() for y in X],[])
-    ##     return matrix(K, len(X), X[0].nrows()*X[0].ncols(), v)
-
-    from matrix_space import MatrixSpace
-    cdef Matrix_modn_dense_template A, T
-    cdef Py_ssize_t i, n, m
-    n = len(X)
-
-    T = X[0]
-    m = T._nrows * T._ncols
-    A = T.__class__.__new__(T.__class__, MatrixSpace(X[0].base_ring(), n, m), 0, 0, 0)
-    A.p = T.p
-
-    for i from 0 <= i < n:
-        T = X[i]
-        memcpy(A._entries + i*m, T._entries, sizeof(celement)*m)
-    return A
 

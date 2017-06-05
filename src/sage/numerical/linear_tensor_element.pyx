@@ -115,7 +115,7 @@ cdef class LinearTensor(ModuleElement):
         elements) of the variable represented by the keys (which are
         integers). The key ``-1`` corresponds to the constant term.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram().linear_functions_parent().tensor(RDF^2)
             sage: lt = p({0:[1,2], 3:[4,5]})
@@ -139,7 +139,7 @@ cdef class LinearTensor(ModuleElement):
         A constant, that is, an element of the free module factor. The
         coefficient of ``x`` in the linear function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: mip.<b> = MixedIntegerLinearProgram()
             sage: lt = vector([1,2]) * b[3] + vector([4,5]) * b[0] - 5;  lt
@@ -273,7 +273,7 @@ cdef class LinearTensor(ModuleElement):
 
         A :class:`LinearTensor`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.linear_functions import LinearFunctionsParent
             sage: LT = LinearFunctionsParent(RDF).tensor(RDF^2)
@@ -293,7 +293,7 @@ cdef class LinearTensor(ModuleElement):
 
         A :class:`LinearTensor`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.linear_functions import LinearFunctionsParent
             sage: LT = LinearFunctionsParent(RDF).tensor(RDF^2)
@@ -317,7 +317,7 @@ cdef class LinearTensor(ModuleElement):
 
         A :class:`LinearTensor`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.linear_functions import LinearFunctionsParent
             sage: LT = LinearFunctionsParent(RDF).tensor(RDF^2)
@@ -343,7 +343,7 @@ cdef class LinearTensor(ModuleElement):
 
         A :class:`LinearTensor`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.linear_functions import LinearFunctionsParent
             sage: LT = LinearFunctionsParent(RDF).tensor(RDF^2)

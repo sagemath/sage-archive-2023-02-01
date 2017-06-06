@@ -9,12 +9,6 @@ GF(2^k) for 2 <= k <= 10.
 
  * GNU General Public License Version 2 or later (see src/COPYING)
 
-== Maintainers ==
-
- * Martin Albrecht
-
- SPKG Repository: https://bitbucket.org/malb/m4ri-spkg
-
 == Upstream Contact ==
 
  * Authors: Martin Albrecht

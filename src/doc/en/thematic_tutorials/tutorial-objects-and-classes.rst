@@ -246,7 +246,7 @@ As an element of a vector space, ``el`` has a particular behavior::
 
     sage: 2*el
     2*B[[1, 2, 3]] + 6*B[[1, 3, 2]] + B[[3, 2, 1]]
-    sage: el.support()
+    sage: sorted(el.support())
     [[1, 2, 3], [1, 3, 2], [3, 2, 1]]
     sage: el.coefficient([1, 2, 3])
     1
@@ -282,32 +282,35 @@ Some particular actions modify the data structure of ``el``::
        sage: F = CombinatorialFreeModule(QQ, Permutations())
        sage: el = 3*F([1,3,2])+ F([1,2,3])
        sage: el.rename("foo")
+       sage: el.blah = 42
        sage: el.__class__
         <class 'sage.combinat.free_module.CombinatorialFreeModule_with_category.element_class'>
        sage: el.__dict__
        {'__custom_name': 'foo',
-        '_monomial_coefficients': {[1, 2, 3]: 1, [1, 3, 2]: 3}}
+        'blah': 42}
 
     Lots of Sage objects are not Python objects but compiled Cython
-    objects. Python sees them as builtin objects and you don't have access to
-    the data structure. Examples include integers and permutation group
-    elements::
+    objects. Python sees them as builtin objects and you don't have
+    access to some of their data structure. In particular, we do not
+    see the attribute ``_monomial_coefficients`` in the ``__dict__``
+    above. Other examples of compiled Cython objects include integers
+    and permutation group elements::
 
         sage: e = Integer(9)
         sage: type(e)
         <type 'sage.rings.integer.Integer'>
         sage: e.__dict__
-        <dictproxy {'__doc__': ...
-         '_sage_src_lines_': <staticmethod object at 0x...>}>
-        sage: e.__dict__.keys()
-        ['__module__', '_reduction', '__doc__', '_sage_src_lines_']
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'sage.rings.integer.Integer' object has no attribute '__dict__'
 
         sage: id4 = SymmetricGroup(4).one()
         sage: type(id4)
-        <type 'sage.groups.perm_gps.permgroup_element.PermutationGroupElement'>
+        <type 'sage.groups.perm_gps.permgroup_element.SymmetricGroupElement'>
         sage: id4.__dict__
-        <dictproxy {'__doc__': ...
-        '_sage_src_lines_': <staticmethod object at 0x...>}>
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'sage.groups.perm_gps.permgroup_element.SymmetricGroupElement' object has no attribute '__dict__'
 
 .. note::
 
@@ -532,7 +535,7 @@ Summary
 
         sage: class Spoon(AbstractDish):
         ....:     def __init__(self):
-        ....:         print "Building a spoon"
+        ....:         print("Building a spoon")
         ....:         super(Spoon, self).__init__()
         ....:     def __repr__(self):
         ....:         return "A %s spoon"%self.state()

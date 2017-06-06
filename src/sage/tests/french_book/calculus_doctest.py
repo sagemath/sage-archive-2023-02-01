@@ -46,7 +46,7 @@ Sage example in ./calculus.tex, line 110::
 Sage example in ./calculus.tex, line 122::
 
     sage: y = var('y'); u = sin(x) + x*cos(y)
-    sage: v = u.function(x, y); v
+    sage: v = u.function(x,y); v
     (x, y) |--> x*cos(y) + sin(x)
     sage: w(x, y) = u; w
     (x, y) |--> x*cos(y) + sin(x)
@@ -100,7 +100,7 @@ Sage example in ./calculus.tex, line 306::
 Sage example in ./calculus.tex, line 318::
 
     sage: f = sqrt(abs(x)^2); f.canonicalize_radical()
-    x
+    abs(x)
     sage: f = log(x*y); f.canonicalize_radical()
     log(x) + log(y)
 
@@ -175,8 +175,7 @@ Sage example in ./calculus.tex, line 531::
 Sage example in ./calculus.tex, line 537::
 
     sage: y = var('y'); solve(y^6==y, y)
-    [y == e^(2/5*I*pi), y == e^(4/5*I*pi), y == e^(-4/5*I*pi),
-    y == e^(-2/5*I*pi), y == 1, y == 0]
+    [y == 1/4*sqrt(5) + 1/4*I*sqrt(2*sqrt(5) + 10) - 1/4, y == -1/4*sqrt(5) + 1/4*I*sqrt(-2*sqrt(5) + 10) - 1/4, y == -1/4*sqrt(5) - 1/4*I*sqrt(-2*sqrt(5) + 10) - 1/4, y == 1/4*sqrt(5) - 1/4*I*sqrt(2*sqrt(5) + 10) - 1/4, y == 1, y == 0]
 
 Sage example in ./calculus.tex, line 544::
 
@@ -252,7 +251,7 @@ Sage example in ./calculus.tex, line 680::
 
 Sage example in ./calculus.tex, line 706::
 
-    sage: y = function('y', x)
+    sage: y = function('y')(x)
     sage: desolve(diff(y,x,x) + x*diff(y,x) + y == 0, y, [0,0,1])
     -1/2*I*sqrt(2)*sqrt(pi)*erf(1/2*I*sqrt(2)*x)*e^(-1/2*x^2)
 
@@ -406,12 +405,12 @@ Sage example in ./calculus.tex, line 1163::
 
     sage: diff(sin(x^2), x)
     2*x*cos(x^2)
-    sage: function('f', x); function('g', x); diff(f(g(x)), x)
+    sage: function('f')(x); function('g')(x); diff(f(g(x)), x)
     f(x)
     g(x)
-    D[0](f)(g(x))*D[0](g)(x)
+    D[0](f)(g(x))*diff(g(x), x)
     sage: diff(ln(f(x)), x)
-    D[0](f)(x)/f(x)
+    diff(f(x), x)/f(x)
 
 Sage example in ./calculus.tex, line 1180::
 
@@ -569,7 +568,7 @@ Sage example in ./sol/calculus.tex, line 34::
     sage: phi(h) = (g(a+3*h) - 3*g(a+2*h) \
     ....:           + 3*g(a+h) - g(a)) / h^3
     sage: phi(h).expand()
-    D[0, 0, 0](f)(a)
+    diff(f(a), a, a, a)
 
 Sage example in ./sol/calculus.tex, line 57::
 
@@ -579,7 +578,7 @@ Sage example in ./sol/calculus.tex, line 57::
     sage: phi(h) = sum(binomial(n,k)*(-1)^(n-k) \
     ....:          * g(a+k*h) for k in (0..n)) / h^n
     sage: phi(h).expand()
-    D[0, 0, 0, 0, 0, 0, 0](f)(a)
+    diff(f(a), a, a, a, a, a, a, a)
 
 Sage example in ./sol/calculus.tex, line 82::
 
@@ -700,7 +699,7 @@ Sage example in ./sol/calculus.tex, line 365::
     sage: i = vector([1, 0, 0])
     sage: S = (r1 - r3) * R2 + (r3 - r2) * R1 +   (r2 - r1) * R3
     sage: V =  S + e * i.cross_product(D)
-    sage: map(lambda x:x.simplify_full(), V)
+    sage: [x.simplify_full() for x in V]
     [0, 0, 0]
 
 Sage example in ./sol/calculus.tex, line 390::
@@ -708,7 +707,7 @@ Sage example in ./sol/calculus.tex, line 390::
     sage: N = r3 * R1.cross_product(R2) + r1 * R2.cross_product(R3)\
     ....:   + r2 * R3.cross_product(R1)
     sage: W =  p * S + e * i.cross_product(N)
-    sage: print(map(lambda x:x.simplify_full(), W))
+    sage: [x.simplify_full() for x in W]
     [0, 0, 0]
 
 Sage example in ./sol/calculus.tex, line 409::

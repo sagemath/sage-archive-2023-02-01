@@ -30,7 +30,7 @@ from sage.combinat.subset import SubsetsSorted
 from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
 from sage.combinat.ncsf_qsym.ncsf import NonCommutativeSymmetricFunctions
 
-class DescentAlgebra(Parent, UniqueRepresentation):
+class DescentAlgebra(UniqueRepresentation, Parent):
     r"""
     Solomon's descent algebra.
 
@@ -65,15 +65,15 @@ class DescentAlgebra(Parent, UniqueRepresentation):
 
     REFERENCES:
 
-    .. [GR1989] C. Reutenauer, A. M. Garsia. *A decomposition of Solomon's
+    .. [GR1989] \C. Reutenauer, A. M. Garsia. *A decomposition of Solomon's
        descent algebra.* Adv. Math. **77** (1989).
        http://www.lacim.uqam.ca/~christo/Publi%C3%A9s/1989/Decomposition%20Solomon.pdf
 
-    .. [Atkinson] M. D. Atkinson. *Solomon's descent algebra revisited.*
+    .. [Atkinson] \M. D. Atkinson. *Solomon's descent algebra revisited.*
        Bull. London Math. Soc. 24 (1992) 545-551.
        http://www.cs.otago.ac.nz/staffpriv/mike/Papers/Descent/DescAlgRevisited.pdf
 
-    .. [MR-Desc] C. Malvenuto, C. Reutenauer, *Duality between
+    .. [MR-Desc] \C. Malvenuto, C. Reutenauer, *Duality between
        quasi-symmetric functions and the Solomon descent algebra*,
        Journal of Algebra 177 (1995), no. 3, 967-982.
        http://www.lacim.uqam.ca/~christo/Publi%C3%A9s/1995/Duality.pdf
@@ -294,7 +294,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
                 sage: DA = DescentAlgebra(QQ, 4)
                 sage: D = DA.D()
                 sage: B = DA.B()
-                sage: map(B, D.basis()) # indirect doctest
+                sage: list(map(B, D.basis()))  # indirect doctest
                 [B[4],
                  B[1, 3] - B[4],
                  B[2, 2] - B[4],
@@ -502,7 +502,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
                 sage: DA = DescentAlgebra(QQ, 4)
                 sage: B = DA.B()
                 sage: I = DA.I()
-                sage: map(I, B.basis()) # indirect doctest
+                sage: list(map(I, B.basis()))  # indirect doctest
                 [I[1, 1, 1, 1],
                  1/2*I[1, 1, 1, 1] + I[1, 1, 2],
                  1/2*I[1, 1, 1, 1] + I[1, 2, 1],
@@ -540,7 +540,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
                 sage: DA = DescentAlgebra(QQ, 4)
                 sage: B = DA.B()
                 sage: D = DA.D()
-                sage: map(D, B.basis()) # indirect doctest
+                sage: list(map(D, B.basis()))  # indirect doctest
                 [D{} + D{1} + D{1, 2} + D{1, 2, 3}
                   + D{1, 3} + D{2} + D{2, 3} + D{3},
                  D{} + D{1} + D{1, 2} + D{2},
@@ -558,7 +558,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
                 sage: DA = DescentAlgebra(QQ, 0)
                 sage: B = DA.B()
                 sage: D = DA.D()
-                sage: map(D, B.basis())
+                sage: list(map(D, B.basis()))
                 [D{}]
             """
             D = self.realization_of().D()
@@ -580,7 +580,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
 
                 sage: B = DescentAlgebra(QQ, 4).B()
                 sage: S = NonCommutativeSymmetricFunctions(QQ).Complete()
-                sage: map(S, B.basis()) # indirect doctest
+                sage: list(map(S, B.basis()))  # indirect doctest
                 [S[1, 1, 1, 1],
                  S[1, 1, 2],
                  S[1, 2, 1],
@@ -755,7 +755,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
                 sage: DA = DescentAlgebra(QQ, 4)
                 sage: B = DA.B()
                 sage: I = DA.I()
-                sage: map(B, I.basis()) # indirect doctest
+                sage: list(map(B, I.basis()))  # indirect doctest
                 [B[1, 1, 1, 1],
                  -1/2*B[1, 1, 1, 1] + B[1, 1, 2],
                  -1/2*B[1, 1, 1, 1] + B[1, 2, 1],
@@ -788,7 +788,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
 
         def idempotent(self, la):
             """
-            Return the idemponent corresponding to the partition ``la``
+            Return the idempotent corresponding to the partition ``la``
             of `n`.
 
             EXAMPLES::

@@ -1,3 +1,5 @@
+# distutils: language = c++
+# distutils: libraries = ppl m
 r"""
 Cython wrapper for the Parma Polyhedra Library (PPL)
 
@@ -80,7 +82,7 @@ documentation, in particular:
       5
 
 * PPL supports (topologically) closed polyhedra
-  (:class:`C_Polyhedron`) as well as not neccesarily closed polyhedra
+  (:class:`C_Polyhedron`) as well as not necessarily closed polyhedra
   (:class:`NNC_Polyhedron`). Only the latter allows closure points
   (=points of the closure but not of the actual polyhedron) and strict
   inequalities (``>`` and ``<``)
@@ -100,7 +102,7 @@ Finally, PPL is fast. For example, here is the permutahedron of 5
 basis vectors::
 
     sage: from sage.libs.ppl import Variable, Generator_System, point, C_Polyhedron
-    sage: basis = range(0,5)
+    sage: basis = list(range(5))
     sage: x = [ Variable(i) for i in basis ]
     sage: gs = Generator_System();
     sage: for coeff in Permutations(basis):
@@ -113,7 +115,7 @@ measures it to be 90 microseconds on sage.math). Below we do the same
 computation with cddlib, which needs more than 3 seconds on the same
 hardware::
 
-    sage: basis = range(0,5)
+    sage: basis = list(range(5))
     sage: gs = [ tuple(coeff) for coeff in Permutations(basis) ]
     sage: Polyhedron(vertices=gs, backend='cdd')  # long time (3s on sage.math, 2011)
     A 4-dimensional polyhedron in QQ^5 defined as the convex hull of 120 vertices
@@ -124,7 +126,7 @@ Since Python and C++ syntax are not always compatible, there are
 necessarily some differences. The main ones are:
 
 * The :class:`Linear_Expression` also accepts an iterable as input for
-  the homogeneous cooefficients.
+  the homogeneous coefficients.
 
 * :class:`Polyhedron` and its subclasses as well as
   :class:`Generator_System` and :class:`Constraint_System` can be set
@@ -146,15 +148,18 @@ AUTHORS:
 #  the License, or (at youroption) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
+
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.structure.sage_object cimport SageObject
 from sage.libs.gmp.mpz cimport *
+from sage.libs.gmpxx cimport mpz_class
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 
-include 'sage/ext/interrupt.pxi'
-
 from libcpp cimport bool as cppbool
+from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 
 ####################################################
 # Potentially expensive operations:
@@ -163,14 +168,6 @@ from libcpp cimport bool as cppbool
 # These can only be triggered by methods in the Polyhedron class
 # they need to be wrapped in sig_on() / sig_off()
 ####################################################
-cdef extern from "gmpxx.h":
-    cdef cppclass mpz_class:
-        mpz_class()
-        mpz_class(int i)
-        mpz_class(mpz_t z)
-        mpz_class(mpz_class)
-        mpz_t get_mpz_t()
-
 
 ####################################################
 # PPL can use floating-point arithmetic to compute integers
@@ -205,6 +202,7 @@ cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library":
     ctypedef size_t PPL_dimension_type  "Parma_Polyhedra_Library::dimension_type"
     ctypedef mpz_class PPL_Coefficient  "Parma_Polyhedra_Library::Coefficient"
     cdef cppclass PPL_Variable          "Parma_Polyhedra_Library::Variable"
+    cdef cppclass PPL_Variables_Set     "Parma_Polyhedra_Library::Variables_Set"
     cdef cppclass PPL_Linear_Expression "Parma_Polyhedra_Library::Linear_Expression"
     cdef cppclass PPL_Generator         "Parma_Polyhedra_Library::Generator"
     cdef cppclass PPL_Generator_System  "Parma_Polyhedra_Library::Generator_System"
@@ -222,6 +220,16 @@ cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library":
         PPL_dimension_type id()
         bint OK()
         PPL_dimension_type space_dimension()
+
+    cdef cppclass PPL_Variables_Set:
+        PPL_Variables_Set()
+        PPL_Variables_Set(PPL_Variable v)
+        PPL_Variables_Set(PPL_Variable v, PPL_Variable w)
+        PPL_dimension_type space_dimension()
+        void insert(PPL_Variable v)
+        size_t size()
+        void ascii_dump()
+        bint OK()
 
     cdef cppclass PPL_Linear_Expression:
         PPL_Linear_Expression()
@@ -323,7 +331,7 @@ cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library":
     cdef enum PPL_Degenerate_Element:
         UNIVERSE, EMPTY
 
-    cdef enum PPL_Optimization_Mode:
+    cdef enum PPL_Optimization_Mode "Parma_Polyhedra_Library::Optimization_Mode":
         MINIMIZATION, MAXIMIZATION
 
     cdef enum MIP_Problem_Status:
@@ -420,6 +428,7 @@ cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library":
         void add_space_dimensions_and_embed(PPL_dimension_type m) except +ValueError
         void add_constraint(PPL_Constraint &c) except +ValueError
         void add_constraints(PPL_Constraint_System &cs) except +ValueError
+        void add_to_integer_space_dimensions(PPL_Variables_Set &i_vars) except +ValueError
         void set_objective_function(PPL_Linear_Expression &obj) except +ValueError
         void set_optimization_mode(PPL_Optimization_Mode mode)
         PPL_Optimization_Mode optimization_mode()
@@ -465,6 +474,7 @@ cdef extern from "ppl_shim.hh":
 ### Forward declarations ###########################
 cdef class _mutable_or_immutable(SageObject)
 cdef class Variable(object)
+cdef class Variables_Set(object)
 cdef class Linear_Expression(object)
 cdef class Generator(object)
 cdef class Generator_System(_mutable_or_immutable)
@@ -677,7 +687,7 @@ cdef class MIP_Problem(_mutable_or_immutable):
 
     def __cinit__(self, PPL_dimension_type dim = 0, *args):
         """
-        The Cython constructor.
+        Constructor
 
         TESTS::
 
@@ -686,26 +696,55 @@ cdef class MIP_Problem(_mutable_or_immutable):
             A MIP_Problem
             Maximize: 0
             Subject to constraints
-        """
-        if len(args) == 0:
-            self.thisptr = new PPL_MIP_Problem(dim)
-        elif len(args) == 2:
-            cs = <Constraint_System>args[0]
-            obj = <Linear_Expression>args[1]
-            self.thisptr = new PPL_MIP_Problem(dim, cs.thisptr[0], obj.thisptr[0], MAXIMIZATION)
-        elif len(args) == 3:
-            cs = <Constraint_System>args[0]
-            obj = <Linear_Expression>args[1]
 
-            mode = str(args[2])
-            if mode == 'maximization':
-                self.thisptr = new PPL_MIP_Problem(dim, cs.thisptr[0], obj.thisptr[0], MAXIMIZATION)
-            elif mode == 'minimization':
-                self.thisptr = new PPL_MIP_Problem(dim, cs.thisptr[0], obj.thisptr[0], MINIMIZATION)
-            else:
-                raise ValueError, 'Unknown value: mode='+str(mode)+'.'
+        Check that :trac:`19903` is fixed::
+
+            sage: from sage.libs.ppl import Variable, Constraint_System, MIP_Problem
+            sage: x = Variable(0)
+            sage: y = Variable(1)
+            sage: cs = Constraint_System()
+            sage: cs.insert(x + y <= 2)
+            sage: _ = MIP_Problem(2, cs, 0)
+            sage: _ = MIP_Problem(2, cs, x)
+            sage: _ = MIP_Problem(2, None, None)
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot convert NoneType to sage.libs.ppl.Constraint_System
+            sage: _ = MIP_Problem(2, cs, 'hey')
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert 'hey' to an integer
+            sage: _ = MIP_Problem(2, cs, x, 'middle')
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown mode 'middle'
+        """
+        cdef Constraint_System cs
+        cdef Linear_Expression obj
+        cdef PPL_Optimization_Mode mode
+
+        if not args:
+            self.thisptr = new PPL_MIP_Problem(dim)
+
+        elif 2 <= len(args) <= 3:
+            cs = <Constraint_System?>args[0]
+            try:
+                obj = <Linear_Expression?> args[1]
+            except TypeError:
+                obj = Linear_Expression(args[1])
+
+            mode = MAXIMIZATION
+            if len(args) == 3:
+                if args[2] == 'maximization':
+                    mode = MAXIMIZATION
+                elif args[2] == 'minimization':
+                    mode = MINIMIZATION
+                else:
+                    raise ValueError('unknown mode {!r}'.format(args[2]))
+            self.thisptr = new PPL_MIP_Problem(dim, cs.thisptr[0], obj.thisptr[0], mode)
+
         else:
-            raise ValueError, 'Cannot initialize with '+str(args)+'.'
+            raise ValueError('cannot initialize from {!r}'.format(args))
 
     def __dealloc__(self):
         """
@@ -974,6 +1013,34 @@ cdef class MIP_Problem(_mutable_or_immutable):
         finally:
             sig_off()
 
+    def add_to_integer_space_dimensions(self, Variables_Set i_vars):
+        """
+        Sets the variables whose indexes are in set `i_vars` to be integer space dimensions.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Variables_Set, Constraint_System, MIP_Problem
+            sage: x = Variable(0)
+            sage: y = Variable(1)
+            sage: cs = Constraint_System()
+            sage: cs.insert( x >= 0)
+            sage: cs.insert( y >= 0 )
+            sage: cs.insert( 3 * x + 5 * y <= 10 )
+            sage: m = MIP_Problem(2)
+            sage: m.set_objective_function(x + y)
+            sage: m.add_constraints(cs)
+            sage: i_vars = Variables_Set(x, y)
+            sage: m.add_to_integer_space_dimensions(i_vars)
+            sage: m.optimal_value()
+            3
+        """
+        self.assert_mutable("The MIP_Problem is not mutable!");
+        sig_on()
+        try:
+            self.thisptr.add_to_integer_space_dimensions(i_vars.thisptr[0])
+        finally:
+            sig_off()
+
     def set_objective_function(self, Linear_Expression obj):
         """
         Sets the objective function to obj.
@@ -1030,7 +1097,7 @@ cdef class MIP_Problem(_mutable_or_immutable):
         elif mode == 'maximization':
             self.thisptr.set_optimization_mode(MAXIMIZATION)
         else:
-            raise ValueError, 'Unknown value: mode='+str(mode)+'.'
+            raise ValueError('Unknown value: mode={}.'.format(mode))
 
     def is_satisfiable(self):
         """
@@ -1217,7 +1284,7 @@ cdef class Polyhedron(_mutable_or_immutable):
             ...
             NotImplementedError: The Polyhedron class is abstract, you must not instantiate it.
         """
-        raise NotImplementedError, 'The Polyhedron class is abstract, you must not instantiate it.'
+        raise NotImplementedError('The Polyhedron class is abstract, you must not instantiate it.')
 
 
     def _repr_(self):
@@ -1566,7 +1633,7 @@ cdef class Polyhedron(_mutable_or_immutable):
         if isinstance(arg, Constraint):
             return self._relation_with_constraint(arg)
         else:
-            raise TypeError, 'Argument must be Generator or a Constraint'
+            raise TypeError('Argument must be Generator or a Constraint')
 
 
     def is_empty(self):
@@ -2459,7 +2526,7 @@ cdef class Polyhedron(_mutable_or_immutable):
         This method assigns the intersection to ``self`` and does not
         return anything.
 
-        Raises a ``ValueError`` if ``self`` and and ``y`` are
+        Raises a ``ValueError`` if ``self`` and ``y`` are
         topology-incompatible or dimension-incompatible.
 
         EXAMPLES::
@@ -2509,7 +2576,7 @@ cdef class Polyhedron(_mutable_or_immutable):
         This method assigns the poly-hull to ``self`` and does not
         return anything.
 
-        Raises a ``ValueError`` if ``self`` and and ``y`` are
+        Raises a ``ValueError`` if ``self`` and ``y`` are
         topology-incompatible or dimension-incompatible.
 
         EXAMPLES::
@@ -2574,7 +2641,7 @@ cdef class Polyhedron(_mutable_or_immutable):
         This method assigns the poly-difference to ``self`` and does
         not return anything.
 
-        Raises a ``ValueError`` if ``self`` and and ``y`` are
+        Raises a ``ValueError`` if ``self`` and ``y`` are
         topology-incompatible or dimension-incompatible.
 
         EXAMPLES::
@@ -2636,7 +2703,7 @@ cdef class Polyhedron(_mutable_or_immutable):
 
         .. NOTE::
 
-            The modified polyhedron is not neccessarily a lattice
+            The modified polyhedron is not necessarily a lattice
             polyhedron; Some vertices will, in general, still be
             rational. Lattice points interior to the polyhedron may be
             lost in the process.
@@ -2802,7 +2869,7 @@ cdef class Polyhedron(_mutable_or_immutable):
         r"""
         Assign to ``self`` the concatenation of ``self`` and ``y``.
 
-        This functions returns the Cartiesian product of ``self`` and
+        This function returns the Cartesian product of ``self`` and
         ``y``.
 
         Viewing a polyhedron as a set of tuples (its points), it is
@@ -2923,7 +2990,7 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: sage_cmd += 'p.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
-            sage: print err  # long time
+            sage: print(err)  # long time
             space_dim 2
             -ZE -EM  +CM +GM  +CS +GS  -CP -GP  -SC +SG
             con_sys (up-to-date)
@@ -3010,6 +3077,38 @@ cdef class Polyhedron(_mutable_or_immutable):
         return result
 
 
+    def __hash__(self):
+        r"""
+        Hash value for polyhedra.
+
+        TESTS::
+
+            sage: from sage.libs.ppl import Constraint_System, Variable, C_Polyhedron
+            sage: x = Variable(0)
+            sage: p = C_Polyhedron( 5*x >= 3 )
+            sage: p.set_immutable()
+            sage: hash(p)
+            1
+
+            sage: y = Variable(1)
+            sage: cs = Constraint_System()
+            sage: cs.insert( x >= 0 )
+            sage: cs.insert( y >= 0 )
+            sage: p = C_Polyhedron(cs)
+            sage: p.set_immutable()
+            sage: hash(p)
+            2
+
+            sage: hash(C_Polyhedron(x >= 0))
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable polyhedra are unhashable
+        """
+        if self.is_mutable():
+            raise TypeError("mutable polyhedra are unhashable")
+        # TODO: the hash code from PPL looks like being the dimension!
+        return self.thisptr[0].hash_code()
+
     def __richcmp__(Polyhedron lhs, Polyhedron rhs, op):
         r"""
         Comparison for polyhedra.
@@ -3033,17 +3132,17 @@ cdef class Polyhedron(_mutable_or_immutable):
         """
         cdef result
         sig_on()
-        if op==0:      # <   0
+        if op == Py_LT:
             result = rhs.strictly_contains(lhs)
-        elif op==1:    # <=  1
+        elif op == Py_LE:
             result = rhs.contains(lhs)
-        elif op==2:    # ==  2
+        elif op == Py_EQ:
             result = (lhs.thisptr[0] == rhs.thisptr[0])
-        elif op==4:    # >   4
+        elif op == Py_GT:
             result = lhs.strictly_contains(rhs)
-        elif op==5:    # >=  5
+        elif op == Py_GE:
             result = lhs.contains(rhs)
-        elif op==3:    # !=  3
+        elif op == Py_NE:
             result = (lhs.thisptr[0] != rhs.thisptr[0])
         else:
             assert False  # unreachable
@@ -3174,7 +3273,7 @@ cdef class C_Polyhedron(Polyhedron):
             dim = int(arg)
             assert dim>=0
         except ValueError:
-            raise ValueError, 'Cannot initialize C_Polyhedron with '+str(arg)+'.'
+            raise ValueError('Cannot initialize C_Polyhedron with '+str(arg)+'.')
         degenerate_element = degenerate_element.lower()
         if degenerate_element=='universe':
             self.thisptr = new PPL_C_Polyhedron(<PPL_dimension_type>dim, UNIVERSE)
@@ -3183,7 +3282,7 @@ cdef class C_Polyhedron(Polyhedron):
             self.thisptr = new PPL_C_Polyhedron(<PPL_dimension_type>dim, EMPTY)
             return
         else:
-            raise ValueError, 'Unknown value: degenerate_element='+str(degenerate_element)+'.'
+            raise ValueError('Unknown value: degenerate_element='+str(degenerate_element)+'.')
 
 
     def __init__(self, *args):
@@ -3354,7 +3453,7 @@ cdef class NNC_Polyhedron(Polyhedron):
             dim = int(arg)
             assert dim>=0
         except ValueError:
-            raise ValueError, 'Cannot initialize NNC_Polyhedron with '+str(arg)+'.'
+            raise ValueError('Cannot initialize NNC_Polyhedron with '+str(arg)+'.')
         degenerate_element = degenerate_element.lower()
         if degenerate_element=='universe':
             self.thisptr = new PPL_NNC_Polyhedron(<PPL_dimension_type>dim, UNIVERSE)
@@ -3363,7 +3462,7 @@ cdef class NNC_Polyhedron(Polyhedron):
             self.thisptr = new PPL_NNC_Polyhedron(<PPL_dimension_type>dim, EMPTY)
             return
         else:
-            raise ValueError, 'Unknown value: degenerate_element='+str(degenerate_element)+'.'
+            raise ValueError('Unknown value: degenerate_element='+str(degenerate_element)+'.')
 
 
     def __init__(self, *args):
@@ -3535,7 +3634,7 @@ cdef class Variable(object):
         r"""
         Return the dimension of the vector space enclosing ``self``.
 
-        OUPUT:
+        OUTPUT:
 
         Integer. The returned value is ``self.id()+1``.
 
@@ -3720,6 +3819,155 @@ cdef class Variable(object):
 
 
 ####################################################
+### Variables_Set ##################################
+####################################################
+
+cdef class Variables_Set(object):
+    r"""
+    Wrapper for PPL's ``Variables_Set`` class.
+
+    A set of variables' indexes.
+
+    EXAMPLES:
+
+    Build the empty set of variable indexes::
+
+            sage: from sage.libs.ppl import Variable, Variables_Set
+            sage: Variables_Set()
+            Variables_Set of cardinality 0
+
+    Build the singleton set of indexes containing the index of the variable::
+
+            sage: v123 = Variable(123)
+            sage: Variables_Set(v123)
+            Variables_Set of cardinality 1
+
+    Build the set of variables' indexes in the range from one variable to
+    another variable::
+
+            sage: v127 = Variable(127)
+            sage: Variables_Set(v123,v127)
+            Variables_Set of cardinality 5
+    """
+
+    cdef PPL_Variables_Set *thisptr
+
+    def __cinit__(self, *args):
+        """
+        The Cython constructor.
+
+        See :class:`Variables_Set` for documentation.
+
+        TESTS::
+
+            sage: from sage.libs.ppl import Variable, Variables_Set
+            sage: Variables_Set()
+            Variables_Set of cardinality 0
+        """
+        if len(args)==0:
+            self.thisptr = new PPL_Variables_Set()
+        elif len(args)==1:
+            v = <Variable?>args[0]
+            self.thisptr = new PPL_Variables_Set(v.thisptr[0])
+        elif len(args)==2:
+            v = <Variable?>args[0]
+            w = <Variable?>args[1]
+            self.thisptr = new PPL_Variables_Set(v.thisptr[0], w.thisptr[0])
+
+    def __dealloc__(self):
+        """
+        The Cython destructor
+        """
+        del self.thisptr
+
+    def OK(self):
+        """
+        Checks if all the invariants are satisfied.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Variables_Set
+            sage: v123 = Variable(123)
+            sage: S = Variables_Set(v123)
+            sage: S.OK()
+            True
+        """
+        return self.thisptr.OK()
+
+    def space_dimension(self):
+        r"""
+        Returns the dimension of the smallest vector space enclosing all the variables whose indexes are in the set.
+
+        OUTPUT:
+
+        Integer.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Variables_Set
+            sage: v123 = Variable(123)
+            sage: S = Variables_Set(v123)
+            sage: S.space_dimension()
+            124
+        """
+        return self.thisptr.space_dimension()
+
+    def insert(self, Variable v):
+        r"""
+        Inserts the index of variable `v` into the set.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Variables_Set
+            sage: S = Variables_Set()
+            sage: v123 = Variable(123)
+            sage: S.insert(v123)
+            sage: S.space_dimension()
+            124
+        """
+        self.thisptr.insert(v.thisptr[0])
+
+    def ascii_dump(self):
+        r"""
+        Write an ASCII dump to stderr.
+
+        EXAMPLES::
+
+            sage: sage_cmd  = 'from sage.libs.ppl import Variable, Variables_Set\n'
+            sage: sage_cmd += 'v123 = Variable(123)\n'
+            sage: sage_cmd += 'S = Variables_Set(v123)\n'
+            sage: sage_cmd += 'S.ascii_dump()\n'
+            sage: from sage.tests.cmdline import test_executable
+            sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
+            sage: print(err)  # long time
+            <BLANKLINE>
+            variables( 1 )
+            123
+        """
+        self.thisptr.ascii_dump()
+
+    def __repr__(self):
+        """
+        Return a string representation.
+
+        OUTPUT:
+
+        String.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Variables_Set
+            sage: S = Variables_Set()
+            sage: S.__repr__()
+            'Variables_Set of cardinality 0'
+        """
+        return 'Variables_Set of cardinality {}'.format(self.thisptr.size())
+
+####################################################
 ### Linear_Expression ##############################
 ####################################################
 cdef class Linear_Expression(object):
@@ -3799,7 +4047,7 @@ cdef class Linear_Expression(object):
             b = args[1]
             ex = Linear_Expression(0)
             for i in range(0,len(a)):
-                ex = ex + Variable(i).__mul__(Integer(a[i]))
+                ex += Variable(i) * Integer(a[i])
             arg = ex + b
         elif len(args)==1:
             arg = args[0]
@@ -3822,7 +4070,7 @@ cdef class Linear_Expression(object):
             self.thisptr = new PPL_Linear_Expression(PPL_Coefficient(c.value))
             return
         except ValueError:
-            raise ValueError, 'Cannot initialize with '+str(args)+'.'
+            raise ValueError('Cannot initialize with {}.'.format(args))
 
 
     def __dealloc__(self):
@@ -3979,7 +4227,7 @@ cdef class Linear_Expression(object):
             sage: sage_cmd += 'e.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
-            sage: print err  # long time
+            sage: print(err)  # long time
             size 3 1 3 2
         """
         self.thisptr.ascii_dump()
@@ -4873,7 +5121,7 @@ cdef class Generator(object):
             sage: sage_cmd += 'p.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
-            sage: print err  # long time
+            sage: print(err)  # long time
             size 3 1 3 2 P (C)
         """
         self.thisptr.ascii_dump()
@@ -5068,7 +5316,7 @@ cdef class Generator_System(_mutable_or_immutable):
             for generator in arg:
                 self.insert(generator)
             return
-        raise ValueError, 'Cannot initialize with '+str(arg)+'.'
+        raise ValueError('Cannot initialize with '+str(arg)+'.')
 
 
     def __dealloc__(self):
@@ -5174,7 +5422,7 @@ cdef class Generator_System(_mutable_or_immutable):
             sage: sage_cmd += 'gs.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
-            sage: print err  # long time
+            sage: print(err)  # long time
             topology NECESSARILY_CLOSED
             1 x 2 SPARSE (sorted)
             index_first_pending 1
@@ -5264,7 +5512,7 @@ cdef class Generator_System(_mutable_or_immutable):
         """
         if k < 0:
             raise IndexError('index must be nonnegative')
-        iterator = self.__iter__()
+        iterator = iter(self)
         try:
             for i in range(k):
                 next(iterator)
@@ -5292,7 +5540,7 @@ cdef class Generator_System(_mutable_or_immutable):
             'Generator_System {point(3/1, 2/1), ray(1, 0)}'
         """
         s = 'Generator_System {'
-        s += ', '.join([ g.__repr__() for g in self ])
+        s += ', '.join([ repr(g) for g in self ])
         s += '}'
         return s
 
@@ -5408,17 +5656,17 @@ cdef _wrap_Constraint(PPL_Constraint constraint):
 cdef _make_Constraint_from_richcmp(lhs_, rhs_, op):
     cdef Linear_Expression lhs = Linear_Expression(lhs_)
     cdef Linear_Expression rhs = Linear_Expression(rhs_)
-    if op==0:      # <   0
+    if op == Py_LT:
         return _wrap_Constraint(lhs.thisptr[0] <  rhs.thisptr[0])
-    elif op==1:    # <=  1
+    elif op == Py_LE:
         return _wrap_Constraint(lhs.thisptr[0] <= rhs.thisptr[0])
-    elif op==2:    # ==  2
+    elif op == Py_EQ:
         return _wrap_Constraint(lhs.thisptr[0] == rhs.thisptr[0])
-    elif op==4:    # >   4
+    elif op == Py_GT:
         return _wrap_Constraint(lhs.thisptr[0] >  rhs.thisptr[0])
-    elif op==5:    # >=  5
+    elif op == Py_GE:
         return _wrap_Constraint(lhs.thisptr[0] >= rhs.thisptr[0])
-    elif op==3:    # !=  3
+    elif op == Py_NE:
         raise NotImplementedError
     else:
         assert(False)
@@ -5525,7 +5773,7 @@ cdef class Constraint(object):
                   for x in [Variable(i)
                             for i in range(0,self.space_dimension())] ])
         e += self.inhomogeneous_term()
-        s = e.__repr__()
+        s = repr(e)
         t = self.type()
         if t=='equality':
             s += '==0'
@@ -5862,7 +6110,7 @@ cdef class Constraint(object):
             sage: sage_cmd += 'e.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
-            sage: print err  # long time
+            sage: print(err)  # long time
             size 4 1 3 2 -1 > (NNC)
         """
         self.thisptr.ascii_dump()
@@ -6055,7 +6303,7 @@ cdef class Constraint_System(object):
             for constraint in arg:
                 self.insert(constraint)
             return
-        raise ValueError, 'Cannot initialize with '+str(arg)+'.'
+        raise ValueError('Cannot initialize with '+str(arg)+'.')
 
 
     def __dealloc__(self):
@@ -6208,7 +6456,7 @@ cdef class Constraint_System(object):
             sage: sage_cmd += 'cs.ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
-            sage: print err  # long time
+            sage: print(err)  # long time
             topology NOT_NECESSARILY_CLOSED
             1 x 2 SPARSE (sorted)
             index_first_pending 1
@@ -6298,7 +6546,7 @@ cdef class Constraint_System(object):
         """
         if k < 0:
             raise IndexError('index must be nonnegative')
-        iterator = self.__iter__()
+        iterator = iter(self)
         try:
             for i in range(k):
                 next(iterator)
@@ -6325,7 +6573,7 @@ cdef class Constraint_System(object):
             'Constraint_System {-3*x0-2*x1+2>0, -x0-1>0}'
         """
         s = 'Constraint_System {'
-        s += ', '.join([ c.__repr__() for c in self ])
+        s += ', '.join([ repr(c) for c in self ])
         s += '}'
         return s
 
@@ -6559,7 +6807,7 @@ cdef class Poly_Gen_Relation(object):
             sage: sage_cmd += 'Poly_Gen_Relation.nothing().ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
-            sage: print err  # long time
+            sage: print(err)  # long time
             NOTHING
         """
         self.thisptr.ascii_dump()
@@ -6646,8 +6894,8 @@ cdef class Poly_Con_Relation(object):
         sage: from sage.matrix.constructor import matrix
         sage: m = matrix(5,5)
         sage: for i, rel_i in enumerate(rels):
-        ...       for j, rel_j in enumerate(rels):
-        ...           m[i,j] = rel_i.implies(rel_j)
+        ....:     for j, rel_j in enumerate(rels):
+        ....:         m[i,j] = rel_i.implies(rel_j)
         sage: m
         [1 0 0 0 0]
         [1 1 0 0 0]
@@ -6809,7 +7057,7 @@ cdef class Poly_Con_Relation(object):
             sage: sage_cmd += 'Poly_Con_Relation.nothing().ascii_dump()\n'
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100)  # long time, indirect doctest
-            sage: print err  # long time
+            sage: print(err)  # long time
             NOTHING
         """
         self.thisptr.ascii_dump()

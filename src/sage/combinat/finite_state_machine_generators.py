@@ -1,8 +1,11 @@
 r"""
-Common Transducers (Finite State Machines Generators)
+Common Automata and Transducers (Finite State Machines Generators)
 
-Transducers in Sage can be built through the ``transducers``
-object. It contains generators for common finite state machines. For example,
+Automata and Transducers in Sage can be built through the
+:class:`automata <AutomatonGenerators>`
+and :class:`transducers <TransducerGenerators>` objects, respectively.
+It contains generators for
+common finite state machines. For example,
 
 ::
 
@@ -10,9 +13,23 @@ object. It contains generators for common finite state machines. For example,
 
 generates an identity transducer on the alphabet `\{0, 1, 2\}`.
 
-To construct transducers manually, you can use the class
-:class:`Transducer`. See :mod:`~sage.combinat.finite_state_machine`
-for more details and a lot of examples.
+To construct automata and transducers manually, you can use the
+classes :class:`Automaton` and :class:`Transducer`, respectively. See
+:doc:`finite_state_machine` for more details and a lot
+of :ref:`examples <finite_state_machine_examples>`.
+
+**Automata**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~AutomatonGenerators.AnyLetter` | Return an automaton recognizing any letter.
+    :meth:`~AutomatonGenerators.AnyWord` | Return an automaton recognizing any word.
+    :meth:`~AutomatonGenerators.EmptyWord` | Return an automaton recognizing the empty word.
+    :meth:`~AutomatonGenerators.Word` | Return an automaton recognizing the given word.
+    :meth:`~AutomatonGenerators.ContainsWord` | Return an automaton recognizing words containing the given word.
 
 **Transducers**
 
@@ -47,6 +64,8 @@ AUTHORS:
 - Clemens Heuberger, Daniel Krenn (2014-07-18): transducers Wait, all,
   any
 - Clemens Heuberger (2014-08-10): transducer Recursion
+- Clemens Heuberger (2015-07-31): automaton word
+- Daniel Krenn (2015-09-14): cleanup :trac:`18227`
 
 ACKNOWLEDGEMENT:
 
@@ -58,8 +77,8 @@ Functions and methods
 
 """
 #*****************************************************************************
-#       Copyright (C) 2014 Clemens Heuberger <clemens.heuberger@aau.at>
-#                     2014 Daniel Krenn <dev@danielkrenn.at>
+#       Copyright (C) 2014--2015 Clemens Heuberger <clemens.heuberger@aau.at>
+#                     2014--2015 Daniel Krenn <dev@danielkrenn.at>
 #                     2014 Sara Kropf <sara.kropf@aau.at>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -67,19 +86,272 @@ Functions and methods
 #  the License, or (at your option) any later version.
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import collections
 import operator
-from sage.symbolic.operators import add_vararg, mul_vararg
 
-from sage.combinat.finite_state_machine import Transducer
+from sage.combinat.finite_state_machine import Automaton, Transducer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from functools import reduce
+
+
+class AutomatonGenerators(object):
+    r"""
+    A collection of constructors for several common automata.
+
+    A list of all automata in this database is available via tab
+    completion. Type "``automata.``" and then hit tab to see which
+    automata are available.
+
+    The automata currently in this class include:
+
+    - :meth:`~AnyLetter`
+    - :meth:`~AnyWord`
+    - :meth:`~EmptyWord`
+    - :meth:`~Word`
+    - :meth:`~ContainsWord`
+    """
+
+    def AnyLetter(self, input_alphabet):
+        r"""
+        Return an automaton recognizing any letter of the given
+        input alphabet.
+
+        INPUT:
+
+        - ``input_alphabet`` -- a list, the input alphabet
+
+        OUTPUT:
+
+        An :class:`~Automaton`.
+
+        EXAMPLES::
+
+            sage: A = automata.AnyLetter([0, 1])
+            sage: A([])
+            False
+            sage: A([0])
+            True
+            sage: A([1])
+            True
+            sage: A([0, 0])
+            False
+
+        .. SEEALSO::
+
+            :meth:`AnyWord`
+        """
+        z = ZZ(0)
+        o = ZZ(1)
+        return Automaton([(z, o, _) for _ in input_alphabet],
+                         initial_states=[z],
+                         final_states=[o])
+
+
+    def AnyWord(self, input_alphabet):
+        r"""
+        Return an automaton recognizing any word of the given
+        input alphabet.
+
+        INPUT:
+
+        - ``input_alphabet`` -- a list, the input alphabet
+
+        OUTPUT:
+
+        An :class:`~Automaton`.
+
+        EXAMPLES::
+
+            sage: A = automata.AnyWord([0, 1])
+            sage: A([0])
+            True
+            sage: A([1])
+            True
+            sage: A([0, 1])
+            True
+            sage: A([0, 2])
+            False
+
+        This is equivalent to taking the :meth:`~FiniteStateMachine.kleene_star`
+        of :meth:`AnyLetter` and minimizing the result. This method
+        immediately gives a minimized version::
+
+           sage: B = automata.AnyLetter([0, 1]).kleene_star().minimization().relabeled()
+           sage: B == A
+           True
+
+        .. SEEALSO::
+
+            :meth:`AnyLetter`,
+            :meth:`Word`.
+        """
+        z = ZZ(0)
+        return Automaton([(z, z, _) for _ in input_alphabet],
+                         initial_states=[z],
+                         final_states=[z])
+
+
+    def EmptyWord(self, input_alphabet=None):
+        r"""
+        Return an automaton recognizing the empty word.
+
+        INPUT:
+
+        - ``input_alphabet`` -- (default: ``None``) an iterable
+          or ``None``.
+
+        OUTPUT:
+
+        An :class:`~Automaton`.
+
+        EXAMPLES::
+
+            sage: A = automata.EmptyWord()
+            sage: A([])
+            True
+            sage: A([0])
+            False
+
+        .. SEEALSO::
+
+            :meth:`AnyLetter`,
+            :meth:`AnyWord`.
+        """
+        z = ZZ(0)
+        return Automaton(initial_states=[z],
+                         final_states=[z],
+                         input_alphabet=input_alphabet)
+
+
+    def Word(self, word, input_alphabet=None):
+        r"""
+        Return an automaton recognizing the given word.
+
+        INPUT:
+
+        - ``word`` -- an iterable.
+
+        - ``input_alphabet`` -- a list or ``None``. If ``None``,
+          then the letters occurring in the word are used.
+
+        OUTPUT:
+
+        An :class:`~Automaton`.
+
+        EXAMPLES::
+
+            sage: A = automata.Word([0])
+            sage: A.transitions()
+            [Transition from 0 to 1: 0|-]
+            sage: [A(w) for w in ([], [0], [1])]
+            [False, True, False]
+            sage: A = automata.Word([0, 1, 0])
+            sage: A.transitions()
+            [Transition from 0 to 1: 0|-,
+            Transition from 1 to 2: 1|-,
+            Transition from 2 to 3: 0|-]
+            sage: [A(w) for w in ([], [0], [0, 1], [0, 1, 1], [0, 1, 0])]
+            [False, False, False, False, True]
+
+        If the input alphabet is not given, it is derived from the given
+        word. ::
+
+            sage: A.input_alphabet
+            [0, 1]
+            sage: A = automata.Word([0, 1, 0], input_alphabet=[0, 1, 2])
+            sage: A.input_alphabet
+            [0, 1, 2]
+
+        .. SEEALSO::
+
+            :meth:`AnyWord`,
+            :meth:`ContainsWord`.
+
+        TESTS::
+
+            sage: from sage.rings.integer import is_Integer
+            sage: all(is_Integer(s.label()) for s in A.states())
+            True
+        """
+        letters = list(word)
+        length = len(letters)
+        from sage.rings.integer_ring import ZZ
+        return Automaton([(ZZ(i), ZZ(i+1), letter)
+                          for i, letter in enumerate(letters)],
+                         initial_states=[ZZ(0)],
+                         final_states=[ZZ(length)],
+                         input_alphabet=input_alphabet)
+
+
+    def ContainsWord(self, word, input_alphabet):
+        r"""
+        Return an automaton recognizing the words containing
+        the given word as a factor.
+
+        INPUT:
+
+        - ``word`` -- a list (or other iterable) of letters, the
+          word we are looking for.
+
+        - ``input_alphabet`` -- a list or other iterable, the input
+          alphabet.
+
+        OUTPUT:
+
+        An :class:`~Automaton`.
+
+        EXAMPLES::
+
+            sage: A = automata.ContainsWord([0, 1, 0, 1, 1],
+            ....:                           input_alphabet=[0, 1])
+            sage: A([1, 0, 1, 0, 1, 0, 1, 1, 0, 0])
+            True
+            sage: A([1, 0, 1, 0, 1, 0, 1, 0])
+            False
+
+        This is equivalent to taking the concatenation of :meth:`AnyWord`,
+        :meth:`Word` and :meth:`AnyWord` and minimizing the result. This
+        method immediately gives a minimized version::
+
+            sage: B = (automata.AnyWord([0, 1]) *
+            ....:     automata.Word([0, 1, 0, 1, 1], [0, 1]) *
+            ....:     automata.AnyWord([0, 1])).minimization()
+            sage: B.is_equivalent(A)
+            True
+
+        .. SEEALSO::
+
+            :meth:`~TransducerGenerators.CountSubblockOccurrences`,
+            :meth:`AnyWord`,
+            :meth:`Word`.
+        """
+        word = tuple(word)
+
+        def starts_with(what, pattern):
+            return len(what) >= len(pattern) \
+                and what[:len(pattern)] == pattern
+
+        def transition_function(read, input):
+            if read == word:
+                return (word, None)
+            current = read + (input,)
+            k = 0
+            while not starts_with(word, current[k:]):
+                k += 1
+            return (current[k:], None)
+
+        return Automaton(
+            transition_function,
+            input_alphabet=input_alphabet,
+            initial_states=[()],
+            final_states=[word])
+
 
 class TransducerGenerators(object):
     r"""
-    A class consisting of constructors for several common transducers.
+    A collection of constructors for several common transducers.
 
     A list of all transducers in this database is available via tab
     completion. Type "``transducers.``" and then hit tab to see which
@@ -97,7 +369,7 @@ class TransducerGenerators(object):
     - :meth:`~CountSubblockOccurrences`
     - :meth:`~Wait`
     - :meth:`~GrayCode`
-
+    - :meth:`~Recursion`
     """
 
     def Identity(self, input_alphabet):
@@ -137,6 +409,7 @@ class TransducerGenerators(object):
             output_alphabet=input_alphabet,
             initial_states=[0],
             final_states=[0])
+
 
     def CountSubblockOccurrences(self, block, input_alphabet):
         """
@@ -228,6 +501,9 @@ class TransducerGenerators(object):
                 sage: T(input) == output
                 True
 
+        .. SEEALSO::
+
+            :meth:`~AutomatonGenerators.ContainsWord`
         """
         block_as_tuple = tuple(block)
 
@@ -254,6 +530,7 @@ class TransducerGenerators(object):
         for s in T.iter_states():
             s.is_final = True
         return T
+
 
     def Wait(self, input_alphabet, threshold=1):
         r"""
@@ -298,6 +575,7 @@ class TransducerGenerators(object):
 
         return T
 
+
     def map(self, f, input_alphabet):
         r"""
         Return a transducer which realizes a function
@@ -314,7 +592,7 @@ class TransducerGenerators(object):
         A transducer mapping an input letter `x` to
         `f(x)`.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following binary transducer realizes component-wise
         absolute value (this transducer is also available as :meth:`.abs`)::
@@ -366,10 +644,10 @@ class TransducerGenerators(object):
         `\mathrm{operator}(i_1, \dots, i_n)`. Here, `n` equals
         ``number_of_operands``.
 
-        The input alphabet of the generated transducer is the cartesian
+        The input alphabet of the generated transducer is the Cartesian
         product of ``number_of_operands`` copies of ``input_alphabet``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following binary transducer realizes component-wise
         addition (this transducer is also available as :meth:`.add`)::
@@ -445,10 +723,10 @@ class TransducerGenerators(object):
         `(i_{01}, \ldots, i_{0d})\ldots (i_{k1}, \ldots, i_{kd})` to the word
         `(i_{01} \land \cdots \land i_{0d})\ldots (i_{k1} \land \cdots \land i_{kd})`.
 
-        The input alphabet of the generated transducer is the cartesian
+        The input alphabet of the generated transducer is the Cartesian
         product of ``number_of_operands`` copies of ``input_alphabet``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following transducer realizes letter-wise
         logical ``and``::
@@ -497,10 +775,10 @@ class TransducerGenerators(object):
         `(i_{01}, \ldots, i_{0d})\ldots (i_{k1}, \ldots, i_{kd})` to the word
         `(i_{01} \lor \cdots \lor i_{0d})\ldots (i_{k1} \lor \cdots \lor i_{kd})`.
 
-        The input alphabet of the generated transducer is the cartesian
+        The input alphabet of the generated transducer is the Cartesian
         product of ``number_of_operands`` copies of ``input_alphabet``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following transducer realizes letter-wise
         logical ``or``::
@@ -531,7 +809,6 @@ class TransducerGenerators(object):
                              input_alphabet, number_of_operands)
 
 
-
     def add(self, input_alphabet, number_of_operands=2):
         """
         Returns a transducer which realizes addition on pairs over the
@@ -550,10 +827,10 @@ class TransducerGenerators(object):
         `(i_{01}, \ldots, i_{0d})\ldots (i_{k1}, \ldots, i_{kd})` to the word
         `(i_{01} + \cdots + i_{0d})\ldots (i_{k1} + \cdots + i_{kd})`.
 
-        The input alphabet of the generated transducer is the cartesian
+        The input alphabet of the generated transducer is the Cartesian
         product of ``number_of_operands`` copies of ``input_alphabet``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following transducer realizes letter-wise
         addition::
@@ -601,10 +878,10 @@ class TransducerGenerators(object):
         A transducer mapping an input word `(i_0, i'_0)\ldots (i_k, i'_k)`
         to the word `(i_0 - i'_0)\ldots (i_k - i'_k)`.
 
-        The input alphabet of the generated transducer is the cartesian
+        The input alphabet of the generated transducer is the Cartesian
         product of two copies of ``input_alphabet``.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following transducer realizes letter-wise
         subtraction::
@@ -625,6 +902,7 @@ class TransducerGenerators(object):
             [0, -1, 1, 0]
         """
         return self.operator(operator.sub, input_alphabet)
+
 
     def weight(self, input_alphabet, zero=0):
         r"""
@@ -707,7 +985,7 @@ class TransducerGenerators(object):
         A transducer mapping `i_0\ldots i_k`
         to `|i_0|\ldots |i_k|`.
 
-        EXAMPLE:
+        EXAMPLES:
 
         The following transducer realizes letter-wise
         absolute value::
@@ -743,13 +1021,13 @@ class TransducerGenerators(object):
 
         Cf. the :wikipedia:`Gray_code` for a description of the Gray code.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = transducers.GrayCode()
             sage: G
             Transducer with 3 states
             sage: for v in srange(0, 10):
-            ....:     print v, G(v.digits(base=2))
+            ....:     print("{} {}".format(v, G(v.digits(base=2))))
             0 []
             1 [1]
             2 [1, 1]
@@ -763,7 +1041,7 @@ class TransducerGenerators(object):
 
         In the example :ref:`Gray Code <finite_state_machine_gray_code_example>`
         in the documentation of the
-        :mod:`~sage.combinat.finite_state_machine` module, the Gray code
+        :doc:`finite_state_machine` module, the Gray code
         transducer is derived from the algorithm converting the binary
         expansion to the Gray code. The result is the same as the one
         given here.
@@ -816,7 +1094,7 @@ class TransducerGenerators(object):
         A ``RecursionRule`` if the equation is of the first form
         described above and a dictionary ``{r: [t]}`` otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: var('n')
             n
@@ -1008,7 +1286,7 @@ class TransducerGenerators(object):
 
         try:
             polynomial_left = base_ring[var](left_side.operands()[0])
-        except:
+        except Exception:
             raise ValueError("%s is not a polynomial "
                              "in %s." % (left_side.operands()[0], var))
         if polynomial_left in base_ring and is_scalar(right_side):
@@ -1031,6 +1309,7 @@ class TransducerGenerators(object):
             raise ValueError("%d is less than %d."
                              % (base_power_K, base))
 
+        from sage.symbolic.operators import add_vararg
         if right_side.operator() == add_vararg:
             function_calls = [o for o in right_side.operands()
                               if o.operator() == function]
@@ -1059,7 +1338,7 @@ class TransducerGenerators(object):
 
         try:
             polynomial_right = base_ring[var](next_function.operands()[0])
-        except:
+        except Exception:
             raise ValueError("%s is not a polynomial in %s."
                              % (next_function.operands()[0], var))
         if polynomial_right.degree() != 1:
@@ -1260,7 +1539,7 @@ class TransducerGenerators(object):
             and use the parameter ``word_function`` to announce this.
 
             Similarly, we use ``w(-1, 0)`` to write an output word of
-            length `2` in one interation. Finally, we write ``f(0) == w()``
+            length `2` in one iteration. Finally, we write ``f(0) == w()``
             to write an empty word upon completion.
 
             Moreover, there is a cycle with output ``[0]`` which---from
@@ -1287,7 +1566,7 @@ class TransducerGenerators(object):
                  Transition from (1, 0) to (1, 1): 0|-,
                  Transition from (1, 0) to (1, 0): 1|0]
                 sage: for s in T.iter_states():
-                ....:     print s, s.final_word_out
+                ....:     print("{} {}".format(s, s.final_word_out))
                 (0, 0) []
                 (1, 1) [1, 0]
                 (1, 0) [1, 0]
@@ -1377,7 +1656,7 @@ class TransducerGenerators(object):
                  Transition from (2, 1) to (1, 1): 0|1,
                  Transition from (2, 1) to (2, 1): 1|-]
                 sage: for s in T.iter_states():
-                ....:     print s, s.final_word_out
+                ....:     print("{} {}".format(s, s.final_word_out))
                 (0, 0) []
                 (0, 1) []
                 (1, 1) [2]
@@ -1405,7 +1684,7 @@ class TransducerGenerators(object):
                 ....:     f(0) == 2],
                 ....:     2, f, n)
                 sage: for t in T.transitions():
-                ....:     print [x.parent() for x in t.word_out]
+                ....:     print([x.parent() for x in t.word_out])
                 []
                 [Integer Ring]
                 sage: [x.parent() for x in T.states()[0].final_word_out]
@@ -1420,7 +1699,7 @@ class TransducerGenerators(object):
                 ....:     f(0) == 2],
                 ....:     2, f, n, output_rings=[])
                 sage: for t in T.transitions():
-                ....:     print [x.parent() for x in t.word_out]
+                ....:     print([x.parent() for x in t.word_out])
                 []
                 [Symbolic Ring]
                 sage: [x.parent() for x in T.states()[0].final_word_out]
@@ -1434,7 +1713,7 @@ class TransducerGenerators(object):
                 ....:     f(0) == 0],
                 ....:     2, f, n, output_rings=[GF(5)])
                 sage: for t in T.transitions():
-                ....:     print [x.parent() for x in t.word_out]
+                ....:     print([x.parent() for x in t.word_out])
                 []
                 [Finite Field of size 5]
 
@@ -1513,7 +1792,7 @@ class TransducerGenerators(object):
                 ValueError: Conflicting recursion for [0].
         """
         from sage.graphs.digraph import DiGraph
-        from sage.misc.misc import srange
+        from sage.arith.srange import srange
 
         if is_zero is None:
             is_zero = lambda x: not x
@@ -1699,7 +1978,7 @@ class TransducerGenerators(object):
              if carry >= 0},
             multiedges=False)
 
-        initial_values_set = set(initial_values.iterkeys())
+        initial_values_set = set(initial_values)
 
         missing_initial_values = required_initial_values.difference(
             initial_values_set)
@@ -1722,11 +2001,10 @@ class TransducerGenerators(object):
                     "Too many initial conditions, only give one of %s." %
                     cycle[1:])
             required_initial_values.update(intersection)
-            output_sum = reduce(operator.add,
-                                [edge[2]
-                                 for edge in recursion_digraph.\
-                                     outgoing_edge_iterator(cycle[1:])],
-                                [])
+            output_sum = sum([edge[2]
+                              for edge in recursion_digraph.\
+                                  outgoing_edge_iterator(cycle[1:])],
+                             [])
             if not is_zero(output_sum):
                 raise ValueError(
                     "Conflicting recursion for %s." %
@@ -1750,5 +2028,6 @@ class TransducerGenerators(object):
         return T
 
 
-# Easy access to the transducer generators from the command line:
+# Easy access to the automaton and transducer generators from the command line:
+automata = AutomatonGenerators()
 transducers = TransducerGenerators()

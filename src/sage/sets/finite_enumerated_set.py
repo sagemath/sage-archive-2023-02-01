@@ -15,6 +15,7 @@ Finite Enumerated Sets
 #
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
 
 from sage.structure.element import Element
 from sage.structure.parent import Parent
@@ -111,7 +112,7 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
         self._elements = elements
         Parent.__init__(self, facade = True, category = FiniteEnumeratedSets())
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Conversion to boolean.
 
@@ -123,6 +124,8 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
             False
         """
         return bool(self._elements)
+
+    __nonzero__ = __bool__
 
     def _repr_(self):
         """
@@ -169,7 +172,7 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: for i in FiniteEnumeratedSet([1,2,3]): print i
+            sage: for i in FiniteEnumeratedSet([1,2,3]): print(i)
             1
             2
             3
@@ -269,7 +272,7 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
 
     def unrank(self,i):
         r"""
-        Return the element at position i.
+        Return the element at position ``i``.
 
         EXAMPLES::
 
@@ -279,7 +282,7 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
             sage: S[3]
             Traceback (most recent call last):
             ...
-            IndexError: list index out of range
+            IndexError: tuple index out of range
             sage: S[-1], S[-2], S[-3]
             (-51, 'a', 1)
             sage: S[-4]

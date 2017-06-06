@@ -46,11 +46,11 @@ AUTHORS:
 
 REFERENCES:
 
-.. [AI] P. Arnoux, S. Ito,
+.. [AI] \P. Arnoux, S. Ito,
    Pisot substitutions and Rauzy fractals,
    Bull. Belg. Math. Soc. 8 (2), 2001, pp. 181--207
 
-.. [SAI] Y. Sano, P. Arnoux, S. Ito,
+.. [SAI] \Y. Sano, P. Arnoux, S. Ito,
    Higher dimensional extensions of substitutions and their dual maps,
    J. Anal. Math. 83, 2001, pp. 183--206
 
@@ -108,7 +108,7 @@ A list of colors allows us to color the faces sequentially::
     sage: P = E(P, 3)
     sage: P.plot()                   #not tested
 
-All the color schemes from ``matplotlib.cm.datad.keys()`` can be used::
+All the color schemes from ``list(matplotlib.cm.datad)`` can be used::
 
     sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
     sage: P.repaint(cmap='summer')
@@ -140,7 +140,7 @@ Plotting with TikZ pictures is possible::
 
     sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
     sage: s = P.plot_tikz()
-    sage: print s                    #not tested
+    sage: print(s)                    #not tested
     \begin{tikzpicture}
     [x={(-0.216506cm,-0.125000cm)}, y={(0.216506cm,-0.125000cm)}, z={(0.000000cm,0.250000cm)}]
     \definecolor{facecolor}{rgb}{0.000,1.000,0.000}
@@ -180,7 +180,7 @@ which only work in dimension two or three)::
     sage: E
     E_1^*(1->12, 10->1,11, 11->1,12, 12->1, 2->13, 3->14, 4->15, 5->16, 6->17, 7->18, 8->19, 9->1,10)
     sage: P = Patch([Face((0,0,0,0,0,0,0,0,0,0,0,0),t) for t in [1,2,3]])
-    sage: for x in sorted(list(E(P)), key=lambda x : (x.vector(),x.type())): print x
+    sage: for x in sorted(list(E(P)), key=lambda x : (x.vector(),x.type())): print(x)
     [(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), 1]*
     [(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), 2]*
     [(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), 12]*
@@ -208,6 +208,7 @@ which only work in dimension two or three)::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 from sage.misc.functional import det
 from sage.structure.sage_object import SageObject
@@ -220,7 +221,6 @@ from sage.plot.polygon import polygon
 from sage.plot.line import line
 from sage.rings.integer_ring import ZZ
 from sage.misc.latex import LatexExpr
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 
 # matplotlib color maps, loaded on-demand
@@ -352,15 +352,19 @@ class Face(SageObject):
         """
         v1 = self.vector()
         v2 = other.vector()
-        t1 = self.type()
-        t2 = other.type()
-
         if v1 < v2:
             return -1
         elif v1 > v2:
             return 1
-        else:
-            return t1.__cmp__(t2)
+
+        t1 = self.type()
+        t2 = other.type()
+        if t1 < t2:
+            return -1
+        elif t1 > t2:
+            return 1
+
+        return 0
 
     def __hash__(self):
         r"""
@@ -520,7 +524,7 @@ class Face(SageObject):
 
     def _plot3d(self, face_contour):
         r"""
-        3D reprensentation of a unit face (Jmol).
+        3D representation of a unit face (Jmol).
 
         INPUT:
 
@@ -692,7 +696,7 @@ class Patch(SageObject):
         r"""
         Returns the number of faces contained in the patch.
 
-        OUPUT:
+        OUTPUT:
 
             integer
 
@@ -1064,7 +1068,7 @@ class Patch(SageObject):
             if not cm:
                 from matplotlib import cm
 
-            if not cmap in cm.datad.keys():
+            if not cmap in cm.datad:
                 raise RuntimeError("Color map %s not known (type sorted(colors) for valid names)" % cmap)
             cmap = cm.__dict__[cmap]
             dim = float(len(self))
@@ -1086,7 +1090,7 @@ class Patch(SageObject):
           ``None``, the isometric projection is used by default.
 
         - ``opacity`` - float between ``0`` and ``1`` (optional, default: ``0.75``)
-          opacity of the the face
+          opacity of the face
 
         .. WARNING::
 
@@ -1214,7 +1218,7 @@ class Patch(SageObject):
             sage: s = P.plot_tikz()
             sage: len(s)
             602
-            sage: print s       #not tested
+            sage: print(s)       #not tested
             \begin{tikzpicture}
             [x={(-0.216506cm,-0.125000cm)}, y={(0.216506cm,-0.125000cm)}, z={(0.000000cm,0.250000cm)}]
             \definecolor{facecolor}{rgb}{0.000,1.000,0.000}
@@ -1236,7 +1240,7 @@ class Patch(SageObject):
             sage: P = E(P, 4)
             sage: from sage.misc.latex import latex             #not tested
             sage: latex.add_to_preamble('\\usepackage{tikz}')   #not tested
-            sage: view(P, tightpage=true)                       #not tested
+            sage: view(P)                       #not tested
 
         Plot using shades of gray (useful for article figures)::
 
@@ -1252,7 +1256,7 @@ class Patch(SageObject):
             sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
             sage: E = E1Star(sigma)
             sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
-            sage: M = matrix(2, 3, map(float, [1,0,-0.7071,0,1,-0.7071]))
+            sage: M = matrix(2,3,[float(u) for u in [1,0,-0.7071,0,1,-0.7071]])
             sage: P = E(P, 3)
             sage: s = P.plot_tikz(projmat=M, edgecolor='facecolor', scale=0.6, drawzero=True)
 
@@ -1272,7 +1276,7 @@ class Patch(SageObject):
             sage: s = cube.plot_tikz(**options)
             sage: len(s)
             986
-            sage: print s   #not tested
+            sage: print(s)   #not tested
             \begin{tikzpicture}
             [x={(-0.433013cm,-0.250000cm)}, y={(0.433013cm,-0.250000cm)}, z={(0.000000cm,0.500000cm)}]
             \draw[->, thick, black] (0,0,0) -- (1.50000000000000, 0, 0);
@@ -1410,7 +1414,7 @@ class E1Star(SageObject):
             raise ValueError("The substitution (%s) must be defined on positive integers."%sigma)
 
         self._sigma = WordMorphism(sigma)
-        self._d = self._sigma.domain().size_of_alphabet()
+        self._d = self._sigma.domain().alphabet().cardinality()
 
         # self._base_iter is a base for the iteration of the application of self on set
         # of faces. (Exploits the linearity of `E_1^*(\sigma)` to optimize computation.)
@@ -1496,7 +1500,7 @@ class E1Star(SageObject):
             raise ValueError("iterations (=%s) must be >= 0." % iterations)
         else:
             old_faces = patch
-            for i in xrange(iterations):
+            for i in range(iterations):
                 new_faces = []
                 for f in old_faces:
                     new_faces.extend(self._call_on_face(f, color=f.color()))

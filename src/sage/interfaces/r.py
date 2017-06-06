@@ -1,5 +1,17 @@
+# -*- coding: utf-8 -*-
 r"""
-Interface to R
+Interfaces to R
+
+This is the reference to the Sagemath R interface, usable from any
+Sage program.
+
+The %r interface creating an R cell in the sage
+notebook is decribed in the Notebook manual.
+
+The %R and %%R interface creating an R line or an R cell in the
+Jupyter notebook are briefly decribed at the end of this page. This
+documentation will be expanded and placed in the Jupyter notebook
+manual when this manual exists.  
 
 The following examples try to follow "An Introduction to R" which can
 be found at http://cran.r-project.org/doc/manuals/R-intro.html .
@@ -191,12 +203,54 @@ It is also possible to access the plotting capabilities of R
 through Sage.  For more information see the documentation of
 r.plot() or r.png().
 
+THE JUPYTER NOTEBOOK INTERFACE (work in progress).
+
+The %r interface described in the Sage notebook manual is not useful
+in the Jupyter notebook : it creates a inferior R interpreter which
+cannot be escaped.
+
+The RPy2 library allows the creation of an R cell in the Jupyter
+notebook analogous to the %r escape in command line or %r cell in a
+Sage notebook.
+
+The interface is loaded by a cell containing the sole code :
+
+"%load_ext rpy2.ipython"
+
+After execution of this code, the %R and %%R magics are available :
+
+- %R allows the execution of a single line of R code. Data exchange is
+   possible via the -i and -o options. Do "%R?" in a standalone cell
+   to get the documentation.
+
+- %%R allows the execution in R of the whole text of a cell, with
+    similar options (do "%%R?" in a standalone cell for
+    documentation).
+
+A few important points must be noted :
+
+- The R interpreter launched by this interface IS (currently)
+  DIFFERENT from the R interpreter used br other r... functions.
+
+- Data exchanged via the -i and -o options have a format DIFFERENT
+  from the format used by the r... functions (RPy2 mostly uses arrays,
+  and bugs the user to use the pandas Python package).
+
+- R graphics are (beautifully) displayed in output cells, but are not
+  directly importable. You have to save them as .png, .pdf or .svg
+  files and import them in Sage for further use. 
+
+In its current incarnation, this interface is mostly useful to
+statisticians needing Sage for a few symbolic computations but mostly
+using R for applied work.
+
 AUTHORS:
 
 - Mike Hansen (2007-11-01)
 - William Stein (2008-04-19)
 - Harald Schilly (2008-03-20)
 - Mike Hansen (2008-04-19)
+- Emmanuel Charpentier (2015-12-12, RPy2 interface)
 """
 
 ##########################################################################
@@ -210,13 +264,18 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #
 ##########################################################################
+from __future__ import print_function, absolute_import
+from six.moves import range
+import six
 
-from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
+from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement
 from sage.env import DOT_SAGE
 import re
-import six
 import sage.rings.integer
 from sage.structure.element import parent
+from sage.misc.cachefunc import cached_method
+from sage.interfaces.tab_completion import ExtraTabCompletion
+from sage.docs.instancedoc import instancedoc
 
 COMMANDS_CACHE = '%s/r_commandlist.sobj'%DOT_SAGE
 PROMPT = '__SAGE__R__PROMPT__> '
@@ -230,9 +289,9 @@ RFilteredPackages = ['.GlobalEnv']
 # but package:base should cover this. i think.
 RBaseCommands = ['c', "NULL", "NA", "True", "False", "Inf", "NaN"]
 
-class R(Expect):
+class R(ExtraTabCompletion, Expect):
     def __init__(self,
-                 maxread=100000, script_subdirectory=None,
+                 maxread=None, script_subdirectory=None,
                  server_tmpdir = None,
                  logfile=None,
                  server=None,
@@ -274,8 +333,6 @@ class R(Expect):
 
                   # This is the command that starts up your program
                   command = "R --vanilla --quiet",
-
-                  maxread = maxread,
 
                   server=server,
                   server_tmpdir=server_tmpdir,
@@ -435,16 +492,16 @@ class R(Expect):
         """
         cmd = """options(repos="%s"); install.packages("%s")"""%(RRepositoryURL, package_name)
         os.system("time echo '%s' | R --vanilla"%cmd)
-        print "Please restart Sage in order to use '%s'."%package_name
+        print("Please restart Sage in order to use '%s'." % package_name)
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Return string representation of this R interface.
 
         EXAMPLES::
 
-            sage: r.__repr__()
-            'R Interpreter'
+            sage: r                 # indirect doctest
+            R Interpreter
         """
         return 'R Interpreter'
 
@@ -511,7 +568,7 @@ class R(Expect):
 
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
-            sage: f.write('a <- 2+2\n')
+            sage: _ = f.write('a <- 2+2\n')
             sage: f.close()
             sage: r.read(filename)
             sage: r.get('a')
@@ -523,7 +580,7 @@ class R(Expect):
         """
         EXAMPLES::
 
-            sage: print r._install_hints()
+            sage: print(r._install_hints())
             R is currently installed with Sage.
         """
         return "R is currently installed with Sage.\n"
@@ -538,8 +595,8 @@ class R(Expect):
 
         EXAMPLES::
 
-            sage: print r._source("c")
-            function (..., recursive = FALSE)  .Primitive("c")
+            sage: print(r._source("c"))
+            function (...)  .Primitive("c")
         """
         if s[-2:] == "()":
             s = s[-2:]
@@ -557,8 +614,8 @@ class R(Expect):
 
         EXAMPLES::
 
-            sage: print r.source("c")
-            function (..., recursive = FALSE)  .Primitive("c")
+            sage: print(r.source("c"))
+            function (...)  .Primitive("c")
         """
         return self._source(s)
 
@@ -618,10 +675,10 @@ class R(Expect):
         else:
             try:
                 # We need to rebuild keywords!
-                del self.__trait_names
+                del self.__tab_completion
             except AttributeError:
                 pass
-            self.trait_names(verbose=False, use_disk_cache=False)
+            self._tab_completion(verbose=False, use_disk_cache=False)
 
     require = library #overwrites require
 
@@ -651,7 +708,7 @@ class R(Expect):
         #The following was more structural, but breaks on my machine.  (stein)
         #p = p._sage_()
         #s = p['_Dim'][0]
-        #l = [[p['DATA'][i],p['DATA'][s+1+i]] for i in xrange(0,s)]
+        #l = [[p['DATA'][i],p['DATA'][s+1+i]] for i in range(0,s)]
         #return l
 
     def _object_class(self):
@@ -731,7 +788,7 @@ class R(Expect):
 
             .. note::
 
-            This is similar to typing r.command?.
+                This is similar to typing r.command?.
         """
         s = self.eval('help("%s")'%command).strip()     # ?cmd is only an unsafe shortcut
         import sage.plot.plot
@@ -901,11 +958,11 @@ class R(Expect):
 
         EXAMPLES::
 
-            sage: dummy = r.trait_names(use_disk_cache=False)    #clean doctest
+            sage: dummy = r._tab_completion(use_disk_cache=False)    #clean doctest
             sage: r.completions('tes')
             ['testInheritedMethods', 'testPlatformEquivalence', 'testVirtual']
         """
-        return [name for name in self.trait_names() if name[:len(s)] == s]
+        return [name for name in self._tab_completion() if name[:len(s)] == s]
 
     def _commands(self):
         """
@@ -953,7 +1010,7 @@ class R(Expect):
         v.sort()
         return v
 
-    def trait_names(self, verbose=True, use_disk_cache=True):
+    def _tab_completion(self, verbose=True, use_disk_cache=True):
         """
         Return list of all R functions.
 
@@ -961,32 +1018,32 @@ class R(Expect):
 
         - verbose -- bool (default: True); if True, display debugging information
         - use_disk_cache -- bool (default: True); if True, use the disk cache of
-          trait names to save time.
+          tab completions to save time.
 
         OUTPUT: list -- list of string
 
         EXAMPLES::
 
-            sage: t = r.trait_names(verbose=False)
+            sage: t = r._tab_completion(verbose=False)
             sage: len(t) > 200
             True
         """
         try:
-            return self.__trait_names
+            return self.__tab_completion
         except AttributeError:
             import sage.misc.persist
             if use_disk_cache:
                 try:
-                    self.__trait_names = sage.misc.persist.load(COMMANDS_CACHE)
-                    return self.__trait_names
+                    self.__tab_completion = sage.misc.persist.load(COMMANDS_CACHE)
+                    return self.__tab_completion
                 except IOError:
                     pass
             if verbose and use_disk_cache:
-                print "\nBuilding R command completion list (this takes"
-                print "a few seconds only the first time you do it)."
-                print "To force rebuild later, delete %s."%COMMANDS_CACHE
+                print("\nBuilding R command completion list (this takes")
+                print("a few seconds only the first time you do it).")
+                print("To force rebuild later, delete %s." % COMMANDS_CACHE)
             v = self._commands()
-            self.__trait_names = v
+            self.__tab_completion = v
             if len(v) > 200 and use_disk_cache:
                 sage.misc.persist.save(v, COMMANDS_CACHE)
             return v
@@ -1186,7 +1243,7 @@ class R(Expect):
 
         ::
 
-            sage: os.path.realpath(tmpdir) == sageobj(r.getwd())  # known bug (:trac:`9970`)
+            sage: os.path.realpath(tmpdir) == sageobj(r.getwd())  # known bug (trac #9970)
             True
         """
         self.execute('setwd(%r)' % dir)
@@ -1194,14 +1251,16 @@ class R(Expect):
 
 # patterns for _sage_()
 rel_re_param = re.compile('\s([\w\.]+)\s=')
-rel_re_xrange = re.compile('([\d]+):([\d]+)')
+rel_re_range = re.compile('([\d]+):([\d]+)')
 rel_re_integer = re.compile('([^\d])([\d]+)L')
 rel_re_terms = re.compile('terms\s*=\s*(.*?),')
 rel_re_call = re.compile('call\s*=\s*(.*?)\),')
 
-class RElement(ExpectElement):
 
-    def trait_names(self):
+@instancedoc
+class RElement(ExtraTabCompletion, ExpectElement):
+
+    def _tab_completion(self):
         """
         Return a list of all methods of this object.
 
@@ -1212,12 +1271,12 @@ class RElement(ExpectElement):
         EXAMPLES::
 
             sage: a = r([1,2,3])
-            sage: t = a.trait_names()
+            sage: t = a._tab_completion()
             sage: len(t) > 200
             True
         """
         # TODO: rewrite it, just take methods(class=class(self))
-        return self.parent().trait_names()
+        return self.parent()._tab_completion()
 
     def tilde(self, x):
         """
@@ -1330,14 +1389,14 @@ class RElement(ExpectElement):
             return P.new('%s[%s]'%(self._name, n))
         else:
             L = []
-            for i in xrange(len(n)):
+            for i in range(len(n)):
                 if parent(n[i]) is P:
                     L.append(n[i].name())
                 else:
                     L.append(str(n[i]))
             return P.new('%s[%s]'%(self._name, ','.join(L)))
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Implements bool(self).
 
@@ -1359,6 +1418,8 @@ class RElement(ExpectElement):
             True
         """
         return "FALSE" in repr(self==0)
+
+    __nonzero__ = __bool__
 
     def _comparison(self, other, symbol):
         """
@@ -1584,9 +1645,9 @@ class RElement(ExpectElement):
         """
         return x.group().replace('.','_')
 
-    def _subs_xrange(self, x):
+    def _subs_range(self, x):
         """
-        Change endpoints of xranges.  This is used internally in the
+        Change endpoints of ranges.  This is used internally in the
         code for converting R expressions to Sage objects.
 
         INPUT:
@@ -1599,13 +1660,13 @@ class RElement(ExpectElement):
 
             sage: import re
             sage: a = r([1,2,3])
-            sage: rel_re_xrange = re.compile('([\d]+):([\d]+)')
-            sage: rel_re_xrange.sub(a._subs_xrange, ' 1:10')
-            ' xrange(1,11)'
+            sage: rel_re_range = re.compile('([\d]+):([\d]+)')
+            sage: rel_re_range.sub(a._subs_range, ' 1:10')
+            ' range(1,11)'
         """
         g = x.groups()
         g1 = int(g[1]) + 1
-        return 'xrange(%s,%s)'%(g[0],g1)
+        return 'range(%s,%s)' % (g[0],  g1)
 
     def _subs_integer(self, x):
         """
@@ -1800,8 +1861,8 @@ class RElement(ExpectElement):
         exp = re.sub(' list\(', ' _r_list(', exp)
         exp = re.sub('\(list\(', '(_r_list(', exp)
 
-        # Change 'a:b' to 'xrange(a,b+1)'
-        exp = rel_re_xrange.sub(self._subs_xrange, exp)
+        # Change 'a:b' to 'range(a,b+1)'
+        exp = rel_re_range.sub(self._subs_range, exp)
 
         # Change 'dL' to 'Integer(d)'
         exp = rel_re_integer.sub(self._subs_integer, exp)
@@ -1863,7 +1924,7 @@ class RElement(ExpectElement):
         return LatexExpr(P.eval('latex(%s, file="");'%self.name()))
 
 
-
+@instancedoc
 class RFunctionElement(FunctionElement):
     def __reduce__(self):
         """
@@ -1879,7 +1940,7 @@ class RFunctionElement(FunctionElement):
         """
         raise NotImplementedError("pickling of R element methods is not yet supported")
 
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         Returns the help for self as a string.
 
@@ -1887,7 +1948,7 @@ class RFunctionElement(FunctionElement):
 
             sage: a = r([1,2,3])
             sage: length = a.length
-            sage: print length._sage_doc_()
+            sage: print(length.__doc__)
             length                 package:base                 R Documentation
             ...
             <BLANKLINE>
@@ -1903,7 +1964,7 @@ class RFunctionElement(FunctionElement):
 
             sage: a = r([1,2,3])
             sage: length = a.length
-            sage: print length._sage_src_()
+            sage: print(length._sage_src_())
             function (x)  .Primitive("length")
         """
         M = self._obj.parent()
@@ -1921,6 +1982,7 @@ class RFunctionElement(FunctionElement):
         return self._obj.parent().function_call(self._name, args=[self._obj] + list(args), kwds=kwds)
 
 
+@instancedoc
 class RFunction(ExpectFunction):
     def __init__(self, parent, name, r_name=None):
         """
@@ -1946,7 +2008,7 @@ class RFunction(ExpectFunction):
         else:
             self._name = parent._sage_to_r_name(name)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         EXAMPLES::
 
@@ -1955,18 +2017,28 @@ class RFunction(ExpectFunction):
             sage: r.mean == r.lr
             False
         """
-        if not isinstance(other, RFunction):
-            return cmp(type(self), type(other))
-        return cmp(self._name, other._name)
+        return (isinstance(other, RFunction) and
+            self._name == other._name)
 
-    def _sage_doc_(self):
+    def __ne__(self, other):
+        """
+        EXAMPLES::
+
+            sage: r.mean != loads(dumps(r.mean))
+            False
+            sage: r.mean != r.lr
+            True
+        """        
+        return not (self == other)
+
+    def _instancedoc_(self):
         """
         Returns the help for self.
 
         EXAMPLES::
 
             sage: length = r.length
-            sage: print length._sage_doc_()
+            sage: print(length.__doc__)
             length                 package:base                 R Documentation
             ...
             <BLANKLINE>
@@ -1981,7 +2053,7 @@ class RFunction(ExpectFunction):
         EXAMPLES::
 
             sage: length = r.length
-            sage: print length._sage_src_()
+            sage: print(length._sage_src_())
             function (x)  .Primitive("length")
 
         """
@@ -2046,6 +2118,9 @@ def r_console():
             ISBN 3-900051-07-0
             ...
     """
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%r magics instead.')
     # This will only spawn local processes
     os.system('R --vanilla')
 
@@ -2085,5 +2160,5 @@ class HelpExpression(str):
             is
             R!
         """
-        return self.__str__()
+        return str(self)
 

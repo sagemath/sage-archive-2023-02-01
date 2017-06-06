@@ -10,7 +10,7 @@ polytopes in 4 dimensions.
 .. NOTE::
 
     For general lattice polyhedra you should use
-    :func:`~sage.geometry.polyhedon.constructor.Polyhedron` with
+    :func:`~sage.geometry.polyhedron.constructor.Polyhedron` with
     ``base_ring=ZZ``.
 
 The class derives from the PPL :class:`sage.libs.ppl.C_Polyhedron`
@@ -63,6 +63,8 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import print_function
+from __future__ import absolute_import
 
 import copy
 from sage.rings.integer import GCD_list
@@ -340,7 +342,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             return tuple()
         box_min, box_max = self.bounding_box()
         from sage.geometry.integral_points import rectangular_box_points
-        return rectangular_box_points(box_min, box_max, self, count_only=True)
+        return rectangular_box_points(list(box_min), list(box_max), self, count_only=True)
 
     @cached_method
     def integral_points(self):
@@ -395,7 +397,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             ....:      (-1,2,-1), (-1,2,-2), (-1,1,-2), (-1,-1,2), (-1,-3,2)]
             sage: P = LatticePolytope_PPL(*v)
             sage: pts1 = P.integral_points()                     # Sage's own code
-            sage: pts2 = LatticePolytope(v).points_pc()          # PALP
+            sage: pts2 = LatticePolytope(v).points()          # PALP
             sage: for p in pts1: p.set_immutable()
             sage: set(pts1) == set(pts2)
             True
@@ -408,7 +410,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             return tuple()
         box_min, box_max = self.bounding_box()
         from sage.geometry.integral_points import rectangular_box_points
-        points = rectangular_box_points(box_min, box_max, self)
+        points = rectangular_box_points(list(box_min), list(box_max), self)
         if not self.n_integral_points.is_in_cache():
             self.n_integral_points.set_cache(len(points))
         return points
@@ -444,7 +446,8 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             return tuple()
         box_min, box_max = self.bounding_box()
         from sage.geometry.integral_points import rectangular_box_points
-        points= rectangular_box_points(box_min, box_max, self, return_saturated=True)
+        points = rectangular_box_points(list(box_min), list(box_max), self,
+                                        return_saturated=True)
         if not self.n_integral_points.is_in_cache():
             self.n_integral_points.set_cache(len(points))
         if not self.integral_points.is_in_cache():
@@ -813,7 +816,6 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             vertices = [ V.coordinates(v-v0) for v in self.vertices() ]
         return LatticePolytope_PPL(*vertices)
 
-    @cached_method
     def base_projection(self, fiber):
         """
         The projection that maps the sub-polytope ``fiber`` to a
@@ -834,7 +836,6 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         """
         return self.ambient_space().quotient(fiber.affine_space())
 
-    @cached_method
     def base_projection_matrix(self, fiber):
         """
         The projection that maps the sub-polytope ``fiber`` to a
@@ -902,18 +903,19 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             ((1),)
         """
         quo = self.base_projection(fiber)
-        vertices = []
+        vertices = set()
         for p in points:
-            v = vector(ZZ,quo(p))
+            v = quo(p).vector()
             if v.is_zero():
                 continue
-            d =  GCD_list(v.list())
-            if d>1:
-                for i in range(0,v.degree()):
+            d = GCD_list(v.list())
+            if d > 1:
+                v = v.__copy__()
+                for i in range(v.degree()):
                     v[i] /= d
-            v.set_immutable()
-            vertices.append(v)
-        return tuple(uniq(vertices))
+                v.set_immutable()
+            vertices.add(v)
+        return tuple(sorted(vertices))
 
     @cached_method
     def has_IP_property(self):
@@ -974,7 +976,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
 
         REFERENCES:
 
-        [BSS]_
+        [BSS2009]_
 
         EXAMPLES::
 
@@ -1069,7 +1071,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             Permutation Group with generators [(), (3,4), (1,6)(2,5), (1,6)(2,5)(3,4)]
 
         Point labels also work for lattice polytopes that are not
-        full-dimensional, see trac:`16669`::
+        full-dimensional, see :trac:`16669`::
 
             sage: from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
             sage: lp = LatticePolytope_PPL((1,0,0),(0,1,0),(-1,-1,0))
@@ -1125,7 +1127,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             sage: from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
             sage: P = LatticePolytope_PPL((1,0,0), (0,1,0), (0,0,1), (-1,-1,-1))
             sage: for p in P.sub_polytope_generator():
-            ....:     print p.vertices()
+            ....:     print(p.vertices())
             ((0, 0, 0), (0, 0, 1), (0, 1, 0), (1, 0, 0))
             ((-1, -1, -1), (0, 0, 0), (0, 1, 0), (1, 0, 0))
             ((-1, -1, -1), (0, 0, 0), (0, 0, 1), (1, 0, 0))
@@ -1168,7 +1170,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             sage: sub.vertices()
             ((0, 1), (3, 0), (0, 3), (1, 0))
         """
-        from ppl_lattice_polygon import sub_reflexive_polygons
+        from .ppl_lattice_polygon import sub_reflexive_polygons
         from sage.geometry.polyhedron.lattice_euclidean_group_element import \
             LatticePolytopesNotIsomorphicError, LatticePolytopeNoEmbeddingError
         for p, ambient in sub_reflexive_polygons():
@@ -1203,8 +1205,9 @@ class LatticePolytope_PPL_class(C_Polyhedron):
           ``self`` (up to a lattice linear transformation) is
           returned. That is, the domain of the ``output='hom'`` map is
           returned. If the affine span of ``self`` is less or equal
-          2-dimnsional, the output is one of the following three
-          possibilities::
+          2-dimensional, the output is one of the following three
+          possibilities:
+
           :func:`~sage.geometry.polyhedron.ppl_lattice_polygon.polar_P2_polytope`,
           :func:`~sage.geometry.polyhedron.ppl_lattice_polygon.polar_P1xP1_polytope`,
           or

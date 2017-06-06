@@ -19,12 +19,6 @@ You can try out Sage without downloading anything:
 * **Sage cell:** A "one-off" version of Sage, available for doing one
   computation at a time. http://sagecell.sagemath.org/
 
-* **Sagenb:** Some public Sage notebook servers allow you to create a free
-  account.
-
-  If you log in, you will be working on a free, browser-based Sage notebook 
-  server that will work identically to the one you get within Sage. 
-
 To download a **pre-built binary** Sage distribution, visit
 http://sagemath.org/download.html and click on the link for the binary for your
 operating system.
@@ -97,7 +91,7 @@ tcl/tk development library. On Ubuntu, this is the command ::
 
 or something along that line. Next, reinstall Sage's Python::
 
-    sage -f python
+    sage -f python2
 
 This will pick up the tcl/tk library automatically. After successfully
 reinstalling Sage's Python, from within the Sage command line interface,
@@ -149,17 +143,14 @@ and repeat this command every time that we change the file simple.py. However, i
 
 every change applied to the file simple.py will be automatically updated in Sage.
 
-Can I use Sage with Python 3.x?
-"""""""""""""""""""""""""""""""
+Can I use SageMath with Python 3.x?
+"""""""""""""""""""""""""""""""""""
 
-Currently, no. Sage depends on the
-`SciPy <http://www.scipy.org>`_
-stack of Python numerical and scientific packages. As of 2010, SciPy
-still uses Python 2.x. So until SciPy is ported to run with Python
-3.x and
-`Cython <http://www.cython.org>`_
-supports Python 3.x, Sage will continue to use Python 2.x.
+Currently, no (February 2017). Work in progress aims to allow this in
+the not-so-far future. Until this task is completed, SageMath will continue
+to use Python 2.x.
 
+See :trac:`15530` for tracking the current progress.
 
 I'm seeing an error about "Permission denied" on a file called "sage-flags.txt".
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -187,9 +178,7 @@ it probably means that you compiled/installed Sage as one user, but
 have not run it to let it generate the ``sage-flags.txt`` file. Just
 run Sage one time as whatever user installed it and this problem
 should go away. This would also be easy to fix by having Sage run once
-as part of the install process; see
-`trac ticket #6375 <http://trac.sagemath.org/sage_trac/ticket/6375>`_
-for this fix.
+as part of the install process; see :trac:`6375` for this fix.
 
 
 I downloaded a Sage binary and it crashes on startup with "Illegal instruction". What can I do?
@@ -349,7 +338,7 @@ ints. For example::
     sage: RealNumber = float; Integer = int
     sage: from scipy import stats
     sage: stats.ttest_ind(list([1,2,3,4,5]),list([2,3,4,5,.6]))
-    (array(0.07675295564533369), 0.94070490247380478)
+    Ttest_indResult(statistic=0.076752955645333687, pvalue=0.94070490247380478)
     sage: stats.uniform(0,15).ppf([0.5,0.7])
     array([  7.5,  10.5])
 
@@ -366,9 +355,9 @@ As a third alternative, use the raw suffix::
     array([  7.5,  10.5])
 
 You can also disable the preprocessor in your code via
-``preparse(False)``. You can may start IPython alone from the command
+``preparser(False)``. You can start IPython alone from the command
 line ``sage -ipython`` which does not pre-load anything
-Sage-specific. Or switching the Notebook language to "Python".
+Sage-specific. Or switch the Notebook language to "Python".
 
 
 How do I save an object so I don't have to compute it each time I open a worksheet?
@@ -393,12 +382,34 @@ You might want to convert ASCII characters such as "Big Mac" to ASCII
 numerals for further processing. In Sage and Python, you can use ``ord``,
 e.g. ::
 
-    sage: map(ord, "abcde")
+    sage: list(map(ord, "abcde"))
     [97, 98, 99, 100, 101]
-    sage: map(ord, "Big Mac")
+    sage: list(map(ord, "Big Mac"))
     [66, 105, 103, 32, 77, 97, 99]
 
+How can I wrote multiplication implicitly as in Mathematica?
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
+Sage has a function that enables this::
+
+    sage: implicit_multiplication(True)
+    sage: x 2 x  # Not tested
+    2*x^2
+    sage: implicit_multiplication(False)
+
+This is preparsed by Sage into Python code. It may not work in a
+complicated situation. To see what the preparser does::
+
+    sage: implicit_multiplication(True)
+    sage: preparse("2 x")
+    'Integer(2)*x'
+    sage: implicit_multiplication(False)
+    sage: preparse("2 x")
+    'Integer(2) x'
+
+See https://wiki.sagemath.org/sage_mathematica for more information
+about Mathematica vs. SageMath.
+    
 Can I make Sage automatically execute commands on startup?
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -475,27 +486,6 @@ can first restore your graphical session, before you attempt to log
 into a text based session.
 
 
-When I run doctests on Mac OS X I see the messages with "malloc", but in the end Sage reports that everything went fine.
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-The "malloc" messages you refer to might be something such as the
-following::
-
-    sage -t  src/sage/libs/pari/gen.pyx
-    python(4563) malloc: *** vm_allocate(size=4096000000) failed (error code=3)
-    python(4563) malloc: *** error: can't allocate region
-    python(4563) malloc: *** set a breakpoint in szone_error to debug
-
-The issue above is not a doctest failure. It is an error message
-printed by the system and it is exactly what one expects to see. In
-that particular doctest, we try to allocate a very large list in Pari
-that does not fit into physical memory (it is at least 100GB in
-size). So Mac OS X tells you that it could not allocate a chunk of
-memory roughly 4 GB in size, which is expected, if you are using Sage
-on a 32-bit version of OS X and you have compiled Sage in 32-bit bit
-mode or your binary Sage distribution is 32-bit.
-
-
 Sage 2.9 and higher fails compiling ATLAS on Linux. How can I fix this?
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -512,17 +502,6 @@ On Ubuntu, try disabling "Power Manager" via ::
 
 under the "Startup Programs" or using ``cpufreq-set`` via the command
 line.
-
-
-Sage fails with the error message "restore segment prot after reloc: Permission denied". What is wrong?
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-The problem is related to SELinux. See this page for some tips to fix
-this:
-http://www.ittvis.com/services/techtip.asp?ttid=3092.
-We are currently tracking this issue at
-`ticket #480 <http://www.sagetrac.org/sage_trac/ticket/480>`_.
-
 
 When I start Sage, SELinux complains that "/path/to/libpari-gmp.so.2" requires text-relocation. How can I fix it?
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -545,11 +524,7 @@ by typing ``make build`` in a terminal.
 How do I run sage in daemon mode, i.e. as a service?
 """"""""""""""""""""""""""""""""""""""""""""""""""""
 
-We currently do not have a ready-to-go solution. There are several
-possibilities. Use ``screen``, ``nohup`` or ``disown``. We are
-tracking the issue at
-`ticket #381 <http://www.sagetrac.org/sage_trac/ticket/381>`_
-so stay tuned.
+There are several possibilities. Use ``screen``, ``nohup`` or ``disown``.
 
 
 The show command for plotting 3-D objects does not work.
@@ -609,22 +584,22 @@ libraries. Here is a small example::
     # Construct a finite field of order 11.
     cdef sage.rings.finite_field_givaro.FiniteField_givaro K
     K = sage.rings.finite_field_givaro.FiniteField_givaro(11)
-    print "K is a", type(K)
-    print "K cardinality =", K.cardinality()
+    print("K is a {}".format(type(K)))
+    print("K cardinality = {}".format(K.cardinality()))
     # Construct two values in the field:
     cdef sage.rings.finite_field_givaro.FiniteField_givaroElement x
     cdef sage.rings.finite_field_givaro.FiniteField_givaroElement y
     x = K(3)
     y = K(6)
-    print "x is a", type(x)
-    print "x =", x
-    print "y =", y
-    print "x has multiplicative order =", x.multiplicative_order()
-    print "y has multiplicative order =", y.multiplicative_order()
-    print "x*y =", x*y
+    print("x is a {}".format(type(x)))
+    print("x = {}".format(x))
+    print("y = {}".format(y))
+    print("x has multiplicative order = {}".format(x.multiplicative_order()))
+    print("y has multiplicative order = {}".format(y.multiplicative_order()))
+    print("x*y = {}".format(x * y))
     # Show that x behaves like a finite field element:
     for i in range(1, x.multiplicative_order() + 1):
-        print i, x**i
+        print("{} {}".format(i, x**i))
     assert x*(1/x) == K.one()
 
 To find out more, type ::
@@ -750,9 +725,15 @@ You will need to do this from the command line.  Just run a command like this.
 
 * Linux (assuming you have Sage in ``/usr/bin``)::
 
-    env SAGE_BROWSER=opera /usr/bin/sage -notebook
+    env BROWSER=opera /usr/bin/sage --notebook
 
-* Mac (assuming you are in the directory of your downloaded Sage)::
+* Mac (assuming you are in the directory of your downloaded Sage).
+  With the Jupyter notebook::
 
-    SAGE_BROWSER='open -a Firefox' ./sage -notebook
-    SAGE_BROWSER='open -a Google\ Chrome' ./sage -notebook
+    BROWSER='open -a Firefox %s' ./sage --notebook jupyter
+    BROWSER='open -a Google\ Chrome %s' ./sage --notebook jupyter
+
+  With the old SageNB notebook::
+
+    BROWSER='open -a Firefox' ./sage --notebook
+    BROWSER='open -a Google\ Chrome' ./sage --notebook

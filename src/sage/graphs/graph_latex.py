@@ -52,13 +52,13 @@ Here is a minimal session demonstrating how to use these features. The following
 
     sage: H = graphs.HeawoodGraph()
     sage: H.set_latex_options(
-    ...   graphic_size=(5,5),
-    ...   vertex_size=0.2,
-    ...   edge_thickness=0.04,
-    ...   edge_color='green',
-    ...   vertex_color='green',
-    ...   vertex_label_color='red'
-    ...   )
+    ....: graphic_size=(5,5),
+    ....: vertex_size=0.2,
+    ....: edge_thickness=0.04,
+    ....: edge_color='green',
+    ....: vertex_color='green',
+    ....: vertex_label_color='red'
+    ....: )
 
 At this point, ``view(H)`` should call ``pdflatex`` to process the string created by ``latex(H)`` and then display the resulting graphic.
 
@@ -68,9 +68,6 @@ To use this image in a LaTeX document, you could of course just copy and save th
     sage: check_tkz_graph()  # random - depends on TeX installation
     sage: latex(H)
     \begin{tikzpicture}
-    %
-    \useasboundingbox (0,0) rectangle (5.0cm,5.0cm);
-    %
     \definecolor{cv0}{rgb}{0.0,0.502,0.0}
     \definecolor{cfv0}{rgb}{1.0,1.0,1.0}
     \definecolor{clv0}{rgb}{1.0,0.0,0.0}
@@ -184,7 +181,6 @@ This example illustrates switching between the built-in styles when using the tk
     sage: check_tkz_graph()  # random - depends on TeX installation
     sage: latex(g)
     \begin{tikzpicture}
-    ...
     \GraphInit[vstyle=Classic]
     ...
     \end{tikzpicture}
@@ -198,7 +194,6 @@ This example illustrates switching between the built-in styles when using the tk
     LaTeX options for Petersen graph: {'tkz_style': 'Art'}
     sage: latex(g)
     \begin{tikzpicture}
-    ...
     \GraphInit[vstyle=Art]
     ...
     \end{tikzpicture}
@@ -219,7 +214,7 @@ Among other things, this supports the flexible ``edge_options`` option
 here we color in red all edges touching the vertex ``0``::
 
     sage: g = graphs.PetersenGraph()
-    sage: g.set_latex_options(format="dot2tex", edge_options = lambda (u,v,label): {"color": "red"} if u==0 else {})
+    sage: g.set_latex_options(format="dot2tex", edge_options=lambda u_v_label: {"color": "red"} if u_v_label[0] == 0 else {})
     sage: latex(g)  # optional - dot2tex graphviz
     \begin{tikzpicture}[>=latex,line join=bevel,]
     ...
@@ -238,49 +233,46 @@ choices. ::
     (x, y, u, w)
     sage: G = Graph(loops=True)
     sage: for i in range(5):
-    ...      for j in range(i+1, 5):
-    ...           G.add_edge((i, j), label=(x^i*y^j).expand())
+    ....:    for j in range(i+1, 5):
+    ....:         G.add_edge((i, j), label=(x^i*y^j).expand())
     sage: G.add_edge((0,0), label=sin(u))
     sage: G.add_edge((4,4), label=w^5)
     sage: G.set_pos(G.layout_circular())
     sage: G.set_latex_options(
-    ...   units='in',
-    ...   graphic_size=(8,8),
-    ...   margins=(1,2,2,1),
-    ...   scale=0.5,
-    ...   vertex_color='0.8',
-    ...   vertex_colors={1:'aqua', 3:'y', 4:'#0000FF'},
-    ...   vertex_fill_color='blue',
-    ...   vertex_fill_colors={1:'green', 3:'b', 4:'#FF00FF'},
-    ...   vertex_label_color='brown',
-    ...   vertex_label_colors={0:'g',1:'purple',2:'#007F00'},
-    ...   vertex_shape='diamond',
-    ...   vertex_shapes={1:'rectangle', 2:'sphere', 3:'sphere', 4:'circle'},
-    ...   vertex_size=0.3,
-    ...   vertex_sizes={0:1.0, 2:0.3, 4:1.0},
-    ...   vertex_label_placements = {2:(0.6, 180), 4:(0,45)},
-    ...   edge_color='purple',
-    ...   edge_colors={(0,2):'g',(3,4):'red'},
-    ...   edge_fills=True,
-    ...   edge_fill_color='green',
-    ...   edge_label_colors={(2,3):'y',(0,4):'blue'},
-    ...   edge_thickness=0.05,
-    ...   edge_thicknesses={(3,4):0.2, (0,4):0.02},
-    ...   edge_labels=True,
-    ...   edge_label_sloped=True,
-    ...   edge_label_slopes={(0,3):False, (2,4):False},
-    ...   edge_label_placement=0.50,
-    ...   edge_label_placements={(0,4):'above', (2,3):'left', (0,0):'above', (4,4):'below'},
-    ...   loop_placement=(2.0, 'NO'),
-    ...   loop_placements={4:(8.0, 'EA')}
-    ...   )
+    ....: units='in',
+    ....: graphic_size=(8,8),
+    ....: margins=(1,2,2,1),
+    ....: scale=0.5,
+    ....: vertex_color='0.8',
+    ....: vertex_colors={1:'aqua', 3:'y', 4:'#0000FF'},
+    ....: vertex_fill_color='blue',
+    ....: vertex_fill_colors={1:'green', 3:'b', 4:'#FF00FF'},
+    ....: vertex_label_color='brown',
+    ....: vertex_label_colors={0:'g',1:'purple',2:'#007F00'},
+    ....: vertex_shape='diamond',
+    ....: vertex_shapes={1:'rectangle', 2:'sphere', 3:'sphere', 4:'circle'},
+    ....: vertex_size=0.3,
+    ....: vertex_sizes={0:1.0, 2:0.3, 4:1.0},
+    ....: vertex_label_placements = {2:(0.6, 180), 4:(0,45)},
+    ....: edge_color='purple',
+    ....: edge_colors={(0,2):'g',(3,4):'red'},
+    ....: edge_fills=True,
+    ....: edge_fill_color='green',
+    ....: edge_label_colors={(2,3):'y',(0,4):'blue'},
+    ....: edge_thickness=0.05,
+    ....: edge_thicknesses={(3,4):0.2, (0,4):0.02},
+    ....: edge_labels=True,
+    ....: edge_label_sloped=True,
+    ....: edge_label_slopes={(0,3):False, (2,4):False},
+    ....: edge_label_placement=0.50,
+    ....: edge_label_placements={(0,4):'above', (2,3):'left', (0,0):'above', (4,4):'below'},
+    ....: loop_placement=(2.0, 'NO'),
+    ....: loop_placements={4:(8.0, 'EA')}
+    ....: )
     sage: from sage.graphs.graph_latex import check_tkz_graph
     sage: check_tkz_graph()  # random - depends on TeX installation
-    sage: print latex(G)
+    sage: print(latex(G))
     \begin{tikzpicture}
-    %
-    \useasboundingbox (0,0) rectangle (4.0in,4.0in);
-    %
     \definecolor{cv0}{rgb}{0.8,0.8,0.8}
     \definecolor{cfv0}{rgb}{0.0,0.0,1.0}
     \definecolor{clv0}{rgb}{0.0,0.5,0.0}
@@ -366,10 +358,12 @@ GraphLatex class and functions
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_function
 from sage.misc.latex import latex
+
 
 def check_tkz_graph():
     r"""
@@ -401,6 +395,7 @@ Visit 'http://altermundus.com/pages/tkz/'.
 Visit 'http://altermundus.com/pages/tkz/'.
 """)
 
+
 def have_tkz_graph():
     r"""
     Returns ``True`` if the proper LaTeX packages
@@ -420,9 +415,10 @@ def have_tkz_graph():
     """
     return latex.has_file("tikz.sty") and latex.has_file("tkz-graph.sty") and latex.has_file("tkz-berge.sty")
 
+
 @cached_function
 def setup_latex_preamble():
-    """
+    r"""
     Adds appropriate ``\usepackage{...}``, and other instructions to
     the latex preamble for the packages that are needed for processing
     graphs(``tikz``, ``tkz-graph``, ``tkz-berge``), if available
@@ -445,6 +441,7 @@ def setup_latex_preamble():
     latex.add_package_to_preamble_if_available("tkz-berge")
     if have_tkz_graph():
         latex.add_to_preamble("\\usetikzlibrary{arrows,shapes}")
+
 
 class GraphLatex(SageObject):
     r"""
@@ -481,50 +478,49 @@ class GraphLatex(SageObject):
     # This dictionary could also contain type information (list of admissible values)
     # and a description
     # See e.g. @option
-    __graphlatex_options = {
-            'tkz_style': 'Custom',
-            'format': 'tkz_graph',
-            'layout': 'acyclic',
-            'prog': 'dot',
-            'units': 'cm',
-            'scale': 1.0,
-            'graphic_size': (5, 5),
-            'margins': (0,0,0,0),
-            'vertex_color': 'black',
-            'vertex_colors': {},
-            'vertex_fill_color': 'white',
-            'vertex_fill_colors': {},
-            'vertex_shape': 'circle',
-            'vertex_shapes': {},
-            'vertex_size': 1.0,
-            'vertex_sizes': {},
-            'vertex_labels': True,
-            'vertex_labels_math': True,
-            'vertex_label_color': 'black',
-            'vertex_label_colors': {},
-            'vertex_label_placement': 'center',
-            'vertex_label_placements': {},
-            'edge_options': (),
-            'edge_color': 'black',
-            'edge_colors': {},
-            'edge_fills': False,
-            'edge_fill_color': 'black',
-            'edge_fill_colors': {},
-            'edge_thickness': 0.1,
-            'edge_thicknesses': {},
-            'edge_labels': False,
-            'edge_labels_math': True,
-            'edge_label_color': 'black',
-            'edge_label_colors': {},
-            'edge_label_sloped': True,
-            'edge_label_slopes': {},
-            'edge_label_placement': 0.50,
-            'edge_label_placements': {},
-            'loop_placement': (3.0, 'NO'),
-            'loop_placements': {},
-            'color_by_label' : False,
-            'rankdir': 'down'
-            }
+    __graphlatex_options = {'tkz_style': 'Custom',
+                            'format': 'tkz_graph',
+                            'layout': 'acyclic',
+                            'prog': 'dot',
+                            'units': 'cm',
+                            'scale': 1.0,
+                            'graphic_size': (5, 5),
+                            'margins': (0,0,0,0),
+                            'vertex_color': 'black',
+                            'vertex_colors': {},
+                            'vertex_fill_color': 'white',
+                            'vertex_fill_colors': {},
+                            'vertex_shape': 'circle',
+                            'vertex_shapes': {},
+                            'vertex_size': 1.0,
+                            'vertex_sizes': {},
+                            'vertex_labels': True,
+                            'vertex_labels_math': True,
+                            'vertex_label_color': 'black',
+                            'vertex_label_colors': {},
+                            'vertex_label_placement': 'center',
+                            'vertex_label_placements': {},
+                            'edge_options': (),
+                            'edge_color': 'black',
+                            'edge_colors': {},
+                            'edge_fills': False,
+                            'edge_fill_color': 'black',
+                            'edge_fill_colors': {},
+                            'edge_thickness': 0.1,
+                            'edge_thicknesses': {},
+                            'edge_labels': False,
+                            'edge_labels_math': True,
+                            'edge_label_color': 'black',
+                            'edge_label_colors': {},
+                            'edge_label_sloped': True,
+                            'edge_label_slopes': {},
+                            'edge_label_placement': 0.50,
+                            'edge_label_placements': {},
+                            'loop_placement': (3.0, 'NO'),
+                            'loop_placements': {},
+                            'color_by_label': False,
+                            'rankdir': 'down',
+                            'subgraph_clusters': []}
 
     def __init__(self, graph, **options):
         r"""
@@ -581,12 +577,12 @@ class GraphLatex(SageObject):
             sage: opts = g.latex_options()
             sage: opts.set_option('tkz_style', 'Classic')
             sage: opts.set_option('vertex_size', 3.6)
-            sage: print opts._repr_()
+            sage: print(opts._repr_())
             LaTeX options for Petersen graph: {'tkz_style': 'Classic', 'vertex_size': 3.60000000000000}
         """
-        return "LaTeX options for %s: %s"%(self._graph, self._options)
+        return "LaTeX options for %s: %s" % (self._graph, self._options)
 
-    def set_option(self, option_name, option_value = None):
+    def set_option(self, option_name, option_value=None):
         r"""
         Sets, modifies, clears a LaTeX
         option for controlling the rendering of a graph.
@@ -596,7 +592,7 @@ class GraphLatex(SageObject):
         :meth:`sage.graphs.generic_graph.GenericGraph.set_latex_options` method
         is the easiest way to set options, and allows several to be set at once.
 
-        INPUTS:
+        INPUT:
 
         - ``option_name`` - a string for a latex option contained in the list
           ``sage.graphs.graph_latex.GraphLatex.__graphlatex_options``. A
@@ -704,7 +700,7 @@ class GraphLatex(SageObject):
           value to zero the vertex will be as small as possible
           (up to tkz-graph's "inner sep" parameter), while still
           containing labels.  However, if labels are not of a uniform
-          size, then the verrices will not be either.
+          size, then the vertices will not be either.
 
         - ``vertex_sizes`` -- a dictionary of sizes for some of the vertices.
 
@@ -854,7 +850,12 @@ class GraphLatex(SageObject):
         - ``color_by_label`` - a boolean (default: False). Colors the
           edges according to their labels
 
-        OUTPUTS:
+        - ``subgraph_clusters`` -- (default: []) a list of lists of vertices,
+          if supported by the layout engine, nodes belonging to the same
+          cluster subgraph are drawn together, with the entire drawing
+          of the cluster contained within a bounding rectangle.
+
+        OUTPUT:
 
         There are none.  Success happens silently.
 
@@ -892,13 +893,12 @@ class GraphLatex(SageObject):
            - clean out remaining pgf files from older version
            - run texhash
 
-
         TESTS:
 
         These test all of the options and one example of each allowable
         proper input.  They should all execute silently. ::
 
-            sage: G=Graph()
+            sage: G = Graph()
             sage: G.add_edge((0,1))
             sage: opts = G.latex_options()
             sage: opts.set_option('tkz_style', 'Custom')
@@ -945,6 +945,7 @@ class GraphLatex(SageObject):
             sage: opts.set_option('edge_label_placements', {(0,1):0.75})
             sage: opts.set_option('loop_placement', (3.0, 'NO'))
             sage: opts.set_option('loop_placements', {0:(5.7,'WE')})
+            sage: opts.set_option('subgraph_clusters', [[0,1]])
 
         These test some of the logic of possible failures.  Some tests,
         such as inputs of colors, are handled by somewhat general sections
@@ -1069,7 +1070,6 @@ class GraphLatex(SageObject):
         from sage.rings.integer import Integer
         from sage.rings.real_mpfr import RealLiteral
 
-
         cc = ColorConverter()  # used as a color tester
 
         if not(option_name in GraphLatex.__graphlatex_options):
@@ -1079,7 +1079,8 @@ class GraphLatex(SageObject):
                 del self._options[option_name]
         else:
             # Test options here when attempt to set
-            name = option_name; value = option_value
+            name = option_name
+            value = option_value
             #
             # Tuples of constants
             #
@@ -1098,8 +1099,8 @@ class GraphLatex(SageObject):
             color_dicts = ('vertex_colors','vertex_fill_colors','vertex_label_colors','edge_colors','edge_fill_colors','edge_label_colors')
             boolean_dicts = ('edge_label_slopes',)
             positive_scalars = ('scale', 'vertex_size', 'edge_thickness')
-            positive_scalar_dicts=('vertex_sizes', 'edge_thicknesses')
-            positive_tuples=('graphic_size', 'margins')
+            positive_scalar_dicts = ('vertex_sizes', 'edge_thicknesses')
+            positive_tuples = ('graphic_size', 'margins')
             #
             #  Checks/test on single values (ie graph-wide defaults)
             #
@@ -1120,15 +1121,15 @@ class GraphLatex(SageObject):
                     raise ValueError('%s option needs to be a matplotlib color (always as a string), not %s' % (name, value))
             elif name in boolean_options and not isinstance(value, bool):
                 raise ValueError('%s option must be True or False, not %s' % (name, value))
-            elif name == 'vertex_shape' and not value in shape_names:
+            elif name == 'vertex_shape' and value not in shape_names:
                 raise ValueError('%s option must be the shape of a vertex, not %s' % (name, value))
             elif name in positive_scalars and not ( type(value) in number_types and (value >= 0.0) ):
                 raise ValueError( '%s option must be a positive number, not %s' % (name, value))
-            elif name == 'vertex_label_placement' and not( value == 'center') and not( isinstance(value, tuple) and len(value) == 2 and type(value[0]) in number_types and value[0]>=0 and type(value[1]) in number_types and value[1]>=0 ):
+            elif name == 'vertex_label_placement' and not(value == 'center') and not(isinstance(value, tuple) and len(value) == 2 and type(value[0]) in number_types and value[0] >= 0 and type(value[1]) in number_types and value[1] >= 0):
                 raise ValueError( '%s option must be None, or a pair of positive numbers, not %s' % (name, value))
-            elif name == 'edge_label_placement' and not( ((type(value) in number_types) and (0<= value) and (value <= 1)) or (value in label_places)):
+            elif name == 'edge_label_placement' and not(((type(value) in number_types) and (0 <= value) and (value <= 1)) or (value in label_places)):
                 raise ValueError( '%s option must be a number between 0.0 and 1.0 or a place (like "above"), not %s' % (name, value))
-            elif name == 'loop_placement' and not( (isinstance(value, tuple)) and (len(value) == 2) and (value[0] >=0) and (value[1] in compass_points) ):
+            elif name == 'loop_placement' and not( (isinstance(value, tuple)) and (len(value) == 2) and (value[0] >= 0) and (value[1] in compass_points) ):
                 raise ValueError( '%s option must be a pair that is a positive number followed by a compass point abbreviation, not %s' % (name, value))
             #
             #  Checks/test on dictionaries of values (ie per-vertex or per-edge defaults)
@@ -1161,14 +1162,14 @@ class GraphLatex(SageObject):
                     raise TypeError('%s option must be a dictionary, not %s' (name, value))
                 else:
                     for key, s in value.items():
-                        if not s in shape_names:
+                        if s not in shape_names:
                             raise ValueError('%s option for %s needs to be a vertex shape, not %s' % (name, key, s))
             elif name == 'vertex_label_placements':
                 if not isinstance(value, dict):
                     raise TypeError('%s option must be a dictionary, not %s' (name, value))
                 else:
                     for key, p in value.items():
-                        if not( p == 'center') and not( isinstance(p, tuple) and len(p) == 2 and type(p[0]) in number_types and p[0]>=0 and type(p[1]) in number_types and p[1]>=0 ):
+                        if not(p == 'center') and not(isinstance(p, tuple) and len(p) == 2 and type(p[0]) in number_types and p[0] >= 0 and type(p[1]) in number_types and p[1] >= 0):
                             raise ValueError('%s option for %s needs to be None or a pair of positive numbers, not %s' % (name, key, p))
             elif name == 'edge_label_placements':
                 if not isinstance(value, dict):
@@ -1182,7 +1183,7 @@ class GraphLatex(SageObject):
                     raise TypeError('%s option must be a dictionary, not %s' (name, value))
                 else:
                     for key, p in value.items():
-                        if not( (isinstance(p, tuple)) and (len(p)==2) and (p[0] >=0) and (p[1] in compass_points) ):
+                        if not((isinstance(p, tuple)) and (len(p) == 2) and (p[0] >= 0) and (p[1] in compass_points)):
                             raise ValueError('%s option for %s needs to be a positive number and a compass point (like "EA"), not %s' % (name, key, p))
             # These have been verified as tuples before going into this next check
             elif name in positive_tuples:
@@ -1193,12 +1194,11 @@ class GraphLatex(SageObject):
             # Verified.  Set it.
             self._options[option_name] = option_value
 
-
     def set_options(self, **kwds):
         r"""
         Set several LaTeX options for a graph all at once.
 
-        INPUTS:
+        INPUT:
 
          - kwds - any number of option/value pairs to se many graph latex
            options at once (a variable number, in any order). Existing
@@ -1279,11 +1279,8 @@ class GraphLatex(SageObject):
             sage: check_tkz_graph()  # random - depends on TeX installation
             sage: g = graphs.CompleteGraph(2)
             sage: opts = g.latex_options()
-            sage: print opts.latex()
+            sage: print(opts.latex())
             \begin{tikzpicture}
-            %
-            \useasboundingbox (0,0) rectangle (5.0cm,5.0cm);
-            %
             \definecolor{cv0}{rgb}{0.0,0.0,0.0}
             \definecolor{cfv0}{rgb}{1.0,1.0,1.0}
             \definecolor{clv0}{rgb}{0.0,0.0,0.0}
@@ -1300,7 +1297,7 @@ class GraphLatex(SageObject):
             \end{tikzpicture}
         """
         format = self.get_option('format')
-        if format  == "tkz_graph":
+        if format == "tkz_graph":
             return self.tkz_picture()
         elif format == "dot2tex":
             return self.dot2tex_picture()
@@ -1315,7 +1312,7 @@ class GraphLatex(SageObject):
             sage: g = digraphs.ButterflyGraph(1)
             sage: from sage.graphs.graph_latex import check_tkz_graph
             sage: check_tkz_graph()  # random - depends on TeX installation
-            sage: print g.latex_options().dot2tex_picture()  # optional - dot2tex graphviz
+            sage: print(g.latex_options().dot2tex_picture())  # optional - dot2tex graphviz
             \begin{tikzpicture}[>=latex,line join=bevel,]
             %%
               \node (node_3) at (...bp,...bp) [draw,draw=none] {$\left(1, 1\right)$};
@@ -1329,22 +1326,22 @@ class GraphLatex(SageObject):
             %
             \end{tikzpicture}
 
-        We make sure :trac:`13624` is fixed:: 
- 
-            sage: G = DiGraph() 
-            sage: G.add_edge(3333, 88, 'my_label') 
-            sage: G.set_latex_options(edge_labels=True) 
-            sage: print G.latex_options().dot2tex_picture() # optional - dot2tex graphviz 
-            \begin{tikzpicture}[>=latex,line join=bevel,] 
-            %% 
+        We make sure :trac:`13624` is fixed::
+
+            sage: G = DiGraph()
+            sage: G.add_edge(3333, 88, 'my_label')
+            sage: G.set_latex_options(edge_labels=True)
+            sage: print(G.latex_options().dot2tex_picture()) # optional - dot2tex graphviz
+            \begin{tikzpicture}[>=latex,line join=bevel,]
+            %%
             \node (node_1) at (...bp,...bp) [draw,draw=none] {$3333$};
               \node (node_0) at (...bp,...bp) [draw,draw=none] {$88$};
               \draw [black,->] (node_1) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_0);
-              \definecolor{strokecol}{rgb}{0.0,0.0,0.0}; 
-              \pgfsetstrokecolor{strokecol} 
-              \draw (...bp,...bp) node {$\text{\texttt{my{\char`\_}label}}$}; 
-            % 
-            \end{tikzpicture} 
+              \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+              \pgfsetstrokecolor{strokecol}
+              \draw (...bp,...bp) node {$\text{\texttt{my{\char`\_}label}}$};
+            %
+            \end{tikzpicture}
 
         Note: there is a lot of overlap between what tkz_picture and
         dot2tex do. It would be best to merge them! dot2tex probably
@@ -1357,13 +1354,12 @@ class GraphLatex(SageObject):
         options.update(self._options)
         dotdata = self._graph.graphviz_string(labels="latex", **options)
         import dot2tex
-        return dot2tex.dot2tex(
-                dotdata,
-                format = 'tikz',
-                autosize = True,
-                crop = True,
-                figonly = 'True',
-                prog=self.get_option('prog'))
+        return dot2tex.dot2tex(dotdata,
+                               format='tikz',
+                               autosize=True,
+                               crop=True,
+                               figonly='True',
+                               prog=self.get_option('prog')).strip()
         # usepdflatex = True, debug = True)
 
     def tkz_picture(self):
@@ -1398,12 +1394,9 @@ class GraphLatex(SageObject):
             sage: g = graphs.CompleteGraph(3)
             sage: opts = g.latex_options()
             sage: g.set_latex_options(tkz_style='Art')
-            sage: print opts.tkz_picture()
+            sage: print(opts.tkz_picture())
             \begin{tikzpicture}
-            %
             \GraphInit[vstyle=Art]
-            %
-            \useasboundingbox (0,0) rectangle (5.0cm,5.0cm);
             %
             \Vertex[L=\hbox{$0$},x=2.5cm,y=5.0cm]{v0}
             \Vertex[L=\hbox{$1$},x=0.0cm,y=0.0cm]{v1}
@@ -1423,11 +1416,8 @@ class GraphLatex(SageObject):
             sage: g = graphs.CompleteGraph(3)
             sage: opts = g.latex_options()
             sage: g.set_latex_options(tkz_style='Custom')
-            sage: print opts.tkz_picture()
+            sage: print(opts.tkz_picture())
             \begin{tikzpicture}
-            %
-            \useasboundingbox (0,0) rectangle (5.0cm,5.0cm);
-            %
             \definecolor{cv0}{rgb}{0.0,0.0,0.0}
             \definecolor{cfv0}{rgb}{1.0,1.0,1.0}
             \definecolor{clv0}{rgb}{0.0,0.0,0.0}
@@ -1464,7 +1454,7 @@ class GraphLatex(SageObject):
             sage: check_tkz_graph()  # random - depends on TeX installation
             sage: g = graphs.PathGraph(3)
             sage: opts = g.latex_options()
-            sage: print opts.tkz_picture()
+            sage: print(opts.tkz_picture())
             \begin{tikzpicture}
             ...
             \end{tikzpicture}
@@ -1476,7 +1466,7 @@ class GraphLatex(SageObject):
             sage: check_tkz_graph()  # random - depends on TeX installation
             sage: g = graphs.CompleteGraph(1)
             sage: opts = g.latex_options()
-            sage: print opts.tkz_picture()
+            sage: print(opts.tkz_picture())
             \begin{tikzpicture}
             ...
             \end{tikzpicture}
@@ -1503,7 +1493,7 @@ class GraphLatex(SageObject):
         prefix = 'v'  # leading string on internal (to tkz-graph) vertex names
 
         ####################
-        ###  Pre-built syles
+        #  Pre-built syles
         ####################
 
         # We preserve the pre-built style OR
@@ -1517,7 +1507,7 @@ class GraphLatex(SageObject):
             vertex_labels_math = True
 
         ###################################
-        ###  Layout, image sizing placement
+        #  Layout, image sizing placement
         ###################################
 
         units = self.get_option('units')
@@ -1531,10 +1521,13 @@ class GraphLatex(SageObject):
         # is scaled to fit there.
 
         # Lower left, upper right corners of box inside borders
-        llx = margins[0]; lly = margins[3]
-        urx = graphic_size[0]-margins[1]; ury = graphic_size[1]-margins[2]
+        llx = margins[0]
+        lly = margins[3]
+        urx = graphic_size[0] - margins[1]
+        ury = graphic_size[1] - margins[2]
         # width and height of space
-        w = urx - llx; h = ury - lly
+        w = urx - llx
+        h = ury - lly
 
         # TODO: Could use self._graph._layout_bounding_box(pos)
         # trans = lambda x,y: [x[0]-y[0],x[1]-y[1]]
@@ -1559,20 +1552,22 @@ class GraphLatex(SageObject):
         xspread = xmax - xmin
         if xspread == 0:
             x_scale = 0.0
-            llx = llx + 0.5*w
+            llx = llx + 0.5 * w
         else:
-            x_scale = float(w)/xspread
+            x_scale = float(w) / xspread
         yspread = ymax - ymin
         if yspread == 0:
             y_scale = 0.0
-            lly = lly + 0.5*h
+            lly = lly + 0.5 * h
         else:
-            y_scale = float(h)/yspread
+            y_scale = float(h) / yspread
         # Could preserve aspect ratio here by setting both scale factors to the minimum
         # and doing a shift of the larger to center
         # A linear function will map layout positions into the bordered graphic space
-        translate = lambda p: ((p[0]-xmin)*x_scale+llx, (p[1]-ymin)*y_scale+lly)
 
+        def translate(p):
+            return ((p[0] - xmin) * x_scale + llx,
+                    (p[1] - ymin) * y_scale + lly)
 
         # The positions of the vertices will get scaled to fill the
         # specified size of the image, as given by graphic_size.
@@ -1580,22 +1575,25 @@ class GraphLatex(SageObject):
         # is scaled to fit there.
 
         # Lower left, upper right corners of box inside borders
-        llx = margins[0]; lly = margins[3]
-        urx = graphic_size[0]-margins[1]; ury = graphic_size[1]-margins[2]
+        llx = margins[0]
+        lly = margins[3]
+        urx = graphic_size[0] - margins[1]
+        ury = graphic_size[1] - margins[2]
         # width and height of space
-        w = urx - llx; h = ury - lly
+        w = urx - llx
+        h = ury - lly
 
         # TODO: Could use self._graph._layout_bounding_box(pos)
         # trans = lambda x,y: [x[0]-y[0],x[1]-y[1]]
         # Determine the spread in the x and y directions (i.e. xmax, ymax)
         # Needs care for perfectly horizontal and vertical layouts
-        ### pos = copy.deepcopy(self._graph.layout(layout = layout, labels = "latex"))
+        # pos = copy.deepcopy(self._graph.layout(layout = layout, labels = "latex"))
         pos = self._graph.layout()
         if len(pos.values()) > 0:
-            xmin = min([ i[0] for i in pos.values()])
-            ymin = min([ i[1] for i in pos.values()])
-            xmax = max([ i[0] for i in pos.values()])
-            ymax = max([ i[1] for i in pos.values()])
+            xmin = min(i[0] for i in pos.values())
+            ymin = min(i[1] for i in pos.values())
+            xmax = max(i[0] for i in pos.values())
+            ymax = max(i[1] for i in pos.values())
         else:
             xmax, ymax = 0, 0
 
@@ -1606,37 +1604,40 @@ class GraphLatex(SageObject):
         xspread = xmax - xmin
         if xspread == 0:
             x_scale = 0.0
-            llx = llx + 0.5*w
+            llx = llx + 0.5 * w
         else:
-            x_scale = float(w)/xspread
+            x_scale = float(w) / xspread
         yspread = ymax - ymin
         if yspread == 0:
             y_scale = 0.0
-            lly = lly + 0.5*h
+            lly = lly + 0.5 * h
         else:
-            y_scale = float(h)/yspread
+            y_scale = float(h) / yspread
 
         # Could preserve aspect ratio here by setting both scale factors to the minimum
         # and doing a shift of the larger to center
         # A linear function will map layout positions into the bordered graphic space
-        translate = lambda p: ((p[0]-xmin)*x_scale+llx, (p[1]-ymin)*y_scale+lly)
+
+        def translate(p):
+            return ((p[0] - xmin) * x_scale + llx,
+                    (p[1] - ymin) * y_scale + lly)
 
         #############
-        ###  Vertices
+        #  Vertices
         #############
 
         # We record the index of each vertex in the graph's list of vertices
         # Which is just a convenience for forming vertex names internal to tkz-graph
-        index_of_vertex={}
+        index_of_vertex = {}
         vertex_list = self._graph.vertices()
         for u in self._graph:
-            index_of_vertex[u]=vertex_list.index(u)
+            index_of_vertex[u] = vertex_list.index(u)
 
         # Vertex labels can be switched on/off, and we don't record
         # or use this type of extra information if they are switched off
         vertex_labels = self.get_option('vertex_labels')
 
-        # We collect options for vertices, default values and and for-some-vertices information
+        # We collect options for vertices, default values and for-some-vertices information
         # These are combined into dictionaries on a per-vertex basis, for all vertices
         # This only applies for a custom style
         #
@@ -1709,7 +1710,7 @@ class GraphLatex(SageObject):
                     vl_placement[u] = vlp
 
         ##########
-        ###  Edges
+        #  Edges
         ##########
 
         if customized:
@@ -1761,11 +1762,12 @@ class GraphLatex(SageObject):
             e_thick = {}
             if edge_labels:
                 el_color = {}
-                el_slope={}
-                el_placement={}
+                el_slope = {}
+                el_placement = {}
 
             for e in self._graph.edges():
-                edge=(e[0],e[1]); reverse=(e[1],e[0])
+                edge = (e[0], e[1])
+                reverse = (e[1], e[0])
                 #
                 c = dec
                 if edge in edge_colors or (not self._graph.is_directed() and reverse in edge_colors):
@@ -1818,7 +1820,7 @@ class GraphLatex(SageObject):
                     el_placement[edge] = elp
 
         ##########
-        ###  Loops
+        #  Loops
         ##########
 
         # Loops can be styled much like any other edge
@@ -1839,22 +1841,17 @@ class GraphLatex(SageObject):
                         lp = loop_placements[u]
                     lp_placement[u] = lp
 
-
         ############################
-        ###  Build the output string
+        #  Build the output string
         ############################
 
         # s is the eventual tkz string
         # Everything should now be in place
         # We build a list and then concatenate it as the return value
-        s = ['\\begin{tikzpicture}\n%\n']
+        s = ['\\begin{tikzpicture}\n']
 
         if not customized:
-            s+=['\\GraphInit[vstyle=', style, ']\n%\n']
-
-        # Specify the bounding box for the latex result
-        # If too big, then the latex paper size may need to be expanded
-        s+=['\\useasboundingbox (0,0) rectangle (', str(round(scale*graphic_size[0],4)), units, ',', str(round(scale*graphic_size[1],4)), units, ');\n%\n']
+            s += ['\\GraphInit[vstyle=', style, ']\n%\n']
 
         # Internal strings representing colors are defined here in custom style
         if customized:
@@ -1864,132 +1861,133 @@ class GraphLatex(SageObject):
             vertex_label_color_names = {}
             for u in vertex_list:
                 vertex_color_names[ u ] = 'c' + prefix + str(index_of_vertex[ u ])
-                s+=['\definecolor{', vertex_color_names[ u ], '}{rgb}', '{']
-                s+=[str(round( v_color[u][0],4)), ',']
-                s+=[str(round( v_color[u][1],4)), ',']
-                s+=[str(round( v_color[u][2],4)), '}\n']
+                s += ['\definecolor{', vertex_color_names[ u ], '}{rgb}', '{']
+                s += [str(round( v_color[u][0],4)), ',']
+                s += [str(round( v_color[u][1],4)), ',']
+                s += [str(round( v_color[u][2],4)), '}\n']
                 vertex_fill_color_names[ u ] = 'cf' + prefix + str(index_of_vertex[ u ])
-                s+=['\definecolor{', vertex_fill_color_names[ u ], '}{rgb}', '{']
-                s+=[str(round( vf_color[u][0],4)), ',']
-                s+=[str(round( vf_color[u][1],4)), ',']
-                s+=[str(round( vf_color[u][2],4)), '}\n']
+                s += ['\definecolor{', vertex_fill_color_names[ u ], '}{rgb}', '{']
+                s += [str(round( vf_color[u][0],4)), ',']
+                s += [str(round( vf_color[u][1],4)), ',']
+                s += [str(round( vf_color[u][2],4)), '}\n']
                 if vertex_labels:
                     vertex_label_color_names[u] = 'cl' + prefix + str(index_of_vertex[ u ])
-                    s+=['\definecolor{', vertex_label_color_names[ u ], '}{rgb}{']
-                    s+=[str(round( vl_color[u][0],4)), ',']
-                    s+=[str(round( vl_color[u][1],4)), ',']
-                    s+=[str(round( vl_color[u][2],4)), '}\n']
+                    s += ['\definecolor{', vertex_label_color_names[ u ], '}{rgb}{']
+                    s += [str(round( vl_color[u][0],4)), ',']
+                    s += [str(round( vl_color[u][1],4)), ',']
+                    s += [str(round( vl_color[u][2],4)), '}\n']
             # Define all the colors for the edges: perimeter, fill, label
             edge_color_names = {}
             edge_fill_color_names = {}
             edge_label_color_names = {}
             for e in self._graph.edges():
                 edge = (e[0], e[1])
-                edge_color_names[edge] = 'c' + prefix + str(index_of_vertex[edge[0]])+ prefix + str(index_of_vertex[edge[1]])
-                s+=['\definecolor{', edge_color_names[edge], '}{rgb}{']
-                s+=[str(round( e_color[edge][0],4)), ',']
-                s+=[str(round( e_color[edge][1],4)), ',']
-                s+=[str(round( e_color[edge][2],4)), '}\n']
+                edge_color_names[edge] = 'c' + prefix + str(index_of_vertex[edge[0]]) + prefix + str(index_of_vertex[edge[1]])
+                s += ['\definecolor{', edge_color_names[edge], '}{rgb}{']
+                s += [str(round( e_color[edge][0],4)), ',']
+                s += [str(round( e_color[edge][1],4)), ',']
+                s += [str(round( e_color[edge][2],4)), '}\n']
                 if edge_fills:
-                    edge_fill_color_names[edge] = 'cf' + prefix + str(index_of_vertex[edge[0]])+ prefix + str(index_of_vertex[edge[1]])
-                    s+=['\definecolor{', edge_fill_color_names[edge], '}{rgb}{']
-                    s+=[str(round( ef_color[edge][0],4)), ',']
-                    s+=[str(round( ef_color[edge][1],4)), ',']
-                    s+=[str(round( ef_color[edge][2],4)), '}\n']
+                    edge_fill_color_names[edge] = 'cf' + prefix + str(index_of_vertex[edge[0]]) + prefix + str(index_of_vertex[edge[1]])
+                    s += ['\definecolor{', edge_fill_color_names[edge], '}{rgb}{']
+                    s += [str(round( ef_color[edge][0],4)), ',']
+                    s += [str(round( ef_color[edge][1],4)), ',']
+                    s += [str(round( ef_color[edge][2],4)), '}\n']
                 if edge_labels:
-                    edge_label_color_names[edge] = 'cl' + prefix + str(index_of_vertex[edge[0]])+ prefix + str(index_of_vertex[edge[1]])
-                    s+=['\definecolor{', edge_label_color_names[edge], '}{rgb}{']
-                    s+=[str(round( el_color[edge][0],4)), ',']
-                    s+=[str(round( el_color[edge][1],4)), ',']
-                    s+=[str(round( el_color[edge][2],4)), '}\n']
-            s = s+['%\n']
+                    edge_label_color_names[edge] = 'cl' + prefix + str(index_of_vertex[edge[0]]) + prefix + str(index_of_vertex[edge[1]])
+                    s += ['\definecolor{', edge_label_color_names[edge], '}{rgb}{']
+                    s += [str(round( el_color[edge][0],4)), ',']
+                    s += [str(round( el_color[edge][1],4)), ',']
+                    s += [str(round( el_color[edge][2],4)), '}\n']
+            s += ['%\n']
 
         # Create each vertex
         for u in vertex_list:
-            s+=['\\Vertex[']
+            s += ['\\Vertex[']
             # colors, shapes, sizes, labels/placement for 'Custom' style
             if customized:
-                s+=['style={'] # begin style list
-                s+=['minimum size=', str(round(scale*v_size[u],4)), units, ',']
-                s+=['draw=', vertex_color_names[u], ',']
-                s+=['fill=', vertex_fill_color_names[u], ',']
+                s += ['style={']  # begin style list
+                s += ['minimum size=', str(round(scale * v_size[u],4)),
+                      units, ',']
+                s += ['draw=', vertex_color_names[u], ',']
+                s += ['fill=', vertex_fill_color_names[u], ',']
                 if vertex_labels:
-                    s+=['text=', vertex_label_color_names[u], ',']
+                    s += ['text=', vertex_label_color_names[u], ',']
                 if v_shape[u] == 'sphere':
-                    s+=['shape=circle,shading=ball,line width=0pt,ball color=', vertex_color_names[u], ',']
+                    s += ['shape=circle,shading=ball,line width=0pt,ball color=', vertex_color_names[u], ',']
                 else:
-                    s+=['shape=', v_shape[u]]
-                s+=['},']  # end style list
+                    s += ['shape=', v_shape[u]]
+                s += ['},']  # end style list
                 if vertex_labels:
                     if vl_placement[u] == 'center':
-                        s+=['LabelOut=false,']
+                        s += ['LabelOut=false,']
                     else:
-                        s+=['LabelOut=true,']
-                        s+=['Ldist=', str(round(scale*vl_placement[u][0],4)), units, ',']
-                        s+=['Lpos=',str(round(vl_placement[u][1],4)), ',']  # degrees, no units
+                        s += ['LabelOut=true,']
+                        s += ['Ldist=', str(round(scale * vl_placement[u][0],4)), units, ',']
+                        s += ['Lpos=',str(round(vl_placement[u][1], 4)), ',']  # degrees, no units
                 else:
-                    s+=['NoLabel,']
+                    s += ['NoLabel,']
             # vertex label information is available to all pre-built styles
             # but may be ignored by the style, so not apparent
             if vertex_labels or not customized:
-                if vertex_labels_math and not (isinstance(u, str) and u[0]=='$' and u[-1]=='$'):
+                if vertex_labels_math and not (isinstance(u, str) and u[0] == '$' and u[-1] == '$'):
                     lab = '\hbox{$%s$}' % latex(u)
                 else:
                     lab = '\hbox{%s}' % u
-                s+=['L=', lab, ',']
+                s += ['L=', lab, ',']
             scaled_pos = translate(pos[u])
-            s+=['x=', str(round(scale*scaled_pos[0],4)), units, ',']
-            s+=['y=', str(round(scale*scaled_pos[1],4)), units]
-            s+=[']']
-            s+=['{', prefix, str(index_of_vertex[u]), '}\n']
-        s+=['%\n']
+            s += ['x=', str(round(scale * scaled_pos[0],4)), units, ',']
+            s += ['y=', str(round(scale * scaled_pos[1],4)), units]
+            s += [']']
+            s += ['{', prefix, str(index_of_vertex[u]), '}\n']
+        s += ['%\n']
 
         # Create each edge or loop
         for e in self._graph.edges():
-            edge = (e[0],e[1])
+            edge = (e[0], e[1])
             loop = e[0] == e[1]
             if loop:
-                u=e[0]
-                s+=['\\Loop[']
+                u = e[0]
+                s += ['\\Loop[']
                 if customized:
-                    s+=['dist=', str(round(scale*lp_placement[u][0],4)), units, ',']
-                    s+=['dir=', lp_placement[u][1], ',']
+                    s += ['dist=', str(round(scale * lp_placement[u][0],4)), units, ',']
+                    s += ['dir=', lp_placement[u][1], ',']
             else:
-                s+=['\\Edge[']
+                s += ['\\Edge[']
             # colors, shapes, sizes, labels/placement for 'Custom' style
             if customized:
                 if not loop:  # lw not available for loops!
-                    s+=['lw=', str(round(scale*e_thick[edge],4)), units, ',']
-                s+=['style={']  # begin style list
+                    s += ['lw=', str(round(scale * e_thick[edge],4)), units, ',']
+                s += ['style={']  # begin style list
                 if self._graph.is_directed() and not loop:
-                    s+=['post, bend right', ',']
-                s+=['color=', edge_color_names[edge], ',']
+                    s += ['post, bend right', ',']
+                s += ['color=', edge_color_names[edge], ',']
                 if edge_fills:
-                    s+=['double=', edge_fill_color_names[edge]]
-                s+=['},']     # end style list
+                    s += ['double=', edge_fill_color_names[edge]]
+                s += ['},']     # end style list
                 if edge_labels:
-                    s+=['labelstyle={']
+                    s += ['labelstyle={']
                     if el_slope[edge]:
-                        s+=['sloped,']
+                        s += ['sloped,']
                     if isinstance(el_placement[edge], str):
-                        s+=[el_placement[edge],',']
+                        s += [el_placement[edge],',']
                     else:
-                        s+=['pos=', str(round(el_placement[edge],4)), ',']  # no units needed
-                    s+=['text=', edge_label_color_names[edge], ',']
-                    s+=['},']
+                        s += ['pos=', str(round(el_placement[edge],4)), ',']  # no units needed
+                    s += ['text=', edge_label_color_names[edge], ',']
+                    s += ['},']
                     el = self._graph.edge_label(edge[0],edge[1])
-                    if edge_labels_math and not (isinstance(el, str) and el[0]=='$' and el[-1]=='$'):
+                    if edge_labels_math and not (isinstance(el, str) and el[0] == '$' and el[-1] == '$'):
                         lab = '\hbox{$%s$}' % latex(el)
                     else:
                         lab = '\hbox{%s}' % el
-                    s+=['label=', lab, ',']
-            s+=[']']
+                    s += ['label=', lab, ',']
+            s += [']']
             if not loop:
-                s+=['(', prefix, str(index_of_vertex[e[0]]), ')']
-            s+=['(', prefix, str(index_of_vertex[e[1]]), ')\n']
+                s += ['(', prefix, str(index_of_vertex[e[0]]), ')']
+            s += ['(', prefix, str(index_of_vertex[e[1]]), ')\n']
 
         # Wrap it up
-        s+=['%\n']
-        s+=['\\end{tikzpicture}']
+        s += ['%\n']
+        s += ['\\end{tikzpicture}']
 
         return ''.join(s)

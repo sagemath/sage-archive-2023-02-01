@@ -139,9 +139,9 @@ class Schemes(Category):
         if is_SchemeMorphism(x):
             return x
         from sage.rings.morphism import is_RingHomomorphism
-        from sage.rings.commutative_ring import is_CommutativeRing
+        from sage.rings.ring import CommutativeRing
         from sage.schemes.generic.spec import Spec
-        if is_CommutativeRing(x):
+        if isinstance(x, CommutativeRing):
             return Spec(x)
         elif is_RingHomomorphism(x):
             A = Spec(x.codomain())

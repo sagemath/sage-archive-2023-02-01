@@ -5,15 +5,16 @@ Ambient Spaces
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import Integer, ZZ
-from sage.rings.commutative_ring import is_CommutativeRing
-
+from sage.rings.all import Integer, ZZ, CommutativeRing
 from sage.schemes.generic.scheme import Scheme
+
 
 def is_AmbientSpace(x):
     """
@@ -45,13 +46,13 @@ class AmbientSpace(Scheme):
     """
     def __init__(self, n, R=ZZ):
         """
-        TEST::
+        TESTS::
 
             sage: from sage.schemes.generic.ambient_space import AmbientSpace
             sage: A = AmbientSpace(5, ZZ)
             sage: TestSuite(A).run() # not tested (abstract scheme with no elements?)
         """
-        if not is_CommutativeRing(R):
+        if not isinstance(R, CommutativeRing):
             raise TypeError("R (=%s) must be a commutative ring"%R)
         n = Integer(n)
         if n < 0:
@@ -70,7 +71,7 @@ class AmbientSpace(Scheme):
     #######################################################################
     def __cmp__(self, right):
         """
-        TEST::
+        TESTS::
 
             sage: from sage.schemes.generic.ambient_space import AmbientSpace
             sage: A = AmbientSpace(5, ZZ)
@@ -83,7 +84,7 @@ class AmbientSpace(Scheme):
 
     def _latex_(self):
         """
-        TEST::
+        TESTS::
 
             sage: from sage.schemes.generic.ambient_space import AmbientSpace
             sage: A = AmbientSpace(5, ZZ)
@@ -96,7 +97,7 @@ class AmbientSpace(Scheme):
 
     def _repr_(self):
         """
-        TEST::
+        TESTS::
 
             sage: from sage.schemes.generic.ambient_space import AmbientSpace
             sage: A = AmbientSpace(5, ZZ)
@@ -109,7 +110,7 @@ class AmbientSpace(Scheme):
 
     def _repr_generic_point(self, coords=None):
         """
-        TEST::
+        TESTS::
 
             sage: from sage.schemes.generic.ambient_space import AmbientSpace
             sage: A = AmbientSpace(5, ZZ)
@@ -122,7 +123,7 @@ class AmbientSpace(Scheme):
 
     def _latex_generic_point(self, coords=None):
         """
-        TEST::
+        TESTS::
 
             sage: from sage.schemes.generic.ambient_space import AmbientSpace
             sage: A = AmbientSpace(5, ZZ)
@@ -138,7 +139,7 @@ class AmbientSpace(Scheme):
         Verify that the coordinates of v define a point on this scheme, or
         raise a TypeError.
 
-        TEST::
+        TESTS::
 
             sage: from sage.schemes.generic.ambient_space import AmbientSpace
             sage: A = AmbientSpace(5, ZZ)
@@ -252,7 +253,7 @@ class AmbientSpace(Scheme):
             ValueError: no natural map from the base ring (=Rational Field)
             to R (=Finite Field of size 5)!
         """
-        if is_CommutativeRing(R):
+        if isinstance(R, CommutativeRing):
             if self.base_ring() == R:
                 return self
             if not R.has_coerce_map_from(self.base_ring()):

@@ -9,8 +9,7 @@ AUTHORS:
 
 """
 
-include "sage/ext/stdsage.pxi"
-
+from cysignals.memory cimport check_allocarray, sig_free
 
 from sage.libs.gmp.all cimport *
 from sage.rings.integer cimport Integer
@@ -93,7 +92,7 @@ cdef mpz_stirling_s2(mpz_t s, unsigned long n, unsigned long k):
         mpz_init(t)
         mpz_init(u)
         max_bc = (k+1)//2
-        bc = <mpz_t*> sage_malloc((max_bc+1) * sizeof(mpz_t))
+        bc = <mpz_t*> check_allocarray(max_bc+1, sizeof(mpz_t))
         mpz_init_set_ui(bc[0], 1)
         for j in range(1, max_bc+1):
             mpz_init_set(bc[j], bc[j-1])
@@ -115,7 +114,7 @@ cdef mpz_stirling_s2(mpz_t s, unsigned long n, unsigned long k):
                 mpz_mul_2exp(u, u, n)
         for j in range(max_bc+1):   # careful: 0 ... max_bc
             mpz_clear(bc[j])
-        sage_free(bc)
+        sig_free(bc)
         mpz_fac_ui(t, k)
         mpz_tdiv_q(s, s, t)
         mpz_clear(t)
@@ -131,7 +130,6 @@ def _stirling_number2(n, k):
 
     This is wrapped again by stirling_number2 in combinat.py.
     """
-    cdef Integer s
-    s = PY_NEW(Integer)
+    cdef Integer s = Integer.__new__(Integer)
     mpz_stirling_s2(s.value, n, k)
     return s

@@ -40,7 +40,7 @@ email to ``sage-trac-account@googlegroups.com`` containing:
 * and reason for needing a trac account
 
 Your trac account also grants you access to the `sage wiki
-<wiki.sagemath.org>`_. Make sure you understand the review process, and the
+<https://wiki.sagemath.org>`_. Make sure you understand the review process, and the
 procedures for opening and closing tickets before making changes. The remainder
 of this chapter contains various guidelines on using the trac server.
 
@@ -51,7 +51,7 @@ There are two avenues to prove to the trac server that you are who you
 claim to be. First, to change the ticket web pages you need to log in
 to trac using a username/password. Second, there is public key
 cryptography used by git when copying new source files to the
-repository. This section will show you how to setup both.
+repository. This section will show you how to set up both.
 
 Generating and Uploading your SSH Keys
 --------------------------------------
@@ -59,25 +59,11 @@ Generating and Uploading your SSH Keys
 The git installation on the development server uses SSH keys to decide if and
 where you are allowed to upload code. No SSH key is required to report a bug or
 comment on a ticket, but as soon as you want to contribute code yourself you
-need to provide trac with the public half of your own personal key. In recent
-versions of Sage, you can use Sage to generate an upload an SSH key
-
-.. skip   # do not doctest
-
-::
-
-    sage: dev.upload_ssh_key()
-    The trac git server requires your SSH public key to be able to identify you.
-    Upload "/home/vbraun/.ssh/id_dsa.pub" to trac? [Yes/no] y
-    Trac username: user
-    Trac password:
-    Your key has been uploaded.
-
-You can also manually generate an SSH key and upload it to trac. This is
-described in the following two sections.
+need to provide trac with the public half of your own personal key.
+Details are described in the following two sections.
 
 
-Manually Generating your SSH Keys
+Generating your SSH Keys
 ---------------------------------
 
 If you don't have a private key yet, you can
@@ -129,7 +115,7 @@ ssh into that machine you don't have to provide your password.
 
 .. _section-trac-ssh-key:
 
-Manually Linking your Public Key to your Trac Account
+Linking your Public Key to your Trac Account
 -----------------------------------------------------
 
 The Sage trac server needs to know one of your public keys. You can
@@ -365,7 +351,7 @@ trac ticket, enter the ticket number for the stopgap ticket in the "Stopgaps"
 field (see :ref:`section-trac-fields`). Stopgap tickets should be marked as
 blockers.
 
-.. note::
+.. NOTE::
 
     If mathematically valid code causes Sage to raise an error or
     crash, for example, there is no need for a stopgap.  Rather,

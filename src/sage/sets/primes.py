@@ -11,6 +11,7 @@ AUTHORS:
     - __cmp__(self, other): __eq__ is provided by UniqueRepresentation
       and seems to do as good a job (all test pass)
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #                     2009 Florent Hivert <Florent.Hivert@univ-rouen.fr>
@@ -21,10 +22,11 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.rings.all import ZZ
-from set import Set_generic
+from .set import Set_generic
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
-from sage.rings.arith import nth_prime
+from sage.arith.all import nth_prime
 from sage.structure.unique_representation import UniqueRepresentation
+
 
 class Primes(Set_generic, UniqueRepresentation):
     """
@@ -47,12 +49,11 @@ class Primes(Set_generic, UniqueRepresentation):
         sage: 100 in P
         False
 
-        sage: len(P)          # note: this used to be a TypeError
+        sage: len(P)
         Traceback (most recent call last):
         ...
-        NotImplementedError: infinite list
+        NotImplementedError: infinite set
     """
-
     @staticmethod
     def __classcall__(cls, proof=True):
         """
@@ -90,26 +91,19 @@ class Primes(Set_generic, UniqueRepresentation):
 
             sage: P = Primes()
             sage: R = Primes()
-            sage: cmp(P,R)
-            0
             sage: P == R
             True
             sage: P != R
             False
-            sage: Q=[1,2,3]
+            sage: Q = [1,2,3]
             sage: Q != P        # indirect doctest
             True
-            sage: R.<x>=ZZ[]
-            sage: P!=x^2+x
-            True
-
-        Make sure changing order changes the comparison with something
-        of a different type::
-
-            sage: cmp('foo', Primes()) != cmp(Primes(), 'foo')
+            sage: R.<x> = ZZ[]
+            sage: P != x^2+x
             True
         """
-        super(Primes, self).__init__(facade = ZZ, category = InfiniteEnumeratedSets())
+        super(Primes, self).__init__(facade=ZZ,
+                                     category=InfiniteEnumeratedSets())
         self.__proof = proof
 
     def _repr_(self):
@@ -125,7 +119,7 @@ class Primes(Set_generic, UniqueRepresentation):
 
     def __contains__(self, x):
         """
-        Checks whether an object is a prime number.
+        Check whether an object is a prime number.
 
         EXAMPLES::
 
@@ -140,7 +134,7 @@ class Primes(Set_generic, UniqueRepresentation):
             False
         """
         try:
-            if not x in ZZ:
+            if x not in ZZ:
                 return False
             return ZZ(x).is_prime()
         except TypeError:
@@ -148,7 +142,7 @@ class Primes(Set_generic, UniqueRepresentation):
 
     def _an_element_(self):
         """
-        Returns a typical prime number.
+        Return a typical prime number.
 
         EXAMPLES::
 
@@ -160,7 +154,7 @@ class Primes(Set_generic, UniqueRepresentation):
 
     def first(self):
         """
-        Returns the first prime number.
+        Return the first prime number.
 
         EXAMPLES::
 
@@ -172,7 +166,7 @@ class Primes(Set_generic, UniqueRepresentation):
 
     def next(self, pr):
         """
-        Returns the next prime number.
+        Return the next prime number.
 
         EXAMPLES::
 
@@ -185,9 +179,10 @@ class Primes(Set_generic, UniqueRepresentation):
 
     def unrank(self, n):
         """
-        Returns the n-th prime number.
+        Return the n-th prime number.
 
         EXAMPLES::
+
             sage: P = Primes()
             sage: P.unrank(0)
             2

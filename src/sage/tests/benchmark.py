@@ -15,6 +15,8 @@ TESTS:
     sage: import sage.tests.benchmark
 
 """
+from __future__ import print_function
+from six.moves import range
 
 from sage.all import * # QQ, alarm, ModularSymbols, gp, pari, cputime, EllipticCurve
 import sage.libs.linbox.linbox as linbox
@@ -23,7 +25,7 @@ def avg(X):
     """
     Return the average of the list X.
 
-    EXAMPLE:
+    EXAMPLES:
         sage: from sage.tests.benchmark import avg
         sage: avg([1,2,3])
         2.0
@@ -45,13 +47,13 @@ class Benchmark:
     functions must perform the same task for each function. Calling
     the run command with a list of systems will then show the timings.
 
-    EXAMPLE:
+    EXAMPLES:
         sage: from sage.tests.benchmark import Benchmark
         sage: B = Benchmark()
         sage: def python():
-        ...    t = cputime()
-        ...    n = 2+2
-        ...    return cputime(t)
+        ....:     t = cputime()
+        ....:     n = 2+2
+        ....:     return cputime(t)
         sage: B.python = python
         sage: B.run(systems=['python'])
         sage.tests.benchmark.Benchmark instance
@@ -83,10 +85,11 @@ class Benchmark:
         """
         if sort:
             systems.sort()
-        print '\n\n\n' + str(self)
+        print('\n\n\n' + str(self))
         #print "Timeout: %s seconds"%timeout
-        print '  %-12s%-12s%-12s%-12s%-12s%15s'%('System', 'min',
-                                         'avg', 'max', 'trials', 'cpu or wall')
+        print('  %-12s%-12s%-12s%-12s%-12s%15s' % ('System', 'min',
+                                                   'avg', 'max',
+                                                   'trials', 'cpu or wall'))
         if systems is None:
             systems = STD_SYSTEMS
             if optional:
@@ -112,14 +115,14 @@ class Benchmark:
                     s += '%15fw'%t
                 else:
                     s += '%15fc'%t
-                print s
+                print(s)
             except AlarmInterrupt:
-                print '%-12sinterrupted (timeout: %s seconds wall time)'%(
-                    S, timeout)
+                print('%-12sinterrupted (timeout: %s seconds wall time)' %
+                      (S, timeout))
             except AttributeError:
                 pass
             except Exception as msg:
-                print msg
+                print(msg)
 
     bench = run
 
@@ -127,7 +130,7 @@ class Benchmark:
         """
         Print representation of self, simply coming from self.repr_str.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import Benchmark
             sage: B = Benchmark()
             sage: B.repr_str = 'spam'
@@ -164,7 +167,7 @@ class Divpoly(Benchmark):
         """
         Time the computation in Sage.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import Divpoly
             sage: B = Divpoly(3)
             sage: isinstance(B.sage(), float)
@@ -181,7 +184,7 @@ class Divpoly(Benchmark):
         """
         Time the computation in Magma.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import Divpoly
             sage: B = Divpoly(3)
             sage: isinstance(B.magma(), float) # optional - magma
@@ -203,7 +206,7 @@ class PolySquare(Benchmark):
         """
         Time the computation in Sage.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import PolySquare
             sage: B = PolySquare(3, QQ)
             sage: isinstance(B.sage(), float)
@@ -221,7 +224,7 @@ class PolySquare(Benchmark):
         """
         Time the computation in Magma.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import PolySquare
             sage: B = PolySquare(3, QQ)
             sage: isinstance(B.magma(), float) # optional - magma
@@ -238,7 +241,7 @@ class PolySquare(Benchmark):
         """
         Time the computation in Maple.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import PolySquare
             sage: B = PolySquare(3, QQ)
             sage: isinstance(B.maple()[1], float) # optional - maple
@@ -270,7 +273,7 @@ class MPolynomialPower(Benchmark):
         """
         Time the computation in Sage.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import MPolynomialPower
             sage: B = MPolynomialPower()
             sage: isinstance(B.sage()[1], float)
@@ -292,7 +295,7 @@ class MPolynomialPower(Benchmark):
         """
         Time the computation in Macaulay2.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import MPolynomialPower
             sage: B = MPolynomialPower()
             sage: isinstance(B.macaulay2()[1], float) # optional - macaulay2
@@ -309,7 +312,7 @@ class MPolynomialPower(Benchmark):
         """
         Time the computation in Maxima.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import MPolynomialPower
             sage: B = MPolynomialPower()
             sage: isinstance(B.maxima()[1], float)
@@ -326,7 +329,7 @@ class MPolynomialPower(Benchmark):
         """
         Time the computation in Maple.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import MPolynomialPower
             sage: B = MPolynomialPower()
             sage: isinstance(B.maple()[1], float)  # optional - maple
@@ -343,7 +346,7 @@ class MPolynomialPower(Benchmark):
         """
         Time the computation in Mathematica.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import MPolynomialPower
             sage: B = MPolynomialPower()
             sage: isinstance(B.mathematica()[1], float) # optional - mathematica
@@ -370,7 +373,7 @@ class MPolynomialPower(Benchmark):
         """
         Time the computation in Magma.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import MPolynomialPower
             sage: B = MPolynomialPower()
             sage: isinstance(B.magma(), float) # optional - magma
@@ -404,7 +407,7 @@ class MPolynomialMult(Benchmark):
         """
         Time the computation in Maxima.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import MPolynomialMult
             sage: B = MPolynomialMult()
             sage: isinstance(B.maxima()[1], float)
@@ -423,7 +426,7 @@ class MPolynomialMult(Benchmark):
         """
         Time the computation in Maple.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import MPolynomialMult
             sage: B = MPolynomialMult()
             sage: isinstance(B.maple()[1], float)  # optional - maple
@@ -442,7 +445,7 @@ class MPolynomialMult(Benchmark):
         """
         Time the computation in Mathematica.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import MPolynomialMult
             sage: B = MPolynomialMult()
             sage: isinstance(B.mathematica()[1], float) # optional - mathematica
@@ -470,7 +473,7 @@ class MPolynomialMult(Benchmark):
         """
         Time the computation in Sage.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import MPolynomialMult
             sage: B = MPolynomialMult()
             sage: isinstance(B.sage()[1], float)
@@ -496,7 +499,7 @@ class MPolynomialMult(Benchmark):
         """
         Time the computation in Macaulay2.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import MPolynomialMult
             sage: B = MPolynomialMult()
             sage: isinstance(B.macaulay2()[1], float) # optional - macaulay2
@@ -515,7 +518,7 @@ class MPolynomialMult(Benchmark):
         """
         Time the computation in Magma.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import MPolynomialMult
             sage: B = MPolynomialMult()
             sage: isinstance(B.magma(), float) # optional - magma
@@ -568,7 +571,7 @@ class MPolynomialMult2(Benchmark):
         """
         Time the computation in Maxima.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import MPolynomialMult2
             sage: B = MPolynomialMult2()
             sage: isinstance(B.maxima()[1], float)
@@ -593,7 +596,7 @@ class MPolynomialMult2(Benchmark):
         """
         Time the computation in Macaulay2.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import MPolynomialMult2
             sage: B = MPolynomialMult2()
             sage: isinstance(B.macaulay2()[1], float) # optional - macaulay2
@@ -618,7 +621,7 @@ class MPolynomialMult2(Benchmark):
         """
         Time the computation in Maple.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import MPolynomialMult2
             sage: B = MPolynomialMult2()
             sage: isinstance(B.maple()[1], float) # optional - maple
@@ -643,7 +646,7 @@ class MPolynomialMult2(Benchmark):
         """
         Time the computation in Mathematica.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import MPolynomialMult2
             sage: B = MPolynomialMult2()
             sage: isinstance(B.mathematica()[1], float) # optional - mathematica
@@ -668,7 +671,7 @@ class MPolynomialMult2(Benchmark):
         """
         Time the computation in Sage.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import MPolynomialMult2
             sage: B = MPolynomialMult2()
             sage: isinstance(B.sage()[1], float)
@@ -698,7 +701,7 @@ class MPolynomialMult2(Benchmark):
         """
         Time the computation in Magma.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import MPolynomialMult2
             sage: B = MPolynomialMult2()
             sage: isinstance(B.magma(), float) # optional - magma
@@ -738,7 +741,7 @@ class CharPolyTp(Benchmark):
         """
         Time the computation in Sage.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import CharPolyTp
             sage: B = CharPolyTp()
             sage: isinstance(B.sage(), float)
@@ -754,7 +757,7 @@ class CharPolyTp(Benchmark):
         """
         Time the computation in GP.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import CharPolyTp
             sage: B = CharPolyTp()
             sage: isinstance(B.gp(), float)
@@ -770,7 +773,7 @@ class CharPolyTp(Benchmark):
         """
         Time the computation in Pari.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import CharPolyTp
             sage: B = CharPolyTp()
             sage: isinstance(B.pari(), float)
@@ -786,7 +789,7 @@ class CharPolyTp(Benchmark):
         """
         Time the computation in Magma.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import CharPolyTp
             sage: B = CharPolyTp()
             sage: isinstance(B.magma(), float) # optional - magma
@@ -811,7 +814,7 @@ class PolyFactor(Benchmark):
         """
         Time the computation in Sage.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import PolyFactor
             sage: B = PolyFactor(3, QQ)
             sage: isinstance(B.sage(), float)
@@ -830,7 +833,7 @@ class PolyFactor(Benchmark):
         """
         Time the computation in Magma.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import PolyFactor
             sage: B = PolyFactor(3, QQ)
             sage: isinstance(B.magma(), float) # optional - magma
@@ -850,7 +853,7 @@ class PolyFactor(Benchmark):
         """
         Time the computation in GP.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import PolyFactor
             sage: B = PolyFactor(3, QQ)
             sage: isinstance(B.gp(), float)
@@ -878,7 +881,7 @@ class SquareInts(Benchmark):
         """
         Time the computation in Sage.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import SquareInts
             sage: B = SquareInts()
             sage: isinstance(B.sage(), float)
@@ -894,7 +897,7 @@ class SquareInts(Benchmark):
         """
         Time the computation in GP.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import SquareInts
             sage: B = SquareInts()
             sage: isinstance(B.gp(), float)
@@ -910,7 +913,7 @@ class SquareInts(Benchmark):
         """
         Time the computation in Maxima.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import SquareInts
             sage: B = SquareInts()
             sage: isinstance(B.maxima()[1], float)
@@ -926,7 +929,7 @@ class SquareInts(Benchmark):
         """
         Time the computation in Magma.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import SquareInts
             sage: B = SquareInts()
             sage: isinstance(B.magma(), float) # optional - magma
@@ -942,7 +945,7 @@ class SquareInts(Benchmark):
         """
         Time the computation in Python.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import SquareInts
             sage: B = SquareInts()
             sage: isinstance(B.python(), float)
@@ -958,7 +961,7 @@ class SquareInts(Benchmark):
         """
         Time the computation in Maple.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import SquareInts
             sage: B = SquareInts()
             sage: isinstance(B.maple()[1], float) # optional - maple
@@ -974,7 +977,7 @@ class SquareInts(Benchmark):
         """
         Time the computation in GAP.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import SquareInts
             sage: B = SquareInts()
             sage: isinstance(B.gap()[1], float)
@@ -990,7 +993,7 @@ class SquareInts(Benchmark):
         """
         Time the computation in Mathematica.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import SquareInts
             sage: B = SquareInts()
             sage: isinstance(B.mathematica()[1], float) # optional - mathematica
@@ -1013,7 +1016,7 @@ class MatrixSquare(Benchmark):
         """
         Time the computation in Sage.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import MatrixSquare
             sage: B = MatrixSquare(3, QQ)
             sage: isinstance(B.sage(), float)
@@ -1022,7 +1025,7 @@ class MatrixSquare(Benchmark):
         """
         R = self.__R
         n = self.__n
-        f = MatrixSpace(R,n)(range(n*n))
+        f = MatrixSpace(R,n)(list(range(n*n)))
         t = cputime()
         g = f**2
         return cputime(t)
@@ -1031,7 +1034,7 @@ class MatrixSquare(Benchmark):
         """
         Time the computation in Magma.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import MatrixSquare
             sage: B = MatrixSquare(3, QQ)
             sage: isinstance(B.magma(), float) # optional - magma
@@ -1049,7 +1052,7 @@ class MatrixSquare(Benchmark):
         """
         Time the computation in GP.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import MatrixSquare
             sage: B = MatrixSquare(3, QQ)
             sage: isinstance(B.gp(), float)
@@ -1066,7 +1069,7 @@ class MatrixSquare(Benchmark):
         """
         Time the computation in GAP.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import MatrixSquare
             sage: B = MatrixSquare(3, QQ)
             sage: isinstance(B.gap()[1], float)
@@ -1074,7 +1077,7 @@ class MatrixSquare(Benchmark):
 
         """
         n = self.__n
-        m = gap(str([range(n*k,n*(k+1)) for k in range(n)]))
+        m = gap(str([list(range(n*k,n*(k+1))) for k in range(n)]))
         t = walltime()
         j = m*m
         return False, walltime(t)
@@ -1089,7 +1092,7 @@ class Factorial(Benchmark):
         """
         Time the computation in Sage.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import Factorial
             sage: B = Factorial(10)
             sage: isinstance(B.sage(), float)
@@ -1104,7 +1107,7 @@ class Factorial(Benchmark):
         """
         Time the computation in Magma.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import Factorial
             sage: B = Factorial(10)
             sage: isinstance(B.magma(), float) # optional - magma
@@ -1119,7 +1122,7 @@ class Factorial(Benchmark):
         """
         Time the computation in Maple.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import Factorial
             sage: B = Factorial(10)
             sage: isinstance(B.maple()[1], float) # optional - maple
@@ -1135,7 +1138,7 @@ class Factorial(Benchmark):
         """
         Time the computation in GP.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import Factorial
             sage: B = Factorial(10)
             sage: isinstance(B.gp(), float)
@@ -1155,7 +1158,7 @@ class Fibonacci(Benchmark):
         """
         Time the computation in Sage.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import Fibonacci
             sage: B = Fibonacci(10)
             sage: isinstance(B.sage(), float)
@@ -1170,7 +1173,7 @@ class Fibonacci(Benchmark):
         """
         Time the computation in Magma.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import Fibonacci
             sage: B = Fibonacci(10)
             sage: isinstance(B.magma(), float) # optional - magma
@@ -1185,7 +1188,7 @@ class Fibonacci(Benchmark):
         """
         Time the computation in GAP.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import Fibonacci
             sage: B = Fibonacci(10)
             sage: isinstance(B.gap()[1], float)
@@ -1201,7 +1204,7 @@ class Fibonacci(Benchmark):
         """
         Time the computation in Mathematica.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import Fibonacci
             sage: B = Fibonacci(10)
             sage: isinstance(B.mathematica()[1], float) # optional - mathematica
@@ -1217,7 +1220,7 @@ class Fibonacci(Benchmark):
         """
         Time the computation in GP.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import Fibonacci
             sage: B = Fibonacci(10)
             sage: isinstance(B.gp(), float)
@@ -1239,7 +1242,7 @@ class SEA(Benchmark):
         """
         Time the computation in Sage.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import SEA
             sage: B = SEA(5)
             sage: isinstance(B.sage()[1], float)
@@ -1259,7 +1262,7 @@ class SEA(Benchmark):
         """
         Time the computation in Magma.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import SEA
             sage: B = SEA(5)
             sage: isinstance(B.magma(), float) # optional - magma
@@ -1281,7 +1284,7 @@ class MatrixKernel(Benchmark):
         """
         Time the computation in Sage.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import MatrixKernel
             sage: B = MatrixKernel(3, QQ)
             sage: isinstance(B.sage(), float)
@@ -1290,7 +1293,7 @@ class MatrixKernel(Benchmark):
         """
         R = self.__R
         n = self.__n
-        f = MatrixSpace(R,n,2*n)(range(n*(2*n)))
+        f = MatrixSpace(R,n,2*n)(list(range(n*(2*n))))
         t = cputime()
         g = f.kernel()
         return cputime(t)
@@ -1299,7 +1302,7 @@ class MatrixKernel(Benchmark):
         """
         Time the computation in Magma.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import MatrixKernel
             sage: B = MatrixKernel(3, QQ)
             sage: isinstance(B.magma(), float) # optional - magma
@@ -1317,7 +1320,7 @@ class MatrixKernel(Benchmark):
         """
         Time the computation in GP.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import MatrixKernel
             sage: B = MatrixKernel(3, QQ)
             sage: isinstance(B.gp(), float)
@@ -1340,7 +1343,7 @@ class ComplexMultiply(Benchmark):
         """
         Time the computation in Sage.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import ComplexMultiply
             sage: B = ComplexMultiply(28, 2)
             sage: isinstance(B.sage(), float)
@@ -1357,7 +1360,7 @@ class ComplexMultiply(Benchmark):
         """
         Time the computation in Magma.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import ComplexMultiply
             sage: B = ComplexMultiply(28, 2)
             sage: isinstance(B.magma(), float) # optional - magma
@@ -1379,7 +1382,7 @@ class ComplexMultiply(Benchmark):
         """
         Time the computation in GP.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import ComplexMultiply
             sage: B = ComplexMultiply(28, 2)
             sage: isinstance(B.gp(), float)
@@ -1403,7 +1406,7 @@ class ModularSymbols1(Benchmark):
         """
         Time the computation in Sage.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import ModularSymbols1
             sage: B = ModularSymbols1(11)
             sage: isinstance(B.sage(), float)
@@ -1418,7 +1421,7 @@ class ModularSymbols1(Benchmark):
         """
         Time the computation in Magma.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import ModularSymbols1
             sage: B = ModularSymbols1(11)
             sage: isinstance(B.magma(), float) # optional - magma
@@ -1442,7 +1445,7 @@ class ModularSymbolsDecomp1(Benchmark):
         """
         Time the computation in Sage.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import ModularSymbolsDecomp1
             sage: B = ModularSymbolsDecomp1(11)
             sage: isinstance(B.sage(), float)
@@ -1458,7 +1461,7 @@ class ModularSymbolsDecomp1(Benchmark):
         """
         Time the computation in Magma.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import ModularSymbolsDecomp1
             sage: B = ModularSymbolsDecomp1(11)
             sage: isinstance(B.magma(), float) # optional - magma
@@ -1480,7 +1483,7 @@ class EllipticCurveTraces(Benchmark):
         """
         Time the computation in Sage.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import EllipticCurveTraces
             sage: B = EllipticCurveTraces(11)
             sage: isinstance(B.sage(), float)
@@ -1498,7 +1501,7 @@ class EllipticCurveTraces(Benchmark):
         """
         Time the computation in Magma.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import EllipticCurveTraces
             sage: B = EllipticCurveTraces(11)
             sage: isinstance(B.magma(), float) # optional - magma
@@ -1519,7 +1522,7 @@ class EllipticCurvePointMul(Benchmark):
         """
         Time the computation in Sage.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import EllipticCurvePointMul
             sage: B = EllipticCurvePointMul(11)
             sage: isinstance(B.sage(), float)
@@ -1536,7 +1539,7 @@ class EllipticCurvePointMul(Benchmark):
         """
         Time the computation in Magma.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import EllipticCurvePointMul
             sage: B = EllipticCurvePointMul(11)
             sage: isinstance(B.magma(), float) # optional - magma
@@ -1553,7 +1556,7 @@ class EllipticCurvePointMul(Benchmark):
         """
         Time the computation in GP.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import EllipticCurvePointMul
             sage: B = EllipticCurvePointMul(11)
             sage: isinstance(B.gp(), float)
@@ -1570,7 +1573,7 @@ class EllipticCurvePointMul(Benchmark):
         """
         Time the computation in Pari.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import EllipticCurvePointMul
             sage: B = EllipticCurvePointMul(11)
             sage: isinstance(B.pari(), float)
@@ -1592,7 +1595,7 @@ class EllipticCurveMW(Benchmark):
         """
         Time the computation in Sage.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import EllipticCurveMW
             sage: B = EllipticCurveMW([1,2,3,4,5])
             sage: isinstance(B.sage()[1], float)
@@ -1608,7 +1611,7 @@ class EllipticCurveMW(Benchmark):
         """
         Time the computation in Magma.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import EllipticCurveMW
             sage: B = EllipticCurveMW([1,2,3,4,5])
             sage: isinstance(B.magma(), float) # optional - magma
@@ -1632,7 +1635,7 @@ class FiniteExtFieldMult(Benchmark):
         """
         Time the computation in Sage.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import FiniteExtFieldMult
             sage: B = FiniteExtFieldMult(GF(9, 'x'), 2)
             sage: isinstance(B.sage(), float)
@@ -1649,15 +1652,15 @@ class FiniteExtFieldMult(Benchmark):
         """
         Time the computation in Pari.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import FiniteExtFieldMult
             sage: B = FiniteExtFieldMult(GF(9, 'x'), 2)
             sage: isinstance(B.pari(), float)
             True
 
         """
-        e = self.e._pari_()
-        f = self.f._pari_()
+        e = self.e.__pari__()
+        f = self.f.__pari__()
         t = cputime()
         v = [e*f for _ in range(self.__times)]
         return cputime(t)
@@ -1666,7 +1669,7 @@ class FiniteExtFieldMult(Benchmark):
         """
         Time the computation in Givaro.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import FiniteExtFieldMult
             sage: B = FiniteExtFieldMult(GF(9, 'x'), 2)
             sage: isinstance(B.givaro(), float)
@@ -1688,7 +1691,7 @@ class FiniteExtFieldMult(Benchmark):
 
         TODO: nck?
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import FiniteExtFieldMult
             sage: B = FiniteExtFieldMult(GF(9, 'x'), 2)
             sage: isinstance(B.givaro_nck(), float)
@@ -1710,7 +1713,7 @@ class FiniteExtFieldMult(Benchmark):
 
         TODO: raw?
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import FiniteExtFieldMult
             sage: B = FiniteExtFieldMult(GF(9, 'x'), 2)
             sage: isinstance(B.givaro_raw(), float)
@@ -1730,7 +1733,7 @@ class FiniteExtFieldMult(Benchmark):
         """
         Time the computation in Magma.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import FiniteExtFieldMult
             sage: B = FiniteExtFieldMult(GF(9, 'x'), 2)
             sage: isinstance(B.magma(), float) # optional - magma
@@ -1756,7 +1759,7 @@ class FiniteExtFieldAdd(Benchmark):
         """
         Time the computation in Sage.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import FiniteExtFieldAdd
             sage: B = FiniteExtFieldAdd(GF(9,'x'), 2)
             sage: isinstance(B.sage(), float)
@@ -1773,15 +1776,15 @@ class FiniteExtFieldAdd(Benchmark):
         """
         Time the computation in Pari.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import FiniteExtFieldAdd
             sage: B = FiniteExtFieldAdd(GF(9,'x'), 2)
             sage: isinstance(B.pari(), float)
             True
 
         """
-        e = self.e._pari_()
-        f = self.f._pari_()
+        e = self.e.__pari__()
+        f = self.f.__pari__()
         t = cputime()
         v = [e+f for _ in range(self.__times)]
         return cputime(t)
@@ -1790,7 +1793,7 @@ class FiniteExtFieldAdd(Benchmark):
         """
         Time the computation in Givaro.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import FiniteExtFieldAdd
             sage: B = FiniteExtFieldAdd(GF(9,'x'), 2)
             sage: isinstance(B.givaro(), float)
@@ -1812,7 +1815,7 @@ class FiniteExtFieldAdd(Benchmark):
 
         TODO: nck?
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import FiniteExtFieldAdd
             sage: B = FiniteExtFieldAdd(GF(9,'x'), 2)
             sage: isinstance(B.givaro_nck(), float)
@@ -1834,7 +1837,7 @@ class FiniteExtFieldAdd(Benchmark):
 
         TODO: raw?
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import FiniteExtFieldAdd
             sage: B = FiniteExtFieldAdd(GF(9, 'x'), 2)
             sage: isinstance(B.givaro_raw(), float)
@@ -1854,7 +1857,7 @@ class FiniteExtFieldAdd(Benchmark):
         """
         Time the computation in Magma.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: from sage.tests.benchmark import FiniteExtFieldAdd
             sage: B = FiniteExtFieldAdd(GF(9,'x'), 2)
             sage: isinstance(B.magma(), float) # optional - magma
@@ -1957,7 +1960,7 @@ def mpoly_all(include_maple=False):
        * mathematica is sometimes amazing.
        * macaulay2 is also quite bad (though not as bad as maple).
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.tests.benchmark import mpoly_all
         sage: mpoly_all() # not tested

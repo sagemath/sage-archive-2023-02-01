@@ -14,7 +14,7 @@ INCLUDES="-I$SAGE_LOCAL/include"
 LIBDIRS="-L$SAGE_LOCAL/lib"
 
 CFLAGS="`testcflags.sh -fPIC -Wall -pedantic -g` $CFLAGS $INCLUDES"
-LDFLAGS="$LIBDIRS"
+LDFLAGS="$LIBDIRS $LDFLAGS"
 
 COMPILER=`testcc.sh $CC`
 if [ "$COMPILER" = "Sun_Studio" ] ; then

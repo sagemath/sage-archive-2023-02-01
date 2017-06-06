@@ -23,7 +23,7 @@ changes (it need not have the name or location given below).
     mkdir ~/hackdir
     cd ~/hackdir
     git clone git://github.com/sagemath/sagenb.git sagenb-git
-    cd SAGE_ROOT/devel
+    cd SAGE_ROOT/src
     rm sagenb
     ln -s ~/hackdir/sagenb sagenb
     cd sagenb

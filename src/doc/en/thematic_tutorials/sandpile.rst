@@ -644,7 +644,7 @@ sandpile group.  The zero set is actually linearly isomorphic to a faithful repr
     The zeros are generated as a group by a single vector:
 
     sage: S.points()
-    [[e^(1/4*I*pi), e^(-3/4*I*pi)]]
+    [[(1/2*I + 1/2)*sqrt(2), -(1/2*I + 1/2)*sqrt(2)]]
 
 
 Resolutions
@@ -834,7 +834,7 @@ first presented.  This internal format is returned by  ``dict()``::
    into the designated sink.  If the sink has out-edges, these will be ignored
    for the purposes of sandpile calculations (but not calculations on divisors).
 
-Code for checking whether a given vertex is a sink: ::
+Code for checking whether a given vertex is a sink::
 
     sage: S = Sandpile({0:[], 1:[0, 3, 4], 2:[0, 3, 5], 3: [2, 5], 4: [1, 3], 5: [2, 3]},0)
     sage: [S.distance(v,0) for v in S.vertices()] # 0 is a sink
@@ -1706,42 +1706,42 @@ EXAMPLES::
 
     sage: s = sandpiles.Complete(4)
     sage: m = s.markov_chain([0,0,0])
-    sage: m.next()          # random
+    sage: next(m)          # random
     {1: 0, 2: 0, 3: 0}
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [0, 0, 0]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [0, 0, 0]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [0, 0, 0]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [0, 1, 0]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [0, 2, 0]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [0, 2, 1]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [1, 2, 1]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [2, 2, 1]
     sage: m = s.markov_chain(s.zero_div(), [0.1,0.1,0.1,0.7])
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [0, 0, 0, 1]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [0, 0, 1, 1]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [0, 0, 1, 2]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [1, 1, 2, 0]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [1, 1, 2, 1]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [1, 1, 2, 2]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [1, 1, 2, 3]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [1, 1, 2, 4]
-    sage: m.next().values() # random
+    sage: next(m).values() # random
     [1, 1, 3, 4]
 
 .. NOTE::
@@ -2257,7 +2257,7 @@ EXAMPLES::
     sage: H.sink()
     (0, 0)
     sage: type(H.sink())
-    <type 'tuple'>
+    <... 'tuple'>
 
 ---
 
@@ -2339,7 +2339,7 @@ EXAMPLES::
 
     sage: s = sandpiles.Complete(3)
     sage: a = s.stable_configs()
-    sage: a.next()
+    sage: next(a)
     {1: 0, 2: 0}
     sage: [i.values() for i in a]
     [[0, 1], [1, 0], [1, 1]]
@@ -3052,7 +3052,7 @@ EXAMPLES::
 .. NOTE::
 
     To define ``c.burst(v)``, if `v` is not the sink, let `c'` be the unique
-    recurrent for which the the stabilization of `c' + v` is `c`.  The
+    recurrent for which the stabilization of `c' + v` is `c`.  The
     burst size is then the amount of sand that goes into the sink during this
     stabilization.  If `v` is the sink, the burst size is defined to be 1.
 
@@ -3987,36 +3987,36 @@ EXAMPLES::
 
     sage: s = sandpiles.Complete(4)
     sage: D = SandpileDivisor(s,[4,2,0,0])
-    sage: D.effective_div()
-    [{0: 0, 1: 6, 2: 0, 3: 0},
+    sage: sorted(D.effective_div(), key=str)
+    [{0: 0, 1: 2, 2: 0, 3: 4},
      {0: 0, 1: 2, 2: 4, 3: 0},
-     {0: 0, 1: 2, 2: 0, 3: 4},
+     {0: 0, 1: 6, 2: 0, 3: 0},
      {0: 1, 1: 3, 2: 1, 3: 1},
      {0: 2, 1: 0, 2: 2, 3: 2},
      {0: 4, 1: 2, 2: 0, 3: 0}]
-    sage: D.effective_div(False)
-    [[0, 6, 0, 0],
+    sage: sorted(D.effective_div(False))
+    [[0, 2, 0, 4],
      [0, 2, 4, 0],
-     [0, 2, 0, 4],
+     [0, 6, 0, 0],
      [1, 3, 1, 1],
      [2, 0, 2, 2],
      [4, 2, 0, 0]]
-    sage: D.effective_div(with_firing_vectors=True)
-    [({0: 0, 1: 6, 2: 0, 3: 0}, (0, -2, -1, -1)),
+    sage: sorted(D.effective_div(with_firing_vectors=True), key=str)
+    [({0: 0, 1: 2, 2: 0, 3: 4}, (0, -1, -1, -2)),
      ({0: 0, 1: 2, 2: 4, 3: 0}, (0, -1, -2, -1)),
-     ({0: 0, 1: 2, 2: 0, 3: 4}, (0, -1, -1, -2)),
+     ({0: 0, 1: 6, 2: 0, 3: 0}, (0, -2, -1, -1)),
      ({0: 1, 1: 3, 2: 1, 3: 1}, (0, -1, -1, -1)),
      ({0: 2, 1: 0, 2: 2, 3: 2}, (0, 0, -1, -1)),
      ({0: 4, 1: 2, 2: 0, 3: 0}, (0, 0, 0, 0))]
-    sage: a = _[0]
+    sage: a = _[2]
     sage: a[0].values()
     [0, 6, 0, 0]
     sage: vector(D.values()) - s.laplacian()*a[1]
     (0, 6, 0, 0)
-    sage: D.effective_div(False, True)
-    [([0, 6, 0, 0], (0, -2, -1, -1)),
+    sage: sorted(D.effective_div(False, True))
+    [([0, 2, 0, 4], (0, -1, -1, -2)),
      ([0, 2, 4, 0], (0, -1, -2, -1)),
-     ([0, 2, 0, 4], (0, -1, -1, -2)),
+     ([0, 6, 0, 0], (0, -2, -1, -1)),
      ([1, 3, 1, 1], (0, -1, -1, -1)),
      ([2, 0, 2, 2], (0, 0, -1, -1)),
      ([4, 2, 0, 0], (0, 0, 0, 0))]
@@ -4377,13 +4377,13 @@ EXAMPLES::
 
     sage: s = sandpiles.Complete(4)
     sage: D = SandpileDivisor(s,[4,2,0,0])
-    sage: D.polytope_integer_pts()
-    ((-2, -1, -1),
+    sage: sorted(D.polytope_integer_pts())
+    [(-2, -1, -1),
      (-1, -2, -1),
      (-1, -1, -2),
      (-1, -1, -1),
      (0, -1, -1),
-     (0, 0, 0))
+     (0, 0, 0)]
     sage: D = SandpileDivisor(s,[-1,0,0,0])
     sage: D.polytope_integer_pts()
     ()
@@ -4938,7 +4938,9 @@ Help
 
 Documentation for each method is available through the Sage online help system:
 
-.. code-block:: python
+.. skip
+
+::
 
     sage: SandpileConfig.fire_vertex?
     Base Class:     <type 'instancemethod'>
@@ -4971,7 +4973,7 @@ Documentation for each method is available through the Sage online help system:
 
 Enter ``Sandpile.help()``, ``SandpileConfig.help()``, and ``SandpileDivisor.help()`` for lists of available Sandpile-specific methods. 
 
-General Sage documentation can be found at http://sagemath.org/doc/.
+General Sage documentation can be found at http://doc.sagemath.org/html/en/.
 
 Contact
 -------

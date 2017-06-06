@@ -8,17 +8,20 @@ fi
 
 cd src
 
-# PATCH
-for patch in ../patches/*.patch; do
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error: Patch \"$patch\" failed to apply."
-        exit 1
-    fi
-done
+# Delete old version
+rm -rf \
+   "$SAGE_LOCAL"/lib/python*/site-packages/PIL \
+   "$SAGE_LOCAL"/lib/python*/site-packages/PIL-*.egg* \
+   "$SAGE_LOCAL"/lib/python*/site-packages/Pillow-*.egg*
 
-python setup.py install
-
+# Note: Avoid shared libraries inside egg files, Trac #19467
+sage-python23 setup.py \
+       --no-user-cfg \
+       build_ext \
+       --disable-jpeg \
+       install \
+       --single-version-externally-managed \
+       --record /dev/null
 if [ $? -ne 0 ]; then
     echo "Error building / installing Pillow"
     exit 1

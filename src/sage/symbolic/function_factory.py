@@ -9,7 +9,8 @@ Factory for symbolic functions
 #  version 2 or any later version.  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ###############################################################################
-
+from __future__ import print_function
+from six import string_types
 
 from sage.symbolic.function import SymbolicFunction, sfunctions_funcs, \
         unpickle_wrapper
@@ -135,7 +136,7 @@ def function(s, *args, **kwds):
     INPUT:
 
     - ``args`` - arguments to the function, if specified returns the new
-      function evaluated at the given arguments
+      function evaluated at the given arguments (deprecated as of :trac:`17447`)
     - ``nargs=0`` - number of arguments the function accepts, defaults to
       variable number of arguments, or 0
     - ``latex_name`` - name used when printing in latex mode
@@ -168,12 +169,14 @@ def function(s, *args, **kwds):
 
     EXAMPLES::
 
+        sage: from sage.symbolic.function_factory import function
         sage: var('a, b')
         (a, b)
-        sage: f = function('cr', a)
+        sage: cr = function('cr')
+        sage: f = cr(a)
         sage: g = f.diff(a).integral(b)
         sage: g
-        b*D[0](cr)(a)
+        b*diff(cr(a), a)
         sage: foo = function("foo", nargs=2)
         sage: x,y,z = var("x y z")
         sage: foo(x, y) + foo(y, z)^2
@@ -196,7 +199,7 @@ def function(s, *args, **kwds):
         sage: 2*f
         Traceback (most recent call last):
         ...
-        TypeError: unsupported operand parent(s) for '*': 'Integer Ring' and '<class 'sage.symbolic.function_factory.NewSymbolicFunction'>'
+        TypeError: unsupported operand parent(s) for *: 'Integer Ring' and '<class 'sage.symbolic.function_factory.NewSymbolicFunction'>'
 
     You now need to evaluate the function in order to do the arithmetic::
 
@@ -214,9 +217,9 @@ def function(s, *args, **kwds):
         sage: psi = function('psi', nargs=1)(r); psi
         psi(r)
         sage: g = 1/r^2*(2*r*psi.derivative(r,1) + r^2*psi.derivative(r,2)); g
-        (r^2*D[0, 0](psi)(r) + 2*r*D[0](psi)(r))/r^2
+        (r^2*diff(psi(r), r, r) + 2*r*diff(psi(r), r))/r^2
         sage: g.expand()
-        2*D[0](psi)(r)/r + D[0, 0](psi)(r)
+        2*diff(psi(r), r)/r + diff(psi(r), r, r)
         sage: g.coefficient(psi.derivative(r,2))
         1
         sage: g.coefficient(psi.derivative(r,1))
@@ -249,19 +252,19 @@ def function(s, *args, **kwds):
         sage: foo(x).conjugate()
         2*x
 
-        sage: def deriv(self, *args,**kwds): print args, kwds; return args[kwds['diff_param']]^2
+        sage: def deriv(self, *args,**kwds): print("{} {}".format(args, kwds)); return args[kwds['diff_param']]^2
         sage: foo = function("foo", nargs=2, derivative_func=deriv)
         sage: foo(x,y).derivative(y)
         (x, y) {'diff_param': 1}
         y^2
 
-        sage: def pow(self, x, power_param=None): print x, power_param; return x*power_param
+        sage: def pow(self, x, power_param=None): print("{} {}".format(x, power_param)); return x*power_param
         sage: foo = function("foo", nargs=1, power_func=pow)
         sage: foo(y)^(x+y)
         y x + y
         (x + y)*y
 
-        sage: def expand(self, *args, **kwds): print args, kwds; return sum(args[0]^i for i in range(kwds['order']))
+        sage: def expand(self, *args, **kwds): print("{} {}".format(args, kwds)); return sum(args[0]^i for i in range(kwds['order']))
         sage: foo = function("foo", nargs=1, series_func=expand)
         sage: foo(y).series(y, 5)
         (y,) {'var': y, 'options': 0, 'at': 0, 'order': 5}
@@ -285,7 +288,7 @@ def function(s, *args, **kwds):
 
     Chain rule::
 
-        sage: def print_args(self, *args, **kwds): print "args:",args; print "kwds:",kwds; return args[0]
+        sage: def print_args(self, *args, **kwds): print("args: {}".format(args)); print("kwds: {}".format(kwds)); return args[0]
         sage: foo = function('t', nargs=2, tderivative_func=print_args)
         sage: foo(x,x).derivative(x)
         args: (x, x)
@@ -303,17 +306,13 @@ def function(s, *args, **kwds):
 
     Make sure that :trac:`15860` is fixed and whitespaces are removed::
 
-        sage: function('A, B')
-        (A, B)
-        sage: B
-        B
         sage: C, D, E = function(' C  D E')
         sage: C(D(x))
         C(D(x))
         sage: E
         E
     """
-    if not isinstance(s, (str, unicode)):
+    if not isinstance(s, string_types):
         raise TypeError("expect string as first argument")
 
     # create the function
@@ -328,6 +327,8 @@ def function(s, *args, **kwds):
     funcs = [function_factory(name, **kwds) for name in names]
 
     if len(args) > 0:
+        from sage.misc.superseded import deprecation
+        deprecation(17447, "Calling function('f',x) is deprecated. Use function('f')(x) instead.")
         res = [f(*args) for f in funcs]
     else:
         res = funcs
@@ -349,7 +350,7 @@ def deprecated_custom_evalf_wrapper(func):
     EXAMPLES::
 
         sage: from sage.symbolic.function_factory import deprecated_custom_evalf_wrapper as dcew
-        sage: def old_func(x, prec=0): print "x: %s, prec: %s"%(x,prec)
+        sage: def old_func(x, prec=0): print("x: %s, prec: %s" % (x, prec))
         sage: new_func = dcew(old_func)
         sage: new_func(5, parent=RR)
         x: 5, prec: 53

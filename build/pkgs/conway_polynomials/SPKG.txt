@@ -4,11 +4,6 @@
 
  Contains a small database of Conway polynomials.
 
-== SPKG Maintainers ==
-
- * R. Andrew Ohana <andrew.ohana@gmail.com>
- * William Stein <wstein@gmail.com>
-
 == Dependencies ==
 
  * Sage library

@@ -22,17 +22,16 @@ Nonetheless, garbage collection occurs when the original references are
 overwritten::
 
     sage: for p in prime_range(200):
-    ...     K = GF(p)
-    ...     H = Hom(ZZ, K)
-    ...
+    ....:     K = GF(p)
+    ....:     H = Hom(ZZ, K)
     sage: import gc
     sage: _ = gc.collect()
     sage: from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_modn as FF
     sage: L = [x for x in gc.get_objects() if isinstance(x, FF)]
     sage: len(L)
-    2
+    1
     sage: L
-    [Finite Field of size 2, Finite Field of size 199]
+    [Finite Field of size 199]
 
 AUTHORS:
 
@@ -48,6 +47,7 @@ AUTHORS:
 
 - Simon King (2013-02): added examples
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>, William Stein <wstein@gmail.com>
@@ -65,7 +65,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.categories.category import Category
-import morphism
+from . import morphism
 from sage.structure.parent import Parent, Set_generic
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.dynamic_class import dynamic_class
@@ -113,7 +113,7 @@ def Hom(X, Y, category=None, check=True):
         Vector space of dimension 3 over Rational Field
         sage: G = AlternatingGroup(3)
         sage: Hom(G, G)
-        Set of Morphisms from Alternating group of order 3!/2 as a permutation group to Alternating group of order 3!/2 as a permutation group in Category of finite permutation groups
+        Set of Morphisms from Alternating group of order 3!/2 as a permutation group to Alternating group of order 3!/2 as a permutation group in Category of finite enumerated permutation groups
         sage: Hom(ZZ, QQ, Sets())
         Set of Morphisms from Integer Ring to Rational Field in Category of sets
 
@@ -126,15 +126,15 @@ def Hom(X, Y, category=None, check=True):
     using a weak cache::
 
         sage: for p in prime_range(10^3):
-        ...    K = GF(p)
-        ...    a = K(0)
+        ....:  K = GF(p)
+        ....:  a = K(0)
         sage: import gc
         sage: gc.collect()       # random
         624
         sage: from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_modn as FF
         sage: L = [x for x in gc.get_objects() if isinstance(x, FF)]
-        sage: len(L), L[0], L[len(L)-1]
-        (2, Finite Field of size 2, Finite Field of size 997)
+        sage: len(L), L[0]
+        (1, Finite Field of size 997)
 
     To illustrate the choice of the category, we consider the
     following parents as running examples::
@@ -150,7 +150,7 @@ def Hom(X, Y, category=None, check=True):
         sage: Hom(X, Y)
         Set of Morphisms from Integer Ring
          to Symmetric group of order 3! as a permutation group
-         in Join of Category of monoids and Category of enumerated sets
+         in Category of enumerated monoids
 
     Otherwise, if ``category`` is specified, then ``category`` is used,
     after checking that ``X`` and ``Y`` are indeed in ``category``::
@@ -283,17 +283,13 @@ def Hom(X, Y, category=None, check=True):
 
         sage: S = SimplicialComplex([[1,2], [1,4]]); S.rename("S")
         sage: Hom(S, S, SimplicialComplexes())
-        Set of Morphisms from S to S in Category of simplicial complexes
+        Set of Morphisms from S to S in Category of finite simplicial complexes
 
-        sage: H = Hom(Set(), S, Sets())
-        Traceback (most recent call last):
-        ...
-        ValueError: S is not in Category of sets
+        sage: Hom(Set(), S, Sets())
+        Set of Morphisms from {} to S in Category of sets
 
-        sage: H = Hom(S, Set(), Sets())
-        Traceback (most recent call last):
-        ...
-        ValueError: S is not in Category of sets
+        sage: Hom(S, Set(), Sets())
+        Set of Morphisms from S to {} in Category of sets
 
         sage: H = Hom(S, S, ChainComplexes(QQ))
         Traceback (most recent call last):
@@ -458,7 +454,7 @@ def End(X, category=None):
 
         sage: G = AlternatingGroup(3)
         sage: S = End(G); S
-        Set of Morphisms from Alternating group of order 3!/2 as a permutation group to Alternating group of order 3!/2 as a permutation group in Category of finite permutation groups
+        Set of Morphisms from Alternating group of order 3!/2 as a permutation group to Alternating group of order 3!/2 as a permutation group in Category of finite enumerated permutation groups
         sage: from sage.categories.homset import is_Endset
         sage: is_Endset(S)
         True
@@ -479,7 +475,7 @@ def End(X, category=None):
         Category of finite groups
         sage: H = Hom(G,G)
         sage: H.homset_category()
-        Category of groups
+        Category of finite groups
         sage: H.category()
         Category of endsets of unital magmas
 
@@ -550,11 +546,10 @@ class Homset(Set_generic):
             sage: X = ZZ['x']; X.rename("X")
             sage: Y = ZZ['y']; Y.rename("Y")
             sage: class MyHomset(Homset):
-            ...       def my_function(self, x):
-            ...           return Y(x[0])
-            ...       def _an_element_(self):
-            ...           return sage.categories.morphism.SetMorphism(self, self.my_function)
-            ...
+            ....:     def my_function(self, x):
+            ....:         return Y(x[0])
+            ....:     def _an_element_(self):
+            ....:         return sage.categories.morphism.SetMorphism(self, self.my_function)
             sage: import __main__; __main__.MyHomset = MyHomset # fakes MyHomset being defined in a Python module
             sage: H = MyHomset(X, Y, category=Monoids(), base = ZZ)
             sage: H
@@ -651,7 +646,7 @@ class Homset(Set_generic):
             (<function Hom at ...>,
              (Vector space of dimension 2 over Rational Field,
               Vector space of dimension 3 over Rational Field,
-              Category of vector spaces with basis over quotient fields,
+              Category of finite dimensional vector spaces with basis over (quotient fields and metric spaces),
               False))
 
         TESTS::
@@ -701,7 +696,7 @@ class Homset(Set_generic):
         """
         return hash((self._domain, self._codomain, self.base()))
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         TESTS::
 
@@ -709,6 +704,8 @@ class Homset(Set_generic):
             True
         """
         return True
+
+    __nonzero__ = __bool__
 
     def _generic_convert_map(self, S):
         """
@@ -785,7 +782,7 @@ class Homset(Set_generic):
 
             sage: H = Hom(AlternatingGroup(4), AlternatingGroup(7))
             sage: H.homset_category()
-            Category of finite permutation groups
+            Category of finite enumerated permutation groups
         """
         return self.__category
 
@@ -859,7 +856,7 @@ class Homset(Set_generic):
             sage: H = Hom(Set([1,2,3]), Set([1,2,3]))
             sage: f = H( lambda x: 4-x )
             sage: f.parent()
-            Set of Morphisms from {1, 2, 3} to {1, 2, 3} in Category of sets
+            Set of Morphisms from {1, 2, 3} to {1, 2, 3} in Category of finite sets
             sage: f(1), f(2), f(3) # todo: not implemented
 
             sage: H = Hom(ZZ, QQ, Sets())
@@ -929,8 +926,8 @@ class Homset(Set_generic):
             algebraic properties of domain and codomain, it should be
             implemented in ``C.MorphismMethods``.
 
-            At this point, the homset element classes takes precedence over
-            the morphism classes. But this may be subject to change.
+            At this point, the homset element classes take precedence over the
+            morphism classes. But this may be subject to change.
 
 
         .. TODO::
@@ -1168,50 +1165,23 @@ class Homset(Set_generic):
 
             sage: H = Hom(ZZ^2, ZZ^3); H
             Set of Morphisms from Ambient free module of rank 2 over
-            the principal ideal domain Integer Ring to Ambient free
-            module of rank 3 over the principal ideal domain Integer
-            Ring in Category of modules with basis over (euclidean
-            domains and infinite enumerated sets)
+             the principal ideal domain Integer Ring to Ambient free module
+             of rank 3 over the principal ideal domain Integer Ring in
+             Category of finite dimensional modules with basis over (euclidean
+             domains and infinite enumerated sets and metric spaces)
             sage: type(H)
             <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
             sage: H.reversed()
             Set of Morphisms from Ambient free module of rank 3 over
-            the principal ideal domain Integer Ring to Ambient free
-            module of rank 2 over the principal ideal domain Integer
-            Ring in Category of modules with basis over (euclidean
-            domains and infinite enumerated sets)
+             the principal ideal domain Integer Ring to Ambient free module
+             of rank 2 over the principal ideal domain Integer Ring in
+             Category of finite dimensional modules with basis over (euclidean
+             domains and infinite enumerated sets and metric spaces)
             sage: type(H.reversed())
             <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
         """
         return Hom(self.codomain(), self.domain(), category = self.homset_category())
 
-    ############### For compatibility with old coercion model #######################
-
-    def get_action_c(self, R, op, self_on_left):
-        """
-        .. WARNING::
-
-            For compatibility with old coercion model. DO NOT USE!
-
-        TESTS::
-
-            sage: H = Hom(ZZ^2, ZZ^3)
-            sage: H.get_action_c(ZZ, operator.add, ZZ)
-        """
-        return None
-
-    def coerce_map_from_c(self, R):
-        """
-        .. WARNING::
-
-            For compatibility with old coercion model. DO NOT USE!
-
-        TESTS::
-
-            sage: H = Hom(ZZ^2, ZZ^3)
-            sage: H.coerce_map_from_c(ZZ)
-        """
-        return None
 
 # Really needed???
 class HomsetWithBase(Homset):
@@ -1222,11 +1192,10 @@ class HomsetWithBase(Homset):
             sage: X = ZZ['x']; X.rename("X")
             sage: Y = ZZ['y']; Y.rename("Y")
             sage: class MyHomset(HomsetWithBase):
-            ...       def my_function(self, x):
-            ...           return Y(x[0])
-            ...       def _an_element_(self):
-            ...           return sage.categories.morphism.SetMorphism(self, self.my_function)
-            ...
+            ....:     def my_function(self, x):
+            ....:         return Y(x[0])
+            ....:     def _an_element_(self):
+            ....:         return sage.categories.morphism.SetMorphism(self, self.my_function)
             sage: import __main__; __main__.MyHomset = MyHomset # fakes MyHomset being defined in a Python module
             sage: H = MyHomset(X, Y, category=Monoids())
             sage: H

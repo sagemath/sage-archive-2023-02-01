@@ -22,8 +22,6 @@
 # automatically.
 #SAGE_ROOT=/path/to/sage-version
 
-
-
 # Resolve all symbolic links in a filename.  This more or less behaves
 # like "readlink -f" except that it does not convert the filename to an
 # absolute path (a relative path remains relative), nor does it treat
@@ -123,20 +121,19 @@ fi
 
 export SAGE_ROOT
 
+# If this is a freshly-unpacked binary tarball then run the installer
+# Note: relocate-once.py deletes itself upon successful completion
+if [ -x "$SAGE_ROOT/relocate-once.py" ]; then
+    "$SAGE_ROOT/relocate-once.py"
+fi
+
 # Run the actual Sage script
 if [ -x "$SAGE_ROOT/src/bin/sage" ]; then
-    "$SAGE_ROOT/src/bin/sage" "$@"
+    exec "$SAGE_ROOT/src/bin/sage" "$@"
 elif [ -x "$SAGE_ROOT/local/bin/sage" ]; then # if in a stripped binary
-    "$SAGE_ROOT/local/bin/sage" "$@"
+    # Note in this case we assume that SAGE_LOCAL is the "local" subdirectory
+    exec "$SAGE_ROOT/local/bin/sage" "$@"
 else
     echo >&2 "$0: no Sage installation found in \$SAGE_ROOT=$SAGE_ROOT"
     exit 1
 fi
-
-# Kill all processes in the current process group.  In practice, this
-# means all child processes not running their own pty.
-# Uncomment this if you have trouble with orphans.
-# We do this in the background after waiting 10 seconds to give the
-# various processes (including this shell script) some time to exit
-# cleanly.
-# { sleep 10; kill -9 -$$ 2>/dev/null; } &

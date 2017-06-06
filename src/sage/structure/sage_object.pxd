@@ -1,12 +1,80 @@
 from libc.stdint cimport uint32_t
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 
+# Export this for use by Python modules
+cdef extern from "Python.h":
+    cpdef richcmp "PyObject_RichCompare"(object, object, int)
+
 
 cdef class SageObject:
     pass
 
 
-cdef inline bint rich_to_bool(int op, int c):
+cpdef inline richcmp_not_equal(x, y, int op):
+    """
+    Like ``richcmp(x, y, op)`` but assuming that `x` is not equal to `y`.
+
+    INPUT:
+
+    - ``op`` -- a rich comparison operation (e.g. ``Py_EQ``)
+
+    OUTPUT:
+
+    If ``op`` is not ``op_EQ`` or ``op_NE``, the result of
+    ``richcmp(x, y, op)``. If ``op`` is ``op_EQ``, return
+    ``False``. If ``op`` is ``op_NE``, return ``True``.
+
+    This is useful to compare lazily two objects A and B according to 2
+    (or more) different parameters, say width and height for example.
+    One could use::
+
+        return richcmp((A.width(), A.height()), (B.width(), B.height()), op)
+
+    but this will compute both width and height in all cases, even if
+    A.width() and B.width() are enough to decide the comparison.
+
+    Instead one can do::
+
+        wA = A.width()
+        wB = B.width()
+        if wA != wB:
+            return richcmp_not_equal(wA, wB, op)
+        return richcmp(A.height(), B.height(), op)
+
+    The difference with ``richcmp`` is that ``richcmp_not_equal``
+    assumes that its arguments are not equal, which is excluding the case
+    where the comparison cannot be decided so far, without
+    knowing the rest of the parameters.
+
+    EXAMPLES::
+
+        sage: from sage.structure.sage_object import (richcmp_not_equal,
+        ....:    op_EQ, op_NE, op_LT, op_LE, op_GT, op_GE)
+        sage: for op in (op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE):
+        ....:     print(richcmp_not_equal(3, 4, op))
+        True
+        True
+        False
+        True
+        False
+        False
+        sage: for op in (op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE):
+        ....:     print(richcmp_not_equal(5, 4, op))
+        False
+        False
+        False
+        True
+        True
+        True
+    """
+    if op == Py_EQ:
+        return False
+    elif op == Py_NE:
+        return True
+    return richcmp(x, y, op)
+
+
+cpdef inline bint rich_to_bool(int op, int c):
     """
     Return the corresponding ``True`` or ``False`` value for a rich
     comparison, given the result of an ordinary comparison.
@@ -26,6 +94,20 @@ cdef inline bint rich_to_bool(int op, int c):
 
     EXAMPLES::
 
+        sage: from sage.structure.sage_object import (rich_to_bool,
+        ....:    op_EQ, op_NE, op_LT, op_LE, op_GT, op_GE)
+        sage: for op in (op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE):
+        ....:     for c in (-1,0,1):
+        ....:         print(rich_to_bool(op, c))
+        True False False
+        True True False
+        False True False
+        True False True
+        False False True
+        False True True
+
+    Indirect tests using integers::
+
         sage: 0 < 5, 5 < 5, 5 < -8
         (True, False, False)
         sage: 0 <= 5, 5 <= 5, 5 <= -8
@@ -38,6 +120,14 @@ cdef inline bint rich_to_bool(int op, int c):
         (False, True, False)
         sage: 0 != 5, 5 != 5, 5 != -8
         (True, False, True)
+
+    TESTS::
+
+        sage: from sage.structure.sage_object import py_rich_to_bool
+        sage: py_rich_to_bool(op_EQ, 0)
+        doctest:...: DeprecationWarning: py_rich_to_bool is deprecated. Please use sage.structure.sage_object.rich_to_bool instead.
+        See http://trac.sagemath.org/21128 for details.
+        True
     """
     # op is a value in [0,5], c a value in [-1,1]. We implement this
     # function very efficienly using a bitfield. Note that the masking
@@ -59,7 +149,7 @@ cdef inline bint rich_to_bool(int op, int c):
     return (bits >> (shift & 31)) & 1
 
 
-cdef inline bint rich_to_bool_sgn(int op, int c):
+cpdef inline bint rich_to_bool_sgn(int op, Py_ssize_t c):
     """
     Same as ``rich_to_bool``, but allow any `c < 0` and `c > 0`
     instead of only `-1` and `1`.

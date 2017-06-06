@@ -8,10 +8,6 @@ A modified version of GiNaC that replaces the dependency on CLN by Python.
 
 GPL V2+
 
-== SPKG Maintainers ==
-
- * Burcin Erocal - burcin <AT> spam.erocal.org
-
 == Upstream Contact ==
 
  * Burcin Erocal -  burcin <AT> spam.erocal.org

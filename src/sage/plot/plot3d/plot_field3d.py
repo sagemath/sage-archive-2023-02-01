@@ -16,7 +16,7 @@ Plotting 3D fields
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.misc import srange
+from sage.arith.srange import srange
 from sage.plot.misc import setup_for_eval_on_grid
 from sage.modules.free_module_element import vector
 from sage.plot.plot import plot

@@ -21,10 +21,6 @@ a linear function over P.
 == License ==
 GPL v2
 
-== SPKG Maintainers ==
- * Marshall Hampton
- * Volker Braun
-
 == Upstream Contact ==
 Komei Fukuda <fukuda@ifor.math.ethz.ch>
 Institute for Operations Research

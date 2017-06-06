@@ -370,7 +370,7 @@
    mpfr_init2
    Memcheck:Leak
    fun:malloc
-   fun:sage_malloc
+   fun:sig_malloc
    fun:sage_mpir_malloc
    fun:mpfr_init2
 }
@@ -379,7 +379,7 @@
    mpir_realloc
    Memcheck:Leak
    fun:realloc
-   fun:sage_realloc
+   fun:sig_realloc
    fun:sage_mpir_realloc
    fun:__gmpz_realloc
    fun:__gmpz_add_ui

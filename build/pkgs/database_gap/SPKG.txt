@@ -4,13 +4,6 @@
 
 The databases of GAP: finite groups and tables of marks
 
-== SPKG Maintainers ==
-
- * William Stein
- * Robert Miller
- * David Joyner
- * Dmitrii Pasechnik
-
 == Upstream Contact ==
 
 Dmitrii Pasechnik, dimpase@gmail.com

@@ -36,8 +36,9 @@ AUTHORS:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
+from __future__ import absolute_import
 
-import matrix_double_dense
+from . import matrix_double_dense
 
 from sage.rings.complex_double import CDF
 
@@ -92,7 +93,6 @@ cdef class Matrix_complex_double_dense(matrix_double_dense.Matrix_double_dense):
     #   * __init__
     #   * set_unsafe
     #   * get_unsafe
-    #   * __richcmp__    -- always the same
     #   * __hash__       -- always simple
     ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):

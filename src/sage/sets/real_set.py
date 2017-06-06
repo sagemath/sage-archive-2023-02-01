@@ -64,6 +64,7 @@ AUTHORS:
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.categories.sets_cat import Sets
 from sage.rings.all import ZZ
 from sage.rings.real_lazy import LazyFieldElement, RLF
 from sage.rings.infinity import infinity, minus_infinity
@@ -364,7 +365,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
         The closure as a new :class:`RealInterval`
 
         EXAMPLES::
-        
+
             sage: RealSet.open(0,1)[0].closure()
             [0, 1]
             sage: RealSet.open(-oo,1)[0].closure()
@@ -385,7 +386,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
         The interior as a new :class:`RealInterval`
 
         EXAMPLES::
-        
+
             sage: RealSet.closed(0, 1)[0].interior()
             (0, 1)
             sage: RealSet.open_closed(-oo, 1)[0].interior()
@@ -405,7 +406,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
         has a single connected component.
 
         EXAMPLES::
-        
+
             sage: I1 = RealSet.open(0, 1)[0];  I1
             (0, 1)
             sage: I2 = RealSet.closed(1, 2)[0];  I2
@@ -431,13 +432,13 @@ class InternalRealInterval(UniqueRepresentation, Parent):
         """
         cmp_lu = cmp(self._lower, other._upper)
         cmp_ul = cmp(self._upper, other._lower)
-        # self is seperated and below other
+        # self is separated and below other
         if cmp_ul == -1:
             return False
         # self is adjacent and below other 
         if cmp_ul == 0:
             return self._upper_closed or other._lower_closed
-        # self is seperated and above other
+        # self is separated and above other
         if cmp_lu == +1:
             return False
         # self is adjacent and above other 
@@ -577,7 +578,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
         Boolean.
 
         EXAMPLES::
-        
+
             sage: i = RealSet.open_closed(0,2)[0]; i
             (0, 2]
             sage: i.contains(0)
@@ -615,8 +616,12 @@ class RealSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: RealSet(RealSet.open_closed(0,1), RealSet.closed_open(2,3))
+            sage: R = RealSet(RealSet.open_closed(0,1), RealSet.closed_open(2,3)); R
             (0, 1] + [2, 3)
+
+        TESTS::
+
+            sage: TestSuite(R).run()
         """
         if len(args) == 1 and isinstance(args[0], RealSet):
             return args[0]   # common optimization
@@ -644,9 +649,9 @@ class RealSet(UniqueRepresentation, Parent):
             else:
                 raise ValueError(str(arg) + ' does not determine real interval')
         intervals = RealSet.normalize(intervals)
-        return UniqueRepresentation.__classcall__(cls, intervals)
+        return UniqueRepresentation.__classcall__(cls, *intervals)
                 
-    def __init__(self, intervals):
+    def __init__(self, *intervals):
         """
         A subset of the real line
 
@@ -671,6 +676,7 @@ class RealSet(UniqueRepresentation, Parent):
             sage: RealSet(i, [3,4])    # list of two numbers = closed set
             (0, 1) + [3, 4]
         """
+        Parent.__init__(self, category = Sets())
         self._intervals = intervals
     
     def __cmp__(self, other):
@@ -784,7 +790,7 @@ class RealSet(UniqueRepresentation, Parent):
         The $i$-th connected component as a :class:`RealInterval`.
 
         EXAMPLES::
-        
+
             sage: s = RealSet(RealSet.open_closed(0,1), RealSet.closed_open(2,3))
             sage: s.get_interval(0)
             (0, 1]
@@ -1325,7 +1331,7 @@ class RealSet(UniqueRepresentation, Parent):
         Boolean.
 
         EXAMPLES::
-        
+
             sage: s = RealSet(0,2) + RealSet.unbounded_above_closed(10);  s
             (0, 2) + [10, +oo)
             sage: s.contains(1)
@@ -1357,7 +1363,7 @@ class RealSet(UniqueRepresentation, Parent):
         Boolean.
 
         EXAMPLES::
-        
+
             sage: I = RealSet((1,2))
             sage: J = RealSet((1,3))
             sage: K = RealSet((2,3))
@@ -1433,7 +1439,7 @@ class RealSet(UniqueRepresentation, Parent):
         Boolean.
         
         EXAMPLES::
-        
+
             sage: s1 = RealSet((0, 1), (2, 3))
             sage: s2 = RealSet((1, 2))
             sage: s3 = RealSet.point(3)
@@ -1453,4 +1459,54 @@ class RealSet(UniqueRepresentation, Parent):
                     return False
         return True
 
-                
+    def _sage_input_(self, sib, coerced):
+        """
+        Produce an expression which will reproduce this value when evaluated.
+
+        TESTS::
+
+            sage: sage_input(RealSet())
+            RealSet()
+            sage: sage_input(RealSet.open(-oo, +oo))
+            RealSet(-oo, oo)
+            sage: sage_input(RealSet.point(77))
+            RealSet.point(77)
+            sage: sage_input(RealSet.closed_open(0, +oo))
+            RealSet.closed_open(0, oo)
+            sage: sage_input(RealSet.open_closed(-oo, 0))
+            RealSet.open_closed(-oo, 0)
+            sage: sage_input(RealSet.open_closed(-1, 0))
+            RealSet.open_closed(-1, 0)
+            sage: sage_input(RealSet.closed_open(-1, 0))
+            RealSet.closed_open(-1, 0)
+            sage: sage_input(RealSet.closed(0, 1))
+            RealSet.closed(0, 1)
+            sage: sage_input(RealSet.open(0, 1))
+            RealSet.open(0, 1)
+            sage: sage_input(RealSet.open(0, 1) + RealSet.open(1, 2))
+            RealSet.open(0, 1) + RealSet.open(1, 2)
+        """
+
+        def interval_input(i):
+            lower, upper = i.lower(), i.upper()
+            if i.is_point():
+                return sib.name('RealSet.point')(lower)
+            elif lower == minus_infinity and upper == infinity:
+                return sib.name('RealSet')(sib(minus_infinity), sib(infinity))
+            else:
+                if i.lower_closed():
+                    if i.upper_closed():
+                        t = 'RealSet.closed'
+                    else:
+                        t = 'RealSet.closed_open'
+                else:
+                    if i.upper_closed():
+                        t = 'RealSet.open_closed'
+                    else:
+                        t = 'RealSet.open'
+                return sib.name(t)(sib(lower), sib(upper))
+
+        if self.is_empty():
+            return sib.name('RealSet')()
+        else:
+            return sib.sum(interval_input(i) for i in self)

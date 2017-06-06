@@ -7,9 +7,6 @@ languages, with different characters to be handled properly.
 == License ==
  * GPL 3 and LGPL 3. So we can safely link against the library in Sage.
 
-== SPKG Maintainers ==
- * David Kirkby
-
 == Upstream Contact ==
  * http://www.gnu.org/software/libiconv/
  * Bug reports to bug-gnu-libiconv@gnu.org

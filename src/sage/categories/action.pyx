@@ -57,13 +57,14 @@ AUTHOR:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-from functor cimport Functor
-from morphism cimport Morphism
-from map cimport Map
+from .functor cimport Functor
+from .morphism cimport Morphism
+from .map cimport Map
 from sage.structure.parent cimport Parent
 
-import homset
+from . import homset
 import sage.structure.element
 from weakref import ref
 from sage.misc.constant_function import ConstantFunction
@@ -79,7 +80,7 @@ cdef inline category(x):
 cdef class Action(Functor):
 
     def __init__(self, G, S, bint is_left = 1, op=None):
-        from groupoid import Groupoid
+        from .groupoid import Groupoid
         Functor.__init__(self, Groupoid(G), category(S))
         self.G = G
         self.US = ref(S)
@@ -97,7 +98,7 @@ cdef class Action(Functor):
             elif g == self.G:
                 return self.underlying_set()
             else:
-                raise TypeError, "%s not an element of %s"%(g, self.G)
+                raise TypeError("%s not an element of %s" % (g, self.G))
         elif len(args) == 2:
             if self._is_left:
                 return self._call_(self.G(args[0]), self.underlying_set()(args[1]))
@@ -105,7 +106,7 @@ cdef class Action(Functor):
                 return self._call_(self.underlying_set()(args[0]), self.G(args[1]))
 
     cpdef _call_(self, a, b):
-        raise NotImplementedError, "Action not implemented."
+        raise NotImplementedError("Action not implemented.")
 
     def act(self, g, a):
         """
@@ -182,7 +183,7 @@ cdef class Action(Functor):
         """
         S = self.US()
         if S is None:
-            raise RuntimeError, "This action acted on a set that became garbage collected"
+            raise RuntimeError("This action acted on a set that became garbage collected")
         return S
 
     def codomain(self):
@@ -211,10 +212,37 @@ cdef class InverseAction(Action):
     """
     An action that acts as the inverse of the given action.
 
-    TESTS:
+    EXAMPLES::
 
-    This illustrates a shortcoming in the current coercion model.
-    See the comments in _call_ below::
+        sage: V = QQ^3
+        sage: v = V((1, 2, 3))
+        sage: cm = get_coercion_model()
+
+        sage: a = cm.get_action(V, QQ, operator.mul)
+        sage: a
+        Right scalar multiplication by Rational Field on Vector space of dimension 3 over Rational Field
+        sage: ~a
+        Right inverse action by Rational Field on Vector space of dimension 3 over Rational Field
+        sage: (~a)(v, 1/3)
+        (3, 6, 9)
+
+        sage: b = cm.get_action(QQ, V, operator.mul)
+        sage: b
+        Left scalar multiplication by Rational Field on Vector space of dimension 3 over Rational Field
+        sage: ~b
+        Left inverse action by Rational Field on Vector space of dimension 3 over Rational Field
+        sage: (~b)(1/3, v)
+        (3, 6, 9)
+
+        sage: c = cm.get_action(ZZ, list, operator.mul)
+        sage: c
+        Left action by Integer Ring on <... 'list'>
+        sage: ~c
+        Traceback (most recent call last):
+        ...
+        TypeError: no inverse defined for Left action by Integer Ring on <... 'list'>
+
+    TESTS:
 
         sage: x = polygen(QQ,'x')
         sage: a = 2*x^2+2; a
@@ -230,19 +258,14 @@ cdef class InverseAction(Action):
         try:
             from sage.groups.group import is_Group
             # We must be in the case that parent(~a) == parent(a)
-            # so we can invert in call_c code below.
+            # so we can invert in _call_ code below.
             if (is_Group(G) and G.is_multiplicative()) or G.is_field():
                 Action.__init__(self, G, action.underlying_set(), action._is_left)
                 self._action = action
                 return
-            else:
-                K = G._pseudo_fraction_field()
-                Action.__init__(self, K, action.underlying_set(), action._is_left)
-                self._action = action
-                return
         except (AttributeError, NotImplementedError):
             pass
-        raise TypeError, "No inverse defined for %r." % action
+        raise TypeError(f"no inverse defined for {action!r}")
 
     cpdef _call_(self, a, b):
         if self._action._is_left:

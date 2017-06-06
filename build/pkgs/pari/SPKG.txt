@@ -18,12 +18,6 @@ Belabas with the help of many volunteer contributors.
 
 GPL version 2+
 
-== SPKG Maintainers ==
- * Robert Bradshaw
- * William Stein
- * David Kirkby
- * Jeroen Demeyer
-
 == Upstream Contact ==
  * http://pari.math.u-bordeaux.fr/
 

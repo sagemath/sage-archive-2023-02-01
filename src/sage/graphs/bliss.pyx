@@ -27,12 +27,12 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-include "sage/ext/interrupt.pxi"
-include 'sage/ext/stdsage.pxi'
 from cpython cimport PyObject
+from libc.limits cimport LONG_MAX
 
-cdef extern from "graph.hh" namespace "bliss":
+from sage.misc.decorators import rename_keyword
+
+cdef extern from "bliss/graph.hh" namespace "bliss":
 
     cdef cppclass Stats:
         pass
@@ -116,7 +116,7 @@ cdef Graph *bliss_graph(G, partition, vert2int, int2vert):
     - ``partition`` -- a partition of the vertex set.
 
     - ``vert2int, int2vert`` -- Two empty dictionaries. The entries of the
-      dicitionary are later set to record the labeling of our graph. They are
+      dictionary are later set to record the labeling of our graph. They are
       taken as arguments to avoid technicalities of returning Python objects in
       Cython functions.
     """
@@ -133,7 +133,7 @@ cdef Graph *bliss_graph(G, partition, vert2int, int2vert):
        g.add_edge(vert2int[x],vert2int[y])
 
     if partition:
-        for i in xrange(1,len(partition)):
+        for i in xrange(1, len(partition)):
             for v in partition[i]:
                 g.change_color(vert2int[v], i)
     return g
@@ -149,7 +149,7 @@ cdef Digraph *bliss_digraph(G, partition, vert2int, int2vert):
     - ``partition`` -- a partition of the vertex set.
 
     - ``vert2int, int2vert`` -- Two empty dictionaries. The entries of the
-      dicitionary are later set to record the labeling of our graph. They are
+      dictionary are later set to record the labeling of our graph. They are
       taken as arguments to avoid technicalities of returning Python objects in
       Cython functions.
     """
@@ -166,7 +166,7 @@ cdef Digraph *bliss_digraph(G, partition, vert2int, int2vert):
         g.add_edge(vert2int[x],vert2int[y])
 
     if partition:
-        for i in xrange(1,len(partition)):
+        for i in xrange(1, len(partition)):
             for v in partition[i]:
                 g.change_color(vert2int[v], i)
     return g
@@ -223,7 +223,8 @@ def automorphism_group(G, partition=None):
 cdef void empty_hook(void *user_param , unsigned int n, const unsigned int *aut):
     return
 
-def canonical_form(G, partition=None, return_graph=False, certify=False):
+@rename_keyword(deprecation=21111, certify='certificate')
+def canonical_form(G, partition=None, return_graph=False, certificate=False):
     """
     Return a canonical label of ``G``
 
@@ -241,7 +242,7 @@ def canonical_form(G, partition=None, return_graph=False, certify=False):
     - ``return_graph`` -- If set to ``True``, ``canonical_form`` returns the
         canonical graph of G. Otherwise, it returns its set of edges.
 
-    - ``certify`` -- If set to ``True`` returns the labeling of G into a
+    - ``certificate`` -- If set to ``True`` returns the labeling of G into a
       canonical graph.
 
     TESTS::
@@ -270,30 +271,44 @@ def canonical_form(G, partition=None, return_graph=False, certify=False):
         sage: g2 = canonical_form(g2,return_graph=True)                     # optional - bliss
         sage: g2 == g2                                                      # optional - bliss
         True
+
+        sage: g = Graph({1: [2]})
+        sage: g_ = canonical_form(g, return_graph=True, certify=True)    # optional - bliss
+        doctest...: DeprecationWarning: use the option 'certificate' instead of 'certify'
+        See http://trac.sagemath.org/21111 for details.
+        sage: 0 in g_[0]                                                 # optional - bliss
+        True
     """
-    cdef const unsigned int *aut
-    cdef Graph   *g = NULL
-    cdef Digraph *d = NULL
+    # We need this to convert the numbers from <unsigned int> to
+    # <long>. This assertion should be true simply for memory reasons.
+    assert <unsigned long>(G.order()) <= <unsigned long>LONG_MAX
+
+    cdef const unsigned int* aut
+    cdef Graph* g
+    cdef Digraph* d
     cdef Stats s
     cdef dict relabel
+
+    cdef list edges = []
+    cdef long e, f
 
     vert2int = {}
 
     if G.is_directed():
         d = bliss_digraph(G, partition, vert2int, {})
         aut = d.canonical_form(s, empty_hook, NULL)
-        edges = [(aut[ vert2int[x] ], aut[ vert2int[y] ])
-                 for x,y in G.edges(labels=False)]
-        relabel = {v:aut[vert2int[v]] for v in G}
+        for x,y in G.edges(labels=False):
+            e,f = aut[ vert2int[x] ], aut[ vert2int[y] ]
+            edges.append( (e,f) )
+        relabel = {v: <long>aut[vert2int[v]] for v in G}
         del d
     else:
         g = bliss_graph(G, partition, vert2int, {})
         aut = g.canonical_form(s, empty_hook, NULL)
-        edges = []
         for x,y in G.edges(labels=False):
             e,f = aut[ vert2int[x] ], aut[ vert2int[y] ]
             edges.append( (e,f) if e > f else (f,e))
-        relabel = {v:aut[vert2int[v]] for v in G}
+        relabel = {v: <long>aut[vert2int[v]] for v in G}
         del g
 
     if return_graph:
@@ -305,9 +320,10 @@ def canonical_form(G, partition=None, return_graph=False, certify=False):
             G = Graph(edges,loops=G.allows_loops(),multiedges=G.allows_multiple_edges())
 
         G.add_vertices(vert2int.values())
-        return (G, relabel) if certify else G
+        return (G, relabel) if certificate else G
 
-    if certify:
+    if certificate:
         return sorted(edges),relabel
 
     return sorted(edges)
+

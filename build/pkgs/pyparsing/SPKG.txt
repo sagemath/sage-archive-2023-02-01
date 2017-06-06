@@ -8,10 +8,6 @@ A Python Parsing Module
 
 MIT License
 
-== SPKG Maintainers ==
-
-John H. Palmieri
-
 == Upstream Contact ==
 
 Author: Paul McGuire

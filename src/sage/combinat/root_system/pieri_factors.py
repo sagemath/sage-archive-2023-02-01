@@ -9,6 +9,7 @@ Pieri Factors
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.constant_function import ConstantFunction
@@ -19,7 +20,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
 from sage.rings.infinity import infinity
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 import sage.combinat.ranker
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 from sage.combinat.root_system.root_system import RootSystem
@@ -67,12 +68,12 @@ class PieriFactors(UniqueRepresentation, Parent):
 
     REFERENCES:
 
-        .. [FoSta1994] S. Fomin, R. Stanley. Schubert polynomials and the nilCoxeter algebra. Advances in Math., 1994.
-        .. [BH1994] S. Billey, M. Haiman.  Schubert polynomials for the classical groups. J. Amer. Math. Soc., 1994.
-        .. [TKLam1996] T.K. Lam.  B and D analogues of stable Schubert polynomials and related insertion algorithms. PhD Thesis, MIT, 1996.
-        .. [Lam2008] T. Lam. Schubert polynomials for the affine Grassmannian.  J. Amer. Math. Soc., 2008.
-        .. [LSS2009] T. Lam, A. Schilling, M. Shimozono. Schubert polynomials for the affine Grassmannian of the symplectic group. Mathematische Zeitschrift 264(4) (2010) 765-811 (arXiv:0710.2720 [math.CO])
-        .. [Pon2010] S. Pon. Types B and D affine Stanley symmetric functions, unpublished PhD Thesis, UC Davis, 2010.
+        .. [FoSta1994] \S. Fomin, R. Stanley. Schubert polynomials and the nilCoxeter algebra. Advances in Math., 1994.
+        .. [BH1994] \S. Billey, M. Haiman.  Schubert polynomials for the classical groups. J. Amer. Math. Soc., 1994.
+        .. [TKLam1996] \T.K. Lam.  B and D analogues of stable Schubert polynomials and related insertion algorithms. PhD Thesis, MIT, 1996.
+        .. [Lam2008] \T. Lam. Schubert polynomials for the affine Grassmannian.  J. Amer. Math. Soc., 2008.
+        .. [LSS2009] \T. Lam, A. Schilling, M. Shimozono. Schubert polynomials for the affine Grassmannian of the symplectic group. Mathematische Zeitschrift 264(4) (2010) 765-811 (arXiv:0710.2720 [math.CO])
+        .. [Pon2010] \S. Pon. Types B and D affine Stanley symmetric functions, unpublished PhD Thesis, UC Davis, 2010.
     """
 
     def _repr_(self):
@@ -371,7 +372,8 @@ class PieriFactors_affine_type(PieriFactors):
         s = ct.translation_factors()[1]
         R = RootSystem(ct).weight_space()
         Lambda = R.fundamental_weights()
-        orbit = [ R.reduced_word_of_translation(x) for x in (s*(Lambda[1]-Lambda[1].level()*Lambda[0])).orbit() ]
+        orbit = [R.reduced_word_of_translation(x)
+                 for x in (s*(Lambda[1]-Lambda[1].level()*Lambda[0]))._orbit_iter()]
         return [self.W.from_reduced_word(x) for x in orbit]
 
 
@@ -465,7 +467,9 @@ class PieriFactors_type_B(PieriFactors_finite_type):
             sage: PF.maximal_elements_combinatorial()[0].reduced_word()
             [1, 2, 3, 4, 3, 2, 1]
         """
-        return [self.W.from_reduced_word(range(1,self.W.cartan_type().n) + range(self.W.cartan_type().n,0,-1))]
+        N = self.W.cartan_type().n
+        li = list(range(1, N)) + list(range(N, 0, -1))
+        return [self.W.from_reduced_word(li)]
 
     def stanley_symm_poly_weight(self,w):
         r"""

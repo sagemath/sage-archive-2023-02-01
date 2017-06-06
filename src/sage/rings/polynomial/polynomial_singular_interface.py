@@ -52,8 +52,8 @@ from sage.rings.function_field.function_field import is_RationalFunctionField
 from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.rings.integer_ring import ZZ
 
-import sage.rings.arith
-import sage.rings.finite_rings.constructor
+import sage.arith.all
+import sage.rings.finite_rings.finite_field_constructor
 
 
 class PolynomialRing_singular_repr:
@@ -80,16 +80,16 @@ class PolynomialRing_singular_repr:
 
             sage: R.<x,y> = PolynomialRing(CC,'x',2)
             sage: singular(R)
-            //   characteristic : 0 (complex:15 digits, additional 0 digits)
-            //   1 parameter    : I
-            //   minpoly        : (I^2+1)
+            polynomial ring, over a field, global ordering
+            //   coefficients: float[I](complex:15 digits, additional 0 digits)/(I^2+1)
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y
             //        block   2 : ordering C
             sage: R.<x,y> = PolynomialRing(RealField(100),'x',2)
             sage: singular(R)
-            //   characteristic : 0 (real:29 digits, additional 0 digits)
+            polynomial ring, over a field, global ordering
+            //   coefficients: float
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y
@@ -98,9 +98,8 @@ class PolynomialRing_singular_repr:
             sage: w = var('w')
             sage: R.<x> = PolynomialRing(NumberField(w^2+1,'s'))
             sage: singular(R)
-            //   characteristic : 0
-            //   1 parameter    : s
-            //   minpoly        : (s^2+1)
+            polynomial ring, over a field, global ordering
+            //   coefficients: QQ[s]/(s^2+1)
             //   number of vars : 1
             //        block   1 : ordering lp
             //                  : names    x
@@ -108,7 +107,8 @@ class PolynomialRing_singular_repr:
 
             sage: R = PolynomialRing(GF(127),1,'x')
             sage: singular(R)
-            //   characteristic : 127
+            polynomial ring, over a field, global ordering
+            //   coefficients: ZZ/127
             //   number of vars : 1
             //        block   1 : ordering lp
             //                  : names    x
@@ -116,7 +116,8 @@ class PolynomialRing_singular_repr:
 
             sage: R = PolynomialRing(QQ,1,'x')
             sage: singular(R)
-            //   characteristic : 0
+            polynomial ring, over a field, global ordering
+            //   coefficients: QQ
             //   number of vars : 1
             //        block   1 : ordering lp
             //                  : names    x
@@ -124,7 +125,8 @@ class PolynomialRing_singular_repr:
 
             sage: R = PolynomialRing(QQ,'x')
             sage: singular(R)
-            //   characteristic : 0
+            polynomial ring, over a field, global ordering
+            //   coefficients: QQ
             //   number of vars : 1
             //        block   1 : ordering lp
             //                  : names    x
@@ -132,7 +134,8 @@ class PolynomialRing_singular_repr:
 
             sage: R = PolynomialRing(GF(127),'x')
             sage: singular(R)
-            //   characteristic : 127
+            polynomial ring, over a field, global ordering
+            //   coefficients: ZZ/127
             //   number of vars : 1
             //        block   1 : ordering lp
             //                  : names    x
@@ -140,9 +143,8 @@ class PolynomialRing_singular_repr:
 
             sage: R = Frac(ZZ['a,b'])['x,y']
             sage: singular(R)
-            //   characteristic : 0
-            //   2 parameter    : a b
-            //   minpoly        : 0
+            polynomial ring, over a field, global ordering
+            //   coefficients: QQ(a, b)
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y
@@ -151,7 +153,8 @@ class PolynomialRing_singular_repr:
 
             sage: R = IntegerModRing(1024)['x,y']
             sage: singular(R)
-            //   coeff. ring is : Z/2^10
+            polynomial ring, over a ring (with zero-divisors), global ordering
+            //   coefficients: ZZ/(2^10)
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y
@@ -159,7 +162,8 @@ class PolynomialRing_singular_repr:
 
             sage: R = IntegerModRing(15)['x,y']
             sage: singular(R)
-            //   coeff. ring is : Z/15
+            polynomial ring, over a ring (with zero-divisors), global ordering
+            //   coefficients: ZZ/bigint(15)
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y
@@ -167,7 +171,8 @@ class PolynomialRing_singular_repr:
 
             sage: R = ZZ['x,y']
             sage: singular(R)
-            //   coeff. ring is : Integers
+            polynomial ring, over a domain, global ordering
+            //   coefficients: ZZ
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y
@@ -178,9 +183,8 @@ class PolynomialRing_singular_repr:
             sage: K = R.fraction_field()
             sage: S = K['y']
             sage: singular(S)
-            //   characteristic : 5
-            //   1 parameter    : x
-            //   minpoly        : 0
+            polynomial ring, over a field, global ordering
+            //   coefficients: ZZ/5(x)
             //   number of vars : 2
             //        block   1 : ordering lp
             //                  : names    a y
@@ -203,7 +207,7 @@ class PolynomialRing_singular_repr:
             R._check_valid()
             if self.base_ring() is ZZ or self.base_ring().is_prime_field():
                 return R
-            if sage.rings.finite_rings.constructor.is_FiniteField(self.base_ring()) or\
+            if sage.rings.finite_rings.finite_field_constructor.is_FiniteField(self.base_ring()) or\
                     (number_field.number_field_base.is_NumberField(self.base_ring()) and self.base_ring().is_absolute()):
                 R.set_ring() #sorry for that, but needed for minpoly
                 if  singular.eval('minpoly') != "(" + self.__minpoly + ")":
@@ -221,7 +225,8 @@ class PolynomialRing_singular_repr:
         EXAMPLES::
 
             sage: PolynomialRing(QQ,'u_ba')._singular_init_()
-            //   characteristic : 0
+            polynomial ring, over a field, global ordering
+            //   coefficients: QQ
             //   number of vars : 1
             //        block   1 : ordering lp
             //                  : names    u_ba
@@ -245,14 +250,14 @@ class PolynomialRing_singular_repr:
             # singular converts to bits from base_10 in mpr_complex.cc by:
             #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
             precision = base_ring.precision()
-            digits = sage.rings.arith.integer_ceil((2*precision - 2)/7.0)
+            digits = sage.arith.all.integer_ceil((2*precision - 2)/7.0)
             self.__singular = singular.ring("(real,%d,0)"%digits, _vars, order=order, check=False)
 
         elif is_ComplexField(base_ring):
             # singular converts to bits from base_10 in mpr_complex.cc by:
             #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
             precision = base_ring.precision()
-            digits = sage.rings.arith.integer_ceil((2*precision - 2)/7.0)
+            digits = sage.arith.all.integer_ceil((2*precision - 2)/7.0)
             self.__singular = singular.ring("(complex,%d,0,I)"%digits, _vars,  order=order, check=False)
 
         elif is_RealDoubleField(base_ring):
@@ -268,7 +273,7 @@ class PolynomialRing_singular_repr:
         elif base_ring.is_prime_field():
             self.__singular = singular.ring(self.characteristic(), _vars, order=order, check=False)
 
-        elif sage.rings.finite_rings.constructor.is_FiniteField(base_ring):
+        elif sage.rings.finite_rings.finite_field_constructor.is_FiniteField(base_ring):
             # not the prime field!
             gen = str(base_ring.gen())
             r = singular.ring( "(%s,%s)"%(self.characteristic(),gen), _vars, order=order, check=False)
@@ -355,7 +360,7 @@ def can_convert_to_singular(R):
         return False;
 
     base_ring = R.base_ring()
-    return ( sage.rings.finite_rings.constructor.is_FiniteField(base_ring)
+    return ( sage.rings.finite_rings.finite_field_constructor.is_FiniteField(base_ring)
              or is_RationalField(base_ring)
              or (base_ring.is_prime_field() and base_ring.characteristic() <= 2147483647)
              or is_RealField(base_ring)

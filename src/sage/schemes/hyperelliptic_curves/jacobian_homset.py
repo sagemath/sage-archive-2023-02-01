@@ -40,12 +40,13 @@ EXAMPLES::
     sage: D1+D2
     (x^2 + 2*x + 2, y + 2*x + 1)
 """
-
 #*****************************************************************************
 #  Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+from six import integer_types
 
 from sage.rings.all import PolynomialRing, Integer, ZZ
 
@@ -54,7 +55,7 @@ from sage.rings.polynomial.polynomial_element import is_Polynomial
 
 from sage.schemes.generic.homset import SchemeHomset_points
 from sage.schemes.generic.morphism import is_SchemeMorphism
-from jacobian_morphism import JacobianMorphism_divisor_class_field
+from .jacobian_morphism import JacobianMorphism_divisor_class_field
 
 class JacobianHomset_divisor_classes(SchemeHomset_points):
     def __init__(self, Y, X, **kwds):
@@ -117,7 +118,7 @@ class JacobianHomset_divisor_classes(SchemeHomset_points):
             (x^2 + 2*x + 2, y + 2*x + 1)
 
         """
-        if isinstance(P,(int,long,Integer)) and P == 0:
+        if isinstance(P, integer_types + (Integer,)) and P == 0:
             R = PolynomialRing(self.value_ring(), 'x')
             return JacobianMorphism_divisor_class_field(self, (R(1),R(0)))
         elif isinstance(P,(list,tuple)):

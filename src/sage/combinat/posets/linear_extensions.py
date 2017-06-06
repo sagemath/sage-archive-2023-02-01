@@ -24,6 +24,9 @@ Classes and methods
 #
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
+from __future__ import print_function
+from six.moves import range
+from six import add_metaclass
 
 from sage.rings.rational_field import QQ
 from sage.categories.posets import Posets
@@ -40,6 +43,8 @@ from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.graphs.dot2tex_utils import have_dot2tex
 from sage.structure.list_clone import ClonableArray
 
+
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class LinearExtensionOfPoset(ClonableArray):
     r"""
     A linear extension of a finite poset `P` of size `n` is a total
@@ -54,7 +59,7 @@ class LinearExtensionOfPoset(ClonableArray):
     - ``linear_extension`` -- a list of the elements of `P`
     - ``poset`` -- the underlying poset `P`
 
-    .. SEEALSO:: :class:`Poset`, :class:`LinearExtensionsOfPosets`
+    .. SEEALSO:: :class:`~sage.combinat.posets.posets.Poset`, :class:`LinearExtensionsOfPoset`
 
     EXAMPLES::
 
@@ -87,8 +92,6 @@ class LinearExtensionOfPoset(ClonableArray):
         sage: Q.cover_relations()
         [[1, 2], [1, 4], [3, 4]]
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, linear_extension, poset):
         r"""
@@ -172,7 +175,7 @@ class LinearExtensionOfPoset(ClonableArray):
         Return the poset associated to the linear extension ``self``.
 
         This method returns the poset obtained from the original poset
-        `P` by relabelling the 'i'-th element of ``self`` to the
+        `P` by relabelling the `i`-th element of ``self`` to the
         `i`-th element of the original poset, while keeping the linear
         extension of the original poset.
 
@@ -237,9 +240,8 @@ class LinearExtensionOfPoset(ClonableArray):
             sage: l.tau(1)
             [2, 1, 3, 4]
             sage: for p in L:
-            ...       for i in range(1,4):
-            ...           print i, p, p.tau(i)
-            ...
+            ....:     for i in range(1,4):
+            ....:         print("{} {} {}".format(i, p, p.tau(i)))
             1 [1, 2, 3, 4] [2, 1, 3, 4]
             2 [1, 2, 3, 4] [1, 2, 3, 4]
             3 [1, 2, 3, 4] [1, 2, 4, 3]
@@ -287,7 +289,7 @@ class LinearExtensionOfPoset(ClonableArray):
 
         For more details see [Stan2009]_.
 
-        .. seealso:: :meth:`tau`, :meth:`evacuation`
+        .. SEEALSO:: :meth:`tau`, :meth:`evacuation`
 
         EXAMPLES::
 
@@ -312,7 +314,7 @@ class LinearExtensionOfPoset(ClonableArray):
         `\pi (\tau_1 \cdots \tau_{n-1}) (\tau_1 \cdots \tau_{n-2}) \cdots (\tau_1)`.
         For more details see [Stan2009]_.
 
-        .. seealso:: :meth:`tau`, :meth:`promotion`
+        .. SEEALSO:: :meth:`tau`, :meth:`promotion`
 
         EXAMPLES::
 
@@ -335,9 +337,9 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
     INPUT:
 
     - ``poset`` -- a poset `P` of size `n`
-    - ``facade`` -- a boolean (default: False)
+    - ``facade`` -- a boolean (default: ``False``)
 
-    .. seealso::
+    .. SEEALSO::
 
         - :meth:`sage.combinat.posets.posets.FinitePoset.linear_extensions`
         - :class:`sage.graphs.linearextensions.LinearExtensions`
@@ -432,6 +434,93 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
         """
         return self._poset
 
+    def cardinality(self):
+        """
+        Return the number of linear extensions.
+
+        EXAMPLES::
+
+            sage: N = Poset({0: [2, 3], 1: [3]})
+            sage: N.linear_extensions().cardinality()
+            5
+
+        TESTS::
+
+            sage: Poset().linear_extensions().cardinality()
+            1
+            sage: Posets.ChainPoset(1).linear_extensions().cardinality()
+            1
+            sage: Posets.BooleanLattice(4).linear_extensions().cardinality()
+            1680384
+        """
+        from sage.rings.integer import Integer
+
+        n = len(self._poset)
+        if not n:
+            return Integer(1)
+
+        up = self._poset._hasse_diagram.to_dictionary()
+        # Convert to the Hasse diagram so our poset can be realized on
+        # the set {0,...,n-1} with a nice dictionary of edges
+
+        for i in range(n):
+            up[n - 1 - i] = sorted(set(up[n - 1 - i] +
+                                       [item for x in up[n - 1 - i]
+                                        for item in up[x]]))
+        # Compute the principal order filter for each element.
+
+        Jup = {1: []}
+        # Jup will be a dictionary giving up edges in J(P)
+
+        # We will perform a loop where after k loops, we will have a
+        # list of up edges for the lattice of order ideals for P
+        # restricted to entries 0,...,k.
+        loc = [1] * n
+
+        # This list will be indexed by entries in P. After k loops,
+        # the entry loc[i] will correspond to the element of J(P) that
+        # is the principal order ideal of i, restricted to the
+        # elements 0,...,k .
+
+        m = 1
+        # m keeps track of how many elements we currently have in J(P).
+        # We start with just the empty order ideal, and no relations.
+        for x in range(n):
+            # Use the existing Jup table to compute all covering
+            # relations in J(P) for things that are above loc(x).
+            K = [[loc[x]]]
+            j = 0
+            while K[j]:
+                K.append([b for a in K[j] for b in Jup[a]])
+                j += 1
+            K = sorted(set(item for sublist in K for item in sublist))
+            for j in range(len(K)):
+                i = m + j + 1
+                Jup[i] = [m + K.index(a) + 1 for a in Jup[K[j]]]
+                # These are copies of the covering relations with
+                # elements from K, but now with the underlying
+                # elements containing x.
+                Jup[K[j]] = Jup[K[j]] + [i]
+                # There are the new covering relations we get between
+                # ideals that don't contain x and those that do.
+            for y in up[x]:
+                loc[y] = K.index(loc[y]) + m + 1
+                # Updates loc[y] if y is above x.
+            m += len(K)
+        # Now we have a dictionary of covering relations for J(P). The
+        # following shortcut works to count maximal chains, since we
+        # made J(P) naturally labelled, and J(P) has a unique maximal
+        # element and minimum element.
+
+        Jup[m] = Integer(1)
+        while m > 1:
+            m -= 1
+            ct = Integer(0)
+            for j in Jup[m]:
+                ct += Jup[j]
+            Jup[m] = ct
+        return ct
+    
     def __iter__(self):
         r"""
         Iterates through the linear extensions of the underlying poset.
@@ -549,7 +638,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
             ([2, 1, 4, 3], [1, 2, 4, 3], 1), ([2, 1, 4, 3], [2, 1, 3, 4], 3), ([2, 1, 4, 3], [2, 1, 4, 3], 2)]
             sage: view(G) # optional - dot2tex graphviz, not tested (opens external window)
 
-        .. seealso:: :meth:`markov_chain_transition_matrix`, :meth:`promotion`, :meth:`tau`
+        .. SEEALSO:: :meth:`markov_chain_transition_matrix`, :meth:`promotion`, :meth:`tau`
 
         TESTS::
 
@@ -560,9 +649,9 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
         """
         d = dict([x,dict([y,[]] for y in self)] for x in self)
         if action == 'promotion':
-            R = range(self.poset().cardinality())
+            R = list(range(self.poset().cardinality()))
         else:
-            R = range(self.poset().cardinality()-1)
+            R = list(range(self.poset().cardinality() - 1))
         if labeling == 'source':
             for x in self:
                 for i in R:
@@ -573,7 +662,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
                 for i in R:
                     child = getattr(x, action)(i+1)
                     d[x][child]+=[i+1]
-        G = DiGraph(d)
+        G = DiGraph(d, format="dict_of_dicts")
         if have_dot2tex():
             G.set_latex_options(format="dot2tex", edge_labels = True, color_by_label = {1:"blue", 2:"red", 3:"green", 4:"yellow"})
             #G.set_latex_options(format="dot2tex", edge_labels = True, color_by_label = {1:"green", 2:"blue", 3:"brown", 4:"red"})
@@ -625,7 +714,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
             [           x0             0             0      -x1 - x2            x3]
             [            0            x0             0            x2      -x1 - x3]
 
-        .. seealso:: :meth:`markov_chain_digraph`, :meth:`promotion`, :meth:`tau`
+        .. SEEALSO:: :meth:`markov_chain_digraph`, :meth:`promotion`, :meth:`tau`
 
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing

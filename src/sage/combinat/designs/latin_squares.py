@@ -122,8 +122,13 @@ REFERENCES:
 Functions
 ---------
 """
+from __future__ import print_function, absolute_import
+from six import iteritems
+from six.moves import zip
+
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
+
 
 def are_mutually_orthogonal_latin_squares(l, verbose=False):
     r"""
@@ -181,22 +186,23 @@ def are_mutually_orthogonal_latin_squares(l, verbose=False):
     k = len(l)
     if any(M.ncols() != n or M.nrows() != n for M in l):
         if verbose:
-            print "Not all matrices are square matrices of the same dimensions"
+            print("Not all matrices are square matrices of the same dimensions")
         return False
 
     # Check that all matrices are latin squares
     for i,M in enumerate(l):
         if any(len(set(R)) != n for R in M):
             if verbose:
-                print "Matrix {} is not row latin".format(i)
+                print("Matrix {} is not row latin".format(i))
             return False
         if any(len(set(R)) != n for R in zip(*M)):
             if verbose:
-                print "Matrix {} is not column latin".format(i)
+                print("Matrix {} is not column latin".format(i))
             return False
 
-    from designs_pyx import is_orthogonal_array
-    return is_orthogonal_array(zip(*[[x for R in M for x in R] for M in l]),k,n, verbose=verbose, terminology="MOLS")
+    from .designs_pyx import is_orthogonal_array
+    return is_orthogonal_array(list(zip(*[[x for R in M for x in R] for M in l])),k,n, verbose=verbose, terminology="MOLS")
+
 
 def mutually_orthogonal_latin_squares(k,n, partitions = False, check = True, existence=False):
     r"""
@@ -309,7 +315,7 @@ def mutually_orthogonal_latin_squares(k,n, partitions = False, check = True, exi
         sage: designs.orthogonal_arrays.exists(4+2,6) # 4 MOLS of order 6
         Unknown
 
-    If you ask for such a MOLS then you will respecively get an informative
+    If you ask for such a MOLS then you will respectively get an informative
     ``EmptySetError`` or ``NotImplementedError``::
 
         sage: designs.mutually_orthogonal_latin_squares(5, 5)
@@ -347,8 +353,8 @@ def mutually_orthogonal_latin_squares(k,n, partitions = False, check = True, exi
     """
     from sage.combinat.designs.orthogonal_arrays import orthogonal_array
     from sage.matrix.constructor import Matrix
-    from sage.rings.arith import factor
-    from database import MOLS_constructions
+    from sage.arith.all import factor
+    from .database import MOLS_constructions
 
     # Is k is None we find the largest available
     if k is None:
@@ -467,7 +473,7 @@ def latin_square_product(M,N,*others):
          for jj in range(n)}
 
     L = lambda i_j: i_j[0] * n + i_j[1]
-    D = {(L(c[0]),L(c[1])): L(v) for c,v in D.iteritems()}
+    D = {(L(c[0]), L(c[1])): L(v) for c, v in iteritems(D)}
     P = Matrix(D)
 
     if others:
@@ -529,7 +535,7 @@ def MOLS_table(start,stop=None,compare=False,width=None):
          60|   +
          80|
     """
-    from orthogonal_arrays import largest_available_k
+    from .orthogonal_arrays import largest_available_k
     if stop is None:
         start,stop = 0,start
     # make start and stop be congruent to 0 mod 20
@@ -549,13 +555,14 @@ def MOLS_table(start,stop=None,compare=False,width=None):
     # choose an appropriate width (needs to be >= 3 because "+oo" should fit)
     if width is None:
         from sage.rings.integer import Integer
-        width = max(3,Integer(stop-1).ndigits(10))
+        width = max(3, Integer(stop-1).ndigits(10))
 
-    print " "*(width+2) + "".join("{i:>{width}}".format(i=i,width=width) for i in range(20))
-    print " "*(width+1) + "_"*((width+1)*20),
+    print(" " * (width + 2) + " ".join("{i:>{width}}".format(i=i,width=width)
+                                       for i in range(20)))
+    print(" " * (width + 1) + "_" * ((width + 1) * 20), end="")
     for i in range(start,stop):
-        if i%20==0:
-            print "\n{:>{width}}|".format(i,width=width),
+        if i % 20 == 0:
+            print("\n{:>{width}}|".format(i, width=width), end="")
         k = largest_available_k(i)-2
         if compare:
             if i < 2 or hb[i] == k:
@@ -569,4 +576,4 @@ def MOLS_table(start,stop=None,compare=False,width=None):
                 c = "+oo"
             else:
                 c = k
-        print '{:>{width}}'.format(c,width=width),
+        print(' {:>{width}}'.format(c, width=width), end="")

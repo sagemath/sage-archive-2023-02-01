@@ -64,7 +64,7 @@ objects have different types:
     sage: type(gp('znprimroot(10007)'))
     <class 'sage.interfaces.gp.GpElement'>
     sage: type(pari('znprimroot(10007)'))
-    <type 'sage.libs.pari.gen.gen'>
+    <type 'cypari2.gen.Gen'>
 
 So which should you use? It depends on what you're doing. The GP
 interface can do absolutely anything you could do in the usual
@@ -100,9 +100,9 @@ First we create a PARI list from a Python list.
     sage: v
     [1, 2, 3, 4, 5]
     sage: type(v)
-    <type 'sage.libs.pari.gen.gen'>
+    <type 'cypari2.gen.Gen'>
 
-Every PARI object is of type ``py_pari.gen``. The PARI type of the
+Every PARI object is of type ``Gen``. The PARI type of the
 underlying object can be obtained using the ``type`` member
 function.
 
@@ -114,7 +114,7 @@ function.
 In PARI, to create an elliptic curve we enter
 ``ellinit([1,2,3,4,5])``. Sage is similar, except that ``ellinit`` is a
 method that can be called on any PARI object, e.g., our
-``t\_VEC v``.
+``t_VEC`` `v`.
 
 ::
 
@@ -144,7 +144,7 @@ things about it.
 GAP
 ===
 
-Sage comes with GAP 4.4.10 for computational discrete mathematics,
+Sage comes with GAP for computational discrete mathematics,
 especially group theory.
 
 Here's an example of GAP's ``IdGroup`` function, which uses the
@@ -176,16 +176,11 @@ GAP interface as follows:
     sage: n = G.order(); n
     120
 
-(For some GAP functionality, you should install two optional
-Sage packages.
-Type ``sage -optional`` for a list and choose
-the one that looks like ``gap\_packages-x.y.z``, then type
-``sage -i gap\_packages-x.y.z``.  Do the same
-for ``database\_gap-x.y.z``.
-Some non-GPL'd GAP packages may be installed by downloading them
-from the GAP web site [GAPkg]_,
-and unpacking them in ``$SAGE_ROOT/local/lib/gap-4.4.10/pkg``.
-)
+For some GAP functionality, you should install two optional
+Sage packages. This can be done with the command::
+
+    sage -i gap_packages database_gap
+
 
 Singular
 ========
@@ -201,7 +196,8 @@ Singular (do not type the ``....:``):
 
     sage: R1 = singular.ring(0, '(x,y)', 'dp')
     sage: R1
-    //   characteristic : 0
+    polynomial ring, over a field, global ordering
+    //   coefficients: QQ
     //   number of vars : 2
     //        block   1 : ordering dp
     //                  : names    x y

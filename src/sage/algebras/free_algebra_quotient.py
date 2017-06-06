@@ -49,7 +49,6 @@ from sage.modules.free_module import FreeModule
 from sage.algebras.algebra import Algebra
 from sage.algebras.free_algebra import is_FreeAlgebra
 from sage.algebras.free_algebra_quotient_element import FreeAlgebraQuotientElement
-from sage.structure.parent_gens import ParentWithGens
 from sage.structure.unique_representation import UniqueRepresentation
 
 class FreeAlgebraQuotient(UniqueRepresentation, Algebra, object):
@@ -122,7 +121,7 @@ class FreeAlgebraQuotient(UniqueRepresentation, Algebra, object):
             sage: x**128
             -170141183460469231731687303715884105728 + 170141183460469231731687303715884105728*i + 170141183460469231731687303715884105728*j + 170141183460469231731687303715884105728*i*j
 
-        TEST::
+        TESTS::
 
             sage: TestSuite(H2).run()
 

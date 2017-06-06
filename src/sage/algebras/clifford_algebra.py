@@ -7,19 +7,22 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#  Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
+#       Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.misc import six
 from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from copy import copy
 
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
-from sage.categories.graded_algebras_with_basis import GradedAlgebrasWithBasis
-from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
+from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
 from sage.modules.with_basis.morphism import ModuleMorphismByLinearity
 from sage.categories.poor_man_map import PoorManMap
 from sage.rings.all import ZZ
@@ -32,6 +35,7 @@ from sage.combinat.subset import SubsetsSorted
 from sage.quadratic_forms.quadratic_form import QuadraticForm
 from sage.algebras.weyl_algebra import repr_from_monomials
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+
 
 class CliffordAlgebraElement(CombinatorialFreeModule.Element):
     """
@@ -115,7 +119,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
                 # the dictionary describing the element
                 # ``e[i]`` * (the element described by the dictionary ``cur``)
                 # (where ``e[i]`` is the ``i``-th standard basis vector).
-                for mr,cr in cur.iteritems():
+                for mr,cr in six.iteritems(cur):
                     # Commute the factor as necessary until we are in order
                     pos = 0
                     for j in mr:
@@ -151,7 +155,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
                 cur = next
 
             # Add the distributed terms to the total
-            for index,coeff in cur.iteritems():
+            for index,coeff in six.iteritems(cur):
                 d[index] = d.get(index, zero) + cl * coeff
                 if d[index] == zero:
                     del d[index]
@@ -423,6 +427,14 @@ class CliffordAlgebra(CombinatorialFreeModule):
     canonical isomorphism. The inclusion `i` is commonly used to
     identify `V` with a vector subspace of `Cl(V)`.
 
+    The Clifford algebra `Cl(V, Q)` is a `\ZZ_2`-graded algebra
+    (where `\ZZ_2 = \ZZ / 2 \ZZ`); this grading is determined by
+    placing all elements of `V` in degree `1`. It is also an
+    `\NN`-filtered algebra, with the filtration too being defined
+    by placing all elements of `V` in degree `1`. The :meth:`degree` gives
+    the `\NN`-*filtration* degree, and to get the super degree use instead
+    :meth:`~sage.categories.super_modules.SuperModules.ElementMethods.is_even_odd`.
+
     The Clifford algebra also can be considered as a covariant functor
     from the category of vector spaces equipped with quadratic forms
     to the category of algebras. In fact, if `(V, Q)` and `(W, R)`
@@ -465,7 +477,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
         sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
         sage: Cl = CliffordAlgebra(Q)
         sage: Cl
-        The Clifford algebra of the Quadratic form in 3 variables over Integer Ring with coefficients: 
+        The Clifford algebra of the Quadratic form in 3 variables
+         over Integer Ring with coefficients:
         [ 1 2 3 ]
         [ * 4 5 ]
         [ * * 6 ]
@@ -480,11 +493,6 @@ class CliffordAlgebra(CombinatorialFreeModule):
         a*d
         sage: d*c*b*a + a + 4*b*c
         a*b*c*d + 4*b*c + a
-
-    .. WARNING::
-
-        The Clifford algebra is not graded, but instead filtered. This
-        will be changed once :trac:`17096` is finished.
     """
     @staticmethod
     def __classcall_private__(cls, Q, names=None):
@@ -520,6 +528,9 @@ class CliffordAlgebra(CombinatorialFreeModule):
 
             sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
             sage: Cl = CliffordAlgebra(Q)
+            sage: Cl.category()
+            Category of finite dimensional super algebras with basis over
+             (euclidean domains and infinite enumerated sets and metric spaces)
             sage: TestSuite(Cl).run()
 
         TESTS:
@@ -536,8 +547,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         """
         self._quadratic_form = Q
         R = Q.base_ring()
-        if category is None:
-            category = GradedAlgebrasWithBasis(R)
+        category = AlgebrasWithBasis(R.category()).Super().Filtered().or_subcategory(category)
         indices = SubsetsSorted(range(Q.dim()))
         CombinatorialFreeModule.__init__(self, R, indices, category=category)
         self._assign_names(names)
@@ -550,7 +560,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
 
             sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
             sage: CliffordAlgebra(Q)
-            The Clifford algebra of the Quadratic form in 3 variables over Integer Ring with coefficients: 
+            The Clifford algebra of the Quadratic form in 3 variables
+             over Integer Ring with coefficients:
             [ 1 2 3 ]
             [ * 4 5 ]
             [ * * 6 ]
@@ -718,8 +729,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
         if x in self.free_module():
             R = self.base_ring()
             if x.parent().base_ring() is R:
-                return self.element_class(self, {(i,): c for i,c in x.iteritems()})
-            return self.element_class(self, {(i,): R(c) for i,c in x.iteritems() if R(c) != R.zero()})
+                return self.element_class(self, {(i,): c for i,c in six.iteritems(x)})
+            return self.element_class(self, {(i,): R(c) for i,c in six.iteritems(x) if R(c) != R.zero()})
 
         if isinstance(x, CliffordAlgebraElement):
             if x.parent() is self:
@@ -826,7 +837,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
             sage: Cl.quadratic_form()
-            Quadratic form in 3 variables over Integer Ring with coefficients: 
+            Quadratic form in 3 variables over Integer Ring with coefficients:
             [ 1 2 3 ]
             [ * 4 5 ]
             [ * * 6 ]
@@ -837,19 +848,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
         r"""
         Return the degree of the monomial indexed by ``m``.
 
-        This degree is a nonnegative integer, and should be interpreted
-        as a residue class modulo `2`, since we consider ``self`` to be
-        `\ZZ_2`-graded (not `\ZZ`-graded, although there is a natural
-        *filtration* by the length of ``m``). The degree of the monomial
-        ``m`` in this `\ZZ_2`-grading is defined to be the length of ``m``
-        taken mod `2`.
-
-        .. WARNING:
-
-            On the :class:`ExteriorAlgebra` class (which inherits from
-            :class:`CliffordAlgebra`), the :meth:`degree_on_basis`
-            method is overridden to return an actual `\NN`-degree. So
-            don't count on this method always returning `0` or `1` !!
+        We are considering the Clifford algebra to be `\NN`-filtered,
+        and the degree of the monomial ``m`` is the length of ``m``.
 
         EXAMPLES::
 
@@ -858,9 +858,22 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Cl.degree_on_basis((0,))
             1
             sage: Cl.degree_on_basis((0,1))
-            0
+            2
         """
-        return len(m) % ZZ(2)
+        return ZZ(len(m))
+
+    def graded_algebra(self):
+        """
+        Return the associated graded algebra of ``self``.
+
+        EXAMPLES::
+
+            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
+            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
+            sage: Cl.graded_algebra()
+            The exterior algebra of rank 3 over Integer Ring
+        """
+        return ExteriorAlgebra(self.base_ring(), self.variable_names())
 
     @cached_method
     def free_module(self):
@@ -1051,7 +1064,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
                                                  remove_zeros=True )
                                 for i in x)
         return Cl.module_morphism(on_basis=f, codomain=self,
-                                  category=GradedAlgebrasWithBasis(self.base_ring()))
+                                  category=AlgebrasWithBasis(self.base_ring()).Super())
 
     def lift_isometry(self, m, names=None):
         r"""
@@ -1116,7 +1129,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
                                              remove_zeros=True )
                               for i in x)
         return self.module_morphism(on_basis=f, codomain=Cl,
-                                    category=GradedAlgebrasWithBasis(self.base_ring()))
+                                    category=AlgebrasWithBasis(self.base_ring()).Super())
 
     # This is a general method for finite dimensional algebras with bases
     #   and should be moved to the corresponding category once there is
@@ -1193,7 +1206,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
                 for m,c in (Bi*Bj - Bj*Bi):
                     d[(a, K.index(m)+k*b)] = c
         m = Matrix(R, d, nrows=k, ncols=k*k, sparse=True)
-        from_vector = lambda x: self.sum_of_terms(((K[i], c) for i,c in x.iteritems()),
+        from_vector = lambda x: self.sum_of_terms(((K[i], c) for i,c in six.iteritems(x)),
                                                   distinct=True)
         return tuple(map( from_vector, m.kernel().basis() ))
 
@@ -1207,7 +1220,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         #         v = B[i]*B[j] - B[j]*B[i]
         #         eqns[a].extend([v[k] for k in K])
         # m = Matrix(R, eqns)
-        # from_vector = lambda x: self.sum_of_terms(((K[i], c) for i,c in x.iteritems()),
+        # from_vector = lambda x: self.sum_of_terms(((K[i], c) for i,c in six.iteritems(x)),
         #                                           distinct=True)
         # return tuple(map( from_vector, m.kernel().basis() ))
 
@@ -1290,7 +1303,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
                 for m,c in supercommutator:
                     d[(a, K.index(m)+k*b)] = c
         m = Matrix(R, d, nrows=k, ncols=k*k, sparse=True)
-        from_vector = lambda x: self.sum_of_terms(((K[i], c) for i,c in x.iteritems()),
+        from_vector = lambda x: self.sum_of_terms(((K[i], c) for i,c in six.iteritems(x)),
                                                   distinct=True)
         return tuple(map( from_vector, m.kernel().basis() ))
 
@@ -1304,7 +1317,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         #         v = B[i].supercommutator(B[j])   # or better an if-loop as above
         #         eqns[a].extend([v[k] for k in K])
         # m = Matrix(R, eqns)
-        # from_vector = lambda x: self.sum_of_terms(((K[i], c) for i,c in x.iteritems()),
+        # from_vector = lambda x: self.sum_of_terms(((K[i], c) for i,c in six.iteritems(x)),
         #                                           distinct=True)
         # return tuple(map( from_vector, m.kernel().basis() ))
 
@@ -1339,7 +1352,7 @@ class ExteriorAlgebra(CliffordAlgebra):
     `Q(v) = 0` for all vectors `v \in V`. See :class:`CliffordAlgebra`
     for the notion of a Clifford algebra.
 
-    The exterior algebra of an `R`-module `V` is a `\ZZ`-graded connected
+    The exterior algebra of an `R`-module `V` is a connected `\ZZ`-graded
     Hopf superalgebra. It is commutative in the super sense (i.e., the
     odd elements anticommute and square to `0`).
 
@@ -1352,10 +1365,6 @@ class ExteriorAlgebra(CliffordAlgebra):
         of Hopf algebras, but this is not really correct, since it is a
         Hopf superalgebra with the odd-degree components forming the odd
         part. So use Hopf-algebraic methods with care!
-
-    .. TODO::
-
-        Add a category for Hopf superalgebras (perhaps part of :trac:`16513`).
 
     INPUT:
 
@@ -1417,9 +1426,13 @@ class ExteriorAlgebra(CliffordAlgebra):
         EXAMPLES::
 
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: E.category()
+            Category of finite dimensional super hopf algebras with basis
+             over Rational Field
             sage: TestSuite(E).run()
         """
-        CliffordAlgebra.__init__(self, QuadraticForm(R, len(names)), names, GradedHopfAlgebrasWithBasis(R))
+        cat = HopfAlgebrasWithBasis(R).Super()
+        CliffordAlgebra.__init__(self, QuadraticForm(R, len(names)), names, cat)
         # TestSuite will fail if the HopfAlgebra classes will ever have tests for
         # the coproduct being an algebra morphism -- since this is really a
         # Hopf superalgebra, not a Hopf algebra.
@@ -1563,7 +1576,7 @@ class ExteriorAlgebra(CliffordAlgebra):
         f = lambda x: E.prod(E._from_dict( {(j,): phi[j,i] for j in range(n)},
                                            remove_zeros=True )
                              for i in x)
-        return self.module_morphism(on_basis=f, codomain=E, category=GradedAlgebrasWithBasis(R))
+        return self.module_morphism(on_basis=f, codomain=E, category=AlgebrasWithBasis(R).Super())
 
     def volume_form(self):
         """
@@ -1830,9 +1843,9 @@ class ExteriorAlgebra(CliffordAlgebra):
             sage: M = Matrix(QQ, [[1, 2, 3], [2, 3, 4], [3, 4, 5]])
             sage: Eform = E.lifted_bilinear_form(M)
             sage: Eform
-            Bilinear Form from Cartesian product of The exterior algebra of rank 3 over
-             Rational Field, The exterior algebra of rank 3 over Rational Field to
-             Rational Field
+            Bilinear Form from The exterior algebra of rank 3 over Rational
+            Field (+) The exterior algebra of rank 3 over Rational Field to
+            Rational Field
             sage: Eform(x*y, y*z)
             -1
             sage: Eform(x*y, y)
@@ -1900,11 +1913,11 @@ class ExteriorAlgebra(CliffordAlgebra):
                     matr = MC(MS, matrix_list, copy=False, coerce=False)
                     # Using low-level matrix constructor here
                     # because Matrix(...) does too much duck
-                    # typing (:trac:`17124`).
+                    # typing (trac #17124).
                     result += cx * cy * matr.determinant()
             return result
-        from sage.combinat.cartesian_product import CartesianProduct
-        return PoorManMap(lifted_form, domain=CartesianProduct(self, self),
+        from sage.categories.cartesian_product import cartesian_product
+        return PoorManMap(lifted_form, domain=cartesian_product([self, self]),
                           codomain=self.base_ring(),
                           name="Bilinear Form")
 
@@ -2147,7 +2160,10 @@ class ExteriorAlgebra(CliffordAlgebra):
 #####################################################################
 ## Differentials
 
-class ExteriorAlgebraDifferential(ModuleMorphismByLinearity, UniqueRepresentation):
+class ExteriorAlgebraDifferential(six.with_metaclass(
+        InheritComparisonClasscallMetaclass,
+        ModuleMorphismByLinearity, UniqueRepresentation
+    )):
     r"""
     Internal class to store the data of a boundary or coboundary of
     an exterior algebra `\Lambda(L)` defined by the structure
@@ -2162,8 +2178,6 @@ class ExteriorAlgebraDifferential(ModuleMorphismByLinearity, UniqueRepresentatio
         This is not a general class for differentials on the exterior
         algebra.
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall__(cls, E, s_coeff):
         """
@@ -2188,13 +2202,13 @@ class ExteriorAlgebraDifferential(ModuleMorphismByLinearity, UniqueRepresentatio
         """
         d = {}
 
-        for k,v in dict(s_coeff).iteritems():
+        for k,v in six.iteritems(dict(s_coeff)):
             if not v: # Strip terms with 0
                 continue
 
             if isinstance(v, dict):
                 R = E.base_ring()
-                v = E._from_dict({(i,): R(c) for i,c in v.iteritems()})
+                v = E._from_dict({(i,): R(c) for i,c in six.iteritems(v)})
             else:
                 # Make sure v is in ``E``
                 v = E(v)
@@ -2613,7 +2627,7 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
         self._cos_coeff = {}
         zero = E.zero()
         B = E.basis()
-        for k,v in dict(s_coeff).iteritems():
+        for k,v in six.iteritems(dict(s_coeff)):
             k = B[k]
             for m,c in v:
                 self._cos_coeff[m] = self._cos_coeff.get(m, zero) + c * k

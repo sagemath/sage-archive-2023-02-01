@@ -12,13 +12,13 @@ parent and :class:`ParentLibGAP` ::
     sage: from sage.groups.libgap_wrapper import ElementLibGAP, ParentLibGAP
     sage: from sage.groups.group import Group
     sage: class FooElement(ElementLibGAP):
-    ...       pass
+    ....:     pass
     sage: class FooGroup(Group, ParentLibGAP):
-    ...       Element = FooElement
-    ...       def __init__(self):
-    ...           lg = libgap(libgap.CyclicGroup(3))    # dummy
-    ...           ParentLibGAP.__init__(self, lg)
-    ...           Group.__init__(self)
+    ....:     Element = FooElement
+    ....:     def __init__(self):
+    ....:         lg = libgap(libgap.CyclicGroup(3))    # dummy
+    ....:         ParentLibGAP.__init__(self, lg)
+    ....:         Group.__init__(self)
 
 Note how we call the constructor of both superclasses to initialize
 ``Group`` and ``ParentLibGAP`` separately. The parent class implements
@@ -65,6 +65,7 @@ from sage.rings.integer_ring import IntegerRing
 from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object import SageObject
 from sage.structure.element cimport Element
+from sage.structure.sage_object cimport richcmp
 
 
 class ParentLibGAP(SageObject):
@@ -96,13 +97,13 @@ class ParentLibGAP(SageObject):
         sage: from sage.groups.libgap_wrapper import ElementLibGAP, ParentLibGAP
         sage: from sage.groups.group import Group
         sage: class FooElement(ElementLibGAP):
-        ...       pass
+        ....:     pass
         sage: class FooGroup(Group, ParentLibGAP):
-        ...       Element = FooElement
-        ...       def __init__(self):
-        ...           lg = libgap(libgap.CyclicGroup(3))    # dummy
-        ...           ParentLibGAP.__init__(self, lg)
-        ...           Group.__init__(self)
+        ....:     Element = FooElement
+        ....:     def __init__(self):
+        ....:         lg = libgap(libgap.CyclicGroup(3))    # dummy
+        ....:         ParentLibGAP.__init__(self, lg)
+        ....:         Group.__init__(self)
         sage: FooGroup()
         <pc group of size 3 with 1 generators>
     """
@@ -145,7 +146,7 @@ class ParentLibGAP(SageObject):
         Return whether the group was defined as a subgroup of a bigger
         group.
 
-        You can access the contaning group with :meth:`ambient`.
+        You can access the containing group with :meth:`ambient`.
 
         OUTPUT:
 
@@ -238,10 +239,15 @@ class ParentLibGAP(SageObject):
             [ f1^-1*f4^-1*f1*f4, f1^-1*f5^-1*f1*f5, f1^-1*f6^-1*f1*f6, f2^-1*f4^-1*f2*f4,
               f2^-1*f5^-1*f2*f5, f2^-1*f6^-1*f2*f6, f3^-1*f4^-1*f3*f4, f3^-1*f5^-1*f3*f5,
               f3^-1*f6^-1*f3*f6 ]
+
+        We can also convert directly to libgap::
+
+            sage: libgap(GL(2, ZZ))
+            GL(2,Integers)
         """
         return self._libgap
 
-    _gap_ = gap
+    _libgap_ = _gap_ = gap
 
     @cached_method
     def _gap_gens(self):
@@ -406,13 +412,13 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
         sage: from sage.groups.libgap_wrapper import ElementLibGAP, ParentLibGAP
         sage: from sage.groups.group import Group
         sage: class FooElement(ElementLibGAP):
-        ...       pass
+        ....:     pass
         sage: class FooGroup(Group, ParentLibGAP):
-        ...       Element = FooElement
-        ...       def __init__(self):
-        ...           lg = libgap(libgap.CyclicGroup(3))    # dummy
-        ...           ParentLibGAP.__init__(self, lg)
-        ...           Group.__init__(self)
+        ....:     Element = FooElement
+        ....:     def __init__(self):
+        ....:         lg = libgap(libgap.CyclicGroup(3))    # dummy
+        ....:         ParentLibGAP.__init__(self, lg)
+        ....:         Group.__init__(self)
         sage: FooGroup()
         <pc group of size 3 with 1 generators>
         sage: FooGroup().gens()
@@ -514,7 +520,7 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
             return self._libgap._repr_()
 
     def _latex_(self):
-        """
+        r"""
         Return a LaTeX representation
 
         OUTPUT:
@@ -535,7 +541,7 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
             from sage.misc.latex import latex
             return latex(self._repr_())
 
-    cpdef MonoidElement _mul_(left, MonoidElement right):
+    cpdef _mul_(left, right):
         """
         Multiplication of group elements
 
@@ -556,7 +562,7 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
         P = left.parent()
         return P.element_class(P, left.gap() * right.gap())
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef _richcmp_(left, right, int op):
         """
         This method implements comparison.
 
@@ -566,21 +572,17 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
             sage: G_gap = G.gap()
             sage: G_gap == G_gap    # indirect doctest
             True
-            sage: cmp(G.gap(), G.gap())   # indirect doctest
-            0
             sage: x = G([1, 2, -1, -2])
             sage: y = G([2, 2, 2, 1, -2, -2, -2])
             sage: x == x*y*y^(-1)     # indirect doctest
             True
-            sage: cmp(x,y)
-            -1
             sage: x < y
             True
         """
-        return cmp((<ElementLibGAP>left)._libgap,
-                   (<ElementLibGAP>right)._libgap)
+        return richcmp((<ElementLibGAP>left)._libgap,
+                       (<ElementLibGAP>right)._libgap, op)
 
-    cpdef MultiplicativeGroupElement _div_(left, MultiplicativeGroupElement right):
+    cpdef _div_(left, right):
         """
         Division of group elements.
 
@@ -620,7 +622,7 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
         if n not in IntegerRing():
             raise TypeError("exponent must be an integer")
         P = self.parent()
-        return P.element_class(P, self.gap().__pow__(n))
+        return P.element_class(P, self.gap() ** n)
 
     def __invert__(self):
         """

@@ -1,0 +1,49 @@
+= coxeter3 =
+
+== Description ==
+
+This package wraps Fokko Ducloux's Coxeter 3 C++ library
+
+Features:
+
+- General Coxeter groups, implemented through the combinatorics of reduced words;
+- Reduced expression and normal form computations;
+- Bruhat ordering;
+- Ordinary Kazhdan-Lusztig polynomials;
+- Kazhdan-Lusztig polynomials with unequal parameters;
+- Inverse Kazhdan-Lusztig polynomials;
+- Cells and W-graphs;
+
+http://math.univ-lyon1.fr/~ducloux/coxeter/coxeter3/english/coxeter3_e.html
+
+This is a patched version done by Mike Hansen 2009-2013 and some fixes
+by Nicolas M. Thiéry and Jean-Pierre Flori.
+
+== License ==
+
+GPL
+
+== Upstream Contact ==
+
+github: https://github.com/tscrim/coxeter
+
+Alas, Fokko Ducloux passed away in 2006.
+
+http://math.univ-lyon1.fr/~ducloux/du_Cloux.html
+
+== Dependencies ==
+
+None
+
+== Special Update/Build Instructions ==
+
+The application of the following patches is automatically handled
+by spkg-install:
+
+- directories.h: update coxeter3 directory information to fetch
+  its data and messages from the Sage installation tree
+- makefile.patch: handle compilation flags for Darwin and Cygwin
+- warning.patch: remove deprecation warnings
+- sage.cpp: add a function for Bruhat invervals which is simpler to
+  code in C++ than Cython
+

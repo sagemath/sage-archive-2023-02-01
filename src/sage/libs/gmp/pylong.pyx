@@ -25,9 +25,15 @@ AUTHORS:
 #*****************************************************************************
 
 
+from cpython.object cimport Py_SIZE
 from cpython.int cimport PyInt_FromLong
-from cpython.long cimport PyLong_CheckExact, PyLong_FromLong
-from mpz cimport *
+from cpython.long cimport PyLong_FromLong
+from cpython.longintrepr cimport _PyLong_New, PyLongObject, digit, PyLong_SHIFT
+from .mpz cimport *
+
+cdef extern from *:
+    Py_ssize_t* Py_SIZE_PTR "&Py_SIZE"(object)
+
 
 # Unused bits in every PyLong digit
 cdef size_t PyLong_nails = 8*sizeof(digit) - PyLong_SHIFT
@@ -43,7 +49,10 @@ cdef mpz_get_pylong_large(mpz_srcptr z):
     mpz_export((<PyLongObject*>L).ob_digit, NULL,
             -1, sizeof(digit), 0, PyLong_nails, z)
     if mpz_sgn(z) < 0:
-        (<PyLongObject*>L).ob_size = -(<PyLongObject*>L).ob_size
+        # Set correct size (use a pointer to hack around Cython's
+        # non-support for lvalues).
+        sizeptr = Py_SIZE_PTR(L)
+        sizeptr[0] = -pylong_size
     return L
 
 
@@ -70,19 +79,20 @@ cdef int mpz_set_pylong(mpz_ptr z, L) except -1:
     """
     Convert a Python ``long`` `L` to an ``mpz``.
     """
-    cdef Py_ssize_t pylong_size = (<PyLongObject*>L).ob_size
+    cdef Py_ssize_t pylong_size = Py_SIZE(L)
     if pylong_size < 0:
         pylong_size = -pylong_size
     mpz_import(z, pylong_size, -1, sizeof(digit), 0, PyLong_nails,
             (<PyLongObject*>L).ob_digit)
-    if (<PyLongObject*>L).ob_size < 0:
+    if Py_SIZE(L) < 0:
         mpz_neg(z, z)
 
 
 cdef Py_hash_t mpz_pythonhash(mpz_srcptr z):
     """
     Hash an ``mpz``, where the hash value is the same as the hash value
-    of the corresponding Python ``long``.
+    of the corresponding Python ``long``, except that we do not replace
+    -1 by -2 (the Cython wrapper for ``__hash__`` does that).
     """
     # Add all limbs, adding 1 for every carry
     cdef mp_limb_t h1 = 0
@@ -97,7 +107,5 @@ cdef Py_hash_t mpz_pythonhash(mpz_srcptr z):
 
     cdef Py_hash_t h = h1
     if mpz_sgn(z) < 0:
-        h = -h
-    if h == -1:
-        return -2
+        return -h
     return h

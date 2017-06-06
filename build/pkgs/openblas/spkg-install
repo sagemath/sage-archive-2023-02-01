@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+if [ -z "$SAGE_LOCAL" ]; then
+    echo >&2 "SAGE_LOCAL undefined ... exiting"
+    echo >&2 "Maybe run 'sage --sh'?"
+    exit 1
+fi
+
+cd src
+
+# See #22021 for issues with multithreading
+OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE USE_THREAD=0"
+
+# OpenBLAS does not build on 32bit Haswell. Upstream suggests to pass BINARY=32 to default to NEHALEM kernels
+# See https://github.com/xianyi/OpenBLAS/issues/657
+# Right now this affect all 32bit CPUs.
+if [ `python -c "from __future__ import print_function; import platform; print(platform.architecture()[0])"` = "32bit" ]; then
+    echo >&2 "Building a 32bit version of OpenBLAS."
+    OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE BINARY=32"
+fi
+
+if [ "x$SAGE_DEBUG" = "xyes" ]; then
+    OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE DEBUG=1"
+fi
+
+if [ "x$SAGE_FAT_BINARY" = "xyes" ]; then
+    # See https://github.com/xianyi/OpenBLAS/issues/510
+    OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE TARGET=PRESCOTT"
+fi
+
+echo "Building OpenBLAS: $MAKE $OPENBLAS_CONFIGURE"
+
+$MAKE libs netlib shared $OPENBLAS_CONFIGURE
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building OpenBLAS"
+    exit 1
+fi
+
+$MAKE install PREFIX="$SAGE_LOCAL" NO_STATIC=1 $OPENBLAS_CONFIGURE
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing OpenBLAS"
+    exit 1
+fi
+
+
+cd ..
+./write_pc_file.py

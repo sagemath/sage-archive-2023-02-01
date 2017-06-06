@@ -17,9 +17,6 @@ cases outputs may be isomorphic as abstract graphs.
 == License ==
 Plantri is distributed without a license.
 
-== SPKG Maintainers ==
-Nico Van Cleemput (nico.vancleemput@gmail.com)
-
 == Upstream Contact ==
 Gunnar Brinkmann
   University of Ghent

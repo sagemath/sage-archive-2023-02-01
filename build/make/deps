@@ -1,18 +1,27 @@
-###############################################################################
+## -*- Makefile -*- ###########################################################
 # This file ($SAGE_ROOT/build/make/deps) will be copied into
 # $SAGE_ROOT/build/make/Makefile by $SAGE_ROOT/build/make/install
 ###############################################################################
 
-# Do not put an explicit path for sage-spkg here, it will be found in $PATH.
-SAGE_SPKG = sage-spkg -f
-PIPE = $(SAGE_ROOT)/build/make/pipestatus
+# Silent rules
+# https://www.gnu.org/software/automake/manual/html_node/Automake-Silent-Rules.html
+ifeq ($(V), 0)
+AM_V_at = @
+else
+AM_V_at =
+endif
+
+# We need to be able to override this to support ./sage -i -c PKG
+SAGE_SPKG = sage-spkg
+
 STARTED = $(SAGE_LOCAL)/etc/sage-started.txt
 
 # Tell make not to look for files with these names:
 .PHONY: all all-sage all-toolchain all-build start \
 	base toolchain toolchain-deps sagelib \
 	doc doc-html doc-html-jsmath doc-html-mathjax doc-pdf \
-	doc-clean clean lib-clean build-clean
+	doc-clean doc-src-clean doc-output-clean \
+	clean sagelib-clean build-clean
 
 # Build everything and start Sage.
 # Note that we put the "doc" target first in the rule below because
@@ -27,13 +36,12 @@ all-build: all-toolchain
 	$(MAKE) all-sage
 
 
-# Make the 4 preliminary build phases:
-# prereq, base, toolchain, toolchain-deps.
+# Make the 3 preliminary build phases:
+# base, toolchain, toolchain-deps.
 # During the toolchain build, we export SAGE_BUILD_TOOLCHAIN=yes
 # such that packages can do different things when they are built
 # as prerequisite of GCC.
 all-toolchain:
-	$(MAKE) $(INST)/prereq
 	$(MAKE) base
 	env SAGE_BUILD_TOOLCHAIN=yes $(MAKE) toolchain
 	$(MAKE) toolchain-deps
@@ -46,8 +54,14 @@ all-sage: \
 		$(EXTCODE) \
 		$(SCRIPTS)
 
-# TOOLCHAIN consists of dependencies determined by build/make/install,
-# including for example the GCC package.
+# Download all packages which should be inside an sdist tarball (the -B
+# option to make forces all targets to be built unconditionally)
+download-for-sdist: base
+	env SAGE_INSTALL_FETCH_ONLY=yes $(MAKE) -B SAGERUNTIME= \
+		$(SDIST_PACKAGES)
+
+# TOOLCHAIN consists of dependencies determined by configure.
+# These are built after the "base" target but before anything else.
 toolchain: $(TOOLCHAIN)
 
 # Build all packages that GCC links against serially, otherwise this
@@ -57,15 +71,18 @@ toolchain: $(TOOLCHAIN)
 # so this will not trigger useless rebuilds.
 # See #14168 and #14232.
 toolchain-deps:
-	$(MAKE) $(INST)/$(ZLIB)
-	$(MAKE) $(INST)/$(SAGE_MP_LIBRARY)
-	$(MAKE) $(INST)/$(MPFR)
-	$(MAKE) $(INST)/$(MPC)
-	$(MAKE) $(INST)/$(PPL)
+	$(MAKE) $(inst_zlib)
+	$(MAKE) $(MP_LIBRARY)
+	$(MAKE) $(inst_mpfr)
+	$(MAKE) $(inst_mpc)
 
 # Everything needed to start up Sage using "./sage".  Of course, not
 # every part of Sage will work.  It does not include Maxima for example.
-SAGERUNTIME = sagelib $(SCRIPTS) $(INST)/$(IPYTHON) $(INST)/$(PEXPECT)
+SAGERUNTIME = sagelib $(SCRIPTS) $(inst_ipython) $(inst_pexpect) \
+		$(inst_psutil) $(inst_future)
+
+sageruntime: all-toolchain
+	$(MAKE) $(SAGERUNTIME)
 
 
 # Start Sage at least once to check that it works
@@ -77,7 +94,7 @@ start: all-build
 # sage-starts runs sage-location, which should be run after installing
 # any package.
 $(STARTED): $(STANDARD_PACKAGES)
-	"$(SAGE_LOCAL)/bin/sage-starts"
+	$(AM_V_at)"$(SAGE_LOCAL)/bin/sage-starts"
 
 
 ###############################################################################
@@ -85,19 +102,7 @@ $(STARTED): $(STANDARD_PACKAGES)
 #
 # This consists of packages which are required for the Sage build system.
 ###############################################################################
-base: $(INST)/$(BZIP2) $(INST)/$(PATCH) $(INST)/$(PKGCONF)
-
-$(INST)/prereq: ../../configure
-	@cd ../..; rm -f config.log; ln -s logs/pkgs/config.log config.log; \
-	./configure $$PREREQ_OPTIONS || ( \
-		if [ "x$$SAGE_PORT" = x ]; then \
-			echo "If you would like to try to build Sage anyway (to help porting),"; \
-			echo "export the variable 'SAGE_PORT' to something non-empty."; \
-			exit 1; \
-		else \
-			echo "Since 'SAGE_PORT' is set, we will try to build anyway."; \
-		fi; )
-	touch $@
+base: $(inst_bzip2) $(inst_patch) $(inst_pkgconf)
 
 ###############################################################################
 # Building normal packages
@@ -106,52 +111,59 @@ $(INST)/prereq: ../../configure
 # List all *build-time* dependencies of the Sage library.  These are,
 # on the one hand, programs needed for the build/install process of the
 # Sage library (e.g. CYTHON, JINJA2), and on the other hand all
-# dependencies for Cython files (e.g. PARI, NTL, SAGE_MP_LIBRARY).
+# dependencies for Cython files (e.g. PARI, NTL, MP_LIBRARY).
 sagelib: \
-		$(INST)/$(ATLAS) \
-		$(INST)/$(CEPHES) \
-		$(INST)/$(CLIQUER) \
-		$(INST)/$(CYTHON) \
-		$(INST)/$(ECL) \
-		$(INST)/$(ECLIB) \
-		$(INST)/$(ECM) \
-		$(INST)/$(FLINT) \
-		$(INST)/$(LIBFPLLL) \
-		$(INST)/$(LIBGD) \
-		$(INST)/$(GIVARO) \
-		$(INST)/$(GLPK) \
-		$(INST)/$(GSL) \
-		$(INST)/$(IML) \
-		$(INST)/$(JINJA2) \
-		$(INST)/$(LCALC) \
-		$(INST)/$(LRCALC) \
-		$(INST)/$(LIBGAP) \
-		$(INST)/$(LIBPNG) \
-		$(INST)/$(LINBOX) \
-		$(INST)/$(M4RI) \
-		$(INST)/$(M4RIE) \
-		$(INST)/$(MPC) \
-		$(INST)/$(MPFI) \
-		$(INST)/$(MPFR) \
-		$(INST)/$(SAGE_MP_LIBRARY) \
-		$(INST)/$(NTL) \
-		$(INST)/$(NUMPY) \
-		$(INST)/$(PARI) \
-		$(INST)/$(PLANARITY) \
-		$(INST)/$(POLYBORI) \
-		$(INST)/$(PPL) \
-		$(INST)/$(PYNAC) \
-		$(INST)/$(PYTHON) \
-		$(INST)/$(RATPOINTS) \
-		$(INST)/$(READLINE) \
-		$(INST)/$(RW) \
-		$(INST)/$(SINGULAR) \
-		$(INST)/$(SIX) \
-		$(INST)/$(SYMMETRICA) \
-		$(INST)/$(ZN_POLY)
-	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
+		$(inst_arb) \
+		$(BLAS) \
+		$(inst_brial) \
+		$(inst_cephes) \
+		$(inst_cliquer) \
+		$(inst_cypari) \
+		$(inst_cysignals) \
+		$(inst_cython) \
+		$(inst_ecl) \
+		$(inst_eclib) \
+		$(inst_ecm) \
+		$(inst_flint) \
+		$(inst_libgd) \
+		$(inst_givaro) \
+		$(inst_glpk) \
+		$(inst_gsl) \
+		$(inst_iml) \
+		$(inst_jinja2) \
+		$(inst_jupyter_core) \
+		$(inst_lcalc) \
+		$(inst_lrcalc) \
+		$(inst_libgap) \
+		$(inst_libpng) \
+		$(inst_linbox) \
+		$(inst_m4ri) \
+		$(inst_m4rie) \
+		$(inst_mpc) \
+		$(inst_mpfi) \
+		$(inst_mpfr) \
+		$(MP_LIBRARY) \
+		$(inst_ntl) \
+		$(inst_numpy) \
+		$(inst_pari) \
+		$(inst_pip) \
+		$(inst_pkgconfig) \
+		$(inst_planarity) \
+		$(inst_ppl) \
+		$(inst_pynac) \
+		$(inst_python2) \
+		$(inst_python3) \
+		$(inst_ratpoints) \
+		$(inst_readline) \
+		$(inst_rw) \
+		$(inst_singular) \
+		$(inst_six) \
+		$(inst_symmetrica) \
+		$(inst_zn_poly) \
+		$(EXTCODE)
+	$(AM_V_at)if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
 		cd $(SAGE_SRC) && source bin/sage-env && \
-		$(PIPE) 'time $(MAKE) sage 2>&1' 'tee -a $(SAGE_LOGS)/sage-$(SAGE_VERSION).log'; \
+		sage-logger -p 'time $(MAKE) sage' '$(SAGE_LOGS)/sagelib-$(SAGE_VERSION).log'; \
 	fi
 
 
@@ -161,7 +173,7 @@ sagelib: \
 
 # Don't just use "install" since we don't want to change permissions
 $(SAGE_LOCAL)/bin/%: $(SAGE_SRC)/bin/%
-	cp $< $@
+	$(AM_V_at)cp $< $@
 
 # Don't just use "install -D" since we don't want to change permissions.
 # cp won't correctly setup the SAGE_EXTCODE directory structure
@@ -169,7 +181,7 @@ $(SAGE_LOCAL)/bin/%: $(SAGE_SRC)/bin/%
 # an existing folder.
 $(SAGE_EXTCODE)/%: $(SAGE_SRC)/ext/%
 	@mkdir -p "$(@D)"
-	cp $< $@
+	$(AM_V_at)cp $< $@
 
 
 ###############################################################################
@@ -190,34 +202,40 @@ $(SAGE_EXTCODE)/%: $(SAGE_SRC)/ext/%
 # Building the documentation has many dependencies, because all
 # documented modules are imported and because we use matplotlib to
 # produce plots.
-DOC_DEPENDENCIES = sagelib $(INST)/$(SPHINX) $(INST)/$(SAGENB) \
-	| $(SAGERUNTIME) $(INST)/$(MAXIMA) $(INST)/$(NETWORKX) \
-	$(INST)/$(SCIPY) $(INST)/$(MATPLOTLIB) $(INST)/$(PILLOW) \
-	$(INST)/$(MATHJAX)
+DOC_DEPENDENCIES = sagelib $(inst_sphinx) $(inst_sagenb) \
+	| $(SAGERUNTIME) $(inst_maxima) $(inst_networkx) $(inst_scipy) \
+	$(inst_matplotlib) $(inst_pillow) $(inst_mathjax) $(inst_mpmath) \
+	$(inst_ipykernel) $(inst_jupyter_client) $(inst_conway_polynomials) \
+	$(inst_tachyon) $(inst_jmol) $(inst_thebe) $(inst_ipywidgets)
 
 doc: doc-html
 
 doc-html: $(DOC_DEPENDENCIES)
-	cd ../.. && $(PIPE) "./sage --docbuild --no-pdf-links all html $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/dochtml.log"
+	$(AM_V_at)cd ../.. && sage-logger -p './sage --docbuild --no-pdf-links all html $(SAGE_DOCBUILD_OPTS)' logs/dochtml.log
 
 # 'doc-html-no-plot': build docs without building the graphics coming
 # from the '.. plot' directive, in case you want to save a few
 # megabytes of disk space. 'doc-clean' is a prerequisite because the
 # presence of graphics is cached in src/doc/output.
 doc-html-no-plot: doc-clean $(DOC_DEPENDENCIES)
-	cd ../.. && $(PIPE) "./sage --docbuild --no-pdf-links --no-plot all html $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/dochtml.log"
+	$(AM_V_at)cd ../.. && sage-logger -p './sage --docbuild --no-pdf-links --no-plot all html $(SAGE_DOCBUILD_OPTS)' logs/dochtml.log
 
 doc-html-mathjax: $(DOC_DEPENDENCIES)
-	cd ../.. && $(PIPE) "./sage --docbuild --no-pdf-links all html -j $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/dochtml.log"
+	$(AM_V_at)cd ../.. && sage-logger -p './sage --docbuild --no-pdf-links all html -j $(SAGE_DOCBUILD_OPTS)' logs/dochtml.log
 
 # Keep target 'doc-html-jsmath' for backwards compatibility.
 doc-html-jsmath: doc-html-mathjax
 
 doc-pdf: $(DOC_DEPENDENCIES)
-	cd ../.. && $(PIPE) "./sage --docbuild all pdf $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/docpdf.log"
+	$(AM_V_at)cd ../.. && sage-logger -p './sage --docbuild all pdf $(SAGE_DOCBUILD_OPTS)' logs/docpdf.log
 
-doc-clean:
+doc-clean: doc-src-clean doc-output-clean
+
+doc-src-clean:
 	cd "$(SAGE_SRC)/doc" && $(MAKE) clean
+
+doc-output-clean:
+	rm -rf "$(SAGE_SHARE)/doc/sage"
 
 
 ###############################################################################
@@ -228,7 +246,7 @@ clean:
 	@echo "Deleting package build directories..."
 	rm -rf "$(SAGE_LOCAL)/var/tmp/sage/build"
 
-lib-clean:
+sagelib-clean:
 	cd "$(SAGE_SRC)" && $(MAKE) clean
 
-build-clean: clean doc-clean lib-clean
+build-clean: clean doc-clean sagelib-clean

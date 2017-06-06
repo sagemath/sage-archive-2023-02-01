@@ -9,18 +9,22 @@ Library interface to Embeddable Common Lisp (ECL)
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 #This version of the library interface prefers to convert ECL integers and
 #rationals to SAGE types Integer and Rational. These parts could easily be
 #adapted to work with pure Python types.
 
-include "sage/ext/signals.pxi"
-include "sage/ext/interrupt.pxi"
-include "sage/ext/cdefs.pxi"
+from libc.stdlib cimport abort
+from libc.signal cimport SIGINT, SIGBUS, SIGSEGV, SIGCHLD
+from libc.signal cimport raise_ as signal_raise
+from posix.signal cimport sigaction, sigaction_t
+cimport cysignals.signals
 
+from sage.libs.gmp.types cimport mpz_t
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
-from sage.rings.rational import Rational
+from cpython.object cimport Py_EQ, Py_NE
 
 #it would be preferrable to let bint_symbolp wrap an efficient macro
 #but the macro provided in object.h doesn't seem to work
@@ -40,9 +44,9 @@ cdef bint bint_rationalp(cl_object obj):
 cdef extern from "eclsig.h":
     int ecl_sig_on() except 0
     void ecl_sig_off()
-    cdef Sigaction ecl_sigint_handler
-    cdef Sigaction ecl_sigbus_handler
-    cdef Sigaction ecl_sigsegv_handler
+    cdef sigaction_t ecl_sigint_handler
+    cdef sigaction_t ecl_sigbus_handler
+    cdef sigaction_t ecl_sigsegv_handler
     cdef mpz_t ecl_mpz_from_bignum(cl_object obj)
     cdef cl_object ecl_bignum_from_mpz(mpz_t num)
 
@@ -232,11 +236,11 @@ def init_ecl():
     global read_from_string_clobj
     global ecl_has_booted
     cdef char *argv[1]
-    cdef Sigaction sage_action[32]
+    cdef sigaction_t sage_action[32]
     cdef int i
 
     if ecl_has_booted:
-        raise RuntimeError, "ECL is already initialized"
+        raise RuntimeError("ECL is already initialized")
 
     # we need it to stop handling SIGCHLD
     ecl_set_option(ECL_OPT_TRAP_SIGCHLD, 0);
@@ -262,7 +266,7 @@ def init_ecl():
     sigaction(SIGSEGV, NULL, &ecl_sigsegv_handler)
 
     #verify that no SIGCHLD handler was installed
-    cdef Sigaction sig_test
+    cdef sigaction_t sig_test
     sigaction(SIGCHLD, NULL, &sig_test)
     assert sage_action[SIGCHLD].sa_handler == NULL  # Sage does not set SIGCHLD handler
     assert sig_test.sa_handler == NULL              # And ECL bootup did not set one 
@@ -319,7 +323,7 @@ cdef cl_object ecl_safe_eval(cl_object form) except NULL:
     Test interrupts::
 
         sage: from sage.libs.ecl import *
-        sage: from sage.ext.interrupt.tests import *
+        sage: from cysignals.tests import interrupt_after_delay
         sage: ecl_eval("(setf i 0)")
         <ECL: 0>
         sage: inf_loop = ecl_eval("(defun infinite() (loop (incf i)))")
@@ -336,7 +340,7 @@ cdef cl_object ecl_safe_eval(cl_object form) except NULL:
 
     if ecl_nvalues > 1:
         s = si_coerce_to_base_string(ecl_values(1))
-        raise RuntimeError, "ECL says: "+ecl_base_string_pointer_safe(s)
+        raise RuntimeError("ECL says: "+ecl_base_string_pointer_safe(s))
     else:
         return ecl_values(0)
 
@@ -350,7 +354,7 @@ cdef cl_object ecl_safe_funcall(cl_object func, cl_object arg) except NULL:
 
     if ecl_nvalues > 1:
         s = si_coerce_to_base_string(ecl_values(1))
-        raise RuntimeError, "ECL says: "+ecl_base_string_pointer_safe(s)
+        raise RuntimeError("ECL says: "+ecl_base_string_pointer_safe(s))
     else:
         return ecl_values(0)
 
@@ -362,7 +366,7 @@ cdef cl_object ecl_safe_apply(cl_object func, cl_object args) except NULL:
 
     if ecl_nvalues > 1:
         s = si_coerce_to_base_string(ecl_values(1))
-        raise RuntimeError, "ECL says: "+ecl_base_string_pointer_safe(s)
+        raise RuntimeError("ECL says: "+ecl_base_string_pointer_safe(s))
     else:
         return ecl_values(0)
 
@@ -380,7 +384,7 @@ def shutdown_ecl():
     that no ECL objects exist at a particular time. Hence, destroying ECL is a
     risky proposition.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.libs.ecl import *
         sage: shutdown_ecl()
@@ -400,7 +404,7 @@ def print_objects():
     small integers do not get linked in. This routine prints the values
     currently stored.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.libs.ecl import *
         sage: a=EclObject("hello")
@@ -416,8 +420,8 @@ def print_objects():
     c = list_of_objects
     while True:
         s = si_coerce_to_base_string(cl_write_to_string(1,cl_car(c)))
-        print ecl_base_string_pointer_safe(s)
-        c=cl_cadr(c)
+        print(ecl_base_string_pointer_safe(s))
+        c = cl_cadr(c)
         if c == Cnil:
             break
 
@@ -488,7 +492,7 @@ cdef cl_object python_to_ecl(pyobj) except NULL:
             cl_rplacd(ptr,python_to_ecl(pyobj[-1]))
             return L
     else:
-        raise TypeError,"Unimplemented type for python_to_ecl"
+        raise TypeError("Unimplemented type for python_to_ecl")
 
 cdef ecl_to_python(cl_object o):
     cdef cl_object s
@@ -677,7 +681,7 @@ cdef class EclObject:
             ...
             NotImplementedError: EclObjects do not have a pickling method
         """
-        raise NotImplementedError, "EclObjects do not have a pickling method"
+        raise NotImplementedError("EclObjects do not have a pickling method")
 
     def python(self):
         r"""
@@ -795,9 +799,10 @@ cdef class EclObject:
         r"""
         Comparison test.
 
-        An EclObject is not equal to any non-EclObject. Two EclObjects are equal
-        if their wrapped lisp objects are EQUAL. Since LISP has no univeral ordering,
-        less than and greater than tests are not implemented for EclObjects.
+        An EclObject is not equal to any non-EclObject. Two EclObjects
+        are equal if their wrapped lisp objects are EQUAL. Since LISP
+        has no universal ordering, less than and greater than tests
+        are not implemented for EclObjects.
 
         EXAMPLES::
 
@@ -813,13 +818,13 @@ cdef class EclObject:
             sage: EclObject("<")(a,b)
             <ECL: T>
         """
-        if   op == 2: # "=="
-            if not(isinstance(left,EclObject)) or not(isinstance(right,EclObject)):
+        if op == Py_EQ:
+            if not(isinstance(left,EclObject) and isinstance(right,EclObject)):
                 return False
             else:
                 return bint_equal((<EclObject>left).obj,(<EclObject>right).obj)
-        elif op == 3: # "!="
-            if not(isinstance(left,EclObject)) or not(isinstance(right,EclObject)):
+        elif op == Py_NE:
+            if not(isinstance(left,EclObject) and isinstance(right,EclObject)):
                 return True
             else:
                 return not(bint_equal((<EclObject>left).obj,(<EclObject>right).obj))
@@ -900,7 +905,7 @@ cdef class EclObject:
         cdef cl_object o
         o=ecl_safe_eval(self.obj)
         if o == NULL:
-            raise RuntimeError,"ECL runtime error"
+            raise RuntimeError("ECL runtime error")
         return ecl_wrap(o)
 
     def cons(self,EclObject d):
@@ -935,7 +940,7 @@ cdef class EclObject:
 
         """
         if not(bint_consp(self.obj)):
-            raise TypeError,"rplaca can only be applied to a cons"
+            raise TypeError("rplaca can only be applied to a cons")
         cl_rplaca(self.obj, d.obj)
 
 
@@ -956,7 +961,7 @@ cdef class EclObject:
 
         """
         if not(bint_consp(self.obj)):
-            raise TypeError,"rplacd can only be applied to a cons"
+            raise TypeError("rplacd can only be applied to a cons")
         cl_rplacd(self.obj, d.obj)
 
     def car(self):
@@ -981,7 +986,7 @@ cdef class EclObject:
             <ECL: NIL>
         """
         if not(bint_consp(self.obj)):
-            raise TypeError,"car can only be applied to a cons"
+            raise TypeError("car can only be applied to a cons")
         return ecl_wrap(cl_car(self.obj))
 
     def cdr(self):
@@ -1006,7 +1011,7 @@ cdef class EclObject:
             <ECL: NIL>
         """
         if not(bint_consp(self.obj)):
-            raise TypeError,"cdr can only be applied to a cons"
+            raise TypeError("cdr can only be applied to a cons")
         return ecl_wrap(cl_cdr(self.obj))
 
     def caar(self):
@@ -1031,7 +1036,7 @@ cdef class EclObject:
             <ECL: NIL>
         """
         if not(bint_consp(self.obj) and bint_consp(cl_car(self.obj))):
-            raise TypeError,"caar can only be applied to a cons"
+            raise TypeError("caar can only be applied to a cons")
         return ecl_wrap(cl_caar(self.obj))
 
     def cadr(self):
@@ -1056,7 +1061,7 @@ cdef class EclObject:
             <ECL: NIL>
         """
         if not(bint_consp(self.obj) and bint_consp(cl_cdr(self.obj))):
-            raise TypeError,"cadr can only be applied to a cons"
+            raise TypeError("cadr can only be applied to a cons")
         return ecl_wrap(cl_cadr(self.obj))
 
     def cdar(self):
@@ -1081,7 +1086,7 @@ cdef class EclObject:
             <ECL: NIL>
         """
         if not(bint_consp(self.obj) and bint_consp(cl_car(self.obj))):
-            raise TypeError,"cdar can only be applied to a cons"
+            raise TypeError("cdar can only be applied to a cons")
         return ecl_wrap(cl_cdar(self.obj))
 
     def cddr(self):
@@ -1106,7 +1111,7 @@ cdef class EclObject:
             <ECL: NIL>
         """
         if not(bint_consp(self.obj) and bint_consp(cl_cdr(self.obj))):
-            raise TypeError,"cddr can only be applied to a cons"
+            raise TypeError("cddr can only be applied to a cons")
         return ecl_wrap(cl_cddr(self.obj))
 
     def fixnump(self):
@@ -1250,7 +1255,7 @@ cdef class EclListIterator:
 
         """
         if not o.listp():
-            raise TypeError,"ECL object is not iterable"
+            raise TypeError("ECL object is not iterable")
         self.current = ecl_wrap(o.obj)
 
     def __iter__(EclListIterator self):

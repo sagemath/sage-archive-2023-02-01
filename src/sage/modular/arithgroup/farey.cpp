@@ -296,9 +296,9 @@ FareySymbol::FareySymbol(istream& is) {
 // User defined group and restoring from pickle
 
 FareySymbol::FareySymbol(PyObject* o) {
-  if( PyString_Check(o) ) {
+  if( PyBytes_Check(o) ) {
     // restoration from data
-    istringstream is(PyString_AsString(o));
+    istringstream is(PyBytes_AsString(o));
     is >> (*this);
   } else {
     // init with user defined group
@@ -703,7 +703,7 @@ vector<mpq_class> FareySymbol::init_cusps() const {
       }
     }
   }
-  // in earlier version: shift negative cusps to positve ones
+  // in earlier version: shift negative cusps to positive ones
   sort(c.begin(), c.end());
   return c;
 }
@@ -864,7 +864,7 @@ FareySymbol::LLT_algorithm(const SL2Z& M, vector<int>& p, SL2Z& beta) const {
       } else {
         //Based on Lemma 4 of the article by Kurth/Long, 
         //this case can not occure.
-        throw string("Mathematical compilcations in ") + 
+        throw string("Mathematical complications in ") + 
               __FUNCTION__;
 	return;
       }
@@ -1126,7 +1126,7 @@ PyObject* FareySymbol::get_pairing_matrices() const {
 PyObject* FareySymbol::dumps() const {
   std::ostringstream os(ostringstream::out|ostringstream::binary);
   os << (*this);
-  PyObject* d = PyString_FromString(os.str().c_str());
+  PyObject* d = PyBytes_FromString(os.str().c_str());
   return d;
 }
 

@@ -419,16 +419,28 @@ class OperationTable(SageObject):
         # If not, we'll discover that next in actual use.
 
         self._table = []
+
+        # the elements might not be hashable. But if they are it is much
+        # faster to lookup in a hash table rather than in a list!
+        try:
+            get_row = {e: i for i,e in enumerate(self._elts)}.__getitem__
+        except TypeError:
+            get_row = self._elts.index
+
         for g in self._elts:
             row = []
             for h in self._elts:
                 try:
                     result = self._operation(g, h)
-                    row.append(self._elts.index(result))
-                except ValueError:  # list/index condition
-                    raise ValueError('%s%s%s=%s, and so the set is not closed' % (g, self._ascii_symbol, h, result))
                 except Exception:
                     raise TypeError('elements %s and %s of %s are incompatible with operation: %s' % (g,h,S,self._operation))
+
+                try:
+                    r = get_row(result)
+                except (KeyError,ValueError):
+                    raise ValueError('%s%s%s=%s, and so the set is not closed' % (g, self._ascii_symbol, h, result))
+
+                row.append(r)
             self._table.append(row)
 
     def _name_maker(self, names):
@@ -450,7 +462,7 @@ class OperationTable(SageObject):
           strings and the actual elements.  So the keys are the strings and
           the values are the elements of the structure.
 
-        EXAMPLE:
+        EXAMPLES:
         This routine is tested extensively in the :class:`OperationTable`
         and :meth:`change_names` methods.  So we just just demonstrate
         the nature of the output here. ::
@@ -467,6 +479,7 @@ class OperationTable(SageObject):
             ()
 
         TESTS:
+
         We test the error conditions here, rather than as part of the
         doctests for the :class:`OperationTable` and :meth:`change_names`
         methods that rely on this one. ::
@@ -546,7 +559,7 @@ class OperationTable(SageObject):
         This uses the table as a look-up device.  If you want to use
         the operation, then use the operation.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.matrix.operation_table import OperationTable
             sage: G=DiCyclicGroup(3)
@@ -559,8 +572,8 @@ class OperationTable(SageObject):
         TESTS::
 
             sage: from sage.matrix.operation_table import OperationTable
-            sage: G=DiCyclicGroup(3)
-            sage: T=OperationTable(G, operator.mul)
+            sage: G = DiCyclicGroup(3)
+            sage: T = OperationTable(G, operator.mul)
             sage: T[G('(1,2)(3,4)(5,6,7)')]
             Traceback (most recent call last):
             ...
@@ -629,13 +642,13 @@ class OperationTable(SageObject):
             sage: P != P, P != Q, P != R, P != S
             (False, False, True, True)
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def _repr_(self):
         r"""
         Returns a printable version of the operation table.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.matrix.operation_table import OperationTable
             sage: R=Integers(5)
@@ -661,7 +674,7 @@ class OperationTable(SageObject):
         - ``latex`` - a string to represent an operation in LaTeX math mode.
           Note the need for double-backslashes to escape properly.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.matrix.operation_table import OperationTable
             sage: G=AlternatingGroup(3)
@@ -763,7 +776,7 @@ class OperationTable(SageObject):
         to the order of the elements in the headings of the table
         and the order of the output of the :meth:`list` method.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.matrix.operation_table import OperationTable
             sage: C=CyclicPermutationGroup(3)
@@ -903,7 +916,7 @@ class OperationTable(SageObject):
         r"""
         Returns a string that is an ASCII version of the table.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.matrix.operation_table import OperationTable
             sage: R=Integers(5)
@@ -995,7 +1008,7 @@ class OperationTable(SageObject):
         Returns a `LaTeX` version of the operation table as a string,
         using a `LaTeX` ``array`` environment.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.matrix.operation_table import OperationTable
             sage: R=Integers(2)

@@ -10,11 +10,6 @@ structured matrices over the integers and over finite fields.
 
 LGPL V2 or later
 
-== Maintainers ==
-
- * Clement Pernet
- * William Stein
-
 == Upstream Contact ==
 
  * <linbox-devel@googlegroups.com>

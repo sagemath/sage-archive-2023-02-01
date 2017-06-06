@@ -12,6 +12,7 @@ TESTS::
     sage: k = GF(3)
     sage: TestSuite(k).run()
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -34,8 +35,9 @@ import sage.rings.finite_rings.integer_mod as integer_mod
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
-import sage.structure.factorization as factorization
-from sage.structure.parent import Parent
+
+from sage.structure.sage_object import register_unpickle_override
+
 
 class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRing_generic):
     r"""
@@ -120,7 +122,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         elif S is ZZ:
             return integer_mod.Integer_to_IntegerMod(self)
         elif isinstance(S, IntegerModRing_generic):
-            from residue_field import ResidueField_generic
+            from .residue_field import ResidueField_generic
             if S.characteristic() == self.characteristic() and \
                (not isinstance(S, ResidueField_generic) or S.degree() == 1):
                 try:
@@ -185,7 +187,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         try:
             return self.__polynomial[name]
         except  AttributeError:
-            from sage.rings.finite_rings.constructor import FiniteField
+            from sage.rings.finite_rings.finite_field_constructor import FiniteField
             R = FiniteField(self.characteristic())[name]
             f = self[name]([0,1])
             try:
@@ -296,3 +298,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             1
         """
         return Integer(1)
+
+register_unpickle_override(
+    'sage.rings.finite_field_prime_modn', 'FiniteField_prime_modn',
+    FiniteField_prime_modn)

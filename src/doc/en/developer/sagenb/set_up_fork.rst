@@ -15,7 +15,7 @@ Overview
    cd sagenb
    git remote add upstream git://github.com/sagemath/sagenb.git
 
-In etail
+In Detail
 =========
 
 Clone Your Fork

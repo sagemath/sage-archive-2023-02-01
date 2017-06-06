@@ -3,7 +3,7 @@ r"""
 Introduction to Quasisymmetric Functions
 
 In this document we briefly explain the quasisymmetric function bases and
-related functionality in Sage.   We assume the reader is familar with the
+related functionality in Sage.   We assume the reader is familiar with the
 package :class:`SymmetricFunctions`.
 
 Quasisymmetric functions, denoted `QSym`, form a subring of the power
@@ -48,6 +48,8 @@ names. ::
     sage: QSym.inject_shorthands()
     Injecting M as shorthand for Quasisymmetric functions over the Rational Field in the Monomial basis
     Injecting F as shorthand for Quasisymmetric functions over the Rational Field in the Fundamental basis
+    Injecting E as shorthand for Quasisymmetric functions over the Rational Field in the Essential basis
+    doctest:...: RuntimeWarning: redefining global value `E`
     Injecting dI as shorthand for Quasisymmetric functions over the Rational Field in the dualImmaculate basis
     Injecting QS as shorthand for Quasisymmetric functions over the Rational Field in the Quasisymmetric Schur basis
 
@@ -92,8 +94,8 @@ To expand in variables, one can specify a finite size alphabet `x_1, x_2,
     sage: y.expand(4)
     x0*x1^2*x2 + x0*x1^2*x3 + x0*x2^2*x3 + x1*x2^2*x3
 
-The usual methods on free modules are available such as coefficients, degrees,
-and the support::
+The usual methods on free modules are available such as coefficients,
+degrees, and the support::
 
     sage: z=3*M[1,2]+M[3]^2; z
     3*M[1, 2] + 2*M[3, 3] + M[6]
@@ -104,10 +106,10 @@ and the support::
     sage: z.degree()
     6
 
-    sage: z.coefficients()
-    [3, 2, 1]
+    sage: sorted(z.coefficients())
+    [1, 2, 3]
 
-    sage: z.monomials()
+    sage: sorted(z.monomials(), key=lambda x: x.support())
     [M[1, 2], M[3, 3], M[6]]
 
     sage: z.monomial_coefficients()

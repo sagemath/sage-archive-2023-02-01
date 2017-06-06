@@ -9,6 +9,10 @@ import sys, signal, subprocess
 import readline
 from six.moves import input
 
+# Workaround for trac #20173:
+import os
+os.system("stty -echo")
+
 def child_exited(*args):
     global child
     status = child.poll()

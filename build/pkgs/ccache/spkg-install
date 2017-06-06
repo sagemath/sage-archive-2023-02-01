@@ -9,7 +9,6 @@ die () {
 
 cd src
 
-export LDFLAGS="-L$SAGE_LOCAL/lib $LDFLAGS"
 export CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
 ./configure --prefix="$SAGE_LOCAL" ||
     die "configuring ccache failed"

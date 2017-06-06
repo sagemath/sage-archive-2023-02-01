@@ -13,7 +13,7 @@ To obtain the dual group of a finite Abelian group, use the
     Dual of Abelian Group isomorphic to Z/2Z x Z/3Z x Z/5Z x Z/7Z x Z/8Z
     over Cyclotomic Field of order 840 and degree 192
 
-The elements of the dual group can be evaluated on elements of the orignial group::
+The elements of the dual group can be evaluated on elements of the original group::
 
     sage: a,b,c,d,e = F.gens()
     sage: A,B,C,D,E = Fd.gens()
@@ -42,20 +42,22 @@ AUTHORS:
   Default to cyclotomic base ring.
 """
 
-###########################################################################
-#  Copyright (C) 2006 William Stein <wstein@gmail.com>
-#  Copyright (C) 2006 David Joyner  <wdjoyner@gmail.com>
-#  Copyright (C) 2012 Volker Braun  <vbraun.name@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2006 David Joyner<wdjoyner@gmail.com>
+#       Copyright (C) 2012 Volker Braun<vbraun.name@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###########################################################################
+#*****************************************************************************
+from __future__ import print_function
 
 import operator
 
-from sage.rings.integer import Integer
-from sage.rings.infinity import infinity
-from sage.rings.arith import *
+from sage.arith.all import LCM
 from sage.misc.all import prod
 from sage.rings.complex_field import is_ComplexField
 from sage.groups.abelian_gps.element_base import AbelianGroupElementBase
@@ -90,7 +92,7 @@ def add_strings(x, z=0):
     if len(x) == 0:
         return z
     if not isinstance(x, list):
-        m = x.__iter__()
+        m = iter(x)
         y = next(m)
         return reduce(operator.add, m, y)
     else:
@@ -232,9 +234,5 @@ class DualAbelianGroupElement(AbelianGroupElementBase):
         if display:
             s = str(g)+" = "+add_strings(["("+str(words[LL2[i]-1])+")^"+str(LL1[i])+"*" for i in range(nn)])
             m = len(s)
-            print "      ",s[:m-1],"\n"
+            print("      ", s[:m-1], "\n")
         return [[words[LL2[i]-1],LL1[i]] for i in range(nn)]
-
-
-
-

@@ -1,4 +1,4 @@
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 IPython Backend for the Sage Rich Output System
 
@@ -190,7 +190,7 @@ class BackendIPythonCommandline(BackendIPython):
             OutputPlainText, OutputAsciiArt, OutputUnicodeArt, OutputLatex,
             OutputImagePng, OutputImageGif,
             OutputImagePdf, OutputImageDvi,
-            OutputSceneJmol, OutputSceneWavefront,
+            OutputSceneJmol, OutputSceneWavefront, OutputSceneThreejs,
         ])
 
     def displayhook(self, plain_text, rich_output):
@@ -267,6 +267,10 @@ class BackendIPythonCommandline(BackendIPython):
             return ({u'text/plain': msg}, {})
         elif isinstance(rich_output, OutputSceneWavefront):
             msg = self.launch_sage3d(rich_output, plain_text.text.get_unicode())
+            return ({u'text/plain': msg}, {})
+        elif isinstance(rich_output, OutputSceneThreejs):
+            msg = self.launch_viewer(
+                rich_output.html.filename(ext='html'), plain_text.text.get_unicode())
             return ({u'text/plain': msg}, {})
         else:
             raise TypeError('rich_output type not supported')
@@ -371,38 +375,57 @@ class BackendIPythonCommandline(BackendIPython):
                       .format(jmol_cmd, launch_script))
         return 'Launched jmol viewer for {0}'.format(plain_text)
 
-    def launch_sage3d(self, output_wavefront, plain_text):
+    def is_in_terminal(self):
         """
-        Launch the stand-alone java3d viewer
+        Test whether the UI is meant to run in a terminal
 
-        INPUT:
-
-        - ``output_wavefront`` --
-          :class:`~sage.repl.rich_output.output_graphics3d.OutputSceneWavefront`. The
-          scene to launch Java3d with.
-
-        - ``plain_text`` -- string. The plain text representation.
+        See
+        :meth:`sage.repl.rich_output.display_manager.DisplayManager.is_in_terminal`
+        for details.
 
         OUTPUT:
 
-        String. Human-readable message indicating that the viewer was launched.
+        ``True`` for the IPython commandline.
 
         EXAMPLES::
 
             sage: from sage.repl.rich_output.backend_ipython import BackendIPythonCommandline
             sage: backend = BackendIPythonCommandline()
-            sage: from sage.repl.rich_output.output_graphics3d import OutputSceneWavefront
-            sage: backend.launch_sage3d(OutputSceneWavefront.example(), 'Graphics3d object')
-            'Launched Java 3D viewer for Graphics3d object'
+            sage: backend.is_in_terminal()
+            True
         """
-        from sage.env import SAGE_LOCAL
-        sage3d = os.path.join(SAGE_LOCAL, 'bin', 'sage3d')
-        obj = output_wavefront.obj_filename()
-        from sage.doctest import DOCTEST_MODE
-        if not DOCTEST_MODE:
-            os.system('{0} {1} 2>/dev/null 1>/dev/null &'
-                      .format(sage3d, obj))
-        return 'Launched Java 3D viewer for {0}'.format(plain_text)
+        return True
+
+    def threejs_offline_scripts(self):
+        """
+        Three.js scripts for the IPython command line
+
+        OUTPUT:
+
+        String containing script tags
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_ipython import BackendIPythonCommandline
+            sage: backend = BackendIPythonCommandline()
+            sage: backend.threejs_offline_scripts()
+            '...<script ...</script>...'
+        """
+        from sage.env import SAGE_SHARE
+        return """
+<script src="{0}/threejs/three.min.js"></script>
+<script src="{0}/threejs/OrbitControls.js"></script>
+        """.format(SAGE_SHARE)
+
+
+IFRAME_TEMPLATE = \
+"""
+<iframe srcdoc="{escaped_html}" 
+        width="{width}"
+        height="{height}"
+        style="border: 0;">
+</iframe>
+"""
 
     
 class BackendIPythonNotebook(BackendIPython):
@@ -464,9 +487,10 @@ class BackendIPythonNotebook(BackendIPython):
         """
         return set([
             OutputPlainText, OutputAsciiArt, OutputUnicodeArt, OutputLatex,
+            OutputHtml,
             OutputImagePng, OutputImageJpg,
             OutputImageSvg, OutputImagePdf,
-            OutputSceneJmol,
+            OutputSceneJmol, OutputSceneThreejs,
         ])
 
     def displayhook(self, plain_text, rich_output):
@@ -512,6 +536,10 @@ class BackendIPythonNotebook(BackendIPython):
             return ({u'text/html':  rich_output.mathjax(),
                      u'text/plain': plain_text.text.get_unicode(),
             }, {})
+        elif isinstance(rich_output, OutputHtml):
+            return ({u'text/html':  rich_output.html.get(),
+                     u'text/plain': plain_text.text.get(),
+            }, {})
         elif isinstance(rich_output, OutputImagePng):
             return ({u'image/png':  rich_output.png.get(),
                      u'text/plain': plain_text.text.get_unicode(),
@@ -520,7 +548,6 @@ class BackendIPythonNotebook(BackendIPython):
             return ({u'image/jpeg':  rich_output.jpg.get(),
                      u'text/plain':  plain_text.text.get_unicode(),
             }, {})
-
         elif isinstance(rich_output, OutputImageSvg):
             return ({u'image/svg+xml': rich_output.svg.get(),
                      u'text/plain':    plain_text.text.get_unicode(),
@@ -535,7 +562,40 @@ class BackendIPythonNotebook(BackendIPython):
             return ({u'text/html':  jsmol.iframe(),
                      u'text/plain': plain_text.text.get_unicode(),
             }, {})            
+        elif isinstance(rich_output, OutputSceneThreejs):
+            escaped_html = rich_output.html.get().replace('"', '&quot;')
+            iframe = IFRAME_TEMPLATE.format(
+                escaped_html=escaped_html,
+                width='100%',
+                height=400,
+            )
+            return ({u'text/html':  iframe,
+                     u'text/plain': plain_text.text.get_unicode(),
+            }, {})            
         else:
             raise TypeError('rich_output type not supported')
 
-        
+    def threejs_offline_scripts(self):
+        """
+        Three.js scripts for the IPython notebook
+
+        OUTPUT:
+
+        String containing script tags
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_ipython import BackendIPythonNotebook
+            sage: backend = BackendIPythonNotebook()
+            sage: backend.threejs_offline_scripts()
+            '...<script src="/nbextensions/threejs/three.min...<\\/script>...'
+        """
+        from sage.repl.rich_output import get_display_manager
+        CDN_scripts = get_display_manager().threejs_scripts(online=True)
+        return """
+<script src="/nbextensions/threejs/three.min.js"></script>
+<script src="/nbextensions/threejs/OrbitControls.js"></script>
+<script>
+  if ( !window.THREE ) document.write('{}');
+</script>
+        """.format(CDN_scripts.replace('</script>', r'<\/script>'))

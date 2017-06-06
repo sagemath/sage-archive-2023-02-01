@@ -23,11 +23,11 @@ import operator
 
 import sage.libs.pari.all as pari
 import sage.rings.ring as ring
-import ring_element
+from sage.structure.element import RingElement
 
 from sage.misc.fast_methods import Singleton
 
-class Pari(ring_element.RingElement):
+class Pari(RingElement):
     """
     Element of Pari pseudo-ring.
     """
@@ -45,7 +45,7 @@ class Pari(ring_element.RingElement):
         """
         if parent is None:
             parent = _inst
-        ring_element.RingElement.__init__(self, parent)
+        RingElement.__init__(self, parent)
         self.__x = pari.pari(x)
 
     def __repr__(self):
@@ -202,7 +202,7 @@ class PariRing(Singleton, ring.Ring):
         - `distribution` -- optional string, so that ``ZZ`` can make sense
           of it as a probability distribution.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = PariRing()
             sage: R.random_element()
@@ -220,7 +220,7 @@ class PariRing(Singleton, ring.Ring):
         """
         Return -1.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = PariRing()
             sage: R.zeta()

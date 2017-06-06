@@ -162,7 +162,6 @@
 
 */
 
-{
 \\
 \\ Usual global variables
 \\
@@ -187,7 +186,6 @@ global(MAXPROB, LIMBIGPRIME):small;
   MAXPROB = 20;
   LIMBIGPRIME = 30; \\ for primes larger than this limit: use a probabilistic test
                     \\ LIMBIGPRIME = 0 means: only deterministic tests
-}
 
 \\ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 \\          SCRIPT                             \\

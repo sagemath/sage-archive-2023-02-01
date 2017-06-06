@@ -116,7 +116,7 @@ class LatticeEuclideanGroupElement(SageObject):
         return v
 
     def _repr_(self):
-        """
+        r"""
         Return a string representation
 
         EXAMPLES::

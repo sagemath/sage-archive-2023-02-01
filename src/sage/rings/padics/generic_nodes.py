@@ -257,7 +257,7 @@ class pAdicRingBaseGeneric(pAdicBaseGeneric, pAdicRingGeneric):
         Also preserves other information that makes this field unique
         (e.g. precision, rounding, print mode).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K = Zp(17, 8, print_mode='val-unit', print_sep='&')
             sage: c, L = K.construction(); L
@@ -384,7 +384,7 @@ class pAdicFieldBaseGeneric(pAdicBaseGeneric, pAdicFieldGeneric):
             True
         """
         for x in list:
-            if not self.__contains__(x):
+            if x not in self:
                 raise TypeError("Members of the list of generators must be elements of self.")
         return self
 
@@ -396,7 +396,7 @@ class pAdicFieldBaseGeneric(pAdicBaseGeneric, pAdicFieldGeneric):
         Also preserves other information that makes this field unique
         (e.g. precision, rounding, print mode).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K = Qp(17, 8, print_mode='val-unit', print_sep='&')
             sage: c, L = K.construction(); L

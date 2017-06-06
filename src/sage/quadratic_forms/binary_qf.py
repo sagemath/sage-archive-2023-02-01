@@ -36,25 +36,24 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2006--2009 William Stein and Jon Hanke
+#       Copyright (C) 2006-2009 William Stein and Jon Hanke
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from functools import total_ordering
 
 from sage.libs.pari.all import pari
-from sage.rings.all import (is_fundamental_discriminant, ZZ, divisors)
+from sage.rings.all import ZZ, is_fundamental_discriminant
+from sage.arith.all import divisors, gcd
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 
+
+@total_ordering
 class BinaryQF(SageObject):
     """
     A binary quadratic form over `\ZZ`.
@@ -63,7 +62,6 @@ class BinaryQF(SageObject):
 
     - `v` -- a list or tuple of 3 entries:  [a,b,c], or a quadratic homogeneous
       polynomial in two variables with integer coefficients
-
 
     OUTPUT:
 
@@ -142,13 +140,13 @@ class BinaryQF(SageObject):
             sage: pari(f)
             Qfb(2, 3, 4)
             sage: type(pari(f))
-            <type 'sage.libs.pari.gen.gen'>
+            <type 'cypari2.gen.Gen'>
             sage: gp(f)
             Qfb(2, 3, 4)
             sage: type(gp(f))
             <class 'sage.interfaces.gp.GpElement'>
         """
-        return 'Qfb(%s,%s,%s)'%(self._a,self._b,self._c)
+        return 'Qfb(%s,%s,%s)' % (self._a, self._b, self._c)
 
     def __mul__(self, right):
         """
@@ -180,8 +178,8 @@ class BinaryQF(SageObject):
         # wrapped yet in the PARI C library.  We may as well settle
         # for the below, until somebody simply implements composition
         # from scratch in Cython.
-        v = list(pari('qfbcompraw(%s,%s)'%(self._pari_init_(),
-                                           right._pari_init_())))
+        v = list(pari('qfbcompraw(%s,%s)' % (self._pari_init_(),
+                                             right._pari_init_())))
         return BinaryQF(v)
 
     def __getitem__(self, n):
@@ -241,12 +239,26 @@ class BinaryQF(SageObject):
         x, y = args
         return (self._a * x + self._b * y) * x + self._c * y**2
 
-    def __cmp__(self, right):
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: hash(BinaryQF([2,2,3]))
+            802
+            sage: hash(BinaryQF([2,3,2]))
+            562
+            sage: hash(BinaryQF([3,2,2]))
+            547
         """
-        Returns True if self and right are identical: the same coefficients.
+        return hash(self._a) ^ (hash(self._b) << 4) ^ (hash(self._c) << 8)
+
+    def __eq__(self, right):
+        """
+        Return ``True`` if ``self`` and ``right`` are identical.
+
+        This means that they have the same coefficients.
 
         EXAMPLES::
-
 
             sage: P = BinaryQF([2,2,3])
             sage: Q = BinaryQF([2,2,3])
@@ -268,8 +280,47 @@ class BinaryQF(SageObject):
             False
         """
         if not isinstance(right, BinaryQF):
-            return cmp(type(self), type(right))
-        return cmp((self._a,self._b,self._c), (right._a,right._b,right._c))
+            return False
+        return (self._a, self._b, self._c) == (right._a, right._b, right._c)
+
+    def __ne__(self, right):
+        """
+        Return ``True`` if ``self`` and ``right`` are not identical.
+
+        This means that they have different coefficients.
+
+        EXAMPLES::
+
+            sage: P = BinaryQF([2,2,3])
+            sage: Q = BinaryQF([2,2,3])
+            sage: R = BinaryQF([1,2,3])
+            sage: P != Q # indirect doctest
+            False
+            sage: P != R # indirect doctest
+            True
+        """
+        return not (self == right)
+
+    def __lt__(self, right):
+        """
+        Compare the coefficients of ``self`` and ``right``.
+
+        This is done lexicographically.
+
+        EXAMPLES::
+
+            sage: P = BinaryQF([2,2,3])
+            sage: Q = BinaryQF([1,2,3])
+            sage: P < Q
+            False
+            sage: Q < P
+            True
+            sage: Q <= P
+            True
+        """
+        if not isinstance(right, BinaryQF):
+            return False
+        return (self._a, self._b, self._c) < (right._a, right._b, right._c)
 
     def __add__(self, Q):
         """
@@ -280,7 +331,6 @@ class BinaryQF(SageObject):
         `(a_1 + a_2) x^2 + (b_1 + b_2) x y + (c_1 + c_2) y^2.`
 
         EXAMPLES::
-
 
             sage: P = BinaryQF([2,2,3]); P
             2*x^2 + 2*x*y + 3*y^2
@@ -308,7 +358,6 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-
             sage: P = BinaryQF([2,2,3]); P
             2*x^2 + 2*x*y + 3*y^2
             sage: Q = BinaryQF([-1,2,2]); Q
@@ -332,7 +381,6 @@ class BinaryQF(SageObject):
         Display the quadratic form.
 
         EXAMPLES::
-
 
             sage: Q = BinaryQF([1,2,3]); Q # indirect doctest
             x^2 + 2*x*y + 3*y^2
@@ -388,7 +436,6 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-
             sage: Q = BinaryQF([1,2,3])
             sage: Q.discriminant()
             -8
@@ -426,7 +473,6 @@ class BinaryQF(SageObject):
 
         EXAMPLES::
 
-
             sage: Q = BinaryQF([6,3,9])
             sage: Q.is_primitive()
             False
@@ -460,7 +506,6 @@ class BinaryQF(SageObject):
             4*x^2 + x*y + 13*y^2,
             8*x^2 + 7*x*y + 8*y^2]
         """
-        from sage.rings.arith import gcd
         return gcd([self._a, self._b, self._c])==1
 
     @cached_method
@@ -470,7 +515,6 @@ class BinaryQF(SageObject):
         `|b| \leq a \leq c`, i.e., is weakly reduced.
 
         EXAMPLES::
-
 
             sage: Q = BinaryQF([1,2,3])
             sage: Q.is_weakly_reduced()
@@ -651,7 +695,7 @@ class BinaryQF(SageObject):
 
         A prime number represented by the form.
 
-        .. note::
+        .. NOTE::
 
             This is a very elementary implementation which just substitutes
             values until a prime is found.
@@ -664,11 +708,11 @@ class BinaryQF(SageObject):
             [47, 2, 2, 3, 3]
         """
         from sage.sets.all import Set
-        from sage.misc.all import srange
+        from sage.arith.srange import xsrange
         d = self.discriminant()
         B = 10
         while True:
-            llist = list(Set([self(x,y) for x in srange(-B,B) for y in srange(B)]))
+            llist = list(Set([self(x,y) for x in xsrange(-B,B) for y in xsrange(B)]))
             llist = sorted([l for l in llist if l.is_prime()])
             if llist:
                 return llist[0]
@@ -712,14 +756,15 @@ class BinaryQF(SageObject):
         ad = -d
         an4 = 4*a*n
         a2 = 2*a
-        from sage.misc.all import srange
-        for y in srange(0, 1+an4//ad):
+        from sage.arith.srange import xsrange
+        for y in xsrange(0, 1+an4//ad):
             z2 = an4 + d*y**2
             for z in z2.sqrt(extend=False, all=True):
                 if a2.divides(z-b*y):
                     x = (z-b*y)//a2
                     return (x,y)
         return None
+
 
 def BinaryQF_reduced_representatives(D, primitive_only=False):
     r"""
@@ -809,8 +854,7 @@ def BinaryQF_reduced_representatives(D, primitive_only=False):
 
     form_list = []
 
-    from sage.misc.all import xsrange
-    from sage.rings.arith import gcd
+    from sage.arith.srange import xsrange
 
     # Only iterate over positive a and over b of the same
     # parity as D such that 4a^2 + D <= b^2 <= a^2

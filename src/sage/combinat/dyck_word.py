@@ -57,10 +57,12 @@ REFERENCES:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+from six.moves import range
 
-from combinat import CombinatorialElement, catalan_number
+from .combinat import CombinatorialElement, catalan_number
 from sage.combinat.combinatorial_map import combinatorial_map
-from backtrack import GenericBacktracker
+from .backtrack import GenericBacktracker
 
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
@@ -74,75 +76,6 @@ from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.words.word import Word
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrices
 from sage.misc.latex import latex
-from sage.misc.superseded import deprecated_function_alias
-
-
-DyckWordOptions = GlobalOptions(name='Dyck words',
-    doc=r"""
-    Set and display the global options for Dyck words. If no parameters
-    are set, then the function returns a copy of the options dictionary.
-
-    The ``options`` to Dyck words can be accessed as the method
-    :obj:`DyckWords.global_options` of :class:`DyckWords` and
-    related parent classes.
-    """,
-    end_doc=r"""
-    EXAMPLES::
-
-        sage: D = DyckWord([1, 1, 0, 1, 0, 0])
-        sage: D
-        [1, 1, 0, 1, 0, 0]
-        sage: DyckWords.global_options(display="lattice")
-        sage: D
-           ___
-         _| x
-        | x  .
-        |  . .
-        sage: DyckWords.global_options(diagram_style="line")
-        sage: D
-         /\/\
-        /    \
-        sage: DyckWords.global_options.reset()
-    """,
-    display=dict(default="list",
-                 description='Specifies how Dyck words should be printed',
-                 values=dict(list='displayed as a list',
-                             lattice='displayed on the lattice defined by ``diagram_style``'),
-                 case_sensitive=False),
-    ascii_art=dict(default="path",
-                   description='Specifies how the ascii art of Dyck words should be printed',
-                   values=dict(path="Using the path string",
-                               pretty_output="Using pretty printing"),
-                   alias=dict(pretty_print="pretty_output", path_string="path"),
-                   case_sensitive=False),
-    diagram_style=dict(default="grid",
-                       values=dict(grid='printing as paths on a grid using N and E steps',
-                                   line='printing as paths on a line using NE and SE steps',),
-                       alias={'N-E': 'grid', 'NE-SE': 'line'},
-                       case_sensitive=False),
-    latex_tikz_scale=dict(default=1,
-                          description='The default value for the tikz scale when latexed',
-                          checker=lambda x: True),  # More trouble than it's worth to check
-    latex_diagonal=dict(default=False,
-                        description='The default value for displaying the diagonal when latexed',
-                        checker=lambda x: isinstance(x, bool)),
-    latex_line_width_scalar=dict(default=2,
-                                 description='The default value for the line width as a'
-                                             'multiple of the tikz scale when latexed',
-                                 checker=lambda x: True),  # More trouble than it's worth to check
-    latex_color=dict(default="black",
-                     description='The default value for the color when latexed',
-                     checker=lambda x: isinstance(x, str)),
-    latex_bounce_path=dict(default=False,
-                           description='The default value for displaying the bounce path when latexed',
-                           checker=lambda x: isinstance(x, bool)),
-    latex_peaks=dict(default=False,
-                     description='The default value for displaying the peaks when latexed',
-                     checker=lambda x: isinstance(x, bool)),
-    latex_valleys=dict(default=False,
-                      description='The default value for displaying the valleys when latexed',
-                      checker=lambda x: isinstance(x, bool)),
-)
 
 open_symbol = 1
 close_symbol = 0
@@ -267,6 +200,12 @@ class DyckWord(CombinatorialElement):
     the `NE = (1,1)` and the `SE = (1,-1)` direction such that it does not
     pass below the horizontal axis.
 
+    .. PLOT::
+        :width: 400 px
+
+        d = DyckWord([1,0,1,1,1,1,0,1,0,0,1,0,1,1,0,1,0,1,1,0,0,0,0,0])
+        sphinx_plot(d.plot(aspect_ratio=1))
+
     A path representing a Dyck word (either using `N` and `E` steps, or
     using `NE` and `SE` steps) is called a Dyck path.
 
@@ -274,9 +213,9 @@ class DyckWord(CombinatorialElement):
 
         sage: dw = DyckWord([1, 0, 1, 0]); dw
         [1, 0, 1, 0]
-        sage: print dw
+        sage: print(dw)
         ()()
-        sage: print dw.height()
+        sage: dw.height()
         1
         sage: dw.to_noncrossing_partition()
         [[1], [2]]
@@ -323,7 +262,7 @@ class DyckWord(CombinatorialElement):
 
     ::
 
-        sage: print DyckWord([1,0,1,1,0,0]).to_path_string()
+        sage: print(DyckWord([1,0,1,1,0,0]).to_path_string())
            /\
         /\/  \
         sage: DyckWord([1,0,1,1,0,0]).pretty_print()
@@ -437,6 +376,10 @@ class DyckWord(CombinatorialElement):
             sage: D = DyckWord([1,0,1,0,1,0])
             sage: D.set_latex_options({"tikz_scale":2})
             sage: D.set_latex_options({"valleys":True, "color":"blue"})
+
+        TODO::
+
+        - should probably be merged into DyckWord.options
         """
         for opt in D:
             self._latex_options[opt] = D[opt]
@@ -444,7 +387,7 @@ class DyckWord(CombinatorialElement):
     def latex_options(self):
         r"""
         Return the latex options for use in the ``_latex_`` function as a
-        dictionary. The default values are set using the global options.
+        dictionary. The default values are set using the options.
 
         - ``tikz_scale`` -- (default: 1) scale for use with the tikz package.
 
@@ -470,28 +413,32 @@ class DyckWord(CombinatorialElement):
             sage: D = DyckWord([1,0,1,0,1,0])
             sage: D.latex_options()
             {'bounce path': False,
-             'color': 'black',
+             'color': black,
              'diagonal': False,
              'line width': 2,
              'peaks': False,
              'tikz_scale': 1,
              'valleys': False}
+
+        TODO::
+
+        - should probably be merged into DyckWord.options
         """
         d = self._latex_options.copy()
         if "tikz_scale" not in d:
-            d["tikz_scale"] = self.parent().global_options["latex_tikz_scale"]
+            d["tikz_scale"] = self.parent().options.latex_tikz_scale
         if "diagonal" not in d:
-            d["diagonal"] = self.parent().global_options["latex_diagonal"]
+            d["diagonal"] = self.parent().options.latex_diagonal
         if "line width" not in d:
-            d["line width"] = self.parent().global_options["latex_line_width_scalar"]*d["tikz_scale"]
+            d["line width"] = self.parent().options.latex_line_width_scalar*d["tikz_scale"]
         if "color" not in d:
-            d["color"] = self.parent().global_options["latex_color"]
+            d["color"] = self.parent().options.latex_color
         if "bounce path" not in d:
-            d["bounce path"] = self.parent().global_options["latex_bounce_path"]
+            d["bounce path"] = self.parent().options.latex_bounce_path
         if "peaks" not in d:
-            d["peaks"] = self.parent().global_options["latex_peaks"]
+            d["peaks"] = self.parent().options.latex_peaks
         if "valleys" not in d:
-            d["valleys"] = self.parent().global_options["latex_valleys"]
+            d["valleys"] = self.parent().options.latex_valleys
         return d
 
     def _repr_(self):
@@ -521,17 +468,17 @@ class DyckWord(CombinatorialElement):
 
         TESTS::
 
-            sage: print DyckWord(area_sequence=[0,1,0])._repr_lattice(type="NE-SE")
+            sage: print(DyckWord(area_sequence=[0,1,0])._repr_lattice(type="NE-SE"))
              /\
             /  \/\
-            sage: print DyckWord(area_sequence=[0,1,0])._repr_lattice(labelling=[1,3,2],underpath=False)
+            sage: print(DyckWord(area_sequence=[0,1,0])._repr_lattice(labelling=[1,3,2],underpath=False))
                  _
              ___|  2
             | x  . 3
             |  . . 1
         """
         if type is None:
-            type = self.parent().global_options['diagram_style']
+            type = self.parent().options.diagram_style
             if type == "grid":
                 type = "N-E"
             elif type == "line":
@@ -582,19 +529,6 @@ class DyckWord(CombinatorialElement):
         else:
             raise ValueError("The given type (=\s) is not valid." % type)
 
-    @staticmethod
-    def set_ascii_art(rep="path"):
-        r"""
-        TESTS::
-
-            sage: DyckWord.set_ascii_art("path")
-            doctest:...: DeprecationWarning: set_ascii_art is deprecated. Use DyckWords.global_options instead.
-            See http://trac.sagemath.org/14875 for details.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14875, 'set_ascii_art is deprecated. Use DyckWords.global_options instead.')
-        DyckWords.global_options(ascii_art=rep)
-
     def _ascii_art_(self):
         r"""
         Return an ASCII art representation of ``self``.
@@ -607,7 +541,7 @@ class DyckWord(CombinatorialElement):
             [ /\/\/\, /\/  \, /  \/\, /    \, /    \ ]
         """
         from sage.typeset.ascii_art import AsciiArt
-        rep = self.parent().global_options['ascii_art']
+        rep = self.parent().options.ascii_art
         if rep == "path":
             ret = self.to_path_string()
         elif rep == "pretty_output":
@@ -635,9 +569,9 @@ class DyckWord(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print DyckWord([1, 0, 1, 0])
+            sage: print(DyckWord([1, 0, 1, 0]))
             ()()
-            sage: print DyckWord([1, 1, 0, 0])
+            sage: print(DyckWord([1, 1, 0, 0]))
             (())
         """
         if self._has_2D_print:
@@ -652,12 +586,12 @@ class DyckWord(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: print DyckWord([1, 0, 1, 0]).to_path_string()
+            sage: print(DyckWord([1, 0, 1, 0]).to_path_string())
             /\/\
-            sage: print DyckWord([1, 1, 0, 0]).to_path_string()
+            sage: print(DyckWord([1, 1, 0, 0]).to_path_string())
              /\
             /  \
-            sage: print DyckWord([1,1,0,1,1,0,0,1,0,1,0,0]).to_path_string()
+            sage: print(DyckWord([1,1,0,1,1,0,0,1,0,1,0,0]).to_path_string())
                 /\
              /\/  \/\/\
             /          \
@@ -700,7 +634,7 @@ class DyckWord(CombinatorialElement):
 
         - ``type`` -- (default: ``None``) can either be:
 
-          - ``None`` to use the global option default
+          - ``None`` to use the option default
           - "N-E" to show ``self`` as a path of north and east steps, or
           - "NE-SE" to show ``self`` as a path of north-east and
             south-east steps.
@@ -817,7 +751,7 @@ class DyckWord(CombinatorialElement):
             | x  . . . . . . . . . . . . . . .
             |  . . . . . . . . . . . . . . . .
 
-            sage: DyckWord(area_sequence=[0,1,1,2,3,2,3,3,2,0,1,1,2,3,4,2,3]).pretty_print(labelling=range(17),underpath=False)
+            sage: DyckWord(area_sequence=[0,1,1,2,3,2,3,3,2,0,1,1,2,3,4,2,3]).pretty_print(labelling=list(range(17)),underpath=False)
                                        _______
                                       | x x x  16
                                  _____| x x  . 15
@@ -842,7 +776,7 @@ class DyckWord(CombinatorialElement):
             sage: DyckWord([]).pretty_print()
             .
         """
-        print self._repr_lattice(type, labelling, underpath)
+        print(self._repr_lattice(type, labelling, underpath))
 
     pp = pretty_print
 
@@ -928,6 +862,25 @@ class DyckWord(CombinatorialElement):
         res += ";\n"
         res += "\\end{tikzpicture}$}}"
         return res
+
+    def plot(self, **kwds):
+        """
+        Plot a Dyck word as a continuous path.
+
+        EXAMPLES::
+
+            sage: w = DyckWords(100).random_element()
+            sage: w.plot()
+            Graphics object consisting of 1 graphics primitive
+        """
+        from sage.plot.plot import list_plot
+        step = [-1, 1]
+        sigma = 0
+        list_sigma = [0]
+        for l in self:
+            sigma += step[l]
+            list_sigma.append(sigma)
+        return list_plot(list_sigma, plotjoined=True, **kwds)
 
     def length(self):
         r"""
@@ -1085,42 +1038,6 @@ class DyckWord(CombinatorialElement):
             heights[i + 1] = height
         return tuple(heights)
 
-    @classmethod
-    def from_heights(cls, heights):
-        r"""
-        This is deprecated in :trac:`14875`. Use instead
-        :class:`DyckWords_all().from_heights()`.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.dyck_word import DyckWord
-            sage: DyckWord.from_heights((0,))
-            doctest:...: DeprecationWarning: this method is deprecated. Use DyckWords(complete=False).from_heights instead.
-            See http://trac.sagemath.org/14875 for details.
-            []
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14875, 'this method is deprecated. Use DyckWords(complete=False).from_heights instead.')
-        return DyckWords_all().from_heights(heights)
-
-    @classmethod
-    def min_from_heights(cls, heights):
-        r"""
-        This is deprecated in :trac:`14875`. Use instead
-        :class:`DyckWords_all.min_from_heights()`.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.dyck_word import DyckWord
-            sage: DyckWord.min_from_heights((0,))
-            doctest:...: DeprecationWarning: this method is deprecated. Use DyckWords(complete=False).from_min_heights instead.
-            See http://trac.sagemath.org/14875 for details.
-            []
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14875, 'this method is deprecated. Use DyckWords(complete=False).from_min_heights instead.')
-        return DyckWords_all().from_heights(heights)
-
     def associated_parenthesis(self, pos):
         r"""
         Report the position for the parenthesis in ``self`` that matches the
@@ -1185,7 +1102,7 @@ class DyckWord(CombinatorialElement):
         r"""
         Return the length of the initial run of ``self``
 
-        OUPUT:
+        OUTPUT:
 
         - a non--negative integer indicating the length of the initial rise
 
@@ -1267,7 +1184,7 @@ class DyckWord(CombinatorialElement):
             sage: DyckWord([1,1,0,1,0,1,0,0]).valleys()
             [2, 4]
         """
-        return [i for i in xrange(len(self)-1)
+        return [i for i in range(len(self)-1)
                 if self[i] == close_symbol and self[i+1] == open_symbol]
 
     def number_of_valleys(self):
@@ -1332,7 +1249,7 @@ class DyckWord(CombinatorialElement):
             sage: DyckWord([1, 0, 1, 0]).positions_of_double_rises()
             []
         """
-        return [i for i in xrange(len(self)-1)
+        return [i for i in range(len(self)-1)
                 if self[i] == self[i+1] == open_symbol]
 
     def number_of_double_rises(self):
@@ -1368,7 +1285,7 @@ class DyckWord(CombinatorialElement):
             [4]
         """
         h = self.heights()
-        return [i for i in xrange(2, len(h), 2) if h[i] == 0]
+        return [i for i in range(2, len(h), 2) if h[i] == 0]
 
     def touch_points(self):
         r"""
@@ -1635,7 +1552,7 @@ class DyckWord(CombinatorialElement):
 
             sage: dw = DyckWord([1, 1, 0, 1, 0, 0, 1, 0])
             sage: ip = dw.tamari_interval(DyckWord([1, 1, 1, 0, 0, 1, 0, 0])); ip
-            The tamari interval of size 4 induced by relations [(2, 4), (3, 4), (3, 1), (2, 1)]
+            The Tamari interval of size 4 induced by relations [(2, 4), (3, 4), (3, 1), (2, 1)]
             sage: ip.lower_dyck_word()
             [1, 1, 0, 1, 0, 0, 1, 0]
             sage: ip.upper_dyck_word()
@@ -1812,7 +1729,7 @@ class DyckWord_complete(DyckWord):
             sage: DyckWord(area_sequence=[0,0,0]).number_of_parking_functions()
             6
         """
-        from sage.rings.arith import multinomial
+        from sage.arith.all import multinomial
         return multinomial(list(self.rise_composition()))
 
     def list_parking_functions(self):
@@ -1826,7 +1743,7 @@ class DyckWord_complete(DyckWord):
             sage: DyckWord([1,1,1,0,0,0]).list_parking_functions()
             Permutations of the multi-set [1, 1, 1]
             sage: DyckWord([1,0,1,0,1,0]).list_parking_functions()
-            Permutations of the set [1, 2, 3]
+            Standard permutations of 3
         """
         alist = self.to_area_sequence()
         return Permutations([i - alist[i]+1 for i in range(len(alist))])
@@ -1927,7 +1844,8 @@ class DyckWord_complete(DyckWord):
         if n == 0:
             return (Tableau([]), Tableau([]))
         elif self.height() == n:
-            return (Tableau([range(1, n + 1)]), Tableau([range(1, n + 1)]))
+            T = Tableau([list(range(1, n + 1))])
+            return (T, T)
         else:
             left = [[], []]
             right = [[], []]
@@ -1951,7 +1869,7 @@ class DyckWord_complete(DyckWord):
 
         REFERENCES:
 
-        .. [BK2001] J. Bandlow, K. Killpatrick -- An area-to_inv bijection
+        .. [BK2001] \J. Bandlow, K. Killpatrick -- An area-to_inv bijection
            between Dyck paths and 312-avoiding permutations, Electronic Journal
            of Combinatorics, Volume 8, Issue 1 (2001).
 
@@ -1998,7 +1916,7 @@ class DyckWord_complete(DyckWord):
 
         REFERENCES:
 
-        .. [Stu2008] C. Stump -- More bijective Catalan combinatorics on
+        .. [Stu2008] \C. Stump -- More bijective Catalan combinatorics on
            permutations and on colored permutations, Preprint.
            :arXiv:`0808.2822`.
 
@@ -2049,12 +1967,12 @@ class DyckWord_complete(DyckWord):
 
         REFERENCES:
 
-        .. [EP2004] S. Elizalde, I. Pak. *Bijections for refined restricted
+        .. [EP2004] \S. Elizalde, I. Pak. *Bijections for refined restricted
            permutations**. JCTA 105(2) 2004.
-        .. [CK2008] A. Claesson, S. Kitaev. *Classification of bijections
+        .. [CK2008] \A. Claesson, S. Kitaev. *Classification of bijections
            between `321`- and `132`- avoiding permutations*. Seminaire
            Lotharingien de Combinatoire **60** 2008. :arxiv:`0805.1325`.
-        .. [Knu1973] D. Knuth. *The Art of Computer Programming, Vol. III*.
+        .. [Knu1973] \D. Knuth. *The Art of Computer Programming, Vol. III*.
            Addison-Wesley. Reading, MA. 1973.
 
         EXAMPLES::
@@ -2109,7 +2027,7 @@ class DyckWord_complete(DyckWord):
 
         REFERENCES:
 
-        .. [Kra2001] C. Krattenthaler -- Permutations with restricted
+        .. [Kra2001] \C. Krattenthaler -- Permutations with restricted
            patterns and Dyck paths, Adv. Appl. Math. 27 (2001), 510--530.
 
         EXAMPLES::
@@ -2131,7 +2049,7 @@ class DyckWord_complete(DyckWord):
         area = self.to_area_sequence()
         area.append(0)
         pi = []
-        values = range(1, n+1)
+        values = list(range(1, n + 1))
         for i in range(n):
             if area[n-i-1]+1 > area[n-i]:
                 pi.append(n-i-area[n-i-1])
@@ -2260,7 +2178,7 @@ class DyckWord_complete(DyckWord):
             i = j
             p += 1
 
-        if len(stack) > 0:
+        if stack:
             raise ValueError("incorrect Dyck word")
 
         return partition
@@ -2309,42 +2227,6 @@ class DyckWord_complete(DyckWord):
         res = recdw.to_Catalan_code()
         res.append(returns.index(cut-1))
         return res
-
-    @classmethod
-    def from_Catalan_code(cls, code):
-        r"""
-        This is deprecated in :trac:`14875`. Use instead
-        :meth:`CompleteDyckWords.from_Catalan_code()`.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.dyck_word import DyckWord_complete
-            sage: DyckWord_complete.from_Catalan_code([])
-            doctest:...: DeprecationWarning: this method is deprecated. Use DyckWords().from_Catalan_code instead.
-            See http://trac.sagemath.org/14875 for details.
-            []
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14875, 'this method is deprecated. Use DyckWords().from_Catalan_code instead.')
-        return CompleteDyckWords_all().from_Catalan_code(code)
-
-    @classmethod
-    def from_area_sequence(cls, code):
-        r"""
-        This is deprecated in :trac:`14875`. Use instead
-        :meth:`CompleteDyckWords.from_area_sequence()`.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.dyck_word import DyckWord_complete
-            sage: DyckWord_complete.from_area_sequence([])
-            doctest:...: DeprecationWarning: this method is deprecated. Use DyckWords().from_area_sequence instead.
-            See http://trac.sagemath.org/14875 for details.
-            []
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14875, 'this method is deprecated. Use DyckWords().from_area_sequence instead.')
-        return CompleteDyckWords_all().from_area_sequence(code)
 
     @combinatorial_map(name="To Ordered tree")
     def to_ordered_tree(self):
@@ -2430,12 +2312,12 @@ class DyckWord_complete(DyckWord):
 
         REFERENCES:
 
-        .. [Cha2005] F. Chapoton, Une Base Symétrique de l'algèbre des
+        .. [Cha2005] \F. Chapoton, Une Base Symétrique de l'algèbre des
            Coinvariants Quasi-Symétriques, Electronic Journal of
            Combinatorics Vol 12(1) (2005) N16.
         """
         n = self.number_of_open_symbols()
-        l = range(n + 2)  # from 0 to n + 1
+        l = list(range(n + 2))  # from 0 to n + 1
         edges = []
         coheight = n - 1
         for letter in self[1:-1]:
@@ -2508,24 +2390,6 @@ class DyckWord_complete(DyckWord):
         from sage.combinat.non_decreasing_parking_function import NonDecreasingParkingFunction
         return NonDecreasingParkingFunction.from_dyck_word(self)
 
-    @classmethod
-    def from_non_decreasing_parking_function(cls, pf):
-        r"""
-        This is deprecated in :trac:`14875`. Use instead
-        :meth:`CompleteDyckWords.from_non_decreasing_parking_function()`.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.dyck_word import DyckWord_complete
-            sage: DyckWord_complete.from_non_decreasing_parking_function([])
-            doctest:...: DeprecationWarning: this method is deprecated. Use DyckWords().from_non_decreasing_parking_function instead.
-            See http://trac.sagemath.org/14875 for details.
-            []
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(14875, 'this method is deprecated. Use DyckWords().from_non_decreasing_parking_function instead.')
-        return CompleteDyckWords_all().from_area_sequence([i - pf[i] + 1 for i in range(len(pf))])
-
     def major_index(self):
         r"""
         Return the major index of ``self`` .
@@ -2576,7 +2440,7 @@ class DyckWord_complete(DyckWord):
 
         REFERENCES:
 
-        .. [DS1992] A. Denise, R. Simion, Two combinatorial statistics on
+        .. [DS1992] \A. Denise, R. Simion, Two combinatorial statistics on
            Dyck paths, Discrete Math 137 (1992), 155--176.
         """
         aseq = self.to_area_sequence() + [0]
@@ -3006,7 +2870,6 @@ class DyckWord_complete(DyckWord):
         l.reverse()
 
         for move in l:
-            #print x_pos, y_pos, mode, move
             if mode == "left":
                 if move == close_symbol:
                     x_pos -= 1
@@ -3102,7 +2965,7 @@ class DyckWord_complete(DyckWord):
         return A.from_monotone_triangle(monotone_triangle)
 
 
-class DyckWords(Parent, UniqueRepresentation):
+class DyckWords(UniqueRepresentation, Parent):
     r"""
     Dyck words.
 
@@ -3211,7 +3074,74 @@ class DyckWords(Parent, UniqueRepresentation):
         return DyckWords_size(k1, k2)
 
     Element = DyckWord
-    global_options = DyckWordOptions
+
+    # add options to class
+    options=GlobalOptions('DyckWords', module='sage.combinat.dyck_word',
+        doc=r"""
+        Set and display the options for Dyck words. If no parameters
+        are set, then the function returns a copy of the options dictionary.
+
+        The ``options`` to Dyck words can be accessed as the method
+        :meth:`DyckWords.options` of :class:`DyckWords` and
+        related parent classes.
+        """,
+        end_doc=r"""
+        EXAMPLES::
+
+            sage: D = DyckWord([1, 1, 0, 1, 0, 0])
+            sage: D
+            [1, 1, 0, 1, 0, 0]
+            sage: DyckWords.options.display="lattice"
+            sage: D
+               ___
+             _| x
+            | x  .
+            |  . .
+            sage: DyckWords.options(diagram_style="line")
+            sage: D
+             /\/\
+            /    \
+            sage: DyckWords.options._reset()
+        """,
+        display=dict(default="list",
+                     description='Specifies how Dyck words should be printed',
+                     values=dict(list='displayed as a list',
+                                 lattice='displayed on the lattice defined by ``diagram_style``'),
+                     case_sensitive=False),
+        ascii_art=dict(default="path",
+                       description='Specifies how the ascii art of Dyck words should be printed',
+                       values=dict(path="Using the path string",
+                                       pretty_output="Using pretty printing"),
+                           alias=dict(pretty_print="pretty_output", path_string="path"),
+                           case_sensitive=False),
+            diagram_style=dict(default="grid",
+                               values=dict(grid='printing as paths on a grid using N and E steps',
+                                           line='printing as paths on a line using NE and SE steps',),
+                               alias={'N-E': 'grid', 'NE-SE': 'line'},
+                               case_sensitive=False),
+            latex_tikz_scale=dict(default=1,
+                                  description='The default value for the tikz scale when latexed',
+                                  checker=lambda x: True),  # More trouble than it's worth to check
+            latex_diagonal=dict(default=False,
+                                description='The default value for displaying the diagonal when latexed',
+                                checker=lambda x: isinstance(x, bool)),
+            latex_line_width_scalar=dict(default=2,
+                                         description='The default value for the line width as a'
+                                                     'multiple of the tikz scale when latexed',
+                                         checker=lambda x: True),  # More trouble than it's worth to check
+            latex_color=dict(default="black",
+                             description='The default value for the color when latexed',
+                             checker=lambda x: isinstance(x, str)),
+            latex_bounce_path=dict(default=False,
+                                   description='The default value for displaying the bounce path when latexed',
+                                   checker=lambda x: isinstance(x, bool)),
+            latex_peaks=dict(default=False,
+                             description='The default value for displaying the peaks when latexed',
+                             checker=lambda x: isinstance(x, bool)),
+            latex_valleys=dict(default=False,
+                              description='The default value for displaying the valleys when latexed',
+                              checker=lambda x: isinstance(x, bool)),
+    )
 
     def _element_constructor_(self, word):
         """
@@ -3377,7 +3307,6 @@ class DyckWords(Parent, UniqueRepresentation):
             if heights[i] > heights[i - 1]:
                 heights[i-1] = heights[i] - 1
         return self.from_heights(heights)
-
 
 class DyckWords_all(DyckWords):
     """
@@ -3615,7 +3544,7 @@ class DyckWords_size(DyckWords):
             ....:      for p in range(7))
             True
         """
-        from sage.rings.arith import binomial
+        from sage.arith.all import binomial
         return (self.k1 - self.k2 + 1) * binomial(self.k1 + self.k2, self.k2) // (self.k1 + 1)
 
 ################################################################
@@ -3722,7 +3651,7 @@ class CompleteDyckWords(DyckWords):
                              "the number of cells between the Dyck path "
                              "and the diagonal.")
         dyck_word = []
-        for i in xrange(len(code)):
+        for i in range(len(code)):
             if i > 0:
                 dyck_word.extend([close_symbol]*(code[i-1]-code[i]+1))
             dyck_word.append(open_symbol)
@@ -3743,8 +3672,8 @@ class CompleteDyckWords(DyckWords):
         ::
 
             sage: dws = DyckWords(5).list()
-            sage: ncps = map(lambda x: x.to_noncrossing_partition(), dws)
-            sage: dws2 = map(lambda x: DyckWord(noncrossing_partition=x), ncps)
+            sage: ncps = [x.to_noncrossing_partition() for x in dws]
+            sage: dws2 = [DyckWord(noncrossing_partition=x) for x in ncps]
             sage: dws == dws2
             True
         """
@@ -3939,9 +3868,9 @@ class CompleteDyckWords_size(CompleteDyckWords, DyckWords_size):
 
             sage: DyckWords(4).cardinality()
             14
-            sage: ns = range(9)
+            sage: ns = list(range(9))
             sage: dws = [DyckWords(n) for n in ns]
-            sage: all([dw.cardinality() == len(dw.list()) for dw in dws])
+            sage: all(dw.cardinality() == len(dw.list()) for dw in dws)
             True
         """
         return catalan_number(self.k1)
@@ -4059,7 +3988,7 @@ def is_area_sequence(seq):
     if seq == []:
         return True
     return seq[0] == 0 and all(0 <= seq[i+1] and seq[i+1] <= seq[i]+1
-                               for i in xrange(len(seq)-1))
+                               for i in range(len(seq)-1))
 
 
 def is_a(obj, k1=None, k2=None):
@@ -4117,25 +4046,6 @@ def is_a(obj, k1=None, k2=None):
             return False
 
     return (k1 is None and k2 is None) or (n_opens == k1 and n_closes == k2)
-
-is_a_prefix = deprecated_function_alias(14875, is_a)
-
-
-def from_noncrossing_partition(ncp):
-    r"""
-    This is deprecated in :trac:`14875`. Instead use
-    :meth:`CompleteDyckWords.from_noncrossing_partition()`.
-
-    TESTS::
-
-        sage: sage.combinat.dyck_word.from_noncrossing_partition([[1,2]])
-        doctest:...: DeprecationWarning: this method is deprecated. Use DyckWords().from_noncrossing_partition instead.
-        See http://trac.sagemath.org/14875 for details.
-        [1, 1, 0, 0]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14875, 'this method is deprecated. Use DyckWords().from_noncrossing_partition instead.')
-    return CompleteDyckWords_all().from_noncrossing_partition(ncp)
 
 
 def from_ordered_tree(tree):
@@ -4208,3 +4118,8 @@ def pealing(D, return_touches=False):
 
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.dyck_word', 'DyckWord', DyckWord)
+
+# Deprecations from trac:18555. July 2016
+from sage.misc.superseded import deprecated_function_alias
+DyckWords.global_options=deprecated_function_alias(18555, DyckWords.options)
+DyckWordOptions = deprecated_function_alias(18555, DyckWords.options)

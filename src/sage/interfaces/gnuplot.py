@@ -16,6 +16,7 @@ Interface to the Gnuplot interpreter
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function
 
 import os
 import time
@@ -46,7 +47,13 @@ class Gnuplot(SageObject):
         self(line)
         return ''
 
-    def __repr__(self):
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: gnuplot               # indirect doctests
+            Interface to Gnuplot
+        """
         return "Interface to Gnuplot"
 
     def plot(self, cmd, file=None, verbose=True, reset=True):
@@ -88,9 +95,9 @@ class Gnuplot(SageObject):
                     file += '.eps'
                 self('set terminal postscript eps enhanced')
             #self("set output '%s'"%file)
-            tmp = 'gnuplot_tmp%s'%file[-4:]
-            self("set output '%s'"%tmp)
-            print "Saving plot to %s"%file
+            tmp = 'gnuplot_tmp%s' % file[-4:]
+            self("set output '%s'" % tmp)
+            print("Saving plot to %s" % file)
             self(cmd)
             time.sleep(0.1)
             os.system('mv %s %s 2>/dev/null'%(tmp, file))
@@ -189,6 +196,9 @@ gnuplot = Gnuplot()
 
 
 def gnuplot_console():
+    from sage.repl.rich_output.display_manager import get_display_manager
+    if not get_display_manager().is_in_terminal():
+        raise RuntimeError('Can use the console only in the terminal. Try %%gnuplot magics instead.')
     os.system('sage-native-execute gnuplot')
 
 

@@ -343,6 +343,26 @@ class DisplayManager(SageObject):
         """
         return self._preferences
 
+    def is_in_terminal(self):
+        """
+        Test whether the UI is meant to run in a terminal
+
+        When this method returns ``True``, you can assume that it is
+        possible to use ``raw_input`` or launch external programs that
+        take over the input.
+
+        Otherwise, you should assume that the backend runs remotely or
+        in a pty controlled by another program. Then you should not
+        launch external programs with a (text or graphical) UI.
+
+        This is used to enable/disable interpreter consoles.
+
+        OUTPUT:
+
+        Boolean.
+        """
+        return self._backend.is_in_terminal()
+    
     def check_backend_class(self, backend_class):
         """
         Check that the current backend is an instance of
@@ -693,6 +713,48 @@ class DisplayManager(SageObject):
         buf = OutputBuffer.from_file(filename)
         return output_container(buf)
 
+    def threejs_scripts(self, online):
+        """
+        Return Three.js script tags for the current backend.
+
+        INPUT:
+
+        - ``online`` -- Boolean determining script usage context
+
+        OUTPUT:
+
+        String containing script tags
+
+        .. NOTE::
+
+            This base method handles ``online=True`` case only, serving CDN
+            script tags. Location of scripts for offline usage is
+            backend-specific.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: get_display_manager().threejs_scripts(online=True)
+            '...<script src="https://cdn.rawgit.com/mrdoob/three.js/...'
+            sage: get_display_manager().threejs_scripts(online=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: current backend does not support
+            offline threejs graphics
+        """
+        if online:
+            from sage.misc.package import installed_packages
+            version = installed_packages()['threejs']
+            return """
+<script src="https://cdn.rawgit.com/mrdoob/three.js/{0}/build/three.min.js"></script>
+<script src="https://cdn.rawgit.com/mrdoob/three.js/{0}/examples/js/controls/OrbitControls.js"></script>
+            """.format(version)
+        try:
+            return self._backend.threejs_offline_scripts()
+        except AttributeError:
+            raise ValueError(
+                'current backend does not support offline threejs graphics')
+
     def supported_output(self):
         """
         Return the output container classes that can be used.
@@ -711,7 +773,7 @@ class DisplayManager(SageObject):
             sage: dm.types.OutputPlainText in dm.supported_output()
             True
             sage: type(dm.supported_output())
-            <type 'frozenset'>
+            <... 'frozenset'>
         """
         return self._supported_output
 

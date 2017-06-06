@@ -30,10 +30,6 @@ facet enumeration compares well with existing packages.
  * Therefore one can deduce the authors were happy for this to be
    released under GPL 2 or a later version.
 
-== SPKG Maintainers ==
-
- * William Stein
-
 == Upstream Contact ==
 
  * Author: Harald Skarke (skarke@maths.ox.ac.uk)

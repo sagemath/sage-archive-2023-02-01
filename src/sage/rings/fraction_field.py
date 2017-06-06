@@ -70,10 +70,12 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import absolute_import
+from six.moves import range
 import six
-import ring
-import fraction_field_element
+
+from . import ring
+from . import fraction_field_element
 import sage.misc.latex as latex
 from sage.misc.cachefunc import cached_method
 
@@ -243,7 +245,7 @@ class FractionField_generic(ring.Field):
 
             sage: _.<x> = ZZ[]
             sage: K.<a> = NumberField(x^5-3*x^4+2424*x^3+2*x-232)
-            sage: R.<b> = K.ring_of_integers()
+            sage: R = K.ring_of_integers()
             sage: S.<y> = R[]
             sage: F = FractionField(S)
             sage: F(1/a)
@@ -343,7 +345,7 @@ class FractionField_generic(ring.Field):
 
             sage: _.<x> = ZZ[]
             sage: K.<a> = NumberField(x^5-3*x^4+2424*x^3+2*x-232)
-            sage: R.<b> = K.ring_of_integers()
+            sage: R = K.ring_of_integers()
             sage: S.<y> = R[]
             sage: F = FractionField(S) # indirect doctest
             sage: F(1/a)
@@ -373,7 +375,7 @@ class FractionField_generic(ring.Field):
            A fraction field is finite if and only if the associated
            integral domain is finite.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Frac(QQ['a','b','c']).is_finite()
             False
@@ -594,7 +596,7 @@ class FractionField_generic(ring.Field):
                         # and the x[i] are rational functions in the
                         # remaining variables.
                         v = Element(self, x.variable(), 1)
-                        return sum(self(x[i]) * v**i for i in xrange(x.poldegree() + 1))
+                        return sum(self(x[i]) * v**i for i in range(x.poldegree() + 1))
             raise
 
     def construction(self):

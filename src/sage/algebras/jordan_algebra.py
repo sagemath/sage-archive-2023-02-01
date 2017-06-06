@@ -34,8 +34,10 @@ class JordanAlgebra(Parent, UniqueRepresentation):
     - `xy = yx`, and
     - `(xy)(xx) = x(y(xx))` (the Jordan identity).
 
+    See [Ja1971]_, [Ch2012]_, and [McC1978], for example.
+
     These axioms imply that a Jordan algebra is power-associative and the
-    following generalization of Jordan's identity holds [Albert47]_:
+    following generalization of Jordan's identity holds [Al1947]_:
     `(x^m y) x^n = x^m (y x^n)` for all `m, n \in \ZZ_{>0}`.
 
     Let `A` be an associative algebra over a ring `R` in which `2` is
@@ -144,18 +146,13 @@ class JordanAlgebra(Parent, UniqueRepresentation):
 
     - :wikipedia:`Jordan_algebra`
 
-    .. [Jacobson71] N. Jacobson. *Exceptional Lie Algebras*.
-       Marcel Dekker, Inc. New York. 1971. IBSN No. 0-8247-1326-5.
+    - [Ja1971]_
 
-    .. [Chu2012] Cho-Ho Chu. *Jordan Structures in Geometry and Analysis*.
-       Cambridge University Press, New York. 2012. IBSN 978-1-107-01617-0.
+    - [Ch2012]_
 
-    .. [McCrimmon78] K. McCrimmon. *Jordan algebras and their applications*.
-       Bull. Amer. Math. Soc. **84** 1978.
+    - [McC1978]_
 
-    .. [Albert47] A. A. Albert, *A Structure Theory for Jordan Algebras*.
-       Annals of Mathematics, Second Series, Vol. 48, No. 3
-       (Jul., 1947), pp. 546--567.
+    - [Al1947]_
     """
     @staticmethod
     def __classcall_private__(self, arg0, arg1=None, names=None):
@@ -239,9 +236,9 @@ class SpecialJordanAlgebra(JordanAlgebra):
         if A in C.Unital():
             cat = cat.Unital()
             self._no_generic_basering_coercion = True
-            # Remove the preceding line once :trac:`16492` is fixed
+            # Remove the preceding line once trac #16492 is fixed
             # Removing this line will also break some of the input formats,
-            #   see :trac:`16054`
+            # see trac #16054
         if A in C.WithBasis():
             cat = cat.WithBasis()
         if A in C.FiniteDimensional():
@@ -287,7 +284,7 @@ class SpecialJordanAlgebra(JordanAlgebra):
             sage: F.<x,y,z> = FreeAlgebra(QQ)
             sage: J = JordanAlgebra(F)
             sage: J.an_element()
-            x
+            2 + 2*x + 3*y
         """
         return self.element_class(self, self._A.an_element())
 
@@ -326,7 +323,7 @@ class SpecialJordanAlgebra(JordanAlgebra):
             sage: J.gens()
             Traceback (most recent call last):
             ...
-            NotImplementedError: unknown cardinality
+            NotImplementedError: infinite set
         """
         return tuple(self.algebra_generators())
 
@@ -405,7 +402,7 @@ class SpecialJordanAlgebra(JordanAlgebra):
             from sage.misc.latex import latex
             return latex(self._x)
 
-        def __nonzero__(self):
+        def __bool__(self):
             """
             Return if ``self`` is non-zero.
 
@@ -414,10 +411,12 @@ class SpecialJordanAlgebra(JordanAlgebra):
                 sage: F.<x,y,z> = FreeAlgebra(QQ)
                 sage: J = JordanAlgebra(F)
                 sage: a,b,c = map(J, F.gens())
-                sage: (a + 2*b - c).__nonzero__()
+                sage: bool(a + 2*b - c)
                 True
             """
-            return self._x.__nonzero__()
+            return bool(self._x)
+
+        __nonzero__ = __bool__
 
         def __eq__(self, other):
             """
@@ -459,7 +458,7 @@ class SpecialJordanAlgebra(JordanAlgebra):
                 sage: elt != 2*b
                 True
             """
-            return not self.__eq__(other)
+            return not self == other
 
         def _add_(self, other):
             """
@@ -555,6 +554,30 @@ class SpecialJordanAlgebra(JordanAlgebra):
                 2*x + 2*y
             """
             return self.__class__(self.parent(), other * self._x)
+
+        def monomial_coefficients(self, copy=True):
+            """
+            Return a dictionary whose keys are indices of basis elements in
+            the support of ``self`` and whose values are the corresponding
+            coefficients.
+
+            INPUT:
+
+            - ``copy`` -- (default: ``True``) if ``self`` is internally
+              represented by a dictionary ``d``, then make a copy of ``d``;
+              if ``False``, then this can cause undesired behavior by
+              mutating ``d``
+
+            EXAMPLES::
+
+                sage: F.<x,y,z> = FreeAlgebra(QQ)
+                sage: J = JordanAlgebra(F)
+                sage: a,b,c = map(J, F.gens())
+                sage: elt = a + 2*b - c
+                sage: elt.monomial_coefficients()
+                {x: 1, y: 2, z: -1}
+            """
+            return self._x.monomial_coefficients(copy)
 
 class JordanAlgebraSymmetricBilinear(JordanAlgebra):
     r"""
@@ -689,7 +712,8 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
         """
         R = self.base_ring()
         ret = (self.element_class(self, R.one(), self._M.zero()),)
-        ret += tuple(map(lambda x: self.element_class(self, R.zero(), x), self._M.basis()))
+        ret += tuple(self.element_class(self, R.zero(), x)
+                     for x in self._M.basis())
         return Family(ret)
 
     algebra_generators = basis
@@ -780,7 +804,7 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
             from sage.misc.latex import latex
             return "{} + {}".format(latex(self._s), latex(self._v))
 
-        def __nonzero__(self):
+        def __bool__(self):
             """
             Return if ``self`` is non-zero.
 
@@ -788,14 +812,16 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
 
                 sage: m = matrix([[0,1],[1,1]])
                 sage: J.<a,b,c> = JordanAlgebra(m)
-                sage: 1.__nonzero__()
+                sage: bool(1)
                 True
-                sage: b.__nonzero__()
+                sage: bool(b)
                 True
-                sage: (a + 2*b - c).__nonzero__()
+                sage: bool(a + 2*b - c)
                 True
             """
-            return self._s.__nonzero__() or self._v.__nonzero__()
+            return bool(self._s) or bool(self._v)
+
+        __nonzero__ = __bool__
 
         def __eq__(self, other):
             """
@@ -841,7 +867,7 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
                 sage: 4*a - b + 3*c != x
                 True
             """
-            return not self.__eq__(other)
+            return not self == other
 
         def _add_(self, other):
             """
@@ -934,6 +960,29 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
                 2 + (2, -2)
             """
             return self.__class__(self.parent(), other * self._s, other * self._v)
+
+        def monomial_coefficients(self, copy=True):
+            """
+            Return a dictionary whose keys are indices of basis elements in
+            the support of ``self`` and whose values are the corresponding
+            coefficients.
+
+            INPUT:
+
+            - ``copy`` -- ignored
+
+            EXAMPLES::
+
+                sage: m = matrix([[0,1],[1,1]])
+                sage: J.<a,b,c> = JordanAlgebra(m)
+                sage: elt = a + 2*b - c
+                sage: elt.monomial_coefficients()
+                {0: 1, 1: 2, 2: -1}
+            """
+            d = {0: self._s}
+            for i,c in enumerate(self._v):
+                d[i+1] = c
+            return d
 
         def trace(self):
             r"""

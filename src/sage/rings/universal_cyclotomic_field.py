@@ -23,7 +23,7 @@ number fields, such as calculations with matrices of cyclotomics.
 
 REFERENCES:
 
-.. [Bre97] T. Breuer "Integral bases for subfields of cyclotomic fields" AAECC 8, 279--289 (1997).
+.. [Bre97] \T. Breuer "Integral bases for subfields of cyclotomic fields" AAECC 8, 279--289 (1997).
 
 EXAMPLES::
 
@@ -156,10 +156,11 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
 
+from sage.structure.sage_object import rich_to_bool
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import FieldElement, parent
 from sage.structure.coerce import py_scalar_to_element
-
+from sage.categories.morphism import Morphism
 from sage.rings.ring import Field
 
 from sage.rings.integer import Integer
@@ -176,10 +177,11 @@ lazy_import("sage.rings", "universal_cyclotomic_field", deprecation=18152)
 libgap = GapElement_Integer = GapElement_Rational = GapElement_Cyclotomic = None
 gap = gap3 = None
 
+
 def late_import():
     r"""
     This function avoids importing libgap on startup. It is called once through
-    the constrcturo of :class:`UniversalCyclotomicField`.
+    the constructor of :class:`UniversalCyclotomicField`.
 
     EXAMPLES::
 
@@ -191,13 +193,12 @@ def late_import():
     global gap, gap3, libgap
     global GapElement_Integer, GapElement_Rational, GapElement_Cyclotomic
     from sage.libs.gap.libgap import libgap
-    from sage.libs.gap.element import (
-            GapElement_Integer,
-            GapElement_Rational,
-            GapElement_Cyclotomic)
+    from sage.libs.gap.element import (GapElement_Integer,
+                                       GapElement_Rational,
+                                       GapElement_Cyclotomic)
     from sage.interfaces import (gap, gap3)
 
-from sage.categories.morphism import Morphism
+
 class UCFtoQQbar(Morphism):
     r"""
     Conversion to ``QQbar``.
@@ -241,6 +242,11 @@ class UCFtoQQbar(Morphism):
             sage: UCFtoQQbar = UCF.coerce_embedding()
             sage: UCFtoQQbar(UCF.gen(3))  # indirect doctest
             -0.500000000000000? + 0.866025403784439?*I
+
+        Test that the bug reported in :trac:`19912` has been fixed::
+
+            sage: UCFtoQQbar(UCF.gen(4)+1)
+            I + 1
         """
         obj = x._obj
         QQbar = self.codomain()
@@ -249,7 +255,8 @@ class UCFtoQQbar(Morphism):
         k = obj.Conductor().sage()
         coeffs = obj.CoeffsCyc(k).sage()
         zeta = QQbar.zeta(k)
-        return QQbar(sum(coeffs[a] * zeta**a for a in range(1,k)))
+        return QQbar(sum(coeffs[a] * zeta**a for a in range(k)))
+
 
 class UniversalCyclotomicFieldElement(FieldElement):
     def __init__(self, parent, obj):
@@ -270,15 +277,17 @@ class UniversalCyclotomicFieldElement(FieldElement):
         self._obj = obj
         FieldElement.__init__(self, parent)
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         TESTS::
 
             sage: UCF = UniversalCyclotomicField()
-            sage: map(bool, [UCF.zero(), UCF.one(), UCF.gen(3), UCF.gen(5) + UCF.gen(5,3)])
+            sage: list(map(bool, [UCF.zero(), UCF.one(), UCF.gen(3), UCF.gen(5) + UCF.gen(5,3)]))
             [False, True, True, True]
         """
         return bool(self._obj)
+
+    __nonzero__ = __bool__
 
     def __reduce__(self):
         r"""
@@ -337,8 +346,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             False
         """
         if parent(self) is not parent(other):
-            from sage.structure.element import get_coercion_model
-            cm = get_coercion_model()
+            from sage.structure.element import coercion_model as cm
             try:
                 self, other = cm.canonical_coercion(self, other)
             except TypeError:
@@ -456,16 +464,21 @@ class UniversalCyclotomicFieldElement(FieldElement):
             sage: SR(E(7))
             e^(2/7*I*pi)
             sage: SR(E(5) + 2*E(5,2) + 3*E(5,3))
-            3*e^(6/5*I*pi) + 2*e^(4/5*I*pi) + e^(2/5*I*pi)
+            -sqrt(5) + 1/4*I*sqrt(2*sqrt(5) + 10) - 1/4*I*sqrt(-2*sqrt(5) + 10) - 3/2
+
+        Test that the bug reported in :trac:`19912` has been fixed::
+
+            sage: SR(1+E(4))
+            I + 1
         """
         from sage.symbolic.constants import pi
         from sage.symbolic.all import i as I
         k = self._obj.Conductor().sage()
         coeffs = self._obj.CoeffsCyc(k).sage()
         s = R.zero()
-        for a in range(1,k):
+        for a in range(k):
             if coeffs[a]:
-                s += coeffs[a] * (2*a*I*pi/k).exp()
+                s += coeffs[a] * (2 * a * I * pi / k).exp()
         return s
 
     def to_cyclotomic_field(self, R=None):
@@ -514,6 +527,13 @@ class UniversalCyclotomicFieldElement(FieldElement):
             0.309016994374947 + 0.951056516295154*I
             sage: CC(CF(x))
             0.309016994374947 + 0.951056516295154*I
+
+        Test that the bug reported in :trac:`19912` has been fixed::
+
+            sage: a = 1+E(4); a
+            1 + E(4)
+            sage: a.to_cyclotomic_field()
+            zeta4 + 1
         """
         from sage.rings.number_field.number_field import CyclotomicField
         k = self._obj.Conductor().sage()
@@ -525,7 +545,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             return R(obj.sage())
         zeta = Rcan.gen()
         coeffs = obj.CoeffsCyc(k).sage()
-        return R(sum(coeffs[a] * zeta**a for a in range(1,k)))
+        return R(sum(coeffs[a] * zeta**a for a in range(k)))
 
     def __hash__(self):
         r"""
@@ -533,15 +553,24 @@ class UniversalCyclotomicFieldElement(FieldElement):
 
             sage: UCF = UniversalCyclotomicField()
             sage: hash(UCF.zero())  # indirect doctest
-            1302034650              # 32-bit
-            3713081631936575706     # 64-bit
+            0
             sage: hash(UCF.gen(3,2))
             313156239               # 32-bit
             1524600308199219855     # 64-bit
+
+        TESTS:
+
+        See :trac:`19514`::
+
+            sage: hash(UCF.one())
+            1
         """
         k = self._obj.Conductor().sage()
         coeffs = self._obj.CoeffsCyc(k).sage()
-        return hash((k,) + tuple(coeffs))
+        if k == 1:
+            return hash(coeffs[0])
+        else:
+            return hash((k,) + tuple(coeffs))
 
     def _algebraic_(self, R):
         r"""
@@ -564,7 +593,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         TESTS::
 
             sage: float(E(7) + E(7,6))
-            1.2469796037174672
+            1.246979603717467
         """
         from sage.rings.real_mpfr import RR
         return float(RR(self))
@@ -579,8 +608,49 @@ class UniversalCyclotomicFieldElement(FieldElement):
         f = self.parent().coerce_embedding()
         return complex(f(self))
 
-    def _mpfr_(self, R):
+    def _eval_complex_(self, R):
         r"""
+        Return a complex value of this element in ``R``.
+
+        TESTS::
+
+            sage: CC(E(3))
+            -0.500000000000000 + 0.866025403784439*I
+
+        Check that :trac:`19825` is fixed::
+
+            sage: CIF(E(3))
+            -0.500000000000000? + 0.866025403784439?*I
+            sage: CIF(E(5))
+            0.309016994374948? + 0.9510565162951536?*I
+            sage: CIF(E(12))
+            0.86602540378444? + 0.50000000000000?*I
+
+        If the input is real, the imaginary part is exactly 0::
+
+            sage: CIF(E(17,2) + E(17,15))
+            1.47801783444132?
+            sage: _.imag().is_zero()
+            True
+        """
+        if self._obj.IsRat():
+            return R(self._obj.sage())
+
+        k = self._obj.Conductor().sage()
+        coeffs = self._obj.CoeffsCyc(k).sage()
+        zeta = R.zeta(k)
+        s = sum(coeffs[i] * zeta ** i for i in range(1, k))
+        if self.is_real():
+            return R(s.real())
+        return s
+
+    _complex_mpfi_ = _eval_complex_
+    _complex_mpfr_field_ = _eval_complex_
+
+    def _eval_real_(self, R):
+        r"""
+        Return a real value of this element in ``R``.
+
         TESTS::
 
             sage: RR(E(7) + E(7,6))
@@ -591,10 +661,17 @@ class UniversalCyclotomicFieldElement(FieldElement):
         if not self.is_real():
             raise TypeError("self is not real")
 
-        from sage.rings.qqbar import QQbar, AA
-        return AA(QQbar(self))._mpfr_(R)
+        if self._obj.IsRat():
+            return R(self._obj.sage())
 
-    def __cmp__(self, other):
+        k = self._obj.Conductor().sage()
+        coeffs = self._obj.CoeffsCyc(k).sage()
+        t = (2 * R.pi()) / k
+        return sum(coeffs[i] * (i * t).cos() for i in range(1, k))
+
+    _mpfr_ = _eval_real_
+
+    def _richcmp_(self, other, op):
         r"""
         Comparison (using the complex embedding).
 
@@ -603,22 +680,42 @@ class UniversalCyclotomicFieldElement(FieldElement):
             sage: UCF = UniversalCyclotomicField()
             sage: l = [UCF.gen(3), UCF.gen(3)+1, UCF.gen(5), UCF.gen(5,2),
             ....:      UCF.gen(4), 2*UCF.gen(4), UCF.gen(5)-22/3]
-            sage: lQQbar = map(QQbar,l)
+            sage: lQQbar = list(map(QQbar,l))
             sage: lQQbar.sort()
             sage: l.sort()
-            sage: lQQbar == map(QQbar,l)
+            sage: lQQbar == list(map(QQbar,l))
             True
 
             sage: for i in range(len(l)):
             ....:     assert l[i] >= l[i] and l[i] <= l[i]
             ....:     for j in range(i):
             ....:         assert l[i] > l[j] and l[j] < l[i]
+
+            sage: fibonacci(200)*(E(5)+E(5,4)) <= fibonacci(199)
+            True
+            sage: fibonacci(201)*(E(5)+E(5,4)) <= fibonacci(200)
+            False
         """
         if self._obj == other._obj:
-            return 0
-        else:
-            from sage.rings.qqbar import QQbar
-            return cmp(QQbar(self), QQbar(other))
+            return rich_to_bool(op, 0)
+
+        s = self.real_part()
+        o = other.real_part()
+        if s == o:
+            s = self.imag_part()
+            o = other.imag_part()
+
+        from sage.rings.real_mpfi import RealIntervalField
+        prec = 53
+        R = RealIntervalField(prec)
+        sa = s._eval_real_(R)
+        oa = o._eval_real_(R)
+        while sa.overlaps(oa):
+            prec <<= 2
+            R = RealIntervalField(prec)
+            sa = s._eval_real_(R)
+            oa = o._eval_real_(R)
+        return sa._richcmp_(oa, op)
 
     def denominator(self):
         r"""
@@ -683,7 +780,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         TESTS::
 
             sage: type(E(3).is_rational())
-            <type 'bool'>
+            <... 'bool'>
         """
         return self._obj.IsRat().sage()
 
@@ -735,7 +832,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             1/2*E(3) - 1/2*E(3)^2
         """
         P = self.parent()
-        return P.element_class(P, self._obj._add_(other._obj))
+        return P.element_class(P, self._obj + other._obj)
 
     def _sub_(self, other):
         r"""
@@ -745,7 +842,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             -E(15)^2 - E(15)^11 + E(15)^13 - E(15)^14
         """
         P = self.parent()
-        return P.element_class(P, self._obj._sub_(other._obj))
+        return P.element_class(P, self._obj - other._obj)
 
     def __neg__(self):
         r"""
@@ -771,7 +868,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
             3*E(4)
         """
         P = self.parent()
-        return P.element_class(P, self._obj._mul_(other._obj))
+        return P.element_class(P, self._obj * other._obj)
 
     def _div_(self, other):
         r"""
@@ -784,7 +881,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         """
         P = self.parent()
         try:
-            return P.element_class(P, self._obj._div_(other._obj))
+            return P.element_class(P, self._obj / other._obj)
         except ValueError:
             raise ZeroDivisionError("division by zero")
 
@@ -861,12 +958,12 @@ class UniversalCyclotomicFieldElement(FieldElement):
         k = obj.Conductor().sage()
         n = k if n is None else ZZ(n)
         if not k.divides(n):
-            raise ValueError("n = {} must be a multiple of the conductor ({})".format(n,k))
+            raise ValueError("n = {} must be a multiple of the conductor ({})".format(n, k))
         return [P.element_class(P, obj.GaloisCyc(i)) for i in range(n) if n.gcd(i) == 1]
 
     def norm_of_galois_extension(self):
         r"""
-        Returns the norm as a Galois extension of `\QQ`, which is
+        Return the norm as a Galois extension of `\QQ`, which is
         given by the product of all galois_conjugates.
 
         EXAMPLES::
@@ -923,6 +1020,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         gap_p = libgap.MinimalPolynomial(libgap.eval("Rationals"), self._obj)
         return QQ[var](QQ['x_1'](str(gap_p)))
 
+
 class UniversalCyclotomicField(UniqueRepresentation, Field):
     r"""
     The universal cyclotomic field.
@@ -933,6 +1031,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
     subfield of the universal cyclotomic field.
     """
     Element = UniversalCyclotomicFieldElement
+
     @staticmethod
     def __classcall__(cls, names=None):
         r"""
@@ -960,9 +1059,9 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
         self._populate_coercion_lists_(embedding=UCFtoQQbar(self))
         late_import()
 
-    def _first_ngens(self,n):
+    def _first_ngens(self, n):
         r"""
-        Returns the function :meth:`gen` if ``n=1``, and raises an error otherwise.
+        Return the function :meth:`gen` if ``n=1``, and raises an error otherwise.
 
         This method is needed to make the following work::
 
@@ -982,7 +1081,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
             sage: UniversalCyclotomicField().an_element()
             E(5) - 3*E(5)^2
         """
-        return self.gen(5,1) - self(3)*self.gen(5,2)
+        return self.gen(5, 1) - self(3) * self.gen(5, 2)
 
     def some_elements(self):
         r"""
@@ -996,11 +1095,12 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
             True
         """
         return (self.zero(), self.one(), -self.one(),
-                self.gen(3,1), self.gen(7,1) - self(2)/self(3)*self.gen(7,2))
+                self.gen(3, 1),
+                self.gen(7, 1) - self(2) / self(3) * self.gen(7, 2))
 
     def is_finite(self):
         r"""
-        Returns ``True``.
+        Return ``True``.
 
         EXAMPLES::
 
@@ -1078,7 +1178,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
 
     def gen(self, n, k=1):
         r"""
-        Return the standard ``n``-th root of unity.
+        Return the standard primitive ``n``-th root of unity.
 
         If ``k`` is not ``None``, return the ``k``-th power of it.
 
@@ -1091,8 +1191,15 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
             E(7)^3
             sage: UCF.gen(4,2)
             -1
+
+        There is an alias ``zeta`` also available::
+
+            sage: UCF.zeta(6)
+            -E(3)^2
         """
         return self.element_class(self, libgap.E(n)**k)
+
+    zeta = gen
 
     def _element_constructor_(self, elt):
         r"""
@@ -1158,8 +1265,8 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
         if isinstance(elt, NumberFieldElement) and isinstance(P, NumberField_cyclotomic):
             n = P.gen().multiplicative_order()
             elt = CyclotomicField(n)(elt)
-            coeffs = elt._coefficients()
-            return sum(c * self.gen(n,i) for i,c in enumerate(elt._coefficients()))
+            return sum(c * self.gen(n, i)
+                       for i, c in enumerate(elt._coefficients()))
         else:
             raise TypeError("{} of type {} not valid to initialize an element of the universal cyclotomic field".format(elt, type(elt)))
 
@@ -1189,7 +1296,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
 
     def degree(self):
         r"""
-        Returns the *degree* of ``self`` as a field extension over the Rationals.
+        Return the *degree* of ``self`` as a field extension over the Rationals.
 
         EXAMPLES::
 
@@ -1201,7 +1308,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
 
     def _gap_init_(self):
         r"""
-        Returns gap string representation of ``self``.
+        Return gap string representation of ``self``.
 
         EXAMPLES::
 
@@ -1223,6 +1330,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
         from sage.rings.qqbar import QQbar
         return QQbar
 
+
 def E(n, k=1):
     r"""
     Return the ``n``-th root of unity as an element of the universal cyclotomic
@@ -1235,4 +1343,4 @@ def E(n, k=1):
         sage: E(3) + E(5)
         -E(15)^2 - 2*E(15)^8 - E(15)^11 - E(15)^13 - E(15)^14
     """
-    return UniversalCyclotomicField().gen(n,k)
+    return UniversalCyclotomicField().gen(n, k)

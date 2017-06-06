@@ -5,14 +5,14 @@ Modular parametrization of elliptic curves over `\QQ`
 By the work of Taylor--Wiles et al. it is known that there
 is a surjective morphism
 
-.. math::
+.. MATH::
 
     \phi_E: X_0(N) \rightarrow E.
 
 from the modular curve `X_0(N)`, where `N` is the conductor of `E`.
 The map sends the cusp `\infty` to the origin of `E`.
 
-EXMAPLES::
+EXAMPLES::
 
         sage: phi = EllipticCurve('11a1').modular_parametrization()
         sage: phi
@@ -27,6 +27,7 @@ AUTHORS:
 - chris wuthrich (02/10) - moved from ell_rational_field.py.
 
 """
+from __future__ import absolute_import
 
 ######################################################################
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
@@ -43,7 +44,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ######################################################################
 
-import heegner
+from . import heegner
 
 from sage.rings.all import (LaurentSeriesRing, RationalField, ComplexField, QQ)
 import sage.misc.misc as misc
@@ -52,7 +53,7 @@ class ModularParameterization:
     r"""
     This class represents the modular parametrization of an elliptic curve
 
-    .. math::
+    .. MATH::
 
         \phi_E: X_0(N) \rightarrow E.
 
@@ -68,7 +69,7 @@ class ModularParameterization:
     def __init__(self, E):
         r"""
         EXAMPLES::
-        s
+
             sage: from sage.schemes.elliptic_curves.ell_rational_field import ModularParameterization
             sage: phi = ModularParameterization(EllipticCurve('389a'))
             sage: phi(CC.0/5)
@@ -76,7 +77,6 @@ class ModularParameterization:
 
             sage: phi == loads(dumps(phi))
             True
-
         """
         self._E = E
 
@@ -237,7 +237,7 @@ class ModularParameterization:
 
         The series should satisfy the differential equation
 
-        .. math::
+        .. MATH::
 
             \frac{\mathrm{d}X}{2Y + a_1 X + a_3} = \frac{f(q)\, \mathrm{d}q}{q}
 

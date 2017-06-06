@@ -910,6 +910,14 @@ class FunctionField_polymod(FunctionField):
         Return true if the defining polynomial of the function field is separable, 
         i.e. if the defining polynomial of the function field is f(x), check whether
         gcd(f(x),f'(x)) is a constant.
+        
+        INPUT:
+
+        No inputs.
+
+        OUTPUT:
+
+        -- ``True`` if the defining polynomial is separable. ``False`` otherwise.
 
 
         EXAMPLES::

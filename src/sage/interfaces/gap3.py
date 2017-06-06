@@ -341,7 +341,7 @@ class Gap3(Gap_generic):
         Check that :trac:`23142` is fixed::
 
             sage: gap3.eval("1+1")                         #optional - gap3
-            2
+            '2'
             sage: gap3.quit()                              #optional - gap3
         """
         Expect._start(self)

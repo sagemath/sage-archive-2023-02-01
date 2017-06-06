@@ -558,11 +558,11 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: pari(a).type()
             't_COMPLEX'
             sage: type(pari(a))
-            <type 'sage.libs.cypari2.gen.Gen'>
+            <type 'cypari2.gen.Gen'>
             sage: a.__pari__()
             2.00000000000000 + 1.00000000000000*I
             sage: type(a.__pari__())
-            <type 'sage.libs.cypari2.gen.Gen'>
+            <type 'cypari2.gen.Gen'>
             sage: a = CC(pi)
             sage: pari(a)
             3.14159265358979
@@ -1101,7 +1101,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: float(abs(ComplexNumber(1,1)))
             1.4142135623730951
         """
-        if mpfr_zero_p(self.__im):
+        if mpfr_zero_p(self.__im) or mpfr_nan_p(self.__re):
             return mpfr_get_d(self.__re, rnd)
         else:
             raise TypeError("unable to convert {!r} to float; use abs() or real_part() as desired".format(self))
@@ -2340,6 +2340,21 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             True
         """
         return self.real().is_infinity() or self.imag().is_infinity()
+
+    def is_NaN(self):
+        r"""
+        Check if ``self`` is not-a-number.
+
+        EXAMPLES::
+
+            sage: CC(1, 2).is_NaN()
+            False
+            sage: CC(NaN).is_NaN()
+            True
+            sage: CC(NaN,2).log().is_NaN()
+            True
+        """
+        return mpfr_nan_p(self.__re) or mpfr_nan_p(self.__im)
 
     def zeta(self):
         """

@@ -132,8 +132,9 @@ from sage.rings.integer_ring import ZZ
 from sage.groups.all import AbelianGroup
 import sage.groups.generic as generic
 from sage.libs.pari import pari
-from sage.libs.cypari2.pari_instance import prec_words_to_bits
+from cypari2.pari_instance import prec_words_to_bits
 from sage.structure.sequence import Sequence
+from sage.structure.sage_object import richcmp
 
 from sage.schemes.curves.projective_curve import Hasse_bounds
 from sage.schemes.projective.projective_point import (SchemeMorphism_point_projective_ring,
@@ -150,32 +151,7 @@ class EllipticCurvePoint(SchemeMorphism_point_projective_ring):
     """
     A point on an elliptic curve.
     """
-    def __cmp__(self, other):
-        """
-        Standard comparison function for points on elliptic curves, to
-        allow sorting and equality testing.
-
-        .. NOTE::
-
-            ``__eq__`` and ``__ne__`` are implemented in
-            SchemeMorphism_point_projective_ring
-
-        EXAMPLES:
-            sage: E=EllipticCurve(QQ,[1,1])
-            sage: P=E(0,1)
-            sage: P.order()
-            +Infinity
-            sage: Q=P+P
-            sage: P==Q
-            False
-            sage: Q+Q == 4*P
-            True
-        """
-        assert isinstance(other, (int, long, Integer)) and other == 0
-        if self.is_zero():
-            return 0
-        else:
-            return -1
+    pass
 
 
 class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
@@ -394,14 +370,9 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         """
         return tuple(self._coords)  # Warning: _coords is a list!
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         Comparison function for points to allow sorting and equality testing.
-
-        .. NOTE::
-
-            ``__eq__`` and ``__ne__`` are implemented in
-            SchemeMorphism_point_projective_field
 
         EXAMPLES::
 
@@ -416,8 +387,8 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             try:
                 other = self.codomain().ambient_space()(other)
             except TypeError:
-                return -1
-        return cmp(self._coords, other._coords)
+                return NotImplemented
+        return richcmp(self._coords, other._coords, op)
 
     def __pari__(self):
         r"""
@@ -1087,18 +1058,18 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         r"""
         Return `(Q,k)` where `p^kQ` == self and `Q` cannot be divided by `p`.
 
-        ..WARNING:
+        .. WARNING::
 
-        It is up to the caller to make sure that this does not loop
-        endlessly.  It is used in
-        ``EllipticCurve_generic._p_primary_torsion_basis()``, when
-        self will always have (finite) order which is a power of `p`,
-        so that the order of `Q` increases by a factor of `p` at each
-        stage.
+            It is up to the caller to make sure that this does not loop
+            endlessly.  It is used in
+            ``EllipticCurve_generic._p_primary_torsion_basis()``, when
+            self will always have (finite) order which is a power of `p`,
+            so that the order of `Q` increases by a factor of `p` at each
+            stage.
 
-        Since it will clearly be in danger of looping when
-        self.is_zero(), this case is caught, but otherwise caveat
-        user.
+            Since it will clearly be in danger of looping when
+            self.is_zero(), this case is caught, but otherwise caveat
+            user.
 
         EXAMPLES::
 
@@ -1285,7 +1256,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             ...
             ValueError: Q must be nonzero.
 
-        ..NOTES:
+        .. NOTE::
 
             This function is used in _miller_ algorithm.
 

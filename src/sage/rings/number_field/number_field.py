@@ -93,6 +93,7 @@ We do some arithmetic in a tower of relative number fields::
 
 from __future__ import absolute_import, print_function
 from six.moves import range
+from six import integer_types
 
 from sage.structure.parent_gens import localvars
 from sage.misc.cachefunc import cached_method
@@ -675,7 +676,7 @@ def NumberFieldTower(polynomials, names, check=True, embeddings=None, latex_name
       from that string.
     - ``check`` - a boolean (default: ``True``), whether to check that the
       polynomials are irreducible
-    - ``embeddings`` - a list of elemenst or ``None`` (default: ``None``),
+    - ``embeddings`` - a list of elements or ``None`` (default: ``None``),
       embeddings of the relative number fields in an ambient field.
     - ``latex_names`` - a list of strings or ``None`` (default: ``None``), names
       used to print the generators for latex output.
@@ -1486,7 +1487,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: F.embeddings
             [0.2327856159383841? + 0.7925519925154479?*I]
 
-        TEST::
+        TESTS::
 
             sage: K.<a> = NumberField(x^3+x+1)
             sage: R.<t> = ZZ[]
@@ -6418,7 +6419,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         - ``reslist`` -- a list of residues, i.e. integral number field elements
 
-        - ``Ilist`` -- a list of integral ideals, assumed pairsise coprime
+        - ``Ilist`` -- a list of integral ideals, assumed pairwise coprime
 
         - ``check`` (boolean, default True) -- if True, result is checked
 
@@ -6770,7 +6771,7 @@ class NumberField_absolute(NumberField_generic):
             sage: K(b)
             -1/2*a^2 - 4
         """
-        if isinstance(x, (int, long, Rational, Integer, pari_gen, list)):
+        if isinstance(x, integer_types + (Rational, Integer, pari_gen, list)):
             return self._element_class(self, x)
 
         if isinstance(x, sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement)\
@@ -6898,7 +6899,7 @@ class NumberField_absolute(NumberField_generic):
             <type 'sage.rings.number_field.number_field_element_quadratic.Q_to_quadratic_field_element'>
 
         """
-        if R in [int, long, ZZ, QQ, self.base()]:
+        if R in integer_types + (ZZ, QQ, self.base()):
             return self._generic_convert_map(R)
         from sage.rings.number_field.order import is_NumberFieldOrder
         if is_NumberFieldOrder(R) and self.has_coerce_map_from(R.number_field()):
@@ -9496,7 +9497,7 @@ class NumberField_cyclotomic(NumberField_absolute):
 ##         d = sage.arith.all.gcd(m,n)
 ##         r = n // d
 
-##         # Since we use the power basis for cyclomotic fields, if every
+##         # Since we use the power basis for cyclotomic fields, if every
 ##         # v[i] with i not divisible by r is 0, then we're good.
 
 ##         # If h generates self and has order m, then the element g^r

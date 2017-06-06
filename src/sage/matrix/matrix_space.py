@@ -33,7 +33,7 @@ TESTS::
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
-from six import iteritems
+from six import iteritems, integer_types
 
 # System imports
 import sys
@@ -985,7 +985,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         should eventually be implemented in the corresponding category rather
         than here.)
 
-        ..SEEALSO::
+        .. SEEALSO::
 
             :meth:`sage.categories.rings.Rings.ParentMethod.__getitem__`,
             :meth:`sage.structure.parent.Parent.__getitem__`
@@ -1010,7 +1010,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             ...
             AttributeError: 'MatrixSpace_with_category' object has no attribute 'list'
         """
-        if isinstance(x, (int, long, integer.Integer)):
+        if isinstance(x, integer_types + (integer.Integer,)):
             return self.list()[x]
         return Rings.ParentMethods.__getitem__.__func__(self, x)
 
@@ -1655,16 +1655,16 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             [ -8   2   0   0   1]
             [ -1   2   1 -95  -1]
             sage: Mat(QQ,2,5).random_element(density=0.5)
-            [ 2  0  0  0  1]
-            [ 0  0  0 -1  0]
+            [  2   0   0   0   1]
+            [  0   0   0 1/2   0]
             sage: Mat(QQ,3,sparse=True).random_element()
-            [  -1   -1   -1]
-            [  -3 -1/3   -1]
-            [   0   -1    1]
+            [  -1  1/3    1]
+            [   0   -1    0]
+            [  -1    1 -1/4]
             sage: Mat(GF(9,'a'),3,sparse=True).random_element()
-            [    a   2*a     1]
-            [    2     1 a + 2]
-            [  2*a     2     2]
+            [      1       2       1]
+            [  a + 2     2*a       2]
+            [      2 2*a + 2       1]
         """
         Z = self.zero_matrix().__copy__()
         if density is None:

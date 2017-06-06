@@ -82,7 +82,7 @@ documentation, in particular:
       5
 
 * PPL supports (topologically) closed polyhedra
-  (:class:`C_Polyhedron`) as well as not neccesarily closed polyhedra
+  (:class:`C_Polyhedron`) as well as not necessarily closed polyhedra
   (:class:`NNC_Polyhedron`). Only the latter allows closure points
   (=points of the closure but not of the actual polyhedron) and strict
   inequalities (``>`` and ``<``)
@@ -150,13 +150,13 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
+from cysignals.signals cimport sig_on, sig_off
+
 from sage.structure.sage_object cimport SageObject
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmpxx cimport mpz_class
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
-
-include "cysignals/signals.pxi"
 
 from libcpp cimport bool as cppbool
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
@@ -2703,7 +2703,7 @@ cdef class Polyhedron(_mutable_or_immutable):
 
         .. NOTE::
 
-            The modified polyhedron is not neccessarily a lattice
+            The modified polyhedron is not necessarily a lattice
             polyhedron; Some vertices will, in general, still be
             rational. Lattice points interior to the polyhedron may be
             lost in the process.

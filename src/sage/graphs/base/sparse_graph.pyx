@@ -191,6 +191,8 @@ for both of these uses.
 
 
 from libc.string cimport memset
+from cysignals.memory cimport check_malloc, check_allocarray, sig_free
+
 include 'sage/data_structures/bitset.pxi'
 
 cdef enum:
@@ -1461,6 +1463,16 @@ cdef class SparseGraphBackend(CGraphBackend):
             sage: D.edges()
             [(0, 1, 3)]
 
+        Check :trac:`22991`::
+
+            sage: G = Graph(3, sparse=True)
+            sage: G.add_edge(0,0)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot add edge from 0 to 0 in graph without loops
+            sage: G = Graph(3, sparse=True, loops=True)
+            sage: G.add_edge(0,0); G.edges()
+            [(0, 0, None)]
         """
         if u is None: u = self.add_vertex(None)
         if v is None: v = self.add_vertex(None)
@@ -1474,8 +1486,9 @@ cdef class SparseGraphBackend(CGraphBackend):
         else:
             l_int = self.new_edge_label(l)
 
-        if (not self.loops(None)) and u_int == v_int:
-            return
+        if u_int == v_int and not self._loops:
+            raise ValueError(f"cannot add edge from {u!r} to {v!r} in graph without loops")
+
         if not self.multiple_edges(None):
             if self._cg.has_arc_label(u_int, v_int, l_int):
                 return
@@ -1686,7 +1699,7 @@ cdef class SparseGraphBackend(CGraphBackend):
             sage: list(G.iterator_edges(range(9), True))
             [(1, 2, 3)]
 
-        TEST::
+        TESTS::
 
             sage: g = graphs.PetersenGraph()
             sage: g.edges_incident([0,1,2])

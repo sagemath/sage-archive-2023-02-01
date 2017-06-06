@@ -176,7 +176,7 @@ AUTHORS:
 - Kwankyu Lee (2010-01): added methods generator_matrix_systematic, information_set, and
   magma interface for linear codes.
 
-- Niles Johnson (2010-08): :trac:`#3893`: ``random_element()`` should pass on ``*args`` and ``**kwds``.
+- Niles Johnson (2010-08): :trac:`3893`: ``random_element()`` should pass on ``*args`` and ``**kwds``.
 
 - Thomas Feulner (2012-11): :trac:`13723`: deprecation of ``hamming_weight()``
 
@@ -228,6 +228,7 @@ from sage.modules.free_module import VectorSpace
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecation, deprecated_function_alias
 from sage.misc.randstate import current_randstate
+from sage.misc.package import is_package_installed, PackageNotFoundError
 from .encoder import Encoder
 from .decoder import Decoder, DecodingError
 from sage.combinat.subset import Subsets
@@ -527,38 +528,38 @@ class AbstractLinearCode(Module):
 
         EXAMPLES:
 
-        This was taken from :trac:20899 (and thus ensures this method fixes what was
+        This was taken from :trac:`20899` (and thus ensures this method fixes what was
         described in this ticket).
 
         We create a new code class, its dedicated encoder
         and set appropriate parameters::
 
-        sage: from sage.coding.linear_code import AbstractLinearCode
-        sage: from sage.coding.encoder import Encoder
-        sage: class MyCode(AbstractLinearCode):
-        ....:    _registered_encoders = {}
-        ....:    _registered_decoders = {}
-        ....:    def __init__(self):
-        ....:        super(MyCode, self).__init__(GF(5), 10, "Monkey", "Syndrome")
-        ....:        self._dimension = 2
+            sage: from sage.coding.linear_code import AbstractLinearCode
+            sage: from sage.coding.encoder import Encoder
+            sage: class MyCode(AbstractLinearCode):
+            ....:    _registered_encoders = {}
+            ....:    _registered_decoders = {}
+            ....:    def __init__(self):
+            ....:        super(MyCode, self).__init__(GF(5), 10, "Monkey", "Syndrome")
+            ....:        self._dimension = 2
 
-        sage: class MonkeyEncoder(Encoder):
-        ....:    def __init__(self, C):
-        ....:        super(MonkeyEncoder, self).__init__(C)
-        ....:    @cached_method
-        ....:    def generator_matrix(self):
-        ....:        return matrix(GF(5), 2, 10, [ [1]*5 + [0]*5, [0]*5 + [1]*5 ])
-        sage: MyCode._registered_encoders["Monkey"] = MonkeyEncoder
-        sage: MyCode._registered_decoders["Syndrome"] = codes.decoders.LinearCodeSyndromeDecoder
+            sage: class MonkeyEncoder(Encoder):
+            ....:    def __init__(self, C):
+            ....:        super(MonkeyEncoder, self).__init__(C)
+            ....:    @cached_method
+            ....:    def generator_matrix(self):
+            ....:        return matrix(GF(5), 2, 10, [ [1]*5 + [0]*5, [0]*5 + [1]*5 ])
+            sage: MyCode._registered_encoders["Monkey"] = MonkeyEncoder
+            sage: MyCode._registered_decoders["Syndrome"] = codes.decoders.LinearCodeSyndromeDecoder
 
         We check we get a sensible error message while asking for a string
         representation of an instance of our new class:
 
-        sage: C = MyCode()
-        sage: C #random
-        Traceback (most recent call last):
-        ...
-        RuntimeError: Please override _repr_ in the implementation of <class '__main__.MyCode_with_category'>
+            sage: C = MyCode()
+            sage: C #random
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Please override _repr_ in the implementation of <class '__main__.MyCode_with_category'>
         """
         raise RuntimeError("Please override _repr_ in the implementation of {}".format(self.parent()))
 
@@ -572,38 +573,38 @@ class AbstractLinearCode(Module):
 
         EXAMPLES:
 
-        This was taken from :trac:20899 (and thus ensures this method fixes what was
+        This was taken from :trac:`20899` (and thus ensures this method fixes what was
         described in this ticket).
 
         We create a new code class, its dedicated encoder
         and set appropriate parameters::
 
-        sage: from sage.coding.linear_code import AbstractLinearCode
-        sage: from sage.coding.encoder import Encoder
-        sage: class MyCode(AbstractLinearCode):
-        ....:    _registered_encoders = {}
-        ....:    _registered_decoders = {}
-        ....:    def __init__(self):
-        ....:        super(MyCode, self).__init__(GF(5), 10, "Monkey", "Syndrome")
-        ....:        self._dimension = 2
+            sage: from sage.coding.linear_code import AbstractLinearCode
+            sage: from sage.coding.encoder import Encoder
+            sage: class MyCode(AbstractLinearCode):
+            ....:    _registered_encoders = {}
+            ....:    _registered_decoders = {}
+            ....:    def __init__(self):
+            ....:        super(MyCode, self).__init__(GF(5), 10, "Monkey", "Syndrome")
+            ....:        self._dimension = 2
 
-        sage: class MonkeyEncoder(Encoder):
-        ....:    def __init__(self, C):
-        ....:        super(MonkeyEncoder, self).__init__(C)
-        ....:    @cached_method
-        ....:    def generator_matrix(self):
-        ....:        return matrix(GF(5), 2, 10, [ [1]*5 + [0]*5, [0]*5 + [1]*5 ])
-        sage: MyCode._registered_encoders["Monkey"] = MonkeyEncoder
-        sage: MyCode._registered_decoders["Syndrome"] = codes.decoders.LinearCodeSyndromeDecoder
+            sage: class MonkeyEncoder(Encoder):
+            ....:    def __init__(self, C):
+            ....:        super(MonkeyEncoder, self).__init__(C)
+            ....:    @cached_method
+            ....:    def generator_matrix(self):
+            ....:        return matrix(GF(5), 2, 10, [ [1]*5 + [0]*5, [0]*5 + [1]*5 ])
+            sage: MyCode._registered_encoders["Monkey"] = MonkeyEncoder
+            sage: MyCode._registered_decoders["Syndrome"] = codes.decoders.LinearCodeSyndromeDecoder
 
         We check we get a sensible error message while asking for a string
         representation of an instance of our new class:
 
-        sage: C = MyCode()
-        sage: latex(C)
-        Traceback (most recent call last):
-        ...
-        RuntimeError: Please override _latex_ in the implementation of <class '__main__.MyCode_with_category'>
+            sage: C = MyCode()
+            sage: latex(C)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Please override _latex_ in the implementation of <class '__main__.MyCode_with_category'>
         """
         raise RuntimeError("Please override _latex_ in the implementation of {}".format(self.parent()))
 
@@ -1279,15 +1280,33 @@ class AbstractLinearCode(Module):
 
         If the covering radius a code equals its minimum distance, then the code is called perfect.
 
+        .. NOTE::
+
+            This method is currently not implemented on codes over base fields
+            of cardinality greater than 256 due to limitations in the underlying
+            algorithm of GAP.
+
         EXAMPLES::
 
             sage: C = codes.HammingCode(GF(2), 5)
             sage: C.covering_radius()  # optional - gap_packages (Guava package)
             1
+
+            sage: C = codes.random_linear_code(GF(263), 5, 1)
+            sage: C.covering_radius()  # optional - gap_packages (Guava package)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: the GAP algorithm that Sage is using is limited to computing with fields of size at most 256
         """
+        if not is_package_installed('gap_packages'):
+            raise PackageNotFoundError('gap_packages')
+        gap.load_package("guava")
         F = self.base_ring()
-        G = self.generator_matrix()
-        gapG = gap(G)
+        if F.cardinality() > 256:
+            raise NotImplementedError("the GAP algorithm that Sage is using "
+                                      "is limited to computing with fields "
+                                      "of size at most 256")
+        gapG = gap(self.generator_matrix())
         C = gapG.GeneratorMatCode(gap(F))
         r = C.CoveringRadius()
         try:
@@ -2486,6 +2505,8 @@ class AbstractLinearCode(Module):
             NotImplementedError: the GAP algorithm that Sage is using
              is limited to computing with fields of size at most 256
         """
+        if algorithm == "guava" and not is_package_installed('gap_packages'):
+            raise PackageNotFoundError('gap_packages')
         # If the minimum distance has already been computed or provided by
         # the user then simply return the stored value.
         # This is done only if algorithm is None.
@@ -2504,10 +2525,7 @@ class AbstractLinearCode(Module):
         n = self.length()
         k = self.dimension()
         if (q == 2 or q == 3) and algorithm=="guava":
-            try:
-                gap.load_package("guava")
-            except RuntimeError:
-                raise ValueError("You have to install the optional package GUAVA to use algorithm=\"guava\"")
+            gap.load_package("guava")
             C = gap(G).GeneratorMatCode(gap(F))
             d = C.MinimumWeight()
             return ZZ(d)
@@ -2559,10 +2577,9 @@ class AbstractLinearCode(Module):
         current_randstate().set_seed_gap()
 
         if algorithm=="guava":
-            try:
-                gap.load_package("guava")
-            except RuntimeError:
-                raise ValueError("You have to install the optional package GUAVA to use algorithm=\"guava\"")
+            if not is_package_installed('gap_packages'):
+                raise PackageNotFoundError('gap_packages')
+            gap.load_package("guava")
             from sage.interfaces.gap import gfq_gap_to_sage
             gap.eval("G:="+Gmat)
             C = gap(Gmat).GeneratorMatCode(F)
@@ -2726,6 +2743,8 @@ class AbstractLinearCode(Module):
         n = len(G.columns())
         k = len(G.rows())
         if "gap" in algorithm:
+            if not is_package_installed('gap_packages'):
+                raise PackageNotFoundError('gap_packages')
             gap.load_package('guava')
             wts = self.weight_distribution()                          # bottleneck 1
             nonzerowts = [i for i in range(len(wts)) if wts[i]!=0]

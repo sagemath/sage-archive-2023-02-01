@@ -1,5 +1,55 @@
 """
 Constructors for special matrices
+
+This module gathers several constructors for special, commonly used or
+interesting matrices. These can be reached through ``matrix.<tab>``.
+
+For example, here is a circulant matrix of order five::
+
+    sage: matrix.circulant(SR.var('a b c d e'))
+    [a b c d e]
+    [e a b c d]
+    [d e a b c]
+    [c d e a b]
+    [b c d e a]
+
+The following constructions are available:
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30
+    :delim: |
+
+    :meth:`~sage.matrix.special.block_diagonal_matrix`
+    :meth:`~sage.matrix.special.block_matrix`
+    :meth:`~sage.matrix.special.circulant`
+    :meth:`~sage.matrix.special.column_matrix`
+    :meth:`~sage.matrix.special.companion_matrix`
+    :meth:`~sage.matrix.special.diagonal_matrix`
+    :meth:`~sage.matrix.special.elementary_matrix`
+    :meth:`~sage.matrix.special.hankel`
+    :meth:`~sage.matrix.special.hilbert`
+    :meth:`~sage.matrix.special.identity_matrix`
+    :meth:`~sage.matrix.special.ith_to_zero_rotation_matrix`
+    :meth:`~sage.matrix.special.jordan_block`
+    :meth:`~sage.matrix.special.lehmer`
+    :meth:`~sage.matrix.special.ones_matrix`
+    :meth:`~sage.matrix.special.random_matrix`
+    :meth:`~sage.matrix.special.random_diagonalizable_matrix`
+    :meth:`~sage.matrix.special.random_echelonizable_matrix`
+    :meth:`~sage.matrix.special.random_rref_matrix`
+    :meth:`~sage.matrix.special.random_subspaces_matrix`
+    :meth:`~sage.matrix.special.random_unimodular_matrix`
+    :meth:`~sage.matrix.special.toeplitz`
+    :meth:`~sage.matrix.special.vandermonde`
+    :meth:`~sage.matrix.special.vector_on_axis_rotation_matrix`
+    :meth:`~sage.matrix.special.zero_matrix`
+
+The Combinatorics module provides further matrix constructors, such as Hadamard
+matrices and Latin squares. See:
+
+    - :ref:`sage.combinat.matrices.hadamard_matrix`
+    - :ref:`sage.combinat.matrices.latin`
 """
 
 #*****************************************************************************
@@ -13,6 +63,7 @@ Constructors for special matrices
 #*****************************************************************************
 from __future__ import print_function, absolute_import, division
 from six.moves import range
+from six import integer_types
 
 import sage.rings.all as rings
 from sage.rings.ring import is_Ring
@@ -735,7 +786,7 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
     # Size of matrix specified?
     # Formats 2, 4
     nrows = None
-    if isinstance(arg0, (int, long, rings.Integer)):
+    if isinstance(arg0, integer_types + (rings.Integer,)):
         nrows = arg0
         arg0 = arg1
     # Object holding entries
@@ -810,7 +861,7 @@ def identity_matrix(ring, n=0, sparse=False):
         sage: M.is_mutable()
         True
     """
-    if isinstance(ring, (int, long, rings.Integer)):
+    if isinstance(ring, integer_types  + (rings.Integer,)):
         n = ring
         ring = rings.ZZ
     return matrix_space.MatrixSpace(ring, n, n, sparse)(1)
@@ -836,7 +887,7 @@ def lehmer(ring, n=0):
     """
     from sage.sets.integer_range import IntegerRange
 
-    if isinstance(ring, (int, long, rings.Integer)):
+    if isinstance(ring, integer_types + (rings.Integer,)):
         n = ring
         ring = rings.QQ
     return matrix_space.MatrixSpace(ring, n, n).matrix([[min(i, j)/max(i, j) for i in IntegerRange(1, n+1)] for j in IntegerRange(1, n+1)])
@@ -879,7 +930,7 @@ def zero_matrix(ring, nrows=None, ncols=None, sparse=False):
         [0 0 0 0 0]
 
     """
-    if isinstance(ring, (int, long, rings.Integer)):
+    if isinstance(ring, integer_types + (rings.Integer,)):
         nrows, ncols = (ring, nrows)
         ring = rings.ZZ
     return matrix_space.MatrixSpace(ring, nrows, ncols, sparse)(0)
@@ -964,7 +1015,7 @@ def ones_matrix(ring, nrows=None, ncols=None, sparse=False):
         ...
         ValueError: constructing an all ones matrix requires at least one dimension
     """
-    if isinstance(ring, (int, long, rings.Integer)):
+    if isinstance(ring, integer_types + (rings.Integer,)):
         nrows, ncols = (ring, nrows)
         ring = rings.ZZ
     if nrows is None:
@@ -3418,3 +3469,178 @@ def ith_to_zero_rotation_matrix(v, i, ring=None):
         entries[(k, k)] = 1
     entries.update({(j, j): aa, (j, i): bb, (i, j): -bb, (i, i): aa})
     return matrix(entries, nrows=dim, ring=ring)
+
+@matrix_method
+def hilbert(dim, ring=QQ):
+    r"""
+    Return a Hilbert matrix of the given dimension.
+
+    The `n` dimensional Hilbert matrix is a square matrix with entries being
+    unit fractions,
+
+    .. MATH::
+
+        H_{ij} = \frac{1}{i+j-1},\qquad i, j = 1,\ldots, n.
+
+    For more information see the :wikipedia:`Hilbert_matrix`.
+
+    INPUT:
+
+    - ``dim`` -- integer, the dimension of the Hilbert matrix
+
+    - ``ring`` -- base ring (optional, default: \\QQ) of the resulting matrix
+
+    EXAMPLES::
+
+        sage: matrix.hilbert(5)
+        [  1 1/2 1/3 1/4 1/5]
+        [1/2 1/3 1/4 1/5 1/6]
+        [1/3 1/4 1/5 1/6 1/7]
+        [1/4 1/5 1/6 1/7 1/8]
+        [1/5 1/6 1/7 1/8 1/9]
+    """
+    entries = lambda i, j: 1/(i+j+1)
+    return matrix(entries, nrows=dim, ncols=dim, ring=ring)
+
+@matrix_method
+def vandermonde(v, ring=None):
+    r"""
+    Return a Vandermonde matrix of the given vector.
+
+    The `n` dimensional Vandermonde matrix is a square matrix with columns
+    being the powers of a given vector `v`,
+
+    .. MATH::
+
+        V_{ij} = v_i^{j-1},\qquad i, j = 1,\ldots, n.
+
+    For more information see the :wikipedia:`Vandermonde_matrix`.
+
+    INPUT:
+
+    - ``v`` -- vector, the second column of the Vandermonde matrix
+
+    - ``ring`` -- base ring (optional, default: None) of the resulting matrix
+
+    EXAMPLES:
+
+    A Vandermonde matrix of order three over the symbolic ring::
+
+        sage: matrix.vandermonde(SR.var(['x0', 'x1', 'x2']))
+        [   1   x0 x0^2]
+        [   1   x1 x1^2]
+        [   1   x2 x2^2]
+    """
+    entries = lambda i, j: v[i]**j
+    return matrix(entries, nrows=len(v), ncols=len(v), ring=ring)
+
+@matrix_method
+def toeplitz(c, r, ring=None):
+    r"""
+    Return a Toeplitz matrix of given first column and first row.
+
+    In a Toeplitz matrix, each descending diagonal from left to right is 
+    constant, such that:
+
+    .. MATH:: T_{i,j} = T_{i+1, j+1}.
+
+    For more information see the :wikipedia:`Toeplitz_matrix`.
+
+    INPUT:
+
+    - ``c`` -- vector, first column of the Toeplitz matrix
+
+    - ``r`` -- vector, first row of the Toeplitz matrix, counting from the
+      second column
+
+    - ``ring`` -- base ring (optional, default: None) of the resulting matrix
+
+    EXAMPLES:
+
+    A rectangular Toeplitz matrix::
+
+        sage: matrix.toeplitz([1..4], [5..6])
+        [1 5 6]
+        [2 1 5]
+        [3 2 1]
+        [4 3 2]
+
+    The following `N\times N` Toeplitz matrix arises in the discretization of
+    boundary value problems::
+
+        sage: N = 4
+        sage: matrix.toeplitz([-2, 1] + [0]*(N-2), [1] + [0]*(N-2))
+        [-2  1  0  0]
+        [ 1 -2  1  0]
+        [ 0  1 -2  1]
+        [ 0  0  1 -2]
+    """
+    entries = lambda i,j: c[i-j] if i>=j else r[j-i-1]
+    return matrix(entries, nrows=len(c), ncols=len(r)+1, ring=ring)
+
+@matrix_method
+def hankel(c, r=None, ring=None):
+    r"""
+    Return a Hankel matrix of given first column and whose elements are zero
+    below the first anti-diagonal.
+
+    The Hankel matrix is symmetric and constant across the anti-diagonals,
+    with elements
+
+    .. MATH::
+
+        H_{ij} = v_{i+j-1},\qquad i = 1,\ldots, m,~j = 1,\ldots, n,
+
+    where the vector `v_i = c_i` for `i = 1,\ldots, m` and `v_{m+i} = r_i` for
+    `i = 1, \ldots, n-1` completely determines the Hankel matrix. If the last
+    row, `r`, is not given, the Hankel matrix is square by default and `r = 0`.
+    For more information see the :wikipedia:`Hankel_matrix`.
+
+    INPUT:
+
+    - ``c`` -- vector, first column of the Hankel matrix
+
+    - ``r`` -- vector (optional, default: None), last row of the Hankel matrix, from
+      the second to the last column
+
+    - ``ring`` -- base ring (optional, default: None) of the resulting matrix
+
+    EXAMPLES:
+
+    A Hankel matrix with symbolic entries::
+
+        sage: matrix.hankel(SR.var('a, b, c, d, e'))
+        [a b c d e]
+        [b c d e 0]
+        [c d e 0 0]
+        [d e 0 0 0]
+        [e 0 0 0 0]
+
+    We can also pass the elements of the last row, starting at the second column::
+
+        sage: matrix.hankel(SR.var('a, b, c, d, e'), SR.var('f, g, h, i'))
+        [a b c d e]
+        [b c d e f]
+        [c d e f g]
+        [d e f g h]
+        [e f g h i]
+
+    A third order Hankel matrix in the integers::
+
+        sage: matrix.hankel([1, 2, 3])
+        [1 2 3]
+        [2 3 0]
+        [3 0 0]
+
+    The second argument allows to customize the last row::
+
+        sage: matrix.hankel([1..3], [7..10])
+        [ 1  2  3  7  8]
+        [ 2  3  7  8  9]
+        [ 3  7  8  9 10]
+    """
+    m = len(c)
+    r = [0]*(m-1) if r is None else list(r)
+    n = len(r)
+    entries = lambda i: c[i] if i < m else r[i-m]
+    return matrix(lambda i,j: entries(i+j), nrows=m, ncols=n+1, ring=ring)

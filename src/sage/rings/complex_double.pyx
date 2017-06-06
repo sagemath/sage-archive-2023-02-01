@@ -69,7 +69,7 @@ from cpython.object cimport Py_NE
 
 from sage.misc.randstate cimport randstate, current_randstate
 
-from sage.libs.cypari2.paridecl cimport *
+from cypari2.paridecl cimport *
 include "cysignals/signals.pxi"
 
 from sage.libs.gsl.complex cimport *
@@ -88,8 +88,8 @@ from sage.structure.sage_object cimport rich_to_bool
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 
-from sage.libs.cypari2.gen cimport Gen as pari_gen
-from sage.libs.cypari2.convert cimport new_gen_from_double, new_t_COMPLEX_from_double
+from cypari2.gen cimport Gen as pari_gen
+from cypari2.convert cimport new_gen_from_double, new_t_COMPLEX_from_double
 
 from . import complex_number
 
@@ -195,7 +195,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         """
         Return the hash for ``self``.
 
-        TEST::
+        TESTS::
 
             sage: hash(CDF) % 2^32 == hash(str(CDF)) % 2^32
             True
@@ -1572,6 +1572,21 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         return self.real().is_infinity() or self.imag().is_infinity()
 
+    def is_NaN(self):
+        r"""
+        Check if ``self`` is not-a-number.
+
+        EXAMPLES::
+
+            sage: CDF(1, 2).is_NaN()
+            False
+            sage: CDF(NaN).is_NaN()
+            True
+            sage: (1/CDF(0, 0)).is_NaN()
+            True
+        """
+        return self.real().is_NaN() or self.imag().is_NaN()
+
     def _pow_(self, ComplexDoubleElement a):
         """
         The function returns the complex number `z` raised to the
@@ -2361,9 +2376,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: z = (1/2)*(1 + RDF(sqrt(3)) *CDF.0); z   # abs tol 1e-16
             0.5 + 0.8660254037844387*I
             sage: p = z.algdep(5); p
-            x^3 + 1
-            sage: p.factor()
-            (x + 1) * (x^2 - x + 1)
+            x^2 - x + 1
             sage: abs(z^2 - z + 1) < 1e-14
             True
 
@@ -2374,11 +2387,8 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(1,5).algdep(2)
             x^2 - 2*x + 26
         """
-        from .polynomial.polynomial_ring_constructor import PolynomialRing
-        from .integer_ring import ZZ
-        R = PolynomialRing(ZZ ,'x')
-        return R(self.__pari__().algdep(n))
-
+        from sage.arith.all import algdep
+        return algdep(self, n)
 
 cdef class FloatToCDF(Morphism):
     """

@@ -129,6 +129,7 @@ Note that the letterplace implementation can only be used if the corresponding
 #*****************************************************************************
 from __future__ import absolute_import
 from six.moves import range
+from six import integer_types
 import six
 
 from sage.categories.rings import Rings
@@ -146,7 +147,7 @@ from sage.all import PolynomialRing
 from sage.rings.ring import Algebra
 from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
-from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
+from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.words.word import Word
 from sage.structure.category_object import normalize_names
 
@@ -295,7 +296,7 @@ class FreeAlgebraFactory(UniqueFactory):
                     implementation=implementation if implementation != 'letterplace' else None)
         # normalise the generator names
         from sage.all import Integer
-        if isinstance(arg1, (int, long, Integer)):
+        if isinstance(arg1, (Integer,) + integer_types):
             arg1, arg2 = arg2, arg1
         if not names is None:
             arg1 = names
@@ -614,7 +615,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
                         if T[i]:
                             out.append((i%ngens,T[i]))
                     return M(out)
-                return self.element_class(self, dict([(exp_to_monomial(T),c) for T,c in six.iteritems(x.letterplace_polynomial().dict())]))
+                return self.element_class(self, {exp_to_monomial(T):c for T,c in six.iteritems(x.letterplace_polynomial().dict())})
         # ok, not a free algebra element (or should not be viewed as one).
         if isinstance(x, six.string_types):
             from sage.all import sage_eval
@@ -1337,7 +1338,7 @@ class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
         return sum([i[1] * self._alg.lie_polynomial(i[0]) for i in list(t)],
                    self._alg.zero())
 
-    class Element(CombinatorialFreeModuleElement):
+    class Element(CombinatorialFreeModule.Element):
         def expand(self):
             """
             Expand ``self`` in the monomials of the free algebra.

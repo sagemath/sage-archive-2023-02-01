@@ -48,7 +48,6 @@ from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.finite_rings.integer_mod import IntegerMod_int
 from sage.matrix.constructor import random_matrix
-from sage.rings.arith import is_prime_power, factor
 from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.randstate import current_randstate
 from sage.misc.cachefunc import cached_method, cached_function
@@ -602,7 +601,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         """
         Get an element without checking.
 
-        TEST::
+        TESTS::
 
             sage: F.<z> = GF(9)
             sage: M = MatrixSpace(F,3)(sorted(list(F)))

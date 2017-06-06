@@ -77,7 +77,7 @@ class SortedDirectoryWalkerABC(object):
             sage: from sage.tests.py3_syntax import Python3SyntaxTest
             sage: test = Python3SyntaxTest('sage/tests/french_book')
             sage: next(iter(test))
-            ('src/sage/tests/french_book', 'README', '')
+            ('...src/sage/tests/french_book', 'README', '')
         """
         tree_walk = itertools.chain(*map(os.walk, self._directories))
         for path, _, files in tree_walk:
@@ -173,7 +173,7 @@ class Python3SyntaxTest(SortedDirectoryWalkerABC):
 
             sage: import os, tempfile
             sage: src = tempfile.NamedTemporaryFile(suffix='.py', delete=False)
-            sage: src.write('print "invalid print statement"')
+            sage: _ = src.write('print "invalid print statement"')
             sage: src.close()
             sage: from sage.tests.py3_syntax import Python3SyntaxTest
             sage: py3_syntax = Python3SyntaxTest()

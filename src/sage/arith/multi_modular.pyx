@@ -12,7 +12,7 @@ Utility classes for multi-modular algorithms
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cysignals/memory.pxi"
+from cysignals.memory cimport check_allocarray, check_reallocarray, sig_free
 
 from sage.libs.gmp.mpz cimport *
 from sage.rings.integer cimport Integer, smallInteger

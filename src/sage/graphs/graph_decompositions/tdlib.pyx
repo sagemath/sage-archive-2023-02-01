@@ -127,7 +127,7 @@ def treedecomposition_exact(G, lb=-1):
         sage: T = tdlib.treedecomposition_exact(G)                   # optional - tdlib
         sage: T.show(vertex_size=2000)                               # optional - tdlib
 
-    TEST::
+    TESTS::
 
         sage: import sage.graphs.graph_decompositions.tdlib as tdlib # optional - tdlib
         sage: G = graphs.HouseGraph()                                # optional - tdlib

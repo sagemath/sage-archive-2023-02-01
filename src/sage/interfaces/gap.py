@@ -174,8 +174,8 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 from __future__ import absolute_import, print_function
+from six import string_types
 
 from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from .gap_workspace import gap_workspace_file, prepare_workspace_dir
@@ -477,7 +477,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
 
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
-            sage: f.write('xx := 22;\n')
+            sage: _ = f.write('xx := 22;\n')
             sage: f.close()
             sage: gap.read(filename)
             sage: gap.get('xx').strip()
@@ -739,17 +739,17 @@ class Gap_generic(ExtraTabCompletion, Expect):
             (normal, error) = self._execute_line(line, wait_for_prompt=wait_for_prompt,
                                                  expect_eof= (self._quit_string() in line))
 
-            if len(error)> 0:
+            if len(error):
                 if 'Error, Rebuild completion files!' in error:
                     error += "\nRunning gap_reset_workspace()..."
                     self.quit()
                     gap_reset_workspace()
                 error = error.replace('\r','')
                 raise RuntimeError("%s produced error output\n%s\n   executing %s"%(self, error,line))
-            if len(normal) == 0:
+            if not len(normal):
                 return ''
 
-            if isinstance(wait_for_prompt, str) and normal.ends_with(wait_for_prompt):
+            if isinstance(wait_for_prompt, string_types) and normal.ends_with(wait_for_prompt):
                 n = len(wait_for_prompt)
             elif normal.endswith(self._prompt):
                 n = len(self._prompt)
@@ -758,7 +758,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
             else:
                 n = 0
             out = normal[:-n]
-            if len(out) > 0 and out[-1] == "\n":
+            if len(out) and out[-1] == "\n":
                 out = out[:-1]
             return out
 

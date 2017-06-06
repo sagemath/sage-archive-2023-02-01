@@ -416,7 +416,7 @@ class VectorFrame(FreeModuleBasis):
 
         - instance of :class:`CoFrame` representing the dual of ``self``
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: e = M.vector_frame('e')
@@ -443,7 +443,7 @@ class VectorFrame(FreeModuleBasis):
 
         - instance of :class:`VectorFrame`
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: e = M.vector_frame('e')
@@ -1167,7 +1167,7 @@ class CoordFrame(VectorFrame):
 
         - a :class:`CoordCoFrame` representing the dual of ``self``
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()

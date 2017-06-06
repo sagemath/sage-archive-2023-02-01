@@ -31,7 +31,6 @@ from sage.categories.rings import Rings
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
 
-from sage.algebras.free_algebra import FreeAlgebra
 from sage.algebras.lie_algebras.lie_algebra_element import (LieAlgebraElementWrapper,
                                                             LieAlgebraMatrixWrapper)
 from sage.rings.all import ZZ
@@ -218,7 +217,36 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         and ``L[e + [h, f], h]`` will both raise errors. Instead you must
         use ``L[e + L[h, f], h]``.
 
-    Now we construct a free Lie algebra in a few different ways. There are
+    **4.** We can construct a Lie algebra from a Cartan type by using
+    the ``cartan_type`` option::
+
+        sage: L = LieAlgebra(ZZ, cartan_type=['C',3])
+        sage: L.inject_variables()
+        Defining e1, e2, e3, f1, f2, f3, h1, h2, h3
+        sage: e1.bracket(e2)
+        -E[alpha[1] + alpha[2]]
+        sage: L([[e1, e2], e2])
+        0
+        sage: L([[e2, e3], e3])
+        0
+        sage: L([e2, [e2, e3]])
+        2*E[2*alpha[2] + alpha[3]]
+
+        sage: L = LieAlgebra(ZZ, cartan_type=['E',6])
+        sage: L
+        Lie algebra of ['E', 6] in the Chevalley basis
+
+    We also have matrix versions of the classical Lie algebras::
+
+        sage: L = LieAlgebra(ZZ, cartan_type=['A',2], representation='matrix')
+        sage: L.gens()
+        (
+        [0 1 0]  [0 0 0]  [0 0 0]  [0 0 0]  [ 1  0  0]  [ 0  0  0]
+        [0 0 0]  [0 0 1]  [1 0 0]  [0 0 0]  [ 0 -1  0]  [ 0  1  0]
+        [0 0 0], [0 0 0], [0 0 0], [0 1 0], [ 0  0  0], [ 0  0 -1]
+        )
+
+    **5.** We construct a free Lie algebra in a few different ways. There are
     two primary representations, as brackets and as polynomials::
 
         sage: L = LieAlgebra(QQ, 'x,y,z'); L # not tested #16823
@@ -264,6 +292,28 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         assoc = kwds.get("associative", None)
         if assoc is not None:
             return LieAlgebraFromAssociative(assoc, names=names, index_set=index_set)
+
+        # Parse input as a Cartan type
+        # -----
+
+        ct = kwds.get("cartan_type", None)
+        if ct is not None:
+            from sage.combinat.root_system.cartan_type import CartanType
+            ct = CartanType(ct)
+            if ct.is_affine():
+                from sage.algebras.lie_algebras.affine_lie_algebra import AffineLieAlgebra
+                return AffineLieAlgebra(R, cartan_type=ct,
+                                        kac_moody=kwds.get("kac_moody", True))
+            if not ct.is_finite():
+                raise NotImplementedError("non-finite types are not implemented yet, see trac #14901 for details")
+            rep = kwds.get("representation", "bracket")
+            if rep == 'bracket':
+                from sage.algebras.lie_algebras.classical_lie_algebra import LieAlgebraChevalleyBasis
+                return LieAlgebraChevalleyBasis(R, ct)
+            if rep == 'matrix':
+                from sage.algebras.lie_algebras.classical_lie_algebra import ClassicalMatrixLieAlgebra
+                return ClassicalMatrixLieAlgebra(R, ct)
+            raise ValueError("invalid representation")
 
         # Parse the remaining arguments
         # -----
@@ -333,6 +383,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             # Construct the free Lie algebra from polynomials in the
             #   free (associative unital) algebra
             # TODO: Change this to accept an index set once FreeAlgebra accepts one
+            from sage.algebras.free_algebra import FreeAlgebra
             F = FreeAlgebra(R, names)
             if index_set is None:
                 index_set = F.variable_names()

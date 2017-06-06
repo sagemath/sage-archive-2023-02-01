@@ -236,11 +236,11 @@ cdef class InverseAction(Action):
 
         sage: c = cm.get_action(ZZ, list, operator.mul)
         sage: c
-        Left action by Integer Ring on <type 'list'>
+        Left action by Integer Ring on <... 'list'>
         sage: ~c
         Traceback (most recent call last):
         ...
-        TypeError: no inverse defined for Left action by Integer Ring on <type 'list'>
+        TypeError: no inverse defined for Left action by Integer Ring on <... 'list'>
 
     TESTS:
 

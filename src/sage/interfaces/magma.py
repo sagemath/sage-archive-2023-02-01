@@ -213,6 +213,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
+from six import string_types
 
 import re
 import sys
@@ -457,7 +458,7 @@ class Magma(ExtraTabCompletion, Expect):
             sage: magma._post_process_from_file("Hello")
             ''
         """
-        if not isinstance(s, str):
+        if not isinstance(s, string_types):
             raise RuntimeError("Error evaluating object in %s:\n%s" % (self, s))
         # Chop off the annoying "Loading ... " message that Magma
         # always outputs no matter what.
@@ -1044,7 +1045,7 @@ class Magma(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: filename = os.path.join(SAGE_TMP, 'a.m')
-            sage: open(filename, 'w').write('function f(n) return n^2; end function;\nprint "hi";')
+            sage: _ = open(filename, 'w').write('function f(n) return n^2; end function;\nprint "hi";')
             sage: print(magma.load(filename))      # optional - magma
             Loading ".../a.m"
             hi

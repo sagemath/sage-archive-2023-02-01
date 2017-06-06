@@ -131,7 +131,7 @@ cdef class DefaultConvertMap_unique(DefaultConvertMap):
 
 cdef class NamedConvertMap(Map):
     """
-    This is used for creating a elements via the _xxx_ methods.
+    This is used for creating elements via the _xxx_ methods.
 
     For example, many elements implement an _integer_ method to
     convert to ZZ, or a _rational_ method to convert to QQ.

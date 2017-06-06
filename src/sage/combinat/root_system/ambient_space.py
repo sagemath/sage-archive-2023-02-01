@@ -10,7 +10,7 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
-from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
+from sage.combinat.free_module import CombinatorialFreeModule
 from .weight_lattice_realizations import WeightLatticeRealizations
 from sage.rings.all import ZZ, QQ
 from sage.categories.homset import End
@@ -360,7 +360,7 @@ class AmbientSpace(CombinatorialFreeModule):
         """
         return End(self).identity()
 
-class AmbientSpaceElement(CombinatorialFreeModuleElement):
+class AmbientSpaceElement(CombinatorialFreeModule.Element):
     # For backward compatibility
     def _repr_(self):
         """

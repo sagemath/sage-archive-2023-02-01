@@ -593,48 +593,6 @@ class RealReflectionGroup(ComplexReflectionGroup):
         """
         return self.cartan_type().coxeter_matrix()
 
-    def permutahedron(self, point=None):
-        r"""
-        Return the permutahedron of ``self``.
-
-        This is the convex hull of the point ``point`` in the weight
-        basis under the action of ``self`` on the underlying vector
-        space `V`.
-
-        INPUT:
-
-        - ``point`` -- optional, a point given by its coordinates in
-          the weight basis (default is `(1, 1, 1, \ldots)`)
-
-        .. NOTE::
-
-            The result is expressed in the root basis coordinates.
-
-        EXAMPLES::
-
-            sage: W = ReflectionGroup(['A',3])                          # optional - gap3
-            sage: W.permutahedron()                                     # optional - gap3
-            A 3-dimensional polyhedron in QQ^3 defined as the convex hull
-            of 24 vertices
-
-            sage: W = ReflectionGroup(['A',3],['B',2])                  # optional - gap3
-            sage: W.permutahedron()                                     # optional - gap3
-            A 5-dimensional polyhedron in QQ^5 defined as the convex hull of 192 vertices
-
-        TESTS::
-
-            sage: W = ReflectionGroup(['A',3])                          # optional - gap3
-            sage: W.permutahedron([3,5,8])                              # optional - gap3
-            A 3-dimensional polyhedron in QQ^3 defined as the convex hull
-            of 24 vertices
-        """
-        n = self.rank()
-        weights = self.fundamental_weights()
-        if point is None:
-            point = [1] * n
-        v = sum(point[i] * wt for i, wt in enumerate(weights))
-        from sage.geometry.polyhedron.constructor import Polyhedron
-        return Polyhedron(vertices=[v*w.to_matrix() for w in self])
 
     @cached_method
     def right_coset_representatives(self, J):

@@ -44,7 +44,7 @@ from __future__ import absolute_import, print_function
 include "cysignals/signals.pxi"
 from sage.libs.gmp.mpz cimport mpz_sgn, mpz_cmpabs_ui
 from sage.libs.flint.fmpz cimport *
-from sage.libs.cypari2.gen cimport Gen as pari_gen
+from cypari2.gen cimport Gen as pari_gen
 from sage.libs.mpfr cimport MPFR_RNDU, MPFR_RNDD
 
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
@@ -1838,6 +1838,21 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             True
         """
         return True
+
+    def is_NaN(self):
+        r"""
+        Return ``True`` if this is not-a-number.
+
+        EXAMPLES::
+
+            sage: CIF(2, 1).is_NaN()
+            False
+            sage: CIF(NaN).is_NaN()
+            True
+            sage: (1 / CIF(0, 0)).is_NaN()
+            True
+        """
+        return mpfi_nan_p(self.__re) or mpfi_nan_p(self.__im)
 
     def cos(self):
         r"""

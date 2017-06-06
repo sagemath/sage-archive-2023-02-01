@@ -1,51 +1,8 @@
 r"""
 Elements of the ring `\ZZ` of integers
 
-AUTHORS:
-
-- William Stein (2005): initial version
-
-- Gonzalo Tornaria (2006-03-02): vastly improved python/GMP
-  conversion; hashing
-
-- Didier Deshommes (2006-03-06): numerous examples
-  and docstrings
-
-- William Stein (2006-03-31): changes to reflect GMP bug fixes
-
-- William Stein (2006-04-14): added GMP factorial method (since it's
-  now very fast).
-
-- David Harvey (2006-09-15): added nth_root, exact_log
-
-- David Harvey (2006-09-16): attempt to optimise Integer constructor
-
-- Rishikesh (2007-02-25): changed quo_rem so that the rem is positive
-
-- David Harvey, Martin Albrecht, Robert Bradshaw (2007-03-01):
-  optimized Integer constructor and pool
-
-- Pablo De Napoli (2007-04-01): multiplicative_order should return
-  +infinity for non zero numbers
-
-- Robert Bradshaw (2007-04-12): is_perfect_power, Jacobi symbol (with
-  Kronecker extension).  Convert some methods to use GMP directly
-  rather than PARI, Integer(), PY_NEW(Integer)
-
-- David Roe (2007-03-21): sped up valuation and is_square, added
-  val_unit, is_power, is_power_of and divide_knowing_divisible_by
-
-- Robert Bradshaw (2008-03-26): gamma function, multifactorials
-
-- Robert Bradshaw (2008-10-02): bounded squarefree part
-
-- David Loeffler (2011-01-15): fixed bug #10625 (inverse_mod should accept an ideal as argument)
-
-- Vincent Delecroix (2010-12-28): added unicode in Integer.__init__
-
-- David Roe (2012-03): deprecate :meth:`~sage.rings.integer.Integer.is_power`
-  in favour of :meth:`~sage.rings.integer.Integer.is_perfect_power` (see
-  :trac:`12116`)
+Sage has highly optimized and extensive functionality about arithmetic with integers
+and the ring of integers.
 
 EXAMPLES:
 
@@ -111,6 +68,52 @@ real field R::
     sage: RR(n)
     9.3908230000000000000000000000000000000000000000000000000000e6
 
+AUTHORS:
+
+- William Stein (2005): initial version
+
+- Gonzalo Tornaria (2006-03-02): vastly improved python/GMP
+  conversion; hashing
+
+- Didier Deshommes (2006-03-06): numerous examples
+  and docstrings
+
+- William Stein (2006-03-31): changes to reflect GMP bug fixes
+
+- William Stein (2006-04-14): added GMP factorial method (since it's
+  now very fast).
+
+- David Harvey (2006-09-15): added nth_root, exact_log
+
+- David Harvey (2006-09-16): attempt to optimise Integer constructor
+
+- Rishikesh (2007-02-25): changed quo_rem so that the rem is positive
+
+- David Harvey, Martin Albrecht, Robert Bradshaw (2007-03-01):
+  optimized Integer constructor and pool
+
+- Pablo De Napoli (2007-04-01): multiplicative_order should return
+  +infinity for non zero numbers
+
+- Robert Bradshaw (2007-04-12): is_perfect_power, Jacobi symbol (with
+  Kronecker extension).  Convert some methods to use GMP directly
+  rather than PARI, Integer(), PY_NEW(Integer)
+
+- David Roe (2007-03-21): sped up valuation and is_square, added
+  val_unit, is_power, is_power_of and divide_knowing_divisible_by
+
+- Robert Bradshaw (2008-03-26): gamma function, multifactorials
+
+- Robert Bradshaw (2008-10-02): bounded squarefree part
+
+- David Loeffler (2011-01-15): fixed bug #10625 (inverse_mod should accept an ideal as argument)
+
+- Vincent Delecroix (2010-12-28): added unicode in Integer.__init__
+
+- David Roe (2012-03): deprecate :meth:`~sage.rings.integer.Integer.is_power`
+  in favour of :meth:`~sage.rings.integer.Integer.is_perfect_power` (see
+  :trac:`12116`)
+
 """
 #*****************************************************************************
 #       Copyright (C) 2004,2006 William Stein <wstein@gmail.com>
@@ -126,24 +129,28 @@ real field R::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
 
 # Do not create any Integer, especially non cdef'ed ones, before the hooked
 # creation and deletion are setup by the call to hook_fast_tp_functions
 
 cimport cython
+from libc.math cimport ldexp
+from libc.string cimport memcpy
+
+from cysignals.memory cimport check_allocarray, check_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 import operator
-
 import sys
 
+from sage.ext.stdsage cimport PY_NEW
+from sage.libs.gmp.mpz cimport *
+from sage.libs.gmp.mpq cimport *
 from sage.misc.superseded import deprecated_function_alias
 from sage.misc.long cimport pyobject_to_long
 
-include "cysignals/signals.pxi"
-include "sage/ext/cdefs.pxi"
-include "sage/ext/stdsage.pxi"
-include "cysignals/memory.pxi"
 from cpython.list cimport *
 from cpython.number cimport *
 from cpython.int cimport *
@@ -154,7 +161,7 @@ from sage.structure.element cimport (Element, EuclideanDomainElement,
         parent, coercion_model)
 from sage.structure.parent cimport Parent
 include "sage/ext/python_debug.pxi"
-from sage.libs.cypari2.paridecl cimport *
+from cypari2.paridecl cimport *
 from sage.rings.rational cimport Rational
 from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.libs.gmp.pylong cimport *
@@ -164,9 +171,9 @@ from sage.libs.gmp.mpq cimport mpq_neg
 from libc.limits cimport LONG_MAX
 from libc.math cimport sqrt as sqrt_double, log as log_c, ceil as ceil_c, isnan
 
-from sage.libs.cypari2.gen cimport objtogen, Gen as pari_gen
+from cypari2.gen cimport objtogen, Gen as pari_gen
 from sage.libs.pari.convert_gmp cimport INT_to_mpz, new_gen_from_mpz_t
-from sage.libs.cypari2.stack cimport new_gen
+from cypari2.stack cimport new_gen
 from sage.libs.flint.ulong_extras cimport *
 
 import sage.rings.infinity
@@ -337,7 +344,7 @@ from sage.structure.element cimport EuclideanDomainElement, ModuleElement, Eleme
 from sage.structure.element import  bin_op
 from sage.structure.coerce_exceptions import CoercionException
 
-import integer_ring
+from . import integer_ring
 cdef Parent the_integer_ring = integer_ring.ZZ
 
 # The documentation for the ispseudoprime() function in the PARI
@@ -1229,11 +1236,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         This method just calls :func:`digits` with ``base=2``.
 
-        SEE ALSO:
+        .. SEEALSO::
 
-        :func:`nbits` (number of bits; a faster way to compute
-        ``len(x.bits())``; and :func:`binary`, which returns a string in
-        more-familiar notation.
+            :func:`nbits` (number of bits; a faster way to compute
+            ``len(x.bits())``; and :func:`binary`, which returns a string in
+            more-familiar notation.
 
         EXAMPLES::
 
@@ -2277,8 +2284,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef int pow_2
         cdef size_t upper,lower,middle
 
-        import real_mpfi
-        R=real_mpfi.RIF
+        from .real_mpfi import RIF as R
 
         rif_self = R(self)
 
@@ -2458,8 +2464,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 # (suggested by David Harvey and Carl Witty)
                 # "for randomly distributed integers, the chance of this
                 # interval-based comparison failing is absurdly low"
-                import real_mpfi
-                approx_compare = real_mpfi.RIF(m)**guess
+                from .real_mpfi import RIF
+                approx_compare = RIF(m)**guess
                 if self > approx_compare:
                     guess_filled = 1
                 elif self < approx_compare:
@@ -3008,7 +3014,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def euclidean_degree(self):
         r"""
-        Return the degree of this element as an element of a euclidean domain.
+        Return the degree of this element as an element of an Euclidean domain.
 
         If this is an element in the ring of integers, this is simply its
         absolute value.
@@ -4123,11 +4129,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     @cython.cdivision(True)
     def multifactorial(self, int k):
         r"""
-        Computes the k-th factorial `n!^{(k)}` of self. For k=1
-        this is the standard factorial, and for k greater than one it is
-        the product of every k-th terms down from self to k. The recursive
-        definition is used to extend this function to the negative
-        integers.
+        Compute the k-th factorial `n!^{(k)}` of self.
+
+        For k=1 this is the standard factorial, and for k greater than
+        one it is the product of every k-th terms down from self to
+        k. The recursive definition is used to extend this function to
+        the negative integers.
 
         EXAMPLES::
 
@@ -4135,12 +4142,20 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             120
             sage: 5.multifactorial(2)
             15
+            sage: 5.multifactorial(3)
+            10
             sage: 23.multifactorial(2)
             316234143225
             sage: prod([1..23, step=2])
             316234143225
             sage: (-29).multifactorial(7)
             1/2640
+
+        TESTS::
+
+            sage: for a in range(1,20):
+            ....:     for b in range(1,20):
+            ....:         assert ZZ(a).multifactorial(b) == prod(range(a,0,-b))
         """
         if k <= 0:
             raise ValueError("multifactorial only defined for positive values of k")
@@ -4151,8 +4166,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef int n = mpz_get_si(self.value)
 
         # base case
-        if 0 < n < k:
-            return one
+        if 0 < n <= k:
+            return n
 
         # easy to calculate
         elif n % k == 0:
@@ -4179,7 +4194,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef int i,j
 
         # we need (at most) log_2(#factors) concurrent sub-products
-        cdef int prod_count = <int>ceil_c(log_c(n/k+1)/log_c(2))
+        cdef int prod_count = <int>ceil_c(log_c(n/k+1)/log_c(2)) + 1
         cdef mpz_t* sub_prods = <mpz_t*>check_allocarray(prod_count, sizeof(mpz_t))
         for i from 0 <= i < prod_count:
             mpz_init(sub_prods[i])
@@ -4187,13 +4202,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         sig_on()
 
         cdef residue = n % k
-        cdef int tip = 0
+        mpz_set_ui(sub_prods[0], residue)
+        cdef int tip = 1
         for i from 1 <= i <= n//k:
             mpz_set_ui(sub_prods[tip], k*i + residue)
             # for the i-th terms we use the bits of i to calculate how many
             # times we need to multiply "up" the stack of sub-products
             for j from 0 <= j < 32:
-                if i & (1 << j):
+                if not (i & (1 << j)):
                     break
                 tip -= 1
                 mpz_mul(sub_prods[tip], sub_prods[tip], sub_prods[tip+1])
@@ -5594,7 +5610,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: m = n.__pari__(); m
             9390823
             sage: type(m)
-            <type 'sage.libs.cypari2.gen.Gen'>
+            <type 'cypari2.gen.Gen'>
 
         TESTS::
 
@@ -6837,7 +6853,6 @@ cdef class int_to_Z(Morphism):
             sage: f.parent()
             Set of Morphisms from Set of Python objects of type 'int' to Integer Ring in Category of sets
         """
-        import integer_ring
         import sage.categories.homset
         from sage.structure.parent import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), integer_ring.ZZ))
@@ -6891,7 +6906,6 @@ cdef class long_to_Z(Morphism):
         -10000000000000000000001
     """
     def __init__(self):
-        import integer_ring
         import sage.categories.homset
         from sage.structure.parent import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(long), integer_ring.ZZ))
@@ -7050,7 +7064,7 @@ cdef hook_fast_tp_functions():
     """
     global global_dummy_Integer, sizeof_Integer, integer_pool
 
-    integer_pool = <PyObject**>sig_malloc(integer_pool_size * sizeof(PyObject*))
+    integer_pool = <PyObject**>check_allocarray(integer_pool_size, sizeof(PyObject*))
 
     cdef PyObject* o
     o = <PyObject *>global_dummy_Integer

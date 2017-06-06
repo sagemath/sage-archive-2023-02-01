@@ -168,6 +168,8 @@ __append_to_doc(
      "Tutte12Cage",
      "TutteCoxeterGraph",
      "TutteGraph",
+     "U42Graph216",
+     "U42Graph540",
      "WagnerGraph",
      "WatkinsSnarkGraph",
      "WellsGraph",
@@ -239,7 +241,8 @@ __append_to_doc(
      "trees",
      "triangulations",
      "TuranGraph",
-     "WheelGraph"])
+     "WheelGraph",
+     "WindmillGraph"])
 
 
 __doc__ += """
@@ -260,6 +263,7 @@ __append_to_doc(
      "TaylorTwographDescendantSRG",
      "TaylorTwographSRG",
      "T2starGeneralizedQuadrangleGraph",
+     "Nowhere0WordsTwoWeightCodeGraph",
      "HaemersGraph",
      "CossidentePenttilaGraph",
      "UnitaryDualPolarGraph",
@@ -922,7 +926,7 @@ class GraphGenerators():
         OUTPUT:
 
            A list of lists of graphs.  Each sublist will be a list of
-           cospectral graphs (lists of cadinality 1 being omitted).
+           cospectral graphs (lists of cardinality 1 being omitted).
 
 
         .. SEEALSO::
@@ -1045,9 +1049,9 @@ class GraphGenerators():
 
             sage: from six import StringIO
             sage: code_input = StringIO('>>planar_code<<')
-            sage: code_input.write('>>planar_code<<')
+            sage: _ = code_input.write('>>planar_code<<')
             sage: for c in [4,2,3,4,0,1,4,3,0,1,2,4,0,1,3,2,0]:
-            ....:     code_input.write('{:c}'.format(c))
+            ....:     _ = code_input.write('{:c}'.format(c))
             sage: code_input.seek(0)
             sage: gen = graphs._read_planar_code(code_input)
             sage: l = list(gen)
@@ -1961,6 +1965,8 @@ class GraphGenerators():
     TruncatedTetrahedralGraph= staticmethod(sage.graphs.generators.smallgraphs.TruncatedTetrahedralGraph)
     TutteCoxeterGraph        = staticmethod(sage.graphs.generators.smallgraphs.TutteCoxeterGraph)
     TutteGraph               = staticmethod(sage.graphs.generators.smallgraphs.TutteGraph)
+    U42Graph216              = staticmethod(sage.graphs.generators.smallgraphs.U42Graph216)
+    U42Graph540              = staticmethod(sage.graphs.generators.smallgraphs.U42Graph540)
     WagnerGraph              = staticmethod(sage.graphs.generators.smallgraphs.WagnerGraph)
     WatkinsSnarkGraph        = staticmethod(sage.graphs.generators.smallgraphs.WatkinsSnarkGraph)
     WienerArayaGraph         = staticmethod(sage.graphs.generators.smallgraphs.WienerArayaGraph)
@@ -2022,6 +2028,7 @@ class GraphGenerators():
     trees                  = staticmethod(sage.graphs.generators.families.trees)
     TuranGraph             = staticmethod(sage.graphs.generators.families.TuranGraph)
     WheelGraph             = staticmethod(sage.graphs.generators.families.WheelGraph)
+    WindmillGraph          = staticmethod(sage.graphs.generators.families.WindmillGraph)
 
 ###########################################################################
 # Graphs from classical geometries over `F_q`
@@ -2039,6 +2046,7 @@ class GraphGenerators():
              staticmethod(sage.graphs.generators.classical_geometries.TaylorTwographDescendantSRG)
     TaylorTwographSRG      = staticmethod(sage.graphs.generators.classical_geometries.TaylorTwographSRG)
     T2starGeneralizedQuadrangleGraph      = staticmethod(sage.graphs.generators.classical_geometries.T2starGeneralizedQuadrangleGraph)
+    Nowhere0WordsTwoWeightCodeGraph = staticmethod(sage.graphs.generators.classical_geometries.Nowhere0WordsTwoWeightCodeGraph)
     HaemersGraph      = staticmethod(sage.graphs.generators.classical_geometries.HaemersGraph)
     CossidentePenttilaGraph = staticmethod(sage.graphs.generators.classical_geometries.CossidentePenttilaGraph)
     UnitaryDualPolarGraph  = staticmethod(sage.graphs.generators.classical_geometries.UnitaryDualPolarGraph)

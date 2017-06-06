@@ -1496,7 +1496,7 @@ class FiniteWordPath_2d(FiniteWordPath_all):
           the path is closed, the inside is colored
 
         - ``filloptions`` - (dict,
-          default:dict(rgbcolor='red',alpha=0.2)), ptions for the
+          default:dict(rgbcolor='red',alpha=0.2)), options for the
           inside filling
 
         - ``startpoint`` - (boolean, default: True), draw the start point?

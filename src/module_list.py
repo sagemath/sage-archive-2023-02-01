@@ -532,7 +532,6 @@ ext_modules = [
               package = 'meataxe'),
 
     Extension('*', ['sage/libs/pari/*.pyx']),
-
     Extension('sage.libs.ppl',
               sources = ['sage/libs/ppl.pyx', 'sage/libs/ppl_shim.cc']),
 

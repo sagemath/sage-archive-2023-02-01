@@ -22,6 +22,12 @@ C++ excerpt:
 translates into::
 
     sage: from sage.libs.ppl import Variable, Constraint_System, C_Polyhedron
+    doctest:warning
+    ...
+    DeprecationWarning: 
+    The Sage wrappers around ppl are now superseded by the standalone pplpy.
+    Please use import 'ppl' instead of 'sage.libs.ppl'.
+    See http://trac.sagemath.org/23024 for details.
     sage: x = Variable(0)
     sage: y = Variable(1)
     sage: cs = Constraint_System()
@@ -135,6 +141,9 @@ AUTHORS:
 
 - Volker Braun (2010-10-08): initial version.
 - Risan (2012-02-19): extension for MIP_Problem class
+- Vincent Klein (2017-12-21) : Deprecate this module. 
+  Future change should be done in the standalone package pplpy 
+  (https://github.com/videlec/pplpy).
 """
 
 #*****************************************************************************
@@ -146,7 +155,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-
+from sage.misc.superseded import deprecation
 from cysignals.signals cimport sig_on, sig_off
 
 from sage.structure.sage_object cimport SageObject
@@ -157,6 +166,9 @@ from sage.rings.rational cimport Rational
 
 from libcpp cimport bool as cppbool
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+
+deprecation(23024, """\nThe Sage wrappers around ppl are now superseded by the standalone pplpy.
+                    Please use import 'ppl' instead of 'sage.libs.ppl'.""")
 
 ####################################################
 # Potentially expensive operations:
@@ -174,7 +186,6 @@ cdef extern from "ppl.hh" namespace "Parma_Polyhedra_Library":
 
 # but with PPL's rounding the gsl will be very unhappy; must turn off!
 restore_pre_PPL_rounding()
-
 
 ####################################################
 # Cython does not support ctypedef within cppclass; Hack around this restriction:

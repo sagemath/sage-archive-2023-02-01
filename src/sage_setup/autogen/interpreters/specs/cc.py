@@ -51,9 +51,10 @@ class MemoryChunkCCRetval(MemoryChunk):
             sage: mc.declare_call_locals()
             u'        cdef ComplexNumber retval = (self.domain_element._new())\n'
         """
-        return je("""
-        cdef ComplexNumber {{ myself.name }} = (self.domain_element._new())
-        """, myself=self)
+        return je(ri(8,
+            """
+            cdef ComplexNumber {{ myself.name }} = (self.domain_element._new())
+            """), myself=self)
 
     def declare_parameter(self):
         r"""
@@ -227,7 +228,7 @@ class CCInterpreter(StackInterpreter):
                      'cosh', 'sinh', 'tanh',
                      'acosh', 'asinh', 'atanh']:
             instrs.append(instr_funcall_1arg_mpc(name, pg('S', 'S'), 'mpc_' + name))
-        # mpc_ui_div constructs a temporary mpfr_t and then calls mpfr_div;
+        # mpc_ui_div constructs a temporary mpc_t and then calls mpc_div;
         # it would probably be (slightly) faster to use a permanent copy
         # of "one" (on the other hand, the constructed temporary copy is
         # on the stack, so it's very likely to be in the cache).

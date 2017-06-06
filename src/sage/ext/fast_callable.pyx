@@ -88,10 +88,17 @@ We also have support for ``RR``::
     sage: timeit('fc_wilk_rr(30.0)') # random, long time
     625 loops, best of 3: 13 us per loop
 
+For ``CC``::
+
+    sage: fc_wilk_cc = fast_callable(wilk, vars=[x], domain=CC)
+    sage: timeit('fc_wilk_cc(30.0)') # random, long time
+    625 loops, best of 3: 23 us per loop
+
+
 And support for ``CDF``::
 
-    sage: fc_wilk_rr = fast_callable(wilk, vars=[x], domain=CDF)
-    sage: timeit('fc_wilk_rr(30.0)') # random, long time
+    sage: fc_wilk_cdf = fast_callable(wilk, vars=[x], domain=CDF)
+    sage: timeit('fc_wilk_cdf(30.0)') # random, long time
     625 loops, best of 3: 10.2 us per loop
 
 Currently, :func:`fast_callable` can accept two kinds of objects:

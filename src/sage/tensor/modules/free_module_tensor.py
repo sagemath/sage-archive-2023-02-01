@@ -3287,3 +3287,113 @@ class FiniteRankFreeModuleElement(FreeModuleTensor):
 
         """
         return self.__class__(self._fmodule)
+
+    def wedge(self, other):
+        r"""
+        Exterior product of ``self`` with the alternating contravariant
+        tensor ``other``.
+
+        INPUT:
+
+        - ``other`` -- an alternating contravariant tensor
+
+        OUTPUT:
+
+        - instance of :class:`AlternatingContrTensor` representing the
+          exterior product ``self/\other``
+
+        EXAMPLES:
+
+        Exterior product of two linear forms::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.linear_form('A')
+            sage: a[:] = [1,-3,4]
+            sage: b = M.linear_form('B')
+            sage: b[:] = [2,-1,2]
+            sage: c = a.wedge(b) ; c
+            Alternating form A/\B of degree 2 on the Rank-3 free module M
+             over the Integer Ring
+            sage: c.display()
+            A/\B = 5 e_0/\e_1 - 6 e_0/\e_2 - 2 e_1/\e_2
+            sage: latex(c)
+            A\wedge B
+            sage: latex(c.display())
+            A\wedge B = 5 e_0\wedge e_1 -6 e_0\wedge e_2 -2 e_1\wedge e_2
+
+        Test of the computation::
+
+            sage: a.wedge(b) == a*b - b*a
+            True
+
+        Exterior product of a linear form and an alternating form of degree 2::
+
+            sage: d = M.linear_form('D')
+            sage: d[:] = [-1,2,4]
+            sage: s = d.wedge(c) ; s
+            Alternating form D/\A/\B of degree 3 on the Rank-3 free module M
+             over the Integer Ring
+            sage: s.display()
+            D/\A/\B = 34 e_0/\e_1/\e_2
+
+        Test of the computation::
+
+            sage: s[0,1,2] == d[0]*c[1,2] + d[1]*c[2,0] + d[2]*c[0,1]
+            True
+
+        Let us check that the exterior product is associative::
+
+            sage: d.wedge(a.wedge(b)) == (d.wedge(a)).wedge(b)
+            True
+
+        and that it is graded anticommutative::
+
+            sage: a.wedge(b) == - b.wedge(a)
+            True
+            sage: d.wedge(c) == c.wedge(d)
+            True
+
+        """
+        from .format_utilities import is_atomic
+        from .free_module_tensor import FiniteRankFreeModuleElement
+        if not isinstance(other, (FiniteRankFreeModuleElement,
+                                  AlternatingContrTensor)):
+            raise TypeError("the second argument for the exterior product " +
+                            "must be an alternating contravariant tensor")
+        if other._tensor_rank == 0:
+            return other*self
+        fmodule = self._fmodule
+        basis = self.common_basis(other)
+        if basis is None:
+            raise ValueError("no common basis for the exterior product")
+        rank_r = self._tensor_rank + other._tensor_rank
+        cmp_s = self._components[basis]
+        cmp_o = other._components[basis]
+        cmp_r = CompFullyAntiSym(fmodule._ring, basis, rank_r,
+                                 start_index=fmodule._sindex,
+                                 output_formatter=fmodule._output_formatter)
+        for ind_s, val_s in six.iteritems(cmp_s._comp):
+            for ind_o, val_o in six.iteritems(cmp_o._comp):
+                ind_r = ind_s + ind_o
+                if len(ind_r) == len(set(ind_r)): # all indices are different
+                    cmp_r[[ind_r]] += val_s * val_o
+        result = fmodule.alternating_contravariant_tensor(rank_r)
+        result._components[basis] = cmp_r
+        if self._name is not None and other._name is not None:
+            sname = self._name
+            oname = other._name
+            if not is_atomic(sname):
+                sname = '(' + sname + ')'
+            if not is_atomic(oname):
+                oname = '(' + oname + ')'
+            result._name = sname + '/\\' + oname
+        if self._latex_name is not None and other._latex_name is not None:
+            slname = self._latex_name
+            olname = other._latex_name
+            if not is_atomic(slname):
+                slname = '(' + slname + ')'
+            if not is_atomic(olname):
+                olname = '(' + olname + ')'
+            result._latex_name = slname + r'\wedge ' + olname
+        return result

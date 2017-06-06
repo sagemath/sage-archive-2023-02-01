@@ -780,8 +780,9 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         #   (keys = (k,l) --the tensor type) :
         self._tensor_modules = {(1,0): self} # self is considered as the set of
                                             # tensors of type (1,0)
-        # Dictionary of exterior powers of the dual of self
+        # Dictionary of exterior powers of self and of the dual of self:
         #   (keys = p --the power degree) :
+        self._exterior_powers = {}
         self._dual_exterior_powers = {}
         self._known_bases = []  # List of known bases on the free module
         self._def_basis = None # default basis
@@ -955,14 +956,84 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             self._tensor_modules[(k,l)] = TensorFreeModule(self, (k,l))
         return self._tensor_modules[(k,l)]
 
+    def exterior_power(self, p):
+        r"""
+        Return the `p`-th exterior power of ``self``.
+
+        If `M` stands for the free module ``self``, the *p-th exterior
+        power of* `M` is the set `\Lambda^p(M)` of all *alternating
+        contravariant tensors* of rank `p`, i.e. of all multilinear maps
+
+        .. MATH::
+
+            \underbrace{M^*\times\cdots\times M^*}_{p\ \; \mbox{times}}
+            \longrightarrow R
+
+        that vanish whenever any of two of their arguments are equal.
+        `\Lambda^p(M)` is a free module of rank `\binom{n}{p}`
+        over the same ring as `M`, where `n` is the rank of `M`.
+
+        INPUT:
+
+        - ``p`` -- non-negative integer
+
+        OUTPUT:
+
+        - for `p=0`, the base ring `R`
+        - for `p=1`, the free module `M`, since `\Lambda^1(M)=M`
+        - for `p\geq 2`, instance of
+          :class:`~sage.tensor.modules.ext_pow_free_module.ExtPowerFreeModule`
+          representing the free module `\Lambda^p(M)`
+
+        EXAMPLES:
+
+        Exterior powers of the dual of a free `\ZZ`-module of rank 3::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: M.exterior_power(0)  # return the base ring
+            Integer Ring
+            sage: M.exterior_power(1)  # return the module itself
+            Rank-3 free module M over the Integer Ring
+            sage: M.exterior_power(1) is M
+            True
+            sage: M.exterior_power(2)
+            2nd exterior power of the Rank-3 free module M over the Integer Ring
+            sage: M.exterior_power(2).an_element()
+            Alternating contravariant tensor of degree 2 on the Rank-3
+             free module M over the Integer Ring
+            sage: M.exterior_power(2).an_element().display()
+            e_0/\e_1
+            sage: M.exterior_power(3)
+            3rd exterior power of the Rank-3 free module M over the Integer Ring
+            sage: M.exterior_power(3).an_element()
+            Alternating contravariant tensor of degree 3 on the Rank-3
+             free module M over the Integer Ring
+            sage: M.exterior_power(3).an_element().display()
+            e_0/\e_1/\e_2
+
+        See
+        :class:`~sage.tensor.modules.ext_pow_free_module.ExtPowerFreeModule`
+        for more documentation.
+
+        """
+        from sage.tensor.modules.ext_pow_free_module import ExtPowerFreeModule
+        if p == 0:
+            return self._ring
+        if p == 1:
+            return self
+        if p not in self._exterior_powers:
+            self._exterior_powers[p] = ExtPowerFreeModule(self, p)
+        return self._exterior_powers[p]
+
     def dual_exterior_power(self, p):
         r"""
         Return the `p`-th exterior power of the dual of ``self``.
 
-        If `M` stands for the free module ``self``, the *p-th exterior power*
-        of the dual of `M` is the set
-        `\Lambda^p(M^*)` of all *alternating forms of degree* `p` on `M`, i.e.
-        of all multilinear maps
+        If `M` stands for the free module ``self``, the *p-th exterior
+        power of the dual of* `M` is the set `\Lambda^p(M^*)` of all
+        *alternating forms of degree* `p` on `M`, i.e. of all
+        multilinear maps
 
         .. MATH::
 
@@ -979,10 +1050,10 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
 
         OUTPUT:
 
+        - for `p=0`, the base ring `R`
         - for `p\geq 1`, instance of
           :class:`~sage.tensor.modules.ext_pow_free_module.ExtPowerDualFreeModule`
-          representing the free module `\Lambda^p(M^*)`; for `p=0`, the
-          base ring `R` is returned instead
+          representing the free module `\Lambda^p(M^*)`
 
         EXAMPLES:
 
@@ -1295,6 +1366,14 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             if len(antisym0) == tensor_type[1]:
                 return self.alternating_form(tensor_type[1], name=name,
                                              latex_name=latex_name)
+        elif tensor_type[0] > 1 and tensor_type[1] == 0 and antisym:
+            if isinstance(antisym, list):
+                antisym0 = antisym[0]
+            else:
+                antisym0 = antisym
+            if len(antisym0) == tensor_type[0]:
+                return self.alternating_contravariant_tensor(tensor_type[0],
+                                           name=name, latex_name=latex_name)
         # Generic case:
         return self.tensor_module(*tensor_type).element_class(self,
                                  tensor_type, name=name, latex_name=latex_name,
@@ -1387,6 +1466,11 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
                                         isinstance(comp, CompFullyAntiSym):
             resu = self.alternating_form(tensor_type[1], name=name,
                                          latex_name=latex_name)
+        elif tensor_type[0] > 1 and tensor_type[1] == 0 and \
+                                        isinstance(comp, CompFullyAntiSym):
+            resu = self.alternating_contravariant_tensor(tensor_type[0],
+                                         name=name,
+                                         latex_name=latex_name)
         else:
             resu = self.tensor_module(*tensor_type).element_class(self,
                                  tensor_type, name=name, latex_name=latex_name)
@@ -1399,6 +1483,62 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         resu._components[comp._frame] = comp
         #
         return resu
+
+    def alternating_contravariant_tensor(self, degree, name=None,
+                                         latex_name=None):
+        r"""
+        Construct an alternating contravariant tensor on the free module.
+
+        INPUT:
+
+        - ``degree`` -- degree of the alternating contravariant tensor
+          (i.e. its tensor rank)
+        - ``name`` -- (default: ``None``) string; name given to the
+          alternating contravariant tensor
+        - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
+          denote the alternating contravariant tensor; if none is
+          provided, the LaTeX symbol is set to ``name``
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.tensor.modules.alternating_contr_tensor.AlternatingContrTensor`
+
+        EXAMPLES:
+
+        Alternating contravariant tensor on a rank-3 module::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: a = M.alternating_contravariant_tensor(2, 'a') ; a
+            Alternating contravariant tensor a of degree 2 on the
+             Rank-3 free module M over the Integer Ring
+
+        The nonzero components in a given basis have to be set in a second
+        step, thereby fully specifying the alternating form::
+
+            sage: e = M.basis('e') ; e
+            Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring
+            sage: a.set_comp(e)[0,1] = 2
+            sage: a.set_comp(e)[1,2] = -3
+            sage: a.display(e)
+            a = 2 e_0/\e_1 - 3 e_1/\e_2
+
+        An alternating contravariant tensor of degree 1 is simply
+        an element of the module::
+
+            sage: a = M.alternating_contravariant_tensor(1, 'a') ; a
+            Element a of the Rank-3 free module M over the Integer Ring
+
+        See
+        :class:`~sage.tensor.modules.alternating_contr_tensor.AlternatingContrTensor`
+        for more documentation.
+
+        """
+        if degree == 1:
+            return self.element_class(self, name=name,
+                                      latex_name=latex_name)
+        return self.exterior_power(degree).element_class(self, degree,
+                                       name=name, latex_name=latex_name)
 
     def alternating_form(self, degree, name=None, latex_name=None):
         r"""

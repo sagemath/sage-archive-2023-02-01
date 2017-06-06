@@ -63,6 +63,7 @@ from __future__ import absolute_import
 
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
+from sage.tensor.modules.alternating_contr_tensor import AlternatingContrTensor
 from sage.tensor.modules.free_module_alt_form import FreeModuleAltForm
 from sage.tensor.modules.free_module_morphism import \
                                                    FiniteRankFreeModuleMorphism
@@ -455,6 +456,25 @@ class TensorFreeModule(FiniteRankFreeModule):
             else:
                 raise TypeError("cannot coerce the {}".format(endo) +
                                 " to an element of {}".format(self))
+        elif isinstance(comp, AlternatingContrTensor):
+            # coercion of an alternating contravariant tensor of degree
+            # p to a type-(p,0) tensor:
+            tensor = comp # for readability
+            p = tensor.degree()
+            if self._tensor_type != (p,0) or \
+                                    self._fmodule != tensor.base_module():
+                raise TypeError("cannot coerce the {}".format(tensor) +
+                                " to an element of {}".format(self))
+            if p == 1:
+                asym = None
+            else:
+                asym = range(p)
+            resu = self.element_class(self._fmodule, (p,0),
+                                      name=tensor._name,
+                                      latex_name=tensor._latex_name,
+                                      antisym=asym)
+            for basis, comp in six.iteritems(tensor._components):
+                resu._components[basis] = comp.copy()
         elif isinstance(comp, FreeModuleAltForm):
             # coercion of an alternating form to a type-(0,p) tensor:
             form = comp # for readability
@@ -549,6 +569,15 @@ class TensorFreeModule(FiniteRankFreeModule):
             sage: M.tensor_module(1,1)._coerce_map_from_(Hom(M,N))
             False
 
+        Coercion from alternating contravariant tensors::
+
+            sage: M.tensor_module(2,0)._coerce_map_from_(M.exterior_power(2))
+            True
+            sage: M.tensor_module(2,0)._coerce_map_from_(M.exterior_power(3))
+            False
+            sage: M.tensor_module(2,0)._coerce_map_from_(N.exterior_power(2))
+            False
+
         Coercion from alternating forms::
 
             sage: M.tensor_module(0,1)._coerce_map_from_(M.dual_exterior_power(1))
@@ -562,24 +591,29 @@ class TensorFreeModule(FiniteRankFreeModule):
 
         """
         from .free_module_homset import FreeModuleHomset
-        from .ext_pow_free_module import ExtPowerDualFreeModule
+        from .ext_pow_free_module import (ExtPowerFreeModule,
+                                          ExtPowerDualFreeModule)
         from .free_module_linear_group import FreeModuleLinearGroup
         if isinstance(other, FreeModuleHomset):
             # Coercion of an endomorphism to a type-(1,1) tensor:
             if self._tensor_type == (1,1):
                 return other.is_endomorphism_set() and \
-                                                self._fmodule is other.domain()
+                                         self._fmodule is other.domain()
             else:
                 return False
+        if isinstance(other, ExtPowerFreeModule):
+            # Coercion of an alternating contravariant tensor to a
+            # type-(p,0) tensor:
+            return self._tensor_type == (other.degree(), 0) and \
+                                    self._fmodule is other.base_module()
         if isinstance(other, ExtPowerDualFreeModule):
             # Coercion of an alternating form to a type-(0,p) tensor:
             return self._tensor_type == (0, other.degree()) and \
-                                           self._fmodule is other.base_module()
-
+                                    self._fmodule is other.base_module()
         if isinstance(other, FreeModuleLinearGroup):
             # Coercion of an automorphism to a type-(1,1) tensor:
             return self._tensor_type == (1,1) and \
-                                           self._fmodule is other.base_module()
+                                    self._fmodule is other.base_module()
         return False
 
     #### End of parent methods

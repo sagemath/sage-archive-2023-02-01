@@ -375,7 +375,7 @@ class AbstractLinearCode(Module):
 
         This method only exists for inheritance purposes as it initializes
         parameters that need to be known by every linear code. The class
-        `:class:sage.coding.linear_code.AbstractLinearCode` should never be
+        :class:`sage.coding.linear_code.AbstractLinearCode` should never be
         directly instantiated.
 
         INPUT:

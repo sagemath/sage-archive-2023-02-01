@@ -2420,7 +2420,7 @@ class Polyhedron_base(Element):
         A :class:`hyperplane arrangement
         <sage.geometry.hyperplane_arrangement.arrangement.HyperplaneArrangementElement>`
         consisting of the hyperplanes defined by the
-        :meth:`~sage.geometric.hyperplane_arrangement.arrangement.HyperplaneArrangementElement.Hrepresentation`.
+        :meth:`~sage.geometry.hyperplane_arrangement.arrangement.HyperplaneArrangementElement.Hrepresentation`.
         If the polytope is full-dimensional, this is the hyperplane
         arrangement spanned by the facets of the polyhedron.
 
@@ -2430,7 +2430,7 @@ class Polyhedron_base(Element):
             sage: p.hyperplane_arrangement()
             Arrangement <-t0 + 1 | -t1 + 1 | t1 + 1 | t0 + 1>
         """
-        names = tuple('t'+str(i) for i in range(self.ambient_dim()))
+        names = tuple('t' + str(i) for i in range(self.ambient_dim()))
         from sage.geometry.hyperplane_arrangement.arrangement import HyperplaneArrangements
         field = self.base_ring().fraction_field()
         H = HyperplaneArrangements(field, names)

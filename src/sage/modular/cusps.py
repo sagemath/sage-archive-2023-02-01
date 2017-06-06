@@ -67,9 +67,9 @@ class Cusps_class(ParentWithBase):
         """
         ParentWithBase.__init__(self, self)
 
-    def __cmp__(self, right):
+    def __eq__(self, right):
         """
-        Return equality only if right is the set of cusps.
+        Return equality only if ``right`` is the set of cusps.
 
         EXAMPLES::
 
@@ -78,7 +78,20 @@ class Cusps_class(ParentWithBase):
             sage: Cusps == QQ
             False
         """
-        return cmp(type(self), type(right))
+        return isinstance(right, Cusps_class)
+
+    def __ne__(self, right):
+        """
+        Check that ``self`` is not equal to ``right``.
+
+        EXAMPLES::
+
+            sage: Cusps != Cusps
+            False
+            sage: Cusps != QQ
+            True
+        """
+        return not (self == right)
 
     def _repr_(self):
         """
@@ -162,16 +175,15 @@ class Cusps_class(ParentWithBase):
         """
         Return the zero cusp.
 
-        NOTE:
+        .. NOTE::
 
-        The existence of this method is assumed by some
-        parts of Sage's coercion model.
+            The existence of this method is assumed by some
+            parts of Sage's coercion model.
 
         EXAMPLES::
 
             sage: Cusps.zero()
             0
-
         """
         return Cusp(0, parent=self)
 
@@ -372,7 +384,6 @@ class Cusp(Element):
 
         self.__a = r.numer()
         self.__b = r.denom()
-
 
     def __hash__(self):
         """

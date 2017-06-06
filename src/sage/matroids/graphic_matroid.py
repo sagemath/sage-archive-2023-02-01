@@ -20,6 +20,11 @@ from __future__ import absolute_import
 from .matroid import Matroid
 from .utilities import sanitize_contractions_deletions, setprint_s
 
+#Trying to resolve a NameError when I use Graph()
+from sage.graphs.graph import Graph
+#This seems necessary since graphs are mutable and matroids aren't
+from copy import copy, deepcopy
+
 #I'll put this here for now but I suspect it belongs in another file.
 def contract_edge(G, edgelist):
     """
@@ -34,20 +39,20 @@ def contract_edge(G, edgelist):
         if e not in G.edges():
             raise ValueError("The specified edge is not in the graph.")
     G.delete_edges(edgelist)
-    #If e was a loop, stop there. Otherwise, merge the vertices.
-    if e[0] == e[1]:
-        pass
-    else:
-        # merge_vertices() loses multiedges, so we put them on as loops afterwards
-        edge_label_list = []
-        for edge in G.edges():
-            if (edge[0] == e[0] and edge[1] == e[1]) or (edge[0] == e[1] and edge[1] == e[0]):
-                edge_label_list.append(edge[2])
+    for e in edgelist:
+        #If e was a loop, stop there. Otherwise, merge the vertices.
+        if not e[0] == e[1]:
+            # merge_vertices() loses multiedges, so we put them on as loops afterwards
+            edge_label_list = []
+            for edge in G.edges():
+                if (edge[0] == e[0] and edge[1] == e[1]) or
+                   (edge[0] == e[1] and edge[1] == e[0]):
+                    edge_label_list.append(edge[2])
 
-        G.merge_vertices([e[0], e[1]])
+            G.merge_vertices([e[0], e[1]])
 
-        for edge_label in edge_label_list:
-            G.add_edge(e[0], e[0], edge_label)
+            for edge_label in edge_label_list:
+                G.add_edge(e[0], e[0], edge_label)
 
 class GraphicMatroid(Matroid):
     """
@@ -59,6 +64,8 @@ class GraphicMatroid(Matroid):
     """
 
     def __init__(self, G, groundset = None):
+
+
         if groundset is None:
             #Try to construct a ground set based on the edge labels.
             #If that fails, use range() to come up with a groundset.
@@ -96,7 +103,8 @@ class GraphicMatroid(Matroid):
 
         The rank of `X` in the matroid.
         """
-        self._H = Graph()
+        #we get ValueErrors if loops and multiedges are not enabled
+        self._H = Graph(loops=True, multiedges=True)
 
         for x in X:
             self._H.add_edge(self._groundset_edge_map[x])
@@ -140,14 +148,13 @@ class GraphicMatroid(Matroid):
         self._new_G = copy(self._G)
 
         self._new_groundset_edge_map = copy(self._groundset_edge_map)
-        edge_list = []
         for x in contractions:
-            edge_list.append((self._new_groundset_edge_map[x][0],
-                              self._new_groundset_edge_map[x][1], x))
+            self._edge = (self._new_groundset_edge_map[x][0],
+                          self._new_groundset_edge_map[x][1], x)
             #Putting the label on the edge make sure the correct element is removed.
             #Without this the result would be isomorphic but the labels would be wrong.
 
-            contract_edge(self._new_G, edge_list)
+            contract_edge(self._new_G, self._edge)
 
             #Since this changes vertex labels, I need to update the groundset edge map.
             for key in self._new_groundset_edge_map.keys():
@@ -158,10 +165,41 @@ class GraphicMatroid(Matroid):
                     self._new_groundset_edge_map[key] = (self._new_groundset_edge_map[key][0],
                                                          self._edge[0])
 
-        edge_list = []
         for x in deletions:
-            edge_list.append((self._new_groundset_edge_map[x][0],
-                              self._new_groundset_edge_map[x][1], x))
-            self._new_G.delete_edges(edge_list)
+            self._edge = (self._new_groundset_edge_map[x][0], self._new_groundset_edge_map[x][1], x)
+
+            self._new_G.delete_edge(self._edge)
 
         return GraphicMatroid(deepcopy(self._new_G))
+
+    def _has_minor(self, N, certificate = False):
+        """
+        Checks if the matroid has a minor isomoprhic to M(H).
+        """
+        # The graph minor algorithm is faster but it doesn't make sense
+        # to use it if M(H) is not 3-connected, because of all the possible
+        # Whitney switches or 1-sums that will give the same matroid.
+        if isinstance(N,GraphicMatroid) and N.is_3connected():
+            # Graph.minor() does not work with multigraphs
+            G = self.graph()
+            G.allow_loops(False)
+            G.allow_multiple_edges(False)
+            H = N.graph()
+            H.allow_loops(False)
+            H.allow_multiple_edges(False)
+
+            try:
+                # Graph.minor() returns a certificate if there is one
+                # and a ValueError if there isn't.
+                cert = G.minor(H)
+                if certificate:
+                    return cert
+                else:
+                    return True
+            except ValueError:
+                return False
+        else:
+            #otherwise use the default method for abstract matroids
+            #this requires debugging
+            Matroid._has_minor(self,N)
+

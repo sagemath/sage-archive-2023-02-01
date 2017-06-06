@@ -166,12 +166,16 @@ fi
 # Workaround old GNU as version by disabling assembly use.
 if [ "$UNAME" = Linux ]; then
     as_version=`$AS --version | head -1 | awk 'NF>1{print $NF}'`
-    case "$as_version" in
-        1.*|2.1*|2.[0-2]*)
+    as_version_major=${as_version%%.*}
+    as_version_rest=${as_version#*.}
+    as_version_minor=${as_version_rest%%.*}
+    if [ $as_version_major -lt 2 ] || \
+       [ $as_version_major -eq 2 -a $as_version_minor -lt 24 ]; then
         echo "Disable use of assembly because of GNU as < 2.23."
+        echo "This also disables SAGE_FAT_BINARY=yes."
         export MPN_PATH=generic
-        ;;
-    esac
+        SAGE_FAT_BINARY=no
+    fi
 fi
 
 # Work around a bug in GCC 4.7.0 which breaks the build on Itanium CPUs.

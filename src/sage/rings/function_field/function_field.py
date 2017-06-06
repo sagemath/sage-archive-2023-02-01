@@ -380,8 +380,7 @@ class FunctionField(Field):
 
     def _convert_map_from_(self, R):
         r"""
-        Return a conversion from ``R`` to this function field or ``None`` if
-        none exists.
+        Return a conversion from ``R`` to this function field if one exists.
 
         EXAMPLES::
 
@@ -717,11 +716,10 @@ class FunctionField_polymod(FunctionField):
 
         INPUT:
 
-        - ``names`` -- a string, a tuple of up to two strings, or ``None``
-          (default: ``None``), the name of the generator of the field, and
-          the name of the generator of the underlying rational function
-          field (if a tuple); if ``None``, then the names are chosen
-          automatically.
+        - ``names`` -- a string or a tuple of up to two strings (default:
+          ``None``), the name of the generator of the field, and the name of
+          the generator of the underlying rational function field (if a tuple);
+          if not given, then the names are chosen automatically.
 
         OUTPUT:
 
@@ -919,7 +917,7 @@ class FunctionField_polymod(FunctionField):
 
         INPUT:
 
-        - ``base`` -- a function field or ``None`` (default: ``None``), a
+        - ``base`` -- a function field (default: ``None``), a
           function field from which this field has been constructed as a finite
           extension.
 
@@ -1040,9 +1038,9 @@ class FunctionField_polymod(FunctionField):
 
         INPUT:
 
-        - ``base`` -- a function field or ``None`` (default: ``None``), the
-          returned vector space is over ``base`` which defaults to the base
-          field of this function field.
+        - ``base`` -- a function field (default: ``None``), the returned vector
+          space is over ``base`` which defaults to the base field of this
+          function field.
 
         OUTPUT:
 
@@ -1383,9 +1381,10 @@ class FunctionField_polymod(FunctionField):
 
     def _simple_model(self, name='v'):
         r"""
-        Helper method for :meth:`simple_model` which, for a tower of extensions
-        `M/L/K(x)` over a rational function field `K(x)` with `K` perfect,
-        finds a finite extension `N/K(x)` isomorphic to `M`.
+        Return a finite extension `N/K(x)` isomorphic to the tower of
+        extensions `M/L/K(x)` with `K` perfect.
+
+        Helper method for :meth:`simple_model`.
 
         INPUT:
 
@@ -1395,7 +1394,7 @@ class FunctionField_polymod(FunctionField):
 
         Since `K` is perfect, the extension `M/K(x)` is simple, i.e., generated
         by a single element [BM1940]_. Therefore, there are only finitely many
-        intermediate fields (Exercise 3.6.7 in [Bosch2009]_).
+        intermediate fields (Exercise 3.6.7 in [Bo2009]_).
         Let `a` be a generator of `M/L` and let `a` be a generator of `L/K(x)`.
         For some `i` the field `N_i=K(x)(a+x^ib)` is isomorphic to `M` and so
         it is enough to test for all terms of the form `a+x^ib` whether they
@@ -1405,14 +1404,6 @@ class FunctionField_polymod(FunctionField):
         N_j` and so `b\in N_j`.  Similarly,
         `a+x^ib-x^{i-j}(a+x^jb)=a(1+x^{i-j})\in N_j` and so `a\in N_j`.
         Therefore, `N_j=M`.
-
-        REFERENCES:
-
-        .. [BM1940] Becker, M. F., and Saunders MacLane. The minimum number of
-        generators for inseparable algebraic extensions. Bulletin of the
-        American Mathematical Society 46, no. 2 (1940): 182-186.
-
-        .. [Bosch2009] Bosch, S., Algebra, Springer 2009
 
         TESTS::
 
@@ -1532,9 +1523,9 @@ class FunctionField_polymod(FunctionField):
 
         INPUT:
 
-        - ``name`` -- a string or ``None`` (default: ``None``), the name of generator of the
-          simple extension. If ``None``, then the name of the generator will be
-          the same as the name of the generator of this function field.
+        - ``name`` -- a string (default: ``None``), the name of generator of
+          the simple extension. If ``None``, then the name of the generator
+          will be the same as the name of the generator of this function field.
 
         OUTPUT:
 
@@ -2225,9 +2216,8 @@ class RationalFunctionField(FunctionField):
 
         INPUT:
 
-        - ``base`` -- must be this field or ``None``; this parameter is ignored
-          and exists to resemble the interface of
-          :meth:`FunctionField_polymod.degree`.
+        - ``base`` -- the base field of the vector space; must be the function
+          field itself (the default)
 
         EXAMPLES::
 
@@ -2410,9 +2400,8 @@ class RationalFunctionField(FunctionField):
 
         INPUT:
 
-        - ``base`` -- must be this field or ``None`` (default: ``None``); this
-          parameter is ignored and merely exists to have the same interface as
-          :meth:`FunctionField_polymod.vector_space`.
+        - ``base`` -- the base field of the vector space; must be the function
+          field itself (the default)
 
         OUTPUT:
 

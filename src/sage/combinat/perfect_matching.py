@@ -53,6 +53,7 @@ REFERENCES:
 # python3
 from __future__ import division, print_function
 from six.moves import range
+from six import add_metaclass
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -70,6 +71,7 @@ from sage.matrix.constructor import Matrix
 from sage.combinat.combinatorial_map import combinatorial_map
 
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class PerfectMatching(ElementWrapper):
     r"""
     Class of perfect matching.
@@ -108,7 +110,6 @@ class PerfectMatching(ElementWrapper):
     __lt__ = ElementWrapper._lt_by_value
     #During the creation of the instance of the class, the function
     #__classcall_private__ will be called instead of __init__ directly.
-    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, p):
@@ -193,7 +194,7 @@ class PerfectMatching(ElementWrapper):
             if not(p.cycle_type() == [2 for i in range(n//2)]):
                 raise ValueError("The permutation p (= %s) is not a "
                                  "fixed point free involution" % p)
-            objects = Set(list(range(1, n + 1)))
+            objects = Set(range(1, n + 1))
             data = p.to_cycles()
         # Third case: p is already a perfect matching, we return p directly
         elif isinstance(p, PerfectMatching):
@@ -343,13 +344,13 @@ class PerfectMatching(ElementWrapper):
         Returns the conjugate of the perfect matching ``self`` by the
         permutation ``p`` of the ground set.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: m = PerfectMatching([(1,4),(2,6),(3,5)])
             sage: m.conjugate_by_permutation(Permutation([4,1,5,6,3,2]))
             [(4, 6), (1, 2), (5, 3)]
 
-        TEST::
+        TESTS::
 
             sage: PerfectMatching([]).conjugate_by_permutation(Permutation([]))
             []
@@ -932,7 +933,7 @@ class PerfectMatchings(UniqueRepresentation, Parent):
         r"""
         See :meth:`__classcall__`
 
-        TEST::
+        TESTS::
 
             sage: M = PerfectMatchings(6)
             sage: TestSuite(M).run()

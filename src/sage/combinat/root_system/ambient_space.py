@@ -10,10 +10,13 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
-from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
+from sage.combinat.free_module import CombinatorialFreeModule
 from .weight_lattice_realizations import WeightLatticeRealizations
 from sage.rings.all import ZZ, QQ
 from sage.categories.homset import End
+
+import six
+
 
 class AmbientSpace(CombinatorialFreeModule):
     r"""
@@ -357,7 +360,7 @@ class AmbientSpace(CombinatorialFreeModule):
         """
         return End(self).identity()
 
-class AmbientSpaceElement(CombinatorialFreeModuleElement):
+class AmbientSpaceElement(CombinatorialFreeModule.Element):
     # For backward compatibility
     def _repr_(self):
         """
@@ -386,7 +389,7 @@ class AmbientSpaceElement(CombinatorialFreeModuleElement):
         lambdacheck_mc = lambdacheck._monomial_coefficients
 
         result = self.parent().base_ring().zero()
-        for t,c in lambdacheck_mc.iteritems():
+        for t,c in six.iteritems(lambdacheck_mc):
             if t not in self_mc:
                 continue
             result += c*self_mc[t]

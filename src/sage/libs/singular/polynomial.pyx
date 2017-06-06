@@ -5,13 +5,18 @@ AUTHOR:
 
 - Martin Albrecht (2009-07): refactoring
 """
+
 #*****************************************************************************
 #       Copyright (C) 2009 Martin Albrecht <malb@informatik.uni-bremen.de>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include "cysignals/signals.pxi"
+
+from cysignals.signals cimport sig_on, sig_off
 
 cdef extern from *: # hack to get at cython macro
     int unlikely(int)
@@ -55,7 +60,7 @@ cdef int singular_polynomial_add(poly **ret, poly *p, poly *q, ring *r):
     - ``q`` - a Singular polynomial
     - ``r`` - a Singular ring
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<x,y,z> = QQ[]
         sage: x + y # indirect doctest
@@ -81,7 +86,7 @@ cdef int singular_polynomial_sub(poly **ret, poly *p, poly *q, ring *r):
     - ``q`` - a Singular polynomial
     - ``r`` - a Singular ring
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<x,y,z> = QQ[]
         sage: x - y # indirect doctest
@@ -107,7 +112,7 @@ cdef int singular_polynomial_rmul(poly **ret, poly *p, RingElement n, ring *r):
     - ``n`` - a Sage coefficient
     - ``r`` - a Singular ring
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<x,y,z> = QQ[]
         sage: 2*x # indirect doctest
@@ -137,7 +142,7 @@ cdef int singular_polynomial_call(poly **ret, poly *p, ring *r, list args, poly 
     - ``(*get_element)`` - a function to turn a Sage element into a
       Singular element.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<x,y,z> = QQ[]
         sage: x(0,0,0) # indirect doctest
@@ -286,7 +291,7 @@ cdef int singular_polynomial_mul(poly** ret, poly *p, poly *q, ring *r) except -
     - ``q`` - a Singular polynomial
     - ``r`` - a Singular ring
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<x,y,z> = QQ[]
         sage: x*y # indirect doctest
@@ -316,7 +321,7 @@ cdef int singular_polynomial_div_coeff(poly** ret, poly *p, poly *q, ring *r) ex
     - ``q`` - a constant Singular polynomial
     - ``r`` - a Singular ring
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<x,y,z> = QQ[]
         sage: x/2 # indirect doctest
@@ -350,7 +355,7 @@ cdef int singular_polynomial_pow(poly **ret, poly *p, unsigned long exp, ring *r
     - ``exp`` - integer
     - ``r`` - a Singular ring
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<x,y,z> = QQ[]
         sage: f = 3*x*y + 5/2*z
@@ -390,7 +395,7 @@ cdef int singular_polynomial_neg(poly **ret, poly *p, ring *r):
     - ``p`` - a Singular polynomial
     - ``r`` - a Singular ring
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<x,y,z> = QQ[]
         sage: f = 3*x*y + 5/2*z
@@ -412,7 +417,7 @@ cdef object singular_polynomial_str(poly *p, ring *r):
     - ``p`` - a Singular polynomial
     - ``r`` - a Singular ring
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<x,y,z> = ZZ[]
         sage: str(x) # indirect doctest
@@ -436,7 +441,7 @@ cdef object singular_polynomial_latex(poly *p, ring *r, object base, object late
     - ``p`` - a Singular polynomial
     - ``r`` - a Singular ring
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<x,y,z> = QQ[]
         sage: latex(x) # indirect doctest

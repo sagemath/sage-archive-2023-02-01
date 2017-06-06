@@ -60,7 +60,7 @@ cdef class Matrix(matrix0.Matrix):
             v.append( ','.join(tmp))
         return 'Mat([%s])'%(';'.join(v))
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Return the Pari matrix corresponding to self.
 
@@ -204,7 +204,7 @@ cdef class Matrix(matrix0.Matrix):
             sage: a = maxima(m); a
             matrix([0,1,2],[3,4,5],[6,7,8])
             sage: a.charpoly('x').expand()
-            -x^3+12*x^2+18*x
+            (-x^3)+12*x^2+18*x
             sage: m.charpoly()
             x^3 - 12*x^2 - 18*x
         """
@@ -343,6 +343,25 @@ cdef class Matrix(matrix0.Matrix):
         """
         s = str(self.rows()).replace('(','[').replace(')',']')
         return "Matrix(%s,%s,%s)"%(self.nrows(), self.ncols(), s)
+
+    def _polymake_(self, polymake=None):
+        """
+        Tries to coerce this matrix to a polymake matrix.
+
+        EXAMPLES::
+
+            sage: M = matrix(ZZ,2,range(4))
+            sage: polymake(M)                   # optional - polymake
+            0 1
+            2 3
+            sage: K.<sqrt5> = QuadraticField(5)
+            sage: M = matrix(K, [[1, 2], [sqrt5, 3]])
+            sage: polymake(M)                   # optional - polymake
+            1 2
+            0+1r5 3
+        """
+        P = polymake(self.parent())
+        return polymake.new_object(P, [ list(r) for r in self.rows(copy=False) ])
 
     def _singular_(self, singular=None):
         """
@@ -1705,8 +1724,10 @@ cdef class Matrix(matrix0.Matrix):
         * ``dcols`` - list of indices of columns to be deleted from self.
         * ``check`` - checks whether any index in ``dcols`` is out of range. Defaults to ``True``.
 
-        SEE ALSO:
-            The methods :meth:`delete_rows` and :meth:`matrix_from_columns` are related.
+        .. SEEALSO::
+
+            The methods :meth:`delete_rows` and :meth:`matrix_from_columns`
+            are related.
 
         EXAMPLES::
 
@@ -1805,8 +1826,10 @@ cdef class Matrix(matrix0.Matrix):
         * ``drows`` - list of indices of rows to be deleted from self.
         * ``check`` - checks whether any index in ``drows`` is out of range. Defaults to ``True``.
 
-        SEE ALSO:
-            The methods :meth:`delete_columns` and :meth:`matrix_from_rows` are related.
+        .. SEEALSO::
+
+            The methods :meth:`delete_columns` and :meth:`matrix_from_rows`
+            are related.
 
         EXAMPLES::
 
@@ -1949,12 +1972,12 @@ cdef class Matrix(matrix0.Matrix):
           take. If not provided, take all rows below and all columns to
           the right of the starting entry.
 
-        SEE ALSO:
+        .. SEEALSO::
 
-        The functions :func:`matrix_from_rows`,
-        :func:`matrix_from_columns`, and
-        :func:`matrix_from_rows_and_columns` allow one to select
-        arbitrary subsets of rows and/or columns.
+            The functions :func:`matrix_from_rows`,
+            :func:`matrix_from_columns`, and
+            :func:`matrix_from_rows_and_columns` allow one to select
+            arbitrary subsets of rows and/or columns.
 
         EXAMPLES:
 

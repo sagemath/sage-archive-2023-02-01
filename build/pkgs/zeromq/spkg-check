@@ -5,6 +5,7 @@ if [ "$UNAME" = "Darwin" ]; then
     ulimit -n 1200
 fi
 
+# trac 22837: do not run self-tests in parallel.
 cd src
-$MAKE check
+$MAKE -j1 check
 

@@ -29,9 +29,9 @@ EXAMPLES::
 #*****************************************************************************
 from __future__ import absolute_import
 
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
-from sage.libs.cypari2.paridecl cimport *
+from cypari2.paridecl cimport *
+from cysignals.signals cimport *
+from cysignals.memory cimport sig_malloc, sig_realloc, sig_free
 
 from libc.stdint cimport int_fast8_t, uint_fast16_t, uint8_t, uint32_t, uint64_t
 from sage.rings.integer cimport Integer

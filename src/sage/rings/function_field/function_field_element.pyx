@@ -90,7 +90,7 @@ cdef class FunctionFieldElement(FieldElement):
         x._parent = self._parent
         return x
 
-    def _pari_(self):
+    def __pari__(self):
         r"""
         Coerce this element to PARI.
 
@@ -104,7 +104,7 @@ cdef class FunctionFieldElement(FieldElement):
             sage: K.<a> = FunctionField(QQ)
             sage: R.<b> = K[]
             sage: L.<b> = K.extension(b^2-a)
-            sage: b._pari_()
+            sage: b.__pari__()
             Traceback (most recent call last):
             ...
             NotImplementedError: PARI does not support general function field elements.
@@ -346,7 +346,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
             sage: f.element()
             1/x^2*y + x/(x^2 + 1)
             sage: type(f.element())
-            <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_field_with_category.element_class'>
+            <class 'sage.rings.polynomial.polynomial_ring.PolynomialRing_field_with_category.element_class'>
         """
         return self._x
 
@@ -516,18 +516,18 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         FieldElement.__init__(self, parent)
         self._x = x
 
-    def _pari_(self):
+    def __pari__(self):
         r"""
         Coerce this element to PARI.
 
         EXAMPLES::
 
             sage: K.<a> = FunctionField(QQ)
-            sage: ((a+1)/(a-1))._pari_()
+            sage: ((a+1)/(a-1)).__pari__()
             (a + 1)/(a - 1)
 
         """
-        return self.element()._pari_()
+        return self.element().__pari__()
 
     def element(self):
         """

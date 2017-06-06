@@ -313,7 +313,7 @@ class Fields(CategoryWithAxiom):
             - ``f`` -- a univariate non-zero polynomial over this field
 
             ALGORITHM: For rings of characteristic zero, we use the algorithm
-            descriped in [Yun1976]_. Other fields may provide their own
+            described in [Yun1976]_. Other fields may provide their own
             implementation by overriding this method.
 
             EXAMPLES::
@@ -460,7 +460,7 @@ class Fields(CategoryWithAxiom):
     class ElementMethods:
         def euclidean_degree(self):
             r"""
-            Return the degree of this element as an element of a euclidean
+            Return the degree of this element as an element of an Euclidean
             domain.
 
             In a field, this returns 0 for all but the zero element (for
@@ -687,3 +687,24 @@ class Fields(CategoryWithAxiom):
                 return (P.one(), P.zero(), ~other)
             # else both are 0
             return (P.zero(), P.zero(), P.zero())
+
+        def factor(self):
+            """
+            Return a factorization of ``self``.
+
+            Since ``self`` is either a unit or zero, this function is trivial.
+
+            EXAMPLES::
+
+                sage: x = GF(7)(5)
+                sage: x.factor()
+                5
+                sage: RR(0).factor()
+                Traceback (most recent call last):
+                ...
+                ArithmeticError: factorization of 0.000000000000000 is not defined
+            """
+            if not self:
+                raise ArithmeticError("factorization of {!r} is not defined".format(self))
+            from sage.structure.factorization import Factorization
+            return Factorization([], self)  # No factor; "self" as unit

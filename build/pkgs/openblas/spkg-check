@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [ "$SAGE_LOCAL" = "" ]; then
     echo >&2 "SAGE_LOCAL undefined ... exiting";
@@ -14,6 +14,9 @@ cd src
 # Therefore the following is copied from spkg-install
 # We could also patch the Makefile to use a generic symlink pointing
 # to the archive with a specific name
+
+# See #22021 for issues with multithreading
+OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE USE_THREAD=0"
 
 if [ `python -c "from __future__ import print_function; import platform; print(platform.architecture()[0])"` = "32bit" ]; then
     OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE BINARY=32"

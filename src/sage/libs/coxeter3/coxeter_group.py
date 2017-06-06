@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Coxeter Groups implemented with Coxeter3
 """
@@ -7,6 +8,7 @@ Coxeter Groups implemented with Coxeter3
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import iteritems
 
 from sage.libs.coxeter3.coxeter import get_CoxGroup, CoxGroupElement
 from sage.misc.cachefunc import cached_method
@@ -18,6 +20,7 @@ from sage.structure.parent import Parent
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
 
 class CoxeterGroup(UniqueRepresentation, Parent):
     @staticmethod
@@ -103,7 +106,6 @@ class CoxeterGroup(UniqueRepresentation, Parent):
             (0, 1, 2, 3)
         """
         return self.cartan_type().index_set()
-        #return range(1, self.rank()+1)
 
     def bruhat_interval(self, u, v):
         """
@@ -566,7 +568,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
 
         def poincare_polynomial(self):
             """
-            Return the Poincare polynomial associated with this element.
+            Return the Poincaré polynomial associated with this element.
 
             EXAMPLES::
 
@@ -580,7 +582,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
                 t^5 + 4*t^4 + 6*t^3 + 5*t^2 + 3*t + 1
 
                 sage: rw = sage.combinat.permutation.from_reduced_word           # optional - coxeter3
-                sage: p = map(attrcall('poincare_polynomial'), W)                # optional - coxeter3
+                sage: p = [w.poincare_polynomial() for w in W]                   # optional - coxeter3
                 sage: [rw(w.reduced_word()) for i,w in enumerate(W) if p[i] != p[i].reverse()] # optional - coxeter3
                 [[3, 4, 1, 2], [4, 2, 3, 1]]
             """
@@ -616,7 +618,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
 
         def action(self, v):
             """
-            Return the action of of this Coxeter group element on the root space.
+            Return the action of this Coxeter group element on the root space.
 
             INPUT:
 
@@ -685,7 +687,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
                     exponent = self.action(exponent)
 
                     monomial = 1
-                    for s, c in exponent.monomial_coefficients().iteritems():
+                    for s, c in iteritems(exponent.monomial_coefficients()):
                         monomial *= Q_gens[basis_to_order[s]]**int(c)
 
                     result += monomial
@@ -694,4 +696,3 @@ class CoxeterGroup(UniqueRepresentation, Parent):
 
             numerator, denominator = results
             return numerator / denominator
-

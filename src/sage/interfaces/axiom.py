@@ -187,6 +187,7 @@ from sage.env import DOT_SAGE
 from pexpect import EOF
 from sage.misc.multireplace import multiple_replace
 from sage.interfaces.tab_completion import ExtraTabCompletion
+from sage.docs.instancedoc import instancedoc
 
 # The Axiom commands ")what thing det" ")show Matrix" and ")display
 # op det" commands, gives a list of all identifiers that begin in
@@ -261,7 +262,7 @@ class PanAxiom(ExtraTabCompletion, Expect):
 
             sage: filename = tmp_filename(ext='.input')
             sage: f = open(filename, 'w')
-            sage: f.write('xx := 22;\n')
+            sage: _ = f.write('xx := 22;\n')
             sage: f.close()
             sage: axiom.read(filename)    # optional - axiom
             sage: axiom.get('xx')         # optional - axiom
@@ -505,9 +506,9 @@ class Axiom(PanAxiom):
         EXAMPLES::
 
             sage: axiom._function_class()
-            <class 'sage.interfaces.axiom.AxiomExpectFunction'>
+            <class 'sage.interfaces.axiom.PanAxiomExpectFunction'>
             sage: type(axiom.gcd)
-            <class 'sage.interfaces.axiom.AxiomExpectFunction'>
+            <class 'sage.interfaces.axiom.PanAxiomExpectFunction'>
         """
         return AxiomExpectFunction
 
@@ -516,9 +517,9 @@ class Axiom(PanAxiom):
         EXAMPLES::
 
             sage: axiom._object_class()
-            <class 'sage.interfaces.axiom.AxiomElement'>
+            <class 'sage.interfaces.axiom.PanAxiomElement'>
             sage: type(axiom(2)) #optional - axiom
-            <class 'sage.interfaces.axiom.AxiomElement'>
+            <class 'sage.interfaces.axiom.PanAxiomElement'>
         """
         return AxiomElement
 
@@ -529,9 +530,9 @@ class Axiom(PanAxiom):
         EXAMPLES::
 
             sage: axiom._function_element_class()
-            <class 'sage.interfaces.axiom.AxiomFunctionElement'>
+            <class 'sage.interfaces.axiom.PanAxiomFunctionElement'>
             sage: type(axiom(2).gcd) #optional - axiom
-            <class 'sage.interfaces.axiom.AxiomFunctionElement'>
+            <class 'sage.interfaces.axiom.PanAxiomFunctionElement'>
         """
         return AxiomFunctionElement
 
@@ -553,6 +554,8 @@ class Axiom(PanAxiom):
         """
         axiom_console()
 
+
+@instancedoc
 class PanAxiomElement(ExpectElement):
     def __call__(self, x):
         """
@@ -900,10 +903,10 @@ class PanAxiomElement(ExpectElement):
         raise NotImplementedError
 
 
+AxiomElement = PanAxiomElement
 
-class AxiomElement(PanAxiomElement):
-    pass
 
+@instancedoc
 class PanAxiomFunctionElement(FunctionElement):
     def __init__(self, object, name):
         """
@@ -923,9 +926,10 @@ class PanAxiomFunctionElement(FunctionElement):
             name = name[:-2] + "!"
         FunctionElement.__init__(self, object, name)
 
-class AxiomFunctionElement(PanAxiomFunctionElement):
-    pass
+AxiomFunctionElement = PanAxiomFunctionElement
 
+
+@instancedoc
 class PanAxiomExpectFunction(ExpectFunction):
     def __init__(self, parent, name):
         """
@@ -942,8 +946,8 @@ class PanAxiomExpectFunction(ExpectFunction):
             name = name[:-2] + "!"
         ExpectFunction.__init__(self, parent, name)
 
-class AxiomExpectFunction(PanAxiomExpectFunction):
-    pass
+AxiomExpectFunction = PanAxiomExpectFunction
+
 
 def is_AxiomElement(x):
     """

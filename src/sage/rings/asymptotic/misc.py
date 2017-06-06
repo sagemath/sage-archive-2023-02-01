@@ -26,10 +26,9 @@ Functions, Classes and Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from __future__ import print_function, absolute_import
 from six.moves import range
-
-import sage   # WHAT !!!
 
 
 def repr_short_to_parent(s):
@@ -119,19 +118,24 @@ def parent_to_repr_short(P):
         sage: parent_to_repr_short(Zmod(3)['g'])
         'Univariate Polynomial Ring in g over Ring of integers modulo 3'
     """
+    from sage.rings.integer_ring import ZZ
+    from sage.rings.rational_field import QQ
+    from sage.symbolic.ring import SR
+    from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+    from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+    from sage.rings.power_series_ring import is_PowerSeriesRing
     def abbreviate(P):
-        if P is sage.rings.integer_ring.ZZ:
+        if P is ZZ:
             return 'ZZ'
-        elif P is sage.rings.rational_field.QQ:
+        elif P is QQ:
             return 'QQ'
-        elif P is sage.symbolic.ring.SR:
+        elif P is SR:
             return 'SR'
         raise ValueError('Cannot abbreviate %s.' % (P,))
 
-    poly = sage.rings.polynomial.polynomial_ring.is_PolynomialRing(P) or \
-           sage.rings.polynomial.multi_polynomial_ring_generic.is_MPolynomialRing(P)
+    poly = is_PolynomialRing(P) or is_MPolynomialRing(P)
     from sage.rings import multi_power_series_ring
-    power = sage.rings.power_series_ring.is_PowerSeriesRing(P) or \
+    power = is_PowerSeriesRing(P) or \
             multi_power_series_ring.is_MPowerSeriesRing(P)
 
     if poly or power:
@@ -605,7 +609,6 @@ class NotImplementedOZero(NotImplementedError):
         TESTS::
 
             sage: A = AsymptoticRing('n^ZZ', ZZ)
-            doctest:...: FutureWarning: ...
             sage: from sage.rings.asymptotic.misc import NotImplementedOZero
             sage: raise NotImplementedOZero(A)
             Traceback (most recent call last):
@@ -765,3 +768,75 @@ def transform_category(category,
                              (category, A))
 
     return result
+
+
+def richcmp_by_eq_and_lt(left, right, op):
+    r"""
+    Compare ``left`` with ``right``, where the order is specified
+    by methods ``_eq_`` and ``_lt_``.
+
+    INPUT:
+
+    - ``left`` and ``right`` -- objects having methods ``_eq_`` and ``_lt_``
+
+    - ``op`` -- a rich comparison operation (e.g. ``Py_EQ``)
+
+    OUTPUT:
+
+    A boolean.
+
+    .. NOTE::
+
+        This function is intended to be used as a method ``_richcmp_``
+        in a class derived from :class:`sage.structure.element.Element`.
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.misc import richcmp_by_eq_and_lt
+        sage: from sage.structure.element import Element
+
+        sage: class C(Element):
+        ....:     def __init__(self, a, b):
+        ....:         super(C, self).__init__(ZZ)
+        ....:         self.a = a
+        ....:         self.b = b
+        ....:     _richcmp_ = richcmp_by_eq_and_lt
+        ....:     def _eq_(self, other):
+        ....:         return self.a == other.a and self.b == other.b
+        ....:     def _lt_(self, other):
+        ....:         return self.a < other.a and self.b < other.b
+
+        sage: x = C(1,2); y = C(2,1); z = C(3,3)
+
+        sage: x == x, x <= x, x == C(1,2), x <= C(1,2)  # indirect doctest
+        (True, True, True, True)
+        sage: y == z, y != z
+        (False, True)
+
+        sage: x < y, y < x, x > y, y > x, x <= y, y <= x, x >= y, y >= x
+        (False, False, False, False, False, False, False, False)
+        sage: y < z, z < y, y > z, z > y, y <= z, z <= y, y >= z, z >= y
+        (True, False, False, True, True, False, False, True)
+        sage: z < x, x < z, z > x, x > z, z <= x, x <= z, z >= x, x >= z
+        (False, True, True, False, False, True, True, False)
+    """
+    from sage.structure.sage_object import (rich_to_bool,
+                                            op_NE, op_EQ,
+                                            op_LT, op_LE, op_GT, op_GE)
+
+    if left is right:
+        return rich_to_bool(op, 0)
+
+    if op == op_LT or op == op_GT:
+        pass
+    elif left._eq_(right):
+        return rich_to_bool(op, 0)
+    elif op == op_NE:
+        return True
+    elif op == op_EQ:
+        return False
+
+    if op == op_LT or op == op_LE:
+        return left._lt_(right)
+    else:
+        return right._lt_(left)

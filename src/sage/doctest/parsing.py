@@ -147,7 +147,7 @@ def parse_tolerance(source, want):
         sage: from sage.doctest.parsing import parse_tolerance
         sage: marked = parse_tolerance("sage: s.update(abs_tol = .0000001)", "")
         sage: type(marked)
-        <type 'str'>
+        <... 'str'>
         sage: marked = parse_tolerance("sage: s.update(tol = 0.1); s.rel_tol # abs tol     0.01 ", "")
         sage: marked.tol
         0
@@ -218,9 +218,9 @@ def get_source(example):
 
 def reduce_hex(fingerprints):
     """
-    Returns a symmetric function of the arguments as hex strings.
+    Return a symmetric function of the arguments as hex strings.
 
-    The arguments should be 32 character strings consiting of hex
+    The arguments should be 32 character strings consisting of hex
     digits: 0-9 and a-f.
 
     EXAMPLES::
@@ -330,7 +330,7 @@ class OriginalSource:
         'doctest_var = Integer(42); doctest_var**Integer(2)\n'
         sage: from sage.doctest.parsing import OriginalSource
         sage: with OriginalSource(ex):
-        ...       ex.source
+        ....:     ex.source
         'doctest_var = 42; doctest_var^2\n'
     """
     def __init__(self, example):
@@ -371,7 +371,7 @@ class OriginalSource:
             sage: ex = doctests[0].examples[0]
             sage: from sage.doctest.parsing import OriginalSource
             sage: with OriginalSource(ex): # indirect doctest
-            ...       ex.source
+            ....:     ex.source
             ...
             'doctest_var = 42; doctest_var^2\n'
         """
@@ -392,7 +392,7 @@ class OriginalSource:
             sage: ex = doctests[0].examples[0]
             sage: from sage.doctest.parsing import OriginalSource
             sage: with OriginalSource(ex): # indirect doctest
-            ...       ex.source
+            ....:     ex.source
             ...
             'doctest_var = 42; doctest_var^2\n'
             sage: ex.source # indirect doctest
@@ -441,7 +441,7 @@ class SageDocTestParser(doctest.DocTestParser):
             else:
                 self.optional_only = True
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Comparison.
 
@@ -453,9 +453,23 @@ class SageDocTestParser(doctest.DocTestParser):
             sage: DTP == DTP2
             False
         """
-        c = cmp(type(self), type(other))
-        if c: return c
-        return cmp(self.__dict__, other.__dict__)
+        if not isinstance(other, SageDocTestParser):
+            return False
+        return self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        """
+        Test for unequality.
+
+        EXAMPLES::
+
+            sage: from sage.doctest.parsing import SageDocTestParser
+            sage: DTP = SageDocTestParser(True, ('sage','magma','guava'))
+            sage: DTP2 = SageDocTestParser(False, ('sage','magma','guava'))
+            sage: DTP != DTP2
+            True
+        """
+        return not (self == other)
 
     def parse(self, string, *args):
         r"""
@@ -464,7 +478,7 @@ class SageDocTestParser(doctest.DocTestParser):
         INPUT:
 
         - ``string`` -- the string to parse.
-        - ``name`` -- optional string giving the name indentifying string,
+        - ``name`` -- optional string giving the name identifying string,
           to be used in error messages.
 
         OUTPUT:

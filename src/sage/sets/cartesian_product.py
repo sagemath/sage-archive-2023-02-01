@@ -367,7 +367,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
                 sage: A((1, 1.23)).cartesian_factors()
                 (1, 1.23000000000000)
                 sage: type(_)
-                <type 'tuple'>
+                <... 'tuple'>
             """
             return self.value
 

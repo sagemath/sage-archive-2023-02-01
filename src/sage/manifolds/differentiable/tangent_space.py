@@ -305,7 +305,7 @@ class TangentSpace(FiniteRankFreeModule):
         """
         resu = self.element_class(self)
         if self._def_basis is not None:
-            resu.set_comp()[:] = range(1, self._rank+1)
+            resu.set_comp()[:] = list(range(1, self._rank+1))
         return resu
 
     def dimension(self):

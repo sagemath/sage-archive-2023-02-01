@@ -468,7 +468,7 @@ class TensorFreeModule(FiniteRankFreeModule):
             if p == 1:
                 asym = None
             else:
-                asym = range(p)
+                asym = list(range(p))
             resu = self.element_class(self._fmodule, (p,0),
                                       name=tensor._name,
                                       latex_name=tensor._latex_name,
@@ -486,7 +486,7 @@ class TensorFreeModule(FiniteRankFreeModule):
             if p == 1:
                 asym = None
             else:
-                asym = range(p)
+                asym = list(range(p))
             resu = self.element_class(self._fmodule, (0,p), name=form._name,
                                       latex_name=form._latex_name,
                                       antisym=asym)

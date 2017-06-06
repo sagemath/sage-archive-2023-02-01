@@ -29,7 +29,6 @@ REFERENCES:
 - Chap. 15 of S. Lang: *Algebra*, 3rd ed., Springer (New York) (2002)
 
 """
-from __future__ import absolute_import
 #******************************************************************************
 #       Copyright (C) 2017 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #
@@ -39,11 +38,10 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from __future__ import absolute_import
+import six
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 from sage.tensor.modules.comp import Components, CompFullyAntiSym
-
-import six
-
 
 class AlternatingContrTensor(FreeModuleTensor):
     r"""
@@ -68,7 +66,7 @@ class AlternatingContrTensor(FreeModuleTensor):
 
     EXAMPLES:
 
-    Alternating form of degree 2 on a rank-3 free module::
+    Alternating contravariant tensor of degree 2 on a rank-3 free module::
 
         sage: M = FiniteRankFreeModule(ZZ, 3, name='M', start_index=1)
         sage: e = M.basis('e')
@@ -83,8 +81,7 @@ class AlternatingContrTensor(FreeModuleTensor):
         sage: a.display(e)
         a = 4 e_1/\e_2 - 3 e_2/\e_3
 
-    The alternating contravariant tensor acting on the dual basis
-    elements::
+    The alternating contravariant tensor acting on the dual basis elements::
 
         sage: f = e.dual_basis(); f
         Dual basis (e^1,e^2,e^3) on the Rank-3 free module M over the
@@ -167,11 +164,10 @@ class AlternatingContrTensor(FreeModuleTensor):
     course the exterior product::
 
         sage: s = a.wedge(b) ; s
-        Alternating form a/\b of degree 3 on the Rank-3 free module M over the
-         Integer Ring
+        Alternating contravariant tensor a/\b of degree 3 on the Rank-3 free
+         module M over the Integer Ring
         sage: s.parent()
-        3rd exterior power of the dual of the Rank-3 free module M over the
-         Integer Ring
+        3rd exterior power of the Rank-3 free module M over the Integer Ring
         sage: s.display(e)
         a/\b = 6 e_1/\e_2/\e_3
         sage: s[1,2,3] == a[1,2]*b[3] + a[2,3]*b[1] + a[3,1]*b[2]
@@ -180,8 +176,8 @@ class AlternatingContrTensor(FreeModuleTensor):
     The exterior product is nilpotent on module elements::
 
         sage: s = b.wedge(b) ; s
-        Alternating form b/\b of degree 2 on the Rank-3 free module M over the
-         Integer Ring
+        Alternating contravariant tensor b/\b of degree 2 on the Rank-3 free
+         module M over the Integer Ring
         sage: s.display(e)
         b/\b = 0
 
@@ -192,7 +188,7 @@ class AlternatingContrTensor(FreeModuleTensor):
 
         TESTS::
 
-            sage: from sage.tensor.modules.free_module_alt_form import AlternatingContrTensor
+            sage: from sage.tensor.modules.alternating_contr_tensor import AlternatingContrTensor
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')
             sage: a = AlternatingContrTensor(M, 2, name='a')
@@ -210,10 +206,11 @@ class AlternatingContrTensor(FreeModuleTensor):
 
         """
         FreeModuleTensor.__init__(self, fmodule, (degree,0), name=name,
-                                  latex_name=latex_name, antisym=range(degree),
+                                  latex_name=latex_name,
+                                  antisym=list(range(degree)),
                                   parent=fmodule.exterior_power(degree))
         AlternatingContrTensor._init_derived(self) # initialization of derived
-                                              # quantities
+                                                   # quantities
 
     def _repr_(self):
         r"""
@@ -223,15 +220,15 @@ class AlternatingContrTensor(FreeModuleTensor):
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: M.alternating_contravariant_tensor(1)
-            Linear form on the Rank-3 free module M over the Integer Ring
+            Element of the Rank-3 free module M over the Integer Ring
             sage: M.alternating_contravariant_tensor(1, name='a')
-            Linear form a on the Rank-3 free module M over the Integer Ring
+            Element a of the Rank-3 free module M over the Integer Ring
             sage: M.alternating_contravariant_tensor(2)
-            Alternating form of degree 2 on the
-             Rank-3 free module M over the Integer Ring
+            Alternating contravariant tensor of degree 2 on the Rank-3 free
+             module M over the Integer Ring
             sage: M.alternating_contravariant_tensor(2, name='a')
-            Alternating form a of degree 2 on the
-             Rank-3 free module M over the Integer Ring
+            Alternating contravariant tensor a of degree 2 on the Rank-3 free
+             module M over the Integer Ring
         """
         if self._tensor_rank == 1:
             description = "Element "
@@ -280,16 +277,11 @@ class AlternatingContrTensor(FreeModuleTensor):
         EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-            sage: a = M.alternating_contravariant_tensor(1)
+            sage: a = M.alternating_contravariant_tensor(2, name='a')
             sage: a._new_instance()
-            Linear form on the Rank-3 free module M over the Integer Ring
+            Alternating contravariant tensor of degree 2 on the Rank-3 free
+             module M over the Integer Ring
             sage: a._new_instance().parent() is a.parent()
-            True
-            sage: b = M.alternating_contravariant_tensor(2, name='b')
-            sage: b._new_instance()
-            Alternating form of degree 2 on the
-             Rank-3 free module M over the Integer Ring
-            sage: b._new_instance().parent() is b.parent()
             True
 
         """
@@ -371,55 +363,38 @@ class AlternatingContrTensor(FreeModuleTensor):
 
         EXAMPLES:
 
-        Display of an alternating form of degree 1 (linear form) on a rank-3
-        free module::
+        Display of an alternating contravariant tensor of degree 2 on a rank-3
+         free module::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')
-            sage: e.dual_basis()
-            Dual basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring
-            sage: a = M.linear_form('a', latex_name=r'\alpha')
-            sage: a[:] = [1,-3,4]
-            sage: a.display(e)
-            a = e_0 - 3 e_1 + 4 e_2
-            sage: a.display()  # a shortcut since e is M's default basis
-            a = e_0 - 3 e_1 + 4 e_2
+            sage: a = M.alternating_contravariant_tensor(2, 'a', latex_name=r'\alpha')
+            sage: a[0,1], a[0,2], a[1,2] = 3, 2, -1
+            sage: a.display()
+            a = 3 e_0/\e_1 + 2 e_0/\e_2 - e_1/\e_2
             sage: latex(a.display())  # display in the notebook
-            \alpha = e_0 -3 e_1 + 4 e_2
+            \alpha = 3 e_{0}\wedge e_{1} + 2 e_{0}\wedge e_{2} -e_{1}\wedge e_{2}
 
-        A shortcut is ``disp()``::
+        Display of an alternating contravariant tensor of degree 3 on a rank-3
+         free module::
 
-            sage: a.disp()
-            a = e_0 - 3 e_1 + 4 e_2
-
-        Display of an alternating form of degree 2 on a rank-3 free module::
-
-            sage: b = M.alternating_contravariant_tensor(2, 'b', latex_name=r'\beta')
-            sage: b[0,1], b[0,2], b[1,2] = 3, 2, -1
+            sage: b = M.alternating_contravariant_tensor(3, 'b')
+            sage: b[0,1,2] = 4
             sage: b.display()
-            b = 3 e_0/\e_1 + 2 e_0/\e_2 - e_1/\e_2
-            sage: latex(b.display())  # display in the notebook
-            \beta = 3 e_0\wedge e_1 + 2 e_0\wedge e_2 -e_1\wedge e_2
+            b = 4 e_0/\e_1/\e_2
+            sage: latex(b.display())
+            b = 4 e_{0}\wedge e_{1}\wedge e_{2}
 
-        Display of an alternating form of degree 3 on a rank-3 free module::
+        Display of a vanishing alternating contravariant tensor::
 
-            sage: c = M.alternating_contravariant_tensor(3, 'c')
-            sage: c[0,1,2] = 4
-            sage: c.display()
-            c = 4 e_0/\e_1/\e_2
-            sage: latex(c.display())
-            c = 4 e_0\wedge e_1\wedge e_2
-
-        Display of a vanishing alternating form::
-
-            sage: c[0,1,2] = 0  # the only independent component set to zero
-            sage: c.is_zero()
+            sage: b[0,1,2] = 0  # the only independent component set to zero
+            sage: b.is_zero()
             True
-            sage: c.display()
-            c = 0
-            sage: latex(c.display())
-            c = 0
-            sage: c[0,1,2] = 4  # value restored for what follows
+            sage: b.display()
+            b = 0
+            sage: latex(b.display())
+            b = 0
+            sage: b[0,1,2] = 4  # value restored for what follows
 
         Display in a basis which is not the default one::
 
@@ -427,13 +402,11 @@ class AlternatingContrTensor(FreeModuleTensor):
             ....:                      basis=e)
             sage: f = e.new_basis(aut, 'f')
             sage: a.display(f)
-            a = 4 f^0 + f^1 + 3 f^2
+            a = -2 f_0/\f_1 - f_0/\f_2 - 3 f_1/\f_2
             sage: a.disp(f)     # shortcut notation
-            a = 4 f^0 + f^1 + 3 f^2
+            a = -2 f_0/\f_1 - f_0/\f_2 - 3 f_1/\f_2
             sage: b.display(f)
-            b = -2 f^0/\f^1 - f^0/\f^2 - 3 f^1/\f^2
-            sage: c.display(f)
-            c = -4 f^0/\f^1/\f^2
+            b = -4 f_0/\f_1/\f_2
 
         The output format can be set via the argument ``output_formatter``
         passed at the module construction::
@@ -441,26 +414,17 @@ class AlternatingContrTensor(FreeModuleTensor):
             sage: N = FiniteRankFreeModule(QQ, 3, name='N', start_index=1,
             ....:                   output_formatter=Rational.numerical_approx)
             sage: e = N.basis('e')
-            sage: b = N.alternating_contravariant_tensor(2, 'b')
-            sage: b[1,2], b[1,3], b[2,3] = 1/3, 5/2, 4
-            sage: b.display()  # default format (53 bits of precision)
-            b = 0.333333333333333 e_1/\e_2 + 2.50000000000000 e_1/\e_3
+            sage: a = N.alternating_contravariant_tensor(2, 'a')
+            sage: a[1,2], a[1,3], a[2,3] = 1/3, 5/2, 4
+            sage: a.display()  # default format (53 bits of precision)
+            a = 0.333333333333333 e_1/\e_2 + 2.50000000000000 e_1/\e_3
              + 4.00000000000000 e_2/\e_3
 
         The output format is then controlled by the argument ``format_spec`` of
         the method :meth:`display`::
 
-            sage: b.display(format_spec=10)  # 10 bits of precision
-            b = 0.33 e_1/\e_2 + 2.5 e_1/\e_3 + 4.0 e_2/\e_3
-
-        Check that the bug reported in :trac:`22520` is fixed::
-
-            sage: M = FiniteRankFreeModule(SR, 2, name='M')
-            sage: e = M.basis('e')
-            sage: a = M.alternating_contravariant_tensor(2)
-            sage: a[0,1] = SR.var('t', domain='real')
-            sage: a.display()
-            t e_0/\e_1
+            sage: a.display(format_spec=10)  # 10 bits of precision
+            a = 0.33 e_1/\e_2 + 2.5 e_1/\e_3 + 4.0 e_2/\e_3
 
         """
         from sage.misc.latex import latex
@@ -554,32 +518,31 @@ class AlternatingContrTensor(FreeModuleTensor):
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')
-            sage: a = M.linear_form('A')
-            sage: a[:] = [1,-3,4]
-            sage: b = M.linear_form('B')
-            sage: b[:] = [2,-1,2]
+            sage: a = M([1,-3,4], basis=e, name='A')
+            sage: b = M([2,-1,2], basis=e, name='B')
             sage: c = a.wedge(b) ; c
-            Alternating contravariant tensor A/\B of degree 2 on the Rank-3 free module M
-             over the Integer Ring
+            Alternating contravariant tensor A/\B of degree 2 on the Rank-3
+             free module M over the Integer Ring
             sage: c.display()
             A/\B = 5 e_0/\e_1 - 6 e_0/\e_2 - 2 e_1/\e_2
             sage: latex(c)
             A\wedge B
             sage: latex(c.display())
-            A\wedge B = 5 e_0\wedge e_1 -6 e_0\wedge e_2 -2 e_1\wedge e_2
+            A\wedge B = 5 e_{0}\wedge e_{1} -6 e_{0}\wedge e_{2}
+             -2 e_{1}\wedge e_{2}
 
         Test of the computation::
 
             sage: a.wedge(b) == a*b - b*a
             True
 
-        Exterior product of a linear form and an alternating form of degree 2::
+        Exterior product of a module element and an alternating contravariant
+        tensor of degree 2::
 
-            sage: d = M.linear_form('D')
-            sage: d[:] = [-1,2,4]
+            sage: d = M([-1,2,4], basis=e, name='D')
             sage: s = d.wedge(c) ; s
-            Alternating form D/\A/\B of degree 3 on the Rank-3 free module M
-             over the Integer Ring
+            Alternating contravariant tensor D/\A/\B of degree 3 on the Rank-3
+             free module M over the Integer Ring
             sage: s.display()
             D/\A/\B = 34 e_0/\e_1/\e_2
 
@@ -602,9 +565,7 @@ class AlternatingContrTensor(FreeModuleTensor):
 
         """
         from .format_utilities import is_atomic
-        from .free_module_tensor import FiniteRankFreeModuleElement
-        if not isinstance(other, (FiniteRankFreeModuleElement,
-                                  AlternatingContrTensor)):
+        if not isinstance(other, AlternatingContrTensor):
             raise TypeError("the second argument for the exterior product " +
                             "must be an alternating contravariant tensor")
         if other._tensor_rank == 0:

@@ -401,9 +401,11 @@ occur in the context of differentiable manifolds (see
 `here <http://sagemanifolds.obspm.fr/tensor_modules.html>`_ for more
 details):
 
-- the tangent vector space at any point of the manifold
+- the tangent vector space at any point of the manifold (cf.
+  :class:`~sage.manifolds.differentiable.tangent_space.TangentSpace`);
 - the set of vector fields on a parallelizable open subset `U` of the manifold,
-  which is a free module over the algebra of scalar fields on `U`.
+  which is a free module over the algebra of scalar fields on `U` (cf.
+  :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldFreeModule`).
 
 For instance, without any specific coordinate choice, no basis can be
 distinguished in a tangent space.
@@ -534,7 +536,7 @@ from sage.structure.parent import Parent
 from sage.categories.modules import Modules
 from sage.categories.rings import Rings
 from sage.categories.fields import Fields
-from sage.tensor.modules.free_module_tensor import FiniteRankFreeModuleElement
+from sage.tensor.modules.free_module_element import FiniteRankFreeModuleElement
 
 class FiniteRankFreeModule(UniqueRepresentation, Parent):
     r"""
@@ -568,7 +570,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
 
     The class :class:`FiniteRankFreeModule` is a Sage *parent* class,
     the corresponding *element* class being
-    :class:`~sage.tensor.modules.free_module_tensor.FiniteRankFreeModuleElement`.
+    :class:`~sage.tensor.modules.free_module_element.FiniteRankFreeModuleElement`.
 
     INPUT:
 
@@ -657,12 +659,12 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
          Basis (f_0,f_1,f_2) on the Rank-3 free module M over the Integer Ring]
 
     M is a *parent* object, whose elements are instances of
-    :class:`~sage.tensor.modules.free_module_tensor.FiniteRankFreeModuleElement`
+    :class:`~sage.tensor.modules.free_module_element.FiniteRankFreeModuleElement`
     (actually a dynamically generated subclass of it)::
 
         sage: v = M.an_element() ; v
         Element of the Rank-3 free module M over the Integer Ring
-        sage: from sage.tensor.modules.free_module_tensor import FiniteRankFreeModuleElement
+        sage: from sage.tensor.modules.free_module_element import FiniteRankFreeModuleElement
         sage: isinstance(v, FiniteRankFreeModuleElement)
         True
         sage: v in M
@@ -1202,7 +1204,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             sage: e[0]
             Element e_0 of the Rank-3 free module M over the Integer Ring
             sage: latex(e)
-            \left(e_0,e_1,e_2\right)
+            \left(e_{0},e_{1},e_{2}\right)
 
         The LaTeX symbol can be set explicitely, as the second argument of
         :meth:`basis`::
@@ -1211,7 +1213,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             Basis (eps_0,eps_1,eps_2) on the Rank-3 free module M
              over the Integer Ring
             sage: latex(eps)
-            \left(\epsilon_0,\epsilon_1,\epsilon_2\right)
+            \left(\epsilon_{0},\epsilon_{1},\epsilon_{2}\right)
 
         If the provided symbol is that of an already defined basis, the latter
         is returned (no new basis is created)::

@@ -4646,7 +4646,7 @@ class CompFullySym(CompWithSym):
 
         """
         CompWithSym.__init__(self, ring, frame, nb_indices, start_index,
-                             output_formatter, sym=range(nb_indices))
+                             output_formatter, sym=list(range(nb_indices)))
 
     def _repr_(self):
         r"""
@@ -5096,7 +5096,7 @@ class CompFullyAntiSym(CompWithSym):
 
         """
         CompWithSym.__init__(self, ring, frame, nb_indices, start_index,
-                             output_formatter, antisym=range(nb_indices))
+                             output_formatter, antisym=list(range(nb_indices)))
 
     def _repr_(self):
         r"""

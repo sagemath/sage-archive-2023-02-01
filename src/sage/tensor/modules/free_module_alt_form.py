@@ -242,7 +242,8 @@ class FreeModuleAltForm(FreeModuleTensor):
 
         """
         FreeModuleTensor.__init__(self, fmodule, (0,degree), name=name,
-                                  latex_name=latex_name, antisym=range(degree),
+                                  latex_name=latex_name,
+                                  antisym=list(range(degree)),
                                   parent=fmodule.dual_exterior_power(degree))
         FreeModuleAltForm._init_derived(self) # initialization of derived
                                               # quantities
@@ -416,7 +417,7 @@ class FreeModuleAltForm(FreeModuleTensor):
             sage: a.display()  # a shortcut since e is M's default basis
             a = e^0 - 3 e^1 + 4 e^2
             sage: latex(a.display())  # display in the notebook
-            \alpha = e^0 -3 e^1 + 4 e^2
+            \alpha = e^{0} -3 e^{1} + 4 e^{2}
 
         A shortcut is ``disp()``::
 
@@ -430,7 +431,7 @@ class FreeModuleAltForm(FreeModuleTensor):
             sage: b.display()
             b = 3 e^0/\e^1 + 2 e^0/\e^2 - e^1/\e^2
             sage: latex(b.display())  # display in the notebook
-            \beta = 3 e^0\wedge e^1 + 2 e^0\wedge e^2 -e^1\wedge e^2
+            \beta = 3 e^{0}\wedge e^{1} + 2 e^{0}\wedge e^{2} -e^{1}\wedge e^{2}
 
         Display of an alternating form of degree 3 on a rank-3 free module::
 
@@ -439,7 +440,7 @@ class FreeModuleAltForm(FreeModuleTensor):
             sage: c.display()
             c = 4 e^0/\e^1/\e^2
             sage: latex(c.display())
-            c = 4 e^0\wedge e^1\wedge e^2
+            c = 4 e^{0}\wedge e^{1}\wedge e^{2}
 
         Display of a vanishing alternating form::
 
@@ -597,7 +598,7 @@ class FreeModuleAltForm(FreeModuleTensor):
             sage: latex(c)
             A\wedge B
             sage: latex(c.display())
-            A\wedge B = 5 e^0\wedge e^1 -6 e^0\wedge e^2 -2 e^1\wedge e^2
+            A\wedge B = 5 e^{0}\wedge e^{1} -6 e^{0}\wedge e^{2} -2 e^{1}\wedge e^{2}
 
         Test of the computation::
 

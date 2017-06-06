@@ -247,7 +247,7 @@ class DiffForm(TensorField):
 
         """
         TensorField.__init__(self, vector_field_module, (0,degree), name=name,
-                             latex_name=latex_name, antisym=range(degree),
+                             latex_name=latex_name, antisym=list(range(degree)),
                              parent=vector_field_module.dual_exterior_power(degree))
         self._init_derived() # initialization of derived quantities
 

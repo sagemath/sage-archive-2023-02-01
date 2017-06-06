@@ -315,7 +315,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
             if p == 1:
                 asym = None
             else:
-                asym = range(p)
+                asym = list(range(p))
             resu = self.element_class(self._vmodule, (0,p), name=form._name,
                                       latex_name=form._latex_name,
                                       antisym=asym)
@@ -759,7 +759,7 @@ class TensorFieldFreeModule(TensorFreeModule):
             if p == 1:
                 asym = None
             else:
-                asym = range(p)
+                asym = list(range(p))
             resu = self.element_class(self._fmodule, (0,p), name=form._name,
                                       latex_name=form._latex_name,
                                       antisym=asym)

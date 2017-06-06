@@ -114,14 +114,14 @@ class Basis_abstract(UniqueRepresentation, SageObject):
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')
             sage: e._latex_()
-            '\\left(e_0,e_1,e_2\\right)'
+            '\\left(e_{0},e_{1},e_{2}\\right)'
             sage: latex(e)
-            \left(e_0,e_1,e_2\right)
+            \left(e_{0},e_{1},e_{2}\right)
             sage: f = M.basis('eps', latex_symbol=r'\epsilon')
             sage: f._latex_()
-            '\\left(\\epsilon_0,\\epsilon_1,\\epsilon_2\\right)'
+            '\\left(\\epsilon_{0},\\epsilon_{1},\\epsilon_{2}\\right)'
             sage: latex(f)
-            \left(\epsilon_0,\epsilon_1,\epsilon_2\right)
+            \left(\epsilon_{0},\epsilon_{1},\epsilon_{2}\right)
 
         ::
 
@@ -129,7 +129,7 @@ class Basis_abstract(UniqueRepresentation, SageObject):
             sage: e = M.basis('e')
             sage: f = e.dual_basis()
             sage: f._latex_()
-            '\\left(e^0,e^1,e^2\\right)'
+            '\\left(e^{0},e^{1},e^{2}\\right)'
 
         """
         return self._latex_name
@@ -191,12 +191,12 @@ class FreeModuleBasis(Basis_abstract):
     :meth:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule.basis`::
 
         sage: latex(e)
-        \left(e_0,e_1,e_2\right)
+        \left(e_{0},e_{1},e_{2}\right)
         sage: eps = M.basis('eps', r'\epsilon') ; eps
         Basis (eps_0,eps_1,eps_2) on the Rank-3 free module M over the Integer
          Ring
         sage: latex(eps)
-        \left(\epsilon_0,\epsilon_1,\epsilon_2\right)
+        \left(\epsilon_{0},\epsilon_{1},\epsilon_{2}\right)
 
     The individual elements of the basis are labelled according the
     parameter ``start_index`` provided at the free module construction::
@@ -241,7 +241,7 @@ class FreeModuleBasis(Basis_abstract):
             latex_symbol = symbol
         self._name = "(" + \
           ",".join([symbol + "_" + str(i) for i in fmodule.irange()]) +")"
-        latex_name = r"\left(" + ",".join([latex_symbol + "_" + str(i)
+        latex_name = r"\left(" + ",".join([latex_symbol + "_{" + str(i) + "}"
                                        for i in fmodule.irange()]) + r"\right)"
 
         Basis_abstract.__init__(self, fmodule, symbol, latex_symbol, latex_name)
@@ -255,7 +255,7 @@ class FreeModuleBasis(Basis_abstract):
         vl = list()
         for i in fmodule.irange():
             v_name = symbol + "_" + str(i)
-            v_symb = latex_symbol + "_" + str(i)
+            v_symb = latex_symbol + "_{" + str(i) + "}"
             v = fmodule.element_class(fmodule, name=v_name, latex_name=v_symb)
             for j in fmodule.irange():
                 v.set_comp(self)[j] = fmodule._ring.zero()
@@ -600,7 +600,7 @@ class FreeModuleCoBasis(Basis_abstract):
         if latex_symbol is None:
             latex_symbol = symbol
         latex_name = r"\left(" + \
-          ",".join([latex_symbol + "^" + str(i)
+          ",".join([latex_symbol + "^{" + str(i) + "}"
                     for i in basis._fmodule.irange()]) + r"\right)"
 
         Basis_abstract.__init__(self, basis._fmodule, symbol, latex_symbol, latex_name)
@@ -609,7 +609,7 @@ class FreeModuleCoBasis(Basis_abstract):
         vl = list()
         for i in self._fmodule.irange():
             v_name = symbol + "^" + str(i)
-            v_symb = latex_symbol + "^" + str(i)
+            v_symb = latex_symbol + "^{" + str(i) + "}"
             v = self._fmodule.linear_form(name=v_name, latex_name=v_symb)
             for j in self._fmodule.irange():
                 v.set_comp(basis)[j] = 0

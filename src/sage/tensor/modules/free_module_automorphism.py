@@ -770,7 +770,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
             True
 
         """
-        from .free_module_tensor import FiniteRankFreeModuleElement
+        from .free_module_element import FiniteRankFreeModuleElement
         if len(arg) > 1:
             # The automorphism acting as a type-(1,1) tensor on a pair
             # (linear form, module element), returning a scalar:

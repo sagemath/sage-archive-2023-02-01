@@ -20,28 +20,35 @@ class :class:`~sage.tensor.modules.tensor_free_module.TensorFreeModule`.
 Various derived classes of :class:`FreeModuleTensor` are devoted to specific
 tensors:
 
-* :class:`FiniteRankFreeModuleElement` for elements of `M`, considered as
-  type-(1,0) tensors thanks to the canonical identification `M^{**}=M` (which
-  holds since `M` is a free module of finite rank);
+* :class:`~sage.tensor.modules.alternating_contr_tensor.AlternatingContrTensor`
+  for fully antisymmetric type-`(k, 0)` tensors *(alternating contravariant
+  tensors)*;
+
+  - :class:`~sage.tensor.modules.free_module_element.FiniteRankFreeModuleElement`
+    for elements of `M`, considered as type-(1,0) tensors thanks to the canonical
+    identification `M^{**}=M` (which holds since `M` is a free module of finite
+    rank);
 
 * :class:`~sage.tensor.modules.free_module_alt_form.FreeModuleAltForm` for
-  fully antisymmetric type-`(0, l)` tensors (alternating forms);
+  fully antisymmetric type-`(0, l)` tensors *(alternating forms)*;
 
 * :class:`~sage.tensor.modules.free_module_automorphism.FreeModuleAutomorphism`
   for type-(1,1) tensors representing invertible endomorphisms.
 
 Each of these classes is a Sage *element* class, the corresponding *parent*
-classes being:
+class being:
 
-* for :class:`FreeModuleTensor`:
-  :class:`~sage.tensor.modules.tensor_free_module.TensorFreeModule`
-* for :class:`FiniteRankFreeModuleElement`:
-  :class:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule`
-* for :class:`~sage.tensor.modules.free_module_alt_form.FreeModuleAltForm`:
-  :class:`~sage.tensor.modules.ext_pow_free_module.ExtPowerDualFreeModule`
-* for
-  :class:`~sage.tensor.modules.free_module_automorphism.FreeModuleAutomorphism`:
-  :class:`~sage.tensor.modules.free_module_linear_group.FreeModuleLinearGroup`
+* :class:`~sage.tensor.modules.tensor_free_module.TensorFreeModule` for
+  :class:`FreeModuleTensor`;
+* :class:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule`
+  for :class:`~sage.tensor.modules.free_module_element.FiniteRankFreeModuleElement`;
+* :class:`~sage.tensor.modules.ext_pow_free_module.ExtPowerFreeModule` for
+  :class:`~sage.tensor.modules.alternating_contr_tensor.AlternatingContrTensor`;
+* :class:`~sage.tensor.modules.ext_pow_free_module.ExtPowerDualFreeModule` for
+  :class:`~sage.tensor.modules.free_module_alt_form.FreeModuleAltForm`;
+* :class:`~sage.tensor.modules.free_module_linear_group.FreeModuleLinearGroup`
+  for
+  :class:`~sage.tensor.modules.free_module_automorphism.FreeModuleAutomorphism`.
 
 
 AUTHORS:
@@ -579,7 +586,7 @@ class FreeModuleTensor(ModuleElement):
             sage: v.display()  # a shortcut since e is M's default basis
             v = 1/3 e_1 - 2 e_2
             sage: latex(v.display())  # display in the notebook
-            v = \frac{1}{3} e_1 -2 e_2
+            v = \frac{1}{3} e_{1} -2 e_{2}
 
         A shortcut is ``disp()``::
 
@@ -598,7 +605,7 @@ class FreeModuleTensor(ModuleElement):
             sage: w.display()
             w = -3/4 e^1 + e^2
             sage: latex(w.display())  # display in the notebook
-            \omega = -\frac{3}{4} e^1 +e^2
+            \omega = -\frac{3}{4} e^{1} +e^{2}
 
         Display of a type-`(1,1)` tensor::
 
@@ -608,9 +615,9 @@ class FreeModuleTensor(ModuleElement):
             sage: t.display()
             v*w = -1/4 e_1*e^1 + 1/3 e_1*e^2 + 3/2 e_2*e^1 - 2 e_2*e^2
             sage: latex(t.display())  # display in the notebook
-            v\otimes \omega = -\frac{1}{4} e_1\otimes e^1 +
-             \frac{1}{3} e_1\otimes e^2 + \frac{3}{2} e_2\otimes e^1
-             -2 e_2\otimes e^2
+            v\otimes \omega = -\frac{1}{4} e_{1}\otimes e^{1} +
+             \frac{1}{3} e_{1}\otimes e^{2} + \frac{3}{2} e_{2}\otimes e^{1}
+             -2 e_{2}\otimes e^{2}
 
         Display in a basis which is not the default one::
 
@@ -633,7 +640,7 @@ class FreeModuleTensor(ModuleElement):
             sage: v.display()  # default format (53 bits of precision)
             v = 0.333333333333333 e_1 - 2.00000000000000 e_2
             sage: latex(v.display())
-            v = 0.333333333333333 e_1 -2.00000000000000 e_2
+            v = 0.333333333333333 e_{1} -2.00000000000000 e_{2}
 
         The output format is then controlled by the argument ``format_spec`` of
         the method :meth:`display`::
@@ -2057,8 +2064,11 @@ class FreeModuleTensor(ModuleElement):
             if args[i]._tensor_type != (0,1):
                 raise TypeError("the argument no. " + str(i+1) +
                                 " must be a linear form")
-        for i in range(self._tensor_type[0],p):
-            if not isinstance(args[i], FiniteRankFreeModuleElement):
+        for i in range(self._tensor_type[0], p):
+            if not isinstance(args[i], FreeModuleTensor):
+                raise TypeError("the argument no. " + str(i+1) +
+                                " must be a module element")
+            if args[i]._tensor_type != (1,0):
                 raise TypeError("the argument no. " + str(i+1) +
                                 " must be a module element")
         fmodule = self._fmodule
@@ -2773,7 +2783,7 @@ class FreeModuleTensor(ModuleElement):
 
         """
         if not pos:
-            pos = range(self._tensor_rank)
+            pos = list(range(self._tensor_rank))
         # check whether the symmetrization is possible:
         pos_cov = self._tensor_type[0]   # first covariant position
         pos0 = pos[0]
@@ -2830,8 +2840,8 @@ class FreeModuleTensor(ModuleElement):
             sage: t = M.tensor((2,0))
             sage: t[:] = [[1,-2,3], [4,5,6], [7,8,-9]]
             sage: s = t.antisymmetrize() ; s
-            Type-(2,0) tensor on the 3-dimensional vector space M over the
-             Rational Field
+            Alternating contravariant tensor of degree 2 on the 3-dimensional
+             vector space M over the Rational Field
             sage: s.symmetries()
             no symmetry;  antisymmetry: (0, 1)
             sage: t[:], s[:]
@@ -3014,7 +3024,7 @@ class FreeModuleTensor(ModuleElement):
 
         """
         if not pos:
-            pos = range(self._tensor_rank)
+            pos = list(range(self._tensor_rank))
         # check whether the antisymmetrization is possible:
         pos_cov = self._tensor_type[0]   # first covariant position
         pos0 = pos[0]
@@ -3040,360 +3050,3 @@ class FreeModuleTensor(ModuleElement):
             basis = self.pick_a_basis()
         res_comp = self._components[basis].antisymmetrize(*pos)
         return self._fmodule.tensor_from_comp(self._tensor_type, res_comp)
-
-
-#******************************************************************************
-
-# From sage/modules/module.pyx:
-#-----------------------------
-### The Element should also implement _rmul_ (or _lmul_)
-#
-# class MyElement(sage.structure.element.ModuleElement):
-#     def _rmul_(self, c):
-#         ...
-
-
-class FiniteRankFreeModuleElement(FreeModuleTensor):
-    r"""
-    Element of a free module of finite rank over a commutative ring.
-
-    This is a Sage *element* class, the corresponding *parent* class being
-    :class:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule`.
-
-    The class :class:`FiniteRankFreeModuleElement` inherits from
-    :class:`FreeModuleTensor` because the elements of a free module `M` of
-    finite rank over a commutative ring `R` are identified with tensors of
-    type `(1,0)` on `M` via the canonical map
-
-    .. MATH::
-
-        \begin{array}{lllllll}
-        \Phi: & M & \longrightarrow & M^{**}  &  &   & \\
-              & v & \longmapsto & \bar v : & M^* & \longrightarrow & R \\
-              &   &             &          & a   & \longmapsto & a(v)
-        \end{array}
-
-    Note that for free modules of finite rank, this map is actually an
-    isomorphism, enabling the canonical identification: `M^{**}= M`.
-
-    INPUT:
-
-    - ``fmodule`` -- free module `M` of finite rank over a commutative ring
-      `R`, as an instance of
-      :class:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule`
-    - ``name`` -- (default: ``None``) name given to the element
-    - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the element;
-      if none is provided, the LaTeX symbol is set to ``name``
-
-    EXAMPLES:
-
-    Let us consider a rank-3 free module `M` over `\ZZ`::
-
-        sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-        sage: e = M.basis('e') ; e
-        Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring
-
-    There are three ways to construct an element of the free module `M`:
-    the first one (recommended) is using the free module::
-
-        sage: v = M([2,0,-1], basis=e, name='v') ; v
-        Element v of the Rank-3 free module M over the Integer Ring
-        sage: v.display()  # expansion on the default basis (e)
-        v = 2 e_0 - e_2
-        sage: v.parent() is M
-        True
-
-    The second way is to construct a tensor of type `(1,0)` on `M` (cf. the
-    canonical identification `M^{**} = M` recalled above)::
-
-        sage: v2 = M.tensor((1,0), name='v')
-        sage: v2[0], v2[2] = 2, -1 ; v2
-        Element v of the Rank-3 free module M over the Integer Ring
-        sage: v2.display()
-        v = 2 e_0 - e_2
-        sage: v2 == v
-        True
-
-    Finally, the third way is via some linear combination of the basis
-    elements::
-
-        sage: v3 = 2*e[0] - e[2]
-        sage: v3.set_name('v') ; v3 # in this case, the name has to be set separately
-        Element v of the Rank-3 free module M over the Integer Ring
-        sage: v3.display()
-        v = 2 e_0 - e_2
-        sage: v3 == v
-        True
-
-    The canonical identification `M^{**} = M` is implemented by letting the
-    module elements act on linear forms, providing the same result as the
-    reverse operation (cf. the map `\Phi` defined above)::
-
-        sage: a = M.linear_form(name='a')
-        sage: a[:] = (2, 1, -3) ; a
-        Linear form a on the Rank-3 free module M over the Integer Ring
-        sage: v(a)
-        7
-        sage: a(v)
-        7
-        sage: a(v) == v(a)
-        True
-
-    .. RUBRIC:: ARITHMETIC EXAMPLES
-
-    Addition::
-
-        sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-        sage: e = M.basis('e') ; e
-        Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring
-        sage: a = M([0,1,3], name='a') ; a
-        Element a of the Rank-3 free module M over the Integer Ring
-        sage: a.display()
-        a = e_1 + 3 e_2
-        sage: b = M([2,-2,1], name='b') ; b
-        Element b of the Rank-3 free module M over the Integer Ring
-        sage: b.display()
-        b = 2 e_0 - 2 e_1 + e_2
-        sage: s = a + b ; s
-        Element a+b of the Rank-3 free module M over the Integer Ring
-        sage: s.display()
-        a+b = 2 e_0 - e_1 + 4 e_2
-        sage: all(s[i] == a[i] + b[i] for i in M.irange())
-        True
-
-    Subtraction::
-
-        sage: s = a - b ; s
-        Element a-b of the Rank-3 free module M over the Integer Ring
-        sage: s.display()
-        a-b = -2 e_0 + 3 e_1 + 2 e_2
-        sage: all(s[i] == a[i] - b[i] for i in M.irange())
-        True
-
-    Multiplication by a scalar::
-
-        sage: s = 2*a ; s
-        Element of the Rank-3 free module M over the Integer Ring
-        sage: s.display()
-        2 e_1 + 6 e_2
-        sage: a.display()
-        a = e_1 + 3 e_2
-
-    Tensor product::
-
-        sage: s = a*b ; s
-        Type-(2,0) tensor a*b on the Rank-3 free module M over the Integer Ring
-        sage: s.symmetries()
-        no symmetry;  no antisymmetry
-        sage: s[:]
-        [ 0  0  0]
-        [ 2 -2  1]
-        [ 6 -6  3]
-        sage: s = a*s ; s
-        Type-(3,0) tensor a*a*b on the Rank-3 free module M over the Integer Ring
-        sage: s[:]
-        [[[0, 0, 0], [0, 0, 0], [0, 0, 0]],
-         [[0, 0, 0], [2, -2, 1], [6, -6, 3]],
-         [[0, 0, 0], [6, -6, 3], [18, -18, 9]]]
-
-    """
-    def __init__(self, fmodule, name=None, latex_name=None):
-        r"""
-        TESTS::
-
-            sage: from sage.tensor.modules.free_module_tensor import FiniteRankFreeModuleElement
-            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-            sage: e = M.basis('e')
-            sage: v = FiniteRankFreeModuleElement(M, name='v')
-            sage: v[e,:] = (-2, 1, 3)
-            sage: TestSuite(v).run(skip="_test_category") # see below
-
-        In the above test suite, _test_category fails because v is not an
-        instance of v.parent().category().element_class. Actually module
-        elements must be constructed via FiniteRankFreeModule.element_class and
-        not by a direct call to FiniteRankFreeModuleElement::
-
-            sage: v1 = M.element_class(M, name='v')
-            sage: v1[e,:] = (-2, 1, 3)
-            sage: TestSuite(v1).run()
-
-        """
-        FreeModuleTensor.__init__(self, fmodule, (1,0), name=name,
-                                  latex_name=latex_name)
-
-    def _repr_(self):
-        r"""
-        Return a string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-            sage: e = M.basis('e')
-            sage: M([1,-2,3], name='v')
-            Element v of the Rank-3 free module M over the Integer Ring
-
-        """
-        description = "Element "
-        if self._name is not None:
-            description += self._name + " "
-        description += "of the {}".format(self._fmodule)
-        return description
-
-    def _new_comp(self, basis):
-        r"""
-        Create some (uninitialized) components of ``self`` in a given basis.
-
-        This method, which is already implemented in
-        :meth:`FreeModuleTensor._new_comp`, is redefined here for efficiency.
-
-        INPUT:
-
-        - ``basis`` -- basis of the free module on which ``self`` is defined
-
-        OUTPUT:
-
-        - an instance of :class:`~sage.tensor.modules.comp.Components`
-
-        EXAMPLES::
-
-            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-            sage: e = M.basis('e')
-            sage: v = M([1,-2,3], name='v')
-            sage: v._new_comp(e)
-            1-index components w.r.t. Basis (e_0,e_1,e_2) on the
-             Rank-3 free module M over the Integer Ring
-            sage: type(v._new_comp(e))
-            <class 'sage.tensor.modules.comp.Components'>
-
-        """
-        fmodule = self._fmodule  # the base free module
-        return Components(fmodule._ring, basis, 1, start_index=fmodule._sindex,
-                          output_formatter=fmodule._output_formatter)
-
-
-    def _new_instance(self):
-        r"""
-        Create an instance of the same class as ``self``.
-
-        EXAMPLES::
-
-            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-            sage: e = M.basis('e')
-            sage: v = M([1,-2,3], name='v')
-            sage: v._new_instance()
-            Element of the Rank-3 free module M over the Integer Ring
-            sage: v._new_instance().parent() is v.parent()
-            True
-
-        """
-        return self.__class__(self._fmodule)
-
-    def wedge(self, other):
-        r"""
-        Exterior product of ``self`` with the alternating contravariant
-        tensor ``other``.
-
-        INPUT:
-
-        - ``other`` -- an alternating contravariant tensor
-
-        OUTPUT:
-
-        - instance of :class:`AlternatingContrTensor` representing the
-          exterior product ``self/\other``
-
-        EXAMPLES:
-
-        Exterior product of two linear forms::
-
-            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-            sage: e = M.basis('e')
-            sage: a = M.linear_form('A')
-            sage: a[:] = [1,-3,4]
-            sage: b = M.linear_form('B')
-            sage: b[:] = [2,-1,2]
-            sage: c = a.wedge(b) ; c
-            Alternating form A/\B of degree 2 on the Rank-3 free module M
-             over the Integer Ring
-            sage: c.display()
-            A/\B = 5 e_0/\e_1 - 6 e_0/\e_2 - 2 e_1/\e_2
-            sage: latex(c)
-            A\wedge B
-            sage: latex(c.display())
-            A\wedge B = 5 e_0\wedge e_1 -6 e_0\wedge e_2 -2 e_1\wedge e_2
-
-        Test of the computation::
-
-            sage: a.wedge(b) == a*b - b*a
-            True
-
-        Exterior product of a linear form and an alternating form of degree 2::
-
-            sage: d = M.linear_form('D')
-            sage: d[:] = [-1,2,4]
-            sage: s = d.wedge(c) ; s
-            Alternating form D/\A/\B of degree 3 on the Rank-3 free module M
-             over the Integer Ring
-            sage: s.display()
-            D/\A/\B = 34 e_0/\e_1/\e_2
-
-        Test of the computation::
-
-            sage: s[0,1,2] == d[0]*c[1,2] + d[1]*c[2,0] + d[2]*c[0,1]
-            True
-
-        Let us check that the exterior product is associative::
-
-            sage: d.wedge(a.wedge(b)) == (d.wedge(a)).wedge(b)
-            True
-
-        and that it is graded anticommutative::
-
-            sage: a.wedge(b) == - b.wedge(a)
-            True
-            sage: d.wedge(c) == c.wedge(d)
-            True
-
-        """
-        from .format_utilities import is_atomic
-        from .free_module_tensor import FiniteRankFreeModuleElement
-        if not isinstance(other, (FiniteRankFreeModuleElement,
-                                  AlternatingContrTensor)):
-            raise TypeError("the second argument for the exterior product " +
-                            "must be an alternating contravariant tensor")
-        if other._tensor_rank == 0:
-            return other*self
-        fmodule = self._fmodule
-        basis = self.common_basis(other)
-        if basis is None:
-            raise ValueError("no common basis for the exterior product")
-        rank_r = self._tensor_rank + other._tensor_rank
-        cmp_s = self._components[basis]
-        cmp_o = other._components[basis]
-        cmp_r = CompFullyAntiSym(fmodule._ring, basis, rank_r,
-                                 start_index=fmodule._sindex,
-                                 output_formatter=fmodule._output_formatter)
-        for ind_s, val_s in six.iteritems(cmp_s._comp):
-            for ind_o, val_o in six.iteritems(cmp_o._comp):
-                ind_r = ind_s + ind_o
-                if len(ind_r) == len(set(ind_r)): # all indices are different
-                    cmp_r[[ind_r]] += val_s * val_o
-        result = fmodule.alternating_contravariant_tensor(rank_r)
-        result._components[basis] = cmp_r
-        if self._name is not None and other._name is not None:
-            sname = self._name
-            oname = other._name
-            if not is_atomic(sname):
-                sname = '(' + sname + ')'
-            if not is_atomic(oname):
-                oname = '(' + oname + ')'
-            result._name = sname + '/\\' + oname
-        if self._latex_name is not None and other._latex_name is not None:
-            slname = self._latex_name
-            olname = other._latex_name
-            if not is_atomic(slname):
-                slname = '(' + slname + ')'
-            if not is_atomic(olname):
-                olname = '(' + olname + ')'
-            result._latex_name = slname + r'\wedge ' + olname
-        return result

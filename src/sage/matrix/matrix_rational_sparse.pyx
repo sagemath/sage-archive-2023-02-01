@@ -331,7 +331,7 @@ cdef class Matrix_rational_sparse(Matrix_sparse):
     # def _list(self):
 
 # TODO
-##     cpdef _lmul_(self, RingElement right):
+##     cpdef _lmul_(self, Element right):
 ##         """
 ##         EXAMPLES:
 ##             sage: a = matrix(QQ,2,range(6))

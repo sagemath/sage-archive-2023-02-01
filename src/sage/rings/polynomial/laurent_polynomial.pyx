@@ -790,7 +790,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
                              self.__u * right.__u,
                              self.__n + right.__n)
 
-    cpdef _rmul_(self, RingElement c):
+    cpdef _rmul_(self, Element c):
         """
         EXAMPLES::
 
@@ -801,7 +801,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         """
         return LaurentPolynomial_univariate(self._parent, self.__u._rmul_(c), self.__n)
 
-    cpdef _lmul_(self, RingElement c):
+    cpdef _lmul_(self, Element c):
         """
         EXAMPLES::
 
@@ -2303,7 +2303,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         ans._poly = -self._poly
         return ans
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         Returns self * right where right is in self's base ring.
 
@@ -2320,7 +2320,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         ans._poly = self._poly * right
         return ans
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _rmul_(self, Element left):
         """
         Returns left*self where left is in self's base ring.
 

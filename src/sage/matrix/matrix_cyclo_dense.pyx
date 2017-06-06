@@ -559,7 +559,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         A._matrix = self._matrix - (<Matrix_cyclo_dense>right)._matrix
         return A
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         Multiply a dense cyclotomic matrix by a scalar.
 

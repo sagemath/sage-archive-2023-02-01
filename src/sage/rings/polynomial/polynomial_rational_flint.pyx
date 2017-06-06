@@ -1071,7 +1071,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         if do_sig: sig_off()
         return res
 
-    cpdef _rmul_(self, RingElement left):
+    cpdef _rmul_(self, Element left):
         r"""
         Returns left * self, where left is a rational number.
 
@@ -1091,7 +1091,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         if do_sig: sig_off()
         return res
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         r"""
         Returns self * right, where right is a rational number.
 

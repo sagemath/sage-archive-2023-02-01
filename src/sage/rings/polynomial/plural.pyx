@@ -1510,7 +1510,7 @@ cdef class NCPolynomial_plural(RingElement):
                                 _ring)
         return new_NCP((<NCPolynomialRing_plural>left._parent), _p)
 
-    cpdef _lmul_(self, RingElement left):
+    cpdef _lmul_(self, Element left):
         """
         Multiply ``self`` with a base ring element.
 

@@ -18,8 +18,7 @@ from cpython.int cimport *
 from cpython.number cimport *
 from cysignals.signals cimport sig_check
 
-from .element cimport (parent, coercion_model,
-        Element, ModuleElement, RingElement)
+from .element cimport parent, coercion_model, Element, ModuleElement
 from .parent cimport Parent
 from .coerce_exceptions import CoercionException
 from sage.categories.action cimport InverseAction, PrecomposedAction
@@ -226,7 +225,7 @@ def detect_element_action(Parent X, Y, bint X_on_left, X_el=None, Y_el=None):
             raise RuntimeError("an_element() for %s returned None" % Y)
         else:
             return # don't know how to make elements of this type...
-    if isinstance(x, ModuleElement) and isinstance(y, RingElement):
+    if isinstance(x, ModuleElement) and isinstance(y, Element):
         # Elements defining _lmul_ and _rmul_
         try:
             return (RightModuleAction if X_on_left else LeftModuleAction)(Y, X, y, x)
@@ -356,7 +355,7 @@ cdef class ModuleAction(Action):
         if self.extended_base is not None and self.extended_base is S:
             self.extended_base = None
 
-        # At this point, we can assert it is safe to call _Xmul_c
+        # At this point, we can assert it is safe to call _Xmul_
         the_ring = G if self.connecting is None else self.connecting.codomain()
         the_set = S if self.extended_base is None else self.extended_base
         assert the_ring is the_set.base(), "BUG in coercion model\n    Apparently there are two versions of\n        %s\n    in the cache."%the_ring
@@ -371,8 +370,8 @@ cdef class ModuleAction(Action):
             a = S.an_element()
         if parent(a) is not S:
             raise CoercionException("The parent of %s is not %s but %s"%(a,S,parent(a)))
-        if not isinstance(g, RingElement) or not isinstance(a, ModuleElement):
-            raise CoercionException("Not a ring element acting on a module element.")
+        if not isinstance(g, Element) or not isinstance(a, ModuleElement):
+            raise CoercionException("not an Element acting on a ModuleElement")
         res = self.act(g, a)
         if parent(res) is not the_set:
             # In particular we will raise an error if res is None
@@ -604,11 +603,15 @@ cdef class LeftModuleAction(ModuleAction):
             sage: A._call_(1/2, x+1) # safe only when arguments have exactly the correct parent
             1/2*x + 1/2
         """
+        # The way we are called, we know for sure that a is a
+        # ModuleElement and that g is an Element.
+        # If we change a or g, we need to explicitly check this,
+        # which explains the <?> casts below.
         if self.connecting is not None:
-            g = self.connecting._call_(g)
+            g = <Element?>self.connecting._call_(g)
         if self.extended_base is not None:
-            a = self.extended_base(a)
-        return (<ModuleElement>a)._rmul_(<RingElement>g)  # g * a
+            a = <ModuleElement?>self.extended_base(a)
+        return (<ModuleElement>a)._rmul_(<Element>g)  # g * a
 
 
 cdef class RightModuleAction(ModuleAction):
@@ -633,11 +636,15 @@ cdef class RightModuleAction(ModuleAction):
             sage: A._call_(x+5, 2) # safe only when arguments have exactly the correct parent
             2*x + 10
         """
+        # The way we are called, we know for sure that a is a
+        # ModuleElement and that g is an Element.
+        # If we change a or g, we need to explicitly check this,
+        # which explains the <?> casts below.
         if self.connecting is not None:
-            g = self.connecting._call_(g)
+            g = <Element?>self.connecting._call_(g)
         if self.extended_base is not None:
-            a = self.extended_base(a)
-        return (<ModuleElement>a)._lmul_(<RingElement>g)  # a * g
+            a = <ModuleElement?>self.extended_base(a)
+        return (<ModuleElement>a)._lmul_(<Element>g)  # a * g
 
 
 cdef class IntegerMulAction(Action):

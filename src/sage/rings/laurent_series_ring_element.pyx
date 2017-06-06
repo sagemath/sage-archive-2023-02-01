@@ -696,10 +696,10 @@ cdef class LaurentSeries(AlgebraElement):
                              self.__u * right.__u,
                              self.__n + right.__n)
 
-    cpdef _rmul_(self, RingElement c):
+    cpdef _rmul_(self, Element c):
         return LaurentSeries(self._parent, self.__u._rmul_(c), self.__n)
 
-    cpdef _lmul_(self, RingElement c):
+    cpdef _lmul_(self, Element c):
         return LaurentSeries(self._parent, self.__u._lmul_(c), self.__n)
 
     def __pow__(_self, r, dummy):

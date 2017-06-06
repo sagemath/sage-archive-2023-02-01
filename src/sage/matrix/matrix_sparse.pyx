@@ -294,7 +294,7 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         return left.new_matrix(left._nrows, right._ncols, entries=e, coerce=False, copy=False)
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         Left scalar multiplication. Internal usage only.
 

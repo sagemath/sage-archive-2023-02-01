@@ -937,10 +937,10 @@ def eulers_method_2x2(f,g, t0, x0, y0, h, t1,algorithm="table"):
 
     .. MATH::
 
-        \begin{align}
+        \begin{aligned}
         x' &= f(t, x, y), x(t_0)=x_0 \\
         y' &= g(t, x, y), y(t_0)=y_0.
-        \end{align}
+        \end{aligned}
 
     The ``t`` column of the table increments from `t_0` to `t_1` by `h`
     (so `\frac{t_1-t_0}{h}` must be an integer). In the ``x`` column,

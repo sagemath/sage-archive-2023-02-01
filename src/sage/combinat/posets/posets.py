@@ -168,6 +168,7 @@ List of Poset methods
     :meth:`~FinitePoset.zeta_polynomial` | Return the zeta polynomial of the poset.
     :meth:`~FinitePoset.kazhdan_lusztig_polynomial` | Return the Kazhdan-Lusztig polynomial of the poset.
     :meth:`~FinitePoset.coxeter_polynomial` | Return the characteristic polynomial of the Coxeter transformation.
+    :meth:`~FinitePoset.valence_polynomial` | Return the valence polynomial of the poset.
 
 **Polytopes**
 
@@ -3417,6 +3418,10 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         Return the number of elements in the poset.
 
+        .. SEEALSO::
+
+            :meth:`valence_polynomial` for a more refined invariant
+
         EXAMPLES::
 
             sage: Poset([[1,2,3],[4],[4],[4],[]]).cardinality()
@@ -6303,6 +6308,43 @@ class FinitePoset(UniqueRepresentation, Parent):
             [0, 1, 4, 10]
         """
         return self.order_ideals_lattice(as_ideals=False).zeta_polynomial()
+
+    def valence_polynomial(self):
+        """
+        Return the generating polynomial of valences of vertices in ``self``.
+
+        This is the sum
+
+        .. MATH::
+
+            \sum_{v \in P} x^{\operator_name{in}(v)} y^{\operatorname{out}(v)},
+
+        where ``in(v)`` and ``out(v)`` are the number of incoming and
+        outgoing edges at vertex `v` in the Hasse diagram of `P`.
+
+        Because this polynomial is multiplicative for Cartesian
+        product of posets, it is useful to help see if the poset can
+        be isomorphic to a Cartesian product.
+
+        .. SEEALSO::
+
+            :meth:`cardinality`
+
+        EXAMPLES::
+
+            sage: P = posets.PentagonPoset()
+            sage: P.valence_polynomial()
+            x^2 + 3*x*y + y^2
+
+            sage: P = posets.BooleanLattice(4)
+            sage: P.valence_polynomial().factor()
+            (x + y)^4
+        """
+        from sage.rings.polynomial.polynomial_ring import polygens
+        H = self._hasse_diagram
+        x, y = polygens(ZZ, 'x,y')
+        rng = x.parent()
+        return rng.sum(x ** H.in_degree(v) * y ** H.out_degree(v) for v in H)
 
     def promotion(self, i=1):
         r"""

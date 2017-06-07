@@ -20,6 +20,7 @@ from __future__ import absolute_import
 import itertools
 import six
 from sage.structure.element import Element, coerce_binop, is_Vector
+from sage.structure.richcmp import rich_to_bool
 
 from sage.misc.all import cached_method, prod
 from sage.misc.package import is_package_installed
@@ -386,18 +387,17 @@ class Polyhedron_base(Element):
         new_parent = self.parent().base_extend(base_ring, backend)
         return new_parent(self)
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare ``self`` and ``other``.
 
         INPUT:
 
-        - ``other`` -- anything.
+        - ``other`` -- a polyhedron
 
         OUTPUT:
 
-        `-1, 0, +1` depending on how ``self`` and ``other``
-        compare. If ``other`` is a polyhedron, then the comparison
+        If ``other`` is a polyhedron, then the comparison
         operator "less or equal than" means "is contained in", and
         "less than" means "is strictly contained in".
 
@@ -405,14 +405,14 @@ class Polyhedron_base(Element):
 
             sage: P = Polyhedron(vertices=[(1,0), (0,1)], rays=[(1,1)])
             sage: Q = Polyhedron(vertices=[(1,0), (0,1)])
-            sage: cmp(P,Q)
-            1
-            sage: cmp(Q,P)
-            -1
-            sage: cmp(P,P)
-            0
+            sage: P >= Q
+            True
+            sage: Q <= P
+            True
+            sage: P == P
+            True
 
-       The polytope ``Q`` is contained in ``P``::
+       The polytope ``Q`` is strictly contained in ``P``::
 
             sage: P > Q
             True
@@ -421,20 +421,20 @@ class Polyhedron_base(Element):
             sage: P == Q
             False
          """
-        if not isinstance(other, Polyhedron_base):
-            return -1
         if self._Vrepresentation is None or other._Vrepresentation is None:
-            return -1   # make sure deleted polyhedra are not used in cache
-        c = cmp(self.ambient_dim(), other.ambient_dim())
-        if c != 0: return c
+            return False   # make sure deleted polyhedra are not used in cache
+
+        if self.ambient_dim() != other.ambient_dim():
+            return False
+
         c0 = self._is_subpolyhedron(other)
         c1 = other._is_subpolyhedron(self)
         if c0 and c1:
-            return 0
+            return rich_to_bool(op, 0)
         if c0:
-            return -1
+            return rich_to_bool(op, -1)
         else:
-            return +1
+            return rich_to_bool(op, 1)
 
     @coerce_binop
     def _is_subpolyhedron(self, other):

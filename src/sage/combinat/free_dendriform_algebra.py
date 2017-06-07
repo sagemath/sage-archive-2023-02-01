@@ -149,10 +149,10 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
         """
         if names.cardinality() == 1:
             Trees = BinaryTrees()
-            key = BinaryTree.sort_key
+            key = BinaryTree._sort_key
         else:
             Trees = LabelledBinaryTrees()
-            key = LabelledBinaryTree.sort_key
+            key = LabelledBinaryTree._sort_key
         # Here one would need LabelledBinaryTrees(names)
         # so that one can restrict the labels to some fixed set
         self._alphabet = names
@@ -196,11 +196,11 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
     def gen(self, i):
         r"""
-        Return the `i`-th generator of the algebra.
+        Return the ``i``-th generator of the algebra.
 
         INPUT:
 
-        - `i` -- an integer
+        - ``i`` -- an integer
 
         EXAMPLES::
 
@@ -356,7 +356,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
     def succ_product_on_basis(self, x, y):
         r"""
-        Return the `>` dendriform product of two trees.
+        Return the `\succ` dendriform product of two trees.
 
         This is the sum over all possible ways to identify the rightmost path
         in `x` and the leftmost path in `y`, with the additional condition
@@ -403,7 +403,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
     @lazy_attribute
     def succ(self):
         """
-        Return the `>` dendriform product.
+        Return the `\succ` dendriform product.
 
         This is the sum over all possible ways of identifying the
         rightmost path in `x` and the leftmost path in `y`, with the
@@ -431,7 +431,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
     def prec_product_on_basis(self, x, y):
         r"""
-        Return the `<` dendriform product of two trees.
+        Return the `\prec` dendriform product of two trees.
 
         This is the sum over all possible ways of identifying the
         rightmost path in `x` and the leftmost path in `y`, with the
@@ -478,7 +478,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
     @lazy_attribute
     def prec(self):
         """
-        Return the `<` dendriform product.
+        Return the `\prec` dendriform product.
 
         This is the sum over all possible ways to identify the rightmost path
         in `x` and the leftmost path in `y`, with the additional condition

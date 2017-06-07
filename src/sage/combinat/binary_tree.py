@@ -643,7 +643,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         t_repr._baseline = t_repr._h - 1
         return t_repr
 
-    def sort_key(self):
+    def _sort_key(self):
         """
         Return a tuple of nonnegative integers encoding the binary
         tree ``self``.
@@ -660,16 +660,16 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
             sage: x = BinaryTree([])
             sage: y = (x.under(x)).over(x)
-            sage: y.sort_key()
+            sage: y._sort_key()
             (2, 2, 0, 0, 2, 0, 0)
             sage: z = (x.over(x)).under(x)
-            sage: z.sort_key()
+            sage: z._sort_key()
             (2, 2, 0, 2, 0, 0, 0)
         """
         l = len(self)
         if l == 0:
             return (0,)
-        resu = [l] + [u for t in self for u in t.sort_key()]
+        resu = [l] + [u for t in self for u in t._sort_key()]
         return tuple(resu)
 
     def is_empty(self):
@@ -4265,7 +4265,7 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
         else:
             return "%s%s" % (self._label, self[:])
 
-    def sort_key(self):
+    def _sort_key(self):
         """
         Return a tuple encoding the labelled binary tree ``self``.
 
@@ -4284,13 +4284,13 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
             sage: L2 = LabelledBinaryTree([], label='a')
             sage: L3 = LabelledBinaryTree([], label='b')
             sage: T23 = LabelledBinaryTree([L2, L3], label='c')
-            sage: T23.sort_key()
+            sage: T23._sort_key()
             ((2, 'c'), (2, 'a'), (0,), (0,), (2, 'b'), (0,), (0,))
         """
         l = len(self)
         if l == 0:
             return ((0,),)
-        resu = [(l, self.label())] + [u for t in self for u in t.sort_key()]
+        resu = [(l, self.label())] + [u for t in self for u in t._sort_key()]
         return tuple(resu)
 
     def binary_search_insert(self, letter):

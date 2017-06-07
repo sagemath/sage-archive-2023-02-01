@@ -1798,6 +1798,13 @@ cdef class pAdicGenericElement(LocalGenericElement):
         Precisely the absolute precision on ``\log(a)`` agrees with the relative
         precision on ``a`` thanks to the relation ``d\log(a) = da/a``.
 
+        The call `log(a)` works as well::
+
+            sage: log(a)
+            13 + 6*13^2 + 2*13^3 + 5*13^4 + 10*13^6 + 13^7 + 11*13^8 + 8*13^9 + O(13^10)
+            sage: log(a) == a.log()
+            True
+
         The logarithm is not only defined for 1-units::
 
             sage: R = Zp(5,10)
@@ -1925,6 +1932,32 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         TESTS:
 
+        Check multiplicativity::
+
+            sage: p = 11
+            sage: R = Zp(p, prec=1000)
+
+            sage: a = 1 + p*R.random_element()
+            sage: b = 1 + p*R.random_element()
+            sage: log(a*b) == log(a) + log(b)
+            True
+
+            sage: a = R.random_element()
+            sage: b = R.random_element()
+            sage: branch = R.random_element()
+            sage: (a*b).log(p_branch=branch) == a.log(p_branch=branch) + b.log(p_branch=branch)
+            True
+
+        Check that log is the inverse of exp::
+
+            sage: a = 1 + p*R.random_element()
+            sage: exp(log(a)) == a
+            True
+
+            sage: a = p*R.random_element()
+            sage: log(exp(a)) == a
+            True
+
         Check that results are consistent over a range of precision::
 
             sage: max_prec = 40
@@ -1997,11 +2030,14 @@ cdef class pAdicGenericElement(LocalGenericElement):
           generic `p`-adic rings.
 
         - Soroosh Yazdani (2013-02-1): Fixed a precision issue in
-          :meth:`_log_gene`.  This should really fix the issue with
+          :meth:`_log_generic`.  This should really fix the issue with
           divisions.
 
         - Julian Rueth (2013-02-14): Added doctests, some changes for
           capped-absolute implementations.
+
+        - Xavier Caruso (2017-06): Added binary splitting type algorithms 
+          over Qp
 
         """
         if self.is_zero():

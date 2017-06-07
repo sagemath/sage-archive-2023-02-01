@@ -1860,7 +1860,7 @@ class FunctionField_polymod(FunctionField):
             return ret, f, t
         else:
             # otherwise, the polynomial of L must be separable in the other variable
-            from constructor import FunctionField
+            from .constructor import FunctionField
             K = FunctionField(self.constant_base_field(), names=(names[1],))
             # construct a field isomorphic to L on top of K
 

@@ -220,9 +220,18 @@ REFERENCES:
                        *PRINCE - A low-latency block cipher for pervasive computing
                        applications*; in ASIACRYPT, (2012), pp. 208-225.
 
+.. [BD2004] \M. Becker and A. Desoky.
+            *A study of the DVD content scrambling system (CSS) algorithm*; in
+            Proceedings of ISSPIT, (2004), pp. 353-356.
+
 .. [BDP2013] Thomas Brüstle, Grégoire Dupont, Matthieu Pérotin
    *On Maximal Green Sequences*
    :arxiv:`1205.2050`
+
+.. [BDMW2010] \K. A. Browning, J. F. Dillon, M. T. McQuistan, and A. J. Wolfe,
+              *An APN permutation in dimension six*; in Finite Fields: Theory
+              and Applications - FQ9, volume 518 of Contemporary Mathematics,
+              pages 33–42. AMS, 2010.
 
 .. [Bee] Robert A. Beezer, *A First Course in Linear Algebra*,
          http://linear.ups.edu/. Accessed 15 July 2010.
@@ -331,8 +340,12 @@ REFERENCES:
             83–96. :arxiv:`1406.5337`
 
 .. [BPRS2009] \J. Bastian, \T. Prellberg, \M. Rubey, \C. Stump, *Counting the
-            number of elements in the mutation classes of `\tilde{A}_n`-quivers*,
+            number of elements in the mutation classes of `\tilde{A}_n`-quivers*;
             :arxiv:`0906.0487`
+
+.. [BPU2016] Alex Biryukov, Léo Perrin, Aleksei Udovenko,
+             *Reverse-Engineering the S-Box of Streebog, Kuznyechik and STRIBOBr1*; in
+             EuroCrypt'16, pp. 372-402.
 
 .. [Br1910] Bruckner, "Uber die Ableitung der allgemeinen Polytope und
             die nach Isomorphismus verschiedenen Typen der allgemeinen
@@ -550,6 +563,11 @@ REFERENCES:
 .. [Dav1997] B.A. Davey, H.A. Priestley,
              *Introduction to Lattices and Order*,
              Cambridge University Press, 1997.
+
+.. [DCSW2008] \C. De Canniere, H. Sato, D. Watanabe,
+              *Hash Function Luffa: Specification*; submitted to
+              NIST SHA-3 Competition, 2008. Available at
+              http://www.sdl.hitachi.co.jp/crypto/luffa/
 
 .. [Dec1998] W. Decker and T. de Jong. Groebner Bases and Invariant
              Theory in Groebner Bases and Applications. London
@@ -1086,6 +1104,12 @@ REFERENCES:
               *PRINTcipher: A block cipher for IC-printing*; in
               CHES, (2010), pp. 16-32.
 
+.. [KMAUTOM2000] Masayuki Kanda, Shiho Moriai, Kazumaro Aoki, Hiroki Ueda,
+                 Youichi Takashima, Kazuo Ohta, and Tsutomu Matsumoto,
+                 *E2 – a new 128-bit block cipher*; in IEICE Transactions on
+                 Fundamentals of Electronics, Communications and Computer Sciences,
+                 E83-A(1):48–59, 12 2000.
+
 .. [KMM2004] Tomasz Kaczynski, Konstantin Mischaikow, and Marian
              Mrozek, "Computational Homology", Springer-Verlag (2004).
 
@@ -1105,6 +1129,9 @@ REFERENCES:
 
 .. [Knu1995] Donald E. Knuth, *Overlapping Pfaffians*,
              :arxiv:`math/9503234v1`.
+
+.. [Knu2005] Lars R. Knudsen, *SMASH - A Cryptographic Hash Function*; in
+             FSE'05, (2005), pp. 228-242.
 
 .. [Kob1993] Neal Koblitz, *Introduction to Elliptic Curves and
              Modular Forms*.  Springer GTM 97, 1993.
@@ -1284,6 +1311,10 @@ REFERENCES:
             Operads*. Springer-Verlag Berlin Heidelberg
             (2012). :doi:`10.1007/978-3-642-30362-3`.
 
+.. [Ltd06] Beijing Data Security Technology Co. Ltd,
+           *Specification of SMS4, Block Cipher for WLAN Products - SMS4* (in Chinese);
+           Available at http://www.oscca.gov.cn/UpFile/200621016423197990.pdf, (2006).
+
 .. [LTV1999] Bernard Leclerc, Jean-Yves Thibon, and Eric Vasserot.
              *Zelevinsky's involution at roots of unity*.
              J. Reine Angew. Math. 513:33-51 (1999).
@@ -1299,6 +1330,11 @@ REFERENCES:
 .. _ref-M:
 
 **M**
+
+.. [Mas94] James L. Massey,
+           *SAFER K-64: A byte-oriented block-ciphering algorithm*; in
+           FSE’93, Volume 809 of LNCS, pages 1-17.
+           Springer, Heidelberg, December 1994.
 
 .. [Mat2002] Jiří Matousek, "Lectures on Discrete Geometry", Springer,
              2002
@@ -1646,6 +1682,9 @@ REFERENCES:
               *TWINE: A lightweight block cipher for multiple platforms*; in
               SAC, (2012), pp. 338-354.
 
+.. [Sor1984] \A. Sorkin, *LUCIFER: a cryptographic algorithm*;
+             in Cryptologia, 8(1), pp. 22–35, 1984.
+
 .. [Spa1966] Edwin H. Spanier, *Algebraic Topology*,
              Springer-Verlag New York, 1966.
              :doi:`10.1007/978-1-4684-9322-1`,
@@ -1870,6 +1909,14 @@ REFERENCES:
 .. [WSK1997] \D. Wagner, B. Schneier, and J. Kelsey,
              *Cryptoanalysis of the cellular encryption algorithm*; in
              CRYPTO, (1997), pp. 526-537.
+
+.. [Wu2009] Hongjun Wu, *The Hash Function JH*;
+            submitted to NIST, (2008), available at
+            http://www3.ntu.edu.sg/home/wuhj/research/jh/jh_round3.pdf
+
+.. [WW2005] Ralf-Philipp Weinmann and Kai Wirt,
+            *Analysis of the DVB Common Scrambling Algorithm*; in
+            IFIP TC-6 TC-11, (2005).
 
 .. _ref-X:
 

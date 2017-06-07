@@ -15,9 +15,9 @@ This module provides the following SBoxes:
 - Crypton_0_5
     - Crypton_1_0_S0, ..., Crypton_1_0_S3 ([DPV2001]_)
     - CS_cipher ([SV2000]_)
-- CSA
-- CSS
-- E2
+    - CSA ([WW2005]_)
+    - CSS ([BD2004]_)
+    - E2 ([KMAUTOM2000]_)
     - Enocoro ([WFYTP2008]_)
     - Fantomas ([GLSV2015]_)
     - FLY ([KG2016]_)
@@ -31,13 +31,13 @@ This module provides the following SBoxes:
     - MD2 ([Kal1992]_)
     - newDES ([Sco1985]_)
     - Picaro ([PRC2012]_)
-- Safer
+    - Safer ([Mas1994]_)
     - Scream ([CDL2015]_,[GLSVJGK2014]_)
     - SEED_S0, SEED_S1 ([LLYCL2005]_)
     - SKINNY_8 ([BJKLMPSSS2016]_)
     - Skipjack ([U.S1998]_)
     - SNOW_3G_sq ([ETS2006a]_)
-- SMS4
+    - SMS4 ([Ltd06]_)
     - Turing ([RH2003b]_)
     - Twofish_p0, Twofish_p1 ([SKWWHF1998]_)
     - Whirlpool ([BR2000c]_)
@@ -46,7 +46,7 @@ This module provides the following SBoxes:
 
 6 bit to 6 bit
     - Fides_6 ([BBKMW2013]_)
-- APN_6
+    - APN_6 ([BDMW2010]_)
     - SC2000_6 ([SYYTIYTT2002]_)
 
 5 bit to 5 bit
@@ -56,7 +56,7 @@ This module provides the following SBoxes:
 
 4 bit to 4 bit
     - DES_S1_1, ..., DES_S1_4, ..., DES_S8_4 ([U.S1999]_)
-- Lucifer_S0, Lucifer_S1
+    - Lucifer_S0, Lucifer_S1 ([Sor1984]_)
     - GOST_1, ..., GOST_8 ([Dol2010a]_)
     - GOST2_1, GOST2_2 ([PLW2010]_)
     - Magma_1, ..., Magma_8 ([Fed2015]_)
@@ -81,11 +81,11 @@ This module provides the following SBoxes:
     - SKINNY_4 ([BJKLMPSSS2016]_)
     - TWINE ([SMMK2013]_)
 
-- Luffa_v1
-- Luffa
+    - Luffa_v1 ([DCSW2008]_)
+    - Luffa ([DCSW2008]_)
     - BLAKE_1, ..., BLAKE_9 ([AHMP2008]_)
-- JH_S0, JH_S1
-- SMASH_256_S1, ..., SMASH_256_S3
+    - JH_S0, JH_S1 ([Wu2009]_)
+    - SMASH_256_S1, ..., SMASH_256_S3 ([Knu2005]_)
 
     - Anubis_S0, Anubis_S1 ([BR2000a]_)
     - CLEFIA_SS0, ..., CLEFIA_SS3 ([SSAMI2007]_)
@@ -96,7 +96,7 @@ This module provides the following SBoxes:
     - CS_cipher_F, CS_cipher_G ([SV2000]_)
     - Fox_S1, ..., Fox_S3 ([VJ2004]_)
     - Twofish_Q0_T0, ..., Twofish_Q0_T3, Twofish_Q1_T0, ..., Twofish_Q1_T3 ([SKWWHF1998]_)
-- Kuznyechik_nu0, Kuznyechik_nu1, Kuznyechik_sigma, Kuznyechik_phi
+    - Kuznyechik_nu0, Kuznyechik_nu1, Kuznyechik_sigma, Kuznyechik_phi ([BPU2016]_)
 
     - UDCIKMP11 ([UDCIKMP2011]_)
     - Optimal_S0, ..., Optimal_S15 ([LP2007]_)

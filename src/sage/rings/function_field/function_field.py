@@ -1311,7 +1311,7 @@ class FunctionField_polymod(FunctionField):
         Since `K` is perfect, the extension `M/K(x)` is simple, i.e., generated
         by a single element [BM1940]_. Therefore, there are only finitely many
         intermediate fields (Exercise 3.6.7 in [Bosch2009]_).
-        Let `a` be a generator of `M/L` and let `a` be a generator of `L/K(x)`.
+        Let `a` be a generator of `M/L` and let `b` be a generator of `L/K(x)`.
         For some `i` the field `N_i=K(x)(a+x^ib)` is isomorphic to `M` and so
         it is enough to test for all terms of the form `a+x^ib` whether they
         generate a field of the right degree.
@@ -1427,7 +1427,7 @@ class FunctionField_polymod(FunctionField):
 
         # the morphism M -> N, b |-> M_b, a |-> M_a
         V, V_to_M, M_to_V = M.vector_space(K)
-        V, V_to_N, N_no_V = N.vector_space(K)
+        V, V_to_N, N_to_V = N.vector_space(K)
         from sage.matrix.matrix_space import MatrixSpace
         MS = MatrixSpace(V.base_field(), V.dimension())
         # the power basis of v over K

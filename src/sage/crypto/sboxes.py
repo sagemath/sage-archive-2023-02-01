@@ -12,8 +12,8 @@ This module provides the following SBoxes:
     - CMEA ([WSK1997]_)
     - Chiasmus ([STW2013]_)
     - CLEFIA_S0, CLEFIA_S1 ([SSAMI2007]_)
-- Crypton_0_5
-    - Crypton_1_0_S0, ..., Crypton_1_0_S3 ([DPV2001]_)
+    - Crypton_0_5 ([Lim]_)
+    - Crypton_1_0_S0, ..., Crypton_1_0_S3 ([Lim2001]_)
     - CS_cipher ([SV2000]_)
     - CSA ([WW2005]_)
     - CSS ([BD2004]_)
@@ -23,7 +23,7 @@ This module provides the following SBoxes:
     - FLY ([KG2016]_)
     - Fox ([VJ2004]_)
     - Iceberg ([SPRQL2004]_)
-- Iraqi
+    - Iraqi (:wikipedia:`Iraqi_block_cipher`)
     - iScream ([GLSVJGK2014]_)
     - Kalyna_pi0, ..., Kalyna_pi3 ([OGKRKGBDDP2015]_)
     - Khazad ([BR2000b]_)
@@ -57,10 +57,10 @@ This module provides the following SBoxes:
 4 bit to 4 bit
     - DES_S1_1, ..., DES_S1_4, ..., DES_S8_4 ([U.S1999]_)
     - Lucifer_S0, Lucifer_S1 ([Sor1984]_)
-    - GOST_1, ..., GOST_8 ([Dol2010a]_)
-    - GOST2_1, GOST2_2 ([PLW2010]_)
+    - GOST_1, ..., GOST_8 (http://www.cypherpunks.ru/pygost/)
+    - GOST2_1, GOST2_2 (http://www.cypherpunks.ru/pygost/)
     - Magma_1, ..., Magma_8 ([Fed2015]_)
-- GOST_IETF_1, ..., GOST_IETF_8
+    - GOST_IETF_1, ..., GOST_IETF_8 (http://www.cypherpunks.ru/pygost/)
     - Hummingbird_2_S1, ..., Hummingbird_2_S4 ([ESSS1202]_)
     - LBlock_0, ..., LBlock_9 ([WZ1201]_)
     - SERPENT_S0, ..., SERPENT_S7 ([BAK1998]_)
@@ -75,7 +75,7 @@ This module provides the following SBoxes:
     - PRINCE ([BCGKKKLNPRRTY2012]_)
     - Prost ([KLLRSY2014]_)
     - Qarma_sigma0, Qarma_sigma1 ([Ava2017]_)
-- REC_0
+    - REC_0 (earlier version of [ZBLRYV2015]_)
     - Rectangle ([ZBLRYV2015]_)
     - SC2000_4 ([SYYTIYTT2002]_)
     - SKINNY_4 ([BJKLMPSSS2016]_)

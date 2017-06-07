@@ -655,10 +655,6 @@ REFERENCES:
 .. [Do2009] \P. Dobcsanyi et
             al. DesignTheory.org. http://designtheory.org/database/
 
-.. [Dol2010a] \V. Dolmatov,
-              *Gost 28147-89: Encryption, decryption, and message authentication
-              code (mac) algorithms*; in RFC 5830, (2010).
-
 .. [DPV2001] \J. Daemen, M. Peeters, and G. Van Assche,
              *Bitslice ciphers and power analysis attacks*; in FSE, (2000), pp. 134-149.
 
@@ -1246,6 +1242,14 @@ REFERENCES:
              Mathematics. Springer-Verlag, New York, 1997. ISBN
              0-387-98254-X
 
+.. [Lim] \C. H. Lim,
+         *CRYPTON: A New 128-bit Block Cipher*; available at
+         http://next.sejong.ac.kr/~chlim/pub/cryptonv05.ps
+
+.. [Lim2001] \C. H. Lim,
+             *A Revised Version of CRYPTON: CRYPTON V1.0*; in FSE'01, pp. 31--45.
+
+
 .. [Lin1999] J. van Lint, Introduction to coding theory, 3rd ed.,
              Springer-Verlag GTM, 86, 1999.
 
@@ -1496,10 +1500,6 @@ REFERENCES:
 
 .. [Piz1980] \A. Pizer. An Algorithm for Computing Modular Forms on
              `\Gamma_0(N)`, J. Algebra 64 (1980), 340-390.
-
-.. [PLW2010] \A. Poschmann, S. Ling, and H. Wang,
-             *256 bit standardized crypto for 650 GE - GOST revisited*; in
-             CHES, (2010), pp. 219-233.
 
 .. [Pon2010] \S. Pon. *Types B and D affine Stanley symmetric
              functions*, unpublished PhD Thesis, UC Davis, 2010.

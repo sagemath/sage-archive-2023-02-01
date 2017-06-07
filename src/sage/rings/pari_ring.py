@@ -19,7 +19,7 @@ AUTHORS:
 import sage.libs.pari.all as pari
 import sage.rings.ring as ring
 from sage.structure.element import RingElement
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 from sage.misc.fast_methods import Singleton
 
 

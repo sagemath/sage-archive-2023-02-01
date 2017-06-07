@@ -2353,6 +2353,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: P.<y> = RR[]
             sage: y, -y
             (y, -y)
+
+        TESTS:
+
+        We verify that :trac:`23020` has been resolved. (There are no elements
+        in the Sage library yet that do not implement ``__nonzero__``, so we
+        have to create one artifically.)::
+
+            sage: class PatchedAlgebraicNumber(sage.rings.qqbar.AlgebraicNumber):
+            ....:     def __nonzero__(self): raise NotImplementedError()
+            sage: R.<x> = QQbar[]
+            sage: R([PatchedAlgebraicNumber(0), 1])
+            x + 0
+
         """
         s = " "
         m = self.degree() + 1
@@ -2362,7 +2375,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
         coeffs = self.list(copy=False)
         for n in reversed(xrange(m)):
             x = coeffs[n]
-            if x:
+            is_nonzero = False
+            try:
+                is_nonzero = bool(x)
+            except NotImplementedError:
+                # for some elements it is not possible/feasible to determine
+                # whether they are zero or not; we just print them anyway in
+                # such cases
+                is_nonzero = True
+            if is_nonzero:
                 if n != m-1:
                     s += " + "
                 x = y = repr(x)

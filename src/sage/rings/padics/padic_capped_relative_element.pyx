@@ -397,9 +397,13 @@ cdef class pAdicCappedRelativeElement(CRElement):
             5 + 3*5^2 + 4*5^3 + O(5^4)
 
         """
-        cdef unsigned long p = self.prime_pow.prime
+        cdef unsigned long p
         cdef unsigned long prec = aprec
         cdef pAdicCappedRelativeElement ans
+
+        if mpz_fits_slong_p(self.prime_pow.prime) != 0:
+            raise NotImplementedError("The prime %s does not fit in a long" % p)
+        p = self.prime_pow.prime
 
         ans = self._new_c()
         ans.ordp = 0

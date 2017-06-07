@@ -31,6 +31,7 @@ optimized routine to compute the nodes.
 #want to we can optimize this further, probably to a point where
 #we don't have to bother with node computation routines that have a better order
 #than this naive approach (which is quadratic)
+from __future__ import absolute_import, division, print_function
 from sage.libs.mpfr cimport *
 import math
 from sage.rings.real_mpfr import RealField
@@ -44,54 +45,57 @@ def nodes(degree,prec):
 
     INPUT:
 
-     - ``degree`` -- integer. A measure for how many nodes to compute.
+     - ``degree`` -- integer. The number of nodes. Must be 3 or even.
 
      - ``prec`` -- integer (minimal value 53). Binary precision with which the nodes and weights are computed.
 
     OUTPUT:
 
-    A list of (node,weight) pairs, of length 3*2**(degree-1).
+    A list of (node,weight) pairs.
 
     EXAMPLE:
 
     The nodes for the Gauss-Legendre scheme are roots of Legendre polynomials.
     The weights can be computed by a straightforward formula (note that evaluating
-    a derivative of a Legendre polynomial isn't particularly numerically stable)::
+    a derivative of a Legendre polynomial isn't particularly numerically stable, so the results
+    from this routine are actually more accurate than what the values the closed formula produces)::
 
         sage: from sage.numerical.gauss_legendre import nodes
-        sage: L1=nodes(4,53)
+        sage: L1=nodes(24,53)
         sage: P=RR['x'](sage.functions.orthogonal_polys.legendre_P(24,x))
         sage: Pdif=P.diff()
         sage: L2=[( (r+1)/2,1/(1-r^2)/Pdif(r)^2) for r,_ in RR['x'](P).roots()]
         sage: all((a[0]-b[0]).abs() < 10^-15 and (a[1]-b[1]).abs() < 10^-9 for a,b in zip(L1,L2))
         True
     """
-    cdef int j,j1,n
+    cdef long j,j1,n
     cdef RealNumber r,t1,t2,t3,t4,a,w
     cdef mpfr_t u,v
     cdef RealField_class R
     if prec < 53:
         prec = 53
-    R=RealField(int(prec*3/2))
-    Rout=RealField(prec)
+    if degree !=3 and degree % 2 !=0:
+        raise ValueError("degree=%s not supported (degree must be 3 or even)"%degree)
+    R = RealField(int(prec*3/2))
+    Rout = RealField(prec)
     mpfr_init2(u,R.__prec)
     mpfr_init2(v,R.__prec)
-    ZERO=R.zero()
-    ONE=R.one()
-    HALF=ONE/2
-    TWO=2*ONE
-    rnd=R.rnd
-    epsilon=R(1)>>(prec+8)
+    ZERO = R.zero()
+    ONE = R.one()
+    HALF = ONE/2
+    TWO = 2*ONE
+    rnd = R.rnd
+    epsilon = R(1)>>(prec+8)
     if degree == 1:
-        x=(R(3)/5).sqrt()
-        w=R(5)/18
+        x = (R(3)/5).sqrt()
+        w = R(5)/18
         nodes = [((1-x)/2,w),(HALF,R(4)/9),((1+x)/2,w)]
     else:
-        nodes=[]
-        n=3*2**(degree-1)
+        nodes = []
+        n = degree
         upto = n//2+1
         for j in xrange(1,upto):
-            r=R(math.cos(math.pi*(j-0.25)/(n+0.5)))
+            r = R(math.cos(math.pi*(j-0.25)/(n+0.5)))
             while True:
                 t1,t2=ONE,ZERO
                 for j1 in xrange(1,n+1):
@@ -103,12 +107,12 @@ def nodes(degree,prec):
                     t2=t1
                     t1=R._new()
                     mpfr_set(t1.value,u,rnd)
-                t4=R(n)*(r*t1-t2)/(r**2-ONE)
-                a=t1/t4
-                r=r-a
+                t4 = R(n)*(r*t1-t2)/(r**2-ONE)
+                a = t1/t4
+                r = r-a
                 if a.abs()<epsilon:
                     break
-            x=r
+            x = r
             w = ONE/((ONE-r**2)*t4**2)
             nodes.append(((ONE+x)/TWO,w))
             nodes.append(((ONE-x)/TWO,w))
@@ -132,7 +136,7 @@ def estimate_error(results,prec,epsilon):
 
     INPUT:
     
-     - ``results`` -- list. List of approximations to estimate the error from.
+     - ``results`` -- list. List of approximations to estimate the error from. Should be at least length 2.
 
      - ``prec`` -- integer. Binary precision at which computations are happening.
 
@@ -157,18 +161,18 @@ def estimate_error(results,prec,epsilon):
     """
     if len(results)==2:
         return max((results[0][i]-results[1][i]).abs() for i in xrange(len(results[0])))
-    e=[]
-    ZERO=0*epsilon
+    e = []
+    ZERO = 0*epsilon
     for i in xrange(len(results[0])):
         try:
             if results[-1][i] == results[-2][i] == results[-3][i]:
                 e.append(0*epsilon)
-            D1=(results[-1][i]-results[-2][i]).abs().log()
-            D2=(results[-1][i]-results[-3][i]).abs().log()
+            D1 = (results[-1][i]-results[-2][i]).abs().log()
+            D2 = (results[-1][i]-results[-3][i]).abs().log()
         except ValueError:
             e.append(epsilon)
         #we follow mpmath in clipping the precision
-        D4=min(ZERO,max(D1**2/D2,2*D1,ZERO-prec))
+        D4 = min(ZERO,max(D1**2/D2,2*D1,ZERO-prec))
         e.append(D4.exp())
     return max(e)
 
@@ -217,19 +221,20 @@ def integrate_vector(f,prec,epsilon=None):
         sage: max(c.abs() for c in (I-J)) < epsilon
         True
     """
-    results=[]
-    cdef int degree=1
-    Rout=RealField(prec)
+    results = []
+    cdef long degree = 3
+    Rout = RealField(prec)
     if epsilon is None:
         epsilon = Rout(2)**(-prec+3)
     while True:
-        nodelist=nodes(degree,prec)
-        I=nodelist[0][1]*f(nodelist[0][0])
+        nodelist = nodes(degree,prec)
+        I = nodelist[0][1]*f(nodelist[0][0])
         for i in xrange(1,len(nodelist)):
-            I+=nodelist[i][1]*f(nodelist[i][0])
+            I += nodelist[i][1]*f(nodelist[i][0])
         results.append(I)
-        if degree > 1:
-            err= estimate_error(results,prec,epsilon)
+        if degree > 3:
+            err = estimate_error(results,prec,epsilon)
             if err <= epsilon:
                 return I
-        degree +=1
+        #double the degree to double expected precision
+        degree *= 2

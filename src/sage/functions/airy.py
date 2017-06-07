@@ -68,7 +68,7 @@ class FunctionAiryAiGeneral(BuiltinFunction):
           `\operatorname{Ai}^{(n)}(z)`, and for `\alpha = -n = -1,-2,-3,\ldots`
           this gives the `n`-fold iterated integral.
 
-        .. math ::
+        .. MATH::
 
             f_0(z) = \operatorname{Ai}(z)
 
@@ -815,7 +815,7 @@ def airy_bi(alpha, x=None, hold_derivative=True, **kwds):
       `\operatorname{Bi}^{(n)}(z)`, and for `\alpha = -n = -1,-2,-3,\ldots`
       this gives the `n`-fold iterated integral.
 
-    .. math ::
+    .. MATH::
 
         f_0(z) = \operatorname{Bi}(z)
 

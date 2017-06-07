@@ -878,7 +878,7 @@ def newton_method(
     interval = range_slider(-10,10, default = (0,6), label="Interval"),
     list_steps = checkbox(default=False, label="List steps")):
     """
-    Interact explaining the newton method, based on work by
+    Interact explaining the Newton method, based on work by
     Lauri Ruotsalainen, 2010.
     Originally this is based on work by William Stein.
 

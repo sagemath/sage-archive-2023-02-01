@@ -884,7 +884,7 @@ cdef class BasisExchangeMatroid(Matroid):
             ...
             ValueError: no cocircuit in coindependent set.
 
-        ..NOTE::
+        .. NOTE::
 
             This is an unguarded method. For the version that verifies if the
             input is indeed a subset of the ground set,
@@ -941,7 +941,7 @@ cdef class BasisExchangeMatroid(Matroid):
             sage: sorted(M._coclosure(set(['a', 'b', 'c'])))
             ['a', 'b', 'c', 'd']
 
-        ..NOTE::
+        .. NOTE::
 
             This is an unguarded method. For the version that verifies if the
             input is indeed a subset of the ground set,
@@ -1005,7 +1005,7 @@ cdef class BasisExchangeMatroid(Matroid):
             sage: M._is_independent(set(['a', 'b', 'c', 'd']))
             False
 
-        ..NOTE::
+        .. NOTE::
 
             This is an unguarded method. For the version that verifies if
             the input is indeed a subset of the ground set,

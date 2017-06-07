@@ -1487,7 +1487,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: F.embeddings
             [0.2327856159383841? + 0.7925519925154479?*I]
 
-        TEST::
+        TESTS::
 
             sage: K.<a> = NumberField(x^3+x+1)
             sage: R.<t> = ZZ[]
@@ -6419,7 +6419,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         - ``reslist`` -- a list of residues, i.e. integral number field elements
 
-        - ``Ilist`` -- a list of integral ideals, assumed pairsise coprime
+        - ``Ilist`` -- a list of integral ideals, assumed pairwise coprime
 
         - ``check`` (boolean, default True) -- if True, result is checked
 

@@ -153,6 +153,9 @@ from __future__ import print_function
 include "sage/data_structures/binary_matrix.pxi"
 from libc.string cimport memset
 from libc.stdint cimport uint64_t, uint32_t, INT32_MAX, UINT32_MAX
+from cysignals.memory cimport sig_malloc, sig_calloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
+
 from sage.graphs.base.c_graph cimport CGraphBackend
 from sage.graphs.base.c_graph cimport CGraph
 from sage.ext.memory_allocator cimport MemoryAllocator

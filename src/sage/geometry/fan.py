@@ -2979,7 +2979,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         `D-d` dimensions of `N_\QQ` "missed" by the actual rays. (In general
         addition of virtual rays is not sufficient to span `N` over `\ZZ`.)
 
-        ..note::
+        .. NOTE::
 
             You may use a particular choice of virtual rays by passing optional
             argument ``virtual_rays`` to the :func:`Fan` constructor.

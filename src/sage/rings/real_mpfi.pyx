@@ -3169,6 +3169,28 @@ cdef class RealIntervalFieldElement(RingElement):
             raise AssertionError("%s has unknown rounding mode"%field)
         return x
 
+    def __float__(self):
+        """
+        Convert ``self`` to a ``float``.
+
+        EXAMPLES::
+
+            sage: float(RIF(1))
+            1.0
+        """
+        return float(self.n(self.prec()))
+
+    def __complex__(self):
+        """
+        Convert ``self`` to a ``complex``.
+
+        EXAMPLES::
+
+            sage: complex(RIF(1))
+            (1+0j)
+        """
+        return complex(self.n(self.prec()))
+
     def unique_sign(self):
         r"""
         Return the sign of this element if it is well defined.

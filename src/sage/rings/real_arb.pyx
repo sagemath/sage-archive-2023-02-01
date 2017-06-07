@@ -1550,6 +1550,28 @@ cdef class RealBall(RingElement):
                     return field(0)
         raise ValueError("unknown rounding mode")
 
+    def __float__(self):
+        """
+        Convert ``self`` to a ``float``.
+
+        EXAMPLES::
+
+            sage: float(RBF(1))
+            1.0
+        """
+        return float(self.n(prec(self)))
+
+    def __complex__(self):
+        """
+        Convert ``self`` to a ``complex``.
+
+        EXAMPLES::
+
+            sage: complex(RBF(1))
+            (1+0j)
+        """
+        return complex(self.n(prec(self)))
+
     # Center and radius, absolute value, endpoints
 
     def mid(self):

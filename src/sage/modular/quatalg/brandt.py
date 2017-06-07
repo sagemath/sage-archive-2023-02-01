@@ -207,7 +207,7 @@ from sage.modular.hecke.all import (AmbientHeckeModule, HeckeSubmodule, HeckeMod
 from sage.modular.dirichlet import TrivialCharacter
 from sage.matrix.all  import MatrixSpace, matrix
 from sage.misc.mrange import cartesian_product_iterator
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 from sage.misc.cachefunc import cached_method
 
 from copy import copy

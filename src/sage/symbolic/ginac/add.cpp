@@ -280,9 +280,10 @@ bool add::info(unsigned inf) const
 			return false;
 		}
 		case info_flags::positive: {
-                        if (not overall_coeff.info(info_flags::nonnegative))
+                        const numeric& ocn = ex_to<numeric>(overall_coeff);
+                        if (ocn.is_negative())
                                 return false;
-                        bool positive_seen = overall_coeff.info(info_flags::positive);
+                        bool positive_seen = ocn.is_positive();
 			for (const auto & elem : seq) {
 				ex t = recombine_pair_to_ex(elem);
                                 bool is_pos = t.info(info_flags::positive);
@@ -293,6 +294,22 @@ bool add::info(unsigned inf) const
                                         positive_seen = true;
 			}
                         return positive_seen;
+                }
+		case info_flags::negative: {
+                        const numeric& ocn = ex_to<numeric>(overall_coeff);
+                        if (ocn.is_positive())
+                                return false;
+                        bool negative_seen = ocn.is_negative();
+			for (const auto & elem : seq) {
+				ex t = recombine_pair_to_ex(elem);
+                                bool is_neg = t.info(info_flags::negative);
+                                if (not is_neg
+                                    and not t.is_zero())
+					return false;
+                                else if (not negative_seen and is_neg)
+                                        negative_seen = true;
+			}
+                        return negative_seen;
                 }
 	}
 	return inherited::info(inf);

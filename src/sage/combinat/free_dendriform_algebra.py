@@ -314,7 +314,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
     @cached_method
     def one(self):
-        """
+        r"""
         Return the element `1` of ``self``.
 
         This is the unit for the associative dendriform product `*`.
@@ -332,7 +332,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
         return self._monomial(Trees(None))
 
     def product_on_basis(self, x, y):
-        """
+        r"""
         Return the `*` associative dendriform product of two trees.
 
         This is the sum over all possible ways of identifying the
@@ -402,7 +402,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
     @lazy_attribute
     def succ(self):
-        """
+        r"""
         Return the `\succ` dendriform product.
 
         This is the sum over all possible ways of identifying the
@@ -477,7 +477,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
     @lazy_attribute
     def prec(self):
-        """
+        r"""
         Return the `\prec` dendriform product.
 
         This is the sum over all possible ways to identify the rightmost path
@@ -505,7 +505,7 @@ class FreeDendriformAlgebra(CombinatorialFreeModule):
 
     @lazy_attribute
     def over(self):
-        """
+        r"""
         Return the over product.
 
         The over product `x/y` is the binary tree obtained by

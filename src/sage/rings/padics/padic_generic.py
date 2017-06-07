@@ -707,6 +707,52 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             tester.assertEqual(x.is_zero(),y.is_zero())
             tester.assertEqual(x.is_unit(),y.is_unit())
 
+    def _test_log(self, **options):
+        """
+        Test the log operator on elements of this ring.
+
+        INPUT:
+
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+
+        EXAMPLES::
+
+            sage: Zp(3)._test_log()
+
+        .. SEEALSO::
+
+            :class:`TestSuite`
+        """
+        tester = self._tester(**options)
+        for x in tester.some_elements():
+            if x.is_zero(): continue
+            l = x.log(p_branch=0)
+            tester.assertIs(l.parent(), self)
+            tester.assertGreater(l.valuation(), 0)
+            if self.is_capped_absolute() or self.is_capped_relative():
+                tester.assertEqual(x.precision_relative(), l.precision_absolute())
+
+        if self.is_capped_absolute() or self.is_capped_relative():
+            # In the fixed modulus setting, rounding errors may occur
+            elements = list(tester.some_elements())
+            for x, y, b in some_tuples(elements, 3, tester._max_runs):
+                if x.is_zero() or y.is_zero(): continue
+                r1 = x.log(pi_branch=b) + y.log(pi_branch=b)
+                r2 = (x*y).log(pi_branch=b)
+                tester.assertEqual(r1, r2)
+
+            p = self.prime()
+            for x in tester.some_elements():
+                if x.is_zero(): continue
+                if p == 2:
+                    a = 4 * x.unit_part()
+                else:
+                    a = p * x.unit_part()
+                b = a.exp().log()
+                c = (1+a).log().exp()
+                tester.assertEqual(a, b)
+                tester.assertEqual(1+a, c)
+
     def _test_teichmuller(self, **options):
         """
         Test Teichmuller lifts.

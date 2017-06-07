@@ -1590,7 +1590,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
         total=R.zero()
 
         # pre-compute x^p/p into x2p_p
-        if R.is_capped_relative():
+        if mina == 0 and alpha*p - e > aprec:
+            # The value of x^p/p is not needed in that case
+            x2p_p = R(0)
+        elif R.is_capped_relative():
             if p*alpha >= e:
                 x2p_p = x**p/p
             else:
@@ -1610,40 +1613,44 @@ cdef class pAdicGenericElement(LocalGenericElement):
         # Two sum over these terms, we run two nested loops, the outer one
         # iterates over the possible values for a, the inner one iterates over
         # the possible values for u.
-        a=0
-        p2a=1       # p^a
-        x2pa = x    # x^(p^a)
+        upper_u = (aprec/alpha).floor()
+        if mina > 0 or upper_u > 0:
+            a=0
+            p2a=1       # p^a
+            x2pa = x    # x^(p^a)
 
-        while True:
-            upper_u = ((aprec+a*e)/(alpha*p2a)).floor()
             # In the unramified case, we can stop summing terms as soon as
             # there are no u for a given a to sum over. In the ramified case,
             # it can happen that for some initial a there are no such u but
             # later in the series there are such u again. mina can be set to
             # take care of this by summing at least to a=mina-1
-            if a >= mina and upper_u<=0:
-                break
-            # we compute the sum for the possible values for u using Horner's method
-            inner_sum = R.zero()
-            for u in xrange(upper_u,0,-1):
-                # We want u to be a p-adic unit
-                if u%p==0:
-                    new_term = R.zero()
-                else:
-                    new_term = ~R(u)
+            while True:
+                # we compute the sum for the possible values for u using Horner's method
+                inner_sum = R.zero()
+                for u in xrange(upper_u,0,-1):
+                    # We want u to be a p-adic unit
+                    if u%p==0:
+                        new_term = R.zero()
+                    else:
+                        new_term = ~R(u)
 
-                # This hack is to deal with rings that don't lift to fields
-                if u>1 or x2p_p.is_zero():
-                    inner_sum = (inner_sum+new_term)*x2pa
-                else:
-                    inner_sum = (inner_sum+new_term)*(x2p_p**a)*(x**(p2a-a*p))
+                    # This hack is to deal with rings that don't lift to fields
+                    if u > 1 or x2p_p.is_zero():
+                        inner_sum = (inner_sum+new_term)*x2pa
+                    else:
+                        inner_sum = (inner_sum+new_term)*(x2p_p**a)*(x**(p2a-a*p))
 
-            total -= inner_sum
+                total -= inner_sum
 
-            # Now increase the power of p
-            a += 1
-            p2a = p2a*p
-            x2pa = x2pa**p
+                # Now increase a and check if a new iteration of the loop is needed
+                a += 1
+                p2a = p2a*p
+                upper_u = ((aprec+a*e)/(alpha*p2a)).floor()
+                if a >= mina and upper_u <= 0: break
+
+                # We perform this last operation after the test
+                # because it is costly and may raise OverflowError
+                x2pa = x2pa**p
 
         return total.add_bigoh(aprec)
 
@@ -1932,24 +1939,49 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         TESTS:
 
+        Check that the generic algorithm and the binary splitting algorithm
+        returns the same answers::
+
+            sage: p = 17
+            sage: R = Zp(p)
+            sage: a = 1 + p*R.random_element()
+            sage: l1 = a.log(algorithm='generic')
+            sage: l2 = a.log(algorithm='binary_splitting')
+            sage: l1 == l2
+            True
+            sage: l1.precision_absolute() == l2.precision_absolute()
+            True
+
         Check multiplicativity::
 
             sage: p = 11
             sage: R = Zp(p, prec=1000)
 
-            sage: a = 1 + p*R.random_element()
-            sage: b = 1 + p*R.random_element()
-            sage: log(a*b) == log(a) + log(b)
+            sage: x = 1 + p*R.random_element()
+            sage: y = 1 + p*R.random_element()
+            sage: log(x*y) == log(x) + log(y)
             True
 
-            sage: a = R.random_element()
-            sage: b = R.random_element()
+            sage: x = y = 0
+            sage: while x == 0:
+            ....:     x = R.random_element()
+            sage: while y == 0:
+            ....:     y = R.random_element()
             sage: branch = R.random_element()
-            sage: (a*b).log(p_branch=branch) == a.log(p_branch=branch) + b.log(p_branch=branch)
+            sage: (x*y).log(p_branch=branch) == x.log(p_branch=branch) + y.log(p_branch=branch)
             True
+
+        Note that multiplicativity may fail in the fixed modulus setting
+        due to rounding errors::
+
+            sage: R = ZpFM(2, prec=5)
+            sage: R(180).log(p_branch=0) == R(30).log(p_branch=0) + R(6).log(p_branch=0)
+            False            
 
         Check that log is the inverse of exp::
 
+            sage: p = 11
+            sage: R = Zp(p, prec=1000)
             sage: a = 1 + p*R.random_element()
             sage: exp(log(a)) == a
             True
@@ -2016,6 +2048,12 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: z.log().precision_relative()
             250
+
+        Performances::
+
+            sage: R = Zp(17, prec=10^6)
+            sage: a = R.random_element()
+            sage: b = a.log(p_branch=0)   # should be rather fast
 
         AUTHORS:
 

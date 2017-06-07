@@ -1550,25 +1550,25 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         EXAMPLES::
 
-            sage: r = Qp(5,prec=4)(5)
-            sage: r._log(2)
+            sage: r = Qp(5,prec=4)(6)
+            sage: r._log_generic(2)
             5 + O(5^2)
             sage: r._log_generic(4)
-            5 + 3*5^2 + 4*5^3 + O(5^4)
+            5 + 2*5^2 + 4*5^3 + O(5^4)
             sage: r._log_generic(100)
-            5 + 3*5^2 + 4*5^3 + O(5^5)
+            5 + 2*5^2 + 4*5^3 + O(5^4)
 
-            sage: r = Zp(5,prec=4,type='fixed-mod')(5)
+            sage: r = Zp(5,prec=4,type='fixed-mod')(6)
             sage: r._log_generic(5)
-            5 + 3*5^2 + 4*5^3 + O(5^4)
+            5 + 2*5^2 + 4*5^3 + O(5^4)
 
-        Only implemented for elements of positive valuation::
+        Only implemented for elements congruent to 1 modulo the maximal ideal::
 
-            sage: r = Zp(5,prec=4,type='fixed-mod')(1)
+            sage: r = Zp(5,prec=4,type='fixed-mod')(2)
             sage: r._log_generic(5)
             Traceback (most recent call last):
             ...
-            ValueError: Input value (=1 + O(5^4)) must have strictly positive valuation
+            ValueError: Input value (=2 + O(5^4)) must be 1 in the residue field
 
         """
         x = 1-self
@@ -1691,8 +1691,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         together with a binary splitting method.
 
-        3. Divide the result by `p^v*(p-1)`
-           and multiply by ``self.valuation()*log(p)``
+        3. Divide the result by `p^v`
 
         The complexity of this algorithm is quasi-linear.
 
@@ -1702,13 +1701,13 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: r._log_binary_splitting(2)
             5 + O(5^2)
             sage: r._log_binary_splitting(4)
-            5 + 3*5^2 + 4*5^3 + O(5^4)
+            5 + 2*5^2 + 4*5^3 + O(5^4)
             sage: r._log_binary_splitting(100)
-            5 + 3*5^2 + 4*5^3 + O(5^5)
+            5 + 2*5^2 + 4*5^3 + O(5^4)
 
             sage: r = Zp(5,prec=4,type='fixed-mod')(6)
             sage: r._log_binary_splitting(5)
-            5 + 3*5^2 + 4*5^3 + O(5^4)
+            5 + 2*5^2 + 4*5^3 + O(5^4)
 
         """
         raise NotImplementedError

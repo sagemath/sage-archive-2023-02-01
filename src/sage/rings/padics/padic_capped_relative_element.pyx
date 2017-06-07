@@ -377,8 +377,8 @@ cdef class pAdicCappedRelativeElement(CRElement):
             \log(1 - x) = -x - 1/2 x^2 - 1/3 x^3 - 1/4 x^4 - 1/5 x^5 - \cdots
 
         together with a binary splitting method.
-        3. Divide the result by `p^v*(p-1)`
-           and multiply by ``self.valuation()*log(p)``
+
+        3. Divide the result by `p^v`
 
         The complexity of this algorithm is quasi-linear.
 
@@ -388,22 +388,22 @@ cdef class pAdicCappedRelativeElement(CRElement):
             sage: r._log_binary_splitting(2)
             5 + O(5^2)
             sage: r._log_binary_splitting(4)
-            5 + 3*5^2 + 4*5^3 + O(5^4)
+            5 + 2*5^2 + 4*5^3 + O(5^4)
             sage: r._log_binary_splitting(100)
-            5 + 3*5^2 + 4*5^3 + O(5^5)
+            5 + 2*5^2 + 4*5^3 + O(5^4)
 
             sage: r = Zp(5,prec=4,type='fixed-mod')(6)
             sage: r._log_binary_splitting(5)
-            5 + 3*5^2 + 4*5^3 + O(5^4)
+            5 + 2*5^2 + 4*5^3 + O(5^4)
 
         """
         cdef unsigned long p
-        cdef unsigned long prec = aprec
+        cdef unsigned long prec = min(aprec, self.relprec)
         cdef pAdicCappedRelativeElement ans
 
-        if mpz_fits_slong_p(self.prime_pow.prime) != 0:
-            raise NotImplementedError("The prime %s does not fit in a long" % p)
-        p = self.prime_pow.prime
+        if mpz_fits_slong_p(self.prime_pow.prime.value) == 0:
+            raise NotImplementedError("The prime %s does not fit in a long" % self.prime_pow.prime)
+        p = self.prime_pow.prime      
 
         ans = self._new_c()
         ans.ordp = 0

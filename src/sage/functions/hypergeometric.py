@@ -46,7 +46,7 @@ Equality testing::
 
 Computing terms and series::
 
-    sage: z = var('z')
+    sage: z = SR.var('z')
     sage: hypergeometric([], [], z).series(z, 0)
     Order(1)
     sage: hypergeometric([], [], z).series(z, 1)
@@ -85,9 +85,11 @@ Computing terms and series::
 
 Plotting::
 
-    sage: plot(hypergeometric([1, 1], [3, 3, 3], x), x, -30, 30)
+    sage: f(x) = hypergeometric([1, 1], [3, 3, 3], x)
+    sage: plot(f, x, -30, 30)
     Graphics object consisting of 1 graphics primitive
-    sage: complex_plot(hypergeometric([x], [], 2), (-1, 1), (-1, 1))
+    sage: g(x) = hypergeometric([x], [], 2)
+    sage: complex_plot(g, (-1, 1), (-1, 1))
     Graphics object consisting of 1 graphics primitive
 
 Numeric evaluation::
@@ -130,7 +132,7 @@ The confluent hypergeometric functions can arise as solutions to second-order
 differential equations (example from `here <http://ask.sagemath.org/question/
 1168/how-can-one-use-maxima-kummer-confluent-functions>`_)::
 
-    sage: m = var('m')
+    sage: m = SR.var('m')
     sage: y = function('y')(x)
     sage: desolve(diff(y, x, 2) + 2*x*diff(y, x) - 4*m*y, y,
     ....:         contrib_ode=true, ivar=x)
@@ -410,9 +412,11 @@ class Hypergeometric(BuiltinFunction):
                 sage: h._fast_callable_(etb)
                 {hypergeometric((), (), x)}(v_0)
 
-                sage: y = var('y')
-                sage: fast_callable(hypergeometric([y], [], x),
-                ....:               vars=[x, y])(3, 4)
+                sage: x, y = SR.var('x, y')
+                sage: f = fast_callable(hypergeometric([y], [], x), vars=[x, y])
+                sage: f(3, 4)
+                doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
+                See http://trac.sagemath.org/5930 for details.
                 hypergeometric((4,), (), 3)
             """
             return etb.call(self, *map(etb.var, etb._vars))
@@ -1008,7 +1012,7 @@ class Hypergeometric_M(BuiltinFunction):
 
             EXAMPLES::
 
-                sage: a, b, z = var('a b z')
+                sage: a, b, z = SR.var('a b z')
                 sage: hypergeometric_M(a, b, z).generalized()
                 hypergeometric((a,), (b,), z)
 
@@ -1109,7 +1113,7 @@ class Hypergeometric_U(BuiltinFunction):
 
             EXAMPLES::
 
-                sage: a, b, z = var('a b z')
+                sage: a, b, z = SR.var('a b z')
                 sage: hypergeometric_U(a, b, z).generalized()
                 z^(-a)*hypergeometric((a, a - b + 1), (), -1/z)
                 sage: hypergeometric_U(1, 3, 1/2).generalized()

@@ -25,6 +25,8 @@ void assume(ex rel) {
         ex df = (r.lhs() - r.rhs()).expand();
         if (r.the_operator() == relational::greater)
                 df.set_domain(domain::positive);
+        if (r.the_operator() == relational::less)
+                df.set_domain(domain::negative);
 }
 
 void assume(ex x, char* flag_desc) {

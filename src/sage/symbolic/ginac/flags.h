@@ -80,6 +80,7 @@ public:
 		complex,
 		real,
 		positive,
+                negative,
 		infinity,
 		integer,
                 even

@@ -2098,32 +2098,32 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         self.cache('pivots', tuple(pivots))
         self.cache('in_echelon_form',True)
 
-    def right_kernel_matrix(self,algorithm='linbox',basis='echelon'):
+    def right_kernel_matrix(self, algorithm='linbox', basis='echelon'):
         r"""
         Returns a matrix whose rows form a basis for the right kernel
         of ``self``, where ``self`` is a matrix over a (small) finite field.
 
         INPUT:
 
-          - ``algorithm`` -- default: 'linbox' - a parameter that is passed on to
-          ``self.echelon_form``, if computation of an echelon form is required.
-          See that routine for allowable values.
+        - ``algorithm`` -- (default: ``'linbox'``) a parameter that is
+          passed on to ``self.echelon_form``, if computation of an echelon
+          form is required; see that routine for allowable values
 
-          - ``basis`` -- default: 'echelon' - a keyword that describes the format
-          of the basis returned. Allowable values are:
+        - ``basis`` -- (default: ``'echelon'``) a keyword that describes the
+          format of the basis returned, allowable values are:
 
-          - 'echelon': the basis matrix is in echelon form
-          - 'pivot': the basis matrix is such that the submatrix obtained by
-             taking the columns that in ``self`` contain no pivots, is the
-             identity matrix.
-          - 'computed': no work is done to transform the basis. In the current
-             implementation the result is the negative of that returned by
-             'pivot'.
+          - ``'echelon'``: the basis matrix is in echelon form
+          - ``'pivot'``: the basis matrix is such that the submatrix obtained
+             by taking the columns that in ``self`` contain no pivots, is the
+             identity matrix
+          - ``'computed'``: no work is done to transform the basis; in
+             the current implementation the result is the negative of
+             that returned by ``'pivot'``
 
         OUTPUT:
 
-        A matrix ``X`` whose rows are a basis for the right kernel of ``self``.
-        This means that ``self*X.transpose()`` is a zero matrix.
+        A matrix ``X`` whose rows are a basis for the right kernel of
+        ``self``. This means that ``self * X.transpose()`` is a zero matrix.
 
         The result is not cached, but the routine benefits when ``self`` is
         known to be in echelon form already.
@@ -2153,14 +2153,13 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             [0 0 0 0]
             [0 0 0 0]
             [0 0 0 0]
-
         """
         if self.fetch('in_echelon_form') is None:
             self = self.echelon_form(algorithm=algorithm)
 
         cdef Py_ssize_t r = self.rank()
-        cdef Py_ssize_t nrows= self._nrows
-        cdef Py_ssize_t ncols= self._ncols
+        cdef Py_ssize_t nrows = self._nrows
+        cdef Py_ssize_t ncols = self._ncols
         cdef Py_ssize_t i,j,k
 
         cdef Py_ssize_t* nonpivots = <Py_ssize_t*>sig_malloc(sizeof(Py_ssize_t)*(ncols-r))
@@ -2182,18 +2181,18 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         F = self.base_ring()
         MS = MatrixSpace(F, ncols-r, ncols)
         cdef Matrix_modn_dense_template M
-        M = self.__class__.__new__(self.__class__, MS, 0,0,0)
+        M = self.__class__.__new__(self.__class__, MS, 0, 0, 0)
         M.p = self.p
         cdef celement pm1 = self.p-1
 
         k=0
         for i in range(ncols-r):
             for j in range(ncols-r):
-                M._entries[nonpivots[i]+j*ncols]=0
-            M._entries[nonpivots[i]+k*ncols]=pm1
+                M._entries[nonpivots[i]+j*ncols] = 0
+            M._entries[nonpivots[i]+k*ncols] = pm1
             k+=1
             for j in range(r):
-                M._entries[i*ncols+pivots[j]]=self._entries[nonpivots[i]+j*ncols]
+                M._entries[i*ncols+pivots[j]] = self._entries[nonpivots[i]+j*ncols]
 
         sig_free(pivots)
         sig_free(nonpivots)
@@ -2335,8 +2334,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         cdef celement p, t
         p = self.p
 
-        # Replace self
-        by its Hessenberg form, and set H to this form
+        # Replace self by its Hessenberg form, and set H to this form
         # for notation below.
         cdef Matrix_modn_dense_template H
         H = self.__copy__()
@@ -3086,7 +3084,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
     def transpose(self):
         """
-        Returns the transpose of ``self``, without changing ``self``.
+        Return the transpose of ``self``, without changing ``self``.
 
         EXAMPLES:
 
@@ -3119,7 +3117,6 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             [---]
             [2 4]
         """
-
         cdef Py_ssize_t nrows = self._nrows
         cdef Py_ssize_t ncols = self._ncols
 
@@ -3143,22 +3140,23 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
     def stack(self, bottom, subdivide=False):
         r"""
-        Return a new matrix formed by appending the matrix (or vector) ``bottom`` beneath ``self``.
+        Return a new matrix formed by appending the matrix (or vector)
+        ``bottom`` beneath ``self``.
 
         INPUT:
 
         - ``bottom`` -- a matrix, vector or free module element, whose
-          dimensions are compatible with ``self``.
+          dimensions are compatible with ``self``
 
-        - ``subdivide`` -- default: ``False`` - request the resulting
-          matrix to have a new subdivision, separating ``self`` from ``bottom``.
+        - ``subdivide`` -- (default: ``False``) request the resulting matrix
+          to have a new subdivision, separating ``self`` from ``bottom``
 
         OUTPUT:
 
         A new matrix formed by appending ``bottom`` beneath ``self``.
-        If ``bottom`` is a vector (or free module element) then in this context
-        it is appropriate to consider it as a row vector.  (The code first
-        converts a vector to a 1-row matrix.)
+        If ``bottom`` is a vector (or free module element) then in this
+        context it is appropriate to consider it as a row vector.
+        (The code first converts a vector to a 1-row matrix.)
 
         If ``subdivide`` is ``True`` then any row subdivisions for
         the two matrices are preserved, and a new subdivision is added
@@ -3168,6 +3166,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         in the result.
 
         .. WARNING::
+
             If ``subdivide`` is ``True`` then unequal column subdivisions
             will be discarded, since it would be ambiguous how to interpret
             them.  If the subdivision behavior is not what you need,
@@ -3179,7 +3178,6 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             or
             :func:`~sage.matrix.constructor.block_diagonal_matrix`
             useful and simpler in some instances.
-
 
         EXAMPLES:
 
@@ -3236,7 +3234,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
         Row subdivisions are preserved by stacking, and enriched,
         if subdivisions are requested.  (So multiple stackings can
-        be recorded) ::
+        be recorded.) ::
 
             sage: A = matrix(GF(41), 2, 4, range(8))
             sage: A.subdivide([1], None)
@@ -3295,7 +3293,6 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
             sage: D.parent()
             Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 41
-
         """
         if hasattr(bottom, '_vector_'):
             bottom = bottom.row()
@@ -3319,7 +3316,6 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
     def submatrix(self, Py_ssize_t row=0, Py_ssize_t col=0,
                         Py_ssize_t nrows=-1, Py_ssize_t ncols=-1):
-
         r"""
         Return the matrix constructed from self using the specified
         range of rows and columns.
@@ -3333,16 +3329,16 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
           take. If not provided, take all rows below and all columns to
           the right of the starting entry
 
-        .. SEEALSO:
+        .. SEEALSO::
 
-        The functions :func:`matrix_from_rows`,
-        :func:`matrix_from_columns`, and
-        :func:`matrix_from_rows_and_columns` allow one to select
-        arbitrary subsets of rows and/or columns.
+            The functions :func:`matrix_from_rows`,
+            :func:`matrix_from_columns`, and
+            :func:`matrix_from_rows_and_columns` allow one to select
+            arbitrary subsets of rows and/or columns.
 
         EXAMPLES:
 
-        Take the `3 \times 3` submatrix starting from entry (1,1) in a
+        Take the `3 \times 3` submatrix starting from entry `(1,1)` in a
         `4 \times 4` matrix::
 
             sage: m = matrix(GF(17),4, [1..16])
@@ -3388,7 +3384,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         cdef Matrix_modn_dense_template M
         M = self.__class__.__new__(self.__class__, MS, 0,0,0)
         M.p = self.p
-        memcpy(M._entries,self._entries+row*ncols,sizeof(celement)*ncols*nrows)
+        memcpy(M._entries, self._entries+row*ncols,sizeof(celement)*ncols*nrows)
         return M
 
     def _matrices_from_rows(self, Py_ssize_t nrows, Py_ssize_t ncols):

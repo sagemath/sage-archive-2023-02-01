@@ -26,33 +26,31 @@ from sage.graphs.graph import Graph
 from copy import copy, deepcopy
 
 #I'll put this here for now but I suspect it belongs in another file.
-def contract_edge(G, edgelist):
+def contract_edge(G, e):
     """
-    Contract an edge or a list of edges.
+    Contract an element of a graphic matroid.
     """
     G.allow_multiple_edges(True)
     G.allow_loops(True)
-    if edgelist in G.edges():
-        edgelist = [edgelist]
 
-    for e in edgelist:
-        if e not in G.edges():
-            raise ValueError("The specified edge is not in the graph.")
-    G.delete_edges(edgelist)
-    for e in edgelist:
-        #If e was a loop, stop there. Otherwise, merge the vertices.
-        if not e[0] == e[1]:
-            # merge_vertices() loses multiedges, so we put them on as loops afterwards
-            edge_label_list = []
-            for edge in G.edges():
-                if (edge[0] == e[0] and edge[1] == e[1]) or
-                   (edge[0] == e[1] and edge[1] == e[0]):
-                    edge_label_list.append(edge[2])
+    if e not in G.edges():
+        raise ValueError("The specified edge is not in the graph.")
 
-            G.merge_vertices([e[0], e[1]])
+    G.delete_edge(e)
 
-            for edge_label in edge_label_list:
-                G.add_edge(e[0], e[0], edge_label)
+    #If e was a loop, stop there. Otherwise, merge the vertices.
+    if not e[0] == e[1]:
+        # merge_vertices() loses multiedges, so we put them on as loops afterwards
+        edge_label_list = []
+        for edge in G.edges():
+            if ((edge[0] == e[0] and edge[1] == e[1]) or
+                (edge[0] == e[1] and edge[1] == e[0])):
+                edge_label_list.append(edge[2])
+
+        G.merge_vertices([e[0], e[1]])
+
+        for edge_label in edge_label_list:
+            G.add_edge(e[0], e[0], edge_label)
 
 class GraphicMatroid(Matroid):
     """
@@ -149,14 +147,16 @@ class GraphicMatroid(Matroid):
 
         self._new_groundset_edge_map = copy(self._groundset_edge_map)
         for x in contractions:
-            self._edge = (self._new_groundset_edge_map[x][0],
-                          self._new_groundset_edge_map[x][1], x)
-            #Putting the label on the edge make sure the correct element is removed.
-            #Without this the result would be isomorphic but the labels would be wrong.
-
+            # The vertices must be in the same order that they are in the edge list
+            v0 = self._new_groundset_edge_map[x][0]
+            v1 = self._new_groundset_edge_map[x][1]
+            if v0 < v1:
+                self._edge = (v0, v1, x)
+            else:
+                self._edge = (v1, v0, x)
             contract_edge(self._new_G, self._edge)
 
-            #Since this changes vertex labels, I need to update the groundset edge map.
+            # Since this changes vertex labels, I need to update the groundset edge map.
             for key in self._new_groundset_edge_map.keys():
                 if self._new_groundset_edge_map[key][0] == self._edge[1]:
                     self._new_groundset_edge_map[key] = (self._edge[0],
@@ -201,5 +201,6 @@ class GraphicMatroid(Matroid):
         else:
             #otherwise use the default method for abstract matroids
             #this requires debugging
+            #currently makes an infinite loop is N is not graphic
+            #and returns None if N is graphic
             Matroid._has_minor(self,N)
-

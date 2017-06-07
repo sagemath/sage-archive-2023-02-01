@@ -83,7 +83,7 @@ def nodes(degree,prec):
     rnd=R.rnd
     epsilon=R(1)>>(prec+8)
     if degree == 1:
-        x=R(3)/5
+        x=(R(3)/5).sqrt()
         w=R(5)/18
         nodes = [((1-x)/2,w),(HALF,R(4)/9),((1+x)/2,w)]
     else:

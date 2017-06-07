@@ -1,15 +1,16 @@
 r"""
-CryptoMiniSat Solver.
+CryptoMiniSat Solver
 
-This solver relies on Python bindings provided by upstream cryptominisat, and
-replaces the cython interface (written by Martin Albrecht in 2012) that does not
-work with recent versions of cryptominisat anymore.
+This solver relies on Python bindings provided by upstream cryptominisat.
 
 The ``cryptominisat`` package should be installed on your Sage installation.
 
 AUTHORS:
 
-- Thierry Monteil (2017): first version
+- Thierry Monteil (2017): complete rewrite, using upstream Python bindings,
+  works with crypominisat 5.
+- Martin Albrecht (2012): first version, as a cython interface, works with
+  crypominisat 2.
 """
 
 #*****************************************************************************
@@ -34,7 +35,7 @@ class CryptoMiniSat(SatSolver):
 
     - ``verbosity`` -- an integer between 0 and 15 (default: 0). Verbosity.
 
-    - 'confl_limit' -- an integer (default: ``None``). Abort after this many
+    - ``confl_limit`` -- an integer (default: ``None``). Abort after this many
       conflicts. If set to ``None``, never aborts.
 
     - ``threads`` -- an integer (default: None). The number of thread to
@@ -78,7 +79,7 @@ class CryptoMiniSat(SatSolver):
 
         INPUT:
 
-        - ``decision`` - accepted for compatibility with other solvers, ignored.
+        - ``decision`` -- accepted for compatibility with other solvers, ignored.
 
         EXAMPLES::
 
@@ -103,7 +104,6 @@ class CryptoMiniSat(SatSolver):
 
             sage: from sage.sat.solvers.cryptominisat import CryptoMiniSat
             sage: solver = CryptoMiniSat()                                  # optional - cryptominisat
-
             sage: solver.nvars()                                            # optional - cryptominisat
             0
 
@@ -122,7 +122,7 @@ class CryptoMiniSat(SatSolver):
 
         INPUT:
 
-        - ``lits`` - a tuple of nonzero integers.
+        - ``lits`` -- a tuple of nonzero integers.
 
         .. note::
 
@@ -218,7 +218,7 @@ class CryptoMiniSat(SatSolver):
 
         INPUT:
 
-        - ``filename'' - if not ``None`` clauses are written to ``filename`` in
+        - ``filename`` -- if not ``None`` clauses are written to ``filename`` in
           DIMACS format (default: ``None``)
 
         OUTPUT:

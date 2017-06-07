@@ -357,48 +357,35 @@ cdef class pAdicFixedModElement(FMElement):
             mpz_clear(tmp)
             return infinity
 
-    def log(self, aprec=None):
+    def _log_binary_splitting(self, aprec, mina=0):
         r"""
-        Compute the `p`-adic logarithm of this element.
+        Return ``\log(self)`` for ``self`` equal to 1 in the residue field
 
-        The usual power series for the logarithm with values in the additive
-        group of a `p`-adic ring only converges for 1-units (units congruent to
-        1 modulo `p`).  However, there is a unique extension of the logarithm
-        to a homomorphism defined on all the units: If `u = a \cdot v` is a
-        unit with `v \equiv 1 \pmod{p}` and `a` a Teichmuller representative,
-        then we define `log(u) = log(v)`.  This is the correct extension
-        because the units `U` split as a product `U = V \times \langle w
-        \rangle`, where `V` is the subgroup of 1-units and `w` is a fundamental
-        root of unity.  The `\langle w \rangle` factor is torsion, so must go
-        to 0 under any homomorphism to the fraction field, which is a torsion
-        free group.
+        This is a helper method for :meth:`log`.
+        It uses a fast binary splitting algorithm.
 
         INPUT:
 
-        - ``aprec`` -- an integer or ``None`` (default: ``None``) if not
-          ``None``, then the result will only be correct to precision
-          ``aprec``.
+        - ``aprec`` -- an integer, the precision to which the result is
+          correct. ``aprec`` must not exceed the precision cap of the ring over
+          which this element is defined.
+        - ``mina`` -- an integer (default: 0), the series will check `n` up to
+          this valuation (and beyond) to see if they can contribute to the
+          series.
 
-        NOTES:
+        NOTE::
 
-        What some other systems do:
-
-        - PARI: Seems to define the logarithm for units not congruent
-          to 1 as we do.
-
-        - MAGMA: Only implements logarithm for 1-units (as of version 2.19-2)
+            The function does not check that its argument ``self`` is
+            1 in the residue field. If this assumption is not fullfiled
+            the behaviour of the function is not specified.
 
         ALGORITHM:
 
-        1. Take the unit part `u` of the input.
-
-        2. Raise `u` to the power `p-1` to obtain a 1-unit.
-
-        3. Raise `u` to the power `p^v` for a suitable `v` in order
+        1. Raise `u` to the power `p^v` for a suitable `v` in order
            to make it closer to 1. (`v` is chosen such that `p^v` is
            close to the precision.)
 
-        4. Write
+        2. Write
 
         .. MATH::
 
@@ -411,68 +398,31 @@ cdef class pAdicFixedModElement(FMElement):
 
             \log(1 - x) = -x - 1/2 x^2 - 1/3 x^3 - 1/4 x^4 - 1/5 x^5 - \cdots
 
-        together with a binary spliting method.
-
-        5. Divide the result by `p^v*(p-1)`
+        together with a binary splitting method.
+        3. Divide the result by `p^v*(p-1)`
            and multiply by ``self.valuation()*log(p)``
 
         The complexity of this algorithm is quasi-linear.
 
         EXAMPLES::
 
-            sage: Z13 = ZpFM(13, 10)
-            sage: a = Z13(14); a
-            1 + 13 + O(13^10)
-            sage: a.log()
-            13 + 6*13^2 + 2*13^3 + 5*13^4 + 10*13^6 + 13^7 + 11*13^8 + 8*13^9 + O(13^10)
+            sage: r = Qp(5,prec=4)(6)
+            sage: r._log_binary_splitting(2)
+            5 + O(5^2)
+            sage: r._log_binary_splitting(4)
+            5 + 3*5^2 + 4*5^3 + O(5^4)
+            sage: r._log_binary_splitting(100)
+            5 + 3*5^2 + 4*5^3 + O(5^5)
 
-        The logarithm is not only defined for 1-units::
+            sage: r = Zp(5,prec=4,type='fixed-mod')(6)
+            sage: r._log_binary_splitting(5)
+            5 + 3*5^2 + 4*5^3 + O(5^4)
 
-            sage: R = ZpFM(5,10)
-            sage: a = R(2)
-            sage: a.log()
-            2*5 + 3*5^2 + 2*5^3 + 4*5^4 + 2*5^6 + 2*5^7 + 4*5^8 + 2*5^9 + O(5^10)
-
-        However, note that the logarithm is not defined for non-units in the fixed 
-        modulus framework. The reason is that the absolute precision decreases when 
-        taking a logarithm of a non-unit::
-
-            sage: R = ZpFM(5,10)
-            sage: a = 5 * R.random_element()
-            sage: a.log()
-            Traceback (most recent call last):
-            ...
-            ValueError: Logarithm of non-units are not defined in the fixed modulus framework
-
-        We illustrate the behaviour of ``aprec``::
-
-            sage: R = ZpFM(7,10)
-            sage: x = R(41152263); x
-            5 + 3*7^2 + 4*7^3 + 3*7^4 + 5*7^5 + 6*7^6 + 7^9 + O(7^10)
-            sage: x.log(aprec = 5)
-            7 + 3*7^2 + 4*7^3 + 3*7^4 + O(7^10)
-            sage: x.log(aprec = 7)
-            7 + 3*7^2 + 4*7^3 + 3*7^4 + 7^5 + 3*7^6 + O(7^10)
-            sage: x.log()
-            7 + 3*7^2 + 4*7^3 + 3*7^4 + 7^5 + 3*7^6 + 7^7 + 3*7^8 + 4*7^9 + O(7^10)
-
-        TESTS::
-
-            sage: Z17 = ZpFM(17, 2^20)
-            sage: a = Z17(18)
-            sage: b = a.log()   # should be rather fast
         """
         cdef unsigned long p = self.prime_pow.prime
-        cdef unsigned long prec
+        cdef unsigned long prec = aprec
         cdef pAdicFixedModElement ans
-        val = self.valuation_c()
-        if val > 0:
-            raise ValueError('Logarithm of non-units are not defined in the fixed modulus framework')
         ans = self._new_c()
-        if aprec is None:
-            prec = self.prime_pow.prec_cap
-        else:
-            prec = min(aprec, self.prime_pow.prec_cap)
         sig_on()
         padiclog(ans.value, self.value, p, prec, self.prime_pow.pow_mpz_t_tmp(prec))
         sig_off()

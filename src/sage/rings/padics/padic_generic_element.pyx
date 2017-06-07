@@ -1521,9 +1521,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
         r = rational_reconstruction(alpha, m)
         return (Rational(p)**self.valuation())*r
 
-    def _shifted_log(self, aprec, mina=0):
+    def _log_generic(self, aprec, mina=0):
         r"""
-        Return ``-\log(1-self)`` for elements of positive valuation.
+        Return ``\log(self)`` for ``self`` equal to 1 in the residue field
 
         This is a helper method for :meth:`log`.
 
@@ -1543,7 +1543,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         .. MATH::
 
-            -\log(1-x)=\sum_{n=1}^\infty \frac{x^n}{n}.
+            \log(1-x)=\sum_{n=1}^\infty \frac{x^n}{n}.
 
         For the result to be correct to precision ``aprec``, we sum all terms
         for which the valuation of `x^n/n` is stricly smaller than ``aprec``.
@@ -1551,27 +1551,27 @@ cdef class pAdicGenericElement(LocalGenericElement):
         EXAMPLES::
 
             sage: r = Qp(5,prec=4)(5)
-            sage: r._shifted_log(2)
+            sage: r._log(2)
             5 + O(5^2)
-            sage: r._shifted_log(4)
+            sage: r._log_generic(4)
             5 + 3*5^2 + 4*5^3 + O(5^4)
-            sage: r._shifted_log(100)
+            sage: r._log_generic(100)
             5 + 3*5^2 + 4*5^3 + O(5^5)
 
             sage: r = Zp(5,prec=4,type='fixed-mod')(5)
-            sage: r._shifted_log(5)
+            sage: r._log_generic(5)
             5 + 3*5^2 + 4*5^3 + O(5^4)
 
         Only implemented for elements of positive valuation::
 
             sage: r = Zp(5,prec=4,type='fixed-mod')(1)
-            sage: r._shifted_log(5)
+            sage: r._log_generic(5)
             Traceback (most recent call last):
             ...
             ValueError: Input value (=1 + O(5^4)) must have strictly positive valuation
 
         """
-        x = self
+        x = 1-self
         R = self.parent()
         # to get the precision right over capped-absolute rings, we have to
         # work over the capped-relative fraction field
@@ -1581,7 +1581,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         alpha=x.valuation()
         if alpha<=0:
-            raise ValueError('Input value (=%s) must have strictly positive valuation' % self)
+            raise ValueError('Input value (=%s) must be 1 in the residue field' % self)
 
         e=R.ramification_index()
         p=R.prime()
@@ -1638,7 +1638,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 else:
                     inner_sum = (inner_sum+new_term)*(x2p_p**a)*(x**(p2a-a*p))
 
-            total += inner_sum
+            total -= inner_sum
 
             # Now increase the power of p
             a += 1
@@ -1647,7 +1647,73 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         return total.add_bigoh(aprec)
 
-    def log(self, p_branch=None, pi_branch=None, aprec=None, change_frac=False):
+    def _log_binary_splitting(self, aprec, mina=0):
+        r"""
+        Return ``\log(self)`` for ``self`` equal to 1 in the residue field
+
+        This is a helper method for :meth:`log`. 
+        It uses a fast binary splitting algorithm.
+
+        INPUT:
+
+        - ``aprec`` -- an integer, the precision to which the result is
+          correct. ``aprec`` must not exceed the precision cap of the ring over
+          which this element is defined.
+
+        - ``mina`` -- an integer (default: 0), the series will check `n` up to
+          this valuation (and beyond) to see if they can contribute to the
+          series.
+
+        NOTE::
+
+            The function does not check that its argument ``self`` is 
+            1 in the residue field. If this assumption is not fullfiled
+            the behaviour of the function is not specified.
+
+        ALGORITHM:
+
+        1. Raise `u` to the power `p^v` for a suitable `v` in order
+           to make it closer to 1. (`v` is chosen such that `p^v` is
+           close to the precision.)
+
+        2. Write
+
+        .. MATH::
+
+            u^{p-1} = \prod_{i=1}^\infty (1 - a_i p^{(v+1)*2^i})
+
+        with `0 \leq a_i < p^{(v+1)*2^i}` and compute 
+        `\log(1 - a_i p^{(v+1)*2^i})` using the standard Taylor expansion
+
+        .. MATH::
+
+            \log(1 - x) = -x - 1/2 x^2 - 1/3 x^3 - 1/4 x^4 - 1/5 x^5 - \cdots
+
+        together with a binary splitting method.
+
+        3. Divide the result by `p^v*(p-1)`
+           and multiply by ``self.valuation()*log(p)``
+
+        The complexity of this algorithm is quasi-linear.
+
+        EXAMPLES::
+
+            sage: r = Qp(5,prec=4)(6)
+            sage: r._log_binary_splitting(2)
+            5 + O(5^2)
+            sage: r._log_binary_splitting(4)
+            5 + 3*5^2 + 4*5^3 + O(5^4)
+            sage: r._log_binary_splitting(100)
+            5 + 3*5^2 + 4*5^3 + O(5^5)
+
+            sage: r = Zp(5,prec=4,type='fixed-mod')(6)
+            sage: r._log_binary_splitting(5)
+            5 + 3*5^2 + 4*5^3 + O(5^4)
+
+        """
+        raise NotImplementedError
+
+    def log(self, p_branch=None, pi_branch=None, aprec=None, change_frac=False, algorithm=None):
         r"""
         Compute the `p`-adic logarithm of this element.
 
@@ -1685,6 +1751,21 @@ cdef class pAdicGenericElement(LocalGenericElement):
           the same as the input (default) or if it should change to the
           fraction field of the input.
 
+        - ``algorithm`` -- ``generic``, ``binary_splitting`` or ``None`` (default)
+          The generic algorithm evaluates naively the series defining the log,
+          namely
+
+          .. MATH::
+ 
+              \log(1-x) = -x - 1/2 x^2 - 1/3 x^3 - 1/4 x^4 - 1/5 x^5 - \cdots
+
+          Its binary complexity is quadratic with respect to the precision.
+
+          The binary splitting algorithm is faster, it has a quasi-linear
+          complexity.
+          By default, we use the binary splitting if it is available. Otherwise
+          we switch to the generic algorithm.
+
         NOTES:
 
         What some other systems do:
@@ -1699,23 +1780,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
             There is a soft-linear time algorithm for logarithm described
             by Dan Berstein at
             http://cr.yp.to/lineartime/multapps-20041007.pdf
-
-        ALGORITHM:
-
-        1. Take the unit part `u` of the input.
-
-        2. Raise `u` to `q-1` where `q` is the inertia degree of the ring
-        extension, to obtain a 1-unit.
-
-        3. Use the series expansion
-
-        .. MATH::
-
-            \log(1-x) = -x - 1/2 x^2 - 1/3 x^3 - 1/4 x^4 - 1/5 x^5 - \cdots
-
-        to compute the logarithm `\log(u)`.
-
-        4. Divide the result by ``q-1`` and multiply by ``self.valuation()*log(pi)``
 
         EXAMPLES::
 
@@ -1934,7 +1998,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
           generic `p`-adic rings.
 
         - Soroosh Yazdani (2013-02-1): Fixed a precision issue in
-          :meth:`_shifted_log`.  This should really fix the issue with
+          :meth:`_log_gene`.  This should really fix the issue with
           divisions.
 
         - Julian Rueth (2013-02-14): Added doctests, some changes for
@@ -1995,7 +2059,20 @@ cdef class pAdicGenericElement(LocalGenericElement):
         if aprec is None or aprec > minaprec:
             aprec=minaprec
 
-        retval = total - x._shifted_log(aprec, minn)*R(denom).inverse_of_unit()
+        if algorithm is None:
+            try:
+                # The binary splitting algorithm is supposed to be faster
+                log_unit = y._log_binary_splitting(aprec, minn)
+            except NotImplementedError:
+                log_unit = y._log_generic(aprec, minn)
+        elif algorithm == "generic":
+            log_unit = y._log_generic(aprec, minn)
+        elif algorithm == "binary_splitting":
+            log_unit = y._log_binary_splitting(aprec, minn)
+        else:
+            raise ValueError("Algorithm must be either 'generic', 'binary_splitting' or None")
+
+        retval = total + log_unit*R(denom).inverse_of_unit()
         if not change_frac:
             if retval.valuation() < 0 and not R.is_field():
                 raise ValueError("logarithm is not integral, use change_frac=True to obtain a result in the fraction field")

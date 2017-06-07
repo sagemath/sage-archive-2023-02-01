@@ -12,36 +12,29 @@
 /* p-adic logarithm */
 void padiclog(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, const mpz_t modulo) {
     /*  Compute the p-adic logarithm of a,
-        which is supposed to be a unit
+        which is supposed to be congruent to 1 mod p
 
-        Algorithm: If a = 1 (mod p):
+        Algorithm:
          1. we raise a at the power p^(v-1) (for a suitable v) in order
             to make it closer to 1
          2. we write the new a as a product
               1/a = (1 - a_0*p^v) (1 - a_1*p^(2*v) (1 - a_2*p^(4*v) ...
             with 0 <= a_i < p^(v*2^i).
          3. we compute each log(1 - a_i*p^(v*2^i)) using Taylor expansion
-            and a binary spliting strategy.
+            and a binary spliting strategy.                                */
 
-        For general a, compute log(a^(p-1)) and then divide by p-1                    */
-
-    char congruent_to_one;
     unsigned long i, v, e, N, saveN, Np, tmp, trunc, step;
     double den = log(p);
-    mpz_t f, arg, trunc_mod, h, hpow, mpz_tmp, d, inv;
+    mpz_t f, arg, trunc_mod, h, hpow, mpz_tmp, mpz_tmp2, d, inv, mod2;
     mpz_t *num, *denom;
 
     mpz_init(mpz_tmp);
+    mpz_init(mpz_tmp2);
     mpz_init(arg);
     mpz_set_ui(ans, 0);
 
     mpz_fdiv_r_ui(mpz_tmp, a, p);
-    congruent_to_one = (mpz_cmp_ui(mpz_tmp, 1) == 0);
-    if (congruent_to_one) {
-        mpz_set(arg, a);
-    } else {
-        mpz_powm_ui(arg, a, p-1, modulo);
-    }
+    mpz_set(arg, a);
 
     /* First we make the argument closer to 1 by raising it to the p^(v-1) */
     if (prec < p) {
@@ -55,17 +48,16 @@ void padiclog(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, con
     }
 
     /* Where do we need to truncate the Taylor expansion */
-    N = saveN = (prec+v)/++v;               // note the ++v
+    N = Np = (prec+v)/++v;               // note the ++v
     den *= v;
     while(1) {
-        tmp = saveN + (unsigned long)(log(N)/den);
+        tmp = Np + (unsigned long)(log(N)/den);
         if (tmp == N) break;
         N = tmp;
     }
-    saveN = N;
 
     /* We allocate memory and initialize variables */
-    mpz_init(f);
+    mpz_init(f); mpz_init(mod2);
     mpz_init(h); mpz_init(hpow);
     mpz_init(d); mpz_init(inv);
     num = (mpz_t*)malloc(N*sizeof(mpz_t));
@@ -99,8 +91,8 @@ void padiclog(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, con
             mpz_set(hpow, h);
             while(step < N) {
                 for (i = 0; i < N - step; i += step << 1) {
-                    mpz_mul(mpz_tmp, hpow, num[i+step]);
-                    mpz_mul(mpz_tmp, mpz_tmp, denom[i]);
+                    mpz_mul(mpz_tmp2, hpow, num[i+step]);
+                    mpz_mul(mpz_tmp, mpz_tmp2, denom[i]);
                     mpz_mul(num[i], num[i], denom[i+step]);
                     mpz_add(num[i], num[i], mpz_tmp);
                     mpz_mul(denom[i], denom[i], denom[i+step]);
@@ -133,13 +125,11 @@ void padiclog(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, con
         /* We update the variables for the next step */
         mpz_mul(trunc_mod, trunc_mod, trunc_mod);
         trunc <<= 1;
+        for (i = N >> 1; i < N; i++) {
+            mpz_clear(num[i]);
+            mpz_clear(denom[i]);
+        }
         N >>= 1;
-    }
-
-    if (! congruent_to_one) {
-        mpz_set_ui(mpz_tmp, p-1);
-        mpz_gcdext(d, inv, NULL, mpz_tmp, modulo);
-        mpz_mul(ans, ans, inv);
     }
 
     mpz_fdiv_r(ans, ans, modulo);
@@ -153,7 +143,8 @@ void padiclog(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, con
     mpz_clear(mpz_tmp);
     mpz_clear(d);
     mpz_clear(inv);
-    for (i = 0; i < saveN; i++) {
+    mpz_clear(mod2);
+    for (i = 0; i < N; i++) {
         mpz_clear(num[i]);
         mpz_clear(denom[i]);
     }

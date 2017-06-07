@@ -4,346 +4,108 @@ S-Boxes used in cryptographic schemes
 This module provides the following SBoxes:
 
 8 bit to 8 bit
-    - AES ([DR02])
-    - Anubis ([BR00a])
-    - ARIA_s2 ([KKP+04])
-    - BelT ([Bel11])
-    - Camellia ([AIK+01])
-    - CMEA ([WSK97])
-    - Chiasmus ([STW13])
-    - CLEFIA_S0, CLEFIA_S1 ([SSA+07])
+    - AES ([DR2002]_)
+    - Anubis ([BR2000a]_)
+    - ARIA_s2 ([KKPSSSYYLLCHH2004]_)
+    - BelT ([Bel2011]_)
+    - Camellia ([AIKMMNT2001]_)
+    - CMEA ([WSK1997]_)
+    - Chiasmus ([STW2013]_)
+    - CLEFIA_S0, CLEFIA_S1 ([SSAMI2007]_)
 - Crypton_0_5
-    - Crypton_1_0_S0, ..., Crypton_1_0_S3 ([DPV01])
-    - CS_cipher ([SV00])
+    - Crypton_1_0_S0, ..., Crypton_1_0_S3 ([DPV2001]_)
+    - CS_cipher ([SV2000]_)
 - CSA
 - CSS
 - E2
-    - Enocoro ([WIK+08])
-    - Fantomas ([GLSV15])
-    - FLY ([KG16])
-    - Fox ([VJ04])
-    - Iceberg ([SPR+04])
+    - Enocoro ([WFYTP2008]_)
+    - Fantomas ([GLSV2015]_)
+    - FLY ([KG2016]_)
+    - Fox ([VJ2004]_)
+    - Iceberg ([SPRQL2004]_)
 - Iraqi
-    - iScream ([GLS+14])
-    - Kalyna_pi0, ..., Kalyna_pi3 ([OGK+15b])
-    - Khazad ([BR00b])
-    - Kuznyechik (Kuznechik, Streebog, Stribog) ([Fed15])
-    - MD2 ([Kal92])
-    - newDES ([Sco85])
-    - Picaro ([PRC12])
+    - iScream ([GLSVJGK2014]_)
+    - Kalyna_pi0, ..., Kalyna_pi3 ([OGKRKGBDDP2015]_)
+    - Khazad ([BR2000b]_)
+    - Kuznyechik (Kuznechik, Streebog, Stribog) ([Fed2015]_)
+    - MD2 ([Kal1992]_)
+    - newDES ([Sco1985]_)
+    - Picaro ([PRC2012]_)
 - Safer
-    - Scream ([CDL16, GLS+14])
-    - SEED_S0, SEED_S1 ([LLY+05])
-    - SKINNY_8 ([BJK+16])
-    - Skipjack ([U.S98])
-    - SNOW_3G_sq ([ETS06a])
+    - Scream ([CDL2015]_,[GLSVJGK2014]_)
+    - SEED_S0, SEED_S1 ([LLYCL2005]_)
+    - SKINNY_8 ([BJKLMPSSS2016]_)
+    - Skipjack ([U.S1998]_)
+    - SNOW_3G_sq ([ETS2006a]_)
 - SMS4
-    - Turing ([RH03])
-    - Twofish_p0, Twofish_p1 ([SKW+98])
-    - Whirlpool ([BR00c])
-    - Zorro ([GGNS13])
-    - ZUC_S0, ZUC_S1 ([ETS11])
+    - Turing ([RH2003b]_)
+    - Twofish_p0, Twofish_p1 ([SKWWHF1998]_)
+    - Whirlpool ([BR2000c]_)
+    - Zorro ([GGNS2013]_)
+    - ZUC_S0, ZUC_S1 ([ETS2011]_)
 
 6 bit to 6 bit
-    - Fides_6 ([BBK+13])
+    - Fides_6 ([BBKMW2013]_)
 - APN_6
-    - SC2000_6 ([SYY+02])
+    - SC2000_6 ([SYYTIYTT2002]_)
 
 5 bit to 5 bit
-    - Ascon ([DEMS16])
-    - Fides_5 ([BBK+13])
-    - SC2000_5 ([SYY+02])
+    - Ascon ([DEMS2016]_)
+    - Fides_5 ([BBKMW2013]_)
+    - SC2000_5 ([SYYTIYTT2002]_)
 
 4 bit to 4 bit
-    - DES_S1_1, ..., DES_S1_4, ..., DES_S8_4 ([U.S99])
+    - DES_S1_1, ..., DES_S1_4, ..., DES_S8_4 ([U.S1999]_)
 - Lucifer_S0, Lucifer_S1
-    - GOST_1, ..., GOST_8 ([Dol10a])
-    - GOST2_1, GOST2_2 ([PLW10])
-    - Magma_1, ..., Magma_8 ([Fed15])
+    - GOST_1, ..., GOST_8 ([Dol2010a]_)
+    - GOST2_1, GOST2_2 ([PLW2010]_)
+    - Magma_1, ..., Magma_8 ([Fed2015]_)
 - GOST_IETF_1, ..., GOST_IETF_8
-    - Hummingbird_2_S1, ..., Hummingbird_2_S4 ([ESSS12])
-    - LBlock_0, ..., LBlock_9 ([WZ11])
-    - SERPENT_S0, ..., SERPENT_S7 ([BAK98])
-    - KLEIN ([GNL11])
-    - MIBS ([ISSK09)]
-    - Midori_Sb0 (MANTIS), Midori_Sb1 ([BBI+15])
-    - Noekeon ([DPVAR00])
-    - Piccolo ([SIH+11])
-    - Panda ([YWH+14])
-    - PRESENT ([BKL+07])
-    - Pride ([ADK+14])
-    - PRINCE ([BCG+12])
-    - Prost ([KLL+14])
-    - Qarma_sigma0, Qarma_sigma1 ([Ava17])
+    - Hummingbird_2_S1, ..., Hummingbird_2_S4 ([ESSS1202]_)
+    - LBlock_0, ..., LBlock_9 ([WZ1201]_)
+    - SERPENT_S0, ..., SERPENT_S7 ([BAK1998]_)
+    - KLEIN ([GNL2011]_)
+    - MIBS ([ISSK2009)]
+    - Midori_Sb0 (MANTIS), Midori_Sb1 ([BBISHAR2015]_)
+    - Noekeon ([DPVAR2000]_)
+    - Piccolo ([SIHMAS2011]_)
+    - Panda ([YWHWXSW2014]_)
+    - PRESENT ([BKLPPRSV2007]_)
+    - Pride ([ADKLPY2014]_)
+    - PRINCE ([BCGKKKLNPRRTY2012]_)
+    - Prost ([KLLRSY2014]_)
+    - Qarma_sigma0, Qarma_sigma1 ([Ava2017]_)
 - REC_0
-    - Rectangle ([ZBL+15])
-    - SC2000_4 ([SYY+02])
-    - SKINNY_4 ([BJK+16])
-    - TWINE ([SMMK13])
+    - Rectangle ([ZBLRYV2015]_)
+    - SC2000_4 ([SYYTIYTT2002]_)
+    - SKINNY_4 ([BJKLMPSSS2016]_)
+    - TWINE ([SMMK2013]_)
 
 - Luffa_v1
 - Luffa
-    - BLAKE_1, ..., BLAKE_9 ([AHMP08])
+    - BLAKE_1, ..., BLAKE_9 ([AHMP2008]_)
 - JH_S0, JH_S1
 - SMASH_256_S1, ..., SMASH_256_S3
 
-    - Anubis_S0, Anubis_S1 ([BR00a])
-    - CLEFIA_SS0, ..., CLEFIA_SS3 ([SSA+07])
-    - Enocoro_S4 ([WIK+08])
-    - Iceberg_S0, Iceberg_S1 ([SPR+04])
-    - Khazad_P, Khazad_Q ([BR00b])
-    - Whirlpool_E, Whirlpool_R ([BR00c])
-    - CS_cipher_F, CS_cipher_G ([SV00])
-    - Fox_S1, ..., Fox_S3 ([VJ04])
-    - Twofish_Q0_T0, ..., Twofish_Q0_T3, Twofish_Q1_T0, ..., Twofish_Q1_T3 ([SKW+98])
+    - Anubis_S0, Anubis_S1 ([BR2000a]_)
+    - CLEFIA_SS0, ..., CLEFIA_SS3 ([SSAMI2007]_)
+    - Enocoro_S4 ([WFYTP2008]_)
+    - Iceberg_S0, Iceberg_S1 ([SPRQL2004]_)
+    - Khazad_P, Khazad_Q ([BR2000b]_)
+    - Whirlpool_E, Whirlpool_R ([BR2000c]_)
+    - CS_cipher_F, CS_cipher_G ([SV2000]_)
+    - Fox_S1, ..., Fox_S3 ([VJ2004]_)
+    - Twofish_Q0_T0, ..., Twofish_Q0_T3, Twofish_Q1_T0, ..., Twofish_Q1_T3 ([SKWWHF1998]_)
 - Kuznyechik_nu0, Kuznyechik_nu1, Kuznyechik_sigma, Kuznyechik_phi
 
-    - UDCIKMP11 ([UDC+11])
-    - Optimal_S0, ..., Optimal_S15 ([LP07])
-    - Serpent_type_S0, ..., Serpent_type_S19 ([LP07])
-    - Golden_S0, ..., Golden_S3 ([Saa11])
+    - UDCIKMP11 ([UDCIKMP2011]_)
+    - Optimal_S0, ..., Optimal_S15 ([LP2007]_)
+    - Serpent_type_S0, ..., Serpent_type_S19 ([LP2007]_)
+    - Golden_S0, ..., Golden_S3 ([Saa2011]_)
 
 3 bit to 3 bit
-    - SEA ([SPGQ06])
-    - PRINTcipher ([KLPR10])
-
-REFERENCES:
-
-- [ADK+14] M. R. Albrecht, B. Driessen, E. B. Kavun, G. Leander, C. Paar, and T. Yalcin,
-  Block ciphers - focus on the linear layer (feat. PRIDE),
-  CRYPTO, (2014), pp. 57-76.
-
-- [AHMP08] J.-P. Aumasson, L. Henzen, W. Meier, and R. C-W Phan,
-  Sha-3 proposal blake,
-  Submission to NIST, (2008).
-
-- [AIK+01] K. Aoki, T. Ichikawa, M. Kanda, M. Matsui, S. Moriai, J. Nakajima, and
-  T. Tokita,
-  Camellia: A 128-bit block cipher suitable for multiple platforms - Design and analysis,
-  SAC, (2000), pp. 39-56.
-
-- [Ava17] R. Avanzi,
-  The QARMA block cipher family,
-  ToSC, (2017), pp. 4-44.
-
-- [BAK98] E. Biham, R. J. Anderson, and L. R. Knudsen,
-  Serpent: A new block cipher proposal,
-  FSE, (1998), pp. 222-238.
-
-- [BBI+15] S. Banik, A. Bogdanov, T. Isobe, K. Shibutani, H. Hiwatari, T. Akishita, and
-  F. Regazzoni,
-  Midori: A block cipher for low energy,
-  ASIACRYPT, (2015), pp. 411-436.
-
-- [BBK+13] B. Bilgin, A. Bogdanov, M, Knezevic, F. Mendel, and Q. Wang,
-  Fides: Lightweight authenticated cipher with side-channel resistance for constrained
-  hardware,
-  CHES, (2013), pp. 142-158.
-
-- [BCG+12] J. Borghoff, A. Canteaut, T. Güneysu, E. B. Kavun, M. Knezevic, L. R. Knudsen,
-  G. Leander, V. Nikov, C. Paar, C. Rechberger, P. Rombouts, S. S. Thomsen, and T. Yalcin,
-  PRINCE - A low-latency block cipher for pervasive computing applications,
-  ASIACRYPT, (2012), pp. 208-225.
-
-- [Bel11] Belarusian State University,
-  Information technologies. Data protection. Cryptograpic algorithms for encryption and
-  integrity control,
-  STB 34.101.31-2011, (2011).
-
-- [BJK+16] C. Beierle, J. Jean, S. Kölbl, G. Leander, A. Moradi, T. Peyrin, Y. Sasaki,
-  P. Sasdrich, and S. M. Sim,
-  The SKINNY family of block ciphers and its low-latency variant MANTIS,
-  CRYPTO, (2016), pp. 123-153.
-
-- [BKL+07] A. Bogdanov, L. R. Knudsen, G. Leander, C. Paar, A. Poschmann,
-  M. J. B. Robshaw, Y. Seurin, and C. Vikkelsoe,
-  PRESENT: An ultra-lightweight block cipher,
-  CHES, (2007), pp. 450-466.
-
-- [BR00a] P. Barreto and V. Rijmen,
-  The ANUBIS Block Cipher,
-  First Open NESSIE Workshop, (2000).
-
-- [BR00b] P. Barreto and V. Rijmen,
-  The Khazad legacy-level Block Cipher,
-  First Open NESSIE Workshop, (2000).
-
-- [BR00c] P. Barreto and V. Rijmen,
-  The Whirlpool hashing function,
-  First Open NESSIE Workshop, (2000).
-
-- [CDL16] A. Canteaut, S. Duval, and G. Leurent,
-  Construction of lightweight s-boxes using feistel and misty structures,
-  SAC, (2015), pp. 373-393.
-
-- [DEMS16] C. Dobraunig, M. Eichlseder, F. Mendel, and M. Schläffer,
-  Ascon v1.2,
-  CAESAR Competition, (2016).
-
-- [Dol10a] V. Dolmatov,
-  Gost 28147-89: Encryption, decryption, and message authentication code (mac)
-  algorithms,
-  RFC 5830, (2010).
-
-- [DPV01] J. Daemen, M. Peeters, and G. Van Assche,
-  Bitslice ciphers and power analysis attacks,
-  FSE, (2000), pp. 134-149.
-
-- [DPVAR00] J. Daemen, M. Peeters, G. Van Assche, and V. Rijmen,
-  Nessie proposal: NOEKEON,
-  First Open NESSIE Workshop, (2000).
-
-- [DR02] J. Daemen and V. Rijmen,
-  The Design of Rijndeal: AES, ISC, (2002).
-
-- [ESSS12] D. Engels, M.-J. O. Saarinen, P. Schweitzer, and E. M. Smith,
-  The Hummingbird-2 lightweight authenticated encryption algorithm,
-  RFIDSec, (2011), pp. 19-31.
-
-- [ETS06a] ETSI/Sage,
-  Specification of the 3GPP Confidentiality and Integrity Algorithms UEA2 & UIA2,
-  Document 5: Design and Evaluation Report, (2006).
-
-- [ETS11] ETSI/Sage,
-  Specification of the 3GPP Confidentiality and Integrity Algorithms 128-EEA3 & 128-EIA3,
-  Document 4: Design and Evaluation Report, (2011).
-
-- [Fed15] Federal Agency on Technical Regulation and Metrology (GOST),
-  GOST R 34.12-2015, (2015)
-
-- [GGNS13] B. Gerard, V. Grosso, M. Naya-Plasencia, and F.-X. Standaert,
-  Block ciphers that are easier to mask: How far can we go?,
-  CHES, (2013), pp. 383-399.
-
-- [GLS+14] V. Grosso, G. Leurent, F.-X. Standaert, K. Varici, F. D. A. Journault,
-  L. Gaspar, and S. Kerckhof,
-  SCREAM & iSCREAM Side-Channel Resistant Authenticated Encryption with Masking,
-  CAESAR Competition, (2014).
-
-- [GNL11] Z. Gong, S. Nikova, and Y. W. Law,
-  KLEIN: A new family of lightweight block ciphers,
-  RFIDSec, (2011), p. 1-18.
-
-- [ISSK09] M. Izadi, B. Sadeghiyan, S. S. Sadeghian, H. A. Khanooki,
-  MIBS: A new lightweight block cipher,
-  CANS, (2009), pp. 334-348.
-
-- [Kal92] B. Kaliski,
-  The MD2 message-digest algorithm,
-  RFS 1319, (1992).
-
-- [KKP+04] D. Kwon, J. Kim, S. Park, S. H. Sung, Y. Sohn, J. H. Song, Y. Yeom, E-J. Yoon,
-  S. Lee, J. Lee, S. Chee, D. Han, and J. Hong,
-  New block cipher: ARIA,
-  ICISC, (2004), pp. 432-445.
-
-- [KLL+14] E. B. Kavun, M. M. Lauridsen, G. Leander, C. Rechberger, P. Schwabe, and
-  T. Yalcin,
-  Prost v1,
-  CAESAR Competition, (2014).
-
-- [KLPR10] L. R. Knudsen, G. Leander, A. Poschmann, and M. J. B. Robshaw,
-  PRINTcipher: A block cipher for IC-printing,
-  CHES, (2010), pp. 16-32.
-
-- [LLY+05] H. J. Lee, S. J. Lee, J. H. Yoon, D. H. Cheon, and J. I. Lee,
-  The SEED Encryption Algorithm,
-  RFC 4269, (2005).
-
-- [LP07] G. Leander and A. Poschmann,
-  On the Classification of 4 Bit S-boxes, WAIFI, (2007), pp. 159-176.
-
-- [OGK+15b] R. Oliynykov, I. Gorbenko, O. Kazymyrov, V. Ruzhentsev, O. Kuznetsov,
-  Y. Gorbenko, A. Boiko, O. Dyrda, V. Dolgov, and A. Pushkaryov,
-  A new standard of ukraine: The kupyna hash function,
-  Cryptology ePrint Archive, (2015), 885.
-
-- [PLW10] A. Poschmann, S. Ling, and H. Wang,
-  256 bit standardized crypto for 650 GE - GOST revisited,
-  CHES, (2010), pp. 219-233.
-
-- [PRC12] G. Piret, T. Roche, and C. Carlet,
-  PICARO - a block cipher allowing efficient higher-order side-channel resistance,
-  ACNS, (2012), pp. 311-328.
-
-- [RH03] G. G. Rose and P. Hawkes,
-  Turing: A fast stream cipher,
-  FSE, (2003), pp. 290-306.
-
-- [Saa11] M-J. O. Saarinen,
-  Cryptographic Analysis of All 4 x 4-Bit S-Boxes, SAC, (2011), pp. 118-133.
-
-- [Sco85] R. Scott,
-  Wide-open encryption design offers flexible implementations,
-  Cryptologia, (1985), pp. 75-91.
-
-- [SIH+11] K. Shibutani, T. Isobe, H. Hiwatari, A. Mitsuda, T. Akishita, and T. Shirai,
-  Piccolo: An ultra-lightweight block-cipher,
-  CHES, (2011), pp. 342-457.
-
-- [SKW+98] B. Schneier, J. Kelsey, D. Whiting, D. Wagner, C. Hall, and N. Ferguson,
-  Twofish: A 128-bit block cipher,
-  AES Submission, (1998).
-
-- [SMMK13] T. Suzaki, K. Minematsu, S. Morioka, and E. Kobayashi,
-  TWINE: A lightweight block cipher for multiple platforms,
-  SAC, (2012), pp. 338-354.
-
-- [SPGQ06] F.-X. Standaert, G. Piret, N. Gershenfeld, and J.-J. Quisquater,
-  Sea: A scalable encryption algorithm for small embedded applications,
-  CARDIS, (2006), pp. 222-236.
-
-- [SPR+04] F.-X. Standaert, G. Piret, G. Rouvroy, J.-J. Quisquarter, and J.-D. Legat,
-  ICEBERG: An involutional cipher efficient for block encryption in reconfigurable
-  hardware,
-  FSE, (2004), pp. 279-299.
-
-- [SSA+07] T. Shirai, K. Shibutani, T. Akishita, S. Moriai, and T. Iwata,
-  The 128-bit blockcipher CLEFIA (extended abstract),
-  FSE, (2007), pp. 181-195.
-
-- [STW13] J. Schejbal, E. Tews, and J. Wälde,
-  Reverse engineering of chiasmus from gstool,
-  30c3, (2013).
-
-- [SV00] J. Stern and S. Vaudenay,
-  CS-Cipher,
-  First Open NESSIE Workshop, (2000).
-
-- [SYY+02] T. Shimoyama, H. Yanami, K. Yokoyama, M. Takenaka, K. Itoh, J. Yajima,
-  N. Torii, and H. Tanaka,
-  The block cipher SC2000,
-  FSE, (2001), pp. 312-327.
-
-- [U.S98] U.S. Department Of Commerce/National Institute of Standards and Technology,
-  Skipjack and KEA algorithms specifications, v2.0, (1998).
-
-- [U.S99] U.S. Department Of Commerce/National Institute of Standards and Technology,
-  Data Encryption Standard, (1999).
-
-- [UDC+11] M. Ullrich, C. De Canniere, S. Indesteege, Ö. Kücük, N. Mouha, and
-  B. Preenel, Finding Optimal Bitsliced Implementations of 4 x 4-bit S-boxes,
-  SKEW, (2011).
-
-- [VJ04] S. Vaudenay and P. Junod,
-  Device and method for encrypting and decryptiong a block of data,
-  Fox, a New Family of Block Ciphers, (2004).
-
-- [WIK+08] D. Watanable, S. Furuya, H. Yoshida, K. Takaragi, and B. Preneel,
-  A new keystream generator MUGI,
-  FSE, (2002), pp. 179-194.
-
-- [WSK97] D. Wagner, B. Schneier, and J. Kelsey,
-  Cryptoanalysis of the cellular encryption algorithm,
-  CRYPTO, (1997), pp. 526-537.
-
-- [YWH+14] D. Ye, P. Wang, L. Hu, L. Wang, Y. Xie, S. Sun, and P. Wang,
-  Panda v1,
-  CAESAR Competition, (2014).
-
-- [ZBL+15] W. Zhang, Z. Bao, D. Lin, V. Rijmen, B. Yang, and I. Verbauwhede,
-  RECTANGLE: A bit-slice lightweight block cipher suitable for multiple platforms,
-  SCience China Information Sciences, (2015), pp. 1-15.
+    - SEA ([SPGQ2006]_)
+    - PRINTcipher ([KLPR2010]_)
 
 AUTHOR:
     - Léo Perrin: initial collection of sboxes

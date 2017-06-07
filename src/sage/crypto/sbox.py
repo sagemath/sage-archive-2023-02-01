@@ -34,7 +34,7 @@ class SBox(SageObject):
 
     EXAMPLES:
 
-    We consider the S-box of the block cipher PRESENT [PRESENT07]_::
+    We consider the S-box of the block cipher PRESENT [BKLPPRSV2007]_::
 
         sage: S = SBox(12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2); S
         (12, 5, 6, 11, 9, 0, 10, 13, 3, 14, 15, 8, 4, 7, 1, 2)

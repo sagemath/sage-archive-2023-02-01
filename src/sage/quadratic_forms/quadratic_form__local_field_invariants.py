@@ -41,7 +41,7 @@ def rational_diagonal_form(self, return_matrix=False):
     INPUT:
 
     - ``return_matrix`` -- (boolean, default: False) also return the
-      transformation matrix.
+      transformation matrix
 
     OUTPUT: either ``D`` (if ``return_matrix`` is false) or ``(D,T)``
     (if ``return_matrix`` is true) where
@@ -388,9 +388,6 @@ def signature(self):
     return p - n
 
 
-
-
-
 def hasse_invariant(self, p):
     """
     Computes the Hasse invariant at a prime `p` or at infinity, as given on p55 of
@@ -405,17 +402,20 @@ def hasse_invariant(self, p):
     quadratic form must be non-degenerate over `Q_p` for this to make
     sense.
 
-    WARNING: This is different from the O'Meara Hasse invariant, which
-    allows `i <= j` in the product.  That is given by the method
-    hasse_invariant__OMeara(p).
+    .. WARNING::
 
-    NOTE: We should really rename this hasse_invariant__Cassels(), and
-    set hasse_invariant() as a front-end to it.
+        This is different from the O'Meara Hasse invariant, which
+        allows `i <= j` in the product.  That is given by the method
+        hasse_invariant__OMeara(p).
 
+    .. NOTE::
+
+        We should really rename this hasse_invariant__Cassels(), and
+        set hasse_invariant() as a front-end to it.
 
     INPUT:
 
-    `p` -- a prime number > 0 or `-1` for the infinite place.
+    - `p` -- a prime number > 0 or `-1` for the infinite place
 
     OUTPUT:
 
@@ -496,13 +496,15 @@ def hasse_invariant__OMeara(self, p):
 
     where `(a,b)_p` is the Hilbert symbol at `p`.
 
-    WARNING: This is different from the (Cassels) Hasse invariant, which
-    only allows `i < j` in the product.  That is given by the method
-    hasse_invariant(p).
+    .. WARNING::
+
+        This is different from the (Cassels) Hasse invariant, which
+        only allows `i < j` in the product.  That is given by the method
+        hasse_invariant(p).
 
     INPUT:
 
-    `p` -- a prime number > 0 or `-1` for the infinite place. 
+    - `p` -- a prime number > 0 or `-1` for the infinite place
 
     OUTPUT:
 
@@ -581,7 +583,7 @@ def is_hyperbolic(self, p):
 
     INPUT:
 
-    `p` -- a prime number > 0 or `-1` for the infinite place. 
+    - `p` -- a prime number > 0 or `-1` for the infinite place
 
     OUTPUT:
 
@@ -633,7 +635,7 @@ def is_anisotropic(self, p):
 
     INPUT:
 
-    `p` -- a prime number > 0 or `-1` for the infinite place.
+    - `p` -- a prime number > 0 or `-1` for the infinite place
 
     OUTPUT:
 
@@ -701,7 +703,7 @@ def is_isotropic(self, p):
 
     INPUT:
 
-    `p` -- a prime number > 0 or `-1` for the infinite place.
+    - `p` -- a prime number > 0 or `-1` for the infinite place
 
     OUTPUT:
 

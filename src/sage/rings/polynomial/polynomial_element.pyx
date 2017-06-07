@@ -112,6 +112,7 @@ from sage.categories.map cimport Map
 from sage.categories.morphism cimport Morphism
 
 from sage.misc.superseded import deprecation
+from sage.misc.cachefunc import cached_method
 
 cpdef is_Polynomial(f):
     """
@@ -7954,13 +7955,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return self.parent().completion(self.parent().gen())(self).add_bigoh(prec)
 
+    @cached_method
     def is_irreducible(self):
-        """
-        Return True precisely if this polynomial is irreducible over its
-        base ring.
-
-        Testing irreducibility over `\ZZ/n\ZZ` for composite `n` is not
-        implemented.
+        r"""
+        Return whether this polynomial is irreducible.
 
         EXAMPLES::
 
@@ -7974,21 +7972,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R(0).is_irreducible()
             False
 
-        See :trac:`5140`,
-
-        ::
-
-            sage: R(1).is_irreducible()
-            False
-            sage: R(4).is_irreducible()
-            False
-            sage: R(5).is_irreducible()
-            True
-
-        The base ring does matter:  for example, 2x is irreducible as a
-        polynomial in QQ[x], but not in ZZ[x],
-
-        ::
+        The base ring does matter:  for example, `2x` is irreducible as a
+        polynomial in `\QQ[x]`, but not in `\ZZ[x]`::
 
             sage: R.<x> = ZZ[]
             sage: R(2*x).is_irreducible()
@@ -8007,6 +7992,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = Fx([2*t - 3, 5*t - 10, 3*t - 6, -t, -t + 2, 1])
             sage: f.is_irreducible()
             True
+
+        Constants can be irreducible if they are not units::
+
+            sage: R.<x> = ZZ[]
+            sage: R(1).is_irreducible()
+            False
+            sage: R(4).is_irreducible()
+            False
+            sage: R(5).is_irreducible()
+            True
+
         """
         if self.is_zero():
             return False

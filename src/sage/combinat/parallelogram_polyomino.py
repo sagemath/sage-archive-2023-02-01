@@ -877,42 +877,42 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp = ParallelogramPolyomino([[0, 1], [1, 0]])
             sage: pp = ParallelogramPolyomino([[1], [1]])
 
-            sage: pp = ParallelogramPolyomino([[1, 0], [0, 1]])
+            sage: pp = ParallelogramPolyomino([[1, 0], [0, 1]])  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: Lower and upper path are crossing.
 
-            sage: pp = ParallelogramPolyomino([[1], [0, 1]])
+            sage: pp = ParallelogramPolyomino([[1], [0, 1]])  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: Lower upper paht have different size (2 != 1).
 
-            sage: pp = ParallelogramPolyomino([[1], [0]])
+            sage: pp = ParallelogramPolyomino([[1], [0]])  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: The two paths don't join together at the end.
 
-            sage: pp = ParallelogramPolyomino([[0], [1]])
+            sage: pp = ParallelogramPolyomino([[0], [1]])  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: The two paths don't join together at the end.
 
-            sage: pp = ParallelogramPolyomino([[0], [0]])
+            sage: pp = ParallelogramPolyomino([[0], [0]])  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: A Parallelogam Polyomino can have the path [[0], [0]].
 
-            sage: pp = ParallelogramPolyomino([[], [0]])
+            sage: pp = ParallelogramPolyomino([[], [0]])  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: A Parallelogam Polyomino can have lower or upper path equals to [].
 
-            sage: pp = ParallelogramPolyomino([[0], []])
+            sage: pp = ParallelogramPolyomino([[0], []])  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: A Parallelogam Polyomino can have lower or upper path equals to [].
 
-            sage: pp = ParallelogramPolyomino([[], []])
+            sage: pp = ParallelogramPolyomino([[], []])  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: A Parallelogam Polyomino can have lower or upper path equals to [].

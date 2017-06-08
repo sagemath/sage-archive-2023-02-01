@@ -1,5 +1,3 @@
-#!/usr/bin/env sh
-
 # Since we use environment vars we have to generate setup.cfg
 
 echo "[build_ext]" > src/setup.cfg

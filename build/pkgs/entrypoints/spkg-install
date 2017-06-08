@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #
 # Upstream does not have a setup.py file, so we supply one with Sage
 #

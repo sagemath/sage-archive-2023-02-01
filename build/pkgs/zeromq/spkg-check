@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 if [ "$UNAME" = "Darwin" ]; then
     # Need to increase maximum allowed file handles for testsuite
     ulimit -n 1200

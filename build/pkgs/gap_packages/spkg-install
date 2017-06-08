@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 # WARNING -- if you add a package here, also add it to
 # the gap_reset_workspace() command in
 #    <SAGE_ROOT>/src/sage/interfaces/gap.py

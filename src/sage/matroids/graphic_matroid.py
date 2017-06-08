@@ -4,7 +4,9 @@ Graphic Matroids
 Theory
 ======
 
-Let `G = (V,E)` be a graph and let `C` be the collection of the edge sets of cycles in `G`. The corresponding graphic matroid `M(G)` has ground set `E` and circuits `C`.
+Let `G = (V,E)` be a graph and let `C` be the collection of the edge sets
+of cycles in `G`. The corresponding graphic matroid `M(G)` has ground set `E`
+and circuits `C`.
 """
 from __future__ import absolute_import
 #*****************************************************************************
@@ -20,9 +22,7 @@ from __future__ import absolute_import
 from .matroid import Matroid
 from .utilities import sanitize_contractions_deletions, setprint_s
 
-#Trying to resolve a NameError when I use Graph()
 from sage.graphs.graph import Graph
-#This seems necessary since graphs are mutable and matroids aren't
 from copy import copy, deepcopy
 
 #I'll put this here for now but I suspect it belongs in another file.
@@ -230,14 +230,35 @@ class GraphicMatroid(Matroid):
 
     def _is_independent(self, X):
         """
-        Tests if the set is a independent of the matroid.
+        Tests if the set is an independent set of the matroid.
         """
         g = self._subgraph_from_set(X)
         return g.is_forest()
 
-    def _is_circuit(self,X):
+    def _is_circuit(self, X):
         """
         Tests if the given set is a circuit.
         """
         g = self._subgraph_from_set(X)
         return g.is_cycle()
+
+    def _closure(self, X):
+        """
+        Returns the closure of a set.
+        """
+        X = set(X)
+        Y = self.groundset().difference(X)
+        edgelist = self._groundset_to_edges(Y)
+        g = self._subgraph_from_set(X)
+        V = g.vertices()
+        components = g.connected_components_number()
+        for e in edgelist:
+            # an edge is in the closure iff both its vertices are
+            # in the induced subgraph, and the edge doesn't connect components
+            if e[0] in V and e[1] in V:
+                g.add_edge(e)
+                if g.connected_components_number() >= components:
+                    X.add(e[2])
+                else:
+                    g.delete_edge(e)
+        return frozenset(X)

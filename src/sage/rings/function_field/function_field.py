@@ -333,7 +333,7 @@ class FunctionField(Field):
             raise NotImplementedError
         return self.order_with_basis(basis, check=check)
 
-    def _coerce_map_from_(self, R):
+    def _coerce_map_from_(self, source):
         """
         Return True if there is a coerce map from R to self.
 
@@ -343,14 +343,77 @@ class FunctionField(Field):
             sage: L.equation_order()
             Order in Function field in y defined by y^3 + x^3 + 4*x + 1
             sage: L._coerce_map_from_(L.equation_order())
-            True
+            Conversion map:
+              From: Order in Function field in y defined by y^3 + x^3 + 4*x + 1
+              To:   Function field in y defined by y^3 + x^3 + 4*x + 1
             sage: L._coerce_map_from_(GF(7))
-            False
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: L.<x> = FunctionField(GaussianIntegers().fraction_field())
+            sage: L.has_coerce_map_from(K)
+            True
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^3 + 1)
+            sage: K.<x> = FunctionField(GaussianIntegers().fraction_field())
+            sage: R.<y> = K[]
+            sage: M.<y> = K.extension(y^3 + 1)
+            sage: M.has_coerce_map_from(L) # not tested, base morphism is not implemented
+            True
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<I> = K[]
+            sage: L.<I> = K.extension(I^2 + 1)
+            sage: M.<x> = FunctionField(GaussianIntegers().fraction_field())
+            sage: M.has_coerce_map_from(L) # not tested, base_morphism is not implemented
+            True
         """
         from .function_field_order import FunctionFieldOrder
-        if isinstance(R, FunctionFieldOrder) and R.fraction_field() == self:
-            return True
-        return False
+        if isinstance(source, FunctionFieldOrder):
+            K = source.fraction_field()
+            source_to_K = K._generic_convert_map(source)
+            if K is self:
+                return source_to_K
+            K_to_self = self.coerce_map_from(K)
+            if K_to_self:
+                return K_to_self * source_to_K
+        from sage.categories.function_fields import FunctionFields
+        if source in FunctionFields():
+            if source.base_field() is source:
+                if self.base_field() is self:
+                    # source and self are rational function fields
+                    if source.variable_name() == self.variable_name():
+                        # ... in the same variable
+                        base_coercion = self.constant_field().coerce_map_from(source.constant_field())
+                        if base_coercion is not None:
+                            return source.hom([self.gen()], base_morphism=base_coercion)
+            else:
+                # source is an extensions of rational function fields
+                base_coercion = self.coerce_map_from(source.base_field())
+                if base_coercion is not None and base_coercion.is_injective():
+                    # the base field of source coerces into the base field of self
+                    self_polynomial = source.polynomial().map_coefficients(base_coercion)
+                    # try to find a root of the defining polynomial in self
+                    if self_polynomial(self.gen()) == 0:
+                        # The defining polynomial of source has a root in self,
+                        # therefore there is a map. To be sure that it is
+                        # canonical, we require a root of the defining polynomial
+                        # of self to be a root of the defining polynomial of
+                        # source (and that the variables are named equally):
+                        if source.variable_name() == self.variable_name():
+                            return source.hom([self.gen()], base_morphism=base_coercion)
+
+                    try:
+                        sourcegen_in_self = self(source.variable_name())
+                    except TypeError:
+                        pass
+                    else:
+                        if self_polynomial(sourcegen_in_self) == 0:
+                            # The defining polynomial of source has a root in self,
+                            # therefore there is a map. To be sure that it is
+                            # canonical, we require the names of the roots to match
+                            return source.hom([sourcegen_in_self], base_morphism=base_coercion)
 
     def _test_derivation(self, **options):
         """
@@ -1180,12 +1243,16 @@ class FunctionField_polymod(FunctionField):
               Defn: y |--> -y
                     x |--> x
 
-        The usage of the keyword base_morphism is not implemented yet::
+        You can also specify a morphism on the base::
 
-            sage: L.hom([-y, x-1], base_morphism=phi)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Function field homorphisms with optional argument base_morphism are not implemented yet. Please specify the images of the generators of the base fields manually.
+            sage: R1.<r> = K[]
+            sage: L1.<r> = K.extension(r^2 - (x+1)^3 - 1)
+            sage: L.hom(r, base_morphism=phi)
+            Function Field morphism:
+              From: Function field in y defined by y^2 - x^3 - 1
+              To:   Function field in r defined by r^2 - x^3 - 3*x^2 - 3*x - 2
+              Defn: y |--> r
+                    x |--> x + 1
 
         We make another extension of a rational function field::
 
@@ -1223,9 +1290,6 @@ class FunctionField_polymod(FunctionField):
                     yy |--> y
 
         """
-        if base_morphism is not None:
-            raise NotImplementedError("Function field homorphisms with optional argument base_morphism are not implemented yet. Please specify the images of the generators of the base fields manually.")
-
         if not isinstance(im_gens, (list,tuple)):
             im_gens = [im_gens]
         if len(im_gens) == 0:
@@ -1237,8 +1301,8 @@ class FunctionField_polymod(FunctionField):
         # the codomain of this morphism is the field containing all the im_gens
         codomain = im_gens[0].parent();
         if base_morphism is not None:
-            if base_morphism.codomain().has_coerce_map_from(codomain):
-                codomain = base_morphism.codomain();
+            from sage.categories.pushout import pushout
+            codomain = pushout(codomain, base_morphism.codomain())
 
         from .maps import FunctionFieldMorphism_polymod
         return FunctionFieldMorphism_polymod(self.Hom(codomain), im_gens[0], base_morphism)
@@ -1776,12 +1840,14 @@ class RationalFunctionField(FunctionField):
 
     def hom(self, im_gens, base_morphism=None):
         """
-        Create a homomorphism from self to another function field.
+        Create a homomorphism from self to another ring.
 
         INPUT:
 
-            - ``im_gens`` -- exactly one element of some function field
-            - ``base_morphism`` -- ignored
+            - ``im_gens`` -- exactly one element of some ring.  It must be invertible and trascendental over
+                             the image of ``base_morphism``; this is not checked.
+            - ``base_morphism`` -- a homomorphism from the base field into the other ring.
+                                   If ``None``, try to use a coercion map.
 
         OUTPUT:
 
@@ -1819,8 +1885,11 @@ class RationalFunctionField(FunctionField):
         if len(im_gens) != 1:
             raise ValueError("there must be exactly one generator")
         x = im_gens[0]
+        R = x.parent()
+        if base_morphism is None and not R.has_coerce_map_from(self.constant_field()):
+            raise ValueError("You must specify a morphism on the base field")
         from .maps import FunctionFieldMorphism_rational
-        return FunctionFieldMorphism_rational(self.Hom(x.parent()), x)
+        return FunctionFieldMorphism_rational(self.Hom(R), x, base_morphism)
 
     def field(self):
         """

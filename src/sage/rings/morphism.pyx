@@ -1177,7 +1177,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
             sage: f2(x^3 + x + y^2)
             a - b
 
-        TEST::
+        TESTS::
 
             sage: loads(dumps(f2)) == f2
             True
@@ -1318,7 +1318,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
         """
         Initialize ``self``.
 
-        TEST::
+        TESTS::
 
             sage: from sage.rings.morphism import RingHomomorphism_from_base
             sage: R.<x> = ZZ[]

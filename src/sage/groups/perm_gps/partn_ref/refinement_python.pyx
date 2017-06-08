@@ -30,7 +30,8 @@ debugger.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cysignals/memory.pxi"
+from cysignals.memory cimport sig_malloc, sig_free
+
 from .data_structures cimport *
 from .automorphism_group_canonical_label cimport (
     get_aut_gp_and_can_lab, aut_gp_and_can_lab,

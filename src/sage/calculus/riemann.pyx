@@ -26,7 +26,7 @@ Development supported by NSF award No. 0702939.
 #*****************************************************************************
 from __future__ import print_function
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.misc.decorators import options
 from sage.plot.all import list_plot, Graphics

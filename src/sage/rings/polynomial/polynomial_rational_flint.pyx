@@ -16,8 +16,8 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
-include "cysignals/signals.pxi"
+from cysignals.memory cimport check_allocarray, check_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_str, sig_off
 
 from cpython.int cimport PyInt_AS_LONG
 from sage.misc.long cimport pyobject_to_long
@@ -240,7 +240,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             L1 = [e if isinstance(e, Rational) else Rational(e) for e in x]
             n  = <unsigned long> len(x)
             sig_on()
-            L2 = <mpq_t *> sig_malloc(n * sizeof(mpq_t))
+            L2 = <mpq_t *> check_allocarray(n, sizeof(mpq_t))
             for deg from 0 <= deg < n:
                 mpq_init(L2[deg])
                 mpq_set(L2[deg], (<Rational> L1[deg]).value)
@@ -1419,7 +1419,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: f.denominator()
             3
         """
-        cdef Integer den = PY_NEW(Integer)
+        cdef Integer den = Integer.__new__(Integer)
         if fmpq_poly_denref(self.__poly) is NULL:
             mpz_set_ui(den.value, 1)
         else:

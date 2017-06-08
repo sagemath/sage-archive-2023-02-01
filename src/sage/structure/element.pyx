@@ -408,7 +408,7 @@ cdef class Element(SageObject):
         ``e.foo`` is not found in the super classes of ``e``, it's
         looked up manually in ``C.element_class`` and bound to ``e``.
 
-        .. NOTES::
+        .. NOTE::
 
             - The attribute or method is actually looked up in
               ``P._abstract_element_class``. In most cases this is
@@ -1054,7 +1054,9 @@ cdef class Element(SageObject):
 
             if not isinstance(left, Element):
                 assert type(left) is type(right)
-                return cmp(left, right)
+                raise NotImplementedError("old-style comparisons are not "
+                                          "supported anymore (see "
+                                          "https://trac.sagemath.org/ticket/22981)")
 
         # Now we have two Sage Elements with the same parent
         try:

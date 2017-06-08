@@ -15,9 +15,6 @@ AUTHORS:
 
 - Tom Coates (2010-06-11): fixed :trac:`9217`
 
-The Sage calculus module is loosely based on the Sage Enhancement
-Proposal found at: http://www.sagemath.org:9001/CalculusSEP.
-
 EXAMPLES:
 
 The basic units of the calculus package are symbolic expressions which
@@ -809,6 +806,103 @@ def nintegral(ex, x, a, b,
 
 nintegrate = nintegral
 
+def symbolic_product(expression, v, a, b, algorithm='maxima', hold=False):
+    r"""
+    Return the symbolic product `\prod_{v = a}^b expression` with respect
+    to the variable `v` with endpoints `a` and `b`.
+
+    INPUT:
+
+    - ``expression`` - a symbolic expression
+
+    - ``v`` - a variable or variable name
+
+    - ``a`` - lower endpoint of the product
+
+    - ``b`` - upper endpoint of the prduct
+
+    - ``algorithm`` - (default: ``'maxima'``)  one of
+
+      - ``'maxima'`` - use Maxima (the default)
+
+      - ``'giac'`` - (optional) use Giac
+
+      - ``'sympy'`` - use SymPy
+
+    - ``hold`` - (default: ``False``) if ``True`` don't evaluate
+
+    EXAMPLES::
+
+        sage: i, k, n = var('i,k,n')
+        sage: from sage.calculus.calculus import symbolic_product
+        sage: symbolic_product(k, k, 1, n)
+        factorial(n)
+        sage: symbolic_product(x + i*(i+1)/2, i, 1, 4)
+        x^4 + 20*x^3 + 127*x^2 + 288*x + 180
+        sage: symbolic_product(i^2, i, 1, 7)
+        25401600
+        sage: f = function('f')
+        sage: symbolic_product(f(i), i, 1, 7)
+        f(7)*f(6)*f(5)*f(4)*f(3)*f(2)*f(1)
+        sage: symbolic_product(f(i), i, 1, n)
+        product(f(i), i, 1, n)
+        sage: assume(k>0)
+        sage: symbolic_product(integrate (x^k, x, 0, 1), k, 1, n)
+        1/factorial(n + 1)
+        sage: symbolic_product(f(i), i, 1, n).log().log_expand()
+        sum(log(f(i)), i, 1, n)
+    """
+    if not is_SymbolicVariable(v):
+        if isinstance(v, str):
+            v = var(v)
+        else:
+            raise TypeError("need a multiplication variable")
+
+    if v in SR(a).variables() or v in SR(b).variables():
+        raise ValueError("product limits must not depend on the multiplication variable")
+
+    if hold == True:
+        from sage.functions.other import symbolic_prod as sprod
+        return sprod(expression, v, a, b)
+
+    if algorithm == 'maxima':
+        return maxima.sr_prod(expression,v,a,b)
+
+    elif algorithm == 'mathematica':
+        try:
+            prod = "Product[%s, {%s, %s, %s}]" % tuple([repr(expr._mathematica_()) for expr in (expression, v, a, b)])
+        except TypeError:
+            raise ValueError("Mathematica cannot make sense of input")
+        from sage.interfaces.mathematica import mathematica
+        try:
+            result = mathematica(prod)
+        except TypeError:
+            raise ValueError("Mathematica cannot make sense of: %s" % sum)
+        return result.sage()
+
+    elif algorithm == 'giac':
+        prod = "product(%s, %s, %s, %s)" % tuple([repr(expr._giac_()) for expr in (expression, v, a, b)])
+        from sage.interfaces.giac import giac
+        try:
+            result = giac(prod)
+        except TypeError:
+            raise ValueError("Giac cannot make sense of: %s" % sum)
+        return result.sage()
+
+    elif algorithm == 'sympy':
+        expression,v,a,b = [expr._sympy_() for expr in (expression, v, a, b)]
+        from sympy import product as sproduct
+        result = sproduct(expression, (v, a, b))
+        try:
+            return result._sage_()
+        except AttributeError:
+            raise AttributeError("Unable to convert SymPy result (={}) into"
+                    " Sage".format(result))
+
+    else:
+        raise ValueError("unknown algorithm: %s" % algorithm)
+
+
 def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
     r"""
     Return the minimal polynomial of self, if possible.
@@ -1039,8 +1133,8 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
     INPUT:
 
     - ``dir`` - (default: None); dir may have the value
-      'plus' (or '+' or 'right') for a limit from above,
-      'minus' (or '-' or 'left') for a limit from below, or may be omitted
+      'plus' (or '+' or 'right' or 'above') for a limit from above,
+      'minus' (or '-' or 'left' or 'below') for a limit from below, or may be omitted
       (implying a two-sided limit is to be computed).
 
     - ``taylor`` - (default: False); if True, use Taylor
@@ -1158,8 +1252,8 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         sage: lim(x^2, x=2, dir='nugget')
         Traceback (most recent call last):
         ...
-        ValueError: dir must be one of None, 'plus', '+', 'right',
-        'minus', '-', 'left'
+        ValueError: dir must be one of None, 'plus', '+', 'above', 'right',
+        'minus', '-', 'below', 'left'
 
     We check that :trac:`3718` is fixed, so that
     Maxima gives correct limits for the floor function::
@@ -1211,6 +1305,11 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         sage: sequence = -(3*n^2 + 1)*(-1)^n/sqrt(n^5 + 8*n^3 + 8)
         sage: limit(sequence, n=infinity)
         0
+
+    Check if :trac:`23048` is fixed::
+
+        sage: (1/(x-3)).limit(x=3, dir='below')
+        -Infinity
     """
     if not isinstance(ex, Expression):
         ex = SR(ex)
@@ -1227,21 +1326,21 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
 
     if dir not in [None, 'plus', '+', 'right', 'minus', '-', 'left',
             'above', 'below']:
-        raise ValueError("dir must be one of None, 'plus', '+', 'right', 'minus', '-', 'left'")
+        raise ValueError("dir must be one of None, 'plus', '+', 'above', 'right', 'minus', '-', 'below', 'left'")
 
     if algorithm == 'maxima':
         if dir is None:
             l = maxima.sr_limit(ex, v, a)
-        elif dir in ['plus', '+', 'right']:
+        elif dir in ['plus', '+', 'right', 'above']:
             l = maxima.sr_limit(ex, v, a, 'plus')
-        elif dir in ['minus', '-', 'left']:
+        elif dir in ['minus', '-', 'left', 'below']:
             l = maxima.sr_limit(ex, v, a, 'minus')
     elif algorithm == 'maxima_taylor':
         if dir is None:
             l = maxima.sr_tlimit(ex, v, a)
-        elif dir == 'plus' or dir == 'above' or dir == 'from_right':
+        elif dir in ['plus', '+', 'right', 'above']:
             l = maxima.sr_tlimit(ex, v, a, 'plus')
-        elif dir == 'minus' or dir == 'below' or dir == 'from_left':
+        elif dir in ['minus', '-', 'left', 'below']:
             l = maxima.sr_tlimit(ex, v, a, 'minus')
     elif algorithm == 'sympy':
         if dir is None:
@@ -1299,8 +1398,9 @@ def laplace(ex, t, s, algorithm='maxima'):
       are auxiliary convergence conditions.
 
     .. SEEALSO::
+
         :func:`inverse_laplace`
-            
+
     EXAMPLES:
 
     We compute a few Laplace transforms::
@@ -1390,7 +1490,7 @@ def laplace(ex, t, s, algorithm='maxima'):
         sage: laplace(heaviside(t-1), t, s, algorithm='sympy')
         (e^(-s)/s, 0, True)         
 
-    TESTS::
+    TESTS:
 
     Testing Giac::
 
@@ -1399,15 +1499,14 @@ def laplace(ex, t, s, algorithm='maxima'):
         sage: laplace(5*cos(3*t-2)*heaviside(t-2), t, s, algorithm='giac')
         5*(s*cos(4)*e^(-2*s) - 3*e^(-2*s)*sin(4))/(s^2 + 9)
         
-    Testing unevaluated expression from Giac::
+    Check unevaluated expression from Giac (it is locale-dependent, see
+    :trac:`22833`)::
 
         sage: var('n')
         n
         sage: laplace(t^n, t, s, algorithm='giac')
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: Unable to parse Giac output: integrate(t^n*exp(-s*t),t,0,+infinity)
-        
+        laplace(t^n, t, s)
+
     Testing SymPy::
 
         sage: laplace(t^n, t, s, algorithm='sympy')
@@ -1454,7 +1553,10 @@ def laplace(ex, t, s, algorithm='maxima'):
             result = giac.laplace(ex, t, s)
         except TypeError:
             raise ValueError("Giac cannot make sense of: %s" % ex_gi)
-        return result.sage() 
+        if 'integrate' in format(result) or 'integration' in format(result):
+            return dummy_laplace(ex, t, s)
+        else:
+            return result.sage()
 
     else:
         raise ValueError("Unknown algorithm: %s" % algorithm)
@@ -1496,8 +1598,9 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
       - ``'giac'`` - use Giac
 
     .. SEEALSO::
+
         :func:`laplace`
-              
+
     EXAMPLES::
 
         sage: var('w, m')
@@ -1543,7 +1646,7 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
         sage: inverse_laplace(1, s, t, algorithm='giac')
         dirac_delta(t)
                 
-    TESTS::
+    TESTS:
 
     Testing unevaluated expression from Maxima::
     
@@ -1566,10 +1669,8 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
     
         sage: n = var('n')
         sage: inverse_laplace(1/s^n, s, t, algorithm='giac')
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: Unable to parse Giac output: ilaplace([s^(-n),s,t])
-        
+        ilt(1/(s^n), t, s)
+
     Try with Maxima::
     
         sage: inverse_laplace(1/s^n, s, t, algorithm='maxima')
@@ -1585,12 +1686,10 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
         sage: inverse_laplace(cos(s), s, t, algorithm='sympy')
         ilt(cos(s), t, s)
     
-    Testing unevaluated expression from Giac::
+    Testing the same with Giac::
     
         sage: inverse_laplace(cos(s), s, t, algorithm='giac')
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: Unable to parse Giac output: ilaplace([cos(s),s,t])
+        ilt(cos(s), t, s)
     """
     if not isinstance(ex, Expression):
         ex = SR(ex)
@@ -1617,7 +1716,10 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
             result = giac.invlaplace(ex, s, t)
         except TypeError:
             raise ValueError("Giac cannot make sense of: %s" % ex)    
-        return result.sage() 
+        if 'ilaplace' in format(result):
+            return dummy_inverse_laplace(ex, t, s)
+        else:
+            return result.sage()
 
     else:
         raise ValueError("Unknown algorithm: %s" % algorithm)
@@ -1702,21 +1804,6 @@ def at(ex, *args, **kwds):
 
     return ex.subs(**kwds)
 
-
-def dummy_limit(*args):
-    """
-    This function is called to create formal wrappers of limits that
-    Maxima can't compute:
-
-    EXAMPLES::
-
-        sage: a = lim(exp(x^2)*(1-erf(x)), x=infinity); a
-        -limit((erf(x) - 1)*e^(x^2), x, +Infinity)
-        sage: a = sage.calculus.calculus.dummy_limit(sin(x)/x, x, 0);a
-        limit(sin(x)/x, x, 0)
-    """
-    return _limit(args[0], var(repr(args[1])), SR(args[2]))
-
 def dummy_diff(*args):
     """
     This function is called when 'diff' appears in a Maxima string.
@@ -1797,59 +1884,6 @@ def dummy_inverse_laplace(*args):
 #
 #######################################################
 
-def _limit_latex_(self, f, x, a, direction=None):
-    r"""
-    Return latex expression for limit of a symbolic function.
-
-    EXAMPLES::
-
-        sage: from sage.calculus.calculus import _limit_latex_
-        sage: var('x,a')
-        (x, a)
-        sage: f = function('f')
-        sage: _limit_latex_(0, f(x), x, a)
-        '\\lim_{x \\to a}\\, f\\left(x\\right)'
-        sage: latex(limit(f(x), x=oo))
-        \lim_{x \to +\infty}\, f\left(x\right)
-
-    TESTS:
-
-    When one-sided limits are converted back from maxima, the direction
-    argument becomes a symbolic variable. We check if typesetting these works::
-
-        sage: var('minus,plus')
-        (minus, plus)
-        sage: _limit_latex_(0, f(x), x, a, minus)
-        '\\lim_{x \\to a^-}\\, f\\left(x\\right)'
-        sage: _limit_latex_(0, f(x), x, a, plus)
-        '\\lim_{x \\to a^+}\\, f\\left(x\\right)'
-        sage: latex(limit(f(x),x=a,dir='+'))
-        \lim_{x \to a^+}\, f\left(x\right)
-        sage: latex(limit(f(x),x=a,dir='right'))
-        \lim_{x \to a^+}\, f\left(x\right)
-        sage: latex(limit(f(x),x=a,dir='-'))
-        \lim_{x \to a^-}\, f\left(x\right)
-        sage: latex(limit(f(x),x=a,dir='left'))
-        \lim_{x \to a^-}\, f\left(x\right)
-
-    Check if :trac:`13181` is fixed::
-
-        sage: t = var('t')
-        sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x,dir='-'))
-        \lim_{t \to x^-}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
-        sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x,dir='+'))
-        \lim_{t \to x^+}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
-        sage: latex(limit(exp_integral_e(1/2, I*t - I*x)*sqrt(-t + x),t=x))
-        \lim_{t \to x}\, \sqrt{-t + x} exp_integral_e\left(\frac{1}{2}, i \, t - i \, x\right)
-    """
-    if repr(direction) == 'minus':
-        dir_str = '^-'
-    elif repr(direction) == 'plus':
-        dir_str = '^+'
-    else:
-        dir_str = ''
-    return "\\lim_{%s \\to %s%s}\\, %s"%(latex(x), latex(a), dir_str, latex(f))
-
 def _laplace_latex_(self, *args):
     r"""
     Return LaTeX expression for Laplace transform of a symbolic function.
@@ -1887,7 +1921,6 @@ def _inverse_laplace_latex_(self, *args):
     return "\\mathcal{L}^{-1}\\left(%s\\right)"%(', '.join([latex(x) for x in args]))
 
 # Return un-evaluated expression as instances of SFunction class
-_limit = function_factory('limit', print_latex_func=_limit_latex_)
 _laplace = function_factory('laplace', print_latex_func=_laplace_latex_)
 _inverse_laplace = function_factory('ilt',
         print_latex_func=_inverse_laplace_latex_)
@@ -2010,11 +2043,12 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         sage: sefms('%inf')
         +Infinity
     """
+    global _syms
     syms = symbol_table.get('maxima', {}).copy()
 
-    if len(x) == 0:
+    if not len(x):
         raise RuntimeError("invalid symbolic expression -- ''")
-    maxima.set('_tmp_',x)
+    maxima.set('_tmp_', x)
 
     # This is inefficient since it so rarely is needed:
     #r = maxima._eval_line('listofvars(_tmp_);')[1:-1]
@@ -2022,16 +2056,19 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     s = maxima._eval_line('_tmp_;')
 
     formal_functions = maxima_tick.findall(s)
-    if len(formal_functions) > 0:
+    if len(formal_functions):
         for X in formal_functions:
-            syms[X[1:]] = function_factory(X[1:])
+            try:
+                syms[X[1:]] = _syms[X[1:]]
+            except KeyError:
+                syms[X[1:]] = function_factory(X[1:])
         # You might think there is a potential very subtle bug if 'foo
         # is in a string literal -- but string literals should *never*
         # ever be part of a symbolic expression.
         s = s.replace("'","")
 
     delayed_functions = maxima_qp.findall(s)
-    if len(delayed_functions) > 0:
+    if len(delayed_functions):
         for X in delayed_functions:
             if X == '?%at': # we will replace Maxima's "at" with symbolic evaluation, not an SFunction
                 pass
@@ -2090,7 +2127,6 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         search = sci_not.search(s)
 
     # have to do this here, otherwise maxima_tick catches it
-    syms['limit'] = dummy_limit
     syms['diff'] = dummy_diff
     syms['integrate'] = dummy_integrate
     syms['laplace'] = dummy_laplace
@@ -2102,7 +2138,6 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         # use a global flag so all expressions obtained via
         # evaluation of maxima code are assumed pre-simplified
         is_simplified = True
-        global _syms
         _syms = symbol_table['functions'].copy()
         try:
             global _augmented_syms

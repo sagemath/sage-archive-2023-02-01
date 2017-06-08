@@ -43,7 +43,7 @@ class FGP_Element(ModuleElement):
         sage: isinstance(x, sage.modules.fg_pid.fgp_element.FGP_Element)
         True
         sage: type(x)
-        <class 'sage.modules.fg_pid.fgp_element.FGP_Module_class_with_category.element_class'>
+        <class 'sage.modules.fg_pid.fgp_module.FGP_Module_class_with_category.element_class'>
         sage: x is Q(x)
         True
         sage: x.parent() is Q
@@ -70,7 +70,7 @@ class FGP_Element(ModuleElement):
             sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ); W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
             sage: Q = V/W
             sage: x = Q(V.0-V.1); type(x)
-            <class 'sage.modules.fg_pid.fgp_element.FGP_Module_class_with_category.element_class'>
+            <class 'sage.modules.fg_pid.fgp_module.FGP_Module_class_with_category.element_class'>
             sage: isinstance(x,sage.modules.fg_pid.fgp_element.FGP_Element)
             True
 

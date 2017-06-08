@@ -49,15 +49,12 @@ A mixed integer linear program can give you an answer:
 
   #. You have to create an instance of :class:`MixedIntegerLinearProgram` and
      -- in our case -- specify that it is a minimization.
-  #. Create a dictionary ``w`` of integer variables ``w`` via ``w =
-     p.new_variable(integer=True)`` (note that **by default all variables are
-     non-negative**, cf :meth:`~MixedIntegerLinearProgram.new_variable`).
+  #. Create a dictionary ``w`` of non-negative integer variables ``w`` via ``w =
+     p.new_variable(integer=True, nonnegative=True)``.
   #. Add those three equations as equality constraints via
      :meth:`add_constraint <sage.numerical.mip.MixedIntegerLinearProgram.add_constraint>`.
   #. Also add the inequality constraint.
   #. Add an inequality constraint `w_3 \geq 1` to exclude the trivial solution.
-  #. By default, all variables are non-negative. We remove that constraint
-     via ``p.set_min(variable, None)``, see :meth:`set_min <sage.numerical.mip.MixedIntegerLinearProgram.set_min>`.
   #. Specify the objective function via :meth:`set_objective <sage.numerical.mip.MixedIntegerLinearProgram.set_objective>`.
      In our case that is just `w_3`. If it
      is a pure constraint satisfaction problem, specify it as ``None``.
@@ -74,7 +71,6 @@ The following example shows all these steps::
     sage: p.add_constraint(2*w[2] - 3*w[3] == 0)
     sage: p.add_constraint(w[0] - w[1] - w[2] >= 0)
     sage: p.add_constraint(w[3] >= 1)
-    sage: _ = [ p.set_min(w[i], None) for i in range(1,4) ]
     sage: p.set_objective(w[3])
     sage: p.show()
     Minimization:
@@ -87,9 +83,9 @@ The following example shows all these steps::
       - x_3 <= -1.0
     Variables:
       x_0 is an integer variable (min=0.0, max=+oo)
-      x_1 is an integer variable (min=-oo, max=+oo)
-      x_2 is an integer variable (min=-oo, max=+oo)
-      x_3 is an integer variable (min=-oo, max=+oo)
+      x_1 is an integer variable (min=0.0, max=+oo)
+      x_2 is an integer variable (min=0.0, max=+oo)
+      x_3 is an integer variable (min=0.0, max=+oo)
     sage: print('Objective Value: {}'.format(p.solve()))
     Objective Value: 2.0
     sage: for i, v in p.get_values(w).iteritems():
@@ -156,6 +152,12 @@ also allowed::
       b[3] = x_1 is a continuous variable (min=-oo, max=+oo)
       a[(4, 'string', Rational Field)] = x_2 is a continuous variable (min=-oo, max=+oo)
       b[2] = x_3 is a continuous variable (min=-oo, max=+oo)
+
+Upper/lower bounds on a variable can be specified either as separate constraints
+(see :meth:`add_constraint <sage.numerical.mip.MixedIntegerLinearProgram.add_constraint>`) or
+using the methods :meth:`set_max <sage.numerical.mip.MixedIntegerLinearProgram.set_max>`
+and :meth:`set_min <sage.numerical.mip.MixedIntegerLinearProgram.set_min>`
+respectively.
 
 The default MIP variable
 ------------------------
@@ -297,11 +299,6 @@ cdef class MixedIntegerLinearProgram(SageObject):
         used.
 
       - Defaults to ``False``.
-
-    .. WARNING::
-
-        All LP variables are non-negative by default (see :meth:`new_variable`
-        and :meth:`set_min`).
 
     .. SEEALSO::
 
@@ -710,7 +707,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         .. SEEALSO::
 
             - :meth:`set_min`, :meth:`get_min` -- set/get the lower bound of a
-              variable. Note that by default, all variables are non-negative.
+              variable.
 
             - :meth:`set_max`, :meth:`get_max` -- set/get the upper bound of a
               variable.
@@ -2185,8 +2182,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         .. WARNING::
 
-            By default, all variables of a LP are assumed to be
-            non-negative. See :meth:`set_min` to change it.
+            By default, no additional assumption is made on the domain of an LP
+            variable. See :meth:`set_min` and :meth:`set_max` to change it.
 
         EXAMPLES:
 

@@ -463,7 +463,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         Return True if and only if there exists a coercion map from
         ``other`` to ``self``.
 
-        TEST::
+        TESTS::
 
             sage: R.<x,y> = QQ[]
             sage: type(R)
@@ -1493,7 +1493,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: P == R
             False
 
-        TEST::
+        TESTS::
 
             sage: R = QQ['x', 'y']; R
             Multivariate Polynomial Ring in x, y over Rational Field
@@ -2859,10 +2859,13 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         - ``mon`` - a monomial
 
         OUTPUT:
-            coefficient in base ring
 
-        SEE ALSO:
-            For coefficients in a base ring of fewer variables, look at ``coefficient``.
+        coefficient in base ring
+
+        .. SEEALSO::
+
+            For coefficients in a base ring of fewer variables,
+            look at ``coefficient``.
 
         EXAMPLES::
 

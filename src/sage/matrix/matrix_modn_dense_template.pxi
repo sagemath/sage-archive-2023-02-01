@@ -617,7 +617,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             sage: hash(MS)
             143
 
-        TEST::
+        TESTS::
 
             sage: A = matrix(GF(2),2,0)
             sage: hash(A)

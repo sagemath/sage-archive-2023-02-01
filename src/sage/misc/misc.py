@@ -221,11 +221,11 @@ def cputime(t=0, subprocesses=False):
         sage: walltime(w)         # somewhat random
         0.58425593376159668
 
-    .. note ::
+    .. NOTE::
 
-      Even with ``subprocesses=True`` there is no guarantee that the
-      CPU time is reported correctly because subprocesses can be
-      started and terminated at any given time.
+        Even with ``subprocesses=True`` there is no guarantee that the
+        CPU time is reported correctly because subprocesses can be
+        started and terminated at any given time.
     """
     if isinstance(t, GlobalCputime):
         subprocesses=True

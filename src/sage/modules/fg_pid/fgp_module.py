@@ -603,7 +603,7 @@ class FGP_Module_class(Module):
             sage: x = Q(V.0-V.1); x  # indirect doctest
             (0, 3)
             sage: type(x)
-            <class 'sage.modules.fg_pid.fgp_element.FGP_Module_class_with_category.element_class'>
+            <class 'sage.modules.fg_pid.fgp_module.FGP_Module_class_with_category.element_class'>
             sage: x is Q(x)
             True
             sage: x.parent() is Q
@@ -1229,7 +1229,7 @@ class FGP_Module_class(Module):
         Homomorphism defined by giving the images of ``self.gens()`` in some
         fixed fg R-module.
 
-        .. note ::
+        .. NOTE::
 
             We do not assume that the generators given by ``self.gens()`` are
             the same as the Smith form generators, since this may not be true

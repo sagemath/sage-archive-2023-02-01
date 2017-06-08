@@ -696,7 +696,7 @@ def CirculantGraph(n, adjacency):
     Returns a circulant graph with n nodes.
 
     A circulant graph has the property that the vertex `i` is connected
-    with the vertices `i+j` and `i-j` for each j in adj.
+    with the vertices `i+j` and `i-j` for each j in ``adjacency``.
 
     INPUT:
 
@@ -737,15 +737,13 @@ def CirculantGraph(n, adjacency):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ....:  k = graphs.CirculantGraph(i+3,i)
-        ....:  g.append(k)
-        ...
+        ....:     k = graphs.CirculantGraph(i+4, i+1)
+        ....:     g.append(k)
         sage: for i in range(3):
-        ....:  n = []
-        ....:  for m in range(3):
-        ....:      n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ....:  j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
 
@@ -754,16 +752,14 @@ def CirculantGraph(n, adjacency):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ....:  spr = networkx.cycle_graph(i+3)
-        ....:  k = Graph(spr)
-        ....:  g.append(k)
-        ...
+        ....:     spr = networkx.cycle_graph(i+3)
+        ....:     k = Graph(spr)
+        ....:     g.append(k)
         sage: for i in range(3):
         ....:  n = []
         ....:  for m in range(3):
         ....:      n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
         ....:  j.append(n)
-        ...
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
 
@@ -2501,6 +2497,99 @@ def WheelGraph(n):
     G = networkx.wheel_graph(n)
     return Graph(G, pos=pos_dict, name="Wheel graph")
 
+def WindmillGraph(k, n):
+    r"""
+    Return the Windmill graph `Wd(k, n)`.
+
+    The windmill graph `Wd(k, n)` is an undirected graph constructed for `k \geq
+    2` and `n \geq 2` by joining `n` copies of the complete graph `K_k` at a
+    shared vertex. It has `(k-1)n+1` vertices and `nk(k-1)/2` edges, girth 3 (if
+    `k > 2`), radius 1 and diameter 2. It has vertex connectivity 1 because its
+    central vertex is an articulation point; however, like the complete graphs
+    from which it is formed, it is `(k-1)`-edge-connected. It is trivially
+    perfect and a block graph.
+
+    .. SEEALSO::
+
+        - :wikipedia:`Windmill_graph`
+        - :meth:`GraphGenerators.StarGraph`
+        - :meth:`GraphGenerators.FriendshipGraph`
+
+    EXAMPLES:
+
+    The Windmill graph `Wd(2, n)` is a star graph::
+
+        sage: n = 5
+        sage: W = graphs.WindmillGraph(2, n)
+        sage: W.is_isomorphic( graphs.StarGraph(n) )
+        True
+
+    The Windmill graph `Wd(3, n)` is the Friendship graph `F_n`::
+
+        sage: n = 5
+        sage: W = graphs.WindmillGraph(3, n)
+        sage: W.is_isomorphic( graphs.FriendshipGraph(n) )
+        True
+
+    The Windmill graph `Wd(3, 2)` is the Butterfly graph::
+    
+        sage: W = graphs.WindmillGraph(3, 2)
+        sage: W.is_isomorphic( graphs.ButterflyGraph() )
+        True
+
+    The Windmill graph `Wd(k, n)` has chromatic number `k`::
+
+        sage: n,k = 5,6
+        sage: W = graphs.WindmillGraph(k, n)
+        sage: W.chromatic_number() == k
+        True
+
+    TESTS:
+
+    Giving too small parameters::
+
+        sage: graphs.WindmillGraph(1, 2)
+        Traceback (most recent call last):
+        ...
+        ValueError: parameters k and n must be >= 2
+        sage: graphs.WindmillGraph(2, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: parameters k and n must be >= 2
+    """
+    if k < 2 or n < 2:
+        raise ValueError('parameters k and n must be >= 2')
+
+    if k == 2:
+        from sage.graphs.generators.basic import StarGraph
+        G = StarGraph(n)
+    else:
+        sector = 2*pi/n
+        slide = 1/sin(sector/4)
+        
+        pos_dict = {}
+        for i in range(0,k):
+            x = float(cos(i*pi/(k-2)))
+            y = float(sin(i*pi/(k-2))) + slide
+            pos_dict[i] = (x,y)
+
+        G = Graph()
+        pos = {0: [0, 0]}
+        for i in range(n):
+            V = list( range(i*(k-1)+1, (i+1)*(k-1)+1) )
+            G.add_clique([0]+V)
+            for j,v in enumerate(V):
+                x,y = pos_dict[j]
+                xv = x*cos(i*sector) - y*sin(i*sector)
+                yv = x*sin(i*sector) + y*cos(i*sector)
+                pos[v] = [xv, yv]
+
+        G.set_pos(pos)
+
+    G.name("Windmill graph Wd({}, {})".format(k, n))
+    return G
+
+
 def trees(vertices):
     r"""
     Returns a generator of the distinct trees on a fixed number of vertices.
@@ -2581,7 +2670,7 @@ def RingedTree(k, vertex_labels = True):
          '1000', '1001', '101', '1010', '1011', '11', '110', '1100', '1101',
          '111', '1110', '1111']
 
-    TEST::
+    TESTS::
 
         sage: G = graphs.RingedTree(-1)
         Traceback (most recent call last):
@@ -2882,7 +2971,7 @@ def TuranGraph(n,r):
         sage: g.size() == floor((r-1)*(n**2)/(2*r))
         True
 
-    TEST::
+    TESTS::
 
         sage: g = graphs.TuranGraph(3,6)
         Traceback (most recent call last):

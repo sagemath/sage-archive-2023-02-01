@@ -585,7 +585,7 @@ class FreeModuleCoBasis(Basis_abstract):
     """
     def __init__(self, basis, symbol, latex_symbol=None):
         r"""
-        TEST::
+        TESTS::
 
             sage: from sage.tensor.modules.free_module_basis import FreeModuleCoBasis
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')

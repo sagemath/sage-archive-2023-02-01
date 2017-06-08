@@ -148,7 +148,7 @@ from sage.libs.arb.arb cimport *
 from sage.libs.arb.acb cimport *
 from sage.libs.arb.acb_hypgeom cimport *
 from sage.libs.arb.acb_modular cimport *
-from sage.libs.arb.arf cimport arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag, arf_set
+from sage.libs.arb.arf cimport arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag, arf_set, arf_is_nan
 from sage.libs.arb.mag cimport mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS, mag_is_inf, mag_is_finite, mag_zero
 from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear, fmpz_abs
 from sage.libs.flint.fmpq cimport fmpq_t, fmpq_init, fmpq_set_mpq, fmpq_clear
@@ -1356,6 +1356,25 @@ cdef class ComplexBall(RingElement):
         return ComplexBall(self._parent, self.real().add_error(ampl), self.imag().add_error(ampl))
 
     # Comparisons and predicates
+
+    def is_NaN(self):
+        """
+        Return ``True`` iff either the real or the imaginary part
+        is not-a-number.
+
+        EXAMPLES::
+
+            sage: CBF(NaN).is_NaN()
+            True
+            sage: CBF(-5).gamma().is_NaN()
+            True
+            sage: CBF(oo).is_NaN()
+            False
+            sage: CBF(42+I).is_NaN()
+            False
+        """
+        return (arf_is_nan(arb_midref(acb_realref(self.value)))
+                or arf_is_nan(arb_midref(acb_imagref(self.value))))
 
     def is_zero(self):
         """
@@ -3086,7 +3105,7 @@ cdef class ComplexBall(RingElement):
 
         The following definitions are used:
 
-        .. math ::
+        .. MATH::
 
             \theta_1(z,\tau) = 2 q_{1/4} \sum_{n=0}^{\infty} (-1)^n q^{n(n+1)} \sin((2n+1) \pi z)
 

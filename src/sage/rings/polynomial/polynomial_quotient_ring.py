@@ -1642,8 +1642,8 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             isomorphic_ring = GF(N)
 
             # the map to GF(N) maps our generator to a root of our modulus in the isomorphic_ring
-            base_gen = isomorphic_ring.subfields(degree=self.base_ring().degree())[0][0].gen()
-            base_to_isomorphic_ring = self.base_ring().hom([isomorphic_ring(base_gen)])
+            base_image = self.base_ring().modulus().change_ring(isomorphic_ring).any_root()
+            base_to_isomorphic_ring = self.base_ring().hom([isomorphic_ring(base_image)])
             modulus = self.modulus().map_coefficients(base_to_isomorphic_ring)
             gen = modulus.any_root(assume_squarefree=True, degree=-1)
 

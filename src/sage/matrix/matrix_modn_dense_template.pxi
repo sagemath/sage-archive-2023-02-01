@@ -231,7 +231,7 @@ cdef inline linbox_echelonize_efd(celement modulus, celement* entries, Py_ssize_
     del F, A, E, EF
     return r, pivots
 
-cdef inline celement *linbox_copy(celement modulus, celement *entries,  Py_ssize_t nrows, Py_ssize_t ncols) except NULL:
+cdef inline celement *linbox_copy(celement modulus, celement *entries,  Py_ssize_t nrows, Py_ssize_t ncols) except? NULL:
     """
     Create a copy of the entries array.
     """

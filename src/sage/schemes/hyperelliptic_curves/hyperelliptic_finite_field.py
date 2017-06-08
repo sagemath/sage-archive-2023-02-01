@@ -1689,7 +1689,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         def frob_mat(Coeffs, k):
             a = p ** k
             mat = []
-            Coeffs_pow = [c ** a for c in Coeffs]  # not used ??
+            Coeffs_pow = [c ** a for c in Coeffs]
             for i in range(1, g + 1):
                 H = [(Coeffs_pow[j]) for j in range((p*i-1), (p*i - g-1), -1)]
                 mat.append(H)

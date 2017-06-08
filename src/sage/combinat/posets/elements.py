@@ -82,7 +82,7 @@ class PosetElement(Element):
             sage: P = Poset(([m],[]), facade = False)
             sage: [e] = P
             sage: type(e)
-            <class 'sage.combinat.posets.elements.FinitePoset_with_category.element_class'>
+            <class 'sage.combinat.posets.posets.FinitePoset_with_category.element_class'>
             sage: latex(e)                 #indirect doctest
             \left(\begin{array}{rr}
             1 & 2 \\

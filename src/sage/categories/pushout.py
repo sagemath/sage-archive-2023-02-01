@@ -188,7 +188,7 @@ class ConstructionFunctor(Functor):
         By default, it returns the name of the construction functor's class.
         Usually, this method will be overloaded.
 
-        TEST::
+        TESTS::
 
             sage: F = QQ.construction()[0]
             sage: F                  # indirect doctest
@@ -784,7 +784,7 @@ class PolynomialFunctor(ConstructionFunctor):
         """
         Apply the functor to an object of ``self``'s domain.
 
-        TEST::
+        TESTS::
 
             sage: P = ZZ['x'].construction()[0]
             sage: P(GF(3))      # indirect doctest
@@ -798,7 +798,7 @@ class PolynomialFunctor(ConstructionFunctor):
         """
         Apply the functor ``self`` to the morphism `f`.
 
-        TEST::
+        TESTS::
 
             sage: P = ZZ['x'].construction()[0]
             sage: P(ZZ.hom(GF(3)))  # indirect doctest
@@ -873,7 +873,7 @@ class PolynomialFunctor(ConstructionFunctor):
 
     def _repr_(self):
         """
-        TEST::
+        TESTS::
 
             sage: P = ZZ['x'].construction()[0]
             sage: P       # indirect doctest
@@ -1044,7 +1044,7 @@ class MultiPolynomialFunctor(ConstructionFunctor):
 
     def _repr_(self):
         """
-        TEST::
+        TESTS::
 
             sage: QQ['x,y,z,t'].construction()[0]
             MPoly[x,y,z,t]
@@ -1144,7 +1144,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
 
     def __init__(self, gens, order, implementation):
         """
-        TEST::
+        TESTS::
 
             sage: F = sage.categories.pushout.InfinitePolynomialFunctor(['a','b','x'],'degrevlex','sparse'); F # indirect doctest
             InfPoly{[a,b,x], "degrevlex", "sparse"}
@@ -1163,7 +1163,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
         """
         Morphisms for inifinite polynomial rings are not implemented yet.
 
-        TEST::
+        TESTS::
 
             sage: P.<x,y> = QQ[]
             sage: R.<alpha> = InfinitePolynomialRing(P)
@@ -1180,7 +1180,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
         """
         Apply the functor to an object of ``self``'s domain.
 
-        TEST::
+        TESTS::
 
             sage: F = sage.categories.pushout.InfinitePolynomialFunctor(['a','b','x'],'degrevlex','sparse'); F
             InfPoly{[a,b,x], "degrevlex", "sparse"}
@@ -1193,7 +1193,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
 
     def _repr_(self):
         """
-        TEST::
+        TESTS::
 
             sage: F = sage.categories.pushout.InfinitePolynomialFunctor(['a','b','x'],'degrevlex','sparse'); F # indirect doctest
             InfPoly{[a,b,x], "degrevlex", "sparse"}
@@ -1203,7 +1203,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
 
     def __cmp__(self, other):
         """
-        TEST::
+        TESTS::
 
             sage: F = sage.categories.pushout.InfinitePolynomialFunctor(['a','b','x'],'degrevlex','sparse'); F # indirect doctest
             InfPoly{[a,b,x], "degrevlex", "sparse"}
@@ -1438,7 +1438,7 @@ class MatrixFunctor(ConstructionFunctor):
 
     def __init__(self, nrows, ncols, is_sparse=False):
         """
-        TEST::
+        TESTS::
 
             sage: from sage.categories.pushout import MatrixFunctor
             sage: F = MatrixFunctor(2,3)
@@ -1487,7 +1487,7 @@ class MatrixFunctor(ConstructionFunctor):
 
     def __cmp__(self, other):
         """
-        TEST::
+        TESTS::
 
             sage: F = MatrixSpace(ZZ,2,3).construction()[0]
             sage: F == loads(dumps(F))
@@ -1686,7 +1686,7 @@ class VectorFunctor(ConstructionFunctor):
         - ``inner_product_matrix``: ``n`` by ``n`` matrix, used to compute inner products in the
           to-be-created modules
 
-        TEST::
+        TESTS::
 
             sage: from sage.categories.pushout import VectorFunctor
             sage: F1 = VectorFunctor(3, inner_product_matrix = Matrix(3,3,range(9)))
@@ -1748,7 +1748,7 @@ class VectorFunctor(ConstructionFunctor):
         """
         This is not implemented yet.
 
-        TEST::
+        TESTS::
 
             sage: F = (ZZ^3).construction()[0]
             sage: P.<x,y> = ZZ[]
@@ -1885,7 +1885,7 @@ class SubspaceFunctor(ConstructionFunctor):
 
         ``basis``: a list of elements of a free module.
 
-        TEST::
+        TESTS::
 
             sage: from sage.categories.pushout import SubspaceFunctor
             sage: M = ZZ^3
@@ -1929,7 +1929,7 @@ class SubspaceFunctor(ConstructionFunctor):
         """
         This is not implemented yet.
 
-        TEST::
+        TESTS::
 
             sage: F = (ZZ^3).span([(1,2,3),(4,5,6)]).construction()[0]
             sage: P.<x,y> = ZZ[]
@@ -1943,7 +1943,7 @@ class SubspaceFunctor(ConstructionFunctor):
 
     def __cmp__(self, other):
         """
-        TEST::
+        TESTS::
 
             sage: F1 = (GF(5)^3).span([(1,2,3),(4,5,6)]).construction()[0]
             sage: F2 = (ZZ^3).span([(1,2,3),(4,5,6)]).construction()[0]
@@ -2032,7 +2032,7 @@ class SubspaceFunctor(ConstructionFunctor):
             [0 1 0]
             [0 0 1]
 
-        TEST::
+        TESTS::
 
             sage: P.<t> = ZZ[]
             sage: S1 = (ZZ^3).submodule([(1,2,3),(4,5,6)])
@@ -2103,7 +2103,7 @@ class FractionField(ConstructionFunctor):
 
     def __init__(self):
         """
-        TEST::
+        TESTS::
 
             sage: from sage.categories.pushout import FractionField
             sage: F = FractionField()
@@ -2120,7 +2120,7 @@ class FractionField(ConstructionFunctor):
         """
         Apply the functor to an object of ``self``'s domain.
 
-        TEST::
+        TESTS::
 
             sage: F = QQ.construction()[0]
             sage: F(GF(5)['t'])      # indirect doctest
@@ -2175,7 +2175,7 @@ class CompletionFunctor(ConstructionFunctor):
         sage: F3(GF(3)['x'])
         Power Series Ring in x over Finite Field of size 3
 
-    TEST::
+    TESTS::
 
         sage: R1.<a> = Zp(5,prec=20)[]
         sage: R2 = Qp(5,prec=40)
@@ -2238,7 +2238,7 @@ class CompletionFunctor(ConstructionFunctor):
 
     def _repr_(self):
         """
-        TEST::
+        TESTS::
 
             sage: Zp(7).construction()  # indirect doctest
             (Completion[7], Integer Ring)
@@ -2249,7 +2249,7 @@ class CompletionFunctor(ConstructionFunctor):
         """
         Apply the functor to an object of ``self``'s domain.
 
-        TEST::
+        TESTS::
 
             sage: R = Zp(5)
             sage: F1 = R.construction()[0]
@@ -2291,7 +2291,7 @@ class CompletionFunctor(ConstructionFunctor):
         of Completion functors, although the resulting rings also take
         the precision into account.
 
-        TEST::
+        TESTS::
 
             sage: R1 = Zp(5,prec=30)
             sage: R2 = Zp(5,prec=40)
@@ -2832,7 +2832,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
 
     def __cmp__(self, other):
         """
-        TEST::
+        TESTS::
 
             sage: K.<a>=NumberField(x^3+x^2+1)
             sage: F = K.construction()[0]
@@ -3056,7 +3056,7 @@ class AlgebraicClosureFunctor(ConstructionFunctor):
 
     def __init__(self):
         """
-        TEST::
+        TESTS::
 
             sage: from sage.categories.pushout import AlgebraicClosureFunctor
             sage: F = AlgebraicClosureFunctor()
@@ -3074,7 +3074,7 @@ class AlgebraicClosureFunctor(ConstructionFunctor):
         """
         Apply the functor to an object of ``self``'s domain.
 
-        TEST::
+        TESTS::
 
             sage: F = CDF.construction()[0]
             sage: F(QQ)       # indirect doctest
@@ -3094,7 +3094,7 @@ class AlgebraicClosureFunctor(ConstructionFunctor):
         However, it seems that people do want to work with algebraic
         extensions of ``RR``. Therefore, we do not merge with algebraic extension.
 
-        TEST::
+        TESTS::
 
             sage: K.<a>=NumberField(x^3+x^2+1)
             sage: CDF.construction()[0].merge(K.construction()[0]) is None
@@ -4051,7 +4051,7 @@ def type_to_parent(P):
 
     A Sage parent structure corresponding to the given type
 
-    TEST::
+    TESTS::
 
         sage: from sage.categories.pushout import type_to_parent
         sage: type_to_parent(int)

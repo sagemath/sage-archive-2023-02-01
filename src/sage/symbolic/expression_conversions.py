@@ -1244,7 +1244,7 @@ def laurent_polynomial(ex, base_ring=None, ring=None):
     - ``ex`` -- a symbolic expression
 
     - ``base_ring``, ``ring`` -- Either a
-      ``base_ring`` or a laurent polynomial ``ring`` can be
+      ``base_ring`` or a Laurent polynomial ``ring`` can be
       specified for the parent of result.
       If just a ``base_ring`` is given, then the variables
       of the ``base_ring`` will be the variables of the expression ``ex``.
@@ -2008,12 +2008,14 @@ class HoldRemover(ExpressionTreeWalker):
             sage: h()
             0
         """
-        from sage.functions.other import Function_sum
-        from sage.calculus.calculus import symbolic_sum
+        from sage.functions.other import Function_sum, Function_prod
+        from sage.calculus.calculus import symbolic_sum, symbolic_product
         if not operator:
             return self
         if isinstance(operator, Function_sum):
             return symbolic_sum(*map(self, ex.operands()))
+        if isinstance(operator, Function_prod):
+            return symbolic_product(*map(self, ex.operands()))
         if operator in self._exclude:
             return operator(*map(self, ex.operands()), hold=True)
         else:

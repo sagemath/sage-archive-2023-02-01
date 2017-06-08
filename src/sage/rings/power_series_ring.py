@@ -1111,7 +1111,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
             2 - t - 5*t^2 + t^3 + O(t^4)
 
 
-        Further arguments are passed to the underlying base ring (:trac:`#9481`)::
+        Further arguments are passed to the underlying base ring (:trac:`9481`)::
 
             sage: SZ = PowerSeriesRing(ZZ,'v')
             sage: SQ = PowerSeriesRing(QQ,'v')

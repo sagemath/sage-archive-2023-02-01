@@ -470,7 +470,7 @@ def _split_dict_(D, indices, group_by=None):
 
 def _split_laurent_polynomial_dict_(P, M, d):
     r"""
-    Helper function for splitting a multivariate laurent polynomial
+    Helper function for splitting a multivariate Laurent polynomial
     during conversion.
 
     INPUT:
@@ -620,7 +620,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
     def variable_names_recursive(self, depth=infinity):
         r"""
         Return the list of variable names of this ring and its base rings,
-        as if it were a single multi-variate laurent polynomial.
+        as if it were a single multi-variate Laurent polynomial.
 
         INPUT:
 

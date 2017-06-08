@@ -395,6 +395,11 @@ REFERENCES:
             complexes and posets. I*. Trans. of
             Amer. Math. Soc. **348** No. 4. (1996)
 
+.. [BZ01] \A. Berenstein, A. Zelevinsky
+          *Tensor product multiplicities, canonical bases
+          and totally positive varieties*
+          Invent. Math. **143** No. 1. (2002), 77-128.
+
 .. _ref-C:
 
 **C**
@@ -639,6 +644,10 @@ REFERENCES:
                  Functions, in NIST Digital Library of Mathematical
                  Functions. http://dlmf.nist.gov/10
 
+.. [DLMF-Error] \N. M. Temme: 7. Error Functions, Dawson’s and Fresnel
+                 Integrals, in NIST Digital Library of Mathematical
+                 Functions. http://dlmf.nist.gov/7
+
 .. [DLMF-Struve] \R. B. Paris: 11. Struve and Related Functions, in
                  NIST Digital Library of Mathematical
                  Functions. http://dlmf.nist.gov/11
@@ -666,7 +675,7 @@ REFERENCES:
                *Nessie proposal: NOEKEON*; in First Open NESSIE Workshop, (2000).
 
 .. [DR2002] Joan Daemen, Vincent Rijmen. *The Design of
-            Rijndael. Springer-Verlag Berlin Heidelberg, 2002.
+            Rijndael*. Springer-Verlag Berlin Heidelberg, 2002.
 
 .. [Dro1987] Carl Droms. *Isomorphisms of graph groups*. Proc. of the
              Amer. Math. Soc. **100**
@@ -769,6 +778,10 @@ REFERENCES:
             automorphic forms, and the canonical embedding of Shimura
             curves". LMS Journal of Computation and Mathematics
             (2014), volume 17, issue 01, pp. 1-23.
+
+.. [FOS2010] \G. Fourier, M. Okado, A. Schilling. *Perfectness of
+             Kirillov-Reshetikhin crystals for nonexceptional types*.
+             Contemp. Math. 506 (2010) 127-143 ( :arxiv:`0811.1604` )
 
 .. [FP1996] Komei Fukuda, Alain Prodon: Double Description Method
             Revisited, Combinatorics and Computer Science, volume 1120
@@ -894,6 +907,10 @@ REFERENCES:
 .. [GS1999] Venkatesan Guruswami and Madhu Sudan, Improved Decoding of
             Reed-Solomon Codes and Algebraic-Geometric Codes, 1999
 
+.. [GT1996] \P. Gianni and B. Trager. "Square-free algorithms in
+            positive characteristic". Applicable Algebra in Engineering,
+            Communication and Computing, 7(1), 1-14 (1996)
+
 .. [GT2014] \M.S. Gowda and J. Tao. On the bilinearity rank of a
             proper cone and Lyapunov-like
             transformations. Mathematical Programming, 147 (2014)
@@ -927,8 +944,8 @@ REFERENCES:
              function fields and related topics," J. Symbolic
              Comput. 33 (2002), no. 4, 425--445.
 
-.. [Hig2008] \N. J. Higham, "Functions of matrices: theory and computation", 
-             Society for Industrial and Applied Mathematics (2008). 
+.. [Hig2008] \N. J. Higham, "Functions of matrices: theory and computation",
+             Society for Industrial and Applied Mathematics (2008).
 
 .. [HJ2004] Tom Hoeholdt and Joern Justesen, A Course In
             Error-Correcting Codes, EMS, 2004
@@ -1063,6 +1080,13 @@ REFERENCES:
 .. [Kal1980] \T. Kaliath, "Linear Systems", Prentice-Hall, 1980,
              383--386.
 
+.. [Kam2007] Joel Kamnitzer,
+             *The crystal structure on the set of Mirković-Vilonen polytopes*,
+             Adv. Math. **215** (2007), 66-93.
+
+.. [Kam2010] Joel Kamnitzer, *Mirković-Vilonen cycles and polytopes*,
+             Ann. Math. (2) **171** (2010), 731-777.
+
 .. [Kan1958] \D. M. Kan, *A combinatorial definition of homotopy
              groups*, Ann. Math. (2) 67 (1958), 282-312.
 
@@ -1082,6 +1106,10 @@ REFERENCES:
             \M. Grötschel, \L Lovász, *Handbook of combinatorics*,
             Vol. 1, Chapter 18, 1995
 
+.. [KKMMNN1992] S-J. Kang, M. Kashiwara, K. C. Misra, T. Miwa, T. Nakashima,
+                and A. Nakayashiki. *Affine crystals and vertex models*.
+                Int. J. Mod. Phys. A, **7** (suppl. 1A), (1992) pp. 449-484.
+
 .. [KKPSSSYYLLCHH2004] \D. Kwon, J. Kim, S. Park, S. H. Sung, Y. Sohn,
                        \J. H. Song, Y. Yeom, E-J. Yoon, S. Lee, J. Lee,
                        \S. Chee, D. Han, and J. Hong,
@@ -1100,9 +1128,14 @@ REFERENCES:
               *PRINTcipher: A block cipher for IC-printing*; in
               CHES, (2010), pp. 16-32.
 
+.. [KLS2013] Allen Knutson, Thomas Lam, and David Speyer.
+             *Positroid Varieties: Juggling and Geometry*
+             Compositio Mathematica, **149** (2013), no. 10.
+             :arXiv:`1111.3660`.
+
 .. [KMAUTOM2000] Masayuki Kanda, Shiho Moriai, Kazumaro Aoki, Hiroki Ueda,
                  Youichi Takashima, Kazuo Ohta, and Tsutomu Matsumoto,
-                 *E2 – a new 128-bit block cipher*; in IEICE Transactions on
+                 *E2 - a new 128-bit block cipher*; in IEICE Transactions on
                  Fundamentals of Electronics, Communications and Computer Sciences,
                  E83-A(1):48–59, 12 2000.
 
@@ -1705,9 +1738,27 @@ REFERENCES:
             manifolds and complexes into a cubic lattice", *Uspekhi
             Mat. Nauk* 47 (1992), 219-220.
 
+.. [SS2015] Anne Schilling and Travis Scrimshaw.
+            *Crystal structure on rigged configurations and the filling map*.
+            Electon. J. Combin., **22(1)** (2015) #P1.73. :arxiv:`1409.2920`.
+
+.. [SS2015II] Ben Salisbury and Travis Scrimshaw.
+              *A rigged configuration model for* `B(\infty)`.
+              J. Combin. Theory Ser. A, **133** (2015) pp. 29-75.
+              :arxiv:`1404.6539`.
+
+.. [SS2017] Ben Salisbury and Travis Scrimshaw.
+            *Rigged configurations for all symmetrizable types*.
+            Electon. J. Combin., **24(1)** (2017) #P1.30. :arxiv:`1509.07833`.
+
 .. [SSAMI2007] \T. Shirai, K. Shibutani, T. Akishita, S. Moriai, and T. Iwata,
                *The 128-bit blockcipher CLEFIA (extended abstract)*; in
                FSE, (2007), pp. 181-195.
+
+.. [ST2011] \A. Schilling, P. Tingley. *Demazure crystals,
+            Kirillov-Reshetikhin crystals, and the energy function*.
+            Electronic Journal of Combinatorics. **19(2)**. 2012.
+            :arXiv:`1104.2359`
 
 .. [Sta2007] Stanley, Richard: *Hyperplane Arrangements*, Geometric
              Combinatorics (E. Miller, V. Reiner, and B. Sturmfels,
@@ -1903,6 +1954,8 @@ REFERENCES:
              Bull. London Math. Soc. 30 (1998), no. 5, 449-517.
 
 .. [WP-Bessel] :wikipedia:`Bessel_function`
+
+.. [WP-Error] :wikipedia:`Error_function`
 
 .. [WP-Struve] :wikipedia:`Struve_function`
 

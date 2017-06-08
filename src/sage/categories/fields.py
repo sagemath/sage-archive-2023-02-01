@@ -313,7 +313,7 @@ class Fields(CategoryWithAxiom):
             - ``f`` -- a univariate non-zero polynomial over this field
 
             ALGORITHM: For rings of characteristic zero, we use the algorithm
-            descriped in [Yun1976]_. Other fields may provide their own
+            described in [Yun1976]_. Other fields may provide their own
             implementation by overriding this method.
 
             EXAMPLES::
@@ -460,7 +460,7 @@ class Fields(CategoryWithAxiom):
     class ElementMethods:
         def euclidean_degree(self):
             r"""
-            Return the degree of this element as an element of a euclidean
+            Return the degree of this element as an element of an Euclidean
             domain.
 
             In a field, this returns 0 for all but the zero element (for

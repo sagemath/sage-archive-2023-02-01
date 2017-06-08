@@ -45,6 +45,11 @@ from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.libs.gmp.randomize cimport *
 
+from sage.libs.flint.types cimport fmpz_t, fmpq
+from sage.libs.flint.fmpz cimport fmpz_init, fmpz_clear, fmpz_set, fmpz_set_mpz, fmpz_one, fmpz_get_mpz, fmpz_add, fmpz_mul, fmpz_sub, fmpz_mul_si, fmpz_mul_si, fmpz_mul_si, fmpz_divexact, fmpz_lcm
+from sage.libs.flint.fmpq cimport fmpq_is_zero, fmpq_get_mpq, fmpq_set_mpq, fmpq_canonicalise
+from sage.libs.flint.fmpq_mat cimport fmpq_mat_entry_num, fmpq_mat_entry_den, fmpq_mat_entry
+
 from .constructor import matrix
 from .matrix_space import MatrixSpace
 from .matrix cimport Matrix
@@ -232,6 +237,7 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t k, c
         cdef NumberFieldElement v
         cdef mpz_t numer, denom
+        cdef fmpz_t ftmp
 
         # The i,j entry is the (i * self._ncols + j)'th column.
         c = i * self._ncols + j
@@ -240,51 +246,65 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             # Must be coded differently, since elements of
             # quadratic number fields are stored differently.
             if self._n == 4:
-                mpz_set(mpq_numref(self._matrix._matrix[0][c]),
+                fmpz_set_mpz(fmpq_mat_entry_num(self._matrix._matrix, 0, c),
                         (<NumberFieldElement_quadratic>value).a)
-                mpz_set(mpq_denref(self._matrix._matrix[0][c]),
+                fmpz_set_mpz(fmpq_mat_entry_den(self._matrix._matrix, 0, c),
                         (<NumberFieldElement_quadratic>value).denom)
-                mpq_canonicalize(self._matrix._matrix[0][c])
+                fmpq_canonicalise(fmpq_mat_entry(self._matrix._matrix, 0, c))
 
-                mpz_set(mpq_numref(self._matrix._matrix[1][c]),
+                fmpz_set_mpz(fmpq_mat_entry_num(self._matrix._matrix, 1, c),
                         (<NumberFieldElement_quadratic>value).b)
-                mpz_set(mpq_denref(self._matrix._matrix[1][c]),
+                fmpz_set_mpz(fmpq_mat_entry_den(self._matrix._matrix, 1, c),
                         (<NumberFieldElement_quadratic>value).denom)
-                mpq_canonicalize(self._matrix._matrix[1][c])
+                fmpq_canonicalise(fmpq_mat_entry(self._matrix._matrix, 1, c))
             elif self._n == 3:
-                mpz_set(mpq_numref(self._matrix._matrix[0][c]),
+                # mat[0,c] = (x.a + x.b) / x.denom
+                fmpz_set_mpz(fmpq_mat_entry_num(self._matrix._matrix, 0, c),
                         (<NumberFieldElement_quadratic>value).a)
-                mpz_add(mpq_numref(self._matrix._matrix[0][c]),
-                        mpq_numref(self._matrix._matrix[0][c]),
-                        (<NumberFieldElement_quadratic>value).b)
-                mpz_set(mpq_denref(self._matrix._matrix[0][c]),
-                        (<NumberFieldElement_quadratic>value).denom)
-                mpq_canonicalize(self._matrix._matrix[0][c])
 
-                mpz_set(mpq_numref(self._matrix._matrix[1][c]),
-                        (<NumberFieldElement_quadratic>value).b)
-                mpz_mul_si(mpq_numref(self._matrix._matrix[1][c]),
-                           mpq_numref(self._matrix._matrix[1][c]), 2)
-                mpz_set(mpq_denref(self._matrix._matrix[1][c]),
+                # NOTE: it would be convenient here to have fmpz_add_mpz
+                fmpz_init(ftmp)
+                fmpz_set_mpz(ftmp, (<NumberFieldElement_quadratic>value).b)
+                fmpz_add(fmpq_mat_entry_num(self._matrix._matrix, 0, c),
+                         fmpq_mat_entry_num(self._matrix._matrix, 0, c),
+                         ftmp)
+                fmpz_clear(ftmp)
+
+                fmpz_set_mpz(fmpq_mat_entry_den(self._matrix._matrix, 0, c),
                         (<NumberFieldElement_quadratic>value).denom)
-                mpq_canonicalize(self._matrix._matrix[1][c])
+                fmpq_canonicalise(fmpq_mat_entry(self._matrix._matrix, 0, c))
+
+                # mat[1,c] = (2 x.b) / x.denom
+                fmpz_set_mpz(fmpq_mat_entry_num(self._matrix._matrix, 1, c),
+                        (<NumberFieldElement_quadratic>value).b)
+                fmpz_mul_si(fmpq_mat_entry_num(self._matrix._matrix, 1, c),
+                            fmpq_mat_entry_num(self._matrix._matrix, 1, c), 2)
+                fmpz_set_mpz(fmpq_mat_entry_den(self._matrix._matrix, 1, c),
+                        (<NumberFieldElement_quadratic>value).denom)
+                fmpq_canonicalise(fmpq_mat_entry(self._matrix._matrix, 1, c))
             else: # self._n is 6
-                mpz_set(mpq_numref(self._matrix._matrix[0][c]),
+                fmpz_set_mpz(fmpq_mat_entry_num(self._matrix._matrix, 0, c),
                         (<NumberFieldElement_quadratic>value).a)
-                mpz_sub(mpq_numref(self._matrix._matrix[0][c]),
-                        mpq_numref(self._matrix._matrix[0][c]),
-                        (<NumberFieldElement_quadratic>value).b)
-                mpz_set(mpq_denref(self._matrix._matrix[0][c]),
-                        (<NumberFieldElement_quadratic>value).denom)
-                mpq_canonicalize(self._matrix._matrix[0][c])
 
-                mpz_set(mpq_numref(self._matrix._matrix[1][c]),
-                        (<NumberFieldElement_quadratic>value).b)
-                mpz_mul_si(mpq_numref(self._matrix._matrix[1][c]),
-                           mpq_numref(self._matrix._matrix[1][c]), 2)
-                mpz_set(mpq_denref(self._matrix._matrix[1][c]),
+                # NOTE: it would be convenient here to have fmpz_add_mpz
+                fmpz_init(ftmp)
+                fmpz_set_mpz(ftmp, (<NumberFieldElement_quadratic>value).b)
+                fmpz_sub(fmpq_mat_entry_num(self._matrix._matrix, 0, c),
+                         fmpq_mat_entry_num(self._matrix._matrix, 0, c),
+                         ftmp)
+                fmpz_clear(ftmp)
+
+                fmpz_set_mpz(fmpq_mat_entry_den(self._matrix._matrix, 0, c),
                         (<NumberFieldElement_quadratic>value).denom)
-                mpq_canonicalize(self._matrix._matrix[1][c])
+                fmpq_canonicalise(fmpq_mat_entry(self._matrix._matrix, 0, c))
+
+                fmpz_set_mpz(fmpq_mat_entry_num(self._matrix._matrix, 1, c),
+                        (<NumberFieldElement_quadratic>value).b)
+                fmpz_mul_si(fmpq_mat_entry_num(self._matrix._matrix, 1, c),
+                            fmpq_mat_entry_num(self._matrix._matrix, 1, c), 2)
+                fmpz_set_mpz(fmpq_mat_entry_den(self._matrix._matrix, 1, c),
+                        (<NumberFieldElement_quadratic>value).denom)
+                fmpq_canonicalise(fmpq_mat_entry(self._matrix._matrix, 1, c))
             return
 
         v = value
@@ -293,11 +313,11 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         mpz_init(denom)
 
         v._ntl_denom_as_mpz(denom)
-        for k from 0 <= k < self._degree:
+        for k in range(self._degree):
             v._ntl_coeff_as_mpz(numer, k)
-            mpz_set(mpq_numref(self._matrix._matrix[k][c]), numer)
-            mpz_set(mpq_denref(self._matrix._matrix[k][c]), denom)
-            mpq_canonicalize(self._matrix._matrix[k][c])
+            fmpz_set_mpz(fmpq_mat_entry_num(self._matrix._matrix, k, c), numer)
+            fmpz_set_mpz(fmpq_mat_entry_den(self._matrix._matrix, k, c), denom)
+            fmpq_canonicalise(fmpq_mat_entry(self._matrix._matrix, k, c))
 
         mpz_clear(numer)
         mpz_clear(denom)
@@ -343,7 +363,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t k, c
         cdef NumberFieldElement x
         cdef NumberFieldElement_quadratic xq
-        cdef mpz_t denom, quo, tmp
+        cdef mpz_t quo, tmp
+        cdef fmpz_t denom, ftmp
         cdef ZZ_c coeff
 
         if self._matrix is None:
@@ -353,57 +374,72 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         mpz_init(tmp)
 
         if self._degree == 2:
+            fmpz_init(ftmp)
             xq = self._base_ring(0)
             if self._n == 4:
-                mpz_mul(xq.a, mpq_numref(self._matrix._matrix[0][c]),
-                        mpq_denref(self._matrix._matrix[1][c]))
-                mpz_mul(xq.b, mpq_numref(self._matrix._matrix[1][c]),
-                        mpq_denref(self._matrix._matrix[0][c]))
-                mpz_mul(xq.denom, mpq_denref(self._matrix._matrix[0][c]),
-                        mpq_denref(self._matrix._matrix[1][c]))
+                fmpz_mul(ftmp, fmpq_mat_entry_num(self._matrix._matrix, 0, c),
+                               fmpq_mat_entry_den(self._matrix._matrix, 1, c))
+                fmpz_get_mpz(xq.a, ftmp)
+                fmpz_mul(ftmp, fmpq_mat_entry_num(self._matrix._matrix, 1, c),
+                               fmpq_mat_entry_den(self._matrix._matrix, 0, c))
+                fmpz_get_mpz(xq.b, ftmp)
+                fmpz_mul(ftmp, fmpq_mat_entry_den(self._matrix._matrix, 0, c),
+                               fmpq_mat_entry_den(self._matrix._matrix, 1, c))
+                fmpz_get_mpz(xq.denom, ftmp)
+
             else: # n is 3 or 6
-                mpz_mul(xq.a, mpq_numref(self._matrix._matrix[0][c]),
-                        mpq_denref(self._matrix._matrix[1][c]))
-                mpz_mul_si(xq.a, xq.a, 2)
-                mpz_mul(tmp, mpq_denref(self._matrix._matrix[0][c]),
-                        mpq_numref(self._matrix._matrix[1][c]))
+                fmpz_mul(ftmp, fmpq_mat_entry_num(self._matrix._matrix, 0, c),
+                               fmpq_mat_entry_den(self._matrix._matrix, 1, c))
+                fmpz_mul_si(ftmp, ftmp, 2)
+                fmpz_get_mpz(xq.a, ftmp)
+                fmpz_mul(ftmp, fmpq_mat_entry_den(self._matrix._matrix, 0, c),
+                               fmpq_mat_entry_num(self._matrix._matrix, 1, c))
+                fmpz_get_mpz(tmp, ftmp)
                 if self._n == 3:
                     mpz_sub(xq.a, xq.a, tmp)
                 else: # n == 6
                     mpz_add(xq.a, xq.a, tmp)
 
-                mpz_mul(xq.b, mpq_denref(self._matrix._matrix[0][c]),
-                        mpq_numref(self._matrix._matrix[1][c]))
+                fmpz_mul(ftmp, fmpq_mat_entry_den(self._matrix._matrix, 0, c),
+                               fmpq_mat_entry_num(self._matrix._matrix, 1, c))
+                fmpz_get_mpz(xq.b, ftmp)
 
-                mpz_mul(xq.denom, mpq_denref(self._matrix._matrix[0][c]),
-                        mpq_denref(self._matrix._matrix[1][c]))
+                fmpz_mul(ftmp, fmpq_mat_entry_den(self._matrix._matrix, 0, c),
+                               fmpq_mat_entry_den(self._matrix._matrix, 1, c))
+                fmpz_get_mpz(xq.denom, ftmp)
                 mpz_mul_si(xq.denom, xq.denom, 2)
 
             xq._reduce_c_()
             mpz_clear(tmp)
+            fmpz_clear(ftmp)
             return xq
 
         x = self._base_ring(0)
-        mpz_init_set_ui(denom, 1)
+        fmpz_init(denom)
+        fmpz_init(ftmp)
+        fmpz_one(denom)
 
         # Get the least common multiple of the denominators in
         # this column.
-        for k from 0 <= k < self._degree:
-            mpz_lcm(denom, denom, mpq_denref(self._matrix._matrix[k][c]))
+        for k in range(self._degree):
+            fmpz_lcm(denom, denom, fmpq_mat_entry_den(self._matrix._matrix, k, c))
 
-        for k from 0 <= k < self._degree:
+        for k in range(self._degree):
             # set each entry of x to a*denom/b where a/b is the
             # k,c entry of _matrix.
-            mpz_mul(tmp, mpq_numref(self._matrix._matrix[k][c]), denom)
-            mpz_divexact(tmp, tmp, mpq_denref(self._matrix._matrix[k][c]))
+            fmpz_mul(ftmp, fmpq_mat_entry_num(self._matrix._matrix, k, c), denom)
+            fmpz_divexact(ftmp, ftmp, fmpq_mat_entry_den(self._matrix._matrix, k, c))
             # Now set k-th entry of x's numerator to tmp
+            fmpz_get_mpz(tmp, ftmp)
             mpz_to_ZZ(&coeff, tmp)
             ZZX_SetCoeff(x.__numerator, k, coeff)
 
         # Set the denominator of x to denom.
-        mpz_to_ZZ(&x.__denominator, denom)
-        mpz_clear(denom)
+        fmpz_get_mpz(tmp, denom)
+        mpz_to_ZZ(&x.__denominator, tmp)
+        fmpz_clear(denom)
         mpz_clear(tmp)
+        fmpz_clear(ftmp)
 
         return x
 
@@ -544,18 +580,17 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             sage: ((1+z/3)*A).list() == [(1+z/3)*x for x in A.list()]
             True
         """
-        if right == 1:
+        if right.is_one():
             return self
-        elif right == 0:
+        elif right.is_zero():
             return self.parent().zero()
 
         # Create a new matrix object but with the _matrix attribute not initialized:
         cdef Matrix_cyclo_dense A = Matrix_cyclo_dense.__new__(Matrix_cyclo_dense,
                                                self.parent(), None, None, None)
 
-        if right.polynomial().degree() == 0:
-            # multiplication by a rational number
-            A._matrix = self._matrix._lmul_(right)
+        if right.is_rational():
+            A._matrix = self._matrix._lmul_(right._rational_())
         else:
             # Multiply by nontrivial element of the cyclotomic number field
             # We do this by finding the matrix of this element, then left
@@ -1017,17 +1052,24 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
         """
         cdef Py_ssize_t i
         cdef Matrix_rational_dense mat = self._matrix
+        cdef fmpq * entry
+        cdef mpq_t tmp
 
         sig_on()
+        mpq_init(tmp)
         if distribution == "1/n":
-            for i from 0 <= i < mat._nrows:
-                mpq_randomize_entry_recip_uniform(mat._matrix[i][col])
+            for i in range(mat._nrows):
+                mpq_randomize_entry_recip_uniform(tmp)
+                fmpq_set_mpq(fmpq_mat_entry(mat._matrix, i, col), tmp)
         elif mpz_cmp_si(denp1, 2):   # denom is > 1
-            for i from 0 <= i < mat._nrows:
-                mpq_randomize_entry(mat._matrix[i][col], nump1, denp1)
+            for i in range(mat._nrows):
+                mpq_randomize_entry(tmp, nump1, denp1)
+                fmpq_set_mpq(fmpq_mat_entry(mat._matrix, i, col), tmp)
         else:
-            for i from 0 <= i < mat._nrows:
-                mpq_randomize_entry_as_int(mat._matrix[i][col], nump1)
+            for i in range(mat._nrows):
+                mpq_randomize_entry_as_int(tmp, nump1)
+                fmpq_set_mpq(fmpq_mat_entry(mat._matrix, i, col), tmp)
+        mpq_clear(tmp)
         sig_off()
 
     def randomize(self, density=1, num_bound=2, den_bound=2, \
@@ -1087,37 +1129,37 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
 
         if nonzero:
             if density >= 1:
-                for col from 0 <= col < self._matrix._ncols:
+                for col in range(self._matrix._ncols):
                     col_is_zero = True
                     while col_is_zero:
                         self._randomize_rational_column_unsafe(col, B.value, \
                             C.value, distribution)
                         # Check whether the new column is non-zero
-                        for i from 0 <= i < self._degree:
-                            if mpq_sgn(self._matrix._matrix[i][col]) != 0:
+                        for i in range(self._degree):
+                            if not fmpq_is_zero(fmpq_mat_entry(self._matrix._matrix, i, col)):
                                 col_is_zero = False
                                 break
             else:
                 num = int(self._nrows * self._ncols * density)
-                for k from 0 <= k < num:
+                for k in range(num):
                     col = rstate.c_random() % self._matrix._ncols
                     col_is_zero = True
                     while col_is_zero:
                         self._randomize_rational_column_unsafe(col, B.value, \
                             C.value, distribution)
                         # Check whether the new column is non-zero
-                        for i from 0 <= i < self._degree:
-                            if mpq_sgn(self._matrix._matrix[i][col]) != 0:
+                        for i in range(self._degree):
+                            if not fmpq_is_zero(fmpq_mat_entry(self._matrix._matrix, i, col)):
                                 col_is_zero = False
                                 break
         else:
             if density >= 1:
-                for col from 0 <= col < self._matrix._ncols:
+                for col in range(self._matrix._ncols):
                     self._randomize_rational_column_unsafe(col, B.value, \
                         C.value, distribution)
             else:
                 num = int(self._nrows * self._ncols * density)
-                for k from 0 <= k < num:
+                for k in range(num):
                     col = rstate.c_random() % self._matrix._ncols
                     self._randomize_rational_column_unsafe(col, B.value, \
                         C.value, distribution)

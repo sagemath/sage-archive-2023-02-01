@@ -813,7 +813,7 @@ cdef class Polynomial_template(Polynomial):
         this polynomial belongs, or None (either way the behaviour is the
         same).
 
-        .. seealso:: :meth:`.derivative`
+        .. SEEALSO:: :meth:`.derivative`
 
         EXAMPLES::
 

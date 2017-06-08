@@ -1249,7 +1249,7 @@ cpdef tuple find_hamiltonian(G, long max_iter=100000, long reset_bound=30000,
     member[u] = True
     member[v] = True
 
-    #Initialize all the variables neccesary to start iterating
+    #Initialize all the variables necessary to start iterating
     cdef bint done = False
     cdef long counter = 0
     cdef long bigcount = 0

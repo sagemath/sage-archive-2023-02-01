@@ -32,7 +32,7 @@ function).
     sage: QQ((3*x)/(4*x))
     3/4
 
-TEST::
+TESTS::
 
     sage: Q = RationalField()
     sage: Q == loads(dumps(Q))
@@ -974,7 +974,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         Return an random element of `\QQ`.
 
         Elements are constructed by randomly choosing integers
-        for the numerator and denominator, not neccessarily coprime.
+        for the numerator and denominator, not necessarily coprime.
 
         INPUT:
 

@@ -3609,7 +3609,7 @@ class BinaryTrees(UniqueRepresentation, Parent):
             sage: BinaryTrees().leaf()
             .
 
-        TEST::
+        TESTS::
 
             sage: (BinaryTrees().leaf() is
             ....:  sage.combinat.binary_tree.BinaryTrees_all().leaf())
@@ -3651,7 +3651,7 @@ class BinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
 
     def _repr_(self):
         """
-        TEST::
+        TESTS::
 
             sage: BinaryTrees()   # indirect doctest
             Binary trees

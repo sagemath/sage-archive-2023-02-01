@@ -145,8 +145,8 @@ class RationalCherednikAlgebra(CombinatorialFreeModule):
         The key we create is the tuple in the following order:
 
         - overall degree
-        - length of the weyl group element
-        - the weyl group element
+        - length of the Weyl group element
+        - the Weyl group element
         - the element of `\mathfrak{h}`
         - the element of `\mathfrak{h}^*`
 

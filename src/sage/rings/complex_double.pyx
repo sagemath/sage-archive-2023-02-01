@@ -195,7 +195,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         """
         Return the hash for ``self``.
 
-        TEST::
+        TESTS::
 
             sage: hash(CDF) % 2^32 == hash(str(CDF)) % 2^32
             True
@@ -1571,6 +1571,21 @@ cdef class ComplexDoubleElement(FieldElement):
             True
         """
         return self.real().is_infinity() or self.imag().is_infinity()
+
+    def is_NaN(self):
+        r"""
+        Check if ``self`` is not-a-number.
+
+        EXAMPLES::
+
+            sage: CDF(1, 2).is_NaN()
+            False
+            sage: CDF(NaN).is_NaN()
+            True
+            sage: (1/CDF(0, 0)).is_NaN()
+            True
+        """
+        return self.real().is_NaN() or self.imag().is_NaN()
 
     def _pow_(self, ComplexDoubleElement a):
         """

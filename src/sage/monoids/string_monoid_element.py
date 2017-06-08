@@ -26,6 +26,8 @@ from six import integer_types
 from sage.rings.integer import Integer
 from sage.rings.all import RealField
 from .free_monoid_element import FreeMonoidElement
+from sage.structure.sage_object import richcmp
+
 
 def is_StringMonoidElement(x):
     r"""
@@ -100,12 +102,12 @@ class StringMonoidElement(FreeMonoidElement):
         else:
             raise TypeError("Argument x (= %s) is of the wrong type." % x)
 
-    def __cmp__(left, right):
+    def _richcmp_(left, right, op):
         """
         Compare two free monoid elements with the same parents.
 
         The ordering is the one on the underlying sorted list of
-        (monomial,coefficients) pairs.
+        (monomial, coefficients) pairs.
 
         EXAMPLES::
 
@@ -116,7 +118,7 @@ class StringMonoidElement(FreeMonoidElement):
             sage: S("01") < S("10")
             True
         """
-        return cmp(left._element_list, right._element_list)
+        return richcmp(left._element_list, right._element_list, op)
 
     def _repr_(self):
         """

@@ -273,7 +273,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         r"""
         Construct some (unnamed) element of the module.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U'); V = M.open_subset('V')
@@ -300,7 +300,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         r"""
         Determine whether coercion to self exists from other parent.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U')
@@ -324,7 +324,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         r"""
         String representation of the object.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: XM = M.vector_field_module()
@@ -352,7 +352,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         r"""
         LaTeX representation of the object.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: XM = M.vector_field_module()

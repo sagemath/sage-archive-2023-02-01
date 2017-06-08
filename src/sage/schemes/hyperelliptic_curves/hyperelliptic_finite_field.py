@@ -1691,13 +1691,13 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             mat = []
             Coeffs_pow = [c ** a for c in Coeffs]  # not used ??
             for i in range(1, g + 1):
-                H = [(Coeffs[j]) for j in range((p*i-1), (p*i - g-1), -1)]
+                H = [(Coeffs_pow[j]) for j in range((p*i-1), (p*i - g-1), -1)]
                 mat.append(H)
             return matrix(Fq, mat)
 
         #Computes all the different possible action of frobenius on matrix M and stores in list Mall
         Mall = [M] + [frob_mat(Coeffs, k) for k in range(1, g)]
-
+        Mall = list(reversed(Mall))
         #initial N=I, so we can go through Mall and multiply all matrices with I and
         #get the Hasse-Witt matrix.
         N = identity_matrix(Fq, g)

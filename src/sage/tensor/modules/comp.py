@@ -2338,7 +2338,6 @@ class Components(SageObject):
 
         return res
 
-
     def index_generator(self):
         r"""
         Generator of indices.
@@ -5247,6 +5246,151 @@ class CompFullyAntiSym(CompWithSym):
         else:
             return CompWithSym.__add__(self, other)
 
+    def interior_product(self, other):
+        r"""
+        Interior product with another set of fully antisymmetric components.
+
+        The interior product amounts to a contraction over all the `p` indices
+        of ``self`` with the first `p` indices of ``other``, assuming that
+        the number `q` of indices of ``other`` obeys `q\geq p`.
+
+        The call ``self.interior_product(other)`` yields the same result as
+        ``self.contract(0,..., p-1, other, 0,..., p-1)``
+        (cf. :meth:`~sage.tensor.modules.comp.Components.contract`), but
+        ``interior_product`` is more efficient, the antisymmetry being only
+        partly taken into account by
+        :meth:`~sage.tensor.modules.comp.Components.contract`.
+
+        INPUT:
+
+        - ``other`` -- fully antisymmetric components defined on the same frame
+          as ``self`` and with a number of indices at least equal to that of
+          ``self``
+
+        OUTPUT:
+
+        - base ring element (case `p=q`) or set of components (case `p<q`)
+          resulting from the contraction over all the `p` indices of ``self``
+          with the first `p` indices of ``other``
+
+        EXAMPLES:
+
+        Interior product of a set of components ``a`` with ``p`` indices with a
+        set of components ``b`` with ``q`` indices on a 4-dimensional vector
+        space.
+
+        Case ``p=2`` and ``q=2``::
+
+            sage: from sage.tensor.modules.comp import CompFullyAntiSym
+            sage: V = VectorSpace(QQ, 4)
+            sage: a = CompFullyAntiSym(QQ, V.basis(), 2)
+            sage: a[0,1], a[0,2], a[0,3] = -2, 4, 3
+            sage: a[1,2], a[1,3], a[2,3] = 5, -3, 1
+            sage: b = CompFullyAntiSym(QQ, V.basis(), 2)
+            sage: b[0,1], b[0,2], b[0,3] = 3, -4, 2
+            sage: b[1,2], b[1,3], b[2,3] = 2, 5, 1
+            sage: c = a.interior_product(b)
+            sage: c
+            -40
+            sage: c == a.contract(0, 1, b, 0, 1)
+            True
+
+        Case ``p=2`` and ``q=3``::
+
+            sage: b = CompFullyAntiSym(QQ, V.basis(), 3)
+            sage: b[0,1,2], b[0,1,3], b[0,2,3], b[1,2,3] = 3, -4, 2, 5
+            sage: c = a.interior_product(b)
+            sage: c[:]
+            [58, 10, 6, 82]
+            sage: c == a.contract(0, 1, b, 0, 1)
+            True
+
+        Case ``p=2`` and ``q=4``::
+
+            sage: b = CompFullyAntiSym(QQ, V.basis(), 4)
+            sage: b[0,1,2,3] = 5
+            sage: c = a.interior_product(b)
+            sage: c[:]
+            [  0  10  30  50]
+            [-10   0  30 -40]
+            [-30 -30   0 -20]
+            [-50  40  20   0]
+            sage: c == a.contract(0, 1, b, 0, 1)
+            True
+
+        Case ``p=3`` and ``q=3``::
+
+            sage: a = CompFullyAntiSym(QQ, V.basis(), 3)
+            sage: a[0,1,2], a[0,1,3], a[0,2,3], a[1,2,3] = 2, -1, 3, 5
+            sage: b = CompFullyAntiSym(QQ, V.basis(), 3)
+            sage: b[0,1,2], b[0,1,3], b[0,2,3], b[1,2,3] = -2, 1, 4, 2
+            sage: c = a.interior_product(b)
+            sage: c
+            102
+            sage: c == a.contract(0, 1, 2, b, 0, 1, 2)
+            True
+
+        Case ``p=3`` and ``q=4``::
+
+            sage: b = CompFullyAntiSym(QQ, V.basis(), 4)
+            sage: b[0,1,2,3] = 5
+            sage: c = a.interior_product(b)
+            sage: c[:]
+            [-150, 90, 30, 60]
+            sage: c == a.contract(0, 1, 2, b, 0, 1, 2)
+            True
+
+        Case ``p=4`` and ``q=4``::
+
+            sage: a = CompFullyAntiSym(QQ, V.basis(), 4)
+            sage: a[0,1,2,3] = 3
+            sage: c = a.interior_product(b)
+            sage: c
+            360
+            sage: c == a.contract(0, 1, 2, 3, b, 0, 1, 2, 3)
+            True
+
+        """
+        from sage.functions.other import factorial
+        # Sanity checks:
+        if not isinstance(other, CompFullyAntiSym):
+            raise TypeError("{} is not a fully antisymmetric ".format(other) +
+                            "set of components")
+        if other._frame != self._frame:
+            raise ValueError("The {} are not defined on the ".format(other) +
+                             "same frame as the {}".format(self))
+        if other._nid < self._nid:
+            raise ValueError("The {} have less indices than ".format(other) +
+                             "the {}".format(self))
+        # Number of indices of the result:
+        res_nid = other._nid - self._nid
+        #
+        # Case of a scalar result
+        #
+        if res_nid == 0:
+            res = 0
+            for ind in self.non_redundant_index_generator():
+                res += self[[ind]] * other[[ind]]
+            return factorial(self._nid)*res
+        #
+        # Case of component result
+        #
+        if res_nid == 1:
+            res = Components(self._ring, self._frame, res_nid,
+                             start_index=self._sindex,
+                             output_formatter=self._output_formatter)
+        else:
+            res = CompFullyAntiSym(self._ring, self._frame, res_nid,
+                                   start_index=self._sindex,
+                                   output_formatter=self._output_formatter)
+        factorial_s = factorial(self._nid)
+        for ind in res.non_redundant_index_generator():
+            sm = 0
+            for ind_s, cmp_s in self._comp.items():
+                ind_o = ind_s + ind
+                sm += cmp_s * other[[ind_o]]
+            res[[ind]] = factorial_s*sm
+        return res
 
 #******************************************************************************
 

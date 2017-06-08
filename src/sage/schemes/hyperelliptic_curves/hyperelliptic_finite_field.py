@@ -15,6 +15,8 @@ AUTHORS:
 
 - Kiran Kedlaya (2016)
 
+- Dean Bisogno (2017): Fixed Hasse-Witt computation
+
 EXAMPLES::
 
     sage: K.<a> = GF(9, 'a')
@@ -1666,6 +1668,17 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0 0 0 0 0 0 0], Hyperelliptic Curve over Finite Field in a of size 3^2 defined by y^2 = x^29 + 1
             )
+
+        TESTS:
+
+        This shows that the bug at :trac:`23181` is fixed::
+        
+            sage: K.<z>=PolynomialRing(GF(5))
+            sage: L.<a>=GF(5).extension(z^3+3*z+3,'a')
+            sage: H.<x> = L[]
+            sage: E=HyperellipticCurve(x^5+x^4+a^92*x^3+a^18*x^2+a^56*x,0)
+            sage: E.p_rank()
+            0
         """
         # If Cartier Matrix is already cached for this curve, use that or evaluate it to get M,
         #Coeffs, genus, Fq=base field of self, p=char(Fq). This is so we have one less matrix to
@@ -1697,7 +1710,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
 
         #Computes all the different possible action of frobenius on matrix M and stores in list Mall
         Mall = [M] + [frob_mat(Coeffs, k) for k in range(1, g)]
-        Mall = list(reversed(Mall))
+        Mall = reversed(Mall)
         #initial N=I, so we can go through Mall and multiply all matrices with I and
         #get the Hasse-Witt matrix.
         N = identity_matrix(Fq, g)

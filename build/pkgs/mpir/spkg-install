@@ -172,9 +172,11 @@ if [ "$UNAME" = Linux ]; then
     if [ $as_version_major -lt 2 ] || \
        [ $as_version_major -eq 2 -a $as_version_minor -lt 24 ]; then
         echo "Disable use of assembly because of GNU as < 2.23."
-        echo "This also disables SAGE_FAT_BINARY=yes."
         export MPN_PATH=generic
-        SAGE_FAT_BINARY=no
+        if [ "$SAGE_FAT_BINARY" = "yes" ]; then
+            echo "Cannot build with SAGE_FAT_BINARY=yes."
+            exit 1
+        fi
     fi
 fi
 

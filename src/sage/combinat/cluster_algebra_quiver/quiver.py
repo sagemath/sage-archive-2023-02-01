@@ -784,7 +784,7 @@ class ClusterQuiver(SageObject):
 
         If you do many type recognitions, you should consider to save
         exceptional mutation types using
-        :meth:`~sage.combinat.cluster_algebra_quiver.quiver_mutation_type.save_exceptional_data`
+        :meth:`~sage.combinat.cluster_algebra_quiver.quiver_mutation_type.save_quiver_data`
 
         WARNING:
 

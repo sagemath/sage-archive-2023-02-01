@@ -6,8 +6,8 @@
 
 #include <math.h>
 #include <gmp.h>
-#include <stdio.h>
 #include <stdlib.h>
+#include <macros.h>  /* cysignals library */
 
 /* p-adic logarithm */
 void padiclog(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, const mpz_t modulo) {
@@ -48,7 +48,8 @@ void padiclog(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, con
     }
 
     /* Where do we need to truncate the Taylor expansion */
-    N = Np = (prec+v)/++v;               // note the ++v
+    N = prec+v; N /= ++v;                 // note the ++v
+    Np = N;
     den *= v;
     while(1) {
         tmp = Np + (unsigned long)(log(N)/den);
@@ -60,8 +61,10 @@ void padiclog(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, con
     mpz_init(f); mpz_init(mod2);
     mpz_init(h); mpz_init(hpow);
     mpz_init(d); mpz_init(inv);
+    sig_block();
     num = (mpz_t*)malloc(N*sizeof(mpz_t));
     denom = (mpz_t*)malloc(N*sizeof(mpz_t));
+    sig_unblock();
     for (i = 0; i < N; i++) {
         mpz_init(num[i]);
         mpz_init(denom[i]);
@@ -148,6 +151,8 @@ void padiclog(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, con
         mpz_clear(num[i]);
         mpz_clear(denom[i]);
     }
+    sig_block();
     free(num);
     free(denom);
+    sig_unblock();
 }

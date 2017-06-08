@@ -8003,6 +8003,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R(5).is_irreducible()
             True
 
+        Check that caching works::
+
+            sage: R.<x> = ZZ[]
+            sage: x.is_irreducible()
+            True
+            sage: x.is_irreducible.cache
+            True
+
+
         """
         if self.is_zero():
             return False

@@ -261,6 +261,16 @@ cdef class Polynomial_GF2X(Polynomial_template):
             False
             sage: (x^3 + x + 1).is_irreducible()
             True
+
+        Test that caching works::
+
+            sage: R.<x> = GF(2)[]
+            sage: f = x^2 + 1
+            sage: f.is_irreducible()
+            False
+            sage: f.is_irreducible.cache
+            False
+
         """
         return 0 != GF2X_IterIrredTest(self.x)
 

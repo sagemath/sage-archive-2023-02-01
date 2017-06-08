@@ -281,9 +281,9 @@ bool add::info(unsigned inf) const
 		}
 		case info_flags::positive: {
                         const numeric& ocn = ex_to<numeric>(overall_coeff);
-                        if (ocn.is_negative())
-                                return false;
                         bool positive_seen = ocn.is_positive();
+                        if (not positive_seen and not ocn.is_zero())
+                                return false;
 			for (const auto & elem : seq) {
 				ex t = recombine_pair_to_ex(elem);
                                 bool is_pos = t.info(info_flags::positive);
@@ -297,9 +297,9 @@ bool add::info(unsigned inf) const
                 }
 		case info_flags::negative: {
                         const numeric& ocn = ex_to<numeric>(overall_coeff);
-                        if (ocn.is_positive())
-                                return false;
                         bool negative_seen = ocn.is_negative();
+                        if (not negative_seen and not ocn.is_zero())
+                                return false;
 			for (const auto & elem : seq) {
 				ex t = recombine_pair_to_ex(elem);
                                 bool is_neg = t.info(info_flags::negative);

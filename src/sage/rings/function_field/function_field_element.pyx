@@ -134,9 +134,8 @@ cdef class FunctionFieldElement(FieldElement):
 
         INPUT:
 
-        - ``base`` -- a function field or ``None`` (default: ``None``), if
-          ``None``, then the matrix is formed over the base field of this
-          function field.
+        - ``base`` -- a function field (default: ``None``), if ``None``, then
+          the matrix is formed over the base field of this function field.
 
         EXAMPLES:
 

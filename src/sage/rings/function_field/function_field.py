@@ -788,7 +788,7 @@ class FunctionField_polymod(FunctionField):
               Defn: y |--> y
                     x |--> x)
 
-        Unless ``names`` does not match with the current names::
+        unless ``names`` does not match with the current names::
 
             sage: L.monic_integral_model(names=('yy','xx'))
             (Function field in yy defined by yy^2 - xx, Function Field morphism:
@@ -802,12 +802,11 @@ class FunctionField_polymod(FunctionField):
                     x |--> xx)
 
         """
-        if names is None:
-            pass
-        elif not isinstance(names, tuple):
-            names = (names,)
-        elif len(names) > 2:
-            raise ValueErorr("names must contain at most 2 entries")
+        if names:
+            if not isinstance(names, tuple):
+                names = (names,)
+            if len(names) > 2:
+                raise ValueErorr("names must contain at most 2 entries")
 
         if self.base_field() is not self.rational_function_field():
             L,from_L,to_L = self.simple_model()
@@ -822,7 +821,7 @@ class FunctionField_polymod(FunctionField):
                     names = (self.variable_name(),)
                 return self.change_variable_name(names)
             else:
-                if names is None or names == ():
+                if not names:
                     names = (self.variable_name()+"_",)
                 if len(names) == 1:
                     names = (names[0], self.rational_function_field().variable_name())

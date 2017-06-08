@@ -407,15 +407,13 @@ cpdef __matrix_from_rows_of_matrices(X):
     ##     v = sum([y.list() for y in X],[])
     ##     return matrix(K, len(X), X[0].nrows()*X[0].ncols(), v)
 
-    from matrix_space import MatrixSpace
-    cdef Matrix_modn_dense_template A, T
+    cdef Matrix_modn_dense_template T
     cdef Py_ssize_t i, n, m
     n = len(X)
 
     T = X[0]
     m = T._nrows * T._ncols
-    A = T.__class__.__new__(T.__class__, MatrixSpace(X[0].base_ring(), n, m), 0, 0, 0)
-    A.p = T.p
+    cdef Matrix_modn_dense_template A = T.new_matrix(nrows = n, ncols = m)
 
     for i from 0 <= i < n:
         T = X[i]
@@ -2177,12 +2175,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
                 nonpivots[k]=i
                 k+=1
 
-        from matrix_space import MatrixSpace
-        F = self.base_ring()
-        MS = MatrixSpace(F, ncols-r, ncols)
-        cdef Matrix_modn_dense_template M
-        M = self.__class__.__new__(self.__class__, MS, 0, 0, 0)
-        M.p = self.p
+        cdef Matrix_modn_dense_template M = self.new_matrix(nrows = ncols-r, ncols = ncols)
         cdef celement pm1 = self.p-1
 
         k=0
@@ -3120,12 +3113,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         cdef Py_ssize_t nrows = self._nrows
         cdef Py_ssize_t ncols = self._ncols
 
-        from matrix_space import MatrixSpace
-        F = self.base_ring()
-        MS = MatrixSpace(F, self._ncols, self._nrows)
-        cdef Matrix_modn_dense_template M
-        M = self.__class__.__new__(self.__class__, MS, 0,0,0)
-        M.p = self.p
+        cdef Matrix_modn_dense_template M = self.new_matrix(nrows = ncols, ncols = nrows)
         cdef Py_ssize_t i,j
 
         for i from 0 <= i < ncols:
@@ -3301,12 +3289,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         if not (self._base_ring is bottom.base_ring()):
             bottom = bottom.change_ring(self._base_ring)
         cdef Matrix_modn_dense_template other = bottom.dense_matrix()
-        cdef Matrix_modn_dense_template M
-        from matrix_space import MatrixSpace
-        F = self.base_ring()
-        MS = MatrixSpace(F, self._nrows+other._nrows,self._ncols)
-        M = self.__class__.__new__(self.__class__, MS, 0,0,0)
-        M.p = self.p
+        cdef Matrix_modn_dense_template M = self.new_matrix(nrows = self._nrows+other._nrows, ncols = self._ncols)
         cdef Py_ssize_t selfsize = self._ncols*self._nrows
         memcpy(M._entries, self._entries, sizeof(celement)*selfsize)
         memcpy(M._entries+selfsize, other._entries, sizeof(celement)*other._ncols*other._nrows)
@@ -3378,12 +3361,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         if nrows < 0 or row < 0 or row+nrows > self._nrows:
             raise IndexError, "rows out of range"
 
-        from matrix_space import MatrixSpace
-        F = self.base_ring()
-        MS = MatrixSpace(F, nrows,self._ncols)
-        cdef Matrix_modn_dense_template M
-        M = self.__class__.__new__(self.__class__, MS, 0,0,0)
-        M.p = self.p
+        cdef Matrix_modn_dense_template M = self.new_matrix(nrows = nrows, ncols = self._ncols)
         memcpy(M._entries, self._entries+row*ncols,sizeof(celement)*ncols*nrows)
         return M
 
@@ -3420,19 +3398,12 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         if nrows * ncols != self._ncols:
             raise ValueError("nrows * ncols must equal self's number of columns")
 
-        from matrix_space import MatrixSpace
-        F = self.base_ring()
-        MS = MatrixSpace(F, nrows, ncols)
-
         cdef Matrix_modn_dense_template M
         cdef Py_ssize_t i
         cdef Py_ssize_t n = nrows * ncols
         ans = []
         for i from 0 <= i < self._nrows:
-            # Quickly construct a new mod-p matrix
-            M = self.__class__.__new__(self.__class__, MS, 0,0,0)
-            M.p = self.p
-            # Set the entries
+            M = self.new_matrix(nrows = nrows, ncols = ncols)
             memcpy(M._entries, self._entries+i*n, sizeof(celement)*n)
             ans.append(M)
         return ans

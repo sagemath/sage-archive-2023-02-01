@@ -799,10 +799,6 @@ echo "Successfully installed $PKG_NAME"
 if [ "$SAGE_CHECK" = "yes" ]; then
     if [ -f spkg-check ]; then
         echo "Running the test suite for $PKG_NAME..."
-        if [ ! -x spkg-check ]; then
-            echo >&2 "WARNING: spkg-check is not executable, making it executable"
-            chmod +x spkg-check
-        fi
         time ./spkg-check
         if [ $? -ne 0 ]; then
             error_msg "Error testing package $PKG_NAME" "make check"

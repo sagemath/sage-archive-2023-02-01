@@ -650,6 +650,47 @@ cd ..
 # The package has been extracted, prepare for installation
 ##################################################################
 
+write_script_wrapper() {
+    local script="$1"
+    local header="\
+#!/usr/bin/env bash
+
+if [ -f \"$SAGE_SRC/bin/sage-env\" ]; then
+    . \"$SAGE_SRC/bin/sage-env\"
+else
+    echo >&2 \"Error: sage-env not found; is $SAGE_ROOT the correct SAGE_ROOT?\"
+    exit 1
+fi
+"
+
+    trap "echo >&2 Error: Unexpected error writing wrapper script for $script; exit \$_" ERR
+
+    if grep -q -x -m 1 '^#!.*' "$script"; then
+        echo >&2 "Error: ${script##*/} should not contain a shebang line; it will be prepended automatically."
+        exit 1
+    fi
+
+    echo "$header" > ".tmp-$script"
+    cat "$script" >> ".tmp-$script"
+    mv ".tmp-$script" "$script"
+    chmod +x "$script"
+
+    trap - ERR
+}
+
+
+for script in build install check; do
+    if [ -f "spkg-$script" ]; then
+        if [ -x "spkg-$script" ]; then
+            echo >&2 "WARNING: spkg-$script should not be marked executable"
+            echo >&2 "in the build/pkgs directory."
+        fi
+
+        write_script_wrapper "spkg-$script"
+    fi
+done
+
+
 # When there is no spkg-install, assume the "spkg" is a tarball not
 # specifically made for Sage.  Since we want it to be as easy as
 # possible to install such a package, we "guess" spkg-install.
@@ -666,6 +707,7 @@ if [ ! -f spkg-install ]; then
     fi
     chmod +x spkg-install
 fi
+
 
 # If spkg-install is a Python script (i.e. the first line of the file
 # contains "python"), verify that Python has already been installed.
@@ -723,12 +765,8 @@ export rsync_proxy=$http_proxy
 ##################################################################
 # Actually install
 ##################################################################
-if [ ! -x spkg-install ]; then
-    echo >&2 "WARNING: spkg-install is not executable, making it executable"
-    chmod +x spkg-install
-fi
 
-if [ -x spkg-build ]; then
+if [ -f spkg-build ]; then
     # Package has both spkg-build and spkg-install; execute the latter with SAGE_SUDO
     time ./spkg-build
     if [ $? -ne 0 ]; then

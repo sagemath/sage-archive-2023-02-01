@@ -146,14 +146,9 @@ class GraphicMatroid(Matroid):
         self._new_G = copy(self._G)
 
         self._new_groundset_edge_map = copy(self._groundset_edge_map)
-        for x in contractions:
-            # The vertices must be in the same order that they are in the edge list
-            v0 = self._new_groundset_edge_map[x][0]
-            v1 = self._new_groundset_edge_map[x][1]
-            if v0 < v1:
-                self._edge = (v0, v1, x)
-            else:
-                self._edge = (v1, v0, x)
+        edge_list = self._groundset_to_edges(contractions)
+        for e in edge_list:
+            self._edge = e
             contract_edge(self._new_G, self._edge)
 
             # Since this changes vertex labels, I need to update the groundset edge map.
@@ -199,8 +194,50 @@ class GraphicMatroid(Matroid):
             except ValueError:
                 return False
         else:
-            #otherwise use the default method for abstract matroids
-            #this requires debugging
-            #currently makes an infinite loop is N is not graphic
-            #and returns None if N is graphic
-            Matroid._has_minor(self,N)
+            # otherwise use the default method for abstract matroids
+            return Matroid._has_minor(self,N)
+
+    def _groundset_to_edges(self, X):
+        """
+        Given a subset of the ground set, this will return the corresponding
+        set of edges.
+        """
+        edge_list = []
+        for x in X:
+            v0 = self._groundset_edge_map[x][0]
+            v1 = self._groundset_edge_map[x][1]
+            if v0 < v1:
+                edge_list.append((v0, v1, x))
+            else:
+                edge_list.append((v1, v0, x))
+        return edge_list
+
+    def _subgraph_from_set(self,X):
+        """
+        Returns the subgraph induced by the edges corresponding to the elements of X.
+        """
+        edge_list = self._groundset_to_edges(X)
+        return Graph(edge_list)
+
+    def _corank(self, X):
+        """
+        Returns the corank of the set X in the matroid.
+        """
+        components = self._G.connected_components_number()
+        g = self.graph()
+        g.delete_edges(self._groundset_to_edges(X))
+        return (len(X) - (g.connected_components_number() - components))
+
+    def _is_independent(self, X):
+        """
+        Tests if the set is a independent of the matroid.
+        """
+        g = self._subgraph_from_set(X)
+        return g.is_forest()
+
+    def _is_circuit(self,X):
+        """
+        Tests if the given set is a circuit.
+        """
+        g = self._subgraph_from_set(X)
+        return g.is_cycle()

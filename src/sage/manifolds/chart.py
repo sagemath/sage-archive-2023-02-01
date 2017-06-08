@@ -44,6 +44,7 @@ from sage.rings.infinity import Infinity
 from sage.misc.latex import latex
 from sage.misc.decorators import options
 from sage.manifolds.chart_func import ChartFunctionRing
+from sage.manifolds.calculus_method import CalculusMethod
 
 class Chart(UniqueRepresentation, SageObject):
     r"""
@@ -238,7 +239,7 @@ class Chart(UniqueRepresentation, SageObject):
         manifolds over `\RR`.
 
     """
-    def __init__(self, domain, coordinates='', names=None, symb_method='sage'):
+    def __init__(self, domain, coordinates='', names=None, calc_method=None):
         r"""
         Construct a chart.
 
@@ -265,6 +266,9 @@ class Chart(UniqueRepresentation, SageObject):
             coordinates = coordinates[:-1]
         self._manifold = domain.manifold()
         self._domain = domain
+
+        self._calc_method = CalculusMethod(current=calc_method,chart=self)
+
 
         # Treatment of the coordinates:
         if ' ' in coordinates:
@@ -903,7 +907,7 @@ class Chart(UniqueRepresentation, SageObject):
 
         return ChartFunctionRing(self)
 
-    def function(self, expression,method=None):
+    def function(self, expression,calc_method=None):
         r"""
         Define a coordinate function to the base field.
 
@@ -955,7 +959,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: f
             sin(x*y)
             sage: type(f)
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
+            <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
             sage: f.display()
             (x, y) |--> sin(x*y)
             sage: f(2,3)
@@ -963,7 +967,7 @@ class Chart(UniqueRepresentation, SageObject):
 
         """
 
-        return self.function_ring()(expression,method=method)
+        return self.function_ring()(expression,calc_method=calc_method)
 
     def zero_function(self):
         r"""
@@ -998,7 +1002,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: X.zero_function().display()
             (x, y) |--> 0
             sage: type(X.zero_function())
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
+            <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
 
         The result is cached::
 
@@ -1052,7 +1056,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: X.one_function().display()
             (x, y) |--> 1
             sage: type(X.one_function())
-            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymbRing_with_category.element_class'>
+            <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
 
         The result is cached::
 
@@ -1073,6 +1077,8 @@ class Chart(UniqueRepresentation, SageObject):
         """
         return self.function_ring().one()
 
+    def set_calculus_method(self,method):
+        self._calc_method.set(method)
 
     def multifunction(self, *expressions):
         r"""
@@ -1128,7 +1134,7 @@ class Chart(UniqueRepresentation, SageObject):
             <class 'sage.manifolds.coord_func.MultiCoordFunction'>
 
         """
-        from sage.manifolds.coord_func import MultiCoordFunction
+        from sage.manifolds.chart_func import MultiCoordFunction
         return MultiCoordFunction(self, expressions)
 
 
@@ -1362,7 +1368,7 @@ class RealChart(Chart):
     :meth:`plot`.
 
     """
-    def __init__(self, domain, coordinates='', names=None, symb_method='sage'):
+    def __init__(self, domain, coordinates='', names=None, calc_method=None):
         r"""
         Construct a chart on a real topological manifold.
 
@@ -1380,7 +1386,7 @@ class RealChart(Chart):
             sage: TestSuite(X).run()
 
         """
-        Chart.__init__(self, domain, coordinates=coordinates, names=names, symb_method=symb_method)
+        Chart.__init__(self, domain, coordinates=coordinates, names=names, calc_method=calc_method)
 
     def _init_coordinates(self, coord_list):
         r"""

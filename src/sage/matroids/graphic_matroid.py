@@ -20,7 +20,6 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from .matroid import Matroid
-from .utilities import sanitize_contractions_deletions, setprint_s
 
 from sage.graphs.graph import Graph
 from copy import copy, deepcopy
@@ -142,30 +141,47 @@ class GraphicMatroid(Matroid):
         Assumptions: contractions are independent, deletions are coindependent,
         contractions and deletions are disjoint.
         """
+        g = self.graph()
 
-        self._new_G = copy(self._G)
+        #self._new_groundset_edge_map = copy(self._groundset_edge_map)
+        cont_edges = self._groundset_to_edges(contractions)
+        del_edges = self._groundset_to_edges(deletions)
+        #for e in cont_edges:
+        while cont_edges != []:
+            e = cont_edges.pop()
+            contract_edge(g, e)
+            del_edges = self._update_edges(e, del_edges)
+            cont_edges = self._update_edges(e, cont_edges)
 
-        self._new_groundset_edge_map = copy(self._groundset_edge_map)
-        edge_list = self._groundset_to_edges(contractions)
-        for e in edge_list:
-            self._edge = e
-            contract_edge(self._new_G, self._edge)
+        g.delete_edges(del_edges)
+        #for x in deletions:
+            #e = (self._new_groundset_edge_map[x][0], self._new_groundset_edge_map[x][1], x)
 
-            # Since this changes vertex labels, I need to update the groundset edge map.
-            for key in self._new_groundset_edge_map.keys():
-                if self._new_groundset_edge_map[key][0] == self._edge[1]:
-                    self._new_groundset_edge_map[key] = (self._edge[0],
-                                                         self._new_groundset_edge_map[key][1])
-                if self._new_groundset_edge_map[key][1] == self._edge[1]:
-                    self._new_groundset_edge_map[key] = (self._new_groundset_edge_map[key][0],
-                                                         self._edge[0])
+            #self._new_G.delete_edge(self._edge)
 
-        for x in deletions:
-            self._edge = (self._new_groundset_edge_map[x][0], self._new_groundset_edge_map[x][1], x)
+        return GraphicMatroid(deepcopy(g))
 
-            self._new_G.delete_edge(self._edge)
-
-        return GraphicMatroid(deepcopy(self._new_G))
+    def _update_edges(self, edge, edges):
+        """
+        After a contraction, updates a list of edges to exclude the vertex
+        that was removed.
+        """
+        v0 = edge[0]
+        v1 = edge[1]
+        new_edges = []
+        for e in edges:
+            if e[0] == v1:
+                if v0 <= e[1]:
+                    e = (v0, e[1], e[2])
+                else:
+                    e = (e[1], v0, e[2])
+            if e[1] == v1:
+                if v0 >= e[0]:
+                    e = (e[0], v0, e[2])
+                else:
+                    e = (v0, e[0], e[2])
+            new_edges.append(e)
+        return new_edges
 
     def _has_minor(self, N, certificate = False):
         """
@@ -206,10 +222,7 @@ class GraphicMatroid(Matroid):
         for x in X:
             v0 = self._groundset_edge_map[x][0]
             v1 = self._groundset_edge_map[x][1]
-            if v0 < v1:
-                edge_list.append((v0, v1, x))
-            else:
-                edge_list.append((v1, v0, x))
+            edge_list.append((v0, v1, x))
         return edge_list
 
     def _subgraph_from_set(self,X):
@@ -217,7 +230,7 @@ class GraphicMatroid(Matroid):
         Returns the subgraph induced by the edges corresponding to the elements of X.
         """
         edge_list = self._groundset_to_edges(X)
-        return Graph(edge_list)
+        return Graph(edge_list, loops=True, multiedges=True)
 
     def _corank(self, X):
         """
@@ -262,3 +275,35 @@ class GraphicMatroid(Matroid):
                 else:
                     g.delete_edge(e)
         return frozenset(X)
+
+    def _max_independent(self,X):
+        """
+        Returns a maximum independent subset of a set.
+        """
+        res = set()
+        g = self.graph()
+        edgelist = self._groundset_to_edges(X)
+        #for e in edgelist:
+        while edgelist != []:
+            e = edgelist.pop()
+            if e not in g.loops():
+                contract_edge(g,e)
+                edgelist = self._update_edges(e, edgelist)
+                res.add(e[2])
+        return frozenset(res)
+
+    def _max_coindependent(self,X):
+        """
+        Returns a maximum coindependent subset of a set.
+        """
+        res = set()
+        components = self._G.connected_components_number()
+        g = self.graph()
+        edgelist = self._groundset_to_edges(X)
+        for e in edgelist:
+            g.delete_edge(e)
+            if g.connected_components_number() > components:
+                g.add_edge(e)
+            else:
+                res.add(e[2])
+        return frozenset(res)

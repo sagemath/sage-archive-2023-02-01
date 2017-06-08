@@ -359,14 +359,14 @@ class FunctionField(Field):
             sage: K.<x> = FunctionField(GaussianIntegers().fraction_field())
             sage: R.<y> = K[]
             sage: M.<y> = K.extension(y^3 + 1)
-            sage: M.has_coerce_map_from(L) # not tested, base morphism is not implemented
+            sage: M.has_coerce_map_from(L)
             True
 
             sage: K.<x> = FunctionField(QQ)
             sage: R.<I> = K[]
             sage: L.<I> = K.extension(I^2 + 1)
             sage: M.<x> = FunctionField(GaussianIntegers().fraction_field())
-            sage: M.has_coerce_map_from(L) # not tested, base_morphism is not implemented
+            sage: M.has_coerce_map_from(L)
             True
         """
         from .function_field_order import FunctionFieldOrder

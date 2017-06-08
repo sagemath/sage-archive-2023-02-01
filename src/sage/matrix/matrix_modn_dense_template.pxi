@@ -2128,7 +2128,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
         EXAMPLES::
 
-            sage: M=matrix(GF(5),6,6,range(36))
+            sage: M = matrix(GF(5),6,6,range(36))
             sage: M.right_kernel_matrix(basis='computed')
             [4 2 4 0 0 0]
             [3 3 0 4 0 0]
@@ -2144,7 +2144,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             [0 1 0 0 1 3]
             [0 0 1 0 2 2]
             [0 0 0 1 3 1]
-            sage: M*M.right_kernel_matrix().transpose()
+            sage: M * M.right_kernel_matrix().transpose()
             [0 0 0 0]
             [0 0 0 0]
             [0 0 0 0]
@@ -2158,7 +2158,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         cdef Py_ssize_t r = self.rank()
         cdef Py_ssize_t nrows = self._nrows
         cdef Py_ssize_t ncols = self._ncols
-        cdef Py_ssize_t i,j,k
+        cdef Py_ssize_t i, j, k
 
         cdef Py_ssize_t* nonpivots = <Py_ssize_t*>sig_malloc(sizeof(Py_ssize_t)*(ncols-r))
         cdef Py_ssize_t* pivots = <Py_ssize_t*>sig_malloc(sizeof(Py_ssize_t)*(r))
@@ -2170,20 +2170,20 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         k = 0
         for i in range(ncols):
             if j < r and i == pivots[j]:
-                j+=1
+                j += 1
             else:
-                nonpivots[k]=i
-                k+=1
+                nonpivots[k] = i
+                k += 1
 
-        cdef Matrix_modn_dense_template M = self.new_matrix(nrows = ncols-r, ncols = ncols)
-        cdef celement pm1 = self.p-1
+        cdef Matrix_modn_dense_template M = self.new_matrix(nrows=ncols-r, ncols=ncols)
+        cdef celement pm1 = self.p - 1
 
-        k=0
+        k = 0
         for i in range(ncols-r):
             for j in range(ncols-r):
                 M._entries[nonpivots[i]+j*ncols] = 0
             M._entries[nonpivots[i]+k*ncols] = pm1
-            k+=1
+            k += 1
             for j in range(r):
                 M._entries[i*ncols+pivots[j]] = self._entries[nonpivots[i]+j*ncols]
 
@@ -3126,46 +3126,17 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
 
         return M
 
-    def stack(self, bottom, subdivide=False):
+    cdef _stack_impl(self, bottom):
         r"""
-        Return a new matrix formed by appending the matrix (or vector)
-        ``bottom`` beneath ``self``.
+        Implementation of :meth:`stack` by returning a new matrix
+        formed by appending the matrix ``bottom`` beneath ``self``.
+
+        Assume that ``self`` and ``other`` are compatible in the sense
+        that they have the same base ring and that both are dense.
 
         INPUT:
 
-        - ``bottom`` -- a matrix, vector or free module element, whose
-          dimensions are compatible with ``self``
-
-        - ``subdivide`` -- (default: ``False``) request the resulting matrix
-          to have a new subdivision, separating ``self`` from ``bottom``
-
-        OUTPUT:
-
-        A new matrix formed by appending ``bottom`` beneath ``self``.
-        If ``bottom`` is a vector (or free module element) then in this
-        context it is appropriate to consider it as a row vector.
-        (The code first converts a vector to a 1-row matrix.)
-
-        If ``subdivide`` is ``True`` then any row subdivisions for
-        the two matrices are preserved, and a new subdivision is added
-        between ``self`` and ``bottom``.  If the column divisions are
-        identical, then they are preserved, otherwise they are discarded.
-        When ``subdivide`` is ``False`` there is no subdivision information
-        in the result.
-
-        .. WARNING::
-
-            If ``subdivide`` is ``True`` then unequal column subdivisions
-            will be discarded, since it would be ambiguous how to interpret
-            them.  If the subdivision behavior is not what you need,
-            you can manage subdivisions yourself with methods like
-            :meth:`~sage.matrix.matrix2.Matrix.subdivisions`
-            and
-            :meth:`~sage.matrix.matrix2.Matrix.subdivide`.
-            You might also find :func:`~sage.matrix.constructor.block_matrix`
-            or
-            :func:`~sage.matrix.constructor.block_diagonal_matrix`
-            useful and simpler in some instances.
+        - ``bottom`` -- a matrix compatible with ``self``
 
         EXAMPLES:
 
@@ -3199,13 +3170,13 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             sage: A.stack(B)
             Traceback (most recent call last):
             ...
-            TypeError: number of columns must be the same
+            TypeError: number of columns must be the same, not 2 and 3
 
             sage: v = vector(GF(41), [100, 200, 300])
             sage: A.stack(v)
             Traceback (most recent call last):
             ...
-            TypeError: number of columns must be the same
+            TypeError: number of columns must be the same, not 2 and 3
 
         Setting ``subdivide`` to ``True`` will, in its simplest form,
         add a subdivision between ``self`` and ``bottom``::
@@ -3282,19 +3253,12 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             sage: D.parent()
             Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 41
         """
-        if hasattr(bottom, '_vector_'):
-            bottom = bottom.row()
-        if self._ncols != bottom.ncols():
-            raise TypeError("number of columns must be the same")
-        if not (self._base_ring is bottom.base_ring()):
-            bottom = bottom.change_ring(self._base_ring)
-        cdef Matrix_modn_dense_template other = bottom.dense_matrix()
-        cdef Matrix_modn_dense_template M = self.new_matrix(nrows = self._nrows+other._nrows, ncols = self._ncols)
-        cdef Py_ssize_t selfsize = self._ncols*self._nrows
+        cdef Matrix_modn_dense_template other = <Matrix_modn_dense_template> bottom
+        cdef Matrix_modn_dense_template M = self.new_matrix(nrows=self._nrows+other._nrows,
+                                                            ncols=self._ncols)
+        cdef Py_ssize_t selfsize = self._ncols * self._nrows
         memcpy(M._entries, self._entries, sizeof(celement)*selfsize)
         memcpy(M._entries+selfsize, other._entries, sizeof(celement)*other._ncols*other._nrows)
-        if subdivide:
-            M._subdivide_on_stack(self, other)
         return M
 
     def submatrix(self, Py_ssize_t row=0, Py_ssize_t col=0,
@@ -3355,14 +3319,14 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         if nrows == -1:
             nrows = self._nrows - row
 
-        if col !=0 or ncols != self._ncols:
+        if col != 0 or ncols != self._ncols:
             return self.matrix_from_rows_and_columns(range(row, row+nrows), range(col, col+ncols))
 
-        if nrows < 0 or row < 0 or row+nrows > self._nrows:
-            raise IndexError, "rows out of range"
+        if nrows < 0 or row < 0 or row + nrows > self._nrows:
+            raise IndexError("rows out of range")
 
-        cdef Matrix_modn_dense_template M = self.new_matrix(nrows = nrows, ncols = self._ncols)
-        memcpy(M._entries, self._entries+row*ncols,sizeof(celement)*ncols*nrows)
+        cdef Matrix_modn_dense_template M = self.new_matrix(nrows=nrows, ncols=self._ncols)
+        memcpy(M._entries, self._entries+row*ncols, sizeof(celement)*ncols*nrows)
         return M
 
     def _matrices_from_rows(self, Py_ssize_t nrows, Py_ssize_t ncols):

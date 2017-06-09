@@ -168,7 +168,7 @@ List of Poset methods
     :meth:`~FinitePoset.zeta_polynomial` | Return the zeta polynomial of the poset.
     :meth:`~FinitePoset.kazhdan_lusztig_polynomial` | Return the Kazhdan-Lusztig polynomial of the poset.
     :meth:`~FinitePoset.coxeter_polynomial` | Return the characteristic polynomial of the Coxeter transformation.
-    :meth:`~FinitePoset.valence_polynomial` | Return the valence polynomial of the poset.
+    :meth:`~FinitePoset.degree_polynomial` | Return the generating polynomial of degrees of vertices in the Hasse diagram.
 
 **Polytopes**
 
@@ -6309,9 +6309,9 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return self.order_ideals_lattice(as_ideals=False).zeta_polynomial()
 
-    def valence_polynomial(self):
-        """
-        Return the generating polynomial of valences of vertices in ``self``.
+    def degree_polynomial(self):
+        r"""
+        Return the generating polynomial of degrees of vertices in ``self``.
 
         This is the sum
 
@@ -6328,23 +6328,19 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         .. SEEALSO::
 
-            :meth:`cardinality`
+            :meth:`cardinality` for the value at `(x, y) = (1, 1)`
 
         EXAMPLES::
 
             sage: P = posets.PentagonPoset()
-            sage: P.valence_polynomial()
+            sage: P.degree_polynomial()
             x^2 + 3*x*y + y^2
 
             sage: P = posets.BooleanLattice(4)
-            sage: P.valence_polynomial().factor()
+            sage: P.degree_polynomial().factor()
             (x + y)^4
         """
-        from sage.rings.polynomial.polynomial_ring import polygens
-        H = self._hasse_diagram
-        x, y = polygens(ZZ, 'x,y')
-        rng = x.parent()
-        return rng.sum(x ** H.in_degree(v) * y ** H.out_degree(v) for v in H)
+        return self._hasse_diagram.degree_polynomial()
 
     def promotion(self, i=1):
         r"""

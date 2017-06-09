@@ -1089,6 +1089,82 @@ class TamariIntervalPoset(Element):
                           self.increasing_cover_relations() +
                           self.decreasing_cover_relations())
 
+    def _unicode_art_(self):
+        """
+        Return an unicode picture of self.
+
+        This a picture of the Hasse diagram. Vertices from `1` to `n` are
+        placed on the diagonal from top-left to bottom-right.
+        Then increasing covers are drawn above the diagonal
+        and decreasing covers are drawn below the diagonal.
+
+        EXAMPLES::
+
+            sage: T = TamariIntervalPosets(5)[56]
+            sage: unicode_art(T)
+            o───╮
+             o──┤
+             ╰o╮│
+               o┤
+                o
+            sage: T.poset().cover_relations()
+            [[3, 4], [3, 2], [4, 5], [2, 5], [1, 5]]
+        """
+        n = self.size()
+        M = [[u'o' if i == j else u' ' for i in range(n)] for j in range(n)]
+
+        def superpose(x, y, b):
+            # put symbol b at position x, y
+            # on top of existing symbols there
+            i = x - 1
+            j = y - 1
+            a = M[i][j]
+            if a == ' ':
+                M[i][j] = b
+            elif a == u'╮':
+                if b == a:
+                    pass
+                elif b == u'─':
+                    M[i][j] = u'┬'
+                elif b == u'│':
+                    M[i][j] = u'┤'
+            elif a == u'╰':
+                if b == a:
+                    pass
+                elif b == u'─':
+                    M[i][j] = u'┴'
+                elif b == u'│':
+                    M[i][j] = u'├'
+            elif a == u'─':
+                if b == a:
+                    pass
+                elif b == u'╮':
+                    M[i][j] = u'┬'
+                elif b == u'╰':
+                    M[i][j] = u'┴'
+            elif a == u'│':
+                if b == a:
+                    pass
+                elif b == u'╮':
+                    M[i][j] = u'┤'
+                elif b == u'╰':
+                    M[i][j] = u'├'
+
+        for i, j in self.poset().hasse_diagram().edges(labels=False):
+            if i > j:
+                superpose(i, j, u'╰')
+                for k in range(j + 1, i):
+                    superpose(k, j, u'│')
+                    superpose(i, k, u'─')
+            else:
+                superpose(i, j, u'╮')
+                for k in range(i + 1 , j):
+                    superpose(i, k, u'─')
+                    superpose(k, j, u'│')
+
+        from sage.typeset.unicode_art import UnicodeArt
+        return UnicodeArt([''.join(ligne) for ligne in M])
+
     def _richcmp_(self, other, op):
         r"""
         TESTS::

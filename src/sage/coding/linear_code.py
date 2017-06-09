@@ -4586,7 +4586,7 @@ class LinearCodeSyndromeDecoder(Decoder):
 
         sage: D = C.decoder("Syndrome", maximum_error_weight = 1)
         sage: D.decoder_type()
-        {'always-succeed', 'bounded_distance', 'hard-decision', 'unique'}
+        {'always-succeed', 'bounded_distance', 'hard-decision'}
         sage: D.decoding_radius()
         1
 
@@ -4599,7 +4599,7 @@ class LinearCodeSyndromeDecoder(Decoder):
 
         sage: D = C.decoder("Syndrome", maximum_error_weight = 3)
         sage: D.decoder_type()
-        {'bounded_distance', 'hard-decision', 'might-error', 'unique'}
+        {'bounded_distance', 'hard-decision', 'might-error'}
         sage: D.decoding_radius()
         3
 
@@ -4613,7 +4613,7 @@ class LinearCodeSyndromeDecoder(Decoder):
 
         sage: D = C.decoder("Syndrome", maximum_error_weight = 5)
         sage: D.decoder_type()
-        {'complete', 'hard-decision', 'might-error', 'unique'}
+        {'complete', 'hard-decision', 'might-error'}
         sage: D.decoding_radius()
         4
 
@@ -4655,7 +4655,7 @@ class LinearCodeSyndromeDecoder(Decoder):
             sage: D.maximum_error_weight()
             1
             sage: D.decoder_type()
-            {'always-succeed', 'complete', 'hard-decision', 'minimum-distance', 'unique'}
+            {'always-succeed', 'complete', 'hard-decision', 'minimum-distance'}
         """
         n_minus_k = code.length() - code.dimension()
         if maximum_error_weight == None:
@@ -5096,9 +5096,9 @@ class LinearCodeInformationSetDecoder(Decoder):
     The decoder class can be directly invoked as well::
 
         sage: C = codes.GolayCode(GF(2))
-        sage: D = codes.decoders.LinearCodeInformationSetDecoder(3)
+        sage: D = codes.decoders.LinearCodeInformationSetDecoder(C, 3)
         sage: D
-        Information set decoder for [24, 12, 8] Extended Golay code over GF(2) decoding exactly 3 errors
+        Information set decoder for [24, 12, 8] Extended Golay code over GF(2) decoding up to 3 errors
 
     """
 
@@ -5376,6 +5376,7 @@ class LinearCodeInformationSetDecoder(Decoder):
 
 LinearCode._registered_encoders["GeneratorMatrix"] = LinearCodeGeneratorMatrixEncoder
 
-LinearCodeSyndromeDecoder._decoder_type = {"hard-decision", "unique", "dynamic"}
-LinearCodeNearestNeighborDecoder._decoder_type = {"hard-decision", "unique", "always-succeed", "complete"}
-LinearCodeInformationSetDecoder._decoder_type = {"hard-decision", "unique", "might-fail", "might-error", "complete"}
+LinearCodeSyndromeDecoder._decoder_type = {"hard-decision", "dynamic"}
+LinearCodeNearestNeighborDecoder._decoder_type = {"hard-decision", "always-succeed", "complete"}
+LinearCodeInformationSetDecoder._decoder_type = {"hard-decision",
+    "probabilistic", "not-always-closest", "bounded-distance", "might-fail"}

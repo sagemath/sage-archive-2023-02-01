@@ -69,9 +69,11 @@ class Decoder(SageObject):
         always-succeed          The decoder always returns a closest codeword if
                                 the number of errors is up to the decoding
                                 radius.
-        bounded-distance        The ``minimum_distance()`` method of the decoder
-                                gives a bound on how many errors the decoder can
-                                correct.
+        bounded-distance        Any vector with Hamming distance at most
+                                ``decoding_radius()`` to a codeword is
+                                decodable to some codeword. If ``might-fail`` is
+                                also a type, then this is not a guarantee but an
+                                expectancy.
         complete                The decoder decodes every word in the ambient
                                 space of the code.
         dynamic                 Some of the decoder's types will only be
@@ -79,15 +81,20 @@ class Decoder(SageObject):
                                 (depends on the parameters).
         half-minimum-distance   The decoder corrects up to half the minimum
                                 distance, or a specific lower bound thereof.
-        hard-decision           The decoder has no information on which
+        hard-decision           The decoder uses no information on which
                                 positions are more likely to be in error or not.
         list-decoder            The decoder outputs a list of likely codewords,
                                 instead of just a single codeword.
         might-fail              The decoder can fail at decoding even within its
                                 usual promises, e.g. bounded distance.
-        soft-decision           As part of the input, the decoder gets
+        not-always-closest      The decoder does not guarantee to always return a
+                                closest codeword.
+        probabilistic           The decoder has internal randomness which can affect
+                                running time and the decoding result.
+        soft-decision           As part of the input, the decoder takes
                                 reliability information on which positions are
-                                more likely to be in error
+                                more likely to be in error. Such a decoder only
+                                works for specific channels.
         ======================  ================================================
 
 

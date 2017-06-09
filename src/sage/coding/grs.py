@@ -2300,11 +2300,11 @@ GeneralizedReedSolomonCode._registered_encoders["EvaluationVector"] = GRSEvaluat
 GeneralizedReedSolomonCode._registered_encoders["EvaluationPolynomial"] = GRSEvaluationPolynomialEncoder
 
 GeneralizedReedSolomonCode._registered_decoders["BerlekampWelch"] = GRSBerlekampWelchDecoder
-GRSBerlekampWelchDecoder._decoder_type = {"hard-decision", "unique", "always-succeed"}
+GRSBerlekampWelchDecoder._decoder_type = {"hard-decision", "always-succeed"}
 GeneralizedReedSolomonCode._registered_decoders["Gao"] = GRSGaoDecoder
-GRSGaoDecoder._decoder_type = {"hard-decision", "unique", "always-succeed"}
+GRSGaoDecoder._decoder_type = {"hard-decision", "always-succeed"}
 GeneralizedReedSolomonCode._registered_decoders["ErrorErasure"] = GRSErrorErasureDecoder
-GRSErrorErasureDecoder._decoder_type = {"error-erasure", "unique", "always-succeed"}
+GRSErrorErasureDecoder._decoder_type = {"error-erasure", "always-succeed"}
 GeneralizedReedSolomonCode._registered_decoders["KeyEquationSyndrome"] = GRSKeyEquationSyndromeDecoder
-GRSKeyEquationSyndromeDecoder._decoder_type = {"hard-decision", "unique", "always-succeed"}
+GRSKeyEquationSyndromeDecoder._decoder_type = {"hard-decision", "always-succeed"}
 

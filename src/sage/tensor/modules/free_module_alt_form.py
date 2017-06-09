@@ -24,9 +24,8 @@ AUTHORS:
 
 REFERENCES:
 
-- Chap. 23 of R. Godement: *Algebra*, Hermann (Paris) / Houghton Mifflin
-  (Boston) (1968)
-- Chap. 15 of S. Lang: *Algebra*, 3rd ed., Springer (New York) (2002)
+- Chap. 23 of R. Godement : *Algebra* [God1968]_
+- Chap. 15 of S. Lang : *Algebra* [Lan2002]_
 
 """
 from __future__ import absolute_import
@@ -758,6 +757,37 @@ class FreeModuleAltForm(FreeModuleTensor):
             sage: c.display()
             i_A B = 15 e_1/\e_2 - 20 e_1/\e_3 - 10 e_2/\e_3
             sage: c == a.contract(b)
+            True
+
+        Case  ``p=2`` and ``q=2``::
+
+            sage: a = M.alternating_form(2, name='A')
+            sage: a[1,2], a[1,3], a[2,3] = 2, -3, 1
+            sage: b = M.alternating_contravariant_tensor(2, name='B')
+            sage: b[1,2], b[1,3], b[2,3] = 5, 2, 3
+            sage: c = a.interior_product(b); c
+            14
+            sage: c == a.contract(0, 1, b, 0, 1)   # contraction on all indices of a
+            True
+
+        Case  ``p=2`` and ``q=3``::
+
+            sage: b = M.alternating_contravariant_tensor(3, name='B')
+            sage: b[1,2,3] = 5
+            sage: c = a.interior_product(b); c
+            Element i_A B of the Rank-3 free module M over the Integer Ring
+            sage: c.display()
+            i_A B = 10 e_1 + 30 e_2 + 20 e_3
+            sage: c == a.contract(0, 1, b, 0, 1)
+            True
+
+        Case  ``p=3`` and ``q=3``::
+
+            sage: a = M.alternating_form(3, name='A')
+            sage: a[1,2,3] = -2
+            sage: c = a.interior_product(b); c
+            -60
+            sage: c  == a.contract(0, 1, 2, b, 0, 1, 2)
             True
 
         """

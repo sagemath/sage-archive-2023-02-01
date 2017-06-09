@@ -12,12 +12,10 @@ AUTHORS:
 
 REFERENCES:
 
-- Chap. 21 of R. Godement: *Algebra*, Hermann (Paris) / Houghton Mifflin
-  (Boston) (1968)
-- Chap. 12 of J. M. Lee: *Introduction to Smooth Manifolds*, 2nd ed., Springer
-  (New York) (2013) (only when the free module is a vector space)
-- Chap. 2 of B. O'Neill: *Semi-Riemannian Geometry*, Academic Press (San Diego)
-  (1983)
+- Chap. 21 of R. Godement : *Algebra* [God1968]_
+- Chap. 12 of J. M. Lee: *Introduction to Smooth Manifolds* [Lee2013]_ (only
+  when the free module is a vector space)
+- Chap. 2 of B. O'Neill: *Semi-Riemannian Geometry* [ONe1983]_
 
 """
 

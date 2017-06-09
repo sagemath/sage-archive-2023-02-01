@@ -16,8 +16,7 @@ AUTHORS:
 
 REFERENCES:
 
-- Chap. 15 of R. Godement: *Algebra*, Hermann (Paris) / Houghton Mifflin
-  (Boston) (1968)
+- Chap. 15 of R. Godement : *Algebra* [God1968]_
 
 """
 #******************************************************************************

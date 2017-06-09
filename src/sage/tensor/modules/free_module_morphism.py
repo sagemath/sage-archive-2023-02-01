@@ -10,9 +10,8 @@ AUTHORS:
 
 REFERENCES:
 
-- Chaps. 13, 14 of R. Godement: *Algebra*, Hermann (Paris) / Houghton Mifflin
-  (Boston) (1968)
-- Chap. 3 of S. Lang: *Algebra*, 3rd ed., Springer (New York) (2002)
+- Chap. 13, 14 of R. Godement : *Algebra* [God1968]_
+- Chap. 3 of S. Lang : *Algebra* [Lan2002]_
 
 """
 #******************************************************************************

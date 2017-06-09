@@ -42,9 +42,8 @@ AUTHORS:
 
 REFERENCES:
 
-- K. Conrad: *Exterior powers*,
-  `http://www.math.uconn.edu/~kconrad/blurbs/ <http://www.math.uconn.edu/~kconrad/blurbs/>`_
-- Chap. 19 of S. Lang: *Algebra*, 3rd ed., Springer (New York) (2002)
+- \K. Conrad: *Exterior powers* [Con2013]_
+- Chap. 19 of S. Lang: *Algebra* [Lan2002]_
 
 """
 #******************************************************************************
@@ -229,6 +228,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
 
             sage: from sage.tensor.modules.ext_pow_free_module import ExtPowerFreeModule
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
             sage: A = ExtPowerFreeModule(M, 2) ; A
             2nd exterior power of the Rank-3 free module M over the
              Integer Ring
@@ -601,6 +601,7 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
 
             sage: from sage.tensor.modules.ext_pow_free_module import ExtPowerDualFreeModule
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
             sage: A = ExtPowerDualFreeModule(M, 2) ; A
             2nd exterior power of the dual of the Rank-3 free module M over
              the Integer Ring

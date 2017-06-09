@@ -19,8 +19,7 @@ AUTHORS:
 
 REFERENCES:
 
-- Chaps. 15, 24 of R. Godement: *Algebra*, Hermann (Paris) / Houghton Mifflin
-  (Boston) (1968)
+- Chaps. 15, 24 of R. Godement: *Algebra* [God1968]_
 
 """
 from __future__ import absolute_import

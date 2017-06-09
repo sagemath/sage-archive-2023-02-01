@@ -24,9 +24,8 @@ AUTHORS:
 
 REFERENCES:
 
-- Chap. 23 of R. Godement: *Algebra*, Hermann (Paris) / Houghton Mifflin
-  (Boston) (1968)
-- Chap. 15 of S. Lang: *Algebra*, 3rd ed., Springer (New York) (2002)
+- Chap. 23 of R. Godement : *Algebra* [God1968]_
+- Chap. 15 of S. Lang : *Algebra* [Lan2002]_
 
 """
 #******************************************************************************

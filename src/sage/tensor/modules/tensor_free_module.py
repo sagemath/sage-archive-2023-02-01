@@ -43,11 +43,9 @@ AUTHORS:
 
 REFERENCES:
 
-- K. Conrad: *Tensor products*,
-  `http://www.math.uconn.edu/~kconrad/blurbs/ <http://www.math.uconn.edu/~kconrad/blurbs/>`_
-- Chap. 21 (Exer. 4) of R. Godement: *Algebra*, Hermann (Paris) / Houghton
-  Mifflin (Boston) (1968)
-- Chap. 16 of S. Lang: *Algebra*, 3rd ed., Springer (New York) (2002)
+- \K. Conrad: *Tensor products* [Con2015]_
+- Chap. 21 (Exer. 4) of R. Godement: *Algebra* [God1968]_
+- Chap. 16 of S. Lang: *Algebra* [Lan2002]_
 
 """
 from __future__ import absolute_import

@@ -1620,7 +1620,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
     @cached_method
     def _Hasse_Witt_cached(self):
         r"""
-        This where Hasse_Witt is actually computed.
+        This is where Hasse_Witt is actually computed.
 
         This is either called by E.Hasse_Witt or E.p_rank.
 

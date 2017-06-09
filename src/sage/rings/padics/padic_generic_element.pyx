@@ -1543,7 +1543,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         .. MATH::
 
-            \log(1-x)=\sum_{n=1}^\infty \frac{x^n}{n}.
+            -\log(1-x)=\sum_{n=1}^\infty \frac{x^n}{n}.
 
         For the result to be correct to precision ``aprec``, we sum all terms
         for which the valuation of `x^n/n` is stricly smaller than ``aprec``.

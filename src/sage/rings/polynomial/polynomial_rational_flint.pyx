@@ -1563,6 +1563,16 @@ cdef class Polynomial_rational_flint(Polynomial):
             False
             sage: (t+1).is_irreducible()
             True
+
+        Test that caching works::
+
+           sage: R.<t> = QQ[]
+           sage: f = t + 1
+           sage: f.is_irreducible()
+           True
+           sage: f.is_irreducible.cache
+           True
+
         """
         cdef Polynomial_integer_dense_flint primitive
         cdef unsigned long length = fmpq_poly_length(self.__poly)

@@ -662,6 +662,15 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             Traceback (most recent call last):
             ...
             NotImplementedError: checking irreducibility of polynomials over rings with composite characteristic is not implemented
+
+        Test that caching works::
+
+            sage: S.<s> = Zmod(7)[]
+            sage: s.is_irreducible()
+            True
+            sage: s.is_irreducible.cache
+            True
+
         """
         if not self:
             return False

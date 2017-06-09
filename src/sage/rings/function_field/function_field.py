@@ -359,7 +359,7 @@ class FunctionField(Field):
             sage: K.<x> = FunctionField(GaussianIntegers().fraction_field())
             sage: R.<y> = K[]
             sage: M.<y> = K.extension(y^3 + 1)
-            sage: M.has_coerce_map_from(L)
+            sage: M.has_coerce_map_from(L) # not tested (the constant field including into a function field is not yet known to be injective)
             True
 
             sage: K.<x> = FunctionField(QQ)

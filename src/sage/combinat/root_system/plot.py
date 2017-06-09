@@ -367,7 +367,7 @@ tiled by the alcoves, each of which is a 3D simplex::
     :width: 300 px
 
     L = RootSystem(["A",3,1]).ambient_space()
-    sphinx_plot(L.plot(reflection_hyperplanes=False, bounding_box=85/100))
+    sphinx_plot(L.plot(reflection_hyperplanes=False, bounding_box=Rational((85,100))))
 
 It is recommended to use a small bounding box here, for otherwise the
 number of simplices grows quicker than what Sage can handle

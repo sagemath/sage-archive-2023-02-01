@@ -517,12 +517,14 @@ class CuspFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresentation
             sage: MR.analytic_type()
             cuspidal
             sage: MR.category()
-            Category of commutative algebras over Fraction Field of Univariate Polynomial Ring in d over Complex Field with 53 bits of precision
+            Category of commutative algebras over Complex Field with 53 bits of precision
+            sage: MR in MR.category()
+            True
 
             sage: CuspFormsRing(n=infinity, base_ring=CC, red_hom=True)
             CuspFormsRing(n=+Infinity) over Complex Field with 53 bits of precision
         """
 
         FormsRing_abstract.__init__(self, group=group, base_ring=base_ring, red_hom=red_hom, n=n)
-        CommutativeAlgebra.__init__(self, base_ring=self.coeff_ring(), category=CommutativeAlgebras(self.coeff_ring()))
+        CommutativeAlgebra.__init__(self, base_ring=base_ring, category=CommutativeAlgebras(base_ring))
         self._analytic_type = self.AT(["cusp"])

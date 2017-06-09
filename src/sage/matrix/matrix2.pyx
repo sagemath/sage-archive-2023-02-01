@@ -3692,7 +3692,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: matrix(Integers(6), 2, 2).right_kernel_matrix(algorithm='generic')
             Traceback (most recent call last):
             ...
-            ValueError: 'generic' matrix kernel algorithm only available over a field, not over Ring of integers modulo 6
+            NotImplementedError: Echelon form not implemented over 'Ring of integers modulo 6'.
             sage: matrix(QQ, 2, 2).right_kernel_matrix(algorithm='pluq')
             Traceback (most recent call last):
             ...

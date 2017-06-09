@@ -1468,7 +1468,7 @@ def perm_sym_domain(g):
         domain = set().union(*[a for cyc in g[1:-1].split(')(')
                                for a in cyc.split(',')])
         if all(s.isdigit() for s in domain):
-            return map(int, domain)
+            return [int(x) for x in domain]
         else:
             return domain
     elif parent(g) in Groups:

@@ -1093,7 +1093,7 @@ class TamariIntervalPoset(Element):
         """
         Return an ascii art picture of ``self``.
 
-        This a picture of the Hasse diagram. Vertices from `1` to `n`
+        This is a picture of the Hasse diagram. Vertices from `1` to `n`
         are placed on the diagonal from top-left to bottom-right.
         Then increasing covers are drawn above the diagonal
         and decreasing covers are drawn below the diagonal.
@@ -1183,7 +1183,7 @@ class TamariIntervalPoset(Element):
         """
         Return an unicode picture of ``self``.
 
-        This a picture of the Hasse diagram. Vertices from `1` to `n` are
+        This is a picture of the Hasse diagram. Vertices from `1` to `n` are
         placed on the diagonal from top-left to bottom-right.
         Then increasing covers are drawn above the diagonal
         and decreasing covers are drawn below the diagonal.

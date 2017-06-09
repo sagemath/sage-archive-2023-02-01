@@ -307,3 +307,66 @@ class GraphicMatroid(Matroid):
             else:
                 res.add(e[2])
         return frozenset(res)
+
+    def _circuit(self, X):
+        """
+        Returns a minimal dependent subset.
+        """
+        circuit = set()
+        g = self._subgraph_from_set(X)
+        for e in g.edges():
+            g.delete_edge(e)
+            if g.is_forest():
+                g.add_edge(e)
+                circuit.add(e[2])
+        return frozenset(circuit)
+
+    def _coclosure(self, X):
+        """
+        Returns the coclosure of a set.
+        """
+        g = self.graph()
+        g.delete_edges(self._groundset_to_edges(X))
+        components = g.connected_components_number()
+        X = set(X)
+        Y = self.groundset().difference(X)
+        for e in self._groundset_to_edges(Y):
+            g.delete_edge(e)
+            if g.connected_components_number() > components:
+                X.add(e[2])
+            g.add_edge(e)
+        return frozenset(X)
+
+    def _is_coindependent(self, X):
+        """
+        Tests if input is coindependent.
+        """
+        g = self.graph()
+        components = g.connected_components_number()
+        g.delete_edges(self._groundset_to_edges(X))
+        if g.connected_components_number() == components:
+            return True
+        else:
+            return False
+
+    def _cocircuit(self, X):
+        """
+        Returns a minimal codependent subset.
+        """
+        cocircuit = set()
+        cocircuit_edges = []
+        g = self.graph()
+        edges = self._groundset_to_edges(X)
+        components = g.connected_components_number()
+        for e in edges:
+            cocircuit_edges.append(e)
+            g.delete_edge(e)
+            if g.connected_components_number() > components:
+                break
+        for e in cocircuit_edges:
+            g.add_edge(e)
+            # if that repaired the components, then e is part of the cocircuit
+            if g.connected_components_number() == components:
+                cocircuit.add(e[2])
+            g.delete_edge(e)
+        return frozenset(cocircuit)

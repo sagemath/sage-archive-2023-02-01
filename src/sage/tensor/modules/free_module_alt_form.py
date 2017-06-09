@@ -675,3 +675,144 @@ class FreeModuleAltForm(FreeModuleTensor):
                 olname = '(' + olname + ')'
             result._latex_name = slname + r'\wedge ' + olname
         return result
+
+    def interior_product(self, alt_tensor):
+        r"""
+        Interior product with an alternating contravariant tensor.
+
+        If ``self`` is an alternating form `A` of degree `p` and `B` is an
+        alternating contravariant tensor of degree `q\geq p` on the same free
+        module, the interior product of `A` by `B` is the alternating
+        contravariant tensor `\iota_A B` of degree `q-p` defined by
+
+        .. MATH::
+
+            (\iota_A B)^{i_1\ldots i_{q-p}} = A_{k_1\ldots k_p}
+                            B^{k_1\ldots k_p i_1\ldots i_{q-p}}
+
+        .. NOTE::
+
+            ``A.interior_product(B)`` yields the same result as
+            ``A.contract(0,..., p-1, B, 0,..., p-1)`` (cf.
+            :meth:`~sage.tensor.modules.free_module_tensor.FreeModuleTensor.contract`),
+            but ``interior_product`` is more efficient, the alternating
+            character of `A` being not used to reduce the computation in
+            :meth:`~sage.tensor.modules.free_module_tensor.FreeModuleTensor.contract`
+
+        INPUT:
+
+        - ``alt_tensor`` -- alternating contravariant tensor `B` (instance of
+          :class:`~sage.tensor.modules.alternating_contr_tensor.AlternatingContrTensor`);
+          the degree of `B` must be at least equal to the degree of ``self``
+
+        OUTPUT:
+
+        - element of the base ring (case `p=q`) or
+          :class:`~sage.tensor.modules.alternating_contr_tensor.AlternatingContrTensor`
+          (case `p<q`) representing the interior product `\iota_A B`, where `A`
+          is ``self``
+
+        .. SEEALSO::
+
+            :meth:`~sage.tensor.modules.alternating_contr_tensor.AlternatingContrTensor.interior_product`
+            for the interior product of an alternating contravariant tensor by
+            an alternating form
+
+        EXAMPLES:
+
+        Let us consider a rank-3 free module::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M', start_index=1)
+            sage: e = M.basis('e')
+
+        and various interior products on it, starting with a linear form
+        (``p=1``) and a module element (``q=1``)::
+
+            sage: a = M.linear_form(name='A')
+            sage: a[:] = [-2, 4, 3]
+            sage: b = M([3, 1, 5], basis=e, name='B')
+            sage: c = a.interior_product(b); c
+            13
+            sage: c == a.contract(b)
+            True
+
+        Case  ``p=1`` and ``q=2``::
+
+            sage: b = M.alternating_contravariant_tensor(2, name='B')
+            sage: b[1,2], b[1,3], b[2,3] = 5, 2, 3
+            sage: c = a.interior_product(b); c
+            Element i_A B of the Rank-3 free module M over the Integer Ring
+            sage: c.display()
+            i_A B = -26 e_1 - 19 e_2 + 8 e_3
+            sage: latex(c)
+            \iota_{A} B
+            sage: c == a.contract(b)
+            True
+
+        Case  ``p=1`` and ``q=3``::
+
+            sage: b = M.alternating_contravariant_tensor(3, name='B')
+            sage: b[1,2,3] = 5
+            sage: c = a.interior_product(b); c
+            Alternating contravariant tensor i_A B of degree 2 on the Rank-3 free module M over the Integer Ring
+            sage: c.display()
+            i_A B = 15 e_1/\e_2 - 20 e_1/\e_3 - 10 e_2/\e_3
+            sage: c == a.contract(b)
+            True
+
+        """
+        from .format_utilities import is_atomic
+        from .alternating_contr_tensor import AlternatingContrTensor
+        if not isinstance(alt_tensor,  AlternatingContrTensor):
+            raise TypeError("{} is not an alternating ".format(alt_tensor) +
+                            "contravariant tensor")
+        p_res = alt_tensor._tensor_rank - self._tensor_rank  # degree of result
+        if self._tensor_rank == 1:
+            # Case p = 1:
+            res = self.contract(alt_tensor)  # contract() deals efficiently
+                                             # with antisymmetry for p = 1
+        else:
+            # Case p > 1:
+            if alt_tensor._fmodule != self._fmodule:
+                raise ValueError("{} is not defined on ".format(alt_tensor) +
+                                 "the same module as the {}".format(self))
+            if alt_tensor._tensor_rank < self._tensor_rank:
+                raise ValueError("the degree of the {} ".format(alt_tensor) +
+                                 "is lower than that of the {}".format(self))
+            # Interior product at the component level:
+            basis = self.common_basis(alt_tensor)
+            if basis is None:
+                raise ValueError("no common basis for the interior product")
+            comp = self._components[basis].interior_product(
+                                                 alt_tensor._components[basis])
+            if p_res == 0:
+                res = comp  # result is a scalar
+            else:
+                res = self._fmodule.tensor_from_comp((p_res, 0), comp)
+        # Name of the result
+        res_name = None
+        if self._name is not None and alt_tensor._name is not None:
+            sname = self._name
+            oname = alt_tensor._name
+            if not is_atomic(sname):
+                sname = '(' + sname + ')'
+            if not is_atomic(oname):
+                oname = '(' + oname + ')'
+            res_name = 'i_' + sname + ' ' + oname
+        res_latex_name = None
+        if self._latex_name is not None and alt_tensor._latex_name is not None:
+            slname = self._latex_name
+            olname = alt_tensor._latex_name
+            if not is_atomic(olname):
+                olname = r'\left(' + olname + r'\right)'
+            res_latex_name = r'\iota_{' + slname + '} ' + olname
+        if p_res == 0:
+            if res_name:
+                try:  # there is no guarantee that base ring elements have
+                      # set_name
+                    res.set_name(res_name, latex_name=res_latex_name)
+                except (AttributeError, TypeError):
+                    pass
+        else:
+            res.set_name(res_name, latex_name=res_latex_name)
+        return res

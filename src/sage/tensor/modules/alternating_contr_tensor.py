@@ -364,7 +364,7 @@ class AlternatingContrTensor(FreeModuleTensor):
         EXAMPLES:
 
         Display of an alternating contravariant tensor of degree 2 on a rank-3
-         free module::
+        free module::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')
@@ -376,7 +376,7 @@ class AlternatingContrTensor(FreeModuleTensor):
             \alpha = 3 e_{0}\wedge e_{1} + 2 e_{0}\wedge e_{2} -e_{1}\wedge e_{2}
 
         Display of an alternating contravariant tensor of degree 3 on a rank-3
-         free module::
+        free module::
 
             sage: b = M.alternating_contravariant_tensor(3, 'b')
             sage: b[0,1,2] = 4
@@ -599,8 +599,201 @@ class AlternatingContrTensor(FreeModuleTensor):
             slname = self._latex_name
             olname = other._latex_name
             if not is_atomic(slname):
-                slname = '(' + slname + ')'
+                slname = r'\left(' + slname + r'\right)'
             if not is_atomic(olname):
-                olname = '(' + olname + ')'
+                olname = r'\left(' + olname + r'\right)'
             result._latex_name = slname + r'\wedge ' + olname
         return result
+
+    def interior_product(self, form):
+        r"""
+        Interior product with an alternating form.
+
+        If ``self`` is an alternating contravariant tensor `A` of degree `p`
+        and `B` is an alternating form of degree `q\geq p` on the same free
+        module, the interior product of `A` by `B` is the alternating form
+        `\iota_A B` of degree `q-p` defined by
+
+        .. MATH::
+
+            (\iota_A B)_{i_1\ldots i_{q-p}} = A^{k_1\ldots k_p}
+                            B_{k_1\ldots k_p i_1\ldots i_{q-p}}
+
+        .. NOTE::
+
+            ``A.interior_product(B)`` yields the same result as
+            ``A.contract(0,..., p-1, B, 0,..., p-1)`` (cf.
+            :meth:`~sage.tensor.modules.free_module_tensor.FreeModuleTensor.contract`),
+            but ``interior_product`` is more efficient, the alternating
+            character of `A` being not used to reduce the computation in
+            :meth:`~sage.tensor.modules.free_module_tensor.FreeModuleTensor.contract`
+
+        INPUT:
+
+        - ``form`` -- alternating form `B` (instance of
+          :class:`~sage.tensor.modules.free_module_alt_form.FreeModuleAltForm`);
+          the degree of `B` must be at least equal to the degree of ``self``
+
+        OUTPUT:
+
+        - element of the base ring (case `p=q`) or
+          :class:`~sage.tensor.modules.free_module_alt_form.FreeModuleAltForm`
+          (case `p<q`) representing the interior product `\iota_A B`, where `A`
+          is ``self``
+
+        .. SEEALSO::
+
+            :meth:`~sage.tensor.modules.free_module_alt_form.FreeModuleAltForm.interior_product`
+            for the interior product of an alternating form by an alternating
+            contravariant tensor
+
+        EXAMPLES:
+
+        Let us consider a rank-4 free module::
+
+            sage: M = FiniteRankFreeModule(ZZ, 4, name='M', start_index=1)
+            sage: e = M.basis('e')
+
+        and various interior products on it, starting with a module element
+        (``p=1``) and a linear form (``q=1``)::
+
+            sage: a = M([-2,1,2,3], basis=e, name='A')
+            sage: b = M.linear_form(name='B')
+            sage: b[:] = [2, 0, -3, 4]
+            sage: c = a.interior_product(b); c
+            2
+            sage: c == a.contract(b)
+            True
+
+        Case  ``p=1`` and ``q=3``::
+
+            sage: b = M.alternating_form(3, name='B')
+            sage: b[1,2,3], b[1,2,4], b[1,3,4], b[2,3,4] = 3, -1, 2, 5
+            sage: c = a.interior_product(b); c
+            Alternating form i_A B of degree 2 on the Rank-4 free module M over the Integer Ring
+            sage: c.display()
+            i_A B = 3 e^1/\e^2 + 3 e^1/\e^3 - 3 e^1/\e^4 + 9 e^2/\e^3 - 8 e^2/\e^4 + e^3/\e^4
+            sage: latex(c)
+            \iota_{A} B
+            sage: c == a.contract(b)
+            True
+
+        Case  ``p=2`` and ``q=3``::
+
+            sage: a = M.alternating_contravariant_tensor(2, name='A')
+            sage: a[1,2], a[1,3], a[1,4] = 2, -5, 3
+            sage: a[2,3], a[2,4], a[3,4] = -1, 4, 2
+            sage: c = a.interior_product(b); c
+            Linear form i_A B on the Rank-4 free module M over the Integer Ring
+            sage: c.display()
+            i_A B = -6 e^1 + 56 e^2 - 40 e^3 - 34 e^4
+            sage: c == a.contract(0, 1, b, 0, 1)  # contraction on all indices of a
+            True
+
+        Case  ``p=2`` and ``q=4``::
+
+            sage: b = M.alternating_form(4, name='B')
+            sage: b[1,2,3,4] = 5
+            sage: c = a.interior_product(b); c
+            Alternating form i_A B of degree 2 on the Rank-4 free module M over the Integer Ring
+            sage: c.display()
+            i_A B = 20 e^1/\e^2 - 40 e^1/\e^3 - 10 e^1/\e^4 + 30 e^2/\e^3 + 50 e^2/\e^4 + 20 e^3/\e^4
+            sage: c == a.contract(0, 1, b, 0, 1)
+            True
+
+        Case  ``p=2`` and ``q=2``::
+
+            sage: b = M.alternating_form(2)
+            sage: b[1,2], b[1,3], b[1,4] = 6, 0, -2
+            sage: b[2,3], b[2,4], b[3,4] = 2, 3, 4
+            sage: c = a.interior_product(b); c
+            48
+            sage: c == a.contract(0, 1, b, 0, 1)
+            True
+
+        Case  ``p=3`` and ``q=3``::
+
+            sage: a = M.alternating_contravariant_tensor(3, name='A')
+            sage: a[1,2,3], a[1,2,4], a[1,3,4], a[2,3,4] = -3, 2, 8, -5
+            sage: b = M.alternating_form(3, name='B')
+            sage: b[1,2,3], b[1,2,4], b[1,3,4], b[2,3,4] = 3, -1, 2, 5
+            sage: c = a.interior_product(b); c
+            -120
+            sage: c == a.contract(0, 1, 2, b, 0, 1, 2)
+            True
+
+        Case  ``p=3`` and ``q=4``::
+
+            sage: b = M.alternating_form(4, name='B')
+            sage: b[1,2,3,4] = 5
+            sage: c = a.interior_product(b); c
+            Linear form i_A B on the Rank-4 free module M over the Integer Ring
+            sage: c.display()
+            i_A B = 150 e^1 + 240 e^2 - 60 e^3 - 90 e^4
+            sage: c == a.contract(0, 1, 2, b, 0, 1, 2)
+            True
+
+        Case  ``p=4`` and ``q=4``::
+
+            sage: a = M.alternating_contravariant_tensor(4, name='A')
+            sage: a[1,2,3,4] = -2
+            sage: c = a.interior_product(b); c
+            -240
+            sage: c == a.contract(0, 1, 2, 3, b, 0, 1, 2, 3)
+            True
+
+        """
+        from .format_utilities import is_atomic
+        from .free_module_alt_form import FreeModuleAltForm
+        if not isinstance(form, FreeModuleAltForm):
+            raise TypeError("{} is not an alternating form".format(form))
+        p_res = form._tensor_rank - self._tensor_rank  # degree of the result
+        if self._tensor_rank == 1:
+            # Case p = 1:
+            res = self.contract(form)  # contract() deals efficiently with
+                                       # the antisymmetry for p = 1
+        else:
+            # Case p > 1:
+            if form._fmodule != self._fmodule:
+                raise ValueError("{} is not defined on the same ".format(form) +
+                                 "module as the {}".format(self))
+            if form._tensor_rank < self._tensor_rank:
+                raise ValueError("the degree of the {} is lower ".format(form) +
+                                 "than that of the {}".format(self))
+            # Interior product at the component level:
+            basis = self.common_basis(form)
+            if basis is None:
+                raise ValueError("no common basis for the interior product")
+            comp = self._components[basis].interior_product(
+                                                       form._components[basis])
+            if p_res == 0:
+                res = comp  # result is a scalar
+            else:
+                res = self._fmodule.tensor_from_comp((0, p_res), comp)
+        # Name of the result
+        res_name = None
+        if self._name is not None and form._name is not None:
+            sname = self._name
+            oname = form._name
+            if not is_atomic(sname):
+                sname = '(' + sname + ')'
+            if not is_atomic(oname):
+                oname = '(' + oname + ')'
+            res_name = 'i_' + sname + ' ' + oname
+        res_latex_name = None
+        if self._latex_name is not None and form._latex_name is not None:
+            slname = self._latex_name
+            olname = form._latex_name
+            if not is_atomic(olname):
+                olname = r'\left(' + olname + r'\right)'
+            res_latex_name = r'\iota_{' + slname + '} ' + olname
+        if p_res == 0:
+            if res_name:
+                try:  # there is no guarantee that base ring elements have
+                      # set_name
+                    res.set_name(res_name, latex_name=res_latex_name)
+                except (AttributeError, TypeError):
+                    pass
+        else:
+            res.set_name(res_name, latex_name=res_latex_name)
+        return res

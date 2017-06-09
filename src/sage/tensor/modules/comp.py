@@ -5254,12 +5254,14 @@ class CompFullyAntiSym(CompWithSym):
         of ``self`` with the first `p` indices of ``other``, assuming that
         the number `q` of indices of ``other`` obeys `q\geq p`.
 
-        The call ``self.interior_product(other)`` yields the same result as
-        ``self.contract(0,..., p-1, other, 0,..., p-1)``
-        (cf. :meth:`~sage.tensor.modules.comp.Components.contract`), but
-        ``interior_product`` is more efficient, the antisymmetry being only
-        partly taken into account by
-        :meth:`~sage.tensor.modules.comp.Components.contract`.
+        .. NOTE::
+
+            ``self.interior_product(other)`` yields the same result as
+            ``self.contract(0,..., p-1, other, 0,..., p-1)``
+            (cf. :meth:`~sage.tensor.modules.comp.Components.contract`), but
+            ``interior_product`` is more efficient, the antisymmetry of ``self``
+            being not used to reduce the computation in
+            :meth:`~sage.tensor.modules.comp.Components.contract`.
 
         INPUT:
 

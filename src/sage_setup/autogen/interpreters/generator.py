@@ -275,6 +275,12 @@ class InterpreterGenerator(object):
         w(je(ri(0, """
             /* {{ warn }} */
             #include <Python.h>
+
+            /* These #undef are needed to force Cython to really include the .h file
+             * with the "cdef public" declarations. */
+            #undef __PYX_HAVE__sage__ext__interpreters__wrapper_{{ s.name }}
+            #undef __PYX_HAVE_API__sage__ext__interpreters__wrapper_{{ s.name }}
+
             {% print(s.c_header) %}
 
             {{ myself.func_header() }} {
@@ -351,7 +357,6 @@ class InterpreterGenerator(object):
 
         w(je(ri(0, """
             # {{ warn }}
-            # distutils: sources = sage/ext/interpreters/interp_{{ s.name }}.c
             {{ s.pyx_header }}
 
             include "cysignals/memory.pxi"
@@ -370,7 +375,7 @@ class InterpreterGenerator(object):
 
             from sage.ext.fast_callable cimport Wrapper
 
-            cdef extern:
+            cdef extern from "sage/ext/interpreters/interp_{{ s.name }}.c":
                 {{ myself.func_header(cython=true) -}}
 
             {% if s.err_return != 'NULL' %}

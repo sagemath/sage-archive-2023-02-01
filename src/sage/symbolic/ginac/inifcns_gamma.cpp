@@ -391,8 +391,9 @@ static ex psi1_eval(const ex & x)
 			if (nx.is_positive()) {
 				// psi(n) -> 1 + 1/2 +...+ 1/(n-1) - Euler
 				numeric rat = 0;
-				for (numeric i(nx+(*_num_1_p)); i>0; --i)
+				for (numeric i(nx+(*_num_1_p)); i>0; --i) {
 					rat += i.inverse();
+                                }
 				return rat-Euler;
 			} else {
 				// for non-positive integers there is a pole:
@@ -404,8 +405,9 @@ static ex psi1_eval(const ex & x)
 			if (nx.is_positive()) {
 				// psi((2m+1)/2) -> 2/(2m+1) + 2/2m +...+ 2/1 - Euler - 2log(2)
 				numeric rat = 0;
-				for (numeric i = (nx+(*_num_1_p))*(*_num2_p); i>0; i-=(*_num2_p))
+				for (numeric i = (nx+(*_num_1_p))*(*_num2_p); i>0; i-=(*_num2_p)) {
 					rat += (*_num2_p)*i.inverse();
+                                }
 				return rat-Euler-_ex2*log(_ex2);
 			} else {
 				// use the recurrence relation

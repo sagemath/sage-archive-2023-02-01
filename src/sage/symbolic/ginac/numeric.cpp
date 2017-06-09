@@ -1105,33 +1105,17 @@ const numeric numeric::add(const numeric &other) const {
         // combinations of long,double,mpfr,mpz,mpq,mpfc,mpqc.  Yikes.
         if (t != other.t) {
                 if (t == MPZ and other.t == MPQ) {
-                        mpq_t bigrat, tmp;
+                        mpq_t bigrat;
                         mpq_init(bigrat);
-                        mpq_init(tmp);
-                        mpz_t bigint;
-                        mpz_init_set(bigint, mpq_denref(other.v._bigrat));
-                        mpq_set_z(tmp, bigint);
-                        mpz_mul(bigint, bigint, v._bigint);
-                        mpz_add(bigint, bigint, mpq_numref(other.v._bigrat));
-                        mpq_set_z(bigrat, bigint);
-                        mpq_div(bigrat, bigrat, tmp);
-                        mpq_clear(tmp);
-                        mpz_clear(bigint);
+                        mpq_set_z(bigrat, v._bigint);
+                        mpq_add(bigrat, bigrat, other.v._bigrat);
                         return bigrat;
                 }
                 else if (t == MPQ and other.t == MPZ) {
-                        mpq_t bigrat, tmp;
+                        mpq_t bigrat;
                         mpq_init(bigrat);
-                        mpq_init(tmp);
-                        mpz_t bigint;
-                        mpz_init_set(bigint, mpq_denref(v._bigrat));
-                        mpq_set_z(tmp, bigint);
-                        mpz_mul(bigint, bigint, other.v._bigint);
-                        mpz_add(bigint, bigint, mpq_numref(v._bigrat));
-                        mpq_set_z(bigrat, bigint);
-                        mpq_div(bigrat, bigrat, tmp);
-                        mpq_clear(tmp);
-                        mpz_clear(bigint);
+                        mpq_set_z(bigrat, other.v._bigint);
+                        mpq_add(bigrat, bigrat, v._bigrat);
                         return bigrat;
                 }
 
@@ -1140,8 +1124,6 @@ const numeric numeric::add(const numeric &other) const {
                 return a + b;
         }
         switch (t) {
-                case DOUBLE:
-                        return v._double + other.v._double;
                 case MPZ:
                         mpz_t bigint;
                         mpz_init(bigint);
@@ -1164,13 +1146,29 @@ const numeric numeric::add(const numeric &other) const {
 const numeric numeric::sub(const numeric &other) const {
         verbose("operator-");
         if (t != other.t) {
+                if (t == MPZ and other.t == MPQ) {
+                        mpq_t bigrat;
+                        mpq_init(bigrat);
+                        mpq_set_z(bigrat, v._bigint);
+                        mpq_sub(bigrat, bigrat, other.v._bigrat);
+                        return bigrat;
+                }
+                else if (t == MPQ and other.t == MPZ) {
+                        mpq_t bigrat, tmp;
+                        mpq_init(bigrat);
+                        mpq_init(tmp);
+                        mpq_set(bigrat, v._bigrat);
+                        mpq_set_z(tmp, other.v._bigint);
+                        mpq_sub(bigrat, bigrat, tmp);
+                        mpq_clear(tmp);
+                        return bigrat;
+                }
+
                 numeric a, b;
                 coerce(a, b, *this, other);
                 return a - b;
         }
         switch (t) {
-                case DOUBLE:
-                        return v._double - other.v._double;
                 case MPZ:
                         mpz_t bigint;
                         mpz_init(bigint);
@@ -1648,6 +1646,309 @@ const numeric numeric::negative() const {
                         stub("invalid type: operator-() type not handled");
         }
 }
+
+// binary arithmetic assignment operators with numeric
+
+numeric & operator+=(numeric & lh, const numeric & rh)
+{
+        if (lh.t != rh.t) {
+                if (lh.t == MPZ and rh.t == MPQ) {
+                        mpz_t bigint;
+                        mpz_init_set(bigint, lh.v._bigint);
+                        mpz_clear(lh.v._bigint);
+                        lh.t = MPQ;
+                        mpq_init(lh.v._bigrat);
+                        mpq_set_z(lh.v._bigrat, bigint);
+                        mpq_add(lh.v._bigrat, lh.v._bigrat, rh.v._bigrat);
+                        mpz_clear(bigint);
+                        return lh;
+                }
+                else if (lh.t == MPQ and rh.t == MPZ) {
+                        mpq_t tmp;
+                        mpq_init(tmp);
+                        mpq_set_z(tmp, rh.v._bigint);
+                        mpq_add(lh.v._bigrat, lh.v._bigrat, tmp);
+                        mpq_clear(tmp);
+                        return lh;
+                }
+
+                numeric a, b;
+                coerce(a, b, lh, rh);
+                lh = a + b;
+                return lh;
+        }
+        switch (lh.t) {
+                case MPZ:
+                        mpz_add(lh.v._bigint, lh.v._bigint, rh.v._bigint);
+                        return lh;
+                case MPQ:
+                        mpq_add(lh.v._bigrat, lh.v._bigrat, rh.v._bigrat);
+                        return lh;
+                case PYOBJECT:
+                        {
+                        PyObject* p = lh.v._pyobject;
+                        lh.v._pyobject = PyNumber_Add(p, rh.v._pyobject);
+                        if (lh.v._pyobject == nullptr)
+                                py_error("numeric operator+=");
+                        Py_DECREF(p);
+                        Py_INCREF(lh.v._pyobject);
+                        return lh;
+                        }
+                default:
+                        stub("invalid type: operator+=() type not handled");
+        }
+}
+
+numeric & operator-=(numeric & lh, const numeric & rh)
+{
+        if (lh.t != rh.t) {
+                if (lh.t == MPZ and rh.t == MPQ) {
+                        mpz_t bigint;
+                        mpz_init_set(bigint, lh.v._bigint);
+                        mpz_clear(lh.v._bigint);
+                        lh.t = MPQ;
+                        mpq_init(lh.v._bigrat);
+                        mpq_set_z(lh.v._bigrat, bigint);
+                        mpq_sub(lh.v._bigrat, lh.v._bigrat, rh.v._bigrat);
+                        mpz_clear(bigint);
+                        return lh;
+                }
+                else if (lh.t == MPQ and rh.t == MPZ) {
+                        mpq_t tmp;
+                        mpq_init(tmp);
+                        mpq_set_z(tmp, rh.v._bigint);
+                        mpq_sub(lh.v._bigrat, lh.v._bigrat, tmp);
+                        mpq_clear(tmp);
+                        return lh;
+                }
+
+                numeric a, b;
+                coerce(a, b, lh, rh);
+                lh = a - b;
+                return lh;
+        }
+        switch (lh.t) {
+                case MPZ:
+                        mpz_sub(lh.v._bigint, lh.v._bigint, rh.v._bigint);
+                        return lh;
+                case MPQ:
+                        mpq_sub(lh.v._bigrat, lh.v._bigrat, rh.v._bigrat);
+                        return lh;
+                case PYOBJECT:
+                        {
+                        PyObject* p = lh.v._pyobject;
+                        lh.v._pyobject = PyNumber_Subtract(p, rh.v._pyobject);
+                        if (lh.v._pyobject == nullptr)
+                                py_error("numeric operator-=");
+                        Py_DECREF(p);
+                        Py_INCREF(lh.v._pyobject);
+                        return lh;
+                        }
+                default:
+                        stub("invalid type: operator-() type not handled");
+        }
+}
+
+numeric & operator*=(numeric & lh, const numeric & rh)
+{
+        if (lh.t != rh.t) {
+                if (lh.t == MPZ and rh.t == MPQ) {
+                        mpq_t tmp;
+                        mpq_init(tmp);
+                        mpq_set_z(tmp, lh.v._bigint);
+                        mpq_mul(tmp, tmp, rh.v._bigrat);
+                        if (mpz_cmp_ui(mpq_denref(tmp),1) == 0) {
+                                mpz_set(lh.v._bigint, mpq_numref(tmp));
+                                mpq_clear(tmp);
+                                return lh;
+                        }
+                        mpz_clear(lh.v._bigint);
+                        lh.t = MPQ;
+                        mpq_init(lh.v._bigrat);
+                        mpq_set(lh.v._bigrat, tmp);
+                        mpq_clear(tmp);
+                        return lh;
+                }
+                else if (lh.t == MPQ and rh.t == MPZ) {
+                        mpq_t tmp;
+                        mpq_init(tmp);
+                        mpq_set_z(tmp, rh.v._bigint);
+                        mpq_mul(tmp, tmp, lh.v._bigrat);
+                        if (mpz_cmp_ui(mpq_denref(tmp),1) != 0) {
+                                mpq_set(lh.v._bigrat, tmp);
+                                mpq_clear(tmp);
+                                return lh;
+                        }
+                        mpq_clear(lh.v._bigrat);
+                        lh.t = MPZ;
+                        mpz_init(lh.v._bigint);
+                        mpz_set(lh.v._bigint, mpq_numref(tmp));
+                        mpq_clear(tmp);
+                        return lh;
+                }
+
+                numeric a, b;
+                coerce(a, b, lh, rh);
+                lh = a * b;
+                return lh;
+        }
+        switch (lh.t) {
+                case MPZ:
+                        mpz_mul(lh.v._bigint, lh.v._bigint, rh.v._bigint);
+                        return lh;
+                case MPQ:
+                        mpq_mul(lh.v._bigrat, lh.v._bigrat, rh.v._bigrat);
+                        return lh;
+                case PYOBJECT:
+                        {
+                        PyObject* p = lh.v._pyobject;
+                        lh.v._pyobject = PyNumber_Multiply(p, rh.v._pyobject);
+                        if (lh.v._pyobject == nullptr)
+                                py_error("numeric operator*=");
+                        Py_DECREF(p);
+                        Py_INCREF(lh.v._pyobject);
+                        return lh;
+                        }
+                default:
+                        stub("invalid type: operator*=() type not handled");
+        }
+}
+
+numeric & operator/=(numeric & lh, const numeric & rh)
+{
+        if (rh.is_zero())
+                throw std::overflow_error("numeric::/=(): division by zero");
+        if (rh.is_one())
+                return lh;
+        if (lh.t != rh.t) {
+                if (lh.t == MPZ and rh.t == MPQ) {
+                        mpq_t tmp;
+                        mpq_init(tmp);
+                        mpq_set_z(tmp, lh.v._bigint);
+                        mpq_div(tmp, tmp, rh.v._bigrat);
+                        if (mpz_cmp_ui(mpq_denref(tmp),1) == 0) {
+                                mpz_set(lh.v._bigint, mpq_numref(tmp));
+                                mpq_clear(tmp);
+                                return lh;
+                        }
+                        mpz_clear(lh.v._bigint);
+                        lh.t = MPQ;
+                        mpq_init(lh.v._bigrat);
+                        mpq_set(lh.v._bigrat, tmp);
+                        mpq_clear(tmp);
+                        return lh;
+                }
+                else if (lh.t == MPQ and rh.t == MPZ) {
+                        mpq_t tmp;
+                        mpq_init(tmp);
+                        mpq_set_z(tmp, rh.v._bigint);
+                        mpq_div(tmp, tmp, lh.v._bigrat);
+                        if (mpz_cmp_ui(mpq_denref(tmp),1) != 0) {
+                                mpq_set(lh.v._bigrat, tmp);
+                                mpq_clear(tmp);
+                                return lh;
+                        }
+                        mpq_clear(lh.v._bigrat);
+                        lh.t = MPZ;
+                        mpz_init(lh.v._bigint);
+                        mpz_set(lh.v._bigint, mpq_numref(tmp));
+                        mpq_clear(tmp);
+                        return lh;
+                }
+
+                numeric a, b;
+                coerce(a, b, lh, rh);
+                lh = a / b;
+                return lh;
+        }
+        switch (lh.t) {
+                case MPZ:
+                        if (mpz_divisible_p(lh.v._bigint, rh.v._bigint)) {
+                                mpz_divexact(lh.v._bigint,
+                                                lh.v._bigint,
+                                                rh.v._bigint);
+                                return lh;
+                        }
+                        else {
+                                mpq_t bigrat, obigrat;
+                                mpq_init(bigrat);
+                                mpq_init(obigrat);
+                                mpq_set_z(bigrat, lh.v._bigint);
+                                mpq_set_z(obigrat, rh.v._bigint);
+                                mpz_clear(lh.v._bigint);
+                                lh.t = MPQ;
+                                mpq_init(lh.v._bigrat);
+                                mpq_div(lh.v._bigrat, bigrat, obigrat);
+                                mpq_clear(bigrat);
+                                mpq_clear(obigrat);
+                                return lh;
+                        }
+                case MPQ:
+                        mpq_div(lh.v._bigrat, lh.v._bigrat, rh.v._bigrat);
+                        return lh;
+                case PYOBJECT:
+#if PY_MAJOR_VERSION < 3
+                        {
+                        PyObject* p = lh.v._pyobject;
+                        if (PyInt_Check(p)) {
+                                if (PyInt_Check(rh.v._pyobject)) {
+                                        // This branch happens at startup.
+                                        lh.v._pyobject = PyNumber_TrueDivide(Integer(PyInt_AsLong(p)),
+                                                Integer(PyInt_AsLong(rh.v._pyobject)));
+                                        // I don't 100% understand why I have to incref this, 
+                                        // but if I don't, Sage crashes on exit.
+                                        if (lh.v._pyobject == nullptr)
+                                                py_error("numeric operator/=");
+                                        Py_DECREF(p);
+                                        Py_INCREF(lh.v._pyobject);
+                                        return lh;
+                                } else if (PyLong_Check(rh.v._pyobject)) {
+                                        PyObject* d = py_funcs.py_integer_from_python_obj(rh.v._pyobject);
+                                        lh.v._pyobject = PyNumber_TrueDivide(p, d);
+                                        if (lh.v._pyobject == nullptr)
+                                                py_error("numeric operator/=");
+                                        Py_DECREF(d);
+                                        Py_DECREF(p);
+                                        Py_INCREF(lh.v._pyobject);
+                                        return lh;
+                                }
+                        } else if (PyLong_Check(p)) {
+                                PyObject* n = py_funcs.py_integer_from_python_obj(p);
+                                lh.v._pyobject = PyNumber_TrueDivide(n, rh.v._pyobject);
+                                if (lh.v._pyobject == nullptr)
+                                        py_error("numeric operator/=");
+                                Py_DECREF(n);
+                                Py_DECREF(p);
+                                Py_INCREF(lh.v._pyobject);
+                                return lh;
+                        }
+                        }
+#else
+                        {
+                        PyObject* p = lh.v._pyobject;
+                        if (PyLong_Check(p)) {
+                                PyObject* n = py_funcs.py_integer_from_python_obj(p);
+                                lh.v._pyobject = PyNumber_TrueDivide(n, rh.v._pyobject);
+                                if (lh.v._pyobject == nullptr)
+                                        py_error("numeric operator/=");
+                                Py_DECREF(n);
+                                Py_DECREF(p);
+                                Py_INCREF(lh.v._pyobject);
+                                return lh;
+                        }
+                        lh.v._pyobject = PyNumber_TrueDivide(p, rh.v._pyobject);
+                        if (lh.v._pyobject == nullptr)
+                                py_error("numeric operator/=");
+                        Py_DECREF(p);
+                        Py_INCREF(lh.v._pyobject);
+                        return lh;
+                        }
+#endif
+                default:
+                        stub("invalid type: operator/=() type not handled");
+        }
+}
+
 
 /** Inverse of a number. */
 const numeric numeric::inverse() const {

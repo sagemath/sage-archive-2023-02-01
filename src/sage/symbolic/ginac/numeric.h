@@ -122,6 +122,10 @@ public:
 	friend std::ostream& operator<<(std::ostream& os, const numeric& s);
 	friend void coerce(numeric& new_left, numeric& new_right,
                         const numeric& left, const numeric& right);
+        friend numeric & operator+=(numeric & lh, const numeric & rh);
+        friend numeric & operator-=(numeric & lh, const numeric & rh);
+        friend numeric & operator*=(numeric & lh, const numeric & rh);
+        friend numeric & operator/=(numeric & lh, const numeric & rh);
         friend void rational_power_parts(const numeric& a, const numeric& b,
                         numeric& c, numeric& d, bool& c_unit);
 	// functions overriding virtual functions from base classes

@@ -131,33 +131,6 @@ ex & operator/=(ex & lh, const ex & rh)
 }
 
 
-// binary arithmetic assignment operators with numeric
-
-numeric & operator+=(numeric & lh, const numeric & rh)
-{
-	lh = lh.add(rh);
-	return lh;
-}
-
-numeric & operator-=(numeric & lh, const numeric & rh)
-{
-	lh = lh.sub(rh);
-	return lh;
-}
-
-numeric & operator*=(numeric & lh, const numeric & rh)
-{
-	lh = lh.mul(rh);
-	return lh;
-}
-
-numeric & operator/=(numeric & lh, const numeric & rh)
-{
-	lh = lh.div(rh);
-	return lh;
-}
-
-
 // unary operators
 
 const ex operator+(const ex & lh)

@@ -1617,23 +1617,29 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             M, Coeffs,g, Fq, p, E= self._Cartier_matrix_cached()
         return M
 
-    #This where Hasse_Witt is actually computed. This is either called by E.Hasse_Witt or p_rank
     @cached_method
     def _Hasse_Witt_cached(self):
         r"""
+        This where Hasse_Witt is actually computed.
+
+        This is either called by E.Hasse_Witt or E.p_rank.
+
         INPUT:
 
-        - ``E`` : Hyperelliptic Curve of the form `y^2 = f(x)` over a finite field, `\mathbb{F}_q`
+        - ``E`` -- hyperelliptic Curve of the form `y^2 = f(x)` over
+          a finite field, `\mathbb{F}_q`
 
         OUTPUT:
 
-        - ``N`` : The matrix `N = M M^p \dots M^{p^{g-1}}` where `M = c_{pi-j}, f(x)^{(p-1)/2} = \sum c_i x^i`
-        - ``E`` : The initial curve to check some caching conditions.
+        - ``N`` -- the matrix `N = M M^p \dots M^{p^{g-1}}` where
+          `M = c_{pi-j}, f(x)^{(p-1)/2} = \sum c_i x^i`
+
+        - ``E`` -- the initial curve to check some caching conditions
 
         EXAMPLES::
 
-            sage: K.<x>=GF(9,'x')[]
-            sage: C=HyperellipticCurve(x^7-1,0)
+            sage: K.<x> = GF(9,'x')[]
+            sage: C = HyperellipticCurve(x^7-1,0)
             sage: C._Hasse_Witt_cached()
             (
             [0 0 0]
@@ -1641,16 +1647,16 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             [0 0 0], Hyperelliptic Curve over Finite Field in x of size 3^2 defined by y^2 = x^7 + 2
             )
 
-            sage: K.<x>=GF(49,'x')[]
-            sage: C=HyperellipticCurve(x^5+1,0)
+            sage: K.<x> = GF(49,'x')[]
+            sage: C = HyperellipticCurve(x^5+1,0)
             sage: C._Hasse_Witt_cached()
             (
             [0 0]
             [0 0], Hyperelliptic Curve over Finite Field in x of size 7^2 defined by y^2 = x^5 + 1
             )
 
-            sage: P.<x>=GF(9,'a')[]
-            sage: C=HyperellipticCurve(x^29+1,0)
+            sage: P.<x> = GF(9,'a')[]
+            sage: C = HyperellipticCurve(x^29+1,0)
             sage: C._Hasse_Witt_cached()
             (
             [0 0 0 0 0 0 0 0 0 0 0 0 0 0]
@@ -1672,11 +1678,11 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         TESTS:
 
         This shows that the bug at :trac:`23181` is fixed::
-        
-            sage: K.<z>=PolynomialRing(GF(5))
-            sage: L.<a>=GF(5).extension(z^3+3*z+3,'a')
+
+            sage: K.<z> = PolynomialRing(GF(5))
+            sage: L.<a> = GF(5).extension(z^3+3*z+3,'a')
             sage: H.<x> = L[]
-            sage: E=HyperellipticCurve(x^5+x^4+a^92*x^3+a^18*x^2+a^56*x,0)
+            sage: E = HyperellipticCurve(x^5+x^4+a^92*x^3+a^18*x^2+a^56*x,0)
             sage: E.p_rank()
             0
         """

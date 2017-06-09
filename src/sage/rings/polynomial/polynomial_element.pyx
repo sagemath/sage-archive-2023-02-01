@@ -10506,3 +10506,35 @@ cdef class PolynomialBaseringInjection(Morphism):
             <type 'sage.rings.polynomial.polynomial_element.ConstantPolynomialSection'>
         """
         return ConstantPolynomialSection(self._codomain, self.domain())
+
+    def is_injective(self):
+        r"""
+        Return whether this morphism is injective.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: S.<y> = R[]
+            sage: S.coerce_map_from(R).is_injective()
+            True
+
+        Check that :trac:`23203` has been resolved::
+
+            sage: R.is_subring(S) # indirect doctest
+            True
+
+        """
+        return True
+
+    def is_surjective(self):
+        r"""
+        Return whether this morphism is surjective.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: R.coerce_map_from(ZZ).is_surjective()
+            False
+
+        """
+        return False

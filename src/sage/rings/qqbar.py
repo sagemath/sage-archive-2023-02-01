@@ -1476,6 +1476,42 @@ class AlgebraicField(Singleton, AlgebraicField_common):
         m = sage.misc.prandom.randint(0, len(roots)-1)
         return roots[m]
 
+    def _is_irreducible_univariate_polynomial(self, f):
+        r"""
+        Return whether ``f`` is irreducible.
+
+        INPUT:
+
+        - ``f`` -- a non-constant univariate polynomial defined over the
+          algebraic field
+
+        .. NOTE::
+
+            This is a helper method for
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.is_irreducible`.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQbar[]
+            sage: (x^2).is_irreducible() # indirect doctest
+            False
+
+        Note that this method does not handle constant polynomials::
+
+            sage: QQbar._is_irreducible_univariate_polynomial(R(1))
+            Traceback (most recent call last):
+            ...
+            ValueError: polynomial must not be constant
+            sage: R(1).is_irreducible()
+            False
+
+        """
+        if f.degree() < 1:
+            # this case is handled by the caller (PolynomialElement.is_irreducible())
+            raise ValueError("polynomial must not be constant")
+
+        return f.degree() == 1
+
     def _factor_univariate_polynomial(self, f):
         """
         Factor the univariate polynomial ``f``.

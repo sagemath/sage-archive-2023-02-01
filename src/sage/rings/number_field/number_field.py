@@ -6899,11 +6899,13 @@ class NumberField_absolute(NumberField_generic):
             <type 'sage.rings.number_field.number_field_element_quadratic.Q_to_quadratic_field_element'>
 
         """
-        if R in integer_types + (ZZ, QQ, self.base()):
+        if R in integer_types:
             return self._generic_convert_map(R)
+        elif R in (ZZ, QQ, self.base()):
+            return self._generic_convert_map(R, R.category()._meet_(self.category()))
         from sage.rings.number_field.order import is_NumberFieldOrder
         if is_NumberFieldOrder(R) and self.has_coerce_map_from(R.number_field()):
-            return self._generic_convert_map(R)
+            return self._generic_convert_map(R, R.category()._meet_(self.category()))
         # R is not QQ by the above tests
         if is_NumberField(R) and R.coerce_embedding() is not None:
             if self.coerce_embedding() is not None:

@@ -746,12 +746,6 @@ ex power::eval(int level) const
 					return exp(log(basis)*exponent);
 	}
 	
-	// negative^even --> positive^even
-        if (eexponent.info(info_flags::even)
-            and eexponent.info(info_flags::real)
-            and (-ebasis).info(info_flags::positive))
-                return power(-ebasis, eexponent);
-
 	if (are_ex_trivially_equal(ebasis,basis) &&
 	    are_ex_trivially_equal(eexponent,exponent)) {
 		return this->hold();

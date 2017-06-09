@@ -8,6 +8,7 @@ Quotients of Modules With Basis
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.misc.cachefunc import cached_method
 from sage.sets.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.misc.lazy_attribute import lazy_attribute
@@ -261,6 +262,21 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
         """
         return self._ambient
 
+    @cached_method
+    def _support_key(self, x):
+        """
+        Return a key corresponding to the index ``x`` for ordering the
+        basis of ``self``.
+
+        EXAMPLES::
+
+            sage: A = GradedModulesWithBasis(ZZ).example()
+            sage: M = A.submodule(list(A.basis(3)), already_echelonized=True)
+            sage: [M._support_key(x) for x in M._support_order]
+            [0, 1, 2]
+        """
+        return self._support_order.index(x)
+
     @lazy_attribute
     def lift(self):
         r"""
@@ -283,7 +299,7 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
                                     codomain=self.ambient(),
                                     triangular="lower",
                                     unitriangular=self._unitriangular,
-                                    key=self.ambient().get_order_key(),
+                                    key=self._support_key,
                                     inverse_on_support="compute")
 
     @lazy_attribute
@@ -369,3 +385,4 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
             except ValueError:
                 return False
         return True
+

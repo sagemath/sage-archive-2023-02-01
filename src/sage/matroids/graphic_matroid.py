@@ -354,16 +354,16 @@ class GraphicMatroid(Matroid):
         Returns a minimal codependent subset.
         """
         cocircuit = set()
-        cocircuit_edges = []
+        codependent_edges = []
         g = self.graph()
         edges = self._groundset_to_edges(X)
         components = g.connected_components_number()
         for e in edges:
-            cocircuit_edges.append(e)
+            codependent_edges.append(e)
             g.delete_edge(e)
             if g.connected_components_number() > components:
                 break
-        for e in cocircuit_edges:
+        for e in codependent_edges:
             g.add_edge(e)
             # if that repaired the components, then e is part of the cocircuit
             if g.connected_components_number() == components:

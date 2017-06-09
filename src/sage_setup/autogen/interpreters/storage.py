@@ -305,8 +305,7 @@ class StorageType(object):
             sage: from sage_setup.autogen.interpreters import *
             sage: print(ty_mpfr.alloc_chunk_data('args', 'MY_LENGTH'))
                     self._n_args = MY_LENGTH
-                    self._args = <mpfr_t*>sig_malloc(sizeof(mpfr_t) * MY_LENGTH)
-                    if self._args == NULL: raise MemoryError
+                    self._args = <mpfr_t*>check_allocarray(self._n_args, sizeof(mpfr_t))
                     for i in range(MY_LENGTH):
                         mpfr_init2(self._args[i], self.domain.prec())
             <BLANKLINE>
@@ -314,8 +313,7 @@ class StorageType(object):
         return je(ri(0,
             """
                     self._n_{{ name }} = {{ len }}
-                    self._{{ name }} = <{{ myself.c_ptr_type() }}>sig_malloc(sizeof({{ myself.c_decl_type() }}) * {{ len }})
-                    if self._{{ name }} == NULL: raise MemoryError
+                    self._{{ name }} = <{{ myself.c_ptr_type() }}>check_allocarray(self._n_{{ name }}, sizeof({{ myself.c_decl_type() }}))
             {% if myself.needs_cython_init_clear() %}
                     for i in range({{ len }}):
                         {{ myself.cython_init('self._%s[i]' % name) }}

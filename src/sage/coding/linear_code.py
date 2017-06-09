@@ -678,14 +678,14 @@ class AbstractLinearCode(Module):
         We can add our new decoder to the list of available decoders of C::
 
             sage: C.add_decoder("MyDecoder", MyDecoder)
-            sage: C.decoders_available()
-            ['MyDecoder', 'InformationSet', 'Syndrome', 'NearestNeighbor']
+            sage: sorted(C.decoders_available())
+            ['InformationSet', 'MyDecoder', 'NearestNeighbor', 'Syndrome']
 
         We can verify that any new code will not know MyDecoder::
 
             sage: C2 = codes.HammingCode(GF(2), 3)
-            sage: C2.decoders_available()
-            ['InformationSet', 'Syndrome', 'NearestNeighbor']
+            sage: sorted(C2.decoders_available())
+            ['InformationSet', 'NearestNeighbor', 'Syndrome']
 
         TESTS:
 
@@ -740,14 +740,14 @@ class AbstractLinearCode(Module):
         We can add our new encoder to the list of available encoders of C::
 
             sage: C.add_encoder("MyEncoder", MyEncoder)
-            sage: C.encoders_available()
+            sage: sorted(C.encoders_available())
             ['MyEncoder', 'ParityCheck', 'Systematic']
 
         We can verify that any new code will not know MyEncoder::
 
             sage: C2 = codes.HammingCode(GF(2), 3)
-            sage: C2.encoders_available()
-            ['Systematic', 'ParityCheck']
+            sage: sorted(C2.encoders_available())
+            ['ParityCheck', 'Systematic']
 
         TESTS:
 
@@ -1365,8 +1365,8 @@ class AbstractLinearCode(Module):
 
         It is possible to manually choose the decoder amongst the list of the available ones::
 
-            sage: C.decoders_available()
-            ['InformationSet', 'Syndrome', 'NearestNeighbor']
+            sage: sorted(C.decoders_available())
+            ['InformationSet', 'NearestNeighbor', 'Syndrome']
             sage: C.decode_to_code(w_err, 'NearestNeighbor')
             (1, 1, 0, 0, 1, 1, 0)
         """
@@ -1402,8 +1402,8 @@ class AbstractLinearCode(Module):
 
         It is possible to manually choose the decoder amongst the list of the available ones::
 
-            sage: C.decoders_available()
-            ['InformationSet', 'Syndrome', 'NearestNeighbor']
+            sage: sorted(C.decoders_available())
+            ['InformationSet', 'NearestNeighbor', 'Syndrome']
             sage: C.decode_to_message(word, 'NearestNeighbor')
             (0, 1, 1, 0)
         """
@@ -1442,8 +1442,8 @@ class AbstractLinearCode(Module):
         If the name of a decoder which is not known by ``self`` is passed,
         an exception will be raised::
 
-            sage: C.decoders_available()
-            ['InformationSet', 'Syndrome', 'NearestNeighbor']
+            sage: sorted(C.decoders_available())
+            ['InformationSet', 'NearestNeighbor', 'Syndrome']
             sage: C.decoder('Try')
             Traceback (most recent call last):
             ...
@@ -1479,20 +1479,24 @@ class AbstractLinearCode(Module):
 
         INPUT:
 
-        - ``classes`` -- (default: ``False``) if ``classes`` is set to ``True``, it also
-          returns the decoders' classes associated with the decoders' names.
+        - ``classes`` -- (default: ``False``) if ``classes`` is set to ``True``,
+          return instead a ``dict`` mapping available decoder name to the
+          associated decoder class.
+
+        OUTPUT: a list of strings, or a `dict` mapping strings to classes.
 
         EXAMPLES::
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
-            sage: C.decoders_available()
-            ['InformationSet', 'Syndrome', 'NearestNeighbor']
+            sage: sorted(C.decoders_available())
+            ['InformationSet', 'NearestNeighbor', 'Syndrome']
 
-            sage: C.decoders_available(True)
-            {'InformationSet': <class 'sage.coding.linear_code.LinearCodeInformationSetDecoder'>,
-             'NearestNeighbor': <class 'sage.coding.linear_code.LinearCodeNearestNeighborDecoder'>,
-             'Syndrome': <class 'sage.coding.linear_code.LinearCodeSyndromeDecoder'>}
+            sage: dictionary = C.decoders_available(True)
+            sage: sorted(dictionary.items())
+            [('InformationSet', <class 'sage.coding.linear_code.LinearCodeInformationSetDecoder'>),
+             ('NearestNeighbor', <class 'sage.coding.linear_code.LinearCodeNearestNeighborDecoder'>),
+             ('Syndrome', <class 'sage.coding.linear_code.LinearCodeSyndromeDecoder'>)]
         """
         if classes == True:
             return copy(self._registered_decoders)
@@ -1750,7 +1754,7 @@ class AbstractLinearCode(Module):
 
         It is possible to manually choose the encoder amongst the list of the available ones::
 
-            sage: C.encoders_available()
+            sage: sorted(C.encoders_available())
             ['GeneratorMatrix', 'Systematic']
             sage: word = vector((0, 1, 1, 0))
             sage: C.encode(word, 'GeneratorMatrix')
@@ -1849,7 +1853,7 @@ class AbstractLinearCode(Module):
         If the name of an encoder which is not known by ``self`` is passed,
         an exception will be raised::
 
-            sage: C.encoders_available()
+            sage: sorted(C.encoders_available())
             ['GeneratorMatrix', 'Systematic']
             sage: C.encoder('NonExistingEncoder')
             Traceback (most recent call last):
@@ -1885,18 +1889,22 @@ class AbstractLinearCode(Module):
 
         INPUT:
 
-        - ``classes`` -- (default: ``False``) if ``classes`` is set to ``True``, it also
-          returns the encoders' classes associated with the encoders' names.
+        - ``classes`` -- (default: ``False``) if ``classes`` is set to ``True``,
+          return instead a ``dict`` mapping available encoder name to the
+          associated encoder class.
+
+        OUTPUT: a list of strings, or a `dict` mapping strings to classes.
 
         EXAMPLES::
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
-            sage: C.encoders_available()
+            sage: sorted(C.encoders_available())
             ['GeneratorMatrix', 'Systematic']
-            sage: C.encoders_available(True)
-            {'GeneratorMatrix': <class 'sage.coding.linear_code.LinearCodeGeneratorMatrixEncoder'>,
-             'Systematic': <class 'sage.coding.linear_code.LinearCodeSystematicEncoder'>}
+            sage: dictionary = C.encoders_available(True)
+            sage: sorted(dictionary.items())
+            [('GeneratorMatrix', <class 'sage.coding.linear_code.LinearCodeGeneratorMatrixEncoder'>),
+             ('Systematic', <class 'sage.coding.linear_code.LinearCodeSystematicEncoder'>)]
         """
         if classes == True:
             return copy(self._registered_encoders)

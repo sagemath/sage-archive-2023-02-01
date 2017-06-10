@@ -7736,7 +7736,7 @@ cdef class Matroid(SageObject):
         EXAMPLES::
 
             sage: M = matroids.named_matroids.Fano()
-            sage: N = M.union(matroid.named_matroids.NonFano()); N
+            sage: N = M.union(matroids.named_matroids.NonFano()); N
             Matroid of rank 6 on 7 elements as matroid union of
             Binary matroid of rank 3 on 7 elements, type (3, 0)
             Ternary matroid of rank 3 on 7 elements, type 0-
@@ -7767,6 +7767,11 @@ cdef class Matroid(SageObject):
         """
         if isinstance(matroids, Matroid):
             matroids = [matroids]
+        else:
+            for M in matroids:
+                if not isinstance(M, Matroid):
+                    raise TypeError("Can only take the union with a "
+                                     + "matroid or list of matroids.")
         # place this matroid at the beginning of the list
         matroids.insert(0,self)
-        return _union(iter(matroids))
+        return self._union(iter(matroids))

@@ -3184,6 +3184,123 @@ class DiGraph(GenericGraph):
         except AttributeError:
             return len(self.strongly_connected_components()) == 1
 
+
+    def immediate_dominators(self, root):
+        r"""
+        Return the immediate dominators of all vertices reachable from `root`.
+
+        A flowgraph `G = (V, A, root)` is a digraph where every vertex in `V` is
+        reachable from a distinguished root vertex `root\in V`. In such digraph,
+        a vertex `w` dominates a vertex `v` if every path from `root` to `v`
+        includes `w`. Let `dom(v)` be the set of the vertices that dominate `v`.
+        Obviously, `root` and `v`, the trivial dominators of `v`, are in
+        `dom(v)`. For `v \neq root`, the immediate dominator of `v`, denoted by
+        `d(v)`, is the unique vertex `w \neq v` that dominates `v` and is
+        dominated by all the vertices in `dom(v)\setminus\{v\}`. The (immediate)
+        dominator tree is a directed tree (or arborescence) rooted at `root`
+        that is formed by the arcs `\{ (d(v), v)\mid v\in V\setminus\{root\}\}`.
+        See [Geo05]_ for more details.
+
+        This method implements the algorithm proposed in [CHK01]_ which performs
+        very well in practice, although its worst case time complexity is in
+        `O(n^2)`.
+
+        INPUT:
+
+        - ``root`` -- a vertex of the digraph, the root of the
+          immediate dominators tree.
+
+        OUTPUT: The (immediate) dominator tree rooted at ``root``,
+        encoded as a predecessor dictionary.
+
+        .. SEEALSO::
+
+            - :meth:`~DiGraph.strong_bridges`
+            - :meth:`~DiGraph.strong_articulation_points`
+            - :meth:`~DiGraph.strong_connected_components`
+
+        EXAMPLES:
+
+        The output encodes a tree rooted at ``root``::
+
+            sage: D = digraphs.Complete(4) * 2
+            sage: D.add_edges([(0, 4), (7, 3)])
+            sage: d = D.immediate_dominators(0)
+            sage: T = DiGraph([(d[u], u) for u in d if u != d[u]])
+            sage: Graph(T).is_tree()
+            True
+            sage: all(T.in_degree(u) <= 1 for u in T)
+            True
+
+        In a strongly connected digraph, the result depends on the root::
+
+            sage: D = digraphs.Circuit(5)
+            sage: D.immediate_dominators(0)
+            {0: 0, 1: 0, 2: 1, 3: 2, 4: 3}
+            sage: D.immediate_dominators(1)
+            {0: 4, 1: 1, 2: 1, 3: 2, 4: 3}
+
+        The (immediate) dominator tree contains only reachable vertices::
+
+            sage: P = digraphs.Path(5)
+            sage: P.immediate_dominators(0)
+            {0: 0, 1: 0, 2: 1, 3: 2, 4: 3}
+            sage: P.immediate_dominators(3)
+            {3: 3, 4: 3}
+
+        TESTS:
+
+        When ``root`` is not in the digraph::
+
+            sage: DiGraph().immediate_dominators(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: the given root must be in the digraph
+
+        Comparison with the NetworkX method::
+
+            sage: import networkx
+            sage: D = digraphs.RandomDirectedGNP(20,0.1)
+            sage: d = D.immediate_dominators(0)
+            sage: dx = networkx.immediate_dominators(D.networkx_graph(), 0)
+            sage: all(d[i] == dx[i] for i in d) and all(d[i] == dx[i] for i in dx)
+            True
+        """
+        if not root in self:
+            raise ValueError("the given root must be in the digraph")
+
+        idom = {root: root}
+
+        n = self.order()
+        pre_order = list(self.depth_first_search(root))
+        number = {u: n-i for i, u in enumerate(pre_order)}
+        pre_order.pop(0)
+
+        def intersect(u, v):
+            while u != v:
+                while number[u] < number[v]:
+                    u = idom[u]
+                while number[u] > number[v]:
+                    v = idom[v]
+            return u
+
+        changed = True
+        while changed:
+            changed = False
+            for u in pre_order:
+                pred = [v for v in self.neighbor_in_iterator(u) if v in idom]
+                if not pred:
+                    continue
+                else:
+                    new_idom = pred[0]
+                    for v in pred[1:]:
+                        new_idom = intersect(new_idom, v)
+                if not u in idom or idom[u] != new_idom:
+                    idom[u] = new_idom
+                    changed = True
+
+        return idom
+
     def is_aperiodic(self):
         r"""
         Return whether the current ``DiGraph`` is aperiodic.

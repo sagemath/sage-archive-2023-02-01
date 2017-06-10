@@ -447,12 +447,22 @@ class FiniteFieldFactory(UniqueFactory):
         sage: list(K.polynomial()) == list(L.polynomial())
         True
 
+    TESTS::
+
     Check that :trac:`16934` has been fixed::
 
         sage: k1.<a> = GF(17^14, impl="pari_ffelt")
         sage: _ = a/2
         sage: k2.<a> = GF(17^14, impl="pari_ffelt")
         sage: k1 is k2
+        True
+
+    Check that :trac:`21433` has been fixed::
+
+        sage: K = GF(5^2)
+        sage: L = GF(5^4)
+        sage: from sage.categories.pushout import pushout
+        sage: pushout(K,L) is L
         True
 
     """
@@ -465,6 +475,13 @@ class FiniteFieldFactory(UniqueFactory):
             ((9, ('a',), x^2 + 2*x + 2, 'givaro', '{}', 3, 2, True), {})
             sage: GF.create_key_and_extra_args(9, 'a', foo='value')
             ((9, ('a',), x^2 + 2*x + 2, 'givaro', "{'foo': 'value'}", 3, 2, True), {'foo': 'value'})
+
+        We ignore the ``structure = None`` attribute that gets added by
+        pushouts, see :trac:`21433`::
+
+            sage: GF.create_key_and_extra_args(9, 'a', structure=None)
+            ((9, ('a',), x^2 + 2*x + 2, 'givaro', '{}', 3, 2, True), {}
+
         """
         import sage.arith.all
         from sage.structure.proof.all import WithProof, arithmetic
@@ -546,6 +563,15 @@ class FiniteFieldFactory(UniqueFactory):
                 if impl == 'modn' and modulus[0] == -1:
                     modulus = None
 
+            if 'structure' in kwds and kwds['structure'] == None:
+                # Ignore default value for the structure argument
+                # See #21433
+                del(kwds['structure'])
+
+            # Putting the str(kwds) into the key is likely going to produce bugs at some point
+            # We should not rely on the string representation of a dict but rely on a hashable
+            # representation of kwds which implements the right notion of equality for all
+            # possible values
             return (order, name, modulus, impl, str(kwds), p, n, proof), kwds
 
     def create_object(self, version, key, **kwds):

@@ -879,7 +879,7 @@ cdef class pAdicPrinter_class(SageObject):
                 if prec > 0:
                     s = "..." + (self.alphabet[0] * prec)
                 else:
-                    s = "...?." + ("?" * (-prec)) + "0"
+                    s = "...?." + ("?" * (-prec)) + self.alphabet[0]
             elif mode == bars:
                 if self.base or self._ring().f() == 1:
                     zero = '0'
@@ -942,7 +942,6 @@ cdef class pAdicPrinter_class(SageObject):
                 lenL = elt.precision_relative()
             else:
                 lenL = min(elt.precision_relative(), max(self.max_ram_terms, -n))
-            lenL = elt.precision_relative()
             if len(L) < lenL:
                 if self.base or self._ring().f() == 1:
                     L += [0]*(lenL - len(L))

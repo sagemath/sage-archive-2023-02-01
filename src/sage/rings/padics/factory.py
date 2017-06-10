@@ -369,7 +369,7 @@ class Qp_class(UniqueFactory):
     alphabet tuple (default alphabet has length 62).::
 
         sage: R = Qp(5, print_mode='digits'); a = R(70700); repr(a)
-        '...4230300'
+        '...0000000000000004230300'
         sage: b = R(-70700); repr(b)
         '...4444444444444440214200'
         sage: c = R(-707/5); repr(c)
@@ -377,8 +377,22 @@ class Qp_class(UniqueFactory):
         sage: d = R(-707/5^2); repr(d)
         '...444444444444444341.33'
 
-    Note that it's not possible to read off the precision from the
-    representation in this mode.
+    Observe that the significant 0's are printed even if they are
+    located in front of the number. On the contrary, unknown digits 
+    located after the comma appears as question marks.
+    The precision can therefore be read in this mode as well. 
+    Here are more examples::
+
+        sage: p = 7
+        sage: K = Qp(p, prec=10, print_mode='digits')
+        sage: repr(K(1))
+        '...0000000001'
+        sage: repr(K(p^2))
+        '...000000000100'
+        sage: repr(K(p^-5))
+        '...00000.00001'
+        sage: repr(K(p^-20))
+        '...?.??????????0000000001'
 
     *print_max_terms* limits the number of digits that are printed.
     Note that if the valuation of the element is very negative, more

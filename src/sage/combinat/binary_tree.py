@@ -643,6 +643,35 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         t_repr._baseline = t_repr._h - 1
         return t_repr
 
+    def _sort_key(self):
+        """
+        Return a tuple of nonnegative integers encoding the binary
+        tree ``self``.
+
+        The first entry of the tuple is the number of children of the
+        root. Then the rest of the tuple is the concatenation of the
+        tuples associated to these children (we view the children of
+        a tree as trees themselves) from left to right.
+
+        This tuple characterizes the tree uniquely, and can be used to
+        sort the binary trees.
+
+        EXAMPLES::
+
+            sage: x = BinaryTree([])
+            sage: y = (x.under(x)).over(x)
+            sage: y._sort_key()
+            (2, 2, 0, 0, 2, 0, 0)
+            sage: z = (x.over(x)).under(x)
+            sage: z._sort_key()
+            (2, 2, 0, 2, 0, 0, 0)
+        """
+        l = len(self)
+        if l == 0:
+            return (0,)
+        resu = [l] + [u for t in self for u in t._sort_key()]
+        return tuple(resu)
+
     def is_empty(self):
         """
         Return whether ``self`` is empty.
@@ -2453,6 +2482,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         A list of binary trees.
 
+        .. SEEALSO::
+
+            :meth:`over_decomposition`, :meth:`under_decomposition`
+
         EXAMPLES::
 
             sage: BT = BinaryTree( '.' )
@@ -3193,10 +3226,9 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [      \        ]
             [       4       ]
         """
-        B = self.parent()._element_constructor_
         if bt.is_empty():
             return self
-        lab = None
+        B = self.parent()._element_constructor_
         if hasattr(bt, "label"):
             lab = bt.label()
             return B([self.under(bt[0]), bt[1]], lab)
@@ -3205,6 +3237,177 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
     _backslash_ = under
 
+    def under_decomposition(self):
+        r"""
+        Return the unique maximal decomposition as an under product.
+
+        This means that the tree is cut along all edges of its leftmost path.
+
+        Beware that the factors are ordered starting from the root.
+
+        .. SEEALSO::
+
+            :meth:`comb`, :meth:`over_decomposition`
+
+        EXAMPLES::
+
+            sage: g = BinaryTree([])
+            sage: r = g.over(g); r
+            [., [., .]]
+            sage: l = g.under(g); l
+            [[., .], .]
+            sage: l.under_decomposition()
+            [[., .], [., .]]
+            sage: r.under_decomposition() == [r]
+            True
+
+            sage: x = r.under(g).under(r).under(g)
+            sage: ascii_art(x)
+                  o
+                 /
+                o
+               / \
+              o   o
+             /    
+            o     
+             \    
+              o  
+            sage: x.under_decomposition() == [g,r,g,r]
+            True
+        """
+        if self.is_empty():
+            return []
+        B = self.parent()._element_constructor_
+        resu = []
+        bt = self
+        while not bt.is_empty():
+            if hasattr(bt, "label"):
+                lab = bt.label()
+                resu.append(B([None, bt[1]], lab))
+            else:
+                resu.append(B([None, bt[1]]))
+            bt = bt[0]
+        return resu
+
+    def over_decomposition(self):
+        """
+        Return the unique maximal decomposition as an over product.
+
+        This means that the tree is cut along all edges of its rightmost path.
+
+        Beware that the factors are ordered starting from the root.
+
+        .. SEEALSO::
+
+            :meth:`comb`, :meth:`under_decomposition`
+
+        EXAMPLES::
+
+            sage: g = BinaryTree([])
+            sage: r = g.over(g); r
+            [., [., .]]
+            sage: l = g.under(g); l
+            [[., .], .]
+            sage: r.over_decomposition()
+            [[., .], [., .]]
+            sage: l.over_decomposition() == [l]
+            True
+
+            sage: x = g.over(l).over(l).over(g).over(g)
+            sage: ascii_art(x)
+             o
+              \
+              _o_
+             /   \
+            o     o
+                 / \
+                o   o
+                     \
+                      o
+            sage: x.over_decomposition() == [g,l,l,g,g]
+            True
+        """
+        if self.is_empty():
+            return []
+        B = self.parent()._element_constructor_
+        resu = []
+        bt = self
+        while not bt.is_empty():
+            if hasattr(bt, "label"):
+                lab = bt.label()
+                resu.append(B([bt[0], None], lab))
+            else:
+                resu.append(B([bt[0], None]))
+            bt = bt[1]
+        return resu
+
+    def dendriform_shuffle(self, other):
+        """
+        Return the list of terms in the dendriform product.
+
+        This is the list of all binary trees that can be obtained by
+        identifying the rightmost path in ``self`` and the leftmost
+        path in ``other``. Every term corresponds to a shuffle of the
+        vertices on the rightmost path in ``self`` and the vertices on
+        the leftmost path in ``other``.
+
+        EXAMPLES::
+
+            sage: u = BinaryTree()
+            sage: g = BinaryTree([])
+            sage: l = BinaryTree([g, u])
+            sage: r = BinaryTree([u, g])
+
+            sage: list(g.dendriform_shuffle(g))
+            [[[., .], .], [., [., .]]]
+
+            sage: list(l.dendriform_shuffle(l))
+            [[[[[., .], .], .], .], [[[., .], [., .]], .],
+            [[., .], [[., .], .]]]
+
+            sage: list(l.dendriform_shuffle(r))
+            [[[[., .], .], [., .]], [[., .], [., [., .]]]]
+
+        TESTS::
+
+            sage: list(u.dendriform_shuffle(u))
+            [.]
+            sage: list(u.dendriform_shuffle(g))
+            [[., .]]
+            sage: list(u.dendriform_shuffle(l))
+            [[[., .], .]]
+            sage: list(u.dendriform_shuffle(r))
+            [[., [., .]]]
+            sage: list(r.dendriform_shuffle(u))
+            [[., [., .]]]
+            sage: list(l.dendriform_shuffle(u))
+            [[[., .], .]]
+        """
+        from sage.combinat.words.shuffle_product import ShuffleProduct_w1w2
+        from sage.combinat.words.word import Word
+        if self.is_empty():
+            yield other
+        elif other.is_empty():
+            yield self
+        else:
+            B = self.parent()._element_constructor_
+            left_list = self.over_decomposition()
+            right_list = other.under_decomposition()
+            w_left = Word('L' * len(left_list))
+            w_right = Word('R' * len(right_list))
+            for w in ShuffleProduct_w1w2(w_left, w_right):
+                t = B(None)
+                c_left_list = list(left_list)
+                c_right_list = list(right_list)
+                for letter in w:
+                    if letter == 'L':
+                        lt = c_left_list.pop()
+                        t = lt.over(t)
+                    else:
+                        rt = c_right_list.pop()
+                        t = t.under(rt)
+                yield t
+        
     def sylvester_class(self, left_to_right=False):
         r"""
         Iterate over the sylvester class corresponding to the binary tree
@@ -4061,6 +4264,34 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
                 return "."
         else:
             return "%s%s" % (self._label, self[:])
+
+    def _sort_key(self):
+        """
+        Return a tuple encoding the labelled binary tree ``self``.
+
+        The first entry of the tuple is a pair consisting of the
+        number of children of the root and the label of the root. Then
+        the rest of the tuple is the concatenation of the tuples
+        associated to these children (we view the children of
+        a tree as trees themselves) from left to right.
+
+        This tuple characterizes the labelled tree uniquely, and can
+        be used to sort the labelled binary trees provided that the
+        labels belong to a type which is totally ordered.
+
+        EXAMPLES::
+
+            sage: L2 = LabelledBinaryTree([], label='a')
+            sage: L3 = LabelledBinaryTree([], label='b')
+            sage: T23 = LabelledBinaryTree([L2, L3], label='c')
+            sage: T23._sort_key()
+            ((2, 'c'), (2, 'a'), (0,), (0,), (2, 'b'), (0,), (0,))
+        """
+        l = len(self)
+        if l == 0:
+            return ((0,),)
+        resu = [(l, self.label())] + [u for t in self for u in t._sort_key()]
+        return tuple(resu)
 
     def binary_search_insert(self, letter):
         """

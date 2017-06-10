@@ -1002,6 +1002,44 @@ class Order(IntegralDomain):
         """
         return self.number_field().absolute_degree()
 
+    def some_elements(self):
+        """
+        Return a list of elements of ``self``.
+
+        INPUT:
+
+        - ``self`` -- an order of a number field
+
+        OUTPUT:
+
+        - ``elements`` -- a list containing elements in ``self``
+
+        EXAMPLES::
+
+            sage: G = GaussianIntegers(); G
+            Gaussian Integers in Number Field in I with defining polynomial x^2 + 1
+            sage: G.some_elements()
+            [1, I, 0, I + 1, -1, -I + 1, -I - 5]
+
+            sage: R.<t> = QQ[]; R
+            Univariate Polynomial Ring in t over Rational Field
+            sage: K.<a> = QQ.extension(t^3-2); K
+            Number Field in a with defining polynomial t^3 - 2
+            sage: Z = K.ring_of_integers(); Z
+            Maximal Order in Number Field in a with defining polynomial t^3 - 2
+            sage: Z.some_elements()
+            [1, a, a^2, 0, a + 1, 2, -a + 1, -3]
+        """
+        gens = self.basis()
+        elements = gens
+        length = len(gens)
+        if length > 1:
+            gen = gens[1]
+            elements += [self.zero(), 1 + gen, gen**length, 1 - gen, -5 + gen**3] 
+        else:
+            elements += [self.zero(), -self.one()]
+        return elements
+
 ##     def absolute_polynomial(self):
 ##         """
 ##         Returns the absolute polynomial of this order, which is just the absolute polynomial of the number field.
@@ -1229,6 +1267,7 @@ class AbsoluteOrder(Order):
 
     absolute_discriminant = discriminant
 
+
     def change_names(self, names):
         """
         Return a new order isomorphic to this one in the number field with
@@ -1419,7 +1458,6 @@ class AbsoluteOrder(Order):
             True
         """
         return self
-
 
 class RelativeOrder(Order):
     """

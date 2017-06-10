@@ -6469,6 +6469,43 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             raise RuntimeError("Error in number field solve_CRT()")
         return self(x)
 
+    def some_elements(self):
+        """
+        Return a list of elements in ``self``.
+
+        INPUT:
+
+        - ``self`` -- a generic function field
+
+        OUTPUT:
+
+        - ``elements`` -- a list of elements in ``self``
+
+
+        EXAMPLES::
+
+            sage: R.<t> = QQ[]; R
+            Univariate Polynomial Ring in t over Rational Field
+            sage: K.<a> =  QQ.extension(t^2-2); K
+            Number Field in a with defining polynomial t^2 - 2
+            sage: K.some_elements()
+            [a, 1/2*a, 0, 1, a - 1, 2*a - 2]
+
+            sage: T.<u> = K[]; T
+            Univariate Polynomial Ring in u over Number Field in a with defining polynomial t^2 - 2
+            sage: M.<b> = K.extension(t^3-5); M
+            Number Field in b with defining polynomial t^3 - 5 over its base field
+            sage: M.some_elements()
+            [b, 1/5*b^2, a, 1/2*a, 0, 1, b - 1, 1/6*b^2 + 5/6*b - 5/6]
+        """
+        elements = []
+        for x in self.gens():
+            elements += [x, x**(-1)]
+
+        gen = self.gen()
+        elements += [self.zero(), self.one(), gen - 1, gen**2/(gen + 1)]
+        return elements
+
 class NumberField_absolute(NumberField_generic):
     def __init__(self, polynomial, name, latex_name=None, check=True, embedding=None,
                  assume_disc_small=False, maximize_at_primes=None, structure=None):

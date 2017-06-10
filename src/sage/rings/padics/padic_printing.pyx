@@ -748,7 +748,7 @@ cdef class pAdicPrinter_class(SageObject):
         value.
 
         If pos is True, these integers will be in the range
-        [0,... p-1]; if po is False, they will be in the range
+        [0,..., p-1]; if pos is False, they will be in the range
         [(1-p)/2,..., p/2].
 
         The first entry will be the coefficient of p^0, etc.
@@ -874,8 +874,24 @@ cdef class pAdicPrinter_class(SageObject):
                 s = "O(%s"%(ram_name)
             elif mode == terse:
                 s = "0 + O(%s"%(ram_name)
-            else: # mode == digits or bars
-                s = "..."
+            elif mode == digits:
+                prec = elt.precision_absolute()
+                if prec > 0:
+                    s = "..." + (self.alphabet[0] * prec)
+                else:
+                    s = "...?." + ("?" * (-prec)) + "0"
+            elif mode == bars:
+                if self.base or self._ring().f() == 1:
+                    zero = '0'
+                else:
+                    zero = '[]'
+                prec = elt.precision_absolute()
+                if prec > 0:
+                    L = [zero] * prec
+                    s = "..." + self.sep.join(L)
+                else:
+                    L = ['.'] + (['?'] * (-prec)) + [zero]
+                    s = "..." + self.sep + self.sep.join(L)
         elif mode == val_unit:
             if do_latex:
                 if elt.valuation() == 0:
@@ -897,8 +913,14 @@ cdef class pAdicPrinter_class(SageObject):
                 L = self.base_p_list(elt, True)
             else:
                 L = elt._ext_p_list(True)
-            if self.max_ram_terms != -1:
-                L = L[:max(self.max_ram_terms, -n)]
+            if self.max_ram_terms == -1:
+                lenL = elt.precision_relative()
+            else:
+                lenL = min(elt.precision_relative(), max(self.max_ram_terms, -n))
+            if len(L) < lenL:
+                L += [0] * (lenL - len(L))
+            elif len(L) > lenL:
+                L = L[:lenL]
             L.reverse()
             # The following step should work since mode is only allowed to be digits in the case of totally ramified extensions
             # with primes smaller than the length of the alphabet
@@ -906,7 +928,7 @@ cdef class pAdicPrinter_class(SageObject):
             if n > 0:
                 L += [self.alphabet[0]]*n
             elif n < 0:
-                L = ['?']*(1 - n - len(L)) + L
+                L = ['?']*(1 - n - lenL) + L
                 L = L[:n] + ['.'] + L[n:]
             s = "".join(L)
             s = "..." + s
@@ -916,8 +938,18 @@ cdef class pAdicPrinter_class(SageObject):
                 L = self.base_p_list(elt, self.pos)
             else:
                 L = elt._ext_p_list(self.pos)
-            if self.max_ram_terms != -1:
-                L = L[:max(self.max_ram_terms, -n)]
+            if self.max_ram_terms == -1:
+                lenL = elt.precision_relative()
+            else:
+                lenL = min(elt.precision_relative(), max(self.max_ram_terms, -n))
+            lenL = elt.precision_relative()
+            if len(L) < lenL:
+                if self.base or self._ring().f() == 1:
+                    L += [0]*(lenL - len(L))
+                else:
+                    L += [[]]*(lenL - len(L))
+            elif len(L) > lenL:
+                L = L[:lenL]
             L.reverse()
             if self.base or self._ring().f() == 1 or self.max_unram_terms == -1:
                 L = [str(a) for a in L]

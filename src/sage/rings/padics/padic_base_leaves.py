@@ -162,17 +162,17 @@ TESTS::
 
     sage: R = Qp(5, 15, print_mode='bars', print_sep='&')
     sage: repr(R(2777))[3:]
-    '4&2&1&0&2'
+    '0&0&0&0&0&0&0&0&0&0&4&2&1&0&2'
     sage: TestSuite(R).run()
 
     sage: R = Zp(5, 15, print_mode='bars', print_sep='&')
     sage: repr(R(2777))[3:]
-    '4&2&1&0&2'
+    '0&0&0&0&0&0&0&0&0&0&4&2&1&0&2'
     sage: TestSuite(R).run()
 
     sage: R = ZpCA(5, 15, print_mode='bars', print_sep='&')
     sage: repr(R(2777))[3:]
-    '4&2&1&0&2'
+    '0&0&0&0&0&0&0&0&0&0&4&2&1&0&2'
     sage: TestSuite(R).run()
 
 """

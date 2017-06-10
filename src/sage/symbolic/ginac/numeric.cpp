@@ -922,7 +922,7 @@ void numeric::do_print_csrc(const print_csrc & c, unsigned /*unused*/) const {
 void numeric::do_print_tree(const print_tree & c, unsigned level) const {
         c.s << std::string(level, ' ') << *this
                 << " (" << class_name() << ")" << " @" << this
-                << std::hex << ", hash=0x" << hashvalue << ", flags=0x" << flags << std::dec
+                << std::hex << ", hash=0x" << hash << ", flags=0x" << flags << std::dec
                 << std::endl;
 }
 
@@ -1034,8 +1034,24 @@ bool numeric::has(const ex &other, unsigned /*options*/) const {
         return false;
 }
 
-ex numeric::conjugate() const {
-        PY_RETURN(py_funcs.py_conjugate);
+numeric numeric::conj() const {
+        switch(t) {
+                case MPZ:
+                case MPQ: return *this;
+                case PYOBJECT:
+                {
+                        PyObject* obj = PyObject_GetAttrString(v._pyobject,
+                                        "conjugate");
+                        if (obj == nullptr)
+                                return *this;
+                        obj = PyObject_CallObject(obj, NULL);
+                        if (obj == nullptr)
+                                py_error("Error calling Python conjugate");
+                        return obj;
+                }
+                default:
+                        stub("invalid type: ::conjugate() type not handled");
+        }
 }
 
 ex numeric::real_part() const {
@@ -1660,6 +1676,7 @@ numeric & operator+=(numeric & lh, const numeric & rh)
                         mpq_init(lh.v._bigrat);
                         mpq_set_z(lh.v._bigrat, bigint);
                         mpq_add(lh.v._bigrat, lh.v._bigrat, rh.v._bigrat);
+                        lh.hash = _mpq_pythonhash(lh.v._bigrat);
                         mpz_clear(bigint);
                         return lh;
                 }
@@ -1668,6 +1685,7 @@ numeric & operator+=(numeric & lh, const numeric & rh)
                         mpq_init(tmp);
                         mpq_set_z(tmp, rh.v._bigint);
                         mpq_add(lh.v._bigrat, lh.v._bigrat, tmp);
+                        lh.hash = _mpq_pythonhash(lh.v._bigrat);
                         mpq_clear(tmp);
                         return lh;
                 }
@@ -1680,9 +1698,11 @@ numeric & operator+=(numeric & lh, const numeric & rh)
         switch (lh.t) {
                 case MPZ:
                         mpz_add(lh.v._bigint, lh.v._bigint, rh.v._bigint);
+                        lh.hash = _mpz_pythonhash(lh.v._bigint);
                         return lh;
                 case MPQ:
                         mpq_add(lh.v._bigrat, lh.v._bigrat, rh.v._bigrat);
+                        lh.hash = _mpq_pythonhash(lh.v._bigrat);
                         return lh;
                 case PYOBJECT:
                         {
@@ -1690,6 +1710,7 @@ numeric & operator+=(numeric & lh, const numeric & rh)
                         lh.v._pyobject = PyNumber_Add(p, rh.v._pyobject);
                         if (lh.v._pyobject == nullptr)
                                 py_error("numeric operator+=");
+                        lh.hash = (long)PyObject_Hash(lh.v._pyobject);
                         Py_DECREF(p);
                         Py_INCREF(lh.v._pyobject);
                         return lh;
@@ -1710,6 +1731,7 @@ numeric & operator-=(numeric & lh, const numeric & rh)
                         mpq_init(lh.v._bigrat);
                         mpq_set_z(lh.v._bigrat, bigint);
                         mpq_sub(lh.v._bigrat, lh.v._bigrat, rh.v._bigrat);
+                        lh.hash = _mpq_pythonhash(lh.v._bigrat);
                         mpz_clear(bigint);
                         return lh;
                 }
@@ -1718,6 +1740,7 @@ numeric & operator-=(numeric & lh, const numeric & rh)
                         mpq_init(tmp);
                         mpq_set_z(tmp, rh.v._bigint);
                         mpq_sub(lh.v._bigrat, lh.v._bigrat, tmp);
+                        lh.hash = _mpq_pythonhash(lh.v._bigrat);
                         mpq_clear(tmp);
                         return lh;
                 }
@@ -1730,9 +1753,11 @@ numeric & operator-=(numeric & lh, const numeric & rh)
         switch (lh.t) {
                 case MPZ:
                         mpz_sub(lh.v._bigint, lh.v._bigint, rh.v._bigint);
+                        lh.hash = _mpz_pythonhash(lh.v._bigint);
                         return lh;
                 case MPQ:
                         mpq_sub(lh.v._bigrat, lh.v._bigrat, rh.v._bigrat);
+                        lh.hash = _mpq_pythonhash(lh.v._bigrat);
                         return lh;
                 case PYOBJECT:
                         {
@@ -1740,6 +1765,7 @@ numeric & operator-=(numeric & lh, const numeric & rh)
                         lh.v._pyobject = PyNumber_Subtract(p, rh.v._pyobject);
                         if (lh.v._pyobject == nullptr)
                                 py_error("numeric operator-=");
+                        lh.hash = (long)PyObject_Hash(lh.v._pyobject);
                         Py_DECREF(p);
                         Py_INCREF(lh.v._pyobject);
                         return lh;
@@ -1759,6 +1785,7 @@ numeric & operator*=(numeric & lh, const numeric & rh)
                         mpq_mul(tmp, tmp, rh.v._bigrat);
                         if (mpz_cmp_ui(mpq_denref(tmp),1) == 0) {
                                 mpz_set(lh.v._bigint, mpq_numref(tmp));
+                                lh.hash = _mpz_pythonhash(lh.v._bigint);
                                 mpq_clear(tmp);
                                 return lh;
                         }
@@ -1766,6 +1793,7 @@ numeric & operator*=(numeric & lh, const numeric & rh)
                         lh.t = MPQ;
                         mpq_init(lh.v._bigrat);
                         mpq_set(lh.v._bigrat, tmp);
+                        lh.hash = _mpq_pythonhash(lh.v._bigrat);
                         mpq_clear(tmp);
                         return lh;
                 }
@@ -1776,6 +1804,7 @@ numeric & operator*=(numeric & lh, const numeric & rh)
                         mpq_mul(tmp, tmp, lh.v._bigrat);
                         if (mpz_cmp_ui(mpq_denref(tmp),1) != 0) {
                                 mpq_set(lh.v._bigrat, tmp);
+                                lh.hash = _mpq_pythonhash(lh.v._bigrat);
                                 mpq_clear(tmp);
                                 return lh;
                         }
@@ -1783,6 +1812,7 @@ numeric & operator*=(numeric & lh, const numeric & rh)
                         lh.t = MPZ;
                         mpz_init(lh.v._bigint);
                         mpz_set(lh.v._bigint, mpq_numref(tmp));
+                        lh.hash = _mpz_pythonhash(lh.v._bigint);
                         mpq_clear(tmp);
                         return lh;
                 }
@@ -1795,9 +1825,11 @@ numeric & operator*=(numeric & lh, const numeric & rh)
         switch (lh.t) {
                 case MPZ:
                         mpz_mul(lh.v._bigint, lh.v._bigint, rh.v._bigint);
+                        lh.hash = _mpz_pythonhash(lh.v._bigint);
                         return lh;
                 case MPQ:
                         mpq_mul(lh.v._bigrat, lh.v._bigrat, rh.v._bigrat);
+                        lh.hash = _mpq_pythonhash(lh.v._bigrat);
                         return lh;
                 case PYOBJECT:
                         {
@@ -1805,6 +1837,7 @@ numeric & operator*=(numeric & lh, const numeric & rh)
                         lh.v._pyobject = PyNumber_Multiply(p, rh.v._pyobject);
                         if (lh.v._pyobject == nullptr)
                                 py_error("numeric operator*=");
+                        lh.hash = (long)PyObject_Hash(lh.v._pyobject);
                         Py_DECREF(p);
                         Py_INCREF(lh.v._pyobject);
                         return lh;
@@ -1828,6 +1861,7 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                         mpq_div(tmp, tmp, rh.v._bigrat);
                         if (mpz_cmp_ui(mpq_denref(tmp),1) == 0) {
                                 mpz_set(lh.v._bigint, mpq_numref(tmp));
+                                lh.hash = _mpz_pythonhash(lh.v._bigint);
                                 mpq_clear(tmp);
                                 return lh;
                         }
@@ -1835,6 +1869,7 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                         lh.t = MPQ;
                         mpq_init(lh.v._bigrat);
                         mpq_set(lh.v._bigrat, tmp);
+                        lh.hash = _mpq_pythonhash(lh.v._bigrat);
                         mpq_clear(tmp);
                         return lh;
                 }
@@ -1845,6 +1880,7 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                         mpq_div(tmp, tmp, lh.v._bigrat);
                         if (mpz_cmp_ui(mpq_denref(tmp),1) != 0) {
                                 mpq_set(lh.v._bigrat, tmp);
+                                lh.hash = _mpq_pythonhash(lh.v._bigrat);
                                 mpq_clear(tmp);
                                 return lh;
                         }
@@ -1852,6 +1888,7 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                         lh.t = MPZ;
                         mpz_init(lh.v._bigint);
                         mpz_set(lh.v._bigint, mpq_numref(tmp));
+                        lh.hash = _mpz_pythonhash(lh.v._bigint);
                         mpq_clear(tmp);
                         return lh;
                 }
@@ -1867,6 +1904,7 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                                 mpz_divexact(lh.v._bigint,
                                                 lh.v._bigint,
                                                 rh.v._bigint);
+                                lh.hash = _mpz_pythonhash(lh.v._bigint);
                                 return lh;
                         }
                         else {
@@ -1879,17 +1917,20 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                                 lh.t = MPQ;
                                 mpq_init(lh.v._bigrat);
                                 mpq_div(lh.v._bigrat, bigrat, obigrat);
+                                lh.hash = _mpq_pythonhash(lh.v._bigrat);
                                 mpq_clear(bigrat);
                                 mpq_clear(obigrat);
                                 return lh;
                         }
                 case MPQ:
                         mpq_div(lh.v._bigrat, lh.v._bigrat, rh.v._bigrat);
+                        lh.hash = _mpq_pythonhash(lh.v._bigrat);
                         return lh;
                 case PYOBJECT:
-#if PY_MAJOR_VERSION < 3
                         {
                         PyObject* p = lh.v._pyobject;
+#if PY_MAJOR_VERSION < 3
+                        {
                         if (PyInt_Check(p)) {
                                 if (PyInt_Check(rh.v._pyobject)) {
                                         // This branch happens at startup.
@@ -1899,6 +1940,7 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                                         // but if I don't, Sage crashes on exit.
                                         if (lh.v._pyobject == nullptr)
                                                 py_error("numeric operator/=");
+                                        lh.hash = (long)PyObject_Hash(lh.v._pyobject);
                                         Py_DECREF(p);
                                         Py_INCREF(lh.v._pyobject);
                                         return lh;
@@ -1907,6 +1949,7 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                                         lh.v._pyobject = PyNumber_TrueDivide(p, d);
                                         if (lh.v._pyobject == nullptr)
                                                 py_error("numeric operator/=");
+                                        lh.hash = (long)PyObject_Hash(lh.v._pyobject);
                                         Py_DECREF(d);
                                         Py_DECREF(p);
                                         Py_INCREF(lh.v._pyobject);
@@ -1917,6 +1960,7 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                                 lh.v._pyobject = PyNumber_TrueDivide(n, rh.v._pyobject);
                                 if (lh.v._pyobject == nullptr)
                                         py_error("numeric operator/=");
+                                lh.hash = (long)PyObject_Hash(lh.v._pyobject);
                                 Py_DECREF(n);
                                 Py_DECREF(p);
                                 Py_INCREF(lh.v._pyobject);
@@ -1925,25 +1969,27 @@ numeric & operator/=(numeric & lh, const numeric & rh)
                         }
 #else
                         {
-                        PyObject* p = lh.v._pyobject;
                         if (PyLong_Check(p)) {
                                 PyObject* n = py_funcs.py_integer_from_python_obj(p);
                                 lh.v._pyobject = PyNumber_TrueDivide(n, rh.v._pyobject);
                                 if (lh.v._pyobject == nullptr)
                                         py_error("numeric operator/=");
+                                lh.hash = (long)PyObject_Hash(lh.v._pyobject);
                                 Py_DECREF(n);
                                 Py_DECREF(p);
                                 Py_INCREF(lh.v._pyobject);
                                 return lh;
                         }
+                        }
+#endif
                         lh.v._pyobject = PyNumber_TrueDivide(p, rh.v._pyobject);
                         if (lh.v._pyobject == nullptr)
                                 py_error("numeric operator/=");
+                        lh.hash = (long)PyObject_Hash(lh.v._pyobject);
                         Py_DECREF(p);
                         Py_INCREF(lh.v._pyobject);
                         return lh;
                         }
-#endif
                 default:
                         stub("invalid type: operator/=() type not handled");
         }
@@ -2052,7 +2098,7 @@ bool numeric::is_one() const {
                 case MPQ:
                         return mpq_cmp_si(v._bigrat, 1, 1) == 0;
                 case PYOBJECT:
-                        return is_equal(*_num1_p);
+                        return is_exact() and is_equal(*_num1_p);
                 default:
                         std::cerr << "type = " << t << "\n";
                         stub("invalid type: is_one() type not handled");
@@ -2069,7 +2115,7 @@ bool numeric::is_minus_one() const {
                 case MPQ:
                         return mpq_cmp_si(v._bigrat, -1, 1) == 0;
                 case PYOBJECT:
-                        return is_equal(*_num_1_p);
+                        return is_exact() and is_equal(*_num_1_p);
                 default:
                         std::cerr << "type = " << t << "\n";
                         stub("invalid type: is_minus_one() type not handled");
@@ -2309,6 +2355,8 @@ bool numeric::is_exact() const {
 bool numeric::operator==(const numeric &right) const {
         verbose3("operator==", *this, right);
 
+        if (this == &right)
+                return true;
         if (t != right.t) {
                 if (t == MPZ and right.t == MPQ) {
                         if (mpz_cmp_ui(mpq_denref(right.v._bigrat), 1) != 0)

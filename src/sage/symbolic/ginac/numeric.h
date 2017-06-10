@@ -154,7 +154,8 @@ public:
 	ex to_polynomial(exmap & repl) const override;
 	numeric integer_content() const override;
 	numeric max_coefficient() const override;
-	ex conjugate() const override;
+	numeric conj() const;
+        ex conjugate() const override { return ex(conj()); }
 	ex real_part() const override;
 	ex imag_part() const override;
 protected:

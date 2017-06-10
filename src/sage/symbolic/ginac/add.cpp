@@ -494,7 +494,8 @@ ex add::conjugate() const
 			ex cj=recombine_pair_to_ex(elem).conjugate();
                         v.push_back(split_ex_to_pair(cj));
 		}
-	return (new add(v, overall_coeff.conjugate()))
+	// we know the conjugate is a numeric
+        return (new add(v, ex_to<numeric>(overall_coeff).conj()))
 		-> setflag(status_flags::dynallocated);
 }
 

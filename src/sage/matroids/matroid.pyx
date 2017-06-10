@@ -7721,6 +7721,29 @@ cdef class Matroid(SageObject):
         from sage.homology.simplicial_complex import SimplicialComplex
         return SimplicialComplex(self.no_broken_circuits_sets(ordering))
 
+    cpdef _union(self, matroids):
+        r"""
+        Return the matroid union with another matroid or a list of matroids.
+
+        INPUT:
+
+        - ``matroids`` - an iterator of matroids
+
+        OUTPUT:
+
+        An instance of MatroidUnion.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.Fano()
+            sage: N = M.union(matroid.named_matroids.NonFano()); N
+            Matroid of rank 6 on 7 elements as matroid union of
+            Binary matroid of rank 3 on 7 elements, type (3, 0)
+            Ternary matroid of rank 3 on 7 elements, type 0-
+        """
+        from . import union_matroid
+        return union_matroid.MatroidUnion(matroids)
+
     def union(self, matroids):
         r"""
         Return the matroid union with another matroid or a list of matroids.
@@ -7735,18 +7758,15 @@ cdef class Matroid(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.matroids.union_matroid import *
             sage: matroids.Uniform(2,4).union(matroids.Uniform(5,8))
             Matroid of rank 7 on 8 elements as matroid union of
             Matroid of rank 2 on 4 elements with circuit-closures
             {2: {{0, 1, 2, 3}}}
             Matroid of rank 5 on 8 elements with circuit-closures
             {5: {{0, 1, 2, 3, 4, 5, 6, 7}}}
-
         """
-        from . import union_matroid
-
         if isinstance(matroids, Matroid):
             matroids = [matroids]
-        matroids.append(self)
-        return union_matroid.MatroidUnion(iter(matroids))
+        # place this matroid at the beginning of the list
+        matroids.insert(0,self)
+        return _union(iter(matroids))

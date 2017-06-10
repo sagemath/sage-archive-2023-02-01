@@ -3201,11 +3201,11 @@ class DiGraph(GenericGraph):
         dominated by all the vertices in `dom(v)\setminus\{v\}`. The (immediate)
         dominator tree is a directed tree (or arborescence) rooted at `root`
         that is formed by the arcs `\{ (d(v), v)\mid v\in V\setminus\{root\}\}`.
-        See [Geo05]_ for more details.
+        See [Ge2005]_ for more details.
 
-        This method implements the algorithm proposed in [CHK01]_ which performs
-        very well in practice, although its worst case time complexity is in
-        `O(n^2)`.
+        This method implements the algorithm proposed in [CHK2001]_ which
+        performs very well in practice, although its worst case time complexity
+        is in `O(n^2)`.
 
         INPUT:
 
@@ -3217,6 +3217,7 @@ class DiGraph(GenericGraph):
 
         .. SEEALSO::
 
+            - :wikipedia:`Dominator_(graph_theory)`
             - :meth:`~DiGraph.strong_bridges`
             - :meth:`~DiGraph.strong_articulation_points`
             - :meth:`~DiGraph.strong_connected_components`
@@ -3309,8 +3310,8 @@ class DiGraph(GenericGraph):
 
         A vertex is a strong articulation point if its deletion increases the
         number of strongly connected components. This method implements the
-        algorithm described in [ILS11]_. The time complexity is dominated by the
-        time complexity of the immediate dominators finding algorithm.
+        algorithm described in [ILS2012]_. The time complexity is dominated by
+        the time complexity of the immediate dominators finding algorithm.
 
         OUTPUT: The list of strong articulation points.
 

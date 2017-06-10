@@ -381,6 +381,11 @@ REFERENCES:
 .. [ChenDB] Eric Chen, Online database of two-weight codes,
             http://moodle.tec.hkr.se/~chen/research/2-weight-codes/search.php
 
+.. [CHK2001] Keith D. Cooper, Timothy J. Harvey and Ken Kennedy. *A
+             Simple, Fast Dominance Algorithm*, Software practice and
+             Experience, 4:1-10 (2001).
+             http://www.hipersoft.rice.edu/grads/publications/dom14.pdf
+
 .. [CK1999] David A. Cox and Sheldon Katz. *Mirror symmetry and
             algebraic geometry*, volume 68 of *Mathematical Surveys
             and Monographs*. American Mathematical Society,
@@ -725,6 +730,11 @@ REFERENCES:
              operations on finite simplicial complexes* in Homology,
              Homotopy and Applications 5 (2003), 83-93.
 
+.. [Ge2005] Loukas Georgiadis, *Linear-Time Algorithms for Dominators
+            and Related Problems*, PhD thesis, Princetown University,
+            TR-737-05, (2005).
+            ftp://ftp.cs.princeton.edu/reports/2005/737.pdf
+
 .. [GG2012] Jim Geelen and Bert Gerards, Characterizing graphic
             matroids by a system of linear equations,
             submitted, 2012. Preprint:
@@ -897,6 +907,12 @@ REFERENCES:
 .. _ref-I:
 
 **I**
+
+.. [ILS2012] Giuseppe F. Italiano, Luigi Laura, and Federico
+             Santaroni. *Finding strong bridges and strong
+             articulation points in linear time*. Theoretical Computer
+             Science, 447, 74–84 (2012).
+             :doi:`10.1016/j.tcs.2011.11.011`
 
 .. [IR1990] \K. Ireland and M. Rosen, *A Classical Introduction to
             Modern Number Theory*, Springer-Verlag, GTM volume

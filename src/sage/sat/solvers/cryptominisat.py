@@ -256,7 +256,7 @@ class CryptoMiniSat(SatSolver):
 
         Note that in cryptominisat, the DIMACS standard format is augmented with
         the following extension: having an ``x`` in front of a line makes that
-        line an XOR clause i Note that cryptominisat has its own 
+        line an XOR clause::
 
             sage: solver.add_xor_clause((1,2,3), rhs=True)      # optional - cryptominisat
             sage: solver.clauses(fn)                            # optional - cryptominisat

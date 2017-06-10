@@ -906,30 +906,23 @@ class FunctionField_polymod(FunctionField):
         return self._polynomial
 
     def is_separable(self):
-        """
-        Return true if the defining polynomial of the function field is separable, 
-        i.e. if the defining polynomial of the function field is f(x), check whether
-        gcd(f(x),f'(x)) is a constant.
+        r"""
+        Return whether the defining polynomial of the function field is
+        separable, i.e., whether the gcd of the defining polynomial and its
+        derivative is constant.
         
-        INPUT:
-
-        No inputs.
-
-        OUTPUT:
-
-        -- ``True`` if the defining polynomial is separable. ``False`` otherwise.
-
-
         EXAMPLES::
 
-        sage: K.<x> = FunctionField(GF(5)); R.<y> = K[]
-        sage: L.<y> = K.extension(y^5 - (x^3 + 2*x*y + 1/x))
-        sage: L.is_separable()
-        True
-        sage: K.<x> = FunctionField(GF(5)); R.<y> = K[]
-        sage: L.<y> = K.extension(y^5 - 1)
-        sage: L.is_separable()
-        False
+            sage: K.<x> = FunctionField(GF(5)); R.<y> = K[]
+            sage: L.<y> = K.extension(y^5 - (x^3 + 2*x*y + 1/x))
+            sage: L.is_separable()
+            True
+
+            sage: K.<x> = FunctionField(GF(5)); R.<y> = K[]
+            sage: L.<y> = K.extension(y^5 - 1)
+            sage: L.is_separable()
+            False
+
         """
         f = self.polynomial()
         g = self.polynomial().derivative()

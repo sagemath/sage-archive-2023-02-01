@@ -467,7 +467,8 @@ class FiniteFieldFactory(UniqueFactory):
 
     """
     def create_key_and_extra_args(self, order, name=None, modulus=None, names=None,
-                                  impl=None, proof=None, check_irreducible=True, **kwds):
+                                  impl=None, proof=None, check_irreducible=True,
+                                  structure=None, **kwds):
         """
         EXAMPLES::
 
@@ -476,11 +477,12 @@ class FiniteFieldFactory(UniqueFactory):
             sage: GF.create_key_and_extra_args(9, 'a', foo='value')
             ((9, ('a',), x^2 + 2*x + 2, 'givaro', "{'foo': 'value'}", 3, 2, True), {'foo': 'value'})
 
-        We ignore the ``structure = None`` attribute that gets added by
-        pushouts, see :trac:`21433`::
+        We explicitly take a ``structure`` attribute for compatibility
+        with :class:`~sage.categories.pushout.AlgebraicExtensionFunctor`
+        but we ignore it as it is not used, see :trac:`21433`::
 
             sage: GF.create_key_and_extra_args(9, 'a', structure=None)
-            ((9, ('a',), x^2 + 2*x + 2, 'givaro', '{}', 3, 2, True), {}
+            ((9, ('a',), x^2 + 2*x + 2, 'givaro', '{}', 3, 2, True), {})
 
         """
         import sage.arith.all
@@ -562,11 +564,6 @@ class FiniteFieldFactory(UniqueFactory):
                 # If modulus is x - 1 for impl="modn", set it to None
                 if impl == 'modn' and modulus[0] == -1:
                     modulus = None
-
-            if 'structure' in kwds and kwds['structure'] == None:
-                # Ignore default value for the structure argument
-                # See #21433
-                del(kwds['structure'])
 
             # Putting the str(kwds) into the key is likely going to produce bugs at some point
             # We should not rely on the string representation of a dict but rely on a hashable

@@ -3301,6 +3301,110 @@ class DiGraph(GenericGraph):
 
         return idom
 
+    def strong_articulation_points(self):
+        r"""
+        Return the strong articulation points of this digraph.
+
+        A vertex is a strong articulation point if its deletion increases the
+        number of strongly connected components. This method implements the
+        algorithm described in [ILS11]_. The time complexity is dominated by the
+        time complexity of the immediate dominators finding algorithm.
+
+        OUTPUT: The list of strong articulation points.
+
+        .. SEEALSO::
+
+            - :meth:`~DiGraph.strong_bridges`
+            - :meth:`~DiGraph.strong_connected_components`
+            - :meth:`~DiGraph.immediate_dominators`
+
+        EXAMPLES:
+
+        Two cliques sharing a vertex::
+
+            sage: D = digraphs.Complete(4)
+            sage: D.add_clique([3, 4, 5, 6])
+            sage: D.strong_articulation_points()
+            [3]
+
+        Two cliques connected by some arcs::
+
+            sage: D = digraphs.Complete(4) * 2
+            sage: D.add_edges([(0, 4), (7, 3)])
+            sage: sorted( D.strong_articulation_points() )
+            [0, 3, 4, 7]
+            sage: D.add_edge(1, 5)
+            sage: sorted( D.strong_articulation_points() )
+            [3, 7]
+            sage: D.add_edge(6, 2)
+            sage: D.strong_articulation_points()
+            []
+
+        TESTS:
+
+        All strong articulation points are found::
+
+            sage: def sap_naive(G):
+            ....:     nscc = len(G.strongly_connected_components())
+            ....:     S = []
+            ....:     for u in G:
+            ....:         H = copy(G)
+            ....:         H.delete_vertex(u)
+            ....:         if len(H.strongly_connected_components()) > nscc:
+            ....:             S.append(u)
+            ....:     return S
+            sage: D = digraphs.RandomDirectedGNP(20, 0.1)
+            sage: X = sap_naive(D)
+            sage: SAP = D.strong_articulation_points()
+            sage: set(X) == set(SAP)
+            True
+
+        Trivial cases::
+
+            sage: DiGraph().strong_articulation_points()
+            []
+            sage: DiGraph(1).strong_articulation_points()
+            []
+            sage: DiGraph(2).strong_articulation_points()
+            []
+        """
+        # The method is applied on each strongly connected component
+        if self.is_strongly_connected():
+            L = [self]
+        else:
+            L = self.strongly_connected_components_subgraphs()
+
+        SAP = list()
+        for g in L:
+            n = g.order()
+            if n <= 1:
+                continue
+            if n == 2:
+                SAP.extend( g.vertices() )
+                continue
+
+            # 1. Choose arbitrarily a vertex r, and test whether r is a strong
+            # articulation point.
+            r = next(g.vertex_iterator())
+            E = g.incoming_edges(r) + g.outgoing_edges(r)
+            g.delete_vertex(r)
+            if not g.is_strongly_connected():
+                SAP.append(r)
+            g.add_edges(E)
+
+            # 2. Compute the set of non-trivial immediate dominators in g
+            Dr = set( g.immediate_dominators(r).values() )
+
+            # 3. Compute the set of non-trivial immediate dominators in the
+            # reverse digraph
+            g_reverse = g.reverse()
+            DRr = set( g_reverse.immediate_dominators(r).values() )
+
+            # 4. Store D(r) + DR(r) - r
+            SAP.extend( Dr.union(DRr).difference([r]) )
+
+        return SAP
+
     def is_aperiodic(self):
         r"""
         Return whether the current ``DiGraph`` is aperiodic.

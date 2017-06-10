@@ -1004,15 +1004,7 @@ class Order(IntegralDomain):
 
     def some_elements(self):
         """
-        Return a list of elements of ``self``.
-
-        INPUT:
-
-        - ``self`` -- an order of a number field
-
-        OUTPUT:
-
-        - ``elements`` -- a list containing elements in ``self``
+        Return a list of elements of the given order.
 
         EXAMPLES::
 
@@ -1021,14 +1013,25 @@ class Order(IntegralDomain):
             sage: G.some_elements()
             [1, I, 0, I + 1, -1, -I + 1, -I - 5]
 
-            sage: R.<t> = QQ[]; R
-            Univariate Polynomial Ring in t over Rational Field
-            sage: K.<a> = QQ.extension(t^3-2); K
+            sage: R.<t> = QQ[]
+            sage: K.<a> = QQ.extension(t^3 - 2); K
             Number Field in a with defining polynomial t^3 - 2
             sage: Z = K.ring_of_integers(); Z
             Maximal Order in Number Field in a with defining polynomial t^3 - 2
             sage: Z.some_elements()
             [1, a, a^2, 0, a + 1, 2, -a + 1, -3]
+
+        TESTS:
+
+        This also works for trivial extensions::
+        
+            sage: R.<t> = QQ[]
+            sage: K.<a> = QQ.extension(t); K
+            Number Field in a with defining polynomial t
+            sage: Z = K.ring_of_integers(); Z
+            Maximal Order in Number Field in a with defining polynomial t
+            sage: Z.some_elements()
+            [1, 0, -1]
         """
         gens = self.basis()
         elements = gens

@@ -1824,7 +1824,24 @@ cdef class Parent(category_object.CategoryObject):
         ``DefaultConvertMap`` or ``DefaultConvertMap_unique``
         depending on whether or not init_no_parent is set.
 
-        EXAMPLES:
+        EXAMPLES::
+
+            sage: QQ['x']._generic_convert_map(SR)
+            Conversion via _polynomial_ method map:
+              From: Symbolic Ring
+              To:   Univariate Polynomial Ring in x over Rational Field
+            sage: GF(11)._generic_convert_map(GF(7))
+            Conversion map:
+              From: Finite Field of size 7
+              To:   Finite Field of size 11
+
+        TESTS:
+
+        We check that `trac`:23184 has been resolved::
+
+            sage: QQ[['x']].coerce_map_from(QQ).category_for()
+            Category of euclidean domains
+            sage: 
         """
         import coerce_maps
         if self._convert_method_name is not None:

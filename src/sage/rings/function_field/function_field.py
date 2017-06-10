@@ -167,27 +167,22 @@ class FunctionField(Field):
             sage: K.<x> = FunctionField(QQ)
             sage: K.some_elements()
             [x,
-             1/x,
-             1,
-             2,
-             3,
-             42,
-             101,
-             1009,
-             x^2,
-             x^3,
-             256*x^5,
-             (x + 1)/x,
-             11111,
-             (2*x + 1)/x,
-             100/x^2,
-             (x^5 + x^4 + x^3 + x^2 + 1)/x^12]
+            1/x,
+            1,
+            0,
+            2,
+            42,
+            1009,
+            x^2,
+            256*x^5,
+            (x + 1)/x,
+            11111*x/(x^4 - x - 1),
+            (2*x^2 + 1)/(x - 1),
+            (x^5 + x^4 + x^3 + x^2 + 1)/x^12]
          """
-         return [self.gen(), 1/self.gen(), self(1), self(2),
-         self(3), self(42), self(101), self(1009), self.gen()**2,
-         self.gen()**3, 256*self.gen()**5, (1+self.gen())/self.gen(),
-         11111*self.gen()/self.gen(), (2*self.gen()+1)/self.gen(),
-         100/(self.gen()**2),
+         return [self.gen(), 1/self.gen(), self(1), self(0), self(2), self(42),
+         self(1009), self.gen()**2, 256*self.gen()**5, (1+self.gen())/self.gen(),
+         11111*self.gen()/(self.gen()**4-self.gen()-1), (2*self.gen()**2+1)/(self.gen()-1),
          (self.gen()**5+self.gen()**4+self.gen()**3+self.gen()**2+1)/(self.gen()**12)]
 
     def characteristic(self):

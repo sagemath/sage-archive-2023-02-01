@@ -1056,6 +1056,9 @@ ext_modules = [
               ["sage/numerical/linear_tensor_element.pyx"],
               libraries=["stdc++"]),
 
+    Extension("sage.numerical.gauss_legendre",
+              ["sage/numerical/gauss_legendre.pyx"]),
+
     Extension("sage.numerical.sdp",
               ["sage/numerical/sdp.pyx"]),
 

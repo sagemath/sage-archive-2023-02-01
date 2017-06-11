@@ -443,6 +443,17 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                     Category of commutative additive semigroups
                     sage: phi.parent().homset_category() # todo: not implemented
                     Category of finite dimensional modules with basis over Integer Ring
+
+            TESTS:
+
+            Check that :trac:`23216` is fixed::
+
+                sage: X = CombinatorialFreeModule(QQ, [])
+                sage: Y = CombinatorialFreeModule(QQ, [1,2,3])
+                sage: Hom(X,Y).zero().matrix()
+                []
+                sage: Hom(X,Y).zero().matrix().parent()
+                Full MatrixSpace of 3 by 0 dense matrices over Rational Field
             """
             from sage.matrix.constructor import matrix
             if base_ring is None:
@@ -450,7 +461,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             on_basis = self.on_basis()
             basis_keys = self.domain().basis().keys()
-            m = matrix(base_ring,
+            m = matrix(base_ring, basis_keys.cardinality(), self.codomain().dimension(),
                        [on_basis(x)._vector_() for x in basis_keys])
             if side == "left":
                 m = m.transpose()

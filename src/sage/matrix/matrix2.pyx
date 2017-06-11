@@ -14985,6 +14985,13 @@ def _matrix_power_symbolic(A, n):
         sage: A^(2*n+1)
         [ 1/2*2^(2*n + 1) -1/2*2^(2*n + 1)]
         [-1/2*2^(2*n + 1)  1/2*2^(2*n + 1)]
+
+    Check if :trac:`23215` is fixed::
+
+        sage: a, b, k = var('a, b, k')
+        sage: matrix(2, [a, b, -b, a])^k
+        [     1/2*(a + I*b)^k + 1/2*(a - I*b)^k -1/2*I*(a + I*b)^k + 1/2*I*(a - I*b)^k]
+        [ 1/2*I*(a + I*b)^k - 1/2*I*(a - I*b)^k      1/2*(a + I*b)^k + 1/2*(a - I*b)^k]
     """
     from sage.rings.qqbar import AlgebraicNumber
     from sage.matrix.constructor import matrix
@@ -14997,7 +15004,7 @@ def _matrix_power_symbolic(A, n):
     # transform to QQbar if possible
     try:
         A = A.change_ring(QQbar)
-    except TypeError:
+    except (TypeError, NotImplementedError):
         pass
 
     # returns jordan matrix J and invertible matrix P such that A = P*J*~P

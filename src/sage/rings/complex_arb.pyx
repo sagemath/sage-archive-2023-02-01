@@ -272,27 +272,27 @@ class ComplexBallField(UniqueRepresentation, Field):
         construction functions)::
 
             sage: CBF.coerce_map_from(ZZ)
-            Conversion map:
-            From: Integer Ring
-            To:   Complex ball field with 53 bits precision
+            Coercion map:
+              From: Integer Ring
+              To:   Complex ball field with 53 bits precision
             sage: CBF.coerce_map_from(QQ)
-            Conversion map:
-            From: Rational Field
-            To:   Complex ball field with 53 bits precision
+            Coercion map:
+              From: Rational Field
+              To:   Complex ball field with 53 bits precision
 
         Various other coercions are available through real ball fields or CLF::
 
             sage: CBF.coerce_map_from(RLF)
             Composite map:
-            From: Real Lazy Field
-            To:   Complex ball field with 53 bits precision
-            Defn:   Conversion map:
-                    From: Real Lazy Field
-                    To:   Real ball field with 53 bits precision
+              From: Real Lazy Field
+              To:   Complex ball field with 53 bits precision
+              Defn:   Coercion map:
+                      From: Real Lazy Field
+                      To:   Real ball field with 53 bits precision
                     then
-                    Conversion map:
-                    From: Real ball field with 53 bits precision
-                    To:   Complex ball field with 53 bits precision
+                      Coercion map:
+                      From: Real ball field with 53 bits precision
+                      To:   Complex ball field with 53 bits precision
             sage: CBF.has_coerce_map_from(AA)
             True
             sage: CBF.has_coerce_map_from(QuadraticField(-1))
@@ -422,9 +422,9 @@ class ComplexBallField(UniqueRepresentation, Field):
             sage: CBF.coerce_map_from(CBF)
             Identity endomorphism of Complex ball field with 53 bits precision
             sage: CBF.coerce_map_from(ComplexBallField(100))
-            Conversion map:
-            From: Complex ball field with 100 bits precision
-            To:   Complex ball field with 53 bits precision
+            Coercion map:
+              From: Complex ball field with 100 bits precision
+              To:   Complex ball field with 53 bits precision
             sage: CBF.has_coerce_map_from(ComplexBallField(42))
             False
             sage: CBF.has_coerce_map_from(RealBallField(54))

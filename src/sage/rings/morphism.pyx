@@ -675,8 +675,6 @@ cdef class RingHomomorphism(RingMap):
               To:   Integer Ring
               Defn: Choice of lifting map
         """
-        if not isinstance(lift, RingMap):
-            raise TypeError("lift must be a RingMap")
         if lift.domain() != self.codomain():
             raise TypeError("lift must have correct domain")
         if lift.codomain() != self.domain():

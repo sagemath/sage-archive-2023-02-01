@@ -1879,6 +1879,11 @@ cdef class FormalCompositeMap(Map):
             sage: c3.is_injective()
             False
         """
+        # Maybe the category can tell us something
+        try:
+            return self.getattr_from_category('is_injective')()
+        except NotImplementedError:
+            pass
         without_bij = (f for f in self.__list if not (f.is_injective() and f.is_surjective()))
         if not next(without_bij).is_injective():
             return False
@@ -1929,6 +1934,11 @@ cdef class FormalCompositeMap(Map):
             ...
             NotImplementedError: Not enough information to deduce surjectivity.
         """
+        # Maybe the category can tell us something
+        try:
+            return self.getattr_from_category('is_surjective')()
+        except NotImplementedError:
+            pass
         without_bij = (f for f in self.__list[-1::-1] if not (f.is_injective() and f.is_surjective()))
         if not next(without_bij).is_surjective():
             return False

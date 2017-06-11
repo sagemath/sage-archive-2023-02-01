@@ -119,9 +119,16 @@ class Rings(CategoryWithAxiom):
 
                 sage: K.<x> = FunctionField(QQ)
                 sage: f = ZZ.hom(K); f
-                Ring Coercion morphism:
+                Composite map:
                   From: Integer Ring
                   To:   Rational function field in x over Rational Field
+                  Defn:   Conversion via FractionFieldElement_1poly_field map:
+                          From: Integer Ring
+                          To:   Fraction Field of Univariate Polynomial Ring in x over Rational Field
+                        then
+                          Coercion map:
+                          From: Fraction Field of Univariate Polynomial Ring in x over Rational Field
+                          To:   Rational function field in x over Rational Field
                 sage: f.is_injective()
                 True
 

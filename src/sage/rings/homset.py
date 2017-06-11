@@ -196,7 +196,7 @@ class RingHomset_generic(HomsetWithBase):
 
             sage: H = Hom(ZZ, QQ)
             sage: H.natural_map()
-            Ring Coercion morphism:
+            Natural morphism:
               From: Integer Ring
               To:   Rational Field
         """

@@ -373,7 +373,10 @@ def is_RingHomomorphism(phi):
         sage: sage.rings.morphism.is_RingHomomorphism(2/3)
         False
     """
-    return isinstance(phi, RingHomomorphism)
+    # We use the category framework to determine whether something is a ring homomorphism.
+    from sage.categories.map import Map
+    from sage.categories.all import Rings
+    return isinstance(phi, Map) and phi.category_for().is_subcategory(Rings())
 
 cdef class RingMap(Morphism):
     """

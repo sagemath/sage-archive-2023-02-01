@@ -1741,9 +1741,9 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
             EXAMPLES::
 
                 sage: f = ZZ.hom(GF(3)); f
-                Ring Coercion morphism:
-                    From: Integer Ring
-                    To:   Finite Field of size 3
+                Natural morphism:
+                  From: Integer Ring
+                  To:   Finite Field of size 3
                 sage: f.is_injective()
                 False
 

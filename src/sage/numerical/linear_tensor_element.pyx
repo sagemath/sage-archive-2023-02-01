@@ -398,13 +398,10 @@ cdef class LinearTensor(ModuleElement):
             Coercion on left operand via
                 Coercion map:
                   From: Integer Ring
-                  To:   Tensor product of Vector space of dimension 2 over Real
-                        Double Field and Linear functions over Real Double Field
+                  To:   Tensor product of Vector space of dimension 2 over Real Double Field and Linear functions over Real Double Field
             Arithmetic performed after coercions.
-            Result lives in Tensor product of Vector space of dimension 2 over
-            Real Double Field and Linear functions over Real Double Field +
-            Tensor product of Vector space of dimension 2 over Real Double Field and Linear
-            functions over Real Double Field
+            Result lives in Tensor product of Vector space of dimension 2 over Real Double Field and Linear functions over Real Double Field
+            Tensor product of Vector space of dimension 2 over Real Double Field and Linear functions over Real Double Field
         
             sage: operator.le(10, lt)
             (10.0, 10.0) <= (1.0, 2.0)*x_0

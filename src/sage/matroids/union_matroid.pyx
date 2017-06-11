@@ -261,7 +261,7 @@ cdef class PartitionMatroid(Matroid):
             Partition Matroid of rank 0 on 0 elements
         """
         P2 = map(set,list(partition))
-        if len(P2) != 0:
+        if P2:
             if len(set.union(*P2)) != sum(map(len,P2)):
                 raise ValueError("not an iterator of disjoint sets")
         self.p = {}

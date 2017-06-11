@@ -58,7 +58,19 @@ cdef class DefaultConvertMap(Map):
         self._force_use = force_use
         if (<Parent>codomain)._element_constructor is None:
             raise RuntimeError("BUG in coercion model, no element constructor for {}".format(type(codomain)))
-        self._repr_type_str = "Coercion" if self._is_coercion else "Conversion"
+
+    def _repr_type(self):
+        r"""
+        Return a printable type for this morphism.
+
+        EXAMPLES::
+
+            sage: f = GF(11).convert_map_from(GF(7))
+            sage: f._repr_type() 
+            'Conversion'
+
+        """
+        return self._repr_type_str or ("Coercion" if self._is_coercion else "Conversion")
 
     cdef dict _extra_slots(self, dict _slots):
         _slots['_force_use'] = self._force_use

@@ -571,11 +571,16 @@ def generic_cmp(x,y):
         return 0
     return 1
 
+
 def cmp_props(left, right, props):
+    from sage.misc.superseded import deprecation
+    deprecation(23149, "cmp_props is deprecated")
     for a in props:
         c = cmp(left.__getattribute__(a)(), right.__getattribute__(a)())
-        if c: return c
+        if c:
+            return c
     return 0
+
 
 def union(x, y=None):
     """

@@ -9,7 +9,7 @@ Points on schemes
 #*******************************************************************************
 
 from sage.structure.element import Element
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 
 ########################################################
 # Base class for points on a scheme, either topological

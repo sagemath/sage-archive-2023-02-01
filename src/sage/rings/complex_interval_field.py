@@ -430,6 +430,18 @@ class ComplexIntervalField_class(ring.Field):
             3.141592653589794? + 2.718281828459046?*I
             sage: ComplexIntervalField(100)(CIF(RIF(2,3)))
             3.?
+
+            sage: QQi.<i> = QuadraticField(-1)
+            sage: CIF(i)
+            1*I
+            sage: QQi.<i> = QuadraticField(-1, embedding=CC(0,-1))
+            sage: CIF(i)
+            -1*I
+            sage: QQi.<i> = QuadraticField(-1, embedding=None)
+            sage: CIF(i)
+            Traceback (most recent call last):
+            ...
+            ValueError: can not convert complex algebraic number to real interval
         """
         if im is None:
             if isinstance(x, complex_interval.ComplexIntervalFieldElement):
@@ -446,9 +458,14 @@ class ComplexIntervalField_class(ring.Field):
                             sage_eval(x.replace(' ',''), locals={"I":self.gen(),"i":self.gen()}))
 
             late_import()
-            if isinstance(x, NumberFieldElement_quadratic) and list(x.parent().polynomial()) == [1, 0, 1]:
-                (re, im) = list(x)
-                return complex_interval.ComplexIntervalFieldElement(self, re, im)
+            if isinstance(x, NumberFieldElement_quadratic):
+                parent = x.parent()
+                if (list(parent.polynomial()) == [1, 0, 1] and
+                        parent.coerce_embedding() is not None):
+                    (re, im) = list(x)
+                    if not parent._standard_embedding:
+                        im = -im
+                    return complex_interval.ComplexIntervalFieldElement(self, re, im)
 
             try:
                 return x._complex_mpfi_( self )

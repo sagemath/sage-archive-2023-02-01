@@ -1583,6 +1583,9 @@ REFERENCES:
              theory (New York, 1984-1985), Springer, Berlin, 1987,
              pp. 275-280.
 
+.. [Stu1993] \B. Sturmfels, Algorithms in invariant theory, Springer-Verlag,
+             1993.
+
 .. [STW2016] C. Stump, H. Thomas, N. Williams. *Cataland II*, in
              preparation, 2016.
 

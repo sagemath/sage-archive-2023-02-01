@@ -1,0 +1,323 @@
+"""
+This linkage file implements the padics API using Sage Polynomials.
+
+It is included into Polynomial_ram.pxi and Polynomial_unram.pxi,
+where functions that depend on the ramification of the defining polynomial afre placed.
+
+AUTHORS:
+
+- David Roe (2017-6-11) -- initial version
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2017 David Roe <roed.math@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
+cdef inline int cconstruct(celement value, PowComputer_class prime_pow) except -1:
+    """
+    Construct a new element.
+
+    INPUT:
+
+    - ``unit`` -- an ``celement`` to be initialized.
+    - ``prime_pow`` -- the PowComputer for the ring.
+    """
+    pass
+
+cdef inline int cdestruct(celement value, PowComputer_class prime_pow) except -1:
+    """
+    Deallocate an element.
+
+    INPUT:
+
+    - ``unit`` -- an ``celement`` to be cleared.
+    - ``prime_pow`` -- the PowComputer for the ring.
+    """
+    pass
+
+cdef inline int cneg(celement out, celement a, long prec, PowComputer_class prime_pow) except -1:
+    """
+    Negation
+
+    Note that no reduction is performed.
+
+    INPUT:
+
+    - ``out`` -- an ``celement`` to store the negation.
+    - ``a`` -- an ``celement`` to be negated.
+    - ``prec`` -- a long, the precision: ignored.
+    - ``prime_pow`` -- the PowComputer for the ring.
+    """
+    pass
+
+cdef inline int cadd(celement out, celement a, celement b, long prec, PowComputer_class prime_pow) except -1:
+    """
+    Addition
+
+    Note that no reduction is performed.
+
+    INPUT:
+
+    - ``out`` -- an ``celement`` to store the sum.
+    - ``a`` -- an ``celement``, the first summand.
+    - ``b`` -- an ``celement``, the second summand.
+    - ``prec`` -- a long, the precision: ignored.
+    - ``prime_pow`` -- the PowComputer for the ring.
+    """
+    pass
+
+cdef inline int csub(celement out, celement a, celement b, long prec, PowComputer_class prime_pow) except -1:
+    """
+    Subtraction.
+
+    Note that no reduction is performed.
+
+    INPUT:
+
+    - ``out`` -- an ``celement`` to store the difference.
+    - ``a`` -- an ``celement``, the first input.
+    - ``b`` -- an ``celement``, the second input.
+    - ``prec`` -- a long, the precision: ignored.
+    - ``prime_pow`` -- the PowComputer for the ring.
+    """
+    pass
+
+cdef inline int cmul(celement out, celement a, celement b, long prec, PowComputer_class prime_pow) except -1:
+    """
+    Multiplication.
+
+    Note that no reduction is performed.
+
+    INPUT:
+
+    - ``out`` -- an ``celement`` to store the product.
+    - ``a`` -- an ``celement``, the first input.
+    - ``b`` -- an ``celement``, the second input.
+    - ``prec`` -- a long, the precision: ignored.
+    - ``prime_pow`` -- the PowComputer for the ring.
+    """
+    pass
+
+cdef inline int csetone(celement out, PowComputer_class prime_pow) except -1:
+    """
+    Sets to 1.
+
+    INPUT:
+
+    - ``out`` -- the ``celement`` in which to store 1.
+    - ``prime_pow`` -- the PowComputer for the ring.
+    """
+    pass
+
+cdef inline int csetzero(celement out, PowComputer_class prime_pow) except -1:
+    """
+    Sets to 0.
+
+    INPUT:
+
+    - ``out`` -- the ``celement`` in which to store 0.
+    - ``prime_pow`` -- the PowComputer for the ring.
+    """
+    pass
+
+cdef inline bint cisone(celement a, PowComputer_class prime_pow) except -1:
+    """
+    Returns whether this element is equal to 1.
+
+    INPUT:
+
+    - ``a`` -- the element to test.
+    - ``prime_pow`` -- the PowComputer for the ring.
+
+    OUTPUT:
+
+    - returns True if `a = 1`, and False otherwise.
+    """
+    pass
+
+cdef inline bint ciszero(celement a, PowComputer_class prime_pow) except -1:
+    """
+    Returns whether this element is equal to 0.
+
+    INPUT:
+
+    - ``a`` -- the element to test.
+    - ``prime_pow`` -- the PowComputer for the ring.
+
+    OUTPUT:
+
+    - returns True if `a = 0`, and False otherwise.
+    """
+    pass
+
+cdef inline int ccopy(celement out, celement a, PowComputer_class prime_pow) except -1:
+    """
+    Copying.
+
+    INPUT:
+
+    - ``out`` -- the ``celement`` to store the result.
+    - ``a`` -- the element to copy.
+    - ``prime_pow`` -- the PowComputer for the ring.
+    """
+    pass
+
+cdef inline cpickle(celement a, PowComputer_class prime_pow):
+    """
+    Serialization into objects that Sage knows how to pickle.
+
+    INPUT:
+
+    - ``a`` the element to pickle.
+    - ``prime_pow`` the PowComputer for the ring.
+
+    OUTPUT:
+
+    - a serializable object storing ``a``.
+    """
+    pass
+
+cdef inline int cunpickle(celement out, x, PowComputer_class prime_pow) except -1:
+    """
+    Reconstruction from the output of meth:`cpickle`.
+
+    INPUT:
+
+    - ``out`` -- the ``celement`` in which to store the result.
+    - ``x`` -- the result of `meth`:cpickle.
+    - ``prime_pow`` -- the PowComputer for the ring.
+    """
+    pass
+
+cdef inline long chash(celement a, long ordp, long prec, PowComputer_class prime_pow) except -1:
+    """
+    Hashing.
+
+    INPUT:
+
+    - ``a`` -- an ``celement`` storing the underlying element to hash.
+    - ``ordp`` -- a long storing the valuation.
+    - ``prec`` -- a long storing the precision.
+    - ``prime_pow`` -- a PowComputer for the ring.
+    """
+    pass
+
+# The element is filled in for zero in the output of clist if necessary.
+# It could be [] for some other linkages.
+_list_zero = Integer(0)
+
+cdef int cteichmuller(celement out, celement value, long prec, PowComputer_class prime_pow) except -1:
+    """
+    Teichmuller lifting.
+
+    INPUT:
+
+    - ``out`` -- an ``celement`` which is set to a `q-1` root of unity
+                 congruent to `value` mod `\pi`; or 0 if `a \equiv 0
+                 \pmod{\pi}`.
+    - ``value`` -- an ``celement``, the element mod `\pi` to lift.
+    - ``prec`` -- a long, the precision to which to lift.
+    - ``prime_pow`` -- the Powcomputer of the ring.
+    """
+    pass
+
+cdef int cconv(celement out, x, long prec, long valshift, PowComputer_class prime_pow) except -2:
+    """
+    Conversion from other Sage types.
+
+    INPUT:
+
+    - ``out`` -- an ``celement`` to store the output.
+    - ``x`` -- a Sage element that can be converted to a `p`-adic element.
+    - ``prec`` -- a long, giving the precision desired: absolute if
+                  `valshift = 0`, relative if `valshift > 0`.
+    - ``valshift`` -- the power of the uniformizer to divide by before
+      storing the result in ``out``.
+    - ``prime_pow`` -- a PowComputer for the ring.
+    """
+    pass
+
+cdef inline long cconv_mpz_t(celement out, mpz_t x, long prec, bint absolute, PowComputer_class prime_pow) except -2:
+    """
+    A fast pathway for conversion of integers that doesn't require
+    precomputation of the valuation.
+
+    INPUT:
+
+    - ``out`` -- an ``celement`` to store the output.
+    - ``x`` -- an ``mpz_t`` giving the integer to be converted.
+    - ``prec`` -- a long, giving the precision desired: absolute or
+                  relative depending on the ``absolute`` input.
+    - ``absolute`` -- if False then extracts the valuation and returns
+                      it, storing the unit in ``out``; if True then
+                      just reduces ``x`` modulo the precision.
+    - ``prime_pow`` -- a PowComputer for the ring.
+
+    OUTPUT:
+
+    - If ``absolute`` is False then returns the valuation that was
+      extracted (``maxordp`` when `x = 0`).
+    """
+    pass
+
+cdef inline int cconv_mpz_t_out(mpz_t out, celement x, long valshift, long prec, PowComputer_class prime_pow) except -1:
+    """
+    Converts the underlying `p`-adic element into an integer if
+    possible.
+
+    - ``out`` -- stores the resulting integer as an integer between 0
+                 and `p^{prec + valshift}`.
+    - ``x`` -- an ``celement`` giving the underlying `p`-adic element.
+    - ``valshift`` -- a long giving the power of `p` to shift `x` by.
+    -` ``prec`` -- a long, the precision of ``x``: currently not used.
+    - ``prime_pow`` -- a PowComputer for the ring.
+    """
+    pass
+
+cdef inline long cconv_mpq_t(celement out, mpq_t x, long prec, bint absolute, PowComputer_class prime_pow) except? -10000:
+    """
+    A fast pathway for conversion of rationals that doesn't require
+    precomputation of the valuation.
+
+    INPUT:
+
+    - ``out`` -- an ``celement`` to store the output.
+    - ``x`` -- an ``mpq_t`` giving the rational to be converted.
+    - ``prec`` -- a long, giving the precision desired: absolute or
+                  relative depending on the ``absolute`` input.
+    - ``absolute`` -- if False then extracts the valuation and returns
+                      it, storing the unit in ``out``; if True then
+                      just reduces ``x`` modulo the precision.
+    - ``prime_pow`` -- a PowComputer for the ring.
+
+    OUTPUT:
+
+    - If ``absolute`` is False then returns the valuation that was
+      extracted (``maxordp`` when `x = 0`).
+    """
+    pass
+
+cdef inline int cconv_mpq_t_out(mpq_t out, celement x, long valshift, long prec, PowComputer_class prime_pow) except -1:
+    """
+    Converts the underlying `p`-adic element into a rational.
+
+    - ``out`` -- gives a rational approximating the input.  Currently
+                 uses rational reconstruction but may change in the
+                 future to use a more naive method.
+    - ``x`` -- an ``celement`` giving the underlying `p`-adic element.
+    - ``valshift`` -- a long giving the power of `p` to shift `x` by.
+    -` ``prec`` -- a long, the precision of ``x``, used in rational
+                   reconstruction.
+    - ``prime_pow`` -- a PowComputer for the ring.
+    """
+    pass
+
+# In order to ensure that this file is not actually included, we make this file cause a compile error.
+cdef UndefinedType raise_compile_error

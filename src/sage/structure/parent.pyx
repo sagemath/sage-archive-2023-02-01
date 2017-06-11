@@ -1841,7 +1841,6 @@ cdef class Parent(category_object.CategoryObject):
 
             sage: QQ[['x']].coerce_map_from(QQ).category_for()
             Category of euclidean domains
-            sage: 
         """
         import coerce_maps
         if self._convert_method_name is not None:

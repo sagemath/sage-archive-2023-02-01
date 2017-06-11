@@ -13258,7 +13258,7 @@ cdef class Matrix(matrix1.Matrix):
         dp, up, vp = _smith_diag(d)
         return dp,up*u,v*vp
 
-    def _hermite_form_euclidean(self, transformation=False):
+    def _hermite_form_euclidean(self, transformation=False, normalization=None):
         """
         Transform the matrix in place to hermite normal form and optionally
         return the transformation matrix.
@@ -13266,13 +13266,14 @@ cdef class Matrix(matrix1.Matrix):
         The matrix is assumed to be over an Euclidean domain. In particular,
         ``xgcd()`` method should be available for the elements of the domain.
 
-        Furthermore if ``lc()`` method is available for the elements of the
-        base ring, then the pivots are also normalized to be *monic*.
-
         INPUT:
 
-        - ``transformation`` -- boolean (default: ``False``): if ``True``,
+        - ``transformation`` -- boolean (default: ``False``); if ``True``,
           return the transformation matrix
+
+        - ``normalization`` -- function (default: ``None``); if given, the
+          function is applied to each pivot to get a normalization coefficient,
+          which is multiplied to the pivot.
 
         EXAMPLES::
 
@@ -13357,17 +13358,14 @@ cdef class Matrix(matrix1.Matrix):
             j = pivot_cols[i]
             pivot = A.get_unsafe(i,j)
 
-            # make pivot monic if pivot.lc() is available,
-            # which is the case for polynomial matrices
-            try:
-                lc_inverse = ~ pivot.lc()
+            # possibly normlize the pivot
+            if normalization:
+                coeff = normalization(pivot)
                 for c in range(j,n):
-                    A.set_unsafe(i, c, A.get_unsafe(i,c) * lc_inverse)
-                if transformation:
-                    for c in range(m):
-                        U.set_unsafe(i, c, U.get_unsafe(i,c) * lc_inverse)
-            except AttributeError:
-                pass
+                    A.set_unsafe(i, c, A.get_unsafe(i,c) * coeff)
+                    if transformation:
+                        for c in range(m):
+                            U.set_unsafe(i, c, U.get_unsafe(i,c) * coeff)
 
             pivot = A.get_unsafe(i,j)
             for k in range(i):

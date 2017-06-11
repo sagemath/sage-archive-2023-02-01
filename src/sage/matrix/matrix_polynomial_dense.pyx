@@ -471,9 +471,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         A = self.__copy__()
 
         if transformation:
-            U = A._hermite_form_euclidean(transformation=True)
+            U = A._hermite_form_euclidean(transformation=True, normalization=lambda p: ~p.lc())
         else:
-            A._hermite_form_euclidean(transformation=False)
+            A._hermite_form_euclidean(transformation=False, normalization=lambda p: ~p.lc())
 
         if not include_zero_rows:
             i = A.nrows() - 1

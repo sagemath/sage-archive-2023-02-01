@@ -20,6 +20,13 @@ cdef class DefaultConvertMap(Map):
     """
     This morphism simply calls the codomain's element_constructor method,
     passing in the codomain as the first argument.
+
+    EXAMPLES::
+
+        sage: QQ[['x']].coerce_map_from(QQ)
+        Conversion map:
+          From: Rational Field
+          To:   Power Series Ring in x over Rational Field
     """
     def __init__(self, domain, codomain, category=None, force_use=False):
         """
@@ -34,6 +41,13 @@ cdef class DefaultConvertMap(Map):
               To:   Finite Field of size 11
             sage: f.parent()
             Set of Morphisms from Finite Field of size 7 to Finite Field of size 11 in Category of sets with partial maps
+
+        Test that `trac`:23211 is resolved::
+
+            sage: f._is_coercion
+            False
+            sage: QQ[['x']].coerce_map_from(QQ)._is_coercion
+            True
         """
         if not isinstance(domain, Parent):
             domain = Set_PythonType(domain)
@@ -50,15 +64,22 @@ cdef class DefaultConvertMap(Map):
 
     cdef dict _extra_slots(self, dict _slots):
         _slots['_force_use'] = self._force_use
-        _slots['_is_coercion'] = self._is_coercion
         return Map._extra_slots(self, _slots)
 
     cdef _update_slots(self, dict _slots):
         self._force_use = _slots['_force_use']
-        self._is_coercion = _slots['_is_coercion']
         Map._update_slots(self, _slots)
 
     cpdef Element _call_(self, x):
+        """
+        Create an element of the codomain from a single element of the domain.
+
+        EXAMPLES::
+
+            sage: f = QQ[['x']].coerce_map_from(QQ)
+            sage: f(2/3).parent()
+            Power Series Ring in x over Rational Field
+        """
         cdef Parent C = self._codomain
         try:
             return C._element_constructor(C, x)
@@ -69,6 +90,15 @@ cdef class DefaultConvertMap(Map):
             raise
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
+        """
+        Create an element of the codomain from an element of the domain, with extra arguments.
+
+        EXAMPLES::
+
+            sage: f = QQ[['x']].coerce_map_from(QQ)
+            sage: f(2/3, 4)
+            2/3 + O(x^4)
+        """
         cdef Parent C = self._codomain
         try:
             if len(args) == 0:

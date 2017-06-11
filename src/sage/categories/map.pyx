@@ -131,6 +131,7 @@ cdef class Map(Element):
         self._codomain = C
         self.domain    = ConstantFunction(D)
         self.codomain  = ConstantFunction(C)
+        self._is_coercion = False
         if D.is_exact() and C.is_exact():
             self._coerce_cost = 10 # default value.
         else:
@@ -403,6 +404,11 @@ cdef class Map(Element):
             self._repr_type_str = _slots['_repr_type_str']
         else:
             self._repr_type_str = None
+        # Same for _is_coercion
+        if '_is_coercion' in _slots:
+            self._is_coercion = _slots['_is_coercion']
+        else:
+            self._is_coercion = None
 
     def _update_slots_test(self, _slots):
         """
@@ -438,6 +444,7 @@ cdef class Map(Element):
         """
         _slots['_domain'] = self.domain()
         _slots['_codomain'] = self._codomain
+        _slots['_is_coercion'] = self._is_coercion
         _slots['_repr_type_str'] = self._repr_type_str
         return _slots
 
@@ -452,6 +459,7 @@ cdef class Map(Element):
             sage: f._extra_slots_test({"bla": 1})
             {'_codomain': Integer Ring,
              '_domain': Rational Field,
+            '_is_coercion': False,
              '_repr_type_str': None,
              'bla': 1}
         """

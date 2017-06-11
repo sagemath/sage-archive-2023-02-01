@@ -1572,6 +1572,7 @@ cdef class Parent(category_object.CategoryObject):
         D = mor.domain()
 
         assert not (self._coercions_used and D in self._coerce_from_hash), "coercion from {} to {} already registered or discovered".format(D, self)
+        mor._is_coercion = True
         self._coerce_from_list.append(mor)
         self._registered_domains.append(D)
         self._coerce_from_hash.set(D,mor)
@@ -2072,6 +2073,7 @@ cdef class Parent(category_object.CategoryObject):
         if S is self:
             from sage.categories.homset import Hom
             mor = Hom(self, self).identity()
+            mor._is_coercion = True
             self._coerce_from_hash.set(S, mor)
             return mor
 
@@ -2084,6 +2086,7 @@ cdef class Parent(category_object.CategoryObject):
             except Exception:
                 category = None
             mor = self._generic_convert_map(S, category)
+            mor._is_coercion = True
             self._coerce_from_hash.set(S, mor)
             mor._make_weak_references()
             return mor
@@ -2111,6 +2114,7 @@ cdef class Parent(category_object.CategoryObject):
             if (mor is not None) or _may_cache_none(self, S, "coerce"):
                 self._coerce_from_hash.set(S,mor)
                 if mor is not None:
+                    mor._is_coercion = True
                     mor._make_weak_references()
             return mor
         except CoercionException as ex:

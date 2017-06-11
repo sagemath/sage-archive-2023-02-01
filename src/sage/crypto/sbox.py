@@ -36,6 +36,7 @@ class SBox(SageObject):
 
     We consider the S-box of the block cipher PRESENT [PRESENT07]_::
 
+        sage: from sage.crypto.sbox import SBox
         sage: S = SBox(12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2); S
         (12, 5, 6, 11, 9, 0, 10, 13, 3, 14, 15, 8, 4, 7, 1, 2)
         sage: S(1)
@@ -97,6 +98,7 @@ class SBox(SageObject):
         We construct a 3-bit S-box where e.g. the bits (0,0,1) are
         mapped to (1,1,1).::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox(7,6,0,4,2,5,1,3); S
             (7, 6, 0, 4, 2, 5, 1, 3)
 
@@ -105,6 +107,7 @@ class SBox(SageObject):
 
         TESTS::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox()
             Traceback (most recent call last):
             ...
@@ -148,6 +151,7 @@ class SBox(SageObject):
         """
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: SBox(7,6,0,4,2,5,1,3) #indirect doctest
             (7, 6, 0, 4, 2, 5, 1, 3)
         """
@@ -159,6 +163,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: len(SBox(7,6,0,4,2,5,1,3))
             3
         """
@@ -171,6 +176,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: loads(dumps(S)) == S
             True
@@ -184,6 +190,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: S != S
             False
@@ -203,6 +210,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: S.to_bits(6)
             [1, 1, 0]
@@ -234,6 +242,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: S.from_bits( [1,1,0])
             6
@@ -259,6 +268,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: S._rpad([1,1])
             [1, 1, 0]
@@ -283,6 +293,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox([7,6,0,4,2,5,1,3])
             sage: S(7)
             3
@@ -367,6 +378,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox([7,6,0,4,2,5,1,3])
             sage: S[7]
             3
@@ -379,13 +391,14 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-             sage: S = SBox(7,6,0,4,2,5,1,3)
-             sage: S.is_permutation()
-             True
+            sage: from sage.crypto.sbox import SBox
+            sage: S = SBox(7,6,0,4,2,5,1,3)
+            sage: S.is_permutation()
+            True
 
-             sage: S = SBox(3,2,0,0,2,1,1,3)
-             sage: S.is_permutation()
-             False
+            sage: S = SBox(3,2,0,0,2,1,1,3)
+            sage: S.is_permutation()
+            False
         """
         if self.m != self.n:
             return False
@@ -395,6 +408,7 @@ class SBox(SageObject):
         """
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: [e for e in S]
             [7, 6, 0, 4, 2, 5, 1, 3]
@@ -418,16 +432,17 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-           sage: S = SBox(7,6,0,4,2,5,1,3)
-           sage: S.difference_distribution_matrix()
-           [8 0 0 0 0 0 0 0]
-           [0 2 2 0 2 0 0 2]
-           [0 0 2 2 0 0 2 2]
-           [0 2 0 2 2 0 2 0]
-           [0 2 0 2 0 2 0 2]
-           [0 0 2 2 2 2 0 0]
-           [0 2 2 0 0 2 2 0]
-           [0 0 0 0 2 2 2 2]
+            sage: from sage.crypto.sbox import SBox
+            sage: S = SBox(7,6,0,4,2,5,1,3)
+            sage: S.difference_distribution_matrix()
+            [8 0 0 0 0 0 0 0]
+            [0 2 2 0 2 0 0 2]
+            [0 0 2 2 0 0 2 2]
+            [0 2 0 2 2 0 2 0]
+            [0 2 0 2 0 2 0 2]
+            [0 0 2 2 2 2 0 0]
+            [0 2 2 0 0 2 2 0]
+            [0 0 0 0 2 2 2 2]
         """
         m = self.m
         n = self.n
@@ -454,6 +469,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: S.maximal_difference_probability_absolute()
             2
@@ -474,6 +490,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: S.maximal_difference_probability()
             0.25
@@ -495,6 +512,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: S.linear_approximation_matrix()
             [ 4  0  0  0  0  0  0  0]
@@ -546,6 +564,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: S.maximal_linear_bias_absolute()
             2
@@ -561,6 +580,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: S.maximal_linear_bias_relative()
             0.25
@@ -574,6 +594,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: S.ring()
             Multivariate Polynomial Ring in x0, x1, x2, y0, y1, y2 over Finite Field of size 2
@@ -603,6 +624,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox([7,6,0,4,2,5,1,3])
             sage: F = S.polynomials()
             sage: s = S.solutions()
@@ -649,6 +671,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: P = S.ring()
 
@@ -694,6 +717,7 @@ class SBox(SageObject):
 
             TESTS::
 
+                sage: from sage.crypto.sbox import SBox
                 sage: S = SBox(7,6,0,4,2,5,1,3)
                 sage: F = S.polynomials(degree=3) # indirect doctest
             """
@@ -777,6 +801,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: f = S.interpolation_polynomial()
             sage: f
@@ -845,6 +870,7 @@ class SBox(SageObject):
 
         We give a very small example to explain the output format::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox(1,2,0,3); S
             (1, 2, 0, 3)
             sage: cnf = S.cnf(); cnf
@@ -945,6 +971,7 @@ class SBox(SageObject):
 
         TESTS:
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox(1,2,0,3, big_endian=False)
             sage: S.cnf([1000,1001,1002], [2000,2001,2002])
             Traceback (most recent call last):
@@ -1013,6 +1040,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox([7,6,0,4,2,5,1,3])
             sage: f3 = S.component_function(3)
             sage: f3.algebraic_normal_form()
@@ -1046,6 +1074,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = mq.SR(1,4,4,8).sbox()
             sage: S.nonlinearity()
             112
@@ -1059,6 +1088,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = mq.SR(1, 4, 4, 8).sbox()
             sage: S.linearity()
             32
@@ -1078,6 +1108,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox([0,1,3,6,7,4,5,2])
             sage: S.is_apn()
             True
@@ -1102,6 +1133,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
             sage: S.differential_branch_number()
             3
@@ -1137,6 +1169,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
             sage: S.linear_branch_number()
             2
@@ -1172,6 +1205,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox(7,6,0,4,2,5,1,3)
             sage: S.autocorrelation_matrix()
             [ 8  8  8  8  8  8  8  8]
@@ -1215,6 +1249,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox([0,1,3,6,7,4,5,2])
             sage: S.linear_structures()
             [(1, 1, 1), (2, 2, 1), (3, 3, 1), (4, 4, 1), (5, 5, 1), (6, 6, 1), (7, 7, 1)]
@@ -1243,7 +1278,8 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox(12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2)
+            sage: from sage.crypto.sbox import SBox
+            sage: S = SBox(12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2)
             sage: S.has_linear_structure()
             True
         """
@@ -1268,7 +1304,8 @@ class SBox(SageObject):
 
         EXAMPLES::
 
-            sage: S = mq.SBox(12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2)
+            sage: from sage.crypto.sbox import SBox
+            sage: S = SBox(12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2)
             sage: S.component_function(1).autocorrelation()
             (16, -16, 0, 0, 0, 0, 0, 0, -16, 16, 0, 0, 0, 0, 0, 0)
             sage: S.is_linear_structure(1, 1)
@@ -1286,6 +1323,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
             sage: S.max_degree()
             3
@@ -1305,6 +1343,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
             sage: S.min_degree()
             2
@@ -1326,6 +1365,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox([12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2])
             sage: S.is_balanced()
             True
@@ -1347,6 +1387,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox([0,1,3,6,7,4,5,2])
             sage: S.is_almost_bent()
             True
@@ -1367,6 +1408,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox([0,1,3,6,7,4,5,2])
             sage: S.fixed_points()
             [0, 1]
@@ -1383,6 +1425,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox([0, 1, 3, 6, 7, 4, 5, 2])
             sage: Sinv = S.inverse()
             sage: [Sinv(S(i)) for i in range(8)]
@@ -1401,6 +1444,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox([0,1,3,6,7,4,5,2])
             sage: S.is_monomial_function()
             False
@@ -1423,6 +1467,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox(0, 3, 1, 2, 4, 6, 7, 5)
             sage: S.is_plateaued()
             True
@@ -1443,6 +1488,7 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
             sage: R.<x> = GF(2**2, 'a')[]
             sage: base = R.base_ring()
             sage: a = base.gen()
@@ -1485,6 +1531,8 @@ class SBox(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.crypto.sbox import SBox
+            sage: from sage.crypto.sbox import SBox
             sage: S = SBox([x**254 for x in sorted(GF(2**8))])
             sage: S.is_involution()
             True
@@ -1508,8 +1556,9 @@ def feistel_construction(*args):
     Suppose we construct an `8 \times 8` S-Box with 3-round Feistel construction
     from the S-Box of PRESENT::
 
-        sage: from sage.crypto.sbox import feistel_construction
+        sage: from sage.crypto.sbox import SBox
         sage: s = SBox(12,5,6,11,9,0,10,13,3,14,15,8,4,7,1,2)
+        sage: from sage.crypto.sbox import feistel_construction
         sage: S = feistel_construction(s, s, s)
 
     The properties of the constructed S-Box can be easily examined::
@@ -1564,6 +1613,7 @@ def misty_construction(*args):
     We construct an `8 \times 8` S-Box using 3-round MISTY structure with the following
     `4 \times 4` S-Boxes `S1, S2, S3` (see Example 2 in [CDL2015]_)::
 
+        sage: from sage.crypto.sbox import SBox
         sage: S1 = SBox([0x4,0x0,0x1,0xF,0x2,0xB,0x6,0x7,0x3,0x9,0xA,0x5,0xC,0xD,0xE,0x8])
         sage: S2 = SBox([0x0,0x0,0x0,0x1,0x0,0xA,0x8,0x3,0x0,0x8,0x2,0xB,0x4,0x6,0xE,0xD])
         sage: S3 = SBox([0x0,0x7,0xB,0xD,0x4,0x1,0xB,0xF,0x1,0x2,0xC,0xE,0xD,0xC,0x5,0x5])

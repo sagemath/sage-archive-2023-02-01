@@ -2304,7 +2304,7 @@ class FunctionField_global_integral(FunctionField_global):
 
         # compute the reversed hermite form
         _mat.reverse_rows_and_columns()
-        _mat._hermite_form_euclidean()
+        _mat._hermite_form_euclidean(normalization=lambda p: ~p.lc())
         _mat.reverse_rows_and_columns()
 
         basis = [fr_V(v) / l for v in _mat if not v.is_zero()]

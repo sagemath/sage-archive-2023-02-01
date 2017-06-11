@@ -1366,7 +1366,7 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder):
 
         # compute the reverse hermite form with zero rows deleted
         mat.reverse_rows_and_columns()
-        mat._hermite_form_euclidean()
+        mat._hermite_form_euclidean(normalization=lambda p: ~p.lc())
         mat.reverse_rows_and_columns()
         i = 0
         while i < mat.nrows() and mat.row(i).is_zero():
@@ -2200,10 +2200,9 @@ class FunctionFieldMaximalOrderInfinite_global(FunctionFieldMaximalOrderInfinite
             while True:
                 k = x * k
 
-                # h2 = block_matrix([[h],[k]]).hermite_form_reversed(include_zero_rows=False)
                 h2 = block_matrix([[h],[k]])
                 h2.reverse_rows_and_columns()
-                h2._hermite_form_euclidean()
+                h2._hermite_form_euclidean(normalization=lambda p: ~p.lc())
                 h2.reverse_rows_and_columns()
                 i = 0
                 while i < h2.nrows() and h2.row(i).is_zero():

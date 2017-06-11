@@ -1477,9 +1477,10 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal):
         # intersect the row spaces of A and B
         M = block_matrix([[I,I],[A,O],[O,B]])
 
-        # _,U = M.reversed_hermite_form(transformation=True)
+        # reversed Hermite form
         M.reverse_rows_and_columns()
-        U = M._hermite_form_euclidean(transformation=True)
+        U = M._hermite_form_euclidean(transformation=True,
+                                      normalization=lambda p: ~p.lc())
         U.reverse_rows_and_columns()
 
         vecs = [U[i][:n] for i in range(n)]

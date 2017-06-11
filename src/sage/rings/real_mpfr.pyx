@@ -112,23 +112,22 @@ Make sure we don't have a new field for every new literal::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
 
 import math # for log
 import sys
 import re
 
-include "cysignals/signals.pxi"
-
 from cpython.object cimport Py_NE
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.ext.stdsage cimport PY_NEW
 from sage.libs.gmp.mpz cimport *
 from sage.misc.randstate cimport randstate, current_randstate
 
 from sage.structure.element cimport RingElement, Element, ModuleElement
-from sage.structure.sage_object cimport rich_to_bool_sgn
+from sage.structure.richcmp cimport rich_to_bool_sgn
 cdef bin_op
 from sage.structure.element import bin_op
 

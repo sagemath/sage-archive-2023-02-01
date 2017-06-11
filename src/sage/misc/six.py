@@ -108,6 +108,18 @@ def u(x):
     r"""
     Convert `x` to unicode, assuming UTF-8 encoding.
 
+    Python2 behaviour:
+
+    If input is unicode, returns the input.
+
+    If input is str (assumed to be utf-8 encoded), convert to unicode.
+
+    Python3 behaviour:
+
+    If input is str, returns the input.
+
+    If input is bytes (assumed to be utf-8 encoded), convert to unicode.
+
     EXAMPLES::
 
         sage: from sage.misc.six import u
@@ -116,6 +128,8 @@ def u(x):
         sage: u(u"500 \u20ac")
         u'500 \u20ac'
     """
-    if isinstance(x, unicode):
+    if isinstance(x, text_type):  # py2 unicode and py3 str
         return x
-    return str(x).decode("utf-8")
+    if isinstance(x, bytes):
+        return x.decode("utf-8")
+    raise TypeError('input has no conversion to unicode')

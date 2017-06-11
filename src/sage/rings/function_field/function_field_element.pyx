@@ -25,7 +25,7 @@ AUTHORS:
 
 
 from sage.structure.element cimport FieldElement, RingElement, ModuleElement, Element
-from sage.structure.sage_object cimport richcmp, richcmp_not_equal
+from sage.structure.richcmp cimport richcmp, richcmp_not_equal
 
 
 def is_FunctionFieldElement(x):

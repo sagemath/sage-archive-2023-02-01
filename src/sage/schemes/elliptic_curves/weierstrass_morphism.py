@@ -26,8 +26,8 @@ from __future__ import absolute_import
 from sage.categories.morphism import Morphism
 from .constructor import EllipticCurve
 from sage.categories.homset import Hom
-from sage.structure.sage_object import (richcmp, richcmp_not_equal,
-                                        op_NE, op_EQ, op_LT)
+from sage.structure.richcmp import (richcmp, richcmp_not_equal,
+                                    op_NE, op_EQ, op_LT)
 
 
 class baseWI:

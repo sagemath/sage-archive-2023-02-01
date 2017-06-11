@@ -36,6 +36,8 @@ Classes and methods
 """
 from __future__ import print_function
 
+from cysignals.memory cimport check_calloc, sig_free
+
 from sage.graphs.base.static_sparse_graph cimport (init_short_digraph,
                                                    init_reverse,
                                                    out_degree,
@@ -46,7 +48,6 @@ from .c_graph cimport CGraphBackend
 from sage.data_structures.bitset cimport FrozenBitset
 from libc.stdint cimport uint32_t
 include 'sage/data_structures/bitset.pxi'
-include "cysignals/memory.pxi"
 
 cdef class StaticSparseCGraph(CGraph):
     """

@@ -39,7 +39,7 @@ add them and multiply them with scalars::
 from six.moves import zip
 
 from sage.structure.parent import Parent
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 from sage.structure.element import ModuleElement
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method

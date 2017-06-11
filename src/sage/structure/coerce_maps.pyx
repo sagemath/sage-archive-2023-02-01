@@ -24,7 +24,7 @@ cdef class DefaultConvertMap(Map):
     EXAMPLES::
 
         sage: QQ[['x']].coerce_map_from(QQ)
-        Conversion map:
+        Coercion map:
           From: Rational Field
           To:   Power Series Ring in x over Rational Field
     """

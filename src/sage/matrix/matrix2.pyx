@@ -14971,7 +14971,7 @@ def _matrix_power_symbolic(A, n):
     # transform to QQbar if possible
     try:
         A = A.change_ring(QQbar)
-    except TypeError:
+    except (TypeError, NotImplementedError):
         pass
 
     # returns jordan matrix J and invertible matrix P such that A = P*J*~P

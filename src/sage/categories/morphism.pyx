@@ -502,6 +502,7 @@ cdef class SetMorphism(Morphism):
             {'_codomain': Integer Ring,
              '_domain': Integer Ring,
              '_function': <built-in function __abs__>,
+             '_is_coercion': False,
              '_repr_type_str': None,
              'bla': 1}
         """

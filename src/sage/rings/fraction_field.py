@@ -725,6 +725,35 @@ class FractionField_generic(ring.Field):
             self._R._random_nonzero_element(*args, **kwds),
             coerce=False, reduce=True)
 
+    def some_elements(self):
+        r"""
+        Return some elements in this field.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: R.fraction_field().some_elements()
+            [0,
+             1,
+             x,
+             2*x,
+             x/(x^2 + 2*x + 1),
+             1/x^2,
+             ...
+             (2*x^2 + 2)/(x^2 + 2*x + 1),
+             (2*x^2 + 2)/x^3,
+             (2*x^2 + 2)/(x^2 - 1),
+             2]
+
+        """
+        ret = [self.zero(), self.one()]
+        for a in self._R.some_elements():
+            for b in self._R.some_elements():
+                if a != b and self(a) and self(b):
+                    ret.append(self(a)/self(b))
+        return ret
+
+
 class FractionField_1poly_field(FractionField_generic):
     """
     The fraction field of a univariate polynomial ring over a field.

@@ -134,7 +134,7 @@ import sage.groups.generic as generic
 from sage.libs.pari import pari
 from cypari2.pari_instance import prec_words_to_bits
 from sage.structure.sequence import Sequence
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 
 from sage.schemes.curves.projective_curve import Hasse_bounds
 from sage.schemes.projective.projective_point import (SchemeMorphism_point_projective_ring,

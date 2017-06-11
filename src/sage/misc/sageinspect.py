@@ -114,7 +114,8 @@ defined Cython code, and with rather tricky argument lines::
 """
 from __future__ import print_function, absolute_import
 from six.moves import range
-from six import iteritems, string_types, class_types
+from six import iteritems, string_types, class_types, text_type
+from sage.misc.six import u
 
 import ast
 import inspect
@@ -354,9 +355,9 @@ def _extract_source(lines, lineno):
         raise ValueError("Line numbering starts at 1! (tried to extract line {})".format(lineno))
     lineno -= 1
 
-    if isinstance(lines, str):
+    if isinstance(lines, string_types):
         lines = lines.splitlines(True) # true keeps the '\n'
-    if len(lines) > 0:
+    if len(lines):
         # Fixes an issue with getblock
         lines[-1] += '\n'
 
@@ -1635,7 +1636,7 @@ def _sage_getdoc_unformatted(obj):
     # not a 'getset_descriptor' or similar.
     if not isinstance(r, string_types):
         return ''
-    elif isinstance(r, unicode):
+    elif isinstance(r, text_type):  # unicode (py2) = str (py3)
         return r.encode('utf-8', 'ignore')
     else:
         return r
@@ -2115,7 +2116,11 @@ def sage_getsourcelines(obj):
     pos = _extract_embedded_position(d)
     if pos is None:
         try:
+            # BEWARE HERE
+            # inspect gives str (=bytes) in python2
+            # and str (=unicode) in python3
             return inspect.getsourcelines(obj)
+
         except (IOError, TypeError) as err:
             try:
                 objinit = obj.__init__

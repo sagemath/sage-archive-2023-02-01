@@ -1008,6 +1008,12 @@ class PolynomialConverter(Converter):
             Traceback (most recent call last):
             ...
             TypeError: y is not a variable of Univariate Polynomial Ring in x over Rational Field
+
+        TESTS::
+
+            sage: t, x, z = SR.var('t,x,z')
+            sage: QQ[i]['x,y,z,t'](4*I*t + 2*x -12*z + 2)
+            2*x - 12*z + (4*I)*t + 2
         """
         if not (ring is None or base_ring is None):
             raise TypeError("either base_ring or ring must be specified, but not both")

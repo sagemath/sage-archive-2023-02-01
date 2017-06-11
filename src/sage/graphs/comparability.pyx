@@ -211,7 +211,7 @@ Methods
 #*****************************************************************************
 from __future__ import print_function
 
-include "cysignals/memory.pxi"
+from cysignals.memory cimport sig_free
 
 from copy import copy
 

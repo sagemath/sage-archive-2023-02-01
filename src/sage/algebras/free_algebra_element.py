@@ -40,7 +40,7 @@ from sage.monoids.free_monoid_element import FreeMonoidElement
 from sage.modules.with_basis.indexed_element import IndexedFreeModuleElement
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.structure.element import AlgebraElement
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 
 
 import six

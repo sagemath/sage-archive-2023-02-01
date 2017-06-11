@@ -357,8 +357,8 @@ from __future__ import print_function
 import ideal
 import homset
 from cpython.object cimport Py_EQ, Py_NE
-from sage.structure.sage_object cimport (richcmp, rich_to_bool,
-                                         richcmp_not_equal)
+from sage.structure.richcmp cimport (richcmp, rich_to_bool,
+        richcmp_not_equal)
 
 
 def is_RingHomomorphism(phi):

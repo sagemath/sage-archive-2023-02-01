@@ -455,14 +455,14 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: Hom(X,Y).zero().matrix().parent()
                 Full MatrixSpace of 3 by 0 dense matrices over Rational Field
             """
-            from sage.matrix.constructor import matrix
             if base_ring is None:
                 base_ring = self.codomain().base_ring()
 
             on_basis = self.on_basis()
             basis_keys = self.domain().basis().keys()
-            m = matrix(base_ring, basis_keys.cardinality(), self.codomain().dimension(),
-                       [on_basis(x)._vector_() for x in basis_keys])
+            from sage.matrix.matrix_space import MatrixSpace
+            MS = MatrixSpace(base_ring, basis_keys.cardinality(), self.codomain().dimension())
+            m = MS([on_basis(x)._vector_() for x in basis_keys])
             if side == "left":
                 m = m.transpose()
             m.set_immutable()

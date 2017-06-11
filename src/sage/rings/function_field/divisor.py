@@ -54,7 +54,7 @@ from sage.arith.all import lcm
 
 from sage.structure.parent import Parent
 from sage.structure.element import ModuleElement
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 
 from sage.categories.homset import Hom
 from sage.categories.morphism import SetMorphism

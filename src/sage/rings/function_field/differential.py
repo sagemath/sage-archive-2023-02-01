@@ -58,7 +58,7 @@ from __future__ import absolute_import
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import ModuleElement
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 
 from sage.categories.modules import Modules
 

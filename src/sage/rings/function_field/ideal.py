@@ -95,10 +95,12 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import lazy_import
 from sage.misc.misc_c import prod
 
-from sage.structure.sage_object import SageObject, richcmp
+from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
-from sage.structure.factorization import Factorization
 from sage.structure.element import AlgebraElement
+from sage.structure.richcmp import richcmp
+from sage.structure.factorization import Factorization
+
 from sage.modules.free_module_element import vector
 
 from sage.categories.monoids import Monoids

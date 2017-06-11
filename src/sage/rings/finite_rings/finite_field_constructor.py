@@ -673,7 +673,15 @@ class FiniteFieldFactory(UniqueFactory):
             # We can set the defaults here to be those for givaro
             #   as they are otherwise ignored
             repr = 'poly'
-            cache = (order < 500)
+            elem_cache = (order < 500)
+        elif len(key) == 8:
+            # For backward compatibility of pickles (see trac #21433)
+            order, name, modulus, impl, _, p, n, proof = key
+            prefix = kwds.get('prefix', None)
+            # We can set the defaults here to be those for givaro
+            #   as they are otherwise ignored
+            repr = kwds.get('repr', 'poly')
+            elem_cache = kwds.get('elem_cache', (order < 500))
         else:
             order, name, modulus, impl, p, n, proof, prefix, repr, elem_cache = key
 

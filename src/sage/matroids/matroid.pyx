@@ -133,7 +133,7 @@ additional functionality (e.g. linear extensions).
     - :meth:`plot() <sage.matroids.matroid.Matroid.plot>`
 
 - Construction
-    -:meth:`union() <sage.matroids.matroid.Matroid.union>`
+    - :meth:`union() <sage.matroids.matroid.Matroid.union>`
 
 - Misc
     - :meth:`broken_circuit_complex() <sage.matroids.matroid.Matroid.broken_circuit_complex>`
@@ -7721,32 +7721,15 @@ cdef class Matroid(SageObject):
         from sage.homology.simplicial_complex import SimplicialComplex
         return SimplicialComplex(self.no_broken_circuits_sets(ordering))
 
-    cpdef _union(self, matroids):
-        r"""
-        Return the matroid union with another matroid or a list of matroids.
-
-        INPUT:
-
-        - ``matroids`` - an iterator of matroids
-
-        OUTPUT:
-
-        An instance of MatroidUnion.
-
-        EXAMPLES::
-
-            sage: M = matroids.named_matroids.Fano()
-            sage: N = M.union(matroids.named_matroids.NonFano()); N
-            Matroid of rank 6 on 7 elements as matroid union of
-            Binary matroid of rank 3 on 7 elements, type (3, 0)
-            Ternary matroid of rank 3 on 7 elements, type 0-
-        """
-        from . import union_matroid
-        return union_matroid.MatroidUnion(matroids)
-
     def union(self, matroids):
         r"""
         Return the matroid union with another matroid or a list of matroids.
+        
+        Let `(M_1, M_2, \ldots, M_k)` be a list of matroids where each `M_1`
+        has ground set `E_i`. The *matroid
+        union* `M` of `(M_1, M_2, \ldots, M_k)` has ground set `E = \cup E_i`.
+        Moreover, a set `I \subseteq E` is independent in `M` if and only if the
+        restriction of `I` to `E_i` is independent in `M_i` for every `i`.
 
         INPUT:
 
@@ -7758,13 +7741,13 @@ cdef class Matroid(SageObject):
 
         EXAMPLES::
 
-            sage: matroids.Uniform(2,4).union(matroids.Uniform(5,8))
-            Matroid of rank 7 on 8 elements as matroid union of
-            Matroid of rank 2 on 4 elements with circuit-closures
-            {2: {{0, 1, 2, 3}}}
-            Matroid of rank 5 on 8 elements with circuit-closures
-            {5: {{0, 1, 2, 3, 4, 5, 6, 7}}}
+             sage: M = matroids.named_matroids.Fano()
+             sage: N = M.union(matroids.named_matroids.NonFano()); N
+             Matroid of rank 6 on 7 elements as matroid union of
+             Binary matroid of rank 3 on 7 elements, type (3, 0)
+             Ternary matroid of rank 3 on 7 elements, type 0-
         """
+        from . import union_matroid
         if isinstance(matroids, Matroid):
             matroids = [matroids]
         else:
@@ -7774,4 +7757,4 @@ cdef class Matroid(SageObject):
                                      + "matroid or list of matroids.")
         # place this matroid at the beginning of the list
         matroids.insert(0,self)
-        return self._union(iter(matroids))
+        return union_matroid.MatroidUnion(iter(matroids))

@@ -191,6 +191,3 @@ cdef class Matroid(SageObject):
     cpdef plot(self,B=*,lineorders=*,pos_method=*,pos_dict=*,save_pos=*)
     cpdef show(self,B=*,lineorders=*,pos_method=*,pos_dict=*,save_pos=*,lims=*)
     cpdef _fix_positions(self,pos_dict=*,lineorders=*)
-
-    # constructions
-    cpdef _union(self, matroids)

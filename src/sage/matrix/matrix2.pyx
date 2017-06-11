@@ -14959,6 +14959,14 @@ def _matrix_power_symbolic(A, n):
         sage: A^(2*n+1)
         [ 1/2*2^(2*n + 1) -1/2*2^(2*n + 1)]
         [-1/2*2^(2*n + 1)  1/2*2^(2*n + 1)]
+
+    Check if :trac:`23215` is fixed::
+
+        sage: (a, b) = var('a, b')
+        sage: a, b, k = var('a, b, k')
+        sage: matrix(2, [a, b, -b, a])^k
+        [     1/2*(a + I*b)^k + 1/2*(a - I*b)^k -1/2*I*(a + I*b)^k + 1/2*I*(a - I*b)^k]
+        [ 1/2*I*(a + I*b)^k - 1/2*I*(a - I*b)^k      1/2*(a + I*b)^k + 1/2*(a - I*b)^k]
     """
     from sage.rings.qqbar import AlgebraicNumber
     from sage.matrix.constructor import matrix

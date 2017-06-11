@@ -381,6 +381,16 @@ cdef class Parent(parent.Parent):
             return parent.Parent._an_element_(self)
 
     cpdef _generic_convert_map(self, S, category=None):
+        r"""
+        Return a default conversion from ``S``.
+
+        EXAMPLES::
+
+           sage: R.<x,y>=QQ[]
+           sage: R._generic_convert_map(QQ).category_for()
+           Category of sets with partial maps
+
+        """
         if self._element_constructor is None:
             if hasattr(self, '_element_constructor_'):
                 assert callable(self._element_constructor_)

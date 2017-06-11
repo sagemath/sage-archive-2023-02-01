@@ -1559,14 +1559,8 @@ cdef class Parent(category_object.CategoryObject):
         if isinstance(mor, map.Map):
             if mor.codomain() is not self:
                 raise ValueError("Map's codomain must be self (%s) is not (%s)" % (self, mor.codomain()))
-        elif isinstance(mor, Parent):
-            try:
-                category = mor.category()._meet_(self.category())
-            except Exception:
-                category = None
-            mor = self._generic_convert_map(mor, category)
-        elif isinstance(mor, type):
-            mor = self._generic_convert_map(mor)
+        elif isinstance(mor, (type, Parent)):
+            mor = self._generic_coerce_map(mor)
         else:
             raise TypeError("coercions must be parents or maps (got %s)" % type(mor))
         D = mor.domain()
@@ -1776,11 +1770,7 @@ cdef class Parent(category_object.CategoryObject):
                 raise ValueError("embedding's domain must be self")
             self._embedding = embedding
         elif isinstance(embedding, Parent):
-            try:
-                category = self.category()._meet_(embedding.category())
-            except Exception:
-                category = None
-            self._embedding = embedding._generic_convert_map(self, category)
+            self._embedding = embedding._generic_coerce_map(self)
         elif embedding is not None:
             raise TypeError("embedding must be a parent or map")
         self._embedding._make_weak_references()
@@ -1812,6 +1802,39 @@ cdef class Parent(category_object.CategoryObject):
         """
         return copy(self._embedding) # It might be overkill to make a copy here
 
+    cpdef _generic_coerce_map(self, S):
+        r"""
+        Returns a default coercion map based on the data provided to
+        :meth:`_populate_coercion_lists_`.
+        
+        This method differs from :meth:`_generic_convert_map` only in setting
+        the category for the map to the meet of the category of this parent
+        and ``S``.
+
+        EXAMPLES::
+
+            sage: QQ['x']._generic_coerce_map(ZZ)
+            Conversion map:
+                From: Integer Ring
+                To:   Univariate Polynomial Ring in x over Rational Field
+
+
+        TESTS:
+
+        We check that `trac`:23184 has been resolved::
+
+            sage: QQ['x', 'y']._generic_coerce_map(QQ).category_for()
+            Category of unique factorization domains
+            sage: QQ[['x']].coerce_map_from(QQ).category_for()
+            Category of euclidean domains
+
+        """
+        if isinstance(S, type):
+            category = None
+        else:
+            category = self.category()._meet_(S.category())
+        return self._generic_convert_map(S, category=category)
+
     cpdef _generic_convert_map(self, S, category=None):
         r"""
         Returns the default conversion map based on the data provided to
@@ -1835,12 +1858,6 @@ cdef class Parent(category_object.CategoryObject):
               From: Finite Field of size 7
               To:   Finite Field of size 11
 
-        TESTS:
-
-        We check that `trac`:23184 has been resolved::
-
-            sage: QQ[['x']].coerce_map_from(QQ).category_for()
-            Category of euclidean domains
         """
         import coerce_maps
         if self._convert_method_name is not None:
@@ -1858,9 +1875,9 @@ cdef class Parent(category_object.CategoryObject):
                 return coerce_maps.NamedConvertMap(S, self, self._convert_method_name)
 
         if self._element_init_pass_parent:
-            return coerce_maps.DefaultConvertMap(S, self, category)
+            return coerce_maps.DefaultConvertMap(S, self, category=category)
         else:
-            return coerce_maps.DefaultConvertMap_unique(S, self, category)
+            return coerce_maps.DefaultConvertMap_unique(S, self, category=category)
 
     def _coerce_map_via(self, v, S):
         """
@@ -2079,11 +2096,7 @@ cdef class Parent(category_object.CategoryObject):
             # non-unique parents
             if debug.unique_parent_warnings:
                 print("Warning: non-unique parents %s" % (type(S)))
-            try:
-                category = S.category()._meet_(self.category())
-            except Exception:
-                category = None
-            mor = self._generic_convert_map(S, category)
+            mor = self._generic_coerce_map(S)
             self._coerce_from_hash.set(S, mor)
             mor._make_weak_references()
             return mor
@@ -2239,11 +2252,7 @@ cdef class Parent(category_object.CategoryObject):
             from coerce_maps import DefaultConvertMap, DefaultConvertMap_unique, NamedConvertMap, CallableConvertMap
 
             if user_provided_mor is True:
-                try:
-                    category = S.category()._meet_(self.category())
-                except Exception:
-                    category = None
-                mor = self._generic_convert_map(S, category)
+                mor = self._generic_coerce_map(S)
             elif isinstance(user_provided_mor, Map):
                 mor = <map.Map>user_provided_mor
             elif callable(user_provided_mor):

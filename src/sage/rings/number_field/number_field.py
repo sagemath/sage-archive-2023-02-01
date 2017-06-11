@@ -6900,12 +6900,12 @@ class NumberField_absolute(NumberField_generic):
 
         """
         if R in integer_types:
-            return self._generic_convert_map(R)
+            return self._generic_coerce_map(R)
         elif R in (ZZ, QQ, self.base()):
-            return self._generic_convert_map(R, R.category()._meet_(self.category()))
+            return self._generic_coerce_map(R)
         from sage.rings.number_field.order import is_NumberFieldOrder
         if is_NumberFieldOrder(R) and self.has_coerce_map_from(R.number_field()):
-            return self._generic_convert_map(R, R.category()._meet_(self.category()))
+            return self._generic_coerce_map(R)
         # R is not QQ by the above tests
         if is_NumberField(R) and R.coerce_embedding() is not None:
             if self.coerce_embedding() is not None:

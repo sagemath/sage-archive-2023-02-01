@@ -1055,12 +1055,12 @@ class NumberField_relative(NumberField_generic):
             sage: c = a + b # no output
         """
         if R in integer_types:
-            return self._generic_convert_map(R)
+            return self._generic_coerce_map(R)
         elif R in (ZZ, QQ, self.base_field()):
-            return self._generic_convert_map(R, R.category()._meet_(self.category()))
+            return self._generic_coerce_map(R)
         from sage.rings.number_field.order import is_NumberFieldOrder
         if is_NumberFieldOrder(R) and R.number_field() is self:
-            return self._generic_convert_map(R, R.category()._meet_(self.category()))
+            return self._generic_coerce_map(R)
         mor = self.base_field()._internal_coerce_map_from(R)
         if mor is not None:
             return self._internal_coerce_map_from(self.base_field()) * mor

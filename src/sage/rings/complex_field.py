@@ -424,22 +424,22 @@ class ComplexField_class(ring.Field):
             return RRtoCC(RR, self) * RR._internal_coerce_map_from(S)
         if is_ComplexField(S):
             if self._prec <= S._prec:
-                return self._generic_convert_map(S, S.category())
+                return self._generic_coerce_map(S)
             else:
                 return None
         if S is complex:
             if self._prec <= 53:
-                return self._generic_convert_map(S)
+                return self._generic_coerce_map(S)
             else:
                 return None
         late_import()
         if S is CDF:
             if self._prec <= 53:
-                return self._generic_convert_map(S, S.category())
+                return self._generic_coerce_map(S)
             else:
                 return None
         if S in [AA, QQbar, CLF, RLF]:
-            return self._generic_convert_map(S, S.category())
+            return self._generic_coerce_map(S)
         return self._coerce_map_via([CLF], S)
 
     def _repr_(self):

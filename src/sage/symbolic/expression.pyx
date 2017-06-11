@@ -12086,6 +12086,55 @@ cdef class Expression(CommutativeRingElement):
         from sage.calculus.calculus import symbolic_sum
         return symbolic_sum(self, *args, **kwds)
 
+    def prod(self, *args, **kwds):
+        r"""
+
+        Return the symbolic product `\prod_{v = a}^b expression` with
+        respect to the variable `v` with endpoints `a` and `b`.
+
+        INPUT:
+
+        - ``expression`` - a symbolic expression
+
+        - ``v`` - a variable or variable name
+
+        - ``a`` - lower endpoint of the product
+
+        - ``b`` - upper endpoint of the product
+
+        - ``algorithm`` - (default: ``'maxima'``)  one of
+
+          - ``'maxima'`` - use Maxima (the default)
+
+          - ``'giac'`` - (optional) use Giac
+
+          - ``'sympy'`` - use SymPy
+
+        - ``hold`` - (default: ``False``) if ``True`` don't evaluate
+
+        TESTS:
+
+            sage: i, k, n = var('i,k,n')
+            sage: k.prod(k, 1, n)
+            factorial(n)
+            sage: (x + i*(i+1)/2).prod(i,1,4)
+            x^4 + 20*x^3 + 127*x^2 + 288*x + 180
+            sage: (i^2).prod(i,1,7)
+            25401600
+            sage: f=function('f')
+            sage: f(i).prod(i,1,7)
+            f(7)*f(6)*f(5)*f(4)*f(3)*f(2)*f(1)
+            sage: f(i).prod(i,1,n)
+            product(f(i), i, 1, n)
+            sage: assume(k>0)
+            sage: (x^k).integrate(x,0,1).prod(k,1,n)
+            1/factorial(n + 1)
+            sage: f(i).prod(i,1,n).log().log_expand()
+            sum(log(f(i)), i, 1, n)
+        """
+        from sage.calculus.calculus import symbolic_product
+        return symbolic_product(self, *args, **kwds)
+
     def integral(self, *args, **kwds):
         """
         Compute the integral of self.  Please see

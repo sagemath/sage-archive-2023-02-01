@@ -473,6 +473,25 @@ information. You can use the existing functions of Sage as templates.
     characters which are valid markers for reST
     headers: ``- = ` : ' " ~ _ ^ * + # < >``.
 
+Note about Sphinx directives vs. other blocks
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The main Sphinx directives that are used in Sage are:
+
+``.. MATH::``, ``.. NOTE::``, ``.. PLOT::``, ``.. RUBRIC::``,
+``.. SEEALSO::``, ``.. TODO::``, ``.. TOPIC::`` and ``.. WARNING::``.
+
+They must be written exactly as above, so for example
+``WARNING::`` or ``.. WARNING ::`` will not work.
+
+Some other directives are also available, but less frequently used, namely:
+
+``.. MODULEAUTHOR::``, ``.. automethod::``, ``.. autofunction::``,
+``.. image::``, ``.. figure::``.
+
+Other blocks shall not be used as directives; for example
+``.. ALGORITHM::`` will not be shown at all.
+
 Sage documentation style
 ^^^^^^^^^^^^^^^^^^^^^^^^
 

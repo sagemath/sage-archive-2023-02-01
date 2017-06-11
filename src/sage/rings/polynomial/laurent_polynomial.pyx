@@ -17,7 +17,7 @@ from sage.misc.misc import union
 from sage.structure.factorization import Factorization
 from sage.misc.derivative import multi_derivative
 from sage.rings.polynomial.polynomial_element import Polynomial
-from sage.structure.sage_object cimport richcmp, rich_to_bool
+from sage.structure.richcmp cimport richcmp, rich_to_bool
 
 
 cdef class LaurentPolynomial_generic(CommutativeAlgebraElement):
@@ -2399,16 +2399,16 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
     @coerce_binop
     def quo_rem(self, right):
         """
-        Divide this laurent polynomial by ``right`` and return a quotient and
+        Divide this Laurent polynomial by ``right`` and return a quotient and
         a remainder.
 
         INPUT:
 
-        - ``right`` -- a laurent polynomial
+        - ``right`` -- a Laurent polynomial
 
         OUTPUT:
 
-        A pair of laurent polynomials.
+        A pair of Laurent polynomials.
 
         EXAMPLES::
 

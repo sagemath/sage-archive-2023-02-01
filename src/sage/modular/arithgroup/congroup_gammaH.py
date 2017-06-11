@@ -1228,7 +1228,7 @@ class GammaH_class(CongruenceSubgroup):
             [0 2], [0 1]
             )
 
-        TEST::
+        TESTS::
 
             sage: for n in [2..20]:
             ....:     for g in Gamma0(n).gamma_h_subgroups():

@@ -101,6 +101,8 @@ REFERENCES:
 
 
 from copy import copy
+from cysignals.memory cimport check_allocarray, sig_free
+
 from sage.rings.integer cimport Integer
 from sage.matrix.matrix cimport Matrix
 from sage.groups.perm_gps.permgroup import PermutationGroup

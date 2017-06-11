@@ -876,7 +876,7 @@ cdef class CachedFunction(object):
         """
         Pickling of cached functions.
 
-        TEST::
+        TESTS::
 
             sage: type(cunningham_prime_factors)
             <type 'sage.misc.cachefunc.CachedFunction'>
@@ -900,7 +900,7 @@ cdef class CachedFunction(object):
         from the function that is wrapped, not from the
         documentation of the wrapper.
 
-        TEST::
+        TESTS::
 
             sage: P.<x,y> = QQ[]
             sage: I = P*[x,y]
@@ -977,7 +977,7 @@ cdef class CachedFunction(object):
         Returns the list of source lines and the first line number
         of the wrapped function.
 
-        TEST::
+        TESTS::
 
             sage: P.<x,y> = QQ[]
             sage: I = P*[x,y]
@@ -1628,7 +1628,7 @@ class CachedMethodPickle(object):
         - ``name`` (string) - usually the name of an attribute
           of ``inst`` to which ``self`` is assigned.
 
-        TEST::
+        TESTS::
 
             sage: from sage.misc.cachefunc import CachedMethodPickle
             sage: P = CachedMethodPickle(1, 'foo')
@@ -1642,7 +1642,7 @@ class CachedMethodPickle(object):
 
     def __repr__(self):
         """
-        TEST::
+        TESTS::
 
             sage: R.<x, y, z> = PolynomialRing(QQ, 3)
             sage: I = R*(x^3 + y^3 + z^3,x^4-y^4)
@@ -1658,7 +1658,7 @@ class CachedMethodPickle(object):
         This class is a pickle. However, sometimes, pickles
         need to be pickled another time.
 
-        TEST::
+        TESTS::
 
             sage: R.<x, y, z> = PolynomialRing(QQ, 3)
             sage: I = R*(x^3 + y^3 + z^3,x^4-y^4)
@@ -1718,7 +1718,7 @@ class CachedMethodPickle(object):
 
     def __getattr__(self,s):
         """
-        TEST::
+        TESTS::
 
             sage: R.<x, y, z> = PolynomialRing(QQ, 3)
             sage: I = R*(x^3 + y^3 + z^3,x^4-y^4)
@@ -1853,7 +1853,7 @@ cdef class CachedMethodCaller(CachedFunction):
         to a :class:`CachedMethodPickle`, that is able to replace
         itself by a copy of the original :class:`CachedMethodCaller`.
 
-        TEST::
+        TESTS::
 
             sage: R.<x, y, z> = PolynomialRing(QQ, 3)
             sage: I = R*(x^3 + y^3 + z^3,x^4-y^4)
@@ -2343,7 +2343,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
         itself by an actual :class:`CachedMethodCallerNoArgs` as soon
         as it is asked to do anything.
 
-        TEST::
+        TESTS::
 
             sage: P.<a,b,c,d> = QQ[]
             sage: I = P*[a,b]

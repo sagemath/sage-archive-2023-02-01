@@ -40,11 +40,12 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import sys
+from cysignals.memory cimport sig_malloc, sig_free
+
 import sage.plot.plot
-include "cysignals/memory.pxi"
 from sage.libs.gsl.all cimport *
 import sage.misc.prandom as random
-import sys
 from sage.modules.free_module_element import vector
 
 #TODO: Add more distributions available in gsl
@@ -590,8 +591,7 @@ cdef class RealDistribution(ProbabilityDistribution):
     def __dealloc__(self):
         if self.r != NULL:
             gsl_rng_free(self.r)
-        if self.parameters != NULL:
-            sig_free(self.parameters)
+        sig_free(self.parameters)
 
     def __str__(self):
         """
@@ -658,8 +658,7 @@ cdef class RealDistribution(ProbabilityDistribution):
             sage: T.set_distribution('gaussian', 1)
             sage: T.set_distribution('pareto', [0, 1])
         """
-        if self.parameters != NULL:
-            sig_free(self.parameters)
+        sig_free(self.parameters)
 
         if name == 'uniform':
           self.distribution_type = uniform

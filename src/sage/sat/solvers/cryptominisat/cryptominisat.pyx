@@ -20,18 +20,23 @@ AUTHORS:
 
 - Martin Albrecht (2012): first version
 """
-##############################################################################
-#  Copyright (C) 2012 Martin Albrecht <martinralbrecht@googlemail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+
+#*****************************************************************************
+#       Copyright (C) 2012 Martin Albrecht <martinralbrecht@googlemail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
+
 from __future__ import print_function
 
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
-
 from libc.stdint cimport uint32_t
+from cysignals.memory cimport sig_free
+from cysignals.signals cimport sig_on, sig_off
+
 from .decl cimport lbool, Var, Lit, Clause, l_Undef, l_False, RetClause
 from .decl cimport vec, vector
 from .decl cimport GaussConf

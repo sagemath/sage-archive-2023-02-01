@@ -49,10 +49,11 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
-from __future__ import print_function
 
-include "cysignals/signals.pxi"
+from __future__ import absolute_import, print_function
+
+from cysignals.signals cimport sig_on, sig_off
+
 include "sage/libs/ntl/decl.pxi"
 from cypari2.paridecl cimport *
 
@@ -61,7 +62,8 @@ from sage.rings.finite_rings.finite_field_base cimport FiniteField
 from sage.rings.ring cimport Ring
 from .element_ext_pari import FiniteField_ext_pariElement
 from .element_pari_ffelt cimport FiniteFieldElement_pari_ffelt
-from sage.structure.sage_object cimport SageObject, richcmp
+from sage.structure.richcmp cimport richcmp
+from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, ModuleElement, RingElement
 import operator
 import sage.arith.all

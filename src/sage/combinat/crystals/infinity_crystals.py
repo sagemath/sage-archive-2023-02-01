@@ -294,8 +294,11 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
               From: The infinity crystal of rigged configurations of type ['A', 3]
               To:   The infinity crystal of tableaux of type ['A', 3]
         """
-        from sage.combinat.rigged_configurations.rc_infinity import InfinityCrystalOfRiggedConfigurations
-        if isinstance(P, InfinityCrystalOfRiggedConfigurations):
+        from sage.combinat.rigged_configurations.rc_infinity import (InfinityCrystalOfRiggedConfigurations,
+                                                                     InfinityCrystalOfNonSimplyLacedRC)
+        if (isinstance(P, InfinityCrystalOfRiggedConfigurations)
+            and (self.cartan_type().is_simply_laced()
+                 or isinstance(P, InfinityCrystalOfNonSimplyLacedRC))):
             from sage.combinat.rigged_configurations.bij_infinity import FromRCIsomorphism
             return FromRCIsomorphism(Hom(P, self))
         return super(InfinityCrystalOfTableaux, self)._coerce_map_from_(P)

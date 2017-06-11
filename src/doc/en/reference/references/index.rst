@@ -829,8 +829,8 @@ REFERENCES:
              function fields and related topics," J. Symbolic
              Comput. 33 (2002), no. 4, 425--445.
 
-.. [Hig2008] \N. J. Higham, "Functions of matrices: theory and computation", 
-             Society for Industrial and Applied Mathematics (2008). 
+.. [Hig2008] \N. J. Higham, "Functions of matrices: theory and computation",
+             Society for Industrial and Applied Mathematics (2008).
 
 .. [HJ2004] Tom Hoeholdt and Joern Justesen, A Course In
             Error-Correcting Codes, EMS, 2004
@@ -992,6 +992,11 @@ REFERENCES:
             Advances in algebra and combinatorics, 225--242, World
             Sci. Publ., Hackensack, NJ, 2008. Preprint version:
             :arxiv:`0710.1835`
+
+.. [KLS2013] Allen Knutson, Thomas Lam, and David Speyer.
+             *Positroid Varieties: Juggling and Geometry*
+             Compositio Mathematica, **149** (2013), no. 10.
+             :arXiv:`1111.3660`.
 
 .. [KMM2004] Tomasz Kaczynski, Konstantin Mischaikow, and Marian
              Mrozek, "Computational Homology", Springer-Verlag (2004).
@@ -1527,6 +1532,19 @@ REFERENCES:
 .. [SS1992] \M. A. Shtan'ko and M. I. Shtogrin, "Embedding cubic
             manifolds and complexes into a cubic lattice", *Uspekhi
             Mat. Nauk* 47 (1992), 219-220.
+
+.. [SS2015] Anne Schilling and Travis Scrimshaw.
+            *Crystal structure on rigged configurations and the filling map*.
+            Electon. J. Combin., **22(1)** (2015) #P1.73. :arxiv:`1409.2920`.
+
+.. [SS2015II] Ben Salisbury and Travis Scrimshaw.
+              *A rigged configuration model for* `B(\infty)`.
+              J. Combin. Theory Ser. A, **133** (2015) pp. 29-75.
+              :arxiv:`1404.6539`.
+
+.. [SS2017] Ben Salisbury and Travis Scrimshaw.
+            *Rigged configurations for all symmetrizable types*.
+            Electon. J. Combin., **24(1)** (2017) #P1.30. :arxiv:`1509.07833`.
 
 .. [ST2011] \A. Schilling, P. Tingley. *Demazure crystals,
             Kirillov-Reshetikhin crystals, and the energy function*.

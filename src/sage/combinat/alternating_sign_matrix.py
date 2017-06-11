@@ -40,7 +40,7 @@ from sage.misc.all import prod
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element
-from sage.structure.sage_object import op_NE, richcmp
+from sage.structure.richcmp import op_NE, richcmp
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
@@ -803,7 +803,7 @@ class AlternatingSignMatrix(Element):
         if algorithm == 'last_diagonal':
             MT = self.to_monotone_triangle()
             nplus = self._matrix.nrows() + 1
-            parkfn = [nplus - row[0] for row in list(MT) if len(row) > 0]
+            parkfn = [nplus - row[0] for row in list(MT) if row]
             return NonDecreasingParkingFunction(parkfn).to_dyck_word().reverse()
         
         elif algorithm == 'link_pattern':

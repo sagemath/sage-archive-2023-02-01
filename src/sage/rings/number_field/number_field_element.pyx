@@ -27,14 +27,15 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
 
 import operator
 
-include "cysignals/signals.pxi"
 from cpython.int cimport *
-include "sage/ext/stdsage.pxi"
+
+from cysignals.signals cimport sig_on, sig_off
+
 include "sage/libs/ntl/decl.pxi"
 
 from sage.libs.gmp.mpz cimport *
@@ -43,7 +44,7 @@ from sage.libs.mpfi cimport mpfi_t, mpfi_init, mpfi_set, mpfi_clear, mpfi_div_z,
 from sage.libs.mpfr cimport mpfr_less_p, mpfr_greater_p, mpfr_greaterequal_p
 from sage.libs.ntl.error import NTLError
 from cpython.object cimport Py_EQ, Py_NE, Py_LT, Py_GT, Py_LE, Py_GE
-from sage.structure.sage_object cimport rich_to_bool
+from sage.structure.richcmp cimport rich_to_bool
 
 import sage.rings.infinity
 import sage.rings.polynomial.polynomial_element
@@ -886,8 +887,8 @@ cdef class NumberFieldElement(FieldElement):
 
     cdef int _randomize(self, num_bound, den_bound, distribution) except -1:
         cdef int i
-        cdef Integer denom_temp = PY_NEW(Integer)
-        cdef Integer tmp_integer = PY_NEW(Integer)
+        cdef Integer denom_temp = Integer.__new__(Integer)
+        cdef Integer tmp_integer = Integer.__new__(Integer)
         cdef ZZ_c ntl_temp
         cdef list coeff_list
         cdef Rational tmp_rational
@@ -918,7 +919,7 @@ cdef class NumberFieldElement(FieldElement):
         else:
             coeff_list = []
             mpz_set_si(denom_temp.value, 1)
-            tmp_integer = PY_NEW(Integer)
+            tmp_integer = Integer.__new__(Integer)
 
             for i from 0 <= i < ZZX_deg(self.__fld_numerator.x):
                 tmp_rational = <Rational>(QQ.random_element(num_bound=num_bound,
@@ -2501,8 +2502,7 @@ cdef class NumberFieldElement(FieldElement):
         """
         if ZZX_deg(self.__numerator) >= 1:
             raise TypeError("Unable to coerce %s to a rational"%self)
-        cdef Integer num
-        num = PY_NEW(Integer)
+        cdef Integer num = Integer.__new__(Integer)
         ZZX_getitem_as_mpz(num.value, &self.__numerator, 0)
         return num / (<IntegerRing_class>ZZ)._coerce_ZZ(&self.__denominator)
 
@@ -2840,7 +2840,7 @@ cdef class NumberFieldElement(FieldElement):
         cdef Integer numCoeff
         cdef int i
         for i from 0 <= i <= ZZX_deg(self.__numerator):
-            numCoeff = PY_NEW(Integer)
+            numCoeff = Integer.__new__(Integer)
             ZZX_getitem_as_mpz(numCoeff.value, &self.__numerator, i)
             coeffs.append( numCoeff / den )
         return coeffs

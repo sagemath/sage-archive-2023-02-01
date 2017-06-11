@@ -3,7 +3,7 @@ from __future__ import print_function
 
 import sys
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.libs.gmp.mpz cimport *
 from sage.rings.all import GF

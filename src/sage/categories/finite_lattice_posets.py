@@ -26,7 +26,7 @@ class FiniteLatticePosets(CategoryWithAxiom):
 
     .. SEEALSO::
 
-        :class:`FinitePosets`, :class:`LatticePosets`, :class:`LatticePoset`
+        :class:`FinitePosets`, :class:`LatticePosets`, :class:`~sage.combinat.posets.lattices.FiniteLatticePoset`
 
     TESTS::
 
@@ -55,9 +55,9 @@ class FiniteLatticePosets(CategoryWithAxiom):
 
             .. SEEALSO::
 
-                :meth:`meet_irreducibles`,
-                :meth:`~sage.combinat.posets.lattices.FiniteLatticePoset.double_irreducibles`,
-                :meth:`meet_irreducibles_poset`
+                - Dual function: :meth:`meet_irreducibles`
+                - Other: :meth:`~sage.combinat.posets.lattices.FiniteLatticePoset.double_irreducibles`,
+                  :meth:`join_irreducibles_poset`
             """
             return [x for x in self if len(self.lower_covers(x)) == 1]
 
@@ -75,7 +75,10 @@ class FiniteLatticePosets(CategoryWithAxiom):
                 sage: L.join_irreducibles_poset()
                 Finite poset containing 3 elements
 
-            .. SEEALSO:: :meth:`join_irreducibles`
+            .. SEEALSO::
+
+                - Dual function: :meth:`meet_irreducibles_poset`
+                - Other: :meth:`join_irreducibles`
             """
             return self.subposet(self.join_irreducibles())
 
@@ -95,9 +98,9 @@ class FiniteLatticePosets(CategoryWithAxiom):
 
             .. SEEALSO::
 
-                :meth:`join_irreducibles`,
-                :meth:`~sage.combinat.posets.lattices.FiniteLatticePoset.double_irreducibles`,
-                :meth:`meet_irreducibles_poset`
+                - Dual function: :meth:`join_irreducibles`
+                - Other: :meth:`~sage.combinat.posets.lattices.FiniteLatticePoset.double_irreducibles`,
+                  :meth:`meet_irreducibles_poset`
             """
             return [x for x in self if len(self.upper_covers(x)) == 1]
 
@@ -115,7 +118,10 @@ class FiniteLatticePosets(CategoryWithAxiom):
                 sage: L.join_irreducibles_poset()
                 Finite poset containing 3 elements
 
-            .. SEEALSO:: :meth:`meet_irreducibles`
+            .. SEEALSO::
+
+                - Dual function: :meth:`join_irreducibles_poset`
+                - Other: :meth:`meet_irreducibles`
             """
             return self.subposet(self.meet_irreducibles())
 

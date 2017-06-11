@@ -1,5 +1,7 @@
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
+from __future__ import absolute_import
+
+from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.libs.gmp.mpz cimport mpz_init, mpz_clear, mpz_pow_ui
 from sage.libs.flint.padic cimport *
@@ -9,7 +11,7 @@ from sage.libs.flint.fmpz_vec cimport *
 from sage.libs.flint.fmpz cimport fmpz_init, fmpz_one, fmpz_mul, fmpz_set, fmpz_get_mpz, fmpz_clear, fmpz_pow_ui, fmpz_set_mpz, fmpz_fdiv_q_2exp
 
 from cpython.object cimport Py_EQ, Py_NE
-from sage.structure.sage_object cimport richcmp_not_equal
+from sage.structure.richcmp cimport richcmp_not_equal
 from sage.rings.integer cimport Integer
 from sage.rings.all import ZZ
 from sage.rings.polynomial.polynomial_integer_dense_flint cimport Polynomial_integer_dense_flint
@@ -622,11 +624,13 @@ def PowComputer_flint_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_field
 
     """
     if prec_type == 'capped-rel':
-        from qadic_flint_CR import PowComputer_
+        from .qadic_flint_CR import PowComputer_
     elif prec_type == 'capped-abs':
-        from qadic_flint_CA import PowComputer_
+        from .qadic_flint_CA import PowComputer_
     elif prec_type == 'fixed-mod':
-        from qadic_flint_FM import PowComputer_
+        from .qadic_flint_FM import PowComputer_
+    elif prec_type == 'floating-point':
+        from .qadic_flint_FP import PowComputer_
     else:
         raise ValueError("unknown prec_type `%s`" % prec_type)
     return PowComputer_(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly)

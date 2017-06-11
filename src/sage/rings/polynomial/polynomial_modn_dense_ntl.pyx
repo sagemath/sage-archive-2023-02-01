@@ -26,6 +26,10 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+
+from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial, _dict_to_list
 
@@ -41,7 +45,7 @@ import sage.rings.polynomial.polynomial_ring
 
 from sage.rings.infinity import infinity
 
-import polynomial_singular_interface
+from . import polynomial_singular_interface
 from sage.interfaces.all import singular as singular_default
 
 from sage.structure.element import generic_power, canonical_coercion, bin_op, coerce_binop
@@ -54,8 +58,6 @@ from sage.libs.ntl.ZZ_pX cimport *
 
 def make_element(parent, args):
     return parent(*args)
-
-include "cysignals/signals.pxi"
 
 zz_p_max = NTL_SP_BOUND
 
@@ -958,7 +960,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     def __lshift__(Polynomial_dense_modn_ntl_zz self, long n):
         """
-        TEST::
+        TESTS::
 
             sage: R.<x> = PolynomialRing(Integers(77), implementation='NTL')
             sage: f = x^5 + 2*x + 1
@@ -971,7 +973,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     def __rshift__(Polynomial_dense_modn_ntl_zz self, long n):
         """
-        TEST::
+        TESTS::
 
             sage: R.<x> = PolynomialRing(Integers(77), implementation='NTL')
             sage: f = x^5 + 2*x + 1
@@ -1491,7 +1493,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     def __lshift__(Polynomial_dense_modn_ntl_ZZ self, long n):
         """
-        TEST::
+        TESTS::
 
             sage: R.<x> = PolynomialRing(Integers(14^30), implementation='NTL')
             sage: f = x^5 + 2*x + 1
@@ -1504,7 +1506,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     def __rshift__(Polynomial_dense_modn_ntl_ZZ self, long n):
         """
-        TEST::
+        TESTS::
 
             sage: R.<x> = PolynomialRing(Integers(15^30), implementation='NTL')
             sage: f = x^5 + 2*x + 1

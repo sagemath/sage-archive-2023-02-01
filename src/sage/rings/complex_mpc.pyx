@@ -472,7 +472,7 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
 
         late_import()
         if S in [AA, QQbar, CLF, RLF] or (S == CDF and self._prec <= 53):
-            return self._generic_convert_map(S)
+            return self._generic_coerce_map(S)
 
         return self._coerce_map_via([CLF], S)
 

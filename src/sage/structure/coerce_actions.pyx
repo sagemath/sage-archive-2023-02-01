@@ -523,13 +523,11 @@ cdef class ModuleAction(Action):
             sage: cm = sage.structure.element.get_coercion_model()
             sage: cm.explain(x, 1, operator.div)
             Action discovered.
-                Right inverse action by Symbolic Constants Subring on
-                Univariate Polynomial Ring in x over Symbolic Constants Subring
-                with precomposition on right by Conversion map:
+                Right inverse action by Symbolic Constants Subring on Univariate Polynomial Ring in x over Symbolic Constants Subring
+                with precomposition on right by Coercion map:
                   From: Integer Ring
                   To:   Symbolic Constants Subring
-            Result lives in Univariate Polynomial Ring in x over
-            Symbolic Constants Subring
+            Result lives in Univariate Polynomial Ring in x over Symbolic Constants Subring
             Univariate Polynomial Ring in x over Symbolic Constants Subring
         """
         K = self.G._pseudo_fraction_field()

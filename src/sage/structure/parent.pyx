@@ -2148,9 +2148,9 @@ cdef class Parent(category_object.CategoryObject):
             sage: c.parent() is M
             True
             sage: K.coerce_map_from(QQ)
-            Conversion map:
-            From: Rational Field
-            To:   Number Field in a with defining polynomial x^2 - 2 over its base field
+            Coercion map:
+              From: Rational Field
+              To:   Number Field in a with defining polynomial x^2 - 2 over its base field
 
         Test that :trac:`17981` is fixed::
 
@@ -2192,7 +2192,7 @@ cdef class Parent(category_object.CategoryObject):
               From: Number Field in b with defining polynomial x^2 + 2
               To:   Full MatrixSpace of 2 by 2 dense matrices over Number Field in b with defining polynomial x^2 + 2
             sage: PowerSeriesRing(L, 'x').coerce_map_from(L)
-            Conversion map:
+            Coercion map:
               From: Number Field in b with defining polynomial x^2 + 2
               To:   Power Series Ring in x over Number Field in b with defining polynomial x^2 + 2
         """

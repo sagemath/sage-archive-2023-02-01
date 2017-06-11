@@ -2414,14 +2414,14 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
               Defn: a0 |--> -a^27 - a^26 - a^25 - a^24 - a^23 - a^22 - a^21 - a^20 - a^19 - a^18 - a^17 - a^16 - a^15 - a^14 - a^13 - a^12 - a^11 - a^10 - a^9 - a^8 - a^7 - a^6 - a^5 - a^4 - a^3 - a^2 - 1)
             sage: F.<a> = NumberField(x^3 - 2)
             sage: F.maximal_totally_real_subfield()
-            [Rational Field, Conversion map:
-              From: Rational Field
-              To:   Number Field in a with defining polynomial x^3 - 2]
+            [Rational Field, Coercion map:
+               From: Rational Field
+               To:   Number Field in a with defining polynomial x^3 - 2]
             sage: F.<a> = NumberField(x^4 - x^3 - x^2 + x + 1)
             sage: F.maximal_totally_real_subfield()
-            [Rational Field, Conversion map:
-              From: Rational Field
-              To:   Number Field in a with defining polynomial x^4 - x^3 - x^2 + x + 1]
+            [Rational Field, Coercion map:
+               From: Rational Field
+               To:   Number Field in a with defining polynomial x^4 - x^3 - x^2 + x + 1]
             sage: F.<a> = NumberField(x^4 - x^3 + 2*x^2 + x + 1)
             sage: F.maximal_totally_real_subfield()
             [Number Field in a1 with defining polynomial x^2 - x - 1, Ring morphism:

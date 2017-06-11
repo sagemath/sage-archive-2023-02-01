@@ -6,18 +6,20 @@ elements. For general information about libGAP, you should read the
 :mod:`~sage.libs.gap.libgap` module documentation.
 """
 
-###############################################################################
-#       Copyright (C) 2012, Volker Braun <vbraun.name@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2012 Volker Braun <vbraun.name@gmail.com>
 #
-#   Distributed under the terms of the GNU General Public License (GPL)
-#   as published by the Free Software Foundation; either version 2 of
-#   the License, or (at your option) any later version.
-#                   http://www.gnu.org/licenses/
-###############################################################################
-from __future__ import print_function
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
-include "cysignals/signals.pxi"
+from __future__ import absolute_import, print_function
+
 from cpython.object cimport *
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object cimport SageObject

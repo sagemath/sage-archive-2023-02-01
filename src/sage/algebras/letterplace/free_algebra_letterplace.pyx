@@ -77,7 +77,7 @@ Here is an example with degree weights::
     sage: (x*y+z).degree()
     3
 
-TEST::
+TESTS::
 
     sage: TestSuite(F).run()
     sage: TestSuite(L).run()
@@ -224,7 +224,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
 
         One is supposed to use the `FreeAlgebra` constructor, in order to use the cache.
 
-        TEST::
+        TESTS::
 
             sage: from sage.algebras.letterplace.free_algebra_letterplace import FreeAlgebra_letterplace
             sage: FreeAlgebra_letterplace(QQ['x','y'])
@@ -294,7 +294,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
         self._populate_coercion_lists_(coerce_list=[base_ring])
     def __reduce__(self):
         """
-        TEST::
+        TESTS::
 
             sage: K.<z> = GF(25)
             sage: F.<a,b,c> = FreeAlgebra(K, implementation='letterplace')
@@ -438,7 +438,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
         This would only be the case in the degenerate case of no generators.
         But such an example can not be constructed in this implementation.
 
-        TEST::
+        TESTS::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: F.is_field()

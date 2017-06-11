@@ -45,7 +45,8 @@ EXAMPLES::
 
 from __future__ import absolute_import, print_function
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
+
 from sage.libs.gmp.mpz cimport *
 from sage.rings.integer cimport Integer
 

@@ -3042,7 +3042,7 @@ def plot_loglog(funcs, *args, **kwds):
         sage: plot_loglog(exp, (1,10), base=2.1) # long time # with base 2.1 on both axes
         Graphics object consisting of 1 graphics primitive
 
-    .. PLOT ::
+    .. PLOT::
 
         g = plot_loglog(exp, (1,10), base=2.1) # long time # with base 2.1 on both axes
         sphinx_plot(g)

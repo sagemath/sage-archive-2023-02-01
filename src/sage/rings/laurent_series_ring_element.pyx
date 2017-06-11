@@ -63,7 +63,7 @@ from sage.rings.integer import Integer
 from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial_univariate
 from .power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport Element, ModuleElement, RingElement, AlgebraElement
-from sage.structure.sage_object cimport richcmp_not_equal, rich_to_bool
+from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 from sage.misc.derivative import multi_derivative
 
 
@@ -1099,7 +1099,7 @@ cdef class LaurentSeries(AlgebraElement):
         is the difference between its absolute precision  
         and its valuation.
 
-        By convension, the relative precision of `0` (or
+        By convention, the relative precision of `0` (or
         `O(x^r)` for any `r`) is `0`.
 
         EXAMPLES::
@@ -1119,7 +1119,6 @@ cdef class LaurentSeries(AlgebraElement):
 
     def __copy__(self):
         return LaurentSeries(self._parent, self.__u.copy(), self.__n)
-
 
     def derivative(self, *args):
         """

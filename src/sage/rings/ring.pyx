@@ -2252,7 +2252,7 @@ cdef class Field(PrincipalIdealDomain):
         """
         Return the gcd of ``a`` and ``b`` as a monic polynomial.
 
-        .. WARNING:
+        .. WARNING::
 
             If the base ring is inexact, the results may not be
             entirely stable.
@@ -2308,7 +2308,7 @@ cdef class Field(PrincipalIdealDomain):
         greatest common divisor (monic or zero) of ``a`` and ``b``,
         and ``u``, ``v`` satisfy ``d = u*a + v*b``.
 
-        .. WARNING:
+        .. WARNING::
 
             If the base ring is inexact, the results may not be
             entirely stable.

@@ -919,7 +919,7 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
 
     def symmetric_diagrams(self,l=None,perm=None):
         r"""
-        Return the list of brauer diagrams with symmetric placement of `l` arcs,
+        Return the list of Brauer diagrams with symmetric placement of `l` arcs,
         and with free nodes permuted according to `perm`.
 
         EXAMPLES::

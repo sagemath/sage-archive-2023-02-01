@@ -792,7 +792,7 @@ class f4(ExceptionalMatrixLieAlgebra):
         f[0][14,12] = 2*one
         f[1][15,13] = 2*one
 
-        # Our Cartan matrix convension is dual to that of [HRT2000]_
+        # Our Cartan matrix convention is dual to that of [HRT2000]_
         e.reverse()
         f.reverse()
         ExceptionalMatrixLieAlgebra.__init__(self, R, CartanType(['F', 4]), e, f)

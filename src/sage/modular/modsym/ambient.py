@@ -182,27 +182,42 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
 
         hecke.AmbientHeckeModule.__init__(self, base_ring, rank, group.level(), weight, category=category)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
-        Standard comparison function.
+        Check that ``self`` is equal to ``other``.
 
         EXAMPLES::
 
-            sage: ModularSymbols(11,2) == ModularSymbols(11,2) # indirect doctest
+            sage: ModularSymbols(11,2) == ModularSymbols(11,2)
             True
-            sage: ModularSymbols(11,2) == ModularSymbols(11,4) # indirect doctest
+            sage: ModularSymbols(11,2) == ModularSymbols(11,4)
             False
-
         """
         if not isinstance(other, ModularSymbolsSpace):
-            return cmp(type(self), type(other))
+            return False
+
         if isinstance(other, ModularSymbolsAmbient):
-            return misc.cmp_props(self, other, ['group', 'weight', 'sign', 'base_ring', 'character'])
-        c = cmp(self, other.ambient_hecke_module())
-        if c: return c
-        if self.free_module() == other.free_module():
-            return 0
-        return -1
+            return (self.group() == other.group() and
+                    self.weight() == other.weight() and
+                    self.sign() == other.sign() and
+                    self.base_ring() == other.base_ring() and
+                    self.character() == other.character())
+
+        return (self == other.ambient_hecke_module() and
+                self.free_module() == other.free_module())
+
+    def __ne__(self, other):
+        """
+        Check that ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: ModularSymbols(11,2) != ModularSymbols(11,2)
+            False
+            sage: ModularSymbols(11,2) != ModularSymbols(11,4)
+            True
+        """
+        return not (self == other)
 
     def new_submodule(self, p=None):
         r"""
@@ -1015,8 +1030,9 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
                 entries = syms.apply(i,h)
                 for k, x in entries:
                     f, s = mod2term[k]
-                    if s != 0:
-                        W[j,f] = W[j,f] + s*K(x)
+                    if s:
+                        # W[j,f] = W[j,f] + s*K(x)
+                        W.add_to_entry(j, f, s * K(x))
             j += 1
         tm = misc.verbose("start matrix multiply",tm)
         if hasattr(W, '_matrix_times_matrix_dense'):
@@ -2884,7 +2900,7 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
             Tp = W * R
             tm = misc.verbose("done multiplying",tm)
             Tp = Tp.dense_matrix()
-            misc.verbose("done making hecke operator dense",tm)
+            misc.verbose("done making Hecke operator dense", tm)
         if rows is None:
             self._hecke_matrices[(p,rows)] = Tp
         return Tp

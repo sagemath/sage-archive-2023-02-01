@@ -24,7 +24,7 @@ from sage.misc.misc import repr_lincomb
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.structure.element cimport have_same_parent, coercion_model, parent
 from sage.structure.element_wrapper cimport ElementWrapper
-from sage.structure.sage_object cimport richcmp
+from sage.structure.richcmp cimport richcmp
 from sage.data_structures.blas_dict cimport axpy, negate, scal
 
 # TODO: Inherit from IndexedFreeModuleElement and make cdef once #22632 is merged

@@ -212,17 +212,17 @@ class Lseries_ell(SageObject):
 
         INPUT:
 
-        -   n -- integer
+        - n -- integer
 
-        -   prec -- integer
+        - prec -- integer
 
-        -   d -- integer
+        - d -- integer
 
         OUTPUT:
 
         - a string, exactly as output by sympow
 
-        .. note ::
+        .. NOTE::
 
             To use this function you may have to run a few commands
             like ``sympow('-new_data 1d2')``, each which takes a few

@@ -322,7 +322,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
     def __init__(self, ring, polynomial, name=None, category=None):
         """
-        TEST::
+        TESTS::
 
             sage: R.<x> = PolynomialRing(ZZ)
             sage: S = R.quo(x^2-4)
@@ -606,7 +606,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         """
         Represent ``self`` in the Singular interface.
 
-        TEST::
+        TESTS::
 
             sage: P.<x> = QQ[]
             sage: Q = P.quo([(x^2+1)])

@@ -1765,6 +1765,9 @@ class RationalFunctionField(FunctionField):
         self._ring = R
         self._field = R.fraction_field()
         self._populate_coercion_lists_(coerce_list=[self._field])
+        from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
+        from sage.categories.morphism import SetMorphism
+        R.register_conversion(SetMorphism(self.Hom(R, SetsWithPartialMaps()), self._to_polynomial))
         self._gen = self(R.gen())
 
     def __reduce__(self):
@@ -1899,6 +1902,25 @@ class RationalFunctionField(FunctionField):
             # we need to divide explicitly to get the correct precision
             return K(f.numerator()) / K(f.denominator())
         raise ValueError("only constants can be converted into the constant base field but %r is not a constant"%(f,))
+
+    def _to_polynomial(self, f):
+        """
+        If ``f`` is integral, return it as a polynomial.
+
+        INPUT:
+
+        - ``f`` -- an element of this rational function field whose denominator is a constant.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: K._ring(x) # indirect doctest
+            x
+        """
+        K = f.parent().constant_base_field()
+        if f.denominator() in K:
+            return f.numerator()/K(f.denominator())
+        raise ValueError("Only polynomials can be converted to the underlying polynomial ring")
 
     def _to_bivariate_polynomial(self, f):
         """

@@ -85,7 +85,8 @@ import operator
 cdef dict operator_dict = operator.__dict__
 from operator import add, sub, mul, div, truediv, iadd, isub, imul, idiv
 
-from .sage_object cimport SageObject, rich_to_bool
+from .richcmp cimport rich_to_bool
+from .sage_object cimport SageObject
 from .parent cimport Set_PythonType, Parent_richcmp_element_without_coercion
 from .element cimport bin_op_exception, parent, Element
 from .coerce_actions import LeftModuleAction, RightModuleAction, IntegerMulAction
@@ -278,7 +279,7 @@ cpdef bint is_numpy_type(t):
         sage: 1 + object()
         Traceback (most recent call last):
         ...
-        TypeError: unsupported operand parent(s) for +: 'Integer Ring' and '<type 'object'>'
+        TypeError: unsupported operand parent(s) for +: 'Integer Ring' and '<... 'object'>'
     """
     if not isinstance(t, type):
         return False
@@ -534,7 +535,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         If the stack has not yet been flagged as cleared, we clear it now (rather
         than wasting time to do so for successful operations).
 
-        TEST::
+        TESTS::
 
             sage: cm = sage.structure.element.get_coercion_model()
             sage: cm.record_exceptions()
@@ -1000,9 +1001,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         TESTS::
 
-            sage: class Foo:
-            ....:    def __rmul__(self, left):
-            ....:        return 'hello'
+            sage: class Foo(object):
+            ....:     def __rmul__(self, left):
+            ....:         return 'hello'
             sage: H = Foo()
             sage: print(int(3)*H)
             hello
@@ -1011,9 +1012,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: print(H*3)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for *: '<type 'instance'>' and 'Integer Ring'
+            TypeError: unsupported operand parent(s) for *: '<class '__main__.Foo'>' and 'Integer Ring'
 
-            sage: class Nonsense:
+            sage: class Nonsense(object):
             ....:     def __init__(self, s):
             ....:         self.s = s
             ....:     def __repr__(self):
@@ -1033,7 +1034,6 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             blahblahP
             sage: 80+a
             Pblahblah
-
         """
         self._exceptions_cleared = False
         if (op is not sub) and (op is not isub):
@@ -1807,7 +1807,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         EXAMPLES::
 
             sage: from sage.structure.element import get_coercion_model
-            sage: from sage.structure.sage_object import op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE
+            sage: from sage.structure.richcmp import op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE
             sage: richcmp = get_coercion_model().richcmp
             sage: richcmp(None, None, op_EQ)
             True

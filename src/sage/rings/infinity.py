@@ -994,7 +994,7 @@ class InfinityRing_class(Singleton, Ring):
         """
         This isn't really a ring, let alone an integral domain.
 
-        TEST::
+        TESTS::
 
             sage: InfinityRing.fraction_field()
             Traceback (most recent call last):
@@ -1083,7 +1083,7 @@ class InfinityRing_class(Singleton, Ring):
         """
         Return a string representation of ``self``.
 
-        TEST::
+        TESTS::
 
             sage: InfinityRing._repr_()
             'The Infinity Ring'

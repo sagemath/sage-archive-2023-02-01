@@ -128,9 +128,9 @@ Classes and Methods
 #  the License, or (at your option) any later version.
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
-include "cysignals/signals.pxi"
 
 import operator
+from cysignals.signals cimport sig_on, sig_str, sig_off, sig_error
 
 import sage.categories.fields
 
@@ -3105,7 +3105,7 @@ cdef class ComplexBall(RingElement):
 
         The following definitions are used:
 
-        .. math ::
+        .. MATH::
 
             \theta_1(z,\tau) = 2 q_{1/4} \sum_{n=0}^{\infty} (-1)^n q^{n(n+1)} \sin((2n+1) \pi z)
 

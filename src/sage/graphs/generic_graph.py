@@ -3716,7 +3716,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.min_spanning_tree(algorithm="Prim_Boost")
             Traceback (most recent call last):
             ...
-            ValueError: The weight function cannot find the weight of (1, 2, 'a').
+            ValueError: could not convert string to float: a
             sage: g.min_spanning_tree(algorithm="Prim_fringe")
             Traceback (most recent call last):
             ...
@@ -3732,7 +3732,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.min_spanning_tree(algorithm="Kruskal_Boost")
             Traceback (most recent call last):
             ...
-            ValueError: The weight function cannot find the weight of (1, 2, 'a').
+            ValueError: could not convert string to float: a
             sage: g.min_spanning_tree(algorithm="NetworkX")
             Traceback (most recent call last):
             ...
@@ -3743,7 +3743,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.min_spanning_tree(algorithm="Prim_Boost")
             Traceback (most recent call last):
             ...
-            ValueError: The weight function cannot find the weight of (1, 2, [1, 2, 3]).
+            TypeError: float() argument must be a string or a number
             sage: g.min_spanning_tree(algorithm="Prim_fringe")
             Traceback (most recent call last):
             ...
@@ -3759,7 +3759,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.min_spanning_tree(algorithm="Kruskal_Boost")
             Traceback (most recent call last):
             ...
-            ValueError: The weight function cannot find the weight of (1, 2, [1, 2, 3]).
+            TypeError: float() argument must be a string or a number
             sage: g.min_spanning_tree(algorithm="NetworkX")
             Traceback (most recent call last):
             ...
@@ -8759,14 +8759,13 @@ class GenericGraph(GenericGraph_pyx):
 
     def vertex_disjoint_paths(self, s, t):
         r"""
-        Returns a list of vertex-disjoint paths between two
-        vertices as given by Menger's theorem.
+        Return a list of vertex-disjoint paths between two vertices as given by
+        Menger's theorem.
 
-        The vertex version of Menger's theorem asserts that the size
-        of the minimum vertex cut between two vertices `s` and`t`
-        (the minimum number of vertices whose removal disconnects `s`
-        and `t`) is equal to the maximum number of pairwise
-        vertex-independent paths from `s` to `t`.
+        The vertex version of Menger's theorem asserts that the size of the
+        minimum vertex cut between two vertices `s` and `t` (the minimum number
+        of vertices whose removal disconnects `s` and `t`) is equal to the
+        maximum number of pairwise vertex-independent paths from `s` to `t`.
 
         This function returns a list of such paths.
 
@@ -8777,11 +8776,25 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = graphs.CompleteBipartiteGraph(2,3)
             sage: g.vertex_disjoint_paths(0,1)
             [[0, 2, 1], [0, 3, 1], [0, 4, 1]]
-        """
 
-        [obj, flow_graph] = self.flow(s,t,value_only=False, integer=True, use_edge_labels=False, vertex_bound=True)
+        TESTS:
+
+        Fix issues reported in :trac:`22990`::
+
+            sage: g = digraphs.Path(2)
+            sage: g.vertex_disjoint_paths(0, 1)
+            [[0, 1]]
+            sage: g.vertex_disjoint_paths(1,0)
+            []
+        """
+        obj, flow_graph = self.flow(s, t, value_only=False, integer=True, use_edge_labels=False, vertex_bound=True)
 
         paths = []
+        if not obj:
+            return paths
+        if flow_graph.has_edge(s, t):
+            flow_graph.delete_edge(s, t)
+            paths.append([s, t])
 
         while True:
             path = flow_graph.shortest_path(s,t)
@@ -10277,12 +10290,18 @@ class GenericGraph(GenericGraph_pyx):
 
         self._backend.add_edge(u, v, label, self._directed)
 
-    def add_edges(self, edges):
+    def add_edges(self, edges, loops=True):
         """
         Add edges from an iterable container.
 
-        All elements of ``edges`` must follow the same format, i.e. have the
-        same length.
+        INPUT:
+
+        - ``edges`` -- an iterable of edges, given either as ``(u, v)``
+          or ``(u, v, label)``.
+
+        - ``loops`` -- (default: ``True``) if ``False``, remove all
+          loops ``(v, v)`` from the input iterator. If ``None``, remove
+          loops unless the graph allows loops.
 
         EXAMPLES::
 
@@ -10297,25 +10316,54 @@ class GenericGraph(GenericGraph_pyx):
             sage: H.add_edges(iter([]))
 
             sage: H = Graph()
-            sage: H.add_edges([(0,1),(0,2)])
+            sage: H.add_edges([(0, 1), (0, 2, "label")])
             sage: H.edges()
-            [(0, 1, None), (0, 2, None)]
+            [(0, 1, None), (0, 2, 'label')]
+
+        We demonstrate the ``loops`` argument::
+
+            sage: H = Graph()
+            sage: H.add_edges([(0,0)], loops=False); H.edges()
+            []
+            sage: H.add_edges([(0,0)], loops=None); H.edges()
+            []
+            sage: H.add_edges([(0,0)]); H.edges()
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot add edge from 0 to 0 in graph without loops
+            sage: H = Graph(loops=True)
+            sage: H.add_edges([(0,0)], loops=False); H.edges()
+            []
+            sage: H.add_edges([(0,0)], loops=None); H.edges()
+            [(0, 0, None)]
+            sage: H.add_edges([(0,0)]); H.edges()
+            [(0, 0, None)]
+
+        TESTS::
+
+            sage: H.add_edges([(0,1,2,3)])
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot interpret (0, 1, 2, 3) as graph edge
+            sage: H.add_edges([1234])
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot interpret 1234 as graph edge
         """
-        it = iter(edges)
+        if loops is None:
+            loops = self.allows_loops()
 
-        try:
-            e0 = next(it)
-        except StopIteration:
-            return
-
-        if len(e0) == 3:
-            self._backend.add_edge(e0[0], e0[1], e0[2], self._directed)
-            for u,v,label in it:
+        for t in edges:
+            try:
+                if len(t) == 3:
+                    u, v, label = t
+                else:
+                    u, v = t
+                    label = None
+            except Exception:
+                raise TypeError("cannot interpret {!r} as graph edge".format(t))
+            if loops or u != v:
                 self._backend.add_edge(u, v, label, self._directed)
-        else:
-            self._backend.add_edge(e0[0], e0[1], None, self._directed)
-            for u,v in it:
-                self._backend.add_edge(u, v, None, self._directed)
 
     def subdivide_edge(self, *args):
         """
@@ -13613,7 +13661,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.eccentricity(algorithm = 'boh')
             Traceback (most recent call last):
             ...
-            ValueError: Algorithm boh not yet implemented. Please, contribute!
+            ValueError: unknown algorithm "boh"
 
         An algorithm that does not work with edge weights::
 
@@ -13782,7 +13830,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.diameter()
             2
 
-        TEST::
+        TESTS::
 
             sage: g = Graph()
             sage: g.radius()
@@ -13875,7 +13923,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.diameter()
             2
 
-        TEST::
+        TESTS::
 
             sage: g = Graph()
             sage: g.diameter()
@@ -14923,7 +14971,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.triangles_count(algorithm='tip top')
             Traceback (most recent call last):
             ...
-            ValueError: Algorithm 'tip top' not yet implemented. Please contribute.
+            ValueError: unknown algorithm "tip top"
             sage: digraphs.Path(5).triangles_count(algorithm="sparse_copy")
             Traceback (most recent call last):
             ...
@@ -14960,7 +15008,7 @@ class GenericGraph(GenericGraph_pyx):
             elif algorithm=='matrix':
                 return (self.adjacency_matrix()**3).trace() // 6
             else:
-                raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
+                raise ValueError('unknown algorithm "{}"'.format(algorithm))
 
     def shortest_path(self, u, v, by_weight=False, algorithm=None,
                       weight_function=None, check_weight=True,
@@ -15062,7 +15110,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.shortest_path(0, 3, by_weight=True, algorithm='tip top')
             Traceback (most recent call last):
             ...
-            ValueError: Algorithm 'tip top' not yet implemented.
+            ValueError: unknown algorithm "tip top"
 
         BFS on weighted graphs::
 
@@ -15074,7 +15122,23 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: The 'BFS_Bid' algorithm does not work on weighted graphs.
+
+        If vertex is not in the graph::
+
+            sage: G.shortest_path(0, 5)
+            Traceback (most recent call last):
+            ...
+            ValueError: vertex '5' is not in the (di)graph
+            sage: G.shortest_path(6, 5)
+            Traceback (most recent call last):
+            ...
+            ValueError: vertex '6' is not in the (di)graph
         """ #         TODO- multiple edges??
+        if not self.has_vertex(u):
+            raise ValueError("vertex '{}' is not in the (di)graph".format(u))
+        if not self.has_vertex(v):
+            raise ValueError("vertex '{}' is not in the (di)graph".format(v))
+
         if weight_function is not None:
             by_weight = True
 
@@ -15117,7 +15181,7 @@ class GenericGraph(GenericGraph_pyx):
         elif algorithm=="BFS_Bid":
             return self._backend.shortest_path(u,v)
         else:
-            raise ValueError("Algorithm '" + algorithm + "' not yet implemented.")
+            raise ValueError('unknown algorithm "{}"'.format(algorithm))
 
     def shortest_path_length(self, u, v, by_weight=False, algorithm=None,
                              weight_function=None, check_weight=True,
@@ -15238,17 +15302,70 @@ class GenericGraph(GenericGraph_pyx):
             -1000
             sage: G.shortest_path_length(0, 2, by_weight=True)
             2
+
+        TESTS:
+
+        If vertex is not in the graph::
+
+            sage: G.shortest_path(0, 5)
+            Traceback (most recent call last):
+            ...
+            ValueError: vertex '5' is not in the (di)graph
+            sage: G.shortest_path(6, 5)
+            Traceback (most recent call last):
+            ...
+            ValueError: vertex '6' is not in the (di)graph
         """
+        if not self.has_vertex(u):
+            raise ValueError("vertex '{}' is not in the (di)graph".format(u))
+        if not self.has_vertex(v):
+            raise ValueError("vertex '{}' is not in the (di)graph".format(v))
+
         if weight_sum is not None:
             deprecation(18938, "Now weight_sum is replaced by by_weight.")
 
-        path = self.shortest_path(u, v, by_weight=by_weight,
-                                  weight_function=weight_function,
-                                  algorithm=algorithm,
-                                  check_weight=check_weight,
-                                  bidirectional=bidirectional)
-        return self._path_length(path, by_weight, weight_function)
+        if u == v: # to avoid a NetworkX bug
+            return 0
 
+        if weight_function is not None:
+            by_weight = True
+
+        if algorithm is None:
+            algorithm = 'Dijkstra_Bid' if by_weight else 'BFS_Bid'
+
+        if weight_function is None and by_weight:
+            weight_function = lambda e:e[2]
+
+        if algorithm in ['BFS', 'Dijkstra_NetworkX', 'Bellman-Ford_Boost']:
+            return self.shortest_path_lengths(u, by_weight, algorithm, weight_function, check_weight)[v]
+
+        if bidirectional is not None:
+            deprecation(18938, "Variable 'bidirectional' is deprecated and " +
+                        "replaced by 'algorithm'.")
+
+        if by_weight:
+            if algorithm == 'BFS_Bid':
+                raise ValueError("the 'BFS_Bid' algorithm does not " +
+                                 "work on weighted graphs")
+            if check_weight:
+                self._check_weight_function(weight_function)
+        else:
+            weight_function = lambda e:1
+
+        if algorithm == "Dijkstra_Bid":
+            return self._backend.bidirectional_dijkstra(u, v, weight_function, distance_flag=True)
+        elif algorithm == "Dijkstra_Bid_NetworkX":
+            import networkx
+            if self.is_directed():
+                G = networkx.DiGraph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
+            else:
+                G = networkx.Graph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
+            G.add_nodes_from(self.vertices())
+            return networkx.bidirectional_dijkstra(G, u, v)[0]
+        elif algorithm == "BFS_Bid":
+            return self._backend.shortest_path(u, v, distance_flag=True)
+        else:
+            raise ValueError('unknown algorithm "{}"'.format(algorithm))
 
     def _check_weight_function(self, weight_function=None):
         r"""
@@ -15406,7 +15523,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.shortest_paths(0, by_weight=True)
             Traceback (most recent call last):
             ...
-            ValueError: The graph contains a negative cycle.
+            ValueError: the graph contains a negative cycle
 
         TESTS:
 
@@ -15416,7 +15533,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.shortest_paths(0, algorithm='tip top')
             Traceback (most recent call last):
             ...
-            ValueError: Algorithm tip top not yet implemented. Please, contribute!
+            ValueError: unknown algorithm "tip top"
 
         If we ask for BFS in a weighted graph::
 
@@ -15431,7 +15548,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.shortest_paths(0, algorithm='Dijkstra_Boost', by_weight=True)
             Traceback (most recent call last):
             ...
-            ValueError: Dijkstra algorithm does not work with negative weights. Please, use Bellman-Ford.
+            RuntimeError: Dijkstra algorithm does not work with negative weights. Use Bellman-Ford instead
             sage: D.shortest_paths(0, algorithm='Dijkstra_NetworkX', by_weight=True)
             Traceback (most recent call last):
             ...
@@ -15459,7 +15576,7 @@ class GenericGraph(GenericGraph_pyx):
         elif algorithm=='Dijkstra_NetworkX':
             import networkx
             # If this is not present, an error might be raised by NetworkX
-            if self.num_verts()==1 and self.vertices()[0]==u:
+            if self.order() == 1 and self.has_vertex(u):
                 return {u:[u]}
             if by_weight:
                 if self.is_directed():
@@ -15490,8 +15607,7 @@ class GenericGraph(GenericGraph_pyx):
             return paths
 
         else:
-            raise ValueError("Algorithm " + algorithm + " not yet " +
-                             "implemented. Please, contribute!")
+            raise ValueError('unknown algorithm "{}"'.format(algorithm))
 
     def _path_length(self, path, by_weight=False, weight_function=None):
         r"""
@@ -15649,7 +15765,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.shortest_path_lengths(0, weight_function=weight_function)
             Traceback (most recent call last):
             ...
-            ValueError: The graph contains a negative cycle.
+            ValueError: the graph contains a negative cycle
 
         Checking that distances are equal regardless of the algorithm used::
 
@@ -15664,18 +15780,51 @@ class GenericGraph(GenericGraph_pyx):
         if weight_sums is not None:
             deprecation(18938, "Now weight_sums is replaced by by_weight.")
 
-        if algorithm in ['Dijkstra_Boost', 'Bellman-Ford_Boost'] or (algorithm is None and weight_function is None and by_weight):
-            if weight_function is None and not by_weight:
-                weight_function = lambda e:1
+        if weight_function is not None:
+            by_weight = True
+        elif by_weight:
+            weight_function = lambda e:e[2]
+        else:
+            weight_function = lambda e:1
+
+        if algorithm is None and not by_weight:
+            algorithm = 'BFS'
+
+        if by_weight and check_weight:
+            self._check_weight_function(weight_function)
+
+        if algorithm == 'BFS':
+            if by_weight:
+                raise ValueError("the 'BFS' algorithm does not work on " +
+                                 "weighted graphs")
+            return self._backend.shortest_path_all_vertices(u, cutoff=None, distance_flag=True)
+
+        elif algorithm == 'Dijkstra_NetworkX':
+            import networkx
+            # If this is not present, an error might be raised by NetworkX
+            if self.num_verts()==1 and self.vertices()[0]==u:
+                return {u:[u]}
+            if by_weight:
+                if self.is_directed():
+                    G = networkx.DiGraph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
+                else:
+                    G = networkx.Graph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
+            else:
+                # Needed to remove labels.
+                if self.is_directed():
+                    G = networkx.DiGraph(self.edges(labels=False))
+                else:
+                    G = networkx.Graph(self.edges(labels=False))
+            G.add_nodes_from(self.vertices())
+            return networkx.single_source_dijkstra_path_length(G, u)
+
+        elif algorithm in ['Dijkstra_Boost', 'Bellman-Ford_Boost', None]:
             self.weighted(True)
             from sage.graphs.base.boost_graph import shortest_paths
             return shortest_paths(self, u, weight_function, algorithm)[0]
 
-        paths = self.shortest_paths(u, by_weight=by_weight, algorithm=algorithm,
-                                    weight_function=weight_function)
-        return {v:self._path_length(p, by_weight, weight_function)
-                for v,p in iteritems(paths)}
-
+        else:
+            raise ValueError('unknown algorithm "{}"'.format(algorithm))
 
     def shortest_path_all_pairs(self, by_weight=False, algorithm=None,
                                 weight_function=None, check_weight=True,
@@ -15851,7 +16000,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: import random
             sage: for v in range(5):
             ....:     for w in range(5):
-            ....:         g.add_edge(v,w,random.uniform(1,10))
+            ....:         if v != w:
+            ....:             g.add_edge(v, w, random.uniform(1,10))
             sage: d1, _ = g.shortest_path_all_pairs(algorithm="Floyd-Warshall-Python")
             sage: d2, _ = g.shortest_path_all_pairs(algorithm="Dijkstra_NetworkX")
             sage: d3, _ = g.shortest_path_all_pairs(algorithm="Dijkstra_Boost")
@@ -15919,7 +16069,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.shortest_path_all_pairs(algorithm="Bob")
             Traceback (most recent call last):
             ...
-            ValueError: Algorithm Bob is not implemented.
+            ValueError: unknown algorithm "Bob"
 
         Algorithms that do not work with weights::
 
@@ -15939,8 +16089,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.shortest_path_all_pairs(algorithm="Dijkstra_Boost", by_weight=True)
             Traceback (most recent call last):
             ...
-            ValueError: Dijkstra algorithm does not work with negative weights. Please, use Bellman-Ford.
-
+            RuntimeError: Dijkstra algorithm does not work with negative weights. Use Bellman-Ford instead
         """
         if default_weight is not None:
             deprecation(18938, "Variable default_weight is deprecated: hence," +
@@ -16009,7 +16158,7 @@ class GenericGraph(GenericGraph_pyx):
             return dist, pred
 
         elif algorithm != "Floyd-Warshall-Python":
-            raise ValueError("Algorithm " + algorithm + " is not implemented.")
+            raise ValueError('unknown algorithm "{}"'.format(algorithm))
 
         from sage.rings.infinity import Infinity
 
@@ -16723,37 +16872,53 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``vertices`` -- an iterable container of vertices for the clique to be
-          added, e.g. a list, set, graph, etc.
+        - ``vertices`` -- an iterable with vertices for the clique to
+          be added, e.g. a list, set, graph, etc.
 
-        - ``loops`` -- (boolean) whether to add loops or not, i.e., edges from a
-          vertex to itself. Possible only if the (di)graph allows loops.
+        - ``loops`` -- (boolean, default: ``False``) whether to add
+          edges from every given vertex to itself. This is allowed only
+          if the (di)graph allows loops.
 
         EXAMPLES::
 
             sage: G = Graph()
-            sage: G.add_clique(list(range(4)))
+            sage: G.add_clique(range(4))
             sage: G.is_isomorphic(graphs.CompleteGraph(4))
             True
             sage: D = DiGraph()
-            sage: D.add_clique(list(range(4)))
+            sage: D.add_clique(range(4))
             sage: D.is_isomorphic(digraphs.Complete(4))
             True
             sage: D = DiGraph(loops=True)
-            sage: D.add_clique(list(range(4)), loops=True)
+            sage: D.add_clique(range(4), loops=True)
             sage: D.is_isomorphic(digraphs.Complete(4, loops=True))
             True
             sage: D = DiGraph(loops=False)
-            sage: D.add_clique(list(range(4)), loops=True)
-            sage: D.is_isomorphic(digraphs.Complete(4, loops=True))
-            False
-            sage: D.is_isomorphic(digraphs.Complete(4, loops=False))
-            True
+            sage: D.add_clique(range(4), loops=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot add edge from 0 to 0 in graph without loops
+
+        If the list of vertices contains repeated elements, a loop will
+        be added at that vertex, even if ``loops=False``::
+
+            sage: G = Graph(loops=True)
+            sage: G.add_clique([1,1])
+            sage: G.edges()
+            [(1, 1, None)]
+
+        This is equivalent to::
+
+            sage: G = Graph(loops=True)
+            sage: G.add_clique([1], loops=True)
+            sage: G.edges()
+            [(1, 1, None)]
 
         TESTS:
 
         Using different kinds of iterable container of vertices, :trac:`22906`::
 
+            sage: from six.moves import range
             sage: G = Graph(4)
             sage: G.add_clique(G)
             sage: G.is_clique()
@@ -16774,14 +16939,16 @@ class GenericGraph(GenericGraph_pyx):
             True
         """
         import itertools
-        if vertices:
-            vertices = list(vertices)
+        if loops:
+            if self.is_directed():
+                self.add_edges(itertools.product(vertices, repeat=2))
+            else:
+                self.add_edges(itertools.combinations_with_replacement(vertices, 2))
+        else:
             if self.is_directed():
                 self.add_edges(itertools.permutations(vertices, 2))
             else:
                 self.add_edges(itertools.combinations(vertices, 2))
-            if loops and self.allows_loops():
-                self.add_edges((u, u) for u in vertices)
 
     def add_cycle(self, vertices):
         """
@@ -17552,7 +17719,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         G = copy(self)
         G.name('Transitive closure of ' + self.name())
-        G.add_edges((v, e) for v in G for e in G.breadth_first_search(v))
+        G.add_edges(((v, e) for v in G for e in G.breadth_first_search(v)), loops=None)
         return G
 
     def transitive_reduction(self):
@@ -17861,20 +18028,24 @@ class GenericGraph(GenericGraph_pyx):
         details, see :meth:`.layout_acyclic`, :meth:`.layout_planar`,
         :meth:`.layout_circular`, :meth:`.layout_spring`, ...
 
-        ..warning: unknown optional arguments are silently ignored
+        .. WARNING:: unknown optional arguments are silently ignored
 
-        ..warning: ``graphviz`` and ``dot2tex`` are currently required
-        to obtain a nice 'acyclic' layout. See
-        :meth:`.layout_graphviz` for installation instructions.
+        .. WARNING::
+
+            ``graphviz`` and ``dot2tex`` are currently required
+            to obtain a nice 'acyclic' layout. See
+            :meth:`.layout_graphviz` for installation instructions.
 
         A subclass may implement another layout algorithm `blah`, by
         implementing a method ``.layout_blah``. It may override
         the default layout by overriding :meth:`.layout_default`, and
         similarly override the predefined layouts.
 
-        TODO: use this feature for all the predefined graphs classes
-        (like for the Petersen graph, ...), rather than systematically
-        building the layout at construction time.
+        .. TODO::
+
+            use this feature for all the predefined graphs classes
+            (like for the Petersen graph, ...), rather than systematically
+            building the layout at construction time.
         """
         if layout is None:
             if pos is None:
@@ -20069,9 +20240,8 @@ class GenericGraph(GenericGraph_pyx):
         identifying `n` and `0`.
 
         If ``perm`` is ``None``, the graph is relabeled to be on the
-        vertices `\{0,1,...,n-1\}`.
-
-        .. note:: at this point, only injective relabeling are supported.
+        vertices `\{0,1,...,n-1\}`. This is *not* any kind of canonical
+        labeling, but neither a random relabeling.
 
         If ``inplace`` is ``True``, the graph is modified in place and
         ``None`` is returned. Otherwise a relabeled copy of the graph
@@ -20130,6 +20300,14 @@ class GenericGraph(GenericGraph_pyx):
             [0 0 1]
             [0 0 1]
             [1 1 0]
+
+        A way to get a random relabeling::
+
+            sage: set_random_seed(0)  # Results are reproducible
+            sage: D = DiGraph({1: [2], 3: [4]})
+            sage: D.relabel(Permutations(D.vertices()).random_element())
+            sage: D.sources()
+            [1, 4]
 
         Relabeling using an injective function::
 

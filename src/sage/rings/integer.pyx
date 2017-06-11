@@ -339,7 +339,8 @@ cdef _digits_internal(mpz_t v,l,int offset,int power_index,power_list,digits):
         mpz_clear(mpz_quot)
         mpz_clear(mpz_res)
 
-from sage.structure.sage_object cimport SageObject, rich_to_bool_sgn
+from sage.structure.sage_object cimport SageObject
+from sage.structure.richcmp cimport rich_to_bool_sgn
 from sage.structure.element cimport EuclideanDomainElement, ModuleElement, Element
 from sage.structure.element import  bin_op
 from sage.structure.coerce_exceptions import CoercionException
@@ -3014,7 +3015,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def euclidean_degree(self):
         r"""
-        Return the degree of this element as an element of a euclidean domain.
+        Return the degree of this element as an element of an Euclidean domain.
 
         If this is an element in the ring of integers, this is simply its
         absolute value.
@@ -4129,11 +4130,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     @cython.cdivision(True)
     def multifactorial(self, int k):
         r"""
-        Computes the k-th factorial `n!^{(k)}` of self. For k=1
-        this is the standard factorial, and for k greater than one it is
-        the product of every k-th terms down from self to k. The recursive
-        definition is used to extend this function to the negative
-        integers.
+        Compute the k-th factorial `n!^{(k)}` of self.
+
+        For k=1 this is the standard factorial, and for k greater than
+        one it is the product of every k-th terms down from self to
+        k. The recursive definition is used to extend this function to
+        the negative integers.
 
         EXAMPLES::
 
@@ -4141,12 +4143,20 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             120
             sage: 5.multifactorial(2)
             15
+            sage: 5.multifactorial(3)
+            10
             sage: 23.multifactorial(2)
             316234143225
             sage: prod([1..23, step=2])
             316234143225
             sage: (-29).multifactorial(7)
             1/2640
+
+        TESTS::
+
+            sage: for a in range(1,20):
+            ....:     for b in range(1,20):
+            ....:         assert ZZ(a).multifactorial(b) == prod(range(a,0,-b))
         """
         if k <= 0:
             raise ValueError("multifactorial only defined for positive values of k")
@@ -4157,8 +4167,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef int n = mpz_get_si(self.value)
 
         # base case
-        if 0 < n < k:
-            return one
+        if 0 < n <= k:
+            return n
 
         # easy to calculate
         elif n % k == 0:
@@ -4185,7 +4195,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef int i,j
 
         # we need (at most) log_2(#factors) concurrent sub-products
-        cdef int prod_count = <int>ceil_c(log_c(n/k+1)/log_c(2))
+        cdef int prod_count = <int>ceil_c(log_c(n/k+1)/log_c(2)) + 1
         cdef mpz_t* sub_prods = <mpz_t*>check_allocarray(prod_count, sizeof(mpz_t))
         for i from 0 <= i < prod_count:
             mpz_init(sub_prods[i])
@@ -4193,13 +4203,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         sig_on()
 
         cdef residue = n % k
-        cdef int tip = 0
+        mpz_set_ui(sub_prods[0], residue)
+        cdef int tip = 1
         for i from 1 <= i <= n//k:
             mpz_set_ui(sub_prods[tip], k*i + residue)
             # for the i-th terms we use the bits of i to calculate how many
             # times we need to multiply "up" the stack of sub-products
             for j from 0 <= j < 32:
-                if i & (1 << j):
+                if not (i & (1 << j)):
                     break
                 tip -= 1
                 mpz_mul(sub_prods[tip], sub_prods[tip], sub_prods[tip+1])

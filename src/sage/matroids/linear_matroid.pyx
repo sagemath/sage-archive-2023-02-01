@@ -3739,7 +3739,7 @@ cdef class BinaryMatroid(LinearMatroid):
             sage: M.dual().is_graphic()
             False
 
-        .. ALGORITHM:
+        ALGORITHM:
 
         In a recent paper, Geelen and Gerards [GG2012]_ reduced the problem to
         testing if a system of linear equations has a solution. While not the

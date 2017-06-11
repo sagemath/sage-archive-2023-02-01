@@ -7724,7 +7724,7 @@ cdef class Matroid(SageObject):
     def union(self, matroids):
         r"""
         Return the matroid union with another matroid or a list of matroids.
-        
+
         Let `(M_1, M_2, \ldots, M_k)` be a list of matroids where each `M_1`
         has ground set `E_i`. The *matroid
         union* `M` of `(M_1, M_2, \ldots, M_k)` has ground set `E = \cup E_i`.
@@ -7741,11 +7741,11 @@ cdef class Matroid(SageObject):
 
         EXAMPLES::
 
-             sage: M = matroids.named_matroids.Fano()
-             sage: N = M.union(matroids.named_matroids.NonFano()); N
-             Matroid of rank 6 on 7 elements as matroid union of
-             Binary matroid of rank 3 on 7 elements, type (3, 0)
-             Ternary matroid of rank 3 on 7 elements, type 0-
+            sage: M = matroids.named_matroids.Fano()
+            sage: N = M.union(matroids.named_matroids.NonFano()); N
+            Matroid of rank 6 on 7 elements as matroid union of
+            Binary matroid of rank 3 on 7 elements, type (3, 0)
+            Ternary matroid of rank 3 on 7 elements, type 0-
         """
         from . import union_matroid
         if isinstance(matroids, Matroid):

@@ -19,10 +19,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from cpython.list cimport *
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.all import ZZ, QQ
 from sage.ext.stdsage cimport PY_NEW
+from copy import copy
 
 cdef inline int cconstruct(celement value, PowComputer_ prime_pow) except -1:
     """
@@ -327,7 +329,7 @@ cdef inline int cconv_mpq_t_out(mpq_t out, celement x, long valshift, long prec,
     if len(x.__coeffs) > 1:
         raise ValueError("Cannot convert to integer")
     elif len(x.__coeffs) == 0:
-        mpq_set_ui(out, 0)
+        mpq_set_ui(out, 0, 1)
     else:
         c = QQ(x.__coeffs[0])
         mpq_set(out, c.value)

@@ -267,7 +267,7 @@ cdef inline int cpow(celement out, celement a, mpz_t n, long prec, PowComputer_ 
     - ``prime_pow`` -- the PowComputer for the ring.
     """
     # We do this the stupid way for now.
-    zn = PY_NEW(Integer)
+    cdef Integer zn = PY_NEW(Integer)
     mpz_set(zn.value, n)
     ans = a**zn
     ans %= prime_pow.modulus

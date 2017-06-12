@@ -55,6 +55,8 @@ cdef class PowComputer_relative(PowComputer_class):
         """
         PowComputer_class.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly, shift_seed)
         self.modulus = poly
+        self.powhelper_oneunit = poly.parent()(0)
+        self.powhelper_teichdiff = poly.parent()(0)
         self.base_ring = poly.base_ring()
         self.poly_ring = poly.parent()
 

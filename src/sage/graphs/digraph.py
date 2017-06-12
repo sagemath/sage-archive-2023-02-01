@@ -3187,7 +3187,7 @@ class DiGraph(GenericGraph):
             return len(self.strongly_connected_components()) == 1
 
 
-    def immediate_dominators(self, r):
+    def immediate_dominators(self, r, reverse=False):
         r"""
         Return the immediate dominators of all vertices reachable from `r`.
 
@@ -3211,6 +3211,11 @@ class DiGraph(GenericGraph):
 
         - ``r`` -- a vertex of the digraph, the root of the immediate dominators
           tree
+
+        - ``reverse`` -- boolean (default: ``False``); When set to ``True``, we
+          consider the reversed digraph in which out-neighbors become the
+          in-neighbors and vice-versa. This option is available only if the
+          backend of the digraph is :mod:`~SparseGraphBackend`.
 
         OUTPUT: The (immediate) dominator tree rooted at `r`, encoded as a
         predecessor dictionary.
@@ -3250,6 +3255,17 @@ class DiGraph(GenericGraph):
             sage: P.immediate_dominators(3)
             {3: 3, 4: 3}
 
+        Immediate dominators in the reverse digraph::
+
+            sage: D = digraphs.Complete(5)+digraphs.Complete(4)
+            sage: D.add_edges([(0, 5), (1, 6), (7, 2)])
+            sage: idom = D.immediate_dominators(0, reverse=True)
+            sage: idom
+            {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 7, 6: 7, 7: 2, 8: 7}
+            sage: D_reverse = D.reverse()
+            sage: D_reverse.immediate_dominators(0) == idom
+            True
+
         TESTS:
 
         When `r` is not in the digraph::
@@ -3258,6 +3274,15 @@ class DiGraph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: the given root must be in the digraph
+
+        The reverse option is available only when the backend of the digraph is
+        :mod:`~SparseGraphBackend`::
+
+            sage: H = DiGraph(D.edges(), data_structure='static_sparse')
+            sage: H.immediate_dominators(0, reverse=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: the reverse option is not available for this digraph
 
         Comparison with the NetworkX method::
 
@@ -3272,10 +3297,19 @@ class DiGraph(GenericGraph):
             raise ValueError("the given root must be in the digraph")
 
         idom = {r: r}
-
         n = self.order()
-        pre_order = list(self.depth_first_search(r))
-        number = {u: n-i for i, u in enumerate(pre_order)}
+        if reverse:
+            from sage.graphs.base.sparse_graph import SparseGraphBackend
+            if isinstance(self._backend, SparseGraphBackend):
+                pre_order = list(self._backend.depth_first_search(r, reverse=True))
+                number = {u: n-i for i, u in enumerate(pre_order)}
+                neighbor_iterator = self.neighbor_out_iterator
+            else:
+                raise ValueError("the reverse option is not available for this digraph")
+        else:
+            pre_order = list(self.depth_first_search(r))
+            number = {u: n-i for i, u in enumerate(pre_order)}
+            neighbor_iterator = self.neighbor_in_iterator
         pre_order.pop(0)
 
         def intersect(u, v):
@@ -3290,7 +3324,7 @@ class DiGraph(GenericGraph):
         while changed:
             changed = False
             for u in pre_order:
-                pred = [v for v in self.neighbor_in_iterator(u) if v in idom]
+                pred = [v for v in neighbor_iterator(u) if v in idom]
                 if not pred:
                     continue
                 else:
@@ -3402,8 +3436,7 @@ class DiGraph(GenericGraph):
 
             # 3. Compute the set of non-trivial immediate dominators in the
             # reverse digraph
-            g_reverse = g.reverse()
-            DRr = set( g_reverse.immediate_dominators(r).values() )
+            DRr = set( g.immediate_dominators(r, reverse=True).values() )
 
             # 4. Store D(r) + DR(r) - r
             SAP.extend( Dr.union(DRr).difference([r]) )

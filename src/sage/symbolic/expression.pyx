@@ -1385,11 +1385,9 @@ cdef class Expression(CommutativeRingElement):
             0.6666666666666666
             sage: float(sqrt(SR(2)))
             1.4142135623730951
-            sage: float(x^2 + 1)
-            Traceback (most recent call last):
-            ...
-            TypeError: unable to simplify to float approximation
             sage: float(SR(RIF(2)))
+            2.0
+            sage: float(x^2 + 1)
             Traceback (most recent call last):
             ...
             TypeError: unable to simplify to float approximation

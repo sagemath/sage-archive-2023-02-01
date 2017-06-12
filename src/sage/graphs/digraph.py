@@ -3371,9 +3371,13 @@ class DiGraph(GenericGraph):
         """
         # The method is applied on each strongly connected component
         if self.is_strongly_connected():
-            L = [self]
+            # Make a mutable copy of self
+            L = [ DiGraph( [(u, v) for u, v in self.edge_iterator(labels=0) if u != v],
+                               data_structure='sparse', immutable=False) ]
         else:
-            L = self.strongly_connected_components_subgraphs()
+            # Get the list of strongly connected components of self as mutable
+            # subgraphs
+            L = [ self.subgraph(scc, immutable=False) for scc in self.strongly_connected_components() ]
 
         SAP = []
         for g in L:

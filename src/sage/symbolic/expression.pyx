@@ -2297,6 +2297,61 @@ cdef class Expression(CommutativeRingElement):
         """
         return is_a_relational(self._gobj)
 
+    def is_exact(self):
+        """
+        Return True if this expression only contains exact numerical coefficients.
+
+        EXAMPLES::
+
+            sage: x, y = var('x, y')
+            sage: (x+y-1).is_exact()
+            True
+            sage: (x+y-1.9).is_exact()
+            False
+            sage: x.is_exact()
+            True
+            sage: pi.is_exact()
+            True
+            sage: (sqrt(x-y) - 2*x + 1).is_exact()
+            True
+            sage: ((x-y)^0.5 - 2*x + 1).is_exact()
+            False
+
+        TESTS::
+
+            sage: (sin(x*cos(2*x*pi)) - 10*y^3 - 1/(x+4)).is_exact()
+            True
+            sage: (sin(x*cos(2.0*x*pi)) - 10*y^3 - 1/(x+4)).is_exact()
+            False
+            sage: SR(42).is_exact()
+            True
+            sage: SR(42.01).is_exact()
+            False
+            sage: SR(I).is_exact()
+            True
+            sage: (x-I).is_exact()
+            True
+            sage: (x-CC(0,1)).is_exact()
+            False
+        """
+        # generator over all numerical elements in the subexpression tree of expr
+        def numelems_gen(expr):
+            if expr.is_numeric():
+                yield expr
+            elif expr.operator() is not None:
+                for op in expr.operands():
+                    if op.is_numeric():
+                        yield op
+                    else:
+                        for opp in numelems_gen(op):
+                            yield opp
+        # stop at the first inexact number in the subexpression tree of self,
+        # and if there is no such element, then self is exact
+        for nelem in numelems_gen(self):
+            if not nelem.pyobject().base_ring().is_exact():
+                return False
+        return True
+
     cpdef bint is_infinity(self):
         """
         Return True if self is an infinite expression.
@@ -4512,6 +4567,12 @@ cdef class Expression(CommutativeRingElement):
             sin(1/2*x)
             sage: sin(x/2).expand_trig(half_angles=True)
             (-1)^floor(1/2*x/pi)*sqrt(-1/2*cos(x) + 1/2)
+
+        If the expression contains terms which are factored, we expand first::
+
+            sage: (x, k1, k2) = var('x, k1, k2')
+            sage: cos((k1-k2)*x).expand().expand_trig()
+            cos(k1*x)*cos(k2*x) + sin(k1*x)*sin(k2*x)
 
         ALIASES:
 

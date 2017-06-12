@@ -28,6 +28,9 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import absolute_import
 
+from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
+
 from sage.rings.polynomial.polynomial_element cimport Polynomial, _dict_to_list
 
 from sage.libs.all import pari, pari_gen
@@ -55,8 +58,6 @@ from sage.libs.ntl.ZZ_pX cimport *
 
 def make_element(parent, args):
     return parent(*args)
-
-include "cysignals/signals.pxi"
 
 zz_p_max = NTL_SP_BOUND
 

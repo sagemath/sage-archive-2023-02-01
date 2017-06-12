@@ -24,7 +24,7 @@ from ring import SR
 
 from sage.structure.coerce cimport py_scalar_to_element, is_numpy_type, is_mpmath_type
 from sage.structure.element cimport coercion_model
-from sage.structure.sage_object cimport richcmp
+from sage.structure.richcmp cimport richcmp
 
 # we keep a database of symbolic functions initialized in a session
 # this also makes the .operator() method of symbolic expressions work

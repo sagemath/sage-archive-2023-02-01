@@ -64,7 +64,7 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.structure.coerce cimport is_numpy_type
 from sage.structure.parent_gens import ParentWithGens
 from sage.structure.parent cimport Parent
-from sage.structure.sage_object cimport rich_to_bool
+from sage.structure.richcmp cimport rich_to_bool
 from sage.structure.sequence import Sequence
 
 from sage.misc.misc_c import prod

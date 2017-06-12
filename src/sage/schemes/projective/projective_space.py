@@ -423,7 +423,7 @@ class ProjectiveSpace_ring(AmbientSpace):
         return (self.dimension_relative() == right.dimension_relative() and
                 self.coordinate_ring() == right.coordinate_ring())
 
-    def __ne__(self, right):
+    def __ne__(self, other):
         """
         Check non-equality of two projective spaces.
 

@@ -355,11 +355,11 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
 
     def __ne__(self, other):
         """
-        Check not-equality of two products of projective spaces.
+        Check non-equality of two products of projective spaces.
 
         INPUT:
 
-        - ``right`` -- a product of projective spaces
+        - ``other`` -- a product of projective spaces
 
         OUTPUT: Boolean
 

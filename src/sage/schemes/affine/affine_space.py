@@ -272,7 +272,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
     def __ne__(self, other):
         """
-        Check whether the space is not equal to ``right``.
+        Check whether the space is not equal to ``other``.
 
         EXAMPLES::
 

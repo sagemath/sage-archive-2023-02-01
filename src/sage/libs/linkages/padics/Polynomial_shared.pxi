@@ -61,7 +61,7 @@ cdef inline int cneg(celement out, celement a, long prec, PowComputer_ prime_pow
     - ``prec`` -- a long, the precision: ignored.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    out.__coeffs = (-a).__coeffs
+    out.__coeffs = (<celement?>(-a)).__coeffs
 
 cdef inline int cadd(celement out, celement a, celement b, long prec, PowComputer_ prime_pow) except -1:
     """
@@ -77,7 +77,7 @@ cdef inline int cadd(celement out, celement a, celement b, long prec, PowCompute
     - ``prec`` -- a long, the precision: ignored.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    out.__coeffs = (a + b).__coeffs
+    out.__coeffs = (<celement?>(a + b)).__coeffs
 
 cdef inline int csub(celement out, celement a, celement b, long prec, PowComputer_ prime_pow) except -1:
     """
@@ -93,7 +93,7 @@ cdef inline int csub(celement out, celement a, celement b, long prec, PowCompute
     - ``prec`` -- a long, the precision: ignored.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    out.__coeffs = (a - b).__coeffs
+    out.__coeffs = (<celement?>(a - b)).__coeffs
 
 cdef inline int cmul(celement out, celement a, celement b, long prec, PowComputer_ prime_pow) except -1:
     """
@@ -109,7 +109,7 @@ cdef inline int cmul(celement out, celement a, celement b, long prec, PowCompute
     - ``prec`` -- a long, the precision: ignored.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    out.__coeffs = (a*b).__coeffs
+    out.__coeffs = (<celement?>(a*b)).__coeffs
 
 cdef inline int csetone(celement out, PowComputer_ prime_pow) except -1:
     """
@@ -176,7 +176,7 @@ cdef inline int ccopy(celement out, celement a, PowComputer_ prime_pow) except -
     - ``a`` -- the element to copy.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    out.__coeffs = copy(a.__coeffs)
+    out.__coeffs = copy((<celement?>a).__coeffs)
 
 cdef inline cpickle(celement a, PowComputer_ prime_pow):
     """
@@ -237,7 +237,7 @@ cdef int cconv(celement out, x, long prec, long valshift, PowComputer_ prime_pow
     - ``prime_pow`` -- a PowComputer for the ring.
     """
     # This needs to be improved
-    out.__coeffs = (prime_pow.poly_ring(x) % prime_pow.modulus).__coeffs
+    out.__coeffs = (<celement?>(prime_pow.poly_ring(x) % prime_pow.modulus)).__coeffs
 
 cdef inline long cconv_mpz_t(celement out, mpz_t x, long prec, bint absolute, PowComputer_ prime_pow) except -2:
     """

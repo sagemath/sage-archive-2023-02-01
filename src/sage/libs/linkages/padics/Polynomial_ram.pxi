@@ -52,7 +52,7 @@ cdef inline bint creduce(celement out, celement a, long prec, PowComputer_ prime
 
     - returns True if the reduction is zero; False otherwise.
     """
-    out.__coeffs = (a % prime_pow.modulus).__coeffs
+    out.__coeffs = (<celement?>(a % prime_pow.modulus)).__coeffs
     cdef long coeff_prec = prec / prime_pow.e + 1
     cdef long break_pt = prec % prime_pow.e
     if break_pt > len(out.__coeffs):
@@ -163,6 +163,7 @@ cdef inline int cshift(celement out, celement a, long n, long prec, PowComputer_
     """
     cdef long q, r
     modulus = prime_pow.modulus
+    cdef celement ans
     if n > 0:
         ans = a * prime_pow.poly_ring.gen()**n
         ans %= modulus
@@ -229,6 +230,7 @@ cdef inline int cinvert(celement out, celement a, long prec, PowComputer_ prime_
     """
     K = prime_pow.base_ring.fraction_field()
     Qpmodulus = prime_pow.modulus.change_ring(K)
+    cdef celement inv
     g, _, inv = Qpmodulus.xgcd(a)
     if g != 1:
         raise ArithmeticError("Not invertible")
@@ -269,7 +271,7 @@ cdef inline int cpow(celement out, celement a, mpz_t n, long prec, PowComputer_ 
     # We do this the stupid way for now.
     cdef Integer zn = PY_NEW(Integer)
     mpz_set(zn.value, n)
-    ans = a**zn
+    cdef celement ans = a**zn
     ans %= prime_pow.modulus
     out.__coeffs = ans.__coeffs
 

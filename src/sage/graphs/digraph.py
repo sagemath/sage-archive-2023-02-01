@@ -3187,21 +3187,21 @@ class DiGraph(GenericGraph):
             return len(self.strongly_connected_components()) == 1
 
 
-    def immediate_dominators(self, root):
+    def immediate_dominators(self, r):
         r"""
-        Return the immediate dominators of all vertices reachable from `root`.
+        Return the immediate dominators of all vertices reachable from `r`.
 
-        A flowgraph `G = (V, A, root)` is a digraph where every vertex in `V` is
-        reachable from a distinguished root vertex `root\in V`. In such digraph,
-        a vertex `w` dominates a vertex `v` if every path from `root` to `v`
+        A flowgraph `G = (V, A, r)` is a digraph where every vertex in `V` is
+        reachable from a distinguished root vertex `r\in V`. In such digraph, a
+        vertex `w` dominates a vertex `v` if every path from `root` to `v`
         includes `w`. Let `dom(v)` be the set of the vertices that dominate `v`.
-        Obviously, `root` and `v`, the trivial dominators of `v`, are in
-        `dom(v)`. For `v \neq root`, the immediate dominator of `v`, denoted by
+        Obviously, `r` and `v`, the trivial dominators of `v`, are in
+        `dom(v)`. For `v \neq r`, the immediate dominator of `v`, denoted by
         `d(v)`, is the unique vertex `w \neq v` that dominates `v` and is
         dominated by all the vertices in `dom(v)\setminus\{v\}`. The (immediate)
-        dominator tree is a directed tree (or arborescence) rooted at `root`
-        that is formed by the arcs `\{ (d(v), v)\mid v\in V\setminus\{root\}\}`.
-        See [Ge2005]_ for more details.
+        dominator tree is a directed tree (or arborescence) rooted at `r` that
+        is formed by the arcs `\{ (d(v), v)\mid v\in V\setminus\{r\}\}`.  See
+        [Ge2005]_ for more details.
 
         This method implements the algorithm proposed in [CHK2001]_ which
         performs very well in practice, although its worst case time complexity
@@ -3209,11 +3209,11 @@ class DiGraph(GenericGraph):
 
         INPUT:
 
-        - ``root`` -- a vertex of the digraph, the root of the
-          immediate dominators tree.
+        - ``r`` -- a vertex of the digraph, the root of the immediate dominators
+          tree
 
-        OUTPUT: The (immediate) dominator tree rooted at ``root``,
-        encoded as a predecessor dictionary.
+        OUTPUT: The (immediate) dominator tree rooted at `r`, encoded as a
+        predecessor dictionary.
 
         .. SEEALSO::
 
@@ -3223,7 +3223,7 @@ class DiGraph(GenericGraph):
 
         EXAMPLES:
 
-        The output encodes a tree rooted at ``root``::
+        The output encodes a tree rooted at `r`::
 
             sage: D = digraphs.Complete(4) * 2
             sage: D.add_edges([(0, 4), (7, 3)])
@@ -3252,7 +3252,7 @@ class DiGraph(GenericGraph):
 
         TESTS:
 
-        When ``root`` is not in the digraph::
+        When `r` is not in the digraph::
 
             sage: DiGraph().immediate_dominators(0)
             Traceback (most recent call last):
@@ -3268,13 +3268,13 @@ class DiGraph(GenericGraph):
             sage: all(d[i] == dx[i] for i in d) and all(d[i] == dx[i] for i in dx)
             True
         """
-        if not root in self:
+        if r not in self:
             raise ValueError("the given root must be in the digraph")
 
-        idom = {root: root}
+        idom = {r: r}
 
         n = self.order()
-        pre_order = list(self.depth_first_search(root))
+        pre_order = list(self.depth_first_search(r))
         number = {u: n-i for i, u in enumerate(pre_order)}
         pre_order.pop(0)
 
@@ -3375,7 +3375,7 @@ class DiGraph(GenericGraph):
         else:
             L = self.strongly_connected_components_subgraphs()
 
-        SAP = list()
+        SAP = []
         for g in L:
             n = g.order()
             if n <= 1:

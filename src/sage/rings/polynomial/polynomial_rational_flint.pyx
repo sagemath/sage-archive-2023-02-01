@@ -45,6 +45,8 @@ from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element, ModuleElement, RingElement
 from sage.structure.element import coerce_binop
 
+from sage.misc.cachefunc import cached_method
+
 cdef inline bint _do_sig(fmpq_poly_t op):
     """
     Returns 1 when signal handling should be carried out for an operation
@@ -1531,9 +1533,10 @@ cdef class Polynomial_rational_flint(Polynomial):
         fmpq_clear(t)
         return res
 
+    @cached_method
     def is_irreducible(self):
         r"""
-        Returns whether self is irreducible.
+        Return whether this polynomial is irreducible.
 
         This method computes the primitive part as an element of `\ZZ[t]` and
         calls the method ``is_irreducible`` for elements of that polynomial
@@ -1542,10 +1545,6 @@ cdef class Polynomial_rational_flint(Polynomial):
         By definition, over any integral domain, an element `r` is irreducible
         if and only if it is non-zero, not a unit and whenever `r = ab` then
         `a` or `b` is a unit.
-
-        OUTPUT:
-
-        -  ``bool`` - Whether this polynomial is irreducible
 
         EXAMPLES::
 
@@ -1564,6 +1563,16 @@ cdef class Polynomial_rational_flint(Polynomial):
             False
             sage: (t+1).is_irreducible()
             True
+
+        Test that caching works::
+
+           sage: R.<t> = QQ[]
+           sage: f = t + 1
+           sage: f.is_irreducible()
+           True
+           sage: f.is_irreducible.cache
+           True
+
         """
         cdef Polynomial_integer_dense_flint primitive
         cdef unsigned long length = fmpq_poly_length(self.__poly)

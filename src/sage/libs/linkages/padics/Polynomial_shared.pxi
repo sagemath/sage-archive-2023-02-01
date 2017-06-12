@@ -35,6 +35,8 @@ cdef inline int cconstruct(celement value, PowComputer_ prime_pow) except -1:
     - ``unit`` -- an ``celement`` to be initialized.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
+    if value is None:
+        raise TypeError
     value.__init__(prime_pow.poly_ring)
 
 cdef inline int cdestruct(celement value, PowComputer_ prime_pow) except -1:
@@ -236,6 +238,8 @@ cdef int cconv(celement out, x, long prec, long valshift, PowComputer_ prime_pow
       storing the result in ``out``.
     - ``prime_pow`` -- a PowComputer for the ring.
     """
+    if out is None:
+        raise TypeError
     # This needs to be improved
     out.__coeffs = (<celement?>(prime_pow.poly_ring(x) % prime_pow.modulus)).__coeffs
 

@@ -136,6 +136,7 @@ public:
 	{
 		return 30;
 	}
+	void dbgprint() const override;
 	bool info(unsigned inf) const override;
 	bool is_polynomial(const ex & var) const override;
 	int degree(const ex & s) const override;

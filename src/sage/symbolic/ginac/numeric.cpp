@@ -180,6 +180,7 @@ inline void py_error(const char* errmsg) {
 #define PyInt_AsLong PyLong_AsLong
 #define PyInt_FromLong PyLong_FromLong
 #define PyString_FromString PyBytes_FromString
+#define PyString_AsString PyBytes_AsString
 #endif
 
 // The following variable gets changed to true once
@@ -427,7 +428,6 @@ PyObject* ONE = PyInt_FromLong(1); // todo: never freed
 PyObject* TWO = PyInt_FromLong(2); // todo: never freed
 
 std::ostream& operator<<(std::ostream& os, const numeric& s) {
-        PyObject* o;
         switch (s.t) {
                 case MPZ:
                 {
@@ -446,18 +446,7 @@ std::ostream& operator<<(std::ostream& os, const numeric& s) {
                 case DOUBLE:
                         return os << s.v._double;
                 case PYOBJECT:
-                        // TODO: maybe program around Python's braindead L suffix?
-                        // PyLong_Check(s.v._pyobject) 
-                        o = PyObject_Repr(s.v._pyobject);
-                        if (o == nullptr) {
-                                PyErr_Clear();
-                                throw (std::runtime_error(
-                                        "operator<<(ostream, numeric): exception printing python object"));
-                        } else {
-                                os << PyObject_Repr(o);
-                                Py_DECREF(o);
-                        }
-                        return os;
+                        return os << *py_funcs.py_repr(s.v._pyobject, 0);
                 default:
                         stub("operator <<: type not yet handled");
         }
@@ -930,6 +919,39 @@ void numeric::do_print_python_repr(const print_python_repr & c, unsigned level) 
         c.s << class_name() << "('";
         print_numeric(c, "(", ")", "I", "*", level);
         c.s << "')";
+}
+
+void numeric::dbgprint() const
+{
+        std::string ts;
+        switch(t) {
+                case MPZ: ts = {"MPZ"};
+                          break;
+                case MPQ: ts = {"MPQ"};
+                          break;
+                case PYOBJECT:
+                {
+                        ts = {"PYOBJECT: "};
+                        PyObject* to = PyObject_Type(v._pyobject);
+                        if (to == nullptr)
+                                ts.append("NULL");
+                        else {
+                                PyObject* ro = PyObject_Repr(to);
+                                if (ro == nullptr)
+                                        ts.append("NULL");
+                                else {
+                                        ts.append(*py_funcs.py_repr(ro, 0));
+                                        Py_DECREF(ro);
+                                }
+                                Py_DECREF(to);
+                        }
+                        break;
+                }
+                default: stub("typestr()");
+        }
+        std::cerr << *this << " (numeric)" << " @" << this
+                << std::hex << ", hash=0x" << hash << ", flags=0x" << flags << std::dec
+                << ", type " << ts <<std::endl;
 }
 
 bool numeric::info(unsigned inf) const {

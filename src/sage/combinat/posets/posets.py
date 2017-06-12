@@ -3420,7 +3420,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         .. SEEALSO::
 
-            :meth:`valence_polynomial` for a more refined invariant
+            :meth:`degree_polynomial` for a more refined invariant
 
         EXAMPLES::
 
@@ -6317,7 +6317,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         .. MATH::
 
-            \sum_{v \in P} x^{\operator_name{in}(v)} y^{\operatorname{out}(v)},
+            \sum_{v \in P} x^{\operatorname{in}(v)} y^{\operatorname{out}(v)},
 
         where ``in(v)`` and ``out(v)`` are the number of incoming and
         outgoing edges at vertex `v` in the Hasse diagram of `P`.

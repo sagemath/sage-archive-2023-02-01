@@ -1396,7 +1396,7 @@ class DiGraph(GenericGraph):
 
         .. MATH::
 
-            \sum_{v \in G} x^{\operator_name{in}(v)} y^{\operatorname{out}(v)},
+            \sum_{v \in G} x^{\operatorname{in}(v)} y^{\operatorname{out}(v)},
 
         where ``in(v)`` and ``out(v)`` are the number of incoming and
         outgoing edges at vertex `v` in the digraph `G`.

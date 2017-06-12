@@ -17,6 +17,7 @@ AUTHORS:
 ########################################################################
 from __future__ import absolute_import
 
+import glob
 import os
 import socket
 import site
@@ -142,14 +143,22 @@ _add_variable_or_fallback('THEBE_DIR',        opj('$SAGE_SHARE','thebe'))
 
 # locate singular shared object
 if UNAME[:6] == "CYGWIN":
-    extension = "dll"
-elif UNAME == "Darwin":
-    extension = "dylib"
+    SINGULAR_SO = ([None] + glob.glob(os.path.join(
+        SAGE_LOCAL, "bin", "cygSingular-*.dll")))[-1]
 else:
-    extension = "so"
-# library name changed from libsingular to libSingular btw 3.x and 4.x
-SINGULAR_SO = SAGE_LOCAL+"/lib/libSingular."+extension
+    if UNAME == "Darwin":
+        extension = "dylib"
+    else:
+        extension = "so"
+    # library name changed from libsingular to libSingular btw 3.x and 4.x
+    SINGULAR_SO = SAGE_LOCAL+"/lib/libSingular."+extension
+
 _add_variable_or_fallback('SINGULAR_SO', SINGULAR_SO)
+
+if not SINGULAR_SO or not os.path.exists(SINGULAR_SO):
+    raise RuntimeError(
+        "libSingular not found--a working Singular install in $SAGE_LOCAL "
+        "is required for Sage to work")
 
 # post process
 if ' ' in DOT_SAGE:

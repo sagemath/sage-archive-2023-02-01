@@ -117,7 +117,7 @@ class BindableClass(six.with_metaclass(ClasscallMetaclass)):
             sage: type(outer.Inner).mro()
             [<class 'sage.misc.bindable_class.BoundClass'>,
              <type 'functools.partial'>,
-             <type 'object'>]
+             <... 'object'>]
 
         Still, documentation works as usual::
 

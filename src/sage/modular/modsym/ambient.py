@@ -182,27 +182,42 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
 
         hecke.AmbientHeckeModule.__init__(self, base_ring, rank, group.level(), weight, category=category)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
-        Standard comparison function.
+        Check that ``self`` is equal to ``other``.
 
         EXAMPLES::
 
-            sage: ModularSymbols(11,2) == ModularSymbols(11,2) # indirect doctest
+            sage: ModularSymbols(11,2) == ModularSymbols(11,2)
             True
-            sage: ModularSymbols(11,2) == ModularSymbols(11,4) # indirect doctest
+            sage: ModularSymbols(11,2) == ModularSymbols(11,4)
             False
-
         """
         if not isinstance(other, ModularSymbolsSpace):
-            return cmp(type(self), type(other))
+            return False
+
         if isinstance(other, ModularSymbolsAmbient):
-            return misc.cmp_props(self, other, ['group', 'weight', 'sign', 'base_ring', 'character'])
-        c = cmp(self, other.ambient_hecke_module())
-        if c: return c
-        if self.free_module() == other.free_module():
-            return 0
-        return -1
+            return (self.group() == other.group() and
+                    self.weight() == other.weight() and
+                    self.sign() == other.sign() and
+                    self.base_ring() == other.base_ring() and
+                    self.character() == other.character())
+
+        return (self == other.ambient_hecke_module() and
+                self.free_module() == other.free_module())
+
+    def __ne__(self, other):
+        """
+        Check that ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: ModularSymbols(11,2) != ModularSymbols(11,2)
+            False
+            sage: ModularSymbols(11,2) != ModularSymbols(11,4)
+            True
+        """
+        return not (self == other)
 
     def new_submodule(self, p=None):
         r"""

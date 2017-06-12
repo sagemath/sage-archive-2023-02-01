@@ -26,7 +26,7 @@ AUTHORS:
 
 from sage.structure.element cimport FieldElement, RingElement, ModuleElement, Element
 from sage.misc.cachefunc import cached_method
-from sage.structure.sage_object cimport richcmp, richcmp_not_equal
+from sage.structure.richcmp cimport richcmp, richcmp_not_equal
 
 
 def is_FunctionFieldElement(x):
@@ -134,9 +134,8 @@ cdef class FunctionFieldElement(FieldElement):
 
         INPUT:
 
-        - ``base`` -- a function field or ``None`` (default: ``None``), if
-          ``None``, then the matrix is formed over the base field of this
-          function field.
+        - ``base`` -- a function field (default: ``None``), if ``None``, then
+          the matrix is formed over the base field of this function field.
 
         EXAMPLES:
 

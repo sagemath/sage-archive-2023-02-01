@@ -820,7 +820,7 @@ def richcmp_by_eq_and_lt(left, right, op):
         sage: z < x, x < z, z > x, x > z, z <= x, x <= z, z >= x, x >= z
         (False, True, True, False, False, True, True, False)
     """
-    from sage.structure.sage_object import (rich_to_bool,
+    from sage.structure.richcmp import (rich_to_bool,
                                             op_NE, op_EQ,
                                             op_LT, op_LE, op_GT, op_GE)
 

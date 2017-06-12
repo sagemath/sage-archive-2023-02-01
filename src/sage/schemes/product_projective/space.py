@@ -331,15 +331,15 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
         """
         return(self._components[i])
 
-    def __cmp__(self, right):
+    def __eq__(self, right):
         r"""
-        Compare two products of projective spaces.
+        Check equality of two products of projective spaces.
 
         INPUT:
 
-        - ``right`` - a product of projective spaces.
+        - ``right`` -- a product of projective spaces
 
-        OUTPUT: Boolean.
+        OUTPUT: Boolean
 
         EXAMPLES::
 
@@ -347,18 +347,30 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
             sage: T.<x,y,z,u,v,w> = ProductProjectiveSpaces([2, 2], QQ)
             sage: S == T
             False
+        """
+        if not isinstance(right, ProductProjectiveSpaces_ring):
+            return False
+        else:
+            return self._components == right._components
 
-        ::
+    def __ne__(self, other):
+        """
+        Check not-equality of two products of projective spaces.
+
+        INPUT:
+
+        - ``right`` -- a product of projective spaces
+
+        OUTPUT: Boolean
+
+        EXAMPLES::
 
             sage: S.<a,x,y,z,u,v,w> = ProductProjectiveSpaces([3, 2], QQ)
             sage: T.<x,y,z,u,v,w> = ProductProjectiveSpaces([2, 2], QQ)
             sage: S != T
             True
         """
-        if not isinstance(right, (ProductProjectiveSpaces_ring)):
-            return -1
-        else:
-            return(cmp(self._components,right._components))
+        return not (self == other)
 
     def __pow__(self, m):
         """

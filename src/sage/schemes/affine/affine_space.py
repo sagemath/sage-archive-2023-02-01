@@ -251,7 +251,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             raise TypeError("second argument (= %s) must be a finite field"%F)
         return [ P for P in self.base_extend(F) ]
 
-    def __cmp__(self, right):
+    def __eq__(self, right):
         """
         Compare the space with ``right``.
 
@@ -259,15 +259,29 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
             sage: AffineSpace(QQ, 3, 'a') == AffineSpace(ZZ, 3, 'a')
             False
-            sage: AffineSpace(ZZ,1, 'a') == AffineSpace(ZZ, 0, 'a')
+            sage: AffineSpace(ZZ, 1, 'a') == AffineSpace(ZZ, 0, 'a')
             False
-            sage: loads(AffineSpace(ZZ, 1, 'x').dumps()) == AffineSpace(ZZ, 1, 'x')
+            sage: A = AffineSpace(ZZ, 1, 'x')
+            sage: loads(A.dumps()) == A
             True
         """
         if not isinstance(right, AffineSpace_generic):
-            return -1
-        return cmp([self.dimension_relative(), self.coordinate_ring()],
-                   [right.dimension_relative(), right.coordinate_ring()])
+            return False
+        return (self.dimension_relative() == right.dimension_relative() and
+                self.coordinate_ring() == right.coordinate_ring())
+
+    def __ne__(self, other):
+        """
+        Check whether the space is not equal to ``right``.
+
+        EXAMPLES::
+
+            sage: AffineSpace(QQ, 3, 'a') != AffineSpace(ZZ, 3, 'a')
+            True
+            sage: AffineSpace(ZZ, 1, 'a') != AffineSpace(ZZ, 0, 'a')
+            True
+        """
+        return not (self == other)
 
     def _latex_(self):
         r"""

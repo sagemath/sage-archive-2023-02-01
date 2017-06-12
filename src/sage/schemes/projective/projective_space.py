@@ -402,9 +402,9 @@ class ProjectiveSpace_ring(AmbientSpace):
                 raise TypeError("%s is not a homogeneous polynomial" % f)
         return polynomials
 
-    def __cmp__(self, right):
+    def __eq__(self, right):
         """
-        Compare equality of two projective spaces.
+        Check equality of two projective spaces.
 
         EXAMPLES::
 
@@ -414,13 +414,29 @@ class ProjectiveSpace_ring(AmbientSpace):
             False
             sage: ProjectiveSpace(ZZ, 2, 'a') == AffineSpace(ZZ, 2, 'a')
             False
-            sage: loads(AffineSpace(ZZ, 1, 'x').dumps()) == AffineSpace(ZZ, 1, 'x')
+            sage: P = ProjectiveSpace(ZZ, 1, 'x')
+            sage: loads(P.dumps()) == P
             True
         """
         if not isinstance(right, ProjectiveSpace_ring):
-            return -1
-        return cmp([self.dimension_relative(), self.coordinate_ring()],
-                   [right.dimension_relative(), right.coordinate_ring()])
+            return False
+        return (self.dimension_relative() == right.dimension_relative() and
+                self.coordinate_ring() == right.coordinate_ring())
+
+    def __ne__(self, right):
+        """
+        Check non-equality of two projective spaces.
+
+        EXAMPLES::
+
+            sage: ProjectiveSpace(QQ, 3, 'a') != ProjectiveSpace(ZZ, 3, 'a')
+            True
+            sage: ProjectiveSpace(ZZ, 1, 'a') != ProjectiveSpace(ZZ, 0, 'a')
+            True
+            sage: ProjectiveSpace(ZZ, 2, 'a') != AffineSpace(ZZ, 2, 'a')
+            True
+        """
+        return not (self == other)
 
     def __pow__(self, m):
         """

@@ -112,7 +112,7 @@ from cpython.slice cimport PySlice_GetIndicesEx
 from sage.structure.sequence import Sequence
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 from sage.structure.element import canonical_coercion
-from sage.structure.sage_object cimport richcmp_not_equal, richcmp, rich_to_bool
+from sage.structure.richcmp cimport richcmp_not_equal, richcmp, rich_to_bool
 
 from sage.rings.ring import is_Ring
 from sage.rings.infinity import Infinity, AnInfinity

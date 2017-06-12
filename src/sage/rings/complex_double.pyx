@@ -61,16 +61,16 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
 
 import operator
 from cpython.object cimport Py_NE
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.misc.randstate cimport randstate, current_randstate
 
 from cypari2.paridecl cimport *
-include "cysignals/signals.pxi"
 
 from sage.libs.gsl.complex cimport *
 
@@ -84,7 +84,7 @@ cimport sage.rings.integer
 from sage.structure.element cimport RingElement, Element, ModuleElement, FieldElement
 from sage.structure.parent  cimport Parent
 from sage.structure.parent_gens import ParentWithGens
-from sage.structure.sage_object cimport rich_to_bool
+from sage.structure.richcmp cimport rich_to_bool
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 

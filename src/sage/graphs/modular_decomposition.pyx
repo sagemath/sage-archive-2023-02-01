@@ -2,9 +2,8 @@ r"""
 Modular decomposition
 """
 
-include "cysignals/memory.pxi"
+from cysignals.memory cimport check_calloc, check_malloc
 
-from libc.string cimport memset
 
 #####################################################
 # The following code is mainly a Cythonized
@@ -120,9 +119,7 @@ cpdef modular_decomposition(g):
         label_id[label] = id
 
     G.n = g.order()
-    G.G = <c_adj **> sig_malloc(G.n*sizeof(c_adj *))
-
-    memset( G.G, 0, G.n*sizeof(c_adj *))
+    G.G = <c_adj **>check_calloc(G.n, sizeof(c_adj *))
 
     # Creating the graph structure
     for u,v in g.edges(labels = False):
@@ -130,12 +127,12 @@ cpdef modular_decomposition(g):
         i = label_id[u]
         j = label_id[v]
 
-        a=<c_adj *> sig_malloc(sizeof(c_adj))
+        a = <c_adj *>check_malloc(sizeof(c_adj))
         a.s = j
         a.suiv = G.G[i]
         G.G[i] = a
 
-        a=<c_adj *> sig_malloc(sizeof(c_adj))
+        a = <c_adj *>check_malloc(sizeof(c_adj))
         a.s = i
         a.suiv = G.G[j]
         G.G[j] = a

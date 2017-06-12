@@ -34,9 +34,8 @@ Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
+from cysignals.memory cimport sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 
 cdef extern from "sage/graphs/cliquer/cl.c":

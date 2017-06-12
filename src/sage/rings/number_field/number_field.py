@@ -1618,6 +1618,12 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: L(gap(tau)^3)     # indirect doctest
             2
 
+        Check that :trac:`22202` is fixed::
+
+            sage: y = QQ['y'].gen()
+            sage: R = QQ.extension(y^2-2,'a')['x']
+            sage: R("a*x").factor()
+            (a) * x
         """
         if isinstance(x, number_field_element.NumberFieldElement):
             K = x.parent()
@@ -1644,7 +1650,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             if x.type() in ["t_INT", "t_FRAC"]:
                 pass
             elif x.type() == "t_POL":
-                if check and self.pari_polynomial() != self.absolute_polynomial().monic():
+                var = self.absolute_polynomial().variable_name()
+                if check and self.pari_polynomial(var) != self.absolute_polynomial().monic():
                     from warnings import warn
                     warn("interpreting PARI polynomial %s relative to the defining polynomial %s of the PARI number field"
                          % (x, self.pari_polynomial()))

@@ -18,8 +18,8 @@ from sage.rings.infinity import Infinity
 from sage.rings.ring import CommutativeRing
 from sage.categories.homset import Hom
 from sage.structure.element cimport Element
-from sage.structure.sage_object cimport (richcmp, rich_to_bool,
-                                         richcmp_not_equal)
+from sage.structure.richcmp cimport (richcmp, rich_to_bool,
+        richcmp_not_equal)
 
 from sage.rings.morphism cimport RingHomomorphism
 from padic_generic import pAdicGeneric

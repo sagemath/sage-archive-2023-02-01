@@ -252,6 +252,10 @@ REFERENCES:
             (arxiv:0710.5614) to appear in Ergodic Theory and
             Dynamical Systems.
 
+.. [BM1940] Becker, M. F., and Saunders MacLane. The minimum number of
+            generators for inseparable algebraic extensions. Bulletin of the
+            American Mathematical Society 46, no. 2 (1940): 182-186.
+
 .. [BM2008] John Adrian Bondy and U.S.R. Murty, "Graph theory", Volume
             244 of Graduate Texts in Mathematics, 2nd edition, Springer, 2008.
 
@@ -269,6 +273,8 @@ REFERENCES:
 .. [Bob2013] \J.W. Bober. Conditionally bounding analytic ranks of
              elliptic curves. ANTS
              10, 2013. http://msp.org/obs/2013/1-1/obs-v1-n1-p07-s.pdf
+
+.. [Bo2009] Bosch, S., Algebra, Springer 2009
 
 .. [BP1982] \H. Beker and F. Piper. *Cipher Systems: The Protection of
             Communications*. John Wiley and Sons, 1982.

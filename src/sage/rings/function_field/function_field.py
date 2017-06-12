@@ -443,8 +443,7 @@ class FunctionField(Field):
 
     def _convert_map_from_(self, R):
         r"""
-        Return a conversion from ``R`` to this function field or ``None`` if
-        none exists.
+        Return a conversion from ``R`` to this function field if one exists.
 
         EXAMPLES::
 
@@ -772,18 +771,29 @@ class FunctionField_polymod(FunctionField):
         """
         return self.base_field()._to_constant_base_field(self._to_base_field(f))
 
-    def monic_integral_model(self, names):
+    def monic_integral_model(self, names=None):
         """
-        Return a function field isomorphic to self, but with defining
-        polynomial that is monic and integral over the base field.
+        Return a function field isomorphic to this field but which is an
+        extension of a rational function field with defining polynomial that is
+        monic and integral over the constant base field.
 
         INPUT:
 
-            - ``names`` -- name of the generator of the new field this function constructs
+        - ``names`` -- a string or a tuple of up to two strings (default:
+          ``None``), the name of the generator of the field, and the name of
+          the generator of the underlying rational function field (if a tuple);
+          if not given, then the names are chosen automatically.
+
+        OUTPUT:
+
+        A triple ``(F,f,t)`` where ``F`` is a function field, ``f`` is an
+        isomorphism from ``F`` to this field, and ``t`` is the inverse of
+        ``f``.
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
             sage: L.<y> = K.extension(x^2*y^5 - 1/x); L
             Function field in y defined by x^2*y^5 - 1/x
             sage: A, from_A, to_A = L.monic_integral_model('z')
@@ -794,11 +804,13 @@ class FunctionField_polymod(FunctionField):
               From: Function field in z defined by z^5 - x^12
               To:   Function field in y defined by x^2*y^5 - 1/x
               Defn: z |--> x^3*y
+                    x |--> x
             sage: to_A
             Function Field morphism:
               From: Function field in y defined by x^2*y^5 - 1/x
               To:   Function field in z defined by z^5 - x^12
               Defn: y |--> 1/x^3*z
+                    x |--> x
             sage: to_A(y)
             1/x^3*z
             sage: from_A(to_A(y))
@@ -807,13 +819,83 @@ class FunctionField_polymod(FunctionField):
             x^3*y^4
             sage: from_A(to_A(1/y)) == 1/y
             True
+
+        This also works for towers of function fields::
+
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z^2*y - 1/x)
+            sage: M.monic_integral_model()
+            (Function field in z_ defined by z_^10 - x^18, Function Field morphism:
+              From: Function field in z_ defined by z_^10 - x^18
+              To:   Function field in z defined by y*z^2 - 1/x
+              Defn: z_ |--> x^2*z
+                    x |--> x, Function Field morphism:
+              From: Function field in z defined by y*z^2 - 1/x
+              To:   Function field in z_ defined by z_^10 - x^18
+              Defn: z |--> 1/x^2*z_
+                    y |--> 1/x^15*z_^8
+                    x |--> x)
+
+        TESTS:
+
+        If the field is already a monic integral extension, then it is returned
+        unchanged::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2-x)
+            sage: L.monic_integral_model()
+            (Function field in y defined by y^2 - x, Function Field endomorphism of Function field in y defined by y^2 - x
+              Defn: y |--> y
+                    x |--> x, Function Field endomorphism of Function field in y defined by y^2 - x
+              Defn: y |--> y
+                    x |--> x)
+
+        unless ``names`` does not match with the current names::
+
+            sage: L.monic_integral_model(names=('yy','xx'))
+            (Function field in yy defined by yy^2 - xx, Function Field morphism:
+              From: Function field in yy defined by yy^2 - xx
+              To:   Function field in y defined by y^2 - x
+              Defn: yy |--> y
+                    xx |--> x, Function Field morphism:
+              From: Function field in y defined by y^2 - x
+              To:   Function field in yy defined by yy^2 - xx
+              Defn: y |--> yy
+                    x |--> xx)
+
         """
-        g, d = self._make_monic_integral(self.polynomial())
-        R = self.base_field()
-        K = R.extension(g, names=names)
-        to_K = self.hom(K.gen() / d)
-        from_K = K.hom(self.gen() * d)
-        return K, from_K, to_K
+        if names:
+            if not isinstance(names, tuple):
+                names = (names,)
+            if len(names) > 2:
+                raise ValueErorr("names must contain at most 2 entries")
+
+        if self.base_field() is not self.rational_function_field():
+            L,from_L,to_L = self.simple_model()
+            ret,ret_to_L,L_to_ret = L.monic_integral_model(names)
+            from_ret = ret.hom( [from_L(ret_to_L(ret.gen())), from_L(ret_to_L(ret.base_field().gen()))] )
+            to_ret = self.hom( [L_to_ret(to_L(k.gen())) for k in self._intermediate_fields(self.rational_function_field())] )
+            return ret, from_ret, to_ret
+        else:
+            if self.polynomial().is_monic() and all([c.denominator().is_one() for c in self.polynomial()]):
+                # self is already monic and integral
+                if names is None or names == ():
+                    names = (self.variable_name(),)
+                return self.change_variable_name(names)
+            else:
+                if not names:
+                    names = (self.variable_name()+"_",)
+                if len(names) == 1:
+                    names = (names[0], self.rational_function_field().variable_name())
+
+                g, d = self._make_monic_integral(self.polynomial())
+                K,from_K,to_K = self.base_field().change_variable_name(names[1])
+                g = g.map_coefficients(to_K)
+                ret = K.extension(g, names=names[0])
+                from_ret = ret.hom([self.gen() * d, self.base_field().gen()])
+                to_ret = self.hom([ret.gen() / d, ret.base_field().gen()])
+                return ret, from_ret, to_ret
 
     def _make_monic_integral(self, f):
         r"""
@@ -897,7 +979,7 @@ class FunctionField_polymod(FunctionField):
 
         INPUT:
 
-        - ``base`` -- a function field or ``None`` (default: ``None``), a
+        - ``base`` -- a function field (default: ``None``), a
           function field from which this field has been constructed as a finite
           extension.
 
@@ -1041,9 +1123,9 @@ class FunctionField_polymod(FunctionField):
 
         INPUT:
 
-        - ``base`` -- a function field or ``None`` (default: ``None``), the
-          returned vector space is over ``base`` which defaults to the base
-          field of this function field.
+        - ``base`` -- a function field (default: ``None``), the returned vector
+          space is over ``base`` which defaults to the base field of this
+          function field.
 
         OUTPUT:
 
@@ -1442,9 +1524,10 @@ class FunctionField_polymod(FunctionField):
 
     def _simple_model(self, name='v'):
         r"""
-        Helper method for :meth:`simple_model` which, for a tower of extensions
-        `M/L/K(x)` over a rational function field `K(x)` with `K` perfect,
-        finds a finite extension `N/K(x)` isomorphic to `M`.
+        Return a finite extension `N/K(x)` isomorphic to the tower of
+        extensions `M/L/K(x)` with `K` perfect.
+
+        Helper method for :meth:`simple_model`.
 
         INPUT:
 
@@ -1454,7 +1537,7 @@ class FunctionField_polymod(FunctionField):
 
         Since `K` is perfect, the extension `M/K(x)` is simple, i.e., generated
         by a single element [BM1940]_. Therefore, there are only finitely many
-        intermediate fields (Exercise 3.6.7 in [Bosch2009]_).
+        intermediate fields (Exercise 3.6.7 in [Bo2009]_).
         Let `a` be a generator of `M/L` and let `b` be a generator of `L/K(x)`.
         For some `i` the field `N_i=K(x)(a+x^ib)` is isomorphic to `M` and so
         it is enough to test for all terms of the form `a+x^ib` whether they
@@ -1464,14 +1547,6 @@ class FunctionField_polymod(FunctionField):
         N_j` and so `b\in N_j`.  Similarly,
         `a+x^ib-x^{i-j}(a+x^jb)=a(1+x^{i-j})\in N_j` and so `a\in N_j`.
         Therefore, `N_j=M`.
-
-        REFERENCES:
-
-        .. [BM1940] Becker, M. F., and Saunders MacLane. The minimum number of
-        generators for inseparable algebraic extensions. Bulletin of the
-        American Mathematical Society 46, no. 2 (1940): 182-186.
-
-        .. [Bosch2009] Bosch, S., Algebra, Springer 2009
 
         TESTS::
 
@@ -1591,9 +1666,9 @@ class FunctionField_polymod(FunctionField):
 
         INPUT:
 
-        - ``name`` -- a string or ``None`` (default: ``None``), the name of generator of the
-          simple extension. If ``None``, then the name of the generator will be
-          the same as the name of the generator of this function field.
+        - ``name`` -- a string (default: ``None``), the name of generator of
+          the simple extension. If ``None``, then the name of the generator
+          will be the same as the name of the generator of this function field.
 
         OUTPUT:
 
@@ -2249,9 +2324,8 @@ class RationalFunctionField(FunctionField):
 
         INPUT:
 
-        - ``base`` -- must be this field or ``None``; this parameter is ignored
-          and exists to resemble the interface of
-          :meth:`FunctionField_polymod.degree`.
+        - ``base`` -- the base field of the vector space; must be the function
+          field itself (the default)
 
         EXAMPLES::
 
@@ -2439,9 +2513,8 @@ class RationalFunctionField(FunctionField):
 
         INPUT:
 
-        - ``base`` -- must be this field or ``None`` (default: ``None``); this
-          parameter is ignored and merely exists to have the same interface as
-          :meth:`FunctionField_polymod.vector_space`.
+        - ``base`` -- the base field of the vector space; must be the function
+          field itself (the default)
 
         OUTPUT:
 

@@ -42,7 +42,7 @@ bug, see :trac:`17527`)::
 from __future__ import print_function, absolute_import
 
 from cpython cimport *
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_check
 
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.coerce cimport py_scalar_parent

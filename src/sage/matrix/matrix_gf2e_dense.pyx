@@ -76,7 +76,7 @@ REFERENCES:
 #*****************************************************************************
 from __future__ import absolute_import
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_check, sig_on, sig_off
 
 cimport sage.matrix.matrix_dense as matrix_dense
 from sage.structure.element cimport Matrix, Vector

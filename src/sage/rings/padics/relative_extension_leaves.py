@@ -14,7 +14,11 @@ Relative extensions of p-adic fields.
 
 from .generic_nodes import pAdicFixedModRingGeneric
 from .eisenstein_extension_generic import EisensteinExtensionGeneric
+from .relative_ramified_FM import RelativeRamifiedFixedModElement
+from .pow_computer_relative import PowComputer_relative_maker
 
 class RelativeRamifiedExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFixedModRingGeneric):
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names):
-        pass
+        unram_prec = (prec + poly.degree() - 1) // poly.degree()
+        self.prime_pow = PowComputer_relative_maker(poly.base_ring().prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, False, poly, 'fixed-mod')
+        EisensteinExtensionGeneric.__init__(self, poly, prec, print_mode, names, RelativeRamifiedFixedModElement)

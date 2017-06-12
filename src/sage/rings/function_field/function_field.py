@@ -1455,7 +1455,7 @@ class FunctionField_polymod(FunctionField):
         Since `K` is perfect, the extension `M/K(x)` is simple, i.e., generated
         by a single element [BM1940]_. Therefore, there are only finitely many
         intermediate fields (Exercise 3.6.7 in [Bosch2009]_).
-        Let `a` be a generator of `M/L` and let `a` be a generator of `L/K(x)`.
+        Let `a` be a generator of `M/L` and let `b` be a generator of `L/K(x)`.
         For some `i` the field `N_i=K(x)(a+x^ib)` is isomorphic to `M` and so
         it is enough to test for all terms of the form `a+x^ib` whether they
         generate a field of the right degree.
@@ -1571,7 +1571,7 @@ class FunctionField_polymod(FunctionField):
 
         # the morphism M -> N, b |-> M_b, a |-> M_a
         V, V_to_M, M_to_V = M.vector_space(K)
-        V, V_to_N, N_no_V = N.vector_space(K)
+        V, V_to_N, N_to_V = N.vector_space(K)
         from sage.matrix.matrix_space import MatrixSpace
         MS = MatrixSpace(V.base_field(), V.dimension())
         # the power basis of v over K
@@ -1757,6 +1757,87 @@ class FunctionField_polymod(FunctionField):
         N, f, t = self.simple_model()
         return f(N.gen())
 
+    def change_variable_name(self, name):
+        r"""
+        Return a field isomorphic to this field with variable(s) ``name``.
+
+        INPUT:
+
+        - ``name`` -- a string or a tuple consisting of a strings, the names of
+          the new variables starting with a generator of this field and going
+          down to the rational function field.
+
+        OUTPUT:
+
+        A triple ``F,f,t`` where ``F`` is a function field, ``f`` is an
+        isomorphism from ``F`` to this field, and ``t`` is the inverse of
+        ``f``.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z^2 - y)
+
+            sage: M.change_variable_name('zz')
+            (Function field in zz defined by zz^2 - y,
+             Function Field morphism:
+              From: Function field in zz defined by zz^2 - y
+              To:   Function field in z defined by z^2 - y
+              Defn: zz |--> z
+                    y |--> y
+                    x |--> x,
+             Function Field morphism:
+              From: Function field in z defined by z^2 - y
+              To:   Function field in zz defined by zz^2 - y
+              Defn: z |--> zz
+                    y |--> y
+                    x |--> x)
+            sage: M.change_variable_name(('zz','yy'))
+            (Function field in zz defined by zz^2 - yy, Function Field morphism:
+              From: Function field in zz defined by zz^2 - yy
+              To:   Function field in z defined by z^2 - y
+              Defn: zz |--> z
+                    yy |--> y
+                    x |--> x, Function Field morphism:
+              From: Function field in z defined by z^2 - y
+              To:   Function field in zz defined by zz^2 - yy
+              Defn: z |--> zz
+                    y |--> yy
+                    x |--> x)
+            sage: M.change_variable_name(('zz','yy','xx'))
+            (Function field in zz defined by zz^2 - yy,
+             Function Field morphism:
+              From: Function field in zz defined by zz^2 - yy
+              To:   Function field in z defined by z^2 - y
+              Defn: zz |--> z
+                    yy |--> y
+                    xx |--> x,
+             Function Field morphism:
+              From: Function field in z defined by z^2 - y
+              To:   Function field in zz defined by zz^2 - yy
+              Defn: z |--> zz
+                    y |--> yy
+                    x |--> xx)
+
+        """
+        if not isinstance(name, tuple):
+            name = (name,)
+        if len(name) == 0:
+            raise ValueError("name must contain at least one string")
+        elif len(name) == 1:
+            base = self.base_field()
+            from sage.categories.homset import Hom
+            from_base = to_base = Hom(base,base).identity()
+        else:
+            base, from_base, to_base = self.base_field().change_variable_name(name[1:])
+
+        ret = base.extension(self.polynomial().map_coefficients(to_base), names=(name[0],))
+        f = ret.hom( [k.gen() for k in self._intermediate_fields(self.rational_function_field())] )
+        t = self.hom( [k.gen() for k in ret._intermediate_fields(ret.rational_function_field())] )
+        return ret, f, t
 
 def is_RationalFunctionField(x):
     """
@@ -2397,6 +2478,52 @@ class RationalFunctionField(FunctionField):
         from_V = MapVectorSpaceToFunctionField(V, self)
         to_V   = MapFunctionFieldToVectorSpace(self, V)
         return (V, from_V, to_V)
+
+    def change_variable_name(self, name):
+        r"""
+        Return a field isomorphic to this field with variable ``name``.
+
+        INPUT:
+
+        - ``name`` -- a string or a tuple consisting of a single string, the
+          name of the new variable
+
+        OUTPUT:
+
+        A triple ``F,f,t`` where ``F`` is a rational function field, ``f`` is
+        an isomorphism from ``F`` to this field, and ``t`` is the inverse of
+        ``f``.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: L,f,t = K.change_variable_name('y')
+            sage: L,f,t
+            (Rational function field in y over Rational Field,
+             Function Field morphism:
+              From: Rational function field in y over Rational Field
+              To:   Rational function field in x over Rational Field
+              Defn: y |--> x,
+             Function Field morphism:
+              From: Rational function field in x over Rational Field
+              To:   Rational function field in y over Rational Field
+              Defn: x |--> y)
+            sage: L.change_variable_name('x')[0] is K
+            True
+
+        """
+        if isinstance(name, tuple):
+            if len(name) != 1:
+                raise ValueError("names must be a tuple with a single string")
+            name = name[0]
+        if name == self.variable_name():
+            from sage.categories.homset import Hom
+            id = Hom(self,self).identity()
+            return self,id,id
+        else:
+            from .constructor import FunctionField
+            ret = FunctionField(self.constant_base_field(), name)
+            return ret, ret.hom(self.gen()), self.hom(ret.gen())
 
     @cached_method
     def derivation(self):

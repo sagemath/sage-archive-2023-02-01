@@ -786,13 +786,16 @@ fi
 # Mark that the new package has been installed (and tested, if
 # applicable).
 PKG_NAME_INSTALLED="$SAGE_SPKG_INST/$PKG_NAME"
-echo "PACKAGE NAME: $PKG_NAME" > "$PKG_NAME_INSTALLED"
-echo "INSTALL DATE: `date`" >> "$PKG_NAME_INSTALLED"
-echo "UNAME: `uname -a`" >> "$PKG_NAME_INSTALLED"
-if [ -n "$TEST_SUITE_RESULT" ]; then
-    echo "TEST SUITE: $TEST_SUITE_RESULT" >> "$PKG_NAME_INSTALLED"
-fi
-cat "$SAGE_ROOT/VERSION.txt" >> "$PKG_NAME_INSTALLED"
+cat > "$PKG_NAME_INSTALLED" << __EOF__
+{
+    "package_name": "$PKG_BASE",
+    "package_version": "$PKG_VER",
+    "install_date": "$(date)",
+    "system_uname": "$(uname -a)",
+    "sage_version": "$(cat "${SAGE_ROOT}/VERSION.txt")",
+    "test_result": "$TEST_SUITE_RESULT"
+}
+__EOF__
 
 
 ##################################################################

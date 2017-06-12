@@ -99,7 +99,8 @@ from sage.structure.element cimport parent, coercion_model
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
 from sage.structure.debug_options cimport debug
-from sage.structure.sage_object cimport SageObject, rich_to_bool
+from sage.structure.richcmp cimport rich_to_bool
+from sage.structure.sage_object cimport SageObject
 from sage.structure.misc import is_extension_type
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.sets_cat import Sets, EmptySetError

@@ -375,7 +375,7 @@ from six import iteritems
 # https://groups.google.com/d/msg/sage-devel/qF4yU6Vdmao/wQlNrneSmWAJ
 from sage.categories.morphism import Morphism
 
-from sage.structure.sage_object import richcmp_not_equal, richcmp
+from sage.structure.richcmp import richcmp_not_equal, richcmp
 
 from sage.structure.sequence import Sequence
 from sage.rings.all import ZZ

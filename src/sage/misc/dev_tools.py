@@ -14,7 +14,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 from __future__ import absolute_import
-from six import iteritems
+from six import iteritems, string_types
 
 
 def runsnake(command):
@@ -519,10 +519,10 @@ def import_statements(*objects, **kwds):
         name = None    # the name of the object
 
         # 1. if obj is a string, we look for an object that has that name
-        if isinstance(obj, str):
+        if isinstance(obj, string_types):
             name = obj
             obj = find_objects_from_name(name, 'sage')
-            if len(obj) == 0:
+            if not obj:
                 obj = find_objects_from_name(name)
 
             # remove lazy imported objects from list obj

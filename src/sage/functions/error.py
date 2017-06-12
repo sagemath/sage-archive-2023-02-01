@@ -182,7 +182,8 @@ class Function_erf(BuiltinFunction):
         BuiltinFunction.__init__(self, "erf", latex_name=r"\operatorname{erf}",
                                  conversions=dict(maxima='erf',
                                                   sympy='erf',
-                                                  fricas='erf'))
+                                                  fricas='erf',
+                                                  giac='erf'))
 
     def _eval_(self, x):
         """
@@ -400,7 +401,8 @@ class Function_erfc(BuiltinFunction):
                                  latex_name=r"\operatorname{erfc}",
                                  conversions=dict(maxima='erfc',
                                                   sympy='erfc',
-                                                  fricas='erfc'))
+                                                  fricas='erfc',
+                                                  giac='erfc'))
 
     def _eval_(self, x):
         """

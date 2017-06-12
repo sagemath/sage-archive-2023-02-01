@@ -78,7 +78,7 @@ from sage.rings.all import ZZ
 from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.sage_object import richcmp_not_equal, richcmp
+from sage.structure.richcmp import richcmp_not_equal, richcmp
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.modules.free_module import FreeModule
 

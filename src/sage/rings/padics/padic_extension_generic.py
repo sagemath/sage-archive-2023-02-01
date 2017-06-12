@@ -22,7 +22,7 @@ from __future__ import absolute_import
 
 from .padic_generic import pAdicGeneric
 from .padic_base_generic import pAdicBaseGeneric
-from sage.structure.sage_object import op_EQ
+from sage.structure.richcmp import op_EQ
 from functools import reduce
 
 

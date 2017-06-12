@@ -21,4 +21,5 @@ class RelativeRamifiedExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFix
     def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names):
         unram_prec = (prec + poly.degree() - 1) // poly.degree()
         self.prime_pow = PowComputer_relative_maker(poly.base_ring().prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, False, poly, 'fixed-mod')
+        self._implementation = 'Polynomial'
         EisensteinExtensionGeneric.__init__(self, poly, prec, print_mode, names, RelativeRamifiedFixedModElement)

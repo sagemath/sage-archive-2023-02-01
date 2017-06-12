@@ -1050,6 +1050,12 @@ cdef class pAdicPrinter_class(SageObject):
                     poly, k = elt._flint_rep_abs()
                     L = [repr(a) for a in poly.coefficients(sparse=False)]
                     ZZ_pEX = 1
+                elif elt.parent()._implementation == 'Polynomial':
+                    poly = elt._poly_rep()
+                    return repr(poly) # should do more than this
+                    L = [repr(a) for a in poly.coefficients(sparse=False)]
+                    k = 0
+                    ZZ_pEX = 2
                 else:
                     if elt.parent().is_capped_relative():
                         poly, k = elt._ntl_rep_abs()

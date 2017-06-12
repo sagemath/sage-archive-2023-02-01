@@ -106,9 +106,19 @@ def is_long_hole_free(g, certificate=False):
         Subgraph of (): Graph on 5 vertices
         sage: hole.is_isomorphic(graphs.CycleGraph(hole.order()))
         True
+
+        sage: graphs.EmptyGraph().is_long_hole_free()
+        True
     """
     g._scream_if_not_simple()
+
+    if g.order() == 0:
+        return (True, []) if certificate else True
+
     cdef int a,b,c,i,u,v,d
+
+    if g.is_immutable():
+        g = g.copy(immutable=False)
 
     # relabel the graph on 0...n-1
     cdef dict label_id = g.relabel(return_map = True)
@@ -166,7 +176,8 @@ def is_long_hole_free(g, certificate=False):
 
                         # Return the answer, and relabel it on-the-fly with the
                         # vertices' real name
-                        return False, map(lambda x:id_label[x],C[min(u,v): max(u,v)+1])
+                        return False, [id_label[x]
+                                       for x in C[min(u, v): max(u, v) + 1]]
 
                     else:
                         return False, None
@@ -275,9 +286,19 @@ def is_long_antihole_free(g, certificate = False):
         False
         sage: a.complement().is_isomorphic( graphs.CycleGraph(9) )
         True
+
+        sage: graphs.EmptyGraph().is_long_hole_free()
+        True
     """
     g._scream_if_not_simple()
+
+    if g.order() == 0:
+        return (True, []) if certificate else True
+
     cdef int a,b,c,i,u,v,d
+
+    if g.is_immutable():
+        g = g.copy(immutable=False)
 
     # relabel the graph on 0...n-1
     cdef dict label_id = g.relabel(return_map = True)
@@ -332,7 +353,8 @@ def is_long_antihole_free(g, certificate = False):
 
                         # Return the answer, and relabel it on-the-fly with the
                         # vertices' real name
-                        return False, map(lambda x:id_label[x],C[min(u,v): max(u,v)+1])
+                        return False, [id_label[x]
+                                       for x in C[min(u, v): max(u, v) + 1]]
 
                     else:
                         return False, []
@@ -412,7 +434,15 @@ def is_weakly_chordal(g, certificate = False):
         sage: l = len(s.vertices())
         sage: s.is_isomorphic( graphs.CycleGraph(l) )
         True
+
+    TESTS::
+
+        sage: graphs.EmptyGraph().is_weakly_chordal()
+        True
+
     """
+    if g.order() == 0:
+        return (True, []) if certificate else True
 
     if certificate:
         r,forbid_subgr = g.is_long_hole_free(certificate=True)

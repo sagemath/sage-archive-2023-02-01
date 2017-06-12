@@ -51,6 +51,17 @@ class PosetElement(Element):
             self.element = element
         self.vertex = vertex
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: P = Poset([[1,2],[4],[3],[4],[]], facade = False)
+            sage: e = P(0)
+            sage: hash(e)
+            0
+        """
+        return hash(self.element)
+
     def _repr_(self):
         """
         TESTS::
@@ -71,7 +82,7 @@ class PosetElement(Element):
             sage: P = Poset(([m],[]), facade = False)
             sage: [e] = P
             sage: type(e)
-            <class 'sage.combinat.posets.elements.FinitePoset_with_category.element_class'>
+            <class 'sage.combinat.posets.posets.FinitePoset_with_category.element_class'>
             sage: latex(e)                 #indirect doctest
             \left(\begin{array}{rr}
             1 & 2 \\
@@ -136,7 +147,7 @@ class PosetElement(Element):
             sage: PosetElement(P,1,"c") != PosetElement(P,0,"c")
             False
         """
-        return not (self.__eq__(other))
+        return not self == other
 
     def _cmp(self,other):
         """

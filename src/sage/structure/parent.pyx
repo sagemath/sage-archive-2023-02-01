@@ -91,35 +91,26 @@ This came up in some subtle bug once::
 
     sage: gp(2) + gap(3)
     5
-
 """
+from __future__ import print_function
 
 from types import MethodType
-from element cimport parent_c
+from sage.structure.element cimport parent, coercion_model
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
-from sage.structure.debug_options import debug
-from sage.structure.sage_object cimport SageObject, rich_to_bool
-from sage.structure.misc import (dir_with_other_class, getattr_from_other_class,
-                                 is_extension_type)
+from sage.structure.debug_options cimport debug
+from sage.structure.richcmp cimport rich_to_bool
+from sage.structure.sage_object cimport SageObject
+from sage.structure.misc import is_extension_type
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.sets_cat import Sets, EmptySetError
 from copy import copy
-from sage.misc.sage_itertools import unique_merge
 from sage.misc.lazy_format import LazyFormat
-
-# Create a dummy attribute error, using some kind of lazy error message,
-# so that neither the error itself not the message need to be created
-# repeatedly, which would cost time.
-
-from sage.structure.misc cimport AttributeErrorMessage
-cdef AttributeErrorMessage dummy_error_message = AttributeErrorMessage(None, '')
-dummy_attribute_error = AttributeError(dummy_error_message)
+from cpython.object cimport Py_NE, Py_EQ
 
 
 cdef _record_exception():
-    from element import get_coercion_model
-    get_coercion_model()._record_exception()
+    coercion_model._record_exception()
 
 cdef object _Integer
 cdef bint is_Integer(x):
@@ -153,17 +144,12 @@ import operator
 import weakref
 
 from category_object import CategoryObject
-from generators import Generators
 from coerce_exceptions import CoercionException
-
-# TODO: Theses should probably go in the printer module (but lots of stuff imports them from parent)
-from category_object import localvars
 
 cdef object BuiltinMethodType = type(repr)
 
 from cpython.object cimport *
 from cpython.bool cimport *
-include 'sage/ext/stdsage.pxi'
 
 
 def is_Parent(x):
@@ -225,9 +211,8 @@ cdef inline bint good_as_convert_domain(S):
     return isinstance(S,SageObject) or isinstance(S,type)
 
 cdef class Parent(category_object.CategoryObject):
-
     def __init__(self, base=None, *, category=None, element_constructor=None,
-                 gens=None, names=None, normalize=True, facade=None, **kwds):
+                 names=None, normalize=True, facade=None, **kwds):
         """
         Base class for all parents.
 
@@ -254,9 +239,6 @@ cdef class Parent(category_object.CategoryObject):
         - ``element_constructor`` -- A class or function that creates
           elements of this Parent given appropriate input (can also be
           filled in later with :meth:`_populate_coercion_lists_`)
-
-        - ``gens`` -- Generators for this object (can also be filled in
-          later with :meth:`_populate_generators_`)
 
         - ``names`` -- Names of generators.
 
@@ -331,14 +313,12 @@ cdef class Parent(category_object.CategoryObject):
 
         if len(kwds) > 0:
             if debug.bad_parent_warnings:
-                print "Illegal keywords for %s: %s" % (type(self), kwds)
+                print("Illegal keywords for %s: %s" % (type(self), kwds))
         # TODO: many classes don't call this at all, but __new__ crashes Sage
         if debug.bad_parent_warnings:
             if element_constructor is not None and not callable(element_constructor):
-                print "coerce BUG: Bad element_constructor provided", type(self), type(element_constructor), element_constructor
-        if gens is not None:
-            self._populate_generators_(gens, names, normalize)
-        elif names is not None:
+                print("coerce BUG: Bad element_constructor provided", type(self), type(element_constructor), element_constructor)
+        if names is not None:
             self._assign_names(names, normalize)
         if element_constructor is None:
             self._set_element_constructor()
@@ -405,7 +385,7 @@ cdef class Parent(category_object.CategoryObject):
 
             The class of ``self`` might be replaced by a sub-class.
 
-        .. seealso::
+        .. SEEALSO::
 
             :meth:`CategoryObject._refine_category`
 
@@ -458,8 +438,7 @@ cdef class Parent(category_object.CategoryObject):
         if self._category is None:
             self._init_category_(category)
             if debug.refine_category_hash_check and hash_old != hash(self):
-                print 'hash of {0} changed in Parent._refine_category_ during initialisation' \
-                    .format(str(self.__class__))
+                print('hash of {0} changed in Parent._refine_category_ during initialisation'.format(str(self.__class__)))
             return
         if category is self._category:
             return
@@ -486,8 +465,7 @@ cdef class Parent(category_object.CategoryObject):
         except (AttributeError, KeyError):
             pass
         if debug.refine_category_hash_check and hash_old != hash(self):
-            print 'hash of {0} changed in Parent._refine_category_ during refinement' \
-                .format(str(self.__class__))
+            print('hash of {0} changed in Parent._refine_category_ during refinement'.format(str(self.__class__)))
 
     def _unset_category(self):
         """
@@ -538,7 +516,7 @@ cdef class Parent(category_object.CategoryObject):
 
         Hence, we can now initialise the parent again in the original
         category, i.e., the category of rings. We find that not only
-        the category, but also theclass of the parent is brought back
+        the category, but also the class of the parent is brought back
         to what it was after the original category initialisation::
 
             sage: P._init_category_(Rings())
@@ -588,27 +566,30 @@ cdef class Parent(category_object.CategoryObject):
         - This should lookup for Element classes in all super classes
         """
         try: #if hasattr(self, 'Element'):
-            return self.__make_element_class__(self.Element, "%s.element_class"%self.__class__.__name__)
+            return self.__make_element_class__(self.Element,
+                                               name="%s.element_class"%self.__class__.__name__,
+                                               module=self.__class__.__module__)
         except AttributeError: #else:
             return NotImplemented
 
 
-    def __make_element_class__(self, cls, name = None, inherit = None):
+    def __make_element_class__(self, cls, name = None, module=None, inherit = None):
         """
         A utility to construct classes for the elements of this
         parent, with appropriate inheritance from the element class of
         the category (only for pure python types so far).
         """
-        if name is None:
-            name = "%s_with_category"%cls.__name__
         # By default, don't fiddle with extension types yet; inheritance from
         # categories will probably be achieved in a different way
         if inherit is None:
             inherit = not is_extension_type(cls)
         if inherit:
-            return dynamic_class(name, (cls, self._abstract_element_class))
-        else:
-            return cls
+            if name is None:
+                name = "%s_with_category"%cls.__name__
+            cls = dynamic_class(name, (cls, self._abstract_element_class))
+            if module is not None:
+                cls.__module__ = module
+        return cls
 
     def _set_element_constructor(self):
         """
@@ -744,8 +725,7 @@ cdef class Parent(category_object.CategoryObject):
     cdef int init_coerce(self, bint warn=True) except -1:
         if self._coerce_from_hash is None:
             if warn:
-                print "init_coerce() for ", type(self)
-                raise ZeroDivisionError("hello")
+                raise AssertionError(f"unexpected call of init_coerce() for {type(self)}")
             self._initial_coerce_list = []
             self._initial_action_list = []
             self._initial_convert_list = []
@@ -757,138 +737,6 @@ cdef class Parent(category_object.CategoryObject):
             self._convert_from_list = []
             self._convert_from_hash = MonoDict(53)
             self._embedding = None
-
-    def __getattr__(self, str name):
-        """
-        Let cat be the category of ``self``. This method emulates
-        ``self`` being an instance of both ``Parent`` and
-        ``cat.parent_class``, in that order, for attribute lookup.
-
-        NOTE:
-
-        Attributes beginning with two underscores but not ending with
-        an unnderscore are considered private and are thus exempted
-        from the lookup in ``cat.parent_class``.
-
-        EXAMPLES:
-
-        We test that ZZ (an extension type) inherits the methods from
-        its categories, that is from ``EuclideanDomains().parent_class``::
-
-            sage: ZZ._test_associativity
-            <bound method JoinCategory.parent_class._test_associativity of Integer Ring>
-            sage: ZZ._test_associativity(verbose = True)
-            sage: TestSuite(ZZ).run(verbose = True)
-            running ._test_additive_associativity() . . . pass
-            running ._test_an_element() . . . pass
-            running ._test_associativity() . . . pass
-            running ._test_cardinality() . . . pass
-            running ._test_category() . . . pass
-            running ._test_characteristic() . . . pass
-            running ._test_distributivity() . . . pass
-            running ._test_elements() . . .
-              Running the test suite of self.an_element()
-              running ._test_category() . . . pass
-              running ._test_eq() . . . pass
-              running ._test_nonzero_equal() . . . pass
-              running ._test_not_implemented_methods() . . . pass
-              running ._test_pickling() . . . pass
-              pass
-            running ._test_elements_eq_reflexive() . . . pass
-            running ._test_elements_eq_symmetric() . . . pass
-            running ._test_elements_eq_transitive() . . . pass
-            running ._test_elements_neq() . . . pass
-            running ._test_enumerated_set_contains() . . . pass
-            running ._test_enumerated_set_iter_cardinality() . . . pass
-            running ._test_enumerated_set_iter_list() . . .Enumerated set too big; skipping test; increase tester._max_runs
-             pass
-            running ._test_eq() . . . pass
-            running ._test_euclidean_degree() . . . pass
-            running ._test_gcd_vs_xgcd() . . . pass
-            running ._test_not_implemented_methods() . . . pass
-            running ._test_one() . . . pass
-            running ._test_pickling() . . . pass
-            running ._test_prod() . . . pass
-            running ._test_quo_rem() . . . pass
-            running ._test_some_elements() . . . pass
-            running ._test_zero() . . . pass
-            running ._test_zero_divisors() . . . pass
-
-            sage: Sets().example().sadfasdf
-            Traceback (most recent call last):
-            ...
-            AttributeError: 'PrimeNumbers_with_category' object has no attribute 'sadfasdf'
-
-        TESTS:
-
-        We test that "private" attributes are not requested from the element class
-        of the category (:trac:`10467`)::
-
-            sage: P = Parent(QQ, category=CommutativeRings())
-            sage: P.category().parent_class.__foo = 'bar'
-            sage: P.__foo
-            Traceback (most recent call last):
-            ...
-            AttributeError: 'sage.structure.parent.Parent' object has no attribute '__foo'
-
-        """
-        if (name.startswith('__') and not name.endswith('_')) or self._category is None:
-            dummy_error_message.cls = type(self)
-            dummy_error_message.name = name
-            raise dummy_attribute_error
-        try:
-            return self.__cached_methods[name]
-        except KeyError:
-            attr = getattr_from_other_class(self, self._category.parent_class, name)
-            self.__cached_methods[name] = attr
-            return attr
-        except TypeError:
-            attr = getattr_from_other_class(self, self._category.parent_class, name)
-            self.__cached_methods = {name:attr}
-            return attr
-
-    def __dir__(self):
-        """
-        Let cat be the category of ``self``. This method emulates
-        ``self`` being an instance of both ``Parent`` and
-        ``cat.parent_class``, in that order, for attribute directory.
-
-        EXAMPLES::
-
-            sage: for s in dir(ZZ):
-            ....:     if s[:6] == "_test_": print s
-            _test_additive_associativity
-            _test_an_element
-            _test_associativity
-            _test_cardinality
-            _test_category
-            _test_characteristic
-            _test_distributivity
-            _test_elements
-            _test_elements_eq_reflexive
-            _test_elements_eq_symmetric
-            _test_elements_eq_transitive
-            _test_elements_neq
-            _test_enumerated_set_contains
-            _test_enumerated_set_iter_cardinality
-            _test_enumerated_set_iter_list
-            _test_eq
-            _test_euclidean_degree
-            _test_gcd_vs_xgcd
-            _test_not_implemented_methods
-            _test_one
-            _test_pickling
-            _test_prod
-            _test_quo_rem
-            _test_some_elements
-            _test_zero
-            _test_zero_divisors
-            sage: F = GF(9,'a')
-            sage: dir(F)
-            [..., '__class__', ..., '_test_pickling', ..., 'extension', ...]
-
-        """
-        return dir_with_other_class(self, self.category().parent_class)
 
     def _introspect_coerce(self):
         """
@@ -1050,7 +898,7 @@ cdef class Parent(category_object.CategoryObject):
 
             sage: class MyParent(Parent):
             ....:     def _element_constructor_(self, x):
-            ....:         print self, x
+            ....:         print("{} {}".format(self, x))
             ....:         return sage.structure.element.Element(parent = self)
             ....:     def _repr_(self):
             ....:         return "my_parent"
@@ -1077,7 +925,7 @@ cdef class Parent(category_object.CategoryObject):
             except (AttributeError, AssertionError):
                 raise NotImplementedError
         cdef Py_ssize_t i
-        cdef R = parent_c(x)
+        cdef R = parent(x)
         cdef bint no_extra_args = len(args) == 0 and len(kwds) == 0
         if R is self and no_extra_args:
             return x
@@ -1109,7 +957,7 @@ cdef class Parent(category_object.CategoryObject):
         be inherited. This is, e.g., used when creating twosided
         ideals of matrix algebras. See :trac:`7797`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: MS = MatrixSpace(QQ,2,2)
 
@@ -1117,7 +965,7 @@ cdef class Parent(category_object.CategoryObject):
         it is a ring, from the point of view of categories::
 
             sage: MS.category()
-            Category of algebras over quotient fields
+            Category of infinite algebras over (quotient fields and metric spaces)
             sage: MS in Rings()
             True
 
@@ -1281,7 +1129,7 @@ cdef class Parent(category_object.CategoryObject):
             sage: 15/36 in Integers(6)
             False
         """
-        P = parent_c(x)
+        P = parent(x)
         if P is self or P == self:
             return True
         try:
@@ -1327,185 +1175,34 @@ cdef class Parent(category_object.CategoryObject):
             sage: V.coerce(0)
             (0, 0, 0, 0, 0, 0, 0)
         """
-        mor = self._internal_coerce_map_from(parent_c(x))
+        mor = self._internal_coerce_map_from(parent(x))
         if mor is None:
             if is_Integer(x) and not x:
                 try:
                     return self(0)
                 except Exception:
                     _record_exception()
-            raise TypeError("no canonical coercion from %s to %s" % (parent_c(x), self))
+            raise TypeError("no canonical coercion from %s to %s" % (parent(x), self))
         else:
             return (<map.Map>mor)._call_(x)
 
-    # TODO: move this method in EnumeratedSets (.Finite?) as soon as
-    # all Sage enumerated sets are in this category
-    def _list_from_iterator_cached(self):
-        r"""
-        Return a list of the elements of ``self``.
-
-        OUTPUT:
-
-        A list of all the elements produced by the iterator
-        defined for the object.  The result is cached. An
-        infinite set may define an iterator, allowing one
-        to search through the elements, but a request by
-        this method for the entire list should fail.
-
-        NOTE:
-
-        Some objects ``X`` do not know if they are finite or not. If
-        ``X.is_finite()`` fails with a ``NotImplementedError``, then
-        ``X.list()`` will simply try. In that case, it may run without
-        stopping.
-
-        However, if ``X`` knows that it is infinite, then running
-        ``X.list()`` will raise an appropriate error, while running
-        ``list(X)`` will run indefinitely.  For many Sage objects
-        ``X``, using ``X.list()`` is preferable to using ``list(X)``.
-
-        Nevertheless, since the whole list of elements is created and
-        cached by ``X.list()``, it may be better to do ``for x in
-        X:``, not ``for x in X.list():``.
-
-        EXAMPLES::
-
-            sage: R = Integers(11)
-            sage: R.list()    # indirect doctest
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-
-            sage: ZZ.list()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: since it is infinite, cannot list Integer Ring
-
-        Trying to list an infinite vector space raises an error
-        instead of running forever (see :trac:`10470`)::
-
-            sage: (QQ^2).list()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: since it is infinite, cannot list Vector space of dimension 2 over Rational Field
-
-        TESTS:
-
-        The following tests the caching by adjusting the cached version::
-
-            sage: R = Integers(3)
-            sage: R.list()
-            [0, 1, 2]
-            sage: R._list[0] = 'junk'
-            sage: R.list()
-            ['junk', 1, 2]
-
-        Here we test that for an object that does not know whether it
-        is finite or not.  Calling ``X.list()`` simply tries to create
-        the list (but here it fails, since the object is not
-        iterable). This was fixed :trac:`11350` ::
-
-            sage: R.<t,p> = QQ[]
-            sage: Q = R.quotient(t^2-t+1)
-            sage: Q.is_finite()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-            sage: Q.list()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: object does not support iteration
-
-        Here is another example. We artificially create a version of
-        the ring of integers that does not know whether it is finite
-        or not::
-
-            sage: from sage.rings.integer_ring import IntegerRing_class
-            sage: class MyIntegers_class(IntegerRing_class):
-            ....:      def is_finite(self):
-            ....:          raise NotImplementedError
-            sage: MyIntegers = MyIntegers_class()
-            sage: MyIntegers.is_finite()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-
-        Asking for ``list(MyIntegers)`` will also raise an exception::
-
-            sage: list(MyIntegers)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-
-        """
-        try:
-            if self._list is not None:
-                return self._list
-        except AttributeError:
-            pass
-        # if known to be infinite, give up
-        # if unsure, proceed (which will hang for an infinite set)
-        #
-        # TODO: The test below should really be:
-        #   if self in Sets().Infinite():
-        # However many infinite parents are not yet declared as such,
-        # which triggers some doctests failure; see e.g. matrix_space.py.
-        # For now we keep the current test as a workaround (see #16239).
-        infinite = False # We do it this way so we can raise a NotImplementedError
-        try:
-            if self in Sets().Infinite() or not self.is_finite():
-                infinite = True
-        except (AttributeError, NotImplementedError):
-            pass
-        if infinite:
-            raise NotImplementedError( 'since it is infinite, cannot list {}'.format(self) )
-        the_list = list(self.__iter__())
-        try:
-            self._list = the_list
-        except AttributeError:
-            pass
-        return the_list
-
     def __nonzero__(self):
         """
-        By default, all Parents are treated as True when used in an if
+        By default, all Parents are treated as ``True`` when used in an if
         statement. Override this method if other behavior is desired
         (for example, for empty sets).
 
         EXAMPLES::
 
-            sage: if ZZ: print "Yes"
+            sage: if ZZ: print("Yes")
             Yes
         """
         return True
 
-    cpdef bint _richcmp(left, right, int op) except -2:
-        """
-        Compare left and right.
-
-        EXAMPLES::
-
-            sage: ZZ < QQ
-            True
-        """
-        cdef int r
-
-        if not isinstance(right, Parent) or not isinstance(left, Parent):
-            # One is not a parent -- use arbitrary ordering
-            if (<PyObject*>left) < (<PyObject*>right):
-                r = -1
-            elif (<PyObject*>left) > (<PyObject*>right):
-                r = 1
-            else:
-                r = 0
-
-        else:
-            # Both are parents -- but need *not* have the same type.
-            r = left._cmp_(right)
-
-        assert -1 <= r <= 1
-        return rich_to_bool(op, r)
-
     cpdef int _cmp_(left, right) except -2:
-        # Check for Python class defining __cmp__
+        """
+        Check for Python class defining ``__cmp__``
+        """
         try:
             return left.__cmp__(right)
         except AttributeError:
@@ -1517,22 +1214,6 @@ cdef class Parent(category_object.CategoryObject):
             return -1
         else:
             return 1
-
-
-    # Should be moved and merged into the EnumeratedSets() category (#12955)
-    def __len__(self):
-        """
-        Returns the number of elements in self. This is the naive algorithm
-        of listing self and counting the elements.
-
-        EXAMPLES::
-
-            sage: len(GF(5))
-            5
-            sage: len(MatrixSpace(GF(2), 3, 3))
-            512
-        """
-        return len(self.list())
 
     # Should be moved and merged into the EnumeratedSets() category (#12955)
     def __getitem__(self, n):
@@ -1556,7 +1237,7 @@ cdef class Parent(category_object.CategoryObject):
 
         TESTS:
 
-        We test the workaround described in #12956 to let categories
+        We test the workaround described in :trac:`12956` to let categories
         override this default implementation::
 
             sage: class As(Category):
@@ -1574,17 +1255,12 @@ cdef class Parent(category_object.CategoryObject):
         try:
             meth = super(Parent, self).__getitem__
         except AttributeError:
-            pass
-        # needed when self is a Cython object (super() does not call getattr())
-        try:
-            meth = getattr_from_other_class(self, self._category.parent_class, '__getitem__')
-        except AttributeError:
-            pass
-        try:
-            return meth(n)
-        except NameError:
-            return self.list()[n]
-
+            # needed when self is a Cython object
+            try:
+                meth = self.getattr_from_category('__getitem__')
+            except AttributeError:
+                return self.list()[n]
+        return meth(n)
 
     #################################################################################
     # Generators and Homomorphisms
@@ -1722,7 +1398,7 @@ cdef class Parent(category_object.CategoryObject):
        if codomain is None:
            im_gens = Sequence(im_gens)
            codomain = im_gens.universe()
-       if isinstance(im_gens, (Sequence_generic, Generators)):
+       if isinstance(im_gens, Sequence_generic):
             im_gens = list(im_gens)
        if check is None:
            return self.Hom(codomain)(im_gens)
@@ -1808,7 +1484,6 @@ cdef class Parent(category_object.CategoryObject):
         if embedding is not None:
             self.register_embedding(embedding)
 
-
     def _unset_coercions_used(self):
         r"""
         Pretend that this parent has never been interrogated by the coercion
@@ -1820,8 +1495,7 @@ cdef class Parent(category_object.CategoryObject):
             For internal use only!
         """
         self._coercions_used = False
-        import sage.structure.element
-        sage.structure.element.get_coercion_model().reset_cache()
+        coercion_model.reset_cache()
 
     def _unset_embedding(self):
         r"""
@@ -2082,10 +1756,10 @@ cdef class Parent(category_object.CategoryObject):
             [      0       1]
             [-272118       0]
 
-            sage: a.matrix() * b
+            sage: a.matrix() * b.matrix()
             [-272118       0]
             [      0    -462]
-            sage: a * b.matrix()
+            sage: a.matrix() * b.matrix()
             [-272118       0]
             [      0    -462]
         """
@@ -2245,7 +1919,7 @@ cdef class Parent(category_object.CategoryObject):
             return True
         elif S == self:
             if debug.unique_parent_warnings:
-                print "Warning: non-unique parents %s"%(type(S))
+                print("Warning: non-unique parents %s" % (type(S)))
             return True
         return self._internal_coerce_map_from(S) is not None
 
@@ -2379,7 +2053,7 @@ cdef class Parent(category_object.CategoryObject):
         if S == self:
             # non-unique parents
             if debug.unique_parent_warnings:
-                print "Warning: non-unique parents %s"%(type(S))
+                print("Warning: non-unique parents %s" % (type(S)))
             mor = self._generic_convert_map(S)
             self._coerce_from_hash.set(S, mor)
             mor._make_weak_references()
@@ -2395,7 +2069,6 @@ cdef class Parent(category_object.CategoryObject):
             #        # so that it doesn't use this path for the existence of a coercion path.
             #        # We disable this for now because it is too strict
             #        pass
-            #        # print "embed problem: the following morphisms connect unconnected portions of the coercion graph\n%s\n%s"%(self._embedding, mor)
             #        # mor = None
             # if mor is not None:
             #     # NOTE: this line is what makes the coercion detection stateful
@@ -2653,7 +2326,7 @@ cdef class Parent(category_object.CategoryObject):
             return self._convert_from_hash.get(S)
         except KeyError:
             mor = self.discover_convert_map_from(S)
-            # Before trac #14711, the morphism has been 
+            # Before trac #14711, the morphism has been
             # put both into _convert_from_list and into
             # _convert_from_hash. But there is no reason
             # to have a double book-keeping, specifically
@@ -3011,6 +2684,14 @@ cdef class Set_generic(Parent): # Cannot use Parent because Element._parent is P
 #         return Sets()
 
     def object(self):
+        """
+        Return the underlying object of ``self``.
+
+        EXAMPLES::
+
+            sage: Set(QQ).object()
+            Rational Field
+        """
         return self
 
     def __nonzero__(self):
@@ -3082,7 +2763,7 @@ cdef class Set_PythonType_class(Set_generic):
         sage: sage.structure.parent.Set_PythonType(2)
         Traceback (most recent call last):
         ...
-        TypeError: must be intialized with a type, not 2
+        TypeError: must be initialized with a type, not 2
     """
 
     cdef _type
@@ -3096,7 +2777,7 @@ cdef class Set_PythonType_class(Set_generic):
             Category of sets
         """
         if not isinstance(theType, type):
-            raise TypeError("must be intialized with a type, not %r" % theType)
+            raise TypeError("must be initialized with a type, not %r" % theType)
         Set_generic.__init__(self, element_constructor=theType, category=Sets())
         self._type = theType
 
@@ -3141,25 +2822,39 @@ cdef class Set_PythonType_class(Set_generic):
         """
         return -hash(self._type)
 
-    cpdef int _cmp_(self, other) except -2:
+    def __richcmp__(self, other, int op):
         """
         Two Python type sets are considered the same if they contain the same
         type.
 
         EXAMPLES::
 
-            sage: S = sage.structure.parent.Set_PythonType(int)
-            sage: S == S
+            sage: from sage.structure.parent import Set_PythonType
+            sage: S = Set_PythonType(int)
+            sage: T = Set_PythonType(int)
+            sage: U = type(S)(int)  # bypass caching
+            sage: S is T
             True
-            sage: S == sage.structure.parent.Set_PythonType(float)
+            sage: S == T
+            True
+            sage: S is U
+            False
+            sage: S == U
+            True
+            sage: S == Set_PythonType(float)
+            False
+            sage: S == int
             False
         """
+        if not (op == Py_EQ or op == Py_NE):
+            return NotImplemented
         if self is other:
-            return 0
-        if isinstance(other, Set_PythonType_class):
-            return cmp(self._type, other._type)
-        else:
-            return cmp(self._type, other)
+            return rich_to_bool(op, 0)
+        if not isinstance(other, Set_PythonType_class):
+            return rich_to_bool(op, 1)
+        s = (<Set_PythonType_class>self)._type
+        o = (<Set_PythonType_class>other)._type
+        return rich_to_bool(op, s is not o)
 
     def __contains__(self, x):
         """
@@ -3197,7 +2892,7 @@ cdef class Set_PythonType_class(Set_generic):
 
             sage: S = sage.structure.parent.Set_PythonType(tuple)
             sage: S.object()
-            <type 'tuple'>
+            <... 'tuple'>
         """
         return self._type
 
@@ -3288,7 +2983,7 @@ cdef bint _may_cache_none(x, y, tag) except -1:
     # with the only exception of the path from y to x.
     # See #12969.
     cdef EltPair P
-    for P in _coerce_test_dict.iterkeys():
+    for P in _coerce_test_dict:
         if (P.y is y) and (P.x is not x) and (P.tag is tag):
             return 0
     return 1
@@ -3300,8 +2995,8 @@ cdef bint _register_pair(x, y, tag) except -1:
     both = EltPair(x,y,tag)
 
     if both in _coerce_test_dict:
-        xp = type(x) if isinstance(x, Parent) else parent_c(x)
-        yp = type(y) if isinstance(y, Parent) else parent_c(y)
+        xp = type(x) if isinstance(x, Parent) else parent(x)
+        yp = type(y) if isinstance(y, Parent) else parent(y)
         raise CoercionException("Infinite loop in action of %s (parent %s) and %s (parent %s)!" % (x, xp, y, yp))
     _coerce_test_dict[both] = True
     return 0
@@ -3311,16 +3006,3 @@ cdef bint _unregister_pair(x, y, tag) except -1:
         _coerce_test_dict.pop(EltPair(x,y,tag), None)
     except (ValueError, CoercionException):
         pass
-
-empty_set = Set_generic()
-
-def normalize_names(ngens, names):
-    """
-    TESTS::
-
-        sage: sage.structure.parent.normalize_names(5, 'x')
-        ('x0', 'x1', 'x2', 'x3', 'x4')
-        sage: sage.structure.parent.normalize_names(2, ['x','y'])
-        ('x', 'y')
-    """
-    return empty_set.normalize_names(ngens, names)

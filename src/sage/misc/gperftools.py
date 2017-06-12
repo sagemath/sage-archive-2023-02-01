@@ -3,7 +3,7 @@ C Function Profiler Using Google Perftools
 
 Note that the profiler samples 100x per second by default. In
 particular, you cannot profile anything shorter than 10ms. You can
-adjust the rate with the ``CPUPROFILE_FREQUENCY`` evironment variable
+adjust the rate with the ``CPUPROFILE_FREQUENCY`` environment variable
 if you want to change it.
 
 EXAMPLES::
@@ -18,7 +18,7 @@ EXAMPLES::
 REFERENCE:
 
 Uses the `Google performance analysis tools
-<https://code.google.com/p/gperftools>`_. Note that they are not
+<https://github.com/gperftools/gperftools>`_. Note that they are not
 included in Sage, you have to install them yourself on your system.
 
 AUTHORS:
@@ -213,11 +213,11 @@ class Profiler(SageObject):
             ....: except OSError:
             ....:     pass    # not installed
         """
-        potential_names = ['pprof', 'google-pprof']
-        from subprocess import check_output, CalledProcessError
+        potential_names = ['google-pprof', 'pprof']
+        from subprocess import check_output, CalledProcessError, STDOUT
         for name in potential_names:
             try:
-                version = check_output([name, '--version'])
+                version = check_output([name, '--version'], stderr=STDOUT)
             except (CalledProcessError, OSError):
                 continue
             if 'gperftools' not in version:
@@ -366,8 +366,10 @@ def crun(s, evaluator):
     from sage.repl.preparse import preparse
     py_s = preparse(s)
     prof.start()
-    evaluator(py_s)
-    prof.stop()
+    try:
+        evaluator(py_s)
+    finally:
+        prof.stop()
     prof.top()
 
 

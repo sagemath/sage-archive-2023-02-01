@@ -12,12 +12,25 @@ If you want to contribute using git only, you are at the right place. This
 chapter will tell you how to do so, assuming some basic familiarity with git. In
 particular, you should have read :ref:`chapter-walkthrough` first.
 
+Randall Munroe has provided a `basic overview <http://xkcd.com/1597/>`_.
+
 We assume that you have a copy of the Sage git repository, for example
 by running::
 
     [user@localhost ~]$ git clone git://github.com/sagemath/sage.git
     [user@localhost ~]$ cd sage
+    [user@localhost sage]$ git checkout develop
     [user@localhost sage]$ make
+
+.. NOTE::
+
+    If your system supports multiprocessing and you want to use multiple
+    processors to build Sage, replace the last line above by::
+
+    [user@localhost sage]$ MAKE='make -jNUM' make
+
+    to tell the ``make`` program to run ``NUM`` jobs in parallel when
+    building Sage.
 
 .. _section-git-trac:
 
@@ -43,8 +56,8 @@ of them as bookmarks. You can then use ``git pull`` to get changes and
 
     [user@localhost sage]$ git <push|pull> trac [ARGS]
 
-.. note::
-   
+.. NOTE::
+
     In the command above we set up the remote to only track the
     ``master`` branch on the trac server (the ``-t master``
     option). This avoids clutter by not automatically downloading all
@@ -57,8 +70,10 @@ We set up the remote here to perform read-only operations (fetch)
 using the git protocol and write operations (push) using the ssh
 protocol (specified by the ``git@`` part). To use the ssh protocol you
 need to have a trac account and to set up your ssh public key as
-described in :ref:`section-trac-ssh-key`. Authentication is necessary
-if you want to upload anything to ensure that it really is from you.
+described in `Trac authentication through ssh
+<http://doc.sagemath.org/html/en/developer/trac.html#trac-authentication-through-ssh>`_.
+Authentication is necessary if you want to upload anything to ensure
+that it really is from you.
 
 If you want to use ssh only, use these commands::
 
@@ -155,7 +170,7 @@ Getting Changes
 
 A common task during development is to synchronize your local copy of
 the branch with the branch on trac. In particular, assume you
-downloaded somebody else's branch made some suggestions for
+downloaded somebody else's branch and made some suggestions for
 improvements on the trac ticket. Now the original author incorporated
 your suggestions into his branch, and you want to get the added
 changesets to complete your review. Assuming that you originally got
@@ -322,9 +337,9 @@ If you don't have a favourite merge tool we suggest you try `meld
 <http://meldmerge.org/>`_ (cross-platform). The result looks like the following
 screenshot.
 
-.. image:: static/meld-screenshot.png
+.. IMAGE:: static/meld-screenshot.png
 
 The middle file is the most recent common parent; on the right is
 Bob's version and on the left is Alice's conflicting version. Clicking
 on the arrow moves the marked change to the file in the adjacent
-pane. 
+pane.

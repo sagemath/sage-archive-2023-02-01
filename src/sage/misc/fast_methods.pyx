@@ -32,6 +32,7 @@ AUTHOR:
 #
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import print_function
 
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.constant_function import ConstantFunction
@@ -40,7 +41,8 @@ from sage.misc.lazy_attribute import lazy_class_attribute
 from cpython.bool cimport *
 from cpython.ref cimport *
 
-cdef int SIZEOF_VOID_P_SHIFT = 8*sizeof(void *) - 4
+cdef extern from "Python.h":
+    cdef size_t SIZEOF_VOID_P
 
 cdef class WithEqualityById:
     """
@@ -59,12 +61,12 @@ cdef class WithEqualityById:
     ::
 
         sage: class MyParent(Parent):
-        ...     def __init__(self, x):
-        ...         self.x = x
-        ...     def __cmp__(self,other):
-        ...         return cmp(self.x^2,other.x^2)
-        ...     def __hash__(self):
-        ...         return hash(self.x)
+        ....:   def __init__(self, x):
+        ....:       self.x = x
+        ....:   def __cmp__(self,other):
+        ....:       return cmp(self.x^2,other.x^2)
+        ....:   def __hash__(self):
+        ....:       return hash(self.x)
         sage: class MyUniqueParent(UniqueRepresentation, MyParent): pass
         sage: issubclass(MyUniqueParent, sage.misc.fast_methods.WithEqualityById)
         True
@@ -116,8 +118,8 @@ cdef class WithEqualityById:
     ::
 
         sage: class MyNonUniqueParent(MyUniqueParent):
-        ...     def __eq__(self, other):
-        ...         return self.x^2 == other.x^2
+        ....:   def __eq__(self, other):
+        ....:       return self.x^2 == other.x^2
         sage: a = MyNonUniqueParent(1)
         sage: d = MyNonUniqueParent(-1)
         sage: a is MyNonUniqueParent(1)
@@ -135,12 +137,12 @@ cdef class WithEqualityById:
         TESTS::
 
             sage: class MyParent(Parent):
-            ...     def __init__(self, x):
-            ...         self.x = x
-            ...     def __cmp__(self,other):
-            ...         return cmp(self.x^2,other.x^2)
-            ...     def __hash__(self):
-            ...         return hash(self.x)
+            ....:   def __init__(self, x):
+            ....:       self.x = x
+            ....:   def __cmp__(self,other):
+            ....:       return cmp(self.x^2,other.x^2)
+            ....:   def __hash__(self):
+            ....:       return hash(self.x)
             sage: class MyUniqueParent(UniqueRepresentation, MyParent): pass
             sage: issubclass(MyUniqueParent, sage.misc.fast_methods.WithEqualityById)
             True
@@ -150,15 +152,14 @@ cdef class WithEqualityById:
             sage: hash(a) == object.__hash__(a)
             True
 
+            sage: from sage.misc.fast_methods import WithEqualityById
+            sage: o1 = WithEqualityById()
+            sage: o2 = WithEqualityById()
+            sage: hash(o1) == hash(o2)
+            False
         """
         # This is the default hash function in Python's object.c:
-        cdef long x
-        cdef size_t y = <size_t><void *>self
-        y = (y >> 4) | (y << SIZEOF_VOID_P_SHIFT)
-        x = <long>y
-        if x==-1:
-            x = -2
-        return x
+        return hash_by_id(<void *>self)
 
     def __richcmp__(self, other, int m):
         """
@@ -167,12 +168,12 @@ cdef class WithEqualityById:
         TESTS::
 
             sage: class MyParent(Parent):
-            ...     def __init__(self, x):
-            ...         self.x = x
-            ...     def __cmp__(self,other):
-            ...         return cmp(self.x^2,other.x^2)
-            ...     def __hash__(self):
-            ...         return hash(self.x)
+            ....:   def __init__(self, x):
+            ....:       self.x = x
+            ....:   def __cmp__(self,other):
+            ....:       return cmp(self.x^2,other.x^2)
+            ....:   def __hash__(self):
+            ....:       return hash(self.x)
             sage: class MyUniqueParent(UniqueRepresentation, MyParent): pass
             sage: issubclass(MyUniqueParent, sage.misc.fast_methods.WithEqualityById)
             True
@@ -261,7 +262,8 @@ cdef class FastHashable_class:
         """
         return self._hash
 
-class Singleton(WithEqualityById):
+
+class Singleton(WithEqualityById, metaclass=ClasscallMetaclass):
     """
     A base class for singletons.
 
@@ -276,7 +278,7 @@ class Singleton(WithEqualityById):
         sage: from sage.misc.fast_methods import Singleton
         sage: class C(Singleton, SageObject):
         ....:     def __init__(self):
-        ....:         print "creating singleton"
+        ....:         print("creating singleton")
         sage: c = C()
         creating singleton
         sage: c2 = C()
@@ -307,8 +309,6 @@ class Singleton(WithEqualityById):
         subclass of <class 'sage.misc.fast_methods.Singleton'>",),
         <class '__main__.D'>, ())
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall__(cls):
         """
@@ -321,7 +321,7 @@ class Singleton(WithEqualityById):
             sage: from sage.misc.fast_methods import Singleton
             sage: class C(Singleton, Parent):
             ....:     def __init__(self):
-            ....:         print "creating singleton"
+            ....:         print("creating singleton")
             ....:         Parent.__init__(self, base=ZZ, category=Rings())
             sage: c = C()
             creating singleton
@@ -347,7 +347,7 @@ class Singleton(WithEqualityById):
             sage: from sage.misc.fast_methods import Singleton
             sage: class C(Singleton, Parent):                  
             ....:     def __init__(self):
-            ....:         print "creating singleton"
+            ....:         print("creating singleton")
             ....:         Parent.__init__(self, base=ZZ, category=Rings())
             sage: c = C()
             creating singleton
@@ -368,7 +368,7 @@ class Singleton(WithEqualityById):
             sage: from sage.misc.fast_methods import Singleton
             sage: class C(Singleton, Parent):                  
             ....:     def __init__(self):
-            ....:         print "creating singleton"
+            ....:         print("creating singleton")
             ....:         Parent.__init__(self, base=ZZ, category=Rings())
             ....:
             sage: c = C()

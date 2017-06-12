@@ -9,18 +9,21 @@ TESTS::
     sage: TestSuite(A).run()
 """
 
-################################################################################
+#*****************************************************************************
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL).
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-################################################################################
+#*****************************************************************************
 
-include "sage/ext/python.pxi"
+
+from cpython cimport *
 
 import sage.modules.free_module
+from sage.structure.element cimport coercion_model
 
 
 cdef class Matrix(matrix0.Matrix):
@@ -57,7 +60,7 @@ cdef class Matrix(matrix0.Matrix):
             v.append( ','.join(tmp))
         return 'Mat([%s])'%(';'.join(v))
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Return the Pari matrix corresponding to self.
 
@@ -104,19 +107,17 @@ cdef class Matrix(matrix0.Matrix):
             x_1^3-12*x_1^2-18*x_1
             sage: A.characteristic_polynomial()
             x^3 - 12*x^2 - 18*x
-            sage: matrix(g,QQ) == A
+            sage: matrix(QQ, g) == A
             True
 
-        Particularly difficult is the case of matrices over
-        cyclotomic fields and general number fields. See
-        tickets #5618 and #8909.
-        ::
+        Particularly difficult is the case of matrices over cyclotomic
+        fields and general number fields. See :trac:`5618` and :trac:`8909`::
 
             sage: K.<zeta> = CyclotomicField(8)
             sage: A = MatrixSpace(K,2,2)([0,1+zeta,2*zeta,3])
             sage: g = gap(A); g
             [ [ 0, 1+E(8) ], [ 2*E(8), 3 ] ]
-            sage: matrix(g,K) == A
+            sage: matrix(K, g) == A
             True
             sage: g.IsMatrix()
             true
@@ -125,9 +126,8 @@ cdef class Matrix(matrix0.Matrix):
             sage: A = MatrixSpace(L,2,2)([0,1+tau,2*tau,3])
             sage: g = gap(A); g
             [ [ !0, tau+1 ], [ 2*tau, !3 ] ]
-            sage: matrix(g,L) == A
+            sage: matrix(L, g) == A
             True
-
         """
         cdef Py_ssize_t i, j
         v = []
@@ -169,21 +169,21 @@ cdef class Matrix(matrix0.Matrix):
 
         EXAMPLES::
 
-            sage: M = matrix(ZZ,2,range(4))            # optional - giac
-            sage: giac(M)                              # optional - giac
+            sage: M = matrix(ZZ,2,range(4))
+            sage: giac(M)
             [[0,1],[2,3]]
 
         ::
 
-            sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])   # optional - giac
-            sage: giac(M)                                      # optional - giac
+            sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])
+            sage: giac(M)
             [[1,2,3],[4/3,5/3,3/2],[7,8,9]]
 
         ::
 
-            sage: P.<x> = ZZ[]                          # optional - giac
-            sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5]) # optional - giac
-            sage: giac(M)                             # optional - giac
+            sage: P.<x> = ZZ[]
+            sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5])
+            sage: giac(M)
             [[-9*x^2-2*x+2,x-1],[x^2+8*x,-3*x^2+5]]
         """
         s = str(self.rows()).replace('(','[').replace(')',']')
@@ -204,7 +204,7 @@ cdef class Matrix(matrix0.Matrix):
             sage: a = maxima(m); a
             matrix([0,1,2],[3,4,5],[6,7,8])
             sage: a.charpoly('x').expand()
-            -x^3+12*x^2+18*x
+            (-x^3)+12*x^2+18*x
             sage: m.charpoly()
             x^3 - 12*x^2 - 18*x
         """
@@ -344,6 +344,25 @@ cdef class Matrix(matrix0.Matrix):
         s = str(self.rows()).replace('(','[').replace(')',']')
         return "Matrix(%s,%s,%s)"%(self.nrows(), self.ncols(), s)
 
+    def _polymake_(self, polymake=None):
+        """
+        Tries to coerce this matrix to a polymake matrix.
+
+        EXAMPLES::
+
+            sage: M = matrix(ZZ,2,range(4))
+            sage: polymake(M)                   # optional - polymake
+            0 1
+            2 3
+            sage: K.<sqrt5> = QuadraticField(5)
+            sage: M = matrix(K, [[1, 2], [sqrt5, 3]])
+            sage: polymake(M)                   # optional - polymake
+            1 2
+            0+1r5 3
+        """
+        P = polymake(self.parent())
+        return polymake.new_object(P, [ list(r) for r in self.rows(copy=False) ])
+
     def _singular_(self, singular=None):
         """
         Tries to coerce this matrix to a singular matrix.
@@ -354,7 +373,7 @@ cdef class Matrix(matrix0.Matrix):
         try:
             self.base_ring()._singular_(singular)
         except (NotImplementedError, AttributeError):
-            raise TypeError, "Cannot coerce to Singular"
+            raise TypeError("Cannot coerce to Singular")
 
         return singular.matrix(self.nrows(),self.ncols(),singular(self.list()))
 
@@ -363,7 +382,7 @@ cdef class Matrix(matrix0.Matrix):
         EXAMPLES::
 
             sage: m = matrix(ZZ, [[1,2],[3,4]])
-            sage: macaulay2(m)                  #optional (indirect doctest)
+            sage: macaulay2(m)                  #optional - macaulay2 (indirect doctest)
             | 1 2 |
             | 3 4 |
 
@@ -386,11 +405,11 @@ cdef class Matrix(matrix0.Matrix):
 
         EXAMPLES:
 
-            sage: a = matrix([[1,2,3],[4,5,6],[7,8,9]]); a  # optional - scilab
+            sage: a = matrix([[1,2,3],[4,5,6],[7,8,9]]); a
             [1 2 3]
             [4 5 6]
             [7 8 9]
-            sage: a._scilab_init_()         # optional - scilab
+            sage: a._scilab_init_()
             '[1,2,3;4,5,6;7,8,9]'
 
         AUTHORS:
@@ -415,7 +434,7 @@ cdef class Matrix(matrix0.Matrix):
 
         EXAMPLES:
 
-            sage: a = matrix([[1,2,3],[4,5,6],[7,8,9]]); a  # optional - scilab
+            sage: a = matrix([[1,2,3],[4,5,6],[7,8,9]]); a
             [1 2 3]
             [4 5 6]
             [7 8 9]
@@ -603,6 +622,58 @@ cdef class Matrix(matrix0.Matrix):
                 return self.change_ring(S)
         return self
 
+    def lift_centered(self):
+        """
+        Apply the lift_centered method to every entry of self.
+
+        OUTPUT:
+
+        If self is a matrix over the Integers mod `n`, this method returns the
+        unique matrix `m` such that `m` is congruent to self mod `n` and for
+        every entry `m[i,j]` we have `-n/2 < m[i,j] \\leq n/2`. If the
+        coefficient ring does not have a cover_ring method, return self.
+
+        EXAMPLES::
+
+            sage: M = Matrix(Integers(8), 2, 4, range(8)) ; M
+            [0 1 2 3]
+            [4 5 6 7]
+            sage: L = M.lift_centered(); L
+            [ 0  1  2  3]
+            [ 4 -3 -2 -1]
+            sage: parent(L)
+            Full MatrixSpace of 2 by 4 dense matrices over Integer Ring
+
+        The returned matrix is congruent to M modulo 8.::
+
+            sage: L.mod(8)
+            [0 1 2 3]
+            [4 5 6 7]
+
+        The field QQ doesn't have a cover_ring method::
+
+            sage: hasattr(QQ, 'cover_ring')
+            False
+
+        So lifting a matrix over QQ gives back the same exact matrix.
+
+        ::
+
+            sage: B = matrix(QQ, 2, [1..4])
+            sage: B.lift_centered()
+            [1 2]
+            [3 4]
+            sage: B.lift_centered() is B
+            True
+        """
+        try:
+            S = self._base_ring.cover_ring()
+            if S is not self._base_ring:
+                return self.parent().change_ring(S)([v.lift_centered() for v in self])
+        except AttributeError:
+            pass
+        return self
+
     #############################################################################################
     # rows, columns, sparse_rows, sparse_columns, dense_rows, dense_columns, row, column
     #############################################################################################
@@ -759,7 +830,7 @@ cdef class Matrix(matrix0.Matrix):
 
             sage: m = Mat(ZZ,3,3)(range(9))
             sage: v = m.dense_columns()
-            sage: map(lambda x: x.is_mutable(), v)
+            sage: [x.is_mutable() for x in v]
             [False, False, False]
         """
         x = self.fetch('dense_columns')
@@ -771,7 +842,8 @@ cdef class Matrix(matrix0.Matrix):
         C = [A.column(i) for i in range(self._ncols)]
 
         # Make the vectors immutable since we are caching them
-        map(lambda x: x.set_immutable(), C)
+        for x in C:
+            x.set_immutable()
 
         # cache result
         self.cache('dense_columns', C)
@@ -812,7 +884,7 @@ cdef class Matrix(matrix0.Matrix):
 
             sage: m = Mat(ZZ,3,3)(range(9))
             sage: v = m.dense_rows()
-            sage: map(lambda x: x.is_mutable(), v)
+            sage: [x.is_mutable() for x in v]
             [False, False, False]
         """
         x = self.fetch('dense_rows')
@@ -825,7 +897,8 @@ cdef class Matrix(matrix0.Matrix):
         R = [A.row(i) for i in range(self._nrows)]
 
         # Make the vectors immutable since we are caching them
-        map(lambda x: x.set_immutable(), R)
+        for x in R:
+            x.set_immutable()
 
         # cache result
         self.cache('dense_rows', R)
@@ -868,7 +941,7 @@ cdef class Matrix(matrix0.Matrix):
 
             sage: m = Mat(ZZ,3,3,sparse=True)(range(9))
             sage: v = m.sparse_columns()
-            sage: map(lambda x: x.is_mutable(), v)
+            sage: [x.is_mutable() for x in v]
             [False, False, False]
         """
         x = self.fetch('sparse_columns')
@@ -901,7 +974,8 @@ cdef class Matrix(matrix0.Matrix):
                 C.append(F(0))
 
         # Make the vectors immutable since we are caching them
-        map(lambda x: x.set_immutable(), C)
+        for x in C:
+            x.set_immutable()
 
         # cache and return result
         self.cache('sparse_columns', C)
@@ -949,7 +1023,7 @@ cdef class Matrix(matrix0.Matrix):
 
             sage: m = Mat(ZZ,3,3,sparse=True)(range(9))
             sage: v = m.sparse_rows()
-            sage: map(lambda x: x.is_mutable(), v)
+            sage: [x.is_mutable() for x in v]
             [False, False, False]
         """
         x = self.fetch('sparse_rows')
@@ -982,7 +1056,8 @@ cdef class Matrix(matrix0.Matrix):
                 R.append(F(0))
 
         # Make the vectors immutable since we are caching them
-        map(lambda x: x.set_immutable(), R)
+        for x in R:
+            x.set_immutable()
 
         # cache and return result
         self.cache('sparse_rows', R)
@@ -1038,9 +1113,9 @@ cdef class Matrix(matrix0.Matrix):
             IndexError: column index out of range
         """
         if self._ncols == 0:
-            raise IndexError, "matrix has no columns"
+            raise IndexError("matrix has no columns")
         if i >= self._ncols or i < -self._ncols:
-            raise IndexError, "column index out of range"
+            raise IndexError("column index out of range")
         i = i % self._ncols
         if i < 0:
             i = i + self._ncols
@@ -1096,9 +1171,9 @@ cdef class Matrix(matrix0.Matrix):
             IndexError: row index out of range
         """
         if self._nrows == 0:
-            raise IndexError, "matrix has no rows"
+            raise IndexError("matrix has no rows")
         if i >= self._nrows or i < -self._nrows:
-            raise IndexError, "row index out of range"
+            raise IndexError("row index out of range")
         i = i % self._nrows
         if i < 0:
             i = i + self._nrows
@@ -1363,14 +1438,12 @@ cdef class Matrix(matrix0.Matrix):
         top_ring = self._base_ring
         bottom_ring = other._base_ring
         if top_ring is not bottom_ring:
-            from sage.structure.element import get_coercion_model
-            coercion_model = get_coercion_model()
             R = coercion_model.common_parent(top_ring, bottom_ring)
             if top_ring is not R:
                 self = self.change_ring(R)
             if bottom_ring is not R:
                 other = other.change_ring(R)
-        
+       
         if type(self) is not type(other):
             # If one of the matrices is sparse, return a sparse matrix
             if self.is_sparse_c() and not other.is_sparse_c():
@@ -1386,7 +1459,7 @@ cdef class Matrix(matrix0.Matrix):
     cdef _stack_impl(self, bottom):
         """
         Implementation of :meth:`stack`.
-        
+       
         Assume that ``self`` and ``other`` are compatible in the sense
         that they have the same base ring and that both are either
         dense or sparse.
@@ -1624,8 +1697,10 @@ cdef class Matrix(matrix0.Matrix):
             [5 4]
             [0 7]
         """
-        if not (isinstance(columns, list) or isinstance(columns, tuple)):
-            raise TypeError, "columns (=%s) must be a list of integers"%columns
+        if isinstance(columns, xrange):
+            columns = list(columns)
+        elif not isinstance(columns, (list, tuple)):
+            raise TypeError("columns (=%s) must be a list of integers" % columns)
         cdef Matrix A
         cdef Py_ssize_t ncols,k,r
 
@@ -1634,7 +1709,7 @@ cdef class Matrix(matrix0.Matrix):
         k = 0
         for i from 0 <= i < ncols:
             if columns[i] < 0 or columns[i] >= self._ncols:
-                raise IndexError, "column %s out of range"%columns[i]
+                raise IndexError("column %s out of range" % columns[i])
             for r from 0 <= r < self._nrows:
                 A.set_unsafe(r,k, self.get_unsafe(r,columns[i]))
             k = k + 1
@@ -1649,8 +1724,10 @@ cdef class Matrix(matrix0.Matrix):
         * ``dcols`` - list of indices of columns to be deleted from self.
         * ``check`` - checks whether any index in ``dcols`` is out of range. Defaults to ``True``.
 
-        SEE ALSO:
-            The methods :meth:`delete_rows` and :meth:`matrix_from_columns` are related.
+        .. SEEALSO::
+
+            The methods :meth:`delete_rows` and :meth:`matrix_from_columns`
+            are related.
 
         EXAMPLES::
 
@@ -1693,7 +1770,9 @@ cdef class Matrix(matrix0.Matrix):
         AUTHORS:
             - Wai Yan Pong (2012-03-05)
         """
-        if not (isinstance(dcols, list) or isinstance(dcols, tuple)):
+        if isinstance(dcols, xrange):
+            dcols = list(dcols)
+        elif not isinstance(dcols, (list, tuple)):
             raise TypeError("The argument must be a list or a tuple, not {l}".format(l=dcols))
         cdef list cols, diff_cols
 
@@ -1720,8 +1799,10 @@ cdef class Matrix(matrix0.Matrix):
             [6 7 0]
             [3 4 5]
         """
-        if not (isinstance(rows, list) or isinstance(rows, tuple)):
-            raise TypeError, "rows must be a list of integers"
+        if isinstance(rows, xrange):
+            rows = list(rows)
+        elif not isinstance(rows, (list, tuple)):
+            raise TypeError("rows must be a list of integers")
         cdef Matrix A
         cdef Py_ssize_t nrows,k,c
 
@@ -1730,12 +1811,11 @@ cdef class Matrix(matrix0.Matrix):
         k = 0
         for i from 0 <= i < nrows:
             if rows[i] < 0 or rows[i] >= self._nrows:
-                raise IndexError, "row %s out of range"%rows[i]
+                raise IndexError("row %s out of range" % rows[i])
             for c from 0 <= c < self._ncols:
                 A.set_unsafe(k,c, self.get_unsafe(rows[i],c))
             k += 1
         return A
-
 
     def delete_rows(self, drows, check=True):
         """
@@ -1746,8 +1826,10 @@ cdef class Matrix(matrix0.Matrix):
         * ``drows`` - list of indices of rows to be deleted from self.
         * ``check`` - checks whether any index in ``drows`` is out of range. Defaults to ``True``.
 
-        SEE ALSO:
-            The methods :meth:`delete_columns` and :meth:`matrix_from_rows` are related.
+        .. SEEALSO::
+
+            The methods :meth:`delete_columns` and :meth:`matrix_from_rows`
+            are related.
 
         EXAMPLES::
 
@@ -1789,7 +1871,9 @@ cdef class Matrix(matrix0.Matrix):
         AUTHORS:
             - Wai Yan Pong (2012-03-05)
         """
-        if not (isinstance(drows, list) or isinstance(drows, tuple)):
+        if isinstance(drows, xrange):
+            drows = list(drows)
+        elif not isinstance(drows, (list, tuple)):
             raise TypeError("The argument must be a list or a tuple, not {l}".format(l=drows))
         cdef list rows, diff_rows
 
@@ -1840,10 +1924,15 @@ cdef class Matrix(matrix0.Matrix):
 
         - Didier Deshommes: some Pyrex speedups implemented
         """
-        if not isinstance(rows, list):
-            raise TypeError, "rows must be a list of integers"
-        if not isinstance(columns, list):
-            raise TypeError, "columns must be a list of integers"
+        if isinstance(rows, xrange):
+            rows = list(rows)
+        elif not isinstance(rows, list):
+            raise TypeError("rows must be a list of integers")
+
+        if isinstance(columns, xrange):
+            columns = list(columns)
+        elif not isinstance(columns, list):
+            raise TypeError("columns must be a list of integers")
 
         cdef Matrix A
         cdef Py_ssize_t nrows, ncols,k,r,i,j
@@ -1856,11 +1945,11 @@ cdef class Matrix(matrix0.Matrix):
         tmp = [el for el in columns if el >= 0 and el < self._ncols]
         columns = tmp
         if ncols != PyList_GET_SIZE(columns):
-            raise IndexError, "column index out of range"
+            raise IndexError("column index out of range")
 
         for i from 0 <= i < nrows:
             if rows[i] < 0 or rows[i] >= self._nrows:
-                raise IndexError, "row %s out of range"%i
+                raise IndexError("row %s out of range" % i)
             k = 0
             for j from 0 <= j < ncols:
                 A.set_unsafe(r,k, self.get_unsafe(rows[i],columns[j]))
@@ -1883,12 +1972,12 @@ cdef class Matrix(matrix0.Matrix):
           take. If not provided, take all rows below and all columns to
           the right of the starting entry.
 
-        SEE ALSO:
+        .. SEEALSO::
 
-        The functions :func:`matrix_from_rows`,
-        :func:`matrix_from_columns`, and
-        :func:`matrix_from_rows_and_columns` allow one to select
-        arbitrary subsets of rows and/or columns.
+            The functions :func:`matrix_from_rows`,
+            :func:`matrix_from_columns`, and
+            :func:`matrix_from_rows_and_columns` allow one to select
+            arbitrary subsets of rows and/or columns.
 
         EXAMPLES:
 
@@ -2084,7 +2173,7 @@ cdef class Matrix(matrix0.Matrix):
         If this matrix is sparse, return a dense matrix with the same
         entries. If this matrix is dense, return this matrix (not a copy).
 
-        .. note::
+        .. NOTE::
 
            The definition of "dense" and "sparse" in Sage have nothing to
            do with the number of nonzero entries. Sparse and dense are
@@ -2151,7 +2240,7 @@ cdef class Matrix(matrix0.Matrix):
         entries. If this matrix is sparse, return this matrix (not a
         copy).
 
-        .. note::
+        .. NOTE::
 
            The definition of "dense" and "sparse" in Sage have nothing
            to do with the number of nonzero entries. Sparse and dense are
@@ -2275,8 +2364,11 @@ cdef class Matrix(matrix0.Matrix):
             Full MatrixSpace of 2 by 3 dense matrices over Real Field with 53 bits of precision
 
         """
-        if self._nrows == nrows and self._ncols == ncols and (sparse is None or self.is_sparse() == sparse):
-            return self._parent(entries=entries, coerce=coerce, copy=copy)
+        if (sparse is None or self.is_sparse() == sparse):
+            if self._nrows == nrows and self._ncols == ncols:
+                return self._parent(entries=entries, coerce=coerce, copy=copy)
+            elif self._nrows == ncols and self._ncols == nrows:
+                return self._parent.transposed(entries=entries, coerce=coerce, copy=copy)
         return self.matrix_space(nrows, ncols, sparse=sparse)(entries=entries,
                                              coerce=coerce, copy=copy)
     def block_sum(self, Matrix other):
@@ -2296,8 +2388,7 @@ cdef class Matrix(matrix0.Matrix):
             [  0   0 300 400]
         """
         if not isinstance(other, Matrix):
-            raise TypeError, "other must be a Matrix"
+            raise TypeError("other must be a Matrix")
         top = self.augment(self.new_matrix(ncols=other._ncols))
         bottom = other.new_matrix(ncols=self._ncols).augment(other)
         return top.stack(bottom)
-

@@ -1,10 +1,13 @@
-"Dependency usage tracking for citations"
+# cython: old_style_globals=True
+"""
+Dependency usage tracking for citations
+"""
 
 from sage.misc.all import tmp_filename
 from sage.env import SAGE_ROOT
 
 systems = {}
-systems['PARI'] = ['sage.libs.pari', 'sage.interfaces.gp']
+systems['PARI'] = ['cypari2', 'sage.interfaces.gp']
 systems['Singular'] = ['sage.interfaces.singular', '_libsingular',
                        'sage.libs.singular']
 systems['Maxima'] = ['sage.interfaces.maxima']
@@ -22,7 +25,7 @@ systems['Octave'] = ['sage.interfaces.octave']
 systems['povray'] = ['sage.interfaces.povray']
 systems['qsieve'] = ['sage.interfaces.qsieve']
 systems['Macaulay2'] = ['sage.interfaces.macaulay2']
-systems['mwrank'] = ['sage.interfaces.mwrank', 'sage.libs.mwrank']
+systems['mwrank'] = ['sage.interfaces.mwrank', 'sage.libs.eclib']
 systems['matlab'] = ['sage.interfaces.matlab']
 systems['LiE'] = ['sage.interfaces.lie']
 systems['Tachyon'] = ['sage.interfaces.tachyon']
@@ -69,7 +72,7 @@ def get_systems(cmd):
 
         sage: a = var('a')
         sage: get_systems('((a+1)^2).expand()')
-        ['ginac', 'GMP']
+        ['ginac']
     """
     import cProfile, pstats, re
 

@@ -3,9 +3,10 @@ The modular group `{\rm SL}_2(\ZZ)`
 
 AUTHORS:
 
-- Niles Johnson (2010-08): Trac #3893: ``random_element()`` should pass on ``*args`` and ``**kwds``.
+- Niles Johnson (2010-08): :trac:`3893`: ``random_element()`` should pass on ``*args`` and ``**kwds``.
 
 """
+from __future__ import absolute_import
 
 ################################################################################
 #
@@ -19,11 +20,11 @@ AUTHORS:
 #
 ################################################################################
 
-from congroup_gamma0 import Gamma0_class
-from arithgroup_element import ArithmeticSubgroupElement
+from .congroup_gamma0 import Gamma0_class
+from .arithgroup_element import ArithmeticSubgroupElement
 from sage.rings.integer_ring import ZZ
 from sage.modular.cusps import Cusp
-from sage.rings.arith import gcd
+from sage.arith.all import gcd
 from sage.modular.modsym.p1list import lift_to_sl2z
 
 def is_SL2Z(x):
@@ -96,7 +97,7 @@ class SL2Z_class(Gamma0_class):
         coerced into a 2x2 integer matrix. If check=True (the default), check
         that x really has determinant 1.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: SL2Z([1,0,0,1]) # indirect doctest
             [1 0]
@@ -116,7 +117,7 @@ class SL2Z_class(Gamma0_class):
         r"""
         Test whether [a,b,c,d] is an element of self, where a,b,c,d are integers with `ad-bc=1`. In other words, always return True.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: [8,7,9,8] in SL2Z # indirect doctest
             True

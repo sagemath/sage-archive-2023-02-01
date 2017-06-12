@@ -29,6 +29,7 @@ REFERENCES:
 - Chap. 15 of S. Lang: *Algebra*, 3rd ed., Springer (New York) (2002)
 
 """
+from __future__ import absolute_import
 #******************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
@@ -41,6 +42,9 @@ REFERENCES:
 
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 from sage.tensor.modules.comp import Components, CompFullyAntiSym
+
+import six
+
 
 class FreeModuleAltForm(FreeModuleTensor):
     r"""
@@ -71,7 +75,7 @@ class FreeModuleAltForm(FreeModuleTensor):
         Alternating form a of degree 2 on the
          Rank-3 free module M over the Integer Ring
         sage: type(a)
-        <class 'sage.tensor.modules.free_module_alt_form.ExtPowerFreeModule_with_category.element_class'>
+        <class 'sage.tensor.modules.ext_pow_free_module.ExtPowerFreeModule_with_category.element_class'>
         sage: a.parent()
         2nd exterior power of the dual of the Rank-3 free module M over the Integer Ring
         sage: a[1,2], a[2,3] = 4, -3
@@ -367,7 +371,7 @@ class FreeModuleAltForm(FreeModuleTensor):
         r"""
         Return the degree of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: a = M.alternating_form(2, name='a')
@@ -474,11 +478,20 @@ class FreeModuleAltForm(FreeModuleTensor):
             b = 0.333333333333333 e^1/\e^2 + 2.50000000000000 e^1/\e^3
              + 4.00000000000000 e^2/\e^3
 
-        The output format is then controled by the argument ``format_spec`` of
+        The output format is then controlled by the argument ``format_spec`` of
         the method :meth:`display`::
 
             sage: b.display(format_spec=10)  # 10 bits of precision
             b = 0.33 e^1/\e^2 + 2.5 e^1/\e^3 + 4.0 e^2/\e^3
+
+        Check that the bug reported in :trac:`22520` is fixed::
+
+            sage: M = FiniteRankFreeModule(SR, 2, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.alternating_form(2)
+            sage: a[0,1] = SR.var('t', domain='real')
+            sage: a.display()
+            t e^0/\e^1
 
         """
         from sage.misc.latex import latex
@@ -493,7 +506,9 @@ class FreeModuleAltForm(FreeModuleTensor):
         for ind in comp.non_redundant_index_generator():
             ind_arg = ind + (format_spec,)
             coef = comp[ind_arg]
-            if coef != 0:
+            if not (coef == 0):   # NB: coef != 0 would return False for
+                                  # cases in which Sage cannot conclude
+                                  # see :trac:`22520`
                 bases_txt = []
                 bases_latex = []
                 for k in range(self._tensor_rank):
@@ -617,7 +632,7 @@ class FreeModuleAltForm(FreeModuleTensor):
             True
 
         """
-        from format_utilities import is_atomic
+        from .format_utilities import is_atomic
         if not isinstance(other, FreeModuleAltForm):
             raise TypeError("the second argument for the exterior product " +
                             "must be an alternating form")
@@ -635,8 +650,8 @@ class FreeModuleAltForm(FreeModuleTensor):
         cmp_r = CompFullyAntiSym(fmodule._ring, basis, rank_r,
                                  start_index=fmodule._sindex,
                                  output_formatter=fmodule._output_formatter)
-        for ind_s, val_s in cmp_s._comp.iteritems():
-            for ind_o, val_o in cmp_o._comp.iteritems():
+        for ind_s, val_s in six.iteritems(cmp_s._comp):
+            for ind_o, val_o in six.iteritems(cmp_o._comp):
                 ind_r = ind_s + ind_o
                 if len(ind_r) == len(set(ind_r)): # all indices are different
                     cmp_r[[ind_r]] += val_s * val_o

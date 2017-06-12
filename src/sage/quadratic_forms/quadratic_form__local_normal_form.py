@@ -1,6 +1,5 @@
 """
 Local Normal Form
-
 """
 
 #*****************************************************************************
@@ -22,7 +21,7 @@ import copy
 from sage.rings.infinity import Infinity
 from sage.rings.integer_ring import IntegerRing, ZZ
 from sage.rings.rational_field import QQ
-from sage.rings.arith import GCD, valuation, is_prime
+from sage.arith.all import GCD, valuation, is_prime
 
 
 def find_entry_with_minimal_scale_at_prime(self, p):
@@ -36,9 +35,11 @@ def find_entry_with_minimal_scale_at_prime(self, p):
     Hessian) associated to the form.
 
     INPUT:
+
         `p` -- a prime number > 0
 
     OUTPUT:
+
         a pair of integers >= 0
 
     EXAMPLES::
@@ -89,9 +90,11 @@ def local_normal_form(self, p):
     the 2x2 blocks in each Jordan component.)
 
     INPUT:
+
         `p` -- a positive prime number.
 
     OUTPUT:
+
         a quadratic form over ZZ
 
     WARNING:  Currently this only works for quadratic forms defined over ZZ.
@@ -270,19 +273,19 @@ def local_normal_form(self, p):
     return Q_Jordan
 
 
-
-
 def jordan_blocks_by_scale_and_unimodular(self, p, safe_flag=True):
     """
-    Returns a list of pairs `(s_i, L_i)` where `L_i` is a maximal
+    Return a list of pairs `(s_i, L_i)` where `L_i` is a maximal
     `p^{s_i}`-unimodular Jordan component which is further decomposed into
-    block diagonals of block size `\le 2`. For each `L_i` the 2x2 blocks are
-    listed after the 1x1 blocks (which follows from the convention of the
+    block diagonals of block size `\le 2`.
+
+    For each `L_i` the 2x2 blocks are listed after the 1x1 blocks
+    (which follows from the convention of the
     :meth:`local_normal_form` method).
 
-    ..note ::
+    .. NOTE::
 
-        The decomposition of each `L_i` into smaller block is not unique!
+        The decomposition of each `L_i` into smaller blocks is not unique!
 
     The ``safe_flag`` argument allows us to select whether we want a copy of
     the output, or the original output.  By default ``safe_flag = True``, so we
@@ -408,10 +411,12 @@ def jordan_blocks_in_unimodular_list_by_scale_power(self, p):
     correctly for p=2 when the form has an integer Gram matrix.
 
     INPUT:
+
         self -- a quadratic form over ZZ, which has integer Gram matrix if p == 2
         `p` -- a prime number > 0
 
     OUTPUT:
+
         a list of p-unimodular quadratic forms
 
     EXAMPLES::

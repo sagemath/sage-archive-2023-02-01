@@ -24,9 +24,30 @@ AUTHORS:
 include "sage/libs/linkages/padics/mpz.pxi"
 include "FM_template.pxi"
 
-from sage.libs.pari.pari_instance cimport PariInstance
-cdef PariInstance P = sage.libs.pari.pari_instance.pari
+from sage.libs.pari.convert_gmp cimport new_gen_from_padic
 from sage.rings.finite_rings.integer_mod import Mod
+
+cdef extern from "sage/rings/padics/transcendantal.c":
+    cdef void padiclog(mpz_t ans, const mpz_t a, unsigned long p, unsigned long prec, const mpz_t modulo)
+
+cdef class PowComputer_(PowComputer_base):
+    """
+    A PowComputer for a fixed-modulus padic ring.
+    """
+    def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field):
+        """
+        Initialization.
+
+        EXAMPLES::
+
+            sage: R = ZpFM(5)
+            sage: type(R.prime_pow)
+            <type 'sage.rings.padics.padic_fixed_mod_element.PowComputer_'>
+            sage: R.prime_pow._prec_type
+            'fixed-mod'
+        """
+        self._prec_type = 'fixed-mod'
+        PowComputer_base.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field)
 
 cdef class pAdicFixedModElement(FMElement):
     r"""
@@ -99,12 +120,12 @@ cdef class pAdicFixedModElement(FMElement):
         sage: R(Integers(49)(3))
         Traceback (most recent call last):
         ...
-        TypeError: cannot coerce from the given integer mod ring (not a power of the same prime)
+        TypeError: p does not divide modulus 49
 
         sage: R(Integers(48)(3))
         Traceback (most recent call last):
         ...
-        TypeError: cannot coerce from the given integer mod ring (not a power of the same prime)
+        TypeError: p does not divide modulus 48
 
     Some other conversions::
 
@@ -153,7 +174,7 @@ cdef class pAdicFixedModElement(FMElement):
         mpz_set(ans.value, self.value)
         return ans
 
-    def _pari_(self):
+    def __pari__(self):
         """
         Conversion to PARI.
 
@@ -186,7 +207,7 @@ cdef class pAdicFixedModElement(FMElement):
         This checks that :trac:`15653` is fixed::
 
             sage: x = polygen(ZpFM(3,10))
-            sage: (x^3 + x + 1)._pari_().poldisc()
+            sage: (x^3 + x + 1).__pari__().poldisc()
             2 + 3 + 2*3^2 + 3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10)
         """
         cdef long val
@@ -198,10 +219,10 @@ cdef class pAdicFixedModElement(FMElement):
             mpz_set_ui(holder.value, 0)
         else:
             val = mpz_remove(holder.value, self.value, self.prime_pow.prime.value)
-        return P.new_gen_from_padic(val, self.prime_pow.prec_cap - val,
-                                    self.prime_pow.prime.value,
-                                    self.prime_pow.pow_mpz_t_tmp(self.prime_pow.prec_cap - val),
-                                    holder.value)
+        return new_gen_from_padic(val, self.prime_pow.prec_cap - val,
+                                  self.prime_pow.prime.value,
+                                  self.prime_pow.pow_mpz_t_tmp(self.prime_pow.prec_cap - val),
+                                  holder.value)
 
     def _integer_(self, Z=None):
         """
@@ -240,8 +261,18 @@ cdef class pAdicFixedModElement(FMElement):
             sage: a = R(8)
             sage: a.residue(1)
             1
-            sage: a.residue(2)
+
+        This is different from applying ``% p^n`` which returns an element in
+        the same ring::
+
+            sage: b = a.residue(2); b
             8
+            sage: b.parent()
+            Ring of integers modulo 49
+            sage: c = a % 7^2; c
+            1 + 7 + O(7^4)
+            sage: c.parent()
+            7-adic Ring of fixed modulus 7^4
 
         TESTS::
 
@@ -258,14 +289,18 @@ cdef class pAdicFixedModElement(FMElement):
             ...
             PrecisionError: Not enough precision known in order to compute residue.
 
+        .. SEEALSO::
+
+            :meth:`_mod_`
+
         """
         cdef Integer selfvalue, modulus
         if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
         if absprec > self.precision_absolute():
-            raise PrecisionError, "Not enough precision known in order to compute residue."
+            raise PrecisionError("Not enough precision known in order to compute residue.")
         elif absprec < 0:
-            raise ValueError, "Cannot reduce modulo a negative power of p."
+            raise ValueError("Cannot reduce modulo a negative power of p.")
         cdef long aprec = mpz_get_ui((<Integer>absprec).value)
         modulus = PY_NEW(Integer)
         mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec))
@@ -321,6 +356,83 @@ cdef class pAdicFixedModElement(FMElement):
         else:
             mpz_clear(tmp)
             return infinity
+
+    def _log_binary_splitting(self, aprec, mina=0):
+        r"""
+        Return ``\log(self)`` for ``self`` equal to 1 in the residue field
+
+        This is a helper method for :meth:`log`.
+        It uses a fast binary splitting algorithm.
+
+        INPUT:
+
+        - ``aprec`` -- an integer, the precision to which the result is
+          correct. ``aprec`` must not exceed the precision cap of the ring over
+          which this element is defined.
+        - ``mina`` -- an integer (default: 0), the series will check `n` up to
+          this valuation (and beyond) to see if they can contribute to the
+          series.
+
+        NOTE::
+
+            The function does not check that its argument ``self`` is
+            1 in the residue field. If this assumption is not fullfiled
+            the behaviour of the function is not specified.
+
+        ALGORITHM:
+
+        1. Raise `u` to the power `p^v` for a suitable `v` in order
+           to make it closer to 1. (`v` is chosen such that `p^v` is
+           close to the precision.)
+
+        2. Write
+
+        .. MATH::
+
+            u^{p-1} = \prod_{i=1}^\infty (1 - a_i p^{(v+1)*2^i})
+
+        with `0 \leq a_i < p^{(v+1)*2^i}` and compute
+        `\log(1 - a_i p^{(v+1)*2^i})` using the standard Taylor expansion
+
+        .. MATH::
+
+            \log(1 - x) = -x - 1/2 x^2 - 1/3 x^3 - 1/4 x^4 - 1/5 x^5 - \cdots
+
+        together with a binary splitting method.
+
+        3. Divide the result by `p^v`
+
+        The complexity of this algorithm is quasi-linear.
+
+        EXAMPLES::
+
+            sage: r = Qp(5,prec=4)(6)
+            sage: r._log_binary_splitting(2)
+            5 + O(5^2)
+            sage: r._log_binary_splitting(4)
+            5 + 2*5^2 + 4*5^3 + O(5^4)
+            sage: r._log_binary_splitting(100)
+            5 + 2*5^2 + 4*5^3 + O(5^4)
+
+            sage: r = Zp(5,prec=4,type='fixed-mod')(6)
+            sage: r._log_binary_splitting(5)
+            5 + 2*5^2 + 4*5^3 + O(5^4)
+
+        """
+        cdef unsigned long p
+        cdef unsigned long prec = min(aprec, self.prime_pow.prec_cap)
+        cdef pAdicFixedModElement ans
+
+        if mpz_fits_slong_p(self.prime_pow.prime.value) == 0:
+            raise NotImplementedError("The prime %s does not fit in a long" % self.prime_pow.prime)
+        p = self.prime_pow.prime
+
+        ans = self._new_c()
+        sig_on()
+        padiclog(ans.value, self.value, p, prec, self.prime_pow.pow_mpz_t_tmp(prec))
+        sig_off()
+        return ans
+
 
 def make_pAdicFixedModElement(parent, value):
     """

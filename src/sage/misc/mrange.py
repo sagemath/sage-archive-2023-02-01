@@ -19,8 +19,9 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function, absolute_import
 from sage.misc.all import prod
+
 
 def _len(L):
     """
@@ -63,7 +64,8 @@ def _is_finite(L, fallback=True):
         True
         sage: _is_finite([])
         True
-        sage: _is_finite(xrange(10^8))
+        sage: from six.moves import range
+        sage: _is_finite(range(10^8))
         True
         sage: from itertools import product
         sage: _is_finite(product([1],[1])) # does not provide is_finite() or __len__()
@@ -186,12 +188,13 @@ def mrange_iter(iter_list, typ=list):
 
     Examples that illustrate empty multi-ranges::
 
-        sage: mrange_iter([range(5),xrange(3),xrange(-2)])
-        []
         sage: mrange_iter([range(5),range(3),range(0)])
         []
+        sage: from six.moves import range
+        sage: mrange_iter([range(5),range(3),range(-2)])
+        []
 
-    This example isn't empty, and shouldn't be. See trac #6561.
+    This example is not empty, and should not be. See :trac:`6561`.
 
     ::
 
@@ -233,16 +236,12 @@ class xmrange_iter:
     OUTPUT: a generator
 
     EXAMPLES: We create multi-range iterators, print them and also
-    iterate through a tuple version.
+    iterate through a tuple version. ::
 
-    ::
-
-        sage: z = xmrange_iter([xrange(3),xrange(2)]);z
-        xmrange_iter([xrange(3), xrange(2)])
-        sage: z = xmrange_iter([range(3),range(2)], tuple);z
-        xmrange_iter([[0, 1, 2], [0, 1]], <type 'tuple'>)
+        sage: z = xmrange_iter([list(range(3)),list(range(2))], tuple);z
+        xmrange_iter([[0, 1, 2], [0, 1]], <... 'tuple'>)
         sage: for a in z:
-        ...    print a
+        ....:     print(a)
         (0, 0)
         (0, 1)
         (1, 0)
@@ -274,12 +273,12 @@ class xmrange_iter:
 
     ::
 
-        sage: list(xmrange_iter([xrange(5),xrange(3),xrange(-2)]))
+        sage: list(xmrange_iter([range(5),range(3),range(-2)]))
         []
-        sage: list(xmrange_iter([xrange(5),xrange(3),xrange(0)]))
+        sage: list(xmrange_iter([range(5),range(3),range(0)]))
         []
 
-    This example isn't empty, and shouldn't be. See trac #6561.
+    This example is not empty, and should not be. See :trac:`6561`.
 
     ::
 
@@ -294,7 +293,7 @@ class xmrange_iter:
         sage: X = ['red', 'apple', 389]
         sage: Y = ['orange', 'horse']
         sage: for i,j in xmrange_iter([X, Y], tuple):
-        ...    print (i, j)
+        ....:     print((i, j))
         ('red', 'orange')
         ('red', 'horse')
         ('apple', 'orange')
@@ -328,7 +327,7 @@ class xmrange_iter:
 
         EXAMPLES::
 
-            sage: C = cartesian_product_iterator([xrange(3), xrange(4)])
+            sage: C = cartesian_product_iterator([range(3),range(4)])
             sage: len(C)
             12
             sage: len(cartesian_product_iterator([]))
@@ -356,7 +355,7 @@ class xmrange_iter:
 
         EXAMPLES::
 
-            sage: C = cartesian_product_iterator([xrange(3), xrange(4)])
+            sage: C = cartesian_product_iterator([range(3),range(4)])
             sage: C.cardinality()
             12
             sage: C = cartesian_product_iterator([ZZ,QQ])
@@ -450,7 +449,7 @@ def mrange(sizes, typ=list):
         sage: mrange([5,3,0])
         []
 
-    This example isn't empty, and shouldn't be. See trac #6561.
+    This example is not empty, and should not be. See :trac:`6561`.
 
     ::
 
@@ -497,9 +496,9 @@ class xmrange:
         sage: z = xmrange([3,2]);z
         xmrange([3, 2])
         sage: z = xmrange([3,2], tuple);z
-        xmrange([3, 2], <type 'tuple'>)
+        xmrange([3, 2], <... 'tuple'>)
         sage: for a in z:
-        ...    print a
+        ....:     print(a)
         (0, 0)
         (0, 1)
         (1, 0)
@@ -536,7 +535,7 @@ class xmrange:
         sage: list(xmrange([5,3,0]))
         []
 
-    This example isn't empty, and shouldn't be. See trac #6561.
+    This example is not empty, and should not be. See :trac:`6561`.
 
     ::
 
@@ -551,7 +550,7 @@ class xmrange:
         sage: X = ['red', 'apple', 389]
         sage: Y = ['orange', 'horse']
         sage: for i,j in xmrange([len(X), len(Y)]):
-        ...    print (X[i], Y[j])
+        ....:     print((X[i], Y[j]))
         ('red', 'orange')
         ('red', 'horse')
         ('apple', 'orange')
@@ -598,7 +597,7 @@ def cartesian_product_iterator(X):
     -  ``X`` - list or tuple of lists
 
 
-    OUTPUT: iterator over the cartesian product of the elements of X
+    OUTPUT: iterator over the Cartesian product of the elements of X
 
     EXAMPLES::
 
@@ -608,3 +607,117 @@ def cartesian_product_iterator(X):
         [()]
     """
     return xmrange_iter(X, tuple)
+
+def cantor_product(*args, **kwds):
+    r"""
+    Return an iterator over the product of the inputs along the diagonals a la
+    :wikipedia:`Cantor pairing <Pairing_function#Cantor_pairing_function>`.
+
+    INPUT:
+
+    - a certain number of iterables
+
+    - ``repeat`` -- an optional integer. If it is provided, the input is
+      repeated ``repeat`` times.
+
+    Other keyword arguments are passed to
+    :class:`sage.combinat.integer_lists.invlex.IntegerListsLex`.
+
+    EXAMPLES::
+
+        sage: from sage.misc.mrange import cantor_product
+        sage: list(cantor_product([0, 1], repeat=3))
+        [(0, 0, 0),
+         (1, 0, 0),
+         (0, 1, 0),
+         (0, 0, 1),
+         (1, 1, 0),
+         (1, 0, 1),
+         (0, 1, 1),
+         (1, 1, 1)]
+        sage: list(cantor_product([0, 1], [0, 1, 2, 3]))
+        [(0, 0), (1, 0), (0, 1), (1, 1), (0, 2), (1, 2), (0, 3), (1, 3)]
+
+    Infinite iterators are valid input as well::
+    
+       sage: from itertools import islice
+       sage: list(islice(cantor_product(ZZ, QQ), 14))
+        [(0, 0),
+         (1, 0),
+         (0, 1),
+         (-1, 0),
+         (1, 1),
+         (0, -1),
+         (2, 0),
+         (-1, 1),
+         (1, -1),
+         (0, 1/2),
+         (-2, 0),
+         (2, 1),
+         (-1, -1),
+         (1, 1/2)]
+
+    TESTS::
+
+        sage: C = cantor_product([0, 1], [0, 1, 2, 3], [0, 1, 2])
+        sage: sum(1 for _ in C) == 2*4*3
+        True
+
+        sage: from itertools import count
+        sage: list(cantor_product([], count()))
+        []
+        sage: list(cantor_product(count(), [], count()))
+        []
+
+        sage: list(cantor_product(count(), repeat=0))
+        [()]
+
+        sage: next(cantor_product(count(), repeat=-1))
+        Traceback (most recent call last):
+        ...
+        ValueError: repeat argument cannot be negative
+        sage: next(cantor_product(count(), toto='hey'))
+        Traceback (most recent call last):
+        ...
+        TypeError: __init__() got an unexpected keyword argument 'toto'
+
+    ::
+
+        sage: list(cantor_product(srange(5), repeat=2, min_slope=1))
+        [(0, 1), (0, 2), (1, 2), (0, 3), (1, 3),
+         (0, 4), (2, 3), (1, 4), (2, 4), (3, 4)]
+    """
+    from itertools import count
+    from sage.combinat.integer_lists import IntegerListsLex
+
+    m = len(args)                         # numer of factors
+    lengths = [None] * m                  # None or length of factors
+    data = [[] for _ in range(m)]         # the initial slice of each factor
+    iterators = [iter(a) for a in args]   # the iterators
+    repeat = int(kwds.pop('repeat', 1))
+    if repeat == 0:
+        yield ()
+        return
+    elif repeat < 0:
+        raise ValueError("repeat argument cannot be negative")
+    mm = m * repeat
+
+    for n in count(0):
+        # try to add one more term to each bin
+        for i, a in enumerate(iterators):
+            if lengths[i] is None:
+                try:
+                    data[i].append(next(a))
+                except StopIteration:
+                    assert len(data[i]) == n
+                    if n == 0:
+                        return
+                    lengths[i] = n
+
+        # iterate through what we have
+        ceiling = [n if lengths[i] is None else lengths[i]-1 for i in range(m)] * repeat
+        for v in IntegerListsLex(n, length=mm, ceiling=ceiling, **kwds):
+            yield tuple(data[i%m][v[i]] for i in range(mm))
+
+        if all(l is not None for l in lengths) and repeat*sum(l-1 for l in lengths) == n:
+            return

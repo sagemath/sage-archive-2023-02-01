@@ -1,11 +1,12 @@
 """
 Baxter permutations
 """
+from six.moves import range
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
-from sage.combinat.permutation import Permutation, Permutations
+from sage.combinat.permutation import Permutations
 
 from sage.rings.integer_ring import ZZ
 
@@ -167,16 +168,16 @@ class BaxterPermutations_size(BaxterPermutations):
              [2, 1, 3, 4], [1, 4, 3, 2], [4, 1, 3, 2], [1, 3, 4, 2], [1, 3, 2, 4],
              [4, 3, 1, 2], [3, 4, 1, 2], [3, 1, 2, 4], [1, 2, 4, 3], [1, 4, 2, 3],
              [4, 1, 2, 3], [1, 2, 3, 4]]
-            sage: [len(BaxterPermutations(n)) for n in xrange(9)]
+            sage: [len(BaxterPermutations(n)) for n in range(9)]
             [1, 1, 2, 6, 22, 92, 422, 2074, 10754]
 
         TESTS::
 
-            sage: all(a in BaxterPermutations(n) for n in xrange(7)
+            sage: all(a in BaxterPermutations(n) for n in range(7)
             ....:     for a in BaxterPermutations(n))
             True
 
-        ALGORITHM::
+        ALGORITHM:
 
         The algorithm using generating trees described in [BBF08]_ is used.
         The idea is that all Baxter permutations of size `n + 1` can be
@@ -184,9 +185,9 @@ class BaxterPermutations_size(BaxterPermutations):
         to right maximum or just after a right to left maximum of a Baxter
         permutation of size `n`.
 
-        REFERENCES::
+        REFERENCES:
 
-        .. [BBF08] N. Bonichon, M. Bousquet-Melou, E. Fusy.
+        .. [BBF08] \N. Bonichon, M. Bousquet-Melou, E. Fusy.
            Baxter permutations and plane bipolar orientations.
            Seminaire Lotharingien de combinatoire 61A, article B61Ah, 2008.
         """
@@ -231,7 +232,7 @@ class BaxterPermutations_size(BaxterPermutations):
 
         EXAMPLES::
 
-            sage: [BaxterPermutations(n).cardinality() for n in xrange(13)]
+            sage: [BaxterPermutations(n).cardinality() for n in range(13)]
             [1, 1, 2, 6, 22, 92, 422, 2074, 10754, 58202, 326240, 1882960, 11140560]
 
             sage: BaxterPermutations(3r).cardinality()
@@ -241,12 +242,12 @@ class BaxterPermutations_size(BaxterPermutations):
         """
         if self._n == 0:
             return 1
-        from sage.rings.arith import binomial
+        from sage.arith.all import binomial
         return sum((binomial(self._n + 1, k) *
                     binomial(self._n + 1, k + 1) *
                     binomial(self._n + 1, k + 2)) //
                    ((self._n + 1) * binomial(self._n + 1, 2))
-                   for k in xrange(self._n))
+                   for k in range(self._n))
 
 
 class BaxterPermutations_all(DisjointUnionEnumeratedSets, BaxterPermutations):
@@ -322,7 +323,7 @@ class BaxterPermutations_all(DisjointUnionEnumeratedSets, BaxterPermutations):
 
         The pair of twin binary trees `(T_L, T_R)` where `T_L`
         (resp. `T_R`) is obtained by inserting the letters of ``p`` from
-        left to right (resp. right to left) following the the binary search
+        left to right (resp. right to left) following the binary search
         tree insertion algorithm. This is called the *Baxter P-symbol*
         in [Gir12]_ Definition 4.1.
 

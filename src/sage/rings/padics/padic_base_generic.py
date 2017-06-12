@@ -7,6 +7,7 @@ AUTHORS:
 
 - David Roe
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
@@ -19,13 +20,15 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from padic_generic import pAdicGeneric
+from .padic_generic import pAdicGeneric
 from sage.rings.padics.pow_computer import PowComputer
 from sage.rings.padics.padic_capped_relative_element import pAdicCoercion_ZZ_CR, pAdicCoercion_QQ_CR, pAdicConvert_QQ_CR
 from sage.rings.padics.padic_capped_absolute_element import pAdicCoercion_ZZ_CA, pAdicConvert_QQ_CA
 from sage.rings.padics.padic_fixed_mod_element import pAdicCoercion_ZZ_FM, pAdicConvert_QQ_FM
+from sage.rings.padics.padic_floating_point_element import pAdicCoercion_ZZ_FP, pAdicCoercion_QQ_FP, pAdicConvert_QQ_FP
 
 class pAdicBaseGeneric(pAdicGeneric):
+    _implementation = 'GMP'
     def __init__(self, p, prec, print_mode, names, element_class):
         """
         Initialization
@@ -34,11 +37,15 @@ class pAdicBaseGeneric(pAdicGeneric):
 
             sage: R = Zp(5) #indirect doctest
         """
-        self.prime_pow = PowComputer(p, max(min(prec - 1, 30), 1), prec, self.is_field())
+        self.prime_pow = PowComputer(p, max(min(prec - 1, 30), 1), prec, self.is_field(), self._prec_type())
         pAdicGeneric.__init__(self, self, p, prec, print_mode, names, element_class)
         if self.is_field():
-            coerce_list = [pAdicCoercion_ZZ_CR(self), pAdicCoercion_QQ_CR(self)]
-            convert_list = []
+            if self.is_capped_relative():
+                coerce_list = [pAdicCoercion_ZZ_CR(self), pAdicCoercion_QQ_CR(self)]
+                convert_list = []
+            else:
+                coerce_list = [pAdicCoercion_ZZ_FP(self), pAdicCoercion_QQ_FP(self)]
+                convert_list = []
         elif self.is_capped_relative():
             coerce_list = [pAdicCoercion_ZZ_CR(self)]
             convert_list = [pAdicConvert_QQ_CR(self)]
@@ -48,6 +55,9 @@ class pAdicBaseGeneric(pAdicGeneric):
         elif self.is_fixed_mod():
             coerce_list = [pAdicCoercion_ZZ_FM(self)]
             convert_list = [pAdicConvert_QQ_FM(self)]
+        elif self.is_floating_point():
+            coerce_list = [pAdicCoercion_ZZ_FP(self)]
+            convert_list = [pAdicConvert_QQ_FP(self)]
         else:
             raise RuntimeError
         self._populate_coercion_lists_(coerce_list=coerce_list, convert_list=convert_list, element_constructor=element_class)
@@ -76,7 +86,11 @@ class pAdicBaseGeneric(pAdicGeneric):
         if self.is_field() and print_mode is None:
             return self
         from sage.rings.padics.factory import Qp
-        return Qp(self.prime(), self.precision_cap(), 'capped-rel', print_mode=self._modified_print_mode(print_mode), names=self._uniformizer_print())
+        if self.is_floating_point():
+            mode = 'floating-point'
+        else:
+            mode = 'capped-rel'
+        return Qp(self.prime(), self.precision_cap(), mode, print_mode=self._modified_print_mode(print_mode), names=self._uniformizer_print())
 
     def integer_ring(self, print_mode=None):
         r"""
@@ -310,7 +324,7 @@ class pAdicBaseGeneric(pAdicGeneric):
             else:
                 raise ValueError("No, %sth root of unity in self"%n)
         else:
-            from sage.rings.finite_rings.constructor import GF
+            from sage.rings.finite_rings.finite_field_constructor import GF
             return self.teichmuller(GF(self.prime()).zeta(n).lift())
 
     def zeta_order(self):
@@ -331,9 +345,11 @@ class pAdicBaseGeneric(pAdicGeneric):
 
     def plot(self, max_points=2500, **args):
         r"""
-        Creates a visualization of this `p`-adic ring as a fractal
-        similar as a generalization of the the Sierpi\'nski
-        triangle. The resulting image attempts to capture the
+        Create a visualization of this `p`-adic ring as a fractal
+        similar to a generalization of the Sierpi\'nski
+        triangle.
+
+        The resulting image attempts to capture the
         algebraic and topological characteristics of `\mathbb{Z}_p`.
 
         INPUT:

@@ -8,9 +8,6 @@ curve L-functions. It can compute up to about 64 digits of precision.
 
  * See the file src/COPYING
 
-== SPKG Maintainers ==
- * David Kirkby (I'll do my best, but this is hard to maintain)
-
 == Upstream Contact ==
   SYMPOW does not appear to be maintained any longer, so there is no
   upstream web site.

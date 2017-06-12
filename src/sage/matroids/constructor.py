@@ -87,6 +87,7 @@ AUTHORS:
 Methods
 =======
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2013 Rudi Pendavingh <rudi.pendavingh@gmail.com>
 #       Copyright (C) 2013 Michael Welsh <michael@welsh.co.nz>
@@ -98,6 +99,8 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import itervalues
+from six.moves import range
 
 from itertools import combinations
 import sage.matrix.matrix_space as matrix_space
@@ -107,12 +110,12 @@ import sage.matrix.matrix
 from sage.rings.all import ZZ, QQ, FiniteField, GF
 import sage.matroids.matroid
 import sage.matroids.basis_exchange_matroid
-from minor_matroid import MinorMatroid
-from dual_matroid import DualMatroid
-from rank_matroid import RankMatroid
-from circuit_closures_matroid import CircuitClosuresMatroid
-from basis_matroid import BasisMatroid
-from linear_matroid import LinearMatroid, RegularMatroid, BinaryMatroid, TernaryMatroid, QuaternaryMatroid
+from .minor_matroid import MinorMatroid
+from .dual_matroid import DualMatroid
+from .rank_matroid import RankMatroid
+from .circuit_closures_matroid import CircuitClosuresMatroid
+from .basis_matroid import BasisMatroid
+from .linear_matroid import LinearMatroid, RegularMatroid, BinaryMatroid, TernaryMatroid, QuaternaryMatroid
 import sage.matroids.utilities
 from networkx import NetworkXError
 
@@ -725,7 +728,7 @@ def Matroid(*args, **kwds):
                 kwds['groundset'] = [(i, j) for i, j, k in G.edge_iterator()]
             else:
                 # 3. Use numbers
-                kwds['groundset'] = range(m)
+                kwds['groundset'] = list(range(m))
         M = RegularMatroid(matrix=A, groundset=kwds['groundset'])
         want_regular = False  # Save some time, since result is already regular
 
@@ -766,13 +769,13 @@ def Matroid(*args, **kwds):
                     if len(kwds['groundset']) != A.ncols():
                         raise ValueError("groundset size does not correspond to matrix size.")
             else:
-                kwds['groundset'] = range(A.ncols())
+                kwds['groundset'] = list(range(A.ncols()))
         if 'reduced_matrix' in kwds:
             if 'groundset' in kwds:
                 if len(kwds['groundset']) != A.nrows() + A.ncols():
                     raise ValueError("groundset size does not correspond to matrix size.")
             else:
-                kwds['groundset'] = range(A.nrows() + A.ncols())
+                kwds['groundset'] = list(range(A.nrows() + A.ncols()))
         if 'matrix' in kwds:
             if base_ring == GF(2):
                 M = BinaryMatroid(groundset=kwds['groundset'], matrix=A)
@@ -804,7 +807,7 @@ def Matroid(*args, **kwds):
         if 'groundset' not in kwds:
             E = set()
             if isinstance(kwds['circuit_closures'], dict):
-                for X in kwds['circuit_closures'].itervalues():
+                for X in itervalues(kwds['circuit_closures']):
                     for Y in X:
                         E.update(Y)
             else:

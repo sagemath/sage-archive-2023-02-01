@@ -1,6 +1,3 @@
-
-from sage.structure.parent_base cimport ParentWithBase
-from sage.structure.parent_gens cimport ParentWithGens
 from sage.rings.polynomial.multi_polynomial_ring_generic cimport \
                                                 MPolynomialRing_generic
 from sage.rings.polynomial.multi_polynomial cimport MPolynomial

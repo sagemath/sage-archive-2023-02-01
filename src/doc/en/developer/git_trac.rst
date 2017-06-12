@@ -58,7 +58,8 @@ do this by symlinking::
     [user@localhost git-trac-command]$ ln -s `pwd`/git-trac ~/bin/
 
 See the `git-trac README <https://github.com/sagemath/git-trac-command>`_ for
-more details.
+more details. At this point you leave ``git-trac-command`` subdirectory, and only go 
+there whenever you need to update the ``git-trac`` command.
 
 
 
@@ -67,7 +68,7 @@ more details.
 Git and Trac Configuration
 ==========================
 
-.. note::
+.. NOTE::
 
     * `trac <http://trac.sagemath.org>`_ uses username/password for
       authentication.
@@ -89,7 +90,7 @@ to the Sage directory and tell ``git trac`` about your trac account::
     Password: PASSWORD
     Retrieving SSH keys...
         1024 ab:1b:7c:c9:9b:48:fe:dd:59:56:1e:9d:a4:a6:51:9d  My SSH Key
-    
+
 where you have to replace USERNAME with your trac user name and
 PASSWORD with your trac password. If you don't have a trac account,
 use ``git trac config`` without any arguments. The single quotes in
@@ -102,12 +103,14 @@ is not already private.
 If there is no SSH key listed then you haven't uploaded your SSH
 public key to the trac server. You should do that now following the
 instructions to :ref:`section-trac-ssh-key`, if you want to upload
-any changes.
+any changes. You may have to add your private key to your authentication agent::
 
-.. note::
+    [user@localhost sage]$ ssh-add
+
+.. NOTE::
 
    The ``git trac config`` command will automatically add a ``trac``
-   remote git repository to your list of remotes if necessary. 
+   remote git repository to your list of remotes if necessary.
 
 If you followed the above instructions then you will have two remote
 repositories set up::
@@ -155,7 +158,7 @@ explicitly. See ``git trac create -h`` for details. This new branch is
 automatically checked out for you with the *local branch* name
 ``t/12345/last_twin_prime``.
 
-.. note::
+.. NOTE::
 
     Only some trac fields are filled in automatically. See
     :ref:`section-trac-fields` for what trac fields are available and
@@ -215,9 +218,9 @@ changes.
 Making Changes
 --------------
 
-Once you have checked out a ticket, edit the appropriate files and 
-commit your changes to the branch as described in 
-:ref:`section-walkthrough-add-edit` and 
+Once you have checked out a ticket, edit the appropriate files and
+commit your changes to the branch as described in
+:ref:`section-walkthrough-add-edit` and
 :ref:`section-walkthrough-commit`.
 
 .. _section-git_trac-push:
@@ -253,7 +256,7 @@ the following logic to find out the remote branch name:
 
 * If there is no remote branch yet, the branch will be called
   ``u/user/description`` (``u/user/last_twin_prime`` in the example).
-  
+
 * You can use the ``--branch`` option to specify the remote branch
   name explicitly, but it needs to follow the naming convention from
   :ref:`section-git_trac-branch-names` for you to have write
@@ -272,7 +275,7 @@ to specify the ticket number (since there is no way to tell which
 ticket you have in mind). That is::
 
     [user@localhost sage]$ git trac push TICKETNUM
-    
+
 where you have to replace ``TICKETNUM`` with the number of the trac
 ticket.
 
@@ -339,7 +342,7 @@ for merging is easy::
 This creates a new "merge" commit, joining your current branch and
 ``other_branch``.
 
-.. warning::
+.. WARNING::
 
     You should avoid merging branches both ways. Once A merged B and B
     merged A, there is no way to distinguish commits that were
@@ -354,12 +357,13 @@ This creates a new "merge" commit, joining your current branch and
     * Or you definitely need a feature that has been developed as part
       of another branch.
 
-A special case of merging is merging in the ``master`` branch. This
+A special case of merging is merging in the ``develop`` branch. This
 brings your local branch up to date with the newest Sage version. The
 above warning against unnecessary merges still applies, though. Try to
 do all of your development with the Sage version that you originally
-started with. The only reason for merging in the master branch is if
-you need a new feature or if your branch conflicts.
+started with. The only reason for merging in the ``develop`` branch is if
+you need a new feature or if your branch conflicts. See
+:ref:`section-git-update-latest` for details.
 
 
 .. _section-git_trac-collaborate:
@@ -387,7 +391,7 @@ more on it::
     [bob@home sage]$ git trac checkout TICKET_NUMBER
     ... EDIT EDIT ...
     [bob@home sage]$ git add .
-    [bob@home sage]$ git commit 
+    [bob@home sage]$ git commit
     [bob@home sage]$ git trac push
 
 The trac ticket now has "Branch:" set to ``u/bob/a_and_b_ticket``,
@@ -397,18 +401,18 @@ pull/push in their collaboration::
     [alice@laptop sage]$ git trac pull
     ... EDIT EDIT ...
     [alice@laptop sage]$ git add .
-    [alice@laptop sage]$ git commit 
+    [alice@laptop sage]$ git commit
     [alice@laptop sage]$ git trac push
 
     [bob@home sage]$ git trac pull
     ... EDIT EDIT ...
     [bob@home sage]$ git add .
-    [bob@home sage]$ git commit 
+    [bob@home sage]$ git commit
     [bob@home sage]$ git trac push
 
 Alice and Bob need not alternate, they can also add further commits on
 top of their own remote branch.  As long as their changes do not
-conflict (edit the same lines simultaneously), this is fine. 
+conflict (edit the same lines simultaneously), this is fine.
 
 
 .. _section-git_trac-conflict:
@@ -495,7 +499,7 @@ recent common parent of both.
 
 It is now Alice's job to resolve the conflict by reconciling their
 changes, for example by editing the file. Her result is::
-    
+
     def fibonacci(i):
         """
         Return the `i`-th Fibonacci number
@@ -503,22 +507,22 @@ changes, for example by editing the file. Her result is::
         if i > 1:
             return fibonacci(i-1) + fibonacci(i-2)
         return [0, 1][i]
-    
+
 And then upload both her original change *and* her merge commit to trac::
 
     [alice@laptop sage]$ git add fibonacci.py
     [alice@laptop sage]$ git commit -m "merged Bob's changes with mine"
 
 The resulting commit graph now has a loop::
-    
+
     [alice@laptop sage]$ git log --graph --oneline
     *   6316447 merged Bob's changes with mine
-    |\  
+    |\
     | * 41675df corrected recursion formula, must be + instead of *
     * | 14ae1d3 return correct seed values
-    |/  
+    |/
     * 14afe53 initial commit
-    
+
 If Bob decides to do further work on the ticket then he will have to
 pull Alice's changes. However, this time there is no conflict on his
 end: git downloads both Alice's conflicting commit and her resolution.
@@ -529,8 +533,7 @@ end: git downloads both Alice's conflicting commit and her resolution.
 Reviewing
 =========
 
-This section gives an example how to review using the ``sage`` command. For an
-explanation of what should be checked by the reviewer, see
+For an explanation of what should be checked by the reviewer, see
 :ref:`chapter-review`.
 
 If you go to the `web interface to the Sage trac development server
@@ -549,3 +552,22 @@ to use the web interface:
   shows you what is being added, analogous to clicking on the
   "Branch:" field.
 
+To review tickets with minimal recompiling, start by building the "develop"
+branch, that is, the latest beta. Just checking out an older ticket would most
+likely reset the Sage tree to an older version, so you would have to compile
+older versions of packages to make it work. Instead, you can create an anonymous
+("detached HEAD") merge of the ticket and the develop branch using ::
+
+    $ git trac try 12345
+
+This will only touch files that are really modified by the ticket. In particular,
+if only Python files are changed by the ticket (which is true for most tickets)
+then you just have to run ``sage -b`` to rebuild the Sage library. If files other
+than Python have been changed, you must run ``make``. When you are finished
+reviewing, just check out a named branch, for example ::
+
+    $ git checkout develop
+
+If you want to edit the ticket branch (that is, add additional commits) you cannot
+use ``git trac try``. You must :ref:`section-git_trac-checkout` to get the actual ticket
+branch as a starting point.

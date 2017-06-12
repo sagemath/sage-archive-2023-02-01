@@ -8,10 +8,6 @@ Michael Rubinstein's L-function calculator.
 
  * LGPL V2+
 
-== SPKG Maintainers ==
-
- * Rishikesh
-
 == Upstream contact ==
 
 Michael Rubinstein <mrubinst@uwaterloo.ca>

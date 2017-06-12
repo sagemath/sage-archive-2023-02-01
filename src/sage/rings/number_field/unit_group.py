@@ -15,12 +15,12 @@ The first generator is a primitive root of unity in the field::
     sage: UK.gens_values()  # random
     [-1/12*a^3 + 1/6*a, 1/24*a^3 + 1/4*a^2 - 1/12*a - 1]
     sage: UK.gen(0).value()
-    -1/12*a^3 + 1/6*a
+    1/12*a^3 - 1/6*a
 
     sage: UK.gen(0)
     u0
     sage: UK.gen(0) + K.one()   # coerce abstract generator into number field
-    -1/12*a^3 + 1/6*a + 1
+    1/12*a^3 - 1/6*a + 1
 
     sage: [u.multiplicative_order() for u in UK.gens()]
     [4, +Infinity]
@@ -37,18 +37,18 @@ as elements of an abstract multiplicative group::
     sage: UK(-1)
     u0^2
     sage: [UK(u) for u in (x^4-1).roots(K,multiplicities=False)]
-    [1, u0^2, u0^3, u0]
+    [1, u0^2, u0, u0^3]
 
     sage: UK.fundamental_units() # random
     [1/24*a^3 + 1/4*a^2 - 1/12*a - 1]
     sage: torsion_gen = UK.torsion_generator();  torsion_gen
     u0
     sage: torsion_gen.value()
-    -1/12*a^3 + 1/6*a
+    1/12*a^3 - 1/6*a
     sage: UK.zeta_order()
     4
     sage: UK.roots_of_unity()
-    [-1/12*a^3 + 1/6*a, -1, 1/12*a^3 - 1/6*a, 1]
+    [1/12*a^3 - 1/6*a, -1, -1/12*a^3 + 1/6*a, 1]
 
 Exp and log functions provide maps between units as field elements and exponent
 vectors with respect to the generators::
@@ -100,7 +100,30 @@ A relative number field example::
     sage: UL.zeta_order()
     24
     sage: UL.roots_of_unity()
-    [b*a, -b^2*a - b^2, b^3, -a, b*a + b, -b^2, -b^3*a, -a - 1, b, b^2*a, -b^3*a - b^3, -1, -b*a, b^2*a + b^2, -b^3, a, -b*a - b, b^2, b^3*a, a + 1, -b, -b^2*a, b^3*a + b^3, 1]
+    [-b*a,
+     -b^2*a - b^2,
+     -b^3,
+     -a,
+     -b*a - b,
+     -b^2,
+     b^3*a,
+     -a - 1,
+     -b,
+     b^2*a,
+     b^3*a + b^3,
+     -1,
+     b*a,
+     b^2*a + b^2,
+     b^3,
+     a,
+     b*a + b,
+     b^2,
+     -b^3*a,
+     a + 1,
+     b,
+     -b^2*a,
+     -b^3*a - b^3,
+     1]
 
 A relative extension example, which worked thanks to the code review by F.W.Clarke::
 
@@ -229,7 +252,7 @@ class UnitGroup(AbelianGroupWithValues_class):
             sage: UK.gens()
             (u,)
             sage: UK.gens_values()
-            [-1/2*a + 1/2]
+            [1/2*a + 1/2]
 
             sage: K.<z> = CyclotomicField(13)
             sage: UK = K.unit_group(); UK
@@ -241,7 +264,17 @@ class UnitGroup(AbelianGroupWithValues_class):
             sage: SUK = UnitGroup(K,S=2); SUK
             S-unit group with structure C26 x Z x Z x Z x Z x Z x Z of Cyclotomic Field of order 13 and degree 12 with S = (Fractional ideal (2),)
 
-            """
+        TESTS:
+
+        Number fields defined by non-monic and non-integral
+        polynomials are supported (:trac:`252`)::
+
+            sage: K.<a> = NumberField(7/9*x^3 + 7/3*x^2 - 56*x + 123)
+            sage: K.unit_group()
+            Unit group with structure C2 x Z x Z of Number Field in a with defining polynomial 7/9*x^3 + 7/3*x^2 - 56*x + 123
+            sage: UnitGroup(K, S=tuple(K.primes_above(7)))
+            S-unit group with structure C2 x Z x Z x Z of Number Field in a with defining polynomial 7/9*x^3 + 7/3*x^2 - 56*x + 123 with S = (Fractional ideal (7/225*a^2 - 7/75*a - 42/25),)
+        """
         proof = get_flag(proof, "number_field")
         K = number_field
         pK = K.pari_bnf(proof)
@@ -270,13 +303,13 @@ class UnitGroup(AbelianGroupWithValues_class):
             self.__pS = pS = [P.pari_prime() for P in S]
 
         # compute the fundamental units via pari:
-        fu = [K(u) for u in pK.bnfunit()]
+        fu = [K(u, check=False) for u in pK.bnfunit()]
         self.__nfu = len(fu)
 
         # compute the additional S-unit generators:
         if S:
             self.__S_unit_data = pK.bnfsunit(pS)
-            su = [K(u) for u in self.__S_unit_data[0]]
+            su = [K(u, check=False) for u in self.__S_unit_data[0]]
         else:
             su = []
         self.__nsu = len(su)
@@ -286,7 +319,7 @@ class UnitGroup(AbelianGroupWithValues_class):
         n, z = pK.nfrootsof1()
         n = ZZ(n)
         self.__ntu = n
-        z = K(z)
+        z = K(z, check=False)
 
         # If we replaced z by another torsion generator we would need
         # to allow for this in the dlog function!  So we do not.
@@ -349,7 +382,7 @@ class UnitGroup(AbelianGroupWithValues_class):
             m = pK.bnfisunit(pari(u)).mattranspose()
 
         # convert column matrix to a list:
-        m = [ZZ(m[0,i].python()) for i in range(m.ncols())]
+        m = [ZZ(m[0,i].sage()) for i in range(m.ncols())]
 
         # NB pari puts the torsion after the fundamental units, before
         # the extra S-units but we have the torsion first:

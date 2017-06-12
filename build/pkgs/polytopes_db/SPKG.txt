@@ -16,10 +16,6 @@ ReflexivePolytope and ReflexivePolytopes commands.
 
 GPL
 
-== SPKG Maintainers ==
-
-Andrey Novoseltsev <novoselt@gmail.com>
-
 == Dependencies ==
 
 None

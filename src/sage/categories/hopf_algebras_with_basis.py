@@ -27,8 +27,7 @@ class HopfAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         Category of hopf algebras with basis over Rational Field
         sage: C.super_categories()
         [Category of hopf algebras over Rational Field,
-         Category of algebras with basis over Rational Field,
-         Category of coalgebras with basis over Rational Field]
+         Category of bialgebras with basis over Rational Field]
 
     We now show how to use a simple Hopf algebra, namely the group algebra of the dihedral group
     (see also AlgebrasWithBasis)::
@@ -82,6 +81,7 @@ class HopfAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
           running ._test_eq() . . . pass
+          running ._test_new() . . . pass
           running ._test_nonzero_equal() . . . pass
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
@@ -91,6 +91,7 @@ class HopfAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         running ._test_elements_eq_transitive() . . . pass
         running ._test_elements_neq() . . . pass
         running ._test_eq() . . . pass
+        running ._test_new() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_one() . . . pass
         running ._test_pickling() . . . pass
@@ -100,7 +101,7 @@ class HopfAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         sage: A.__class__
         <class 'sage.categories.examples.hopf_algebras_with_basis.MyGroupAlgebra_with_category'>
         sage: A.element_class
-        <class 'sage.combinat.free_module.MyGroupAlgebra_with_category.element_class'>
+        <class 'sage.categories.examples.hopf_algebras_with_basis.MyGroupAlgebra_with_category.element_class'>
 
     Let us look at the code for implementing A::
 
@@ -147,6 +148,7 @@ class HopfAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
     FiniteDimensional = LazyImport('sage.categories.finite_dimensional_hopf_algebras_with_basis', 'FiniteDimensionalHopfAlgebrasWithBasis')
     Graded = LazyImport('sage.categories.graded_hopf_algebras_with_basis', 'GradedHopfAlgebrasWithBasis')
+    Super = LazyImport('sage.categories.super_hopf_algebras_with_basis',  'SuperHopfAlgebrasWithBasis')
 
     class ParentMethods:
 

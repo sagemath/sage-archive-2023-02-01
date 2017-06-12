@@ -43,6 +43,7 @@ AUTHORS:
 Methods
 =======
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2013 Rudi Pendavingh <rudi.pendavingh@gmail.com>
 #       Copyright (C) 2013 Michael Welsh <michael@welsh.co.nz>
@@ -55,7 +56,7 @@ Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from matroid import Matroid
+from .matroid import Matroid
 
 
 class DualMatroid(Matroid):
@@ -489,7 +490,7 @@ class DualMatroid(Matroid):
             sage: M3 != M4
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
     # COPYING, LOADING, SAVING
 

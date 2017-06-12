@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Low level part of the interface to Fokko Ducloux's Coxeter 3 library
 
@@ -13,12 +14,15 @@ Low level part of the interface to Fokko Ducloux's Coxeter 3 library
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
-include "decl.pxi"
+from .decl cimport *
+from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 
 initConstants()
 
-from sage.rings.all import Integer, ZZ
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
 
 cdef class String:
     def __cinit__(self, s=""):
@@ -95,17 +99,17 @@ cdef class String:
         s = repr(self)
         o = repr(other)
 
-        if op == 2: # ==
+        if op == Py_EQ:
             return s == o
-        elif op == 3: # !=
+        elif op == Py_NE:
             return s != o
-        elif op == 0: # <
+        elif op == Py_LT:
             return s < o
-        elif op == 1: # <=
+        elif op == Py_LE:
             return s <= o
-        elif op == 4: # >
+        elif op == Py_GT:
             return s > o
-        elif op == 5: # >=
+        elif op == Py_GE:
             return s >= o
 
     def __len__(self):
@@ -218,17 +222,17 @@ cdef class Type:
         s = repr(self)
         o = repr(other)
 
-        if op == 2: # ==
+        if op == Py_EQ:
             return s == o
-        elif op == 3: # !=
+        elif op == Py_NE:
             return s != o
-        elif op == 0: # <
+        elif op == Py_LT:
             return s < o
-        elif op == 1: # <=
+        elif op == Py_LE:
             return s <= o
-        elif op == 4: # >
+        elif op == Py_GT:
             return s > o
-        elif op == 5: # >=
+        elif op == Py_GE:
             return s >= o
 
     def __reduce__(self):
@@ -258,7 +262,8 @@ cdef class CoxGroup(SageObject):
             ...
             NotImplementedError: Coxeter group of type ['A',0] using Coxeter 3 not yet implemented
         """
-        from sage.combinat.root_system.all import CartanType, coxeter_matrix
+        from sage.combinat.root_system.cartan_type import CartanType
+        from sage.combinat.root_system.coxeter_matrix import CoxeterMatrix
         self.cartan_type = CartanType(cartan_type)
         ordering = self._ordering_from_cartan_type(self.cartan_type)
 
@@ -279,12 +284,13 @@ cdef class CoxGroup(SageObject):
         cdef Type t = Type(type)
         cdef c_CoxGroup* c_W = coxeterGroup(t.x, rank)
         self.x = c_W
-        self.out_ordering = dict(zip(range(1, rank+1), ordering))
-        self.in_ordering = dict([(b,a) for a,b in self.out_ordering.items()])
+        self.out_ordering = {i+1: o for i,o in enumerate(ordering)}
+        self.in_ordering = {self.out_ordering[a]: a for a in self.out_ordering}
 
         # Check that the Coxeter matrices match up.
-        if self.coxeter_matrix() != coxeter_matrix(self.cartan_type):
-            print "Warning, differing Coxeter matrices"
+        cox_mat = CoxeterMatrix(self.coxeter_matrix(), self.cartan_type.index_set())
+        if cox_mat != CoxeterMatrix(self.cartan_type):
+            print("Warning, differing Coxeter matrices")
 
     @classmethod
     def _ordering_from_cartan_type(cls, cartan_type):
@@ -298,8 +304,7 @@ cdef class CoxGroup(SageObject):
             sage: W._ordering_from_cartan_type(CartanType(['A',5]))                     # optional - coxeter3
             [1, 2, 3, 4, 5]
         """
-        from sage.misc.all import srange
-        from sage.rings.all import Integer
+        from sage.arith.srange import srange
         t = cartan_type.type()
         r = cartan_type.rank()
         is_affine = cartan_type.is_affine()
@@ -313,10 +318,10 @@ cdef class CoxGroup(SageObject):
             if is_affine:
                 raise NotImplementedError
             else:
-                return map(Integer, [1, 2])
+                return [Integer(1), Integer(2)]
         elif t in ['E']:
             if is_affine:
-                return srange(1, r) + [Integer(0)]
+                return srange(1, r) + [ZZ.zero()]
             else:
                 return srange(1, r+1)
         else:
@@ -366,17 +371,17 @@ cdef class CoxGroup(SageObject):
         s_r = self.rank()
         o_r = other.rank()
 
-        if op == 2: # ==
+        if op == Py_EQ:
             return s_t == o_t and s_r == o_r
-        elif op == 3: # !=
+        elif op == Py_NE:
             return s_t != o_t or s_r != o_r
-        elif op == 0: # <
+        elif op == Py_LT:
             return s_t < o_t or (s_t == o_t and s_r < o_r)
-        elif op == 1: # <=
+        elif op == Py_LE:
             return s_t < o_t or (s_t == o_t and s_r <= o_r)
-        elif op == 4: # >
+        elif op == Py_GT:
             return s_t > o_t or (s_t == o_t and s_r > o_r)
-        elif op == 5: # >=
+        elif op == Py_GE:
             return s_t > o_t or (s_t == o_t and s_r >= o_r)
 
     def __reduce__(self):
@@ -537,7 +542,7 @@ cdef class CoxGroup(SageObject):
         """
         Make all of the elements of a finite Coxeter group available.
 
-        Raises an error if W is not finite
+        Raises an error if ``self`` is not finite.
 
         EXAMPLES::
 
@@ -548,10 +553,10 @@ cdef class CoxGroup(SageObject):
             sage: W.full_context()                                                      # optional - coxeter3
             Traceback (most recent call last):
             ...
-            TypeError: Group needs to be finite.
+            TypeError: group needs to be finite
         """
         if not self.is_finite():
-            raise TypeError, "Group needs to be finite."
+            raise TypeError("group needs to be finite")
         cdef c_FiniteCoxGroup* fcoxgroup = <c_FiniteCoxGroup*>(self.x)
         if not fcoxgroup.isFullContext():
             fcoxgroup.fullContext()
@@ -572,7 +577,7 @@ cdef class CoxGroup(SageObject):
             sage: W.long_element()                                                      # optional - coxeter3
             Traceback (most recent call last):
             ...
-            TypeError: Group needs to be finite.
+            TypeError: group needs to be finite
         """
         self.full_context()
         cdef c_FiniteCoxGroup* fcoxgroup = <c_FiniteCoxGroup*>(self.x)
@@ -582,7 +587,7 @@ cdef class CoxGroup(SageObject):
 
     def __call__(self, w):
         """
-        Return a reduced expression for `w`.
+        Return a reduced expression for ``w``.
 
         INPUT:
 
@@ -632,7 +637,7 @@ cdef class CoxGroup(SageObject):
         """
         Return the Coxeter graph for this Coxeter group.
 
-        OUTPUT:: a Sage graph
+        OUTPUT: a Sage graph
 
         .. NOTE::
 
@@ -678,10 +683,10 @@ cdef class CoxGroupElement:
             [4, 5, 4]
         """
         self.group = (<CoxGroup>group).x
-        self._parent = group
+        self._parent_group = group
         self.word.reset()
         for i in w:
-            self.word.append_letter(self._parent.in_ordering[i])
+            self.word.append_letter(self._parent_group.in_ordering[i])
 
         if normal_form:
             self.group.normalForm(self.word)
@@ -719,9 +724,9 @@ cdef class CoxGroupElement:
             sage: W = CoxGroup(['A', 4])                                                            # optional - coxeter3
             sage: w = CoxGroupElement(W, [1,2,3,2,3])                                               # optional - coxeter3
             sage: w._coxnumber()                                                                    # optional - coxeter3
-            7L
+            7
         """
-        return self.group.extendContext(self.word)
+        return int(self.group.extendContext(self.word))
 
     def __reduce__(self):
         """
@@ -732,7 +737,7 @@ cdef class CoxGroupElement:
             sage: w = W([1,2,3])                                                                    # optional - coxeter3
             sage: TestSuite(w).run()                                                                # optional - coxeter3
         """
-        return (CoxGroupElement, (self._parent, list(self)))
+        return (CoxGroupElement, (self._parent_group, list(self)))
 
     def __invert__(self):
         """
@@ -747,11 +752,11 @@ cdef class CoxGroupElement:
             sage: ~w                                                                                # optional - coxeter3
             [3, 2, 1]
         """
-        return CoxGroupElement(self._parent, reversed(self))
+        return CoxGroupElement(self._parent_group, reversed(self))
 
     inverse = __invert__
 
-    cpdef CoxGroup parent(self):
+    cpdef CoxGroup parent_group(self):
         """
         Return the parent Coxeter group for this element.
 
@@ -760,11 +765,11 @@ cdef class CoxGroupElement:
             sage: from sage.libs.coxeter3.coxeter import *                                          # optional - coxeter3
             sage: W = CoxGroup(['A',5])                                                             # optional - coxeter3
             sage: w = W([1,2,3])                                                                    # optional - coxeter3
-            sage: w.parent()                                                                        # optional - coxeter3
+            sage: w.parent_group()                                                                        # optional - coxeter3
             Coxeter group of type A and rank 5
 
         """
-        return self._parent
+        return self._parent_group
 
     def __getitem__(self, i):
         """
@@ -796,9 +801,9 @@ cdef class CoxGroupElement:
         if i < 0:
             i += len(self)
         if i >= len(self):
-            raise IndexError, "The index (%d) is out of range."%i
+            raise IndexError("The index (%d) is out of range." % i)
 
-        return self._parent.out_ordering[self.word.get_index(i)]
+        return self._parent_group.out_ordering[self.word.get_index(i)]
 
     def __repr__(self):
         """
@@ -830,7 +835,7 @@ cdef class CoxGroupElement:
             sage: hash(w) == hash(v)                               # optional - coxeter3
             False
         """
-        return hash((self.__class__.__name__, self.parent(), tuple(self)))
+        return hash((self.__class__.__name__, self.parent_group(), tuple(self)))
 
     def __richcmp__(CoxGroupElement self, other, int op):
         """
@@ -858,24 +863,23 @@ cdef class CoxGroupElement:
         if type(other) != type(self):
             return False
 
-        s_p = self.parent()
-        o_p = other.parent()
+        s_p = self.parent_group()
+        o_p = other.parent_group()
         s_l = list(self)
         o_l = list(other)
 
-        if op == 2: # ==
+        if op == Py_EQ:
             return s_p == o_p and s_l == o_l
-        elif op == 3: # !=
+        elif op == Py_NE:
             return s_p != o_p or s_l != o_l
-        elif op == 0: # <
+        elif op == Py_LT:
             return s_p < o_p or (s_p == o_p and s_l < o_l)
-        elif op == 1: # <=
+        elif op == Py_LE:
             return s_p < o_p or (s_p == o_p and s_l <= o_l)
-        elif op == 4: # >
+        elif op == Py_GT:
             return s_p > o_p or (s_p == o_p and s_l > o_l)
-        elif op == 5: # >=
+        elif op == Py_GE:
             return s_p > o_p or (s_p == o_p and s_l >= o_l)
-
 
     def __iter__(self):
         """
@@ -917,7 +921,7 @@ cdef class CoxGroupElement:
             sage: w.left_descents()                             # optional - coxeter3
             [1, 2]
         """
-        return LFlags_to_list(self._parent, self.group.ldescent(self.word))
+        return LFlags_to_list(self._parent_group, self.group.ldescent(self.word))
 
     def right_descents(self):
         """
@@ -931,7 +935,7 @@ cdef class CoxGroupElement:
             sage: w.right_descents()                            # optional - coxeter3
             [1, 2]
         """
-        return LFlags_to_list(self._parent, self.group.rdescent(self.word))
+        return LFlags_to_list(self._parent_group, self.group.rdescent(self.word))
 
     def bruhat_le(self, w):
         """
@@ -950,7 +954,7 @@ cdef class CoxGroupElement:
             sage: w.bruhat_le(v)                                 # optional - coxeter3
             False
         """
-        cdef CoxGroupElement ww = CoxGroupElement(self._parent, w)
+        cdef CoxGroupElement ww = CoxGroupElement(self._parent_group, w)
         return self.group.inOrder_word(self.word, ww.word)
 
     def is_two_sided_descent(self, s):
@@ -965,14 +969,14 @@ cdef class CoxGroupElement:
             sage: x.is_two_sided_descent(1)                      # optional - coxeter3
             True
         """
-        cdef Generator ss = self._parent.in_ordering[s]
+        cdef Generator ss = self._parent_group.in_ordering[s]
         return self.group.isDescent(self.word, s)
 
     cdef CoxGroupElement _new(self):
         """
         Return a new copy of this element.
         """
-        cdef CoxGroupElement res = CoxGroupElement(self.parent(), [])
+        cdef CoxGroupElement res = CoxGroupElement(self.parent_group(), [])
         res.word.set(self.word)
         return res
 
@@ -1057,7 +1061,7 @@ cdef class CoxGroupElement:
 
     def poincare_polynomial(self):
         """
-        Return the Poincare polynomial associated with the Bruhat
+        Return the Poincaré polynomial associated with the Bruhat
         interval between the identity element and this one.
 
         EXAMPLES::
@@ -1069,7 +1073,7 @@ cdef class CoxGroupElement:
             sage: W([1,2,1]).poincare_polynomial()                                                   # optional - coxeter3
             t^3 + 2*t^2 + 2*t + 1
         """
-        cdef CoxGroup W = self.parent()
+        cdef CoxGroup W = self.parent_group()
         cdef c_List_CoxWord result = c_List_CoxWord_factory(0)
         cdef CoxGroupElement id = CoxGroupElement(W, [])
         cdef CoxGroupElement ww = CoxGroupElement(W, self)
@@ -1084,7 +1088,7 @@ cdef class CoxGroupElement:
 
     def kazhdan_lusztig_polynomial(self, v):
         """
-        Return the Kazhdan-Lusztig polynomial `P_{u,v}` where `u` is this element.
+        Return the Kazhdan-Lusztig polynomial `P_{u,v}` where `u` is ``self``.
 
         Currently this is a bit inefficient as it constructs the
         polynomial from its string representation.
@@ -1101,21 +1105,24 @@ cdef class CoxGroupElement:
         from sage.all import ZZ
         cdef CoxGroupElement vv
         if not isinstance(v, CoxGroupElement):
-            vv = CoxGroupElement(self._parent, v)
+            vv = CoxGroupElement(self._parent_group, v)
         else:
             vv = v
 
-        ZZq = ZZ['q']
+        ZZq = PolynomialRing(ZZ, 'q')
         if not self.group.inOrder_word(self.word, vv.word):
-            return ZZq(0)
+            return ZZq.zero()
 
         cdef CoxNbr x = self.group.extendContext(self.word)
         cdef CoxNbr y = self.group.extendContext(vv.word)
         cdef c_KLPol kl_poly = self.group.klPol(x, y)
-
-        cdef String s = String()
-        klpoly_append(s.x, kl_poly, "q")
-        return ZZq(str(s))
+        if kl_poly.isZero():
+            return ZZq.zero()
+        cdef int i
+        cdef list l = []
+        for 0 <= i <= kl_poly.deg():
+            l.append(kl_poly[i])
+        return ZZq(l)
 
     def mu_coefficient(self, v):
         r"""
@@ -1135,7 +1142,7 @@ cdef class CoxGroupElement:
             1
         """
         from sage.all import ZZ
-        cdef CoxGroupElement vv = CoxGroupElement(self._parent, v)
+        cdef CoxGroupElement vv = CoxGroupElement(self._parent_group, v)
         cdef CoxNbr x = self.group.extendContext(self.word)
         cdef CoxNbr y = self.group.extendContext(vv.word)
         return ZZ(self.group.mu(x,y))
@@ -1166,7 +1173,7 @@ class CoxGroupIterator(object):
         """
         A class used to iterate over all of the elements of a Coxeter group.
 
-        .. note::
+        .. NOTE::
 
            This will construct all of the elements of the group within
            Coxeter3.  For some groups, this may be too large to fit
@@ -1199,7 +1206,7 @@ class CoxGroupIterator(object):
         """
         return self
 
-    def next(self):
+    def __next__(self):
         """
         Return the next element in the associated Coxeter group.
 
@@ -1218,6 +1225,9 @@ class CoxGroupIterator(object):
         (<CoxGroup>self.group).x.prod_nbr(w.word, self.n)
         self.n += 1
         return w
+
+    next = __next__
+
 
 CoxGroup_cache = {}
 def get_CoxGroup(cartan_type):

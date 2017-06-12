@@ -24,17 +24,17 @@ AUTHOR:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 import sys
+
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.libs.gmp.types cimport mpz_t
 
 cdef extern from "partitions_c.h":
     int part(mpz_t answer, unsigned int n)
     int test(bint longtest, bint forever)
-
-include "sage/ext/interrupt.pxi"
 
 from sage.rings.integer cimport Integer
 
@@ -124,7 +124,7 @@ def run_tests(bint longtest=False, bint forever=False):
     sig_on()
     error = test(longtest, forever)
     sig_off()
-    print "Done."
+    print("Done.")
     if error:
         return error
 
@@ -140,7 +140,7 @@ def ZS1_iterator(int n):
     REFERENCES:
 
     .. [ZS98] Antoine Zoghbi, Ivan Stojmenovic,
-       *Fast Algorithms for Generating Integer Partitons*,
+       *Fast Algorithms for Generating Integer Partitions*,
        Intern. J. Computer Math., Vol. 70., pp. 319--332.
        http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.42.1287
 
@@ -151,7 +151,7 @@ def ZS1_iterator(int n):
         sage: next(it)
         [4]
         sage: type(_)
-        <type 'list'>
+        <... 'list'>
     """
     # Easy cases.
     if n < 0:
@@ -159,11 +159,6 @@ def ZS1_iterator(int n):
     if n == 0:
         yield []
         return
-    #cdef int *x = <int*>malloc(sizeof(int) *n)
-    #x[0] = n
-    #cdef int i
-    #for i in range(1, n):
-    #    x[i] = 1
     x = [1]*n
     x[0] = n
 
@@ -196,7 +191,7 @@ def ZS1_iterator(int n):
                 if t > 1:
                     h += 1
                     x[h] = t
-        #yield [x[i] for i in xrange(m+1)]
+        #yield [x[i] for i in range(m+1)]
         yield x[:m+1]
     #free(x)
 
@@ -216,7 +211,7 @@ def ZS1_iterator_nk(int n, int k):
         sage: next(it)
         [4]
         sage: type(_)
-        <type 'list'>
+        <... 'list'>
     """
     # Easy cases.
     if n <= 0:
@@ -227,11 +222,6 @@ def ZS1_iterator_nk(int n, int k):
         if k == 1:
             yield [n]
         return
-    #cdef int *x = <int*>malloc(sizeof(int) *n)
-    #x[0] = n
-    #cdef int i
-    #for i in range(1, n):
-    #    x[i] = 1
     x = [1]*k
     x[0] = n
 

@@ -11,7 +11,7 @@ AUTHORS:
 - Rudi Pendavingh, Stefan van Zwam (2013-06-06): added functions map, lex_cmp,
   pickle, unpickle
 - Jeroen Demeyer (2014-09-05): use mpn_* functions from MPIR in the
-  implementation (:trac`13352` and :trac:`16937`)
+  implementation (:trac:`13352` and :trac:`16937`)
 - Simon King (2014-10-28): ``bitset_rshift`` and ``bitset_lshift`` respecting
   the size of the given bitsets (:trac:`15820`)
 """
@@ -25,8 +25,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/stdsage.pxi'
 from libc.string cimport strlen
+from cysignals.memory cimport check_calloc, check_reallocarray, sig_malloc, sig_free
+
 from sage.libs.gmp.mpn cimport *
 from sage.data_structures.bitset cimport *
 from cython.operator import preincrement as preinc
@@ -80,11 +81,9 @@ cdef inline bint bitset_init(bitset_t bits, mp_bitcnt_t size) except -1:
 
     bits.size = size
     bits.limbs = (size - 1) / (8 * sizeof(mp_limb_t)) + 1
-    bits.bits = <mp_limb_t*>sage_calloc(bits.limbs, sizeof(mp_limb_t))
-    if bits.bits == NULL:
-        raise MemoryError
+    bits.bits = <mp_limb_t*>check_calloc(bits.limbs, sizeof(mp_limb_t))
 
-cdef inline bint bitset_realloc(bitset_t bits, mp_bitcnt_t size) except -1:
+cdef inline int bitset_realloc(bitset_t bits, mp_bitcnt_t size) except -1:
     """
     Reallocate a bitset to size size. If reallocation is larger, new bitset
     does not contain any of the extra bits.
@@ -96,14 +95,10 @@ cdef inline bint bitset_realloc(bitset_t bits, mp_bitcnt_t size) except -1:
     if size <= 0:
         raise ValueError("bitset capacity must be greater than 0")
 
-    bits.limbs = (size - 1) / (8 * sizeof(mp_limb_t)) + 1
-    tmp = <mp_limb_t*>sage_realloc(bits.bits, bits.limbs * sizeof(mp_limb_t))
-    if tmp != NULL:
-        bits.bits = tmp
-    else:
-        bits.limbs = limbs_old
-        raise MemoryError
+    cdef mp_size_t limbs_new = (size - 1) / (8 * sizeof(mp_limb_t)) + 1
+    bits.bits = <mp_limb_t*>check_reallocarray(bits.bits, limbs_new, sizeof(mp_limb_t))
     bits.size = size
+    bits.limbs = limbs_new
 
     if bits.limbs > limbs_old:
         # Zero any extra limbs
@@ -116,7 +111,7 @@ cdef inline void bitset_free(bitset_t bits):
     """
     Deallocate the memory in bits.
     """
-    sage_free(bits.bits)
+    sig_free(bits.bits)
 
 cdef inline void bitset_clear(bitset_t bits):
     """
@@ -165,7 +160,7 @@ cdef inline bint mpn_equal_bits(mp_srcptr b1, mp_srcptr b2, mp_bitcnt_t n):
     cdef mp_limb_t b2h = b2[nlimbs]
     return (b1h ^ b2h) & mask == 0
 
-cdef inline bint mpn_equal_bits_shifted(mp_srcptr b1, mp_srcptr b2, mp_bitcnt_t n, mp_bitcnt_t offset):
+cdef bint mpn_equal_bits_shifted(mp_srcptr b1, mp_srcptr b2, mp_bitcnt_t n, mp_bitcnt_t offset):
     """
     Return ``True`` iff the first n bits of *b1 and the bits ranging from
     offset to offset+n of *b2 agree.
@@ -623,7 +618,7 @@ cdef void bitset_rshift(bitset_t r, bitset_t a, mp_bitcnt_t n):
     if n >= a.size:
         mpn_zero(r.bits, r.limbs)
         return
-    
+
     # Number of limbs on the right of a which will totally be shifted out
     cdef mp_size_t nlimbs = n >> index_shift
     # Number of limbs to be shifted assuming r is large enough
@@ -733,7 +728,7 @@ cdef char* bitset_chars(char* s, bitset_t bits, char zero=c'0', char one=c'1'):
     """
     cdef long i
     if s == NULL:
-        s = <char *>sage_malloc(bits.size + 1)
+        s = <char *>sig_malloc(bits.size + 1)
     for i from 0 <= i < bits.size:
         s[i] = one if bitset_in(bits, i) else zero
     s[bits.size] = 0
@@ -757,7 +752,7 @@ cdef bitset_string(bitset_t bits):
     cdef char* s = bitset_chars(NULL, bits)
     cdef object py_s
     py_s = s
-    sage_free(s)
+    sig_free(s)
     return py_s
 
 cdef list bitset_list(bitset_t bits):

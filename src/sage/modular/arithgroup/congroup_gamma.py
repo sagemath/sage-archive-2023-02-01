@@ -1,28 +1,27 @@
 r"""
 Congruence Subgroup `\Gamma(N)`
 """
+from __future__ import absolute_import
 
-################################################################################
-#
-#       Copyright (C) 2009, The Sage Group -- http://www.sagemath.org/
-#
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#  The full text of the GPL is available at:
-#
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#
-################################################################################
+#*****************************************************************************
+from six.moves import range
 
-from congroup_generic import CongruenceSubgroup
+from .congroup_generic import CongruenceSubgroup
 from sage.misc.all import prod
-from sage.rings.all import ZZ, Zmod, gcd, QQ
+from sage.rings.all import ZZ, Zmod, QQ
 from sage.rings.integer import GCD_list
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.matrix.constructor import matrix
 from sage.modular.cusps import Cusp
+from sage.arith.all import gcd
 
-from congroup_sl2z import SL2Z
+from .congroup_sl2z import SL2Z
 
 _gamma_cache = {}
 def Gamma_constructor(N):
@@ -123,11 +122,12 @@ class Gamma_class(CongruenceSubgroup):
         r"""
         Return the index of self in the full modular group. This is given by
 
-        .. math::
+        .. MATH::
 
           \prod_{\substack{p \mid N \\ \text{$p$ prime}}}\left(p^{3e}-p^{3e-2}\right).
 
-        EXAMPLE::
+        EXAMPLES::
+
             sage: [Gamma(n).index() for n in [1..19]]
             [1, 6, 24, 48, 120, 144, 336, 384, 648, 720, 1320, 1152, 2184, 2016, 2880, 3072, 4896, 3888, 6840]
             sage: Gamma(32041).index()
@@ -177,7 +177,7 @@ class Gamma_class(CongruenceSubgroup):
         r"""
         Return the number of irregular cusps of self. For principal congruence subgroups this is always 0.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma(17).nirregcusps()
             0
@@ -189,25 +189,25 @@ class Gamma_class(CongruenceSubgroup):
         Calculate the reduced representatives of the equivalence classes of
         cusps for this group. Adapted from code by Ron Evans.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma(8).cusps() # indirect doctest
             [0, 1/4, 1/3, 3/8, 1/2, 2/3, 3/4, 1, 4/3, 3/2, 5/3, 2, 7/3, 5/2, 8/3, 3, 7/2, 11/3, 4, 14/3, 5, 6, 7, Infinity]
         """
         n = self.level()
-        C=[QQ(x) for x in xrange(n)]
+        C = [QQ(x) for x in range(n)]
 
         n0=n//2
         n1=(n+1)//2
 
-        for r in xrange(1, n1):
+        for r in range(1, n1):
             if r > 1 and gcd(r,n)==1:
                 C.append(ZZ(r)/ZZ(n))
             if n0==n/2 and gcd(r,n0)==1:
                 C.append(ZZ(r)/ZZ(n0))
 
-        for s in xrange(2,n1):
-            for r in xrange(1, 1+n):
+        for s in range(2,n1):
+            for r in range(1, 1+n):
                 if GCD_list([s,r,n])==1:
                     # GCD_list is ~40x faster than gcd, since gcd wastes loads
                     # of time initialising a Sequence type.
@@ -252,7 +252,7 @@ class Gamma_class(CongruenceSubgroup):
         ALGORITHM: The cusps `u_1 / v_1` and `u_2 / v_2` are equivalent modulo
         `\Gamma(N)` if and only if `(u_1, v_1) = \pm (u_2, v_2) \bmod N`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma(7).are_equivalent(Cusp(2/3), Cusp(5/4))
             True
@@ -271,7 +271,7 @@ class Gamma_class(CongruenceSubgroup):
         subgroup. Since this subgroup is `\Gamma(N)` for `N \ge 2`, there are
         no such points, so we return 0.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma(89).nu3()
             0
@@ -286,7 +286,7 @@ class Gamma_class(CongruenceSubgroup):
         Return the image of this group modulo `N`, as a subgroup of `SL(2, \ZZ
         / N\ZZ)`. This is just the trivial subgroup.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma(3).image_mod_n()
             Matrix group over Ring of integers modulo 3 with 1 generators (
@@ -324,7 +324,7 @@ def _lift_pair(U,V,N):
     reasonably gracefully if ``(U, V, N)`` are not coprime, but only after
     wasting quite a lot of cycles!
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.modular.arithgroup.congroup_gamma import _lift_pair
         sage: _lift_pair(2,4,7)

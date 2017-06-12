@@ -65,7 +65,7 @@ upper half plane::
     sage: L.normalised_basis()
     (-1.37588604166076 - 2.58560946624443*I, -2.10339907847356 + 0.428378776460622*I)
 
-We test that bug #8415 (caused by a PARI bug fixed in v2.3.5) is OK::
+We test that bug :trac:`8415` (caused by a PARI bug fixed in v2.3.5) is OK::
 
     sage: E = EllipticCurve('37a')
     sage: K.<a> = QuadraticField(-7)
@@ -79,7 +79,7 @@ We test that bug #8415 (caused by a PARI bug fixed in v2.3.5) is OK::
 
 REFERENCES:
 
-.. [CT] J. E. Cremona and T. Thongjunthug, The Complex AGM, periods of
+.. [CT] \J. E. Cremona and T. Thongjunthug, The Complex AGM, periods of
    elliptic curves over $\CC$ and complex elliptic logarithms.
    Journal of Number Theory Volume 133, Issue 8, August 2013, pages
    2813-2841.
@@ -137,7 +137,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         - ``E`` -- an elliptic curve
 
-        - ``embedding`` (defult: ``None``) -- an embedding of the base
+        - ``embedding`` (default: ``None``) -- an embedding of the base
           field `K` of ``E`` into a real or complex field.  If
           ``None``:
 
@@ -397,7 +397,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: E.period_lattice().basis()
             (2.99345864623196, 2.45138938198679*I)
 
-        This shows that the issue reported at trac \#3954 is fixed::
+        This shows that the issue reported at :trac:`3954` is fixed::
 
             sage: E = EllipticCurve('37a')
             sage: b1 = E.period_lattice().basis(prec=30)
@@ -405,7 +405,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: b1 == b2
             True
 
-        This shows that the issue reported at trac \#4064 is fixed::
+        This shows that the issue reported at :trac:`4064` is fixed::
 
             sage: E = EllipticCurve('37a')
             sage: E.period_lattice().basis(prec=30)[0].parent()
@@ -592,12 +592,12 @@ class PeriodLattice_ell(PeriodLattice):
 
         if algorithm=='pari':
             if self.E.base_field() is QQ:
-                periods = self.E.pari_curve().omega(prec).python()
+                periods = self.E.pari_curve().omega(prec).sage()
                 return (R(periods[0]), C(periods[1]))
 
             from sage.libs.pari.all import pari
             E_pari = pari([R(self.embedding(ai).real()) for ai in self.E.a_invariants()]).ellinit()
-            periods = E_pari.omega(prec).python()
+            periods = E_pari.omega(prec).sage()
             return (R(periods[0]), C(periods[1]))
 
         if algorithm!='sage':
@@ -901,7 +901,7 @@ class PeriodLattice_ell(PeriodLattice):
             [ 3.81452977217854509 0.000000000000000000]
             [ 1.90726488608927255  1.34047785962440202]
 
-        See \#4388::
+        See :trac:`4388`::
 
             sage: L = EllipticCurve('11a1').period_lattice()
             sage: L.basis_matrix()
@@ -1051,7 +1051,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: abs(x1.real())+abs(x2.real())<1e-14
             True
             sage: x1.imag(),x2.imag(),x3
-            (-1.122462048309373?, 1.122462048309373?, -1)
+            (-1.122462048309373?, 1.122462048309373?, -1.000000000000000?)
 
         ::
 
@@ -1235,7 +1235,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         (complex number) The elliptic logarithm of the point `(xP,yP)`
         with respect to this period lattice.  If `E` is the elliptic
-        curve and `\sigma:K\to\CC` the embedding, the the returned
+        curve and `\sigma:K\to\CC` the embedding, the returned
         value `z` is such that `z\pmod{L}` maps to `(xP,yP)=\sigma(P)`
         under the standard Weierstrass isomorphism from `\CC/L` to
         `\sigma(E)`.  If ``reduce`` is ``True``, the output is reduced
@@ -1429,7 +1429,7 @@ class PeriodLattice_ell(PeriodLattice):
 
         (complex number) The elliptic logarithm of the point `P` with
         respect to this period lattice.  If `E` is the elliptic curve
-        and `\sigma:K\to\CC` the embedding, the the returned value `z`
+        and `\sigma:K\to\CC` the embedding, the returned value `z`
         is such that `z\pmod{L}` maps to `\sigma(P)` under the
         standard Weierstrass isomorphism from `\CC/L` to `\sigma(E)`.
         If ``reduce`` is ``True``, the output is reduced so that it is
@@ -1557,7 +1557,9 @@ class PeriodLattice_ell(PeriodLattice):
             sage: L.coordinates(L.elliptic_logarithm(E(e3,0)))
             (0.500000000000000, 0.000000000000000)
 
-        TESTS (see #10026 and #11767)::
+        TESTS:
+
+        See :trac:`10026` and :trac:`11767`::
 
             sage: K.<w> = QuadraticField(2)
             sage: E = EllipticCurve([ 0, -1, 1, -3*w -4, 3*w + 4 ])
@@ -1565,7 +1567,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: P,Q = T[2]
             sage: embs = K.embeddings(CC)
             sage: Lambda = E.period_lattice(embs[0])
-            sage: Lambda.elliptic_logarithm(P,100)
+            sage: Lambda.elliptic_logarithm(P+3*Q, 100)
             4.7100131126199672766973600998
             sage: R.<x> = QQ[]
             sage: K.<a> = NumberField(x^2 + x + 5)
@@ -1679,7 +1681,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: [embs[2](c) for c in Q]
             [0.259921049894873, -0.587401051968200, 1.00000000000000]
 
-        Test to show that #8820 is fixed::
+        Test to show that :trac:`8820` is fixed::
 
             sage: E = EllipticCurve('37a')
             sage: K.<a> = QuadraticField(-5)
@@ -1708,7 +1710,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: P.parent()
             Abelian group of points on Elliptic Curve defined by y^2 + 1.00000000000000*y = x^3 + (-1.00000000000000)*x over Complex Field with 53 bits of precision
 
-        Very small `z` are handled properly (see #8820)::
+        Very small `z` are handled properly (see :trac:`8820`)::
 
             sage: K.<a> = QuadraticField(-1)
             sage: E = EllipticCurve([0,0,0,a,0])

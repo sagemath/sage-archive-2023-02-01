@@ -25,9 +25,6 @@ Benchmarks are included in this paper: http://arxiv.org/abs/cs/0612085
 == License ==
 GPL v3+
 
-== SPKG Maintainers ==
-* Volker Braun
-
 == Upstream Contact ==
 http://www.cs.unipr.it/ppl/
 BUGSENG srl (http://bugseng.com)

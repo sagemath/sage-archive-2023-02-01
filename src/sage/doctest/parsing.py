@@ -1,4 +1,4 @@
-## -*- encoding: utf-8 -*-
+# -*- encoding: utf-8 -*-
 """
 Parsing docstrings
 
@@ -22,13 +22,19 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function, absolute_import
+from sage.misc.six import u
 
-
-import re, sys
+import re
+import sys
 import doctest
 import collections
 from sage.repl.preparse import preparse, strip_string_literals
+from Cython.Build.Dependencies import strip_string_literals as cython_strip_string_literals
 from functools import reduce
+
+
+from .external import available_software
 
 float_regex = re.compile('\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
 optional_regex = re.compile(r'(long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
@@ -59,6 +65,56 @@ RIFtol = RealIntervalField(64)
 # should use the correct pattern including \x9b. For now, we use this
 # form without \x9b:
 ansi_escape_sequence = re.compile(r'(\x1b[@-Z\\-~]|\x1b\[.*?[@-~])')
+
+
+def remove_unicode_u(string):
+    """
+    Given a string, try to remove all unicode u prefixes inside.
+
+    This will help to keep the same doctest results in Python2 and Python3.
+    The input string is typically the documentation of a method or function.
+    This string may contain some letters u that are unicode python2 prefixes.
+    The aim is to remove all of these u and only them.
+
+    INPUT:
+
+    - ``string`` -- either ``unicode`` or ``bytes`` (if ``bytes``, it
+      will be converted to ``unicode`` assuming UTF-8)
+
+    OUTPUT: ``unicode`` string
+
+    EXAMPLES::
+
+        sage: from sage.doctest.parsing import remove_unicode_u as remu
+        sage: remu("u'you'")
+        "'you'"
+        sage: remu('u')
+        'u'
+        sage: remu("[u'am', 'stram', u'gram']")
+        "['am', 'stram', 'gram']"
+        sage: remu('[u"am", "stram", u"gram"]')
+        '["am", "stram", "gram"]'
+
+    This deals correctly with nested quotes::
+
+        sage: str = '''[u"Singular's stuff", u'good']'''
+        sage: print(remu(str))
+        ["Singular's stuff", 'good']
+
+    TESTS:
+
+    This supports python2 str type as input::
+
+        sage: euro = "'€'"
+        sage: print(remu(euro))
+        '€'
+    """
+    stripped, replacements = cython_strip_string_literals(u(string),
+                                                          "__remove_unicode_u")
+    string = stripped.replace('u"', '"').replace("u'", "'")
+    for magic, literal in replacements.items():
+        string = string.replace(magic, literal)
+    return string
 
 
 def parse_optional_tags(string):
@@ -94,9 +150,9 @@ def parse_optional_tags(string):
 
     We don't parse inside strings::
 
-        sage: parse_optional_tags("    sage: print '  # long time'")
+        sage: parse_optional_tags("    sage: print('  # long time')")
         set()
-        sage: parse_optional_tags("    sage: print '  # long time'  # not tested")
+        sage: parse_optional_tags("    sage: print('  # long time')  # not tested")
         {'not tested'}
 
     UTF-8 works::
@@ -144,7 +200,7 @@ def parse_tolerance(source, want):
         sage: from sage.doctest.parsing import parse_tolerance
         sage: marked = parse_tolerance("sage: s.update(abs_tol = .0000001)", "")
         sage: type(marked)
-        <type 'str'>
+        <... 'str'>
         sage: marked = parse_tolerance("sage: s.update(tol = 0.1); s.rel_tol # abs tol     0.01 ", "")
         sage: marked.tol
         0
@@ -215,9 +271,9 @@ def get_source(example):
 
 def reduce_hex(fingerprints):
     """
-    Returns a symmetric function of the arguments as hex strings.
+    Return a symmetric function of the arguments as hex strings.
 
-    The arguments should be 32 character strings consiting of hex
+    The arguments should be 32 character strings consisting of hex
     digits: 0-9 and a-f.
 
     EXAMPLES::
@@ -327,7 +383,7 @@ class OriginalSource:
         'doctest_var = Integer(42); doctest_var**Integer(2)\n'
         sage: from sage.doctest.parsing import OriginalSource
         sage: with OriginalSource(ex):
-        ...       ex.source
+        ....:     ex.source
         'doctest_var = 42; doctest_var^2\n'
     """
     def __init__(self, example):
@@ -368,7 +424,7 @@ class OriginalSource:
             sage: ex = doctests[0].examples[0]
             sage: from sage.doctest.parsing import OriginalSource
             sage: with OriginalSource(ex): # indirect doctest
-            ...       ex.source
+            ....:     ex.source
             ...
             'doctest_var = 42; doctest_var^2\n'
         """
@@ -389,7 +445,7 @@ class OriginalSource:
             sage: ex = doctests[0].examples[0]
             sage: from sage.doctest.parsing import OriginalSource
             sage: with OriginalSource(ex): # indirect doctest
-            ...       ex.source
+            ....:     ex.source
             ...
             'doctest_var = 42; doctest_var^2\n'
             sage: ex.source # indirect doctest
@@ -438,7 +494,7 @@ class SageDocTestParser(doctest.DocTestParser):
             else:
                 self.optional_only = True
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Comparison.
 
@@ -450,21 +506,35 @@ class SageDocTestParser(doctest.DocTestParser):
             sage: DTP == DTP2
             False
         """
-        c = cmp(type(self), type(other))
-        if c: return c
-        return cmp(self.__dict__, other.__dict__)
+        if not isinstance(other, SageDocTestParser):
+            return False
+        return self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        """
+        Test for unequality.
+
+        EXAMPLES::
+
+            sage: from sage.doctest.parsing import SageDocTestParser
+            sage: DTP = SageDocTestParser(True, ('sage','magma','guava'))
+            sage: DTP2 = SageDocTestParser(False, ('sage','magma','guava'))
+            sage: DTP != DTP2
+            True
+        """
+        return not (self == other)
 
     def parse(self, string, *args):
         r"""
         A Sage specialization of :class:`doctest.DocTestParser`.
 
-        INPUTS:
+        INPUT:
 
         - ``string`` -- the string to parse.
-        - ``name`` -- optional string giving the name indentifying string,
+        - ``name`` -- optional string giving the name identifying string,
           to be used in error messages.
 
-        OUTPUTS:
+        OUTPUT:
 
         - A list consisting of strings and :class:`doctest.Example`
           instances.  There will be at least one string between
@@ -508,10 +578,10 @@ class SageDocTestParser(doctest.DocTestParser):
 
         You can use continuation lines::
 
-            sage: s = "sage: for i in range(4):\n....:     print i\n....:\n"
+            sage: s = "sage: for i in range(4):\n....:     print(i)\n....:\n"
             sage: ex = DTP2.parse(s)[1]
             sage: ex.source
-            'for i in range(Integer(4)):\n    print i\n'
+            'for i in range(Integer(4)):\n    print(i)\n'
 
         Sage currently accepts backslashes as indicating that the end
         of the current line should be joined to the next line.  This
@@ -521,7 +591,7 @@ class SageDocTestParser(doctest.DocTestParser):
 
             sage: n = 1234\
             ....:     5678
-            sage: print n
+            sage: print(n)
             12345678
             sage: type(n)
             <type 'sage.rings.integer.Integer'>
@@ -530,7 +600,7 @@ class SageDocTestParser(doctest.DocTestParser):
 
             sage: m = 8765\
             4321
-            sage: print m
+            sage: print(m)
             87654321
         """
         # Hack for non-standard backslash line escapes accepted by the current
@@ -563,8 +633,12 @@ class SageDocTestParser(doctest.DocTestParser):
                             optional_tags.remove('long time')
                         else:
                             continue
-                    if not (self.optional_tags is True or optional_tags.issubset(self.optional_tags)):
-                        continue
+                    if not self.optional_tags is True:
+                        extra = optional_tags - self.optional_tags # set difference
+                        if len(extra) > 0:
+                            if not('external' in self.optional_tags
+                                   and available_software.issuperset(extra)):
+                                continue
                 elif self.optional_only:
                     self.optionals['sage'] += 1
                     continue
@@ -614,7 +688,7 @@ class SageOutputChecker(doctest.OutputChecker):
 
         EXAMPLES::
 
-            sage: print 'This is \x1b[1mbold\x1b[0m text'
+            sage: print('This is \x1b[1mbold\x1b[0m text')
             This is <CSI-1m>bold<CSI-0m> text
 
         TESTS::
@@ -779,17 +853,26 @@ class SageOutputChecker(doctest.OutputChecker):
             RuntimeError
             sage: 1  # abs tol 2
             -0.5
-            sage: print "0.9999"    # rel tol 1e-4
+            sage: print("0.9999")    # rel tol 1e-4
             1.0
-            sage: print "1.00001"   # abs tol 1e-5
+            sage: print("1.00001")   # abs tol 1e-5
             1.0
             sage: 0  # rel tol 1
             1
 
         Spaces before numbers or between the sign and number are ignored::
 
-            sage: print "[ - 1, 2]"  # abs tol 1e-10
+            sage: print("[ - 1, 2]")  # abs tol 1e-10
             [-1,2]
+
+        Tolerance for string results with unicode prefix::
+
+            sage: a = u'Cyrano'; a
+            'Cyrano'
+            sage: b = [u'Fermat', u'Euler']; b
+            ['Fermat',  'Euler']
+            sage: c = u'you'; c
+            'you'
         """
         got = self.human_readable_escape_sequences(got)
         if isinstance(want, MarkedOutput):
@@ -813,8 +896,15 @@ class SageOutputChecker(doctest.OutputChecker):
                 # The doctest is successful if the "want" and "got"
                 # intervals have a non-empty intersection
                 return all(a.overlaps(b) for a, b in zip(want_intervals, got_values))
+
         ok = doctest.OutputChecker.check_output(self, want, got, optionflags)
-        return ok
+        if ok or 'u' not in got:
+            return ok
+
+        # accept the same answer where strings have unicode prefix u
+        # for smoother transition to python3
+        got = remove_unicode_u(got)
+        return doctest.OutputChecker.check_output(self, want, got, optionflags)
 
     def output_difference(self, example, got, optionflags):
         r"""
@@ -854,7 +944,7 @@ class SageOutputChecker(doctest.OutputChecker):
 
         ::
 
-            sage: print OC.output_difference(tenabs,nf,optflag)
+            sage: print(OC.output_difference(tenabs,nf,optflag))
             Expected:
                 10.0
             Got:
@@ -862,7 +952,7 @@ class SageOutputChecker(doctest.OutputChecker):
             Tolerance exceeded:
                 10.0 vs 9.5, tolerance 5e-01 > 1e-01
 
-            sage: print OC.output_difference(tentol,zero,optflag)
+            sage: print(OC.output_difference(tentol,zero,optflag))
             Expected:
                 10.0
             Got:
@@ -870,7 +960,7 @@ class SageOutputChecker(doctest.OutputChecker):
             Tolerance exceeded:
                 10.0 vs 0.0, tolerance 1e+00 > 1e-01
 
-            sage: print OC.output_difference(tentol,eps,optflag)
+            sage: print(OC.output_difference(tentol,eps,optflag))
             Expected:
                 10.0
             Got:
@@ -878,7 +968,7 @@ class SageOutputChecker(doctest.OutputChecker):
             Tolerance exceeded:
                 10.0 vs -0.05, tolerance 1e+00 > 1e-01
 
-            sage: print OC.output_difference(tlist,L,optflag)
+            sage: print(OC.output_difference(tlist,L,optflag))
             Expected:
                 [10.0, 10.0, 10.0, 10.0, 10.0, 10.0]
             Got:
@@ -889,7 +979,7 @@ class SageOutputChecker(doctest.OutputChecker):
 
         TESTS::
 
-            sage: print OC.output_difference(tenabs,zero,optflag)
+            sage: print(OC.output_difference(tenabs,zero,optflag))
             Expected:
                 10.0
             Got:
@@ -897,7 +987,7 @@ class SageOutputChecker(doctest.OutputChecker):
             Tolerance exceeded:
                 10.0 vs 0.0, tolerance 1e+01 > 1e-01
 
-            sage: print OC.output_difference(tenrel,zero,optflag)
+            sage: print(OC.output_difference(tenrel,zero,optflag))
             Expected:
                 10.0
             Got:
@@ -905,7 +995,7 @@ class SageOutputChecker(doctest.OutputChecker):
             Tolerance exceeded:
                 10.0 vs 0.0, tolerance 1e+00 > 1e-01
 
-            sage: print OC.output_difference(tenrel,eps,optflag)
+            sage: print(OC.output_difference(tenrel,eps,optflag))
             Expected:
                 10.0
             Got:
@@ -913,7 +1003,7 @@ class SageOutputChecker(doctest.OutputChecker):
             Tolerance exceeded:
                 10.0 vs -0.05, tolerance 1e+00 > 1e-01
 
-            sage: print OC.output_difference(zerotol,ten,optflag)
+            sage: print(OC.output_difference(zerotol,ten,optflag))
             Expected:
                 0.0
             Got:
@@ -921,7 +1011,7 @@ class SageOutputChecker(doctest.OutputChecker):
             Tolerance exceeded:
                 0.0 vs 10.05, tolerance 1e+01 > 1e-01
 
-            sage: print OC.output_difference(zeroabs,ten,optflag)
+            sage: print(OC.output_difference(zeroabs,ten,optflag))
             Expected:
                 0.0
             Got:
@@ -929,7 +1019,7 @@ class SageOutputChecker(doctest.OutputChecker):
             Tolerance exceeded:
                 0.0 vs 10.05, tolerance 1e+01 > 1e-01
 
-            sage: print OC.output_difference(zerorel,eps,optflag)
+            sage: print(OC.output_difference(zerorel,eps,optflag))
             Expected:
                 0.0
             Got:
@@ -937,7 +1027,7 @@ class SageOutputChecker(doctest.OutputChecker):
             Tolerance exceeded:
                 0.0 vs -0.05, tolerance inf > 1e-01
 
-            sage: print OC.output_difference(zerorel,ten,optflag)
+            sage: print(OC.output_difference(zerorel,ten,optflag))
             Expected:
                 0.0
             Got:

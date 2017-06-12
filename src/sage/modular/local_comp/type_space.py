@@ -13,6 +13,8 @@ subgroup. This space is the key to computing the isomorphism class of the local
 component of the newform at `p`.
 
 """
+from __future__ import absolute_import
+from six.moves import range
 
 import operator
 from sage.misc.misc import verbose, cputime
@@ -22,12 +24,12 @@ from sage.modular.modform.constructor import ModularForms
 from sage.modular.modsym.modsym import ModularSymbols
 from sage.rings.all import ZZ, Zmod, QQ
 from sage.rings.fast_arith import prime_range
-from sage.rings.arith import crt
+from sage.arith.all import crt
 from sage.structure.sage_object import SageObject
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method, cached_function
 
-from liftings import lift_gen_to_gamma1, lift_ramified
+from .liftings import lift_gen_to_gamma1, lift_ramified
 
 @cached_function
 def example_type_space(example_no = 0):
@@ -35,11 +37,11 @@ def example_type_space(example_no = 0):
     Quickly return an example of a type space. Used mainly to speed up
     doctesting.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.modular.local_comp.type_space import example_type_space
         sage: example_type_space()  # takes a while but caches stuff (21s on sage.math, 2012)
-        6-dimensional type space at prime 7 of form q + q^2 + (-1/2*a1 + 1/2)*q^3 + q^4 + (a1 - 1)*q^5 + O(q^6)
+        6-dimensional type space at prime 7 of form q + ... + O(q^6)
 
     The above test takes a long time, but it precomputes and caches
     various things such that subsequent doctests can be very quick.
@@ -155,11 +157,11 @@ class TypeSpace(SageObject):
 
     def __init__(self, f, p, base_extend=True):
         r"""
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.type_space import example_type_space
             sage: example_type_space() # indirect doctest
-            6-dimensional type space at prime 7 of form q + q^2 + (-1/2*a1 + 1/2)*q^3 + q^4 + (a1 - 1)*q^5 + O(q^6)
+            6-dimensional type space at prime 7 of form q + ... + O(q^6)
         """
         self._p = p
         self._f = f
@@ -182,11 +184,11 @@ class TypeSpace(SageObject):
         r"""
         String representation of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.type_space import example_type_space
             sage: example_type_space()._repr_()
-            '6-dimensional type space at prime 7 of form q + q^2 + (-1/2*a1 + 1/2)*q^3 + q^4 + (a1 - 1)*q^5 + O(q^6)'
+            '6-dimensional type space at prime 7 of form q + ... + O(q^6)'
         """
         return "%s-dimensional type space at prime %s of form %s" % (self.t_space.rank(), self.prime(), self.form())
 
@@ -194,7 +196,7 @@ class TypeSpace(SageObject):
         r"""
         Return the prime `p`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.type_space import example_type_space
             sage: example_type_space().prime()
@@ -206,11 +208,11 @@ class TypeSpace(SageObject):
         r"""
         The newform of which this is the type space.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.type_space import example_type_space
             sage: example_type_space().form()
-            q + q^2 + (-1/2*a1 + 1/2)*q^3 + q^4 + (a1 - 1)*q^5 + O(q^6)
+            q + ... + O(q^6)
         """
         return self._f
 
@@ -218,7 +220,7 @@ class TypeSpace(SageObject):
         r"""
         Exponent of `p` dividing the level of the form.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.type_space import example_type_space
             sage: example_type_space().conductor()
@@ -230,7 +232,7 @@ class TypeSpace(SageObject):
         r"""
         Exponent of `p` dividing the conductor of the character of the form.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.type_space import example_type_space
             sage: example_type_space().character_conductor()
@@ -243,7 +245,7 @@ class TypeSpace(SageObject):
         Largest integer `u` such that level of `f_\chi` = level of `f` for all
         Dirichlet characters `\chi` modulo `p^u`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.type_space import example_type_space
             sage: example_type_space().u()
@@ -259,7 +261,7 @@ class TypeSpace(SageObject):
         r"""
         Return the underlying vector space of this type space.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.type_space import example_type_space
             sage: example_type_space().free_module()
@@ -273,7 +275,7 @@ class TypeSpace(SageObject):
         `f` and its Galois conjugates (as a subspace of the vector space
         returned by :meth:`~free_module`).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.type_space import example_type_space
             sage: T = example_type_space(); T.eigensymbol_subspace()
@@ -291,7 +293,7 @@ class TypeSpace(SageObject):
         r"""
         The level away from `p`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.type_space import example_type_space
             sage: example_type_space().tame_level()
@@ -304,7 +306,7 @@ class TypeSpace(SageObject):
         Return a `\Gamma_H` group which is the level of all of the relevant
         twists of `f`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.type_space import example_type_space
             sage: example_type_space().group()
@@ -333,7 +335,7 @@ class TypeSpace(SageObject):
 
         The result is cached.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.type_space import example_type_space
             sage: example_type_space().is_minimal()
@@ -351,7 +353,7 @@ class TypeSpace(SageObject):
 
         An error will be raised if `f` is already minimal.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.type_space import TypeSpace, example_type_space
             sage: T = example_type_space(1)
@@ -437,7 +439,7 @@ class TypeSpace(SageObject):
         Calculate the action of the matrix [0, -1; 1, 0] on the type space,
         in the unramified (even level) case.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.type_space import example_type_space
             sage: T = example_type_space(2)
@@ -470,7 +472,7 @@ class TypeSpace(SageObject):
           converted into an element of the matrix group `{\rm SL}_2(\ZZ / p^u
           \ZZ)`).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.type_space import example_type_space
             sage: T = example_type_space(2)
@@ -507,7 +509,7 @@ class TypeSpace(SageObject):
 
          For internal use (called by :meth:`~rho`).
 
-         EXAMPLE::
+         EXAMPLES::
 
              sage: from sage.modular.local_comp.type_space import example_type_space
              sage: T = example_type_space(3)
@@ -592,7 +594,7 @@ class TypeSpace(SageObject):
         MS = rgens[0].parent()
         for m in MS.basis():
             rows.append([])
-            for i in xrange(len(gens)):
+            for i in range(len(gens)):
                 rows[-1] += (m - rgensinv[i] * m * rgensconj[i]).list()
         S = matrix(rows).left_kernel()
         return [MS(u.list()) for u in S.gens()]
@@ -602,7 +604,7 @@ class TypeSpace(SageObject):
         Calculate and store the data necessary to extend the action of `S(K_0)`
         to `K_0`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.type_space import example_type_space
             sage: example_type_space(2).rho([2,0,0,1]) # indirect doctest
@@ -621,13 +623,13 @@ class TypeSpace(SageObject):
         v = self.eigensymbol_subspace().gen(0)
         w = V.submodule_with_basis([m * v for m in mats]).coordinates(v) #v * self.e_space.diamond_eigenvalue(crt(a, 1, f, self.tame_level())))
         self._a = a
-        self._amat = sum([mats[i] * w[i] for i in xrange(len(mats))])
+        self._amat = sum([mats[i] * w[i] for i in range(len(mats))])
 
     def rho(self, g):
         r"""
         Calculate the action of the group element `g` on the type space.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.type_space import example_type_space
             sage: T = example_type_space(2)
@@ -706,7 +708,7 @@ class TypeSpace(SageObject):
         Return the action of [0,-1,p,0], in the ramified (odd p-power level)
         case.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.local_comp.type_space import example_type_space
             sage: T = example_type_space(3)

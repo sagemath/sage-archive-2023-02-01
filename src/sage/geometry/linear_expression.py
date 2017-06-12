@@ -2,8 +2,8 @@
 Linear Expressions
 
 A linear expression is just a linear polynomial in some (fixed)
-variables. This class only implements linear expressions for others to
-use.
+variables (allowing a nonzero constant term). This class only implements
+linear expressions for others to use.
 
 EXAMPLES::
 
@@ -12,6 +12,8 @@ EXAMPLES::
     Module of linear expressions in variables x, y, z over Rational Field
     sage: x + 2*y + 3*z + 4
     x + 2*y + 3*z + 4
+    sage: L(4)
+    0*x + 0*y + 0*z + 4
 
 You can also pass coefficients and a constant term to construct linear
 expressions::
@@ -23,7 +25,7 @@ expressions::
     sage: L([4, 1, 2, 3])   # note: constant is first in single-tuple notation
     x + 2*y + 3*z + 4
 
-The linear expressions are a module under the base ring, so you can
+The linear expressions are a module over the base ring, so you can
 add them and multiply them with scalars::
 
     sage: m = x + 2*y + 3*z + 4
@@ -34,8 +36,10 @@ add them and multiply them with scalars::
     sage: m-m
     0*x + 0*y + 0*z + 0
 """
+from six.moves import zip
 
 from sage.structure.parent import Parent
+from sage.structure.richcmp import richcmp
 from sage.structure.element import ModuleElement
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
@@ -91,9 +95,9 @@ class LinearExpression(ModuleElement):
         self._const = constant
         if check:
             if self._coeffs.parent() is not self.parent().ambient_module():
-                raise ValueError("cofficients are not in the ambient module")
+                raise ValueError("coefficients are not in the ambient module")
             if not self._coeffs.is_immutable():
-                raise ValueError("cofficients are not immutable")
+                raise ValueError("coefficients are not immutable")
             if self._const.parent() is not self.parent().base_ring():
                 raise ValueError("the constant is not in the base ring")
             
@@ -160,6 +164,32 @@ class LinearExpression(ModuleElement):
             [4, 1, 2, 3]
         """
         return [self._const] + list(self._coeffs)
+
+    dense_coefficient_list = coefficients
+
+    def monomial_coefficients(self, copy=True):
+        """
+        Return a dictionary whose keys are indices of basis elements in
+        the support of ``self`` and whose values are the corresponding
+        coefficients.
+
+        INPUT:
+
+        - ``copy`` -- ignored
+
+        EXAMPLES::
+
+            sage: from sage.geometry.linear_expression import LinearExpressionModule
+            sage: L.<x,y,z> = LinearExpressionModule(QQ)
+            sage: linear = L([1, 2, 3], 4)
+            sage: sorted(linear.monomial_coefficients().items())
+            [(0, 1), (1, 2), (2, 3), ('b', 4)]
+        """
+        zero = self.parent().base_ring().zero()
+        d = {i: v for i,v in enumerate(self._coeffs) if v != zero}
+        if self._const != zero:
+            d['b'] = self._const
+        return d
 
     def _repr_vector(self, variable='x'):
         """
@@ -235,8 +265,8 @@ class LinearExpression(ModuleElement):
             '0'
         """
         atomic_repr = self.parent().base_ring()._repr_option('element_is_atomic')
-        names = [multiplication+n for n in self.parent()._names]
-        terms = zip(self._coeffs, names)
+        names = [multiplication + n for n in self.parent()._names]
+        terms = list(zip(self._coeffs, names))
         if include_constant:
             terms += [(self._const, '')]
         if not include_zero:
@@ -277,7 +307,7 @@ class LinearExpression(ModuleElement):
         coeffs.set_immutable()
         return self.__class__(self.parent(), coeffs, const)
     
-    def _rmul_(self, scalar):
+    def _lmul_(self, scalar):
         """
         Multiply a linear expression by a scalar.
 
@@ -305,8 +335,6 @@ class LinearExpression(ModuleElement):
         coeffs = scalar * self._coeffs
         coeffs.set_immutable()
         return self.__class__(self.parent(), coeffs, const)
-
-    _lmul_ = _rmul_
         
     def _acted_upon_(self, scalar, self_on_left):
         """
@@ -351,7 +379,19 @@ class LinearExpression(ModuleElement):
             return self
         return P.change_ring(base_ring)(self)
 
-    def __cmp__(self, other):
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.geometry.linear_expression import LinearExpressionModule
+            sage: L.<x> = LinearExpressionModule(QQ)
+            sage: hash(L([0,1]))
+            3430019387558 # 64-bit
+            -1659481946   # 32-bit
+        """
+        return hash(self._coeffs) ^ hash(self._const)
+
+    def _richcmp_(self, other, op):
         """
         Compare two linear expressions.
 
@@ -378,11 +418,8 @@ class LinearExpression(ModuleElement):
             sage: x == 'test'
             False
         """
-        assert type(self) is type(other) and self.parent() is other.parent()  # guaranteed by framework
-        c = cmp(self._coeffs, other._coeffs)
-        if c != 0: return c
-        c = cmp(self._const, other._const)
-        return c
+        return richcmp((self._coeffs, self._const),
+                (other._coeffs, other._const), op)
 
     def evaluate(self, point):
         """
@@ -398,7 +435,7 @@ class LinearExpression(ModuleElement):
         The linear expression `Ax + b` evaluated at the point `x`.
 
         EXAMPLES::
-        
+
             sage: from sage.geometry.linear_expression import LinearExpressionModule
             sage: L.<x,y> = LinearExpressionModule(QQ)
             sage: ex = 2*x + 3* y + 4
@@ -458,9 +495,31 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
             sage: TestSuite(L).run()
         """
         from sage.categories.modules import Modules
-        super(LinearExpressionModule, self).__init__(base_ring, category=Modules(base_ring))
+        super(LinearExpressionModule, self).__init__(base_ring, category=Modules(base_ring).WithBasis().FiniteDimensional())
         self._names = names
-        
+
+    @cached_method
+    def basis(self):
+        """
+        Return a basis of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.linear_expression import LinearExpressionModule
+            sage: L = LinearExpressionModule(QQ, ('x', 'y', 'z'))
+            sage: list(L.basis())
+            [x + 0*y + 0*z + 0,
+             0*x + y + 0*z + 0,
+             0*x + 0*y + z + 0,
+             0*x + 0*y + 0*z + 1]
+        """
+        from sage.sets.family import Family
+        gens = self.gens()
+        d = {i: g for i,g in enumerate(gens)}
+        d['b'] = self.element_class(self, self.ambient_module().zero(),
+                                    self.base_ring().one())
+        return Family(range(len(gens)) + ['b'], lambda i: d[i])
+
     @cached_method
     def ngens(self):
         """
@@ -482,7 +541,7 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
     @cached_method
     def gens(self):
         """
-        Return the generators.
+        Return the generators of ``self``.
         
         OUTPUT:
 
@@ -554,7 +613,7 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
             x + 2*y + 3*z + 4
 
         Construct from linear expression::
-       
+
             sage: M = LinearExpressionModule(ZZ, ('u', 'v', 'w'))
             sage: m = M([1, 2, 3], 4)
             sage: L._element_constructor(m)
@@ -576,13 +635,13 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
             else:
                 # Construct from list/tuple/iterable::
                 try:
-                    arg0 = arg0.coefficients()
+                    arg0 = arg0.dense_coefficient_list()
                 except AttributeError:
                     arg0 = list(arg0)
                 const = arg0[0]
                 coeffs = arg0[1:]
         else:
-            # arg1 is not None, construct from coeffients and constant term::
+            # arg1 is not None, construct from coeffients and constant term
             coeffs = list(arg0)
             const = arg1
         coeffs = self.ambient_module()(coeffs)
@@ -669,7 +728,7 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
         Return whether there is a coercion.
    
         TESTS::
-        
+
             sage: from sage.geometry.linear_expression import LinearExpressionModule
             sage: L.<x> = LinearExpressionModule(QQ)
             sage: M.<y> = LinearExpressionModule(ZZ)

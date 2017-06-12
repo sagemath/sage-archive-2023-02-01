@@ -11,11 +11,14 @@ document.
 Sage example in ./recequadiff.tex, line 110::
 
   sage: x = var('x')
-  sage: y = function('y', x)
+  sage: y = function('y')(x)
+  sage: _C = SR.var("_C")
+  sage: _K1 = SR.var("_K1")
+  sage: _K2 = SR.var("_K2")
 
 Sage example in ./recequadiff.tex, line 179::
 
-  sage: x = var('x'); y = function('y', x)
+  sage: x = var('x'); y = function('y')(x)
 
 Sage example in ./recequadiff.tex, line 182::
 
@@ -45,24 +48,24 @@ Sage example in ./recequadiff.tex, line 227::
 Sage example in ./recequadiff.tex, line 244::
 
   sage: desolve(diff(y,x) == (cos(y)-2*x)/(y+x*sin(y)), y,
-  ...           show_method=True)
+  ....:         show_method=True)
   [x^2 - x*cos(y(x)) + 1/2*y(x)^2 == _C, 'exact']
 
 Sage example in ./recequadiff.tex, line 263::
 
   sage: desolve(diff(y,x) == x*y^2+y/x-1/x^2, y,
-  ...           contrib_ode=True, show_method=True)[1]
+  ....:         contrib_ode=True, show_method=True)[1]
   'riccati'
 
 Sage example in ./recequadiff.tex, line 279::
 
   sage: desolve(y == x*diff(y,x)-diff(y,x)^2, y,
-  ...           contrib_ode=True, show_method=True)
+  ....:         contrib_ode=True, show_method=True)
   [[y(x) == -_C^2 + _C*x, y(x) == 1/4*x^2], 'clairault']
 
 Sage example in ./recequadiff.tex, line 293::
 
-  sage: x = var('x'); y = function('y', x)
+  sage: x = var('x'); y = function('y')(x)
 
 Sage example in ./recequadiff.tex, line 297::
 
@@ -88,7 +91,7 @@ Sage example in ./recequadiff.tex, line 327::
 
 Sage example in ./recequadiff.tex, line 338::
 
-  sage: x = var('x'); y = function('y', x)
+  sage: x = var('x'); y = function('y')(x)
   sage: desolve(diff(y,x)*log(y) == y*sin(x), y, show_method=True)
   [1/2*log(y(x))^2 == _C - cos(x), 'separable']
 
@@ -104,10 +107,8 @@ Sage example in ./recequadiff.tex, line 356::
 
 Sage example in ./recequadiff.tex, line 367::
 
-  sage: solve(ed, y)[0].subs(_C==5).rhs()
-  Traceback (most recent call last):
-  ...
-  NameError: name '_C' is not defined
+  sage: solve(ed, y)[0].subs(_C == 5).rhs()
+  e^(-sqrt(-2*cos(x) + 10))
 
 Sage example in ./recequadiff.tex, line 377::
 
@@ -129,23 +130,23 @@ Sage example in ./recequadiff.tex, line 408::
 
   sage: P = Graphics()
   sage: for k in range(1,20,2):
-  ...       P += plot(solve(ed, y)[0].subs(c==1+k/4).rhs(), x, -3, 3)
+  ....:     P += plot(solve(ed, y)[0].subs(c == 1+k/4).rhs(), x, -3, 3)
   sage: P
-  Graphics object consisting of 11 graphics primitives
+  Graphics object consisting of 1... graphics primitives
 
 Sage example in ./recequadiff.tex, line 426::
 
   sage: P = Graphics()
   sage: for j in [0,1]:
-  ...       for k in range(1,10,2):
-  ...           f = solve(ed,y)[j].subs(c==2+0.25*k).rhs()
-  ...           P += plot(f, x, -3, 3)
+  ....:     for k in range(1,10,2):
+  ....:         f = solve(ed,y)[j].subs(c == 2+0.25*k).rhs()
+  ....:         P += plot(f, x, -3, 3)
   sage: P
   Graphics object consisting of 10 graphics primitives
 
 Sage example in ./recequadiff.tex, line 472::
 
-  sage: u = function('u',x)
+  sage: u = function('u')(x)
   sage: y = x*u
   sage: DE = x*diff(y,x) == y + sqrt(x**2 + y**2)
 
@@ -157,7 +158,7 @@ Sage example in ./recequadiff.tex, line 488::
 
   sage: assume(x>0)
   sage: desolve(DE, u)
-  x == _C*e^(arcsinh(x^2*u(x)/sqrt(x^4)))
+  x == _C*e^arcsinh(u(x))
 
 Sage example in ./recequadiff.tex, line 505::
 
@@ -180,13 +181,13 @@ Sage example in ./recequadiff.tex, line 535::
 
   sage: P = Graphics()
   sage: for k in range(-19,19,2):
-  ...       P += plot(y(x).subs(c == 1/k), x, 0, 3)
+  ....:     P += plot(y(x).subs(c == 1/k), x, 0, 3)
   sage: P
   Graphics object consisting of 19 graphics primitives
 
 Sage example in ./recequadiff.tex, line 567::
 
-  sage: x = var('x'); y = function('y', x); a, b = var('a, b')
+  sage: x = var('x'); y = function('y')(x); a, b = var('a, b')
   sage: DE = diff(y,x) - a*y == -b*y**2
   sage: sol(x) = desolve(DE,[y,x]); sol(x)
   -(log(b*y(x) - a) - log(y(x)))/a == _C + x
@@ -194,20 +195,20 @@ Sage example in ./recequadiff.tex, line 567::
 Sage example in ./recequadiff.tex, line 575::
 
   sage: Sol(x) = solve(sol, y)[0]; Sol(x)
-  log(y(x)) == (_C + x)*a + log(b*y(x) - a)
+  log(y(x)) == _C*a + a*x + log(b*y(x) - a)
 
 Sage example in ./recequadiff.tex, line 582::
 
   sage: Sol(x) = Sol(x).lhs()-Sol(x).rhs(); Sol(x)
-  -(_C + x)*a - log(b*y(x) - a) + log(y(x))
+  -_C*a - a*x - log(b*y(x) - a) + log(y(x))
   sage: Sol = Sol.simplify_log(); Sol(x)
-  -(_C + x)*a + log(y(x)/(b*y(x) - a))
+  -_C*a - a*x + log(y(x)/(b*y(x) - a))
   sage: solve(Sol, y)[0].simplify()
   y(x) == a*e^(_C*a + a*x)/(b*e^(_C*a + a*x) - 1)
 
 Sage example in ./recequadiff.tex, line 602::
 
-  sage: x = var('x'); y = function('y', x)
+  sage: x = var('x'); y = function('y')(x)
   sage: DE = diff(y,x,2)+3*y == x^2-7*x+31
   sage: desolve(DE, y).expand()
   1/3*x^2 + _K2*cos(sqrt(3)*x) + _K1*sin(sqrt(3)*x) - 7/3*x + 91/9
@@ -226,15 +227,15 @@ Sage example in ./recequadiff.tex, line 621::
 
 Sage example in ./recequadiff.tex, line 674::
 
-  sage: x, t = var('x, t'); f = function('f',x); g = function('g',t)
+  sage: x, t = var('x, t'); f = function('f')(x); g = function('g')(t)
   sage: z = f*g
   sage: eq(x,t) = diff(z,x,2) == diff(z,t); eq(x,t)
-  g(t)*D[0, 0](f)(x) == f(x)*D[0](g)(t)
+    g(t)*diff(f(x), x, x) == f(x)*diff(g(t), t)
 
 Sage example in ./recequadiff.tex, line 688::
 
   sage: eqn = eq/z; eqn(x,t)
-  D[0, 0](f)(x)/f(x) == D[0](g)(t)/g(t)
+    diff(f(x), x, x)/f(x) == diff(g(t), t)/g(t)
 
 Sage example in ./recequadiff.tex, line 702::
 
@@ -261,7 +262,7 @@ Sage example in ./recequadiff.tex, line 728::
 
 Sage example in ./recequadiff.tex, line 782::
 
-  sage: x, s = var('x, s'); f = function('f',x)
+  sage: x, s = var('x, s'); f = function('f')(x)
   sage: f(x) = sin(x); f.laplace(x,s)
   x |--> 1/(s^2 + 1)
 
@@ -278,7 +279,7 @@ Sage example in ./recequadiff.tex, line 807::
 
 Sage example in ./recequadiff.tex, line 818::
 
-  sage: x = var('x'); y = function('y',x)
+  sage: x = var('x'); y = function('y')(x)
   sage: eq = diff(y,x,x) - 3*diff(y,x) - 4*y - sin(x) == 0
   sage: desolve_laplace(eq, y)
   1/85*(17*y(0) + 17*D[0](y)(0) + 1)*e^(4*x) + 1/10*(8*y(0)
@@ -288,8 +289,8 @@ Sage example in ./recequadiff.tex, line 818::
 
 Sage example in ./recequadiff.tex, line 869::
 
-  sage: x = var('x'); y1 = function('y1', x)
-  sage: y2 = function('y2', x); y3 = function('y3', x)
+  sage: x = var('x'); y1 = function('y1')(x)
+  sage: y2 = function('y2')(x); y3 = function('y3')(x)
   sage: y = vector([y1, y2, y3])
   sage: A = matrix([[2,-2,0],[-2,0,2],[0,2,2]])
   sage: system = [diff(y[i], x) - (A * y)[i] for i in range(3)]
@@ -300,7 +301,7 @@ Sage example in ./recequadiff.tex, line 869::
 
 Sage example in ./recequadiff.tex, line 913::
 
-  sage: x = var('x'); y1 = function('y1', x); y2 = function('y2', x)
+  sage: x = var('x'); y1 = function('y1')(x); y2 = function('y2')(x)
   sage: y = vector([y1,y2])
   sage: A = matrix([[3,-4],[1,3]])
   sage: system = [diff(y[i], x) - (A * y)[i] for i in range(2)]
@@ -309,8 +310,8 @@ Sage example in ./recequadiff.tex, line 913::
 
 Sage example in ./recequadiff.tex, line 966::
 
-  sage: x = var('x'); u1 = function('u1', x); u2 = function('u2', x)
-  sage: u3 = function('u3', x); u4 = function('u4', x)
+  sage: x = var('x'); u1 = function('u1')(x); u2 = function('u2')(x)
+  sage: u3 = function('u3')(x); u4 = function('u4')(x)
   sage: u = vector([u1,u2,u3,u4])
   sage: A = matrix([[0,0,1,0],[0,0,0,1],[2,-6,1,3],[-2,6,1,-1]])
   sage: system = [diff(u[i], x) - (A*u)[i] for i in range(4)]
@@ -330,27 +331,27 @@ Sage example in ./recequadiff.tex, line 977::
 
 Sage example in ./recequadiff.tex, line 1095::
 
-  sage: x = var('x'); f = function('f',x)
+  sage: x = var('x'); f = function('f')(x)
   sage: f(x) = 3.83*x*(1 - x/100000)
   sage: def u(n):
-  ...       if n==0: return(20000)
-  ...       else: return f(u(n-1))
+  ....:     if n==0: return(20000)
+  ....:     else: return f(u(n-1))
 
 Sage example in ./recequadiff.tex, line 1105::
 
   sage: def v(n):
-  ...       V = 20000;
-  ...       for k in [1..n]:
-  ...           V = f(V)
-  ...       return V
+  ....:     V = 20000;
+  ....:     for k in [1..n]:
+  ....:         V = f(V)
+  ....:     return V
 
 Sage example in ./recequadiff.tex, line 1118::
 
   sage: def nuage(u,n):
-  ...       L = [[0,u(0)]];
-  ...       for k in [1..n]:
-  ...           L += [[k,u(k)]]
-  ...       points(L).show()
+  ....:     L = [[0,u(0)]];
+  ....:     for k in [1..n]:
+  ....:         L += [[k,u(k)]]
+  ....:     points(L).show()
 
 Sage example in ./recequadiff.tex, line 1128::
 
@@ -359,13 +360,13 @@ Sage example in ./recequadiff.tex, line 1128::
 Sage example in ./recequadiff.tex, line 1144::
 
   sage: def escargot(f,x,u0,n,xmin,xmax):
-  ...       u = u0
-  ...       P = plot(x, x, xmin, xmax, color='gray')
-  ...       for i in range(n):
-  ...           P += line([[u,u],[u,f(u)],[f(u),f(u)]], color = 'red')
-  ...           u = f(u)
-  ...       P += f.plot(x, xmin, xmax, color='blue') # Courbe de f
-  ...       P.show()
+  ....:     u = u0
+  ....:     P = plot(x, x, xmin, xmax, color='gray')
+  ....:     for i in range(n):
+  ....:         P += line([[u,u],[u,f(u)],[f(u),f(u)]], color = 'red')
+  ....:         u = f(u)
+  ....:     P += f.plot(x, xmin, xmax, color='blue') # Courbe de f
+  ....:     P.show()
 
 Sage example in ./recequadiff.tex, line 1157::
 

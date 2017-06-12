@@ -14,7 +14,7 @@ Each is actually a graded Hopf algebra whose basis is indexed by
 integer partitions::
 
     sage: s.category()
-    Category of bases of Symmetric Functions over Rational Field
+    Category of graded bases of Symmetric Functions over Rational Field
     sage: s.basis().keys()
     Partitions
 
@@ -195,6 +195,7 @@ AUTHORS:
 - Darij Grinberg (2013) Sym over rings that are not characteristic 0
 
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Anne Schilling <anne at math.ucdavis.edu>
@@ -216,6 +217,8 @@ from sage.rings.all import Integer, PolynomialRing, QQ, ZZ
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.combinat.partition import _Partitions, Partitions, Partitions_n, Partition
+from sage.categories.algebras import Algebras
+from sage.categories.hopf_algebras import HopfAlgebras
 import sage.libs.symmetrica.all as symmetrica  # used in eval()
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
@@ -223,44 +226,6 @@ from sage.misc.all import prod, uniq
 from copy import copy
 from functools import reduce
 
-
-def SymmetricFunctionAlgebra(R, basis="schur"):
-    r"""
-    This is deprecated in :trac:`15473`. Use instead
-    :class:`SymmetricFunctions` as ``SymmetricFunctions(R).basis()``
-
-    INPUT:
-
-    -  ``R`` -- ring with identity basis
-    -  ``basis`` -- a string for the name of the basis, must be one of
-       'schur', 'elementary', 'homogeneous', 'power', 'monomial' or their
-       abbreviations 's', 'e', 'h', 'p', 'm'
-
-    OUTPUT: A SymmetricFunctionAlgebra
-
-    EXAMPLES::
-
-        sage: SymmetricFunctionAlgebra(QQ)
-        doctest:...: DeprecationWarning: this function is deprecated. Use SymmetricFunctions(R).basis()
-        See http://trac.sagemath.org/15473 for details.
-        Symmetric Functions over Rational Field in the Schur basis
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(15473, "this function is deprecated. Use SymmetricFunctions(R).basis()")
-    from sage.combinat.sf.sf import SymmetricFunctions
-    Sym = SymmetricFunctions(R)
-    if basis == 'schur' or basis == 's':
-        return Sym.s()
-    elif basis == "elementary" or  basis == 'e':
-        return Sym.e()
-    elif basis == "homogeneous" or basis == 'h':
-        return Sym.h()
-    elif basis == 'power' or basis == 'p':
-        return Sym.p()
-    elif basis == 'monomial' or basis == 'm':
-        return Sym.m()
-    else:
-        raise ValueError("unknown basis (= %s)"%basis)
 
 def is_SymmetricFunctionAlgebra(x):
     """
@@ -330,34 +295,35 @@ def is_SymmetricFunction(x):
     """
     return isinstance(x, SymmetricFunctionAlgebra_generic.Element)
 
-from sage.categories.realizations import Realizations, Category_realization_of_parent
+#####################################################################
+## Bases categories
+
+from sage.categories.realizations import Category_realization_of_parent
+
+import six
+
+
 class SymmetricFunctionsBases(Category_realization_of_parent):
     r"""
     The category of bases of the ring of symmetric functions.
+
+    INPUT:
+
+    - ``self`` -- a category of bases for the symmetric functions
+    - ``base`` -- ring of symmetric functions
+
+    TESTS::
+
+        sage: from sage.combinat.sf.sfa import SymmetricFunctionsBases
+        sage: Sym = SymmetricFunctions(QQ)
+        sage: bases = SymmetricFunctionsBases(Sym); bases
+        Category of bases of Symmetric Functions over Rational Field
+        sage: Sym.schur() in bases
+        True
     """
-    def __init__(self, base):
-        r"""
-        Initialize the bases of the ring of symmetric functions.
-
-        INPUT:
-
-        - ``self`` -- a category of bases for the symmetric functions
-        - ``base`` -- ring of symmetric functions
-
-        TESTS::
-
-            sage: from sage.combinat.sf.sfa import SymmetricFunctionsBases
-            sage: Sym = SymmetricFunctions(QQ)
-            sage: bases = SymmetricFunctionsBases(Sym); bases
-            Category of bases of Symmetric Functions over Rational Field
-            sage: Sym.schur() in bases
-            True
-        """
-        Category_realization_of_parent.__init__(self, base)
-
     def _repr_(self):
         r"""
-        Returns the representation of ``self``.
+        Return the representation of ``self``.
 
         INPUT:
 
@@ -377,22 +343,23 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
         r"""
         The super categories of ``self``.
 
-        INPUT:
-
-        - ``self`` -- a category of bases for the symmetric functions
-
         EXAMPLES::
 
             sage: from sage.combinat.sf.sfa import SymmetricFunctionsBases
             sage: Sym = SymmetricFunctions(QQ)
             sage: bases = SymmetricFunctionsBases(Sym)
             sage: bases.super_categories()
-            [Category of commutative graded hopf algebras with basis over Rational Field,
-             Category of realizations of Symmetric Functions over Rational Field]
+            [Category of realizations of Symmetric Functions over Rational Field,
+             Category of commutative hopf algebras with basis over Rational Field,
+             Join of Category of realizations of hopf algebras over Rational Field
+                 and Category of graded algebras over Rational Field]
         """
-        from sage.categories.all import CommutativeRings, GradedHopfAlgebrasWithBasis
-        return [GradedHopfAlgebrasWithBasis(self.base().base_ring()).Commutative(),
-                Realizations(self.base())]
+        # FIXME: The last one should also be commutative, but this triggers a
+        #   KeyError when doing the C3 algorithm!!!
+        cat = HopfAlgebras(self.base().base_ring())
+        return [self.base().Realizations(),
+                cat.Commutative().WithBasis(),
+                cat.Graded().Realizations()]
 
     class ParentMethods:
 
@@ -616,123 +583,6 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             """
             return sum(b)
 
-        def antipode_by_coercion(self, element):
-            r"""
-            The antipode of ``element``.
-
-            INPUT:
-
-            - ``element`` -- element in a basis of the ring of symmetric functions
-
-            EXAMPLES::
-
-                sage: Sym = SymmetricFunctions(QQ)
-                sage: p = Sym.p()
-                sage: s = Sym.s()
-                sage: e = Sym.e()
-                sage: h = Sym.h()
-                sage: (h([]) + h([1])).antipode() # indirect doctest
-                h[] - h[1]
-                sage: (s([]) + s([1]) + s[2]).antipode()
-                s[] - s[1] + s[1, 1]
-                sage: (p([2]) + p([3])).antipode()
-                -p[2] - p[3]
-                sage: (e([2]) + e([3])).antipode()
-                e[1, 1] - e[1, 1, 1] - e[2] + 2*e[2, 1] - e[3]
-                sage: f = Sym.f()
-                sage: f([3,2,1]).antipode()
-                -f[3, 2, 1] - 4*f[3, 3] - 2*f[4, 2] - 2*f[5, 1] - 6*f[6]
-
-            The antipode is an involution::
-
-                sage: Sym = SymmetricFunctions(ZZ)
-                sage: s = Sym.s()
-                sage: all( s[u].antipode().antipode() == s[u] for u in Partitions(4) )
-                True
-
-            The antipode is an algebra homomorphism::
-
-                sage: Sym = SymmetricFunctions(FiniteField(23))
-                sage: h = Sym.h()
-                sage: all( all( (s[u] * s[v]).antipode() == s[u].antipode() * s[v].antipode()
-                ....:           for u in Partitions(3) )
-                ....:      for v in Partitions(3) )
-                True
-
-            TESTS:
-
-            Everything works over `\ZZ`::
-
-                sage: Sym = SymmetricFunctions(ZZ)
-                sage: p = Sym.p()
-                sage: s = Sym.s()
-                sage: e = Sym.e()
-                sage: h = Sym.h()
-                sage: (h([]) + h([1])).antipode() # indirect doctest
-                h[] - h[1]
-                sage: (s([]) + s([1]) + s[2]).antipode()
-                s[] - s[1] + s[1, 1]
-                sage: (p([2]) + p([3])).antipode()
-                -p[2] - p[3]
-                sage: (e([2]) + e([3])).antipode()
-                e[1, 1] - e[1, 1, 1] - e[2] + 2*e[2, 1] - e[3]
-            """
-            return self.degree_negation(element.omega())
-
-        def counit(self, element):
-            r"""
-            Return the counit of ``element``.
-
-            The counit is the constant term of ``element``.
-
-            INPUT:
-
-            - ``element`` -- element in a basis of the ring of symmetric functions
-
-            EXAMPLES::
-
-                sage: Sym = SymmetricFunctions(QQ)
-                sage: m = Sym.monomial()
-                sage: f = 2*m[2,1] + 3*m[[]]
-                sage: f.counit()
-                3
-            """
-            return element.degree_zero_coefficient()
-
-        def degree_negation(self, element):
-            r"""
-            Return the image of ``element`` under the degree negation
-            automorphism of the ring of symmetric functions.
-
-            The degree negation is the automorphism which scales every
-            homogeneous element of degree `k` by `(-1)^k` (for all `k`).
-
-            INPUT:
-
-            - ``element`` -- symmetric function written in ``self``
-
-            EXAMPLES::
-
-                sage: Sym = SymmetricFunctions(ZZ)
-                sage: m = Sym.monomial()
-                sage: f = 2*m[2,1] + 4*m[1,1] - 5*m[1] - 3*m[[]]
-                sage: m.degree_negation(f)
-                -3*m[] + 5*m[1] + 4*m[1, 1] - 2*m[2, 1]
-
-            TESTS:
-
-            Using :meth:`degree_negation` on an element of a different
-            basis works correctly::
-
-                sage: e = Sym.elementary()
-                sage: m.degree_negation(e[3])
-                -m[1, 1, 1]
-                sage: m.degree_negation(m(e[3]))
-                -m[1, 1, 1]
-            """
-            return self.sum_of_terms([ (lam, (-1)**(sum(lam)%2) * a)
-                                       for lam, a in self(element) ])
-
         def corresponding_basis_over(self, R):
             r"""
             Return the realization of symmetric functions corresponding to
@@ -832,6 +682,46 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             #    return None
             #This code relied heavily on the construction of bases of
             #``SymmetricFunctions`` and on their reduction.
+
+        def skew_schur(self, x):
+            """
+            Return the skew Schur function indexed by ``x`` in ``self``.
+
+            INPUT:
+
+            - ``x`` -- a skew partition
+
+            EXAMPLES::
+
+                sage: sp = SkewPartition([[5,3,3,1], [3,2,1]])
+                sage: s = SymmetricFunctions(QQ).s()
+                sage: s.skew_schur(sp)
+                s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + 3*s[3, 2, 1]
+                 + s[3, 3] + 2*s[4, 1, 1] + 2*s[4, 2] + s[5, 1]
+
+                sage: e = SymmetricFunctions(QQ).e()
+                sage: ess = e.skew_schur(sp); ess
+                e[2, 1, 1, 1, 1] - e[2, 2, 1, 1] - e[3, 1, 1, 1] + e[3, 2, 1]
+                sage: ess == e(s.skew_schur(sp))
+                True
+
+            TESTS::
+
+                sage: s.skew_schur([[2,1], [1]])
+                s[1, 1] + s[2]
+
+                sage: s.skew_schur([[2,1], [3]])
+                Traceback (most recent call last):
+                ...
+                ValueError: not a valid skew partition
+            """
+            from sage.combinat.skew_partition import SkewPartitions
+            if x not in SkewPartitions():
+                raise ValueError("not a valid skew partition")
+            import sage.libs.lrcalc.lrcalc as lrcalc
+            s = self.realization_of().schur()
+            skewschur = lrcalc.skew(x[0], x[1])
+            return self(s._from_dict(skewschur))
 
         def Eulerian(self, n, j, k=None):
             """
@@ -986,13 +876,13 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                  - h[4, 2] - h[5, 1] + h[6]
 
             Gessel-Reutenauer functions indexed by partitions::
-            
+
                 sage: h.gessel_reutenauer([2, 1])
                 h[1, 1, 1] - h[2, 1]
                 sage: h.gessel_reutenauer([2, 2])
                 h[1, 1, 1, 1] - 3*h[2, 1, 1] + 2*h[2, 2] + h[3, 1] - h[4]
 
-            The Gessel-Reutenauer functions are Schur-postive::
+            The Gessel-Reutenauer functions are Schur-positive::
 
                 sage: s = Sym.s()
                 sage: s.gessel_reutenauer([2, 1])
@@ -1076,7 +966,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 m = lam.to_exp_dict() # == {i: m_i | i occurs in lam}
                 p = self.realization_of().power()
                 h = self.realization_of().complete()
-                from sage.rings.arith import Moebius, squarefree_divisors
+                from sage.arith.all import Moebius, squarefree_divisors
                 mu = Moebius()
                 def component(i, g): # == h_g[L_i]
                     L_i = p.sum_of_terms([(_Partitions([d] * (i//d)), R(mu(d)))
@@ -1123,7 +1013,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             basis ``self``. These functions are defined below.
 
             The Carlitz-Shareshian-Wachs symmetric functions have been
-            introduced in [GriRei2014]_, Exercise 2.84, as
+            introduced in [GriRei2014]_, Exercise 2.87, as
             refinements of a certain particular case of chromatic
             quasisymmetric functions defined by Shareshian and Wachs.
             Their definitions are as follows:
@@ -1145,7 +1035,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 X_{n, d, s} = \sum_{w \in W(n, d, s)} x_w .
 
             This is a symmetric function (according to
-            [GriRei2014]_, Exercise 2.84(b)), and for `s = 0` equals
+            [GriRei2014]_, Exercise 2.87(b)), and for `s = 0` equals
             the `t^d`-coefficient of the descent enumerator of Smirnov
             words of length `n` (an example of a chromatic
             quasisymmetric function which happens to be symmetric --
@@ -1164,7 +1054,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             `w = (w_1, w_2, \ldots, w_n) \in W(n, d, s)`. These
             three power series `U_{n, d, s}`, `V_{n, d, s}` and
             `W_{n, d, s}` are symmetric functions as well
-            ([GriRei2014]_, Exercise 2.84(c)). Their sum is
+            ([GriRei2014]_, Exercise 2.87(c)). Their sum is
             `X_{n, d, s}`.
 
             REFERENCES:
@@ -1355,8 +1245,220 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                                distinct=True)
             return self(r)
 
-    class ElementMethods:
+class FilteredSymmetricFunctionsBases(Category_realization_of_parent):
+    r"""
+    The category of filtered bases of the ring of symmetric functions.
 
+    TESTS::
+
+        sage: from sage.combinat.sf.sfa import FilteredSymmetricFunctionsBases
+        sage: Sym = SymmetricFunctions(QQ)
+        sage: bases = FilteredSymmetricFunctionsBases(Sym); bases
+        Category of filtered bases of Symmetric Functions over Rational Field
+        sage: Sym.schur() in bases
+        True
+        sage: Sym.sp() in bases
+        True
+    """
+    def _repr_(self):
+        r"""
+        Return the representation of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.sf.sfa import FilteredSymmetricFunctionsBases
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: bases = FilteredSymmetricFunctionsBases(Sym)
+            sage: bases._repr_()
+            'Category of filtered bases of Symmetric Functions over Rational Field'
+        """
+        return "Category of filtered bases of %s" % self.base()
+
+    def super_categories(self):
+        r"""
+        The super categories of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.sf.sfa import FilteredSymmetricFunctionsBases
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: bases = FilteredSymmetricFunctionsBases(Sym)
+            sage: bases.super_categories()
+            [Category of bases of Symmetric Functions over Rational Field,
+             Join of Category of hopf algebras with basis over Rational Field
+                 and Category of filtered algebras with basis over Rational Field
+                 and Category of commutative algebras over Rational Field]
+        """
+        cat = HopfAlgebras(self.base().base_ring()).Commutative().WithBasis().Filtered()
+        return [SymmetricFunctionsBases(self.base()), cat]
+
+class GradedSymmetricFunctionsBases(Category_realization_of_parent):
+    r"""
+    The category of graded bases of the ring of symmetric functions.
+
+    These are further required to have the property that the basis element
+    indexed by the empty partition is `1`.
+
+    TESTS::
+
+        sage: from sage.combinat.sf.sfa import GradedSymmetricFunctionsBases
+        sage: Sym = SymmetricFunctions(QQ)
+        sage: bases = GradedSymmetricFunctionsBases(Sym); bases
+        Category of graded bases of Symmetric Functions over Rational Field
+        sage: Sym.schur() in bases
+        True
+        sage: Sym.sp() in bases
+        False
+    """
+    def _repr_(self):
+        r"""
+        Return the representation of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.sf.sfa import GradedSymmetricFunctionsBases
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: bases = GradedSymmetricFunctionsBases(Sym)
+            sage: bases._repr_()
+            'Category of graded bases of Symmetric Functions over Rational Field'
+        """
+        return "Category of graded bases of %s" % self.base()
+
+    def super_categories(self):
+        r"""
+        The super categories of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.sf.sfa import GradedSymmetricFunctionsBases
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: bases = GradedSymmetricFunctionsBases(Sym)
+            sage: bases.super_categories()
+            [Category of filtered bases of Symmetric Functions over Rational Field,
+             Category of commutative graded hopf algebras with basis over Rational Field]
+        """
+        cat = HopfAlgebras(self.base().base_ring()).Commutative().WithBasis().Graded()
+        return [FilteredSymmetricFunctionsBases(self.base()), cat]
+
+    class ParentMethods:
+        def antipode_by_coercion(self, element):
+            r"""
+            The antipode of ``element``.
+
+            INPUT:
+
+            - ``element`` -- element in a basis of the ring of symmetric functions
+
+            EXAMPLES::
+
+                sage: Sym = SymmetricFunctions(QQ)
+                sage: p = Sym.p()
+                sage: s = Sym.s()
+                sage: e = Sym.e()
+                sage: h = Sym.h()
+                sage: (h([]) + h([1])).antipode() # indirect doctest
+                h[] - h[1]
+                sage: (s([]) + s([1]) + s[2]).antipode()
+                s[] - s[1] + s[1, 1]
+                sage: (p([2]) + p([3])).antipode()
+                -p[2] - p[3]
+                sage: (e([2]) + e([3])).antipode()
+                e[1, 1] - e[1, 1, 1] - e[2] + 2*e[2, 1] - e[3]
+                sage: f = Sym.f()
+                sage: f([3,2,1]).antipode()
+                -f[3, 2, 1] - 4*f[3, 3] - 2*f[4, 2] - 2*f[5, 1] - 6*f[6]
+
+            The antipode is an involution::
+
+                sage: Sym = SymmetricFunctions(ZZ)
+                sage: s = Sym.s()
+                sage: all( s[u].antipode().antipode() == s[u] for u in Partitions(4) )
+                True
+
+            The antipode is an algebra homomorphism::
+
+                sage: Sym = SymmetricFunctions(FiniteField(23))
+                sage: h = Sym.h()
+                sage: all( all( (s[u] * s[v]).antipode() == s[u].antipode() * s[v].antipode()
+                ....:           for u in Partitions(3) )
+                ....:      for v in Partitions(3) )
+                True
+
+            TESTS:
+
+            Everything works over `\ZZ`::
+
+                sage: Sym = SymmetricFunctions(ZZ)
+                sage: p = Sym.p()
+                sage: s = Sym.s()
+                sage: e = Sym.e()
+                sage: h = Sym.h()
+                sage: (h([]) + h([1])).antipode() # indirect doctest
+                h[] - h[1]
+                sage: (s([]) + s([1]) + s[2]).antipode()
+                s[] - s[1] + s[1, 1]
+                sage: (p([2]) + p([3])).antipode()
+                -p[2] - p[3]
+                sage: (e([2]) + e([3])).antipode()
+                e[1, 1] - e[1, 1, 1] - e[2] + 2*e[2, 1] - e[3]
+            """
+            return self.degree_negation(element.omega())
+
+        def counit(self, element):
+            r"""
+            Return the counit of ``element``.
+
+            The counit is the constant term of ``element``.
+
+            INPUT:
+
+            - ``element`` -- element in a basis of the ring of symmetric functions
+
+            EXAMPLES::
+
+                sage: Sym = SymmetricFunctions(QQ)
+                sage: m = Sym.monomial()
+                sage: f = 2*m[2,1] + 3*m[[]]
+                sage: f.counit()
+                3
+            """
+            return element.degree_zero_coefficient()
+
+        def degree_negation(self, element):
+            r"""
+            Return the image of ``element`` under the degree negation
+            automorphism of the ring of symmetric functions.
+
+            The degree negation is the automorphism which scales every
+            homogeneous element of degree `k` by `(-1)^k` (for all `k`).
+
+            INPUT:
+
+            - ``element`` -- symmetric function written in ``self``
+
+            EXAMPLES::
+
+                sage: Sym = SymmetricFunctions(ZZ)
+                sage: m = Sym.monomial()
+                sage: f = 2*m[2,1] + 4*m[1,1] - 5*m[1] - 3*m[[]]
+                sage: m.degree_negation(f)
+                -3*m[] + 5*m[1] + 4*m[1, 1] - 2*m[2, 1]
+
+            TESTS:
+
+            Using :meth:`degree_negation` on an element of a different
+            basis works correctly::
+
+                sage: e = Sym.elementary()
+                sage: m.degree_negation(e[3])
+                -m[1, 1, 1]
+                sage: m.degree_negation(m(e[3]))
+                -m[1, 1, 1]
+            """
+            return self.sum_of_terms([ (lam, (-1)**(sum(lam)%2) * a)
+                                       for lam, a in self(element) ])
+
+    class ElementMethods:
         def degree_negation(self):
             r"""
             Return the image of ``self`` under the degree negation
@@ -1387,10 +1489,6 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             r"""
             Returns the degree zero coefficient of ``self``.
 
-            INPUT:
-
-            - ``self`` -- an element of the symmetric functions
-
             EXAMPLES::
 
                 sage: Sym = SymmetricFunctions(QQ)
@@ -1400,6 +1498,12 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 3
             """
             return self.coefficient([])
+
+#SymmetricFunctionsBases.Filtered = FilteredSymmetricFunctionsBases
+#SymmetricFunctionsBases.Graded = GradedSymmetricFunctionsBases
+
+#####################################################################
+## ABC for bases of the symmetric functions
 
 class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
     r"""
@@ -1417,7 +1521,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         sage: s(m([2,1]))
         -2*s[1, 1, 1] + s[2, 1]
     """
-    def __init__(self, Sym, basis_name = None, prefix = None):
+    def __init__(self, Sym, basis_name=None, prefix=None, graded=True):
         r"""
         Initializes the symmetric function algebra.
 
@@ -1426,6 +1530,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         - ``Sym`` -- the ring of symmetric functions
         - ``basis_name`` -- name of basis (default: ``None``)
         - ``prefix`` -- prefix used to display basis
+        - ``graded`` -- (default: ``True``) if ``True``, then the basis is
+          considered to be graded, otherwise the basis is filtered
 
         TESTS::
 
@@ -1449,9 +1555,13 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         if prefix is not None:
             self._prefix = prefix
         self._sym = Sym
+        if graded:
+            cat = GradedSymmetricFunctionsBases(Sym)
+        else: # Right now, there are no non-filted bases
+            cat = FilteredSymmetricFunctionsBases(Sym)
         CombinatorialFreeModule.__init__(self, Sym.base_ring(), _Partitions,
-                                         category = SymmetricFunctionsBases(Sym),
-                                         bracket = "", prefix = prefix)
+                                         category=cat,
+                                         bracket="", prefix=prefix)
 
     _print_style = 'lex'
 
@@ -1482,11 +1592,11 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         """
         C = self.basis().keys()
         if isinstance(c, C.element_class):
-            if len(rest) != 0:
+            if rest:
                 raise ValueError("invalid number of arguments")
         else:
-            if len(rest) > 0 or isinstance(c, int) or isinstance(c, Integer):
-                c = C([c]+list(rest))
+            if rest or isinstance(c, (int, Integer)):
+                c = C([c] + list(rest))
             else:
                 c = C(list(c))
         return self.monomial(c)
@@ -1495,7 +1605,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         r"""
         Return the symmetric function obtained from ``x`` by scaling
         each basis element corresponding to the partition `\lambda` by
-        ``function``(`\lambda`).
+        the value of ``function`` on `\lambda`.
 
         INPUT:
 
@@ -1518,7 +1628,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         """
         BR = self.base_ring()
         z_elt = {}
-        for m, c in x._monomial_coefficients.iteritems():
+        for m, c in six.iteritems(x._monomial_coefficients):
             coeff = function(m)
             z_elt[m] = BR( c*coeff )
         return self._from_dict(z_elt)
@@ -1529,7 +1639,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
 
         INPUT:
 
-        - ``x` -- a symmetric function
+        - ``x`` -- a symmetric function
         - ``expr`` -- an expression used in the plethysm
         - ``deg_one`` -- a list (or iterable) specifying the degree one
           variables (that is, the terms to be treated as degree-one
@@ -1571,7 +1681,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
     #  - add option orthonormal
     def _apply_multi_module_morphism(self, x, y, f, orthogonal=False):
         r"""
-        Applies morphism specified by ``f`` on (``x``,``y``).
+        Applies morphism specified by ``f`` on (``x``, ``y``).
 
         INPUT:
 
@@ -1603,7 +1713,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         if orthogonal:
             # could check which of x and y has less terms
             # for mx, cx in x:
-            for mx, cx in x._monomial_coefficients.iteritems():
+            for mx, cx in six.iteritems(x._monomial_coefficients):
                 if mx not in y._monomial_coefficients:
                     continue
                 else:
@@ -1613,8 +1723,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
                 res += cx*cy*f(mx, mx)
             return res
         else:
-            for mx, cx in x._monomial_coefficients.iteritems():
-                for my, cy in y._monomial_coefficients.iteritems():
+            for mx, cx in six.iteritems(x._monomial_coefficients):
+                for my, cy in six.iteritems(y._monomial_coefficients):
                     res += cx*cy*f(mx,my)
             return res
 
@@ -1698,13 +1808,13 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         BR = self.base_ring()
         zero = BR.zero()
         z_elt = {}
-        for part, c in element.monomial_coefficients().iteritems():
+        for part, c in six.iteritems(element.monomial_coefficients()):
             if sum(part) not in cache_dict:
                 cache_function(sum(part))
             # Make sure it is a partition (for #13605), this is
             #   needed for the old kschur functions - TCS
             part = _Partitions(part)
-            for part2, c2 in cache_dict[sum(part)][part].iteritems():
+            for part2, c2 in six.iteritems(cache_dict[sum(part)][part]):
                 if hasattr(c2,'subs'): # c3 may be in the base ring
                     c3 = c*BR(c2.subs(**subs_dict))
                 else:
@@ -2055,8 +2165,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             sage: a = s([3,1])+5*s([1,1,1,1])-s([4])
             sage: a
             5*s[1, 1, 1, 1] + s[3, 1] - s[4]
-            sage: mon = a.support()
-            sage: coeffs = a.coefficients()
+            sage: mon = sorted(a.support())
+            sage: coeffs = [a[i] for i in mon]
             sage: coeffs
             [5, 1, -1]
             sage: mon
@@ -2422,7 +2532,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             sage: p([2,1]).scalar(q([1,1,1]))
             0
         """
-        import dual
+        from . import dual
         if scalar is None:
             if basis_name is None and prefix is None:
                 return self._dual_basis_default()
@@ -2498,11 +2608,11 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             sage: s.set_print_style('lex')
         """
         if ps == 'lex':
-            self.print_options(generator_cmp = lambda x,y: cmp(x,y))
+            self.print_options(sorting_key=lambda x: x)
         elif ps == 'length':
-            self.print_options(generator_cmp = lambda x,y: cmp(len(x), len(y)))
+            self.print_options(sorting_key=lambda x: len(x))
         elif ps == 'maximal_part':
-            self.print_options(generator_cmp = lambda x,y: cmp(_lmax(x), _lmax(y)))
+            self.print_options(sorting_key=lambda x: _lmax(x))
         else:
             raise ValueError("the print style must be one of lex, length, or maximal_part ")
         self._print_style = ps
@@ -2654,10 +2764,11 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
     def plethysm(self, x, include=None, exclude=None):
         r"""
-        Return the outer plethysm of ``self`` with ``x``. This is
-        implemented only over base rings which are `\QQ`-algebras.
-        (To compute outer plethysms over general binomial rings, change
-        bases to the fraction field.)
+        Return the outer plethysm of ``self`` with ``x``.
+
+        This is implemented only over base rings which are
+        `\QQ`-algebras.  (To compute outer plethysms over general
+        binomial rings, change bases to the fraction field.)
 
         The outer plethysm of `f` with `g` is commonly denoted by
         `f \left[ g \right]` or by `f \circ g`. It is an algebra map
@@ -2712,9 +2823,15 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         .. SEEALSO::
 
             :meth:`frobenius`
+
+        TESTS::
+
+            sage: (1+p[2]).plethysm(p[2])
+            p[] + p[4]
         """
         if not is_SymmetricFunction(x):
-            raise TypeError("only know how to compute plethysms between symmetric functions")
+            raise TypeError("only know how to compute plethysms "
+                            "between symmetric functions")
         parent = self.parent()
         p = parent.realization_of().power()
         R = parent.base_ring()
@@ -2722,7 +2839,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         if self == parent.zero():
             return self
 
-        #Handle degree one elements
+        # Handle degree one elements
         if include is not None and exclude is not None:
             raise RuntimeError("include and exclude cannot both be specified")
 
@@ -2739,24 +2856,32 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         if exclude:
             degree_one = [g for g in degree_one if g not in exclude]
 
+        degree_one = [g for g in degree_one if g != R.one()]
+            
+        # Takes in n, and returns a function which takes in a partition and
+        # scales all of the parts of that partition by n
+        
+        def scale_part(n):
+            return lambda m: m.__class__(m.parent(), [i * n for i in m])
 
-        #Takes in n, and returns a function which takes in a partition and
-        #scales all of the parts of that partition by n
-        scale_part = lambda n: lambda m: m.__class__(m.parent(), [i*n for i in m])
+        def raise_c(n):
+            return lambda c: c.subs(**{str(g): g ** n for g in degree_one})
 
-        raise_c = lambda n: lambda c: c.subs(**dict((str(g),g**n) for g in degree_one if g != 1))
+        # Takes n an symmetric function f, and an n and returns the
+        # symmetric function with all of its basis partitions scaled
+        # by n
 
-        #Takes n an symmetric function f, and an n and returns the
-        #symmetric function with all of its basis partitions scaled
-        #by n
-        pn_pleth = lambda f, n: f.map_support(scale_part(n))
+        def pn_pleth(f, n):
+            return f.map_support(scale_part(n))
 
-        #Takes in a partition and applies
-        f = lambda part: prod( pn_pleth(p_x.map_coefficients(raise_c(i)), i) for i in part )
-        return parent(p._apply_module_morphism(p(self),f))
+        # Takes in a partition and applies
+
+        def f(part):
+            return p.prod(pn_pleth(p_x.map_coefficients(raise_c(i)), i)
+                          for i in part)
+        return parent(p._apply_module_morphism(p(self), f, codomain=p))
 
     __call__ = plethysm
-
 
     def inner_plethysm(self, x):
         r"""
@@ -2945,7 +3070,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         cache = {}
         ip_pnu_g = parent._inner_plethysm_pnu_g
         return parent.sum( c*ip_pnu_g(p(x), cache, nu)
-                           for (nu, c) in p(self).monomial_coefficients().iteritems() )
+                           for (nu, c) in six.iteritems(p(self).monomial_coefficients()) )
 
 
     def omega(self):
@@ -4033,18 +4158,16 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         parent = self.parent()
         if parent.has_coerce_map_from(QQ):
             from sage.combinat.partition import Partition
-            from sage.rings.arith import gcd, lcm
+            from sage.arith.all import gcd, lcm
             from itertools import product, repeat, chain
             p = parent.realization_of().power()
             def f(lam, mu):
                 # This is the map sending two partitions lam and mu to the
                 # arithmetic product p[lam] \boxdot p[mu].
                 # Code shamelessly stolen from Andrew Gainer-Dewar, trac #14542.
-                term_iterable = chain.from_iterable( repeat(lcm(pair), times=gcd(pair))
-                                                     for pair in product(lam, mu) )
-                term_list = sorted(term_iterable, reverse=True)
-                res = Partition(term_list)
-                return p(res)
+                term_iterable = chain.from_iterable(repeat(lcm(pair), gcd(pair))
+                                                    for pair in product(lam, mu))
+                return p(Partition(sorted(term_iterable, reverse=True)))
             return parent(p._apply_multi_module_morphism(p(self),p(x),f))
         comp_parent = parent
         comp_self = self
@@ -4429,10 +4552,6 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         where `p_n` is the `n`-th powersum symmetric function, and `\circ`
         denotes (outer) plethysm.
 
-        :meth:`adams_operation` serves as alias for :meth:`frobenius`, since the
-        Frobenius operators are the Adams operations of the `\Lambda`-ring
-        of symmetric functions.
-
         INPUT:
 
         - ``n`` -- a positive integer
@@ -4536,7 +4655,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         result_in_m_basis = m._from_dict(dct)
         return parent(result_in_m_basis)
 
-    adams_operation = frobenius
+    def adams_operation(self, *args, **opts):
+        from sage.misc.superseded import deprecation
+        deprecation(19255, "Do not use this method! Please use `frobenius` or `adams_operator` methods following what you expect.")
 
     def verschiebung(self, n):
         r"""
@@ -4662,7 +4783,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             ....:      for lam in Partitions(6) )
             True
         """
-        # Convert to the complete homogenenous basis, there apply
+        # Convert to the complete homogeneous basis, there apply
         # Verschiebung componentwise, then convert back.
         parent = self.parent()
         h = parent.realization_of().homogeneous()
@@ -4832,7 +4953,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             conditions like ``lambda part: max(part) < 3`` which
             would require extra work to handle the empty partition.
         """
-        import classical
+        from . import classical
         parent = self.parent()
         resPR = PolynomialRing(parent.base_ring(), n, alphabet)
         if self == parent.zero():
@@ -5131,7 +5252,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         REFERENCES:
 
-        .. [SZ2001] M. Shimozono, M. Zabrocki,
+        .. [SZ2001] \M. Shimozono, M. Zabrocki,
            Hall-Littlewood vertex operators and generalized Kostka polynomials.
            Adv. Math. 158 (2001), no. 1, 66-85.
 
@@ -5175,6 +5296,100 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
                         for mu in Partitions(d+1, max_length=len(nu)) )
                 )
 
+    def eval_at_permutation_roots(self, rho):
+        r"""
+        Evaluate at eigenvalues of a permutation matrix.
+
+        Evaluate a symmetric function at the eigenvalues of a permutation
+        matrix whose cycle structure is ``rho``.  This computation is
+        computed by coercing to the power sum basis where the value may
+        be computed on the generators.
+
+        This function evaluates an element at the roots of unity
+
+        .. MATH::
+
+            \Xi_{\rho_1},\Xi_{\rho_2},\ldots,\Xi_{\rho_\ell}
+
+        where
+
+        .. MATH::
+
+            \Xi_{m} = 1,\zeta_m,\zeta_m^2,\ldots,\zeta_m^{m-1}
+
+        and `\zeta_m` is an `m` root of unity.
+        These roots of unity represent the eigenvalues of permutation
+        matrix with cycle structure `\rho`.
+
+        INPUT:
+
+        - ``rho`` -- a partition or a list of non-negative integers
+
+        OUTPUT:
+
+        - an element of the base ring
+
+        EXAMPLES::
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: s([3,3]).eval_at_permutation_roots([6])
+            0
+            sage: s([3,3]).eval_at_permutation_roots([3])
+            1
+            sage: s([3,3]).eval_at_permutation_roots([1])
+            0
+            sage: s([3,3]).eval_at_permutation_roots([3,3])
+            4
+            sage: s([3,3]).eval_at_permutation_roots([1,1,1,1,1])
+            175
+            sage: (s[1]+s[2]+s[3]).eval_at_permutation_roots([3,2])
+            2
+        """
+        p = self.parent().symmetric_function_ring().p()
+        return p(self).eval_at_permutation_roots(rho)
+
+    def character_to_frobenius_image(self, n):
+        r"""
+        Interpret ``self`` as a `GL_n` character and then take the Frobenius
+        image of this character of the permutation matrices `S_n` which
+        naturally sit inside of `GL_n`.
+
+        To know the value of this character at a permutation of cycle structure
+        `\rho` the symmetric function ``self`` is evaluated at the
+        eigenvalues of a permutation of cycle structure `\rho`.  The
+        Frobenius image is then defined as
+        `\sum_{\rho \vdash n} f[ \Xi_\rho ] p_\rho/z_\rho`.
+
+        .. SEEALSO::
+
+            :meth:`eval_at_permutation_roots`
+
+        INPUT:
+
+        - ``n`` -- a non-negative integer to interpret ``self`` as
+          a character of `GL_n`
+
+        OUTPUT:
+
+        - a symmetric function of degree ``n``
+
+        EXAMPLES::
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: s([1,1]).character_to_frobenius_image(5)
+            s[3, 1, 1] + s[4, 1]
+            sage: s([2,1]).character_to_frobenius_image(5)
+            s[2, 2, 1] + 2*s[3, 1, 1] + 2*s[3, 2] + 3*s[4, 1] + s[5]
+            sage: s([2,2,2]).character_to_frobenius_image(3)
+            s[3]
+            sage: s([2,2,2]).character_to_frobenius_image(4)
+            s[2, 2] + 2*s[3, 1] + 2*s[4]
+            sage: s([2,2,2]).character_to_frobenius_image(5)
+            2*s[2, 2, 1] + s[3, 1, 1] + 4*s[3, 2] + 3*s[4, 1] + 2*s[5]
+        """
+        p = self.parent().symmetric_function_ring().p()
+        return self.parent()(p.sum(self.eval_at_permutation_roots(rho) \
+            *p(rho)/rho.centralizer_size() for rho in Partitions(n)))
 
 SymmetricFunctionAlgebra_generic.Element = SymmetricFunctionAlgebra_generic_Element
 
@@ -5214,7 +5429,7 @@ def _nonnegative_coefficients(x):
         False
     """
     if is_Polynomial(x) or is_MPolynomial(x):
-        return all([ c >= 0 for c in x.coefficients(sparse=False) ])
+        return all(c >= 0 for c in x.coefficients(sparse=False))
     else:
         return x >= 0
 

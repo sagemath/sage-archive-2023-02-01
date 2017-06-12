@@ -14,14 +14,18 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
+from __future__ import division
+
+from cysignals.signals cimport sig_on, sig_off
+
 include 'misc.pxi'
 include 'decl.pxi'
 
+from cpython.object cimport Py_EQ, Py_NE
 from sage.rings.integer cimport Integer
 
 from ntl_ZZ import unpickle_class_value
-from ntl_GF2 cimport ntl_GF2
+from .ntl_GF2 cimport ntl_GF2
 
 
 ##############################################################################
@@ -73,7 +77,7 @@ def GF2XHexOutput(have_hex=None):
     else:
         GF2XHexOutput_c[0] = 0
 
-cdef class ntl_GF2X:
+cdef class ntl_GF2X(object):
     """
     Univariate Polynomials over GF(2) via NTL.
     """
@@ -154,12 +158,6 @@ cdef class ntl_GF2X:
         GF2X_from_str(&self.x, s)
         sig_off()
 
-    def __cinit__(self):
-        GF2X_construct(&self.x)
-
-    def __dealloc__(self):
-        GF2X_destruct(&self.x)
-
     def __reduce__(self):
         """
         EXAMPLES:
@@ -195,7 +193,7 @@ cdef class ntl_GF2X:
         GF2X_mul(r.x, self.x, (<ntl_GF2X>other).x)
         return r
 
-    def __div__(ntl_GF2X self, b):
+    def __truediv__(ntl_GF2X self, b):
         """
         EXAMPLES:
             sage: a = ntl.GF2X(4)
@@ -214,8 +212,11 @@ cdef class ntl_GF2X:
 
         divisible = GF2X_divide(q.x, self.x, (<ntl_GF2X>b).x)
         if not divisible:
-            raise ArithmeticError, "self (=%s) is not divisible by b (=%s)"%(self, b)
+            raise ArithmeticError("self (=%s) is not divisible by b (=%s)" % (self, b))
         return q
+
+    def __div__(self, other):
+        return self / other
 
     def DivRem(ntl_GF2X self, b):
         """
@@ -321,31 +322,31 @@ cdef class ntl_GF2X:
         GF2X_power(r.x, self.x, e)
         return r
 
-
-    def __richcmp__(self, other, op):
+    def __richcmp__(ntl_GF2X self, other, int op):
         """
-        EXAMPLES:
-            sage: f = ntl.GF2X([1,0,1,1]) ; g = ntl.GF2X([0,1,0])
+        Compare self to other.
+
+        EXAMPLES::
+
+            sage: f = ntl.GF2X([1,0,1,1])
+            sage: g = ntl.GF2X([0,1,0])
             sage: f == g ## indirect doctest
             False
             sage: f == f
             True
+            sage: g != polygen(GF(2))
+            False
         """
-        if op != 2 and op != 3:
-            raise TypeError, "elements in GF(2)[X] are not ordered."
+        if op != Py_EQ and op != Py_NE:
+            raise TypeError("elements of GF(2)[X] are not ordered")
 
-        if not isinstance(other, ntl_GF2X):
-            other = ntl_GF2X(other)
+        cdef ntl_GF2X b
+        try:
+            b = <ntl_GF2X?>other
+        except TypeError:
+            b = ntl_GF2X(other)
 
-        if not isinstance(self, ntl_GF2X):
-            self = ntl_GF2X(self)
-
-        cdef int t
-        t = GF2X_equal((<ntl_GF2X>self).x, (<ntl_GF2X>other).x)
-        if op == 2:
-            return t == 1
-        elif op == 3:
-            return t == 0
+        return (op == Py_EQ) == (self.x == b.x)
 
     def __lshift__(ntl_GF2X self, int i):
         """
@@ -390,7 +391,7 @@ cdef class ntl_GF2X:
         INPUT:
             other -- ntl.GF2X
 
-        EXAMPLE:
+        EXAMPLES:
             sage: a = ntl.GF2X(10)
             sage: b = ntl.GF2X(4)
             sage: a.GCD(b)
@@ -401,7 +402,7 @@ cdef class ntl_GF2X:
         if not isinstance(other, ntl_GF2X):
             other = ntl_GF2X(other)
 
-        gcd.x = GF2X_GCD(self.x, (<ntl_GF2X>other).x)
+        GF2X_GCD(gcd.x, self.x, (<ntl_GF2X>other).x)
         return gcd
 
     def XGCD(ntl_GF2X self, other):
@@ -413,7 +414,7 @@ cdef class ntl_GF2X:
         INPUT:
             other -- ntl.GF2X
 
-        EXAMPLE:
+        EXAMPLES:
             sage: a = ntl.GF2X(10)
             sage: b = ntl.GF2X(4)
             sage: r,s,t = a.XGCD(b)
@@ -530,7 +531,7 @@ cdef class ntl_GF2X:
         """
         if R is None:
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-            from sage.rings.finite_rings.constructor import FiniteField
+            from sage.rings.finite_rings.finite_field_constructor import FiniteField
             R = PolynomialRing(FiniteField(2), 'x')
 
         return R(map(int,self.list()))
@@ -542,7 +543,7 @@ cdef class ntl_GF2X:
         INPUT:
             i -- degree of X
 
-        EXAMPLE:
+        EXAMPLES:
             sage: e = ntl.GF2X([0,1,0,1])
             sage: e.coeff(0)
             0
@@ -570,7 +571,7 @@ cdef class ntl_GF2X:
         Return the leading coefficient of self. This is always 1
         except when self == 0.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: e = ntl.GF2X([0,1])
             sage: e.LeadCoeff()
             1
@@ -586,7 +587,7 @@ cdef class ntl_GF2X:
         """
         Return the constant term of self.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: e = ntl.GF2X([1,0,1])
             sage: e.ConstTerm()
             1
@@ -602,7 +603,7 @@ cdef class ntl_GF2X:
         """
         Return the constant term of self.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: e = ntl.GF2X([1,0,1]); e
             [1 0 1]
             sage: e.SetCoeff(1,1)
@@ -643,7 +644,7 @@ cdef class ntl_GF2X:
         INPUT:
             hi -- bit position until which reverse is requested
 
-        EXAMPLE:
+        EXAMPLES:
             sage: e = ntl.GF2X([1,0,1,1,0])
             sage: e.reverse()
             [1 1 0 1]
@@ -658,7 +659,7 @@ cdef class ntl_GF2X:
         """
         Return the number of nonzero coefficients in self.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: e = ntl.GF2X([1,0,1,1,0])
             sage: e.weight()
             3
@@ -685,7 +686,7 @@ cdef class ntl_GF2X:
         """
         returns number of bits of self, i.e., deg(self) + 1.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: e = ntl.GF2X([1,0,1,1,0])
             sage: e.NumBits()
             4
@@ -704,7 +705,7 @@ cdef class ntl_GF2X:
         """
         Returns number of bytes of self, i.e., floor((NumBits(self)+7)/8)
 
-        EXAMPLE:
+        EXAMPLES:
             sage: e = ntl.GF2X([1,0,1,1,0,0,0,0,1,1,1,0,0,1,1,0,1,1])
             sage: e.NumBytes()
             3

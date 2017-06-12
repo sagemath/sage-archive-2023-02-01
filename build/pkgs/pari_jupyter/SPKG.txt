@@ -1,0 +1,22 @@
+= pari_jupyter =
+
+== Description ==
+
+A Jupyter kernel for PARI/GP
+
+== License ==
+
+GPL version 3 or later
+
+== Upstream Contact ==
+
+* https://github.com/jdemeyer/pari_jupyter
+* Jeroen Demeyer <jdemeyer@cage.ugent.be>
+
+== Dependencies ==
+
+* Jupyter 4
+* Python (tested with 2.7.9)
+* Cython (git master)
+* PARI (git master)
+* GMP or MPIR (any version which works with PARI)

@@ -11,11 +11,6 @@ plaintext markup syntax.
 
 Modified BSD
 
-== SPKG Maintainers ==
-
-Mike Hansen <mhansen@gmail.com>
-Pablo De Napoli <pdenapo@gmail.com>
-
 == Upstream Contact ==
 
 Author:  David Goodger <goodger at python org>

@@ -33,7 +33,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.ext.stdsage cimport PY_NEW
 include "padic_template_element.pxi"
 from cpython.int cimport *
 
@@ -82,7 +81,10 @@ cdef class FMElement(pAdicTemplateElement):
             4*5^2 + 2*5^3 + O(5^5)
         """
         cconstruct(self.value, self.prime_pow)
-        cconv(self.value, x, self.prime_pow.prec_cap, 0, self.prime_pow)
+        if isinstance(x,FMElement) and x.parent() is self.parent():
+            cshift(self.value, (<FMElement>x).value, 0, 0, self.prime_pow, False)
+        else:
+            cconv(self.value, x, self.prime_pow.prec_cap, 0, self.prime_pow)
 
     cdef FMElement _new_c(self):
         """
@@ -155,23 +157,7 @@ cdef class FMElement(pAdicTemplateElement):
         """
         return unpickle_fme_v2, (self.__class__, self.parent(), cpickle(self.value, self.prime_pow))
 
-    def __richcmp__(self, right, int op):
-        """
-        Compare this element to ``right`` using the comparison operator ``op``.
-
-        TESTS::
-
-            sage: R = ZpFM(5)
-            sage: a = R(17)
-            sage: b = R(21)
-            sage: a == b
-            False
-            sage: a < b
-            True
-        """
-        return (<Element>self)._richcmp(right, op)
-
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         r"""
         Return the additive inverse of this element.
 
@@ -186,7 +172,7 @@ cdef class FMElement(pAdicTemplateElement):
         creduce_small(ans.value, ans.value, ans.prime_pow.prec_cap, ans.prime_pow)
         return ans
 
-    cpdef ModuleElement _add_(self, ModuleElement _right):
+    cpdef _add_(self, _right):
         r"""
         Return the sum of this element and ``_right``.
 
@@ -206,7 +192,7 @@ cdef class FMElement(pAdicTemplateElement):
         creduce_small(ans.value, ans.value, ans.prime_pow.prec_cap, ans.prime_pow)
         return ans
 
-    cpdef ModuleElement _sub_(self, ModuleElement _right):
+    cpdef _sub_(self, _right):
         r"""
         Return the difference of this element and ``_right``.
 
@@ -251,7 +237,7 @@ cdef class FMElement(pAdicTemplateElement):
         cinvert(ans.value, self.value, ans.prime_pow.prec_cap, ans.prime_pow)
         return ans
 
-    cpdef RingElement _mul_(self, RingElement _right):
+    cpdef _mul_(self, _right):
         r"""
         Return the product of this element and ``_right``.
 
@@ -269,7 +255,7 @@ cdef class FMElement(pAdicTemplateElement):
         creduce(ans.value, ans.value, ans.prime_pow.prec_cap, ans.prime_pow)
         return ans
 
-    cpdef RingElement _div_(self, RingElement _right):
+    cpdef _div_(self, _right):
         r"""
         Return the quotient of this element and ``right``. ``right`` must have
         valuation zero.
@@ -734,7 +720,7 @@ cdef class FMElement(pAdicTemplateElement):
             sage: R = Zp(7,4,'fixed-mod'); a = R(7); a.precision_absolute()
             4
         """
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         mpz_set_si(ans.value, self.prime_pow.prec_cap)
         return ans
 
@@ -749,7 +735,7 @@ cdef class FMElement(pAdicTemplateElement):
             sage: a = R(0); a.precision_relative()
             0
         """
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         mpz_set_si(ans.value, self.prime_pow.prec_cap - self.valuation_c())
         return ans
 
@@ -826,7 +812,7 @@ cdef class FMElement(pAdicTemplateElement):
             (5, O(5^5))
         """
         cdef FMElement unit = self._new_c()
-        cdef Integer valuation = PY_NEW(Integer)
+        cdef Integer valuation = Integer.__new__(Integer)
         mpz_set_si(valuation.value, cremove(unit.value, self.value, self.prime_pow.prec_cap, self.prime_pow))
         return valuation, unit
 
@@ -976,7 +962,7 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism_coercion):
 
 cdef class pAdicConvert_FM_ZZ(RingMap):
     """
-    The map from a fixed modulus ring back to ZZ that returns the the smallest
+    The map from a fixed modulus ring back to ZZ that returns the smallest
     non-negative integer approximation to its input which is accurate up to the precision.
 
     If the input is not in the closure of the image of ZZ, raises a ValueError.
@@ -1016,7 +1002,7 @@ cdef class pAdicConvert_FM_ZZ(RingMap):
             sage: f(ZpFM(5)(0))
             0
         """
-        cdef Integer ans = PY_NEW(Integer)
+        cdef Integer ans = Integer.__new__(Integer)
         cdef FMElement x = _x
         cconv_mpz_t_out(ans.value, x.value, 0, x.prime_pow.prec_cap, x.prime_pow)
         return ans
@@ -1153,7 +1139,7 @@ def unpickle_fme_v2(cls, parent, value):
     """
     cdef FMElement ans = cls.__new__(cls)
     ans._parent = parent
-    ans.prime_pow = <PowComputer_class?>parent.prime_pow
+    ans.prime_pow = <PowComputer_?>parent.prime_pow
     cconstruct(ans.value, ans.prime_pow)
     cunpickle(ans.value, value, ans.prime_pow)
     return ans

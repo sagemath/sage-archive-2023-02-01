@@ -17,6 +17,7 @@ from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.rngs import Rngs
 from sage.structure.element import Element
 from functools import reduce
+from sage.misc.cachefunc import cached_method
 
 class Rings(CategoryWithAxiom):
     """
@@ -57,6 +58,104 @@ class Rings(CategoryWithAxiom):
     """
 
     _base_category_class_and_axiom = (Rngs, "Unital")
+
+    class MorphismMethods:
+        @cached_method
+        def is_injective(self):
+            """
+            Return whether or not this morphism is injective.
+
+            EXAMPLES:
+
+            This often raises a ``NotImplementedError`` as many homomorphisms do
+            not implement this method::
+
+                sage: R.<x> = QQ[]
+                sage: f = R.hom([x + 1]); f
+                Ring endomorphism of Univariate Polynomial Ring in x over Rational Field
+                  Defn: x |--> x + 1
+                sage: f.is_injective()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError
+
+            If the domain is a field, the homomorphism is injective::
+
+                sage: K.<x> = FunctionField(QQ)
+                sage: L.<y> = FunctionField(QQ)
+                sage: f = K.hom([y]); f
+                Function Field morphism:
+                  From: Rational function field in x over Rational Field
+                  To:   Rational function field in y over Rational Field
+                  Defn: x |--> y
+                sage: f.is_injective()
+                True
+
+            Unless the codomain is the zero ring::
+
+                sage: codomain = Integers(1)
+                sage: f = K.hom([codomain(1)]); f
+                Function Field morphism:
+                  From: Rational function field in x over Rational Field
+                  To:   Ring of integers modulo 1
+                  Defn: x |--> 0
+                sage: f.is_injective()
+                False
+
+            Homomorphism from rings of characteristic zero to rings of positive
+            characteristic can not be injective::
+
+                sage: R.<x> = ZZ[]
+                sage: f = R.hom([GF(3)(1)]); f
+                Ring morphism:
+                  From: Univariate Polynomial Ring in x over Integer Ring
+                  To:   Finite Field of size 3
+                  Defn: x |--> 1
+                sage: f.is_injective()
+                False
+
+            A morphism whose domain is an order in a number field is injective if
+            the codomain has characteristic zero::
+
+                sage: K.<x> = FunctionField(QQ)
+                sage: f = ZZ.hom(K); f
+                Ring Coercion morphism:
+                  From: Integer Ring
+                  To:   Rational function field in x over Rational Field
+                sage: f.is_injective()
+                True
+
+            """
+            if self.domain().is_zero():
+                return True
+            if self.codomain().is_zero():
+                # the only map to the zero ring that is injective is the map from itself
+                return False
+
+            from sage.categories.fields import Fields
+            if self.domain() in Fields():
+                # A ring homomorphism from a field to a ring is injective
+                # (unless the codomain is the zero ring.) Note that ring
+                # homomorphism must send the 1 element to the 1 element
+                return True
+
+            if self.domain().characteristic() == 0:
+                if self.codomain().characteristic() != 0:
+                    return False
+                else:
+                    from sage.categories.integral_domains import IntegralDomains
+                    if self.domain() in IntegralDomains():
+                        # if all elements of the domain are algebraic over ZZ,
+                        # then the homomorphism must be injective (in
+                        # particular if the domain is ZZ)
+                        from sage.categories.number_fields import NumberFields
+                        if self.domain().fraction_field() in NumberFields():
+                            return True
+
+            if self.domain().cardinality() > self.codomain().cardinality():
+                return False
+
+            raise NotImplementedError
 
     class SubcategoryMethods:
 
@@ -249,7 +348,7 @@ class Rings(CategoryWithAxiom):
               the product is ``self*x``; if ``True``, the
               product is ``x*self``.
 
-            EXAMPLE:
+            EXAMPLES:
 
             As we mentioned above, this method is called
             when a ring is involved that does not inherit
@@ -324,7 +423,7 @@ class Rings(CategoryWithAxiom):
             from that class, such as matrix algebras.  See
             :trac:`7797`.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: MS = MatrixSpace(QQ,2,2)
                 sage: isinstance(MS,Ring)
@@ -412,7 +511,7 @@ class Rings(CategoryWithAxiom):
               whether the resulting ideal is twosided, a left
               ideal or a right ideal.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: MS = MatrixSpace(QQ,2,2)
                 sage: isinstance(MS,Ring)
@@ -580,16 +679,17 @@ class Rings(CategoryWithAxiom):
 
                 sage: F.<x,y,z> = FreeAlgebra(QQ)
                 sage: from sage.rings.noncommutative_ideals import Ideal_nc
+                sage: from itertools import product
                 sage: class PowerIdeal(Ideal_nc):
-                ...    def __init__(self, R, n):
-                ...        self._power = n
-                ...        Ideal_nc.__init__(self,R,[R.prod(m) for m in CartesianProduct(*[R.gens()]*n)])
-                ...    def reduce(self,x):
-                ...        R = self.ring()
-                ...        return add([c*R(m) for m,c in x if len(m)<self._power],R(0))
-                ...
+                ....:  def __init__(self, R, n):
+                ....:      self._power = n
+                ....:      Ideal_nc.__init__(self, R, [R.prod(m) for m in product(R.gens(), repeat=n)])
+                ....:  def reduce(self, x):
+                ....:      R = self.ring()
+                ....:      return add([c*R(m) for m,c in x if len(m) < self._power], R(0))
+                ....:
                 sage: I = PowerIdeal(F,3)
-                sage: Q = Rings().parent_class.quotient(F,I); Q
+                sage: Q = Rings().parent_class.quotient(F, I); Q
                 Quotient of Free Algebra on 3 generators (x, y, z) over Rational Field by the ideal (x^3, x^2*y, x^2*z, x*y*x, x*y^2, x*y*z, x*z*x, x*z*y, x*z^2, y*x^2, y*x*y, y*x*z, y^2*x, y^3, y^2*z, y*z*x, y*z*y, y*z^2, z*x^2, z*x*y, z*x*z, z*y*x, z*y^2, z*y*z, z^2*x, z^2*y, z^3)
                 sage: Q.0
                 xbar
@@ -613,7 +713,7 @@ class Rings(CategoryWithAxiom):
 
             This is a synonym for :meth:`quotient`.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: MS = MatrixSpace(QQ,2)
                 sage: I = MS*MS.gens()*MS
@@ -655,7 +755,7 @@ class Rings(CategoryWithAxiom):
 
             This is a synonyme for :meth:`quotient`.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: MS = MatrixSpace(QQ,2)
                 sage: I = MS*MS.gens()*MS
@@ -687,13 +787,13 @@ class Rings(CategoryWithAxiom):
             """
             return self.quotient(I,names=names)
 
-        def __div__(self, I):
+        def __truediv__(self, I):
             """
             Since assigning generator names would not work properly,
             the construction of a quotient ring using division syntax
             is not supported.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: MS = MatrixSpace(QQ,2)
                 sage: I = MS*MS.gens()*MS
@@ -736,6 +836,13 @@ class Rings(CategoryWithAxiom):
                 sage: GF(17)['a']['b']
                 Univariate Polynomial Ring in b over Univariate Polynomial Ring in a over Finite Field of size 17
 
+            We can create skew polynomial rings::
+
+                sage: k.<t> = GF(5^3)
+                sage: Frob = k.frobenius_endomorphism()
+                sage: k['x',Frob]
+                Skew Polynomial Ring in x over Finite Field in t of size 5^3 twisted by t |--> t^5
+
             We can also create power series rings by using double brackets::
 
                 sage: QQ[['t']]
@@ -763,8 +870,24 @@ class Rings(CategoryWithAxiom):
 
                 sage: QQ[I]
                 Number Field in I with defining polynomial x^2 + 1
+                sage: QQ[I].coerce_embedding()
+                Generic morphism:
+                 From: Number Field in I with defining polynomial x^2 + 1
+                 To:   Complex Lazy Field
+                 Defn: I -> 1*I
+
+            ::
+
                 sage: QQ[sqrt(2)]
                 Number Field in sqrt2 with defining polynomial x^2 - 2
+                sage: QQ[sqrt(2)].coerce_embedding()
+                Generic morphism:
+                 From: Number Field in sqrt2 with defining polynomial x^2 - 2
+                 To:   Real Lazy Field
+                 Defn: sqrt2 -> 1.414213562373095?
+
+            ::
+
                 sage: QQ[sqrt(2),sqrt(3)]
                 Number Field in sqrt2 with defining polynomial x^2 - 2 over its base field
 
@@ -776,6 +899,18 @@ class Rings(CategoryWithAxiom):
                 Order in Number Field in sqrt5 with defining polynomial x^2 - 5
                 sage: ZZ[sqrt(2)+sqrt(3)]
                 Order in Number Field in a with defining polynomial x^4 - 10*x^2 + 1
+
+            Embeddings are found for simple extensions (when that makes sense)::
+
+                sage: QQi.<i> = QuadraticField(-1, 'i')
+                sage: QQ[i].coerce_embedding()
+                Generic morphism:
+                  From: Number Field in i with defining polynomial x^2 + 1
+                  To:   Complex Lazy Field
+                  Defn: i -> 1*I
+                sage: QQi.<i> = QuadraticField(-1, embedding=None)
+                sage: QQ[i].coerce_embedding() is None
+                True
 
             TESTS:
 
@@ -801,11 +936,11 @@ class Rings(CategoryWithAxiom):
                 sage: QQ['a,b','c']
                 Traceback (most recent call last):
                 ...
-                ValueError: variable names must be alphanumeric, but one is 'a,b' which is not.
+                ValueError: variable name 'a,b' is not alphanumeric
                 sage: QQ[['a,b','c']]
                 Traceback (most recent call last):
                 ...
-                ValueError: variable names must be alphanumeric, but one is 'a,b' which is not.
+                ValueError: variable name 'a,b' is not alphanumeric
 
                 sage: QQ[[['x']]]
                 Traceback (most recent call last):
@@ -822,6 +957,21 @@ class Rings(CategoryWithAxiom):
                 sage: K.base_field().base_field()
                 Number Field in b with defining polynomial x^3 - 3
 
+            Embeddings::
+
+                sage: QQ[I](I.pyobject())
+                I
+                sage: a = 10^100; expr = (2*a + sqrt(2))/(2*a^2-1)
+                sage: QQ[expr].coerce_embedding() is None
+                False
+                sage: QQ[sqrt(5)].gen() > 0
+                True
+                sage: expr = sqrt(2) + I*(cos(pi/4, hold=True) - sqrt(2)/2)
+                sage: QQ[expr].coerce_embedding()
+                Generic morphism:
+                  From: Number Field in a with defining polynomial x^2 - 2
+                  To:   Real Lazy Field
+                  Defn: a -> 1.414213562373095?
             """
             def normalize_arg(arg):
                 if isinstance(arg, (tuple, list)):
@@ -848,6 +998,12 @@ class Rings(CategoryWithAxiom):
                 from sage.rings.power_series_ring import PowerSeriesRing
                 return PowerSeriesRing(self, elts)
 
+            if isinstance(arg, tuple):
+                from sage.categories.morphism import Morphism
+                if len(arg) == 2 and isinstance(arg[1], Morphism):
+                   from sage.rings.polynomial.skew_polynomial_ring_constructor import SkewPolynomialRing
+                   return SkewPolynomialRing(self, arg[1], names=arg[0])
+
             # 2. Otherwise, if all specified elements are algebraic, try to
             #    return an algebraic extension
 
@@ -860,8 +1016,36 @@ class Rings(CategoryWithAxiom):
 
             if minpolys:
                 # how to pass in names?
-                # TODO: set up embeddings
                 names = tuple(_gen_names(elts))
+                if len(elts) == 1:
+                    from sage.rings.all import CIF, CLF, RIF, RLF
+                    elt = elts[0]
+                    try:
+                        iv = CIF(elt)
+                    except (TypeError, ValueError):
+                        emb = None
+                    else:
+                        # First try creating an ANRoot manually, because
+                        # extension(..., embedding=CLF(expr)) (or
+                        # ...QQbar(expr)) would normalize the expression in
+                        # QQbar, which currently is VERY slow in many cases.
+                        # This may fail when minpoly has close roots or elt is
+                        # a complicated symbolic expression.
+                        # TODO: Rewrite using #19362 and/or #17886 and/or
+                        # #15600 once those issues are solved.
+                        from sage.rings.qqbar import AlgebraicNumber, ANRoot
+                        try:
+                            elt = AlgebraicNumber(ANRoot(minpolys[0], iv))
+                        except ValueError:
+                            pass
+                        # Force a real embedding when possible, to get the
+                        # right ordered ring structure.
+                        if (iv.imag().is_zero() or iv.imag().contains_zero()
+                                                   and elt.imag().is_zero()):
+                            emb = RLF(elt)
+                        else:
+                            emb = CLF(elt)
+                        return self.extension(minpolys[0], names[0], embedding=emb)
                 try:
                     # Doing the extension all at once is best, if possible...
                     return self.extension(minpolys, names)
@@ -894,16 +1078,37 @@ class Rings(CategoryWithAxiom):
                 sage: MS.zero().is_unit()
                 False
                 sage: MS([1,2,3,4]).is_unit()
-                Traceback (most recent call last):
-                ...
-                NotImplementedError
-
+                False
             """
-            if self == 1 or self == -1:
+            if self.is_one() or (-self).is_one():
                 return True
-            if self == 0: # now 0 != 1
+            if self.is_zero(): # now 0 != 1
                 return False
             raise NotImplementedError
+
+        def _divide_if_possible(self, y):
+            """
+            Divide ``self`` by ``y`` if possible and raise a
+            ``ValueError`` otherwise.
+
+            EXAMPLES::
+
+                sage: 4._divide_if_possible(2)
+                2
+                sage: _.parent()
+                Integer Ring
+
+            ::
+
+                sage: 4._divide_if_possible(3)
+                Traceback (most recent call last):
+                ...
+                ValueError: 4 is not divisible by 3
+            """
+            q, r = self.quo_rem(y)
+            if r != 0:
+                raise ValueError("%s is not divisible by %s"%(self, y))
+            return q
 
 def _gen_names(elts):
     r"""
@@ -921,7 +1126,7 @@ def _gen_names(elts):
         'aa'
     """
     import re
-    from sage.structure.parent_gens import _certify_names
+    from sage.structure.category_object import certify_names
     from sage.combinat.words.words import Words
     it = iter(Words("abcdefghijklmnopqrstuvwxyz", infinite=False))
     next(it) # skip empty word
@@ -931,7 +1136,7 @@ def _gen_names(elts):
         if m:
             name = "sqrt%s" % m.groups()[0]
         try:
-            _certify_names([name])
+            certify_names([name])
         except ValueError:
             name = next(it).string_rep()
         yield name

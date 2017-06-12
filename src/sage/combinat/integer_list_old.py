@@ -30,15 +30,16 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+from six.moves import builtins
 
-from sage.rings.arith import binomial
+from sage.arith.all import binomial
 from sage.rings.integer_ring import ZZ
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.parent import Parent
 from sage.structure.list_clone import ClonableArray
-from sage.misc.lazy_attribute import lazy_attribute
-import __builtin__
 from sage.misc.stopgap import stopgap
+
 
 def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
     """
@@ -418,7 +419,7 @@ def iterator(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
     succ = lambda x: next(x, min_length, max_length, floor, ceiling, min_slope, max_slope)
 
     #Handle the case where n is a list of integers
-    if isinstance(n, __builtin__.list):
+    if isinstance(n, builtins.list):
         for i in range(n[0], min(n[1]+1,upper_bound(min_length, max_length, floor, ceiling, min_slope, max_slope))):
             for el in iterator(i, min_length, max_length, floor, ceiling, min_slope, max_slope):
                 yield el
@@ -536,7 +537,7 @@ def is_a(comp, min_length, max_length, floor, ceiling, min_slope, max_slope):
 
         sage: from sage.combinat.integer_list_old import is_a
         sage: IV = sage.combinat.integer_list_old.IntegerListsLex(n=2,length=3,min_slope=0)
-        sage: all([is_a(iv, 3, 3, lambda i: 0, lambda i: 5, 0, 10) for iv in IV])
+        sage: all(is_a(iv, 3, 3, lambda i: 0, lambda i: 5, 0, 10) for iv in IV)
         True
     """
     if len(comp) < min_length or len(comp) > max_length:
@@ -766,7 +767,7 @@ class IntegerListsLex(Parent):
     readily implemented in MuPAD-Combinat). Encouragements,
     suggestions, and help are welcome.
 
-    .. TODO:
+    .. TODO::
 
         Integrate all remaining tests from
         http://mupad-combinat.svn.sourceforge.net/viewvc/mupad-combinat/trunk/MuPAD-Combinat/lib/COMBINAT/TEST/MachineIntegerListsLex.tst
@@ -911,7 +912,7 @@ class IntegerListsLex(Parent):
                 # Is ``floor`` an iterable?
                 # Not ``floor[:]`` because we want ``self.floor_list``
                 #    mutable, and applying [:] to a tuple gives a tuple.
-                self.floor_list = __builtin__.list(floor)
+                self.floor_list = builtins.list(floor)
                 # Make sure the floor list will make the list satisfy the constraints
                 if min_slope != float('-inf'):
                     for i in range(1, len(self.floor_list)):
@@ -930,7 +931,7 @@ class IntegerListsLex(Parent):
         else:
             try:
                 # Is ``ceiling`` an iterable?
-                self.ceiling_list = __builtin__.list(ceiling)
+                self.ceiling_list = builtins.list(ceiling)
                 # Make sure the ceiling list will make the list satisfy the constraints
                 if max_slope != float('+inf'):
                     for i in range(1, len(self.ceiling_list)):
@@ -986,7 +987,7 @@ class IntegerListsLex(Parent):
         """
         return self.element_class(self, lst)
 
-    def __cmp__(self, x):
+    def __eq__(self, x):
         """
         Compares two different :class:`IntegerListsLex`.
 
@@ -1003,7 +1004,24 @@ class IntegerListsLex(Parent):
             sage: C == D
             False
         """
-        return cmp(repr(self), repr(x))
+        return repr(self) == repr(x)
+
+    def __ne__(self, other):
+        """
+        Compares two different :class:`IntegerListsLex`.
+
+        For now, the comparison is done just on their repr's which is
+        not robust!
+
+        EXAMPLES::
+
+            sage: import sage.combinat.integer_list_old as integer_list
+            sage: C = integer_list.IntegerListsLex(2, length=3)
+            sage: D = integer_list.IntegerListsLex(4, length=3)
+            sage: C != D
+            True
+        """
+        return not self.__eq__(other)
 
     def _repr_(self):
         """
@@ -1182,6 +1200,6 @@ class IntegerListsLex(Parent):
             sage: all(v in C for v in C)
             True
         """
-        if isinstance(v, self.element_class) or isinstance(v, __builtin__.list):
+        if isinstance(v, self.element_class) or isinstance(v, builtins.list):
             return is_a(v, *(self.build_args())) and sum(v) in self.n_range
         return False

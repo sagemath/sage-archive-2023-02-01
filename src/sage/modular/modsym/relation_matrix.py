@@ -5,7 +5,6 @@ This file contains functions that are used by the various ambient modular
 symbols classes to compute presentations of spaces in terms of generators and
 relations, using the standard methods based on Manin symbols.
 """
-
 #*****************************************************************************
 #       Sage: System for Algebra and Geometry Experimentation
 #
@@ -22,13 +21,13 @@ relations, using the standard methods based on Manin symbols.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-SPARSE=True
+from __future__ import absolute_import
+from six.moves import range
+SPARSE = True
 
 import sage.matrix.matrix_space as matrix_space
-import sage.matrix.all
-import sage.rings.all as rings
-from   sage.misc.search import search
+from sage.rings.all import Ring
+from sage.misc.search import search
 from sage.rings.rational_field import is_RationalField
 
 
@@ -121,7 +120,7 @@ def modS_relations(syms):
     # We will fill in this set with the relations x_i + s*x_j = 0,
     # where the notation is as in _sparse_2term_quotient.
     rels = set()
-    for i in xrange(len(syms)):
+    for i in range(len(syms)):
         j, s = syms.apply_S(i)
         assert j != -1
         if i < j:
@@ -146,7 +145,7 @@ def modI_relations(syms, sign):
     -  ``rels`` - set of pairs of pairs (j, s), where if
        mod[i] = (j,s), then x_i = s\*x_j (mod S relations)
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: L = sage.modular.modsym.manin_symbol_list.ManinSymbolList_gamma1(4, 3)
         sage: sage.modular.modsym.relation_matrix.modI_relations(L, 1)
@@ -186,7 +185,7 @@ def modI_relations(syms, sign):
     # We will fill in this set with the relations x_i - sign*s*x_j = 0,
     # where the notation is as in _sparse_2term_quotient.
     rels = set()
-    for i in xrange(len(syms)):
+    for i in range(len(syms)):
         j, s = syms.apply_I(i)
         assert j != -1
         rels.add( ((i,1),(j,-sign*s)) )
@@ -215,9 +214,9 @@ def T_relation_matrix_wtk_g0(syms, mod, field, sparse):
     OUTPUT: A sparse matrix whose rows correspond to the reduction of
     the T relations modulo the S and I relations.
 
-    EXAMPLE::
+    EXAMPLES::
 
-        sage: from sage.modular.modsym.relation_matrix import *
+        sage: from sage.modular.modsym.relation_matrix import sparse_2term_quotient, T_relation_matrix_wtk_g0, modS_relations
         sage: L = sage.modular.modsym.manin_symbol_list.ManinSymbolList_gamma_h(GammaH(36, [17,19]), 2)
         sage: modS = sparse_2term_quotient(modS_relations(L), 216, QQ)
         sage: T_relation_matrix_wtk_g0(L, modS, QQ, False)
@@ -230,7 +229,7 @@ def T_relation_matrix_wtk_g0(syms, mod, field, sparse):
     entries = {}
     already_seen = set()
     w = syms.weight()
-    for i in xrange(len(syms)):
+    for i in range(len(syms)):
         if i in already_seen:
             continue
         iT_plus_iTT = syms.apply_T(i) + syms.apply_TT(i)
@@ -285,9 +284,9 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
 
     -  ``list`` - integers i, such that the Manin symbols `x_i` are a basis.
 
-    EXAMPLE::
+    EXAMPLES::
 
-        sage: from sage.modular.modsym.relation_matrix import *
+        sage: from sage.modular.modsym.relation_matrix import sparse_2term_quotient, T_relation_matrix_wtk_g0, gens_to_basis_matrix, modS_relations
         sage: L = sage.modular.modsym.manin_symbol_list.ManinSymbolList_gamma1(4, 3)
         sage: modS = sparse_2term_quotient(modS_relations(L), 24, GF(3))
         sage: gens_to_basis_matrix(L, T_relation_matrix_wtk_g0(L, modS, GF(3), 24), modS, GF(3), True)
@@ -398,7 +397,7 @@ def compute_presentation(syms, sign, field, sparse=None):
     #. Create a sparse matrix `A` with `m` columns,
        whose rows encode the relations
 
-       .. math::
+       .. MATH::
 
                           [x_i] + [x_i T] + [x_i T^2] = 0.
 
@@ -421,7 +420,7 @@ def compute_presentation(syms, sign, field, sparse=None):
        symbols is a basis for the quotient by the relations.
 
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: L = sage.modular.modsym.manin_symbol_list.ManinSymbolList_gamma0(8,2)
         sage: sage.modular.modsym.relation_matrix.compute_presentation(L, 1, GF(9,'a'), True)
@@ -474,7 +473,7 @@ def relation_matrix_wtk_g0(syms, sign, field, sparse):
 
     - mod is a set of 2-term relations as output by ``sparse_2term_quotient``
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: L = sage.modular.modsym.manin_symbol_list.ManinSymbolList_gamma0(8,2)
         sage: A = sage.modular.modsym.relation_matrix.relation_matrix_wtk_g0(L, 0, GF(2), True); A
@@ -493,7 +492,7 @@ def relation_matrix_wtk_g0(syms, sign, field, sparse):
         rels.update(modI_relations(syms,sign))
 
     if syms._apply_S_only_0pm1() and is_RationalField(field):
-        import relation_matrix_pyx
+        from . import relation_matrix_pyx
         mod = relation_matrix_pyx.sparse_2term_quotient_only_pm1(rels, len(syms))
     else:
         mod = sparse_2term_quotient(rels, len(syms), field)
@@ -530,9 +529,9 @@ def sparse_2term_quotient(rels, n, F):
        the quotient.
 
 
-    EXAMPLE: We quotient out by the relations
+    EXAMPLES: We quotient out by the relations
 
-    .. math::
+    .. MATH::
 
                     3*x0 - x1 = 0,\qquad  x1 + x3 = 0,\qquad   x2 + x3 = 0,\qquad  x4 - x5 = 0
 
@@ -551,15 +550,15 @@ def sparse_2term_quotient(rels, n, F):
     if not isinstance(rels, set):
         raise TypeError("rels must be a set")
     n = int(n)
-    if not isinstance(F, rings.Ring):
+    if not isinstance(F, Ring):
         raise TypeError("F must be a ring.")
 
     tm = misc.verbose("Starting sparse 2-term quotient...")
-    free = range(n)
-    ONE = F(1)
-    ZERO = F(0)
-    coef = [ONE for i in xrange(n)]
-    related_to_me = [[] for i in xrange(n)]
+    free = list(range(n))
+    ONE = F.one()
+    ZERO = F.zero()
+    coef = [ONE for i in range(n)]
+    related_to_me = [[] for i in range(n)]
     for v0, v1 in rels:
         c0 = coef[v0[0]] * F(v0[1])
         c1 = coef[v1[0]] * F(v1[1])
@@ -595,7 +594,7 @@ def sparse_2term_quotient(rels, n, F):
             free[die] = 0
             coef[die] = ZERO
 
-    mod = [(free[i], coef[i]) for i in xrange(len(free))]
+    mod = [(free[i], coef[i]) for i in range(len(free))]
     misc.verbose("finished",tm)
     return mod
 
@@ -777,7 +776,7 @@ def sparse_2term_quotient(rels, n, F):
 
 ##     ##  The S relations
 ##     already_seen= set([])
-##     for i in xrange(n):
+##     for i in range(n):
 ##         if i in already_seen:
 ##             continue
 ##         j, s = M.apply_S(i)
@@ -795,7 +794,7 @@ def sparse_2term_quotient(rels, n, F):
 ##     if sign != 0:
 ##         SIGN = field(sign)
 ##         already_seen= set([])
-##         for i in xrange(n):
+##         for i in range(n):
 ##             if i in already_seen:
 ##                 continue
 ##             j, s = M.apply_I(i)
@@ -812,7 +811,7 @@ def sparse_2term_quotient(rels, n, F):
 
 ##     ## The T relations
 ##     already_seen = set([])
-##     for i in xrange(n):
+##     for i in range(n):
 ##         if i in already_seen:
 ##             continue
 ##         iT_plus_iTT = M.apply_T(i) + M.apply_TT(i)

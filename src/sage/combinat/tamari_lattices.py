@@ -46,7 +46,7 @@ are also available directly using the catalogue of posets, as follows::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.combinat.posets.lattices import LatticePoset
-from sage.rings.arith import gcd
+from sage.arith.all import gcd
 
 
 def paths_in_triangle(i, j, a, b):
@@ -207,7 +207,7 @@ def GeneralizedTamariLattice(a, b, m=1):
 
     REFERENCES:
 
-    .. [BMFPR] M. Bousquet-Melou, E. Fusy, L.-F. Preville Ratelle.
+    .. [BMFPR] \M. Bousquet-Melou, E. Fusy, L.-F. Preville Ratelle.
        *The number of intervals in the m-Tamari lattices*. :arxiv:`1106.1498`
     """
     if not(gcd(a, b) == 1 and a >= b):

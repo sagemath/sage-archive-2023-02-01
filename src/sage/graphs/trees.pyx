@@ -14,11 +14,10 @@ REFERENCES:
        Constant time generation of free trees. SIAM J. Comput. 15 (1986), no. 2,
        540--548.
 """
+from __future__ import print_function
 
-cdef extern from "limits.h":
-    cdef int INT_MAX
-
-include "sage/ext/stdsage.pxi"
+from libc.limits cimport INT_MAX
+from cysignals.memory cimport check_allocarray, sig_free
 
 # from networkx import MultiGraph
 
@@ -34,20 +33,20 @@ cdef class TreeIterator:
 
         sage: from sage.graphs.trees import TreeIterator
         sage: def check_trees(n):
-        ...       trees = []
-        ...       for t in TreeIterator(n):
-        ...           if t.is_tree() == False:
-        ...               return False
-        ...           if t.num_verts() != n:
-        ...               return False
-        ...           if t.num_edges() != n - 1:
-        ...               return False
-        ...           for tree in trees:
-        ...               if tree.is_isomorphic(t) == True:
-        ...                   return False
-        ...           trees.append(t)
-        ...       return True
-        sage: print check_trees(10)
+        ....:     trees = []
+        ....:     for t in TreeIterator(n):
+        ....:         if t.is_tree() == False:
+        ....:             return False
+        ....:         if t.num_verts() != n:
+        ....:             return False
+        ....:         if t.num_edges() != n - 1:
+        ....:             return False
+        ....:         for tree in trees:
+        ....:             if tree.is_isomorphic(t) == True:
+        ....:                 return False
+        ....:         trees.append(t)
+        ....:     return True
+        sage: check_trees(10)
         True
 
     ::
@@ -55,8 +54,8 @@ cdef class TreeIterator:
         sage: from sage.graphs.trees import TreeIterator
         sage: count = 0
         sage: for t in TreeIterator(15):
-        ...       count += 1
-        sage: print count
+        ....:     count += 1
+        sage: count
         7741
     """
 
@@ -68,7 +67,7 @@ cdef class TreeIterator:
 
             sage: from sage.graphs.trees import TreeIterator
             sage: t = TreeIterator(100) # indirect doctest
-            sage: print t
+            sage: print(t)
             Iterator over all trees with 100 vertices
         """
         self.vertices = vertices
@@ -84,12 +83,8 @@ cdef class TreeIterator:
             sage: t = TreeIterator(100)
             sage: t = None # indirect doctest
         """
-        if self.l != NULL:
-            sage_free(self.l)
-            self.l = NULL
-        if self.current_level_sequence != NULL:
-            sage_free(self.current_level_sequence)
-            self.current_level_sequence = NULL
+        sig_free(self.l)
+        sig_free(self.current_level_sequence)
 
     def __str__(self):
         r"""
@@ -97,7 +92,7 @@ cdef class TreeIterator:
 
             sage: from sage.graphs.trees import TreeIterator
             sage: t = TreeIterator(100)
-            sage: print t # indirect doctest
+            sage: print(t)  # indirect doctest
             Iterator over all trees with 100 vertices
         """
         return "Iterator over all trees with %s vertices"%(self.vertices)
@@ -146,11 +141,8 @@ cdef class TreeIterator:
                 self.first_time = 0
                 self.q = 0
             else:
-                self.l = <int *>sage_malloc(self.vertices * sizeof(int))
-                self.current_level_sequence = <int *>sage_malloc(self.vertices * sizeof(int))
-
-                if self.l == NULL or self.current_level_sequence == NULL:
-                    raise MemoryError
+                self.l = <int *>check_allocarray(self.vertices, sizeof(int))
+                self.current_level_sequence = <int *>check_allocarray(self.vertices, sizeof(int))
 
                 self.generate_first_level_sequence()
                 self.first_time = 0

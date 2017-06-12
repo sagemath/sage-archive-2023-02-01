@@ -14,8 +14,8 @@
 
 ::
 
-    print "Hello World"
-    print 2^3
+    print("Hello World")
+    print(2^3)
 
 Вы можете прочитать и выполнить ``example.sage`` с помощью команды ``load``.
 
@@ -56,8 +56,8 @@ Sage (т.е. нажмите ``return``), то содержимое ``example.sag
 
 ::
 
-    print "Hello World"
-    print Integer(2)**Integer(3)
+    print("Hello World")
+    print(Integer(2)**Integer(3))
 
 Целые контстанты переведены и ``^`` заменено на ``**``. (В Python ``^``
 означает "исключающее ИЛИ" и ``**`` означает "возведение в степень".)
@@ -159,17 +159,17 @@ C и обработан компилятором C.
 
 ::
 
-    #!/usr/bin/env sage -python
+    #!/usr/bin/env sage
 
     import sys
     from sage.all import *
 
     if len(sys.argv) != 2:
-        print "Usage: %s <n>"%sys.argv[0]
-        print "Outputs the prime factorization of n."
+        print("Usage: %s <n>" % sys.argv[0])
+        print("Outputs the prime factorization of n.")
         sys.exit(1)
 
-    print factor(sage_eval(sys.argv[1]))
+    print(factor(sage_eval(sys.argv[1])))
 
 Для того, чтобы использовать этот скрипт, ``SAGE_ROOT`` должен быть в PATH.
 Если вышеописанный скрипт называется ``factor``, следующее показывает, как
@@ -193,17 +193,17 @@ C и обработан компилятором C.
 ::
 
     sage: s = "sage"; type(s)
-    <type 'str'>
+    <... 'str'>
     sage: s = 'sage'; type(s)      # Вы можете использовать двойные или одинарные кавычки
-    <type 'str'>
+    <... 'str'>
     sage: s = [1,2,3,4]; type(s)
-    <type 'list'>
+    <... 'list'>
     sage: s = (1,2,3,4); type(s)
-    <type 'tuple'>
+    <... 'tuple'>
     sage: s = int(2006); type(s)
-    <type 'int'>
+    <... 'int'>
     sage: s = float(2006); type(s)
-    <type 'float'>
+    <... 'float'>
 
 В свою очередь Sage добавляет много других типов данных, например, векторное поле:
 
@@ -280,7 +280,7 @@ C++ и т.д., но в отличие от других алгебраическ
     sage: v = [2, 3, 5, 'x', SymmetricGroup(3)]; v
     [2, 3, 5, 'x', Symmetric group of order 3! as a permutation group]
     sage: type(v)
-    <type 'list'>
+    <... 'list'>
     sage: v[0]
     2
     sage: v[2]
@@ -312,7 +312,7 @@ Python, сработает нормально.
 ::
 
     sage: L = [factor(n) for n in range(1, 15)]
-    sage: print L
+    sage: L
     [1, 2, 3, 2^2, 5, 2 * 3, 7, 2^3, 3^2, 2 * 5, 11, 2^2 * 3, 13, 2 * 7]
     sage: L[12]
     13
@@ -333,7 +333,7 @@ Python, сработает нормально.
     sage: L = [factor(n) for n in range(1, 20)]
     sage: L[4:9]
     [5, 2 * 3, 7, 2^3, 3^2]
-    sage: print L[:4]
+    sage: L[:4]
     [1, 2, 3, 2^2]
     sage: L[14:4]
     []
@@ -347,7 +347,7 @@ Python, сработает нормально.
     sage: v = (1,2,3,4); v
     (1, 2, 3, 4)
     sage: type(v)
-    <type 'tuple'>
+    <... 'tuple'>
     sage: v[1] = 5
     Traceback (most recent call last):
     ...
@@ -390,7 +390,7 @@ Python, сработает нормально.
     sage: list(v)
     [1, 2, 3, 4/5]
     sage: type(list(v))
-    <type 'list'>
+    <... 'list'>
 
 Базис для векторного поля является неизменяемой последовательностью, так
 как очень важно не изменять их. Это показано в следующем примере:
@@ -424,7 +424,7 @@ http://docs.python.org/lib/typesmapping.html) произвольным объе�
 
     sage: d = {1:5, 'sage':17, ZZ:GF(7)}
     sage: type(d)
-    <type 'dict'>
+    <... 'dict'>
     sage: d.keys()
      [1, 'sage', Integer Ring]
     sage: d['sage']
@@ -443,7 +443,7 @@ http://docs.python.org/lib/typesmapping.html) произвольным объе�
 
 ::
 
-    sage: d.items()
+    sage: list(d.items())
     [(1, 5), ('sage', 17), (Integer Ring, Finite Field of size 7)]
 
 Часто используемой практикой является произведение итераций по парам в словаре:
@@ -451,7 +451,7 @@ http://docs.python.org/lib/typesmapping.html) произвольным объе�
 ::
 
     sage: d = {2:4, 3:9, 4:16}
-    sage: [a*b for a, b in d.iteritems()]
+    sage: [a*b for a, b in d.items()]
     [8, 27, 64]
 
 Как показывает последний пример, словарь не упорядочен.
@@ -495,7 +495,7 @@ http://docs.python.org/lib/typesmapping.html) произвольным объе�
     {1, 2/3}
     sage: X.intersection(Y)
     {1}
-    sage: print latex(Y)
+    sage: print(latex(Y))
     \left\{1, \frac{2}{3}\right\}
     sage: Set(ZZ)
     Set of elements of Integer Ring
@@ -630,15 +630,6 @@ http://docs.python.org/lib/typesmapping.html) произвольным объе�
     False
     sage: 2/3 < 3/2;   3/2 < 3/1
     True
-    True
-
-Практически любые два объекта могут быть сравнены.
-
-::
-
-    sage: 2 < CC(3.1,1)
-    True
-    sage: 5 < VectorSpace(QQ,3)   # random output
     True
 
 Используйте переменные bool для символьных неравенств:

@@ -82,15 +82,19 @@ List representatives for Gamma_0(N) - equivalence classes of cusps:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six import integer_types
 
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element, is_InfinityElement
+from sage.structure.richcmp import richcmp, rich_to_bool
+
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
 
 _nfcusps_cache = {}
 
 _list_reprs_cache = {}
+
 
 def NFCusps_clear_list_reprs_cache():
     """
@@ -142,19 +146,17 @@ def list_of_representatives(N):
         sage: N = k.ideal(713, a + 208)
         sage: L = list_of_representatives(N); L
         (Fractional ideal (1),
-        Fractional ideal (37, a + 12),
-        Fractional ideal (47, a - 9))
+         Fractional ideal (47, a - 9),
+         Fractional ideal (53, a - 16))
 
-    The output of ``list_of_representatives`` has been cached:
-
-    ::
+    The output of ``list_of_representatives`` has been cached::
 
         sage: sage.modular.cusps_nf._list_reprs_cache.keys()
         [Fractional ideal (713, a + 208)]
         sage: sage.modular.cusps_nf._list_reprs_cache[N]
         (Fractional ideal (1),
-        Fractional ideal (37, a + 12),
-        Fractional ideal (47, a - 9))
+         Fractional ideal (47, a - 9),
+         Fractional ideal (53, a - 16))
     """
     if N in _list_reprs_cache:
         lreps = _list_reprs_cache[N]
@@ -267,12 +269,9 @@ class NFCuspsSpace(ParentWithBase):
         self.__number_field = number_field
         ParentWithBase.__init__(self, self)
 
-    def __cmp__(self, right):
+    def __eq__(self, right):
         """
         Return equality only if right is the set of cusps for the same field.
-
-        Comparing sets of cusps for two different fields gives the same
-        result as comparing the two fields.
 
         EXAMPLES::
 
@@ -288,13 +287,31 @@ class NFCuspsSpace(ParentWithBase):
             True
             sage: LCusps == kCusps
             False
-
         """
-        t = cmp(type(self), type(right))
-        if t:
-            return t
-        else:
-            return cmp(self.number_field(), right.number_field())
+        if not isinstance(right, NFCuspsSpace):
+            return False
+        return self.number_field() == right.number_field()
+
+    def __ne__(self, right):
+        """
+        Check that ``self`` is not equal to ``right``.
+
+        EXAMPLES::
+
+            sage: k.<a> = NumberField(x^2 + 5)
+            sage: L.<a> = NumberField(x^2 + 23)
+            sage: kCusps = NFCusps(k); kCusps
+            Set of all cusps of Number Field in a with defining polynomial x^2 + 5
+            sage: LCusps = NFCusps(L); LCusps
+            Set of all cusps of Number Field in a with defining polynomial x^2 + 23
+            sage: kCusps != NFCusps(k)
+            False
+            sage: LCusps != NFCusps(L)
+            False
+            sage: LCusps != kCusps
+            True
+        """
+        return not (self == right)
 
     def _repr_(self):
         """
@@ -314,7 +331,7 @@ class NFCuspsSpace(ParentWithBase):
             Set of all cusps of Number Field in a with defining polynomial x^2 + 2
 
         """
-        return "Set of all cusps of %s" %(self.number_field())
+        return "Set of all cusps of %s" % self.number_field()
 
     def _latex_(self):
         """
@@ -327,7 +344,7 @@ class NFCuspsSpace(ParentWithBase):
             sage: latex(kCusps) # indirect doctest
             \mathbf{P}^1(\Bold{Q}[a]/(a^{2} + 5))
         """
-        return "\\mathbf{P}^1(%s)" %(self.number_field()._latex_())
+        return "\\mathbf{P}^1(%s)" % self.number_field()._latex_()
 
     def __call__(self, x):
         """
@@ -364,7 +381,7 @@ class NFCuspsSpace(ParentWithBase):
         It is not intended that the returned cusp is an additive
         neutral element.
 
-        EXAMPLE::
+        EXAMPLES::
 
              sage: k.<a> = NumberField(x^2 + 5)
              sage: kCusps = NFCusps(k)
@@ -460,21 +477,21 @@ class NFCusp(Element):
         sage: NFCusp(k, I)
         Traceback (most recent call last):
         ...
-        TypeError: Unable to convert I to a cusp of the number field
+        TypeError: unable to convert I to a cusp of the number field
 
     ::
 
         sage: NFCusp(k, oo, oo)
         Traceback (most recent call last):
         ...
-        TypeError: Unable to convert (+Infinity, +Infinity) to a cusp of the number field
+        TypeError: unable to convert (+Infinity, +Infinity) to a cusp of the number field
 
     ::
 
         sage: NFCusp(k, 0, 0)
         Traceback (most recent call last):
         ...
-        TypeError: Unable to convert (0, 0) to a cusp of the number field
+        TypeError: unable to convert (0, 0) to a cusp of the number field
 
     ::
 
@@ -516,8 +533,8 @@ class NFCusp(Element):
         R = number_field.maximal_order()
         if b is None:
             if not a:#that is cusp "0"
-                self.__a = R(0)
-                self.__b = R(1)
+                self.__a = R.zero()
+                self.__b = R.one()
                 return
             if isinstance(a, NFCusp):
                 if a.parent() == parent:
@@ -527,23 +544,23 @@ class NFCusp(Element):
                     raise ValueError("Cannot coerce cusps from one field to another")
             elif a in R:
                 self.__a = R(a)
-                self.__b = R(1)
+                self.__b = R.one()
             elif a in number_field:
                 self.__b = R(a.denominator())
                 self.__a = R(a * self.__b)
             elif is_InfinityElement(a):
-                self.__a = R(1)
-                self.__b = R(0)
-            elif isinstance(a, (int, long)):
+                self.__a = R.one()
+                self.__b = R.zero()
+            elif isinstance(a, integer_types):
                 self.__a = R(a)
-                self.__b = R(1)
+                self.__b = R.one()
             elif isinstance(a, (tuple, list)):
                 if len(a) != 2:
-                    raise TypeError("Unable to convert %s to a cusp \
+                    raise TypeError("unable to convert %r to a cusp \
                                       of the number field"%a)
                 if a[1].is_zero():
-                    self.__a = R(1)
-                    self.__b = R(0)
+                    self.__a = R.one()
+                    self.__b = R.zero()
                 elif a[0] in R and a[1] in R:
                     self.__a = R(a[0])
                     self.__b = R(a[1])
@@ -561,7 +578,7 @@ class NFCusp(Element):
                         self.__b = R(r.denominator())
                         self.__a = R(r * self.__b)
                     except (ValueError, TypeError):
-                        raise TypeError("Unable to convert %s to a cusp \
+                        raise TypeError("unable to convert %r to a cusp \
                                           of the number field"%a)
             else:
                 try:
@@ -569,56 +586,56 @@ class NFCusp(Element):
                     self.__b = R(r.denominator())
                     self.__a = R(r * self.__b)
                 except (ValueError, TypeError):
-                    raise TypeError("Unable to convert %s to a cusp \
+                    raise TypeError("unable to convert %r to a cusp \
                                       of the number field"%a)
         else:#'b' is given
             if is_InfinityElement(b):
                 if is_InfinityElement(a) or (isinstance(a, NFCusp) and a.is_infinity()):
-                    raise TypeError("Unable to convert (%s, %s) \
-                                      to a cusp of the number field"%(a, b))
-                self.__a = R(0)
-                self.__b = R(1)
+                    raise TypeError("unable to convert (%r, %r) \
+                                      to a cusp of the number field" % (a, b))
+                self.__a = R.zero()
+                self.__b = R.one()
                 return
             elif not b:
                 if not a:
-                     raise TypeError("Unable to convert (%s, %s) \
-                                       to a cusp of the number field"%(a, b))
-                self.__a = R(1)
-                self.__b = R(0)
+                     raise TypeError("unable to convert (%r, %r) \
+                                       to a cusp of the number field" % (a, b))
+                self.__a = R.one()
+                self.__b = R.zero()
                 return
             if not a:
-                self.__a = R(0)
-                self.__b = R(1)
+                self.__a = R.zero()
+                self.__b = R.one()
                 return
-            if (b in R or isinstance(b, (int, long))) and (a in R or isinstance(a, (int, long))):
+            if (b in R or isinstance(b, integer_types)) and (a in R or isinstance(a, integer_types)):
                 self.__a = R(a)
                 self.__b = R(b)
             else:
                 if a in R or a in number_field:
                     r = a / b
                 elif is_InfinityElement(a):
-                    self.__a = R(1)
-                    self.__b = R(0)
+                    self.__a = R.one()
+                    self.__b = R.zero()
                     return
                 elif isinstance(a, NFCusp):
                     if a.is_infinity():
-                        self.__a = R(1)
-                        self.__b = R(0)
+                        self.__a = R.one()
+                        self.__b = R.zero()
                         return
                     r = a.__a / (a.__b * b)
-                elif isinstance(a, (int, long)):
+                elif isinstance(a, integer_types):
                     r = R(a) / b
                 elif isinstance(a, (tuple, list)):
                     if len(a) != 2:
-                        raise TypeError("Unable to convert (%s, %s) \
-                                          to a cusp of the number field"%(a, b))
+                        raise TypeError("unable to convert (%r, %r) \
+                                          to a cusp of the number field" % (a, b))
                     r = R(a[0]) / (R(a[1]) * b)
                 else:
                     try:
                         r = number_field(a) / b
                     except (ValueError, TypeError):
-                        raise TypeError("Unable to convert (%s, %s) \
-                                          to a cusp of the number field"%(a, b))
+                        raise TypeError("unable to convert (%r, %r) \
+                                          to a cusp of the number field" % (a, b))
                 self.__b = R(r.denominator())
                 self.__a = R(r * self.__b)
         if not lreps is None:
@@ -638,6 +655,7 @@ class NFCusp(Element):
         String representation of this cusp.
 
         EXAMPLES::
+
             sage: k.<a> = NumberField(x^2 + 1)
             sage: c = NFCusp(k, a, 2); c
             Cusp [a: 2] of Number Field in a with defining polynomial x^2 + 1
@@ -649,10 +667,10 @@ class NFCusp(Element):
             Cusp [a: 2] of Number Field in a with defining polynomial x^2 + 1
         """
         if self.__b.is_zero():
-            return "Cusp Infinity of %s"%self.parent().number_field()
+            return "Cusp Infinity of %s" % self.parent().number_field()
         else:
-            return "Cusp [%s: %s] of %s"%(self.__a, self.__b, \
-                                          self.parent().number_field())
+            return "Cusp [%s: %s] of %s" % (self.__a, self.__b,
+                                            self.parent().number_field())
 
 
     def number_field(self):
@@ -735,8 +753,8 @@ class NFCusp(Element):
             -1/3*a + 1/3
         """
         if self.__b.is_zero():
-            raise TypeError("%s is not an element of %s"%(self, \
-                                                          self.number_field()))
+            raise TypeError("%s is not an element of %s" % (self,
+                                                            self.number_field()))
         k = self.number_field()
         return k(self.__a / self.__b)
 
@@ -758,7 +776,7 @@ class NFCusp(Element):
         if self.__b.is_one():
             return self.__a
         if self.__b.is_zero():
-            raise TypeError("%s is not an element of %s"%(self, \
+            raise TypeError("%s is not an element of %s" % (self,
                                          self.number_field.ring_of_integers()))
         R = self.number_field().ring_of_integers()
         try:
@@ -783,14 +801,15 @@ class NFCusp(Element):
         if self.__b.is_zero():
             return "\\infty"
         else:
-            return "\\[%s: %s\\]"%(self.__a._latex_(), \
-                                   self.__b._latex_())
+            return "\\[%s: %s\\]" % (self.__a._latex_(),
+                                     self.__b._latex_())
 
-    def __cmp__(self, right):
+    def _richcmp_(self, right, op):
         """
-        Compare the cusps self and right.  Comparison is as for elements in
-        the number field, except with the cusp oo which is greater than
-        everything but itself.
+        Compare the cusps ``self`` and ``right``.
+
+        Comparison is as for elements in the number field, except with
+        the cusp oo which is greater than everything but itself.
 
         The ordering in comparison is only really meaningful for infinity.
 
@@ -799,9 +818,8 @@ class NFCusp(Element):
             sage: k.<a> = NumberField(x^3 + x + 1)
             sage: kCusps = NFCusps(k)
 
-        Comparing with infinity:
+        Comparing with infinity::
 
-        ::
             sage: c = kCusps((a,2))
             sage: d = kCusps(oo)
             sage: c < d
@@ -809,9 +827,7 @@ class NFCusp(Element):
             sage: kCusps(oo) < d
             False
 
-        Comparison as elements of the number field:
-
-        ::
+        Comparison as elements of the number field::
 
             sage: kCusps(2/3) < kCusps(5/2)
             False
@@ -819,17 +835,16 @@ class NFCusp(Element):
             False
         """
         if self.__b.is_zero():
-            # self is oo, which is bigger than everything but oo.
             if right.__b.is_zero():
-                return 0
+                return rich_to_bool(op, 0)
             else:
-                return 1
-        elif right.__b.is_zero():
-            if self.__b.is_zero():
-                return 0
+                return rich_to_bool(op, 1)
+        else:
+            if right.__b.is_zero():
+                return rich_to_bool(op, -1)
             else:
-                return -1
-        return cmp(self._number_field_element_(), right._number_field_element_())
+                return richcmp(self._number_field_element_(),
+                               right._number_field_element_(), op)
 
     def __neg__(self):
         """
@@ -1154,7 +1169,7 @@ def Gamma0_NFCusps(N):
             g = (A*B).gens_reduced()[0]
 
         #for every divisor of N we have to find cusps
-        from sage.rings.arith import divisors
+        from sage.arith.all import divisors
         for d in divisors(N):
             #find delta prime coprime to B in inverse class of d*A
             #by searching in our list of auxiliary prime ideals
@@ -1206,12 +1221,19 @@ def number_of_Gamma0_NFCusps(N):
         sage: L = Gamma0_NFCusps(N)
         sage: len(L) == number_of_Gamma0_NFCusps(N)
         True
+        sage: k.<a> = NumberField(x^2 + 7)
+        sage: N = k.ideal(9)
+        sage: number_of_Gamma0_NFCusps(N)
+        6
+        sage: N = k.ideal(a*9 + 7)
+        sage: number_of_Gamma0_NFCusps(N)
+        24
     """
     k = N.number_field()
     # The number of Gamma0(N)-sub-orbits for each Gamma-orbit:
-    from sage.rings.arith import divisors
-    s = sum([len(list((d+N/d).invertible_residues_mod(k.unit_group().gens()))) \
-                                                for d in divisors(N)])
+    from sage.arith.all import divisors
+    Ugens = [k(u) for u in k.unit_group().gens()]
+    s = sum([len((d+N/d).invertible_residues_mod(Ugens)) for d in divisors(N)])
     # There are h Gamma-orbits, with h class number of underlying number field.
     return s*k.class_number()
 
@@ -1250,9 +1272,9 @@ def NFCusps_ideal_reps_for_levelN(N, nlists=1):
         sage: from sage.modular.cusps_nf import NFCusps_ideal_reps_for_levelN
         sage: NFCusps_ideal_reps_for_levelN(N)
         [(Fractional ideal (1),
-          Fractional ideal (13, a - 2),
-          Fractional ideal (43, a - 1),
-          Fractional ideal (67, a + 17))]
+          Fractional ideal (67, a + 17),
+          Fractional ideal (127, a + 48),
+          Fractional ideal (157, a - 19))]
         sage: L = NFCusps_ideal_reps_for_levelN(N, 5)
         sage: all([len(L[i])==k.class_number() for i in range(len(L))])
         True
@@ -1332,4 +1354,4 @@ def units_mod_ideal(I):
     from sage.misc.mrange import xmrange
     from sage.misc.all import prod
 
-    return [prod([u**e for u,e in zip(ulist,ei)],k(1)) for ei in xmrange(elist)]
+    return [k.prod(u**e for u, e in zip(ulist, ei)) for ei in xmrange(elist)]

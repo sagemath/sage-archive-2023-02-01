@@ -21,7 +21,7 @@ discussion of loading JSMol.
 
 import os
 import zipfile
-from StringIO import StringIO
+from six import StringIO
 
 from sage.env import SAGE_LOCAL
 from sage.structure.sage_object import SageObject
@@ -249,7 +249,7 @@ class JSMolHtml(SageObject):
         String.
         
         EXAMPLES::
-        
+
             sage: from sage.repl.display.jsmol_iframe import JSMolHtml
             sage: from sage.repl.rich_output.output_graphics3d import OutputSceneJmol
             sage: jmol = JSMolHtml(OutputSceneJmol.example())
@@ -276,7 +276,7 @@ class JSMolHtml(SageObject):
         String
 
         EXAMPLES::
-        
+
             sage: from sage.repl.display.jsmol_iframe import JSMolHtml
             sage: from sage.repl.rich_output.output_graphics3d import OutputSceneJmol
             sage: jmol = JSMolHtml(OutputSceneJmol.example(), width=500, height=300)

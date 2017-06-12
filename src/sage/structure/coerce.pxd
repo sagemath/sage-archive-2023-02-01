@@ -1,13 +1,11 @@
-from element cimport Element, RingElement, ModuleElement, CoercionModel
-
-from parent cimport Parent
-from sage.categories.action cimport Action
-
-from coerce_dict cimport TripleDict
+from .element cimport CoercionModel
+from .parent cimport Parent
+from .coerce_dict cimport TripleDict
 
 cpdef py_scalar_parent(py_type)
 cpdef py_scalar_to_element(py)
 cpdef bint is_numpy_type(t)
+cpdef bint is_mpmath_type(t)
 
 cdef class CoercionModel_cache_maps(CoercionModel):
     # This MUST be a mapping to tuples, where each
@@ -33,4 +31,4 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
     cdef TripleDict _division_parents
     cpdef analyse(self, xp, yp, op=*)
-    cpdef Parent division_parent(self, Parent parent)
+    cpdef division_parent(self, Parent P)

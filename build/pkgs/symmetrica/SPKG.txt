@@ -22,9 +22,6 @@ to http://www.algorithm.uni-bayreuth.de/en/research/SYMMETRICA)
 
 Public Domain (see the above web site)
 
-== SPKG Maintainers ==
- * Mike Hansen
-
 == Upstream Contact ==
  * Axel Kohnert - see http://www.mathe2.uni-bayreuth.de/axel/
 

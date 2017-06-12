@@ -39,12 +39,14 @@ def shimura_mass__maximal(self,):
     but has a small technical restriction when `n` is odd.
 
     INPUT:
+
         none
 
     OUTPUT:
+
         a rational number
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
         sage: Q.shimura_mass__maximal()
@@ -62,12 +64,14 @@ def GHY_mass__maximal(self):
     Reference:  See [GHY, Prop 7.4 and 7.5, p121] and [GY, Thrm 10.20, p25].
 
     INPUT:
+
         none
 
     OUTPUT:
+
         a rational number
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1])
         sage: Q.GHY_mass__maximal()

@@ -5,6 +5,8 @@ AUTHORS:
 
 - Florent Hivert (2011): initial version
 """
+from six import add_metaclass
+
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
 from sage.combinat.abstract_tree import (AbstractClonableTree,
@@ -30,7 +32,7 @@ def number_of_rooted_trees(n):
     Compute the number `a(n)` of rooted trees with `n` nodes using the
     recursive formula ([SL000081]_):
 
-    .. math::
+    .. MATH::
 
         a(n+1) = \frac{1}{n} \sum_{k=1}^{n} \left( \sum_{d|k} d a(d) \right) a(n-k+1)
 
@@ -54,6 +56,7 @@ def number_of_rooted_trees(n):
                for k in ZZ.range(1, n)) // (n - 1)
 
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class RootedTree(AbstractClonableTree, NormalizedClonableList):
     r"""
     The class for unordered rooted trees.
@@ -120,8 +123,6 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
         one that does distinguish different trees.
     """
     # Standard auto-parent trick
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
         """
@@ -416,7 +417,7 @@ class RootedTrees(UniqueRepresentation, Parent):
 
     - ``size`` -- (optional) an integer
 
-    OUPUT:
+    OUTPUT:
 
     the set of all rooted trees (of the given size ``size`` if
     specified)
@@ -975,7 +976,7 @@ class LabelledRootedTrees_all(LabelledRootedTrees):
         """
         Return a labelled tree.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: LabelledRootedTrees().an_element()   # indirect doctest
             alpha[3[], 5[None[]], 42[3[], 3[]]]

@@ -7,6 +7,7 @@ AUTHORS:
 
 - David Roe
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
@@ -55,6 +56,7 @@ class LocalGeneric(CommutativeRing):
             category = CompleteDiscreteValuationFields()
         else:
             category = CompleteDiscreteValuationRings()
+        category = category.Metric().Complete()
         if default_category is not None:
             category = check_default_category(default_category, category)
         Parent.__init__(self, base, names=(names,), normalize=False, category=category, element_constructor=element_class)
@@ -133,6 +135,31 @@ class LocalGeneric(CommutativeRing):
             False
             sage: S(5^7,absprec=9)
             5^7 + O(5^9)
+        """
+        return False
+
+    def is_floating_point(self):
+        """
+        Returns whether this `p`-adic ring bounds precision in a floating
+        point fashion.
+
+        The relative precision of an element is the power of `p`
+        modulo which the unit part of that element is defined.  In a
+        floating point ring, elements do not store precision, but arithmetic
+        operations truncate to a relative precision depending on the ring.
+
+        EXAMPLES::
+
+            sage: R = ZpCR(5, 15)
+            sage: R.is_floating_point()
+            False
+            sage: R(5^7)
+            5^7 + O(5^22)
+            sage: S = ZpFP(5, 15)
+            sage: S.is_floating_point()
+            True
+            sage: S(5^7)
+            5^7
         """
         return False
 
@@ -550,7 +577,7 @@ class LocalGeneric(CommutativeRing):
         for x in tester.some_elements():
             errors = []
             if x.precision_absolute() <= 0:
-                from precision_error import PrecisionError
+                from .precision_error import PrecisionError
                 errors.append(PrecisionError)
             if x.valuation() < 0:
                 errors.append(ValueError)

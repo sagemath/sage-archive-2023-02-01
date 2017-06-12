@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 r"""
 Word classes
 
@@ -10,6 +10,7 @@ AUTHORS:
 - Franco Saliola
 
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Arnaud Bergeron <abergeron@gmail.com>,
 #                          Amy Glen <amy.glen@gmail.com>,
@@ -26,10 +27,10 @@ from sage.combinat.words.word_char import WordDatatype_char
 from sage.combinat.words.abstract_word import Word_class
 from sage.combinat.words.finite_word import FiniteWord_class
 from sage.combinat.words.infinite_word import InfiniteWord_class
-from word_datatypes import (WordDatatype_str,
+from .word_datatypes import (WordDatatype_str,
                             WordDatatype_list,
                             WordDatatype_tuple)
-from word_infinite_datatypes import (
+from .word_infinite_datatypes import (
                             WordDatatype_iter_with_caching,
                             WordDatatype_iter,
                             WordDatatype_callable_with_caching,
@@ -146,7 +147,7 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
         sage: w = Word("abbabaab", alphabet="abc"); w
         word: abbabaab
         sage: w.parent()
-        Words over {'a', 'b', 'c'}
+        Finite words over {'a', 'b', 'c'}
 
     Word from a free monoid element::
 
@@ -159,7 +160,7 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
         sage: w = Word("abbabaab"); w
         word: abbabaab
         sage: w.parent()
-        Words
+        Finite words over Set of Python objects of type 'object'
 
     We can also input a semistandard tableau and a standard tableau to
     obtain a word from the inverse RSK algorithm using the
@@ -203,8 +204,8 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
         raise ValueError("Invalid input. Must be a pair of tableaux")
 
     # Create the parent object
-    from words import Words
-    parent = Words() if alphabet is None else Words(alphabet)
+    from .words import Words
+    parent = Words(alphabet)
 
     return parent(data=data, length=length, datatype=datatype, caching=caching)
 
@@ -228,7 +229,7 @@ class FiniteWord_char(WordDatatype_char, FiniteWord_class):
 
         sage: W = Words(range(20))
 
-        sage: w = W(range(1,10)*2)
+        sage: w = W(list(range(1, 10)) * 2)
         sage: type(w)
         <class 'sage.combinat.words.word.FiniteWord_char'>
         sage: w
@@ -243,7 +244,7 @@ class FiniteWord_char(WordDatatype_char, FiniteWord_class):
 
         sage: w.is_lyndon()
         False
-        sage: W(range(10)+[10,10]).is_lyndon()
+        sage: W(list(range(10)) + [10, 10]).is_lyndon()
         True
 
         sage: w.is_square_free()
@@ -503,14 +504,14 @@ class InfiniteWord_iter_with_caching(WordDatatype_iter_with_caching, InfiniteWor
         sage: from itertools import count
         sage: w = Word(count())
         sage: type(w)
-        <class 'sage.combinat.words.word.InfiniteWord_iter_with_caching'>
+        <class 'sage.combinat.words.word.Word_iter_with_caching'>
 
     Pickle is not supported for infinite word defined by an iterator::
 
         sage: dumps(w)
         Traceback (most recent call last):
         ...
-        PicklingError: Can't pickle <type 'generator'>: attribute lookup __builtin__.generator failed
+        TypeError: can't pickle generator objects
     """
     pass
 
@@ -541,14 +542,14 @@ class InfiniteWord_iter(WordDatatype_iter, InfiniteWord_class):
         sage: from itertools import count
         sage: w = Word(count(), caching=False)
         sage: type(w)
-        <class 'sage.combinat.words.word.InfiniteWord_iter'>
+        <class 'sage.combinat.words.word.Word_iter'>
 
     Pickle is not supported for infinite word defined by an iterator::
 
         sage: dumps(w)
         Traceback (most recent call last):
         ...
-        PicklingError: Can't pickle <type 'generator'>: attribute lookup __builtin__.generator failed
+        TypeError: can't pickle generator objects
     """
     pass
 
@@ -647,7 +648,7 @@ class Word_iter_with_caching(WordDatatype_iter_with_caching, Word_class):
         sage: dumps(w)
         Traceback (most recent call last):
         ...
-        PicklingError: Can't pickle <type 'generator'>: attribute lookup __builtin__.generator failed
+        TypeError: can't pickle generator objects
     """
     pass
 
@@ -683,7 +684,7 @@ class Word_iter(WordDatatype_iter, Word_class):
         sage: dumps(w)
         Traceback (most recent call last):
         ...
-        PicklingError: Can't pickle <type 'generator'>: attribute lookup __builtin__.generator failed
+        TypeError: can't pickle generator objects
     """
     pass
 

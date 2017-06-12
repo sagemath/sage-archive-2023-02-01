@@ -17,7 +17,7 @@ Command-line options for Sage
 - ``-v``, ``--version`` -- print the Sage version
 - ``--advanced`` -- print (essentially this) list of Sage options
 - ``-c cmd`` -- evaluate ``cmd`` as sage code.  For example, ``sage
-  -c 'print factor(35)'`` will print "5 * 7".
+  -c 'print(factor(35))'`` will print "5 * 7".
 
 .. rubric:: Running Sage, other options
 
@@ -49,8 +49,10 @@ Command-line options for Sage
 
 .. rubric:: Running the notebook
 
-- ``-n``, ``--notebook`` -- start the Sage notebook, passing all
-  remaining arguments to the 'notebook' command in Sage
+- ``-n [...]``, ``--notebook=[...]`` -- start the notebook, valid options
+  are ``default``, ``sagenb``, ``jupyter`` and ``export`` (see the
+  output of ``sage --notebook --help`` for more details and examples of
+  how to pass optional arguments)
 - ``-bn [...]``, ``--build-and-notebook [...]`` -- build the Sage
   library (as by running ``sage -b``) then start the Sage notebook
 - ``--inotebook [...]`` -- start the *insecure* Sage notebook
@@ -69,7 +71,8 @@ Command-line options for Sage
 - ``--M2 [...]`` -- run Sage's Macaulay2 with the given arguments
 - ``--maxima [...]`` -- run Sage's Maxima with the given arguments
 - ``--mwrank [...]`` -- run Sage's mwrank with the given arguments
-- ``--python [...]`` -- run the Python interpreter
+- ``--python [...]``, ``--python2 [...]`` -- run the Python 2 interpreter
+- ``--python3 [...]`` -- run the Python 3 interpreter
 - ``-R [...]`` -- run Sage's R with the given arguments
 - ``--scons [...]`` -- run Sage's scons
 - ``--singular [...]`` -- run Sage's singular with the given arguments
@@ -205,8 +208,6 @@ Command-line options for Sage
   directory ``dir``
 - ``--pkg_nc dir`` -- as ``--pkg``, but do not compress the package
 - ``--merge`` -- run Sage's automatic merge and test script
-- ``--bdist VER`` -- build a binary distribution of Sage, with
-  version ``VER``
 - ``--sdist`` -- build a source distribution of Sage
 
 .. rubric:: Valgrind memory debugging

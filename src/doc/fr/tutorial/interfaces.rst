@@ -64,7 +64,7 @@ commandes sont de types différents :
     sage: type(gp('znprimroot(10007)'))
     <class 'sage.interfaces.gp.GpElement'>
     sage: type(pari('znprimroot(10007)'))
-    <type 'sage.libs.pari.gen.gen'>
+    <type 'cypari2.gen.Gen'>
 
 Alors, laquelle des intrefaces utiliser ? Tout dépend de ce que vous
 cherchez à faire. L'interface GP permet de faire absolument tout ce que
@@ -102,9 +102,9 @@ Commençons par créer une liste PARI à partir d'une liste Python.
     sage: v
     [1, 2, 3, 4, 5]
     sage: type(v)
-    <type 'sage.libs.pari.gen.gen'>
+    <type 'cypari2.gen.Gen'>
 
-En Sage, les objets PARI sont de type ``py_pari.gen``. Le type PARI de
+En Sage, les objets PARI sont de type ``Gen``. Le type PARI de
 l'objet sous-jacent est donné par la méthode ``type``.
 
 ::
@@ -115,7 +115,7 @@ l'objet sous-jacent est donné par la méthode ``type``.
 Pour créer une courbe elliptique en PARI, on utiliserait
 ``ellinit([1,2,3,4,5])``. La syntaxe Sage est semblable, à ceci près que
 ``ellinit`` devient une méthode qui peut être appelée sur n'importe quel
-objet PARI, par exemle notre ``t_VEC v``.
+objet PARI, par exemle notre ``t_VEC`` `v`.
 
 ::
 
@@ -146,7 +146,7 @@ GAP
 ===
 
 Pour les mathématiques discrètes effectives et principalement la théorie
-des groupes, Sage utilise GAP 4.4.10.
+des groupes, Sage utilise GAP.
 
 Voici un exemple d'utilisation de la fonction GAP ``IdGroup``, qui
 nécessite une base de données optionnelle de groupes de petit ordre, à
@@ -177,15 +177,12 @@ l'interface GAP comme suit :
     sage: n = G.order(); n
     120
 
-(Certaines fonctionnalités de GAP nécessitent l'installation de deux
-paquets facultatifs. Saisissez ``sage -optional`` pour consulter la
-liste des paquets facultatifs, et choisissez celui dont le nom ressemble
-à ``gap\_packages-x.y.z``, puis installez-le par
-``sage -i gap\_packages-x.y.z``. Faites de même avec
-``database\_gap-x.y.z``. D'autres paquets GAP, non couverts par la
-licence GPL, peuvent être téléchargés depuis le site web de GAP
-[GAPkg]_ et installés en les désarchivant dans
-``$SAGE_ROOT/local/lib/gap-4.4.10/pkg``.)
+Pour utiliser certaines fonctionnalités de GAP,
+vous devez installer deux paquets Sage optionnels.
+Cela peut être fait avec la commande::
+
+    sage -i gap_packages database_gap
+
 
 Singular
 ========
@@ -201,7 +198,8 @@ fournie par Sage (n'entrez pas les ``....:``) :
 
     sage: R1 = singular.ring(0, '(x,y)', 'dp')
     sage: R1
-    //   characteristic : 0
+    polynomial ring, over a field, global ordering
+    //   coefficients: QQ
     //   number of vars : 2
     //        block   1 : ordering dp
     //                  : names    x y

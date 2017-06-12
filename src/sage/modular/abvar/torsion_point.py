@@ -44,7 +44,7 @@ class TorsionPoint(ModuleElement):
         sage: G = J.finite_subgroup([[1/3,0], [0,1/5]]); G
         Finite subgroup with invariants [15] over QQbar of Abelian variety J0(11) of dimension 1
         sage: type(G.0)
-        <class 'sage.modular.abvar.torsion_point.FiniteSubgroup_lattice_with_category.element_class'>
+        <class 'sage.modular.abvar.finite_subgroup.FiniteSubgroup_lattice_with_category.element_class'>
     """
     def __init__(self, parent, element, check=True):
         """

@@ -13,7 +13,8 @@ fi
 # Read gap-version, which was written by spkg-src
 VERSION=`cat src/gap-version`
 GAP_DIR="gap-$VERSION"
-INSTALL_DIR="$SAGE_LOCAL/gap/$GAP_DIR"
+SAGE_GAP="$SAGE_LOCAL/gap"
+INSTALL_DIR="$SAGE_GAP/$GAP_DIR"
 
 echo "spkg-install is using"
 echo "VERSION = $VERSION"
@@ -40,16 +41,8 @@ fi
 
 cd src
 
-# Apply fixes to upstream source
-echo "Applying patches..."
-for patch in ../patches/*.patch; do
-    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
+# Use newer version of config.guess and config.sub (see Trac #19726)
+cp "$SAGE_ROOT"/config/config.* cnf
 
 # Configure
 echo "Configuring GAP..."
@@ -74,11 +67,15 @@ if [[ ! -f bin/gap.sh ]]; then
     exit 1
 fi
 
+# Wipe the installation directory.
+# This fixes https://trac.sagemath.org/ticket/22272
+echo "Removing previous installation of GAP..."
+rm -rf "$INSTALL_DIR"
+
 echo "Installing (copying) files..."
 # gap has no notion of installing itself (similar to sage), copy everything
 # See http://trac.sagemath.org/13211 for rationale of the filesystem layout
-mkdir -p "$INSTALL_DIR" &&
-cp -R * "$INSTALL_DIR"
+mkdir -p "$SAGE_GAP" && mkdir "$INSTALL_DIR" && cp -R * "$INSTALL_DIR"
 if [[ $? -ne 0 ]]; then
     echo >&2 "Error copying built GAP files."
     exit 1
@@ -109,3 +106,8 @@ if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]]; then
         exit 1
     fi
 fi
+
+# Delete tests that rely on the non-GPL small group library
+rm "$INSTALL_DIR"/tst/testinstall/ctblsolv.tst
+rm "$INSTALL_DIR"/tst/testinstall/grppc.tst
+rm "$INSTALL_DIR"/tst/testinstall/morpheus.tst

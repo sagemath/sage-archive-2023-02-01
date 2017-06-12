@@ -1,6 +1,7 @@
 """
 Witt symmetric functions
 """
+from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
@@ -17,7 +18,7 @@ Witt symmetric functions
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import multiplicative
+from . import multiplicative
 from sage.matrix.all import matrix
 
 class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_multiplicative):
@@ -28,7 +29,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
     denoted by `(x_{\lambda})` in [HazWitt1]_, section 9.63, and by
     `(q_{\lambda})` in [DoranIV1996]_. We will denote this basis by
     `(w_{\lambda})` (which is precisely how it is denoted in
-    [GriRei2014]_, Exercise 2.76(d)). It is a multiplicative basis
+    [GriRei2014]_, Exercise 2.79(d)). It is a multiplicative basis
     (meaning that `w_{\emptyset} = 1` and that every partition
     `\lambda` satisfies
     `w_{\lambda} = w_{\lambda_1} w_{\lambda_2} w_{\lambda_3} \cdots`,
@@ -412,6 +413,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
         Compute the transition matrices between ``self`` and another
         multiplicative homogeneous basis in the homogeneous components of
         degree `n`.
+
         The results are not returned, but rather stored in the caches.
 
         This assumes that the transition matrices in all degrees smaller
@@ -441,7 +443,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
         Examples for usage of this function are the ``_precompute_h``,
         ``_precompute_e`` and ``_precompute_p`` methods of this class.
 
-        EXAMPLES::
+        EXAMPLES:
 
         The examples below demonstrate how the caches are built
         step by step using the ``_precompute_cache`` method. In order
@@ -750,7 +752,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
         """
         l = len(self._p_transition_matrices)
         if l <= n:
-            from sage.rings.arith import divisors
+            from sage.arith.all import divisors
             from sage.combinat.partition import Partition
             from sage.misc.cachefunc import cached_function
             @cached_function
@@ -992,7 +994,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
         # symmetric basis and the complete homogeneous basis (over the same base
         # ring as self), respectively (but they are only set if the respective
         # arguments ``coerce_p``, ``coerce_e`` and ``coerce_h`` are True).
-        # self._friendly will be the one avaliable basis which makes computations
+        # self._friendly will be the one available basis which makes computations
         # the easiest.
 
         self._friendly = None
@@ -1140,7 +1142,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
             return result
 
         if parent_name == "powersum":
-            from sage.rings.arith import divisors
+            from sage.arith.all import divisors
             from sage.combinat.partition import Partition
             @cached_function
             def wsum_p(m):     # expansion of p_m in w-basis, for m > 0

@@ -18,34 +18,35 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
+from cysignals.memory cimport check_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
+
 include "sage/libs/ntl/decl.pxi"
-from sage.libs.pari.paridecl cimport *
-include "sage/libs/pari/pari_err.pxi"
+from cypari2.paridecl cimport *
 
+from sage.structure.richcmp cimport (richcmp,
+                                     richcmp_not_equal, rich_to_bool)
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, ModuleElement, RingElement
 
 from sage.structure.parent cimport Parent
-from sage.structure.parent_base cimport ParentWithBase
-from sage.structure.parent_gens cimport ParentWithGens
 
 from sage.rings.ring cimport Ring
 
 from sage.rings.finite_rings.finite_field_base cimport FiniteField
 
 from sage.libs.pari.all import pari
-from sage.libs.pari.gen cimport gen
+from cypari2.gen cimport Gen
 
 from sage.interfaces.gap import is_GapElement
 
 from sage.misc.randstate import current_randstate
 
-from element_ext_pari import FiniteField_ext_pariElement
-from element_pari_ffelt import FiniteFieldElement_pari_ffelt
-from finite_field_ntl_gf2e import FiniteField_ntl_gf2e
+from .element_ext_pari import FiniteField_ext_pariElement
+from .element_pari_ffelt import FiniteFieldElement_pari_ffelt
+from .finite_field_ntl_gf2e import FiniteField_ntl_gf2e
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
@@ -114,8 +115,8 @@ cdef int late_import() except -1:
     import sage.modules.free_module_element
     FreeModuleElement = sage.modules.free_module_element.FreeModuleElement
 
-    import sage.rings.finite_rings.constructor
-    GF = sage.rings.finite_rings.constructor.FiniteField
+    import sage.rings.finite_rings.finite_field_constructor
+    GF = sage.rings.finite_rings.finite_field_constructor.FiniteField
     GF2 = GF(2)
     GF2_0 = GF2(0)
     GF2_1 = GF2(1)
@@ -143,6 +144,25 @@ cdef class Cache_ntl_gf2e(SageObject):
     but includes many functions that were previously included in
     the parent (see :trac:`12062`).
     """
+    def __cinit__(self, parent, Py_ssize_t k, modulus):
+        """
+        Construction.
+
+        TESTS::
+
+            sage: from sage.rings.finite_rings.element_ntl_gf2e import Cache_ntl_gf2e
+            sage: Cache_ntl_gf2e.__new__(Cache_ntl_gf2e, None, 2, [1,1,1])
+            <type 'sage.rings.finite_rings.element_ntl_gf2e.Cache_ntl_gf2e'>
+        """
+        cdef GF2X_c ntl_m
+        cdef GF2_c c
+        cdef Py_ssize_t i
+
+        for i in range(k + 1):
+            GF2_conv_long(c, modulus[i])
+            GF2X_SetCoeff(ntl_m, i, c)
+        self.F = GF2EContext_c(ntl_m)
+
     def __init__(self, parent, Py_ssize_t k, modulus):
         """
         Initialization.
@@ -151,16 +171,6 @@ cdef class Cache_ntl_gf2e(SageObject):
 
             sage: k.<a> = GF(2^8, impl="ntl")
         """
-        cdef GF2X_c ntl_m, ntl_tmp
-        cdef GF2_c c
-        cdef Py_ssize_t i
-
-        late_import()
-        for i in range(k + 1):
-            GF2_conv_long(c, modulus[i])
-            GF2X_SetCoeff(ntl_m, i, c)
-        GF2EContext_construct_GF2X(&self.F, &ntl_m)
-
         self._parent = <FiniteField?>parent
         self._zero_element = self._new()
         GF2E_conv_long((<FiniteField_ntl_gf2eElement>self._zero_element).x,0)
@@ -174,8 +184,7 @@ cdef class Cache_ntl_gf2e(SageObject):
         else:
             self._gen = self._zero_element
 
-    def __dealloc__(self):
-        GF2EContext_destruct(&self.F)
+        late_import()
 
     def _doctest_for_5340(self):
         r"""
@@ -211,7 +220,7 @@ cdef class Cache_ntl_gf2e(SageObject):
         # Print the current modulus.
         cdef GF2XModulus_c modulus = GF2E_modulus()
         cdef GF2X_c mod_poly = GF2XModulus_GF2X(modulus)
-        print GF2X_to_PyString(&mod_poly)
+        print(GF2X_to_PyString(&mod_poly))
 
         # do another garbage collection
         gc.collect()
@@ -219,7 +228,7 @@ cdef class Cache_ntl_gf2e(SageObject):
         # and print the modulus again
         modulus = GF2E_modulus()
         mod_poly = GF2XModulus_GF2X(modulus)
-        print GF2X_to_PyString(&mod_poly)
+        print(GF2X_to_PyString(&mod_poly))
 
     cdef FiniteField_ntl_gf2eElement _new(self):
         """
@@ -310,7 +319,7 @@ cdef class Cache_ntl_gf2e(SageObject):
 
         elif isinstance(e, FreeModuleElement):
             if self._parent.vector_space() != e.parent():
-                raise TypeError, "e.parent must match self.vector_space"
+                raise TypeError("e.parent must match self.vector_space")
             ztmp = Integer(e.list(),2)
             # Can't do the following since we can't cimport Integer because of circular imports.
             #for i from 0 <= i < len(e):
@@ -321,7 +330,7 @@ cdef class Cache_ntl_gf2e(SageObject):
         elif isinstance(e, (list, tuple)):
             if len(e) > self.degree():
                 # could reduce here...
-                raise ValueError, "list is too long"
+                raise ValueError("list is too long")
             ztmp = Integer(e,2)
             return self.fetch_int(ztmp)
 
@@ -329,7 +338,7 @@ cdef class Cache_ntl_gf2e(SageObject):
             if e.is_constant():
                 return self._parent(e.constant_coefficient())
             else:
-                raise TypeError, "no coercion defined"
+                raise TypeError("no coercion defined")
 
         elif isinstance(e, Polynomial):
             if e.is_constant():
@@ -346,13 +355,13 @@ cdef class Cache_ntl_gf2e(SageObject):
                 return self._zero_element
             raise ZeroDivisionError
 
-        elif isinstance(e, gen):
+        elif isinstance(e, Gen):
             pass # handle this in next if clause
 
         elif isinstance(e, FiniteFieldElement_pari_ffelt) or \
              isinstance(e, FiniteField_ext_pariElement):
             # Reduce to pari
-            e = e._pari_()
+            e = e.__pari__()
 
         elif is_GapElement(e):
             from sage.interfaces.gap import gfq_gap_to_sage
@@ -361,9 +370,9 @@ cdef class Cache_ntl_gf2e(SageObject):
             raise TypeError("unable to coerce %r" % type(e))
 
         cdef GEN t
-        if isinstance(e, gen):
-            pari_catch_sig_on()
-            t = (<gen>e).g
+        if isinstance(e, Gen):
+            sig_on()
+            t = (<Gen>e).g
             if typ(t) == t_FFELT:
                 t = FF_to_FpXQ(t)
             else:
@@ -371,7 +380,7 @@ cdef class Cache_ntl_gf2e(SageObject):
 
             if typ(t) == t_INT:
                 GF2E_conv_long(res.x, itos(t))
-                pari_catch_sig_off()
+                sig_off()
             elif typ(t) == t_POL:
                 g = self._gen
                 x = self._new()
@@ -381,13 +390,13 @@ cdef class Cache_ntl_gf2e(SageObject):
                     if gtolong(gel(t, i+2)):
                         GF2E_add(res.x, res.x, x.x)
                     GF2E_mul(x.x, x.x, g.x)
-                pari_catch_sig_off()
+                sig_off()
             else:
                 raise TypeError("bad PARI type %r" % e.type())
 
             return res
 
-        raise ValueError, "Cannot coerce element %s to this field."%(e)
+        raise ValueError("Cannot coerce element %s to this field." % e)
 
     cpdef FiniteField_ntl_gf2eElement fetch_int(self, number):
         """
@@ -408,7 +417,7 @@ cdef class Cache_ntl_gf2e(SageObject):
 
         TESTS:
 
-        We test that #17027 is fixed::
+        We test that :trac:`17027` is fixed::
 
             sage: K.<a> = GF(2^16)
             sage: K._cache.fetch_int(0r)
@@ -419,11 +428,8 @@ cdef class Cache_ntl_gf2e(SageObject):
 
         self.F.restore()
 
-        cdef unsigned char *p
-        cdef int i
-
         if number < 0 or number >= self.order():
-            raise TypeError, "n must be between 0 and self.order()"
+            raise TypeError("n must be between 0 and self.order()")
 
         if isinstance(number, int) or isinstance(number, long):
             if not number:
@@ -434,15 +440,16 @@ cdef class Cache_ntl_gf2e(SageObject):
         elif isinstance(number, Integer):
             n = int(number.nbits())/8 + 1
         else:
-            raise TypeError, "number %s is not an integer"%number
+            raise TypeError("number %s is not an integer" % number)
 
-        p = <unsigned char*>sage_malloc(n)
-        for i from 0 <= i < n:
+        cdef unsigned char* p = <unsigned char*>check_malloc(n)
+        cdef long i
+        for i in range(n):
             p[i] = (number%256)
             number = number >> 8
         GF2XFromBytes(_a, p, n)
         GF2E_conv_GF2X(a.x, _a)
-        sage_free(p)
+        sig_free(p)
         return a
 
     def polynomial(self):
@@ -506,7 +513,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             True
         """
         if parent is None:
-            raise ValueError, "You must provide a parent to construct a finite field element"
+            raise ValueError("You must provide a parent to construct a finite field element")
 
     def __cinit__(FiniteField_ntl_gf2eElement self, parent=None ):
         """
@@ -521,10 +528,6 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         if isinstance(parent, FiniteField_ntl_gf2e):
             self._parent = parent
             (<Cache_ntl_gf2e>self._parent._cache).F.restore()
-            GF2E_construct(&self.x)
-
-    def __dealloc__(FiniteField_ntl_gf2eElement self):
-        GF2E_destruct(&self.x)
 
     cdef FiniteField_ntl_gf2eElement _new(FiniteField_ntl_gf2eElement self):
         cdef FiniteField_ntl_gf2eElement y
@@ -606,7 +609,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
         """
         (<Cache_ntl_gf2e>self._parent._cache).F.restore()
-        return bool(GF2E_equal(self.x,self._cache._one_element.x))
+        return self.x == self._cache._one_element.x
 
     def is_unit(FiniteField_ntl_gf2eElement self):
         """
@@ -674,7 +677,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         else:
             return a
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Add two elements.
 
@@ -690,7 +693,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         GF2E_add(r.x, (<FiniteField_ntl_gf2eElement>self).x, (<FiniteField_ntl_gf2eElement>right).x)
         return r
 
-    cpdef RingElement _mul_(self, RingElement right):
+    cpdef _mul_(self, right):
         """
         Multiply two elements.
 
@@ -706,7 +709,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         GF2E_mul(r.x, (<FiniteField_ntl_gf2eElement>self).x, (<FiniteField_ntl_gf2eElement>right).x)
         return r
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Divide two elements.
 
@@ -724,11 +727,11 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         """
         cdef FiniteField_ntl_gf2eElement r = (<FiniteField_ntl_gf2eElement>self)._new()
         if GF2E_IsZero((<FiniteField_ntl_gf2eElement>right).x):
-            raise ZeroDivisionError, 'division by zero in finite field.'
+            raise ZeroDivisionError('division by zero in finite field.')
         GF2E_div(r.x, (<FiniteField_ntl_gf2eElement>self).x, (<FiniteField_ntl_gf2eElement>right).x)
         return r
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         """
         Subtract two elements.
 
@@ -803,9 +806,15 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             from sage.groups.generic import power
             return power(self,exp)
 
-    def __richcmp__(left, right, int op):
+    cpdef _richcmp_(left, right, int op):
         """
         Comparison of finite field elements.
+
+        .. NOTE::
+
+            Finite fields are unordered. However, we adopt the convention that
+            an element ``e`` is bigger than element ``f`` if its polynomial
+            representation is bigger.
 
         EXAMPLES::
 
@@ -819,13 +828,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             sage: e != (e + 1)
             True
 
-        .. NOTE::
-
-            Finite fields are unordered. However, we adopt the convention that
-            an element ``e`` is bigger than element ``f`` if its polynomial
-            representation is bigger.
-
-        EXAMPLES::
+        ::
 
             sage: K.<a> = GF(2^100)
             sage: a < a^2
@@ -843,23 +846,18 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             sage: a == a
             True
         """
-        return (<Element>left)._richcmp(right, op)
-
-    cpdef int _cmp_(left, Element right) except -2:
-        """
-        Comparison of finite field elements.
-        """
         (<Cache_ntl_gf2e>left._parent._cache).F.restore()
-        c = GF2E_equal((<FiniteField_ntl_gf2eElement>left).x, (<FiniteField_ntl_gf2eElement>right).x)
+        cdef int c = (<FiniteField_ntl_gf2eElement>left).x == (<FiniteField_ntl_gf2eElement>right).x
         if c == 1:
-            return 0
+            return rich_to_bool(op, 0)
         else:
-            r = cmp(GF2X_deg(GF2E_rep((<FiniteField_ntl_gf2eElement>left).x)), GF2X_deg(GF2E_rep((<FiniteField_ntl_gf2eElement>right).x)))
-            if r:
-                return r
+            lx = GF2X_deg(GF2E_rep((<FiniteField_ntl_gf2eElement>left).x))
+            rx = GF2X_deg(GF2E_rep((<FiniteField_ntl_gf2eElement>right).x))
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
             li = left.integer_representation()
             ri = right.integer_representation()
-            return cmp(li,ri)
+            return richcmp(li, ri, op)
 
     def _integer_(FiniteField_ntl_gf2eElement self, Integer):
         """
@@ -883,7 +881,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         if self.is_zero(): return Integer(0)
         elif self.is_one(): return Integer(1)
         else:
-            raise TypeError, "not in prime subfield"
+            raise TypeError("not in prime subfield")
 
     def __int__(FiniteField_ntl_gf2eElement self):
         """
@@ -1152,9 +1150,9 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         """
         F = self._parent
         if not F.is_conway():
-            raise NotImplementedError, "conversion of (NTL) finite field element to GAP not implemented except for fields defined by Conway polynomials."
+            raise NotImplementedError("conversion of (NTL) finite field element to GAP not implemented except for fields defined by Conway polynomials.")
         if F.order() > 65536:
-            raise TypeError, "order (=%s) must be at most 65536."%F.order()
+            raise TypeError("order (=%s) must be at most 65536." % F.order())
         if self == 0:
             return '0*Z(%s)'%F.order()
         assert F.degree() > 1
@@ -1198,7 +1196,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         """
         #vector(foo) might pass in ZZ
         if isinstance(reverse, Parent):
-            raise TypeError, "Base field is fixed to prime subfield."
+            raise TypeError("Base field is fixed to prime subfield.")
 
         cdef GF2X_c r = GF2E_rep(self.x)
         cdef int i
@@ -1262,7 +1260,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
         AUTHOR: David Joyner and William Stein (2005-11)
         """
-        from  sage.groups.generic import discrete_log
+        from sage.groups.generic import discrete_log
 
         b = self.parent()(base)
         return discrete_log(self, b)

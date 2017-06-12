@@ -23,8 +23,10 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function, absolute_import
+from six import add_metaclass
+from six.moves import range, zip
 
-import copy
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -33,24 +35,26 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 from sage.rings.all import Integer, QQ, ZZ
-from sage.rings.arith import factorial
+from sage.arith.all import factorial
 from sage.rings.infinity import PlusInfinity
 from sage.matrix.all import zero_matrix
-import itertools
 
 from sage.structure.list_clone import ClonableList
 from sage.combinat.partition import Partition
-from sage.combinat.tableau import Tableau, TableauOptions
+from sage.combinat.tableau import (Tableau, Tableaux,
+                                   StandardTableau, SemistandardTableau)
 from sage.combinat.skew_partition import SkewPartition, SkewPartitions
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.words.words import Words
 
+
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class SkewTableau(ClonableList):
     """
     A skew tableau.
 
     Note that Sage by default uses the English convention for partitions and
-    tableaux. To change this, see :class:`TableauOptions`.
+    tableaux. To change this, see :meth:`Tableaux.options`.
 
     EXAMPLES::
 
@@ -66,11 +70,17 @@ class SkewTableau(ClonableList):
 
         sage: SkewTableau(expr=[[1,1],[[5],[3,4],[1,2]]])
         [[None, 1, 2], [None, 3, 4], [5]]
-    """
-    __metaclass__ = InheritComparisonClasscallMetaclass
 
+    The ``chain`` form of a skew tableau consists of a list of
+    partitions `\lambda_1,\lambda_2,\ldots,`, such that all cells in
+    `\lambda_{i+1}` that are not in `\lambda_i` have entry `i`::
+
+        sage: SkewTableau(chain=[[2], [2, 1], [3, 1], [4, 3, 2, 1]])
+        [[None, None, 2, 3], [1, 3, 3], [3, 3], [3]]
+
+    """
     @staticmethod
-    def __classcall_private__(cls, st=None, expr=None):
+    def __classcall_private__(cls, st=None, expr=None, chain=None):
         """
         Return the skew tableau object corresponding to ``st``.
 
@@ -85,6 +95,8 @@ class SkewTableau(ClonableList):
             return st
         if expr is not None:
             return SkewTableaux().from_expr(expr)
+        if chain is not None:
+            return SkewTableaux().from_chain(chain)
 
         return SkewTableaux()(st)
 
@@ -158,7 +170,7 @@ class SkewTableau(ClonableList):
             return list(self) == list(other)
         else:
             return list(self) == other
-    
+
     def __ne__(self, other):
         r"""
         Check whether ``self`` is unequal to ``other``.
@@ -208,14 +220,14 @@ class SkewTableau(ClonableList):
         Return a string representation of ``self``.
 
         For more on the display options, see
-        :obj:`SkewTableaux.global_options`.
+        :obj:`SkewTableaux.options`.
 
         EXAMPLES::
 
             sage: SkewTableau([[None,2,3],[None,4],[5]])
             [[None, 2, 3], [None, 4], [5]]
         """
-        return self.parent().global_options.dispatch(self, '_repr_', 'display')
+        return self.parent().options._dispatch(self, '_repr_', 'display')
 
     def _repr_list(self):
         """
@@ -223,10 +235,10 @@ class SkewTableau(ClonableList):
 
         EXAMPLES::
 
-            sage: print SkewTableau([[None,2,3],[None,4],[5]])._repr_list()
+            sage: print(SkewTableau([[None,2,3],[None,4],[5]])._repr_list())
             [[None, 2, 3], [None, 4], [5]]
         """
-        return repr([list(row) for row in self])
+        return repr(self.to_list())
 
     # See #18024. CombinatorialObject provided __str__, though ClonableList
     # doesn't. Emulate the old functionality. Possibly remove when
@@ -239,13 +251,13 @@ class SkewTableau(ClonableList):
 
         EXAMPLES::
 
-            sage: print SkewTableau([[None,2,3],[None,4],[5]])._repr_diagram()
+            sage: print(SkewTableau([[None,2,3],[None,4],[5]])._repr_diagram())
               .  2  3
               .  4
               5
         """
         none_str = lambda x: "  ." if x is None else "%3s"%str(x)
-        if self.parent().global_options('convention') == "French":
+        if self.parent().options('convention') == "French":
             new_rows = ["".join(map(none_str, row)) for row in reversed(self)]
         else:
             new_rows = ["".join(map(none_str, row)) for row in self]
@@ -278,7 +290,7 @@ class SkewTableau(ClonableList):
               .  4
               5
         """
-        print self._repr_diagram()
+        print(self._repr_diagram())
 
     def _ascii_art_(self):
         """
@@ -407,9 +419,9 @@ class SkewTableau(ClonableList):
     def to_word_by_row(self):
         """
         Return a word obtained from a row reading of ``self``.
-        Specifically, this is the word obtained by concatenating the
-        rows from the bottommost one (in English notation) to the
-        topmost one.
+
+        This is the word obtained by concatenating the rows from
+        the bottommost one (in English notation) to the topmost one.
 
         EXAMPLES::
 
@@ -434,19 +446,16 @@ class SkewTableau(ClonableList):
             sage: SkewTableau([]).to_word_by_row()
             word:
         """
-        word = []
-        for row in self:
-            word = list(row) + word
-
-        return Words("positive integers")([i for i in word if i is not None])
+        word = [x for row in reversed(self) for x in row if x is not None]
+        return Words("positive integers")(word)
 
     def to_word_by_column(self):
         """
         Return the word obtained from a column reading of the skew
         tableau.
-        Specifically, this is the word obtained by concatenating the
-        columns from the rightmost one (in English notation) to the
-        leftmost one.
+
+        This is the word obtained by concatenating the columns from
+        the rightmost one (in English notation) to the leftmost one.
 
         EXAMPLES::
 
@@ -532,8 +541,8 @@ class SkewTableau(ClonableList):
             sage: t = SkewTableau([[None,None,4,7,15],[6,2,16],[2,3,19],[4,5],[7]])
             sage: def by_word(T):
             ....:     ed = T.to_word().evaluation_dict()
-            ....:     m = max(ed.keys()) + 1
-            ....:     return [ed.get(k,0) for k in range(1,m)]
+            ....:     m = max(ed) + 1
+            ....:     return [ed.get(k, 0) for k in range(1, m)]
             sage: by_word(t) == t.weight()
             True
             sage: SST = SemistandardTableaux(shape=[3,1,1])
@@ -572,7 +581,7 @@ class SkewTableau(ClonableList):
         """
         #Check to make sure that it is filled with 1...size
         w = [i for row in self for i in row if i is not None]
-        if sorted(w) != range(1, len(w)+1):
+        if sorted(w) != list(range(1, len(w) + 1)):
             return False
         else:
             return self.is_semistandard()
@@ -608,12 +617,12 @@ class SkewTableau(ClonableList):
 
         # Is it weakly increasing along the rows?
         for row in self:
-            if any(row[c] is not None and row[c] > row[c+1] for c in xrange(len(row)-1)):
+            if any(row[c] is not None and row[c] > row[c+1] for c in range(len(row)-1)):
                 return False
 
         # Is it strictly increasing down columns?
-        for row, next in itertools.izip(self, self[1:]):
-            if any(row[c] is not None and row[c] >= next[c] for c in xrange(len(next))):
+        for row, next in zip(self, self[1:]):
+            if any(row[c] is not None and row[c] >= next[c] for c in range(len(next))):
                 return False
 
         return True
@@ -657,7 +666,8 @@ class SkewTableau(ClonableList):
             [[None, 1], [1]]
         """
         t = self[:]
-        return SkewTableau( [z for z in map(lambda x: [y for y in x if y is None or y <= n], t) if z != []] )
+        return SkewTableau([z for z in [[y for y in x if y is None or y <= n]
+                                        for x in t] if z])
 
     def restriction_outer_shape(self, n):
         """
@@ -776,43 +786,50 @@ class SkewTableau(ClonableList):
                 max_entry = 0
         return [self.restriction_outer_shape(x) for x in range(max_entry+1)]
 
-    def slide(self, corner=None):
+    def slide(self, corner=None, return_vacated=False):
         """
-        Apply a jeu-de-taquin slide to ``self`` on the specified corner and
-        returns the new tableau.  If no corner is given an arbitrary corner
-        is chosen.
+        Apply a jeu-de-taquin slide to ``self`` on the specified inner
+        corner and return the resulting tableau.
 
-        See [FW]_ p12-13.
+        If no corner is given, the topmost inner corner is chosen.
+
+        The optional parameter ``return_vacated=True`` causes
+        the output to be the pair ``(t, (i, j))`` where ``t`` is the new
+        tableau and ``(i, j)`` are the coordinates of the vacated square.
+
+        See [Fulton97]_ p12-13.
 
         EXAMPLES::
 
-            sage: st = SkewTableau([[None, None, None, None,2],[None, None, None, None,6], [None, 2, 4, 4], [2, 3, 6], [5,5]])
-            sage: st.slide((2,0))
+            sage: st = SkewTableau([[None, None, None, None, 2], [None, None, None, None, 6], [None, 2, 4, 4], [2, 3, 6], [5, 5]])
+            sage: st.slide((2, 0))
             [[None, None, None, None, 2], [None, None, None, None, 6], [2, 2, 4, 4], [3, 5, 6], [5]]
+            sage: st2 = SkewTableau([[None, None, 3], [None, 2, 4], [1, 5]])
+            sage: st2.slide((1, 0), True)
+            ([[None, None, 3], [1, 2, 4], [5]], (2, 1))
 
         TESTS::
 
             sage: st
-            [[None, None, None, None, 2], [None, None, None, None, 6], [None, 2, 4, 4], [2, 3, 6], [5, 5]]
+            [[None, None, None, None, 2], [None, None, None, None, 6],
+             [None, 2, 4, 4], [2, 3, 6], [5, 5]]
         """
-        new_st = [list(x) for x in self]
+        new_st = self.to_list()
         inner_corners = self.inner_shape().corners()
         outer_corners = self.outer_shape().corners()
         if corner is not None:
             if tuple(corner) not in inner_corners:
                 raise ValueError("corner must be an inner corner")
         else:
-            if len(inner_corners) == 0:
+            if not inner_corners:
                 return self
             else:
                 corner = inner_corners[0]
 
         spotl, spotc = corner
         while (spotl, spotc) not in outer_corners:
-            #print spot
             #Check to see if there is nothing to the right
             if spotc == len(new_st[spotl]) - 1:
-                #print "nr"
                 #Swap the hole with the cell below
                 new_st[spotl][spotc] = new_st[spotl+1][spotc]
                 new_st[spotl+1][spotc] = None
@@ -820,8 +837,7 @@ class SkewTableau(ClonableList):
                 continue
 
             #Check to see if there is nothing below
-            if (spotl == len(new_st) - 1) or (len(new_st[spotl+1]) <= spotc):
-                #print "nb"
+            if spotl == len(new_st) - 1 or len(new_st[spotl+1]) <= spotc:
                 #Swap the hole with the cell to the right
                 new_st[spotl][spotc] = new_st[spotl][spotc+1]
                 new_st[spotl][spotc+1] = None
@@ -833,59 +849,230 @@ class SkewTableau(ClonableList):
             right = new_st[spotl][spotc+1]
             if below <= right:
                 #Swap with the cell below
-                #print "b"
                 new_st[spotl][spotc] = new_st[spotl+1][spotc]
                 new_st[spotl+1][spotc] = None
                 spotl += 1
                 continue
-            else:
-                #Swap with the cell to the right
-                #print "r"
-                new_st[spotl][spotc] = new_st[spotl][spotc+1]
-                new_st[spotl][spotc+1] = None
-                spotc += 1
-                continue
+
+            #Otherwise swap with the cell to the right
+            new_st[spotl][spotc] = new_st[spotl][spotc+1]
+            new_st[spotl][spotc+1] = None
+            spotc += 1
 
         #Clean up to remove the "None" at an outside corner
         #Remove the last row if there is nothing left in it
         new_st[spotl].pop()
-        if len(new_st[spotl]) == 0:
+        if not new_st[spotl]:
             new_st.pop()
 
+        if return_vacated:
+            return (SkewTableau(new_st), (spotl, spotc))
         return SkewTableau(new_st)
 
-    def rectify(self):
+    def rectify(self, algorithm=None):
         """
-        Return a :class:`Tableau` formed by applying the jeu de taquin
-        process to ``self``. See page 15 of [FW]_.
+        Return a :class:`StandardTableau`, :class:`SemistandardTableau`,
+        or just :class:`Tableau` formed by applying the jeu de taquin
+        process to ``self``.
 
-        REFERENCES:
+        See page 15 of [Fulton97]_.
 
-        .. [FW] William Fulton,
-           *Young Tableaux*,
-           Cambridge University Press 1997.
+        INPUT:
+
+        - ``algorithm`` -- optional: if set to ``'jdt'``, rectifies by jeu de
+          taquin; if set to ``'schensted'``, rectifies by Schensted insertion
+          of the reading word; otherwise, guesses which will be faster.
 
         EXAMPLES::
 
-            sage: s = SkewTableau([[None,1],[2,3]])
-            sage: s.rectify()
+            sage: S = SkewTableau([[None,1],[2,3]])
+            sage: S.rectify()
             [[1, 3], [2]]
-            sage: SkewTableau([[None, None, None, 4],[None,None,1,6],[None,None,5],[2,3]]).rectify()
+            sage: T = SkewTableau([[None, None, None, 4],[None,None,1,6],[None,None,5],[2,3]])
+            sage: T.rectify()
             [[1, 3, 4, 6], [2, 5]]
+            sage: T.rectify(algorithm='jdt')
+            [[1, 3, 4, 6], [2, 5]]
+            sage: T.rectify(algorithm='schensted')
+            [[1, 3, 4, 6], [2, 5]]
+            sage: T.rectify(algorithm='spaghetti')
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm must be 'jdt', 'schensted', or None
 
         TESTS::
 
-            sage: s
+            sage: S
             [[None, 1], [2, 3]]
+            sage: T
+            [[None, None, None, 4], [None, None, 1, 6], [None, None, 5], [2, 3]]
+
+        REFERENCES:
+
+        .. [Fulton97] William Fulton, *Young Tableaux*,
+           Cambridge University Press 1997.
         """
-        rect = copy.deepcopy(self)
-        inner_corners = rect.inner_shape().corners()
+        mu_size = self.inner_shape().size()
 
-        while len(inner_corners) > 0:
-            rect = rect.slide()
-            inner_corners = rect.inner_shape().corners()
+        # Roughly, use jdt with a small inner shape, Schensted with a large one
+        if algorithm is None:
+            la = self.outer_shape()
+            la_size = la.size()
+            if mu_size ** 2 < len(la) * (la_size - mu_size):
+                algorithm = 'jdt'
+            else:
+                algorithm = 'schensted'
 
-        return rect.to_tableau()
+        if algorithm == 'jdt':
+            rect = self
+            for i in range(mu_size):
+                rect = rect.slide()
+        elif algorithm == 'schensted':
+            w = [x for row in reversed(self) for x in row if x is not None]
+            rect = Tableau([]).insert_word(w)
+        else:
+            raise ValueError("algorithm must be 'jdt', 'schensted', or None")
+        if self in StandardSkewTableaux():
+            return StandardTableau(rect[:])
+        if self in SemistandardSkewTableaux():
+            return SemistandardTableau(rect[:])
+        return Tableau(rect)
+
+    def to_list(self):
+        r"""
+        Return a (mutable) list representation of ``self``.
+
+        EXAMPLES::
+
+            sage: stlist = [[None, None, 3], [None, 1, 3], [2, 2]]
+            sage: st = SkewTableau(stlist)
+            sage: st.to_list()
+            [[None, None, 3], [None, 1, 3], [2, 2]]
+            sage: st.to_list() == stlist
+            True
+
+        """
+        return [list(row) for row in self]
+
+    def shuffle(self, t2):
+        r"""
+        Shuffle the standard tableaux ``self`` and ``t2``.
+
+        Let ``t1 = self``. The shape of ``t2`` must extend the shape of
+        ``t1``, that is, ``self.outer_shape() == t2.inner_shape()``. Then
+        this function computes the pair of tableaux ``(t2_new, t1_new)``
+        obtained by using jeu de taquin slides to move the boxes of ``t2``
+        behind the boxes of ``self``.
+
+        The entries of ``t2_new`` are obtained by performing successive
+        inwards jeu de taquin slides on ``t2`` in the order indicated by
+        the entries of ``t1``, from largest to smallest. The entries of
+        ``t1`` then slide outwards one by one and land in the squares
+        vacated successively by ``t2``, forming ``t1_new``.
+
+        .. NOTE::
+
+            Equivalently, the entries of ``t1_new`` are obtained by performing
+            outer jeu de taquin slides on ``t1`` in the order indicated by the
+            entries of ``t2``, from smallest to largest. In this case the
+            entries of ``t2`` slide backwards and fill the squares
+            successively vacated by ``t1`` and so form ``t2_new``.
+            (This is not how the algorithm is implemented.)
+
+        INPUT:
+
+        - ``self``, ``t2`` -- a pair of standard SkewTableaux with
+          ``self.outer_shape() == t2.inner_shape()``
+
+        OUTPUT:
+
+        - ``t2_new, t1_new`` -- a pair of standard :class:`SkewTableaux`
+          with ``t2_new.outer_shape() == t1_new.inner_shape()``
+
+        EXAMPLES::
+
+            sage: t1 = SkewTableau([[None, 1, 2], [3, 4]])
+            sage: t2 = SkewTableau([[None, None, None, 3], [None, None, 4], [1, 2, 5]])
+            sage: (t2_new, t1_new) = t1.shuffle(t2)
+            sage: t1_new
+            [[None, None, None, 2], [None, None, 1], [None, 3, 4]]
+            sage: t2_new
+            [[None, 2, 3], [1, 4], [5]]
+            sage: t1_new.outer_shape() == t2.outer_shape()
+            True
+            sage: t2_new.inner_shape() == t1.inner_shape()
+            True
+
+        Shuffling is an involution::
+
+            sage: t1 = SkewTableau([[None, 1, 2], [3, 4]])
+            sage: t2 = SkewTableau([[None, None, None, 3], [None, None, 4], [1, 2, 5]])
+            sage: sh = lambda x,y : x.shuffle(y)
+            sage: (t1, t2) == sh(*sh(t1, t2))
+            True
+
+        Both tableaux must be standard::
+
+            sage: t1 = SkewTableau([[None, 1, 2], [2, 4]])
+            sage: t2 = SkewTableau([[None, None, None, 3], [None, None, 4], [1, 2, 5]])
+            sage: t1.shuffle(t2)
+            Traceback (most recent call last):
+            ...
+            ValueError: the tableaux must be standard
+            sage: t1 = SkewTableau([[None, 1, 2], [3, 4]])
+            sage: t2 = SkewTableau([[None, None, None, 3], [None, None, 4], [1, 2, 6]])
+            sage: t1.shuffle(t2)
+            Traceback (most recent call last):
+            ...
+            ValueError: the tableaux must be standard
+
+        The shapes (not just the nonempty cells) must be adjacent::
+
+            sage: t1 = SkewTableau([[None, None, None], [1]])
+            sage: t2 = SkewTableau([[None], [None], [1]])
+            sage: t1.shuffle(t2)
+            Traceback (most recent call last):
+            ...
+            ValueError: the shapes must be adjacent
+
+        TESTS:
+
+        A corner case, where one tableau has no cells::
+
+            sage: t1 = SkewTableau([[None]])
+            sage: t2 = SkewTableau([[None, 1, 2], [3, 4]])
+            sage: (t2_new, t1_new) = t1.shuffle(t2)
+            sage: t1_new
+            [[None, None, None], [None, None]]
+            sage: t2_new == t2
+            True
+            sage: t2_new.shuffle(t1_new) == (t1, t2)
+            True
+        """
+        if self.outer_shape() != t2.inner_shape():
+            raise ValueError("the shapes must be adjacent")
+        if not self.is_standard() or not t2.is_standard():
+            raise ValueError("the tableaux must be standard")
+
+        # start with t2_new = t2, which we will slide backwards
+        t2_new = t2
+
+        # make a blank copy of t2 (to fill in iteratively), which will become t1_new
+        t1_new = [[None]*len(x) for x in list(t2)]
+
+        # perform reverse slides according to the entries of t1,
+        # from largest to smallest
+        m = self.size()
+        for i in range(m, 0, -1):
+            # the square of t1 containing i
+            corner = self.cells_containing(i)[0]
+
+            # slide t2_new backwards, record i in the vacated square
+            (t2_new, (x, y)) = t2_new.slide(corner, True)
+            t1_new[x][y] = i
+
+        t1_new = SkewTableau(t1_new)
+        return t2_new, t1_new
 
     def standardization(self, check=True):
         r"""
@@ -1058,7 +1245,7 @@ class SkewTableau(ClonableList):
         # nonnegative integers. We also subtract 1 from these integers
         # because the i-th row of a tableau T is T[i - 1].
         if rows is None:
-            rows = range(l)
+            rows = list(range(l))
         elif rows in ZZ:
             rows = [rows - 1]
         else:
@@ -1067,7 +1254,7 @@ class SkewTableau(ClonableList):
 
         # result_tab is going to be the result tableau (as a list of lists);
         # we will build it up step by step, starting with a deep copy of self.
-        result_tab = [list(row) for row in self]
+        result_tab = self.to_list()
         for i in rows:
             if i >= l:
                 continue
@@ -1188,7 +1375,7 @@ class SkewTableau(ClonableList):
         l_out = len(lam)
         l_in = len(mu)
         mu += [0]*(l_out-l_in)
-        
+
         if l_out == 0:
             return True
         else:
@@ -1202,7 +1389,7 @@ class SkewTableau(ClonableList):
                 else:
                     u += 1
 
-            # Find the least v strictly greater than u for which 
+            # Find the least v strictly greater than u for which
             # lam[v] != mu[v-1]+1
             v = u + 1
             v_test = True
@@ -1411,7 +1598,7 @@ def _label_skew(list_of_cells, sk):
             i += 1
     return skew
 
-class SkewTableaux(Parent, UniqueRepresentation):
+class SkewTableaux(UniqueRepresentation, Parent):
     r"""
     Class of all skew tableaux.
     """
@@ -1455,7 +1642,7 @@ class SkewTableaux(Parent, UniqueRepresentation):
         return self.element_class(self, st)
 
     Element = SkewTableau
-    global_options = TableauOptions
+    options = Tableaux.options
 
     def __contains__(self, x):
         """
@@ -1499,6 +1686,28 @@ class SkewTableaux(Parent, UniqueRepresentation):
             skp.append( [None]*(inner[i]) + outer[-(i+1)] )
 
         return self.element_class(self, skp)
+
+    def from_chain(self, chain):
+        """
+        Return the tableau corresponding to the chain of partitions.
+
+        EXAMPLES::
+
+            sage: SkewTableaux().from_chain([[1,1],[2,1],[3,1],[3,2],[3,3],[3,3,1]])
+            [[None, 1, 2], [None, 3, 4], [5]]
+        """
+        shape = chain[-1]
+        T = [[None for _ in range(r)] for r in shape]
+        for i in range(1,len(chain)):
+            la = chain[i]
+            mu = chain[i-1]
+            mu += [0]*(len(la) - len(mu))
+
+            for r in range(len(la)):
+                for c in range(mu[r], la[r]):
+                    T[r][c] = i
+
+        return self.element_class(self, T)
 
     def from_shape_and_word(self, shape, word):
         """
@@ -1773,9 +1982,10 @@ class StandardSkewTableaux_shape(StandardSkewTableaux):
 
     def __iter__(self):
         """
-        An iterator for all the standard skew tableaux with shape of the
-        skew partition ``skp``. The standard skew tableaux are ordered
-        lexicographically by the word obtained from their row reading.
+        An iterator for all the standard skew tableaux whose shape is
+        the skew partition ``skp``. The standard skew tableaux are
+        ordered lexicographically by the word obtained from their row
+        reading.
 
         EXAMPLES::
 
@@ -1860,7 +2070,7 @@ class SemistandardSkewTableaux(SkewTableaux):
          [[None, 3], [3]]]
 
         sage: for n in range(5):
-        ....:     print n, len(SemistandardSkewTableaux([[2,2,1],[1]], max_entry = n))
+        ....:     print("{} {}".format(n, len(SemistandardSkewTableaux([[2,2,1],[1]], max_entry = n))))
         0 0
         1 0
         2 1
@@ -2302,7 +2512,7 @@ class SemistandardSkewTableaux_shape_weight(SemistandardSkewTableaux):
             sage: SemistandardSkewTableaux([[2,1],[]],[2,1]).list()
             [[[1, 1], [2]]]
         """
-        from ribbon_tableau import RibbonTableaux_shape_weight_length
+        from .ribbon_tableau import RibbonTableaux_shape_weight_length
         for x in RibbonTableaux_shape_weight_length(self.p, self.mu, 1):
             yield self.element_class(self, x)
 
@@ -2335,3 +2545,6 @@ register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTablea
 register_unpickle_override('sage.combinat.skew_tableau', 'StandardSkewTableaux_skewpartition',  StandardSkewTableaux_shape)
 register_unpickle_override('sage.combinat.skew_tableau', 'SkewTableau_class',  SkewTableau_class)
 
+# Deprecations from trac:18555. July 2016
+from sage.misc.superseded import deprecated_function_alias
+SkewTableaux.global_options=deprecated_function_alias(18555, SkewTableaux.options)

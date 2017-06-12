@@ -6,14 +6,14 @@ This file contains some information and tests for the use of
 
 To install gambit as an optional package run (from root of Sage)::
 
-    $ ./sage -i gambit
+    $ sage -i gambit
 
 The `python API documentation for gambit
 <http://www.gambit-project.org/gambit14/pyapi.html>`_ shows various examples
 that can be run easily in IPython. To run the IPython packaged with Sage run
 (from root of Sage)::
 
-    $ ./sage -ipython
+    $ ./sage --ipython
 
 Here is an example that constructs the Prisoner's Dilemma::
 
@@ -107,7 +107,7 @@ If we solve this with the ``LCP`` solver we get the expected Nash equilibrium::
     Out[14]: [<NashProfile for '': [0.5, 0.5, 0.5, 0.5]>]
 
 Note that the above examples only show how to build and find equilibria for
-two player strategic form games. Gambit supports mulitple player games as well
+two player strategic form games. Gambit supports multiple player games as well
 as extensive form games: for more details see http://www.gambit-project.org/.
 
 If one really wants to use gambit directly in Sage (without using the

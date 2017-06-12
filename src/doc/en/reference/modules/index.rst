@@ -4,6 +4,8 @@ Modules
 .. toctree::
    :maxdepth: 2
 
+   sage/modules/tutorial_free_modules
+
    sage/modules/module
    sage/modules/free_module
    sage/modules/free_module_integer
@@ -45,5 +47,9 @@ Modules
    sage/modules/vector_rational_dense
    sage/modules/vector_real_double_dense
    sage/modules/vector_symbolic_dense
+
+   sage/modules/filtered_vector_space
+   sage/modules/multi_filtered_vector_space
+   sage/modules/tensor_operations
 
 .. include:: ../footer.txt

@@ -1,5 +1,11 @@
+# cython: old_style_globals=True
+"""
+Symbolic variables
+"""
+
 from sage.symbolic.function_factory import function as new_function
 from sage.symbolic.ring import SR
+
 
 def var(*args, **kwds):
     r"""
@@ -18,7 +24,7 @@ def var(*args, **kwds):
     - ``kwds`` -- keyword arguments can be given to specify domain and
       custom latex_name for variables. See EXAMPLES for usage.
 
-    .. note::
+    .. NOTE::
 
        The new variable is both returned and automatically injected
        into the global namespace. If you need a symbolic variable in
@@ -160,16 +166,16 @@ def function(s, *args, **kwds):
 
             (1) latex_name=LaTeX
                 where ``LaTeX`` is any valid latex expression.
-                Ex: f = function('f', x, latex_name="\\mathcal{F}")
+                Ex: f = function('f', latex_name="\\mathcal{F}")
                 See EXAMPLES for more.
 
             (2) print_latex_func=my_latex_print
                 where ``my_latex_print`` is any callable function
                 that returns a valid latex expression.
-                Ex: f = function('f', x, print_latex_func=my_latex_print)
+                Ex: f = function('f', print_latex_func=my_latex_print)
                 See EXAMPLES for an explicit usage.
 
-    .. note::
+    .. NOTE::
 
        The new function is both returned and automatically injected
        into the global namespace.  If you use this function in library
@@ -178,11 +184,10 @@ def function(s, *args, **kwds):
 
     EXAMPLES:
 
-    We create a formal function called supersin::
+    We create a formal function called supersin ::
 
-        sage: f = function('supersin', x)
-        sage: f
-        supersin(x)
+        sage: function('supersin')
+        supersin
 
     We can immediately use supersin in symbolic expressions::
 
@@ -198,12 +203,13 @@ def function(s, *args, **kwds):
         sage: g.diff(y)
         (x, y) |--> 1/2*cos(1/2*y)
         sage: k = g.diff(x); k
-        (x, y) |--> 2*supersin(x)*D[0](supersin)(x)
+        (x, y) |--> 2*supersin(x)*diff(supersin(x), x)
 
     Custom typesetting of symbolic functions in LaTeX, either using latex_name
     keyword::
 
-        sage: riemann(x) = function('riemann', x, latex_name="\\mathcal{R}")
+        sage: function('riemann', latex_name="\\mathcal{R}")
+        riemann
         sage: latex(riemann(x))
         \mathcal{R}\left(x\right)
 
@@ -211,7 +217,8 @@ def function(s, *args, **kwds):
 
         sage: mu,nu = var('mu,nu')
         sage: def my_latex_print(self, *args): return "\\psi_{%s}"%(', '.join(map(latex, args)))
-        sage: psi(mu,nu) = function('psi', mu, nu, print_latex_func=my_latex_print)
+        sage: function('psi', print_latex_func=my_latex_print)
+        psi
         sage: latex(psi(mu,nu))
         \psi_{\mu, \nu}
 
@@ -220,8 +227,19 @@ def function(s, *args, **kwds):
 
         sage: k.substitute_function(supersin, sin)
         2*cos(x)*sin(x)
+        
+    TESTS:
+
+    Make sure that :trac:`15860` is fixed and whitespaces are removed::
+    
+        sage: function('A, B')
+        (A, B)
+        sage: B
+        B   
     """
     if len(args) > 0:
+        from sage.misc.superseded import deprecation
+        deprecation(17447, "Calling function('f',x) is deprecated. Use function('f')(x) instead.")
         return function(s, **kwds)(*args)
 
     G = globals()  # this is the reason the code must be in Cython.
@@ -259,7 +277,7 @@ def clear_vars():
     """
     G = globals()
     from sage.symbolic.ring import is_SymbolicVariable
-    for i in range(65,65+26) + range(97,97+26):
+    for i in list(range(65, 65 + 26)) + list(range(97, 97 + 26)):
         if chr(i) in G and is_SymbolicVariable(G[chr(i)]):
             # We check to see if there is a corresponding pyobject
             # associated with the expression.  This will work for
@@ -269,6 +287,3 @@ def clear_vars():
                 G[chr(i)].pyobject()
             except TypeError:
                 del G[chr(i)]
-
-
-

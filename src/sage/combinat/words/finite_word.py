@@ -1,4 +1,4 @@
-# coding=utf-8
+# -*- coding: utf-8 -*-
 r"""
 Finite word
 
@@ -16,7 +16,7 @@ EXAMPLES:
 Creation of a finite word
 =========================
 
-Finite words from python strings, lists and tuples::
+Finite words from Python strings, lists and tuples::
 
     sage: Word("abbabaab")
     word: abbabaab
@@ -65,7 +65,7 @@ Finite words in a specific combinatorial class::
 
     sage: W = Words("ab")
     sage: W
-    Words over {'a', 'b'}
+    Finite and infinite words over {'a', 'b'}
     sage: W("abbabaab")
     word: abbabaab
     sage: W(["a","b","b","a","b","a","a","b"])
@@ -82,6 +82,29 @@ Finite word as the image under a morphism::
     word: 400040000554450
     sage: m(0, order=3)
     word: 4000445044504450400044504450445044500550...
+
+.. NOTE::
+
+    The following two finite words have the same string representation::
+
+        sage: w = Word('010120')
+        sage: z = Word([0, 1, 0, 1, 2, 0])
+        sage: w
+        word: 010120
+        sage: z
+        word: 010120
+
+    but are not equal::
+
+        sage: w == z
+        False
+
+    Indeed, w and z are defined on different alphabets::
+
+        sage: w[2]
+        '0'
+        sage: z[2]
+        0
 
 ========================
 Functions and algorithms
@@ -103,9 +126,9 @@ of them::
 
 ::
 
-    sage: print w.lyndon_factorization()
+    sage: print(w.lyndon_factorization())
     (ab, aabbb, a)
-    sage: print w.crochemore_factorization()
+    sage: print(w.crochemore_factorization())
     (a, b, a, ab, bb, a)
 
 ::
@@ -125,21 +148,21 @@ As matrix and many other sage objects, words have a parent::
 
     sage: u = Word('xyxxyxyyy')
     sage: u.parent()
-    Words
+    Finite words over Set of Python objects of type 'object'
 
 ::
 
     sage: v = Word('xyxxyxyyy', alphabet='xy')
     sage: v.parent()
-    Words over {'x', 'y'}
+    Finite words over {'x', 'y'}
 
 ========================
 Factors and Rauzy Graphs
 ========================
 
-Enumeration of factors, the successive values returned by next(it)
+Enumeration of factors, the successive values returned by ``next(it)``
 can appear in a different order depending on hardware. Therefore we
-mark the three first results of the test random. The important test
+mark the three first results of the test ``random``. The important test
 is that the iteration stops properly on the fourth call::
 
     sage: w = Word([4,5,6])^7
@@ -191,7 +214,13 @@ Left-special and bispecial factors::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from itertools import islice, izip, cycle
+from __future__ import print_function, absolute_import
+
+from builtins import zip
+
+from six.moves import range
+from collections import defaultdict
+from itertools import islice, cycle
 from sage.combinat.words.abstract_word import Word_class
 from sage.combinat.words.words import Words
 from sage.misc.cachefunc import cached_method
@@ -203,7 +232,7 @@ from sage.misc.superseded import deprecated_function_alias
 class FiniteWord_class(Word_class):
     def __str__(self):
         r"""
-        Returns the full (not truncated) string representation of the word
+        Return the full (not truncated) string representation of the word
         without identifier.
 
         TESTS::
@@ -215,27 +244,27 @@ class FiniteWord_class(Word_class):
             sage: Word([0,1,10,101]).__str__()
             '0,1,10,101'
 
-        Insertion in a str::
+        Insertion into a ``str``::
 
             sage: w = Word(range(5))
             sage: "Let's insert the word w = %s in this string." % w
             "Let's insert the word w = 01234 in this string."
 
-        Using LatexExpr::
+        Using ``LatexExpr``::
 
             sage: from sage.misc.latex import LatexExpr
             sage: LatexExpr(w)
             01234
 
-        With the print statement::
+        With the ``print`` statement::
 
-            sage: print w
+            sage: print(w)
             01234
 
         No truncation is done for finite words::
 
             sage: w = Word([i % 5 for i in range(60)])
-            sage: print w
+            sage: print(w)
             012340123401234012340123401234012340123401234012340123401234
         """
         global word_options
@@ -251,7 +280,7 @@ class FiniteWord_class(Word_class):
 
     def _repr_(self):
         r"""
-        Returns a string representation of self.
+        Return a string representation of ``self``.
 
         TESTS::
 
@@ -269,16 +298,16 @@ class FiniteWord_class(Word_class):
 
     def coerce(self, other):
         r"""
-        Tries to return a pair of words with a common parent; raises an
+        Try to return a pair of words with a common parent; raise an
         exception if this is not possible.
 
         This function begins by checking if both words have the same
         parent. If this is the case, then no work is done and both words
         are returned as-is.
 
-        Otherwise it will attempt to convert other to the domain of self.
-        If that fails, it will attempt to convert self to the domain of
-        other. If both attempts fail, it raises a TypeError to signal
+        Otherwise it will attempt to convert ``other`` to the domain of ``self``.
+        If that fails, it will attempt to convert ``self`` to the domain of
+        ``other``. If both attempts fail, it raises a ``TypeError`` to signal
         failure.
 
         EXAMPLES::
@@ -307,7 +336,7 @@ class FiniteWord_class(Word_class):
 
     def __hash__(self):
         r"""
-        Returns the hash for this word.
+        Return the hash for this word.
 
         TESTS::
 
@@ -324,11 +353,11 @@ class FiniteWord_class(Word_class):
 
     def concatenate(self, other):
         r"""
-        Returns the concatenation of self and other.
+        Return the concatenation of ``self`` and ``other``.
 
         INPUT:
 
-        - ``other`` - a word over the same alphabet as self
+        - ``other`` -- a word over the same alphabet as ``self``
 
         EXAMPLES:
 
@@ -371,6 +400,17 @@ class FiniteWord_class(Word_class):
             <class 'sage.combinat.words.word.FiniteWord_str'>
             sage: type(Word([1,2,3]) * Word(''))
             <class 'sage.combinat.words.word.FiniteWord_list'>
+
+        Concatenation of finite words with infinite words works as expected::
+
+            sage: from itertools import repeat
+            sage: W = Words('ab')
+            sage: w1 = W('aba')
+            sage: w2 = W(repeat('b'), length='infinite')
+            sage: w1*w2
+            word: ababbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb...
+            sage: _.parent()
+            Infinite words over {'a', 'b'}
         """
         if self.is_empty():
             return other
@@ -378,7 +418,12 @@ class FiniteWord_class(Word_class):
             return self
         f = CallableFromListOfWords([self,other])
         length = self.length() + other.length()
-        return self._parent(f, length=length, datatype='callable', caching=True)
+        parent = self._parent
+        if length == Infinity:
+            parent = parent.shift()
+            return parent(f, datatype='callable', caching=True)
+        else:
+            return parent(f, length=length, datatype='callable', caching=True)
 
     __mul__ = concatenate
 
@@ -388,18 +433,18 @@ class FiniteWord_class(Word_class):
     # should be a domain=slice(n) # Seb : Feb 23th : I think this is fine now!!
     def __pow__(self, exp):
         r"""
-        Return the `exp`-th power of self.
+        Return the ``exp``-th power of ``self``.
 
-        If `exp` is `\infty`, returns the infinite periodic word of base self.
-        Otherwise, `|w|\cdot exp` must be an non-negative integer.
+        If ``exp`` is `\infty`, returns the infinite periodic word of base ``self``.
+        Otherwise, `|w|\cdot exp` must be a non-negative integer.
 
         INPUT:
 
-        -  ``exp``  - an integer, a rational, a float number or plus infinity.
+        - ``exp`` -- an integer, a rational, a float number or plus infinity
 
         OUTPUT:
 
-            word -- the exp-th power of self.
+        word -- the ``exp``-th power of ``self``
 
         EXAMPLES:
 
@@ -460,7 +505,7 @@ class FiniteWord_class(Word_class):
         # infinite power of a non-empty word
         fcn = lambda n: self[n % self.length()]
         if exp is Infinity:
-            return self._parent(fcn, length=Infinity)
+            return self._parent.shift()(fcn)
 
         #If exp*|self| is not an integer
         length = exp* self.length()
@@ -473,7 +518,7 @@ class FiniteWord_class(Word_class):
 
     def length(self):
         r"""
-        Returns the length of self.
+        Return the length of ``self``.
 
         TESTS::
 
@@ -489,7 +534,7 @@ class FiniteWord_class(Word_class):
             sage: w.length()
             4
             sage: def f(n):
-            ...     return range(2,12,2)[n]
+            ....:   return list(range(2,12,2))[n]
             sage: w = Word(f, length=5)
             sage: w.length()
             5
@@ -498,22 +543,107 @@ class FiniteWord_class(Word_class):
             self._len = Integer(sum(1 for _ in self))
         return self._len
 
-    def schuetzenberger_involution(self, n = None):
-        """
-        Returns the Schuetzenberger involution of the word self, which is obtained
-        by reverting the word and then complementing all letters within the
-        underlying ordered alphabet. If `n` is specified, the underlying
-        alphabet is assumed to be `[1,2,\ldots,n]`. If no alphabet is specified,
-        `n` is the maximal letter appearing in self.
+    def content(self, n=None):
+        r"""
+        Return content of ``self``.
 
-       INPUT:
+        INPUT:
 
-        - ``self`` -- a word
-        - ``n``    -- an integer specifying the maximal letter in the alphabet (optional)
+        - ``n`` -- (optional) an integer specifying the maximal
+          letter in the alphabet
 
         OUTPUT:
 
-        - a word, the Schuetzenberger involution of self
+        - a list where the `i`-th entry indiciates the multiplicity
+          of the `i`-th letter in the alphabet in ``self``
+
+        EXAMPLES::
+
+            sage: w = Word([1,2,4,3,2,2,2])
+            sage: w.content()
+            [1, 4, 1, 1]
+            sage: w = Word([3,1])
+            sage: w.content()
+            [1, 1]
+            sage: w.content(n=3)
+            [1, 0, 1]
+            sage: w = Word([2,4],alphabet=[1,2,3,4])
+            sage: w.content(n=3)
+            [0, 1, 0]
+            sage: w.content()
+            [0, 1, 0, 1]
+        """
+        if n is not None:
+            alphabet = range(1,n+1)
+        elif not self.parent().alphabet().cardinality() == +Infinity:
+            alphabet = self.parent().alphabet()
+        else:
+            alphabet = sorted(self.letters())
+        return [self.count(i) for i in alphabet]
+
+    def is_yamanouchi(self, n=None):
+        r"""
+        Return whether ``self`` is Yamanouchi.
+
+        A word `w` is Yamanouchi if, when read from right to left, it
+        always has weakly more `i`'s than `i+1`'s for all `i` that
+        appear in `w`.
+
+        INPUT:
+
+        - ``n`` -- (optional) an integer specifying the maximal
+          letter in the alphabet
+
+        EXAMPLES::
+
+            sage: w = Word([1,2,4,3,2,2,2])
+            sage: w.is_yamanouchi()
+            False
+            sage: w = Word([2,3,4,3,1,2,1,1,2,1])
+            sage: w.is_yamanouchi()
+            True
+            sage: w = Word([3,1])
+            sage: w.is_yamanouchi(n=3)
+            False
+            sage: w.is_yamanouchi()
+            True
+            sage: w = Word([3,1],alphabet=[1,2,3])
+            sage: w.is_yamanouchi()
+            False
+            sage: w = Word([2,1,1,2])
+            sage: w.is_yamanouchi()
+            False
+        """
+        from sage.combinat.words.word import Word
+        if n is not None:
+            w = Word(self, alphabet=list(range(1,n+1)))
+        elif not self.parent().alphabet().cardinality() == +Infinity:
+            w = self
+        else:
+            w = Word(self, alphabet=sorted(self.letters()))
+        l = w.length()
+        for a in range(l-1,-1,-1):
+            mu = w.parent()(self[a:]).content()
+            if not all(mu[i] >= mu[i+1] for i in range(len(mu)-1)):
+                return False
+        return True
+
+    def schuetzenberger_involution(self, n = None):
+        """
+        Return the Schützenberger involution of the word ``self``, which is obtained
+        by reverting the word and then complementing all letters within the
+        underlying ordered alphabet. If ``n`` is specified, the underlying
+        alphabet is assumed to be `[1,2,\ldots,n]`. If no alphabet is specified,
+        `n` is the maximal letter appearing in ``self``.
+
+        INPUT:
+
+        - ``self`` -- a word
+        - ``n`` -- an integer specifying the maximal letter in the alphabet (optional)
+
+        OUTPUT:
+
+        a word, the Schützenberger involution of ``self``
 
         EXAMPLES::
 
@@ -521,19 +651,19 @@ class FiniteWord_class(Word_class):
             sage: v = w.schuetzenberger_involution(); v
             word: 7849631
             sage: v.parent()
-            Words
+            Finite words over Set of Python objects of type 'object'
 
             sage: w = Word([1,2,3],alphabet=[1,2,3,4,5])
             sage: v = w.schuetzenberger_involution();v
             word: 345
             sage: v.parent()
-            Words over {1, 2, 3, 4, 5}
+            Finite words over {1, 2, 3, 4, 5}
 
             sage: w = Word([1,2,3])
             sage: v = w.schuetzenberger_involution(n=5);v
             word: 345
             sage: v.parent()
-            Words
+            Finite words over Set of Python objects of type 'object'
 
             sage: w = Word([11,32,69,2,53,1,2,3,18,41])
             sage: w.schuetzenberger_involution()
@@ -553,7 +683,7 @@ class FiniteWord_class(Word_class):
         w = list(r)
         parent = self.parent()
         if n is None:
-            alphsize = parent.size_of_alphabet()
+            alphsize = parent.alphabet().cardinality()
             if not alphsize == +Infinity:
                 n = max(parent.alphabet())
             elif r.length()>0:
@@ -620,7 +750,8 @@ class FiniteWord_class(Word_class):
             word: 3113a1
         """
         s = self.standard_permutation()
-        ordered_alphabet = sorted(self.letters(), cmp=self.parent().cmp_letters)
+        ordered_alphabet = sorted(self.letters(),
+                                  key=self.parent().sortkey_letters)
         eval_dict = self.evaluation_dict()
         weight = [eval_dict[a] for a in ordered_alphabet]
         return (s.foata_bijection()).destandardize(weight, ordered_alphabet=ordered_alphabet)
@@ -670,7 +801,7 @@ class FiniteWord_class(Word_class):
 
     def is_empty(self):
         r"""
-        Returns True if the length of self is zero, and False otherwise.
+        Return ``True`` if the length of ``self`` is zero, and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -683,7 +814,7 @@ class FiniteWord_class(Word_class):
 
     def is_finite(self):
         r"""
-        Returns True.
+        Return ``True``.
 
         EXAMPLES::
 
@@ -696,7 +827,7 @@ class FiniteWord_class(Word_class):
 
     def to_integer_word(self):
         r"""
-        Returns a word defined over the integers [0,1,...,self.length()-1]
+        Return a word defined over the integers ``[0,1,...,self.length()-1]``
         whose letters are in the same relative order in the parent.
 
         EXAMPLES::
@@ -708,6 +839,7 @@ class FiniteWord_class(Word_class):
             sage: w = Word(iter("cacao"), length="finite")
             sage: w.to_integer_word()
             word: 10102
+
             sage: w = Words([3,2,1])([2,3,3,1])
             sage: w.to_integer_word()
             word: 1002
@@ -717,8 +849,8 @@ class FiniteWord_class(Word_class):
 
     def to_integer_list(self):
         r"""
-        Returns a list of integers from [0,1,...,self.length()-1] in the
-        same relative order as the letters in self in the parent.
+        Return a list of integers from ``[0,1,...,self.length()-1]`` in the
+        same relative order as the letters in ``self`` in the parent.
 
         EXAMPLES::
 
@@ -733,15 +865,15 @@ class FiniteWord_class(Word_class):
             sage: w.to_integer_list()
             [1, 0, 0, 2]
         """
-        cmp_fcn = self._parent.cmp_letters
-        ordered_alphabet = sorted(self.letters(), cmp=cmp_fcn)
+        cmp_key = self._parent.sortkey_letters
+        ordered_alphabet = sorted(self.letters(), key=cmp_key)
         index = dict((b,a) for (a,b) in enumerate(ordered_alphabet))
         return [index[a] for a in self]
 
     # To fix : do not slice here ! (quite expensive in copy)
     def is_suffix(self, other):
         r"""
-        Returns True if w is a suffix of other, and False otherwise.
+        Return ``True`` if ``self`` is a suffix of ``other``, and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -764,7 +896,7 @@ class FiniteWord_class(Word_class):
 
     def is_proper_suffix(self, other):
         r"""
-        Returns True if self is a proper suffix of other, and False otherwise.
+        Return ``True`` if ``self`` is a proper suffix of ``other``, and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -790,11 +922,11 @@ class FiniteWord_class(Word_class):
 
         INPUT:
 
-            - ``other`` - a word, or data describing a word
+        - ``other`` -- a word, or data describing a word
 
         OUTPUT:
 
-            - boolean
+        boolean
 
         EXAMPLES::
 
@@ -825,7 +957,7 @@ class FiniteWord_class(Word_class):
 
     def is_prefix(self, other):
         r"""
-        Returns True if self is a prefix of other, and False otherwise.
+        Return ``True`` if ``self`` is a prefix of ``other``, and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -846,7 +978,7 @@ class FiniteWord_class(Word_class):
 
     def is_proper_prefix(self, other):
         r"""
-        Returns True if self is a proper prefix of other, and False otherwise.
+        Return ``True`` if ``self`` is a proper prefix of ``other``, and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -869,11 +1001,11 @@ class FiniteWord_class(Word_class):
 
         INPUT:
 
-            - ``other`` - a word, or data describing a word
+        - ``other`` -- a word, or data describing a word
 
         OUTPUT:
 
-            - boolean
+        boolean
 
         EXAMPLES::
 
@@ -905,7 +1037,7 @@ class FiniteWord_class(Word_class):
 
     def reversal(self):
         r"""
-        Returns the reversal of self.
+        Return the reversal of ``self``.
 
         EXAMPLES::
 
@@ -917,8 +1049,8 @@ class FiniteWord_class(Word_class):
     @cached_method
     def prefix_function_table(self):
         r"""
-        Returns a vector containing the length of the proper prefix-suffixes
-        for all the non-empty prefixes of self.
+        Return a vector containing the length of the proper prefix-suffixes
+        for all the non-empty prefixes of ``self``.
 
         EXAMPLES::
 
@@ -931,7 +1063,7 @@ class FiniteWord_class(Word_class):
         """
         k = 0
         res = [0]*self.length()
-        for q in xrange(1, self.length()):
+        for q in range(1, self.length()):
             while k > 0 and self[k] != self[q]:
                 k = res[k-1]
             if self[k] == self[q]:
@@ -942,8 +1074,8 @@ class FiniteWord_class(Word_class):
     @cached_method
     def good_suffix_table(self):
         r"""
-        Returns a table of the maximum skip you can do in order not to miss
-        a possible occurrence of self in a word.
+        Return a table of the maximum skip you can do in order not to miss
+        a possible occurrence of ``self`` in a word.
 
         This is a part of the Boyer-Moore algorithm to find factors. See [1].
 
@@ -962,7 +1094,7 @@ class FiniteWord_class(Word_class):
         l = self.length()
         p = self.reversal().prefix_function_table()
         res = [l - p[-1]]*(l+1)
-        for i in xrange(1, l+1):
+        for i in range(1, l+1):
             j = l - p[i - 1]
             if res[j] > (i - p[i-1]):
                 res[j] = i - p[i-1]
@@ -971,14 +1103,14 @@ class FiniteWord_class(Word_class):
     @cached_method
     def suffix_trie(self):
         r"""
-        Returns the suffix trie of self.
+        Return the suffix trie of ``self``.
 
         The *suffix trie* of a finite word `w` is a data structure
         representing the factors of `w`. It is a tree whose edges are
         labelled with letters of `w`, and whose leafs correspond to
         suffixes of `w`.
 
-        See sage.combinat.words.suffix_trees.SuffixTrie? for more information.
+        Type ``sage.combinat.words.suffix_trees.SuffixTrie?`` for more information.
 
         EXAMPLES::
 
@@ -997,16 +1129,16 @@ class FiniteWord_class(Word_class):
 
     def implicit_suffix_tree(self):
         r"""
-        Returns the implicit suffix tree of self.
+        Return the implicit suffix tree of ``self``.
 
         The *suffix tree* of a word `w` is a compactification of the
         suffix trie for `w`. The compactification removes all nodes that have
         exactly one incoming edge and exactly one outgoing edge. It consists of
         two components: a tree and a word. Thus, instead of labelling the edges
-        by factors of `w`, we can labelled them by indices of the occurrence of
+        by factors of `w`, we can label them by indices of the occurrence of
         the factors in `w`.
 
-        See sage.combinat.words.suffix_trees.ImplicitSuffixTree? for more information.
+        Type ``sage.combinat.words.suffix_trees.ImplicitSuffixTree?`` for more information.
 
         EXAMPLES::
 
@@ -1026,7 +1158,7 @@ class FiniteWord_class(Word_class):
     @cached_method
     def suffix_tree(self):
         r"""
-        Alias for implicit_suffix_tree().
+        Alias for ``implicit_suffix_tree()``.
 
         EXAMPLES::
 
@@ -1037,12 +1169,12 @@ class FiniteWord_class(Word_class):
 
     def number_of_factors(self, n=None, algorithm='suffix tree'):
         r"""
-        Counts the number of distinct factors of self.
+        Count the number of distinct factors of ``self``.
 
         INPUT:
 
-        -  ``n`` - an integer, or None.
-        - ``algorithm`` - string (default: ``'suffix tree'``), takes the
+        -  ``n`` -- an integer, or ``None``.
+        - ``algorithm`` -- string (default: ``'suffix tree'``), takes the
           following values:
 
           - ``'suffix tree'`` -- construct and use the suffix tree of the word
@@ -1050,9 +1182,9 @@ class FiniteWord_class(Word_class):
 
         OUTPUT:
 
-            If n is an integer, returns the number of distinct factors
-            of length n. If n is None, returns the total number of
-            distinct factors.
+        If ``n`` is an integer, returns the number of distinct factors
+        of length ``n``. If ``n`` is ``None``, returns the total number of
+        distinct factors.
 
         EXAMPLES::
 
@@ -1106,17 +1238,17 @@ class FiniteWord_class(Word_class):
 
     def factor_iterator(self, n=None):
         r"""
-        Generates distinct factors of ``self``.
+        Generate distinct factors of ``self``.
 
         INPUT:
 
-        -  ``n`` - an integer, or ``None``.
+        - ``n`` -- an integer, or ``None``.
 
         OUTPUT:
 
-            If ``n`` is an integer, returns an iterator over all distinct
-            factors of length ``n``. If ``n`` is ``None``, returns an iterator
-            generating all distinct factors.
+        If ``n`` is an integer, returns an iterator over all distinct
+        factors of length ``n``. If ``n`` is ``None``, returns an iterator
+        generating all distinct factors.
 
         EXAMPLES::
 
@@ -1171,18 +1303,18 @@ class FiniteWord_class(Word_class):
         TESTS::
 
             sage: type( Word('cacao').factor_iterator() )
-            <type 'generator'>
+            <... 'generator'>
         """
         return self.suffix_tree().factor_iterator(n)
 
     def factor_set(self, n=None, algorithm='suffix tree'):
         r"""
-        Returns the set of factors (of length n) of self.
+        Return the set of factors (of length ``n``) of ``self``.
 
         INPUT:
 
-        - ``n`` - an integer or ``None`` (default: None).
-        - ``algorithm`` - string (default: ``'suffix tree'``), takes the
+        - ``n`` -- an integer or ``None`` (default: ``None``).
+        - ``algorithm`` -- string (default: ``'suffix tree'``), takes the
           following values:
 
           - ``'suffix tree'`` -- construct and use the suffix tree of the word
@@ -1190,9 +1322,9 @@ class FiniteWord_class(Word_class):
 
         OUTPUT:
 
-            If ``n`` is an integer, returns the set of all distinct
-            factors of length ``n``. If ``n`` is ``None``, returns the set
-            of all distinct factors.
+        If ``n`` is an integer, returns the set of all distinct
+        factors of length ``n``. If ``n`` is ``None``, returns the set
+        of all distinct factors.
 
         EXAMPLES::
 
@@ -1260,7 +1392,7 @@ class FiniteWord_class(Word_class):
 
     def topological_entropy(self, n):
         r"""
-        Return the topological entropy for the factors of length n.
+        Return the topological entropy for the factors of length ``n``.
 
         The topological entropy of a sequence `u` is defined as the
         exponential growth rate of the complexity of `u` as the length
@@ -1271,8 +1403,8 @@ class FiniteWord_class(Word_class):
 
         INPUT:
 
-        - ``self`` - a word defined over a finite alphabet
-        -  ``n`` - positive integer
+        - ``self`` -- a word defined over a finite alphabet
+        -  ``n`` -- positive integer
 
         OUTPUT:
 
@@ -1291,7 +1423,8 @@ class FiniteWord_class(Word_class):
 
             sage: w = words.ThueMorseWord()[:100]
             sage: topo = w.topological_entropy
-            sage: for i in range(0, 41, 5): print i, n(topo(i), digits=5)
+            sage: for i in range(0, 41, 5):
+            ....:     print("{} {}".format(i, n(topo(i), digits=5)))
             0 1.0000
             5 0.71699
             10 0.48074
@@ -1324,7 +1457,7 @@ class FiniteWord_class(Word_class):
            Verlag. V. Berthe, S. Ferenczi, C. Mauduit and A. Siegel, Eds.
            (2002).
         """
-        d = self.parent().size_of_alphabet()
+        d = self.parent().alphabet().cardinality()
         if d is Infinity:
             raise TypeError("The word must be defined over a finite alphabet")
         if n == 0:
@@ -1333,10 +1466,9 @@ class FiniteWord_class(Word_class):
         from sage.functions.all import log
         return log(pn, base=d)/n
 
-    @cached_method
     def rauzy_graph(self, n):
         r"""
-        Returns the Rauzy graph of the factors of length n of self.
+        Return the Rauzy graph of the factors of length ``n`` of ``self``.
 
         The vertices are the factors of length `n` and there is an edge from
         `u` to `v` if `ua = bv` is a factor of length `n+1` for some letters
@@ -1344,7 +1476,7 @@ class FiniteWord_class(Word_class):
 
         INPUT:
 
-        - ``n`` - integer
+        - ``n`` -- integer
 
         EXAMPLES::
 
@@ -1414,23 +1546,23 @@ class FiniteWord_class(Word_class):
 
     def reduced_rauzy_graph(self, n):
         r"""
-        Returns the reduced Rauzy graph of order `n` of self.
+        Return the reduced Rauzy graph of order ``n`` of ``self``.
 
         INPUT:
 
-        - ``n`` - non negative integer. Every vertex of a reduced
-          Rauzy graph of order `n` is a factor of length `n` of self.
+        - ``n`` -- a non-negative integer. Every vertex of a reduced
+          Rauzy graph of order ``n`` is a factor of length ``n`` of ``self``.
 
         OUTPUT:
 
-        Looped multi-digraph
+        a looped multi-digraph
 
         DEFINITION:
 
         For infinite periodic words (resp. for finite words of type `u^i
         u[0:j]`), the reduced Rauzy graph of order `n` (resp. for `n`
         smaller or equal to `(i-1)|u|+j`) is the directed graph whose
-        unique vertex is the prefix `p` of length `n` of self and which has
+        unique vertex is the prefix `p` of length `n` of ``self`` and which has
         an only edge which is a loop on `p` labelled by `w[n+1:|w|] p`
         where `w` is the unique return word to `p`.
 
@@ -1445,8 +1577,8 @@ class FiniteWord_class(Word_class):
 
         .. NOTE::
 
-            In the case of infinite recurrent non periodic words, this
-            definition correspond to the following one that can be found in
+            In the case of infinite recurrent non-periodic words, this
+            definition corresponds to the following one that can be found in
             [1] and [2]  where a simple path is a path that begins with a
             special factor, ends with a special factor and contains no
             other vertices that are special:
@@ -1543,7 +1675,7 @@ class FiniteWord_class(Word_class):
 
     def left_special_factors_iterator(self, n=None):
         r"""
-        Returns an iterator over the left special factors (of length n).
+        Return an iterator over the left special factors (of length ``n``).
 
         A factor `u` of a word `w` is *left special* if there are
         two distinct letters `a` and `b` such that `au` and `bu`
@@ -1551,8 +1683,8 @@ class FiniteWord_class(Word_class):
 
         INPUT:
 
-        -  ``n`` - integer (optional, default: None). If None, it returns
-           an iterator over all left special factors.
+        - ``n`` -- integer (optional, default: ``None``). If ``None``, it returns
+          an iterator over all left special factors.
 
         EXAMPLES::
 
@@ -1570,15 +1702,17 @@ class FiniteWord_class(Word_class):
                 for w in self.left_special_factors_iterator(i):
                     yield w
         else:
-            g = self.rauzy_graph(n)
-            in_d = g.in_degree
-            for v in g:
-                if in_d(v) > 1:
+            left_extensions = defaultdict(set)
+            for w in self.factor_iterator(n+1):
+                v = w[1:]
+                left_extensions[v].add(w[0])
+            for v in left_extensions:
+                if len(left_extensions[v]) > 1:
                     yield v
 
     def left_special_factors(self, n=None):
         r"""
-        Returns the left special factors (of length n).
+        Return the left special factors (of length ``n``).
 
         A factor `u` of a word `w` is *left special* if there are
         two distinct letters `a` and `b` such that `au` and `bu`
@@ -1586,18 +1720,19 @@ class FiniteWord_class(Word_class):
 
         INPUT:
 
-        -  ``n`` - integer (optional, default: ``None``). If ``None``, it
-           returns all left special factors.
+        - ``n`` -- integer (optional, default: ``None``). If ``None``, it
+          returns all left special factors.
 
         OUTPUT:
 
-        A list of words.
+        a list of words
 
         EXAMPLES::
 
             sage: alpha, beta, x = 0.54, 0.294, 0.1415
             sage: w = words.CodingOfRotationWord(alpha, beta, x)[:40]
-            sage: for i in range(5): print i, sorted(w.left_special_factors(i))
+            sage: for i in range(5):
+            ....:     print("{} {}".format(i, sorted(w.left_special_factors(i))))
             0 [word: ]
             1 [word: 0]
             2 [word: 00, word: 01]
@@ -1608,7 +1743,7 @@ class FiniteWord_class(Word_class):
 
     def right_special_factors_iterator(self, n=None):
         r"""
-        Returns an iterator over the right special factors (of length n).
+        Return an iterator over the right special factors (of length ``n``).
 
         A factor `u` of a word `w` is *right special* if there are
         two distinct letters `a` and `b` such that `ua` and `ub`
@@ -1616,8 +1751,8 @@ class FiniteWord_class(Word_class):
 
         INPUT:
 
-        -  ``n`` - integer (optional, default: None). If None, it returns
-           an iterator over all right special factors.
+        - ``n`` -- integer (optional, default: ``None``). If ``None``, it returns
+          an iterator over all right special factors.
 
         EXAMPLES::
 
@@ -1635,15 +1770,17 @@ class FiniteWord_class(Word_class):
                 for w in self.right_special_factors_iterator(i):
                     yield w
         else:
-            g = self.rauzy_graph(n)
-            out_d = g.out_degree
-            for v in g:
-                if out_d(v) > 1:
+            right_extensions = defaultdict(set)
+            for w in self.factor_iterator(n+1):
+                v = w[:-1]
+                right_extensions[v].add(w[-1])
+            for v in right_extensions:
+                if len(right_extensions[v]) > 1:
                     yield v
 
     def right_special_factors(self, n=None):
         r"""
-        Returns the right special factors (of length n).
+        Return the right special factors (of length ``n``).
 
         A factor `u` of a word `w` is *right special* if there are
         two distinct letters `a` and `b` such that `ua` and `ub`
@@ -1651,17 +1788,18 @@ class FiniteWord_class(Word_class):
 
         INPUT:
 
-        -  ``n`` - integer (optional, default: None). If None, it returns
-           all right special factors.
+        - ``n`` -- integer (optional, default: ``None``). If ``None``, it returns
+          all right special factors.
 
         OUTPUT:
 
-        A list of words.
+        a list of words
 
         EXAMPLES::
 
             sage: w = words.ThueMorseWord()[:30]
-            sage: for i in range(5): print i, sorted(w.right_special_factors(i))
+            sage: for i in range(5):
+            ....:     print("{} {}".format(i, sorted(w.right_special_factors(i))))
             0 [word: ]
             1 [word: 0, word: 1]
             2 [word: 01, word: 10]
@@ -1672,22 +1810,22 @@ class FiniteWord_class(Word_class):
 
     def bispecial_factors_iterator(self, n=None):
         r"""
-        Returns an iterator over the bispecial factors (of length n).
+        Return an iterator over the bispecial factors (of length ``n``).
 
         A factor `u` of a word `w` is *bispecial* if it is right special
         and left special.
 
         INPUT:
 
-        -  ``n`` - integer (optional, default: None). If None, it returns
-           an iterator over all bispecial factors.
+        - ``n`` -- integer (optional, default: ``None``). If ``None``, it returns
+          an iterator over all bispecial factors.
 
         EXAMPLES::
 
             sage: w = words.ThueMorseWord()[:30]
             sage: for i in range(10):
-            ...     for u in sorted(w.bispecial_factors_iterator(i)):
-            ...         print i,u
+            ....:     for u in sorted(w.bispecial_factors_iterator(i)):
+            ....:         print("{} {}".format(i,u))
             0
             1 0
             1 1
@@ -1723,28 +1861,32 @@ class FiniteWord_class(Word_class):
                 for w in self.bispecial_factors_iterator(i):
                     yield w
         else:
-            g = self.rauzy_graph(n)
-            in_d = g.in_degree
-            out_d = g.out_degree
-            for v in g:
-                if out_d(v) > 1 and in_d(v) > 1:
+            left_extensions = defaultdict(set)
+            right_extensions = defaultdict(set)
+            for w in self.factor_iterator(n+2):
+                v = w[1:-1]
+                left_extensions[v].add(w[0])
+                right_extensions[v].add(w[-1])
+            for v in left_extensions:
+                if (len(left_extensions[v]) > 1 and
+                    len(right_extensions[v]) > 1):
                     yield v
 
     def bispecial_factors(self, n=None):
         r"""
-        Returns the bispecial factors (of length n).
+        Return the bispecial factors (of length ``n``).
 
         A factor `u` of a word `w` is *bispecial* if it is right special
         and left special.
 
         INPUT:
 
-        -  ``n`` - integer (optional, default: None). If None, it returns
-           all bispecial factors.
+        - ``n`` -- integer (optional, default: ``None``). If ``None``, it returns
+          all bispecial factors.
 
         OUTPUT:
 
-        A list of words.
+        a list of words
 
         EXAMPLES::
 
@@ -1755,7 +1897,8 @@ class FiniteWord_class(Word_class):
         ::
 
             sage: w = words.ThueMorseWord()[:30]
-            sage: for i in range(10): print i, sorted(w.bispecial_factors(i))
+            sage: for i in range(10):
+            ....:     print("{} {}".format(i, sorted(w.bispecial_factors(i))))
             0 [word: ]
             1 [word: 0, word: 1]
             2 [word: 01, word: 10]
@@ -1771,7 +1914,7 @@ class FiniteWord_class(Word_class):
 
     def number_of_left_special_factors(self, n):
         r"""
-        Returns the number of left special factors of length n.
+        Return the number of left special factors of length ``n``.
 
         A factor `u` of a word `w` is *left special* if there are
         two distinct letters `a` and `b` such that `au` and `bu`
@@ -1779,11 +1922,11 @@ class FiniteWord_class(Word_class):
 
         INPUT:
 
-        -  ``n`` - integer
+        - ``n`` -- integer
 
         OUTPUT:
 
-        Non negative integer
+        a non-negative integer
 
         EXAMPLES::
 
@@ -1797,12 +1940,12 @@ class FiniteWord_class(Word_class):
             sage: [w.number_of_left_special_factors(i) for i in range(10)]
             [1, 2, 2, 4, 2, 4, 4, 2, 2, 4]
         """
-        L = self.rauzy_graph(n).in_degree()
-        return sum(1 for i in L if i>1)
+        it = self.left_special_factors_iterator(n)
+        return sum(1 for _ in it)
 
     def number_of_right_special_factors(self, n):
         r"""
-        Returns the number of right special factors of length n.
+        Return the number of right special factors of length ``n``.
 
         A factor `u` of a word `w` is *right special* if there are
         two distinct letters `a` and `b` such that `ua` and `ub`
@@ -1810,11 +1953,11 @@ class FiniteWord_class(Word_class):
 
         INPUT:
 
-        -  ``n`` - integer
+        - ``n`` -- integer
 
         OUTPUT:
 
-        Non negative integer
+        a non-negative integer
 
         EXAMPLES::
 
@@ -1828,12 +1971,12 @@ class FiniteWord_class(Word_class):
             sage: [w.number_of_right_special_factors(i) for i in range(10)]
             [1, 2, 2, 4, 2, 4, 4, 2, 2, 4]
         """
-        L = self.rauzy_graph(n).out_degree()
-        return sum(1 for i in L if i>1)
+        it = self.right_special_factors_iterator(n)
+        return sum(1 for _ in it)
 
     def commutes_with(self, other):
         r"""
-        Returns True if self commutes with other, and False otherwise.
+        Return ``True`` if ``self`` commutes with ``other``, and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -1848,10 +1991,10 @@ class FiniteWord_class(Word_class):
 
     def conjugate(self, pos):
         r"""
-        Returns the conjugate at pos of self.
+        Return the conjugate at ``pos`` of ``self``.
 
-        pos can be any integer, the distance used is the modulo by the length
-        of self.
+        ``pos`` can be any integer, the distance used is the modulo by the length
+        of ``self``.
 
         EXAMPLES::
 
@@ -1871,8 +2014,8 @@ class FiniteWord_class(Word_class):
 
     def _conjugates_list(self):
         r"""
-        Returns the list of conjugates of self, ordered from the 0-th to the
-        (L-1)-st conjugate, where L is the length of self.
+        Return the list of conjugates of ``self``, ordered from the `0`-th to the
+        `(L-1)`-st conjugate, where `L` is the length of ``self``.
 
         TESTS::
 
@@ -1897,7 +2040,7 @@ class FiniteWord_class(Word_class):
 
     def conjugates_iterator(self):
         r"""
-        Returns an iterator over the conjugates of self.
+        Return an iterator over the conjugates of ``self``.
 
         EXAMPLES::
 
@@ -1914,7 +2057,7 @@ class FiniteWord_class(Word_class):
 
     def conjugates(self):
         r"""
-        Returns the list of unique conjugates of self.
+        Return the list of unique conjugates of ``self``.
 
         EXAMPLES::
 
@@ -1944,8 +2087,8 @@ class FiniteWord_class(Word_class):
 
     def conjugate_position(self, other):
         r"""
-        Returns the position where self is conjugate with other.
-        Returns None if there is no such position.
+        Return the position where ``self`` is conjugate with ``other``.
+        Return ``None`` if there is no such position.
 
         EXAMPLES::
 
@@ -1972,13 +2115,13 @@ class FiniteWord_class(Word_class):
 
     def is_conjugate_with(self, other):
         r"""
-        Returns True if self is a conjugate of other, and False otherwise.
+        Return ``True`  if ``self`` is a conjugate of ``other``, and ``False`` otherwise.
 
         INPUT:
 
-        - ``other`` - a finite word
+        - ``other`` -- a finite word
 
-        OUPUT
+        OUTPUT:
 
         bool
 
@@ -2034,7 +2177,7 @@ class FiniteWord_class(Word_class):
 
     def is_cadence(self, seq):
         r"""
-        Returns True if seq is a cadence of self, and False otherwise.
+        Return ``True`` if ``seq`` is a cadence of ``self``, and ``False`` otherwise.
 
         A *cadence* is an increasing sequence of indexes that all map to
         the same letter.
@@ -2053,9 +2196,9 @@ class FiniteWord_class(Word_class):
         try:
             it = iter(self)
             s = next(islice(it, seq[0], None))
-            for i in xrange(1, len(seq)):
+            for i in range(1, len(seq)):
                 steps = seq[i] - seq[i-1]
-                for n in xrange(steps-1): next(it)
+                for n in range(steps-1): next(it)
                 if next(it) != s:
                     return False
         except StopIteration:
@@ -2064,7 +2207,7 @@ class FiniteWord_class(Word_class):
 
     def longest_common_suffix(self, other):
         r"""
-        Returns the longest common suffix of self and other.
+        Return the longest common suffix of ``self`` and ``other``.
 
         EXAMPLES::
 
@@ -2109,7 +2252,7 @@ class FiniteWord_class(Word_class):
         if other.is_empty():
             return other
 
-        iter = enumerate(izip(reversed(self), reversed(other)))
+        iter = enumerate(zip(reversed(self), reversed(other)))
         i,(b,c) = next(iter)
         if b != c:
             #In this case, return the empty word
@@ -2123,8 +2266,8 @@ class FiniteWord_class(Word_class):
 
     def is_palindrome(self, f=None):
         r"""
-        Returns True if self is a palindrome (or a `f`-palindrome), and
-        False otherwise.
+        Return ``True`` if ``self`` is a palindrome (or a ``f``-palindrome), and
+        ``False`` otherwise.
 
         Let `f : \Sigma \rightarrow \Sigma` be an involution that extends
         to a morphism on `\Sigma^*`. We say that `w\in\Sigma^*` is a
@@ -2133,11 +2276,11 @@ class FiniteWord_class(Word_class):
 
         INPUT:
 
-        -  ``f`` - involution (default: ``None``) on the alphabet of self. It
-           must be callable on letters as well as words (e.g.
-           :class:`~sage.combinat.words.morphism.WordMorphism`). The
-           default value corresponds to usual palindromes, i.e., `f` equal to
-           the identity.
+        - ``f`` -- involution (default: ``None``) on the alphabet of ``self``.
+          It must be callable on letters as well as words (e.g.
+          :class:`~sage.combinat.words.morphism.WordMorphism`). The
+          default value corresponds to usual palindromes, i.e., ``f``
+          equal to the identity.
 
         EXAMPLES::
 
@@ -2246,19 +2389,19 @@ class FiniteWord_class(Word_class):
 
     def lps(self, f=None, l=None):
         r"""
-        Returns the longest palindromic (or `f`-palindromic) suffix of self.
+        Return the longest palindromic (or ``f``-palindromic) suffix of ``self``.
 
         INPUT:
 
-        -  ``f`` - involution (default: None) on the alphabet of self. It must
-           be callable on letters as well as words (e.g. WordMorphism).
-        -  ``l`` - integer (default: None) the length of the longest palindrome
-           suffix of self[:-1], if known.
+        - ``f`` -- involution (default: ``None``) on the alphabet of ``self``.
+          It must be callable on letters as well as words (e.g. ``WordMorphism``).
+        - ``l`` -- integer (default: ``None``) the length of the longest
+          palindrome suffix of ````self[:-1]````, if known.
 
         OUTPUT:
 
-            word -- If f is None, the longest palindromic suffix of self;
-                    otherwise, the longest f-palindromic suffix of self.
+        word -- If ``f`` is ``None``, the longest palindromic suffix of ``self``;
+        otherwise, the longest ``f``-palindromic suffix of ``self``.
 
         EXAMPLES::
 
@@ -2293,9 +2436,8 @@ class FiniteWord_class(Word_class):
             sage: v = Word('abbabaab')
             sage: pal = v[:0]
             sage: for i in range(1, v.length()+1):
-            ...     pal = v[:i].lps(l=pal.length())
-            ...     pal
-            ...
+            ....:   pal = v[:i].lps(l=pal.length())
+            ....:   pal
             word: a
             word: b
             word: bb
@@ -2308,9 +2450,8 @@ class FiniteWord_class(Word_class):
             sage: v = Word('abbabaab')
             sage: pal = v[:0]
             sage: for i in range(1, v.length()+1):
-            ...     pal = v[:i].lps(f=f, l=pal.length())
-            ...     pal
-            ...
+            ....:   pal = v[:i].lps(f=f, l=pal.length())
+            ....:   pal
             word:
             word: ab
             word:
@@ -2354,8 +2495,8 @@ class FiniteWord_class(Word_class):
     @cached_method
     def palindromic_lacunas_study(self, f=None):
         r"""
-        Returns interesting statistics about longest (`f`-)palindromic suffixes
-        and lacunas of self (see [1] and [2]).
+        Return interesting statistics about longest (``f``-)palindromic suffixes
+        and lacunas of ``self`` (see [1] and [2]).
 
         Note that a word `w` has at most `|w| + 1` different palindromic factors
         (see [3]). For `f`-palindromes (or pseudopalidromes or theta-palindromes),
@@ -2365,18 +2506,18 @@ class FiniteWord_class(Word_class):
 
         INPUT:
 
-        -  ``f`` - involution (default: None) on the alphabet of self. It must
-           be callable on letters as well as words (e.g. WordMorphism). The
-           default value corresponds to usual palindromes, i.e., `f` equal to
-           the identity.
+        - ``f`` -- involution (default: ``None``) on the alphabet of ``self``.
+          It must be callable on letters as well as words (e.g. ``WordMorphism``).
+          The default value corresponds to usual palindromes, i.e.,
+          ``f`` equal to the identity.
 
         OUTPUT:
 
-        -  ``list`` - list of the length of the longest palindromic
-           suffix (lps) for each non-empty prefix of self;
-        -  ``list`` - list of all the lacunas, i.e. positions where there is no
-           unioccurrent lps;
-        -  ``set`` - set of palindromic factors of self.
+        - ``list`` -- list of the length of the longest palindromic
+          suffix (lps) for each non-empty prefix of ``self``
+        - ``list`` -- list of all the lacunas, i.e. positions where there is no
+          unioccurrent lps
+        - ``set`` -- set of palindromic factors of ``self``
 
         EXAMPLES::
 
@@ -2426,7 +2567,7 @@ class FiniteWord_class(Word_class):
         palindromes.add(pal)
 
         #For all the non-empty prefixes of self,
-        for i in xrange(self.length()):
+        for i in range(self.length()):
 
             #Compute its longest `f`-palindromic suffix using the preceding lps (pal)
             pal = self[:i+1].lps(l=pal.length(),f=f)
@@ -2442,20 +2583,20 @@ class FiniteWord_class(Word_class):
 
     def lengths_lps(self, f=None):
         r"""
-        Returns the list of the length of the longest palindromic
-        suffix (lps) for each non-empty prefix of self.
+        Return the list of the length of the longest palindromic
+        suffix (lps) for each non-empty prefix of ``self``.
 
         It corresponds to the function `G_w` defined in [1].
 
         INPUT:
 
-        -  ``f`` - involution (default: None) on the alphabet of self. It must
-           be callable on letters as well as words (e.g. WordMorphism).
+        - ``f`` -- involution (default: ``None``) on the alphabet of ``self``. It must
+          be callable on letters as well as words (e.g. ``WordMorphism``).
 
         OUTPUT:
 
-            list -- list of the length of the longest palindromic
-                    suffix (lps) for each non-empty prefix of self.
+        a list -- list of the length of the longest palindromic
+        suffix (lps) for each non-empty prefix of ``self``
 
         EXAMPLES::
 
@@ -2492,21 +2633,21 @@ class FiniteWord_class(Word_class):
 
     def lacunas(self, f=None):
         r"""
-        Returns the list of all the lacunas of self.
+        Return the list of all the lacunas of ``self``.
 
         A *lacuna* is a position in a word where the longest (`f`-)palindromic
         suffix is not unioccurrent (see [1]).
 
         INPUT:
 
-        -  ``f`` - involution (default: None) on the alphabet of self. It must
-           be callable on letters as well as words (e.g. WordMorphism). The
-           default value corresponds to usual palindromes, i.e., `f` equal to
-           the identity.
+        - ``f`` -- involution (default: ``None``) on the alphabet of ``self``. It must
+          be callable on letters as well as words (e.g. ``WordMorphism``). The
+          default value corresponds to usual palindromes, i.e., ``f`` equal to
+          the identity.
 
         OUTPUT:
 
-            list -- list of all the lacunas of self.
+        a list -- list of all the lacunas of self
 
         EXAMPLES::
 
@@ -2529,24 +2670,24 @@ class FiniteWord_class(Word_class):
 
     def lengths_unioccurrent_lps(self, f=None):
         r"""
-        Returns the list of the lengths of the unioccurrent longest
-        (`f`)-palindromic suffixes (lps) for each non-empty prefix of self. No
-        unioccurrent lps are indicated by None.
+        Return the list of the lengths of the unioccurrent longest
+        (``f``)-palindromic suffixes (lps) for each non-empty prefix of ``self.`` No
+        unioccurrent lps are indicated by ``None``.
 
         It corresponds to the function `H_w` defined in [1] and [2].
 
         INPUT:
 
-        -  ``f`` - involution (default: None) on the alphabet of self. It must
-           be callable on letters as well as words (e.g. WordMorphism). The
-           default value corresponds to usual palindromes, i.e., `f` equal to
-           the identity.
+        - ``f`` -- involution (default: ``None``) on the alphabet of ``self``. It must
+          be callable on letters as well as words (e.g. ``WordMorphism``). The
+          default value corresponds to usual palindromes, i.e., ``f`` equal to
+          the identity.
 
         OUTPUT:
 
-            list -- list of the length of the unioccurrent longest palindromic
-                    suffix (lps) for each non-empty prefix of self.
-                    No unioccurrent lps are indicated by None.
+        a list -- list of the length of the unioccurrent longest palindromic
+        suffix (lps) for each non-empty prefix of ``self``.
+        No unioccurrent lps are indicated by ``None``.
 
         EXAMPLES::
 
@@ -2580,7 +2721,7 @@ class FiniteWord_class(Word_class):
 
     def length_maximal_palindrome(self, j, m=None, f=None):
         r"""
-        Returns the length of the longest palindrome centered at position j.
+        Return the length of the longest palindrome centered at position ``j``.
 
         INPUT:
 
@@ -2588,15 +2729,15 @@ class FiniteWord_class(Word_class):
           Must return an integer when doubled. It is an integer when the
           center of the palindrome is a letter.
 
-        - ``m`` -- integer (default: None), minimal length of palindrome, if known.
+        - ``m`` -- integer (default: ``None``), minimal length of palindrome, if known.
           The parity of ``m`` can't be the same as the parity of ``2j``.
 
-        - ``f`` -- involution (default: None), on the alphabet. It must be
-          callable on letters as well as words (e.g. WordMorphism).
+        - ``f`` -- involution (default: ``None``), on the alphabet. It must be
+          callable on letters as well as words (e.g. ``WordMorphism``).
 
         OUTPUT:
 
-            The length of the longest `f`-palindrome centered at position j.
+        length of the longest ``f``-palindrome centered at position ``j``
 
         EXAMPLES::
 
@@ -2685,17 +2826,17 @@ class FiniteWord_class(Word_class):
 
     def lengths_maximal_palindromes(self, f=None):
         r"""
-        Returns the length of maximal palindromes centered at each position.
+        Return the length of maximal palindromes centered at each position.
 
         INPUT:
 
-        - ``f`` - involution (default: None) on the alphabet of self. It must
-          be callable on letters as well as words (e.g. WordMorphism).
+        - ``f`` -- involution (default: ``None``) on the alphabet of ``self``. It must
+          be callable on letters as well as words (e.g. ``WordMorphism``).
 
         OUTPUT:
 
-            list -- The length of the maximal palindrome (or `f`-palindrome)
-            with a given symmetry axis (letter or space between two letters).
+        a list -- The length of the maximal palindrome (or ``f``-palindrome)
+        with a given symmetry axis (letter or space between two letters).
 
         EXAMPLES::
 
@@ -2749,17 +2890,17 @@ class FiniteWord_class(Word_class):
 
     def lps_lengths(self, f=None):
         r"""
-        Returns the length of the longest palindromic suffix of each prefix.
+        Return the length of the longest palindromic suffix of each prefix.
 
         INPUT:
 
-        - ``f`` - involution (default: None) on the alphabet of self. It must
-          be callable on letters as well as words (e.g. WordMorphism).
+        - ``f`` -- involution (default: ``None``) on the alphabet of ``self``. It must
+          be callable on letters as well as words (e.g. ``WordMorphism``).
 
         OUTPUT:
 
-            list -- The length of the longest palindromic (or `f`-palindromic)
-            suffix of each prefix of self.
+        a list -- The length of the longest palindromic (or ``f``-palindromic)
+        suffix of each prefix of ``self``.
 
         EXAMPLES::
 
@@ -2792,17 +2933,17 @@ class FiniteWord_class(Word_class):
 
     def palindromes(self, f=None):
         r"""
-        Returns the set of all palindromic (or `f`-palindromic) factors of self.
+        Return the set of all palindromic (or ``f``-palindromic) factors of ``self``.
 
         INPUT:
 
-        -  ``f`` - involution (default: None) on the alphabet of self. It must
-           be callable on letters as well as words (e.g. WordMorphism).
+        - ``f`` -- involution (default: ``None``) on the alphabet of ``self``. It must
+          be callable on letters as well as words (e.g. ``WordMorphism``).
 
         OUTPUT:
 
-            set - If f is None, the set of all palindromic factors of self;
-            otherwise, the set of all f-palindromic factors of self.
+        a set -- If ``f`` is ``None``, the set of all palindromic factors of ``self``;
+        otherwise, the set of all ``f``-palindromic factors of ``self``.
 
         EXAMPLES::
 
@@ -2825,11 +2966,11 @@ class FiniteWord_class(Word_class):
 
     def palindrome_prefixes(self):
         r"""
-        Returns a list of all palindrome prefixes of self.
+        Return a list of all palindrome prefixes of ``self``.
 
         OUTPUT:
 
-            list -- A list of all palindrome prefixes of self.
+        a list -- A list of all palindrome prefixes of ``self``.
 
         EXAMPLES::
 
@@ -2844,7 +2985,7 @@ class FiniteWord_class(Word_class):
 
     def defect(self, f=None):
         r"""
-        Returns the defect of self.
+        Return the defect of ``self``.
 
         The *defect* of a finite word `w` is given by the difference between
         the maximum number of possible palindromic factors in a word of length
@@ -2866,15 +3007,15 @@ class FiniteWord_class(Word_class):
 
         INPUT:
 
-        -  ``f`` - involution (default: None) on the alphabet of self. It must
-           be callable on letters as well as words (e.g. WordMorphism). The
-           default value corresponds to usual palindromes, i.e., `f` equal to
-           the identity.
+        - ``f`` -- involution (default: ``None``) on the alphabet of ``self``. It must
+          be callable on letters as well as words (e.g. ``WordMorphism``). The
+          default value corresponds to usual palindromes, i.e., ``f`` equal to
+          the identity.
 
         OUTPUT:
 
-            integer -- If f is None, the palindromic defect of self;
-                       otherwise, the f-palindromic defect of self.
+        an integer -- If ``f`` is ``None``, the palindromic defect of ``self``;
+        otherwise, the ``f``-palindromic defect of ``self``.
 
         EXAMPLES::
 
@@ -2945,21 +3086,21 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        .. [BBGL08] A. Blondin Massé, S. Brlek, A. Garon, and S. Labbé,
+        .. [BBGL08] \A. Blondin Massé, S. Brlek, A. Garon, and S. Labbé,
            Combinatorial properties of f -palindromes in the Thue-Morse
            sequence. Pure Math. Appl., 19(2-3):39--52, 2008.
 
-        .. [BHNR04] S. Brlek, S. Hamel, M. Nivat, C. Reutenauer, On the
+        .. [BHNR04] \S. Brlek, S. Hamel, M. Nivat, C. Reutenauer, On the
            Palindromic Complexity of Infinite Words, in J. Berstel, J.
            Karhumaki, D. Perrin, Eds, Combinatorics on Words with Applications,
            International Journal of Foundation of Computer Science, Vol. 15,
            No. 2 (2004) 293--306.
 
-        .. [DJP01] X. Droubay, J. Justin, G. Pirillo, Episturmian words and some
+        .. [DJP01] \X. Droubay, J. Justin, G. Pirillo, Episturmian words and some
            constructions of de Luca and Rauzy, Theoret. Comput. Sci. 255,
            (2001), no. 1--2, 539--553.
 
-        .. [Sta11] Š. Starosta, On Theta-palindromic Richness, Theoret. Comp.
+        .. [Sta11] \Š. Starosta, On Theta-palindromic Richness, Theoret. Comp.
            Sci. 412 (2011) 1111--1121
         """
         g_w = 0
@@ -2982,20 +3123,20 @@ class FiniteWord_class(Word_class):
 
     def is_full(self, f=None):
         r"""
-        Returns True if self has defect 0, and False otherwise.
+        Return ``True`` if ``self`` has defect `0`, and ``False`` otherwise.
 
         A word is *full* (or *rich*) if its defect is zero (see [1]).
-        If ``f`` is given, then the f-palindromic defect is used (see [2]).
+        If ``f`` is given, then the ``f``-palindromic defect is used (see [2]).
 
         INPUT:
 
-        -  ``f`` - involution (default: None) on the alphabet of self. It must
-           be callable on letters as well as words (e.g. WordMorphism).
+        - ``f`` -- involution (default: ``None``) on the alphabet of ``self``. It must
+          be callable on letters as well as words (e.g. ``WordMorphism``).
 
         OUTPUT:
 
-            boolean -- If f is None, whether self is full;
-                       otherwise, whether self is full of `f`-palindromes.
+        boolean -- If ``f`` is ``None``, whether ``self`` is full;
+        otherwise, whether ``self`` is full of ``f``-palindromes.
 
         EXAMPLES::
 
@@ -3067,17 +3208,17 @@ class FiniteWord_class(Word_class):
 
         INPUT:
 
-        -  ``side`` -- ``'right'`` or ``'left'`` (default: ``'right'``) the
-           direction of the  closure
+        - ``side`` -- ``'right'`` or ``'left'`` (default: ``'right'``) the
+          direction of the  closure
 
-        -  ``f`` -- involution (default: ``None``) on the alphabet of ``self``.
-           It must be callable on letters as well as words (e.g. WordMorphism).
+        - ``f`` -- involution (default: ``None``) on the alphabet of ``self``.
+          It must be callable on letters as well as words (e.g. ``WordMorphism``).
 
         OUTPUT:
 
-        word -- If f is ``None``, the right palindromic closure of ``self``;
-                otherwise, the right ``f``-palindromic closure of ``self``.
-                If side is ``'left'``, the left palindromic closure.
+        a word -- If ``f`` is ``None``, the right palindromic closure of ``self``;
+        otherwise, the right ``f``-palindromic closure of ``self``.
+        If ``side`` is ``'left'``, the left palindromic closure.
 
         EXAMPLES::
 
@@ -3142,16 +3283,16 @@ class FiniteWord_class(Word_class):
 
     def is_symmetric(self, f=None):
         r"""
-        Returns True if self is symmetric (or `f`-symmetric), and
-        False otherwise.
+        Return ``True`` if ``self`` is symmetric (or ``f``-symmetric), and
+        ``False`` otherwise.
 
         A word is *symmetric* (resp. `f`-*symmetric*) if it is the
         product of two palindromes (resp. `f`-palindromes). See [1] and [2].
 
         INPUT:
 
-        -  ``f`` - involution (default: None) on the alphabet of self. It must
-           be callable on letters as well as words (e.g. WordMorphism).
+        - ``f`` -- involution (default: ``None``) on the alphabet of ``self``. It must
+          be callable on letters as well as words (e.g. ``WordMorphism``).
 
         EXAMPLES::
 
@@ -3184,10 +3325,10 @@ class FiniteWord_class(Word_class):
 
     def length_border(self):
         r"""
-        Returns the length of the border of self.
+        Return the length of the border of ``self``.
 
         The *border* of a word is the longest word that is both a proper
-        prefix and a proper suffix of self.
+        prefix and a proper suffix of ``self``.
 
         EXAMPLES::
 
@@ -3208,8 +3349,8 @@ class FiniteWord_class(Word_class):
 
     def border(self):
         r"""
-        Returns the longest word that is both a proper prefix and a proper
-        suffix of self.
+        Return the longest word that is both a proper prefix and a proper
+        suffix of ``self``.
 
         EXAMPLES::
 
@@ -3226,7 +3367,7 @@ class FiniteWord_class(Word_class):
 
     def minimal_period(self):
         r"""
-        Returns the period of self.
+        Return the period of ``self``.
 
         Let `A` be an alphabet. An integer `p\geq 1` is a *period* of a
         word `w=a_1a_2\cdots a_n` where `a_i\in A` if `a_i=a_{i+p}` for
@@ -3264,14 +3405,14 @@ class FiniteWord_class(Word_class):
 
     def order(self):
         r"""
-        Returns the order of self.
+        Return the order of ``self``.
 
         Let `p(w)` be the period of a word `w`. The positive rational number
         `|w|/p(w)` is the *order* of `w`. See Chapter 8 of [1].
 
         OUTPUT:
 
-            rational -- the order
+        rational -- the order
 
         EXAMPLES::
 
@@ -3297,7 +3438,7 @@ class FiniteWord_class(Word_class):
 
     def critical_exponent(self):
         r"""
-        Returns the critical exponent of self.
+        Return the critical exponent of ``self``.
 
         The *critical exponent* of a word is the supremum of the order of
         all its (finite) factors. See [1].
@@ -3324,14 +3465,14 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        -   [1] F. Dejean. Sur un théorème de Thue. J. Combinatorial Theory
-            Ser. A 13:90–99, 1972.
+        .. [Dejean] \F. Dejean. Sur un théorème de Thue. J. Combinatorial Theory
+           Ser. A 13:90--99, 1972.
         """
         return max(map(FiniteWord_class.order, self.factor_iterator()))
 
     def is_overlap(self):
         r"""
-        Returns True if self is an overlap, and False otherwise.
+        Return ``True`` if ``self`` is an overlap, and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -3354,7 +3495,7 @@ class FiniteWord_class(Word_class):
 
     def primitive_length(self):
         r"""
-        Returns the length of the primitive of self.
+        Return the length of the primitive of ``self``.
 
         EXAMPLES::
 
@@ -3374,7 +3515,7 @@ class FiniteWord_class(Word_class):
 
     def is_primitive(self):
         r"""
-        Returns True if self is primitive, and False otherwise.
+        Return ``True`` if ``self`` is primitive, and ``False`` otherwise.
 
         A finite word `w` is *primitive* if it is not a positive integer
         power of a shorter word.
@@ -3390,7 +3531,7 @@ class FiniteWord_class(Word_class):
 
     def primitive(self):
         r"""
-        Returns the primitive of self.
+        Return the primitive of ``self``.
 
         EXAMPLES::
 
@@ -3403,11 +3544,11 @@ class FiniteWord_class(Word_class):
 
     def exponent(self):
         r"""
-        Returns the exponent of self.
+        Return the exponent of ``self``.
 
         OUTPUT:
 
-            integer -- the exponent
+        integer -- the exponent
 
         EXAMPLES::
 
@@ -3424,18 +3565,18 @@ class FiniteWord_class(Word_class):
 
     def has_period(self, p):
         r"""
-        Returns True if self has the period ``p``,
-        False otherwise.
+        Return ``True`` if ``self`` has the period ``p``,
+        ``False`` otherwise.
 
         .. NOTE::
 
             By convention, integers greater than the length
-            of self are periods of self.
+            of ``self`` are periods of ``self``.
 
         INPUT:
 
-        - ``p`` - an integer to check if it is a period
-          of self.
+        - ``p`` -- an integer to check if it is a period
+          of ``self``.
 
         EXAMPLES::
 
@@ -3465,19 +3606,19 @@ class FiniteWord_class(Word_class):
 
     def periods(self, divide_length=False):
         r"""
-        Returns a list containing the periods of self
+        Return a list containing the periods of ``self``
         between `1` and `n - 1`, where `n` is the length
-        of self.
+        of ``self``.
 
         INPUT:
 
-        - ``divide_length`` - boolean (default: False).
-          When set to True, then only periods that divide
-          the length of self are considered.
+        - ``divide_length`` -- boolean (default: ``False``).
+          When set to ``True``, then only periods that divide
+          the length of ``self`` are considered.
 
         OUTPUT:
 
-        List of positive integers
+        a list of positive integers
 
         EXAMPLES::
 
@@ -3494,14 +3635,14 @@ class FiniteWord_class(Word_class):
         """
         n = len(self)
         if divide_length:
-            possible = (i for i in xrange(1,n) if n % i == 0)
+            possible = (i for i in range(1,n) if n % i == 0)
         else:
-            possible = xrange(1, n)
+            possible = range(1, n)
         return [x for x in possible if self.has_period(x)]
 
-    def longest_common_subword(self,other):
+    def longest_common_subword(self, other):
         r"""
-        Returns a longest subword of ``self`` and ``other``.
+        Return a longest subword of ``self`` and ``other``.
 
         A subword of a word is a subset of the word's letters, read in the
         order in which they appear in the word.
@@ -3516,7 +3657,7 @@ class FiniteWord_class(Word_class):
         ALGORITHM:
 
         For any indices `i,j`, we compute the longest common subword ``lcs[i,j]`` of
-        `self[:i]` and `other[:j]`. This can be easily obtained as the longest
+        ``self[:i]`` and ``other[:j]``. This can be easily obtained as the longest
         of
 
         - ``lcs[i-1,j]``
@@ -3574,7 +3715,7 @@ class FiniteWord_class(Word_class):
 
     def is_subword_of(self, other):
         r"""
-        Returns True is self is a subword of other, and False otherwise.
+        Return ``True`` is ``self`` is a subword of ``other``, and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -3603,16 +3744,17 @@ class FiniteWord_class(Word_class):
 
     def is_lyndon(self):
         r"""
-        Returns True if self is a Lyndon word, and False otherwise.
+        Return ``True`` if ``self`` is a Lyndon word, and ``False``
+        otherwise.
 
         A *Lyndon word* is a non-empty word that is lexicographically
-        smaller than all of its proper suffixes for the given order
-        on its alphabet. That is, `w` is a Lyndon word if `w` is non-empty
+        smaller than each of its proper suffixes (for the given order
+        on its alphabet). That is, `w` is a Lyndon word if `w` is non-empty
         and for each factorization `w = uv` (with `u`, `v` both non-empty),
         we have `w < v`.
 
         Equivalently, `w` is a Lyndon word iff `w` is a non-empty word that is
-        lexicographically smaller than all of its proper conjugates for the
+        lexicographically smaller than each of its proper conjugates for the
         given order on its alphabet.
 
         See for instance [1].
@@ -3622,7 +3764,7 @@ class FiniteWord_class(Word_class):
             sage: Word('123132133').is_lyndon()
             True
             sage: Word().is_lyndon()
-            True
+            False
             sage: Word('122112').is_lyndon()
             False
 
@@ -3633,9 +3775,9 @@ class FiniteWord_class(Word_class):
         Lyndon words, and compare with the ``LyndonWords`` generator::
 
             sage: for n in range(1,10):
-            ...       lw1 = [w for w in Words([1,2,3], n) if w.is_lyndon()]
-            ...       lw2 = LyndonWords(3,n)
-            ...       if set(lw1) != set(lw2): print False
+            ....:     lw1 = [w for w in Words([1,2,3], n) if w.is_lyndon()]
+            ....:     lw2 = LyndonWords(3,n)
+            ....:     if set(lw1) != set(lw2): print(False)
 
         Filter all words of length 8 on the alphabet [c,a,b] for Lyndon
         words, and compare with the :class:`LyndonWords` generator after
@@ -3654,17 +3796,18 @@ class FiniteWord_class(Word_class):
 
         """
         if self.is_empty():
-            return True
-        cmp = self.parent().cmp_letters
+            return False
+        key = self.parent().sortkey_letters
         n = self.length()
         i, j = 0, 1
         while j < n:
-            c = cmp(self[i], self[j])
-            if c == 0:
+            ki = key(self[i])
+            kj = key(self[j])
+            if ki == kj:
                 # increment i and j
                 i += 1
                 j += 1
-            elif c < 0:
+            elif ki < kj:
                 # reset i, increment j
                 i = 0
                 j += 1
@@ -3676,7 +3819,7 @@ class FiniteWord_class(Word_class):
 
     def lyndon_factorization(self):
         r"""
-        Returns the Lyndon factorization of self.
+        Return the Lyndon factorization of ``self``.
 
         The *Lyndon factorization* of a finite word `w` is the unique
         factorization of `w` as a non-increasing product of Lyndon words,
@@ -3685,7 +3828,7 @@ class FiniteWord_class(Word_class):
 
         OUTPUT:
 
-            list -- the list of factors obtained
+        the list `[l_1, \ldots, l_n]` of factors obtained
 
         EXAMPLES::
 
@@ -3727,7 +3870,7 @@ class FiniteWord_class(Word_class):
             MapleTech journal, vol. 4, no. 1, 1997, pp. 34-42.
 
         """
-        cmp = self.parent().cmp_letters
+        key = self.parent().sortkey_letters
         # We compute the indexes of the factorization.
         n = self.length()
         k = -1
@@ -3736,11 +3879,12 @@ class FiniteWord_class(Word_class):
             i = k+1
             j = k+2
             while j < n:
-                c = cmp(self[i], self[j])
-                if c < 0:
+                ki = key(self[i])
+                kj = key(self[j])
+                if ki < kj:
                     i = k+1
                     j += 1
-                elif c == 0:
+                elif ki == kj:
                     i += 1
                     j += 1
                 else:
@@ -3752,8 +3896,8 @@ class FiniteWord_class(Word_class):
 
     def inversions(self):
         r"""
-        Returns a list of the inversions of self. An inversion is a pair
-        (i,j) of non-negative integers i < j such that self[i] > self[j].
+        Return a list of the inversions of ``self``. An inversion is a pair
+        `(i,j)` of non-negative integers `i < j` such that ``self[i] > self[j]``.
 
         EXAMPLES::
 
@@ -3767,25 +3911,27 @@ class FiniteWord_class(Word_class):
             [[0, 1], [0, 2], [0, 4], [3, 4]]
         """
         inversion_list = []
-        cmp_fcn = self._parent.cmp_letters
+        cmp_key = self._parent.sortkey_letters
         for (i1, letter1) in enumerate(self):
-            for (i2, letter2) in enumerate(self[i1+1:]):
-                if cmp_fcn(letter1, letter2) > 0:
-                    inversion_list.append([i1,i1+i2+1])
+            k1 = cmp_key(letter1)
+            for (i2, letter2) in enumerate(self[i1 + 1:]):
+                k2 = cmp_key(letter2)
+                if k1 > k2:
+                    inversion_list.append([i1, i1 + i2 + 1])
         return inversion_list
 
     # TODO: This function should be defined for words of integers, but it
     # naturally is defined over an alphabet with a rank function....
     def degree(self, weights=None):
         r"""
-        Returns the weighted degree of self, where the weighted degree of
-        each letter in the ordered alphabet is given by weights, which
-        defaults to [1, 2, 3, ...].
+        Return the weighted degree of ``self``, where the weighted degree of
+        each letter in the ordered alphabet is given by ``weights``, which
+        defaults to ``[1, 2, 3, ...]``.
 
-        INPUTS:
+        INPUT:
 
-        -  ``weights`` - a list or tuple, or a dictionary keyed by the
-           letters occurring in self.
+        -  ``weights`` -- a list or a tuple, or a dictionary keyed by the
+           letters occurring in ``self``.
 
         EXAMPLES::
 
@@ -3840,9 +3986,9 @@ class FiniteWord_class(Word_class):
 
     def deg_lex_less(self, other, weights=None):
         r"""
-        Returns True if self is degree lexicographically less than other,
-        and False otherwise. The weight of each letter in the ordered
-        alphabet is given by weights, which defaults to [1, 2, 3, ...].
+        Return ``True`` if ``self`` is degree lexicographically less than ``other``,
+        and ``False`` otherwise. The weight of each letter in the ordered
+        alphabet is given by ``weights``, which defaults to ``[1, 2, 3, ...]``.
 
         EXAMPLES::
 
@@ -3870,7 +4016,7 @@ class FiniteWord_class(Word_class):
 
     def inv_lex_less(self, other):
         r"""
-        Returns True if self is inverse lexicographically less than other.
+        Return ``True`` if ``self`` is inverse lexicographically less than ``other``.
 
         EXAMPLES::
 
@@ -3883,10 +4029,10 @@ class FiniteWord_class(Word_class):
             return self.length() < len(other)
         return self.reversal() < other.reversal()
 
-    def deg_inv_lex_less(self,other,weights=None):
+    def deg_inv_lex_less(self, other, weights=None):
         r"""
-        Returns True if the word self is degree inverse lexicographically
-        less than other.
+        Return ``True`` if the word ``self`` is degree inverse lexicographically
+        less than ``other``.
 
         EXAMPLES::
 
@@ -3901,10 +4047,10 @@ class FiniteWord_class(Word_class):
             return d1 < d2
         return self.inv_lex_less(other)
 
-    def rev_lex_less(self,other):
+    def rev_lex_less(self, other):
         r"""
-        Returns True if the word self is reverse
-        lexicographically less than other.
+        Return ``True`` if the word ``self`` is reverse
+        lexicographically less than ``other``.
 
         EXAMPLES::
 
@@ -3919,8 +4065,8 @@ class FiniteWord_class(Word_class):
 
     def deg_rev_lex_less(self, other, weights=None):
         r"""
-        Returns True if self is degree reverse
-        lexicographically less than other.
+        Return ``True`` if ``self`` is degree reverse
+        lexicographically less than ``other``.
 
         EXAMPLES::
 
@@ -3940,8 +4086,8 @@ class FiniteWord_class(Word_class):
     @cached_method
     def last_position_dict(self):
         r"""
-        Returns a dictionary that contains the last position of each letter
-        in self.
+        Return a dictionary that contains the last position of each letter
+        in ``self``.
 
         EXAMPLES::
 
@@ -3955,8 +4101,8 @@ class FiniteWord_class(Word_class):
 
     def _pos_in(self, other, p):
         r"""
-        Returns the position of the first occurrence of self starting at
-        position p in other.
+        Return the position of the first occurrence of ``self`` starting at
+        position ``p`` in ``other``.
 
         EXAMPLES::
 
@@ -3984,7 +4130,7 @@ class FiniteWord_class(Word_class):
         suff = self.good_suffix_table()
         s = p
         while s <= lm - lf:
-            for j in xrange(lf-1, -1, -1):
+            for j in range(lf-1, -1, -1):
                 a = other[s+j]
                 if self[j] != a :
                     s += max(suff[j + 1], j - occ.get(a,-1))
@@ -3995,8 +4141,8 @@ class FiniteWord_class(Word_class):
 
     def first_pos_in(self, other):
         r"""
-        Returns the position of the first occurrence of self in other,
-        or None if self is not a factor of other.
+        Return the position of the first occurrence of ``self`` in ``other``,
+        or ``None`` if ``self`` is not a factor of ``other``.
 
         EXAMPLES::
 
@@ -4009,24 +4155,24 @@ class FiniteWord_class(Word_class):
 
     def find(self, sub, start=0, end=None):
         r"""
-        Returns the index of the first occurrence of sub in self,
-        such that sub is contained within self[start:end].
-        Returns -1 on failure.
+        Return the index of the first occurrence of ``sub`` in ``self``,
+        such that ``sub`` is contained within ``self[start:end]``.
+        Return ``-1`` on failure.
 
         INPUT:
 
-        -  ``sub`` - string, list, tuple or word to search for.
+        - ``sub`` -- string, list, tuple or word to search for.
 
-        -  ``start`` - non negative integer (default: 0) specifying
-           the position from which to start the search.
+        - ``start`` -- non-negative integer (default: ``0``) specifying
+          the position from which to start the search.
 
-        -  ``end`` - non negative integer (default: None) specifying
-           the position at which the search must stop. If None, then
-           the search is performed up to the end of the string.
+        - ``end`` -- non-negative integer (default: ``None``) specifying
+          the position at which the search must stop. If ``None``, then
+          the search is performed up to the end of the string.
 
         OUTPUT:
 
-            non negative integer or -1
+        a non-negative integer or ``-1``
 
         EXAMPLES::
 
@@ -4054,7 +4200,7 @@ class FiniteWord_class(Word_class):
             sage: w.find("aa")
             -1
 
-        Instances of Word_str handle string inputs as well::
+        Instances of ``Word_str`` handle string inputs as well::
 
             sage: w = Word('abac')
             sage: w.find('a')
@@ -4066,7 +4212,7 @@ class FiniteWord_class(Word_class):
 
         Check that :trac:`12804` is fixed::
 
-            sage: w = Word(iter("ababab"))
+            sage: w = Word(iter("ababab"), length="finite")
             sage: w.find("ab")
             0
             sage: w.find("ab", start=1)
@@ -4090,24 +4236,24 @@ class FiniteWord_class(Word_class):
 
     def rfind(self, sub, start=0, end=None):
         r"""
-        Returns the index of the last occurrence of sub in self,
-        such that sub is contained within self[start:end].
-        Returns -1 on failure.
+        Return the index of the last occurrence of ``sub`` in ``self``,
+        such that ``sub`` is contained within ``self[start:end]``.
+        Return ``-1`` on failure.
 
         INPUT:
 
-        -  ``sub`` - string, list, tuple or word to search for.
+        - ``sub`` -- string, list, tuple or word to search for.
 
-        -  ``start`` - non negative integer (default: 0) specifying
-           the position at which the search must stop.
+        - ``start`` -- non-negative integer (default: ``0``) specifying
+          the position at which the search must stop.
 
-        -  ``end`` - non negative integer (default: None) specifying
-           the position from which to start the search. If None, then
-           the search is performed up to the end of the string.
+        - ``end`` -- non-negative integer (default: ``None``) specifying
+          the position from which to start the search. If ``None``, then
+          the search is performed up to the end of the string.
 
         OUTPUT:
 
-            non negative integer or -1
+        a non-negative integer or ``-1``
 
         EXAMPLES::
 
@@ -4133,7 +4279,7 @@ class FiniteWord_class(Word_class):
             sage: w.rfind(Word([0,0]), start=3, end=5)
             -1
 
-        Instances of Word_str handle string inputs as well::
+        Instances of ``Word_str`` handle string inputs as well::
 
             sage: w = Word('abac')
             sage: w.rfind('a')
@@ -4147,7 +4293,7 @@ class FiniteWord_class(Word_class):
 
         Check that :trac:`12804` is fixed::
 
-            sage: w = Word(iter("abab"))
+            sage: w = Word(iter("abab"), length="finite")
             sage: w.rfind("ab")
             2
             sage: w.rfind("ab", end=3)
@@ -4175,7 +4321,7 @@ class FiniteWord_class(Word_class):
 
     def is_factor(self, other):
         r"""
-        Returns True if self is a factor of other, and False otherwise.
+        Return ``True`` if ``self`` is a factor of ``other``, and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -4203,8 +4349,8 @@ class FiniteWord_class(Word_class):
 
     def factor_occurrences_in(self, other):
         r"""
-        Returns an iterator over all occurrences (including overlapping ones)
-        of self in other in their order of appearance.
+        Return an iterator over all occurrences (including overlapping ones)
+        of ``self`` in ``other`` in their order of appearance.
 
         EXAMPLES::
 
@@ -4222,8 +4368,8 @@ class FiniteWord_class(Word_class):
 
     def nb_factor_occurrences_in(self, other):
         r"""
-        Returns the number of times self appears as a factor
-        in other.
+        Return the number of times ``self`` appears as a factor
+        in ``other``.
 
         EXAMPLES::
 
@@ -4243,53 +4389,93 @@ class FiniteWord_class(Word_class):
 
     def nb_subword_occurrences_in(self, other):
         r"""
-        Returns the number of times self appears in other as a subword.
+        Return the number of times ``self`` appears in ``other`` as a subword.
 
-        EXAMPLES::
-
-            sage: Word().nb_subword_occurrences_in(Word('123'))
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: undefined value
-            sage: Word('123').nb_subword_occurrences_in(Word('1133432311132311112'))
-            11
-            sage: Word('4321').nb_subword_occurrences_in(Word('1132231112233212342231112'))
-            0
-            sage: Word('3').nb_subword_occurrences_in(Word('122332112321213'))
-            4
-        """
-        ls = self.length()
-        if ls == 0:
-            raise NotImplementedError("undefined value")
-        elif ls == 1:
-            return self.nb_factor_occurrences_in(other)
-        elif len(other) < ls:
-            return 0
-        symb = self[:1]
-        suffword = other
-        suffsm = self[1:]
-        n = 0
-        cpt = 0
-        i = symb.first_pos_in(suffword)
-        while i is not None:
-            suffword = suffword[i+1:]
-            m = suffsm.nb_subword_occurrences_in(suffword)
-            if m == 0: break
-            n += m
-            i = symb.first_pos_in(suffword)
-        return n
-
-    def _return_words_list(self, fact):
-        r"""
-        Returns the return words as a list in the order they appear in the word.
+        This corresponds to the notion of `binomial coefficient` of two
+        finite words whose properties are presented in the chapter of
+        Lothaire's book written by Sakarovitch and Simon [1].
 
         INPUT:
 
-        - ``fact`` - a non empty finite word
+        - ``other`` -- finite word
+
+        EXAMPLES::
+
+            sage: tm = words.ThueMorseWord()
+
+            sage: u = Word([0,1,0,1])
+            sage: u.nb_subword_occurrences_in(tm[:1000])
+            2604124996
+
+            sage: u = Word([0,1,0,1,1,0])
+            sage: u.nb_subword_occurrences_in(tm[:100])
+            20370432
+
+        .. NOTE::
+
+            This code, based on [2], actually compute the number of
+            occurrences of all prefixes of ``self`` as subwords in all
+            prefixes of ``other``.  In particular, its complexity is
+            bounded by ``len(self) * len(other)``.
+
+        TESTS::
+
+            sage: Word('').nb_subword_occurrences_in(Word(''))
+            1
+            sage: parent(_)
+            Integer Ring
+            sage: v,u = Word(), Word('123')
+            sage: v.nb_subword_occurrences_in(u)
+            1
+            sage: v,u = Word('123'), Word('1133432311132311112')
+            sage: v.nb_subword_occurrences_in(u)
+            11
+            sage: v,u = Word('4321'), Word('1132231112233212342231112')
+            sage: v.nb_subword_occurrences_in(u)
+            0
+            sage: v,u = Word('3'), Word('122332112321213')
+            sage: v.nb_subword_occurrences_in(u)
+            4
+            sage: v,u = Word([]), words.ThueMorseWord()[:1000]
+            sage: v.nb_subword_occurrences_in(u)
+            1
+
+        REFERENCES:
+
+        - [1] M. Lothaire, Combinatorics on Words, Cambridge University
+          Press, (1997).
+        - [2] Mateescu, A., Salomaa, A., Salomaa, K. and Yu, S., A
+          sharpening of the Parikh mapping. Theoret. Informatics Appl. 35
+          (2001) 551-564.
+        """
+        # record the position of letters in self
+        pos = defaultdict(list)
+        for i,a in enumerate(self):
+            pos[a].append(i)
+        for a in pos:
+            pos[a].reverse()
+
+        # compute the occurrences of all prefixes of self as subwords in other
+        occ = [ZZ.zero()] * (len(self)+1)
+        occ[0] = ZZ.one()
+        for a in other:
+            for i in pos[a]:
+                occ[i+1] += occ[i]
+
+        # return only the number of occurrences of self
+        return occ[-1]
+
+    def _return_words_list(self, fact):
+        r"""
+        Return the return words as a list in the order they appear in the word.
+
+        INPUT:
+
+        - ``fact`` -- a non-empty finite word
 
         OUTPUT:
 
-        Python list of finite words
+        a Python list of finite words
 
         TESTS::
 
@@ -4300,18 +4486,18 @@ class FiniteWord_class(Word_class):
 
     def return_words(self, fact):
         r"""
-        Returns the set of return words of fact in self.
+        Return the set of return words of ``fact`` in ``self``.
 
         This is the set of all factors starting by the given factor and ending
         just before the next occurrence of this factor. See [1] and [2].
 
         INPUT:
 
-        - ``fact`` - a non empty finite word
+        - ``fact`` -- a non-empty finite word
 
         OUTPUT:
 
-        Python set of finite words
+        a Python set of finite words
 
         EXAMPLES::
 
@@ -4339,18 +4525,18 @@ class FiniteWord_class(Word_class):
 
     def complete_return_words(self, fact):
         r"""
-        Returns the set of complete return words of fact in self.
+        Return the set of complete return words of ``fact`` in ``self``.
 
         This is the set of all factors starting by the given factor and ending
         just after the next occurrence of this factor. See for instance [1].
 
         INPUT:
 
-        - ``fact`` - a non empty finite word
+        - ``fact`` -- a non-empty finite word
 
         OUTPUT:
 
-        Python set of finite words
+        a Python set of finite words
 
         EXAMPLES::
 
@@ -4371,7 +4557,7 @@ class FiniteWord_class(Word_class):
 
     def return_words_derivate(self, fact):
         r"""
-        Returns the word generated by mapping a letter to each occurrence of
+        Return the word generated by mapping a letter to each occurrence of
         the return words for the given factor dropping any dangling prefix and
         suffix. See for instance [1].
 
@@ -4393,7 +4579,7 @@ class FiniteWord_class(Word_class):
 
     def is_quasiperiodic(self):
         r"""
-        Returns True if self is quasiperiodic, and False otherwise.
+        Return ``True`` if ``self`` is quasiperiodic, and ``False`` otherwise.
 
         A finite or infinite word `w` is *quasiperiodic* if it can be
         constructed by concatenations and superpositions of one of its proper
@@ -4435,7 +4621,7 @@ class FiniteWord_class(Word_class):
 
     def quasiperiods(self):
         r"""
-        Returns the quasiperiods of self as a list ordered from shortest to
+        Return the quasiperiods of ``self`` as a list ordered from shortest to
         longest.
 
         Let `w` be a finite or infinite word. A *quasiperiod* of `w` is a
@@ -4475,7 +4661,7 @@ class FiniteWord_class(Word_class):
 
     def crochemore_factorization(self):
         r"""
-        Returns the Crochemore factorization of self as an ordered list of
+        Return the Crochemore factorization of ``self`` as an ordered list of
         factors.
 
         The *Crochemore factorization* of a finite word `w` is the unique
@@ -4535,7 +4721,7 @@ class FiniteWord_class(Word_class):
 
     def evaluation_dict(self):
         r"""
-        Returns a dictionary keyed by the letters occurring in self with
+        Return a dictionary keyed by the letters occurring in ``self`` with
         values the number of occurrences of the letter.
 
         EXAMPLES::
@@ -4562,16 +4748,13 @@ class FiniteWord_class(Word_class):
             sage: f['3'] == 1
             True
         """
-        d = {}
-        for a in self:
-            d[a] = d.get(a,0) + 1
-        return d
+        return evaluation_dict(self)
 
     def evaluation_sparse(self):
         r"""
-        Returns a list representing the evaluation of self. The entries of
-        the list are two-element lists [a, n], where a is a letter
-        occurring in self and n is the number of occurrences of a in self.
+        Return a list representing the evaluation of ``self``. The entries of
+        the list are two-element lists ``[a, n]``, where ``a`` is a letter
+        occurring in ``self`` and ``n`` is the number of occurrences of ``a`` in ``self``.
 
         EXAMPLES::
 
@@ -4584,7 +4767,7 @@ class FiniteWord_class(Word_class):
 
     def evaluation_partition(self):
         r"""
-        Returns the evaluation of the word w as a partition.
+        Return the evaluation of the word w as a partition.
 
         EXAMPLES::
 
@@ -4602,8 +4785,8 @@ class FiniteWord_class(Word_class):
 
     def overlap_partition(self, other, delay=0, p=None, involution=None) :
         r"""
-        Returns the partition of the alphabet induced by the overlap of
-        self and other with the given delay.
+        Return the partition of the alphabet induced by the overlap of
+        ``self`` and ``other`` with the given ``delay``.
 
         The partition of the alphabet is given by the equivalence
         relation obtained from the symmetric, reflexive and transitive
@@ -4616,22 +4799,22 @@ class FiniteWord_class(Word_class):
 
         INPUT:
 
-        -  ``other`` - word on the same alphabet as self
-        -  ``delay`` - integer
-        -  ``p`` - disjoint sets data structure (optional, default: None),
+        -  ``other`` -- word on the same alphabet as ``self``
+        -  ``delay`` -- integer (default: ``0``)
+        -  ``p`` -- disjoint sets data structure (optional, default: ``None``),
            a partition of the alphabet into disjoint sets to start with.
-           If None, each letter start in distinct equivalence classes.
-        -  ``involution`` - callable (optional, default: None), an
-           involution on the alphabet. If involution is not None, the relation
+           If ``None``, each letter start in distinct equivalence classes.
+        -  ``involution`` -- callable (optional, default: ``None``), an
+           involution on the alphabet. If ``involution`` is not ``None``, the relation
            `R_{u,v,d} \cup R_{involution(u),involution(v),d}` is considered.
 
         OUTPUT:
 
-        -  disjoint set data structure
+        a disjoint set data structure
 
         EXAMPLES::
 
-            sage: W = Words(list('abc')+range(6))
+            sage: W = Words(list('abc') + list(range(6)))
             sage: u = W('abc')
             sage: v = W(range(5))
             sage: u.overlap_partition(v)
@@ -4674,7 +4857,7 @@ class FiniteWord_class(Word_class):
             sage: w2 = m(w); w2
             word: 01234567876543210
             sage: w2.parent()
-            Words over {0, 1, 2, 3, 4, 5, 6, 7, 8, 17, 18, 19}
+            Finite words over {0, 1, 2, 3, 4, 5, 6, 7, 8, 17, 18, 19}
             sage: w2.is_palindrome()
             True
 
@@ -4751,7 +4934,7 @@ class FiniteWord_class(Word_class):
             ...
             TypeError: p(=yo) is not a DisjointSet
 
-        The involution input can be any callable::
+        The ``involution`` input can be any callable::
 
             sage: w = Words([-5,..,5])([-5..5])
             sage: inv = lambda x:-x
@@ -4771,7 +4954,7 @@ class FiniteWord_class(Word_class):
 
         from sage.sets.disjoint_set import DisjointSet_class
         if p is None:
-            if self.parent().size_of_alphabet() is Infinity:
+            if self.parent().alphabet().cardinality() is Infinity:
                 raise ValueError("The alphabet of the parent must be finite")
             from sage.sets.disjoint_set import DisjointSet
             p = DisjointSet(self.parent().alphabet())
@@ -4779,9 +4962,8 @@ class FiniteWord_class(Word_class):
             raise TypeError("p(=%s) is not a DisjointSet" % p)
 
         #Join the classes of each pair of letters that are one above the other
-        from itertools import islice, izip
         from sage.combinat.words.morphism import WordMorphism
-        S = izip(islice(self, delay, None), other)
+        S = zip(islice(self, delay, None), other)
         if involution is None:
             for (a,b) in S:
                 p.union(a, b)
@@ -4798,14 +4980,14 @@ class FiniteWord_class(Word_class):
             raise TypeError("involution (=%s) must be callable"%involution)
         return p
 
-    # TODO: requires a parent with a cmp_letters method
+    # TODO: requires a parent with a sortkey_letters method
     def standard_permutation(self):
         r"""
-        Returns the standard permutation of the word
-        self on the ordered alphabet. It is defined as
+        Return the standard permutation of the word
+        ``self`` on the ordered alphabet. It is defined as
         the permutation with exactly the same number of
         inversions as w. Equivalently, it is the permutation
-        of minimal length whose inverse sorts self.
+        of minimal length whose inverse sorts ``self``.
 
         EXAMPLES::
 
@@ -4856,25 +5038,13 @@ class FiniteWord_class(Word_class):
             sage: Word(p.inverse().action(w))
             word: bbbaaa
         """
-        ev_dict = self.evaluation_dict()
-        ordered_alphabet = sorted(ev_dict, cmp=self.parent().cmp_letters)
-        offset = 0
-        temp = 0
-        for k in ordered_alphabet:
-            temp = ev_dict[k]
-            ev_dict[k] = offset
-            offset += temp
-        result = []
-        for l in self:
-            ev_dict[l] += 1
-            result.append(ev_dict[l])
-        from sage.combinat.permutation import Permutation
-        return Permutation(result)
+        from sage.combinat.permutation import to_standard
+        return to_standard(self, key=self.parent().sortkey_letters)
 
     def _s(self, i):
         r"""
-        Implements Lascoux and Schutzenberger's `s_i` operator, swapping the
-        number of `i` and `i+1`s in a word.
+        Implement Lascoux and Schützenberger `s_i` operator, swap the
+        number of ``i`` and ``i+1`` in a word.
 
         EXAMPLES::
 
@@ -4889,7 +5059,7 @@ class FiniteWord_class(Word_class):
             word:
             sage: w = Words(3)([2,1,2])
             sage: w._s(1).parent()
-            Words over {1, 2, 3}
+            Finite words over {1, 2, 3}
         """
         unpaired_i  = [] # positions of unpaired is
         unpaired_ip = [] # positions of unpaired i+1s
@@ -4918,8 +5088,8 @@ class FiniteWord_class(Word_class):
 
     def _to_partition_content(self):
         r"""
-        Returns the conversion of self to a word with partition content using
-        the `s_i` operators of Lascoux and Schutzenberger.
+        Return the conversion of ``self`` to a word with partition content using
+        the `s_i` operators of Lascoux and Schützenberger.
 
         EXAMPLES::
 
@@ -4948,7 +5118,7 @@ class FiniteWord_class(Word_class):
 
     def cocharge(self):
         r"""
-        Returns the cocharge of self.  For a word `w`, this can be defined as
+        Return the cocharge of ``self``.  For a word `w`, this can be defined as
         `n_{ev} - ch(w)`, where `ch(w)` is the charge of `w` and `ev` is the
         evaluation of `w`, and `n_{ev}` is `\sum_{i<j} min(ev_i, ev_j)`.
 
@@ -4972,7 +5142,7 @@ class FiniteWord_class(Word_class):
 
     def charge(self, check=True):
         r"""
-        Returns the charge of self.  This is defined as follows.
+        Return the charge of ``self``.  This is defined as follows.
 
         If `w` is a permutation of length `n`, (in other words, the evaluation
         of `w` is `(1, 1, \dots, 1)`), the statistic charge(`w`) is given by
@@ -5001,7 +5171,7 @@ class FiniteWord_class(Word_class):
         is found in the same manner from the remaining letters.  In the
         following example, `w1, w2, w3` are the charge subwords of `w`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: w = Word([5,2,3,4,4,1,1,1,2,2,3])
             sage: w1 = Word([5, 2, 4, 1, 3])
@@ -5011,7 +5181,7 @@ class FiniteWord_class(Word_class):
             True
 
         Finally, if `w` does not have partition content, we apply the
-        Lascoux-Schutzenberger standardization operators `s_i` in such a
+        Lascoux-Schützenberger standardization operators `s_i` in such a
         manner as to obtain a word with partition content. (The word we obtain
         is independent of the choice of operators.)  The charge is then
         defined to be the charge of this word::
@@ -5062,7 +5232,8 @@ class FiniteWord_class(Word_class):
         """
         if check:
             ev_dict = self.evaluation_dict()
-            ordered_alphabet = sorted(ev_dict, cmp=self.parent().cmp_letters)
+            ordered_alphabet = sorted(ev_dict,
+                                      key=self.parent().sortkey_letters)
             evaluation = [ev_dict[a] for a in ordered_alphabet]
             from sage.combinat.partition import Partitions
             if evaluation not in Partitions():
@@ -5090,7 +5261,7 @@ class FiniteWord_class(Word_class):
 
     def BWT(self):
         r"""
-        Returns the Burrows-Wheeler Transform (BWT) of self.
+        Return the Burrows-Wheeler Transform (BWT) of ``self``.
 
         The *Burrows-Wheeler transform* of a finite word `w` is obtained
         from `w` by first listing the conjugates of `w` in lexicographic order
@@ -5125,16 +5296,16 @@ class FiniteWord_class(Word_class):
 
     def iterated_left_palindromic_closure(self, f=None):
         r"""
-        Returns the iterated left (`f`-)palindromic closure of self.
+        Return the iterated left (``f``-)palindromic closure of ``self``.
 
         INPUT:
 
-        -  ``f`` -- involution (default: ``None``) on the alphabet of ``self``.
-           It must be callable on letters as well as words (e.g. WordMorphism).
+        - ``f`` -- involution (default: ``None``) on the alphabet of ``self``.
+          It must be callable on letters as well as words (e.g. ``WordMorphism``).
 
         OUTPUT:
 
-        word -- the left iterated `f`-palindromic closure of ``self``.
+        word -- the left iterated ``f``-palindromic closure of ``self``.
 
         EXAMPLES::
 
@@ -5148,7 +5319,7 @@ class FiniteWord_class(Word_class):
 
         TESTS:
 
-        If ``f`` is not a involution::
+        If ``f`` is not an involution::
 
             sage: f = WordMorphism('a->b,b->b')
             sage: Word('aab').iterated_left_palindromic_closure(f=f)
@@ -5170,7 +5341,7 @@ class FiniteWord_class(Word_class):
 
     def count(self, letter):
         r"""
-        Counts the number of occurrences of letter in self.
+        Count the number of occurrences of ``letter`` in ``self``.
 
         EXAMPLES::
 
@@ -5181,9 +5352,9 @@ class FiniteWord_class(Word_class):
 
     def balance(self):
         r"""
-        Returns the balance of self.
+        Return the balance of ``self``.
 
-        The balance of a word is the smallest number `q` such that self is
+        The balance of a word is the smallest number `q` such that ``self`` is
         `q`-balanced [1].
 
         A finite or infinite word `w` is said to be `q`-*balanced* if for
@@ -5262,7 +5433,7 @@ class FiniteWord_class(Word_class):
 
     def is_balanced(self, q=1):
         r"""
-        Returns True if self is `q`-balanced, and False otherwise.
+        Return ``True`` if ``self`` is ``q``-balanced, and ``False`` otherwise.
 
         A finite or infinite word `w` is said to be `q`-*balanced* if for
         any two factors `u`, `v` of `w` of the same length, the difference
@@ -5273,11 +5444,11 @@ class FiniteWord_class(Word_class):
 
         INPUT:
 
-        -  ``q`` - integer (default 1), the balance level
+        - ``q`` -- integer (default: ``1``), the balance level
 
         OUTPUT:
 
-            boolean -- the result
+        boolean -- the result
 
         EXAMPLES::
 
@@ -5323,7 +5494,7 @@ class FiniteWord_class(Word_class):
         if not isinstance(q, (int, Integer)) or q <= 0:
             raise TypeError("the balance level must be a positive integer")
         alphabet = self.letters()
-        for i in xrange(2, self.length()):
+        for i in range(2, self.length()):
             empty_sets = [set() for _ in range(len(alphabet))]
             tab = dict(zip(alphabet, empty_sets))
             for fact in self.factor_iterator(i):
@@ -5337,14 +5508,14 @@ class FiniteWord_class(Word_class):
 
     def abelian_vectors(self, n):
         r"""
-        Return the abelian vectors of factors of length ``n`` of self.
+        Return the abelian vectors of factors of length ``n`` of ``self``.
 
-        The vectors are defined w.r.t the order of the alphabet of the
+        The vectors are defined w.r.t. the order of the alphabet of the
         parent.
 
         OUTPUT:
 
-            Set of tuples
+        a set of tuples
 
         EXAMPLES::
 
@@ -5425,7 +5596,7 @@ class FiniteWord_class(Word_class):
 
     def abelian_complexity(self, n):
         r"""
-        Return the number of abelian vectors of factors of length ``n`` of self.
+        Return the number of abelian vectors of factors of length ``n`` of ``self``.
 
         EXAMPLES::
 
@@ -5444,10 +5615,10 @@ class FiniteWord_class(Word_class):
 
     def sturmian_desubstitute_as_possible(self):
         r"""
-        Sturmian desubstitutes the word ``self`` as much as possible.
+        Sturmian-desubstitute the word ``self`` as much as possible.
 
         The finite word ``self`` must be defined on a two-letter
-        alphabet or use at most two-letters.
+        alphabet or use at most two letters.
 
         It can be Sturmian desubstituted if one letter appears
         isolated: the Sturmian desubstitution consists in removing one
@@ -5462,7 +5633,7 @@ class FiniteWord_class(Word_class):
 
         OUTPUT:
 
-        - A finite word defined on a two-letter alphabet.
+        a finite word defined on a two-letter alphabet
 
         EXAMPLES::
 
@@ -5529,7 +5700,7 @@ class FiniteWord_class(Word_class):
         if self.is_empty():
             return self
         W = self.parent()
-        if (W.size_of_alphabet() == 2):
+        if W.alphabet().cardinality()== 2:
             alphabet = W.alphabet()
         else:
             alphabet = self.letters()
@@ -5597,17 +5768,17 @@ class FiniteWord_class(Word_class):
 
     def is_sturmian_factor(self):
         r"""
-        Tells whether ``self`` is a factor of a Sturmian word.
+        Tell whether ``self`` is a factor of a Sturmian word.
 
         The finite word ``self`` must be defined on a two-letter alphabet.
 
         Equivalently, tells whether ``self`` is balanced. The
-        advantage over the is_balanced method is that this one runs in
-        linear time whereas is_balanced runs in quadratic time.
+        advantage over the ``is_balanced`` method is that this one runs in
+        linear time whereas ``is_balanced`` runs in quadratic time.
 
         OUTPUT:
 
-        - boolean -- the result.
+        boolean -- the result
 
         EXAMPLES::
 
@@ -5634,7 +5805,7 @@ class FiniteWord_class(Word_class):
             sage: s4 = WordMorphism('a->a,b->ab')
             sage: W = Words('ab')
             sage: w = W('ab')
-            sage: for i in xrange(8): w = choice([s1,s2,s3,s4])(w)
+            sage: for i in range(8): w = choice([s1,s2,s3,s4])(w)
             sage: w
             word: abaaabaaabaabaaabaaabaabaaabaabaaabaaaba...
             sage: w.is_sturmian_factor()
@@ -5651,12 +5822,12 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        .. [Arn2002] P. Arnoux, Sturmian sequences, in Substitutions in Dynamics,
+        .. [Arn2002] \P. Arnoux, Sturmian sequences, in Substitutions in Dynamics,
            N. Pytheas Fogg (Ed.), Arithmetics, and Combinatorics (Lecture
            Notes in Mathematics, Vol. 1794), 2002.
-        .. [Ser1985] C. Series. The geometry of Markoff numbers. The Mathematical
-           Intelligencer, 7(3):20–29, 1985.
-        .. [SU2009] J. Smillie and C. Ulcigrai. Symbolic coding for linear
+        .. [Ser1985] \C. Series. The geometry of Markoff numbers. The Mathematical
+           Intelligencer, 7(3):20--29, 1985.
+        .. [SU2009] \J. Smillie and C. Ulcigrai. Symbolic coding for linear
            trajectories in the regular octagon, :arxiv:`0905.0871`, 2009.
 
         AUTHOR:
@@ -5668,22 +5839,22 @@ class FiniteWord_class(Word_class):
 
     def is_tangent(self):
         r"""
-        Tells whether ``self`` is a tangent word.
+        Tell whether ``self`` is a tangent word.
 
         The finite word ``self`` must be defined on a two-letter alphabet.
 
         A binary word is said to be *tangent* if it can appear in
-        infintely many cutting sequences of a smooth curve, where each
+        infinitely many cutting sequences of a smooth curve, where each
         cutting sequence is observed on a progressively smaller grid.
 
-        This class of words strictly contains the class of 1-balanced
-        words, and is strictly contained in the class of 2-balanced words.
+        This class of words strictly contains the class of `1`-balanced
+        words, and is strictly contained in the class of `2`-balanced words.
 
         This method runs in linear time.
 
         OUTPUT:
 
-        - boolean -- the result.
+        boolean -- the result
 
         EXAMPLES::
 
@@ -5698,7 +5869,7 @@ class FiniteWord_class(Word_class):
             sage: Word('aabb',alphabet='ab').is_tangent()
             True
 
-        Some 2-balanced words may not be tangent::
+        Some `2`-balanced words may not be tangent::
 
             sage: Word('aaabb',alphabet='ab').is_tangent()
             False
@@ -5716,14 +5887,14 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        .. [Mon2010] T. Monteil, The asymptotic language of smooth curves, talk
+        .. [Mon2010] \T. Monteil, The asymptotic language of smooth curves, talk
            at LaCIM2010.
 
         AUTHOR:
 
         -   Thierry Monteil
         """
-        if (self.parent().size_of_alphabet() != 2):
+        if (self.parent().alphabet().cardinality() != 2):
             raise TypeError('your word must be defined on a binary alphabet')
         [a,b] = self.parent().alphabet()
         mini = 0
@@ -5748,8 +5919,8 @@ class FiniteWord_class(Word_class):
 
     def swap(self, i, j=None):
         r"""
-        Returns the word w with entries at positions i and
-        j swapped. By default, j = i+1.
+        Return the word `w` with entries at positions ``i`` and
+        ``j`` swapped. By default, ``j = i+1``.
 
         EXAMPLES::
 
@@ -5769,8 +5940,8 @@ class FiniteWord_class(Word_class):
 
     def swap_increase(self, i):
         r"""
-        Returns the word with positions i and i+1 exchanged
-        if self[i] > self[i+1]. Otherwise, it returns self.
+        Return the word with positions ``i`` and ``i+1`` exchanged
+        if ``self[i] > self[i+1]``. Otherwise, it returns ``self``.
 
         EXAMPLES::
 
@@ -5786,15 +5957,16 @@ class FiniteWord_class(Word_class):
             sage: Words("ba")("abba").swap_increase(0)
             word: baba
         """
-        if self._parent.cmp_letters(self[i], self[i+1]) > 0:
+        key = self._parent.sortkey_letters
+        if key(self[i]) > key(self[i + 1]):
             return self.swap(i)
         else:
             return self
 
     def swap_decrease(self, i):
         r"""
-        Returns the word with positions i and i+1 exchanged
-        if self[i] < self[i+1]. Otherwise, it returns self.
+        Return the word with positions ``i`` and ``i+1`` exchanged
+        if ``self[i] < self[i+1]``. Otherwise, it returns ``self``.
 
         EXAMPLES::
 
@@ -5810,26 +5982,27 @@ class FiniteWord_class(Word_class):
             sage: Words("ba")("abba").swap_decrease(0)
             word: abba
         """
-        if self._parent.cmp_letters(self[i], self[i+1]) < 0:
+        key = self._parent.sortkey_letters
+        if key(self[i]) < key(self[i + 1]):
             return self.swap(i)
         else:
             return self
 
     def abelian_vector(self, alphabet=None):
         r"""
-        Return the abelian vector of self counting the occurrences of each letter.
+        Return the abelian vector of ``self`` counting the occurrences of each letter.
 
-        The vector is defined w.r.t the order of the alphabet of the
+        The vector is defined w.r.t. the order of the alphabet of the
         parent. See also :meth:`evaluation_dict`.
 
         INPUT:
 
         - ``self`` -- word having a parent on a finite alphabet
-        - ``alphabet`` -- DEPRECATED
+        - ``alphabet`` -- *DEPRECATED*
 
         OUTPUT:
 
-            list
+        a list
 
         EXAMPLES::
 
@@ -5841,7 +6014,7 @@ class FiniteWord_class(Word_class):
             sage: W().abelian_vector()
             [0, 0]
 
-        The argument alphabet is deprecated::
+        The argument ``alphabet`` is deprecated::
 
             sage: Word('aabaa').abelian_vector('abc')
             doctest:...: DeprecationWarning: The argument alphabet of
@@ -5851,7 +6024,7 @@ class FiniteWord_class(Word_class):
             See http://trac.sagemath.org/17058 for details.
             [4, 1, 0]
 
-        You may fix the above deprecated use of alphabet argument this way::
+        You may fix the above deprecated use of the ``alphabet`` argument this way::
 
             sage: W = Words('abc')
             sage: W('aabaa').abelian_vector()
@@ -5868,7 +6041,7 @@ class FiniteWord_class(Word_class):
             evaluation_dict() instead
         """
         if alphabet is None:
-            if self.parent().size_of_alphabet() is Infinity:
+            if self.parent().alphabet().cardinality() is Infinity:
                 raise TypeError("The alphabet of the parent is infinite; define "
                         "the word with a parent on a finite alphabet or use "
                         "evaluation_dict() instead")
@@ -5905,7 +6078,7 @@ class FiniteWord_class(Word_class):
 
     def _rsk_iter(self):
         r"""
-        An iterator for :func:`~sage.combinat.rsk.RSK`.
+        Return an iterator for :func:`~sage.combinat.rsk.RSK`.
 
         Yields pairs `(i, w_i)` for a word `w = w_1 w_2 \cdots w_k`.
 
@@ -5921,30 +6094,29 @@ class FiniteWord_class(Word_class):
             (6, 3)
             (7, 1)
         """
-        from itertools import izip
-        return izip(xrange(1, len(self)+1), self)
+        return zip(range(1, len(self) + 1), self)
 
     def shuffle(self, other, overlap=0):
         r"""
-        Returns the combinatorial class representing the shuffle product
-        between words self and other. This consists of all words of length
-        self.length()+other.length() that have both self and other as
+        Return the combinatorial class representing the shuffle product
+        between words ``self`` and ``other``. This consists of all words of length
+        ``self.length()+other.length()`` that have both ``self`` and ``other`` as
         subwords.
 
-        If overlap is non-zero, then the combinatorial class representing
+        If ``overlap`` is non-zero, then the combinatorial class representing
         the shuffle product with overlaps is returned. The calculation of
         the shift in each overlap is done relative to the order of the
-        alphabet. For example, "a" shifted by "a" is "b" in the alphabet
-        [a, b, c] and 0 shifted by 1 in [0, 1, 2, 3] is 2.
+        alphabet. For example, `a` shifted by `a` is `b` in the alphabet
+        `[a, b, c]` and `0` shifted by `1` in `[0, 1, 2, 3]` is `2`.
 
         INPUT:
 
-        -  ``other`` - finite word
-        -  ``overlap`` - (default: 0) integer or True
+        -  ``other`` -- finite word
+        -  ``overlap`` -- (default: ``0``) integer or ``True``
 
         OUTPUT:
 
-            Combinatorial class of shuffle product of self and other
+        combinatorial class of shuffle product of ``self`` and ``other``
 
         EXAMPLES::
 
@@ -5983,21 +6155,20 @@ class FiniteWord_class(Word_class):
 
     def shifted_shuffle(self, other, shift=None):
         r"""
-        Returns the combinatorial class representing the shifted shuffle
-        product between words self and other. This is the same as the
-        shuffle product of self with the word obtained from other by
-        incrementing its values (i.e. its letters) by the given shift.
+        Return the combinatorial class representing the shifted shuffle
+        product between words ``self`` and ``other``. This is the same as the
+        shuffle product of ``self`` with the word obtained from ``other`` by
+        incrementing its values (i.e. its letters) by the given ``shift``.
 
         INPUT:
 
-        -  ``other`` - finite word over the integers
-        -  ``shift`` - integer or None (default: None) added to each letter of
-           other. When shift is None, it is replaced by self.length()
+        - ``other`` -- finite word over the integers
+        - ``shift`` -- integer or ``None`` (default: ``None``) added to each letter of
+          ``other``. When ``shift`` is ``None``, it is replaced by ``self.length()``
 
         OUTPUT:
 
-            Combinatorial class of shifted shuffle products of self and
-            other.
+        combinatorial class of shifted shuffle products of ``self`` and ``other``
 
         EXAMPLES::
 
@@ -6026,17 +6197,20 @@ class FiniteWord_class(Word_class):
         else:
             return self.shuffle(self._parent([x + shift for x in other], check=False))
 
+    ######################################################################
+    # XXX TODO: The description is inconsistent w.r.t. "W" and "alphabet".
+    ######################################################################
     def delta_inv(self, W=None, s=None):
         r"""
-        Lifts self via the delta operator to obtain a word containing the
-        letters in alphabet (default is [0, 1]). The letters used in the
-        construction start with s (default is alphabet[0]) and cycle
+        Lift ``self`` via the delta operator to obtain a word containing the
+        letters in alphabet (default is ``[0, 1]``). The letters used in the
+        construction start with ``s`` (default is ``alphabet[0]``) and cycle
         through alphabet.
 
         INPUT:
 
-        -  ``alphabet`` - an iterable
-        -  ``s`` - an object in the iterable
+        - ``alphabet`` -- an iterable
+        - ``s`` -- an object in the iterable
 
         EXAMPLES::
 
@@ -6068,7 +6242,7 @@ class FiniteWord_class(Word_class):
 
     def delta(self):
         r"""
-        Returns the image of self under the delta morphism. This is the
+        Return the image of ``self`` under the delta morphism. This is the
         word composed of the length of consecutive runs of the same letter
         in a given word.
 
@@ -6101,14 +6275,14 @@ class FiniteWord_class(Word_class):
                 ss = s
                 c = 1
         v.append(c)
-        return Words(range(1,1+max_c))(v)
+        return Words(list(range(1, 1 + max_c)))(v)
 
     # TODO. Decide whether delta_derivate* really need W.alphabet().last()....
     # RENAME: Should "derivate" be derivative?!
 
     def delta_derivate(self, W=None):
         r"""
-        Returns the derivative under delta for self.
+        Return the derivative under delta for ``self``.
 
         EXAMPLES::
 
@@ -6139,7 +6313,7 @@ class FiniteWord_class(Word_class):
 
     def delta_derivate_left(self, W=None):
         r"""
-        Returns the derivative under delta for self.
+        Return the derivative under delta for ``self``.
 
         EXAMPLES::
 
@@ -6168,7 +6342,7 @@ class FiniteWord_class(Word_class):
 
     def delta_derivate_right(self, W=None):
         r"""
-        Returns the right derivative under delta for self.
+        Return the right derivative under delta for ``self``.
 
         EXAMPLES::
 
@@ -6197,13 +6371,13 @@ class FiniteWord_class(Word_class):
 
     def phi(self):
         r"""
-        Applies the phi function to self and returns the result. This is
+        Apply the phi function to ``self`` and return the result. This is
         the word obtained by taking the first letter of the words obtained
-        by iterating delta on self.
+        by iterating delta on ``self``.
 
         OUTPUT:
 
-            word -- the result of the phi function
+        a word -- the result of the phi function
 
         EXAMPLES::
 
@@ -6242,16 +6416,16 @@ class FiniteWord_class(Word_class):
 
     def phi_inv(self, W=None):
         r"""
-        Apply the inverse of the phi function to self.
+        Apply the inverse of the phi function to ``self``.
 
         INPUT:
 
-        -  ``self`` - a word over the integers
-        -  ``W`` - a parent object of words defined over integers
+        - ``self`` -- a word over the integers
+        - ``W`` -- a parent object of words defined over integers
 
         OUTPUT:
 
-            word -- the inverse of the phi function
+        a word -- the inverse of the phi function
 
         EXAMPLES::
 
@@ -6266,13 +6440,13 @@ class FiniteWord_class(Word_class):
         if self.is_empty():
             return W()
         v = self.parent()((self[-1],), check=False)
-        for i in xrange(self.length()-2, -1, -1):
+        for i in range(self.length()-2, -1, -1):
             v = v.delta_inv(W, self[i])
         return v
 
     def _phi_inv_tab(self, tab):
         r"""
-        Specialized version of phi_inv() for long or incremental words.
+        Specialized version of ``phi_inv()`` for long or incremental words.
 
         TESTS::
 
@@ -6281,13 +6455,13 @@ class FiniteWord_class(Word_class):
         """
         res = self.delta_inv(s=tab[0])
         res = res[1:]
-        for i in xrange(1, len(tab)):
+        for i in range(1, len(tab)):
             res = res.delta_inv(s=tab[i])
         return res
 
     def is_smooth_prefix(self):
         r"""
-        Returns True if self is the prefix of a smooth word, and False
+        Return ``True`` if ``self`` is the prefix of a smooth word, and ``False``
         otherwise.
 
         Let `A_k = \{1, \ldots ,k\}`, `k \geq 2`. An infinite word `w` in
@@ -6298,12 +6472,12 @@ class FiniteWord_class(Word_class):
 
         INPUT:
 
-        -  ``self`` - must be a word over the integers to get something other
-           than False
+        - ``self`` -- must be a word over the integers to get something other
+          than ``False``
 
         OUTPUT:
 
-            boolean -- whether self is a smooth prefix or not
+        boolean -- whether ``self`` is a smooth prefix or not
 
         EXAMPLES::
 
@@ -6325,7 +6499,7 @@ class FiniteWord_class(Word_class):
         W = self.parent()
         while m.length() > 1:
             m = m.delta_derivate_right()
-            if not all(W.has_letter(a) for a in m.letters()):
+            if not all(a in W.alphabet() for a in m.letters()):
                 return False
         return True
 
@@ -6356,25 +6530,25 @@ class FiniteWord_class(Word_class):
 
     def standard_factorization(self):
         r"""
-        Returns the standard factorization of ``self``.
+        Return the standard factorization of ``self``.
 
-        The *standard factorization* of a word `w` of length greater than 1 is
-        the unique factorization: `w = uv` where `v` is the longest proper
+        The *standard factorization* of a word `w` of length greater than
+        `1` is the factorization `w = uv` where `v` is the longest proper
         suffix of `w` that is a Lyndon word.
 
-        Note that if `w` is a Lyndon word of length greater than 1 with
-        standard factorization `w = uv`, then `u` and `v` are also Lyndon words
-        and `u < v`.
+        Note that if `w` is a Lyndon word of length greater than `1` with
+        standard factorization `w = uv`, then `u` and `v` are also Lyndon
+        words and `u < v`.
 
         See for instance [1], [2] and [3].
 
         INPUT:
 
-        - ``self`` - finite word of length greater than 1
+        - ``self`` -- finite word of length greater than `1`
 
         OUTPUT:
 
-            tuple -- tuple of two factors
+        `2`-tuple `(u, v)`
 
         EXAMPLES::
 
@@ -6423,10 +6597,11 @@ class FiniteWord_class(Word_class):
             Encyclopedia of Mathematics and its Applications, Cambridge
             University Press, U.K., 2002.
         """
-        if self.length() < 2:
+        selflen = self.length()
+        if selflen < 2:
             raise ValueError("Standard factorization not defined on"
                              " words of length less than 2")
-        for l in xrange(1, self.length()):
+        for l in range(1, selflen):
             suff = self[l:]
             if suff.is_lyndon():
                 return self[:l], suff
@@ -6434,7 +6609,7 @@ class FiniteWord_class(Word_class):
     def apply_permutation_to_positions(self, permutation):
         r"""
         Return the word obtained by permuting the positions of the letters
-        in self.
+        in ``self`` according to the permutation ``permutation``.
 
         EXAMPLES::
 
@@ -6462,8 +6637,9 @@ class FiniteWord_class(Word_class):
 
     def apply_permutation_to_letters(self, permutation):
         r"""
-        Return the word obtained by applying permutation to
-        the letters of the alphabet of self.
+        Return the word obtained by applying the permutation
+        ``permutation`` of the alphabet of ``self`` to each letter of
+        ``self``.
 
         EXAMPLES::
 
@@ -6492,10 +6668,10 @@ class FiniteWord_class(Word_class):
 
     def colored_vector(self, x=0, y=0, width='default', height=1, cmap='hsv', thickness=1, label=None):
         r"""
-        Returns a vector (Graphics object) illustrating self. Each letter
+        Return a vector (Graphics object) illustrating ``self``. Each letter
         is represented by a coloured rectangle.
 
-        If the parent of self is a class of words over a finite alphabet,
+        If the parent of ``self`` is a class of words over a finite alphabet,
         then each letter in the alphabet is assigned a unique colour, and
         this colour will be the same every time this method is called. This
         is especially useful when plotting and comparing words defined on
@@ -6506,19 +6682,19 @@ class FiniteWord_class(Word_class):
 
         INPUT:
 
-        -  ``x`` - (default: 0) bottom left x-coordinate of the vector
-        -  ``y`` - (default: 0) bottom left y-coordinate of the vector
-        -  ``width``  - (default: 'default') width of the vector. By default,
-           the width is the length of self.
-        -  ``height`` - (default: 1) height of the vector
-        -  ``thickness`` - (default: 1) thickness of the contour
-        -  ``cmap`` - (default: 'hsv') color map; for available color map names
-            type: ``import matplotlib.cm; matplotlib.cm.datad.keys()``
-        -  ``label`` - str (default: None) a label to add on the colored vector.
+        - ``x`` -- (default: ``0``) bottom left x-coordinate of the vector
+        - ``y`` -- (default: ``0``) bottom left y-coordinate of the vector
+        - ``width`` -- (default: ``'default'``) width of the vector. By default,
+          the width is the length of ``self``.
+        - ``height`` -- (default: ``1``) height of the vector
+        - ``thickness`` -- (default: ``1``) thickness of the contour
+        - ``cmap`` -- (default: ``'hsv'``) color map; for available color map names
+          type: ``import matplotlib.cm; list(matplotlib.cm.datad)``
+        - ``label`` -- string (default: ``None``) a label to add on the colored vector
 
         OUTPUT:
 
-            Graphics
+        Graphics
 
         EXAMPLES::
 
@@ -6605,14 +6781,14 @@ class FiniteWord_class(Word_class):
         base = width / float(self.length()) if not self.is_empty() else None
 
         #A colored rectangle for each letter
-        dim = self.parent().size_of_alphabet()
+        dim = self.parent().alphabet().cardinality()
         if dim is Infinity:
-            ordered_alphabet = sorted(self.letters(), \
-                    cmp=self.parent().cmp_letters)
+            ordered_alphabet = sorted(self.letters(),
+                                      key=self.parent().sortkey_letters)
             dim = float(len(ordered_alphabet))
         else:
             ordered_alphabet = self.parent().alphabet()
-            dim = float(self.parent().size_of_alphabet())
+            dim = float(self.parent().alphabet().cardinality())
         letter_to_integer_dict = dict((a,i) for (i,a) in
                 enumerate(ordered_alphabet))
         xp = x
@@ -6628,7 +6804,7 @@ class FiniteWord_class(Word_class):
 
     def is_square(self):
         r"""
-        Returns True if self is a square, and False otherwise.
+        Return ``True`` if ``self`` is a square, and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -6651,7 +6827,7 @@ class FiniteWord_class(Word_class):
 
     def is_square_free(self):
         r"""
-        Returns True if self does not contain squares, and False
+        Return ``True`` if ``self`` does not contain squares, and ``False``
         otherwise.
 
         EXAMPLES::
@@ -6677,15 +6853,15 @@ class FiniteWord_class(Word_class):
         L = self.length()
         if L < 2:
             return True
-        for start in xrange(0, L-1):
-            for end in xrange(start+2, L+1, 2):
+        for start in range(0, L-1):
+            for end in range(start+2, L+1, 2):
                 if self[start:end].is_square():
                     return False
         return True
 
     def is_cube(self):
         r"""
-        Returns True if self is a cube, and False otherwise.
+        Return ``True`` if ``self`` is a cube, and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -6705,7 +6881,7 @@ class FiniteWord_class(Word_class):
 
     def is_cube_free(self):
         r"""
-        Returns True if self does not contain cubes, and False otherwise.
+        Return ``True`` if ``self`` does not contain cubes, and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -6730,15 +6906,15 @@ class FiniteWord_class(Word_class):
         L = self.length()
         if L < 3:
             return True
-        for start in xrange(0, L - 2):
-            for end in xrange(start+3, L+1, 3):
+        for start in range(0, L - 2):
+            for end in range(start+3, L+1, 3):
                 if self[start:end].is_cube():
                     return False
         return True
 
     def to_monoid_element(self):
         """
-        Return ``self`` as an element the free monoid with the same alphabet
+        Return ``self`` as an element of the free monoid with the same alphabet
         as ``self``.
 
         EXAMPLES::
@@ -6766,6 +6942,76 @@ class FiniteWord_class(Word_class):
         M = FreeMonoid(len(l), l)
         return M(self)
 
+    def is_christoffel(self):
+        r"""
+        Return ``True`` if ``self`` is a Christoffel word, and ``False`` otherwise.
+
+        The *Christoffel word* of slope `p/q` is obtained from the Cayley 
+        graph of `\ZZ/(p+q)\ZZ` with generator `q` as follows. If `u 
+        \rightarrow v` is an edge in the Cayley graph, then, `v = u + p 
+        \mod{p+q}`. Let `a`,`b` be the alphabet of `w`. Label the edge 
+        `u \rightarrow v` by `a` if `u < v` and `b` otherwise. The Christoffel 
+        word is the word obtained by reading the edge labels along the cycle 
+        beginning from `0`.
+
+        Equivalently, `w` is a Christoffel word iff `w` is a symmetric 
+        non-empty word and `w[1:n-1]` is a palindrome. 
+
+        See for instance [1]_ and [2]_.
+
+        INPUT:
+
+        - ``self`` -- word
+
+        OUTPUT:
+
+        boolean -- ``True`` if ``self`` is a Christoffel word, 
+        ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: Word('00100101').is_christoffel()
+            True
+            sage: Word('aab').is_christoffel()
+            True
+            sage: Word().is_christoffel()
+            False
+            sage: Word('123123123').is_christoffel()
+            False
+            sage: Word('00100').is_christoffel()
+            False
+            sage: Word('0').is_christoffel()
+            True
+
+        TESTS::
+
+            sage: words.LowerChristoffelWord(5,4).is_christoffel()
+            True
+            sage: words.UpperChristoffelWord(5,4).is_christoffel()
+            True
+            sage: Word('aaaaaaaaa').is_christoffel()
+            False
+
+        REFERENCES:
+
+        .. [1]  Jean Berstel. Sturmian and episturmian words (a survey of
+            some recent results). In S. Bozapalidis and G. Rahonis, editors,
+            CAI 2007,volume 4728 of Lecture Notes in Computer Science, 
+            pages 23-47. Springer-Verlag, 2007.
+        .. [2] \J. Berstel, A. Lauve, C. R., F. Saliola, Combinatorics on
+            words: Christoffel words and repetitions in words, CRM Monograph 
+            Series, 27. American Mathematical Society, Providence, RI, 2009. 
+            xii+147 pp. ISBN: 978-0-8218-4480-9
+
+        """
+        if len(self) == 0 or len(self.letters()) > 2 or (self.is_palindrome() and len(self) > 1):
+            return False
+        elif self.is_symmetric() and self[1:len(self) - 1].is_palindrome():
+            return True
+        else:
+            return False
+
+
 #######################################################################
 
 class CallableFromListOfWords(tuple):
@@ -6786,7 +7032,7 @@ class CallableFromListOfWords(tuple):
         """
         l = []
         for w in words:
-            from word_infinite_datatypes import WordDatatype_callable
+            from .word_infinite_datatypes import WordDatatype_callable
             if isinstance(w, WordDatatype_callable) and \
                     isinstance(w._func, CallableFromListOfWords):
                 l.extend(w._func)
@@ -6796,7 +7042,7 @@ class CallableFromListOfWords(tuple):
 
     def __call__(self, i):
         r"""
-        Returns the character at position i.
+        Return the character at position ``i``.
 
         TESTS::
 
@@ -6825,7 +7071,7 @@ class Factorization(list):
     """
     def __repr__(self):
         r"""
-        Returns a string representation of the object.
+        Return a string representation of the object.
 
         TESTS::
 
@@ -6835,4 +7081,36 @@ class Factorization(list):
             (ab, ba)
         """
         return '(%s)' % ', '.join(w.string_rep() for w in self)
+
+#######################################################################
+
+def evaluation_dict(w):
+    r"""
+    Return a dictionary keyed by the letters occurring in ``w`` with
+    values the number of occurrences of the letter.
+
+    INPUT:
+
+    - ``w`` -- a word
+
+    TESTS::
+
+        sage: from sage.combinat.words.finite_word import evaluation_dict
+        sage: evaluation_dict([2,1,4,2,3,4,2])
+        {1: 1, 2: 3, 3: 1, 4: 2}
+        sage: evaluation_dict('badbcdb')
+        {'a': 1, 'b': 3, 'c': 1, 'd': 2}
+        sage: evaluation_dict([])
+        {}
+
+    ::
+
+        sage: evaluation_dict('1213121') # keys appear in random order
+        {'1': 4, '2': 2, '3': 1}
+
+    """
+    d = defaultdict(int)
+    for a in w:
+        d[a] += 1
+    return dict(d)
 

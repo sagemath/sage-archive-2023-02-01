@@ -63,7 +63,7 @@ diferentes:
     sage: type(gp('znprimroot(10007)'))
     <class 'sage.interfaces.gp.GpElement'>
     sage: type(pari('znprimroot(10007)'))
-    <type 'sage.libs.pari.gen.gen'>
+    <type 'cypari2.gen.Gen'>
 
 Então qual eu devo usar? Depende do que você está fazendo. A interface
 GP pode fazer absolutamente tudo o que você poderia fazer na linha de
@@ -101,9 +101,9 @@ Primeiro criamos uma lista do PARI a partir de uma lista do Python.
     sage: v
     [1, 2, 3, 4, 5]
     sage: type(v)
-    <type 'sage.libs.pari.gen.gen'>
+    <type 'cypari2.gen.Gen'>
 
-Cada objeto do PARI é do tipo ``py_pari_gem``. O tipo PARI do objeto
+Cada objeto do PARI é do tipo ``Gen``. O tipo PARI do objeto
 subjacente pode ser obtido usando a função ``type``.
 
 ::
@@ -112,9 +112,9 @@ subjacente pode ser obtido usando a função ``type``.
     't_VEC'
 
 Em PARI, para criar uma curva elíptica digitamos
-``ellinit([1,2,3,4,5])``. Em Sage é similar, exceto que ``ellnint`` é
+``ellinit([1,2,3,4,5])``. Em Sage é similar, exceto que ``ellinit`` é
 um método que pode ser chamado em qualquer objeto do PARI, por
-exemplo, ``t\_VEC v``.
+exemplo, ``t_VEC`` `v`.
 
 ::
 
@@ -144,7 +144,7 @@ coisas a respeito dele.
 GAP
 ===
 
-O Sage vem com o GAP 4.4.10 para matemática discreta computacional,
+O Sage vem com o GAP para matemática discreta computacional,
 especialmente teoria de grupos.
 
 Aqui está um exemplo com a função ``IdGroup`` do GAP, a qual usa a
@@ -176,12 +176,11 @@ a interface do GAP da seguinte forma:
     sage: n = G.order(); n
     120
 
-(Para alguns recursos adicionais do GAP, você deve instalar dois
-pacotes opcionais. Digite ``sage -optional`` para uma lista e escolha
-o pacote da forma ``gap\_packages-x.y.z``, então digite ``sage -i
-gap\_packages-x.y.z``. Faça o mesmo para ``database\_gap-x.y.z``.
-Alguns pacotes do GAP sem licensa GPL podem ser obtidos no site do GAP
-[GAPkg]_, e copiados em ``$SAGE_ROOT/local/lib/gap-4.4.10/pkg``.)
+Para algumas funcionalidades do GAP, deve-se instalar dois pacotes
+Sage opcionais. Isso pode ser feito com o comando::
+
+    sage -i gap_packages database_gap
+
 
 Singular
 ========
@@ -197,7 +196,8 @@ digite ``...``):
 
     sage: R1 = singular.ring(0, '(x,y)', 'dp')
     sage: R1
-    //   characteristic : 0
+    polynomial ring, over a field, global ordering
+    //   coefficients: QQ
     //   number of vars : 2
     //        block   1 : ordering dp
     //                  : names    x y 

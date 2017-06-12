@@ -190,7 +190,7 @@ replacements are made:
 
 - Sage supports a special syntax for generating rings or, more
   generally, parents with named generators::
-     
+
       sage: R.<x,y> = QQ[]
       sage: preparse('R.<x,y> = QQ[]')
       "R = QQ['x, y']; (x, y,) = R._first_ngens(2)"
@@ -203,7 +203,7 @@ replacements are made:
       4
       sage: 87.factor()
       3 * 29
-      
+
 - Raw literals are not preparsed, which can be useful from an
   efficiency point of view. Just like Python ints are denoted by an L,
   in Sage raw integer and floating literals are followed by an "r" (or
@@ -213,7 +213,7 @@ replacements are made:
       sage: a
       393939
       sage: type(a)
-      <type 'int'>
+      <... 'int'>
       sage: b = 393939
       sage: type(b)
       <type 'sage.rings.integer.Integer'>
@@ -503,7 +503,7 @@ documentation for more information on its behaviour and optional arguments.
       def my_new_function():
           ...
 
-      my_old_function = deprecated_function_alias(my_new_function)
+      my_old_function = deprecated_function_alias(666, my_new_function)
 
 * **Moving an object to a different module:**
   if you rename a source file or move some function (or class) to a
@@ -522,19 +522,17 @@ documentation for more information on its behaviour and optional arguments.
     lazy_import('sage.new.module.name', '*', deprecation=666)
     lazy_import('sage.other.module', ('func1', 'func2'), deprecation=666)
 
-* **Remove a name from the global namespace:** the function
-  :func:`~sage.misc.superseded.deprecated_callable_import` imports an object into
-  the global namespace. Any user who calls it sees a message inviting him to
-  import the object manually::
+* **Remove a name from a global namespace:** this is when you want to
+  remove a name from a global namespace (say, ``sage.all`` or some
+  other ``all.py`` file) but you want to keep the functionality
+  available with an explicit import.
+  This case is similar as the previous one: use a lazy import with
+  deprecation. One detail: in this case, you don't want the name
+  ``lazy_import`` to be visible in the global namespace, so we add
+  a leading underscore::
 
-      from sage.misc.superseded import deprecated_callable_import
-      deprecated_callable_import(666,
-                           'sage.combinat.name_of_the_module',
-                           globals(),
-                           locals(),
-                           ["name_of_the_function"])
-
-  Alternatively, a lazy_import with deprecation would also work in this case.
+    from sage.misc.lazy_import import lazy_import as _lazy_import
+    _lazy_import('sage.some.package', 'some_function', deprecation=666)
 
 * **Any other case:** if none of the cases above apply, call
   :func:`~sage.misc.superseded.deprecation` in the function that you want to
@@ -562,7 +560,7 @@ As usual, all code has to be fully doctested and go through our
 reviewing process.
 
 * **Experimental function/method:** use the decorator
-  :class:`~sage.misc.superseded.mark_as_experimental`. Here is an example::
+  :class:`~sage.misc.superseded.experimental`. Here is an example::
 
       from sage.misc.superseded import experimental
       @experimental(66666)
@@ -570,7 +568,7 @@ reviewing process.
           # do something
 
 * **Experimental class:** use the decorator
-  :class:`~sage.misc.superseded.mark_as_experimental` for its ``__init__``.
+  :class:`~sage.misc.superseded.experimental` for its ``__init__``.
   Here is an example::
 
       from sage.misc.superseded import experimental
@@ -579,9 +577,7 @@ reviewing process.
           def __init__(self, some, arguments):
               # do something
 
-* **Any other case:** if none of the cases above apply, call
-  :func:`~sage.misc.superseded.experimental` in the code where you want to
-  warn. It will display the message of your choice::
+* **Any other case:** if none of the cases above apply, call :func:`~sage.misc.superseded.experimental_warning` in the code where you want to warn. It will display the message of your choice::
 
       from sage.misc.superseded import experimental_warning
       experimental_warning(66666, 'This code is not foolproof.')

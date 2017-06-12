@@ -11,8 +11,8 @@ from sage.libs.ntl.ntl_lzz_pContext cimport ntl_zz_pContext_class
 
 from sage.rings.integer cimport Integer
 
-from sage.libs.ntl.ntl_ZZ_pX_decl cimport *
-from sage.libs.ntl.ntl_lzz_pX_decl cimport *
+from sage.libs.ntl.ZZ_pX cimport *
+from sage.libs.ntl.lzz_pX cimport *
 
 
 cdef class Polynomial_dense_mod_n(Polynomial):

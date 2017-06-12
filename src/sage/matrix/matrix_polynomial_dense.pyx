@@ -190,16 +190,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             :meth:`is_weak_popov <sage.matrix.matrix_polynomial_dense.is_weak_popov>`
         """
         M = self.__copy__()
-
-        if transformation:
-            U = M._weak_popov_form(transformation=True, shifts=shifts)
-        else:
-            M._weak_popov_form(transformation=False, shifts=shifts)
-
+        U = M._weak_popov_form(transformation=transformation, shifts=shifts)
         M.set_immutable()
         if transformation:
             U.set_immutable()
-
         return (M,U) if transformation else M
 
     def _weak_popov_form(self, transformation=False, shifts=None):
@@ -469,12 +463,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             True
         """
         A = self.__copy__()
-
-        if transformation:
-            U = A._hermite_form_euclidean(transformation=True, normalization=lambda p: ~p.lc())
-        else:
-            A._hermite_form_euclidean(transformation=False, normalization=lambda p: ~p.lc())
-
+        U = A._hermite_form_euclidean(transformation=transformation,
+                                      normalization=lambda p: ~p.lc())
         if not include_zero_rows:
             i = A.nrows() - 1
             while i >= 0 and A.row(i) == 0:

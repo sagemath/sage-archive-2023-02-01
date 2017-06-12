@@ -633,40 +633,6 @@ class FunctionField_polymod(FunctionField):
         """
         return self._hash
 
-    def is_separable(self, base=None):
-        r"""
-        Return whether this is a separable extension of ``base``.
-
-        INPUT:
-
-        - ``base`` -- a function field from which this field has been created
-          as an extension or ``None`` (default: ``None``); if ``None``, then
-          return whether this is a separable extension over its base field.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(2))
-            sage: R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 - x)
-            sage: L.is_separable()
-            False
-            sage: R.<z> = L[]
-            sage: M.<z> = L.extension(z^3 - y)
-            sage: M.is_separable()
-            True
-            sage: M.is_separable(K)
-            False
-
-        """
-        if base is None:
-            base = self.base_field()
-        for k in self._intermediate_fields(base)[:-1]:
-            f = k.polynomial()
-            f /= f.leading_coefficient()
-            if not f.gcd(f.derivative()).is_one():
-                return False
-        return True
-
     def _to_base_field(self, f):
         r"""
         Return ``f`` as an element of the :meth:`base_field`.
@@ -1044,6 +1010,52 @@ class FunctionField_polymod(FunctionField):
             y^5 - 2*x*y + (-x^4 - 1)/x
         """
         return self._polynomial
+
+    def is_separable(self, base=None):
+        r"""
+        Return whether this is a separable extension of ``base``.
+        
+        INPUT:
+
+        - ``base`` -- a function field from which this field has been created
+          as an extension or ``None`` (default: ``None``); if ``None``, then
+          return whether this is a separable extension over its base field.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+            sage: L.is_separable()
+            False
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z^3 - y)
+            sage: M.is_separable()
+            True
+            sage: M.is_separable(K)
+            False
+
+            sage: K.<x> = FunctionField(GF(5))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^5 - (x^3 + 2*x*y + 1/x))
+            sage: L.is_separable()
+            True
+
+            sage: K.<x> = FunctionField(GF(5))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^5 - 1)
+            sage: L.is_separable()
+            False
+
+        """
+        if base is None:
+            base = self.base_field()
+        for k in self._intermediate_fields(base)[:-1]:
+            f = k.polynomial()
+            g = f.derivative()
+            if f.gcd(g).degree() != 0:
+                return False
+        return True
 
     def polynomial_ring(self):
         """

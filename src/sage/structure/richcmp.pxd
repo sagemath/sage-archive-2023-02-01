@@ -144,3 +144,65 @@ cpdef inline bint rich_to_bool_sgn(int op, Py_ssize_t c):
         This is in particular needed for ``mpz_cmp()``.
     """
     return rich_to_bool(op, (c > 0) - (c < 0))
+
+
+########################################################################
+# Technical Python stuff
+########################################################################
+
+from cpython.object cimport PyTypeObject
+
+cdef extern from *:
+    struct wrapperbase:
+        pass
+
+    ctypedef struct PyWrapperDescrObject:
+        wrapperbase* d_base
+
+    PyDescr_NewWrapper(PyTypeObject* cls, wrapperbase* wrapper, void* wrapped)
+
+    void PyType_Modified(PyTypeObject* cls)
+
+
+cdef inline wrapperbase* get_slotdef(slotwrapper) except NULL:
+    """
+    Given a "slot wrapper" object, return the corresponding ``slotdef``.
+
+    A slot wrapper is installed in the dict of an extension type to
+    access a special method implemented in C. For example,
+    ``object.__init__`` or ``Integer.__lt__``.
+
+    A ``slotdef`` is associated to a specific slot like ``__eq__``
+    and does not depend at all on the type. In other words, calling
+    ``get_slotdef(t.__eq__)`` will return the same ``slotdef``
+    independent of the type ``t`` (provided that the type implements
+    rich comparison in C).
+
+    TESTS::
+
+        sage: cython('''
+        ....: from sage.structure.richcmp cimport get_slotdef
+        ....: from cpython.long cimport PyLong_FromVoidPtr
+        ....: def py_get_slotdef(slotwrapper):
+        ....:     return PyLong_FromVoidPtr(get_slotdef(slotwrapper))
+        ....: ''')
+        sage: py_get_slotdef(object.__init__)  # random
+        140016903442416
+        sage: py_get_slotdef(bytes.__lt__)  # random
+        140016903441800
+        sage: py_get_slotdef(bytes.__lt__) == py_get_slotdef(Integer.__lt__)
+        True
+        sage: py_get_slotdef(bytes.__lt__) == py_get_slotdef(bytes.__gt__)
+        False
+        sage: class X(object):
+        ....:     def __eq__(self, other):
+        ....:         return False
+        sage: py_get_slotdef(X.__eq__)
+        Traceback (most recent call last):
+        ...
+        TypeError: expected a slot wrapper descriptor, got <...>
+    """
+    if type(slotwrapper).__name__ != 'wrapper_descriptor':
+        raise TypeError(f"expected a slot wrapper descriptor, got {type(slotwrapper)}")
+
+    return (<PyWrapperDescrObject*>slotwrapper).d_base

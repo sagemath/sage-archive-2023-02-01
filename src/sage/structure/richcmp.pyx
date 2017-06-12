@@ -42,6 +42,17 @@ op_GT = Py_GT   # operator >
 op_GE = Py_GE   # operator >=
 
 
+# Slotdefs for richcmp methods (the "bytes" below is arbitrary,
+# any type which implements these methods would work)
+cdef wrapperbase* richcmp_slotdef[6]
+richcmp_slotdef[Py_EQ] = get_slotdef(bytes.__eq__)
+richcmp_slotdef[Py_NE] = get_slotdef(bytes.__ne__)
+richcmp_slotdef[Py_LT] = get_slotdef(bytes.__lt__)
+richcmp_slotdef[Py_GT] = get_slotdef(bytes.__gt__)
+richcmp_slotdef[Py_LE] = get_slotdef(bytes.__le__)
+richcmp_slotdef[Py_GE] = get_slotdef(bytes.__ge__)
+
+
 def richcmp(x, y, int op):
     """
     Return the result of the rich comparison of ``x`` and ``y`` with
@@ -117,6 +128,26 @@ def richcmp_method(cls):
         sage: object() <= A("right")
         right >= <object object at ...>
 
+    We can call this comparison with the usual Python special methods::
+
+        sage: x = A("left"); y = A("right")
+        sage: x.__eq__(y)
+        left == right
+        sage: A.__eq__(x, y)
+        left == right
+
+    Everything still works in subclasses::
+
+        sage: class B(A):
+        ....:     pass
+        sage: x = B("left"); y = B("right")
+        sage: x != y
+        left != right
+        sage: x.__ne__(y)
+        left != right
+        sage: B.__ne__(x, y)
+        left != right
+
     TESTS::
 
         sage: richcmp_method(None)
@@ -126,5 +157,18 @@ def richcmp_method(cls):
     """
     if not isinstance(cls, type):
         raise TypeError(f"{cls!r} is not a class")
-    (<PyTypeObject*>cls).tp_richcompare = slot_tp_richcompare
+    cdef PyTypeObject* tp = <PyTypeObject*>cls
+    tp.tp_richcompare = slot_tp_richcompare
+
+    # Install slot wrappers in the class dict
+    cdef dict D = <dict>(tp.tp_dict)
+    D["__eq__"] = PyDescr_NewWrapper(tp, richcmp_slotdef[Py_EQ], <void*>slot_tp_richcompare)
+    D["__ne__"] = PyDescr_NewWrapper(tp, richcmp_slotdef[Py_NE], <void*>slot_tp_richcompare)
+    D["__lt__"] = PyDescr_NewWrapper(tp, richcmp_slotdef[Py_LT], <void*>slot_tp_richcompare)
+    D["__gt__"] = PyDescr_NewWrapper(tp, richcmp_slotdef[Py_GT], <void*>slot_tp_richcompare)
+    D["__le__"] = PyDescr_NewWrapper(tp, richcmp_slotdef[Py_LE], <void*>slot_tp_richcompare)
+    D["__ge__"] = PyDescr_NewWrapper(tp, richcmp_slotdef[Py_GE], <void*>slot_tp_richcompare)
+
+    PyType_Modified(tp)
+
     return cls

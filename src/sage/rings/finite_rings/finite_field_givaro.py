@@ -271,7 +271,7 @@ class FiniteField_givaro(FiniteField):
             0
 
         Rational are interpreted as ``self(numerator)/self(denominator)``.
-        Both may not be greater than :meth:characteristic()`.
+        Both may not be greater than :meth:`characteristic`.
         ::
 
             sage: k = GF(3**8, 'a')

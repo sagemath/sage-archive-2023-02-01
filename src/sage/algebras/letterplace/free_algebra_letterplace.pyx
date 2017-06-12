@@ -811,7 +811,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
           in the to-be-created element.
         - ``check`` (optional bool, default ``True``):
           This is forwarded to the initialisation of
-          :class:`~sage.algebas.letterplace.free_algebra_element_letterplace.FreeAlgebraElement_letterplace`.
+          :class:`~sage.algebras.letterplace.free_algebra_element_letterplace.FreeAlgebraElement_letterplace`.
 
         TEST:
 
@@ -830,7 +830,6 @@ cdef class FreeAlgebra_letterplace(Algebra):
 
             sage: F._from_dict_({})
             0
-
         """
         if not D:
             return self.zero()

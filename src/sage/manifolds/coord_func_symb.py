@@ -343,7 +343,7 @@ class CoordFunctionSymb(CoordFunctionGeneric):
         else:
             return latex(self._express)
 
-    # symbolic method is a pointer to SR 
+    # symbolic method is a pointer to SR
     _symb_method = SR
 
     def _ExpressionNicer(self,expression):

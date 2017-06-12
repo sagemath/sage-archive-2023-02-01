@@ -21,7 +21,9 @@ AUTHORS:
 #******************************************************************************
 from sage.structure.sage_object import SageObject
 from sage.symbolic.ring import SR
-from sage.manifolds.utilities import (simplify_chain_real, simplify_chain_generic)
+from sage.manifolds.utilities import (simplify_chain_real,
+                                      simplify_chain_generic,
+                                      simplify_chain_generic_sympy,)
 
 import sympy
 
@@ -72,13 +74,12 @@ class CalculusMethod(SageObject):
         self._current = self._default if current is None else current
 
 
-        self._simplify = {'sympy': sympy.simplify }
+        self._simplify = {'sympy': simplify_chain_generic_sympy }
 
         if chart.manifold().base_field_type() == 'real':
             self._simplify['SR'] = simplify_chain_real
         else:
             self._simplify['SR'] = simplify_chain_generic
-
 
 
     def set(self,method):

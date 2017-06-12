@@ -927,8 +927,7 @@ class Chart(UniqueRepresentation, SageObject):
         The coordinate function can be either a symbolic one or a numerical
         one, depending on the parameter ``expression`` (see below).
 
-        See :class:`~sage.manifolds.coord_func.CoordFunction`
-        and :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb`
+        See :class:`~sage.manifolds.chart_func.ChartFunction`
         for a complete documentation.
 
         INPUT:
@@ -944,9 +943,9 @@ class Chart(UniqueRepresentation, SageObject):
         OUTPUT:
 
         - instance of a subclass of the base class
-          :class:`~sage.manifolds.coord_func.CoordFunction`
+          :class:`~sage.manifolds.chart_func.ChartFunction`
           representing the coordinate function `f`; this is
-          :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb` if
+          :class:`~sage.manifolds.chart_func.ChartFunctionSymb` if
           if  ``expression`` is a symbolic expression.
 
         EXAMPLES:
@@ -985,12 +984,12 @@ class Chart(UniqueRepresentation, SageObject):
 
         where `V` is the chart codomain.
 
-        See class :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb`
+        See class :class:`~sage.manifolds.chart_func.ChartFunction`
         for a complete documentation.
 
         OUTPUT:
 
-        - a :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb`
+        - a :class:`~sage.manifolds.chart_func.ChartFunction`
           representing the zero coordinate function `f`
 
         EXAMPLES::
@@ -1039,12 +1038,12 @@ class Chart(UniqueRepresentation, SageObject):
 
         where `V` is the chart codomain.
 
-        See class :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb`
+        See class :class:`~sage.manifolds.chart_func.ChartFunction`
         for a complete documentation.
 
         OUTPUT:
 
-        - a :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb`
+        - a :class:`~sage.manifolds.chart_func.CoordFunction`
           representing the one coordinate function `f`
 
         EXAMPLES::
@@ -1101,7 +1100,7 @@ class Chart(UniqueRepresentation, SageObject):
         `K^m`-valued function of the coordinates associated to the chart
         `(U, \varphi)`.
 
-        See :class:`~sage.manifolds.coord_func.MultiCoordFunction` for a
+        See :class:`~sage.manifolds.chart_func.MultiCoordFunction` for a
         complete documentation.
 
         INPUT:
@@ -1114,7 +1113,7 @@ class Chart(UniqueRepresentation, SageObject):
 
         OUTPUT:
 
-        - a :class:`~sage.manifolds.coord_func.MultiCoordFunction`
+        - a :class:`~sage.manifolds.chart_func.MultiCoordFunction`
           representing `f`
 
         EXAMPLES:
@@ -1131,7 +1130,7 @@ class Chart(UniqueRepresentation, SageObject):
         TESTS::
 
             sage: type(f)
-            <class 'sage.manifolds.coord_func.MultiCoordFunction'>
+            <class 'sage.manifolds.chart_func.MultiCoordFunction'>
 
         """
         from sage.manifolds.chart_func import MultiCoordFunction

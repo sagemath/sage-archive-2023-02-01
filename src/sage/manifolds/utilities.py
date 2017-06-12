@@ -419,6 +419,13 @@ def simplify_chain_generic(expr):
     return expr
 
 
+def simplify_chain_generic_sympy(expr):
+
+    expr = expr.combsimp()
+    expr = expr.trigsimp()
+    expr = expr.expand()
+    return expr
+
 
 #******************************************************************************
 

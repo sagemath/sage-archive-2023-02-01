@@ -574,9 +574,10 @@ class Func_chebyshev_T(ChebyshevFunction):
             chebyshev_t(_SAGE_VAR_n,chebyshev_t(_SAGE_VAR_n,_SAGE_VAR_x))
         """
         ChebyshevFunction.__init__(self, 'chebyshev_T', nargs=2,
-                                     conversions=dict(maxima='chebyshev_t',
-                                                      mathematica='ChebyshevT',
-                                                      sympy='chebyshevt'))
+                                   conversions=dict(maxima='chebyshev_t',
+                                                    mathematica='ChebyshevT',
+                                                    sympy='chebyshevt',
+                                                    giac='tchebyshev1'))
 
     def _latex_(self):
         r"""
@@ -883,9 +884,10 @@ class Func_chebyshev_U(ChebyshevFunction):
             chebyshev_u(_SAGE_VAR_n,_SAGE_VAR_x)
         """
         ChebyshevFunction.__init__(self, 'chebyshev_U', nargs=2,
-                                     conversions=dict(maxima='chebyshev_u',
-                                                      mathematica='ChebyshevU',
-                                                      sympy='chebyshevu'))
+                                   conversions=dict(maxima='chebyshev_u',
+                                                    mathematica='ChebyshevU',
+                                                    sympy='chebyshevu',
+                                                    giac='tchebyshev2'))
 
     def _latex_(self):
         r"""
@@ -1142,9 +1144,11 @@ class Func_legendre_P(BuiltinFunction):
             sage: loads(dumps(legendre_P))
             legendre_P
         """
-        BuiltinFunction.__init__(self, "legendre_P", nargs=2, latex_name=r"P",
-                conversions={'maxima':'legendre_p', 'mathematica':'LegendreP',
-                    'maple':'LegendreP'})
+        BuiltinFunction.__init__(self, 'legendre_P', nargs=2, latex_name=r"P",
+                                 conversions={'maxima':'legendre_p',
+                                              'mathematica':'LegendreP',
+                                              'maple':'LegendreP',
+                                              'giac':'legendre'})
 
     def _eval_(self, n, x, *args, **kwds):
         r"""

@@ -367,7 +367,7 @@ This gives rise to the following code::
     ....:     def _repr_(self):
     ....:         return "(%s):(%s)"%(self.n,self.d)
     ....:     def _richcmp_(self, other, op):
-    ....:         from sage.structure.sage_object import richcmp
+    ....:         from sage.structure.richcmp import richcmp
     ....:         return richcmp(self.n*other.denominator(), other.numerator()*self.d, op)
     ....:     def _add_(self, other):
     ....:         C = self.__class__
@@ -1858,7 +1858,7 @@ Appendix: The complete code
         # are allowed to use the denominator() and numerator() methods
         # on the second argument.
         def _richcmp_(self, other, op):
-            from sage.structure.sage_object import richcmp
+            from sage.structure.richcmp import richcmp
             return richcmp(self.n*other.denominator(), other.numerator()*self.d, op)
 
         # Arithmetic methods, single underscore. We can assume that both

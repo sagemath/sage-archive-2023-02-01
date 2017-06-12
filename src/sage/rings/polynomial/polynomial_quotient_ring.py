@@ -252,12 +252,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         sage: P.<x> = QQ[]
         sage: Q = P.quotient(x^2+2)
         sage: Q.category()
-        Category of commutative no zero divisors
-        quotients of algebras over Rational Field
-
-    The test suite passes::
-
-        sage: TestSuite(Q).run()
+        Category of commutative no zero divisors quotients of algebras over Rational Field
 
     We verify that the elements belong to the correct element class.
     Also, we list the attributes that are provided by the element
@@ -306,9 +301,9 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         sage: e.gcd(e+1)
         1
 
-    Since the category has changed, we repeat the test suite. However, we have to skip the test
-    for its elements, since `an_element` has been cached in the previous run of the test suite,
-    and we have already seen that its class is not matching the new element class::
+    The test suite passes. However, we have to skip the test for its elements,
+    since `an_element` has been cached in the call above and its class does not
+    match the new category's element class anymore::
 
         sage: TestSuite(Q).run(skip=['_test_elements'])
 
@@ -827,16 +822,17 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         If proof is ``True``, requires the ``is_irreducible`` method of the
         modulus to be implemented::
 
-            sage: R1.<x> = GF(5)[]
+            sage: R1.<x> = Qp(2)[]
             sage: F1 = R1.quotient_ring(x^2+x+1)
             sage: R2.<x> = F1[]
             sage: F2 = R2.quotient_ring(x^2+x+1)
             sage: F2.is_field()
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: can not rewrite Univariate Quotient Polynomial Ring in xbar over 2-adic Field with capped relative precision 20 with modulus (1 + O(2^20))*x^2 + (1 + O(2^20))*x + (1 + O(2^20)) as an isomorphic ring
             sage: F2.is_field(proof = False)
             False
+
         """
         ret = self.base_ring().is_field(proof)
         try:

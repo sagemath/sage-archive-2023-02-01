@@ -333,6 +333,8 @@ class ComplexField_class(ring.Field):
             sage: CC(QQ[I].gen())
             1.00000000000000*I
             sage: CC.gen() + QQ[I].gen()
+            2.00000000000000*I
+            sage: CC.gen() + QQ.extension(x^2 + 1, 'I', embedding=None).gen()
             Traceback (most recent call last):
             ...
             TypeError: unsupported operand parent(s) for +: 'Complex Field with 53 bits of precision' and 'Number Field in I with defining polynomial x^2 + 1'

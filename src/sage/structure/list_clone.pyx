@@ -153,7 +153,7 @@ import sage
 from sage.ext.stdsage cimport HAS_DICTIONARY
 from sage.structure.element cimport Element
 from sage.structure.parent cimport Parent
-from sage.structure.sage_object cimport richcmp
+from sage.structure.richcmp cimport richcmp
 
 ############################################################################
 ###                         Basic clone elements                         ###

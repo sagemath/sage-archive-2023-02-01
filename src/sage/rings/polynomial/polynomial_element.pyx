@@ -67,7 +67,7 @@ from sage.misc.latex import latex
 from sage.misc.long cimport pyobject_to_long
 from sage.structure.factorization import Factorization
 from sage.structure.element import coerce_binop
-from sage.structure.sage_object cimport (richcmp, richcmp_not_equal,
+from sage.structure.richcmp cimport (richcmp, richcmp_not_equal,
         rich_to_bool, rich_to_bool_sgn)
 
 from sage.interfaces.singular import singular as singular_default, is_SingularElement
@@ -7030,7 +7030,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         ::
 
-            sage: K.<im> = NumberField(x^2 + 1)
+            sage: K.<im> = QuadraticField(-1)
             sage: y = polygen(K)
             sage: p = y^4 - 2 - im
             sage: p.roots(ring=CC)
@@ -8207,10 +8207,49 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             TypeError: is_squarefree() is not defined for polynomials over Ring of integers modulo 9
+
+        TESTS:
+
+        If the base ring implements `_is_squarefree_univariate_polynomial`,
+        then this method gets used instead of the generic algorithm in
+        :meth:`_is_squarefree_generic`::
+
+            sage: R.<x> = QQbar[]
+            sage: (x^2).is_squarefree()
+            False
+            sage: hasattr(QQbar, '_is_squarefree_univariate_polynomial')
+            False
+            sage: QQbar._is_squarefree_univariate_polynomial = lambda self: True
+            sage: (x^2).is_squarefree()
+            True
+            sage: del(QQbar._is_squarefree_univariate_polynomial)
+
         """
         B = self.parent().base_ring()
         if B not in sage.categories.integral_domains.IntegralDomains():
             raise TypeError("is_squarefree() is not defined for polynomials over {}".format(B))
+
+        B = self.parent().base_ring()
+        if hasattr(B, '_is_squarefree_univariate_polynomial'):
+            return B._is_squarefree_univariate_polynomial(self)
+
+        return self._is_squarefree_generic()
+
+    def _is_squarefree_generic(self):
+        r"""
+        Return False if this polynomial is not square-free, i.e., if there is a
+        non-unit `g` in the polynomial ring such that `g^2` divides ``self``.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQbar[]
+            sage: (x^2*(x + 1)).is_squarefree() # indirect doctest
+            False
+            sage: (x*(x+1)).is_squarefree() # indirect doctest
+            True
+
+        """
+        B = self.parent().base_ring()
 
         # a square-free polynomial has a square-free content
         if not B.is_field():

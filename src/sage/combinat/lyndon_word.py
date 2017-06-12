@@ -12,6 +12,7 @@ Lyndon words
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
+from six.moves import builtins
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -20,9 +21,9 @@ from sage.combinat.composition import Composition, Compositions
 from sage.rings.all import Integer
 from sage.arith.all import factorial, divisors, gcd, moebius
 from sage.misc.all import prod
-from six.moves import builtins
+
 from . import necklace
-from .integer_vector import IntegerVectors
+from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.words.words import FiniteWords
 
 
@@ -338,6 +339,7 @@ class LyndonWords_evaluation(UniqueRepresentation, Parent):
         for z in necklace._sfc(self._e[k:], equality=True):
             yield self._words([i+k+1 for i in z], check=False)
 
+
 class LyndonWords_nk(UniqueRepresentation, Parent):
     r"""
     Lyndon words of fixed length `n` over the alphabet `{1, 2, ..., k}`.
@@ -481,7 +483,8 @@ def StandardBracketedLyndonWords(n, k):
         sage: SBLW33.random_element()
         [1, [1, 2]]
     """
-    return StandardBracketedLyndonWords_nk(n,k)
+    return StandardBracketedLyndonWords_nk(n, k)
+
 
 class StandardBracketedLyndonWords_nk(UniqueRepresentation, Parent):
     def __init__(self, n, k):
@@ -506,7 +509,7 @@ class StandardBracketedLyndonWords_nk(UniqueRepresentation, Parent):
             sage: repr(StandardBracketedLyndonWords(3, 3))
             'Standard bracketed Lyndon words from an alphabet of size 3 of length 3'
         """
-        return "Standard bracketed Lyndon words from an alphabet of size %s of length %s"%(self._n, self._k)
+        return "Standard bracketed Lyndon words from an alphabet of size %s of length %s" % (self._n, self._k)
 
     def cardinality(self):
         """
@@ -543,8 +546,8 @@ class StandardBracketedLyndonWords_nk(UniqueRepresentation, Parent):
              [2, [2, 3]],
              [[2, 3], 3]]
         """
-        from builtins import map
-        return map(standard_bracketing, self._lyndon)
+        for x in self._lyndon:
+            yield standard_bracketing(x)
 
 
 def standard_bracketing(lw):

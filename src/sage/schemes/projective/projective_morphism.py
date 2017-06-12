@@ -5001,7 +5001,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         fixed points until there are enough points; such that there are `n+2` points with all `n+1` subsets linearly independent.
 
         ALGORITHM:
-        
+
         Implementing invariant set algorithim from the paper [FMV]_. Given that the set of  `n` th preimages of fixed points is
         invariant under conjugation find all elements of PGL that take one set to another.
 
@@ -5010,9 +5010,9 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         OUTPUT: Set of conjugating `n+1` by `n+1` matrices.
 
         AUTHORS:
-        
+
         - Original algorithm written by Xander Faber, Michelle Manes, Bianca Viray [FMV]_.
-        
+
         - Implimented by Rebecca Lauren Miller, as part of GSOC 2016.
 
         EXAMPLES::
@@ -5065,7 +5065,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             ValueError: not enough rational preimages
 
         ::
-        
+
             sage: P.<x,y> = ProjectiveSpace(GF(7),1)
             sage: H = End(P)
             sage: D6 = H([y^2, x^2])
@@ -5176,9 +5176,9 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: g = f.conjugate(m)
             sage: f.is_conjugate(g) # long time
             True
-            
+
         ::
-        
+
             sage: P.<x,y> = ProjectiveSpace(GF(5),1)
             sage: H = End(P)
             sage: f = H([x^3 + x*y^2,y^3])
@@ -5186,14 +5186,14 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             sage: g = f.conjugate(m)
             sage: f.is_conjugate(g)
             True
-            
+
         ::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
             sage: f = H([x^2 + x*y,y^2])
             sage: g = H([x^3 + x^2*y, y^3])
-            sage: f.is_conjugate(g) 
+            sage: f.is_conjugate(g)
             False
 
         ::
@@ -5579,12 +5579,12 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         r"""
         Return the indeterminacy locus of this map.
 
-        Only for rational maps on projective space defined over a field. 
+        Only for rational maps on projective space defined over a field.
         The indeterminacy locus is the set of points in projective space at which all of the defining polynomials of the rational map simultaneously vanish.
 
         OUTPUT:
 
-        - subscheme of the domain of the map.  The empty subscheme is returned as the vanishing 
+        - subscheme of the domain of the map.  The empty subscheme is returned as the vanishing
           of the coordinate functions of the domain.
 
         EXAMPLES::
@@ -5823,9 +5823,7 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
         Over a finite field this is a finite graph. For subscheme domains, only points
         on the subscheme whose image are also on the subscheme are in the digraph.
 
-        OUTPUT:
-
-        - a digraph
+        OUTPUT: a digraph
 
         EXAMPLES::
 
@@ -5837,11 +5835,11 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
 
         ::
 
-            sage: P.<x,y,z> = ProjectiveSpace(GF(5^2,'t'),2)
+            sage: P.<x,y,z> = ProjectiveSpace(GF(3^2,'t'),2)
             sage: H = Hom(P,P)
             sage: f = H([x^2+y^2, y^2, z^2+y*z])
             sage: f.cyclegraph()
-            Looped digraph on 651 vertices
+            Looped digraph on 91 vertices
 
         ::
 
@@ -5851,6 +5849,23 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
             sage: f = H([x^2, y^2, z^2])
             sage: f.cyclegraph()
             Looped digraph on 15 vertices
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(3),2)
+            sage: H = Hom(P,P)
+            sage: f = H([x*z-y^2, x^2-y^2, y^2-z^2])
+            sage: f.cyclegraph()
+            Looped digraph on 13 vertices
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(3),2)
+            sage: X = P.subscheme([x-y])
+            sage: H = End(X)
+            sage: f = H([x^2-y^2, x^2-y^2, y^2-z^2])
+            sage: f.cyclegraph()
+            Looped digraph on 4 vertices
         """
         if self.domain() != self.codomain():
             raise NotImplementedError("domain and codomain must be equal")
@@ -5860,18 +5875,24 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
         if is_ProjectiveSpace(self.domain()) is True:
             for P in self.domain():
                 V.append(P)
-                Q = self(P)
-                Q.normalize_coordinates()
-                E.append([Q])
+                try:
+                    Q = self(P)
+                    Q.normalize_coordinates()
+                    E.append([Q])
+                except ValueError: #indeterminacy
+                    E.append([])
         else:
             X = self.domain()
             for P in X.ambient_space():
                 try:
                     XP = X.point(P)
                     V.append(XP)
-                    Q = self(XP)
-                    Q.normalize_coordinates()
-                    E.append([Q])
+                    try:
+                        Q = self(XP)
+                        Q.normalize_coordinates()
+                        E.append([Q])
+                    except ValueError: #indeterminacy
+                        E.append([])
                 except TypeError:  # not a point on the scheme
                     pass
         from sage.graphs.digraph import DiGraph
@@ -6019,5 +6040,3 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
             F = f[0].numerator().polynomial(z)
         from .endPN_automorphism_group import automorphism_group_FF
         return(automorphism_group_FF(F, absolute, iso_type, return_functions))
-
-

@@ -2630,8 +2630,8 @@ cdef class Expression(CommutativeRingElement):
             # constants are wrappers around Sage objects, compare directly
             if is_a_constant(self._gobj.lhs()) and is_a_constant(self._gobj.rhs()):
                 return self.operator()(self.lhs().pyobject(), self.rhs().pyobject())
+            sig_on()
             try:
-                sig_on()
                 pynac_result = decide_relational(self._gobj)
             finally:
                 sig_off()
@@ -3021,8 +3021,8 @@ cdef class Expression(CommutativeRingElement):
         cdef GEx x
         cdef Expression _right = <Expression>right
         cdef operators op
+        sig_on()
         try:
-            sig_on()
             if is_a_relational(left._gobj):
                 if is_a_relational(_right._gobj):
                     op = compatible_relation(relational_operator(left._gobj),
@@ -3077,8 +3077,8 @@ cdef class Expression(CommutativeRingElement):
         """
         cdef GEx x
         cdef Expression _right = <Expression>right
+        sig_on()
         try:
-            sig_on()
             if is_a_relational(left._gobj):
                 if is_a_relational(_right._gobj):
                     op = compatible_relation(relational_operator(left._gobj),
@@ -3312,8 +3312,8 @@ cdef class Expression(CommutativeRingElement):
         cdef GEx x
         cdef Expression _right = <Expression>right
         cdef operators o
+        sig_on()
         try:
-            sig_on()
             if is_a_relational(left._gobj):
                 if is_a_relational(_right._gobj):
                     op = compatible_relation(relational_operator(left._gobj),
@@ -3418,8 +3418,8 @@ cdef class Expression(CommutativeRingElement):
         cdef GEx x
         cdef Expression _right = <Expression>right
         cdef operators o
+        sig_on()
         try:
-            sig_on()
             if is_a_relational(left._gobj):
                 if is_a_relational(_right._gobj):
                     op = compatible_relation(relational_operator(left._gobj),

@@ -1776,6 +1776,328 @@ cdef class pAdicConvert_QQ_FP(Morphism):
             raise ValueError("p divides the denominator")
         return ans
 
+cdef class pAdicCoercion_FP_frac_field(RingHomomorphism_coercion):
+    """
+    The canonical inclusion of Zq into its fraction field.
+
+    EXAMPLES::
+
+        sage: R.<a> = ZqFP(27, implementation='FLINT')
+        sage: K = R.fraction_field()
+        sage: K.coerce_map_from(R)
+        Ring Coercion morphism:
+          From: Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^3 + 2*x + 1
+          To:   Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^3 + 2*x + 1
+    """
+    def __init__(self, R, K):
+        """
+        Initialization.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqFP(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R); type(f)
+            <type 'sage.rings.padics.qadic_flint_FP.pAdicCoercion_FP_frac_field'>
+        """
+        RingHomomorphism_coercion.__init__(self, R.Hom(K), check=False)
+        self._zero = K(0)
+        self._section = pAdicConvert_FP_frac_field(K, R)
+
+    cpdef Element _call_(self, _x):
+        """
+        Evaluation.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqFP(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R)
+            sage: f(a)
+            a
+            sage: f(R(0))
+            0
+        """
+        cdef FPElement x = _x
+        cdef FPElement ans = self._zero._new_c()
+        ans.ordp = x.ordp
+        cshift(ans.unit, x.unit, 0, ans.prime_pow.prec_cap, x.prime_pow, False)
+        return ans
+
+    cpdef Element _call_with_args(self, _x, args=(), kwds={}):
+        """
+        This function is used when some precision cap is passed in
+        (relative or absolute or both).
+
+        See the documentation for
+        :meth:`pAdicCappedAbsoluteElement.__init__` for more details.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqFP(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R)
+            sage: f(a, 3)
+            a
+            sage: b = 9*a + 27
+            sage: f(b, 3)
+            a*3^2
+            sage: f(b, 4, 1)
+            a*3^2
+            sage: f(b, 4, 3)
+            a*3^2 + 3^3
+            sage: f(b, absprec=4)
+            a*3^2 + 3^3
+            sage: f(b, relprec=3)
+            a*3^2 + 3^3
+            sage: f(b, absprec=1)
+            0
+            sage: f(R(0))
+            0
+        """
+        cdef long aprec, rprec
+        cdef FPElement x = _x
+        cdef FPElement ans = self._zero._new_c()
+        cdef bint reduce = False
+        _process_args_and_kwds(&aprec, &rprec, args, kwds, False, ans.prime_pow)
+        if aprec <= x.ordp:
+            ans._set_exact_zero()
+        else:
+            if rprec < ans.prime_pow.prec_cap:
+                reduce = True
+            else:
+                rprec = ans.prime_pow.prec_cap
+            if aprec < rprec + x.ordp:
+                rprec = aprec - x.ordp
+                reduce = True
+            ans.ordp = x.ordp
+            cshift(ans.unit, x.unit, 0, rprec, x.prime_pow, reduce)
+        return ans
+
+    def section(self):
+        """
+        Returns a map back to the ring that converts elements of
+        non-negative valuation.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqFP(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R)
+            sage: f(K.gen())
+            a
+        """
+        return self._section
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        TESTS::
+
+            sage: R.<a> = ZqFP(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R)
+            sage: g = copy(f)   # indirect doctest
+            sage: g
+            Ring Coercion morphism:
+              From: Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^3 + 2*x + 1
+              To:   Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^3 + 2*x + 1
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(a)
+            a
+            sage: g(a) == f(a)
+            True
+
+        """
+        _slots['_zero'] = self._zero
+        _slots['_section'] = self._section
+        return RingHomomorphism_coercion._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        TESTS::
+
+            sage: R.<a> = ZqFP(9, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R)
+            sage: g = copy(f)   # indirect doctest
+            sage: g
+            Ring Coercion morphism:
+              From: Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^2 + 2*x + 2
+              To:   Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^2 + 2*x + 2
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(a)
+            a
+            sage: g(a) == f(a)
+            True
+
+        """
+        self._zero = _slots['_zero']
+        self._section = _slots['_section']
+        RingHomomorphism_coercion._update_slots(self, _slots)
+
+cdef class pAdicConvert_FP_frac_field(Morphism):
+    """
+    The section of the inclusion from `\ZZ_q`` to its fraction field.
+
+    EXAMPLES::
+
+        sage: R.<a> = ZqFP(27, implementation='FLINT')
+        sage: K = R.fraction_field()
+        sage: f = R.convert_map_from(K); f
+        Generic morphism:
+          From: Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^3 + 2*x + 1
+          To:   Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^3 + 2*x + 1
+    """
+    def __init__(self, K, R):
+        """
+        Initialization.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqFP(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = R.convert_map_from(K); type(f)
+            <type 'sage.rings.padics.qadic_flint_FP.pAdicConvert_FP_frac_field'>
+        """
+        Morphism.__init__(self, Hom(K, R, SetsWithPartialMaps()))
+        self._zero = R(0)
+
+    cpdef Element _call_(self, _x):
+        """
+        Evaluation.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqFP(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = R.convert_map_from(K)
+            sage: f(K.gen())
+            a
+        """
+        cdef FPElement x = _x
+        if x.ordp < 0: raise ValueError("negative valuation")
+        cdef FPElement ans = self._zero._new_c()
+        ans.ordp = x.ordp
+        cshift(ans.unit, x.unit, 0, ans.prime_pow.prec_cap, ans.prime_pow, False)
+        return ans
+
+    cpdef Element _call_with_args(self, _x, args=(), kwds={}):
+        """
+        This function is used when some precision cap is passed in
+        (relative or absolute or both).
+
+        See the documentation for
+        :meth:`pAdicCappedAbsoluteElement.__init__` for more details.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqFP(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = R.convert_map_from(K); a = K(a)
+            sage: f(a, 3)
+            a
+            sage: b = 9*a + 27
+            sage: f(b, 3)
+            a*3^2
+            sage: f(b, 4, 1)
+            a*3^2
+            sage: f(b, 4, 3)
+            a*3^2 + 3^3
+            sage: f(b, absprec=4)
+            a*3^2 + 3^3
+            sage: f(b, relprec=3)
+            a*3^2 + 3^3
+            sage: f(b, absprec=1)
+            0
+            sage: f(K(0))
+            0
+        """
+        cdef long aprec, rprec
+        cdef FPElement x = _x
+        if x.ordp < 0: raise ValueError("negative valuation")
+        cdef FPElement ans = self._zero._new_c()
+        cdef bint reduce = False
+        _process_args_and_kwds(&aprec, &rprec, args, kwds, False, ans.prime_pow)
+        if aprec <= x.ordp:
+            ans._set_exact_zero()
+        else:
+            if rprec < ans.prime_pow.prec_cap:
+                reduce = True
+            else:
+                rprec = ans.prime_pow.prec_cap
+            if aprec < rprec + x.ordp:
+                rprec = aprec - x.ordp
+                reduce = True
+            ans.ordp = x.ordp
+            cshift(ans.unit, x.unit, 0, rprec, x.prime_pow, reduce)
+        return ans
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        TESTS::
+
+            sage: R.<a> = ZqFP(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = R.convert_map_from(K)
+            sage: a = K(a)
+            sage: g = copy(f)   # indirect doctest
+            sage: g
+            Generic morphism:
+              From: Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^3 + 2*x + 1
+              To:   Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^3 + 2*x + 1
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(a)
+            a
+            sage: g(a) == f(a)
+            True
+
+        """
+        _slots['_zero'] = self._zero
+        return Morphism._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        TESTS::
+
+            sage: R.<a> = ZqFP(9, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = R.convert_map_from(K)
+            sage: a = K(a)
+            sage: g = copy(f)   # indirect doctest
+            sage: g
+            Generic morphism:
+              From: Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^2 + 2*x + 2
+              To:   Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^2 + 2*x + 2
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(a)
+            a
+            sage: g(a) == f(a)
+            True
+
+        """
+        self._zero = _slots['_zero']
+        Morphism._update_slots(self, _slots)
+
 def unpickle_fpe_v2(cls, parent, unit, ordp):
     """
     Unpickles a floating point element.

@@ -339,7 +339,7 @@ class FunctionFieldDerivation_inseparable(FunctionFieldDerivation):
             <class 'sage.rings.function_field.maps.FunctionFieldDerivation_inseparable'>
 
         """
-        from function_field import is_FunctionField
+        from .function_field import is_FunctionField
         if not is_FunctionField(L):
             raise TypeError("L must be a function field")
         FunctionFieldDerivation.__init__(self, L)

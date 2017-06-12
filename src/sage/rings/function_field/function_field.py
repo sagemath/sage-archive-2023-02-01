@@ -1490,7 +1490,7 @@ class FunctionField_polymod(FunctionField):
             x
 
         """
-        from maps import FunctionFieldDerivation_separable, FunctionFieldDerivation_inseparable
+        from .maps import FunctionFieldDerivation_separable, FunctionFieldDerivation_inseparable
         if self.is_separable():
             return FunctionFieldDerivation_separable(self, self.base_ring().derivation())
         else:

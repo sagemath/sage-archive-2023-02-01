@@ -2364,8 +2364,11 @@ cdef class Matrix(matrix0.Matrix):
             Full MatrixSpace of 2 by 3 dense matrices over Real Field with 53 bits of precision
 
         """
-        if self._nrows == nrows and self._ncols == ncols and (sparse is None or self.is_sparse() == sparse):
-            return self._parent(entries=entries, coerce=coerce, copy=copy)
+        if (sparse is None or self.is_sparse() == sparse):
+            if self._nrows == nrows and self._ncols == ncols:
+                return self._parent(entries=entries, coerce=coerce, copy=copy)
+            elif self._nrows == ncols and self._ncols == nrows:
+                return self._parent.transposed(entries=entries, coerce=coerce, copy=copy)
         return self.matrix_space(nrows, ncols, sparse=sparse)(entries=entries,
                                              coerce=coerce, copy=copy)
     def block_sum(self, Matrix other):

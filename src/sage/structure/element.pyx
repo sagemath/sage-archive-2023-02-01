@@ -293,7 +293,7 @@ cdef dict _coerce_op_symbols = dict(
 cdef MethodType
 from types import MethodType
 
-from sage.structure.sage_object cimport rich_to_bool
+from sage.structure.richcmp cimport rich_to_bool
 from sage.structure.coerce cimport py_scalar_to_element
 from sage.structure.parent cimport Parent
 from sage.structure.misc import is_extension_type
@@ -1010,7 +1010,7 @@ cdef class Element(SageObject):
         and check that comparison works::
 
             sage: cython('''
-            ....: from sage.structure.sage_object cimport rich_to_bool
+            ....: from sage.structure.richcmp cimport rich_to_bool
             ....: from sage.structure.element cimport Element
             ....: cdef class FloatCmp(Element):
             ....:     cdef float x

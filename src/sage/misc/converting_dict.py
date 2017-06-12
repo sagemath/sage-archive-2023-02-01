@@ -46,6 +46,7 @@ result no matter how a generator is identified::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 from six import iteritems
 
 import collections

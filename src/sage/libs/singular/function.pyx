@@ -79,7 +79,8 @@ from __future__ import absolute_import
 from libc.string cimport memcpy
 from cysignals.signals cimport sig_on, sig_off
 
-from sage.structure.sage_object cimport SageObject, richcmp
+from sage.structure.sage_object cimport SageObject
+from sage.structure.richcmp cimport richcmp
 
 from sage.rings.integer cimport Integer
 

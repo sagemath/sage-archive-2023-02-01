@@ -118,6 +118,7 @@ Comprehensive Module list
     sage/combinat/finite_state_machine
     sage/combinat/finite_state_machine_generators
     sage/combinat/free_module
+    sage/combinat/free_dendriform_algebra
     sage/combinat/free_prelie_algebra
     sage/combinat/fully_packed_loop
     sage/combinat/gelfand_tsetlin_patterns

@@ -221,27 +221,13 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
         """
         FunctionFieldDerivation.__init__(self, L)
 
-<<<<<<< HEAD
         self._d = d
         if not L.is_separable():
-||||||| merged common ancestors
-        self._d = d
-        f = self.domain().polynomial()
-        if not f.gcd(f.derivative()).is_one():
-=======
-        f = self.domain().polynomial()
-        if not f.gcd(f.derivative()).is_one():
->>>>>>> t/16562/ticket/16562
             raise ValueError("L must be a separable extension of its base field.")
 
         x = self.domain().gen()
-<<<<<<< HEAD
         f = L.polynomial()
-||||||| merged common ancestors
-=======
-
         self._d = d
->>>>>>> t/16562/ticket/16562
         self._gen_image = - f.map_coefficients(lambda c:d(c))(x) / f.derivative()(x)
 
     def _call_(self, x):
@@ -287,48 +273,23 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
               From: Function field in y defined by y^2 - x
               To:   Function field in y defined by y^2 - x
               Defn: y |--> (-1/2/-x)*y
-<<<<<<< HEAD
                     x |--> 1
-||||||| merged common ancestors
-=======
 
->>>>>>> t/16562/ticket/16562
             sage: R.<z> = L[]
             sage: M.<z> = L.extension(z^2 - y)
             sage: M.derivation()
             Derivation map:
               From: Function field in z defined by z^2 - y
               To:   Function field in z defined by z^2 - y
-<<<<<<< HEAD
               Defn: z |--> 1/4/x*z
                     y |--> (-1/2/-x)*y
                     x |--> 1
 
-||||||| merged common ancestors
-              Defn: y |--> (-1/2/-x)*y
-                    z |--> 1/4/x*z
-
-=======
-              Defn: y |--> (-1/2/-x)*y
-                    z |--> 1/4/x*z
->>>>>>> t/16562/ticket/16562
         """
         base = self._d._repr_defn()
-<<<<<<< HEAD
         ret = "%s |--> %s"%(self.domain().variable_name(),self._gen_image)
-||||||| merged common ancestors
-        ret = "%s |--> %s"%(self.domain().gen(),self._gen_image)
-=======
-        ret = '{} |--> {}'.format(self.domain().gen(), self._gen_image)
->>>>>>> t/16562/ticket/16562
         if base:
-<<<<<<< HEAD
             return ret + "\n" + base
-||||||| merged common ancestors
-            return base + "\n" + ret
-=======
-            return base + '\n' + ret
->>>>>>> t/16562/ticket/16562
         else:
             return ret
 

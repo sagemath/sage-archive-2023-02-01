@@ -538,7 +538,7 @@ def run_once(func):
 
     The running can be reset by setting the ``has_run`` attribute to False
 
-    TEST::
+    TESTS::
 
         sage: from sage.repl.ipython_extension import run_once
         sage: @run_once

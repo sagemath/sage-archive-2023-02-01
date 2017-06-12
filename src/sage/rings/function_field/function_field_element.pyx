@@ -25,7 +25,7 @@ AUTHORS:
 
 
 from sage.structure.element cimport FieldElement, RingElement, ModuleElement, Element
-from sage.structure.sage_object cimport richcmp, richcmp_not_equal
+from sage.structure.richcmp cimport richcmp, richcmp_not_equal
 
 
 def is_FunctionFieldElement(x):
@@ -333,7 +333,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
             sage: f.element()
             1/x^2*y + x/(x^2 + 1)
             sage: type(f.element())
-            <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_field_with_category.element_class'>
+            <class 'sage.rings.polynomial.polynomial_ring.PolynomialRing_field_with_category.element_class'>
         """
         return self._x
 

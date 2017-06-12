@@ -178,16 +178,18 @@ TESTS::
 Classes and Methods
 ===================
 """
+
 #*****************************************************************************
-# Copyright (C) 2014 Clemens Heuberger <clemens.heuberger@aau.at>
+#       Copyright (C) 2014 Clemens Heuberger <clemens.heuberger@aau.at>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
-#                http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_str, sig_off
 
 from cpython.float cimport PyFloat_AS_DOUBLE
 from cpython.int cimport PyInt_AS_LONG
@@ -2578,6 +2580,23 @@ cdef class RealBall(RingElement):
         """
         return not self.is_finite()
 
+    def is_NaN(self):
+        """
+        Return ``True`` if this ball is not-a-number.
+
+        EXAMPLES::
+
+            sage: RBF(NaN).is_NaN()
+            True
+            sage: RBF(-5).gamma().is_NaN()
+            True
+            sage: RBF(infinity).is_NaN()
+            False
+            sage: RBF(42, rad=1.r).is_NaN()
+            False
+        """
+        return arf_is_nan(arb_midref(self.value))
+
     # Arithmetic
 
     def __neg__(self):
@@ -2957,6 +2976,8 @@ cdef class RealBall(RingElement):
             [1.098612288668110 +/- 6.63e-16]
             sage: RBF(3).log(2)
             [1.584962500721156 +/- 7.53e-16]
+            sage: log(RBF(5), 2)
+            [2.32192809488736 +/- 3.04e-15]
 
             sage: RBF(-1/3).log()
             nan

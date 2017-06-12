@@ -183,8 +183,8 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
+from cysignals.signals cimport sig_on, sig_off
 from sage.ext.stdsage cimport PY_NEW
-include "cysignals/signals.pxi"
 include "sage/libs/ntl/decl.pxi"
 
 from sage.rings.integer cimport Integer
@@ -1811,14 +1811,14 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         Let `\alpha` be in `\mathcal{O}_K`.  Let
 
-        ..math ::
+        .. MATH::
 
             p = -\pi_K^{e_K} \epsilon
 
         be the factorization of `p` where `\epsilon` is a unit.  Then
         the `p`-th power of `1 + \alpha \pi_K^{\lambda}` satisfies
 
-        ..math ::
+        .. MATH::
 
             (1 + \alpha \pi^{\lambda})^p \equiv \left{ \begin{array}{lll}
             1 + \alpha^p \pi_K^{p \lambda} & \mod \mathfrak{p}_K^{p \lambda + 1} & \mbox{if $1 \le \lambda < \frac{e_K}{p-1}$} \\
@@ -1844,7 +1844,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         we can factor out the Teichmuller part and use the above lemma
         to find the first spot where
 
-        ..math::
+        .. MATH::
 
             (1 + \alpha \pi^{\lambda})^{p^m}
 

@@ -1105,6 +1105,66 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             return self.linear_combination( (on_basis(key), coeff)
                                             for key, coeff in six.iteritems(mc) )
 
+        def dimension(self):
+            """
+            Return the dimension of ``self``.
+
+            EXAMPLES::
+
+                sage: A.<x,y> = algebras.DifferentialWeyl(QQ)
+                sage: A.dimension()
+                +Infinity
+            """
+            try:
+                return self.basis().cardinality()
+            except (AttributeError, TypeError):
+                from sage.rings.integer_ring import ZZ
+                return ZZ(len(self.basis()))
+
+        def _from_dict(self, d, coerce=True, remove_zeros=True):
+            """
+            Construct an element of ``self`` from the dictionary ``d``.
+
+            INPUT:
+
+            - ``coerce`` -- boolean; coerce the coefficients to the base ring
+            - ``remove_zeroes`` -- boolean; remove zeros from the dictionary
+
+            EXAMPLES::
+
+                sage: A.<x,y> = algebras.DifferentialWeyl(QQ)
+                sage: K = A.basis().keys()
+                sage: d = {K[0]: 3, K[12]: -4/3}
+                sage: A._from_dict(d)
+                -4/3*dx^2 + 3
+
+                sage: R.<x,y> = QQ[]
+                sage: d = {K[0]: y, K[12]: -4/3}
+                sage: A._from_dict(d, coerce=False)
+                -4/3*dx^2 + y
+                sage: A._from_dict(d, coerce=True)
+                Traceback (most recent call last):
+                ...
+                TypeError: not a constant polynomial
+            """
+            R = self.base_ring()
+            B = self.basis()
+            if coerce:
+                zero = R.zero()
+                temp = {}
+                if remove_zeros:
+                    for k in d:
+                        y = R(d[k])
+                        if y != zero:
+                            temp[k] = y
+                else:
+                    for k in d:
+                        temp[k] = R(d[k])
+                return self.sum(temp[i] * B[i] for i in temp)
+            if remove_zeros:
+                return self.sum(d[i] * B[i] for i in d if d[i] != 0)
+            return self.sum(d[i] * B[i] for i in d)
+
     class ElementMethods:
         # TODO: Define the appropriate element methods here (instead of in
         # subclasses).  These methods should be consistent with those on
@@ -1961,7 +2021,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 This method simply delegates the work to
                 :meth:`ModulesWithBasis.ParentMethods.module_morphism`. It
                 is used by :meth:`Homset.__call__` to handle the
-                ``on_basis`` argument, and will disapear as soon as
+                ``on_basis`` argument, and will disappear as soon as
                 the logic will be generalized.
 
                 EXAMPLES::

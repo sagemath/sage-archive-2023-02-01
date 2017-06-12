@@ -3418,7 +3418,8 @@ class StandardTableauTuples_shape(StandardTableauTuples):
                 for col in range(len(t[row])):
                     cols[t[row][col]]=col+offset
                     mins[t[row][col]-1]=row+col
-            if len(t)>0: offset+=len(t[0])
+            if t:
+                offset += len(t[0])
 
         # To generate all of the tableaux we look for the first place where
         # cols[r]<cols[r-1]. Then swap r and s where s<r is maximal such that it
@@ -3582,6 +3583,7 @@ class StandardTableauTuples_shape(StandardTableauTuples):
         # Just to be safe we check that tab is standard and has shape mu by
         # using the class StandardTableauTuples(mu) to construct the tableau
         return self.element_class(self,tab)
+
 
 class StandardTableaux_residue(StandardTableauTuples):
     r"""

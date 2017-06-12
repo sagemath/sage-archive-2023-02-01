@@ -434,7 +434,7 @@ class SetFactoryPolicy(UniqueRepresentation, SageObject):
     """
     def __init__(self, factory):
         r"""
-        TEST::
+        TESTS::
 
             sage: from sage.structure.set_factories import SetFactoryPolicy
             sage: from sage.structure.set_factories_example import XYPairs
@@ -575,7 +575,7 @@ class SelfParentPolicy(SetFactoryPolicy):
     """
     def __init__(self, factory, Element):
         r"""
-        TEST::
+        TESTS::
 
             sage: from sage.structure.set_factories import SelfParentPolicy
             sage: from sage.structure.set_factories_example import XYPairs, XYPair
@@ -640,7 +640,7 @@ class TopMostParentPolicy(SetFactoryPolicy):
     """
     def __init__(self, factory, top_constraints, Element):
         """
-        TEST::
+        TESTS::
 
             sage: from sage.structure.set_factories import TopMostParentPolicy
             sage: from sage.structure.set_factories_example import XYPairs, XYPair
@@ -743,7 +743,7 @@ class FacadeParentPolicy(SetFactoryPolicy):
     """
     def __init__(self, factory, parent):
         r"""
-        TEST::
+        TESTS::
 
             sage: from sage.structure.set_factories import FacadeParentPolicy
             sage: from sage.structure.set_factories_example import XYPairs, XYPair
@@ -820,7 +820,7 @@ class BareFunctionPolicy(SetFactoryPolicy):
     """
     def __init__(self, factory, constructor):
         """
-        TEST::
+        TESTS::
 
             sage: from sage.structure.set_factories import BareFunctionPolicy
             sage: from sage.structure.set_factories_example import XYPairs

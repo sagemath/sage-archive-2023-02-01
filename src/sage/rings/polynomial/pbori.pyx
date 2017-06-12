@@ -183,9 +183,9 @@ REFERENCES:
 """
 from __future__ import print_function
 
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
 from cpython.object cimport Py_EQ, Py_NE
+from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 import operator
 
@@ -211,7 +211,7 @@ from sage.structure.parent cimport Parent
 from sage.structure.sequence import Sequence
 from sage.structure.element import coerce_binop
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.sage_object cimport richcmp, richcmp_not_equal
+from sage.structure.richcmp cimport richcmp, richcmp_not_equal
 
 from sage.categories.action cimport Action
 
@@ -1741,7 +1741,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             True
 
 
-        .. note ::
+        .. NOTE::
 
             This is part of PolyBoRi's native interface.
         """
@@ -1774,7 +1774,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: P.n_variables()
             1000
 
-        .. note ::
+        .. NOTE::
 
             This is part of PolyBoRi's native interface.
         """
@@ -2242,7 +2242,7 @@ cdef class BooleanMonomial(MonoidElement):
         """
         Pickling
 
-        TEST::
+        TESTS::
 
             sage: from brial import BooleanMonomialMonoid
             sage: R.<z,x> = BooleanPolynomialRing(2)
@@ -2923,7 +2923,7 @@ cdef class BooleanPolynomial(MPolynomial):
     - ``parent`` - a boolean polynomial ring
 
 
-    TEST::
+    TESTS::
 
         sage: from brial import BooleanPolynomial
         sage: B.<a,b,z> = BooleanPolynomialRing(3)

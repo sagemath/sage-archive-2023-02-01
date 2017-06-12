@@ -22,8 +22,9 @@ AUTHORS:
 
 from __future__ import absolute_import, print_function
 
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
+from cysignals.memory cimport check_allocarray, sig_free
+from cysignals.signals cimport sig_on, sig_off
+
 include "sage/data_structures/binary_matrix.pxi"
 from libc.math cimport sqrt
 from libc.string cimport memset
@@ -1249,7 +1250,7 @@ cpdef tuple find_hamiltonian(G, long max_iter=100000, long reset_bound=30000,
     member[u] = True
     member[v] = True
 
-    #Initialize all the variables neccesary to start iterating
+    #Initialize all the variables necessary to start iterating
     cdef bint done = False
     cdef long counter = 0
     cdef long bigcount = 0

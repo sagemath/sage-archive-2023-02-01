@@ -12,12 +12,11 @@ Coerce actions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
 import operator
 
-include "cysignals/signals.pxi"
 from cpython.int cimport *
 from cpython.number cimport *
+from cysignals.signals cimport sig_check
 
 from .element cimport (parent, coercion_model,
         Element, ModuleElement, RingElement)

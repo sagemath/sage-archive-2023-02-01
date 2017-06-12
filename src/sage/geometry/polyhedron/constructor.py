@@ -487,7 +487,7 @@ def Polyhedron(vertices=None, rays=None, lines=None,
                     base_ring = common_ring
                     convert = True
 
-    # Add the origin if necesarry
+    # Add the origin if necessary
     if got_Vrep and len(vertices)==0:
         vertices = [ [0]*ambient_dim ]
 

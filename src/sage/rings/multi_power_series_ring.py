@@ -165,7 +165,7 @@ Coercion from symbolic ring::
     sage: type(x)
     <type 'sage.symbolic.expression.Expression'>
     sage: type(S(x))
-    <class 'sage.rings.multi_power_series_ring_element.MPowerSeriesRing_generic_with_category.element_class'>
+    <class 'sage.rings.multi_power_series_ring.MPowerSeriesRing_generic_with_category.element_class'>
 
     sage: f = S(2/7 -100*x^2 + 1/3*x*y + y^2).O(3); f
     5 - x^2 + 4*x*y + y^2 + O(x, y)^3

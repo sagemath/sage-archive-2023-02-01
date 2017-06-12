@@ -3125,7 +3125,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         """
         See :class:`FiniteStateMachine` for more information.
 
-        TEST::
+        TESTS::
 
             sage: FiniteStateMachine()
             Empty finite state machine
@@ -6871,7 +6871,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: F.transitions()
             [Transition from 0 to 1: 0|-]
 
-        TEST::
+        TESTS::
 
             sage: F = FiniteStateMachine(initial_states=['A'])
             sage: def f(state, input):
@@ -8795,7 +8795,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         leaving ``C``.
 
         The final components are the only parts of a transducer which
-        influence the main terms of the asympotic behaviour of the sum
+        influence the main terms of the asymptotic behaviour of the sum
         of output labels of a transducer, see [HKP2015]_ and [HKW2015]_.
 
         EXAMPLES::
@@ -14406,7 +14406,7 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
 
             A string.
 
-            TEST::
+            TESTS::
 
                 sage: from sage.combinat.finite_state_machine import FSMProcessIterator
                 sage: T = Transducer([(0, 0, 0, 0)],

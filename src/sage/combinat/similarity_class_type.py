@@ -350,7 +350,7 @@ class PrimarySimilarityClassType(Element):
     of order `|\lambda| \cdot d` with entries in a finite field of order `q`
     which correspond to the `\GF{q[t]}`-module
 
-    .. MATH ::
+    .. MATH::
 
         \frac{\GF{q[t]}}{p(t)^{\lambda_1} } \oplus
         \frac{\GF{q[t]}}{p(t)^{\lambda_2}} \oplus \dotsb
@@ -691,7 +691,7 @@ class SimilarityClassType(CombinatorialElement):
     r"""
     A similarity class type.
 
-    A matrix type is a multiset of primary similairty class types.
+    A matrix type is a multiset of primary similarity class types.
 
     INPUT:
 
@@ -1311,8 +1311,9 @@ def input_parsing(data):
                     case = 'pri'
                     output = data
                 except(TypeError, ValueError):
-                    raise ValueError("Expected a Partition, a SimiliarityClassType or a PrimarySimilarityClassType, got a %s"%(type(data)))
+                    raise ValueError("Expected a Partition, a SimilarityClassType or a PrimarySimilarityClassType, got a %s" % type(data))
     return case, data
+
 
 def ext_orbits(input_data, q = None, selftranspose = False):
     r"""

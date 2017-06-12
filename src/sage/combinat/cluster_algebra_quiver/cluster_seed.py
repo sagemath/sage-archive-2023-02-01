@@ -798,11 +798,12 @@ class ClusterSeed(SageObject):
             print("C matrix does not look to be valid - not a linearly independent set.")
             print("Continuing...")
 
-        # Do a quick check to make sure that each column is either all positive or all negative.
+        # Do a quick check to make sure that each column is either all
+        # positive or all negative.
         # Can do this through green/red vertices
         greens = Set(get_green_vertices(data))
         reds = Set(get_red_vertices(data))
-        if greens.intersection(reds).cardinality() > 0 or greens.union(reds).cardinality() < data.ncols():
+        if greens.intersection(reds) or greens.union(reds).cardinality() < data.ncols():
             print("C matrix does not look to be valid - there exists a column containing positive and negative entries.")
             print("Continuing...")
 
@@ -1875,7 +1876,7 @@ class ClusterSeed(SageObject):
             raise ValueError("Must use c vectors to grab the vertices.")
 
         greens = self.green_vertices()
-        if len(greens) > 0:
+        if greens:
             return greens[0]
 
         return None
@@ -1935,7 +1936,7 @@ class ClusterSeed(SageObject):
             raise ValueError("Must use c vectors to grab the vertices.")
 
         reds = self.red_vertices()
-        if len(reds) > 0:
+        if reds:
             return reds[0]
 
         return None
@@ -4195,6 +4196,7 @@ def PathSubset(n,m):
                 S = union(S, [2*j])
     return set(S)
 
+
 def SetToPath(T):
     r"""
     Rearranges the encoding for a *maximal* Dyck path (as a set) so that it is a list in the proper order of the edges.
@@ -4353,9 +4355,9 @@ class ClusterVariable(FractionFieldElement):
     """
     def __init__( self, parent, numerator, denominator, coerce=True, reduce=True, mutation_type=None, variable_type=None, xdim=0 ):
         r"""
-        Initializes a cluster variable in the same way that elements in the field of rational functions are initialized.
+        Initialize a cluster variable in the same way that elements in the field of rational functions are initialized.
 
-        .. see also:: :class:`Fraction Field of Multivariate Polynomial Ring`
+        .. SEEALSO:: :class:`Fraction Field of Multivariate Polynomial Ring`
 
         TESTS::
 

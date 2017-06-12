@@ -1,3 +1,4 @@
+# distutils: sources = sage/modular/arithgroup/sl2z.cpp sage/modular/arithgroup/farey.cpp
 r"""
 Farey Symbol for arithmetic subgroups of `{\rm PSL}_2(\ZZ)`
 
@@ -46,10 +47,10 @@ from sage.plot.all import hyperbolic_arc, hyperbolic_triangle, text
 from sage.misc.latex import latex
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
-from sage.structure.sage_object cimport richcmp_not_equal
+from sage.structure.richcmp cimport richcmp_not_equal
 
 
-cdef extern from "sage/modular/arithgroup/sl2z.cpp":
+cdef extern from "sage/modular/arithgroup/sl2z.hpp":
     cppclass cpp_SL2Z "SL2Z":
         mpz_class a, b, c, d
         cpp_SL2Z(int, int, int, int)
@@ -59,7 +60,7 @@ cdef extern from "sage/modular/arithgroup/sl2z.cpp":
         mpz_class c()
         mpz_class d()
 
-cdef extern from "sage/modular/arithgroup/farey.cpp":
+cdef extern from "sage/modular/arithgroup/farey.hpp":
     cppclass is_element_Gamma0:
         is_element_Gamma0(int)
     cppclass is_element_Gamma1:

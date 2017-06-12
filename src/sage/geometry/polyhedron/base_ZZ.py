@@ -255,7 +255,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             sage: p.polar()
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices
             sage: type(_)
-            <class 'sage.geometry.polyhedron.backend_ppl.Polyhedra_ZZ_ppl_with_category.element_class'>
+            <class 'sage.geometry.polyhedron.parent.Polyhedra_ZZ_ppl_with_category.element_class'>
             sage: p.polar().base_ring()
             Integer Ring
         """

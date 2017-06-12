@@ -24,7 +24,7 @@ from ring import SR
 
 from sage.structure.coerce cimport py_scalar_to_element, is_numpy_type, is_mpmath_type
 from sage.structure.element cimport coercion_model
-from sage.structure.sage_object cimport richcmp
+from sage.structure.richcmp cimport richcmp
 
 # we keep a database of symbolic functions initialized in a session
 # this also makes the .operator() method of symbolic expressions work
@@ -806,7 +806,7 @@ cdef class GinacFunction(BuiltinFunction):
         # get serial
         try:
             self._serial = find_function(fname, self._nargs)
-        except ValueError as err:
+        except RuntimeError as err:
             raise ValueError("cannot find GiNaC function with name %s and %s arguments" % (fname, self._nargs))
 
         global sfunction_serial_dict
@@ -1061,7 +1061,7 @@ cdef class BuiltinFunction(Function):
         # search ginac registry for name and nargs
         try:
             serial = find_function(self._name, self._nargs)
-        except ValueError as err:
+        except RuntimeError as err:
             pass
 
         # if match, get operator from function table

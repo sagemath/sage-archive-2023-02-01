@@ -1777,8 +1777,8 @@ cdef class pAdicConvert_QQ_FP(Morphism):
         return ans
 
 cdef class pAdicCoercion_FP_frac_field(RingHomomorphism_coercion):
-    """
-    The canonical inclusion of Zq into its fraction field.
+    r"""
+    The canonical inclusion of `\ZZ_q` into its fraction field.
 
     EXAMPLES::
 
@@ -1790,7 +1790,7 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism_coercion):
           To:   Unramified Extension of 3-adic Field with floating precision 20 in a defined by x^3 + 2*x + 1
     """
     def __init__(self, R, K):
-        """
+        r"""
         Initialization.
 
         EXAMPLES::
@@ -1805,7 +1805,7 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism_coercion):
         self._section = pAdicConvert_FP_frac_field(K, R)
 
     cpdef Element _call_(self, _x):
-        """
+        r"""
         Evaluation.
 
         EXAMPLES::
@@ -1825,7 +1825,7 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism_coercion):
         return ans
 
     cpdef Element _call_with_args(self, _x, args=(), kwds={}):
-        """
+        r"""
         This function is used when some precision cap is passed in
         (relative or absolute or both).
 
@@ -1875,7 +1875,7 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism_coercion):
         return ans
 
     def section(self):
-        """
+        r"""
         Returns a map back to the ring that converts elements of
         non-negative valuation.
 
@@ -1890,7 +1890,7 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism_coercion):
         return self._section
 
     cdef dict _extra_slots(self, dict _slots):
-        """
+        r"""
         Helper for copying and pickling.
 
         TESTS::
@@ -1918,7 +1918,7 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism_coercion):
         return RingHomomorphism_coercion._extra_slots(self, _slots)
 
     cdef _update_slots(self, dict _slots):
-        """
+        r"""
         Helper for copying and pickling.
 
         TESTS::
@@ -1946,8 +1946,8 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism_coercion):
         RingHomomorphism_coercion._update_slots(self, _slots)
 
 cdef class pAdicConvert_FP_frac_field(Morphism):
-    """
-    The section of the inclusion from `\ZZ_q`` to its fraction field.
+    r"""
+    The section of the inclusion from `\ZZ_q` to its fraction field.
 
     EXAMPLES::
 
@@ -1959,7 +1959,7 @@ cdef class pAdicConvert_FP_frac_field(Morphism):
           To:   Unramified Extension of 3-adic Ring with floating precision 20 in a defined by x^3 + 2*x + 1
     """
     def __init__(self, K, R):
-        """
+        r"""
         Initialization.
 
         EXAMPLES::
@@ -1973,7 +1973,7 @@ cdef class pAdicConvert_FP_frac_field(Morphism):
         self._zero = R(0)
 
     cpdef Element _call_(self, _x):
-        """
+        r"""
         Evaluation.
 
         EXAMPLES::
@@ -1992,7 +1992,7 @@ cdef class pAdicConvert_FP_frac_field(Morphism):
         return ans
 
     cpdef Element _call_with_args(self, _x, args=(), kwds={}):
-        """
+        r"""
         This function is used when some precision cap is passed in
         (relative or absolute or both).
 
@@ -2043,7 +2043,7 @@ cdef class pAdicConvert_FP_frac_field(Morphism):
         return ans
 
     cdef dict _extra_slots(self, dict _slots):
-        """
+        r"""
         Helper for copying and pickling.
 
         TESTS::
@@ -2071,7 +2071,7 @@ cdef class pAdicConvert_FP_frac_field(Morphism):
         return Morphism._extra_slots(self, _slots)
 
     cdef _update_slots(self, dict _slots):
-        """
+        r"""
         Helper for copying and pickling.
 
         TESTS::

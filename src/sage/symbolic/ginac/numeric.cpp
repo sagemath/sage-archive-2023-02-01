@@ -2110,6 +2110,23 @@ bool numeric::is_zero() const {
         }
 }
 
+bool numeric::is_inexact_one() const {
+        verbose("is_one");
+        switch (t) {
+                case DOUBLE:
+                        return v._double == 1.0;
+                case MPZ:
+                        return mpz_cmp_si(v._bigint, 1) == 0;
+                case MPQ:
+                        return mpq_cmp_si(v._bigrat, 1, 1) == 0;
+                case PYOBJECT:
+                        return is_equal(*_num1_p);
+                default:
+                        std::cerr << "type = " << t << "\n";
+                        stub("invalid type: is_one() type not handled");
+        }
+}
+
 bool numeric::is_one() const {
         verbose("is_one");
         switch (t) {

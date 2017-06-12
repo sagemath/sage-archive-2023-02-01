@@ -200,6 +200,7 @@ public:
 	int csgn() const;
 	bool is_equal(const numeric &other) const;
 	bool is_zero() const;
+	bool is_inexact_one() const;
 	bool is_one() const;
 	bool is_minus_one() const;
 	bool is_positive() const;

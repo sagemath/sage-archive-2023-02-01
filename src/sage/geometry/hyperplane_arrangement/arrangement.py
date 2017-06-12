@@ -330,7 +330,7 @@ arrangements.
 
 from sage.structure.parent import Parent
 from sage.structure.element import Element
-from sage.structure.sage_object import richcmp
+from sage.structure.richcmp import richcmp
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import QQ, ZZ
 from sage.misc.cachefunc import cached_method

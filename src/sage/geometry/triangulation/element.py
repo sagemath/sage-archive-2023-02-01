@@ -320,7 +320,7 @@ class Triangulation(Element):
             sage: t1 != Triangulation(((0,1),(1,2)), pc, check=False)
             True
         """
-        return richcmp(left._triangulation, right._triangulation, op)
+        return richcmp(self._triangulation, right._triangulation, op)
 
     def __iter__(self):
         """

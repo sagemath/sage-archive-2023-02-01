@@ -14,13 +14,12 @@ Base class for polyhedra
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import division, print_function
-from __future__ import absolute_import
+from __future__ import division, print_function, absolute_import
 
 import itertools
 import six
 from sage.structure.element import Element, coerce_binop, is_Vector
-from sage.structure.richcmp import rich_to_bool
+from sage.structure.richcmp import rich_to_bool, op_NE
 
 from sage.misc.all import cached_method, prod
 from sage.misc.package import is_package_installed
@@ -422,10 +421,11 @@ class Polyhedron_base(Element):
             False
          """
         if self._Vrepresentation is None or other._Vrepresentation is None:
-            return False   # make sure deleted polyhedra are not used in cache
+            raise RuntimeError('some V representation is missing')
+            # make sure deleted polyhedra are not used in cache
 
         if self.ambient_dim() != other.ambient_dim():
-            return False
+            return op == op_NE
 
         c0 = self._is_subpolyhedron(other)
         c1 = other._is_subpolyhedron(self)

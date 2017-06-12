@@ -8,7 +8,37 @@ cdef class RelativeRamifiedFixedModElement(FMElement):
     #trace = MethodType(trace_unram, None, qAdicFixedModElement)
     #norm = MethodType(norm_unram, None, qAdicFixedModElement)
 
-    pass
+    def __cinit__(self, parent=None, x=None, absprec=infinity, relprec=infinity):
+        # It's not possible to set self.value in cconstruct (because of the calling syntax)
+        # so we do it here.
+        cdef type t
+        if parent is not None: # This will break the pickling function
+            t = type((<PowComputer_?>parent.prime_pow).modulus)
+            self.value = t.__new__(t)
+            #self.value = celement.__new__(celement)
+
+    cdef FMElement _new_c(self):
+        """
+        Creates a new element with the same basic info.
+
+        TESTS::
+
+            sage: R = ZpFM(5); R(6) * R(7) #indirect doctest
+            2 + 3*5 + 5^2 + O(5^20)
+        """
+        cdef type t = type(self)
+        cdef type polyt = type(self.prime_pow.modulus)
+        cdef FMElement ans = t.__new__(t)
+        ans._parent = self._parent
+        ans.prime_pow = self.prime_pow
+        ans.value = polyt.__new__(polyt)
+        #ans.value = celement.__new__(celement)
+        cconstruct(ans.value, ans.prime_pow)
+        return ans
+
+    def _poly_rep(self):
+        return self.value
+
     #def matrix_mod_pn(self):
     #    """
     #    Returns the matrix of right multiplication by the element on

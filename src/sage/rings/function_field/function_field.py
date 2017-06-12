@@ -515,6 +515,29 @@ class FunctionField(Field):
                 raise ValueError("field has not been constructed as a finite extension of base")
         return ret
 
+    def rational_function_field(self):
+        r"""
+        Return the rational function field from which this field has been
+        created as an extension.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: K.rational_function_field()
+            Rational function field in x over Rational Field
+
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2-x)
+            sage: L.rational_function_field()
+            Rational function field in x over Rational Field
+
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z^2-y)
+            sage: M.rational_function_field()
+            Rational function field in x over Rational Field
+        """
+        return self if is_RationalFunctionField(self) else self.base_field().rational_function_field()
+
 class FunctionField_polymod(FunctionField):
     """
     A function field defined by a univariate polynomial, as an
@@ -1417,6 +1440,324 @@ class FunctionField_polymod(FunctionField):
         else:
             raise NotImplementedError("construction of separable models not implemented")
 
+    def _simple_model(self, name='v'):
+        r"""
+        Helper method for :meth:`simple_model` which, for a tower of extensions
+        `M/L/K(x)` over a rational function field `K(x)` with `K` perfect,
+        finds a finite extension `N/K(x)` isomorphic to `M`.
+
+        INPUT:
+
+        - ``name`` -- a string, the name of the generator of `N`
+
+        ALGORITHM:
+
+        Since `K` is perfect, the extension `M/K(x)` is simple, i.e., generated
+        by a single element [BM1940]_. Therefore, there are only finitely many
+        intermediate fields (Exercise 3.6.7 in [Bosch2009]_).
+        Let `a` be a generator of `M/L` and let `a` be a generator of `L/K(x)`.
+        For some `i` the field `N_i=K(x)(a+x^ib)` is isomorphic to `M` and so
+        it is enough to test for all terms of the form `a+x^ib` whether they
+        generate a field of the right degree.
+        Indeed, suppose for contradiction that for all `i` we had `N_i\neq M`.
+        Then `N_i=N_j` for some `i,j`.  Thus `(a+x^ib)-(a+x^jb)=b(x^i-x^j)\in
+        N_j` and so `b\in N_j`.  Similarly,
+        `a+x^ib-x^{i-j}(a+x^jb)=a(1+x^{i-j})\in N_j` and so `a\in N_j`.
+        Therefore, `N_j=M`.
+
+        REFERENCES:
+
+        .. [BM1940] Becker, M. F., and Saunders MacLane. The minimum number of
+        generators for inseparable algebraic extensions. Bulletin of the
+        American Mathematical Society 46, no. 2 (1940): 182-186.
+
+        .. [Bosch2009] Bosch, S., Algebra, Springer 2009
+
+        TESTS::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2-x)
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z^2-y)
+            sage: M._simple_model()
+            (Function field in v defined by v^4 - x,
+             Function Field morphism:
+              From: Function field in v defined by v^4 - x
+              To:   Function field in z defined by z^2 - y
+              Defn: v |--> z,
+             Function Field morphism:
+              From: Function field in z defined by z^2 - y
+              To:   Function field in v defined by v^4 - x
+              Defn: z |--> v
+                    y |--> v^2)
+
+        Check that this also works for inseparable extensions::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2-x)
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z^2-y)
+            sage: M._simple_model()
+            (Function field in v defined by v^4 + x,
+             Function Field morphism:
+              From: Function field in v defined by v^4 + x
+              To:   Function field in z defined by z^2 + y
+              Defn: v |--> z,
+             Function Field morphism:
+              From: Function field in z defined by z^2 + y
+              To:   Function field in v defined by v^4 + x
+              Defn: z |--> v
+                    y |--> v^2)
+
+        An example where the generator of the last extension does not generate
+        the extension of the rational function field::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2-x)
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z^3-1)
+            sage: M._simple_model()
+            (Function field in v defined by v^6 + x*v^4 + x^2*v^2 + x^3 + 1,
+             Function Field morphism:
+               From: Function field in v defined by v^6 + x*v^4 + x^2*v^2 + x^3 + 1
+               To:   Function field in z defined by z^3 + 1
+               Defn: v |--> z + y,
+             Function Field morphism:
+               From: Function field in z defined by z^3 + 1
+               To:   Function field in v defined by v^6 + x*v^4 + x^2*v^2 + x^3 + 1
+               Defn: z |--> v^4 + x^2
+                     y |--> v^4 + v + x^2)
+
+        """
+        M = self
+        L = M.base_field()
+        K = L.base_field()
+
+        assert(is_RationalFunctionField(K))
+        assert(K is not L)
+        assert(L is not M)
+
+        if not K.constant_field().is_perfect():
+            raise NotImplementedError("simple_model() only implemented over perfect constant fields")
+
+        x = K.gen()
+        b = L.gen()
+        a = M.gen()
+
+        # using a+x^i*b tends to lead to huge powers of x in the minimal
+        # polynomial of the resulting field; it is better to try terms of
+        # the form a+i*b first (but in characteristic p>0 there are only
+        # finitely many of these)
+        # We systematically try elements of the form a+b*factor*x^exponent
+        factor = self.constant_base_field().zero()
+        exponent = 0
+        while True:
+            v = M(a+b*factor*x**exponent)
+            minpoly = v.matrix(K).minpoly()
+            if minpoly.degree() == M.degree()*L.degree():
+                break
+            factor += 1
+            if factor == 0:
+                factor = self.constant_base_field().one()
+                exponent += 1
+
+        N = K.extension(minpoly, names=(name,))
+
+        # the morphism N -> M, v |-> v
+        N_to_M = N.hom(v)
+
+        # the morphism M -> N, b |-> M_b, a |-> M_a
+        V, V_to_M, M_to_V = M.vector_space(K)
+        V, V_to_N, N_no_V = N.vector_space(K)
+        from sage.matrix.matrix_space import MatrixSpace
+        MS = MatrixSpace(V.base_field(), V.dimension())
+        # the power basis of v over K
+        B = [M_to_V(v**i) for i in range(V.dimension())]
+        B = MS(B)
+        M_b = V_to_N(B.solve_left(M_to_V(b)))
+        M_a = V_to_N(B.solve_left(M_to_V(a)))
+        M_to_N = M.hom([M_a,M_b])
+
+        return N, N_to_M, M_to_N
+
+    @cached_method
+    def simple_model(self, name=None):
+        """
+        Return a function field isomorphic to this field which is a simple
+        extension of a rational function field.
+
+        INPUT:
+
+        - ``name`` -- a string or ``None`` (default: ``None``), the name of generator of the
+          simple extension. If ``None``, then the name of the generator will be
+          the same as the name of the generator of this function field.
+
+        OUTPUT:
+
+        A triple ``(F,f,t)`` where ``F`` is a field isomorphic to this field,
+        ``f`` is an isomorphism from ``F`` to this function field and ``t`` is
+        the inverse of ``f``.
+
+        EXAMPLES:
+
+        A tower of four function fields::
+
+            sage: K.<x> = FunctionField(QQ); R.<z> = K[]
+            sage: L.<z> = K.extension(z^2-x); R.<u> = L[]
+            sage: M.<u> = L.extension(u^2-z); R.<v> = M[]
+            sage: N.<v> = M.extension(v^2-u)
+
+        The fields N and M as simple extensions of K::
+
+            sage: N.simple_model()
+            (Function field in v defined by v^8 - x,
+             Function Field morphism:
+              From: Function field in v defined by v^8 - x
+              To:   Function field in v defined by v^2 - u
+              Defn: v |--> v,
+             Function Field morphism:
+              From: Function field in v defined by v^2 - u
+              To:   Function field in v defined by v^8 - x
+              Defn: v |--> v
+                    u |--> v^2
+                    z |--> v^4
+                    x |--> x)
+            sage: M.simple_model()
+            (Function field in u defined by u^4 - x,
+             Function Field morphism:
+              From: Function field in u defined by u^4 - x
+              To:   Function field in u defined by u^2 - z
+              Defn: u |--> u,
+             Function Field morphism:
+              From: Function field in u defined by u^2 - z
+              To:   Function field in u defined by u^4 - x
+              Defn: u |--> u
+                    z |--> u^2
+                    x |--> x)
+
+        An optional parameter ``name`` can be used to set the name of the
+        generator of the simple extension::
+
+            sage: M.simple_model(name='t')
+            (Function field in t defined by t^4 - x, Function Field morphism:
+              From: Function field in t defined by t^4 - x
+              To:   Function field in u defined by u^2 - z
+              Defn: t |--> u, Function Field morphism:
+              From: Function field in u defined by u^2 - z
+              To:   Function field in t defined by t^4 - x
+              Defn: u |--> t
+                    z |--> t^2
+                    x |--> x)
+
+        An example with higher degrees::
+
+            sage: K.<x> = FunctionField(GF(3)); R.<y> = K[]
+            sage: L.<y> = K.extension(y^5-x); R.<z> = L[]
+            sage: M.<z> = L.extension(z^3-x)
+            sage: M.simple_model()
+            (Function field in z defined by z^15 + x*z^12 + x^2*z^9 + 2*x^3*z^6 + 2*x^4*z^3 + 2*x^5 + 2*x^3,
+             Function Field morphism:
+               From: Function field in z defined by z^15 + x*z^12 + x^2*z^9 + 2*x^3*z^6 + 2*x^4*z^3 + 2*x^5 + 2*x^3
+               To:   Function field in z defined by z^3 + 2*x
+               Defn: z |--> z + y,
+             Function Field morphism:
+               From: Function field in z defined by z^3 + 2*x
+               To:   Function field in z defined by z^15 + x*z^12 + x^2*z^9 + 2*x^3*z^6 + 2*x^4*z^3 + 2*x^5 + 2*x^3
+               Defn: z |--> 2/x*z^6 + 2*z^3 + z + 2*x
+                     y |--> 1/x*z^6 + z^3 + x
+                     x |--> x)
+
+        This also works for inseparable extensions::
+
+            sage: K.<x> = FunctionField(GF(2)); R.<y> = K[]
+            sage: L.<y> = K.extension(y^2-x); R.<z> = L[]
+            sage: M.<z> = L.extension(z^2-y)
+            sage: M.simple_model()
+            (Function field in z defined by z^4 + x, Function Field morphism:
+               From: Function field in z defined by z^4 + x
+               To:   Function field in z defined by z^2 + y
+               Defn: z |--> z, Function Field morphism:
+               From: Function field in z defined by z^2 + y
+               To:   Function field in z defined by z^4 + x
+               Defn: z |--> z
+                     y |--> z^2
+                     x |--> x)
+        """
+        if name is None:
+            name = self.variable_name()
+
+        if is_RationalFunctionField(self.base_field()):
+            # the extension is simple already
+            if name == self.variable_name():
+                from sage.categories.homset import Hom
+                id = Hom(self,self).identity()
+                return self, id, id
+            else:
+                ret = self.base_field().extension(self.polynomial(), names=(name,))
+                f = ret.hom(self.gen())
+                t = self.hom(ret.gen())
+                return ret, f, t
+        else:
+            # recursively collapse the tower of fields
+            base = self.base_field()
+            base_, from_base_, to_base_ = base.simple_model()
+            self_ = base_.extension(self.polynomial().map_coefficients(to_base_), names=(name,))
+            gens_in_base_ = [to_base_(k.gen())
+                             for k in base._intermediate_fields(base.rational_function_field())]
+            to_self_ = self.hom([self_.gen()]+gens_in_base_)
+            from_self_ = self_.hom([self.gen(),from_base_(base_.gen())])
+
+            # now collapse self_/base_/K(x)
+            ret, ret_to_self_, self__to_ret = self_._simple_model(name)
+            ret_to_self = ret.hom(from_self_(ret_to_self_(ret.gen())))
+            gens_in_ret = [self__to_ret(to_self_(k.gen()))
+                           for k in self._intermediate_fields(self.rational_function_field())]
+            self_to_ret = self.hom(gens_in_ret)
+            return ret, ret_to_self, self_to_ret
+
+    @cached_method
+    def primitive_element(self):
+        r"""
+        Return a primitive element over the underlying rational function field.
+
+        If this is a finite extension of a rational function field `K(x)` with
+        `K` perfect, then this is a simple extension of `K(x)`, i.e., there is
+        a primitive element `y` which generates this field over `K(x)`. This
+        method returns such an element `y`.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2-x)
+            sage: R.<z> = L[]
+            sage: M.<z> = L.extension(z^2-y)
+            sage: R.<z> = L[]
+            sage: N.<u> = L.extension(z^2-x-1)
+            sage: N.primitive_element()
+            u + y
+            sage: M.primitive_element()
+            z
+            sage: L.primitive_element()
+            y
+
+        This also works for inseparable extensions::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: R.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2-x)
+            sage: R.<Z> = L[]
+            sage: M.<z> = L.extension(Z^2-y)
+            sage: M.primitive_element()
+            z
+        """
+        N, f, t = self.simple_model()
+        return f(N.gen())
+
+
 def is_RationalFunctionField(x):
     """
     Return ``True`` if ``x`` is of rational function field type.
@@ -1429,10 +1770,7 @@ def is_RationalFunctionField(x):
         sage: is_RationalFunctionField(FunctionField(QQ,'t'))
         True
     """
-    if isinstance(x, RationalFunctionField):
-        return True
-    else:
-        return False
+    return isinstance(x, RationalFunctionField)
 
 class RationalFunctionField(FunctionField):
     """
@@ -1737,6 +2075,12 @@ class RationalFunctionField(FunctionField):
             sage: f.factor().prod() == f
             True
         """
+        old_variable_name = f.variable_name()
+        # the variables of the bivariate polynomial must be distinct
+        if self.variable_name() == f.variable_name():
+            # replace x with xx to make the variable names distinct
+            f = f.change_variable_name(old_variable_name + old_variable_name)
+
         F, d = self._to_bivariate_polynomial(f)
         fac = F.factor()
         x = f.parent().gen()
@@ -1748,6 +2092,9 @@ class RationalFunctionField(FunctionField):
         for a, e in v:
             c = a.leading_coefficient()
             a = a/c
+            # undo any variable substitution that we introduced for the bivariate polynomial
+            if old_variable_name != a.variable_name():
+                a = a.change_variable_name(old_variable_name)
             unit *= (c**e)
             w.append((a,e))
         from sage.structure.factorization import Factorization

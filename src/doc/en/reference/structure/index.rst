@@ -74,6 +74,7 @@ Utilities
 .. toctree::
    :maxdepth: 1
 
+   sage/structure/richcmp
    sage/structure/unique_representation
    sage/structure/factory
    sage/structure/dynamic_class

@@ -29,7 +29,7 @@ from operator import add, sub, mul, div, pow, neg, inv
 cdef canonical_coercion
 from sage.structure.element import canonical_coercion
 from sage.structure.all import parent
-from sage.structure.sage_object cimport richcmp
+from sage.structure.richcmp cimport richcmp
 
 import sage.categories.map
 from sage.categories.morphism cimport Morphism

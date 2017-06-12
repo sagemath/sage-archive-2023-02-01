@@ -7748,7 +7748,7 @@ cdef class Matroid(SageObject):
             Ternary matroid of rank 3 on 7 elements, type 0-
         """
         from . import union_matroid
-        if matroids = []:
+        if not matroids:
             return self
         if isinstance(matroids, Matroid):
             matroids = [matroids]

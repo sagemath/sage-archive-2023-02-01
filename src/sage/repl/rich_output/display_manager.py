@@ -562,7 +562,7 @@ class DisplayManager(SageObject):
         OUTPUT:
 
         Whatever ``_rich_repr_`` returned. If it raises an exception,
-        then a :class:`DisplayFormatterWarning`` is displayed and
+        then a :class:`DisplayFormatterWarning` is displayed and
         ``None`` is returned.
 
         EXAMPLES::
